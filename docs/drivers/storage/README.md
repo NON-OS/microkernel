@@ -84,3 +84,9 @@ Every caller in NONOS addresses 512-byte sectors, and a disk whose blocks cannot
 - USB: logical blocks of 512, 1024, 2048 or 4096 bytes (`userland/capsule_driver_usb_msc/src/span/mod.rs:27-34`, `sectors_per_block`).
 - eMMC: 512-byte sectors (`userland/capsule_driver_ahci/src/emmc/disk/sizes.rs:19-21`, `SECTOR_SIZE`).
 - virtio-blk: 512-byte sectors (`userland/capsule_driver_virtio_blk/src/constants/queue.rs:21-22`, `SECTOR_SIZE`).
+
+## Who may read and write a disk
+
+Raw sectors hold every partition on a disk, other systems' files among them. The NVMe, SATA and virtio-blk drivers therefore answer only the kernel's own client, which arrives as sender pid 0, and a sender the kernel says holds the `StoreWrite` [capability](../../overview/glossary.md#capability) (`userland/capsule_driver_nvme/src/server/medium_rule.rs:25-29`, `allows`). The driver asks the kernel with `mk_cap_check` on every request (`userland/capsule_driver_nvme/src/server/medium.rs:25-29`, `CAP_STORE_WRITE`). The SATA driver has the same rule in `userland/capsule_driver_ahci/src/server/medium_rule.rs` and the virtio-blk driver in `userland/capsule_driver_virtio_blk/src/server/acl/rule.rs`. On these three a health check is open to any sender. `StoreWrite` is bit 26 of the capability word (`abi/caps.toml:32`, `STORE_WRITE`).
+
+The USB mass-storage driver serves its block operations to the kernel alone (`userland/capsule_driver_usb_msc/src/server/handlers/block.rs:38-43`, `E_ACCES`), and the kernel lets no capsule send to it at all (`src/services/registry/held_table.rs:27-30`, `KERNEL_ONLY`).
