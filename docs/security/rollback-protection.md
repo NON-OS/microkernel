@@ -34,3 +34,30 @@ The loader's own NV code sits in its verification module, which these pages do n
 - Raising increments the counter until the floor reaches the target and never lowers it; a failed increment reports the floor as not raised (`raise_with`, `nonos-bootloader/boot_proofs/src/floor_raise_tests.rs:20-49`).
 
 `tpm_enroll_proofs` runs the same sequence against a software TPM, including a raise to 5 and a deleted counter that comes back at 6 (`floor_with`, `userland/tpm_enroll_proofs/src/security/tpm/live/floor_tests.rs:31-42`). In this release's flake checks, `proofs-boot_proofs` passed 39 tests and `proofs-tpm_enroll_proofs` passed 37, the second against swtpm; that check fails when a live TPM test is skipped (`needsTpm`, `tools/nix/checks.nix:32-34`).
+
+## How the loader uses it
+
+```mermaid
+stateDiagram-v2
+    [*] --> read_floor
+    read_floor --> Held
+    read_floor --> Refuse
+    read_floor --> Unprotected
+    Held --> fatal_reset: index below the floor
+    Held --> commit_floor: index at or above the floor
+    Refuse --> fatal_reset
+    Unprotected --> commit_floor
+    commit_floor --> [*]
+```
+
+`check_rollback` runs inside `run_crypto_verification`, right after `verify_signature` (`nonos-bootloader/src/boot/crypto/run.rs:30-46`). `enforce_floor` asks `read_floor` for the floor and `floor_rule` for what to do with the answer (`nonos-bootloader/src/boot/crypto/rollback/floor.rs:28-29`):
+
+- `Held` means the floor was read, and a kernel whose index is below it stops the boot through `fatal_reset` in every mode that requires signatures, with `Rollback: tpm floor N above image index M` on screen and `[FATAL] rollback index below TPM floor` (`nonos-bootloader/src/boot/crypto/rollback/floor.rs:30-40`). Development, which requires no signature, boots it anyway.
+- `Refuse` means no floor could be read on a mode that requires a TPM, and the boot stops through `fatal_reset` with `<mode> needs a TPM: its rollback floor keeps an older signed kernel from booting` on screen and `[FATAL] profile requires a TPM rollback floor` (`nonos-bootloader/src/boot/crypto/rollback/floor.rs:41-51`).
+- `Unprotected` means no floor on any other mode: the boot goes on, the log says an older signed kernel would boot, and the panel shows `No TPM: rollback protection is off` (`nonos-bootloader/src/boot/crypto/rollback/floor.rs:52-58`).
+
+`requires_tpm` is true for Hardened and for `NetworkIsolated`, the mode the menu calls Air-Gapped (`nonos-bootloader/src/menu/types/mode.rs:56-59`, `nonos-bootloader/src/menu/types/mode.rs:31-39`). The boot proofs hold that mapping for all six modes (`without_a_counter_hardened_and_air_gapped_refuse`, `nonos-bootloader/boot_proofs/src/floor_rule_tests.rs:36-45`).
+
+After the kernel is admitted, `run_verified_boot` calls `commit_rollback` (`nonos-bootloader/src/entry/pipeline.rs:38-42`). `commit_rollback` asks `commit_floor` to raise the floor to the kernel's index (`nonos-bootloader/src/boot/crypto/rollback/commit.rs:40-47`). When the raise fails, `raise_failed` stops the boot on Hardened and Air-Gapped with `Rollback floor could not be raised to index N` on screen and `[FATAL] tpm rollback floor not raised`, and elsewhere, when a TPM is present, warns `Rollback floor not raised: an older kernel may still boot` (`nonos-bootloader/src/boot/crypto/rollback/raise.rs:28-48`).
+
+So once a kernel at index N has booted on a machine with a TPM and the raise succeeded, its floor is at least N, and any kernel signed with a lower index stops at `check_rollback` there, in every mode but Development. Raising the index for a release retires every older kernel on each machine where the new one boots and raises the floor.
