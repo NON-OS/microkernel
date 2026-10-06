@@ -34,6 +34,12 @@ pub struct State {
     pub(super) ignore_residue: bool,
 }
 
+impl Default for State {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl State {
     pub fn new() -> Self {
         Self {

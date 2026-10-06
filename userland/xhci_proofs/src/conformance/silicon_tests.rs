@@ -252,7 +252,7 @@ fn reset_waits_after_hcrst_before_reading_the_controller() {
     let _hc = run(&bar, host_controller);
     let before = nonos_libc::slept_ms();
     reset(op_base(&bar)).expect("reset completes");
-    assert!(nonos_libc::slept_ms() >= before + 1, "no settle time after HCRST (Intel quirk)");
+    assert!(nonos_libc::slept_ms() > before, "no settle time after HCRST (Intel quirk)");
 }
 
 #[test]

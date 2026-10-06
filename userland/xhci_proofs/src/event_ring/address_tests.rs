@@ -36,7 +36,7 @@ fn an_addressed_device_is_left_to_settle_before_the_reply() {
     let before = nonos_libc::slept_ms();
     issue_address_device(fx.db(), fx.intr(), &mut cmd, &mut fx.ring, INPUT_CONTEXT, SLOT)
         .expect("addressed");
-    assert!(SET_ADDRESS_SETTLE_MS >= 2, "at least the specification's recovery interval");
+    const { assert!(SET_ADDRESS_SETTLE_MS >= 2, "at least the specification's recovery interval") };
     assert!(nonos_libc::slept_ms() - before >= SET_ADDRESS_SETTLE_MS, "the device was given its time");
 }
 

@@ -52,7 +52,10 @@ fn hostile(attr: &str, value: &str, sel: impl Fn(usize) -> String) -> (usize, Du
 fn bounded((used, took): (usize, Duration)) {
     assert!(used > CASCADE, "the budget was reached: {used}");
     assert!(used <= CASCADE + CALL + 1_000, "and overrun by at most one call: {used}");
-    assert!(took < Duration::from_millis(1_500), "took {took:?}");
+    // The step count above is the bound; the clock only catches a cascade
+    // that went quadratic, which over a 1 MB value takes minutes. A loaded
+    // nix builder took 2 s for the bounded one, so the ceiling is 10 s.
+    assert!(took < Duration::from_secs(10), "took {took:?}");
 }
 
 #[test]

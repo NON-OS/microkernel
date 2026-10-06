@@ -107,8 +107,11 @@ pub fn run(root: &str) -> std::io::Result<Status> {
     rpt.check(
         "build-aarch64",
         if arm { Status::Pass } else { Status::Gap },
-        if arm { "lane wired: make nonos-mk-arm (ci-build-aarch64, ci-boot-aarch64)" }
-        else { "aarch64-nonos.json or the nonos-mk-arm target is missing" },
+        if arm {
+            "lane wired: make nonos-mk-arm (ci-build-aarch64, ci-boot-aarch64)"
+        } else {
+            "aarch64-nonos.json or the nonos-mk-arm target is missing"
+        },
     );
     rpt.check(
         "build-riscv64",
