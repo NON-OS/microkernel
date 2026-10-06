@@ -14,34 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use alloc::vec;
+use spin::Mutex;
 
 use super::super::capability::gate_call;
 use super::super::error::DriverNvmeError;
-use super::super::protocol::{encode_request, MAX_RW_PAYLOAD_BYTES, OP_WRITE_BLOCKS, SECTOR_SIZE};
-use super::seq::next_request_id;
-use super::status_map::lift;
-use super::transport::round_trip;
+use super::layout::layout;
+use super::lba_map::{chunks, plan, Partial, SECTOR};
+use super::native::{read_lbas, write_lbas};
+use crate::services::lifecycle::transport;
 
-pub fn write_blocks(lba: u64, data: &[u8]) -> Result<(), DriverNvmeError> {
+/// Held across a whole write. A write covering part of an LBA reads it,
+/// changes the covered bytes and writes it back; two such writes to one LBA
+/// at once would each write back the other's bytes as they were.
+static WRITE_LOCK: Mutex<()> = Mutex::new(());
+
+/// Write `data` at 512-byte sector `sector`. The request is mapped onto the
+/// namespace's LBAs and cut into commands the capsule takes; a part of an
+/// LBA at either end is read, patched and written back whole.
+pub fn write_blocks(sector: u64, data: &[u8]) -> Result<(), DriverNvmeError> {
     let _caller = gate_call()?;
-    if data.is_empty() || data.len() % SECTOR_SIZE != 0 {
+    if data.is_empty() || !data.len().is_multiple_of(SECTOR) {
         return Err(DriverNvmeError::InvalidArgument);
     }
-    if data.len() > MAX_RW_PAYLOAD_BYTES as usize {
-        return Err(DriverNvmeError::OversizedRequest);
+    let layout = layout()?;
+    let plan = plan(sector, data.len(), layout.lba_size).ok_or(DriverNvmeError::OutOfRange)?;
+    let lba_bytes = layout.lba_size as usize;
+    let _write = transport::lock_yielding(&WRITE_LOCK);
+    if let Some(head) = plan.head {
+        write_partial(head, lba_bytes, data)?;
     }
-    let nsectors = (data.len() / SECTOR_SIZE) as u32;
-    let mut body: Vec<u8> = Vec::with_capacity(12 + data.len());
-    body.extend_from_slice(&lba.to_le_bytes());
-    body.extend_from_slice(&nsectors.to_le_bytes());
-    body.extend_from_slice(data);
-    let request_id = next_request_id();
-    let frame = encode_request(OP_WRITE_BLOCKS, 0, request_id, &body);
-    let resp = round_trip(request_id, frame)?;
-    if resp.status == 0 {
-        Ok(())
-    } else {
-        Err(lift(resp.status))
+    if let Some(whole) = plan.body {
+        for (lba, n, offset) in chunks(whole, layout.per_request, layout.lba_size) {
+            let at = whole.at + offset;
+            write_lbas(lba, n, &data[at..at + n as usize * lba_bytes])?;
+        }
     }
+    if let Some(tail) = plan.tail {
+        write_partial(tail, lba_bytes, data)?;
+    }
+    Ok(())
+}
+
+fn write_partial(p: Partial, lba_bytes: usize, data: &[u8]) -> Result<(), DriverNvmeError> {
+    let mut block = vec![0u8; lba_bytes];
+    read_lbas(p.lba, 1, &mut block)?;
+    block[p.offset..p.offset + p.len].copy_from_slice(&data[p.at..p.at + p.len]);
+    write_lbas(p.lba, 1, &block)
 }

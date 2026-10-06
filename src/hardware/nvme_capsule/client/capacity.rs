@@ -16,22 +16,12 @@
 
 use super::super::capability::gate_call;
 use super::super::error::DriverNvmeError;
-use super::super::protocol::{encode_request, OP_CAPACITY};
-use super::read::u64_at;
-use super::seq::next_request_id;
-use super::status_map::lift;
-use super::transport::round_trip;
+use super::layout::layout;
+use super::lba_map::capacity_sectors;
 
+/// The namespace's size in 512-byte sectors, whatever its LBA size.
 pub fn capacity() -> Result<u64, DriverNvmeError> {
     let _caller = gate_call()?;
-    let request_id = next_request_id();
-    let frame = encode_request(OP_CAPACITY, 0, request_id, &[]);
-    let resp = round_trip(request_id, frame)?;
-    if resp.status != 0 {
-        return Err(lift(resp.status));
-    }
-    if resp.body.len() < 8 {
-        return Err(DriverNvmeError::ProtocolMismatch);
-    }
-    Ok(u64_at(&resp.body, 0))
+    let layout = layout()?;
+    capacity_sectors(layout.capacity_lbas, layout.lba_size).ok_or(DriverNvmeError::Unsupported)
 }

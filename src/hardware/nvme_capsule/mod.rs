@@ -19,6 +19,9 @@
 //! admin/status and block I/O IPC contract (capacity, read_blocks,
 //! write_blocks, flush). PCIe claim, BAR0 mapping, MSI-X, admin and
 //! NVM I/O queue DMA, and the command path stay inside `driver.nvme0`.
+//! Callers count 512-byte sectors; the client maps them onto the
+//! namespace's own LBAs (`client::lba_map`), so a 4096-byte-LBA drive is
+//! addressed like any other.
 
 mod capability;
 pub mod client;
@@ -30,8 +33,8 @@ mod state;
 
 pub use client::{
     capacity, controller_info, flush, healthcheck, identify_controller, identify_namespace,
-    read_blocks, smart_health, write_blocks, NvmeControllerIdentity, NvmeControllerInfo,
-    NvmeNamespaceIdentity, NvmeSmartHealth,
+    lba_size_addressable, read_blocks, smart_health, write_blocks, NvmeControllerIdentity,
+    NvmeControllerInfo, NvmeNamespaceIdentity, NvmeSmartHealth,
 };
 pub use error::DriverNvmeError;
 pub use spawn::{spawn_driver_nvme_capsule, SpawnError};
