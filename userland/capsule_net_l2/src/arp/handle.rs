@@ -16,6 +16,7 @@
 
 use super::cache::Cache;
 use super::packet::{ArpPacket, OPER_REPLY, OPER_REQUEST, PACKET_LEN};
+use super::sender::{is_neighbour_ip, is_station};
 use crate::ethernet::{EthHeader, ETHERTYPE_ARP, HDR_LEN, MAC_BROADCAST};
 
 pub struct Iface {
@@ -37,15 +38,29 @@ pub struct ReplyFrame {
 // not require a response.
 pub fn on_inbound(iface: &Iface, cache: &mut Cache, payload: &[u8]) -> Option<ReplyFrame> {
     let pkt = ArpPacket::parse(payload)?;
-    let solicited = cache.is_pending(pkt.sender_ip)
-        || (pkt.oper == OPER_REQUEST && pkt.target_ip == iface.ipv4);
-    match crate::arp::cache::decide(cache.lookup(&pkt.sender_ip), pkt.sender_mac, solicited) {
-        crate::arp::cache::Learn::Insert | crate::arp::cache::Learn::Refresh => {
-            cache.insert(pkt.sender_ip, pkt.sender_mac);
-        }
-        crate::arp::cache::Learn::Reject => {}
+    /*
+     * RFC 826 has two operations, and a sender with a group or zero hardware
+     * address is no host: neither is learned from or answered, or a unicast
+     * IP would map to every host on the segment. A sender address nobody can
+     * hold (0.0.0.0 from an RFC 5227 probe, loopback, a group, ours) is not
+     * learned, though a probe for our address is still answered: that is how
+     * the address is defended.
+     */
+    if (pkt.oper != OPER_REQUEST && pkt.oper != OPER_REPLY) || !is_station(&pkt.sender_mac) {
+        return None;
     }
-    if pkt.oper != OPER_REQUEST || pkt.target_ip != iface.ipv4 {
+    if is_neighbour_ip(&pkt.sender_ip, &iface.ipv4) {
+        let solicited = cache.is_pending(pkt.sender_ip)
+            || (pkt.oper == OPER_REQUEST && pkt.target_ip == iface.ipv4);
+        match crate::arp::cache::decide(cache.lookup(&pkt.sender_ip), pkt.sender_mac, solicited) {
+            crate::arp::cache::Learn::Insert | crate::arp::cache::Learn::Refresh => {
+                cache.insert(pkt.sender_ip, pkt.sender_mac);
+            }
+            crate::arp::cache::Learn::Reject => {}
+        }
+    }
+    // With no address yet there is nothing to answer for.
+    if pkt.oper != OPER_REQUEST || pkt.target_ip != iface.ipv4 || iface.ipv4 == [0; 4] {
         return None;
     }
     let mut bytes = [0u8; HDR_LEN + PACKET_LEN];

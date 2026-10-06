@@ -14,21 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod decode;
-mod encode;
-mod errno;
-mod header;
-mod limits;
-mod ops;
+use crate::ethernet::MacAddress;
 
-pub use decode::{parse, refused};
-pub use encode::write_header;
-pub use errno::{
-    E_BAD_LEN, E_BAD_OP, E_NO_LINK, E_NO_NEIGHBOUR, E_OK, E_PERM, E_RX_EMPTY, E_TX_BUSY,
-};
-pub use header::{Request, HDR_LEN};
-pub use limits::IPC_PAYLOAD_MAX;
-pub use ops::{
-    OP_ARP_RESOLVE, OP_GET_LINK, OP_GET_MAC, OP_HEALTHCHECK, OP_POLL_FRAME, OP_SEND_FRAME,
-    OP_SET_IP,
-};
+/// Whether `mac` can be one host's: not zero, and not a group address (the
+/// first transmitted bit, the low bit of the first byte), broadcast included.
+pub fn is_station(mac: &MacAddress) -> bool {
+    mac[0] & 1 == 0 && *mac != [0; 6]
+}
+
+/// Whether `ip` can be a neighbour's address, for a host whose own is `ours`:
+/// not unspecified (an RFC 5227 probe's sender), loopback, multicast, the
+/// reserved block or broadcast, and not our own.
+pub fn is_neighbour_ip(ip: &[u8; 4], ours: &[u8; 4]) -> bool {
+    ip[0] != 0 && ip[0] != 127 && ip[0] < 224 && ip != ours
+}
