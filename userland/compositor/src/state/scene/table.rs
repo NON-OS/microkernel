@@ -19,4 +19,6 @@ use super::layer::{Layer, MAX_LAYERS};
 pub struct SceneTable {
     pub(super) entries: [Layer; MAX_LAYERS],
     pub(super) count: usize,
+    /// The stamp the next raised or newly submitted layer receives.
+    pub(super) next_stack: u32,
 }

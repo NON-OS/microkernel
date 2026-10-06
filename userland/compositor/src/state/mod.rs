@@ -15,12 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod attach;
+pub mod attach_kernel;
 pub mod context;
 pub mod cursor;
 pub mod damage;
 pub mod focus;
 pub mod scene;
+pub mod raise_rule;
+pub mod scene_raise;
 pub mod scene_remove;
+pub mod scene_submit;
+pub mod visible;
 
 pub use attach::AttachCache;
 pub use context::Context;

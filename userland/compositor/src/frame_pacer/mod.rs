@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod clip;
+pub mod compose;
 pub mod composite;
 pub mod cursor;
+pub mod drain_damage;
+pub mod present_virtio;
 pub mod tick;
-pub mod vsync;
 
 pub use tick::tick;
-pub use vsync::wait_for_vsync;

@@ -16,7 +16,8 @@
 
 use crate::protocol::{Request, E_INVAL, SCENE_SUBMIT_REQ_LEN};
 use crate::server::respond;
-use crate::state::{damage::Rect, Context, Layer};
+use crate::state::attach_kernel::Kernel;
+use crate::state::{scene_submit, Context, Layer};
 
 pub fn handle(
     ctx: &mut Context,
@@ -55,14 +56,15 @@ pub fn handle(
     let width = width.min(ctx.width - x);
     let height = height.min(ctx.height - y);
     // A window that reopened its surface (a resize, for one) re-submits with a
-    // new handle for the same owner. The old handle's backing is gone, so drop
-    // it from the attach cache now instead of letting it linger until the
-    // reaper runs. Otherwise a reused handle number could serve a stale
+    // new handle for the same owner and band. Only that band's layer is
+    // replaced: a process holding layers in two bands keeps the other's. The
+    // old handle's backing is gone, so drop it from the attach cache now
+    // instead of letting it linger until the reaper runs. Otherwise a reused handle number could serve a stale
     // mapping and the compositor would paint from freed memory.
     let stale = ctx
         .scene
         .layers()
-        .find(|l| l.owner_pid == sender_pid && l.surface_handle != surface_handle)
+        .find(|l| l.owner_pid == sender_pid && l.z == z && l.surface_handle != surface_handle)
         .map(|l| l.surface_handle);
 
     let layer = Layer {
@@ -73,15 +75,18 @@ pub fn handle(
         width,
         height,
         z,
+        stack: 0,
         in_use: true,
         miss_count: 0,
     };
-    if ctx.scene.submit(layer).is_err() {
+    let Ok(repaint) = scene_submit::submit_layer(&mut ctx.scene, layer) else {
         return respond::status(sender_pid, req, E_INVAL, tx);
-    }
+    };
     if let Some(old) = stale {
-        let _ = ctx.attach.forget(old);
+        let _ = ctx.attach.forget(old, &mut Kernel);
     }
-    ctx.damage.accumulate(Rect { x, y, width, height });
+    for rect in repaint.into_iter().flatten() {
+        ctx.damage.accumulate(rect);
+    }
     respond::status(sender_pid, req, 0, tx)
 }

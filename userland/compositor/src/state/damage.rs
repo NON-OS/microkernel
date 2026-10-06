@@ -95,6 +95,12 @@ impl DamageAccumulator {
     }
 }
 
+impl Default for DamageAccumulator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // Two rects overlap or share an edge, so merging them wastes no coverage.
 fn touches(a: Rect, b: Rect) -> bool {
     let ax1 = a.x.saturating_add(a.width);
