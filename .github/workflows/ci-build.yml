@@ -137,7 +137,7 @@ jobs:
         run: docker build -t nonos-dev .devcontainer
       - name: nix build inside it
         run: |
-          docker run --rm --privileged -v "$PWD:/workspaces/nonos-unified" -w /workspaces/nonos-unified nonos-dev \
+          docker run --rm --privileged -v "$PWD:/workspaces/microkernel" -w /workspaces/microkernel nonos-dev \
             bash -lc 'git config --global --add safe.directory "$PWD" && nix build .#default -L --keep-going --no-link'
 
   verify:
