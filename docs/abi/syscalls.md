@@ -30,12 +30,12 @@ flowchart TD
     B & C & D & E & F -->|fails| H[EPERM]
 ```
 
-Before any handler runs, `Capability::resolve` takes the caller's [capability token](../overview/glossary.md#capability-token) and runs five checks in order (`src/syscall/contract/resolver/resolve.rs:31-43`). `check_token` verifies the token's signature, its expiry and that it is not revoked (`src/syscall/contract/resolver/check_token.rs:21-32`). `check_session_binding` compares the token's boot session nonce with the live one (`src/syscall/contract/resolver/check_session.rs:23-32`). `check_asid_binding` requires the token to name the caller's address space (`src/syscall/contract/resolver/check_asid.rs:22-30`). `check_revocation_epoch` refuses a token whose revocation epoch is below the process's current one, which every revoke raises (`src/syscall/contract/resolver/check_epoch.rs:22-30`). `check_syscall_allowed` asks the cap table (`src/syscall/contract/resolver/check_syscall.rs:23-31`). Any failure is `EPERM` with a `[CAP-DENY]` line in the log, and the handler never runs. The table is total: `is_allowed` refuses a number no family claims (`src/syscall/contract/cap_table/mod.rs:28-34`).
+Before any handler runs, `Capability::resolve` takes the caller's [capability token](../overview/glossary.md#capability-token) and runs five checks in order (`src/syscall/contract/resolver/resolve.rs:31-43`). `check_token` verifies the token's signature, its expiry and that it is not revoked (`src/syscall/contract/resolver/check_token.rs:21-32`). `check_session_binding` compares the token's boot session nonce with the live one (`src/syscall/contract/resolver/check_session.rs:23-32`). `check_asid_binding` requires the token to name the caller's address space (`src/syscall/contract/resolver/check_asid.rs:22-30`). `check_revocation_epoch` refuses a token whose revocation epoch is below the process's current one, which every revoke raises (`src/syscall/contract/resolver/check_epoch.rs:22-30`). `check_syscall_allowed` asks the cap table (`src/syscall/contract/resolver/check_syscall.rs:23-31`). Any failure is `EPERM`, and the handler never runs. The `[CAP-DENY]` line `log_deny` builds goes to the structured log, which this release never starts, so it is dropped ([Logging](../kernel/logging.md#the-structured-log-and-the-debug-ring)). The table is total: `is_allowed` refuses a number no family claims (`src/syscall/contract/cap_table/mod.rs:28-34`).
 
 Read the Capability column this way:
 
 - A single name means the token must grant that capability.
-- "A or B" means either is enough. Most [broker](../overview/glossary.md#broker) calls accept `Admin` in place of their own capability, because predicates such as `can_driver` ask for either (`src/capabilities/token/types/authority_broker.rs:24-26`).
+- "A or B" means either is enough. Every [broker](../overview/glossary.md#broker) gate accepts `Admin` in place of the call's own capability, because predicates such as `can_driver` ask for either (`src/capabilities/token/types/authority_broker.rs:24-26`).
 - "A and B" means both.
 - "valid token" means `is_valid`: the token has not expired and grants at least one capability (`src/capabilities/token/types/query.rs:44-47`). The tokens `new_token` mints carry no expiry (`src/process/caps.rs:38-46`).
 - "none" is `MTTQ` alone, whose arm is `true` (`src/syscall/contract/cap_table/mk.rs:220`). The five checks above still run.
@@ -102,6 +102,8 @@ A message goes to an [endpoint](../overview/glossary.md#endpoint), a port a serv
 | `MDBG` | `0x4742444D` | `MkDebug` | Debug | `can_debug` `src/syscall/contract/cap_table/mk.rs:138` | Write one diagnostic line of up to 256 bytes to the boot serial. |
 
 ### Storage and the data volume
+
+The store calls read and write the [package store](../overview/glossary.md#package-store), the part of the disk from sector 256 up to the [disk plan](../overview/glossary.md#disk-plan). The data calls work on files in the encrypted [data volume](../overview/glossary.md#data-volume) the plan names.
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
@@ -198,7 +200,7 @@ Both display calls know display 0 only. `wait_for_vsync` sleeps to the next mult
 
 ### Foreign processes
 
-A supervising capsule that holds `ForeignExec`, such as the Linux personality, uses these to host programs the kernel has not verified. They exist on x86_64 only. On aarch64 and riscv64 the `foreign` module is built from `foreign_absent.rs` instead (`src/process/mod.rs:26-30`), and every call in it returns `ERRNO_NOSYS`, -38 (`src/process/foreign_absent.rs:26-33`).
+A supervising capsule that holds `ForeignExec`, such as the [Linux personality](../overview/glossary.md#linux-personality), uses these to host programs the kernel has not verified. They exist on x86_64 only. On aarch64 and riscv64 the `foreign` module is built from `foreign_absent.rs` instead (`src/process/mod.rs:26-30`), and every call in it returns `ERRNO_NOSYS`, -38 (`src/process/foreign_absent.rs:26-33`).
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
@@ -220,7 +222,7 @@ A supervising capsule that holds `ForeignExec`, such as the Linux personality, u
 
 ### Crypto
 
-`handle_crypto_random` serves `CRND` in the kernel, at most 4096 bytes a call, from the generator the entropy capsule seeds, and falls back to the hardware generator (`src/syscall/dispatch/crypto/random.rs:33-47`). `CKEC` and `CMKY` also run in the kernel. The hash, AEAD, X25519, HMAC and HKDF calls go to the crypto capsule, and `map_capsule_error` turns its failures into errnos (`src/syscall/dispatch/crypto/error.rs:26-43`).
+`handle_crypto_random` serves `CRND` in the kernel, at most 4096 bytes a call, from the generator the entropy capsule seeds, and falls back to the hardware generator (`src/syscall/dispatch/crypto/random.rs:33-47`). `CKEC` and `CMKY` also run in the kernel. The hash, AEAD, X25519, HMAC and HKDF calls go to the crypto capsule, and `map_capsule_error` turns its failures into errnos (`src/syscall/dispatch/crypto/error.rs:26-43`). [Randomness and cryptography](../security/randomness-and-cryptography.md#the-crypto-system-calls) follows each call to the code that serves it.
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
@@ -280,6 +282,8 @@ A supervising capsule that holds `ForeignExec`, such as the Linux personality, u
 - [The NONOS ABI](README.md)
 - [Capabilities](capabilities.md)
 - [Errors](errors.md)
+- [Broker](broker.md)
+- [IPC](ipc.md)
 - [Kernel syscalls](../kernel/syscalls.md)
 - [Processes and capsule spawn](../kernel/processes-and-spawn.md)
 - [The Linux personality](../userland/linux-personality.md)

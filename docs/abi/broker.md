@@ -1,6 +1,6 @@
 # Broker
 
-The calls a driver [capsule](../overview/glossary.md#capsule) makes to the kernel's device [broker](../overview/glossary.md#broker), the records they exchange, and the broker's constants.
+The calls a [driver capsule](../overview/glossary.md#driver-capsule) makes to the kernel's device [broker](../overview/glossary.md#broker), the records they exchange, and the broker's constants.
 
 ## How a driver uses the broker
 
@@ -21,7 +21,7 @@ sequenceDiagram
     D->>K: MkDeviceRelease
 ```
 
-A driver lists the broker's devices with `MkDeviceList` and reads one `DeviceRecord` per device. It claims one with `MkDeviceClaim`, which returns the [claim epoch](../overview/glossary.md#claim-epoch). The map, bind, grant and PCI calls pass the epoch back, and an old epoch is refused with `ESTALE`. With the claim it maps MMIO windows, binds interrupts, takes DMA buffers and port grants; each comes back as a grant id. It waits with `MkIrqWait`, acknowledges with `MkIrqAck`, and gives everything back with `MkDeviceRelease`. The libc wrappers in `userland/libc/src/broker/` carry the same names in snake case, such as `mk_device_list` (`userland/libc/src/broker/device.rs:24`).
+A driver lists the broker's devices with `MkDeviceList` and reads one `DeviceRecord` per device. It claims one with `MkDeviceClaim`, which returns the [claim epoch](../overview/glossary.md#claim-epoch). The map, bind, grant and PCI calls pass the epoch back, and an old epoch is refused with `ESTALE`. With the claim it maps MMIO windows, binds interrupts, takes DMA buffers and port grants; each comes back as a [grant](../overview/glossary.md#grant) id. It waits with `MkIrqWait`, acknowledges with `MkIrqAck`, and gives everything back with `MkDeviceRelease`. The libc wrappers in `userland/libc/src/broker/` carry the same names in snake case, such as `mk_device_list` (`userland/libc/src/broker/device.rs:24`).
 
 ## The calls
 
@@ -51,7 +51,7 @@ Arguments are in register order, first argument first. The Capability column is 
 The rules behind the table:
 
 - `MkDeviceList` with class 0 lists every device; `list_by_class` filters on any other value (`src/hardware/broker/table/list.rs:29-34`). With `count` 0, `sys_device_list` returns how many devices match and writes nothing (`src/syscall/microkernel/device.rs:40-45`).
-- `claim` asks `attach` to move the device into the claiming capsule's IOMMU domain before it powers the device, and refuses the claim with `Unconfined` when an IOMMU unit in service will not take it (`src/hardware/broker/claim/claim.rs:33-40`). `sys_device_claim` returns that refusal as `EPERM` (`src/syscall/microkernel/device.rs:67-81`). When no IOMMU unit in service covers the device, `attach` lets the claim go ahead unconfined, and `unconfined_allowed` does the same when no unit is in service at all: the device can then reach all of memory, and the serial log says so for that claim (`src/hardware/broker/confine/attach.rs:30-47`, `src/hardware/broker/confine/posture.rs:32-37`).
+- `claim` asks `attach` to move the device into the claiming capsule's [IOMMU domain](../overview/glossary.md#iommu-domain) before it powers the device, and refuses the claim with `Unconfined` when an IOMMU unit in service will not take it (`src/hardware/broker/claim/claim.rs:33-40`). `sys_device_claim` returns that refusal as `EPERM` (`src/syscall/microkernel/device.rs:67-81`). When no IOMMU unit in service covers the device, `attach` lets the claim go ahead unconfined, and `unconfined_allowed` does the same when no unit is in service at all: the device can then reach all of memory, and the serial log says so for that claim (`src/hardware/broker/confine/attach.rs:30-47`, `src/hardware/broker/confine/posture.rs:32-37`). A record with no PCI address, such as an ACPI or PS/2 one, is not attached at all, since `pci_address` finds nothing for it (`src/hardware/broker/confine/table.rs:39-43`).
 - `sys_device_release` stops bus mastering first, then tears down every MMIO, IRQ, DMA and port grant on the device, then drops the claim (`src/syscall/microkernel/device.rs:84-102`). When a capsule exits, the exit path calls `release_all_for_pid` and its IRQ, DMA and port siblings, which release every claim and grant it still holds (`src/process/exit/teardown.rs:48-51`).
 - `MkMmioMap` needs seven inputs and has six registers, so `mmio_map` takes the third as the BAR index in the high 32 bits and flags in the low 32 bits (`src/syscall/microkernel/dispatch/unpack.rs:19-40`). No flag is accepted yet: `FLAGS_KNOWN` is 0 (`src/hardware/broker/mmio/map.rs:47-52`).
 - `MkIrqBind` takes `flags` 0 for INTx, `BIND_MSIX` or `BIND_MSI`, never two (`src/hardware/broker/irq/types.rs:17-29`). For INTx `vector_count` is 0, and for MSI-X `irq_source` is 0 and `vector_count` is 1 or more, with vector i on grant `grant_id + i` (`src/hardware/broker/irq/types.rs:31-49`). `validate_msix_request` also refuses more vectors than the broker's pool or the device's MSI-X table holds (`src/hardware/broker/irq/validate/msix.rs:46-64`). `validate_msi_request` takes exactly one vector, with `irq_source` 0 (`src/hardware/broker/irq/validate/msi.rs:26-46`). For INTx on x86_64, `validate_intx_request` wants the record's `irq_line` as `irq_source` (`src/hardware/broker/irq/validate/intx.rs:35-38`). On aarch64 and riscv64 only INTx exists: `bind` refuses any flag, and `irq_source` must equal the record's `irq_source`, on aarch64 a GIC SPI from 32 to 1019 (`src/hardware/broker/irq/aarch64/bind.rs:25-61`, `src/hardware/broker/irq/riscv64/bind.rs:33-67`). On x86_64 the broker's vectors are `BROKER_VEC_MIN` to `BROKER_VEC_MAX`, 64 of them (`src/arch/x86_64/interrupt/broker/vectors.rs:39-41`).
@@ -185,7 +185,7 @@ An `I2C_HID` record reuses fields: `hid_record` puts the 7-bit I2C address in `v
 
 ## Limits
 
-- `abi/driver_broker_abi.md` in the tree describes an older `DeviceRecord`, without the PCI class bytes and interrupt fields, and lists claim and map as reserved. Use this page.
+- `abi/driver_broker_abi.md` in the tree describes an older `DeviceRecord`, without the PCI class bytes and interrupt fields, and lists claim and map as reserved. The older page beside this one, `driver_broker_abi.md`, calls `MkIrqWait` reserved. Use this page.
 - The argument lists for the broker calls in `abi/syscalls.toml` do not match the handlers for `MkPioGrant`, `MkIrqAck` and `MkIrqPoll`; see [The NONOS ABI](README.md#stability-in-092).
 - The allowlist of PCI registers lives in the broker and is not tabled here.
 
