@@ -4,9 +4,9 @@ How to use the NONOS shell: tabs, line editing, pipes and redirects, background 
 
 ## What it is
 
-Terminal (`app.terminal`) is one [capsule](../overview/glossary.md#capsule). The parser, the built-in commands and job control all run inside it; there is no separate shell process (`userland/capsule_terminal/README.md`). It also starts programs that are not built in, and runs them as foreground or background jobs with the keyboard as their input.
+Terminal (`app.terminal`) is one [capsule](../overview/glossary.md#capsule). The parser, the built-in commands and job control all run inside it; there is no separate shell process. It also starts programs that are not built in, and runs them as foreground or background jobs with the keyboard as their input.
 
-A typed name runs through one of four routes, and `type <name>` says which (`userland/capsule_terminal/src/command/builtin/which.rs`):
+A typed name runs through one of four routes, and `type <name>` says which:
 
 ```mermaid
 flowchart LR
@@ -16,22 +16,22 @@ flowchart LR
     line --> builtin["built-in command"]
 ```
 
-- A line that starts with `qwen` is a question for the local model. It is sent to the model as typed, and history keeps only `qwen` and the tier, never the question (`recorded` in `userland/capsule_terminal/src/command/builtin/qwen/ask.rs`). See [Local model](local-ai.md).
-- An installed tool is a separate signed program, started as `tool.<name>`: `grex`, `dotenv-linter`, `pastel`, `jsonxf`, `tokei`, `huniq`, `csview`, and `linux` (`TOOLS` in `userland/capsule_terminal/src/command/builtin/tool.rs`).
-- A store tool is one of `sd`, `tokio-smoke` and `std_proof`, loaded from the package store when the store holds it (`STORE_TOOLS` in `userland/capsule_terminal/src/jobs/classify.rs`).
+- A line that starts with `qwen` is a question for the local model. It is sent to the model as typed, and history keeps only `qwen` and the tier, never the question. See [Local model](local-ai.md).
+- An installed tool is a separate signed program, started as `tool.<name>`: `grex`, `dotenv-linter`, `pastel`, `jsonxf`, `tokei`, `huniq`, `csview`, and `linux`. [Command-line tools](command-line-tools.md) covers the first seven, and [Linux programs](linux-programs.md) the last.
+- A store tool is one of `sd`, `tokio-smoke` and `std_proof`, loaded from the package store when the store holds it.
 - Everything else is a built-in command, listed below.
 
 ## Tabs and windows
 
-- A window holds up to nine tabs (`MAX_TABS` in `userland/capsule_terminal/src/term/terminal/tabs.rs`). `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
-- Closing a tab, or the window, sends SIGTERM to every program that tab started (`userland/capsule_terminal/src/jobs/hang_up.rs`). Closing the last tab closes the window.
-- `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it (`build` in `userland/capsule_terminal/src/palette/index.rs`).
-- `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6 (`MAX_FONT_SCALE` in `userland/capsule_terminal/src/term/dimensions.rs`).
+- A window holds up to nine tabs. `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
+- Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
+- `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
+- `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6.
 - `theme` switches the colours: `dark`, `dim`, `light` or `abyss`.
 
 ## Editing a line
 
-`help keys` prints a short form of this list (`userland/capsule_terminal/src/command/builtin/help_pages.rs`). It still names `Ctrl-K` for cutting to the end of the line; in this release `Ctrl+K` opens the palette and `Ctrl+Shift+K` cuts (`opens` in `userland/capsule_terminal/src/term/terminal/palette_key.rs`).
+`help keys` prints a short form of this list. It still names `Ctrl-K` for cutting to the end of the line; in this release `Ctrl+K` opens the palette and `Ctrl+Shift+K` cuts.
 
 | Keys | What they do |
 |---|---|
@@ -50,6 +50,8 @@ flowchart LR
 
 With the mouse: drag to select, double-click a word, triple-click a line, `Alt`+drag a block. `Ctrl+D` never closes the terminal; `exit` does.
 
+A paste at the prompt takes the first line of the clipboard only, and says `paste: first line only` when it leaves the rest. While a program runs in the foreground, `Ctrl+V` is the program's own key, and `Ctrl+Shift+V` pastes to the program instead, up to 16 KiB. The clipboard itself, what it holds and for how long, is on [Copy and paste](desktop.md#copy-and-paste).
+
 History expansion works as in other shells: `!!` is the last command, `!n` the nth, `!text` the last one starting with text. The expanded line is shown before it runs. A reference that matches nothing runs nothing and prints `no matching history entry`.
 
 ## Pipes, redirects and chains
@@ -64,13 +66,13 @@ History expansion works as in other shells: `!!` is the last command, `!n` the n
 | `a &` | Run `a` in the background. |
 | `$name`, `$?` | A shell variable set with `set`, or the last exit status. |
 
-After a `|`, only ten built-ins read the piped lines: `grep`, `sort`, `uniq`, `cut`, `nl`, `wc`, `head`, `tail`, `tac` and `rev`. Any other command after a `|` stops the pipeline and says so (`userland/capsule_terminal/README.md`). Redirects also work for Linux programs and the installed tools.
+After a `|`, only ten built-ins read the piped lines: `grep`, `sort`, `uniq`, `cut`, `nl`, `wc`, `head`, `tail`, `tac` and `rev`. Any other command after a `|` stops the pipeline and says so. Redirects also work for Linux programs and the installed tools.
 
 ## Background jobs
 
 `a &` starts a job and gives the prompt back. `jobs` lists the jobs, and `fg <id>` brings one to the foreground. Nothing is ever stopped, so `bg <id>` only says that a job runs on.
 
-The built-ins that wait on the network or on an install run as jobs even in the foreground, so the window keeps drawing and `Ctrl+C` is read: `ping`, `install`, `curl` with its other names, `git clone`, and `pkg install` or `pkg remove` (`userland/capsule_terminal/src/jobs/classify.rs`).
+The built-ins that wait on the network or on an install run as jobs even in the foreground, so the window keeps drawing and `Ctrl+C` is read: `ping`, `install`, `curl` with its other names, `git clone`, and `pkg install` or `pkg remove`.
 
 ## What Ctrl+C does
 
@@ -82,13 +84,13 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 | an installed tool runs in the foreground | Sends SIGINT (2) to it and ends the job. |
 | a built-in job runs | Cancels the job. A `git clone` closes its connection and writes nothing. |
 
-Code: `interrupt` in `userland/capsule_terminal/src/event/interrupt.rs`. `Ctrl+Shift+C` copies and never interrupts.
+`Ctrl+Shift+C` copies and never interrupts.
 
 `Ctrl+D` on an empty input line ends the input of a Linux program. Any other program has no end of input yet, and the terminal prints `^D (end of input is not delivered to this program)`.
 
 ## Built-in commands
 
-`help` lists the commands in groups, and `help <command>` shows one command's usage. These are the 69 commands it documents (`USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs`), grouped here much as `help` groups them.
+`help` lists the commands in groups, and `help <command>` shows one command's usage. These are the 69 commands it documents, grouped here much as `help` groups them.
 
 | Files | What it does |
 |---|---|
@@ -149,7 +151,7 @@ Code: `interrupt` in `userland/capsule_terminal/src/event/interrupt.rs`. `Ctrl+S
 |---|---|
 | `market` | `market list`, `market info <id>`, `market install <id>`, `market uninstall <id>`. See [Marketplace](marketplace.md). |
 | `install <name> [argv...]` | Verify, load and start the capsule held at `/capsules/<name>.*` in the store. |
-| `pkg` | `pkg install <path> [--yes]`, `pkg remove <name>`, `pkg status`. |
+| `pkg` | `pkg install <path> [--yes]`, `pkg remove <name>`, `pkg status`. See [Install a package file](marketplace.md#install-a-package-file). |
 | `git` | A git client over HTTPS. See [Git](#git). |
 | `nox [command]` | The nox command index, or a command by its nox name. |
 | `qwen [tier] [question]` | Chat with a Qwen model on this machine, offline. |
@@ -169,7 +171,7 @@ Code: `interrupt` in `userland/capsule_terminal/src/event/interrupt.rs`. `Ctrl+S
 | `help [command]` | The grouped list, or one command in detail. |
 | `exit` | Close this terminal. `quit` is the same. |
 
-The shell also answers to names `help` does not list: `dir` (`ls`), `del` (`rm`), `caps` (`capsules`), `svc` (`service`), `host` (`nslookup`), `ip` (`ifconfig`), `bat` (`battery`), `profile` (`theme`), `commands` (`help`), and the nox names `where`, `in`, `read`, `copy`, `mk` and `move`. It also has `write <file> <text>`, `keep <path>` (see [Files](files.md)), `basename`, `dirname`, `apps`, `display`, `motd`, `neofetch`, and `pull` and `push`, which copy a file from or to a host over plain TCP (`userland/capsule_terminal/src/command/builtin/nox/dispatch.rs`).
+The shell also answers to names `help` does not list: `dir` (`ls`), `del` (`rm`), `caps` (`capsules`), `svc` (`service`), `host` (`nslookup`), `ip` (`ifconfig`), `bat` (`battery`), `profile` (`theme`), `commands` (`help`), and the nox names `where`, `in`, `read`, `copy`, `mk` and `move`. It also has `write <file> <text>`, `keep <path>` (see [Files](files.md)), `basename`, `dirname`, `apps`, `display`, `motd`, `neofetch`, and `pull` and `push`, which copy a file from or to a host over plain TCP.
 
 ## Linux programs
 
@@ -186,7 +188,7 @@ Which programs ship and which Linux calls are refused is on [Linux programs](lin
 
 ## Git
 
-`git` is a client written for NONOS (`userland/nonos_git/README.md`). It works on a repository in the current directory of the file store.
+`git` is a client written for NONOS. It works on a repository in the current directory of the file store.
 
 ```sh
 cd /home/nonos/workspace
@@ -200,25 +202,63 @@ git push
 
 Not tested in this release.
 
-- Subcommands: `init`, `clone <url> [branch]`, `add`, `status`, `commit -m <msg>`, `log`, `push [url]`, `remote` (`userland/capsule_terminal/src/command/builtin/git/dispatch.rs`).
+- Subcommands: `init`, `clone <url> [branch]`, `add`, `status`, `commit -m <msg>`, `log`, `push [url]`, `remote`.
 - Only `https://` addresses. SSH and `git://` are not supported, nor are merge and rebase.
-- `git clone` fetches only the tip, depth 1, of branch `main` unless you name another, into a folder named after the address's last part, with `.git` dropped. One response may be at most 64 MiB (`MAX_RESPONSE` in `userland/capsule_terminal/src/command/builtin/git/clone/job.rs`).
+- `git clone` fetches only the tip, depth 1, of branch `main` unless you name another, into a folder named after the address's last part, with `.git` dropped. One response may be at most 64 MiB.
 - Clone and push leave through the network chosen in Settings. When that network is not running, nothing is sent and the reason is printed.
-- Git cannot send credentials in this release. When a server answers HTTP 401 or 403, git prints `the server wants credentials, which this cannot send yet` (`say_failure` in `userland/capsule_terminal/src/command/builtin/git/clone/fail.rs`). So `git push` works only to a server that takes a push without them.
+- Git cannot send credentials in this release. When a server answers HTTP 401 or 403, git prints `the server wants credentials, which this cannot send yet`. So `git push` works only to a server that takes a push without them.
 - `git clone` runs as a job and `Ctrl+C` stops it. `git push` does not: the window waits until it ends.
 - The repository lives in the file store, in memory. See [Files](files.md) for what survives a reboot.
 
 ## The network a command uses
 
-`curl` and `git` connect through the network chosen in Settings: the Nym mixnet, the Anyone network, or Direct. `ping`, `nslookup`, `pull` and `push` reach a host directly and cannot cross an anonymity network, so they run only when Direct is chosen. Otherwise they print the reason and `so nothing was sent` (`userland/capsule_terminal/src/command/builtin/direct_gate.rs`). See [Privacy networks](privacy-network.md).
+`curl` and `git` connect through the network chosen in Settings: the Nym mixnet, the Anyone network, or Direct. `ping`, `nslookup`, `pull` and `push` reach a host directly and cannot cross an anonymity network, so they run only when Direct is chosen. Otherwise they print the reason and `so nothing was sent`. See [Privacy networks](privacy-network.md).
 
 ## What is kept
 
-History, aliases, variables and scrollback live in the tab's memory and go with it. The theme, the font size and whether the side rail shows are written to `/etc/terminal/prefs.dat`, which outlives a reboot only on a machine where `Keep data across reboots` is on (`userland/capsule_terminal/src/term/prefs/store.rs`).
+History, aliases, variables and scrollback live in the tab's memory and go with it. The theme, the font size and whether the side rail shows are written to `/etc/terminal/prefs.dat`, which outlives a reboot only on a machine where `Keep data across reboots` is on.
+
+## Where this comes from
+
+The source behind the facts above, at the commit in the footer.
+
+- What it is
+  - One capsule, no separate shell process: `capsule_terminal` in `userland/capsule_terminal/README.md:5-11`.
+  - The four routes `type` names: `describe` in `userland/capsule_terminal/src/command/builtin/which.rs:46-55`.
+  - History keeps only `qwen` and the tier: `recorded` in `userland/capsule_terminal/src/command/builtin/qwen/ask.rs:41`.
+  - The eight installed tools: `TOOLS` in `userland/capsule_terminal/src/command/builtin/tool.rs:25-34`.
+  - The three store tools: `STORE_TOOLS` in `userland/capsule_terminal/src/jobs/classify.rs:173`.
+- Tabs and windows
+  - Nine tabs at most: `MAX_TABS` in `userland/capsule_terminal/src/term/terminal/tabs.rs:25`.
+  - SIGTERM to the programs of a closed tab: `hang_up` in `userland/capsule_terminal/src/jobs/hang_up.rs:27-38`.
+  - What the palette lists: `build` in `userland/capsule_terminal/src/palette/index.rs:33-39`.
+  - Font scale 1 to 6: `MAX_FONT_SCALE` in `userland/capsule_terminal/src/term/dimensions.rs:26`.
+- Editing a line
+  - The keys list that still names `Ctrl-K`: `KEYS` in `userland/capsule_terminal/src/command/builtin/help_pages.rs:19-21`.
+  - `Ctrl+K` opens the palette, `Ctrl+Shift+K` cuts: `opens` in `userland/capsule_terminal/src/term/terminal/palette_key.rs:67-70`.
+- Pipes, redirects and chains
+  - The ten built-ins that read a pipe, `grep` and the rest: `userland/capsule_terminal/README.md:52-57`.
+- Background jobs
+  - Built-ins that run as jobs: `is_job_command` in `userland/capsule_terminal/src/jobs/classify.rs:47-55`; `network` in `userland/capsule_terminal/src/jobs/classify.rs:123-137`; `package` in `userland/capsule_terminal/src/jobs/classify.rs:150-156`.
+- What Ctrl+C does
+  - Each case in the table: `interrupt` in `userland/capsule_terminal/src/event/interrupt.rs:25-35`.
+- Built-in commands
+  - The 69 documented commands: `USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs:35`.
+  - The other names, `write`, `keep`, `pull` and `push`: `dispatch` in `userland/capsule_terminal/src/command/builtin/nox/dispatch.rs:27-59`.
+- Git
+  - A client written for NONOS: `nonos_git` in `userland/nonos_git/README.md:3-5`.
+  - The subcommands: `usage` in `userland/capsule_terminal/src/command/builtin/git/dispatch.rs:54-56`.
+  - 64 MiB per response: `MAX_RESPONSE` in `userland/capsule_terminal/src/command/builtin/git/clone/job.rs:49`.
+  - The credentials message: `say_failure` in `userland/capsule_terminal/src/command/builtin/git/clone/fail.rs:40-51`.
+- The network a command uses
+  - The refusal that ends `so nothing was sent`: `refusal_line` in `userland/capsule_terminal/src/command/builtin/direct_gate.rs:46-54`.
+- What is kept
+  - The kept preferences: `load` and `save` in `userland/capsule_terminal/src/term/prefs/store.rs:32-49`.
 
 ## See also
 
 - [The desktop](desktop.md)
+- [Command-line tools](command-line-tools.md)
 - [Files](files.md)
 - [Linux programs](linux-programs.md)
 - [Local model](local-ai.md)
