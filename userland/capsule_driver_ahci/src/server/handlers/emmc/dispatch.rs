@@ -26,7 +26,7 @@ use crate::server::error::reply_with_status;
 
 use super::describe::{identify, port_list};
 use super::reply::body_reply;
-use super::rw::{read, write};
+use super::rw;
 
 pub fn dispatch(o: &mut Opened, req: &Request, body: &[u8], tx: &mut [u8]) {
     match req.op {
@@ -40,8 +40,8 @@ pub fn dispatch(o: &mut Opened, req: &Request, body: &[u8], tx: &mut [u8]) {
             let cap: [u8; CAPACITY_PAYLOAD_LEN] = o.disk.capacity_sectors().to_le_bytes();
             body_reply(tx, req, &cap);
         }
-        OP_READ_BLOCKS => read(o, req, body, tx),
-        OP_WRITE_BLOCKS => write(o, req, body, tx),
+        OP_READ_BLOCKS => rw::read(o, req, body, tx),
+        OP_WRITE_BLOCKS => rw::write(o, req, body, tx),
         OP_FLUSH => {
             let status = match o.disk.flush() {
                 Ok(()) => 0,
