@@ -4,7 +4,7 @@ The 36 capability bits of NONOS 0.9.2: what each one lets a [capsule](../overvie
 
 ## What a capability is
 
-A [capability](../overview/glossary.md#capability) is one bit in a 64-bit mask. `capability_table!` is the one list of them, with the bit each occupies (`src/capabilities/types/defs.rs:21-83`), and `count` is derived from that list rather than written down (`src/capabilities/types/table.rs:39-43`). A capsule's [capability token](../overview/glossary.md#capability-token) carries the capabilities it holds as `permissions` (`src/capabilities/token/types/defs.rs:22-25`), and the syscall gates ask the token. The kernel installs a capsule's mask when it starts it, with `install_caps` (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:99-100`). On a [boot profile](../overview/glossary.md#boot-profile) that runs no network, `caps` removes `Network` from every capsule's mask (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:48-55`).
+A [capability](../overview/glossary.md#capability) is one bit in a 64-bit mask, the process's [capability word](../overview/glossary.md#capability-word). `capability_table!` is the one list of them, with the bit each occupies (`src/capabilities/types/defs.rs:21-83`), and `count` is derived from that list rather than written down (`src/capabilities/types/table.rs:39-43`). A capsule's [capability token](../overview/glossary.md#capability-token) carries the capabilities it holds as `permissions` (`src/capabilities/token/types/defs.rs:22-25`), and the syscall gates ask the token. The kernel installs a capsule's mask when it starts it, with `install_caps` (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:99-100`). On a [boot profile](../overview/glossary.md#boot-profile) that runs no network, `caps` removes `Network` from every capsule's mask (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:48-55`).
 
 `abi/caps.toml` publishes the same bits under upper-case names for toolchains. `scripts/check_caps_abi.py` fails when a published bit disagrees with the kernel, and it passes at this commit.
 
@@ -42,8 +42,8 @@ Syscalls it admits lists every call whose cap table gate names the capability, a
 | 25 | `0x2000000` | `ProcessControl` | `PROCESS_CONTROL` | Terminate a process the caller does not parent, and read the full process table. | none |
 | 26 | `0x4000000` | `StoreWrite` | `STORE_WRITE` | Read and write the package store; with FileSystem, import into and key the data volume. | `MSWR`, `MSRR`, `MDIM`, `MDPW` |
 | 27 | `0x8000000` | `EnrolDevRoot` | `ENROL_DEV_ROOT` | Enrol a signing root, so capsules built on this machine run on it. `Admin` does not imply it. | `MDRQ`, `MDRC`, `MDRO`, `MLCG`, `MLCR` |
-| 28 | `0x10000000` | `Keyring` | `KEYRING` | Reach the keyring capsule, which stores and derives key material. | none |
-| 29 | `0x20000000` | `Entropy` | `ENTROPY` | Draw from the entropy capsule. | none |
+| 28 | `0x10000000` | `Keyring` | `KEYRING` | Meant to gate the keyring capsule. Only the kernel's keyring client asks for it, and no kernel code calls that client in 0.9.2. | none |
+| 29 | `0x20000000` | `Entropy` | `ENTROPY` | Meant to gate the entropy capsule. Only the kernel client's statistics and health check ask for it, and no kernel code calls them in 0.9.2. | none |
 | 30 | `0x40000000` | `AppInstall` | `APP_INSTALL` | Ask for a marketplace install, launch or removal, and reach the marketplace. | `MAIN`, `MAPL`, `MAIS`, `MAUN` |
 | 31 | `0x80000000` | `AttestRead` | `ATTEST_READ` | Read the attestation registry, the kernel log tail and the full process table. The signed document also needs the caller to lack Network. | `MADC`, `MAEN`, `MLOG` |
 | 32 | `0x100000000` | `ForeignExec` | `FOREIGN_EXEC` | Host code this kernel has not verified: create a process with no capabilities, build its address space, and answer its refused syscalls. | `MFSP`, `MFST`, `MFWT`, `MFRP`, `MFCX`, `MFSG`, `MFIN`, `MPMP`, `MPCP`, `MPPT`, `MFTH`, `MPTL`, `MFFK`, `MPUN`, `MFEX`, `MLVF` |
@@ -53,20 +53,21 @@ Syscalls it admits lists every call whose cap table gate names the capability, a
 
 ## Checks outside the syscall table
 
-Several bits gate a service or a path inside a call rather than a syscall:
+Several bits are checked somewhere other than the syscall table, or nowhere that runs:
 
 - `Network`: an [endpoint](../overview/glossary.md#endpoint) in `NETWORK_SERVICES` requires it on top of `IPC`, through `required_caps` (`src/services/registry/policy.rs:26-44`). See [IPC](ipc.md).
 - `RegisterService`: `caller_has_register_right` accepts it, or `Admin`, before a capsule may claim a runtime-registrable name (`src/services/registry/auth/caller_has_register_right.rs:17-20`).
 - `SpawnBroker`: `attest` honours a capsule load's `on_behalf_of` pid only for a caller holding it (`src/kernel_core/process_spawn/capsule_spawn/attested_parent.rs:36-45`).
 - `ProcessControl`: `sys_kill` lets a holder, or an `Admin` holder, end a process it does not parent or supervise (`src/syscall/microkernel/kill.rs:45-54`), and `sees_all` shows it the full process table (`src/syscall/microkernel/procstat_redact.rs:29-34`).
-- `Keyring`: `gate_caller` refuses every keyring operation to a caller without it (`src/security/keyring_capsule/capability.rs:26-35`).
-- `Entropy`: `gate_read` refuses entropy reads to a caller without it (`src/security/entropy_capsule/capability.rs:23-31`).
+- `Keyring`: `gate_caller` refuses every operation of the kernel's keyring client to a caller without it (`src/security/keyring_capsule/capability.rs:26-35`). The client's only users are `mount_volume` and `format_volume`, and nothing calls either (`src/fs/blockfs_volume/mount_volume.rs:23-24`, `src/fs/blockfs_volume/format_volume.rs:22-25`), so the check never runs in 0.9.2.
+- `Entropy`: `gate_read` asks for it before the kernel client's `get_stats` and `healthcheck` (`src/security/entropy_capsule/capability.rs:23-31`), and no kernel code calls either.
+- Neither bit gates a capsule that sends to the `keyring` or `entropy_pool` endpoint itself. Both endpoints ask for `IPC` alone, as every service endpoint outside `NETWORK_SERVICES` does. The keyring capsule ties each request to the sender's pid with `resolve_caller` (`userland/capsule_keyring/src/server/caller.rs:22-29`). [Randomness and cryptography](../security/randomness-and-cryptography.md#who-may-call-them) describes the same direct path to the entropy and crypto services.
 - `IO` and `Hardware` are marked "Enforces nothing" in the table itself (`src/capabilities/types/defs.rs:23-31`).
 
 ## Rules the predicates add
 
-- `Admin` stands in for `Driver`, `Mmio`, `Irq`, `Dma` and `Pio`: each predicate, such as `can_driver`, accepts either (`src/capabilities/token/types/authority_broker.rs:24-54`). It also stands in for `DeviceEnum` when listing devices, for `SpawnWindow`, and for `ProcessControl`, through `can_device_enum`, `can_spawn_window` and `can_control_processes` (`src/capabilities/token/types/authority_admin.rs:30-57`).
-- `Admin` does not imply `EnrolDevRoot`: `can_enrol_dev_root` asks for that bit alone (`src/capabilities/token/types/authority_admin.rs:43-52`). It does not stand in for `DeviceEnum` on `MISR`, since `can_install_source` asks for `DeviceEnum` alone (`src/syscall/caps/checks/hardware.rs:28-31`).
+- `Admin` stands in for `Driver`, `Mmio`, `Irq`, `Dma`, `Pio` and `InputSource`: each predicate, from `can_driver` to `can_input_consumer`, accepts either (`src/capabilities/token/types/authority_broker.rs:24-73`). It also stands in for `DeviceEnum` when listing devices and for `SpawnWindow`, through `can_device_enum` and `can_spawn_window` (`src/capabilities/token/types/authority_admin.rs:30-42`), and for `ProcessControl` in `sys_kill`, which reads the caller's bits itself (`src/syscall/microkernel/kill.rs:45-51`).
+- `Admin` does not imply `EnrolDevRoot`: `can_enrol_dev_root` asks for that bit alone (`src/capabilities/token/types/authority_admin.rs:43-52`). It does not stand in for `DeviceEnum` on `MISR`, since `can_install_source` asks for `DeviceEnum` alone (`src/syscall/caps/checks/hardware.rs:28-31`). It does not open the full process table, since `sees_all` asks for `AttestRead` or `ProcessControl` (`src/syscall/microkernel/procstat_redact.rs:29-33`). The PCI configuration calls pass the gate with `Admin`, but `sys_pci_config_read` and `sys_pci_config_write` then ask for `Driver` themselves (`src/syscall/microkernel/pci.rs:28-35`).
 - `Irq` lets a driver post input events but not read them: `can_input_source` accepts `Irq`, and `can_input_consumer`, which gates draining and waiting, does not (`src/capabilities/token/types/authority_broker.rs:55-73`).
 - `can_attest_doc` refuses a caller that holds `Network`, whatever else it holds, because a TPM quote names the machine for good (`src/syscall/caps/checks/system.rs:42-52`).
 
@@ -76,7 +77,7 @@ Three calls work on another process's mask. `sys_cap_grant` needs `Admin`, and t
 
 ## Groups and delegation
 
-`abi/caps.toml` also publishes named groups and the rights each group may hand to another. They are policy, written by hand; the file says each group is the mask of a real capsule, `SERVICE` for one being the keyring's (`abi/caps.toml:48-51`). The kernel does not read this file.
+`abi/caps.toml` also publishes named groups and the rights each group may hand to another. They are policy, written by hand. The file says each group is the mask of a real capsule, `SERVICE` for one being the keyring's (`abi/caps.toml:48-51`). None matches its capsule exactly at this commit: the keyring, for one, declares `IPC`, `Memory` and `Crypto`, 0x38 (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_keyring/Capsule.mk:17`). The kernel does not read this file.
 
 | Entry | Capabilities |
 |---|---|
@@ -100,5 +101,6 @@ Three calls work on another process's mask. `sys_cap_grant` needs `Admin`, and t
 - [Syscalls](syscalls.md)
 - [Kernel capabilities](../kernel/capabilities.md)
 - [Manifests and capabilities](../userland/manifests-and-capabilities.md)
+- [Shipping an app: choosing the capability word](../userland/shipping-an-app.md#choosing-the-capability-word)
 - [Capsule isolation](../security/capsule-isolation.md)
 - [abi/caps.toml](../../abi/caps.toml)
