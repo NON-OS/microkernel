@@ -1,6 +1,6 @@
 # Glossary
 
-Every term the NONOS pages use, defined in a few sentences, with the page that explains it in full and the code it comes from.
+Look up a term the NONOS pages link to: each is defined in a few sentences, with the page that explains it in full and the code it comes from.
 
 Terms are in alphabetical order. Where two names mean one thing, one entry carries both, and a link to either name lands on it.
 
@@ -10,7 +10,7 @@ Terms are in alphabetical order. Where two names mean one thing, one entry carri
 
 ## Anyone network
 
-The Anyone onion network, route value `ANYONE`, which puts three relays between this machine and the site and is reached through `net.anon`. App installs, Linux package installs and Qwen model downloads take it whatever the default network is; `qwen get --direct` sends one model download directly instead. Explained in [Privacy networks](../using/privacy-network.md). Code: `userland/nonos_route_link/src/chosen.rs`, `userland/capsule_model_fetch/src/get/offer.rs`.
+The Anyone onion network, route value `ANYONE`, reached through `net.anon`, whose circuits always have three relays. Qwen model downloads and Linux package installs take it whatever the default network is, with two exceptions: `qwen get --direct`, or `d` in the Marketplace, sends one model download directly, and a package mirror at a private address is dialled directly. Explained in [Privacy networks](../using/privacy-network.md). Code: `userland/nonos_route_link/src/chosen.rs`, `userland/capsule_net_anon/src/protocol/limits.rs`, `userland/capsule_model_fetch/src/get/offer.rs`.
 
 ## Application processor
 
@@ -18,7 +18,7 @@ Any CPU other than the boot CPU. On x86_64 the boot CPU starts each one in the l
 
 ## Attestation
 
-Evidence that what runs is what was enrolled. The loader checks the kernel's trailer before the jump, the kernel checks the loader against the boot-root record, and the spawn gate checks every capsule's trailer; the kernel records each running capsule's measurement and the root that vouched for it, which a holder of `AttestRead` can read. About's Proofs screen shows each part as Holds, Broken or Unknown, and never draws Unknown as a pass. Explained in [STARK attestation](../security/stark-attestation.md#who-checks-them). Code: `src/security/attest_registry/mod.rs`, `userland/capsule_about/src/about/data/proofs/session.rs`.
+Evidence that what runs is what was enrolled. The loader checks the kernel's trailer before the jump, the kernel checks the loader against the boot-root record, and the spawn gate checks every capsule's trailer; the kernel records each running capsule's measurement and the authority whose tree proved it, which a holder of `AttestRead` can read. About's Proofs screen marks each part with a tick when it holds, a cross when it is broken and a dash when it could not be read, and never draws an unread part as a pass. Explained in [STARK attestation](../security/stark-attestation.md#who-checks-them). Code: `src/security/attest_registry/mod.rs`, `userland/capsule_about/src/about/data/proofs/session.rs`, `userland/capsule_about/src/about/ui/screens/verify_mark.rs`.
 
 ## Attestation trailer
 
@@ -30,11 +30,11 @@ A committed list or count of the known sites of something the tree should not ha
 
 ## Boot handoff
 
-<a id="handoff"></a>What the loader gives the kernel at the jump. On x86_64 it is `BootHandoffV1`, magic 0x4E4F4E4F, version 2, which carries the memory map, the framebuffer, the ACPI pointer, the flags, the measurements, the attestation policy and results, and a random seed; flag bit 11 asks for the installer and bits 12 to 15 carry the boot profile. On aarch64 the kernel builds the same `KernelHandoff` from the device tree instead. Explained in [Boot handoff](../kernel/boot-handoff.md). Code: `src/boot/handoff/types/handoff.rs`, `src/boot/handoff/kernel_handoff/arch.rs`.
+<a id="handoff"></a>What the loader gives the kernel at the jump. On x86_64 it is `BootHandoffV1`, magic 0x4E4F4E4F, version 2, which carries the memory map, the framebuffer, the ACPI pointer, the flags, the measurements, the attestation policy and results, and a random seed; flag bit 11 asks for the installer and bits 12 to 15 carry the boot profile. The shared kernel reads it wrapped in a `KernelHandoff`, which on aarch64 is built from the device tree instead. Explained in [Boot handoff](../kernel/boot-handoff.md). Code: `src/boot/handoff/types/handoff.rs`, `src/boot/handoff/kernel_handoff/arch.rs`.
 
 ## Boot profile
 
-<a id="boot-mode"></a>The posture chosen in the boot menu at each boot, also called the boot mode: Standard, Hardened, Safe Mode, Air-Gapped or Recovery. The loader passes it in the handoff flags and the kernel reads it as `BootProfile`, Standard when there is no handoff; only Standard and Hardened let a network driver or service start, the others take Network from every capsule, Safe Mode also starts no audio and no optional app, and Recovery skips setup. It narrows what the image's build profile allows and never widens it. Explained in [Boot modes](../install/boot-modes.md). Code: `src/boot/handoff/api/profile.rs`, `src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs`.
+<a id="boot-mode"></a>The posture chosen in the boot menu at each boot, also called the boot mode: Standard, Hardened, Safe Mode, Air-Gapped or Recovery. The loader passes it in handoff flag bits 12 to 15 and the kernel reads it as `BootProfile`, Standard when there is no handoff. Only Standard and Hardened let a network driver or service start. The other three take Network from every capsule; Safe Mode also starts no audio and neither Snake nor the Hello demo, and Recovery skips setup. It is not the build profile: it can narrow what the image was built to do, never widen it. Explained in [Boot modes](../install/boot-modes.md). Code: `src/boot/handoff/api/profile.rs`, `src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs`.
 
 ## Boot stop
 
@@ -42,11 +42,11 @@ The kernel's controlled stop when a boot step cannot go on: a `[FATAL]` line nam
 
 ## Boot-root record
 
-The 104-byte file `boot_root.approval` on the ESP: the bootloader tree's root and an epoch, signed with the device policy key, ECDSA P-256. The kernel holds the loader's measurement, taken from the firmware's PCR 4 log, to that root and, on a measured boot, the epoch to the rollback floor. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md#the-kernel-checks-its-loader). Code: `nonos-boot-measure/src/record/mod.rs`.
+The 104-byte file `boot_root.approval` on the ESP: the bootloader tree's root and an epoch, the release's rollback index, signed with the device policy key, ECDSA P-256. The kernel checks its loader's slot under that root and the epoch against the TPM's rollback floor; with no TPM log to replay, it hashes the loader file it was handed instead and checks the epoch against a floor of 0. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md#the-kernel-checks-its-loader). Code: `nonos-boot-measure/src/record/mod.rs`, `nonos-boot-measure/src/gate/verdict.rs`.
 
 ## Build profile
 
-<a id="profile"></a>The kind of image `profile` in `nonos.toml` selects: standard, hardened, airgapped, qemu, dev or core. It fixes the kernel features, what is taken out of the binary (serial debug output for hardened, that and every network feature for airgapped) and the weakest loader policy allowed, so it decides what an image can ever do. The boot profile is a separate choice, made in the boot menu at each boot. Explained in [Profiles](../build/profiles.md). Code: `tools/nix/config.nix`.
+<a id="profile"></a>The kind of image `profile` in `nonos.toml` selects: standard, hardened, airgapped, qemu, dev or core. It fixes the kernel features, what is taken out of the binary (capsule output to the serial console for hardened, that and every network feature for airgapped) and the weakest loader policy allowed, so it decides what an image can ever do. The hardened and airgapped build profiles are not the Hardened and Air-Gapped boot entries, which are boot profiles chosen in the boot menu at each boot. Explained in [Profiles](../build/profiles.md). Code: `tools/nix/config.nix`.
 
 ## Capability
 
@@ -66,11 +66,11 @@ The 64-bit mask of capability bits a process holds. At spawn it is the manifest'
 
 ## Capsule
 
-A signed ring 3 program, the form in which NONOS runs everything outside the kernel. It ships as four files, declared once in a `Capsule.mk`: its ELF, its NONOS ID certificate, its signed manifest and its attestation trailer. The kernel starts it as its own process only after the spawn gate verifies all four, with its own address space, its `proc.<pid>` and `stdin.<pid>` inboxes, and the capability word its manifest allows. Explained in [Userland](../userland/README.md#what-a-capsule-is). Code: `nonos-mk/capsule.mk`, `src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs`.
+A signed ring 3 program, the form in which NONOS runs its own software outside the kernel; a Linux guest is not a capsule. It ships as four files, declared once in a `Capsule.mk`: its ELF, its NONOS ID certificate, its signed manifest and its attestation trailer. The kernel starts it as its own process only after the spawn gate verifies all four, with its own address space, its `proc.<pid>` and `stdin.<pid>` inboxes, and the capability word its manifest and its spawn site allow. Explained in [Userland](../userland/README.md#what-a-capsule-is). Code: `nonos-mk/capsule.mk`, `src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs`.
 
 ## Claim epoch
 
-The number `MkDeviceClaim` returns, taken from one counter that starts at 1 and grows with every claim. Every later MMIO, DMA, interrupt, port and PCI call on that device must pass it back, and a call with an old one fails with ESTALE, -116. Explained in [Broker ABI](../abi/broker.md). Code: `src/hardware/broker/claim/state.rs`.
+The number `MkDeviceClaim` returns, taken from one counter that starts at 1 and grows with every claim. The calls that map MMIO, bind an interrupt, take a DMA buffer or a port grant, or read or write PCI configuration on that device must pass it back, and a call with an old one fails with ESTALE, -116. Explained in [Broker ABI](../abi/broker.md). Code: `src/hardware/broker/claim/state.rs`.
 
 ## Correlation token
 
@@ -78,7 +78,7 @@ The nonzero number the kernel gives each `MkIpcCall` from a counter. Only a repl
 
 ## Data volume
 
-The encrypted volume the disk plan places at sector 262,144 or above, where kept files such as Qwen models live, each sector sealed with ChaCha20-Poly1305. On an installed disk its key is derived from the TPM under the label `blockfs.data.v1`, or is a random key sealed under a passphrase when the key header says so; on a live stick the volume is held in RAM under a key drawn for that boot and is gone at power off. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-data-volume). Code: `src/fs/blockfs_volume/open_machine.rs`, `src/fs/blockfs_volume/session.rs`.
+The encrypted volume the disk plan places at sector 262,144 or above, which holds imported files such as the Qwen models; each 512-byte sector is sealed on its own with ChaCha20-Poly1305. On an installed disk its key is derived from the TPM under the label `blockfs.data.v1`; the kernel can also key it with a passphrase, but no capsule asks for that in this release. On a live stick the volume is held in RAM under a key drawn for that boot and is gone at power off. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-data-volume). Code: `src/fs/blockfs_volume/open_machine.rs`, `src/fs/blockfs_volume/session.rs`.
 
 ## Development image
 
@@ -86,7 +86,7 @@ A profile's development twin, `<profile>-dev`: the same kernel features, path-on
 
 ## Device secret
 
-Four field words the TPM derives as the witness of the anonymous device proof, under a policy the release approves over PCR 9 and this machine's PCRs 0, 4 and 7. It is never stored, and a firmware or loader change gives a new one. In this release only `app.prove` holds the `DeviceSecret` capability that receives it. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-device-secret). Code: `src/security/tpm/device_secret/mod.rs`.
+Four field words the TPM derives as the witness of the anonymous device proof, under a policy the release approves over PCR 9 and this machine's PCRs 0, 4 and 7. It is never stored; a firmware or loader change gives a new one, while a kernel update the release approved keeps it. In this release only `app.prove` holds the `DeviceSecret` capability that receives it. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-device-secret). Code: `src/security/tpm/device_secret/mod.rs`.
 
 ## Directmap
 
@@ -102,7 +102,7 @@ Memory the hardware broker reserves for DMA buffers: a low pool below 4 GiB for 
 
 ## Driver capsule
 
-A capsule, built from a `userland/capsule_driver_*` crate, that drives one kind of device from ring 3. It reaches its device only through grants from the hardware broker and serves it to other capsules over IPC. The tree has 27 driver crates, and 18 of them are built into images in this release. Explained in [Writing a driver](../drivers/writing-a-driver.md). Code: `mk/20-build.mk`, `userland/capsule_driver_virtio_rng/Capsule.mk`.
+A capsule, built from a `userland/capsule_driver_*` crate, that drives one kind of device from ring 3. It reaches its device only through grants from the hardware broker and serves it over IPC, to the kernel or to other capsules. The tree has 27 driver crates; 18 of them are built in this release, and the other nine are in no image. Explained in [Writing a driver](../drivers/writing-a-driver.md). Code: `mk/20-build.mk`, `userland/capsule_driver_virtio_rng/Capsule.mk`.
 
 ## Endpoint
 
@@ -110,7 +110,7 @@ A named IPC address with a port. A capsule's manifest declares its service endpo
 
 ## Enrollment
 
-Committing a set of measurements, such as the BLAKE3 hash of every capsule's ELF, to one Merkle policy tree, then writing its root and a trailer for each member. The seal runs one enrollment for the capsule set and one each for the kernel and the loader; each draws a fresh pad seed, so the same members give a new root every time. Explained in [STARK attestation](../security/stark-attestation.md#who-makes-the-trailers). Code: `nonos-stark-enroll/src/commands.rs`.
+Committing a set of measurements, such as the BLAKE3 hash of every capsule's ELF, to one Merkle policy tree, then writing its root and a trailer for each member. The seal runs one enrollment for the capsule set and one each for the kernel and the loader, and keeps the capsule enrollment already in the tree when no capsule source changed. Each enrollment draws a fresh pad seed, so enrolling the same members again gives a new root. Explained in [STARK attestation](../security/stark-attestation.md#who-makes-the-trailers). Code: `nonos-stark-enroll/src/commands.rs`, `tools/nonos_seal/__main__.py`.
 
 ## ESP
 
@@ -130,15 +130,15 @@ One revocable piece of a claimed device that the hardware broker hands the claim
 
 ## Hardware broker
 
-<a id="broker"></a>The ring 0 code through which a driver capsule lists devices, claims one and receives grants on it: MMIO windows, DMA buffers, interrupt bindings and, on x86_64 only, port I/O, each behind its own capability. When a remapping unit covers a claimed PCI device, the broker moves it into the capsule's IOMMU domain before powering it, and every grant a process holds is released when it exits. Explained in [The hardware broker](../kernel/hardware-broker.md), with the calls in [Broker ABI](../abi/broker.md). Code: `src/hardware/broker/mod.rs`, `src/hardware/broker/claim/claim.rs`.
+<a id="broker"></a>The ring 0 code through which a driver capsule lists devices, claims one and receives grants on it: MMIO windows, DMA buffers, interrupt bindings and, on x86_64 only, port I/O, each behind its own capability. When a VT-d unit in service covers a claimed PCI device, the broker moves it into the capsule's IOMMU domain before powering it, and every grant a process holds is released when it exits. Explained in [The hardware broker](../kernel/hardware-broker.md), with the calls in [Broker ABI](../abi/broker.md). Code: `src/hardware/broker/mod.rs`, `src/hardware/broker/claim/claim.rs`.
 
 ## Held endpoint
 
-A service endpoint that only the services named for it may send to, whatever capabilities a sender holds. Fifteen driver endpoints are held this way: a wired network driver takes sends from `net.core` and `net.l2`, a Wi-Fi driver from `net.core`, Settings and setup, and the keyboard, USB HID, I2C-HID, USB storage and random-source drivers from no capsule at all, because the kernel drives them itself. Explained in [IPC](../kernel/ipc.md#who-may-send-to-whom). Code: `src/services/registry/held_table.rs`.
+A service endpoint that only the services named for it may send to, whatever capabilities a sender holds. The `HELD` table lists fifteen driver endpoints; among them, a wired network driver takes sends only from `net.core` and `net.l2`, a Wi-Fi driver from `net.core`, Settings and setup, the xHCI controller from the USB HID and USB storage drivers, and the keyboard, USB HID, I2C-HID, USB storage and random-source drivers from no capsule at all, because the kernel drives them itself. Explained in [IPC](../kernel/ipc.md#who-may-send-to-whom). Code: `src/services/registry/held_table.rs`.
 
 ## Identity domain
 
-The VT-d domain every device found by the boot PCI scan starts in. It maps physical memory one to one up to the top of the managed range rounded up to 1 GiB, and never less than 4 GiB; a device the scan did not find has no entry and is denied. Explained in [IOMMU](../kernel/iommu.md#when-vt-d-comes-into-service). Code: `src/arch/x86_64/iommu/unit/bringup/domain.rs`, `src/arch/x86_64/iommu/unit/bringup/limit.rs`.
+The VT-d domain every device found by the boot PCI scan starts in, and stays in until a driver claims it. It maps physical memory one to one up to the top of the managed range rounded up to 1 GiB, and never less than 4 GiB; a device the scan did not find has no entry and is denied. Explained in [IOMMU](../kernel/iommu.md#when-vt-d-comes-into-service). Code: `src/arch/x86_64/iommu/unit/bringup/domain.rs`, `src/arch/x86_64/iommu/unit/bringup/limit.rs`.
 
 ## Inbox
 
@@ -146,11 +146,11 @@ A named, bounded message queue in the kernel into which IPC messages are deliver
 
 ## IOMMU
 
-The DMA remapping unit, which limits the memory a device can reach. This kernel drives Intel VT-d; its AMD-Vi backend sits behind a feature no build profile turns on, so a device that no unit in service covers, on an AMD-Vi machine among others, goes ahead unconfined and the boot log says so. Explained in [IOMMU](../kernel/iommu.md). Code: `src/hardware/broker/confine/posture.rs`.
+The DMA remapping unit, which limits the memory a device can reach. On Intel VT-d machines every image turns it on at boot and confines each claimed PCI device to its driver capsule's IOMMU domain. AMD-Vi is not driven and interrupt remapping is off in every build profile, so on an AMD machine device DMA is unrestricted; a claim on a device no unit in service covers goes ahead unconfined, and the boot log says so. Explained in [IOMMU](../kernel/iommu.md). Code: `src/hardware/broker/confine/posture.rs`.
 
 ## IOMMU domain
 
-A set of I/O page tables the remapping unit applies to the devices attached to it. The hardware broker gives each driver capsule one domain, shared by every PCI device it claims, which maps only the DMA buffers granted to it, so the device faults on everything else. ACPI and platform devices get no domain. Explained in [IOMMU](../kernel/iommu.md#per-capsule-domains). Code: `src/hardware/broker/confine/attach.rs`.
+A set of I/O page tables the remapping unit applies to the devices attached to it. The hardware broker gives each driver capsule one domain, shared by every claimed PCI device that a unit in service covers, which maps only the DMA buffers granted to the capsule, so the device faults on everything else. ACPI and platform devices get no domain. Explained in [IOMMU](../kernel/iommu.md#per-capsule-domains). Code: `src/hardware/broker/confine/attach.rs`.
 
 ## Kernel mirror
 
@@ -166,7 +166,7 @@ The bootloader policy an image is built with, weakest first: `dev-qemu`, `standa
 
 ## Machine key
 
-A 32-byte key the TPM derives on request as an HMAC over a label, under a primary key whose policy binds PCRs 0, 4, 7 and 9. Nothing is stored: one machine in one boot state gets the same key every time, and a firmware, Secure Boot, loader or kernel change gives another. The data volume key and the key that seals saved Wi-Fi networks are machine keys, and a capsule holding Crypto asks for one with `CryptoMachineKey`. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-machine-key). Code: `src/security/tpm/machine_key/mod.rs`, `src/security/tpm/machine_key/pcrs.rs`.
+A 32-byte key the TPM derives on request as an HMAC over a label, under a primary key whose policy binds PCRs 0, 4, 7 and 9. Nothing is stored: one machine in one boot state gets the same key every time, and a firmware, Secure Boot, loader or kernel change gives another. The data volume key and the key that seals saved Wi-Fi networks are machine keys; a capsule holding Crypto asks for one with `CryptoMachineKey`, under any label except the kernel's own, which start with a zero byte. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-machine-key). Code: `src/security/tpm/machine_key/mod.rs`, `src/security/tpm/machine_key/pcrs.rs`, `src/security/tpm/machine_key/kernel_label.rs`.
 
 ## Manifest
 
@@ -182,7 +182,7 @@ The Nym anonymity network, route value `NYM`, and the default network for the br
 
 ## Package store
 
-<a id="store"></a>The region of a NONOS disk from sector 256 up to the disk plan at sector 245,760, headed by the magic `NONOSTR1`. The seal fills it with what `tools/nix/store.json` declares, the Linux userland, demo capsules, sample films and wallpapers among them, and the file store reads it and adds to it: installed apps, kept files and setup's answers. It is written unencrypted. Explained in [Storage drivers](../drivers/storage/README.md#the-disk-layout). Code: `userland/nonos_disk_map/src/places.rs`.
+<a id="store"></a>The region of a NONOS disk from sector 256 up to the disk plan at sector 245,760, headed by the magic `NONOSTR1`. The seal fills it with what `tools/nix/store.json` declares, the Linux userland, demo capsules, sample films and wallpapers among them; on a boot that keeps data, the file store adds each file a program asks it to keep, setup's answers and kept settings among them. It is written unencrypted, and a Linux package install is not added to it but held in memory until restart. Explained in [Storage drivers](../drivers/storage/README.md#the-disk-layout). Code: `userland/nonos_disk_map/src/places.rs`, `userland/capsule_vfs/src/server/handlers/store_persist.rs`, `userland/capsule_linux/src/linux/install/place.rs`.
 
 ## PCR
 
@@ -194,7 +194,7 @@ A kernel table that holds a named capsule to the endpoints listed for it, whatev
 
 ## Policy root
 
-The 32-byte root of the capsule attestation tree, written by the seal's enrollment of the capsule set and compiled into the kernel. The spawn gate tries every capsule's trailer against it first, then against any signing roots enrolled on this machine. Explained in [STARK attestation](../security/stark-attestation.md#three-trees). Code: `src/security/capsule_attest/policy_root.rs`, `src/security/capsule_attest/verify.rs`.
+The 32-byte root of the capsule attestation tree, written by the seal's enrollment of the capsule set and compiled into the kernel. The spawn gate tries every capsule's trailer against it first, then against any developer roots enrolled on this machine. Explained in [STARK attestation](../security/stark-attestation.md#three-trees). Code: `src/security/capsule_attest/policy_root.rs`, `src/security/capsule_attest/verify.rs`.
 
 ## Policy store
 
@@ -218,7 +218,7 @@ How far the TPM NV counter at 0x01000020 has risen above its base at 0x01000021.
 
 ## Rollback index
 
-The anti-rollback number signed into the kernel image together with its BLAKE3 hash, set by `rollback_index` in `nonos.toml`, 1 by default and never below 1. Raising it for a release retires every older kernel on each machine where the new one boots. Explained in [Rollback protection](../security/rollback-protection.md#the-kernels-rollback-index). Code: `nonos-bootloader/tools/sign-kernel/src/message.rs`, `nonos.toml`.
+The anti-rollback number signed into the kernel image together with its BLAKE3 hash, set by `rollback_index` in `nonos.toml`, 1 by default; the flake refuses a value below 1. Raising it for a release retires every older kernel on each machine with a TPM where the new one boots. Explained in [Rollback protection](../security/rollback-protection.md#the-kernels-rollback-index). Code: `nonos-bootloader/tools/sign-kernel/src/message.rs`, `tools/nix/config.nix`, `nonos.toml`.
 
 ## Seal
 
@@ -226,11 +226,15 @@ The step between the reproducible build and a bootable image, run as `make seal`
 
 ## Secure Boot
 
-The UEFI firmware feature that starts only a loader whose signature the firmware's signature database, db, trusts. The Hardened entry needs it on, with a platform key and a db, and so does every entry on a build whose loader floor is Hardened. When the seal has the NONOS db key, it signs `BOOTX64.EFI` with that key alone. Explained in [Requirements](../install/requirements.md#secure-boot-and-the-tpm). Code: `nonos-bootloader/src/bootmenu/ready.rs`.
+The UEFI firmware feature that starts only a loader whose signature the firmware's signature database, db, trusts. The Hardened boot entry needs it on, with a platform key and a db; the hardened and airgapped build profiles, built with the `production` loader policy, are described in `tools/nix/config.nix` as refusing to start without Secure Boot and a TPM. When the seal has the NONOS db key it signs `BOOTX64.EFI` with that key alone, and a release seal of a `production` loader stops without it. Explained in [Requirements](../install/requirements.md#secure-boot-and-the-tpm). Code: `nonos-bootloader/src/bootmenu/ready.rs`, `tools/nix/config.nix`, `tools/nonos_seal/chain.py`.
 
 ## Serial console
 
-The kernel's main log, a UART that takes its tagged lines: on x86_64 the 16550 at I/O port 0x3F8, set to 115200 8N1, and on aarch64 the PL011. With no UART present the output is dropped and the boot goes on; a capsule may write to it only with the Debug capability. Explained in [Logging](../kernel/logging.md#the-serial-console). Code: `src/arch/x86_64/console.rs`.
+The kernel's main log, a UART that takes its tagged lines: on x86_64 the 16550 at I/O port 0x3F8, set to 115200 8N1, and on aarch64 the PL011. With no UART present the output is dropped and the boot goes on; a capsule may write to it only with the Debug capability, which a spawn grants only in an image built with `capsule-serial-debug`. Explained in [Logging](../kernel/logging.md#the-serial-console). Code: `src/arch/x86_64/console.rs`, `src/capabilities/serial_debug.rs`.
+
+## SMP
+
+Symmetric multiprocessing: the kernel runs on every core, not only the boot CPU. It starts every CPU the firmware enables in the ACPI MADT, up to 256, and every one of them takes processes from one run queue shared by the whole machine. On an Intel hybrid part an idle performance core is offered new work before an efficiency core. Every build profile turns it on through the `nonos-smp` feature unless `nonos.toml` sets `smp = false`, and a kernel built without that feature runs on the boot CPU alone. A Linux program is still told it has one CPU. Explained in [Scheduler and SMP](../kernel/scheduler-and-smp.md). Code: `src/smp/init/ap_start.rs`, `src/process/scheduler/dispatch/run_queue.rs`, `src/smp/ipi_handler.rs`.
 
 ## Spawn gate
 
@@ -238,7 +242,7 @@ The kernel path every capsule passes before it becomes a process, `spawn_verifie
 
 ## STARK proof
 
-A proof, checked by the `nox_verify` verifier from the pinned NON-OS STARKs library, that a measurement and its context fill a slot of an enrolled tree. Every attestation trailer carries one beside its Merkle path, except a development image's, and a gate admits only when both the path and the proof pass. Explained in [STARK attestation](../security/stark-attestation.md#the-statement). Code: `src/security/capsule_attest/path.rs`.
+A proof, checked by the `nox_verify` verifier from the STARKs repository the flake pins, that a measurement and its context fill a slot of an enrolled tree. Every attestation trailer carries one beside its Merkle path, except a development image's, and a gate admits only when both the path and the proof pass. Explained in [STARK attestation](../security/stark-attestation.md#the-statement). Code: `src/security/capsule_attest/path.rs`.
 
 ## Syscall tag
 
@@ -246,11 +250,11 @@ Four ASCII letters packed little-endian into the 64-bit system call number by `t
 
 ## TLB shootdown
 
-The round in which a CPU that changed a page table makes every other CPU that may cache the old translation drop it and answer. A round still unanswered after 50 ms is sent again as an NMI, and after 2000 ms the machine stops. Explained in [Scheduler and SMP](../kernel/scheduler-and-smp.md#shootdowns-and-stopping-the-other-cpus). Code: `src/memory/paging/manager/shootdown/request.rs`.
+The round in which a CPU that changed a page table makes every other CPU that may cache the old translation drop it and answer. A round still unanswered after 50 ms is sent again as an NMI, and after 2000 ms the machine stops. Explained in [Scheduler and SMP](../kernel/scheduler-and-smp.md#shootdowns-and-stopping-the-other-cpus). Code: `src/memory/paging/manager/shootdown/request.rs`, `src/memory/paging/manager/shootdown/slow.rs`.
 
 ## TPM
 
-The TPM 2.0 chip. NONOS keeps its rollback floor there, derives machine keys and the device secret from it without storing them, and reads PCR 4 from it to check the loader. Hardened and Air-Gapped boots refuse to start without one, and a data volume keyed by the TPM stays closed without it. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md). Code: `src/security/tpm/mod.rs`.
+The TPM 2.0 chip. NONOS keeps its rollback floor there, derives machine keys and the device secret from it without storing them, and reads PCR 4 from it to check the loader. Hardened and Air-Gapped boots refuse to start without one, and a data volume keyed by the TPM stays closed without it. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md). Code: `src/security/tpm/mod.rs`, `nonos-bootloader/src/menu/types/mode.rs`.
 
 ## Trust anchor
 
@@ -262,7 +266,7 @@ The public files the seal writes under `nonos-data/trust`: each capsule's NONOS 
 
 ## ZeroState
 
-The wipe `terminate` runs before every shutdown and restart. It stops the other CPUs and the claimed devices, wipes DMA buffers, process memory, kernel stacks, file system caches, the key vault, the RAM log and the kernel heap, then hands the machine to the firmware. A kernel panic, a forced power-off or a power cut skips it, and it does not reach kernel statics outside the heap, the data volume key among them. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#wiped-at-shutdown-and-reboot). Code: `src/security/zerostate/terminate.rs`, `src/security/hardening/memory_sanitization/api.rs`.
+The wipe `terminate` runs before every shutdown and restart. It stops the other CPUs and the claimed devices, wipes DMA buffers, process memory, kernel stacks, file system caches, the key vault, the RAM log and the kernel heap, then hands the machine to the firmware. A kernel panic, a forced power-off or a power cut skips it, and apart from the RAM log it does not reach kernel statics outside the heap, the data volume key among them, or a live stick's in-memory volume. In 0.9.2 only the installer's restart runs it, since the desktop cannot shut down. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#wiped-at-shutdown-and-reboot). Code: `src/security/zerostate/terminate.rs`, `src/security/hardening/memory_sanitization/api.rs`.
 
 ## See also
 
