@@ -14,7 +14,7 @@ nix build .#core
 
 Not tested in this release.
 
-`make profiles` prints, for each profile, what it is, who it is for, its privacy posture and its loader policy (`describe`, `tools/nix/config.nix:193-202`).
+`make profiles` prints, for each profile, what it is, who it is for, its privacy posture and its [loader policy](../overview/glossary.md#loader-policy) (`describe`, `tools/nix/config.nix:193-202`).
 
 ## The six profiles
 
@@ -29,22 +29,23 @@ Not tested in this release.
 
 `microkernel-full-gui`, the set `make` builds by default, is the desktop with every production hardware driver [capsule](../overview/glossary.md#capsule), the market and first-boot setup (`Cargo.toml:627-646`). `microkernel-capsules`, the set of the `core` profile, is the core kernel with three capsules embedded: proof I/O, the RAM file system and the keyring (`Cargo.toml:251-257`).
 
-`capsule-serial-debug` lets service capsules write to the serial console, which the hardened and airgapped images must not allow (`debugFeatures`, `tools/nix/config.nix:60-62`). The network features the airgapped profile removes are everything that reaches a network: the drivers, the stack, and the programs whose only job is to go online, such as the browser, the market and the model fetcher (`networkFeatures`, `tools/nix/config.nix:48-58`).
+`capsule-serial-debug` lets service capsules write to the [serial console](../overview/glossary.md#serial-console), which the hardened and airgapped images must not allow (`debugFeatures`, `tools/nix/config.nix:60-62`). The network features the airgapped profile removes are everything that reaches a network: the drivers, the stack, and the programs whose only job is to go online, such as the browser, the market and the model fetcher (`networkFeatures`, `tools/nix/config.nix:48-58`).
 
-The profile's own description says the `production` loader refuses to start without Secure Boot and a TPM to measure into (`privacy`, `tools/nix/config.nix:78-85`). The build only selects that policy, by building the loader with the cargo feature of the same name (`cargo`, `tools/nix/image.nix:161-162`); the refusal itself is in the loader's verification code and is not checked on this page.
+The profile's own description says the `production` loader refuses to start without [Secure Boot](../overview/glossary.md#secure-boot) and a [TPM](../overview/glossary.md#tpm) to measure into (`privacy`, `tools/nix/config.nix:78-85`). The build only selects that policy, by building the loader with the cargo feature of the same name (`cargo`, `tools/nix/image.nix:161-162`); the refusal itself is in the loader's verification code and is not checked on this page.
 
 ## The keys of `nonos.toml`
 
 | key | default | what it does |
 |---|---|---|
 | `profile` | `standard` | the kind of image (`profile`, `nonos.toml:17`) |
-| `smp` | `true` | brings up every CPU, through the `nonos-smp` feature (`smp`, `nonos.toml:19-20`) |
+| `dev` | `false` | builds the profile's development twin, with path-only attestation and the `dev-qemu` loader, under the name `<profile>-dev`; `nonos.toml` does not list this key (`dev`, `tools/nix/config.nix:122-126`) |
+| `smp` | `true` | brings up every CPU the firmware enables, through the `nonos-smp` feature; no profile turns it off, and with `false` the kernel runs on the boot CPU alone (`smp`, `nonos.toml:19-20`) |
 | `install` | `true` | keeps first-boot setup and the installer; `false` takes both out (`install`, `nonos.toml:22-25`) |
 | `rollback_index` | `1` | the [rollback index](../overview/glossary.md#rollback-index) bound into the signed kernel (`rollback_index`, `nonos.toml:27-29`) |
 | `features` | none | extra kernel features, checked against `Cargo.toml` (`features`, `nonos.toml:31-32`) |
 | `loader` | the profile's | a stricter loader policy than the profile's own (`loader`, `nonos.toml:34-36`) |
 | `linux_packages` | empty | the package mirror, as `name:port`, that the in-tree Linux tools the image does not carry install from (`linux_packages`, `nonos.toml:38-44`) |
-| `store.linux`, `store.media` | `true`, `true` | whether the package store carries the Linux tools and the Qwen runner, and the sample films (`store`, `nonos.toml:46-49`) |
+| `store.linux`, `store.media` | `true`, `true` | whether the [package store](../overview/glossary.md#package-store) carries the Linux tools and the Qwen runner, and the sample films (`store`, `nonos.toml:46-49`) |
 
 The defaults live in the flake as well, and a key the flake does not know fails the evaluation (`defaults`, `tools/nix/config.nix:120-134`).
 
@@ -67,9 +68,9 @@ A profile sets floors, not defaults. A `nonos.toml` that asks a profile for less
 
 - a key is unknown, or a feature is not in `Cargo.toml`;
 - a feature the profile takes out comes back in through another feature;
-- the loader is weaker than the profile's, in the order `dev-qemu`, `standard-qemu`, `standard`, `production` (`loaders`, `tools/nix/config.nix:66`);
-- `rollback_index` is not an integer of at least 1, or `linux_packages` is not `name:port`;
-- `nonos-dev-attest`, which admits capsules without their STARK proof, or the wallet test vectors, would reach an image whose loader is not `dev-qemu`.
+- the loader is weaker than the profile's, in the order `dev-qemu`, `standard-qemu`, `standard`, `production` (`loaders`, `tools/nix/config.nix:66`), unless `dev` is true;
+- `rollback_index` is not an integer of at least 1, or `linux_packages` is not empty or a host name with an optional `:port`;
+- `nonos-dev-attest`, which admits capsules without their [STARK proof](../overview/glossary.md#stark-proof), or the wallet test vectors, would reach an image whose loader is not `dev-qemu`.
 
 For example, this `nonos.toml` fails with `nonos.toml: profile hardened needs at least loader production, not standard` (`level`, `tools/nix/config.nix:160`):
 
@@ -84,16 +85,16 @@ The `kernel-profile-<profile>` checks type-check the kernel with exactly each pr
 
 ## The image capability ceiling
 
-Each build writes the OR of the capability ceilings of the capsules its profile ships into the trust policy the kernel embeds (`ceilingOf`, `tools/nix/image.nix:59-64`), and the kernel bakes that value in (`BAKED`, `src/security/image_ceiling/value.rs:19-21`). In this release the ceiling is not enforced. Capsule spawn calls only `would_refuse`, which prints `[CEILING] not enforced, would refuse` and the capsule's name when a capsule asks for more, then lets the spawn go on (`would_refuse`, `src/security/image_ceiling/admits.rs:53-60`, `src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:68`). Until it is, the image-wide limit adds nothing at spawn. [Capabilities](../kernel/capabilities.md) describes the bits.
+Each build writes the OR of the [capability ceilings](../overview/glossary.md#capability-ceiling) of the capsules its profile ships into the trust policy the kernel embeds (`ceilingOf`, `tools/nix/image.nix:59-64`), and the kernel bakes that value in (`BAKED`, `src/security/image_ceiling/value.rs:19-21`). In this release the ceiling is not enforced. Capsule spawn calls only `would_refuse`, which prints `[CEILING] not enforced, would refuse` and the capsule's name when a capsule asks for more, then lets the spawn go on (`would_refuse`, `src/security/image_ceiling/admits.rs:53-60`, `src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:68`). Until it is, the image-wide limit adds nothing at spawn. [Capabilities](../kernel/capabilities.md) describes the bits.
 
 ## Build profiles and boot modes
 
-A build profile decides what an image can ever do. A [boot mode](../overview/glossary.md#boot-mode) is chosen in the boot menu at each boot and narrows it further: Standard, Hardened, Safe Mode, Air-Gapped or Recovery (`BootProfile`, `src/boot/handoff/api/profile.rs:24-42`). The flake's own comments call the boot menu a run-time posture that any image offers (`tools/nix/config.nix`). A kernel started with no handoff from the loader runs Standard (`boot_profile`, `src/boot/handoff/api/profile.rs:60-63`).
+A build profile decides what an image can ever do. A [boot mode](../overview/glossary.md#boot-mode) is chosen in the boot menu at each boot and narrows it further: Standard, Hardened, Safe Mode, Air-Gapped or Recovery (`BootProfile`, `src/boot/handoff/api/profile.rs:24-42`). A kernel started with no handoff from the loader runs Standard (`boot_profile`, `src/boot/handoff/api/profile.rs:60-63`).
 
 | boot mode | network | what the kernel does differently |
 |---|---|---|
 | Standard | yes | nothing |
-| Hardened | yes | nothing in the kernel's network rule |
+| Hardened | yes | nothing beyond reporting the mode to programs, as it does for every mode (`BOOT_PROFILE_HARDENED`, `src/syscall/microkernel/procstat_boot.rs:29`) |
 | Safe Mode | no | starts no audio driver and no optional app |
 | Air-Gapped | no | starts no network driver or network service |
 | Recovery | no | goes straight to its desktop; setup does not run |

@@ -32,10 +32,10 @@ On x86_64-linux this lists 175 packages:
 |---|---|
 | `default` | the build `nonos.toml` describes: every artifact and `nonos-build.json` (`default`, `tools/nix/default.nix:57-59`) |
 | `standard`, `hardened`, `airgapped`, `qemu`, `dev`, `core` | the same for each [build profile](../overview/glossary.md#build-profile), the rest of `nonos.toml` unchanged (`profiles`, `tools/nix/default.nix:60`) |
-| `standard-dev`, `hardened-dev`, `airgapped-dev`, `qemu-dev`, `core-dev` | each profile's development twin, with path-only attestation (`nameValuePair`, `tools/nix/default.nix:61-63`) |
+| `standard-dev`, `hardened-dev`, `airgapped-dev`, `qemu-dev`, `core-dev` | each profile's development twin, with path-only [attestation](../overview/glossary.md#attestation) (`nameValuePair`, `tools/nix/default.nix:61-63`) |
 | `kernel`, `bootloader` | the kernel and the loader of the configured build alone (`kernel`, `tools/nix/default.nix:66-67`) |
-| `capsules` and `capsule-<slug>` | every [capsule](../overview/glossary.md#capsule) together, and each alone: 116 of them (`capsules`, `tools/nix/default.nix:68`) |
-| `linux-userland` and `linux-<program>` | the Linux userland together, and its 17 programs alone (`userland`, `tools/nix/default.nix:69`) |
+| `capsules` and `capsule-<slug>` | every entry of the build catalogue `tools/nix/capsules.json` together, and each alone: 116 of them, the 97 [capsules](../overview/glossary.md#capsule) the build includes and the 19 signed Linux userland programs (`capsules`, `tools/nix/default.nix:68`) |
+| `linux-userland` and `linux-<program>` | the Linux userland together, and its 17 programs alone; `qwenchat` builds three of the 19 signed binaries, one per x86-64 level (`userland`, `tools/nix/default.nix:69`) |
 | `busybox` | BusyBox built from source (`busybox`, `tools/nix/default.nix:70`) |
 | `upstream-<tool>` | the 10 crates.io tools packaged as capsules (`upstream`, `tools/nix/default.nix:100`) |
 | `host-tools` and `host-<tool>` | the 7 host programs the [seal](../overview/glossary.md#seal) and the checks run, such as `capsule-sign` and `nonos-stark-enroll` (`hostTools`, `tools/nix/default.nix:91`) |
@@ -54,7 +54,7 @@ On x86_64-linux this lists 175 packages:
 | `receipt` | `tools/nonos-receipt` (`receipt`, `tools/nix/apps.nix:56`) | `make build` |
 | `check-report` | `tools/nonos-check-report` (`report`, `tools/nix/apps.nix:57`) | `make check` |
 
-Every app first moves to the root of the git checkout it was started in, and refuses to run outside one (`root`, `tools/nix/apps.nix:15-16`). [seal.md](seal.md) and [make-targets.md](make-targets.md) describe the seal and the QEMU runner.
+Every app first moves to the root of the git checkout it was started in, and refuses to run outside one (`root`, `tools/nix/apps.nix:15-16`). [seal.md](seal.md) and [make-targets.md](make-targets.md) describe the seal and the QEMU runner, and [host-tools.md](host-tools.md) the other programs under `tools/` that the apps, the checks and the make targets run.
 
 ### Development shell and formatter
 
@@ -72,7 +72,7 @@ Every app first moves to the root of the git checkout it was started in, and ref
 | static checks | `static-hygiene`, `static-abi`, `static-tree`, `static-evidence` | the Python and shell checks over the whole tree (`staticChecks`, `tools/nix/checks.nix:211-247`) |
 | drift checks | `catalogues`, `inputs`, `git-pins`, `wallpaper-pins`, `starks-pin`, `shield-vectors-pin`, `busybox-source`, `rust-src-lock`, `config` | the flake's own inputs held to the tree they mirror (`driftChecks`, `tools/nix/checks.nix:250-301`) |
 
-The proof crates are every `userland/*_proofs` directory with a `Cargo.lock`, and seven more named by hand (`proofDirs`, `tools/nix/checks.nix:20-30`). The two live TPM suites run on Linux only and fail when a live test was skipped (`needsTpm`, `tools/nix/checks.nix:32-34`). A few crates are not yet clippy clean in their tests, or at all, and are listed by name; the comment beside the lists says they only shrink (`lintLib`, `tools/nix/checks.nix:44-54`).
+The proof crates are every `userland/*_proofs` directory with a `Cargo.lock`, and seven more named by hand (`proofDirs`, `tools/nix/checks.nix:20-30`). The two live [TPM](../overview/glossary.md#tpm) suites run on Linux only and fail when a live test was skipped (`needsTpm`, `tools/nix/checks.nix:32-34`). A few crates are not yet clippy clean in their tests, or at all, and are listed by name; the comment beside the lists says they only shrink (`lintLib`, `tools/nix/checks.nix:44-54`).
 
 Count the checks for a host:
 
@@ -129,4 +129,5 @@ CI reads and fills a Cachix cache that the repository variable `NONOS_CACHIX` na
 - [Make targets](make-targets.md)
 - [Reproducible builds](reproducible-builds.md)
 - [CI](ci.md)
+- [Host tools](host-tools.md)
 - [Tests and proofs](../contributing/tests-and-proofs.md)

@@ -4,7 +4,7 @@ Set up a machine to build NONOS, and look up the one pinned version of each comp
 
 ## On your machine
 
-The build needs Nix with flakes turned on. Beyond Nix, you need `git` to fetch the source and GNU `make` to type the short commands of the [Makefile](../../Makefile). Every compiler and tool the build runs comes from the flake, and nothing in the development shell comes from the host (`tools`, `tools/nix/shell.nix:1-14`).
+The build needs Nix with flakes turned on. Beyond Nix, you need `git` to fetch the source and GNU `make` to type the short commands of the [Makefile](../../Makefile). Every compiler and tool the build runs comes from the flake, and the development shell brings its own copy of each tool it lists rather than taking one from the host (`tools`, `tools/nix/shell.nix:1-14`).
 
 | host | how |
 |---|---|
@@ -18,7 +18,7 @@ The devcontainer in `.devcontainer/` is a pinned Debian bookworm image with `git
 
 ## Nix
 
-Install Nix from [nixos.org](https://nixos.org/download), then turn on flakes. The `doctor` target prints the line to add when they are off (`Makefile:127-129`):
+Install Nix from [nixos.org](https://nixos.org/download), then turn on flakes in your Nix configuration. The Makefile runs plain `nix`, with no flag for them (`NIX`, `Makefile:44`):
 
 ```
 mkdir -p ~/.config/nix
@@ -35,7 +35,7 @@ Check the machine:
 make doctor
 ```
 
-It says `ok    nix, with flakes` when Nix answers with flakes on, then reports hardware virtualization, and ends with `This machine can build NONOS: make` (`doctor`, `Makefile:124-136`).
+It says `ok    nix, with flakes` when Nix can read the flake, then reports hardware virtualization, and ends with `This machine can build NONOS: make` (`doctor`, `Makefile:124-136`). It turns flakes on for that one check, so it passes on a machine whose configuration lacks the line above, and `make` then fails there. When the check fails, it prints the line to add (`doctor`, `Makefile:127-129`).
 
 ## Rust
 
@@ -81,7 +81,7 @@ CMake, Go and clang come from nixpkgs, and each version below is asserted when t
 | Go | 1.26.8 | the Go programs of the Linux userland, such as gojq |
 | clang | major version 21 | every C file built into a NONOS binary, such as the kernel's PQClean code |
 
-Python is 3.12, with the `cryptography` package for the scripts that need it (`pythonTools`, `tools/nix/pins.nix:77-81`). On Linux the software TPM is swtpm 0.9.0 on libtpms 0.9.6, the released pair the live TPM proofs run against; on macOS it is the swtpm nixpkgs builds (`swtpm`, `tools/nix/pins.nix:47-51`). QEMU and its UEFI firmware come from nixpkgs, and the firmware is QEMU's own build of edk2 (`firmware`, `tools/nix/shell.nix:9-10`).
+Python is 3.12, with the `cryptography` package for the scripts that need it (`pythonTools`, `tools/nix/pins.nix:77-81`). On Linux the software [TPM](../overview/glossary.md#tpm) is swtpm 0.9.0 on libtpms 0.9.6, the released pair the live TPM proofs run against; on macOS it is the swtpm nixpkgs builds (`swtpm`, `tools/nix/pins.nix:47-51`). QEMU and its UEFI firmware come from nixpkgs, and the firmware is QEMU's own build of edk2 (`firmware`, `tools/nix/shell.nix:9-10`).
 
 ## The development shell
 
@@ -93,7 +93,7 @@ Not tested in this release.
 
 `make shell` runs `nix develop` (`shell`, `Makefile:104-105`). The shell carries the pinned Rust with its standard library layer, Zig, CMake, Python, clang and LLVM, QEMU, swtpm, the image tools (`xorriso`, `mtools`, `gptfdisk`, `dosfstools`), the signing and hashing tools (`osslsigncode`, `openssl`, `b3sum`), Node.js, `cargo-audit`, `cargo-deny`, `cargo-cyclonedx`, GNU make, git, jq and perl (`tools`, `tools/nix/shell.nix:14-49`). On Linux it adds `sbsigntool` and `tpm2-tools` (`linuxOnly`, `tools/nix/shell.nix:8`).
 
-It sets `NONOS_IN_FLAKE`, and points `OVMF` and `OVMF_VARS` at the firmware, so the make targets in `mk/` never search the host (`NONOS_IN_FLAKE`, `tools/nix/shell.nix:58-64`).
+It sets `NONOS_IN_FLAKE`, the paths of the pinned Zig and CMake, and `OVMF` and `OVMF_VARS` for the firmware, so the make targets in `mk/` take these from the flake instead of searching the host (`NONOS_IN_FLAKE`, `tools/nix/shell.nix:58-64`).
 
 ## Hardware virtualization
 
@@ -104,5 +104,6 @@ A QEMU boot uses KVM when `/dev/kvm` opens read and write, and the TCG emulator 
 - [The Nix flake](nix-flake.md)
 - [Make targets](make-targets.md)
 - [Reproducible builds](reproducible-builds.md)
+- [Host tools](host-tools.md)
 - [Architectures](../architectures/README.md)
 - [Requirements to run NONOS](../install/requirements.md)

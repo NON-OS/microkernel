@@ -28,7 +28,7 @@ The document's own component is the operating system `nonos`, at the version in 
 
 Crates that appear in several locks are listed once for each name, version and source (`crates`, `tools/nix/sbom.nix:8-10`).
 
-The lock files it reads are the kernel's, the loader's, the standard library's for `-Zbuild-std`, those of ripgrep and fd, of every capsule built from source, of the crates.io tools packaged as capsules, of `nonos-rt`, the startup object of `std` capsules, and of the host tools: the signing and enrollment tools, `embed-trailer`, `sign-kernel`, `nonos-mk`, `nonos-pack` and `nonos-verify` (`lockFiles`, `tools/nix/default.nix:26-34`).
+The lock files it reads are the kernel's, the loader's, the standard library's for `-Zbuild-std`, those of ripgrep and fd, of every [capsule](../overview/glossary.md#capsule) built from source, of the crates.io tools packaged as capsules, of `nonos-rt`, the startup object of `std` capsules, and of the host tools: the signing and enrollment tools, `embed-trailer`, `sign-kernel`, `nonos-mk`, `nonos-pack` and `nonos-verify` (`lockFiles`, `tools/nix/default.nix:26-34`).
 
 ## What it leaves out
 
@@ -48,7 +48,7 @@ The supply chain workflow also runs `nonos-verify supply-chain` in the developme
 | `git submodule status --recursive` | fails when a submodule is off its committed pin |
 | `cargo cyclonedx --format json` | a second, cargo generated CycloneDX SBOM |
 
-The tools come from the flake's shell (`tools/nix/shell.nix`).
+The tools come from the flake's shell (`tools/nix/shell.nix`). Each command runs in the folder the tool was started from (`run_logged`, `nonos-verify/src/sh.rs:8-9`), and the root `Cargo.toml` declares no workspace, so the four cargo steps read the kernel crate and its `Cargo.lock` alone. The loader, the capsules and the host tools keep their own locks, which these steps do not scan; the bill of materials above lists their crates.
 
 The `deny.toml` policy, for the kernel crate:
 
@@ -66,7 +66,7 @@ The `deny.toml` policy, for the kernel crate:
 | [tools/nix/sources.txt](../../tools/nix/sources.txt) | 47 sources and toolchain releases by URL and hash |
 | [tools/nix/git-sources.json](../../tools/nix/git-sources.json) | every git dependency other than STARKs by tree hash |
 | [tools/nix/inputs.json](../../tools/nix/inputs.json) | the files each cargo build reads |
-| [tools/nix/capsules.json](../../tools/nix/capsules.json) and [store.json](../../tools/nix/store.json) | every capsule and every entry of the package store, as make declares them |
+| [tools/nix/capsules.json](../../tools/nix/capsules.json) and [store.json](../../tools/nix/store.json) | every capsule and every entry of the [package store](../overview/glossary.md#package-store), as make declares them |
 | `nonos-build.json` in `result/` | every artifact of one build by sha256, with the resolved configuration |
 | [third_party/pqclean/PROVENANCE.md](../../third_party/pqclean/PROVENANCE.md) | the vendored PQClean snapshot and the algorithms compiled from it |
 | [third_party/minimp3/LICENSE](../../third_party/minimp3/LICENSE) | the licence of the vendored minimp3 decoder |

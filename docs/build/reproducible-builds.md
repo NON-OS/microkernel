@@ -4,7 +4,7 @@ Check a NONOS build yourself: what is pinned, where the reproducible boundary ru
 
 ## The boundary
 
-The artifacts in `result/` are built to be reproducible: the same commit and the same `nonos.toml` should give the same bytes on any machine. Enrollment and signing are not, because the [seal](../overview/glossary.md#seal) draws fresh randomness for every STARK proof and signs with keys the build never sees (`BOUNDARY`, `tools/nix/manifest.py:25-29`). The boundary is the tree the flake's `artifacts` function writes: the kernel ELF, every [capsule](../overview/glossary.md#capsule) ELF, the Linux userland, the loader EFI binary and the bill of materials (`artifacts`, `tools/nix/artifacts.nix:1-15`).
+The artifacts in `result/` are built to be reproducible: the same commit and the same `nonos.toml` should give the same bytes on any machine. [Enrollment](../overview/glossary.md#enrollment) and signing are not, because the [seal](../overview/glossary.md#seal) draws fresh randomness for every [STARK proof](../overview/glossary.md#stark-proof) and signs with keys the build never sees (`BOUNDARY`, `tools/nix/manifest.py:25-29`). The boundary is the tree the flake's `artifacts` function writes: the kernel ELF, every [capsule](../overview/glossary.md#capsule) ELF, the Linux userland, the loader EFI binary and the bill of materials (`artifacts`, `tools/nix/artifacts.nix:1-15`).
 
 The sealed image still traces back to the source. The seal's last check rebuilds the kernel and the loader from the tree with `nix build` and stops unless they are the bytes it sealed (`reproduced`, `tools/nonos_seal/verify.py:70-86`).
 
@@ -39,15 +39,15 @@ Every `Cargo.lock` that uses STARKs must name the commit `flake.lock` pins, or t
 
 ### Against the committed receipt
 
-`make build` ends with the build receipt: every artifact by sha256, the toolchain, and every pinned input by hash. The receipt is then held to the one committed for the same profile, with one of three verdicts (`compare`, `tools/nonos-receipt:167-183`):
+`make build` ends with the build receipt: every artifact by sha256, the toolchain, and every pinned input by hash. The receipt is then held to the one committed for the same profile. When none is committed yet, it says so and compares nothing; otherwise it gives one of three verdicts (`compare`, `tools/nonos-receipt:167-183`):
 
 | verdict | meaning |
 |---|---|
 | `REPRODUCED` | every artifact is byte for byte the committed one |
-| `CHANGED` | artifacts differ, and so does the commit or an input; commit the new receipt once the change is meant |
+| `CHANGED` | artifacts differ, and so does the commit, a pinned input or a toolchain store path; commit the new receipt once the change is meant |
 | `NOT REPRODUCED` | the same commit and inputs gave different bytes |
 
-Any other verdict writes the new receipt over the committed one in your checkout. A `NOT REPRODUCED` build never replaces the receipt it failed: it is written beside it as `<profile>.rejected.json`, and `make` exits with an error (`rejected`, `tools/nonos-receipt:256-263`). The header says `(uncommitted changes)` when the tree is dirty; only a receipt written from a clean tree is one to commit (`artifacts`, `tools/nonos-receipt:29-31`).
+Every other outcome writes the new receipt in place of the committed one in your checkout. A `NOT REPRODUCED` build never replaces the receipt it failed: it is written beside it as `<profile>.rejected.json`, and `make` exits with an error (`rejected`, `tools/nonos-receipt:256-263`). The header says `(uncommitted changes)` when the tree is dirty (`tree_clean`, `tools/nonos-receipt:198`); only a receipt written from a clean tree is one to commit.
 
 ### Between two machines
 
