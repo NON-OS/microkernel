@@ -7,8 +7,8 @@ Follow these steps to go from a clean machine to a NONOS image booting under QEM
 Install Nix with flakes turned on ([toolchain.md](toolchain.md) says how), then get the source:
 
 ```
-git clone https://github.com/NON-OS/nonos-unified
-cd nonos-unified
+git clone https://github.com/NON-OS/microkernel
+cd microkernel
 ```
 
 Not tested in this release.

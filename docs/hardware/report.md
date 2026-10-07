@@ -107,7 +107,7 @@ The [support matrix](MATRIX.md) lists each driver's ids. If a device you care ab
 
 ## Where to send it
 
-Open an issue on GitHub at [NON-OS/nonos-unified](https://github.com/NON-OS/nonos-unified/issues/new/choose) and choose the form "Hardware or boot bug". Its fields map to what you collected:
+Open an issue on GitHub at [NON-OS/microkernel](https://github.com/NON-OS/microkernel/issues/new/choose) and choose the form "Hardware or boot bug". Its fields map to what you collected:
 
 | Form field | What to put there |
 |---|---|

@@ -105,7 +105,7 @@ jobs:
           ls -l
 
       # A signed SLSA statement binding every asset to this commit and run;
-      # `gh attestation verify <file> --repo NON-OS/nonos-unified` checks it
+      # `gh attestation verify <file> --repo NON-OS/microkernel` checks it
       # with no key from us.
       - name: Sign build provenance for the release assets
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2

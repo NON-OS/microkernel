@@ -79,7 +79,7 @@ The `ci-reproducible` workflow builds the default package on Linux x86_64, Linux
 A release carries `SHA256SUMS` and `BLAKE3SUMS` over its assets, `nonos-build.json` and the bill of materials (`assets`, `.github/workflows/ci-release-artifacts.yml:60-64`), and a signed build provenance statement for every asset, which `gh attestation verify` checks with no key from NONOS (`uses`, `.github/workflows/release.yml:106-112`):
 
 ```
-gh attestation verify nonos.cdx.json --repo NON-OS/nonos-unified
+gh attestation verify nonos.cdx.json --repo NON-OS/microkernel
 ```
 
 Not tested in this release.
