@@ -166,6 +166,11 @@ jobs:
               bash nonos-ci/setup-signing-key.sh
               make nonos-mk-check-trust-manifest
               echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
+              # The committed trust set signs the flake's capsules (the seal
+              # enrolls what nix builds), so the make lane checks it against
+              # those bytes, not against a cargo build of its own whose paths
+              # differ (nonos-mk/capsule.mk, NONOS_CAPSULE_BINS).
+              echo "NONOS_CAPSULE_BINS=$(nix build .#capsules --no-link --print-out-paths)" >> "$GITHUB_ENV"
               ;;
             *)
               echo "::error::unknown trust-mode '${NONOS_CI_TRUST_MODE}'"
