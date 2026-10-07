@@ -4,7 +4,7 @@ Look up any `make` target here: what each top-level target runs, the options a Q
 
 ## How the Makefile works
 
-Every target of the top-level [Makefile](../../Makefile) is one `nix` command, and nothing but Nix is needed to run them (`Makefile:3-4`). With no target, `make` runs `build` (`.DEFAULT_GOAL`, `Makefile:40`). Try the read-only ones first:
+The top-level [Makefile](../../Makefile) is the short way to type the flake's commands: each build, check, seal and boot target runs `nix`, and Nix is the one tool you install for them (`Makefile:3-4`). With no target, `make` runs `build` (`.DEFAULT_GOAL`, `Makefile:40`). Try the read-only ones first:
 
 ```
 make help
@@ -19,15 +19,15 @@ make -n build
 |---|---|
 | `build`, the default | `nix build .#default`, or `.#<profile>` when `PROFILE` is set, then `nix run .#receipt`, which prints the build receipt and compares it with the receipt committed for that profile (`build`, `Makefile:53-56`) |
 | `check` | `nix run .#check-report`: builds every flake check for this host and prints what each proved (`check`, `Makefile:60-61`) |
-| `profiles` | prints each [build profile](../overview/glossary.md#build-profile), what it is for, its privacy posture and its loader policy (`profiles`, `Makefile:101-102`) |
+| `profiles` | prints each [build profile](../overview/glossary.md#build-profile), what it is for, its privacy posture and its [loader policy](../overview/glossary.md#loader-policy) (`profiles`, `Makefile:101-102`) |
 | `shell` | `nix develop`, the pinned toolchain for work by hand (`shell`, `Makefile:104-105`) |
-| `doctor` | checks for Nix, flakes and hardware virtualization (`doctor`, `Makefile:124-136`) |
+| `doctor` | checks that Nix is installed and can read the flake, with flakes turned on for that check alone, and whether QEMU has hardware virtualization (`doctor`, `Makefile:124-136`) |
 | `clean` | removes `result`, every `result-*` link and the whole `target` directory (`clean`, `Makefile:138-139`) |
 | `help` | prints the Makefile's own summary (`help`, `Makefile:141-142`) |
 
-`make clean` also removes what lives under `target`: sealed images, the development checkout and its throwaway keys, the QEMU data disk, the software TPM state and the Qwen files fetched into `target/models/files`.
+`make clean` also removes what lives under `target`: sealed images, the development checkout and its throwaway keys, the QEMU data disk, the software [TPM](../overview/glossary.md#tpm) state and the Qwen files fetched into `target/models/files`.
 
-The receipt step writes too. It replaces the committed receipt for that profile in your checkout, except when the build failed to reproduce, and it exits with an error when the same commit and inputs gave other bytes or when the kernel holds a capsule its profile takes out (`main`, `tools/nonos-receipt:243-263`). [reproducible-builds.md](reproducible-builds.md) explains the verdicts.
+The receipt step writes too. It replaces the committed receipt for that profile in your checkout, except when the build failed to reproduce, and it exits with an error when the same commit and inputs gave other bytes (`main`, `tools/nonos-receipt:243-263`), or when the kernel holds a [capsule](../overview/glossary.md#capsule) its profile takes out or lacks an installer capsule the profile asks for (`enforcement`, `tools/nonos-receipt:103-126`). [reproducible-builds.md](reproducible-builds.md) explains the verdicts.
 
 ## Seal and boot
 
@@ -84,7 +84,7 @@ Without `DISK`, `make usb` prints the path of the sealed image, or says there is
 | `--image PATH` | boots this disk image instead of a sealed one |
 | `--tpm` | attaches a software TPM 2.0 |
 | `--fresh` | starts the data disk again from the image, and the TPM with it |
-| `--stick` | boots the sealed stick alone, with no data volume |
+| `--stick` | boots the sealed stick alone, with no [data volume](../overview/glossary.md#data-volume) |
 | `--usb` | with `--stick`, plugs the stick into the USB controller as mass storage |
 | `--model TIER` | lays a Qwen tier on a new data disk; `auto` picks the tier setup would pick for `--mem` |
 | `--smp N` | CPUs; the default is 8, or every core of the host when it has fewer |
@@ -92,7 +92,7 @@ Without `DISK`, `make usb` prints the path of the sealed image, or says there is
 | `--net nat` or `--net off` | user mode networking, or none; `nat` is the default |
 | `--install-target` | attaches a blank 8 GiB NVMe disk with the serial `NONOS-TARGET` |
 | `--installed` | boots that NVMe disk alone |
-| `--headless` | no window; the serial console goes to `--serial`, by default `target/qemu/serial.log` |
+| `--headless` | no window; the [serial console](../overview/glossary.md#serial-console) goes to `--serial`, by default `target/qemu/serial.log` |
 | `--timeout N` | stops a headless boot after `N` seconds |
 | `--expect PATTERN` | a pattern the serial console must show; repeat it for more |
 
@@ -117,12 +117,12 @@ These targets sign with a local development key. The first target that needs one
 | `nonos-mk-run-serial-log` | a headless boot that writes the serial console to `QEMU_SERIAL_LOG` (`QEMU_SERIAL_LOG`, `mk/40-run.mk:205-215`) |
 | `nonos-mk-run-smp-serial-log` | the same with `QEMU_SMP` CPUs and a kernel built with `nonos-smp` (`QEMU_SMP`, `mk/40-run.mk:419-429`) |
 | `nonos-mk-debug` | waits for GDB on port 1234 before the first instruction (`nonos_kernel_and_esp`, `mk/40-run.mk:228-235`) |
-| `nonos-mk-run-iommu-serial-log` | boots under TCG with an emulated Intel IOMMU, so the DMA remapping code runs (`QEMU_IOMMU_OPTS`, `mk/40-run.mk:489-501`) |
+| `nonos-mk-run-iommu-serial-log` | boots under TCG with an emulated Intel [IOMMU](../overview/glossary.md#iommu), so the DMA remapping code runs (`QEMU_IOMMU_OPTS`, `mk/40-run.mk:489-501`) |
 | `nonos-mk-boot-matrix` | boots every cell of the machine matrix `BOOT_MATRIX_REPEAT` times, 5 by default, each within `BOOT_MATRIX_TIMEOUT` seconds, 300 by default (`BOOT_MATRIX_REPEAT`, `mk/40-run.mk:514-536`) |
 | `nonos-mk-iso` | a UEFI ISO from the ESP, with every timestamp pinned (`NONOS_ISO`, `mk/30-image.mk:19-37`) |
 | `nonos-mk-usb-img`, `nonos-mk-usb-run` | a GPT disk image (`USB_IMG`, `mk/20-build.mk:1351-1354`), and a boot of it as a real disk rather than a FAT folder (`USB_IMG`, `mk/30-image.mk:41-51`) |
-| `nonos-mk-static`, `nonos-mk-verify-fast` | the capability parity check `check_cap_parity`, the assumption register and the tree checks of `run-static-checks.sh`, with no kernel build (`mk/40-run.mk:345-356`) |
-| `nonos-mk-verify`, `nonos-mk-test` | the static checks, the trust checks and a scan of `MICROKERNEL_BIN` for symbols the microkernel must not carry; `nonos-mk-test` adds three QEMU boot tests (`mk/40-run.mk:378-414`) |
+| `nonos-mk-static`, `nonos-mk-verify-fast` | the [capability](../overview/glossary.md#capability) parity check `check_cap_parity`, the assumption register and the tree checks of `run-static-checks.sh`, with no kernel build (`mk/40-run.mk:345-356`); at this commit `run-static-checks.sh` fails on one file, as the `static-tree` check does ([CI](ci.md#state-of-the-checks-at-this-commit)) |
+| `nonos-mk-verify`, `nonos-mk-test` | the static checks, the trust checks and a scan of `MICROKERNEL_BIN` for symbols the microkernel must not carry (`mk/40-run.mk:378-414`); `nonos-mk-test` adds three QEMU boot tests whose scripts under `tests/boot` this tree does not carry, so it cannot pass at this commit ([Host tools](host-tools.md#boot-tests-with-no-scripts)) |
 | `nonos-mk-arm`, `nonos-mk-arm-run` | the aarch64 kernel, and a boot of it under `qemu-system-aarch64` (`ARM_QEMU_FLAGS`, `mk/20-build.mk:921-924`) |
 | `ci-fast`, `ci-security`, `ci-release`, `ci-soak` | `ci-fast` runs the tests of `nonos-verify` with the pinned `TOOLCHAIN` and the claims check, `ci-security` adds two audit scripts, `ci-release` adds a byte for byte double build of the loader, and `ci-soak` runs the QEMU evidence scripts (`mk/50-ci.mk:16-24`) |
 | `nonos-mk-clean`, `nonos-mk-clean-all` | removes the kernel build, or every build and the ESP (`TARGET_DIR`, `mk/50-ci.mk:82-91`) |
@@ -145,5 +145,6 @@ Not tested in this release.
 - [The Nix flake](nix-flake.md)
 - [Profiles](profiles.md)
 - [The seal](seal.md)
+- [Host tools](host-tools.md)
 - [First boot](../install/first-boot.md)
 - [Install to disk](../install/install-to-disk.md)
