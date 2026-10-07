@@ -1,17 +1,17 @@
 {
   "schema_version": 2,
   "operator_id": "nonos.marketplace.v1",
-  "published_at_ms": 1791040550000,
-  "serial": 1791040550,
+  "published_at_ms": 1791331871000,
+  "serial": 1791331871,
   "entries": [
     {
       "listing_id": "linux.qwen-small",
-      "capsule_id": "f6994e5efd813106214b1d0d8c4906133d9091d0dd13ff13b8fb61fa6e1cf4e1",
+      "capsule_id": "224ece466619a0c05294c434af99b9feec94d8e598a4e348370dd83486ccf4bb",
       "name": "Qwen (small, 0.5B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5 0.5B Instruct, running on this machine with no network. Fast on any CPU; about 0.5 GB of weights, verified against their SHA-256 when installed.",
+      "description": "Qwen2.5 0.5B Instruct, running on this machine with no network. Fast on any CPU.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -26,10 +26,10 @@
       "releases": [
         {
           "release_id": "qwen-small@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "951e64a2c2ced52d12abf8f7f615c3a102df023320513c200e79d57423b78db93e03b5591ae7561895c27db3dab72ab041dc37d189fb45b8c07e6169593fdc08",
+          "publisher_signature": "a82e1ee3ff469d13e1b5fa446c78f8f84ab3c967c598a70564a60d558eaabec5d6b8023baa5a433d25118004835b60e30ea90fe3974bf59419942f221166a404",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -38,21 +38,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-medium",
-      "capsule_id": "03c205587011db1a2173cab987efdc35137819f1f36bdf77b16dce60bcb27889",
+      "capsule_id": "02ca3fab7efe72edbe0220f56c690340a9316871f2d05c06fc29bba0eb914941",
       "name": "Qwen (medium, 1.5B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5 1.5B Instruct, running on this machine with no network. A good balance of quality and speed; about 1.1 GB of weights, verified when installed.",
+      "description": "Qwen2.5 1.5B Instruct, running on this machine with no network. A good balance of quality and speed.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -67,10 +67,10 @@
       "releases": [
         {
           "release_id": "qwen-medium@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "073f9c9bd2e93441f827c76c80d173550d9f5755d19ef6c653328ffbb173af1f08959d50fa048b1892b7b7a526b16c7f665d968c4eb2209c46ff323b258f5a0c",
+          "publisher_signature": "5cd99f4c495f945b87e03c4769889efbb546d4f10dd51e29d0e5146fc0ea5c5cb0f6d6d94d3e6b448ab2879329cf6b29edf62b8f626c6bce8adfb7124a2d3702",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -79,21 +79,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-large",
-      "capsule_id": "d025471b886349f434eeb9b58aeb9d685115985cfc8e36e5060c3a8e023368ce",
+      "capsule_id": "08b56513797390a71a7dfc7d52513dafb03a064a9931d73a41ab3723851e87a2",
       "name": "Qwen (large, 3B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5 3B Instruct, running on this machine with no network. Noticeably stronger answers; about 2.1 GB of weights and 4 GB of memory.",
+      "description": "Qwen2.5 3B Instruct, running on this machine with no network. Noticeably stronger answers.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -108,10 +108,10 @@
       "releases": [
         {
           "release_id": "qwen-large@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "bee4ea3e270d5a1892aef98e76190a23e3b2dee4bc61248ca21993148d6b87ace3cd1e81bfb60d24a04706d4308e7474cd5cff199dafff5288f55e658d9d760b",
+          "publisher_signature": "e5b0eacc42163e41b0d533ff7dd923bc15ec52379cb1531616ed663787d2fde00f4882387522785358ed4cd93f159baaf05744a1ed8afcfdcf8cfc91f8e4290c",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -120,21 +120,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-xlarge",
-      "capsule_id": "7aa93ac78a4752f7da77e693088e8b6d3c9989e106a413fc2b170f03e0920e5c",
+      "capsule_id": "00e1536b659ff7a08828c2b2954ad452616a4ba4f893a2052af7aaeef4fd9823",
       "name": "Qwen (extra large, 7B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5 7B Instruct, running on this machine with no network. Strong all-round answers; about 4.7 GB of weights in two files and 8 GB of memory.",
+      "description": "Qwen2.5 7B Instruct, running on this machine with no network. Strong all-round answers.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -149,10 +149,10 @@
       "releases": [
         {
           "release_id": "qwen-xlarge@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "b0cc29b274ceb6c76268ccb982784c67d83cf7ddbd80308ed89ba296c9235f03777b30ee478ab718ab340931d8fa11dbbe8aec8f9ac52efdc6c8938288c57500",
+          "publisher_signature": "9bf2c986829c0324700e0f88d8145159a5a2844b414bb1fcec822c9216d4fbdffa742e29b206f866bb47cba42c1f7792c1e065df19fb495ef4bcd6ed2997ee03",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -161,21 +161,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-xxl",
-      "capsule_id": "d943f65a90950407c8651ad51ae66b1ff75d254b542a49c26082c0850d89f51c",
+      "capsule_id": "068196dd696bfc8f4d2d0d16b64e4c77dbe8aafd8c55739b1729b8dde586687b",
       "name": "Qwen (xxl, 14B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5 14B Instruct, running on this machine with no network. Much stronger reasoning and writing; about 9.0 GB of weights in three files and 11 GB of memory.",
+      "description": "Qwen2.5 14B Instruct, running on this machine with no network. Much stronger reasoning and writing.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -190,10 +190,10 @@
       "releases": [
         {
           "release_id": "qwen-xxl@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "9ab4a1bbd2c8afb5f1a962fea2796854361ac5f9fa9a222d287274d0fb0653f37f598c0c1d539bac8df42a1df618894ae7ac12a79d007123e2bf06e33fe07606",
+          "publisher_signature": "1e934e489d768a68ee390f5654149840b518149ab229121c7fdb36f7b85d96fee650c203424b4dc5685575e1aeee5f8d18ea6bbe3d7cfd5f939efdeab7248b04",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -202,21 +202,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-max",
-      "capsule_id": "0ab28c88c2a51d7d016678c9da78f3d43b23f654c1fb9e9447ad553b59043480",
+      "capsule_id": "1b93c8a458fa01e5b5192d02a4ca7d8ea5eb726654042db9b7c7cb834d5fbd15",
       "name": "Qwen (max, 32B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5 32B Instruct, running on this machine with no network. The largest Qwen2.5 tier; about 19.9 GB of weights in five files and 22 GB of memory. Slow on a CPU.",
+      "description": "Qwen2.5 32B Instruct, running on this machine with no network. The largest Qwen2.5 tier. Slow on a CPU.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -231,10 +231,10 @@
       "releases": [
         {
           "release_id": "qwen-max@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "7ced5dfea9bded3021da48027881c72c6af4707500a8e04bf4fea5a2a117318e93d8446644bc9933b07ada12bee0c0c110f21ed331396d2b1d5db63300e4b70c",
+          "publisher_signature": "2bda6d267681acdee280b43bb8cdc76e2654f7a7ddb69fd8cef065ae472798264406ebc3613e8956d450c8bf834a6c9049a408dceef15646a9085b02abd1f503",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -243,21 +243,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-0.6b",
-      "capsule_id": "9e8cbe81cdc041419d8a8e450034e151c0217377613047e06a2671204f4da378",
+      "capsule_id": "59d34d7236217b66e7f672c25bd17ad17a3f647e3ab3eafc5a73bc9f7c727f24",
       "name": "Qwen3 (0.6B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen3 0.6B, running on this machine with no network. The smallest Qwen3, fast on any CPU; about 0.6 GB of weights and 2 GB of memory.",
+      "description": "Qwen3 0.6B, running on this machine with no network. The smallest Qwen3, fast on any CPU.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -272,10 +272,10 @@
       "releases": [
         {
           "release_id": "qwen-qwen3-0.6b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "bd0ad1f279b6b9ff03324de7cc61cb726fe308b49df74ae5c9bed05f240d99a2c6571ad9c322c5edd4815114509a1b0087defb5d3b7f4530bc3d770bbc7fca0d",
+          "publisher_signature": "a5f1cee6fda300b232c078f53fe4ab8e09526c28be32f2c0c8e08f3a2e3b97c4a39237de1e015e8f9db5fc9b8da8999c50cb1862601d5d6d320b6aa8e4b2060e",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -284,21 +284,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-1.7b",
-      "capsule_id": "9cd4b13c2634e79281a287930cab5c02cd4ef42a042b401e3067e99282c4d715",
+      "capsule_id": "6edc9235d5cabe7faa479936592d777e78ab6101930d327f08f5edabcd6b7ede",
       "name": "Qwen3 (1.7B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen3 1.7B, running on this machine with no network. Quick and capable for its size; about 1.8 GB of weights and 3 GB of memory.",
+      "description": "Qwen3 1.7B, running on this machine with no network. Quick and capable for its size.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -313,10 +313,10 @@
       "releases": [
         {
           "release_id": "qwen-qwen3-1.7b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "bfd00686c7e46b699385816d2a88ea929c06998cdfc3c6e71f877d2464e567822867ac499219ace521bb3efd9275d3a93ffa3d6c520eeba562c3597c23733c0e",
+          "publisher_signature": "b5632339d2f2dc238307d7ddce35ec8efa8a700eddcb7dcad57500ccd880d5d52fdb469b4f8f6c5dfa8bc9fa8592cc03f7f8b87018897ddc952a05b1c0fad60b",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -325,21 +325,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-4b",
-      "capsule_id": "e532889714e9b9ee2c7c89142e1d8f43348675b3a66c16baf03cd7ef3066ecc7",
+      "capsule_id": "07942f3185126bd6490aa8eee792f22a4d1b9829adb5c4cffce70b4fd3d85252",
       "name": "Qwen3 (4B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen3 4B, running on this machine with no network. A strong everyday model; about 2.5 GB of weights and 4 GB of memory.",
+      "description": "Qwen3 4B, running on this machine with no network. A strong everyday model.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -354,10 +354,10 @@
       "releases": [
         {
           "release_id": "qwen-qwen3-4b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "102a241cee915bf5c894a79950073d998cbfd83b84035fa2d620b60acdc61b3b0edac1c27c6ce7c4e9ec82ea383ff6ef2427e620ed0cf0b526816528ce7e2105",
+          "publisher_signature": "087db1951f506ef92e9a0078ac1b8034a21ccd9d3defc4da87903f1ac6c0b1e90c850d9ce01b3bec235272d26c5c40c322c42d7fe483e240054c31631a432409",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -366,21 +366,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-8b",
-      "capsule_id": "50e6ff13fde2dceb5dde278fcb79c2d435d0a8fc3b925775d438a0c4456bf283",
+      "capsule_id": "714453ab7e2efd5f4932fc73fd05d9b77835b81338465f507b5bda7fe0ec56d2",
       "name": "Qwen3 (8B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen3 8B, running on this machine with no network. Noticeably stronger answers; about 5.0 GB of weights and 7 GB of memory.",
+      "description": "Qwen3 8B, running on this machine with no network. Noticeably stronger answers.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -395,10 +395,10 @@
       "releases": [
         {
           "release_id": "qwen-qwen3-8b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "a7c28f3e96289ae4ebdd42e826c8d49e8eb6807158772b83e5a710ddb49b683f261f056b0ba08e26afaa5020be7a5377c384c9aa29798e088831a7ed8f96360e",
+          "publisher_signature": "46f70c49699a49c64d672e2e44b5e69b15c0b74ad159114c580df13418ca6b4753b1edb91edd431069946852755e666d5a788161877d932c9d8d6e98ebab1d0b",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -407,21 +407,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-14b",
-      "capsule_id": "173e3fa3543dfcd18bc746e04f124d6a5a3d2177525c07172a2b7fd7fc6e8ab0",
+      "capsule_id": "72630eb01d776048bf9ed6a721696bc5a36cef6beb4feb564fcf61cd922c61d7",
       "name": "Qwen3 (14B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen3 14B, running on this machine with no network. About 9.0 GB of weights and 11 GB of memory.",
+      "description": "Qwen3 14B, running on this machine with no network.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -436,10 +436,10 @@
       "releases": [
         {
           "release_id": "qwen-qwen3-14b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "abd2db227185ed0bd21785db610f30a1793a3723dfa1511a32494fbc9c19d3fb62c9b73004f96a436a25fec3e14c7f0d0806eede18b46596856572089fb7ea0d",
+          "publisher_signature": "db3a6adbb214b8f51bb493a4a78b9d8d80d1644671fd4ca7b4b63fe4e28f990d53ee520a225db46f102b46a2fcc681badb4c1604252a4b171af4163433961e0e",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -448,21 +448,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-30b-a3b",
-      "capsule_id": "d7928bce7321da093357831e747ef73ac33ccece9263aed599eafe917098316c",
+      "capsule_id": "7b5750f114c4909231c80d5d578a6d2f371a2d0a1c7a1b05435e061288a198ab",
       "name": "Qwen3 (30B-A3B, MoE)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen3 30B-A3B, a mixture of experts with 3B active per token, running on this machine with no network. Answers far faster on a CPU than its size suggests; about 18.6 GB of weights and 20 GB of memory.",
+      "description": "Qwen3 30B-A3B, a mixture of experts with 3B active per token, running on this machine with no network. Answers far faster on a CPU than its size suggests.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -477,10 +477,10 @@
       "releases": [
         {
           "release_id": "qwen-qwen3-30b-a3b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "d0dfacff720869dfed900056cafd71c7c5a23e7803d1465dcc5c94fa1830fe9c57ce228b93774ec2e4905234fcddbe1c2a61034cfc8158f4e4c82e6be1edac04",
+          "publisher_signature": "1507bf5a88ff992c4d76c813bb37dae6cdbf4e4311ecf9da5be6c582aae045772c0d3a103c1e0e8364837e8474c217cb71e963888029027bbb15b1fade31d20f",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -489,21 +489,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-32b",
-      "capsule_id": "d5545064bf0928678398fac3e8fdc66b4b1b175be8678bda162c8ea3e524509a",
+      "capsule_id": "453141424e140cb9bd8e600842102306b719fff4b20d48e8efaf3a0e2d4783bd",
       "name": "Qwen3 (32B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen3 32B, running on this machine with no network. The strongest Qwen3 tier; about 19.8 GB of weights and 22 GB of memory. Slow on a CPU.",
+      "description": "Qwen3 32B, running on this machine with no network. The strongest Qwen3 tier. Slow on a CPU.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -518,10 +518,10 @@
       "releases": [
         {
           "release_id": "qwen-qwen3-32b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "a1be777d5c0f1a7d88391b596e2aec2fe4ccc65dd6c09640510ae6ca55853cf6ce9a4f865d746eb7ea4e64fd12bc2f115d31c0b87f84fa2c004ecd394f8a1b09",
+          "publisher_signature": "64cd9e4b436906e1b428f18356b753843366d525720523d4e22d4bcd62bed384913ed8e98e3b36379768bb7bcfd9bd13b1433bd530ad60dacc55334fc1a2a70a",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -530,21 +530,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-coder-1.5b",
-      "capsule_id": "7cca8c9b99d1e3d4dcac95f761eb740e7ba61c41ee1715bfb90775aceff7e620",
+      "capsule_id": "abcecbf4918c905092eb4cbd6fa1ea4040072de011daeac2e1c858f24dbf2c03",
       "name": "Qwen Coder (1.5B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5-Coder 1.5B Instruct, running on this machine with no network. Tuned for code; about 1.1 GB of weights and 3 GB of memory.",
+      "description": "Qwen2.5-Coder 1.5B Instruct, running on this machine with no network. Tuned for code.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -559,10 +559,10 @@
       "releases": [
         {
           "release_id": "qwen-coder-1.5b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "3d06ea76ef538b2bbd423511a4a407fb472f16f519ab8b9170e3124cc1668168f2db60cb82f251c21fb4e9dba9efe3f28660149fb515e893b816ac8d1af60a08",
+          "publisher_signature": "985043a748fa6898a88a656e4553f445117f9b4da175f64dd5d63ac89c664df7df0863f453f875246437ac2d4a1509219ff75586270b3d30ae8d2031154c7e0f",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -571,21 +571,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-coder-7b",
-      "capsule_id": "6d0cbd7b1b84bd6538a81744d46afe62034d625d1a79a91f56b1a475bf56514c",
+      "capsule_id": "0f96919cc907ce54672ca46ca04df32705fd2dcfe0954cf0af3b3e2b82916e49",
       "name": "Qwen Coder (7B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5-Coder 7B Instruct, running on this machine with no network. Tuned for code; about 4.7 GB of weights in two files and 7 GB of memory.",
+      "description": "Qwen2.5-Coder 7B Instruct, running on this machine with no network. Tuned for code.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -600,10 +600,10 @@
       "releases": [
         {
           "release_id": "qwen-coder-7b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "ab7dc961ba60b83de423799bac7a33a5b6976b0b75b31de55ef12f1dd8b75931035c2fb3f1a901e9195ed6cbe5d420413337b1c329a71f76348cd19a5a94b101",
+          "publisher_signature": "a418103ee49d17dcef02f9ca638709c98b3d237e4bec5a1ba1f49b2a6d1eb6a34c57602494051f7a5b8cc8c63c0ae1752fad9ec63cc22236a8411ab7a8751309",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -612,21 +612,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-coder-14b",
-      "capsule_id": "9305821341d8a5ff8b2075d035a61f1ec9fee703b116267f04c91590ee225939",
+      "capsule_id": "777a05f09f38611531d12e4da9cf2baa26ca0344c27ede652a8a3a8ee883a8b5",
       "name": "Qwen Coder (14B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5-Coder 14B Instruct, running on this machine with no network. Tuned for code; about 9.0 GB of weights in two files and 11 GB of memory.",
+      "description": "Qwen2.5-Coder 14B Instruct, running on this machine with no network. Tuned for code.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -641,10 +641,10 @@
       "releases": [
         {
           "release_id": "qwen-coder-14b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "2de37526f9ceae21d107c88fb9aa462a393551b96d1f1fc93f8ffdfb90648edabe01f45eacfbf5ac349aa762b56ca928325da4a3ab6a4463c1e37cf882bb5403",
+          "publisher_signature": "f0ccf40e18149c69262754d3789d6ea71a11db853c939a20128be6c0ef168520e11fcf21565897178b13c19f1c99b6fe4cbc5d5767433ad623cc91bf03aae404",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -653,21 +653,21 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-coder-32b",
-      "capsule_id": "3b602093a09b3e90b6ee4be0e2224f55f1f60fff78b54f55b3f3867639dd0781",
+      "capsule_id": "564d0420a845c876f728bd0cbc39b0c29b1f8ff1ae55da0257ac4ecc22c8a0d3",
       "name": "Qwen Coder (32B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5-Coder 32B Instruct, running on this machine with no network. The strongest code tier; about 19.9 GB of weights in three files and 22 GB of memory. Slow on a CPU.",
+      "description": "Qwen2.5-Coder 32B Instruct, running on this machine with no network. The strongest code tier. Slow on a CPU.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -682,10 +682,10 @@
       "releases": [
         {
           "release_id": "qwen-coder-32b@1",
-          "manifest_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
-          "package_hash": "25c9220cec9bad4a9c597606fb1cb42eb5187d438f1def18edc86819521ada78",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "a2426e043930de479a6e87bc2272a54f978bca0f707d4f1b8cdff82843dcad5c38cde99d4ad2892848e3990a3192db23dd054e0caee535a3eb5ecb6ae0f2980f",
+          "publisher_signature": "c1cf56a2d355bd1045223211d89d8be0cb6653e093b137f40284bc6ae179815f8f7b3f1c6bbd650483c1414efe2455ac2c943c51963479f6bb74e769f249280d",
           "supported_arches": [
             "x86_64-linux"
           ],
@@ -694,9 +694,9 @@
           "zk_trailer_hash": "",
           "validation": {
             "status": "validated",
-            "note": "shipped in the image, pinned by BLAKE3",
+            "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791040550000
+            "validated_at_ms": 1791331871000
           }
         }
       ]
