@@ -26,14 +26,16 @@ sequenceDiagram
 What the kernel does on a call (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs:48-139`, `sys_ipc_call`):
 
 - The reply buffer must hold 1 byte to 1 MiB, the kernel's `MAX_MESSAGE_SIZE` (`src/ipc/nonos_channel/limits.rs:26`, `MAX_MESSAGE_SIZE`).
-- Each call carries a fresh correlation token, never zero. Only a reply with that token completes the call, so a message forged with a plain send cannot pose as the answer (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs:34-46`, `next_call_token`).
+- Each call carries a fresh [correlation token](../overview/glossary.md#correlation-token), never zero. Only a reply with that token completes the call, so a message forged with a plain send cannot pose as the answer (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs:34-46`, `next_call_token`).
 - A timeout of 0 means 5000 ms (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs:90`, `timeout_ms`).
 
 A service should not trust a pid written inside a message. The kernel records who sent each message, and a receiver compares that with the pid `mk_service_lookup` reports for the service it expects (`userland/nonos_service/src/lookup.rs:25-30`, `raw`).
 
 ## Who may send
 
-Every send is checked against the caller's [capability word](../overview/glossary.md#capability-word). The caller must hold every bit the endpoint requires. A name nobody registered and an endpoint with no stated requirement are refused outright, and a caller short of a bit is refused with a `[CAP-DENY]` line on the kernel log that names the bits it needed and the bits it holds (`src/syscall/microkernel/ipc/send_caps.rs:36-63`, `caller_satisfies_endpoint`). A service endpoint requires IPC. The eleven network services, `net.core`, `net.l2`, `net.ip`, `net.udp`, `net.tcp`, `net.dns`, `net.dhcp.client`, `net.sockets`, `net.nym`, `net.anon` and `net.socks5`, require Network as well (`src/services/registry/policy.rs:26-45`, `NETWORK_SERVICES`).
+Every send is checked against the caller's [capability word](../overview/glossary.md#capability-word). The caller must hold every bit the endpoint requires. A name nobody registered and an endpoint with no stated requirement are refused outright, and a caller short of a bit is refused (`src/syscall/microkernel/ipc/send_caps.rs:36-63`, `caller_satisfies_endpoint`). The refusal also builds a `[CAP-DENY]` line naming the bits needed and the bits held, but it goes to the kernel's structured log, whose log manager nothing installs in this release, so the line is dropped ([Logging](../kernel/logging.md#the-structured-log-and-the-debug-ring)). A service endpoint requires IPC. The eleven network services, `net.core`, `net.l2`, `net.ip`, `net.udp`, `net.tcp`, `net.dns`, `net.dhcp.client`, `net.sockets`, `net.nym`, `net.anon` and `net.socks5`, require Network as well (`src/services/registry/policy.rs:26-45`, `NETWORK_SERVICES`).
+
+Two kernel lists go further, whatever bits a sender holds. A driver endpoint in `HELD` is a [held endpoint](../overview/glossary.md#held-endpoint): it takes messages only from the services that drive it. `PEERS`, the [peer list](../overview/glossary.md#peer-list), holds one capsule, `shield_prover`, and lets it send only to `shield.core` (`src/services/registry/peers_check.rs:54-61`, `caller_may_reach`). [IPC](../kernel/ipc.md#who-may-send-to-whom) lists both.
 
 A service may add its own rules on top, and several do; the sections below say which.
 
@@ -51,7 +53,7 @@ Most services frame each message with the same 20-byte header, all fields little
 | 12 to 15 | request id, echoed in the reply |
 | 16 to 19 | payload length |
 
-A reply carries the same header, and its payload starts with a signed 32-bit status, 0 or a negative errno (`userland/capsule_vfs/src/protocol/encode.rs:21-33`, `encode_response`). The keyring and the policy store use shorter headers of their own, described below. The kernel side of the wire, the calls, the envelope and the limits, is in [ABI: IPC](../abi/ipc.md).
+A reply carries the same header, and its payload starts with a signed 32-bit status, 0 or a negative errno (`userland/capsule_vfs/src/protocol/encode.rs:21-33`, `encode_response`). The keyring and the [policy store](../overview/glossary.md#policy-store) use shorter headers of their own, described below. The kernel side of the wire, the calls, the envelope and the limits, is in [ABI: IPC](../abi/ipc.md).
 
 ## The services
 
@@ -68,11 +70,11 @@ A reply carries the same header, and its payload starts with a signed 32-bit sta
 | `net.core` | 4480 | `capsule_net_core` | one per protocol family |
 | `net.sockets` | 4460 | `capsule_net_sockets` | `0x4E534B54` |
 
-The ports are the service endpoints in each capsule's `Capsule.mk`, as collected in `tools/nix/capsules.json`. Each capsule also owns a reply inbox on the next port.
+The ports are the service endpoints in each capsule's `Capsule.mk`, as collected in `tools/nix/capsules.json`. Each capsule also owns a [reply inbox](../overview/glossary.md#reply-inbox) on the next port.
 
 ### vfs_pool
 
-The file service over the [store](../overview/glossary.md#store). Operations 1 to 26: open, close, read, write, stat, list, health check, mkdir, unlink, rename, rmdir, copy, truncate, usage, chmod, seek, the store's persist, remove, status, install and uninstall, directory stat, the journal's touch and list, search, and a generation counter that moves when the store may have changed (`userland/capsule_vfs/src/protocol/types.rs:20-47`, `OP_GENERATION`). A path is at most 256 bytes and a payload at most 64 KiB (`userland/capsule_vfs/src/protocol/types.rs:62-70`, `MAX_PAYLOAD_BYTES`).
+The [file store](../overview/glossary.md#file-store), which holds in its own memory every file the desktop and its apps see. Operations 1 to 26: open, close, read, write, stat, list, health check, mkdir, unlink, rename, rmdir, copy, truncate, usage, chmod, seek, persist, remove, status, install and uninstall on the [package store](../overview/glossary.md#package-store), directory stat, the journal's touch and list, search, and a generation counter that moves on every attempt to change the file store, so a client reads eight bytes instead of listing a directory (`userland/capsule_vfs/src/protocol/types.rs:20-47`, `OP_GENERATION`). A path is at most 256 bytes and a payload at most 64 KiB (`userland/capsule_vfs/src/protocol/types.rs:62-70`, `MAX_PAYLOAD_BYTES`).
 
 It answers only a sender the kernel says holds FileSystem, asking the kernel on every request, plus the kernel's own client, which arrives as sender 0; anything else gets `EACCES` (`userland/capsule_vfs/src/server/fs_gate.rs:35-44`, `refusal`; `userland/capsule_vfs/src/server/fs_gate/rule.rs:19-29`, `allows`).
 
@@ -86,7 +88,7 @@ A key operation names the pid of the key's holder in the payload, and the keyrin
 
 The system settings store. The header is 12 bytes: a 16-bit operation, a 32-bit field number, a kind byte, a zero byte, a 16-bit status and a 16-bit payload length (`userland/policy_proto/src/hdr.rs:17-49`, `HDR_LEN`). The service answers get 1 and set 2. The protocol also numbers status 3, a request for the kernel's hardening record (`userland/policy_proto/src/ops.rs:17-25`, `OP_STATUS`), but the policy capsule answers it as it answers any operation it does not serve, with `E_INVAL` (`userland/capsule_policy/src/server/serve.rs:43-47`, `handle_get`). A field's kind is bool, u8, i8, string, bytes or a 64-bit set (`userland/policy_proto/src/kind.rs:17-26`, `KIND_U64`).
 
-Any sender with IPC may read. Only the Settings app, its window instances `app.settings.1` and `app.settings.2`, and the first-boot setup wizard may write; any other sender gets `E_ACCES` (`userland/capsule_policy/src/server/handle_set.rs:29-51`, `SETTERS`). One field is the default network: Nym 0, Anyone 1, Direct 2 (`userland/policy_proto/src/route.rs:27-35`, `ROUTE_LABELS`). The browser, the model fetcher, the Terminal and the wallet read it; package installs by the Linux personality do not (`userland/policy_proto/src/route.rs:17-27`, `NYM`).
+Any sender with IPC may read. Only the Settings app, its window instances `app.settings.1` and `app.settings.2`, and the first-boot setup wizard may write; any other sender gets `E_ACCES` (`userland/capsule_policy/src/server/handle_set.rs:29-51`, `SETTERS`). One field is the default network: Nym 0, Anyone 1, Direct 2 (`userland/policy_proto/src/route.rs:27-35`, `ROUTE_LABELS`). The browser, the Terminal and the wallet read it. Downloads for an install, a Qwen model or a Linux package, do not: they take the [Anyone network](../overview/glossary.md#anyone-network) (`userland/nonos_route_link/src/chosen.rs:50-53`, `for_installs`). The comment at the top of `userland/policy_proto/src/route.rs`, which says the model fetcher reads the field and package installs cross the mixnet, is older than that code.
 
 ### audio.server
 

@@ -24,7 +24,7 @@ Nobody writes a manifest by hand. Each capsule directory holds a `Capsule.mk` th
 | `CAPSULE_VERSION` | no | `major.minor.patch` | `0.1.0` |
 | `CAPSULE_BUILD_STD` | no | the `-Zbuild-std` crates | `core,alloc` |
 | `CAPSULE_PREBUILT_BIN` | no | copy this ELF instead of running cargo | none |
-| `CAPSULE_DEV_ONLY` | no | sign and enroll only in a development image | unset |
+| `CAPSULE_DEV_ONLY` | no | sign and enroll only in a [development image](../overview/glossary.md#development-image) | unset |
 | `CAPSULE_KERNEL_MIRROR` | no | the kernel directory that embeds and spawns it | none |
 | `CAPSULE_FEATURE` | no | the kernel feature that embeds it; an image ships the capsules whose feature its profile turns on | `nonos-capsule-<slug>` |
 
@@ -56,11 +56,13 @@ include nonos-mk/capsule.mk
 
 Read it this way:
 
-- The capsule registers the service `app.hello` on port 4810 and owns the reply inbox `endpoint.app.hello.reply` on port 4811.
+- The capsule registers the service `app.hello` on port 4810 and owns the [reply inbox](../overview/glossary.md#reply-inbox) `endpoint.app.hello.reply` on port 4811.
 - It needs CoreExec, IPC, Memory, GraphicsDisplayQuery and GraphicsSurfaceCreate: `0x1 | 0x8 | 0x10 | 0x800 | 0x1000 = 0x1819`.
 - Debug (`0x100`) is optional, and no ceiling is set, so the certificate's ceiling is `0x1919`.
 - The namespace sits under `systems.nonos`, so the [spawn gate](../overview/glossary.md#spawn-gate) treats it as an enrolled system capsule (`src/kernel_core/process_spawn/capsule_spawn/runner/tier.rs:22-28`, `classify`).
 - Its [kernel mirror](../overview/glossary.md#kernel-mirror) asks for exactly the five required bits plus `serial_debug_cap()` (`src/userspace/capsule_hello/spawn.rs:47-52`, `requested_caps`), and `serial_debug_cap` returns Debug only in a build with the `capsule-serial-debug` feature (`src/capabilities/serial_debug.rs:40-50`).
+
+To declare an app of your own from this file, follow [Shipping an app](shipping-an-app.md).
 
 ## The binary format
 
@@ -95,7 +97,7 @@ The schema in `abi/capsule_manifest.schema.json` names the same fields as a JSON
 4. Its required and optional capabilities stay under the certificate's ceiling.
 5. For each algorithm the production policy requires, one signature verifies under a publisher key the certificate carries and the [trust anchor](../overview/glossary.md#trust-anchor) policy has not revoked. The policy requires both Ed25519 and ML-DSA-65 (`src/security/nonos_id_cert/policy.rs:30-32`, `NONOS_PRODUCTION_POLICY`).
 6. The payload hash equals the BLAKE3 of the ELF being loaded.
-7. The target triple equals the one the spawn site names. A capsule in the kernel image is held to the kernel's user target; a capsule loaded from the store names its own, so for it this check adds nothing (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:65`, `target_triple`).
+7. The target triple equals the one the spawn site names. A capsule in the kernel image is held to the kernel's user target; a capsule loaded from the [file store](../overview/glossary.md#file-store) names its own, so for it this check adds nothing (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:65`, `target_triple`).
 8. Every endpoint the spawn site is about to register is declared in the manifest.
 9. The grant stays inside the manifest's required and optional sets.
 
@@ -115,9 +117,9 @@ The bits are defined once in the kernel (`src/capabilities/types/defs.rs`) and p
 | 6 | `0x40` | FileSystem | being served by `vfs_pool` |
 | 8 | `0x100` | Debug | lines on the kernel log |
 | 15 | `0x8000` | DeviceEnum | listing devices |
-| 16 to 20 | `0x1_0000` to `0x10_0000` | Driver, Mmio, Irq, Dma, Pio | the hardware broker |
+| 16 to 20 | `0x1_0000` to `0x10_0000` | Driver, Mmio, Irq, Dma, Pio | the [hardware broker](../overview/glossary.md#hardware-broker) |
 | 32 | `0x1_0000_0000` | ForeignExec | creating Linux [guests](../overview/glossary.md#guest); only the [Linux personality](../overview/glossary.md#linux-personality) holds it |
-| 35 | `0x8_0000_0000` | DeviceSecret | the device secret; the signing step refuses it to every capsule but `prove` |
+| 35 | `0x8_0000_0000` | DeviceSecret | the [device secret](../overview/glossary.md#device-secret); the signing step refuses it to every capsule but `prove` |
 
 The full table is in [ABI: capabilities](../abi/capabilities.md).
 
@@ -139,7 +141,7 @@ flowchart LR
   H --> I[capability word]
 ```
 
-At signing. The certificate's ceiling is the required and optional sets together unless `Capsule.mk` sets one (`nonos-mk/capsule.mk:70-74`, `CAPSULE_CAPS_CEILING`). Before any certificate or manifest is signed, `scripts/check_device_secret_cap.py` refuses DeviceSecret in every capsule but `prove` (`scripts/check_device_secret_cap.py:31-40`, `DEVICE_SECRET_BIT`). The kernel ties the bit to no name, so this build check is what keeps it to one capsule (`scripts/check_device_secret_cap.py:17-23`, `DeviceSecret`). Run with no arguments it reads every `Capsule.mk`, the ten the build leaves out included:
+At signing. The certificate's ceiling is the required and optional sets together unless `Capsule.mk` sets one (`nonos-mk/capsule.mk:70-74`, `CAPSULE_CAPS_CEILING`). Before any certificate or manifest is signed, `scripts/check_device_secret_cap.py` refuses DeviceSecret in every capsule but `prove` (`scripts/check_device_secret_cap.py:31-40`, `DEVICE_SECRET_BIT`). The kernel ties the bit to no name: it honours it in any capsule the vendor root proved, and in none proved under a root enrolled on the machine (`src/syscall/microkernel/device_proof/gate.rs:28-36`, `device_secret_caller`). Among the capsules the vendor root proves, this build check is what keeps it to one (`scripts/check_device_secret_cap.py:17-23`, `DeviceSecret`). Run with no arguments it reads every `Capsule.mk`, the ten the build leaves out included:
 
 ```sh
 python3 scripts/check_device_secret_cap.py
@@ -147,9 +149,9 @@ python3 scripts/check_device_secret_cap.py
 
 On this tree it prints `device-secret-cap: 107 capsules, 0 problems`.
 
-At enrollment. The STARK enrollment takes each capsule as its required capabilities, its ELF and the path of its [attestation trailer](../overview/glossary.md#attestation-trailer) (`mk/20-build.mk:604-605`, `NONOS_STARK_ENROLL`). At spawn the gate checks the trailer against the ELF and the manifest's required set (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:67-77`, `required_caps`), so a capsule whose required set changes needs a new enrollment. The [STARK attestation](../security/stark-attestation.md) page covers the proof.
+At enrollment. The STARK [enrollment](../overview/glossary.md#enrollment) takes each capsule as its required capabilities, its ELF and the path of its [attestation trailer](../overview/glossary.md#attestation-trailer) (`mk/20-build.mk:604-605`, `NONOS_STARK_ENROLL`). At spawn the gate checks the trailer against the ELF and the manifest's required set (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:67-77`, `required_caps`), so a capsule whose required set changes needs a new enrollment. The [STARK attestation](../security/stark-attestation.md) page covers the proof.
 
-At spawn. The spawn site offers a grant: a kernel mirror's `requested_caps`, or for a capsule loaded from the [store](../overview/glossary.md#store), the caller's request masked to the manifest (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:66`, `requested_caps`). A grant with a bit outside the manifest refuses the spawn. Otherwise the capsule gets every required bit and the optional bits the grant names, nothing else (`src/security/capsule_manifest/verify/caps_bits.rs:33-47`, `install_caps`).
+At spawn. The spawn site offers a grant: a kernel mirror's `requested_caps`, or for a capsule loaded from the file store, the caller's request masked to the manifest (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:66`, `requested_caps`). A grant with a bit outside the manifest refuses the spawn. Otherwise the capsule gets every required bit and the optional bits the grant names, nothing else (`src/security/capsule_manifest/verify/caps_bits.rs:33-47`, `install_caps`).
 
 After that, the [boot profile](../overview/glossary.md#boot-profile) can only take away. On a boot without network, Network is removed from every capsule (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:48-55`, `caps`), and the result is what `install_spawn` stores (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install_caps.rs:20-24`, `install_spawn`). The boot modes themselves are described in [Boot modes](../install/boot-modes.md).
 
@@ -160,6 +162,7 @@ The arithmetic of the three bit tests is mounted by `mechanism_proofs` (`userlan
 ## See also
 
 - [Signing and publisher keys](signing-and-publisher-keys.md)
+- [Shipping an app](shipping-an-app.md)
 - [Capabilities in the kernel](../kernel/capabilities.md)
 - [ABI: capabilities](../abi/capabilities.md)
 - [Capsule isolation](../security/capsule-isolation.md)
