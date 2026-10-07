@@ -101,6 +101,9 @@ userland/capsule_driver_iwlwifi/src/firmware/gen3/up.rs:96
 userland/capsule_driver_iwlwifi/src/firmware/load.rs:28
 userland/capsule_driver_iwlwifi/src/setup/sequence.rs:23
 userland/capsule_driver_nvme/src/error/reason.rs:29
+userland/capsule_driver_nvme/src/setup/say/failure.rs:35
+userland/capsule_driver_rtl8169/src/chip/error.rs:32
+userland/capsule_driver_rtl8169/src/chip/error.rs:43
 userland/capsule_driver_rtl8821ce/src/serve/radio.rs:130
 userland/capsule_driver_virtio_blk/src/init.rs:54
 userland/capsule_driver_virtio_blk/src/io/error.rs:19
