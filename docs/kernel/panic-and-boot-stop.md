@@ -6,7 +6,7 @@ What the NONOS kernel does when it cannot go on, what the panel and the [serial 
 
 | Event | Panel | Serial console | Other CPUs |
 |---|---|---|---|
-| A boot step fails | notice band `NONOS BOOT STOPPED` | `[FATAL]` line | not started yet, or idle |
+| A boot step fails | notice band `NONOS BOOT STOPPED`, for most steps | `[FATAL]` line | not started yet, or idle |
 | Install asked, no installer | notice band | `[ERROR]` line | keep idling |
 | Bootloader not admitted | notice band | `[ERROR]` line | keep idling |
 | Handoff refused | breadcrumb strip, VGA text | `[NONOS] Handoff FAIL` | not started yet |
@@ -16,7 +16,14 @@ What the NONOS kernel does when it cannot go on, what the panel and the [serial 
 | Kernel heap exhausted | VGA text | `[OOM]` lines | not signalled |
 | [TLB shootdown](../overview/glossary.md#tlb-shootdown) timeout | nothing new | `[FATAL]` line | stopped by NMI |
 
-Every stop ends in a loop that masks interrupts and halts the CPU, as `halt` does (`src/arch/x86_64/abi.rs:30-36`). NONOS does not restart the machine on its own. Nothing in the kernel arms or disarms the chipset watchdog that `detect_tco_watchdog` could find (`src/arch/x86_64/watchdog/mod.rs:24-25`), so a watchdog that firmware left running is not the kernel's to stop. Whether any firmware does that was not tested in this release.
+Every stop ends in a loop that masks interrupts and halts the CPU, as `halt` does (`src/arch/x86_64/abi.rs:30-36`). NONOS does not restart the machine on its own. Nothing in the kernel arms, feeds or stops the chipset watchdog that `detect_tco_watchdog` can find (`src/arch/x86_64/watchdog/mod.rs:24-25`). Whether firmware ever leaves one running was not tested in this release.
+
+## What to do after a stop
+
+- Read the band. A boot stop names the step that failed, and the step names the subsystem. A panic names the source file and line.
+- If the machine has a serial port, the console has the full sequence before the stop. On a running Standard image the Terminal's `log` command shows the same lines; after a stop the Terminal is not running.
+- Try another [boot mode](../install/boot-modes.md). Safe Mode starts no network, no audio driver and no optional app.
+- Report the machine with the step text; see [report a machine](../hardware/report.md) and [troubleshooting](../install/troubleshooting.md).
 
 ## A boot step fails
 
@@ -29,7 +36,7 @@ These are the steps that stop the boot this way, with the step text the `[FATAL]
 | `arch GDT init failed` | `init_cpu_tables` (`src/boot/main/core_init/cpu_tables.rs:28`) |
 | `arch syscall init failed` | `syscall::init` in `init_cpu_tables` (`src/boot/main/core_init/cpu_tables.rs:32`) |
 | `preemption timer install failed` | `install_on_bsp` (`src/boot/main/core_init/init_core_systems.rs:43`) |
-| `security: speculation mitigations failed` | `speculation::init` (`src/kernel_core/init/entry/init_core_services.rs:31`) |
+| `security: speculation mitigations failed` | `speculation::init` (`src/kernel_core/init/entry/init_core_services.rs:31`); `init` returns `Ok` on every path, so this stop never happens in this release (`src/security/hardening/speculation/init.rs:18-34`, `src/security/hardening/spectre_mitigations/init.rs:28-52`) |
 | `crypto: init_rng failed` | `init_rng` (`src/kernel_core/init/entry/init_core_services.rs:35`) |
 | `ipc: init_ipc_secret failed` | `init_ipc_secret` (`src/kernel_core/init/entry/init_core_services.rs:38`) |
 | `smp: init_bsp failed` | `init_bsp` (`src/kernel_core/init/entry/init_core_services.rs:41`) |
@@ -59,7 +66,7 @@ Two cases show nothing on the panel. A stop between the removal of the low ident
 
 If the person chose to install from the boot menu and the image was built without first-boot setup or without the installer capsule, `HAS_INSTALLER` is false (`src/kernel_core/init/entry/install_refusal.rs:24-25`). `refuse_install_without_installer` then shows `Install NONOS: this image has no installer`, says that nothing was written to any disk and that the person should restart and choose another entry, and halts (`src/kernel_core/init/entry/install_refusal.rs:34-47`).
 
-If the kernel's own check of the bootloader refused it, or the boot carried no boot-root record or loader trailer to check, `refuse_unchecked_loader` shows `The bootloader failed the kernel's check` or `The bootloader could not be checked`, says that no program was started, and halts (`src/kernel_core/init/entry/loader_refusal.rs:27-48`). How that check works is on [boot chain and signatures](../security/boot-chain-and-signatures.md).
+If the kernel's own check of the bootloader refused it, or the boot carried no [boot-root record](../overview/glossary.md#boot-root-record) or loader [attestation trailer](../overview/glossary.md#attestation-trailer) to check, `refuse_unchecked_loader` shows `The bootloader failed the kernel's check` or `The bootloader could not be checked`, says that no program was started, and halts (`src/kernel_core/init/entry/loader_refusal.rs:27-48`). How that check works is on [boot chain and signatures](../security/boot-chain-and-signatures.md).
 
 A refused handoff stops even earlier, before the kernel trusts any framebuffer. That case is on [boot handoff](boot-handoff.md).
 
@@ -76,7 +83,7 @@ A Rust panic in the kernel runs `panic` (`src/boot/panic/handler.rs:41-64`):
 
 ## CPU exceptions
 
-A page fault, a general protection fault and an invalid opcode first print a `[TRAP xx]` line through `dump_trap`, with the privilege level, the instruction and stack pointers, the code and stack segments, flags, CR3, the address-space id, the pid, the error code and, for a page fault, CR2 (`src/arch/x86_64/diag/dump_trap.rs:23-67`). `xx` is the exception's short name: `PF`, `GP` or `UD`. Other exceptions print no `[TRAP xx]` line.
+A page fault, a general protection fault and an invalid opcode first print a `[TRAP xx]` line through `dump_trap`, with the privilege level, the instruction and stack pointers, the code and stack segments, flags, CR3, the address-space id, the pid, the error code and, for a page fault, CR2 (`src/arch/x86_64/diag/dump_trap.rs:23-67`). `xx` is the exception's short name: `PF`, `GP` or `UD`. Other exceptions print no `[TRAP xx]` line. A page fault prints its line before the kernel tries to resolve it, so a fault the kernel then resolves leaves a line too, and a fault from user mode adds the page-table walk to the address through `print_walk` (`src/arch/x86_64/diag/dump_trap.rs:64-66`).
 
 The page-fault `handle` first tries to resolve the fault, such as a page mapped on demand or a copy-on-write page (`src/interrupts/handlers/exceptions/page_fault.rs:31-53`). If it cannot:
 
@@ -94,13 +101,6 @@ When the kernel heap cannot satisfy an allocation, `alloc_error_handler` calls `
 ## TLB shootdown timeout
 
 When a CPU changes a page table and another CPU has not acknowledged the flush after `SHOOTDOWN_TIMEOUT_MS`, `fail_timed_out` prints `[FATAL] TLB shootdown timeout outstanding=n ms=2000`, reports where each CPU last was, stops the other CPUs and halts (`src/memory/paging/manager/shootdown/slow.rs:45-53`). A stale translation could reach memory that was freed, so the kernel does not continue. See [scheduler and SMP](scheduler-and-smp.md).
-
-## What to do after a stop
-
-- Read the band. It names the step that failed, and the step names the subsystem.
-- If the machine has a serial port, the console has the full sequence before the stop. On a running Standard image the Terminal's `log` command shows the same lines; after a stop the Terminal is not running.
-- Try another [boot mode](../install/boot-modes.md). Safe Mode starts no network, no audio driver and no optional app.
-- Report the machine with the step text; see [report a machine](../hardware/report.md) and [troubleshooting](../install/troubleshooting.md).
 
 ## See also
 

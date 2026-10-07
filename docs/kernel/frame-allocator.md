@@ -7,7 +7,7 @@ How the NONOS kernel learns which physical memory it may use, hands out 4 KiB fr
 ```mermaid
 flowchart TD
     MM[memory map] --> P[phys bitmap]
-    P --> D[low DMA pool]
+    P --> D[DMA pools]
     P --> F[frame_alloc]
     F --> PM[paging manager]
     F --> V[VmapAllocator]
@@ -19,7 +19,7 @@ flowchart TD
 - `phys` is a bitmap with one bit per 4 KiB frame. It alone hands out physical memory.
 - `frame_alloc` is the entry point the rest of the kernel calls. It draws from `phys` and from nothing else. The paging manager takes every new page-table frame from its `allocate_frame` (`src/memory/paging/manager/mapping/tables.rs:32`).
 - `VmapAllocator` is a buddy allocator over a kernel virtual window. `page_allocator` wraps it and backs each page with a frame.
-- A low DMA pool below 4 GiB is carved out of the bitmap at boot for devices that can only address 32 bits.
+- Two [DMA pools](../overview/glossary.md#dma-pool) are carved out of the bitmap at boot: a low one below 4 GiB for devices that can only address 32 bits, and a high one for display surfaces.
 
 ## From the memory map to the bitmap
 
@@ -35,7 +35,7 @@ The result is one line on the [serial console](../overview/glossary.md#serial-co
 
 The numbers depend on the machine; the example is the one in the code's own comment. If the bitmap cannot be set up, `init_fallback` tries fixed spans of 1 MiB to 2 GiB, 1 MiB to 1 GiB and 2 MiB to 256 MiB in turn and prints `[MEM] fallback OK` when one works (`src/kernel_core/init/memory/fallback.rs:20-32`).
 
-Last, `find_low_dma_region` picks usable memory between `DMA_POOL_MIN_BASE`, 16 MiB, and `DMA_CEILING_32BIT`, 4 GiB, for the 32-bit DMA pool, and those frames are reserved so the bitmap never hands them out (`src/kernel_core/init/memory/low_dma.rs:19-23`, `src/kernel_core/init/memory/setup.rs:69-74`). The pool itself belongs to the [hardware broker](hardware-broker.md).
+Last, `find_low_dma_region` picks usable memory between `DMA_POOL_MIN_BASE`, 16 MiB, and `DMA_CEILING_32BIT`, 4 GiB, for the 32-bit DMA pool, and those frames are reserved so the bitmap never hands them out (`src/kernel_core/init/memory/low_dma.rs:19-23`, `src/kernel_core/init/memory/setup.rs:69-74`). The display pool is one high contiguous run that `init_display_pool` takes from the bitmap with `HIGH` (`src/hardware/broker/dma/pool/display.rs:37-55`). Both pools belong to the [hardware broker](hardware-broker.md).
 
 ## Allocating and freeing frames
 
@@ -66,6 +66,7 @@ Three pieces exist in the tree and are not used to boot in this release:
 ## Limits
 
 - Physical memory at addresses above 64 GiB is not managed: `init_memory` caps the span at `MAX_PHYSICAL_MEMORY` (`src/kernel_core/init/memory/setup.rs:48`). RAM there is never handed out.
+- The fallback spans are not checked against the memory map. `init_fallback` only sets up the bitmap (`src/kernel_core/init/memory/fallback.rs:20-32`), so every frame of the span it picks starts out free, firmware and device memory inside it included.
 - The bitmap has one lock, `ALLOCATOR` (`src/memory/phys/allocator/api.rs:26`), and `frame_alloc` has its own, `GLOBAL_ALLOCATOR` (`src/memory/frame_alloc/manager/global.rs:21`). A frame taken through `frame_alloc` takes both.
 - The scan is linear. On a nearly full machine one allocation can walk the whole bitmap.
 - Every range `page_allocator` hands out comes from the one 256 MiB vmap window. At 32 KiB each, at most 8192 process kernel stacks fit, fewer when other users hold part of the window.

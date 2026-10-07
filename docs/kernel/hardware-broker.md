@@ -1,6 +1,6 @@
 # The hardware broker
 
-How a driver [capsule](../overview/glossary.md#capsule) gets a device from the NONOS kernel: the device table, claims, register windows, DMA buffers, port I/O, PCI configuration, interrupts, and how all of it is taken back.
+How a [driver capsule](../overview/glossary.md#driver-capsule) gets a device from the NONOS kernel: the device table, claims, register windows, DMA buffers, port I/O, PCI configuration, interrupts, and how all of it is taken back.
 
 Drivers run in ring 3. The [hardware broker](../overview/glossary.md#hardware-broker) is the ring 0 code under `src/hardware/broker` that hands a driver exactly the parts of a device it claimed, each as a [grant](../overview/glossary.md#grant) the kernel can revoke. The call layouts are on [Broker ABI](../abi/broker.md); a worked driver is on [Writing a driver](../drivers/writing-a-driver.md).
 
@@ -44,7 +44,7 @@ The ids are in `ids` (`src/hardware/broker/class.rs:21-44`) and the PCI mapping 
 
 ## Claims
 
-`MkDeviceClaim(device_id)` needs `Driver`. A device has one holder at a time; `claim` refuses a second with `EBUSY` and returns a fresh [claim epoch](../overview/glossary.md#claim-epoch) to the first (`src/hardware/broker/claim/claim.rs:23-45`). In the same call the broker moves the device into the capsule's [IOMMU domain](../overview/glossary.md#iommu-domain), powers it to D0 with `power_on_device` and turns off no-snoop requests, before the driver can enable bus mastering (`src/hardware/broker/claim/claim.rs:33-43`). When an IOMMU is in service and will not take the device, the claim fails with `ClaimError::Unconfined`, which the caller sees as `EPERM` (`src/syscall/microkernel/device.rs:75-81`); [IOMMU](iommu.md) explains when that happens.
+`MkDeviceClaim(device_id)` needs `Driver`. A device has one holder at a time; `claim` refuses a second with `EBUSY` and returns a fresh [claim epoch](../overview/glossary.md#claim-epoch) to the first (`src/hardware/broker/claim/claim.rs:23-45`). In the same call the broker moves the device into the capsule's [IOMMU domain](../overview/glossary.md#iommu-domain) when a remapping unit in service covers it, powers it to D0 with `power_on_device` and turns off no-snoop requests, before the driver can enable bus mastering (`src/hardware/broker/claim/claim.rs:33-43`). When an IOMMU is in service and will not take the device, the claim fails with `ClaimError::Unconfined`, which the caller sees as `EPERM` (`src/syscall/microkernel/device.rs:75-81`); [IOMMU](iommu.md) explains when that happens.
 
 Epochs come from one counter that starts at 1, in `next_epoch` (`src/hardware/broker/claim/state.rs:24-29`). Every MMIO, DMA, IRQ and PIO request carries the epoch, and one that does not match the live claim is refused as `StaleEpoch`, which the caller sees as `ESTALE`, -116, as `validate` does for DMA (`src/hardware/broker/dma/map/validate.rs:46-52`). A grant from an earlier claim cannot be reused after a release and a new claim.
 
@@ -72,7 +72,7 @@ The flags are in `flags.rs`, starting at `DMA_MAP_HIGH` (`src/hardware/broker/dm
 
 The ceilings, in pages, are set by `dma_page_limit_for_class`: `RNG`, `INPUT` and `SERIAL` 1, `AUDIO` 16, `NETWORK` 64, the USB hosts 256, `BLOCK` 1024, `DISPLAY` 8192 and every other class 16 (`src/hardware/broker/dma/limits.rs:27-47`).
 
-Where the frames come from is decided in `take` (`src/hardware/broker/dma/map/alloc.rs:27-58`). A `DMA32` request takes the low pool, then any memory below 4 GiB, and fails with `ENOMEM` rather than use higher frames. A request without flags also prefers low memory, so a device with no IOMMU in front of it gets low addresses when there are some. The low pool is one page in 128 of the usable memory below 4 GiB, never under 2048 pages nor over 8192, and half of it is kept for `DMA32` requests, as `low32_target_pages` and `low32_floor` compute (`src/hardware/broker/dma/pool/sizing.rs:17-62`). These are the [DMA pools](../overview/glossary.md#dma-pool).
+Where the frames come from is decided in `take` (`src/hardware/broker/dma/map/alloc.rs:27-58`). A `DMA32` request takes the low pool, then any memory below 4 GiB, and fails with `ENOMEM` rather than use higher frames. A request without flags also prefers low memory, so a device with no IOMMU in front of it gets low addresses when there are some. The low pool is one page in 128 of the usable memory below 4 GiB, never under 2048 pages nor over 8192, and half of it is kept for `DMA32` requests, as `low32_target_pages` and `low32_floor` compute (`src/hardware/broker/dma/pool/sizing.rs:17-62`). These are the [DMA pools](../overview/glossary.md#dma-pool). Frames outside the pools come from the kernel's [frame allocator](frame-allocator.md#allocating-and-freeing-frames), which honours the same 4 GiB limit.
 
 The device address depends on the IOMMU. When a remapping unit confines the device, `map` in the confine module maps the buffer into the capsule's own domain and returns an I/O virtual address; otherwise it returns the physical address (`src/hardware/broker/confine/map.rs:22-50`). I/O virtual addresses start at `IOVA_BASE`, 1 MiB, stay below 4 GiB, and step over the interrupt window `0xFEE0_0000` to `0xFEF0_0000`, where a device write would be taken as an interrupt (`src/hardware/broker/confine/iova_space.rs:29-74`). A grant made without a confining domain is counted by `note_unconfined` and shows in the IOMMU posture line (`src/hardware/broker/dma/map/record.rs:45-51`). A `DMA32` request whose device address would not fit 32 bits fails as `Above4G`, which the caller sees as `ERANGE`, -34 (`src/hardware/broker/dma/map/transaction.rs:53-62`).
 
@@ -104,26 +104,26 @@ When the vector fires, `on_vector` adds one to the grant's counter, masks an INT
 - `MkDeviceRelease` stops the device mastering the bus first, then tears down its MMIO, IRQ, DMA and PIO grants, then drops the claim, in `sys_device_release` (`src/syscall/microkernel/device.rs:84-113`).
 - On exit `teardown` releases every grant the process holds, through `release_all_for_pid` and its IRQ, DMA and PIO twins (`src/process/exit/teardown.rs:47-51`); the MMIO release also drops the process's claims (`src/hardware/broker/mmio/release.rs:45-54`). Dropping a claim stops the device mastering the bus and detaches it from the capsule's domain, in the claim module's `release_all_for_pid` (`src/hardware/broker/claim/release.rs:51-62`), before the DMA buffers are freed.
 
-A DMA buffer is freed in a fixed order by `teardown` in the DMA module: unmap it from the capsule, take it out of the device's domain, scrub it, and only then return the frames (`src/hardware/broker/dma/teardown.rs:26-46`). If the domain will not give the buffer up, the frames are kept out of use for good rather than handed to someone else. `scrub` writes zeros through the kernel's direct map before the frames are reused (`src/hardware/broker/dma/scrub.rs:19-35`).
+A DMA buffer is freed in a fixed order by `teardown` in the DMA module: unmap it from the capsule, take it out of the device's domain, scrub it, and only then return the frames (`src/hardware/broker/dma/teardown.rs:26-46`). If the domain will not give the buffer up, the frames are kept out of use for good rather than handed to someone else. `scrub` writes zeros through the kernel's [directmap](../overview/glossary.md#directmap) before the frames are reused (`src/hardware/broker/dma/scrub.rs:19-35`).
 
 ## Errors
 
 | Errno | Value | When |
 |---|---:|---|
-| `EPERM` | -1 | No claim on the device, an IOMMU in service would not take it, a reserved line, or a mapping that would expose an MSI-X table. |
+| `EPERM` | -1 | No claim on the device, an IOMMU in service would not take it, a reserved line, or a mapping that would expose an MSI-X table or its pending bit array. |
+| `ENOMEM` | -12 | No frames, no user address space, or no free vector. |
 | `EBUSY` | -16 | The device is claimed by another process, or the line is already bound. |
 | `ENODEV` | -19 | No such device, or the kernel could not program the device's MSI or MSI-X. |
 | `EINVAL` | -22 | A bad length, alignment, BAR index or vector count. |
 | `ERANGE` | -34 | A `DMA32` buffer whose device address does not fit 32 bits. |
-| `ENOTSUP` | -95 | An unknown flag. |
+| `EOPNOTSUPP` | -95 | An unknown flag. |
 | `ESTALE` | -116 | The claim epoch is not the live one. |
-| `ENOMEM` | -12 | No frames, no user address space, or no free vector. |
 
-The DMA mapping is in `errno_for` (`src/syscall/microkernel/dma.rs:100-111`), the MMIO mapping beside `MmioMapError` (`src/syscall/microkernel/mmio/errno_map.rs:24-35`) and the IRQ mapping beside `IrqBindError` (`src/syscall/microkernel/irq/errno_map.rs:24-42`).
+The DMA mapping is in `errno_for` (`src/syscall/microkernel/dma.rs:100-111`), the MMIO mapping beside `MmioMapError` (`src/syscall/microkernel/mmio/errno_map.rs:24-35`) and the IRQ mapping beside `IrqBindError` (`src/syscall/microkernel/irq/errno_map.rs:24-42`). `ESTALE` and `EOPNOTSUPP` are not in the `[errors]` table of [abi/syscalls.toml](../../abi/syscalls.toml); [Errors](../abi/errors.md) has both, with the rest of the codes.
 
 ## Tests
 
-`userland/kernel_proofs` compiles the I/O address placement (`userland/kernel_proofs/src/iova_space/mod.rs`), the confinement posture (`userland/kernel_proofs/src/confine_posture/mod.rs`), the user windows (`userland/kernel_proofs/src/device_windows/mod.rs`), the MMIO window rule (`userland/kernel_proofs/src/mmio_window/mod.rs`), the DMA pool sizing (`userland/kernel_proofs/src/dma_pool_bitmap/mod.rs`) and the PCI vendor bits (`userland/kernel_proofs/src/pci_quirk_bits/mod.rs`) from the kernel sources. It passed, 388 tests, in the flake check run on this commit.
+The [proof crate](../overview/glossary.md#proof-crate) `userland/kernel_proofs` compiles the I/O address placement (`userland/kernel_proofs/src/iova_space/mod.rs`), the confinement posture (`userland/kernel_proofs/src/confine_posture/mod.rs`), the user windows (`userland/kernel_proofs/src/device_windows/mod.rs`), the MMIO window rule (`userland/kernel_proofs/src/mmio_window/mod.rs`), the DMA pool sizing (`userland/kernel_proofs/src/dma_pool_bitmap/mod.rs`) and the PCI vendor bits (`userland/kernel_proofs/src/pci_quirk_bits/mod.rs`) from the kernel sources. It passed, 388 tests, in the flake check run on this commit.
 
 ## See also
 

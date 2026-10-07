@@ -9,9 +9,9 @@ The two NONOS system calls that let the threads of a [capsule](../overview/gloss
 | `MkFutexWait` | `0x5754464D`, the tag `MFTW` | `vaddr`, `expected`, `timeout_ms` | 0, or a negative error |
 | `MkFutexWake` | `0x4B54464D`, the tag `MFTK` | `vaddr`, `count` | how many waiters were woken |
 
-The numbers are four-byte tags, `SYS_FUTEX_WAIT` and `SYS_FUTEX_WAKE` (`src/syscall/microkernel/numbers.rs:42-43`), dispatched to `sys_futex_wait` and `sys_futex_wake` (`src/syscall/microkernel/dispatch/process.rs:78-79`). Their entries in the ABI file are `desc.MFTK` and `desc.MFTW` (`abi/syscalls.toml:548-557`).
+The numbers are four-letter [syscall tags](../overview/glossary.md#syscall-tag), `SYS_FUTEX_WAIT` and `SYS_FUTEX_WAKE` (`src/syscall/microkernel/numbers.rs:42-43`), dispatched to `sys_futex_wait` and `sys_futex_wake` (`src/syscall/microkernel/dispatch/process.rs:78-79`). Their entries in the ABI file are `desc.MFTK` and `desc.MFTW` (`abi/syscalls.toml:548-557`).
 
-Both need only a valid [capability](../overview/glossary.md#capability) token: `MkFutexWait` and `MkFutexWake` sit with exit, yield and the clock calls that any process may make (`src/syscall/contract/cap_table/mk.rs:20-35`).
+Both need only a valid [capability token](../overview/glossary.md#capability-token): `MkFutexWait` and `MkFutexWake` sit with exit, yield and the clock calls that any process may make (`src/syscall/contract/cap_table/mk.rs:20-35`). The check itself is on [capabilities](capabilities.md).
 
 | Error | Value | When |
 |---|---|---|
@@ -19,7 +19,7 @@ Both need only a valid [capability](../overview/glossary.md#capability) token: `
 | `ERRNO_INVAL` | -22 | wait only: `vaddr` is zero or not 4-byte aligned |
 | `ERRNO_FAULT` | -14 | wait only: the word cannot be read from user memory |
 
-The values are in `src/syscall/microkernel/errnos.rs:22-35`, where `ERRNO_PERM` is first.
+The values are the constants from `ERRNO_PERM` on in `src/syscall/microkernel/errnos.rs:22-35`.
 
 ## Who shares a futex
 
@@ -66,11 +66,11 @@ The sleep and the wake both go through the scheduler's sleep table and wake toke
 
 The NONOS standard library port builds `Mutex`, `Condvar`, `RwLock`, `Once` and thread parking on these two calls, so a contended lock sleeps instead of spinning (`toolchain/nonos-std/sys/pal/nonos/futex.rs:1-6`). Its `futex_wait` loops: it checks the word, computes what is left of the caller's timeout from the kernel's millisecond clock, and calls `MkFutexWait` again until the word changes or the time is up (`toolchain/nonos-std/sys/pal/nonos/futex.rs:81-106`). A timeout shorter than one millisecond is rounded up to one. `futex_wake` wakes one waiter and `futex_wake_all` wakes all of them (`toolchain/nonos-std/sys/pal/nonos/futex.rs:108-120`).
 
-The C library carries only the wait number, `N_MK_FUTEX_WAIT` (`userland/libc/src/syscall/numbers/core.rs:38`). Its `mk_idle_ms` uses it as a timed sleep: it waits on a private word on its own stack that nothing else knows, so only the timeout ends the wait (`userland/libc/src/unistd/idle.rs:32-37`).
+`nonos_libc`, the Rust crate most capsules call the kernel through ([libc and the Rust runtimes](../userland/libc.md)), carries only the wait number, `N_MK_FUTEX_WAIT` (`userland/libc/src/syscall/numbers/core.rs:38`). Its `mk_idle_ms` uses it as a timed sleep: it waits on a private word on its own stack that nothing else knows, so only the timeout ends the wait (`userland/libc/src/unistd/idle.rs:32-37`).
 
 ## Linux programs
 
-A Linux program's futex call never reaches these calls. The Linux personality capsule serves `futex` entirely itself: a waiting guest thread is parked inside its trap, so the wait is the absence of a reply and the wake is the reply (`userland/capsule_linux/src/linux/call/futex.rs:17-22`). It accepts `FUTEX_WAIT`, `FUTEX_WAKE`, `FUTEX_REQUEUE`, `FUTEX_CMP_REQUEUE`, `FUTEX_WAIT_BITSET` and `FUTEX_WAKE_BITSET`, with the private flag (`userland/capsule_linux/src/linux/call/futex_op.rs:24-31`). `decode` refuses every other operation, and `FUTEX_CLOCK_REALTIME` on anything but `FUTEX_WAIT_BITSET`, with `ENOSYS`, and a zero bitset or a misaligned word with `EINVAL` (`userland/capsule_linux/src/linux/call/futex_op.rs:46-75`). Priority-inheritance futexes are among the refused operations. See [Linux personality](../userland/linux-personality.md).
+A Linux program's futex call never reaches these calls. The [Linux personality](../overview/glossary.md#linux-personality) capsule serves `futex` entirely itself: a waiting guest thread is parked inside its trap, so the wait is the absence of a reply and the wake is the reply (`userland/capsule_linux/src/linux/call/futex.rs:17-22`). It accepts `FUTEX_WAIT`, `FUTEX_WAKE`, `FUTEX_REQUEUE`, `FUTEX_CMP_REQUEUE`, `FUTEX_WAIT_BITSET` and `FUTEX_WAKE_BITSET`, with the private flag (`userland/capsule_linux/src/linux/call/futex_op.rs:24-31`). `decode` refuses every other operation, and `FUTEX_CLOCK_REALTIME` on anything but `FUTEX_WAIT_BITSET`, with `ENOSYS`, and a zero bitset or a misaligned word with `EINVAL` (`userland/capsule_linux/src/linux/call/futex_op.rs:46-75`). Priority-inheritance futexes are among the refused operations. See [Linux personality](../userland/linux-personality.md).
 
 ## Tests
 

@@ -40,9 +40,9 @@ The `flags` word uses these bits, as listed in the `flags` module (`src/boot/han
 | 5 | `IDMAP_PRESERVED` | always set: the low identity map is present at entry |
 | 6 | `FB_AVAILABLE` | `fb` is valid |
 | 7 | `ACPI_AVAILABLE` | `acpi` is valid |
-| 8 | `TPM_MEASURED` | the loader extended TPM measurements |
-| 9 | `SECURE_BOOT` | the loader reports UEFI Secure Boot as on |
-| 10 | `ZK_ATTESTED` | the loader reports the attestation proof as verified |
+| 8 | `TPM_MEASURED` | the loader found [TPM](../overview/glossary.md#tpm) measured boot active; a failed [PCR](../overview/glossary.md#pcr) 9 extend does not clear it |
+| 9 | `SECURE_BOOT` | the loader reports UEFI [Secure Boot](../overview/glossary.md#secure-boot) as on |
+| 10 | `ZK_ATTESTED` | the loader reports the [attestation](../overview/glossary.md#attestation) proof as verified |
 | 11 | `INSTALL_REQUESTED` | the person chose the boot menu's install entry |
 | 12 to 15 | `PROFILE_HARDENED`, `PROFILE_SAFE`, `PROFILE_AIR_GAPPED`, `PROFILE_RECOVERY` | the [boot profile](../overview/glossary.md#boot-profile); Standard sets none |
 
@@ -61,7 +61,7 @@ A few sizes are fixed by the code:
 
 1. The pointer is non-zero, 8-byte aligned and canonical.
 2. `magic`, `version` and `size` match this kernel's `BootHandoffV1` exactly.
-3. The framebuffer, memory map and RSDP pointers fit in 48 bits, the `MAX_PHYS_PTR` limit (`src/boot/handoff/api/init.rs:28`).
+3. Three pointers fit in 48 bits, the `MAX_PHYS_PTR` limit (`src/boot/handoff/api/init.rs:28`): the framebuffer when `FB_AVAILABLE` is set, the memory map, and the RSDP when `ACPI_AVAILABLE` is set. Otherwise the result is `InvalidData` (`src/boot/handoff/api/init.rs:74-85`).
 4. `validate_security` runs four checks (`src/boot/handoff/api/security/orchestrator.rs:21-27`). The random seed must not be all zero, or the result is `WeakEntropy` (`src/boot/handoff/api/security/entropy.rs:20-25`). When a memory map is present, its entry size must equal the kernel's own, or the result is `MemoryMapEntrySize` (`src/boot/handoff/api/security/memory_map.rs:26-28`). When `FB_AVAILABLE` is set, the framebuffer needs a non-zero width, height and stride, a stride of at least one row of pixels, and a frame that fits its size, or the result is `FramebufferGeometry` (`src/boot/handoff/api/security/framebuffer.rs:20-47`). The entry point must lie inside the 256 MiB `KERNEL_IMAGE_WINDOW` above `KERNEL_BASE`, or in the low half above 1 MiB (`src/boot/handoff/api/security/entry_point.rs:24-36`).
 5. A second call fails with `AlreadyInitialized`.
 
@@ -106,9 +106,9 @@ After `init_core_systems`, `log_security_status` prints whether the kernel signa
 
 1. The serial console, the boot timestamp and the clock anchor. See [timers](timers.md).
 2. `init_cpu_tables`: the GDT, the SYSCALL registers, an early IDT, the 64 MiB bootstrap heap and the full IDT (`src/boot/main/core_init/cpu_tables.rs:26-48`).
-3. `init_acpi_tables`: the RSDP from the handoff, the ACPI parse, the power button, and a TSC calibration against the ACPI PM timer when no rate is known yet (`src/boot/main/core_init/acpi_tables.rs:19-33`).
+3. `init_acpi_tables`: the RSDP from the handoff, the ACPI parse, the power button, and a TSC calibration against the ACPI PM timer when no rate is known yet (`src/boot/main/core_init/acpi_tables.rs:19-33`). The tables are on [PCI and ACPI](pci-and-acpi.md).
 4. The local APIC, the idle-timer fix and the 100 Hz preemption timer. A failure in `install_on_bsp` stops the boot (`src/boot/main/core_init/init_core_systems.rs:42-44`).
-5. `sti`, memory encryption detection, PCI enumeration, and `init_platform_baseline`: BAR assignment, the device broker, the entropy source, the boot session nonce and the [capability](../overview/glossary.md#capability) token signing key (`src/kernel_core/init/platform/baseline.rs:35-61`).
+5. `sti`, memory encryption detection, the PCI scan, and `init_platform_baseline`: BAR assignment, the device broker, the entropy source, the boot session nonce and the [capability token](../overview/glossary.md#capability-token) signing key (`src/kernel_core/init/platform/baseline.rs:35-61`).
 
 ## Microkernel init
 
@@ -119,7 +119,7 @@ After `init_core_systems`, `log_security_status` prints whether the kernel signa
 | `init_boot_entropy` (`src/kernel_core/init/entry/microkernel_init.rs:38`) | draws the per-boot nonce; [memory and paging](memory-and-paging.md) says what reads it |
 | `init_arch_memory_and_framebuffer` (`src/kernel_core/init/entry/microkernel_init.rs:39`) | builds the physical allocator from the memory map; see [frame allocator](frame-allocator.md) |
 | `init_arch_firmware` (`src/kernel_core/init/entry/microkernel_init.rs:44`) | takes the firmware blob table from the handoff |
-| `init_core_services` (`src/kernel_core/init/entry/microkernel_init.rs:45`) | speculation mitigations, the random generator, the IPC secret, the boot CPU's SMP record, the scheduler and the clocks |
+| `init_core_services` (`src/kernel_core/init/entry/microkernel_init.rs:45`) | speculation mitigations, the random generator, the [IPC](ipc.md) secret, the boot CPU's SMP record, the scheduler and the clocks |
 | `init_vm_and_protection` (`src/kernel_core/init/entry/microkernel_init.rs:46`) | the paging manager, removal of the low identity map, SMEP, SMAP, UMIP, NX, write protect and stack guards; see [memory and paging](memory-and-paging.md) |
 | `init_extended_state` (`src/kernel_core/init/entry/microkernel_init.rs:47`) | CPUID, and the SSE and AVX state the kernel owns from here on |
 | `init_dma_protection` (`src/kernel_core/init/entry/microkernel_init.rs:52`) | the IOMMU, in kernels built with `nonos-arch-iommu`; see [IOMMU](iommu.md) |
@@ -145,7 +145,7 @@ The boot profile changes what starts. `network` is true only for Standard and Ha
 
 - The handoff is x86_64 and UEFI only. The aarch64 `kernel_entry` takes a device tree pointer instead (`src/arch/aarch64/boot/entry.rs:31-32`); see [aarch64](../architectures/aarch64.md).
 - The CPU count in the kernel's own summary of the handoff is fixed at one by `cpus` (`src/boot/handoff/kernel_handoff/x86_64/builders.rs:43-45`). The real count comes from the ACPI MADT during SMP bring-up.
-- The checks above are about structure. Whether the kernel image was signed, measured and attested is decided by the loader and by the kernel's later check of the loader; see [boot chain and signatures](../security/boot-chain-and-signatures.md).
+- The checks above are about structure. Whether the kernel image was signed and attested is decided by the loader, which also measures it into PCR 9 when it finds a TPM measuring; the kernel's later check covers the loader, not the kernel. See [boot chain and signatures](../security/boot-chain-and-signatures.md).
 
 ## See also
 
@@ -155,5 +155,7 @@ The boot profile changes what starts. `network` is true only for Standard and Ha
 - [Timers](timers.md)
 - [Logging](logging.md)
 - [Panic and boot stop](panic-and-boot-stop.md)
+- [PCI and ACPI](pci-and-acpi.md)
 - [Boot modes](../install/boot-modes.md)
+- [Boot chain and signatures](../security/boot-chain-and-signatures.md)
 - [x86_64](../architectures/x86_64.md)
