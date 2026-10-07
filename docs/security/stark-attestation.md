@@ -4,7 +4,7 @@ NONOS admits a kernel, a loader or a [capsule](../overview/glossary.md#capsule) 
 
 ## The statement
 
-Every gate checks one statement: under root R, the leaf built from context C with kind K is a slot of a 256-slot tree. It checks it twice, by folding a Merkle path with Poseidon and by verifying a STARK proof of the same slot, and admits only when both pass. The capsule gate's module comment names both halves, and says that the trusted root is always the kernel's own, never the trailer's (`verify_against`, `src/security/capsule_attest/path.rs:17-35`).
+Every gate checks one statement: under root R, the leaf built from context C with kind K is a slot of a 256-slot tree. It checks it twice, by folding a Merkle path with Poseidon and by verifying a [STARK proof](../overview/glossary.md#stark-proof) of the same slot, and admits only when both pass. The capsule gate's module comment names both halves, and says that the trusted root is always the kernel's own, never the trailer's (`verify_against`, `src/security/capsule_attest/path.rs:17-35`).
 
 The gate builds the context itself from what it is about to run and grant, and never takes it from a trailer (`capsule_context`, `nonos-attest-path/src/context.rs:17-23`):
 
@@ -13,7 +13,7 @@ The gate builds the context itself from what it is about to run and grant, and n
 | `capsule_context` | 48 | BLAKE3 of the capsule ELF (32), the capability word (8, big-endian), the policy epoch (8, big-endian) |
 | `boot_context` | 40 | the measurement (32), the boot epoch (8, big-endian) |
 
-A kernel's measurement is BLAKE3 of its image; a loader's is the PE Authenticode SHA-256 the firmware records in the TCG log, so the kernel can rebuild it, as `boot_context` notes (`nonos-attest-path/src/context.rs:31-40`). The [capability word](../overview/glossary.md#capability-word) in a capsule's context is the manifest's `required_caps`, so a capsule enrolled with one set of rights does not open with another (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:70-73`).
+A kernel's measurement is BLAKE3 of its image; a loader's is the PE Authenticode SHA-256 the firmware records in the TCG log, so the kernel can rebuild it, as `boot_context` notes (`nonos-attest-path/src/context.rs:31-40`). The [capability word](../overview/glossary.md#capability-word) in a capsule's context is the [manifest](../overview/glossary.md#manifest)'s `required_caps`, so a capsule enrolled with one set of rights does not open with another (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:70-73`).
 
 The kind is `Kernel` 0, `Capsule` 1, `Pad` 2 or `Bootloader` 3 (`Kind`, `nonos-attest-path/src/leaf.rs:29-39`). `context_digest` is BLAKE3 over the domain `NONOS-ATTEST-PATH-LEAF-v3`, the context's length as a little-endian `u32`, and the context (`nonos-attest-path/src/leaf.rs:41-49`). `leaf_of` puts the domain word `NONOSLV3` in word 0 of a width-8 Poseidon state, the digest's four little-endian words in words 1 to 4 and the kind in word 5, permutes once and keeps the first four words; the kind has a word of its own so that a proof can pin it, and a capsule slot cannot open as a kernel (`nonos-attest-path/src/leaf.rs:51-71`).
 
@@ -52,7 +52,7 @@ The loader's tree cannot live in the loader, whose measurement would then depend
 
 ## Who makes the trailers
 
-`nonos-stark-enroll` is the host tool that builds the trees and writes the trailers. It links `nonos-attest-path` with its `alloc` feature, `nonos-boot-measure`, and from the STARKs repository the prover `stark_proofs` with `fri8` and `parallel` and the verifier `nox_verify` (`nonos-stark-enroll/Cargo.toml:12-17`).
+`nonos-stark-enroll` is the host tool that builds the trees and writes the trailers, the step called [enrollment](../overview/glossary.md#enrollment). It links `nonos-attest-path` with its `alloc` feature, `nonos-boot-measure`, and from the STARKs repository the prover `stark_proofs` with `fri8` and `parallel` and the verifier `nox_verify` (`nonos-stark-enroll/Cargo.toml:12-17`).
 
 | Verb | What it does |
 |---|---|
@@ -110,7 +110,7 @@ sequenceDiagram
 
 `attest_gate` refuses an empty trailer outright, and any refusal reaches `preflight` as `AttestationRejected`. It prints `[ZK-ATTEST] ok`, `none` or `FAIL` on the serial line with the capsule's name and then the authority or the reason, and for a refused proof the `nox_verify` code (`src/kernel_core/process_spawn/capsule_spawn/runner/attest_gate.rs:23-63`). The reasons are the strings of `AttestError`: missing, malformed, root unavailable, rejected, or `ProofRefused` with a code from 1 to 7 (`src/security/capsule_attest/error.rs:17-37`).
 
-`verify_capsule_attestation` hashes the ELF once with BLAKE3, in serve units so that a long hash still answers TLB shootdowns (`measure`, `src/security/capsule_attest/measure.rs:17-32`). It tries the vendor root first and always; only when that refuses does it try `enrolled_roots`, the roots a person enrolled on this machine, and when none admits the capsule it returns the vendor root's refusal (`src/security/capsule_attest/verify.rs:21-63`). Against the vendor root only a v4 trailer counts. Under an enrolled root, `enrolled` checks a trailer that starts with the local-build magic as a keyed tag of a build made on this machine, not as a STARK (`src/security/capsule_attest/against_root.rs:31-45`).
+`verify_capsule_attestation` hashes the ELF once with BLAKE3, in serve units so that a long hash still answers [TLB shootdowns](../overview/glossary.md#tlb-shootdown) (`measure`, `src/security/capsule_attest/measure.rs:17-32`). It tries the vendor root first and always; only when that refuses does it try `enrolled_roots`, the roots a person enrolled on this machine, and when none admits the capsule it returns the vendor root's refusal (`src/security/capsule_attest/verify.rs:21-63`). Against the vendor root only a v4 trailer counts. Under an enrolled root, `enrolled` checks a trailer that starts with the local-build magic as a keyed tag of a build made on this machine, not as a STARK (`src/security/capsule_attest/against_root.rs:31-45`).
 
 `verify_against` parses the trailer as a capsule trailer, builds `capsule_context` from the measurement, the capability word and `POLICY_EPOCH`, folds the path to the root, and then has `nox_verify` check the proof over the words of that same context and root (`src/security/capsule_attest/path.rs:34-54`). A success is a `Proved`: the measurement and the `Authority` that vouched, kept as one value (`src/security/capsule_attest/proved.rs:19-28`). The spawn writes both into the attestation registry with `record_attested` once the process exists (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:64-80`).
 
@@ -120,7 +120,7 @@ The loader's check of the kernel trailer is in its verification module, which th
 
 ### The loader, checked by the kernel
 
-`membership` checks the loader's slot the way the spawn gate checks a capsule's: `boot_context` over the Authenticode digest at `BOOT_EPOCH`, the path under the signed root, then the STARK with the bootloader kind (`nonos-boot-measure/src/gate/membership.rs:28-61`). A refused proof is logged as 400 plus the `nox_verify` code (`BootError`, `nonos-boot-measure/src/gate/error.rs:42-55`). Where the measurement and the root come from is on [Measured boot and the TPM](measured-boot-and-tpm.md).
+`membership` checks the loader's slot the way the [spawn gate](../overview/glossary.md#spawn-gate) checks a capsule's: `boot_context` over the Authenticode digest at `BOOT_EPOCH`, the path under the signed root, then the STARK with the bootloader kind (`nonos-boot-measure/src/gate/membership.rs:28-61`). A refused proof is logged as 400 plus the `nox_verify` code (`BootError`, `nonos-boot-measure/src/gate/error.rs:42-55`). Where the measurement and the root come from is on [Measured boot and the TPM](measured-boot-and-tpm.md).
 
 ### From userspace
 
@@ -130,9 +130,9 @@ The loader's check of the kernel trailer is in its verification module, which th
 
 `nonos-device-attest` proves, to a verifier that learns nothing else, that an approved bootloader started the machine (a `Bootloader` slot in the loader tree), that an approved kernel runs on it (a `Kernel` slot in the kernel tree), that it is an enrolled device (a commitment to its secret is a leaf of a device registry), and that a tag is its tag for the verifier's scope; which loader, which kernel and which device stay private, and one device has one tag per scope (`nonos-device-attest/src/lib.rs:17-32`). The public side is `Statement`: the three roots, the registry depth, the verifier's scope and context, and the tag, all absorbed before the first commitment, so a proof is bound to the verifier's nonce (`nonos-device-attest/src/statement.rs:23-55`). It is proven at `N_QUERIES` 19 with a 28-bit grind and 5 extra blowup bits over a trace of `2^14` rows, and the registry ships at depth 20 (`nonos-device-attest/src/params.rs:25-57`).
 
-The proof shows that an approved chain exists and that the prover holds an enrolled secret. That this machine booted that chain is the TPM's part: the TPM derives the [device secret](../overview/glossary.md#device-secret) only under the release's `PolicyAuthorize` over PCR 9 and this machine's PCRs 0, 4 and 7 (`nonos-device-attest/src/lib.rs:29-32`). The derivation is on [Measured boot and the TPM](measured-boot-and-tpm.md).
+The proof shows that an approved chain exists and that the prover holds an enrolled secret. That this machine booted that chain is the [TPM](../overview/glossary.md#tpm)'s part: the TPM derives the [device secret](../overview/glossary.md#device-secret) only under the release's `PolicyAuthorize` over [PCR](../overview/glossary.md#pcr) 9 and this machine's PCRs 0, 4 and 7 (`nonos-device-attest/src/lib.rs:29-32`). The derivation is on [Measured boot and the TPM](measured-boot-and-tpm.md).
 
-The capsule that proves on the booted system is `nonos.prove`, namespace `systems.nonos.app.prove`. Its `CAPSULE_REQUIRED_CAPS` has no network bit, so the person brings the request in and the proof stays on the data volume (`userland/capsule_prove/Capsule.mk:16-35`). It is the one capsule allowed to hold `DeviceSecret`: `DEVICE_SECRET_BIT` 35 is refused in any other capsule's caps at signing time (`scripts/check_device_secret_cap.py:17-34`), and the kernel answers the call only for a caller the vendor root proved (`device_secret_caller`, `src/syscall/microkernel/device_proof/gate.rs:28-36`). Its proof crate, `proofs-prove_proofs`, passed 30 tests in this release's flake checks; the tests of `nonos-device-attest` itself are not among those checks.
+The capsule that proves on the booted system is `nonos.prove`, namespace `systems.nonos.app.prove`. Its `CAPSULE_REQUIRED_CAPS` has no network bit, so the person brings the request in and the proof stays on the [data volume](../overview/glossary.md#data-volume) (`userland/capsule_prove/Capsule.mk:16-35`). It is the one capsule allowed to hold `DeviceSecret`: `DEVICE_SECRET_BIT` 35 is refused in any other capsule's caps at signing time (`scripts/check_device_secret_cap.py:17-34`), and the kernel answers the call only for a caller the vendor root proved (`device_secret_caller`, `src/syscall/microkernel/device_proof/gate.rs:28-36`). Its [proof crate](../overview/glossary.md#proof-crate), `proofs-prove_proofs`, passed 30 tests in this release's flake checks; the tests of `nonos-device-attest` itself are not among those checks.
 
 ## Where the STARK code comes from
 
@@ -152,7 +152,7 @@ The path check rests on Poseidon's collision resistance, and the proof's soundne
 
 ## Development images
 
-A development image takes trailers that are the path alone. The flake adds the kernel feature `nonos-dev-attest` to a profile with `dev` set, gives that profile the `dev-qemu` loader, and refuses `nonos-dev-attest` with any other loader (`tools/nix/config.nix:142-168`). The kernel refuses to compile it beside `nonos-release` with a `compile_error` (`src/lib.rs:43-47`). Its capsule gate prints `[ZK-ATTEST] development image: paths only, no STARK proofs, never a release` once, in `dev_path` (`src/security/capsule_attest/path.rs:56-86`). The seal sets `NONOS_ENROLL_PATHS` for such an image and refuses to seal it as a release (`tools/nonos_seal/__main__.py:119-130`).
+A [development image](../overview/glossary.md#development-image) takes trailers that are the path alone. The flake adds the kernel feature `nonos-dev-attest` to a profile with `dev` set, gives that profile the `dev-qemu` loader, and refuses `nonos-dev-attest` with any other loader (`tools/nix/config.nix:142-168`). The kernel refuses to compile it beside `nonos-release` with a `compile_error` (`src/lib.rs:43-47`). Its capsule gate prints `[ZK-ATTEST] development image: paths only, no STARK proofs, never a release` once, in `dev_path` (`src/security/capsule_attest/path.rs:56-86`). The seal sets `NONOS_ENROLL_PATHS` for such an image and refuses to seal it as a release (`tools/nonos_seal/__main__.py:119-130`).
 
 ## Tests
 
@@ -160,6 +160,7 @@ A development image takes trailers that are the path alone. The flake adds the k
 - `attest-poc`: the kernel self-attestation path on the host, enrolled, embedded with the real footer assembler, parsed and checked, and the attacks on each; it covers the path half only. Passed.
 - `attest-battery`: the red-team battery and parser fuzz in `security/nonos-secops`, also the path half only; the STARK half is held by the enroll tool's `selftest` (`security/README.md:3-8`). Passed.
 - `proofs-stark_proofs`: 198 host tests of the in-tree `userland/stark_proofs` crate, which tests the v3-era engine, not `nox_verify` and not the STARKs prover that shares its name. Passed.
+- No flake check runs the STARK half of a gate, `nox_verify` over a real proof. The enroll tool's `selftest` does (`selftest`, `nonos-stark-enroll/src/main.rs:56`), and so does the seal's check D on every trailer it writes; no run of either is recorded for this commit.
 - The booted refusal test boots a test kernel under QEMU and expects four refusals (`flip`, `extra_cap`, `kernel_kind`, `stale_epoch`) and one admission (`CASES`, `nonos-ci/attest_refusal_check.py:26`). It is the make target `nonos-mk-attest-refusal-run` (`ATTEST_REFUSAL_LOG`, `mk/25-attest-refusal.mk:53-62`), and was not run for this release.
 - Two Kani harnesses for `parse_v4` and the v3 reader live in `nonos-attest-path/src/kani_proofs.rs`; `Kani` runs in its own workflow, outside the flake checks (`tools/nix/checks.nix:5-7`), and was not run for this release.
 
@@ -172,3 +173,4 @@ A development image takes trailers that are the path alone. The flake adds the k
 - [Manifests and capabilities](../userland/manifests-and-capabilities.md)
 - [Processes and capsule spawn](../kernel/processes-and-spawn.md)
 - [Tests and proofs](../contributing/tests-and-proofs.md)
+- [Checking the security claims yourself](checking-the-claims.md)

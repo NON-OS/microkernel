@@ -1,14 +1,14 @@
 # Rollback protection
 
-NONOS keeps an older signed kernel, an older bootloader tree and a certificate from an older trust anchor from coming back, each by holding a signed number to a floor that NONOS itself never lowers.
+NONOS keeps an older signed kernel, an older bootloader tree and a certificate from an older [trust anchor](../overview/glossary.md#trust-anchor) from coming back, each by holding a signed number to a floor that NONOS itself never lowers.
 
 ## What holds each floor
 
 | What could come back | The number | Where the floor is kept | Who compares |
 |---|---|---|---|
-| an older signed kernel | the kernel's rollback index, signed into the image | a TPM NV counter | the loader, before the jump |
-| an older bootloader tree | the epoch in the boot-root record | the same TPM NV counter | the kernel, at boot |
-| a certificate from an older trust anchor | the certificate's trust-anchor epoch | the trust-anchor policy compiled into the kernel | the kernel, at every capsule spawn |
+| an older signed kernel | the kernel's [rollback index](../overview/glossary.md#rollback-index), signed into the image | a [TPM](../overview/glossary.md#tpm) NV counter | the loader, before the jump |
+| an older bootloader tree | the epoch in the [boot-root record](../overview/glossary.md#boot-root-record) | the same TPM NV counter | the kernel, at boot |
+| a certificate from an older trust anchor | the certificate's trust-anchor epoch | the trust-anchor policy compiled into the kernel | the kernel, at every [capsule](../overview/glossary.md#capsule) spawn |
 
 ## The kernel's rollback index
 
@@ -66,11 +66,11 @@ So once a kernel at index N has booted on a machine with a TPM and the raise suc
 
 The kernel holds the bootloader to the same floor. The [boot-root record](../overview/glossary.md#boot-root-record), `boot_root.approval`, carries an epoch, the release's rollback index, signed together with the bootloader tree's root (`nonos-boot-measure/src/record/mod.rs:17-28`). `check` verifies the signature first and then refuses an epoch below the floor as `Stale` (`nonos-boot-measure/src/record/check.rs:39-52`). A refused record is `BootError::Record`, logged as 200 plus the record's own code, so a `Stale` record logs code 204 (`nonos-boot-measure/src/gate/error.rs:42-55`, `nonos-boot-measure/src/record/error.rs:30-38`).
 
-The make target `nonos-mk-boot-root-record` uses the committed record when it names this build's loader root and stops when it names another; with no committed record it signs a scratch one at `NONOS_ROLLBACK_INDEX` with a scratch policy key, and stops when there is no such key (`mk/20-build.mk:1320-1339`). The seal signs a new record at the profile's rollback index in `records` only when the committed one does not already name the new loader root (`tools/nonos_seal/chain.py:77-87`). Only the measured path has a floor: when the loader brought no log, or the kernel cannot read PCR 4 or the floor, it falls back to `self_reported`, which checks the record against a floor of 0 (`nonos-boot-measure/src/gate/verdict.rs:60-75`). The full check is on [Measured boot and the TPM](measured-boot-and-tpm.md).
+The make target `nonos-mk-boot-root-record` uses the committed record when it names this build's loader root and stops when it names another; with no committed record it signs a scratch one at `NONOS_ROLLBACK_INDEX` with a scratch policy key, and stops when there is no such key (`mk/20-build.mk:1320-1339`). The [seal](../overview/glossary.md#seal) signs a new record at the profile's rollback index in `records` only when the committed one does not already name the new loader root (`tools/nonos_seal/chain.py:77-87`). Only the measured path has a floor: when the loader brought no log, or the kernel cannot read [PCR](../overview/glossary.md#pcr) 4 or the floor, it falls back to `self_reported`, which checks the record against a floor of 0 (`nonos-boot-measure/src/gate/verdict.rs:60-75`). The full check is on [Measured boot and the TPM](measured-boot-and-tpm.md).
 
 ## Certificate epochs
 
-Every NONOS ID certificate names the trust-anchor epoch it was issued under, and the certificate check refuses one below the policy's epoch as `EpochStale` (`src/security/nonos_id_cert/verify/checks.rs:27-29`). Raising the policy's epoch and rebuilding the kernel retires every certificate issued under the old one. The build uses `NONOS_TRUST_ANCHOR_EPOCH` 1 (`mk/20-build.mk:218`).
+Every [NONOS ID certificate](../overview/glossary.md#nonos-id-certificate) names the trust-anchor epoch it was issued under, and the certificate check refuses one below the policy's epoch as `EpochStale` (`src/security/nonos_id_cert/verify/checks.rs:27-29`). Raising the policy's epoch and rebuilding the kernel retires every certificate issued under the old one. The build uses `NONOS_TRUST_ANCHOR_EPOCH` 1 (`mk/20-build.mk:218`).
 
 ## Attestation epochs
 

@@ -1,15 +1,15 @@
 # Measured boot and the TPM
 
-NONOS uses a TPM 2.0 to record which kernel the loader admitted, to check the loader that started the kernel, to derive keys that exist only in one boot state, and to sign quotes; without a TPM every mode but Hardened and Air-Gapped still boots, and the last table on this page says what is lost.
+NONOS uses a [TPM](../overview/glossary.md#tpm) 2.0 to record which kernel the loader admitted, to check the loader that started the kernel, to derive keys that exist only in one boot state, and to sign quotes; without a TPM every mode but Hardened and Air-Gapped still boots, and the last table on this page says what is lost.
 
 ## PCRs
 
 | PCR | Extended by | Used by NONOS for |
 |---|---|---|
-| 0 | the firmware | the machine key, the device secret, quotes |
+| 0 | the firmware | the [machine key](../overview/glossary.md#machine-key), the [device secret](../overview/glossary.md#device-secret), quotes |
 | 1, 2 | the firmware | quotes |
 | 4 | the firmware, once for each UEFI application it starts | the kernel's check of its loader, the machine key, the device secret |
-| 7 | the firmware, for the Secure Boot state | the machine key, the device secret, quotes |
+| 7 | the firmware, for the [Secure Boot](../overview/glossary.md#secure-boot) state | the machine key, the device secret, quotes |
 | 9 | the loader, once, for the kernel it admitted | the machine key, the device secret's approval |
 
 The firmware hashes every UEFI application it starts with the PE Authenticode SHA-256, extends [PCR](../overview/glossary.md#pcr) 4 with it and logs an event, as the header of the boot-measure crate says, whose `authenticode` module rebuilds that digest (`nonos-boot-measure/src/lib.rs:17-31`). The kernel reads PCR 4 from the SHA-256 bank with `pcr4` (`src/security/tpm/boot_reads/pcr4.rs:25-52`). The machine key binds `BOUND_PCRS`, PCRs 0, 4, 7 and 9 (`src/security/tpm/machine_key/pcrs.rs:21-24`). The device secret binds `APPROVED_PCRS`, PCR 9, and `MACHINE_PCRS`, PCRs 0, 4 and 7 (`src/security/tpm/device_secret/consts.rs:38-42`). A quote covers `QUOTED_PCRS`, PCRs 0, 1, 2 and 7 (`src/security/attest_doc/produce.rs:29-33`). Nothing in the kernel's TPM code extends a PCR.
@@ -37,7 +37,7 @@ The loader's TPM stack ends with boot services. The kernel has its own, reached 
 - `transact_resending` sends a command again while the TPM answers `TPM_RC_RETRY`, at most three tries; on a TPM built from the reference code, the first authorization of the attestation key after each startup costs one retry (`src/security/tpm/resend.rs:17-56`).
 - A missing part, a timeout and an unreadable answer are the three `TpmError` values (`src/security/tpm/error.rs:17-37`).
 
-The serial console gets one line when the part is found, from `announce`, for example `[TPM] interface CRB at 0xFED40000, locality 0 (id ..., ACPI agrees)` (`src/security/tpm/transport/detect.rs:81-92`). The command builders and parsers are tested against byte vectors from the TPM 2.0 specification, the machine-key sequence against swtpm, and the FIFO protocol against a modelled register file, by `tpm_key_proofs` (`userland/tpm_key_proofs/Cargo.toml:4-9`). That crate passed 42 tests in this release's flake checks. The CRB and FIFO transports on a hardware TPM were not tested for this release.
+The [serial console](../overview/glossary.md#serial-console) gets one line when the part is found, from `announce`, for example `[TPM] interface CRB at 0xFED40000, locality 0 (id ..., ACPI agrees)` (`src/security/tpm/transport/detect.rs:81-92`). The command builders and parsers are tested against byte vectors from the TPM 2.0 specification, the machine-key sequence against swtpm, and the FIFO protocol against a modelled register file, by `tpm_key_proofs` (`userland/tpm_key_proofs/Cargo.toml:4-9`). That crate passed 42 tests in this release's flake checks. The CRB and FIFO transports on a hardware TPM were not tested for this release.
 
 ## The kernel checks its loader
 
@@ -70,7 +70,7 @@ The boot-root record is 104 bytes, `RECORD_LEN` (`nonos-boot-measure/src/record/
 | Offset | Size | Field |
 |---|---|---|
 | 0 | 32 | the bootloader tree's root, four canonical little-endian words |
-| 32 | 8 | the epoch, the release's rollback index, little-endian |
+| 32 | 8 | the epoch, the release's [rollback index](../overview/glossary.md#rollback-index), little-endian |
 | 40 | 32 | ECDSA r, big-endian |
 | 72 | 32 | ECDSA s, big-endian |
 
@@ -92,11 +92,11 @@ The signature is ECDSA P-256 over the SHA-256 of `NONOS-BOOT-ROOT-v1`, the root 
 
 The codes come from `code` in `BootError`, `LogError` and `RecordError` (`nonos-boot-measure/src/gate/error.rs:21-55`, `nonos-boot-measure/src/tcg/error.rs:17-54`, `nonos-boot-measure/src/record/error.rs:17-38`). `say` writes the verdict to the serial line: `[BOOT-ATTEST] bootloader measured and enrolled, epoch N`, `[BOOT-ATTEST] bootloader self-reported, not measured: enrolled, epoch N`, `[BOOT-ATTEST] bootloader refused, code N`, or `[BOOT-ATTEST] bootloader not checked: no boot-root record or trailer` (`src/security/boot/loader_check/log.rs:25-42`).
 
-`refuse_unchecked_loader` stops the boot before init on a refusal or on no evidence, with the notice `The bootloader failed the kernel's check` or `The bootloader could not be checked`; a measured or self-reported pass goes on (`src/kernel_core/init/entry/loader_refusal.rs:20-48`). Any capsule with a valid token can read the verdict as the 80-byte `MkBootAttest` record: version, state, refusal code, epoch, the loader's measurement and its root (`sys_boot_attest`, `src/syscall/microkernel/boot_attest.rs:17-38`, `src/security/boot/loader_check/record.rs:17-35`, `MkBootAttest`, `src/syscall/contract/cap_table/mk.rs:32-35`).
+`refuse_unchecked_loader` stops the boot before init on a refusal or on no evidence, with the notice `The bootloader failed the kernel's check` or `The bootloader could not be checked`; a measured or self-reported pass goes on (`src/kernel_core/init/entry/loader_refusal.rs:20-48`). Any [capsule](../overview/glossary.md#capsule) with a valid token can read the verdict as the 80-byte `MkBootAttest` record: version, state, refusal code, epoch, the loader's measurement and its root (`sys_boot_attest`, `src/syscall/microkernel/boot_attest.rs:17-38`, `src/security/boot/loader_check/record.rs:17-35`, `MkBootAttest`, `src/syscall/contract/cap_table/mk.rs:32-35`).
 
 ## Keys the TPM derives instead of storing
 
-The kernel creates no sealed TPM object to keep on disk. It asks the TPM to derive a key under a PCR policy each time it needs one, so the key exists only on this TPM in this boot state. The [machine key](../overview/glossary.md#machine-key) is `TPM2_HMAC` over a label under a primary key that the TPM derives from its storage seed and a template whose policy is the current value of PCRs 0, 4, 7 and 9 (`TPM2_HMAC`, `src/security/tpm/machine_key/mod.rs:17-31`; `derive`, `src/security/tpm/machine_key/derive.rs:43-63`). The kernel uses it for the data volume under the label `blockfs.data.v1`, as `KEY_LABEL` (`src/fs/blockfs_volume/open_machine.rs:37-38`), and for its local-build identity (`derive_for_kernel`, `src/security/local_build/identity.rs:35-50`). A capsule holding `Crypto` asks for one through `CryptoMachineKey`. Labels, error numbers and what each key protects are on [Device secrets and keys](device-secrets-and-keys.md).
+The kernel creates no sealed TPM object to keep on disk. It asks the TPM to derive a key under a PCR policy each time it needs one, so the key exists only on this TPM in this boot state. The [machine key](../overview/glossary.md#machine-key) is `TPM2_HMAC` over a label under a primary key that the TPM derives from its storage seed and a template whose policy is the current value of PCRs 0, 4, 7 and 9 (`TPM2_HMAC`, `src/security/tpm/machine_key/mod.rs:17-31`; `derive`, `src/security/tpm/machine_key/derive.rs:43-63`). The kernel uses it for the [data volume](../overview/glossary.md#data-volume) under the label `blockfs.data.v1`, as `KEY_LABEL` (`src/fs/blockfs_volume/open_machine.rs:37-38`), and for its local-build identity (`derive_for_kernel`, `src/security/local_build/identity.rs:35-50`). A capsule holding `Crypto` asks for one through `CryptoMachineKey`. Labels, error numbers and what each key protects are on [Device secrets and keys](device-secrets-and-keys.md).
 
 The [device secret](../overview/glossary.md#device-secret) is the witness of the anonymous device proof. It is derived like the machine key, under a `PolicyAuthorize` policy that the release must approve (`src/security/tpm/device_secret/mod.rs:17-37`):
 
@@ -107,7 +107,7 @@ The [device secret](../overview/glossary.md#device-secret) is the witness of the
 
 The sequence is `device_secret` (`src/security/tpm/device_secret/derive.rs:37-61`), the signature check is `verified` (`src/security/tpm/device_secret/verify.rs:62-75`), and `a_hash` builds the signed digest (`src/security/tpm/device_secret/digest.rs:29-35`). `draw` cuts each 32-byte HMAC block into four 8-byte words and keeps a word only below the Goldilocks modulus, trying at most four blocks (`src/security/tpm/device_secret/draw.rs:30-75`). PCR 9 is the same on every machine for a release, so the release can sign it once. The policy names the release key, not one PCR 9 value, so a kernel update the release approves keeps the secret. PCRs 0, 4 and 7 differ per machine, so a firmware, Secure Boot or loader change gives a new secret.
 
-The release's signature arrives as `\EFI\nonos\kernel.approval`, 128 bytes, key x and y then r and s, which the loader reads and hands on untouched in `with_approval` (`nonos-bootloader/src/entry/approval.rs:17-41`). `from_boot` refuses when the compiled-in policy key is all zero, when no approval arrived, or when the approval names another key (`src/security/tpm/device_secret/approval.rs:37-62`). The seal writes that file only when it holds the device policy key, and says otherwise that the TPM keeps the device secret sealed (`records`, `tools/nonos_seal/chain.py:77-94`). The make rule that packs the ESP does not place it (`ESP_DIR`, `mk/20-build.mk:1297-1305`).
+The release's signature arrives as `\EFI\nonos\kernel.approval`, 128 bytes, key x and y then r and s, which the loader reads and hands on untouched in `with_approval` (`nonos-bootloader/src/entry/approval.rs:17-41`). `from_boot` refuses when the compiled-in policy key is all zero, when no approval arrived, or when the approval names another key (`src/security/tpm/device_secret/approval.rs:37-62`). The [seal](../overview/glossary.md#seal) writes that file only when it holds the device policy key, and says otherwise that the TPM keeps the device secret sealed (`records`, `tools/nonos_seal/chain.py:77-94`). The make rule that packs the [ESP](../overview/glossary.md#esp) does not place it (`ESP_DIR`, `mk/20-build.mk:1297-1305`).
 
 `MkDeviceSecret` returns the four words as 32 bytes and keeps no copy. It returns `EPERM` unless the caller holds `DeviceSecret` and was proved by the vendor root, `EINVAL` for a buffer that is not 32 bytes, `EFAULT` for a buffer it cannot write, `ENOENT` with no approval, `EACCES` when the TPM refuses the policy, and `ENODEV` for any other TPM failure (`sys_device_secret`, `src/syscall/microkernel/device_proof/device_secret.rs:17-67`, `src/syscall/microkernel/device_proof/gate.rs:17-36`).
 
@@ -133,17 +133,18 @@ The quote does not cover PCR 4 or PCR 9, so a quote alone does not say which loa
 | Device secret | `MkDeviceSecret` returns `ENODEV`, or `ENOENT` when there is no approval |
 | Quotes | `MkAttestDoc` returns `EPERM` |
 
-`errno_for` maps a missing TPM to `ENODEV`, error 19 (`src/syscall/dispatch/crypto/machine_key.rs:68-78`). For the data volume, `open_machine_volume` asks `derive_for_kernel` for the key, and when that fails it logs `no machine key` and leaves the volume closed (`src/fs/blockfs_volume/open_machine.rs:75-78`). The local-build fallback is `mint`, a random key for this boot only (`src/security/local_build/identity.rs:35-47`). The rollback rule is on [Rollback protection](rollback-protection.md).
+`errno_for` maps a missing TPM to `ENODEV`, error 19 (`src/syscall/dispatch/crypto/machine_key.rs:68-78`). For the data volume, `open_machine_volume` asks `derive_for_kernel` for the key, and when that fails it leaves the volume closed (`src/fs/blockfs_volume/open_machine.rs:75-78`). Its `no machine key` line goes to the structured log, which nothing installs in this release, so the line does not print. The local-build fallback is `mint`, a random key for this boot only (`src/security/local_build/identity.rs:35-47`). The rollback rule is on [Rollback protection](rollback-protection.md).
 
 ## Limits
 
 - The loader's TPM code (detection, the TCG2 extend, the event log copy and the NV counter) is in its verification module and is not described in these pages.
-- A boot without a TPM or without a log checks the loader file that the loader itself handed over: the loader's own word, which the verdict says.
+- A boot without a TPM or without a log checks the loader file that the loader itself handed over: the loader's own word, which the verdict says. Whether a log arrives is up to the loader, and `decide` takes the self-reported path whenever none did, with a TPM present and on a Hardened boot too, and `refuse_unchecked_loader` lets that verdict through (`src/security/boot/loader_check/run.rs:34-55`). A changed loader that withholds the log is therefore checked on its own word; its changed PCR 4 still gives it another machine key.
 - The attestation key has no `noDA`, so on a TPM built from the reference code its first authorization after each startup costs a retry.
 - The machine key and the device secret both come from a primary key that `build_create` makes in the storage hierarchy (`src/security/tpm/machine_key/create.rs:35-38`). Clearing the TPM changes that hierarchy's seed and every key with it, so a data volume keyed by the TPM cannot be opened again; the module comment above `derive` calls this the way to make the data unrecoverable on purpose (`src/security/tpm/machine_key/mod.rs:29-47`).
 - The quote covers PCRs 0, 1, 2 and 7 only.
 - The device secret stays sealed until a `kernel.approval` signed with the device policy key sits on the ESP; no make rule puts it there.
 - In this release the command sequences, the rollback floor reads and the device secret were tested against swtpm over a socket, and the FIFO protocol against a modelled register file. The CRB and FIFO transports did not run against a hardware TPM.
+- `nonos-boot-measure`, which holds the log replay, the record check and the verdicts above, has its own host tests under `nonos-boot-measure/src/tests` and five fuzz targets, but `proofDirs` does not name it, so no flake check runs them (`tools/nix/checks.nix:20-30`), and the nightly fuzz workflow does not list its targets. They did not run for this release.
 
 ## See also
 

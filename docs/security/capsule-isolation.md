@@ -1,6 +1,6 @@
 # Capsule isolation
 
-How the NONOS kernel keeps one capsule from reaching another: separate address spaces, a capability check on every system call, rules on who may send to whom, confined drivers and a sandbox for Linux programs.
+How the NONOS kernel keeps one capsule from reaching another: separate address spaces, a [capability](../overview/glossary.md#capability) check on every NONOS system call, rules on who may send to whom, confined drivers and a sandbox for Linux programs.
 
 ## Address spaces
 
@@ -10,11 +10,11 @@ When a capsule hands the kernel a pointer, the kernel checks it before copying. 
 
 On x86_64 the kernel turns on SMEP, SMAP and UMIP when CPUID reports them, and records what CR4 reads back rather than what it asked for, since a hypervisor may drop the write (`enable` in `src/memory/mmu/mmu/protect/cr4.rs:32-51`). SMEP stops ring 0 from executing user pages, and SMAP stops it from touching user memory by accident.
 
-## The capability check on every system call
+## The capability check on every NONOS system call
 
 A capsule's authority is a [capability word](../overview/glossary.md#capability-word): a 64-bit mask in which 36 bits are defined, one per entry of the `capability_table!` list that defines `Capability` (`src/capabilities/types/defs.rs:19-83`). A compile-time check over `Capability::all` refuses a build in which two capabilities share a bit or one takes more than one (`src/capabilities/types/guard.rs:22-33`). The published list is [abi/caps.toml](../../abi/caps.toml), and [ABI capabilities](../abi/capabilities.md) explains each bit.
 
-The kernel keeps the word inside a [capability token](../overview/glossary.md#capability-token), and the token is what the check reads. `new_token` binds the bits to the pid, the address space ID, this boot's session nonce and the process's revocation epoch, then signs the result (`src/process/caps.rs:38-59`). The signature, `mac64`, is two keyed BLAKE3 hashes over a 128-byte encoding of those fields (`src/capabilities/token/material.rs:41-52`). Its key is 32 random bytes drawn at boot by `init_token_signing_key`, which halts the machine if the random source is not ready (`src/kernel_core/init/platform/token_signing_key.rs:19-31`). The key lives only in RAM and changes every boot.
+The kernel keeps the word inside a [capability token](../overview/glossary.md#capability-token), and the token is what the check reads. `new_token` binds the bits to the pid, the address space ID, this boot's session nonce and the process's revocation epoch, then signs the result (`src/process/caps.rs:38-59`). The signature, `mac64`, is two keyed BLAKE3 hashes over a 128-byte encoding of those fields (`src/capabilities/token/material.rs:41-52`). Its key is 32 bytes drawn at boot by `init_token_signing_key` (`src/kernel_core/init/platform/token_signing_key.rs:19-31`). The key lives only in RAM and changes every boot. The function halts the machine when the draw reports a failure, but the draw never does: on a machine where no hardware random source answers the kernel, the key comes from the cycle counter, as [Randomness and cryptography](randomness-and-cryptography.md#when-a-source-is-missing) explains.
 
 Every system call enters through one function. On x86_64, `syscall_handler` turns a known number into a `SyscallNumber` and calls `dispatch` (`src/arch/x86_64/syscall/manager/entry.rs:38-60`). The aarch64 and riscv64 entries call the same `dispatch` (`src/syscall/contract/mod.rs:17-24`).
 
@@ -39,20 +39,20 @@ flowchart TD
 
 The cap table, `is_allowed`, answers false for any number no table names (`src/syscall/contract/cap_table/mod.rs:28-34`). Most calls need a specific bit. A few need only a token that `caps.is_valid` accepts, such as `MkExit`, `MkYield` and the clock reads (`src/syscall/contract/cap_table/mk.rs:22-35`). `is_valid` is false for a token with no bits at all (`src/capabilities/token/types/query.rs:44-47`).
 
-A refusal is logged by `log_deny` as `[CAP-DENY] pid=<pid> syscall=<name>(<number>)` (`src/syscall/contract/dispatch.rs:43-46`). That line goes through the kernel's log manager, whose `log` writes to the text-mode console and a RAM buffer, not to the serial console (`src/log/manager/state.rs:58-82`). The Terminal's `log` command reads only the serial console's kept copy, so it does not show refusals.
+A refusal is passed by `log_deny` to the kernel's structured log as `[CAP-DENY] pid=<pid> syscall=<name>(<number>)` (`src/syscall/contract/dispatch.rs:43-46`). That `log` writes only when a log manager is installed, and nothing in the kernel calls its `init` (`src/log/manager/api.rs:26-53`), so in this release the line is dropped. It reaches neither the screen nor the [serial console](../overview/glossary.md#serial-console), and the Terminal's `log` command does not show refusals.
 
-Revoking a bit through `revoke` mints a new token and raises the epoch, so the older token fails at the next call (`src/process/caps.rs:99-108`). A process receives its manifest's bits once: `install_spawn` refuses a second install (`src/process/caps.rs:110-122`). After that it gains bits only from an `Admin` holder: `sys_cap_grant` refuses a caller without `Admin` and any bit the caller does not hold itself, while `sys_cap_revoke` needs `Admin` alone (`src/syscall/microkernel/capability/handlers.rs:33-66`).
+Revoking a bit through `revoke` mints a new token and raises the epoch, so the older token fails at the next call (`src/process/caps.rs:99-108`). A process receives its [manifest](../overview/glossary.md#manifest)'s bits once: `install_spawn` refuses a second install (`src/process/caps.rs:110-122`). After that it gains bits only from an `Admin` holder: `sys_cap_grant` refuses a caller without `Admin` and any bit the caller does not hold itself, while `sys_cap_revoke` needs `Admin` alone (`src/syscall/microkernel/capability/handlers.rs:33-66`).
 
 Two limits apply to the check itself:
 
 - The token is bound to a pid, an address space and a boot, not to a code measurement. `new_token` writes 32 zero bytes into `subject_measurement` (`src/process/caps.rs:52`).
-- `Admin` stands in for every broker bit: `can_driver`, `can_mmio`, `can_irq`, `can_dma` and `can_pio` each accept it (`src/capabilities/token/types/authority_broker.rs:24-54`). A capsule holding `Admin` has the whole device surface. `Admin` does not imply the right to enrol a signing root (`can_enrol_dev_root` in `src/capabilities/token/types/authority_admin.rs:43-52`).
+- `Admin` stands in for every broker bit at the gate: `can_driver`, `can_mmio`, `can_irq`, `can_dma` and `can_pio` each accept it (`src/capabilities/token/types/authority_broker.rs:24-54`). A capsule holding `Admin` can claim any device, map its registers, take DMA buffers and bind its interrupts; only the PCI configuration calls ask for `Driver` again, in `sys_pci_config_read` and `sys_pci_config_write` (`src/syscall/microkernel/pci.rs:28-35`). Four `Capsule.mk` files in this tree request `Admin` in `CAPSULE_REQUIRED_CAPS`: `capsule_install`, `tool_install`, `capsule_policy` and `capsule_power` (`userland/capsule_install/Capsule.mk:25`, `userland/tool_install/Capsule.mk:23`, `userland/capsule_policy/Capsule.mk:19`, `userland/capsule_power/Capsule.mk:13`). `Admin` does not imply the right to enrol a signing root (`can_enrol_dev_root` in `src/capabilities/token/types/authority_admin.rs:43-52`).
 
 ## IPC: who may send to whom
 
 The kernel copies every message; capsules share no queue memory. A message is at most `MAX_MESSAGE_SIZE`, 1 MiB (`src/ipc/nonos_channel/limits.rs:26`), and the size is checked against `MAX_MESSAGE_SIZE` before anything is allocated (`src/syscall/microkernel/ipc/send.rs:45-47`).
 
-The `IPC` bit admits the IPC calls through `can_ipc` (`src/syscall/contract/cap_table/mk.rs:109-116`). It does not admit any particular destination. Each [endpoint](../overview/glossary.md#endpoint) states the bits a sender must hold, and `caller_satisfies_endpoint` refuses a send unless the sender holds all of them (`src/syscall/microkernel/ipc/send_caps.rs:36-63`). It also refuses a name that is not registered yet, so a capsule cannot win a race for a service that has not started, and an endpoint whose requirement is zero, which was never finished being set up. A refusal logs `[CAP-DENY] pid=<pid> ipc to <name> needs caps <mask>, holds <mask>`.
+The `IPC` bit admits the IPC calls through `can_ipc` (`src/syscall/contract/cap_table/mk.rs:109-116`). It does not admit any particular destination. Each [endpoint](../overview/glossary.md#endpoint) states the bits a sender must hold, and `caller_satisfies_endpoint` refuses a send unless the sender holds all of them (`src/syscall/microkernel/ipc/send_caps.rs:36-63`). It also refuses a name that is not registered yet, so a capsule cannot win a race for a service that has not started, and an endpoint whose requirement is zero, which was never finished being set up. A refusal passes `[CAP-DENY] pid=<pid> ipc to <name> needs caps <mask>, holds <mask>` to the same structured log, so in this release that line is dropped too.
 
 Some endpoints are held to named callers whatever bits a sender holds. `HELD` lists the driver endpoints and the services that may reach each one (`src/services/registry/held_table.rs:20-36`). A caller counts as one of the named when the kernel registered that endpoint to it at spawn.
 
@@ -66,13 +66,13 @@ Some endpoints are held to named callers whatever bits a sender holds. `HELD` li
 | `driver.hda0` | `audio.server` |
 | `driver.ps2_kbd0`, `driver.usb_hid0`, `driver.i2c_hid0`, `driver.usb_msc0`, `driver.virtio_rng` | no capsule; only the kernel's own sends reach them |
 
-A peer list goes further. A capsule named in `PEERS` may send only to the endpoints listed for it, whatever its bits; the list has one entry, `shield_prover`, which may reach only `shield.core` (`src/services/registry/peers.rs:27-31`).
+A [peer list](../overview/glossary.md#peer-list) goes further. A capsule named in `PEERS` may send only to the endpoints listed for it, whatever its bits; the list has one entry, `shield_prover`, which may reach only `shield.core` (`src/services/registry/peers.rs:27-31`).
 
-A send straight to a process's inbox by pid (`MkIpcSendToPid`) must pass the gate of every endpoint that process serves, because they are all read from that one inbox (`inbox_admits` in `src/services/registry/held.rs:62-70`).
+A send straight to a process's [inbox](../overview/glossary.md#inbox) by pid (`MkIpcSendToPid`) must pass the gate of every endpoint that process serves, because they are all read from that one inbox (`inbox_admits` in `src/services/registry/held.rs:62-70`).
 
 The kernel names the sender. `IpcMessage::new` is given `proc.<pid>` of the calling process (`src/syscall/microkernel/ipc/send_to_pid.rs:68-70`), so a service can trust the sender's pid rather than a pid written in the payload. The keyring relies on this; see [Device secrets and keys](device-secrets-and-keys.md).
 
-Keystrokes have their own rule. Driver capsules hold `Irq`, and `can_input_source` accepts `Irq` so drivers can post events, but draining the input ring, or blocking until it has events, needs `can_input_consumer`, which accepts only `InputSource` or `Admin` (`src/syscall/contract/cap_table/mk.rs:190-200`). A driver capsule cannot read what is typed into another program.
+Keystrokes have their own rule. [Driver capsules](../overview/glossary.md#driver-capsule) hold `Irq`, and `can_input_source` accepts `Irq` so drivers can post events, but draining the input ring, or blocking until it has events, needs `can_input_consumer`, which accepts only `InputSource` or `Admin` (`src/syscall/contract/cap_table/mk.rs:190-200`). A driver capsule cannot read what is typed into another program.
 
 ## Drivers: the broker and the IOMMU
 
@@ -89,15 +89,16 @@ A driver is a capsule that holds broker bits, and each broker call asks for its 
 
 `claim` refuses a device another capsule already holds, moves the device into the claiming capsule's [IOMMU domain](../overview/glossary.md#iommu-domain) before powering it, and sets it so that no request it makes is no-snoop (`src/hardware/broker/claim/claim.rs:23-45`). The domain maps nothing until `MkDmaMap` grants a buffer, so the device reaches that capsule's buffers and faults on everything else (`src/hardware/broker/confine/mod.rs`).
 
-Confinement depends on the hardware. `detect` selects Intel VT-d when the firmware's DMAR table yields a remapping unit, and with only an IVRS table selects AMD-Vi, which this kernel drives only when built with the `nonos-iommu-amdvi` feature (`src/memory/iommu/backend_x86_64/select.rs:43-66`). That feature is off by default in `Cargo.toml`, while VT-d enforcement (`nonos-iommu-enforce`) is part of the default `microkernel-core` set. Interrupt remapping (`nonos-iommu-intremap`) is off by default.
+Confinement depends on the hardware. `detect` selects Intel VT-d when the firmware's DMAR table yields a remapping unit, and with only an IVRS table selects AMD-Vi, which this kernel drives only when built with the `nonos-iommu-amdvi` feature (`src/memory/iommu/backend_x86_64/select.rs:43-66`). No [build profile](../overview/glossary.md#build-profile) in `tools/nix/config.nix` turns that feature on, while VT-d enforcement (`nonos-iommu-enforce`) is part of `microkernel-core`, which every profile builds on. No profile turns on interrupt remapping (`nonos-iommu-intremap`) either. A device found at boot that no driver claims stays in the VT-d [identity domain](../overview/glossary.md#identity-domain).
 
-When confinement is not possible, the broker says so:
+Where confinement is not possible:
 
 - `unconfined_allowed` lets a claim go ahead without a domain only when no remapping unit is in service: none was found, none came up, or the unit is AMD-Vi and not in service, which is always the case in a kernel built without `nonos-iommu-amdvi` (`src/hardware/broker/confine/posture.rs:32-50`). The device then reaches all of memory.
 - A device that no unit in service `translates` also stays on physical addresses (`src/hardware/broker/confine/attach.rs:41-48`).
+- A device with no PCI requester id, such as a controller found through ACPI, gets no domain, and its claim prints no line: `pci_address` returns nothing for it (`src/hardware/broker/confine/table.rs:35-43`).
 - With a unit in service, any other failure to give the device a domain refuses the claim.
 
-Each claim prints a line on the serial console that starts with `[VT-D] pid=`, gives the device's address, and says `confined`, `unconfined` or `refused` with the reason (`say` in `src/hardware/broker/confine/table.rs:45-53`). `posture_line` prints the summary as `[IOMMU] <vendor> present, enforcing=<0|1>, unconfined grants=<n>` (`src/memory/iommu/posture.rs:69-79`). Device DMA is confined only when that line shows `enforcing=1` and `unconfined grants=0`. On an image built with `capsule-serial-debug` (the standard, qemu and dev profiles) the kernel keeps a copy of the serial console in memory, and the Terminal command `log iommu vt-d` shows these lines from it; a hardened or air-gapped image keeps no copy (`keep` in `src/sys/serial/tail.rs:51-54`).
+Each claim on a PCI device prints a line on the serial console that starts with `[VT-D] pid=`, gives the device's address, and says `confined`, `unconfined` or `refused` with the reason (`say` in `src/hardware/broker/confine/table.rs:45-53`). `posture_line` prints the summary as `[IOMMU] <vendor> present, enforcing=<0|1>, unconfined grants=<n>` (`src/memory/iommu/posture.rs:69-79`). Device DMA is confined only when that line shows `enforcing=1` and `unconfined grants=0`. On an image built with `capsule-serial-debug` (the standard, qemu and dev profiles) the kernel keeps a copy of the serial console in memory, and the Terminal command `log iommu vt-d` shows these lines from it; a hardened or air-gapped image keeps no copy (`keep` in `src/sys/serial/tail.rs:51-54`).
 
 The other broker paths are narrow too:
 
@@ -114,13 +115,14 @@ A guest holds nothing. `empty_guest` creates the process, installs an empty capa
 
 A NONOS system call number is four ASCII bytes packed by `tag4` (`src/syscall/abi/tag.rs:20-22`), so a Linux number never matches one. `syscall_handler` finds no `SyscallNumber` for it and passes it to `redirect` (`src/arch/x86_64/syscall/manager/entry.rs:38-53`). `redirect` parks the guest thread and wakes its supervisor, the capsule that created it, which answers; a process with no supervisor gets `ENOSYS` (`src/process/foreign/trap.rs:28-57`).
 
-The supervisor needs `ForeignExec` for every call that touches a guest (`can_foreign_exec` in `src/syscall/contract/cap_table/mk.rs:153-167`). Among the `Capsule.mk` files in this tree, only `capsule_linux` requests it, in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_linux/Capsule.mk:45`). A supervisor reaches only its own guests: every peer call starts with `supervised_asid`, which refuses a pid the caller does not supervise (`src/process/foreign/peer_guard.rs:65-73`). A peer call touches only the guest's user half and moves at most `MAX_SPAN`, 1 MiB, at a time (`src/process/foreign/peer_guard.rs:28-39`). One supervisor holds at most `MAX_GUESTS`, 1024 guests and guest threads; past that a spawn is `EAGAIN` (`src/process/foreign/room.rs:33-38`).
+The supervisor needs `ForeignExec` for every call that touches a guest (`can_foreign_exec` in `src/syscall/contract/cap_table/mk.rs:153-167`). Among the `Capsule.mk` files in this tree, only `capsule_linux` requests it, in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_linux/Capsule.mk:45`). A supervisor reaches only its own guests: the map, copy, protect and unmap peer calls start with `supervised_asid`, which refuses a pid the caller does not supervise (`src/process/foreign/peer_guard.rs:65-73`), and `sys_peer_tls` makes the same check (`src/process/foreign/peer_tls.rs:24-34`). A peer call touches only the guest's user half and moves at most `MAX_SPAN`, 1 MiB, at a time (`src/process/foreign/peer_guard.rs:28-39`). One supervisor holds at most `MAX_GUESTS`, 1024 guests and guest threads; past that a spawn is `EAGAIN` (`src/process/foreign/room.rs:33-38`).
 
 Inside `capsule_linux`:
 
 - Only the `INSTALL` role asks for `Network`, because a package mirror is reached through `net.sockets`, which serves only holders of `Network` (`src/userspace/capsule_linux/roles.rs:35-44`). The `RUN` and `TERMINAL` roles ask for nothing extra (`src/userspace/capsule_linux/roles.rs:46-67`).
 - `under_root` places every guest path under the family's root or its private directories, and `writable` keeps the shared tree read-only to guests; only an install writes it (`userland/capsule_linux/src/linux/file/root.rs:34-65`).
 - `not_loopback` refuses a bind or listen outside 127.0.0.0/8 with `EACCES` (`userland/capsule_linux/src/linux/net/policy.rs:33-41`), and `refuse_out` answers a datagram to anywhere outside the family with `ENETUNREACH` (`userland/capsule_linux/src/linux/net/policy.rs:43-53`).
+- The personality holds `Debug` on every build, hardened and air-gapped included, because `LINUX_CAPS` names it (`src/userspace/capsule_linux/spawn.rs:39-43`). `sys_mk_debug` writes its lines to the serial console, except during a Terminal's private run, which `is_private_run` recognises and whose lines go only to the Terminal (`src/syscall/microkernel/debug.rs:61-65`).
 
 ## Host tests
 
@@ -128,7 +130,7 @@ Some of these rules are compiled into host test crates by path, so the tests run
 
 ## What isolation does not cover
 
-A capsule can do everything its bits allow, and nothing here judges intent. DMA on a machine without a remapping unit in service is not confined. Side channels between capsules sharing a CPU are not closed. [Protections and limits](protections-and-limits.md) lists these and the other gaps with their code.
+A capsule can do everything its bits allow, and nothing here judges intent. DMA on a machine without a remapping unit in service is not confined. Side channels between capsules are not closed, whether they take turns on one CPU or run at once on cores that share a cache. [Protections and limits](protections-and-limits.md) lists these and the other gaps with their code.
 
 ## See also
 
@@ -140,3 +142,4 @@ A capsule can do everything its bits allow, and nothing here judges intent. DMA 
 - [Broker API for drivers](../drivers/broker-api.md)
 - [Manifests and capabilities](../userland/manifests-and-capabilities.md)
 - [Protections and limits](protections-and-limits.md)
+- [Checking the security claims yourself](checking-the-claims.md)
