@@ -34,10 +34,12 @@ let
     fs.toSource { inherit root; fileset = fs.unions ([ read ] ++ map at (e.md ++ extra) ++ map maybe (e.signed or [ ])); };
 
   # The checks read the tree the way a reviewer does: everything but the
-  # media and the screenshots.
+  # media, the screenshots and the wallpapers. Each is maybe-missing, so a
+  # path dropped from the tree (the films went with the media/ removal) must
+  # not break the fileset.
   everything = fs.difference root (fs.unions [
-    (at "media")
-    (at "screenshots")
+    (maybe "media")
+    (maybe "screenshots")
     (maybe "wallpapers")
   ]);
 
