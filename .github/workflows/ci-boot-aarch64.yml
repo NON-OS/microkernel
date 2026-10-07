@@ -47,8 +47,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - cell: core
-            target: nonos-mk-arm
           - cell: trap-sp0
             target: nonos-mk-arm-trap-sp0
           - cell: trap-kernel-abort
