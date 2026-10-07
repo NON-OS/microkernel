@@ -130,7 +130,12 @@ $(CAPSULE_SLUG)_RUSTFLAGS        := $(if $(findstring std,$(_NONOS_CAPSULE_BUILD
 $(CAPSULE_SLUG)_METADATA         := $(_NONOS_CAPSULE_METADATA)
 $(CAPSULE_SLUG)_FEATURE          := $(_NONOS_CAPSULE_FEATURE)
 $(CAPSULE_SLUG)_CARGO_FEATURES   := $(_NONOS_CAPSULE_CARGO_FEATURES)
-$(CAPSULE_SLUG)_PREBUILT_BIN     := $(_NONOS_CAPSULE_PREBUILT_BIN)
+# NONOS_CAPSULE_BINS names the flake's capsules output (nix build .#capsules,
+# laid out <slug>/<bin>): every capsule then takes the binary the seal enrolled
+# and signed, instead of a cargo build of its own, whose paths and so whose
+# bytes differ from the flake's. The production CI lane checks the committed
+# trust set this way; unset, nothing changes.
+$(CAPSULE_SLUG)_PREBUILT_BIN     := $(if $(NONOS_CAPSULE_BINS),$(NONOS_CAPSULE_BINS)/$(CAPSULE_SLUG)/$(CAPSULE_BIN_NAME),$(_NONOS_CAPSULE_PREBUILT_BIN))
 $(CAPSULE_SLUG)_KERNEL_MIRROR    := $(CAPSULE_KERNEL_MIRROR)
 $(CAPSULE_SLUG)_DEV_ONLY         := $(strip $(CAPSULE_DEV_ONLY))
 # The file that declared this capsule, so editing it re-signs. A directory
