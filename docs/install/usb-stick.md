@@ -7,6 +7,7 @@ How to put `nonos.img` on a USB stick, check that it arrived whole, and boot fro
 - A stick of 2 GB or more. The image is about 995 MiB ([Requirements](requirements.md#usb-stick)).
 - Everything on the stick is destroyed.
 - The image, built and sealed: `target/release/<profile>/nonos.img` ([Get an image](get-an-image.md)). Write `nonos.img`, not `nonos.iso`.
+- Without the signing keys, `make dev-image PROFILE=standard` gives a [development image](../overview/glossary.md#development-image) at `target/dev/tree/target/release/standard-dev/nonos.img` ([The seal](../build/seal.md#without-the-release-keys)). `make usb` looks only under `target/release/`, so write that file by hand as below, with its path in place of `target/release/standard/nonos.img`. A plain `make dev-image` builds the `qemu` profile, which leaves out the Wi-Fi, Intel and Realtek Ethernet and I2C touchpad drivers.
 
 Find the stick's device name first, and check its size, so that you do not write over a disk you need. On Linux:
 
@@ -24,7 +25,7 @@ Not tested in this release.
 
 ## With make, on Linux or macOS
 
-The `usb` target writes the sealed image and asks for the disk twice (`Makefile`):
+The `usb` target writes the sealed image and asks for the disk twice:
 
 ```
 make usb
@@ -84,7 +85,7 @@ sudo cmp -n "$(stat -f %z target/release/standard/nonos.img)" target/release/sta
 
 Not tested in this release.
 
-`same` means the write arrived whole. Check before the first boot. The kernel keeps a boot's state on a USB stick that carries NONOS before any internal disk (`ORDER` in `src/hardware/block_device/select.rs`), so a boot whose setup chose Install keeps its answers in the stick's own package [store](../overview/glossary.md#store), and a used stick no longer matches the image (`userland/capsule_setup_wizard/src/render/screens/mode.rs`).
+`same` means the write arrived whole. Check before the first boot. The kernel keeps a boot's state on a USB stick that carries NONOS before any internal disk, so a boot whose setup chose Install keeps its answers in the stick's own package [store](../overview/glossary.md#store), and a used stick no longer matches the image.
 
 ## Boot from the stick
 
@@ -92,7 +93,17 @@ Not tested in this release.
 2. Open the firmware's boot menu and choose the stick. The key for that menu depends on the machine.
 3. The NONOS boot menu appears and counts down 10 seconds on its default entry. Pick an entry, or let the countdown start the default ([Boot modes](boot-modes.md)).
 
-If the firmware will not start the stick with Secure Boot on, turn Secure Boot off and try again: the loader is signed only with the NONOS db key ([Requirements](requirements.md#secure-boot-and-the-tpm)). Not tested in this release.
+If the firmware will not start the stick with [Secure Boot](../overview/glossary.md#secure-boot) on, turn Secure Boot off and try again: the loader carries no Secure Boot signature but the NONOS db key's, which your firmware trusts only if that certificate was enrolled ([Requirements](requirements.md#secure-boot-and-the-tpm)). Not tested in this release. If no NONOS screen appears at all, see [Troubleshooting](troubleshooting.md#the-firmware-does-not-start-the-stick).
+
+## Where this comes from
+
+- Before you start
+  - The `qemu` profile's kernel and the drivers the full set adds: `qemu` in `tools/nix/config.nix:94-101`, and the feature lists in `Cargo.toml:612-642`.
+- With make, on Linux or macOS
+  - The `usb` target, its prompts and both `dd` lines: `USB_IMG` in `Makefile:106-122`.
+- Check the write
+  - A USB stick that carries NONOS comes first: `ORDER` in `src/hardware/block_device/select.rs:39-48`.
+  - Install keeps setup's answers in this boot's store: `WHY` in `userland/capsule_setup_wizard/src/render/screens/mode.rs:21-38`.
 
 ## See also
 
