@@ -13,7 +13,7 @@ git log --oneline -50
 - It starts with the area the change touches and a colon. The area is the component as the tree names it, usually in lower case: `nvme:`, `iommu:`, `futex:`, `rtl8821ce:`, `linux sh:`, `static checks:`, `docs:`. Two areas are joined with "and", as in `e1000e and igc:`.
 - After the colon comes one full sentence that says what is true once the change is in, in the present tense. The effect or the reason often follows after "so".
 - It has no full stop. In the last 50 commits subjects run from 87 to 180 characters; a sentence that says what changed matters more than a short line.
-- Every one of the last 200 commits on `main` ends its subject with `[skip ci]`. GitHub Actions does not start push and pull request workflows for a commit whose message carries that marker, so CI did not run on those commits; their bodies record what was run by hand.
+- Every one of the last 200 commits on `main` ends its subject with `[skip ci]`. GitHub Actions does not start push and pull request workflows for a commit whose message carries that marker, so CI did not run on those commits. Where a body has a `Verified:` paragraph, it records what was run by hand instead. The marker has the same effect on a pull request: when its head commit carries it, none of the four workflows [Review](review.md) lists starts.
 
 Three subjects from `main`:
 
@@ -29,9 +29,9 @@ The body says what was wrong, what the change does, and how it was checked, in t
 
 1. What was wrong, and when it is known, the commit that introduced it, by its short hash.
 2. What the change does: the files, the behaviour, and the log line it prints if it prints one.
-3. A last paragraph that starts with `Verified:` and lists what ran and its numbers: the proof crate and its test count, clippy, `tools/nix/inputs.py --check`, a build for the capsule target. When something was not run, the paragraph ends by naming it, as in "Not verified on hardware." or "Not verified: a boot."
+3. A last paragraph that starts with `Verified:` and lists what ran and its numbers: the [proof crate](../overview/glossary.md#proof-crate) and its test count, clippy, `tools/nix/inputs.py --check`, a build for the [capsule](../overview/glossary.md#capsule) target. When something was not run, the paragraph ends by naming it, as in "Not verified on hardware." or "Not verified: a boot."
 
-In the last 50 commits, 29 bodies carry a `Verified:` paragraph, 14 say what was not verified, and 23 name an earlier commit by its hash. One body in full:
+In the last 50 commits, 29 bodies carry a `Verified:` paragraph, 14 say what was not verified, and 29 name an earlier commit by its hash. One body in full:
 
 ```
 rtl8153: the refusals of an RTL8156 and an RTL8153C name the chip instead of admitting unsupported work, so the stubs gate passes [skip ci]

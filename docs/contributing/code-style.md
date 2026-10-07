@@ -18,7 +18,7 @@ CI checks formatting on one crate only. `nonos-verify` calls `run_logged` with `
 
 ## File header
 
-Source files open with the licence notice, and a new file carries it too. Rust files carry it as `//` comments; Python and shell files carry it as `#` comments after the shebang line, as `tools/arm_kernel_report.py` does. Copy it whole from an existing file, for example `src/lib.rs`:
+Most source files open with the licence notice, and a new file carries it too. Rust files carry it as `//` comments; Python and shell files carry it as `#` comments after the shebang line, as `tools/arm_kernel_report.py` does. Copy it whole from an existing file, for example `src/lib.rs`:
 
 ```
 // NONOS Operating System
@@ -38,7 +38,7 @@ Source files open with the licence notice, and a new file carries it too. Rust f
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 ```
 
-The root `Makefile` uses a single SPDX line instead. No check requires the header. At this commit 7 of the 5761 Rust files under `src/` carry the short form, an SPDX line under the copyright line, and 1222 Rust files under `userland/`, outside its `vendor` and `upstream-src` trees, carry neither form.
+The root `Makefile` uses a single SPDX line instead. No check requires the header, and not every file has it. At this commit 7 of the 5761 Rust files under `src/` carry a short form: the name and copyright lines, then an SPDX line. Under `userland/`, leaving out its `vendor` and `upstream-src` trees, 1277 Rust files carry neither form, and 580 of those have a one-line `AGPL-3.0-or-later` note in their first five lines instead.
 
 ## One concern per file
 
@@ -60,21 +60,21 @@ Say why, not what the next line does. A module opens with a `//!` comment that s
 - An `unsafe fn` documents its contract in a `# Safety` section, as `enable_interrupts` does (`src/arch/abi.rs:42-46`).
 - An `unsafe` block has a `// SAFETY:` comment above it naming the fact that makes it sound, as the call to `rdrand_u64` does (`src/arch/cpu_random/read.rs:33-36`).
 
-No check requires a `SAFETY:` comment, so write one for every new `unsafe` block. `tools/nonos_console.py` counts `unsafe {` sites and `SAFETY:` comments across the tree and prints the second as a share of the first, counted into `documented` (`tools/nonos_console.py:1319-1324`).
+No check requires a `SAFETY:` comment, so write one for every new `unsafe` block. `tools/nonos_console.py` counts `unsafe {` sites and `SAFETY:` comments across the tree and prints the comments, counted into `documented`, as a share of the sites (`tools/nonos_console.py:1319-1324`).
 
 Shipping comments carry no markers of unfinished work. The `hygiene` scan rejects the four in `COMMENT_PATTERNS`, among them `FIXME`, `for now` and `placeholder`, in any line that starts as a comment (`nonos-verify/src/hygiene/patterns.rs:28-33`).
 
 ## Errors, panics and admissions
 
-Shipping code does not panic. The same scan fails on every pattern in `CODE_PATTERNS`: `.unwrap(`, `.expect(`, `panic!`, `todo!(`, `unimplemented!(`, `unreachable!(` and `#[allow(dead_code)]` (`nonos-verify/src/hygiene/patterns.rs:18-26`). Shipping means the trees in `root_dirs`, the kernel, `userland` and four boot and attestation crates, less what `skip` leaves out: build output, proof crates, tests, vendored and upstream sources, and `build.rs` files (`nonos-verify/src/hygiene/roots.rs:5-31`). Return an error the caller can act on, and when bring-up cannot go on, say on the console why. The scan fails at this commit; [Tests and proofs](tests-and-proofs.md) says where.
+Shipping code does not panic. The same scan fails on every pattern in `CODE_PATTERNS`: `.unwrap(`, `.expect(`, `panic!`, `todo!(`, `unimplemented!(`, `unreachable!(` and `#[allow(dead_code)]` (`nonos-verify/src/hygiene/patterns.rs:18-26`). Shipping means the trees in `root_dirs`, the kernel, `userland` and four boot and attestation crates, less what `skip` leaves out: build output, [proof crates](../overview/glossary.md#proof-crate), tests, vendored and upstream sources, and `build.rs` files (`nonos-verify/src/hygiene/roots.rs:5-31`). Return an error the caller can act on, and when bring-up cannot go on, say on the console why. The scan fails at this commit; [Tests and proofs](tests-and-proofs.md#state-of-the-checks-at-this-commit) says where.
 
 Three gates hold sites against a [baseline](../overview/glossary.md#baseline) that may only shrink:
 
-- Lint switches: every `#[allow(` or `#![allow(` in `src` and `userland` matches `MARK` and is listed in `scripts/baselines/allows.txt` (`scripts/check_allows.py:31-34`).
-- Admissions: a word such as stub, unsupported or not implemented in shipping Rust matches `MARK` and is listed in `scripts/baselines/stubs.txt` (`scripts/check_stubs.py:30-32`). The gate matches words, not intent: a refusal that names the chip it will not drive passes, and one that says "not implemented" is listed.
-- Unreachable exports: a kernel `pub fn` that no other file mentions outside an import is found by `unreachable` and listed in `scripts/baselines/unreachable.txt` (`scripts/check_unreachable.py:26-35`). Its docstring gives the reason: a mechanism with no caller can be reviewed, merged and shipped without one line of it running.
+- Lint switches: `MARK` finds every `#[allow(` and `#![allow(` in `src` and `userland`, and each one must be listed in `scripts/baselines/allows.txt` (`scripts/check_allows.py:31-34`).
+- Admissions: `MARK` finds words such as stub, unsupported and not implemented in shipping Rust, and each site must be listed in `scripts/baselines/stubs.txt` (`scripts/check_stubs.py:30-32`). The gate matches words, not intent: a refusal that names the chip it will not drive passes, and one that says "not implemented" is listed.
+- Unreachable exports: `unreachable` finds every kernel `pub fn` that no other file mentions outside an import, and each one must be listed in `scripts/baselines/unreachable.txt` (`scripts/check_unreachable.py:26-35`). Its docstring gives the reason: a mechanism with no caller can be reviewed, merged and shipped without one line of it running.
 
-Every [proof crate](../overview/glossary.md#proof-crate) must pass `cargo clippy` with `-D warnings` over all its targets, except the crates named in `lintLib` and `lintNone`, two lists that only shrink and that a new crate never joins (`tools/nix/checks.nix:44-62`). Three proof crates fail that at this commit.
+Every proof crate must pass `cargo clippy` with `-D warnings` over all its targets, except the crates named in `lintLib` and `lintNone`, two lists that only shrink and that a new crate never joins (`tools/nix/checks.nix:44-62`). Three proof crates fail that at this commit; [Tests and proofs](tests-and-proofs.md#state-of-the-checks-at-this-commit) names them.
 
 ## Architecture boundaries
 
@@ -89,13 +89,13 @@ Both have grown past their baselines. The same `grep` the script runs counts 234
 
 ## Dependencies
 
-The supply-chain job runs `cargo deny check` against `deny.toml` through `run_logged` (`nonos-verify/src/supply_chain.rs:25-27`). The header of `deny.toml` says the policy is written for the kernel crate.
+The supply-chain job runs `cargo deny check` against `deny.toml` through `run_logged` (`nonos-verify/src/supply_chain.rs:25-27`). On a machine without `cargo-deny` it does not fail: it records the policy check as `Status::Gap` (`nonos-verify/src/supply_chain.rs:28-31`). The flake's development shell carries the tool, and CI runs the job inside that shell. The header of `deny.toml` says the policy is written for the kernel crate.
 
 - Licences: the `allow` list holds the project's own AGPL-3.0 and 0BSD, Apache-2.0 (also with the LLVM exception), BSD-2-Clause, BSD-3-Clause, CC0-1.0, ISC, MIT, MIT-0, MPL-2.0, Unicode-3.0, Unicode-DFS-2016, Unlicense and Zlib (`deny.toml:29-49`).
 - Bans: the `deny` list refuses `openssl`, `openssl-sys` and `time` older than 0.3, and `wildcards` refuses wildcard version requirements (`deny.toml:58-70`).
 - Sources: the `sources` table admits crates.io and one git repository, `NON-OS/STARKs` (`deny.toml:74-78`).
 
-Moving the STARKs pin goes through its own pull request; [Review](review.md) says how.
+Moving the STARKs pin goes through its own pull request; [Review](review.md#who-reviews) says how.
 
 ## See also
 

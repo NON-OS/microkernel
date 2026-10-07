@@ -6,7 +6,7 @@ How NONOS checks its own code, how to run each kind of check, and which checks f
 
 | Kind | Where it lives | What runs it |
 |---|---|---|
-| proof crates | `userland/*_proofs`, and a few host crates elsewhere | `nix flake check` |
+| [proof crates](../overview/glossary.md#proof-crate) | `userland/*_proofs`, and a few host crates elsewhere | `nix flake check` |
 | kernel feature and profile checks | the kernel crate | `nix flake check` |
 | static checks | `scripts/`, `nonos-ci/`, `tools/` | `nix flake check` |
 | drift checks | `tools/nix/` | `nix flake check` |
@@ -35,7 +35,15 @@ nix build .#checks.x86_64-linux.proofs-ps2_input_proofs -L
 
 Not tested in this release.
 
-On a macOS host the two TPM proof crates are left out, because the software TPM tools they drive build only for Linux (`needsTpm`, `tools/nix/checks.nix:99-102`).
+On a macOS host the two [TPM](../overview/glossary.md#tpm) proof crates are left out, because the software TPM tools they drive build only for Linux (`needsTpm`, `tools/nix/checks.nix:99-102`).
+
+## What to run for a change
+
+- Kernel or capsule code: the proof crate that mounts it, and `nix flake check`. [Proof crates](#proof-crates) shows how to run one crate by hand.
+- A driver: its proof crate, extended to cover the change.
+- A function a refinement theorem names: the extraction job and the Lean build, as in [Extraction and Verus](#extraction-and-verus) and [Lean](#lean).
+- A changed ABI number or capability bit: `static-abi`, one of the [static checks](#static-checks).
+- A parser of untrusted input that has a fuzz target: that target, for a few minutes, as in [Fuzzing](#fuzzing).
 
 ## State of the checks at this commit
 
@@ -45,7 +53,7 @@ The flake defines 143 checks for `x86_64-linux` at this commit. In a run of all 
 |---|---|
 | `inputs` | `tools/nix/inputs.json` is stale for `userland/capsule_market`, `userland/capsule_model_fetch` and `userland/model_fetch_proofs` |
 | `static-abi` | `scripts/check_prebuilt.py` finds two binaries it cannot classify: `nonos-data/market/index.bin` and `nonos-data/models/catalogue.bin`. The scripts after it in the list did not run |
-| `static-hygiene` | `scripts/check_stubs.py` finds 15 admissions that are not in its baseline. The scripts after it did not run |
+| `static-hygiene` | `scripts/check_stubs.py` finds 15 admissions that are not in its [baseline](../overview/glossary.md#baseline). The scripts after it did not run |
 | `static-tree` | several gates: the `cfg(target_arch` count is 234 against a baseline of 116, the `crate::arch::x86_64::` count 135 against 100, and the end of its log shows the forbidden `read` and `write` import at `userland/capsule_driver_ahci/src/server/handlers/emmc/dispatch.rs:29` |
 | `nonos-verify` | clippy passes, then the `hygiene` scan fails. It writes its findings to a file, so the log ends as the scan starts. Its comment patterns match shipping comments such as the "for now" in `src/hardware/inventory/family.rs` |
 | `proofs-rtl8169_proofs` | its 67 tests pass; clippy's `manual_div_ceil` lint fails on `userland/capsule_driver_rtl8169/src/log/line.rs` |
@@ -59,7 +67,7 @@ The flake defines 143 checks for `x86_64-linux` at this commit. In a run of all 
 
 A [proof crate](../overview/glossary.md#proof-crate) is a host crate that compiles shipping source with `#[path]` and runs it under `cargo test`, with the system calls that source makes answered by a shim. `userland/ps2_input_proofs` is a small one. It mounts the PS/2 driver's `constants`, `discover`, `init` and `setup` modules from the [capsule](../overview/glossary.md#capsule) source (`userland/ps2_input_proofs/src/lib.rs:32-40`) and replaces `nonos_libc` with a shim that models the controller (`userland/ps2_input_proofs/Cargo.toml:19-22`). Its 38 tests pass at this commit.
 
-There are 107 crates under `userland/*_proofs`, counted as `proof_crates` (`verification/evidence/EVIDENCE.json:2184`). The flake runs each one the same way: one test thread through `RUST_TEST_THREADS`, a release build with overflow checks on, then clippy (`tools/nix/checks.nix:85-94`). Overflow checks stay on because capsules ship without them, and a proof built the same way would agree with a wrapped value and pass (`RUST_TEST_THREADS`, `tools/nix/checks.nix:81-86`).
+There are 107 crates under `userland/*_proofs`, counted as `proof_crates` (`verification/evidence/EVIDENCE.json:2184`). The flake runs each one the same way: one test thread through `RUST_TEST_THREADS`, a release build with overflow checks on, then clippy (`tools/nix/checks.nix:85-94`). Overflow checks stay on because capsules ship without them: on a device an overflow wraps quietly, and a proof built the same way would agree with the wrapped value and pass. The comment above the script names the case that taught this, a 1968 timestamp in `net.ntp` that wrapped the clock while its proof stayed green (`tools/nix/checks.nix:81-84`).
 
 To run one crate the same way by hand:
 
@@ -79,7 +87,7 @@ Not tested in this release.
 2. Mount the shipping source with `#[path]`; a copy would test code that does not ship.
 3. Regenerate `tools/nix/inputs.json` with `python3 tools/nix/inputs.py`. The `inputs` drift check runs it with `--check` and fails when a path dependency or a `#[path]` was added without it (`tools/nix/checks.nix:265-269`).
 4. Make it pass clippy with `-D warnings` over all targets. `lintLib` and `lintNone` take no new members (`tools/nix/checks.nix:44-54`).
-5. A new driver capsule ships with its proof crate; [Contributing](README.md) gives the rule.
+5. A new [driver capsule](../overview/glossary.md#driver-capsule) ships with its proof crate; [Contributing](README.md#where-code-goes) gives the rule.
 
 ## Static checks
 
@@ -146,14 +154,6 @@ cargo fuzz run elf_header corpus/elf_header -- -max_total_time=60
 ```
 
 Not tested in this release.
-
-## What to run for a change
-
-- Kernel or capsule code: the proof crate that mounts it, and `nix flake check`.
-- A driver: its proof crate, extended to cover the change.
-- A function a refinement theorem names: the extraction job and the Lean build.
-- A changed ABI number or capability bit: `static-abi`.
-- A parser of untrusted input that has a fuzz target: that target, for a few minutes.
 
 ## See also
 
