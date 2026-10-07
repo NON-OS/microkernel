@@ -2,9 +2,9 @@
 
 This page is the way into the NONOS documentation: what to read first for what you want to do, and one line on every page.
 
-NONOS is an operating system for x86_64 computers, built on a capability microkernel in Rust, in which drivers, system services and apps run in ring 3 as signed [capsules](overview/glossary.md#capsule) that hold only the capabilities their manifests grant.
+NONOS is an operating system for x86_64 computers built on a capability microkernel in Rust. Drivers, system services and apps run in ring 3 as signed [capsules](overview/glossary.md#capsule) that hold only the [capabilities](overview/glossary.md#capability) their [manifests](overview/glossary.md#manifest) grant. It runs on every core: the kernel starts every CPU the firmware enables and schedules processes on all of them.
 
-Every page names, in its last line, the commit of the source tree it was checked against. When a page and the code disagree, the code is what runs.
+Every page names, in its last line, the commit of the source tree it was checked against. When a page and the code disagree, the code is what runs. A command followed by "Not tested in this release." was not run against this release; what the page says it does is read from the code.
 
 ## Where to start
 
@@ -16,7 +16,7 @@ You want NONOS running on your own machine, first from a USB stick, then perhaps
 2. [Requirements](install/requirements.md): the processor, firmware, memory, stick and disk it needs.
 3. [Hardware support matrix](hardware/MATRIX.md): whether your chips have a driver, and what that rests on.
 4. [Get an image](install/get-an-image.md): this repository names no download, so you build and seal an image yourself.
-5. [Write a USB stick](install/usb-stick.md), then [Boot modes](install/boot-modes.md) and [First boot](install/first-boot.md).
+5. [Write a USB stick](install/usb-stick.md), then [Boot modes](install/boot-modes.md) and [First boot](install/first-boot.md). Once the desktop is up, [Using NONOS](using/README.md) takes over, with [Wi-Fi and networking](using/wifi-and-networking.md) for getting online.
 6. [Install to disk](install/install-to-disk.md), only if you want the machine to keep anything.
 7. [Troubleshooting](install/troubleshooting.md) when a step stops, and [Reporting a machine](hardware/report.md) to tell the NONOS team what happened.
 
@@ -25,9 +25,9 @@ You want NONOS running on your own machine, first from a USB stick, then perhaps
 NONOS is booted and you want to get work done.
 
 1. [Using NONOS](using/README.md): what is kept at power off, and where each program stops.
-2. [The desktop](using/desktop.md), then [Files](using/files.md) and [Settings](using/settings.md).
-3. [Privacy networks](using/privacy-network.md) and [Wi-Fi and networking](using/wifi-and-networking.md): how your connections leave the machine.
-4. [Terminal](using/terminal.md), [Linux programs](using/linux-programs.md) and [Local model](using/local-ai.md).
+2. [The desktop](using/desktop.md), then [Files](using/files.md), [Everyday apps](using/apps.md) and [Settings](using/settings.md).
+3. [Wi-Fi and networking](using/wifi-and-networking.md), [Privacy networks](using/privacy-network.md) and [The Browser](using/browser.md): getting online, and how your connections leave the machine.
+4. [Terminal](using/terminal.md), [Command-line tools](using/command-line-tools.md), [Linux programs](using/linux-programs.md) and [Local model](using/local-ai.md).
 5. [Wallet](using/wallet.md), [Marketplace](using/marketplace.md), [Sound and media](using/audio.md) and [Keyboard layouts](using/keyboard-layouts.md) as you need them.
 
 ### An OS developer
@@ -38,20 +38,23 @@ You want to know how the system is built, from the boot to a running capsule.
 2. [The kernel](kernel/README.md), then [Boot handoff](kernel/boot-handoff.md), [Memory and paging](kernel/memory-and-paging.md), [Scheduler and SMP](kernel/scheduler-and-smp.md) and [System calls](kernel/syscalls.md).
 3. [Capabilities](kernel/capabilities.md), [IPC](kernel/ipc.md) and [Processes and capsule spawn](kernel/processes-and-spawn.md).
 4. [Userland](userland/README.md), then [Manifests and capabilities](userland/manifests-and-capabilities.md) and [libc and the Rust runtimes](userland/libc.md).
-5. [The ABI](abi/README.md) when you need exact numbers and layouts.
-6. [Architectures](architectures/README.md) and [Build NONOS](build/README.md).
+5. [Writing an app](userland/writing-an-app.md), then [Shipping an app](userland/shipping-an-app.md): a windowed app from its crate to a tile on the dock.
+6. [The ABI](abi/README.md) when you need exact numbers and layouts.
+7. [Architectures](architectures/README.md) and [Build NONOS](build/README.md).
 
 ### A security reviewer
 
 You want to know what NONOS claims, what holds each claim, and where the claims stop.
 
 1. [Threat model](overview/threat-model.md), then [Security](security/README.md).
-2. [Protections and limits](security/protections-and-limits.md): every protection with its code, and every known gap with its reason.
+2. [Protections and limits](security/protections-and-limits.md): what NONOS protects against with the code that does it, and the known gaps with their reasons.
 3. [Boot chain and signatures](security/boot-chain-and-signatures.md), [STARK attestation](security/stark-attestation.md), [Rollback protection](security/rollback-protection.md) and [Measured boot and the TPM](security/measured-boot-and-tpm.md).
-4. [Capsule isolation](security/capsule-isolation.md) and [Device secrets and keys](security/device-secrets-and-keys.md).
-5. [Capabilities](kernel/capabilities.md), [IOMMU](kernel/iommu.md) and [Signing and publisher keys](userland/signing-and-publisher-keys.md) for the mechanisms underneath.
-6. [Reproducible builds](build/reproducible-builds.md) and [SBOM](build/sbom.md) for the supply chain.
-7. [Reporting a vulnerability](security/reporting-a-vulnerability.md) when you find something.
+4. [Capsule isolation](security/capsule-isolation.md), [Device secrets and keys](security/device-secrets-and-keys.md) and [Randomness and cryptography](security/randomness-and-cryptography.md).
+5. [TLS and certificate trust](security/tls-and-certificates.md) and [How the Nym and Anyone transports are built](security/anonymity-transports.md) for what leaves the machine.
+6. [Capabilities](kernel/capabilities.md), [IOMMU](kernel/iommu.md) and [Signing and publisher keys](userland/signing-and-publisher-keys.md) for the mechanisms underneath.
+7. [Checking the security claims yourself](security/checking-the-claims.md) to run the tools that test these claims.
+8. [Reproducible builds](build/reproducible-builds.md) and [SBOM](build/sbom.md) for the supply chain.
+9. [Reporting a vulnerability](security/reporting-a-vulnerability.md) when you find something.
 
 ### A driver writer
 
@@ -61,7 +64,7 @@ You want a device to work under NONOS.
 2. [The hardware broker](kernel/hardware-broker.md) for the kernel side, then [Broker API](drivers/broker-api.md) for the driver side.
 3. [Writing a driver](drivers/writing-a-driver.md): a whole driver capsule, step by step.
 4. [Broker](abi/broker.md) in the ABI section for the records and constants, and [IOMMU](kernel/iommu.md) for DMA.
-5. [Tests and proofs](contributing/tests-and-proofs.md): every driver has a proof crate.
+5. [Tests and proofs](contributing/tests-and-proofs.md): what a proof crate is, and why a new driver ships with one.
 6. [Hardware support matrix](hardware/MATRIX.md) and [Reporting a machine](hardware/report.md).
 
 ### A contributor
@@ -69,7 +72,7 @@ You want a device to work under NONOS.
 You want to send a change.
 
 1. [CONTRIBUTING.md](../CONTRIBUTING.md), then [Contributing to NONOS](contributing/README.md).
-2. [Build NONOS](build/README.md) and [Toolchain](build/toolchain.md).
+2. [Build NONOS](build/README.md) and [Toolchain](build/toolchain.md), with [Host tools](build/host-tools.md) for the programs under `tools/`.
 3. [Code style](contributing/code-style.md) and [Commits](contributing/commits.md).
 4. [Tests and proofs](contributing/tests-and-proofs.md), [CI](build/ci.md) and [Review](contributing/review.md).
 
@@ -77,12 +80,12 @@ You want to send a change.
 
 ### What NONOS is
 
-- [The NONOS overview](overview/README.md): NONOS in four sentences, and the order to read the overview pages in.
+- [The NONOS overview](overview/README.md): NONOS in five sentences, and the order to read the overview pages in.
 - [Mission](overview/mission.md): what NONOS is for, who it serves, and what it does not try to be.
 - [Architecture](overview/architecture.md): the whole system in one diagram, then each part with links to its pages.
 - [Design principles](overview/design-principles.md): the rules the code follows, the check that holds each one, and where one does not hold yet.
 - [Threat model](overview/threat-model.md): what NONOS protects, from whom, what it relies on and what it leaves out.
-- [Glossary](overview/glossary.md): the terms these pages use, each with the file that defines it.
+- [Glossary](overview/glossary.md): the terms these pages link to, each with the page that explains it and the code it comes from.
 - [FAQ](overview/faq.md): short answers to the questions people ask first.
 
 ### Install
@@ -102,13 +105,16 @@ You want to send a change.
 
 - [Using NONOS](using/README.md): the guide for everyday use, and a first hour on the desktop.
 - [The desktop](using/desktop.md): the menu bar, the dock, the Launchpad, windows and the apps that ship.
+- [Everyday apps](using/apps.md): Editor, Calculator, Processes and Snake, their keys, what each keeps and where each stops.
 - [Terminal](using/terminal.md): tabs, line editing, pipes, jobs, every built-in command and git over HTTPS.
+- [Command-line tools](using/command-line-tools.md): the seven crates.io programs that ship as their own capsules, how to start them and give them a file.
 - [Files](using/files.md): where files live, the Files app, and exactly what is kept at power off.
 - [Settings](using/settings.md): every Settings panel, what each row changes and how long a change lasts.
 - [Keyboard layouts](using/keyboard-layouts.md): the layouts, choosing one at first boot and switching while you type.
 - [Sound and media](using/audio.md): music, video, the volume, and why a machine may stay silent.
 - [Wi-Fi and networking](using/wifi-and-networking.md): joining Wi-Fi, plugging in a cable, and the join errors.
 - [Privacy networks](using/privacy-network.md): Nym, Anyone and Direct, and what each one hides and does not hide.
+- [The Browser](using/browser.md): opening pages and searching, which network a page leaves through, what a site learns and what the Browser keeps.
 - [Linux programs](using/linux-programs.md): running a shell, Python, SQLite and the other Linux tools, and what they can reach.
 - [Local model](using/local-ai.md): a Qwen language model on your own machine, offline, and how to pick its tier.
 - [Marketplace](using/marketplace.md): what can be installed, how a listing is checked, and what needs a network.
@@ -148,6 +154,10 @@ You want to send a change.
 - [Measured boot and the TPM](security/measured-boot-and-tpm.md): what the TPM records and derives, and what is lost without one.
 - [Capsule isolation](security/capsule-isolation.md): address spaces, the syscall check, send rules, confined drivers and the Linux sandbox.
 - [Device secrets and keys](security/device-secrets-and-keys.md): where secrets live, what protects each, and what shutdown wipes.
+- [Randomness and cryptography](security/randomness-and-cryptography.md): where random bytes come from, the two generators, the crypto system calls and which code runs which algorithm.
+- [TLS and certificate trust](security/tls-and-certificates.md): the TLS 1.3 client the capsules share, the chain check, where the roots come from and which clock the dates are read against.
+- [How the Nym and Anyone transports are built](security/anonymity-transports.md): what `net.nym` and `net.anon` implement of each protocol, how each checks its directory, and what they lack.
+- [Checking the security claims yourself](security/checking-the-claims.md): the tools in the tree that test the security claims, the command for each, and what a pass and a failure print.
 - [Reporting a vulnerability](security/reporting-a-vulnerability.md): how to report a security bug in private, and what to include.
 
 ### Drivers
@@ -187,6 +197,8 @@ You want to send a change.
 - [libc and the Rust runtimes](userland/libc.md): the three layers a capsule reaches the kernel through.
 - [IPC services](userland/ipc-services.md): finding a service by name, who may send there, and the message layouts.
 - [The Linux personality](userland/linux-personality.md): how unmodified x86_64 Linux programs run, and which Linux calls are served.
+- [Writing an app](userland/writing-an-app.md): a windowed app on `nonos_app_skeleton` and its host tests, step by step on `capsule_hello`.
+- [Shipping an app](userland/shipping-an-app.md): the steps from an app crate to a signed image and a tile on the dock and the Launchpad.
 
 ### ABI
 
@@ -207,6 +219,7 @@ You want to send a change.
 - [The seal](build/seal.md): what turns unsigned artifacts into a bootable image, and what to do without the release keys.
 - [Reproducible builds](build/reproducible-builds.md): what is pinned, how to compare two builds, and what is not reproducible yet.
 - [SBOM](build/sbom.md): the bill of materials and the other supply chain records.
+- [Host tools](build/host-tools.md): every program under `tools/`, what runs it, and how to call it yourself on the build machine.
 - [CI](build/ci.md): the GitHub workflows, what `make check` covers, and how the checks stood at this commit.
 
 ### Contributing
@@ -226,7 +239,7 @@ You want to send a change.
 
 ### Release notes
 
-- [NONOS 0.9.2](release/0.9.2.md): the release notes for this version.
+- [NONOS 0.9.2 release notes](release/0.9.2.md): what 0.9.2 adds, the hardware it runs on, what does not work yet, and how to move an installed system to it.
 
 ## See also
 
