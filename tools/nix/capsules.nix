@@ -52,11 +52,11 @@ let
   rustStd = mkRustStd pins.rust;
 
   # A crate that compiles C for the capsule triple (blake3's SIMD, in the
-  # crypto and shield capsules) gets it from cc-rs, which on x86_64 Linux
-  # takes the build machine's gcc. Any other builder's gcc cannot target
-  # x86_64, so there the capsule triple's C compiler is an x86_64 cross gcc.
-  # On x86_64 Linux nothing here changes, so those builds stay as they were.
-  nativeX86 = pkgs.stdenv.hostPlatform.isx86_64 && pkgs.stdenv.hostPlatform.isLinux;
+  # crypto and shield capsules) gets it from cc-rs, which takes the build
+  # machine's compiler. An aarch64 Linux gcc cannot target x86_64, so there
+  # the capsule triple's C compiler is an x86_64 cross gcc. x86_64 Linux and
+  # macOS build as they always have, so nothing changes there.
+  nativeX86 = !(pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isAarch64);
   x86Cc = pkgs.pkgsCross.gnu64.stdenv.cc;
 
   build =

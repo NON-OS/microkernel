@@ -169,10 +169,10 @@ let
   # tarball, the committed config, static against musl, by
   # tools/nonos-busybox-build with the pinned zig as its compiler. zig carries
   # the Linux UAPI headers its musl target needs, so no host headers are read.
-  # A build machine that is not x86_64 Linux strips BusyBox with an x86_64
-  # strip: its own cannot read the x86_64 ELF it has just linked. On x86_64
-  # Linux nothing here changes, so that build stays exactly as it was.
-  nativeX86 = pkgs.stdenv.hostPlatform.isx86_64 && pkgs.stdenv.hostPlatform.isLinux;
+  # An aarch64 Linux builder strips BusyBox with an x86_64 strip: its own
+  # cannot read the x86_64 ELF it has just linked. x86_64 Linux and macOS
+  # build as they always have, so nothing changes there.
+  nativeX86 = !(pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isAarch64);
   x86Binutils = pkgs.pkgsCross.gnu64.buildPackages.binutils-unwrapped;
 
   busybox = pkgs.stdenv.mkDerivation {
