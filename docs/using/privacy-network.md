@@ -10,15 +10,18 @@ Choose which network NONOS's own connections leave through, and know what each c
 | `Anyone network` | `net.anon`: an onion circuit through three relays, guard, middle and exit | The guard relay, and your local network, which sees that you use Anyone | Much faster than the mixnet. |
 | `Direct` | `net.sockets` straight to the host | Every site, every mirror and your local network | Fastest, and nothing hides you. |
 
-The labels are the ones Settings shows (`ROUTE_LABELS` in `userland/policy_proto/src/route.rs:35`). The Nym mixnet is the default: setup's `Network route` step lists `Nym mixnet (default)` first (`ROUTES` in `userland/capsule_setup_wizard/src/render/screens/route.rs:12`), and a value the [policy store](../overview/glossary.md#policy-store) does not hold, does not know or cannot answer is read as Nym, never as Direct (`pick` in `userland/nonos_route_link/src/pick.rs:130-138`).
+The labels are the ones Settings shows. The Nym mixnet is the default: setup's `Network route` step lists `Nym mixnet (default)` first, and a value the [policy store](../overview/glossary.md#policy-store) does not hold, does not know or cannot answer is read as Nym, never as Direct.
 
-Setup's own words for each choice: the mixnet "Hides who you talk to, even from someone watching the whole internet"; Anyone means "Sites never see this machine's address" and "Someone watching both ends at once could match the traffic"; Direct means "Every site, the model mirror and your own network see this machine's address" (`WHY` in the same setup file).
+Setup's own words for each choice: the mixnet "Hides who you talk to, even from someone watching the whole internet"; Anyone means "Sites never see this machine's address" and "Someone watching both ends at once could match the traffic"; Direct means "Every site, the model mirror and your own network see this machine's address".
 
 ## Switch networks
 
-Open Settings, pick `Network`, and change the `Default network` row to `Nym mixnet`, `Anyone network` or `Direct`. The choice holds from the next connection: every program reads it again for each connection it opens (`chosen` in `userland/nonos_route_link/src/chosen.rs:40-43`). The browser can also switch network for one page.
+1. Open Settings and pick `Network`.
+2. Change the `Default network` row to `Nym mixnet`, `Anyone network` or `Direct`.
 
-A choice never falls back. If the chosen network is not running, the connection fails and says so, for example `the Nym mixnet, the default, is not running` (`NYM_DOWN` in `userland/nonos_route_link/src/pick.rs:43`). Nothing is retried over another network, and never over Direct.
+The choice holds from the next connection: every program that asks `nonos_route_link` reads it again for each connection it opens. The browser reads it once, when it opens. After that its own network panel decides, from its next request until it closes, so a browser already open keeps its network when you change this row.
+
+A choice never falls back. If the chosen network is not running, the connection fails and says so, for example `the Nym mixnet, the default, is not running`. Nothing is retried over another network, and never over Direct.
 
 The Terminal's `nym` command shows the mixnet client: `nym: gateway <address>` or `nym: client up, no gateway yet`, then a `topology:` line reading `ready`, `missing`, `expired`, `clock out of range` or `untrusted authority`. With no mixnet client on this boot it prints `nym: capsule not running`.
 
@@ -43,13 +46,13 @@ flowchart LR
     core --> nic["network card driver"]
 ```
 
-Every program that opens its own connections asks one library, `nonos_route_link`, which network to use. It sends a Nym stream to `net.socks5`, the SOCKS5 front of the mixnet, which resolves only `net.nym` and never a direct socket (`run` in `userland/capsule_socks5/src/setup.rs:27-38`). It sends an Anyone stream to `net.anon`, and a Direct one to `net.sockets`. All three reach the wire through `net.core` and the network card driver; see [Wi-Fi and networking](wifi-and-networking.md).
+Every program that opens its own connections asks one library, `nonos_route_link`, which network to use. It sends a Nym stream to `net.socks5`, the SOCKS5 front of the mixnet, which resolves only `net.nym` and never a direct socket. It sends an Anyone stream to `net.anon`, and a Direct one to `net.sockets`. All three reach the wire through `net.core` and the network card driver; see [Wi-Fi and networking](wifi-and-networking.md).
 
 ## Which programs follow the choice
 
 | Program | What it does |
 |---|---|
-| Browser | Starts each page on the default. An `.anyone` address always goes through Anyone. |
+| Browser | Starts on the default when it opens; its own network panel changes that for its later requests. An `.anyone` address always goes through Anyone. See [The Browser](browser.md#which-network-a-page-leaves-through). |
 | Terminal `curl`, `git clone`, `git push` | Follow the default. |
 | Terminal `ping`, `nslookup`, `pull`, `push` | Run only when Direct is the default. Otherwise they print why and send nothing. |
 | Wallet | Never Direct. Under a Direct default it uses Nym, or Anyone when Nym is not running. |
@@ -58,23 +61,24 @@ Every program that opens its own connections asks one library, `nonos_route_link
 | Linux package installs | Over Anyone, whatever the default, except a mirror on a private address, which is dialled directly. |
 | Linux programs run with `linux` | No connection off the machine. |
 
-The details, from the code:
+In more detail:
 
-- The direct-only commands ask `direct_refused` (`userland/nonos_route_link/src/direct_only.rs:33-41`). Under Nym, `ping example.com` prints `ping: the chosen network is the Nym mixnet, which is anonymous; ICMP cannot cross it and would leave directly, so nothing was sent`.
-- The wallet takes `for_wallet`, which turns a Direct default into Nym, or Anyone (`private_only` in `userland/nonos_route_link/src/pick.rs:93-100`). The RPC node then sees which address is asked about, never which machine asks. See [Wallet](wallet.md).
-- The shield's streams take the default as it is and refuse Direct (`anonymous_route` in `userland/shield_core/src/net/tor/stream.rs`).
-- Installs take `for_installs`, which is Anyone (`install_route` in `userland/nonos_route_link/src/pick.rs:58-63`): the code's reason is that Nym exits rotate and end a long stream part way. A download waits up to three minutes for Anyone to build its first circuit. `qwen get --direct` in the Terminal, or `d` in the Marketplace, downloads one Qwen tier directly instead, and the mirror then sees this machine's address. See [Local AI](local-ai.md).
-- A Linux package mirror named by an address in 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 or 169.254.0.0/16 is on your own network and is dialled directly (`is_local` in `userland/capsule_linux/src/linux/net/route.rs`). The shipped catalogue lists no Linux packages, so this applies only to a build that names such a mirror.
-- The Settings note under `Default network` says it is what "Qwen downloads take", and a comment in `userland/policy_proto/src/route.rs` says installs cross the mixnet. Both are older than the code above: downloads go over Anyone.
+- Under Nym, `ping example.com` prints `ping: the chosen network is the Nym mixnet, which is anonymous; ICMP cannot cross it and would leave directly, so nothing was sent`.
+- The wallet turns a Direct default into Nym, or Anyone. The RPC node then sees which address is asked about, never which machine asks. See [Wallet](wallet.md).
+- The shield's streams take the default as it is and refuse Direct.
+- Installs go over Anyone. The reason the code gives is that Nym exits rotate and end a long stream part way. A download waits up to three minutes for Anyone to build its first circuit. `qwen get --direct` in the Terminal, or `d` in the Marketplace, downloads one Qwen tier directly instead, and the mirror then sees this machine's address. See [Local AI](local-ai.md).
+- A Linux package mirror named by an address in 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 or 169.254.0.0/16 is on your own network and is dialled directly. The shipped catalogue lists no Linux packages, so this applies only to a build that names such a mirror.
+- The Settings note under `Default network` says it is what "Qwen downloads take", and a comment in the source says installs cross the mixnet. Both are older than the rules above: downloads go over Anyone.
 - A Linux program started from the Terminal runs in a role the kernel spawns without the Network [capability](../overview/glossary.md#capability). It can still use loopback and Unix sockets inside its own family. See [Linux programs](linux-programs.md).
 
 ## How names are looked up
 
-- Direct: names are looked up in the clear by `net.dns`, which on the desktop is `net.core`, at the DNS servers the DHCP lease named.
+- Direct: names are looked up in the clear by `net.dns`, which on the desktop is `net.core`, at the DNS servers the DHCP lease named. There is no other resolver, and no DNS over TLS or HTTPS.
 - Nym: the host name travels unresolved inside the SOCKS5 CONNECT; the exit resolves it.
 - Anyone: the host name travels inside the stream's BEGIN cell to the exit, which resolves it. `net.anon` does no lookup of its own.
-- `.anyone` addresses never leave the Anyone network (`for_host` in `userland/nonos_route_link/src/pick.rs:117-123`). A short `.anyone` name is looked up in a list the Anyone DNS services sign, which is weaker than the full 56-letter address, since the list decides where the name points.
-- The Nym client's first contact, the directory at `validator.nymtech.net`, is reached at an address pinned in the image and never looked up (`PINNED` in `userland/capsule_net_nym/src/directory_sync/pinned.rs:27`).
+- `.anyone` addresses never leave the Anyone network. A short `.anyone` name is looked up in a list the Anyone DNS services sign, which is weaker than the full 56-letter address, since the list decides where the name points.
+- The Nym client's first contact, the directory at `validator.nymtech.net`, is reached at an address pinned in the image and never looked up.
+- A capsule built on Rust `std` looks names up through `net.dns` and opens plain sockets whatever the default, so none of the above holds for it. No program in the image opens its connections through `std`; see [Rust std for capsules](../userland/libc.md#rust-std-for-capsules).
 
 ## What each network protects, and what it does not
 
@@ -88,29 +92,53 @@ Nym mixnet:
 
 Anyone network:
 
-- Circuits always have three hops (`HOPS` in `userland/capsule_net_anon/src/protocol/limits.rs:61`).
-- The directory comes from seven authorities over plain HTTP on port 9230; a consensus needs a majority of their signatures, four of seven (`REQUIRED_SIGNATURES` in `userland/capsule_net_anon/src/directory/authority/types.rs:29`). Your local network and the authorities see that this machine uses Anyone.
-- One guard is kept until it fails three times (`GUARD_ATTEMPTS` in `userland/capsule_net_anon/src/manager/guard.rs:27`). `net.anon` holds no FileSystem capability and writes nothing, so no guard survives a reboot.
+- Circuits always have three hops.
+- The directory comes from seven authorities over plain HTTP on port 9230; a consensus needs a majority of their signatures, four of seven. Your local network and the authorities see that this machine uses Anyone.
+- One guard is kept until it fails three times. `net.anon` holds no FileSystem capability and writes nothing, so no guard survives a reboot.
 - Someone who watches both this machine and the destination at once can match the traffic by timing.
 - The exit learns the host name, and the content unless the program uses TLS.
 
 Direct:
 
 - Protects nothing beyond what each program's own TLS protects. Names are looked up in the clear.
+- `net.nym` and `net.anon` still run. Both start on every boot that runs the network, whatever the choice, and reach for a gateway or fetch a directory and build a circuit while idle. Your local network sees that this machine runs Nym and Anyone under every choice.
 
-Reads wait longer on purpose through the two anonymity networks: a reader waits 60 seconds for the next bytes through Nym and 30 seconds through Anyone (`patience_ms` in `userland/nonos_route_link/src/describe.rs:54-60`).
+Reads wait longer on purpose through the two anonymity networks: a reader waits 60 seconds for the next bytes through Nym and 30 seconds through Anyone.
 
 ## What the kernel does not do
 
-The kernel does not enforce the choice. It requires the Network capability to reach `net.sockets`, `net.nym`, `net.anon`, `net.socks5` and the other network services (`NETWORK_SERVICES` in `src/services/registry/policy.rs:26-38`), but it does not check which one a [capsule](../overview/glossary.md#capsule) uses. Each program keeps the choice through `nonos_route_link`.
+The kernel does not enforce the choice. It requires the Network capability to reach `net.sockets`, `net.nym`, `net.anon`, `net.socks5` and the other network services, but it does not check which one a [capsule](../overview/glossary.md#capsule) uses. Each program keeps the choice through `nonos_route_link`.
 
 ## What is tested
 
 The host tests of this path pass on this commit: `route_link_proofs` (73 tests), `capsule_socks5_proofs` (136), `nym_topology_proofs` (25), `nym_reply_proofs` (64), `anon_ntor_proofs` (226), `anon_onion_proofs` (67), `anon_link_proofs` (14) and `net_anon_proofs` (2). A booted image carrying traffic through a live Nym gateway or a live Anyone circuit is not tested in this release.
 
+## Where this comes from
+
+- The three choices
+  - The labels: `ROUTE_LABELS` in `userland/policy_proto/src/route.rs:35`; Nym listed first at setup: `ROUTES` in `userland/capsule_setup_wizard/src/render/screens/route.rs:12`; setup's words: `WHY` in `userland/capsule_setup_wizard/src/render/screens/route.rs:14-30`.
+  - A missing or unknown value read as Nym: `pick` in `userland/nonos_route_link/src/pick.rs:130-138`.
+- Switch networks
+  - Read again for each connection: `chosen` in `userland/nonos_route_link/src/chosen.rs:40-43`; read once by the browser: `from_system_default` in `userland/capsule_browser/src/browser/net/mixnet/system_default.rs`.
+  - The refusal when Nym is down: `NYM_DOWN` in `userland/nonos_route_link/src/pick.rs:43`.
+- How a connection finds its way
+  - `net.socks5` resolves only `net.nym`: `run` in `userland/capsule_socks5/src/setup.rs:27-38`.
+- Which programs follow the choice
+  - The direct-only commands: `direct_refused` in `userland/nonos_route_link/src/direct_only.rs:33-41`; the wallet: `for_wallet` and `private_only` in `userland/nonos_route_link/src/pick.rs:93-100`.
+  - The shield: `anonymous_route` in `userland/shield_core/src/net/tor/stream.rs`; installs over Anyone: `for_installs` and `install_route` in `userland/nonos_route_link/src/pick.rs:58-63`.
+  - Mirrors on a private address: `is_local` in `userland/capsule_linux/src/linux/net/route.rs`; the older comment on installs: `userland/policy_proto/src/route.rs`.
+- How names are looked up
+  - The `.anyone` addresses: `for_host` in `userland/nonos_route_link/src/pick.rs:117-123`; the pinned directory address: `PINNED` in `userland/capsule_net_nym/src/directory_sync/pinned.rs:27`.
+- What each network protects, and what it does not
+  - Three hops: `HOPS` in `userland/capsule_net_anon/src/protocol/limits.rs:61`; four of seven signatures: `REQUIRED_SIGNATURES` in `userland/capsule_net_anon/src/directory/authority/types.rs:29`; one guard: `GUARD_ATTEMPTS` in `userland/capsule_net_anon/src/manager/guard.rs:27`.
+  - Nym and Anyone run under every choice: `spawn` in `src/userspace/init/spawn_plan/network/spawn.rs`, `idle` in `userland/capsule_net_anon/src/server/idle.rs`; the longer read waits: `patience_ms` in `userland/nonos_route_link/src/describe.rs:54-60`.
+- What the kernel does not do
+  - The Network capability for the network services: `NETWORK_SERVICES` in `src/services/registry/policy.rs:26-38`.
+
 ## See also
 
 - [Wi-Fi and networking](wifi-and-networking.md)
+- [The Browser](browser.md)
 - [Wallet](wallet.md)
 - [Local AI](local-ai.md)
 - [Settings](settings.md)
