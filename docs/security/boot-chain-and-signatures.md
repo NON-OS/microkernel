@@ -1,6 +1,6 @@
 # Boot chain and signatures
 
-Each stage of a NONOS boot is checked: with Secure Boot on, the firmware checks the loader; the loader checks the kernel before it jumps; the kernel checks the loader that started it before any program runs; and the kernel checks every [capsule](../overview/glossary.md#capsule) before it spawns one.
+Each stage of a NONOS boot is checked: with [Secure Boot](../overview/glossary.md#secure-boot) on, the firmware checks the loader; the loader checks the kernel before it jumps; the kernel checks the loader that started it before any program runs; and the kernel checks every [capsule](../overview/glossary.md#capsule) before it spawns one.
 
 ## The chain
 
@@ -17,13 +17,13 @@ flowchart TD
     I --> J[spawn_verified]
 ```
 
-The UEFI firmware starts the loader, `BOOTX64.EFI`. With Secure Boot on, the firmware first checks the loader's signature against the keys enrolled in it. The loader's `run_verified_boot` reads the kernel, runs `run_crypto_verification` for the signature and the [rollback index](../overview/glossary.md#rollback-index), then `attest_kernel` for the kernel's STARK trailer, parses the ELF, runs `commit_rollback` to raise the TPM floor, and only then prepares the [handoff](../overview/glossary.md#handoff) (`nonos-bootloader/src/entry/pipeline.rs:30-50`).
+The UEFI firmware starts the loader, `BOOTX64.EFI`. With Secure Boot on, the firmware first checks the loader's signature against the keys enrolled in it. The loader's `run_verified_boot` reads the kernel, runs `run_crypto_verification` for the signature and the [rollback index](../overview/glossary.md#rollback-index), then `attest_kernel` for the kernel's STARK trailer, parses the ELF, runs `commit_rollback` to raise the [TPM](../overview/glossary.md#tpm) floor, and only then prepares the [handoff](../overview/glossary.md#handoff) (`nonos-bootloader/src/entry/pipeline.rs:30-50`).
 
 Early in `microkernel_main`, right after the installer check and before any userspace, the kernel runs `check_bootloader`, its own check of the loader that started it; no userspace starts when that check fails (`src/kernel_core/init/entry/microkernel_main.rs:22-27`). Every capsule then passes `preflight::run`, which calls `verify_id_cert`, `verify_with_publisher` and `attest_gate` in that order (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:36-80`). `spawn_verified` asks `profile_gate::check` whether the boot mode lets the capsule start at all, and creates the process only after all three checks pass (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:27-63`).
 
 ## Algorithms
 
-Key files, certificates, manifests and the trust-anchor policy name the algorithm of each key and signature in one byte, `AlgId`: `0x01` Ed25519, `0x02` ML-DSA-44, `0x03` ML-DSA-65, `0x04` ML-DSA-87 (`nonos-sign/src/algs/alg_id.rs:19-26`). The kernel decodes the same four values, but its `verify` checks only Ed25519 and ML-DSA-65 and returns `Unsupported` for the other two (`src/crypto/asymmetric/alg_id/verify.rs:23-42`). The signer refuses them earlier: `parse_alg` knows only `ed25519` and `mldsa65` (`nonos-sign/src/algs/alg_id.rs:80-86`). A signed kernel image carries no such byte: its signature blob has the fixed layout shown below.
+Key files, certificates, [manifests](../overview/glossary.md#manifest) and the trust-anchor policy name the algorithm of each key and signature in one byte, `AlgId`: `0x01` Ed25519, `0x02` ML-DSA-44, `0x03` ML-DSA-65, `0x04` ML-DSA-87 (`nonos-sign/src/algs/alg_id.rs:19-26`). The kernel decodes the same four values, but its `verify` checks only Ed25519 and ML-DSA-65 and returns `Unsupported` for the other two (`src/crypto/asymmetric/alg_id/verify.rs:23-42`). The signer refuses them earlier: `parse_alg` knows only `ed25519` and `mldsa65` (`nonos-sign/src/algs/alg_id.rs:80-86`). A signed kernel image carries no such byte: its signature blob has the fixed layout shown below.
 
 | Algorithm | Public key | Signature |
 |---|---|---|
@@ -48,7 +48,7 @@ The sizes are `ED25519_PUBKEY_BYTES` and its neighbours (`src/crypto/asymmetric/
 
 A key id is BLAKE3 in derive-key mode over the public key, under the context `NONOS:KEYID:ED25519:v1` in `ed25519_key_id` (`nonos-bootloader/tools/sign-kernel/src/key_id_ed25519.rs:17-21`) and `NONOS:KEYID:MLDSA65:v1` in `mldsa65_key_id` (`nonos-bootloader/tools/sign-kernel/src/key_id_mldsa65.rs:17-21`).
 
-`write_signed_kernel` writes the ELF, the signature blob, then a 64-byte footer (`nonos-bootloader/tools/sign-kernel/src/write_signed_kernel.rs:25-46`). `embed-trailer` then puts the kernel's [attestation trailer](../overview/glossary.md#attestation-trailer) between the blob and the footer and writes the footer again, in `assemble_attested_image` (`nonos-bootloader/tools/embed-trailer/src/embed/assemble.rs:27-50`). It refuses a trailer that does not start with `MAGIC_V4`, unless it was asked for a path-only development image (`nonos-bootloader/tools/embed-trailer/src/run.rs:28-36`). The footer, little-endian:
+`write_signed_kernel` writes the ELF, the signature blob, then a 64-byte footer (`nonos-bootloader/tools/sign-kernel/src/write_signed_kernel.rs:25-46`). `embed-trailer` then puts the kernel's [attestation trailer](../overview/glossary.md#attestation-trailer) between the blob and the footer and writes the footer again, in `assemble_attested_image` (`nonos-bootloader/tools/embed-trailer/src/embed/assemble.rs:27-50`). It refuses a trailer that does not start with `MAGIC_V4`, unless it was asked for a path-only [development image](../overview/glossary.md#development-image) (`nonos-bootloader/tools/embed-trailer/src/run.rs:28-36`). The footer, little-endian:
 
 | Offset | Size | Field |
 |---|---|---|
@@ -64,7 +64,7 @@ A key id is BLAKE3 in derive-key mode over the public key, under the context `NO
 | 48 | 4 | image version, always 1 |
 | 56 | 4 | rollback index |
 
-`create_image_footer` writes these fields, with `FLAG_HAS_ZK_PROOF` as the flag (`nonos-bootloader/tools/embed-trailer/src/footer/create.rs:19-46`). The make rules build `kernel_signed.bin` with `sign-kernel` at `NONOS_ROLLBACK_INDEX`, then `kernel_attested.bin` with `embed-trailer` (`mk/20-build.mk:1248-1266`). The [seal](../overview/glossary.md#seal) runs the same two tools in `sign_kernel` with the release keys (`tools/nonos_seal/chain.py:65-74`). The image goes onto the ESP as `EFI/nonos/kernel.bin`, beside `EFI/Boot/BOOTX64.EFI`, `EFI/nonos/bootloader.trailer` and `EFI/nonos/boot_root.approval` (`ESP_DIR`, `mk/20-build.mk:1297-1303`).
+`create_image_footer` writes these fields, with `FLAG_HAS_ZK_PROOF` as the flag (`nonos-bootloader/tools/embed-trailer/src/footer/create.rs:19-46`). The make rules build `kernel_signed.bin` with `sign-kernel` at `NONOS_ROLLBACK_INDEX`, then `kernel_attested.bin` with `embed-trailer` (`mk/20-build.mk:1248-1266`). The [seal](../overview/glossary.md#seal) runs the same two tools in `sign_kernel` with the release keys (`tools/nonos_seal/chain.py:65-74`). The image goes onto the [ESP](../overview/glossary.md#esp) as `EFI/nonos/kernel.bin`, beside `EFI/Boot/BOOTX64.EFI`, `EFI/nonos/bootloader.trailer` and `EFI/nonos/boot_root.approval` (`ESP_DIR`, `mk/20-build.mk:1297-1303`).
 
 ## Keys and where their public halves live
 
@@ -72,7 +72,7 @@ A key id is BLAKE3 in derive-key mode over the public key, under the context `NO
 |---|---|---|---|---|
 | Kernel signing | Ed25519 and ML-DSA-65 | the kernel image | compiled into the loader | the loader |
 | [Trust anchor](../overview/glossary.md#trust-anchor) | Ed25519 and ML-DSA-65 | every [NONOS ID certificate](../overview/glossary.md#nonos-id-certificate) | sealed into the trust-anchor policy, compiled into the kernel | the kernel, at spawn |
-| Publisher, one per capsule | Ed25519 and ML-DSA-65 | that capsule's manifest | inside the capsule's certificate | the kernel, at spawn |
+| [Publisher](../overview/glossary.md#publisher), one per capsule | Ed25519 and ML-DSA-65 | that capsule's manifest | inside the capsule's certificate | the kernel, at spawn |
 | Device policy | ECDSA P-256 | the [boot-root record](../overview/glossary.md#boot-root-record) and the kernel approval | compiled into the kernel | the kernel and the TPM |
 | Secure Boot db | as enrolled in the firmware | `BOOTX64.EFI` | enrolled in the firmware | the firmware |
 
@@ -104,7 +104,9 @@ The make rules leave the loader unsigned for Secure Boot. The seal's `secure_boo
 
 The signature lands in the PE certificate table, which the Authenticode digest leaves out, so signing does not change the loader's enrolled measurement. At enrollment, `authenticode_of` refuses a loader whose digest would change when a signer pads it to eight bytes (`nonos-stark-enroll/src/measure.rs:25-46`).
 
-With Secure Boot on, the loader also checks its own Secure Boot chain, and `verify_chain` stops the boot on a failure unless the loader was built with the development policy (`nonos-bootloader/src/boot/security/policy.rs:48-56`). The Hardened entry says it refuses to boot without Secure Boot and a TPM, next to `Hardened` in the menu (`nonos-bootloader/src/bootmenu/entries.rs:40-45`). The TPM half is the rollback floor on [Rollback protection](rollback-protection.md). The code that enforces the Secure Boot half is in the loader's verification module and is not covered here.
+With Secure Boot on, the loader also checks its own Secure Boot chain, and `verify_chain` stops the boot on a failure unless the loader was built with the development policy (`nonos-bootloader/src/boot/security/policy.rs:48-56`). The Hardened entry says it refuses to boot without Secure Boot and a TPM, next to `Hardened` in the menu (`nonos-bootloader/src/bootmenu/entries.rs:40-45`). The TPM half is the [rollback floor](../overview/glossary.md#rollback-floor), described on [Rollback protection](rollback-protection.md). The code that enforces the Secure Boot half is in the loader's verification module and is not covered here.
+
+Secure Boot decides which loader the firmware starts; it checks neither the kernel nor any capsule. The loader checks the kernel against the keys and the kernel root compiled into that same loader. The kernel checks the loader against the device policy key compiled into that kernel, and each capsule against the trust anchor and the policy root compiled into it. With Secure Boot off, an image sealed whole with other keys therefore passes every check on this page but Hardened's. What it cannot do is open this machine's [data volume](../overview/glossary.md#data-volume) or anything else sealed under its [machine key](../overview/glossary.md#machine-key): its loader and kernel change PCR 4 and PCR 9, so the TPM gives it another one (`BOUND_PCRS`, `src/security/tpm/machine_key/pcrs.rs:21-24`). Booting with Secure Boot on is not tested in this release.
 
 ## The kernel checks its loader
 
@@ -142,9 +144,9 @@ At build time `capsule-sign sign-id-cert` signs each certificate with the two tr
 | Loader | a signed kernel whose trailer does not verify, in any mode | `Kernel self-attestation invalid`, then `[FATAL] kernel self-attestation invalid` |
 | Loader | rollback index below the TPM floor | `Rollback: tpm floor N above image index M`, then `[FATAL] rollback index below TPM floor` |
 | Loader | Hardened or Air-Gapped, and no floor could be read | `Hardened needs a TPM: its rollback floor keeps an older signed kernel from booting` (or `Air-Gapped`), then `[FATAL] profile requires a TPM rollback floor` |
+| Loader | in Development, a kernel that is not enrolled | `kernel attestation required`, then `[FATAL] kernel self-attestation missing` |
 | Kernel | the loader failed the kernel's check | the notice `The bootloader failed the kernel's check`; no program starts |
 | Kernel | no boot-root record or no loader trailer | the notice `The bootloader could not be checked`; no program starts |
-| Loader | in Development, a kernel that is not enrolled | `kernel attestation required`, then `[FATAL] kernel self-attestation missing` |
 | Kernel | a capsule's trailer is refused | `[ZK-ATTEST] FAIL` with the capsule's name and reason on the serial line; that spawn fails |
 
 The loader's messages come from `handle_no_signature` and its neighbours (`nonos-bootloader/src/boot/crypto/signature/error.rs:27-74`) and from `enforce_floor` (`nonos-bootloader/src/boot/crypto/rollback/floor.rs:28-60`). The on-screen lines appear only when the loader has a graphics console; the `[FATAL]` line and the warm reset happen either way. `attest_kernel` gives the Development line (`nonos-bootloader/src/boot/attestation/kernel_gate.rs:34-59`). The kernel's come from `refuse_unchecked_loader` (`src/kernel_core/init/entry/loader_refusal.rs:27-48`) and `attest_gate` (`src/kernel_core/process_spawn/capsule_spawn/runner/attest_gate.rs:23-63`).
@@ -168,3 +170,4 @@ The loader's messages come from `handle_no_signature` and its neighbours (`nonos
 - [Processes and capsule spawn](../kernel/processes-and-spawn.md)
 - [Boot modes](../install/boot-modes.md)
 - [The seal](../build/seal.md)
+- [Checking the security claims yourself](checking-the-claims.md)
