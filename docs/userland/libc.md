@@ -32,10 +32,10 @@ The crate root re-exports one module per area (`userland/libc/src/lib.rs:64-137`
 | threads | `mk_thread_spawn`, which starts a thread in the same process at an entry and a stack the caller provides |
 | time | `mk_time_millis`, `mk_time_rtc`, `mk_uptime_ms`, `mk_time_adjust` |
 | cryptography | `crypto_random`, `crypto_hash`, `crypto_encrypt`, `crypto_decrypt`, HKDF, HMAC, Keccak-256, X25519 |
-| hardware broker | device claim and release, MMIO, IRQ, DMA and port I/O for driver capsules |
+| [hardware broker](../overview/glossary.md#hardware-broker) | device claim and release, MMIO, IRQ, DMA and port I/O for [driver capsules](../overview/glossary.md#driver-capsule) |
 | graphics and input | surface register, attach, share and present, input events |
 | capsules and apps | `mk_capsule_load`, `mk_capsule_verify`, `mk_app_install`, `mk_app_launch`, `mk_spawn_instance`, `mk_tool_run` |
-| storage | `mk_store_read`, `mk_store_write`, the data volume calls |
+| storage | `mk_store_read`, `mk_store_write`, the [data volume](../overview/glossary.md#data-volume) calls |
 | Linux guests | the `mk_foreign_*` calls the [Linux personality](../overview/glossary.md#linux-personality) uses |
 | logging | `mk_debug`, one line of at most 256 bytes on the serial log, refused to a capsule without Debug |
 | other | reboot and shutdown, attestation queries, capability checks, process statistics, the terminal's standard streams |
@@ -57,11 +57,11 @@ With the default `panic-handler` feature, a panic writes one `[PANIC]` line with
 
 ## Rust std for capsules
 
-Seventeen capsules are ordinary Rust programs that use `std`. Seven are compiled from their own directory with `-Zbuild-std=std,panic_abort`: `std_proof`, `install-cli`, `egui_proof`, `mdview`, `qrgen`, `shield` and the development test `shield-vectors`. Nine are unmodified crates.io programs: `ripgrep`, `sd` and the seven tools in `userland/apps.list`. The tenth, `tokio-smoke`, is a test of the async runtime, built from source in `userland/upstream-src/` with patches to `mio`, `socket2` and `tokio` (`mk/20-build.mk:316-319`, `UPSTREAM_TOKIO_SMOKE_SRC`). Every one of them links the start object built from `toolchain/nonos-rt` (`mk/20-build.mk:236-241`, `NONOS_RT_OBJ`; `nonos-mk/capsule.mk:128-129`, `NONOS_RT_OBJ`).
+Seventeen capsules are ordinary Rust programs that use `std`. Seven are compiled from their own directory with `-Zbuild-std=std,panic_abort`: `std_proof`, `install-cli`, `egui_proof`, `mdview`, `qrgen`, `shield` and the development test `shield-vectors`. The other ten are built by rules of their own in `mk/20-build.mk` and copied in: nine unmodified crates.io programs, `ripgrep`, `sd` and the seven tools in `userland/apps.list`, and `tokio-smoke`, a test of the async runtime built from source in `userland/upstream-src/` with patches to `mio`, `socket2` and `tokio` (`mk/20-build.mk:316-319`, `UPSTREAM_TOKIO_SMOKE_SRC`). Every one of them links the start object built from `toolchain/nonos-rt` (`mk/20-build.mk:236-241`, `NONOS_RT_OBJ`; `nonos-mk/capsule.mk:128-129`, `NONOS_RT_OBJ`).
 
 The platform layer in `toolchain/nonos-std/sys/` gives `std` its NONOS backends: allocation, arguments, environment, files over `vfs_pool`, sockets over `net.sockets` and `net.dns`, random numbers, threads, thread-local keys, time and standard I/O. Some parts are missing or refused:
 
-- Symbolic and hard links, and reading a link, return `Unsupported`, because the [store](../overview/glossary.md#store) does not model links (`toolchain/nonos-std/sys/fs/nonos/ops/links.rs:24-34`, `symlink`).
+- Symbolic and hard links, and reading a link, return `Unsupported`, because the [file store](../overview/glossary.md#file-store) does not model links (`toolchain/nonos-std/sys/fs/nonos/ops/links.rs:24-34`, `symlink`).
 - There is no process module in the layer, so `std::process::Command` cannot start a program.
 - `TcpStream` goes to `net.sockets` and DNS to `net.dns` by name (`toolchain/nonos-std/sys/net/connection/nonos/transport/consts.rs:21-24`, `SK_NAME`). A `std` capsule still needs Network for either service to answer it.
 - `TcpStream` opens a plain stream socket, kind 1, never a mixnet socket, so a `std` program's connections do not follow the default network chosen in Settings (`toolchain/nonos-std/sys/net/connection/nonos/tcp_stream/connect.rs:41-48`, `connect_addr`). A name resolves through `net.dns` to one IPv4 address.
@@ -80,11 +80,11 @@ No capsule in this release uses it. Its users are the crates in `userland/nonos_
 
 ## The SDK
 
-`userland/sdk/` holds nine crates and two example apps: `nonos_sdk`, `nonos_prelude`, `nonos_app`, `nonos_window`, `nonos_ui`, `nonos_appkit`, `nonos_desktop`, `nonos_font` and `nonos_std`. The last is a `no_std` library shaped like `std` and built on `nonos_libc`, not on the runtime. No `Capsule.mk` builds an SDK crate, so no SDK app is signed, enrolled or in an image. The one capsule crate that uses one, `capsule_gui_proof`, depends on `nonos_std` and has no `Capsule.mk` either (`userland/capsule_gui_proof/Cargo.toml:24`, `nonos_std`).
+`userland/sdk/` holds nine crates and two example apps: `nonos_sdk`, `nonos_prelude`, `nonos_app`, `nonos_window`, `nonos_ui`, `nonos_appkit`, `nonos_desktop`, `nonos_font` and `nonos_std`. The last is a `no_std` library shaped like `std` and built on `nonos_libc`, not on the runtime. No `Capsule.mk` builds an SDK crate, so no SDK app is signed, enrolled or in an image. The one capsule crate that uses one, `capsule_gui_proof`, depends on `nonos_std` and has no `Capsule.mk` either (`userland/capsule_gui_proof/Cargo.toml:24`, `nonos_std`). Every capsule with a tile on the dock or in the Launchpad is built on `nonos_app_skeleton` instead, the path [Writing an app](writing-an-app.md) follows.
 
 ## The toolkit
 
-`userland/toolkit/` is the drawing library the desktop apps link, and the same crate builds a small `toolkit` service capsule (`userland/toolkit/Cargo.toml:11-17`, `nonos_toolkit`). Because it is linked into each app, its drawing code runs in that app's process, with that app's capabilities. Twenty-five crates name it directly in their `Cargo.toml`, `app_skeleton`, the shared base of the desktop apps, among them.
+`userland/toolkit/` is the drawing library the desktop apps link, and the same crate builds a small `toolkit` service capsule (`userland/toolkit/Cargo.toml:11-17`, `nonos_toolkit`). Because it is linked into each app, its drawing code runs in that app's process, with that app's capabilities. Twenty-five crates directly under `userland/` name it in their `Cargo.toml`, `app_skeleton`, the shared base of the desktop apps, among them.
 
 ## See also
 
