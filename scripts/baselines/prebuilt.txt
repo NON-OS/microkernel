@@ -15,3 +15,5 @@ upstream nonos-data/cacert.pem
 fixture */tests/*
 fixture */vectors/*
 fixture userland/tls_proofs/src/*
+generated nonos-data/market/index.bin
+generated nonos-data/models/catalogue.bin

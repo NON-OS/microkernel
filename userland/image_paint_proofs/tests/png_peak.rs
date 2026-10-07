@@ -48,6 +48,14 @@ fn a_4_megapixel_png_decodes_in_its_output_plus_under_128_kib() {
     let path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/misc/png_rgba_2000x2000_diagram.png");
     let file = std::fs::read(path).expect("fixture");
     let mut out = vec![0u32; 2000 * 2000];
+    // A one-time per-thread allocator/std init (on linux, glibc's tcache/arena,
+    // ~144 B that never frees) is triggered by the first small allocation inside
+    // decode -- `out` above is mmap'd, so it does not warm it. Run one throwaway
+    // decode so `base` captures that init; the measured decode then nets to zero.
+    {
+        let mut warm = vec![0u32; 2000 * 2000];
+        let _ = decode_png_argb8888(&file, &mut warm);
+    }
     let base = LIVE.load(Relaxed);
     PEAK.store(base, Relaxed);
     let size = decode_png_argb8888(&file, &mut out).expect("decodes");
