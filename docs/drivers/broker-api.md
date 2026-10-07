@@ -6,9 +6,9 @@ The calls a [driver capsule](../overview/glossary.md#driver-capsule) makes to fi
 
 A driver calls the [hardware broker](../overview/glossary.md#hardware-broker) through `nonos_libc`, the crate in `userland/libc` that every driver depends on (`userland/capsule_driver_virtio_rng/Cargo.toml:22`). The wrappers are in `userland/libc/src/broker/`, re-exported as `mk_device_list`, `mk_mmio_map` and the rest (`userland/libc/src/broker/mod.rs:29-51`). Each makes one system call whose number is four ASCII letters read as a little-endian integer by `tag4`, such as `N_MK_DEVICE_LIST` for `MDLS` (`userland/libc/src/syscall/numbers/broker.rs:18-33`, `src/syscall/abi/tag.rs:20-22`).
 
-`nonos_abi`, the bottom of the native runtime, carries no broker numbers (`userland/nonos_abi/README.md`). The crates in `userland/sdk` are for applications and `userland/platform` is a host-side packaging tool, so a driver uses neither. `nonos_devmodel` runs only on the host, where it gives a proof crate a register window in memory (`userland/nonos_devmodel/README.md`); [writing-a-driver.md](writing-a-driver.md) shows it in use.
+`nonos_abi`, the bottom of the native runtime, carries no broker numbers (`userland/nonos_abi/README.md`). The crates in `userland/sdk` are for applications and `userland/platform` is a host-side packaging tool, so a driver uses neither. `nonos_devmodel` runs only on the host, where it gives a [proof crate](../overview/glossary.md#proof-crate) a register window in memory (`userland/nonos_devmodel/README.md`); [Writing a driver](writing-a-driver.md#15-the-proof-crate) shows it in use.
 
-On the kernel side every call first passes the contract table, which checks the capability before any handler runs, for example `can_driver` for `MkDeviceClaim` (`src/syscall/contract/cap_table/mk.rs:123-136`). A handler in `src/syscall/microkernel/` then turns the arguments into a request to `src/hardware/broker`. The register-level tables of numbers, arguments and return values are in [../abi/broker.md](../abi/broker.md).
+On the kernel side every call first passes the contract table, which checks the capability before any handler runs, for example `can_driver` for `MkDeviceClaim` (`src/syscall/contract/cap_table/mk.rs:123-136`). A handler in `src/syscall/microkernel/` then turns the arguments into a request to `src/hardware/broker`. The register-level tables of numbers, arguments and return values are in the [Broker ABI](../abi/broker.md).
 
 ```mermaid
 sequenceDiagram
@@ -41,7 +41,7 @@ Each call needs one bit of the driver's [capability word](../overview/glossary.m
 | 19 | `Dma` | `MkDmaMap`, `MkDmaUnmap` |
 | 20 | `Pio` | `MkPioGrant`, `MkPioRead`, `MkPioWrite`, `MkPioRelease` |
 
-Every one of these checks also passes for a holder of `Admin`, as `can_driver` and its siblings show (`src/capabilities/token/types/authority_broker.rs:24-55`). A driver also holds `IPC` (bit 3) to serve and `Memory` (bit 4) to allocate (`src/capabilities/types/defs.rs:26-27`). Holding `Irq` lets a capsule post input events too, because `can_input_source` accepts it (`src/capabilities/token/types/authority_broker.rs:59-63`).
+Every one of these checks also passes for a holder of `Admin`, as `can_driver` and its siblings show (`src/capabilities/token/types/authority_broker.rs:24-55`). The two PCI configuration handlers then ask for `Driver` again, so `Admin` alone is refused there (`sys_pci_config_read` in `src/syscall/microkernel/pci.rs:28-35`). A driver also holds `IPC` (bit 3) to serve and `Memory` (bit 4) to allocate (`src/capabilities/types/defs.rs:26-27`). Holding `Irq` lets a capsule post input events too, because `can_input_source` accepts it (`src/capabilities/token/types/authority_broker.rs:59-63`).
 
 ## The device record
 
@@ -90,7 +90,7 @@ A `Bar` has kind 1 for memory and 2 for port I/O, and `aux` carries the DesignWa
 3. It brings a PCI function to power state D0 with `power_on_device`, because firmware may leave an LPSS function in D3 with its registers dead (`src/hardware/broker/power.rs:20-30`).
 4. It clears Enable No Snoop in the PCIe Device Control register with `snoop_every_request`, so every DMA request snoops the CPU caches, and logs whether the bit stayed off (`src/hardware/broker/claim/no_snoop.rs:33-52`).
 
-When no remapping unit is in service, the device cannot be confined. `unconfined_allowed` lets the claim through only for the four errors that mean no unit is in service, and `attach` logs `unconfined: no remapping unit in service, reaches all memory` (`src/hardware/broker/confine/posture.rs:32-49`). That is the case on a machine without VT-d, and on an AMD-Vi machine with the default build (see [platform.md](platform.md)). Any other attach failure refuses the claim.
+A PCI device that no remapping unit in service covers cannot be confined, and the claim goes ahead without a domain. `attach` asks `translates` first, and when the answer is no it logs `unconfined: no remapping unit in service covers it, reaches all memory` and lets the claim through (`src/hardware/broker/confine/attach.rs:41-48`, `translates`). That is every device on a machine without VT-d, every device on an AMD-Vi machine, since no build profile drives AMD-Vi (see [Platform](platform.md#vt-d-and-amd-vi)), and a device outside every unit's scope on a VT-d machine. If the capsule's domain then cannot be made, `unconfined_allowed` still lets the claim through for the four errors that mean no unit is in service (`src/hardware/broker/confine/posture.rs:32-49`). Any other attach failure refuses the claim.
 
 Every later call on the device carries the epoch, and calls on a grant name the grant id. A call with an old epoch fails with -116, `ERRNO_STALE` (`src/syscall/microkernel/errnos.rs:54`).
 
@@ -98,7 +98,7 @@ Every later call on the device carries the epoch, and calls on a grant name the 
 
 `mk_pci_config_read(device_id, epoch, offset, width)` returns the value read. The broker's `read` accepts widths 1, 2 and 4, aligned, inside the first `CONFIG_LIMIT` (256) bytes (`src/hardware/broker/pci/read.rs:22-48`).
 
-`mk_pci_config_write(device_id, epoch, offset, value)` writes 16 bits, and very few of them. `validate` accepts the Command register, the MSI-X Message Control register and a short list of vendor bits, and refuses every other offset (`src/hardware/broker/pci/allowlist.rs:37-60`):
+`mk_pci_config_write(device_id, epoch, offset, value)` writes 16 bits, and only to a few registers. `validate` accepts the Command register, the MSI-X Message Control register and a short list of vendor bits, and refuses every other offset (`src/hardware/broker/pci/allowlist.rs:37-60`):
 
 - In Command, `COMMAND_WRITABLE` is Bus Master, Memory Space and Interrupt Disable (`src/hardware/broker/pci/command.rs:33`). `validate_command` ORs a value made only of those bits into the register, and otherwise requires the new value to match the register outside them (`src/hardware/broker/pci/command.rs:35-41`).
 - In MSI-X Message Control, `MSIX_CONTROL_WRITABLE` is Enable and Function Mask (`src/hardware/broker/pci/allowlist.rs:35`).
@@ -174,10 +174,10 @@ Every call returns a negative errno on failure, from `ERRNO_PERM` (-1) to `ERRNO
 | -19 | ENODEV | no such device |
 | -22 | EINVAL | bad BAR, range, length or alignment |
 | -34 | ERANGE | a DMA32 buffer above 4 GiB |
-| -95 | ENOTSUP | an unknown flag bit |
+| -95 | EOPNOTSUPP | an unknown flag bit |
 | -116 | ESTALE | an old claim epoch |
 
-[../abi/errors.md](../abi/errors.md) has the full list.
+[Errors](../abi/errors.md) has the full list.
 
 ## Known gaps
 
@@ -187,10 +187,11 @@ Every call returns a negative errno on failure, from `ERRNO_PERM` (-1) to `ERRNO
 
 ## See also
 
-- [README.md](README.md)
-- [writing-a-driver.md](writing-a-driver.md)
-- [../abi/broker.md](../abi/broker.md)
-- [../abi/errors.md](../abi/errors.md)
-- [../kernel/hardware-broker.md](../kernel/hardware-broker.md)
-- [../kernel/iommu.md](../kernel/iommu.md)
-- [../kernel/capabilities.md](../kernel/capabilities.md)
+- [Drivers](README.md)
+- [Writing a driver](writing-a-driver.md)
+- [Platform](platform.md)
+- [Broker ABI](../abi/broker.md)
+- [Errors](../abi/errors.md)
+- [The hardware broker](../kernel/hardware-broker.md)
+- [IOMMU](../kernel/iommu.md)
+- [Capabilities](../kernel/capabilities.md)

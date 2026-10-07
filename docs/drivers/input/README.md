@@ -8,7 +8,7 @@ How a key press, a mouse movement or a touch on the touchpad reaches an applicat
 |---|---|---|---|
 | Keyboard, mouse or touchpad on the i8042 (PS/2) controller | `capsule_driver_ps2_input` | `driver.ps2_kbd0` | [PS/2 keyboard and mouse](ps2.md) |
 | HID-over-I2C touchpad on an Intel LPSS or AMD I2C controller | `capsule_driver_i2c_hid` over `capsule_driver_i2c_pci` | `driver.i2c_hid0`, `driver.i2c_pci0` | [I2C-HID touchpads](i2c-hid.md) |
-| USB keyboard, mouse or tablet behind an xHCI controller | `capsule_driver_usb_hid` | `driver.usb_hid0` | [USB HID](../usb/hid.md) |
+| USB keyboard, mouse or tablet behind an xHCI controller | `capsule_driver_usb_hid` | `driver.usb_hid0` | [USB keyboards and mice](../usb/hid.md) |
 
 Each driver is its own [capsule](../../overview/glossary.md#capsule) in ring 3, and none of them decides which window gets the input. Only the PS/2 driver holds grants from the [hardware broker](../../overview/glossary.md#hardware-broker) itself. The USB HID driver holds IPC, Memory and InputSource alone and asks `driver.xhci0` for its transfers (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_driver_usb_hid/Capsule.mk:15`); the touchpad driver does the same through `driver.i2c_pci0`.
 
@@ -39,7 +39,7 @@ A process receives an event only when it has subscribed to that kind of event, a
 Two groups of keys never reach the focused window:
 
 - Ctrl+Alt+Esc goes to `desktop_shell`, which brings Process Manager forward to end a window that misbehaves (`is_reserved_chord`, `userland/capsule_input_router/src/route/chord.rs:34-36`).
-- Mute, Volume Down, Volume Up and Power go to `desktop_shell` whatever has focus (`is_shell_key`, `userland/capsule_input_router/src/route/shell_keys.rs:32-34`). [Audio](../audio.md) says what the volume keys do. The Power key, from a keyboard or from the ACPI power button, only shows the notice `Power off is not available from the desktop`: the desktop has no way to power off in 0.9.2 (`POWER_OFF_UNAVAILABLE`, `userland/capsule_desktop_shell/src/state/system_key.rs:42-47`).
+- Mute, Volume Down, Volume Up and Power go to `desktop_shell` whatever has focus (`is_shell_key`, `userland/capsule_input_router/src/route/shell_keys.rs:32-34`). [Audio](../audio.md#volume-and-the-volume-keys) says what the volume keys do. The Power key, from a keyboard or from the [ACPI power button](../platform.md#the-power-button), only shows the notice `Power off is not available from the desktop`: the desktop has no way to power off in 0.9.2 (`POWER_OFF_UNAVAILABLE`, `userland/capsule_desktop_shell/src/state/system_key.rs:42-47`).
 
 ## Keyboard layouts
 
@@ -53,7 +53,7 @@ The drivers read the layout from the [policy store](../../overview/glossary.md#p
 
 No input driver writes a key to disk or to a log. The one exception for pointer data is the touchpad driver: when it holds the Debug capability it writes the first 16 bytes of each of its first six raw reports to the console, so a decode can be checked against the wire (`frame_dumps`, `userland/capsule_driver_i2c_hid/src/input/poll/read_frame.rs:55-58`). `input_router` is granted IPC, Memory and InputSource and nothing else, so it cannot write to the serial console (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_input_router/Capsule.mk:16`).
 
-The kernel holds `driver.ps2_kbd0`, `driver.usb_hid0` and `driver.i2c_hid0` to an empty sender list, so no capsule can ask a keyboard driver for keys (`KERNEL_ONLY`, `src/services/registry/held_table.rs:27-29`).
+The kernel makes `driver.ps2_kbd0`, `driver.usb_hid0` and `driver.i2c_hid0` [held endpoints](../../overview/glossary.md#held-endpoint) with an empty sender list, so no capsule can ask a keyboard driver for keys (`KERNEL_ONLY`, `src/services/registry/held_table.rs:27-29`).
 
 Two limits follow from the capability rules above. A capsule holding `Irq` may post input events whatever its device, and the manifests of the AHCI, HD Audio, I2C controller, Intel Wi-Fi, NVMe, virtio-blk and xHCI drivers all ask for it. The three input drivers hold `InputSource` as well as `input_router`, so the kernel would let them drain the ring; in the shipped code only `input_router` calls the drain (`can_input_consumer`, `src/capabilities/token/types/authority_broker.rs:64-73`).
 
@@ -91,8 +91,9 @@ For the PS/2 keyboard with its layouts, the I2C-HID touchpad on Intel LPSS, the 
 - [Drivers](../README.md)
 - [PS/2 keyboard and mouse](ps2.md)
 - [I2C-HID touchpads](i2c-hid.md)
-- [USB HID](../usb/hid.md)
+- [USB keyboards and mice](../usb/hid.md)
 - [Audio](../audio.md)
+- [Platform: the power button](../platform.md#the-power-button)
 - [Keyboard layouts](../../using/keyboard-layouts.md)
 - [Hardware broker](../../kernel/hardware-broker.md)
 - [Support matrix](../../hardware/MATRIX.md)

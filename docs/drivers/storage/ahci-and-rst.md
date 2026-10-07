@@ -10,7 +10,7 @@ The [capsule](../../overview/glossary.md#capsule) takes a PCI function as an AHC
 - an Intel controller of class 01h subclass 04h (RAID), which is how Intel RST "RAID On" presents an AHCI controller with its ABAR in BAR5;
 - never an Intel VMD, which reports the RAID subclass too but is a PCI domain, not a disk controller (`userland/capsule_driver_ahci/src/discover/rule.rs:33-41`, `INTEL_VMD_DEVICE_IDS`).
 
-Its register block, the ABAR in BAR5, must be a memory BAR that holds the global registers and one port, so the 2 KiB ABAR common on Intel chipsets is enough (`userland/capsule_driver_ahci/src/discover/rule.rs:27-31`, `MIN_ABAR_BYTES`). The kernel's inventory makes the same check before it counts an Intel RAID-mode function as SATA (`src/hardware/inventory/classify.rs:51-61`, `classify_device`). The capsule walks every controller that matches, in device list order (`userland/capsule_driver_ahci/src/discover/find.rs:32-34`, `find_ahci`).
+Its register block, the ABAR in BAR5, must be a memory BAR that holds the global registers and one port, so the 2 KiB ABAR common on Intel chipsets is enough (`userland/capsule_driver_ahci/src/discover/rule.rs:27-31`, `MIN_ABAR_BYTES`). The kernel's inventory counts an Intel RAID-mode function as SATA only when its BAR5 is a memory BAR (`src/hardware/inventory/classify.rs:51-61`, `classify_device`). The capsule walks every controller that matches, in device list order (`userland/capsule_driver_ahci/src/discover/find.rs:32-34`, `find_ahci`).
 
 ## Bring-up
 
@@ -34,13 +34,21 @@ The capsule sends four ATA commands: IDENTIFY DEVICE, READ DMA EXT, WRITE DMA EX
 
 ## Intel RST
 
-Intel Rapid Storage Technology changes what the firmware shows in ways that matter here.
+With Intel Rapid Storage Technology (RST) on in firmware, a machine's disks reach NONOS in one of three arrangements.
 
-RAID On with SATA disks. The controller reports the RAID subclass, but it is a standard AHCI controller with its ABAR in BAR5, so NONOS binds it as one (`src/hardware/inventory/classify_storage.rs:26-33`, `classify_storage`). The capsule does not read RST metadata, so a RAID volume made of several disks is not supported: to NONOS each member is a separate raw disk, and the capsule serves one disk.
+### RAID On with SATA disks
 
-NVMe hidden behind the SATA controller. In RAID mode RST can remap an NVMe drive behind the SATA controller's ABAR, and the NVMe function then disappears from PCI. The capsule reads the remap registers when the ABAR is 512 KiB or more: VSCAP at 0xA4, REMAP_CAP at 0x800, and a class code at 0x880 for each of three slots, 0x80 apart (`userland/capsule_driver_ahci/src/controller/remap.rs:23-42`, `may_remap`). When VSCAP bit 0 is set, each slot marked in REMAP_CAP whose class code is NVMe counts as one hidden drive (`userland/capsule_driver_ahci/src/controller/remap.rs:44-57`, `remapped_nvme`). NONOS does not drive the hidden drives. The capsule writes `Intel RST hides N NVMe drive(s) behind this controller; set the firmware's SATA mode to AHCI` with `mk_debug` (`userland/capsule_driver_ahci/src/setup/remap.rs:23-49`, `say_remapped`), but `driver.ahci0` holds no Debug capability (`src/hardware/ahci_capsule/spawn.rs:51-57`, `requested_caps`), so in this release that line, like every other line the capsule writes, does not reach the console. The installer's message below is what a person sees.
+The controller reports the RAID subclass, but it is a standard AHCI controller with its ABAR in BAR5, so NONOS binds it as one (`src/hardware/inventory/classify_storage.rs:26-33`, `classify_storage`). The capsule does not read RST metadata, so a RAID volume made of several disks is not supported: to NONOS each member is a separate raw disk, and the capsule serves one disk.
 
-Intel VMD is a third arrangement, with its own page: [Intel VMD](vmd.md).
+### NVMe drives hidden behind the SATA controller
+
+In RAID mode RST can remap an NVMe drive behind the SATA controller's ABAR, and the NVMe function then disappears from PCI. The capsule reads the remap registers when the ABAR is 512 KiB or more: VSCAP at 0xA4, REMAP_CAP at 0x800, and a class code at 0x880 for each of three slots, 0x80 apart (`userland/capsule_driver_ahci/src/controller/remap.rs:23-42`, `may_remap`). When VSCAP bit 0 is set, each slot marked in REMAP_CAP whose class code is NVMe counts as one hidden drive (`userland/capsule_driver_ahci/src/controller/remap.rs:44-57`, `remapped_nvme`). NONOS does not drive the hidden drives.
+
+The capsule writes `Intel RST hides N NVMe drive(s) behind this controller; set the firmware's SATA mode to AHCI` with `mk_debug` (`userland/capsule_driver_ahci/src/setup/remap.rs:23-49`, `say_remapped`), but `driver.ahci0` holds no Debug [capability](../../overview/glossary.md#capability) (`src/hardware/ahci_capsule/spawn.rs:51-57`, `requested_caps`), so in this release that line, like every other line the capsule writes, does not reach the [serial console](../../overview/glossary.md#serial-console). The installer's message below is what a person sees.
+
+### Intel VMD
+
+With VMD on, the NVMe drives sit in a PCI domain of their own, which the kernel brings up itself. The SATA capsule never binds a VMD; see [Intel VMD](vmd.md).
 
 ## What to change in firmware setup
 
@@ -50,16 +58,16 @@ Firmware names this setting differently from one machine to the next; the instal
 
 ## Access and capabilities
 
-The capsule serves `driver.ahci0` on service endpoint 4216 (`userland/capsule_driver_ahci/Capsule.mk:14`, `CAPSULE_SERVICE_ENDPOINT`). Its operations are health check, controller info, port list, capacity, read, write, flush and identify (`userland/capsule_driver_ahci/src/protocol/ops.rs:17-26`, `OP_IDENTIFY`). Every operation but the health check answers only the kernel's own client and a holder of `StoreWrite` (`userland/capsule_driver_ahci/src/server/medium_rule.rs:25-29`, `allows`).
+The capsule serves `driver.ahci0` on service [endpoint](../../overview/glossary.md#endpoint) 4216 (`userland/capsule_driver_ahci/Capsule.mk:14`, `CAPSULE_SERVICE_ENDPOINT`). Its operations are health check, controller info, port list, capacity, read, write, flush and identify (`userland/capsule_driver_ahci/src/protocol/ops.rs:17-26`, `OP_IDENTIFY`). Every operation but the health check answers only the kernel's own client and a holder of `StoreWrite` (`userland/capsule_driver_ahci/src/server/medium_rule.rs:25-29`, `allows`).
 
-It holds the [capabilities](../../overview/glossary.md#capability) IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the word 0xF8018 (`userland/capsule_driver_ahci/Capsule.mk:16-17`, `CAPSULE_REQUIRED_CAPS`).
+It holds the capabilities IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the [capability word](../../overview/glossary.md#capability-word) 0xF8018 (`userland/capsule_driver_ahci/Capsule.mk:16-17`, `CAPSULE_REQUIRED_CAPS`).
 
 The same capsule serves an eMMC disk when no SATA disk comes up; see [SD cards and eMMC](sd-and-emmc.md).
 
 ## How it was verified
 
 - `userland/ahci_link_proofs` is the [proof crate](../../overview/glossary.md#proof-crate). It runs the link checks, the disk choice, the IDENTIFY rules, request spans, hostile completion waits, port recovery, the RST remap rule and the VMD refusal on the host, and checks that the capsule's VMD list matches the kernel's: 99 tests pass on this commit.
-- No QEMU target in `mk/` and no `tools/nonos_qemu` option names an AHCI device, and no QEMU run of the SATA path is reported for this release.
+- No QEMU target names an AHCI device, but the run targets boot the q35 machine, whose own AHCI controller takes each drive given without an interface: the ESP drive (`mk/40-run.mk:114-115`, `ESP_DIR`), or the whole stick when `tools/nonos_qemu` boots it with `--stick` (`tools/nonos_qemu/machine.py:70-74`, `boot`). No QEMU run of the SATA path is reported for this release.
 - Not tested on hardware in this release.
 
 ## See also

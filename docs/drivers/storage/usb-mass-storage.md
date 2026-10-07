@@ -8,7 +8,7 @@ How NONOS reads and writes USB sticks and USB disks through `driver.usb_msc0`, a
 
 ## Where it sits
 
-The driver is a class [capsule](../../overview/glossary.md#capsule) with no hardware [capability](../../overview/glossary.md#capability): it holds CoreExec, IPC and Memory, the word 0x19 (`userland/capsule_driver_usb_msc/Capsule.mk:15-18`, `CAPSULE_REQUIRED_CAPS`). Every transfer goes through the xHCI driver `driver.xhci0`, which the kernel lets only this driver and `driver.usb_hid0` reach (`src/services/registry/held_table.rs:30-32`, `driver.xhci0`). Its own endpoint, service 4224, is held to the kernel: no capsule may send to it (`userland/capsule_driver_usb_msc/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`).
+The driver is a class [capsule](../../overview/glossary.md#capsule) with no hardware [capability](../../overview/glossary.md#capability): it holds CoreExec, IPC and Memory, the word 0x19 (`userland/capsule_driver_usb_msc/Capsule.mk:15-18`, `CAPSULE_REQUIRED_CAPS`). Every transfer goes through the xHCI driver `driver.xhci0`, which the kernel lets only this driver and `driver.usb_hid0` reach (`src/services/registry/held_table.rs:30-32`, `driver.xhci0`).
 
 ```mermaid
 sequenceDiagram
@@ -59,11 +59,11 @@ Two habits of real devices that the Bulk-Only specification does not allow are a
 
 ## Access
 
-The block surface answers the kernel's client alone, which arrives as sender pid 0. Every other sender gets `E_ACCES`, so the medium is written only through the kernel block layer (`userland/capsule_driver_usb_msc/src/server/handlers/block.rs:17-43`, `E_ACCES`). The installer therefore cannot install to a USB disk: its block client knows only the NVMe, SATA and virtio-blk drivers; see [Storage drivers](README.md#the-installers-disk-list).
+The driver serves service [endpoint](../../overview/glossary.md#endpoint) 4224 (`userland/capsule_driver_usb_msc/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`), a [held endpoint](../../overview/glossary.md#held-endpoint) that no capsule may send to (`src/services/registry/held_table.rs:30`, `driver.usb_msc0`). The driver makes the same check itself: its block surface answers the kernel's client alone, which arrives as sender pid 0. Every other sender gets `E_ACCES`, so the medium is written only through the kernel block layer (`userland/capsule_driver_usb_msc/src/server/handlers/block.rs:17-43`, `E_ACCES`). The installer therefore cannot install to a USB disk: its block client knows only the NVMe, SATA and virtio-blk drivers; see [Storage drivers](README.md#the-installers-disk-list).
 
 When a stick carries NONOS, the block layer asks it before any internal disk, so a live boot keeps its state on the stick; see [Storage drivers](README.md#how-a-disk-becomes-the-nonos-disk).
 
-The driver has no Debug capability, so bulk payloads stay off the console (`src/userspace/capsule_driver_usb_msc/spawn.rs:51-53`, `requested_caps`). The kernel says where the driver's search stands in one `[USB-MSC]` line, read from the driver's state reply (`src/hardware/usb_msc_capsule/report.rs:18-38`, `report_line`).
+The driver holds no Debug capability and writes nothing to the [serial console](../../overview/glossary.md#serial-console) (`src/userspace/capsule_driver_usb_msc/spawn.rs:51-53`, `requested_caps`). The kernel says where the driver's search stands instead, in one `[USB-MSC]` line read from the driver's state reply (`src/hardware/usb_msc_capsule/report.rs:18-38`, `report_line`).
 
 ## How it was verified
 

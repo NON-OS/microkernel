@@ -25,7 +25,7 @@ flowchart LR
 
 A player or app never talks to the driver. It opens a stream on `audio.server`, the audio server [capsule](../overview/glossary.md#capsule) `capsule_audio`, which mixes every stream in 1024-frame periods, about 21 ms each, and offers the driver up to three periods a pass, holding one back while the driver's queue is full (`PERIOD_FRAMES`, `userland/capsule_audio/src/server/pump.rs:25-27`). It takes four streams at once, at most two from one client (`MAX_STREAMS`, `userland/capsule_audio/src/server/streams.rs:19-21`).
 
-Only `audio.server` may send to `driver.hda0` (`HELD`, `src/services/registry/held_table.rs:20-35`). The driver takes PCM in pieces of at most 4096 bytes (`MAX_PCM_CHUNK`, `userland/capsule_driver_hda/src/protocol/limits.rs:18`) into a 64 KiB queue (`QUEUE_BYTES`, `userland/capsule_driver_hda/src/audio/queue.rs:20`), and copies it into a ring of four 8 KiB periods that the controller plays by DMA (`PERIOD_BYTES`, `userland/capsule_driver_hda/src/controller/bdl.rs:17-19`).
+`driver.hda0` is a [held endpoint](../overview/glossary.md#held-endpoint): only `audio.server` may send to it (`HELD`, `src/services/registry/held_table.rs:20-35`). The driver takes PCM in pieces of at most 4096 bytes (`MAX_PCM_CHUNK`, `userland/capsule_driver_hda/src/protocol/limits.rs:18`) into a 64 KiB queue (`QUEUE_BYTES`, `userland/capsule_driver_hda/src/audio/queue.rs:20`), and copies it into a ring of four 8 KiB periods that the controller plays by DMA (`PERIOD_BYTES`, `userland/capsule_driver_hda/src/controller/bdl.rs:17-19`).
 
 ## Controllers
 
@@ -35,8 +35,8 @@ The driver takes a PCI function of class 0x04 with subclass 0x03, from any vendo
 - A controller from ATI or AMD graphics (1002), NVIDIA (10de) or an Intel discrete card (8086:490d, 4f90, 4f91, 4f92, e2f7) carries HDMI only (`graphics_audio`, `userland/capsule_driver_hda/src/controller/intel.rs:70-74`).
 - On the Intel Skylake-family ids in `SKL_FAMILY`, a link left on the 6 MHz clock after reset is moved to a faster one, as Linux does (`init_link_clock`, `userland/capsule_driver_hda/src/controller/intel.rs:139-161`), and Apollo Lake (8086:5a98) alone gets its DMA latency lowered (`reduce_dma_latency`, `userland/capsule_driver_hda/src/controller/intel.rs:89-97`).
 - Intel controllers report the playback position in a DMA position buffer; every other vendor is read by LPIB (`position_buffer`, `userland/capsule_driver_hda/src/controller/intel.rs:84-86`).
-- The interrupt is MSI-X if the broker grants it, else MSI, else the legacy line when firmware routed one, else the driver runs polled (`bind`, `userland/capsule_driver_hda/src/setup/irq.rs:28-47`).
-- The PCI configuration writes Linux makes on Intel and AMD are tried; one the broker refuses is logged as `[HDA] pci ... not written` and passed over (`prepare`, `userland/capsule_driver_hda/src/setup/pci.rs:63-74`).
+- The interrupt is MSI-X if the [hardware broker](../overview/glossary.md#hardware-broker) grants it, else MSI, else the legacy line when firmware routed one, else the driver runs polled (`bind`, `userland/capsule_driver_hda/src/setup/irq.rs:28-47`).
+- The PCI configuration writes Linux makes on Intel and AMD are tried; one the broker refuses is logged as `[HDA] pci ... not written` and passed over (`prepare`, `userland/capsule_driver_hda/src/setup/pci.rs:63-74`). [Broker API](broker-api.md#configuration-space) lists the HD Audio bits the broker lets through.
 
 ## Codecs
 
@@ -93,7 +93,7 @@ A DSP-capable Intel controller that does have an analog codec plays through it a
 
 ## Authority and privacy
 
-- `driver.hda0` holds IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, and Debug only in a build with `capsule-serial-debug` (`CAPSULE_OPTIONAL_CAPS`, `userland/capsule_driver_hda/Capsule.mk:18-21`).
+- `driver.hda0` holds the [capabilities](../overview/glossary.md#capability) IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, and Debug only in a build with `capsule-serial-debug` (`CAPSULE_OPTIONAL_CAPS`, `userland/capsule_driver_hda/Capsule.mk:18-21`).
 - `audio.server` holds IPC and Memory only, with the same optional Debug (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_audio/Capsule.mk:16-19`). It owns no hardware.
 - No sample and no stream state is stored. PCM lives in the queue and the DMA ring only while it plays.
 
@@ -111,7 +111,8 @@ With Debug granted the driver writes `[HDA]` lines and the server `[AUDIO]` line
 
 - [Drivers](README.md)
 - [Input drivers](input/README.md)
-- [Audio for people at the desk](../using/audio.md)
+- [Sound and media](../using/audio.md)
+- [Platform: the volume keys](platform.md#the-volume-keys)
 - [Broker API](broker-api.md)
 - [Support matrix](../hardware/MATRIX.md)
 - [Reporting a machine](../hardware/report.md)

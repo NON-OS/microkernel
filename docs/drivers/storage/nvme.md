@@ -6,7 +6,9 @@ What the NVMe capsule `driver.nvme0` does with an NVMe SSD, where its limits are
 
 `driver.nvme0` takes any PCI function of class 01h, subclass 08h, prog-if 02h whose BAR0 is a memory BAR of at least 16 KiB (`userland/capsule_driver_nvme/src/discover/pci_match.rs:23-38`, `is_nvme`, `has_register_bar`). There is no vendor list: every NVMe controller matches by its class.
 
-The [capsule](../../overview/glossary.md#capsule) considers up to four controllers (`userland/capsule_driver_nvme/src/discover/found.rs:20-21`, `MAX_CONTROLLERS`). An Intel Optane memory cache module, 8086:2522, is tried after every other controller, because it caches another disk and holds no file system of its own (`userland/capsule_driver_nvme/src/discover/rank.rs:24-29`, `CACHE_ONLY`). One capsule serves one controller: the first disk whose namespace gets an I/O queue. A disk that failed to come up is retried before a cache module or an empty namespace is served instead, since it may be the internal SSD, slow after an unclean shutdown (`userland/capsule_driver_nvme/src/discover/choice.rs:48-73`, `choose`). A controller that is not chosen is disabled and released.
+The [capsule](../../overview/glossary.md#capsule) considers up to four controllers (`userland/capsule_driver_nvme/src/discover/found.rs:20-21`, `MAX_CONTROLLERS`). An Intel Optane memory cache module, 8086:2522, is tried after every other controller, because it caches another disk and holds no file system of its own (`userland/capsule_driver_nvme/src/discover/rank.rs:24-29`, `CACHE_ONLY`).
+
+One capsule serves one controller: the first disk whose namespace gets an I/O queue. A disk that failed to come up is retried before a cache module or an empty namespace is served instead, since it may be the internal SSD, slow after an unclean shutdown (`userland/capsule_driver_nvme/src/discover/choice.rs:48-73`, `choose`). A controller that is not chosen is disabled and released.
 
 ## Bring-up
 
@@ -76,7 +78,7 @@ A wait reads the clock once every 1024 polls, so the loop makes no system call p
 
 ## Operations and access
 
-The capsule serves `driver.nvme0` on service endpoint 4220 (`userland/capsule_driver_nvme/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`). Its operations are listed in `userland/capsule_driver_nvme/src/protocol/ops.rs:17-25` (`OP_HEALTHCHECK`), with reply sizes in `userland/capsule_driver_nvme/src/protocol/limits.rs:17-25` (`CONTROLLER_INFO_PAYLOAD_LEN`).
+The capsule serves `driver.nvme0` on service [endpoint](../../overview/glossary.md#endpoint) 4220 (`userland/capsule_driver_nvme/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`). Its operations are listed in `userland/capsule_driver_nvme/src/protocol/ops.rs:17-25` (`OP_HEALTHCHECK`), with reply sizes in `userland/capsule_driver_nvme/src/protocol/limits.rs:17-25` (`CONTROLLER_INFO_PAYLOAD_LEN`).
 
 | Operation | Answers |
 |---|---|
@@ -90,7 +92,7 @@ The capsule serves `driver.nvme0` on service endpoint 4220 (`userland/capsule_dr
 
 Every operation but the health check answers only the kernel's own client and a sender holding `StoreWrite`; see [Storage drivers](README.md#who-may-read-and-write-a-disk).
 
-The capsule holds the [capabilities](../../overview/glossary.md#capability) IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the word 0xF8018 (`userland/capsule_driver_nvme/Capsule.mk:15-16`, `CAPSULE_REQUIRED_CAPS`). A kernel compiled with `capsule-serial-debug` also grants Debug, 0x100, and only then do the capsule's own lines reach the console: each controller it saw, each admin command that failed with its status, and why a namespace got no I/O queue (`userland/capsule_driver_nvme/Capsule.mk:17-21`, `CAPSULE_OPTIONAL_CAPS`). The standard, qemu and dev profiles compile that feature in; the hardened and air-gapped profiles do not (`tools/nix/config.nix:60-62`, `debugFeatures`).
+The capsule holds the [capabilities](../../overview/glossary.md#capability) IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the word 0xF8018 (`userland/capsule_driver_nvme/Capsule.mk:15-16`, `CAPSULE_REQUIRED_CAPS`). A kernel compiled with `capsule-serial-debug` also grants Debug, 0x100, and only then do the capsule's own lines reach the [serial console](../../overview/glossary.md#serial-console): each controller it saw, each admin command that failed with its status, and why a namespace got no I/O queue (`userland/capsule_driver_nvme/Capsule.mk:17-21`, `CAPSULE_OPTIONAL_CAPS`). The standard, qemu and dev profiles compile that feature in; the hardened and air-gapped profiles do not (`tools/nix/config.nix:60-62`, `debugFeatures`).
 
 ## When it gives up
 
@@ -100,7 +102,7 @@ On a machine whose inventory shows no NVMe controller the kernel does not start 
 
 `userland/nvme_proofs` is the [proof crate](../../overview/glossary.md#proof-crate). It runs the driver's parsers, completion waits, readiness steps, namespace geometry, host memory buffer plan and controller choice on the host against scripted and hostile controllers: 81 tests pass on this commit. The register and DMA accesses themselves are not part of the proofs.
 
-Under QEMU, the install target is a blank 8 GiB NVMe disk, `-device nvme,drive=tgt,serial=NONOS-TARGET` (`tools/nonos_qemu/machine.py:61-77`, `disks`; `tools/nonos_qemu/machine.py:23`, `INSTALL_TARGET_GB`). From a checkout with a sealed image, the first command boots the image beside that disk and the second boots the disk the installer wrote, alone. Both run `nix run .#qemu` with a software TPM, passing `--install-target` or `--installed` in `QEMU_ARGS` (`Makefile:80-86`). The `make nonos-mk-run-install` lane attaches the same disk (`mk/40-run.mk:463-464`, `INSTALL_TARGET_IMG`).
+Under QEMU, the install target is a blank 8 GiB NVMe disk, `-device nvme,drive=tgt,serial=NONOS-TARGET` (`tools/nonos_qemu/machine.py:61-77`, `disks`; `tools/nonos_qemu/machine.py:23`, `INSTALL_TARGET_GB`). From a checkout with a sealed image, the first command boots the image beside that disk and the second boots the disk the installer wrote, alone. Both run `nix run .#qemu` with a software TPM, passing `--install-target` or `--installed` in `QEMU_ARGS` (`Makefile:80-86`). The `make nonos-mk-run-install` target attaches the same disk (`mk/40-run.mk:463-464`, `INSTALL_TARGET_IMG`).
 
 ```
 make boot-install

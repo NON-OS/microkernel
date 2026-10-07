@@ -10,6 +10,8 @@ NONOS has two Realtek PCI Ethernet driver [capsules](../../overview/glossary.md#
 | `driver.rtl8169_0` | RTL8169, RTL8110, RTL8168, RTL8111, RTL810x, RTL8125 | 8169, 8167, 8168, 8161, 8162, 2502, 2600, 8136, 8125, 3000 | Partial: in the image, [receive fault](README.md#the-receive-fault), no hardware report; its flake check fails on a lint |
 | none | RTL8126A, RTL8127A | 8126, 8127 | Not supported: left out of the id table |
 
+Read from the code, `net.core` drops every frame either driver receives, so a cable on these ports gets no DHCP lease in this release (`userland/capsule_net_core/src/device/rx_batch.rs:65-67`, `batch_frames`); see [the receive fault](README.md#the-receive-fault).
+
 The USB Realtek RTL8153 is a separate capsule, not in the image; see [USB networking](usb-net.md).
 
 ## RTL8139
@@ -66,7 +68,7 @@ The mask is 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with
 - It draws a station address every boot and writes it into the IDR registers; the factory address is not a fallback (`userland/capsule_driver_rtl8169/src/init/mac.rs:23-33`, `program`).
 - Operation 6 returns a register snapshot with status 0 (`userland/capsule_driver_rtl8169/src/protocol/ops.rs:17-22`, `OP_STATS`), the cause of [the receive fault](README.md#the-receive-fault).
 
-The kernel starts it on every boot of the full image. The `nonos-mk-ethernet-prod` profile carries it to show that a driver whose chip is absent exits and lets the boot go on; the build comment gives the reason as QEMU having no model of this chip (`mk/20-build.mk:1145-1150`, `ETHERNET_DRIVER_ARTIFACTS`).
+The kernel starts it on every boot of the full image. The make target `nonos-mk-ethernet-prod` carries it to show that a driver whose chip is absent exits and lets the boot go on; the build comment gives the reason as QEMU having no model of this chip (`mk/20-build.mk:1145-1150`, `ETHERNET_DRIVER_ARTIFACTS`).
 
 ### Tests
 

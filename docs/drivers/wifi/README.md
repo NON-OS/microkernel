@@ -1,10 +1,10 @@
 # Wi-Fi drivers
 
-NONOS has two ring 3 Wi-Fi driver [capsules](../../overview/glossary.md#capsule), one for the Realtek RTL8821CE and one for Intel cards; this page lists the chips, follows a scan and a join from the Settings panel to the radio, and states what is refused.
+NONOS has two Wi-Fi [driver capsules](../../overview/glossary.md#driver-capsule), one for the Realtek RTL8821CE and one for Intel cards; this page lists the chips, follows a scan and a join from the Settings panel to the radio, and states what is refused.
 
 ## Chips at a glance
 
-Each Wi-Fi driver is a capsule: a signed ring 3 program that reaches its card only through grants from the [hardware broker](../../overview/glossary.md#hardware-broker).
+Each Wi-Fi driver is a [capsule](../../overview/glossary.md#capsule): a signed ring 3 program that reaches its card only through grants from the [hardware broker](../../overview/glossary.md#hardware-broker).
 
 | Chip | PCI vendor:device | Capsule | State in 0.9.2 | Page |
 |---|---|---|---|---|
@@ -12,11 +12,18 @@ Each Wi-Fi driver is a capsule: a signed ring 3 program that reaches its card on
 | Intel AX211, and AX201 modules on the same platforms | 8086:51f0, 51f1, 54f0, 7a70, 7af0, 7f70 | `driver.iwlwifi0` | Partial: boots, scans and joins against a modelled device only | [iwlwifi.md](iwlwifi.md) |
 | Intel AX210 discrete, Intel Meteor Lake Wi-Fi | 8086:2725, 2729, 7e40 | `driver.iwlwifi0` | Refused: firmware file not in the tree | [iwlwifi.md](iwlwifi.md) |
 | Intel 7260 to 9560, AX200, AX201 on Qu and QuZ platforms, two AX210 family ids without transport values | listed on the iwlwifi page | `driver.iwlwifi0` | Refused: no firmware boot path in this driver | [iwlwifi.md](iwlwifi.md) |
-| MediaTek, Qualcomm, Broadcom, other Realtek Wi-Fi | none | none | Not supported | [not-supported.md](not-supported.md) |
+| Intel BE200 and BE201, MediaTek, Qualcomm, Broadcom, other Realtek Wi-Fi | 8086:272b, a840 for the Intel ones | none | Not supported | [not-supported.md](not-supported.md) |
 
 Wi-Fi on Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic). Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
 
 That is the only hardware report for Wi-Fi in this release. Every other statement on these pages comes from the code and from host tests in [proof crates](../../overview/glossary.md#proof-crate).
+
+## What no Wi-Fi driver does
+
+- No 6 GHz. The RTL8821CE scans 2.4 GHz channels 1 to 13 only; the iwlwifi path keeps 2.4 and 5 GHz channels (`userland/capsule_driver_iwlwifi/src/firmware/gen3/nvm.rs:38-40`, `NVM_CHANNELS`).
+- No open, TKIP or Enterprise networks. The [security a join accepts](#security-a-join-accepts) is WPA2-Personal or WPA3-Personal with CCMP.
+- No access point, mesh or monitor mode, no roaming and no power save.
+- No USB Wi-Fi adapters.
 
 ## How a scan and a join travel
 
@@ -57,7 +64,7 @@ Every request starts with a 10-byte header: the tag `0x57494649`, an operation a
 
 A join body is `[ssid_len][ssid][pass_len][pass][flags]`. Flag bit 0 says the network was saved as WPA3, so the driver joins it with SAE or not at all; bit 1 says it is hidden (`userland/nonos_wifi_client/src/join_wire.rs:47-48`, `FLAG_WPA3_ONLY`, `FLAG_HIDDEN`). The request buffer that carried the passphrase is wiped before the call returns (`userland/nonos_wifi_client/src/driver/call.rs:55`, `wipe`).
 
-Both drivers answer a scan at once from the list their background scan keeps. That list holds at most 16 networks and drops one unheard for 3 sweeps (`userland/nonos_wifi_core/src/scan_list.rs:34-37`, `MAX_RESULTS`, `MAX_AGE`).
+Both drivers answer a scan at once from the list their background scan keeps. That list holds at most 16 networks, drops a network not heard for 3 sweeps, and when full lets a newly heard network replace the one heard longest ago (`userland/nonos_wifi_core/src/scan_list.rs:25-37`, `MAX_RESULTS`, `MAX_AGE`).
 
 ## Security a join accepts
 
@@ -112,17 +119,18 @@ The status operation returns a stage byte, and the panel shows its text (`userla
 | `EfuseFailed` | 6 | `The card's calibration did not read` |
 | `NoStationAddress` | 7 | `No random address could be drawn` |
 | `NoAirPath` | 8 | `card not supported yet; use Ethernet or USB Wi-Fi` |
+| any other | | `The driver reported an unknown stage` |
 
-NONOS 0.9.2 has no driver for a USB Wi-Fi adapter, so the second suggestion in the last line does not apply to this release; see [not-supported.md](not-supported.md).
+Neither suggestion in the `NoAirPath` line helps on real hardware in 0.9.2: there is no driver for a USB Wi-Fi adapter, and read from the code no wired driver in the image receives frames from a real card ([the receive fault](../ethernet/README.md#the-receive-fault)). See [what to use instead](not-supported.md#what-to-use-instead).
 
-When no Wi-Fi driver answers at all, the panel names the chip by its PCI ids and says whether this build has a driver for it (`userland/capsule_settings/src/settings/ui/live_wifi.rs:115-130`, `no_driver`).
+When no Wi-Fi driver answers at all, the panel names the chip by its PCI ids and says whether NONOS has a driver for it (`userland/capsule_settings/src/settings/ui/live_wifi.rs:115-130`, `no_driver`). The lines it can show are listed under [how to tell](not-supported.md#how-to-tell).
 
 ## Saved networks
 
-- The list holds at most 4 networks, each passphrase at most 64 bytes (`userland/nonos_wifi_client/src/saved/list.rs:19-21`, `SLOTS`, `PASS_MAX`).
-- It is one file, `/nonos/wifi/saved`, sealed with an AEAD (`userland/nonos_wifi_client/src/saved/file.rs:20-21`, `PATH`).
-- The key comes from `machine_key` under the label `wifi/saved-networks` and is wiped after each use (`userland/nonos_wifi_client/src/saved/key.rs:18-29`, `with_key`).
-- With no TPM, or after the boot state changed, the list cannot be opened (`userland/nonos_wifi_client/src/saved/key.rs:22-26`, `NoTpm`, `BootChanged`).
+- The list holds at most 4 networks, each passphrase at most 64 bytes (`userland/nonos_wifi_client/src/saved/list.rs:19-21`, `SLOTS`, `PASS_MAX`). Saving a fifth drops the oldest (`userland/nonos_wifi_client/src/saved/list.rs:76-87`, `put_with`).
+- It is one file, `/nonos/wifi/saved`, sealed with ChaCha20-Poly1305 (`userland/nonos_wifi_client/src/saved/file.rs:6-21`, `PATH`).
+- The key is the TPM's [machine key](../../overview/glossary.md#machine-key) for the label `wifi/saved-networks`, asked for with `machine_key` and wiped after each use (`userland/nonos_wifi_client/src/saved/key.rs:18-29`, `with_key`).
+- With no TPM, or after the boot state changed (a firmware, Secure Boot, loader or kernel change), the list cannot be opened (`userland/nonos_wifi_client/src/saved/key.rs:22-26`, `NoTpm`, `BootChanged`).
 - A network is written only on a boot that keeps state (`userland/nonos_wifi_client/src/saved/write.rs:21-24`, `keeps_state`).
 - A network joined with SAE is saved as WPA3, so no later join accepts WPA2 for it (`userland/nonos_wifi_client/src/saved/store.rs:38-41`, `remember`).
 
@@ -134,7 +142,7 @@ After one join succeeds, autojoin is done for that boot (`userland/capsule_net_c
 
 ## Which images carry them
 
-The full image, the one `make` builds, adds both Wi-Fi drivers to the desktop (`Cargo.toml:627-638`, `microkernel-full-gui`). The `qemu` profile builds the desktop without them (`tools/nix/config.nix:94-98`, `qemu`), and the air-gapped profile drops every network driver (`tools/nix/config.nix:86-93`, `networkFeatures`). The hardened profile keeps them but drops the serial console for capsules, so neither driver writes a log line there (`tools/nix/config.nix:78-85`, `debugFeatures`).
+The full image, the one `make` builds, adds both Wi-Fi drivers to the desktop (`Cargo.toml:627-638`, `microkernel-full-gui`). The `qemu` [build profile](../../overview/glossary.md#build-profile), `make PROFILE=qemu`, builds the desktop without them (`tools/nix/config.nix:94-98`, `qemu`), and the air-gapped profile drops every network driver (`tools/nix/config.nix:86-93`, `networkFeatures`). The hardened profile keeps them but drops the [serial console](../../overview/glossary.md#serial-console) for capsules, so neither driver writes a log line there (`tools/nix/config.nix:78-85`, `debugFeatures`).
 
 ## Firmware and its licence
 
@@ -159,13 +167,6 @@ cd userland/nonos_wifi_core_proofs && cargo test --release --config profile.rele
 ```
 
 Not tested in this release.
-
-## What no Wi-Fi driver does
-
-- No 6 GHz. The RTL8821CE scans 2.4 GHz channels 1 to 13 only; the iwlwifi path keeps 2.4 and 5 GHz channels (`userland/capsule_driver_iwlwifi/src/firmware/gen3/nvm.rs:38-40`, `NVM_CHANNELS`).
-- No open, TKIP or Enterprise networks.
-- No access point, mesh or monitor mode, no roaming and no power save.
-- No USB Wi-Fi adapters.
 
 ## See also
 

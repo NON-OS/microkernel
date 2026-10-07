@@ -4,6 +4,8 @@ How NONOS drives a laptop touchpad that speaks HID over I2C: which I2C controlle
 
 ## Two capsules
 
+A touchpad takes two [driver capsules](../../overview/glossary.md#driver-capsule): one owns the I2C bus, the other reads the touchpad on it.
+
 ```mermaid
 flowchart LR
   ACPI[ACPI tables] --> BROKER[hardware broker]
@@ -89,7 +91,8 @@ Both a tap and a clickpad press post button 1 (`publish_touch`, `userland/capsul
 - `driver.i2c_hid0` holds IPC, Memory and InputSource, and Debug only in a build with `capsule-serial-debug` (`CAPSULE_OPTIONAL_CAPS`, `userland/capsule_driver_i2c_hid/Capsule.mk:14-17`).
 - A transfer writes at most 64 bytes and reads at most 1024 (`TRANSFER_WRITE_MAX`, `userland/capsule_driver_i2c_pci/src/protocol/limits.rs:7-8`).
 - `driver.i2c_hid0` looks the controller service up 100 times, 20 ms apart, then exits with status 2 (`LOOKUP_ATTEMPTS`, `userland/capsule_driver_i2c_hid/src/i2c_client/service.rs:10-11`). After 3 unanswered calls in a row it pauses its calls for 1 s, doubling to 30 s (`UNANSWERED_LIMIT`, `userland/capsule_driver_i2c_hid/src/i2c_client/gate.rs:33-35`).
-- Not supported: touchscreens, 10-bit I2C addresses, I2C keyboards and other HID-over-I2C devices that are not pointers, interrupt-driven transfers and DMA.
+- Refused: touchscreens, which the kernel leaves out of the device table, and a touchpad with a 10-bit I2C address, which gets the boot console warning above.
+- Not supported: I2C keyboards and other HID-over-I2C devices that are not pointers, interrupt-driven transfers and DMA.
 - No touch, report or gesture is stored. Each report is decoded, posted and dropped. With Debug, the driver writes the first 16 bytes of each of its first six raw reports to the console as `[i2chid] frm` lines, so a decode can be checked against the wire (`frame_dumps`, `userland/capsule_driver_i2c_hid/src/input/poll/read_frame.rs:55-58`).
 
 ## How this is checked

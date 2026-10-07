@@ -6,19 +6,28 @@ NONOS 0.9.2 has two Wi-Fi drivers, one for the Realtek RTL8821CE and one for Int
 
 ```mermaid
 flowchart TD
-  Chip["Wi-Fi chip on the PCI bus"] --> Rule{"has_driver"}
-  Rule -- no --> None["has no NONOS driver"]
-  Rule -- yes --> Driver["driver starts"]
-  Driver --> Stage{"stage"}
+  Chip["Wi-Fi chip on the PCI bus"] --> Answers{"a Wi-Fi driver answers"}
+  Answers -- yes --> Stage{"stage"}
   Stage -- Ready --> Join["scan and join"]
   Stage -- NoAirPath --> Refused["card not supported yet"]
+  Answers -- no --> Rule{"has_driver"}
+  Rule -- no --> None["has no NONOS driver"]
+  Rule -- yes --> NotStarted["driver did not start"]
 ```
 
-Open Settings and look at the Wi-Fi row. When no Wi-Fi driver answers, the panel looks at the first Wi-Fi chip on the PCI bus and asks `has_driver` whether this build carries a driver for it (`userland/capsule_settings/src/settings/ui/live_wifi.rs:109-130`, `no_driver`). For a chip with none, the row starts with `Wi-Fi chip`, gives the vendor and device ids, and ends with `has no NONOS driver; use Ethernet or USB Wi-Fi`. No wait or reboot changes that answer.
+Open Settings and read the Wi-Fi row. When a Wi-Fi driver answers, the row shows its stage. A card whose driver reaches `Ready` can scan and join. An Intel card the iwlwifi driver takes but cannot run stops at `NoAirPath`, shown as `card not supported yet; use Ethernet or USB Wi-Fi`; the cards that end there are listed on the [iwlwifi page](iwlwifi.md#which-cards-do-what).
 
-`has_driver` is true for one Realtek id, 10ec:c821, and for the Intel ids the iwlwifi driver takes; every other vendor and every other Realtek id is false (`userland/capsule_settings/src/wifi/interface.rs:70-120`, `has_driver`). A card whose driver reaches the stage `Ready` can scan and join. An Intel card the driver takes but cannot run reaches the stage `NoAirPath`, whose text is `card not supported yet; use Ethernet or USB Wi-Fi`; the cards that end there are listed on the [iwlwifi page](iwlwifi.md#which-cards-do-what).
+When no Wi-Fi driver answers, the panel takes the first Wi-Fi chip on the PCI bus and asks `has_driver` whether NONOS has a driver for it (`userland/capsule_settings/src/settings/ui/live_wifi.rs:109-130`, `no_driver`). The row then reads one of these, with the vendor and device ids as four lowercase hex digits each:
 
-NONOS 0.9.2 has no driver for any USB Wi-Fi adapter. The `USB Wi-Fi` suggestion in both texts does not apply to this release.
+| Wi-Fi row | What it means |
+|---|---|
+| `No Wi-Fi hardware found` | The PCI bus lists no Wi-Fi function. |
+| `Wi-Fi chip` 14c3:7961 `has no NONOS driver; use Ethernet or USB Wi-Fi` | NONOS has no driver for this chip. No wait or reboot changes that. |
+| `Wi-Fi driver did not start for` 10ec:c821 | NONOS has a driver for this chip, but none is running: it did not start, it left, or the image carries no Wi-Fi driver, as in the `qemu` and air-gapped profiles. |
+
+`has_driver` is a fixed list, not a look at the running image: it is true for one Realtek id, 10ec:c821, and for the Intel ids the iwlwifi driver takes, and false for every other vendor and every other Realtek id (`userland/capsule_settings/src/wifi/interface.rs:70-120`, `has_driver`).
+
+NONOS 0.9.2 has no driver for any USB Wi-Fi adapter. The `USB Wi-Fi` suggestion in these texts does not apply to this release.
 
 ## Chips the code names
 

@@ -6,15 +6,15 @@ Which disks NONOS can read and write, which capsule drives each kind, and how on
 
 | Controller | How it is matched | Capsule | State in 0.9.2 |
 |---|---|---|---|
-| NVMe SSD | PCI class 01h, subclass 08h, prog-if 02h | `driver.nvme0` | Served. See [NVMe](nvme.md). |
-| SATA disk on an AHCI controller | PCI class 01h, subclass 06h; Intel class 01h, subclass 04h | `driver.ahci0` | Served, one disk. See [AHCI and Intel RST](ahci-and-rst.md). |
-| NVMe behind an Intel VMD | 13 Intel VMD device ids | kernel PCI layer, then `driver.nvme0` | In the kernel, not run on hardware or under QEMU. See [Intel VMD](vmd.md). |
-| eMMC on an SD host controller | PCI class 08h, subclass 05h | `driver.ahci0` | Served when no SATA disk comes up, not tested on hardware. See [SD cards and eMMC](sd-and-emmc.md). |
-| Realtek PCIe SD card reader | 10ec:5227, 10ec:522a | `driver.rtsx0` | Source and host proofs only, not in the image. See [SD cards and eMMC](sd-and-emmc.md). |
-| USB stick or USB disk | interface class 08h, subclass 06h, protocol 50h | `driver.usb_msc0` | Served on root ports. See [USB mass storage](usb-mass-storage.md). |
-| virtio-blk under QEMU | 1af4:1001, 1af4:1042 | `driver.virtio_blk0` | Served. |
+| NVMe SSD | PCI class 01h, subclass 08h, prog-if 02h | `driver.nvme0` | Works. See [NVMe](nvme.md). |
+| SATA disk on an AHCI controller | PCI class 01h, subclass 06h; Intel class 01h, subclass 04h | `driver.ahci0` | Works, one disk. See [AHCI and Intel RST](ahci-and-rst.md). |
+| NVMe behind an Intel VMD | 13 Intel VMD device ids | kernel PCI layer, then `driver.nvme0` | Partial: in the kernel, not run on hardware or under QEMU. See [Intel VMD](vmd.md). |
+| eMMC on an SD host controller | PCI class 08h, subclass 05h | `driver.ahci0` | Works when no SATA disk comes up, not tested on hardware. See [SD cards and eMMC](sd-and-emmc.md). |
+| Realtek PCIe SD card reader | 10ec:5227, 10ec:522a | `driver.rtsx0` | Not supported: source and host proofs only, not in the image. See [SD cards and eMMC](sd-and-emmc.md). |
+| USB stick or USB disk | interface class 08h, subclass 06h, protocol 50h | `driver.usb_msc0` | Works on root ports. See [USB mass storage](usb-mass-storage.md). |
+| virtio-blk under QEMU | 1af4:1001, 1af4:1042 | `driver.virtio_blk0` | Works. |
 
-The virtio-blk ids are `VIRTIO_BLK_TRANSITIONAL` and `VIRTIO_BLK_MODERN` (`userland/capsule_driver_virtio_blk/src/constants/pci.rs:16-18`).
+virtio-blk has no page of its own. It serves the data disk of a QEMU machine and matches the two ids `VIRTIO_BLK_TRANSITIONAL` and `VIRTIO_BLK_MODERN` (`userland/capsule_driver_virtio_blk/src/constants/pci.rs:16-18`).
 
 Every storage driver is a [capsule](../../overview/glossary.md#capsule) in ring 3. The PCI drivers take their controller from the [hardware broker](../../overview/glossary.md#hardware-broker); the USB mass-storage driver reaches its device through the xHCI driver. The kernel block layer decides which disk holds NONOS, and the file system above it reads what is on that disk.
 
@@ -32,7 +32,11 @@ For each disk the layer checks three things (`src/hardware/block_device/identify
 
 ```mermaid
 flowchart TD
-    Next[next backend in ORDER] --> Size{larger than 256 sectors}
+    Next[next backend in ORDER] --> Answer{its driver answers}
+    Next -->|none left| None[block I/O refused for now]
+    Answer -->|not yet| Stop[search stops, asked again on the next read]
+    Answer -->|no disk| Next
+    Answer -->|a disk| Size{larger than 256 sectors}
     Size -->|no| Next
     Size -->|yes| Fit{addressable in 512-byte sectors}
     Fit -->|no| Next
@@ -56,7 +60,7 @@ The block layer writes its own lines, so they appear whatever the drivers may pr
 - with no disk found, `[BLOCK] no disk carries the NONOS store or disk plan yet; block I/O refused` (`src/hardware/block_device/select.rs:73-78`, `TOLD_NONE`);
 - one `[USB-MSC]` line saying where the stick search stands (`src/hardware/usb_msc_capsule/report.rs:32-38`, `report_line`).
 
-The drivers' own lines are a different matter. They write with `mk_debug`, which needs the Debug capability. The kernel never grants it to `driver.ahci0` (`src/hardware/ahci_capsule/spawn.rs:51-57`, `requested_caps`), and the spawn grants in `src/hardware/xhci_capsule/spawn.rs`, `src/userspace/capsule_driver_usb_hid/spawn.rs` and `src/userspace/capsule_driver_usb_msc/spawn.rs` leave it out as well. `driver.nvme0` and `driver.virtio_blk0` get it only in an image built with `capsule-serial-debug` (`src/hardware/nvme_capsule/spawn.rs:51-53`, `serial_debug_cap`). The standard, qemu and dev profiles have that feature through `microkernel-desktop-base`; the hardened and air-gapped profiles drop it (`tools/nix/config.nix:60-62`, `debugFeatures`).
+The drivers' own lines are a different matter. They write to the [serial console](../../overview/glossary.md#serial-console) with `mk_debug`, which needs the Debug [capability](../../overview/glossary.md#capability). The kernel never grants it to `driver.ahci0` (`src/hardware/ahci_capsule/spawn.rs:51-57`, `requested_caps`), and the spawn grants in `src/hardware/xhci_capsule/spawn.rs`, `src/userspace/capsule_driver_usb_hid/spawn.rs` and `src/userspace/capsule_driver_usb_msc/spawn.rs` leave it out as well. `driver.nvme0` and `driver.virtio_blk0` get it only in an image built with `capsule-serial-debug` (`src/hardware/nvme_capsule/spawn.rs:51-53`, `serial_debug_cap`). The standard, qemu and dev profiles have that feature through `microkernel-desktop-base`; the hardened and air-gapped profiles drop it (`tools/nix/config.nix:60-62`, `debugFeatures`).
 
 ## The disk layout
 
@@ -71,7 +75,7 @@ The installer writes a whole disk through `nonos_disk`, and the kernel reads the
 | 262144 up to the ESP | `NONOS-DATA` | the data volume |
 | 1 GiB ending at the last MiB boundary before the backup GPT | `NONOS-ESP` | loader, kernel image and `boot.cfg` |
 
-The sector numbers come from `userland/nonos_disk_map/src/places.rs:23-48` (`STORE_BASE_LBA`, `KEY_LBA`, `DATA_FLOOR`), and the ESP's place from `userland/nonos_disk/src/layout/plan.rs:54-62` (`esp_end`). The [data volume](../../overview/glossary.md#data-volume) starts at or above 128 MiB. The smallest disk the installer takes is 2177 MiB: the 128 MiB below the data floor, a 1 GiB data volume, the 1 GiB ESP and 1 MiB for the backup table (`userland/nonos_disk/src/layout/sizes.rs:34-38`, `MIN_DISK_SECTORS`).
+The sector numbers come from `userland/nonos_disk_map/src/places.rs:23-48` (`STORE_BASE_LBA`, `KEY_LBA`, `DATA_FLOOR`), and the place of the [ESP](../../overview/glossary.md#esp) from `userland/nonos_disk/src/layout/plan.rs:54-62` (`esp_end`). The ESP grows past 1 GiB, in whole MiB, only for an image that does not fit in one. The [data volume](../../overview/glossary.md#data-volume) starts at or above 128 MiB. The smallest disk the installer takes is 2177 MiB: the 128 MiB below the data floor, a 1 GiB data volume, the 1 GiB ESP and 1 MiB for the backup table (`userland/nonos_disk/src/layout/sizes.rs:34-38`, `MIN_DISK_SECTORS`).
 
 A disk plan whose volume base and size are both 0 belongs to a live stick: the volume stays in RAM and nothing of the machine is written to the stick (`src/fs/blockfs_volume/plan_types.rs:56-59`, `is_live`).
 
@@ -87,7 +91,7 @@ Every caller in NONOS addresses 512-byte sectors, and a disk whose blocks cannot
 
 ## Who may read and write a disk
 
-Raw sectors hold every partition on a disk, other systems' files among them. The NVMe, SATA and virtio-blk drivers therefore answer only the kernel's own client, which arrives as sender pid 0, and a sender the kernel says holds the `StoreWrite` [capability](../../overview/glossary.md#capability) (`userland/capsule_driver_nvme/src/server/medium_rule.rs:25-29`, `allows`). The driver asks the kernel with `mk_cap_check` on every request (`userland/capsule_driver_nvme/src/server/medium.rs:25-29`, `CAP_STORE_WRITE`). The SATA driver has the same rule in `userland/capsule_driver_ahci/src/server/medium_rule.rs` and the virtio-blk driver in `userland/capsule_driver_virtio_blk/src/server/acl/rule.rs`. On these three a health check is open to any sender. `StoreWrite` is bit 26 of the capability word (`abi/caps.toml:32`, `STORE_WRITE`).
+Raw sectors hold every partition on a disk, other systems' files among them. The NVMe, SATA and virtio-blk drivers therefore answer only the kernel's own client, which arrives as sender pid 0, and a sender the kernel says holds the `StoreWrite` capability (`userland/capsule_driver_nvme/src/server/medium_rule.rs:25-29`, `allows`). For any other sender the driver asks the kernel with `mk_cap_check` on each request and keeps no answer, so a right cannot outlive the process that held it (`userland/capsule_driver_nvme/src/server/medium.rs:25-29`, `CAP_STORE_WRITE`). The SATA driver has the same rule in `userland/capsule_driver_ahci/src/server/medium_rule.rs` and the virtio-blk driver in `userland/capsule_driver_virtio_blk/src/server/acl/rule.rs`. On these three a health check is open to any sender. `StoreWrite` is bit 26 of the capability word (`abi/caps.toml:32`, `STORE_WRITE`).
 
 The USB mass-storage driver serves its block operations to the kernel alone (`userland/capsule_driver_usb_msc/src/server/handlers/block.rs:38-43`, `E_ACCES`), and the kernel lets no capsule send to it at all (`src/services/registry/held_table.rs:27-30`, `KERNEL_ONLY`).
 
@@ -105,12 +109,12 @@ The list also names a storage controller that should be serving a disk and is no
 
 ## How each driver is verified
 
-Each [proof crate](../../overview/glossary.md#proof-crate) runs the driver's own source on the host. The counts are the flake check results for this commit.
+Each [proof crate](../../overview/glossary.md#proof-crate) runs the driver's own source on the host. The counts are the flake check results for this commit. The QEMU column names the device each setup attaches; none of these QEMU setups has a run reported for this commit.
 
 | Driver | Host proofs | QEMU | Real hardware |
 |---|---|---|---|
 | `driver.nvme0` | `userland/nvme_proofs`, 81 tests pass | blank `nvme` install target | see below |
-| `driver.ahci0`, SATA | `userland/ahci_link_proofs`, 99 tests pass | no QEMU target names an AHCI device | not tested in this release |
+| `driver.ahci0`, SATA | `userland/ahci_link_proofs`, 99 tests pass | the q35 machine's own AHCI controller, see [AHCI and Intel RST](ahci-and-rst.md#how-it-was-verified) | not tested in this release |
 | `driver.ahci0`, eMMC | `userland/emmc_proofs`, 83 tests pass | none | not tested in this release |
 | VMD bring-up | `userland/kernel_proofs`, 388 tests pass for the crate | none | not tested in this release |
 | `driver.rtsx0` | `userland/rtsx_proofs`, 26 tests pass | none | not tested in this release |

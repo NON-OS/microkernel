@@ -43,7 +43,7 @@ Any width or height above `MAX_DIM` (8192) is refused (`nonos-bootloader/src/dis
 
 ### The kernel's mapping
 
-`init_framebuffer` takes the framebuffer from the boot handoff (`src/kernel_core/init/framebuffer/init.rs:25-57`). `frame` maps the pitch times the height and never the firmware's FrameBufferSize, which some firmware reports as the whole GPU aperture. It refuses, with a `Refusal` it logs, a zero width, height, pitch or address, a pitch shorter than a row of 4-byte pixels, an overflow, or a FrameBufferSize smaller than the frame (`src/kernel_core/init/framebuffer/frame.rs:21-75`).
+`init_framebuffer` takes the framebuffer from the [boot handoff](../overview/glossary.md#boot-handoff) (`src/kernel_core/init/framebuffer/init.rs:25-57`). `frame` maps the pitch times the height and never the firmware's FrameBufferSize, which some firmware reports as the whole GPU aperture. It refuses, with a `Refusal` it logs, a zero width, height, pitch or address, a pitch shorter than a row of 4-byte pixels, an overflow, or a FrameBufferSize smaller than the frame (`src/kernel_core/init/framebuffer/frame.rs:21-75`).
 
 Before the mapping and before any AP starts, `program_boot` makes page attribute table entry 1 write-combining on the boot CPU, `mirror_on_ap` writes the same table on each AP, and on a CPU with no PAT the frame is mapped uncached (`src/arch/x86_64/pat/program.rs:31-61`). The new table comes from `with_wc`, which changes entry 1 and keeps every other entry (`src/arch/x86_64/pat/value.rs:31-40`). The kernel logs `[FB] mapped WxH pitch=N BGRX write-combining scale=S`, with `RGBX` or `uncached` where those apply, or `[FB] not mapped:` with the reason, through `log_mapped` and `log_refused` (`src/kernel_core/init/framebuffer/report.rs:21-41`).
 
@@ -59,7 +59,7 @@ If the virtio GPU driver answers after the compositor fell back to GOP, `upgrade
 
 ## virtio-gpu
 
-`capsule_driver_virtio_gpu` drives a virtio GPU, PCI 1AF4:1010 (transitional) or 1AF4:1050 (modern), the ids `VIRTIO_GPU_TRANSITIONAL` and `VIRTIO_GPU_MODERN` that `is_match` accepts (`userland/capsule_driver_virtio_gpu/src/constants/pci.rs:16-18`, `userland/capsule_driver_virtio_gpu/src/discover/match_device.rs:23-27`). It polls and binds no interrupt. Its capability word, `0x1B9018`, adds `GraphicsSurfaceCreate` to the usual driver bits so it can register and share the screen surface (`userland/capsule_driver_virtio_gpu/Capsule.mk`). Only the `compositor` may send to it (`src/services/registry/held_table.rs:34`).
+The [driver capsule](../overview/glossary.md#driver-capsule) `capsule_driver_virtio_gpu` drives a virtio GPU, PCI 1AF4:1010 (transitional) or 1AF4:1050 (modern), the ids `VIRTIO_GPU_TRANSITIONAL` and `VIRTIO_GPU_MODERN` that `is_match` accepts (`userland/capsule_driver_virtio_gpu/src/constants/pci.rs:16-18`, `userland/capsule_driver_virtio_gpu/src/discover/match_device.rs:23-27`). It polls and binds no interrupt. Its [capability word](../overview/glossary.md#capability-word), `0x1B9018`, adds `GraphicsSurfaceCreate` to the usual driver bits so it can register and share the screen surface (`userland/capsule_driver_virtio_gpu/Capsule.mk`). Only the `compositor` may send to it (`src/services/registry/held_table.rs:34`).
 
 One bring-up attempt, `claimed`, takes the device off its legacy interrupt line, maps the registers, takes the control-queue DMA, runs the virtio handshake, reads the scanouts, asks for EDID, probes for 3D and creates the primary surface (`userland/capsule_driver_virtio_gpu/src/setup/sequence.rs:45-92`). The EDID answer is only logged. The 3D probe is logged, and its result, `virgl_ready`, is reported by `OP_QUERY_CAPS` (`userland/capsule_driver_virtio_gpu/src/server/handlers/query_caps.rs:25-28`). No op of the service uses 3D, so the 2D path is the same either way.
 
@@ -69,7 +69,7 @@ One bring-up attempt, `claimed`, takes the device off its legacy interrupt line,
 
 ### The primary surface
 
-`create` makes the screen surface on scanout 0 only (`userland/capsule_driver_virtio_gpu/src/setup/create_primary.rs:21-37`). It takes a DMA grant the size of the frame, creates a B8G8R8A8 2D resource on it, sets it on the scanout, and registers and shares it with `mk_surface_register` and `mk_surface_share` so the compositor can draw into it (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/create.rs:23-73`). A frame of 4 GiB or more is refused by `derive` (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/geometry.rs:22-33`). The broker caps one display grant at `DISPLAY_FRAMEBUFFER_PAGES`, 8192 pages or 32 MiB, which holds one 3840 by 2160 frame at 4 bytes a pixel (`src/hardware/broker/dma/limits.rs:28-44`). For a larger scanout 0, such as 3840 by 2400, the primary surface's `mk_dma_map` fails (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/dma.rs:19-29`). `create_primary::create` hands that error to the bring-up attempt, so every attempt fails the same way (`userland/capsule_driver_virtio_gpu/src/setup/sequence.rs:66-73`).
+`create` makes the screen surface on scanout 0 only (`userland/capsule_driver_virtio_gpu/src/setup/create_primary.rs:21-37`). It takes a DMA [grant](../overview/glossary.md#grant) the size of the frame, creates a B8G8R8A8 2D resource on it, sets it on the scanout, and registers and shares it with `mk_surface_register` and `mk_surface_share` so the compositor can draw into it (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/create.rs:23-73`). A frame of 4 GiB or more is refused by `derive` (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/geometry.rs:22-33`). The [hardware broker](../overview/glossary.md#hardware-broker) caps one display grant at `DISPLAY_FRAMEBUFFER_PAGES`, 8192 pages or 32 MiB, which holds one 3840 by 2160 frame at 4 bytes a pixel (`src/hardware/broker/dma/limits.rs:28-44`). For a larger scanout 0, such as 3840 by 2400, the primary surface's `mk_dma_map` fails (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/dma.rs:19-29`). `create_primary::create` hands that error to the bring-up attempt, so every attempt fails the same way (`userland/capsule_driver_virtio_gpu/src/setup/sequence.rs:66-73`).
 
 The service answers twelve ops, from `OP_HEALTHCHECK` to `OP_GET_PRIMARY_SURFACE` (`userland/capsule_driver_virtio_gpu/src/protocol/ops.rs:16-27`). Each resource records the process that created it in `owner_pid`, and the resource ops refuse another process's resource (`userland/capsule_driver_virtio_gpu/src/server/handlers/create_resource.rs:59`, `userland/capsule_driver_virtio_gpu/src/server/handlers/set_scanout.rs:33`).
 
@@ -90,10 +90,11 @@ It is parked. It has no `Capsule.mk`, no Cargo feature and no kernel mirror, and
 
 ## See also
 
-- [README.md](README.md)
-- [broker-api.md](broker-api.md)
-- [../using/desktop.md](../using/desktop.md)
-- [../kernel/boot-handoff.md](../kernel/boot-handoff.md)
-- [../hardware/MATRIX.md](../hardware/MATRIX.md)
+- [Drivers](README.md)
+- [Broker API](broker-api.md)
+- [Platform](platform.md)
+- [The desktop](../using/desktop.md)
+- [Boot handoff and kernel init](../kernel/boot-handoff.md)
+- [Support matrix](../hardware/MATRIX.md)
 - [UEFI specification](https://uefi.org/specifications)
 - [virtio specification](https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html)

@@ -4,9 +4,10 @@ NONOS carries wired traffic through one driver [capsule](../../overview/glossary
 
 ## Drivers at a glance
 
-The states mean:
+The states are the [support matrix](../../hardware/MATRIX.md#how-to-read-it)'s:
 
-- Partial: in the image, with host tests, and no hardware report in this release. The row says what else is missing.
+- Works: the image carries the whole path for the card.
+- Partial: part of the path is there; the row says what is missing.
 - Not supported: no driver in the image.
 
 | Family | PCI or USB ids | Capsule | In the image | State | Page |
@@ -17,10 +18,10 @@ The states mean:
 | Realtek RTL8139 | 10ec:8139 | `driver.rtl8139_0` | yes | Partial: [receive fault](#the-receive-fault), no QEMU run target | [realtek.md](realtek.md) |
 | Realtek RTL8169, RTL8168, RTL8111, RTL810x, RTL8125 | 10 ids, vendor 10ec | `driver.rtl8169_0` | yes | Partial: [receive fault](#the-receive-fault), flake check fails on a lint | [realtek.md](realtek.md) |
 | Realtek RTL8126A, RTL8127A | 10ec:8126, 10ec:8127 | none | no | Not supported: left out of the id table | [realtek.md](realtek.md) |
-| virtio network device | 1af4:1000, 1af4:1041 | `driver.virtio_net0` | yes | Partial: the QEMU run targets attach it | this page |
+| virtio network device | 1af4:1000, 1af4:1041 | `driver.virtio_net0` | yes | Works: the QEMU run targets attach it | this page |
 | USB CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179, Realtek RTL8153 | USB class or USB ids | five capsules | no | Not supported: not built, and the USB host driver lacks the transfer they need | [usb-net.md](usb-net.md) |
 
-No Ethernet driver has a hardware report in 0.9.2.
+No Ethernet driver has a hardware report in 0.9.2. Read from the code, the only wired driver that delivers received frames to `net.core` in this release is virtio-net, in a virtual machine; [the receive fault](#the-receive-fault) stops the other three in the image. For a machine that needs a network now, read [what to use instead](../wifi/not-supported.md#what-to-use-instead).
 
 ## How a frame travels
 
@@ -37,7 +38,7 @@ flowchart LR
   Broker --> Card["PCI network card"]
 ```
 
-Each driver is a capsule that moves raw Ethernet frames and nothing more; ARP, IP, DHCP, DNS and TCP live in `net.core` above it. The driver reaches its PCI network card only through grants from the [hardware broker](../../overview/glossary.md#hardware-broker): a device claim, a register mapping and DMA buffers.
+Each driver is a capsule that moves raw Ethernet frames and nothing more; ARP, IP, DHCP, DNS and TCP live in `net.core` above it. The driver reaches its PCI network card only through [grants](../../overview/glossary.md#grant) from the [hardware broker](../../overview/glossary.md#hardware-broker): a device claim, a register mapping or port range, and DMA buffers.
 
 Every wired driver answers the same link protocol: a 20-byte header tagged `NNET` (0x4E4E4554), and the operations link status (2), MAC address (3), transmit (4) and receive (5) (`userland/capsule_net_core/src/protocol/ops.rs:17-25`, `MAGIC_NNET`, `OP_RX_PACKET`). Operation 6 is where they part. `net.core` and the virtio driver use it for a receive batch (`userland/capsule_net_core/src/protocol/ops.rs:26-27`, `OP_RX_BATCH`); e1000, RTL8139 and RTL8169 use it for a register snapshot (`userland/capsule_driver_e1000/src/protocol/ops.rs:23-28`, `OP_STATS`).
 
@@ -83,7 +84,7 @@ The flake check `proofs-virtio_net_proofs` passed with 20 tests on this commit.
 
 - The desktop base, which every desktop image builds on, carries virtio-net (`mk/20-build.mk:1095-1098`, `DESKTOP_BASE_SLUGS`).
 - The full image that `make` builds adds e1000, RTL8139 and RTL8169, with the two Wi-Fi drivers (`Cargo.toml:627-638`, `microkernel-full-gui`).
-- The air-gapped profile drops every network driver and the whole stack (`tools/nix/config.nix:86-93`, `networkFeatures`).
+- The air-gapped [build profile](../../overview/glossary.md#build-profile) drops every network driver and the whole stack (`tools/nix/config.nix:86-93`, `networkFeatures`).
 - `nonos-mk-ethernet-prod` builds the desktop with the three wired drivers (`mk/20-build.mk:1145-1155`, `ETHERNET_DRIVER_ARTIFACTS`). No QEMU run target attaches an e1000 or RTL8139 device, so this release has no QEMU run for them.
 - The build includes the capsule makefiles of virtio-net, e1000, RTL8139 and RTL8169 and of no other Ethernet driver (`mk/20-build.mk:532-542`, `capsule_driver_e1000`). The e1000e, igc and USB capsules are therefore in no image.
 
