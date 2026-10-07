@@ -4,7 +4,7 @@ Where things live in the NONOS kernel's virtual address space, how page tables a
 
 ## Address layout
 
-NONOS on x86_64 uses four-level paging with 48-bit canonical addresses. The user half ends at `CANONICAL_LOW_MAX` and the kernel half starts at `CANONICAL_HIGH_MIN` (`src/memory/layout/constants/canonical.rs:17-21`). The kernel is a static image linked with `-no-pie`, and the linker script places `__kernel_image_start` at `0xFFFFFFFF80000000` (`linker.ld:18-19`).
+NONOS on x86_64 uses four-level paging with 48-bit canonical addresses. The user half ends at `CANONICAL_LOW_MAX` and the kernel half starts at `CANONICAL_HIGH_MIN` (`src/memory/layout/constants/canonical.rs:17-21`). The kernel is a static image: the target file passes `-no-pie` to `ld.lld` (`x86_64-nonos.json:28`). The linker script places `__kernel_image_start` at `0xFFFFFFFF80000000` (`linker.ld:18-19`).
 
 | Region | Constant | Start | Size |
 |---|---|---|---|
@@ -19,7 +19,7 @@ NONOS on x86_64 uses four-level paging with 48-bit canonical addresses. The user
 
 The device register window is where `map_device_memory` hands out uncached mappings, starting from `MMIO_BASE` (`src/memory/mmio/manager/core/types.rs:32`). The text and data window sizes are `KTEXT_SIZE` and `KDATA_SIZE` (`src/memory/layout/constants/sections.rs:19-22`).
 
-A process sees a user half of its own and the shared kernel half. The ELF loader places a position-independent [capsule](../overview/glossary.md#capsule) image at `DEFAULT_PIE_BASE`, `0x40_0000`, plus a random page-aligned offset below `EXEC_RANDOMIZATION_RANGE`, 1 GiB, drawn by `randomize_base` for each load; an image that is not position independent loads at `0x40_0000` exactly (`src/elf/loader/core/loader/base_addr.rs:19-25`, `src/elf/aslr/manager/constants.rs:17`, `src/elf/aslr/manager/randomize.rs:24-30`). The 2 MiB user stack ends at `USER_STACK_BASE`, `0x0000_7FFF_FFFF_0000` (`src/process/userspace/constants.rs:30-32`), and `allocate_user_stack` leaves the page below it unmapped as a guard (`src/kernel_core/process_spawn/user_stack.rs:54-88`). Anonymous `MkMmap` ranges come from `USER_MMAP_BASE`, `0x8000_0000`, up to `0x7000_0000_0000` (`src/process/mmap_va.rs:36-37`). Process creation is on [processes and spawn](processes-and-spawn.md).
+A process sees a user half of its own and the shared kernel half. The ELF loader places a position-independent [capsule](../overview/glossary.md#capsule) image at `DEFAULT_PIE_BASE`, `0x40_0000`, plus a random page-aligned offset below `EXEC_RANDOMIZATION_RANGE`, 1 GiB, drawn by `randomize_base` for each load; an image that is not position independent gets the base `0x40_0000` with no offset (`src/elf/loader/core/loader/base_addr.rs:19-25`, `src/elf/aslr/manager/constants.rs:17`, `src/elf/aslr/manager/randomize.rs:24-30`). The 2 MiB user stack ends at `USER_STACK_BASE`, `0x0000_7FFF_FFFF_0000` (`src/process/userspace/constants.rs:30-32`), and `allocate_user_stack` leaves the page below it unmapped as a guard (`src/kernel_core/process_spawn/user_stack.rs:54-88`). Anonymous `MkMmap` ranges come from `USER_MMAP_BASE`, `0x8000_0000`, up to `0x7000_0000_0000` (`src/process/mmap_va.rs:36-37`). Process creation is on [processes and spawn](processes-and-spawn.md).
 
 ## How the page tables come to be
 
@@ -36,13 +36,17 @@ The bootloader builds the first tables. The directmap maps the first 256 GiB of 
 
 From then on the kernel runs only from the upper half. Every new address space copies entries 256 to 511 from the kernel's table with `clone_kernel_half_into` (`src/memory/paging/manager/address_space/clone.rs:35-50`), so no process inherits a low mapping by accident. A failure in any step is a [boot stop](../overview/glossary.md#boot-stop) with `memory: init_unified_vm failed`.
 
-Pages are 4 KiB, with `HUGE_PAGE_2M` and `HUGE_PAGE_1G` leaves possible (`src/memory/layout/constants/page.rs:17-21`). One low mapping comes back for a while: the AP trampoline. `install` maps the 16 pages at physical `0x8000` read and execute while the other CPUs start, and `remove` unmaps them and clears the low half again (`src/smp/init/ap_identity.rs:40-71`). See [scheduler and SMP](scheduler-and-smp.md).
+Pages are 4 KiB, with `HUGE_PAGE_2M` and `HUGE_PAGE_1G` leaves possible (`src/memory/layout/constants/page.rs:17-21`). One low mapping comes back for a while: the trampoline that starts each [application processor](../overview/glossary.md#application-processor) (AP). `install` maps the 16 pages at physical `0x8000` read and execute while the other CPUs start, and `remove` unmaps them and clears the low half again (`src/smp/init/ap_identity.rs:40-71`).
+
+When a mapping changes, every CPU that may still cache the old translation has to drop it. That is the [TLB shootdown](../overview/glossary.md#tlb-shootdown), described with the rest of the multi-CPU machinery on [scheduler and SMP](scheduler-and-smp.md).
 
 ## W^X
 
-No mapping may be writable and executable at once. `map_page` returns `WXViolation` for such a request (`src/memory/paging/manager/mapping/map.rs:41-43`), and a protection change is checked the same way with `is_wx_violation` (`src/memory/paging/manager/protection/update.rs:33-34`).
+The kernel's paging manager refuses a mapping that is writable and executable at once. `map_page` returns `WXViolation` for such a request (`src/memory/paging/manager/mapping/map.rs:41-43`), and a protection change is checked the same way with `is_wx_violation` (`src/memory/paging/manager/protection/update.rs:33-34`).
 
-The kernel image has three load segments in the linker script's `PHDRS`: text read and execute, read-only data, and data read and write (`linker.ld:11-15`). `report_kernel_sections` compares the live mappings with the four entries `kernel_sections` returns, text, read-only data, data and bss (`src/memory/layout/manager/state.rs:49-80`), and prints `[KSEC] 4/4 sections mapped as declared`, or names each page that differs and ends with `WARNING W^X not held` (`src/kernel_core/init/entry/report_sections.rs:33-51`). It reports and does not stop the boot.
+One mapping never passes through that check: the loader's identity window over the first 64 GiB, which `map_identity_low` builds writable and without the NX bit (`nonos-bootloader/src/paging/map_identity.rs:39-46`). It is live from the jump until `clear_low_half` removes it, so the kernel's first stages run with that window writable and executable.
+
+The kernel image has three load segments in the linker script's `PHDRS`: text read and execute, read-only data, and data read and write (`linker.ld:11-15`). `report_kernel_sections` compares the live mappings with the four entries `kernel_sections` returns, text, read-only data, data and bss (`src/memory/layout/manager/state.rs:49-80`), and prints `[KSEC] 4/4 sections mapped as declared`, or names the first page that differs in each section that does not and ends with `WARNING W^X not held` (`src/kernel_core/init/entry/report_sections.rs:33-51`). It reports and does not stop the boot.
 
 ## CPU protections
 
@@ -64,11 +68,13 @@ Each fault stack of the boot CPU is a `GuardedStack` with a 4096-byte `GUARD_BYT
 
 The 64 KiB kernel stacks of secondary CPUs are mapped back to back by `allocate`, with no unmapped page between them (`src/smp/init/stack.rs:22-32`). An overflow there runs into the next CPU's stack.
 
+Each process's 32 KiB kernel stack, the one its system calls run on, has no guard page either. `allocate_kernel_stack` takes it from the page allocator, which keeps no unmapped page between the ranges it hands out (`src/kernel_core/process_spawn/kernel_stack.rs:44-56`).
+
 ## KASLR
 
-There is no kernel address randomisation in this release. The image is static at `0xFFFFFFFF80000000`. The slide code exists, with `MIN_SLIDE` 256 MiB and `MAX_SLIDE` 2 GiB (`src/memory/kaslr/constants.rs:24-28`), but nothing calls `randomize_layout_from_kaslr` (`src/memory/layout/manager/kaslr_ops.rs:117-125`), so no kernel region moves. Capsule images in user space do get a random base, as described under the address layout above.
+There is no kernel address randomisation in this release. The image is static at `0xFFFFFFFF80000000`. The slide code exists, with `MIN_SLIDE` 256 MiB and `MAX_SLIDE` 2 GiB (`src/memory/kaslr/constants.rs:24-28`), but nothing calls `randomize_layout_from_kaslr` (`src/memory/layout/manager/kaslr_ops.rs:117-125`), so no kernel region moves. Capsule images in user space do get a random base, as described under the address layout above. On a CPU without RDRAND, `random_offset` steps a fixed sequence instead, so that base repeats from boot to boot (`src/elf/aslr/manager/entropy.rs:28-39`). A capsule's stack and its `MkMmap` ranges are not randomised: they start at the fixed addresses given above.
 
-What does run is the per-boot nonce. `init_boot_entropy` is the first stage of kernel init and calls `seed_boot_nonce` (`src/kernel_core/init/entry/init_boot_entropy.rs:32-47`). `collect_entropy` mixes cycle-counter jitter with RDRAND and RDSEED where the CPU has them (`src/memory/kaslr/manager/entropy.rs:31-61`). The serial line says `[BOOT-ENTROPY] nonce drawn, hardware generator present` or `absent`. Little reads the nonce in this release. The physical allocator's `derive_seed` turns it into `random_seed` (`src/memory/phys/allocator/random.rs:16-22`), a field no allocation path reads. The stack-canary code in `memory::hardening` also reads it in `generate_stack_canary`, but nothing on the boot path calls that code (`src/memory/hardening/manager/init.rs:68-77`).
+What does run is the per-boot nonce. `init_boot_entropy` is the first stage of kernel init and calls `seed_boot_nonce` (`src/kernel_core/init/entry/init_boot_entropy.rs:32-47`). `collect_entropy` mixes cycle-counter jitter with RDRAND and RDSEED where the CPU has them (`src/memory/kaslr/manager/entropy.rs:31-61`). The serial line says `[BOOT-ENTROPY] nonce drawn, hardware generator present` or `absent`. Little reads the nonce in this release. The physical allocator's `derive_seed` turns it into `random_seed` (`src/memory/phys/allocator/random.rs:16-22`), a field no allocation path reads. `create_proof` mixes it into the `memory::proof` audit records that the interrupt controller setup writes (`src/memory/proof/manager/proof.rs:25-28`). The stack-canary code in `memory::hardening` also reads it in `generate_stack_canary`, but nothing on the boot path calls that code (`src/memory/hardening/manager/init.rs:68-77`). The compiler adds no stack canaries either: neither `x86_64-nonos.json` nor `.cargo/config.toml` asks for a stack protector.
 
 ## Kernel heap
 
@@ -89,9 +95,13 @@ Every allocation carries a header with the magic `ALLOCATION_MAGIC`, `0xDEADBEEF
 
 This is also why SMAP is safe to turn on: the kernel reaches user memory only through the directmap, which has no user bit, so a supervisor access to a user page never happens, as the note before the `init_mmu` call records (`src/kernel_core/init/entry/init_vm_and_protection.rs:33-41`). The range check, the `policy` module, is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate) (`userland/kernel_proofs/src/usercopy/mod.rs:17-22`), which passes its 388 tests on this commit.
 
-## Changing a mapping on several CPUs
+## Limits
 
-When a mapping changes, every CPU that may cache the old translation has to drop it. This is the TLB shootdown, described with the rest of the multi-CPU machinery on [scheduler and SMP](scheduler-and-smp.md).
+- The kernel image sits at the same address on every boot. Only capsule images get a random base.
+- The 64 KiB stacks of secondary CPUs and each process's 32 KiB kernel stack have no guard page, so an overflow there runs into the next stack.
+- The kernel heap is the fixed 64 MiB bootstrap heap. An allocation it cannot satisfy halts the CPU that asked.
+- Kernel functions carry no stack canaries.
+- Until `clear_low_half` runs, the loader's identity window is writable and executable.
 
 ## See also
 

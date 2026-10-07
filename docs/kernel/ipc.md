@@ -10,11 +10,11 @@ A service is an endpoint: a row in the kernel's service registry with a name, a 
 
 A message sent to any endpoint of a capsule lands in that capsule's `proc.<pid>` inbox: `kernel_route_ipc_corr` picks the destination that way unless the endpoint is owned by `KERNEL_OWNER` (`src/ipc/kernel_ipc.rs:67-73`). `KERNEL_OWNER` is pid 0 and marks a [reply inbox](../overview/glossary.md#reply-inbox) that the kernel itself drains (`src/ipc/nonos_inbox/registry.rs:44-47`).
 
-The envelope is `IpcMessage`: sender name, destination name, payload, a millisecond timestamp, a correlation word and a 64 bit checksum (`src/ipc/nonos_channel/message.rs:24-32`). The kernel writes the sender as `proc.<caller pid>` when `kernel_route_ipc_corr` builds the envelope with `IpcMessage::new`, so a capsule cannot choose its own sender name (`src/ipc/kernel_ipc.rs:74-79`). The checksum is a keyed BLAKE3 hash over both names, the timestamp and the payload, cut to its last eight bytes in `compute_checksum` (`src/ipc/nonos_channel/hash.rs:63-80`). Its key comes from `init_ipc_secret`, which derives it with BLAKE3 from 32 random bytes at boot (`src/ipc/nonos_channel/hash.rs:25-34`); boot stops if that fails, in `init_core_services` (`src/kernel_core/init/entry/init_core_services.rs:37-38`).
+The envelope is `IpcMessage`: sender name, destination name, payload, a millisecond timestamp, a correlation word and a 64 bit checksum (`src/ipc/nonos_channel/message.rs:24-32`). The kernel writes the sender as `proc.<caller pid>` when `kernel_route_ipc_corr` builds the envelope with `IpcMessage::new`, so a capsule cannot choose its own sender name (`src/ipc/kernel_ipc.rs:74-79`). The checksum is a keyed BLAKE3 hash over both names, the timestamp and the payload, cut to its last eight bytes in `compute_checksum` (`src/ipc/nonos_channel/hash.rs:63-80`). Its key comes from `init_ipc_secret`, which derives it with BLAKE3 from 32 bytes of `get_bytes_secure` at boot (`src/ipc/nonos_channel/hash.rs:25-34`). The boot [stops](../overview/glossary.md#boot-stop) if `init_ipc_secret` reports a failure (`src/kernel_core/init/entry/init_core_services.rs:37-38`), but `get_bytes_secure` always reports success (`src/crypto/random_api/basic.rs:38-42`). The key is only as good as the kernel's random source; [Randomness and cryptography](../security/randomness-and-cryptography.md#when-a-source-is-missing) says what that source is on a machine with no hardware generator.
 
 ## The IPC system calls
 
-All eight calls need the `IPC` capability in the caller's token; the table entry for them is `can_ipc` (`src/syscall/contract/cap_table/mk.rs:109-116`). The numeric dispatcher passes the arguments as shown in `handle` (`src/syscall/microkernel/dispatch/ipc.rs:26-41`).
+All eight calls need the `IPC` capability in the caller's token; the table entry for them is `can_ipc` (`src/syscall/contract/cap_table/mk.rs:109-116`). `handle` in the microkernel dispatcher unpacks each call's registers into the handler's arguments (`src/syscall/microkernel/dispatch/ipc.rs:26-41`), and [IPC ABI](../abi/ipc.md) lists them per call.
 
 | Tag | Name | What it does |
 |---|---|---|
@@ -66,7 +66,7 @@ flowchart TD
 
 1. The syscall contract checks the caller's [capability token](../overview/glossary.md#capability-token) for `IPC`; a refusal is `EPERM`. [Capabilities](capabilities.md) describes that check.
 2. `caller_satisfies_endpoint` finds the endpoint by name or port and refuses an unknown endpoint, an endpoint whose requirement is zero, and a caller that lacks any required bit (`src/syscall/microkernel/ipc/send_caps.rs:36-49`).
-3. `caller_may_reach` applies two lists that capabilities cannot express: the held endpoints and the [peer list](../overview/glossary.md#peer-list) (`src/services/registry/peers_check.rs:54-61`).
+3. `caller_may_reach` applies two lists that capabilities cannot express: the [held endpoints](../overview/glossary.md#held-endpoint) and the [peer list](../overview/glossary.md#peer-list) (`src/services/registry/peers_check.rs:54-61`).
 4. `kernel_route_ipc_corr` looks the endpoint up again and tests the caller's bits with `caps::has`, answering `EACCES` when they fall short (`src/ipc/kernel_ipc.rs:63-66`), then queues with `try_enqueue_strict` and wakes the receiving process with `wake_process` (`src/ipc/kernel_ipc.rs:81-89`).
 
 A send to the sender's own reply endpoint is a reply and does not go through the router: `redirect_reply` hands it to the caller waiting in `MkIpcCall`, or leaves it in that reply inbox for the kernel when no call is pending (`src/syscall/microkernel/ipc/send.rs:136-150`).
@@ -105,10 +105,10 @@ A message longer than the receive buffer is cut to the buffer and the rest is dr
 | Errno | Value | When |
 |---|---:|---|
 | `EINVAL` | -22 | Length 0, length above 1 MiB, or a bad pid or name. |
-| `EFAULT` | -14 | The buffer is not readable or writable user memory. |
+| `EFAULT` | -14 | The buffer is not readable or writable user memory, or a reply sent with `MkIpcSend` could not be queued for its caller. |
 | `EPERM` | -1 | The caller fails a capability gate, a held endpoint or the peer list. |
 | `EACCES` | -13 | A receive names an endpoint the caller does not own, or the router's own capability check fails. |
-| `ENOENT` | -2 | No endpoint or inbox of that name. |
+| `ENOENT` | -2 | No endpoint or inbox of that name, or for `MkIpcSendToPid` and `MkIpcReply` a destination that has exited. |
 | `ESRCH` | -3 | The inbox is gone or the process that drains it has exited, from the router. |
 | `EAGAIN` | -11 | The destination inbox is full, from the router. |
 | `EBUSY` | -16 | A full inbox for `MkIpcSendToPid` and `MkIpcReply`, a full pending queue for `MkIpcCall`, or a name or port already taken for `MkServiceRegister`. |
@@ -117,11 +117,11 @@ A message longer than the receive buffer is cut to the buffer and the rest is dr
 
 The router's constants sit beside `EACCES` in `kernel_ipc.rs` (`src/ipc/kernel_ipc.rs:39-43`), and the syscall handlers use `ERRNO_PERM` and its neighbours (`src/syscall/microkernel/errnos.rs:22-49`). The full table is on [Errors](../abi/errors.md). `ETIMEDOUT` is returned by these calls but is not listed in the `[errors]` table of [abi/syscalls.toml](../../abi/syscalls.toml).
 
-A capsule that has exited stops receiving even while its process row still exists: `owner_lives` treats a `Zombie` or `Terminated` process as gone (`src/ipc/nonos_inbox/registry.rs:164-172`).
-
 ## When a capsule exits
 
-At teardown `release_pending_replies_for_pid` drops every pending call the process made or was owed (`src/process/exit/teardown.rs:52`). `unregister_for_pid` removes `proc.<pid>` and `stdin.<pid>` and zeroes every payload still queued in them (`src/ipc/nonos_inbox/drop_pid.rs:30-50`). The output inbox of a finished child is kept for its parent to drain while `is_retained` says so, and only its stdin inbox goes (`src/process/exit/finalize.rs:25-32`); at most `RETAINED_CAP`, 64, such inboxes are kept (`src/process/exit/postmortem.rs:28-29`). [Processes and capsule spawn](processes-and-spawn.md) covers the rest of exit.
+A send to a capsule that has exited fails at once, even while its process row still exists: `owner_lives` treats a `Zombie` or `Terminated` process as gone (`src/ipc/nonos_inbox/registry.rs:164-172`).
+
+At teardown `release_pending_replies_for_pid` drops every pending call the process made or was owed (`src/process/exit/teardown.rs:52`). When the process is finalized later, `unregister_for_pid` removes `proc.<pid>` and `stdin.<pid>` and zeroes every payload still queued in them (`src/ipc/nonos_inbox/drop_pid.rs:30-50`). The output inbox of a finished child is kept for its parent to drain while `is_retained` says so, and only its stdin inbox goes (`src/process/exit/finalize.rs:25-32`); at most `RETAINED_CAP`, 64, such inboxes are kept (`src/process/exit/postmortem.rs:28-29`). [Processes and capsule spawn](processes-and-spawn.md) covers the rest of exit.
 
 ## Code that is present but not used
 
@@ -131,7 +131,7 @@ At teardown `release_pending_replies_for_pid` drops every pending call the proce
 
 ## Tests and proofs
 
-The host crate `userland/kernel_proofs` compiles the byte budget (`userland/kernel_proofs/src/inbox_budget/mod.rs`), the pending call shares (`userland/kernel_proofs/src/reply_share/mod.rs`), the held endpoint rule (`userland/kernel_proofs/src/ipc_held_tests/mod.rs`) and the peer list (`userland/kernel_proofs/src/ipc_peers_tests.rs`) straight from the kernel sources. It passed, 388 tests, in the flake check run on this commit. `userland/mechanism_proofs` includes `MAX_MESSAGE_SIZE` from the kernel file (`userland/mechanism_proofs/src/constants/mod.rs`); it passed, 56 tests, in the same run.
+The [proof crate](../overview/glossary.md#proof-crate) `userland/kernel_proofs` compiles the byte budget (`userland/kernel_proofs/src/inbox_budget/mod.rs`), the pending call shares (`userland/kernel_proofs/src/reply_share/mod.rs`), the held endpoint rule (`userland/kernel_proofs/src/ipc_held_tests/mod.rs`) and the peer list (`userland/kernel_proofs/src/ipc_peers_tests.rs`) straight from the kernel sources. It passed, 388 tests, in the flake check run on this commit. `userland/mechanism_proofs` includes `MAX_MESSAGE_SIZE` from the kernel file (`userland/mechanism_proofs/src/constants/mod.rs`); it passed, 56 tests, in the same run.
 
 ## See also
 

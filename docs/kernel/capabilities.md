@@ -1,6 +1,6 @@
 # Capabilities
 
-How the NONOS kernel decides what a process may ask of it: the [capability](../overview/glossary.md#capability) bits, the token each process holds, the check on every system call, and how bits are granted and taken back.
+How the NONOS kernel decides what a process may ask of it: the [capability](../overview/glossary.md#capability) bits, the token each process holds, the check on every NONOS system call, and how bits are granted and taken back.
 
 ## One definition
 
@@ -21,7 +21,7 @@ Each process control block holds its [capability token](../overview/glossary.md#
 
 ## What each bit admits
 
-The gates below are read from the cap table: `check` for the microkernel calls (`src/syscall/contract/cap_table/mk.rs:20-224`), and the crypto, admin and graphics tables beside it. `Admin` also passes the gates of `Driver`, `Mmio`, `Irq`, `Dma`, `Pio`, `InputSource`, `SpawnWindow`, `ProcessControl` and `RegisterService`, and of `MkDeviceList`, for example in `can_driver` (`src/capabilities/token/types/authority_broker.rs:24-26`).
+The gates below are read from the cap table: `check` for the microkernel calls (`src/syscall/contract/cap_table/mk.rs:20-224`), and the crypto, admin and graphics tables beside it. `Admin` stands in for `Driver`, `Mmio`, `Irq`, `Dma`, `Pio`, `InputSource`, `SpawnWindow` and `RegisterService`, for `DeviceEnum` in `MkDeviceList` but not in `MkInstallSource`, and for `ProcessControl` in `MkKill` but not in `MkProcStat`. `can_driver` shows the pattern (`src/capabilities/token/types/authority_broker.rs:24-26`).
 
 | Bit | Kernel name | What it admits |
 |---:|---|---|
@@ -53,8 +53,8 @@ The gates below are read from the cap table: `check` for the microkernel calls (
 | 25 | `ProcessControl` | `MkKill` on a process the caller does not parent, and every field of other processes in `MkProcStat`. |
 | 26 | `StoreWrite` | `MkStoreWrite`, `MkStoreRead`; with `FileSystem`, the data import calls. |
 | 27 | `EnrolDevRoot` | `MkDevRootRequest`, `MkDevRootConfirm`, `MkDevRootLocal`, `MkLocalConsent`, `MkLocalRestore`. `Admin` does not imply it. |
-| 28 | `Keyring` | Reaching the keyring capsule; the kernel side checks it in `gate_caller` (`src/security/keyring_capsule/capability.rs:26-34`). |
-| 29 | `Entropy` | Drawing from the entropy capsule; the kernel side checks it in `gate_read` (`src/security/entropy_capsule/capability.rs:23-32`). |
+| 28 | `Keyring` | Nothing that runs. The kernel's keyring client checks it in `gate_caller` (`src/security/keyring_capsule/capability.rs:26-34`), but no kernel code calls that client, and a capsule sends to the keyring with `IPC` alone. |
+| 29 | `Entropy` | Nothing that runs. The kernel's entropy client checks it in `gate_read` (`src/security/entropy_capsule/capability.rs:23-32`) for statistics and health checks no kernel code asks for, and a capsule sends to the entropy service with `IPC` alone. |
 | 30 | `AppInstall` | `MkAppInstall`, `MkAppLaunch`, `MkAppInstallStatus`, `MkAppUninstall`. |
 | 31 | `AttestRead` | `MkAttestEntries`, `MkLogTail`, every field of other processes in `MkProcStat`; `MkAttestDoc` only without `Network`. |
 | 32 | `ForeignExec` | The 15 `MkForeign` and `MkPeer` calls that host a Linux guest, and `MkLocalVerify`. |
@@ -72,11 +72,11 @@ Each process holds one `CapabilityToken`: the owning module id, the list of capa
 
 `new_token` mints a process token with no expiry, bound to the pid, its address space id, the boot session nonce and the process's current revocation epoch, and signs it (`src/process/caps.rs:38-59`). The mint fails closed: `new_token` returns `None` until the boot session nonce exists, so no token is bound to a zero nonce (`src/process/caps.rs:24-26`).
 
-The token's `signature` field is a message authentication code, not a public key signature: `mac64` over the 128 byte `token_material`, two keyed BLAKE3 hashes, one of the material and one of the material followed by `CAP2` (`src/capabilities/token/material.rs:41-52`). Only the kernel holds the key, so only the kernel can make or check one. The key is 32 bytes drawn from the random source at boot by `init_token_signing_key`, which halts the boot if the draw fails (`src/kernel_core/init/platform/token_signing_key.rs:19-31`); `set_signing_key` refuses a second key (`src/capabilities/token/signing_key.rs:21-33`).
+The token's `signature` field is a message authentication code, not a public key signature: `mac64` over the 128 byte `token_material`, two keyed BLAKE3 hashes, one of the material and one of the material followed by `CAP2` (`src/capabilities/token/material.rs:41-52`). Only the kernel holds the key, so only the kernel can make or check one. `init_token_signing_key` draws the 32 key bytes at boot with `get_bytes_secure` and halts if the draw reports a failure (`src/kernel_core/init/platform/token_signing_key.rs:19-31`). The draw never does: `get_bytes_secure` always returns success (`src/crypto/random_api/basic.rs:38-42`), so on a machine with no hardware random source the key comes from the cycle counter, as [Randomness and cryptography](../security/randomness-and-cryptography.md#when-a-source-is-missing) explains. `set_signing_key` refuses a second key (`src/capabilities/token/signing_key.rs:21-33`).
 
 The `[token]` and `[mac]` tables of `abi/caps.toml` describe a different design, a SHA3-256 MAC under the context `NONOS_CAP_V1` (`abi/caps.toml:58-70`). Nothing under `src/` uses that context; the kernel token is the keyed BLAKE3 one above.
 
-## The check on every system call
+## The check on every NONOS system call
 
 ```mermaid
 flowchart TD
@@ -93,7 +93,7 @@ flowchart TD
     C -->|fails| P
 ```
 
-Every architecture's syscall entry calls the same `dispatch`, which runs `Capability::resolve` and returns `EPERM` when it fails (`src/syscall/contract/dispatch.rs:25-40`). A refusal is also logged as a `[CAP-DENY]` line with the pid and the call, from `log_deny` (`src/syscall/contract/dispatch.rs:42-46`).
+Every architecture's syscall entry hands each number the kernel knows to the same `dispatch`, which runs `Capability::resolve` and returns `EPERM` when it fails (`src/syscall/contract/dispatch.rs:25-40`). A number it does not know never reaches `dispatch`: it gets `ENOSYS`, or on x86_64 goes to a Linux guest's supervisor, as [System calls](syscalls.md) describes. A refusal is also passed to the structured log as a `[CAP-DENY]` line with the pid and the call, from `log_deny` (`src/syscall/contract/dispatch.rs:42-46`). No log manager is installed in this release, so that line is dropped; see [Logging](logging.md#the-structured-log-and-the-debug-ring).
 
 `resolve` reads the calling process's token and builds the context from its address space id, the boot session nonce and its revocation epoch (`src/syscall/contract/capability.rs:35-46`). It then runs five checks, in the order `resolve` lists them (`src/syscall/contract/resolver/resolve.rs:31-43`):
 
@@ -105,12 +105,12 @@ Every architecture's syscall entry calls the same `dispatch`, which runs `Capabi
 
 The cap table is total. `is_allowed` asks the crypto, admin, microkernel and graphics tables in turn and refuses any call none of them claims (`src/syscall/contract/cap_table/mod.rs:27-34`). Only `resolve` can build the witness type `Capability` (`src/syscall/contract/capability.rs:23-32`), and `dispatch` calls the handler only once it holds one; it does not pass the witness on to the handler at this commit (`src/syscall/contract/dispatch.rs:31-40`).
 
-Some handlers check again. `sys_cap_grant` asks for `Admin` once more and for every bit it hands on (`src/syscall/microkernel/capability/handlers.rs:42-47`).
+Some handlers check again. `sys_cap_grant` asks for `Admin` once more and for every bit it hands on (`src/syscall/microkernel/capability/handlers.rs:42-47`). `sys_pci_config_read` and `sys_pci_config_write` ask for `Driver` itself, so `Admin` alone is refused there (`src/syscall/microkernel/pci.rs:28-35`).
 
 ## Granting and revoking
 
-- At spawn, `install_spawn` installs the mask from the verified manifest, once; a second call is refused (`src/process/caps.rs:110-122`). The mask never comes from the spawn site's `requested_caps`, which is only an upper bound for optional bits (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:25-27`). The word is every required bit plus the optional bits the spawn site asked for, as `install_caps` computes, and both sets must lie under the `allowed_caps_ceiling` of the publisher's identity certificate, which `within_ceiling` checks (`src/security/capsule_manifest/verify/caps_bits.rs:26-47`). A spawn site that asks for a bit the manifest does not declare is refused with `GrantOutsideManifest` (`src/security/capsule_manifest/verify/caps.rs:31-39`).
-- The [boot profile](../overview/glossary.md#boot-profile) trims that mask first: `caps` removes `Network` when the profile runs no network (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:48-55`).
+- At spawn, `install_spawn` installs the mask from the verified manifest, once; a second call is refused (`src/process/caps.rs:110-122`). The mask never comes from the spawn site's `requested_caps`, which is only an upper bound for optional bits (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:25-27`). The word is every required bit plus the optional bits the spawn site asked for, as `install_caps` computes, and both sets must lie under the [capability ceiling](../overview/glossary.md#capability-ceiling), the `allowed_caps_ceiling` of the publisher's identity certificate, which `within_ceiling` checks (`src/security/capsule_manifest/verify/caps_bits.rs:26-47`). A spawn site that asks for a bit the manifest does not declare is refused with `GrantOutsideManifest` (`src/security/capsule_manifest/verify/caps.rs:31-39`).
+- The [boot profile](../overview/glossary.md#boot-profile) trims that word before it is installed: `caps` removes `Network` when the profile runs no network (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:48-55`).
 - Every new process first inherits its parent's bits limited to `AMBIENT_CAPS`, which is `CoreExec`, `IPC` and `Memory` (`src/process/core/table/inherit.rs:47-48`); a verified capsule then gets its manifest's mask, and a Linux guest an empty one. A compile time assertion keeps hardware, `Admin`, `Debug`, graphics, `SpawnBroker` and `DeviceSecret` out of that set (`src/process/core/table/inherit.rs:53-71`).
 - `MkCapGrant(pid, mask)` needs `Admin`, and the caller must hold every bit it grants (`src/syscall/microkernel/capability/handlers.rs:33-52`); `grant` then mints a new token with the bits added (`src/process/caps.rs:89-97`).
 - `MkCapRevoke(pid, mask)` needs `Admin`. `revoke` raises the target's revocation epoch and mints a token without the bits, so any copy of the old token fails `check_revocation_epoch` (`src/process/caps.rs:99-108`).
@@ -122,15 +122,17 @@ Some handlers check again. `sys_cap_grant` asks for `Admin` once more and for ev
 
 ## What capabilities do not cover
 
-A capability says what kind of call a process may make, not whom it may talk to. The held endpoints and the [peer list](../overview/glossary.md#peer-list) on [IPC](ipc.md) add that. `IO` and `Hardware` gate nothing at this commit. A capability check is only as good as the process isolation under it; [Capsule isolation](../security/capsule-isolation.md) covers that side.
+A capability says what kind of call a process may make, not whom it may talk to. The [held endpoints](../overview/glossary.md#held-endpoint) and the [peer list](../overview/glossary.md#peer-list) on [IPC](ipc.md) add that. `IO` and `Hardware` gate nothing at this commit, and `Keyring` and `Entropy` gate only kernel clients that nothing calls. A capability check is only as good as the process isolation under it; [Capsule isolation](../security/capsule-isolation.md) covers that side.
 
 ## Tests
 
-`userland/kernel_proofs` compiles the cap table (`userland/kernel_proofs/src/syscall/contract/mod.rs`), the predicates (`userland/kernel_proofs/src/syscall/caps/mod.rs`), the capability list and the bit helpers (`userland/kernel_proofs/src/capabilities/mod.rs`) from the kernel sources. It passed, 388 tests, in the flake check run on this commit. `scripts/check_syscall_caps.py` compares the gate each call publishes in `abi/syscalls.toml` with the cap table; it prints nothing and exits 0 when they agree, as it does here:
+The [proof crate](../overview/glossary.md#proof-crate) `userland/kernel_proofs` compiles the cap table (`userland/kernel_proofs/src/syscall/contract/mod.rs`), the predicates (`userland/kernel_proofs/src/syscall/caps/mod.rs`), the capability list and the bit helpers (`userland/kernel_proofs/src/capabilities/mod.rs`) from the kernel sources. It passed, 388 tests, in the flake check run on this commit. `scripts/check_syscall_caps.py` compares the gate each call publishes in `abi/syscalls.toml` with the cap table; it prints nothing and exits 0 when they agree, as it does here:
 
 ```
 $ python3 scripts/check_syscall_caps.py
 ```
+
+[Checking the security claims yourself](../security/checking-the-claims.md#every-capability-and-control-is-enforced) covers three more tools that hold the capability list to the code, and what each printed at this commit.
 
 ## See also
 

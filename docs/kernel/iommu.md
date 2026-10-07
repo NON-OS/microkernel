@@ -1,15 +1,15 @@
 # IOMMU
 
-What the NONOS kernel does with DMA remapping hardware, Intel VT-d and AMD-Vi: which devices it confines, when remapping is in service, and what happens when it is not.
+What the NONOS kernel does with DMA remapping hardware, the [IOMMU](../overview/glossary.md#iommu), on Intel VT-d and AMD-Vi machines: which devices it confines, when remapping is in service, and what happens when it is not.
 
 ## What the kernel does
 
 - With an Intel VT-d unit that the firmware described and left off, the kernel turns translation on at boot. Every device found by the PCI scan starts in an identity mapped domain, and anything the scan did not find is denied.
-- When a driver [capsule](../overview/glossary.md#capsule) claims a device behind a unit in service, the device moves into that capsule's own [IOMMU domain](../overview/glossary.md#iommu-domain), which maps only the DMA buffers the capsule was granted.
+- When a [driver capsule](../overview/glossary.md#driver-capsule) claims a device behind a unit in service, the device moves into that capsule's own [IOMMU domain](../overview/glossary.md#iommu-domain), which maps only the DMA buffers the capsule was granted.
 - AMD-Vi units are taken back from firmware but not driven by any image profile this tree defines, so DMA behind an AMD-Vi unit is unrestricted.
-- With no unit, or a unit that did not come up, DMA is unrestricted, and the kernel says so on the serial console.
+- With no unit, or a unit that did not come up, DMA is unrestricted, and the kernel says so on the [serial console](../overview/glossary.md#serial-console).
 
-Everything here is read from the code. Whether the units of a given machine come into service has not been tested on hardware in this release; the build provides the QEMU boot described below.
+Everything here is read from the code. No hardware report for this release covers whether a given machine's units come into service; the build provides the QEMU boot described below.
 
 ## Which IOMMU
 
@@ -45,7 +45,20 @@ Interrupt remapping is a separate feature, `nonos-iommu-intremap`. No feature li
 
 ## Per capsule domains
 
-The [hardware broker](hardware-broker.md) gives each driver capsule one domain, which maps nothing until `MkDmaMap` grants the capsule a buffer (`src/hardware/broker/confine/mod.rs:17-21`). `attach` runs inside the claim:
+The [hardware broker](hardware-broker.md) gives each driver capsule one domain, which maps nothing until `MkDmaMap` grants the capsule a buffer (`src/hardware/broker/confine/mod.rs:17-21`). `attach` runs inside `MkDeviceClaim` and decides what the device can reach; when it refuses, the claim fails with `EPERM`.
+
+```mermaid
+flowchart TD
+    C[MkDeviceClaim] --> R{PCI requester id}
+    R -->|none, ACPI device| U[claim granted, device unconfined]
+    R -->|yes| T{unit in service covers it}
+    T -->|no| U
+    T -->|yes| S{id held by another capsule}
+    S -->|yes| X[claim refused, EPERM]
+    S -->|no| A{attach_device}
+    A -->|fails| X
+    A -->|ok| D[device in the capsule's domain]
+```
 
 - If `translates` says no unit in service covers the device, the device stays on physical addresses, and the claim goes ahead with a serial line saying it reaches all memory (`src/hardware/broker/confine/attach.rs:34-48`). `translates` decides coverage: a unit must be enforcing and its scope must hold the device (`src/memory/iommu/backend_x86_64/device.rs:47-54`).
 - If a unit does cover it, the device leaves the identity domain and `attach_device` puts it in the capsule's domain (`src/hardware/broker/confine/attach.rs:88-100`).
@@ -84,11 +97,11 @@ The build has a boot with an emulated Intel IOMMU. `nonos-mk-run-iommu-serial-lo
 make nonos-mk-run-iommu-serial-log
 ```
 
-Not tested in this release.
+No run of this target is recorded for this release, so no log from it is quoted here.
 
 ## Tests
 
-`userland/kernel_proofs` compiles the DMAR scope parser (`userland/kernel_proofs/src/dmar_scope/mod.rs`), the IVRS walk (`userland/kernel_proofs/src/firmware_iommu/mod.rs`), the confinement posture (`userland/kernel_proofs/src/confine_posture/mod.rs`) and several VT-d register and queue helpers from the kernel sources. It passed, 388 tests, in the flake check run on this commit. `userland/mechanism_proofs` holds the VT-d page table entry and context entry encodings (`userland/mechanism_proofs/src/iommu/mod.rs`); it passed, 56 tests, in the same run.
+The [proof crate](../overview/glossary.md#proof-crate) `userland/kernel_proofs` compiles the DMAR scope parser (`userland/kernel_proofs/src/dmar_scope/mod.rs`), the IVRS walk (`userland/kernel_proofs/src/firmware_iommu/mod.rs`), the confinement posture (`userland/kernel_proofs/src/confine_posture/mod.rs`) and several VT-d register and queue helpers from the kernel sources. It passed, 388 tests, in the flake check run on this commit. `userland/mechanism_proofs` holds the VT-d page table entry and context entry encodings (`userland/mechanism_proofs/src/iommu/mod.rs`); it passed, 56 tests, in the same run.
 
 ## See also
 

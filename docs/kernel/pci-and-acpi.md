@@ -17,7 +17,7 @@ flowchart TD
 
 ## Finding the tables
 
-`init_acpi_tables` takes the RSDP address from the bootloader's handoff when there is one and prints `[NONOS] ACPI tables parsed` or `[NONOS] ACPI init failed; legacy fallbacks engaged` (`src/boot/main/core_init/acpi_tables.rs:19-33`). Without a handoff address, or when nothing valid sits at it, `find_rsdp` searches the EBDA and then the BIOS ROM range (`src/arch/x86_64/acpi/parser/rsdp.rs:29-55`).
+`init_acpi_tables` takes the RSDP address from the [boot handoff](../overview/glossary.md#boot-handoff) when there is one and prints `[NONOS] ACPI tables parsed` or `[NONOS] ACPI init failed; legacy fallbacks engaged` (`src/boot/main/core_init/acpi_tables.rs:19-33`). Without a handoff address, or when nothing valid sits at it, `find_rsdp` searches the EBDA and then the BIOS ROM range (`src/arch/x86_64/acpi/parser/rsdp.rs:29-55`).
 
 `init` reads the XSDT with `parse_xsdt` when the RSDP has one and falls back to `parse_rsdt` only when there is no XSDT or it cannot be read (`src/arch/x86_64/acpi/parser/init.rs:41-55`). A missing or unreadable FADT fails the whole parse in `parse_fadt`; the other tables are optional (`src/arch/x86_64/acpi/parser/init.rs:61-70`).
 
@@ -43,16 +43,16 @@ The sources, one per table:
 - `parse_dmar` checks the table's checksum, keeps at most 8 segment 0 units with their scopes and counts the units on other segments (`src/arch/x86_64/acpi/parser/other/dmar.rs:56-114`). Only DRHD structures are read; the other DMAR structure types are skipped.
 - `parse_ivrs` checks the checksum and reads at most `MAX_IVRS_BYTES`, 64 KiB, of the table (`src/arch/x86_64/acpi/parser/other/ivrs.rs:28-69`).
 - `parse_hpet` records the HPET base when the table is valid (`src/arch/x86_64/acpi/parser/other/hpet.rs:22-35`).
-- The TPM driver looks the TPM2 table up by signature with `table_address` (`src/security/tpm/transport/acpi.rs:57-62`).
+- The [TPM](../overview/glossary.md#tpm) driver looks the TPM2 table up by signature with `table_address` (`src/security/tpm/transport/acpi.rs:57-62`).
 - `aml_blocks` returns the DSDT and every SSDT the root table listed (`src/arch/x86_64/acpi/aml/tables.rs:100-118`). `init` reads `\_S5` from them once with `find_in_blocks`, while the heap and the tables are known to be intact, and warns when there is none, in which case soft off is not available (`src/arch/x86_64/acpi/parser/init.rs:89-105`).
 
-What is ignored: any table not named above. The SLIT has a signature constant, `SIG_SLIT`, and types, but `init` never parses it (`src/arch/x86_64/acpi/tables/mod.rs:65`). MADT entry types other than the seven listed are skipped. The kernel has no AML interpreter: the scanner in `scan` reads the bytes for the objects above and never executes AML (`src/arch/x86_64/acpi/aml/mod.rs:17-30`).
+The kernel ignores every table not named above. The SLIT has a signature constant, `SIG_SLIT`, and types, but `init` never parses it (`src/arch/x86_64/acpi/tables/mod.rs:65`). MADT entry types other than the seven listed are skipped. The kernel has no AML interpreter: the scanner in `scan` reads the bytes for the objects above and never executes AML (`src/arch/x86_64/acpi/aml/mod.rs:17-30`).
 
 ## Scanning PCI
 
 The kernel scans PCI twice at boot, with two pieces of code that serve different readers.
 
-`bus::pci::init` walks buses 0 to 255, devices 0 to 31 and, for a multifunction device, functions 1 to 7, and keeps up to `MAX_DEVICES`, 256, functions (`src/bus/pci/init.rs:22-65`). It prints `[PCI] Found <n> devices` and a line per known class. A second call does nothing, because `PCI_INIT` is already set. The VT-d bring-up reads this list through `enumerate_devices` to give every function a context entry (`src/arch/x86_64/iommu/unit/bringup/assign.rs:22-45`).
+`bus::pci::init` walks buses 0 to 255, devices 0 to 31 and, for a multifunction device, functions 1 to 7, and keeps up to `MAX_DEVICES`, 256, functions (`src/bus/pci/init.rs:22-65`). It prints `[PCI] Found <n> devices`, then a line for each function whose class it has a name for, such as NVMe or xHCI. A second call does nothing, because `PCI_INIT` is already set. The VT-d bring-up reads this list through `enumerate_devices` to give every function a context entry (`src/arch/x86_64/iommu/unit/bringup/assign.rs:22-45`).
 
 `enumerate_all_buses` in the PCI manager walks the same 256 buses with a full probe: IDs, class, header type, all six BARs, the capability list, MSI, MSI-X, power management and PCI Express information, in `probe_device` (`src/drivers/pci/manager/probe.rs:32-107`). It then adds the functions hidden behind any Intel VMD with `vmd::children` (`src/drivers/pci/manager/probe.rs:136-147`). `seed_hardware_broker` builds the broker's device table from this second scan (`src/kernel_core/init/platform/hardware_broker.rs:19-27`). Both scans cover PCI segment 0 only; a VMD's private domain is the one exception.
 
@@ -64,11 +64,15 @@ Config accesses go through one accessor that picks the mechanism: ECAM when a wi
 
 Functions behind an Intel VMD are the exception: the VMD module gives them a segment of their own and reaches their config space through the VMD's CFGBAR. Those functions never interrupt and their drivers poll, and their DMA reaches the IOMMU under the VMD's own requester id, which `dma_requester` reports (`src/drivers/pci/vmd/mod.rs:17-25`). [VMD](../drivers/storage/vmd.md) has the details.
 
-A driver capsule never reaches config space directly. It reads and writes it through `MkPciConfigRead` and `MkPciConfigWrite`, which the hardware broker limits to the first 256 bytes and to a short list of writable bits.
+A [driver capsule](../overview/glossary.md#driver-capsule) never reaches config space directly. It reads and writes it through `MkPciConfigRead` and `MkPciConfigWrite`, which the hardware broker limits to the first 256 bytes and to a short list of writable bits; [Hardware broker](hardware-broker.md#pci-configuration) lists them.
 
 ## On other architectures
 
 On aarch64 the same PCI code reaches config space through ECAM, from the window the board describes at boot, and the I2C and GPIO controllers come from the device tree instead of ACPI, which is why `seed_hardware_broker` calls `register_acpi_i2c` on x86_64 only (`src/kernel_core/init/platform/hardware_broker.rs:31-38`). Those builds are previews; see [aarch64](../architectures/aarch64.md).
+
+## Tests
+
+The [proof crate](../overview/glossary.md#proof-crate) `userland/acpi_aml_proofs` compiles the AML scanner, the FADT decoder, the MADT CPU entries and the I2C and GPIO controller walks from the kernel sources (`userland/acpi_aml_proofs/src/arch/x86_64/acpi/aml/mod.rs`) and feeds them table bytes shaped as firmware writes them (`userland/acpi_aml_proofs/src/fixtures.rs`). It passed, 82 tests, in the flake check run on this commit. `userland/kernel_proofs` compiles the AER decoder (`userland/kernel_proofs/src/aer_decode/mod.rs`) and the window arithmetic `assign_unassigned` places BARs with (`userland/kernel_proofs/src/bus/mod.rs`); it passed, 388 tests, in the same run.
 
 ## See also
 
