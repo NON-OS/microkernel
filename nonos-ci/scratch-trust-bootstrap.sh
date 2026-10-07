@@ -114,6 +114,17 @@ done
 if [ ! -f .keys/marketplace_operator_ed25519.seed ]; then
     echo "[scratch-trust-bootstrap] generating scratch marketplace operator key"
     "${CS}" keygen --alg ed25519 --out .keys/marketplace_operator_ed25519
+    # capsule-sign writes the key in an 11-byte NONOSSK1/NONOSPK1 container,
+    # but the marketplace operator key is read as a raw 32-byte seed and
+    # public key: the market-index CLI (nonos-mk keys::from_seed_bytes) and
+    # the model-catalogue tool (tools/nonos_qwen_tier) both require 32 bytes,
+    # and the committed .pub is stored that way. Take the raw 32-byte tail of
+    # each; without this the catalogue and index signing steps fail with
+    # "the operator seed does not belong to the operator public key".
+    for _ext in seed pub; do
+        _f=".keys/marketplace_operator_ed25519.${_ext}"
+        tail -c 32 "${_f}" > "${_f}.raw" && mv "${_f}.raw" "${_f}"
+    done
     chmod 600 .keys/marketplace_operator_ed25519.seed
 fi
 
