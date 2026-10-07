@@ -38,6 +38,16 @@ let
   # A shell repository of the tree, so the checks that ask git which files are
   # tracked get a real answer instead of an empty list.
   gitTree = ''
+    # git permits a macro attribute ([attr] ...) only in a top-level
+    # .gitattributes; one in a subdirectory is rejected -- a warning in older
+    # git, a hard error from git 2.55 on. The vendored pqclean tree ships such
+    # a macro (third_party/pqclean/.gitattributes), so neutralize any [attr]
+    # line in a third_party/ .gitattributes in this throwaway working copy,
+    # or the git add below fails. The committed files and the pqclean
+    # tree-hash pin (read from HEAD) are untouched, and third_party is already
+    # out of scope for our whitespace gates.
+    find third_party -name .gitattributes -type f \
+      -exec sed -i 's/^\[attr\]/# [attr]/' {} + 2>/dev/null || true
     git init -q . && git add -A && git -c user.name=nix -c user.email=nix@localhost commit -q -m tree
   '';
 
