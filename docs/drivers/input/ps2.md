@@ -90,7 +90,7 @@ No capsule may send to `driver.ps2_kbd0`: the kernel holds it to an empty list (
 
 - [Input drivers](README.md)
 - [I2C-HID touchpads](i2c-hid.md)
-- [USB HID](../usb/hid.md)
+- [USB keyboards and mice](../usb/hid.md)
 - [Keyboard layouts](../../using/keyboard-layouts.md)
 - [Hardware broker](../../kernel/hardware-broker.md)
 - [Support matrix](../../hardware/MATRIX.md)

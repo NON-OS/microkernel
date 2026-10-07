@@ -1,10 +1,10 @@
 # Writing a driver
 
-A [driver capsule](../overview/glossary.md#driver-capsule) from scratch, built step by step on the real `capsule_driver_virtio_rng`, from its manifest to its [proof crate](../overview/glossary.md#proof-crate) and the build.
+A [driver capsule](../overview/glossary.md#driver-capsule) from scratch, built step by step on the real `capsule_driver_virtio_rng`, from its [manifest](../overview/glossary.md#manifest) to its [proof crate](../overview/glossary.md#proof-crate) and the build.
 
 ## What you build
 
-The example drives the virtio entropy device: PCI vendor 0x1AF4, device 0x1005 (transitional) or 0x1044 (modern), as `VIRTIO_RNG_TRANSITIONAL` and `VIRTIO_RNG_MODERN` say (`userland/capsule_driver_virtio_rng/src/constants/pci.rs:22-24`). It is small, it maps registers by MMIO or port I/O, it takes two DMA buffers, and it answers two requests, a fill and a health check. It polls and binds no interrupt, so the interrupt step below borrows virtio-blk's code. Read [broker-api.md](broker-api.md) first for what each call checks.
+The example drives the virtio entropy device: PCI vendor 0x1AF4, device 0x1005 (transitional) or 0x1044 (modern), as `VIRTIO_RNG_TRANSITIONAL` and `VIRTIO_RNG_MODERN` say (`userland/capsule_driver_virtio_rng/src/constants/pci.rs:22-24`). It is small, it maps registers by MMIO or port I/O, it takes two DMA buffers, and it answers two requests, a fill and a health check. It polls and binds no interrupt, so the interrupt step below borrows virtio-blk's code. Read [Broker API](broker-api.md) first for what each call checks.
 
 A new driver adds these pieces. Every path is virtio-rng's copy.
 
@@ -32,7 +32,7 @@ The program starts in `_start`: `find_virtio_rng` looks for the device, `bring_u
 
 ## 1. The crate
 
-The crate is a `no_std`, `no_main` binary named `driver_virtio_rng` with `_start` as its entry (`userland/capsule_driver_virtio_rng/src/main.rs:17-36`). It depends on `nonos_libc` for every system call and on `nonos_virtio` for the virtio 1.0 transport (`userland/capsule_driver_virtio_rng/Cargo.toml:17-23`). It reaches hardware only through the broker; the static checks refuse a `crate::drivers` import in this crate, through `capsule_kernel_drivers` (`nonos-ci/run-static-checks.sh:476-483`).
+The crate is a `no_std`, `no_main` binary named `driver_virtio_rng` with `_start` as its entry (`userland/capsule_driver_virtio_rng/src/main.rs:17-36`). It depends on `nonos_libc` for every system call and on `nonos_virtio` for the virtio 1.0 transport (`userland/capsule_driver_virtio_rng/Cargo.toml:17-23`). It reaches hardware only through the [hardware broker](../overview/glossary.md#hardware-broker); the static checks refuse a `crate::drivers` import in this crate, through `capsule_kernel_drivers` (`nonos-ci/run-static-checks.sh:476-483`).
 
 ## 2. The manifest
 
@@ -103,7 +103,7 @@ pub unsafe extern "C" fn _start() -> ! {
     };
 ```
 
-No device means `EXIT_ABSENT` (2) at once. A device that fails seven attempts means `EXIT_GAVE_UP` (6). After bring-up the driver asks for one `fill` and exits 3 if it fails or 4 if every byte is zero (`userland/capsule_driver_virtio_rng/src/main.rs:59-77`). Thirteen of the drivers call `start_driver` instead, which does the discovery check and the schedule in one call (`userland/libc/src/bringup/run.rs:52-62`).
+No device means `EXIT_ABSENT` (2) at once. A device that fails seven attempts means `EXIT_GAVE_UP` (6). After bring-up the driver asks for one `fill` and exits 3 if it fails or 4 if every byte is zero (`userland/capsule_driver_virtio_rng/src/main.rs:59-77`). Thirteen of the 27 driver capsules call `start_driver` instead, which does the discovery check and the schedule in one call (`userland/libc/src/bringup/run.rs:52-62`).
 
 ## 5. One attempt
 
@@ -211,7 +211,7 @@ The header is magic, version, op, flags, a reserved word, request id and payload
 
 The kernel mirror is a module under `src/hardware/`, declared in `src/hardware/mod.rs` as `virtio_rng_capsule` (`src/hardware/mod.rs:35`). It holds:
 
-- `embed.rs`: the ELF, certificate, manifest and attestation trailer behind the Cargo feature, as `DRIVER_VIRTIO_RNG_ELF` and its siblings, and empty slices without it (`src/hardware/virtio_rng_capsule/embed.rs:23-52`).
+- `embed.rs`: the ELF, certificate, manifest and [attestation trailer](../overview/glossary.md#attestation-trailer) behind the Cargo feature, as `DRIVER_VIRTIO_RNG_ELF` and its siblings, and empty slices without it (`src/hardware/virtio_rng_capsule/embed.rs:23-52`).
 - `spawn.rs`: `spawn_driver_virtio_rng_capsule` fills a `CapsuleSpecVerified` with the endpoints and `requested_caps` and calls `spawn_verified` (`src/hardware/virtio_rng_capsule/spawn.rs:37-63`). Its `requested_caps` must stay inside the manifest or the spawn is refused, and `check_mirror_caps.py` holds `requested_caps` to the manifest on the host (`scripts/check_mirror_caps.py:17-30`).
 - `client/`: the kernel's side of the protocol. `round_trip` sends one request and waits for its reply under a lock (`src/hardware/virtio_rng_capsule/client/transport.rs:37-52`), and `gate_read` refuses the call when the current process does not hold `CAP_DRIVER` (`src/hardware/virtio_rng_capsule/capability.rs:25-34`).
 
@@ -223,7 +223,7 @@ A driver serves its device raw, so its endpoint goes into `HELD` with the servic
 
 ## 13. Starting it at boot
 
-`spawn_rng` starts the capsule whenever its feature is on (`src/userspace/init/spawn_plan/drivers_virtio_io.rs:22-33`). A driver for hardware a machine may lack asks `present` with a `HardwareFamily` first, as `spawn_blk` does (`src/userspace/init/spawn_plan/drivers_virtio_io.rs:35-48`). A new device class needs a variant in `HardwareFamily` and a rule in `classify_family` (`src/hardware/inventory/classify.rs:28-49`).
+`spawn_rng` starts the capsule whenever its feature is on, and an empty `spawn_rng` stands in when the feature is off (`src/userspace/init/spawn_plan/drivers_virtio_io.rs:22-33`). The file's own `spawn` calls it (`src/userspace/init/spawn_plan/drivers_virtio_io.rs:17-20`), and `spawn_drivers` reaches that through `drivers_virtio` (`src/userspace/init/spawn_plan/orchestrator.rs:33-41`), so a new driver's spawn function goes into one of the files `spawn_drivers` already calls. A driver for hardware a machine may lack asks `present` with a `HardwareFamily` first, as `spawn_blk` does (`src/userspace/init/spawn_plan/drivers_virtio_io.rs:35-48`). A new device class needs a variant in `HardwareFamily` and a rule in `classify_family` (`src/hardware/inventory/classify.rs:28-49`).
 
 ## 14. Feature, profile and build
 
@@ -231,7 +231,7 @@ A driver serves its device raw, so its endpoint goes into `HELD` with the servic
 - Add the feature to each image profile that should carry the driver: `microkernel-desktop-offline` for every image with a desktop, or `microkernel-full-gui` for the real-hardware images only (`Cargo.toml:538-590`, `Cargo.toml:632-646`).
 - A network driver also goes into `networkFeatures`, so the Air-Gapped image leaves it out (`tools/nix/config.nix:48-58`), and into `NETWORK_DRIVERS`, so Air-Gapped, Safe Mode and Recovery boots refuse to start it (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs:21-28`).
 - Include the manifest with the other drivers (`mk/20-build.mk:528-547`).
-- Regenerate the capsule catalogue `tools/nix/capsules.json` with `tools/nix/catalogues.py`; the flake's `catalogues` check fails while it is stale (`mk/60-nix.mk:1-10`).
+- Regenerate the capsule catalogue `tools/nix/capsules.json` with `tools/nix/catalogues.py`; the flake's `catalogues` check fails while it is stale (`mk/60-nix.mk:1-10`). Then run `python3 tools/nix/inputs.py` and commit `tools/nix/inputs.json`: the new crate, the proof crate's `#[path]` lines and the mirror's `include_bytes!` each change it, and the flake's `inputs` check fails until it matches the tree (`tools/nix/checks.nix:265-269`, `inputs`).
 - Do not add the driver to `userland/apps.list`. That list is for installed tool apps, one line each with a slug, a binary, a `service_port` and a reply port (`userland/apps.list:1-3`).
 - Write the README. The static checks fail on a driver README without the sections from `## Role` to `## Verification`, a `text` diagram, the `CAPSULE_REQUIRED_CAPS` it runs with and the broker calls it makes, through the `driver_doc_fail` loop (`nonos-ci/run-static-checks.sh:198-241`).
 
@@ -277,17 +277,17 @@ cd userland/virtio_rng_proofs && cargo test --release
 bash nonos-ci/run-static-checks.sh
 ```
 
-Not tested in this release.
+These three commands, as written, were not run for this release. The flake runs the same proof crate and the same static checks in its own build.
 
-At this commit the flake's run of the static checks fails. One finding in its log is outside virtio-rng: the `forbidden_import_hits` gate matches an import in the AHCI driver (`nonos-ci/run-static-checks.sh:4493-4512`). The line it matches imports `read` and `write` from `super::rw` (`userland/capsule_driver_ahci/src/server/handlers/emmc/dispatch.rs:29`). The same gate covers virtio-rng, so its crate must not `use` an item named `read`, `write`, `mmap` or `_exit` either.
+At this commit the flake's run of the static checks fails. Its log names a finding outside virtio-rng: the `forbidden_import_hits` gate matches an import in the AHCI driver (`nonos-ci/run-static-checks.sh:4493-4512`). The line it matches imports `read` and `write` from `super::rw` (`userland/capsule_driver_ahci/src/server/handlers/emmc/dispatch.rs:29`). The same gate covers virtio-rng, so its crate must not `use` an item named `read`, `write`, `mmap` or `_exit` either.
 
-Signing needs the publisher's private seed. The committed trust directory, `NONOS_BAKED_TRUST_DIR`, holds publisher public keys, capsule certificates and manifests and the trust-anchor policy; the seeds stay in a directory git ignores (`nonos-mk/capsule.mk:56-64`), so `nonos-mk-<slug>-sign` runs only where the seed is. [../userland/signing-and-publisher-keys.md](../userland/signing-and-publisher-keys.md) covers publisher keys.
+Signing needs the publisher's private seed. The committed trust directory, `NONOS_BAKED_TRUST_DIR`, holds publisher public keys, capsule certificates and manifests and the trust-anchor policy; the seeds stay in a directory git ignores (`nonos-mk/capsule.mk:56-64`), so `nonos-mk-<slug>-sign` runs only where the seed is. [Signing and publisher keys](../userland/signing-and-publisher-keys.md) covers publisher keys.
 
 ## See also
 
-- [README.md](README.md)
-- [broker-api.md](broker-api.md)
-- [../userland/manifests-and-capabilities.md](../userland/manifests-and-capabilities.md)
-- [../contributing/tests-and-proofs.md](../contributing/tests-and-proofs.md)
-- [../build/make-targets.md](../build/make-targets.md)
-- [../kernel/hardware-broker.md](../kernel/hardware-broker.md)
+- [Drivers](README.md)
+- [Broker API](broker-api.md)
+- [Manifests and capabilities](../userland/manifests-and-capabilities.md)
+- [Tests and proofs](../contributing/tests-and-proofs.md)
+- [Make targets](../build/make-targets.md)
+- [The hardware broker](../kernel/hardware-broker.md)
