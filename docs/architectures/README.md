@@ -6,7 +6,7 @@ Which CPU architectures NONOS runs on, how complete each port is, and how a port
 
 | Architecture | Support | In short |
 |---|---|---|
-| [x86_64](x86_64.md) | Supported | The release target: a UEFI loader, every build profile, the CI boot check, and one hardware report. |
+| [x86_64](x86_64.md) | Supported | The release target: a UEFI loader, every [build profile](../overview/glossary.md#profile), the CI boot check, and one hardware report. |
 | [aarch64](aarch64.md) | Preview | Builds only with `nonos-arch-preview`; CI builds it and boot-tests it under QEMU `virt`. No loader, no release image, no real hardware tested. |
 | [riscv64](riscv64.md) | Not supported | A backend with no kernel target file and no make target; its entry calls a function that does not exist, so it does not build into a kernel. |
 
@@ -19,7 +19,7 @@ A kernel for any architecture other than x86_64 stops at `compile_error!` unless
 | backend | `src/arch/x86_64/`, 937 files | `src/arch/aarch64/`, 292 files | `src/arch/riscv64/`, 218 files |
 | kernel target file | `x86_64-nonos.json` | `aarch64-nonos.json` | none |
 | linker script | `linker.ld` | `linker_aarch64.ld` | `linker_riscv64.ld` |
-| capsule target file | `userland/x86_64-nonos-user.json` | `userland/aarch64-nonos-user.json` | `userland/riscv64-nonos-user.json` |
+| [capsule](../overview/glossary.md#capsule) target file | `userland/x86_64-nonos-user.json` | `userland/aarch64-nonos-user.json` | `userland/riscv64-nonos-user.json` |
 | loader | `nonos-bootloader`, a UEFI application | none | none |
 | how it boots | UEFI firmware runs the loader | QEMU loads the kernel ELF | no boot path |
 | CI | build, boot check, boot matrix | build and three boot cells | none |
@@ -49,11 +49,11 @@ The build picks the rest by architecture:
 
 - `build.rs` chooses the linker script in `script_name` (`build.rs:335-339`).
 - `user_target` picks the capsule target that matches the kernel and panics when `NONOS_USER_TARGET` names another architecture, because the kernel would load binaries its CPU cannot run (`build.rs:594-604`).
-- The static checks count `cfg(target_arch` sites outside `src/arch` into `cfg_count` and fail when the count grows past its baseline (`nonos-ci/run-static-checks.sh:46-47`). At this commit it already has: 234 against 116, as [Code style](../contributing/code-style.md) says.
+- The static checks count `cfg(target_arch` sites outside `src/arch` into `cfg_count` and fail when the count grows past its [baseline](../overview/glossary.md#baseline) (`nonos-ci/run-static-checks.sh:46-47`). At this commit it already has: 234 against 116, as [Code style](../contributing/code-style.md) says.
 
 ## Starting work on a port
 
-Read the page for the port first: each one lists what is missing, read from the code. No page here gives a date for either port. [Contributing](../contributing/README.md) and [Review](../contributing/review.md) describe how a change gets in.
+Read the page for the port first. [What is missing](aarch64.md#what-is-missing) for aarch64 and [what it would take](riscv64.md#what-it-would-take) for riscv64 are both read from the code. No page here gives a date for either port. [Contributing](../contributing/README.md) and [Review](../contributing/review.md) describe how a change gets in.
 
 ## See also
 
