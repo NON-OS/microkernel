@@ -22,7 +22,7 @@
 //!   revision 5 (ACPI 6.3); before that it is reserved and must be ignored,
 //!   so a disabled processor in an older MADT is not usable
 //!   (`acpi_is_processor_usable`).
-//! - A Local APIC entry (type 0) with APIC ID 0xFF is a placeholder, not a
+//! - A Local APIC entry (type 0) with APIC ID 0xFF is a reserved id, not a
 //!   processor (`acpi_parse_lapic`). Likewise an x2APIC entry (type 9) with
 //!   ID 0xFFFFFFFF.
 //! - The spec reserves x2APIC entries for IDs of 255 and above. Firmware that

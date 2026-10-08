@@ -24,7 +24,7 @@ pub enum HardwareFamily {
     /// it (`vmd`). Listed, never spawned for.
     StorageVmd,
     /// An Intel eMMC host (`emmc`): the soldered disk of Atom, Celeron and
-    /// Pentium Silver laptops. Served by the AHCI capsule for now.
+    /// Pentium Silver laptops. Served by the AHCI capsule at present.
     StorageEmmc,
     NetworkVirtio,
     NetworkE1000,

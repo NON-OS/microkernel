@@ -23,7 +23,7 @@
 //! - Disabled entries are skipped. An entry that is only online capable is a
 //!   hotplug slot, and this kernel does not hotplug, so it is skipped too.
 //! - A Local APIC entry with id 0xFF and an x2APIC entry with id 0xFFFFFFFF
-//!   are placeholders, not processors.
+//!   are reserved ids, not processors.
 //! - The same id listed twice (a Local APIC entry and an x2APIC entry for one
 //!   CPU) is started once. Starting it twice sends INIT to a CPU that is
 //!   already running, which resets it under the kernel.
