@@ -22,7 +22,7 @@
  * by path.
  */
 
-#[path = "../../../../src/arch/x86_64/amd_vi/control.rs"]
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/control.rs"]
 #[allow(dead_code)]
 pub mod amd_control;
 /* Mounted once, in iommu_command; a second mount is clippy's duplicate_mod. */

@@ -51,7 +51,7 @@ pub fn detach(id: u16) -> Result<(), AmdViError> {
 }
 
 /// Identity for a device the kernel enumerated, at bring-up.
-pub(in crate::arch::x86_64::amd_vi) fn pass(id: u16) -> Result<(), AmdViError> {
+pub(in crate::arch::x86_64::iommu::amd_vi) fn pass(id: u16) -> Result<(), AmdViError> {
     write_dte(id, passthrough())
 }
 

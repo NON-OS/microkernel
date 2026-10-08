@@ -32,7 +32,6 @@ pub mod idt;
 pub mod interrupt;
 pub mod interrupt_controller;
 #[cfg(feature = "nonos-arch-iommu")]
-pub mod amd_vi;
 #[cfg(feature = "nonos-arch-iommu")]
 pub mod iommu;
 pub mod multiboot;
