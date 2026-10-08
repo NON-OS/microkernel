@@ -19,6 +19,7 @@ mod overlay;
 pub(crate) mod patient;
 mod peers;
 pub(crate) mod register;
+pub mod wallpaper_policy;
 mod run;
 
 pub use run::{run, subscribe_input, subscribe_wm};
