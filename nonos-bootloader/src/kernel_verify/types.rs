@@ -25,11 +25,8 @@ pub struct CryptoVerifyResult {
     pub kernel_hash_full: [u8; 32],
     pub kernel_code_size: usize,
     pub signature_present: bool,
-    /// The kernel's self-attestation path verified against the enrolled root.
     pub path_attested: bool,
-    /// The image's proof footer carried a self-attestation trailer.
     pub proof_present: bool,
-    /// That trailer's STARK proof in bytes, zero unless it reads as a v4 kernel trailer.
     pub proof_len: usize,
 }
 

@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the kernel checks this loader with, gathered before boot services
-//! end: the firmware's TCG log, the loader's own v4 trailer and the signed
-//! boot-root record, the last two from the ESP the loader came from. Each is
-//! a zero region when it is absent, and the kernel then says what it lacked.
-
 use alloc::vec::Vec;
 
 use nonos_boot::handoff::types::{
@@ -29,7 +24,6 @@ use nonos_boot::security::tcg_log::event_log;
 use uefi::prelude::*;
 use uefi::CStr16;
 
-/// The log, the trailer and the record as read, each `None` when absent.
 pub struct BootEvidence {
     pub log: Option<&'static [u8]>,
     pub trailer: Option<&'static [u8]>,
@@ -45,7 +39,6 @@ pub fn boot_evidence(st: &SystemTable<Boot>) -> BootEvidence {
 }
 
 impl BootEvidence {
-    /// The regions the kernel is handed, a zero one for each absent.
     pub fn modules(&self) -> [Module; 3] {
         [
             region(self.log, MODULE_KIND_TCG_LOG),
@@ -55,7 +48,6 @@ impl BootEvidence {
     }
 }
 
-/* Leaked into loader memory, which the kernel never reclaims. */
 fn file(st: &SystemTable<Boot>, path: &CStr16) -> Option<&'static [u8]> {
     load_file_from_esp(st, path).ok().map(|bytes| &*Vec::leak(bytes))
 }

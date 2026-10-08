@@ -164,6 +164,32 @@ A [development image](../overview/glossary.md#development-image) takes trailers 
 - The booted refusal test boots a test kernel under QEMU and expects four refusals (`flip`, `extra_cap`, `kernel_kind`, `stale_epoch`) and one admission (`CASES`, `nonos-ci/attest_refusal_check.py:26`). It is the make target `nonos-mk-attest-refusal-run` (`ATTEST_REFUSAL_LOG`, `mk/25-attest-refusal.mk:53-62`), and was not run for this release.
 - Two Kani harnesses for `parse_v4` and the v3 reader live in `nonos-attest-path/src/kani_proofs.rs`; `Kani` runs in its own workflow, outside the flake checks (`tools/nix/checks.nix:5-7`), and was not run for this release.
 
+## The loader's kernel_verify gate
+
+### Kernel self-attestation (`nonos-bootloader/src/kernel_verify/self_attest.rs`)
+
+Kernel self-attestation is checked before the jump. A v4 trailer: the path is folded from this kernel's leaf to the enrolled root, then the STARK proof of the same slot is checked over words built from the kernel bytes alone.
+
+The enrolled kernel measurement root the boot chain trusts is provisioned by `build.rs` from `NONOS_KERNEL_ATTEST_ROOT`. Only a dev build may carry it zeroed, which accepts nothing. It is a static read through black_box, so it stays 32 contiguous bytes in the image where the build receipt finds it. `enrolled_root` is the root the gate folds to, for the handoff.
+
+`verify_kernel_self_attestation` is true only when the path folds from exactly this kernel's leaf to exactly this root and the STARK proof of that slot verifies.
+
+A development kernel's trailer is the path alone. The context is built from this kernel's bytes as above and the path must fold to the same enrolled root; only the STARK proof is absent. `verify_kernel_path_only` is built only with dev-attest, which only the development loader policy turns on.
+
+`proof_len` is the STARK proof's length in a v4 kernel trailer, zero for any other bytes.
+
+### The self-attestation trailer check (`nonos-bootloader/src/kernel_verify/trailer.rs`)
+
+The kernel's self-attestation trailer is carried in the image's proof footer. `verify_kernel_self_attestation` checks that path trailer against the enrolled boot root. Without a valid one the gate refuses the kernel in every mode, development included. What was found is recorded as well as the verdict, so the boot screen can say which of the two it was.
+
+### The attestation policy (`nonos-bootloader/src/kernel_verify/policy.rs`)
+
+`attest_policy` reports what the kernel is told it was checked against. Everything is zero unless the path gate passed, so a dev boot that skipped it reports no root rather than one it never met. `kernel_attested` is whether the kernel's measurement is enrolled under the boot root.
+
+### The verify result (`nonos-bootloader/src/kernel_verify/types.rs`)
+
+In `CryptoVerifyResult`: `path_attested` is the kernel's self-attestation path verified against the enrolled root. `proof_present` is whether the image's proof footer carried a self-attestation trailer. `proof_len` is that trailer's STARK proof in bytes, zero unless it reads as a v4 kernel trailer.
+
 ## See also
 
 - [Boot chain and signatures](boot-chain-and-signatures.md)
