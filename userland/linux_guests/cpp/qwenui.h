@@ -32,7 +32,7 @@ std::vector<std::pair<std::string, uint32_t>> ui_lines(const Wl &w, const View &
 size_t ui_fit(const Wl &w);
 /* The first line shown: `back` lines up from the newest, held in range. */
 size_t ui_from(size_t lines, size_t fit, size_t back);
-/* Up, Down, Page Up/Down, Home and End move `back`; false for any other key. */
+/* Up, Down, Page Up/Down, Home, End and the wheel move `back`; false for any other key. */
 bool ui_scroll_key(const Wl &w, View &v, Key k);
 /* Drawn again and shown when the window took a new size (wl_resize). */
 void ui_redraw_resized(Wl &w, const View &v);
