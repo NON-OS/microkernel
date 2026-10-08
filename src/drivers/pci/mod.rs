@@ -80,6 +80,3 @@ pub use types::{
     BridgeInfo, ClassCode, DeviceId, HeaderType, MsiInfo, MsiMessage, MsixInfo, PciAddress, PciBar,
     PciCapability, PciDevice, PcieCapability, PcieDeviceType, PcieInfo, PowerManagementInfo,
 };
-
-#[cfg(target_arch = "x86_64")]
-pub use crate::arch::x86_64::pci::PciStats as LegacyPciStats;

@@ -20,6 +20,7 @@ pub mod config_space;
 #[cfg(target_arch = "x86_64")]
 mod extended;
 
+#[cfg(target_arch = "x86_64")]
 pub(crate) use extended::map_ecam_bus;
 mod transport;
 

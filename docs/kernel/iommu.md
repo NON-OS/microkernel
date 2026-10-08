@@ -13,7 +13,7 @@ Everything here is read from the code. No hardware report for this release cover
 
 ## Which IOMMU
 
-The vendor is chosen from the ACPI tables, never from CPUID: a DMAR table with at least one remapping unit means VT-d, an IVRS table without one means AMD-Vi, and neither means none, the three values of `IommuVendor` (`src/memory/iommu/vendor.rs:19-31`). `detect` makes that choice once; when both tables exist VT-d wins, because it is the one this kernel drives, and the AMD units are named as unconfined (`src/memory/iommu/backend_x86_64/select.rs:37-66`).
+The vendor is chosen from the ACPI tables, never from CPUID: a DMAR table with at least one remapping unit means VT-d, an IVRS table without one means AMD-Vi, and neither means none, the three values of `IommuVendor` (`src/memory/iommu/vendor.rs:19-31`). `detect` makes that choice once; when both tables exist VT-d wins, because it is the one this kernel drives, and the AMD units are named as unconfined (`src/arch/x86_64/iommu/backend/select.rs:37-66`).
 
 The x86_64 backend is compiled with `nonos-arch-iommu`; any other build, and any other architecture, uses the stand in `backend_unsupported`, which selects nothing and refuses every domain call (`src/memory/iommu/backend.rs:17-27`). An ARM board has no SMMU driver yet, so a mapping request there is refused rather than ignored, as the note above `iommu` says (`src/memory/mod.rs:43-46`).
 
@@ -60,7 +60,7 @@ flowchart TD
     A -->|ok| D[device in the capsule's domain]
 ```
 
-- If `translates` says no unit in service covers the device, the device stays on physical addresses, and the claim goes ahead with a serial line saying it reaches all memory (`src/hardware/broker/confine/attach.rs:34-48`). `translates` decides coverage: a unit must be enforcing and its scope must hold the device (`src/memory/iommu/backend_x86_64/device.rs:47-54`).
+- If `translates` says no unit in service covers the device, the device stays on physical addresses, and the claim goes ahead with a serial line saying it reaches all memory (`src/hardware/broker/confine/attach.rs:34-48`). `translates` decides coverage: a unit must be enforcing and its scope must hold the device (`src/arch/x86_64/iommu/backend/device.rs:47-54`).
 - If a unit does cover it, the device leaves the identity domain and `attach_device` puts it in the capsule's domain (`src/hardware/broker/confine/attach.rs:88-100`).
 - If a unit in service would not take the device, the claim is refused rather than granted unconfined; `unconfined_allowed` lets a claim through only when no unit is in service at all (`src/hardware/broker/confine/posture.rs:30-50`).
 - Drives behind one VMD share a requester id; one capsule may hold several of them, and a second capsule is refused the shared id with `Refused` (`src/hardware/broker/confine/attach.rs:72-82`).
@@ -70,7 +70,7 @@ A DMA [grant](../overview/glossary.md#grant) in a confined domain is mapped with
 
 ## When remapping is not in service
 
-Every call that claims to confine a device asks first whether a unit is translating. `require` refuses with `NotInitialized` before bring-up has succeeded, so the kernel never writes entries into tables no hardware walks, and never hands a device an I/O virtual address it would take as physical (`src/memory/iommu/backend_x86_64/enforced.rs:17-36`). On an AMD-Vi machine the calls are refused with `AmdViNotDriven`, and with no IOMMU with `NoIommu`, each with a serial line from `amd_vi` or `absent` (`src/memory/iommu/backend_x86_64/refuse.rs:22-38`).
+Every call that claims to confine a device asks first whether a unit is translating. `require` refuses with `NotInitialized` before bring-up has succeeded, so the kernel never writes entries into tables no hardware walks, and never hands a device an I/O virtual address it would take as physical (`src/arch/x86_64/iommu/backend/enforced.rs:17-36`). On an AMD-Vi machine the calls are refused with `AmdViNotDriven`, and with no IOMMU with `NoIommu`, each with a serial line from `amd_vi` or `absent` (`src/arch/x86_64/iommu/backend/refuse.rs:22-38`).
 
 The device then reaches all of memory, and the kernel counts it instead of hiding it. Each DMA grant made without a confining domain adds one to the count through `note_unconfined`, and its release takes one off (`src/memory/iommu/unconfined.rs:35-51`). The kernel's own virtio-rng entropy driver counts its buffers the same way, with `note_unconfined` (`src/drivers/virtio_rng/device/core.rs:44-45`).
 
@@ -83,7 +83,7 @@ The device then reaches all of memory, and the kernel counts it instead of hidin
 [IOMMU] capabilities aw=<bits> ir=<0|1> snoop=<0|1> pages=<mask> domains=<n>
 ```
 
-`enforcing=1` together with `unconfined grants=0` means that every DMA buffer the broker has granted is confined, because `unconfined_grants` counts every grant made without a domain (`src/memory/iommu/posture.rs:17-28`). It does not mean every device is confined: a device found at boot that no capsule has claimed stays in the identity domain and can still reach all memory. On a machine with no remapping hardware the boot prints `[IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted` and selects `IommuVendor::Absent` (`src/memory/iommu/backend_x86_64/select.rs:62-65`).
+`enforcing=1` together with `unconfined grants=0` means that every DMA buffer the broker has granted is confined, because `unconfined_grants` counts every grant made without a domain (`src/memory/iommu/posture.rs:17-28`). It does not mean every device is confined: a device found at boot that no capsule has claimed stays in the identity domain and can still reach all memory. On a machine with no remapping hardware the boot prints `[IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted` and selects `IommuVendor::Absent` (`src/arch/x86_64/iommu/backend/select.rs:62-65`).
 
 ## AMD-Vi
 
