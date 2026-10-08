@@ -17,11 +17,10 @@
 //! Syscall entry contract. Shared dispatch with a structurally
 //! unbypassable capability check. Per-arch entry shims call
 //! `dispatch(SyscallNumber, SyscallArgs)` after extracting the syscall
-//! number and the six argument registers. The x86_64 shim lives in
-//! `crate::arch::x86_64::syscall::manager::entry`. The aarch64 shim is
-//! `arch::aarch64::exceptions::handlers::svc` and the riscv64 one is
-//! `arch::riscv64::interrupts::handlers::syscall`; both call this same
-//! `dispatch`.
+//! number and the six argument registers. The x86_64 entry shim lives
+//! in that arch's `syscall::manager::entry` module, the aarch64 shim in
+//! its `exceptions::handlers::svc`, and the riscv64 one in its
+//! `interrupts::handlers::syscall`; all three call this same `dispatch`.
 
 mod args;
 mod cap_table;
