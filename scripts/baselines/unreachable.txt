@@ -17,6 +17,7 @@ src/arch/x86_64/acpi/devices/pci/types.rs:38 is_storage
 src/arch/x86_64/acpi/power_query.rs:20 is_sleep_state_supported
 src/arch/x86_64/acpi/power_query.rs:28 current_profile
 src/arch/x86_64/acpi/power_sleep.rs:20 enter_sleep_state
+src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs:26 dsdt_address
 src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs:27 firmware_control_address
 src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs:34 pm1a_event_address
 src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs:41 pm1b_event_address
@@ -28,6 +29,7 @@ src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs:76 gpe1_address
 src/arch/x86_64/acpi/tables/fadt/fadt_boot.rs:24 has_legacy_devices
 src/arch/x86_64/acpi/tables/fadt/fadt_boot.rs:27 has_vga
 src/arch/x86_64/acpi/tables/fadt/fadt_boot.rs:33 has_cmos_rtc
+src/arch/x86_64/acpi/tables/fadt/fadt_methods.rs:25 has_reset_register
 src/arch/x86_64/acpi/tables/fadt/fadt_methods.rs:28 is_hw_reduced
 src/arch/x86_64/acpi/tables/fadt/fadt_methods.rs:31 is_pm_timer_32bit
 src/arch/x86_64/acpi/tables/fadt/fadt_methods.rs:34 supports_low_power_s0

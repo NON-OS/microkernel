@@ -23,6 +23,13 @@ use super::fadt_struct::Fadt;
 // reads past the table at all.
 
 impl Fadt {
+    pub fn dsdt_address(&self) -> u64 {
+        if self.header.length >= 148 && self.x_dsdt != 0 {
+            self.x_dsdt
+        } else {
+            self.dsdt as u64
+        }
+    }
     pub fn firmware_control_address(&self) -> u64 {
         if self.header.length >= 140 && self.x_firmware_ctrl != 0 {
             self.x_firmware_ctrl
