@@ -182,13 +182,18 @@ rec {
       substitute $configPath $out/config.toml --subst-var out
     '';
 
-  # rustc through this wrapper rewrites every build path it would otherwise
-  # write into a binary (the vendor directory, the toolchain's sources, the
-  # build directory) to a fixed name, so the bytes do not depend on where or on
-  # which operating system the build ran.
+  # Every rustc invocation goes through this wrapper. It does two things the
+  # bytes depend on. It rewrites the build paths rustc would otherwise write
+  # into a binary (the vendor directory, the toolchain's sources, the build
+  # directory) to fixed names through NONOS_REMAP. And it recomputes each
+  # crate's `-C metadata` (the seed of rustc's StableCrateId, so of every symbol
+  # hash and the codegen-unit layout) from host- and path-independent inputs,
+  # because cargo folds the rustc HOST triple and the absolute paths of
+  # out-of-workspace path dependencies into that value and neither is a path
+  # string --remap-path-prefix can reach. tools/nix/nonos-rustc.py carries the
+  # full reasoning and a --self-test.
   rustcWrapper = pkgs.writeShellScript "nonos-rustc" ''
-    rustc=$1; shift
-    exec "$rustc" "$@" $NONOS_REMAP
+    exec ${pkgs.python3}/bin/python3 -I ${./nonos-rustc.py} "$@"
   '';
 
   # Shell lines that point cargo at a vendor directory, offline and frozen.
@@ -203,7 +208,17 @@ rec {
     EOF
     export CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 CARGO_TERM_COLOR=never
     export RUSTC_WRAPPER=${rustcWrapper}
+    # Where the wrapper records each unit's host-neutral identity for its
+    # dependents to read back (tools/nix/nonos-rustc.py).
+    export NONOS_RUSTC_IDS=$TMPDIR/nonos-rustc-ids
+    mkdir -p $NONOS_RUSTC_IDS
     sysroot=$(rustc --print sysroot)
     export NONOS_REMAP="--remap-path-prefix=${vendorDir}=/cargo --remap-path-prefix=$sysroot=/rust --remap-path-prefix=$NIX_BUILD_TOP=/nonos"
+    # The actual build root, mapped to /build. It is more specific than the
+    # NONOS_REMAP entries and the wrapper appends it last, so it wins in rustc
+    # (last matching --remap-path-prefix). On the nix sandbox this is already
+    # /build; off it (the repro-host-independence check builds from two roots)
+    # it folds each root to the same name.
+    export NONOS_WORK=$NIX_BUILD_TOP
   '';
 }
