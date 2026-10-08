@@ -27,6 +27,7 @@ Run with the build's own Python: bytecode is only valid for its version."""
 import importlib.util
 import marshal
 import os
+import re
 import sys
 import zipfile
 
@@ -34,6 +35,19 @@ SKIP = {"test", "idlelib", "tkinter", "turtledemo", "ensurepip", "lib2to3", "__p
         "site-packages", "__phello__"}
 STAMP = (2026, 9, 30, 0, 0, 0)
 UNCHECKED_HASH = 0b01
+
+# Build-machine-only variables recorded in _sysconfigdata. On a case-insensitive
+# APFS (macOS), CPython's configure finds its own output executable under a
+# second spelling and concludes the platform carries an .exe suffix, so it sets
+# BUILDEXE (and the EXE family) to ".exe". The NONOS Linux personality is a
+# Unix target with no such suffix, so these are pinned to their Unix value and
+# the result no longer depends on the build host's filesystem. The toolchain
+# paths these files also record live under the repository root and are already
+# folded to /nonos by the path maps in main().
+SYSCONFIG_PIN = {"EXE": "", "EXEEXT": "", "BUILDEXE": ""}
+# Any .exe that survives normalisation is a build-host residue the pin above did
+# not cover; the build must fail rather than ship host-dependent bytes.
+SYSCONFIG_RESIDUE = re.compile(rb"\.exe\b")
 
 
 def sources(src):
@@ -56,6 +70,27 @@ def pyc(source, arcname):
     return importlib.util.MAGIC_NUMBER + flags + importlib.util.source_hash(source) + marshal.dumps(code)
 
 
+def normalize_sysconfig(data):
+    """Pin the build-machine-only variables in a _sysconfigdata module to their
+    Unix target values, matching both the 'KEY': 'VAL' and "KEY": "VAL" spellings
+    the dict literal may use."""
+    for key, val in SYSCONFIG_PIN.items():
+        for q in (b"'", b'"'):
+            pattern = re.compile(q + key.encode() + q + rb"(\s*:\s*)" + q + rb"[^'\"]*" + q)
+            data = pattern.sub(q + key.encode() + q + rb"\g<1>" + q + val.encode() + q, data)
+    return data
+
+
+def residue_check(arcname, data):
+    """Fail closed if a build-host residue survived normalisation."""
+    m = SYSCONFIG_RESIDUE.search(data)
+    if m:
+        ctx = data[max(0, m.start() - 40):m.end() + 40].decode("utf-8", "replace")
+        raise SystemExit(
+            f"{arcname}: build-host residue {m.group().decode()!r} remains after "
+            f"normalisation, near: ...{ctx}...")
+
+
 def put(zf, arcname, data):
     info = zipfile.ZipInfo(arcname, STAMP)
     info.compress_type = zipfile.ZIP_DEFLATED
@@ -63,7 +98,36 @@ def put(zf, arcname, data):
     zf.writestr(info, data, compresslevel=9)
 
 
+def self_test():
+    sample = (b"build_time_vars = {\n"
+              b"    'BUILDEXE': '.exe',\n"
+              b'    "EXEEXT": ".exe",\n'
+              b"    'EXE': '.exe',\n"
+              b"    'CC': '/nonos/toolchain/clang',\n"
+              b"}\n")
+    out = normalize_sysconfig(sample)
+    assert b"'BUILDEXE': ''" in out, out
+    assert b'"EXEEXT": ""' in out, out
+    assert b"'EXE': ''" in out, out
+    assert b"'CC': '/nonos/toolchain/clang'" in out, "unrelated vars are untouched"
+    residue_check("sample", out)  # must not raise
+    # A residue the pin did not cover must fail the check.
+    try:
+        residue_check("leftover", b"'SOMEVAR': 'foo.exe'")
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("residue_check did not catch a surviving .exe")
+    # And normalising an already-Unix file is a no-op.
+    unix = b"build_time_vars = {\n    'BUILDEXE': '',\n    'EXE': '',\n}\n"
+    assert normalize_sysconfig(unix) == unix
+    print("SELF-TEST OK")
+
+
 def main():
+    if len(sys.argv) == 2 and sys.argv[1] == "--self-test":
+        self_test()
+        return
     src, build_root, repo_root, out = sys.argv[1:5]
     # Every spelling the build may have recorded, as given, normalised and
     # with symlinks resolved, the longest first so none leaves a tail.
@@ -78,6 +142,8 @@ def main():
             if arcname.startswith("_sysconfigdata_"):
                 for path, to in maps:
                     data = data.replace(path.encode(), to.encode())
+                data = normalize_sysconfig(data)
+                residue_check(arcname, data)
             put(zf, arcname, data)
             put(zf, arcname[:-3] + ".pyc", pyc(data, arcname))
     os.replace(out + ".part", out)

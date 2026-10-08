@@ -33,8 +33,19 @@ let
       cmake = pins.cmake.version;
       clang = pins.llvm.clang-unwrapped.version;
     };
-    # Each toolchain by its store path, whose hash covers every input it was
-    # built from. Named, not depended on: the artifacts do not carry them.
+    kernel = if kernelReady then "built" else kernelNote;
+    bootloader = if image.loaderReady then "built" else loaderNote;
+    epoch = image.epoch;
+    commit = image.rev;
+  };
+  # The per-host facts: each toolchain by its store path, whose hash covers
+  # every input it was built from. These sit beside `config`, not inside it,
+  # because they are the one thing that legitimately differs between two
+  # machines building the same commit, and the reproducibility compare treats
+  # `config` as a build input while ignoring everything else. The toolchain
+  # VERSIONS stay in `config` and are still compared; only the store paths move
+  # out. Named, not depended on: the artifacts do not carry them.
+  host = builtins.toJSON {
     toolchain_paths = lib.mapAttrs (_: p: builtins.unsafeDiscardStringContext (toString p)) {
       rust = pins.rust;
       rust_uefi = pins.rustUefi;
@@ -42,15 +53,11 @@ let
       cmake = pins.cmake;
       clang = pins.llvm.clang-unwrapped;
     };
-    kernel = if kernelReady then "built" else kernelNote;
-    bootloader = if image.loaderReady then "built" else loaderNote;
-    epoch = image.epoch;
-    commit = image.rev;
   };
 in
 pkgs.runCommand "nonos-${cfg.name}" {
-  inherit config;
-  passAsFile = [ "config" ];
+  inherit config host;
+  passAsFile = [ "config" "host" ];
   nativeBuildInputs = [ pins.python ];
   passthru = { inherit kernel loader cfg; };
 } ''
@@ -65,5 +72,5 @@ pkgs.runCommand "nonos-${cfg.name}" {
   cp -rL ${userland.all}/* $out/linux/
   cp ${sbom} $out/nonos.cdx.json
   cp ${./capsules.json} $out/capsules/catalogue.json
-  python3 ${./manifest.py} $out $configPath > $out/nonos-build.json
+  python3 ${./manifest.py} $out $configPath --host $hostPath > $out/nonos-build.json
 ''
