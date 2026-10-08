@@ -13,17 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Every codec STATESTS reported, asked for its identity over the CORB.
+//! Every codec STATESTS reported, asked for its identity over the CORB, with
+//! the Immediate Command interface as the fallback when the ring does not
+//! reach it.
 //!
-//! These used to go through the Immediate Command registers while the CORB
-//! was already running. The specification has software use one interface or
-//! the other, not both at once (HDA 1.0a section 3.4.3), and the Immediate
-//! Command interface is optional: Linux uses it only as a fallback. Every
-//! present codec is probed, at whatever address it answers; the analog codec
-//! is not always at 0, and the display codec is usually at 2.
+//! The specification has software use one interface or the other, not both at
+//! once (HDA 1.0a section 3.4.3), so the CORB is asked first and the Immediate
+//! Command interface only once that send has failed; the ring is not running
+//! for the codec in that case. Every present codec is probed, at whatever
+//! address it answers; the analog codec is not always at 0, and the display
+//! codec is usually at 2.
 
 use crate::constants::{PARAM_VENDOR_ID, VERB_GET_PARAMETER};
 use crate::controller::compose_verb;
+use crate::controller::immediate;
 use crate::controller::verb::Link;
 
 pub const MAX_CODECS: usize = 15;
@@ -54,14 +57,24 @@ pub fn probe(link: &mut Link, statests: u16) -> [CodecProbe; MAX_CODECS] {
 
 fn read_vendor(link: &mut Link, address: u8) -> CodecProbe {
     match link.send(compose_verb(address, 0, VERB_GET_PARAMETER, PARAM_VENDOR_ID)) {
-        Ok(id) => CodecProbe {
-            address,
-            present: 1,
-            ok: 1,
-            vendor_id: (id >> 16) as u16,
-            device_id: id as u16,
+        Ok(id) => decode(address, id),
+        // The CORB did not reach this codec. The Immediate Command interface
+        // is the specification's fallback for reading a codec parameter
+        // without the ring (HDA 1.0a section 3.4.3); try it once.
+        Err(_) => match immediate::get_parameter(link.regs(), address, PARAM_VENDOR_ID) {
+            Some(id) => decode(address, id),
+            None => CodecProbe { address, present: 1, ok: 0, vendor_id: 0, device_id: 0 },
         },
-        Err(_) => CodecProbe { address, present: 1, ok: 0, vendor_id: 0, device_id: 0 },
+    }
+}
+
+fn decode(address: u8, id: u32) -> CodecProbe {
+    CodecProbe {
+        address,
+        present: 1,
+        ok: 1,
+        vendor_id: (id >> 16) as u16,
+        device_id: id as u16,
     }
 }
 

@@ -1562,9 +1562,12 @@ else
     note ok "capsule_driver_ahci kernel mirror/client/spawn wiring present"
 fi
 
-# capsule_driver_hda is a userland controller capsule. P0 may map
-# BAR0 and bind the controller IRQ only; CORB/RIRB, stream BDLs,
-# and playback/recording wait for a later DMA-backed slice.
+# capsule_driver_hda is a userland HD Audio controller capsule on the
+# DMA-slice contract AHCI and NVMe use: it maps BAR0 and binds the
+# controller IRQ through the broker, and drives CORB/RIRB, the stream
+# BDLs and the PCM ring through one audited broker DMA map. No inline
+# asm and no port I/O; the DMA grant is bounded at its one map site and
+# the engines are stopped before the claim goes back.
 hda_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_hda --include='*.rs' || true; } )"
 if [ -n "${hda_kernel_drivers}" ]; then
     fail_with "capsule_driver_hda must not import crate::drivers"
@@ -1583,14 +1586,26 @@ else
 fi
 unset hda_kernel_mem
 
-hda_forbidden_hw="$( { grep -rEn 'asm!|mk_pio_|mk_dma_' userland/capsule_driver_hda --include='*.rs' || true; } )"
+hda_forbidden_hw="$( { grep -rEn 'asm!|mk_pio_' userland/capsule_driver_hda --include='*.rs' || true; } )"
 if [ -n "${hda_forbidden_hw}" ]; then
-    fail_with "capsule_driver_hda P0 must not use inline asm, PIO, or DMA"
+    fail_with "capsule_driver_hda P0 must not use inline asm or PIO"
     printf '%s\n' "${hda_forbidden_hw}" >&2
 else
-    note ok "capsule_driver_hda P0 uses broker MMIO/IRQ only"
+    note ok "capsule_driver_hda P0 uses broker MMIO/IRQ/DMA only"
 fi
 unset hda_forbidden_hw
+
+# The audio path maps DMA at one audited broker site (the private map()
+# in setup/dma.rs that every CORB/RIRB/BDL/ring grant routes through),
+# and the kernel mirror grants Capability::Dma. More than one map site
+# would spread the grant surface the broker audits.
+hda_dma_sites="$( { grep -rho 'mk_dma_map(' userland/capsule_driver_hda --include='*.rs' || true; } | wc -l | tr -d ' ')"
+if [ "${hda_dma_sites}" != "1" ] || ! grep -q 'Capability::Dma.bit' src/hardware/hda_capsule/spawn.rs; then
+    fail_with "capsule_driver_hda audio path must map DMA at one audited broker site and request Capability::Dma"
+else
+    note ok "capsule_driver_hda maps DMA at one audited broker call site"
+fi
+unset hda_dma_sites
 
 hda_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_hda --include='*.rs' || true; } )"
 if [ -n "${hda_dead_code}" ]; then
@@ -1652,7 +1667,7 @@ if ! grep -rq 'spawn_driver_hda_capsule' src/userspace/init/ ||
    ! grep -q 'codec_list' src/hardware/hda_capsule/client/mod.rs ||
    ! grep -q 'Capability::Mmio.bit' src/hardware/hda_capsule/spawn.rs ||
    ! grep -q 'Capability::Irq.bit' src/hardware/hda_capsule/spawn.rs ||
-   grep -q 'Capability::Dma.bit' src/hardware/hda_capsule/spawn.rs ||
+   ! grep -q 'Capability::Dma.bit' src/hardware/hda_capsule/spawn.rs ||
    grep -q 'Capability::Pio.bit' src/hardware/hda_capsule/spawn.rs ||
    ! grep -q 'driver.hda0' src/hardware/hda_capsule/spawn.rs; then
     fail_with "capsule_driver_hda kernel mirror/client/spawn wiring is incomplete"

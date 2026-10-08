@@ -17,6 +17,7 @@ pub(crate) mod bdl;
 pub(crate) mod codec;
 mod codec_probe;
 mod compose;
+mod immediate;
 pub(crate) mod corb;
 pub(crate) mod dma_sync;
 mod info;
