@@ -57,7 +57,7 @@ pub fn open_machine_volume() -> Result<(), VolumeError> {
          * held in RAM as any live stick's is.
          */
         Err(VolumeError::Device(BlockDeviceError::Dead))
-            if crate::syscall::microkernel::store_copy::present() =>
+            if crate::hardware::block_device::store_copy::present() =>
         {
             return open_session_volume();
         }

@@ -72,8 +72,6 @@ pub mod procstat_redact;
 pub mod spawn_instance;
 pub mod stdout_write;
 mod store_errno;
-pub mod store_copy;
-mod store_copy_span;
 pub mod store_read;
 pub mod store_write;
 pub mod time;

@@ -31,6 +31,7 @@ mod nvme_fit;
 mod read;
 mod seen;
 mod select;
+pub mod store_copy;
 mod types;
 mod write;
 

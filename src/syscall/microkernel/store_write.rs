@@ -51,10 +51,10 @@ pub fn sys_store_write(lba: u64, user_ptr: u64, len: u64) -> i64 {
      * before the copy can take a write meant for another store. The disk is
      * kept first, so there is one to compare. */
     let _ = crate::hardware::block_device::selected();
-    super::store_copy::check_against_disk();
+    crate::hardware::block_device::store_copy::check_against_disk();
     match crate::hardware::block_device::write(lba, &buf[..len]) {
         Ok(()) => {
-            super::store_copy::wrote(lba, &buf[..len]);
+            crate::hardware::block_device::store_copy::wrote(lba, &buf[..len]);
             crate::sys::serial::print(b"[STORE-WR] ok\n");
             len as i64
         }

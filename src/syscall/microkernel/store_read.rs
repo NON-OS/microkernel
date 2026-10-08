@@ -50,7 +50,7 @@ pub fn sys_store_read(lba: u64, user_ptr: u64, len: u64) -> i64 {
         return ERRNO_NOMEM;
     }
     buf.resize(len, 0u8);
-    if super::store_copy::read(lba, &mut buf) {
+    if crate::hardware::block_device::store_copy::read(lba, &mut buf) {
         if crate::usercopy::copy_to_user(user_ptr, &buf).is_err() {
             return ERRNO_FAULT;
         }
