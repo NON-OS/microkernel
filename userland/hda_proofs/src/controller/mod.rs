@@ -29,6 +29,8 @@ pub mod codec_probe;
 pub mod compose;
 #[path = "../../../capsule_driver_hda/src/controller/corb.rs"]
 pub mod corb;
+#[path = "../../../capsule_driver_hda/src/controller/immediate.rs"]
+pub mod immediate;
 #[path = "../../../capsule_driver_hda/src/controller/dma_sync.rs"]
 pub mod dma_sync;
 #[path = "../../../capsule_driver_hda/src/controller/info.rs"]
