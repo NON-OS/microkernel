@@ -56,6 +56,12 @@ pub fn is_msix_vector_pending(msix: &MsixInfo, bars: &[PciBar; 6], vector: u16) 
 }
 
 pub fn zero_msix_vector(msix: &MsixInfo, bars: &[PciBar; 6], vector: u16) -> Result<()> {
+    // A vector still set in the pending bit array is an interrupt the device
+    // raised that no handler has taken yet; masking and zeroing the entry drops
+    // it, so name the device that loses it rather than let it vanish silently.
+    if is_msix_vector_pending(msix, bars, vector)? {
+        crate::log::info!("[PCI] MSI-X vector {} pending at teardown; interrupt dropped", vector);
+    }
     let entry = map_msix_table_entry(msix, bars, vector)?;
     crate::memory::mmio::mmio_w32(entry.addr, 0);
     crate::memory::mmio::mmio_w32(entry.addr + 4u64, 0);

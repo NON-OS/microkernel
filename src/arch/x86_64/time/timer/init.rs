@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
-use super::hpet::{configure_hpet, configure_hpet_for_timing, detect_hpet};
+use super::hpet::{configure_hpet, configure_hpet_for_timing, detect_hpet, is_valid_hpet_base};
 use super::state::{ACTIVE_TIMERS, BOOT_TIME, HPET_BASE, TIMER_INITIALIZED, TSC_FREQUENCY};
 use super::tsc::rdtsc;
 
@@ -31,8 +31,12 @@ pub fn init() {
     let tsc_freq = calibrate_tsc_frequency();
     TSC_FREQUENCY.store(tsc_freq, Ordering::SeqCst);
     if let Some(hpet_base) = detect_hpet() {
-        HPET_BASE.store(hpet_base, Ordering::SeqCst);
-        configure_hpet_for_timing(hpet_base);
+        // Configure timing off the HPET only once it answers like one at that
+        // base, so a stale or wrong table entry falls back to the TSC.
+        if is_valid_hpet_base(hpet_base) {
+            HPET_BASE.store(hpet_base, Ordering::SeqCst);
+            configure_hpet_for_timing(hpet_base);
+        }
     }
     ACTIVE_TIMERS.lock().clear();
     TIMER_INITIALIZED.store(true, Ordering::SeqCst);

@@ -37,4 +37,7 @@ pub enum AmdViError {
     DeviceNotAttached,
     /// A map granting neither read nor write would read as unmapped.
     NoPermissions,
+    /// The device table held a writer entry with no valid translation before a
+    /// unit was enabled; the unit is refused rather than let it through.
+    StrayWriter,
 }

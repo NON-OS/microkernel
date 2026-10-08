@@ -35,6 +35,9 @@ const EXCLUSION_BASE: usize = 0x0020;
 /// with every enumerated device's entry already written.
 pub(super) unsafe fn enable_unit(index: usize, unit: &Unit, table: u64) -> Result<(), AmdViError> {
     let control = unit.read64(CONTROL).ok_or(AmdViError::RegistersUnmappable)?;
+    // Fail closed: never bring a unit up over a table that would let a device
+    // write untranslated memory.
+    super::devtab::deny_stray_writers(table)?;
     let idle = idle(control);
     // SAFETY: eK@nonos.systems - the unit is stopped before any base moves,
     // the pages it is pointed at are the kernel's for good, and the device

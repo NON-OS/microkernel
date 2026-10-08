@@ -26,7 +26,7 @@ mod tsc;
 pub use hpet::{get_hpet_counter, hpet_to_ns, is_valid_hpet_base};
 pub use hrtimer::{cancel_timer, get_active_timer_count, hrtimer_after_ns, tick};
 pub use init::{init, init_boot_time, init_with_freq};
-pub use sleep::{busy_sleep_ns, delay_ms, delay_precise_ns, delay_us, sleep_long_ns};
+pub use sleep::{busy_sleep_ns, delay_ms, delay_precise_ns, delay_us};
 pub use state::BOOT_TIME;
 pub use stats::{get_timer_stats, TimerStats};
 pub use time::{
