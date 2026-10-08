@@ -17,7 +17,7 @@
 //! Walking a domain's four-level table to the 4 KiB slot of an IOVA.
 
 use super::super::error::AmdViError;
-use super::super::pte::{address, directory, index, is_present, LEVELS};
+use super::super::pte::{address, directory, index, is_present, next_level, LEVELS};
 use crate::arch::x86_64::iommu::tables::frame::{allocate_table, entries_mut};
 
 /// The level 1 table and slot for `iova`, creating directories on the way.
@@ -44,6 +44,9 @@ pub(super) fn walk_lookup(root: u64, iova: u64) -> Result<Option<(u64, usize)>, 
         let entry = entries[index(iova, level)];
         if !is_present(entry) {
             return Ok(None);
+        }
+        if next_level(entry) != level - 1 {
+            return Err(AmdViError::TableUnreachable);
         }
         table = address(entry);
     }

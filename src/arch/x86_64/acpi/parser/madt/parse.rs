@@ -20,7 +20,7 @@ use core::ptr;
 use super::super::state::TableRegistry;
 use super::entries::*;
 use super::x2apic::*;
-use crate::arch::x86_64::acpi::hw::madt_cpu::{keep_entry, processor_usable};
+use crate::arch::x86_64::acpi::hw::madt_cpu::{keep_entry, needs_x2apic, processor_usable};
 use crate::arch::x86_64::acpi::tables::madt::*;
 use crate::arch::x86_64::acpi::tables::{MAX_TABLE_BYTES, SIG_MADT};
 
@@ -68,6 +68,13 @@ pub fn parse_madt(registry: &mut TableRegistry) {
 
             entry_ptr += header.length as u64;
         }
+    }
+
+    // A processor whose APIC ID will not fit the 8-bit xAPIC destination field
+    // is unreachable until the local APICs run in x2APIC mode; say so once the
+    // whole table is recorded so a boot that leaves xAPIC on names the gap.
+    if needs_x2apic(registry.data.processors.iter().map(|p| p.apic_id)) {
+        crate::log::info!("[MADT] processor APIC ID exceeds xAPIC range; x2APIC required");
     }
 }
 

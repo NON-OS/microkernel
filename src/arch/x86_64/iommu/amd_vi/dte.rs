@@ -62,3 +62,11 @@ pub const fn root_of(entry: Dte) -> u64 {
 pub const fn allows_write(entry: Dte) -> bool {
     entry[0] & (VALID | WRITE) == VALID | WRITE
 }
+
+/// A writer entry with no valid translation: the device could write untranslated
+/// physical memory, which is exactly what the unit must never let through. The
+/// kernel's own entries are either blocked (no write) or translated (a page
+/// table), so any such entry is a stray one the pre-enable scan refuses.
+pub const fn stray_writer(entry: Dte) -> bool {
+    allows_write(entry) && entry[0] & TRANSLATION_VALID == 0
+}

@@ -61,12 +61,6 @@ pub struct DeviceScope<'a> {
     pub name: [u8; 4],
 }
 
-/// Scan an AML block and return the device scopes whose `_HID` matches a known
-/// I2C-HID touchpad identifier.
-pub fn find_touchpad_devices(aml: &[u8]) -> Vec<DeviceScope<'_>> {
-    find_devices(aml, hid_is_touchpad)
-}
-
 /// Scan an AML block for `Device (...)` objects whose decoded `_HID` satisfies
 /// `matcher`, returning a scope (the HID plus the raw `_CRS` bytes) for each.
 pub(super) fn find_devices(aml: &[u8], matcher: fn(&[u8; 8]) -> bool) -> Vec<DeviceScope<'_>> {
@@ -350,25 +344,6 @@ fn hex_digit(nibble: u8) -> u8 {
     } else {
         b'A' + (n - 10)
     }
-}
-
-/// True when the decoded seven-character HID is a known I2C-HID touchpad
-/// identifier: the generic HID-over-I2C IDs, or a common touchpad vendor
-/// prefix.
-fn hid_is_touchpad(hid: &[u8; 8]) -> bool {
-    // The generic HID-over-I2C identifier is the seven-character EISAID
-    // "PNP0C50". Some firmware declares the eight-character string "ACPI0C50".
-    if &hid[..7] == b"PNP0C50" || hid == b"ACPI0C50" {
-        return true;
-    }
-    // Common touchpad vendor prefixes on the manufacturer field.
-    let prefixes: [&[u8]; 4] = [b"ELAN", b"SYNA", b"FTE", b"CYAP"];
-    for p in prefixes.iter() {
-        if &hid[..p.len()] == *p {
-            return true;
-        }
-    }
-    false
 }
 
 /// Decode an AML PkgLength beginning at `at`. Returns the total package length
