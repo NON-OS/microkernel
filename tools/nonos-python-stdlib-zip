@@ -39,12 +39,13 @@ UNCHECKED_HASH = 0b01
 # Build-machine-only variables recorded in _sysconfigdata. On a case-insensitive
 # APFS (macOS), CPython's configure finds its own output executable under a
 # second spelling and concludes the platform carries an .exe suffix, so it sets
-# BUILDEXE (and the EXE family) to ".exe". The NONOS Linux personality is a
-# Unix target with no such suffix, so these are pinned to their Unix value and
-# the result no longer depends on the build host's filesystem. The toolchain
-# paths these files also record live under the repository root and are already
-# folded to /nonos by the path maps in main().
-SYSCONFIG_PIN = {"EXE": "", "EXEEXT": "", "BUILDEXE": ""}
+# BUILDEXE (and the EXE family) to ".exe" and BUILDPYTHON to "python.exe". The
+# NONOS Linux personality is a Unix target with no such suffix, so the suffix
+# family is pinned empty and the build python to its plain Unix name, and the
+# result no longer depends on the build host's filesystem. The toolchain paths
+# these files also record live under the repository root and are already folded
+# to /nonos by the path maps in main().
+SYSCONFIG_PIN = {"EXE": "", "EXEEXT": "", "BUILDEXE": "", "BUILDPYTHON": "python"}
 # Any .exe that survives normalisation is a build-host residue the pin above did
 # not cover; the build must fail rather than ship host-dependent bytes.
 SYSCONFIG_RESIDUE = re.compile(rb"\.exe\b")
@@ -103,12 +104,14 @@ def self_test():
               b"    'BUILDEXE': '.exe',\n"
               b'    "EXEEXT": ".exe",\n'
               b"    'EXE': '.exe',\n"
+              b"    'BUILDPYTHON': 'python.exe',\n"
               b"    'CC': '/nonos/toolchain/clang',\n"
               b"}\n")
     out = normalize_sysconfig(sample)
     assert b"'BUILDEXE': ''" in out, out
     assert b'"EXEEXT": ""' in out, out
     assert b"'EXE': ''" in out, out
+    assert b"'BUILDPYTHON': 'python'" in out, out
     assert b"'CC': '/nonos/toolchain/clang'" in out, "unrelated vars are untouched"
     residue_check("sample", out)  # must not raise
     # A residue the pin did not cover must fail the check.
