@@ -1936,25 +1936,32 @@ else
 fi
 unset dma_limits dma_validate dma_errno_map dma_types
 
-# MSI-X runtime LAPIC destination. The MSI message builder must
-# take a destination APIC id from the caller, not hardcode 0. The
-# bind path reads `crate::arch::interrupt_controller::local_id()`
-# (the LAPIC id on x86_64) so the broker programs each MSI-X entry
-# against the current LAPIC.
+# MSI-X runtime LAPIC destination. The MSI message builder takes an
+# explicit destination APIC id from the caller, never a hardcoded 0.
+# The bind path derives it from the running CPU's LAPIC id through
+# `device_irq_dest`, which fits an x2APIC id into the 8-bit field or
+# refuses, so a wide id is never truncated to the wrong CPU (a plain
+# `as u8` would send 0x104 to CPU 4). Both the MSI and MSI-X route
+# paths take the destination from `dest_apic_id()?`.
 msi_msg='src/drivers/pci/types/msi.rs'
-msi_bind='src/hardware/broker/irq/bind/msix.rs'
+msi_dest='src/hardware/broker/irq/bind/message.rs'
 msix_real='src/hardware/broker/irq/msix_ops/real.rs'
+msi_route='src/hardware/broker/irq/bind/msi_route.rs'
+msix_route='src/hardware/broker/irq/bind/msix_route.rs'
 if ! grep -qE 'pub fn for_local_apic\(vector: u8, dest_apic_id: u8\) -> Self' "${msi_msg}"; then
     fail_with "${msi_msg} for_local_apic must take an explicit dest_apic_id"
 elif grep -rnE 'for_local_apic\([^,)]+\)' "${msi_msg}" "${msix_real}" src/drivers/pci/msi 2>/dev/null \
         | grep -vE '(fn for_local_apic|/tests/)' | grep -q .; then
     fail_with "for_local_apic still has single-arg callers; wire dest_apic_id through"
-elif ! grep -qE 'dest_apic_id = crate::arch::interrupt_controller::local_id\(\) as u8' "${msi_bind}"; then
-    fail_with "${msi_bind} must read dest_apic_id from the runtime LAPIC, not hardcode CPU 0"
+elif ! grep -qE 'crate::arch::interrupt_controller::local_id\(\)' "${msi_dest}" ||
+     ! grep -qE 'device_irq_dest\(local\)' "${msi_dest}"; then
+    fail_with "${msi_dest} dest_apic_id must come from local_id() via device_irq_dest, not a hardcoded CPU"
+elif ! grep -qE 'dest_apic_id\(\)\?' "${msi_route}" || ! grep -qE 'dest_apic_id\(\)\?' "${msix_route}"; then
+    fail_with "msi/msix route paths must take the destination from dest_apic_id()"
 else
-    note ok "MSI-X dest_apic_id sourced from runtime local_id() at bind time"
+    note ok "MSI-X dest_apic_id sourced from runtime local_id() via device_irq_dest"
 fi
-unset msi_msg msi_bind msix_real
+unset msi_msg msi_dest msix_real msi_route msix_route
 
 # x86 GSI kernel-vs-capsule partition. `program_route_external` (the
 # broker INTx path) must CAS the GSI Free -> Capsule via the
