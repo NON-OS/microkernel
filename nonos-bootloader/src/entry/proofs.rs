@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The boot screen's proofs panel, fed from what this boot verified and the
-//! evidence it gathered for the kernel.
-
 use nonos_boot::display::{show_proofs, Proofs};
 use nonos_boot::kernel_verify::CryptoVerifyResult;
 use nonos_boot::security::SecurityContext;

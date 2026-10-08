@@ -14,15 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel's self-attestation trailer, carried in the image's proof footer.
-
 use super::types::CryptoVerifyResult;
 use crate::log::logger::{log_error, log_info};
 
-/// Check the kernel's self-attestation path trailer carried in the proof footer
-/// against the enrolled boot root. Without a valid one the gate refuses the
-/// kernel in every mode, development included. What was found is recorded as well
-/// as the verdict, so the boot screen can say which of the two it was.
 pub(super) fn verify_kernel_self_attestation(
     parsed: &crate::image_format::ParsedImage<'_>,
     result: &mut CryptoVerifyResult,

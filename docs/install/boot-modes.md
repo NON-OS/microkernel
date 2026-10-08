@@ -125,6 +125,26 @@ The menu has no development entry, on purpose. A loader built with the developme
   - A Development boot past the floor: `Floor::Held`, `nonos-bootloader/src/boot/crypto/rollback/floor.rs:30-40`.
   - The release seal: `args.release`, `tools/nonos_seal/__main__.py:119-120`.
 
+## The loader's entry handlers
+
+### `resolve_action` (`nonos-bootloader/src/entry/action.rs`)
+
+On an Install action the mode resolves to Standard, never less: enforcement raises it to the build floor, and the kernel is verified and attested exactly as a Standard boot.
+
+### `install_source` (`nonos-bootloader/src/entry/install_source.rs`)
+
+The two regions the installer writes to a disk, and the partition the loader came from, recorded for the kernel.
+
+The loader is recorded as the file the firmware read, not the image it built from that file: what sits at LoadedImage's base is the PE after section placement and relocation, a megabyte larger than BOOTX64.EFI and not a bootable file. So the file is read again here, from the volume this loader came from, into loader memory the kernel never reclaims. The kernel image is the buffer that was read and verified above. A loader whose file cannot be found records a zero region, and the installer then says so instead of writing a disk with no bootloader on it.
+
+`boot_media` is leaked into loader memory like the loader file, so it outlives boot services; a zero region when the firmware named no partition.
+
+`boot_disk` reads the package store here for a kernel whose own disk drivers may not reach the disk it lies on, and from the same disk the live plan's model files; a zero region for either the disk does not carry.
+
+### `secure_boot_enabled` (`nonos-bootloader/src/entry/dev.rs`)
+
+The SecureBoot global variable is a single byte; uefi 0.23 writes it into a caller-provided buffer and returns the filled slice with its attributes.
+
 ## See also
 
 - [First boot](first-boot.md)

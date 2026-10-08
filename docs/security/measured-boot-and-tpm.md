@@ -146,6 +146,24 @@ The quote does not cover PCR 4 or PCR 9, so a quote alone does not say which loa
 - In this release the command sequences, the rollback floor reads and the device secret were tested against swtpm over a socket, and the FIFO protocol against a modelled register file. The CRB and FIFO transports did not run against a hardware TPM.
 - `nonos-boot-measure`, which holds the log replay, the record check and the verdicts above, has its own host tests under `nonos-boot-measure/src/tests` and five fuzz targets, but `proofDirs` does not name it, so no flake check runs them (`tools/nix/checks.nix:20-30`), and the nightly fuzz workflow does not list its targets. They did not run for this release.
 
+## What the loader hands the kernel
+
+### The proofs panel (`nonos-bootloader/src/entry/proofs.rs`)
+
+The boot screen's proofs panel is fed from what this boot verified and the evidence it gathered for the kernel.
+
+### The kernel approval (`nonos-bootloader/src/entry/approval.rs`)
+
+The release's approval of this kernel, read from beside it. It is a signature over the kernel's PCR 9 policy, so it cannot live inside the image it approves. The loader reads it and hands it on untouched; it checks nothing, because the TPM does, under a key the kernel holds itself.
+
+The approval file is `APPROVAL_LEN` bytes: key x, y, then r, s. `with_approval` returns the policy with the approval file attached, when there is one of the right length. Absent or malformed, the kernel simply has no approval, and the device secret stays sealed.
+
+### Boot evidence (`nonos-bootloader/src/entry/boot_evidence.rs`)
+
+What the kernel checks this loader with, gathered before boot services end: the firmware's TCG log, the loader's own v4 trailer and the signed boot-root record, the last two from the ESP the loader came from. Each is a zero region when it is absent, and the kernel then says what it lacked.
+
+`BootEvidence` holds the log, the trailer and the record as read, each `None` when absent. Its `modules` method returns the regions the kernel is handed, a zero one for each absent. Each file read is leaked into loader memory, which the kernel never reclaims.
+
 ## See also
 
 - [Boot chain and signatures](boot-chain-and-signatures.md)

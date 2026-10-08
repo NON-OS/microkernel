@@ -14,11 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The two regions the installer writes to a disk, and the partition the
-//! loader came from, recorded for the kernel.
-
-use alloc::boxed::Box;
-use alloc::vec::Vec;
+use alloc::{boxed::Box, vec::Vec};
 
 use nonos_boot::handoff::types::{
     InstallHandoff, Module, BOOT_MEDIA_LEN, MODULE_KIND_BOOT_MEDIA, MODULE_KIND_DISK_MIRROR,
@@ -28,16 +24,6 @@ use nonos_boot::loader::file::{boot_partition, disk_mirror, load_file_from_esp, 
 use nonos_boot::menu::BootIntent;
 use uefi::prelude::*;
 
-/*
- * The loader is recorded as the file the firmware read, not the image it
- * built from that file: what sits at LoadedImage's base is the PE after
- * section placement and relocation, a megabyte larger than BOOTX64.EFI and
- * not a bootable file. So the file is read again here, from the volume this
- * loader came from, into loader memory the kernel never reclaims. The
- * kernel image is the buffer that was read and verified above. A loader
- * whose file cannot be found records a zero region, and the installer then
- * says so instead of writing a disk with no bootloader on it.
- */
 pub fn install_source(
     st: &SystemTable<Boot>,
     kernel_data: &[u8],
@@ -59,8 +45,6 @@ pub fn install_source(
     }
 }
 
-/* Leaked into loader memory like the loader file, so it outlives boot
- * services; a zero region when the firmware named no partition. */
 fn boot_media(st: &SystemTable<Boot>) -> Module {
     match boot_partition(st.boot_services()) {
         Some(record) => Module {
@@ -73,9 +57,6 @@ fn boot_media(st: &SystemTable<Boot>) -> Module {
     }
 }
 
-/* The package store, read here for a kernel whose own disk drivers may not
- * reach the disk it lies on, and from the same disk the live plan's model
- * files; a zero region for either the disk does not carry. */
 fn boot_disk(st: &SystemTable<Boot>) -> (Module, Module) {
     let bs = st.boot_services();
     let Some(((base, size), disk)) = store_copy(bs) else {

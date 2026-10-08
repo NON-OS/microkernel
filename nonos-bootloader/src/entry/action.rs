@@ -34,10 +34,6 @@ pub fn resolve_action(
             let _ = st.stdout().output_string(uefi::cstr16!("[BOOT] Air-Gapped Mode\r\n"));
             Ok(SecurityMode::NetworkIsolated)
         }
-        /*
-         * Standard, never less: enforcement raises it to the build floor, and
-         * the kernel is verified and attested exactly as a Standard boot.
-         */
         MenuAction::Install => {
             let _ = st.stdout().output_string(uefi::cstr16!("[BOOT] Install NONOS\r\n"));
             Ok(SecurityMode::Standard)
