@@ -23,22 +23,22 @@
 #![no_main]
 
 core::arch::global_asm!(
-    include_str!("asm/tags.S"),
-    include_str!("asm/strings.S"),
-    include_str!("asm/util.S"),
-    include_str!("asm/console.S"),
-    include_str!("asm/fs_locate.S"),
-    include_str!("asm/fs_open.S"),
-    include_str!("asm/fs_read.S"),
-    include_str!("asm/discover.S"),
-    include_str!("asm/attest.S"),
-    include_str!("asm/compose.S"),
-    include_str!("asm/prove.S"),
-    include_str!("asm/proveset_fetch.S"),
-    include_str!("asm/proveset_one.S"),
-    include_str!("asm/proveset_step.S"),
-    include_str!("asm/steps.S"),
-    include_str!("asm/entry.S"),
+    include_str!("arch/x86_64/asm/tags.S"),
+    include_str!("arch/x86_64/asm/strings.S"),
+    include_str!("arch/x86_64/asm/util.S"),
+    include_str!("arch/x86_64/asm/console.S"),
+    include_str!("arch/x86_64/asm/fs_locate.S"),
+    include_str!("arch/x86_64/asm/fs_open.S"),
+    include_str!("arch/x86_64/asm/fs_read.S"),
+    include_str!("arch/x86_64/asm/discover.S"),
+    include_str!("arch/x86_64/asm/attest.S"),
+    include_str!("arch/x86_64/asm/compose.S"),
+    include_str!("arch/x86_64/asm/prove.S"),
+    include_str!("arch/x86_64/asm/proveset_fetch.S"),
+    include_str!("arch/x86_64/asm/proveset_one.S"),
+    include_str!("arch/x86_64/asm/proveset_step.S"),
+    include_str!("arch/x86_64/asm/steps.S"),
+    include_str!("arch/x86_64/asm/entry.S"),
 );
 
 // Unreachable: no Rust code runs. The symbol exists only to satisfy the
