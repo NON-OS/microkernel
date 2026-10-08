@@ -48,5 +48,7 @@ pub fn paint(
             let style = LabelStyle { color: Argb(t.text_argb) };
             render_label(buf, stride_px, desc.width, desc.height, x, y, label, style);
         }
+        // A frame paints nothing; render answers it before it ever reaches here.
+        ComponentKind::Frame => {}
     }
 }

@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU32, Ordering};
 
 use nonos_toolkit::decorations::DecorationHit;
 
 use crate::app::{App, AppManifest};
+use crate::clients::toolkit;
 use crate::setup::WindowBinding;
 
 use super::paint_draw::draw;
@@ -39,6 +41,8 @@ pub(super) fn paint<A: App>(
     binding: &WindowBinding,
     hover: DecorationHit,
     maximized: bool,
+    toolkit_port: u32,
+    request_id: u32,
 ) {
     let words = (binding.byte_len / 4) as usize;
     let surface: &mut [u32] =
@@ -46,9 +50,38 @@ pub(super) fn paint<A: App>(
     let mut back: Vec<u32> = Vec::new();
     if back.try_reserve_exact(words).is_err() {
         draw(app, manifest, binding, surface, hover, maximized);
+    } else {
+        back.resize(words, 0);
+        draw(app, manifest, binding, &mut back, hover, maximized);
+        surface.copy_from_slice(&back);
+    }
+    frame_handshake(toolkit_port, request_id, binding.surface_handle, binding.width, binding.height);
+}
+
+/// The last theme revision this process applied; `u32::MAX` until the first
+/// frame, so the first handshake always syncs the app to the toolkit's theme.
+static APPLIED_REVISION: AtomicU32 = AtomicU32::new(u32::MAX);
+
+/// Tell the toolkit of the frame just drawn and read back its theme revision.
+/// The toolkit attaches and paints nothing for this, so it is a cheap per-frame
+/// call. When the revision has moved, fetch the theme and apply it in process,
+/// so later frames paint with the theme the system now carries.
+fn frame_handshake(port: u32, request_id: u32, surface_handle: u64, width: u32, height: u32) {
+    let Ok(revision) = toolkit::ui_frame(port, request_id, surface_handle, width, height) else {
+        return;
+    };
+    if revision == APPLIED_REVISION.load(Ordering::Relaxed) {
         return;
     }
-    back.resize(words, 0);
-    draw(app, manifest, binding, &mut back, hover, maximized);
-    surface.copy_from_slice(&back);
+    let Ok(theme) = toolkit::theme_get(port, request_id) else {
+        return;
+    };
+    let mut roles = [0u8; 20];
+    roles[0..4].copy_from_slice(&theme.background_argb.to_le_bytes());
+    roles[4..8].copy_from_slice(&theme.surface_argb.to_le_bytes());
+    roles[8..12].copy_from_slice(&theme.accent_argb.to_le_bytes());
+    roles[12..16].copy_from_slice(&theme.text_argb.to_le_bytes());
+    roles[16..20].copy_from_slice(&theme.border_argb.to_le_bytes());
+    let _ = nonos_toolkit::theme::apply(&roles);
+    APPLIED_REVISION.store(revision, Ordering::Relaxed);
 }
