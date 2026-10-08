@@ -22,6 +22,9 @@ impl Fadt {
     pub const MIN_LENGTH: u32 = 116;
     pub const ACPI_2_LENGTH: u32 = 244;
 
+    pub fn has_reset_register(&self) -> bool {
+        self.flags & fadt_flags::RESET_REG_SUP != 0 && self.reset_reg.is_valid()
+    }
     pub fn is_hw_reduced(&self) -> bool {
         self.flags & fadt_flags::HW_REDUCED_ACPI != 0
     }
