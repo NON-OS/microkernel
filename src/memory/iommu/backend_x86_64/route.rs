@@ -39,7 +39,7 @@ pub(super) fn route(op: &'static [u8]) -> Result<Backend, IommuError> {
     match select::selected() {
         None | Some(IommuVendor::IntelVtd) => Ok(Backend::Vtd),
         #[cfg(feature = "nonos-iommu-amdvi")]
-        Some(IommuVendor::AmdVi) if crate::arch::x86_64::amd_vi::is_enforcing() => {
+        Some(IommuVendor::AmdVi) if crate::arch::x86_64::iommu::amd_vi::is_enforcing() => {
             Ok(Backend::AmdVi)
         }
         Some(IommuVendor::AmdVi) => Err(refuse::amd_vi(op)),

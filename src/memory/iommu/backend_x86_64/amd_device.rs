@@ -17,8 +17,8 @@
 //! The broker's device calls on AMD-Vi: a device table entry per requester
 //! id, and coverage from the IVHD device entries.
 
-use crate::arch::x86_64::amd_vi::domain::{attach, detach, device_id};
-use crate::arch::x86_64::amd_vi::unit_covers;
+use crate::arch::x86_64::iommu::amd_vi::domain::{attach, detach, device_id};
+use crate::arch::x86_64::iommu::amd_vi::unit_covers;
 use crate::memory::iommu::{DeviceAddress, DomainId, IommuError};
 
 fn id(device: DeviceAddress) -> u16 {

@@ -18,8 +18,8 @@
 //! so every translated access snoops CPU caches, which is what snoop control
 //! means on VT-d.
 
-use crate::arch::x86_64::amd_vi::domain::MAX_DOMAINS;
-use crate::arch::x86_64::amd_vi::is_enforcing;
+use crate::arch::x86_64::iommu::amd_vi::domain::MAX_DOMAINS;
+use crate::arch::x86_64::iommu::amd_vi::is_enforcing;
 use crate::memory::iommu::{IommuCapabilities, IommuVendor};
 
 pub(super) fn amd_vi() -> IommuCapabilities {
