@@ -3145,6 +3145,7 @@
    "userland/capsule_driver_hda/src/controller/bdl.rs",
    "userland/capsule_driver_hda/src/controller/codec",
    "userland/capsule_driver_hda/src/controller/codec_probe.rs",
+   "userland/capsule_driver_hda/src/controller/immediate.rs",
    "userland/capsule_driver_hda/src/controller/compose.rs",
    "userland/capsule_driver_hda/src/controller/corb.rs",
    "userland/capsule_driver_hda/src/controller/dma_sync.rs",
