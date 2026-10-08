@@ -52,7 +52,7 @@ pub(super) fn init_dma_protection() {
             // A unit firmware left on would block every device's DMA, so it
             // is stopped first; a kernel built to drive AMD-Vi then starts it.
             IommuVendor::AmdVi => {
-                crate::arch::x86_64::amd_vi::init();
+                crate::arch::x86_64::iommu::amd_vi::init();
             }
             _ => {}
         }

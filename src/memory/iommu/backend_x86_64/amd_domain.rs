@@ -18,7 +18,7 @@
 //! only while every AMD unit is in service, so no call writes tables no
 //! unit walks.
 
-use crate::arch::x86_64::amd_vi::domain;
+use crate::arch::x86_64::iommu::amd_vi::domain;
 use crate::memory::addr::PhysAddr;
 use crate::memory::iommu::{DomainId, IommuError, IommuProtection};
 
