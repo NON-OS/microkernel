@@ -104,7 +104,7 @@ python3 tools/nonos-assumptions
 python3 tools/nonos-assumptions --list
 ```
 
-The first printed `[assumptions] 120 found, 10 stated, 0 unlisted, 0 stale` and exited 0; `--list` printed the 120 found entries. A failure prints `::error::assumption <id> is not in verification/ASSUMPTIONS.md`, or that the register lists an entry nothing in the tree still rests on, and exits 1. `make nonos-mk-check-assumptions`, `make nonos-mk-static` and the flake check `static-abi` run it. [Threat model](../overview/threat-model.md) states the assumptions in prose.
+The first printed `[assumptions] 123 found, 10 stated, 0 unlisted, 0 stale` and exited 0; `--list` printed the 123 found entries. A failure prints `::error::assumption <id> is not in verification/ASSUMPTIONS.md`, or that the register lists an entry nothing in the tree still rests on, and exits 1. `make nonos-mk-check-assumptions`, `make nonos-mk-static` and the flake check `static-abi` run it. [Threat model](../overview/threat-model.md) states the assumptions in prose.
 
 ## A removed control is noticed
 
