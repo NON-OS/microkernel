@@ -24,6 +24,27 @@ sq=$(fetch sqlite)
 # SHA-512 and verifies under Mark Wielaard's key, fingerprint EC3C FE88
 # F6CA 0788 774F 5C1D 1AA4 4BE6 49DE 760A.
 bz=$(fetch bzip2)
+# Build parallelism, bounded by the cores nix allocated and by memory. The
+# interpreter's frozen-module source (Python/deepfreeze/deepfreeze.c, ~144k
+# generated lines) and the module compiles are memory-heavy, so a forced -j"$jobs"
+# makes eight clang processes overrun a small builder (a 7 GB macOS CI runner)
+# and the kernel kills one mid-compile, which reads only as "builder failed".
+# Respect NIX_BUILD_CORES, fall back to the CPU count, and cap so each
+# concurrent compile has roughly 2 GB. Parallelism changes scheduling, never
+# output, so the reproducibility check stays byte-identical.
+jobs="${NIX_BUILD_CORES:-0}"
+[ "$jobs" -gt 0 ] 2>/dev/null || jobs="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)"
+# The `|| true` matters: under `set -e` a command substitution that fails aborts
+# the script, and sed exits non-zero when /proc/meminfo is absent (every macOS).
+_memkb="$(sed -n 's/^MemTotal:[[:space:]]*\([0-9]*\).*/\1/p' /proc/meminfo 2>/dev/null || true)"
+[ -n "$_memkb" ] || _memkb=$(( $(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1024 ))
+if [ "${_memkb:-0}" -gt 0 ]; then
+	_memcap=$(( _memkb / 1024 / 1024 / 2 ))
+	[ "$_memcap" -lt 1 ] && _memcap=1
+	[ "$jobs" -gt "$_memcap" ] && jobs="$_memcap"
+fi
+[ "${jobs:-0}" -ge 1 ] 2>/dev/null || jobs=1
+
 # A cross build runs a Python of the same version on the build machine.
 host="$root/target/toolchains/python-3.12.15-host"
 if [ ! -x "$host/bin/python3.12" ]; then
@@ -41,7 +62,7 @@ if [ ! -x "$host/bin/python3.12" ]; then
 			export "py_cv_module_$m=n/a"
 		done &&
 		./configure --prefix="$host" --disable-test-modules --without-ensurepip >/dev/null &&
-		make -j8 >/dev/null && make install >/dev/null)
+		make -j"$jobs" >/dev/null && make install >/dev/null)
 fi
 # The kernel proves the one binary whole before any page of it runs, and
 # takes at most 16 MiB: each function and datum gets a section of its
@@ -52,7 +73,7 @@ tar -xzf "$zl" -C "$work"
 (cd "$work/zlib-1.3.2" &&
 	CC="$CC" AR="$AR" RANLIB="$RANLIB" CFLAGS="$CFLAGS $lean" CHOST=x86_64-linux-musl \
 		./configure --static --prefix="$work/zlib" >/dev/null &&
-	make -j8 libz.a >/dev/null && make install >/dev/null)
+	make -j"$jobs" libz.a >/dev/null && make install >/dev/null)
 # The other libraries are compiled for size too, which keeps the binary
 # under 14 MB; the interpreter itself stays at -O2. Each is configured
 # for /usr, so no path of this build is compiled in, and installed in one
@@ -76,19 +97,19 @@ tar -xJf "$uu" -C "$work"
 		./configure --host=x86_64-linux-musl --build="$(sh build-aux/config.guess)" --prefix=/usr \
 		--disable-shared --disable-xz --disable-xzdec --disable-lzmadec --disable-lzmainfo \
 		--disable-lzma-links --disable-scripts --disable-doc --disable-nls >/dev/null &&
-	make -C src/liblzma -j8 >/dev/null && make -C src/liblzma install DESTDIR="$deps" >/dev/null)
+	make -C src/liblzma -j"$jobs" >/dev/null && make -C src/liblzma install DESTDIR="$deps" >/dev/null)
 (cd "$work/libffi-3.8.0" &&
 	CC="$CC" AR="$AR" RANLIB="$RANLIB" CFLAGS="$libcflags" \
 		./configure --host=x86_64-linux-musl --build="$(sh ./config.guess)" --prefix=/usr \
 		--disable-shared --disable-docs --disable-multi-os-directory >/dev/null &&
-	make -j8 >/dev/null && make install DESTDIR="$deps" >/dev/null)
+	make -j"$jobs" >/dev/null && make install DESTDIR="$deps" >/dev/null)
 # Of util-linux, libuuid alone, keeping its clock under /var/lib/libuuid.
 (cd "$work/util-linux-2.42.4" &&
 	CC="$CC" AR="$AR" RANLIB="$RANLIB" CFLAGS="$libcflags" \
 		./configure --host=x86_64-linux-musl --build="$(sh config/config.guess)" --prefix=/usr \
 		--localstatedir=/var --disable-shared --disable-all-programs --enable-libuuid \
 		--disable-nls >/dev/null &&
-	make -j8 libuuid.la >/dev/null && mkdir -p "$deps/usr/include/uuid" &&
+	make -j"$jobs" libuuid.la >/dev/null && mkdir -p "$deps/usr/include/uuid" &&
 	cp libuuid/src/uuid.h "$deps/usr/include/uuid" && cp .libs/libuuid.a "$deps/usr/lib")
 # Full-text search (FTS4, FTS5), R*Tree and dbstat beside the JSON and
 # math functions SQLite has by default; no extension loading, since the
@@ -122,7 +143,7 @@ readline_build "$libcflags" "$deps"
 		no-ocsp no-ct no-srp no-ts no-engine no-comp no-sm2 no-sm3 no-sm4 no-aria \
 		no-camellia no-seed no-idea no-rc2 no-rc4 no-rc5 no-md2 no-mdc2 no-whirlpool \
 		no-bf no-cast no-ec2m no-slh-dsa >/dev/null &&
-	make -j8 build_libs >/dev/null && make install_dev DESTDIR="$deps" >/dev/null)
+	make -j"$jobs" build_libs >/dev/null && make install_dev DESTDIR="$deps" >/dev/null)
 tar -xJf "$py" -C "$work"
 src="$work/Python-3.12.15"
 # What a cross configure cannot run a program to find out, and the panel
@@ -160,7 +181,7 @@ done
 exe=python$(sed -n 's/^BUILDEXE=[[:space:]]*//p' "$src/Makefile")
 # zig refuses __DATE__ and __TIME__; the build info names the release day,
 # 30 September 2026.
-make -s -C "$src" -j8 "$exe" pybuilddir.txt \
+make -s -C "$src" -j"$jobs" "$exe" pybuilddir.txt \
 	CPPFLAGS="-DDATE='\"Sep 30 2026\"' -DTIME='\"00:00:00\"'" >/dev/null
 cp "$src/$exe" "$out/python3"
 # The sysconfig module records how this interpreter was configured, and with
