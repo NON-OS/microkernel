@@ -38,7 +38,7 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         if kind == Kind::Normal {
             let _ = focus_new_window(ctx, sender_pid, window_id);
         }
-        // Left full screen, it comes back at the size it asks for now.
+        // Left full screen, it comes back at the size it currently asks for.
         full_screen_notify::tell_if_changed(ctx, sender_pid, window_id, was);
         let _ = respond_window_opened::window_opened(sender_pid, req, 0, existing_rect, tx);
         return;

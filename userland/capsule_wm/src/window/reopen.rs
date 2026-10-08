@@ -16,7 +16,7 @@
 
 //! A client opening a window this table still holds: its close never
 //! arrived (or it opens again without one). The client has a new surface of
-//! the size it asks for now, and puts it where the answer says.
+//! the size it now asks for, and puts it where the answer says.
 //!
 //! The answer was the old rect, size included, and the window kept the state
 //! it had: a window left maximised came back at the whole work area over a
@@ -38,7 +38,7 @@ pub fn reopen(window: &mut Window, kind: Kind, requested: Rect, display_w: u32, 
     window.rect = clamp_to_display(at, display_w, display_h);
     window.kind = kind;
     window.visibility = Visibility::Visible;
-    // The size asked for now is the client's new surface, not the full
+    // The size it now asks for is the client's new surface, not the full
     // screen it may have left, so the dock is no longer hidden for it.
     window.full_screen = false;
 }

@@ -32,7 +32,7 @@ pub struct CpuContext {
     pub has_xapic_cpus: bool,
 }
 
-/// Record one processor unless it is unusable, a placeholder, a duplicate
+/// Record one processor unless it is unusable, a reserved id, a duplicate
 /// x2APIC listing of an xAPIC processor, or an APIC ID already recorded.
 pub(super) fn record_processor(
     registry: &mut TableRegistry,
