@@ -2145,25 +2145,26 @@ else
 fi
 unset mk_tool_drift
 
-# Operator pubkey trust list must compile in. The 0xNOX live
-# operator pubkey baked here is the only key the marketplace
-# capsule trusts in production; rotation requires a kernel image
-# rebuild. keys.rs pulls the key in with include_bytes!, so the
-# referenced .pub file must hold exactly the 0xNOX key bytes.
+# Operator pubkey trust list must compile in. keys.rs pulls the
+# marketplace operator pubkey in from the committed .pub with
+# include_bytes!, and TRUSTED_OPERATORS wires it in. The key is
+# rotated by recommitting its .pub, cert and manifest (see
+# nonos-data/CUSTODY.md, publisher rotation); the referenced .pub
+# file must hold exactly the committed operator key bytes.
 trust_keys='userland/capsule_market/src/bootstrap_trust/keys.rs'
-nox_operator_hex='295f84c97c62013c438bca3d81c180981b9f0a043ba1fae254ad0e12ea8e0763'
+operator_pubkey_hex='bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2'
 trust_key_rel="$( { grep -A1 'const NOX_OPERATOR_V1: \[u8; 32\] =' "${trust_keys}" 2>/dev/null || true; } | { grep -oE 'include_bytes!\("[^"]+marketplace_operator_ed25519\.pub"\)' || true; } | head -n 1 | sed -E 's/^include_bytes!\("//; s/"\)$//')"
 trust_key_file="$(dirname "${trust_keys}")/${trust_key_rel}"
 if [ ! -f "${trust_keys}" ]; then
     fail_with "missing ${trust_keys} (operator trust list)"
 elif [ -z "${trust_key_rel}" ] || [ ! -f "${trust_key_file}" ] ||
-     [ "$(od -An -tx1 -v "${trust_key_file}" | tr -d ' \n')" != "${nox_operator_hex}" ] ||
+     [ "$(od -An -tx1 -v "${trust_key_file}" | tr -d ' \n')" != "${operator_pubkey_hex}" ] ||
      ! grep -qE 'TRUSTED_OPERATORS: &\[\[u8; 32\]\] = &\[NOX_OPERATOR_V1\]' "${trust_keys}"; then
-    fail_with "0xNOX operator pubkey missing from bootstrap_trust"
+    fail_with "marketplace operator pubkey missing from bootstrap_trust or not the committed key"
 else
-    note ok "0xNOX operator pubkey baked into capsule_market trust list"
+    note ok "marketplace operator pubkey baked into capsule_market trust list"
 fi
-unset trust_keys nox_operator_hex trust_key_rel trust_key_file
+unset trust_keys operator_pubkey_hex trust_key_rel trust_key_file
 
 boot_build='nonos-bootloader/build.rs'
 if [ ! -f "${boot_build}" ]; then
