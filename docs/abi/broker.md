@@ -185,7 +185,7 @@ An `I2C_HID` record reuses fields: `hid_record` puts the 7-bit I2C address in `v
 
 ## Limits
 
-- `abi/driver_broker_abi.md` in the tree describes an older `DeviceRecord`, without the PCI class bytes and interrupt fields, and lists claim and map as reserved. The older page beside this one, `driver_broker_abi.md`, calls `MkIrqWait` reserved. Use this page.
+- `abi/driver_broker_abi.md` in the tree is the compact record, class and error reference beside `abi/syscalls.toml`. The page beside this one, [driver_broker_abi.md](driver_broker_abi.md), is the broker call reference the static-check gate greps; both are built from the same handlers as this page.
 - The argument lists for the broker calls in `abi/syscalls.toml` do not match the handlers for `MkPioGrant`, `MkIrqAck` and `MkIrqPoll`; see [The NONOS ABI](README.md#stability-in-092).
 - The allowlist of PCI registers lives in the broker and is not tabled here.
 
