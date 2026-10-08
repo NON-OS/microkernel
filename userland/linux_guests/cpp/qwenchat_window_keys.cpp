@@ -9,7 +9,10 @@
  * answered by busy_stop, which the compute asks while it runs. */
 static void to_window(void *to, const char *piece, size_t n, bool thought) {
     Busy *b = (Busy *)to;
+    const size_t before = b->v->back ? ui_lines(*b->w, *b->v).size() : 0;
     if (!thought) b->v->said.back().text.append(piece, n);
+    const size_t after = b->v->back ? ui_lines(*b->w, *b->v).size() : 0;
+    if (after > before) b->v->back += after - before;
     ui_draw(*b->w, *b->v), wl_present(*b->w);
 }
 
