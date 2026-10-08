@@ -25,6 +25,14 @@ fn epoch() -> Instant {
 }
 
 pub fn now_ms() -> u64 {
+    // The driver polls this between reads of a register a device model updates
+    // from its own thread. `nix flake check` builds every proof crate at once,
+    // so on a loaded builder a busy-spinning poll can hold its core for the
+    // whole deadline while the model never gets one, and a part that does answer
+    // reads as a timeout. Yielding here hands the core over on each poll, so the
+    // model is scheduled and answers; real time still bounds a wait that no
+    // model ever ends, so the timeout proofs keep biting.
+    std::thread::yield_now();
     epoch().elapsed().as_millis() as u64
 }
 
