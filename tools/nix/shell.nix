@@ -46,6 +46,11 @@ let
     pkgs.perl
     pkgs.coreutils
     pkgs.findutils
+    # the Linux userland build scripts the make lane runs in this shell: unzip
+    # reads gojq's module zips, go builds gojq, ruby builds mruby's mrbc.
+    pkgs.unzip
+    pins.go
+    pkgs.ruby
   ] ++ linuxOnly;
 in
 pkgs.mkShell {

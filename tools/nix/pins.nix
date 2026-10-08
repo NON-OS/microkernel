@@ -11,9 +11,11 @@ let
   # The same toolchain with the UEFI target's prebuilt core, which the
   # bootloader builds against (nonos-bootloader/rust-toolchain.toml names it).
   rustUefi = rust.override { targets = [ "x86_64-unknown-uefi" ]; };
-  # The shell's toolchain: the UEFI target, and wasm32 for the verifier the
-  # release lane ships with the attestation surface (stark-attest).
-  rustShell = rust.override { targets = [ "x86_64-unknown-uefi" "wasm32-unknown-unknown" ]; };
+  # The shell's toolchain: the UEFI target, wasm32 for the verifier the release
+  # lane ships with the attestation surface (stark-attest), and the static musl
+  # target so the make lane builds the Linux userland's Rust tools (ripgrep, fd)
+  # in `nix develop` the same way the nix lane builds them with rustMusl.
+  rustShell = rust.override { targets = [ "x86_64-unknown-uefi" "wasm32-unknown-unknown" "x86_64-unknown-linux-musl" ]; };
   # The same toolchain with the static musl target, for the Rust programs in
   # the Linux userland (ripgrep, fd).
   rustMusl = rust.override { targets = [ "x86_64-unknown-linux-musl" ]; };

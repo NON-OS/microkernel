@@ -6,6 +6,12 @@
 # zip is the one whose h1 hash sum.golang.org records,
 # h1:ttXA0XCLEMoaLOz5lSeFOZ6u6Q3QxmG46vfgI4O0DEs=, and go holds every
 # dependency to the h1 hash in gojq's go.sum before it builds, offline.
+# The make lane runs this inside the flake shell, which provides go and unzip.
+# Fail clearly up front rather than deep in the module unpack on a host missing
+# them.
+for t in go unzip; do
+	command -v "$t" >/dev/null 2>&1 || { echo "gojq.sh: $t not on PATH (the flake shell provides it)" >&2; exit 1; }
+done
 modules="$work/gomod/cache/download"
 # put MODULE VERSION PIN: place a pinned zip in the module cache, with the
 # go.mod inside it beside it, as the module proxy protocol lays them out. The
