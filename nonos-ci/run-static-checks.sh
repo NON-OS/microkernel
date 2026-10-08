@@ -4078,11 +4078,16 @@ unset ipc_primitives ipc_dispatch ipc_defs ipc_cap ipc_libc ipc_missing f
 # syscall names, no POSIX fd rhetoric, no compatibility-shim or
 # stub language. Header comments and `description =` strings are
 # user-visible ABI claims and live under the same gate.
+# Skip .git: the static gate runs against a throwaway git tree, and git 2.55
+# auto-maintenance repacks loose objects while this walks, so descending into
+# .git/objects races a dir git is deleting and find exits non-zero under set -e.
+# No Cargo.toml lives there in any case.
 cargo_files="$(find . -maxdepth 5 -name 'Cargo.toml' \
+    -not -path './.git/*' \
     -not -path './target/*' \
     -not -path './nonos-sign/target/*' -not -path './nonos-mk/target/*' -not -path './userland/*/target/*' \
     -not -path './nonos-bootloader/target/*' -not -path './docs/legacy/*' \
-    2>/dev/null)"
+    2>/dev/null || true)"
 
 cargo_int80="$( { grep -nE '\bint80\b' ${cargo_files} 2>/dev/null || true; } )"
 if [ -n "${cargo_int80}" ]; then
