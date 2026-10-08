@@ -65,11 +65,11 @@ default = ["logging"]
 logging = []
 standard = []
 hardened = ["standard"]
-dev-mode = []
+dev-mode = ["dev-attest"]
 # The gates take a path-only trailer, without the STARK proof, from a
 # development image (src/kernel_verify/self_attest.rs). Never with standard.
 dev-attest = []
-dev-qemu = ["dev-mode", "dev-attest"]
+dev-qemu = ["dev-mode"]
 standard-qemu = ["standard"]
 production = ["hardened"]
 hardened-production = ["production"]
