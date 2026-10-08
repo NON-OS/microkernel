@@ -32,9 +32,9 @@ use crate::arch::x86_64::iommu::unit::report::units;
 pub fn drain_faults() -> usize {
     let mut budget = Budget::default();
     let drained = units().iter().map(|info| drain_unit(info, &mut budget)).sum();
-    let total = count(drained);
+    count(drained);
     if budget.hidden > 0 {
-        log_hidden(budget.hidden, total);
+        log_hidden(budget.hidden);
     }
     drained
 }

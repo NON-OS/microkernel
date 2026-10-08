@@ -49,8 +49,6 @@ pub fn report_posture() {
         .hex(caps.page_sizes)
         .str(b" domains=")
         .dec(u64::from(caps.domain_count))
-        .str(b" faults=")
-        .dec(crate::arch::x86_64::iommu::unit::fault::fault_total())
         .end();
     REPORTED.store(true, Ordering::Release);
 }
