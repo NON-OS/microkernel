@@ -10,7 +10,7 @@ The ABI is the contract between a [capsule](../overview/glossary.md#capsule) and
 - [Broker](broker.md): the calls a driver makes to the device [broker](../overview/glossary.md#broker), the records they exchange, and the broker's constants.
 - [IPC](ipc.md): the IPC calls, the message envelope, the limits, and the well-known service ports.
 
-`driver_broker_abi.md` in this directory is the older broker page. It stays because `nonos-ci/run-static-checks.sh` greps it for the broker call names (`abi_doc`, `nonos-ci/run-static-checks.sh:1850`), and it is out of date: it calls `MkIrqWait` reserved. Use [Broker](broker.md).
+[Driver broker ABI](driver_broker_abi.md) in this directory is the broker call reference built from the dispatch arms: every broker call's registers, the output records, the device record, the class IDs and the errors. `nonos-ci/run-static-checks.sh` greps it for the broker call names (`abi_doc`, `nonos-ci/run-static-checks.sh:1850`), so it is kept in step with the handlers. [Broker](broker.md) is the fuller narrative of the same surface.
 
 ## What the ABI is made of
 
