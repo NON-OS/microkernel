@@ -54,3 +54,15 @@ pub(super) fn window() -> Result<u64, TpmError> {
         va => Ok(va),
     }
 }
+
+/// An uncached mapping of `[phys, phys + size)`, page aligned around it, for the
+/// CRB control area and its buffers. It lives here, beside the window map, so
+/// the broker gate sees every device mapping the kernel TPM takes in one place.
+pub(in crate::security::tpm) fn map_region(phys: u64, size: u64) -> Result<u64, TpmError> {
+    const PAGE: u64 = 0x1000;
+    let base = phys & !(PAGE - 1);
+    let end = phys.checked_add(size).ok_or(TpmError::NotPresent)?;
+    let len = ((end - base + PAGE - 1) & !(PAGE - 1)) as usize;
+    let va = map_device_memory(PhysAddr::new(base), len).map_err(|_| TpmError::NotPresent)?;
+    Ok(va.as_u64() + (phys - base))
+}

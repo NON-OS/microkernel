@@ -24,7 +24,7 @@
 //! on.
 
 use crate::arch::x86_64::acpi::data::PcieSegment;
-use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::addr::VirtAddr;
 
 const BUS_BYTES: u64 = 1 << 20;
 
@@ -35,8 +35,7 @@ pub(super) struct BusWindow {
 impl BusWindow {
     pub(super) fn map(seg: &PcieSegment, bus: u8) -> Option<Self> {
         let phys = seg.config_address(bus, 0, 0, 0)?;
-        let va =
-            crate::memory::mmio::map_device_memory(PhysAddr::new(phys), BUS_BYTES as usize).ok()?;
+        let va = crate::drivers::pci::config::map_ecam_bus(phys, BUS_BYTES as usize)?;
         Some(Self { va: va.as_u64() })
     }
 

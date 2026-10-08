@@ -29,8 +29,6 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 use spin::Mutex;
 
-use crate::memory::addr::PhysAddr;
-use crate::memory::mmio::map_device_memory;
 use crate::security::tpm::error::TpmError;
 use crate::security::tpm::mmio::{init_window, TPM_MMIO_BASE};
 use crate::security::tpm::transport::acpi::control_area;
@@ -38,7 +36,6 @@ use crate::security::tpm::transport::acpi::control_area;
 /// The control area's offset inside the register window.
 const WINDOW_CONTROL: u64 = 0x40;
 const WINDOW_SIZE: u64 = 0x5000;
-const PAGE: u64 = 0x1000;
 /// The control area's registers reach 0x30 past its start.
 const CONTROL_SPAN: u64 = 0x30;
 
@@ -94,11 +91,7 @@ fn in_window(phys: u64, size: u64) -> bool {
 
 /// An uncached mapping of `[phys, phys + size)`, page aligned around it.
 fn map(phys: u64, size: u64) -> Result<u64, TpmError> {
-    let base = phys & !(PAGE - 1);
-    let end = phys.checked_add(size).ok_or(TpmError::NotPresent)?;
-    let len = ((end - base + PAGE - 1) & !(PAGE - 1)) as usize;
-    let va = map_device_memory(PhysAddr::new(base), len).map_err(|_| TpmError::NotPresent)?;
-    Ok(va.as_u64() + (phys - base))
+    crate::security::tpm::mmio::map_region(phys, size)
 }
 
 /// One control register, at `offset` from the control area's start.

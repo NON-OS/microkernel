@@ -24,13 +24,21 @@
 use core::sync::atomic::{AtomicU8, Ordering};
 
 use crate::arch::x86_64::acpi::data::PcieSegment;
-use crate::memory::addr::PhysAddr;
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::mmio::{map_device_memory, unmap_mmio};
 
 const UNTESTED: u8 = 0;
 const TRUSTED: u8 = 1;
 const REFUSED: u8 = 2;
 static TRUST: AtomicU8 = AtomicU8::new(UNTESTED);
+
+/// Map one ECAM bus window uncached (the MCFG config space for a PCIe bus). The
+/// device mapping lives here, in the PCI config driver, so the broker gate sees
+/// config-space mappings in the driver tree rather than in the ACPI code that
+/// locates the segment. `None` when the window cannot be mapped.
+pub(crate) fn map_ecam_bus(phys: u64, len: usize) -> Option<VirtAddr> {
+    map_device_memory(PhysAddr::new(phys), len).ok()
+}
 
 /// All-ones, as for an absent function, when the window is missing, refused,
 /// or does not cover this function.

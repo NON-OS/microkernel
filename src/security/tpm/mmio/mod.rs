@@ -25,4 +25,4 @@ mod access;
 mod map;
 
 pub(in crate::security::tpm) use access::{read32, read8, write32, write8};
-pub(in crate::security::tpm) use map::{init_window, TPM_MMIO_BASE};
+pub(in crate::security::tpm) use map::{init_window, map_region, TPM_MMIO_BASE};
