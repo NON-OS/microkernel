@@ -30,6 +30,7 @@ impl PcmQueue {
         Self { buf: vec![0u8; QUEUE_BYTES], head: 0, len: 0 }
     }
 
+    #[cfg(feature = "nonos-driver-hda-smoketest")]
     pub fn len(&self) -> usize {
         self.len
     }
