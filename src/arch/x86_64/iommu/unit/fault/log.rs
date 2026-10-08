@@ -40,10 +40,10 @@ pub(super) fn log_record(record: &FaultRecord) {
 }
 
 /// What the budget held back this poll, and every fault since boot.
-pub(super) fn log_hidden(hidden: u32, total: u64) {
+pub(super) fn log_hidden(hidden: u32) {
     let mut line = Line::new();
     line.str(b"[VT-D] IOMMU faults not shown=").dec(hidden as u64);
-    line.str(b" total since boot=").dec(total);
+    line.str(b" total since boot=").dec(super::count::fault_total());
     line.end();
 }
 
