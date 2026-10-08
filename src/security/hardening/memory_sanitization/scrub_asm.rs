@@ -20,7 +20,7 @@
 
 use core::arch::global_asm;
 
-global_asm!(include_str!("scrub.S"));
+global_asm!(include_str!("../../../arch/x86_64/asm/scrub/scrub.S"));
 
 extern "C" {
     /// Zero `len` bytes at `ptr` with architecturally ordered stores.

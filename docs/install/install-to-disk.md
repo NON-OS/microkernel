@@ -168,7 +168,7 @@ Installing to an internal NVMe disk and booting from it was reported on real har
 - Other installers in the tree
   - `install-cli` in `userland/tool_install/`: `nonos_install_cli`, `userland/tool_install/Cargo.toml:11-21`, built into the images by `installFeatures`, `tools/nix/config.nix:46`.
   - The Terminal's `install`: `jobs::classify`, `userland/capsule_terminal/src/command/builtin/tool.rs:37-38`.
-  - The console installer's pending steps: `step_write_esp`, `userland/capsule_nonos_install/src/asm/steps.S:26-40`.
+  - The console installer's pending steps: `step_write_esp`, `userland/capsule_nonos_install/src/arch/x86_64/asm/steps.S:26-40`.
   - The package installer: `capsule_installer`, `userland/capsule_installer/README.md:5-12`.
 
 ## See also
