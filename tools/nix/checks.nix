@@ -12,7 +12,7 @@ let
   root = src.everything;
   kernelSource = src.crate "." [ "x86_64-nonos.json" ];
   userlandDirs = builtins.attrNames (lib.filterAttrs (_: t: t == "directory") (builtins.readDir (src.root + "/userland")));
-  kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" ];
+  kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" "nonos-iommu-amdvi" "nonos-iommu-intremap" ];
   hasLock = d: builtins.pathExists (src.root + "/${d}/Cargo.lock");
 
   # Every *_proofs crate, the host crates CI tests beside them, and the
