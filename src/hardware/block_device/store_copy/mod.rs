@@ -33,7 +33,9 @@ use crate::boot::handoff::types::MODULE_KIND_STORE;
 use crate::memory::addr::PhysAddr;
 use crate::memory::unified::phys_to_virt;
 
-use super::store_copy_span::{held, offset, SECTOR, STORE_BASE_LBA};
+mod span;
+
+use self::span::{held, offset, SECTOR, STORE_BASE_LBA};
 
 /* The header and the table of contents, compared with a kept disk's. */
 const HEAD_SECTORS: u64 = 128;
@@ -66,7 +68,7 @@ const GAVE_UP: u8 = 3;
 
 fn copy() -> Option<&'static Copy> {
     COPY.call_once(|| {
-        let m = super::install_source_modules::find(MODULE_KIND_STORE as u64)?;
+        let m = crate::syscall::microkernel::install_source_modules::find(MODULE_KIND_STORE as u64)?;
         let len = held(usize::try_from(m.size).ok()?);
         let last = m.base.checked_add(len as u64 - 1)?;
         phys_to_virt(PhysAddr::new(last))?;
