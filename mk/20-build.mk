@@ -605,12 +605,24 @@ ifeq ($(NONOS_TRUST_REUSE),1)
 $(ZK_CAPSULE_ROOT):
 	@test -f $@ || { echo "::error::$@ is not committed; a reuse build cannot enroll"; exit 1; }
 else
+# The root and trailers prove each capsule's bytes and capabilities, not who
+# signed it, so a tree whose committed enrollment already proves these exact
+# binaries keeps it, as the seal does (tools/nonos_seal/capsules.py): checked
+# by the gate the kernel runs at spawn, and only enrolled afresh when that
+# check fails. A scratch-key build re-signs every capsule, and re-proving the
+# whole set on a CI runner's two prover slots took hours for the same root.
 $(ZK_CAPSULE_ROOT): $(NONOS_STARK_ENROLL) \
 		$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_BIN) $($(s)_MANIFEST))
-	@echo "Enrolling $(words $(NONOS_ENROLLED_CAPSULES)) capsules under one transparent STARK policy root..."
 	@mkdir -p $(dir $(ZK_CAPSULE_ROOT)) $(NONOS_BAKED_TRUST_DIR)/capsules
-	@$(NONOS_STARK_ENROLL) capsules $(ZK_CAPSULE_ROOT) \
-		$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_REQUIRED_CAPS):$($(s)_BIN):$($(s)_ATTESTATION))
+	@if [ -f $(ZK_CAPSULE_ROOT) ] && $(NONOS_STARK_ENROLL) verify $(ZK_CAPSULE_ROOT) \
+		$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_REQUIRED_CAPS):$($(s)_BIN):$($(s)_ATTESTATION)) >/dev/null 2>&1; then \
+		echo "Kept the enrollment of $(words $(NONOS_ENROLLED_CAPSULES)) capsules: every trailer proves its capsule"; \
+		touch $(ZK_CAPSULE_ROOT) $(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_ATTESTATION)); \
+	else \
+		echo "Enrolling $(words $(NONOS_ENROLLED_CAPSULES)) capsules under one transparent STARK policy root..."; \
+		$(NONOS_STARK_ENROLL) capsules $(ZK_CAPSULE_ROOT) \
+			$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_REQUIRED_CAPS):$($(s)_BIN):$($(s)_ATTESTATION)); \
+	fi
 endif
 
 .PHONY: nonos-mk-stark-enroll-capsules
