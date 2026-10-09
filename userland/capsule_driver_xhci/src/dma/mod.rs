@@ -23,4 +23,7 @@ mod region_phys;
 mod region_user_va;
 mod region_zero;
 pub use pool::DmaPool;
+// Reached by the host proofs (userland/xhci_proofs), not by the capsule.
+#[allow(unused_imports)]
+pub use pool_alloc::below_4g;
 pub use region::DmaRegion;

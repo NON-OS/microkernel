@@ -26,7 +26,19 @@ impl Stream {
         let Some((kind, body_len)) = self.peek_header() else {
             return false;
         };
+        /*
+         * No protected record is longer than BODY_MAX (RFC 8446 5.2). A header
+         * claiming more ends the session there: waiting for the rest of a
+         * record no peer may send left it neither reading nor done.
+         */
+        if body_len > BODY_MAX {
+            self.done = true;
+            return false;
+        }
         let total = 5 + body_len;
+        if self.partial.len() < total {
+            return false;
+        }
         /*
          * A middlebox compatibility change_cipher_spec can arrive after the handshake
          * and is not application data. Dropped rather than counted.
@@ -54,9 +66,6 @@ impl Stream {
             return None;
         }
         let len = u16::from_be_bytes([self.partial[3], self.partial[4]]) as usize;
-        if len > BODY_MAX || self.partial.len() < 5 + len {
-            return None;
-        }
         Some((self.partial[0], len))
     }
 }

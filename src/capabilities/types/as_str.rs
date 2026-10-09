@@ -53,6 +53,8 @@ impl Capability {
             Self::AttestRead => "AttestRead",
             Self::ForeignExec => "ForeignExec",
             Self::LocalSign => "LocalSign",
+            Self::StreamImport => "StreamImport",
+            Self::DeviceSecret => "DeviceSecret",
         }
     }
 }

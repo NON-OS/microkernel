@@ -25,12 +25,13 @@ pub enum Role {
     Equals,
     Function,
     Memory,
-    Blank,
 }
 
 #[derive(Clone, Copy)]
 pub enum Action {
     Digit(u8),
+    /// The "00" key: two presses of 0, not one.
+    DoubleZero,
     Decimal,
     Operator(Op),
     Equals,

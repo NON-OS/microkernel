@@ -23,9 +23,10 @@ mod ops;
 
 pub use decode::parse;
 pub use encode::{response_header, write_status};
-pub use errno::{E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_INVAL};
+pub use errno::{E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_INVAL, E_PERM};
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};
 pub use limits::{IPC_PAYLOAD_MAX, STATUS_LEN};
 pub use ops::{
-    OP_HEALTHCHECK, OP_PROOF_BOOT, OP_PROOF_CAPSULE_LIST, OP_PROOF_INVARIANTS, OP_PROOF_SUMMARY,
+    OP_HEALTHCHECK, OP_PROOF_BOOT, OP_PROOF_CAPSULE_LIST, OP_PROOF_INVARIANTS, OP_PROOF_ROUTE,
+    OP_PROOF_SUMMARY, OP_ROUTE_REPORT,
 };

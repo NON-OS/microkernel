@@ -40,6 +40,8 @@ pub struct HidOverI2c {
     pub(super) commands: Vec<Command>,
     pub(super) over_reads: u32,
     pub(super) acks_data: bool,
+    /// Still asleep: the first SET_POWER is NACKed (`drowsy` says why).
+    pub(super) drowsy: bool,
 }
 
 impl HidOverI2c {
@@ -61,6 +63,7 @@ impl HidOverI2c {
             commands: Vec::new(),
             over_reads: 0,
             acks_data: true,
+            drowsy: false,
         }
     }
 }

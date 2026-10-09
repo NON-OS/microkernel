@@ -18,23 +18,40 @@
 //! one capsule that holds the capabilities its guests do not.
 
 mod abi;
+mod applets;
 mod attest;
 mod attest_local;
 mod attest_paths;
 mod attest_publisher;
+mod boot_guest;
+mod built_in;
 mod call;
+mod console;
 mod env;
 mod file;
 mod guest;
+mod heap;
 mod image;
 mod install;
+mod launch;
 mod net;
 mod origin;
+mod recent;
+mod recent_say;
 mod request;
+mod run_mode;
+mod say;
 pub mod serve;
+mod settle;
 mod source;
+mod source_named;
 mod start;
 mod start_guest;
+mod start_say;
+mod store_why;
+mod terminal;
+mod terminal_launch;
+mod terminal_path;
 mod unix;
 mod wayland;
 

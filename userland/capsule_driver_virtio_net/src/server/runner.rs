@@ -14,19 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
-
 use alloc::vec;
 
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::constants::{MAX_ETHERNET_FRAME, VIRTIO_NET_HDR_LEN};
 use crate::protocol::{
-    decode_request, E_INVAL, HDR_LEN, OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS, OP_RX_PACKET,
-    OP_TX_PACKET, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
+    decode_request, E_INVAL, HDR_LEN, OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS, OP_RX_BATCH,
+    OP_RX_PACKET, OP_TX_PACKET, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
 };
 use crate::server::error::{reply_decode_failed, reply_with_status};
 use crate::server::handlers;
@@ -38,11 +33,12 @@ pub fn run(driver: &mut Driver) -> ! {
         RESP_HDR_LEN + STATUS_LEN + RX_PAYLOAD_PREFIX_LEN + VIRTIO_NET_HDR_LEN + MAX_ETHERNET_FRAME;
     let mut rx = vec![0u8; rx_len];
     let mut tx = vec![0u8; tx_len];
+    let mut kept = None;
 
     loop {
         let mut sender_pid: u32 = 0;
         let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx_len, 0, &mut sender_pid);
-        if n <= 0 || sender_pid == 0 {
+        if !nonos_libc::recv_ready(n) || sender_pid == 0 {
             continue;
         }
         let len = n as usize;
@@ -60,6 +56,9 @@ pub fn run(driver: &mut Driver) -> ! {
             OP_MAC_ADDRESS => handlers::mac_address::handle(sender_pid, driver, &req, &mut tx),
             OP_TX_PACKET => handlers::tx_packet::handle(sender_pid, driver, &req, body, &mut tx),
             OP_RX_PACKET => handlers::rx_packet::handle(sender_pid, driver, &req, &mut tx),
+            OP_RX_BATCH => {
+                handlers::rx_batch::handle(sender_pid, driver, &req, body, &mut kept, &mut tx)
+            }
             _ => reply_with_status(sender_pid, &mut tx, &req, E_INVAL),
         };
     }

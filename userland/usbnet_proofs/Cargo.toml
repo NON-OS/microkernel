@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the USB network core (nonos_usbnet): the
+# descriptor walk, the NNET frame service and the port book run here from
+# the shipped source through #[path], against descriptors QEMU's usb-net
+# device presents. The driver proofs crates depend on this one under the
+# name nonos_usbnet, so their bindings run against a scripted device.
+[package]
+name = "usbnet_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

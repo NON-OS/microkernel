@@ -17,22 +17,24 @@
 const WEI_PER_NOX: u128 = 1_000_000_000_000_000_000;
 
 // Format a NOX amount (18-decimal wei) as whole units with two decimal places,
-// e.g. 1_500_000_000_000_000_000 -> "1.50". Returns the byte length written.
-pub fn format_nox(wei: u128, out: &mut [u8]) -> usize {
+// e.g. 1_500_000_000_000_000_000 -> "1.50". Returns the byte length written,
+// or None when `out` cannot hold all of it: a figure cut short would read as
+// a smaller one.
+pub fn format_nox(wei: u128, out: &mut [u8]) -> Option<usize> {
     let whole = wei / WEI_PER_NOX;
     let cents = (wei % WEI_PER_NOX) / (WEI_PER_NOX / 100);
-    let mut n = write_u128(whole, out);
+    let mut n = write_u128(whole, out)?;
     if n + 3 > out.len() {
-        return n;
+        return None;
     }
     out[n] = b'.';
     out[n + 1] = b'0' + (cents / 10) as u8;
     out[n + 2] = b'0' + (cents % 10) as u8;
     n += 3;
-    n
+    Some(n)
 }
 
-fn write_u128(mut v: u128, out: &mut [u8]) -> usize {
+fn write_u128(mut v: u128, out: &mut [u8]) -> Option<usize> {
     let mut tmp = [0u8; 40];
     let mut i = 0;
     loop {
@@ -43,9 +45,11 @@ fn write_u128(mut v: u128, out: &mut [u8]) -> usize {
             break;
         }
     }
-    let n = i.min(out.len());
-    for j in 0..n {
+    if i > out.len() {
+        return None;
+    }
+    for j in 0..i {
         out[j] = tmp[i - 1 - j];
     }
-    n
+    Some(i)
 }

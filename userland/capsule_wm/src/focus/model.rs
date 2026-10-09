@@ -48,3 +48,9 @@ impl FocusModel {
         self.focused
     }
 }
+
+impl Default for FocusModel {
+    fn default() -> Self {
+        Self::new()
+    }
+}

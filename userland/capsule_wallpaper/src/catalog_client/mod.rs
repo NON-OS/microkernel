@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod budget;
+pub mod download;
 pub mod fetch_chunk;
-pub mod fetch_image;
 pub mod fetch_size;
 pub mod lookup;
 pub mod proto;
 
-pub use fetch_image::fetch_image;
+pub use download::Download;
 pub use lookup::lookup_catalog;

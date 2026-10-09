@@ -61,6 +61,18 @@ _start:
     b       .L_bss
 .L_bss_done:
 
+    /* Vectors before any Rust runs, so an exception from here on is
+     * reported by name instead of taken through whatever VBAR_EL1 held
+     * at reset. FP/SIMD with them: the handlers are compiled code and
+     * may use the vector registers, which trap while CPACR_EL1.FPEN is
+     * clear. After the BSS clear, because the handlers read BSS. */
+    mov     x0, #(3 << 20)
+    msr     cpacr_el1, x0
+    adrp    x0, __aarch64_vectors_el1
+    add     x0, x0, :lo12:__aarch64_vectors_el1
+    msr     vbar_el1, x0
+    isb
+
     mov     x0, x19
     bl      kernel_entry
 
@@ -78,8 +90,8 @@ _start:
 /* AP entry. PSCI CPU_ON arranges for this hart to land here with
  *   x0 = context_id (= stack_top picked by the kernel)
  * and the EL the boot CPU was running at. SCTLR_EL1 is reset to the
- * same safe value as on BSP entry; per-CPU VBAR_EL1 / GIC / timer
- * setup happens in Rust before IRQs are unmasked. */
+ * same safe value as on BSP entry and VBAR_EL1 is installed here;
+ * per-CPU GIC / timer setup happens in Rust before IRQs are unmasked. */
 
 .section .text._aarch64_secondary_start, "ax", %progbits
 .balign 16
@@ -92,6 +104,15 @@ _aarch64_secondary_start:
     mov     x1, #0x0838
     movk    x1, #0x30C5, lsl #16
     msr     sctlr_el1, x1
+    isb
+
+    /* Vectors and FP/SIMD before any Rust runs, as on the boot CPU.
+     * x0 still carries the context id, so x1 does the work. */
+    mov     x1, #(3 << 20)
+    msr     cpacr_el1, x1
+    adrp    x1, __aarch64_vectors_el1
+    add     x1, x1, :lo12:__aarch64_vectors_el1
+    msr     vbar_el1, x1
     isb
 
     bl      aarch64_ap_entry

@@ -17,7 +17,9 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::types::{File, OpenFd, Store, StoreError, StoreResult, MAX_FILES, MODE_WRITE};
+use super::types::{
+    File, OpenFd, Store, StoreError, StoreResult, MAX_FILES, MODE_WRITE, PER_OWNER_FDS,
+};
 
 impl Store {
     pub fn open(
@@ -29,6 +31,11 @@ impl Store {
         append: bool,
         writable: bool,
     ) -> Result<u32, StoreError> {
+        // Refused before anything is created or truncated, so an owner at its
+        // share changes nothing by asking.
+        if self.held_by(owner_pid) >= PER_OWNER_FDS {
+            return Err(StoreError::Full);
+        }
         let file_idx = match self.find(path) {
             Some(i) => i,
             None => self.create_file(path, create, owner_pid)?,
@@ -60,7 +67,7 @@ impl Store {
         if !create {
             return Err(StoreError::NotFound);
         }
-        if self.files.len() >= MAX_FILES {
+        if self.files.len() >= MAX_FILES || !self.may_name(owner, 1) {
             return Err(StoreError::Full);
         }
         self.files.push(File::new(String::from(path), Vec::new(), false, owner));

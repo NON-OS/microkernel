@@ -31,4 +31,4 @@ pub use fields::*;
 pub use flags::*;
 pub use kdf::*;
 pub use sizes::*;
-pub use version::PACKET_VERSION;
+pub use version::{uses_key_seeds, PACKET_VERSION};

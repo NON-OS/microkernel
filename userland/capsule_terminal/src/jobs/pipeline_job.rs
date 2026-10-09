@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-use crate::command::dispatch::run_stage;
+use crate::command::dispatch::{is_filter, run_stage};
 use crate::command::output::Output;
 use crate::term::state::State;
 
@@ -24,8 +24,8 @@ use super::table::JobProgress;
 
 // A pipeline whose stages were parsed once at submit time. Each
 // `step_pipeline` call runs exactly one stage to completion (a long stage
-// such as ping or install blocks for the whole of that stage in v1 — it is
-// never sub-stepped) and folds its output into `buffer` for the next
+// such as ping or install blocks for the whole of that stage; it is never
+// sub-stepped) and folds its output into `buffer` for the next
 // stage. The final stage's output is written to the live scrollback via
 // `out`; earlier stages' buffers stay internal.
 pub struct PipelineJob {
@@ -46,9 +46,11 @@ pub fn step_pipeline(job: &mut PipelineJob, state: &mut State) -> JobProgress {
     }
     let seg: Vec<&[u8]> = job.stages[job.cursor].iter().map(Vec::as_slice).collect();
     let buffer = core::mem::take(&mut job.buffer);
-    let lines = run_stage(state, &seg, buffer);
+    // A stage that cannot read the pipe ends it, as on the plain path.
+    let stops = job.cursor > 0 && !is_filter(&seg);
+    let lines = run_stage(state, &seg, buffer, job.cursor == 0);
     job.cursor += 1;
-    if job.cursor < job.stages.len() {
+    if job.cursor < job.stages.len() && !stops {
         job.buffer = lines;
         return JobProgress::Running;
     }

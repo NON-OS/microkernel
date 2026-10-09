@@ -16,7 +16,7 @@
 use super::super::registers::RegisterGrant;
 use super::rollback;
 use crate::constants::VQ_REGION_SIZE;
-use nonos_libc::{mk_dma_map, DmaMapOut, IrqBindOut};
+use nonos_libc::{mk_dma_map, DmaMapOut, IrqBindOut, MK_DMA_MAP_COHERENT};
 pub fn map_queue(
     device_id: u64,
     claim_epoch: u64,
@@ -24,7 +24,10 @@ pub fn map_queue(
     irq: &IrqBindOut,
 ) -> Result<DmaMapOut, &'static str> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-    let r = mk_dma_map(device_id, claim_epoch, VQ_REGION_SIZE as u64, 0, &mut out);
+    // The virtqueue is read and written by both sides while it runs: mapped
+    // uncached, so neither needs a cache flush (virtio 1.2, 2.7.13).
+    let r =
+        mk_dma_map(device_id, claim_epoch, VQ_REGION_SIZE as u64, MK_DMA_MAP_COHERENT, &mut out);
     if r < 0 {
         rollback::base(device_id, regs, irq)?;
         return Err("dma map failed (queue)");

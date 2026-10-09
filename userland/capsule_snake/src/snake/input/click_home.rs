@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use crate::snake::state::{Game, Screen};
+use crate::snake::state::{daily, Game, Screen};
 
 use super::nav;
 
@@ -31,11 +31,18 @@ pub fn action(game: &mut Game, index: usize) -> EventOutcome {
     }
 }
 
-// Only `Recent best` leads anywhere. The daily-challenge card is a read-out
-// with no state behind it and stays inert until one exists.
+// The daily card sets up the day's run, the mode and difficulty it names, on
+// the New Run panel, where Start commits it as for any run. The best-run card
+// opens the ranks it is the top of.
 pub fn card(game: &mut Game, index: usize) -> EventOutcome {
-    if index == 1 {
-        return nav::go(game, Screen::Rank);
+    match index {
+        0 => {
+            let (mode, level) = daily::pick(game.last_ms);
+            game.mode = mode;
+            game.diff = level;
+            nav::go(game, Screen::Setup)
+        }
+        1 => nav::go(game, Screen::Rank),
+        _ => EventOutcome::Idle,
     }
-    EventOutcome::Idle
 }

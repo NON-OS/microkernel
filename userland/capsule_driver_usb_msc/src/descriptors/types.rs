@@ -23,6 +23,10 @@ pub struct MscBinding {
     pub bulk_out: u8,
     pub max_packet_in: u16,
     pub max_packet_out: u16,
+    /// bMaxBurst of each pipe's SuperSpeed companion, 0 to 15; 0 when the
+    /// device has none (below SuperSpeed).
+    pub max_burst_in: u8,
+    pub max_burst_out: u8,
 }
 
 pub struct ProbeResult {

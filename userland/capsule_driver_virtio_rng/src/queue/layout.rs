@@ -28,6 +28,9 @@ pub struct Queue {
     pub buf_phys: u64,
     pub buf_len: u32,
     pub avail_offset: usize,
+    /// Ring entries the device was told: available and used positions run
+    /// modulo this.
+    pub queue_size: u16,
     pub last_used: u16,
 }
 
@@ -48,6 +51,7 @@ impl Queue {
             buf_phys,
             buf_len,
             avail_offset: queue_size as usize * DESC_BYTES,
+            queue_size,
             last_used: 0,
         }
     }
@@ -60,5 +64,11 @@ impl Queue {
     /// The legacy queue PFN write divides this by 4 KiB.
     pub fn region_phys(&self) -> u64 {
         self.region_phys
+    }
+
+    /// A ring position reduced to the ring. A zero size (which bring-up
+    /// never hands over) is taken as one entry rather than divided by.
+    pub fn ring_pos(&self, idx: u16) -> usize {
+        (idx % self.queue_size.max(1)) as usize
     }
 }

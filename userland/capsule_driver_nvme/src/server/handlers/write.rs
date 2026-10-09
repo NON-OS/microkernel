@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::{Request, E_IO, E_MSGSIZE, E_NODEV, RW_HEADER_LEN};
+use crate::protocol::{Request, E_MSGSIZE, E_NODEV, RW_HEADER_LEN};
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
 
@@ -33,6 +33,10 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != RW_HEADER_LEN + bytes || req.payload_len as usize != RW_HEADER_LEN + bytes {
         return reply_with_status(tx, req, E_MSGSIZE);
     }
+    // The buffer may still be the controller's, for a command given up on.
+    if let Err(e) = io.settle(regs) {
+        return reply_with_status(tx, req, io.failure_status(e));
+    }
     unsafe {
         core::ptr::copy_nonoverlapping(
             body[RW_HEADER_LEN..].as_ptr(),
@@ -40,6 +44,9 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
             bytes,
         );
     }
-    let status = if io.transfer(regs, lba, nsectors, true).is_ok() { 0 } else { E_IO };
+    let status = match io.transfer(regs, lba, nsectors, true) {
+        Ok(()) => 0,
+        Err(e) => io.failure_status(e),
+    };
     reply_with_status(tx, req, status);
 }

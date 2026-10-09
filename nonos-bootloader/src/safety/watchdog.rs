@@ -22,7 +22,8 @@
  * - Records stage timestamps
  * - Detects stuck stages
  *
- * Used by Issue #8 workaround for ExitBootServices hangs.
+ * Nothing in the loader calls it yet: no boot path enters a stage, so the
+ * timestamps stay zero and no hang is detected.
  */
 
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};

@@ -19,13 +19,17 @@ mod constants;
 mod cq0_head;
 mod create_cq;
 mod create_sq;
+mod failure;
+mod identify_active_ns;
 mod identify_controller;
 mod identify_namespace;
 mod log;
 mod registers;
+mod set_features;
 mod sq0_tail;
 mod submit;
 mod types;
 mod wait;
+mod wait_ms;
 
 pub use types::AdminQueue;

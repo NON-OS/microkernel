@@ -26,7 +26,7 @@ use crate::state::TABLE;
 /// would stop the capsule answering anyone else for that long. The idle pump
 /// is what actually catches a late reply; this only saves a caller whose
 /// answer is already on its way.
-const CLIENT_WAIT_MS: i64 = 250;
+pub(super) const CLIENT_WAIT_MS: i64 = 250;
 
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let session_id = match u32_at(body, 0) {

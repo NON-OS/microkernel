@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::xhci::call::{call, XhciClientError};
-use crate::xhci::wire::{HDR_LEN, OP_ADDRESS_DEVICE, STATUS_LEN};
+use crate::xhci::wire::{E_BUSY, HDR_LEN, OP_ADDRESS_DEVICE, STATUS_LEN};
 
 const HDR_AND_STATUS: usize = HDR_LEN + STATUS_LEN;
 const REPLY_LEN: usize = 8;
@@ -35,6 +35,9 @@ pub fn address_device(
 ) -> Result<AddressedDevice, XhciClientError> {
     let mut resp = [0u8; HDR_AND_STATUS + REPLY_LEN];
     let (status, data_len) = call(xhci_port, OP_ADDRESS_DEVICE, &[slot, port], &mut resp)?;
+    if status == E_BUSY {
+        return Err(XhciClientError::Busy);
+    }
     if status != 0 || data_len < REPLY_LEN {
         return Err(XhciClientError::BadResponse);
     }

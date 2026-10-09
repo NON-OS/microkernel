@@ -34,6 +34,7 @@
 //! anyone waits is one block request rather than the whole store.
 
 mod begin;
+mod chunk;
 mod step;
 mod types;
 

@@ -16,9 +16,14 @@
 
 use nonos_toolkit::font::ttf::{ascent_with, builtin_face, line_height_with, measure_with};
 
-use super::measure::Measurer;
+use super::measure::{FixedMeasurer, Measurer};
 use super::style::{Family, RunStyle};
 
+/*
+ * Without a built-in face the advances would all be zero, every line would
+ * take the whole block and the caret could not move across it; the fixed
+ * advances keep the page laid out until the face is there.
+ */
 pub struct TtfMeasurer;
 
 impl Measurer for TtfMeasurer {
@@ -26,7 +31,7 @@ impl Measurer for TtfMeasurer {
         let mono = style.family == Family::Mono;
         match builtin_face(mono, style.bold) {
             Some(f) => measure_with(f, text, style.size_px) as f32,
-            None => 0.0,
+            None => FixedMeasurer.advance(text, style),
         }
     }
 
@@ -34,7 +39,7 @@ impl Measurer for TtfMeasurer {
         let mono = style.family == Family::Mono;
         match builtin_face(mono, style.bold) {
             Some(f) => line_height_with(f, style.size_px) as f32,
-            None => style.size_px * 1.45,
+            None => FixedMeasurer.line_height(style),
         }
     }
 
@@ -42,7 +47,7 @@ impl Measurer for TtfMeasurer {
         let mono = style.family == Family::Mono;
         match builtin_face(mono, style.bold) {
             Some(f) => ascent_with(f, style.size_px) as f32,
-            None => style.size_px * 1.1,
+            None => FixedMeasurer.ascent(style),
         }
     }
 }

@@ -33,6 +33,22 @@ impl Completion {
     pub const fn successful(self) -> bool {
         (self.status >> 1) == 0
     }
+
+    /// Status Code (SC), status field bits 8:1.
+    pub const fn status_code(self) -> u8 {
+        ((self.status >> 1) & 0xff) as u8
+    }
+
+    /// Status Code Type (SCT), bits 11:9: 0 generic, 1 command specific,
+    /// 2 media and data integrity, 3 path related, 7 vendor specific.
+    pub const fn status_code_type(self) -> u8 {
+        ((self.status >> 9) & 0x7) as u8
+    }
+
+    /// Do Not Retry (DNR), bit 15: the same command would fail again.
+    pub const fn do_not_retry(self) -> bool {
+        (self.status & 0x8000) != 0
+    }
 }
 
 const _: () = assert!(core::mem::size_of::<Completion>() == 16);

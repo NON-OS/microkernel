@@ -25,6 +25,12 @@ pub struct CommandStatus {
     pub status: u8,
 }
 
+/// Whether `raw` is CSW-sized and carries the CSW signature, whatever else
+/// it says.
+pub fn is_csw(raw: &[u8]) -> bool {
+    raw.len() == CSW_LEN && raw[0..4] == CSW_SIGNATURE.to_le_bytes()
+}
+
 pub fn parse(raw: &[u8]) -> Result<CommandStatus, i32> {
     if raw.len() != CSW_LEN {
         return Err(E_INVAL);

@@ -16,6 +16,7 @@
 
 mod mmio_zero;
 mod ops;
+mod program;
 mod real;
 
 pub(super) use real::current_ops;

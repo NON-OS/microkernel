@@ -24,6 +24,7 @@ const COMMANDS: &[&[u8]] = &[
     b"bench",
     b"version",
     b"receipt",
+    b"log",
     b"whoami",
     b"caps",
     b"capsules",
@@ -100,6 +101,7 @@ const COMMANDS: &[&[u8]] = &[
     b"theme",
     b"tac",
     b"rev",
+    b"qwen",
 ];
 
 /// Whether the shell answers to this name, by the same table Tab completes
@@ -139,12 +141,7 @@ pub fn all_names() -> Vec<&'static [u8]> {
 /// the first one eventually. A tool that can be run and cannot be completed is
 /// a tool nobody finds.
 pub(super) fn command_candidates(prefix: &[u8]) -> Vec<&'static [u8]> {
-    COMMANDS
-        .iter()
-        .copied()
-        .chain(crate::command::builtin::tool::TOOLS.iter().map(|(typed, _)| *typed))
-        .filter(|c| c.starts_with(prefix))
-        .collect()
+    all_names().into_iter().filter(|c| c.starts_with(prefix)).collect()
 }
 
 pub(super) fn common_prefix(cands: &[&[u8]]) -> Vec<u8> {

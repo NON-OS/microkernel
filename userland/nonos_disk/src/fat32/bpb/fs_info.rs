@@ -29,7 +29,13 @@ pub fn fs_info(geo: &Geometry, used_clusters: u64) -> Vec<u8> {
     s[484..488].copy_from_slice(&0x6141_7272u32.to_le_bytes());
     let free = geo.data_clusters.saturating_sub(used_clusters) as u32;
     s[488..492].copy_from_slice(&free.to_le_bytes());
-    s[492..496].copy_from_slice(&(2 + used_clusters as u32).to_le_bytes());
+    /*
+     * The first cluster past the used ones, when there is one. A full
+     * volume has none, and the specification's "not known" says so; the
+     * cluster after the last one does not exist.
+     */
+    let next = if free == 0 { u32::MAX } else { 2 + used_clusters as u32 };
+    s[492..496].copy_from_slice(&next.to_le_bytes());
     s[508..512].copy_from_slice(&0xAA55_0000u32.to_le_bytes());
     s
 }

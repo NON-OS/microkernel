@@ -22,20 +22,13 @@ use super::icon_draw::draw;
 use super::paint_tool_pill::text_y;
 use super::sel_model::SelAction;
 use super::sel_slots::SelSlot;
-use super::theme::{INK3, PILL_INK, RED, R_CARD};
+use super::theme::{PILL_INK, RED, R_CARD};
 
-/// One action in the band. A dimmed control is unwired -- the crate has no
-/// handler behind it and says so when clicked rather than looking live. Delete
-/// is the one destructive entry and the only one that spends the red hue.
+/// One action in the band. Delete is the one destructive entry and the only one
+/// that spends the red hue.
 pub fn action(fb: &mut PaintBuffer, slot: &SelSlot, y: u32, labelled: bool) {
     pill_r(fb, slot.x, y, slot.w, TOOL_H, R_CARD, PillState::Idle);
-    let ink = if !slot.wired {
-        INK3
-    } else if slot.action == SelAction::Delete {
-        RED
-    } else {
-        PILL_INK
-    };
+    let ink = if slot.action == SelAction::Delete { RED } else { PILL_INK };
     let gy = y + TOOL_H.saturating_sub(GLYPH_S) / 2;
     if !labelled {
         let gx = slot.x + slot.w.saturating_sub(GLYPH_S) / 2;

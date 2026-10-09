@@ -14,19 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod capture;
 mod classify;
 mod env;
 mod external;
+mod external_io;
+mod hang_up;
 mod pipeline_job;
+mod pipeline_stages;
 mod pump;
+mod pump_pipeline;
 mod reap;
+mod stdin_cut;
+mod stdin_queue;
 mod submit;
 mod table;
+mod tool_redirect;
+pub mod tty;
 mod work;
 
 pub use classify::{is_job_command, is_store_tool, Verdict};
 pub use env::JobEnv;
+pub use hang_up::hang_up;
 pub use pump::pump;
+pub use stdin_queue::{StdinQueue, EOT};
 pub use submit::submit;
 pub use table::{JobProgress, JobState, JobTable};
 pub use work::JobWork;

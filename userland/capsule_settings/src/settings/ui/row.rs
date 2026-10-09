@@ -24,13 +24,13 @@ use super::bytes::as_str;
 use super::control;
 use super::control_geom::right_edge;
 use super::field_note::note_of;
-use super::live_value::resolve;
+use super::live_value::{note, resolve};
 use super::metrics::BODY_PX;
-use super::metrics::CARD_RADIUS;
 use super::pill::tone_argb;
+use super::row_focus;
 use super::row_label;
 use super::text;
-use super::theme::{FOCUS_RING, ROW_HOVER_BG, ROW_LINE};
+use super::theme::ROW_LINE;
 
 pub fn paint(
     fb: &mut PaintBuffer,
@@ -42,10 +42,8 @@ pub fn paint(
     row_h: u32,
     selected: bool,
 ) {
-    if selected && screen_y >= 0 {
-        let y = screen_y as u32;
-        fb.blend_rect(card_x + 1, y, card_w - 2, row_h, ROW_HOVER_BG);
-        fb.stroke_round(card_x + 1, y, card_w - 2, row_h, CARD_RADIUS / 2, 1, FOCUS_RING);
+    if selected {
+        row_focus::paint(fb, card_x, card_w, screen_y, row_h);
     }
     match row {
         Row::Field(f) => {
@@ -53,7 +51,7 @@ pub fn paint(
             control::paint(fb, state, *f, card_x, card_w, screen_y, row_h);
         }
         Row::Live(label, live) => {
-            row_label::paint(fb, card_x, screen_y, row_h, label, None);
+            row_label::paint(fb, card_x, screen_y, row_h, label, note(state, *live));
             let (value, tone) = resolve(state, *live);
             let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
             text::right(
@@ -65,7 +63,7 @@ pub fn paint(
                 BODY_PX,
             );
         }
-        Row::Networks => {}
+        Row::Networks | Row::Saved | Row::Wallpapers => {}
     }
 }
 

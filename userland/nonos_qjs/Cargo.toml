@@ -17,3 +17,18 @@ cc = "1"
 # Native host build for the render harness: the system libc supplies what the
 # freestanding stub layers provide on the NONOS target.
 hosted = []
+
+# The limits proof runs the real engine on the host, so it needs the hosted
+# build of the C core and the system libc under it.
+[[test]]
+name = "limits"
+required-features = ["hosted"]
+
+[[test]]
+name = "page"
+required-features = ["hosted"]
+
+# Date and performance read the clocks the browser lends.
+[[test]]
+name = "clocks"
+required-features = ["hosted"]

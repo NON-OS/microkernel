@@ -21,5 +21,8 @@ spin = { version = "0.9", default-features = false, features = ["once", "mutex",
 # kernel keeps only its boot-chain verify.
 nonos_ed25519 = { path = "../nonos_ed25519" }
 
+# The spawn gate hashes an image with the blake3 crate, as the kernel does.
+blake3 = { version = "1.0", default-features = false }
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

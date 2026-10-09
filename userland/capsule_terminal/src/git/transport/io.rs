@@ -13,14 +13,24 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Bridging the socket to what TLS and HTTP expect.
+//! Bridging the connection to what TLS expects.
 
-use nonos_socket::TcpStream;
+use nonos_route_link::RouteStream;
 use nonos_tls::{Io, SessionError};
 
-/// The socket, seen as the byte stream a TLS session reads and writes.
+/// The connection on the chosen route, seen as the byte stream a TLS session
+/// reads and writes.
+///
+/// TLS gives up on a server that stays quiet for a few seconds, which is a
+/// direct socket's sense of time. Through an anonymity network the first
+/// byte of every answer is many seconds out, so a read waits up to the
+/// route's patience for bytes before it says none came; on a direct
+/// connection that patience is zero and a read is the one socket read it
+/// always was. A far end that has finished reads as nothing more, so TLS
+/// ends the response on its own quiet window as it did before.
 pub(super) struct SocketIo {
-    pub(super) stream: TcpStream,
+    pub(super) stream: RouteStream,
+    pub(super) patience_ms: u64,
 }
 
 impl Io for SocketIo {
@@ -29,6 +39,6 @@ impl Io for SocketIo {
     }
 
     fn read(&mut self, into: &mut [u8]) -> Result<usize, SessionError> {
-        self.stream.read(into).map_err(|_| SessionError::Io)
+        self.stream.read_wait(into, self.patience_ms).map_err(|_| SessionError::Io)
     }
 }

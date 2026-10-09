@@ -26,6 +26,13 @@ pub const NOTIFY_LEN: usize = HDR_LEN + BODY_LEN;
 
 pub const NOTIFY_KIND_OPENED: u32 = 0;
 pub const NOTIFY_KIND_CLOSED: u32 = 1;
+/// Whether a window covers the dock's band changed (window/full_screen.rs):
+/// `x` is 1 when it now does (made full screen, or restored while full
+/// screen), 0 when it no longer does (restored to its saved rect, resized,
+/// minimised, or opened again). A close or the end of its process is the
+/// closed event, which ends it too. Subscribers that know only kinds 0 and 1
+/// drop this one, so the envelope and its version are unchanged.
+pub const NOTIFY_KIND_FULL_SCREEN: u32 = 2;
 
 pub fn encode_notify(
     out: &mut [u8; NOTIFY_LEN],

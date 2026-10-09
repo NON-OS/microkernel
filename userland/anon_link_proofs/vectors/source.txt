@@ -1,0 +1,11 @@
+Captured from the live Anyone network.
+
+relay      38.143.19.185:9001
+tls        TLSv1.2
+versions   [3, 4, 5]
+ed25519 id a3fe69338de7790bd6b08f318d31a98ec8c10255ab5c734648700dbee88db13b
+           which is what that relay's microdescriptor publishes as id ed25519
+leaf sha256 b7b00a2c321101f9b650778f87bf8ffce5e47432df156f48e9904be469e9da54
+           which is what the type 5 certificate names as its certified key
+captured   1790812558 (2026-10-01), recaptured with the link handshake
+           after the original cell was lost to the *.bin ignore

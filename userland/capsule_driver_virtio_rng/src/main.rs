@@ -28,12 +28,9 @@ mod queue;
 mod regs;
 mod server;
 mod setup;
+mod transport;
 
-use nonos_libc::{heap_init, mk_exit, mk_time_millis, mk_yield};
-
-// Bounded probe: exit cleanly if no virtio-rng appears, instead of spinning
-// forever on hardware that has none.
-const PROBE_DEADLINE_MS: i64 = 10_000;
+use nonos_libc::{bring_up, heap_init, mk_exit, EXIT_ABSENT, EXIT_GAVE_UP};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
@@ -41,22 +38,25 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(1);
     }
 
-    let start = mk_time_millis();
-    let mut driver = loop {
-        match setup::run() {
-            Ok(d) => break d,
-            Err(_) => {
-                if mk_time_millis().wrapping_sub(start) > PROBE_DEADLINE_MS {
-                    mk_exit(0);
-                }
-                for _ in 0..64 {
-                    mk_yield();
-                }
-            }
-        }
+    /*
+     * The broker lists every PCI function before the first capsule starts:
+     * with no virtio-rng there is nothing to wait for. Discovery used to be
+     * retried with everything else for ten seconds of yields.
+     */
+    if discover::find_virtio_rng().is_none() {
+        mk_exit(EXIT_ABSENT);
+    }
+
+    /*
+     * A present device that will not come up is tried a bounded number of
+     * times with a sleep between tries, each failed try releasing what it
+     * claimed, and then given up on once, by name.
+     */
+    let Ok(mut driver) = bring_up(b"driver.virtio_rng", setup::run) else {
+        mk_exit(EXIT_GAVE_UP);
     };
 
-    match crate::fill::fill(driver.regs, &mut driver.queue, driver.irq_grant) {
+    match crate::fill::fill(driver.transport, &mut driver.queue) {
         Ok(n) => {
             let bytes = driver.queue.buffer(n);
             let mut nz = 0usize;

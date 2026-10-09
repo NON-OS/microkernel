@@ -1,0 +1,58 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Everything net.anon holds between requests, and the ticks that advance it.
+
+mod batch;
+mod body_closed;
+mod body_step;
+mod cert_rule;
+mod circuit_answer;
+mod circuit_tick;
+mod dir_certs;
+mod dir_consensus;
+mod dir_job;
+mod dir_join;
+mod dir_load;
+mod dir_micro;
+mod dir_quorum;
+mod dir_tick;
+mod end_streams;
+mod guard;
+mod inbound;
+mod link_lost;
+mod link_stage;
+mod link_tick;
+pub(crate) mod names;
+mod onion;
+mod out;
+mod pump;
+pub mod refresh_rule;
+mod relays;
+mod retire;
+mod roll;
+mod state;
+
+pub use circuit_tick::tick as circuit_tick;
+pub use dir_tick::tick as directory_tick;
+pub use link_tick::tick as link_tick;
+pub use onion::{forget_client_key, set_client_key, KeyError};
+pub use onion::tick as onion_tick;
+pub use names::resolve as resolve_name;
+pub use out::{open_stream, send_data, send_end, sendme_tick, SendError};
+pub use pump::tick as pump_tick;
+pub use retire::tick as retire_tick;
+pub use state::{Bootstrap, Manager};

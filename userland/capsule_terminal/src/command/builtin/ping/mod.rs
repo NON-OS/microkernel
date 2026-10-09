@@ -29,6 +29,8 @@ mod send;
 pub use emit::emit_probe;
 pub use job::PingJob;
 
+use crate::command::builtin::direct_gate::{refusal_line, PING};
+use crate::command::builtin::offline_probe::offline;
 use crate::command::output::Output;
 
 const IP_SERVICE: &[u8] = b"net.ip";
@@ -46,6 +48,9 @@ const PING_COUNT: u16 = 4;
 pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
     if argv.len() < 2 {
         out.writeln(b"usage: ping <host>");
+        return;
+    }
+    if refused(out) {
         return;
     }
     let dst = match resolve::resolve(argv[1]) {
@@ -94,6 +99,9 @@ pub fn prepare(out: &mut Output<'_>, argv: &[&[u8]]) -> Option<PingJob> {
         out.writeln(b"usage: ping <host>");
         return None;
     }
+    if refused(out) {
+        return None;
+    }
     let dst = match resolve::resolve(argv[1]) {
         resolve::Resolved::Ip(ip) => ip,
         resolve::Resolved::NoService => {
@@ -119,4 +127,19 @@ pub fn prepare(out: &mut Output<'_>, argv: &[&[u8]]) -> Option<PingJob> {
     };
     emit::emit_target(out, argv[1], &dst);
     Some(PingJob::new(port, dst, 1))
+}
+
+// ICMP has no anonymity network to cross, and the name it resolves first
+// goes to the resolver in the clear, so a ping is sent only when Direct is
+// the chosen network, and only when this machine has an address
+// (offline_gate.rs). Checked before the name is resolved.
+fn refused(out: &mut Output<'_>) -> bool {
+    let refused = nonos_route_link::direct_refusal();
+    match refusal_line(b"ping", PING, refused).or_else(|| offline(b"ping")) {
+        Some(line) => {
+            out.writeln(&line);
+            true
+        }
+        None => false,
+    }
 }

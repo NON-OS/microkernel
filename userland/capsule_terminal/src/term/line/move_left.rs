@@ -21,7 +21,7 @@ impl Line {
         if self.cursor == 0 {
             return false;
         }
-        self.cursor -= 1;
+        self.cursor = self.prev_boundary(self.cursor);
         true
     }
 }

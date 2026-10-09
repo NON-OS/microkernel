@@ -27,13 +27,23 @@ pub struct FramebufferInfo {
     pub stride: u32,
     pub pixel_format: u32,
     pub cursor_y: u32,
-    pub reserved: u32,
+    /// The panel's physical size from its EDID: width in millimetres in the
+    /// low 16 bits, height in the high 16, 0 when the panel does not say.
+    pub phys_mm: u32,
 }
 
 impl FramebufferInfo {
     #[inline]
     pub fn is_valid(&self) -> bool {
         self.ptr != 0 && self.width > 0 && self.height > 0 && self.stride > 0
+    }
+
+    /// The panel's physical (width, height) in millimetres, if the
+    /// bootloader read them from its EDID.
+    #[inline]
+    pub fn physical_mm(&self) -> Option<(u32, u32)> {
+        let (w, h) = (self.phys_mm & 0xFFFF, self.phys_mm >> 16);
+        (w != 0 && h != 0).then_some((w, h))
     }
 
     #[inline]

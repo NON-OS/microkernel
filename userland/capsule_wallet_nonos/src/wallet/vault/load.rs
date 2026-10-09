@@ -27,12 +27,12 @@
 
 use super::format::BLOB_LEN;
 use super::load_ops::{open_existing, Opened};
-use super::load_read::read_exact;
+use super::load_read::{read_exact, Unread};
 use super::path::VAULT_PATH;
 use super::save_ops::close;
 
-pub enum Stored {
-    Blob([u8; BLOB_LEN]),
+pub enum Stored<const N: usize = BLOB_LEN> {
+    Blob([u8; N]),
     /// The store answered and there is no vault, or what is there is not one.
     None,
     /// The store did not answer. Ask again later.
@@ -40,20 +40,30 @@ pub enum Stored {
 }
 
 pub fn load_blob() -> Stored {
-    let fd = match open_existing(VAULT_PATH) {
+    load_file(VAULT_PATH)
+}
+
+/* A file of exactly N bytes, with the same three answers as the vault. */
+pub fn load_file<const N: usize>(path: &[u8]) -> Stored<N> {
+    let fd = match open_existing(path) {
         Opened::Fd(fd) => fd,
         Opened::Absent => return Stored::None,
         Opened::Silent => return Stored::Unknown,
     };
-    let bytes = read_exact(fd);
+    let bytes = read_exact::<N>(fd);
     close(fd);
     match bytes {
-        Some(b) => Stored::Blob(b),
+        Ok(b) => Stored::Blob(b),
         /*
-         * The file opened, so the store is up and this is its content. A read
-         * that comes back the wrong length is a corrupt vault, which is a
-         * definite answer and not worth retrying.
+         * The file opened and then the read went unanswered: the store is
+         * still busy, as it is while it stages packages at boot. Asked again,
+         * never taken for a machine with no wallet.
          */
-        None => Stored::None,
+        Err(Unread::Silent) => Stored::Unknown,
+        /*
+         * The store answered with something that is not a blob: a corrupt
+         * file, a definite answer and not worth retrying.
+         */
+        Err(Unread::NotABlob) => Stored::None,
     }
 }

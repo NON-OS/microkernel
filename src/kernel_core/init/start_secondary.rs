@@ -37,6 +37,7 @@ pub(super) fn start_secondary_cpus() {
             l.str(b"[SMP-PROOF] cpu_count=").dec((started + 1) as u64);
             l.str(if started > 0 { b" PASS" } else { b" UP" });
             l.end();
+            crate::arch::cpu::report_ap_tsc_rate();
         }
         Err(e) => {
             let mut l = crate::sys::serial::Line::new();

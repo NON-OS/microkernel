@@ -22,12 +22,8 @@
 //! no hardware.
 
 use super::command::{PwrCmd, CMD_END, CMD_POLL, CMD_WRITE};
+use super::poll::poll;
 use crate::regs::Mmio;
-
-/// Reads allowed before a poll step is declared failed. Real transitions settle
-/// in a handful of microseconds; the bound only stops a wedged card hanging the
-/// driver.
-const POLL_LIMIT: u32 = 1_000_000;
 
 /// Run a power-sequence table. Returns `true` when it reaches the end command,
 /// `false` if a poll step never observed its value (a dead or unpowered card).
@@ -50,15 +46,4 @@ pub fn run_pwr_seq<M: Mmio>(mmio: &M, table: &[PwrCmd]) -> bool {
     }
     // A table without an explicit end still ran to completion.
     true
-}
-
-fn poll<M: Mmio>(mmio: &M, step: &PwrCmd) -> bool {
-    let want = step.value & step.mask;
-    for _ in 0..POLL_LIMIT {
-        if mmio.read8(step.offset as usize) & step.mask == want {
-            return true;
-        }
-        core::hint::spin_loop();
-    }
-    false
 }

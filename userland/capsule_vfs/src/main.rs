@@ -26,7 +26,12 @@ mod store;
 
 use nonos_libc::{heap_init_sized, mk_exit};
 
-const VFS_HEAP: usize = 48 * 1024 * 1024;
+/// The whole store is loaded into this heap, up to MAX_TOTAL_BYTES (96 MiB),
+/// with room beside it for a replaced file's new bytes and the buffers the
+/// server works in: 3.2 times the store, rounded up. The kernel backs a page
+/// only when it is first touched, so the size reserves address space, not
+/// RAM a small store never uses.
+const VFS_HEAP: usize = 320 * 1024 * 1024;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {

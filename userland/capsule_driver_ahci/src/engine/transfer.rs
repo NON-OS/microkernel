@@ -15,15 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::port::Port;
+use crate::constants::regs::PORT_TFD;
 use crate::constants::ata::{ATA_READ_DMA_EXT, ATA_WRITE_DMA_EXT};
-use crate::error::AhciResult;
+use crate::error::{AhciError, AhciResult};
 use crate::regs::Regs;
 
-pub fn transfer(port: &mut Port, regs: Regs, lba: u64, sectors: u32, write: bool) -> AhciResult<()> {
+/// Read or write `sectors` sectors at `lba`. The span is held to the served
+/// capacity here, before any command is built, whatever the caller checked.
+pub fn transfer(
+    port: &mut Port,
+    regs: Regs,
+    lba: u64,
+    sectors: u32,
+    write: bool,
+) -> AhciResult<()> {
+    if !super::span::within(port.capacity_sectors, lba, sectors) {
+        return Err(AhciError::OutOfRange);
+    }
     let cmd = if write { ATA_WRITE_DMA_EXT } else { ATA_READ_DMA_EXT };
-    super::build::build_slot0(port, cmd, lba, sectors, write);
-    if let Err(e) = super::issue::issue_slot0(regs, port.base) {
-        super::recover::recover(regs, port.base);
+    super::build::build_slot0(port, cmd, lba, sectors, write)?;
+    if let Err(e) = super::issue::issue_slot0(regs, port.base, port.sclo) {
+        // SAFETY: the port's register block lies inside the mapped ABAR.
+        port.last_tfd = unsafe { regs.r32(port.base + PORT_TFD) };
+        let _ = super::recover::recover(regs, port.base, port.sclo);
         return Err(e);
     }
     Ok(())

@@ -16,29 +16,16 @@
 
 use super::control::lfence;
 use super::control_intr::pause;
+use super::frequency_pit_io::{inb, outb};
 use super::tsc::rdtsc;
-use core::arch::asm;
+use crate::arch::x86_64::time::tsc::calibration::math::reference_timeout_ticks;
+use crate::arch::x86_64::time::tsc::constants::MAX_FREQUENCY;
 
 const PIT_FREQUENCY: u64 = 1_193_182;
 const CALIBRATE_MS: u64 = 50;
 const PIT_CHANNEL_0: u16 = 0x40;
 const PIT_COMMAND: u16 = 0x43;
-
-#[inline]
-unsafe fn outb(port: u16, value: u8) {
-    unsafe {
-        asm!("out dx, al", in("dx") port, in("al") value, options(nomem, nostack, preserves_flags));
-    }
-}
-
-#[inline]
-unsafe fn inb(port: u16) -> u8 {
-    let value: u8;
-    unsafe {
-        asm!("in al, dx", in("dx") port, out("al") value, options(nomem, nostack, preserves_flags));
-    }
-    value
-}
+pub(super) const FALLBACK_HZ: u64 = 2_400_000_000;
 
 pub fn calibrate_tsc_with_pit() -> u64 {
     let pit_count = (PIT_FREQUENCY * CALIBRATE_MS) / 1000;
@@ -48,11 +35,18 @@ pub fn calibrate_tsc_with_pit() -> u64 {
         outb(PIT_CHANNEL_0, ((pit_count >> 8) & 0xFF) as u8);
         lfence();
         let tsc_start = rdtsc();
+        // A gated PIT never raises OUT0, and this wait had no bound. The TSC
+        // always counts, so it ends once twice the window has passed at the
+        // fastest TSC accepted, as the boot CPU's PIT measurement does.
+        let timeout = reference_timeout_ticks(CALIBRATE_MS, MAX_FREQUENCY);
         loop {
             outb(PIT_COMMAND, 0xE2);
             let status = inb(PIT_CHANNEL_0);
             if (status & 0x80) != 0 {
                 break;
+            }
+            if rdtsc().wrapping_sub(tsc_start) > timeout {
+                return FALLBACK_HZ;
             }
             pause();
         }
@@ -63,7 +57,7 @@ pub fn calibrate_tsc_with_pit() -> u64 {
         if freq >= 500_000_000 && freq <= 6_000_000_000 {
             freq
         } else {
-            2_400_000_000
+            FALLBACK_HZ
         }
     }
 }

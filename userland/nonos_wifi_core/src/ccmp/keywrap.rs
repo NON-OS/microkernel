@@ -14,7 +14,12 @@
 use super::aes::Aes128;
 
 const IV: [u8; 8] = [0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6];
-const MAX_BLOCKS: usize = 8;
+/// The most key-data blocks unwrapped (512 bytes). Eight (64 bytes) held a bare
+/// RSNE and GTK KDE but not message 3 from a mixed WPA/WPA2 access point, which
+/// adds its WPA element, nor one with management frame protection, which adds
+/// the IGTK KDE (and for WPA3 the RSNXE): those unwrap to 70 to 100 bytes, the
+/// unwrap refused them, and the handshake failed on every such network.
+pub const MAX_BLOCKS: usize = 64;
 
 fn xor_counter(a: &mut [u8; 8], t: u64) {
     let tb = t.to_be_bytes();

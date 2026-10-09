@@ -19,7 +19,7 @@ use alloc::vec::Vec;
 use crate::protocol::MAX_HID_BINDINGS;
 
 use super::binding::HidBinding;
-use super::types::{Endpoint, Interface, DT_CONFIGURATION, DT_ENDPOINT, DT_INTERFACE};
+use super::types::{Endpoint, HidKind, Interface, DT_CONFIGURATION, DT_ENDPOINT, DT_INTERFACE};
 
 pub fn hid_bindings(raw: &[u8]) -> Result<Vec<HidBinding>, ()> {
     validate_config(raw)?;
@@ -33,7 +33,10 @@ pub fn hid_bindings(raw: &[u8]) -> Result<Vec<HidBinding>, ()> {
             return Err(());
         }
         match raw[i + 1] {
+            // A cut interface record still opens a new interface: the
+            // endpoints after it are its own, never the one before it.
             DT_INTERFACE if len >= 9 => iface = parse_interface(&raw[i..i + len]),
+            DT_INTERFACE => iface = None,
             DT_ENDPOINT if len >= 7 => maybe_push(&mut out, iface, &raw[i..i + len]),
             _ => {}
         }
@@ -42,7 +45,20 @@ pub fn hid_bindings(raw: &[u8]) -> Result<Vec<HidBinding>, ()> {
         }
         i += len;
     }
+    keep_boot_interfaces(&mut out);
     Ok(out)
+}
+
+/// A device with a boot keyboard or boot mouse interface keeps only those.
+/// Its other HID interfaces are consumer and system controls (volume, power,
+/// media keys), vendor channels, or a second report-protocol copy of the
+/// keyboard: none of them is an absolute pointer, and fed to the tablet
+/// decoder their reports moved and clicked a pointer that is not there.
+/// Only a device with no boot interface at all is taken as a tablet.
+fn keep_boot_interfaces(out: &mut Vec<HidBinding>) {
+    if out.iter().any(|b| b.kind != HidKind::Tablet) {
+        out.retain(|b| b.kind != HidKind::Tablet);
+    }
 }
 
 fn validate_config(raw: &[u8]) -> Result<(), ()> {

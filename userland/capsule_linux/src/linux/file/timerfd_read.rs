@@ -14,26 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading a timer, and whether it has fired.
+//! Reading a timer: how many times it has fired since the last read, as a
+//! u64, and whether it has fired at all, for poll and epoll.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Guest, Kind};
+use crate::linux::call::now_ms;
+use crate::linux::guest::Guest;
 
-/// A read reports how many times it has fired, which is one or none.
-pub fn read(guest: &mut Guest, fd: u64, buf: u64) -> u64 {
-    let now = nonos_libc::mk_uptime_ms().max(0) as u64;
-    let fired = match guest.fds.get(fd as usize) {
-        Some(e) if e.kind == Kind::Timer => e.expiry != 0 && now >= e.expiry,
-        _ => return errno::fail(errno::EBADF),
+use super::timerfd::slot_of;
+
+const CLOCK_MONOTONIC: u64 = 1;
+const POLLIN: u16 = 0x001;
+const POLLNVAL: u16 = 0x020;
+
+/// EAGAIN until it has fired; whether the caller waits is decided by who
+/// called, from the descriptor's O_NONBLOCK.
+pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
+    let Some(slot) = slot_of(guest, fd) else {
+        return errno::fail(errno::EBADF);
     };
-    if !fired {
+    if len < 8 {
+        return errno::fail(errno::EINVAL);
+    }
+    let now = now_ms(CLOCK_MONOTONIC).unwrap_or(0);
+    let mut timer = guest.timers[slot];
+    let times = timer.take(now);
+    if times == 0 {
         return errno::fail(errno::EAGAIN);
     }
-    if let Some(entry) = guest.fds.get_mut(fd as usize) {
-        entry.expiry = 0;
-    }
-    if guest.write(buf, &1u64.to_le_bytes()) < 8 {
+    // Written before it is taken, so a bad buffer leaves the count as it was.
+    if guest.write(buf, &times.to_le_bytes()) < 8 {
         return errno::fail(errno::EFAULT);
     }
+    guest.timers[slot] = timer;
     errno::ok(8)
+}
+
+/// Readable once it has fired, and never writable.
+pub fn bits(guest: &Guest, fd: u64) -> u16 {
+    match slot_of(guest, fd) {
+        Some(slot) if guest.timers[slot].fired(now_ms(CLOCK_MONOTONIC).unwrap_or(0)) => POLLIN,
+        Some(_) => 0,
+        None => POLLNVAL,
+    }
 }

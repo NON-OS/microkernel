@@ -17,15 +17,25 @@
 mod fault;
 mod global;
 mod invalidate;
+mod queue;
+mod remap;
 mod timing;
 
 pub use fault::{frcd_reason, frcd_source, FRCD_FAULT, FRCD_TYPE_READ, FSTS_PFO, FSTS_PPF};
 pub use global::{
-    CAP, ECAP, FECTL, FSTS, GCMD, GCMD_SRTP, GCMD_TE, GCMD_WBF, GSTS, GSTS_RTPS, GSTS_TES,
-    GSTS_WBFS, RTADDR, VER,
+    gcmd_with, gcmd_without_te, CAP, ECAP, FECTL, FSTS, GCMD, GCMD_ONE_SHOT, GCMD_SRTP, GCMD_TE,
+    GCMD_WBF, GSTS, GSTS_RTPS, GSTS_TES, GSTS_WBFS, PMEN, PMEN_EPM, PMEN_PRS, RTADDR, VER,
 };
 pub use invalidate::{
-    iotlb_offset, iva_offset, CCMD, CCMD_CIRG_GLOBAL, CCMD_ICC, IOTLB_IAIG_MASK,
-    IOTLB_IIRG_GLOBAL, IOTLB_IVT,
+    iotlb_offset, iva_offset, CCMD, CCMD_CIRG_GLOBAL, CCMD_ICC, IOTLB_IAIG_MASK, IOTLB_IIRG_GLOBAL,
+    IOTLB_IVT,
 };
-pub use timing::COMMAND_SPINS;
+pub use queue::{
+    iqa_value, queue_free, queue_index, queue_next, queue_offset, FSTS_ICE, FSTS_IQE, FSTS_ITE,
+    GCMD_QIE, GSTS_QIES, IQA, IQH, IQT, QUEUE_ENTRIES,
+};
+pub use remap::{
+    irta_entries, irta_value, GCMD_CFI, GCMD_IRE, GCMD_SIRTP, GSTS_CFIS, GSTS_IRES, GSTS_IRTPS,
+    IRTA, IRTA_EIME, IRTE_ENTRIES,
+};
+pub use timing::{COMMAND_MS, COMMAND_SPINS};

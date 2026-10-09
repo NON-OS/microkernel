@@ -24,6 +24,12 @@ pub struct MouseRing {
     pub events_dropped: u64,
     pub sync_errors: u64,
 }
+impl Default for MouseRing {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MouseRing {
     pub const fn new() -> Self {
         Self {

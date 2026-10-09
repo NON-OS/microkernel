@@ -36,7 +36,13 @@ pub(crate) fn handle(store: &Store, req: &Request, tx: &mut [u8]) {
     for (entry_index, entry) in accepted.index.entries.iter().enumerate() {
         let any_ready = entry.releases.iter().enumerate().any(|(release_index, rel)| {
             let publisher_ok = accepted.publisher_signature_verified(entry_index, release_index);
-            install_ready::evaluate(accepted.signature_verified, rel, publisher_ok).install_ready
+            install_ready::evaluate(
+                accepted.signature_verified,
+                &entry.listing_id,
+                rel,
+                publisher_ok,
+            )
+            .install_ready
         });
         write_lp_string(&mut body, &entry.listing_id);
         body.extend_from_slice(&entry.capsule_id);

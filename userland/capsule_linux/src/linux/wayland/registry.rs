@@ -31,6 +31,7 @@ pub const GLOBALS: &[Global] = &[
     Global { name: 2, interface: b"wl_shm", version: 1, object: Object::Shm },
     Global { name: 3, interface: b"xdg_wm_base", version: 2, object: Object::XdgBase },
     Global { name: 4, interface: b"wl_seat", version: 5, object: Object::Seat },
+    Global { name: 5, interface: b"wl_output", version: 2, object: Object::Output },
 ];
 
 pub fn by_name(name: u32) -> Option<&'static Global> {

@@ -38,24 +38,25 @@ def drivers.pci.constants.address_packing.pci_config_address
   ok (i11 ||| i13)
 
 /-- [nonos_x_drivers_pci_types_address::drivers::pci::types::address::PciAddress]
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 21:0-25:1
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 21:0-29:1
     Visibility: public -/
 structure drivers.pci.types.address.PciAddress where
   bus : Std.U8
   device : Std.U8
   function : Std.U8
+  segment : Std.U16
 
 /-- [nonos_x_drivers_pci_types_address::drivers::pci::types::address::{nonos_x_drivers_pci_types_address::drivers::pci::types::address::PciAddress}::new]:
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 28:4-30:5
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 32:4-34:5
     Visibility: public -/
 def drivers.pci.types.address.PciAddress.new
   (bus : Std.U8) (device : Std.U8) (function : Std.U8) :
   Result drivers.pci.types.address.PciAddress
   := do
-  ok { bus, device, function }
+  ok { bus, device, function, segment := 0#u16 }
 
 /-- [nonos_x_drivers_pci_types_address::drivers::pci::types::address::{nonos_x_drivers_pci_types_address::drivers::pci::types::address::PciAddress}::from_bdf]:
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 32:4-38:5
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 40:4-47:5
     Visibility: public -/
 def drivers.pci.types.address.PciAddress.from_bdf
   (bdf : Std.U16) : Result drivers.pci.types.address.PciAddress := do
@@ -67,10 +68,10 @@ def drivers.pci.types.address.PciAddress.from_bdf
   let i5 ← lift (UScalar.cast .U8 i4)
   let i6 ← lift (bdf &&& 7#u16)
   let i7 ← lift (UScalar.cast .U8 i6)
-  ok { bus := i2, device := i5, function := i7 }
+  ok { bus := i2, device := i5, function := i7, segment := 0#u16 }
 
 /-- [nonos_x_drivers_pci_types_address::drivers::pci::types::address::{nonos_x_drivers_pci_types_address::drivers::pci::types::address::PciAddress}::to_bdf]:
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 40:4-42:5
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 49:4-51:5
     Visibility: public -/
 def drivers.pci.types.address.PciAddress.to_bdf
   (self : drivers.pci.types.address.PciAddress) : Result Std.U16 := do
@@ -83,7 +84,7 @@ def drivers.pci.types.address.PciAddress.to_bdf
   ok (i4 ||| i5)
 
 /-- [nonos_x_drivers_pci_types_address::drivers::pci::types::address::{nonos_x_drivers_pci_types_address::drivers::pci::types::address::PciAddress}::config_address]:
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 44:4-46:5
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 53:4-55:5
     Visibility: public -/
 def drivers.pci.types.address.PciAddress.config_address
   (self : drivers.pci.types.address.PciAddress) (offset : Std.U8) :

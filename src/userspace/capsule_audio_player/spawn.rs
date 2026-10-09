@@ -61,12 +61,14 @@ pub fn spawn_audio_player_instance() -> Result<u32, SpawnError> {
         attestation: AUDIO_PLAYER_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::CoreExec.bit()
+            | Capability::Network.bit()
             | Capability::IPC.bit()
             | Capability::Memory.bit()
+            | Capability::Crypto.bit()
             | Capability::FileSystem.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit()
-            | Capability::Debug.bit(),
+            | crate::capabilities::serial_debug_cap(),
         instances: AUDIO_PLAYER_INSTANCES,
         debug_tag: b"[AUDIO-PLAYER-INSTANCE] elf error:",
     })
@@ -86,12 +88,14 @@ pub fn spawn_audio_player_capsule() -> Result<(), SpawnError> {
         attestation_trailer: AUDIO_PLAYER_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::CoreExec.bit()
+            | Capability::Network.bit()
             | Capability::IPC.bit()
             | Capability::Memory.bit()
+            | Capability::Crypto.bit()
             | Capability::FileSystem.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit()
-            | Capability::Debug.bit(),
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

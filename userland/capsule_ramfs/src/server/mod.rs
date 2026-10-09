@@ -16,6 +16,7 @@
 
 mod dispatch;
 mod handlers;
+mod reap;
 mod runner;
 
 pub use runner::run;

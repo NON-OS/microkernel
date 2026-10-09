@@ -13,3 +13,6 @@ opt-level = 2
 lto = false
 debug = false
 strip = true
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

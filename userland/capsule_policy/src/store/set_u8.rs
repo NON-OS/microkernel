@@ -38,8 +38,11 @@ pub fn set(field: Field, value: u8) -> bool {
         Field::ProxyMode => s.proxy_mode = value,
         Field::Volume => s.volume = value,
         Field::AudioBalance => s.audio_balance = value,
+        Field::AppsOff => s.apps_off = value,
+        Field::NetworkRoute => s.network_route = value,
 
         _ => return false,
     }
+    super::state::changed();
     true
 }

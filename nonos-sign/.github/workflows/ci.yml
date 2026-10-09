@@ -1,0 +1,64 @@
+name: ci
+
+# Production gate for nonos-sign. The toolchain is pinned by rust-toolchain.toml
+# so formatting and lints are deterministic across local and CI. The host
+# ML-DSA-65 build links the kernel's vendored pqclean tree, so CI fetches just
+# that path before building, then runs format, lints, build, and the full test
+# suite (fixture chain tests + release transparency tests).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  check:
+    name: fmt + clippy + build + test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch pqclean from the kernel tree
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          git clone --depth 1 --filter=blob:none --sparse \
+            https://github.com/NON-OS/nonos-micro-kernel.git "$tmp"
+          git -C "$tmp" sparse-checkout set third_party/pqclean
+          test -d "$tmp/third_party/pqclean/crypto_sign/ml-dsa-65/clean" \
+            || { echo "::error::pqclean ml-dsa-65 sources not found in kernel tree"; exit 1; }
+          mkdir -p "${GITHUB_WORKSPACE}/../third_party"
+          cp -r "$tmp/third_party/pqclean" "${GITHUB_WORKSPACE}/../third_party/pqclean"
+
+      - name: Install pinned toolchain (1.88.0 + rustfmt + clippy)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.88.0"
+          components: rustfmt, clippy
+
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: clippy (deny warnings on our code)
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: build
+        run: cargo build --all-targets --locked
+
+      - name: test
+        run: cargo test --all-targets --locked

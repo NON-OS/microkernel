@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_yield;
+use nonos_libc::mk_idle_ms;
 
-/// A fixed yield-spaced pause. ELAN pads need it after power-on before they
-/// accept the reset command, and it also covers the input register when a
-/// device has no addressable reset sentinel.
+/// How long a device with no input register to poll is given after RESET.
+pub(super) const SETTLE_MS: u64 = 20;
+/// The pause after SET_POWER(ON) before RESET, from Linux i2c_hid_set_power.
+pub(super) const POWER_ON_MS: u64 = 60;
+/// The pause before a NACKed power-on is sent again; Linux sleeps 400 to
+/// 500 us, and a millisecond is the finest sleep there is here.
+pub(super) const RETRY_MS: u64 = 1;
+
+/// A fixed pause for a device with no addressable reset sentinel. A real
+/// sleep: the 2048 yields this used to be took no time at all on an idle
+/// machine, and a core while they lasted.
 pub(super) fn settle() {
-    for _ in 0..2048 {
-        mk_yield();
-    }
+    let _ = mk_idle_ms(SETTLE_MS);
 }

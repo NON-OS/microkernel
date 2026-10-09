@@ -22,7 +22,7 @@ use super::util::{map_store_err, split_caller};
 use crate::protocol::{
     encode_response, Request, EACCES, EINVAL, MAX_PATH_BYTES, OP_OPEN, O_APPEND, O_CREATE, O_TRUNC,
 };
-use crate::store::Store;
+use crate::store::{Store, StoreError};
 
 // Payload: u32 caller_pid, u8 path_len, path bytes, u32 flags.
 pub fn open(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
@@ -55,14 +55,25 @@ pub fn open(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
     let create = flags & O_CREATE != 0;
     let truncate = flags & O_TRUNC != 0;
     let append = flags & O_APPEND != 0;
-    let path = normalize(path);
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_OPEN, req.flags, req.request_id, EINVAL, &[]);
+    };
     // The signed artifacts under /capsules open read-only: a write intent is
     // refused up front, and the handle itself carries no write permission.
     let read_only = is_read_only(&path);
     if read_only && (create || truncate || append) {
         return encode_response(OP_OPEN, req.flags, req.request_id, EACCES, &[]);
     }
-    match store.open(&path, pid, create, truncate, append, !read_only) {
+    let writable = !read_only;
+    // A full table may be full of handles whose clients have ended.
+    let opened = match store.open(&path, pid, create, truncate, append, writable) {
+        Err(StoreError::Full) => {
+            crate::server::reap::reap_now(store);
+            store.open(&path, pid, create, truncate, append, writable)
+        }
+        other => other,
+    };
+    match opened {
         Ok(fd) => {
             store.journal_touch(&path);
             encode_response(OP_OPEN, req.flags, req.request_id, 0, &fd.to_le_bytes())

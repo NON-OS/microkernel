@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::term::dimensions::{COLS, HISTORY_DEPTH};
+use crate::term::dimensions::{LINE_MAX, HISTORY_DEPTH};
 
 pub struct History {
-    pub(super) entries: [[u8; COLS]; HISTORY_DEPTH],
+    pub(super) entries: [[u8; LINE_MAX]; HISTORY_DEPTH],
     pub(super) lengths: [usize; HISTORY_DEPTH],
     pub(super) count: usize,
     pub(super) cursor: Option<usize>,

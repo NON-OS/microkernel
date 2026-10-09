@@ -27,14 +27,25 @@
 //! modelled, and neither are the halves of the capsule that talk to the broker
 //! rather than to registers (`discover`, `setup`, `server`, `handles`).
 
+extern crate alloc;
+
 #[path = "../../capsule_driver_hda/src/regs/mod.rs"]
 pub mod regs;
+
+/// The host's clock in place of the capsule's (`capsule_driver_hda/src/clock.rs`),
+/// so every bounded wait in the controller source ends on the host too.
+pub mod clock;
 
 #[path = "../../capsule_driver_hda/src/constants/mod.rs"]
 pub mod constants;
 
 #[path = "../../capsule_driver_hda/src/error/mod.rs"]
 pub mod error;
+
+/// The request wire the serving loop reads with: the header decode every
+/// frame passes before dispatch, and the encoders a refusal is answered with.
+#[path = "../../capsule_driver_hda/src/protocol/mod.rs"]
+pub mod protocol;
 
 #[cfg(test)]
 pub mod controller;
@@ -43,4 +54,14 @@ pub mod controller;
 mod model;
 
 #[cfg(test)]
+mod sim;
+
+#[cfg(test)]
 mod proofs;
+
+#[cfg(test)]
+mod request_refusal_tests;
+
+/// How refilled periods are counted: played, idle silence, or an underrun.
+#[path = "../../capsule_driver_hda/src/audio/periods.rs"]
+pub mod periods;

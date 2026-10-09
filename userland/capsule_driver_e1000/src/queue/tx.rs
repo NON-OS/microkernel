@@ -15,33 +15,37 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! TX ring state. `post` programs the next descriptor with
-//! `EOP|IFCS|RS` and bumps the tail; `done(idx)` polls the
-//! per-slot DD bit so the server loop knows the descriptor and
-//! its buffer can be reused.
+//! `EOP|IFCS|RS` and bumps the tail; `reclaim` walks `clean` forward
+//! over descriptors the part has marked DD, and `full` refuses a post
+//! that would land on one it still owns.
+//!
+//! The part holds descriptors it cannot send: with the link down it stops
+//! DMA and sets no DD, so a slot is only reusable once `reclaim` has seen
+//! it done. One slot always stays empty, or a full ring would move TDT
+//! onto TDH, which the part reads as an empty one.
 
-use crate::constants::queue::{
-    TX_BUFFER_LEN, TX_CMD_EOP, TX_CMD_IFCS, TX_CMD_RS, TX_DESC_COUNT, TX_STATUS_DD,
-};
+use crate::constants::queue::TX_BUFFER_LEN;
 
 use super::layout::TxDesc;
-use core::ptr::{addr_of, addr_of_mut, read_volatile, write_volatile};
 
 pub struct TxRing {
     pub ring_user_va: u64,
     pub buffer_user_va: u64,
     pub buffer_device_addr: u64,
     pub tail: u16,
+    /// Oldest descriptor not yet seen done; `clean == tail` is an empty ring.
+    pub clean: u16,
 }
 
 /*
- * SAFETY anchor for every unsafe in this file: `ring_user_va` is the broker
- * DMA grant taken in `setup::dma`, which covers TX_DESC_COUNT contiguous
- * 16-byte `TxDesc`s, and `tail` is held below TX_DESC_COUNT by construction
- * in `post`.
+ * SAFETY anchor for every unsafe on TxRing, here and in tx_post.rs and
+ * tx_reclaim.rs: `ring_user_va` is the broker DMA grant taken in
+ * `setup::dma`, which covers TX_DESC_COUNT contiguous 16-byte `TxDesc`s, and
+ * `tail` is held below TX_DESC_COUNT by construction in `post`.
  */
 impl TxRing {
     pub fn new(ring_user_va: u64, buffer_user_va: u64, buffer_device_addr: u64) -> Self {
-        Self { ring_user_va, buffer_user_va, buffer_device_addr, tail: 0 }
+        Self { ring_user_va, buffer_user_va, buffer_device_addr, tail: 0, clean: 0 }
     }
 
     /// # Safety
@@ -58,26 +62,5 @@ impl TxRing {
 
     pub fn buffer_va(&self, idx: u16) -> u64 {
         self.buffer_user_va + (idx as u64) * (TX_BUFFER_LEN as u64)
-    }
-
-    pub fn post(&mut self, len: u16) -> u16 {
-        let idx = self.tail;
-        let desc = unsafe { self.descriptor(idx) };
-        /*
-         * The part reads the descriptor by DMA once the tail moves, so the
-         * fields are stored in program order and none is left in a register.
-         */
-        unsafe {
-            write_volatile(addr_of_mut!((*desc).buffer_addr), self.buffer_phys(idx));
-            write_volatile(addr_of_mut!((*desc).length), len);
-            write_volatile(addr_of_mut!((*desc).cmd), TX_CMD_EOP | TX_CMD_IFCS | TX_CMD_RS);
-            write_volatile(addr_of_mut!((*desc).status), 0);
-        }
-        self.tail = (self.tail + 1) % (TX_DESC_COUNT as u16);
-        idx
-    }
-
-    pub fn done(&self, idx: u16) -> bool {
-        unsafe { read_volatile(addr_of!((*self.descriptor(idx)).status)) & TX_STATUS_DD != 0 }
     }
 }

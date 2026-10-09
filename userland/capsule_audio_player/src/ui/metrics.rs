@@ -35,7 +35,6 @@ pub const S4: i32 = 14;
 pub const S5: i32 = 18;
 pub const S6: i32 = 22;
 pub const S7: i32 = 28;
-pub const S8: i32 = 38;
 
 pub const R_WIN: u32 = 20;
 pub const R_CARD: u32 = 14;

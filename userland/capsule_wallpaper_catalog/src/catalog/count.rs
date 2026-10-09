@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::entries::ENTRY_GROUPS;
+use nonos_wallpapers::PINS;
 
 pub fn count() -> u32 {
-    let mut total = 0usize;
-    for group in ENTRY_GROUPS {
-        total = total.saturating_add(group.len());
-    }
-    total as u32
+    PINS.len() as u32
 }

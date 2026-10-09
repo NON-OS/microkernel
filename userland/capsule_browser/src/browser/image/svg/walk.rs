@@ -14,83 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
 use alloc::vec::Vec;
 
-use super::attr::attr;
-use super::draw::draw;
-use super::path::parse_path;
+use super::defs::Defs;
 use super::raster::Raster;
-use super::shapes::shape_polys;
-use super::state::Paint;
-use super::xml::next_tag;
 
-// Subtrees that define resources or content we do not render; skipped whole
-// so their geometry never paints.
-fn skipped(name: &str) -> bool {
-    matches!(
-        name,
-        "defs"
-            | "symbol"
-            | "clipPath"
-            | "mask"
-            | "style"
-            | "linearGradient"
-            | "radialGradient"
-            | "pattern"
-            | "filter"
-            | "text"
-            | "metadata"
-            | "title"
-            | "desc"
-    )
+/* Subtrees that define resources or content not rendered in place:
+ * skipped whole so their geometry never paints. Gradients, clip paths and
+ * symbols are drawn by reference; masks, patterns, filters, text and
+ * embedded images are not drawn. */
+const SKIPPED: &str = "defs symbol clipPath mask style linearGradient radialGradient pattern \
+                       filter text metadata title desc image";
+
+pub(super) fn skipped(name: &str) -> bool {
+    SKIPPED.split_ascii_whitespace().any(|s| s == name)
 }
 
-// Walk the document from just past the root svg tag, painting shapes with
-// inherited state. Groups push; unknown containers inherit silently.
-pub(super) fn walk(doc: &str, from: usize, root: Paint, r: &mut Raster) {
-    let mut stack: Vec<Paint> = vec![root];
-    let mut pos = from;
-    let mut skip = 0u32;
-    while let Some((tag, next)) = next_tag(doc, pos) {
-        pos = next;
-        if tag.closing {
-            if skip > 0 {
-                skip -= 1;
-            } else if matches!(tag.name, "g" | "a" | "svg" | "switch") && stack.len() > 1 {
-                stack.pop();
-            }
-            continue;
-        }
-        if skip > 0 {
-            if !tag.self_closing {
-                skip += 1;
-            }
-            continue;
-        }
-        if skipped(tag.name) {
-            if !tag.self_closing {
-                skip += 1;
-            }
-            continue;
-        }
-        let cur = *stack.last().unwrap_or(&root);
-        match tag.name {
-            "g" | "a" | "svg" | "switch" => {
-                let p = cur.derive(tag.attrs);
-                if !tag.self_closing {
-                    stack.push(p);
-                }
-            }
-            "path" => {
-                if let Some(d) = attr(tag.attrs, "d") {
-                    draw(r, &parse_path(d), &cur.derive(tag.attrs));
-                }
-            }
-            "rect" | "circle" | "ellipse" | "line" | "polyline" | "polygon" => {
-                draw(r, &shape_polys(tag.name, tag.attrs), &cur.derive(tag.attrs));
-            }
-            _ => {}
-        }
-    }
+pub(super) fn container(name: &str) -> bool {
+    matches!(name, "g" | "a" | "svg" | "switch" | "symbol")
+}
+
+/// Painting one band: the definitions, the band, the clip masks of the
+/// open groups, how deep `use` references nest, and how many more tags
+/// may be visited, which bounds the work references can multiply.
+pub(super) struct Walk<'d, 'r> {
+    pub defs: &'d Defs<'d>,
+    pub r: &'r mut Raster,
+    pub masks: Vec<Raster>,
+    pub depth: u32,
+    pub budget: u32,
 }

@@ -159,12 +159,17 @@ pub fn is(_stream: Stream) -> bool {
     false
 }
 
-/// returns true if this is a tty. On NONOS a capsule's stdio is wired to the
-/// nox terminal, so it is always a tty and tools enable color and interactive
-/// output.
+/// returns true if this is a tty. On NONOS the kernel knows: the launcher
+/// that renders this process's output says which of its streams reach a
+/// terminal, and a stage feeding a pipe or a file is told it reaches none.
 #[cfg(target_vendor = "nonos")]
-pub fn is(_stream: Stream) -> bool {
-    true
+pub fn is(stream: Stream) -> bool {
+    use std::io::IsTerminal;
+    match stream {
+        Stream::Stdin => std::io::stdin().is_terminal(),
+        Stream::Stdout => std::io::stdout().is_terminal(),
+        Stream::Stderr => std::io::stderr().is_terminal(),
+    }
 }
 
 #[cfg(test)]

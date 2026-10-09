@@ -15,27 +15,55 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::init::preferred_mode;
-use super::state::{get_dimensions, is_initialized};
+use super::state::{
+    get_dimensions, get_stride, is_initialized, FB_FAILURE, FB_FORMAT_BGR, FB_PHYS_MM, FB_PTR,
+    FB_SOURCE, NO_FB_BITMASK, NO_FB_BLT_ONLY, NO_FB_NO_GOP,
+};
 use crate::log::logger::{log_error, log_warn};
 use alloc::format;
+use core::sync::atomic::Ordering;
 
 pub fn report_gop_mode() {
     if !is_initialized() {
-        log_error("gop", "[GOP] no linear BGR framebuffer was latched");
+        // Said in words: with no linear framebuffer there is nothing to draw
+        // the splash into, and the kernel boots without a boot console.
+        let why = match FB_FAILURE.load(Ordering::Relaxed) {
+            NO_FB_NO_GOP => "no Graphics Output Protocol on any handle",
+            NO_FB_BLT_ONLY => {
+                "GOP is PixelBltOnly: no linear framebuffer, the display is unusable after ExitBootServices"
+            }
+            NO_FB_BITMASK => "GOP offers only a PixelBitMask layout that is not 32 bit RGB or BGR",
+            _ => "the firmware's framebuffer does not cover its own mode",
+        };
+        log_error("gop", &format!("[GOP] no linear framebuffer: {}", why));
         return;
     }
     let (got_w, got_h) = get_dimensions();
-    let (want_w, want_h) = match preferred_mode() {
-        Some(mode) => mode,
-        None => {
-            log_warn("gop", &format!("[GOP] want=auto got={}x{}", got_w, got_h));
-            return;
-        }
+    let source = match FB_SOURCE.load(Ordering::Relaxed) {
+        1 => "pinned",
+        2 => "native (EDID)",
+        3 => "firmware current",
+        4 => "largest offered",
+        _ => "unknown",
     };
+    let mm = FB_PHYS_MM.load(Ordering::Relaxed);
     log_warn(
         "gop",
-        &format!("[GOP] want={}x{} got={}x{}", want_w, want_h, got_w, got_h),
+        &format!(
+            "[GOP] {}x{} {} pitch={}px fmt={} fb=0x{:x} panel={}x{}mm",
+            got_w,
+            got_h,
+            source,
+            get_stride(),
+            if FB_FORMAT_BGR.load(Ordering::Relaxed) { "BGRX" } else { "RGBX" },
+            FB_PTR.load(Ordering::Relaxed),
+            mm & 0xFFFF,
+            mm >> 16
+        ),
     );
+    let Some((want_w, want_h)) = preferred_mode() else {
+        return;
+    };
     if want_w as u32 != got_w || want_h as u32 != got_h {
         log_error(
             "gop",

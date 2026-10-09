@@ -16,7 +16,9 @@
 //! Cloning a remote repository.
 
 mod fail;
+mod job;
 mod run;
 
 pub(in crate::command::builtin::git) use fail::fail_with;
+pub use job::{prepare, CloneJob};
 pub(in crate::command::builtin::git) use run::run;

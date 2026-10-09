@@ -21,11 +21,14 @@ impl Line {
         if self.cursor == 0 {
             return false;
         }
+        // The whole character before the cursor, however many bytes it is.
+        let start = self.prev_boundary(self.cursor);
+        let n = self.cursor - start;
         if self.cursor < self.len {
-            self.buf.copy_within(self.cursor..self.len, self.cursor - 1);
+            self.buf.copy_within(self.cursor..self.len, start);
         }
-        self.cursor -= 1;
-        self.len -= 1;
+        self.cursor = start;
+        self.len -= n;
         true
     }
 }

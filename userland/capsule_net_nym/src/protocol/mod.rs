@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod batch;
 mod errno;
 mod header;
 mod limits;
@@ -32,7 +33,7 @@ pub use limits::{
 };
 pub use ops::{
     OP_CLOSE, OP_COVER_TICK, OP_CREATE_SURB, OP_GET_EXIT, OP_HEALTHCHECK, OP_OPEN_SESSION, OP_RECV,
-    OP_SEND, OP_SEND_REPLY, OP_SET_AUTHORITY, OP_SET_CREDENTIAL, OP_SET_DESTINATION,
+    OP_RECV_BATCH, OP_SEND, OP_SEND_REPLY, OP_SET_AUTHORITY, OP_SET_CREDENTIAL, OP_SET_DESTINATION,
     OP_SET_GATEWAY, OP_SET_IDENTITY, OP_SET_TIMING, OP_SET_TOPOLOGY, OP_SYNC_DIRECTORY,
     OP_TIMING_STATUS, OP_TOPOLOGY_STATUS,
 };

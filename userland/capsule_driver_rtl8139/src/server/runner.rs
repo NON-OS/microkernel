@@ -16,7 +16,7 @@
 
 use alloc::vec;
 
-use nonos_libc::mk_ipc_recv;
+use nonos_libc::mk_ipc_recv_from;
 
 use crate::constants::MAX_ETHERNET_FRAME;
 use crate::protocol::{
@@ -42,26 +42,27 @@ pub fn run(driver: &mut Driver) -> ! {
 }
 
 fn dispatch_once(driver: &mut Driver, rx: &mut [u8], tx: &mut [u8]) {
-    let n = mk_ipc_recv(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), 0);
-    if n <= 0 {
+    let mut sender: u32 = 0;
+    let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), 0, &mut sender);
+    if !nonos_libc::recv_ready(n) || sender == 0 {
         return;
     }
     let len = n as usize;
     let req = match decode_request(&rx[..len]) {
         Some(r) => r,
         None => {
-            reply_decode_failed(tx, E_INVAL);
+            reply_decode_failed(sender, tx, E_INVAL);
             return;
         }
     };
     let body = &rx[HDR_LEN..len];
     match req.op {
-        OP_HEALTHCHECK => handlers::health::handle(&req, tx),
-        OP_LINK_STATUS => handlers::link_status::handle(driver, &req, tx),
-        OP_MAC_ADDRESS => handlers::mac_address::handle(driver, &req, tx),
-        OP_TX_PACKET => handlers::tx_packet::handle(driver, &req, body, tx),
-        OP_RX_PACKET => handlers::rx_packet::handle(driver, &req, tx),
-        OP_STATS => handlers::stats::handle(driver, &req, tx),
-        _ => reply_with_status(tx, &req, E_INVAL),
+        OP_HEALTHCHECK => handlers::health::handle(sender, &req, tx),
+        OP_LINK_STATUS => handlers::link_status::handle(sender, driver, &req, tx),
+        OP_MAC_ADDRESS => handlers::mac_address::handle(sender, driver, &req, tx),
+        OP_TX_PACKET => handlers::tx_packet::handle(sender, driver, &req, body, tx),
+        OP_RX_PACKET => handlers::rx_packet::handle(sender, driver, &req, tx),
+        OP_STATS => handlers::stats::handle(sender, driver, &req, tx),
+        _ => reply_with_status(sender, tx, &req, E_INVAL),
     }
 }

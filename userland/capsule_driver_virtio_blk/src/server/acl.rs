@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who may write the medium this driver guards.
+//! Who may reach the medium this driver guards.
 //!
 //! The package store at LBA 0 is read back as trusted input on the next
-//! boot, so the write path answers the kernel-internal client, which arrives
-//! as sender pid 0 because every real capsule's envelope is kernel-stamped,
-//! and otherwise only a sender the kernel says holds StoreWrite. The kernel
+//! boot, and the disk's other sectors are whatever the person keeps there, so
+//! the medium answers the kernel-internal client, which arrives as sender pid
+//! 0 because every real capsule's envelope is kernel-stamped, and otherwise
+//! only a sender the kernel says holds StoreWrite. The kernel
 //! is asked on every request: a cached verdict would outlive the holder's
 //! exit and follow its pid to whatever process is handed that pid next.
 

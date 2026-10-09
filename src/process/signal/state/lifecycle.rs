@@ -18,7 +18,6 @@ use alloc::collections::VecDeque;
 use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::core::SignalState;
-use crate::process::signal::sigaction::Sigaction;
 
 impl SignalState {
     pub fn clone_for_fork(&self) -> Self {
@@ -29,18 +28,6 @@ impl SignalState {
             queue: VecDeque::new(),
             trampoline: AtomicU64::new(self.trampoline.load(Ordering::Relaxed)),
             saved_mask: None,
-        }
-    }
-
-    pub fn reset_for_exec(&mut self) {
-        self.pending.store(0, Ordering::Release);
-        self.queue.clear();
-        self.trampoline.store(0, Ordering::Release);
-        self.saved_mask = None;
-        for action in &mut self.actions {
-            if action.is_handler() {
-                *action = Sigaction::default();
-            }
         }
     }
 }

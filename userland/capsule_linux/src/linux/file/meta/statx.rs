@@ -14,44 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `statx`, which a current libc reaches for before it tries `stat`.
+/* `statx`, which a current libc reaches for before it tries `stat`. */
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::super::at::resolve_at;
-use super::super::resolve::key;
-use super::super::store;
+use super::stat::meta_at;
+use super::statbuf::blocks;
 
-/// `struct statx` is 256 bytes.
 const STATX: usize = 256;
 
-/// The bits for the fields the store can answer: type, mode, size and
-/// mtime. Nothing else is claimed.
-const STATX_TYPE: u32 = 0x0001;
-const STATX_MODE: u32 = 0x0002;
-const STATX_SIZE: u32 = 0x0200;
-const STATX_MTIME: u32 = 0x0020;
+/* Type, mode, nlink, uid, gid, times, ino, size and blocks: STATX_BASIC_STATS. */
+const STATX_BASIC_STATS: u32 = 0x07ff;
 
-const S_IFDIR: u16 = 0o040_000;
-const S_IFREG: u16 = 0o100_000;
-
-pub fn statx(guest: &Guest, dirfd: u64, path: u64, out: u64) -> u64 {
-    let Some(at) = resolve_at(guest, dirfd, path) else {
-        return errno::fail(errno::EFAULT);
+pub fn statx(guest: &Guest, dirfd: u64, path: u64, flags: u64, out: u64) -> u64 {
+    let m = match meta_at(guest, dirfd, path, flags) {
+        Ok(m) => m,
+        Err(e) => return errno::fail(e),
     };
-    let Ok((size, is_dir, mtime, readonly)) = store::stat_full(&key(&at)) else {
-        return errno::fail(errno::ENOENT);
-    };
-    let mode = if is_dir { S_IFDIR } else { S_IFREG } | if readonly { 0o555 } else { 0o755 };
-
     let mut buf = [0u8; STATX];
-    buf[0..4].copy_from_slice(&(STATX_TYPE | STATX_MODE | STATX_SIZE | STATX_MTIME).to_le_bytes());
-    buf[4..8].copy_from_slice(&4096u32.to_le_bytes()); // stx_blksize
-    buf[28..30].copy_from_slice(&mode.to_le_bytes()); // stx_mode
-    buf[40..48].copy_from_slice(&size.to_le_bytes()); // stx_size
-    buf[48..56].copy_from_slice(&size.div_ceil(512).to_le_bytes()); // stx_blocks
-    buf[96..104].copy_from_slice(&(mtime / 1000).to_le_bytes()); // stx_mtime.sec
+    let mut put = |at: usize, v: &[u8]| buf[at..at + v.len()].copy_from_slice(v);
+    put(0, &STATX_BASIC_STATS.to_le_bytes());
+    put(4, &4096u32.to_le_bytes()); /* stx_blksize */
+    put(16, &(m.nlink as u32).to_le_bytes()); /* stx_nlink */
+    put(28, &(m.mode as u16).to_le_bytes()); /* stx_mode */
+    put(32, &m.ino.to_le_bytes()); /* stx_ino */
+    put(40, &m.size.to_le_bytes()); /* stx_size */
+    put(48, &blocks(m.size).to_le_bytes()); /* stx_blocks */
+    let split = |ms: u64| ((ms / 1000) as i64, ((ms % 1000) * 1_000_000) as u32);
+    /* atime, then ctime and mtime, which the store does not tell apart. */
+    for (at, ms) in [(64, m.atime_ms), (96, m.mtime_ms), (112, m.mtime_ms)] {
+        let (secs, nanos) = split(ms);
+        put(at, &secs.to_le_bytes());
+        put(at + 8, &nanos.to_le_bytes());
+    }
+    put(128, &((m.rdev >> 8) as u32 & 0xfff).to_le_bytes()); /* stx_rdev_major */
+    put(132, &((m.rdev & 0xff) as u32).to_le_bytes()); /* stx_rdev_minor */
+    put(140, &(m.dev as u32).to_le_bytes()); /* stx_dev_minor */
     match guest.write(out, &buf) {
         n if n < 0 => errno::fail(errno::EFAULT),
         _ => errno::ok(0),

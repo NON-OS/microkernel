@@ -16,19 +16,29 @@
 //! Who the guest is, and which process group it belongs to.
 
 use crate::linux::abi::errno;
+use crate::linux::file;
 use crate::linux::guest::Guest;
 
-/// The identity every guest runs as.
+/* The identity every guest runs as. */
 const GUEST_UID: u64 = 0;
 
+/*
+ * The process that forked this one, as /proc/<pid>/stat names it; the
+ * personality, the namespace's pid 1, for the program it started. A kernel
+ * pid: the serve loop gives it the number the namespace knows it by.
+ */
 pub fn getppid(guest: &Guest) -> u64 {
-    // The personality is the parent of every guest it hosts.
-    errno::ok(u64::from(guest.parent))
+    let parent = file::view_with(|v| {
+        let me = v.procs.iter().find(|p| p.kernel == guest.pid)?;
+        v.procs.iter().find(|p| p.ns == me.ppid).map(|p| p.kernel)
+    });
+    errno::ok(u64::from(parent.unwrap_or(guest.parent)))
 }
 
-
-/// Setting the identity to the one already held is the only change
-/// that can be honoured, so it is the only one accepted.
+/*
+ * Setting the identity to the one already held is the only change
+ * that can be honoured, so it is the only one accepted.
+ */
 pub fn setuid(want: u64) -> u64 {
     match want {
         GUEST_UID => errno::ok(0),

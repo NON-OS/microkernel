@@ -26,10 +26,10 @@ use super::call::call;
 use super::constants::{OP_LIST_INSTALLED, REPLY_CAP};
 use super::decode;
 
-pub fn list_installed() -> Vec<Vec<u8>> {
+/// The installed apps the installer lists, or None when it did not answer
+/// (or refused), so a caller can tell a quiet installer from an empty list.
+pub fn list_installed() -> Option<Vec<Vec<u8>>> {
     let mut rx = vec![0u8; REPLY_CAP];
-    let Some(total) = call(OP_LIST_INSTALLED, &mut rx) else {
-        return Vec::new();
-    };
-    decode::names(&rx, total).into_iter().filter(|name| admissible(name)).collect()
+    let total = call(OP_LIST_INSTALLED, &mut rx)?;
+    Some(decode::names(&rx, total).into_iter().filter(|name| admissible(name)).collect())
 }

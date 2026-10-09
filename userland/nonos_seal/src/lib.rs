@@ -17,8 +17,8 @@
 //! ChaCha20-Poly1305 AEAD (RFC 8439) for sealing the keyring seed at rest,
 //! from scratch and `no_std`. `seal` encrypts a plaintext under a key, nonce
 //! and associated data, appending the 16-byte tag; `open` verifies the tag in
-//! constant time before decrypting, returning None on any mismatch so a
-//! tampered or wrong-key blob never decrypts to usable bytes. The nonce must
+//! constant time before decrypting, returning `Err(SealError::AuthFailed)` on
+//! any mismatch so a tampered or wrong-key blob never decrypts. The nonce must
 //! never repeat under one key; `SealState` enforces that with a monotonic
 //! counter so callers cannot reuse one by accident.
 

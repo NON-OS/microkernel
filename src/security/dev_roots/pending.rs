@@ -32,7 +32,7 @@ impl Pending {
         Self { root: [0u8; 32], challenge: 0, live: false }
     }
 
-    pub fn arm(&mut self, root: [u8; 32], challenge: u32) {
+    pub(super) fn arm(&mut self, root: [u8; 32], challenge: u32) {
         self.root = root;
         self.challenge = challenge;
         self.live = true;
@@ -44,7 +44,7 @@ impl Pending {
     /// attempt per request rather than being able to sit and guess. Six digits
     /// is a million possibilities, which is ample against one try and nothing
     /// at all against a million.
-    pub fn redeem(&mut self, answer: u32) -> Option<[u8; 32]> {
+    pub(super) fn redeem(&mut self, answer: u32) -> Option<[u8; 32]> {
         if !self.live {
             return None;
         }

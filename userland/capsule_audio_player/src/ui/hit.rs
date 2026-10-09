@@ -29,35 +29,39 @@ pub enum Action {
     Ctl(Control),
     Select(usize),
     LibTab(usize),
-    RailTab(usize),
-    Playlist(usize),
-    Section(usize),
     ClearQuery,
+    /// Download the address in the Search field, and play it.
+    Download,
+    /// A Downloads row's button.
+    Fetched(u32, crate::fetch::list::Act),
+    ClearDownloads,
 }
 
-pub fn hit(
-    ui: &UiState,
-    dims: (u32, u32),
-    rows: &[usize],
-    n: usize,
-    x: i32,
-    y: i32,
-) -> Option<Action> {
+/// What a click can land on besides the window's fixed chrome.
+pub struct Lists<'a> {
+    /// The rows the current page shows, as library indices.
+    pub rows: &'a [usize],
+    pub queue: &'a [usize],
+    /// Tracks in the library.
+    pub n: usize,
+    pub downloads: &'a [crate::fetch::list::Row],
+}
+
+pub fn hit(ui: &UiState, dims: (u32, u32), l: &Lists, x: i32, y: i32) -> Option<Action> {
     let sh = shell(dims.0, dims.1);
     if sh.transport.contains(x, y) {
         return bar_hit(sh.transport, x, y);
     }
     if sh.sidebar.contains(x, y) {
-        if let Some(v) = chrome::nav_at(sh.sidebar, x, y) {
-            return Some(Action::Go(v));
-        }
-        return chrome::plist_at(sh.sidebar, x, y).map(Action::Playlist);
+        return chrome::nav_at(sh.sidebar, x, y).map(Action::Go);
     }
     if sh.rail.contains(x, y) {
-        if let Some(t) = chrome::rail_tab_at(sh.rail, x, y) {
-            return Some(Action::RailTab(t));
+        if let Some(c) = chrome::rail_control_at(sh.rail, x, y) {
+            return Some(Action::Ctl(c));
         }
-        return chrome::rail_queue_at(sh.rail, x, y).map(Action::Select);
+        // The track the row shows, not the row number: under shuffle the
+        // queue's order is not the library's.
+        return chrome::rail_queue_track_at(sh.rail, l.queue, x, y).map(Action::Select);
     }
     if chrome::search_clear(sh.topbar).contains(x, y) && !ui.query.is_empty() {
         return Some(Action::ClearQuery);
@@ -65,5 +69,5 @@ pub fn hit(
     if chrome::search_field(sh.topbar).contains(x, y) {
         return Some(Action::Go(View::Search));
     }
-    content_hit(ui, page(&sh), rows, n, x, y)
+    content_hit(ui, page(&sh), l, x, y)
 }

@@ -14,43 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The left navigation rail: brand, nav list, account footer. Only the rows
-//! with a document store behind them are painted live; the rest are sunk even
-//! when they hold the selection.
+//! The left navigation rail: the brand over the nav list. The account block
+//! that sat at its foot named a person ("Mehedi Hasan, Local Account") the
+//! machine knows nothing of; the editor has no accounts, so it is gone.
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::editor::widget::{nav_row_h, paint_navlist, NavStyle};
+use crate::editor::widget::{paint_navlist, NavStyle};
 
 use super::brand::paint_brand;
-use super::footer::paint_footer;
 use super::metrics::{nav_rect, rail_x, BODY, RAIL_W};
-use super::palette::{dim, LABEL, NAV_ACCENT, NAV_RING, RAIL_BG, RAIL_LINE, TITLE};
-use super::state::{HomeState, NAV_LABELS, NAV_LIVE};
+use super::palette::{LABEL, NAV_ACCENT, NAV_RING, RAIL_BG, RAIL_LINE, TITLE};
+use super::state::{HomeState, NAV_LABELS};
 
 pub(super) fn paint_rail(fb: &mut PaintBuffer, st: &HomeState) {
     let h = fb.height;
     fb.fill_rect(rail_x(), 0, RAIL_W - 1, h, RAIL_BG);
     fb.fill_rect(rail_x() + RAIL_W - 1, 0, 1, h, RAIL_LINE);
     paint_brand(fb);
-    paint_nav(fb, st);
-    paint_footer(fb, h);
-}
-
-fn paint_nav(fb: &mut PaintBuffer, st: &HomeState) {
-    let (x, y, w) = nav_rect();
-    let rh = nav_row_h(BODY);
-    for (i, label) in NAV_LABELS.iter().enumerate() {
-        let live = NAV_LIVE.get(i).copied().unwrap_or(false);
-        let style = NavStyle {
-            accent: if live { NAV_ACCENT } else { dim(NAV_ACCENT) },
-            ring: if live { NAV_RING } else { dim(NAV_RING) },
-            label: if live { LABEL } else { dim(LABEL) },
-            label_sel: if live { TITLE } else { dim(TITLE) },
-            radius: 9,
-            pad_x: 14,
-        };
-        let sel = if i == st.nav { 0 } else { usize::MAX };
-        paint_navlist(fb, (x, y + i as u32 * rh, w), &[*label], sel, BODY, &style);
-    }
+    let style = NavStyle {
+        accent: NAV_ACCENT,
+        ring: NAV_RING,
+        label: LABEL,
+        label_sel: TITLE,
+        radius: 9,
+        pad_x: 14,
+    };
+    paint_navlist(fb, nav_rect(), &NAV_LABELS, st.nav, BODY, &style);
 }

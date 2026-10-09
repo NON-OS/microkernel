@@ -16,28 +16,26 @@
 
 use alloc::vec::Vec;
 
+use super::brush::Brush;
 use super::raster::Raster;
 
 type P = [f32; 2];
 
-// Scanline fill of a set of subpaths already in device coordinates. Each
-// subpath closes implicitly. Crossings at the sample row carry a winding
-// direction so both fill rules evaluate from the same list.
-pub(super) fn fill_polys(r: &mut Raster, polys: &[Vec<P>], color: u32, evenodd: bool) {
-    if polys.is_empty() {
+/* Scanline fill of a set of subpaths already in device coordinates, over
+ * the rows of the raster's band. Each subpath closes implicitly. Crossings
+ * at the sample row carry a winding direction so both fill rules evaluate
+ * from the same list. */
+pub(super) fn fill_polys(r: &mut Raster, polys: &[Vec<P>], brush: &Brush, evenodd: bool) {
+    let (mut y_min, mut y_max) = (f32::MAX, f32::MIN);
+    for p in polys.iter().flatten() {
+        (y_min, y_max) = (y_min.min(p[1]), y_max.max(p[1]));
+    }
+    if y_min > y_max {
         return;
     }
-    // Only rows the geometry can touch.
-    let mut y_min = f32::MAX;
-    let mut y_max = f32::MIN;
-    for poly in polys {
-        for p in poly {
-            y_min = y_min.min(p[1]);
-            y_max = y_max.max(p[1]);
-        }
-    }
-    let y0 = (y_min as i32).max(0);
-    let y1 = ((y_max + 1.0) as i32).min(r.h as i32);
+    let (band0, band1) = r.rows();
+    let y0 = (y_min as i32).max(band0);
+    let y1 = ((y_max + 1.0) as i32).min(band1);
     let mut xs: Vec<(f32, i32)> = Vec::new();
     for y in y0..y1 {
         let sy = y as f32 + 0.5;
@@ -45,38 +43,28 @@ pub(super) fn fill_polys(r: &mut Raster, polys: &[Vec<P>], color: u32, evenodd: 
         for poly in polys {
             let n = poly.len();
             for i in 0..n {
-                let a = poly[i];
-                let b = poly[(i + 1) % n];
+                let (a, b) = (poly[i], poly[(i + 1) % n]);
                 if (a[1] <= sy) == (b[1] <= sy) {
                     continue;
                 }
                 let t = (sy - a[1]) / (b[1] - a[1]);
-                let x = a[0] + t * (b[0] - a[0]);
-                xs.push((x, if b[1] > a[1] { 1 } else { -1 }));
+                xs.push((a[0] + t * (b[0] - a[0]), if b[1] > a[1] { 1 } else { -1 }));
             }
         }
-        if xs.is_empty() {
-            continue;
-        }
-        xs.sort_by(|p, q| p.0.partial_cmp(&q.0).unwrap_or(core::cmp::Ordering::Equal));
-        let mut wind = 0i32;
-        let mut inside = false;
-        let mut span_start = 0f32;
+        xs.sort_by(|p, q| p.0.total_cmp(&q.0));
+        let (mut wind, mut inside, mut start) = (0i32, false, 0f32);
         for &(x, dir) in xs.iter() {
             let was = inside;
-            if evenodd {
-                inside = !inside;
-            } else {
-                wind += dir;
-                inside = wind != 0;
-            }
+            wind += dir;
+            inside = if evenodd { !was } else { wind != 0 };
             if !was && inside {
-                span_start = x;
+                start = x;
             } else if was && !inside {
-                let x0 = (span_start + 0.5) as i32;
-                let x1 = (x + 0.5) as i32;
+                let (x0, x1) = ((start + 0.5) as i32, (x + 0.5) as i32);
                 for px in x0.max(0)..x1.min(r.w as i32) {
-                    r.blend(px, y, color);
+                    if let Some(c) = brush.at(px, y) {
+                        r.blend(px, y, c);
+                    }
                 }
             }
         }

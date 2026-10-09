@@ -13,13 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use crate::dma::DmaRegion;
 use crate::protocol::{
     encode_response_header, write_status, Request, E_AGAIN, E_IO, INTERRUPT_IN_REPLY_PREFIX,
     RESP_HDR_LEN, STATUS_LEN,
 };
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
-use crate::slots::SlotResources;
 pub fn reply_pending(tx: &mut [u8], req: &Request) {
     let plen = (STATUS_LEN + INTERRUPT_IN_REPLY_PREFIX) as u32;
     encode_response_header(tx, req, plen);
@@ -28,19 +28,18 @@ pub fn reply_pending(tx: &mut [u8], req: &Request) {
     tx[o..o + INTERRUPT_IN_REPLY_PREFIX].fill(0);
     crate::server::reply::send(tx.as_ptr(), RESP_HDR_LEN + plen as usize);
 }
-pub fn reply_report(ctx: &mut Context, req: &Request, slot: u8, tx: &mut [u8], n: u16) {
+pub fn reply_report(ctx: &mut Context, req: &Request, slot: u8, dci: u8, tx: &mut [u8], n: u16) {
     let max_slots = ctx.driver.layout.max_slots;
     let res = match ctx.driver.slots.resources_mut(slot, max_slots) {
         Some(r) => r,
         None => return reply_with_status(tx, req, E_IO),
     };
-    emit_report(tx, req, res, n);
+    match res.interrupt_mut(dci) {
+        Some(ep) => emit_report(tx, req, &ep.buf, n),
+        None => reply_with_status(tx, req, E_IO),
+    }
 }
-fn emit_report(tx: &mut [u8], req: &Request, res: &SlotResources, n: u16) {
-    let buf = match res.int_buf.as_ref() {
-        Some(b) => b,
-        None => return reply_with_status(tx, req, E_IO),
-    };
+fn emit_report(tx: &mut [u8], req: &Request, buf: &DmaRegion, n: u16) {
     let count = n as usize;
     let plen = (STATUS_LEN + INTERRUPT_IN_REPLY_PREFIX + count) as u32;
     encode_response_header(tx, req, plen);

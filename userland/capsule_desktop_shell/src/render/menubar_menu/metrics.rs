@@ -21,7 +21,7 @@
 use super::items::{rows, title, TITLE_COUNT};
 use crate::render::measure_aa::{measure_aa, measure_aa_bold};
 use crate::render::topbar::brand_right;
-use crate::render::ui_font::{line_h, scale, MENU_PX, UI_PX};
+use crate::render::ui_font::{line_h, px, MENU_PX, UI_PX};
 use crate::state::Context;
 
 const PAD_X_LOGICAL: u32 = 10;
@@ -32,23 +32,23 @@ const INSET_LOGICAL: u32 = 4;
 const MIN_W_LOGICAL: u32 = 190;
 
 pub(super) fn pad_x() -> u32 {
-    PAD_X_LOGICAL * scale()
+    px(PAD_X_LOGICAL)
 }
 
 pub(super) fn row_pad_x() -> u32 {
-    ROW_PAD_X_LOGICAL * scale()
+    px(ROW_PAD_X_LOGICAL)
 }
 
 pub(super) fn pad_y() -> u32 {
-    PAD_Y_LOGICAL * scale()
+    px(PAD_Y_LOGICAL)
 }
 
 pub(super) fn inset() -> u32 {
-    INSET_LOGICAL * scale()
+    px(INSET_LOGICAL)
 }
 
 pub(super) fn row_h() -> u32 {
-    line_h(UI_PX) + ROW_LEAD_LOGICAL * scale()
+    line_h(UI_PX) + px(ROW_LEAD_LOGICAL)
 }
 
 /// The focused app's title is set in the bold face, so it has to be measured
@@ -67,9 +67,14 @@ pub(super) fn title_x(ctx: &Context, index: usize) -> u32 {
     x
 }
 
+/// Where the last title ends: the tray's labels start right of it.
+pub fn titles_right(ctx: &Context) -> u32 {
+    title_x(ctx, TITLE_COUNT)
+}
+
 pub(super) fn panel_w(ctx: &Context, index: usize) -> u32 {
     let widest = rows(ctx, index).iter().map(|row| measure_aa(row, UI_PX)).max().unwrap_or(0);
-    (widest + row_pad_x() * 2).max(MIN_W_LOGICAL * scale())
+    (widest + row_pad_x() * 2).max(px(MIN_W_LOGICAL))
 }
 
 pub(super) fn panel_h(ctx: &Context, index: usize) -> u32 {

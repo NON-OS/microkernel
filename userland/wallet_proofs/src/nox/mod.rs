@@ -31,3 +31,5 @@ pub mod q32_to_u128;
 #[allow(dead_code)]
 #[path = "../../../capsule_wallet_nonos/src/wallet/nox/stakeable.rs"]
 pub mod stakeable;
+#[path = "../../../capsule_wallet_nonos/src/wallet/nox/staking.rs"]
+pub mod staking;

@@ -28,7 +28,7 @@ pub use backend::{LogBackend, RamBufferBackend, RAM_BUF_SIZE};
 pub use helpers::{debug_simple, info_simple, log_error_simple, warn_simple};
 pub use manager::{
     clear_log_buffer, enter_panic_mode, get_log_entries, get_recent_logs, init, log, log_critical,
-    log_entry_count, try_get_logger, LogManager, LOGGER, PANIC_MODE,
+    log_entry_count, try_get_logger, wipe_ram_log, LogManager, LOGGER, PANIC_MODE,
 };
 pub use types::{LogEntry, Severity};
 

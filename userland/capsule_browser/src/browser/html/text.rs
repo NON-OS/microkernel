@@ -18,12 +18,12 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::browser::html::flow::{Flow, Style};
+use crate::browser::html::input::decode;
 
+/// A text/plain body as lines. Decoded the way a page is, so one byte that
+/// is not UTF-8 shows as U+FFFD instead of blanking the whole file.
 pub fn parse_text(body: &[u8]) -> Vec<Flow> {
-    let text = match core::str::from_utf8(body) {
-        Ok(s) => s,
-        Err(_) => return Vec::new(),
-    };
+    let text = decode(body);
     let mut out = Vec::new();
     for line in text.lines().take(512) {
         out.push(Flow::Text(String::from(line), Style::default()));

@@ -20,4 +20,13 @@ impl<'a> Output<'a> {
     pub fn feed_raw(&mut self, bytes: &[u8]) {
         self.sb.feed_raw(bytes);
     }
+
+    /// Answers the screen owes the program that wrote to it.
+    pub fn take_replies(&mut self) -> alloc::vec::Vec<u8> {
+        self.sb.vt.take_replies()
+    }
+
+    pub fn program_ended(&mut self) {
+        self.sb.program_ended();
+    }
 }

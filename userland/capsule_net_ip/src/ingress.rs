@@ -24,7 +24,7 @@
 use alloc::vec::Vec;
 
 use crate::icmp::try_reply as icmp_try_reply;
-use crate::ipv4::{parse as ipv4_parse, Ipv4Addr};
+use crate::ipv4::{parse as ipv4_parse, source_ok, Ipv4Addr};
 use crate::state::IFACE;
 
 #[derive(Clone)]
@@ -54,11 +54,17 @@ pub fn from_frame(frame: &[u8]) -> Result<Inbound, IngressError> {
     }
     let (hdr, payload) = ipv4_parse(&frame[14..]).map_err(|_| IngressError::BadIp)?;
     let local = *IFACE.ipv4.lock();
+    if !source_ok(&hdr.src, &local) {
+        return Err(IngressError::NotForUs);
+    }
     let broadcast = hdr.dst == [255, 255, 255, 255];
     if local != [0; 4] && hdr.dst != local && !broadcast {
         return Err(IngressError::NotForUs);
     }
-    if icmp_try_reply(&hdr.src, hdr.protocol, payload) {
+    // An echo request to the broadcast address is not answered: every host
+    // on the segment would reply to whatever source it named (RFC 1122
+    // 3.2.2.6 allows the silence, and current stacks keep it).
+    if !broadcast && icmp_try_reply(&hdr.src, hdr.protocol, payload) {
         return Err(IngressError::Absorbed);
     }
     #[cfg(feature = "tcp-chaos")]

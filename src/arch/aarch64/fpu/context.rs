@@ -28,5 +28,3 @@ impl FpSimdContext {
         Self { q: [0u128; 32], fpsr: 0, fpcr: 0, _pad: [0u32; 2] }
     }
 }
-
-pub const FP_SIMD_CONTEXT_BYTES: usize = core::mem::size_of::<FpSimdContext>();

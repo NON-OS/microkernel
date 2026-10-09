@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::string::String;
+use alloc::vec::Vec;
 
 use nonos_app_skeleton::clients::vfs::copy;
 
@@ -22,6 +23,7 @@ use super::refresh::refresh;
 use super::selection_acting::acting;
 use super::selection_clear::clear;
 use super::state::State;
+use super::undo::Op;
 
 // Copy the acting set (selection or cursor) into the current directory under a
 // non-colliding "(copy)" name, so an entry can be duplicated in place.
@@ -33,6 +35,7 @@ pub fn duplicate(state: &mut State) {
     }
     let pid = state.owner_pid;
     let mut failed = false;
+    let mut undo = Vec::new();
     for (full, is_dir) in &act {
         let src = full.trim_end_matches('/');
         let base = src.rsplit('/').next().unwrap_or("");
@@ -40,7 +43,14 @@ pub fn duplicate(state: &mut State) {
         let dest = alloc::format!("{}{}", state.prefix, name);
         if copy(pid, src.as_bytes(), dest.as_bytes(), *is_dir).is_err() {
             failed = true;
+        } else if *is_dir {
+            undo.push(Op::Rmdir { path: dest });
+        } else {
+            undo.push(Op::Unlink { path: dest });
         }
+    }
+    if let Some(op) = Op::group(undo) {
+        state.undo.push(op);
     }
     clear(state);
     refresh(state);

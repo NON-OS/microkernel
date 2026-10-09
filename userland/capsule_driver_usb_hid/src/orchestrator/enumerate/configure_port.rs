@@ -14,46 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use crate::xhci::{disable_slot, enable_slot, PortSnapshot};
 
-use crate::descriptors::hid_bindings;
-use crate::xhci::{
-    address_device, control_transfer, enable_slot, get_config_descriptor, PortSnapshot,
-};
+use super::bind::bind;
+use super::devices::Devices;
+use super::types::Outcome;
 
-use super::super::binding::configure_binding;
-use super::constants::DESC_LEN;
-use super::types::HidEndpoint;
-
-pub(super) fn configure_port(xhci_port: u32, snap: PortSnapshot, out: &mut Vec<HidEndpoint>) {
+/// Address the device on `snap`'s port and bind its HID interfaces or
+/// bring it up as a hub. A device this driver does not keep has its slot
+/// given back, so the class driver it belongs to can address it.
+pub(super) fn configure_port(xhci_port: u32, snap: PortSnapshot, devs: &mut Devices) -> Outcome {
     let Ok(slot) = enable_slot(xhci_port) else {
-        return;
+        return Outcome::Failed;
     };
-    let Ok(dev) = address_device(xhci_port, slot, snap.port_id) else {
-        return;
-    };
-    if dev.slot_id != slot
-        || dev.port_id != snap.port_id
-        || dev.speed == 0
-        || dev.max_packet_size == 0
-    {
-        return;
+    let outcome = bind(xhci_port, slot, snap, devs);
+    let kept = devs.holds(slot);
+    if !kept {
+        disable_slot(xhci_port, slot);
     }
-    let mut desc = [0u8; DESC_LEN as usize];
-    let Ok(len) = get_config_descriptor(xhci_port, slot, DESC_LEN, &mut desc) else {
-        return;
-    };
-    let Ok(bindings) = hid_bindings(&desc[..len]) else {
-        return;
-    };
-    if bindings.is_empty() {
-        return;
-    }
-    let mut dummy = [0u8; 0];
-    if control_transfer(xhci_port, slot, 0x00, 0x09, 1, 0, 0, &mut dummy).is_err() {
-        return;
-    }
-    for binding in bindings {
-        configure_binding(xhci_port, slot, binding, out);
+    match outcome {
+        Outcome::Bound if !kept => Outcome::Failed,
+        other => other,
     }
 }

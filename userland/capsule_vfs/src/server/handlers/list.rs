@@ -25,7 +25,7 @@ use crate::store::Store;
 // Reply body: concatenated `<u8 name_len><name bytes>` entries, capped
 // at MAX_LIST_BYTES.
 pub fn list(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
-    let (_pid, rest) = match split_caller(req.payload, sender_pid) {
+    let (pid, rest) = match split_caller(req.payload, sender_pid) {
         Ok(v) => v,
         Err(s) => return encode_response(OP_LIST, req.flags, req.request_id, s, &[]),
     };
@@ -43,6 +43,6 @@ pub fn list(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Ok(s) => s,
         Err(_) => return encode_response(OP_LIST, req.flags, req.request_id, EINVAL, &[]),
     };
-    let body: Vec<u8> = store.list(prefix, MAX_LIST_BYTES as usize);
+    let body: Vec<u8> = store.list(prefix, MAX_LIST_BYTES as usize, pid);
     encode_response(OP_LIST, req.flags, req.request_id, 0, &body)
 }

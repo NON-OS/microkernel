@@ -26,20 +26,19 @@ pub(super) fn feed_report(
     buf: &[u8; HID_REPORT_MAX],
     n: usize,
 ) {
+    // The read is bounded by the buffer; a count past it is no report.
+    let Some(report) = buf.get(..n) else { return };
     match ep.kind {
         HidKind::Keyboard => {
-            let mut report8 = [0u8; 8];
-            let copy_len = n.min(8);
-            report8[..copy_len].copy_from_slice(&buf[..copy_len]);
-            state.keyboard.feed(&report8);
+            state.keyboard.feed(report);
             state.key_reports = state.key_reports.wrapping_add(1);
         }
         HidKind::Mouse => {
-            state.mouse.feed(&buf[..n]);
+            state.mouse.feed(report);
             state.mouse_reports = state.mouse_reports.wrapping_add(1);
         }
         HidKind::Tablet => {
-            state.tablet.feed(&buf[..n]);
+            state.tablet.feed(report);
         }
     }
 }

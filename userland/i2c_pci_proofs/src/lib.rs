@@ -48,11 +48,17 @@ pub mod driver;
 #[cfg(test)]
 mod clock_tests;
 #[cfg(test)]
+mod doorbell_tests;
+#[cfg(test)]
 mod enable_state_tests;
+#[cfg(test)]
+mod lpss_tests;
 #[cfg(test)]
 mod mmio_tests;
 #[cfg(test)]
 mod model;
+#[cfg(test)]
+mod request_refusal_tests;
 #[cfg(test)]
 mod reset_tests;
 #[cfg(test)]
@@ -61,3 +67,5 @@ mod scl_count_tests;
 mod scl_tests;
 #[cfg(test)]
 mod target_tests;
+#[cfg(test)]
+mod unlisted_tests;

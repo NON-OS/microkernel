@@ -21,6 +21,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::layout::{content_w, content_x, ROW_H};
 use super::list_head::paint_head;
+use super::listing_state::empty_listing;
 use super::paint_row::row_body;
 use super::row_geom::{list_top, row_slots};
 use super::screen_row::empty_state;
@@ -32,12 +33,9 @@ pub fn paint_rows(state: &State, fb: &mut PaintBuffer) {
     let cw = content_w(fb.width);
     paint_head(state, fb, left, cw, state.row_top);
     if state.entries.is_empty() {
-        let note = if state.filter.is_empty() {
-            "This folder has nothing in it."
-        } else {
-            "No entry matches the current filter."
-        };
-        empty_state(fb, left, list_top(state) + 40, cw, "Nothing here", note);
+        let filtered = !state.filter.is_empty() || !state.tag_filter.is_empty();
+        let (head, note) = empty_listing(state.load_error, filtered);
+        empty_state(fb, left, list_top(state) + 40, cw, head, note);
         return;
     }
     for slot in row_slots(state) {

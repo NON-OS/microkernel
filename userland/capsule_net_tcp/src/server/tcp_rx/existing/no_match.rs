@@ -15,9 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::server::tcp_rx::action::RxAction;
-use crate::tcp::{Endpoint4, TcpHeader, FLAG_ACK, FLAG_RST, FLAG_SYN};
+use crate::tcp::{Endpoint4, TcpHeader, FLAG_ACK, FLAG_FIN, FLAG_RST, FLAG_SYN};
 
-pub fn no_match(local: Endpoint4, remote: Endpoint4, hdr: &TcpHeader, has_listener: bool) -> RxAction {
+/*
+ * With no ACK to answer, the reset acknowledges SEG.SEQ + SEG.LEN, the data
+ * and the SYN and FIN each counted (RFC 9293 3.10.7.1). A SYN carrying data
+ * (TCP Fast Open) is refused only by a reset that acknowledges all of it.
+ */
+pub fn no_match(
+    local: Endpoint4,
+    remote: Endpoint4,
+    hdr: &TcpHeader,
+    payload_len: usize,
+    has_listener: bool,
+) -> RxAction {
     if hdr.has_flag(FLAG_RST) {
         return RxAction::None;
     }
@@ -27,5 +38,7 @@ pub fn no_match(local: Endpoint4, remote: Endpoint4, hdr: &TcpHeader, has_listen
     if hdr.has_flag(FLAG_ACK) {
         return RxAction::Rst { local, remote, seq: hdr.ack, ack: 0 };
     }
-    RxAction::Rst { local, remote, seq: 0, ack: hdr.seq.wrapping_add(1) }
+    let flags = u32::from(hdr.has_flag(FLAG_SYN)) + u32::from(hdr.has_flag(FLAG_FIN));
+    let seg_len = (payload_len as u32).wrapping_add(flags);
+    RxAction::Rst { local, remote, seq: 0, ack: hdr.seq.wrapping_add(seg_len) }
 }

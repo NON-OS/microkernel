@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::map_block::map_block_error;
-use super::seal::seal;
+use super::write_deferred::write_deferred;
 use super::CryptoBlockError;
 
 pub fn write(key: &[u8; 32], lba: u64, plain: &[u8]) -> Result<(), CryptoBlockError> {
-    let sector = seal(key, lba, plain)?;
-    crate::hardware::block_device::write(lba, &sector).map_err(map_block_error)?;
-    crate::hardware::block_device::flush().map_err(map_block_error)
+    write_deferred(key, lba, plain)?;
+    super::pending::drain()?;
+    super::device::flush().map_err(map_block_error)
 }

@@ -17,16 +17,22 @@
 use nonos_libc::mk_time_millis;
 use smoltcp::time::Instant;
 
-use crate::device::budget;
-use crate::iface::dhcp;
+use crate::device::poll_window;
+use crate::iface::{dhcp, no_lease, relink};
 use crate::state;
 
 pub fn pump() {
-    budget::open_poll();
+    poll_window::open_poll();
+    crate::device::rx_batch::begin_poll();
     state::with_iface(|iface, sockets, device| {
+        /* What the last poll could not send goes before anything new. */
+        crate::device::tx_hold::flush(device.port);
         let now = Instant::from_millis(mk_time_millis());
         iface.poll(now, device, sockets);
+        state::reap(sockets);
     });
-    budget::close_poll();
+    poll_window::close_poll();
     dhcp::poll_event();
+    relink::check();
+    no_lease::check();
 }

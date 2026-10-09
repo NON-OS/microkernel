@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod attach_frames;
 mod attach_surface;
 mod descriptor;
+mod existing;
+mod map_frames;
+mod self_attach;
 mod share_surface;
 
 pub use attach_surface::attach_surface;

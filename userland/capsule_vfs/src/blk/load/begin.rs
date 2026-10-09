@@ -20,11 +20,11 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
-use super::super::client::{capacity, read_blocks};
+use super::super::client::{capacity, read_blocks, read_span};
 use super::super::error::BlkError;
 use super::super::store::{sector_span, STORE_BASE_LBA};
 use super::super::store_header::{entry_count, ENTRY_LEN, HEADER_LEN};
-use super::super::store_toc::decode;
+use super::super::store_toc::{decode, Window};
 use super::super::wire::SECTOR_SIZE;
 use super::types::Load;
 
@@ -40,8 +40,15 @@ impl Load {
         read_blocks(STORE_BASE_LBA, &mut head)?;
         let count = entry_count(&head)?;
         let mut toc = vec![0u8; sector_span(HEADER_LEN + ENTRY_LEN * count)];
-        read_blocks(STORE_BASE_LBA, &mut toc)?;
-        let toc = decode(&toc, count, capacity_bytes)?;
-        Ok(Load { toc, idx: 0, data: Vec::new(), staged: Vec::with_capacity(count) })
+        read_span(STORE_BASE_LBA, &mut toc)?;
+        let window = Window { base: STORE_BASE_LBA * SECTOR_SIZE as u64, end: capacity_bytes };
+        let toc = decode(&toc, count, window)?;
+        Ok(Load {
+            idx: 0,
+            data: Vec::new(),
+            staged: Vec::with_capacity(toc.entries.len()),
+            refused: toc.refused,
+            toc: toc.entries,
+        })
     }
 }

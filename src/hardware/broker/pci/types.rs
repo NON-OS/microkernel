@@ -34,6 +34,8 @@ pub struct PciReadRequest {
 pub enum WriteAction {
     Command(u16),
     MsixControl { offset: u16, value: u16 },
+    /// One of `quirk_bits`'s registers, its other bits as they were.
+    Bits { offset: u16, value: u16 },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

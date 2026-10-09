@@ -25,7 +25,10 @@ use crate::security::tpm::error::TpmError;
 ///
 /// # Safety
 /// The caller owns what the command means. This owns only the transport.
-pub unsafe fn transact(cmd: &[u8], out: &mut [u8]) -> Result<usize, TpmError> {
+pub(in crate::security::tpm) unsafe fn transact(
+    cmd: &[u8],
+    out: &mut [u8],
+) -> Result<usize, TpmError> {
     locality::probe()?;
     locality::acquire()?;
     // SAFETY: eK@nonos.systems - the register window is mapped and locality is

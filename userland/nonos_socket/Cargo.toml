@@ -9,4 +9,6 @@ license = "AGPL-3.0"
 crate-type = ["rlib"]
 
 [dependencies]
-nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+# The capsule that links this decides the heap and the panic hook: a std
+# capsule has its own, and two would not link.
+nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }

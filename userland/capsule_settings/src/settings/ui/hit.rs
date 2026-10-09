@@ -25,8 +25,13 @@ use super::walk::{walk, Item};
 /// What a click in the pane landed on. `Field` carries the row's index among the
 /// section's editable rows, so the caller can move the cursor there.
 pub enum Hit {
-    Field { index: usize, control: bool },
+    Field {
+        index: usize,
+        control: bool,
+    },
     Network(usize),
+    /// The "No networks found" row, whose "Scan" asks for one.
+    Scan,
     None,
 }
 
@@ -50,7 +55,17 @@ pub fn at(state: &State, x: i32, y: i32, scroll: u32, view_w: u32) -> Hit {
                 }
                 index += 1;
             }
+            Item::Wallpaper(_) => {
+                if inside {
+                    hit = Hit::Field { index, control: in_control(x, card_x, card_w) };
+                }
+                index += 1;
+            }
+            Item::Network(_) if inside && state.wifi_network_count == 0 => hit = Hit::Scan,
             Item::Network(i) if inside => hit = Hit::Network(i),
+            Item::Saved(i) if inside && i < state.wifi.saved_count => {
+                hit = Hit::Network(state.wifi_network_count + i)
+            }
             _ => {}
         }
     });

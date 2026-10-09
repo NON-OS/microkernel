@@ -16,10 +16,10 @@
 
 mod complete;
 mod decode;
-mod find_crlf;
+mod line;
 mod parse_hex;
+mod walk;
 
-pub use complete::complete;
-pub use decode::decode;
-pub use find_crlf::find_crlf;
-pub use parse_hex::parse_hex;
+pub use complete::{complete, frame_end};
+pub use decode::{decode, decode_partial};
+pub use line::line_end;

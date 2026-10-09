@@ -31,6 +31,8 @@ pub struct TcpHeader {
     pub ack: u32,
     pub flags: u8,
     pub window: u16,
+    /// The MSS option, when the segment carried a well formed one.
+    pub mss: Option<u16>,
 }
 
 impl TcpHeader {

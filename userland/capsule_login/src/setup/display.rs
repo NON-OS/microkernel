@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::nonos_display_dimensions;
+use crate::clients::compositor;
 
-pub(super) fn dimensions() -> Result<(u32, u32), &'static str> {
-    let mut width: u32 = 0;
-    let mut height: u32 = 0;
-    let rc = nonos_display_dimensions(0, &mut width as *mut u32, &mut height as *mut u32);
-    if rc != 0 || width == 0 || height == 0 {
-        return Err("display dimensions unavailable");
-    }
-    Ok((width, height))
+/// The canvas the overlay covers: the compositor's, which on a HiDPI panel
+/// is half the kernel's framebuffer each way. The kernel's size made the
+/// overlay twice the canvas there, and the lock card it centres fell
+/// outside it.
+pub(super) fn dimensions(compositor_port: u32) -> Result<(u32, u32), &'static str> {
+    compositor::display_info(compositor_port, 2)
 }

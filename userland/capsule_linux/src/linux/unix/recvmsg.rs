@@ -39,6 +39,8 @@ pub fn recvmsg(guest: &mut Guest, fd: u64, at: u64) -> u64 {
         super::give::place(guest, at, &block);
     }
     let bytes = guest.display.drain(len as usize);
+    /* Requests that waited for the client to read go on now that it has. */
+    crate::linux::wayland::serve(guest);
     if bytes.is_empty() {
         return errno::fail(errno::EAGAIN);
     }

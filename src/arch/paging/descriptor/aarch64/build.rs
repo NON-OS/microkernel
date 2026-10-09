@@ -64,10 +64,17 @@ const fn execute_never(user: bool, executable: bool) -> u64 {
 
 /// An entry pointing at the next level of table.
 ///
-/// The hierarchical attribute bits at 63:59 stay clear, so this level
-/// restricts nothing and the leaf decides. `user_accessible` is unused for
-/// that reason and taken only so both backends share a signature.
+/// A table built without `user_accessible` sets APTable[0] (bit 61), which takes
+/// EL0 access away from everything the walk reaches below it, whatever the leaves
+/// say. That is the aarch64 counterpart of a clear U/S bit on an x86_64 interior
+/// entry and it is the bit `table_grants_user` reads. The other hierarchical bits
+/// stay clear, so a user table restricts nothing and its leaves decide.
 #[inline]
-pub const fn table(pa: u64, _user_accessible: bool) -> u64 {
-    (pa & ADDR_MASK) | VALID | TABLE_OR_PAGE
+pub const fn table(pa: u64, user_accessible: bool) -> u64 {
+    let entry = (pa & ADDR_MASK) | VALID | TABLE_OR_PAGE;
+    if user_accessible {
+        entry
+    } else {
+        entry | APTABLE_NO_EL0
+    }
 }

@@ -21,21 +21,23 @@
 use super::error::WriteError;
 use super::receipt::Receipt;
 use crate::image::NonosImage;
-use crate::session::{Plan, Progress, Session};
+use crate::session::{Plan, Progress, Session, ENTROPY_BYTES};
 use crate::sink::BlockSink;
+use crate::store::StoreImage;
 
 /// Four MiB per step: a few hundred steps for the shipped image.
 const STEP_BYTES: usize = 4 << 20;
 
-/// `entropy` seeds the disk GUID, the partition GUID and the volume id.
+/// `entropy` seeds the disk GUID, the partition GUIDs and the volume id.
 pub fn install<'a>(
     sink: &mut dyn BlockSink,
     image: &NonosImage<'a>,
-    entropy: [u8; 36],
+    store: StoreImage,
+    entropy: [u8; ENTROPY_BYTES],
     progress: &mut dyn FnMut(u64),
 ) -> Result<Receipt<'a>, WriteError> {
     let total = sink.capacity_sectors()?;
-    let mut session = Session::new(Plan::new(total, image, entropy)?);
+    let mut session = Session::new(Plan::new(total, image, store, entropy)?);
     let mut last = 0u64;
     loop {
         match session.step(sink, STEP_BYTES)? {

@@ -17,7 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::chrome_card::Plate;
-use super::chrome_pill::{pill_r, pill_ink, PillState};
+use super::chrome_pill::{pill_ink, pill_r, PillState};
 use super::header_slots::{Slot, GLYPH_S, TOOL_H};
 use super::icon_draw::draw;
 use super::icon_path::Icon;
@@ -25,8 +25,7 @@ use super::theme::{HAIR, INK3, PANEL, R_CARD, TINT_BOT, TINT_TOP};
 
 /// The ground a group of adjacent controls shares, so the group reads as one
 /// track rather than as neighbouring buttons.
-const GROUND: Plate =
-    Plate::new(PANEL).radius(R_CARD).line(HAIR).tint(TINT_TOP, TINT_BOT);
+const GROUND: Plate = Plate::new(PANEL).radius(R_CARD).line(HAIR).tint(TINT_TOP, TINT_BOT);
 
 /// Vertical origin that centres a `size`-square glyph in the control band.
 pub fn glyph_y(y: u32, size: u32) -> u32 {
@@ -40,7 +39,7 @@ pub fn group_plate(fb: &mut PaintBuffer, first: &Slot, last: &Slot, y: u32) {
 
 /// A bare icon control drawn onto a ground someone else laid down. The active
 /// state raises its own inset plate, which is what makes a segmented toggle read
-/// as one track with a lit segment. A dimmed button is unwired and inert.
+/// as one track with a lit segment. A dimmed button has nothing to act on yet.
 pub fn icon_btn(fb: &mut PaintBuffer, slot: &Slot, y: u32, icon: Icon, on: bool, dim: bool) {
     let state = if on { PillState::Active } else { PillState::Idle };
     if on {

@@ -16,28 +16,22 @@
 
 use alloc::vec::Vec;
 
+use super::walk::{walk, Walk};
+
+/* The body of a complete chunked message, or None while it is cut short
+or when its framing is malformed. */
 pub fn decode(body: &[u8]) -> Option<Vec<u8>> {
     let mut out = Vec::new();
-    let mut i = 0usize;
-    while i < body.len() {
-        let line_end = i + super::find_crlf::find_crlf(&body[i..])?;
-        let size = super::parse_hex::parse_hex(&body[i..line_end])?;
-        i = line_end + 2;
-        if size == 0 {
-            if body.get(i..i + 2) == Some(b"\r\n") {
-                return Some(out);
-            }
-            return body[i..].windows(4).any(|w| w == b"\r\n\r\n").then_some(out);
-        }
-        if size > body.len().saturating_sub(i) {
-            return None;
-        }
-        out.extend_from_slice(&body[i..i + size]);
-        i += size;
-        if body.get(i..i + 2) != Some(b"\r\n") {
-            return None;
-        }
-        i += 2;
+    matches!(walk(body, Some(&mut out)), Walk::Done(_)).then_some(out)
+}
+
+/* The data received so far and whether the body is complete; None when
+the framing is malformed, which no further byte can repair. */
+pub fn decode_partial(body: &[u8]) -> Option<(Vec<u8>, bool)> {
+    let mut out = Vec::new();
+    match walk(body, Some(&mut out)) {
+        Walk::Done(_) => Some((out, true)),
+        Walk::Short => Some((out, false)),
+        Walk::Bad => None,
     }
-    None
 }

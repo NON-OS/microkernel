@@ -40,6 +40,7 @@ impl Transport {
                 self.pos_frames += (got / ch) as u64;
                 self.resampler.process(&self.scratch_src[..got], &mut self.scratch_out);
                 apply_volume(&mut self.scratch_out, self.volume_q15);
+                self.level = peak(&self.scratch_out);
             }
             let n = core::cmp::min(FEED_FRAMES * 2, self.scratch_out.len());
             match self.client.feed(&self.scratch_out[..n]) {
@@ -47,6 +48,14 @@ impl Transport {
                     self.scratch_out.drain(0..n);
                 }
                 Fed::WouldBlock => return,
+                // Paused, not stopped: a stop reads as the end of the track and
+                // would move the queue on, through every track, each failing
+                // the same way. The fault says why, and play tries again.
+                Fed::Failed(why) => {
+                    self.state = State::Paused;
+                    self.fault = Some(why);
+                    return;
+                }
             }
         }
     }
@@ -57,4 +66,9 @@ fn apply_volume(buf: &mut [i16], vol_q15: i32) {
         let scaled = ((*s as i32 * vol_q15) >> 15).clamp(i16::MIN as i32, i16::MAX as i32);
         *s = scaled as i16;
     }
+}
+
+/// The loudest sample in `buf`, as the row's level meter shows it.
+fn peak(buf: &[i16]) -> u16 {
+    buf.iter().map(|s| s.unsigned_abs()).max().unwrap_or(0).min(i16::MAX as u16)
 }

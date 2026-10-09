@@ -16,12 +16,13 @@ Runnable KATs / fuzz       the real primitives              "the primitives are 
 ```
 
 This is the difference from a Lean-only kernel: a model proof on its own has a
-model-implementation gap. Here each Lean theorem has a named counterpart proving
-the *code*:
+model-implementation gap. Each theorem in the table below has a named
+counterpart that checks the *code*. Many other modules have none: they are
+models only, level 3 in `REFINEMENT.md`, which lists which is which.
 
 | Lean theorem | Refined onto the code by |
 |---|---|
-| `AntiRollback.update_never_lowers_floor`, `no_rollback_after_boot` | `nonos-bootloader/boot_proofs` (runnable + Kani over all u64) |
+| `AntiRollback.update_never_lowers_floor`, `no_rollback_after_boot` | `nonos-bootloader/boot_proofs`: the loader's TPM floor read and raise against a TPM scripted to the specification (raise never lowers; an undefined counter reads above its old floor), `floor_rule` per profile; the same files on swtpm in `userland/tpm_enroll_proofs` |
 | `Capability.grant_adds` / `revoke_drops` / `attenuate_confines` | `verification/verus/src/capabilities.rs` (Verus over the bit ops) |
 | `Isolation.no_wx_page` | `userland/kernel_proofs` W^X (`to_pte_flags`, runnable + Kani) |
 | `Isolation.accepted_stays_in_user_space` | `userland/kernel_proofs` user-copy (`check_range`, runnable + Kani) |
@@ -79,4 +80,4 @@ cd verification/lean
 lake build          # 0 errors == all theorems verified
 ```
 
-The `lean` CI job runs this on every push.
+The `lean` jobs in `.github/workflows/verify.yml` and `.github/workflows/lean.yml` run this on pull requests and on pushes to `main` and `develop`.

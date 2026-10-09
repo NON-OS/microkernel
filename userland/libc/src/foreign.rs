@@ -18,8 +18,7 @@
 //! kernel refuses on its behalf.
 
 use crate::syscall::{
-    call_raw, N_MK_FOREIGN_EXEC, N_MK_FOREIGN_FORK, N_MK_FOREIGN_REPLY, N_MK_FOREIGN_SPAWN,
-    N_MK_FOREIGN_START,
+    call_raw, N_MK_FOREIGN_EXEC, N_MK_FOREIGN_REPLY, N_MK_FOREIGN_SPAWN, N_MK_FOREIGN_START,
     N_MK_FOREIGN_THREAD, N_MK_FOREIGN_WAIT,
 };
 
@@ -42,21 +41,18 @@ pub fn mk_foreign_resume(pid: u32) -> i64 {
     call_raw(N_MK_FOREIGN_START, [pid as u64, 0, 0, 0, 0, 0])
 }
 
-/// A second process holding a guest's register state, with zero in its return
-/// register.
-pub fn mk_foreign_fork(pid: u32) -> i64 {
-    call_raw(N_MK_FOREIGN_FORK, [pid as u64, 0, 0, 0, 0, 0])
-}
-
 /// Replace the program a parked guest is running.
 pub fn mk_foreign_exec(pid: u32, entry: u64, rsp: u64) -> i64 {
     call_raw(N_MK_FOREIGN_EXEC, [pid as u64, entry, rsp, 0, 0, 0])
 }
 
 /// A thread in a guest, sharing its address space. `tls` is the FS base
-/// it wakes with, which a C runtime reads before anything else.
-pub fn mk_foreign_thread(pid: u32, entry: u64, rsp: u64, tls: u64) -> i64 {
-    call_raw(N_MK_FOREIGN_THREAD, [pid as u64, entry, rsp, tls, 0, 0])
+/// it wakes with, which a C runtime reads before anything else. `from` is
+/// the guest thread parked in the call that asked for it, whose registers the
+/// new thread starts on, as a Linux clone child does; zero starts it on fresh
+/// ones.
+pub fn mk_foreign_thread(pid: u32, entry: u64, rsp: u64, tls: u64, from: u32) -> i64 {
+    call_raw(N_MK_FOREIGN_THREAD, [pid as u64, entry, rsp, tls, from as u64, 0])
 }
 
 /// Block until a guest of this process makes a call the kernel refuses,

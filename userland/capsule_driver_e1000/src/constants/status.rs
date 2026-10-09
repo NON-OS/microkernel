@@ -17,9 +17,14 @@
 pub const CTRL_LRST: u32 = 1 << 3;
 pub const CTRL_ASDE: u32 = 1 << 5;
 pub const CTRL_SLU: u32 = 1 << 6;
+pub const CTRL_FRCSPD: u32 = 1 << 11;
+pub const CTRL_FRCDPLX: u32 = 1 << 12;
 pub const CTRL_RST: u32 = 1 << 26;
 
+pub const STATUS_FD: u32 = 1 << 0;
 pub const STATUS_LU: u32 = 1 << 1;
+pub const STATUS_SPEED_SHIFT: u32 = 6;
+pub const STATUS_SPEED_MASK: u32 = 0x3 << STATUS_SPEED_SHIFT;
 
 pub const RCTL_EN: u32 = 1 << 1;
 pub const RCTL_BAM: u32 = 1 << 15;

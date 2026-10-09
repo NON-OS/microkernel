@@ -29,7 +29,7 @@ impl AdminQueue {
             stride,
             Submission::identify_controller(cid, self.identify.device_addr()),
         );
-        self.wait(regs, stride, cid)?;
+        self.wait(regs, stride, cid, "identify controller (CNS 01h)")?;
         Ok(unsafe {
             core::slice::from_raw_parts(self.identify.user_va() as *const u8, IDENTIFY_SLICE_BYTES)
         })

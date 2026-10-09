@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A directory or a file to write. Names are short names: up to eight
-//! characters, a dot, up to three, from the FAT short-name character set,
-//! in one case per part. The tree this crate writes is fixed and every
-//! name in it fits; one that does not is refused at write time, not
-//! guessed at.
+//! A directory or a file to write. A name that fits 8.3 in one case per
+//! part is written as a short name; any other is written as a long name
+//! beside a generated alias. One that is not a valid FAT name at all is
+//! refused at write time, not guessed at.
 
 use alloc::vec::Vec;
 
@@ -34,5 +33,11 @@ impl<'a> Node<'a> {
 
     pub fn file(name: &'a str, data: &'a [u8]) -> Node<'a> {
         Node::File { name, data }
+    }
+
+    pub fn name(&self) -> &'a str {
+        match self {
+            Node::Dir { name, .. } | Node::File { name, .. } => name,
+        }
     }
 }

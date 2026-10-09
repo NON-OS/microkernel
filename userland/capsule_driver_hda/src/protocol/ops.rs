@@ -23,3 +23,5 @@ pub const OP_PLAY_TONE: u16 = 6;
 pub const OP_WRITE_PCM: u16 = 7;
 pub const OP_STREAM_START: u16 = 8;
 pub const OP_STREAM_STOP: u16 = 9;
+/// What the machine's audio is: playing, or why not (`OutputStatus`).
+pub const OP_OUTPUT_STATUS: u16 = 10;

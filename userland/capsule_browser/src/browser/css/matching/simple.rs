@@ -15,39 +15,37 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::css::selector::Simple;
-use crate::browser::dom::Dom;
 
+use super::class::{classes_match, id_matches};
+use super::cost::lookup;
+use super::cx::Cx;
 use super::pseudo::pseudo_matches;
 
-pub fn matches_simple(dom: &Dom, id: usize, s: &Simple) -> bool {
-    let Some(node) = dom.nodes.get(id) else {
+/* One compound at one element: tag, id, classes, attributes, then the
+ * pseudo-classes, cheapest first so most candidates fail before any
+ * attribute is looked up. Only elements match. Each lookup and each value
+ * test is paid for, in bytes, before it runs. */
+pub(super) fn compound(cx: &Cx, id: usize, s: &Simple) -> bool {
+    let Some(node) = cx.element(id) else {
         return false;
     };
-    if let Some(t) = &s.tag {
-        if &node.tag != t {
-            return false;
-        }
+    if s.tag.as_ref().is_some_and(|t| node.tag != *t) {
+        return false;
     }
-    if let Some(want) = &s.id {
-        if node.attr("id") != Some(want.as_str()) {
-            return false;
-        }
+    if s.id_key != 0 && !id_matches(cx, id, node, s) {
+        return false;
     }
-    let classes = node.attr("class").unwrap_or("");
-    for c in &s.classes {
-        if !classes.split_whitespace().any(|x| x == c) {
-            return false;
-        }
+    if !classes_match(cx, id, node, s) {
+        return false;
     }
     for (name, test) in &s.attrs {
+        if !cx.charge(lookup(node)) {
+            return false;
+        }
         match node.attr(name) {
-            None => return false,
-            Some(have) => {
-                if !test.matches(have) {
-                    return false;
-                }
-            }
+            Some(have) if cx.charge(test.cost(have)) && test.matches(have) => {}
+            _ => return false,
         }
     }
-    s.pseudo.iter().all(|p| pseudo_matches(dom, id, p))
+    s.pseudo.iter().all(|p| pseudo_matches(cx, id, p))
 }

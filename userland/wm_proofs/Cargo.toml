@@ -4,7 +4,8 @@
 # Host-runnable proofs for the window manager's geometry primitives. Builds for
 # the host so `cargo test` exercises the real Rect hit-testing and the
 # clamp-to-display logic (included via #[path]) that click-to-raise window
-# switching and window placement depend on.
+# switching and window placement depend on, and the request header decode
+# every frame in the window manager's inbox passes through.
 [package]
 name = "wm_proofs"
 version = "0.3.0"

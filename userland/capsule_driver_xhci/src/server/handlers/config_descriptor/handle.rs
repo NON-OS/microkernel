@@ -19,6 +19,7 @@ use crate::controller::CONFIG_DESCRIPTOR_MAX;
 use crate::protocol::{Request, CONFIG_DESCRIPTOR_REQUEST_LEN, E_INVAL, E_IO};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
+use crate::server::handlers::recover::{recover_after, DCI_EP0};
 
 pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != CONFIG_DESCRIPTOR_REQUEST_LEN || body[0] == 0 || body[1] != 0 {
@@ -41,6 +42,9 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     out.zero();
     match transfer(ctx, body[0], &out, len) {
         Ok(actual) => reply_config(tx, req, &out, actual),
-        Err(_) => reply_with_status(tx, req, E_IO),
+        Err(e) => {
+            recover_after(ctx, body[0], DCI_EP0, e);
+            reply_with_status(tx, req, E_IO)
+        }
     }
 }

@@ -19,28 +19,21 @@ use super::icon_path::Icon;
 /// One action the selection band offers.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum SelAction {
-    Share,
     Move,
     Duplicate,
-    Compress,
     Tag,
     Delete,
     Clear,
 }
 
-/// The band's one table: the glyph, the label both the painter and the hit-test
-/// measure from, and whether this crate has a handler behind the action.
-///
-/// `Share` and `Compress` are `false`: the vfs client exposes no archive op and
-/// the capsule holds no identity or sharing channel, so neither can be wired
-/// without inventing a backend. They draw dimmed and say so when clicked, which
-/// is this crate's rule for an unwired control -- never a silent no-op.
-pub const ACTIONS: [(SelAction, Icon, &str, bool); 7] = [
-    (SelAction::Share, Icon::People, "Share", false),
-    (SelAction::Move, Icon::Forward, "Move", true),
-    (SelAction::Duplicate, Icon::Doc, "Duplicate", true),
-    (SelAction::Compress, Icon::Archive, "Compress", false),
-    (SelAction::Tag, Icon::Tag, "Tag", true),
-    (SelAction::Delete, Icon::Trash, "Delete", true),
-    (SelAction::Clear, Icon::Back, "Clear", true),
+/// The band's one table: the glyph and the label both the painter and the
+/// hit-test measure from. Every action here has a handler. There is no Share
+/// or Compress: the capsule holds no sharing channel and the vfs client no
+/// archive op, so those would be buttons that do nothing.
+pub const ACTIONS: [(SelAction, Icon, &str); 5] = [
+    (SelAction::Move, Icon::Forward, "Move"),
+    (SelAction::Duplicate, Icon::Doc, "Duplicate"),
+    (SelAction::Tag, Icon::Tag, "Tag"),
+    (SelAction::Delete, Icon::Trash, "Delete"),
+    (SelAction::Clear, Icon::Back, "Clear"),
 ];

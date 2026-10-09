@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const E_INVAL: i32 = -22;
+/// The sender may not reach the medium (`server::acl`).
+pub const E_ACCES: i32 = -13;
 pub const E_IO: i32 = -5;
 pub const E_MSGSIZE: i32 = -90;
 pub const E_NXIO: i32 = -6;

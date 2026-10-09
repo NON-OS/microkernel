@@ -139,6 +139,9 @@ pub(super) fn enumerate_all_buses() -> Vec<PciDevice> {
     for bus in 0..=255u8 {
         enumerate_bus(bus, &mut devices);
     }
+    // After segment 0, which holds the VMDs whose domains these are.
+    let behind_vmd = super::super::vmd::children(&devices);
+    devices.extend(behind_vmd);
 
     devices
 }

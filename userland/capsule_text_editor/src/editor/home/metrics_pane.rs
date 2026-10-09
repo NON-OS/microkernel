@@ -14,24 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Right-hand pane geometry: the content column, the search field, and the
-//! two-column split beneath it.
+//! Right-hand pane geometry: the content column, and the document list
+//! beneath the header.
 
-use super::metrics::{lh, pane_x, BODY, CARD_W, COL_GAP, HEAD, PANE_PAD, SEARCH_H, SUBHEAD};
+use super::metrics::{lh, pane_x, BODY, HEAD, PANE_PAD, SUBHEAD};
 
 pub(super) fn pane_content(w: u32) -> (u32, u32) {
     let x = pane_x() + PANE_PAD;
     (x, w.saturating_sub(x + PANE_PAD))
 }
 
-pub(super) fn search_rect(w: u32) -> (u32, u32, u32, u32) {
-    let (x, cw) = pane_content(w);
-    (x, PANE_PAD + lh(HEAD) + 4 + lh(BODY) + 18, cw, SEARCH_H)
-}
-
-pub(super) fn cols_y(w: u32) -> u32 {
-    let (_, y, _, h) = search_rect(w);
-    y + h + 26
+/// Top of the list's heading, below the title and its line.
+pub(super) fn cols_y(_w: u32) -> u32 {
+    PANE_PAD + lh(HEAD) + 4 + lh(BODY) + 30
 }
 
 pub(super) fn doc_row_h() -> u32 {
@@ -41,12 +36,7 @@ pub(super) fn doc_row_h() -> u32 {
 pub(super) fn docs_rect(w: u32) -> (u32, u32, u32) {
     let (x, cw) = pane_content(w);
     let y = cols_y(w) + lh(SUBHEAD) + 14;
-    (x, y, cw.saturating_sub(CARD_W + COL_GAP))
-}
-
-pub(super) fn card_x(w: u32) -> u32 {
-    let (x, cw) = pane_content(w);
-    x + cw.saturating_sub(CARD_W)
+    (x, y, cw)
 }
 
 pub(super) fn docs_list_rect(w: u32, h: u32, count: usize) -> (u32, u32, u32, u32) {

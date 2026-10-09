@@ -17,12 +17,13 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::draw::draw_line;
-use super::layout::{gap, line_height, Line};
+use super::layout::{line_height, Line};
+use super::scroll::{place, TOP};
 use super::theme;
 
-const TOP: i32 = 20;
-
-pub fn paint(fb: &mut PaintBuffer, lines: &[Line], error: Option<&'static str>) {
+/// Draws the lines wholly inside the window once the page is scrolled up by
+/// `scroll` pixels.
+pub fn paint(fb: &mut PaintBuffer, lines: &[Line], error: Option<&'static str>, scroll: u32) {
     fb.clear(theme::BG);
     fb.fill_rect(0, 0, fb.width, 4, theme::ACCENT);
     if let Some(message) = error {
@@ -30,18 +31,13 @@ pub fn paint(fb: &mut PaintBuffer, lines: &[Line], error: Option<&'static str>) 
         fb.text_ttf(theme::MARGIN, TOP + 26, "esc closes this window", theme::DIM, 13.0);
         return;
     }
-    let mut y = TOP;
-    let mut started = false;
-    for line in lines {
-        if line.lead && started {
-            y += gap(line.style);
+    let bottom = fb.height as i32;
+    place(lines, |top, line| {
+        let y = top - scroll as i32;
+        if y >= 0 && y + line_height(line.style) <= bottom {
+            draw_line(fb, line, y);
         }
-        let height = line_height(line.style);
-        if y + height > fb.height as i32 {
-            break;
-        }
-        draw_line(fb, line, y);
-        y += height;
-        started = true;
-    }
+    });
+    // A line scrolled up to the top edge is drawn under the accent band.
+    fb.fill_rect(0, 0, fb.width, 4, theme::ACCENT);
 }

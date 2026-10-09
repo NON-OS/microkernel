@@ -21,8 +21,12 @@ pub(in super::super) const CONTROLLER_INFO_PAYLOAD_LEN: usize = 52;
 pub(in super::super) const IDENTIFY_CONTROLLER_PAYLOAD_LEN: usize = 88;
 pub(in super::super) const IDENTIFY_NAMESPACE_PAYLOAD_LEN: usize = 36;
 pub(in super::super) const SMART_HEALTH_PAYLOAD_LEN: usize = 177;
-pub(in super::super) const SECTOR_SIZE: usize = 512;
-pub(in super::super) const MAX_SECTORS: u32 = 64;
-pub(in super::super) const MAX_RW_PAYLOAD_BYTES: u32 = MAX_SECTORS * SECTOR_SIZE as u32;
+// The capsule's data buffer, the most one read or write moves: 64 LBAs of
+// 512 bytes or 8 of 4096. The wire counts the namespace's own LBAs, never
+// 512-byte sectors; client::lba_map maps the block layer's sectors onto them.
+const DATA_BUFFER_SECTORS: u32 = 64;
+const DATA_BUFFER_SECTOR_BYTES: u32 = 512;
+pub(in super::super) const MAX_RW_PAYLOAD_BYTES: u32 =
+    DATA_BUFFER_SECTORS * DATA_BUFFER_SECTOR_BYTES;
 const _: () = assert!(MAX_RW_PAYLOAD_BYTES as usize > SMART_HEALTH_PAYLOAD_LEN);
 pub(in super::super) const MAX_PAYLOAD_BYTES: u32 = MAX_RW_PAYLOAD_BYTES;

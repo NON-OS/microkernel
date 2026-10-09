@@ -3,4 +3,5 @@ pub mod gif;
 pub mod jpeg;
 pub mod lz4_raw;
 pub mod png;
+pub mod scale;
 pub mod types;

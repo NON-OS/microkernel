@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT};
+use super::errnos::{ERRNO_FAULT, ERRNO_INVAL};
 use crate::usercopy::{read_user_bytes, validate_user_read};
 
 const MAX_NAME: usize = 48;
@@ -26,7 +26,15 @@ const MAX_ARGV: usize = 4096;
 /// through the existing `MkProcInput`/`MkProcOutput` path. `argv` is the tool's
 /// NUL-separated argument blob (`name\0arg1\0...`), empty for none. Returns the
 /// new tool's pid, or an errno. Only the baked set can be named, so a caller can
-/// never point this at an arbitrary binary.
+/// never point this at an arbitrary binary. `tool.linux` and `tool.qwen` are
+/// the exceptions that are not embedded tools. `tool.linux` is the Linux
+/// personality for the terminal's `linux` command, `argv` the command as typed.
+/// For `tool.qwen`, `argv` is a tier word from the allowlist in
+/// `capsule_linux/terminal/tier.rs` (empty for `small`) and the child is the Linux
+/// personality running that tier on the caller's terminal. Any other word
+/// is EINVAL, all terminal-run slots held is EBUSY. `window\0<tier>` checks
+/// the tier word against the same allowlist and queues that tier in its own
+/// desktop window, returning 0 (init starts it, so there is no pid yet).
 pub fn sys_tool_run(name_ptr: u64, name_len: u64, argv_ptr: u64, argv_len: u64) -> i64 {
     let nlen = name_len as usize;
     if nlen == 0 || nlen > MAX_NAME || validate_user_read(name_ptr, nlen).is_err() {
@@ -52,7 +60,7 @@ pub fn sys_tool_run(name_ptr: u64, name_len: u64, argv_ptr: u64, argv_len: u64) 
         }
     };
     match crate::userspace::tool_capsules::run_named(&name, &argv) {
-        Some(pid) => pid as i64,
-        None => ERRNO_NOENT,
+        Ok(pid) => pid as i64,
+        Err(errno) => errno,
     }
 }

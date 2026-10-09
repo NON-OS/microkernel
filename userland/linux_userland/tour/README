@@ -1,0 +1,18 @@
+The NONOS Linux tour: Linux programs on a capability microkernel, each one
+proved by its STARK trailer and publisher signature before any page of it
+runs. From the Terminal:
+
+  linux python3 /usr/share/nonos/tour/mandelbrot.py
+      the Mandelbrot set in 24-bit colour, two pixels to a character cell
+  linux python3
+      CPython 3.12, its standard library from /usr/lib/python312.zip
+  linux lua -e "print(_VERSION)"
+  linux zstd -b1
+      Zstandard's own benchmark
+  linux sh
+      a BusyBox shell; ls, vi, awk, grep, tar, wget and 300 more are there
+  linux john --test=0
+      John the Ripper's self-test; `linux john --wordlist=/usr/share/john/password.lst
+      HASHFILE` audits a password hash file. NONOS's own security toolset.
+  qwen
+      Qwen on this machine, once a tier is installed (qwen tiers, qwen get)

@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_toolkit::decorations::{frame_rect, radius, BORDER_PX, FRAME_BORDER, TRANSPARENT};
+use nonos_toolkit::decorations::{border_at, frame_rect_at, radius_at, FRAME_BORDER, TRANSPARENT};
 use nonos_toolkit::paint::radius::{clamp_radius, coverage};
 
 use crate::paint::PaintBuffer;
 
 pub(super) fn finish(fb: &mut PaintBuffer, maximized: bool) {
-    let r = radius(maximized);
+    let q = super::chrome::quarters();
+    let r = radius_at(maximized, q);
     if r == 0 {
         return;
     }
-    let f = frame_rect(fb.width, fb.height, maximized);
+    let f = frame_rect_at(fb.width, fb.height, maximized, q);
     let r = clamp_radius(f.w, f.h, r);
     if r == 0 {
         return;
@@ -45,5 +46,5 @@ pub(super) fn finish(fb: &mut PaintBuffer, maximized: bool) {
             }
         }
     }
-    fb.stroke_round(f.x, f.y, f.w, f.h, r, BORDER_PX, FRAME_BORDER);
+    fb.stroke_round(f.x, f.y, f.w, f.h, r, border_at(q), FRAME_BORDER);
 }

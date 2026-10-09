@@ -93,7 +93,7 @@ struct Parsed {
 
 // NONOSIMG trailer, 64 bytes at the end of the file: magic, version,
 // flags, then the kernel/signature/proof extents. Layout is
-// create_image_footer in nonos-bootloader/tools/embed-zk-proof.
+// create_image_footer in nonos-bootloader/tools/embed-trailer.
 fn parse(path: &Path) -> Option<Parsed> {
     let data = std::fs::read(path).ok()?;
     let foot = data.len().checked_sub(64)?;

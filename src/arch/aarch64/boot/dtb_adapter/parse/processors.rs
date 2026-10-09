@@ -22,7 +22,7 @@ use crate::arch::fdt::Fdt;
 /// is sized for the same number.
 const MAX_CPUS: usize = crate::arch::aarch64::boot::stack::MAX_CPUS;
 
-pub fn populate(fdt: &Fdt, info: &mut BootInfo) {
+pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) {
     let mut affinities = [0u64; MAX_CPUS];
     let Ok(n) = cpus::find(fdt, &mut affinities) else {
         return;

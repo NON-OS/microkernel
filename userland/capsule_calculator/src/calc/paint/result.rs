@@ -17,16 +17,16 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 
-use crate::calc::convert::{convert, list, Category};
-use crate::calc::format::{format, DISPLAY_MAX};
+use crate::calc::convert::{convert, list};
+use crate::calc::error_kind::ErrorKind;
+use crate::calc::format::{error_text, format, DISPLAY_MAX};
 use crate::calc::state::State;
-use crate::calc::theme::{AMBER, CYAN, ERROR, FAINT, LINE_2, PANEL};
+use crate::calc::theme::{CYAN, ERROR, FAINT, LINE_2, PANEL};
 use crate::calc::ui::convert_geom::result;
 use crate::calc::ui::metrics::{PX_BODY, R_PANEL};
 use crate::calc::ui::trim::trim;
 
 const LADDER: [f32; 3] = [34.0, 26.0, 17.0];
-const CAPTION: &str = "static rates - not live";
 const PAD: i32 = 14;
 
 fn fit(fb: &PaintBuffer, text: &str, budget: i32) -> f32 {
@@ -55,18 +55,16 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     fb.panel(x as u32, y as u32, w as u32, h as u32, R_PANEL as u32, PANEL, LINE_2);
-    let lh = line_height(PX_BODY).max(1);
     pair(state, fb, x + PAD, y + PAD, w / 3);
-    if state.cat == Category::Currency {
-        fb.text_ttf(x + PAD, y + h - PAD - lh, CAPTION, AMBER, PX_BODY);
-    }
     let mut buf = [0u8; DISPLAY_MAX];
     let (text, ink) = match convert(state.cat, state.from, state.to, state.display) {
         Some(value) => {
             let n = format(value, 0, &mut buf);
             (core::str::from_utf8(&buf[..n]).unwrap_or("0"), CYAN)
         }
-        None => ("Error", ERROR),
+        // The units are fixed tables, so the only way a conversion fails is a
+        // product past what the fixed point holds.
+        None => (error_text(ErrorKind::Overflow), ERROR),
     };
     let px = fit(fb, text, w / 2);
     let tx = x + w - PAD - fb.measure_ttf(text, px);

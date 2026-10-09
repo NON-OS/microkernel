@@ -22,5 +22,7 @@ mod ground;
 mod hue;
 mod motif_a;
 mod motif_b;
+pub mod picture;
+mod rungs;
 
 pub use cover::{cover, cover_scrimmed, tint};

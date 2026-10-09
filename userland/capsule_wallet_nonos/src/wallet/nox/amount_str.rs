@@ -27,6 +27,6 @@ pub fn amount_str<'a>(ready: bool, wei: &[u8; 32], buf: &'a mut [u8]) -> &'a str
     let Some(v) = q32_to_u128(wei) else {
         return "\u{2014}";
     };
-    let n = format_nox(v, buf);
+    let Some(n) = format_nox(v, buf) else { return "\u{2014}" };
     core::str::from_utf8(&buf[..n]).unwrap_or("\u{2014}")
 }

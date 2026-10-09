@@ -14,11 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_raw, N_MK_ATTEST_DOC, N_MK_ATTEST_ENTRIES, N_MK_ATTEST_STATUS};
+use crate::attest_policy::{parse_attest_policy, AttestPolicy, ATTEST_POLICY_LEN};
+use crate::syscall::{
+    call_raw, N_MK_ATTEST_DOC, N_MK_ATTEST_ENTRIES, N_MK_ATTEST_POLICY, N_MK_ATTEST_STATUS,
+    N_MK_LOG_TAIL,
+};
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 pub struct AttestStatus {
+    /// 0: no pass recorded. ZK_STARK: the loader checked the kernel's STARK
+    /// proof. ZK_PATH_ONLY: a development kernel, checked on its Merkle path
+    /// alone, as is every capsule it starts.
     pub zk_verified: u8,
     pub kernel_sig_ok: u8,
     pub secure_boot: u8,
@@ -27,8 +34,23 @@ pub struct AttestStatus {
     pub program_hash: [u8; 32],
 }
 
+pub const ZK_STARK: u8 = 1;
+pub const ZK_PATH_ONLY: u8 = 2;
+
 pub extern "C" fn mk_attest_status(out: *mut AttestStatus) -> i64 {
     call_raw(N_MK_ATTEST_STATUS, [out as u64, 0, 0, 0, 0, 0])
+}
+
+/// The roots, depths and epochs this machine's gates check against. Needs no
+/// capability: every value names the release, none the machine. `None` if the
+/// call failed or the record did not parse.
+pub fn mk_attest_policy() -> Option<AttestPolicy> {
+    let mut buf = [0u8; ATTEST_POLICY_LEN];
+    let rc = call_raw(N_MK_ATTEST_POLICY, [buf.as_mut_ptr() as u64, buf.len() as u64, 0, 0, 0, 0]);
+    if rc != ATTEST_POLICY_LEN as i64 {
+        return None;
+    }
+    parse_attest_policy(&buf)
 }
 
 /// Errno the kernel returns when it will not attest: no TPM, or a capsule
@@ -64,4 +86,12 @@ pub const ATTEST_ENTRY_LEN: usize = 45;
 /// refused without saying how short, so size for the whole registry.
 pub fn mk_attest_entries(out: &mut [u8]) -> i64 {
     call_raw(N_MK_ATTEST_ENTRIES, [out.as_mut_ptr() as u64, out.len() as u64, 0, 0, 0, 0])
+}
+
+/// The last of what the kernel wrote to its serial console, oldest first, as
+/// much as fits in `out`: the lines a serial cable would show, for a machine
+/// without a serial port. Needs AttestRead. Returns the bytes written, or a
+/// negative errno.
+pub fn mk_log_tail(out: &mut [u8]) -> i64 {
+    call_raw(N_MK_LOG_TAIL, [out.as_mut_ptr() as u64, out.len() as u64, 0, 0, 0, 0])
 }

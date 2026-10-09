@@ -17,5 +17,12 @@
 
 pub mod hex;
 
+/// The module tree net.nym's acknowledgement source names, so that source is
+/// compiled here unchanged. Proved in `tests/nym_ack_tests.rs`.
+#[cfg(test)]
+mod ack;
+#[cfg(test)]
+mod crypto;
+
 #[cfg(test)]
 mod tests;

@@ -35,6 +35,9 @@ pub fn query_acpi_hid(port: u32) -> Option<(u8, u16)> {
     tx[8..16].copy_from_slice(&request_id.to_le_bytes());
 
     let mut rx = [0u8; 64];
+    if !super::gate::may_call() {
+        return None;
+    }
     let got = mk_ipc_call_timeout(
         port as u64,
         tx.as_ptr(),
@@ -43,6 +46,7 @@ pub fn query_acpi_hid(port: u32) -> Option<(u8, u16)> {
         rx.len(),
         CALL_TIMEOUT_MS,
     );
+    super::gate::record(got);
     if got < MIN_REPLY as i64 {
         return None;
     }

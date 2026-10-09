@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Show a path's type and size.
+//! Show a path's kind, size, write bit and modification time: everything the
+//! vfs reports about it. `help stat` promised times; it printed none.
 
 use nonos_app_skeleton::clients::vfs;
 
@@ -30,14 +31,23 @@ pub fn stat(state: &mut State, argv: &[&[u8]]) {
     }
     let path = abspath(state, argv[1]);
     let owner = pid(state);
-    match vfs::stat(owner, &path) {
-        Ok((size, is_dir)) => {
+    match vfs::stat_full(owner, &path) {
+        Ok((size, is_dir, mtime, writable)) => {
             let mut line = alloc::vec::Vec::new();
             line.extend_from_slice(if is_dir { b"dir  " } else { b"file " });
             let mut num = [0u8; 20];
             let n = format_u64(size, &mut num);
             line.extend_from_slice(&num[..n]);
             line.extend_from_slice(if is_dir { b" entries  " } else { b" bytes  " });
+            line.extend_from_slice(if writable { b"writable  " } else { b"read-only  " });
+            // An mtime of zero is the vfs having no date, said as such.
+            if mtime == 0 {
+                line.extend_from_slice(b"no modification time  ");
+            } else {
+                line.extend_from_slice(b"modified ");
+                line.extend_from_slice(&super::ls_date::stamp(mtime));
+                line.extend_from_slice(b"  ");
+            }
             line.extend_from_slice(&path);
             Output::new(&mut state.scrollback).writeln(&line);
         }

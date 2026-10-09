@@ -19,10 +19,12 @@
 
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::manager::{map_page_in_asid, translate_in_asid};
+use crate::memory::paging::types::PagePermissions;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL};
 
-use super::peer_guard::{in_user_half, supervised_asid, MAX_SPAN, PAGE};
-use super::peer_map::perms_of;
+use super::peer_guard::{
+    in_user_half, supervised_asid, MAX_SPAN, PAGE, PROT_EXEC, PROT_NONE, PROT_WRITE,
+};
 
 fn span_ok(addr: u64, len: u64) -> bool {
     len != 0 && len <= MAX_SPAN && addr % PAGE == 0 && in_user_half(addr, len)
@@ -52,4 +54,22 @@ pub fn sys_peer_protect(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
         }
     }
     0
+}
+
+pub(super) fn perms_of(prot: u64) -> PagePermissions {
+    /*
+     * Not USER: present for the kernel, which copies it at fork and frees it
+     * at teardown, and absent for every access the guest makes.
+     */
+    if prot & PROT_NONE != 0 {
+        return PagePermissions::READ;
+    }
+    let mut perms = PagePermissions::READ | PagePermissions::USER;
+    if prot & PROT_WRITE != 0 {
+        perms = perms | PagePermissions::WRITE;
+    }
+    if prot & PROT_EXEC != 0 {
+        perms = perms | PagePermissions::EXECUTE;
+    }
+    perms
 }

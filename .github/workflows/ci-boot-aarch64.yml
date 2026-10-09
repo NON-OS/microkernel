@@ -1,0 +1,88 @@
+name: ci-boot-aarch64
+
+# Reusable aarch64 boot proof. Each cell builds one image through the make
+# target a developer runs, boots it under QEMU virt with a GICv3 and `-cpu max`,
+# and holds the serial log to that cell's claims with
+# scripts/check_aarch64_boot.py:
+#
+#   core               the core profile reaches [KSEC] 4/4, Core ready,
+#                      Entering userspace and [INIT] Starting, in that order,
+#                      with no trap, boot refusal or panic line on the way
+#   trap-sp0           an exception in the SP_EL0 vector group, taken with the
+#                      MMU off, prints one [TRAP] line whose ESR, saved SPSR,
+#                      SP and ELR are the ones the architecture defines for the
+#                      `brk #0x5350` the image carries
+#   trap-kernel-abort  a kernel read of an unmapped address, taken with the MMU
+#                      on, prints the trap contract's report with a same-EL data
+#                      abort, a level 0 translation fault and the address read
+#
+# The runner is x86_64, so QEMU emulates the CPU (TCG). A core boot reaches
+# [INIT] Starting in seconds, so the deadline only bounds a hung boot.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-boot-aarch64-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  boot-aarch64:
+    name: boot-aarch64 (${{ matrix.cell }})
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cell: trap-sp0
+            target: nonos-mk-arm-trap-sp0
+          - cell: trap-kernel-abort
+            target: nonos-mk-arm-trap-kernel-abort
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: ./.github/actions/nix-setup
+        with:
+          cache: ${{ vars.NONOS_CACHIX }}
+      - name: Prove the asserter rejects what it must
+        run: python3 scripts/check_aarch64_boot.py --self-test
+      - name: Provision a scratch signing key
+        # The fork dev seed signs the manifest; this lane proves the boot path,
+        # not the trust chain, and the image never leaves the runner.
+        run: bash nonos-ci/setup-signing-key.sh
+      - name: Build the ${{ matrix.cell }} image
+        run: make ${{ matrix.target }} SIGNING_KEY=.keys/signing_key_v1.bin
+      - name: Check the image is a loadable AArch64 kernel
+        run: python3 scripts/check_kernel_elf.py --arch aarch64 --elf target/aarch64-nonos/release/nonos-kernel
+      # The log goes under runner.temp, which starts empty in every job: a log
+      # left by an earlier run must never be what gets uploaded.
+      - name: Boot the ${{ matrix.cell }} cell
+        run: |
+          set -euo pipefail
+          mkdir -p "${{ runner.temp }}/boot-aarch64"
+          python3 scripts/check_aarch64_boot.py --cell ${{ matrix.cell }} \
+            --elf target/aarch64-nonos/release/nonos-kernel \
+            --log "${{ runner.temp }}/boot-aarch64/${{ matrix.cell }}.log" --deadline 300
+      - name: Upload the serial log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: boot-aarch64-${{ matrix.cell }}
+          path: ${{ runner.temp }}/boot-aarch64/${{ matrix.cell }}.log
+          retention-days: 14
+          if-no-files-found: error

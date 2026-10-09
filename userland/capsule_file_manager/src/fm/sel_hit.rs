@@ -52,10 +52,6 @@ pub fn band_click(state: &mut State, x: u32, y: u32) -> Option<EventOutcome> {
 // vfs client exposes rename within a directory and copy across one, and the
 // cut/paste pair is what already drives a cross-directory move.
 fn run(state: &mut State, slot: &SelSlot) -> EventOutcome {
-    if !slot.wired {
-        state.status = b"not available yet";
-        return EventOutcome::Repaint;
-    }
     match slot.action {
         SelAction::Move => yank(state, true),
         SelAction::Duplicate => duplicate(state),
@@ -67,7 +63,6 @@ fn run(state: &mut State, slot: &SelSlot) -> EventOutcome {
             clear(state);
             state.status = b"selection cleared";
         }
-        SelAction::Share | SelAction::Compress => {}
     }
     EventOutcome::Repaint
 }

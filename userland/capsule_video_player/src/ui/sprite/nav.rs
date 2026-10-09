@@ -14,21 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Sidebar destinations: home, library, playlists and files.
+//! Sidebar destinations: library and folders.
 
 use super::canvas::Sprite;
-use super::shape::tri;
-use super::stroke::line;
 use super::unit::{blank, frame, path, W};
-
-pub fn home(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    let t = m(W);
-    path(&mut s, &m, &[(14, 48), (50, 18), (86, 48)], t, rgb);
-    path(&mut s, &m, &[(24, 42), (24, 82), (76, 82), (76, 42)], t, rgb);
-    path(&mut s, &m, &[(38, 84), (38, 58), (62, 58), (62, 84)], t, rgb);
-    s
-}
 
 pub fn library(px: u32, rgb: u32) -> Sprite {
     let (mut s, m) = blank(px);
@@ -37,16 +26,6 @@ pub fn library(px: u32, rgb: u32) -> Sprite {
     frame(&mut s, &m, [58, 16, 84, 42], t, rgb);
     frame(&mut s, &m, [16, 58, 42, 84], t, rgb);
     frame(&mut s, &m, [58, 58, 84, 84], t, rgb);
-    s
-}
-
-pub fn playlist(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    let t = m(W);
-    line(&mut s, (m(14), m(22)), (m(86), m(22)), t, rgb);
-    line(&mut s, (m(14), m(46)), (m(86), m(46)), t, rgb);
-    line(&mut s, (m(14), m(70)), (m(46), m(70)), t, rgb);
-    tri(&mut s, [(m(62), m(56)), (m(62), m(84)), (m(88), m(70))], rgb);
     s
 }
 

@@ -21,6 +21,7 @@ mod signed;
 mod stake_data;
 mod unsigned;
 
+pub use fields::tx_fields;
 pub use signed::{
     signed_eth_transfer_tx, signed_nox_approve_tx, signed_nox_stake_approve_tx,
     signed_nox_stake_locked_tx, signed_nox_stake_tx, signed_nox_transfer_tx, signed_nox_unstake_tx,

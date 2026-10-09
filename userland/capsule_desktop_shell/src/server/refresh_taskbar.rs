@@ -15,13 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::compositor_client::push_damage_commit;
-use crate::render::layout::bottom_dock_rect;
+use crate::render::layout::dock_area_rect;
 use crate::render::paint_chrome;
 use crate::state::Context;
 
+/// Repaint the chrome and present the dock's whole area, panel and shadow
+/// (render/layout.rs dock_area_rect, through render/shadow_reach.rs), whether
+/// the dock is drawn there or the area was cleared to let the full-screen
+/// window under it show, so a hidden dock leaves no outline behind.
 pub fn refresh_taskbar(ctx: &mut Context) {
     paint_chrome(ctx);
-    let r = bottom_dock_rect(ctx.width, ctx.height);
+    let r = dock_area_rect(ctx.width, ctx.height);
     let rid = ctx.issue_request_id();
     let _ = push_damage_commit(ctx.compositor_port, rid, r.x, r.y, r.width, r.height);
+    ctx.taskbar.drawn = ctx.taskbar.visible;
 }

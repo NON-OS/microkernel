@@ -25,7 +25,10 @@ use crate::server::respond::reply;
 /// echoed back from the raw bytes because that is all that could be read.
 pub fn refuse(sender_pid: u32, raw: &[u8], errno: u16, tx: &mut [u8]) {
     if raw.len() < HDR_LEN {
-        // Too short to carry the fields a reply has to be addressed with.
+        // Too short to carry the magic, op and request id a reply echoes, so
+        // it is answered under zeros: the kernel routes the reply to the
+        // blocked caller by its pid, not by those fields.
+        let _ = reply(sender_pid, 0, 0, errno, 0, &[], tx);
         return;
     }
     let magic = u32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]]);

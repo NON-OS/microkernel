@@ -16,7 +16,6 @@
 
 use nonos_libc::mk_ipc_send;
 
-use crate::controller::ControllerInfo;
 use crate::protocol::{
     encode_response_header, write_status, Request, CODEC_MASK_PAYLOAD_LEN, KERNEL_REPLY_ENDPOINT,
     RESP_HDR_LEN,
@@ -24,8 +23,9 @@ use crate::protocol::{
 use crate::setup::Driver;
 
 pub fn handle(driver: &Driver, req: &Request, tx: &mut [u8]) {
-    let info = ControllerInfo::read(driver.regs);
-    let mask = info.statests & 0x7fff;
+    // STATESTS is cleared once read at reset, so the mask the reset saw is
+    // the one reported.
+    let mask = driver.codec_mask & 0x7fff;
     encode_response_header(tx, req, (4 + CODEC_MASK_PAYLOAD_LEN) as u32);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
     let o = RESP_HDR_LEN + 4;

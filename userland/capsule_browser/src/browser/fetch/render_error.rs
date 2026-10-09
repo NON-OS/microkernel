@@ -18,12 +18,19 @@ use alloc::vec::Vec;
 
 use crate::browser::html::flow::{Flow, Style};
 
+/*
+ * The reason is its own paragraph under a short heading: a certificate or
+ * TLS reason is a whole sentence, and as a heading it wrapped over half the
+ * page in bold.
+ */
 pub fn render_error(msg: &str) -> crate::browser::layout::doc::RenderDocument {
     let flows = Vec::from([
         Flow::Text(
-            alloc::format!("Navigation failed: {}", msg),
+            alloc::string::String::from("Navigation failed"),
             Style { heading: 2, bold: true, pre: false, color: 0, bg: 0 },
         ),
+        Flow::Break,
+        Flow::Text(alloc::string::String::from(msg), Style::default()),
         Flow::Break,
         Flow::Text(
             alloc::string::String::from(

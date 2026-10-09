@@ -14,22 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// Poly1305 state in radix 2^44: the accumulator `h` and the clamped key
+/// `r` as 44, 44 and 42-bit limbs, `pad` the second key half as two words.
 pub(crate) struct Poly1305 {
-    pub(super) h0: u32,
-    pub(super) h1: u32,
-    pub(super) h2: u32,
-    pub(super) h3: u32,
-    pub(super) h4: u32,
-    pub(super) r0: u32,
-    pub(super) r1: u32,
-    pub(super) r2: u32,
-    pub(super) r3: u32,
-    pub(super) r4: u32,
-    pub(super) s1: u32,
-    pub(super) s2: u32,
-    pub(super) s3: u32,
-    pub(super) s4: u32,
-    pub(super) s: [u8; 16],
+    pub(super) h: [u64; 3],
+    pub(super) r: [u64; 3],
+    pub(super) pad: [u64; 2],
     pub(super) buffer: [u8; 16],
     pub(super) buffer_len: usize,
 }

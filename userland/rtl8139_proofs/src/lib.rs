@@ -12,13 +12,31 @@
 //! any copy; it reaches the hardware through PIO and IRQ syscalls and so is
 //! not host-runnable, but every access it performs goes through the
 //! primitives proven here.
+//!
+//! The bring-up is here too, against a modelled part behind the port calls:
+//! one attempt either comes up or gives back every grant and the claim, so
+//! the next attempt can claim the card again.
 
 #[path = "../../capsule_driver_rtl8139/src/constants/mod.rs"]
 pub mod constants;
+pub mod init;
+#[path = "../../capsule_driver_rtl8139/src/pio.rs"]
+pub mod pio;
 #[path = "../../capsule_driver_rtl8139/src/protocol/mod.rs"]
 pub mod protocol;
 pub mod ring;
+/// The receive gate above the ring readers, run over a ring in host memory
+/// with the part's registers behind the port shim.
+#[path = "../../capsule_driver_rtl8139/src/rx/mod.rs"]
+pub mod rx;
+pub mod setup;
 
+#[cfg(test)]
+mod finish_tests;
+#[cfg(test)]
+mod part;
+#[cfg(test)]
+mod recv_tests;
 #[cfg(test)]
 mod rtl_tests;
 

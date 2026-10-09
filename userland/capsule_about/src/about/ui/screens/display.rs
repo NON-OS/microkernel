@@ -16,6 +16,8 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::about::data::display::virtio_announced;
+use crate::about::data::present;
 use crate::about::state::State;
 
 use super::super::card::{self, titled};
@@ -24,8 +26,6 @@ use super::super::kv::{kv, ROW_H};
 use super::super::metrics::{CARD_GAP, CARD_PAD, CHAIN_H};
 use super::{chain, display_surface};
 
-const BACKEND: &[u8] = b"compositor + driver.virtio_gpu";
-const PATH: [&[u8]; 3] = [b"capsule_about", b"compositor", b"driver.virtio_gpu"];
 const PATH_GAP: u32 = 14;
 const PATH_H: u32 = card::OVERHEAD + CHAIN_H + PATH_GAP + ROW_H;
 
@@ -41,10 +41,12 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
 }
 
 // The chain and the row under it are the same fact drawn twice: the hops the pixel
-// takes, then the backend string those hops add up to.
+// takes, then the backend string those hops add up to. Which path it is comes
+// from the same service lookup the compositor makes, asked as the card paints.
 fn path(fb: &mut PaintBuffer, y: i32, w: u32) {
     let top = titled(fb, 0, y, w, PATH_H, b"Present path");
-    chain::paint(fb, CARD_PAD, top, &PATH);
+    let way = present::path(virtio_announced());
+    chain::paint(fb, CARD_PAD, top, &way.hops);
     let row_y = top + (CHAIN_H + PATH_GAP) as i32;
-    kv(fb, CARD_PAD, row_y, card::inner(w), b"Backend", BACKEND, false);
+    kv(fb, CARD_PAD, row_y, card::inner(w), b"Backend", way.backend, false);
 }

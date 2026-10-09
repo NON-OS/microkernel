@@ -24,8 +24,9 @@ const REQ_LEN: usize = 8;
 
 // The desktop shell is allowed a keyboard grab for modal desktop editing (an
 // inline rename), which it releases as soon as the edit ends.
-const GRABBERS: [&[u8]; 4] =
-    [b"app.boot_splash", b"app.setup_wizard", b"app.input_probe", b"desktop_shell"];
+/* The installer holds it on an install boot, where it is the whole screen. */
+const GRABBERS: [&[u8]; 5] =
+    [b"app.boot_splash", b"app.setup_wizard", b"app.input_probe", b"desktop_shell", b"app.install"];
 
 fn is_trusted_grabber(sender_pid: u32) -> bool {
     GRABBERS.iter().any(|name| lookup_pid(name) == Some(sender_pid))

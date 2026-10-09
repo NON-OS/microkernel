@@ -24,3 +24,19 @@ pub const VAULT_PATH: &[u8] = b"/data/wallet.vault";
 
 /// The directory the file needs, created before the file if it is missing.
 pub const VAULT_DIR: &[u8] = b"/data";
+
+/* The recovery words, sealed to this machine by the keyring. */
+pub const WORDS_PATH: &[u8] = b"/data/wallet.words";
+
+/* Which further accounts of the phrase are in use, and which one is open.
+ * Not secret: it names account numbers, never keys or addresses. */
+pub const ACCOUNTS_PATH: &[u8] = b"/data/wallet.accounts";
+
+/* How the wallet came: one byte, 0 from recovery words, 1 from a private
+ * key. Not secret. Kept so a wallet whose words could not be read this boot
+ * is never taken for one that has none. */
+pub const KIND_PATH: &[u8] = b"/data/wallet.kind";
+
+/* The network picked: one byte, 0 mainnet, 1 Sepolia. Not secret. Kept so a
+ * wallet whose shield runs on Sepolia opens there again after a reboot. */
+pub const NETWORK_PATH: &[u8] = b"/data/wallet.network";

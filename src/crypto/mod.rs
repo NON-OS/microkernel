@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 pub mod application;
@@ -28,14 +27,8 @@ pub mod hash;
 pub mod pqc;
 pub mod pqclean_support;
 pub mod random_api;
-/// The transparent STARK stack now lives in the `nonos-stark` crate, shared with
-/// the bootloader so the kernel self-attestation is verified by identical code.
-/// Re-exported here so the rest of the kernel keeps addressing it unchanged.
-pub use nonos_stark as stark;
 pub mod symmetric;
 pub mod util;
-pub mod zk;
-pub mod zk_kernel;
 
 pub use asymmetric::ed25519;
 pub use error::{CryptoError, CryptoResult};

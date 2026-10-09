@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! RTL8821CE wifi driver, cold-start stage. This first stage claims the chip,
-//! maps its registers, runs the proven power-on sequence and reads the chip
-//! back, reporting on the boot console how far it got. The firmware download,
-//! MAC/PHY bring-up and RF calibration build on this once the chip is proven
-//! to answer on real silicon.
+//! RTL8821CE wifi driver. Start-up claims the chip, maps its registers, runs
+//! the power-on sequence and reads the chip back, reporting on the boot
+//! console how far it got. The firmware download (`fw`, `fwload`) and the
+//! MAC, PHY, scan, association and security code (`mac`, `phy`, `scan`,
+//! `assoc`, `sec`) run when the radio is brought up from `serve::radio`.
 
 #![no_std]
 #![no_main]
@@ -27,6 +27,7 @@ extern crate alloc;
 
 mod assoc;
 mod bringup;
+mod coex;
 mod constants;
 mod discover;
 
@@ -49,11 +50,13 @@ mod station;
 mod status;
 mod tx;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, start_driver, EXIT_ABSENT};
 
 use bringup::{probe, BringUp};
 use serve::Stage;
 use setup::Mapped;
+
+const DRIVER: &[u8] = b"driver.rtl8821ce";
 
 /// # Safety
 /// The capsule entry point. The runtime jumps here once, on a fresh stack, with
@@ -75,13 +78,18 @@ pub unsafe extern "C" fn _start() -> ! {
 /// stopping at the first step that fails and reporting how far it got. On a
 /// serial-less machine the returned stage is the only way to see this, surfaced
 /// through the panel's status request.
+///
+/// A machine without the chip is the one case that does not serve: the driver
+/// says so and leaves (`EXIT_ABSENT`) before claiming anything, since there is
+/// no stage to report. The claim and register map are retried on the shared
+/// bounded schedule, each failed try giving the claim back; running out serves
+/// `NotClaimed`, so the panel can still say why.
 fn bring_up() -> (Option<Mapped>, Stage) {
-    let mut mapped = match setup::run() {
+    let mut mapped = match start_driver(DRIVER, discover::find(), |dev| setup::run(*dev)) {
         Ok(m) => m,
-        Err(e) => {
-            status::line(b"[rtl8821ce] ");
-            status::line(e.as_bytes());
-            status::line(b"\n");
+        Err(EXIT_ABSENT) => mk_exit(EXIT_ABSENT),
+        Err(_) => {
+            status::line(b"[rtl8821ce] could not claim or map the chip\n");
             return (None, Stage::NotClaimed);
         }
     };
@@ -103,6 +111,13 @@ fn bring_up() -> (Option<Mapped>, Stage) {
     // link, and the chip carries its own enable that only the driver can clear.
     if !pcie::hold_link_awake(&mapped.regs) {
         status::line(b"[rtl8821ce] pcie link config did not answer\n");
+    }
+    // As rtw88 does for this chip: a late completion through VT-d must not
+    // time out and stall the card's DMA.
+    if pcie::disable_completion_timeout(mapped.device_id, mapped.claim_epoch) {
+        status::line(b"[rtl8821ce] pcie completion timeout disabled\n");
+    } else {
+        status::line(b"[rtl8821ce] pcie completion timeout left on: write refused\n");
     }
     // Read the board facts here, on a freshly powered MAC, which is where rtw88
     // takes them. Taken at the end of bring-up instead, after the firmware

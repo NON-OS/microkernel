@@ -51,7 +51,8 @@ pub(in crate::arch::aarch64) unsafe fn populate(affinities: &[u64]) {
     // SAFETY: the caller guarantees exclusive access, so writing the array is
     // not a data race, and `n` is clamped to both lengths.
     unsafe {
-        for (slot, affinity) in AFFINITIES.iter_mut().take(n).zip(source) {
+        let table = &mut *core::ptr::addr_of_mut!(AFFINITIES);
+        for (slot, affinity) in table.iter_mut().take(n).zip(source) {
             *slot = *affinity;
         }
     }

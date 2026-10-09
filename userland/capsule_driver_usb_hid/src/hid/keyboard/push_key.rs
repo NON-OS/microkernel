@@ -27,13 +27,27 @@ impl Keyboard {
         // is consumed here; no app has a use for that chord as input.
         if pressed && scancode == 0x2c && self.modifiers & 0x11 != 0 && self.modifiers & 0x04 != 0 {
             let _ = super::super::active::cycle();
+            // Held with no code: its release posts nothing either.
+            let _ = self.held.press(u32::from(scancode), 0);
+            self.repeat.release(scancode);
             return;
         }
+        if pressed {
+            self.repeat.press(scancode);
+        } else {
+            self.repeat.release(scancode);
+        }
+        self.post(scancode, pressed);
+    }
+
+    // Post one key event, a press or its repeat or a release, and keep it for
+    // the poll API.
+    pub(in crate::hid::keyboard) fn post(&mut self, scancode: u8, pressed: bool) {
         let ascii =
             if pressed { keymap::ascii(scancode, self.modifiers, self.caps_lock) } else { 0 };
         let event =
             KeyEvent { scancode, ascii, modifiers: self.modifiers, pressed, caps: self.caps_lock };
-        if !post_key::publish(event) {
+        if !post_key::publish(event, &mut self.held) {
             self.post_failures = self.post_failures.wrapping_add(1);
         }
         if self.events.len() < CAP {

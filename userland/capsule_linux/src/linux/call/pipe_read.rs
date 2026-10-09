@@ -21,7 +21,7 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::pipe_end::end_of;
+use super::pipe_end::{end_of, other_end_open};
 
 pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     let Some((slot, writable)) = end_of(guest, fd) else {
@@ -30,9 +30,16 @@ pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     if writable {
         return errno::fail(errno::EBADF);
     }
+    if len == 0 {
+        return errno::ok(0);
+    }
     let have = guest.pipes[slot].len();
     if have == 0 {
-        return errno::fail(errno::EAGAIN);
+        // Empty with no write end left anywhere is end of file.
+        return match other_end_open(guest, slot, false) {
+            true => errno::fail(errno::EAGAIN),
+            false => errno::ok(0),
+        };
     }
     let take = (len as usize).min(have);
     let bytes: alloc::vec::Vec<u8> = guest.pipes[slot].drain(..take).collect();

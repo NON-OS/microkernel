@@ -81,6 +81,17 @@ macro_rules! harnesses_for {
                 assert!(!d::is_block(entry));
                 assert_eq!(d::address(entry), pa & d::ADDR_MASK);
             }
+
+            /// For every address, an interior entry grants user access if and
+            /// only if it was built to. The walk and the usercopy check both
+            /// read this bit, so a table that granted by default would open
+            /// every subtree below it to user mode.
+            #[kani::proof]
+            fn tables_grant_user_exactly_when_asked() {
+                let pa: u64 = kani::any();
+                let user: bool = kani::any();
+                assert_eq!(d::table_grants_user(d::table(pa, user)), user);
+            }
         }
     };
 }

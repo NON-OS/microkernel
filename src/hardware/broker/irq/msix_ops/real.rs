@@ -18,15 +18,13 @@
 #![cfg(target_arch = "x86_64")]
 
 use crate::drivers::pci::config::ConfigSpace;
-use crate::drivers::pci::msi::{
-    configure_msix, disable_msix, enable_msix, mask_all_msix, mask_msix_vector, unmask_all_msix,
-    unmask_msix_vector,
-};
-use crate::drivers::pci::types::{MsixInfo, PciAddress, PciBar};
+use crate::drivers::pci::msi::{disable_msix, mask_all_msix, mask_msix_vector};
+use crate::drivers::pci::types::{MsiMessage, MsixInfo, PciAddress, PciBar};
 
 use super::super::types::IrqBindError;
 use super::mmio_zero::zero_table_entry;
 use super::ops::MsixOps;
+use super::program::program_run;
 
 struct RealMsixOps;
 
@@ -36,20 +34,9 @@ impl MsixOps for RealMsixOps {
         address: &PciAddress,
         msix: &MsixInfo,
         bars: &[PciBar; 6],
-        base_vector: u8,
-        count: usize,
-        dest_apic_id: u8,
+        messages: &[MsiMessage],
     ) -> Result<(), IrqBindError> {
-        let cfg = ConfigSpace::new(*address);
-        mask_all_msix(&cfg, msix).map_err(|_| IrqBindError::MsixProgramFailed)?;
-        enable_msix(&cfg, msix).map_err(|_| IrqBindError::MsixProgramFailed)?;
-        for i in 0..count {
-            let vector = i as u16;
-            configure_msix(&cfg, msix, bars, vector, base_vector + i as u8, dest_apic_id)
-                .map_err(|_| IrqBindError::MsixProgramFailed)?;
-            unmask_msix_vector(msix, bars, vector).map_err(|_| IrqBindError::MsixProgramFailed)?;
-        }
-        unmask_all_msix(&cfg, msix).map_err(|_| IrqBindError::MsixProgramFailed)
+        program_run(address, msix, bars, messages)
     }
 
     fn teardown_vector(

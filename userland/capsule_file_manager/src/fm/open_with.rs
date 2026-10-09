@@ -19,25 +19,16 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::discover::lookup_service;
 use nonos_app_skeleton::wire::call_status;
 
-use super::file_ext::ext;
-
 // Hand-synced with desktop_shell's protocol::{MAGIC, OP_OPEN_WITH} and
 // image_viewer's poll_open: keep all three identical.
 const NDSH: u32 = 0x4E44_5348;
 const OP_OPEN_WITH: u16 = 0x0007;
 
-pub fn is_codec_ext(path: &str) -> bool {
-    let e = ext(path);
-    e.eq_ignore_ascii_case("png")
-        || e.eq_ignore_ascii_case("jpg")
-        || e.eq_ignore_ascii_case("jpeg")
-        || e.eq_ignore_ascii_case("bmp")
-        || e.eq_ignore_ascii_case("gif")
-}
-
-pub fn open_image(path: &str) -> bool {
+/// Ask the shell to launch (or focus) the app behind `service` and hold `path`
+/// for it to take. False when the shell is not there or does not know the app.
+pub fn open_with(service: &str, path: &str) -> bool {
     let Some(shell) = lookup_service(b"desktop_shell") else { return false };
-    let svc = b"app.image_viewer";
+    let svc = service.as_bytes();
     let mut body = Vec::with_capacity(2 + svc.len() + path.len());
     body.extend_from_slice(&(svc.len() as u16).to_le_bytes());
     body.extend_from_slice(svc);

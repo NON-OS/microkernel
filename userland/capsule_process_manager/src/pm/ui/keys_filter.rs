@@ -30,15 +30,8 @@ pub const FILTERS: &[Binding] = &[
     Binding {
         key: b"k",
         codes: &[0x4B, 0x6B],
-        label: b"ask the selected process to stop, twice to confirm",
+        label: b"end the selected process now, twice to confirm",
         group: Group::Act,
         act: Act::Terminate,
-    },
-    Binding {
-        key: b"f",
-        codes: &[0x46, 0x66],
-        label: b"force it to stop, twice to confirm",
-        group: Group::Act,
-        act: Act::ForceKill,
     },
 ];

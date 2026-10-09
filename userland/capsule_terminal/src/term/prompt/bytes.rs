@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// The mark that opens an echoed command line.
+/// The mark between the prompt and the command, zsh's `%` for an ordinary user.
 ///
 /// The same mark `draw_prompt` puts in front of the line being typed, so what
 /// a command looked like while it was entered is what it looks like once it is
-/// history. It sits under the `user@host:path` line the block opens with.
-pub const PROMPT_BYTES: &[u8] = b"> ";
+/// history: one `user@host path % cmd` line opening the block.
+pub const PROMPT_BYTES: &[u8] = b"% ";

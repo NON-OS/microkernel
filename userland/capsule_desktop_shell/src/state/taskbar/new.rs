@@ -19,9 +19,16 @@ use super::types::{TaskbarState, TASKBAR_APP_MAX, TASKBAR_NO_ACTIVE};
 pub fn new_taskbar_state() -> TaskbarState {
     TaskbarState {
         open: [false; TASKBAR_APP_MAX],
+        windows: alloc::vec::Vec::new(),
         pulse_until_ms: [0; TASKBAR_APP_MAX],
         reveal_until_ms: 0,
         active: TASKBAR_NO_ACTIVE,
         visible: true,
+        full_screen: alloc::vec::Vec::new(),
+        revealed: false,
+        pointer_in_dock: false,
+        drawn: true,
+        window_open: true,
+        expecting: alloc::vec::Vec::new(),
     }
 }

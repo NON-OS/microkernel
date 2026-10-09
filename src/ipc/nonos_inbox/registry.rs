@@ -20,7 +20,8 @@
 //! at registration. `try_enqueue_strict` fails with `MissingInbox`
 //! if no row exists, with `DeadOwner` if the owner pid has fallen
 //! out of `PROCESS_TABLE`, and with `QueueFull` if the bounded
-//! queue is full. There is no auto-registration on the send/recv
+//! queue is full or the message does not fit the byte budget
+//! (`budget.rs`). There is no auto-registration on the send/recv
 //! paths. The only path that creates an inbox without an explicit
 //! pid is `register_or_get_bootstrap_inbox`, used by `capsule_spawn`
 //! to set up the kernel's reply inboxes (owner = 0 = kernel).
@@ -45,8 +46,8 @@ pub const MAX_INBOX_CAPACITY: usize = 65536;
 /// liveness-checked.
 pub const KERNEL_OWNER: u32 = 0;
 
-struct Registry {
-    map: BTreeMap<String, Arc<Inbox>>,
+pub(super) struct Registry {
+    pub(super) map: BTreeMap<String, Arc<Inbox>>,
 }
 
 impl Registry {
@@ -55,13 +56,13 @@ impl Registry {
     }
 }
 
-static REGISTRY: RwLock<Registry> = RwLock::new(Registry::new());
+pub(super) static REGISTRY: RwLock<Registry> = RwLock::new(Registry::new());
 static DEFAULT_CAP: AtomicUsize = AtomicUsize::new(DEFAULT_INBOX_CAPACITY);
-static GLOBAL_STATS: GlobalStats = GlobalStats::new();
+pub(super) static GLOBAL_STATS: GlobalStats = GlobalStats::new();
 
-struct GlobalStats {
+pub(super) struct GlobalStats {
     total_inboxes_created: AtomicU64,
-    total_inboxes_removed: AtomicU64,
+    pub(super) total_inboxes_removed: AtomicU64,
 }
 
 impl GlobalStats {
@@ -139,36 +140,35 @@ pub fn unregister_inbox(module: &str) -> Option<usize> {
     }
 }
 
-/// Drop the canonical per-process inbox `proc.{pid}` for a dying
-/// capsule. Called from `process::exit::teardown`. Reply inboxes
-/// (`endpoint.<u64>`) are kernel-owned and intentionally left alone
-/// so a respawn reuses them; stale replies are filtered by the
-/// transport's generation re-check.
-pub fn unregister_for_pid(pid: u32) -> Option<usize> {
-    use alloc::format;
-    let module = format!("proc.{}", pid);
-    let mut reg = REGISTRY.write();
-    if let Some(inbox) = reg.map.remove(module.as_str()) {
-        GLOBAL_STATS.total_inboxes_removed.fetch_add(1, Ordering::Relaxed);
-        Some(inbox.len())
-    } else {
-        None
-    }
-}
-
 /// Strict enqueue. The inbox must exist; if its owner is not
 /// `KERNEL_OWNER`, that pid must still be in `PROCESS_TABLE`. No
 /// auto-registration. The owner liveness check covers the race
 /// where exit teardown unregisters the endpoint+inbox between a
 /// caller's `lookup_service` and the enqueue.
 pub fn try_enqueue_strict(module: &str, msg: IpcMessage) -> Result<(), StrictEnqueueError> {
+    let owner = REGISTRY.read().map.get(module).ok_or(StrictEnqueueError::MissingInbox)?.owner();
+    // A zombie stays in the table until its tables are freed; it reads no
+    // more mail, so it is dead to a sender as it is to `sys_pid_alive`. The
+    // state is read with the registry unlocked, so no lock is held across both.
+    if owner != KERNEL_OWNER && !owner_lives(owner) {
+        return Err(StrictEnqueueError::DeadOwner);
+    }
     let reg = REGISTRY.read();
     let inbox = reg.map.get(module).ok_or(StrictEnqueueError::MissingInbox)?;
-    let owner = inbox.owner();
-    if owner != KERNEL_OWNER && crate::process::get_process_table().find_by_pid(owner).is_none() {
+    if inbox.owner() != owner {
         return Err(StrictEnqueueError::DeadOwner);
     }
     inbox.try_enqueue(msg).map_err(StrictEnqueueError::QueueFull)
+}
+
+fn owner_lives(pid: u32) -> bool {
+    use crate::process::nonos_core::ProcessState;
+    match crate::process::get_process_table().find_by_pid(pid) {
+        Some(pcb) => {
+            !matches!(*pcb.state.lock(), ProcessState::Zombie(_) | ProcessState::Terminated(_))
+        }
+        None => false,
+    }
 }
 
 /// Dequeue without auto-registration. Returns `None` if no inbox is

@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec::Vec;
+
+use crate::command::builtin::tool::TOOLS;
+use crate::command::builtin::tool_list::tool_list;
 use crate::command::output::Output;
 
 pub fn run(out: &mut Output<'_>) {
@@ -28,7 +32,8 @@ pub fn run(out: &mut Output<'_>) {
     out.writeln(b"  rm (del) <path>  remove a file or empty dir");
     out.writeln(b"  mv (move) <a> <b> move or rename");
     out.writeln(b"  stat <path>      metadata");
-    out.writeln(b"  caps             running capsules");
+    out.writeln(b"  caps             running capsules and their capabilities");
+    out.writeln(b"  ps               the process table");
     out.writeln(b"  svc <name>       resolve a service");
     out.writeln(b"  id               identity");
     out.writeln(b"  sys              version and identity");
@@ -44,10 +49,14 @@ pub fn run(out: &mut Output<'_>) {
     out.writeln(b"  http (curl) <url> fetch a URL (http example.com | http 1.1.1.1)");
     out.writeln(b"  nslookup <host>  resolve a host via DNS");
     out.writeln(b"  ifconfig (ip)    network interface and lease");
-    out.writeln(b"  kill <pid> [sig] terminate a capsule (caps lists pids)");
+    out.writeln(b"  kill <pid|name>  end a capsule by pid or name (caps lists them)");
     out.writeln(b"  uptime           time since boot");
     out.writeln(b"  battery (bat)    charge percentage");
-    out.writeln(b"  sd / tokio-smoke bundled crates.io tools, run by name");
+    // The tools this image runs, from the table that runs them: a fixed
+    // line here once named two that the standard image does not carry.
+    let mut tools = Vec::from(&b"  tools            "[..]);
+    tools.extend_from_slice(&tool_list(TOOLS));
+    out.writeln(&tools);
     out.writeln(b"  display          display info");
     out.writeln(b"  history          command history");
     out.writeln(b"  motd             banner");
@@ -57,13 +66,13 @@ pub fn run(out: &mut Output<'_>) {
     out.writeln(b"");
     out.writeln(b"  any command > file    write output to a file");
     out.writeln(b"  any command >> file   append output to a file");
-    out.writeln(b"  cmd | grep [-i][-v] p keep (or with -v drop) matching lines");
+    out.writeln(b"  cmd | grep [-cinv] p  keep (-v drop) matching lines; -n number, -c count");
     out.writeln(b"  cmd | sort            sort lines");
     out.writeln(b"  cmd | uniq            drop repeated adjacent lines");
     out.writeln(b"  cmd | nl              number lines");
-    out.writeln(b"  cmd | wc              count lines");
-    out.writeln(b"  cmd | head [n]        first n lines (default 10)");
-    out.writeln(b"  cmd | tail [n]        last n lines (default 10)");
+    out.writeln(b"  cmd | wc [-l -w -c]   count lines, words and bytes");
+    out.writeln(b"  cmd | head [-n] [n]   first n lines (default 10)");
+    out.writeln(b"  cmd | tail [-n] [n]   last n lines (default 10)");
     out.writeln(b"  a ; b                 run a then b");
     out.writeln(b"  a && b                run b only if a succeeds");
     out.writeln(b"  a || b                run b only if a fails");

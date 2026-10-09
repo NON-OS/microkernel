@@ -18,6 +18,12 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 
 pub const MAX_HANDLES: usize = 1024;
+/// The most handles one owner holds open, so no one caller can take every
+/// handle from the rest, the kernel's /ram files among them.
+pub const PER_OWNER: usize = MAX_HANDLES / 2;
+/// The owner the kernel's own requests carry: every process's /ram file is
+/// opened through it.
+const KERNEL: u32 = 0;
 
 struct Handle {
     path: String,
@@ -35,7 +41,7 @@ impl HandleTable {
     }
 
     pub fn insert(&mut self, path: String, owner_pid: u32) -> Option<u64> {
-        if self.table.len() >= MAX_HANDLES {
+        if self.is_full() || self.held_by(owner_pid) >= PER_OWNER {
             return None;
         }
         let id = self.next_id;
@@ -61,6 +67,28 @@ impl HandleTable {
                 Ok(())
             }
         }
+    }
+}
+
+impl HandleTable {
+    /// Whether no handle can be opened for anyone.
+    pub fn is_full(&self) -> bool {
+        self.table.len() >= MAX_HANDLES
+    }
+
+    /// How many handles `owner_pid` holds open.
+    pub fn held_by(&self, owner_pid: u32) -> usize {
+        self.table.values().filter(|h| h.owner_pid == owner_pid).count()
+    }
+
+    /// Close every handle whose owner `alive` says has ended, and say how many
+    /// were closed. Only the owner (or the kernel) closes a handle, so a caller
+    /// that ended without closing held its handles for good. The kernel's own
+    /// are never taken: mk_pid_alive does not name pid 0 as alive.
+    pub fn close_ended(&mut self, alive: impl Fn(u32) -> bool) -> usize {
+        let before = self.table.len();
+        self.table.retain(|_, h| h.owner_pid == KERNEL || alive(h.owner_pid));
+        before.saturating_sub(self.table.len())
     }
 }
 

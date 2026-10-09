@@ -15,48 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! The descriptors in a control block.
+//! The descriptors in a control block, read out of the guest and walked by
+//! `cmsg`, which the host proofs hold.
 
 use alloc::vec::Vec;
 
 use crate::linux::guest::Guest;
 
-use super::msg::u64le;
+/// The most control data one message carries here: room for SCM_MAX_FD
+/// descriptors and a header or two besides.
+const MOST: u64 = 1024;
 
-/// struct cmsghdr: len, level, type, then the data.
-const CMSG_DATA: usize = 16;
-const SOL_SOCKET: u32 = 1;
-const SCM_RIGHTS: u32 = 1;
-
-/// Every descriptor in an SCM_RIGHTS block. Anything else in the control
-/// data is skipped rather than guessed at.
+/// Every descriptor in the message's SCM_RIGHTS blocks, none if the control
+/// data cannot be read.
 pub(super) fn rights(guest: &Guest, at: u64, len: u64) -> Vec<u32> {
-    let mut out = Vec::new();
-    let Some(raw) = guest.read(at, len.min(1024) as usize) else {
-        return out;
-    };
-    let mut off = 0usize;
-    while off + CMSG_DATA <= raw.len() {
-        let size = u64le(&raw, off) as usize;
-        let level = u32le(&raw, off + 8);
-        let kind = u32le(&raw, off + 12);
-        if size < CMSG_DATA || off + size > raw.len() {
-            break;
-        }
-        if level == SOL_SOCKET && kind == SCM_RIGHTS {
-            let mut at = off + CMSG_DATA;
-            while at + 4 <= off + size {
-                out.push(u32le(&raw, at));
-                at += 4;
-            }
-        }
-        off += (size + 7) & !7;
+    match guest.read(at, len.min(MOST) as usize) {
+        Some(raw) => super::cmsg::rights(&raw),
+        None => Vec::new(),
     }
-    out
-}
-
-fn u32le(b: &[u8], at: usize) -> u32 {
-    let mut w = [0u8; 4];
-    w.copy_from_slice(&b[at..at + 4]);
-    u32::from_le_bytes(w)
 }

@@ -30,6 +30,7 @@ pub mod msi;
 pub mod security;
 pub mod stats;
 pub mod types;
+pub mod vmd;
 
 pub use api::{
     add_device_to_blocklist, clear_device_blocklist, get_pci_stats_tuple, pci_read_config32,
@@ -79,6 +80,3 @@ pub use types::{
     BridgeInfo, ClassCode, DeviceId, HeaderType, MsiInfo, MsiMessage, MsixInfo, PciAddress, PciBar,
     PciCapability, PciDevice, PcieCapability, PcieDeviceType, PcieInfo, PowerManagementInfo,
 };
-
-#[cfg(target_arch = "x86_64")]
-pub use crate::arch::x86_64::pci::PciStats as LegacyPciStats;

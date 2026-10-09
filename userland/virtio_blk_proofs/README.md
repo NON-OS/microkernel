@@ -5,6 +5,9 @@ real driver source is included through `#[path]` and run on the host.
 
 ## No shims, and no device memory
 
+The crate depends only on `nonos_virtio`, because the driver state holds the
+modern transport's register regions.
+
 The request parsers take the driver state by reference, so the proofs build a
 real `Driver` value: the true struct from the driver source, holding a real
 `Queue` whose pointers are null and a `Regs` made with the real constructor.
@@ -29,6 +32,18 @@ declared payload length.
 This completes the block-driver set: the same isolation property is proven
 for AHCI in `driver_proofs` and for NVMe in `nvme_proofs`.
 
+## The medium rule
+
+`server/acl/rule.rs` is included as it ships: every op but the health check
+answers only the kernel's client (sender pid 0) or a sender the kernel says
+holds `StoreWrite`. A Kani harness proves that over every op, sender and
+answer.
+
+## Modern capacity read
+
+`capacity_tests` runs the modern-transport capacity read and refuses a device
+region too short to hold the capacity.
+
 ## Field readers and the wire header
 
 The bounds-checked little-endian readers behind the parsers return `None`
@@ -41,5 +56,8 @@ its wire offset. Kani proves both over all inputs within their bounds.
 ```sh
 cd userland/virtio_blk_proofs
 cargo test --release
-cargo kani                # all-input bounds and framing (requires Kani)
+cargo kani                # bounds, framing, readers, header, medium rule (requires Kani)
 ```
+
+See [drivers](../../docs/handbook/drivers.md) and
+[proofs](../../docs/handbook/verification/proofs.md).

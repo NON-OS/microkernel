@@ -16,6 +16,9 @@
 
 use crate::syscall::{call_raw, N_MK_BATTERY_STATUS};
 
+/// Battery charge 0..=100, `-19` (ENODEV) when the firmware declares no
+/// battery, or another negative errno when a battery exists but its charge
+/// cannot be read.
 pub extern "C" fn mk_battery_status() -> i64 {
     call_raw(N_MK_BATTERY_STATUS, [0; 6])
 }

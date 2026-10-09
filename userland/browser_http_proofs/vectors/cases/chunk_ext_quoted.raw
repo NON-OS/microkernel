@@ -1,0 +1,20 @@
+HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+
+7;n="a;b"
+<!docty
+7;n="a;b"
+pe html
+7;n="a;b"
+><title
+7;n="a;b"
+>t</tit
+7;n="a;b"
+le><p>c
+7;n="a;b"
+afé ok
+5;n="a;b"
+</p>
+
+0
+

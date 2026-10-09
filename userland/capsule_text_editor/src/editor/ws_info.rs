@@ -48,6 +48,7 @@ impl Editor {
         let n = body.len().min(d.buf.len());
         d.buf[..n].copy_from_slice(&body.as_bytes()[..n]);
         d.len = n;
+        d.reset_styles();
         d.mode = super::mode::mode_for_path(name);
         d.reflow();
         self.docs.push(d);

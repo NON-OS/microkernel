@@ -14,40 +14,52 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Pure check: a `MkMmioMap` request must not put the MSI-X table
-//! or its pending-bit array into a capsule address space. The
-//! kernel programs both regions on the capsule's behalf through the
-//! MSI-X bind path and `MkPciConfigWrite`; exposing them via mmap
-//! would let a capsule short-circuit the allowlist.
+//! The MSI-X tables and pending-bit arrays a `MkMmioMap` request must not
+//! put into a capsule address space, as physical ranges. The kernel programs
+//! both regions on the capsule's behalf through the MSI-X bind path and
+//! `MkPciConfigWrite`; exposing them via mmap would let a capsule
+//! short-circuit the allowlist.
 //!
-//! Rather than reject a request that overlaps either region, the
-//! mapping is clamped to end at the page boundary below the first
-//! protected region. A device whose registers share a BAR with its
-//! MSI-X table (e.g. xHCI) still maps everything up to the table; a
-//! request that starts inside a protected region clamps to zero and
-//! is refused by the caller.
+//! Every device's regions are listed, not only the claimed device's: a
+//! sub-page BAR is mapped by the page (`window`), and the rest of that page
+//! may belong to another function. `window::window` then cuts the mapping
+//! short at the page below the first region it would reach, so a device
+//! whose registers share a BAR with its MSI-X table (e.g. xHCI) still maps
+//! everything up to the table, and a request that starts in a protected
+//! page is refused.
+
+extern crate alloc;
+
+use alloc::vec::Vec;
 
 use crate::drivers::pci::constants::MSIX_ENTRY_SIZE;
-use crate::drivers::pci::types::MsixInfo;
+use crate::drivers::pci::types::{MsixInfo, PciBar};
+use crate::hardware::broker::pci_index;
 
-const PAGE_SIZE: u64 = 4096;
-
-pub fn safe_length(msix: Option<&MsixInfo>, bar_index: u8, offset: u64, length: u64) -> u64 {
-    let Some(m) = msix else { return length };
-    let mut end = offset.saturating_add(length);
-    if bar_index == m.table_bar {
-        let region = table_region(m);
-        if overlaps(offset, length, region) {
-            end = end.min(region.0 & !(PAGE_SIZE - 1));
+/// The physical `[start, end)` of every MSI-X table and PBA the kernel knows.
+pub fn protected_regions() -> Vec<(u64, u64)> {
+    let mut out = Vec::new();
+    for h in pci_index::all() {
+        let Some(m) = h.msix else { continue };
+        if let Some(r) = locate(&h.bars, m.table_bar, table_region(&m)) {
+            out.push(r);
+        }
+        if let Some(r) = locate(&h.bars, m.pba_bar, pba_region(&m)) {
+            out.push(r);
         }
     }
-    if bar_index == m.pba_bar {
-        let region = pba_region(m);
-        if overlaps(offset, length, region) {
-            end = end.min(region.0 & !(PAGE_SIZE - 1));
-        }
+    out
+}
+
+/// A BAR-relative region placed at its BAR's physical base. A region whose
+/// BAR is absent or not memory has no address to protect.
+fn locate(bars: &[PciBar; 6], bar: u8, region: (u64, u64)) -> Option<(u64, u64)> {
+    let b = bars.get(bar as usize)?;
+    if !b.is_memory() {
+        return None;
     }
-    end.saturating_sub(offset)
+    let base = b.address()?.as_u64();
+    Some((base.checked_add(region.0)?, base.checked_add(region.1)?))
 }
 
 fn table_region(m: &MsixInfo) -> (u64, u64) {
@@ -63,9 +75,4 @@ fn pba_region(m: &MsixInfo) -> (u64, u64) {
     let qwords = (entries + 63) / 64;
     let bytes = qwords * 8;
     (start, start + bytes)
-}
-
-fn overlaps(offset: u64, length: u64, region: (u64, u64)) -> bool {
-    let req_end = offset.saturating_add(length);
-    offset < region.1 && region.0 < req_end
 }

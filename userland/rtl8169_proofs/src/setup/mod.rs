@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one `setup` file the bring-up needs: the driver record it fills in.
-//! Discovery, claiming and mapping talk to the broker and stay out.
+//! The `setup` files that run without the broker: the driver record the
+//! bring-up fills in, and the PCI Command word the claim writes. Discovery,
+//! claiming and mapping talk to the broker and stay out.
 
+#[path = "../../../capsule_driver_rtl8169/src/setup/command_word.rs"]
+mod command_word;
 #[path = "../../../capsule_driver_rtl8169/src/setup/driver.rs"]
 mod driver;
 
+pub use command_word::command_word;
 pub use driver::Driver;

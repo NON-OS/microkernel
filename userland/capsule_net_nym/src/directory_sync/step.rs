@@ -27,7 +27,9 @@ use alloc::vec::Vec;
 use crate::topology::Node;
 use spin::Mutex;
 
-use super::stages::{exits, first, gateways};
+use super::stage_exits::exits;
+use super::stage_gateways::gateways;
+use super::stages::first;
 
 /// What has been gathered so far, and which list comes next.
 pub(super) static PARTIAL: Mutex<Option<(Vec<Node>, u8)>> = Mutex::new(None);

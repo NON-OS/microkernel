@@ -113,7 +113,6 @@ import Nonos
 #print axioms Nonos.Spawn.only_attested_capsules_run
 #print axioms Nonos.Spawn.enforcing_run_admits_only_verified
 #print axioms Nonos.Spawn.enforcing_refuses_a_missing_trailer
-#print axioms Nonos.Spawn.production_is_always_enforcing
 #print axioms Nonos.SpawnCaps.installed_within_ceiling
 #print axioms Nonos.SpawnCaps.installed_within_manifest
 #print axioms Nonos.SpawnCaps.authority_only_narrows
@@ -139,6 +138,10 @@ import Nonos
 #print axioms Nonos.Stark.Fri.final_layer_accepts_iff_matches
 #print axioms Nonos.Stark.Lookup.non_table_value_has_zero_multiplicity
 #print axioms Nonos.Stark.Merkle.distinct_leaves_give_distinct_roots
+#print axioms Nonos.AttestPath.accepted_leaf_is_in_the_tree
+#print axioms Nonos.AttestPath.an_accepted_context_is_an_enrolled_one
+#print axioms Nonos.AttestPath.an_unenrolled_context_is_refused
+#print axioms Nonos.AttestPath.an_opening_under_a_pinned_kind_is_that_kind
 #print axioms Nonos.Stark.NullifierSet.a_recorded_nullifier_cannot_be_respent
 #print axioms Nonos.Stark.NullifierSet.spend_only_grows
 #print axioms Nonos.Stark.Permutation.perm_preserves_count

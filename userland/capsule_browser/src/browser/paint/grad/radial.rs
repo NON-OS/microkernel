@@ -16,21 +16,20 @@
 
 use alloc::vec::Vec;
 
-use nonos_app_skeleton::PaintBuffer;
-
+use super::painter::Painter;
 use super::split::split_top;
+use super::sqrt::isqrt;
 use super::stop_list::parse_stops;
-use super::stops::color_at;
 
-// Parse radial-gradient(...) stops, ignoring the shape and position prelude,
-// which we approximate as a circle centered on the box out to its corner.
+/* Parse radial-gradient(...) stops, ignoring the shape and position prelude,
+ * which we approximate as a circle centered on the box out to its corner. */
 pub(super) fn parse_radial(func: &str) -> Option<Vec<(u32, f32)>> {
     let inner = func.strip_prefix("radial-gradient(")?.strip_suffix(')')?;
     let mut items = split_top(inner);
     if items.is_empty() {
         return None;
     }
-    // A leading prelude (circle, size, "at <pos>") holds no color, so drop it.
+    /* A leading prelude (circle, size, "at <pos>") holds no color, so drop it. */
     if items[0].contains("at ")
         || items[0].contains("circle")
         || items[0].contains("ellipse")
@@ -42,27 +41,27 @@ pub(super) fn parse_radial(func: &str) -> Option<Vec<(u32, f32)>> {
     parse_stops(&items)
 }
 
-// Fill the box with the radial gradient, source-over, the stop position given
-// by distance from the center normalized to the farthest corner.
-pub(super) fn fill_radial(
-    fb: &mut PaintBuffer,
-    stops: &[(u32, f32)],
-    x: i32,
-    y: i32,
-    w: i32,
-    h: i32,
-) {
-    if w <= 0 || h <= 0 {
-        return;
-    }
-    let (cx, cy) = (w as f32 / 2.0, h as f32 / 2.0);
-    let radius = (cx * cx + cy * cy).max(1.0);
-    for py in 0..h {
-        for px in 0..w {
-            let dx = px as f32 - cx;
-            let dy = py as f32 - cy;
-            let t = super::sqrt::sqrt((dx * dx + dy * dy) / radius);
-            super::render::put_pixel(fb, x + px, y + py, color_at(stops, t));
+/* Row y of a radial gradient from column x0. The table index is
+ * floor(n * d / R) for the doubled distance d to the centre and doubled
+ * corner radius R, kept exact in integers: j is found once per row with an
+ * integer square root, then nudged as the squared distance changes by
+ * 4x + 4 per step, so each pixel costs a few multiplies and compares. */
+pub(super) fn radial_row(p: &Painter, size: [i64; 2], r2: u128, at: [i32; 2], out: &mut [u32]) {
+    let n2 = (p.n * p.n) as u128;
+    let yy = 2 * at[1] as i64 - size[1];
+    let mut xx = 2 * at[0] as i64 - size[0];
+    let mut d2 = (xx as i128 * xx as i128 + yy as i128 * yy as i128) as u128;
+    let mut j = isqrt(n2 * d2 / r2);
+    for o in out.iter_mut() {
+        let q = n2 * d2;
+        while (j + 1) * (j + 1) * r2 <= q {
+            j += 1;
         }
+        while j * j * r2 > q {
+            j -= 1;
+        }
+        *o = p.lut[(j as usize).min(p.n)];
+        d2 = (d2 as i128 + 4 * xx as i128 + 4) as u128;
+        xx += 2;
     }
 }

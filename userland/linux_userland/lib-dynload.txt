@@ -1,0 +1,3 @@
+This NONOS CPython is one static binary: every standard library C module it
+carries is linked into /usr/bin/python3, so nothing is loaded from here. The
+directory exists because the interpreter's path setup looks for it.

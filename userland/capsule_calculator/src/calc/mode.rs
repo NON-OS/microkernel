@@ -23,24 +23,10 @@ pub enum Mode {
     History,
 }
 
-pub const MODES: [Mode; 5] = [
-    Mode::Basic,
-    Mode::Scientific,
-    Mode::Programmer,
-    Mode::Convert,
-    Mode::History,
-];
+pub const MODES: [Mode; 5] =
+    [Mode::Basic, Mode::Scientific, Mode::Programmer, Mode::Convert, Mode::History];
 
 impl Mode {
-    pub fn index(self) -> usize {
-        match self {
-            Mode::Basic => 0,
-            Mode::Scientific => 1,
-            Mode::Programmer => 2,
-            Mode::Convert => 3,
-            Mode::History => 4,
-        }
-    }
     pub fn from_index(i: usize) -> Option<Mode> {
         MODES.get(i).copied()
     }

@@ -17,6 +17,7 @@
 use alloc::collections::VecDeque;
 
 use super::mouse_event::MouseEvent;
+use super::mouse_report::mouse_event;
 use super::post_mouse;
 
 const CAP: usize = 64;
@@ -33,21 +34,10 @@ impl Mouse {
     }
 
     pub fn feed(&mut self, report: &[u8]) {
-        if report.len() < 3 {
-            return;
-        }
         let previous_buttons = self.buttons;
-        let buttons = report[0] & 0x1f;
-        let dx = report[1] as i8 as i16;
-        let dy = report[2] as i8 as i16;
-        let dz = if report.len() > 3 { report[3] as i8 } else { 0 };
-        let moved = dx != 0 || dy != 0;
-        let changed = buttons != self.buttons;
-        if moved || dz != 0 || changed {
-            let flags = u8::from(moved) | (u8::from(changed) << 1) | (u8::from(dz != 0) << 2);
-            self.push(MouseEvent { dx, dy, dz, buttons, flags }, previous_buttons);
-        }
-        self.buttons = buttons;
+        let Some(event) = mouse_event(report, previous_buttons) else { return };
+        self.push(event, previous_buttons);
+        self.buttons = event.buttons;
     }
 
     pub fn pop(&mut self) -> Option<MouseEvent> {

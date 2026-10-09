@@ -19,13 +19,13 @@
 //! later firmware download can map DMA memory against the same claim.
 
 use nonos_libc::{
-    mk_device_claim, mk_mmio_map, mk_pci_config_write, MmioMapOut, MK_PCI_CFG_COMMAND,
-    MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
+    mk_device_claim, mk_device_release, mk_mmio_map, mk_pci_config_write, MmioMapOut,
+    MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
 };
 
 use core::sync::atomic::{AtomicU32, Ordering};
 
-use crate::discover::{find, Found};
+use crate::discover::Found;
 use crate::regs::Regs;
 
 /// Which BAR the register window came from, and the low half of the address it
@@ -54,10 +54,11 @@ pub struct Mapped {
     pub efuse: Option<crate::efuse::EfuseInfo>,
 }
 
-/// Find, claim and map the chip. Returns the register window ready for
-/// power-on, or an error string for the on-screen status.
-pub fn run() -> Result<Mapped, &'static str> {
-    let dev: Found = find().ok_or("rtl8821ce: not present")?;
+/// Claim and map the chip discovery found. Returns the register window ready
+/// for power-on, or an error string for the on-screen status. A failure after
+/// the claim gives the claim back (and with it anything mapped), so the next
+/// attempt can claim the chip again; it used to keep it.
+pub fn run(dev: Found) -> Result<Mapped, &'static str> {
     let epoch = mk_device_claim(dev.device_id);
     if epoch <= 0 {
         return Err("rtl8821ce: claim failed");
@@ -69,12 +70,14 @@ pub fn run() -> Result<Mapped, &'static str> {
     // nor writable through that path, so it is deliberately left out.
     let command = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER;
     if mk_pci_config_write(dev.device_id, epoch as u64, MK_PCI_CFG_COMMAND, command) < 0 {
+        let _ = mk_device_release(dev.device_id);
         return Err("rtl8821ce: bus master enable failed");
     }
     let mut out = MmioMapOut { user_va: 0, length: 0, grant_id: 0 };
     let len = core::cmp::max(dev.bar_size, 0x1000);
     let r = mk_mmio_map(dev.device_id, epoch as u64, dev.bar_index, 0, 0, len, &mut out);
     if r < 0 {
+        let _ = mk_device_release(dev.device_id);
         return Err("rtl8821ce: mmio map failed");
     }
     BAR_INDEX.store(dev.bar_index, Ordering::Relaxed);

@@ -24,6 +24,17 @@ use nonos_libc::peer::{mk_peer_read, mk_peer_write};
 
 use super::handle::Guest;
 use super::mem::MAX_SPAN;
+use super::memory::Memory;
+
+impl Memory for Guest {
+    fn read_at(&self, at: u64, len: usize) -> Option<Vec<u8>> {
+        self.read(at, len)
+    }
+
+    fn write_at(&self, at: u64, bytes: &[u8]) -> i64 {
+        self.write(at, bytes)
+    }
+}
 
 impl Guest {
     /// Bytes written, or the first failure.
@@ -42,14 +53,21 @@ impl Guest {
 
     pub fn read(&self, addr: u64, len: usize) -> Option<Vec<u8>> {
         let mut out = vec![0u8; len];
+        Guest::read_into(self.pid, addr, &mut out).then_some(out)
+    }
+
+    /// Fill `out` from guest `pid` at `addr`, false on the first failure: a
+    /// read into a buffer this capsule already holds, so a large one is not
+    /// held twice.
+    pub fn read_into(pid: u32, addr: u64, out: &mut [u8]) -> bool {
         let mut done = 0usize;
-        while done < len {
-            let take = (len - done).min(MAX_SPAN as usize);
-            if mk_peer_read(self.pid, addr + done as u64, &mut out[done..done + take]) < 0 {
-                return None;
+        while done < out.len() {
+            let take = (out.len() - done).min(MAX_SPAN as usize);
+            if mk_peer_read(pid, addr + done as u64, &mut out[done..done + take]) < 0 {
+                return false;
             }
             done += take;
         }
-        Some(out)
+        true
     }
 }

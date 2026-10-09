@@ -48,7 +48,7 @@ impl HidOverI2c {
 
     /// Two bytes name the register; whatever follows is the command or data.
     pub(super) fn take(&mut self, byte: u8) -> bool {
-        if !self.acks_data {
+        if !self.acks_data || self.dozes_through(byte) {
             return false;
         }
         self.written.push(byte);

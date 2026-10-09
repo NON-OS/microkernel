@@ -27,6 +27,19 @@ pub const KEY_INFO_VERSION2: u16 = 2;
 pub const KEY_INFO_PAIRWISE: u16 = 1 << 3;
 pub const KEY_INFO_MIC: u16 = 1 << 8;
 pub const KEY_INFO_SECURE: u16 = 1 << 9;
+// The rest of the Key Information field (IEEE Std 802.11-2020, Figure 12-33):
+// the version mask, the key index of the pre-RSN group exchange, Install, Key
+// Ack, Error, Request and Encrypted Key Data. The supplicant checks each against
+// what the message it is handling must carry.
+pub const KEY_INFO_VERSION_MASK: u16 = 0x0007;
+pub const KEY_INFO_INDEX_MASK: u16 = 0x0030;
+pub const KEY_INFO_INSTALL: u16 = 1 << 6;
+pub const KEY_INFO_ACK: u16 = 1 << 7;
+pub const KEY_INFO_ERROR: u16 = 1 << 10;
+pub const KEY_INFO_REQUEST: u16 = 1 << 11;
+pub const KEY_INFO_ENCRYPTED: u16 = 1 << 12;
+/// The descriptor type of an RSN (IEEE 802.11) EAPOL-Key frame.
+pub const DESCRIPTOR_RSN: u8 = 2;
 
 /// A parsed EAPOL-Key frame. `key_data` borrows the frame.
 pub struct EapolKey<'a> {
@@ -35,6 +48,10 @@ pub struct EapolKey<'a> {
     pub key_length: u16,
     pub replay_counter: [u8; 8],
     pub nonce: [u8; 32],
+    /// The Key RSC: for a group key, the packet number the AP last used with
+    /// it, little-endian in the first six octets. Received group frames must
+    /// carry a higher one.
+    pub key_rsc: [u8; 8],
     pub mic: [u8; 16],
     pub key_data: &'a [u8],
 }
@@ -52,9 +69,11 @@ pub fn parse(frame: &[u8]) -> Option<EapolKey<'_>> {
     }
     let mut replay_counter = [0u8; 8];
     let mut nonce = [0u8; 32];
+    let mut key_rsc = [0u8; 8];
     let mut mic = [0u8; 16];
     replay_counter.copy_from_slice(&frame[9..17]);
     nonce.copy_from_slice(&frame[17..49]);
+    key_rsc.copy_from_slice(&frame[65..73]);
     mic.copy_from_slice(&frame[MIC_OFFSET..MIC_OFFSET + MIC_LEN]);
     Some(EapolKey {
         descriptor_type: frame[4],
@@ -62,6 +81,7 @@ pub fn parse(frame: &[u8]) -> Option<EapolKey<'_>> {
         key_length: u16::from_be_bytes([frame[7], frame[8]]),
         replay_counter,
         nonce,
+        key_rsc,
         mic,
         key_data: &frame[HEADER_LEN..end],
     })

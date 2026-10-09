@@ -20,8 +20,8 @@
 //!
 //! What these three decide is the capability word a capsule runs with. The
 //! ceiling comes from the publisher's signed NØNOS ID certificate, and the
-//! result flows unmodified to `proc_caps::install_spawn`, so nothing between
-//! here and the PCB narrows it again.
+//! result reaches `proc_caps::install_spawn` through `install_caps`, where the
+//! boot profile's `profile_gate::caps` can still narrow it.
 
 /// Whether a manifest asks only for authority the publisher's certificate
 /// permits. Both the required and optional sets are covered: an optional

@@ -21,7 +21,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::library::{Library, Queue};
+use crate::library::{by_album, by_artist, Library, Queue};
 use crate::ui::geometry::Rect;
 use crate::ui::metrics::{line_h, BODY, PAGE, S3, S4};
 use crate::ui::state::LIB_TABS;
@@ -53,7 +53,11 @@ pub fn row_at(r: Rect, scroll: usize, len: usize, x: i32, y: i32) -> Option<usiz
         return None;
     }
     let idx = scroll + i as usize;
-    if idx < len { Some(idx) } else { None }
+    if idx < len {
+        Some(idx)
+    } else {
+        None
+    }
 }
 
 pub fn tab_hit(r: Rect, x: i32, y: i32) -> Option<usize> {
@@ -62,8 +66,9 @@ pub fn tab_hit(r: Rect, x: i32, y: i32) -> Option<usize> {
 
 pub fn rows_for(lib: &Library, queue: &Queue, tab: usize) -> Vec<usize> {
     match tab {
-        2 => queue.items().to_vec(),
+        1 => by_artist(&lib.tracks),
+        2 => by_album(&lib.tracks),
+        3 => queue.items().to_vec(),
         _ => (0..lib.tracks.len()).collect(),
     }
 }
-

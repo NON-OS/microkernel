@@ -27,6 +27,7 @@ pub fn step(e: &mut Entry, hdr: &TcpHeader) -> RxAction {
         e.tcb.recv.nxt = hdr.seq.wrapping_add(1);
         e.tcb.send.una = hdr.ack;
         e.tcb.send.wnd = hdr.window;
+        e.tcb.send.mss = crate::tcp::send_mss(hdr.mss);
         e.tcb.send.wl1 = hdr.seq;
         e.tcb.send.wl2 = hdr.ack;
         e.tcb.state = State::Established;

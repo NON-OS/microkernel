@@ -27,7 +27,11 @@ pub fn parse_xsdt(registry: &mut TableRegistry, addr: u64) -> AcpiResult<()> {
             return Err(AcpiError::InvalidXsdtSignature);
         }
         if !header.validate_checksum(addr as *const u8) {
-            return Err(AcpiError::XsdtChecksumFailed);
+            // Linux (acpi_tb_verify_checksum) reports a bad root table sum
+            // and keeps going; firmware that edits tables at boot without
+            // fixing the sum ships, and refusing the root table would lose
+            // every other table with it.
+            crate::log_warn!("[ACPI] XSDT checksum mismatch, using it anyway");
         }
         let entry_count = sdt_entry_count(header.length as usize, mem::size_of::<SdtHeader>(), 8);
         let entries_ptr = (addr as usize + mem::size_of::<SdtHeader>()) as *const u64;

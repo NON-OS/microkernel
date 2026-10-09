@@ -18,5 +18,7 @@ use super::super::super::spec::SpawnError;
 use crate::process::caps as proc_caps;
 
 pub(super) fn install_caps(pid: u32, caps_bits: u64) -> Result<(), SpawnError> {
-    proc_caps::install_spawn(pid, caps_bits).ok_or(SpawnError::ProcessCreation)
+    /* Every spawn path installs its caps here; the boot profile trims them. */
+    let caps = super::super::profile_gate::caps(caps_bits);
+    proc_caps::install_spawn(pid, caps).ok_or(SpawnError::ProcessCreation)
 }

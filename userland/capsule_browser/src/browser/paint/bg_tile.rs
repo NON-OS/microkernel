@@ -16,65 +16,45 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::css::{BgSize, ObjectFit};
-use crate::browser::image::Decoded;
-use crate::browser::layout::boxmodel::Fragment;
+use crate::browser::css::ObjectFit;
+use crate::browser::image::{blit_rect, Decoded};
 
-// Paint an auto or length background layer: the tile keeps the image aspect at
-// its natural or scaled width and repeats across the box per background-repeat,
-// which is how CSS lays a pattern by default. `dest` is the box rect and the
-// clip keeps every tile inside the fragment.
+/* Paint a background image layer: the tile placed by background-size and
+ * background-position ([x, y, w, h]), once, or repeated from there in both
+ * directions across the box per background-repeat. `clip` ([x0, y0, x1,
+ * y1)) is the part of the box that shows; only tiles meeting it are drawn,
+ * and each draws only its visible pixels. */
 pub(super) fn paint_tiles(
     fb: &mut PaintBuffer,
     img: &Decoded,
-    f: &Fragment,
-    dest: [u32; 4],
-    clip: Option<[i32; 4]>,
+    alpha: u8,
+    (tile, repeat): ([i32; 4], bool),
+    clip: [i32; 4],
 ) {
-    let [bx, by, bw, bh] = dest;
-    if img.w == 0 || img.h == 0 || bw == 0 || bh == 0 {
+    let [tx, ty, tw, th] = tile;
+    if img.w == 0 || img.h == 0 || tw <= 0 || th <= 0 {
         return;
     }
-    let tw = match f.bg_size {
-        BgSize::Px(px) => (px as u32).max(1),
-        _ => img.w,
+    let mut blit =
+        |rect: [i32; 4], fit: ObjectFit| blit_rect(fb, img, rect, fit, alpha, Some(clip));
+    if !repeat {
+        return blit(tile, ObjectFit::FILL);
+    }
+    /* The first tile at or before each clip edge, stepping from the anchor. */
+    let first = |lo: i32, at: i32, step: i32| {
+        at as i64 + (lo as i64 - at as i64).div_euclid(step as i64) * step as i64
     };
-    let th = ((tw as u64 * img.h as u64) / img.w as u64).max(1) as u32;
-    if !f.bg_repeat {
-        crate::browser::image::blit_into(
-            fb,
-            img,
-            [bx, by, tw.min(bw), th.min(bh)],
-            ObjectFit::Fill,
-            f.alpha,
-            clip,
-        );
-        return;
-    }
-    // Bound the tile count so a one-pixel pattern cannot spin the painter.
-    let cols = (bw + tw - 1) / tw;
-    let rows = (bh + th - 1) / th;
+    let (x0, y0) = (first(clip[0], tx, tw), first(clip[1], ty, th));
+    let cols = (clip[2] as i64 - x0 + tw as i64 - 1) / tw as i64;
+    let rows = (clip[3] as i64 - y0 + th as i64 - 1) / th as i64;
+    /* Bound the tile count so a one-pixel pattern cannot spin the painter. */
     if cols.saturating_mul(rows) > 4096 {
-        crate::browser::image::blit_into(
-            fb,
-            img,
-            [bx, by, bw, bh],
-            ObjectFit::Cover,
-            f.alpha,
-            clip,
-        );
-        return;
+        return blit([clip[0], clip[1], clip[2] - clip[0], clip[3] - clip[1]], ObjectFit::COVER);
     }
-    for r in 0..rows {
-        for c in 0..cols {
-            crate::browser::image::blit_into(
-                fb,
-                img,
-                [bx + c * tw, by + r * th, tw, th],
-                ObjectFit::Fill,
-                f.alpha,
-                clip,
-            );
+    for r in 0..rows.max(0) {
+        for c in 0..cols.max(0) {
+            let (x, y) = (x0 + c * tw as i64, y0 + r * th as i64);
+            blit([x as i32, y as i32, tw, th], ObjectFit::FILL);
         }
     }
 }

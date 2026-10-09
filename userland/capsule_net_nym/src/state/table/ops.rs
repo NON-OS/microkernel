@@ -16,7 +16,7 @@
 
 use super::super::{Gateway, Session};
 use super::topology_gate;
-use super::types::{Table, TableError, TABLE_CAP};
+use super::types::{Table, TableError, PER_OWNER, TABLE_CAP};
 use crate::crypto::Key;
 use crate::state;
 
@@ -34,12 +34,21 @@ impl Table {
         };
         if changed {
             self.reset_sessions();
+        } else {
+            // The same gateway on a new connection. Sessions keep their
+            // numbers, and the replies already promised to them still come
+            // home through this gateway, but each holds a copy of the link it
+            // sends on, and the old link is closed: every send went to a dead
+            // stream, failed, and dropped the binding again.
+            for session in self.sessions.iter_mut() {
+                session.gateway = gateway;
+            }
         }
         self.gateway.replace(gateway)
     }
 
     pub fn open(&mut self, owner: u32, key: Key) -> Result<u32, TableError> {
-        if self.sessions.len() >= TABLE_CAP {
+        if self.sessions.len() >= TABLE_CAP || self.held_by(owner) >= PER_OWNER {
             return Err(TableError::Full);
         }
         topology_gate::check()?;
@@ -71,9 +80,9 @@ impl Table {
         true
     }
 
-    /// Whether any session is open. A directory fetch takes a TLS handshake
-    /// and a large response, and this capsule answers nobody while it runs,
-    /// so it waits until no client is depending on it.
+    /// Whether no session is open. Nothing calls it: the directory tick
+    /// fetches whenever a fetch is due (topology/refresh.rs), whether or not
+    /// a client holds a session.
     pub fn idle(&self) -> bool {
         self.sessions.is_empty()
     }

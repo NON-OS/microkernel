@@ -22,21 +22,34 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
 
-const CLONE_VM: u64 = 0x100;
-const CLONE_THREAD: u64 = 0x10000;
+use super::clone_flags::{clone_valid, flags_of, thread_served};
 
-/// musl's `__clone` resumes the child at the instruction after its own
-/// `syscall`, with rax zero and rsp pointing at the function and argument it
-/// pushed.
+const CLONE_SETTLS: u64 = 0x80000;
+const CLONE_CHILD_CLEARTID: u64 = 0x20_0000;
+
+/// A Linux clone child resumes at the instruction after its parent's
+/// `syscall`, on its parent's registers with rax zero and rsp the new stack.
+/// Both runtimes that start threads here call through a register in the
+/// child: musl's `__clone` pops the argument and calls r9, Go's calls r12.
 pub fn clone(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     let a = frame.args();
-    let (flags, stack, tls) = (a[0], a[1], a[4]);
-    if flags & (CLONE_VM | CLONE_THREAD) != CLONE_VM | CLONE_THREAD {
-        /*
-         * A new process, not a thread. That is fork, and fork needs an
-         * address space copy no peer call offers.
-         */
-        return Answer::value(errno::fail(errno::ENOSYS));
+    let (flags, stack) = (flags_of(a[0]), a[1]);
+    /*
+     * The fifth argument is a thread pointer only when the flag says so;
+     * without it the child keeps its parent's.
+     */
+    let tls = if flags & CLONE_SETTLS != 0 { a[4] } else { 0 };
+    /*
+     * What Linux refuses outright is EINVAL or EPERM here too; a thread this
+     * personality cannot make as asked, one keeping its own descriptors or
+     * working directory, is ENOSYS rather than a thread that shares them.
+     */
+    if let Err(e) = clone_valid(flags).and_then(|()| thread_served(flags)) {
+        if e == errno::ENOSYS {
+            let line = alloc::format!("[LINUX] unserved clone: a thread with flags {flags:#x}\n");
+            let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+        }
+        return Answer::value(errno::fail(e));
     }
     if frame.rip == 0 {
         /*
@@ -48,10 +61,25 @@ pub fn clone(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     if stack == 0 {
         return Answer::value(errno::fail(errno::EINVAL));
     }
-    let tid = mk_foreign_thread(guest.pid, frame.rip, stack, tls);
+    /* A thread is a task, which RLIMIT_NPROC counts as Linux does. */
+    if let Err(e) = super::tasks::room(guest.tasks) {
+        return Answer::value(errno::fail(e));
+    }
+    let tid = mk_foreign_thread(guest.pid, frame.rip, stack, tls, frame.pid);
     if tid < 0 {
         return Answer::value(errno::fail(errno::ENOMEM));
     }
-    guest.threads.push(tid as u32);
-    Answer::value(errno::ok(tid as u64))
+    let tid = tid as u32;
+    guest.threads.push(tid);
+    guest.signals.born(frame.pid, tid); /* its creator's mask, as clone gives */
+    /*
+     * The SETTID words get the guest's number for the tid, which only the
+     * family knows: `serve::clone_tid` writes them with the reply. The
+     * CLEARTID word is zeroed and woken when the thread exits: musl's join
+     * waits on it.
+     */
+    if flags & CLONE_CHILD_CLEARTID != 0 {
+        guest.clear_tids.push((tid, a[3]));
+    }
+    Answer::value(errno::ok(u64::from(tid)))
 }

@@ -16,7 +16,11 @@ pub fn write_read(port: u32, addr: u8, write: &[u8], read: &mut [u8]) -> Option<
     // reply buffer to the requested read length plus that offset. A fixed cap
     // here silently truncates large reads (the HID report descriptor above all).
     let mut rx = vec![0u8; 32 + read.len()];
+    if !super::gate::may_call() {
+        return None;
+    }
     let got = mk_ipc_call_timeout(port as u64, tx.as_ptr(), n, rx.as_mut_ptr(), rx.len(), 250);
+    super::gate::record(got);
     if got <= 0 {
         return None;
     }

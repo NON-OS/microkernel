@@ -17,6 +17,9 @@
 #[path = "../../src/mdview/layout/mod.rs"]
 pub mod layout;
 
+#[path = "../../src/mdview/verdict.rs"]
+pub mod verdict;
+
 mod fixtures;
 mod measure;
 

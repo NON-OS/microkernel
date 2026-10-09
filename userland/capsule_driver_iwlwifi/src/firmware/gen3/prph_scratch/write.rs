@@ -36,7 +36,7 @@ impl PrphScratch<'_> {
         buf[..PRPH_SCRATCH_SIZE].fill(0);
         w16(buf, OFF_VERSION_MAC_ID, self.mac_id);
         w16(buf, OFF_VERSION_VERSION, self.version);
-        w16(buf, OFF_VERSION_SIZE, CTRL_CFG_DWORDS);
+        w16(buf, OFF_VERSION_SIZE, SIZE_DWORDS);
         w32(buf, OFF_CONTROL_FLAGS, self.control_flags);
         w32(buf, OFF_CONTROL_FLAGS_EXT, self.control_flags_ext);
         w64(buf, OFF_PNVM_BASE, self.pnvm_base);

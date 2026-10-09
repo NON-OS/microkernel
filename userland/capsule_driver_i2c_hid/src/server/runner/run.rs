@@ -18,7 +18,8 @@ fn signal(kind: u16) {
 
 use super::dispatch::dispatch;
 use crate::input;
-use crate::protocol::{parse, HDR_LEN, IPC_PAYLOAD_MAX};
+use crate::protocol::{parse, refused, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX};
+use crate::server::respond;
 use crate::state::State;
 
 const SERVICE_INBOX: u64 = 0;
@@ -32,6 +33,8 @@ const REPROBE_EVERY: u32 = 250;
 // and timed polling resumes; a genuine idle pad re-proves itself on the very
 // next touch, so the only cost is one re-verification read.
 const DOORBELL_TRUST_CYCLES: u32 = 2500;
+const DOORBELL_GIVE_UP: u32 = 3;
+const DOORBELL_MISS_LIMIT: u32 = 16;
 
 pub fn run(mut state: State) -> ! {
     let mut rx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
@@ -59,6 +62,9 @@ pub fn run(mut state: State) -> ! {
             RECV_TIMEOUT_MS,
             &mut sender_pid,
         );
+        // A receive that failed without waiting sleeps here, so the polls
+        // below keep their pace even if the inbox is gone.
+        let ready = nonos_libc::recv_ready(n);
         if !state.found() {
             ticks = ticks.wrapping_add(1);
             if ticks.is_multiple_of(REPROBE_EVERY) {
@@ -82,12 +88,19 @@ pub fn run(mut state: State) -> ! {
         // wired cannot silence input), and trust decays after a long quiet
         // stretch so a one-off spurious reading cannot lock the gate shut.
         let mut do_poll = true;
-        if state.found() {
-            if let Some((present, fired)) = crate::i2c_client::query_doorbell(state.i2c_port) {
-                if present {
-                    if fired {
+        let mut rang = false;
+        if state.found() && !state.doorbell_absent {
+            match crate::i2c_client::query_doorbell(state.i2c_port) {
+                Some((present, fired)) => {
+                    state.doorbell_failures = 0;
+                    if !present {
+                        // The platform's GPIO layout is not mapped: reads
+                        // go by timer from now on, without asking again.
+                        state.doorbell_absent = true;
+                    } else if fired {
                         state.doorbell_proven = true;
                         quiet_cycles = 0;
+                        rang = true;
                     } else if state.doorbell_proven {
                         quiet_cycles = quiet_cycles.saturating_add(1);
                         if quiet_cycles > DOORBELL_TRUST_CYCLES {
@@ -97,15 +110,41 @@ pub fn run(mut state: State) -> ! {
                         }
                     }
                 }
+                None => {
+                    // A controller that refuses the op (or keeps timing out)
+                    // has no doorbell to offer.
+                    state.doorbell_failures = state.doorbell_failures.saturating_add(1);
+                    if state.doorbell_failures >= DOORBELL_GIVE_UP {
+                        state.doorbell_absent = true;
+                    }
+                }
             }
         }
         if do_poll {
             input::poll(&mut state);
+            if rang {
+                if state.last_read_had_report {
+                    state.doorbell_misses = 0;
+                } else {
+                    state.doorbell_misses = state.doorbell_misses.saturating_add(1);
+                    if state.doorbell_misses >= DOORBELL_MISS_LIMIT {
+                        state.doorbell_absent = true;
+                        state.doorbell_proven = false;
+                        crate::diag::line(alloc::format!(
+                            "[i2chid] doorbell rang {} times with no report; reads go back to the timer\n",
+                            DOORBELL_MISS_LIMIT
+                        ));
+                    }
+                }
+            }
         }
-        if n <= 0 || sender_pid == 0 {
+        if !ready || sender_pid == 0 {
             continue;
         }
-        let Some((req, body)) = parse(&rx[..n as usize]) else { continue };
+        let Some((req, body)) = parse(&rx[..n as usize]) else {
+            let _ = respond::send(sender_pid, &refused(&rx[..n as usize]), E_INVAL, &[], &mut tx);
+            continue;
+        };
         dispatch(&mut state, sender_pid, req, body, &mut tx);
     }
 }

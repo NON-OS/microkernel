@@ -18,6 +18,7 @@
 
 use nonos_devmodel::FakeBar;
 
+use crate::chip::Chip;
 use crate::constants::queue::{RX_BUFFER_BYTES, RX_RING_BYTES, TX_BUFFER_BYTES, TX_RING_BYTES};
 use crate::constants::MAC_LEN;
 use crate::queue::{RxRing, TxRing};
@@ -32,6 +33,9 @@ pub struct Memory {
     pub tx_desc: Vec<u8>,
     pub tx_buf: Vec<u8>,
 }
+
+/// The chip a plain test drives: an RTL8168h, the common onboard 8111.
+pub const CHIP: Chip = Chip::new(46, "RTL8168h/8111h", 0x541);
 
 pub const RX_DESC_DA: u64 = 0x0000_0001_2000_0000;
 pub const RX_BUF_DA: u64 = 0x0000_0001_3000_0000;
@@ -48,17 +52,21 @@ impl Memory {
         }
     }
     pub fn driver(&mut self, bar: &FakeBar) -> Driver {
+        self.driver_with(bar, CHIP)
+    }
+    pub fn driver_with(&mut self, bar: &FakeBar, chip: Chip) -> Driver {
         let va = |v: &mut Vec<u8>| v.as_mut_ptr() as u64;
         Driver {
             device_id: 1,
+            chip,
             mmio_grant: 2,
-            irq_grant: 3,
             rx_ring_grant: 4,
             rx_buffer_grant: 5,
             tx_ring_grant: 6,
             tx_buffer_grant: 7,
             regs: Regs::new(bar.base()),
             mac: [0; MAC_LEN],
+            link: None,
             rx: RxRing::new(va(&mut self.rx_desc), va(&mut self.rx_buf), RX_DESC_DA, RX_BUF_DA),
             tx: TxRing::new(va(&mut self.tx_desc), va(&mut self.tx_buf), TX_DESC_DA, TX_BUF_DA),
         }

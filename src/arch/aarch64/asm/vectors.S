@@ -93,13 +93,13 @@ __aarch64_vectors_el1:
 
     /* Current EL with SP_EL0 — kernel uses SPx; SP0 is a bug. */
     .balign 0x80
-    b   __aarch64_invalid_sp0
+    b   __aarch64_invalid_sp0_sync
     .balign 0x80
-    b   __aarch64_invalid_sp0
+    b   __aarch64_invalid_sp0_irq
     .balign 0x80
-    b   __aarch64_invalid_sp0
+    b   __aarch64_invalid_sp0_fiq
     .balign 0x80
-    b   __aarch64_invalid_sp0
+    b   __aarch64_invalid_sp0_serror
 
     /* Current EL with SP_ELx — kernel mode. */
     .balign 0x80
@@ -123,13 +123,13 @@ __aarch64_vectors_el1:
 
     /* Lower EL using AArch32 — unsupported. */
     .balign 0x80
-    b   __aarch64_invalid_aarch32
+    b   __aarch64_invalid_aarch32_sync
     .balign 0x80
-    b   __aarch64_invalid_aarch32
+    b   __aarch64_invalid_aarch32_irq
     .balign 0x80
-    b   __aarch64_invalid_aarch32
+    b   __aarch64_invalid_aarch32_fiq
     .balign 0x80
-    b   __aarch64_invalid_aarch32
+    b   __aarch64_invalid_aarch32_serror
 
 .size __aarch64_vectors_el1, . - __aarch64_vectors_el1
 
@@ -217,20 +217,33 @@ __aarch64_serror_lower:
     RESTORE_GPRS
     eret
 
+/* The two groups the kernel never uses. Each slot gets its own entry so
+ * the handler knows which kind of exception it was: ESR_EL1 and FAR_EL1
+ * belong to it only for a synchronous exception or an SError, and an
+ * interrupt leaves whatever an earlier exception wrote there. x1 carries
+ * the kind (0 sync, 1 IRQ, 2 FIQ, 3 SError) and is set after the frame is
+ * saved, so the frame holds the interrupted x1.
+ *
+ * The SP_EL0 group is taken from EL1 running on SP_EL0, so the stack
+ * pointer the interrupted code had is SP_EL0, not the SP_EL1 this entry
+ * runs on. The user save records exactly that, as it does for AArch32 EL0. */
+.macro INVALID_ENTRY name, handler, kind
 .balign 16
-__aarch64_invalid_sp0:
-    SAVE_GPRS
-    SAVE_SYSREGS_KERNEL
-    mov     x0, sp
-    bl      aarch64_exc_invalid_sp0
-1:  wfi
-    b       1b
-
-.balign 16
-__aarch64_invalid_aarch32:
+\name:
     SAVE_GPRS
     SAVE_SYSREGS_USER
     mov     x0, sp
-    bl      aarch64_exc_invalid_aarch32
+    mov     x1, #\kind
+    bl      \handler
 1:  wfi
     b       1b
+.endm
+
+INVALID_ENTRY __aarch64_invalid_sp0_sync,       aarch64_exc_invalid_sp0,     0
+INVALID_ENTRY __aarch64_invalid_sp0_irq,        aarch64_exc_invalid_sp0,     1
+INVALID_ENTRY __aarch64_invalid_sp0_fiq,        aarch64_exc_invalid_sp0,     2
+INVALID_ENTRY __aarch64_invalid_sp0_serror,     aarch64_exc_invalid_sp0,     3
+INVALID_ENTRY __aarch64_invalid_aarch32_sync,   aarch64_exc_invalid_aarch32, 0
+INVALID_ENTRY __aarch64_invalid_aarch32_irq,    aarch64_exc_invalid_aarch32, 1
+INVALID_ENTRY __aarch64_invalid_aarch32_fiq,    aarch64_exc_invalid_aarch32, 2
+INVALID_ENTRY __aarch64_invalid_aarch32_serror, aarch64_exc_invalid_aarch32, 3

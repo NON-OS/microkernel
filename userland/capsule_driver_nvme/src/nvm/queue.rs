@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::admin::CqCursor;
 use crate::dma::DmaRegion;
 
 pub struct IoQueue {
@@ -22,22 +23,28 @@ pub struct IoQueue {
     pub(super) prp_list: DmaRegion,
     pub(crate) data: DmaRegion,
     pub(super) sq_tail: u16,
-    pub(super) cq_head: u16,
-    pub(super) phase: bool,
+    pub(super) cursor: CqCursor,
     pub(super) cid: u16,
     pub(super) sq_db: u32,
     pub(super) cq_db: u32,
     pub(super) nsid: u32,
     pub(crate) capacity_sectors: u64,
     pub(crate) lba_size: u32,
+    pub(super) max_sectors: u32,
+    /// A command whose wait ran out, which the controller may still be
+    /// moving through the data buffer. Nothing touches the buffer or submits
+    /// again until its completion is seen (`settle`).
+    pub(super) out: Option<u16>,
 }
 
 impl IoQueue {
-    /// Sectors that fit in the fixed DMA data buffer. The buffer is a constant
-    /// byte budget, so the sector count scales inversely with the formatted LBA
-    /// size (64 at 512-byte, 8 at 4096-byte). Bounding transfers by this keeps
-    /// every read/write within the buffer regardless of the drive's format.
+    /// Sectors one command may move, fixed at bring-up by
+    /// NamespaceGeometry::accept. The data buffer is a constant byte budget,
+    /// so the count scales inversely with the formatted LBA size (64 at
+    /// 512-byte, 8 at 4096-byte), and a controller whose MDTS is smaller
+    /// lowers it further. Bounding transfers by this keeps every read/write
+    /// within the buffer and within what the controller accepts.
     pub(crate) fn max_sectors(&self) -> u32 {
-        (super::constants::DATA_BYTES / self.lba_size.max(1) as u64) as u32
+        self.max_sectors
     }
 }

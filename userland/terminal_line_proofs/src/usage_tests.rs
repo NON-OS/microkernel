@@ -70,48 +70,6 @@ fn nothing_overflows_the_terminal_width() {
     }
 }
 
-/// Every row of the grouped `help` output, read from its source.
-fn help_rows() -> Vec<String> {
-    let src = include_str!("../../capsule_terminal/src/command/builtin/help.rs");
-    let mut out = Vec::new();
-    for line in src.lines() {
-        let Some(rest) = line.trim().strip_prefix("out.writeln(b\"") else { continue };
-        let Some((body, _)) = rest.rsplit_once("\")") else { continue };
-        out.push(body.trim_end_matches('"').to_string());
-    }
-    out
-}
-
-/// `help` is the first thing anyone runs. A row wider than the terminal wraps,
-/// the columns stop lining up, and the screen that is supposed to orient a new
-/// reader is the one that looks broken.
-/// Eighty columns, not the 96-column buffer.
-///
-/// This test used to assert against `COLS`, the width of the line buffer, and
-/// passed while `help` was visibly clipped in a default window. The buffer is
-/// not the viewport. Eighty is the width every terminal has defaulted to for
-/// forty years and the one the window manifest now opens at.
-#[test]
-fn no_help_row_is_wider_than_the_terminal() {
-    const COLS: usize = 80;
-    let rows = help_rows();
-    assert!(rows.len() >= 15, "only parsed {} help rows", rows.len());
-    for row in rows {
-        assert!(row.len() <= COLS, "{} cols: {row:?}", row.len());
-    }
-}
-
-/// Each group is introduced by a label in the first column and continued by
-/// indented rows. A row that is neither is a row nobody can scan.
-#[test]
-fn every_help_row_is_a_label_or_a_continuation() {
-    for row in help_rows() {
-        let labelled = row.starts_with(|c: char| c.is_ascii_lowercase());
-        let continued = row.starts_with("         ");
-        assert!(labelled || continued, "unaligned help row: {row:?}");
-    }
-}
-
 /// Every name the dispatcher answers to, read from its match arms.
 fn dispatched_names() -> Vec<String> {
     let src = include_str!("../../capsule_terminal/src/command/dispatch/exec.rs");

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::calc::buttons::Action;
+use crate::calc::mode::Mode;
 use crate::calc::op::Op;
 
 pub enum Classified {
@@ -23,12 +24,22 @@ pub enum Classified {
     Ignored,
 }
 
-pub fn classify(code: u32) -> Classified {
+/// What a key does in `mode`. In Programmer mode the letters a to f are the
+/// hex digits, as the keypad's A to F are: there they would otherwise be the
+/// memory and clear keys, so typing 1C in HEX cleared the entry instead of
+/// entering it. The programmer keypad has no memory keys, and Backspace still
+/// clears.
+pub fn classify(code: u32, mode: Mode) -> Classified {
     if code == 0x1B {
         return Classified::Close;
     }
     if code > 0x7F {
         return Classified::Ignored;
+    }
+    if mode == Mode::Programmer {
+        if let Some(d) = (code as u8 as char).to_digit(16).filter(|d| *d >= 10) {
+            return Classified::Action(Action::Digit(d as u8));
+        }
     }
     match code as u8 {
         b'0'..=b'9' => Classified::Action(Action::Digit((code as u8) - b'0')),

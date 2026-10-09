@@ -38,3 +38,15 @@ pub(crate) unsafe fn sys5(num: i64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64)
     }
     r
 }
+
+// The sixth argument is r9, which the kernel reads as an IPC call's deadline.
+// A call made with sys5 left r9 as whatever it last held, so a file call
+// waited for its reply as long as that stray value said, or for ever.
+pub(crate) unsafe fn sys6(num: i64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64, a6: u64) -> i64 {
+    let r: i64;
+    unsafe {
+        core::arch::asm!("syscall", inout("rax") num => r, in("rdi") a1, in("rsi") a2,
+            in("rdx") a3, in("r10") a4, in("r8") a5, in("r9") a6, out("rcx") _, out("r11") _);
+    }
+    r
+}

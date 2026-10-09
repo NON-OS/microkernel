@@ -14,24 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::super::dispatch::add_to_run_queue;
-use super::super::super::selection::{select_next_process, switch_to_process};
+use super::super::super::selection::{adopt_current, is_dead, release_leaving, switch_to_process};
+use super::super::hand_off::{count_switch, requeue, run_on};
 use super::super::save_syscall_user_rsp;
 use super::super::state::set_time_slice;
-use super::idle::idle_until_interrupt;
+use super::idle::{idle_until_interrupt, select_marked_idle};
 
 /// Voluntary-yield body. Runs with interrupts already disabled by the
 /// caller. The contract backend dispatches `SwitchIntent::Yield` here.
 #[inline(never)]
 pub(crate) fn perform_yield_inline() {
-    use crate::process::nonos_core::{current_pid, ProcessState, PROCESS_TABLE};
+    use crate::process::nonos_core::current_pid;
 
     let Some(pid) = current_pid() else { return };
+    adopt_current(pid);
 
     let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
     crate::sched::Context::clear_restored_flag();
     unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
     if crate::sched::Context::was_just_restored() {
+        /*
+         * Resumed, possibly on another CPU: that CPU is off the stack it left.
+         */
+        release_leaving();
         return;
     }
 
@@ -39,32 +44,27 @@ pub(crate) fn perform_yield_inline() {
     crate::process::nonos_core::save_interrupt_context(pid, ctx);
     crate::process::nonos_core::save_fpu_state(pid);
 
-    let runnable = if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        let mut state = pcb.state.lock();
-        if matches!(*state, ProcessState::Running) {
-            *state = ProcessState::Ready;
-        }
-        matches!(*state, ProcessState::Ready)
-    } else {
-        false
-    };
-
-    if runnable {
-        add_to_run_queue(pid);
-    }
+    requeue(pid);
     set_time_slice(0);
 
     loop {
-        if let Some(next) = select_next_process() {
+        /*
+         * Killed from another CPU while it waited here, or its successor was
+         * refused: it must not return to the call that yielded. It waits the
+         * way an exiting process does, off its tables.
+         */
+        if is_dead(pid) {
+            crate::process::exit::park_dead(pid);
+        }
+        if let Some(next) = select_marked_idle() {
             if next != pid {
-                crate::process::accounting::bump(next, crate::process::accounting::Kind::Switch);
-                crate::process::accounting::bump_total(crate::process::accounting::Total::Switches);
+                count_switch(next);
                 switch_to_process(next);
-            } else if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-                let mut state = pcb.state.lock();
-                if matches!(*state, ProcessState::Ready) {
-                    *state = ProcessState::Running;
+                if is_dead(pid) {
+                    continue;
                 }
+            } else {
+                run_on(pid);
             }
             return;
         }

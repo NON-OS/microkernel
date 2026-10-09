@@ -31,11 +31,14 @@ use crate::linux::guest::{Guest, Kind};
 
 pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     match guest.fds.get(fd as usize).map(|f| &f.kind) {
-        Some(Kind::Stdout) | Some(Kind::Stderr) => console(guest, buf, len),
+        Some(Kind::Stdout) => console(guest, buf, len, 1),
+        Some(Kind::Stderr) => console(guest, buf, len, 2),
         Some(Kind::File) => file::write(guest, fd, buf, len),
         Some(Kind::Socket) => socket_write(guest, fd, buf, len),
         Some(Kind::Unix) => crate::linux::unix::send(guest, fd, buf, len),
-        Some(Kind::Pipe) => super::pipe_write(guest, fd, buf, len),
+        Some(Kind::Pipe) => super::pipe_io::write(guest, fd, buf, len),
+        Some(Kind::Event) => file::event_write(guest, fd, buf, len),
+        Some(Kind::Device) => file::dev_write(guest, fd, buf, len),
         Some(Kind::Resolver) => net::dns::query(guest, fd, buf, len, LOOPBACK_53),
         Some(Kind::Dir) => errno::fail(errno::EISDIR),
         _ => errno::fail(errno::EBADF),
@@ -43,13 +46,18 @@ pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
 }
 pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     match guest.fds.get(fd as usize).map(|f| &f.kind) {
-        // Nothing is typed at a guest yet, and end of file is the truth.
-        Some(Kind::Stdin) => errno::ok(0),
+        /*
+         * What the terminal typed, or end of file on no terminal.
+         */
+        Some(Kind::Stdin) => crate::linux::console::read(guest, buf, len),
         Some(Kind::File) => file::read(guest, fd, buf, len),
-        Some(Kind::Timer) => file::timerfd_read(guest, fd, buf),
+        Some(Kind::Timer) => file::timerfd_read(guest, fd, buf, len),
         Some(Kind::Socket) => socket_read(guest, fd, buf, len),
         Some(Kind::Unix) => crate::linux::unix::recv(guest, fd, buf, len),
-        Some(Kind::Pipe) => super::pipe_read(guest, fd, buf, len),
+        Some(Kind::Pipe) => super::pipe_read::read(guest, fd, buf, len),
+        Some(Kind::Event) => file::event_read(guest, fd, buf, len),
+        Some(Kind::Device) => file::dev_read(guest, fd, buf, len),
+        Some(Kind::Signal) => super::signalfd_now(guest, fd, buf, len),
         Some(Kind::Resolver) => net::dns::answer_out(guest, fd, buf, len).0,
         Some(Kind::Dir) => errno::fail(errno::EISDIR),
         _ => errno::fail(errno::EBADF),
@@ -57,8 +65,6 @@ pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
 }
 
 pub fn close(guest: &mut Guest, fd: u64) -> u64 {
-    if let Some(h) = guest.socket_handle(fd) {
-        net::close(h);
-    }
+    net::close(guest, fd);
     file::close(guest, fd)
 }

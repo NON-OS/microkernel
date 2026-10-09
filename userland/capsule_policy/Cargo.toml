@@ -1,8 +1,9 @@
 # NONOS userland: capsule_policy
 # eK@nonos.systems
 #
-# Authoritative store for the live system policy. RAM-ephemeral —
-# every boot starts at compile-time defaults; the user-facing
+# Authoritative store for the live system policy. Every boot starts at
+# compile-time defaults, then takes back the answers first-boot setup kept
+# in the vfs store when it chose a mode that keeps state; the user-facing
 # capsule_settings GUI app and any other capsule that wants to read
 # or change a setting goes through the IPC surface exposed here.
 # Kernel-mirrored fields (kernel_preempt, timezone, hostname) are
@@ -24,6 +25,8 @@ path = "src/main.rs"
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_policy_proto = { path = "../policy_proto" }
+# The vfs client, for the answers first-boot setup kept on an earlier boot.
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
 
 [profile.release]

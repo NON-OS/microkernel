@@ -26,7 +26,17 @@ const KIND_BOOL: u8 = 1;
 const E_OK: u16 = 0;
 const REPLY_TIMEOUT_MS: u64 = 64;
 
-pub fn clock_24h(port_slot: &mut u32) -> Option<bool> {
+/// What one read of the clock format found.
+pub enum Read {
+    /// No policy store is registered: nothing was waited on.
+    Absent,
+    /// The store is registered but did not answer within the reply timeout.
+    Silent,
+    /// The store answered: the value, or None when it holds none.
+    Answered(Option<bool>),
+}
+
+pub fn clock_24h(port_slot: &mut u32) -> Read {
     if *port_slot == 0 {
         let mut port = 0u32;
         let rc = mk_service_lookup(
@@ -36,7 +46,7 @@ pub fn clock_24h(port_slot: &mut u32) -> Option<bool> {
             ptr::null_mut(),
         );
         if rc < 0 || port == 0 {
-            return None;
+            return Read::Absent;
         }
         *port_slot = port;
     }
@@ -55,11 +65,16 @@ pub fn clock_24h(port_slot: &mut u32) -> Option<bool> {
     );
     if n < HDR_LEN as i64 {
         *port_slot = 0;
-        return None;
+        return Read::Silent;
     }
     let status = u16::from_le_bytes([rx[8], rx[9]]);
     if status != E_OK || rx[6] != KIND_BOOL || n < (HDR_LEN + 1) as i64 {
-        return None;
+        return Read::Answered(None);
     }
-    Some(rx[HDR_LEN] != 0)
+    Read::Answered(Some(rx[HDR_LEN] != 0))
+}
+
+// Whole hours east of UTC; needs the port `clock_24h` found this tick.
+pub fn timezone(port: u32) -> Option<i8> {
+    (port != 0).then(|| nonos_policy_client::get_i8(port, nonos_policy_proto::Field::Timezone))?
 }

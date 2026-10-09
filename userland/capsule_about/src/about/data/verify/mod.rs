@@ -24,19 +24,27 @@
 //! Evidence is split by who established it, and the split is the honest part.
 //! `recorded` is what the bootloader measured and the kernel merely reports back:
 //! its own syscall says outright that it re-verifies none of it, so presenting it
-//! as a live check would be a lie. `live` is computed here, now.
+//! as a live check would be a lie. `loader` is the kernel's own check of the
+//! bootloader, settled once at boot. `live` and `attested` are read here, now.
 //!
 //! A check earns its place only if it can fail. Numbers that are facts rather
 //! than tests are kept apart as a census, because a green tick against something
 //! that could never be red is the fakery this screen exists to replace.
 
+mod attested;
 mod boot;
+mod loader;
+mod names;
 mod own_mask;
+mod procs;
 mod scan;
 mod table;
 mod table_read;
 mod types;
 
+pub use attested::{attested, Attested};
 pub use boot::recorded;
+pub use loader::{loader, Loader};
+pub(crate) use procs::{each, live_count, name_of};
 pub use scan::live;
 pub use types::{Census, Check, Live, Recorded, Verdict};

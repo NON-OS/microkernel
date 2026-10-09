@@ -18,9 +18,9 @@ use alloc::vec::Vec;
 
 use super::types::Node;
 
-/// Where a directory came from, which decides how it earns trust. Fetched
-/// bytes need a signature; a table compiled into the image is already covered
-/// by the image's own signatures and STARK enrollment.
+/// Where a directory came from, which decides how it earns trust. A table
+/// compiled into the image is covered by the image's signatures; a signed one
+/// needs a trusted issuer; fetched bytes are admitted unsigned (`admissible`).
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Provenance {
     /// Compiled into the attested image.

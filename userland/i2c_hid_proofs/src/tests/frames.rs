@@ -26,7 +26,7 @@ pub(super) fn frame(
     contacts: u32,
     button: bool,
 ) -> TouchSample {
-    TouchSample { x, y, x_max: 1200, y_max: 800, tip, contacts, button, confidence }
+    TouchSample { x, y, x_max: 1200, y_max: 800, tip, contacts, contact_id: None, button, confidence }
 }
 
 /// One confident finger down.
@@ -56,6 +56,7 @@ pub(super) const LIFTED: TouchSample = TouchSample {
     y_max: 800,
     tip: false,
     contacts: 0,
+    contact_id: None,
     button: false,
     confidence: true,
 };

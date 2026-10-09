@@ -2,10 +2,10 @@
 
 ## Role
 
-`capsule_driver_usb_msc` is the USB Mass Storage class capsule. It classifies
-USB configuration descriptors, records bulk-in and bulk-out endpoints for
-SCSI-transparent BOT devices, and builds bounded command block wrappers for the
-storage stack.
+`capsule_driver_usb_msc` is the USB Mass Storage class capsule. It finds one
+SCSI-transparent BOT device on driver.xhci0's ports, runs BOT/SCSI over the bulk
+pipes driver.xhci0 keeps for it, and serves whole 512-byte sectors to the
+kernel's block layer (`src/hardware/usb_msc_capsule`).
 
 ```text
 USB flash / disk
@@ -14,7 +14,7 @@ USB flash / disk
 driver.xhci0 -- descriptors + bulk transfers
         |
         v
-driver.usb_msc0 -- BOT/SCSI framing --> block/storage capsules
+driver.usb_msc0 -- BOT/SCSI framing --> the kernel's block layer
 ```
 
 The capsule is not a host-controller driver and is not a filesystem. PCI
@@ -24,16 +24,21 @@ and encryption stay above the block layer.
 
 ## Microkernel contract
 
-The manifest grants only `IPC` and `Memory`:
+The manifest grants only `CoreExec`, `IPC` and `Memory`:
 
 ```text
 CAPSULE_REQUIRED_CAPS = 0x19
 ```
 
-The service receives requests with `MkIpcRecvFrom` and replies with
-`MkIpcSendToPid`. It does not call device enumeration, MMIO, IRQ, DMA, or PIO
-broker syscalls. The only persistent state is process-local runtime state:
-last classified endpoints, monotonic BOT tags, and counters.
+The service receives requests with `MkIpcRecvFrom`, replies with `MkIpcReply`
+(or `MkIpcSend` to the kernel's reply inbox), and calls driver.xhci0 with
+`MkIpcCall`. It makes no enumeration, MMIO, IRQ, DMA, or PIO broker syscalls.
+Its only state is in process memory: the bound device, BOT tags, counters.
+
+No capsule may send to `driver.usb_msc0`: the kernel holds the endpoint to an
+empty list (`src/services/registry/held.rs`), so only the kernel's own block
+client reaches it, by name or by pid. The block ops also check for sender pid
+0 themselves.
 
 ## Authority
 
@@ -57,8 +62,12 @@ forbidden: xHCI ownership, USB scheduling, DMA buffers, block cache, filesystem 
 | `OP_BUILD_READ_CAPACITY10` | none | BOT CBW for READ CAPACITY(10) |
 | `OP_BUILD_READ10` | `lba_le32, blocks_le16` | BOT CBW for READ(10) |
 | `OP_BUILD_WRITE10` | `lba_le32, blocks_le16` | BOT CBW for WRITE(10) |
+| `OP_BUILD_TEST_UNIT_READY` / `OP_BUILD_REQUEST_SENSE` | none | BOT CBW for that command |
 | `OP_ACCEPT_CSW` | 13-byte BOT CSW | status |
+| `OP_DECODE_INQUIRY` / `OP_DECODE_CAPACITY` / `OP_DECODE_SENSE` | the SCSI data-in bytes | decoded fields |
 | `OP_GET_STATE` | none | counters and endpoint snapshot |
+| `OP_BLK_CAPACITY` / `OP_BLK_FLUSH` | none; kernel (pid 0) only | blocks, block length / status |
+| `OP_BLK_READ` / `OP_BLK_WRITE` | `lba_le64, sectors_le32` (+ data), at most 64 sectors | data / status |
 
 Unknown operations reply `E_BAD_OP`. Malformed descriptors or command bodies
 reply `E_INVAL`. Valid descriptors without a SCSI-transparent BOT interface
@@ -73,11 +82,11 @@ teardown drops that memory through normal userland process cleanup.
 
 ## Runtime lifecycle
 
-At startup the capsule initializes its heap and waits on the service inbox. A
-caller probes a configuration descriptor first; successful probes replace the
-current endpoint snapshot. Block-layer callers then request BOT command wrappers
-for INQUIRY, READ CAPACITY(10), READ(10), or WRITE(10). The host-controller
-capsule performs the actual bulk transfers and returns the CSW for validation.
+At startup the capsule looks for its device for at most 10 s, answering the
+block surface `E_AGAIN` meanwhile: it addresses each free connected port, keeps
+the first BOT interface, runs TEST UNIT READY and READ CAPACITY(10), and after
+1.5 s with no port left undecided answers `E_NODEV`. A device whose blocks are
+not 512 bytes is answered `E_NOTSUP`, and the kernel passes it over by name.
 
 ## Failure model
 
@@ -94,7 +103,11 @@ USB mass-storage transport before issuing more commands.
 - Bulk IN / bulk OUT endpoint extraction.
 - BOT command block wrapper construction.
 - BOT command status wrapper validation.
-- SCSI INQUIRY, READ CAPACITY(10), READ(10), and WRITE(10) CDB construction.
+- SCSI INQUIRY, TEST UNIT READY, REQUEST SENSE, READ CAPACITY(10), READ(10),
+  and WRITE(10) CDB construction, and decoding of the INQUIRY, capacity and
+  sense data.
+- The block surface for the kernel: capacity, read, write and flush of whole
+  512-byte sectors over the bulk pipes `driver.xhci0` keeps for this driver.
 - Bounded transfer-length validation.
 - Kernel-spawnable capsule metadata and stable endpoint contract.
 
@@ -142,10 +155,8 @@ The intended runtime chain is:
 driver.xhci0 -> driver.usb_msc0 -> block service -> filesystem capsules
 ```
 
-The first release target is a USB flash device on QEMU xHCI: classify the MSC
-interface, run INQUIRY, run READ CAPACITY(10), complete one bounded READ(10),
-validate the CSW tag, and publish the resulting block geometry to the block
-service without moving storage policy into the kernel.
+The release target is a USB stick on QEMU xHCI carrying the NONOS store or disk
+plan, chosen by the kernel's block layer and read and written through here.
 
 ## Release evidence
 
@@ -165,12 +176,20 @@ bounded READ(10) transfer through the xHCI bulk-transfer service.
 - CSW validator rejects bad signatures, bad status values, and tag drift.
 - QEMU xHCI USB storage validation passes INQUIRY, capacity, and bounded read.
 
+## Real hardware bring-up checklist
+
+What only a boot on real silicon can confirm. The host proofs cover the parsers, the bring-up sequence against a model, and the bounded retry; these do not.
+
+- A stick plugged in at boot is found inside the ten second window; with none the block layer is told "no device".
+- A slow medium passes TEST UNIT READY within its ten tries 50 ms apart.
+- Read, write and flush round-trip data; a stalled endpoint recovers.
+
 ## Explicit non-goals today
 
-This slice does not implement xHCI bulk-transfer scheduling, USB reset recovery,
-multi-LUN enumeration, UASP, SCSI sense decoding, filesystem mounting, writeback
-caching, partition parsing, encryption, or block-device publication. Those are
-separate capsules or later controller-transfer slices.
+Not here: hot-plug after the start-up search, multi-LUN devices, UASP, devices
+past 2 TiB (READ(10) addresses the first 2^32 blocks), filesystems, partitions,
+caching and encryption. Stall and phase-error recovery follow BOT 6.6 and 5.3.4;
+there is no retry of a failed command beyond that.
 
 ## Verification
 
@@ -180,3 +199,6 @@ separate capsules or later controller-transfer slices.
 - Static gate: `bash nonos-ci/run-static-checks.sh`
 - Runtime proof target: QEMU xHCI USB storage probe with INQUIRY, capacity, and
   one bounded read.
+- Proofs: `(cd userland/usb_msc_proofs && cargo test --release)`.
+- Handbook: [drivers](../../docs/handbook/drivers.md),
+  [storage](../../docs/handbook/storage.md).

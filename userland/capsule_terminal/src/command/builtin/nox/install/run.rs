@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::call::call_installer;
+use nonos_libc::mk_time_millis;
+
+use super::call::{call_installer, issue, Issued};
+use super::children::children;
 use super::emit::{emit_err, emit_ok};
+use super::follow::Follow;
 use super::job::InstallJob;
 use crate::command::output::Output;
 use crate::jobs::JobProgress;
@@ -37,22 +41,24 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     let argv = argv_blob(stem, &args[1..]);
     match call_installer(stem, &argv) {
         Ok(new_pid) => {
-            emit_ok(state, stem, new_pid);
+            crate::jobs::tty::attach(state, new_pid);
+            emit_ok(&mut Output::new(&mut state.scrollback), stem, new_pid);
             debug_marker(b"[TERMINAL-INSTALL] load ok\n");
             drain_output(state, new_pid);
             true
         }
         Err(status) => {
-            emit_err(state, status);
+            emit_err(&mut Output::new(&mut state.scrollback), status);
             debug_marker(b"[TERMINAL-INSTALL] load failed\n");
             false
         }
     }
 }
 
-// Job-submission variant of `run`: same installer call and success/failure
-// reporting, but hands the stdout drain off as an `InstallJob` instead of
-// looping it to completion inline.
+// Job-submission variant of `run`: the same request and success/failure
+// reporting, but the installer is waited on only briefly, a load it is still
+// running is followed from the job's ticks, and the stdout drain is the
+// job's too, instead of either holding the window.
 pub fn prepare(state: &mut State, args: &[&[u8]]) -> Option<InstallJob> {
     if args.is_empty() {
         state.scrollback.push_error(b"usage: install <name> [argv...]");
@@ -64,16 +70,25 @@ pub fn prepare(state: &mut State, args: &[&[u8]]) -> Option<InstallJob> {
         return None;
     }
     let argv = argv_blob(stem, &args[1..]);
-    match call_installer(stem, &argv) {
-        Ok(new_pid) => {
-            emit_ok(state, stem, new_pid);
+    let before = children();
+    let mut out = Output::new(&mut state.scrollback);
+    match issue(stem, &argv) {
+        Issued::Loaded(new_pid) => {
+            emit_ok(&mut out, stem, new_pid);
             debug_marker(b"[TERMINAL-INSTALL] load ok\n");
             Some(InstallJob::new(new_pid))
         }
-        Err(status) => {
-            emit_err(state, status);
+        Issued::Refused(status) => {
+            emit_err(&mut out, status);
             debug_marker(b"[TERMINAL-INSTALL] load failed\n");
             None
+        }
+        Issued::InFlight => {
+            let mut line = alloc::vec::Vec::from(&b"loading "[..]);
+            line.extend_from_slice(stem);
+            line.extend_from_slice(b"...");
+            out.writeln(&line);
+            Some(InstallJob::loading(stem, Follow::new(before, mk_time_millis())))
         }
     }
 }

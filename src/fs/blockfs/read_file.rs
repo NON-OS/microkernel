@@ -14,38 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::file_consts::{
-    DATA_BYTES, INDEX_COUNT_OFFSET, INDEX_MAGIC, INDEX_PTR_BASE, MAX_PTRS, PTR_BYTES,
-};
-use super::read_u32::read_u32;
-use super::read_u64::read_u64;
+use super::index_block::{decode, Index};
+use super::read_file_flat::read_flat;
+use super::tree_range::read_range;
+use super::tree_reader::TreeReader;
+use super::{error::fault, tree_sealed::SealedSource};
 use super::{BlockFsError, BlockFsNode};
+use crate::fs::cryptoblock::ReadAhead;
 
+/// Read a file from its start into `out`; see `read_file_at`.
 pub fn read_file(
     key: &[u8; 32],
     node: &BlockFsNode,
     out: &mut [u8],
 ) -> Result<usize, BlockFsError> {
+    read_file_at(key, node, 0, out)
+}
+
+/// Read the file's bytes from `offset` into `out`, never past its size.
+/// Returns how many bytes were copied. A file of any size can be read this
+/// way with a buffer of any size.
+pub fn read_file_at(
+    key: &[u8; 32],
+    node: &BlockFsNode,
+    offset: u64,
+    out: &mut [u8],
+) -> Result<usize, BlockFsError> {
     if node.first_record_lba == 0 || node.size == 0 {
         return Ok(0);
     }
+    match read_index(key, node)? {
+        Index::Flat(index) => read_flat(key, node, &index, offset, out),
+        Index::Tree(root) => {
+            let mut ahead = ReadAhead::new();
+            let mut source = SealedSource { key, ahead: &mut ahead };
+            let mut reader = TreeReader::new(root);
+            read_range(&mut source, &mut reader, node.size, offset, out).map_err(fault)
+        }
+    }
+}
+
+/// The file's index block, opened and read in whichever layout it has.
+pub(super) fn read_index(key: &[u8; 32], node: &BlockFsNode) -> Result<Index, BlockFsError> {
     let index = crate::fs::cryptoblock::read(key, node.first_record_lba)
         .map_err(BlockFsError::CryptoBlock)?;
-    if index[0..8] != INDEX_MAGIC[..] {
-        return Err(BlockFsError::InvalidRecord);
-    }
-    let count = (read_u32(&index, INDEX_COUNT_OFFSET) as usize).min(MAX_PTRS);
-    let total = (node.size as usize).min(out.len());
-    let mut written = 0usize;
-    for i in 0..count {
-        if written >= total {
-            break;
-        }
-        let lba = read_u64(&index, INDEX_PTR_BASE + i * PTR_BYTES);
-        let block = crate::fs::cryptoblock::read(key, lba).map_err(BlockFsError::CryptoBlock)?;
-        let n = (total - written).min(DATA_BYTES);
-        out[written..written + n].copy_from_slice(&block[..n]);
-        written += n;
-    }
-    Ok(written)
+    decode(&index).ok_or(BlockFsError::InvalidRecord)
 }

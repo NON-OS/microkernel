@@ -15,17 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct PacKey {
+pub(super) struct PacKey {
     pub lo: u64,
     pub hi: u64,
 }
 
 impl PacKey {
-    pub const fn new(lo: u64, hi: u64) -> Self {
+    pub(super) const fn new(lo: u64, hi: u64) -> Self {
         Self { lo, hi }
     }
 
-    pub fn from_bytes(bytes: [u8; 16]) -> Self {
+    pub(super) fn from_bytes(bytes: [u8; 16]) -> Self {
         let lo = u64::from_le_bytes(first_word(bytes));
         let hi = u64::from_le_bytes(second_word(bytes));
         Self { lo, hi }
@@ -33,7 +33,7 @@ impl PacKey {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct PacKeys {
+pub(super) struct PacKeys {
     pub ia: PacKey,
     pub ib: PacKey,
     pub da: PacKey,

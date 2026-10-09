@@ -89,7 +89,9 @@ pub struct CpuDescriptor {
     /// behind one address, so no other CPU can read this one's. Stored rather
     /// than printed, so a CPU wedged on the serial lock still reports it.
     pub in_service_seen: AtomicU32,
-    _pad: [u8; 4],
+    /// The AP's first act and the boot CPU's give-up race for this; see
+    /// `boot_claim`. Whoever wins decides whether the AP runs.
+    pub boot_claim: super::boot_claim::BootClaim,
 }
 
 /// Points on a CPU's path, in the order it passes them.
@@ -164,7 +166,7 @@ impl CpuDescriptor {
             preempt_disable_count: AtomicU32::new(0),
             in_interrupt: AtomicBool::new(false),
             last_error: AtomicU32::new(0),
-            _pad: [0; 4],
+            boot_claim: super::boot_claim::BootClaim::new(),
         }
     }
 

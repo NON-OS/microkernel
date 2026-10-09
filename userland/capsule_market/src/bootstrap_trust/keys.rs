@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const NOX_OPERATOR_V1: [u8; 32] = [
-    0x29, 0x5f, 0x84, 0xc9, 0x7c, 0x62, 0x01, 0x3c, 0x43, 0x8b, 0xca, 0x3d, 0x81, 0xc1, 0x80, 0x98,
-    0x1b, 0x9f, 0x0a, 0x04, 0x3b, 0xa1, 0xfa, 0xe2, 0x54, 0xad, 0x0e, 0x12, 0xea, 0x8e, 0x07, 0x63,
-];
+/// Marketplace operator, v1. Read from the key file so a scratch build can
+/// stand in its own operator the way it stands in its own trust anchor. A
+/// file that is not exactly 32 bytes does not compile.
+pub(super) const NOX_OPERATOR_V1: [u8; 32] =
+    *include_bytes!("../../../../.keys/marketplace_operator_ed25519.pub");
 
 pub(super) const TRUSTED_OPERATORS: &[[u8; 32]] = &[NOX_OPERATOR_V1];

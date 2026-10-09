@@ -17,6 +17,7 @@
 use crate::protocol::{Request, E_INVAL, E_NOENT, WINDOW_RAISE_REQ_LEN};
 use crate::server::respond;
 use crate::state::Context;
+use crate::z_order::raise;
 
 pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != WINDOW_RAISE_REQ_LEN {
@@ -27,11 +28,14 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     };
-    let new_z = ctx.z.allocate();
-    let Some(window) = ctx.windows.find_mut(sender_pid, window_id) else {
+    let Some(raised) = raise(&mut ctx.windows, &mut ctx.z, sender_pid, window_id) else {
         let _ = respond::status(sender_pid, req, E_NOENT, tx);
         return;
     };
-    window.z = new_z;
+    // A raise the compositor does not hear of leaves this window drawn under
+    // one the hit test now puts beneath it.
+    if raised {
+        crate::server::tell_compositor::lift(ctx, sender_pid);
+    }
     let _ = respond::status(sender_pid, req, 0, tx);
 }

@@ -25,6 +25,11 @@ extern crate alloc;
 // module below instead of needing the whole app_skeleton dependency.
 extern crate self as nonos_app_skeleton;
 
+// The shared wheel rule the file manager scrolls by, as
+// `nonos_app_skeleton::scroll` through the alias above.
+#[path = "../../app_skeleton/src/scroll.rs"]
+pub mod scroll;
+
 use alloc::string::String;
 
 // Real capsule source under test, included verbatim.
@@ -57,6 +62,10 @@ pub mod vfs_protocol;
 // The block-layer error taxonomy the vfs handlers turn into errnos.
 pub mod vfs_blk;
 
+// The whole vfs block layer over a disk in memory: the boot load, appends,
+// removals and the status word, end to end, with the power cut at will.
+pub mod vfs_disk;
+
 // Aliases so capsule source that uses crate-absolute paths (`crate::protocol`,
 // `crate::store`, `crate::blk`) resolves when included here.
 pub use vfs_blk as blk;
@@ -84,7 +93,7 @@ pub fn map_store_err(err: store::StoreError) -> i32 {
 
 // Public surface so the included production functions are part of this crate's
 // API and exercised as such, not flagged unused outside the test build.
-pub fn normalize(path: &str) -> String {
+pub fn normalize(path: &str) -> Option<String> {
     vfs_path::normalize(path)
 }
 pub fn normalize_to_buffer(src: &[u8], out: &mut [u8]) -> usize {
@@ -116,6 +125,16 @@ pub fn desktop_walk(rx: &[u8], start: usize, end: usize) -> alloc::vec::Vec<(Str
 }
 
 #[cfg(test)]
+mod blk_contents_tests;
+#[cfg(test)]
+mod blk_pci_tests;
+#[cfg(test)]
+mod blk_span_tests;
+#[cfg(test)]
+mod blk_word_tests;
+#[cfg(test)]
+mod stream_hash;
+#[cfg(test)]
 mod desktop_tests;
 #[cfg(test)]
 mod dirstat_wire_tests;
@@ -128,13 +147,25 @@ mod files_tests;
 #[cfg(test)]
 mod fm_tests;
 #[cfg(test)]
+mod fm_paste_tests;
+#[cfg(test)]
+mod fm_text_tests;
+#[cfg(test)]
+mod fm_trail_tests;
+#[cfg(test)]
+mod fm_wheel_tests;
+#[cfg(test)]
 mod fmt_tests;
 #[cfg(test)]
 mod fuzz_tests;
 #[cfg(test)]
 mod journal_tests;
 #[cfg(test)]
+mod journal_touch_wire_tests;
+#[cfg(test)]
 mod journal_wire_tests;
+#[cfg(test)]
+mod listing_tests;
 #[cfg(test)]
 mod net_tests;
 #[cfg(test)]
@@ -154,9 +185,9 @@ mod search_wire_tests;
 #[cfg(test)]
 mod sidecar_tests;
 #[cfg(test)]
-mod store_tests;
-#[cfg(test)]
 mod store_owner_tests;
+#[cfg(test)]
+mod store_tests;
 #[cfg(test)]
 mod tags_blob_tests;
 #[cfg(test)]
@@ -164,12 +195,47 @@ mod tags_tests;
 #[cfg(test)]
 mod util_tests;
 #[cfg(test)]
+mod vfs_budget_tests;
+#[cfg(test)]
+mod vfs_fd_share_tests;
+#[cfg(test)]
+mod vfs_private_reap_tests;
+#[cfg(test)]
+mod vfs_gate_tests;
+#[cfg(test)]
 mod vfs_path_tests;
 
 // The kernel directory-record layout: entry offsets, name matching, chaining.
 pub mod blockfs_dir;
 
+// The kernel's byte helpers both blockfs layers read and write through. Each
+// file is mounted once, here at the root, because the kernel declares its
+// function `pub(super)`: from the root that reaches the directory layout and
+// the index trees alike.
+#[path = "../../../src/fs/blockfs/read_u64.rs"]
+mod read_u64;
+#[path = "../../../src/fs/blockfs/write_u32.rs"]
+mod write_u32;
+#[path = "../../../src/fs/blockfs/write_u64.rs"]
+mod write_u64;
+
+pub mod crypto;
+// The kernel's file index trees, `crate::fs::cryptoblock` its real sector constants.
+#[cfg(test)]
+mod blockfs_tree;
+// The kernel's disk plan parser.
+#[cfg(test)]
+mod data_plan;
+#[cfg(test)]
+#[path = "blockfs_tree/fs_shim.rs"]
+mod fs;
+
 #[cfg(test)]
 mod store_patch_tests;
+
+// capsule_ramfs through its request handlers: the sizes a caller can make it
+// hold, and any request at all.
+#[cfg(test)]
+mod ramfs;
 #[cfg(test)]
 mod store_replace_tests;

@@ -16,44 +16,73 @@
 
 use alloc::vec;
 
-use nonos_libc::mk_ipc_recv;
+use nonos_libc::{mk_ipc_recv_from, mk_pid_alive, mk_uptime_ms};
 
-use super::handle;
 use super::pump::PumpState;
 use super::streams::StreamTable;
+use super::{handle, no_sink};
 use crate::mark::mark;
 use crate::mixer::Mixer;
-use crate::selftest;
 use crate::sink::Sink;
 
 const RX_LEN: usize = 4124;
-const TX_LEN: usize = 28;
+/// The longest reply the service sends.
+const TX_LEN: usize = if super::proto::OUTPUT_REPLY_LEN > super::proto::VOLUME_REPLY_LEN {
+    super::proto::OUTPUT_REPLY_LEN
+} else {
+    super::proto::VOLUME_REPLY_LEN
+};
 const RECV_TIMEOUT_MS: u64 = 5;
+/// How often the streams of clients that ended are looked for.
+const REAP_GAP_MS: i64 = 2_000;
+
+fn alive(pid: u32) -> bool {
+    mk_pid_alive(pid)
+}
 
 pub fn run() -> ! {
     mark("[AUDIO] up\n");
     let mut mixer = Mixer::new();
     let sink = Sink::resolve();
-    if let Some(ref s) = sink {
-        selftest::run_mix(&mut mixer, s);
-        s.stream_start(3);
-        crate::selftest_stream::run_streams(s);
-        selftest::run(s);
+    match sink {
+        #[cfg(feature = "nonos-audio-smoketest")]
+        Some(ref s) => crate::selftest::boot(&mut mixer, s),
+        #[cfg(not(feature = "nonos-audio-smoketest"))]
+        Some(_) => mark("[AUDIO] output driver.hda0\n"),
+        /* driver.hda0 is registered before this capsule is spawned and
+         * dropped when the driver finds no controller, so its absence after
+         * the lookup's two seconds means this machine has no output. A
+         * client asking why is told there is no sound hardware, a stream
+         * open is refused with E_NODEV, everything else with E_INVAL, and
+         * the desktop's chime and alerts are skipped without a sound. A
+         * machine the driver found but cannot play on keeps the driver,
+         * which says why (OP_OUTPUT_STATUS). */
+        None => mark("[AUDIO] no output device, playback refused\n"),
     }
     let mut table = StreamTable::new();
     let mut pump = PumpState::new();
     let mut rx = vec![0u8; RX_LEN];
     let mut tx = vec![0u8; TX_LEN];
+    let mut last_reap = mk_uptime_ms();
     loop {
-        let n = mk_ipc_recv(0, rx.as_mut_ptr(), RX_LEN, RECV_TIMEOUT_MS);
-        if n <= 0 {
+        let mut sender = 0u32;
+        let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), RX_LEN, RECV_TIMEOUT_MS, &mut sender);
+        let now = mk_uptime_ms();
+        if now.wrapping_sub(last_reap) >= REAP_GAP_MS {
+            last_reap = now;
+            table.reap(alive);
+        }
+        if !nonos_libc::recv_ready(n) {
             if let Some(ref s) = sink {
                 super::pump::step(&mut pump, &mut table, s);
             }
             continue;
         }
-        if let Some(ref s) = sink {
-            handle(&rx[..n as usize], &mut mixer, s, &mut table, &mut pump, &mut tx);
+        match sink {
+            Some(ref s) => {
+                handle(&rx[..n as usize], &mut mixer, s, &mut table, &mut pump, &mut tx, sender)
+            }
+            None => no_sink(&rx[..n as usize], &mut tx),
         }
     }
 }

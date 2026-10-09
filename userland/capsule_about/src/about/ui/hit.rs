@@ -18,10 +18,9 @@ use crate::about::section::Section;
 
 use super::nav_geom;
 
-// The one routing surface. About has a single interactive region — the sidebar
-// rail — so the pane is deliberately inert: every screen is evidence to read,
-// not controls to press. Keeping the router here anyway means Phase B adds a
-// target by extending one match, not by teaching the event layer geometry.
+// The one routing surface. About has a single interactive region, the sidebar
+// rail, so the pane is deliberately inert: every screen is evidence to read,
+// not controls to press.
 pub fn at(x: i32, y: i32) -> Option<Section> {
     nav_geom::at(x, y)
 }

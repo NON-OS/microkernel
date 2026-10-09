@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod cache;
 mod choose;
 mod fetch;
 mod host;
 mod sanitize;
+mod user;
 mod wire;
 
-pub use choose::USER;
+pub use fetch::string as policy_string;
 pub use host::hostname;
+pub use user::username;

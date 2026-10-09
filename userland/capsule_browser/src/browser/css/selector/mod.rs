@@ -15,9 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod attr;
+mod attr_match;
+mod comb;
+mod complex;
+mod hash;
 mod pseudo;
 mod simple;
+mod state;
 
-pub use attr::AttrTest;
+pub use attr::{is_space, AttrOp, AttrTest};
+pub use comb::Comb;
+pub use complex::Selector;
+pub use hash::{bloom_bits, id_key, name_hash};
 pub use pseudo::Pseudo;
-pub use simple::{Selector, Simple, Step};
+pub use simple::{Simple, Step};
+pub use state::{FormState, UserState};

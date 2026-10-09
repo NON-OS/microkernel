@@ -58,8 +58,8 @@ pub struct Prefs {
     pub theme: u16,
     pub font_scale: u8,
     pub cursor: u8,
-    /// Rail flags. Bit 0 is the telemetry monitor; bit 1 is whether the left
-    /// rail is on screen at all, which is off by default.
+    /// Rail flags (`rail_flags.rs`). Bit 1 is whether the left rail is on
+    /// screen at all, which is off by default; bit 0 is kept but unused.
     pub rails: u8,
     pub projects: [Project; MAX_PROJECTS],
     pub project_count: u8,

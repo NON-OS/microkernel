@@ -18,7 +18,6 @@ use core::sync::atomic::{compiler_fence, Ordering};
 
 pub fn secure_cleanup_before_jump() {
     wipe_crypto_state();
-    wipe_zk_state();
     wipe_signing_keys();
     wipe_entropy_pools();
     compiler_fence(Ordering::SeqCst);
@@ -26,10 +25,6 @@ pub fn secure_cleanup_before_jump() {
 
 fn wipe_crypto_state() {
     crate::crypto::keystore_v2::wipe_all_keys();
-}
-
-fn wipe_zk_state() {
-    crate::zk::transcript::wipe_transcript();
 }
 
 fn wipe_signing_keys() {

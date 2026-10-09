@@ -21,5 +21,6 @@ use crate::fs::blockfs;
 pub fn create(path: &[u8], mode: u16) -> Result<u64, VolumeError> {
     let mut guard = VOLUME.write();
     let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
+    super::import_guard::guard(&state.key, &state.mount, path, "create")?;
     blockfs::create_path(&state.key, &mut state.mount, path, mode).map_err(VolumeError::BlockFs)
 }

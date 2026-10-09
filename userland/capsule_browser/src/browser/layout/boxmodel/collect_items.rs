@@ -14,135 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::abs_out_of_flow::out_of_flow;
-use super::border_box_w::border_box_w;
-use super::content_width::content_width;
+use super::contexts::collect_atom::{atom, measured};
+use super::contexts::inline_flow::Flow;
+use super::contexts::inline_sink::Sink;
+use super::contexts::inline_walk::walk;
 use super::ctx::Ctx;
-use super::display_list::DisplayList;
-use super::image_box::image_box;
-use super::inline_items::InlineItem;
-use super::layout_box::layout_box;
-use crate::browser::css::{Size, WhiteSpace};
+use super::inline_items::{Ink, InlineItem, Lead};
+use super::tree::BoxNode;
 
-use super::tree::{BoxKind, BoxNode};
-
-const MAX_DEPTH: u32 = 400;
-
-// Flatten an inline subtree into measured words, images, inline-block atoms
-// and hard breaks. A stray block inside an inline run flows like its children.
+/* Flatten an inline run into measured words, images, inline-block atoms
+ * and hard breaks, each with the space and break opportunity before it,
+ * for line layout `content_w` px wide, or None to measure it unwrapped. */
 pub(super) fn collect_items(
     children: &[BoxNode],
-    content_w: i32,
+    content_w: Option<i32>,
     out: &mut Vec<InlineItem>,
     depth: u32,
     ctx: Ctx,
 ) {
-    if depth > MAX_DEPTH {
-        return;
+    let mut sink = Items { out, content_w, ctx };
+    walk(children, &mut Flow::new(), &mut sink, depth);
+}
+
+struct Items<'a> {
+    out: &'a mut Vec<InlineItem>,
+    content_w: Option<i32>,
+    ctx: Ctx,
+}
+
+impl Sink for Items<'_> {
+    fn word(&mut self, c: &BoxNode, text: String, adv: i32, lead: Lead) {
+        let (s, href, node) = (&c.style, c.href.clone(), c.dom_id);
+        let (ink, line_h) = (Ink::of(s, s.bg, s.underline), s.line_height() as i32);
+        self.out.push(InlineItem::Word { text, ink, href, adv, line_h, node, lead });
     }
-    for c in children {
-        if out_of_flow(&c.style) {
-            continue;
-        }
-        match &c.kind {
-            BoxKind::Text(t) => {
-                if t == "\n" {
-                    out.push(InlineItem::Break);
-                    continue;
-                }
-                let px = c.style.font_size_px;
-                let fpx = px as f32;
-                let mono = c.style.mono;
-                let font = c.style.font_key;
-                let spacing = c.style.letter_spacing;
-                let bold = c.style.bold;
-                let measure = |s: &str| {
-                    crate::browser::fonts::measure_text(font, mono, bold, s, fpx, spacing)
-                };
-                let space = measure(" ").max(1);
-                let line_h = c.style.line_height() as i32;
-                let tt = c.style.text_transform;
-                let icon = c.style.icon_font;
-                let word = |w: &str| {
-                    // Icon-font text is a ligature name or private-use glyph we
-                    // cannot draw: map it to a symbol the built-in face has, or
-                    // emit nothing, so the icon never shows as a literal word.
-                    let text = if icon {
-                        alloc::string::String::from(
-                            crate::browser::css::icon_font::map_ligature(w).unwrap_or(""),
-                        )
-                    } else {
-                        super::text_transform::transform(w, tt)
-                    };
-                    InlineItem::Word {
-                        px,
-                        color: c.style.color,
-                        bg: c.style.bg,
-                        bold,
-                        mono,
-                        underline: c.style.underline,
-                        font,
-                        spacing,
-                        href: c.href.clone(),
-                        adv: measure(&text).max(0),
-                        space,
-                        line_h,
-                        node: c.dom_id,
-                        text,
-                    }
-                };
-                if c.style.white_space == WhiteSpace::Pre {
-                    // Preserve each line verbatim, breaking only at newlines, so
-                    // code and pre-formatted text keep their spacing.
-                    let mut first = true;
-                    for line in t.split('\n') {
-                        if !first {
-                            out.push(InlineItem::Break);
-                        }
-                        first = false;
-                        if !line.is_empty() {
-                            out.push(word(line));
-                        }
-                    }
-                } else {
-                    for w in t.split_ascii_whitespace() {
-                        out.push(word(w));
-                    }
-                }
-            }
-            BoxKind::Image { src, alt } => {
-                let (w, h) = image_box(&c.style, content_w);
-                out.push(InlineItem::Image {
-                    src: src.clone(),
-                    alt: alt.clone(),
-                    w,
-                    h,
-                    href: c.href.clone(),
-                    node: c.dom_id,
-                    fit: c.style.object_fit,
-                });
-            }
-            BoxKind::InlineBlock => {
-                // An inline-block is an atom on the line. Give it its own
-                // width (explicit, else shrink to content) and lay its block
-                // context out at the origin; the line box shifts it into place.
-                let bw = match c.style.width {
-                    Size::Auto => content_width(c, depth + 1).clamp(1, content_w.max(1)),
-                    _ => border_box_w(&c.style, content_w).clamp(1, content_w.max(1)),
-                };
-                let mut sub: DisplayList = Vec::new();
-                let h = layout_box(c, 0, 0, bw, &mut sub, depth + 1, ctx);
-                // The block may resolve wider than the hint (a min-width, an
-                // unbreakable child), so the advance is the real laid-out
-                // extent, or the next item would overlap it.
-                let w = sub.iter().map(|f| f.x + f.w).max().unwrap_or(bw).max(bw);
-                out.push(InlineItem::Atom { frags: sub, w, h });
-            }
-            BoxKind::Inline | BoxKind::Block | BoxKind::Flex | BoxKind::Grid => {
-                collect_items(&c.children, content_w, out, depth + 1, ctx);
-            }
-        }
+
+    fn atom(&mut self, c: &BoxNode, lead: Lead, depth: u32) {
+        let it = match self.content_w {
+            Some(w) => atom(c, w, lead, depth, self.ctx),
+            None => measured(c, lead, depth),
+        };
+        self.out.push(it);
+    }
+
+    /* An edge is a word with no text: it takes room and paints its box's
+     * background, never an underline. */
+    fn edge(&mut self, c: &BoxNode, w: i32, bg: u32, lead: Lead) {
+        let (ink, line_h) = (Ink::of(&c.style, bg, false), c.style.line_height() as i32);
+        let (href, node, text) = (c.href.clone(), c.dom_id, String::new());
+        self.out.push(InlineItem::Word { text, ink, href, adv: w, line_h, node, lead });
+    }
+
+    fn hard_break(&mut self) {
+        self.out.push(InlineItem::Break);
     }
 }

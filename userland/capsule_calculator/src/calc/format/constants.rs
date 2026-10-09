@@ -14,5 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const DISPLAY_MAX: usize = 32;
-pub const ERROR_TEXT: &[u8] = b"Error";
+// The widest value a Fixed can hold: a sign, 31 integer digits (i128::MIN
+// over FRAC), the point and 8 fraction digits, 41 bytes. At 32 the fraction
+// and then the low digits of a large result were cut off and a different
+// number shown; the readout's font ladder fits the full width instead.
+pub const DISPLAY_MAX: usize = 48;

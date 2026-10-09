@@ -51,7 +51,7 @@ pub fn spawn_crypto_capsule() -> Result<(), SpawnError> {
         manifest_bytes: CRYPTO_MANIFEST_BYTES,
         attestation_trailer: CRYPTO_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::IPC.bit() | Capability::Memory.bit() | Capability::Crypto.bit(),
+        requested_caps: Capability::IPC.bit() | Capability::Memory.bit(),
         debug_tag: b"[CRYPTO-DEBUG] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

@@ -127,8 +127,3 @@ pub fn nearest_two<'c>(
     };
     (best.map(|(_, c)| c), alt)
 }
-
-/// The single closest candidate, for callers that want one answer.
-pub fn nearest<'c>(typed: &[u8], candidates: impl Iterator<Item = &'c [u8]>) -> Option<&'c [u8]> {
-    nearest_two(typed, candidates).0
-}

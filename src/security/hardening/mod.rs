@@ -36,12 +36,11 @@ pub use spectre_mitigations::{
 };
 
 pub use memory_sanitization::{
-    allocate_with_guards, dod_5220_erase, free_with_guards, get_level, get_stack_canary,
-    gutmann_erase, init as memory_sanitization_init, init_stack_canary, on_free, on_realloc,
-    paranoid_erase, sanitization_stats, sanitize, sanitize_process_memory, sanitize_slice,
-    secure_zero, secure_zero_slice, set_level, stack_canary_failed, verify_stack_canary,
-    zerostate_shutdown_wipe, GuardPage, SanitizationLevel, SanitizationStats, SecureString,
-    SensitiveData, StackCanaryConfig,
+    dod_5220_erase, get_level, get_stack_canary, gutmann_erase, init as memory_sanitization_init,
+    init_stack_canary, on_free, on_realloc, paranoid_erase, sanitization_stats, sanitize,
+    sanitize_process_memory, sanitize_slice, secure_zero, secure_zero_slice, set_level,
+    stack_canary_failed, verify_stack_canary, zerostate_shutdown_wipe, SanitizationLevel,
+    SanitizationStats, SecureString, SensitiveData, StackCanaryConfig,
 };
 
 pub use memory_encryption::{

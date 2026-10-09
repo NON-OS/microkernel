@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Small formatters the inspector and the memory screens share: names for
-//! the kernel's codes, shares, a user/kernel split, a region count.
+//! the kernel's codes, a user/kernel split, a region count.
 
-use super::format::{pct_1dp, u32_decimal};
+use super::format::{percent, u32_decimal};
 
 /// The scheduling class the kernel reported: the `priority` byte of an entry.
 pub fn priority_label(code: u8) -> &'static [u8] {
@@ -31,26 +31,17 @@ pub fn priority_label(code: u8) -> &'static [u8] {
     }
 }
 
-/// `kb` as a whole percentage of `total_kb`, clamped; zero of nothing is zero.
-pub fn share_pct(kb: u64, total_kb: u64) -> u8 {
-    if total_kb == 0 {
-        0
-    } else {
-        (kb.saturating_mul(100) / total_kb).min(100) as u8
-    }
-}
-
-/// "1.0% / 3.0%": the share that was the process's own code, then the
+/// "1% / 3%": the share that was the process's own code, then the
 /// kernel's work for it.
 pub fn split(user: u8, kernel: u8, out: &mut [u8]) -> usize {
-    let mut n = pct_1dp(user, out);
+    let mut n = percent(user, out);
     for &c in b" / " {
         if n < out.len() {
             out[n] = c;
             n += 1;
         }
     }
-    n + pct_1dp(kernel, &mut out[n..])
+    n + percent(kernel, &mut out[n..])
 }
 
 /// " in 7 regions" after a size.

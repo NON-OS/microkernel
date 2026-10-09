@@ -21,8 +21,12 @@
 pub(super) fn identity_limit() -> u64 {
     const FLOOR: u64 = 4 * 1024 * 1024 * 1024;
     const GIB: u64 = 1024 * 1024 * 1024;
-    let total = crate::memory::phys::allocator::phys_total_memory();
-    let rounded = total.saturating_add(GIB - 1) & !(GIB - 1);
+    /*
+     * The top of the managed span, not the RAM total: RAM above a PCI hole
+     * sits past the total, and a domain sized by it would miss that RAM.
+     */
+    let (_, top) = crate::memory::phys::allocator::phys_managed_range();
+    let rounded = top.saturating_add(GIB - 1) & !(GIB - 1);
     if rounded < FLOOR {
         FLOOR
     } else {

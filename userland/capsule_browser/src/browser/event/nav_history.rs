@@ -14,22 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
+
 use nonos_app_skeleton::EventOutcome;
 
-use crate::browser::state::State;
+use crate::browser::omnibox::{same_document, Change};
+use crate::browser::state::{Origin, State, View};
 
+/* Back and Forward, and a page's history.go(delta). They always answer,
+ * even while images or scripts are still loading: the navigation they
+ * queue cancels whatever is in flight. From the home page, Back returns to
+ * the page that was left. A step to another fragment of the page on screen
+ * only scrolls. */
 pub fn nav_history(state: &mut State, delta: i32) -> EventOutcome {
-    if state.fetch.is_some() {
+    let home = state.view == View::Home;
+    let h = &mut state.ui.history;
+    let target = match (home, delta) {
+        (true, -1) => h.current(),
+        (_, delta) => h.go(delta),
+    };
+    let Some(url) = target.map(String::from) else {
         return EventOutcome::Idle;
+    };
+    let shown = state.box_doc.is_some() || state.document.is_some();
+    if !home && shown && same_document(&state.ui.current_url, &url) {
+        let frag = url.split_once('#').map_or("", |(_, f)| f);
+        super::anchor::scroll_to_fragment(state, frag);
+        state.ui.current_url = url.clone();
+        state.show_url(&url);
+        state.note_history();
+        state.mark(Change::Toolbar);
+        return EventOutcome::Repaint;
     }
-    let next = state.hist_index + delta;
-    if next < 0 || next >= state.history.len() as i32 {
-        return EventOutcome::Idle;
-    }
-    state.hist_index = next;
     state.suppress_history_push = true;
-    let url = state.history[next as usize].clone();
-    state.address = url.clone();
-    state.pending_nav = Some(url);
-    EventOutcome::Repaint
+    super::navigate::navigate(state, url, Origin::User)
 }

@@ -19,23 +19,35 @@ use nonos_libc::{
     mk_device_release, mk_mmio_map, mk_mmio_unmap, mk_pio_grant, mk_pio_release, MmioMapOut,
     PioGrantOut, BAR_KIND_MMIO, BAR_KIND_PIO,
 };
+use nonos_virtio::Window;
 const PAGE_MASK: u64 = 0xFFF;
 #[derive(Clone, Copy)]
 pub enum RegisterGrant {
     Mmio(MmioMapOut),
     Pio(PioGrantOut),
+    /// The modern structures, one MMIO grant each.
+    Modern(Window),
 }
 impl RegisterGrant {
-    pub fn regs(self) -> Regs {
+    /// The legacy register window. A modern grant has none.
+    pub fn regs(self) -> Option<Regs> {
         match self {
-            Self::Mmio(g) => Regs::mmio(g.user_va),
-            Self::Pio(g) => Regs::pio(g.grant_id),
+            Self::Mmio(g) => Some(Regs::mmio(g.user_va)),
+            Self::Pio(g) => Some(Regs::pio(g.grant_id)),
+            Self::Modern(_) => None,
         }
     }
     pub fn release(self) -> bool {
         match self {
             Self::Mmio(g) => mk_mmio_unmap(g.grant_id) >= 0,
             Self::Pio(g) => mk_pio_release(g.grant_id) >= 0,
+            Self::Modern(w) => {
+                let mut ok = true;
+                for &id in w.grant_ids().iter().rev().flatten() {
+                    ok = mk_mmio_unmap(id) >= 0 && ok;
+                }
+                ok
+            }
         }
     }
 }

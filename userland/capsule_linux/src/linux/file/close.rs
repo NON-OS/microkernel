@@ -14,34 +14,57 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Closing a descriptor, and writing out anything it was holding.
+/* Closing a descriptor, and writing out anything it was holding. */
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Fd, Guest, Kind};
 
 pub fn close(guest: &mut Guest, fd: u64) -> u64 {
-    let Some(entry) = guest.fds.get_mut(fd as usize) else {
+    let Some(entry) = guest.fds.get(fd as usize) else {
         return errno::fail(errno::EBADF);
     };
     if !entry.is_open() {
         return errno::fail(errno::EBADF);
     }
+    super::lock_calls::closing(guest, fd);
+    let flushed = flush(guest, fd);
+    // The last descriptor on the display connection closes it, and the
+    // client's window goes with it.
+    let connected: alloc::vec::Vec<bool> =
+        guest.fds.iter().map(|f| f.kind == Kind::Unix && f.writable).collect();
+    let disconnects = crate::linux::wayland::ends_connection(&connected, fd as usize);
     /*
      * The store handle is dropped with the descriptor, which closes it on the
      * server.
      */
-    let flushed = flush(entry);
-    *entry = Fd::empty(Kind::Free);
+    guest.fds[fd as usize] = Fd::empty(Kind::Free);
+    super::epoll::forget(guest, fd);
+    if disconnects {
+        crate::linux::wayland::disconnect(guest);
+    }
     match flushed {
-        true => errno::ok(0),
-        false => errno::fail(errno::EIO),
+        Ok(()) => errno::ok(0),
+        Err(e) => errno::fail(e),
     }
 }
 
-/// Write a descriptor's buffered bytes out.
-pub(super) fn flush(entry: &Fd) -> bool {
-    if entry.kind != Kind::File || !entry.writable {
-        return true;
+/*
+ * A written file's bytes to the store. The family's copy is let go when
+ * this process holds no other descriptor on it; another process that
+ * still does reads the store, which now has every byte.
+ */
+pub(super) fn flush(guest: &Guest, fd: u64) -> Result<(), i64> {
+    let Some(entry) = guest.fds.get(fd as usize) else {
+        return Ok(());
+    };
+    if entry.kind != Kind::File || !entry.writable || super::synth::owns(&entry.path) {
+        return Ok(());
     }
-    super::store::write(&super::resolve::key(&entry.path), &entry.pending).is_ok()
+    let path = &entry.path;
+    let others = guest
+        .fds
+        .iter()
+        .enumerate()
+        .any(|(i, f)| i as u64 != fd && f.kind == Kind::File && f.path == *path);
+    super::cache::flush(path, others)
 }

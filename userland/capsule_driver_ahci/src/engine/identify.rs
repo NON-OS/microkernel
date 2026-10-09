@@ -15,22 +15,35 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::port::Port;
-use crate::constants::ata::ATA_IDENTIFY;
-use crate::error::AhciResult;
+use crate::constants::ata::{ATA_IDENTIFY, DATA_BUF_BYTES};
+use crate::constants::identify::IDENTIFY_WORDS;
+use crate::error::{AhciError, AhciResult};
 use crate::regs::Regs;
 
+// The data buffer holds the whole IDENTIFY block, so the copy below stays in it.
+const _: () = assert!(IDENTIFY_WORDS * 2 <= DATA_BUF_BYTES as usize);
+
 pub fn identify(port: &mut Port, regs: Regs) -> AhciResult<u64> {
-    super::build::build_slot0(port, ATA_IDENTIFY, 0, 1, false);
-    if let Err(e) = super::issue::issue_slot0(regs, port.base) {
-        super::recover::recover(regs, port.base);
+    super::build::build_slot0(port, ATA_IDENTIFY, 0, 1, false)?;
+    if let Err(e) = super::issue::issue_slot0(regs, port.base, port.sclo) {
+        let _ = super::recover::recover(regs, port.base, port.sclo);
         return Err(e);
     }
-    let words = port.data.user_va() as *const u16;
-    let w = |i: usize| unsafe { core::ptr::read_volatile(words.add(i)) } as u64;
-    let mut sectors = w(100) | (w(101) << 16) | (w(102) << 32) | (w(103) << 48);
-    if sectors == 0 {
-        sectors = w(60) | (w(61) << 16);
-    }
+    let block = read_block(port);
+    let sectors = crate::identity::capacity(&block).map_err(AhciError::IdentityRefused)?;
     port.capacity_sectors = sectors;
+    port.names = crate::identity::names(&block);
     Ok(sectors)
+}
+
+/// Copy the drive's IDENTIFY block out of the data buffer, so every rule in
+/// `identity` judges one fixed copy rather than memory the device can still
+/// write.
+fn read_block(port: &Port) -> [u16; IDENTIFY_WORDS] {
+    let src = port.data.user_va() as *const u16;
+    let mut words = [0u16; IDENTIFY_WORDS];
+    for (i, w) in words.iter_mut().enumerate() {
+        *w = unsafe { core::ptr::read_volatile(src.add(i)) };
+    }
+    words
 }

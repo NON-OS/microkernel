@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// The user half of `user@host`. NONOS has no user table and policy has no
-/// `Username` field, so this is the system's one identity, spelled the same
-/// way `git commit` already spells it.
-pub const USER: &[u8] = b"nonos";
+/*
+ * The user half of `user@host` when policy names nobody. NONOS has no user
+ * table, so this is the system's one identity, spelled the same way
+ * `git commit` already spells it.
+ */
+pub const USER_FALLBACK: &[u8] = b"nonos";
 
 /// Shown when policy cannot be reached or answers with nothing usable.
 ///
@@ -26,9 +28,9 @@ pub const USER: &[u8] = b"nonos";
 /// case claims a name anybody chose.
 pub const HOST_FALLBACK: &[u8] = b"nonos";
 
-pub fn choose(fetched: &[u8]) -> &[u8] {
+pub fn choose<'a>(fetched: &'a [u8], fallback: &'a [u8]) -> &'a [u8] {
     if fetched.is_empty() {
-        HOST_FALLBACK
+        fallback
     } else {
         fetched
     }

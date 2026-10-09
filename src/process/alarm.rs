@@ -23,9 +23,9 @@ use crate::process::signal::{send_signal, SIGALRM};
 // Walk the process table and deliver SIGALRM to any PCB whose alarm
 // timestamp has expired. Called from the kernel timer IRQ tick.
 pub fn tick() {
-    for pcb in crate::process::get_process_table().get_all_processes() {
-        if pcb.check_alarm_expired() {
-            let _ = send_signal(pcb.pid, SIGALRM as u32);
-        }
+    let mut due = [0; 32];
+    let n = crate::process::get_process_table().expired_alarms(&mut due);
+    for &pid in &due[..n] {
+        let _ = send_signal(pid, SIGALRM as u32);
     }
 }

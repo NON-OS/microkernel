@@ -22,11 +22,13 @@
 //! translated here, with its last byte checked as well as its first.
 
 use crate::boot::handoff::get_handoff;
-use crate::boot::handoff::types::Module;
+use crate::boot::handoff::types::{Module, BOOT_MEDIA_LEN, MODULE_KIND_BOOT_MEDIA};
 use crate::memory::addr::PhysAddr;
 use crate::memory::unified::phys_to_virt;
 
 /// The first recorded module of `kind` with a non-empty image, by value.
+/* A boot media record of any other length is not the loader's layout, and
+ * is not handed to the installer to be misread. */
 pub fn find(kind: u64) -> Option<Module> {
     let handoff = get_handoff()?;
     let count = handoff.modules.count as usize;
@@ -42,5 +44,9 @@ pub fn find(kind: u64) -> Option<Module> {
     // memory before the jump, the kernel never frees loader memory, and both
     // ends of the array were just checked to lie under the directmap.
     let modules = unsafe { core::slice::from_raw_parts(virt.as_u64() as *const Module, count) };
-    modules.iter().copied().find(|m| m.kind as u64 == kind && m.size > 0)
+    modules.iter().copied().find(|m| m.kind as u64 == kind && m.size > 0 && well_formed(m))
+}
+
+fn well_formed(m: &Module) -> bool {
+    m.kind != MODULE_KIND_BOOT_MEDIA || m.size == BOOT_MEDIA_LEN as u64
 }

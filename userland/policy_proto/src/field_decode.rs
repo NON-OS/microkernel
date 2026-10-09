@@ -51,6 +51,10 @@ pub fn decode(id: u32) -> Option<Field> {
         0x011F => Field::AudioBalance,
         0x0120 => Field::AlertSounds,
         0x0121 => Field::StartupChime,
+        0x0122 => Field::Persistent,
+        0x0123 => Field::AppsOff,
+        0x0124 => Field::NetworkRoute,
+        0x0125 => Field::WallpapersKept,
         0x0201 => Field::KernelAslr,
         0x0202 => Field::KernelStackGuard,
         0x0203 => Field::KernelNxBit,
@@ -65,6 +69,8 @@ pub fn decode(id: u32) -> Option<Field> {
         0x020C => Field::KernelSeccomp,
         0x0301 => Field::Hostname,
         0x0302 => Field::DomainName,
+        0x0303 => Field::Username,
+        0x0304 => Field::QwenTier,
         _ => return None,
     })
 }

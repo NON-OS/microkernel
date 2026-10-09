@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for net.core's request header decode. Builds for the
+# host so `cargo test` runs the real decode, refusal and reply source
+# (included via #[path]) against any bytes a client can send, over the net
+# proofs' stand-in nonos_libc, which keeps each reply.
+[package]
+name = "net_core_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "net_proofs_shim", path = "../net_proofs/shim" }
+# The stack net.core runs, for the TCP liveness proofs.
+smoltcp = { version = "0.11", default-features = false, features = [
+  "std", "medium-ip", "proto-ipv4", "socket-tcp",
+] }

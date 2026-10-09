@@ -1,6 +1,8 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 
+pub mod aml;
 pub mod data;
+pub mod hw;
 
 #[path = "../../../../../../../../src/arch/x86_64/acpi/tables/mod.rs"]
 pub mod tables;

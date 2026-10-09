@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# A strict reader of GGUF model headers. Every count, length, dimension and
+# tensor extent in the file is bounded before it is used, so a hostile file is
+# refused by name instead of overflowing into a small allocation. It reads
+# through an offset reader, so a model of any size is checked without being
+# held in memory. no_std with alloc; no dependencies.
+[package]
+name = "nonos_gguf"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[profile.release]
+overflow-checks = true

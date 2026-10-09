@@ -39,6 +39,10 @@ pub mod trap;
 pub mod user_access;
 pub mod image_holes;
 pub mod wall_clock;
+pub mod cache_flush;
+mod cache_line_ops;
+pub mod firmware_table;
+pub mod write_combining;
 #[cfg(target_arch = "x86_64")]
 pub mod nonos_boot;
 #[cfg(target_arch = "x86_64")]

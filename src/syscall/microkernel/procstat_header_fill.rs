@@ -41,11 +41,13 @@ pub(super) fn header_for(count: u32, now_ms: u64) -> ProcStatHeader {
         interrupts: totals.interrupts,
         faults: totals.faults,
         cpus_online: crate::smp::cpus_online() as u32,
-        _pad: 0,
+        boot_flags: super::procstat_boot::flags(),
         user_ticks: totals.user_ticks,
         kernel_ticks: totals.kernel_ticks,
         largest_free_kb: crate::memory::phys::allocator::phys_largest_free_run() as u64 * 4,
         heap_peak_kb: heap.peak_usage as u64 / 1024,
         heap_allocs: heap.allocation_count as u64,
+        apps_present: crate::userspace::init::APPS_PRESENT,
+        apps_off: crate::userspace::init::apps_off(),
     }
 }

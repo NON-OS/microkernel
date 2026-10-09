@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the request header decode of the services whose
+# decode is pure and had no proof over arbitrary bytes: entropy, login, power,
+# attest, desktop_shell, wallpaper and the virtio_rng and ps2_input drivers.
+# Each one's real protocol module is included via #[path], side by side.
+[package]
+name = "service_header_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

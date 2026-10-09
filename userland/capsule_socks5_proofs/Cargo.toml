@@ -11,3 +11,8 @@ edition = "2021"
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+# The route constants the terminal's fail-closed rule is written in.
+nonos_policy_proto = { path = "../policy_proto" }

@@ -21,7 +21,7 @@ use core::ptr;
 
 use crate::arch::x86_64::acpi::parser::phys::directmap;
 use crate::arch::x86_64::acpi::parser::state::TABLES;
-use crate::arch::x86_64::acpi::tables::{Fadt, SdtHeader, SIG_FADT};
+use crate::arch::x86_64::acpi::tables::SdtHeader;
 
 /// Size of the standard SDT header that precedes every AML block.
 const SDT_HEADER_LEN: usize = 36;
@@ -34,21 +34,13 @@ const MAX_AML_LEN: usize = 2 * 1024 * 1024;
 /// Return the DSDT AML bytecode as an owned copy.
 ///
 /// The DSDT is not present in the XSDT-derived table registry; its physical
-/// address lives in the FADT. We fetch the FADT physical address from the
-/// registry, re-read the FADT to obtain `dsdt_address()`, then copy the AML
-/// payload that follows the DSDT's own SDT header.
+/// address lives in the FADT, which the parser decoded within its own length
+/// with X_DSDT preferred over the 32-bit DSDT field when nonzero.
 ///
 /// Returns `None` on any failure (missing FADT, unmapped physical address,
 /// implausible length). Never panics.
 pub fn dsdt_aml() -> Option<Vec<u8>> {
-    let fadt_phys = { TABLES.read().as_ref()?.tables.get(&SIG_FADT).copied()? };
-    let fadt_virt = directmap(fadt_phys)?;
-
-    // SAFETY: `fadt_virt` is a direct-map virtual address for a firmware FADT
-    // whose physical address was recorded by the validated ACPI parser. The
-    // FADT is at least the fixed struct size for any conforming firmware; we
-    // read it by value with a volatile read to avoid UB from aliasing MMIO.
-    let dsdt_phys = unsafe { ptr::read_volatile(fadt_virt as *const Fadt).dsdt_address() };
+    let dsdt_phys = { TABLES.read().as_ref()?.data.fadt?.dsdt };
     if dsdt_phys == 0 {
         return None;
     }

@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::{monitoring, network, policy, quantum};
+use crate::security::{monitoring, policy, quantum};
 
 #[derive(Debug)]
 pub struct SecurityStats {
     pub advanced: policy::advanced::SecurityStats,
     pub monitor: monitoring::monitor::MonitorStats,
     pub quantum: quantum::pqc::QuantumSecurityStats,
-    pub zkids: network::zkids::ZkidsStats,
 }
 
 pub fn get_security_stats() -> SecurityStats {
@@ -36,6 +35,5 @@ pub fn get_security_stats() -> SecurityStats {
             threat_detections: 0,
             trust_verifications: 0,
         },
-        zkids: network::zkids::get_zkids_stats(),
     }
 }

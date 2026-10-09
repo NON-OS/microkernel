@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod constants;
+mod display_info;
 mod healthcheck;
 mod ping_damage;
 mod push_scene_submit;
 mod status;
 
+pub use display_info::display_info;
 pub use healthcheck::healthcheck;
 pub use ping_damage::ping_damage;
 pub use push_scene_submit::push_scene_submit;

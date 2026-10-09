@@ -1,278 +1,262 @@
+![NØNOS · Privacy. Proofs. Software.](assets/banner.png)
+
 # NØNOS
 
-An operating system that keeps nothing. It boots a measured image into RAM,
-proves every program before that program runs, and wipes memory on the way down.
+An operating system you can use every day that keeps nothing. It boots a measured image into
+RAM, runs every program as a signed capsule with only the capabilities it was enrolled for,
+sends traffic through the network the person chose, and wipes memory on the way down.
 
-The kernel is 261,216 lines of Rust in ring 0, and 903 kilobytes of machine code
-once linked. Above it, 411,483 lines run in ring 3 across 166 crates: the NVMe, AHCI
-and xHCI drivers, e1000, virtio-net and the RTL8821CE Wi-Fi part, net_core with TCP,
-UDP, DHCP and DNS, the Nym client with its SOCKS5 front, the compositor, window
-manager, terminal, file manager, editor, image and video players, a browser with its
-own JavaScript engine and TLS, a wallet holding BIP39 keys, and ripgrep from
-crates.io, unmodified. Under all of it, 54 proof crates that exercise the shipped
-code, 103 Kani harnesses, and a Lean development of 1,156 theorems with no sorry.
+0.9.2 is the release that makes NONOS a daily driver. The desktop, the browser, the terminal,
+the wallet, a Linux userland, a private local model, first-boot setup and the installer are all
+in one image, and every one of them runs above a microkernel that checks a capability on every
+call. [CHANGELOG-0.9.2.md](CHANGELOG-0.9.2.md) lists every change with the proof behind it.
 
-Most of the system cannot reach the kernel's memory, which is the point of
-building it this way. Of the 903 kilobytes that do run privileged, more than a
-third is `core`, `alloc`, `compiler_builtins` and two dependencies rather than
-NONOS code, and that share keeps falling. Every driver is already out. The last
-thing to leave was secp256k1, Ed25519 signing and the wallet's crypto, which moved
-to a ring 3 capsule and left the verification side behind.
+Every claim on this page is tied to code or to evidence in the tree. What 0.9.2 has shown on a
+booted machine and what it has shown only on the host is set out under
+[Where 0.9.2 stands](#where-092-stands).
 
-## The machine
+## What you get
+
+| | |
+|---|---|
+| Desktop | a compositor, a window manager and a desktop shell with a dock; windows size themselves from small laptop panels to 4K |
+| Browser | its own HTML parser, CSS layout, a QuickJS engine and TLS with the Mozilla roots; pages load over Nym, Anyone or direct |
+| Terminal | tabs, pipelines and jobs, built-in commands, `git` over HTTPS, and the bundled Linux tools |
+| Linux programs | a Linux personality that traps and translates Linux system calls, with a built-in BusyBox and CPython 3.12, Lua, zstd and John the Ripper in the store |
+| Wallet | BIP39 and HD keys held by the keyring capsule, sealed to the TPM, signing in ring 3 |
+| Qwen, local | a private Qwen model installed from the store, fetched over the chosen network, checked against its published hashes and kept on the encrypted data volume |
+| Apps | files, text editor, image viewer, audio and video players, settings, process manager, clock, calculator, the market and app store |
+| Network | Nym mixnet by default, the Anyone onion network, or direct; chosen in setup and changed in Settings |
+| Install | amnesic by default; first-boot setup and an installer that writes NONOS to a disk only when the person types the disk's word |
+| Proofs screen | About shows every admitted capsule with its measurement and enroller, and how traffic is leaving right now |
+
+The handbook page for each is in [the handbook](docs/handbook/README.md). The person at the
+keyboard should read [Using NONOS 0.9.2](docs/release/0.9.2/user-guide.md).
+
+## The kernel
+
+The kernel is a capability microkernel in Rust: 282,997 lines under `src/`. It does what only
+ring 0 can do: page tables and address spaces, the scheduler, IPC between capsules, the
+syscall boundary with its capability check, the attestation gate at spawn, the TPM, and a
+hardware broker that hands device windows to driver capsules. Everything a person would call
+the operating system runs in ring 3: 235 crates under `userland/`, drivers included.
 
 ```mermaid
-%%{init: {'theme':'base','themeVariables':{'primaryColor':'#ffffff','primaryTextColor':'#15181d','primaryBorderColor':'#15181d','lineColor':'#6b7280','fontFamily':'ui-monospace, SFMono-Regular, Menlo, monospace','fontSize':'13px','noteBkgColor':'#f4f4f4','noteTextColor':'#15181d','noteBorderColor':'#15181d'}}}%%
 flowchart TB
-    drv["drivers<br/>nvme, ahci, xhci, usb-hid, usb-msc, virtio<br/>e1000, rtl8169, rtl8821ce, iwlwifi, ps2, hda"] --> b
-    net["network<br/>tcp, udp, ip, l2, dhcp, dns, ntp<br/>sockets, nym, socks5"] --> b
-    app["services and desktop<br/>compositor, wm, terminal, browser, editor<br/>wallet, keyring, vfs, market, installer"] --> b
-    b["one crossing: the syscall<br/>every call capability-checked, IPC kernel-mediated, device access by broker claim"]
-    b --> k0["ring 0<br/>paging and KASLR, scheduler, syscall, capabilities, attest gate, broker"]
-    k0 --> hw["CPU and MMU, PCIe devices, TPM"]
-    style b fill:#66FFFF,stroke:#15181d
-    style hw fill:#f4f4f4,stroke:#15181d
+ drv["driver capsules<br/>nvme, ahci, xhci, usb_hid, i2c_hid, e1000, iwlwifi, rtl8821ce, hda, virtio"] --> sc
+ net["network capsules<br/>net.core, net.nym, net.anon, net.socks5"] --> sc
+ app["desktop and apps<br/>compositor, wm, terminal, browser, wallet, keyring, vfs, installer"] --> sc
+ sc["the syscall<br/>127 calls, each checked against the caller's capability word"]
+ sc --> k["ring 0<br/>paging, scheduler, IPC, capabilities, attest gate, broker, TPM"]
+ k --> hw["CPU, MMU, IOMMU, PCIe devices, TPM"]
 ```
 
-*Ring 0 does what only ring 0 can: page tables, the scheduler, the syscall
-boundary, the capability check, the attestation gate, and a broker that hands out
-device windows. Everything a user would call the operating system runs in ring 3
-and reaches the kernel one way, through a syscall the kernel checks a capability
-for. A driver defect is a capsule defect.*
+A capability is one of 36 bits, defined once in [abi/caps.toml](abi/caps.toml). A capsule's
+word is fixed when it is enrolled, the kernel installs it from the verified manifest at spawn,
+and every syscall is checked against it. A capsule that was never enrolled for the network
+holds no socket and cannot send to the network services' inboxes by pid. Driver capsules reach
+their device only through a broker claim, with DMA confined by the IOMMU where a remapping unit
+is in service.
+
+[Architecture](docs/handbook/architecture.md) is the place to start reading the kernel. Then
+[capabilities](docs/handbook/kernel/capabilities.md), [IPC](docs/handbook/kernel/ipc.md),
+[memory](docs/handbook/kernel/memory.md), [the IOMMU](docs/handbook/kernel/iommu.md) and
+[the syscall surface](docs/handbook/kernel/syscalls.md).
 
 ## Capsules
 
-Everything that runs is a capsule, drivers included. A capsule is compiled ahead
-of time, signed, and shipped inside the kernel image, so nothing is read off a
-disk at spawn and no filesystem sits in the trust path. The kernel measures each
-one before its first instruction and admits it only with a proof that this exact
-measurement is enrolled under the policy root, bound to the capabilities that
-capsule was granted. A capability is a bit granted at enrollment, and the kernel
-checks it on every syscall, so a capsule that never declared the network has no
-socket to reach for.
+Everything that runs is a capsule. There are 96, each a directory with a `Capsule.mk` that names
+its service and its capability word. A capsule is compiled ahead of time, signed with Ed25519
+and ML-DSA-65, enrolled under the STARK policy root and shipped inside the kernel image or the
+image's store. At spawn the kernel checks the certificate, the manifest and the proof, then
+installs the capabilities from the manifest.
 
 ```mermaid
-%%{init: {'theme':'base','themeVariables':{'primaryColor':'#ffffff','primaryTextColor':'#15181d','primaryBorderColor':'#15181d','lineColor':'#6b7280','fontFamily':'ui-monospace, SFMono-Regular, Menlo, monospace','fontSize':'13px','noteBkgColor':'#f4f4f4','noteTextColor':'#15181d','noteBorderColor':'#15181d'}}}%%
 sequenceDiagram
-    autonumber
-    participant S as spawn_verified
-    participant P as preflight::run
-    participant G as attest_gate
-    participant R as attest_registry
-    S->>P: CapsuleSpecVerified
-    P->>P: verify_id_cert, verify_with_publisher
-    P->>G: tier::classify = Tier::Enrolled
-    G->>G: verify_capsule_attestation(trailer, elf, caps)
-    alt the proof verifies
-        G-->>P: Proved { measurement, authority }
-        P-->>S: install_caps from the manifest
-        S->>R: record_attested(pid, measurement, caps, authority)
-    else anything else
-        G-->>S: SpawnError::AttestationRejected
-        Note over S: logs [ZK-ATTEST] FAIL name<br/>the capsule never runs
-    end
+ participant S as spawn_verified
+ participant P as preflight
+ participant G as attest_gate
+ participant R as attest_registry
+ S->>P: the capsule's ELF, certificate and manifest
+ P->>P: verify_id_cert, verify_with_publisher
+ P->>G: an enrolled capsule
+ G->>G: verify the v4 trailer against the policy root
+ alt the proof verifies
+ G-->>S: measurement and authority
+ S->>R: record_attested(pid, measurement, caps)
+ else anything else
+ G-->>S: AttestationRejected, the capsule never runs
+ end
 ```
 
-*Spawn, fail closed. The capabilities installed come from the verified manifest,
-never from what the spawn site asked for, and the measurement recorded is the one
-the gate checked, never one recomputed afterwards.*
-
-Trust runs one direction. The bootloader verifies the kernel before the jump, the
-kernel verifies each capsule before its first instruction, and no account and no
-privileged path can wave code through.
-
-```mermaid
-%%{init: {'theme':'base','themeVariables':{'primaryColor':'#ffffff','primaryTextColor':'#15181d','primaryBorderColor':'#15181d','lineColor':'#6b7280','fontFamily':'ui-monospace, SFMono-Regular, Menlo, monospace','fontSize':'13px','noteBkgColor':'#f4f4f4','noteTextColor':'#15181d','noteBorderColor':'#15181d'}}}%%
-flowchart TB
-    fw["UEFI firmware"] --> bl["nonos-bootloader<br/>Ed25519, ML-DSA-65, TPM floor"]
-    bl -- "proof verifies" --> k["kernel, ring 0"]
-    bl -. "proof fails" .-> h1["halt, before the jump"]
-    k -- "proof verifies" --> caps["every capsule<br/>measured before its first instruction"]
-    k -. "proof fails" .-> h2["the capsule never runs"]
-    caps -- "capability, per syscall" --> br["hardware broker"]
-    br -- "grant" --> dev["PCIe device, MMIO window"]
-    style bl fill:#66FFFF,stroke:#15181d
-    style fw fill:#f4f4f4,stroke:#15181d
-    style dev fill:#f4f4f4,stroke:#15181d
-```
-
-*Each arrow names what enforces it: a signature and a TPM counter into the
-bootloader, a proof into the kernel and into every capsule, a capability bit on
-every syscall, and the MMU underneath all of it.*
+The capabilities installed come from the verified manifest, never from what the spawn site
+asked for. Every capsule is listed with its service and decoded word in
+[the capsule catalog](docs/handbook/apps/capsule-catalog.md). Writing one is in
+[adding a capsule](docs/handbook/extending/capsule.md).
 
 ## Privacy
 
-The machine forgets because it has almost nothing to remember with. The kernel
-keeps no mutable state on disk and its own filesystem lives in RAM. Every capsule
-the desktop runs ships inside the kernel image, so the trust path never reads
-storage. The kernel wipes memory on the way down, and that wipe sits on the only
-reachable path to powering the machine off, so no shutdown can skip it. Lean
-proves that property over every reachable state.
+The machine forgets because it has almost nothing to remember with. The kernel's file tree
+lives in RAM. Every boot is amnesic: nothing reaches a disk unless the person chose to install
+in first-boot setup, and then only the installer and the system's own store may touch a disk's
+raw sectors. At shutdown the kernel stops every device, then wipes live device buffers, every
+process's memory, the kernel stacks, the filesystem caches and the keys. That wipe sits on the
+one path that powers the machine off, and Lean proves no reachable state reaches off without it.
 
-An image may carry a block store of extra capsules and media, built on the host.
-Anything loaded from it arrives with its own certificate, manifest and proof and
-passes the same gate as a capsule compiled in.
+A program's traffic leaves by the network the person chose:
 
-What leaves the machine is separated the same way. Traffic can go out through the
-Nym mixnet client, which builds a Sphinx packet across three mix layers and an
-exit gateway, with single-use reply blocks for the return path, and a SOCKS5 front
-end so an ordinary capsule reaches it without knowing any of that. A capsule
-without the network capability never gets a socket at all.
+- **Nym mixnet**, the default. Each packet is a Sphinx packet across three mix layers to an exit
+ gateway, with single-use reply blocks for the way back.
+- **Anyone**, the onion network: three relays, each knowing only its neighbours.
+- **Direct**, which the sites reached can see.
 
-```mermaid
-%%{init: {'theme':'base','themeVariables':{'primaryColor':'#ffffff','primaryTextColor':'#15181d','primaryBorderColor':'#15181d','lineColor':'#6b7280','fontFamily':'ui-monospace, SFMono-Regular, Menlo, monospace','fontSize':'13px','noteBkgColor':'#f4f4f4','noteTextColor':'#15181d','noteBorderColor':'#15181d'}}}%%
-flowchart LR
-    w["capsule wallet<br/>keys in its own pages"]
-    o["another capsule"]
-    k["kernel, ring 0"]
-    d["PCIe device<br/>MMIO window"]
-    o -. "refused: separate page tables" .-> w
-    w -- "syscall pointer" --> k
-    k -. "refused: pointer outside the caller" .-> w
-    w -. "refused: no broker claim" .-> d
-    w -- "broker claim" --> k
-    k -- "grant" --> d
-    style w fill:#66FFFF,stroke:#15181d
-    style d fill:#f4f4f4,stroke:#15181d
-```
+When the chosen network is down, the browser, the terminal, the wallet and the Linux guests
+send nothing another way. Network cards transmit from a new locally administered address every
+boot. The private model runs without the network, and its files come only through the
+installer's checked fetch.
 
-*Where a secret lives and who can reach it. The dotted arrows are not policy the
-kernel chooses to apply: the first is the MMU, the second is every syscall pointer
-walked before the kernel reads it, and the third is a device window no capsule can
-map without a claim the broker records. The page-table user and write bits behind
-the first arrow are proved in Verus and checked over the real descriptor code.*
-
-## The proof
-
-A signature says a key holder approved an image, and it puts that key holder in
-the trust base for as long as the image exists. Admission asks something else: is
-this one of the images the policy commits to. So the kernel and every capsule
-carry a transparent STARK over Poseidon with a Fiat-Shamir transcript, verified
-against a root the verifier already holds. Hash-based, no trusted setup, no
-pairing, nothing a quantum adversary shortcuts. Prover and verifier are one crate
-linked into the kernel and the bootloader, so what gets written is what gets read.
+Some traffic does not follow the choice. The Nym and Anyone capsules fetch their directories
+and build their paths from boot on every image that carries them, so a machine set to Direct
+still shows Nym and Anyone traffic on its local network. Programs built on the toolchain's Rust
+std connect direct. The TPM's counter keeps a count of boots. These and the other gaps are listed
+on the privacy page.
 
 ```mermaid
-%%{init: {'theme':'base','themeVariables':{'primaryColor':'#ffffff','primaryTextColor':'#15181d','primaryBorderColor':'#15181d','lineColor':'#6b7280','fontFamily':'ui-monospace, SFMono-Regular, Menlo, monospace','fontSize':'13px','noteBkgColor':'#f4f4f4','noteTextColor':'#15181d','noteBorderColor':'#15181d'}}}%%
 flowchart LR
-    img["kernel ELF<br/>bytes about to run"] --> meas["blake3 measurement"]
-    meas --> ctx["ctx<br/>measurement + BOOT_EPOCH"]
-    tr["trailer<br/>siblings, directions, proof"] --> v
-    ctx --> v["verify_membership_trailer"]
-    root["kernel attest root"] --> v
-    v --> ok["jump to the kernel"]
-    v --> no["halt"]
-    style meas fill:#66FFFF,stroke:#15181d
+ app["a capsule with Network"] --> socks["net.socks5"]
+ socks --> nym["net.nym<br/>Sphinx, three mix layers"]
+ socks --> anon["net.anon<br/>three relays"]
+ app --> direct["net.core<br/>only under Direct"]
+ other["a capsule without Network"] -. "refused at the syscall".-> socks
 ```
 
-*The verifier measures the image in front of it and supplies the root itself. The
-trailer carries the path and the proof and chooses neither, so a trailer lifted
-from another image fails on the context it is bound to.*
+The whole model, with what it does not cover, is in [privacy](docs/handbook/privacy.md),
+[the amnesic design](docs/handbook/kernel/hardening.md), [storage](docs/handbook/storage.md) and
+[the route model](docs/handbook/network/socks5-and-routes.md).
 
-Signatures still cover what signatures answer well. The kernel is dual-signed with
-Ed25519 and ML-DSA-65 and measured into the TPM behind an anti-rollback floor:
-who released this image, and is it older than what this machine already accepted.
+## The STARK gate
+
+A signature says a key holder approved an image, and it keeps that key holder in the trust base
+for as long as the image exists. Admission asks a narrower question: is this one of the images
+the policy committed to. So the kernel and every capsule carry a transparent STARK proof over
+Poseidon, with a Fiat-Shamir transcript, that its measurement is a member of the set under one
+policy root. It is hash-based, with no trusted setup and no pairing.
 
 ```mermaid
-%%{init: {'theme':'base','themeVariables':{'primaryColor':'#ffffff','primaryTextColor':'#15181d','primaryBorderColor':'#15181d','lineColor':'#6b7280','fontFamily':'ui-monospace, SFMono-Regular, Menlo, monospace','fontSize':'13px','noteBkgColor':'#f4f4f4','noteTextColor':'#15181d','noteBorderColor':'#15181d'}}}%%
 flowchart LR
-    subgraph host["the build host, holds the secret"]
-        direction LR
-        elfs["capsule and kernel ELFs"] --> en["nonos-stark-enroll"]
-        en --> r["policy root"]
-        en --> t["one trailer per image"]
-        r --> emb["embed-zk-proof"]
-        t --> emb
-    end
-    emb --> iso["bootable image"]
-    iso --> gate["the machine that boots<br/>verifies, holds no secret and no prover"]
-    style gate fill:#66FFFF,stroke:#15181d
+ img["the image about to run"] --> m["blake3 measurement"]
+ m --> v["nox_verify"]
+ tr["v4 trailer<br/>path and proof"] --> v
+ root["the policy root, held by the verifier"] --> v
+ v --> run["run"]
+ v --> halt["refuse"]
 ```
 
-*Enrolment is a host step, verification is a boot step, and in production they run
-on different machines. The machine that gates holds no secret and no prover. The
-build ends by re-verifying what it just wrote, and anyone holding the image can
-run the same checks again.*
+The gates link only the verifier, `nox_verify`, from the STARKs repository at the commit `flake.lock` pins. The prover
+runs on the enrolling host in `nonos-stark-enroll`, which builds the one policy root over every
+capsule and checks each proof with the gates' own verifier before writing it. The machine that
+boots holds no prover. The verifier measures the image in front of it and supplies the root
+itself, so a trailer lifted from another image fails.
 
-## Real hardware
+Signatures still answer what signatures answer well. The kernel is signed with Ed25519 and
+ML-DSA-65 together and measured into the TPM behind an anti-rollback counter: who released this
+image, and is it older than what this machine already accepted. The details are in
+[the STARK layer](docs/handbook/trust/stark.md), [signing](docs/handbook/trust/signing.md),
+[keys](docs/handbook/trust/keys.md) and [the TPM](docs/handbook/trust/tpm.md).
 
-Proven on x86_64 silicon, by device class rather than by one vendor's parts: NVMe
-and AHCI storage, xHCI USB HID, PS/2 keyboard and touchpad, and the UEFI GOP
-display. Each of those is written to the specification, so a machine that presents
-the class is served by the same driver. Wi-Fi is the exception and is proven at
-the part level, on the RTL8821CE, from scan through association and the WPA2
-four-way handshake to a DHCP lease.
+## Lean 4 and the proofs
 
-Proven under QEMU: virtio-gpu with 2D scanout, virtio-net, virtio-blk, e1000, and
-the software TPM behind the measured boot.
+The security-critical surface is machine-checked. Lean 4 carries isolation and
+non-interference, the capability algebra and its delegation, the spawn path and the
+capabilities a spawn installs, page-table permissions, the user-copy boundary, the attestation
+binding, the anti-rollback floor and the ZeroState wipe: 1,511 theorems in
+`verification/lean`, with no `sorry` in any Lean tree. An extraction pipeline turns kernel
+functions into Lean so theorems speak about the shipped code, not a model of it. Verus takes
+the properties that live in real bit operations. 106 Kani harnesses sit in the source. 90 proof
+crates pull the shipped source in through `#[path]` and run it.
 
-Reaching discovery and stopping there: Intel iwlwifi, which wants a PNVM table the
-tree does not ship before gen3 silicon will start its firmware; USB mass storage;
-and HDA audio. VT-d bring-up runs where the hardware is presented and has not yet
-been exercised on a real IOMMU.
+NONOS does not claim functional correctness of the whole kernel. The proved surface is what may
+run, what it may reach, and what survives a power cut.
+[The proof suites](docs/handbook/verification/proofs.md) says what each one guarantees and
+which run in CI. [verification/MAP.md](verification/MAP.md) ties each property to the source it
+constrains.
 
-## Build and run
+## Hardware
 
-You need Rust nightly with `rust-src`, QEMU, swtpm, mtools, sgdisk, xorriso
-and an OVMF image. `make doctor` checks all of it and tells you what to
-install.
+Drivers are written to the device class, so a machine that presents the class is served by the
+same driver: NVMe and AHCI storage, xHCI with USB HID and mass storage, PS/2 and I2C-HID
+keyboards and touchpads, HDA audio, the UEFI GOP display, e1000, RTL8139, RTL8169 and virtio
+under QEMU. Wi-Fi joins WPA2 and WPA3 networks on the RTL8821CE and on Intel AX211. A driver
+whose device is missing leaves at once, and one whose device fails gives up after a few seconds.
 
-    git clone --recursive https://github.com/NON-OS/nonos-micro-kernel.git
-    cd nonos-micro-kernel
-    make doctor
-    make run
+Each driver, what it does and what a boot must still confirm on it are in
+[drivers](docs/handbook/drivers.md) and
 
-`make run` builds the system and boots it under QEMU with a software TPM.
-On a fresh clone it runs under a development identity and says so on the
-console; that image is for looking, not for shipping.
+## Build it
 
-To build under your own keys, and to put it on hardware:
+You need Nix with flakes turned on (https://nixos.org/download) and nothing else. On Linux and
+on a Mac with Apple silicon:
 
-    make                   build the image and verify it against itself
-    make qemu              boot it
-    make usb DISK=/dev/sdX write a stick, after typing the path once more
-    make test              static checks and the boot harnesses
+ make # the kernel, every capsule, the Linux userland and the loader
+ make check # every proof crate and every static check
 
-Every step ends with a line to look for. The whole path, from keys to
-enrollment to what the loader checks before it jumps, is in
-[docs/build](docs/build).
+On Windows, run the same two commands inside WSL2, or open the repository in its devcontainer
+(`.devcontainer/`), which has Nix already.
 
-## What is new here
+The toolchain, every crate and every C source are pinned by hash, and the build runs offline in
+Nix's sandbox. `make` ends with a receipt: every artifact by sha256, the toolchain and every
+pinned input, the kernel's own bytes held to the profile's promises, and `REPRODUCED` when the
+artifacts are byte for byte the ones in the committed `receipts/<profile>.json`. Those artifacts
+are unsigned, and no build ever needs a key. Enrolling and signing take keys only the release
+holder has:
 
-Every system that boots securely today roots execution in a key. Secure boot,
-verified boot, code signing: someone holds that key, and whoever holds it decides
-what runs on your machine. NONOS roots execution in a hash. A capsule runs because
-a proof shows its measurement sits in the set the policy committed to, the check
-needs no secret, the machine makes it alone, and anyone holding the image can
-repeat it. The proof is post-quantum by construction.
+ make seal # enroll, sign and pack: needs the keys
+ make boot # boot the sealed image under QEMU, with a TPM
+ make boot-install # beside a blank disk, to try the installer
+ make usb DISK=/dev/sdX # write it to a stick, after typing the path again
 
-That check is the one that decides what ends up executing on a machine whose image
-somebody else built, and it holds without trusting whoever built it. NONOS has no
-root account, no unsigned path to execution, and no mutable state on disk. Every
-device driver runs in ring 3 but one: the kernel drives virtio-rng itself, because
-it needs entropy before the first capsule exists, and falls back to a software
-source when the device is absent.
+A build is one of six profiles, set in `nonos.toml` or as `PROFILE=airgapped make`:
 
-## Verification
+| profile | for | what it adds or takes away |
+|---|---|---|
+| standard | a person's own machine | every driver, the desktop, first-boot setup and the installer |
+| hardened | a machine that may be seized | Secure Boot and a TPM required at boot; no capsule writes to a serial console |
+| airgapped | keys that must never touch a network | hardened, with no network driver, stack or online program compiled in |
+| qemu | trying NONOS in a virtual machine | the desktop, without the drivers only real hardware has |
+| dev | working on NONOS | the loader's development policy; never sealed for release |
+| core | kernel work | the microkernel and its base capsules, no desktop |
 
-The guarantees above are machine-checked rather than argued. Lean 4 carries
-isolation and non-interference, the capability algebra and its delegation, the
-spawn path and the capabilities a spawn installs, page-table permissions, the
-user-copy boundary, the attestation binding, the anti-rollback floor and the
-ZeroState wipe. Verus takes the properties that are about the real bit operations
-rather than a model of them, Kani harnesses sit in the source, and the proof
-crates pull the shipped kernel source in through `#[path]` and run it, rather
-than a reimplementation that could agree with the proof and disagree with the
-kernel.
+A release image is built `hardened`. [docs/build](docs/build/README.md) is the step by step
+guide, from installing Nix on each platform to an installed disk.
+[Build and verify](docs/handbook/build/build-and-verify.md) is the whole flow,
+[tools/nix/README.md](tools/nix/README.md) the build in one page, and
+[CONTRIBUTING.md](CONTRIBUTING.md) the way in.
 
-NONOS does not claim functional correctness of the whole kernel. The proved
-surface is the security-critical one: what may run, what it may reach, and what
-survives a power cut. The [verification map](verification/MAP.md) ties each
-property to the source it constrains, the [reference](docs/) goes deeper, and
-[status](docs/architecture/status.md) carries what is landing next. Design work
-happens at [discord.gg/nonos](https://discord.gg/nonos).
+## Where 0.9.2 stands
+
+Every change in 0.9.2 was built for `x86_64-nonos-user`, with the kernel compile-checked, and
+held by the host proof suites. The session that made the release did not boot it. The boot run
+that shows each gate refusing and admitting, and each driver on real silicon, is the release's
+last step, listed step by step in
+ Until its
+logs are committed, read "the kernel checks" on this page as "the kernel is built to check".
+ records each row as its evidence lands, and
+the known gaps are at the end of [the changelog](CHANGELOG-0.9.2.md#known-gaps).
+
+## Documentation
+
+| | |
+|---|---|
+| [The handbook](docs/handbook/README.md) | how NONOS works, one page per subsystem, every claim tied to a file and line |
+| [Building NONOS](docs/build/README.md) | from a fresh machine to a sealed, booted and installed image, one page per step |
+| [Using NONOS 0.9.2](docs/release/0.9.2/user-guide.md) | what changed for the person at the keyboard |
+| [Building on 0.9.2](docs/release/0.9.2/developer-guide.md) | the rules for capsule and driver authors |
+| [Capabilities in 0.9.2](docs/release/0.9.2/capabilities.md) | every bit and every capsule's mask |
+| [CHANGELOG-0.9.2.md](CHANGELOG-0.9.2.md) | every change and the proof behind it |
+
+Design work happens at [discord.gg/nonos](https://discord.gg/nonos).
 
 ## License
 
-AGPL-3.0-or-later. Redistributable device firmware is not part of the source and
-carries its own terms.
+AGPL-3.0-or-later. Redistributable device firmware is not part of the source and carries its own
+terms.

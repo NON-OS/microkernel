@@ -14,27 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The receipt, in the form the serial log keeps: what was written, what
-//! was read back, and the identifiers a firmware menu shows for the disk.
+//! The receipt, in the form the serial log keeps: what was written and read
+//! back, the identifiers a firmware menu or a partition tool shows for the
+//! disk and each partition, where each partition lies, and what the store
+//! and the boot partition hold.
 
-use nonos_disk::Receipt;
+use nonos_disk::{Receipt, Region};
 
 use super::source::bytes;
 
 pub fn print_receipt(r: &Receipt<'_>, verified: u64) {
     println!("[INSTALL] written {} verified {}", bytes(r.bytes_written), bytes(verified));
     println!("[INSTALL] disk {}", text(&r.disk_guid.text()));
-    println!(
-        "[INSTALL] partition {} ({} sectors from {})",
-        text(&r.partition_guid.text()),
-        r.layout.esp_sectors(),
-        r.layout.esp_first_lba
-    );
+    for (region, guid) in Region::ALL.into_iter().zip(r.partitions) {
+        let x = r.layout.extent(region);
+        let (id, size) = (guid.text(), bytes(x.bytes()));
+        println!("[INSTALL] {} {} from LBA {}, {size}", region.what(), text(&id), x.first);
+    }
+    println!("[INSTALL] store {} files", r.store_files);
     println!(
         "[INSTALL] fat32 {} sectors per cluster, {} clusters",
         r.geometry.sectors_per_cluster, r.geometry.data_clusters
     );
-    println!("NONOS is on the disk and every sector read back as written.");
+    println!("NONOS is on the disk and every sector written read back as written.");
     println!("Remove the stick and restart to boot from it.");
 }
 

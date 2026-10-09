@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "nonos_nox_broker"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "nonos_nox_license",
  "nonos_nox_receipt",
@@ -12,8 +12,8 @@ dependencies = [
 
 [[package]]
 name = "nonos_nox_license"
-version = "0.1.0"
+version = "0.2.0"
 
 [[package]]
 name = "nonos_nox_receipt"
-version = "0.1.0"
+version = "0.2.0"

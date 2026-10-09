@@ -28,10 +28,18 @@ impl SceneTable {
                 width: 0,
                 height: 0,
                 z: 0,
+                stack: 0,
                 in_use: false,
                 miss_count: 0,
             }; MAX_LAYERS],
             count: 0,
+            next_stack: 1,
         }
+    }
+}
+
+impl Default for SceneTable {
+    fn default() -> Self {
+        Self::new()
     }
 }

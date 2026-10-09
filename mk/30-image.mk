@@ -43,7 +43,7 @@ nonos-mk-iso: nonos-mk-esp
 # partition table and ESP filesystem the USB actually boots from.
 nonos-mk-usb-run: nonos-mk-usb-img $(QEMU_OVMF_VARS_RW)
 	@echo "Booting $(USB_IMG) as a real GPT disk..."
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive format=raw,file=$(USB_IMG) \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \

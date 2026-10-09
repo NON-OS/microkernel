@@ -17,7 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 
-use crate::calc::format::{format, DISPLAY_MAX, ERROR_TEXT};
+use crate::calc::format::{error_text, format, DISPLAY_MAX};
 use crate::calc::mode::Mode;
 use crate::calc::op::Op;
 use crate::calc::prog::{write, Bitwise, RADIX_MAX};
@@ -81,7 +81,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let n = format(state.display, state.decimal_digits_typed, &mut buf);
     let r = write(state.prog, state.base, &mut rbuf);
     let (text, ink) = if state.is_error() {
-        (core::str::from_utf8(ERROR_TEXT).unwrap_or("Error"), theme::ERROR)
+        (error_text(state.error), theme::ERROR)
     } else if state.mode == Mode::Programmer {
         (core::str::from_utf8(&rbuf[..r]).unwrap_or("0"), theme::INK)
     } else {

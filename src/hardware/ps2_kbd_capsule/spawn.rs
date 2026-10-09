@@ -48,8 +48,7 @@ pub fn spawn_driver_ps2_input_capsule() -> Result<(), SpawnError> {
         manifest_bytes: DRIVER_PS2_INPUT_MANIFEST_BYTES,
         attestation_trailer: DRIVER_PS2_INPUT_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()

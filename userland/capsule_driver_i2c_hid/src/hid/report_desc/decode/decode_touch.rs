@@ -35,7 +35,7 @@ pub fn decode_touch(report: &[u8], layout: &TouchLayout) -> Option<TouchSample> 
     // past the end, which would silently truncate coordinates into violent
     // jumps toward the origin instead of failing.
     let fields =
-        [layout.x, layout.y, layout.tip, layout.contact_count, layout.button, layout.confidence];
+        [layout.x, layout.y, layout.tip, layout.contact_count, layout.contact_id, layout.button, layout.confidence];
     let need =
         fields.iter().filter(|f| f.present()).map(|f| f.bit_offset + f.bit_size).max().unwrap_or(0);
     if (body.len() as u32) * 8 < need {
@@ -52,6 +52,10 @@ pub fn decode_touch(report: &[u8], layout: &TouchLayout) -> Option<TouchSample> 
     } else {
         0
     };
+    let contact_id = layout
+        .contact_id
+        .present()
+        .then(|| read_bits(body, layout.contact_id.bit_offset, layout.contact_id.bit_size));
     let button = layout.button.present()
         && read_bits(body, layout.button.bit_offset, layout.button.bit_size) != 0;
     let confidence = !layout.confidence.present()
@@ -64,6 +68,7 @@ pub fn decode_touch(report: &[u8], layout: &TouchLayout) -> Option<TouchSample> 
         y_max: layout.y.logical_max,
         tip,
         contacts,
+        contact_id,
         button,
         confidence,
     })

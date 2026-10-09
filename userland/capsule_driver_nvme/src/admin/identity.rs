@@ -29,6 +29,8 @@ pub struct ControllerIdentity {
     pub cq_entry_size: u8,
     pub optional_nvm: u16,
     pub volatile_write_cache: u8,
+    /// HMPRE, HMMIN, HMMINDS and HMMAXD: the host memory buffer it asks for.
+    pub hmb: super::hmb::HmbAsk,
 }
 
 impl ControllerIdentity {
@@ -53,6 +55,12 @@ impl ControllerIdentity {
             cq_entry_size: data[0x201],
             optional_nvm: le16(data, 0x208),
             volatile_write_cache: data[0x20d],
+            hmb: super::hmb::HmbAsk {
+                preferred: le32(data, 0x110),
+                minimum: le32(data, 0x114),
+                min_piece: le32(data, 0x14c),
+                max_pieces: le16(data, 0x150),
+            },
         }
     }
 }

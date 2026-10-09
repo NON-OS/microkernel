@@ -26,8 +26,10 @@ pub fn enable() {
         asm!("mrs {}, cpacr_el1", out(reg) cpacr, options(nomem, nostack));
     }
     cpacr = (cpacr & !CPACR_FPEN_MASK) | CPACR_FPEN_FULL;
+    // No `nomem`: callers use the vector registers straight after, and a load
+    // into one must not be moved above the write that stops it trapping.
     unsafe {
-        asm!("msr cpacr_el1, {}", "isb", in(reg) cpacr, options(nomem, nostack));
+        asm!("msr cpacr_el1, {}", "isb", in(reg) cpacr, options(nostack));
     }
 }
 

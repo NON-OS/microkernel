@@ -54,7 +54,9 @@ pub fn submit_sync(
     }
     wait::used_changed(layout, pre_used_idx)?;
     let entry = used::read_entry(layout, pre_used_idx);
-    if entry.id as u16 != head {
+    // The whole 32-bit id: cut to 16 bits, an element naming head + 65536
+    // (a descriptor no ring this size holds) passed for the one published.
+    if entry.id != u32::from(head) {
         return Err("virtio-gpu: used id mismatch");
     }
     Ok(SubmitOutput { used_len: entry.len })

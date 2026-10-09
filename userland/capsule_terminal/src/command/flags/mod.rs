@@ -24,4 +24,4 @@ mod spec;
 
 pub use num::parse_usize;
 pub use parse::parse;
-pub use spec::Spec;
+pub use spec::{Parsed, Spec};

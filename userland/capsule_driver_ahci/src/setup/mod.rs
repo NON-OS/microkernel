@@ -14,13 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod block_port;
 mod claim;
 mod driver;
 mod irq;
 mod mmio;
+mod open;
 mod pci;
+mod probe;
+mod remap;
+mod say_hba;
+mod say_port;
+mod say_skipped;
 mod sequence;
+mod serve;
+mod walk;
+mod walked;
 
 pub use driver::Driver;
 pub use sequence::run;

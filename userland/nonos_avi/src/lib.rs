@@ -25,6 +25,7 @@ mod file;
 mod hdrl;
 mod header;
 mod index;
+mod split;
 mod stream;
 
 pub use bytes::{fourcc_at, u16_at, u32_at};
@@ -33,4 +34,5 @@ pub use error::AviError;
 pub use file::AviFile;
 pub use header::{parse_avih, AviHeader};
 pub use index::{parse_idx1, FrameRef};
+pub use split::{movi_span, MoviSpan};
 pub use stream::{is_video_strh, parse_strf_video, parse_strh_rate, VideoInfo};

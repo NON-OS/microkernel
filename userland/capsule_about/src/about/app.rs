@@ -41,4 +41,7 @@ impl App for About {
     fn paint(&mut self, fb: &mut PaintBuffer) {
         frame(&mut self.state, fb);
     }
+    fn on_tick(&mut self) -> bool {
+        self.state.refresh_proofs()
+    }
 }

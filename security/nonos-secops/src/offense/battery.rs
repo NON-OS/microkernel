@@ -103,7 +103,7 @@ pub fn battery() -> Vec<Finding> {
         id: "TRL-FLIP",
         category: "forgery",
         severity: Severity::Critical,
-        description: "flip a bit inside the STARK trailer",
+        description: "flip a bit inside the path trailer",
         refused,
     });
 

@@ -23,7 +23,7 @@ use crate::snake::ui::card;
 use crate::snake::ui::metrics::RADIUS_PANEL;
 use crate::snake::ui::rank_geom::{awards, back, table};
 
-use super::{rank_awards, rank_rows};
+use super::{rank_awards, rank_kept, rank_rows};
 
 const BACK: &[u8] = b"Back";
 
@@ -33,5 +33,6 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     card::panel(fb, awards(w, h), RADIUS_PANEL);
     rank_rows::paint(game, fb);
     rank_awards::paint(game, fb);
+    rank_kept::paint(game, fb);
     button::paint(fb, back(w, h), BACK, Style::Ghost, hover::is(Tag::RankBack, 0));
 }

@@ -15,13 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod dmar;
+pub mod dmar_scope;
+mod ivrs;
+pub mod ivrs_walk;
 mod hpet;
+mod ivhd_entry;
+mod ivhd_kind;
+pub mod ivhd_scope;
 mod mcfg;
 mod srat;
 mod srat_memory;
 
-pub use dmar::{parse_dmar, remap_unit_bases};
+pub use dmar::{foreign_segment_units, parse_dmar, remap_unit_bases, remap_unit_scopes};
+pub use dmar_scope::{translated_by_some, UnitScope};
 pub use hpet::parse_hpet;
+pub use ivrs::{amd_iommu_bases, amd_iommu_spans, parse_ivrs};
 pub use mcfg::parse_mcfg;
 pub use srat::parse_srat;
 pub use srat_memory::{parse_memory_affinity, parse_x2apic_affinity};

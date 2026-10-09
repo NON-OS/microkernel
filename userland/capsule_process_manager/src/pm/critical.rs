@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Processes that hold the system or desktop up: ending one strands the session
-// or the kernel. The monitor still allows it (the authority is real), but arms
-// an extra confirmation so it is never a single stray keypress.
+// or the kernel, so this monitor refuses to (end_selected), and the inspector
+// draws its action as disabled rather than offering what it will not do. The
+// names are the ones the kernel gives each at spawn (its service name).
 const CRITICAL: &[&[u8]] = &[
     b"init",
     b"login",
@@ -30,9 +31,16 @@ const CRITICAL: &[&[u8]] = &[
     b"compositor",
     b"wm",
     b"desktop_shell",
-    b"process_manager",
 ];
 
 pub fn is_critical(name: &[u8]) -> bool {
     CRITICAL.contains(&name)
+}
+
+/// Whether this window will refuse to end the process: a core one by name, or
+/// this window itself, matched by pid because its service name would also
+/// cover the other Process Manager windows, which may be ended. `me` is 0 when
+/// the window does not know its own pid, and then only the names apply.
+pub fn protected(name: &[u8], pid: u32, me: u32) -> bool {
+    is_critical(name) || (me != 0 && pid == me)
 }

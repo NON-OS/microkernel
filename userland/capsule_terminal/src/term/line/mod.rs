@@ -16,9 +16,11 @@
 
 mod as_bytes;
 mod backspace;
+mod boundary;
 mod clear;
 mod delete;
 mod delete_word;
+mod delete_word_right;
 mod insert;
 mod kill_ring;
 mod kill_to_end;
@@ -27,6 +29,7 @@ mod move_home;
 mod move_left;
 mod move_right;
 mod new;
+mod paste;
 mod replace;
 mod types;
 mod word_nav;

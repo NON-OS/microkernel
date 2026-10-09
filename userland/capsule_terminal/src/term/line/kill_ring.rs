@@ -73,9 +73,18 @@ impl Line {
         let mut buf = [0u8; super::types::KILL_CAP];
         let n = self.killed_len;
         buf[..n].copy_from_slice(&self.killed[..n]);
+        // Whole characters, stopping at the first that no longer fits, so a
+        // nearly full line takes what it can without splitting one.
+        let text = match core::str::from_utf8(&buf[..n]) {
+            Ok(t) => t,
+            Err(e) => core::str::from_utf8(&buf[..e.valid_up_to()]).unwrap_or(""),
+        };
         let mut any = false;
-        for &b in &buf[..n] {
-            any |= self.insert(b);
+        for ch in text.chars() {
+            if !self.insert_char(ch) {
+                break;
+            }
+            any = true;
         }
         any
     }

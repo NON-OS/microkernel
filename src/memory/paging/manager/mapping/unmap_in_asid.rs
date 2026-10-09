@@ -17,24 +17,25 @@
 use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use super::super::core::PagingManager;
+use super::super::pending_flush::PendingFlush;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::stats::PagingStatistics;
 use crate::memory::paging::types::{PagePermissions, PageSize};
 
 impl PagingManager {
-    pub fn unmap_page_in_asid(
+    pub(in crate::memory::paging::manager) fn unmap_page_in_asid(
         &mut self,
         asid: u32,
         virtual_addr: VirtAddr,
         permissions: PagePermissions,
         size: PageSize,
         stats: &PagingStatistics,
-    ) -> PagingResult<PhysAddr> {
+    ) -> PagingResult<(PhysAddr, PendingFlush)> {
         if !self.initialized {
             return Err(PagingError::NotInitialized);
         }
-        let physical_addr = self.remove_mapping_in_asid(asid, virtual_addr)?;
+        let removed = self.remove_mapping_in_asid(asid, virtual_addr)?;
         stats.record_unmapping(permissions, size);
-        Ok(physical_addr)
+        Ok(removed)
     }
 }

@@ -17,7 +17,7 @@
 pub(crate) const MAGIC: [u8; 8] = *b"NONOSFS1";
 pub(crate) const NODE_MAGIC: [u8; 8] = *b"NONOSND1";
 pub(crate) const VERSION: u64 = 1;
-pub(crate) const HEADER_RING_SECTORS: u64 = 256;
+pub const HEADER_RING_SECTORS: u64 = 256;
 pub(crate) const SUPERBLOCK_BYTES: usize = 104;
 pub(crate) const NODE_DIGEST_OFFSET: usize = 96;
 pub(crate) const NODE_BYTES: usize = 128;

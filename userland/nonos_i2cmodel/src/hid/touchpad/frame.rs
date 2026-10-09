@@ -27,17 +27,21 @@ pub struct Touch {
     pub confidence: bool,
     pub contacts: u8,
     pub button: bool,
+    /// Which finger the report describes (Contact Identifier, six bits). A
+    /// pad in hybrid mode sends one finger per report and the contact count
+    /// only in the first report of a frame.
+    pub id: u8,
 }
 
 impl Touch {
     /// One confident finger down at (x, y).
     pub fn finger(x: u16, y: u16) -> Self {
-        Self { x, y, tip: true, confidence: true, contacts: 1, button: false }
+        Self { x, y, tip: true, confidence: true, contacts: 1, button: false, id: 0 }
     }
 
     /// Nothing on the pad.
     pub fn lifted() -> Self {
-        Self { x: 0, y: 0, tip: false, confidence: true, contacts: 0, button: false }
+        Self { x: 0, y: 0, tip: false, confidence: true, contacts: 0, button: false, id: 0 }
     }
 }
 
@@ -48,7 +52,7 @@ pub fn touch_report(t: &Touch) -> Vec<u8> {
     let y = t.y.to_le_bytes();
     vec![
         TOUCH_REPORT_ID,
-        (t.confidence as u8) | ((t.tip as u8) << 1),
+        (t.confidence as u8) | ((t.tip as u8) << 1) | ((t.id & 0x3f) << 2),
         x[0],
         x[1],
         y[0],

@@ -14,16 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::MK_PCI_CMD_BUS_MASTER;
-use nonos_libc::{mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND};
+//! PCI command setup: memory decode and bus mastering on, legacy interrupt
+//! pin off.
+//!
+//! The driver never waits on an interrupt: every control-queue command
+//! polls the used ring. Left enabled, the device raises INTx on each
+//! completion and nothing ever reads its interrupt status to lower it, so
+//! it holds its level-triggered line up for good. On QEMU's q35 that line
+//! is shared with the virtio disk, and every time the disk driver unmasked
+//! it the interrupt fired at once, several spurious deliveries per disk
+//! request. Interrupt Disable keeps the device off the line entirely.
 
-pub fn enable_bus_master(device_id: u64, claim_epoch: u64) -> Result<(), &'static str> {
-    let rc = mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER);
+use nonos_libc::{
+    mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
+    MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE,
+};
+
+/// Memory decode too: a modern function is reached only through its memory
+/// BAR, and the broker does not assume firmware left decoding on.
+pub fn enable(device_id: u64, claim_epoch: u64) -> Result<(), &'static str> {
+    let bits = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_INTX_DISABLE;
+    let rc = mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, bits);
     if rc >= 0 {
         return Ok(());
     }
     if mk_device_release(device_id) < 0 {
         return Err("virtio-gpu: release failed after pci setup failure");
     }
-    Err("virtio-gpu: pci bus master enable failed")
+    Err("virtio-gpu: pci command setup failed")
 }

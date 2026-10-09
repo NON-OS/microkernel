@@ -28,14 +28,38 @@
 //! network it joins, and the driver's promise is that it never falls back to
 //! it. That is checked here with the entropy source switched off.
 
+/// Which chip: the XID table and the per-version predicates.
+#[path = "../../capsule_driver_rtl8169/src/chip/mod.rs"]
+pub mod chip;
 #[path = "../../capsule_driver_rtl8169/src/constants/mod.rs"]
 pub mod constants;
+/// The per-version steps: FIFO waits, the RXDV gate, quiescing.
+#[path = "../../capsule_driver_rtl8169/src/hw/mod.rs"]
+pub mod hw;
 pub mod init;
+/// PHYstatus decoded, and the line logged when the link changes.
+#[path = "../../capsule_driver_rtl8169/src/link/mod.rs"]
+pub mod link;
+#[path = "../../capsule_driver_rtl8169/src/log/mod.rs"]
+pub mod log;
+/// The request header another capsule sends; decoded before anything else.
+#[path = "../../capsule_driver_rtl8169/src/protocol/mod.rs"]
+pub mod protocol;
 #[path = "../../capsule_driver_rtl8169/src/queue/mod.rs"]
 pub mod queue;
+/// The registers that moved on the RTL8125: doorbell, mask, status.
+#[path = "../../capsule_driver_rtl8169/src/regmap/mod.rs"]
+pub mod regmap;
 #[path = "../../capsule_driver_rtl8169/src/regs.rs"]
 pub mod regs;
+/// The receive path: the one parser of what the part writes, a descriptor
+/// whose length and flags come from the device.
+#[path = "../../capsule_driver_rtl8169/src/rx/mod.rs"]
+pub mod rx;
 pub mod setup;
+/// The send path, which rings the per-version doorbell.
+#[path = "../../capsule_driver_rtl8169/src/tx/mod.rs"]
+pub mod tx;
 
 #[cfg(test)]
 mod tests;

@@ -1,0 +1,33 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the image decoders (toolkit PNG, GIF and BMP) and
+# the browser's image and paint path: data: URIs, the clipped blit, CSS
+# gradients and inline SVG sizing. `cargo test --release` runs the real
+# sources (the toolkit as a dependency, browser files through #[path])
+# against the PngSuite conformance images, generated rasters with reference
+# decodes, and the fuzz reproducers that once hung or blew the heap.
+[package]
+name = "image_paint_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+# The engine gates its host-only entry points (css::compute,
+# image::note_size) behind `harness`; this crate is such a harness.
+default = ["harness"]
+harness = []
+
+[dependencies]
+nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+nonos_inflate = { path = "../inflate" }
+nonos_base64 = { path = "../base64" }
+nonos_brotli = { path = "../nonos_brotli" }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

@@ -20,7 +20,7 @@
 
 use crate::iommu::cap::{
     caching_mode, domain_count, fault_recording_count, fault_recording_offset, max_address_width,
-    preferred_levels, requires_write_buffer_flush, AgawLevels,
+    preferred_levels, requires_write_buffer_flush, snoop_control, AgawLevels,
 };
 use crate::iommu::context::{
     context_domain, context_high, context_index, context_low, entry_address, is_present, root_low,
@@ -73,6 +73,14 @@ fn the_flush_and_caching_flags_read_their_own_bits() {
     assert!(!requires_write_buffer_flush(!(1u64 << 4)));
     assert!(caching_mode(1 << 7));
     assert!(!caching_mode(!(1u64 << 7)));
+}
+
+#[test]
+fn snoop_control_reads_ecap_bit_seven() {
+    // ECAP.SC is bit 7 of the extended capability register, and only that bit.
+    assert!(snoop_control(1 << 7));
+    assert!(!snoop_control(0));
+    assert!(!snoop_control(!(1u64 << 7)));
 }
 
 #[test]

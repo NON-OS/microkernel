@@ -14,17 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::constants::{MAX_ALLOCATION_SIZE, MAX_TRACKED_PAGES, ZERO_PATTERN};
+//! The allocator's two short critical sections around an allocation.
+//!
+//! Mapping the pages is done between them, outside the lock: it takes the
+//! paging lock and may take part in a TLB shootdown, and a lock held across a
+//! shootdown wait stalls every cpu that wants it with interrupts masked. That
+//! was a machine halt: a spawn held this lock while its mapping waited for
+//! acknowledgements, and a cpu freeing a kernel stack from its timer tick
+//! spun on this lock and could not acknowledge.
+
+use super::super::constants::{MAX_ALLOCATION_SIZE, MAX_TRACKED_PAGES};
 use super::super::error::{PageAllocError, PageAllocResult};
 use super::super::types::AllocatedPage;
 use super::allocator::PageAllocator;
 use super::globals::{get_timestamp, ALLOCATOR_STATS};
-use super::mapping::{allocate_virtual_pages, get_physical_address};
-use crate::memory::addr::VirtAddr;
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::layout;
 
 impl PageAllocator {
-    pub(super) fn allocate_page(&mut self, size: usize) -> PageAllocResult<VirtAddr> {
+    /// Whether an allocation of `size` bytes may go ahead, as a page count.
+    pub(super) fn admit(&self, size: usize) -> PageAllocResult<usize> {
         if !self.initialized {
             return Err(PageAllocError::NotInitialized);
         }
@@ -34,24 +43,30 @@ impl PageAllocator {
         if self.allocated_pages.len() >= MAX_TRACKED_PAGES {
             return Err(PageAllocError::TooManyPages);
         }
-        let page_count = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
-        let total_size = page_count * layout::PAGE_SIZE;
-        let va = allocate_virtual_pages(page_count)?;
-        let pa = get_physical_address(va)?;
+        Ok(size.div_ceil(layout::PAGE_SIZE))
+    }
+
+    /// Track pages already mapped at `va`. Refused when the table filled up
+    /// since `admit`; the caller then gives the pages back.
+    pub(super) fn record(
+        &mut self,
+        va: VirtAddr,
+        pa: PhysAddr,
+        total_size: usize,
+    ) -> PageAllocResult<()> {
+        if self.allocated_pages.len() >= MAX_TRACKED_PAGES {
+            return Err(PageAllocError::TooManyPages);
+        }
         let page_id = self.next_page_id;
         self.next_page_id += 1;
-        let allocated_page = AllocatedPage {
+        self.allocated_pages.push(AllocatedPage {
             page_id,
             virtual_addr: va,
             physical_addr: pa,
             allocation_time: get_timestamp(),
             size: total_size,
-        };
-        self.allocated_pages.push(allocated_page);
+        });
         ALLOCATOR_STATS.record_allocation(total_size);
-        unsafe {
-            core::ptr::write_bytes(va.as_mut_ptr::<u8>(), ZERO_PATTERN, total_size);
-        }
-        Ok(va)
+        Ok(())
     }
 }

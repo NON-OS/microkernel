@@ -13,7 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::image::png::deflate::BitReader;
+
+use crate::image::png::deflate::{BitReader, ByteSource};
 use crate::image::png::huffman::Huffman;
 use crate::image::types::DecodeError;
 
@@ -21,31 +22,36 @@ use super::block::block;
 use super::dynamic::dynamic;
 use super::fixed_litlen::fixed_litlen;
 use super::stored::stored;
+use super::window::{Out, Sink};
 
-pub fn inflate_zlib(src: &[u8], out: &mut [u8]) -> Result<usize, DecodeError> {
-    if src.len() < 2 {
-        return Err(DecodeError::Truncated);
+/* Inflate a zlib stream from `src` into `sink`, block by block, holding only
+ * the 32 KiB window. Returns once the final block ends or the sink is done;
+ * a stream that runs out first is Truncated. */
+pub fn inflate_zlib<S: ByteSource, K: Sink>(src: S, sink: &mut K) -> Result<(), DecodeError> {
+    let mut bits = BitReader::new(src);
+    let cmf = bits.read_bits(8)?;
+    let flg = bits.read_bits(8)?;
+    if cmf & 0x0f != 8 || flg & 0x20 != 0 || (cmf * 256 + flg) % 31 != 0 {
+        return Err(DecodeError::BadMagic);
     }
-    let mut bits = BitReader::new(&src[2..]);
-    let mut w = 0usize;
+    let mut out = Out::new(sink);
     loop {
         let final_block = bits.read_bits(1)?;
-        let btype = bits.read_bits(2)?;
-        match btype {
-            0 => stored(&mut bits, out, &mut w)?,
+        match bits.read_bits(2)? {
+            0 => stored(&mut bits, &mut out)?,
             1 => {
                 let ll = fixed_litlen()?;
                 let ds = Huffman::from_lengths(&[5u8; 30])?;
-                block(&mut bits, &ll, &ds, out, &mut w)?;
+                block(&mut bits, &ll, &ds, &mut out)?;
             }
             2 => {
                 let (ll, ds) = dynamic(&mut bits)?;
-                block(&mut bits, &ll, &ds, out, &mut w)?;
+                block(&mut bits, &ll, &ds, &mut out)?;
             }
             _ => return Err(DecodeError::Unsupported),
         }
-        if final_block != 0 {
-            return Ok(w);
+        if final_block != 0 || out.done() {
+            return Ok(());
         }
     }
 }

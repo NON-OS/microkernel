@@ -77,11 +77,6 @@ pub fn inherit(pcb: &Arc<ProcessControlBlock>, parent: &Arc<ProcessControlBlock>
     store_handle(pcb, load_handle(parent));
 }
 
-pub fn switch_to(pid: u32) -> Result<(), &'static str> {
-    crate::memory::paging::manager::switch_to_process_address_space(pid)
-        .map_err(|_| "failed to switch process address space")
-}
-
 fn store_handle(pcb: &Arc<ProcessControlBlock>, handle: u64) {
     pcb.cr3.store(handle, Ordering::Release);
 }

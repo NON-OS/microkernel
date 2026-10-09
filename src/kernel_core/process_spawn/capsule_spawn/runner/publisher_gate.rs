@@ -25,12 +25,10 @@ pub(crate) fn publisher_gate(
     if !matches!(super::tier::classify(namespace), super::tier::Tier::Publisher) {
         return Err(SpawnError::AttestationRejected);
     }
-    if spec.attestation_trailer.is_empty() {
-        crate::sys::bench::mark_named(b"capsule_attest_pub", spec.name.as_bytes());
-        crate::sys::serial::print(b"[ZK-ATTEST] pub ");
-        crate::sys::serial::print(spec.name.as_bytes());
-        crate::sys::serial::print(b"\n");
-        return Ok(None);
-    }
+    /*
+     * A publisher's capsule runs only with a v4 trailer that verifies, path and
+     * STARK, under the vendor root or a root the person enrolled: the same gate,
+     * which refuses a capsule that carries none.
+     */
     super::attest_gate::attest_gate(spec, attest_caps)
 }

@@ -1,0 +1,51 @@
+name: ci
+
+# Production gate for the trust keystore: the CA bundle must parse, the baked
+# trust-anchor policy must be present, and every capsule manifest must have its
+# matching certificate. This is the root of the kernel's admission chain.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrity:
+    name: keystore integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: CA bundle parses
+        run: |
+          set -euo pipefail
+          if [ -f cacert.pem ]; then
+            n=$(grep -c 'BEGIN CERTIFICATE' cacert.pem)
+            [ "$n" -gt 0 ] || { echo "::error::cacert.pem has no certificates"; exit 1; }
+            awk 'BEGIN{c=0} /BEGIN CERTIFICATE/{c++} END{exit 0}' cacert.pem
+            echo "cacert.pem: ${n} certificates"
+          fi
+      - name: Baked trust-anchor policy present
+        run: |
+          set -euo pipefail
+          test -f trust/policy/nonos_trust_anchor.policy.bin \
+            || { echo "::error::missing trust/policy/nonos_trust_anchor.policy.bin"; exit 1; }
+          echo "policy present"
+      - name: Every capsule manifest has a matching certificate
+        run: |
+          set -euo pipefail
+          fail=0
+          shopt -s nullglob
+          for m in trust/capsules/*.manifest.bin; do
+            base="${m%.manifest.bin}"
+            [ -f "${base}.nonos_id_cert.bin" ] \
+              || { echo "::error::manifest without cert: $m"; fail=1; }
+          done
+          exit $fail

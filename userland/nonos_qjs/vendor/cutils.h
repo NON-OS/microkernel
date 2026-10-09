@@ -1540,6 +1540,18 @@ static inline void rqsort(void *base, size_t nmemb, size_t size, cmp_f cmp, void
 
 /*---- Portable time functions ----*/
 
+#if defined(NJS_HOST_CLOCKS)
+/* NONOS: the engine has no system calls of its own, so Date, performance
+ * and the Math.random seed read the clocks the browser lends it
+ * (eval_shim.c, njs_set_clocks). On the bare target the libc time calls
+ * below had nothing behind them and answered zero: every page saw the
+ * date as 1 January 1970, performance.now() never moved, and Math.random
+ * started from the same seed on every page. */
+int64_t njs_wall_us(void);
+uint64_t njs_mono_ns(void);
+static inline uint64_t js__hrtime_ns(void) { return njs_mono_ns(); }
+static inline int64_t js__gettimeofday_us(void) { return njs_wall_us(); }
+#else
 #ifdef _WIN32
  // From: https://stackoverflow.com/a/26085827
 static int gettimeofday_msvc(struct timeval *tp)
@@ -1609,6 +1621,7 @@ static inline int64_t js__gettimeofday_us(void) {
 #endif
     return ((int64_t)tv.tv_sec * 1000000) + tv.tv_usec;
 }
+#endif /* NJS_HOST_CLOCKS */
 
 #if defined(_WIN32)
 static inline int js_exepath(char *buffer, size_t *size_ptr) {

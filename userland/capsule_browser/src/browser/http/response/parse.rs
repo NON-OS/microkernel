@@ -14,49 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::ToString;
-
-use super::content_encoding::content_encoding;
-use super::content_length::content_length;
+use super::charset;
 use super::decode_body::decode_body;
-use super::header_line;
-use super::header_value::header_value;
-use super::status_code::status_code;
+use super::head::{scan, Scan};
+use super::kind::{binary, doc, is_script};
+use super::mime::Mime;
 use super::types::{ContentKind, Response};
 
+/* The final response of `raw`. A page or other text whose body stops
+short (a connection cut before Content-Length or the last chunk, a
+gzip stream without its trailer, a page past the inflate cap) comes
+back with the part that arrived, so it renders; images, fonts and
+scripts come back only whole. Text is transcoded to UTF-8 from the
+encoding its bytes, header or <meta> declare. */
 pub fn parse(raw: &[u8]) -> Option<Response> {
-    let sep = raw.windows(4).position(|w| w == b"\r\n\r\n")?;
-    let head = core::str::from_utf8(&raw[..sep]).ok()?;
-    let status = status_code(head.lines().next()?)?;
-    let mut location = None;
-    let mut chunked = false;
-    let mut content_len = None;
-    let mut encoding = "";
-    let mut content_kind = ContentKind::Html;
-    for line in head.lines().skip(1) {
-        if !header_line::valid(line) {
-            return None;
-        }
-        if let Some(v) = header_value(line, "location") {
-            location = Some(v.to_string());
-        } else if let Some(v) = header_value(line, "content-length") {
-            content_length(&mut content_len, v)?;
-        } else if let Some(v) = header_value(line, "transfer-encoding") {
-            chunked =
-                v.eq_ignore_ascii_case("chunked") || v.to_ascii_lowercase().contains("chunked");
-        } else if let Some(v) = header_value(line, "content-encoding") {
-            encoding = content_encoding(v)?;
-        } else if let Some(v) = header_value(line, "content-type") {
-            let lower = v.to_ascii_lowercase();
-            content_kind = if lower.contains("text/html") || lower.contains("application/xhtml") {
-                ContentKind::Html
-            } else if lower.starts_with("text/") || lower.contains("application/json") {
-                ContentKind::Text
-            } else {
-                ContentKind::Unsupported
-            };
-        }
+    let Scan::Head(h) = scan(raw) else { return None };
+    let kind = content_kind(&h.mime);
+    let text = matches!(kind, ContentKind::Html | ContentKind::Text);
+    let (body, complete) = decode_body(&raw[h.body_at..], &h, text && !is_script(&h.mime))?;
+    /* Without a Content-Type the bytes decide: binary ones are not text. */
+    let text = text && (h.mime.present || !binary(&body));
+    if !(complete || text && !is_script(&h.mime)) {
+        return None;
     }
-    let body = decode_body(&raw[sep + 4..], chunked, content_len, encoding)?;
-    Some(Response { status, body, location, content_kind })
+    let body = if text {
+        charset::decode(body.into_owned(), h.mime.charset.as_deref(), doc(kind, &h.mime))
+    } else {
+        body.into_owned()
+    };
+    Some(Response { status: h.status, body, location: h.location, content_kind: kind })
+}
+
+/* HTML for text/html and XHTML, text for any other text/ type and JSON,
+and the kind this browser does not render for everything else. A
+response without Content-Type is taken as HTML, as it always was. */
+fn content_kind(m: &Mime) -> ContentKind {
+    if !m.present {
+        return ContentKind::Html;
+    }
+    let e = &m.essence[..];
+    let has = |s: &[u8]| e.windows(s.len()).any(|w| w == s);
+    if has(b"text/html") || has(b"application/xhtml") {
+        ContentKind::Html
+    } else if e.starts_with(b"text/") || has(b"application/json") {
+        ContentKind::Text
+    } else {
+        ContentKind::Unsupported
+    }
 }

@@ -41,10 +41,12 @@ pub fn detail(state: &State, idx: usize, path: &str) -> String {
         return occupancy(state);
     }
     match (stat_of(state, path), state.usage) {
-        (Some((files, _, _, _)), Some((total, _, _))) if total > 0 => {
-            alloc::format!("{files} of {total} stored files")
+        (Some((files, _, _, cut)), Some((total, _, _))) if total > 0 => {
+            alloc::format!("{}{files} of {total} stored files", over(cut))
         }
-        (Some((files, _, _, _)), _) => alloc::format!("{files} files · share unknown"),
+        (Some((files, _, _, cut)), _) => {
+            alloc::format!("{}{files} files · share unknown", over(cut))
+        }
         _ => "not counted".to_string(),
     }
 }
@@ -54,12 +56,22 @@ pub fn detail(state: &State, idx: usize, path: &str) -> String {
 /// has landed rather than a zero that would read as empty.
 pub fn size_text(state: &State, idx: usize, path: &str) -> String {
     let bytes = if idx == 0 {
-        state.usage.map(|(_, used, _)| used)
+        state.usage.map(|(_, used, _)| (used, false))
     } else {
-        stat_of(state, path).map(|(_, _, bytes, _)| bytes)
+        stat_of(state, path).map(|(_, _, bytes, cut)| (bytes, cut))
     };
     match bytes {
-        Some(b) => human_size(b),
+        Some((b, cut)) => alloc::format!("{}{}", over(cut), human_size(b)),
         None => "--".to_string(),
+    }
+}
+
+/// A walk the store cut short counted only part of the folder, so its
+/// figures are lower bounds; they were shown as the whole before.
+fn over(cut: bool) -> &'static str {
+    if cut {
+        "over "
+    } else {
+        ""
     }
 }

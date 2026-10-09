@@ -40,7 +40,8 @@ PAGE = Path("docs/security/capabilities-and-tokens.md")
 ENTRY = re.compile(r"\b([A-Z][A-Za-z]+)\s+(\d+)\b")
 WORDS = {22: "twenty-two", 23: "twenty-three", 27: "twenty-seven",
          28: "twenty-eight", 29: "twenty-nine", 30: "thirty",
-         31: "thirty-one", 32: "thirty-two", 33: "thirty-three"}
+         31: "thirty-one", 32: "thirty-two", 33: "thirty-three",
+         34: "thirty-four", 35: "thirty-five", 36: "thirty-six"}
 
 
 def table(text: str):

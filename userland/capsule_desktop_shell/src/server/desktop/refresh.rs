@@ -16,12 +16,8 @@
 
 //! Pull the desktop back in sync with the filesystem.
 
+use super::home::HOME;
 use crate::state::Context;
-
-/// Where the desktop looks. One definition, so the listing and anything that
-/// later resolves an icon to a path cannot disagree about which directory the
-/// desktop is showing.
-pub const HOME: &[u8] = b"/home/nonos";
 
 /// Reload the root listing. A failed call, which happens while vfs_pool is
 /// still coming up or is briefly busy after a write, never clears a good

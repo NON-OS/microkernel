@@ -16,17 +16,18 @@
 
 use alloc::vec::Vec;
 
-use super::binding::qualifying_data;
-use super::document::AttestationDoc;
+use super::binding::{qualifying_data, DmaPosture};
+use super::document::{AttestationDoc, IOMMU_AMD_VI, IOMMU_INTEL_VTD, IOMMU_NONE};
 use super::error::AttestDocError;
+use crate::memory::iommu::{capabilities, unconfined_grants, IommuVendor};
 use crate::security::attest_registry::{attested_count, registry_complete, registry_root};
 use crate::security::tpm::ak::ak_public;
-use crate::security::tpm::crb::transact;
 use crate::security::tpm::error::TpmError;
 use crate::security::tpm::quote::{build_quote, check_attest, parse_quote};
+use crate::security::tpm::transact_resending;
 
 /// PCRs covered by the quote: the firmware and boot chain measurements the
-/// bootloader extended. Naming them explicitly rather than quoting every PCR
+/// firmware extended. Naming them explicitly rather than quoting every PCR
 /// keeps the document meaningful, since a verifier has to know which values it
 /// is being shown.
 const QUOTED_PCRS: [u8; 4] = [0, 1, 2, 7];
@@ -39,18 +40,22 @@ const RESPONSE_MAX: usize = 4096;
 /// Refuses when the registry is incomplete. A document that omits a running
 /// capsule is the one failure a remote party cannot detect, so the machine
 /// declines to speak rather than understate itself.
-pub(super) fn produce(ak_handle: u32, challenge: &[u8; 32]) -> Result<AttestationDoc, AttestDocError> {
+pub(super) fn produce(
+    ak_handle: u32,
+    challenge: &[u8; 32],
+) -> Result<AttestationDoc, AttestDocError> {
     if !registry_complete() {
         return Err(AttestDocError::RegistryIncomplete);
     }
     let root = registry_root();
-    let qualifying = qualifying_data(challenge, &root);
+    let dma = dma_posture();
+    let qualifying = qualifying_data(challenge, &root, &dma);
 
     let cmd = build_quote(ak_handle, &qualifying, &QUOTED_PCRS);
     let mut buf = [0u8; RESPONSE_MAX];
     // SAFETY: eK@nonos.systems - a quote reads PCR state and signs it. It
     // creates no objects and changes no key material.
-    let len = unsafe { transact(&cmd, &mut buf) }.map_err(AttestDocError::Tpm)?;
+    let len = unsafe { transact_resending(&cmd, &mut buf) }.map_err(AttestDocError::Tpm)?;
 
     // Kept when the key was loaded; a handle without it is a driver fault.
     let ak_public = ak_public().ok_or(AttestDocError::Tpm(TpmError::InvalidResponse))?;
@@ -64,8 +69,23 @@ pub(super) fn produce(ak_handle: u32, challenge: &[u8; 32]) -> Result<Attestatio
         registry_root: root,
         capsule_count: attested_count() as u32,
         registry_complete: true,
+        iommu_vendor: dma.vendor,
+        iommu_enforcing: dma.enforcing,
+        unconfined_grants: dma.unconfined_grants,
         attest: Vec::from(quote.attest),
         signature: Vec::from(quote.signature),
         ak_public,
     })
+}
+
+/// Read once, so the values bound into the quote are the values the document
+/// carries.
+fn dma_posture() -> DmaPosture {
+    let caps = capabilities();
+    let vendor = match caps.vendor {
+        IommuVendor::Absent => IOMMU_NONE,
+        IommuVendor::IntelVtd => IOMMU_INTEL_VTD,
+        IommuVendor::AmdVi => IOMMU_AMD_VI,
+    };
+    DmaPosture { vendor, enforcing: caps.enforcing, unconfined_grants: unconfined_grants() }
 }

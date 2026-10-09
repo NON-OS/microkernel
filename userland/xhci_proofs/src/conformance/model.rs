@@ -32,12 +32,14 @@ pub const DOORBELL: usize = 0x1800;
 /// In 32-bit words from the cap base, as HCCPARAMS1 carries it.
 pub const XECP_WORDS: u32 = 0x200;
 pub const LEGACY: usize = XECP_WORDS as usize * 4;
+/// The register window the model is, and the driver is told is mapped.
+pub const MAPPED: u64 = 0x2000;
 pub const PORT1: usize = CAP_LEN + PORTSC_BASE as usize;
 
 /// A controller with 8 slots, 2 ports, 4 scratchpads, 64-bit addressing and a
 /// legacy capability at `LEGACY`. `xecp` zero leaves the capability out.
 pub fn controller(xecp: u32) -> Arc<FakeBar> {
-    let bar = Arc::new(FakeBar::new(0x2000));
+    let bar = Arc::new(FakeBar::new(MAPPED as usize));
     bar.present32(CAPLENGTH as usize, CAP_LEN as u32);
     bar.present32(HCSPARAMS1 as usize, (2 << 24) | 8);
     bar.present32(HCSPARAMS2 as usize, 4 << 27);

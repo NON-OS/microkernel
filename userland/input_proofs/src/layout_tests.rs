@@ -21,7 +21,7 @@
 use nonos_keymap::{resolve, Layout};
 
 fn r(base: u8, shift: bool, layout: Layout) -> u32 {
-    resolve(base as u32, shift, false, layout)
+    resolve(base as u32, shift, false, false, layout)
 }
 
 fn c(ch: char) -> u32 {
@@ -39,11 +39,11 @@ fn us_shift_symbols() {
 
 #[test]
 fn letters_case_from_shift_and_caps() {
-    assert_eq!(resolve(b'a' as u32, false, false, Layout::Us), c('a'));
-    assert_eq!(resolve(b'a' as u32, true, false, Layout::Us), c('A'));
-    assert_eq!(resolve(b'a' as u32, false, true, Layout::Us), c('A'));
+    assert_eq!(resolve(b'a' as u32, false, false, false, Layout::Us), c('a'));
+    assert_eq!(resolve(b'a' as u32, true, false, false, Layout::Us), c('A'));
+    assert_eq!(resolve(b'a' as u32, false, true, false, Layout::Us), c('A'));
     // Shift under caps-lock gives lowercase again, like a real keyboard.
-    assert_eq!(resolve(b'a' as u32, true, true, Layout::Us), c('a'));
+    assert_eq!(resolve(b'a' as u32, true, true, false, Layout::Us), c('a'));
 }
 
 #[test]
@@ -60,7 +60,7 @@ fn uk_swaps_quote_and_at_and_puts_pound_on_three() {
 fn de_swaps_yz_and_places_umlauts() {
     assert_eq!(r(b'y', false, Layout::De), c('z'));
     assert_eq!(r(b'z', false, Layout::De), c('y'));
-    assert_eq!(resolve(b'z' as u32, true, false, Layout::De), c('Y'));
+    assert_eq!(resolve(b'z' as u32, true, false, false, Layout::De), c('Y'));
     assert_eq!(r(b'[', false, Layout::De), 0x00FC); // u-umlaut
     assert_eq!(r(b'[', true, Layout::De), 0x00DC);
     assert_eq!(r(b';', false, Layout::De), 0x00F6); // o-umlaut
@@ -77,7 +77,7 @@ fn fr_azerty_letters_and_digit_row() {
     assert_eq!(r(b'z', false, Layout::Fr), c('w'));
     // M sits on the US semicolon key; the US m key produces comma.
     assert_eq!(r(b';', false, Layout::Fr), c('m'));
-    assert_eq!(resolve(b';' as u32, true, false, Layout::Fr), c('M'));
+    assert_eq!(resolve(b';' as u32, true, false, false, Layout::Fr), c('M'));
     assert_eq!(r(b'm', false, Layout::Fr), c(','));
     assert_eq!(r(b'm', true, Layout::Fr), c('?'));
     // Digits need shift; the unshifted row carries accented letters.
@@ -108,8 +108,8 @@ fn it_places_accented_vowels() {
 #[test]
 fn non_printable_codes_pass_through() {
     // Navigation and modifier keycodes live outside the ASCII base range.
-    assert_eq!(resolve(0x1203, true, true, Layout::Fr), 0x1203);
-    assert_eq!(resolve(0x0D, true, false, Layout::De), 0x0D);
+    assert_eq!(resolve(0x1203, true, true, false, Layout::Fr), 0x1203);
+    assert_eq!(resolve(0x0D, true, false, false, Layout::De), 0x0D);
 }
 
 #[test]

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod crypto;
+pub mod limits;
 mod read;
 mod state;
 mod truncate;

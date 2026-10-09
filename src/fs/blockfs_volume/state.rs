@@ -16,7 +16,7 @@
 
 use spin::RwLock;
 
-use crate::fs::blockfs::BlockFsMount;
+use crate::fs::blockfs::{BlockFsMount, ReadCache};
 
 pub(super) struct VolumeState {
     pub(super) key: [u8; 32],
@@ -24,3 +24,8 @@ pub(super) struct VolumeState {
 }
 
 pub(super) static VOLUME: RwLock<Option<VolumeState>> = RwLock::new(None);
+
+/// The volume's read cache. Its entries name the volume and the count of
+/// writes made to it, so another volume, a moved window or any write leaves
+/// nothing to reuse.
+pub(super) static READS: ReadCache = ReadCache::new();

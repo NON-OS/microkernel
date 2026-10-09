@@ -23,6 +23,7 @@ use super::event::on_event;
 use super::job::tick;
 use super::manifest::manifest;
 use super::state::{Screen, State};
+use super::survey::poll;
 use super::ui::paint;
 
 pub struct Install {
@@ -48,8 +49,10 @@ impl App for Install {
         paint(&mut self.state, fb);
     }
 
+    /// A step of the write, or a look at the disks while the list waits
+    /// for one.
     fn on_tick(&mut self) -> bool {
-        tick(&mut self.state)
+        tick(&mut self.state) | poll(&mut self.state)
     }
 
     /// While a disk is being written or read back the loop runs as fast as

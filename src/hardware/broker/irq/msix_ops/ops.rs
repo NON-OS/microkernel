@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::drivers::pci::types::{MsixInfo, PciAddress, PciBar};
+use crate::drivers::pci::types::{MsiMessage, MsixInfo, PciAddress, PciBar};
 
 use super::super::types::IrqBindError;
 
@@ -26,9 +26,7 @@ pub(in crate::hardware::broker::irq) trait MsixOps:
         address: &PciAddress,
         msix: &MsixInfo,
         bars: &[PciBar; 6],
-        base_vector: u8,
-        count: usize,
-        dest_apic_id: u8,
+        messages: &[MsiMessage],
     ) -> Result<(), IrqBindError>;
 
     fn teardown_vector(

@@ -1,0 +1,48 @@
+# A curated security toolset for NONOS, from Alpine v3.20 main and community.
+# Point MARKET_LINUX_LIST at this file to list these in the marketplace, so
+# `install <name>` fetches each over the mirror relay, holds it to Alpine's
+# own signature, and lists it once its measurement is enrolled. Every tool
+# runs as a foreign guest at Authority 0: no hardware, no DMA, no reach into
+# another process. A tool that needs a live network target needs the network
+# capability granted to it as well; those are marked (net) below and do not
+# reach anything from inside the sandbox until that grant exists.
+#
+# The store lists at most 128 entries and 48 MiB, and a dynamically linked
+# tool brings its shared-library closure, so a build picks a subset of this
+# list rather than all of it at once.
+
+# -- recon and network (net: needs the network capability to reach a target) --
+nmap            # port and service discovery                      (net)
+nmap-scripts    # the NSE script library nmap loads
+tcpdump         # packet capture and, with -r, reading a .pcap    (net for live)
+tshark          # the Wireshark dissector, on the command line    (net for live)
+masscan         # asynchronous port scanner                       (net)
+nftables        # the in-kernel firewall's user tool
+socat           # bidirectional stream relay                      (net)
+netcat-openbsd  # the classic connect-and-listen tool             (net)
+bind-tools      # dig, host, nslookup                             (net)
+curl            # HTTP and many other protocols                   (net)
+wget            # HTTP and FTP fetch                              (net)
+
+# -- binary analysis and reverse engineering (all run confined on a file) --
+radare2         # disassembler, debugger and binary explorer
+hexyl           # a coloured hex viewer
+file            # identify a file from its contents
+ripgrep         # fast recursive search
+fd              # fast file find
+bat             # a pager with syntax highlighting
+jq              # JSON query and transform
+xxd             # hex dump and reverse
+
+# -- credential and cipher auditing (run confined on a supplied file) --
+john            # John the Ripper, offline hash auditing
+hydra           # network login auditing                          (net)
+aircrack-ng     # WPA handshake auditing from a capture file
+
+# -- web (net: needs the network capability) --
+nikto           # web server checks                               (net)
+
+# -- cryptography (run confined on files) --
+openssl         # the OpenSSL command line
+gnupg           # GnuPG signing, encryption and key handling
+age             # a small modern file-encryption tool

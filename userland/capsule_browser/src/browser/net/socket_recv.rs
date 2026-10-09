@@ -16,24 +16,50 @@
 
 use alloc::vec;
 
+use super::ask::{ask, Fault};
 use super::constants::{OP_RECV, SOCKETS_MAGIC};
+use super::recv_kind::Recv;
 
 const RECV_TIMEOUT_MS: u64 = 200;
 
-pub fn socket_recv(sockets_port: u32, handle: u32, out: &mut [u8]) -> Result<usize, ()> {
-    if super::mixnet::is_on() {
-        return super::mixnet::recv(out);
+/// The most one read asks for: what one reply from net.sockets can carry.
+const RECV_CHUNK: usize = 32 * 1024;
+
+/// Read into `out` from `handle`: first what an earlier read left over,
+/// then one exchange with net.sockets, whose surplus is kept for next time.
+///
+/// net.sockets answers an empty socket with a status rather than zero bytes,
+/// so a status is `Empty`; only a reply that never came is `Lost`. A peer
+/// that closed reads as `Empty` here too: net.tcp answers a drained socket
+/// with E_RX_EMPTY whether or not its peer has finished, and net.sockets
+/// turns every transport error into one status, so `Closed` comes only from
+/// a proxy, whose answers mark the close.
+pub fn socket_recv(sockets_port: u32, handle: u32, out: &mut [u8]) -> Recv {
+    if super::mixnet::is_proxied(handle) {
+        return super::mixnet::recv(handle, out);
     }
-    let mut body = [0u8; 4];
-    let mut rx = vec![0u8; out.len().saturating_add(20)];
-    body.copy_from_slice(&handle.to_le_bytes());
-    let n =
-        super::call::call_t(sockets_port, SOCKETS_MAGIC, OP_RECV, &body, &mut rx, RECV_TIMEOUT_MS)?;
-    if n < 20 {
-        return Err(());
+    let held = super::recv_pending::take(handle, out);
+    if held > 0 {
+        return Recv::Bytes(held);
     }
+    let mut body = [0u8; 12];
+    body[0..4].copy_from_slice(&handle.to_le_bytes());
+    body[4..8].copy_from_slice(&super::recv_seq::current(handle).to_le_bytes());
+    body[8..12].copy_from_slice(&(RECV_CHUNK as u32).to_le_bytes());
+    let mut rx = vec![0u8; RECV_CHUNK + 20];
+    let n = match ask(sockets_port, SOCKETS_MAGIC, OP_RECV, &body, &mut rx, RECV_TIMEOUT_MS) {
+        Ok(n) => n,
+        Err(Fault::Lost) => return Recv::Lost,
+        Err(Fault::Status(_) | Fault::Garbled) => return Recv::Empty,
+    };
     let payload = u32::from_le_bytes([rx[16], rx[17], rx[18], rx[19]]) as usize;
-    let copy_len = core::cmp::min(core::cmp::min(payload, n - 20), out.len());
-    out[..copy_len].copy_from_slice(&rx[20..20 + copy_len]);
-    Ok(copy_len)
+    let got = &rx[20..20 + payload.min(n - 20)];
+    if got.is_empty() {
+        return Recv::Empty;
+    }
+    super::recv_seq::answered(handle);
+    let copy_len = got.len().min(out.len());
+    out[..copy_len].copy_from_slice(&got[..copy_len]);
+    super::recv_pending::put(handle, &got[copy_len..]);
+    Recv::Bytes(copy_len)
 }

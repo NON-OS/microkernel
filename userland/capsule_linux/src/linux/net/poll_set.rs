@@ -18,24 +18,40 @@
 //! Walking a guest's `struct pollfd` array.
 
 use crate::linux::abi::errno;
+use crate::linux::file::MAX_FDS;
 use crate::linux::guest::Guest;
 
-use super::poll::ready;
+use super::poll::{ready, POLLERR, POLLHUP};
+use super::ready_sets::poll_count;
 
 /// fd, events, revents.
 const POLLFD_LEN: usize = 8;
 const POLLNVAL: u16 = 0x020;
 
+/// The `count` entries at `at`, each answered in place. A count above
+/// RLIMIT_NOFILE is EINVAL, as Linux has it (`ready_sets`), so one call never
+/// walks more than a guest can have open.
 pub fn poll(guest: &mut Guest, at: u64, count: u64) -> u64 {
+    let count = match poll_count(count, MAX_FDS as u64) {
+        Ok(n) => n,
+        Err(e) => return errno::fail(e),
+    };
     let mut hits = 0;
     for i in 0..count {
-        let entry = at + i * POLLFD_LEN as u64;
+        let Some(entry) = at.checked_add(i * POLLFD_LEN as u64) else {
+            return errno::fail(errno::EFAULT);
+        };
         let Some(raw) = guest.read(entry, POLLFD_LEN) else {
             return errno::fail(errno::EFAULT);
         };
-        let fd = u32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]]) as u64;
+        let fd = i32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]]);
         let events = u16::from_le_bytes([raw[4], raw[5]]);
-        let revents = ready(guest, fd) & (events | POLLNVAL);
+        // A negative descriptor is an entry switched off: never ready.
+        // Hang-up, error and a closed descriptor are reported unasked.
+        let revents = match u64::try_from(fd) {
+            Ok(fd) => ready(guest, fd) & (events | POLLNVAL | POLLHUP | POLLERR),
+            Err(_) => 0,
+        };
         if revents != 0 {
             hits += 1;
         }

@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/*
+ * A static, read through black_box, so the root stays one contiguous run in
+ * .rodata where the build receipt finds it. A constant copy was folded into
+ * four instruction immediates and never appeared as 32 bytes. A root file of
+ * any other length now fails the build instead of refusing every capsule.
+ */
+static ROOT: [u8; 32] =
+    *include_bytes!("../../../nonos-data/trust/policy/zk_capsule_policy_root.bin");
+
 pub(super) fn root() -> Option<[u8; 32]> {
-    let bytes = include_bytes!("../../../nonos-data/trust/policy/zk_capsule_policy_root.bin");
-    if bytes.len() != 32 {
-        return None;
-    }
-    let mut out = [0u8; 32];
-    out.copy_from_slice(bytes);
-    Some(out)
+    Some(*core::hint::black_box(&ROOT))
 }

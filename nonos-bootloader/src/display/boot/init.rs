@@ -15,31 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::layout::splash;
-use crate::display::font::{draw_char, CHAR_WIDTH};
 use crate::display::fx::fill_atmosphere;
-use crate::display::gop::{get_dimensions, is_initialized};
+use crate::display::gop::is_initialized;
+use crate::display::ink::palette::{CYAN, TEXT_2, TEXT_3};
+use crate::display::ink::{draw_captions, draw_emblem};
+use crate::display::version::version_label;
 
-const SUBTITLE: &[u8] = b"VERIFIED BOOT";
-const SUB_TRACK: u32 = 6;
-const SUB_COLOR: u32 = 0xFF46AEB6;
-
+/// The splash: the emblem, lit, and the column the verification log fills.
 pub fn init_boot_screen() {
     if !is_initialized() {
         return;
     }
     fill_atmosphere();
-    let lay = splash();
-    super::wordmark::draw_wordmark(0, lay.wordmark_y);
+    let s = splash();
+    draw_emblem(&s.s, 1000, CYAN, true);
+    draw_captions(&s.s, b"VERIFYING", TEXT_2, version_label().as_bytes(), TEXT_3);
+    draw_log_card();
+}
 
-    let (w, _) = get_dimensions();
-    let adv = CHAR_WIDTH + SUB_TRACK;
-    let sw = SUBTITLE.len() as u32 * adv - SUB_TRACK;
-    let mut sx = w.saturating_sub(sw) / 2;
-    for &ch in SUBTITLE {
-        draw_char(sx, lay.subtitle_y, ch, SUB_COLOR);
-        sx += adv;
-    }
-
+/// The headline, the step list, and the latest log line.
+pub fn draw_log_card() {
+    super::steps::draw_steps();
     crate::display::log_panel::redraw_all();
 }
 

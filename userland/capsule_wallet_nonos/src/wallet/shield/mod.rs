@@ -14,8 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! NOX Shield client: the local note store and (later) the shielded flows. The
-//! backend prover/pool/association-set seams live in `wallet::pool`.
+/*
+ * The wallet's side of Shield. The shield wallet itself, the phones' own
+ * shield-core with its prover, runs as the nonos.shield service; this is
+ * the client that opens it for this account, asks it for reviews and
+ * proofs, and follows what it reports.
+ */
 
-pub mod notes;
+pub mod actions;
+mod apply;
+pub mod client;
+mod follow;
+pub mod job;
+mod kept_names;
+pub mod open;
 pub mod probe;
+pub mod reply;
+
+pub use follow::due;

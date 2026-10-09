@@ -15,8 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod call;
+mod children;
 mod emit;
+pub mod follow;
 mod job;
+mod probe;
 mod run;
 
 pub(crate) use call::call_installer;

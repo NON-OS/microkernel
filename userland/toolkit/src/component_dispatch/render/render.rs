@@ -16,13 +16,14 @@
 use crate::protocol::{E_INVAL, E_SHORT, E_SURFACE, STATUS_OK};
 
 use super::attached_surface::attached_surface;
-use super::constants::HEADER_LEN;
+use super::constants::{FRAME_REPLY_LEN, HEADER_LEN};
 use crate::component_dispatch::kind::ComponentKind;
 use crate::component_dispatch::paint::paint;
+use crate::theme;
 
-pub fn render(payload: &[u8]) -> u16 {
+pub fn render(payload: &[u8], reply: &mut [u8]) -> (u16, usize) {
     if payload.len() < HEADER_LEN {
-        return E_SHORT;
+        return (E_SHORT, 0);
     }
     let handle = u64::from_le_bytes([
         payload[0], payload[1], payload[2], payload[3], payload[4], payload[5], payload[6],
@@ -35,17 +36,31 @@ pub fn render(payload: &[u8]) -> u16 {
     let kind_raw = u16::from_le_bytes([payload[24], payload[25]]);
     let label_len = u16::from_le_bytes([payload[26], payload[27]]) as usize;
     if w == 0 || h == 0 || handle == 0 {
-        return E_INVAL;
+        return (E_INVAL, 0);
     }
     let kind = ComponentKind::from_raw(kind_raw);
     let label_end = HEADER_LEN.saturating_add(label_len);
     if label_end > payload.len() {
-        return E_SHORT;
+        return (E_SHORT, 0);
     }
     let label = &payload[HEADER_LEN..label_end];
+    // A frame is answered before any surface attach: it names the whole window
+    // and maps nothing, so the toolkit, which holds no GraphicsSurfaceMap, never
+    // refuses an app's per-frame handshake. The answer is the live theme
+    // revision, so the app fetches the theme only when it moved.
+    if let ComponentKind::Frame = kind {
+        if x != 0 || y != 0 || label_len != 0 {
+            return (E_INVAL, 0);
+        }
+        if reply.len() < FRAME_REPLY_LEN {
+            return (E_SHORT, 0);
+        }
+        reply[0..FRAME_REPLY_LEN].copy_from_slice(&theme::snapshot().revision.to_le_bytes());
+        return (STATUS_OK, FRAME_REPLY_LEN);
+    }
     let Some(desc) = attached_surface(handle) else {
-        return E_SURFACE;
+        return (E_SURFACE, 0);
     };
     paint(&desc, x, y, w, h, kind, label);
-    STATUS_OK
+    (STATUS_OK, 0)
 }

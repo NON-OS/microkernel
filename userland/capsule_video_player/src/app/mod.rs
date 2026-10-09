@@ -15,9 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod browse;
+pub mod full_screen;
 pub mod nav;
-pub mod prefs;
+mod open_arg;
+pub mod open_arg_reply;
 mod present;
+mod resume;
 mod select;
 pub mod state;
 mod tick;

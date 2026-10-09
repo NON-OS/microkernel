@@ -88,7 +88,7 @@ impl WifiPanel {
                 *slot += 1;
             }
         });
-        self.networks[..self.count].sort_unstable_by(|a, b| b.signal.cmp(&a.signal));
+        self.networks[..self.count].sort_unstable_by_key(|n| core::cmp::Reverse(n.signal));
         if self.cursor >= self.count {
             self.cursor = self.count.saturating_sub(1);
         }

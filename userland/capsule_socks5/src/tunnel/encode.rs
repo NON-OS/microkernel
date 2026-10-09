@@ -16,7 +16,7 @@
 
 use super::constants::{PROTOCOL_VERSION, REQ_CONNECT, REQ_SEND};
 use super::hostport::write_hostport;
-use super::provider::open_envelope;
+use super::provider::{open_envelope, ENVELOPE_BYTES};
 use crate::conn::Dest;
 
 /// Encode a connect request naming `dest`, with no return address: replies
@@ -37,6 +37,17 @@ pub fn encode_connect(conn_id: u64, dest: &Dest, out: &mut [u8]) -> Option<usize
     Some(base + 12 + addr_len)
 }
 
+/// The send header after the envelope: version, flag, conn_id, closed, seq.
+const SEND_HEADER_BYTES: usize = 2 + 8 + 1 + 8;
+
+/// The longest send frame net.nym takes: one mix payload. It refuses a longer
+/// one whole.
+pub const SEND_FRAME_MAX: usize = 1024;
+
+/// The most stream bytes one send frame carries; a longer write goes as
+/// several sends, each with its own number.
+pub const SEND_DATA_MAX: usize = SEND_FRAME_MAX - ENVELOPE_BYTES - SEND_HEADER_BYTES;
+
 /// Encode a send request carrying `data` for `conn_id` at stream position
 /// `seq`. `closed` marks our half of the stream finished, and an empty closing
 /// send is how a connection is torn down. Returns the byte count, or `None` if
@@ -51,7 +62,7 @@ pub fn encode_send(
     // [envelope][version][flag][conn_id:8][closed:1][seq:8][data]
     let base = open_envelope(out)?;
     let body = out.get_mut(base..)?;
-    let total = 2 + 8 + 1 + 8 + data.len();
+    let total = SEND_HEADER_BYTES + data.len();
     if body.len() < total {
         return None;
     }

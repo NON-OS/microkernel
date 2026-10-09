@@ -54,7 +54,7 @@ pub(super) fn entry_for(pid: u32, now_ms: u64) -> ProcStatEntry {
         e.state = state_code(&pcb.state.lock());
         e.priority = priority_code(&pcb.priority.lock());
         e.caps = pcb.caps_bits.load(Ordering::Relaxed);
-        let mem = pcb.memory.lock();
+        let mem = pcb.memory_state();
         e.mem_kb = mem.resident_pages.load(Ordering::Relaxed) as u64 * 4;
         e.vma_count = mem.vmas.len() as u32;
         e.mapped_kb =

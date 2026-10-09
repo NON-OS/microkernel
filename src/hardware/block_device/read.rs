@@ -17,12 +17,32 @@
 use super::backend::Backend;
 use super::map_ahci::map_ahci_error;
 use super::map_nvme::map_nvme_error;
+use super::map_usb_msc::map_usb_msc_error;
 use super::map_virtio::map_virtio_error;
 use super::select::selected;
 use super::BlockDeviceError;
 
+/*
+ * The loader's copy of the boot disk answers what it holds (the live plan
+ * and the model files it names) until a disk is kept, so a live boot whose
+ * stick no driver of the kernel's drives still opens its volume and imports
+ * its model. It goes on answering once the kept disk is a USB stick: the
+ * copy exists only for a live stick the loader came from, it holds the same
+ * bytes, and a model import streamed through the stick driver can outlast
+ * the kernel's wait on a slow stick. A kept NVMe, SATA or virtio disk
+ * answers everything itself.
+ */
 pub fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
-    match selected() {
+    let copy_answers = matches!(super::select::chosen(), None | Some(Backend::UsbMsc));
+    if copy_answers && super::mirror::read(lba, out) {
+        return Ok(());
+    }
+    read_on(selected()?, lba, out)
+}
+
+/// A read from one named backend, for the probe that picks the backend.
+pub(super) fn read_on(backend: Backend, lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
+    match backend {
         Backend::VirtioBlk => {
             crate::hardware::virtio_blk_capsule::read_blocks(lba, out).map_err(map_virtio_error)
         }
@@ -31,6 +51,9 @@ pub fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
         }
         Backend::Nvme => {
             crate::hardware::nvme_capsule::read_blocks(lba, out).map_err(map_nvme_error)
+        }
+        Backend::UsbMsc => {
+            crate::hardware::usb_msc_capsule::read_blocks(lba, out).map_err(map_usb_msc_error)
         }
     }
 }

@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::TaskbarState;
+use super::mark_launch::PULSE_MS;
+use super::types::{TaskbarState, Uptime};
 
-pub fn expire_taskbar_pulses(state: &mut TaskbarState, now_ms: i64) -> bool {
+/// End each pulse whose time is up at `now`, or that was set later than
+/// `now` reads (a clock that went back), rather than hold it until the
+/// clock catches up.
+pub fn expire_taskbar_pulses(state: &mut TaskbarState, now: Uptime) -> bool {
     let mut dirty = false;
     for pulse in state.pulse_until_ms.iter_mut() {
-        if *pulse > 0 && *pulse <= now_ms {
+        let set_at = pulse.saturating_sub(PULSE_MS);
+        if *pulse > 0 && (*pulse <= now.0 || now.0 < set_at) {
             *pulse = 0;
             dirty = true;
         }

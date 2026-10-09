@@ -92,14 +92,17 @@ fn close_file(port: u32, pid: u32, handle: u32) {
     tx[HDR..HDR + 4].copy_from_slice(&pid.to_le_bytes());
     tx[HDR + 4..HDR + 8].copy_from_slice(&handle.to_le_bytes());
     let mut rx = [0u8; HDR + 4];
+    // With its deadline in r9: through sys5 the close waited as long as r9
+    // happened to say.
     let _ = unsafe {
-        sys5(
+        sys6(
             tag4(b"MICL"),
             port as u64,
             tx.as_ptr() as u64,
             tx.len() as u64,
             rx.as_mut_ptr() as u64,
             rx.len() as u64,
+            SK_TIMEOUT_MS,
         )
     };
 }

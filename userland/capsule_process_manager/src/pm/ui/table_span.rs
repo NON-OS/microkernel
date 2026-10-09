@@ -49,10 +49,6 @@ pub fn visible_rows(table_h: u32) -> usize {
     (table_h.saturating_sub(TBL_HEAD_H) / ROW_H).max(1) as usize
 }
 
-pub fn max_scroll(total: usize, table_h: u32) -> usize {
-    total.saturating_sub(visible_rows(table_h))
-}
-
 // Which visible row a click at table-local `y` lands on. The header band and
 // anything past the last drawn row return None, so a click on empty table space
 // selects nothing rather than the nearest row.

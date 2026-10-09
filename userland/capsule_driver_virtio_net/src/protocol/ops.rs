@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
 pub const OP_HEALTHCHECK: u16 = 1;
 pub const OP_LINK_STATUS: u16 = 2;
 pub const OP_MAC_ADDRESS: u16 = 3;
 pub const OP_TX_PACKET: u16 = 4;
 pub const OP_RX_PACKET: u16 = 5;
+/// Every received frame waiting, in one reply. An empty request asks only
+/// whether the op is served; a request carrying a u32 batch number takes
+/// frames, and the same number asks again for a batch whose reply was lost.
+pub const OP_RX_BATCH: u16 = 6;

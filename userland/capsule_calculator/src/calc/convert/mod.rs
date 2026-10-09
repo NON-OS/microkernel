@@ -18,7 +18,6 @@ mod data;
 mod eval;
 mod length;
 mod mass;
-mod money;
 mod temp;
 mod units;
 

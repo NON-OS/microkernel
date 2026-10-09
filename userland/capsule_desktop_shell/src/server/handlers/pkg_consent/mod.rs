@@ -9,5 +9,5 @@
 mod click;
 mod geometry;
 
-pub(crate) use click::click;
+pub(crate) use click::{answer, click};
 pub(crate) use geometry::{approve_rect, cancel_rect, panel_rect};

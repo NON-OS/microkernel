@@ -18,7 +18,7 @@
 
 // Big-endian throughout, matching the TPM structures the document carries.
 pub(super) const MAGIC: &[u8; 8] = b"NONOSATT";
-pub(super) const VERSION: u32 = 1;
+pub(super) const VERSION: u32 = 3;
 
 // A TPMS_ATTEST with an ECDSA signature lands well inside this. The syscall
 // refuses rather than truncating if it does not fit, so a short read here is
@@ -28,4 +28,13 @@ pub const DOC_CAP: usize = 2048;
 pub(super) const ROOT_AT: usize = 8 + 4 + 32;
 pub(super) const COUNT_AT: usize = ROOT_AT + 32;
 pub(super) const COMPLETE_AT: usize = COUNT_AT + 4;
-pub(super) const ATTEST_LEN_AT: usize = COMPLETE_AT + 1;
+pub(super) const VENDOR_AT: usize = COMPLETE_AT + 1;
+pub(super) const ENFORCING_AT: usize = VENDOR_AT + 1;
+pub(super) const UNCONFINED_AT: usize = ENFORCING_AT + 1;
+pub(super) const ATTEST_LEN_AT: usize = UNCONFINED_AT + 4;
+
+/// Highest `iommu_vendor` value the kernel writes: none, VT-d, AMD-Vi.
+pub(super) const VENDOR_MAX: u8 = 2;
+
+/// The attestation key closes the document: an uncompressed P-256 point, x then y.
+pub(super) const KEY_LEN: u32 = 64;

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use capsule_text_editor_layout_tests::covered;
 use capsule_text_editor_layout_tests::doc::block::{Block, Run};
 use capsule_text_editor_layout_tests::doc::document::Doc;
 use capsule_text_editor_layout_tests::doc::export::docx::document_xml;
@@ -32,18 +33,16 @@ fn styled(px: f32) -> RunStyle {
 }
 
 #[test]
-fn headings_and_lists_get_paragraph_styles() {
+fn headings_get_paragraph_styles_and_list_lines_keep_their_marker() {
     let mut doc = Doc::new();
     doc.blocks.push(Block::plain(BlockKind::Heading(2), "T", RunStyle::heading(2)));
-    doc.blocks.push(Block::plain(BlockKind::Bullet, "item", RunStyle::body()));
-    doc.blocks.push(Block::plain(BlockKind::Numbered, "step", RunStyle::body()));
+    doc.blocks.push(Block::plain(BlockKind::Paragraph, "- item", RunStyle::body()));
     doc.blocks.push(Block::plain(BlockKind::Paragraph, "flat", RunStyle::body()));
     let xml = document_xml(&doc);
     assert!(xml.contains("<w:p><w:pPr><w:pStyle w:val=\"Heading2\"/></w:pPr>"));
-    assert!(xml.contains("<w:pStyle w:val=\"ListBullet\"/>"));
-    assert!(xml.contains("<w:pStyle w:val=\"ListNumber\"/>"));
-    assert_eq!(xml.matches("<w:pStyle").count(), 3);
-    assert_eq!(xml.matches("<w:p>").count(), 4);
+    assert!(xml.contains(">- item</w:t>"));
+    assert_eq!(xml.matches("<w:pStyle").count(), 1);
+    assert_eq!(xml.matches("<w:p>").count(), 3);
     assert!(xml.ends_with("</w:body></w:document>"));
 }
 
@@ -54,7 +53,7 @@ fn run_properties_follow_the_style_model() {
         Run { len: 4, style: styled(12.0) },
         Run { len: 5, style: RunStyle::body() },
     ];
-    assert!(b.covered());
+    assert!(covered(&b));
     let mut doc = Doc::new();
     doc.blocks.push(b);
     let xml = document_xml(&doc);

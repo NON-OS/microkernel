@@ -17,32 +17,57 @@
 use crate::browser::dom::node::NodeKind;
 use crate::browser::dom::Dom;
 
-// 1-based position of an element among its element siblings, overall and
-// among those sharing its tag: (pos, count, pos_of_type, count_of_type).
-pub(super) fn element_position(dom: &Dom, id: usize) -> Option<(i32, i32, i32, i32)> {
+use super::table::Table;
+
+/// Where each element sits among its siblings, and what its ancestors are.
+///
+/// A pass that matches every element builds the table once, in one walk of
+/// the tree: sibling positions (a 50,000 item list under one nth-child rule
+/// otherwise costs the square of its length), previous element siblings,
+/// each element's class names split and hashed, and a filter of every
+/// ancestor's tag, id and classes that rejects most descendant selectors
+/// without walking up. A check about a single node, which runs per event,
+/// walks instead, since the table would cost more than the one answer.
+pub struct Siblings {
+    table: Option<Table>,
+}
+
+impl Siblings {
+    /// Answer each question by walking the tree.
+    pub const fn walk() -> Self {
+        Siblings { table: None }
+    }
+
+    /// Answer from a table built now, in one pass over the tree.
+    pub fn table(dom: &Dom) -> Self {
+        Siblings { table: Some(Table::build(dom)) }
+    }
+
+    pub(super) fn tab(&self) -> Option<&Table> {
+        self.table.as_ref()
+    }
+
+    /* 1-based position of an element among its element siblings, overall
+     * and among those sharing its tag: (pos, count, pos_of_type,
+     * count_of_type). */
+    pub(super) fn position(&self, dom: &Dom, id: usize) -> Option<(i32, i32, i32, i32)> {
+        match &self.table {
+            Some(t) => t.position(id),
+            None => walk_position(dom, id),
+        }
+    }
+}
+
+fn walk_position(dom: &Dom, id: usize) -> Option<(i32, i32, i32, i32)> {
     let node = dom.nodes.get(id)?;
-    let parent = dom.nodes.get(node.parent)?;
-    let mut pos = 0;
-    let mut count = 0;
-    let mut pos_ty = 0;
-    let mut count_ty = 0;
-    for &ch in &parent.children {
-        let Some(c) = dom.nodes.get(ch) else { continue };
-        if c.kind != NodeKind::Element {
-            continue;
-        }
+    let (mut pos, mut count, mut pos_ty, mut count_ty) = (0, 0, 0, 0);
+    for &ch in &dom.nodes.get(node.parent)?.children {
+        let Some(c) = dom.nodes.get(ch).filter(|c| c.kind == NodeKind::Element) else { continue };
         count += 1;
-        let same_tag = c.tag == node.tag;
-        if same_tag {
-            count_ty += 1;
-        }
+        count_ty += (c.tag == node.tag) as i32;
         if ch == id {
-            pos = count;
-            pos_ty = count_ty;
+            (pos, pos_ty) = (count, count_ty);
         }
     }
-    if pos == 0 {
-        return None;
-    }
-    Some((pos, count, pos_ty, count_ty))
+    (pos != 0).then_some((pos, count, pos_ty, count_ty))
 }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::{TX_BUFFER_LEN, TX_QUEUE_SIZE};
+use crate::constants::{TX_BUFFER_LEN, TX_QUEUE_SIZE, VIRTIO_NET_HDR_LEN};
 
 #[derive(Debug, Clone, Copy)]
 pub struct TxQueue {
@@ -26,6 +26,9 @@ pub struct TxQueue {
     pub buf_count: u16,
     pub next_avail: u16,
     pub last_used: u16,
+    /// Bytes of struct virtio_net_hdr written ahead of each frame: the
+    /// legacy 10 unless the transport negotiated VERSION_1.
+    pub hdr_len: usize,
 }
 
 impl TxQueue {
@@ -45,7 +48,13 @@ impl TxQueue {
             buf_count,
             next_avail: 0,
             last_used: 0,
+            hdr_len: VIRTIO_NET_HDR_LEN,
         }
+    }
+
+    /// The same queue, for a transport whose header is `hdr_len` bytes.
+    pub fn with_hdr_len(self, hdr_len: usize) -> Self {
+        Self { hdr_len, ..self }
     }
 
     pub const fn queue_size() -> u16 {

@@ -27,6 +27,9 @@ use crate::protocol::{
 use crate::store::Store;
 
 pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
+    if let Some(refused) = super::fs_gate::refusal(&req, sender_pid) {
+        return refused;
+    }
     /*
      * One place, so no handler can forget. Bumped on the attempt rather than on
      * success: a refused mkdir moving the counter costs one redundant listing,

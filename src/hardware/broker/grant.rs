@@ -132,8 +132,7 @@ pub(super) fn remove(pid: u32, grant_id: u64) -> Result<MmioGrant, GrantError> {
 // so VA reuse across address spaces is harmless. Within one address
 // space the bump never wraps for the life of the run; if it ever
 // does, that is a real exhaustion and the request fails.
-pub(super) const USER_MMIO_BASE: u64 = 0x0000_0080_0000_0000;
-pub(super) const USER_MMIO_END: u64 = 0x0000_0090_0000_0000;
+pub(super) use super::windows::{USER_MMIO_BASE, USER_MMIO_END};
 const PAGE_SIZE: u64 = 4096;
 
 static NEXT_USER_MMIO_VA: AtomicU64 = AtomicU64::new(USER_MMIO_BASE);

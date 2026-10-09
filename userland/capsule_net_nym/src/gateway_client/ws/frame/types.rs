@@ -21,6 +21,9 @@ pub enum FrameKind {
     Close,
     Ping,
     Pong,
+    /// A data frame longer than the buffer it was to be copied into. Its
+    /// length is known, so it can be stepped over.
+    Oversized,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

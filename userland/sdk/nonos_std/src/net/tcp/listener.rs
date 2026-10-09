@@ -15,17 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::stream::TcpStream;
-use crate::io::Result;
+use crate::io::{Error, ErrorKind, Result};
 use crate::net::addr::{resolve, ToSocketAddrs};
 use crate::net::socket::{Socket, KIND_STREAM};
+use crate::net::way::{direct_only, LISTEN_OFF_DIRECT};
+use crate::net::Route;
 
 pub struct TcpListener {
     inner: Socket,
 }
 
 impl TcpListener {
+    /// A listener. One on 127.0.0.0/8 takes connections from this machine
+    /// whatever network is chosen; any other address only on Direct, since
+    /// taking connections from outside names this machine (net/way.rs).
     pub fn bind<A: ToSocketAddrs>(addr: A) -> Result<Self> {
         let (ip, port) = resolve(addr)?;
+        if ip[0] != 127 {
+            direct_only(Route::chosen(), LISTEN_OFF_DIRECT)
+                .map_err(|why| Error::new(ErrorKind::PermissionDenied, why))?;
+        }
         let inner = Socket::open(KIND_STREAM)?;
         inner.bind(ip, port)?;
         inner.listen()?;

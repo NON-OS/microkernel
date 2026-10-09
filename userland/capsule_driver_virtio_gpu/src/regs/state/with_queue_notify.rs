@@ -16,10 +16,14 @@
 use super::types::Regs;
 
 impl Regs {
-    pub const fn with_queue_notify(self, queue_notify: u16) -> Self {
-        Self {
-            notify_offset: self.notify_offset + queue_notify as usize * self.notify_multiplier,
-            ..self
-        }
+    /// The doorbell of the queue whose queue_notify_off is `queue_notify`.
+    /// Both factors come from the device; the product was unchecked and
+    /// could put the doorbell write anywhere in the address space. It is now
+    /// the shared checked arithmetic, and `None` unless the 16-bit write
+    /// lands inside the mapped notify region on a 2-byte boundary.
+    pub fn with_queue_notify(self, queue_notify: u16) -> Option<Self> {
+        let multiplier = u32::try_from(self.notify_multiplier).ok()?;
+        let off = nonos_virtio::notify::notify_offset(queue_notify, multiplier, self.notify_len)?;
+        Some(Self { notify_offset: self.notify_offset.checked_add(off)?, ..self })
     }
 }

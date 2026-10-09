@@ -25,6 +25,11 @@ impl Reasm {
         if data.is_empty() || self.segs.len() >= REASM_MAX_SEGS {
             return;
         }
-        self.segs.entry(s).or_insert(data);
+        // A retransmission packed again can start where a held segment does
+        // and carry more; the longer of the two is kept.
+        let held = self.segs.entry(s).or_default();
+        if data.len() > held.len() {
+            *held = data;
+        }
     }
 }

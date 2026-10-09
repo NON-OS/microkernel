@@ -25,3 +25,18 @@ pub(super) fn usage_for(usages: &[u16], n: usize, index: usize) -> u16 {
         usages[n - 1]
     }
 }
+
+pub(super) const MAX_USAGES: usize = 64;
+
+/// The Usage items declared since the last main item, in order.
+#[derive(Clone, Copy)]
+pub(super) struct Usages {
+    pub list: [u16; MAX_USAGES],
+    pub n: usize,
+}
+
+impl Default for Usages {
+    fn default() -> Self {
+        Self { list: [0; MAX_USAGES], n: 0 }
+    }
+}

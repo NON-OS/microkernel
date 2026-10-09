@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::compositor_client::push_focus_set;
+use crate::focus::press::Refused;
+use crate::focus::press_focus;
 use crate::protocol::{Request, E_INVAL, E_NOENT, E_PERM, ROUTE_FOCUS_REQ_LEN};
 use crate::server::respond;
 use crate::state::Context;
@@ -40,28 +41,25 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         }
         return;
     };
-    let Some(window) = ctx.windows.find(owner_pid, window_id) else {
-        if respond::status(sender_pid, req, E_NOENT, tx) < 0 {
-            return;
-        }
-        return;
-    };
-    if !window.kind.focusable() {
-        if respond::status(sender_pid, req, E_PERM, tx) < 0 {
-            return;
-        }
-        return;
-    }
-    if !matches!(ctx.focus.current(), Some(f) if f.owner_pid == owner_pid && f.window_id == window_id)
-    {
-        if !ctx.focus.set(owner_pid, window_id) {
-            if respond::status(sender_pid, req, E_INVAL, tx) < 0 {
+    // Focus and raise in one step, before the router delivers the press, so the
+    // press that lands on a window's title bar both brings the window up and
+    // starts its drag, and the next hit test already sees it on top.
+    let pressed =
+        match press_focus(&mut ctx.windows, &mut ctx.z, &mut ctx.focus, owner_pid, window_id) {
+            Ok(p) => p,
+            Err(why) => {
+                let errno = match why {
+                    Refused::NoWindow => E_NOENT,
+                    Refused::NotFocusable => E_PERM,
+                };
+                if respond::status(sender_pid, req, errno, tx) < 0 {
+                    return;
+                }
                 return;
             }
-            return;
-        }
-        let rid = ctx.issue_request_id();
-        let _ = push_focus_set(ctx.compositor_port, rid, owner_pid);
+        };
+    if pressed.restacked() {
+        crate::server::tell_compositor::lift(ctx, owner_pid);
     }
     if respond::status(sender_pid, req, 0, tx) < 0 {
         return;

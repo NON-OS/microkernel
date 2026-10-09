@@ -14,6 +14,8 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+# The modern MAC read reaches the device region through the shared transport.
+nonos_virtio = { path = "../nonos_virtio" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

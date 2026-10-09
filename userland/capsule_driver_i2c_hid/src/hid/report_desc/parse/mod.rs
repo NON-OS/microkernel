@@ -21,9 +21,16 @@
 //! descriptor can only ever yield fewer fields, never loop or read out of range.
 
 mod assign;
+mod feature;
 mod find_touch_report_id;
+mod item;
+mod mouse;
+mod mouse_locals;
+mod mouse_walk;
 mod read_le;
+mod touch_walk;
 mod usage_for;
 mod walk;
 
+pub use mouse::parse_mouse;
 pub use walk::parse;

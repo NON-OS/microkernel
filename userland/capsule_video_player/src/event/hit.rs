@@ -19,7 +19,7 @@ use crate::ui::frame::{geom, topbar};
 use crate::ui::layout::Rect;
 use crate::ui::screen::{Route, NAV};
 use crate::ui::view::grid::grid_capacity;
-use crate::ui::widget::card::tile_rect;
+use crate::ui::widget::card::{columns, tile_rect};
 use crate::ui::widget::table::{row_rect, rows_visible, HEAD_H};
 
 pub fn nav(w: u32, x: i32, y: i32) -> Option<Route> {
@@ -58,9 +58,19 @@ pub fn item(browse: &Browse, body: Rect, x: i32, y: i32) -> Option<usize> {
         .filter(|&i| i < browse.len())
 }
 
+/// How many videos the page shows at once: what `item` can hit and the
+/// painters draw.
 pub fn page_step(body: Rect, grid: bool) -> usize {
     if grid {
         return grid_capacity(body).max(1);
     }
     rows_visible(list_rows(body).h).max(1)
+}
+
+/// How many videos share a line: the grid's columns, or one row of the list.
+pub fn line_step(body: Rect, grid: bool) -> usize {
+    if grid {
+        return columns(body.w);
+    }
+    1
 }

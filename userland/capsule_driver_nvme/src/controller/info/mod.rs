@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod doorbell_stride;
+mod doorbells_fit;
 mod fatal;
 mod info_type;
 mod is_nvme_register_block;

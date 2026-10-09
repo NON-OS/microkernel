@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::settings::schema::rows::{Block, Row};
+use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
+
+use crate::settings::schema::rows::{Block, Live, Row};
 use crate::settings::state::State;
 
 use super::field_note::note_of;
@@ -31,6 +33,7 @@ pub fn head_h(b: &Block) -> u32 {
 pub fn row_h(r: &Row) -> u32 {
     match r {
         Row::Field(f) if note_of(*f).is_some() => ROW_NOTE_H,
+        Row::Live(_, Live::AudioOutput) => ROW_NOTE_H,
         _ => ROW_H,
     }
 }
@@ -39,11 +42,19 @@ pub fn network_rows(state: &State) -> usize {
     state.wifi_network_count.max(1)
 }
 
+/// The saved networks, or one row saying there are none or why they could
+/// not be read.
+pub fn saved_rows(state: &State) -> usize {
+    state.wifi.saved_count.max(1)
+}
+
 pub fn block_h(state: &State, b: &Block) -> u32 {
     let mut h = head_h(b);
     for r in b.rows {
         h += match r {
             Row::Networks => ROW_H * network_rows(state) as u32,
+            Row::Saved => ROW_H * saved_rows(state) as u32,
+            Row::Wallpapers => ROW_H * WALLPAPER_LABELS.len() as u32,
             other => row_h(other),
         };
     }

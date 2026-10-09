@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::errnos::{ERRNO_INVAL, ERRNO_PERM};
+use super::narrow::u32_arg;
 use crate::capabilities::Capability;
 use crate::process::signal::{SIGINT, SIGKILL, SIGTERM};
 use crate::process::{
@@ -26,12 +27,21 @@ pub fn sys_kill(pid: u64, sig: u64) -> i64 {
     if sig != SIGINT as u64 && sig != SIGTERM as u64 && sig != SIGKILL as u64 {
         return ERRNO_INVAL;
     }
-    let target = pid as u32;
+    let Some(target) = u32_arg(pid) else {
+        return ERRNO_INVAL;
+    };
     let caller = current_pid().unwrap_or(0);
     // Baseline: a process may kill its own children. Beyond that, killing an
     // unrelated pid needs the ProcessControl capability, held only by the
     // process manager, so a compromised app cannot terminate other capsules.
     let is_parent = caller != 0 && get_parent_pid(target) == Some(caller);
+    /*
+     * A foreign supervisor ends the guests it hosts. A guest thread's parent
+     * is its group leader, not the supervisor, so without this a guest's
+     * exit left its threads running, and once the supervisor was gone they
+     * ran on with no one to answer their calls.
+     */
+    let supervises = caller != 0 && crate::process::foreign::supervisor_of(target) == Some(caller);
     let controls = caller != 0
         && with_process(caller, |pcb| {
             pcb.caps_bits.load(core::sync::atomic::Ordering::Relaxed)
@@ -39,7 +49,7 @@ pub fn sys_kill(pid: u64, sig: u64) -> i64 {
                 != 0
         })
         .unwrap_or(false);
-    if !is_parent && !controls {
+    if !is_parent && !supervises && !controls {
         return ERRNO_PERM;
     }
     if !pid_alive(target) {

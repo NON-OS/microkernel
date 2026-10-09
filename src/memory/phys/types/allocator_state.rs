@@ -18,6 +18,8 @@
 pub struct AllocatorState {
     pub frame_start: u64,
     pub frame_count: usize,
+    /* Frames of usable RAM in the span: the span less its holes. */
+    pub usable_frames: usize,
     pub bitmap_ptr: *mut u8,
     pub bitmap_bytes: usize,
     pub next_hint: u64,
@@ -29,6 +31,7 @@ impl AllocatorState {
         Self {
             frame_start: 0,
             frame_count: 0,
+            usable_frames: 0,
             bitmap_ptr: core::ptr::null_mut(),
             bitmap_bytes: 0,
             next_hint: 0,

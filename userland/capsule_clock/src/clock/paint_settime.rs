@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::clock::says::DONE;
 use crate::clock::state::State;
 use crate::clock::{fmt, theme};
 
@@ -28,6 +29,8 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     adj(fb, 280, b"M+");
     fb.fill_rect(40, 300, 280, 48, theme::ACCENT);
     fb.text(150, 318, b"Apply", theme::BG);
+    let ink = if state.set_note == DONE { theme::FG } else { theme::ALERT };
+    fb.text(40, 366, state.set_note, ink);
 }
 
 fn adj(fb: &mut PaintBuffer, x: u32, label: &[u8]) {

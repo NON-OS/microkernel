@@ -16,17 +16,31 @@
 
 //! Keep the installed capsule-store list in sync with the desktop.
 
+use nonos_libc::mk_uptime_ms;
+
 use crate::state::Context;
 
 /// Refresh the installed-app list whenever the installer has a registered
 /// service. Most systems never run an installer, so until one appears this
 /// costs a bare service lookup and no IPC round trip; once it answers, the
 /// list is re-fetched each call and adopted only when it changed.
+/*
+ * Asked on every tick while the installer answers, so an app installed since
+ * shows in the Launchpad. The call waits up to its reply timeout on the
+ * shell's only thread, so an installer that does not answer (busy loading a
+ * package) is let be for a growing gap (state/quiet_gap.rs) instead of costing
+ * that wait every second.
+ */
 pub fn load_once(ctx: &mut Context) {
-    if !crate::installer_client::available() {
+    let now = mk_uptime_ms().max(0) as u64;
+    if !ctx.installer_gap.due(now) || !crate::installer_client::available() {
         return;
     }
-    let listed = crate::installer_client::list_installed();
+    let Some(listed) = crate::installer_client::list_installed() else {
+        ctx.installer_gap.missed(now);
+        return;
+    };
+    ctx.installer_gap.answered();
     if listed.is_empty() || ctx.installed_apps == listed {
         return;
     }

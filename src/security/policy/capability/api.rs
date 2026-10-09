@@ -87,6 +87,10 @@ fn try_hardware_rng() -> Option<u8> {
     #[cfg(target_arch = "x86_64")]
     {
         use core::arch::x86_64::_rdrand32_step;
+        // A CPU without RDRAND raises #UD on it, so it is asked first.
+        if !crate::arch::x86_64::cpu_random::has_rdrand() {
+            return None;
+        }
         let mut value = 0u32;
         // SAFETY: RDRAND is a valid x86_64 instruction when available
         unsafe {

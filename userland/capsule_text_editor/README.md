@@ -2,119 +2,88 @@
 
 ## Role
 
-`capsule_text_editor` is a real production application capsule built on
-`nonos_app_skeleton`. It owns a fixed capacity edit buffer with column wrap.
-The capsule keeps its own state, has no globals, and reads keyboard input
-through the toolkit. The capsule routes UI rendering through the toolkit IPC
-path rather than through any kernel UI code.
+`capsule_text_editor` is the desktop's Editor window, `app.text_editor`, a
+1680 by 1000 app on `nonos_app_skeleton`. It edits text and code with syntax
+highlighting, find and replace, go to line, comment toggling, bracket
+auto-closing and undo, and it has a document model with pages, lists and
+tables that exports to Markdown, DOCX or PDF (`src/doc/export/`). Its file
+explorer is built from one `list_paths` call over the whole store. The
+handbook page is
+[System apps and services](../../docs/handbook/apps/system-apps.md).
 
 ```text
-text editor app
+text editor (App trait)
     |
-    | UI frame request
+    | vfs client: list_paths, read_file, write_file, stat, mkdir, rename, unlink, rmdir
     v
-toolkit endpoint
-    |
-    `-- app event loop on app endpoint
+vfs_pool (service:4104)          clipboard (cut, copy, paste)
 ```
 
 ## Microkernel contract
 
-The capsule uses the basic Mk surface that every app skeleton uses:
-
-- `MkIpcCall` sends a UI frame request to the toolkit endpoint.
-- `MkIpcRecv` receives application messages on the app endpoint.
-- `MkYield` backs off when no message is available.
-- `MkDebug` emits ownership and proof markers.
-- `MkExit` exits when the IPC surface is parked.
-
-The active spawn path is the standard `nonos_app_skeleton::run` entry point.
-
-## Interface contract
-
-| Call | Purpose |
-|---|---|
-| `MkIpcCall` to toolkit | request a UI frame through userland toolkit policy |
-| `MkIpcRecv` on app endpoint | receive app input messages |
-| `MkYield`, `MkDebug`, `MkExit` | cooperative loop and proof markers |
-
-The keyboard surface accepts printable characters, Backspace to delete the
-character before the cursor, Enter to insert a newline, and Esc to leave the
-editor.
+The window, input and frame loop come from `nonos_app_skeleton::run`. Files
+are IPC calls to `vfs_pool`, with the editor's own pid from `mk_getpid` as
+owner (`src/editor/resolve_owner_pid.rs`); `vfs_pool` refuses a claimed owner
+that is not the sender. Cut, copy and paste go to the `clipboard` service.
 
 ## Authority
 
-The capsule keeps the narrow capability set defined by the app skeleton. It
-does not request filesystem authority, graphics, network, device drivers, or
-direct framebuffer authority. The editor does not read or write files today;
-the buffer is local owned state.
+`CAPSULE_REQUIRED_CAPS = 0x1859`:
+
+| Bit | Capability | Purpose |
+|---|---|---|
+| 0x0001 | CoreExec | run user code |
+| 0x0008 | IPC | vfs, clipboard, window services |
+| 0x0010 | Memory | heap, the 256 KiB document and window backing |
+| 0x0040 | FileSystem | `vfs_pool` serves only a holder of it |
+| 0x0800, 0x1000 | GraphicsDisplayQuery, GraphicsSurfaceCreate | its window |
+
+Endpoints: `service:4726:app.text_editor`, reply `4727`, and the instance
+windows `app.text_editor.1` (4830) and `app.text_editor.2` (4832). The kernel
+mirror is `src/userspace/capsule_text_editor`.
+
+## Open and save
+
+- Open reads one byte past the 256 KiB capacity, and `refuse_open` turns
+  away a longer file or one that is not UTF-8, so a file cut off at the
+  limit never opens and is never saved back short (`src/editor/open_limit.rs`).
+- Save writes with `vfs::write_file` and takes the new name only if the
+  write landed (`src/editor/ctrl_save.rs`).
+- The explorer says its last failure in words, whether or not the tree has
+  rows.
+
+## Formatting
+
+Headings are text (a leading `#`). The ribbon's bold, italic, underline,
+strike, colour, font and size, and paragraph alignment, are kept beside the
+text in `src/editor/style_marks.rs`: a mark per byte and an alignment per
+line, moved with the text by the one edit path (`splice`) and laid back over
+the document model each time it is rebuilt, so they survive typing and reach
+Export (DOCX and PDF carry all of them, Markdown what it can say). Typed text
+takes the formatting of the character before it. Save writes the text alone,
+and its status line says so when the document has formatting. Undo restores
+text, and restored text takes its neighbour's formatting.
+
+## Screens
+
+The Home screen lists every file in the store and the files this session
+opened. Settings has one section, Editing, whose two switches (invisible
+characters, current line) are read by `src/editor/settings/live.rs`; they last
+as long as the window. Help > Keyboard Shortcuts lists every Ctrl shortcut the
+editor answers, and `editor_proofs` checks the list against the handlers.
 
 ## Privacy and persistence
 
-The capsule keeps no profile, no telemetry, and no persistent state. The
-buffer contents and the cursor disappear with the process. Persistence is
-explicitly out of scope until a filesystem contract exists.
-
-## Runtime lifecycle
-
-The capsule emits ownership markers, enters the app skeleton run loop, and
-processes input events through `MkIpcRecv` until the IPC surface is parked. On
-clean shutdown the runtime state is gone with the process.
-
-## Failure model
-
-Toolkit failure is observable through proof markers and never grants the
-capsule a fallback framebuffer path. Invalid input is dropped by the editor
-state machine and never escalates to a kernel call.
-
-## Current implemented surface
-
-- Source for the edit buffer, cursor position, theme, painter, and event loop.
-- Keyboard surface for printable characters, Backspace, Enter, and Esc.
-- Fixed capacity buffer with column wrap and deterministic behaviour at the
-  buffer boundary.
-- Runs above `nonos_app_skeleton` with toolkit-only UI.
-
-## Wire format
-
-Input messages arrive on the app endpoint as toolkit input events. UI requests
-go out on the toolkit endpoint.
-
-## State ownership
-
-The capsule owns the buffer and the cursor. The toolkit owns rendering. The
-compositor owns scene and focus. The kernel owns no editor state.
-
-## Operating rules
-
-- Route UI through toolkit IPC only.
-- Do not request direct framebuffer authority.
-- Keep all app state volatile until a filesystem contract exists.
-- Do not introduce kernel UI exports for this app.
-
-## Release target
-
-The release version is a signed application capsule with `Capsule.mk`, signed
-manifest, feature gated spawn, toolkit only UI rendering, an explicit
-capability for filesystem access where it is eventually granted, and validation
-proof that editor policy stays out of the kernel.
-
-## Release checklist
-
-- `Capsule.mk` and signed manifest exist.
-- Toolkit IPC validation passes.
-- Feature gated spawn is present.
-- Static gate confirms no kernel app UI exports.
-
-## Explicit non-goals today
-
-No production manifest, signed spawn path, real file open or save, network
-access, graphics driver access, or direct framebuffer authority belongs in
-this directory.
+The document lives in the editor's memory and in `vfs_pool`, which is RAM.
+Save does not call `persist`, so a saved file stays in RAM unless something
+else commits it to the store; it is gone at power off.
 
 ## Verification
 
-- Build: `cargo build --manifest-path userland/capsule_text_editor/Cargo.toml`
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Promotion check: add `Capsule.mk`, manifest signing, feature gated spawn,
-  and validation evidence before claiming production app status.
+- Build: `make nonos-mk-text-editor`; sign: `make nonos-mk-text-editor-sign`.
+- `userland/editor_proofs` runs the real document engine on the host: the
+  edit path and undo, the editing features, open limits, the save point, the
+  explorer's failure note, formatting kept across edits and into the
+  Markdown export (`style_marks_tests`) and the shortcut sheet against the
+  key handlers (`shortcut_sheet_tests`).
+- `layout_tests` runs pagination, line breaking and the caret hit-test.

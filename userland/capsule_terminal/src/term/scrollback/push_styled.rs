@@ -29,7 +29,7 @@ impl Scrollback {
             self.push_line(plain);
             return;
         }
-        self.grid.feed(styled);
-        self.grid.feed(b"\x1b[0m\n");
+        self.feed_raw(styled);
+        self.feed_raw(b"\x1b[0m\n");
     }
 }

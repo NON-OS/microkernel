@@ -20,9 +20,17 @@ pub struct Drainer {
     // Caps lock is a toggle, not a held modifier, so it lives beside the
     // modifier bits and is folded into the published flags per event.
     pub(super) caps: bool,
+    // The code each held key went down with, so its release carries it.
+    pub(super) held: nonos_keymap::HeldKeys,
 }
 impl Drainer {
     pub const fn new() -> Self {
-        Self { pending_e0: false, pending_e1: false, mods: 0, caps: false }
+        Self {
+            pending_e0: false,
+            pending_e1: false,
+            mods: 0,
+            caps: false,
+            held: nonos_keymap::HeldKeys::new(),
+        }
     }
 }

@@ -16,6 +16,9 @@
 
 #![no_std]
 
+extern crate alloc;
+
+pub mod apps;
 pub mod category;
 pub mod cursor_size_labels;
 pub mod enum_label;
@@ -26,6 +29,7 @@ pub mod field_decode;
 pub mod field_kind;
 pub mod field_label;
 pub mod field_max;
+pub mod field_str_max;
 pub mod font_size_labels;
 pub mod hdr;
 pub mod keyboard_layout_labels;
@@ -34,9 +38,13 @@ pub mod language_labels;
 pub mod limits;
 pub mod ops;
 pub mod proxy_mode_labels;
+pub mod route;
 pub mod service;
+pub mod settings_record;
+pub mod setup_record;
 pub mod theme_labels;
 pub mod wallpaper_labels;
+pub mod wallpapers_kept;
 
 pub use category::Category;
 pub use enum_label::enum_label;
@@ -47,8 +55,9 @@ pub use field_decode::decode as decode_field;
 pub use field_kind::kind_of;
 pub use field_label::label_of;
 pub use field_max::max_of;
+pub use field_str_max::str_max_of;
 pub use hdr::{Header, HDR_LEN};
-pub use kind::{KIND_BOOL, KIND_BYTES, KIND_I8, KIND_STR, KIND_U8};
+pub use kind::{KIND_BOOL, KIND_BYTES, KIND_I8, KIND_STR, KIND_U64, KIND_U8};
 pub use limits::{IPC_PAYLOAD_MAX, STR_MAX};
 pub use ops::{OP_GET, OP_SET, OP_STATUS};
 pub use service::{POLICY_REPLY_PORT, POLICY_SERVICE_NAME, POLICY_SERVICE_PORT};

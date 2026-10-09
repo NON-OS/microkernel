@@ -64,6 +64,10 @@ impl App for VideoApp {
         self.playing
     }
 
+    fn wants_full_screen(&self) -> bool {
+        super::full_screen::wants_full_screen(self.route(), self.file.is_some())
+    }
+
     fn paint(&mut self, fb: &mut PaintBuffer) {
         self.dims = (fb.width, fb.height);
         if self.route() != Route::Player {
@@ -81,6 +85,6 @@ impl App for VideoApp {
             let note = self.status.unwrap_or("Open a video from your library to start playback");
             paint_empty(fb, l.video, icon::nav::video, "Nothing playing", note);
         }
-        paint_transport(fb, &l, &st, self.muted, self.volume);
+        paint_transport(fb, &l, &st);
     }
 }

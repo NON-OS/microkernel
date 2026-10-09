@@ -31,10 +31,11 @@ pub struct Rails {
     pub left: u32,
 }
 
+/// The rects the terminal paints and hit-tests. The titlebar band above them
+/// is the frame's (the tabs sit in its accessory), so `compute` reserves its
+/// height and returns no rect for it.
 #[derive(Clone, Copy)]
 pub struct Layout {
-    pub titlebar: Rect,
-    pub tabstrip: Rect,
     pub left_rail: Rect,
     pub body: Rect,
     pub input: Rect,

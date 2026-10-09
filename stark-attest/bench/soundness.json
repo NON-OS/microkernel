@@ -1,0 +1,45 @@
+{
+  "schema": "stark-attest.soundness.v1",
+  "note": "derived from the compiled parameters, not from documentation",
+  "parameters": {
+    "log_rounds": 5,
+    "poseidon_rounds": 32,
+    "queries": 32,
+    "grind_bits": 16,
+    "air_blowup_bits": 1,
+    "extra_blowup_bits": 3,
+    "total_blowup_bits": 4,
+    "tree_depth": 8
+  },
+  "code": {
+    "rate": 0.0625,
+    "unique_decoding_radius": 0.46875,
+    "model": "conservative unique decoding bound, not a list decoding radius"
+  },
+  "soundness_bits": {
+    "unique_decoding": {
+      "per_query": 0.9125371587496606,
+      "queries_total": 29.20118907998914,
+      "argument_total": 45.201189079989135,
+      "model": "pessimistic floor: delta = (1 - rate) / 2, provable today"
+    },
+    "list_decoding": {
+      "per_query": 4,
+      "queries_total": 128,
+      "argument_total": 127.9999999984,
+      "model": "conjectured regime the deployed STARK literature analyses under"
+    },
+    "grinding": 16,
+    "challenge_space_ceiling": 127.9999999984,
+    "honest_reading": "the true value lies between the two; no independent analysis of this crate pins it"
+  },
+  "adversary": {
+    "forge_operations": 40449555429373,
+    "interpretation": "expected work to produce one accepted false proof"
+  },
+  "verifier_cost": {
+    "hash_invocations": 256,
+    "hashes_per_query": 8,
+    "note": "authentication paths only; fold arithmetic is field work, not hashing"
+  }
+}

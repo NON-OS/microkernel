@@ -17,17 +17,20 @@
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup};
 use nonos_policy_proto::{Field, HDR_LEN, POLICY_SERVICE_NAME};
 
-use super::sanitize::hostname_len;
 use super::wire::{decode_str, request, REQ_LEN};
 
-/// A hostname is short, and this runs once. A quarter of a second is long
-/// enough for a live policy server and short enough that a dead one does not
-/// stall the first command of the session.
+/// A name is short, and this runs once per field. A quarter of a second is
+/// long enough for a live policy server and short enough that a dead one does
+/// not stall the first command of the session.
 const TIMEOUT_MS: u64 = 250;
 
 const RX_LEN: usize = HDR_LEN + 64;
 
-pub fn hostname(out: &mut [u8]) -> Option<usize> {
+/*
+ * The string policy holds for `field`, as sent. The caller sanitizes it: a
+ * hostname and a user name allow different bytes.
+ */
+pub fn string(field: Field, out: &mut [u8]) -> Option<usize> {
     let mut port = 0u32;
     let mut pid = 0u32;
     let rc = mk_service_lookup(
@@ -39,7 +42,7 @@ pub fn hostname(out: &mut [u8]) -> Option<usize> {
     if rc < 0 || port == 0 {
         return None;
     }
-    let field = Field::Hostname as u32;
+    let field = field as u32;
     let mut tx = [0u8; REQ_LEN];
     request(field, &mut tx);
     let mut rx = [0u8; RX_LEN];
@@ -55,7 +58,7 @@ pub fn hostname(out: &mut [u8]) -> Option<usize> {
         return None;
     }
     let body = decode_str(field, &rx[..n as usize])?;
-    let k = hostname_len(body).min(out.len());
+    let k = body.len().min(out.len());
     out[..k].copy_from_slice(&body[..k]);
     Some(k)
 }

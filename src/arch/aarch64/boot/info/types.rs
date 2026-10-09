@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /// As many regions as the device tree walker reads in one pass.
-pub const MAX_MEMORY_REGIONS: usize = 8;
+pub(super) const MAX_MEMORY_REGIONS: usize = 8;
 
 /// As many CPUs as the device tree walker reads in one pass.
-pub const MAX_CPUS: usize = 64;
+pub(super) const MAX_CPUS: usize = 64;
 
 use super::memory::{MemoryRegion, MemoryType};
 

@@ -49,6 +49,9 @@ pub fn spawn_driver_iwlwifi_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
+            // CryptoRandom draws the station address and each join's nonces and
+            // SAE secrets; it is gated on this capability.
+            | Capability::Crypto.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()

@@ -14,21 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Persisted switch state for the six non-General sections, one bitfield per
-//! nav index so a flip survives leaving the section and coming back. Index 0 is
-//! unused: General keeps its own switches in `state`.
+//! Switch state for each section, one bitfield per nav index, so a flip
+//! survives leaving the section and coming back. It lives as long as the
+//! window: the settings are not written to the store.
 
 use core::sync::atomic::{AtomicU32, Ordering};
 
-static SECT_BITS: [AtomicU32; 7] = [
-    AtomicU32::new(0),
-    AtomicU32::new(0b1_1101),
-    AtomicU32::new(0b011),
-    AtomicU32::new(0b01),
-    AtomicU32::new(0b1101),
-    AtomicU32::new(0b0111),
-    AtomicU32::new(0b1011),
-];
+/// Editing starts with the current line highlighted and invisibles hidden.
+static SECT_BITS: [AtomicU32; 1] = [AtomicU32::new(1 << 4)];
 
 pub(crate) fn sect_on(nav: usize, bit: u32) -> bool {
     match SECT_BITS.get(nav) {

@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::types::{IrqBindError, IrqBindRequest, IrqBindResult, BIND_MSIX};
+use super::super::types::{IrqBindError, IrqBindRequest, IrqBindResult, BIND_MSI, BIND_MSIX};
 use super::intx::bind_intx;
+use super::msi::bind_msi;
 use super::msix::bind_msix;
 use crate::hardware::broker::claim;
 
@@ -30,6 +31,8 @@ pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError
 
     if req.flags & BIND_MSIX != 0 {
         bind_msix(pid, req, claim.epoch)
+    } else if req.flags & BIND_MSI != 0 {
+        bind_msi(pid, req, claim.epoch)
     } else {
         bind_intx(pid, req, claim.epoch)
     }

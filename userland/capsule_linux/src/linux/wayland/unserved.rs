@@ -35,6 +35,7 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::Seat => b"wl_seat",
         Object::Pointer => b"wl_pointer",
         Object::Keyboard => b"wl_keyboard",
+        Object::Output => b"wl_output",
     }
 }
 

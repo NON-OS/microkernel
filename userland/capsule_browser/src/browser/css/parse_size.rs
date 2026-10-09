@@ -14,44 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::calc::eval_calc;
+use super::calc::{eval_value, V};
 use super::computed::Size;
-use super::parse_px::parse_px;
+use super::parse_px::MAX_LEN_PX;
 
-const MAX_PCT: f32 = 1000.0;
-const CALC_LIMIT: f32 = 100_000.0;
+/* Largest percentage kept; ten times the base is past any real layout. */
+const MAX_PML: f32 = 10_000.0;
 
-// Resolve a width/height value: auto, a length, a percentage of the
-// containing box, or a calc() expression carried to layout unresolved.
+/// Resolve a width/height value: auto, a length, a percentage of the
+/// containing box, a calc() carried to layout as px plus per-mille, or a
+/// min()/max()/clamp() whose percentage arguments layout decides. A bare
+/// negative length is invalid for a size.
 pub(super) fn parse_size(value: &str, em_base: u32) -> Option<Size> {
+    if value.trim_start().starts_with('-') {
+        return None;
+    }
+    parse_offset(value, em_base)
+}
+
+/// The same forms with negative values allowed, for top/right/bottom/left.
+pub(super) fn parse_offset(value: &str, em_base: u32) -> Option<Size> {
     let v = value.trim();
     if v.eq_ignore_ascii_case("auto") {
         return Some(Size::Auto);
     }
-    if let Some(inner) = strip_calc(v) {
-        let (px, pml) = eval_calc(inner, em_base)?;
-        if !px.is_finite() || !pml.is_finite() || px.abs() > CALC_LIMIT || pml.abs() > CALC_LIMIT {
-            return None;
-        }
-        if pml == 0.0 && px >= 0.0 {
-            return Some(Size::Px((px + 0.5) as u32));
-        }
-        return Some(Size::Calc(px as i32, pml as i32));
-    }
-    if let Some(num) = v.strip_suffix('%') {
-        let f = num.trim().parse::<f32>().ok()?;
-        if f.is_finite() && (0.0..=MAX_PCT).contains(&f) {
-            return Some(Size::Pct((f + 0.5) as u16));
-        }
+    let (px, pml) = match eval_value(v, em_base as f32)? {
+        V::Num(0.0) => return Some(Size::Px(0)),
+        V::Num(_) => return None,
+        V::Math(m) => return Some(Size::Math(m)),
+        V::Len { px, pml } => (px, pml),
+    };
+    if !px.is_finite() || !pml.is_finite() || px.abs() > MAX_LEN_PX || pml.abs() > MAX_PML {
         return None;
     }
-    parse_px(v, em_base).map(Size::Px)
-}
-
-// The body of a calc(...) wrapper, case-insensitive, None otherwise.
-pub(super) fn strip_calc(v: &str) -> Option<&str> {
-    if v.len() >= 6 && v[..5].eq_ignore_ascii_case("calc(") && v.ends_with(')') {
-        return Some(&v[5..v.len() - 1]);
-    }
-    None
+    let round = |f: f32| if f < 0.0 { (f - 0.5) as i32 } else { (f + 0.5) as i32 };
+    Some(match (round(px), round(pml)) {
+        /* A whole percentage literal keeps the plain form; 12.5% stays exact
+         * as per-mille. */
+        (0, pml) if pml >= 0 && pml % 10 == 0 && v.ends_with('%') => Size::Pct((pml / 10) as u16),
+        (px, 0) if px >= 0 => Size::Px(px as u32),
+        (px, pml) => Size::Calc(px, pml),
+    })
 }

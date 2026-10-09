@@ -18,7 +18,7 @@ use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::pm::format::{pct_1dp, state_label, u32_decimal};
+use crate::pm::format::{percent, state_label, u32_decimal};
 use crate::pm::state::{Row, State};
 
 use super::super::bars;
@@ -61,7 +61,7 @@ pub(super) fn consumers(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     let x = r.x + PANEL_PAD;
     for row in rows.iter().take(TOP_N) {
         let mut buf = [0u8; 12];
-        let len = pct_1dp(row.cpu_pct, &mut buf);
+        let len = percent(row.cpu_pct, &mut buf);
         let tint = load_tint(row.cpu_pct as u32);
         bars::labelled(fb, x, y, w, row.name(), &buf[..len], row.cpu_pct as u64, top, tint);
         y += BAR_ROW_H;

@@ -13,7 +13,7 @@ use crate::conn::Dest;
 use crate::tunnel::{
     decode_response, encode_connect, encode_send, ENVELOPE_BYTES, INTERFACE_VERSION,
     PROTOCOL_VERSION, REQ_CONNECT, REQ_SEND, RESP_CONNECTION_ERROR, RESP_NETWORK_DATA,
-    TAG_PROVIDER_DATA,
+    SEND_DATA_MAX, SEND_FRAME_MAX, TAG_PROVIDER_DATA,
 };
 
 // The envelope an exit reads before it reads any SOCKS5, followed by the
@@ -158,4 +158,16 @@ fn an_undersized_buffer_is_refused() {
     // Too small even for the envelope.
     let mut tiny = [0u8; 1];
     assert!(encode_connect(1, &Dest::V4([1, 2, 3, 4], 80), &mut tiny).is_none());
+}
+
+#[test]
+fn a_full_send_is_exactly_one_mix_payload() {
+    // net.nym refuses a send longer than one mix payload whole, so the
+    // largest piece a write is cut into must fill a frame and no more.
+    assert_eq!(SEND_FRAME_MAX, 1024);
+    let mut out = vec![0u8; 2 * SEND_FRAME_MAX];
+    let n = encode_send(7, 3, false, &vec![0xEE; SEND_DATA_MAX], &mut out).unwrap();
+    assert_eq!(n, SEND_FRAME_MAX);
+    let mut frame = vec![0u8; SEND_FRAME_MAX];
+    assert!(encode_send(7, 4, false, &vec![0xEE; SEND_DATA_MAX + 1], &mut frame).is_none());
 }

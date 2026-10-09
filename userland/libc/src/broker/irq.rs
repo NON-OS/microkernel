@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! IRQ binding and notification. Cap requirement: `Irq`. Two flag
+//! IRQ binding and notification. Cap requirement: `Irq`. Three flag
 //! values are accepted today:
 //!
 //!   * `0` — legacy INTx. `irq_source` is the device's GSI as
@@ -25,13 +25,15 @@
 //!     returns the BASE grant id and BASE vector. Per-vector grant
 //!     ids are derived as `grant_id + i` for `i` in
 //!     `0..vector_count`.
+//!   * `MK_IRQ_BIND_MSI`: MSI, one vector. `irq_source` must be 0 and
+//!     `vector_count` 1. For functions with MSI and no MSI-X; the
+//!     kernel refuses it on a device that already holds MSI-X.
 
 use super::types::{IrqBindOut, IrqPollOut};
-use crate::syscall::{
-    call_raw, N_MK_IRQ_ACK, N_MK_IRQ_BIND, N_MK_IRQ_POLL, N_MK_IRQ_UNBIND, N_MK_IRQ_WAIT,
-};
+use crate::syscall::{call_raw, N_MK_IRQ_ACK, N_MK_IRQ_BIND, N_MK_IRQ_POLL, N_MK_IRQ_UNBIND};
 
 pub const MK_IRQ_BIND_MSIX: u32 = 1 << 0;
+pub const MK_IRQ_BIND_MSI: u32 = 1 << 1;
 
 #[no_mangle]
 pub extern "C" fn mk_irq_bind(
@@ -61,19 +63,4 @@ pub extern "C" fn mk_irq_ack(grant_id: u64) -> i64 {
 #[no_mangle]
 pub extern "C" fn mk_irq_poll(grant_id: u64, out: *mut IrqPollOut) -> i64 {
     call_raw(N_MK_IRQ_POLL, [grant_id, out as u64, 0, 0, 0, 0])
-}
-
-// Blocks until any IRQ delivery moves the seq past `last_seq`, the
-// timeout lapses (0 = kernel default), or an unrelated wake lands —
-// spurious returns are expected, callers loop. `grant_id` 0 waits
-// on every grant this capsule owns; `out_seq` receives the value to
-// pass back as the next `last_seq`.
-#[no_mangle]
-pub extern "C" fn mk_irq_wait(
-    grant_id: u64,
-    last_seq: u64,
-    timeout_ms: u64,
-    out_seq: *mut u64,
-) -> i64 {
-    call_raw(N_MK_IRQ_WAIT, [grant_id, last_seq, timeout_ms, out_seq as u64, 0, 0])
 }

@@ -45,6 +45,7 @@ impl App for Clock {
     }
 
     fn paint(&mut self, fb: &mut PaintBuffer) {
+        self.state.win_w = fb.width;
         paint(&self.state, fb);
     }
 

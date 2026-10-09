@@ -24,7 +24,7 @@ use super::error::KeyError;
 use crate::security::tpm::error::TpmError;
 
 /// Header, then body. The size field covers the header too.
-pub(super) fn frame(tag: u16, code: u32, body: &[u8]) -> Vec<u8> {
+pub(in crate::security::tpm) fn frame(tag: u16, code: u32, body: &[u8]) -> Vec<u8> {
     let mut cmd = Vec::with_capacity(HEADER_LEN + body.len());
     cmd.extend_from_slice(&tag.to_be_bytes());
     cmd.extend_from_slice(&((HEADER_LEN + body.len()) as u32).to_be_bytes());
@@ -35,9 +35,13 @@ pub(super) fn frame(tag: u16, code: u32, body: &[u8]) -> Vec<u8> {
 
 /// The response code, as an error when it is not success. Checked before any
 /// other byte of a response is read: on failure the TPM sends a bare header
-/// and the fields a parser would expect are simply not there.
-pub(super) fn checked(resp: &[u8]) -> Result<&[u8], KeyError> {
-    if resp.len() < HEADER_LEN {
+/// and the fields a parser would expect are simply not there. The header must
+/// first be one: a TPM tag, and a size that is the bytes received.
+pub(in crate::security::tpm) fn checked(resp: &[u8]) -> Result<&[u8], KeyError> {
+    if resp.len() < HEADER_LEN || !matches!([resp[0], resp[1]], [0x80, 0x01] | [0x80, 0x02]) {
+        return Err(TpmError::InvalidResponse.into());
+    }
+    if u32::from_be_bytes([resp[2], resp[3], resp[4], resp[5]]) as usize != resp.len() {
         return Err(TpmError::InvalidResponse.into());
     }
     let rc = u32::from_be_bytes([resp[6], resp[7], resp[8], resp[9]]);
@@ -47,14 +51,14 @@ pub(super) fn checked(resp: &[u8]) -> Result<&[u8], KeyError> {
     Ok(resp)
 }
 
-pub(super) fn u32_at(b: &[u8], at: usize) -> Result<u32, KeyError> {
+pub(in crate::security::tpm) fn u32_at(b: &[u8], at: usize) -> Result<u32, KeyError> {
     let s = b.get(at..at + 4).ok_or(TpmError::InvalidResponse)?;
     Ok(u32::from_be_bytes([s[0], s[1], s[2], s[3]]))
 }
 
 /// A `TPM2B_DIGEST` that must be exactly SHA-256 sized. Shorter is not a
 /// weaker key, it is a parse against the wrong offset.
-pub(super) fn digest_at(b: &[u8], at: usize) -> Result<[u8; DIGEST_LEN], KeyError> {
+pub(in crate::security::tpm) fn digest_at(b: &[u8], at: usize) -> Result<[u8; DIGEST_LEN], KeyError> {
     let size = b.get(at..at + 2).ok_or(TpmError::InvalidResponse)?;
     if u16::from_be_bytes([size[0], size[1]]) as usize != DIGEST_LEN {
         return Err(TpmError::InvalidResponse.into());

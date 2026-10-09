@@ -43,6 +43,8 @@ pub const REG_CR: usize = 0x0100;
 pub const NETTYPE_SHIFT: u32 = 16;
 pub const NETTYPE_MASK: u32 = 0x3 << NETTYPE_SHIFT;
 pub const NET_TYPE_LINKED: u32 = 2;
+/// No link: the MAC belongs to no BSS, as before a join (rtw88 RTW_NET_NO_LINK).
+pub const NET_TYPE_NO_LINK: u32 = 0;
 
 /// A read of all-ones means the BAR is not decoding; all-zero means the MAC is
 /// unpowered. Either is a dead read.

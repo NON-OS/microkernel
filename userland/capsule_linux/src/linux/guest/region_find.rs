@@ -36,4 +36,10 @@ impl Guest {
         }
         reach - addr
     }
+
+    /// Whether any span the guest holds meets `[at, at + len)`.
+    pub fn overlaps(&self, at: u64, len: u64) -> bool {
+        let end = at.saturating_add(len);
+        self.regions.iter().any(|r| r.at < end && at < r.at.saturating_add(r.len))
+    }
 }

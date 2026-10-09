@@ -27,13 +27,20 @@ use crate::log::logger::log_info;
 use crate::menu::SecurityMode;
 use crate::security::types::SecurityContext;
 
+/*
+ * Air-Gapped is about what runs, not how the kernel is checked: the kernel
+ * starts no network driver or service on it. Its checks are Standard's, so
+ * a machine whose firmware carries no NONOS Secure Boot keys can still boot
+ * it; Hardened is the choice for the stricter chain.
+ */
 fn policy_for_mode(mode: SecurityMode) -> SecurityPolicy {
     match mode {
         SecurityMode::Development => SecurityPolicy::Development,
-        SecurityMode::Standard | SecurityMode::SafeMode | SecurityMode::Recovery => {
-            SecurityPolicy::Standard
-        }
-        SecurityMode::Hardened | SecurityMode::NetworkIsolated => SecurityPolicy::Hardened,
+        SecurityMode::Standard
+        | SecurityMode::SafeMode
+        | SecurityMode::Recovery
+        | SecurityMode::NetworkIsolated => SecurityPolicy::Standard,
+        SecurityMode::Hardened => SecurityPolicy::Hardened,
     }
 }
 

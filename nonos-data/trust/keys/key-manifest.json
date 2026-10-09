@@ -1,0 +1,1211 @@
+{
+ "version": 1,
+ "keys": [
+  {
+   "key": "trust anchor ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/nonos_trust_anchor_ed25519.pub",
+   "sha256": "7e1519179611b2992658a25b7c559bfd278abc1ea2f699675815239e8e4dd02a"
+  },
+  {
+   "key": "trust anchor mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/nonos_trust_anchor_mldsa65.pub",
+   "sha256": "9ab4f8c30ee7cb45d5b83de8f016c45b47211140485892a59cf16e22d46ead68"
+  },
+  {
+   "key": "publisher proof_io ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/proof_io_publisher_ed25519.pub",
+   "sha256": "702daa946ec85a444a59f8550ab7d4a6dce148bf84884c8d2b577a8cac0cd05b"
+  },
+  {
+   "key": "publisher proof_io mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/proof_io_publisher_mldsa65.pub",
+   "sha256": "2312ec6fbaf6091c088c171b31fb145295f5fdb6e0be8040d9c41c43929ecb43"
+  },
+  {
+   "key": "publisher std_proof ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/std_proof_publisher_ed25519.pub",
+   "sha256": "94ebe2145ba40f8d5ffb40c5a8cd4c21ca2620a03d7cad83254550f08af9fa7b"
+  },
+  {
+   "key": "publisher std_proof mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/std_proof_publisher_mldsa65.pub",
+   "sha256": "5ad8cda2f490861b9d9ec79f303dea2c63be5e2300d3cdb2ea8397c5bbb2700f"
+  },
+  {
+   "key": "publisher rg ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/rg_publisher_ed25519.pub",
+   "sha256": "9bb2665d4f3c5949f7d52c841506c70948ba2b3b3ee578dd9e2981dde2e19f51"
+  },
+  {
+   "key": "publisher rg mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/rg_publisher_mldsa65.pub",
+   "sha256": "26d570f2fe64aae7e551deb0454a1f3c7cee1bd09b53fff1cc99e1b04e25e883"
+  },
+  {
+   "key": "publisher sd ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/sd_publisher_ed25519.pub",
+   "sha256": "74682e2e834c6ae1846733520a4dc9932eb5bfc3ea29406f0338c3e0a1045e4a"
+  },
+  {
+   "key": "publisher sd mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/sd_publisher_mldsa65.pub",
+   "sha256": "70abcc5b8085d81bfe73e8b367086bf2321c337d9ccc93d2a911fd640e2d5810"
+  },
+  {
+   "key": "publisher csview ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/csview_publisher_ed25519.pub",
+   "sha256": "feb279c31176a5dfd29bcee83940ade57592e96187cc2508901d134deebcd2d5"
+  },
+  {
+   "key": "publisher csview mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/csview_publisher_mldsa65.pub",
+   "sha256": "f148a4cb843bd9f475e0569ab582cd8e132e47cb13db46376b44a87bc5967ba1"
+  },
+  {
+   "key": "publisher huniq ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/huniq_publisher_ed25519.pub",
+   "sha256": "a80588e5c02c39aa1c05ef71ebdef2d55db845cd200ec7ffcb0d9eed7f4d1505"
+  },
+  {
+   "key": "publisher huniq mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/huniq_publisher_mldsa65.pub",
+   "sha256": "064b756601fe4f452de32e11b6e9f3cc48545d3fa716072229f20f0c4da5e631"
+  },
+  {
+   "key": "publisher tokei ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/tokei_publisher_ed25519.pub",
+   "sha256": "846edc9701d4583cadd18ce062352300a2c3d0892bd5ae0f0015c242cd2c1ba1"
+  },
+  {
+   "key": "publisher tokei mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/tokei_publisher_mldsa65.pub",
+   "sha256": "ea24fdc0b5c0a81bf7d3a6d644d429ebbe9779c6728d670cb58db7ef7f511f6f"
+  },
+  {
+   "key": "publisher jsonxf ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/jsonxf_publisher_ed25519.pub",
+   "sha256": "6b9efc61e36325f21ef90323397850a1d65ffc4a47d54a5c32d140c7bcf41e66"
+  },
+  {
+   "key": "publisher jsonxf mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/jsonxf_publisher_mldsa65.pub",
+   "sha256": "36160625c61e14b90af476102581aa7d52e8fc503784b59bf7e708de092a7bda"
+  },
+  {
+   "key": "publisher pastel ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/pastel_publisher_ed25519.pub",
+   "sha256": "4201c59538ed2b04ac305f2b690608ecd2923dba58929a3036d0be47902693ee"
+  },
+  {
+   "key": "publisher pastel mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/pastel_publisher_mldsa65.pub",
+   "sha256": "1b9fd74ab737cf47b31add142f3f7e6f49a7cc5162bc7e8fc8c886232b73a6d1"
+  },
+  {
+   "key": "publisher dotenv-linter ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/dotenv-linter_publisher_ed25519.pub",
+   "sha256": "ac8e6cee26878493f86f47579dd27311665f4d974e34b985f06b50408dd85d62"
+  },
+  {
+   "key": "publisher dotenv-linter mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/dotenv-linter_publisher_mldsa65.pub",
+   "sha256": "0eb52fafd2c2438014fc34c675ae67f017bbbefc53cc35c1ab223bf2573d3b3a"
+  },
+  {
+   "key": "publisher grex ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/grex_publisher_ed25519.pub",
+   "sha256": "c24231bbe51df04b403f00c707137547fe6f9b3f8aadb215b2fb539b80210b18"
+  },
+  {
+   "key": "publisher grex mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/grex_publisher_mldsa65.pub",
+   "sha256": "0fcab506f68ffb8045b12dec1a5f68d9b56c6bac9d93b8955090f4b32314b4f6"
+  },
+  {
+   "key": "publisher tokio-smoke ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/tokio-smoke_publisher_ed25519.pub",
+   "sha256": "5e828bd68b4519c881b43a457ed75615004f3a6b4663808080ae2807dd9e16d1"
+  },
+  {
+   "key": "publisher tokio-smoke mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/tokio-smoke_publisher_mldsa65.pub",
+   "sha256": "f69a3c5379ab51dffaafc1c7a93af85540081f9997b5bd03fae99ba11e905d9a"
+  },
+  {
+   "key": "publisher ramfs ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/ramfs_publisher_ed25519.pub",
+   "sha256": "059b5aedf9a116a0422cc4b43a6fb3b0ff4b7a448f52e9ac6eef232299270bc2"
+  },
+  {
+   "key": "publisher ramfs mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/ramfs_publisher_mldsa65.pub",
+   "sha256": "5d9a909dbd2416cf1980950aeec5f461f2c2b28e9e94280ef1ed44e88c21a5a9"
+  },
+  {
+   "key": "publisher keyring ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/keyring_publisher_ed25519.pub",
+   "sha256": "cdca20c3bb1c5ac544b499b96edc1436546c11301b62bdef5c61ea03c839d7fc"
+  },
+  {
+   "key": "publisher keyring mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/keyring_publisher_mldsa65.pub",
+   "sha256": "e8386542b1bcdf57f59136518f01024d07cd1af02daef51134d2cb9b843706a5"
+  },
+  {
+   "key": "publisher entropy ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/entropy_publisher_ed25519.pub",
+   "sha256": "e3cdb8a0c8e5789f5278d4947a9e19bd9da1fe847909790ef2902509924eacf1"
+  },
+  {
+   "key": "publisher entropy mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/entropy_publisher_mldsa65.pub",
+   "sha256": "1baaa46911bb8bdae7e8be182d08f1a2ce5e6d94049b936e9347ec62fd8c1196"
+  },
+  {
+   "key": "publisher crypto ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/crypto_publisher_ed25519.pub",
+   "sha256": "a4f9a4db26d5b386bb5614afa2fd858c38480608f93b1b911a7c8097d460e892"
+  },
+  {
+   "key": "publisher crypto mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/crypto_publisher_mldsa65.pub",
+   "sha256": "45370b693e4bbe7c6169cd2e852015fa582b7a1e8ed7fbdc8e123bdf3d9c96ae"
+  },
+  {
+   "key": "publisher compositor ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/compositor_publisher_ed25519.pub",
+   "sha256": "a1776c9e1dd5e804ccea45c8cd2dade0f71847ddb4e2dfbd7e5c441ab9897c8f"
+  },
+  {
+   "key": "publisher compositor mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/compositor_publisher_mldsa65.pub",
+   "sha256": "996a86f38b53a95e933c175886b855e1f53b18cb1395f948c9d23b48d30826e2"
+  },
+  {
+   "key": "publisher input_router ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/input_router_publisher_ed25519.pub",
+   "sha256": "297e6f141b9fd672030bda8155cc2b83c4a56115b45c501de211e391ea768b01"
+  },
+  {
+   "key": "publisher input_router mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/input_router_publisher_mldsa65.pub",
+   "sha256": "46830564bc4a99b266abd256d481814866bf084411662d70ca99e9d8f9853b0d"
+  },
+  {
+   "key": "publisher input_proof ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/input_proof_publisher_ed25519.pub",
+   "sha256": "8d0ea2038531f9a9cadaa6834babd5ff0559b99683b45d9c5599c13f5039330a"
+  },
+  {
+   "key": "publisher input_proof mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/input_proof_publisher_mldsa65.pub",
+   "sha256": "b524656abbc52c6d9bf54ff04cf6fa981a58783584062ae31ad64c81aa2dd178"
+  },
+  {
+   "key": "publisher input_probe ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/input_probe_publisher_ed25519.pub",
+   "sha256": "e28e19dbf716b2cb6f92d3e8f6ee5086f7a024e9d4dc785497c6dd867363c5af"
+  },
+  {
+   "key": "publisher input_probe mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/input_probe_publisher_mldsa65.pub",
+   "sha256": "1d33e7d7eb65e1fa069e568c94e3507cf07702322837ddc008d143c5b13b96b8"
+  },
+  {
+   "key": "publisher setup_wizard ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/setup_wizard_publisher_ed25519.pub",
+   "sha256": "206814703b9727c32fc729db7d8cd2b109261cc338fc41a60c097ac03d9f1827"
+  },
+  {
+   "key": "publisher setup_wizard mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/setup_wizard_publisher_mldsa65.pub",
+   "sha256": "284a3b4f0e294f61afc65218a81deb199416987a3e26de9f0cf21ea4ad86cdc0"
+  },
+  {
+   "key": "publisher nonos_install ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/nonos_install_publisher_ed25519.pub",
+   "sha256": "0d89dd1708c4471b0a00abc31deda4cad2448ffd396f3e5d56bbc5895d2c2f13"
+  },
+  {
+   "key": "publisher nonos_install mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/nonos_install_publisher_mldsa65.pub",
+   "sha256": "5b4313908ca9bd85f35cedf4504c4c87372ba6c3a7cd86d548dd384df410c33c"
+  },
+  {
+   "key": "publisher wm ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/wm_publisher_ed25519.pub",
+   "sha256": "39e7bb26c9123844acb15a00d1de444158ba2df0e50025791ddbc9489cd0e726"
+  },
+  {
+   "key": "publisher wm mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/wm_publisher_mldsa65.pub",
+   "sha256": "af26bf587aa46a6f90620d725b8340875cd31fdd751a562a2a1c99109954671c"
+  },
+  {
+   "key": "publisher desktop_shell ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/desktop_shell_publisher_ed25519.pub",
+   "sha256": "2166e4d919baf54b12c4e05cd82f4bf9ff57d980396ab5501680f56d6a73d9e0"
+  },
+  {
+   "key": "publisher desktop_shell mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/desktop_shell_publisher_mldsa65.pub",
+   "sha256": "b55cbcc976fa0aced9379563a274f5c26ea2b95d6a6474c572d5fd4785ef77e3"
+  },
+  {
+   "key": "publisher image_codec ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/image_codec_publisher_ed25519.pub",
+   "sha256": "36e3c194e1030bbbff43cb2c86bbb6940d78d0f0668cb9fd25c67b13a9a18d11"
+  },
+  {
+   "key": "publisher image_codec mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/image_codec_publisher_mldsa65.pub",
+   "sha256": "0f8de592475056c4876a7078c056da95a38c2e7432d6d63e80bf726f00bf0b1d"
+  },
+  {
+   "key": "publisher image_viewer ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/image_viewer_publisher_ed25519.pub",
+   "sha256": "7e9ba90489617783159c88261a34d17c0753aba02a53360400bfd63cc3efdbd6"
+  },
+  {
+   "key": "publisher image_viewer mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/image_viewer_publisher_mldsa65.pub",
+   "sha256": "b79a3259d826e9830dd106fcfbe8bc6666227209f479ccb00acbcaa54a275d72"
+  },
+  {
+   "key": "publisher video_player ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/video_player_publisher_ed25519.pub",
+   "sha256": "f9bd5a24ea1bb55fe84039784056b135ea41fea4225ff0da689fd491d4e8f4c6"
+  },
+  {
+   "key": "publisher video_player mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/video_player_publisher_mldsa65.pub",
+   "sha256": "76757073215ef44dc21cc049118d74dbe201fc953f1bc9b179e7c06d0547d2b8"
+  },
+  {
+   "key": "publisher clipboard ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/clipboard_publisher_ed25519.pub",
+   "sha256": "ad1f6c531d24d151906e6398b7df23f7ae949e0ad9ad39467eca0bd53e6e1f27"
+  },
+  {
+   "key": "publisher clipboard mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/clipboard_publisher_mldsa65.pub",
+   "sha256": "d5f23b7e241d8d81f33787a809dd00373b419f1a0051e82e5fb09f611409b0c8"
+  },
+  {
+   "key": "publisher login ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/login_publisher_ed25519.pub",
+   "sha256": "86f265ae89e12047e0aaafc89e71544165fa5c9e3b98344ca9684bbefccd7565"
+  },
+  {
+   "key": "publisher login mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/login_publisher_mldsa65.pub",
+   "sha256": "2b505e71b4504fecba716b671383ffd33027637a094b590cbc8227845491dacc"
+  },
+  {
+   "key": "publisher toolkit ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/toolkit_publisher_ed25519.pub",
+   "sha256": "8a8549942f5af7b287acd0f426efd1b3b7ff0934ae79f39be80b44497c3d6e4e"
+  },
+  {
+   "key": "publisher toolkit mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/toolkit_publisher_mldsa65.pub",
+   "sha256": "e16eec63aef5d1856303b49d796c3de676c5f29a5a276d8bbb74984dfd2aee5f"
+  },
+  {
+   "key": "publisher about ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/about_publisher_ed25519.pub",
+   "sha256": "7b998973eaa307d8aa773d5d0fdca6921e8d0092adc60e6aebe6b05e6589f49a"
+  },
+  {
+   "key": "publisher about mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/about_publisher_mldsa65.pub",
+   "sha256": "ecb71d6d7b211070b4359a9e2498528cfac2e21b7da3c3692309adf069b45b8e"
+  },
+  {
+   "key": "publisher install ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/install_publisher_ed25519.pub",
+   "sha256": "401eef10d20eaa888137c84faf95c1cb8446fbd5e96f83114d1bbb980d3247fd"
+  },
+  {
+   "key": "publisher install mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/install_publisher_mldsa65.pub",
+   "sha256": "c3ac3cec8124d1015d2bc1810b22ce7ea4cc22bbbcad8d3e0ca40e1beaf8cd8b"
+  },
+  {
+   "key": "publisher prove ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/prove_publisher_ed25519.pub",
+   "sha256": "3c68ddea2d37a8a992b46b4ab2a2c99dbe7d40693974827680117c6c02acb33e"
+  },
+  {
+   "key": "publisher prove mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/prove_publisher_mldsa65.pub",
+   "sha256": "6c6f4bf8d731af134f7c82000a07f7aac1d43c4ba0532943a362e8880bb9a019"
+  },
+  {
+   "key": "publisher install-cli ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/install-cli_publisher_ed25519.pub",
+   "sha256": "4795461a2e3734230ad79c0c7b7b9b109e7a5fe279b18ee59515b489f9c3aec7"
+  },
+  {
+   "key": "publisher install-cli mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/install-cli_publisher_mldsa65.pub",
+   "sha256": "f46de9782df22b360a29f7b6a255d63fd83331e56dec2bcc1baffa910bb719b3"
+  },
+  {
+   "key": "publisher model-fetch ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/model-fetch_publisher_ed25519.pub",
+   "sha256": "a0f7c3e880455b96cb608cb3a0d4f33e30a2bb283da4347d9b07ee379508dbeb"
+  },
+  {
+   "key": "publisher model-fetch mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/model-fetch_publisher_mldsa65.pub",
+   "sha256": "51302121f3240f9a5f3da8698df31350cee0d84ad4ade33ece6be477dbd4787f"
+  },
+  {
+   "key": "publisher app_store ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/app_store_publisher_ed25519.pub",
+   "sha256": "368712ce8c8aed2960d4842308484697b2f2810116b42b085789ef89155f135b"
+  },
+  {
+   "key": "publisher app_store mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/app_store_publisher_mldsa65.pub",
+   "sha256": "2020b46e12a953924ca3398e975aee446e6896928abcf360fa421ed46ca94817"
+  },
+  {
+   "key": "publisher linux ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/linux_publisher_ed25519.pub",
+   "sha256": "266cf19b01fe61e01293644f5dde22676d0bbb758ed3e402e1bd907365f1e1ae"
+  },
+  {
+   "key": "publisher linux mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/linux_publisher_mldsa65.pub",
+   "sha256": "03030b63f594fdba1bd1a40d4b8bbda9f1cf0ecd459ec25902c1469e71a67fdb"
+  },
+  {
+   "key": "publisher hello ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/hello_publisher_ed25519.pub",
+   "sha256": "788666e6d6eb96946079e3e7cb01e9733b26bb15828898162796d8f0689e148b"
+  },
+  {
+   "key": "publisher hello mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/hello_publisher_mldsa65.pub",
+   "sha256": "2a57c37972f956653ae2943c0f407f0b14a938480087b52e58a559e0bda0df9d"
+  },
+  {
+   "key": "publisher gui_demo ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/gui_demo_publisher_ed25519.pub",
+   "sha256": "215baa527f0104657fa4053a4208252e4f65d90263b2a3dc830e60049d6f143f"
+  },
+  {
+   "key": "publisher gui_demo mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/gui_demo_publisher_mldsa65.pub",
+   "sha256": "7f2fdde5efe5d768a0db679ae66bbc8fba3901a9a129d90ad4aab54bde201f0e"
+  },
+  {
+   "key": "publisher game_2048 ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/game_2048_publisher_ed25519.pub",
+   "sha256": "28a4e4bacc6942307035bc35d911d0654d8ebb75bb1b15ebbadabd8e96128bca"
+  },
+  {
+   "key": "publisher game_2048 mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/game_2048_publisher_mldsa65.pub",
+   "sha256": "a8341223b6885f8627b6d6e14d8881279862b23c33159bc194131c4ae6fb7cd0"
+  },
+  {
+   "key": "publisher egui_proof ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/egui_proof_publisher_ed25519.pub",
+   "sha256": "7fc9d48c93a6f50e1b6bcd62860fb9bc398ed51cf6463635ff5df1f8f77028da"
+  },
+  {
+   "key": "publisher egui_proof mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/egui_proof_publisher_mldsa65.pub",
+   "sha256": "4acafa0a833680499091e30620604843eb3e03811dc9b5f820ba5df8e30e0289"
+  },
+  {
+   "key": "publisher mdview ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/mdview_publisher_ed25519.pub",
+   "sha256": "4b95212bfeda1c68162f1961cb2f588ee9f3be8621f7db295eeae74031f35a52"
+  },
+  {
+   "key": "publisher mdview mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/mdview_publisher_mldsa65.pub",
+   "sha256": "a98aaad778a5594268df7dba7101e5aa517f826828ca0a222a83058a8c444b2c"
+  },
+  {
+   "key": "publisher qrgen ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/qrgen_publisher_ed25519.pub",
+   "sha256": "c6962e1b65c07730cc9bb745ba48cdd8c366178389e1eb0c3d9a24ed1ad8d5b4"
+  },
+  {
+   "key": "publisher qrgen mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/qrgen_publisher_mldsa65.pub",
+   "sha256": "f1f06bdcc2a77ddcf0df60d5c5f7ee6794a3ef57fb3d0defcd4e19cc618fb395"
+  },
+  {
+   "key": "publisher boot_splash ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/boot_splash_publisher_ed25519.pub",
+   "sha256": "488e99db62d82814927988192b47cda6633048d899d6120b55aa64586b8049cc"
+  },
+  {
+   "key": "publisher boot_splash mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/boot_splash_publisher_mldsa65.pub",
+   "sha256": "9580ce21de0709177d2147b9caf940b61fe02985ebe8afbe44316f028c405487"
+  },
+  {
+   "key": "publisher calculator ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/calculator_publisher_ed25519.pub",
+   "sha256": "e8c3e87270be523d40d1e65f64fcf9e2cbd5e2ced1d5297208e82f26dc44d46a"
+  },
+  {
+   "key": "publisher calculator mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/calculator_publisher_mldsa65.pub",
+   "sha256": "d88d2dd6dfb3ae5545e59d5ad75679fb31569d9cb7219e13b3d19706585ff514"
+  },
+  {
+   "key": "publisher clock ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/clock_publisher_ed25519.pub",
+   "sha256": "e9d9491e0620d44c987c0e19fd7adbdaee6a065b86d2b7785f069f73f6cee80f"
+  },
+  {
+   "key": "publisher clock mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/clock_publisher_mldsa65.pub",
+   "sha256": "699d9505a45ee57040a52079a301429fa3f4462f59581987318500844c704e0a"
+  },
+  {
+   "key": "publisher browser ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/browser_publisher_ed25519.pub",
+   "sha256": "b8226f02be7056f6480e18b0107abf4167d6ce208a40960fc24d9fbc72dd68b6"
+  },
+  {
+   "key": "publisher browser mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/browser_publisher_mldsa65.pub",
+   "sha256": "3f9c9dd5208f990fd53632f551fbdc85b527f036110cf753b4f78e1d840954fc"
+  },
+  {
+   "key": "publisher snake ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/snake_publisher_ed25519.pub",
+   "sha256": "f7b3e30fe123b82bb730f18ae5905d6201c45aa908cde7e7050d7567912937c7"
+  },
+  {
+   "key": "publisher snake mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/snake_publisher_mldsa65.pub",
+   "sha256": "97c7ab13e6d4c265f2f2b44423410cc657983487a20e668b104ce41ea85103fd"
+  },
+  {
+   "key": "publisher wallet_nonos ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/wallet_nonos_publisher_ed25519.pub",
+   "sha256": "6db062bad70dc78deebf9e35adb7fab0ef753367cfbdc70a9cbefe48fbe58eb8"
+  },
+  {
+   "key": "publisher wallet_nonos mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/wallet_nonos_publisher_mldsa65.pub",
+   "sha256": "f041ed574543a9b7c78108919235607691debb34dec0dea8e3defc65c5c4f4ee"
+  },
+  {
+   "key": "publisher terminal ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/terminal_publisher_ed25519.pub",
+   "sha256": "89ecae9f9d389ef58ee02bcaf700a2ae47b62207656475c3df1fda80bf53604e"
+  },
+  {
+   "key": "publisher terminal mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/terminal_publisher_mldsa65.pub",
+   "sha256": "a47adba2521a1b55dbe82ac71c0c560dd069b73e14bfb3fceb588e96c5707602"
+  },
+  {
+   "key": "publisher file_manager ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/file_manager_publisher_ed25519.pub",
+   "sha256": "38aa890d8b4913d819ea28dc513d724704cf1f9abe1956204569412765e3f183"
+  },
+  {
+   "key": "publisher file_manager mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/file_manager_publisher_mldsa65.pub",
+   "sha256": "98c921756e581cad339b3e8848fc789fa3237c5c75d8486a6a9ee44b77a980d9"
+  },
+  {
+   "key": "publisher text_editor ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/text_editor_publisher_ed25519.pub",
+   "sha256": "2ac3f44498ecf110e48eac1ccad6044e965eb98b92135b2544bf218b4023cfd4"
+  },
+  {
+   "key": "publisher text_editor mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/text_editor_publisher_mldsa65.pub",
+   "sha256": "7a3fb0e678fb402dbb56458a32da3388e4405e0b4b49c00bfb7f8849e19d27af"
+  },
+  {
+   "key": "publisher policy ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/policy_publisher_ed25519.pub",
+   "sha256": "48a24a00d222b0db802730b55724c6b7f149f0ec1cff05f3798bc019b8b28e5b"
+  },
+  {
+   "key": "publisher policy mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/policy_publisher_mldsa65.pub",
+   "sha256": "850d413256aa9ead29f7399a3795d1636c05b960d5a181519920f25cdc3e78cc"
+  },
+  {
+   "key": "publisher wallpaper_catalog ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/wallpaper_catalog_publisher_ed25519.pub",
+   "sha256": "daaeb41f7400ecb9c44a5f4841a4a2e777d21b58f5e9e88df46756362d1c7103"
+  },
+  {
+   "key": "publisher wallpaper_catalog mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/wallpaper_catalog_publisher_mldsa65.pub",
+   "sha256": "0817c9c0bde94a3694b75da1173d7e16fc703066df023f0b38ccbb1c9bd5ccba"
+  },
+  {
+   "key": "publisher settings ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/settings_publisher_ed25519.pub",
+   "sha256": "e7bb98efe63cd0daba04d482e83f287098e4e8b04ddaa14284139053dd3f25ae"
+  },
+  {
+   "key": "publisher settings mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/settings_publisher_mldsa65.pub",
+   "sha256": "c18db02a8db6b43d29112482c89e6b0dd7cd56c652ac582bd543856f9aa5327b"
+  },
+  {
+   "key": "publisher process_manager ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/process_manager_publisher_ed25519.pub",
+   "sha256": "0a2add2c7faf3d2e50a7945b07dfc9e6ac242dce9fed283117970e3a142c4660"
+  },
+  {
+   "key": "publisher process_manager mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/process_manager_publisher_mldsa65.pub",
+   "sha256": "80bd173d46e0da66f35bf765dfc91081f1107848249ccdf738c13b002f1cb7f3"
+  },
+  {
+   "key": "publisher vfs ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/vfs_publisher_ed25519.pub",
+   "sha256": "385af012240448c2e530fb3ad8c5e2d62f18faf071a2c0d3f7cb5f1e6228295d"
+  },
+  {
+   "key": "publisher vfs mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/vfs_publisher_mldsa65.pub",
+   "sha256": "d898b6f2d4f618deb82828519168da1f12ff2e74a6d0b1cf77699bd76e9a436b"
+  },
+  {
+   "key": "publisher market ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/market_publisher_ed25519.pub",
+   "sha256": "6f50a7c0993d58b0ac89cf30b8f31968ee251d67c8ee577b1d162b45b671c294"
+  },
+  {
+   "key": "publisher market mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/market_publisher_mldsa65.pub",
+   "sha256": "8eb582bcdfb582fabddaf7621b38729b81471ea28409266039c0bcdf9f860a6f"
+  },
+  {
+   "key": "publisher payment ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/payment_publisher_ed25519.pub",
+   "sha256": "c74890aace680bae05bee786a109017a8f278abbb8086354ca929d2028ece5f5"
+  },
+  {
+   "key": "publisher payment mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/payment_publisher_mldsa65.pub",
+   "sha256": "99f7fc10f8e1fb84086c135a579e5101cd77bef5a988ea558b6abfc3830fa00b"
+  },
+  {
+   "key": "publisher installer ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/installer_publisher_ed25519.pub",
+   "sha256": "9b108de1fe7aa94b718b9ccee2c5d1a578c04cd9d340eb2bc6270fabfa936b49"
+  },
+  {
+   "key": "publisher installer mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/installer_publisher_mldsa65.pub",
+   "sha256": "a3d943771d35c0b4bc83ea4be08ee93bd25ade814db759c964c8135fe5c57a26"
+  },
+  {
+   "key": "publisher driver_virtio_rng ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_virtio_rng_publisher_ed25519.pub",
+   "sha256": "2e06584ded0a6fbb05c128bd47ee55d66c34bb3190cf0601433c6602d0730210"
+  },
+  {
+   "key": "publisher driver_virtio_rng mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_virtio_rng_publisher_mldsa65.pub",
+   "sha256": "82b87e93cfaff3872c2ab94cb8da0d66ba25338ce3097c68b6eb708da86737f6"
+  },
+  {
+   "key": "publisher driver_ps2_input ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_ps2_input_publisher_ed25519.pub",
+   "sha256": "b18506587b11ca21882207bb93eeb6b8cec92554ae9d80c325b9b9c665f1859f"
+  },
+  {
+   "key": "publisher driver_ps2_input mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_ps2_input_publisher_mldsa65.pub",
+   "sha256": "6d4477e0e868045eb25efbd478222967030eb1f4ea0db2b52888c5effdc1c1de"
+  },
+  {
+   "key": "publisher driver_virtio_blk ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_virtio_blk_publisher_ed25519.pub",
+   "sha256": "3555a79ee43ebafca4701db81de16e600f203421037398c3bee8ca29f8c3bbc4"
+  },
+  {
+   "key": "publisher driver_virtio_blk mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_virtio_blk_publisher_mldsa65.pub",
+   "sha256": "545f0715576daa37edfcf3c02ca432cb58df2d55e3736d83152fd2e809582be4"
+  },
+  {
+   "key": "publisher driver_virtio_gpu ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_virtio_gpu_publisher_ed25519.pub",
+   "sha256": "0ab62766108031d0cf1aae80731ccec1c31feb2f452b35a0e9ebaad08494ff3d"
+  },
+  {
+   "key": "publisher driver_virtio_gpu mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_virtio_gpu_publisher_mldsa65.pub",
+   "sha256": "fc9597b8e3b93e9e4134291126053b5d515ac57ae8393636ca71047daa47d6ca"
+  },
+  {
+   "key": "publisher driver_virtio_net ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_virtio_net_publisher_ed25519.pub",
+   "sha256": "685db0989c91a84996e95981b1aa8ff7ddbfda2b56153a90940db505f191709e"
+  },
+  {
+   "key": "publisher driver_virtio_net mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_virtio_net_publisher_mldsa65.pub",
+   "sha256": "9f1ad818a460dbefdfbf6bb768614718fc2e40b6ef52f7efca7693c571972c46"
+  },
+  {
+   "key": "publisher driver_iwlwifi ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_iwlwifi_publisher_ed25519.pub",
+   "sha256": "32a22deebcd9af12eddc6d5828bdb98a8a2e3591e75f68443ad369e3ee8df2f1"
+  },
+  {
+   "key": "publisher driver_iwlwifi mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_iwlwifi_publisher_mldsa65.pub",
+   "sha256": "6cde31fb4a985e68566daadd97c662600758669dfa599392b5dde581e0edd0f7"
+  },
+  {
+   "key": "publisher driver_rtl8821ce ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_rtl8821ce_publisher_ed25519.pub",
+   "sha256": "5ee8e41c482f6883c87c1097a47c63d3ebb8f9fb7e011aed4f95d60a1c63cb26"
+  },
+  {
+   "key": "publisher driver_rtl8821ce mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_rtl8821ce_publisher_mldsa65.pub",
+   "sha256": "ff7a1b1a0c56b286db3dbfb0015c0d8a1e0608bddedddc35687d97a3652403fd"
+  },
+  {
+   "key": "publisher driver_i2c_pci ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_i2c_pci_publisher_ed25519.pub",
+   "sha256": "57ac57a855d75f98d59b669b45735aeeede31109d0802d64c99d630659d3c4af"
+  },
+  {
+   "key": "publisher driver_i2c_pci mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_i2c_pci_publisher_mldsa65.pub",
+   "sha256": "7007525ee2b3784dc36565fb4ed5e6987bcec65aaa2235d440af822b5c13f9c5"
+  },
+  {
+   "key": "publisher driver_i2c_hid ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_i2c_hid_publisher_ed25519.pub",
+   "sha256": "099990b246298b4112f8c53fbb1160806cd050cd850c9d8f5580e9c30d1125d6"
+  },
+  {
+   "key": "publisher driver_i2c_hid mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_i2c_hid_publisher_mldsa65.pub",
+   "sha256": "58f08cb8676ec0318e7ce87cdb45b77a5e29ed2dbfe7296e719acfaa5918f2ba"
+  },
+  {
+   "key": "publisher driver_xhci ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_xhci_publisher_ed25519.pub",
+   "sha256": "73b84ab5a288bdcc2dd87feb850b6b6946eafc6484f863a721ab903573eced27"
+  },
+  {
+   "key": "publisher driver_xhci mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_xhci_publisher_mldsa65.pub",
+   "sha256": "8fde14667a83391349407dc69d95b61cda2afcd7f9e7bb24a2915e832e46c81e"
+  },
+  {
+   "key": "publisher driver_usb_hid ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_usb_hid_publisher_ed25519.pub",
+   "sha256": "845c5540ee8e230552efdfe2ae40e4f82a891b0b414fdefa162c8163f52098c9"
+  },
+  {
+   "key": "publisher driver_usb_hid mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_usb_hid_publisher_mldsa65.pub",
+   "sha256": "c400f4b5391c323f52eecf47e54c162eb50975bda197e04b35667f91516b62fa"
+  },
+  {
+   "key": "publisher driver_usb_msc ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_usb_msc_publisher_ed25519.pub",
+   "sha256": "d4dbc99bd8c794dce3bd8155cbc166b4fc3507a5296f8abc8d67e1a55d401db2"
+  },
+  {
+   "key": "publisher driver_usb_msc mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_usb_msc_publisher_mldsa65.pub",
+   "sha256": "a95e18937a27f5dfcace2e93ce377c780eae16dcf85ea4a861736af1cfad82a0"
+  },
+  {
+   "key": "publisher driver_e1000 ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_e1000_publisher_ed25519.pub",
+   "sha256": "b4bd3a20b8c1093902974755826963d8bfbe7d00965e9442ddf1184d9ab4ec30"
+  },
+  {
+   "key": "publisher driver_e1000 mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_e1000_publisher_mldsa65.pub",
+   "sha256": "f931a15e000440944e506fefebe8c9e0d49399e45f50500643f063fa44f7f4fa"
+  },
+  {
+   "key": "publisher driver_rtl8139 ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_rtl8139_publisher_ed25519.pub",
+   "sha256": "1f9aeaafa09c15cf022dab61bfd27cdcb782e104152c720e8a2131c05ce6bf1e"
+  },
+  {
+   "key": "publisher driver_rtl8139 mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_rtl8139_publisher_mldsa65.pub",
+   "sha256": "291235669114f9d8dfd67c7a9da8f6af2f212914de12e960ab62acd00c79d22e"
+  },
+  {
+   "key": "publisher driver_rtl8169 ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_rtl8169_publisher_ed25519.pub",
+   "sha256": "17018575b55d5fa296d41888c56b49f2069e0170c8d6773a53dfeeb9d53c48ed"
+  },
+  {
+   "key": "publisher driver_rtl8169 mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_rtl8169_publisher_mldsa65.pub",
+   "sha256": "e0fdee974363161ee3e5c527d366ca0e11d7f06553a31005493d1be08ab367df"
+  },
+  {
+   "key": "publisher driver_ahci ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_ahci_publisher_ed25519.pub",
+   "sha256": "7092bd7794a4c05de1795bbe31f142d5fd3111fea11507dce614b0a93c502590"
+  },
+  {
+   "key": "publisher driver_ahci mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_ahci_publisher_mldsa65.pub",
+   "sha256": "a0d7a9244fffc29f91bd5f16d55ae0dee8eb30409a369baa63437825c0f61a98"
+  },
+  {
+   "key": "publisher driver_hda ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_hda_publisher_ed25519.pub",
+   "sha256": "7365717b29520c15b7c80d250f8828347e9fdf836e3561752f78b65a69ccf43d"
+  },
+  {
+   "key": "publisher driver_hda mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_hda_publisher_mldsa65.pub",
+   "sha256": "1ba66bdfe94c651c3a485cf68fcb7faf24638f2239b5e507649b8275dfb15a96"
+  },
+  {
+   "key": "publisher audio_server ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/audio_server_publisher_ed25519.pub",
+   "sha256": "1485a02a1e584876a10a76c1a4fa65136b1641eef4de8cb6c4d75f52066a39a6"
+  },
+  {
+   "key": "publisher audio_server mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/audio_server_publisher_mldsa65.pub",
+   "sha256": "c441c4f2039c22a59dcd20921979f560d4f42782b90b1ae8510ad95a4ab35005"
+  },
+  {
+   "key": "publisher audio_player ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/audio_player_publisher_ed25519.pub",
+   "sha256": "28f4d1d3127b591f6c72d29fee2eda3f60a1085daa074c4991d63788cb657f43"
+  },
+  {
+   "key": "publisher audio_player mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/audio_player_publisher_mldsa65.pub",
+   "sha256": "37376ee92162351a9de6a1c359ddbc3aa3eda49267b9794df86c7c7574bcee43"
+  },
+  {
+   "key": "publisher driver_nvme ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_nvme_publisher_ed25519.pub",
+   "sha256": "c36bc9117cee0be36a2dbbef1d9de0e45f452ace67c60ab2e9ddfc09d4e123c2"
+  },
+  {
+   "key": "publisher driver_nvme mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_nvme_publisher_mldsa65.pub",
+   "sha256": "3e813ea459f512eb230bbe1f6e8ded8a4ccd69b5179bd29165ad9962ccd08ff7"
+  },
+  {
+   "key": "publisher net_l2 ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_l2_publisher_ed25519.pub",
+   "sha256": "6f53b22b7135f6e55f2ad7891ac047522f117f994ef7be6560bf0beeff3358f3"
+  },
+  {
+   "key": "publisher net_l2 mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_l2_publisher_mldsa65.pub",
+   "sha256": "1172d19dc639aa0825eb04c8cdf26f45d0a82765a277385396e85afff2c419f3"
+  },
+  {
+   "key": "publisher net_core ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_core_publisher_ed25519.pub",
+   "sha256": "ee00307dc1f449804899edd5de6a6a3db849ec744d6852a986795a7d84884b99"
+  },
+  {
+   "key": "publisher net_core mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_core_publisher_mldsa65.pub",
+   "sha256": "92fb295dcbda9d08b3309773a0c67fa18a4ff7ad7847a9cf198db868589e2351"
+  },
+  {
+   "key": "publisher net_ip ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_ip_publisher_ed25519.pub",
+   "sha256": "47a04bfc649f89425885ab529c0c9ef1d8918e148fe124d6d542e331d3d1a84d"
+  },
+  {
+   "key": "publisher net_ip mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_ip_publisher_mldsa65.pub",
+   "sha256": "a37db140bbb2b95be6186c67a21fb3c173256b5751e73cd25974efdc3e8d0fd9"
+  },
+  {
+   "key": "publisher net_udp ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_udp_publisher_ed25519.pub",
+   "sha256": "fc06048af8a1a5b4bf4dec6dca48edd7843e8139aaa4ae018184544848301afa"
+  },
+  {
+   "key": "publisher net_udp mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_udp_publisher_mldsa65.pub",
+   "sha256": "1b48644fb1dd3bfb335890da3924ec289b86f46df8476762f2663c89b7099a0c"
+  },
+  {
+   "key": "publisher net_dhcp ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_dhcp_publisher_ed25519.pub",
+   "sha256": "269089b61a2d5f2a07013a0a3c030f6481dc1fc9244b673240686e6bca762299"
+  },
+  {
+   "key": "publisher net_dhcp mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_dhcp_publisher_mldsa65.pub",
+   "sha256": "8e91e94c37e3f64f2dd6b0c43c2eca208831b2cb2bf02bc296776f7955510561"
+  },
+  {
+   "key": "publisher net_tcp ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_tcp_publisher_ed25519.pub",
+   "sha256": "fe0d4e6ffa8a662f2435ae35fe2a7150f3d983df797b0baf620e159ed8a3a0a0"
+  },
+  {
+   "key": "publisher net_tcp mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_tcp_publisher_mldsa65.pub",
+   "sha256": "aa155ed3dff09cc7ef64fe44bcfe931340c203d4474831a32df6b9f7308b3314"
+  },
+  {
+   "key": "publisher net_dns ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_dns_publisher_ed25519.pub",
+   "sha256": "d4861d1162ff490b5b1e5b46bc1e6867e25b5c86fbb31b6bd605cd9e40e947ce"
+  },
+  {
+   "key": "publisher net_dns mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_dns_publisher_mldsa65.pub",
+   "sha256": "2b3ff0b04522b861dfdac3672d780e6cc04124298e61ca40812be16a12a16c3c"
+  },
+  {
+   "key": "publisher net_ntp ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_ntp_publisher_ed25519.pub",
+   "sha256": "1d510b665422c3f6067ba12f5532c24304b231e28ebdd159ef80de7838dad792"
+  },
+  {
+   "key": "publisher net_ntp mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_ntp_publisher_mldsa65.pub",
+   "sha256": "ef6488550cb821325385bf2c5f9a03c53a5076694ce246bcc5d97d514b417068"
+  },
+  {
+   "key": "publisher net_sockets ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_sockets_publisher_ed25519.pub",
+   "sha256": "9b04ab05fa8d7bc4850caaf5f1844ea1fc075697d9f3a1c4fe62aedf5e033164"
+  },
+  {
+   "key": "publisher net_sockets mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_sockets_publisher_mldsa65.pub",
+   "sha256": "f5daac037a15044d1f5a00a21728bc5d5557734c03d944ca421b438035f5b314"
+  },
+  {
+   "key": "publisher net_nym ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_nym_publisher_ed25519.pub",
+   "sha256": "66dfb73c095b00ec1d30eb48c59a45d0c151bf16340e640a5b8b69b17281559d"
+  },
+  {
+   "key": "publisher net_nym mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_nym_publisher_mldsa65.pub",
+   "sha256": "b496e04efa47ef2ab424b35fc029cc7aed6aeb57ffdfe254d5c5822a3a4d85bf"
+  },
+  {
+   "key": "publisher net_anon ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/net_anon_publisher_ed25519.pub",
+   "sha256": "1eb76e75ff6a9c5d8d79395162c94bc2fcaca0e3cccef55f3b98a264c45e3a51"
+  },
+  {
+   "key": "publisher net_anon mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/net_anon_publisher_mldsa65.pub",
+   "sha256": "59555ef9a6757109ab08c2a162928bc74f661bb45ac6c974030c170030c15862"
+  },
+  {
+   "key": "publisher socks5 ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/socks5_publisher_ed25519.pub",
+   "sha256": "510efb68a95ddfaacc951daa8414835237afe312c5ad19f026912b1cb532003e"
+  },
+  {
+   "key": "publisher socks5 mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/socks5_publisher_mldsa65.pub",
+   "sha256": "25179069159ee22d0fbee191d97035713f5c54ea75e8c73da15618433f6c2c3d"
+  },
+  {
+   "key": "publisher wallpaper ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/wallpaper_publisher_ed25519.pub",
+   "sha256": "7ae4d397a7146b97a439b9fa4ac30195880d0d3efc11f08ae4f68e367530fca2"
+  },
+  {
+   "key": "publisher wallpaper mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/wallpaper_publisher_mldsa65.pub",
+   "sha256": "191b0522c9afb889c9a1c45a113600679b8c104d8ec47311086b1839efae0912"
+  },
+  {
+   "key": "publisher attest ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/attest_publisher_ed25519.pub",
+   "sha256": "a450616f90e795edf33ffe066f320b3f3a5440873260ae6ac1c087b09f36d9b5"
+  },
+  {
+   "key": "publisher attest mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/attest_publisher_mldsa65.pub",
+   "sha256": "c99222f88f8115ce1111355d4bf9d88f28a39e7fcd2a751ac27c98658b0e67e5"
+  },
+  {
+   "key": "publisher power ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/power_publisher_ed25519.pub",
+   "sha256": "30f05f1943a77321473b964c4aeaa7ee4dda43d55a63c9b6da4619b6264bb14b"
+  },
+  {
+   "key": "publisher power mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/power_publisher_mldsa65.pub",
+   "sha256": "bd64819a16fb54b36b839fa4ad8f89fe7cedcafc47e062a44b6a0e4f293bba02"
+  },
+  {
+   "key": "publisher linux userland ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/linux_userland_publisher_ed25519.pub",
+   "sha256": "bfca02f9a43908f2562101797f33c4071a89a6bccb84745efe545c868f7f21a3"
+  },
+  {
+   "key": "publisher linux userland mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/linux_userland_publisher_mldsa65.pub",
+   "sha256": "8e3733a035a8a0377bdfc495d1bad963d1d75cccb65869aa9fc2b844e29b18e0"
+  },
+  {
+   "key": "kernel signing ed25519",
+   "kind": "seed32",
+   "public": "nonos-bootloader/keys/signing_key_v1.pub",
+   "sha256": "ea1111d1fc15605b416492911768aa14d9e144940c6d99a6ff41cc71300dca80"
+  },
+  {
+   "key": "kernel signing mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-bootloader/keys/kernel_mldsa65.pub",
+   "sha256": "3684f60f5fc759ca40b98f34fd9915c4dbee50fc41e44c2ee42eb793d35ec2a7"
+  },
+  {
+   "key": "market operator ed25519",
+   "kind": "seed32",
+   "public": ".keys/marketplace_operator_ed25519.pub",
+   "sha256": "1203d5cc00a241218315d5570bf7a8e6ba3be30488e5475112d9feea0fcb3989"
+  },
+  {
+   "key": "device policy p256",
+   "kind": "p256",
+   "public": "nonos-data/trust/policy/device_policy_p256.pub",
+   "sha256": "d50598a16d2a925a6f0e68284eb1aa9f32ab3c95de24a912da12cc02816a3c36"
+  },
+  {
+   "key": "secure boot PK",
+   "kind": "secureboot",
+   "public": ".keys/secureboot/PK.crt",
+   "sha256": "fdc871a64a25556f0032cfecc9520a7f8ad923151bb5921e3746e1c5758f82af"
+  },
+  {
+   "key": "secure boot KEK",
+   "kind": "secureboot",
+   "public": ".keys/secureboot/KEK.crt",
+   "sha256": "06d2211a753f6633c3105e173b116e9234287ef7e0e4b01f88ebd8833b9d4614"
+  },
+  {
+   "key": "secure boot db",
+   "kind": "secureboot",
+   "public": ".keys/secureboot/db.crt",
+   "sha256": "16215eb866dc4956a778c08929807cd920a467c35413f17c83fe741f01c9e42f"
+  }
+ ]
+}

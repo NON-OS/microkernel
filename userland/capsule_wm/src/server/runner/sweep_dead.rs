@@ -14,21 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::compositor_client::push_focus_set;
 use crate::protocol::NOTIFY_KIND_CLOSED;
+use crate::server::hand_off_focus::hand_off_focus;
 use crate::state::Context;
 
 pub(super) fn sweep_dead(ctx: &mut Context) {
     ctx.subscriptions.purge_dead();
+    let mut swept = false;
     while let Some(window) = ctx.windows.remove_one_dead() {
-        if matches!(
-            ctx.focus.current(),
-            Some(f) if f.owner_pid == window.owner_pid && f.window_id == window.window_id
-        ) {
-            let rid = ctx.issue_request_id();
-            let _ = push_focus_set(ctx.compositor_port, rid, 0);
-            ctx.focus.clear();
-        }
+        swept = true;
         crate::server::notify_fanout::broadcast(
             ctx,
             NOTIFY_KIND_CLOSED,
@@ -37,5 +31,8 @@ pub(super) fn sweep_dead(ctx: &mut Context) {
             window.rect.x,
             window.rect.y,
         );
+    }
+    if swept {
+        hand_off_focus(ctx);
     }
 }

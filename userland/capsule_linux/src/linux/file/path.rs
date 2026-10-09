@@ -18,13 +18,31 @@
 
 use alloc::vec::Vec;
 
-use crate::linux::guest::Guest;
+use crate::linux::abi::errno;
+use crate::linux::guest::memory::Memory;
 
-use super::cstr::read_cstr;
+use super::cstr::{cstr, read_cstr};
 
 /// The vfs length prefix is one byte.
 pub const MAX_PATH: usize = 255;
 
-pub fn read_path(guest: &Guest, addr: u64) -> Option<Vec<u8>> {
-    read_cstr(guest, addr, MAX_PATH)
+pub fn read_path(mem: &impl Memory, addr: u64) -> Option<Vec<u8>> {
+    read_cstr(mem, addr, MAX_PATH)
+}
+
+/// The path at `addr`, or the errno Linux gives instead: EFAULT for one it
+/// cannot read, ENAMETOOLONG for one past the ceiling, where answering
+/// EFAULT told a program its pointer was bad when its name was too long.
+pub fn path_of(mem: &impl Memory, addr: u64) -> Result<Vec<u8>, i64> {
+    cstr(mem, addr, MAX_PATH)
+}
+
+/// A name a call acts on, which Linux refuses empty with ENOENT: joined
+/// to the working directory, an empty name named the directory itself, so
+/// an rmdir or unlink of "" acted on it.
+pub fn name_of(mem: &impl Memory, addr: u64) -> Result<Vec<u8>, i64> {
+    match path_of(mem, addr)? {
+        name if name.is_empty() => Err(errno::ENOENT),
+        name => Ok(name),
+    }
 }

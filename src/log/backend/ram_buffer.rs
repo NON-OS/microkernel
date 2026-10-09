@@ -64,6 +64,31 @@ impl RamBufferBackend {
         self.buf.iter().filter(|e| e.is_some()).count()
     }
 
+    /// Overwrite every entry's bytes, message and hash included, then empty
+    /// the buffer. `clear` only marks the entries empty and leaves the text in
+    /// memory; this is the shutdown wipe's, since the buffer lives in a static
+    /// the heap erase never reaches.
+    pub fn wipe(&mut self) {
+        let p = self.buf.as_mut_ptr().cast::<u8>();
+        for i in 0..core::mem::size_of_val(&self.buf) {
+            /*
+             * SAFETY: p points at self.buf, which is size_of_val(&self.buf)
+             * bytes this &mut owns; the zeroes are overwritten with valid
+             * values below before anything reads an entry.
+             */
+            unsafe { core::ptr::write_volatile(p.add(i), 0) };
+        }
+        for entry in self.buf.iter_mut() {
+            /*
+             * SAFETY: entry is a valid, exclusive pointer into self.buf.
+             * write does not drop the zeroed old value, which LogEntry does
+             * not need: it owns no allocation.
+             */
+            unsafe { core::ptr::write(entry, None) };
+        }
+        self.head = 0;
+    }
+
     pub fn clear(&mut self) {
         for entry in &mut self.buf {
             *entry = None;

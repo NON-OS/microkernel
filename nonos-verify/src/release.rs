@@ -1,31 +1,75 @@
+//! The release bundle: what CI may publish for a tag. It is the flake's
+//! reproducible build, unsigned, exactly as `nix build` leaves it in
+//! `result/` (or `NONOS_RESULT`), with the public trust roots the tree holds
+//! and checksums over all of it. The sealed image is not here: enrollment and
+//! signing are ek's step with ek's keys (`nix run .#seal`), and anyone can
+//! check that the sealed kernel and loader are these bytes by rebuilding.
+
 use crate::report::{Report, Status};
-use crate::sh::{capture, capture_stdout};
+use crate::sh::capture_stdout;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+
+/// Files every bundle must hold, relative to the build output.
+const BUILT: &[&str] = &[
+    "nonos-build.json",
+    "nonos.cdx.json",
+    "kernel/nonos-kernel",
+    "bootloader/nonos_boot.efi",
+    "capsules/catalogue.json",
+];
+
+/// The public roots the kernel and loader were built against, from the tree.
+const ROOTS: &[&str] = &[
+    "nonos-data/trust/MANIFEST.sha256",
+    "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
+    "nonos-data/trust/policy/zk_capsule_policy_root.bin",
+    "nonos-data/trust/policy/kernel_attest_root.bin",
+];
 
 pub fn run(root: &str) -> std::io::Result<Status> {
     let mut rpt = Report::new("release", true);
     let out = Path::new(root).join("release");
     let bundle = out.join("bundle");
     std::fs::create_dir_all(&bundle)?;
-    let built = Command::new("make").arg("nonos-mk-esp").output()?;
-    std::fs::write(out.join("release-build.log"), join(&built.stdout, &built.stderr))?;
-    rpt.check("release-build", st(built.status.success()), "make nonos-mk-esp");
+    let built =
+        PathBuf::from(std::env::var("NONOS_RESULT").unwrap_or_else(|_| "result".to_string()));
+    rpt.check(
+        "release-build",
+        st(built.join("nonos-build.json").is_file()),
+        format!("the flake's build output at {}", built.display()),
+    );
 
-    let manifest = collect(&bundle)?;
+    let mut rows = Vec::new();
+    for rel in files(&built) {
+        rows.push(take(
+            &built.join(&rel),
+            &bundle.join("build").join(&rel),
+            &format!("build/{rel}"),
+        )?);
+    }
+    for rel in BUILT {
+        if !built.join(rel).is_file() {
+            rows.push(row(&format!("build/{rel}"), "missing", 0, "", ""));
+        }
+    }
+    for rel in ROOTS {
+        rows.push(take(&Path::new(root).join(rel), &bundle.join(rel), rel)?);
+    }
+    rows.sort_by(|a, b| a["path"].as_str().cmp(&b["path"].as_str()));
+
     std::fs::write(
         out.join("release-manifest.json"),
-        serde_json::to_string_pretty(&manifest).unwrap(),
+        serde_json::to_string_pretty(&rows).unwrap(),
     )?;
-    std::fs::write(out.join("SHA256SUMS"), sums(&manifest, "sha256"))?;
-    std::fs::write(out.join("BLAKE3SUMS"), sums(&manifest, "blake3"))?;
-    let provenance = provenance(&manifest);
+    std::fs::write(out.join("SHA256SUMS"), sums(&rows, "sha256"))?;
+    std::fs::write(out.join("BLAKE3SUMS"), sums(&rows, "blake3"))?;
     std::fs::write(
         out.join("provenance.json"),
-        serde_json::to_string_pretty(&provenance).unwrap(),
+        serde_json::to_string_pretty(&provenance(&rows)).unwrap(),
     )?;
     let packed = Command::new("tar")
-        .arg("-czf")
+        .args(["--sort=name", "--owner=0", "--group=0", "--numeric-owner", "--mtime=@0", "-czf"])
         .arg(out.join("nonos-release-bundle.tar.gz"))
         .arg("-C")
         .arg(&out)
@@ -33,70 +77,58 @@ pub fn run(root: &str) -> std::io::Result<Status> {
         .output()?;
     std::fs::write(out.join("tar.log"), join(&packed.stdout, &packed.stderr))?;
     rpt.check("bundle-tar", st(packed.status.success()), "release bundle archive written");
-    let complete = !manifest.is_empty() && manifest.iter().all(|m| m["status"] == "present");
+    let complete = !rows.is_empty() && rows.iter().all(|m| m["status"] == "present");
     rpt.check(
         "artifact-manifest",
         st(complete),
-        "release manifest contains every required artifact",
+        "release manifest holds the whole build, its bill of materials and the public roots",
     );
     rpt.finish(root)
 }
 
-fn collect(bundle: &Path) -> std::io::Result<Vec<serde_json::Value>> {
-    let mut rows = Vec::new();
-    for rel in artifacts() {
-        let src = Path::new(&rel);
-        if !src.exists() {
-            rows.push(row(&rel, "missing", 0, "", ""));
-            continue;
+/// Every file under the build output, relative to it, in a stable order.
+fn files(dir: &Path) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&d) else { continue };
+        for e in entries.flatten() {
+            let p = e.path();
+            if p.is_dir() {
+                stack.push(p);
+            } else if let Ok(rel) = p.strip_prefix(dir) {
+                out.push(rel.to_string_lossy().into_owned());
+            }
         }
-        let dst = bundle.join(safe_name(&rel));
-        if let Some(parent) = dst.parent() {
-            std::fs::create_dir_all(parent)?;
-        }
-        std::fs::copy(src, &dst)?;
-        let bytes = std::fs::read(src)?;
-        rows.push(row(
-            &rel,
-            "present",
-            bytes.len() as u64,
-            &sha256(src),
-            blake3::hash(&bytes).to_hex().as_ref(),
-        ));
     }
-    Ok(rows)
+    out.sort();
+    out
 }
 
-fn artifacts() -> Vec<String> {
-    [
-        "target/x86_64-nonos/release/nonos-kernel",
-        "target/kernel_signed.bin",
-        "target/kernel_attested.bin",
-        "nonos-bootloader/target/x86_64-unknown-uefi/release/nonos_boot.efi",
-        "target/esp/EFI/Boot/BOOTX64.EFI",
-        "target/esp/EFI/nonos/kernel.bin",
-        "target/esp/EFI/nonos/boot.cfg",
-        "target/esp/startup.nsh",
-        "nonos-data/trust/MANIFEST.sha256",
-        "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
-        "nonos-data/trust/policy/zk_capsule_policy_root.bin",
-        "nonos-data/trust/zk/device_root.bin",
-    ]
-    .iter()
-    .map(|s| s.to_string())
-    .collect()
+fn take(src: &Path, dst: &Path, name: &str) -> std::io::Result<serde_json::Value> {
+    if !src.is_file() {
+        return Ok(row(name, "missing", 0, "", ""));
+    }
+    if let Some(parent) = dst.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    std::fs::copy(src, dst)?;
+    let bytes = std::fs::read(src)?;
+    Ok(row(
+        name,
+        "present",
+        bytes.len() as u64,
+        &sha256(src),
+        blake3::hash(&bytes).to_hex().as_ref(),
+    ))
 }
 
 fn row(path: &str, status: &str, bytes: u64, sha256: &str, b3: &str) -> serde_json::Value {
     serde_json::json!({ "path": path, "status": status, "bytes": bytes, "sha256": sha256, "blake3": b3 })
 }
 
-fn safe_name(rel: &str) -> PathBuf {
-    rel.split('/').collect()
-}
-
 fn sha256(path: &Path) -> String {
-    capture("shasum", &["-a", "256", path.to_str().unwrap_or("")])
+    capture_stdout("sha256sum", &[path.to_str().unwrap_or("")])
         .1
         .split_whitespace()
         .next()
@@ -119,12 +151,13 @@ fn sums(rows: &[serde_json::Value], field: &str) -> String {
 
 fn provenance(artifacts: &[serde_json::Value]) -> serde_json::Value {
     serde_json::json!({
-        "schema": "nonos.release.provenance.v1",
+        "schema": "nonos.release.provenance.v2",
         "commit": capture_stdout("git", &["rev-parse", "HEAD"]).1.trim(),
         "ref": std::env::var("GITHUB_REF").unwrap_or_else(|_| "local".to_string()),
         "run_id": std::env::var("GITHUB_RUN_ID").unwrap_or_else(|_| "local".to_string()),
         "source_date_epoch": std::env::var("SOURCE_DATE_EPOCH").unwrap_or_else(|_| "unset".to_string()),
-        "toolchain": std::fs::read_to_string("rust-toolchain.toml").unwrap_or_default(),
+        "built_by": "nix build (flake.lock pins every input); unsigned, reproducible",
+        "sealed_by": "ek, with nix run .#seal; the sealed image is published beside this bundle",
         "artifacts": artifacts,
     })
 }

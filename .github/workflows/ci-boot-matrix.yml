@@ -43,17 +43,20 @@ concurrency:
 jobs:
   boot-matrix:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 240
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:
           submodules: recursive
           persist-credentials: false
-      - uses: ./.github/actions/nonos-setup
+      - uses: ./.github/actions/nix-setup
         with:
-          targets: x86_64-nonos,x86_64-unknown-uefi
-          qemu: "true"
-          module: boot-matrix
+          cache: ${{ vars.NONOS_CACHIX }}
       # Kernel bugs here are vendor-specific: #524 reproduced only on
       # AuthenticAMD, so a green cell is only readable next to the host CPU.
       - name: Host CPU
@@ -72,7 +75,6 @@ jobs:
         run: |
           set -euo pipefail
           bash nonos-ci/setup-signing-key.sh
-          echo "NONOS_DEV=1" >> "$GITHUB_ENV"
           bash nonos-ci/scratch-trust-bootstrap.sh
       - name: Boot the matrix
         env:
@@ -90,7 +92,7 @@ jobs:
             BOOT_MATRIX_CELLS="$BOOT_MATRIX_CELLS" nonos-mk-boot-matrix
       - name: Upload serial logs and the verdict
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: boot-matrix
           path: |

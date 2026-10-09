@@ -14,21 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::arch::aarch64::exceptions::terminal;
 use crate::arch::trap::contract::cause::TrapCause;
 use crate::arch::trap::contract::frame::TrapFrame;
-use crate::sys::serial::{print_hex, print_str};
+use crate::sys::serial::Line;
 
 use super::{detail, label};
 
+/// Each line is built whole and written through the fatal writer, so a CPU
+/// that faulted while holding the serial lock still gets its report out, and
+/// a fault inside the report parks the CPU instead of recursing.
 pub(in crate::arch::trap::contract) fn report_fatal<F: TrapFrame>(frame: &F, cause: &TrapCause) {
-    print_str("\n!!! KERNEL FATAL TRAP: ");
-    print_str(label::for_cause(cause));
-    print_str(" !!!\n  ELR=");
-    print_hex(frame.instruction_pointer());
-    print_str("  SP=");
-    print_hex(frame.stack_pointer());
-    print_str("  origin=");
-    print_str(if frame.from_user() { "EL0" } else { "EL1" });
-    print_str("\n");
+    if !terminal::enter() {
+        return;
+    }
+    let mut line = Line::new();
+    line.str(b"[TRAP] KERNEL FATAL TRAP: ").str(label::for_cause(cause).as_bytes());
+    if let Some(esr) = frame.syndrome() {
+        line.str(b" esr=").hex(esr);
+    }
+    line.str(b" elr=")
+        .hex(frame.instruction_pointer())
+        .str(b" sp=")
+        .hex(frame.stack_pointer())
+        .str(b" origin=")
+        .str(if frame.from_user() { b"EL0" } else { b"EL1" })
+        .end_fatal();
     detail::report(cause);
 }

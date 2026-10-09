@@ -1,0 +1,24 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for net.dns's exchange with its upstream server. The
+# capsule's own source (everything but its entry point and its inbox loop) is
+# included via #[path] and driven through its real resolve handlers, with
+# net.udp and the upstream resolver played on the host behind the stand-in
+# nonos_libc, so what a reply has to be before it is believed is proven on
+# the code that ships.
+[package]
+name = "dns_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "net_proofs_shim", path = "../net_proofs/shim" }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

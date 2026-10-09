@@ -16,8 +16,10 @@
 
 mod build;
 pub mod constants;
+mod fb_window;
 mod frame;
 mod map_directmap;
+mod map_framebuffer;
 mod map_identity;
 mod map_kernel_text;
 mod mapper;
@@ -29,6 +31,7 @@ mod table;
 mod verify;
 
 pub use build::build_kernel_pml4;
+pub use fb_window::{framebuffer_identity_reachable, framebuffer_tail, IDENTITY_FB_LIMIT};
 pub use page1g::supports_1gib_pages;
 pub use phys_to_directmap::phys_to_directmap_virt;
 pub use switch::switch_to_kernel_pml4;

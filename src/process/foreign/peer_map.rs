@@ -18,24 +18,13 @@
 
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::manager::{map_page_in_asid, translate_in_asid};
-use crate::memory::paging::types::PagePermissions;
 use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOMEM};
 
-use super::peer_guard::{in_user_half, supervised_asid, MAX_SPAN, PAGE, PROT_EXEC, PROT_WRITE};
+use super::peer_guard::{in_user_half, supervised_asid, MAX_SPAN, PAGE};
+use super::peer_protect::perms_of;
 
 fn span_ok(addr: u64, len: u64) -> bool {
     len != 0 && len <= MAX_SPAN && addr % PAGE == 0 && in_user_half(addr, len)
-}
-
-pub(super) fn perms_of(prot: u64) -> PagePermissions {
-    let mut perms = PagePermissions::READ | PagePermissions::USER;
-    if prot & PROT_WRITE != 0 {
-        perms = perms | PagePermissions::WRITE;
-    }
-    if prot & PROT_EXEC != 0 {
-        perms = perms | PagePermissions::EXECUTE;
-    }
-    perms
 }
 
 /// `MkPeerMap`: map `[addr, addr + len)` in a guest the caller supervises.
@@ -51,19 +40,36 @@ pub fn sys_peer_map(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
         return ERRNO_INVAL;
     }
     let perms = perms_of(prot);
+    let mut mapped = 0;
     for i in 0..len.div_ceil(PAGE) {
         let va = VirtAddr::new(addr + i * PAGE);
         if translate_in_asid(asid, va).is_some() {
             continue;
         }
         let Some(frame) = crate::memory::frame_alloc::allocate_frame() else {
+            /*
+             * Out of frames is said once per refused call, with the numbers,
+             * on the serial console: warnings reach only the screen by then.
+             */
+            let line = alloc::format!(
+                "[PEER] pid {} got {} of {} pages at {:#x}; {} frames free",
+                pid,
+                i,
+                len.div_ceil(PAGE),
+                addr,
+                crate::memory::frame_alloc::total_free_frames()
+            );
+            crate::sys::serial::println(line.as_bytes());
             return ERRNO_NOMEM;
         };
         crate::memory::frame_alloc::zero_frame(frame);
         if map_page_in_asid(asid, va, frame, perms).is_err() {
             let _ = crate::memory::frame_alloc::deallocate_frame(frame);
+            super::guest_stats::resident(pid as u32, mapped, 0);
             return ERRNO_NOMEM;
         }
+        mapped += 1;
     }
+    super::guest_stats::resident(pid as u32, mapped, 0);
     0
 }

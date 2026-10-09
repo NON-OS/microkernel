@@ -19,6 +19,9 @@ use alloc::vec::Vec;
 
 pub(super) const MAX_FILES: usize = 2048;
 pub(super) const MAX_OPEN_FDS: usize = 256;
+/// The most handles one owner holds open at once, so no one client can take
+/// every handle from the rest.
+pub const PER_OWNER_FDS: usize = MAX_OPEN_FDS / 2;
 pub(super) const MAX_FILE_BYTES: usize = 1 << 26;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -63,6 +66,12 @@ pub(super) struct File {
      * staged from the package store carry zero and nobody persists them.
      */
     pub(super) owner: u32,
+    /*
+     * A package entry served from the device (blk::streamed): every read is
+     * a read of the device and `data` stays empty. `None` for every other
+     * file.
+     */
+    pub(super) streamed: Option<crate::blk::streamed::Extent>,
 }
 
 // Default permissions for a new file and a new directory.
@@ -77,7 +86,7 @@ impl File {
      */
     pub(super) fn new(name: String, data: Vec<u8>, is_dir: bool, owner: u32) -> Self {
         let mode = if is_dir { MODE_DIR } else { MODE_FILE };
-        File { name, data, is_dir, mtime: super::time::now_ms(), mode, owner }
+        File { name, data, is_dir, mtime: super::time::now_ms(), mode, owner, streamed: None }
     }
 }
 

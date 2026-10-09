@@ -8,3 +8,5 @@ pub mod numbers;
 // The capability checks and the syscall capability table (authorization gate).
 pub mod caps;
 pub mod contract;
+
+pub mod microkernel;

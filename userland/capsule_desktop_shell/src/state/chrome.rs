@@ -15,3 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const TASKBAR_WINDOW_ID: u32 = 0x5442_4152;
+
+/// The toasts' panel, a window of the shell's while a toast is up, so the
+/// window manager hands a press on it to the shell and not to the window drawn
+/// under it.
+pub const TOAST_WINDOW_ID: u32 = 0x544F_4153;

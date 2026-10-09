@@ -28,5 +28,6 @@ mod model;
 
 mod address_tests;
 mod bring_up_tests;
+mod finish_tests;
 mod reset_tests;
 mod ring_tests;

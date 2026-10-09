@@ -28,8 +28,11 @@ pub fn init_bsp() -> Result<(), &'static str> {
     }
 
     let bsp_apic = crate::arch::interrupt_controller::local_id();
+    #[cfg(target_arch = "x86_64")]
+    super::super::ap::record_boot_tsc_adjust();
     BSP_APIC_ID.store(bsp_apic, Ordering::Release);
     configure_bsp_descriptor(bsp_apic);
+    topology::record_core_kind(0, bsp_apic);
 
     let cpu_count = topology::detect_cpus();
     CPU_COUNT.store(cpu_count, Ordering::Release);

@@ -18,6 +18,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use super::crypto::{fresh_nonce, open, seal, TAG_LEN};
+use super::limits::MAX_FILE_BYTES;
 use super::types::{Store, StoreError};
 
 impl Store {
@@ -27,6 +28,15 @@ impl Store {
         offset: usize,
         data: &[u8],
     ) -> Result<usize, StoreError> {
+        /*
+         * The file this write leaves, sized from the caller's offset and
+         * checked before anything is opened or allocated.
+         */
+        let end = offset
+            .checked_add(data.len())
+            .filter(|&end| end <= MAX_FILE_BYTES)
+            .ok_or(StoreError::TooLarge)?;
+        self.room_for(path, end.max(self.held(path)))?;
         self.ensure(path)?;
         let f = self.files.get_mut(path).ok_or(StoreError::NotFound)?;
         let mut plain: Vec<u8> = if f.ciphertext.is_empty() {
@@ -39,7 +49,6 @@ impl Store {
             buf.truncate(n);
             buf
         };
-        let end = offset.saturating_add(data.len());
         if end > plain.len() {
             plain.resize(end, 0);
         }

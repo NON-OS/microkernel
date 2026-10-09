@@ -16,13 +16,10 @@
 
 use super::prdt::PrdtEntry;
 
-pub(super) fn prdt_write(addr: u64, data_phys: u64, bytes: u32) {
-    let entry = PrdtEntry {
-        dba_low: data_phys as u32,
-        dba_high: (data_phys >> 32) as u32,
-        rsv: 0,
-        dbc: bytes.wrapping_sub(1),
-    };
+/// Write one PRD entry. `dbc` is the field as `prd_count::prd_dbc` gives it.
+pub(super) fn prdt_write(addr: u64, data_phys: u64, dbc: u32) {
+    let entry =
+        PrdtEntry { dba_low: data_phys as u32, dba_high: (data_phys >> 32) as u32, rsv: 0, dbc };
     unsafe {
         core::ptr::write_volatile(addr as *mut PrdtEntry, entry);
     }

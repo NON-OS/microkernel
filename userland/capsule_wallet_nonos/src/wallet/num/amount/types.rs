@@ -66,4 +66,16 @@ impl Amount {
     pub fn is_zero(&self) -> bool {
         self.value == 0
     }
+
+    /// `v` base units at `dp` decimals as a figure, exactly, its trailing
+    /// zeros after the point taken off: what "use all" fills the field with.
+    pub fn of_units(v: u128, dp: u32) -> Self {
+        let (mut value, mut places) = (v, dp);
+        while places > 0 && value % 10 == 0 {
+            value /= 10;
+            places -= 1;
+        }
+        let digits = value.checked_ilog10().map_or(1, |d| d + 1);
+        Amount { value, typed: digits.max(places + 1), places, point: places > 0 }
+    }
 }

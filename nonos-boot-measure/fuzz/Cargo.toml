@@ -1,0 +1,63 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# libFuzzer targets for every reader the boot gates run on bytes from outside:
+# the v4 trailer, the bootloader slot behind it, the TCG event log, the
+# boot-root record and the PE image. `cargo fuzz run <target>`; each target
+# says what it holds beyond "no panic".
+
+[package]
+name = "nonos-boot-measure-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+nonos-boot-measure = { path = ".." }
+nonos-attest-path = { path = "../../nonos-attest-path", features = ["alloc"] }
+p256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
+
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "v4_parse"
+path = "fuzz_targets/v4_parse.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "v4_gate"
+path = "fuzz_targets/v4_gate.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "tcg_log"
+path = "fuzz_targets/tcg_log.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "boot_record"
+path = "fuzz_targets/boot_record.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "pe_digest"
+path = "fuzz_targets/pe_digest.rs"
+test = false
+doc = false

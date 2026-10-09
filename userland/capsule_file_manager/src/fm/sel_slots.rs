@@ -32,7 +32,6 @@ pub struct SelSlot {
     pub action: SelAction,
     pub icon: Icon,
     pub label: &'static str,
-    pub wired: bool,
 }
 
 /// A labelled pill's width: the same padding `icon_label` draws with, around the
@@ -47,9 +46,9 @@ pub fn labelled_w(label: &str) -> u32 {
 pub fn slots(b: &SelBand) -> Vec<SelSlot> {
     let mut out = Vec::new();
     let mut x = b.x + PAD;
-    for (action, icon, label, wired) in ACTIONS {
+    for (action, icon, label) in ACTIONS {
         let w = if b.labelled { labelled_w(label) } else { ICON_BTN };
-        out.push(SelSlot { x, w, action, icon, label, wired });
+        out.push(SelSlot { x, w, action, icon, label });
         x += w + GAP;
     }
     out

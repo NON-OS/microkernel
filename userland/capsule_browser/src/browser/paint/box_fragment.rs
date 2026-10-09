@@ -16,18 +16,15 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::browser::fonts::NO_CLIP;
 use crate::browser::layout::boxmodel::{Content, Fragment};
 use crate::browser::state::State;
 
 use super::box_page::TOP;
-use super::fill_page::fill_page;
 use super::fill_rounded::fill_rounded;
 
-const IMG_BG: u32 = 0xFF20_2A30;
-const IMG_EDGE: u32 = 0xFF46_A6B2;
-
-// One display-list rectangle: background, border edges, then content. The
-// fragment clip travels in page coordinates and shifts with the scroll.
+/* One display-list rectangle: background, border edges, then content. The
+ * fragment clip travels in page coordinates and shifts with the scroll. */
 pub(super) fn box_fragment(
     state: &State,
     fb: &mut PaintBuffer,
@@ -37,93 +34,38 @@ pub(super) fn box_fragment(
 ) {
     let dy = TOP - state.scroll as i32;
     let clip = f.clip.map(|c| [c[0], c[1].saturating_add(dy), c[2], c[3].saturating_add(dy)]);
-    // The drop shadow paints first so the box and its content sit over it.
-    if let Some(s) = f.shadow.as_ref() {
-        super::shadow::paint_shadow(fb, s, f.x, sy, f.w, f.h);
-    }
+    /* Outer shadows paint first so the box sits over them; inset ones
+     * go over the background and under the borders. */
+    super::shadow::paint_shadow(fb, f, sy, clip, false);
     let bg = super::fade::fade(f.bg, f.alpha);
-    if bg != 0 {
-        fill_rounded(fb, f.x, sy, f.w, f.h, f.radius, bg, clip);
-    }
-    // A decoded background image paints over the color and behind content.
-    super::bg_image::paint_bg_image(state, fb, f, sy, bottom, clip);
-    // Border edges shorten by the corner radius on each end.
-    let edge = super::fade::fade(f.border_color, f.alpha);
-    let r = f.radius as i32;
-    let [bt, br, bb, bl] = f.border;
-    if bt > 0 {
-        fill_page(fb, f.x + r, sy, f.w - 2 * r, bt as i32, edge, clip);
-    }
-    if bb > 0 {
-        fill_page(fb, f.x + r, sy + f.h - bb as i32, f.w - 2 * r, bb as i32, edge, clip);
-    }
-    if bl > 0 {
-        fill_page(fb, f.x, sy + r, bl as i32, f.h - 2 * r, edge, clip);
-    }
-    if br > 0 {
-        fill_page(fb, f.x + f.w - br as i32, sy + r, br as i32, f.h - 2 * r, edge, clip);
-    }
-    // Text and images draw only when their box sits fully inside the page
-    // area and clip; the framebuffer has no clip for glyph or raster runs.
-    if sy < TOP || sy + f.h > bottom {
-        return;
-    }
-    if let Some(c) = clip {
-        if f.x < c[0] || f.x + f.w > c[2] || sy < c[1] || sy + f.h > c[3] {
-            return;
+    /* A masked box shows its color only through the mask. */
+    if bg != 0 && !f.mask {
+        for c in super::round_clip::bands(clip, f.clip_r) {
+            fill_rounded(fb, f.x, sy, f.w, f.h, f.radius, bg, c);
         }
+    }
+    super::shadow::paint_shadow(fb, f, sy, clip, true);
+    /* A decoded background image paints over the color and behind content. */
+    for c in super::round_clip::bands(clip, f.clip_r) {
+        super::bg_image::paint_bg_image(state, fb, f, sy, bottom, c);
+    }
+    super::borders::paint_borders(fb, f, sy, clip);
+    /* Text and images draw clipped to the page area and the fragment clip,
+     * so a run or a picture cut by the scroll edge shows its visible part. */
+    let [x0, y0, x1, y1] = clip.unwrap_or(NO_CLIP);
+    let vis = [x0, y0.max(TOP), x1, y1.min(bottom)];
+    if vis[1] >= vis[3] || vis[0] >= vis[2] || sy >= vis[3] || sy + f.h <= vis[1] {
+        return;
     }
     match &f.content {
         Content::None => {}
-        Content::Text { text, color, px, bold, mono, underline, font, spacing } => {
-            let color = super::fade::fade(*color, f.alpha);
-            let ty = sy + (f.h - *px as i32).max(0) / 2;
-            let run = |x: i32| crate::browser::fonts::TextRun {
-                key: *font,
-                mono: *mono,
-                bold: *bold,
-                x,
-                top_y: ty,
-                px: *px,
-                spacing: *spacing,
-            };
-            // A true bold cut needs no thickening; the fake second pass only
-            // remains for faces that never shipped one, the mono cut mostly.
-            let real_bold = crate::browser::fonts::draw_text(fb, run(f.x), text, color);
-            if *bold && !real_bold {
-                crate::browser::fonts::draw_text(fb, run(f.x + 1), text, color);
-            }
-            if *underline {
-                fill_page(fb, f.x, sy + f.h - 2, f.w, 1, color, clip);
-            }
-        }
-        Content::Image { src, alt, fit } => {
-            // The store is keyed by the absolute URL the fetch used, so resolve
-            // the fragment's src against the page base before looking it up.
-            // Without this every relative image src misses its decoded raster.
-            let key = state
-                .base
-                .as_ref()
-                .map(|b| crate::browser::url::join(b, src))
-                .unwrap_or_else(|| src.clone());
-            if let Some(img) = state.images.ready(&key) {
-                crate::browser::image::blit_into(
-                    fb,
-                    img,
-                    [f.x.max(0) as u32, sy.max(0) as u32, f.w.max(0) as u32, f.h.max(0) as u32],
-                    *fit,
-                    f.alpha,
-                    clip,
-                );
-            } else {
-                fill_page(fb, f.x, sy, f.w, f.h, IMG_BG, clip);
-                fill_page(fb, f.x, sy, f.w, 1, IMG_EDGE, clip);
-                fill_page(fb, f.x, sy + f.h - 1, f.w, 1, IMG_EDGE, clip);
-                fill_page(fb, f.x, sy, 1, f.h, IMG_EDGE, clip);
-                fill_page(fb, f.x + f.w - 1, sy, 1, f.h, IMG_EDGE, clip);
-                let label = if alt.is_empty() { "image" } else { alt.as_str() };
-                if f.h >= 24 && f.w >= 48 {
-                    fb.text_ttf(f.x + 8, sy + 6, label, IMG_EDGE, 14.0);
+        Content::Text { .. } => super::paint_text::paint_text(fb, f, sy, vis),
+        Content::Image { .. } => {
+            for c in super::round_clip::bands(clip, f.clip_r) {
+                let [x0, y0, x1, y1] = c.unwrap_or(vis);
+                let c = [x0.max(vis[0]), y0.max(vis[1]), x1.min(vis[2]), y1.min(vis[3])];
+                if c[0] < c[2] && c[1] < c[3] {
+                    super::paint_image::paint_image(state, fb, f, sy, c);
                 }
             }
         }

@@ -108,7 +108,12 @@ fn normalize_never_panics_and_stays_absolute() {
         let s: Vec<u8> =
             (0..len).map(|_| alphabet[(next(&mut rng) as usize) % alphabet.len()]).collect();
         let text = core::str::from_utf8(&s).unwrap();
-        let out = normalize(text);
+        // Refused exactly when a component is `..`.
+        let Some(out) = normalize(text) else {
+            assert!(text.split('/').any(|p| p == ".."), "refused without ..: {text:?}");
+            continue;
+        };
+        assert!(!text.split('/').any(|p| p == ".."), "accepted with ..: {text:?}");
         // Invariants that must hold for every input.
         assert!(out.starts_with('/'), "not rooted: {out:?}");
         assert!(!out.contains("//"), "double slash: {out:?}");

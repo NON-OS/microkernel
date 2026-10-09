@@ -19,7 +19,7 @@ use nonos_libc::mk_ipc_send;
 use crate::constants::ata::SECTOR_SIZE;
 use crate::engine::transfer;
 use crate::protocol::{
-    encode_response_header, write_status, Request, E_IO, E_MSGSIZE, E_NODEV, KERNEL_REPLY_ENDPOINT,
+    encode_response_header, write_status, Request, E_MSGSIZE, E_NODEV, KERNEL_REPLY_ENDPOINT,
     READ_REQ_LEN, RESP_HDR_LEN, STATUS_LEN,
 };
 use crate::server::error::reply_with_status;
@@ -38,8 +38,8 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
         Ok(v) => v,
         Err(s) => return reply_with_status(tx, req, s),
     };
-    if transfer(port, regs, lba, nsectors, false).is_err() {
-        return reply_with_status(tx, req, E_IO);
+    if let Err(e) = transfer(port, regs, lba, nsectors, false) {
+        return reply_with_status(tx, req, super::failure::status(port, e));
     }
     let bytes = nsectors as usize * SECTOR_SIZE;
     let payload = STATUS_LEN + bytes;

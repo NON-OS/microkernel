@@ -35,7 +35,7 @@ const CHECKIN_SPINS: u64 = 200_000_000;
 /// kernel down because one core of many refused to come up turns a degraded
 /// boot into no boot at all.
 pub fn start_secondary_cpus(_boot_info: &BootInfo) {
-    let entry = _aarch64_secondary_start as u64;
+    let entry = _aarch64_secondary_start as unsafe extern "C" fn() as u64;
     let mut released = 0u32;
 
     for index in 1..roster::len() {

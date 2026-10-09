@@ -15,7 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod handlers;
+pub mod outputs;
 mod respond;
 mod runner;
 
 pub use runner::run;
+
+use nonos_libc::{mk_munmap, mk_pid_alive};
+
+use outputs::Output;
+
+fn alive(pid: u32) -> bool {
+    mk_pid_alive(pid)
+}
+
+/// Let a held output go: unmapping it gives its memory back, and its
+/// surface slot once no client maps it.
+fn release_output(out: Output) {
+    let _ = mk_munmap(out.base as *mut u8, out.len);
+}

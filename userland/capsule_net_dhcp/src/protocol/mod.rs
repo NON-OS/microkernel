@@ -19,7 +19,7 @@ mod header;
 mod ops;
 
 pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAK, E_NO_LINK, E_OK, E_TIMEOUT,
+    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAK, E_NO_LINK, E_OK, E_PERM, E_TIMEOUT,
 };
 pub use header::MAGIC;
 pub use ops::{

@@ -1,0 +1,80 @@
+# SD cards and eMMC
+
+What NONOS does with soldered eMMC storage and with SD card readers in this release.
+
+## In short
+
+| Hardware | Matched by | Driver | State in 0.9.2 |
+|---|---|---|---|
+| eMMC on an Intel SD host controller | PCI class 08h, subclass 05h, 13 Intel device ids | `driver.ahci0` | Works when no SATA disk comes up; 8086:9d2b only on a machine that also has a SATA controller, [as below](#which-hosts) |
+| eMMC on another SD host controller | PCI class 08h, subclass 05h, slot type embedded | `driver.ahci0` | Works the same way, but only when the capsule was started for another controller |
+| SD card or SDIO slot on an Intel SD host controller | 14 Intel device ids | none | Not supported: no SD card driver, and the eMMC driver passes these over by id |
+| SD card slot on another SD host controller | slot type not embedded | none | Not supported: no SD card driver |
+| Realtek PCIe card reader RTS5227 or RTS522A | 10ec:5227, 10ec:522a | `driver.rtsx0` | Not supported: written, not in the image |
+| Other Realtek PCIe card readers | 12 more Realtek ids | none | Not supported |
+| USB card reader | USB mass storage, Bulk-Only | `driver.usb_msc0` | Works on root ports |
+
+So an SD card in a built-in PCIe or SDHCI slot cannot be read in this release. An SD card in a USB card reader is served by the USB mass-storage driver.
+
+## eMMC
+
+eMMC is storage soldered to the board. NONOS serves it from the SATA [capsule](../../overview/glossary.md#capsule) `driver.ahci0` until the eMMC driver has publisher keys of its own (`src/hardware/inventory/emmc.rs:17-34`, `INTEL_EMMC_DEVICE_IDS`). The kernel starts that capsule only when its inventory sees an AHCI controller or an Intel eMMC host from that list (`src/userspace/init/spawn_plan/drivers_storage.rs:26-41`, `spawn_ahci`). An eMMC on any other SD host is therefore reached only on a machine that also has an AHCI controller or a listed Intel eMMC host.
+
+```mermaid
+flowchart TD
+    Start[driver.ahci0 starts] --> Sata{a SATA disk comes up}
+    Sata -->|yes| Disk[serves that disk]
+    Sata -->|no| Hosts[try eMMC hosts, Intel first]
+    Hosts -->|one comes up| Disk
+    Hosts -->|none| Retry[the attempt fails and is retried]
+```
+
+The capsule tries SATA first. Only when no SATA disk comes up does it try the eMMC hosts, Intel ones first, and it serves the first host whose card comes up. When neither gives a disk, the attempt fails and is retried on the shared schedule (`userland/capsule_driver_ahci/src/served/bring_up.rs:25-53`, `bring_up`). The kernel block layer sees the eMMC disk as its SATA backend, `driver.ahci0`. When that driver has not come up on a machine with an Intel eMMC host and no SATA controller, the installer's list says `eMMC controller present, its driver did not come up` (`userland/nonos_blk_client/src/disks/scan.rs:154-162`, `fault`).
+
+### Which hosts
+
+A PCI function of class 08h, subclass 05h with prog-if up to 02h is an SD host controller. The capsule takes (`userland/capsule_driver_ahci/src/emmc/pci/classify.rs:31-46`, `classify`):
+
+- the 13 Intel eMMC hosts, from Bay Trail to Jasper Lake, first (`userland/capsule_driver_ahci/src/emmc/pci/ids.rs:23-39`, `INTEL_EMMC`);
+- any other SD host, but only when its slot reports the embedded slot type (`userland/capsule_driver_ahci/src/emmc/platform/open/embedded.rs:28-44`, `check_embedded`);
+- never the 14 Intel SD card and SDIO hosts (`userland/capsule_driver_ahci/src/emmc/pci/ids.rs:41-57`, `INTEL_NOT_EMMC`).
+
+The kernel's own start list holds 12 of the 13 Intel ids: 8086:9d2b (Sunrise Point) is missing from `INTEL_EMMC_DEVICE_IDS` in `src/hardware/inventory/emmc.rs:32-34`. On a machine with that host and no SATA controller the capsule is not started.
+
+### How it talks to the card
+
+The host is driven as SDHCI 3.0 or 4.x and the card as JEDEC eMMC 5.1 (`userland/capsule_driver_ahci/src/emmc/mod.rs:17-18`, `SDHCI`).
+
+- Identification runs at 400 kHz. The card then runs High Speed SDR at 52 or 26 MHz when card and host both take it, and legacy timing at 20 MHz otherwise (`userland/capsule_driver_ahci/src/emmc/sdhci/clock.rs:23-30`, `HS52_HZ`).
+- The bus is 8, 4 or 1 lines wide, 8 only on a host that offers it: the widest whose EXT_CSD reads back the same (`userland/capsule_driver_ahci/src/emmc/mmc/speed/select.rs:27-35`, `widths`).
+- HS200, HS400 and DDR52 are not attempted. The first two need tuning (`userland/capsule_driver_ahci/src/emmc/mmc/speed/mod.rs:17-23`, `mmc_select_timing`).
+- ADMA2 descriptors move the data. Completions are polled, and the INTx pin is turned off (`userland/capsule_driver_ahci/src/emmc/platform/open/open_host.rs:40-57`, `MK_PCI_CMD_INTX_DISABLE`).
+- One request moves at most 64 sectors of 512 bytes (`userland/capsule_driver_ahci/src/emmc/disk/sizes.rs:19-21`, `MAX_SECTORS`).
+
+### How it was verified
+
+`userland/emmc_proofs` runs the real bring-up, read, write, flush and recovery against a register-level model of an SDHCI host with an eMMC device behind it (`userland/emmc_proofs/src/lib.rs:17-21`, `model`). It is the [proof crate](../../overview/glossary.md#proof-crate) for this path, and its 83 tests pass on this commit. eMMC has not been tested on hardware in this release, and no QEMU target in `mk/` attaches an SD host.
+
+## USB card readers
+
+A USB card reader is a USB mass-storage device, and the one way to read an SD card in this release. `driver.usb_msc0` serves the first logical unit that has a card in it (`userland/capsule_driver_usb_msc/src/scan/probe.rs:80-91`, `max_lun`). An empty slot that is not the reader's last unit is given up at once rather than waited on (`userland/capsule_driver_usb_msc/src/disk/ready.rs:51-58`, `unit_ready`). Plug the reader into a port of the machine, not a hub; see [USB mass storage](usb-mass-storage.md).
+
+## Realtek PCIe card readers
+
+`userland/capsule_driver_rtsx` is a driver for the Realtek RTS5227 (10ec:5227) and RTS522A (10ec:522a) PCIe SD card readers, matched with PCI class FFh (`userland/capsule_driver_rtsx/src/chip/id.rs:44-54`, `family`). It recognises 14 Realtek reader ids, a table its comment takes from Linux's rtsx_pci driver. A reader of the other 12 is named and left alone, rather than driven with another chip's register values (`userland/capsule_driver_rtsx/src/chip/id.rs:17-28`, `LINUX_IDS`).
+
+What it does: it takes the reader, brings the chip up and looks at the slot every 500 ms. A card that arrives is identified, its size logged and its first block read. A card that fails is powered down until it is reinserted (`userland/capsule_driver_rtsx/src/watch.rs:17-46`, `LOOK_MS`; `userland/capsule_driver_rtsx/src/report.rs:38-59`, `read_blocks`). It serves no block requests, and the kernel block layer has no backend for it (`src/hardware/block_device/backend.rs:17-23`, `Backend`). It holds no IRQ [capability](../../overview/glossary.md#capability) and polls the reader (`userland/capsule_driver_rtsx/Capsule.mk:14-15`, `CAPSULE_REQUIRED_CAPS`).
+
+It is not in the image. The driver capsules the build includes are listed in `mk/20-build.mk:528-547`, from `capsule_driver_virtio_rng` to `capsule_driver_nvme`; `capsule_driver_rtsx` is not among them, and no kernel feature or image build step names it. Its pure modules run in `userland/rtsx_proofs`, checked against values the crate takes from Linux's rtsx code and the SD specification; 26 tests pass on this commit.
+
+## The sd capsule is a text tool
+
+`userland/capsule_sd` is not an SD card driver. It is `sd`, the find-and-replace tool from crates.io, signed as a capsule (`userland/capsule_sd/Capsule.mk:30-32`, `CAPSULE_METADATA`).
+
+## See also
+
+- [Storage drivers](README.md)
+- [AHCI and Intel RST](ahci-and-rst.md)
+- [USB mass storage](usb-mass-storage.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
+- [Report a machine](../../hardware/report.md)

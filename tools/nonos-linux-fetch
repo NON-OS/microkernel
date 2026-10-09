@@ -28,10 +28,13 @@ nothing here runs a package's scripts.
 """
 
 import argparse
+import base64
+import hashlib
 import subprocess
 import sys
 import tarfile
 import urllib.request
+import zlib
 from pathlib import Path
 
 MIRROR = "https://dl-cdn.alpinelinux.org/alpine"
@@ -54,19 +57,56 @@ def index(cache: Path, release: str, arch: str, branch: str):
     with tarfile.open(tgz) as t:
         raw = t.extractfile("APKINDEX").read().decode(errors="replace")
     libs, pkgs = {}, {}
-    name = version = None
-    for line in raw.split("\n"):
-        if line.startswith("P:"):
-            name = line[2:]
-        elif line.startswith("V:"):
-            version = line[2:]
-            if name:
-                pkgs.setdefault(name, (name, version, base))
-        elif line.startswith("p:") and name and version:
-            for token in line[2:].split():
-                if token.startswith("so:"):
-                    libs.setdefault(token[3:].split("=")[0], (name, version, base))
+    for block in raw.split("\n\n"):
+        fields = {}
+        for line in block.split("\n"):
+            if len(line) > 2 and line[1] == ":":
+                fields.setdefault(line[0], line[2:])
+        name, version, checksum = fields.get("P"), fields.get("V"), fields.get("C", "")
+        if not (name and version):
+            continue
+        entry = (name, version, base, checksum)
+        pkgs.setdefault(name, entry)
+        for token in fields.get("p", "").split():
+            if token.startswith("so:"):
+                libs.setdefault(token[3:].split("=")[0], entry)
     return libs, pkgs
+
+
+def gzip_members(data: bytes) -> list:
+    """An .apk is gzip members laid end to end: the signature, the control
+    section, the data. Each one's compressed bytes, in order."""
+    out = []
+    while data:
+        d = zlib.decompressobj(31)
+        try:
+            d.decompress(data)
+        except zlib.error as e:
+            raise SystemExit(f"nonos-linux-fetch: a corrupt gzip member ({e})")
+        if not d.eof:
+            raise SystemExit("nonos-linux-fetch: a truncated gzip member")
+        used = len(data) - len(d.unused_data)
+        out.append(data[:used])
+        data = d.unused_data
+    return out
+
+
+def verify(apk: Path, checksum: str) -> None:
+    """Hold a package to its index: the index's C: field is Q1 and the base64
+    SHA-1 of the control section, and the control section's .PKGINFO names
+    the SHA-256 of the data section. Anything that does not chain refuses."""
+    if not checksum.startswith("Q1"):
+        raise SystemExit(f"nonos-linux-fetch: {apk.name}: the index carries no Q1 checksum")
+    members = gzip_members(apk.read_bytes())
+    if len(members) < 2:
+        raise SystemExit(f"nonos-linux-fetch: {apk.name}: not an apk")
+    control, data = members[-2], members[-1]
+    if base64.b64encode(hashlib.sha1(control).digest()).decode() != checksum[2:]:
+        raise SystemExit(f"nonos-linux-fetch: {apk.name}: control section does not match the index")
+    info = zlib.decompress(control, 31).decode(errors="replace")
+    want = next((l.split("=", 1)[1].strip() for l in info.split("\n") if l.startswith("datahash")), "")
+    if hashlib.sha256(data).hexdigest() != want:
+        raise SystemExit(f"nonos-linux-fetch: {apk.name}: data section does not match its datahash")
 
 
 def missing(pack: Path, sysroot: Path, programs) -> list:
@@ -105,8 +145,9 @@ def safe(member, dest: str):
     return member
 
 
-def install(sysroot: Path, cache: Path, package: str, version: str, base: str) -> bool:
+def install(sysroot: Path, cache: Path, package: str, version: str, base: str, checksum: str) -> bool:
     apk = fetch(f"{base}/{package}-{version}.apk", cache / f"{package}-{version}.apk")
+    verify(apk, checksum)
     with tarfile.open(apk) as t:
         members = [m for m in t.getmembers() if not m.name.startswith(".")]
         for m in members:
@@ -151,9 +192,9 @@ def main() -> int:
         if not found:
             print(f"linux-fetch: no package named {want}", file=sys.stderr)
             return 1
-        package, version, base = found
+        package, version, base, checksum = found
         print(f"  package {package} {version}")
-        install(args.sysroot, args.cache, package, version, base)
+        install(args.sysroot, args.cache, package, version, base, checksum)
     if not args.program:
         return 0
 
@@ -167,9 +208,9 @@ def main() -> int:
             found = provides.get(soname)
             if not found:
                 continue
-            package, version, base = found
+            package, version, base, checksum = found
             print(f"  {soname} -> {package} {version}")
-            install(args.sysroot, args.cache, package, version, base)
+            install(args.sysroot, args.cache, package, version, base, checksum)
             added += 1
         if added == 0:
             print("linux-fetch: nothing in the index provides:", file=sys.stderr)

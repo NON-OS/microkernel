@@ -82,6 +82,8 @@ pub fn run_gop_once() -> Result<Context, &'static str> {
         focus: FocusTable::new(),
         cursor: CursorTracker::at(width / 2, height / 2),
         attach: AttachCache::new(),
+        scale: 1,
+        screen: crate::sw_blitter::Surface::default(),
     })
 }
 

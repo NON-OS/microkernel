@@ -21,10 +21,13 @@
 //! link contract).
 
 pub mod desc;
+pub mod fcs;
 mod poll;
 pub mod regs;
 pub mod ring;
 mod setup;
 
+#[cfg(test)]
 pub use poll::poll_one;
+pub use poll::poll_one_info;
 pub use setup::program;

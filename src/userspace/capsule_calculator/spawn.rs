@@ -66,7 +66,8 @@ pub fn spawn_calculator_instance() -> Result<u32, SpawnError> {
             | Capability::IPC.bit()
             | Capability::Memory.bit()
             | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit(),
+            | Capability::GraphicsSurfaceCreate.bit()
+            | crate::capabilities::serial_debug_cap(),
         instances: CALCULATOR_INSTANCES,
         debug_tag: b"[CALCULATOR-INSTANCE] elf error:",
     })
@@ -89,7 +90,8 @@ pub fn spawn_calculator_capsule() -> Result<(), SpawnError> {
             | Capability::IPC.bit()
             | Capability::Memory.bit()
             | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit(),
+            | Capability::GraphicsSurfaceCreate.bit()
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

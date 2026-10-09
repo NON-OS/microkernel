@@ -33,3 +33,18 @@ pub fn decode_request(buf: &[u8]) -> Option<Request> {
         payload_len: u32::from_le_bytes(buf[16..20].try_into().ok()?),
     })
 }
+
+/// The request a frame `decode_request` refused is answered under: the op and request
+/// id it names, or zeros when it is too short to name them. Its caller is
+/// blocked in its call until a reply comes, so a refusal is answered too.
+pub fn refused(buf: &[u8]) -> Request {
+    let Some(h) = buf.first_chunk::<HDR_LEN>() else {
+        return Request { op: 0, flags: 0, request_id: 0, payload_len: 0 };
+    };
+    Request {
+        op: u16::from_le_bytes([h[6], h[7]]),
+        flags: u16::from_le_bytes([h[8], h[9]]),
+        request_id: u32::from_le_bytes([h[12], h[13], h[14], h[15]]),
+        payload_len: 0,
+    }
+}

@@ -26,28 +26,44 @@ use super::exec_load::load_over;
 use super::exec_resolve::resolve;
 
 pub fn execve(guest: &mut Guest, pid: u32, path: u64, argv: u64, envp: u64) -> Answer {
-    let Some(name) = crate::linux::file::read_path(guest, path) else {
-        return Answer::value(errno::fail(errno::EFAULT));
+    let name = match crate::linux::file::name_of(guest, path) {
+        Ok(name) => name,
+        Err(e) => return Answer::value(errno::fail(e)),
     };
     /*
      * argv and envp live in the memory that is about to be unmapped, so they
      * are copied out here and not one step later.
      */
-    let (Some(args), Some(env)) = (vector(guest, argv), vector(guest, envp)) else {
-        return Answer::value(errno::fail(errno::EFAULT));
+    let both = vector(&*guest, argv).and_then(|args| Ok((args, vector(&*guest, envp)?)));
+    let (args, env) = match both {
+        Ok(both) => both,
+        Err(e) => return Answer::value(errno::fail(e)),
     };
     /*
      * Found, followed through any `#!` line, and proved at every step, all
      * while the caller still has an address space to be told no in.
      */
-    let program = match resolve(&guest.cwd, &name, &args) {
+    let program = match resolve(&guest.links, &guest.cwd, &name, &args) {
         Ok(p) => p,
         Err(e) => return Answer::value(e),
     };
     super::exec_threads::reap(guest, pid);
     clear(guest);
     match load_over(guest, pid, &program, &env) {
-        Some(()) => Answer::Park,
+        Some(()) => {
+            released(guest, pid);
+            Answer::Park
+        }
         None => Answer::value(errno::fail(errno::ENOEXEC)),
+    }
+}
+
+/// The new program keeps what Linux keeps of the old one's signals, and a
+/// vfork parent waiting on this exec is let go with the child's pid.
+fn released(guest: &mut Guest, pid: u32) {
+    guest.signals.exec_reset(pid);
+    if let Some(parent) = guest.signals.vfork.take() {
+        let child = u64::from(crate::linux::serve::guest_pid(guest.pid));
+        let _ = nonos_libc::mk_foreign_reply(parent, child);
     }
 }

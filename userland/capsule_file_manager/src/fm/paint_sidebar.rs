@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::layout::{SIDEBAR_W, SIDE_FIRST_Y, SIDE_ROW_H};
+use super::layout::SIDEBAR_W;
 use super::sidebar_brand::paint_brand;
 use super::sidebar_model::SideKind;
 use super::sidebar_row_paint::{nav_row, rule, section_label};
@@ -45,14 +45,4 @@ pub fn paint_sidebar(state: &State, fb: &mut PaintBuffer) {
             SideKind::Storage => paint_storage(state, fb, row.y),
         }
     }
-}
-
-/// Superseded by `sidebar_rows::side_hit`, which accounts for the variable
-/// Favorites section. Kept for the callers still on the fixed-index geometry.
-pub fn place_at(y: u32) -> Option<&'static str> {
-    if y < SIDE_FIRST_Y.saturating_sub(6) {
-        return None;
-    }
-    let idx = ((y - SIDE_FIRST_Y.saturating_sub(6)) / SIDE_ROW_H) as usize;
-    PLACES.get(idx).map(|(_, p)| *p)
 }

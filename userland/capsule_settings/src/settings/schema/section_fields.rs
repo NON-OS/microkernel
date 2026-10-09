@@ -16,37 +16,65 @@
 
 use nonos_policy_proto::Field;
 
+use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
+
 use crate::settings::section::Section;
 
 use super::blocks_for::blocks_for;
 use super::rows::Row;
 
-/// How many editable rows a section has. The cursor indexes this list, and the
-/// pane walks the same block tables, so the two cannot disagree about which row
-/// is which.
+/// A row the cursor stops on: a field, or one wallpaper of the collection.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Slot {
+    Field(Field),
+    Wallpaper(u8),
+}
+
+/// How many rows the cursor stops on in a section. The cursor indexes this
+/// list, and the pane walks the same block tables, so the two cannot disagree
+/// about which row is which.
 pub fn field_count(section: Section) -> usize {
     let mut n = 0;
     for b in blocks_for(section) {
         for r in b.rows {
-            if matches!(r, Row::Field(_)) {
-                n += 1;
-            }
+            n += stops(r);
         }
     }
     n
 }
 
-pub fn field_at(section: Section, index: usize) -> Option<Field> {
+/// The row the cursor's `index` names.
+pub fn slot_at(section: Section, index: usize) -> Option<Slot> {
     let mut n = 0;
     for b in blocks_for(section) {
         for r in b.rows {
-            if let Row::Field(f) = r {
-                if n == index {
-                    return Some(*f);
-                }
-                n += 1;
+            let k = stops(r);
+            if index < n + k {
+                return match r {
+                    Row::Field(f) => Some(Slot::Field(*f)),
+                    Row::Wallpapers => Some(Slot::Wallpaper((index - n) as u8)),
+                    _ => None,
+                };
             }
+            n += k;
         }
     }
     None
+}
+
+/// The field the cursor's `index` names, if that row is a field.
+pub fn field_at(section: Section, index: usize) -> Option<Field> {
+    match slot_at(section, index)? {
+        Slot::Field(f) => Some(f),
+        Slot::Wallpaper(_) => None,
+    }
+}
+
+/// How many cursor stops a row is.
+fn stops(r: &Row) -> usize {
+    match r {
+        Row::Field(_) => 1,
+        Row::Wallpapers => WALLPAPER_LABELS.len(),
+        _ => 0,
+    }
 }

@@ -19,8 +19,8 @@ use nonos_toolkit::font::ttf::line_height;
 
 use super::history_row;
 use crate::calc::state::State;
-use crate::calc::theme::{FAINT, LINE_2, PANEL};
-use crate::calc::ui::history_geom::{capacity, pane, PAD};
+use crate::calc::theme::{FAINT, LINE_2, LINE_3, PANEL};
+use crate::calc::ui::history_geom::{capacity, entry_at, max_scroll, pane, PAD};
 use crate::calc::ui::metrics::{PX_BODY, R_PANEL};
 
 const EMPTY: &str = "No calculations yet";
@@ -31,16 +31,34 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     fb.panel(x as u32, y as u32, w as u32, h as u32, R_PANEL as u32, PANEL, LINE_2);
-    if state.history.len() == 0 {
+    if state.history.is_empty() {
         let lh = line_height(PX_BODY).max(1);
         let tx = x + (w - fb.measure_ttf(EMPTY, PX_BODY)) / 2;
         fb.text_ttf(tx, y + (h - lh) / 2, EMPTY, FAINT, PX_BODY);
         return;
     }
-    let rows = capacity(fb.height as i32).min(state.history.len());
+    let rows = capacity(fb.height as i32);
     for i in 0..rows {
-        if let Some(entry) = state.history.get(i) {
+        if let Some(entry) = state.history.get(entry_at(state.history_scroll, i)) {
             history_row::paint(state, fb, i, entry);
         }
     }
+    thumb(state, fb, (x, y, w, h), rows);
+}
+
+/// A slim bar on the pane's right edge when the ring holds more than the page
+/// shows: where the page is among all of them, and that there is more.
+fn thumb(state: &State, fb: &mut PaintBuffer, pane: (i32, i32, i32, i32), rows: usize) {
+    let len = state.history.len();
+    if rows == 0 || len <= rows {
+        return;
+    }
+    let (x, y, w, h) = pane;
+    let track = h - PAD * 2;
+    let size = (track * rows as i32 / len as i32).max(12);
+    let top = y
+        + PAD
+        + (track - size) * state.history_scroll as i32
+            / max_scroll(len, fb.height as i32).max(1) as i32;
+    fb.fill_round((x + w - 6) as u32, top as u32, 3, size as u32, 1, LINE_3);
 }

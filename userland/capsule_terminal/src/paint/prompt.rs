@@ -19,6 +19,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::line_text::text;
+use super::user_host::draw_id;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
@@ -56,8 +57,13 @@ pub fn draw_prompt(
     // The mark takes the colour of what the last command did, so a reader who
     // looked away while it ran learns the outcome where they are about to
     // type rather than by finding the block it came from.
+    // Who, where, then the mark and a space: `ek@nonos ~/src % `. Read the
+    // other way round, `>~`, it looked like a redirect into a file named `~`.
     let mark = if state.last_status == 0 { t.accent } else { t.err };
-    text(fb, ox, y, b">", mark, adv, px);
-    text(fb, ox + adv, y, &cwd[cwd.len() - take..], t.path, adv, px);
-    1 + take + 1
+    let id = draw_id(fb, ox, y, adv, px, room.max(1), t);
+    let take = take.min(room.max(1) - id);
+    let x = ox + id as u32 * adv;
+    text(fb, x, y, &cwd[cwd.len() - take..], t.path, adv, px);
+    text(fb, x + (take as u32 + 1) * adv, y, b"%", mark, adv, px);
+    id + take + 3
 }

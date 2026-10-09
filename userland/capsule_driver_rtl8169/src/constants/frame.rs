@@ -18,5 +18,10 @@ const ETH_HEADER_LEN: usize = 14;
 const MTU: usize = 1500;
 
 pub const MAC_LEN: usize = 6;
-pub const MIN_ETHERNET_FRAME: usize = 60;
+/// A bare header is the shortest frame taken; ARP (42) and a bare TCP ACK (54)
+/// are shorter than the wire minimum, and refusing them stranded IPv4.
+pub const MIN_ETHERNET_FRAME: usize = ETH_HEADER_LEN;
+/// `send` pads to this: several 8168 revisions do not pad short frames right
+/// (Linux pads them in software for the same reason).
+pub const MIN_WIRE_FRAME: usize = 60;
 pub const MAX_ETHERNET_FRAME: usize = MTU + ETH_HEADER_LEN;

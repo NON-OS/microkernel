@@ -30,10 +30,6 @@ pub fn parent_dir(path: &str) -> &str {
     }
 }
 
-pub fn is_media(path: &str) -> bool {
-    kind_of(file_name(path)).is_some()
-}
-
 pub fn is_playable(path: &str) -> bool {
     kind_of(file_name(path)).is_some_and(|k| k.decodable())
 }

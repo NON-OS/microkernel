@@ -14,41 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
-
-use nonos_toolkit::image::{bmp, gif, jpeg, png};
-
 use super::sniff::{probe, Format};
 use super::store::Decoded;
 
-// Refuse rasters beyond this many pixels rather than allocate a huge buffer.
-const MAX_PIXELS: u64 = 4_000_000;
+use super::decode_full as full;
 
-// Decode raw image bytes (PNG/JPEG/BMP/GIF/SVG) into an ARGB8888 raster. The
-// hint is the largest box the page draws this image into; only the vector
-// path uses it, since rasters carry their own natural size.
-pub(super) fn decode_body(bytes: &[u8], hint: (u32, u32)) -> Result<Decoded, &'static str> {
+/// An image's natural size from its header, before any pixel is decoded:
+/// SVG from its viewBox or width/height, an icon from its largest entry,
+/// rasters from their own headers.
+pub fn natural(bytes: &[u8]) -> Option<(u32, u32)> {
     if super::svg::is_svg(bytes) {
-        return super::svg::decode_svg(bytes, hint).ok_or("svg parse failed");
+        return super::svg::natural_size(bytes);
+    }
+    if super::ico::is_ico(bytes) {
+        return super::ico::pick(bytes).map(|(w, h, _)| (w, h));
+    }
+    probe(bytes).map(|p| (p.w, p.h)).filter(|&(w, h)| w > 0 && h > 0)
+}
+
+/// Decode to exactly `size` (a size from plan::target, never larger than
+/// natural): vector art rasterizes there, a JPEG decodes near it through
+/// its IDCT, everything else decodes whole and is box-filtered down.
+pub(super) fn decode_to(bytes: &[u8], size: (u32, u32)) -> Result<Decoded, &'static str> {
+    if super::svg::is_svg(bytes) {
+        return super::svg::decode_svg(bytes, size).ok_or("svg parse failed");
+    }
+    if super::ico::is_ico(bytes) {
+        return full::ico(bytes, size);
     }
     let p = probe(bytes).ok_or("unknown image format")?;
-    if p.w == 0 || p.h == 0 {
-        return Err("bad image dimensions");
+    match p.format {
+        Format::Jpeg => super::jpeg::decode_jpeg(bytes, size),
+        Format::Webp => super::webp::decode_webp(bytes, size).ok_or("webp decode failed"),
+        _ => full::raster(bytes, p, size),
     }
-    if p.w as u64 * p.h as u64 > MAX_PIXELS {
-        return Err("image too large");
-    }
-    if p.format == Format::Webp {
-        return super::webp::decode_webp(bytes).ok_or("webp decode unsupported");
-    }
-    let mut px = vec![0u32; p.w as usize * p.h as usize];
-    let size = match p.format {
-        Format::Png => png::decoder::decode_png_argb8888(bytes, &mut px),
-        Format::Jpeg => jpeg::decode_jpeg_argb8888(bytes, &mut px),
-        Format::Bmp => bmp::decode_bmp_argb8888(bytes, &mut px),
-        Format::Gif => gif::decode_gif_argb8888(bytes, &mut px),
-        Format::Webp => return Err("webp decode unsupported"),
-    }
-    .map_err(|_| "image decode failed")?;
-    Ok(Decoded { w: size.width, h: size.height, px })
+}
+
+/// The whole path for a body with no store: natural size, the size the
+/// display hint asks for, and the decode. Host harnesses decode this way.
+#[cfg(feature = "harness")]
+pub fn decode_body(bytes: &[u8], hint: (u32, u32)) -> Result<Decoded, &'static str> {
+    use super::plan::{target, MAX_RASTER_PX};
+    let nat = natural(bytes).ok_or("unknown image format")?;
+    decode_to(bytes, target(nat, hint, MAX_RASTER_PX))
 }

@@ -18,6 +18,12 @@
 pub(super) enum Nav {
     Up,
     Down,
+    First,
+    Last,
+    /// A digit key: the entry at this index.
+    Jump(usize),
     Enter,
+    /// A key that only stops the countdown.
+    Stop,
     None,
 }

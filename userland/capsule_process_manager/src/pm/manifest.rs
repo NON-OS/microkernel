@@ -16,8 +16,8 @@
 
 use nonos_app_skeleton::{AppManifest, WindowKind};
 
-pub const WIDTH: u32 = 1240;
-pub const HEIGHT: u32 = 780;
+// The window opens at the size the layout and its proofs are drawn for.
+use super::ui::metrics::{WIN_H, WIN_W};
 
 // Keys drive the table; buttons sort/select by click, the wheel scrolls, and the
 // absolute pointer keeps the button coordinates current.
@@ -33,8 +33,8 @@ pub fn manifest() -> AppManifest {
         kind: WindowKind::Normal,
         initial_x: 340,
         initial_y: 210,
-        width: WIDTH,
-        height: HEIGHT,
+        width: WIN_W,
+        height: WIN_H,
         input_kind_mask: INPUT_KEY_DOWN_BIT
             | INPUT_BUTTON_DOWN_BIT
             | INPUT_WHEEL_BIT

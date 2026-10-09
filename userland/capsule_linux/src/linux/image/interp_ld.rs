@@ -29,10 +29,19 @@ const MAX_IMAGE: u32 = 64 << 20;
 
 /// Where the interpreter's entry point ended up.
 pub(super) fn place(guest: &mut Guest, path: &[u8]) -> Result<u64, LoadError> {
-    // Already confined: the path came out of the guest's own image.
-    let at = visible(b"/", path);
+    // Confined by `visible`, and followed through the guest's links: Debian
+    // names its loader by /lib64, a link into /usr. The loader is proved by
+    // the path it resolves to, never the link's.
+    let at = guest.links.follow(visible(b"/", path), true);
     let raw: Vec<u8> = store_read(&key(&at), MAX_IMAGE).map_err(|_| LoadError::Interp)?;
-    if crate::linux::attest::verify(&at, &raw).is_err() {
+    if let Err(why) = crate::linux::attest::verify(&at, &raw) {
+        // Which interpreter, and whether its proof was missing or refused.
+        let mut line = alloc::vec::Vec::from(&b"[LINUX] interpreter "[..]);
+        line.extend_from_slice(&at);
+        line.extend_from_slice(b": ");
+        line.extend_from_slice(why.as_bytes());
+        line.push(b'\n');
+        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
         return Err(LoadError::Unproven);
     }
     let ld = load_at(guest, &raw, INTERP_BASE).map_err(|_| LoadError::Interp)?;

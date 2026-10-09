@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::handoff::types::Module;
-use crate::zk::BootAttestationResult;
+use crate::boot::attestation::BootAttestationResult;
+use crate::handoff::types::{AttestPolicy, InstallHandoff};
 
 pub struct HandoffParams {
     pub signature_valid: bool,
     pub secure_boot: bool,
     pub kernel_hash: [u8; 32],
-    pub zk_result: BootAttestationResult,
+    pub attestation: BootAttestationResult,
+    pub policy: AttestPolicy,
     pub tpm_measured: bool,
-    /// The loader image and the kernel image file, as loaded, for the
-    /// installer. Both sit in loader memory the kernel never reclaims.
-    pub install_source: [Module; 2],
+    /*
+     * The loader image and the kernel image file, as loaded, for the
+     * installer, and whether the boot menu asked for an install. Both
+     * images sit in loader memory the kernel never reclaims.
+     */
+    pub install: InstallHandoff,
 }

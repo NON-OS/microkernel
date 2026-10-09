@@ -51,6 +51,10 @@ pub fn label_of(field: Field) -> &'static [u8] {
         Field::AudioBalance => b"Balance",
         Field::AlertSounds => b"Alert sounds",
         Field::StartupChime => b"Startup chime",
+        Field::Persistent => b"Keep data across reboots",
+        Field::AppsOff => b"Apps turned off at setup",
+        Field::WallpapersKept => b"Wallpapers kept",
+        Field::NetworkRoute => b"Default network",
         Field::KernelAslr => b"Kernel ASLR",
         Field::KernelStackGuard => b"Stack guard pages",
         Field::KernelNxBit => b"NX bit enforcement",
@@ -65,5 +69,7 @@ pub fn label_of(field: Field) -> &'static [u8] {
         Field::KernelSeccomp => b"Seccomp syscall filter",
         Field::Hostname => b"Hostname",
         Field::DomainName => b"Domain name",
+        Field::Username => b"Your name",
+        Field::QwenTier => b"Qwen model",
     }
 }

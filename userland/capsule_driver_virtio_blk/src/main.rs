@@ -26,38 +26,38 @@ mod queue;
 mod regs;
 mod server;
 mod setup;
-use nonos_libc::{heap_init, mk_debug, mk_exit, mk_yield};
+mod transport;
+mod vectors;
+use nonos_libc::{bring_up, heap_init, mk_debug, mk_exit, EXIT_ABSENT, EXIT_GAVE_UP};
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    let mut last: &'static str = "";
-    let mut rounds: u32 = 0;
-    let mut driver = loop {
-        match setup::run() {
-            Ok(d) => break d,
-            Err(step) => {
-                // A silent retry here reads as a store that never comes up,
-                // and everything above it, vfs and the desktop listing, reads
-                // as its own timeout. Say what failed, once per change and
-                // then every 64 rounds.
-                if step != last || rounds % 64 == 0 {
-                    let mut line = [0u8; 96];
-                    let tag = b"[BLK] setup stuck: ";
-                    let n = tag.len();
-                    line[..n].copy_from_slice(tag);
-                    let m = step.len().min(line.len() - n);
-                    line[n..n + m].copy_from_slice(&step.as_bytes()[..m]);
-                    let _ = mk_debug(line.as_ptr(), n + m);
-                    last = step;
-                }
-                rounds = rounds.wrapping_add(1);
-                for _ in 0..64 {
-                    mk_yield();
-                }
-            }
-        }
+    // The broker lists every PCI function before the first capsule starts:
+    // with no usable virtio-blk there is nothing to wait for.
+    if discover::find_virtio_blk().is_none() {
+        mk_exit(EXIT_ABSENT);
+    }
+    // The old loop retried forever, yielding through each backoff rather
+    // than sleeping it. The shared bring-up sleeps between a bounded number
+    // of attempts, each of which releases what it claimed, and gives up by
+    // name. A silent retry reads as a store that never comes up, and
+    // everything above it, vfs and the desktop listing, as its own timeout,
+    // so each failed attempt still says what failed.
+    let attempt = || setup::run().inspect_err(|step| say_stuck(step));
+    let Ok(mut driver) = bring_up(b"driver.virtio_blk0", attempt) else {
+        mk_exit(EXIT_GAVE_UP);
     };
     server::run(&mut driver);
+}
+
+fn say_stuck(step: &str) {
+    let mut line = [0u8; 96];
+    let tag = b"[BLK] setup stuck: ";
+    let n = tag.len();
+    line[..n].copy_from_slice(tag);
+    let m = step.len().min(line.len() - n);
+    line[n..n + m].copy_from_slice(&step.as_bytes()[..m]);
+    let _ = mk_debug(line.as_ptr(), n + m);
 }

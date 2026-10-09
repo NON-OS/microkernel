@@ -17,7 +17,7 @@
 //! Rewriting the flags of a mapping in the running address space.
 
 use super::super::super::core::PagingManager;
-use super::super::super::shootdown::flush_tlb_one_smp;
+use super::super::super::pending_flush::PendingFlush;
 use super::super::super::tlb_scope::mutation_asid;
 use crate::arch::paging::descriptor;
 use crate::memory::addr::VirtAddr;
@@ -25,15 +25,23 @@ use crate::memory::paging::constants::pte_address;
 use crate::memory::paging::error::PagingResult;
 
 impl PagingManager {
-    pub(in super::super) fn update_pte(&self, va: VirtAddr, new_flags: u64) -> PagingResult<()> {
+    pub(in super::super) fn update_pte(
+        &self,
+        va: VirtAddr,
+        new_flags: u64,
+    ) -> PagingResult<PendingFlush> {
         let (entry, size_bit) = self.leaf_for(va)?;
         // SAFETY: eK@nonos.systems - `leaf_for` hands back a pointer to
         // a present entry in a live table, reached through the directmap.
         unsafe {
             *entry = descriptor::leaf(pte_address(*entry), new_flags | size_bit);
         }
-        // One invalidation for one write.
-        flush_tlb_one_smp(va, mutation_asid(va, Some(crate::smp::percpu::active_asid())));
-        Ok(())
+        /*
+         * One invalidation for one write, owed whatever the change: the entry
+         * was present, so any cpu running the asid may cache it, and even a
+         * widening leaves a peer faulting on its cached narrower entry.
+         */
+        let asid = mutation_asid(va, Some(crate::smp::percpu::active_asid()));
+        Ok(PendingFlush::one_local_now(va, asid))
     }
 }

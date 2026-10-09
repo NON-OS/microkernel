@@ -48,7 +48,7 @@ pub fn run(driver: Driver) -> ! {
     loop {
         pump(&mut ctx, &mut prev_buttons);
         let n = mk_ipc_recv(0, rx.as_mut_ptr(), rx_len, POLL_IDLE_MS);
-        if n <= 0 {
+        if !nonos_libc::recv_ready(n) {
             let _ = mk_irq_wait(0, wait_seq, IRQ_WAIT_MS, &mut wait_seq);
             continue;
         }

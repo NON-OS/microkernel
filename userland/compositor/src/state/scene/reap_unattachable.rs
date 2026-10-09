@@ -18,11 +18,18 @@ use super::layer::Layer;
 use super::table::SceneTable;
 
 impl SceneTable {
+    // Drop every layer whose surface has not attached for `threshold` paints in
+    // a row (its owner died, or released the surface without a scene remove),
+    // and hand each dropped layer back whole: the caller forgets its handle and
+    // repaints its rectangle. The rectangle matters as much as the handle. The
+    // layer's last pixels are still on screen, and only a repaint of where it
+    // was takes them off; reporting the handle alone left a dead window drawn
+    // until the next periodic full frame, several seconds later.
     pub fn reap_unattachable(
         &mut self,
         attached: &[u64],
         threshold: u16,
-        dropped: &mut [u64],
+        dropped: &mut [Layer],
     ) -> usize {
         let mut n = 0;
         for slot in self.entries.iter_mut() {
@@ -35,7 +42,7 @@ impl SceneTable {
             }
             slot.miss_count = slot.miss_count.saturating_add(1);
             if slot.miss_count >= threshold && n < dropped.len() {
-                dropped[n] = slot.surface_handle;
+                dropped[n] = *slot;
                 n += 1;
                 *slot = Layer::default();
                 self.count = self.count.saturating_sub(1);

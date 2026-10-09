@@ -18,6 +18,6 @@ use super::types::Scrollback;
 
 impl Scrollback {
     pub fn jump_bottom(&mut self) {
-        self.grid.jump_view_bottom();
+        self.vt.scroll_to_bottom();
     }
 }

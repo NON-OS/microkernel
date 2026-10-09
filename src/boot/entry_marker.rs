@@ -25,6 +25,8 @@ use crate::boot::handoff::BootHandoffV1;
 const SEG_WIDTH: u32 = 180;
 const SEG_GAP: u32 = 20;
 const SEG_HEIGHT: u32 = 10;
+/// nonos-bootloader/src/paging/fb_window.rs IDENTITY_FB_LIMIT.
+const BOOT_IDENTITY_FB_LIMIT: u64 = 1 << 47;
 
 /// Paint breadcrumb segment `n` by raw write to the framebuffer's physical
 /// address. Only valid before the kernel installs its own page tables,
@@ -49,6 +51,14 @@ pub fn paint(handoff: &BootHandoffV1, n: u32, argb: u32) {
     };
     if x_end > fb.width || SEG_HEIGHT > fb.height {
         return;
+    }
+    // Written through the bootloader's identity map, which reaches the
+    // framebuffer only in the canonical low half (its fb_window rule); a
+    // frame past that is skipped rather than faulted on before the IDT.
+    let frame = (fb.stride as u64).saturating_mul(SEG_HEIGHT as u64);
+    match fb.ptr.checked_add(frame) {
+        Some(end) if end <= BOOT_IDENTITY_FB_LIMIT => {}
+        _ => return,
     }
     let row_px = (fb.stride / 4) as u64;
     let base = fb.ptr as *mut u32;

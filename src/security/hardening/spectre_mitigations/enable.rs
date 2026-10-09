@@ -43,15 +43,16 @@ pub fn enable_mitigations() -> MitigationStatus {
         status.ssbd_enabled = true;
     }
 
-    // These two are buffer-clearing operations rather than modes: the entry
-    // and exit hooks issue VERW and the L1D flush, and both check the same
-    // CPUID bit before doing so. Recording support here is therefore also
-    // recording that the hook will act.
+    // These two are buffer-clearing operations rather than modes, and both
+    // record CPU support only. The exit hook issues VERW when md_clear is
+    // present, and it runs on exec_process's first jump to user mode, not on
+    // the syscall return path. l1d_flush has no caller, so L1D support is
+    // recorded and the flush is never issued.
     status.mds_clear_enabled = cpuid::has_md_clear();
     status.l1d_flush_enabled = cpuid::has_l1d_flush();
 
-    // Unconditional: the hooks refill the return stack buffer with no feature
-    // check, and both sides of the privilege boundary call them.
+    // Unconditional: kernel_entry_mitigations refills the return stack buffer
+    // with no feature check on every syscall entry. The exit hook does not.
     status.rsb_stuffing_enabled = true;
 
     // KPTI stays false because this kernel does not implement it. It was

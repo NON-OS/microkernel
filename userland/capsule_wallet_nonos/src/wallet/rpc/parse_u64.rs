@@ -17,6 +17,11 @@
 pub fn parse_u64(resp: &[u8]) -> Option<u64> {
     let value = super::find_result::find_result(resp)?;
     let hex = value.strip_prefix(b"0x")?;
+    // "0x" with no digits is no number (an eth_call to an address with no code
+    // answers it); zero is "0x0".
+    if hex.is_empty() {
+        return None;
+    }
     let mut out = 0u64;
     for b in hex {
         let v = match *b {

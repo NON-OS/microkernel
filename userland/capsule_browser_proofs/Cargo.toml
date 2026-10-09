@@ -23,7 +23,18 @@ harness = []
 nonos_toolkit = { path = "../toolkit", default-features = false }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 nonos_inflate = { path = "../inflate" }
+# The route link's own rule for short .anyone names, through short_name.
+nonos_route_link = { path = "../nonos_route_link" }
+nonos_brotli = { path = "../nonos_brotli" }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+# The TLS client, from its real source, with the crypto pool's own handlers
+# answering its calls: the fetch machine is proven against real handshakes.
+tls_proofs = { path = "../tls_proofs" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+
+[dev-dependencies]
+# The keyboard layout tables the drivers resolve through, so the address bar's
+# text input is checked against the exact characters a keyboard delivers.
+nonos_keymap = { path = "../nonos_keymap" }

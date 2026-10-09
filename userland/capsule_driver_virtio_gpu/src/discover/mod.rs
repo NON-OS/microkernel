@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bar_select;
+mod bars;
 mod found;
 mod match_device;
 mod search;

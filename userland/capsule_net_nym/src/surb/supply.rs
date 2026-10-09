@@ -23,28 +23,11 @@ use crate::crypto::random::fill_random;
 use crate::mixnet::{route_home, seal::hop_delays_for};
 use crate::sphinx::constants::DESTINATION_ADDRESS_LENGTH;
 
-/// Reply blocks the far end keeps in reserve and will not spend.
+/// Build `count` reply blocks, to travel with a request or as a top up.
 ///
-/// A recipient holds this many back so it always has a way to ask for more,
-/// and refuses to answer at all rather than spend its last ones. Sending
-/// fewer than this is the same as sending none: everything arrives, every
-/// packet is acknowledged, and no answer is ever sent, because the far end
-/// never has one it is willing to use.
-const RESERVE_HELD_BY_RECIPIENT: usize = 10;
-
-/// Reply blocks a request carries beyond that reserve.
-///
-/// Each one is a single use route home, so this is the budget for how much
-/// the far end may say back before it has to ask for more. Too few and a
-/// reply larger than the budget cannot be delivered; too many and every
-/// request pays for capacity it will not use, in packets that all have to be
-/// built and sent.
-const USABLE_FOR_A_REPLY: usize = 14;
-
-/// How many reply blocks a request carries.
-pub const SURBS_PER_REQUEST: usize = RESERVE_HELD_BY_RECIPIENT + USABLE_FOR_A_REPLY;
-
-/// Build the reply blocks that travel with a request.
+/// How many a request carries is the budget's to decide (`budget.rs`): the
+/// far end holds a reserve of them it will not spend, and every block past
+/// what it will spend is a kilobyte sent for nothing.
 ///
 /// Each block gets its own route, so the far end cannot tell from two blocks
 /// that they lead to the same place. The keys are kept here because a reply
@@ -53,9 +36,10 @@ pub const SURBS_PER_REQUEST: usize = RESERVE_HELD_BY_RECIPIENT + USABLE_FOR_A_RE
 pub fn build_supply(
     gateway_identity: &[u8; 32],
     our_identity: &[u8; DESTINATION_ADDRESS_LENGTH],
+    count: usize,
 ) -> Option<Vec<Vec<u8>>> {
-    let mut out = Vec::with_capacity(SURBS_PER_REQUEST);
-    for _ in 0..SURBS_PER_REQUEST {
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
         let mut seed = [0u8; 32];
         fill_random(&mut seed).ok()?;
         let home = route_home(&seed, gateway_identity)?;

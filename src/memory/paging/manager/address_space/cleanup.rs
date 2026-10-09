@@ -22,11 +22,21 @@ use crate::memory::paging::error::{PagingError, PagingResult};
 
 impl PagingManager {
     pub fn cleanup_address_space(&mut self, asid: u32) -> PagingResult<()> {
+        self.cleanup_address_space_keeping(asid, &[])
+    }
+
+    /// Frees `asid`'s tables and leaf frames, except the frames in `keep`
+    /// (sorted), which another process still maps.
+    pub fn cleanup_address_space_keeping(
+        &mut self,
+        asid: u32,
+        keep: &[crate::memory::addr::PhysAddr],
+    ) -> PagingResult<()> {
         if asid == KERNEL_ASID {
             return Err(PagingError::KernelSpaceViolation);
         }
         if let Some(address_space) = self.address_spaces.remove(&asid) {
-            teardown_user_half(address_space.cr3_value);
+            teardown_user_half(address_space.cr3_value, keep);
             let _ = frame_alloc::deallocate_frame(address_space.cr3_value);
         }
         Ok(())

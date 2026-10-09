@@ -14,27 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use super::bits::Bits;
 use super::codes::codes;
-use super::huff::build;
+use super::huff_build::build;
+use super::meta;
+use super::out::Out;
+use super::tables::Codes;
+use super::types::End;
 
-pub fn fixed(b: &mut Bits, out: &mut Vec<u8>) -> Option<()> {
-    let mut ll = [0u8; 288];
-    for item in ll.iter_mut().take(144) {
-        *item = 8;
-    }
-    for item in ll.iter_mut().take(256).skip(144) {
-        *item = 9;
-    }
-    for item in ll.iter_mut().take(280).skip(256) {
-        *item = 7;
-    }
-    for item in ll.iter_mut().skip(280) {
-        *item = 8;
-    }
-    let lit = build(&ll);
-    let dist = build(&[5u8; 30]);
-    codes(b, out, &lit, &dist)
+/// A block coded with the fixed Huffman codes of RFC 1951 3.2.6.
+pub fn fixed(b: &mut Bits, out: &mut Out, c: &mut Codes) -> Result<(), End> {
+    let mut ll = [8u8; 288];
+    ll[144..256].fill(9);
+    ll[256..280].fill(7);
+    build(&mut c.lit, &ll, meta::litlen)?;
+    build(&mut c.dist, &[5u8; 30], meta::dist)?;
+    codes(b, out, &c.lit, &c.dist)
 }

@@ -18,5 +18,6 @@ mod clock;
 mod hid_record;
 mod record;
 mod register;
+mod report;
 
 pub use register::register_acpi_i2c;

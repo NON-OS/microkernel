@@ -20,11 +20,7 @@ yanked = "deny"
 # the entry. Vulnerabilities (severity-bearing) stay blocking; the
 # entries below are unmaintained / unsound categorisations on
 # build-time or off-trusted-path transitives.
-ignore = [
-    { id = "RUSTSEC-2025-0056", reason = "adler 1.0.2, unmaintained. Path: nonos_kernel -> miniz_oxide -> adler. miniz_oxide is the gzip codec used for kernel image compression in build artefacts; not on the microkernel runtime path. Drop when miniz_oxide releases against adler2." },
-    { id = "RUSTSEC-2024-0388", reason = "derivative 2.2.0, unmaintained legacy transitive. Not on the microkernel runtime path. Drop once the dependency graph no longer pulls it." },
-    { crate = "spin@0.9.8", reason = "spin 0.9.8 is the latest release and was yanked upstream with no non-yanked successor. Path: nonos_kernel -> lazy_static -> spin, a spinlock primitive rather than a security defect. Drop once a non-yanked spin is published." },
-]
+ignore = []
 
 [licenses]
 # Anything not in this list trips the licenses check. AGPL-3.0 is the
@@ -33,19 +29,15 @@ ignore = [
 allow = [
     "0BSD",                          # smoltcp 0.11.0, managed 0.8.0 (BSD Zero Clause; OSI-approved, public-domain-equivalent)
     "AGPL-3.0",                      # this crate
+    "AGPL-3.0-or-later",             # nonos-boot-measure, nonos-attest-path, STARKs nox_verify
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
-    "BSD-2-Clause",
     "BSD-3-Clause",
     "CC0-1.0",
-    "ISC",
     "MIT",
     "MIT-0",
-    "MPL-2.0",
     "Unicode-3.0",
-    "Unicode-DFS-2016",
     "Unlicense",
-    "Zlib",
 ]
 confidence-threshold = 0.93
 exceptions = []
@@ -58,6 +50,8 @@ license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 [bans]
 multiple-versions = "warn"
 wildcards = "deny"
+# Path dependencies are workspace crates, all publish = false.
+allow-wildcard-paths = true
 highlight = "all"
 allow = []
 deny = [
@@ -75,4 +69,4 @@ skip-tree = []
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
-allow-git = []
+allow-git = ["https://github.com/NON-OS/STARKs.git"]

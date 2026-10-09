@@ -14,40 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_keymap::HeldKeys;
 use nonos_libc::{INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP};
 
 use super::key_event::KeyEvent;
 use super::keymap;
 use super::post_wire::send;
+use super::usage_keycode::usage_keycode;
 
-const KEY_LEFT: u32 = 0xE000;
-const KEY_RIGHT: u32 = 0xE001;
-const KEY_UP: u32 = 0xE002;
-const KEY_DOWN: u32 = 0xE003;
-const KEY_HOME: u32 = 0xE004;
-const KEY_END: u32 = 0xE005;
-const KEY_DELETE: u32 = 0xE006;
-const KEY_PAGE_UP: u32 = 0xE007;
-const KEY_PAGE_DOWN: u32 = 0xE008;
-
-pub fn publish(ev: KeyEvent) -> bool {
+pub fn publish(ev: KeyEvent, held: &mut HeldKeys) -> bool {
+    // A release carries the code its press went down with. Resolved again it
+    // differed for every Enter, Escape, Backspace and Tab (a release has no
+    // ASCII byte, so it posted the raw usage) and for a letter let go after
+    // Shift: the router could not pair it with its press, and a Wayland
+    // client held the key, repeating it, for good.
+    let posts = held.event(u32::from(ev.scancode), !ev.pressed, key_code(ev));
+    let flags = flags(ev.modifiers, ev.caps);
+    let mut ok = true;
+    if let Some(code) = posts.release_first {
+        ok &= send(INPUT_KIND_KEY_UP, flags, code, 0, 0);
+    }
+    let Some(code) = posts.code else { return ok };
     let kind = if ev.pressed { INPUT_KIND_KEY_DOWN } else { INPUT_KIND_KEY_UP };
-    send(kind, flags(ev.modifiers, ev.caps), key_code(ev), 0, 0)
+    ok & send(kind, flags, code, 0, 0)
 }
 
 fn key_code(ev: KeyEvent) -> u32 {
-    match ev.scancode {
-        0x4a => KEY_HOME,
-        0x4b => KEY_PAGE_UP,
-        0x4c => KEY_DELETE,
-        0x4d => KEY_END,
-        0x4e => KEY_PAGE_DOWN,
-        0x4f => KEY_RIGHT,
-        0x50 => KEY_LEFT,
-        0x51 => KEY_DOWN,
-        0x52 => KEY_UP,
-        _ => resolved_or_usage(ev),
-    }
+    usage_keycode(ev.scancode).unwrap_or_else(|| resolved_or_usage(ev))
 }
 
 // Printable keys post their layout-resolved codepoint (which may be

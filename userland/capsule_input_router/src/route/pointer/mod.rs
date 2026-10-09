@@ -18,6 +18,7 @@ mod constants;
 mod hover_motion;
 mod mirror_shell_pointer;
 mod refresh_display;
+mod release_under_grab;
 mod route_pointer;
 mod route_to_press;
 mod route_to_shell;
@@ -25,5 +26,6 @@ mod route_to_window;
 mod shell_pid;
 mod topmost_target;
 
+pub(super) use release_under_grab::release_under_grab;
 pub use route_pointer::route_pointer;
 pub(super) use shell_pid::shell_pid;

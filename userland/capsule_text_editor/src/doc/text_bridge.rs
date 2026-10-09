@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use crate::doc::block::Block;
 use crate::doc::document::Doc;
 use crate::doc::kind::BlockKind;
@@ -23,7 +21,7 @@ use crate::doc::style::RunStyle;
 
 fn heading_level(line: &str) -> u8 {
     let hashes = line.bytes().take_while(|c| *c == b'#').count();
-    if hashes >= 1 && hashes <= 6 && line.as_bytes().get(hashes) == Some(&b' ') {
+    if (1..=6).contains(&hashes) && line.as_bytes().get(hashes) == Some(&b' ') {
         hashes as u8
     } else {
         0
@@ -50,25 +48,4 @@ pub fn doc_from_text(bytes: &[u8]) -> Doc {
         d.blocks.push(Block::plain(BlockKind::Paragraph, "", RunStyle::body()));
     }
     d
-}
-
-pub fn text_from_doc(doc: &Doc) -> Vec<u8> {
-    let mut out: Vec<u8> = Vec::new();
-    for (i, b) in doc.blocks.iter().enumerate() {
-        if i > 0 {
-            out.push(b'\n');
-        }
-        if b.kind == BlockKind::PageBreak {
-            out.push(0x0C);
-            continue;
-        }
-        if let Some(n) = b.kind.heading_level() {
-            for _ in 0..n {
-                out.push(b'#');
-            }
-            out.push(b' ');
-        }
-        out.extend_from_slice(&b.text);
-    }
-    out
 }

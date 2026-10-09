@@ -26,9 +26,8 @@ use super::move_window::apply_move;
 use super::refresh_input::refresh_input;
 use super::repaint::repaint;
 use super::request_id::next;
+use super::restore::restore;
 use super::teardown::close;
-
-const APP_LAYER_Z: u32 = 2;
 
 pub(super) fn service_frame<A: App>(
     booted: &mut BootedApp<A>,
@@ -40,9 +39,13 @@ pub(super) fn service_frame<A: App>(
     if !ensure_primed(booted, peers, request_id) {
         return false;
     }
+    // A window whose app asks for full screen takes it from its first frame
+    // on, and gives it back when the app stops asking.
+    maximize::follow_ask(booted, peers, request_id);
     let result = drain(
         &mut booted.app,
         &mut booted.drag,
+        &mut booted.held,
         rx,
         booted.binding.width,
         booted.binding.height,
@@ -74,20 +77,10 @@ pub(super) fn service_frame<A: App>(
         return false;
     }
     if result.restore && booted.minimized {
-        let _ = compositor::scene_submit(
-            peers.compositor,
-            next(request_id),
-            booted.binding.surface_handle,
-            booted.binding.x,
-            booted.binding.y,
-            booted.binding.width,
-            booted.binding.height,
-            APP_LAYER_Z,
-        );
-        booted.minimized = false;
-        repaint(booted, peers, request_id);
+        restore(booted, peers, request_id);
     }
     if result.maximize {
+        booted.full_ask.person_chose();
         maximize::toggle(booted, peers, request_id);
         return false;
     }

@@ -17,17 +17,6 @@
 use crate::security::capsule_manifest::ManifestVerifyError;
 use crate::security::nonos_id_cert::IdCertVerifyError;
 
-#[cfg(feature = "nonos-dev-unverified-capsules")]
-pub struct CapsuleSpec {
-    pub name: &'static str,
-    pub service_port: u32,
-    pub reply_inbox: &'static str,
-    pub reply_port: u32,
-    pub elf: &'static [u8],
-    pub caps_bits: u64,
-    pub debug_tag: &'static [u8],
-}
-
 /*
  * Borrowed for the length of the spawn call, not for the life of the machine.
  *
@@ -72,6 +61,8 @@ pub enum SpawnError {
     NonosIdCertRejected(IdCertVerifyError),
     ManifestRejected(ManifestVerifyError),
     AttestationRejected,
+    /* The boot profile chosen in the menu does not run this capsule. */
+    ProfileRefused,
 }
 
 impl From<IdCertVerifyError> for SpawnError {

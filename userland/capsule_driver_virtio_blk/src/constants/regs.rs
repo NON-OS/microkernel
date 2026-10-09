@@ -20,4 +20,6 @@ pub const LEG_QUEUE_NUM: usize = 0x0C;
 pub const LEG_QUEUE_SEL: usize = 0x0E;
 pub const LEG_QUEUE_NOTIFY: usize = 0x10;
 pub const LEG_STATUS: usize = 0x12;
+/// Interrupt status. Reading it clears it and lowers the INTx line.
+pub const LEG_ISR: usize = 0x13;
 pub const LEG_CFG_CAPACITY: usize = 0x14;

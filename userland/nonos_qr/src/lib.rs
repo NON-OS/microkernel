@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A from-scratch QR code encoder (ISO/IEC 18004), byte mode, versions 1-10.
+//! A from-scratch QR code encoder (ISO/IEC 18004), byte mode, versions 1-40.
 //! It produces a scannable module matrix for a wallet address or payment URI
 //! with no external dependencies, `no_std` so it runs inside the capsule.
 
@@ -50,7 +50,7 @@ impl QrCode {
 
 /// Encode `data` at the given error-correction level, choosing the smallest
 /// version that fits and the mask with the lowest penalty. Returns None when
-/// the data exceeds the version-10 byte-mode capacity.
+/// the data exceeds the version-40 byte-mode capacity.
 pub fn encode(data: &[u8], ecc: Ecc) -> Option<QrCode> {
     let version = encode::choose_version(data.len(), ecc)?;
     let codewords = encode::message_codewords(data, version, ecc);

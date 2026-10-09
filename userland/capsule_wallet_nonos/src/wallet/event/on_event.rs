@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind, KEY_ESC};
+use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
 use crate::wallet::state::State;
 
@@ -23,9 +23,20 @@ use crate::wallet::state::State;
 // UI responsive — every stray click no longer forces a full 1280x800 repaint.
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
     match event.kind {
-        InputKind::KeyDown if event.code == KEY_ESC => EventOutcome::Close,
-        InputKind::KeyDown => super::on_key::on_key(state, event.code),
+        InputKind::KeyDown => {
+            let ctrl = event.flags & nonos_app_skeleton::MOD_CTRL != 0;
+            if ctrl && (event.code == b'v' as u32 || event.code == b'V' as u32) {
+                if let Some(out) = crate::wallet::screen::shield::paste::paste(state) {
+                    return out;
+                }
+                if let Some(out) = crate::wallet::screen::pay::key::paste(state) {
+                    return out;
+                }
+            }
+            super::on_key::on_key(state, event.code)
+        }
         InputKind::ButtonDown => super::on_pointer::on_pointer(state, event.x, event.y),
+        InputKind::Wheel => super::etna_scroll::scroll(state, event.delta_y),
         _ => EventOutcome::Idle,
     }
 }

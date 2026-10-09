@@ -24,14 +24,27 @@ use uefi::prelude::*;
 pub fn check_signature_db(st: &mut SystemTable<Boot>) -> bool {
     let rt = st.runtime_services();
     let mut buf = [0u8; 4096];
+    /*
+     * db lives under EFI_IMAGE_SECURITY_DATABASE_GUID, not the global
+     * variable GUID that holds PK, KEK and SecureBoot. Asked under the
+     * global GUID, every spec-conformant firmware answers NOT_FOUND.
+     */
     match rt.get_variable(
         cstr16!("db"),
-        &uefi::table::runtime::VariableVendor::GLOBAL_VARIABLE,
+        &uefi::table::runtime::VariableVendor::IMAGE_SECURITY_DATABASE,
         &mut buf,
     ) {
         Ok(_) => {
             log_info("security", "Signature DB present");
             buf.iter().any(|&b| b != 0)
+        }
+        /*
+         * A db larger than the probe buffer exists and is not empty; one
+         * holding several vendors' certificates is past 4 KiB.
+         */
+        Err(e) if e.status() == Status::BUFFER_TOO_SMALL => {
+            log_info("security", "Signature DB present, larger than the probe buffer");
+            true
         }
         Err(e) => {
             log_error("security", &format!("Signature DB missing: {:?}", e.status()));

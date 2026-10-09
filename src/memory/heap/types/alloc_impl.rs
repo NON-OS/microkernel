@@ -16,14 +16,14 @@
 
 use super::super::constants::MIN_ALIGNMENT;
 use super::allocator::SecureHeapAllocator;
-use super::header::AllocationHeader;
+use super::header::{data_offset, AllocationHeader};
 use core::alloc::{GlobalAlloc, Layout};
 use core::mem;
 use core::ptr::{self, null_mut};
 use core::sync::atomic::Ordering;
 
-// Allocation produces a pointer aligned to `layout.align().max(MIN_ALIGNMENT)`,
-// which is ≥ 8 and so satisfies AllocationHeader and u64 alignment.
+// The data pointer is aligned to `layout.align().max(MIN_ALIGNMENT)` ≥ 8, and
+// the header before it to 8.
 #[allow(clippy::cast_ptr_alignment)]
 pub(super) unsafe fn alloc_impl(allocator: &SecureHeapAllocator, layout: Layout) -> *mut u8 {
     unsafe {
@@ -31,19 +31,18 @@ pub(super) unsafe fn alloc_impl(allocator: &SecureHeapAllocator, layout: Layout)
             return null_mut();
         }
 
+        // The data, not the block, must meet the alignment: a header in front
+        // of an aligned block left a 64-aligned request only 32-aligned.
         let header_size = mem::size_of::<AllocationHeader>();
-        let total_size = match header_size
-            .checked_add(layout.size())
-            .and_then(|s| s.checked_add(mem::size_of::<u64>()))
-        {
-            Some(size) => size,
-            None => return null_mut(),
-        };
-
         let align = layout.align().max(MIN_ALIGNMENT);
-        let adjusted_layout = match Layout::from_size_align(total_size, align) {
-            Ok(l) => l,
-            Err(_) => return null_mut(),
+        let offset = data_offset(align);
+        let Some(total_size) =
+            offset.checked_add(layout.size()).and_then(|s| s.checked_add(mem::size_of::<u64>()))
+        else {
+            return null_mut();
+        };
+        let Ok(adjusted_layout) = Layout::from_size_align(total_size, align) else {
+            return null_mut();
         };
 
         let raw_ptr =
@@ -52,8 +51,8 @@ pub(super) unsafe fn alloc_impl(allocator: &SecureHeapAllocator, layout: Layout)
             return null_mut();
         }
 
-        let header_ptr = raw_ptr as *mut AllocationHeader;
-        let data_ptr = raw_ptr.add(header_size);
+        let data_ptr = raw_ptr.add(offset);
+        let header_ptr = data_ptr.sub(header_size) as *mut AllocationHeader;
         let canary_ptr = data_ptr.add(layout.size()) as *mut u64;
 
         let header = AllocationHeader::new(layout.size(), super::super::manager::get_timestamp());

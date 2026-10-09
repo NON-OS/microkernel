@@ -38,10 +38,25 @@ pub struct ProcStatHeader {
     pub interrupts: u64,
     pub faults: u64,
     pub cpus_online: u32,
-    pub _pad: u32,
+    /* How this boot was started: BOOT_INSTALL_REQUESTED and a BOOT_PROFILE_* bit. */
+    pub boot_flags: u32,
     pub user_ticks: u64,
     pub kernel_ticks: u64,
     pub largest_free_kb: u64,
     pub heap_peak_kb: u64,
     pub heap_allocs: u64,
+    /*
+     * Version 4: the app switches the kernel carries and those first-boot
+     * setup turned off, as nonos_policy_proto::apps has the bits.
+     */
+    pub apps_present: u32,
+    pub apps_off: u32,
 }
+
+/* The boot menu's "Install NONOS" entry started this boot. */
+pub const BOOT_INSTALL_REQUESTED: u32 = 1;
+/* The boot profile chosen in the menu; Standard sets none. */
+pub const BOOT_PROFILE_HARDENED: u32 = 1 << 1;
+pub const BOOT_PROFILE_SAFE: u32 = 1 << 2;
+pub const BOOT_PROFILE_AIR_GAPPED: u32 = 1 << 3;
+pub const BOOT_PROFILE_RECOVERY: u32 = 1 << 4;

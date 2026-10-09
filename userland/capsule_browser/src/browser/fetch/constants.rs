@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const MAX_BODY: usize = 4 * 1024 * 1024;
-pub(super) const MAX_TLS_FLIGHT: usize = 512 * 1024;
-pub(super) const FIRST_WAIT: u32 = 25;
-pub(super) const IDLE_AFTER: u32 = 20;
-pub(super) const MAX_FETCH_MS: i64 = 12000;
-pub(super) const MAX_REDIRECTS: u8 = 5;
-pub(super) const DRAIN_BURST: usize = 64;
-pub(super) const HS_WAIT: u32 = 200;
-pub(super) const MAX_RETRIES: u8 = 2;
-pub(super) const FLIGHT_SETTLE: u32 = 15;
+pub const MAX_BODY: usize = 4 * 1024 * 1024;
+pub const MAX_TLS_FLIGHT: usize = 512 * 1024;
+pub const MAX_REDIRECTS: u8 = 5;
+pub const MAX_RETRIES: u8 = 2;
+/* The longest one drain reads for; it stops sooner at the first empty read. */
+pub const DRAIN_MS: i64 = 25;
+/* The longest one tick steps fetches for before letting the window draw. */
+pub const TICK_MS: i64 = 30;

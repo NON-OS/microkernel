@@ -17,8 +17,8 @@
 use nonos_app_skeleton::EventOutcome;
 use nonos_policy_proto::{enum_table, kind_of, KIND_U8};
 
-use crate::settings::schema::read_only;
-use crate::settings::state::{current_field, State};
+use crate::settings::schema::{read_only, Slot};
+use crate::settings::state::{current_field, current_slot, State};
 
 use super::toggle_or_inc::toggle_or_inc;
 
@@ -27,6 +27,10 @@ use super::toggle_or_inc::toggle_or_inc;
 /// panel from asserting something untrue about the machine.
 pub(super) fn activate(state: &mut State, control: bool) -> EventOutcome {
     if !control {
+        return EventOutcome::Repaint;
+    }
+    if matches!(current_slot(state), Some(Slot::Wallpaper(_))) {
+        toggle_or_inc(state);
         return EventOutcome::Repaint;
     }
     let Some(field) = current_field(state) else { return EventOutcome::Repaint };

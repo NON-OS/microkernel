@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-use super::super::critical::is_critical;
+use super::super::critical::protected;
 use super::super::security::sensitive::ANY;
 use super::{Row, State};
 
@@ -41,12 +41,13 @@ impl Filter {
         }
     }
 
-    // `flagged` is the set of pids the security monitor named this refresh.
-    pub fn keep(self, row: &Row, flagged: &[u32]) -> bool {
+    // `flagged` is the set of pids the security monitor named this refresh,
+    // `me` this window's pid.
+    pub fn keep(self, row: &Row, flagged: &[u32], me: u32) -> bool {
         match self {
             Filter::All => true,
             Filter::Elevated => row.caps & ANY != 0,
-            Filter::Protected => is_critical(row.name()),
+            Filter::Protected => protected(row.name(), row.pid, me),
             Filter::Flagged => flagged.contains(&row.pid),
         }
     }
@@ -60,7 +61,7 @@ impl State {
     pub fn filtered(&self) -> Vec<&Row> {
         self.rows
             .iter()
-            .filter(|r| self.filter.keep(r, &self.flagged) && self.query_matches(r.name()))
+            .filter(|r| self.filter.keep(r, &self.flagged, self.me) && self.query_matches(r.name()))
             .collect()
     }
 
@@ -75,5 +76,10 @@ impl State {
     // every refresh, which is why `State` stores `selected_pid` at all.
     pub fn selected_row(&self) -> Option<&Row> {
         self.rows.iter().find(|r| r.pid == self.selected_pid)
+    }
+
+    /// Whether End Process is refused for `row`: a core process, or this window.
+    pub fn is_protected(&self, row: &Row) -> bool {
+        protected(row.name(), row.pid, self.me)
     }
 }

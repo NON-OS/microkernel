@@ -19,8 +19,8 @@ use nonos_app_skeleton::PaintBuffer;
 use super::block_meta::draw_meta;
 use super::metrics::Metrics;
 use super::shade::elevate;
+use super::vt::Area;
 use crate::term::block::Status;
-use crate::term::dimensions::VISIBLE_ROWS;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
@@ -30,20 +30,22 @@ const STRIPE_GAP: u32 = 8;
 pub fn draw_block_chrome(
     state: &State,
     fb: &mut PaintBuffer,
-    ox: u32,
-    oy: u32,
-    max_y: u32,
-    max_x: u32,
+    a: &Area,
+    top: u64,
     m: &Metrics,
     t: &Theme,
 ) {
-    let g = &state.scrollback.grid;
-    for row in 0..VISIBLE_ROWS {
+    let (ox, oy, max_x, max_y) = (a.x, a.y, a.max_x, a.max_y);
+    let last = state.scrollback.vt.cursor_pos().line;
+    for row in 0.. {
         let y = crate::layout::row_top(row as u32, oy, m.lh);
         if y + m.lh > max_y {
             break;
         }
-        let abs = g.abs_of_visible_row(row);
+        let abs = top + row as u64;
+        if abs > last {
+            break;
+        }
         let (idx, status) = match block_for(state, abs) {
             Some(v) => v,
             None => continue,

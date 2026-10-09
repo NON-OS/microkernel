@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_libc::mk_service_lookup;
-use nonos_policy_proto::{kind_of, Field, E_ACCES, KIND_BOOL, KIND_I8, KIND_STR, KIND_U8, OP_SET};
+use nonos_policy_proto::{
+    kind_of, Field, E_ACCES, KIND_BOOL, KIND_I8, KIND_STR, KIND_U64, KIND_U8, OP_SET,
+};
 
-use super::handlers::{set_bool, set_i8, set_str, set_u8};
+use super::handlers::{set_bool, set_i8, set_str, set_u64, set_u8};
 use super::respond;
 
 // Only the settings app and the first-boot setup wizard may write policy. The
@@ -52,6 +54,7 @@ pub fn dispatch(pid: u32, field: Field, payload: &[u8]) {
         KIND_U8 => set_u8::handle(pid, field, payload),
         KIND_I8 => set_i8::handle(pid, field, payload),
         KIND_STR => set_str::handle(pid, field, payload),
+        KIND_U64 => set_u64::handle(pid, field, payload),
         _ => {}
     }
 }

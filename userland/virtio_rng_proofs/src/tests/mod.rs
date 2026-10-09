@@ -23,4 +23,5 @@
 mod model;
 
 mod queue_tests;
+mod ring_tests;
 mod status_tests;

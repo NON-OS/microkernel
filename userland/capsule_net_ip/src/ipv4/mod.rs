@@ -20,7 +20,7 @@ mod checksum;
 mod header;
 mod parse;
 
-pub use addr::{same_subnet, Ipv4Addr};
+pub use addr::{same_subnet, source_ok, Ipv4Addr};
 pub use build::{build, BuildRequest};
 pub use checksum::{fold, seal_at};
 pub use parse::parse;

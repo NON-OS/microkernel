@@ -14,46 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::instructions::port::Port;
 use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_exception, ExceptionContext};
-
-/// System control port A - used for system reset and A20 gate control
-pub const SYSTEM_CONTROL_PORT_A: u16 = 0x92;
-/// System control port B - used for NMI source identification
-pub const SYSTEM_CONTROL_PORT_B: u16 = 0x61;
-
-#[derive(Debug, Clone, Copy)]
-pub enum NmiSource {
-    MemoryParity,
-    IoChannelCheck,
-    Watchdog,
-    Unknown,
-}
+use super::nmi_source::{identify_nmi_source, NmiSource};
 
 pub fn handle(frame: InterruptStackFrame) {
+    /*
+     * The kernel's own NMIs first: a fatal halt of the machine, or a TLB
+     * shootdown round re-sent to a cpu that did not take the vector. That
+     * step is NMI-safe; what follows logs, and is reached for an NMI nothing
+     * in the kernel sent, or when a hardware cause is latched in port B
+     * alongside ours, so a coincident parity or channel check is not lost.
+     */
+    if cfg!(feature = "nonos-smp")
+        && crate::smp::nmi::on_nmi()
+        && matches!(identify_nmi_source(), NmiSource::Unknown)
+    {
+        return;
+    }
     let ctx = ExceptionContext::from_frame(&frame);
     log_exception("NMI", &ctx);
 
     let source = identify_nmi_source();
     handle_nmi_source(source, &ctx);
-}
-
-fn identify_nmi_source() -> NmiSource {
-    // SAFETY: Reading system control port B to determine NMI source
-    let status = unsafe {
-        let mut port = Port::<u8>::new(SYSTEM_CONTROL_PORT_B);
-        port.read()
-    };
-
-    if (status & 0x80) != 0 {
-        NmiSource::MemoryParity
-    } else if (status & 0x40) != 0 {
-        NmiSource::IoChannelCheck
-    } else {
-        NmiSource::Unknown
-    }
 }
 
 fn handle_nmi_source(source: NmiSource, _ctx: &ExceptionContext) {

@@ -23,7 +23,6 @@ use super::state::{State, ViewKind};
 pub const HEADER_H: u32 = 78;
 pub const FOOTER_H: u32 = 38;
 pub const ROW_H: u32 = 44;
-pub const ICON_S: u32 = 20;
 pub const PAD_X: u32 = 24;
 // Left PLACES sidebar; the file list and chrome start at CONTENT_X.
 pub const SIDEBAR_W: u32 = 236;
@@ -34,19 +33,15 @@ pub const SIDE_FIRST_Y: u32 = 92;
 // Row/scroll geometry consumed by paint, click hit-testing, and scroll
 // clamping. Kept as the first-row origin and default fallbacks.
 pub const FIRST_ROW_Y: u32 = HEADER_H + 6;
-pub const ROW_HEIGHT: u32 = ROW_H;
 pub const LIST_VISIBLE: usize = 8;
 
 // Icon-grid metrics: each cell holds one large icon and its label below it.
 pub const GRID_TOP: u32 = HEADER_H + 12;
 pub const GRID_CELL_W: u32 = 124;
 pub const GRID_CELL_H: u32 = 112;
-pub const GRID_ICON: u32 = 58;
-pub const GRID_PAD_X: u32 = 24;
 
-// Card metrics for the Home surface, and the vertical gap between the titled
-// sections every screen stacks its content into.
-pub const CARD_H: u32 = 92;
+// The vertical gap between the titled sections every screen stacks its
+// content into.
 pub const SECTION_GAP: u32 = 26;
 
 // Browse reserves a fixed right-hand strip for the info panel. The width is

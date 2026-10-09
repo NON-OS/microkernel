@@ -1,0 +1,19 @@
+# What each committed binary is, for scripts/check_prebuilt.py. First match wins.
+# trust:     signed under the current key set; a production build re-signs it from source
+#            with keys from ek's ceremony and never ships the committed copy.
+# generated: an output of a tool in this repo; the production build regenerates it.
+# upstream:  a third party's file that cannot be built here; pinned in upstream.sha256.
+# fixture:   test input only; never part of an image.
+trust nonos-data/trust/*
+trust .keys/*.pub
+generated stark-attest/*
+generated userland/nonos_tls/src/roots/store.bin
+generated userland/capsule_linux/guests/busybox.elf
+upstream nonos-bootloader/firmware/*
+upstream userland/capsule_linux/keys/alpine/*
+upstream nonos-data/cacert.pem
+fixture */tests/*
+fixture */vectors/*
+fixture userland/tls_proofs/src/*
+generated nonos-data/market/index.bin
+generated nonos-data/models/catalogue.bin

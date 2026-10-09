@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-const HIDPI_MIN_WIDTH: u32 = 2560;
-const HIDPI_MIN_HEIGHT: u32 = 1440;
+/*
+ * The desktop takes its scale from the same rule as first-boot setup and the
+ * installer, the brand's own file, so the desktop's type comes out the size
+ * setup's did on the same screen: 1.25 from a short side of 1000, 1.5 from
+ * 1440, 2 from 2160. The compositor already hands a panel of 2560 by 1440 or
+ * more a canvas half its size, and this goes by that canvas, so nothing is
+ * scaled twice.
+ */
+#[path = "../../../capsule_install/brand/src/scale_rule.rs"]
+mod brand;
 
-pub fn scale_for(width: u32, height: u32) -> u32 {
-    if width >= HIDPI_MIN_WIDTH && height >= HIDPI_MIN_HEIGHT {
-        2
-    } else {
-        1
-    }
+/// Drawing pixels per logical pixel on a canvas `width` by `height`, in quarters.
+pub fn quarters_for(width: u32, height: u32) -> u32 {
+    brand::quarters_for(width, height)
 }

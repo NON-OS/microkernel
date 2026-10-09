@@ -25,7 +25,7 @@ pub fn run(state: &mut State) -> bool {
         state.scrollback.push_error(b"date: clock unavailable");
         return false;
     }
-    let mut s = Vec::with_capacity(19);
+    let mut s = Vec::with_capacity(23);
     push_u(&mut s, t.year as u64, 4);
     s.push(b'-');
     push_u(&mut s, t.month as u64, 2);
@@ -37,6 +37,9 @@ pub fn run(state: &mut State) -> bool {
     push_u(&mut s, t.minute as u64, 2);
     s.push(b':');
     push_u(&mut s, t.second as u64, 2);
+    // The hardware clock keeps UTC: the menu bar adds the Timezone setting to
+    // it, so a bare time here read as a second, different local time.
+    s.extend_from_slice(b" UTC");
     state.scrollback.push_line(&s);
     true
 }

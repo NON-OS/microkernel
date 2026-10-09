@@ -17,7 +17,6 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::{draw, IconId};
 
-use crate::pm::critical::is_critical;
 use crate::pm::state::{Row, State};
 use crate::pm::theme::{ACCENT, BAND, FOREGROUND, SELECT_BG};
 
@@ -40,7 +39,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col], row: &
     }
     for col in cols {
         match col {
-            Col::Name => name(fb, r, cols, row, y),
+            Col::Name => name(fb, r, cols, row, y, state.is_protected(row)),
             _ => table_cell::paint(fb, r, cols, row, *col, y),
         }
     }
@@ -49,10 +48,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col], row: &
 // A protected process is marked with the shared shield art and the name starts
 // after it, measured against what the mark left of the cell so a long name is
 // cut rather than drawn over the next column.
-fn name(fb: &mut PaintBuffer, r: &Rect, cols: &[Col], row: &Row, y: u32) {
+fn name(fb: &mut PaintBuffer, r: &Rect, cols: &[Col], row: &Row, y: u32, protected: bool) {
     let mut x = r.x + table_geom::col_x(cols, r.w, Col::Name);
     let mut avail = table_geom::col_w(cols, r.w, Col::Name).saturating_sub(CELL_PAD_X);
-    if is_critical(row.name()) {
+    if protected {
         draw(fb, IconId::SettingsSecurity, x, y + (ROW_H - ROW_ICON) / 2, ROW_ICON, ACCENT);
         x += ROW_ICON + ROW_ICON_GAP;
         avail = avail.saturating_sub(ROW_ICON + ROW_ICON_GAP);

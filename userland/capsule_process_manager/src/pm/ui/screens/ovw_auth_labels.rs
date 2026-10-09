@@ -23,10 +23,6 @@ use super::super::risk_strip::CLASSES;
 // words that need no key, in the order the risk strip draws its slots.
 pub(super) const LABELS: [&[u8]; 4] = [b"admin", b"raw hw", b"spawn", b"debug"];
 
-// The swatch is the strip's slot, minus its gap, so the eye that learned the
-// four positions in the table reads this card without relearning them.
-const KEY_H: u32 = 12;
-
 // This card packs its own frame rather than going through `card::paint`, and the
 // reason is arithmetic: a caption line plus four rows of text at the toolkit's
 // readable floor needs more height than the shared 13px padding leaves in a

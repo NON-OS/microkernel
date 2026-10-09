@@ -19,4 +19,4 @@ mod frame;
 pub mod pci;
 pub mod regs;
 
-pub use frame::{MAC_LEN, MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME};
+pub use frame::{MAC_LEN, MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME, MIN_WIRE_FRAME};

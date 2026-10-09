@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::orchestrator::enumerate::enumerate;
+use crate::orchestrator::enumerate::Devices;
 use crate::protocol::{HDR_LEN, IPC_PAYLOAD_MAX};
 use crate::server::pump_once;
 use crate::state::State;
@@ -24,27 +24,38 @@ use super::drain_endpoints::drain_endpoints;
 use super::refresh_endpoints::refresh_endpoints;
 
 pub fn run(xhci_port: u32) -> ! {
-    let mut eps = enumerate(xhci_port);
+    let mut tries = [0u8; 256];
+    let mut devs = Devices::new();
+    refresh_endpoints(xhci_port, &mut devs, &mut tries);
     let mut state = State::new();
     let mut buf = [0u8; HID_REPORT_MAX];
     let mut rx = alloc::vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = alloc::vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut idle_polls = 0u32;
-    let mut announced = false;
+    let mut announced = 0usize;
     loop {
-        if !announced && !eps.is_empty() {
-            const MSG: &[u8] = b"[USB-HID-ENUM] tablet bound\n";
+        if devs.eps.len() > announced {
+            const MSG: &[u8] = b"[USB-HID-ENUM] HID device bound\n";
             let _ = nonos_libc::mk_debug(MSG.as_ptr(), MSG.len());
-            announced = true;
         }
+        announced = devs.eps.len();
         let _ = pump_once(&mut state, &mut rx, &mut tx);
-        if drain_endpoints(&mut state, &eps, &mut buf) {
+        let drained = drain_endpoints(&mut state, &devs.eps, &mut buf);
+        // A held key repeats from here: the keyboard reports only changes.
+        state.keyboard.tick(nonos_libc::mk_uptime_ms().max(0) as u64);
+        if drained {
             idle_polls = 0;
-        } else if eps.is_empty() {
+        } else {
             idle_polls = idle_polls.saturating_add(1);
         }
-        if eps.is_empty() && idle_polls >= RESCAN_INTERVAL {
-            refresh_endpoints(xhci_port, &mut eps);
+        /*
+         * Every port is looked at again while the devices are quiet, not
+         * only until the first one binds: a keyboard or mouse plugged in
+         * after another is bound, or pulled out and plugged back, was
+         * otherwise never bound.
+         */
+        if idle_polls >= RESCAN_INTERVAL {
+            refresh_endpoints(xhci_port, &mut devs, &mut tries);
             idle_polls = 0;
         }
     }

@@ -14,20 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::area::in_register_window;
 use super::regs::{
-    READY_SPINS, TPM_INTERFACE_ID, TPM_INTF_TYPE_CRB, TPM_INTF_TYPE_MASK, TPM_LOC_CTRL,
+    LOCALITY_MS, TPM_INTERFACE_ID, TPM_INTF_TYPE_CRB, TPM_INTF_TYPE_MASK, TPM_LOC_CTRL,
     TPM_LOC_CTRL_RELINQUISH, TPM_LOC_CTRL_REQUEST, TPM_LOC_STS, TPM_LOC_STS_GRANTED,
 };
-use super::window::{init_window, read32, write32};
+use super::wait::until;
 use crate::security::tpm::error::TpmError;
+use crate::security::tpm::mmio::{init_window, read32, write32};
 
 /// Map the window and confirm a CRB part is behind it.
 ///
-/// Refusing a FIFO part is not a limitation to work around: the two register
-/// files overlap, so driving a FIFO part through CRB offsets writes command
-/// bytes into control registers and produces a garbled response rather than an
-/// error.
+/// The transport already chose CRB; this re-reads the identity because the
+/// two register files overlap, and driving a FIFO part through CRB offsets
+/// writes command bytes into control registers and produces a garbled
+/// response rather than an error. A control area outside the window (AMD's
+/// firmware TPM) has no window and no identity register to read.
 pub(super) fn probe() -> Result<(), TpmError> {
+    if !in_register_window()? {
+        return Ok(());
+    }
     init_window()?;
     let intf = read32(TPM_INTERFACE_ID)?;
     if intf == u32::MAX {
@@ -40,26 +46,27 @@ pub(super) fn probe() -> Result<(), TpmError> {
 }
 
 /// Take locality 0. Every command runs inside a granted locality; issuing one
-/// without it is answered by the part, not by this driver.
+/// without it is answered by the part, not by this driver. A control area of
+/// its own has no locality registers: that part runs every command at 0.
 pub(super) fn acquire() -> Result<(), TpmError> {
+    if !in_register_window()? {
+        return Ok(());
+    }
     if read32(TPM_LOC_STS)? & TPM_LOC_STS_GRANTED != 0 {
         return Ok(());
     }
     // SAFETY: eK@nonos.systems - a locality request changes no key state and
     // is the documented way to begin using the part.
     unsafe { write32(TPM_LOC_CTRL, TPM_LOC_CTRL_REQUEST)? };
-    for _ in 0..READY_SPINS {
-        if read32(TPM_LOC_STS)? & TPM_LOC_STS_GRANTED != 0 {
-            return Ok(());
-        }
-        core::hint::spin_loop();
-    }
-    Err(TpmError::Timeout)
+    until(LOCALITY_MS, || Ok(read32(TPM_LOC_STS)? & TPM_LOC_STS_GRANTED != 0))
 }
 
 /// Give locality back. Best effort: a part that will not release it is not a
 /// reason to fail a command that already succeeded.
 pub(super) fn release() {
+    if !matches!(in_register_window(), Ok(true)) {
+        return;
+    }
     // SAFETY: eK@nonos.systems - relinquishing only narrows what this driver
     // may do next.
     let _ = unsafe { write32(TPM_LOC_CTRL, TPM_LOC_CTRL_RELINQUISH) };

@@ -20,7 +20,7 @@ use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::metrics::{BODY_PX, LINE_H};
+use super::metrics::Metrics;
 use super::text::{line, width};
 
 /// How a paragraph's lines look: colour, size, and the advance per line.
@@ -33,8 +33,8 @@ pub struct Ink {
 
 impl Ink {
     /// Body-size text in `argb`, one line box per line.
-    pub fn body(argb: u32) -> Self {
-        Self { argb, px: BODY_PX, step: LINE_H }
+    pub fn body(m: &Metrics, argb: u32) -> Self {
+        Self { argb, px: m.body_px, step: m.line_h }
     }
 }
 

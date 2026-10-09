@@ -14,36 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_libc::mk_uptime_ms;
+
 use super::drain::drain_ipc;
 use crate::frame_pacer;
 use crate::protocol::{HDR_LEN, IPC_PAYLOAD_MAX};
 use crate::state::Context;
 
 // Force a full recomposite this often. Damage tracking only repaints the
-// rectangles a client reports; a region that was left stale by a transient
-// (a scanout size settling during boot, a client that damaged too little)
-// would otherwise never heal. A periodic full pass rebuilds the whole scene
-// from current surface content, so any such staleness clears within about a
-// second at 60 Hz while normal frames keep the cheap partial-damage path.
-// A full recomposite roughly every four seconds is enough to clear the rare
-// staleness (a scanout size settling, a client that under-damaged) without
-// spending a full-screen transfer and flush more than once a second at idle,
-// which was a steady drain even on a desktop nobody was touching.
-const HEAL_INTERVAL_FRAMES: u32 = 240;
+// rectangles a client reports; a region left stale by a transient (a
+// scanout size settling during boot, a client that damaged too little)
+// would otherwise never heal. Every four seconds is enough for that rare
+// staleness without a full-screen present more than once a second at idle.
+// On the uptime clock: counted in loop passes it was every 240 passes, and
+// every IPC ends a pass early, so a mouse or a scrolling client that posts
+// events every few milliseconds could bring a full-screen recomposite and
+// present (on a 4K panel, a 1920x1080 canvas doubled and 33 MB copied)
+// many times more often than that, in the middle of the scroll.
+const HEAL_INTERVAL_MS: i64 = 4000;
+/// How often a GOP-mode compositor asks whether the gfx driver is up yet.
+const VIRTIO_PROBE_MS: i64 = 500;
 
 pub fn run(mut ctx: Context) -> ! {
     let mut rx = [0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = [0u8; HDR_LEN + IPC_PAYLOAD_MAX];
-    let mut frame: u32 = 0;
+    let (mut last_heal, mut last_probe) = (mk_uptime_ms(), mk_uptime_ms());
     loop {
         drain_ipc(&mut ctx, &mut rx, &mut tx);
-        frame = frame.wrapping_add(1);
-        if frame % HEAL_INTERVAL_FRAMES == 0 {
+        let now = mk_uptime_ms();
+        if ctx.gop_mode && now.saturating_sub(last_probe) >= VIRTIO_PROBE_MS {
+            last_probe = now;
+            if crate::setup::upgrade_to_virtio(&mut ctx) {
+                crate::say::say_display(&ctx, "moved to virtio-gpu");
+            }
+        }
+        if now.saturating_sub(last_heal) >= HEAL_INTERVAL_MS {
+            last_heal = now;
             ctx.damage.mark_full(ctx.width, ctx.height);
         }
         match frame_pacer::tick(&mut ctx) {
             Ok(()) => {}
-            Err(_) if !ctx.scanout_error_reported => {
+            Err(e) if !ctx.scanout_error_reported => {
+                // Once: a display that refuses every frame would fill the log.
+                crate::say::say(&alloc::format!("present refused: {}", e));
                 ctx.scanout_error_reported = true;
             }
             Err(_) => {}

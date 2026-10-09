@@ -1,0 +1,23 @@
+# NONOS userland: nonos_equix
+# eK@nonos.systems
+#
+# HashX and Equi-X, the client puzzle an onion service may ask for before it
+# answers an introduction. Interpreted only and no dependencies: the capsule
+# never maps memory executable, and the BLAKE2b and SipHash the puzzle is built
+# on are small enough to carry here.
+
+[package]
+name = "nonos_equix"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "HashX and Equi-X for NONOS userland, no_std"
+
+[lib]
+name = "nonos_equix"
+path = "src/lib.rs"
+crate-type = ["rlib"]
+
+[dependencies]

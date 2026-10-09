@@ -63,13 +63,37 @@ pub fn plan(partition_sectors: u64) -> Result<Geometry, PlanError> {
 }
 
 /// Each FAT holds four bytes per cluster plus two reserved entries, and the
-/// data area is what two of them leave. Sizing the tables for the upper
-/// bound and recounting once is exact: the table only shrinks.
+/// data area is what two of them leave. A driver counts the clusters from
+/// the table size in the boot sector, so the count here is the one that
+/// size leaves, never one taken before the tables shrank: that left a
+/// cluster on the volume this writer did not count, and every FSInfo free
+/// count one short.
+///
+/// A table of `fat` sectors holds the clusters it leaves from some size on
+/// and at no size below it, since a larger table both leaves fewer clusters
+/// and has room for more. The smallest such size leaves the most clusters,
+/// and is found by halving between one sector and the table for every
+/// sector. Shrinking from the top by recounting instead stopped at the
+/// first overshoot: partitions of 66591 to 66598 sectors, FAT32 with a
+/// 513-sector table, kept 521 sectors and were refused as too small.
 fn fit(partition_sectors: u64, spc: u8) -> Geometry {
     let usable = partition_sectors.saturating_sub(RESERVED_SECTORS as u64);
-    let fat_for = |clusters: u64| ((clusters + 2) * 4).div_ceil(SECTOR_SIZE as u64);
-    let fat_sectors = fat_for(usable / spc as u64);
-    let data_clusters = usable.saturating_sub(FAT_COUNT as u64 * fat_sectors) / spc as u64;
-    let fat_sectors = fat_for(data_clusters) as u32;
+    let sector = SECTOR_SIZE as u64;
+    let clusters_left =
+        |fat: u64| usable.saturating_sub((FAT_COUNT as u64).saturating_mul(fat)) / spc as u64;
+    let holds = |fat: u64| {
+        clusters_left(fat).saturating_add(2).saturating_mul(4) <= fat.saturating_mul(sector)
+    };
+    let (mut lo, mut hi) = (1u64, (usable / spc as u64 + 2).saturating_mul(4).div_ceil(sector));
+    while lo < hi {
+        let mid = lo + (hi - lo) / 2;
+        if holds(mid) {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+    }
+    let data_clusters = clusters_left(lo);
+    let fat_sectors = u32::try_from(lo).unwrap_or(u32::MAX);
     Geometry { partition_sectors, sectors_per_cluster: spc, fat_sectors, data_clusters }
 }

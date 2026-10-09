@@ -1,0 +1,23 @@
+# NONOS userland: anon_tls12_proofs
+#
+# net.anon's TLS 1.2 link client on the host: the capsule's own
+# src/link/tls12 and the crypto it uses, compiled by path. The handshakes
+# it replays were recorded from a real OpenSSL server (vectors/record.py);
+# the PRF and SHA-384 answers come from Python's hashlib and hmac and from
+# FIPS 180 and RFC 4231.
+
+[package]
+name = "anon_tls12_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "anon_tls12_proofs_shim", path = "shim" }
+nonos_tls = { package = "anon_tls12_proofs_tls", path = "tls_shim" }
+nonos_ed25519 = { path = "../nonos_ed25519" }
+p256 = { version = "0.13", default-features = false, features = ["arithmetic", "ecdh"] }

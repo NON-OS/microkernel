@@ -14,44 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::frame::frame;
 use super::log::log_handoff_fb;
 use super::marker::paint_mapped_marker;
+use super::report::{log_mapped, log_refused};
 use super::state::{KernelFramebuffer, FRAMEBUFFER};
 use crate::boot::handoff::BootHandoffV1;
 use crate::memory::addr::PhysAddr;
 
 pub(crate) fn init_framebuffer(handoff: &BootHandoffV1) {
     let Some(fb) = handoff.framebuffer() else {
+        log_refused(b"the loader handed over no framebuffer");
         return;
     };
-    if fb.width == 0 || fb.height == 0 || fb.stride == 0 || fb.ptr == 0 {
-        return;
-    }
     log_handoff_fb(fb.ptr, fb.stride, fb.pixel_format);
-    let row_bytes = (fb.width as u64).saturating_mul(core::mem::size_of::<u32>() as u64);
-    if (fb.stride as u64) < row_bytes {
-        return;
-    }
-    let Some(frame_len) = (fb.stride as usize).checked_mul(fb.height as usize) else {
-        return;
+    let f = match frame(fb.ptr, fb.size, fb.width, fb.height, fb.stride) {
+        Ok(f) => f,
+        Err(r) => return log_refused(r.says()),
     };
-    let base = fb.ptr & !0xFFF;
-    let offset = (fb.ptr - base) as usize;
-    let fb_size = core::cmp::max(fb.size as usize, frame_len);
-    let Some(map_len) = offset.checked_add(fb_size) else {
-        return;
-    };
-    let Ok(base_va) = crate::memory::mmio::map_framebuffer(PhysAddr::new(base), map_len) else {
-        return;
+    // Before the mapping, which takes write-combining from it, and before
+    // start_secondary_cpus, whose APs copy the boot CPU's table.
+    #[cfg(target_arch = "x86_64")]
+    // SAFETY: the boot CPU, with no AP started yet.
+    let wc = unsafe { crate::arch::x86_64::pat::program_boot() };
+    #[cfg(not(target_arch = "x86_64"))]
+    let wc = false;
+    let Ok(base_va) = crate::memory::mmio::map_framebuffer(PhysAddr::new(f.base), f.map_len) else {
+        return log_refused(b"the MMIO window would not take it");
     };
     let bgr = matches!(fb.pixel_format, 1 | 3);
-    FRAMEBUFFER.call_once(|| KernelFramebuffer {
+    let kfb = *FRAMEBUFFER.call_once(|| KernelFramebuffer {
         width: fb.width,
         height: fb.height,
         stride: fb.stride,
         base_va,
-        offset,
+        offset: f.offset,
         bgr,
+        physical_mm: fb.physical_mm(),
     });
-    paint_mapped_marker(base_va, offset, fb.stride, fb.width);
+    log_mapped(kfb.width, kfb.height, kfb.stride, bgr, wc, kfb.hidpi_scale());
+    paint_mapped_marker(base_va, f.offset, fb.stride, fb.width);
 }

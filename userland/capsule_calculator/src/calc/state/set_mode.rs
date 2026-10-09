@@ -24,6 +24,9 @@ impl State {
         } else if self.mode == Mode::Programmer && mode != Mode::Programmer {
             self.leave_programmer();
         }
+        if mode == Mode::History && self.mode != Mode::History {
+            self.history_scroll = 0;
+        }
         self.mode = mode;
         self.hover = None;
         self.new_input = true;

@@ -18,9 +18,12 @@
 //! line show them: one description per device, what it holds now, what it
 //! calls itself, and the word that confirms it.
 
+mod booted;
 mod contents;
 mod describe;
+mod probe;
 mod scan;
+mod word;
 
 pub use contents::Contents;
-pub use scan::{scan, Disk};
+pub use scan::{scan, survey, Disk, Survey};

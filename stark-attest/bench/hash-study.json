@@ -1,0 +1,43 @@
+{
+  "schema": "stark-attest.hash-study.v1",
+  "question": "which hash should measure artifact bytes when a proof must bind them",
+  "designs": {
+    "poseidon_direct": "absorb every byte into the algebraic sponge; the proof binds the bytes",
+    "blake3_only": "not a scheme, the floor: the cost of reading the bytes once",
+    "hybrid": "BLAKE3 to 32 bytes, absorb only the digest; the proof binds the digest"
+  },
+  "security_note": "the hybrid rests on BLAKE3 collision resistance, which this crate's proof context already assumes, so it removes redundant work rather than adding an assumption",
+  "host": { "os": "linux", "arch": "x86_64" },
+  "measurements": [
+    {
+      "artifact_bytes": 4096,
+      "poseidon_direct_ns": 1672841,
+      "blake3_only_ns": 1883,
+      "hybrid_ns": 14682,
+      "poseidon_mb_per_s": 2.45,
+      "blake3_mb_per_s": 2175.25,
+      "hybrid_mb_per_s": 278.98,
+      "hybrid_speedup": 113.9
+    },
+    {
+      "artifact_bytes": 65536,
+      "poseidon_direct_ns": 26632446,
+      "blake3_only_ns": 18598,
+      "hybrid_ns": 31478,
+      "poseidon_mb_per_s": 2.46,
+      "blake3_mb_per_s": 3523.82,
+      "hybrid_mb_per_s": 2081.96,
+      "hybrid_speedup": 846.1
+    },
+    {
+      "artifact_bytes": 1048576,
+      "poseidon_direct_ns": 426340811,
+      "blake3_only_ns": 316106,
+      "hybrid_ns": 311700,
+      "poseidon_mb_per_s": 2.46,
+      "blake3_mb_per_s": 3317.17,
+      "hybrid_mb_per_s": 3364.06,
+      "hybrid_speedup": 1367.8
+    }
+  ]
+}

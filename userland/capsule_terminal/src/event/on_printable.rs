@@ -18,15 +18,15 @@ use nonos_app_skeleton::EventOutcome;
 
 use crate::term::state::State;
 
-pub fn on_printable(state: &mut State, byte: u8) -> EventOutcome {
+pub fn on_printable(state: &mut State, ch: char) -> EventOutcome {
     // While a search is running the keys go to the search, not the line. The
     // line is showing a match, and typing into it would edit a command the
     // reader has not chosen yet.
     if state.search.is_some() {
-        crate::event::search_edit::search_type(state, byte);
+        crate::event::search_edit::search_type(state, ch);
         return EventOutcome::Repaint;
     }
-    if !state.line.insert(byte) {
+    if !state.line.insert_char(ch) {
         return EventOutcome::Idle;
     }
     state.history.reset_cursor();

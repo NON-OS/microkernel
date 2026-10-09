@@ -23,5 +23,5 @@ mod types;
 pub use calls::{
     mk_debug, mk_device_claim, mk_device_release, mk_irq_ack, mk_irq_bind, mk_pio_grant,
 };
-pub use table::{acked, mk_device_list, present};
+pub use table::{acked, mk_device_list, present, released};
 pub use types::{DeviceRecord, IrqBindOut, PioGrantOut, BUS_KIND_ACPI, IRQ_GRANT_BASE, PIO_GRANT};

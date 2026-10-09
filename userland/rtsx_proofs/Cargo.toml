@@ -1,0 +1,12 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the Realtek PCIe card reader driver: the shipped
+# register, chip, wire and SD modules run here through #[path].
+[package]
+name = "rtsx_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"

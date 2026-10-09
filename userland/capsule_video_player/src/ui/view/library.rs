@@ -18,6 +18,7 @@ use nonos_app_skeleton::paint::PaintBuffer;
 
 use super::grid::{paint_grid, paint_list};
 use crate::app::state::VideoApp;
+use crate::catalog::says::library_unavailable;
 use crate::ui::format::count;
 use crate::ui::icon;
 use crate::ui::layout::Rect;
@@ -26,15 +27,20 @@ use crate::ui::widget::section::paint_head;
 
 const HEAD: u32 = 34;
 
+/// Where the videos are drawn under the page heading. The click test reads
+/// the same rect, so a click lands on the tile or row painted under it.
+pub fn area(body: Rect) -> Rect {
+    Rect { x: body.x, y: body.y + HEAD, w: body.w, h: body.h.saturating_sub(HEAD) }
+}
+
 pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
     if app.browse.items.is_empty() {
-        paint_empty(
-            fb,
-            body,
-            icon::nav::library,
-            "Your library is empty",
-            "No video files were found in Movies, Series, Downloads or Clips",
-        );
+        let (head, note) = library_unavailable(app.browse.scanned, app.browse.scan_error)
+            .unwrap_or((
+                "Your library is empty",
+                "Put Motion-JPEG .avi files in /, Movies, Series, Downloads or Clips",
+            ));
+        paint_empty(fb, body, icon::nav::library, head, note);
         return;
     }
     if app.browse.is_empty() {
@@ -49,7 +55,7 @@ pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
     }
     let tally = count(app.browse.len(), "video", "videos");
     paint_head(fb, body.x, body.y, body.w, "All Videos", &tally);
-    let rest = Rect { x: body.x, y: body.y + HEAD, w: body.w, h: body.h.saturating_sub(HEAD) };
+    let rest = area(body);
     if app.browse.grid {
         paint_grid(fb, &app.browse, rest);
     } else {

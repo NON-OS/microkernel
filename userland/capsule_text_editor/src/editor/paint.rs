@@ -112,7 +112,7 @@ fn paint_body(state: &State, fb: &mut PaintBuffer, adv: u32) {
     let invisibles = super::settings::live::show_invisibles();
     let px = body_px(state.font_scale);
     let lh = line_height(state.font_scale);
-    let toks = highlight::classify(&state.buf[..state.len]);
+    let toks = super::language::tokens(&state.path[..state.path_len], &state.buf[..state.len]);
     let sel = state.sel_range();
     let text = core::str::from_utf8(&state.buf[..state.len]).unwrap_or("");
     let left = text_left(state.pane_x);

@@ -36,24 +36,40 @@ use super::state::CPU_COUNT;
 /// CPU's current process and be granted its authority.
 #[inline]
 pub fn cpu_id() -> usize {
+    match resolve() {
+        Ok(index) => index,
+        Err(apic_id) => super::cpu_unregistered::unregistered(apic_id),
+    }
+}
+
+/// [`cpu_id`] for callers that can do without an answer.
+///
+/// `None` means this CPU is not in the descriptor table: an AP between its
+/// first instruction and its registration. A caller that only offers help to
+/// other CPUs, such as a shootdown serve point, skips its work on `None`
+/// instead of halting; the CPU cannot be a shootdown target before it is
+/// registered, so there is nothing it could owe.
+#[inline]
+pub(crate) fn try_cpu_id() -> Option<usize> {
+    resolve().ok()
+}
+
+/// The descriptor index for this CPU, or its unmatched APIC id.
+#[inline]
+fn resolve() -> Result<usize, u32> {
     let apic_id = crate::arch::cpu::get_cpu_id();
     if let Some(index) = apic_to_cpu_id(apic_id) {
-        return index;
+        return Ok(index);
     }
     if CPU_COUNT.load(Ordering::Acquire) == 0 {
         // Nothing is registered yet, so this is the boot CPU before
         // `smp::init_bsp` filled in its descriptor.
-        return 0;
+        return Ok(0);
     }
-    unregistered(apic_id)
+    Err(apic_id)
 }
 
-/// A CPU the descriptor table does not know about has no per-CPU block, no
-/// current-process slot and no time slice. There is no index it can be given
-/// that is not a guess, so it stops here instead of running as another CPU.
-fn unregistered(apic_id: u32) -> ! {
-    crate::sys::serial::print(b"[SMP] FATAL unregistered CPU, APIC id ");
-    crate::sys::serial::print_dec(apic_id as u64);
-    crate::sys::serial::println(b"");
-    crate::arch::halt_loop()
+/// [`cpu_id`] as the `u32` the interrupt layer takes.
+pub fn current_cpu_id() -> u32 {
+    cpu_id() as u32
 }

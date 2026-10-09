@@ -34,4 +34,8 @@ pub struct Store {
 pub enum StoreError {
     NotFound,
     CryptoFailure,
+    /// Past `MAX_FILE_BYTES`.
+    TooLarge,
+    /// Past `MAX_STORE_BYTES` or `MAX_FILES`.
+    Full,
 }

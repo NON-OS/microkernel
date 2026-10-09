@@ -21,7 +21,9 @@ use super::types::SphinxHeader;
 use super::wrap_hops::wrap_forward_hops;
 use crate::crypto::ecdh::x25519_public;
 use crate::crypto::types::CryptoError;
-use crate::sphinx::constants::VERSION_LENGTH;
+use crate::sphinx::constants::{uses_key_seeds, VERSION_LENGTH};
+use crate::sphinx::keys::derive_payload_key;
+use alloc::vec::Vec;
 use crate::sphinx::filler::build_filler;
 use crate::sphinx::mac::compute_mac;
 use crate::sphinx::node::{Destination, Node};
@@ -46,8 +48,20 @@ pub fn build_header(
 
     let mut ephemeral_pubkey = [0u8; 32];
     x25519_public(initial_secret, &mut ephemeral_pubkey)?;
+    // A hop derives its payload key the way the version says, so the layers
+    // laid here have to be under the same keys or the payload will not open.
+    let payload_keys = if uses_key_seeds(version) {
+        let mut keys = Vec::with_capacity(secrets.len());
+        for s in &secrets {
+            keys.push(derive_payload_key(&s.payload_key_seed())?);
+        }
+        keys
+    } else {
+        secrets.iter().map(|s| s.legacy_payload_key()).collect()
+    };
     Ok(BuiltHeader {
         header: SphinxHeader { ephemeral_pubkey, integrity_mac: mac, routing_info: routing },
-        payload_keys: secrets.iter().map(|s| s.legacy_payload_key()).collect(),
+        payload_keys,
+        payload_key_seeds: secrets.iter().map(|s| s.payload_key_seed()).collect(),
     })
 }

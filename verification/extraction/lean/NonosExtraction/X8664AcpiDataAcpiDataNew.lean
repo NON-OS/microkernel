@@ -29,15 +29,79 @@ inductive arch.x86_64.acpi.tables.fadt.profile.PmProfile where
 | PerformanceServer : arch.x86_64.acpi.tables.fadt.profile.PmProfile
 | Tablet : arch.x86_64.acpi.tables.fadt.profile.PmProfile
 
-/-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::tables::sdt::generic_address::GenericAddress]
-    Source: 'src/arch/x86_64/acpi/../../../../../../../../src/arch/x86_64/acpi/tables/sdt/generic_address.rs', lines 21:0-27:1
+/-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::aml::power_devices::PowerDevices]
+    Source: 'src/arch/x86_64/acpi/aml/../../../../../../../../../src/arch/x86_64/acpi/aml/power_devices.rs', lines 31:0-37:1
     Visibility: public -/
-structure arch.x86_64.acpi.tables.sdt.generic_address.GenericAddress where
-  address_space : Std.U8
+structure arch.x86_64.acpi.aml.power_devices.PowerDevices where
+  battery : Bool
+  ac_adapter : Bool
+  lid : Bool
+  embedded_controller : Bool
+  power_button : Bool
+
+/-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::aml::power_devices::{impl core::default::Default for nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::aml::power_devices::PowerDevices}::default]:
+    Source: 'src/arch/x86_64/acpi/aml/../../../../../../../../../src/arch/x86_64/acpi/aml/power_devices.rs', lines 30:29-30:36
+    Visibility: public -/
+def
+  arch.x86_64.acpi.aml.power_devices.PowerDevices.Insts.CoreDefaultDefault.default
+  : Result arch.x86_64.acpi.aml.power_devices.PowerDevices := do
+  let b ← core.default.DefaultBool.default
+  ok
+    {
+      battery := b,
+      ac_adapter := b,
+      lid := b,
+      embedded_controller := b,
+      power_button := b
+    }
+
+/-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::aml::sleep_obj::SleepPackage]
+    Source: 'src/arch/x86_64/acpi/aml/../../../../../../../../../src/arch/x86_64/acpi/aml/sleep_obj.rs', lines 47:0-50:1
+    Visibility: public -/
+structure arch.x86_64.acpi.aml.sleep_obj.SleepPackage where
+  slp_typ_a : Std.U8
+  slp_typ_b : Std.U8
+
+/-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::hw::gas::Gas]
+    Source: 'src/arch/x86_64/acpi/hw/../../../../../../../../../src/arch/x86_64/acpi/hw/gas.rs', lines 46:0-52:1
+    Visibility: public -/
+structure arch.x86_64.acpi.hw.gas.Gas where
+  space : Std.U8
   bit_width : Std.U8
   bit_offset : Std.U8
   access_size : Std.U8
   address : Std.U64
+
+/-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::hw::fadt_decode::FadtInfo]
+    Source: 'src/arch/x86_64/acpi/hw/../../../../../../../../../src/arch/x86_64/acpi/hw/fadt_decode.rs', lines 89:0-120:1
+    Visibility: public -/
+structure arch.x86_64.acpi.hw.fadt_decode.FadtInfo where
+  length : Std.U32
+  revision : Std.U8
+  checksum_ok : Bool
+  firmware_ctrl : Std.U64
+  dsdt : Std.U64
+  pm_profile : Std.U8
+  sci_int : Std.U16
+  smi_cmd : Std.U32
+  acpi_enable : Std.U8
+  acpi_disable : Std.U8
+  pm1a_evt : arch.x86_64.acpi.hw.gas.Gas
+  pm1b_evt : arch.x86_64.acpi.hw.gas.Gas
+  pm1a_cnt : arch.x86_64.acpi.hw.gas.Gas
+  pm1b_cnt : arch.x86_64.acpi.hw.gas.Gas
+  pm_tmr : arch.x86_64.acpi.hw.gas.Gas
+  gpe0 : arch.x86_64.acpi.hw.gas.Gas
+  gpe1 : arch.x86_64.acpi.hw.gas.Gas
+  gpe0_len : Std.U8
+  gpe1_len : Std.U8
+  gpe1_base : Std.U8
+  boot_arch : Std.U16
+  flags : Std.U32
+  reset_reg : arch.x86_64.acpi.hw.gas.Gas
+  reset_value : Std.U8
+  sleep_control : arch.x86_64.acpi.hw.gas.Gas
+  sleep_status : arch.x86_64.acpi.hw.gas.Gas
 
 /-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::data::processor::ProcessorInfo]
     Source: 'src/arch/x86_64/acpi/data/../../../../../../../../../src/arch/x86_64/acpi/data/processor.rs', lines 18:0-24:1
@@ -94,7 +158,7 @@ structure arch.x86_64.acpi.data.interrupt.InterruptOverride where
   trigger_mode : Std.U8
 
 /-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::data::acpi_data_struct::AcpiData]
-    Source: 'src/arch/x86_64/acpi/data/../../../../../../../../../src/arch/x86_64/acpi/data/acpi_data_struct.rs', lines 27:0-49:1
+    Source: 'src/arch/x86_64/acpi/data/../../../../../../../../../src/arch/x86_64/acpi/data/acpi_data_struct.rs', lines 30:0-55:1
     Visibility: public -/
 structure arch.x86_64.acpi.data.acpi_data_struct.AcpiData where
   revision : Std.U8
@@ -109,21 +173,20 @@ structure arch.x86_64.acpi.data.acpi_data_struct.AcpiData where
   numa_regions : alloc.vec.Vec arch.x86_64.acpi.data.numa.NumaMemoryRegion
   pcie_segments : alloc.vec.Vec arch.x86_64.acpi.data.pcie.PcieSegment
   hpet_address : Option Std.U64
-  pm1a_control : Std.U32
-  pm1b_control : Std.U32
-  slp_typ : Array Std.U8 6#usize
-  reset_reg : Option arch.x86_64.acpi.tables.sdt.generic_address.GenericAddress
-  reset_value : Std.U8
+  fadt : Option arch.x86_64.acpi.hw.fadt_decode.FadtInfo
+  s5 : Option arch.x86_64.acpi.aml.sleep_obj.SleepPackage
+  power_devices : arch.x86_64.acpi.aml.power_devices.PowerDevices
   pm_profile : arch.x86_64.acpi.tables.fadt.profile.PmProfile
   sci_interrupt : Std.U16
 
 /-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::data::acpi_data_new::{nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::data::acpi_data_struct::AcpiData}::new]:
-    Source: 'src/arch/x86_64/acpi/data/../../../../../../../../../src/arch/x86_64/acpi/data/acpi_data_new.rs', lines 23:4-45:5
+    Source: 'src/arch/x86_64/acpi/data/../../../../../../../../../src/arch/x86_64/acpi/data/acpi_data_new.rs', lines 23:4-43:5
     Visibility: public -/
 def arch.x86_64.acpi.data.acpi_data_new.AcpiData.new
   : Result arch.x86_64.acpi.data.acpi_data_struct.AcpiData := do
   let a := Array.repeat 6#usize 0#u8
-  let a1 := Array.repeat 6#usize 0#u8
+  let pd ←
+    arch.x86_64.acpi.aml.power_devices.PowerDevices.Insts.CoreDefaultDefault.default
   ok
     {
       revision := 0#u8,
@@ -142,11 +205,9 @@ def arch.x86_64.acpi.data.acpi_data_new.AcpiData.new
       pcie_segments :=
         (alloc.vec.Vec.new arch.x86_64.acpi.data.pcie.PcieSegment),
       hpet_address := none,
-      pm1a_control := 0#u32,
-      pm1b_control := 0#u32,
-      slp_typ := a1,
-      reset_reg := none,
-      reset_value := 0#u8,
+      fadt := none,
+      s5 := none,
+      power_devices := pd,
       pm_profile := arch.x86_64.acpi.tables.fadt.profile.PmProfile.Unspecified,
       sci_interrupt := 9#u16
     }

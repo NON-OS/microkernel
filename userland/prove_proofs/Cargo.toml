@@ -1,0 +1,30 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for nonos.prove. The capsule's pure half
+# (userland/capsule_prove/src/assemble) and libc's readers it calls are
+# included via `#[path]`, so the files under test are the files that ship.
+# The kernel's own `MkBootSlots` encoders build the records, over trees the
+# enroll tool's way; the registry is nonos-device-attest's. The refusal tests
+# prove nothing; one test makes a real proof and verifies it, which takes
+# minutes and about 2.6 GB.
+[package]
+name = "prove_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# With its default features: the host prover, on every core.
+nonos-device-attest = { path = "../../nonos-device-attest" }
+nonos-attest-path = { path = "../../nonos-attest-path", features = ["alloc"] }
+nonos-boot-measure = { path = "../../nonos-boot-measure" }
+
+# The prover and its hashes optimized even in a debug test run, so the one
+# real proof takes minutes rather than hours. The tests themselves stay debug.
+[profile.dev.package."*"]
+opt-level = 3

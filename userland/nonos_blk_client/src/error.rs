@@ -32,6 +32,9 @@ pub enum BlkError {
     Status(i32),
     /// The request was not a whole number of sectors, or too large.
     Inval,
+    /// The disk's blocks are of a size this client cannot turn sectors
+    /// into, or its controller moves less than one of them per request.
+    BlockSize(u32),
 }
 
 impl BlkError {
@@ -45,6 +48,7 @@ impl BlkError {
             BlkError::Inval => -22,
             BlkError::ShortReply(_) | BlkError::BadHeader | BlkError::IdMismatch => -71,
             BlkError::BadLength => -90,
+            BlkError::BlockSize(_) => -95,
         }
     }
 }

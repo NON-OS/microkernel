@@ -19,7 +19,7 @@ use nonos_app_skeleton::PaintBuffer;
 use super::super::gauge;
 use super::super::metrics::TILE_GAP;
 use super::tile_text::{dims, ratio, uptime};
-use crate::about::data::caps::{is_granted, ALL_CAPS};
+use crate::about::data::caps::{granted, ALL_CAPS};
 use crate::about::data::display::primary_dimensions;
 use crate::about::data::uptime::read_millis;
 use crate::about::format::u64_decimal;
@@ -28,7 +28,7 @@ const DAY_S: u64 = 86_400;
 
 // The third column absorbs the rounding remainder so the row ends flush with the
 // cards above and below it rather than a pixel short.
-pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
+pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, held: Option<u64>) {
     if y < 0 || y + gauge::HEIGHT as i32 > fb.height as i32 {
         return;
     }
@@ -36,7 +36,7 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
     let col = (w.saturating_sub(TILE_GAP * 2)) / 3;
     let last = w.saturating_sub((col + TILE_GAP) * 2);
     uptime_tile(fb, 0, y, col);
-    caps_tile(fb, col + TILE_GAP, y, col);
+    caps_tile(fb, col + TILE_GAP, y, col, held);
     display_tile(fb, (col + TILE_GAP) * 2, y, last);
 }
 
@@ -51,16 +51,23 @@ fn uptime_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
             let sub = u64_decimal(ms, &mut raw);
             gauge::tile(fb, x, y, w, b"Uptime", v, sub, (ms / 1000) % DAY_S, DAY_S);
         }
-        None => gauge::tile(fb, x, y, w, b"Uptime", b"unavailable", b"mk_time_millis", 0, 1),
+        None => gauge::tile(fb, x, y, w, b"Uptime", b"unavailable", b"monotonic clock", 0, 1),
     }
 }
 
-fn caps_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
+// The word the kernel recorded for this pid, counted against every named
+// capability. A table that did not answer says so rather than counting the
+// bits the build declared.
+fn caps_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, held: Option<u64>) {
     let total = ALL_CAPS.len() as u64;
-    let granted = ALL_CAPS.iter().filter(|c| is_granted(c.bit)).count() as u64;
+    let Some(mask) = held else {
+        gauge::tile(fb, x, y, w, b"Capabilities", b"unavailable", b"process table", 0, 1);
+        return;
+    };
+    let count = granted(mask);
     let mut value = [0u8; 24];
-    let v = ratio(granted, total, &mut value);
-    gauge::tile(fb, x, y, w, b"Capabilities", v, b"granted to this capsule", granted, total);
+    let v = ratio(count, total, &mut value);
+    gauge::tile(fb, x, y, w, b"Capabilities", v, b"held by this window", count, total);
 }
 
 fn display_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
@@ -68,8 +75,8 @@ fn display_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
     match primary_dimensions() {
         Some((dw, dh)) => {
             let v = dims(dw, dh, &mut value);
-            gauge::tile(fb, x, y, w, b"Display", v, b"ARGB8888", 1, 1);
+            gauge::tile(fb, x, y, w, b"Display", v, b"primary display", 1, 1);
         }
-        None => gauge::tile(fb, x, y, w, b"Display", b"unavailable", b"ARGB8888", 0, 1),
+        None => gauge::tile(fb, x, y, w, b"Display", b"unavailable", b"primary display", 0, 1),
     }
 }

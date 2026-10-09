@@ -1,0 +1,20 @@
+[package]
+name = "nym-interop"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+blake3 = "1"
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+rand = "0.8"
+hkdf = "0.12"
+hmac = "0.12"
+sha2 = "0.10"
+# What the network runs: nym-node 1.41.0 locks sphinx-packet 0.6.0, and its
+# reply parsing is nym-sphinx-anonymous-replies 1.22.1.
+sphinx-packet = "=0.6.0"
+nym-sphinx-anonymous-replies = "=1.22.1"
+nym-sphinx-params = "=1.22.1"
+
+[workspace]

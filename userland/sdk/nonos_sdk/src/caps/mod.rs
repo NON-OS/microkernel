@@ -16,9 +16,11 @@
 
 //! What an app is allowed to do, declared by the app itself.
 //!
-//! Every capability an app holds is written in its own source, expands into
-//! the manifest it is signed and proved against, and is enforced by the
-//! kernel at spawn. There is no set of powers an app gets for free beyond
+//! Every capability an app declares is written in its own source, into the
+//! `.nonos.caps` section `sdk_main!` emits. The manifest it is signed and
+//! proved against carries the word typed into its `Capsule.mk`, and
+//! `scripts/check_declared_caps.py` compares the two after signing. The
+//! kernel enforces the manifest's word at spawn. There is no set of powers an app gets for free beyond
 //! `BASE`, and nothing it can acquire later.
 
 mod base;

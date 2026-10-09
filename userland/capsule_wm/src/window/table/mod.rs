@@ -16,6 +16,7 @@
 
 mod find;
 mod find_mut;
+mod held_by;
 mod insert;
 mod new;
 mod remove;

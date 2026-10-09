@@ -20,6 +20,9 @@ use spin::Mutex;
 use crate::sockets::{Kind, LocalAddr4, RemoteAddr4, SocketKey};
 
 pub const TABLE_CAP: usize = 256;
+/// The most sockets one client holds at once, so no one client can take
+/// every slot from the rest.
+pub const PER_PID_MAX: usize = TABLE_CAP / 2;
 
 #[derive(Clone, Copy)]
 pub struct Socket {

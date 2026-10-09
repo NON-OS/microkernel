@@ -20,9 +20,10 @@
 
 use alloc::vec::Vec;
 
-use super::layout::{Layout, ARRAY_SECTORS, ENTRY_COUNT, ENTRY_SIZE};
+use super::shape::{ENTRY_COUNT, ENTRY_SIZE, FIRST_USABLE_LBA};
 use crate::crc32::crc32;
 use crate::guid::Guid;
+use crate::layout::Layout;
 use crate::sink::SECTOR_SIZE;
 
 pub const SIGNATURE: &[u8; 8] = b"EFI PART";
@@ -46,7 +47,7 @@ pub fn build(layout: &Layout, disk_guid: Guid, array_crc: u32, which: Which) -> 
     h[12..16].copy_from_slice(&HEADER_SIZE.to_le_bytes());
     h[24..32].copy_from_slice(&my_lba.to_le_bytes());
     h[32..40].copy_from_slice(&alt_lba.to_le_bytes());
-    h[40..48].copy_from_slice(&(2 + ARRAY_SECTORS).to_le_bytes());
+    h[40..48].copy_from_slice(&FIRST_USABLE_LBA.to_le_bytes());
     h[48..56].copy_from_slice(&(layout.backup_array_lba - 1).to_le_bytes());
     h[56..72].copy_from_slice(&disk_guid.0);
     h[72..80].copy_from_slice(&array_lba.to_le_bytes());

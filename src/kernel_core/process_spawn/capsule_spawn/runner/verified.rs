@@ -22,9 +22,8 @@ use super::super::spec::{CapsuleSpecVerified, SpawnError};
 use super::install::{install, InstallParams};
 use super::preflight;
 
-// Caps installed on the PCB come from the verified manifest, never
-// from spec.requested_caps. requested_caps is only the upper bound
-// the spawn site is willing to grant for optional caps.
+// Caps installed on the PCB come from the verified manifest, never from spec.requested_caps,
+// which is only the upper bound the spawn site is willing to grant for optional caps.
 pub fn spawn_verified(
     spec: &CapsuleSpecVerified<'_>,
     trust_anchor: &NonosTrustAnchorPolicy,
@@ -43,6 +42,7 @@ pub(crate) fn spawn_verified_as(
     on_behalf_of: Option<AttestedParent>,
 ) -> Result<u32, SpawnError> {
     crate::sys::bench::mark_named(b"capsule_spawn_start", spec.name.as_bytes());
+    super::profile_gate::check(spec.name)?;
     let preflighted = match preflight::run(spec, trust_anchor, now_ms) {
         Ok(preflighted) => preflighted,
         Err(err) => {
@@ -75,7 +75,7 @@ pub(crate) fn spawn_verified_as(
     crate::security::attest_registry::record_attested(
         pid,
         measurement,
-        preflighted.install_caps,
+        super::profile_gate::caps(preflighted.install_caps),
         authority,
     );
     Ok(pid)

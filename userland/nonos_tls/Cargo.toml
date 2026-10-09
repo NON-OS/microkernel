@@ -2,11 +2,25 @@
 name = "nonos_tls"
 version = "0.2.0"
 edition = "2021"
-description = "TLS 1.3 client for NONOS, no_std, crypto through the pool service"
+description = "TLS 1.3 client for NONOS, no_std; X25519 and signatures through the pool service"
 license = "AGPL-3.0"
 
 [lib]
 crate-type = ["rlib"]
 
+# The key schedule, the transcript hash and the record AEAD run in the caller.
+# The secrets they touch (traffic secrets, record keys, the X25519 private key)
+# already live in the caller's memory, so doing the arithmetic next to them
+# moves no boundary; it only stops paying a kernel round trip per hash. The
+# versions and features match capsule_crypto's for the same primitives.
 [dependencies]
-nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+# The capsule that links this decides the heap and the panic hook: a std
+# capsule has its own, and two would not link.
+nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
+sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
+hmac = { version = "0.12", default-features = false }
+chacha20poly1305 = { version = "0.10", default-features = false }
+# ECDHE over secp256r1, for servers that refuse X25519 (Tor-lineage relays).
+# The private scalar lives in the caller like the X25519 key, so the
+# agreement runs next to it, as the key schedule does.
+p256 = { version = "0.13", default-features = false, features = ["arithmetic", "ecdh"] }

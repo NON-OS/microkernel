@@ -1,0 +1,22 @@
+# NØNOS userland: linux_guests
+#
+# Linux programs that attack the personality on purpose. Each probes one
+# isolation property, prints one line per attempt, and exits non-zero if any
+# attempt got through. A stock package never tries any of this, which is why
+# these are written rather than downloaded.
+
+[package]
+name = "nonos_linux_guests"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "Hostile Linux guests: each tries to break one isolation property and must be refused"
+publish = false
+
+[dependencies]
+
+[profile.release]
+opt-level = "s"
+panic = "abort"
+strip = true
+lto = true

@@ -17,43 +17,42 @@
 use crate::browser::css::selector::Selector;
 use crate::browser::dom::Dom;
 
-use super::simple::matches_simple;
+use super::complex::{complex, Res};
+use super::cx::Cx;
+use super::sibling::Siblings;
+use super::steps::charge;
 
-// Ancestor steps run nearest-first; a direct step must match the immediate
-// parent, a loose one may skip up the chain.
-pub fn matches_selector(dom: &Dom, id: usize, sel: &Selector) -> bool {
-    if !matches_simple(dom, id, &sel.key) {
+/* Whether element `id` matches `sel` as the cascade asks it: :scope is the
+ * document element. The work is bounded per call (CALL_STEPS) and counted
+ * toward the process-wide step total the cascade budget reads, but a call
+ * never fails because of that total, so UA matching always runs. */
+pub fn matches_selector(dom: &Dom, sib: &Siblings, id: usize, sel: &Selector) -> bool {
+    let (hit, spent) = matches_scoped(dom, sib, 0, id, sel);
+    charge(spent);
+    hit
+}
+
+/* The same with an explicit :scope element (0 for the document element),
+ * returning the steps spent. A call that runs out of steps is no match,
+ * whatever a negation would have concluded from the tests it cut short. */
+pub fn matches_scoped(
+    dom: &Dom,
+    sib: &Siblings,
+    scope: usize,
+    id: usize,
+    sel: &Selector,
+) -> (bool, u32) {
+    let cx = Cx::new(dom, sib, scope);
+    let hit = test(&cx, id, sel) && !cx.exhausted();
+    (hit, cx.spent())
+}
+
+/* One selector at one element inside a match already under way: first the
+ * ancestor filter, which rejects in O(1) a selector that needs a tag, id
+ * or class no ancestor has, then the full right-to-left match. */
+pub(super) fn test(cx: &Cx, id: usize, sel: &Selector) -> bool {
+    if cx.sib.tab().is_some_and(|t| !t.may_match(id, &sel.anc_bits)) {
         return false;
     }
-    let Some(node) = dom.nodes.get(id) else {
-        return false;
-    };
-    let mut cur = node.parent;
-    for step in &sel.ancestors {
-        if step.direct {
-            if cur == 0 || !matches_simple(dom, cur, &step.simple) {
-                return false;
-            }
-            cur = match dom.nodes.get(cur) {
-                Some(n) => n.parent,
-                None => return false,
-            };
-        } else {
-            loop {
-                if cur == 0 {
-                    return false;
-                }
-                let Some(n) = dom.nodes.get(cur) else {
-                    return false;
-                };
-                let parent = n.parent;
-                let hit = matches_simple(dom, cur, &step.simple);
-                cur = parent;
-                if hit {
-                    break;
-                }
-            }
-        }
-    }
-    true
+    complex(cx, id, sel, 0) == Res::Matched
 }

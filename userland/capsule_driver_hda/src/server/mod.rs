@@ -18,4 +18,4 @@ mod error;
 mod handlers;
 mod runner;
 
-pub use runner::run;
+pub use runner::{run, run_status};

@@ -22,19 +22,21 @@ pub enum Action {
     TogglePlay,
     SeekBy(i32),
     SeekToPermille(u32),
-    VolumeBy(i32),
-    SetVolume(u32),
-    ToggleMute,
     Restart,
     OpenIndex(usize),
     OpenSelected,
     MoveSel(i32),
+    /// A wheel step over a list page: the list moves, the selection stays.
+    Scroll(i32),
     ShowLibrary,
     Goto(Route),
     Back,
     ToggleGrid,
-    TogglePref(usize),
-    SetSection(usize),
-    ResetPrefs,
+    /// A printable key typed into the search field.
+    Type(u8),
+    /// Backspace in the search field.
+    Erase,
+    /// A folder in the Folders rail: `None` is every folder.
+    Folder(Option<usize>),
     Close,
 }

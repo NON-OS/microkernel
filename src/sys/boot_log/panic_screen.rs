@@ -16,10 +16,12 @@
 
 //! Framebuffer panic banner. The legacy VGA text banner lives at 0xB8000,
 //! which no UEFI machine displays, so the panic path also paints the
-//! failure onto the GOP framebuffer whenever the kernel mapped one.
+//! failure onto the GOP framebuffer: the kernel's mapping of it, or the
+//! loader's before that exists (see screen.rs).
 
-use super::draw::{draw_char, fill_rect};
-use crate::kernel_core::init::framebuffer::{framebuffer_state, KernelFramebuffer};
+use super::draw::{draw_char, fill_rect, scale};
+use super::screen::screen;
+use crate::kernel_core::init::framebuffer::KernelFramebuffer;
 
 const BAND_HEIGHT: u32 = 104;
 const BAND_COLOR: u32 = 0x009C_1420;
@@ -31,26 +33,29 @@ const HINT_COLOR: u32 = 0x00E8_C4C4;
 /// location. Safe to call from the panic handler: no allocation, no
 /// locks, every pixel write bounds-checked.
 pub fn show(file: &str, line: u32) {
-    let Some(fb) = framebuffer_state() else {
+    let Some(fb) = screen() else {
         return;
     };
-    fill_rect(fb, 0, 0, fb.width, BAND_HEIGHT.min(fb.height), BAND_COLOR);
-    draw_text(fb, 24, 20, b"KERNEL PANIC", TITLE_COLOR);
-    let mut x = draw_text(fb, 24, 48, file.as_bytes(), TEXT_COLOR);
-    x = draw_text(fb, x, 48, b":", TEXT_COLOR);
+    let fb = &fb;
+    let s = scale(fb);
+    fill_rect(fb, 0, 0, fb.width, (BAND_HEIGHT * s).min(fb.height), BAND_COLOR);
+    draw_text(fb, 24 * s, 20 * s, b"KERNEL PANIC", TITLE_COLOR);
+    let mut x = draw_text(fb, 24 * s, 48 * s, file.as_bytes(), TEXT_COLOR);
+    x = draw_text(fb, x, 48 * s, b":", TEXT_COLOR);
     let mut digits = [0u8; 10];
-    draw_text(fb, x, 48, fmt_u32(line, &mut digits), TEXT_COLOR);
-    draw_text(fb, 24, 76, b"details on the serial console", HINT_COLOR);
+    draw_text(fb, x, 48 * s, fmt_u32(line, &mut digits), TEXT_COLOR);
+    draw_text(fb, 24 * s, 76 * s, b"details on the serial console", HINT_COLOR);
 }
 
-fn draw_text(fb: &KernelFramebuffer, x0: u32, y: u32, text: &[u8], color: u32) -> u32 {
+pub(super) fn draw_text(fb: &KernelFramebuffer, x0: u32, y: u32, text: &[u8], color: u32) -> u32 {
+    let advance = 8 * scale(fb);
     let mut x = x0;
     for &b in text {
-        if x + 8 >= fb.width {
+        if x + advance >= fb.width {
             break;
         }
         draw_char(fb, x, y, b, color);
-        x += 8;
+        x += advance;
     }
     x
 }

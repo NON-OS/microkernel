@@ -16,19 +16,21 @@
 
 use crate::term::prefs::RAIL_VISIBLE;
 use nonos_app_skeleton::PaintBuffer;
-use nonos_libc::mk_time_millis;
 
 use super::types::Terminal;
 impl Terminal {
     pub(super) fn paint_inner(&mut self, fb: &mut PaintBuffer) {
-        if self.cur_ref().start_ms == 0 {
-            let now = mk_time_millis();
-            if now > 0 {
-                self.cur().start_ms = now as u64;
-            }
-        }
         self.width = fb.width;
         let theme = crate::term::theme::profiles::by_index(self.theme);
+        let rail_open = self.prefs.rails & RAIL_VISIBLE != 0;
+        let (cols, rows, m) = crate::paint::grid_size(fb, self.font_scale, rail_open);
+        let theme_ix = self.theme;
+        let sb = &mut self.cur().scrollback;
+        let resized = sb.fit(cols, rows, m.adv, m.lh);
+        sb.follow_theme(theme_ix, theme);
+        if resized {
+            crate::jobs::tty::resized(self.cur_ref());
+        }
         let l = crate::paint::paint_tabs(
             &self.tabs,
             self.active,
@@ -42,6 +44,17 @@ impl Terminal {
             &self.palette,
             self.prefs.rails & RAIL_VISIBLE != 0,
         );
+        let s = self.cur_ref();
+        let owned = s.scrollback.vt.alt_active() || s.fg_running;
+        self.cells = Some(super::pointer::CellGeom {
+            x: l.body.x + crate::paint::TEXT_LEFT,
+            y: l.body.y,
+            adv: m.adv,
+            lh: m.lh,
+            pad: crate::paint::TEXT_LEFT,
+            shell_rows: (l.body.h / m.lh.max(1)) as usize,
+            owned,
+        });
         self.layout = Some(l);
     }
 }

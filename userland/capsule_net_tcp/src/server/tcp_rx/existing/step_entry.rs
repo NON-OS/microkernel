@@ -14,36 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use crate::server::tcp_rx::action::RxAction;
 use crate::server::tcp_rx::{rst, transitions};
-use crate::state::Entry;
-use crate::tcp::{State, TcpHeader, FLAG_ACK, FLAG_FIN, FLAG_RST};
+use crate::state::{Entry, TimerKind};
+use crate::tcp::{State, TcpHeader, FLAG_ACK, FLAG_RST};
 
-pub fn step_entry(e: &mut Entry, hdr: &TcpHeader, payload: &[u8], now: u64, accepted: &mut Option<(u32, u32)>, arm: &mut Option<(u32, u64)>) -> RxAction {
+pub fn step_entry(e: &mut Entry, hdr: &TcpHeader, payload: &[u8], now: u64, accepted: &mut Option<(u32, u32)>, arm: &mut Option<(u32, TimerKind, u64)>) -> RxAction {
     if hdr.has_flag(FLAG_RST) {
-        return if rst::in_window(e, hdr.seq) { RxAction::Reap(e.handle) } else { RxAction::None };
+        return rst::judge(e, hdr);
     }
     if e.tcb.state == State::SynSent {
         return transitions::handshake::step(e, hdr);
     }
     if e.tcb.state == State::SynReceived && hdr.has_flag(FLAG_ACK) && hdr.ack == e.tcb.send.nxt {
-        e.tcb.state = State::Established;
         *accepted = Some((e.parent, e.handle));
-        if hdr.has_flag(FLAG_FIN) {
-            e.tcb.recv.nxt = e.tcb.recv.nxt.wrapping_add(1);
-            e.tcb.state = State::CloseWait;
-            return RxAction::Reply(e.tcb, FLAG_ACK, Vec::new());
-        }
-        return RxAction::None;
+        return transitions::syn_received::complete(e, hdr, payload);
     }
     if e.tcb.state.is_closing() {
-        let (action, deadline) = transitions::closing::step(e, hdr, now);
+        let (action, deadline) = transitions::closing::step(e, hdr, payload, now);
         if let Some(d) = deadline {
-            *arm = Some((e.handle, d));
+            // The one deadline a closing step sets is how long its new state may last.
+            let kind = if e.tcb.state == State::FinWait2 {
+                TimerKind::FinWait2
+            } else {
+                TimerKind::TimeWait
+            };
+            *arm = Some((e.handle, kind, d));
         }
         return action;
+    }
+    if e.tcb.state == State::CloseWait {
+        return transitions::close_wait::step(e, hdr, payload);
     }
     if e.tcb.state.accepts_data() {
         return transitions::established::step(e, hdr, payload);

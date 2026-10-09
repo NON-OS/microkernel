@@ -24,13 +24,14 @@ use alloc::vec::Vec;
 use super::state::{State, CAPACITY};
 
 /// A reversible edit: at `at`, `inserted_len` bytes replaced `deleted`.
+/// `id` names the document state the edit leads to, so the save point can be
+/// compared against the top of the undo stack after any replay.
 pub struct EditOp {
     pub at: usize,
     pub deleted: Vec<u8>,
     pub inserted_len: usize,
+    pub id: u64,
 }
-
-const MAX_UNDO: usize = 400;
 
 impl State {
     /// Replace `buf[at..at+del]` with `ins`, recording an undo step and clearing
@@ -41,6 +42,7 @@ impl State {
         };
         self.push_undo(at, removed, ins.len());
         self.redo.clear();
+        self.refresh_dirty();
         true
     }
 
@@ -51,6 +53,7 @@ impl State {
         match self.apply_op(&op) {
             Some(reverse) => {
                 self.redo.push(reverse);
+                self.refresh_dirty();
                 true
             }
             None => {
@@ -67,6 +70,7 @@ impl State {
         match self.apply_op(&op) {
             Some(reverse) => {
                 self.undo.push(reverse);
+                self.refresh_dirty();
                 true
             }
             None => {
@@ -88,34 +92,20 @@ impl State {
         self.buf[at..at + ins.len()].copy_from_slice(ins);
         self.len = self.len - del + ins.len();
         self.caret = at + ins.len();
+        self.shift_styles(at, &removed, ins.len());
         self.reflow();
         Some(removed)
     }
 
-    // Apply one op and return its inverse, for undo/redo replay.
+    /*
+     * Apply one op and return its inverse, for undo/redo replay. Undoing
+     * lands on the state the op below it names, and redoing lands on the
+     * state this op names, so the inverse carries the id of where it leads.
+     */
     fn apply_op(&mut self, op: &EditOp) -> Option<EditOp> {
         let removed = self.splice(op.at, op.inserted_len, &op.deleted)?;
         self.caret = op.at + op.deleted.len();
-        Some(EditOp { at: op.at, deleted: removed, inserted_len: op.deleted.len() })
-    }
-
-    // Push an undo step, coalescing a run of single-character typing so one
-    // Ctrl-Z removes a word rather than a letter.
-    fn push_undo(&mut self, at: usize, removed: Vec<u8>, inserted_len: usize) {
-        // The one place every mutation passes through, so the one place that
-        // needs to know the document has moved away from what is on disk.
-        self.dirty = true;
-        if removed.is_empty() && inserted_len == 1 {
-            if let Some(last) = self.undo.last_mut() {
-                if last.deleted.is_empty() && last.at + last.inserted_len == at {
-                    last.inserted_len += 1;
-                    return;
-                }
-            }
-        }
-        self.undo.push(EditOp { at, deleted: removed, inserted_len });
-        if self.undo.len() > MAX_UNDO {
-            self.undo.remove(0);
-        }
+        self.sel_anchor = None;
+        Some(EditOp { at: op.at, deleted: removed, inserted_len: op.deleted.len(), id: op.id })
     }
 }

@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Card-grid geometry for an explicit track list. The reported defect is text
 //! laid out to one width and painted into another, so these check the widths
 //! a grid hands its children against the widths the children paint at.
@@ -8,7 +9,7 @@ use crate::render::{render, texts};
 
 const W: u32 = 1200;
 
-// Three equal fr tracks split the content width, minus the two gaps.
+/* Three equal fr tracks split the content width, minus the two gaps. */
 #[test]
 fn three_fr_tracks_split_the_container_width() {
     let doc = render(&card_page("1fr 1fr 1fr"), W);
@@ -22,8 +23,8 @@ fn three_fr_tracks_split_the_container_width() {
     assert_eq!(cards[2].0 - cards[1].0, want + 20);
 }
 
-// No text may paint outside the card that contains it. A word tail hanging
-// past the card edge is the visible defect.
+/* No text may paint outside the card that contains it. A word tail hanging
+ * past the card edge is the visible defect. */
 #[test]
 fn card_text_stays_inside_its_card() {
     let doc = render(&card_page("1fr 1fr 1fr"), W);
@@ -38,8 +39,8 @@ fn card_text_stays_inside_its_card() {
     }
 }
 
-// A fixed track keeps its size and the fraction takes what is left, so a
-// sidebar layout does not hand its main column the whole width.
+/* A fixed track keeps its size and the fraction takes what is left, so a
+ * sidebar layout does not hand its main column the whole width. */
 #[test]
 fn a_fixed_track_beside_a_fraction_keeps_its_size() {
     let doc = render(&card_page("240px 1fr"), W);

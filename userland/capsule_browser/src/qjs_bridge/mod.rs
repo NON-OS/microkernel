@@ -19,10 +19,14 @@
 //! from Rust and the module exists to keep the surface in one place.
 
 mod clone;
+mod computed;
+mod cookie;
 mod edit;
 mod location;
+mod media;
 mod nav;
 mod query;
+mod value;
 
 /// How far up a parent chain a walk will go before giving up.
 ///

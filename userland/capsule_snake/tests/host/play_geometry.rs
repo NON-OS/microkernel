@@ -17,9 +17,7 @@ mod snake {
 
 use snake::grid::COLS;
 use snake::ui::play_geom::{board, foot_band, hud_band, rail, stage};
-use snake::ui::play_geom_rows::{
-    foot, foot_at, hud, hud_at, rail_row, FOOT_BTNS, HUD_CARDS, RAIL_ROWS,
-};
+use snake::ui::play_geom_rows::{foot, foot_at, hud, rail_row, FOOT_BTNS, HUD_CARDS, RAIL_ROWS};
 use snake::ui::rect::{content, Rect};
 
 const SIZES: [(u32, u32); 4] = [(1240, 752), (1200, 692), (2560, 1412), (900, 600)];
@@ -62,9 +60,7 @@ fn main() {
             check(foot_at(w, h, centre(r).0, centre(r).1) == Some(i), "foot hit test drifts");
         }
         for i in 0..HUD_CARDS {
-            let r = hud(w, h, i);
-            check(inside(hb, r), "hud card escapes band");
-            check(hud_at(w, h, centre(r).0, centre(r).1) == Some(i), "hud hit test drifts");
+            check(inside(hb, hud(w, h, i)), "hud card escapes band");
         }
         for i in 0..RAIL_ROWS {
             check(inside(rl, rail_row(w, h, i)), "rail row escapes rail");

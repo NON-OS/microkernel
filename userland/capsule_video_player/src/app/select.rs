@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 use nonos_libc::mk_getpid;
 
 use super::state::VideoApp;
+use crate::catalog::media::MediaItem;
+use crate::catalog::probe::probe;
 use crate::catalog::scan::scan;
 use crate::ui::screen::Route;
 
@@ -29,7 +31,9 @@ impl VideoApp {
             return;
         }
         self.browse.scanned = true;
-        self.browse.items = scan(mk_getpid());
+        let (items, error) = scan(mk_getpid());
+        self.browse.items = items;
+        self.browse.scan_error = error;
         self.browse.reindex();
     }
 
@@ -38,16 +42,31 @@ impl VideoApp {
             return false;
         };
         if !item.decodable() {
-            self.status = Some("format not supported yet");
+            self.status = Some("only Motion-JPEG .avi files play here");
             self.browse.sel = slot;
             return true;
         }
-        self.path = item.path.to_string();
+        let path = item.path.to_string();
         self.browse.sel = slot;
+        self.play_path(path);
+        true
+    }
+
+    /// Open `path` in the player and start it.
+    pub(super) fn play_path(&mut self, path: String) {
+        self.note_position();
+        self.outside = if self.browse.item_by_path(&path).is_some() {
+            None
+        } else {
+            MediaItem::from_path(&path).map(|mut item| {
+                probe(mk_getpid(), &mut item);
+                item
+            })
+        };
+        self.path = path;
         self.reset_playback();
         self.nav.go(Route::Player);
         self.playing = true;
-        true
     }
 
     fn reset_playback(&mut self) {

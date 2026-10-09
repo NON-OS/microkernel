@@ -8,6 +8,10 @@
 // max of a numeric field, and a base64 digest of the document. This shows an
 // off-the-shelf Rust library doing real work on real input, attested and live.
 
+mod big_alloc;
+mod file_io;
+mod random;
+
 use base64::Engine;
 use serde_json::Value;
 
@@ -47,6 +51,15 @@ fn main() {
     match prove_threads() {
         Ok(detail) => println!("NONOS std proof PASS threads: {detail}"),
         Err(detail) => println!("NONOS std proof FAIL threads: {detail}"),
+    }
+
+    let checks: [(&str, fn() -> Result<String, String>); 3] =
+        [("alloc", big_alloc::prove), ("file", file_io::prove), ("random", random::prove)];
+    for (name, check) in checks {
+        match check() {
+            Ok(detail) => println!("NONOS std proof PASS {name}: {detail}"),
+            Err(detail) => println!("NONOS std proof FAIL {name}: {detail}"),
+        }
     }
 
     println!("NONOS STD PROOF DONE");

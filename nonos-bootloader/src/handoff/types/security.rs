@@ -42,3 +42,27 @@ pub struct ZkAttestation {
 pub struct RngSeed {
     pub seed32: [u8; 32],
 }
+
+/// The policy the boot chain checked the kernel against. `kernel_root` is the
+/// enrolled root the path gate folded to, and is zero unless that gate ran and
+/// passed on this boot, so the kernel never reports a root nothing was checked
+/// against.
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct AttestPolicy {
+    pub kernel_root: [u8; 32],
+    pub boot_epoch: u64,
+    pub depth: u8,
+    pub checked: u8,
+    /// One when `approval` holds the release's approval file for this kernel.
+    pub approval_present: u8,
+    pub reserved: [u8; 5],
+    /// `\EFI\nonos\kernel.approval` as read: policy key x, y, then the
+    /// signature's r, s, 32 bytes each. The kernel holds the key itself and
+    /// refuses an approval under any other.
+    pub approval: [u8; 128],
+}
+
+/// The kernel reads this at the same offsets the bootloader writes it; the
+/// handoff version guards the rest, this guards the block itself.
+const _: () = assert!(core::mem::size_of::<AttestPolicy>() == 176);

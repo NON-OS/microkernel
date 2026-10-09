@@ -11,8 +11,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
-
 pub fn vga_fallback() -> ! {
     // The last resort when there is no framebuffer to draw on: the legacy text
     // buffer at 0xB8000, which only a PC has. Somewhere else there is nothing to
@@ -28,7 +26,14 @@ pub fn vga_fallback() -> ! {
                 *VGA_BUFFER.add(i * 2) = b' ';
                 *VGA_BUFFER.add(i * 2 + 1) = 0x1F;
             }
-            let msg = b"NONOS v1.0.0 - No framebuffer available";
+            let msg = concat!(
+                "NONOS ",
+                env!("NONOS_KERNEL_VERSION"),
+                " ",
+                env!("NONOS_RELEASE_CHANNEL"),
+                " - No framebuffer available"
+            )
+            .as_bytes();
             for (i, &ch) in msg.iter().enumerate() {
                 *VGA_BUFFER.add(i * 2) = ch;
             }

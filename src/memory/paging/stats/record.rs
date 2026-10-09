@@ -19,7 +19,7 @@ use crate::memory::paging::types::{PagePermissions, PageSize};
 use core::sync::atomic::Ordering;
 
 impl PagingStatistics {
-    pub fn record_mapping(&self, permissions: PagePermissions, size: PageSize) {
+    pub(crate) fn record_mapping(&self, permissions: PagePermissions, size: PageSize) {
         self.total_mappings.fetch_add(1, Ordering::Relaxed);
         if permissions.contains(PagePermissions::USER) {
             self.user_pages.fetch_add(1, Ordering::Relaxed);
@@ -31,7 +31,7 @@ impl PagingStatistics {
         }
     }
 
-    pub fn record_unmapping(&self, permissions: PagePermissions, size: PageSize) {
+    pub(crate) fn record_unmapping(&self, permissions: PagePermissions, size: PageSize) {
         self.total_mappings.fetch_sub(1, Ordering::Relaxed);
         if permissions.contains(PagePermissions::USER) {
             self.user_pages.fetch_sub(1, Ordering::Relaxed);
@@ -44,23 +44,23 @@ impl PagingStatistics {
     }
 
     #[inline]
-    pub fn record_page_fault(&self) {
+    pub(crate) fn record_page_fault(&self) {
         self.page_faults.fetch_add(1, Ordering::Relaxed);
     }
     #[inline]
-    pub fn record_tlb_flush(&self) {
+    pub(crate) fn record_tlb_flush(&self) {
         self.tlb_flushes.fetch_add(1, Ordering::Relaxed);
     }
     #[inline]
-    pub fn record_cow_fault(&self) {
+    pub(crate) fn record_cow_fault(&self) {
         self.cow_faults.fetch_add(1, Ordering::Relaxed);
     }
     #[inline]
-    pub fn record_demand_load(&self) {
+    pub(crate) fn record_demand_load(&self) {
         self.demand_loads.fetch_add(1, Ordering::Relaxed);
     }
     #[inline]
-    pub fn record_modification(&self) {
+    pub(crate) fn record_modification(&self) {
         self.page_modifications.fetch_add(1, Ordering::Relaxed);
     }
 }

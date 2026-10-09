@@ -3,5 +3,19 @@
 version = 4
 
 [[package]]
+name = "nonos_policy_proto"
+version = "0.3.0"
+
+[[package]]
 name = "socks5_proofs"
 version = "0.3.0"
+dependencies = [
+ "nonos_policy_proto",
+ "spin",
+]
+
+[[package]]
+name = "spin"
+version = "0.9.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3763264f6b73151db08c50ff20d7d8a0b8796e021cdea7ceedad07b80155fa0e"

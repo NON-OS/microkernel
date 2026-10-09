@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Platform GPIO (pinctrl) layouts: which register holds the level of a pin a
+# firmware GpioInt descriptor names, on Intel pinctrl communities and the AMD
+# FCH GPIO bank. Pure tables and arithmetic, no MMIO, so the i2c drivers link
+# it for the target and pinctrl_proofs tests it on the host.
+[package]
+name = "nonos_pinctrl"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"

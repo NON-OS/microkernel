@@ -16,7 +16,7 @@
 
 use uefi::prelude::*;
 
-use crate::display::{draw_boot_progress, show_crypto_verification, update_stage};
+use crate::display::{draw_boot_progress, update_stage};
 use crate::display::{BootCryptoState, StageStatus, STAGE_ED25519_VERIFY};
 use crate::kernel_verify::CryptoVerifyResult;
 use crate::menu::SecurityMode;
@@ -39,9 +39,6 @@ pub fn run_crypto_verification(
     draw_boot_progress(6, TOTAL_BOOT_STAGES);
     extract_signature_for_display(data, &mut state, gop);
     state.signature_valid = Some(result.signature_valid);
-    if gop {
-        show_crypto_verification(&state);
-    }
     verify_signature(st, &result, mode, gop);
     check_rollback(st, data, mode, gop);
     draw_boot_progress(7, TOTAL_BOOT_STAGES);

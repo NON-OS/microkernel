@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the browser's HTTP response handling: the shared
+# header scanner and its framing, chunked and content decoding with partial
+# bodies, the text decoders of the Encoding Standard, the inflate crate's
+# partial API, and how finished stylesheet fetches fold into the page. The
+# capsule's own source is included via #[path] and compiled unchanged.
+[package]
+name = "browser_http_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_inflate = { path = "../inflate" }

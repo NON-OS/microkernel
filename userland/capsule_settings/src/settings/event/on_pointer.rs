@@ -16,6 +16,8 @@
 
 use nonos_app_skeleton::EventOutcome;
 
+use crate::settings::state::refresh_wifi::run_wifi_scan;
+use crate::settings::state::wifi_join::{clear_passphrase, connect_selected};
 use crate::settings::state::{search_clear, searching, set_section, track_scroll, view_h, State};
 use crate::settings::ui::bytes::as_str;
 use crate::settings::ui::hit::{at, Hit};
@@ -61,11 +63,28 @@ fn route(state: &mut State, x: i32, y: i32) -> EventOutcome {
             activate(state, control)
         }
         Hit::Network(i) => {
-            state.wifi_cursor = i;
+            click_network(state, i);
+            EventOutcome::Repaint
+        }
+        Hit::Scan => {
+            run_wifi_scan(state);
             EventOutcome::Repaint
         }
         Hit::None => EventOutcome::Idle,
     }
+}
+
+/// A click on a found network starts its join, as C does: a secured one
+/// opens the passphrase editor, so what is typed next is the passphrase and
+/// not the page's letter keys. A click on a saved row only highlights it.
+fn click_network(state: &mut State, i: usize) {
+    let same = state.wifi_cursor == i;
+    state.wifi_cursor = i;
+    if i >= state.wifi_network_count || (same && state.wifi_pass_active) {
+        return;
+    }
+    clear_passphrase(state);
+    connect_selected(state);
 }
 
 fn results_click(state: &mut State, y: i32) -> EventOutcome {

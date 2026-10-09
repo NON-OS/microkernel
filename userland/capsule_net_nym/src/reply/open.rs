@@ -18,8 +18,7 @@ use alloc::vec::Vec;
 
 use super::types::DIGEST_BYTES;
 use crate::crypto::aes::Ctr64Be;
-use crate::crypto::hash::blake3;
-use crate::surb::{candidates, SURB_KEY_BYTES};
+use crate::surb::take_key;
 
 /// Recover the fragment inside a reply.
 ///
@@ -36,7 +35,8 @@ use crate::surb::{candidates, SURB_KEY_BYTES};
 /// The tag is a digest of the key rather than the key itself, so it names one
 /// of ours to us and nothing to anyone else. Matching on it means a reply is
 /// opened with the one key that can open it, instead of trying each in turn
-/// and treating whichever produces bytes as correct.
+/// and treating whichever produces bytes as correct. A block is used once,
+/// so its key is taken out as it is matched.
 pub fn open_reply(payload: &[u8]) -> Option<Vec<u8>> {
     if payload.len() < DIGEST_BYTES {
         return None;
@@ -44,28 +44,11 @@ pub fn open_reply(payload: &[u8]) -> Option<Vec<u8>> {
     let digest = &payload[..DIGEST_BYTES];
     let sealed = &payload[DIGEST_BYTES..];
 
-    let key = match_key(digest)?;
+    let key = take_key(digest)?;
     let mut fragment = Vec::with_capacity(sealed.len());
     fragment.extend_from_slice(sealed);
     // The key opened one packet only, so the counter starts where it did when
     // the far end sealed it.
     Ctr64Be::new(&key, &[0u8; 16]).apply(&mut fragment);
     Some(fragment)
-}
-
-/// The reply block key whose digest is `digest`.
-fn match_key(digest: &[u8]) -> Option<[u8; SURB_KEY_BYTES]> {
-    for key in candidates() {
-        if key == [0u8; SURB_KEY_BYTES] {
-            continue;
-        }
-        let mut hashed = [0u8; DIGEST_BYTES];
-        if blake3(&key, &mut hashed).is_err() {
-            return None;
-        }
-        if hashed == digest {
-            return Some(key);
-        }
-    }
-    None
 }

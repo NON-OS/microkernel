@@ -17,34 +17,26 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::chrome_glow::glow_out;
-use super::theme::{
-    HAIR, PILL_HOVER, PILL_IDLE, PILL_INK, PILL_INK_ON, PILL_ON, PILL_ON_LINE,
-};
+use super::theme::{HAIR, PILL_IDLE, PILL_INK, PILL_INK_ON, PILL_ON, PILL_ON_LINE};
 
-/// The three states a pill control can be in. `Active` is the only one that
+/// The two states a pill control can be in. `Active` is the only one that
 /// spends the accent hue, so selection stays the one saturated thing on screen.
+/// There is no hover state: the capsule does not track the pointer between
+/// clicks, so nothing could ever draw one.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum PillState {
     Idle,
-    Hover,
     Active,
 }
 
-/// A true pill: the corner radius is half the height, so `h` alone sets the
-/// shape. Used by toolbar buttons, filter chips and the `+ New` button.
-pub fn pill(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, state: PillState) {
-    pill_r(fb, x, y, w, h, h / 2, state);
-}
-
-/// The same plate with an explicit radius, for controls that want a squarer
-/// shoulder than a true pill. Blends throughout, so it is safe over live paint.
+/// A pill plate with radius `r`: the controls use a squarer shoulder than a
+/// true pill. Blends throughout, so it is safe over live paint.
 pub fn pill_r(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, r: u32, state: PillState) {
     if w == 0 || h == 0 {
         return;
     }
     let (fill, line) = match state {
         PillState::Idle => (PILL_IDLE, HAIR),
-        PillState::Hover => (PILL_HOVER, HAIR),
         PillState::Active => (PILL_ON, PILL_ON_LINE),
     };
     if state == PillState::Active {

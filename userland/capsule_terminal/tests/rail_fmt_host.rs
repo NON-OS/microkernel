@@ -51,19 +51,25 @@ mod rail {
 }
 
 use paint::rail_addr::{ipv4_into, ipv4_pfx};
-use paint::rail_fmt::{load3_into, load_q11_into, mib_into, u32_into};
+use paint::rail_fmt::{load3_into, load_q11_into, mib_into};
 use paint::rail_metric::{one, pair, DASH};
 use rail::mem::summarize;
 use rail::metrics::Proc;
 use rail::value::Metric;
+use term::util::format_u64;
+
+/// A plain count, the simplest formatter `one` can be handed.
+fn count_into(buf: &mut [u8], v: u32) -> usize {
+    format_u64(v as u64, buf)
+}
 
 #[test]
 fn a_metric_with_no_source_renders_as_a_dash_rather_than_a_zero() {
     let mut b = [0u8; 48];
     assert_eq!(one(&mut b, Metric::<u64>::Unknown, mib_into), DASH);
     assert_eq!(one(&mut b, Metric::<u64>::Unsupported, mib_into), DASH);
-    assert_eq!(one(&mut b, Metric::Known(0u32), u32_into), "0", "a measured zero is not a dash");
-    assert_eq!(one(&mut b, Metric::<u32>::Unsupported, u32_into), DASH);
+    assert_eq!(one(&mut b, Metric::Known(0u32), count_into), "0", "a measured zero is not a dash");
+    assert_eq!(one(&mut b, Metric::<u32>::Unsupported, count_into), DASH);
 }
 
 #[test]

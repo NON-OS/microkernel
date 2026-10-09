@@ -23,8 +23,9 @@ pub fn build_crypto_handoff(params: &HandoffParams) -> CryptoHandoff {
         signature_valid: params.signature_valid,
         secure_boot: params.secure_boot,
         kernel_hash: params.kernel_hash,
-        zk_attested: params.zk_result.zk_verified,
-        zk_program_hash: params.zk_result.program_hash,
-        zk_capsule_commitment: params.zk_result.capsule_commitment,
+        zk_attested: params.attestation.verified,
+        zk_program_hash: params.attestation.program_hash,
+        zk_capsule_commitment: params.attestation.capsule_commitment,
+        policy: params.policy,
     }
 }

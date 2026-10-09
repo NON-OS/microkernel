@@ -17,5 +17,6 @@
 //! The capsule_net_nym AES, compiled in from the capsule source so its AES-256
 //! is held to the same published vectors as the shared AES-128.
 
-#[path = "../../../capsule_net_nym/src/crypto/aes/mod.rs"]
-pub(super) mod aes;
+// Compiled in once, at `crate::crypto::aes`, where the acknowledgement
+// source also finds it.
+pub(super) use crate::crypto::aes;

@@ -14,8 +14,10 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Refuse to sign a capsule whose manifest claims different powers than its
-source declared.
+"""Fail when a capsule's manifest claims different powers than its source
+declared. It runs after signing: in the seal's verify phase and in
+nonos-mk-verify-image, both with --allow-missing, so a capsule without the
+section passes.
 
 The source writes its capability set into a `.nonos.caps` section. The manifest
 carries a number a human typed into `Capsule.mk`. Nothing previously compared

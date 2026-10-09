@@ -28,3 +28,11 @@ pub const E_NOT_BOUND: u16 = 10;
 pub const E_NOT_CONNECTED: u16 = 12;
 pub const E_ALREADY_BOUND: u16 = 13;
 pub const E_BAD_ADDR: u16 = 14;
+/// A connect by name on a mixnet socket. Its frames carry an address, not a
+/// name, and resolving the name here would send it to net.dns in the clear.
+pub const E_NAME_REFUSED: u16 = 15;
+/// A connect by name whose lookup net.dns could not make: it did not answer,
+/// or it said no upstream server answered it. Not a name that has no
+/// address (that is E_BAD_ADDR): no DNS server is reachable, so every name
+/// fails the same way until the network comes back.
+pub const E_NO_DNS: u16 = 16;

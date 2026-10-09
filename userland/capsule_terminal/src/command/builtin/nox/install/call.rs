@@ -44,6 +44,31 @@ const SEQ: u32 = 1;
 // store itself, so the message stays small. Returns the new pid, or a
 // negative status.
 pub(crate) fn call_installer(name: &[u8], args: &[u8]) -> Result<u32, i32> {
+    call_within(name, args, INSTALL_TIMEOUT_MS)
+}
+
+/// How a load request went within the short wait `install` gives it.
+pub(super) enum Issued {
+    Loaded(u32),
+    Refused(i32),
+    /// Delivered, and the installer is still at it (`follow.rs`).
+    InFlight,
+}
+
+/// Wait only briefly: a quick answer (a refusal, a missing name) is taken
+/// at once, and a load still running is followed from the job's ticks.
+const ISSUE_TIMEOUT_MS: u64 = 40;
+const ETIMEDOUT: i32 = -110;
+
+pub(super) fn issue(name: &[u8], args: &[u8]) -> Issued {
+    match call_within(name, args, ISSUE_TIMEOUT_MS) {
+        Ok(pid) => Issued::Loaded(pid),
+        Err(ETIMEDOUT) => Issued::InFlight,
+        Err(status) => Issued::Refused(status),
+    }
+}
+
+fn call_within(name: &[u8], args: &[u8], timeout_ms: u64) -> Result<u32, i32> {
     let port = lookup_service(b"installer").map(|p| p.port).ok_or(EAGAIN)?;
     let payload = pack(name, args);
     let mut rx = [0u8; 32];
@@ -53,8 +78,11 @@ pub(crate) fn call_installer(name: &[u8], args: &[u8]) -> Result<u32, i32> {
         payload.len(),
         rx.as_mut_ptr(),
         rx.len(),
-        INSTALL_TIMEOUT_MS,
+        timeout_ms,
     );
+    if rc == ETIMEDOUT as i64 {
+        return Err(ETIMEDOUT);
+    }
     if rc < 8 {
         return Err(EAGAIN);
     }

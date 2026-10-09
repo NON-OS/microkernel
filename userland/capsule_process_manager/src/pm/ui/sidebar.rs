@@ -24,33 +24,43 @@ use crate::pm::theme::{
     WARNING,
 };
 
+use super::fit::{rail, sidebar_w};
 use super::icon_table::icon;
 use super::metrics::{
-    BODY_PX, NAV_H, NAV_ICON, NAV_LABEL_GAP, NAV_PAD_X, NAV_RADIUS, SIDEBAR_W, SIDE_FOOT_H,
-    SIDE_FOOT_LINE, SIDE_FOOT_TOP,
+    BODY_PX, NAV_H, NAV_ICON, NAV_LABEL_GAP, NAV_PAD_X, NAV_RADIUS, SIDE_FOOT_H, SIDE_FOOT_LINE,
+    SIDE_FOOT_TOP,
 };
 use super::nav_geom::{row_w, row_x, row_y};
 use super::text;
 
 pub fn paint(fb: &mut PaintBuffer, active: Screen, h: u32, refreshes: u32) {
-    fb.fill_rect(0, 0, SIDEBAR_W, h, SIDEBAR_BG);
-    fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, SIDEBAR_LINE);
+    let w = sidebar_w(fb.width);
+    fb.fill_rect(0, 0, w, h, SIDEBAR_BG);
+    fb.fill_rect(w - 1, 0, 1, h, SIDEBAR_LINE);
     for (i, screen) in SCREENS.iter().enumerate() {
         paint_row(fb, *screen, row_y(i), *screen == active);
     }
-    paint_foot(fb, h, refreshes);
+    // Folded to its icons there is no room for the sampling line.
+    if !rail(fb.width) {
+        paint_foot(fb, h, refreshes);
+    }
 }
 
 fn paint_row(fb: &mut PaintBuffer, screen: Screen, y: u32, active: bool) {
     let x = row_x();
     if active {
-        fb.fill_round(x, y, row_w(), NAV_H, NAV_RADIUS, NAV_BG_ACTIVE);
-        fb.stroke_round(x, y, row_w(), NAV_H, NAV_RADIUS, 1, NAV_BORDER_ACTIVE);
+        let w = row_w(fb.width);
+        fb.fill_round(x, y, w, NAV_H, NAV_RADIUS, NAV_BG_ACTIVE);
+        fb.stroke_round(x, y, w, NAV_H, NAV_RADIUS, 1, NAV_BORDER_ACTIVE);
     }
     let fg = if active { NAV_FG_ACTIVE } else { NAV_FG };
-    let icon_x = x + NAV_PAD_X;
+    // Folded, the icon sits in the middle of its row and the label is left out.
+    let icon_x = if rail(fb.width) { x + (row_w(fb.width) - NAV_ICON) / 2 } else { x + NAV_PAD_X };
     let icon_y = y + (NAV_H - NAV_ICON) / 2;
     draw(fb, icon(screen), icon_x, icon_y, NAV_ICON, fg);
+    if rail(fb.width) {
+        return;
+    }
     let top = text::centred_top(y, NAV_H, BODY_PX);
     text::left(fb, icon_x + NAV_ICON + NAV_LABEL_GAP, top, screen.nav_label(), fg, BODY_PX);
 }
@@ -59,7 +69,7 @@ fn paint_row(fb: &mut PaintBuffer, screen: Screen, y: u32, active: bool) {
 // on-screen proof that the whole window is live data and not a frozen frame.
 fn paint_foot(fb: &mut PaintBuffer, h: u32, refreshes: u32) {
     let y = h.saturating_sub(SIDE_FOOT_H);
-    fb.fill_rect(row_x(), y, row_w(), 1, SIDEBAR_LINE);
+    fb.fill_rect(row_x(), y, row_w(fb.width), 1, SIDEBAR_LINE);
     let x = row_x() + NAV_PAD_X;
     text::left(fb, x, y + SIDE_FOOT_TOP, b"SAMPLED", MUTED, BODY_PX);
     let mut buf = [0u8; 12];

@@ -27,4 +27,8 @@ pub enum BlockDeviceError {
     NoCallerPid,
     TransportFailure,
     ProtocolMismatch,
+    /// The disk's logical blocks are not the 512 bytes every caller addresses.
+    BlockSize,
+    /// The driver is still finding its device; the answer may differ later.
+    NotReady,
 }

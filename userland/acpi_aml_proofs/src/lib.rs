@@ -20,4 +20,24 @@ mod crs_tests;
 #[cfg(test)]
 mod entry_count_tests;
 #[cfg(test)]
+mod i2c_hid_enum_tests;
+#[cfg(test)]
 mod scan_tests;
+#[cfg(test)]
+mod bus_fake;
+#[cfg(test)]
+mod gas_tests;
+#[cfg(test)]
+mod fadt_tests;
+#[cfg(test)]
+mod sleep_tests;
+#[cfg(test)]
+mod power_button_tests;
+#[cfg(test)]
+mod reset_tests;
+#[cfg(test)]
+mod madt_cpu_tests;
+#[cfg(test)]
+mod sleep_obj_tests;
+#[cfg(test)]
+mod power_devices_tests;

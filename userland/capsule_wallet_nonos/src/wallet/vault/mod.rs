@@ -39,9 +39,17 @@ mod load_ops;
 mod load_read;
 mod path;
 mod persist;
+mod persistent;
+mod read_judge;
 mod remember;
 mod save;
 mod save_ops;
+mod unsealed;
 mod vfs;
 
-pub use remember::{recall, remember, Recall};
+pub use persistent::persistent;
+pub use remember::{
+    forget_vault, forget_words, recall, recall_accounts, recall_kind, recall_network, recall_words,
+    remember, remember_accounts, remember_kind, remember_network, remember_words, Recall, Words,
+};
+pub use unsealed::Unsealed;

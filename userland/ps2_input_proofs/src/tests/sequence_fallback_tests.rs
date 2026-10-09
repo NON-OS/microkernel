@@ -21,7 +21,9 @@ use nonos_libc::{acked, present};
 
 use super::controller::{Keyboard, MouseKind, CONFIG_KBD_DISABLE};
 use super::shared::{machine, AUX, KBD};
-use crate::constants::{CTL_DISABLE_AUX, CTL_ENABLE_AUX, CTL_WRITE_AUX, KBD_ENABLE_SCANNING};
+use crate::constants::{
+    CTL_DISABLE_AUX, CTL_ENABLE_AUX, CTL_ENABLE_KBD, CTL_WRITE_AUX, KBD_ENABLE_SCANNING,
+};
 use crate::setup::run;
 
 #[test]
@@ -31,7 +33,8 @@ fn an_echoing_aux_port_ends_switched_off_with_the_keyboard_still_scanning() {
     let driver = run().expect("the keyboard alone is a working machine");
     assert!(!driver.mouse_enabled);
     let c = ctl.borrow();
-    assert_eq!(c.commands().last(), Some(&CTL_DISABLE_AUX), "the aux clock was turned back off");
+    let tail = [CTL_DISABLE_AUX, CTL_ENABLE_KBD];
+    assert!(c.commands().ends_with(&tail), "aux clock off, then the keyboard port back on");
     assert!(c.data_writes().contains(&KBD_ENABLE_SCANNING));
     assert_eq!(c.config & CONFIG_KBD_DISABLE, 0);
 }

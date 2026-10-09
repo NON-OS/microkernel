@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::accessory::accessory_rect;
-use super::frame_rect::{frame_rect, margin, radius};
-use super::metrics::{ACCESSORY_INSET, HAIRLINE_PX, LIGHT_D, LIGHT_INSET, TITLEBAR_H, TITLE_PX};
+use super::accessory::accessory_rect_at;
+use super::frame_rect::{frame_rect_at, margin_at, radius_at, titlebar_h_at};
+use super::metrics::{ACCESSORY_INSET, HAIRLINE_PX, LIGHT_D, LIGHT_INSET, TITLE_PX};
 use super::palette::{FRAME_BG, FRAME_BORDER, HAIRLINE, SHADOW, TITLE_TEXT, TRANSPARENT};
-use super::traffic_lights::draw_traffic_lights;
+use super::scale::{at, px_at, ONE};
+use super::traffic_lights::draw_traffic_lights_at;
 use crate::paint::{measure_ttf, PaintBuffer};
 
 pub fn draw_frame(
@@ -28,38 +29,48 @@ pub fn draw_frame(
     hover: bool,
     accessory_w: u32,
 ) {
-    let (w, h) = (fb.width, fb.height);
-    let f = frame_rect(w, h, maximized);
-    let r = radius(maximized);
-    fb.clear(TRANSPARENT);
-    fb.shadow_round(f.x, f.y, f.w, f.h, r, margin(maximized), SHADOW);
-    fb.panel(f.x, f.y, f.w, f.h, r, FRAME_BG, FRAME_BORDER);
-    fb.fill_rect(f.x, f.y + TITLEBAR_H, f.w, HAIRLINE_PX, HAIRLINE);
-    draw_traffic_lights(fb, w, h, maximized, hover);
-    draw_title(fb, w, h, maximized, title, accessory_w);
+    draw_frame_at(fb, maximized, title, hover, accessory_w, ONE);
 }
 
-fn draw_title(
+/// The frame at `quarters` of display scale: shadow, panel, title bar,
+/// buttons and title, every size from the same scaled metrics the hit test
+/// and the content rectangle read.
+pub fn draw_frame_at(
     fb: &mut PaintBuffer,
-    w: u32,
-    h: u32,
     maximized: bool,
     title: &[u8],
+    hover: bool,
     accessory_w: u32,
+    quarters: u32,
 ) {
+    let (w, h) = (fb.width, fb.height);
+    let f = frame_rect_at(w, h, maximized, quarters);
+    let r = radius_at(maximized, quarters);
+    fb.clear(TRANSPARENT);
+    fb.shadow_round(f.x, f.y, f.w, f.h, r, margin_at(maximized, quarters), SHADOW);
+    fb.panel(f.x, f.y, f.w, f.h, r, FRAME_BG, FRAME_BORDER);
+    let bar = titlebar_h_at(quarters);
+    fb.fill_rect(f.x, f.y + bar, f.w, at(HAIRLINE_PX, quarters), HAIRLINE);
+    draw_traffic_lights_at(fb, w, h, maximized, hover, quarters);
+    draw_title(fb, maximized, title, accessory_w, quarters);
+}
+
+fn draw_title(fb: &mut PaintBuffer, maximized: bool, title: &[u8], accessory_w: u32, q: u32) {
     let text = match core::str::from_utf8(title) {
         Ok(t) => t,
         Err(_) => return,
     };
-    let f = frame_rect(w, h, maximized);
-    let tw = measure_ttf(text, TITLE_PX).max(0) as u32;
-    let floor = f.x + LIGHT_INSET * 2 + LIGHT_D * 3;
-    let ceiling = match accessory_rect(w, h, maximized, accessory_w) {
-        Some(a) => a.x.saturating_sub(ACCESSORY_INSET),
+    let (w, h) = (fb.width, fb.height);
+    let f = frame_rect_at(w, h, maximized, q);
+    let px = px_at(TITLE_PX, q);
+    let tw = measure_ttf(text, px).max(0) as u32;
+    let floor = f.x + at(LIGHT_INSET * 2 + LIGHT_D * 3, q);
+    let ceiling = match accessory_rect_at(w, h, maximized, accessory_w, q) {
+        Some(a) => a.x.saturating_sub(at(ACCESSORY_INSET, q)),
         None => f.x + f.w,
     };
     let centred = f.x + f.w.saturating_sub(tw) / 2;
     let x = centred.min(ceiling.saturating_sub(tw)).max(floor);
-    let y = f.y + TITLEBAR_H / 2 - (TITLE_PX as u32) / 2;
-    fb.text_ttf(x as i32, y as i32, text, TITLE_TEXT, TITLE_PX);
+    let y = f.y + (titlebar_h_at(q) / 2).saturating_sub(px as u32 / 2);
+    fb.text_ttf(x as i32, y as i32, text, TITLE_TEXT, px);
 }

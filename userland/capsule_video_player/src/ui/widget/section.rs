@@ -17,13 +17,8 @@
 use nonos_app_skeleton::paint::PaintBuffer;
 
 use crate::ui::fit::right_x;
-use crate::ui::layout::Rect;
-use crate::ui::paint::rrect;
 use crate::ui::text::{BODY_PX, TITLE_PX};
 use crate::ui::theme;
-
-pub const HEAD_H: u32 = 34;
-pub const CARD_HEAD: u32 = 52;
 
 pub fn paint_head(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, title: &str, action: &str) {
     fb.text_ttf(x as i32, y as i32, title, theme::TEXT, TITLE_PX);
@@ -35,14 +30,4 @@ pub fn paint_head(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, title: &str, act
 
 pub fn paint_label(fb: &mut PaintBuffer, x: u32, y: u32, label: &str) {
     fb.text_ttf(x as i32, y as i32, label, theme::LABEL, BODY_PX);
-}
-
-pub fn paint_card(fb: &mut PaintBuffer, r: Rect) {
-    rrect::panel(fb, r.x, r.y, r.w, r.h, 12, theme::PANEL, theme::BORDER);
-}
-
-pub fn paint_titled_card(fb: &mut PaintBuffer, r: Rect, title: &str) -> u32 {
-    paint_card(fb, r);
-    fb.text_ttf((r.x + 18) as i32, (r.y + 16) as i32, title, theme::TEXT, TITLE_PX);
-    r.y + CARD_HEAD
 }

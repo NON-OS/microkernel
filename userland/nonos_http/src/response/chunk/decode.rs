@@ -39,10 +39,15 @@ pub(in crate::response) fn decode(body: &[u8]) -> Result<Vec<u8>, HttpError> {
             return Err(HttpError::Body);
         }
         out.extend_from_slice(&body[at..end]);
-        // Every chunk is followed by its own CRLF.
-        at = end + 2;
-        if at > body.len() {
-            return Err(HttpError::Body);
+        /*
+         * Every chunk is followed by its own CRLF, and it is checked rather
+         * than skipped: a size that understated its chunk otherwise had the
+         * chunk's tail read as the next size line.
+         */
+        match body.get(end..end + 2) {
+            Some(b"\r\n") => at = end + 2,
+            Some(_) => return Err(HttpError::Chunk),
+            None => return Err(HttpError::Body),
         }
     }
 }

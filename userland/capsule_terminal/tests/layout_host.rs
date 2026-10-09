@@ -51,8 +51,6 @@ mod layout {
 
         #[derive(Clone, Copy)]
         pub struct Layout {
-            pub titlebar: Rect,
-            pub tabstrip: Rect,
             pub left_rail: Rect,
             pub body: Rect,
             pub input: Rect,
@@ -93,9 +91,7 @@ fn lay(w: u32, h: u32, r: Rails) -> Layout {
 #[test]
 fn the_bands_tile_the_window_with_no_gap_or_overlap() {
     let l = lay(1440, 900, NO_RAILS);
-    assert_eq!(l.titlebar.y, 0);
-    assert_eq!(l.tabstrip.y, l.titlebar.y + l.titlebar.h);
-    assert_eq!(l.body.y, l.tabstrip.y + l.tabstrip.h + CHROME.body_pad_top);
+    assert_eq!(l.body.y, CHROME.titlebar_h + CHROME.tabstrip_h + CHROME.body_pad_top);
     assert_eq!(l.input.y, l.body.y + l.body.h);
     assert_eq!(l.footer.y, l.input.y + l.input.h);
     assert_eq!(l.footer.y + l.footer.h, 900);
@@ -196,14 +192,9 @@ fn the_body_never_starves() {
 fn degenerate_windows_do_not_underflow() {
     for (w, h) in [(0u32, 0u32), (1, 1), (10, 10), (100, 40), (320, 60)] {
         let l = lay(w, h, BOTH_RAILS);
-        for (name, r) in [
-            ("titlebar", l.titlebar),
-            ("tabstrip", l.tabstrip),
-            ("left_rail", l.left_rail),
-            ("body", l.body),
-            ("input", l.input),
-            ("footer", l.footer),
-        ] {
+        for (name, r) in
+            [("left_rail", l.left_rail), ("body", l.body), ("input", l.input), ("footer", l.footer)]
+        {
             assert!(r.w <= w, "{} wider than {}x{}: {:?}", name, w, h, r);
             assert!(r.h <= h, "{} taller than {}x{}: {:?}", name, w, h, r);
         }

@@ -28,9 +28,9 @@ pub enum SessionError {
     /// The server sent more than the caller allows.
     TooLarge,
     /*
-     * The server asked for a different key exchange group. This client offers
-     * x25519 alone, so there is nothing to retry with and the honest answer is to
-     * say which side ended it. Left unrecognised, a retry looked exactly like a
+     * The server asked for a key exchange group this client did not share
+     * (it offers x25519 and secp256r1), so there is nothing to retry with and
+     * the honest answer is to say which side ended it. Left unrecognised, a retry looked exactly like a
      * peer that had gone quiet.
      */
     RetryUnsupported,

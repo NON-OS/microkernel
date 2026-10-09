@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap, mk_irq_unbind, mk_pio_release};
+use nonos_libc::{mk_device_release, mk_dma_unmap, mk_pio_release};
 
 use crate::constants::MAC_LEN;
 use crate::pio::Pio;
@@ -22,7 +22,6 @@ use crate::pio::Pio;
 pub struct Driver {
     pub device_id: u64,
     pub pio_grant: u64,
-    pub irq_grant: u64,
     pub rx_grant: u64,
     pub tx_grant: u64,
     pub rx_user_va: u64,
@@ -30,7 +29,10 @@ pub struct Driver {
     pub tx_user_va: u64,
     pub tx_device_addr: u64,
     pub rx_offset: usize,
+    /// Frames handed to the part, counting up; the slot is `tx_cur % 4`.
     pub tx_cur: usize,
+    /// Frames the part has finished with; `tx_cur - tx_dirty` are in flight.
+    pub tx_dirty: usize,
     pub pio: Pio,
     pub mac: [u8; MAC_LEN],
 }
@@ -39,7 +41,6 @@ impl Driver {
     pub fn release(&self) {
         let _ = mk_dma_unmap(self.tx_grant);
         let _ = mk_dma_unmap(self.rx_grant);
-        let _ = mk_irq_unbind(self.irq_grant);
         let _ = mk_pio_release(self.pio_grant);
         let _ = mk_device_release(self.device_id);
     }

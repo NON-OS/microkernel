@@ -30,7 +30,8 @@ pub struct SmbiosInfo {
 
 /// One region the loader leaves in memory for the kernel: base, size and
 /// what it is. `kind` 1 is the loader's own image, 2 is the kernel image
-/// file as loaded and verified. Layout matches the kernel's `Module`.
+/// file as loaded and verified, 3 is a `BootMedia` record. Layout matches
+/// the kernel's `Module`.
 #[repr(C)]
 #[derive(Copy, Clone, Default)]
 pub struct Module {
@@ -42,6 +43,11 @@ pub struct Module {
 
 pub const MODULE_KIND_LOADER_IMAGE: u32 = 1;
 pub const MODULE_KIND_KERNEL_IMAGE: u32 = 2;
+/* A `BootMedia` record: the partition the loader was read from. */
+pub const MODULE_KIND_BOOT_MEDIA: u32 = 3;
+/* The package store from its header on, read through the firmware's disk
+ * driver so the kernel has it whatever disk drivers of its own come up. */
+pub const MODULE_KIND_STORE: u32 = 7;
 
 /// Boot modules the loader leaves for the kernel: today the two images the
 /// installer writes to a disk.

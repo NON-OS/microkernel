@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
-mod find_release;
+pub(super) mod find_release;
 mod handle;
 mod parse_pair;
 mod take_lp;

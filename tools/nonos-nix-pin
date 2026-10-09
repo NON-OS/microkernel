@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""Pins the git dependencies the Cargo.lock files name.
+
+Every git source in a lock is a commit; the flake fetches it as a fixed output
+derivation and needs the hash of the tree at that commit, which
+tools/nix/git-sources.json holds. This fetches each commit with the git on
+this machine (and so with its credentials, for a repository that needs them),
+hashes the tree the way the flake will, and writes the hash in.
+
+    tools/nonos-nix-pin           fill in every missing hash
+    tools/nonos-nix-pin --all     recompute every hash
+    tools/nonos-nix-pin --check   fail if a lock names a commit with no entry
+
+A new commit in a lock must be added here before it builds; --check says
+which. STARKs is not pinned here: it is the flake's `starks` input, and
+tools/nonos-starks-sync holds the locks to it."""
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+
+PINS = "tools/nix/git-sources.json"
+STARKS = "https://github.com/NON-OS/STARKs.git"
+SOURCE = re.compile(r'^source = "git\+([^?#"]+)(?:\?[^#"]*)?#([0-9a-f]{40})"$', re.M)
+
+
+def locked_commits():
+    """Every (url, commit) a tracked Cargo.lock names."""
+    locks = subprocess.run(["git", "ls-files", "*Cargo.lock"], capture_output=True, text=True,
+                           check=True).stdout.split()
+    found = {}
+    for lock in locks:
+        with open(lock) as f:
+            for url, sha in SOURCE.findall(f.read()):
+                if url != STARKS:
+                    found.setdefault(sha, url)
+    return found
+
+
+def tree_hash(url, sha):
+    with tempfile.TemporaryDirectory() as work:
+        repo, tree = os.path.join(work, "repo"), os.path.join(work, "tree")
+        subprocess.run(["git", "init", "-q", repo], check=True)
+        subprocess.run(["git", "-C", repo, "fetch", "-q", "--depth", "1", url, sha], check=True)
+        os.makedirs(tree)
+        archive = subprocess.run(["git", "-C", repo, "archive", sha], capture_output=True, check=True).stdout
+        subprocess.run(["tar", "-x", "-C", tree], input=archive, check=True)
+        return subprocess.run(["nix", "hash", "path", "--type", "sha256", "--sri", tree],
+                              capture_output=True, text=True, check=True).stdout.strip()
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--all", action="store_true", help="recompute every hash, not only the missing ones")
+    ap.add_argument("--check", action="store_true", help="only check that every locked commit has an entry")
+    args = ap.parse_args()
+    with open(PINS) as f:
+        pins = json.load(f)
+    commits = locked_commits()
+    missing = sorted(set(commits) - set(pins["sources"]))
+    if args.check:
+        if missing:
+            sys.exit("no entry in %s for: %s" % (PINS, ", ".join(f"{commits[s]} {s}" for s in missing)))
+        return
+    for sha in missing:
+        pins["sources"][sha] = {"url": commits[sha], "hash": None}
+    unreachable = []
+    for sha, pin in sorted(pins["sources"].items()):
+        if pin["hash"] and not args.all:
+            continue
+        print(f"fetching {pin['url']} at {sha}")
+        try:
+            pin["hash"] = tree_hash(pin["url"], sha)
+            print(f"  {pin['hash']}")
+        except subprocess.CalledProcessError:
+            unreachable.append(f"{pin['url']} {sha}")
+    with open(PINS, "w") as f:
+        json.dump(pins, f, indent=2)
+        f.write("\n")
+    if unreachable:
+        sys.exit("not fetchable from here, left unpinned:\n  " + "\n  ".join(unreachable))
+
+
+if __name__ == "__main__":
+    main()

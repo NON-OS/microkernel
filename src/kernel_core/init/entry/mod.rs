@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod diagnostics_silenced;
 mod fatal;
 mod init_arch_firmware;
 mod init_arch_framebuffer;
@@ -22,8 +21,11 @@ mod init_arch_memory_and_framebuffer;
 mod init_boot_entropy;
 mod init_core_services;
 mod init_dma_protection;
+mod init_extended_state;
 mod init_runtime;
 mod init_vm_and_protection;
+mod install_refusal;
+mod loader_refusal;
 mod microkernel_init;
 mod microkernel_main;
 mod report_sections;

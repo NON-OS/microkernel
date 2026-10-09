@@ -16,6 +16,8 @@
 //! Reading a response.
 
 mod chunk;
+mod framing;
+mod head;
 mod headers;
 mod parse;
 mod status;

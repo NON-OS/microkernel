@@ -28,13 +28,13 @@
 //! window was dead from the first read.
 
 use crate::init::bring_up;
-use crate::model::{live, refusal, stuck_at, CLOCK_HZ, DW_COMP_TYPE};
+use crate::model::{live, refusal, stuck_at, DW_COMP_TYPE, SETUP};
 use crate::regs::Regs;
 
 #[test]
 fn a_controller_whose_window_reads_all_zero_is_refused_and_told_so() {
     let bar = stuck_at(0x00);
-    let err = refusal(bring_up(Regs::new(bar.base()), CLOCK_HZ));
+    let err = refusal(bring_up(Regs::new(bar.base()), SETUP));
     assert!(err.contains("mmio dead"), "unexpected error: {err}");
 }
 
@@ -47,7 +47,7 @@ fn a_controller_whose_window_reads_all_ones_is_refused_and_told_so() {
      * so accepting it means binding a controller that is not there.
      */
     let bar = stuck_at(0xFF);
-    let err = refusal(bring_up(Regs::new(bar.base()), CLOCK_HZ));
+    let err = refusal(bring_up(Regs::new(bar.base()), SETUP));
     assert!(err.contains("mmio dead"), "unexpected error: {err}");
 }
 
@@ -58,6 +58,6 @@ fn a_live_controller_is_accepted_and_reports_the_signature_it_read() {
      * passes both tests above and binds no hardware at all.
      */
     let bar = live();
-    let state = bring_up(Regs::new(bar.base()), CLOCK_HZ).expect("bring-up");
+    let state = bring_up(Regs::new(bar.base()), SETUP).expect("bring-up");
     assert_eq!(state.comp_type, DW_COMP_TYPE);
 }

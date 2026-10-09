@@ -2,119 +2,112 @@
 
 ## Role
 
-`capsule_terminal` is a real production application capsule built on
-`nonos_app_skeleton`. It owns a line buffer fronted by a fixed-size scrollback
-ring. The capsule keeps its own state, has no globals, and reads keyboard
-input through the toolkit. The capsule routes UI rendering through the toolkit
-IPC path rather than through any kernel UI code.
+`capsule_terminal` is the NONOS shell: a desktop app capsule with up to nine
+tabs, a scrollback with a VT emulator (`nonos_vt`), a line editor and a
+command language whose commands are built into the capsule. It also starts
+external programs, the bundled crates.io tools, `qwen` and the Linux
+personality among them, and runs them as foreground or background jobs with
+the keyboard as their stdin. Parsing, the builtins and job control all run
+inside this one capsule; there is no separate shell process. The handbook
+page is [docs/handbook/apps/terminal.md](../../docs/handbook/apps/terminal.md).
 
 ```text
-terminal app
-    |
-    | UI frame request
-    v
-toolkit endpoint
-    |
-    `-- app event loop on app endpoint
+desktop shell -- launch app.terminal --> terminal (nonos_app_skeleton)
+terminal -- MkSurface* --> compositor
+terminal -- MkIpc --> vfs_pool, installer, clipboard, net.*
+terminal -- MkToolRun --> tool.NAME, tool.linux, tool.qwen, tool.model-fetch
+terminal -- MkProcInput / MkProcOutput / MkTtySet --> its child jobs
 ```
 
 ## Microkernel contract
 
-The capsule uses the basic Mk surface that every app skeleton uses:
+- Service `service:4722:app.terminal`, reply
+  `reply:4723:endpoint.app.terminal.reply`. Three more windows can open on the
+  instance endpoints `app.terminal.1` to `app.terminal.3` (ports 4740 to 4745).
+- `CAPSULE_REQUIRED_CAPS = 0xc000187d`: CoreExec, Network, IPC, Memory, Crypto,
+  FileSystem, GraphicsDisplayQuery, GraphicsSurfaceCreate, AppInstall and
+  AttestRead. AppInstall is what `market install`, `market uninstall`,
+  `market list` and `market info` take to ask the system for an install or a
+  removal and to read where it stands.
+  Network is what the network services and `MkToolRun` check for the network
+  commands and the model fetcher; FileSystem is what vfs serves; Crypto backs
+  the TLS handshake; AttestRead lets `receipt` read the attestation registry
+  with `MkAttestEntries`, and `capsules` read every capsule's capabilities.
+  `whoami`, `version` and the fresh-tab splash read the terminal's own entry
+  there to say who signed it, and say "unknown" with the reason when the
+  kernel does not hand the registry over.
+- The kernel mirror is `src/userspace/capsule_terminal`. The capsule is turned
+  on by `nonos-capsule-terminal` in `microkernel-desktop-offline`, so every
+  desktop image carries it.
 
-- `MkIpcCall` sends a UI frame request to the toolkit endpoint.
-- `MkIpcRecv` receives application messages on the app endpoint.
-- `MkYield` backs off when no message is available.
-- `MkDebug` emits ownership and proof markers.
-- `MkExit` exits when the IPC surface is parked.
+## Commands
 
-The active spawn path is the standard `nonos_app_skeleton::run` entry point.
+`exec` and the `nox` table hold the builtins: files (`ls`, `cat`, `cp`, `mv`,
+`rm`, `find`, `tree`, `grep` and the rest, over vfs under the terminal's own
+pid), shell (`echo`, `set`, `alias`, `history`, `theme`, `help`), jobs and
+processes (`jobs`, `fg`, `bg`, `kill`, `ps`, `exec`, `run`), system (`about`,
+`uptime`, `capsules`, `receipt`, `bench`), network (`ping`, `ifconfig`,
+`nslookup`, `nym`, `http`/`curl`/`get`/`fetch`, `pull`, `push`, `git`) and
+apps (`market`, `apps`, `install`, `pkg`, `qwen`). Statements chain with `;`,
+`&&`, `||` and `&`; `<`, `>`, `>>` and pipes work, and ten builtins
+(`grep`, `sort`, `uniq`, `cut`, `nl`, `wc`, `head`, `tail`, `tac`, `rev`) act
+as filters over a pipeline's lines, taking the same flags as on their own;
+`sort`, `uniq`, `cut`, `nl`, `tac` and `rev` also read the files named after
+them. Only these read a pipe: another command after a `|` stops the pipeline
+and says so. `help <command>` has a page for every command `help` lists, and
+`terminal_line_proofs` holds the two lists together.
 
-## Interface contract
+## Launchpad tool tiles
 
-| Call | Purpose |
-|---|---|
-| `MkIpcCall` to toolkit | request a UI frame through userland toolkit policy |
-| `MkIpcRecv` on app endpoint | receive app input messages |
-| `MkYield`, `MkDebug`, `MkExit` | cooperative loop and proof markers |
+A tool tile in the Launchpad hands the Terminal a command line through the
+shell's `OP_TAKE_OPEN_ARG`, the call the editor uses to take a path
+(`term/handed/`). The reply is `run:<line>` (run it as typed) or
+`type:<line>` (leave it on the prompt, cursor at the end, for its
+arguments). No path starts with either word, and anything else is ignored,
+as is a line with a control byte in it. The window asks on every tick for
+its first 3 s, so a command from the tile that launched it shows up with the
+window. After that it asks twice a second, which covers a tile clicked
+while the Terminal is open and raised. The command goes into the untouched
+tab of a fresh window, or a new tab otherwise. A run goes through `on_enter`
+like a typed line, so it is echoed, kept in history and its output lands in
+that tab. Only the shell can answer the call (`desktop_shell` is a name no
+other capsule may register), and the shell answers a command only to a
+Terminal window and only one a Launchpad tile left.
 
-The keyboard surface accepts printable characters, Backspace, Enter to commit
-a line, and Esc to clear the input.
+## Network route
 
-## Authority
-
-The capsule keeps the narrow capability set defined by the app skeleton. It
-does not request shell execution, kernel debug surfaces, network, filesystem,
-device drivers, or direct framebuffer authority. The terminal does not
-actually run commands today; lines are echoed into the scrollback ring.
+`http` and its aliases, and `git`, connect through `nonos_route_link`'s
+`Route::chosen`: Nym through `net.socks5`, Anyone through `net.anon`, a direct
+socket only when Direct is the system's default network, and no connection
+with the reason when the chosen network is not running. `ping`, `nslookup` and
+`pull` cannot cross an anonymity network and refuse unless Direct is chosen.
+`push` is not gated: it resolves through `net.dns` and connects over `net.tcp`
+directly whatever network is chosen.
 
 ## Privacy and persistence
 
-The capsule keeps no profile, no telemetry, and no persistent state. The
-input line and the scrollback ring disappear with the process. Persistence is
-explicitly out of scope until a storage contract exists.
-
-## Runtime lifecycle
-
-The capsule emits ownership markers, enters the app skeleton run loop, and
-processes input events through `MkIpcRecv` until the IPC surface is parked. On
-clean shutdown the runtime state is gone with the process.
+Theme and font zoom are kept in `/etc/terminal/prefs.dat` through vfs.
+History, aliases, variables and scrollback live in capsule memory and go with
+the tab. A line that starts with `qwen` is the local model's question: it is
+sent to the model's stdin and kept out of history. With no tier named, `qwen`
+runs the tier the policy store holds (`Field::QwenTier`, chosen at setup or in
+Settings), asked afresh on every `qwen` command so a change in Settings takes
+effect at the next one.
 
 ## Failure model
 
-Toolkit failure is observable through proof markers and never grants the
-capsule a fallback framebuffer path. Invalid input is dropped by the terminal
-state machine and never escalates to a kernel call.
+A refused network route, a missing service or a failed child prints one line
+in the scrollback and sets `$?`; it never panics the capsule. Closing a tab or
+the window sends SIGTERM to every program that tab started.
 
-## Current implemented surface
+## Tests
 
-- Source for the input line, the scrollback ring, theme, painter, and event
-  loop.
-- Keyboard surface for printable characters, Backspace, Enter, and Esc.
-- Fixed capacity scrollback ring with deterministic eviction.
-- Runs above `nonos_app_skeleton` with toolkit-only UI.
-
-## Wire format
-
-Input messages arrive on the app endpoint as toolkit input events. UI requests
-go out on the toolkit endpoint.
-
-## State ownership
-
-The capsule owns the input line and the scrollback ring. The toolkit owns
-rendering. The compositor owns scene and focus. The kernel owns no terminal
-state.
-
-## Operating rules
-
-- Route UI through toolkit IPC only.
-- Do not request direct framebuffer authority.
-- Keep all app state volatile until a storage contract exists.
-- Do not introduce kernel UI exports for this app.
-
-## Release target
-
-The release version is a signed application capsule with `Capsule.mk`, signed
-manifest, feature gated spawn, toolkit only UI rendering, an explicit
-capability for any shell execution surface, and validation evidence that terminal
-policy stays out of the kernel.
-
-## Release checklist
-
-- `Capsule.mk` and signed manifest exist.
-- Toolkit IPC validation passes.
-- Feature gated spawn is present.
-- Static gate confirms no kernel app UI exports.
-
-## Explicit non-goals today
-
-No production manifest, signed spawn path, real command execution, network
-access, filesystem access, graphics driver access, or direct framebuffer
-authority belongs in this directory.
-
-## Verification
-
-- Build: `cargo build --manifest-path userland/capsule_terminal/Cargo.toml`
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Promotion check: add `Capsule.mk`, manifest signing, feature gated spawn,
-  and validation evidence before claiming production app status.
+`userland/terminal_line_proofs` compiles the parser, expansion, filters, the
+help text, the `qwen` line handling and the direct-only gate on the host;
+`pipe_filter_tests` holds the pipe filters to their flags and
+`help_truth_tests` holds `help` to the commands and the identity lines to the
+registry. The
+host tests under `tests/` cover layout, the rail and `pull` framing. Each is
+one file built with `rustc --edition 2021 --test tests/<name>.rs`, as its
+header says; `context_host` also takes `nonos_policy_proto` built as an rlib
+and handed over with `--extern`.

@@ -101,16 +101,27 @@ pub fn write32(bus: u8, device: u8, function: u8, offset: u16, value: u32) -> Re
 /// offset to a byte. An absent function reads as all-ones, which is how the
 /// bus reports one and what the scan is looking for, so an unreachable config
 /// space collapses into the same answer rather than a new error case.
+///
+/// The offset is rounded down to its dword, as the legacy address register
+/// does in hardware: callers pass a register's own offset (CFG_STATUS, 0x06)
+/// and shift. ECAM is memory mapped as Device memory, where a 32-bit load at
+/// 0x06 is an alignment fault on aarch64, so the rounding is done here for
+/// both transports.
 #[inline]
 pub fn read32_unchecked(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
     CONFIG_READS.fetch_add(1, Ordering::Relaxed);
-    transport::read32(bus, device, function, offset as u16).unwrap_or(!0)
+    transport::read32(bus, device, function, dword(offset)).unwrap_or(!0)
 }
 
 #[inline]
 pub fn write32_unchecked(bus: u8, device: u8, function: u8, offset: u8, value: u32) {
     CONFIG_WRITES.fetch_add(1, Ordering::Relaxed);
-    let _ = transport::write32(bus, device, function, offset as u16, value);
+    let _ = transport::write32(bus, device, function, dword(offset), value);
+}
+
+#[inline]
+const fn dword(offset: u8) -> u16 {
+    (offset & 0xFC) as u16
 }
 
 pub fn get_config_stats() -> (u64, u64) {

@@ -14,30 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
+use super::cursor::Cur;
+use super::ident::name_char;
+use super::nth_num::{clamp, number, offset, signed};
 
-// The An+B argument of :nth-child(): "odd", "even", "3", "2n", "2n+1",
-// "-n+2". Returns (a, b).
-pub(super) fn parse_nth(arg: &str) -> Option<(i32, i32)> {
-    let s: String = arg.to_ascii_lowercase().split_whitespace().collect();
-    match s.as_str() {
-        "odd" => return Some((2, 1)),
-        "even" => return Some((2, 0)),
-        _ => {}
+/* The An+B microsyntax (CSS Syntax 6): odd, even, an integer, or A n with
+ * an optional +B or -B. A sign must touch the number or n it signs, and no
+ * space may split a number from its n; around the sign of B spaces are
+ * free. Literals too large for i32 saturate instead of wrapping. */
+pub(super) fn anb(c: &mut Cur) -> Option<(i32, i32)> {
+    for (word, v) in [("odd", (2, 1)), ("even", (2, 0))] {
+        let end = c.i + word.len();
+        let hit = c.s.get(c.i..end).is_some_and(|w| w.eq_ignore_ascii_case(word));
+        if hit && !c.at(word.len()).is_some_and(name_char) {
+            c.i = end;
+            return Some(v);
+        }
     }
-    let Some(n) = s.find('n') else {
-        return s.parse::<i32>().ok().map(|b| (0, b));
+    let neg = c.peek() == Some(b'-');
+    if neg || c.peek() == Some(b'+') {
+        c.i += 1;
+    }
+    let digits = number(c);
+    let (a, b) = if matches!(c.peek(), Some(b'n' | b'N')) {
+        c.i += 1;
+        (signed(neg, digits.unwrap_or(1)), offset(c)?)
+    } else {
+        (0, signed(neg, digits?))
     };
-    let a = match &s[..n] {
-        "" | "+" => 1,
-        "-" => -1,
-        t => t.parse::<i32>().ok()?,
-    };
-    let b = match &s[n + 1..] {
-        "" => 0,
-        t if t.starts_with('+') => t[1..].parse::<i32>().ok()?,
-        t if t.starts_with('-') => -t[1..].parse::<i32>().ok()?,
-        _ => return None,
-    };
-    Some((a, b))
+    if c.peek().is_some_and(name_char) {
+        return None;
+    }
+    Some((clamp(a), clamp(b)))
 }

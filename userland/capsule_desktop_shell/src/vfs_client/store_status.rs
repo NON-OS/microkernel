@@ -15,19 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Ask vfs_pool whether the on-disk capsule store decoded at boot. None means
-//! no answer yet; Some(0) healthy; any other code is the boot failure class.
+//! no answer yet; otherwise (code, settled): code 0 healthy, any other code the
+//! boot failure class, and settled false while staging is still in flight, when
+//! a non-zero code is only transient (the block device may not be ready yet).
 
 use alloc::vec;
 
 use super::call::call;
 use super::constants::{HDR_LEN, OP_STORE_STATUS};
 
-pub fn store_status() -> Option<u32> {
+pub fn store_status() -> Option<(u32, bool)> {
     let mut rx = vec![0u8; HDR_LEN + 12];
     let total = call(OP_STORE_STATUS, &[], &mut rx)?;
-    if total < HDR_LEN + 8 {
+    if total < HDR_LEN + 12 {
         return None;
     }
     let off = HDR_LEN + 4;
-    Some(u32::from_le_bytes([rx[off], rx[off + 1], rx[off + 2], rx[off + 3]]))
+    let code = u32::from_le_bytes([rx[off], rx[off + 1], rx[off + 2], rx[off + 3]]);
+    let settled = (rx[off + 4] | rx[off + 5] | rx[off + 6] | rx[off + 7]) != 0;
+    Some((code, settled))
 }

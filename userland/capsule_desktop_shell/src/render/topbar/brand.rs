@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The real NØNOS logo and wordmark on the left. Clicking here opens the app
-//! launcher; see brand_hit.
+//! The real NØNOS logo and wordmark on the left. Clicking here brings the
+//! dock up when it is hidden; see brand_hit.
 
 use super::metrics::{logo_size, logo_x, wordmark_x, WORDMARK, WORDMARK_TEXT};
 use crate::render::icons::draw_logo;

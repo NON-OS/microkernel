@@ -46,6 +46,8 @@ pub fn read(store: &Store, handles: &HandleTable, req: Request<'_>, sender_pid: 
     match store.read_at(path, offset, count) {
         Ok(bytes) => encode_response(req.seq, bytes.len() as i32, &bytes),
         Err(StoreError::NotFound) => encode_response(req.seq, ENOENT, &[]),
-        Err(StoreError::CryptoFailure) => encode_response(req.seq, EIO, &[]),
+        Err(StoreError::CryptoFailure | StoreError::TooLarge | StoreError::Full) => {
+            encode_response(req.seq, EIO, &[])
+        }
     }
 }

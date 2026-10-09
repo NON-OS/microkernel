@@ -1,0 +1,5 @@
+name = "stark-attest-proofs"
+defaultTargets = ["Zkolang"]
+
+[[lean_lib]]
+name = "Zkolang"

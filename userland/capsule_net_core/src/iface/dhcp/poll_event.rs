@@ -26,10 +26,7 @@ pub fn poll_event() {
             Some(dhcpv4::Event::Configured(cfg)) => DhcpAction::Configured(ConfiguredLease {
                 address: cfg.address,
                 router: cfg.router,
-                dns: match cfg.dns_servers.first() {
-                    Some(d) => d.0,
-                    None => [0u8; 4],
-                },
+                dns: core::array::from_fn(|i| cfg.dns_servers.get(i).map_or([0; 4], |d| d.0)),
             }),
             Some(dhcpv4::Event::Deconfigured) => DhcpAction::Deconfigured,
             None => DhcpAction::None,

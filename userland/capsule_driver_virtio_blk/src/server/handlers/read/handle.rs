@@ -30,7 +30,7 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
         }
     };
     let outcome = submit(
-        driver.regs,
+        driver.transport,
         &mut driver.queue,
         driver.irq_grant,
         Direction::Read,

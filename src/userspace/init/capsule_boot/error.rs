@@ -37,5 +37,8 @@ pub(super) fn message(prefix: &str, err: SpawnError) -> alloc::string::String {
         SpawnError::AttestationRejected => {
             alloc::format!("{}: capsule ZK attestation failed", prefix)
         }
+        SpawnError::ProfileRefused => {
+            alloc::format!("{}: not started under this boot profile", prefix)
+        }
     }
 }

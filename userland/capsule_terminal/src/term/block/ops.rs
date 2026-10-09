@@ -21,7 +21,7 @@ const MAX_BLOCKS: usize = 256;
 
 impl State {
     pub fn open_block(&mut self, ts: [u8; 8]) {
-        let start_abs = self.scrollback.grid.current_abs_line();
+        let start_abs = self.scrollback.vt.cursor_pos().line;
         self.blocks.push(Block { start_abs, ts, status: Status::Running, dur_ms: 0 });
         if self.blocks.len() > MAX_BLOCKS {
             self.blocks.remove(0);
@@ -36,7 +36,7 @@ impl State {
     }
 
     pub fn evict_blocks(&mut self) {
-        let base = self.scrollback.grid.abs_base();
+        let base = self.scrollback.vt.first_line();
         let keep =
             self.blocks.iter().position(|b| b.start_abs >= base).unwrap_or(self.blocks.len());
         if keep > 1 {

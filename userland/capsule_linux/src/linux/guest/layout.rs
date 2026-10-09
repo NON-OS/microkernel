@@ -19,8 +19,9 @@
 /// The heap, growing up from here as `brk` moves.
 pub const BRK_BASE: u64 = 0x0000_1000_0000;
 
-/// Anonymous and file mappings, growing up from here.
-pub const MMAP_BASE: u64 = 0x0000_2000_0000;
+/// Anonymous and file mappings, growing up from here: high above the images
+/// and the stack, with room to the top of user space for large reservations.
+pub const MMAP_BASE: u64 = 0x0000_0001_0000_0000;
 
 /// Where the loader biases a position-independent executable.
 pub const EXEC_BASE: u64 = 0x0000_4000_0000;
@@ -35,8 +36,13 @@ pub const STACK_TOP: u64 = 0x0000_7FFF_F000;
 /// The stack a guest gets.
 pub const STACK_SIZE: u64 = 1 << 20;
 
-/// The break may not reach the mapping area.
-pub const BRK_LIMIT: u64 = MMAP_BASE;
+/// The break may not reach the images above it.
+pub const BRK_LIMIT: u64 = 0x0000_2000_0000;
 
-/// A mapping may not reach the images above it.
-pub const MMAP_LIMIT: u64 = EXEC_BASE;
+/// A mapping may not reach the top of the window left below the stack.
+pub const MMAP_LIMIT: u64 = 0x0000_7F00_0000_0000;
+
+/// The ceiling for any mapping: one page below the top of user space. A
+/// runtime that reserves a large address range, as Go's page allocator does,
+/// needs the room, and a reservation backs no frames until it is touched.
+pub const USER_MAX: u64 = 0x0000_7FFF_FFFF_F000;

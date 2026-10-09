@@ -16,14 +16,13 @@
 
 //! The bits inside `Prefs::rails`.
 //!
-//! Two bits, both stored in one byte of the preferences record, so they are
-//! named here rather than written as literals at the places that read them.
-
-/// Bit 0, inverted: the telemetry monitor is running.
-///
-/// Stored inverted because the default record is all zeroes and the monitor
-/// should be on for anyone who has asked for the rail at all.
-pub const RAIL_MONITOR_OFF: u8 = 0b01;
+//! One byte of the preferences record, named here rather than written as a
+//! literal at the places that read it.
+//!
+//! Bit 0 was meant to turn the telemetry monitor off, but nothing ever set or
+//! read it: the rail samples whenever the window ticks. The codec still keeps
+//! the bit (`RAILS_MASK`), so a record that carries it reads back unchanged;
+//! a switch for the monitor would take it.
 
 /// Bit 1: the left rail is on screen.
 ///

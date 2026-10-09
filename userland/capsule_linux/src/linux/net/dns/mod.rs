@@ -18,11 +18,10 @@
 
 mod automap;
 mod decide;
+mod limits;
 mod name;
-mod open;
 mod reply;
 mod serve;
 
 pub use automap::host_for;
-pub use open::open;
 pub use serve::{answer_out, query};

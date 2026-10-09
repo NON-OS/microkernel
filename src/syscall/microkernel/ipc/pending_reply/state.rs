@@ -30,7 +30,6 @@ use spin::Mutex;
 pub(super) static PENDING: Mutex<BTreeMap<u32, VecDeque<(u32, String, u64)>>> =
     Mutex::new(BTreeMap::new());
 
-pub(super) const MAX_PER_SERVICE: usize = 64;
 
 // The correlation of the request each server dequeued last, recorded by the
 // receive path and consumed by the reply redirect. Position in the queue

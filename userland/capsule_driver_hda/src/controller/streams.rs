@@ -29,3 +29,15 @@ pub fn bidi_streams(gcap: u16) -> u8 {
 pub fn addr64(gcap: u16) -> u8 {
     (gcap & 1) as u8
 }
+
+/// Every stream descriptor the controller has. A register that reads all
+/// ones (a controller that is not decoding) is held to the 30 the
+/// specification allows.
+pub fn stream_count(gcap: u16) -> u8 {
+    let n = input_streams(gcap) + output_streams(gcap) + bidi_streams(gcap);
+    if n > 30 {
+        30
+    } else {
+        n
+    }
+}

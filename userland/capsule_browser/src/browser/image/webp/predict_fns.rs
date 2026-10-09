@@ -30,7 +30,7 @@ pub(super) fn average2(a: u32, b: u32) -> u32 {
     avg2(a, b)
 }
 
-// Clamp a + b - c per channel to a byte, the full add-subtract predictor.
+/* Clamp a + b - c per channel to a byte, the full add-subtract predictor. */
 pub(super) fn clamp_add_sub_full(a: u32, b: u32, c: u32) -> u32 {
     let mut o = 0u32;
     for s in [0, 8, 16, 24] {
@@ -40,7 +40,7 @@ pub(super) fn clamp_add_sub_full(a: u32, b: u32, c: u32) -> u32 {
     o
 }
 
-// Clamp a + (a - b) / 2 per channel, the half add-subtract predictor.
+/* Clamp a + (a - b) / 2 per channel, the half add-subtract predictor. */
 pub(super) fn clamp_add_sub_half(a: u32, b: u32) -> u32 {
     let mut o = 0u32;
     for s in [0, 8, 16, 24] {
@@ -50,7 +50,8 @@ pub(super) fn clamp_add_sub_half(a: u32, b: u32) -> u32 {
     o
 }
 
-// Select L or T by which keeps the gradient L + T - TL closer, per the spec.
+/* Select L or T by the gradient estimate L + T - TL: pa is its distance
+ * from T and pb from L, and the spec keeps the closer one, T on a tie. */
 pub(super) fn select(l: u32, t: u32, tl: u32) -> u32 {
     let mut pa = 0i32;
     let mut pb = 0i32;
@@ -60,8 +61,8 @@ pub(super) fn select(l: u32, t: u32, tl: u32) -> u32 {
         pb += (p - ch(l, s)).abs();
     }
     if pa <= pb {
-        l
-    } else {
         t
+    } else {
+        l
     }
 }

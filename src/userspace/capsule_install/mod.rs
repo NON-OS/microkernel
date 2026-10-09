@@ -22,5 +22,5 @@ mod instance;
 mod spawn;
 mod state;
 
-pub use instance::spawn_install_instance;
+pub use instance::{install_running, spawn_install_instance};
 pub use spawn::CLI_CAPS;

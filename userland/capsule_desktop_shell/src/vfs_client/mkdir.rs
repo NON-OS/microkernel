@@ -18,15 +18,18 @@
 
 use alloc::vec;
 
-use super::call::call;
+use super::call::call_status;
 use super::constants::OP_MKDIR;
 use super::owner_body::owner_body;
 use super::path;
 
-pub fn mkdir(path: &[u8]) -> bool {
+const EINVAL: i32 = -22;
+
+/// Ok, or why not: the server's errno, or `EINVAL` for a path it will not send.
+pub fn mkdir(path: &[u8]) -> Result<(), i32> {
     if !path::is_valid(path) {
-        return false;
+        return Err(EINVAL);
     }
     let mut rx = vec![0u8; 64];
-    call(OP_MKDIR, &owner_body(path), &mut rx).is_some()
+    call_status(OP_MKDIR, &owner_body(path), &mut rx).map(|_| ())
 }

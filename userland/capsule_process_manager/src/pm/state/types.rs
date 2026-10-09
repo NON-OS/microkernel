@@ -28,9 +28,10 @@ use super::{Filter, History, Query, Row, Screen, Sort};
 
 /// Ceiling on processes read in one pass; the whole live set fits in one call.
 pub(super) const MAX_PROCS: usize = 256;
-/// Signals the monitor can send. SIGTERM asks, SIGKILL forces.
+/// The signal End Process sends. The kernel ends the process at once for
+/// SIGTERM as for SIGKILL (no capsule runs a handler), so the window offers
+/// the one action and says that it ends the process.
 pub const SIGTERM: u64 = 15;
-pub const SIGKILL: u64 = 9;
 pub(super) const HEADER_LEN: usize = core::mem::size_of::<ProcStatHeader>();
 pub(super) const ENTRY_LEN: usize = core::mem::size_of::<ProcStatEntry>();
 
@@ -42,7 +43,8 @@ pub struct State {
     pub selected_pid: u32,
     pub notice: &'static [u8],
     pub pending_pid: u32,
-    pub(super) pending_sig: u64,
+    /// This window's own pid, which it will not end.
+    pub me: u32,
     pub sort: Sort,
     pub scroll: usize,
     pub visible: usize,

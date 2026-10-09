@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod ast;
-mod collect_scripts;
 mod env;
 mod interp;
 mod regex;
+mod script_plan;
 mod value;
 mod world;
 
-pub use collect_scripts::collect_scripts;
 pub use interp::{deliver_net, pump_timers};
+pub use script_plan::{next_ready, plan, PageScript};
 pub use world::World;

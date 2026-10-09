@@ -17,12 +17,12 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::node::{Node, NodeKind};
+use super::node::{Node, NodeKind, Ns};
 use super::tree::Dom;
 
 impl Dom {
-    // A detached node: parent points at the root but no child link exists,
-    // so nothing renders it until attach() wires it in.
+    /* A detached node: parent points at the root but no child link exists,
+     * so nothing renders it until attach() wires it in. */
     pub fn create(&mut self, kind: NodeKind, tag: String) -> Option<usize> {
         if self.nodes.len() >= super::limits::MAX_NODES {
             return None;
@@ -35,6 +35,7 @@ impl Dom {
             attrs: Vec::new(),
             parent: 0,
             children: Vec::new(),
+            ns: Ns::Html,
         });
         Some(id)
     }

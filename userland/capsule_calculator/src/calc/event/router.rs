@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_app_skeleton::input::text::is_paste;
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
+use super::on_history;
 use super::on_key::on_key;
+use super::on_paste::on_paste;
 use super::on_pointer::on_pointer;
 use super::on_pointer_button::on_pointer_button;
+use crate::calc::mode::Mode;
 use crate::calc::state::State;
 
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
@@ -28,8 +32,18 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
     if event.kind == InputKind::ButtonDown {
         return on_pointer_button(state, event.x, event.y);
     }
+    if event.kind == InputKind::Wheel {
+        if state.mode != Mode::History {
+            return EventOutcome::Idle;
+        }
+        // A notch towards the reader (positive) shows newer rows.
+        return on_history::scroll(state, if event.delta_y > 0 { -1 } else { 1 });
+    }
     if !event.is_key_down() {
         return EventOutcome::Idle;
+    }
+    if is_paste(&event) {
+        return on_paste(state);
     }
     on_key(state, event.code)
 }

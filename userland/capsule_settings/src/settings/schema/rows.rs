@@ -28,7 +28,11 @@ pub enum Live {
     Commit,
     Toolchain,
     Architecture,
-    StorageService,
+    WifiLink,
+    WifiJoin,
+    WifiRemember,
+    MachineKey,
+    AudioOutput,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -39,13 +43,12 @@ pub enum Tone {
 }
 
 /// The badge on a card header. `Net` and `Radio` resolve against live state at
-/// paint time; `Fixed` is a constant the table already knows.
+/// paint time. There is no fixed badge: a card's badge reports something read.
 #[derive(Clone, Copy)]
 pub enum Pill {
     None,
     Net,
     Radio,
-    Fixed(&'static str, Tone),
 }
 
 #[derive(Clone, Copy)]
@@ -53,6 +56,9 @@ pub enum Row {
     Field(Field),
     Live(&'static str, Live),
     Networks,
+    Saved,
+    /// Every wallpaper in the collection, a row each, switched kept or not.
+    Wallpapers,
 }
 
 #[derive(Clone, Copy)]

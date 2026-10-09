@@ -16,13 +16,14 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::pm::state::notes::empty_table;
 use crate::pm::state::State;
 use crate::pm::theme::{CARD_BORDER, MUTED, TABLE_BG, TRACK_BG};
 
 use super::chrome::Rect;
-use super::metrics::{ROW_H, SCROLL_MIN_H, SCROLL_PAD, SCROLL_W, TBL_HEAD_H, TBL_RADIUS};
+use super::metrics::{BODY_PX, ROW_H, SCROLL_MIN_H, SCROLL_PAD, SCROLL_W, TBL_HEAD_H, TBL_RADIUS};
 use super::table_geom::{self, Col};
-use super::{table_head, table_row};
+use super::{table_head, table_row, text};
 
 // The card border is stroked last so neither the header band nor a selected
 // row's wash paints over it. Every offset inside the card comes from table_geom,
@@ -32,6 +33,14 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col]) {
     fb.fill_round(r.x, r.y, r.w, r.h, TBL_RADIUS, TABLE_BG);
     table_head::paint(fb, r, cols, state.sort);
     let rows = state.filtered();
+    if let Some(note) = empty_table(state.rows.len(), rows.len(), state.status) {
+        // Nothing to draw is never a silent blank card: the table says whether
+        // it is still being read, could not be read, or is filtered to nothing.
+        let top = text::centred_top(r.y + TBL_HEAD_H, r.h.saturating_sub(TBL_HEAD_H), BODY_PX);
+        let cut = text::fit(fb, note, BODY_PX, r.w.saturating_sub(SCROLL_PAD * 2));
+        let x = r.x + r.w.saturating_sub(text::width(fb, cut, BODY_PX)) / 2;
+        text::left(fb, x, top, cut, MUTED, BODY_PX);
+    }
     let visible = table_geom::visible_rows(r.h);
     for slot in 0..visible {
         match rows.get(state.scroll + slot) {

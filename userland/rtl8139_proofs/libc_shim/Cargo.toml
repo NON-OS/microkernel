@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# What the rtl8139 bring-up takes from nonos_libc, for the host: port I/O
+# answered by a model the test attaches, an entropy source the test can
+# switch off, and release calls that record what was given back.
+[package]
+name = "rtl8139_proofs_libc_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "nonos_libc"
+path = "src/lib.rs"

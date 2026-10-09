@@ -20,6 +20,7 @@ use crate::loader::image::KernelImage;
 
 use super::frame::alloc_pt_frame;
 use super::map_directmap::map_directmap;
+use super::map_framebuffer::map_framebuffer_identity;
 use super::map_identity::map_identity_low;
 use super::map_kernel_text::map_kernel_text;
 use super::table::PageTable;
@@ -35,14 +36,24 @@ use super::verify::verify_kernel_pml4;
 // per-PT_LOAD phys -> virt mappings rooted at PML4[511] for the
 // upper-half kernel image.
 //
+// `fb` is the handoff framebuffer as (phys base, frame bytes); a frame
+// above the low window gets its own identity mapping (map_framebuffer).
+//
 // Returns the new PML4's physical address. Caller switches CR3 to
 // this value via `switch_to_kernel_pml4` after ExitBootServices has
 // been called and the memory map is finalized.
-pub fn build_kernel_pml4(bs: &BootServices, image: &KernelImage) -> Result<u64, &'static str> {
+pub fn build_kernel_pml4(
+    bs: &BootServices,
+    image: &KernelImage,
+    fb: Option<(u64, u64)>,
+) -> Result<u64, &'static str> {
     let pml4_phys = alloc_pt_frame(bs)?;
     let pml4 = PageTable::from_phys(pml4_phys);
 
     map_identity_low(bs, pml4)?;
+    if let Some((base, len)) = fb {
+        map_framebuffer_identity(bs, pml4, base, len)?;
+    }
     map_directmap(bs, pml4)?;
     map_kernel_text(bs, pml4, image)?;
     verify_kernel_pml4(pml4, image.is_upper_half())?;

@@ -16,11 +16,15 @@
 
 #![no_std]
 
+mod held;
 mod iso;
 mod layout;
+mod policy;
 mod resolve;
 mod tables;
 
+pub use held::{HeldKeys, KeyPosts};
 pub use iso::{iso, KEY_ISO};
 pub use layout::Layout;
+pub use policy::POLICY_LAYOUTS;
 pub use resolve::resolve;

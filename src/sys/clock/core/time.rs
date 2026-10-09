@@ -18,6 +18,7 @@ use core::sync::atomic::Ordering;
 
 use super::consts::{BOOT_TSC, BOOT_UNIX_MS, NTP_OFFSET_MS, TSC_HZ};
 use super::rdtsc::rdtsc;
+use super::scale::ticks_to_ms;
 
 pub fn base_unix_ms() -> u64 {
     let tsc_hz = TSC_HZ.load(Ordering::Relaxed);
@@ -29,9 +30,9 @@ pub fn base_unix_ms() -> u64 {
     let current_tsc = rdtsc();
     let elapsed_tsc = current_tsc.saturating_sub(boot_tsc);
 
-    let elapsed_ms = (elapsed_tsc * 1000) / tsc_hz;
+    let elapsed_ms = ticks_to_ms(elapsed_tsc, tsc_hz);
 
-    BOOT_UNIX_MS.load(Ordering::Relaxed) + elapsed_ms
+    BOOT_UNIX_MS.load(Ordering::Relaxed).saturating_add(elapsed_ms)
 }
 
 pub fn since_boot_ms() -> u64 {
@@ -44,11 +45,11 @@ pub fn since_boot_ms() -> u64 {
     let current_tsc = rdtsc();
     let elapsed_tsc = current_tsc.saturating_sub(boot_tsc);
 
-    (elapsed_tsc * 1000) / tsc_hz
+    ticks_to_ms(elapsed_tsc, tsc_hz)
 }
 
 pub fn unix_ms() -> u64 {
-    let adjusted = base_unix_ms() as i64 + NTP_OFFSET_MS.load(Ordering::Relaxed);
+    let adjusted = (base_unix_ms() as i64).saturating_add(NTP_OFFSET_MS.load(Ordering::Relaxed));
     if adjusted < 0 {
         0
     } else {

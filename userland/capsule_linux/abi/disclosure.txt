@@ -1,0 +1,226 @@
+# What each served Linux call tells a guest, and why that is acceptable.
+# One line per call: name | discloses | why acceptable. tools/ratchets/
+# disclosure.py fails when a served call has no line or a line names a call
+# not served. Section 8 of the completion doc: a plausible constant over the
+# truth wherever the truth is nobody's business; the machine must look the
+# same from every guest on every install unless the person chose otherwise.
+read | bytes of the guest's own files, pipes and sockets | its own data
+write | nothing back but a count | a count of its own bytes
+open | whether a path exists in the Linux tree or the family's private dirs | the tree holds installs every machine with them shares; private dirs are the family's own
+close | nothing | none
+stat | size and kind of a path; an inode derived from the path alone; fixed times and owner | size is of shared installs or the family's own files; the inode says nothing the path does not
+fstat | size and kind of an open descriptor | as stat
+lstat | as stat | as stat
+poll | readiness of its own descriptors | its own state
+lseek | its own file offset | its own state
+mmap | an address in its own layout, chosen here | the layout is the personality's, not the machine's
+mprotect | success or refusal of its own pages | its own state
+munmap | success or refusal of its own pages | its own state
+brk | its own break, in a layout chosen here | as mmap
+mremap | an address in its own layout, chosen here | as mmap
+msync | success or refusal of its own pages | its own state
+mincore | which of its own pages are backed, from its own region list | its own state; no page of the machine's memory is described
+mlock | success or refusal of its own pages | its own state
+munlock | as mlock | its own state
+mlock2 | as mlock | its own state
+mlockall | success for any flags Linux takes | a constant
+munlockall | 0 | a constant
+rt_sigaction | the previous handler it set | its own state
+rt_sigprocmask | the mask it set | its own state
+rt_sigreturn | nothing; the thread resumes from its own saved frame, or ends on SIGSEGV | its own state
+rt_sigpending | the signals pending for itself | its own state
+rt_sigtimedwait | which of its own signals came, with its siginfo: a sender's pid in family numbering, uid 0 | its own state; family numbering
+rt_sigqueueinfo | as kill | as kill
+rt_sigsuspend | nothing; it returns EINTR once one of its own signals is handled | its own state
+rt_tgsigqueueinfo | as kill | as kill
+ioctl | its own descriptor flags and buffered byte counts; on a terminal, the settings it set, the terminal's size in cells and its own group and session in the family's numbering; ENOTTY otherwise, EBADF for a closed descriptor | its own state; the size is of the person's own terminal and is shown only to a family running on it
+pread64 | bytes of its own files | as read
+readv | as read | as read
+writev | as write | as write
+access | whether a path exists | as open
+pipe | two descriptor numbers | its own table
+select | readiness of its own descriptors | as poll
+sched_yield | nothing | none
+sched_getscheduler | SCHED_OTHER for its own threads, ESRCH for any other | a constant
+sched_setscheduler | success for a normal policy at priority 0, EPERM for a real-time one | Linux's answer to an unprivileged process, the same on every install
+sched_getparam | priority 0 for its own threads | a constant
+sched_setparam | success only for priority 0 | a constant
+sched_get_priority_max | 99 for the real-time policies, 0 for the rest | Linux's constants
+sched_get_priority_min | 1 for the real-time policies, 0 for the rest | Linux's constants
+sched_getaffinity | one CPU; a shipped tier is shown every CPU the machine has online | one CPU is a constant; a tier is the machine's own model run, started by the person and sized to the machine
+sched_setaffinity | success for a mask that holds CPU 0, EINVAL for one that does not | the same answer on every install; nothing is pinned
+getcpu | CPU 0 on node 0 | a constant
+madvise | 0 | a constant
+dup | a descriptor number | its own table
+dup2 | a descriptor number | its own table
+nanosleep | elapsed time at 1 ms, on the family's clock | the family's clock starts at its own start, not the machine's boot
+pause | nothing; it returns EINTR once one of its own signals is handled | its own state
+getitimer | the time left on its own real timer, at 1 ms on the family's clock; CPU timers always disarmed | as nanosleep; a guest's CPU time is not reported
+alarm | the seconds left on its own previous alarm, on the family's clock | as nanosleep
+setitimer | as getitimer, for the setting it replaced | as getitimer
+getpid | the family's own number for the process | family numbering hides the machine's process count
+socket | a descriptor number | its own table
+connect | success or refusal; names resolve to addresses invented here | no DNS leaves the machine; the remote sees the network service's egress, not this machine
+accept | a descriptor number and the address of a peer in its own family | its own table; the peer is one of its own processes
+sendto | a count | as write
+recvfrom | bytes and the sender's address, from its own family or the remote it connected to | the guest asked for them; a family address is 127.0.0.0/8 or a name the family bound
+sendmsg | a count | as write
+recvmsg | bytes and the sender's address, or display events for its own surfaces | as recvfrom; display input only while focused, through the router
+shutdown | nothing | none
+bind | success or refusal; anything outside 127.0.0.0/8 is refused | the ports are the family's own; nothing is bound on the machine's network
+listen | success or refusal | its own state
+getsockname | the address it bound, or one chosen here on 127.0.0.0/8 | its own state
+getpeername | the address of a peer in its own family, or the remote it connected to | its own processes, or the address it named
+socketpair | two descriptor numbers | its own table
+setsockopt | success or refusal of an option kept on its own socket | its own state
+getsockopt | options it set, Linux's defaults for the rest, and its socket's pending error | its own state; the defaults are Linux's constants, not the machine's
+clone | a thread number in the family's numbering | as getpid
+clone3 | ENOSYS | a constant; glibc falls back to clone
+fork | a child number in the family's numbering | as getpid
+vfork | as fork | as getpid
+execve | whether a program is enrolled and proved | refusal names no measurement or key
+exit | nothing | none
+wait4 | its own child's number and exit code | its own children
+waitid | as wait4, in a siginfo | as wait4
+kill | whether a number is its own or its child's | nothing outside the family is named or reachable
+uname | Linux, nonos, 6.1.0, NONOS Linux personality, x86_64, nonos | constants; the person's hostname is never shown
+fcntl | its own descriptor flags | its own state
+fsync | 0, or EIO if its own buffered bytes did not reach the store | the store is RAM; nothing reaches disk from a guest
+ftruncate | success or refusal of its own file | its own state
+getcwd | its own cwd under its own root | its own state
+chdir | whether a directory exists | as open
+fchdir | as chdir | as open
+rename | success, or refusal outside its private dirs | the shared tree is read-only to guests
+mkdir | as rename | as rename
+mknod | an empty regular file in its private dirs; refusal for a device or fifo | as rename
+rmdir | as rename | as rename
+link | as rename | as rename
+unlink | as rename | as rename
+symlink | as rename | as rename
+readlink | the target of a link in the Linux tree | links come with the shared installs
+chmod | as rename | as rename
+fchmod | as rename | as rename
+chown | whether a path exists; success only when owner and group stay 0, EPERM otherwise | as open; every file is root's on every install
+fchown | success only when owner and group stay 0, EPERM otherwise | every file is root's on every install
+lchown | as chown | as chown
+umask | the mask it set | its own state
+gettimeofday | the wall clock at 1 ms | shared by every machine on network time; no finer step is given
+getrlimit | fixed limits | constants
+getuid | 0 | a constant
+getgid | 0 | a constant
+setuid | success only for 0 | a constant
+setgid | success only for 0 | a constant
+geteuid | 0 | a constant
+getegid | 0 | a constant
+setpgid | success within the family | family numbering
+getppid | the parent's number; 1 for the program the personality started | family numbering
+getpgrp | the group's number in the family | family numbering
+setsid | the session's number in the family | family numbering
+getpgid | as getpgrp | family numbering
+getsid | as setsid | family numbering
+sigaltstack | the stack it set | its own state
+statfs | a 1 GiB volume, half free | a constant; the store's real usage is shared and sizes the install
+fstatfs | as statfs | a constant
+prctl | its own thread's name as it set it; no-new-privs held, not dumpable; EINVAL for the rest | its own state; the flags are the same on every install
+arch_prctl | its own thread pointer | its own state
+gettid | the calling thread's number in the family | family numbering
+tkill | as kill | as kill
+tgkill | as kill | as kill
+time | the wall clock in seconds | as gettimeofday
+futex | wakes among its own threads | its own state
+getdents64 | names in the Linux tree or its private dirs | as open
+set_tid_address | the calling thread's number in the family | family numbering
+clock_gettime | wall clocks at 1 ms; other clocks since the family started | as nanosleep and gettimeofday
+clock_getres | 1 ms for every clock | a constant
+clock_nanosleep | as nanosleep | as nanosleep
+exit_group | nothing | none
+epoll_wait | readiness of its own descriptors | as poll
+epoll_ctl | its own interest set | its own state
+openat | as open | as open
+mkdirat | as mkdir | as rename
+mknodat | as mknod | as rename
+fchownat | as chown | as chown
+newfstatat | as stat | as stat
+unlinkat | as unlink | as rename
+renameat | as rename | as rename
+renameat2 | as rename | as rename
+linkat | as link | as rename
+symlinkat | as symlink | as rename
+readlinkat | as readlink | as readlink
+fchmodat | as chmod | as rename
+faccessat | as access | as open
+pselect6 | as select | as poll
+ppoll | as poll | as poll
+set_robust_list | 0 | a constant
+utimensat | success, or refusal outside its private dirs; the times it sets read back through stat | as rename; the times are its own
+utimes | as utimensat | as utimensat
+utime | as utimensat | as utimensat
+epoll_pwait | as epoll_wait | as poll
+epoll_pwait2 | as epoll_wait | as poll
+timerfd_create | a descriptor number | its own table
+timerfd_settime | expirations on the family's clock | as nanosleep
+timerfd_gettime | the interval and time left on its own timer, at 1 ms on the family's clock | as nanosleep
+timer_create | a timer id counted from 0 in its own process | its own table
+timer_settime | the setting it replaced, at 1 ms on the family's clock | as nanosleep
+timer_gettime | the interval and time left on its own timer, at 1 ms on the family's clock | as nanosleep
+timer_getoverrun | how many of its own timer's expirations went unseen | its own state
+timer_delete | nothing | none
+accept4 | as accept | as accept
+eventfd2 | a descriptor number | its own table
+eventfd | as eventfd2 | its own table
+signalfd4 | a descriptor number; a read gives its own pending signals as rt_sigtimedwait does | its own table; as rt_sigtimedwait
+signalfd | as signalfd4 | as signalfd4
+epoll_create1 | a descriptor number | its own table
+epoll_create | as epoll_create1 | its own table
+dup3 | a descriptor number | its own table
+pipe2 | as pipe | its own table
+recvmmsg | as recvmsg | as recvmsg
+prlimit64 | fixed limits; changes refused | constants
+sendmmsg | as sendmsg | as sendmsg
+getrandom | bytes from the kernel's generator, up to 256 a call | fresh per call and never shared between guests
+memfd_create | a descriptor number | its own table
+statx | as stat | as stat
+rseq | 0 | a constant
+membarrier | 0 for the query, so no command is offered; EINVAL for the rest | a constant
+faccessat2 | as access | as open
+pwrite64 | nothing back but a count | as write
+preadv | bytes of its own files, as read | as read
+pwritev | nothing back but a count | as write
+preadv2 | as preadv | as read
+pwritev2 | as pwritev | as write
+sendfile | a count of bytes moved between its own descriptors | its own data
+copy_file_range | a count of bytes copied between its own files | its own data
+truncate | success or refusal on a path | as open
+fallocate | success or refusal on its own file | its own state
+fadvise64 | nothing | none
+close_range | nothing | none
+creat | as open | as open
+openat2 | as open, and whether a walk left the directory it named | the walk is of the guest's own tree
+sync | nothing | none
+syncfs | nothing | none
+fdatasync | whether its own writes reached the store | its own data
+flock | whether another process of the family holds a lock on a file | only the family's own locks are seen
+setxattr | success or refusal of an attribute on its own file | its own state
+lsetxattr | as setxattr | its own state
+fsetxattr | as setxattr | its own state
+getxattr | an attribute the family set on a file | only what the family itself set
+lgetxattr | as getxattr | only what the family itself set
+fgetxattr | as getxattr | only what the family itself set
+listxattr | the names of the attributes the family set | only what the family itself set
+llistxattr | as listxattr | only what the family itself set
+flistxattr | as listxattr | only what the family itself set
+removexattr | success or refusal | its own state
+lremovexattr | as removexattr | its own state
+fremovexattr | as removexattr | its own state
+sysinfo | the family's uptime, its memory limit and what it holds, its own load, one CPU | declared figures and the family's own measurements; nothing of the machine
+getrusage | its own threads' CPU ticks, switches, faults and resident size, and those of children it waited for | the kernel's counts of the family's own threads only
+times | its own and its waited children's CPU ticks, and ticks since the family started | its own threads only
+getgroups | no supplementary groups | a fixed identity, the same on every install
+setgroups | refusal | the identity cannot change
+getresuid | 0, 0, 0 | a fixed identity, the same on every install
+getresgid | 0, 0, 0 | a fixed identity, the same on every install
+setresuid | success only for the identity already held | the identity cannot change
+setresgid | success only for the identity already held | the identity cannot change
+getpriority | the nice value set for a process of the family | its own state; no process outside the family is named
+setpriority | success or refusal of a nice value for a process of the family | its own state; no process outside the family is named
+personality | PER_LINUX, the only persona served | the same on every install

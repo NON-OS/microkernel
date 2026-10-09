@@ -18,31 +18,55 @@ extern crate alloc;
 
 use super::file_ext::ext;
 
-// Extension to capsule handle, most-preferred first. Every handle here must
-// name a capsule that is actually built; an entry for a missing capsule is an
-// invisible dead menu row, and the shell's convention is that an unwired row
-// draws dimmed rather than silently no-opping.
-const TABLE: &[(&str, &[&str])] = &[
-    ("txt", &["app.text_editor"]),
-    ("md", &["app.text_editor"]),
-    ("log", &["app.text_editor"]),
-    ("rs", &["app.text_editor"]),
-    ("toml", &["app.text_editor"]),
-    ("json", &["app.text_editor"]),
-    ("flac", &["app.audio_player"]),
-    ("wav", &["app.audio_player"]),
-    ("mp3", &["app.audio_player"]),
-    ("mp4", &["app.video_player"]),
-    ("html", &["app.browser", "app.text_editor"]),
+/// An app a file can be handed to: the service the shell launches, the name
+/// people know it by (the dock's), and what the status line says once the
+/// shell took the request.
+pub struct Handler {
+    pub service: &'static str,
+    pub name: &'static str,
+    pub opened: &'static [u8],
+}
+
+const EDITOR: Handler =
+    Handler { service: "app.text_editor", name: "Editor", opened: b"opened in Editor" };
+const IMAGES: Handler = Handler {
+    service: "app.image_viewer",
+    name: "Image Viewer",
+    opened: b"opened in Image Viewer",
+};
+const MUSIC: Handler =
+    Handler { service: "app.audio_player", name: "Music", opened: b"opened in Music" };
+const VIDEO: Handler =
+    Handler { service: "app.video_player", name: "Video", opened: b"opened in Video" };
+
+// Extension to handler, most-preferred first; Enter uses the first. Every
+// handler names an app that is built and can read the format: Music decodes
+// MP3 and WAV, Video Motion-JPEG AVI, the image viewer what its codec reads.
+const TABLE: &[(&str, &[Handler])] = &[
+    ("txt", &[EDITOR]),
+    ("md", &[EDITOR]),
+    ("log", &[EDITOR]),
+    ("rs", &[EDITOR]),
+    ("toml", &[EDITOR]),
+    ("json", &[EDITOR]),
+    ("html", &[EDITOR]),
+    ("wav", &[MUSIC]),
+    ("mp3", &[MUSIC]),
+    ("avi", &[VIDEO]),
+    ("png", &[IMAGES]),
+    ("jpg", &[IMAGES]),
+    ("jpeg", &[IMAGES]),
+    ("bmp", &[IMAGES]),
+    ("gif", &[IMAGES]),
 ];
 
-pub fn handlers_for(path: &str) -> &'static [&'static str] {
+pub fn handlers_for(path: &str) -> &'static [Handler] {
     let want = ext(path).to_ascii_lowercase();
     if want.is_empty() {
         return &[];
     }
     match TABLE.iter().find(|(e, _)| *e == want.as_str()) {
-        Some((_, handles)) => handles,
+        Some((_, handlers)) => handlers,
         None => &[],
     }
 }

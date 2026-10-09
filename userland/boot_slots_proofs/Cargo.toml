@@ -1,0 +1,23 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for `MkBootSlots`: the kernel's reader of its own signed
+# file against the bootloader's parser, the slots it builds against the enroll
+# tool's tree, and its record against libc's reader. Every file under test is
+# the shipped source, included via `#[path]`.
+[package]
+name = "boot_slots_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos-attest-path = { path = "../../nonos-attest-path", features = ["alloc"] }
+nonos-boot-measure = { path = "../../nonos-boot-measure" }
+
+[dev-dependencies]
+blake3 = { version = "1.5", default-features = false, features = ["std"] }

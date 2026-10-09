@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::budget::grow;
 use super::types::{Store, StoreError, StoreResult, MAX_FILE_BYTES};
 
 impl Store {
@@ -29,10 +30,12 @@ impl Store {
             return Err(StoreError::Full);
         }
         // Securely erase the tail being dropped before it is freed.
+        let others = self.held_except(Some(idx));
         let data = &mut self.files[idx].data;
         if new_len < data.len() {
             super::zeroize::zeroize(&mut data[new_len..]);
         }
+        grow(data, new_len, others)?;
         data.resize(new_len, 0);
         self.files[idx].mtime = super::time::now_ms();
         Ok(())

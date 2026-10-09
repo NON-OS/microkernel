@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::admin::CqCursor;
 use crate::dma::DmaRegion;
 
 pub struct AdminQueue {
@@ -21,7 +22,6 @@ pub struct AdminQueue {
     pub(super) cq: DmaRegion,
     pub(super) identify: DmaRegion,
     pub(super) tail: u16,
-    pub(super) head: u16,
-    pub(super) phase: bool,
+    pub(super) cursor: CqCursor,
     pub(super) cid: u16,
 }

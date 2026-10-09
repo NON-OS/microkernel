@@ -23,10 +23,19 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
-case "$(uname -s)" in
-  Darwin) SHA256="shasum -a 256" ;;
-  *)      SHA256="sha256sum" ;;
-esac
+# Prefer sha256sum: coreutils ships it on every platform and it is what the nix
+# static-evidence sandbox provides. The build sandbox has no /usr/bin, so the
+# Darwin-only shasum is absent there and selecting it by `uname` produced empty
+# hashes on macOS. shasum stays as the fallback for a bare host without coreutils;
+# both emit the same digest, so the committed EVIDENCE.json is unaffected.
+if command -v sha256sum >/dev/null 2>&1; then
+  SHA256="sha256sum"
+elif command -v shasum >/dev/null 2>&1; then
+  SHA256="shasum -a 256"
+else
+  echo "::error::no sha256 tool (sha256sum or shasum) on PATH" >&2
+  exit 1
+fi
 sha() { $SHA256 "$1" | cut -d' ' -f1; }
 
 lean_dir="verification/lean/Nonos"

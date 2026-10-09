@@ -42,6 +42,15 @@ impl LogManager {
         }
     }
 
+    /// Overwrite the RAM log and the hash chain's last link.
+    pub fn wipe(&mut self) {
+        self.ram_buffer.wipe();
+        for b in self.last_hash.iter_mut() {
+            /* SAFETY: b is an exclusive reference into self.last_hash. */
+            unsafe { core::ptr::write_volatile(b, 0) };
+        }
+    }
+
     pub fn add_backend(&mut self, backend: Box<dyn LogBackend>) {
         let _ = self.backends.push(backend);
     }

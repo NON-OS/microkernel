@@ -18,7 +18,7 @@
 //! file) and close tabs, always leaving at least one document open.
 
 use super::app::Editor;
-use super::ctrl_open::ctrl_open;
+use super::ctrl_open::load;
 use super::state::State;
 
 fn doc_path(d: &State) -> &str {
@@ -26,36 +26,38 @@ fn doc_path(d: &State) -> &str {
 }
 
 impl Editor {
-    pub(super) fn open_path(&mut self, path: &str) {
-        if path.len() > 255 {
-            return;
-        }
-        self.mru_note(path);
+    /// Open `path` in its own tab: the tab that already holds it, else the
+    /// front tab when it is an untouched blank, else a new tab. Nothing that
+    /// holds text is ever replaced, and a file that fails to load opens no tab.
+    pub(super) fn open_path(&mut self, path: &str) -> bool {
         if let Some(i) = self.docs.iter().position(|d| doc_path(d) == path) {
             self.active = i;
-            return;
+            return true;
+        }
+        let front = self.active.min(self.docs.len().saturating_sub(1));
+        let blank = self
+            .docs
+            .get(front)
+            .map(|d| d.len == 0 && !d.dirty && d.path_len == 0)
+            .unwrap_or(false);
+        if blank {
+            let ok = load(&mut self.docs[front], path.as_bytes());
+            if ok {
+                self.mru_note(path);
+            }
+            return ok;
         }
         let mut d = State::new();
-        d.path[..path.len()].copy_from_slice(path.as_bytes());
-        d.path_len = path.len();
         d.owner_pid = self.owner_pid;
-        ctrl_open(&mut d);
+        if !load(&mut d, path.as_bytes()) {
+            // The reason belongs where the user is looking.
+            let why = d.status;
+            self.doc().status = why;
+            return false;
+        }
+        self.mru_note(path);
         self.docs.push(d);
         self.active = self.docs.len() - 1;
-    }
-
-    pub(super) fn close_tab(&mut self, idx: usize) {
-        if idx >= self.docs.len() {
-            return;
-        }
-        self.docs.remove(idx);
-        if self.docs.is_empty() {
-            self.docs.push(State::new());
-            self.active = 0;
-            return;
-        }
-        if self.active > idx || self.active >= self.docs.len() {
-            self.active = self.active.saturating_sub(1).min(self.docs.len() - 1);
-        }
+        true
     }
 }

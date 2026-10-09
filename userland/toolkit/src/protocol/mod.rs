@@ -19,7 +19,7 @@ pub mod header;
 pub mod ops;
 
 pub use errno::{E_BAD_OP, E_INVAL, E_SHORT, E_SURFACE, STATUS_OK};
-pub use header::{decode, encode, Header, HDR_LEN, MAGIC};
+pub use header::{decode, encode, refusal, Header, HDR_LEN, MAGIC};
 pub use ops::{
     IPC_PAYLOAD_MAX, THEME_PAYLOAD_LEN, TOOLKIT_ENDPOINT, TOOLKIT_OP_ANIMATION_TICK,
     TOOLKIT_OP_COMPONENT_RENDER, TOOLKIT_OP_HEALTHCHECK, TOOLKIT_OP_THEME_APPLY,

@@ -14,29 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_irq_bind, IrqBindOut, MK_IRQ_BIND_MSIX};
+//! Interrupt phase: take the device off its legacy interrupt pin.
+//!
+//! The driver never waits on an interrupt: transmit polls the used ring
+//! and the receive ring is read when a client asks for a frame. It used
+//! to bind the INTx line (or MSI-X) anyway and ack it after every
+//! transmit without reading the device's interrupt status, so on INTx
+//! the level-triggered line was still up at every ack, fired again and
+//! was masked again, and the grant kept any other driver from binding a
+//! line it shares. The driver now binds nothing and sets Interrupt
+//! Disable, so the device drives no pin.
+
+use nonos_libc::{
+    mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_INTX_DISABLE,
+};
 
 use super::registers::RegisterGrant;
-use crate::discover::Found;
 
-pub fn bind(
-    dev: Found,
+pub fn disable_intx(
+    device_id: u64,
     claim_epoch: u64,
     reg: &RegisterGrant,
-) -> Result<(IrqBindOut, bool), &'static str> {
-    let mut out = IrqBindOut { grant_id: 0, vector: 0 };
-    let r = mk_irq_bind(dev.device_id, claim_epoch, dev.irq_line as u32, 0, 0, &mut out);
-    if r >= 0 {
-        return Ok((out, false));
-    }
-    let msix = mk_irq_bind(dev.device_id, claim_epoch, 0, MK_IRQ_BIND_MSIX, 1, &mut out);
-    if msix >= 0 {
-        return Ok((out, true));
+) -> Result<(), &'static str> {
+    let rc =
+        mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, MK_PCI_CMD_INTX_DISABLE);
+    if rc >= 0 {
+        return Ok(());
     }
     let reg_ok = reg.release();
-    let device_ok = mk_device_release(dev.device_id) >= 0;
+    let device_ok = mk_device_release(device_id) >= 0;
     if !reg_ok || !device_ok {
-        return Err("irq bind rollback failed");
+        return Err("interrupt disable rollback failed");
     }
-    Err("irq bind failed")
+    Err("interrupt disable failed")
 }

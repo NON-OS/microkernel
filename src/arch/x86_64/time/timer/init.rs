@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
-use super::hpet::{configure_hpet, configure_hpet_for_timing, detect_hpet};
+use super::hpet::{configure_hpet, configure_hpet_for_timing, detect_hpet, is_valid_hpet_base};
 use super::state::{ACTIVE_TIMERS, BOOT_TIME, HPET_BASE, TIMER_INITIALIZED, TSC_FREQUENCY};
 use super::tsc::rdtsc;
 
@@ -31,8 +31,12 @@ pub fn init() {
     let tsc_freq = calibrate_tsc_frequency();
     TSC_FREQUENCY.store(tsc_freq, Ordering::SeqCst);
     if let Some(hpet_base) = detect_hpet() {
-        HPET_BASE.store(hpet_base, Ordering::SeqCst);
-        configure_hpet_for_timing(hpet_base);
+        // Configure timing off the HPET only once it answers like one at that
+        // base, so a stale or wrong table entry falls back to the TSC.
+        if is_valid_hpet_base(hpet_base) {
+            HPET_BASE.store(hpet_base, Ordering::SeqCst);
+            configure_hpet_for_timing(hpet_base);
+        }
     }
     ACTIVE_TIMERS.lock().clear();
     TIMER_INITIALIZED.store(true, Ordering::SeqCst);
@@ -46,22 +50,14 @@ pub fn init() {
     }
 }
 
+/// CPUID's enumerated rate, else a bounded PIT measurement, else 0. The PIT
+/// loop used to spin on OUT2 with no timeout, which hangs for ever on a
+/// laptop whose 8254 is gated off.
 fn calibrate_tsc_frequency() -> u64 {
-    unsafe {
-        crate::arch::x86_64::port::outb(0x43, 0xB0);
-        crate::arch::x86_64::port::outb(0x42, 0xFF);
-        crate::arch::x86_64::port::outb(0x42, 0xFF);
-        let speaker_port = crate::arch::x86_64::port::inb(0x61);
-        crate::arch::x86_64::port::outb(0x61, speaker_port | 0x03);
-        while (crate::arch::x86_64::port::inb(0x61) & 0x20) == 0 {}
-        let start_tsc = rdtsc();
-        while (crate::arch::x86_64::port::inb(0x61) & 0x20) != 0 {}
-        let end_tsc = rdtsc();
-        crate::arch::x86_64::port::outb(0x61, speaker_port);
-        let tsc_ticks = end_tsc - start_tsc;
-        let time_ns = 54925484;
-        (tsc_ticks * 1_000_000_000) / time_ns
+    if let Some(hz) = crate::arch::x86_64::time::tsc::get_cpuid_frequency() {
+        return hz;
     }
+    crate::arch::x86_64::time::tsc::calibrate_with_pit().map(|(hz, _)| hz).unwrap_or(0)
 }
 
 pub fn init_with_freq(freq_hz: u32) {

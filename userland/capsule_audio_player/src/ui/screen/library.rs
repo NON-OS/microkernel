@@ -38,7 +38,7 @@ pub fn paint(
     scroll: usize,
     playing: Option<usize>,
     hover: Option<usize>,
-    step: u32,
+    level: u16,
 ) {
     let sub = count(rows.len(), "track", "tracks");
     page_header(fb, r, "Library", &sub, "");
@@ -54,6 +54,8 @@ pub fn paint(
             queued: queue.contains(idx),
             hover: hover == Some(idx),
         };
-        row(fb, icons, rr, t, idx + 1, &f, step);
+        // Its place in the list shown: under Artists or Albums the library's
+        // own order would number the rows out of sequence.
+        row(fb, icons, rr, t, scroll + slot + 1, &f, level);
     }
 }

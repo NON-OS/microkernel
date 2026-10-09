@@ -34,8 +34,14 @@ pub fn find_rsdp() -> AcpiResult<RsdpExtended> {
         }
     }
 
+    // Legacy BIOS search. Low memory is reached through the direct map: the
+    // physical addresses are not mapped at their own value once the kernel
+    // runs on its own page tables.
+    let Some(ebda_ptr) = super::phys::directmap(rsdp::EBDA_PTR_ADDR as u64) else {
+        return Err(AcpiError::RsdpNotFound);
+    };
     unsafe {
-        let ebda_segment = ptr::read_volatile(rsdp::EBDA_PTR_ADDR as *const u16);
+        let ebda_segment = ptr::read_volatile(ebda_ptr as *const u16);
         if ebda_segment != 0 {
             let ebda_start = (ebda_segment as usize) << 4;
             if let Some(rsdp) = search_rsdp_range(ebda_start, 1024) {
@@ -72,7 +78,9 @@ fn read_rsdp_at(addr: usize) -> Option<RsdpExtended> {
             if ext.validate_extended_checksum() {
                 return Some(ext);
             }
-            None
+            // A v2 RSDP whose extended checksum is wrong still has a valid
+            // v1 part: use the RSDT rather than no tables at all.
+            Some(RsdpExtended::from_rsdp(base))
         } else {
             Some(RsdpExtended::from_rsdp(base))
         }
@@ -80,7 +88,8 @@ fn read_rsdp_at(addr: usize) -> Option<RsdpExtended> {
 }
 
 fn search_rsdp_range(start: usize, length: usize) -> Option<RsdpExtended> {
-    for addr in (start..start + length).step_by(rsdp::RSDP_ALIGNMENT) {
+    for phys in (start..start + length).step_by(rsdp::RSDP_ALIGNMENT) {
+        let addr = super::phys::directmap(phys as u64)? as usize;
         unsafe {
             let ptr = addr as *const Rsdp;
             let sig = ptr::read_volatile(&(*ptr).signature);
@@ -99,6 +108,7 @@ fn search_rsdp_range(start: usize, length: usize) -> Option<RsdpExtended> {
                     if ext_rsdp.validate_extended_checksum() {
                         return Some(ext_rsdp);
                     }
+                    return Some(RsdpExtended::from_rsdp(rsdp));
                 } else {
                     return Some(RsdpExtended::from_rsdp(rsdp));
                 }

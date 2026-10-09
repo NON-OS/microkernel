@@ -36,7 +36,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     text::left(fb, r.x + PANEL_PAD, top, b"FINDINGS", TITLE, BODY_PX);
     headline(state, fb, r.x + r.w.saturating_sub(PANEL_PAD), y);
     if state.alerts.is_empty() {
-        let clear = b"Nothing holds an authority the monitor did not expect.";
+        let clear = b"No findings: watched services up, nothing pinned at full cpu, admin held by init alone.";
         text::left(fb, r.x + PANEL_PAD, y + PANEL_HEAD_H, clear, MUTED, BODY_PX);
         return;
     }

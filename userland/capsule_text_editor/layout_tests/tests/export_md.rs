@@ -62,23 +62,12 @@ fn heading_level_is_clamped_to_six() {
 }
 
 #[test]
-fn bullets_all_use_a_dash() {
+fn list_markers_typed_in_the_text_are_written_as_typed() {
     let d = doc_of(vec![
-        Block::plain(BlockKind::Bullet, "one", RunStyle::body()),
-        Block::plain(BlockKind::Bullet, "two", RunStyle::body()),
+        Block::plain(BlockKind::Paragraph, "- one", RunStyle::body()),
+        Block::plain(BlockKind::Paragraph, "2. two", RunStyle::body()),
     ]);
-    assert_eq!(to_markdown(&d), "- one\n\n- two\n");
-}
-
-#[test]
-fn numbered_runs_renumber_and_restart() {
-    let d = doc_of(vec![
-        Block::plain(BlockKind::Numbered, "a", RunStyle::body()),
-        Block::plain(BlockKind::Numbered, "b", RunStyle::body()),
-        Block::plain(BlockKind::Paragraph, "p", RunStyle::body()),
-        Block::plain(BlockKind::Numbered, "c", RunStyle::body()),
-    ]);
-    assert_eq!(to_markdown(&d), "1. a\n\n2. b\n\np\n\n1. c\n");
+    assert_eq!(to_markdown(&d), "- one\n\n2. two\n");
 }
 
 #[test]

@@ -33,33 +33,15 @@ pub const TOGGLES: [&str; 3] = ["Shuffle", "Repeat", "Mute output"];
 pub enum Hit {
     Toggle(usize),
     Volume(u32),
-    Section(usize),
 }
 
 fn head_h() -> i32 {
     S4 + line_h(SECTION) + S3
 }
 
-pub const NAV_W: i32 = 196;
-
-fn nav_shown(r: Rect) -> bool {
-    r.w > NAV_W * 3
-}
-
 fn body(r: Rect) -> Rect {
     let top = r.y + line_h(PAGE) + line_h(BODY) + S3 + S4;
-    let dx = if nav_shown(r) { NAV_W + S6 } else { 0 };
-    Rect::new(r.x + dx, top, r.w - dx, (r.bottom() - top).max(0))
-}
-
-pub fn nav_row(r: Rect, i: usize) -> Rect {
-    let top = r.y + line_h(PAGE) + line_h(BODY) + S3 + S4;
-    let w = if nav_shown(r) { NAV_W } else { 0 };
-    Rect::new(r.x, top + i as i32 * 38, w, 34)
-}
-
-pub fn nav_at(r: Rect, x: i32, y: i32) -> Option<usize> {
-    (0..9).find(|&i| nav_row(r, i).contains(x, y))
+    Rect::new(r.x, top, r.w, (r.bottom() - top).max(0))
 }
 
 fn column(r: Rect, i: i32) -> Rect {
@@ -101,9 +83,6 @@ pub fn volume_rect(r: Rect) -> Rect {
 }
 
 pub fn hit(r: Rect, x: i32, y: i32) -> Option<Hit> {
-    if let Some(i) = nav_at(r, x, y) {
-        return Some(Hit::Section(i));
-    }
     let vr = volume_rect(r);
     if vr.inset(-12).contains(x, y) {
         return Some(Hit::Volume(permille(vr, x)));

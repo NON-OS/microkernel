@@ -27,6 +27,9 @@ const EISDIR: i32 = -21;
 const EINVAL: i32 = -22;
 const ENOSPC: i32 = -28;
 const ENOTEMPTY: i32 = -39;
+const EIO: i32 = -5;
+const ENODEV: i32 = -19;
+const EUCLEAN: i32 = -117;
 
 #[test]
 fn kernel_tcb_keeps_the_payload_pid() {
@@ -74,12 +77,32 @@ fn store_errors_map_to_expected_errnos() {
 fn blk_errors_map_to_expected_errnos() {
     assert_eq!(map_blk_err(BlkError::Exists), EEXIST);
     assert_eq!(map_blk_err(BlkError::BadLength), ENOSPC);
-    assert_eq!(map_blk_err(BlkError::NoService), EINVAL);
-    assert_eq!(map_blk_err(BlkError::Transport(-11)), EINVAL);
-    assert_eq!(map_blk_err(BlkError::ShortReply(3)), EINVAL);
-    assert_eq!(map_blk_err(BlkError::BadHeader), EINVAL);
-    assert_eq!(map_blk_err(BlkError::IdMismatch), EINVAL);
-    assert_eq!(map_blk_err(BlkError::Status(-6)), EINVAL);
+    assert_eq!(map_blk_err(BlkError::NoService), ENODEV);
+    assert_eq!(map_blk_err(BlkError::Transport(-11)), EIO);
+    assert_eq!(map_blk_err(BlkError::ShortReply(3)), EUCLEAN);
+    assert_eq!(map_blk_err(BlkError::Status(-6)), EIO);
     assert_eq!(map_blk_err(BlkError::Inval), EINVAL);
-    assert_eq!(map_blk_err(BlkError::BadContainer), EINVAL);
+    assert_eq!(map_blk_err(BlkError::BadContainer), EUCLEAN);
+    assert_eq!(map_blk_err(BlkError::NoSpace), ENOSPC);
+    assert_eq!(map_blk_err(BlkError::NoMemory), EINVAL);
+}
+
+/*
+ * A store op on a machine with no NONOS disk and one on a disk whose store
+ * does not decode used to answer the same EINVAL, the errno of a malformed
+ * request. A live boot has no disk by design; a damaged store is something
+ * to say out loud. No disk, a device fault and a damaged store are three
+ * answers, and none of them is the bad-request one.
+ */
+#[test]
+fn no_disk_a_device_fault_and_a_damaged_store_are_different_answers() {
+    let absent = map_blk_err(BlkError::NoService);
+    let fault = [BlkError::Transport(-110), BlkError::Status(-13)].map(map_blk_err);
+    let damaged = [BlkError::BadContainer, BlkError::ShortReply(3)].map(map_blk_err);
+    assert!(fault.iter().all(|&e| e == fault[0]) && damaged.iter().all(|&e| e == damaged[0]));
+    let answers = [absent, fault[0], damaged[0], map_blk_err(BlkError::Inval)];
+    for (i, a) in answers.iter().enumerate() {
+        assert!(*a < 0, "answer {i} is not an errno");
+        assert!(answers[i + 1..].iter().all(|b| b != a), "answer {i} ({a}) is shared");
+    }
 }

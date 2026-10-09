@@ -18,9 +18,13 @@ use nonos_libc::mk_ipc_call_timeout;
 
 use super::proto::{Header, CHUNK_MAX, E_OK, HDR_LEN, OP_GET_CHUNK};
 
-const REPLY_TIMEOUT_MS: u64 = 500;
-
-pub fn fetch_chunk(catalog_port: u32, index: u32, offset: u32, buf: &mut [u8]) -> Option<u32> {
+pub fn fetch_chunk(
+    catalog_port: u32,
+    index: u32,
+    offset: u32,
+    buf: &mut [u8],
+    timeout_ms: u64,
+) -> Option<u32> {
     let req = Header { op: OP_GET_CHUNK, status: 0, index, offset, payload_len: 0 };
     req.encode(buf.get_mut(..HDR_LEN)?);
     let n = mk_ipc_call_timeout(
@@ -29,7 +33,7 @@ pub fn fetch_chunk(catalog_port: u32, index: u32, offset: u32, buf: &mut [u8]) -
         HDR_LEN,
         buf.as_mut_ptr(),
         buf.len(),
-        REPLY_TIMEOUT_MS,
+        timeout_ms,
     );
     if n <= 0 || (n as usize) < HDR_LEN {
         return None;

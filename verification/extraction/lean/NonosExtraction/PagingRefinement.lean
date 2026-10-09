@@ -22,10 +22,11 @@ Opposite polarities that nothing checks are how an earlier revision of the
 aarch64 encoder published every kernel page to userspace. So the theorem this
 file exists for is `the_backends_agree`: for the flag words the manager actually
 emits, both encoders produce descriptors that read back with the same meaning.
-The bits differ on almost every one of them and the semantics do not, for leaves.
-They do not agree on interior table entries, and
-`the_aarch64_table_ignores_the_request` says why: that backend drops the argument
-that was supposed to decide it.
+The bits differ on almost every one of them and the semantics do not, for leaves,
+and for interior table entries since the aarch64 `table` honours its
+`user_accessible` argument (`the_backends_agree_on_tables`). Before that it dropped
+the argument, and `the_aarch64_table_ignores_the_request` is kept, stated on that
+old shape, so the defect stays named and a return to it has a theorem to break.
 
 Everything is stated on the extracted definitions, so these are the encoders the
 kernel calls rather than a model of them. The flag words are instantiated rather
@@ -252,33 +253,78 @@ theorem the_x86_table_honours_the_request :
     (do let e ← xTable 0x2000#u64 true; xTableGrantsUser e) = ok true := by
   refine ⟨?_, ?_⟩ <;> emit
 
-/-- aarch64 does not, and this is the leaf polarity defect one level up.
+/-- aarch64 honours it too. A table built without user access sets APTable[0],
+    the bit `table_grants_user` reads, so the refusal carries to the walk and to
+    the usercopy check that reads the same bit. -/
+theorem the_aarch64_table_honours_the_request :
+    (do let e ← aarch64_table 0x2000#u64 false; aTableGrantsUser e) = ok false ∧
+    (do let e ← aarch64_table 0x2000#u64 true; aTableGrantsUser e) = ok true := by
+  refine ⟨?_, ?_⟩ <;> emit
 
-    `table` takes its second argument as `_user_accessible` and drops it, and
-    `table_grants_user` reads `APTABLE_NO_EL0`, a bit `table` never sets. So every
-    interior entry the aarch64 backend builds grants EL0 access, whatever the
-    caller asked for, and the two calls below are indistinguishable.
+/-- So the backends agree on interior entries as well as on leaves, for both
+    answers to the request. -/
+theorem the_backends_agree_on_tables :
+    ((do let e ← xTable 0x2000#u64 false; xTableGrantsUser e) =
+       (do let e ← aarch64_table 0x2000#u64 false; aTableGrantsUser e)) ∧
+    ((do let e ← xTable 0x2000#u64 true; xTableGrantsUser e) =
+       (do let e ← aarch64_table 0x2000#u64 true; aTableGrantsUser e)) := by
+  refine ⟨?_, ?_⟩ <;> emit
+
+/-! ### The shape the aarch64 table had
+
+    Kept so the defect stays named and a regression to it has a theorem to
+    contradict, the device `CtRefinement` uses for `oldShortcut`. -/
+
+/-- The body `table` had before it honoured the request, as Aeneas extracted it:
+    the address, `VALID` and `TABLE_OR_PAGE`, and nothing that reads
+    `user_accessible`. -/
+def oldAarch64Table (pa : Std.U64) (_user_accessible : Bool) : Result Std.U64 := do
+  let i ← lift (pa &&& arch.paging.descriptor.aarch64.bits.ADDR_MASK)
+  let i1 ← arch.paging.descriptor.aarch64.bits.VALID
+  let i2 ← lift (i ||| i1)
+  let i3 ← arch.paging.descriptor.aarch64.bits.TABLE_OR_PAGE
+  ok (i2 ||| i3)
+
+attribute [local simp] oldAarch64Table
+
+/-- That shape did not honour it, and this was the leaf polarity defect one level
+    up.
+
+    It took its second argument as `_user_accessible` and dropped it, and
+    `table_grants_user` reads `APTABLE_NO_EL0`, a bit that body never set. So every
+    interior entry it built granted EL0 access, whatever the caller asked for, and
+    the two calls below were indistinguishable.
 
     An interior entry that does not restrict EL0 does not by itself publish a
     kernel page, because the leaf still has to permit it and
-    `a_kernel_page_never_reaches_userspace` says it does not. It removes the
-    second of the two barriers, on the architecture that is not yet booting. -/
+    `a_kernel_page_never_reaches_userspace` says it does not. It removed the
+    second of the two barriers. -/
 theorem the_aarch64_table_ignores_the_request :
-    (do let e ← aarch64_table 0x2000#u64 false; aTableGrantsUser e) = ok true ∧
-    (do let e ← aarch64_table 0x2000#u64 true; aTableGrantsUser e) = ok true ∧
-    (do let e ← aarch64_table 0x2000#u64 false; aTableGrantsUser e) =
-      (do let e ← aarch64_table 0x2000#u64 true; aTableGrantsUser e) := by
+    (do let e ← oldAarch64Table 0x2000#u64 false; aTableGrantsUser e) = ok true ∧
+    (do let e ← oldAarch64Table 0x2000#u64 true; aTableGrantsUser e) = ok true ∧
+    (do let e ← oldAarch64Table 0x2000#u64 false; aTableGrantsUser e) =
+      (do let e ← oldAarch64Table 0x2000#u64 true; aTableGrantsUser e) := by
   refine ⟨?_, ?_, ?_⟩ <;> emit
 
-/-- So the backends agree on leaves and disagree on interior entries. That is the
-    honest boundary of `the_backends_agree`, and the reason it is stated about
-    leaves only. -/
+/-- Under that shape the backends disagreed on interior entries, which is why
+    `the_backends_agree` was stated about leaves only. -/
 theorem the_backends_disagree_on_tables :
     (do let e ← xTable 0x2000#u64 false; xTableGrantsUser e) ≠
-      (do let e ← aarch64_table 0x2000#u64 false; aTableGrantsUser e) := by
+      (do let e ← oldAarch64Table 0x2000#u64 false; aTableGrantsUser e) := by
   rw [show (do let e ← xTable 0x2000#u64 false; xTableGrantsUser e) = ok false from
         by emit,
-      show (do let e ← aarch64_table 0x2000#u64 false; aTableGrantsUser e) = ok true from
+      show (do let e ← oldAarch64Table 0x2000#u64 false; aTableGrantsUser e) = ok true from
+        by emit]
+  simp
+
+/-- And the table the kernel builds is not that shape: on the request that
+    matters they answer differently. -/
+theorem the_table_is_not_the_old_shape :
+    (do let e ← aarch64_table 0x2000#u64 false; aTableGrantsUser e) ≠
+      (do let e ← oldAarch64Table 0x2000#u64 false; aTableGrantsUser e) := by
+  rw [show (do let e ← aarch64_table 0x2000#u64 false; aTableGrantsUser e) = ok false from
+        by emit,
+      show (do let e ← oldAarch64Table 0x2000#u64 false; aTableGrantsUser e) = ok true from
         by emit]
   simp
 
@@ -336,8 +382,11 @@ theorem aarch64_is_block_is_valid_and_not_table (e : Std.U64) :
 #print axioms NonosExtraction.a_misaligned_frame_loses_its_low_bits_in_the_descriptor
 #print axioms NonosExtraction.an_aligned_frame_round_trips
 #print axioms NonosExtraction.the_x86_table_honours_the_request
+#print axioms NonosExtraction.the_aarch64_table_honours_the_request
+#print axioms NonosExtraction.the_backends_agree_on_tables
 #print axioms NonosExtraction.the_aarch64_table_ignores_the_request
 #print axioms NonosExtraction.the_backends_disagree_on_tables
+#print axioms NonosExtraction.the_table_is_not_the_old_shape
 #print axioms NonosExtraction.a_table_entry_is_present
 #print axioms NonosExtraction.x86_is_block_is_present_and_huge
 #print axioms NonosExtraction.aarch64_is_block_is_valid_and_not_table

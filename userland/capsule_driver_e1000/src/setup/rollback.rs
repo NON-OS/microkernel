@@ -18,15 +18,12 @@
 //! fails partway. Best-effort: an `EINVAL` from a doubly-released
 //! grant is harmless because the broker has already revoked it.
 
-use nonos_libc::{
-    mk_device_release, mk_dma_unmap, mk_irq_unbind, mk_mmio_unmap, IrqBindOut, MmioMapOut,
-};
+use nonos_libc::{mk_device_release, mk_dma_unmap, mk_mmio_unmap, MmioMapOut};
 
-pub fn after(device_id: u64, mmio: &MmioMapOut, irq: &IrqBindOut, dma_grants: &[u64]) {
+pub fn after(device_id: u64, mmio: &MmioMapOut, dma_grants: &[u64]) {
     for &g in dma_grants.iter().rev() {
         let _ = mk_dma_unmap(g);
     }
-    let _ = mk_irq_unbind(irq.grant_id);
     let _ = mk_mmio_unmap(mmio.grant_id);
     let _ = mk_device_release(device_id);
 }

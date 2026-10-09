@@ -13,43 +13,49 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Giving up on a controller that never answers.
 //!
-//! This is the case the capsule meets on hardware it does not fully support:
-//! the BAR decodes, the registers accept writes, and the DMA engine does
-//! nothing. There is no interrupt and no error bit to read, so the only thing
-//! separating a bounded refusal from a hung boot is that every wait counts its
-//! spins. A driver that waits forever here takes the whole service down, and
-//! with it anything that was waiting on the audio endpoint to come up.
+//! The BAR decodes, the registers accept writes, and the DMA engine does
+//! nothing. Every wait has to end, and in time rather than in spins.
 
-use crate::controller::{graph, verb};
+use std::time::Instant;
+
+use crate::constants::CORBWP;
+use crate::controller::codec::walk::walk;
 use crate::error::HdaError;
 use crate::model::{rings, window};
-use crate::proofs::verb_tests::{CMD, RESPONSE};
-use crate::regs::Regs;
+use crate::proofs::verb_tests::{link_over, CMD, RESPONSE};
 
 #[test]
 fn a_controller_that_never_answers_is_given_up_on_rather_than_waited_on() {
     let bar = window();
     let (corb, rirb) = rings(RESPONSE);
-    let mut wp = 0u16;
-    let got = verb::send(Regs::new(bar.base()), corb.base(), rirb.base(), &mut wp, CMD);
-    assert!(got == Err(HdaError::VerbTimeout), "an unanswered verb must refuse, not spin");
-    assert_eq!(wp, 0, "the shadow pointer must not advance past a command nobody consumed");
+    let mut link = link_over(&bar, corb.base(), rirb.base());
+    let t = Instant::now();
+    assert_eq!(link.send(CMD), Err(HdaError::VerbTimeout), "an unanswered verb must refuse");
+    assert!(t.elapsed().as_millis() < 1000, "the wait was not bounded in time");
 }
 
 #[test]
-fn the_codec_graph_walk_ends_when_the_first_question_goes_unanswered() {
+fn after_an_unanswered_verb_the_shadow_pointer_agrees_with_the_controller() {
     /*
-     * The walk is a chain of verbs, each feeding the next. If the refusal is
-     * not propagated the walk carries on against invented node numbers and
-     * eventually configures a path made entirely of timeouts.
+     * The command did move CORBWP. A shadow left behind put the next command
+     * in the same slot under the same CORBWP, which the controller reads as
+     * nothing new: after one slow answer every later verb timed out.
      */
     let bar = window();
     let (corb, rirb) = rings(RESPONSE);
-    let mut wp = 0u16;
-    let regs = Regs::new(bar.base());
-    let found = graph::find_output(regs, corb.base(), rirb.base(), &mut wp, 0);
-    assert!(found.is_none(), "a silent codec must not yield an output path");
+    let mut link = link_over(&bar, corb.base(), rirb.base());
+    let _ = link.send(CMD);
+    assert_eq!(bar.wrote16(CORBWP as usize), 1);
+    let _ = link.send(CMD + 1);
+    assert_eq!(bar.wrote16(CORBWP as usize), 2, "the second command was not posted past the first");
+}
+
+#[test]
+fn the_codec_walk_ends_when_the_first_question_goes_unanswered() {
+    let bar = window();
+    let (corb, rirb) = rings(RESPONSE);
+    let mut link = link_over(&bar, corb.base(), rirb.base());
+    assert!(walk(&mut link, 0).is_err(), "a silent codec must not yield a description");
 }

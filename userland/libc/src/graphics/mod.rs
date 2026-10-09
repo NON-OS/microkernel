@@ -20,4 +20,4 @@
 // kernel no longer defines, so they could not succeed.
 mod display_dimensions;
 
-pub use display_dimensions::nonos_display_dimensions;
+pub use display_dimensions::{nonos_display_dimensions, nonos_display_physical_mm};

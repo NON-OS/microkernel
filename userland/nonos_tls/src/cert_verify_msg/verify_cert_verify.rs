@@ -16,7 +16,9 @@
 
 use crate::cert_verify_msg::{constants, verify_ecdsa, verify_rsa};
 
-pub fn verify_cert_verify(leaf: &[u8], before_cv: &[u8], body: &[u8]) -> bool {
+/// Check the server's CertificateVerify `body` against `leaf`, where `th` is
+/// the transcript hash through the Certificate message.
+pub fn verify_cert_verify(leaf: &[u8], th: &[u8; 32], body: &[u8]) -> bool {
     if body.len() < 4 {
         return false;
     }
@@ -25,13 +27,10 @@ pub fn verify_cert_verify(leaf: &[u8], before_cv: &[u8], body: &[u8]) -> bool {
     if 4 + siglen != body.len() {
         return false;
     }
-    let Some(th) = super::super::hash_sha256::hash_sha256(before_cv) else {
-        return false;
-    };
     let mut blob = [0x20u8; 64 + 33 + 1 + 32];
     blob[64..64 + constants::LABEL.len()].copy_from_slice(constants::LABEL);
     blob[64 + constants::LABEL.len()] = 0x00;
-    blob[64 + constants::LABEL.len() + 1..].copy_from_slice(&th);
+    blob[64 + constants::LABEL.len() + 1..].copy_from_slice(th);
     let Some(spki) = super::super::cert_spki::cert_spki(leaf) else {
         return false;
     };

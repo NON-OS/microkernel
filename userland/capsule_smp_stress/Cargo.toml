@@ -1,0 +1,33 @@
+# NONOS userland: capsule_smp_stress
+#
+# Holds every core busy with the wakes the scheduler must never lose: futex
+# hand-offs between threads, IPC round trips between threads, and timed
+# sleeps the tick sweep ends. Run from the Terminal as `smp_stress <seconds>`;
+# it prints a line a minute and a verdict, and a stall names its kind.
+
+[package]
+name = "nonos_capsule_smp_stress"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS SMP stress capsule: futex, IPC and timer wakes on every core"
+
+[[bin]]
+name = "smp_stress"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true

@@ -28,8 +28,13 @@ definitions by transitivity.
 
 ## Scope, honestly stated
 
-Extraction covers the pure safe decision cores, nine crates and ninety-two
-functions. Each crate mirrors the kernel's module paths with `#[path]` so the
+Extraction covers the pure safe decision cores. The table below is the
+nine hand-built crates this pipeline started with. `crates.json` now lists 285
+crates with 979 entry points: 13 hand-built, 129 made by
+`tools/extraction/closure_crate.py` under `tree/` and 143 made by
+`tools/extraction/sweep.py` under `sweep/`. `tools/ratchets/proven_functions.py`
+counts all 979 as carrying a proof, 492 of them with a property beyond the
+theorem that the forwarding wrapper equals its method. Each crate mirrors the kernel's module paths with `#[path]` so the
 included files find each other at the paths they already use, and each one holds
 no lock, no atomic and no hardware access.
 
@@ -48,8 +53,9 @@ no lock, no atomic and no hardware access.
 Some of what is extracted is proven wrong rather than proven right, and the file
 headers say which. `CtRefinement` proves the two constant-time comparisons
 disagreed and keeps the old shape named so the regression cannot come back;
-`PagingRefinement` proves the aarch64 table builder ignores its
-`user_accessible` argument; `VectorsRefinement` proves `irq_to_vector` fails
+`PagingRefinement` proves the aarch64 table builder honours its
+`user_accessible` argument and keeps the old shape, which ignored it, named with
+the theorem that says so; `VectorsRefinement` proves `irq_to_vector` fails
 above line 223. A refinement file that only proved agreement would be hiding
 those.
 
@@ -124,12 +130,13 @@ aeneas -backend lean -split-files policy.llbc -dest ../lean/Policy
 # overwrite it.
 
 # Every other crate follows the same two commands. The exact --start-from sets
-# are in the `extraction` job of .github/workflows/verify.yml, which regenerates
-# all nine and diffs each one for drift, so that job is the source of truth and
-# this file does not repeat it.
+# are in crates.json. The `extraction` job of .github/workflows/verify.yml runs
+# tools/extraction/regen.py, which regenerates every crate listed there and
+# diffs each one for drift, so that file is the source of truth and this one
+# does not repeat it.
 
 cd ../lean && lake exe cache get && lake build   # 0 errors == verified
 
-# NonosExtraction.lean is the root: a module missing from its imports is not
-# built by the default target and so is checked by nothing.
+# lakefile.toml builds every module under NonosExtraction by glob, so a module
+# missing from NonosExtraction.lean's imports is still built and checked.
 ```

@@ -15,7 +15,8 @@ set_option maxRecDepth 2048
 namespace nonos_x_fs_blockfs_header_lba
 
 /-- [nonos_x_fs_blockfs_header_lba::fs::blockfs::constants::HEADER_RING_SECTORS]
-    Source: 'src/fs/blockfs/../../../../../../../src/fs/blockfs/constants.rs', lines 20:0-20:48 -/
+    Source: 'src/fs/blockfs/../../../../../../../src/fs/blockfs/constants.rs', lines 20:0-20:41
+    Visibility: public -/
 @[global_simps, irreducible]
 def fs.blockfs.constants.HEADER_RING_SECTORS : Std.U64 := 256#u64
 

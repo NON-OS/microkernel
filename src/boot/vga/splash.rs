@@ -39,8 +39,8 @@ pub fn show_boot_splash() {
         }
 
         visual_delay(10);
-
-        write_at(11, 25, b"MICROKERNEL v1.0 :: x86_64 :: FIPS-140", colors::WHITE, 2);
+        let tag = concat!("MICROKERNEL ", env!("NONOS_KERNEL_VERSION"), " :: x86_64");
+        write_at(11, 25, tag.as_bytes(), colors::WHITE, 2);
 
         visual_delay(8);
 

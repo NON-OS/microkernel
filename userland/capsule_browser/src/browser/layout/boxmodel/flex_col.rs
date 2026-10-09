@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::css::Align;
+use alloc::vec::Vec;
 
-use super::abs_out_of_flow::out_of_flow;
-use super::border_box_w::border_box_w;
-use super::ctx::Ctx;
+use super::box_kind::is_item;
+use super::contexts::cross_fit::fit_across;
+use super::contexts::flex_col_free::{spread, Laid};
+use super::ctx::{Ctx, Pin};
 use super::display_list::DisplayList;
+use super::geom::margins::margins;
 use super::layout_box::layout_box;
 use super::tree::BoxNode;
 
-// Column axis: items stack top to bottom with the gap between them and
-// align-items placing them across the width. Heights stay content-sized, so
-// justify-content has no free space to distribute here.
+/* A flex column: items stack top to bottom with the row gap between them.
+ * Across, an item of auto width stretches to the column (align-self or
+ * align-items stretch) or else fits its content, and sits where its
+ * alignment or auto margins put it; its width is pinned. Free height in a
+ * box of definite height then goes to growing items, or to
+ * justify-content (flex_col_free.rs). Returns the content height. */
 pub(super) fn flex_col(
     node: &BoxNode,
     x: i32,
@@ -36,44 +41,20 @@ pub(super) fn flex_col(
     ctx: Ctx,
 ) -> i32 {
     let s = &node.style;
-    let gap = s.gap as i32;
+    let mut laid: Vec<Laid> = Vec::new();
     let mut cy = 0i32;
-    let mut first = true;
-    for it in &node.children {
-        if !it.kind.block_level() || out_of_flow(&it.style) {
-            continue;
-        }
-        if !first {
-            cy += gap;
-        }
-        first = false;
-        let ml = it.style.margin_left as i32;
-        let mr = it.style.margin_right as i32;
-        cy += it.style.margin_top as i32;
-        let item_avail = (w - ml - mr).max(0);
-        let iw = border_box_w(&it.style, item_avail);
-        // Cross-axis auto margins centre the item and override align-items: a
-        // narrower `margin: 0 auto` container is centred in the column even
-        // when the column stretches or starts its other children.
-        // An item with auto margins on both sides centres itself once inside
-        // the width its own layout receives, so place it at the content edge
-        // and let that single shift happen there. Centring here as well laid
-        // the box right of centre by the whole leftover. A left-only auto
-        // margin still pushes the item to the end from this side, since the
-        // item's own layout ignores single-sided auto margins.
-        let dx = if it.style.margin_left_auto && it.style.margin_right_auto {
-            ml
-        } else if it.style.margin_left_auto {
-            (w - iw - mr).max(0)
-        } else {
-            match s.align {
-                Align::Start | Align::Stretch => ml,
-                Align::Center => ml.max((w - iw) / 2),
-                Align::End => (w - iw - mr).max(0),
-            }
-        };
-        let h = layout_box(it, x + dx, y + cy, item_avail, frags, depth + 1, ctx);
-        cy += h + it.style.margin_bottom as i32;
+    for (i, it) in node.children.iter().filter(|c| is_item(c)).enumerate() {
+        let st = &it.style;
+        cy = cy.saturating_add(if i > 0 { s.row_gap as i32 } else { 0 });
+        let [mt, mr, mb, ml] = margins(st, w);
+        let room = (w - ml - mr).max(0);
+        let align = st.align_self.unwrap_or(s.align);
+        let (bw, dx) = fit_across(it, room, align, s.rtl, depth);
+        let pinned = Ctx { pin: Some(Pin { w: bw, h: None }), ..ctx };
+        let start = frags.len();
+        let h = layout_box(it, x + ml + dx, y + cy + mt, bw, frags, depth + 1, pinned);
+        laid.push(Laid { node: it, ab: [start, frags.len()], h });
+        cy = cy.saturating_add(mt + h + mb);
     }
-    cy.max(0)
+    spread(&laid, cy, s, frags, ctx)
 }

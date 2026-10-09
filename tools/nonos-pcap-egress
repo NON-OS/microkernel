@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Every destination a guest reached, from a QEMU filter-dump capture.
+
+What a boot sent, read off the wire instead of the code: each IPv4 destination
+with a count, every DNS name queried, exit 1 on a destination outside --allow.
+"""
+
+import argparse
+import struct
+import sys
+from collections import Counter
+
+
+def frames(data):
+    magic = struct.unpack_from("<I", data)[0]
+    endian = "<" if magic in (0xA1B2C3D4, 0xA1B23C4D) else ">"
+    off = 24
+    while off + 16 <= len(data):
+        _, _, incl, _ = struct.unpack_from(endian + "IIII", data, off)
+        yield data[off + 16 : off + 16 + incl]
+        off += 16 + incl
+
+
+def dns_name(udp):
+    if len(udp) < 20:
+        return None
+    labels, i = [], 20
+    while i < len(udp) and udp[i] != 0 and len(labels) < 64:
+        n = udp[i]
+        labels.append(udp[i + 1 : i + 1 + n].decode("ascii", "replace"))
+        i += 1 + n
+    return ".".join(labels) or None
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("pcap")
+    ap.add_argument("--allow", action="append", default=[], help="an IPv4 destination that is expected")
+    a = ap.parse_args()
+    dests, names = Counter(), Counter()
+    for f in frames(open(a.pcap, "rb").read()):
+        if len(f) < 34 or f[12:14] != b"\x08\x00":
+            continue
+        ihl = (f[14] & 0xF) * 4
+        dst = ".".join(str(b) for b in f[30:34])
+        dests[dst] += 1
+        l4 = f[14 + ihl :]
+        if f[23] == 17 and len(l4) >= 4 and struct.unpack_from(">H", l4, 2)[0] == 53:
+            if name := dns_name(l4):
+                names[name] += 1
+    for dst, n in dests.most_common():
+        print(f"[egress] {dst:15} {n:6} packets{'' if dst in a.allow else '  UNEXPECTED'}")
+    for name, n in names.most_common():
+        print(f"[egress] dns {name} x{n}")
+    return 1 if set(dests) - set(a.allow) else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

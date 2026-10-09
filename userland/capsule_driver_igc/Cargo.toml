@@ -1,0 +1,32 @@
+# NONOS userland: capsule_driver_igc
+# eK@nonos.systems
+#
+# Userland Intel I225/I226 ("igc") 2.5 GbE driver capsule. Drives the part
+# through the kernel hardware broker (MkDeviceList / MkDeviceClaim /
+# MkPciConfigWrite / MkMmioMap / MkDmaMap), polled, with no interrupt line
+# bound. Frames only. The wire protocol is the NNET one every NIC capsule
+# speaks, so net.core and net.l2 drive it as they drive e1000.
+
+[package]
+name = "nonos_capsule_driver_igc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Intel I225/I226 driver capsule"
+
+[[bin]]
+name = "driver_igc"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_mac = { path = "../nonos_mac" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

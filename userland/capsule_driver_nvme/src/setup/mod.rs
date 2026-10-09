@@ -16,9 +16,12 @@
 
 mod claim;
 mod driver;
+mod hmb;
 mod irq;
 mod mmio;
+mod namespace;
 mod pci;
+mod say;
 mod sequence;
 
 pub use driver::Driver;

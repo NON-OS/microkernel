@@ -21,7 +21,7 @@ use smoltcp::wire::{EthernetAddress, HardwareAddress};
 
 use crate::device::NicDevice;
 use crate::iface::dhcp;
-use crate::state::NetState;
+use crate::state::{NetState, DNS_SERVERS};
 
 pub fn build(mac: [u8; 6], port: u32) -> Option<NetState> {
     let mut seed_bytes = [0u8; 8];
@@ -40,5 +40,5 @@ pub fn build(mac: [u8; 6], port: u32) -> Option<NetState> {
     let mut sockets = SocketSet::new(alloc::vec![]);
     let dhcp_handle = dhcp::create(&mut sockets);
 
-    Some(NetState { iface, sockets, device, dhcp_handle, dns_handle: None })
+    Some(NetState { iface, sockets, device, dhcp_handle, dns: [None; DNS_SERVERS] })
 }

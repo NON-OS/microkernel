@@ -3,4 +3,6 @@
 // alignment and bounds proofs run against the code that programs real BARs.
 #[path = "../../../../src/bus/pci/assign/carve.rs"]
 mod carve;
-pub use carve::*;
+mod carve_export;
+
+pub use carve_export::carve;

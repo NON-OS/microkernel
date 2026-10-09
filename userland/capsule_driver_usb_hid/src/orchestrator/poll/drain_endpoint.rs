@@ -20,6 +20,7 @@ use crate::xhci::interrupt_in;
 
 use super::constants::HID_REPORT_MAX;
 use super::feed_report::feed_report;
+use super::read_len::read_len;
 
 pub(super) fn drain_endpoint(
     state: &mut State,
@@ -27,8 +28,9 @@ pub(super) fn drain_endpoint(
     buf: &mut [u8; HID_REPORT_MAX],
 ) -> bool {
     let mut drained = false;
+    let len = read_len(ep.max_packet);
     loop {
-        match interrupt_in(ep.port, ep.slot, ep.dci, ep.max_packet, buf) {
+        match interrupt_in(ep.port, ep.slot, ep.dci, len, buf) {
             Ok(Some(n)) => {
                 feed_report(state, ep, buf, n);
                 drained = true;

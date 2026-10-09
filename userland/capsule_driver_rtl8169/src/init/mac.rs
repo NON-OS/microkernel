@@ -32,12 +32,18 @@ pub fn program(regs: &Regs) -> Result<[u8; MAC_LEN], &'static str> {
     }
     apply(&mut mac);
 
-    // IDR writes are dropped while the config lock is set.
+    /*
+     * IDR writes are dropped while the config lock is set, and the part takes
+     * them only as whole dwords (reads may be any width): byte writes were
+     * dropped on silicon, the readback below failed, and the NIC never came up.
+     * High dword first, each read back to post it, as Linux rtl_rar_set does.
+     */
     unsafe {
         regs.w8(REG_CFG9346, CFG9346_UNLOCK);
-        for (i, byte) in mac.iter().enumerate() {
-            regs.w8(REG_MAC0 + i, *byte);
-        }
+        regs.w32(REG_MAC0 + 4, mac[4] as u32 | (mac[5] as u32) << 8);
+        let _ = regs.r32(REG_MAC0 + 4);
+        regs.w32(REG_MAC0, u32::from_le_bytes([mac[0], mac[1], mac[2], mac[3]]));
+        let _ = regs.r32(REG_MAC0);
         regs.w8(REG_CFG9346, CFG9346_LOCK);
     }
 

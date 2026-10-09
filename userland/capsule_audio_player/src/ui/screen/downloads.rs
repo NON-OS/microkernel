@@ -14,66 +14,158 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! Downloads: the offline-storage meter and the tracks kept on device.
+//! Downloads: every MP3 link the person asked for, newest last, each with
+//! how far it has got and what can be done with it: cancel one running or
+//! waiting, resume one the network stopped, play one that is in, remove a
+//! finished one. With none, the page says how to add music.
 
 extern crate alloc;
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::library::Library;
+use crate::fetch::list::{Act, Row, State};
+use crate::fetch::row_text::{label, permille, status};
 use crate::ui::geometry::Rect;
-use crate::ui::icon::Icons;
-use crate::ui::metrics::{line_h, PAGE, SECONDARY, S4, S6};
-use crate::ui::widget::{page_header, row, storage_meter, Flags};
+use crate::ui::icon::{Glyph, Icons};
+use crate::ui::metrics::{line_h, BODY, ITEM, PAGE, R_CARD, S3, S4, S6, SECONDARY};
+use crate::ui::paint::{fill, panel, text, text_mid};
+use crate::ui::text::{count, truncate_to_width};
+use crate::ui::theme::{alpha, rgb, CYAN, EDGE, GREEN, INK, MID, RAISED, RED};
+use crate::ui::widget::{button, button_w, page_header, slider, Variant};
 
-const CARD_H: i32 = 92;
+const CLEAR: &str = "Clear finished";
+const ROW_H: i32 = 84;
+const BTN_H: i32 = 36;
 
-fn top(r: Rect) -> i32 {
+fn list_top(r: Rect) -> i32 {
     r.y + line_h(PAGE) + line_h(SECONDARY) + S6
 }
 
-pub fn list_top(r: Rect) -> i32 {
-    top(r) + CARD_H + S6
-}
-
-pub fn row_h() -> i32 {
-    line_h(SECONDARY) + S4 * 2
-}
-
+/// Rows the page has room for.
 pub fn visible(r: Rect) -> usize {
-    ((r.bottom() - list_top(r)).max(0) / row_h()) as usize
+    ((r.bottom() - list_top(r)).max(0) / (ROW_H + S3)) as usize
 }
 
-pub fn row_at(r: Rect, n: usize, x: i32, y: i32) -> Option<usize> {
-    if x < r.x || x > r.right() {
-        return None;
+fn row_rect(r: Rect, slot: usize) -> Rect {
+    Rect::new(r.x, list_top(r) + slot as i32 * (ROW_H + S3), r.w, ROW_H)
+}
+
+pub fn clear_rect(r: Rect) -> Rect {
+    let w = button_w(CLEAR, false);
+    Rect::new(r.right() - w, r.y + (line_h(PAGE) - 38) / 2, w, 38)
+}
+
+/// The buttons of the row in `rr`, right to left in the order `acts` gives
+/// them, so the likeliest sits at the edge.
+fn buttons(rr: Rect, acts: &[Act]) -> impl Iterator<Item = (Act, Rect)> + '_ {
+    let mut right = rr.right() - S4;
+    acts.iter().map(move |&a| {
+        let w = button_w(label(a), false);
+        right -= w;
+        let b = Rect::new(right, rr.cy() - BTN_H / 2, w, BTN_H);
+        right -= S3;
+        (a, b)
+    })
+}
+
+/// What a click at (x, y) asks of which row.
+pub fn act_at(r: Rect, rows: &[Row], scroll: usize, x: i32, y: i32) -> Option<(u32, Act)> {
+    for slot in 0..visible(r) {
+        let Some(row) = rows.get(scroll + slot) else { break };
+        let rr = row_rect(r, slot);
+        if !rr.contains(x, y) {
+            continue;
+        }
+        return buttons(rr, row.acts()).find(|(_, b)| b.contains(x, y)).map(|(a, _)| (row.id, a));
     }
-    let i = ((y - list_top(r)).max(0) / row_h()) as usize;
-    if y >= list_top(r) && i < n.min(visible(r)) {
-        Some(i)
+    None
+}
+
+/// Whether the page offers Clear finished.
+pub fn any_finished(rows: &[Row]) -> bool {
+    rows.iter().any(|r| !matches!(r.state, State::Queued | State::Running | State::Stopping))
+}
+
+pub fn paint(fb: &mut PaintBuffer, icons: &Icons, r: Rect, rows: &[Row], scroll: usize) {
+    let running = rows.iter().filter(|r| matches!(r.state, State::Running | State::Queued)).count();
+    let sub = if rows.is_empty() {
+        alloc::string::String::from("MP3 links you paste into Search download here, over the network you chose.")
+    } else if running > 0 {
+        count(running, "download in progress", "downloads in progress")
     } else {
-        None
+        alloc::string::String::from("All done. Finished downloads are in /home/nonos/music.")
+    };
+    page_header(fb, r, "Downloads", &sub, "");
+    if any_finished(rows) {
+        button(fb, icons, clear_rect(r), CLEAR, None, Variant::Ghost);
+    }
+    if rows.is_empty() {
+        empty(fb, icons, r);
+        return;
+    }
+    for slot in 0..visible(r) {
+        let Some(row) = rows.get(scroll + slot) else { break };
+        one(fb, icons, row_rect(r, slot), row);
     }
 }
 
-pub fn paint(
-    fb: &mut PaintBuffer,
-    icons: &Icons,
-    r: Rect,
-    lib: &Library,
-    step: u32,
-    playing: Option<usize>,
-) {
-    let n = lib.tracks.len();
-    page_header(fb, r, "Downloads", "Kept on device, ready offline.", "Stored locally");
-    let card = Rect::new(r.x, top(r), r.w, CARD_H);
-    storage_meter(fb, card, n as u32, n.max(1) as u32 * 2, "3.4 GB of 10 GB used");
-    let shown = visible(r).min(n);
-    for i in 0..shown {
-        let t = &lib.tracks[i];
-        let rr = Rect::new(r.x, list_top(r) + i as i32 * row_h(), r.w, row_h());
-        let f = Flags { playing: playing == Some(i), queued: false, hover: false };
-        row(fb, icons, rr, t, i + 1, &f, step);
+fn one(fb: &mut PaintBuffer, icons: &Icons, rr: Rect, row: &Row) {
+    panel(fb, rr, R_CARD, RAISED, EDGE);
+    let (glyph, tint) = match row.state {
+        State::Done(_) => (Glyph::Check, GREEN),
+        State::Failed { resumable: false, .. } => (Glyph::Close, RED),
+        _ => (Glyph::Download, CYAN),
+    };
+    let badge = Rect::new(rr.x + S4, rr.cy() - 22, 44, 44);
+    fill(fb, badge, 12, alpha(rgb(tint), 0x22));
+    icons.centred(fb, badge, 22, glyph, tint);
+
+    let acts = row.acts();
+    let left_of_buttons = buttons(rr, acts).last().map_or(rr.right() - S4, |(_, b)| b.x - S4);
+    let tx = badge.right() + S4;
+    let tw = (left_of_buttons - tx).max(0);
+    let top = rr.y + S4;
+    text(fb, tx, top, &truncate_to_width(&row.name, ITEM, tw), INK, ITEM);
+    let said = status(row);
+    let ink = match row.state {
+        State::Failed { .. } => RED,
+        State::Done(_) => GREEN,
+        _ => MID,
+    };
+    text(fb, tx, top + line_h(ITEM) + 2, &truncate_to_width(&said, SECONDARY, tw), ink, SECONDARY);
+    if matches!(row.state, State::Running | State::Stopping) {
+        let bar = Rect::new(tx, rr.bottom() - S4 - 6, tw, 8);
+        match permille(row) {
+            Some(p) => slider(fb, bar, u64::from(p), 1000, false),
+            None => slider(fb, bar, 0, 1, false),
+        }
+    }
+    for (a, b) in buttons(rr, acts) {
+        let v = if a == Act::Play || a == Act::Resume { Variant::Glow } else { Variant::Ghost };
+        button(fb, icons, b, label(a), None, v);
+    }
+}
+
+/// No downloads yet: how music gets here.
+fn empty(fb: &mut PaintBuffer, icons: &Icons, r: Rect) {
+    let card = Rect::new(r.x, list_top(r), r.w.min(760), 220);
+    panel(fb, card, R_CARD, RAISED, EDGE);
+    let badge = Rect::new(card.x + S6, card.y + S6, 56, 56);
+    fill(fb, badge, 14, alpha(rgb(CYAN), 0x22));
+    icons.centred(fb, badge, 28, Glyph::Download, CYAN);
+    let tx = badge.right() + S6;
+    let tw = card.right() - S6 - tx;
+    let mut y = card.y + S6;
+    text(fb, tx, y, "Bring your own music", INK, ITEM);
+    y += line_h(ITEM) + S3;
+    let lines = [
+        "1.  Copy the link to an MP3 file.",
+        "2.  Press / or click Search, then Ctrl+V and Enter.",
+        "3.  It downloads over Anyone or Nym into /home/nonos/music and plays.",
+        "Files you copy into /home/nonos/music appear in the Library too.",
+    ];
+    for l in lines {
+        text_mid(fb, Rect::new(tx, y, tw, line_h(BODY)), &truncate_to_width(l, BODY, tw), MID, BODY);
+        y += line_h(BODY) + S3 / 2;
     }
 }

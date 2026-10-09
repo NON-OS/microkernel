@@ -17,6 +17,8 @@
 use nonos_app_skeleton::clients::vfs::journal_touch;
 use nonos_app_skeleton::EventOutcome;
 
+use super::open_with::open_with;
+use super::open_with_table::handlers_for;
 use super::preview;
 use super::refresh::refresh;
 use super::state::State;
@@ -28,15 +30,25 @@ pub fn open_selected(state: &mut State) -> EventOutcome {
     // performs itself has to say so.
     let _ = journal_touch(state.owner_pid, entry.full_path.as_bytes());
     if entry.is_dir {
+        state.trail.arrived(&entry.full_path);
         state.prefix = entry.full_path;
         state.cursor = 0;
         state.scroll = 0;
         refresh(state);
-    } else if super::open_with::is_codec_ext(&entry.full_path)
-        && super::open_with::open_image(&entry.full_path)
-    {
-    } else {
-        preview::open_preview(state, entry.full_path);
+        return EventOutcome::Repaint;
+    }
+    // A file goes to the first app the open-with table names for it, the same
+    // list the info panel shows; one with no app, or whose app the shell
+    // could not start, opens in the preview instead.
+    match handlers_for(&entry.full_path).first() {
+        Some(h) if open_with(h.service, &entry.full_path) => state.status = h.opened,
+        Some(_) => {
+            preview::open_preview(state, entry.full_path);
+            if state.preview.is_some() {
+                state.status = b"that app could not be started; showing a preview";
+            }
+        }
+        None => preview::open_preview(state, entry.full_path),
     }
     EventOutcome::Repaint
 }

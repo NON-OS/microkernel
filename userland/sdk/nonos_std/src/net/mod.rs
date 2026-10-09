@@ -20,6 +20,9 @@ mod proto;
 mod socket;
 mod tcp;
 mod udp;
+mod way;
+
+use nonos_route_link::Route;
 
 pub use addr::{Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
 pub use tcp::{TcpListener, TcpStream};

@@ -19,11 +19,18 @@
 mod discover;
 mod handle;
 mod identity;
+mod identity_parse;
 mod io;
+mod native;
+mod nvme;
+mod present;
 mod read;
 mod refused;
+mod span;
 mod write;
 
 pub use discover::{discover, Found};
 pub use handle::BlockDevice;
 pub use identity::Identity;
+pub use present::controllers;
+pub use span::Geometry;

@@ -24,5 +24,8 @@ mod cap_tests;
 mod encoding_tests;
 mod halt_tests;
 mod handoff_tests;
+mod park_tests;
 mod port_tests;
+mod reason_tests;
 mod reset_tests;
+mod silicon_tests;

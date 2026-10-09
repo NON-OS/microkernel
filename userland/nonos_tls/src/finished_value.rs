@@ -14,20 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn finished_value(secret: &[u8; 32], transcript: &[u8]) -> Option<[u8; 32]> {
-    let hash = super::hash_sha256::hash_sha256(transcript)?;
+/// The Finished verify_data for `secret`, given the transcript hash it covers.
+pub fn finished_value(secret: &[u8; 32], th: &[u8; 32]) -> Option<[u8; 32]> {
     let key = super::finished_key::finished_key(secret)?;
-    let mut out = [0u8; 32];
-    let n = nonos_libc::crypto_hmac_sha256(
-        key.as_ptr(),
-        key.len(),
-        hash.as_ptr(),
-        hash.len(),
-        out.as_mut_ptr(),
-    );
-    if n == 32 {
-        Some(out)
-    } else {
-        None
-    }
+    super::hmac_sha256::tag(&key, &[th])
 }

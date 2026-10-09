@@ -14,7 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod answer;
+mod answered_by;
 pub mod dispatch;
+mod lookups;
+pub mod pending;
 pub mod resolve_a;
+mod settle;
+mod unanswered;
+mod verdict;
+mod waiting;
 
 pub use dispatch::dispatch;

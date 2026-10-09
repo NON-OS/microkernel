@@ -13,20 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{STATUS_INPUT_FULL, STATUS_OFFSET};
-use nonos_libc::mk_pio_read;
-
-const WAIT_SPINS: u32 = 100_000;
+use crate::init::wait::{wait_input_clear, WaitError, CTL_TIMEOUT_MS};
 
 pub(super) fn wait_clear(grant_id: u64) -> Result<(), &'static str> {
-    for _ in 0..WAIT_SPINS {
-        let mut status = 0u32;
-        if mk_pio_read(grant_id, STATUS_OFFSET, 1, &mut status) < 0 {
-            return Err("kbd status read failed");
-        }
-        if status as u8 & STATUS_INPUT_FULL == 0 {
-            return Ok(());
-        }
+    match wait_input_clear(grant_id, CTL_TIMEOUT_MS) {
+        Ok(()) => Ok(()),
+        Err(WaitError::Read) => Err("kbd status read failed"),
+        Err(WaitError::Timeout) => Err("kbd input buffer busy"),
     }
-    Err("kbd input buffer busy")
 }

@@ -25,6 +25,7 @@ mod bind;
 mod errno_map;
 mod out;
 mod poll;
+mod timeout;
 mod unbind;
 mod wait;
 

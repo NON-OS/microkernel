@@ -18,7 +18,9 @@ use nonos_libc::{
     INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_WHEEL,
 };
 
+use super::button_changes::button_changes;
 use super::post_wire::{send, send_abs};
+use super::tablet_report::{tablet_report, TABLET_BUTTONS};
 
 pub struct Tablet {
     buttons: u8,
@@ -29,33 +31,20 @@ impl Tablet {
         Self { buttons: 0 }
     }
 
-    pub fn feed(&mut self, report: &[u8]) {
-        if report.len() < 5 {
-            return;
+    pub fn feed(&mut self, raw: &[u8]) {
+        let Some(report) = tablet_report(raw) else { return };
+        let _ = send_abs(INPUT_KIND_POINTER_ABS, report.x, report.y);
+        if report.wheel != 0 {
+            let _ = send(INPUT_KIND_WHEEL, 0, 0, 0, report.wheel);
         }
-        let buttons = report[0] & 0x07;
-        let x = u16::from_le_bytes([report[1], report[2]]) as i32;
-        let y = u16::from_le_bytes([report[3], report[4]]) as i32;
-        let dz = if report.len() > 5 { report[5] as i8 as i32 } else { 0 };
-        let _ = send_abs(INPUT_KIND_POINTER_ABS, x, y);
-        if dz != 0 {
-            let _ = send(INPUT_KIND_WHEEL, 0, 0, 0, dz);
-        }
-        publish_buttons(self.buttons, buttons);
-        self.buttons = buttons;
+        publish_buttons(self.buttons, report.buttons);
+        self.buttons = report.buttons;
     }
 }
 
 fn publish_buttons(previous: u8, current: u8) {
-    let changed = (previous ^ current) & 0x07;
-    let mut bit = 0u8;
-    while bit < 3 {
-        let mask = 1u8 << bit;
-        if changed & mask != 0 {
-            let down = current & mask != 0;
-            let kind = if down { INPUT_KIND_BUTTON_DOWN } else { INPUT_KIND_BUTTON_UP };
-            let _ = send(kind, 0, u32::from(bit) + 1, 0, 0);
-        }
-        bit += 1;
-    }
+    button_changes(previous, current, TABLET_BUTTONS, |button, down| {
+        let kind = if down { INPUT_KIND_BUTTON_DOWN } else { INPUT_KIND_BUTTON_UP };
+        let _ = send(kind, 0, button, 0, 0);
+    });
 }

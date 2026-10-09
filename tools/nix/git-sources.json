@@ -1,0 +1,9 @@
+{
+  "comment": "Every git dependency a Cargo.lock names, by commit, except STARKs, which is the flake's starks input. The hash is the nix hash of the tree at that commit (tools/nonos-nix-pin fills it). null means no machine that ran the pin tool could fetch the commit: a crate that needs it fails at build time and says so.",
+  "sources": {
+    "54f3537fa1d24c4eca3f38320100519b590ff5bd": {
+      "url": "https://github.com/nymtech/sphinx",
+      "hash": "sha256-dZpeSw1EDLvKasLvAlPQmsggSZ+t3IsSRc0AmKAzez8="
+    }
+  }
+}

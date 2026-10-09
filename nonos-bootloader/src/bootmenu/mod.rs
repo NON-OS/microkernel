@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod about;
+mod brand;
 mod entries;
-mod fmt;
 mod footer;
-mod header;
 mod input;
+mod intro;
+mod keys;
+mod layout;
 mod list;
 mod nav;
+mod platform;
+mod ready;
 mod render;
 mod run;
-mod security_status;
-mod theme;
+mod state;
 
 pub use run::run;

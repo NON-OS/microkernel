@@ -24,7 +24,7 @@ use nonos_libc::entropy;
 
 use super::memory::Memory;
 use super::model::{idr, live, resetting_part, window, FACTORY};
-use crate::constants::regs::{CMD_RX_ENABLE, ISR_ENABLED, REG_CMD, REG_IMR};
+use crate::constants::regs::{CMD_RX_ENABLE, REG_CMD, REG_IMR};
 use crate::init::bring_up;
 
 /*
@@ -56,5 +56,5 @@ fn the_part_is_never_enabled_while_it_still_carries_the_factory_address() {
     assert_eq!(d.mac, idr(&bar));
     let cmd = bar.wrote8(REG_CMD);
     assert_eq!(cmd & 0x1C, 0x0C, "TE bit 2 and RE bit 3 on, RST bit 4 off, per the datasheet");
-    assert_eq!(bar.wrote16(REG_IMR), ISR_ENABLED);
+    assert_eq!(bar.wrote16(REG_IMR), 0, "the driver polls: no chip interrupt is unmasked");
 }

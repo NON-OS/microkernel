@@ -19,6 +19,7 @@ mod new;
 mod types;
 mod writeln;
 mod writeln_dir;
+mod writeln_error;
 mod writeln_styled;
 
 pub use types::Output;

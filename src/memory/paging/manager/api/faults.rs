@@ -20,5 +20,15 @@ use crate::memory::paging::error::PagingResult;
 use crate::smp::lock_responsive;
 
 pub fn handle_page_fault(virtual_addr: VirtAddr, error_code: u64) -> PagingResult<()> {
-    lock_responsive(&PAGING_MANAGER).handle_page_fault(virtual_addr, error_code, &PAGING_STATS)
+    let flush = lock_responsive(&PAGING_MANAGER).handle_page_fault(
+        virtual_addr,
+        error_code,
+        &PAGING_STATS,
+    )?;
+    /*
+     * After the lock: a copy-on-write resolution replaces a present entry and
+     * owes a remote flush; a demand fill owes none.
+     */
+    flush.commit();
+    Ok(())
 }

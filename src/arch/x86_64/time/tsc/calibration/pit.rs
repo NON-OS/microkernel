@@ -19,6 +19,7 @@ use super::super::constants::{
     CALIBRATION_SAMPLES, DEFAULT_CALIBRATION_MS, MAX_FREQUENCY, MIN_FREQUENCY,
 };
 use super::super::error::{TscError, TscResult};
+use super::math::{hz_from_reference, reference_timeout_ticks};
 
 pub fn calibrate_with_pit() -> TscResult<(u64, u8)> {
     const PIT_FREQUENCY: u64 = 1193182;
@@ -28,8 +29,14 @@ pub fn calibrate_with_pit() -> TscResult<(u64, u8)> {
     let mut samples = [0u64; CALIBRATION_SAMPLES];
     let mut valid_samples = 0;
 
+    // A gated or absent PIT never raises OUT2. Bound every wait in TSC ticks
+    // (which always run) instead of in loop turns, and give up on the first
+    // sample that times out: the caller then falls back to the ACPI PM timer.
+    let timeout_ticks = reference_timeout_ticks(CALIBRATION_MS, MAX_FREQUENCY);
+
     for sample in samples.iter_mut() {
-        // SAFETY: PIT I/O ports are standard x86 hardware.
+        // SAFETY: PIT I/O ports are standard x86 hardware; on a machine
+        // without them the reads return all-ones and the timeout ends it.
         unsafe {
             let speaker_port = inb(0x61);
 
@@ -39,16 +46,21 @@ pub fn calibrate_with_pit() -> TscResult<(u64, u8)> {
 
             outb(0x61, (speaker_port & 0xFC) | 0x01);
 
-            let mut timeout = 100_000u32;
-            while (inb(0x61) & 0x20) != 0 && timeout > 0 {
-                timeout -= 1;
+            let wait_start = rdtsc_unserialized();
+            while (inb(0x61) & 0x20) != 0 {
+                if rdtsc_unserialized().wrapping_sub(wait_start) > timeout_ticks {
+                    outb(0x61, speaker_port);
+                    return Err(TscError::NoReferenceTimer);
+                }
             }
 
             let start_tsc = rdtsc_unserialized();
-
-            timeout = 100_000_000;
-            while (inb(0x61) & 0x20) == 0 && timeout > 0 {
-                timeout -= 1;
+            let mut timed_out = false;
+            while (inb(0x61) & 0x20) == 0 {
+                if rdtsc_unserialized().wrapping_sub(start_tsc) > timeout_ticks {
+                    timed_out = true;
+                    break;
+                }
                 core::hint::spin_loop();
             }
 
@@ -56,10 +68,12 @@ pub fn calibrate_with_pit() -> TscResult<(u64, u8)> {
 
             outb(0x61, speaker_port);
 
-            if timeout > 0 {
-                let tsc_ticks = end_tsc.saturating_sub(start_tsc);
-                let freq = (tsc_ticks * PIT_FREQUENCY) / pit_ticks as u64;
-                if freq >= MIN_FREQUENCY && freq <= MAX_FREQUENCY {
+            if timed_out {
+                return Err(TscError::NoReferenceTimer);
+            }
+            let tsc_ticks = end_tsc.saturating_sub(start_tsc);
+            if let Some(freq) = hz_from_reference(tsc_ticks, pit_ticks as u64, PIT_FREQUENCY) {
+                if (MIN_FREQUENCY..=MAX_FREQUENCY).contains(&freq) {
                     *sample = freq;
                     valid_samples += 1;
                 }

@@ -29,6 +29,7 @@ pub enum IconId {
     Processes,
     Settings,
     Snake,
+    Store,
     Terminal,
     VideoPlayer,
     Wallet,
@@ -64,4 +65,5 @@ pub enum IconId {
     CalcConvert,
     CalcHistory,
     Install,
+    Qwen,
 }

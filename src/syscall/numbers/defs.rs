@@ -13,13 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-// Active NØNOS syscall ABI. Discriminants are 4-byte ASCII tags
-// packed little-endian via `tag4`; the registry in
-// `crate::syscall::abi::REGISTRY` is the source of truth.
-
 use crate::syscall::abi::tag4;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u64)]
 pub enum SyscallNumber {
@@ -72,14 +66,31 @@ pub enum SyscallNumber {
     MkProcInput = tag4(b"MPIN"),
     MkStdinRead = tag4(b"MSRD"),
     MkStdoutWrite = tag4(b"MSOW"),
+    MkPrivateWrite = tag4(b"MPVW"),
     MkStoreWrite = tag4(b"MSWR"),
+    MkStoreRead = tag4(b"MSRR"),
+    MkDataImport = tag4(b"MDIM"),
+    MkDataStat = tag4(b"MDST"),
+    MkDataRead = tag4(b"MDRD"),
+    MkDataPassphrase = tag4(b"MDPW"),
+    MkDataFeedBegin = tag4(b"MDFB"),
+    MkDataFeed = tag4(b"MDFD"),
+    MkDataRemove = tag4(b"MDRM"),
     MkAttestStatus = tag4(b"MAST"),
     MkAttestDoc = tag4(b"MADC"),
     MkAttestEntries = tag4(b"MAEN"),
+    MkLogTail = tag4(b"MLOG"),
+    MkAttestPolicy = tag4(b"MAPY"),
+    MkBootAttest = tag4(b"MBTA"),
+    MkDeviceSecret = tag4(b"MDVS"),
+    MkBootSlots = tag4(b"MBSL"),
+    MkEnroll = tag4(b"MENR"),
     MkInstallSource = tag4(b"MISR"),
     MkDevRootRequest = tag4(b"MDRQ"),
     MkDevRootConfirm = tag4(b"MDRC"),
     MkToolRun = tag4(b"MTRN"),
+    MkTtySet = tag4(b"MTTY"),
+    MkTtyQuery = tag4(b"MTTQ"),
     MkCapGrant = tag4(b"MCGT"),
     MkCapRevoke = tag4(b"MCRV"),
     MkCapCheck = tag4(b"MCCK"),
@@ -116,6 +127,9 @@ pub enum SyscallNumber {
     MkForeignStart = tag4(b"MFST"),
     MkForeignWait = tag4(b"MFWT"),
     MkForeignReply = tag4(b"MFRP"),
+    MkForeignContext = tag4(b"MFCX"),
+    MkForeignSignal = tag4(b"MFSG"),
+    MkForeignInterrupt = tag4(b"MFIN"),
     MkPeerMap = tag4(b"MPMP"),
     MkPeerCopy = tag4(b"MPCP"),
     MkPeerProtect = tag4(b"MPPT"),
@@ -128,4 +142,9 @@ pub enum SyscallNumber {
     MkLocalVerify = tag4(b"MLVF"),
     MkAppInstall = tag4(b"MAIN"),
     MkDevRootLocal = tag4(b"MDRO"),
+    MkLocalConsent = tag4(b"MLCG"),
+    MkLocalRestore = tag4(b"MLCR"),
+    MkAppLaunch = tag4(b"MAPL"),
+    MkAppInstallStatus = tag4(b"MAIS"),
+    MkAppUninstall = tag4(b"MAUN"),
 }

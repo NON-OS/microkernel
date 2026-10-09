@@ -4,4 +4,4 @@ version = 4
 
 [[package]]
 name = "nonos_wallet_sal_abi"
-version = "0.1.0"
+version = "0.3.0"

@@ -31,12 +31,10 @@ pub mod dir_consts;
 pub mod dir_name_match;
 #[path = "../../../../src/fs/blockfs/read_u32.rs"]
 pub mod read_u32;
-#[path = "../../../../src/fs/blockfs/read_u64.rs"]
-pub mod read_u64;
-#[path = "../../../../src/fs/blockfs/write_u32.rs"]
-pub mod write_u32;
-#[path = "../../../../src/fs/blockfs/write_u64.rs"]
-pub mod write_u64;
+
+// Shared with the index trees, so mounted once at the crate root, where the
+// kernel's `pub(super)` reaches both layers.
+pub(crate) use crate::{read_u64, write_u32, write_u64};
 
 pub mod surface;
 

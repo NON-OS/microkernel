@@ -52,3 +52,20 @@ pub fn parse_capacity(raw: &[u8]) -> Option<Capacity> {
         block_len: u32::from_be_bytes(raw[4..8].try_into().ok()?),
     })
 }
+
+/// The READ CAPACITY(16) response length asked for. Bytes 0..8 are the last
+/// LBA and 8..12 the block length, both big-endian; the rest (protection,
+/// logical blocks per physical block) is not needed here.
+pub const CAPACITY16_DATA_LEN: usize = 32;
+
+/// The block count and block length READ CAPACITY(16) reports. None for a
+/// reply too short to hold both fields, or a last LBA of all ones, whose
+/// count does not fit.
+pub fn parse_capacity16(raw: &[u8]) -> Option<(u64, u32)> {
+    if raw.len() < 12 {
+        return None;
+    }
+    let last_lba = u64::from_be_bytes(raw[0..8].try_into().ok()?);
+    let block_len = u32::from_be_bytes(raw[8..12].try_into().ok()?);
+    Some((last_lba.checked_add(1)?, block_len))
+}

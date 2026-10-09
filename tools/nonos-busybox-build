@@ -1,0 +1,91 @@
+#!/bin/sh
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# The Linux personality's built-in BusyBox, built from source: the upstream release at its pinned sha256, the committed config
+# (userland/capsule_linux/guests/busybox.config), static against musl.
+#
+#   tools/nonos-busybox-build OUT
+#
+# Environment:
+#   CC                 a musl C compiler (default musl-gcc; on macOS a
+#                      cross compiler such as x86_64-linux-musl-gcc)
+#   KHEADERS           a directory holding the Linux UAPI headers, linux/ asm/
+#                      asm-generic/ mtd/. musl ships none. Default: copied from
+#                      /usr/include, as Debian's linux-libc-dev installs them
+#   BUSYBOX_TARBALL    a local busybox-1.36.1.tar.bz2, instead of downloading;
+#                      it is held to the same sha256
+#
+# The output is the same bytes for the same toolchain: the build time is
+# SOURCE_DATE_EPOCH, the release's own date, and build paths are mapped out.
+# The receipt line names the sha256 and the toolchain that made it.
+
+set -eu
+
+VERSION=1.36.1
+SHA256=b8cc24c9574d809e7279c3be349795c5d5ceb6fdf19ca709f80cde50e47de314
+URL="https://busybox.net/downloads/busybox-$VERSION.tar.bz2"
+# 2023-05-19, the day 1.36.1 was released.
+SOURCE_DATE_EPOCH=1684454400
+export SOURCE_DATE_EPOCH
+LC_ALL=C TZ=UTC
+export LC_ALL TZ
+
+out=${1:?usage: tools/nonos-busybox-build OUT}
+root=$(cd "$(dirname "$0")/.." && pwd)
+config="$root/userland/capsule_linux/guests/busybox.config"
+cc=${CC:-musl-gcc}
+# The compiler for BusyBox's own build helpers (fixdep, kconfig), which run on
+# this machine and never reach the binary. Its Makefile says gcc, which macOS
+# does not have.
+hostcc=${HOSTCC:-cc}
+work=$(mktemp -d "${TMPDIR:-/tmp}/nonos-busybox.XXXXXX")
+trap 'rm -rf "$work"' EXIT
+
+sha() { if command -v sha256sum >/dev/null; then sha256sum "$1"; else shasum -a 256 "$1"; fi | cut -d' ' -f1; }
+
+tarball=${BUSYBOX_TARBALL:-"$work/busybox-$VERSION.tar.bz2"}
+[ -n "${BUSYBOX_TARBALL:-}" ] || curl -fsSL -o "$tarball" "$URL"
+got=$(sha "$tarball")
+if [ "$got" != "$SHA256" ]; then
+    echo "busybox: $tarball is sha256 $got, not the pinned $SHA256" >&2
+    exit 1
+fi
+
+kh=${KHEADERS:-"$work/kheaders"}
+if [ -z "${KHEADERS:-}" ]; then
+    mkdir -p "$kh"
+    cp -R /usr/include/linux /usr/include/asm-generic /usr/include/mtd "$kh/"
+    cp -R /usr/include/x86_64-linux-gnu/asm "$kh/asm"
+fi
+
+tar -xjf "$tarball" -C "$work"
+src="$work/busybox-$VERSION"
+cp "$config" "$src/.config"
+cd "$src"
+yes "" | make -s oldconfig CC="$cc" HOSTCC="$hostcc" >/dev/null
+if ! cmp -s .config "$config"; then
+    echo "busybox: the committed config is not what oldconfig keeps; regenerate it" >&2
+    diff "$config" .config >&2 || true
+    exit 1
+fi
+jobs=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)
+if ! make -s -j"$jobs" CC="$cc" HOSTCC="$hostcc" EXTRA_CFLAGS="-isystem $kh -ffile-prefix-map=$work=." busybox >"$work/build.log" 2>&1; then
+    tail -40 "$work/build.log" >&2
+    exit 1
+fi
+cp busybox "$out"
+echo "busybox $VERSION $(sha "$out") $(basename "$out"), CC $cc: $("$cc" --version 2>/dev/null | head -1)"

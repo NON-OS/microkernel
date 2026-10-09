@@ -13,6 +13,10 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+nonos_seal = { path = "../nonos_seal" }
+nonos_policy_proto = { path = "../policy_proto" }
+# The apps' shared text input, which the panel's fields edit by.
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

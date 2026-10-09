@@ -16,17 +16,14 @@
 
 use super::selector::Selector;
 
+/* Selectors 4 specificity, counted by the parser from the selector as
+ * written: ids; then classes, attributes and pseudo-classes (:root among
+ * them); then types and pseudo-elements. :is(), :not() and :has() count as
+ * their most specific argument, :where() as nothing, and nth-child(An+B of
+ * S) as one pseudo-class plus S's most specific argument. CSS 2.1 6.4.3
+ * compares the counts as a tuple, so they are packed ten bits per level,
+ * each clamped, into one u32 that compares the same way: one id always
+ * outranks any number of classes. */
 pub fn specificity(sel: &Selector) -> u32 {
-    let (mut ids, mut classes, mut tags) = (0u32, 0u32, 0u32);
-    for s in core::iter::once(&sel.key).chain(sel.ancestors.iter().map(|a| &a.simple)) {
-        ids += s.id.is_some() as u32;
-        classes += s.classes.len() as u32 + s.attrs.len() as u32;
-        tags += s.tag.is_some() as u32;
-    }
-    // CSS 2.1 6.4.3 compares specificity as the tuple (ids, classes+attrs,
-    // tags): a higher level always outranks any count at a lower one, so one id
-    // beats any number of classes. Pack into a single comparable u32 with ten
-    // bits per level so a lower level can never carry into a higher one; clamp
-    // each so a pathological selector cannot wrap.
-    (ids.min(0x3FF) << 20) | (classes.min(0x3FF) << 10) | tags.min(0x3FF)
+    sel.spec
 }

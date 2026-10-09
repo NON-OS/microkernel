@@ -21,6 +21,11 @@
 /// the caller rather than papered over with a weaker source.
 #[target_feature(enable = "rdrand")]
 pub(in crate::pool) unsafe fn fill(out: &mut [u8]) -> bool {
+    // A CPU without RDRAND raises #UD on it; CPUID leaf 1 ECX bit 30 says
+    // whether it is there, and its absence is a refusal like an empty queue.
+    if core::arch::x86_64::__cpuid(1).ecx & (1 << 30) == 0 {
+        return false;
+    }
     let mut filled = 0;
     while filled < out.len() {
         let mut word: u64 = 0;

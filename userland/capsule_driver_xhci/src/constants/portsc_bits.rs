@@ -16,7 +16,8 @@
 pub const PORTSC_CCS: u32 = 1 << 0;
 pub const PORTSC_PED: u32 = 1 << 1;
 pub const PORTSC_PR: u32 = 1 << 4;
-pub const PORTSC_PLS_MASK: u32 = 0xF << 5;
+pub const PORTSC_PLS_SHIFT: u32 = 5;
+pub const PORTSC_PLS_MASK: u32 = 0xF << PORTSC_PLS_SHIFT;
 pub const PORTSC_PP: u32 = 1 << 9;
 pub const PORTSC_SPEED_SHIFT: u32 = 10;
 pub const PORTSC_SPEED_MASK: u32 = 0xF << PORTSC_SPEED_SHIFT;
@@ -27,5 +28,10 @@ pub const PORTSC_OCC: u32 = 1 << 20;
 pub const PORTSC_PRC: u32 = 1 << 21;
 pub const PORTSC_PLC: u32 = 1 << 22;
 pub const PORTSC_CEC: u32 = 1 << 23;
+/// Warm Port Reset, USB 3 ports only (RW1S).
+pub const PORTSC_WPR: u32 = 1 << 31;
+/// Link states a USB 3 port leaves only through a warm reset.
+pub const PLS_INACTIVE: u32 = 6;
+pub const PLS_COMPLIANCE: u32 = 10;
 pub const PORTSC_CHANGE_BITS: u32 =
     PORTSC_CSC | PORTSC_PEC | PORTSC_WRC | PORTSC_OCC | PORTSC_PRC | PORTSC_PLC | PORTSC_CEC;

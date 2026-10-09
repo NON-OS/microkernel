@@ -44,9 +44,12 @@ pub fn spawn_ripgrep_capsule() -> Result<(), SpawnError> {
         manifest_bytes: RIPGREP_MANIFEST_BYTES,
         attestation_trailer: RIPGREP_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
+        // The crates.io tool sandbox, as SANDBOX_CAPS is for the generated
+        // tools: FileSystem lets it open the files it is given through vfs.
         requested_caps: Capability::CoreExec.bit()
             | Capability::IPC.bit()
-            | Capability::Memory.bit(),
+            | Capability::Memory.bit()
+            | Capability::FileSystem.bit(),
         debug_tag: b"",
     };
     capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

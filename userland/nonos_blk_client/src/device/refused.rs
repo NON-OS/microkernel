@@ -19,10 +19,36 @@
 //! Every failure path goes through here: a refusal by the caller's own
 //! checks, a transport error from the kernel, and a status from the driver.
 
+use super::handle::BlockDevice;
 use crate::error::BlkError;
 
+/// A request refused before it reached the driver, in 512-byte sectors.
 pub fn refused(op: &str, lba: u64, sectors: usize, e: &BlkError) {
+    crate::refusal::note(op_of(op), lba, sectors as u32, e.code());
     let line =
         alloc::format!("[BLK] {op} failed lba={lba} sectors={sectors} code={} {e:?}\n", e.code());
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+}
+
+/// A driver request that failed, in the disk's own blocks as it was sent.
+pub fn refused_blocks(op: &str, dev: &BlockDevice, lba: u64, bytes: usize, e: &BlkError) {
+    let size = dev.geometry.lba_size();
+    let per_block = u64::from(size) / 512;
+    crate::refusal::note(op_of(op), lba.saturating_mul(per_block), (bytes / 512) as u32, e.code());
+    let line = alloc::format!(
+        "[BLK] {op} failed {:?}{} lba={lba} sectors={} block={size} code={} {e:?}\n",
+        dev.driver,
+        dev.instance,
+        bytes / size as usize,
+        e.code()
+    );
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+}
+
+fn op_of(op: &str) -> crate::refusal::Op {
+    match op {
+        "write" => crate::refusal::Op::Write,
+        "flush" => crate::refusal::Op::Flush,
+        _ => crate::refusal::Op::Read,
+    }
 }

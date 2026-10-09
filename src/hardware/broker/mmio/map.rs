@@ -19,26 +19,31 @@
 //!
 //!   1. resolve the caller's claim and verify its epoch is fresh
 //!   2. resolve the device record and the requested BAR
-//!   3. validate alignment and BAR containment of the request
+//!   3. validate BAR containment of the request and find the pages it
+//!      touches, kept off every MSI-X table and PBA (`window`)
 //!   4. reserve a user VA window in the per-capsule MMIO region
 //!      and install pages with user / read+write / uncached / NX
 //!   5. record the grant so revocation can find and undo it
 //!
 //! On any rejection no mapping is installed and no record is made.
-
-use core::cmp::Ordering;
+//!
+//! The result's `user_va` is the VA of the requested first byte, and
+//! `length` the bytes usable from there. Neither base nor length need be
+//! page aligned: a request inside a page (a 2 KiB AHCI ABAR at a base
+//! ending in 0x800) maps the whole page and returns a VA ending in the same
+//! 0x800. A page-aligned request gets a page-aligned VA and its own length,
+//! or less when an MSI-X table cuts it short, as before.
 
 use super::msix_exclusion;
 use super::types::{MmioMapError, MmioMapRequest, MmioMapResult};
+use super::window::{self, Window, WindowError, PAGE_SIZE};
 use crate::hardware::broker::claim;
 use crate::hardware::broker::device::BAR_KIND_MMIO;
 use crate::hardware::broker::grant::{self, MmioGrant, USER_MMIO_BASE, USER_MMIO_END};
-use crate::hardware::broker::pci_index;
 use crate::hardware::broker::table;
+use crate::hardware::broker::DeviceRecord;
 use crate::memory::addr::PhysAddr;
 
-const PAGE_SIZE: u64 = 4096;
-const PAGE_MASK: u64 = PAGE_SIZE - 1;
 const FLAGS_KNOWN: u32 = 0;
 
 pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, MmioMapError> {
@@ -48,9 +53,6 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     }
     if req.length == 0 {
         return Err(MmioMapError::ZeroLength);
-    }
-    if req.offset & PAGE_MASK != 0 || req.length & PAGE_MASK != 0 {
-        return Err(MmioMapError::BadAlignment);
     }
     let claim = claim::lookup(req.device_id).ok_or(MmioMapError::NotClaimed)?;
     if claim.pid != pid {
@@ -72,34 +74,23 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     if bar.kind != BAR_KIND_MMIO {
         return Err(MmioMapError::NotMmioBar);
     }
-    if bar.base & PAGE_MASK != 0 {
-        return Err(MmioMapError::BadAlignment);
-    }
-    let phys_start = bar.base.checked_add(req.offset).ok_or(MmioMapError::Overflow)?;
-    let phys_end = phys_start.checked_add(req.length).ok_or(MmioMapError::Overflow)?;
-    let bar_end = bar.base.checked_add(bar.size).ok_or(MmioMapError::Overflow)?;
-    if let Ordering::Greater = phys_end.cmp(&bar_end) {
-        return Err(MmioMapError::BadRange);
-    }
-    crate::sys::serial::println(b"[MMIO] reserve");
-    let msix = pci_index::lookup(req.device_id).and_then(|h| h.msix);
     crate::sys::serial::println(b"[MMIO] msix");
-    let length = msix_exclusion::safe_length(msix.as_ref(), req.bar_index, req.offset, req.length);
-    if length == 0 {
-        return Err(MmioMapError::WouldExposeMsixTable);
-    }
+    let protected = msix_exclusion::protected_regions();
+    let w = window::window(bar.base, bar.size, req.offset, req.length, &protected)
+        .map_err(window_error)?;
     crate::sys::serial::println(b"[MMIO] msix ok");
-    let pages = length / PAGE_SIZE;
+    note_shared_page(&device, &w);
+    let pages = w.page_bytes / PAGE_SIZE;
     let user_va = grant::reserve_user_va(pages).ok_or(MmioMapError::NoVaSpace)?;
     crate::sys::serial::println(b"[MMIO] va");
-    let user_va_end = user_va.as_u64().checked_add(length).ok_or(MmioMapError::Overflow)?;
+    let user_va_end =
+        user_va.as_u64().checked_add(w.page_bytes).ok_or(MmioMapError::Overflow)?;
     if user_va.as_u64() < USER_MMIO_BASE || user_va_end > USER_MMIO_END {
         return Err(MmioMapError::NoVaSpace);
     }
     crate::sys::serial::println(b"[MMIO] map");
-    if crate::memory::paging::map_user_mmio(user_va, PhysAddr::new(phys_start), length as usize)
-        .is_err()
-    {
+    let phys = PhysAddr::new(w.page_start);
+    if crate::memory::paging::map_user_mmio(user_va, phys, w.page_bytes as usize).is_err() {
         return Err(MmioMapError::MapFailed);
     }
     crate::sys::serial::println(b"[MMIO] record");
@@ -110,10 +101,43 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
         device_id: req.device_id,
         claim_epoch: claim.epoch,
         bar_index: req.bar_index,
-        physical_start: phys_start,
+        // The record holds the whole pages, which is what unmap gives back.
+        physical_start: w.page_start,
         user_va: user_va.as_u64(),
-        length,
+        length: w.page_bytes,
         flags: req.flags,
     });
-    Ok(MmioMapResult { user_va: user_va.as_u64(), length, grant_id })
+    let first = user_va.as_u64() + w.in_page;
+    Ok(MmioMapResult { user_va: first, length: w.usable, grant_id })
+}
+
+fn window_error(e: WindowError) -> MmioMapError {
+    match e {
+        WindowError::ZeroLength => MmioMapError::ZeroLength,
+        WindowError::Overflow => MmioMapError::Overflow,
+        WindowError::BadRange => MmioMapError::BadRange,
+        WindowError::Protected => MmioMapError::WouldExposeMsixTable,
+    }
+}
+
+/// Say on serial when the mapped pages reach past the request into another
+/// device's BAR. Allowed (see `window`), but worth one line on a machine
+/// whose firmware packed small BARs into one page.
+fn note_shared_page(device: &DeviceRecord, w: &Window) {
+    let lo = w.page_start;
+    let hi = w.page_start + w.page_bytes;
+    let shared = table::list().into_iter().filter(|r| r.device_id != device.device_id).any(|r| {
+        let count = (r.bar_count as usize).min(r.bars.len());
+        r.bars[..count].iter().any(|b| {
+            b.kind == BAR_KIND_MMIO
+                && b.size != 0
+                && b.base < hi
+                && b.base.saturating_add(b.size) > lo
+        })
+    });
+    if shared {
+        crate::sys::serial::print(b"[MMIO] page shared with another device's BAR at ");
+        crate::sys::serial::print_hex(lo);
+        crate::sys::serial::println(b"");
+    }
 }

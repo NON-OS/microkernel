@@ -4,11 +4,11 @@ version = 4
 
 [[package]]
 name = "nonos-abi"
-version = "0.1.0"
+version = "0.3.0"
 
 [[package]]
 name = "nonos-desktop"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "nonos-abi",
  "nonos-ipc",
@@ -17,14 +17,14 @@ dependencies = [
 
 [[package]]
 name = "nonos-ipc"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "nonos-abi",
 ]
 
 [[package]]
 name = "nonos-service"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "nonos-abi",
 ]

@@ -54,6 +54,7 @@ fn drain(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) -> bool {
                 continue;
             }
         };
+        super::reap::reap_now(ctx, req.request_id);
         match req.op {
             OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
             OP_START_SESSION => handlers::start_session::handle(ctx, sender_pid, &req, body, tx),

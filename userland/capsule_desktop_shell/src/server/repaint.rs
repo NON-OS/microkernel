@@ -27,4 +27,5 @@ pub fn repaint(ctx: &mut Context) {
     paint_chrome(ctx);
     let rid = ctx.issue_request_id();
     let _ = push_damage_commit(ctx.compositor_port, rid, 0, 0, ctx.width, ctx.height);
+    ctx.taskbar.drawn = ctx.taskbar.visible;
 }

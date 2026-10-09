@@ -27,6 +27,7 @@ pub fn on_confirm_key(state: &mut State, code: u32) -> EventOutcome {
     match code {
         KEY_ESC => {
             state.typed.clear();
+            state.prepared = None;
             state.screen = Screen::Disks;
             EventOutcome::Repaint
         }
@@ -36,7 +37,7 @@ pub fn on_confirm_key(state: &mut State, code: u32) -> EventOutcome {
         }
         KEY_ENTER => {
             let word = state.selected_disk().map(|d| d.confirm_word()).unwrap_or_default();
-            if state.typed != word.as_bytes() {
+            if state.typed != word.as_bytes() || !matches!(state.prepared, Some(Ok(_))) {
                 return EventOutcome::Idle;
             }
             match start(state) {

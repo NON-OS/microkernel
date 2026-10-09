@@ -18,6 +18,6 @@ use super::kinds::{b, bs, Action, Button, Role};
 
 pub const ROW: [Button; 3] = [
     b("0", Role::Number, Action::Digit(0)),
-    bs("00", Role::Number, Action::Digit(0), 2),
+    bs("00", Role::Number, Action::DoubleZero, 2),
     bs("=", Role::Equals, Action::Equals, 2),
 ];

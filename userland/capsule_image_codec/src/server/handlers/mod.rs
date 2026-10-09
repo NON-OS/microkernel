@@ -15,5 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod decode;
+pub mod decode_sized;
 pub mod health;
 pub mod surface;

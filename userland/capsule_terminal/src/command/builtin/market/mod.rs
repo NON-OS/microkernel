@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod call_list;
-mod constants;
-mod emit_call_failed;
-mod emit_count;
-mod emit_line;
-mod lookup_market;
-mod read_u32;
-mod render_entries;
+//! `market`: the catalogue the market capsule serves, one listing in full,
+//! and asking for an install, from the Terminal. It speaks the wire the
+//! Marketplace window speaks (`nonos_market_proto`), so the two read the
+//! same answers the same way.
+
+mod call;
+mod failure;
+mod info;
+mod install;
+mod list;
 mod run;
+mod stage_text;
+mod uninstall;
+mod wrap;
 
 pub use run::run;

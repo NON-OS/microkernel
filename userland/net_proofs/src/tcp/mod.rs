@@ -3,6 +3,8 @@
 pub mod checksum;
 #[path = "../../../capsule_net_tcp/src/tcp/header.rs"]
 pub mod header;
+#[path = "../../../capsule_net_tcp/src/tcp/options.rs"]
+pub mod options;
 #[path = "../../../capsule_net_tcp/src/tcp/parse.rs"]
 pub mod parse;
 #[path = "../../../capsule_net_tcp/src/tcp/seq.rs"]

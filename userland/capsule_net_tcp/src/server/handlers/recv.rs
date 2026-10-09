@@ -30,8 +30,10 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         Ok(h) => h,
         Err(_) => return status(sender_pid, req, E_BAD_LEN, tx),
     };
+    // The reply carries the bytes after its 20 byte header, and no more.
+    let cap = tx.len().saturating_sub(20);
     for _ in 0..WAIT_TRIES {
-        match pop_rx(sender_pid, handle) {
+        match pop_rx(sender_pid, handle, cap) {
             Some(payload) => return answer(sender_pid, req, &payload, tx),
             None => {
                 tcp_rx::drain_one();
@@ -45,8 +47,12 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     status(sender_pid, req, E_RX_EMPTY, tx);
 }
 
-fn pop_rx(owner: u32, handle: u32) -> Option<alloc::vec::Vec<u8>> {
-    TABLE.lock().owned_mut(owner, handle)?.rx.pop_front()
+fn pop_rx(owner: u32, handle: u32, cap: usize) -> Option<alloc::vec::Vec<u8>> {
+    let mut t = TABLE.lock();
+    let e = t.owned_mut(owner, handle)?;
+    let data = e.take_rx(cap)?;
+    crate::server::room::announce(e);
+    Some(data)
 }
 
 fn answer(sender_pid: u32, req: &Request, payload: &[u8], tx: &mut [u8]) {

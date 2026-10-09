@@ -21,27 +21,43 @@ use crate::discover::Peers;
 use crate::setup::WindowBinding;
 
 use super::request_id::next;
+use super::teardown_steps::{take_down, Steps};
 
+struct Calls<'a> {
+    peers: &'a Peers,
+    window_id: u32,
+    binding: &'a WindowBinding,
+    request_id: &'a mut u32,
+}
+
+impl Steps for Calls<'_> {
+    fn scene_remove(&mut self) -> bool {
+        compositor::scene_remove(self.peers.compositor, next(self.request_id), 0).is_ok()
+    }
+
+    fn unsubscribe_input(&mut self) {
+        let _ = input_router::subscribe(self.peers.input_router, next(self.request_id), 0);
+    }
+
+    fn release_surface(&mut self) -> bool {
+        mk_surface_release(self.binding.surface_handle) >= 0
+    }
+
+    fn unmap_backing(&mut self) -> bool {
+        mk_munmap(self.binding.backing_va as *mut u8, self.binding.byte_len as usize) >= 0
+    }
+
+    fn wm_close(&mut self) -> bool {
+        wm::window_close(self.peers.wm, next(self.request_id), self.window_id).is_ok()
+    }
+}
+
+/// Take a closed window down, in the order teardown_steps.rs gives.
 pub(super) fn close(
     peers: &Peers,
     window_id: u32,
     binding: &WindowBinding,
     request_id: &mut u32,
 ) -> bool {
-    let rid = next(request_id);
-    if compositor::scene_remove(peers.compositor, rid, 0).is_err() {
-        return false;
-    }
-    let _ = input_router::subscribe(peers.input_router, next(request_id), 0);
-    if mk_surface_release(binding.surface_handle) < 0 {
-        return false;
-    }
-    if mk_munmap(binding.backing_va as *mut u8, binding.byte_len as usize) < 0 {
-        return false;
-    }
-    let rid = next(request_id);
-    if wm::window_close(peers.wm, rid, window_id).is_err() {
-        return false;
-    }
-    true
+    take_down(&mut Calls { peers, window_id, binding, request_id })
 }

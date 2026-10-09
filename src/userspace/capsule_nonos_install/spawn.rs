@@ -27,9 +27,9 @@ use crate::security::nonos_trust_anchor::{
 };
 
 const SERVICE_NAME: &str = "app.nonos_install";
-const SERVICE_PORT: u32 = 4860;
+const SERVICE_PORT: u32 = 4956;
 const REPLY_INBOX: &str = "endpoint.app.nonos_install.reply";
-const REPLY_PORT: u32 = 4861;
+const REPLY_PORT: u32 = 4957;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
 // The install ritual surveys hardware through the broker and reads the
@@ -50,11 +50,9 @@ pub fn spawn_nonos_install_capsule() -> Result<(), SpawnError> {
         attestation_trailer: NONOS_INSTALL_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::CoreExec.bit()
-            | Capability::IO.bit()
             | Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::DeviceEnum.bit()
-            | Capability::StoreWrite.bit(),
+            | Capability::DeviceEnum.bit(),
         debug_tag: b"[NONOS-INSTALL] elf error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

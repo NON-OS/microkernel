@@ -31,7 +31,7 @@ use crate::constants::{
     LPSS_PRIV_RESETS_FUNC, LPSS_PRIV_RESETS_IDMA,
 };
 use crate::init::bring_up;
-use crate::model::{live, refusal, stuck_at, CLOCK_HZ};
+use crate::model::{live, refusal, stuck_at, SETUP};
 use crate::regs::Regs;
 
 #[test]
@@ -44,7 +44,7 @@ fn the_reset_is_deasserted_before_any_designware_register_is_written() {
      * write. The reset value has to be there and the core registers must not.
      */
     let bar = stuck_at(0x00);
-    refusal(bring_up(Regs::new(bar.base()), CLOCK_HZ));
+    refusal(bring_up(Regs::new(bar.base()), SETUP));
 
     assert_eq!(bar.wrote32(LPSS_PRIV_RESETS as usize), LPSS_PRIV_RESETS_DEASSERT);
     assert_eq!(bar.wrote32(IC_CON as usize), 0, "IC_CON written before the deassert");
@@ -58,7 +58,7 @@ fn a_completed_bring_up_still_leaves_the_reset_deasserted() {
      * register again or by mapping another register onto the same offset.
      */
     let bar = live();
-    bring_up(Regs::new(bar.base()), CLOCK_HZ).expect("bring-up");
+    bring_up(Regs::new(bar.base()), SETUP).expect("bring-up");
     assert_eq!(bar.wrote32(LPSS_PRIV_RESETS as usize), LPSS_PRIV_RESETS_DEASSERT);
 }
 

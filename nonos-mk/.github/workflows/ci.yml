@@ -1,0 +1,30 @@
+name: ci
+
+# nonos-mk is a kernel-component crate: it depends on the kernel tree's userland
+# marketplace_abi and does not build standalone. CI enforces formatting here;
+# build, clippy, and tests run in the kernel verification gate (nonos-verify),
+# where the full tree and its path dependencies are present.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain component
+        run: rustup component add rustfmt
+      - name: rustfmt
+        run: cargo fmt --all -- --check

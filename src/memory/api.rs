@@ -30,24 +30,27 @@ pub fn read_process_memory(pid: u32, addr: u64, buf: &mut [u8]) -> Result<usize,
         return Err(-1);
     }
     let pcb = crate::process::PROCESS_TABLE.find_by_pid(pid).ok_or(-3)?;
-    let mem = pcb.memory.lock();
-    for vma in &mem.vmas {
-        if addr >= vma.start.as_u64() && addr < vma.end.as_u64() {
-            let max_len = (vma.end.as_u64() - addr) as usize;
-            let copy_len = buf.len().min(max_len);
-            crate::usercopy::copy_from_user(addr, &mut buf[..copy_len]).map_err(i32::from)?;
-            return Ok(copy_len);
-        }
-    }
-    Err(-14)
+    /*
+     * The copy runs after the VMA lock is dropped: it can fault a page in,
+     * and a page-table change must not happen under that lock.
+     */
+    let vma_end = pcb
+        .memory_state()
+        .vmas
+        .iter()
+        .find(|vma| addr >= vma.start.as_u64() && addr < vma.end.as_u64())
+        .map(|vma| vma.end.as_u64())
+        .ok_or(-14)?;
+    let copy_len = buf.len().min((vma_end - addr) as usize);
+    crate::usercopy::copy_from_user(addr, &mut buf[..copy_len]).map_err(i32::from)?;
+    Ok(copy_len)
 }
 
 pub fn get_process_vm_areas(pid: u32) -> alloc::vec::Vec<(u64, u64, u32)> {
     crate::process::PROCESS_TABLE
         .find_by_pid(pid)
         .map(|pcb| {
-            pcb.memory
-                .lock()
+            pcb.memory_state()
                 .vmas
                 .iter()
                 .map(|v| (v.start.as_u64(), v.end.as_u64(), v.flags as u32))

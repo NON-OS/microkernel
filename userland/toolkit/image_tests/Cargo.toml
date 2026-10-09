@@ -1,0 +1,21 @@
+# NONOS userland: toolkit image tests
+#
+# Host-only harness for the toolkit's image decoders. A sibling crate so
+# `cargo test` never builds the toolkit bin, which needs the no_std runtime.
+
+[package]
+name = "toolkit_image_tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "Host-side decoder fidelity tests for the NONOS toolkit"
+
+[lib]
+name = "toolkit_image_tests"
+path = "src/lib.rs"
+
+[dependencies]
+nonos_toolkit = { path = "..", default-features = false }
+
+[workspace]

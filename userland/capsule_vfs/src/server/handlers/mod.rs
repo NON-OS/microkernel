@@ -27,6 +27,7 @@ mod list;
 mod mkdir;
 mod open;
 mod path;
+mod persist_gate;
 mod read;
 mod rename;
 mod rmdir;

@@ -1,0 +1,4 @@
+HTTP/1.1 302 Found
+Location: /café
+Content-Length: 0
+

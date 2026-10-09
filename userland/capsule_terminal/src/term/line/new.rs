@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::Line;
-use crate::term::dimensions::COLS;
+use crate::term::dimensions::LINE_MAX;
 
 impl Line {
     pub const fn new() -> Self {
         Self {
-            buf: [0; COLS],
+            buf: [0; LINE_MAX],
             len: 0,
             cursor: 0,
             killed: [0; super::types::KILL_CAP],

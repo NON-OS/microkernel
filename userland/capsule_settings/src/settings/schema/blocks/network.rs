@@ -20,6 +20,12 @@ use crate::settings::schema::rows::{Block, Live, Pill, Row};
 
 pub const NETWORK: &[Block] = &[
     Block {
+        title: "Default network",
+        note: Some("What the browser starts on and Qwen downloads take. A route never falls back."),
+        pill: Pill::None,
+        rows: &[Row::Field(Field::NetworkRoute)],
+    },
+    Block {
         title: "Network status",
         note: Some("Where this device stands with the DHCP client."),
         pill: Pill::Net,
@@ -31,20 +37,9 @@ pub const NETWORK: &[Block] = &[
         ],
     },
     Block {
-        title: "Network options",
-        note: None,
-        pill: Pill::None,
-        rows: &[
-            Row::Field(Field::WifiAutoconnect),
-            Row::Field(Field::PreferIpv6),
-            Row::Field(Field::MeteredConnection),
-            Row::Field(Field::ProxyMode),
-        ],
-    },
-    Block {
         title: "Interfaces",
         note: None,
         pill: Pill::None,
-        rows: &[Row::Live("Adapter", Live::Adapter)],
+        rows: &[Row::Live("Wireless adapter", Live::Adapter)],
     },
 ];

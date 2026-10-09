@@ -31,13 +31,13 @@ impl PagingManager {
         // nothing for the switch. The asid is still tracked on the CPU below,
         // where the shootdown broadcaster does use it.
         let root = address_space.cr3_value.as_u64();
+        // Recorded on this cpu before CR3 is loaded, and fenced against the
+        // broadcaster's fence: set after, a shootdown between the load and the
+        // store would skip a cpu already caching the entries it replaces.
+        crate::smp::percpu::set_active_asid(asid);
+        core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
         crate::arch::paging::write_root(root, (root & 0xFFF) as u16);
         self.active_page_table = Some(address_space.cr3_value);
-        self.active_asid = Some(asid);
-        // Record on the calling CPU which asid is now executing.
-        // The TLB shootdown broadcaster reads this to scope per-asid
-        // invalidations to the cores actually running that CR3.
-        crate::smp::percpu::set_active_asid(asid);
         Ok(())
     }
 }

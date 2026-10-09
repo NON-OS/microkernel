@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Wayland coverage: the globals the shim advertises against what clients want.
+
+Advertised comes from the shim's registry; wanted from
+userland/capsule_linux/abi/wayland-wanted.txt. With --serial, every request a
+client made that the shim could not serve is counted from its log.
+"""
+
+import argparse
+import re
+import sys
+from collections import Counter, defaultdict
+from pathlib import Path
+
+REGISTRY = Path("userland/capsule_linux/src/linux/wayland/registry.rs")
+WANTED = Path("userland/capsule_linux/abi/wayland-wanted.txt")
+GLOBAL = re.compile(r'interface: b"(\w+)"')
+UNSERVED = re.compile(rb"\[WAYLAND\] unserved (\S+)")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("--root", type=Path, default=Path("."))
+    ap.add_argument("--baseline", type=Path, help="fail when fewer wanted globals are advertised")
+    ap.add_argument("--serial", type=Path, action="append", default=[])
+    a = ap.parse_args()
+    have = set(GLOBAL.findall((a.root / REGISTRY).read_text()))
+    wants = defaultdict(set)
+    for line in (a.root / WANTED).read_text().splitlines():
+        if line and not line.startswith("#"):
+            client, iface = line.split()
+            wants[client].add(iface)
+    every = set().union(*wants.values())
+    print(f"[wayland] {len(have & every)} of {len(every)} wanted globals advertised")
+    for client, want in sorted(wants.items()):
+        print(f"[wayland]   {client}: {len(have & want)} of {len(want)}; missing {' '.join(sorted(want - have))}")
+    asked = Counter()
+    for log in a.serial:
+        asked.update(m.decode(errors="replace") for m in UNSERVED.findall(log.read_bytes()))
+    for req, n in asked.most_common():
+        print(f"[wayland]   unserved request {req} x{n}")
+    if a.baseline and len(have & every) < int(a.baseline.read_text().strip()):
+        print("::error::Wayland coverage fell", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

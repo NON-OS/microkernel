@@ -16,6 +16,7 @@
 
 mod allocator;
 mod init;
+mod span;
 mod zero_on_free;
 
 pub use init::{init, init_sized, HeapError};

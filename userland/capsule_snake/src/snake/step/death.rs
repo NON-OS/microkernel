@@ -37,5 +37,5 @@ pub fn finish(game: &mut Game) {
     game.runs.sort_by(|a, b| b.score.cmp(&a.score));
     game.runs.truncate(MAX_RUNS);
     super::award::grant(game);
-    crate::snake::store::save_from(game);
+    game.kept = crate::snake::store::save_from(game);
 }

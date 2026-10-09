@@ -1,63 +1,42 @@
-# NONOS Kernel Signing Tool (Ed25519)
+# NONOS Kernel Signing Tool (Ed25519 and ML-DSA-65)
 
-Command-line tool for signing NØNOS kernel binaries with Ed25519. Supports both local key files for development and HashiCorp Vault transit backend for production environments where the private key never leaves secure hardware.
-
-Status: Production ready. Used in CI/CD and release workflows.
+Command-line tool that signs a NØNOS kernel ELF with Ed25519 and ML-DSA-65 together. The Ed25519 half comes from a local 32-byte seed file or a HashiCorp Vault transit key; the ML-DSA-65 half always comes from a local seed file. The bootloader refuses a kernel unless both signatures verify. The formats and the loader's checks are described in [the signing page](../../../docs/handbook/trust/signing.md); this tool's place in the loader's host tools is in [the bootloader page](../../../docs/handbook/bootloader.md).
 
 ---
 
-## Table of contents
-
-- Overview
-- Security model
-- Build and install
-- CLI usage (commands and examples)
-- Key management
-- Vault integration
-- Signature format
-- Embedding the public key
-- Verification
-- Operational policy
-- Troubleshooting
-- FAQ
-- License
-
----
-
-## Overview
+## What it does
 
 This tool:
-- Signs kernel binaries with Ed25519 (RFC 8032)
-- Appends the 64-byte signature to the kernel binary
-- Supports local 32-byte key files (dev) or Vault transit (prod)
-- Outputs the public key in Rust array format for bootloader embedding
-- Prints BLAKE3 hash of kernel and public key for verification
+- Builds the signed message: the BLAKE3 hash of the kernel ELF, then the rollback index as a little-endian `u32` (36 bytes)
+- Signs that message with Ed25519 (RFC 8032) and with ML-DSA-65
+- Writes the kernel, then an `NKRSIG2` signature bundle, then a 64-byte `NONOSIMG` footer
+- With `--verify`, reads the output back and checks both signatures
+- Prints the BLAKE3 hashes of the kernel and the Ed25519 public key, and the Ed25519 public key as a Rust array
 
-The bootloader verifies the signature before executing the kernel, establishing the first link in the boot trust chain.
+The make flow runs it with `--rollback-index $(NONOS_ROLLBACK_INDEX)` and `--verify`, then hands the result to `embed-trailer`, which appends the kernel's STARK trailer. The seal (`nix run .#seal`) runs the same two tools in the same order.
 
 ---
 
 ## Security model
 
-- Algorithm: Ed25519 (RFC 8032)
+- Algorithms: Ed25519 (RFC 8032) and ML-DSA-65, both required
 - Key storage:
-  - Development: 32-byte seed file (keep secret, gitignore it)
-  - Production: HashiCorp Vault transit engine (HSM-backed, key never exported)
-- Signature binding: appended to kernel binary, verified in-place by bootloader
-- Public key distribution: compiled into bootloader binary
+  - Ed25519: a 32-byte seed file, or a Vault transit key that never leaves Vault
+  - ML-DSA-65: a `NONOSSK1` seed file and its `NONOSPK1` public file, as `capsule-sign keygen` writes them
+- Signature binding: the bundle and footer follow the kernel bytes; the rollback index is inside the signed message
+- Public keys: compiled into the bootloader by its `build.rs`, which checks the key ids in the bundle against them
 
 Threat model:
-- Compromised key = attacker can sign malicious kernels
-- Always use Vault for release builds
-- Rotate keys on suspected compromise
+- A stolen Ed25519 key alone cannot sign a kernel the loader accepts; both keys are needed
+- Rotating either key means building a new bootloader
 
 ---
 
 ## Build and install
 
-From repository root:
+The tool is its own Cargo workspace. From this directory:
 ```
-cargo build --release -p nonos-sign-kernel
+cargo build --release
 ```
 
 Binary location:
@@ -69,17 +48,20 @@ target/release/sign-kernel
 
 ## CLI usage
 
-### Local key signing (development)
+### Local key signing
 
 ```
 sign-kernel \
-  --key dev_signing_key.bin \
+  --key signing_key_v1.bin \
+  --mldsa65-key kernel_mldsa65.seed \
+  --mldsa65-pub kernel_mldsa65.pub \
+  --rollback-index 1 \
   --input target/x86_64-nonos/release/nonos-kernel \
-  --output nonos-kernel.signed \
+  --output kernel_signed.bin \
   --verify
 ```
 
-### Vault signing (production)
+### Vault signing for the Ed25519 half
 
 ```
 export VAULT_TOKEN="s.xxxxx"
@@ -87,8 +69,11 @@ export VAULT_TOKEN="s.xxxxx"
 sign-kernel \
   --vault-addr https://vault.example.com:8200 \
   --vault-key-name nonos-kernel-signing \
+  --mldsa65-key kernel_mldsa65.seed \
+  --mldsa65-pub kernel_mldsa65.pub \
+  --rollback-index 1 \
   --input target/x86_64-nonos/release/nonos-kernel \
-  --output nonos-kernel.signed \
+  --output kernel_signed.bin \
   --verify
 ```
 
@@ -96,31 +81,33 @@ sign-kernel \
 
 | Flag | Description |
 |------|-------------|
-| `-k, --key FILE` | Path to 32-byte Ed25519 seed file |
-| `-i, --input FILE` | Kernel binary to sign |
-| `-o, --output FILE` | Output path for signed kernel |
+| `-k, --key FILE` | Path to the 32-byte Ed25519 seed file (conflicts with `--vault-addr`) |
+| `--mldsa65-key FILE` | ML-DSA-65 seed file, required |
+| `--mldsa65-pub FILE` | ML-DSA-65 public key file, required |
+| `-i, --input FILE` | Kernel ELF to sign |
+| `-o, --output FILE` | Output path for the signed image |
+| `--rollback-index N` | Rollback index signed into the message (default 0) |
 | `--vault-addr URL` | HashiCorp Vault address |
 | `--vault-token TOKEN` | Vault token (or set VAULT_TOKEN env) |
 | `--vault-key-name NAME` | Transit key name (default: nonos-kernel-signing) |
-| `--verify` | Verify signature after signing |
+| `--verify` | Verify both signatures after signing |
 | `-v, --verbose` | Print detailed output |
 
 ---
 
 ## Key management
 
-### Generating a development key
+### Development keys
 
+The Ed25519 seed is 32 random bytes:
 ```
-dd if=/dev/urandom bs=32 count=1 > dev_signing_key.bin
-chmod 600 dev_signing_key.bin
+dd if=/dev/urandom bs=32 count=1 > signing_key_v1.bin
+chmod 600 signing_key_v1.bin
 ```
 
-Never commit key files to git. Add to .gitignore:
-```
-*_signing_key*.bin
-*.key
-```
+The ML-DSA-65 pair comes from `capsule-sign keygen --alg mldsa65 --out <prefix>`. For the release keys, `tools/nonos-key-ceremony make` writes both under `nonos-bootloader/keys/`, which git ignores.
+
+Never commit key files to git.
 
 ### Creating a Vault transit key
 
@@ -154,87 +141,55 @@ path "transit/keys/nonos-kernel-signing" {
 }
 ```
 
-Vault namespaces are supported via the `--vault-namespace` flag.
+The tool has no flag for Vault namespaces; it always calls Vault without one.
 
 ---
 
 ## Signature format
 
-The signed kernel binary structure:
+The signed image:
 ```
-+------------------+
-| Original kernel  |  N bytes
-+------------------+
-| Ed25519 sig (R)  |  32 bytes
-| Ed25519 sig (S)  |  32 bytes
-+------------------+
++---------------------------+
+| Kernel ELF                |  N bytes
++---------------------------+
+| NKRSIG2 signature bundle  |  3445 bytes
++---------------------------+
+| NONOSIMG footer           |  64 bytes
++---------------------------+
 ```
 
-Total size: kernel_size + 64 bytes
+The bundle, in order: the magic `NKRSIG2\0` (8 bytes), the Ed25519 key id (32), the Ed25519 signature (64), the ML-DSA-65 key id (32), the ML-DSA-65 signature (3309). A key id is BLAKE3 in derive-key mode under `NONOS:KEYID:ED25519:v1` or `NONOS:KEYID:MLDSA65:v1` over the public key.
 
-The bootloader reads the last 64 bytes as the signature and verifies against bytes [0..N-64].
+The footer, little-endian: magic `NONOSIMG`, version 1, flags 0, hash algorithm 1 (BLAKE3), signature algorithm 2 (Ed25519 plus ML-DSA-65), the total image size, the kernel's offset and size, the signature's offset and size, a zero proof offset and size, image version 1 and the rollback index. `embed-trailer` later rewrites the footer to point at the STARK trailer it appends.
+
+Both signatures cover the 36-byte message, not the raw kernel bytes.
 
 ---
 
-## Embedding the public key
+## Embedding the public keys
 
-After signing, the tool prints the public key in Rust format:
-
-```rust
-pub const NONOS_SIGNING_KEY: &[u8; 32] = &[
-    0x1a, 0x2b, 0x3c, 0x4d, 0x5e, 0x6f, 0x70, 0x81,
-    0x92, 0xa3, 0xb4, 0xc5, 0xd6, 0xe7, 0xf8, 0x09,
-    0x1a, 0x2b, 0x3c, 0x4d, 0x5e, 0x6f, 0x70, 0x81,
-    0x92, 0xa3, 0xb4, 0xc5, 0xd6, 0xe7, 0xf8, 0x09,
-];
-```
-
-Paste this into `nonos-boot/src/security/keys.rs` or your designated key registry.
+The tool prints the Ed25519 public key as a Rust array, but nothing pastes it anywhere. The bootloader's `build.rs` derives the Ed25519 key from the seed at `NONOS_SIGNING_KEY`, or reads the raw key file `NONOS_TRUST_ANCHOR_PUBKEY` names, and reads the ML-DSA-65 key from `NONOS_MLDSA65_PUBKEY`.
 
 ---
 
 ## Verification
 
-The `--verify` flag reads back the signed file and verifies the signature:
+The `--verify` flag reads back the signed file, checks the footer magic, and verifies both signatures over the message rebuilt from the kernel bytes and `--rollback-index`:
 
 ```
 === Verification ===
+NONOSIMG footer: PRESENT
 Signature verification: PASSED
-```
-
-For external verification:
-```rust
-use ed25519_dalek::{Verifier, VerifyingKey, Signature};
-
-let signed_data = std::fs::read("nonos-kernel.signed")?;
-let sig_offset = signed_data.len() - 64;
-let payload = &signed_data[..sig_offset];
-let sig_bytes = &signed_data[sig_offset..];
-
-let pubkey = VerifyingKey::from_bytes(&NONOS_SIGNING_KEY)?;
-let signature = Signature::from_bytes(sig_bytes.try_into()?);
-pubkey.verify(payload, &signature)?;
+ML-DSA-65 verification: PASSED
 ```
 
 ---
 
 ## Operational policy
 
-Development:
-- Use local key files
-- Keep keys out of version control
-- Rotate frequently
-
-Production:
-- Always use Vault transit
-- Enable audit logging on Vault
-- Require MFA for Vault access
-- Use CI/CD service accounts with limited scope
-
-Release signing:
-- Sign on isolated build machines
-- Verify signature before distribution
-- Publish public key hash with release notes
+- Keep both seeds out of version control.
+- Sign release kernels on the machine that holds ek's keys, through the seal.
+- Publish the hashes of the public keys with the release.
 
 ---
 
@@ -255,31 +210,27 @@ Release signing:
 **"key not found" from Vault**
 - Transit key doesn't exist
 - Check key name spelling
-- Ensure transit engine is enabled
+- Check that the transit engine is enabled
 
-**"Signature verification: FAILED"**
+**"--mldsa65-key is required for kernel signing"** or **"--mldsa65-pub is required"**
+- Both ML-DSA-65 files are mandatory; there is no Ed25519-only mode
+
+**A verification failure**
 - Key mismatch between signing and verification
-- File corrupted during transfer
-- Wrong public key embedded in bootloader
+- `--rollback-index` differs from the one signed
 
 ---
 
-## FAQ
+## Notes
 
-**Q: Why Ed25519 and not ECDSA or RSA?**
-A: Ed25519 is fast, has small signatures (64 bytes), deterministic signing (no RNG needed at sign time), and strong security properties. Good fit for embedded bootloaders.
+**Two signature algorithms.** Ed25519 is small and fast; ML-DSA-65 is a post-quantum signature. The loader requires both, so breaking one algorithm is not enough to sign a kernel.
 
-**Q: Can I use a hardware security module directly?**
-A: Use Vault as the abstraction layer. Vault supports HSM backends (PKCS#11, AWS CloudHSM, etc.) and presents a uniform API.
+**The printed BLAKE3 hashes.** BLAKE3 is used throughout NØNOS for fingerprinting. The printed hashes let you check the kernel and public key across builds.
 
-**Q: Why print BLAKE3 hashes?**
-A: BLAKE3 is used throughout NØNOS for fingerprinting. The printed hashes let you verify the kernel and public key match across builds and deployments.
-
-**Q: Can I sign with multiple keys?**
-A: Not currently. One signature per kernel. For key rotation, update the bootloader with the new public key before deploying kernels signed with the new key.
+**More keys.** The tool signs with exactly one Ed25519 and one ML-DSA-65 signature per kernel. For key rotation, build a bootloader with the new public keys before deploying kernels signed with them.
 
 ---
 
 ## License
 
-AGPL-3.0 - See repository LICENSE file.
+AGPL-3.0. See the repository LICENSE file.

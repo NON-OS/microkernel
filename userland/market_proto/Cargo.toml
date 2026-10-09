@@ -1,0 +1,27 @@
+# NONOS market wire format, as a client speaks it.
+# The header, the reply checks and the body readers that the marketplace
+# window and the Terminal's `market` command both use to talk to
+# `market.index`, so the two cannot drift apart again. The market capsule
+# takes its header constants and op numbers from here too. no_std, alloc
+# only, no syscalls: each caller makes its own one IPC call.
+
+[package]
+name = "nonos_market_proto"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS market service wire format"
+
+[lib]
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 2
+lto = false
+debug = false
+
+[profile.dev]
+opt-level = 0
+debug = true

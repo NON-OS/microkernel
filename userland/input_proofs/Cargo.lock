@@ -4,11 +4,16 @@ version = 4
 
 [[package]]
 name = "input_proofs"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
+ "input_proofs_libc_shim",
  "nonos_keymap",
 ]
 
 [[package]]
-name = "nonos_keymap"
+name = "input_proofs_libc_shim"
 version = "0.1.0"
+
+[[package]]
+name = "nonos_keymap"
+version = "0.3.0"

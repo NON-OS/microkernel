@@ -17,6 +17,7 @@
 //! Argument parsing and the two commands. Exit codes: 0 done, 1 usage,
 //! 2 no such disk, 3 the write failed, 4 the read-back failed.
 
+mod carry;
 mod confirm;
 mod list;
 mod receipt;

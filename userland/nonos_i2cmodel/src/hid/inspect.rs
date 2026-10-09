@@ -63,4 +63,12 @@ impl HidOverI2c {
         self.acks_data = false;
         self
     }
+
+    /// The same device with its HID descriptor at `reg` instead of 0x0001,
+    /// the way Synaptics parts publish it at 0x0020 (the platform's `_DSM`
+    /// names the register). The other registers stay where they were.
+    pub fn descriptor_at(mut self, reg: u16) -> Self {
+        self.regs.hid_desc = reg;
+        self
+    }
 }

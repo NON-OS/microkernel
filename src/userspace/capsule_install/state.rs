@@ -25,6 +25,6 @@ pub(super) fn set_alive(pid: u32) {
     STATE.set_alive(pid);
 }
 
-pub fn shared_state() -> &'static CapsuleState {
+pub(super) fn shared_state() -> &'static CapsuleState {
     &STATE
 }

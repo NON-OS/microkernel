@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::settings::state::State;
+use nonos_policy_proto::{str_max_of, STR_MAX};
+
+use crate::settings::state::edit_paste::value_char;
+use crate::settings::state::{current_field, State};
 
 pub fn push_text_char(state: &mut State, ch: u32) -> bool {
     if !state.editing {
@@ -24,12 +27,10 @@ pub fn push_text_char(state: &mut State, ch: u32) -> bool {
         c @ 0x20..=0x7E => c as u8,
         _ => return false,
     };
-    if !allowed(b) {
+    /* The store refuses a value longer than its field takes, so stop typing there. */
+    let cap = current_field(state).map_or(STR_MAX, str_max_of);
+    if !value_char(b as char) || state.edit.len >= cap {
         return false;
     }
     state.edit.push(b)
-}
-
-fn allowed(b: u8) -> bool {
-    matches!(b, b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'-' | b'.' | b'_')
 }

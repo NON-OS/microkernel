@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the RNDIS driver: the shipped rndis module runs
+# here through #[path], binding a scripted QEMU usb-net (its descriptors
+# from usbnet_proofs, its RNDIS answers as hw/usb/dev-network.c builds
+# them) and moving frames through it. The control channel waits on the
+# clock, so the xHCI proofs' libc shim stands in for nonos_libc.
+[package]
+name = "rndis_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_usbnet = { package = "usbnet_proofs", path = "../usbnet_proofs" }
+nonos_libc = { package = "xhci_proofs_libc_shim", path = "../xhci_proofs/libc_shim" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

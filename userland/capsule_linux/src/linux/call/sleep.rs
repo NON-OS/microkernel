@@ -14,30 +14,54 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Waiting.
-
-use nonos_libc::{mk_uptime_ms, mk_yield};
+//! Waiting, without holding up the family.
+//!
+//! A sleeping guest is parked and answered when its deadline passes, so the
+//! other processes and threads the personality hosts keep being served. A
+//! busy wait here stopped the whole family for as long as any one slept.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
+use crate::linux::serve::Answer;
 
-/// `timespec` is two 64-bit words: seconds then nanoseconds.
-const PAIR: usize = 16;
+use super::clock::now_ms;
 
-/// `nanosleep`: yield until the deadline passes.
-pub fn nanosleep(guest: &Guest, req: u64) -> u64 {
-    let Some(spec) = guest.read(req, PAIR) else {
-        return errno::fail(errno::EFAULT);
+const TIMER_ABSTIME: u64 = 1;
+const CLOCK_MONOTONIC: u64 = 1;
+const NSEC: u64 = 1_000_000_000;
+
+/// `nanosleep(req, rem)`.
+pub fn nanosleep(guest: &mut Guest, tid: u32, req: u64) -> Answer {
+    park(guest, tid, CLOCK_MONOTONIC, 0, req)
+}
+
+/// `clock_nanosleep(clock, flags, req, rem)`: relative, or until an absolute
+/// time on `clock`. Errors come back as a positive errno, as Linux returns them.
+pub fn clock_nanosleep(guest: &mut Guest, tid: u32, clock: u64, flags: u64, req: u64) -> Answer {
+    match park(guest, tid, clock, flags, req) {
+        Answer::Reply(v) if (v as i64) < 0 => Answer::Reply((v as i64).unsigned_abs()),
+        other => other,
+    }
+}
+
+fn park(guest: &mut Guest, tid: u32, clock: u64, flags: u64, req: u64) -> Answer {
+    let Some(spec) = guest.read(req, 16) else {
+        return Answer::Reply(errno::fail(errno::EFAULT));
     };
     let secs = u64::from_le_bytes(spec[..8].try_into().unwrap_or([0; 8]));
     let nanos = u64::from_le_bytes(spec[8..16].try_into().unwrap_or([0; 8]));
-    let until = uptime().saturating_add(secs * 1000 + nanos / 1_000_000);
-    while uptime() < until {
-        mk_yield();
+    let (Some(on_clock), Some(mono)) = (now_ms(clock), now_ms(CLOCK_MONOTONIC)) else {
+        return Answer::Reply(errno::fail(errno::EINVAL));
+    };
+    if nanos >= NSEC || secs > i64::MAX as u64 {
+        return Answer::Reply(errno::fail(errno::EINVAL));
     }
-    errno::ok(0)
-}
-
-fn uptime() -> u64 {
-    u64::try_from(mk_uptime_ms()).unwrap_or(0)
+    let span = secs.saturating_mul(1000).saturating_add(nanos.div_ceil(1_000_000));
+    // An absolute time is a distance from now on its own clock.
+    let wait = if flags & TIMER_ABSTIME != 0 { span.saturating_sub(on_clock) } else { span };
+    if wait == 0 {
+        return Answer::Reply(errno::ok(0));
+    }
+    guest.sleepers.push((mono.saturating_add(wait), tid));
+    Answer::Park
 }

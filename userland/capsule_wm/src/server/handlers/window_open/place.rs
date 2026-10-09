@@ -33,10 +33,7 @@ use crate::geometry::{clamp_to_display, Rect};
 use crate::state::Context;
 use crate::window::{Kind, Visibility};
 
-use super::constants::{MENUBAR_H, PLACEMENT_GAP, PLACEMENT_STEP};
-
-// Cascade resets after this many windows so they never march off-screen.
-const CASCADE_WRAP: u32 = 5;
+use super::cascade::cascade;
 
 pub(super) fn place(ctx: &Context, kind: Kind, requested: Rect) -> Rect {
     let requested = clamp_to_display(requested, ctx.display_width, ctx.display_height);
@@ -48,25 +45,5 @@ pub(super) fn place(ctx: &Context, kind: Kind, requested: Rect) -> Rect {
         .windows()
         .filter(|w| w.kind == Kind::Normal && w.visibility == Visibility::Visible)
         .count() as u32;
-    let step = PLACEMENT_STEP + PLACEMENT_GAP;
-    let slot = open % CASCADE_WRAP;
-    let max_x = ctx.display_width.saturating_sub(requested.width);
-    let max_y = ctx.display_height.saturating_sub(requested.height);
-
-    // The centred origin, below the menubar, for a window of this size.
-    let centre_x = max_x / 2;
-    let centre_y = MENUBAR_H + ctx.display_height.saturating_sub(MENUBAR_H + requested.height) / 2;
-
-    // The first window of a run sits exactly in the middle, because that is
-    // the case that happens most and the one a person notices. Later windows
-    // step down and right from it so their titlebars stay reachable.
-    //
-    // An earlier version shifted the whole cascade back by half its run to
-    // centre the group. That is the wrong thing to optimise: it left a lone
-    // window a hundred and twenty-eight pixels left of centre, which on a wide
-    // window with little room to move reads as "stuck near the edge".
-    let x = centre_x.saturating_add(slot * step).min(max_x);
-    let y = centre_y.saturating_add(slot * step).max(MENUBAR_H).min(max_y);
-
-    Rect { x, y, width: requested.width, height: requested.height }
+    cascade(ctx.display_width, ctx.display_height, open, requested)
 }

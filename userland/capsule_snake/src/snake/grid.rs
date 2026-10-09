@@ -14,19 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const CELL: u32 = 24;
 pub const COLS: i16 = 35;
 pub const ROWS: i16 = 21;
-pub const MARGIN: u32 = 15;
-pub const TITLEBAR_H: u32 = 28;
-pub const HEADER_H: u32 = 36;
-pub const BOARD_Y: u32 = TITLEBAR_H + HEADER_H;
-pub const BOARD_W: u32 = COLS as u32 * CELL;
-pub const BOARD_H: u32 = ROWS as u32 * CELL;
 
 // The nominal window, matching capsule_process_manager, whose HiDPI behaviour
-// is boot-proven. CELL stays nominal: the board is re-derived from the live
-// surface every frame, so maximize still works.
+// is boot-proven. There is no fixed cell size: the board is fitted to the live
+// surface every frame (paint/board_fit.rs), so maximize still works.
 pub const WIN_W: u32 = 1240;
 pub const WIN_H: u32 = 780;
 

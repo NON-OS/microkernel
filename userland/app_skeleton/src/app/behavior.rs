@@ -17,6 +17,7 @@
 use super::{AppManifest, EventOutcome};
 use crate::input::InputEvent;
 use crate::paint::PaintBuffer;
+use nonos_toolkit::decorations::Rect;
 
 pub trait App {
     fn manifest(&self) -> AppManifest;
@@ -36,9 +37,21 @@ pub trait App {
     /// promptly. When true the runner yields cooperatively between frames
     /// instead of sleeping to the next vblank, so the work advances even where
     /// the scheduler's periodic wake is unreliable and a frame would otherwise
-    /// stall until the next input event. Defaults to idle.
+    /// stall until the next input event. Under `run`, which otherwise blocks
+    /// on its inbox until the next tick, it caps each wait at a millisecond.
+    /// Defaults to idle.
     fn busy(&self) -> bool {
         false
+    }
+
+    /// The part of the content area that changed since the last paint, in
+    /// content coordinates, or None when the whole window must be redrawn.
+    /// Called right before `paint`; an app that returns a rect promises its
+    /// next `paint` redraws every pixel inside it and touches nothing else,
+    /// so the runner skips the frame and commits only that rect. The
+    /// default keeps the whole-window repaint every app had before.
+    fn take_damage(&mut self) -> Option<Rect> {
+        None
     }
 
     /// Width in pixels of an app-owned widget hosted in the titlebar, right
@@ -57,5 +70,23 @@ pub trait App {
 
     fn on_accessory_event(&mut self, _event: InputEvent) -> EventOutcome {
         EventOutcome::Idle
+    }
+
+    /// Whether the app wants its window full screen: the green button's
+    /// full screen, the whole display below the menubar with the dock hidden.
+    /// Asked every frame. True from the start opens the window full screen;
+    /// turning true later (Video while it plays) takes it full screen, and
+    /// turning false gives back the rect it had, unless the person chose full
+    /// screen themselves with green. Defaults to never asking.
+    fn wants_full_screen(&self) -> bool {
+        false
+    }
+
+    /// Asked when the window's close button is pressed. An app holding work
+    /// the user would lose returns false, says so in its own window, and the
+    /// window stays open; pressing close again is the user's answer. Defaults
+    /// to closing.
+    fn close_requested(&mut self) -> bool {
+        true
     }
 }

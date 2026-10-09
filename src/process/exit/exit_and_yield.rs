@@ -24,15 +24,15 @@ use super::teardown::teardown;
 use crate::process::current_pid;
 
 pub fn exit_and_yield(exit_code: i32, by_signal: bool) -> ! {
-    if let Some(pid) = current_pid() {
+    let pid = current_pid();
+    if let Some(pid) = pid {
+        /*
+         * Named as this CPU's own before it dies, so the reaper sees a CPU
+         * still on it: a process started by hand and never yet interrupted
+         * is otherwise on no CPU's record.
+         */
+        crate::process::scheduler::selection::adopt_current(pid);
         teardown(pid, exit_code, by_signal);
     }
-    loop {
-        if let Some(next) = crate::process::scheduler::selection::select_next_process() {
-            crate::process::scheduler::selection::switch_to_process(next);
-        }
-        crate::process::accounting::idle_enter();
-        crate::arch::idle_cpu();
-        crate::process::accounting::idle_leave();
-    }
+    super::park::park(pid.unwrap_or(0))
 }

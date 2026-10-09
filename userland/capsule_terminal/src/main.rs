@@ -40,6 +40,12 @@ use nonos_app_skeleton::run;
 /// It must not be called from Rust code.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
+    /*
+     * Each tab keeps a screen and its history. The default 16 MiB heap left
+     * room for a few hundred lines; this holds thousands in every tab.
+     */
+    const TERMINAL_HEAP: usize = 64 * 1024 * 1024;
+    let _ = nonos_libc::heap_init_sized(TERMINAL_HEAP);
     #[cfg(feature = "nonos-autorun-selftest")]
     {
         term::terminal::selftest::main()

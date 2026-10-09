@@ -16,34 +16,53 @@
 
 use alloc::string::String;
 
-// Pick a loadable source from an @font-face src list. True type and open type
-// load directly and woff unwraps to one; woff2 needs brotli and is passed
-// over. Sources are ranked so a raw ttf/otf wins over a woff when both are
-// offered.
+mod entries;
+
+pub(super) use entries::split_top;
+
+/* Pick the source to load from an @font-face src list: the first url()
+ * entry in a format the engine reads, as CSS Fonts 4 takes the first
+ * usable one. local() faces, EOT, SVG fonts and tech() needs beyond
+ * variations are passed over. Without a format() hint the extension or
+ * the data: type decides, and an unknown extension is fetched and its
+ * bytes sniffed on arrival. */
 pub(super) fn pick_src(src: &str) -> Option<String> {
-    let mut woff: Option<String> = None;
-    let mut rest = src;
-    while let Some(pos) = rest.find("url(") {
-        rest = &rest[pos + 4..];
-        let end = rest.find(')')?;
-        let raw = rest[..end].trim().trim_matches('"').trim_matches('\'');
-        rest = &rest[end + 1..];
-        if raw.starts_with("data:") {
-            let head = raw.split(',').next().unwrap_or("").to_ascii_lowercase();
-            let fontish =
-                head.contains("font") || head.contains("truetype") || head.contains("opentype");
-            if fontish && !head.contains("woff2") && woff.is_none() {
-                woff = Some(String::from(raw));
-            }
-            continue;
-        }
-        let lower_end = raw.split('?').next().unwrap_or(raw).to_ascii_lowercase();
-        if lower_end.ends_with(".ttf") || lower_end.ends_with(".otf") {
-            return Some(String::from(raw));
-        }
-        if lower_end.ends_with(".woff") && woff.is_none() {
-            woff = Some(String::from(raw));
-        }
+    split_top(src, b',').into_iter().find_map(|entry| {
+        let url = unquote(inner(entry, "url(")?);
+        let usable = match inner(entry, "format(") {
+            Some(f) => loadable(&unquote(f).to_ascii_lowercase()),
+            None => sniffable(url),
+        };
+        let tech_ok =
+            inner(entry, "tech(").is_none_or(|t| unquote(t).eq_ignore_ascii_case("variations"));
+        (usable && tech_ok).then(|| String::from(url))
+    })
+}
+
+/// format() hints of sfnt outlines, bare or in WOFF or WOFF2.
+fn loadable(format: &str) -> bool {
+    matches!(format.trim_end_matches("-variations"), "truetype" | "opentype" | "woff" | "woff2")
+}
+
+fn unquote(s: &str) -> &str {
+    s.trim().trim_matches('"').trim_matches('\'')
+}
+
+/// The text between `name` (ending in an open paren) and the next `)`.
+fn inner<'a>(entry: &'a str, name: &str) -> Option<&'a str> {
+    let at = entry.to_ascii_lowercase().find(name)? + name.len();
+    let end = at + entry[at..].find(')')?;
+    Some(&entry[at..end])
+}
+
+fn sniffable(url: &str) -> bool {
+    let lower = url.to_ascii_lowercase();
+    if let Some(data) = lower.strip_prefix("data:") {
+        let head = data.split_once(',').map_or(data, |(h, _)| h);
+        let fontish =
+            ["font", "truetype", "opentype", "octet-stream"].iter().any(|k| head.contains(k));
+        return fontish && !head.contains("svg");
     }
-    woff
+    let path = &lower[..lower.find(['?', '#']).unwrap_or(lower.len())];
+    ![".eot", ".svg", ".svgz"].iter().any(|ext| path.ends_with(ext))
 }

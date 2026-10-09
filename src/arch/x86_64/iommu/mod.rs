@@ -21,11 +21,14 @@
 //! to confine a device checks. When bring-up fails, calls return
 //! `NotEnforcing` rather than success.
 
+pub mod amd_vi;
 pub mod device;
 pub mod domain;
 pub mod globals;
 pub mod mapping;
 pub mod regs;
+#[cfg(feature = "nonos-iommu-intremap")]
+pub mod remap;
 pub mod tables;
 pub mod types;
 pub mod unit;

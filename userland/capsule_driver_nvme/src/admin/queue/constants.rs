@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(super) const ADMIN_ENTRIES: u16 = 64;
+pub(super) const ADMIN_SQ_ID: u16 = 0;
 pub(super) const SQ_BYTES: u64 = 4096;
 pub(super) const CQ_BYTES: u64 = 4096;
 pub(super) const IDENTIFY_BYTES: u64 = 4096;

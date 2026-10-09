@@ -15,21 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const KEYRING_SERVICE: &[u8] = b"keyring";
+pub const OP_DELETE: u16 = 3;
 pub const OP_WALLET_IMPORT: u16 = 8;
 pub const OP_WALLET_ADDRESS: u16 = 10;
-pub const OP_SIGN_NOX_APPROVE: u16 = 12;
-pub const OP_SIGN_ETH_TRANSFER: u16 = 13;
 pub const OP_LIST_WALLET_RAILS: u16 = 14;
 pub const OP_WALLET_EXPORT: u16 = 15;
 pub const OP_SIGN_NOX_STAKE_APPROVE: u16 = 16;
 pub const OP_SIGN_NOX_STAKE: u16 = 17;
-pub const OP_SIGN_NOX_TRANSFER: u16 = 18;
 pub const OP_SIGN_NOX_UNSTAKE: u16 = 19;
 pub const OP_SIGN_NOX_STAKE_LOCKED: u16 = 20;
 pub const OP_WALLET_GENERATE_HD: u16 = 21;
 pub const OP_WALLET_RECOVER: u16 = 22;
 pub const OP_VAULT_SEAL: u16 = 23;
 pub const OP_VAULT_OPEN: u16 = 24;
+pub const OP_SIGN_TX: u16 = 25;
+pub const OP_SHIELD_MATERIAL: u16 = 26;
+pub const OP_SHIELD_SEAL: u16 = 27;
+pub const OP_SHIELD_OPEN: u16 = 28;
+pub const OP_WALLET_DERIVE: u16 = 29;
 pub const HDR_LEN: usize = 8;
 
 // Must match `capsule_keyring/src/protocol/types.rs`.
@@ -37,19 +40,21 @@ const _: () = {
     let ops = [
         OP_WALLET_IMPORT,
         OP_WALLET_ADDRESS,
-        OP_SIGN_NOX_APPROVE,
-        OP_SIGN_ETH_TRANSFER,
         OP_LIST_WALLET_RAILS,
         OP_WALLET_EXPORT,
         OP_SIGN_NOX_STAKE_APPROVE,
         OP_SIGN_NOX_STAKE,
-        OP_SIGN_NOX_TRANSFER,
         OP_SIGN_NOX_UNSTAKE,
         OP_SIGN_NOX_STAKE_LOCKED,
         OP_WALLET_GENERATE_HD,
         OP_WALLET_RECOVER,
         OP_VAULT_SEAL,
         OP_VAULT_OPEN,
+        OP_SIGN_TX,
+        OP_SHIELD_MATERIAL,
+        OP_SHIELD_SEAL,
+        OP_SHIELD_OPEN,
+        OP_WALLET_DERIVE,
     ];
     let mut i = 0;
     while i < ops.len() {

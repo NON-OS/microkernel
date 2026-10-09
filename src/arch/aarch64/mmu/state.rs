@@ -31,44 +31,64 @@ static mut KERNEL_L2: [PageTable; 6] = [
 /// the direct map hangs off its own level 1 rather than sharing the identity
 /// map's.
 static mut KERNEL_L1_HIGH: PageTable = PageTable::new();
-static mut KERNEL_L3: [[PageTable; 512]; 4] = [[PageTable::new(); 512]; 4];
+/// How many level 1 entries have level 3 tables behind them.
+pub(super) const L3_L1_SPAN: usize = 4;
+static mut KERNEL_L3: [[PageTable; 512]; L3_L1_SPAN] = [[PageTable::new(); 512]; L3_L1_SPAN];
 
+/*
+ * The table getters hand out `&'static mut` to a static, so two live results for
+ * the same table alias. Callers must hold at most one at a time, which the boot
+ * path does: it builds the tables on the boot CPU before any secondary or
+ * interrupt exists. The borrow is taken through a raw pointer so no shared or
+ * unique reference to the whole static is ever formed on the way.
+ */
+
+/// # Safety
+/// No other reference to `KERNEL_L0` may be live while the result is.
 pub(super) unsafe fn l0() -> &'static mut PageTable {
-    &mut KERNEL_L0
+    &mut *core::ptr::addr_of_mut!(KERNEL_L0)
 }
 
+/// # Safety
+/// No other reference to `KERNEL_L1` may be live while the result is.
 pub(super) unsafe fn l1() -> &'static mut PageTable {
-    &mut KERNEL_L1
+    &mut *core::ptr::addr_of_mut!(KERNEL_L1)
 }
 
+/// # Safety
+/// No other reference to `KERNEL_L2[index]` may be live while the result is.
 pub(super) unsafe fn l2(index: usize) -> &'static mut PageTable {
-    &mut KERNEL_L2[index]
+    &mut (*core::ptr::addr_of_mut!(KERNEL_L2))[index]
 }
 
+/// # Safety
+/// No other reference to `KERNEL_L3[l1][l2]` may be live while the result is.
 pub(super) unsafe fn l3(l1: usize, l2: usize) -> &'static mut PageTable {
-    &mut KERNEL_L3[l1][l2]
+    &mut (*core::ptr::addr_of_mut!(KERNEL_L3))[l1][l2]
 }
 
 pub(super) unsafe fn l0_addr() -> u64 {
-    &KERNEL_L0 as *const _ as u64
+    core::ptr::addr_of!(KERNEL_L0) as u64
 }
 
 pub(super) unsafe fn l1_addr() -> u64 {
-    &KERNEL_L1 as *const _ as u64
+    core::ptr::addr_of!(KERNEL_L1) as u64
 }
 
+/// # Safety
+/// No other reference to `KERNEL_L1_HIGH` may be live while the result is.
 pub(super) unsafe fn l1_high() -> &'static mut PageTable {
-    &mut KERNEL_L1_HIGH
+    &mut *core::ptr::addr_of_mut!(KERNEL_L1_HIGH)
 }
 
 pub(super) unsafe fn l1_high_addr() -> u64 {
-    &KERNEL_L1_HIGH as *const _ as u64
+    core::ptr::addr_of!(KERNEL_L1_HIGH) as u64
 }
 
 pub(super) unsafe fn l2_addr(index: usize) -> u64 {
-    &KERNEL_L2[index] as *const _ as u64
+    core::ptr::addr_of!((*core::ptr::addr_of!(KERNEL_L2))[index]) as u64
 }
 
 pub(super) unsafe fn l3_addr(l1: usize, l2: usize) -> u64 {
-    &KERNEL_L3[l1][l2] as *const _ as u64
+    core::ptr::addr_of!((*core::ptr::addr_of!(KERNEL_L3))[l1][l2]) as u64
 }

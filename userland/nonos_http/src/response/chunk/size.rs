@@ -36,6 +36,10 @@ pub(super) fn hex(line: &[u8]) -> Result<usize, HttpError> {
         Some(at) => &line[..at],
         None => line,
     };
+    // Whitespace may follow the size, before an extension or the line end
+    // (RFC 9112 7.1.1, BWS), and some servers send it; never before or inside.
+    let end = digits.iter().rposition(|b| *b != b' ' && *b != b'\t').map_or(0, |i| i + 1);
+    let digits = &digits[..end];
     if digits.is_empty() {
         return Err(HttpError::Chunk);
     }

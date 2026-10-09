@@ -36,7 +36,7 @@ pub fn stake_input(state: &mut State, code: u32) -> Option<EventOutcome> {
         // Backspace and delete both mean the same thing to somebody
         // correcting a figure.
         0x08 | 0x7F => backspace(state),
-        c if c == KEY_ENTER => return Some(super::stake_flow::stake_flow(state)),
+        c if c == KEY_ENTER => return Some(crate::wallet::screen::stake::click::review(state)),
         c if c == b'a' as u32 || c == b'A' as u32 => set_max(state),
         c if c == b'c' as u32 || c == b'C' as u32 => clear(state),
         _ => false,
@@ -53,7 +53,7 @@ pub fn stake_input(state: &mut State, code: u32) -> Option<EventOutcome> {
 /// so what is typed is what is signed.
 fn unstake_input(state: &mut State, code: u32) -> Option<EventOutcome> {
     if code == KEY_ENTER {
-        return Some(super::stake_flow::stake_flow(state));
+        return Some(crate::wallet::screen::stake::click::review(state));
     }
     let d = code.checked_sub(b'0' as u32)?;
     if d >= 10 {

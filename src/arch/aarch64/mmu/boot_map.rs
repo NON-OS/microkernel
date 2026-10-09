@@ -14,13 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern "C" {
-    static __kernel_image_start: u8;
-    static __kernel_rw_start: u8;
-}
-
 use super::super::boot::info::{BootInfo, MemoryType as BootMemoryType};
-use super::{control, state, ttbr, PageAttributes};
+use super::{control, image_map, state, ttbr, PageAttributes};
 
 const BLOCK_2M: u64 = 2 * 1024 * 1024;
 const DEVICE_SLOT: usize = 3;
@@ -119,22 +114,25 @@ unsafe fn map_range(slot: usize, base: u64, size: u64, kind: BootMemoryType) {
 
     let data_attrs = region_attrs(kind);
     let code_attrs = PageAttributes::kernel_code();
-    let img_start = (&raw const __kernel_image_start) as u64;
-    // Only text and rodata are executable and read only. Everything from the
-    // writable data onward, .bss and the stack included, has to stay writable.
-    let img_end = (&raw const __kernel_rw_start) as u64;
     let mut phys = base & !(BLOCK_2M - 1);
     let end = base.saturating_add(size);
     // One table describes one gigabyte; anything past it belongs to another slot.
     let table_end = ((l1_idx as u64) + 1) * GIB;
     while phys < end && phys < table_end {
         let l2_idx = ((phys / BLOCK_2M) % ENTRIES) as usize;
-        // The image is inside a region the firmware calls Available, so pick
-        // attributes per block rather than per region or our own text ends up
-        // mapped execute-never.
-        let overlaps_image = phys < img_end && phys.saturating_add(BLOCK_2M) > img_start;
-        let attrs = if overlaps_image { &code_attrs } else { &data_attrs };
-        state::l2(slot).set_block(l2_idx, phys, attrs);
+        /*
+         * The image sits inside a region the firmware calls Available, and its
+         * text and read-only data share a block, so a block that touches it is
+         * described page by page. Only when no level 3 table covers the block is
+         * it mapped whole and executable, which the kernel section check then
+         * reports as W^X not held.
+         */
+        let paged = image_map::overlaps_image(phys)
+            && image_map::map_image_block(slot, l1_idx, l2_idx, phys, &data_attrs);
+        if !paged {
+            let attrs = if image_map::overlaps_image(phys) { &code_attrs } else { &data_attrs };
+            state::l2(slot).set_block(l2_idx, phys, attrs);
+        }
         phys = phys.saturating_add(BLOCK_2M);
     }
 }

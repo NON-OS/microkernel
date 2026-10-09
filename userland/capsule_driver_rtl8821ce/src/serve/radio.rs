@@ -19,6 +19,8 @@
 
 use alloc::boxed::Box;
 
+use nonos_libc::{MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32};
+
 use crate::constants::regs::REG_MACID;
 use crate::efuse;
 use crate::fw::dma::Grant;
@@ -93,10 +95,18 @@ fn map_rings(device_id: u64, claim_epoch: u64) -> Option<Rings> {
     Some((tx_ring, tx_buffers, rx_ring, rx_buffers))
 }
 
-// Round a byte count up to whole pages and map it through the broker.
+/*
+ * Round a byte count up to whole pages and map it through the broker,
+ * uncached and below 4 GiB, as rtw88 holds this chip's rings and buffers
+ * (dma_alloc_coherent under a 32-bit mask): the buffer descriptors carry
+ * 32-bit addresses, and on a machine whose remapping unit has no snoop
+ * control a cached ring or buffer can show the card or the driver bytes the
+ * other side already replaced.
+ */
 fn map(device_id: u64, claim_epoch: u64, bytes: usize) -> Option<Grant> {
     let pages = ((bytes + 0xFFF) & !0xFFF) as u64;
-    crate::fwload::map_dma(device_id, claim_epoch, pages)
+    let flags = MK_DMA_MAP_COHERENT | MK_DMA_MAP_DMA32;
+    crate::fwload::map_dma_with(device_id, claim_epoch, pages, flags)
 }
 
 // Bring the radio up: read the board facts the PHY needs from the efuse, load the
@@ -135,6 +145,14 @@ fn phy_setup(regs: &Regs, efuse: Option<efuse::EfuseInfo>) -> Result<(), Stage> 
     rxpath::pre_tables(regs);
     load_all(regs, &cond);
     rxpath::post_tables(regs);
+    // The antenna is shared with Bluetooth; rtw88 hands it to Wi-Fi here, after
+    // the tables and before the first channel. Without it the receiver can sit
+    // on Bluetooth's side of the switch and hear nothing.
+    if crate::coex::take_antenna(regs, info.rfe) {
+        status::line(b"[rtl8821ce] antenna granted to wi-fi\n");
+    } else {
+        status::line(b"[rtl8821ce] coex window did not answer; antenna not granted\n");
+    }
     // The chip does not autoload a MAC, and an all-zero one associates but never
     // completes the four-way, so this must happen after the table load. Drawn
     // rather than read from the efuse; no entropy means no radio.

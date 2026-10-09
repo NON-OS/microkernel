@@ -17,7 +17,6 @@
 // 256 KiB per document, heap-backed, enough for any real source file while
 // keeping a dozen open tabs cheap.
 pub const CAPACITY: usize = 256 * 1024;
-pub const PATH: &[u8] = b"/notes.txt";
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum PromptOp {
@@ -66,6 +65,8 @@ pub struct State {
     // whatever had been half typed, and the next save wrote that instead.
     pub prompt_path: [u8; 256],
     pub prompt_len: usize,
+    /// Save As named an existing file and the next Enter replaces it.
+    pub overwrite_armed: bool,
     pub shell_port: u32,
     // Undo and redo stacks of reversible edits. Every mutation goes through
     // `apply_edit`, so both stay in sync with the buffer.
@@ -73,6 +74,8 @@ pub struct State {
     /// written. Tracked here rather than inferred from the undo depth, because
     /// undoing back to a coincidentally equal depth is not the same document.
     pub dirty: bool,
+    /// Which document state is on disk. See `save_point`.
+    pub saved: super::save_point::SavePoint,
     pub undo: alloc::vec::Vec<super::edit::EditOp>,
     pub redo: alloc::vec::Vec<super::edit::EditOp>,
     // Incremental find: the query being typed and whether the find bar is open.
@@ -98,4 +101,9 @@ pub struct State {
     pub pages: alloc::vec::Vec<crate::doc::page::Page>,
     pub page_metrics: crate::doc::page::PageMetrics,
     pub mode: super::mode::Mode,
+    // The ribbon's formatting, one mark per byte of `buf[..len]`, and each
+    // line's alignment; the edit path moves them with the text and `reflow`
+    // lays them over the rebuilt model (`style_marks`).
+    pub marks: alloc::vec::Vec<super::style_marks::Mark>,
+    pub aligns: alloc::vec::Vec<crate::doc::align::Align>,
 }

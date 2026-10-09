@@ -17,11 +17,15 @@
 //! What a disk holds before it is written, read from its first sectors: a
 //! GPT with a NONOS partition, some other GPT, an MBR, or nothing a
 //! partition tool would recognise. Said beside the disk so a person
-//! erasing it knows what they are erasing.
+//! erasing it knows what they are erasing. A read that fails is said as
+//! such and the disk is not offered: on the HP (6 Oct) a drive that had
+//! stopped answering showed as "unrecognised contents", was offered, and
+//! stalled the install at 2% with status -110. Pure, for the host proofs.
 
-use nonos_disk::PARTITION_NAME;
+use nonos_disk::written_by_nonos;
 
-use crate::device::BlockDevice;
+/// The MBR, the GPT header and the first sector of entries.
+pub const HEAD: usize = 3 * 512;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Contents {
@@ -30,26 +34,29 @@ pub enum Contents {
     OtherGpt,
     Mbr,
     Unknown,
+    /// The read of its first sectors failed with this driver status.
+    Unread(i32),
 }
 
 impl Contents {
-    pub fn probe(device: &BlockDevice) -> Contents {
-        let mut head = [0u8; 3 * 512];
-        if device.sectors < 34 || device.read(0, &mut head).is_err() {
+    /// A disk of `sectors`, its first sectors read by `read`, which answers
+    /// the driver's status when it fails.
+    pub fn read_with(sectors: u64, read: impl FnOnce(&mut [u8; HEAD]) -> Result<(), i32>) -> Self {
+        let mut head = [0u8; HEAD];
+        if sectors < 34 {
             return Contents::Unknown;
         }
+        match read(&mut head) {
+            Ok(()) => Contents::of(&head),
+            Err(status) => Contents::Unread(status),
+        }
+    }
+
+    /// What the MBR, the GPT header and the first entry say.
+    pub fn of(head: &[u8; HEAD]) -> Contents {
         let (mbr, gpt, entry) = (&head[..512], &head[512..1024], &head[1024..1152]);
         if &gpt[0..8] == b"EFI PART" {
-            let mut name = [0u8; 36];
-            for (i, ch) in entry[56..128].chunks(2).enumerate() {
-                name[i] = if ch[1] == 0 { ch[0] } else { b'?' };
-            }
-            let len = name.iter().position(|&b| b == 0).unwrap_or(36);
-            return if &name[..len] == PARTITION_NAME.as_bytes() {
-                Contents::Nonos
-            } else {
-                Contents::OtherGpt
-            };
+            return if written_by_nonos(entry) { Contents::Nonos } else { Contents::OtherGpt };
         }
         if mbr[510] == 0x55 && mbr[511] == 0xAA && mbr[446..510].iter().any(|&b| b != 0) {
             return Contents::Mbr;
@@ -58,15 +65,5 @@ impl Contents {
             return Contents::Blank;
         }
         Contents::Unknown
-    }
-
-    pub fn text(self) -> &'static str {
-        match self {
-            Contents::Blank => "blank",
-            Contents::Nonos => "NONOS installed",
-            Contents::OtherGpt => "another system (GPT)",
-            Contents::Mbr => "another system (MBR)",
-            Contents::Unknown => "unrecognised contents",
-        }
     }
 }

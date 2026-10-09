@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
+mod logical;
 
 use crate::browser::css::computed::Computed;
-use crate::browser::css::vars::resolve;
 
 use super::align::apply_align;
 use super::border::apply_border;
@@ -32,32 +31,20 @@ use super::position::apply_position;
 use super::sizing::apply_sizing;
 use super::text::apply_text;
 
-// Apply one declaration to a computed style. Each domain applier claims the
-// properties it owns and returns true; unknown properties fall through and
-// are ignored.
-pub fn apply_decl(
-    c: &mut Computed,
-    name: &str,
-    value: &str,
-    parent_fs: u32,
-    vars: &[(String, String)],
-) {
-    // Custom property definitions are gathered globally; skip them here.
-    if name.starts_with("--") {
-        return;
-    }
-    // Substitute var() so every value parser below sees a plain literal. A
-    // poisoned substitution invalidates the whole declaration, which is how
-    // theme toggle vars select their fallback arm.
-    let Some(resolved) = resolve(value, vars, 0) else {
-        return;
-    };
-    // light-dark(a, b) picks per color scheme; this browser renders the
-    // light scheme, so the first argument wins.
-    let resolved = crate::browser::css::vars::strip_light_dark(&resolved);
-    let value = resolved.as_str();
+/* Apply one declaration, its value free of var() and light-dark(), to a
+ * computed style. Each domain applier claims the properties it owns and
+ * returns true; an unknown property falls through to false, which is
+ * also how @supports asks whether this engine styles a property. */
+pub fn apply_decl(c: &mut Computed, name: &str, value: &str, parent_fs: u32) -> bool {
     let fs = c.font_size_px;
-    let _ = apply_text(c, name, value, fs, parent_fs)
+    let value = match name {
+        "text-align" => text_align(c, value),
+        _ => value,
+    };
+    if let Some(done) = logical::apply_logical(c, name, value, fs) {
+        return done;
+    }
+    apply_text(c, name, value, fs, parent_fs)
         || apply_margin(c, name, value, fs)
         || apply_padding(c, name, value, fs)
         || apply_border(c, name, value, fs)
@@ -70,5 +57,19 @@ pub fn apply_decl(
         || apply_position(c, name, value, fs)
         || super::float::apply_float(c, name, value)
         || apply_paint(c, name, value, fs)
-        || super::shadow::apply_shadow(c, name, value, fs);
+        || super::shadow::apply_shadow(c, name, value, fs)
+}
+
+/* text-align: -webkit-center aligns text as center does and also centres
+ * the tables inside; any other keyword ends that. */
+fn text_align<'v>(c: &mut Computed, value: &'v str) -> &'v str {
+    let v = value.trim();
+    if v.eq_ignore_ascii_case("-webkit-center") {
+        c.table.center_blocks = true;
+        return "center";
+    }
+    if matches!(v, "left" | "start" | "center" | "right" | "end") {
+        c.table.center_blocks = false;
+    }
+    value
 }

@@ -1,7 +1,8 @@
 # NONOS verification
 
-NONOS proves its guarantees about the code that actually runs. Three layers,
-strongest at the bottom:
+What NONOS checks about its own code, in three layers here and more in the
+tree. The full inventory, with counts and what each piece does not cover, is
+[the proofs page](../docs/handbook/verification/proofs.md).
 
 ## 1. Runnable proofs
 
@@ -25,8 +26,11 @@ classification). Run:
 
 ```sh
 cd userland/fs_proofs
-PATH="$HOME/.cargo/bin:$PATH" cargo test --release
+cargo test --release
 ```
+
+Run it inside `nix develop`. `nix flake check` runs this crate and every other
+`userland/*_proofs` crate, as `proofs-<crate>`.
 
 ## 2. Kani
 
@@ -38,30 +42,35 @@ bounded Ethernet, IPv4, and UDP parser payload bounds. Run:
 
 ```sh
 cd userland/fs_proofs
-PATH="$HOME/.cargo/bin:$PATH" cargo kani --output-format terse
+cargo kani --output-format terse
 ```
 
 ## 3. Verus
 
-`verification/verus` proves theorems about the kernel's own capability bit
-operations, page-table permission encoding, and IPC message length guards. Run:
+`verification/verus` proves theorems about the capability bit operations,
+page-table permission encoding and IPC message length guards, as restated in
+its spec functions. It includes no kernel file, so a kernel change does not
+reach it. Run:
 
 ```sh
 cd verification/verus
 verus --crate-type=lib src/lib.rs
 ```
 
-## Why this is the strong position
+## What is and is not tied to the code
 
-A model-checked or SMT-verified theorem about a separate abstract model still
-has to trust that the running implementation matches the model. Here the specs
-*are* the code the kernel runs (bit operations, the real parsers, the real
-store), so there is **no model-implementation gap**. Machine-checked rigor is
-applied to implementation paths, not to a detached sketch.
+The runnable proofs and Kani compile the shipped source through `#[path]`, so
+a change to that source reaches them. Verus restates the kernel's bit
+operations and rules in its own spec functions, so it proves the restatement,
+and a drift between the two is not caught there. The Lean specification in
+`lean/` is tied to the code by extraction for some modules, by proof crates for
+others, and not at all for the rest; `lean/REFINEMENT.md` names which.
 
-The Lean specification layer runs in CI on every push
-(`.github/workflows/lean.yml`). The runnable, Kani, and Verus layers are
-reproducible with the commands above; their CI gates were dropped in a
-workflow consolidation, and restoring them is tracked in PR #311. Until that
-lands, treat the non-Lean layers as locally reproducible rather than
-continuously enforced.
+## CI
+
+`.github/workflows/verify.yml` runs `nix flake check`, which holds every proof
+crate's tests, and separate jobs for Kani (`kani` on `fs_proofs`,
+`proof-crates-kani` on fifteen more crates, `nonos-attest-path` and the
+loader's `boot_proofs`), Verus, the Lean specification and the extraction.
+`.github/workflows/lean.yml` builds the Lean specification again and fails on
+any `sorryAx` in its axiom profile.

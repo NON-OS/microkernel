@@ -23,26 +23,34 @@ use crate::linux::wayland;
 
 use super::sock::connected;
 
-/// A write is a batch of requests.
+/// A write is a batch of requests: as much of it as the connection has room
+/// for, a short write past that, and EAGAIN with no room at all, as a full
+/// socket answers (`Conn::room`).
 pub fn send(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
-    let take = len.min(1 << 20);
-    let Some(bytes) = guest.read(buf, take as usize) else {
-        return errno::fail(errno::EFAULT);
-    };
     if !connected(guest, fd) {
         return errno::fail(errno::ENOTCONN);
     }
+    let take = len.min(guest.display.room() as u64);
+    if take == 0 && len != 0 {
+        return errno::fail(errno::EAGAIN);
+    }
+    let Some(bytes) = guest.read(buf, take as usize) else {
+        return errno::fail(errno::EFAULT);
+    };
     guest.display.to_server.extend_from_slice(&bytes);
     wayland::serve(guest);
     errno::ok(take)
 }
 
+/// What the server has said, and then the requests that waited for the
+/// client to read it.
 pub fn recv(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     if !connected(guest, fd) {
         return errno::fail(errno::ENOTCONN);
     }
     wayland::pump(guest);
     let bytes = guest.display.drain(len as usize);
+    wayland::serve(guest);
     if bytes.is_empty() {
         // Non-blocking is what a toolkit asks for; it polls.
         return errno::fail(errno::EAGAIN);

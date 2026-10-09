@@ -21,7 +21,12 @@ pub const fn align_up(value: u64, align: u64) -> u64 {
     if align == 0 {
         return value;
     }
-    ((value + align - 1) / align) * align
+    let whole = value / align;
+    if whole * align == value {
+        value
+    } else {
+        (whole + 1) * align
+    }
 }
 
 #[inline]
@@ -34,7 +39,7 @@ pub const fn align_down(value: u64, align: u64) -> u64 {
 
 #[inline]
 pub const fn bitmap_bytes_for_frames(frame_count: usize) -> usize {
-    (frame_count + BITS_PER_BYTE - 1) / BITS_PER_BYTE
+    frame_count.div_ceil(BITS_PER_BYTE)
 }
 
 #[inline]

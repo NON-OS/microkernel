@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::clients::tcp;
-use crate::protocol::{E_NO_TRANSPORT, E_OK};
+use crate::protocol::OP_CONNECT;
 use crate::server::parse_req::Request;
-use crate::sockets::{Kind, SocketKey};
-use crate::state;
+use crate::sockets::SocketKey;
 
-use super::{install_transport, status, wait_established};
+use super::pending;
 
+/// A blocking connect by address. The caller's reply waits until the
+/// handshake resolves; this service does not.
 pub fn update_stream(
     pid: u32,
     req: &Request,
@@ -30,17 +30,5 @@ pub fn update_stream(
     port: u16,
     tx: &mut [u8],
 ) {
-    let transport = match tcp::connect(state::tcp(), ip, port) {
-        Ok(h) => h,
-        Err(_) => return status::status(pid, req, E_NO_TRANSPORT, tx),
-    };
-    if !wait_established::wait_established(state::tcp(), transport) {
-        let _ = tcp::close(state::tcp(), transport);
-        return status::status(pid, req, E_NO_TRANSPORT, tx);
-    }
-    let errno = install_transport::install_transport(key, Kind::Stream, ip, port, transport);
-    if errno != E_OK {
-        let _ = tcp::close(state::tcp(), transport);
-    }
-    status::status(pid, req, errno, tx);
+    pending::start(pid, OP_CONNECT, req, key, ip, port, tx);
 }

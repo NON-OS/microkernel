@@ -24,7 +24,9 @@ pub(super) fn map_block_error(e: BlockDeviceError) -> CryptoBlockError {
         }
         BlockDeviceError::OutOfRange => CryptoBlockError::OutOfRange,
         BlockDeviceError::Unsupported => CryptoBlockError::Unsupported,
-        BlockDeviceError::Dead | BlockDeviceError::Stale => CryptoBlockError::DeviceUnavailable,
+        BlockDeviceError::Dead | BlockDeviceError::Stale | BlockDeviceError::NotReady => {
+            CryptoBlockError::DeviceUnavailable
+        }
         _ => CryptoBlockError::DeviceFailure,
     }
 }

@@ -39,7 +39,7 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
     let rows: [(&[u8], &[u8], bool); 4] = [
         (b"Width (px)", width, dims.is_some()),
         (b"Height (px)", height, dims.is_some()),
-        (b"Format", b"ARGB8888", false),
+        (b"Window format", b"ARGB8888", false),
         (b"Query", b"nonos_display_dimensions(0)", false),
     ];
     for (i, (label, value, num)) in rows.into_iter().enumerate() {

@@ -22,7 +22,7 @@ use super::integer::write_u128;
 
 pub fn format(value: Fixed, decimal_digits_typed: u8, out: &mut [u8]) -> usize {
     let neg = value < 0;
-    let magnitude = if neg { (value as i128).unsigned_abs() } else { value as u128 };
+    let magnitude = if neg { value.unsigned_abs() } else { value as u128 };
     let int_part = magnitude / FRAC as u128;
     let frac_part = magnitude % FRAC as u128;
     let mut buf = [0u8; DISPLAY_MAX];

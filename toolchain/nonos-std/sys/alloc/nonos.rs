@@ -2,8 +2,9 @@
 //
 // A real heap: dlmalloc (the same allocator std uses for wasm/sgx/xous)
 // backed by NONOS page allocation through the MMAP syscall. dlmalloc owns
-// free lists and coalescing, so memory is reclaimed and reused. Capsules
-// are single-threaded; the lock is an uncontended spin for Sync.
+// free lists and coalescing, so memory is reclaimed and reused. A capsule
+// may run several threads (std::thread spawns them with MTSP), so every
+// call takes a spin lock around dlmalloc.
 
 use crate::alloc::{GlobalAlloc, Layout, System};
 use crate::cell::SyncUnsafeCell;

@@ -16,7 +16,7 @@
 
 use nonos_policy_proto::Field;
 
-use crate::settings::schema::rows::{Block, Pill, Row};
+use crate::settings::schema::rows::{Block, Live, Pill, Row};
 
 pub const SOUND: &[Block] = &[
     Block {
@@ -24,15 +24,15 @@ pub const SOUND: &[Block] = &[
         note: None,
         pill: Pill::None,
         rows: &[
+            Row::Live("Output device", Live::AudioOutput),
             Row::Field(Field::SoundEnabled),
             Row::Field(Field::Volume),
-            Row::Field(Field::AudioBalance),
         ],
     },
     Block {
         title: "Alerts",
         note: None,
         pill: Pill::None,
-        rows: &[Row::Field(Field::AlertSounds), Row::Field(Field::StartupChime)],
+        rows: &[Row::Field(Field::AlertSounds)],
     },
 ];

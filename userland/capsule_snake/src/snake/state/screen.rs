@@ -24,21 +24,7 @@ pub enum Screen {
     Rank,
 }
 
-pub const ALL: [Screen; 6] =
-    [Screen::Home, Screen::Setup, Screen::Play, Screen::Pause, Screen::Over, Screen::Rank];
-
 impl Screen {
-    pub fn title(self) -> &'static [u8] {
-        match self {
-            Screen::Home => b"Snake",
-            Screen::Setup => b"New Run",
-            Screen::Play => b"Playing",
-            Screen::Pause => b"Paused",
-            Screen::Over => b"Run Over",
-            Screen::Rank => b"Ranks",
-        }
-    }
-
     // Pause and Over sit over a live board, so the board keeps painting under
     // them rather than being torn down.
     pub fn over_board(self) -> bool {

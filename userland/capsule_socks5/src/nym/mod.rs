@@ -18,8 +18,10 @@
 
 mod address;
 mod base58;
+mod batch;
 mod bind;
 mod bootstrap;
+mod choose;
 mod discover;
 mod exit;
 mod recv;
@@ -29,7 +31,9 @@ mod watch;
 
 pub use address::parse_address;
 pub use bootstrap::{bootstrap_exit, BOOTSTRAP_EXITS};
-pub use exit::{exit, note_delivered, rotate_if_silent, set_exit, Exit};
-pub use recv::{recv_once, Delivery};
+pub use exit::{
+    exit, note_answered, note_delivered, rotate_if_silent, rotations, set_exit, trying_another, Exit,
+};
+pub use recv::{recv_batch, Delivery, E_NO_SESSION};
 pub use send::{connect_request, send_through_mixnet, SendError};
 pub use session::{open_session, reset_session, session};

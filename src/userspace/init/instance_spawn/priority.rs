@@ -42,9 +42,14 @@ pub(in crate::userspace::init) fn adopt(pid: u32) {
 }
 
 /// Lift the drain out of the band the scheduler reaches only when nothing
-/// else is ready. Called with the queue lock held, right after a push.
-pub(super) fn raise() {
+/// else is ready, and wake it if it is parked between passes. Called right
+/// after a push, from the syscall that queued the work.
+pub(in crate::userspace::init) fn raise() {
     set(Priority::Normal);
+    let pid = INIT_PID.load(Ordering::Relaxed);
+    if pid != 0 {
+        crate::sched::wake_process(pid);
+    }
 }
 
 /// Hand the CPU back to the capsules. Called with the queue lock held,
@@ -53,7 +58,12 @@ pub(super) fn restore() {
     set(Priority::Low);
 }
 
-fn set(prio: Priority) {
+/*
+ * The scheduler takes every ready process's priority lock from the timer
+ * interrupt, so the lock is only ever held here with interrupts off: taken
+ * with them on, a tick landing inside it spins forever on one CPU.
+ */
+pub(in crate::userspace::init) fn set(prio: Priority) {
     let pid = INIT_PID.load(Ordering::Relaxed);
     if pid == 0 {
         return;

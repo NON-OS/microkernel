@@ -8,6 +8,7 @@
 
 extern crate alloc;
 
+#[cfg(feature = "nonos-tool-capsules")]
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified, SpawnError};
 use crate::security::nonos_id_cert::IdCertVerifyError;
@@ -17,24 +18,31 @@ use crate::security::nonos_trust_anchor::{
 
 /// A tool capsule baked into the kernel image: its endpoint identity and the
 /// signed cert, manifest, and STARK attestation trailer the spawner verifies.
-pub struct ToolCapsule {
-    pub name: &'static str,
-    pub service_port: u32,
-    pub reply_inbox: &'static str,
-    pub reply_port: u32,
-    pub elf: &'static [u8],
-    pub cert: &'static [u8],
-    pub manifest: &'static [u8],
-    pub attestation: &'static [u8],
+pub(super) struct ToolCapsule {
+    pub(super) name: &'static str,
+    pub(super) service_port: u32,
+    pub(super) reply_inbox: &'static str,
+    pub(super) reply_port: u32,
+    pub(super) elf: &'static [u8],
+    pub(super) cert: &'static [u8],
+    pub(super) manifest: &'static [u8],
+    pub(super) attestation: &'static [u8],
     /// What the tool is spawned with. Generated crates.io tools get the
     /// sandbox set; a first-party tool declares more at its registry entry,
     /// and the manifest it ships with has to agree or the spawn refuses.
-    pub caps: u64,
+    pub(super) caps: u64,
 }
 
-/// Execute, IPC, memory: what every crates.io tool runs with.
-pub const SANDBOX_CAPS: u64 =
-    Capability::CoreExec.bit() | Capability::IPC.bit() | Capability::Memory.bit();
+/// Execute, IPC, memory and the filesystem: what every crates.io tool runs
+/// with. FileSystem because a tool opens the files the person names through
+/// std::fs, which the std platform layer sends to vfs, and vfs serves only a
+/// holder of it. Every generated manifest names the same set, required and
+/// as its ceiling (tools/nonos-app), or the spawn gate refuses the grant.
+#[cfg(feature = "nonos-tool-capsules")]
+pub(super) const SANDBOX_CAPS: u64 = Capability::CoreExec.bit()
+    | Capability::IPC.bit()
+    | Capability::Memory.bit()
+    | Capability::FileSystem.bit();
 
 impl ToolCapsule {
     /// Verify the artifacts under the baked trust anchor and spawn the tool with
@@ -43,7 +51,7 @@ impl ToolCapsule {
     /// caller feeds its stdin and drains its stdout, and `argv` (a NUL-separated
     /// `name\0arg1\0...` blob) becomes the tool's argument vector. Returns the
     /// tool's pid.
-    pub fn spawn_with_args(&self, argv: &[u8]) -> Result<u32, SpawnError> {
+    pub(super) fn spawn_with_args(&self, argv: &[u8]) -> Result<u32, SpawnError> {
         let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
             .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
         let spec = CapsuleSpecVerified {

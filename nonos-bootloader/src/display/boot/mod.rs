@@ -14,23 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chips;
 mod crypto;
 mod error;
 mod handoff;
 mod init;
 pub mod layout;
 mod progress;
+mod proofs;
+mod refusal;
 mod stage;
 mod status_line;
-mod vignette;
-mod wordmark;
+mod steps;
 
-pub use crypto::{animate_hash_reveal, show_crypto_verification, BootCryptoState};
+pub use crypto::{animate_hash_reveal, BootCryptoState};
 pub use error::show_error_screen;
 pub use handoff::show_handoff_message;
-pub use init::{init_boot_screen, reset_animation, tick_animation};
+pub use init::{draw_log_card, init_boot_screen, reset_animation, tick_animation};
 pub use progress::draw_boot_progress;
+pub use proofs::{show_proofs, Proofs};
 pub use stage::{get_boot_progress_percent, update_stage, StageStatus};
 pub use status_line::draw_status_line;
-pub use wordmark::draw_wordmark;

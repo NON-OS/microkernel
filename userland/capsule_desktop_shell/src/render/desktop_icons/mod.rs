@@ -27,4 +27,4 @@ mod slot;
 mod top;
 
 pub use hit::hit;
-pub use paint::paint_desktop_icons;
+pub use paint::{paint_desktop_icons, paint_drag_ghost};

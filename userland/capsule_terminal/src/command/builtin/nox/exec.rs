@@ -18,7 +18,7 @@ use alloc::vec::Vec;
 use nonos_libc::mk_time_millis;
 
 use super::install::call_installer;
-use crate::jobs::{submit, JobWork};
+use crate::jobs::{submit, JobWork, StdinQueue};
 use crate::term::state::State;
 
 // exec <name> [argv...]: load the store capsule <name> through the installer
@@ -39,7 +39,8 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     let argv = argv_blob(stem, &args[1..]);
     match call_installer(stem, &argv) {
         Ok(pid) => {
-            let work = JobWork::ExternalStage { pid, in_buf: Vec::new(), in_cursor: 0 };
+            crate::jobs::tty::attach(state, pid);
+            let work = JobWork::ExternalStage { pid, stdin: StdinQueue::new(false), capture: None };
             let _ = submit(state, stem, false, work);
             state.fg_running = true;
             state.fg_started_ms = mk_time_millis();

@@ -14,11 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(feature = "nonos-audio-player-smoketest")]
 use nonos_libc::mk_debug;
 
+/// A boot-harness marker ("[PLAYER] up", "pause-sent", "eof"). Printed in the
+/// smoketest build, whose harness reads them; the image a person runs wrote
+/// one to the serial console for every pause, resume and track end.
+#[cfg(feature = "nonos-audio-player-smoketest")]
 pub fn mark(s: &str) {
     let _ = mk_debug(s.as_ptr(), s.len());
 }
+
+#[cfg(not(feature = "nonos-audio-player-smoketest"))]
+pub fn mark(_s: &str) {}
 
 #[cfg(feature = "nonos-audio-player-smoketest")]
 pub fn mark_frames(n: u64) {

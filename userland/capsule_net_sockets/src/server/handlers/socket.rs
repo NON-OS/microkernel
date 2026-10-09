@@ -33,7 +33,12 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         Ok(_) => return status(pid, req, E_BAD_KIND, tx),
         Err(e) => return status(pid, req, e, tx),
     };
-    match SOCKETS.open(pid, kind) {
+    // A full table may be full of sockets whose clients have ended.
+    let opened = SOCKETS.open(pid, kind).or_else(|| {
+        super::reap::reap_dead();
+        SOCKETS.open(pid, kind)
+    });
+    match opened {
         Some(key) => {
             tx[20..24].copy_from_slice(&key.handle.to_le_bytes());
             respond(pid, OP_SOCKET, E_OK, req.request_id, 4, tx);

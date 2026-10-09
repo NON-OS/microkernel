@@ -14,28 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The entry array: 128 slots of 128 bytes, the first holding the ESP and
-//! the rest zero. The name is what partition tools and firmware menus show,
-//! and it is fixed, so a disk NONOS wrote can be told from one something
-//! else wrote by reading sector 2.
+//! The entry array: one entry per partition in disk order, the rest zero.
+//!
+//! ```text
+//!   0..16 type   16..32 unique   32..40 first LBA   40..48 last LBA
+//!   48..56 attributes            56..128 name, UTF-16LE, 36 units
+//! ```
 
 use alloc::vec::Vec;
 
-use super::layout::{Layout, ENTRY_COUNT, ENTRY_SIZE};
+use super::shape::{ENTRY_COUNT, ENTRY_SIZE};
 use crate::guid::Guid;
+use crate::layout::{Layout, Region};
 
-pub const PARTITION_NAME: &str = "NONOS-ESP";
-
-pub fn build_array(layout: &Layout, partition_guid: Guid) -> Vec<u8> {
+pub fn build_array(layout: &Layout, unique: &[Guid; 4]) -> Vec<u8> {
     let mut a = alloc::vec![0u8; (ENTRY_COUNT * ENTRY_SIZE) as usize];
-    let e = &mut a[..ENTRY_SIZE as usize];
-    e[0..16].copy_from_slice(&Guid::ESP.0);
-    e[16..32].copy_from_slice(&partition_guid.0);
-    e[32..40].copy_from_slice(&layout.esp_first_lba.to_le_bytes());
-    e[40..48].copy_from_slice(&layout.esp_last_lba.to_le_bytes());
-    // Attributes stay zero: not marked required, not legacy bootable.
-    for (i, ch) in PARTITION_NAME.encode_utf16().enumerate().take(36) {
-        e[56 + i * 2..58 + i * 2].copy_from_slice(&ch.to_le_bytes());
+    for (i, (region, id)) in Region::ALL.iter().zip(unique).enumerate() {
+        let at = i * ENTRY_SIZE as usize;
+        let e = &mut a[at..at + ENTRY_SIZE as usize];
+        let extent = layout.extent(*region);
+        e[0..16].copy_from_slice(&region.type_guid().0);
+        e[16..32].copy_from_slice(&id.0);
+        e[32..40].copy_from_slice(&extent.first.to_le_bytes());
+        e[40..48].copy_from_slice(&extent.last().to_le_bytes());
+        e[48..56].copy_from_slice(&region.attributes().to_le_bytes());
+        for (j, ch) in region.name().encode_utf16().enumerate().take(36) {
+            e[56 + j * 2..58 + j * 2].copy_from_slice(&ch.to_le_bytes());
+        }
     }
     a
 }

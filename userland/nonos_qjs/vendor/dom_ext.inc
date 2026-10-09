@@ -105,8 +105,32 @@ static const char *const g_reflected[][2] = {
     {"role", "role"}, {"lang", "lang"}, {"dir", "dir"}, {"content", "content"},
     {"srcset", "srcset"}, {"sizes", "sizes"}, {"loading", "loading"},
     {"htmlFor", "for"}, {"tabIndex", "tabindex"}, {"colSpan", "colspan"},
-    {"rowSpan", "rowspan"}, {"maxLength", "maxlength"}, {"value", "value"}, {0, 0},
+    {"rowSpan", "rowspan"}, {"maxLength", "maxlength"}, {0, 0},
 };
+
+/* value is what the control holds, which the browser reads as a submit
+ * does: the option a select shows, the text of a textarea the page filled
+ * in. Reading the attribute answered empty for both, and setting it chose
+ * no option. */
+extern char *njs_dom_get_value(void *host, int node);
+extern void njs_dom_set_value(void *host, int node, const char *v);
+static JSValue get_value(JSContext *ctx, JSValueConst t, int a, JSValueConst *v) {
+    (void)a; (void)v;
+    char *s = njs_dom_get_value(JS_GetContextOpaque(ctx), node_of(ctx, t));
+    if (!s) return JS_NewString(ctx, "");
+    JSValue r = JS_NewString(ctx, s);
+    free(s);
+    return r;
+}
+static JSValue set_value(JSContext *ctx, JSValueConst t, int a, JSValueConst *v) {
+    if (a < 1) return JS_UNDEFINED;
+    const char *s = JS_ToCString(ctx, v[0]);
+    if (s) {
+        njs_dom_set_value(JS_GetContextOpaque(ctx), node_of(ctx, t), s);
+        JS_FreeCString(ctx, s);
+    }
+    return JS_UNDEFINED;
+}
 
 /* Properties that are present or absent rather than set to a string. Writing
  * "false" would leave a control disabled by the code that meant to enable
@@ -177,6 +201,7 @@ static void install_element_ext(JSContext *ctx, JSValueConst el) {
     accessor(ctx, el, "previousSibling", get_prev_sibling, 0);
     accessor(ctx, el, "parentElement", get_parent_element, 0);
     accessor(ctx, el, "children", get_children, 0);
+    accessor(ctx, el, "value", get_value, set_value);
     for (int i = 0; g_reflected[i][0]; i++)
         accessor_magic(ctx, el, g_reflected[i][0], get_reflected, set_reflected, i);
     for (int i = 0; g_presence[i]; i++)

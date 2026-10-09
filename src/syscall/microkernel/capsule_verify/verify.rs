@@ -74,7 +74,7 @@ pub(super) fn run(
     )
     .map_err(|_| ERRNO_ACCES)?;
     let tier = classify_tier(manifest.namespace_str());
-    super::gate::check(&tier, &manifest, elf, trailer)?;
+    super::gate::check(&manifest, elf, trailer)?;
     Ok(Verified { manifest, tier, install_caps: verification.1 })
 }
 

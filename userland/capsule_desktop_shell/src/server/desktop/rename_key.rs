@@ -24,6 +24,13 @@ const KEY_ENTER: u32 = 0x0D;
 const KEY_ESC: u32 = 0x1B;
 const MAX_NAME: usize = 64;
 
+/// Ctrl+V while renaming: the clipboard's first line, appended to the name.
+pub fn rename_paste(ctx: &mut Context) {
+    let mut name = core::mem::take(&mut ctx.rename_buf);
+    crate::server::paste::paste_into(ctx, &mut name, MAX_NAME);
+    ctx.rename_buf = name;
+}
+
 pub fn rename_key(ctx: &mut Context, code: u32) {
     match code {
         KEY_ENTER => super::commit_rename::commit_rename(ctx),

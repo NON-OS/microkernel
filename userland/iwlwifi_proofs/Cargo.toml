@@ -15,6 +15,10 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+# The bring-up's release path: its four release calls, recorded by the shim.
+nonos_libc = { package = "iwlwifi_proofs_libc_shim", path = "libc_shim" }
+# The scan list and beacon parsing the gen3 scan feeds, as the capsule links them.
+nonos_wifi_core = { path = "../nonos_wifi_core" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

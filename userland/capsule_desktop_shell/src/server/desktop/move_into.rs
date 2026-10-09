@@ -17,10 +17,9 @@
 //! Move a desktop item into a folder by renaming it under that folder's path,
 //! then re-sync. Both indices are into the root listing.
 
+use super::home::home_path;
+use crate::state::Context;
 use alloc::format;
-use nonos_libc::mk_time_millis;
-
-use crate::state::{Context, NotifyLevel};
 
 pub fn move_into(ctx: &mut Context, src: usize, folder: usize) {
     if src == folder {
@@ -38,14 +37,16 @@ pub fn move_into(ctx: &mut Context, src: usize, folder: usize) {
         return;
     }
     // Same home prefix the listing uses, for the same reason.
-    let home = core::str::from_utf8(super::refresh::HOME).unwrap_or("/");
-    let old = format!("{home}/{src_name}");
-    let new = format!("{home}/{}/{}", folder_item.name, src_name);
-    if crate::vfs_client::rename(old.as_bytes(), new.as_bytes()) {
-        let _ = super::refresh::refresh(ctx);
-    } else {
+    let (Some(old), Some(folder_path)) = (home_path(&src_name), home_path(&folder_item.name))
+    else {
+        return;
+    };
+    let new = format!("{folder_path}/{src_name}");
+    match crate::vfs_client::rename(old.as_bytes(), new.as_bytes()) {
+        Ok(()) => {
+            let _ = super::refresh::refresh(ctx);
+        }
         // The icon just sprang back to where it started, unexplained.
-        let now = mk_time_millis();
-        ctx.toasts.push(b"could not move", NotifyLevel::Error, now);
+        Err(code) => super::say::refused(ctx, b"Could not move: ", code),
     }
 }

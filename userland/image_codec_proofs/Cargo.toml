@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the image codec service's decode path. Builds for
+# the host so `cargo test` runs the codec's own size check and buffer and the
+# toolkit's PNG, BMP, GIF, JPEG and raw decoders (included via #[path] and as
+# a dependency) against damaged images any app can hand the service.
+# It also runs the table of decoded outputs the service holds for its
+# clients, and when each is let go.
+[package]
+name = "image_codec_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_toolkit = { path = "../toolkit", default-features = false }

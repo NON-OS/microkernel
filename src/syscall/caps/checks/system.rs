@@ -39,6 +39,17 @@ impl CapabilityToken {
     pub fn can_attest_read(&self) -> bool {
         self.grants(Capability::AttestRead) && self.is_valid()
     }
+    /// A TPM quote names the machine permanently, so it is never handed to a
+    /// capsule that holds `Network`, whatever else it holds.
+    #[inline]
+    pub fn can_attest_doc(&self) -> bool {
+        self.grants(Capability::AttestRead) && self.is_valid() && !self.reaches_network()
+    }
+    /// Not a grant: the one thing that disqualifies a caller from a quote.
+    #[inline]
+    fn reaches_network(&self) -> bool {
+        self.grants(Capability::Network)
+    }
     #[inline]
     pub fn can_store_write(&self) -> bool {
         self.grants(Capability::StoreWrite) && self.is_valid()
@@ -46,5 +57,15 @@ impl CapabilityToken {
     #[inline]
     pub fn can_foreign_exec(&self) -> bool {
         self.grants(Capability::ForeignExec) && self.is_valid()
+    }
+    /// The right to stream a pinned file into the data volume, and no other.
+    #[inline]
+    pub fn can_stream_import(&self) -> bool {
+        self.grants(Capability::StreamImport) && self.is_valid()
+    }
+    /// The right to receive this machine's device secret, held by nonos.prove alone.
+    #[inline]
+    pub fn can_device_secret(&self) -> bool {
+        self.grants(Capability::DeviceSecret) && self.is_valid()
     }
 }

@@ -15,23 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::constants::MAC_LEN;
-use crate::discover::find_rtl8139;
+use crate::discover::Found;
 use crate::pio::Pio;
 
 use super::driver::Driver;
-use super::{claim, dma, irq, pci, pio_grant};
+use super::{claim, dma, pci, pio_grant};
 
-pub fn run() -> Result<Driver, &'static str> {
-    let dev = find_rtl8139().ok_or("no rtl8139 device")?;
+/// Claim the card discovery found and take its grants. A failing step gives
+/// back what the earlier ones took.
+pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let epoch = claim::claim(dev.device_id)?;
     pci::enable(dev, epoch)?;
     let pio = pio_grant::grant(dev, epoch)?;
-    let irq = irq::bind(dev, epoch, &pio)?;
-    let (rx, tx) = dma::map_all(dev.device_id, epoch, &pio, &irq)?;
+    let (rx, tx) = dma::map_all(dev.device_id, epoch, &pio)?;
     Ok(Driver {
         device_id: dev.device_id,
         pio_grant: pio.grant_id,
-        irq_grant: irq.grant_id,
         rx_grant: rx.grant_id,
         tx_grant: tx.grant_id,
         rx_user_va: rx.user_va,
@@ -40,6 +39,7 @@ pub fn run() -> Result<Driver, &'static str> {
         tx_device_addr: tx.device_addr,
         rx_offset: 0,
         tx_cur: 0,
+        tx_dirty: 0,
         pio: Pio::new(pio.grant_id),
         mac: [0u8; MAC_LEN],
     })

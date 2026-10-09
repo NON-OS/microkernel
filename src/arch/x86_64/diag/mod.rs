@@ -21,6 +21,7 @@ mod fatal_notice;
 mod print_hex;
 #[cfg(feature = "nonos-user-entry-proof")]
 mod user_proof;
+mod walk_fault;
 
 pub use dump_gdt::dump_gdt;
 pub use dump_trap::dump_trap;

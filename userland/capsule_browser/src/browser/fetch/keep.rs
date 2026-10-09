@@ -18,12 +18,14 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::types::TlsCtx;
+use crate::browser::net::mixnet::Way;
 
-// One kept-alive TLS connection between image fetches, so a run of same-host
-// images pays a single handshake. The response buffer persists across
-// requests: server record sequence numbers continue from the handshake, so
-// decryption always walks the connection's records from the start, and
-// `consumed` marks where the next response begins in the plaintext.
+/*
+ * The one TLS connection stash() holds between image fetches. The pool takes
+ * it into its own list of kept connections as soon as the image is done, so
+ * the slot is always free for the next. The ciphertext buffer persists, and
+ * `consumed` marks where the next response begins in the plaintext.
+ */
 pub struct KeptConn {
     pub host: String,
     pub port: u16,
@@ -31,14 +33,15 @@ pub struct KeptConn {
     pub tls: TlsCtx,
     pub buf: Vec<u8>,
     pub consumed: usize,
-    // Client application records sent so far; the next request seals at this
-    // sequence number.
+    /* Client application records sent so far: the next request's sequence. */
     pub tx_seq: u64,
     pub used: u8,
+    pub way: Way,
 }
 
-// Recycle the connection before the accumulated ciphertext makes each
-// per-tick decryption walk too expensive, and before sequence reuse could
-// ever be in question.
+/*
+ * A connection is recycled before its buffer grows past this, and before
+ * sequence reuse could ever be in question.
+ */
 pub const MAX_KEEP_BYTES: usize = 768 * 1024;
 pub const MAX_KEEP_USES: u8 = 32;

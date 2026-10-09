@@ -17,20 +17,22 @@
 //! Did that click land on the magnifier? Answered from the same box the
 //! painter drew into.
 
-use crate::state::indicators::battery;
 use crate::state::indicators::clock_stamp::{stamp, STAMP_LEN};
+use crate::state::indicators::{battery, battery_text};
 use crate::state::Context;
 
-use super::search_box::search_box;
+use super::search_box::{fitted, search_box};
 
 pub fn search_hit(ctx: &Context, px: u32, py: u32) -> bool {
-    let mut bbuf = [0u8; 4];
-    let blen = battery::label(&mut bbuf);
+    let mut bbuf = [0u8; battery_text::LABEL_MAX];
+    let blen = battery_text::label(battery::percent(), &mut bbuf);
     let mut sbuf = [b'-'; STAMP_LEN];
-    let stamped = stamp(&mut sbuf, ctx.clock_24h);
-    let when: &[u8] = if stamped { &sbuf } else { b"--:--" };
-
-    match search_box(ctx, &bbuf[..blen], when) {
+    let when: &[u8] = match stamp(&mut sbuf, ctx.clock_24h, ctx.tz_hours) {
+        Some(n) => &sbuf[..n],
+        None => b"--:--",
+    };
+    let btext = fitted(ctx, &bbuf[..blen], when);
+    match search_box(ctx, btext, when) {
         Some((x, y, w)) => px >= x && px < x + w && py >= y && py < y + w,
         None => false,
     }

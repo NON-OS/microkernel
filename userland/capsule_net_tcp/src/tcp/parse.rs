@@ -16,6 +16,7 @@
 
 use super::checksum::compute;
 use super::header::{TcpHeader, HDR_LEN_MIN};
+use super::options::peer_mss;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ParseError {
@@ -50,6 +51,7 @@ pub fn parse<'a>(
         ack: be32(segment, 8),
         flags: segment[13],
         window: u16::from_be_bytes([segment[14], segment[15]]),
+        mss: peer_mss(&segment[HDR_LEN_MIN..header_len]),
     };
     Ok((hdr, &segment[header_len..]))
 }

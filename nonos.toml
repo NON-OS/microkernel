@@ -1,0 +1,49 @@
+# The one NONOS build. `nix build` builds what this file says; `nix build
+# .#<profile>` builds a profile with the rest of this file unchanged. Every key
+# is optional, and the values below are the defaults.
+
+# The kind of image. A profile sets floors: asking it for less fails.
+#   standard   the full system for real hardware: every driver, the desktop,
+#              first-boot setup and the installer
+#   hardened   standard, with Secure Boot and a TPM required at boot and no
+#              serial console for capsules
+#   airgapped  hardened, with no network driver, stack or online program
+#              compiled in; it installs only from offline media
+#   qemu       the desktop for virtual machines, without the drivers only real
+#              hardware has
+#   dev        qemu with the loader's development policy; never sealed for
+#              release
+#   core       the microkernel and its base capsules, no desktop
+profile = "standard"
+
+# Bring up every CPU the machine has.
+smp = true
+
+# Every boot is amnesic: nothing is kept unless the person chooses to install
+# in first-boot setup. With install = false the image has no first-boot setup
+# and no installer, so no boot of it can ever keep anything or write a disk.
+install = true
+
+# The anti-rollback index bound into the signed kernel. Raise it only for a
+# security release.
+rollback_index = 1
+
+# Extra kernel features, for a lane that needs one. Checked against Cargo.toml.
+features = []
+
+# The bootloader policy comes from the profile. Uncomment to ask for a
+# stricter one: dev-qemu, standard-qemu, standard, production.
+# loader = "production"
+
+# The NONOS package mirror, name:port, that the in-tree tools an image does
+# not carry (tclsh, mruby, rg, fd, gojq, perl, nano, make, openssl) are
+# installed from, from
+# the Marketplace's Linux tab. Empty: the image lists none and has no such
+# mirror. Set, the seal lists them and writes each one's content to
+# <out>/packages/<blake3>.tar, to be served from the mirror at /linux/.
+linux_packages = ""
+
+# What the package store carries besides the capsules.
+[store]
+linux = true   # every Linux tool (python3, perl, tclsh, ...), the Qwen runner
+media = true   # the sample films

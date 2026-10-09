@@ -22,7 +22,8 @@ use alloc::vec::Vec;
 use super::flight::read_flight;
 use super::response::read_response;
 use super::traits::{Io, SessionError};
-use crate::handshake_fault::handshake_fault;
+use crate::app_reader::AppReader;
+use crate::handshake_state::Refusal;
 
 /// Bound on the handshake flight, so a server cannot make a caller allocate
 /// without limit before anything has been verified.
@@ -43,24 +44,23 @@ pub fn exchange<S: Io>(
     let cf = crate::client_flight(host.as_bytes()).ok_or(SessionError::Init)?;
     io.write_all(&cf.record)?;
 
-    let flight = read_flight(io, MAX_FLIGHT)?;
+    let (flight, state, end) = read_flight(io, &cf, MAX_FLIGHT)?;
 
-    // The certificate chain is checked here, inside application_write. A
-    // failure has to stop the request: sending it anyway would hand the
-    // payload to whoever answered.
-    let Some(out) = crate::application_write(&cf, &flight, request, host.as_bytes(), now) else {
-        return Err(handshake_fault(&cf, &flight, SessionError::Certificate));
-    };
+    /*
+     * The chain, the CertificateVerify and Finished are checked here, once,
+     * and the request is sealed only if all of them passed: sending it anyway
+     * would hand the payload to whoever answered.
+     */
+    let answer = state.answer(host.as_bytes(), now, request).map_err(|refusal| match refusal {
+        Refusal::Alert(description) => SessionError::PeerAlert(description),
+        Refusal::Unverified => SessionError::Certificate,
+        Refusal::Incomplete | Refusal::Seal => SessionError::Handshake,
+    })?;
+    io.write_all(&answer.flight)?;
 
-    // Derive the server keys once, from the same verified handshake, so the
-    // response decrypts without walking the chain again per record.
-    let app = crate::server_complete(&cf, &flight, host.as_bytes(), now).map(|sc| sc.app);
-    io.write_all(&out)?;
-
-    let buf = read_response(io, limit)?;
-    match app {
-        Some(app) => Ok(crate::application_plaintext_cached(&app, &buf)),
-        None => crate::application_plaintext(&cf, &flight, &buf, host.as_bytes(), now)
-            .ok_or_else(|| handshake_fault(&cf, &flight, SessionError::Certificate)),
-    }
+    /* Whatever followed the server's Finished in the same read is response. */
+    let buf = read_response(io, flight[end..].to_vec(), limit)?;
+    let mut reader = AppReader::new();
+    reader.feed(&answer.app, &buf);
+    Ok(reader.into_plaintext())
 }

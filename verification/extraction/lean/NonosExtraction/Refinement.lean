@@ -66,6 +66,8 @@ def idx : capabilities.types.defs.Capability → Nat
   | .AttestRead => 31
   | .ForeignExec => 32
   | .LocalSign => 33
+  | .StreamImport => 34
+  | .DeviceSecret => 35
 
 theorem idx_lt_64 (cap : capabilities.types.defs.Capability) : idx cap < 64 := by
   cases cap <;> decide

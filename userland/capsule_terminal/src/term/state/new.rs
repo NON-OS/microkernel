@@ -32,7 +32,6 @@ impl State {
             cwd: Cwd::new(),
             owner_pid: mk_getpid(),
             fresh: true,
-            start_ms: 0,
             vars: alloc::vec![(alloc::vec::Vec::from(&b"HOME"[..]), alloc::vec::Vec::from(HOME))],
             last_status: 0,
             aliases: alloc::vec::Vec::new(),
@@ -44,6 +43,9 @@ impl State {
             jobs: JobTable::new(),
             fg_running: false,
             fg_started_ms: 0,
+            sel: None,
+            find: None,
+            cooked: crate::event::cooked::Cooked::default(),
         }
     }
 }

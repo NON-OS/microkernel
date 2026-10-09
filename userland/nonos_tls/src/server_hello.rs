@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::{
-    EXT_KEY_SHARE, EXT_SUPPORTED_VERSIONS, GROUP_X25519, SUITE_AES128_GCM_SHA256,
-    SUITE_CHACHA20_SHA256, TLS13,
+    EXT_KEY_SHARE, EXT_SUPPORTED_VERSIONS, SUITE_AES128_GCM_SHA256, SUITE_CHACHA20_SHA256, TLS13,
 };
+use super::server_share::ServerShare;
 
-// Parse the server's chosen cipher suite and X25519 key share. Only the two
-// suites we can key and seal are accepted.
-pub fn key_share(handshake: &[u8]) -> Option<(u16, [u8; 32])> {
+// Parse the server's chosen cipher suite and key share, X25519 or secp256r1.
+// Only the two suites we can key and seal are accepted.
+pub fn key_share(handshake: &[u8]) -> Option<(u16, ServerShare)> {
     if handshake.first() != Some(&2) {
         return None;
     }
@@ -43,7 +43,7 @@ pub fn key_share(handshake: &[u8]) -> Option<(u16, [u8; 32])> {
     Some((suite, share))
 }
 
-fn parse_exts(mut exts: &[u8]) -> Option<[u8; 32]> {
+fn parse_exts(mut exts: &[u8]) -> Option<ServerShare> {
     let mut version_ok = false;
     let mut share = None;
     while exts.len() >= 4 {
@@ -53,7 +53,7 @@ fn parse_exts(mut exts: &[u8]) -> Option<[u8; 32]> {
         if kind == EXT_SUPPORTED_VERSIONS {
             version_ok = body == TLS13.to_be_bytes();
         } else if kind == EXT_KEY_SHARE {
-            share = parse_keyshare(body);
+            share = super::server_share::parse(body);
         }
         exts = super::read::slice(exts, 4 + len, exts.len().saturating_sub(4 + len))?;
     }
@@ -62,13 +62,4 @@ fn parse_exts(mut exts: &[u8]) -> Option<[u8; 32]> {
     } else {
         None
     }
-}
-
-fn parse_keyshare(body: &[u8]) -> Option<[u8; 32]> {
-    if super::read::u16_at(body, 0)? != GROUP_X25519 || super::read::u16_at(body, 2)? != 32 {
-        return None;
-    }
-    let mut out = [0u8; 32];
-    out.copy_from_slice(super::read::slice(body, 4, 32)?);
-    Some(out)
 }

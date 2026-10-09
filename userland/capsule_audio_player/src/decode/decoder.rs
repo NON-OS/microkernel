@@ -22,8 +22,16 @@ pub struct AudioInfo {
 
 pub trait Decoder {
     fn info(&self) -> AudioInfo;
+    /// The format the decoder reads, as Now Playing names it: what the
+    /// file's bytes turned out to be, not what its name says.
+    fn kind(&self) -> &'static str;
     fn next(&mut self, out: &mut [i16]) -> usize;
     fn seek(&mut self, _frame: u64) -> bool {
+        false
+    }
+    /// Back to the first sample, so one decoder can be read through for the
+    /// waveform and then played without a second copy of the file.
+    fn rewind(&mut self) -> bool {
         false
     }
 }

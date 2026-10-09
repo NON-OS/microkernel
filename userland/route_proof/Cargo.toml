@@ -1,0 +1,33 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# What an anonymity transport reports about its route, and what may be
+# concluded from it. Pure and dependency free: net.anon and net.nym encode a
+# report, the attest service checks who sent it and keeps it, and About decides
+# from it, with every rule proven on the host by route_proof_proofs.
+[package]
+name = "nonos_route_proof"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS anonymity route reports and their verdicts"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

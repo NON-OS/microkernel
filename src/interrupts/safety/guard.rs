@@ -14,9 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::arch::cpu::{disable_interrupts, enable_interrupts, interrupts_enabled};
+
 /// # Safety
 /// RAII guard that disables interrupts on creation and restores on drop.
 /// Ensures interrupts are properly restored even on panic.
+///
+/// The mask, the restore and the enabled check all route through the
+/// active arch backend (`<Arch as ArchOps>`), so the guard masks on
+/// every target. On x86_64 that clears IF (CLI/STI); on aarch64 it
+/// sets and clears the DAIF I bit. A no-op backend would leave the
+/// guarded region running with interrupts live.
 pub struct InterruptGuard {
     was_enabled: bool,
 }
@@ -45,39 +53,4 @@ impl Drop for InterruptGuard {
 /// Creates RAII guard that disables interrupts until dropped.
 pub fn disable_interrupts_guard() -> InterruptGuard {
     InterruptGuard::new()
-}
-
-/// # Safety
-/// Checks if interrupts are currently enabled via FLAGS register.
-fn interrupts_enabled() -> bool {
-    #[cfg(target_arch = "x86_64")]
-    {
-        let flags: u64;
-        unsafe {
-            core::arch::asm!("pushfq; pop {}", out(reg) flags, options(nomem, preserves_flags));
-        }
-        (flags & 0x200) != 0
-    }
-    #[cfg(not(target_arch = "x86_64"))]
-    {
-        false
-    }
-}
-
-/// # Safety
-/// Disables interrupts via CLI instruction.
-fn disable_interrupts() {
-    #[cfg(target_arch = "x86_64")]
-    unsafe {
-        core::arch::asm!("cli", options(nomem, nostack, preserves_flags));
-    }
-}
-
-/// # Safety
-/// Enables interrupts via STI instruction.
-fn enable_interrupts() {
-    #[cfg(target_arch = "x86_64")]
-    unsafe {
-        core::arch::asm!("sti", options(nomem, nostack, preserves_flags));
-    }
 }

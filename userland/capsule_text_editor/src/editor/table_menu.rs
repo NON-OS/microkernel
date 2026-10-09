@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Table menu actions. Every row but the first needs a table under the caret,
-//! so a miss reports why instead of failing quietly.
+//! Table menu actions. Tables need the page view, every row but the first
+//! needs a table under the caret, and any of them can run out of room, so a
+//! miss reports which of those it was instead of failing quietly.
 
 use super::app::Editor;
-use super::unsupported::NO_TABLE_AT_CARET;
+use super::mode::Mode;
+use super::unsupported::{NO_DOC_MODE, NO_ROOM, NO_TABLE_AT_CARET};
 
 impl Editor {
     pub(super) fn table_menu(&mut self, op: u8) {
@@ -30,7 +32,13 @@ impl Editor {
             _ => st.delete_table(),
         };
         if !done {
-            st.status = NO_TABLE_AT_CARET;
+            st.status = if st.mode != Mode::Document {
+                NO_DOC_MODE
+            } else if op == 0 {
+                NO_ROOM
+            } else {
+                NO_TABLE_AT_CARET
+            };
         }
     }
 }

@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::state::attach::MAX_ATTACH;
+use super::compose::{compose, Scene};
+use crate::state::attach_kernel::Kernel;
 use crate::state::damage::Rect;
 use crate::state::Context;
-use crate::sw_blitter::{self, Surface};
-
-pub const BACKGROUND_ARGB: u32 = 0xFF10_1620;
-
-const REAP_THRESHOLD: u16 = 60;
+use crate::sw_blitter::Surface;
 
 pub fn paint(ctx: &mut Context, rect: Rect) {
     let dst = Surface {
@@ -31,44 +28,12 @@ pub fn paint(ctx: &mut Context, rect: Rect) {
         height: ctx.height,
         byte_len: ctx.backing_len,
     };
-    sw_blitter::fill_rect(dst, rect, BACKGROUND_ARGB);
-    let focused = ctx.focus.focused();
-    let (layers, count) = ctx.scene.z_sorted_snapshot(focused);
-    let mut attached = [0u64; MAX_ATTACH];
-    let mut n_attached = 0;
-    for layer in layers.iter().take(count) {
-        if let Some(src) = ctx.attach.get_or_attach(layer.surface_handle) {
-            sw_blitter::composite_layer(
-                dst,
-                src,
-                layer.x,
-                layer.y,
-                layer.width,
-                layer.height,
-                rect,
-            );
-            if n_attached < attached.len() {
-                attached[n_attached] = layer.surface_handle;
-                n_attached += 1;
-            }
-        }
-    }
-    let mut dropped = [0u64; MAX_ATTACH];
-    let n_dropped =
-        ctx.scene.reap_unattachable(&attached[..n_attached], REAP_THRESHOLD, &mut dropped);
-    for &handle in dropped.iter().take(n_dropped) {
-        let _ = ctx.attach.forget(handle);
-    }
     let cursor = ctx.cursor.current();
-    if cursor.visible {
-        super::cursor::blit(
-            ctx.backing_va,
-            ctx.stride,
-            ctx.width,
-            ctx.height,
-            cursor.x,
-            cursor.y,
-            rect,
-        );
-    }
+    let scene = Scene {
+        scene: &mut ctx.scene,
+        attach: &mut ctx.attach,
+        kernel: &mut Kernel,
+        damage: &mut ctx.damage,
+    };
+    compose(dst, rect, scene, cursor.visible.then_some((cursor.x, cursor.y)));
 }

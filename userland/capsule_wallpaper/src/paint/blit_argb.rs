@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::image::scale::scale_cover;
+
+// Fill the backing surface with `src`, scaled to cover it at the image's own
+// aspect: area-averaged when shrinking, bilinear when enlarging, exact at 1:1.
 pub fn blit_argb(
     backing_va: u64,
     stride_bytes: u32,
@@ -22,24 +26,19 @@ pub fn blit_argb(
     src: &[u32],
     src_w: u32,
     src_h: u32,
-) {
-    if src_w == 0 || src_h == 0 || backing_w == 0 || backing_h == 0 {
-        return;
-    }
+) -> bool {
     let stride_px = (stride_bytes / 4) as usize;
-    let dst_ptr = backing_va as *mut u32;
-    for dy in 0..backing_h {
-        let sy = (dy as u64 * src_h as u64 / backing_h as u64) as u32;
-        let sy = if sy >= src_h { src_h - 1 } else { sy };
-        let row_off_dst = (dy as usize) * stride_px;
-        let row_off_src = (sy as usize) * (src_w as usize);
-        for dx in 0..backing_w {
-            let sx = (dx as u64 * src_w as u64 / backing_w as u64) as u32;
-            let sx = if sx >= src_w { src_w - 1 } else { sx };
-            let pixel = src[row_off_src + sx as usize];
-            unsafe {
-                core::ptr::write_volatile(dst_ptr.add(row_off_dst + dx as usize), pixel);
-            }
-        }
+    if stride_px < backing_w as usize {
+        return false;
     }
+    let dst = backing_va as *mut u32;
+    scale_cover(src, src_w, src_h, backing_w, backing_h, |y, row| {
+        let at = y as usize * stride_px;
+        for (x, &p) in row.iter().enumerate() {
+            // SAFETY: the backing is `stride_bytes * backing_h` bytes, mapped
+            // read-write by `prime::backing::allocate`; `y < backing_h` and
+            // `x < backing_w <= stride_px`, checked above, so the write is inside it.
+            unsafe { core::ptr::write_volatile(dst.add(at + x), p) };
+        }
+    })
 }

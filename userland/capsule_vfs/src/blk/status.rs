@@ -16,12 +16,40 @@
 
 // A store that fails to decode at boot used to become a silently empty
 // /capsules. The first failure's code is kept here so OP_STORE_STATUS can
-// report it; later failures never overwrite the original evidence.
-use core::sync::atomic::{AtomicU32, Ordering};
+// report it; later failures never overwrite the original evidence, and a
+// later attempt that stages the whole store clears it, so a code always
+// means the store is not all there.
+use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use super::error::BlkError;
 
 static STORE_STATUS: AtomicU32 = AtomicU32::new(0);
+
+/// Set once boot staging has ended, loaded or given up. Until then a file
+/// that is not there may simply not be loaded yet.
+static SETTLED: AtomicBool = AtomicBool::new(false);
+
+pub fn settle() {
+    SETTLED.store(true, Ordering::Release);
+}
+
+pub fn settled() -> bool {
+    SETTLED.load(Ordering::Acquire)
+}
+
+pub fn clear() {
+    STORE_STATUS.store(0, Ordering::Relaxed);
+}
+
+/// A load that walked the whole table. What earlier attempts recorded was
+/// transient and is cleared; what stands is whether any entry was left out
+/// as damaged, which is corruption whatever the rest of the store did.
+pub fn loaded(refused: usize) {
+    clear();
+    if refused > 0 {
+        record(&BlkError::BadContainer);
+    }
+}
 
 pub fn record(err: &BlkError) {
     let _ = STORE_STATUS.compare_exchange(0, code(err), Ordering::Relaxed, Ordering::Relaxed);
@@ -36,12 +64,12 @@ fn code(err: &BlkError) -> u32 {
         BlkError::NoService => 1,
         BlkError::Transport(_) => 2,
         BlkError::ShortReply(_) => 3,
-        BlkError::BadHeader => 4,
-        BlkError::IdMismatch => 5,
         BlkError::BadLength => 6,
         BlkError::Status(_) => 7,
         BlkError::Inval => 8,
         BlkError::BadContainer => 9,
         BlkError::Exists => 10,
+        BlkError::NoMemory => 11,
+        BlkError::NoSpace => 12,
     }
 }

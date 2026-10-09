@@ -30,3 +30,26 @@ pub extern "C" fn nonos_display_dimensions(
         [display as u64, out_width as u64, out_height as u64, 0, 0, 0],
     )
 }
+
+/// The panel's physical size from its EDID, as the kernel had it from the
+/// bootloader: width in millimetres in the low 16 bits, height in the high
+/// 16. Writes 0 when the firmware gave no size. Returns the syscall result.
+#[no_mangle]
+pub extern "C" fn nonos_display_physical_mm(display: u32, out_mm: *mut u32) -> i64 {
+    if out_mm.is_null() {
+        return -22;
+    }
+    let mut width: u32 = 0;
+    let mut height: u32 = 0;
+    call_raw(
+        N_GFX_DISPLAY_DIMENSIONS,
+        [
+            display as u64,
+            &mut width as *mut u32 as u64,
+            &mut height as *mut u32 as u64,
+            out_mm as u64,
+            0,
+            0,
+        ],
+    )
+}

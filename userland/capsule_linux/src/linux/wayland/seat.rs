@@ -24,13 +24,17 @@ use super::args::Args;
 
 pub fn get_pointer(guest: &mut Guest, args: &mut Args<'_>) {
     let Some(id) = args.u32() else { return };
-    guest.objects.put(id, Object::Pointer);
+    if !guest.objects.put(id, Object::Pointer) {
+        return;
+    }
     guest.scene.pointer = Some(id);
 }
 
 pub fn get_keyboard(guest: &mut Guest, args: &mut Args<'_>) {
     let Some(id) = args.u32() else { return };
-    guest.objects.put(id, Object::Keyboard);
+    if !guest.objects.put(id, Object::Keyboard) {
+        return;
+    }
     guest.scene.keyboard = Some(id);
     super::keymap::send(guest, id);
 }

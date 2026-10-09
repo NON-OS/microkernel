@@ -35,14 +35,14 @@ namespace NonosExtraction.Irq
     control flow. -/
 theorem unsupported_flags_rejected
     (req : irq.types.IrqBindRequest) (pool : Std.Usize)
-    (handle : Option irq.validate.MsixHandleView) (grant : Bool)
+    (handle : Option irq.validate.msix_view.MsixHandleView) (grant : Bool)
     (fk : Std.U32) (hfk : irq.types.FLAGS_KNOWN = ok fk)
     (hbad : req.flags &&& (~~~ fk) ≠ 0#u32) :
-    irq.validate.validate_msix_request req pool handle grant
-      = ok (.Err irq.types.IrqBindError.UnsupportedFlags) := by
+    irq.validate.msix.validate_msix_request req pool handle grant
+      = ok (.Err irq.errors.IrqBindError.UnsupportedFlags) := by
   have hcond : (req.flags &&& (~~~ fk) != 0#u32) = true := by
     simp only [bne_iff_ne, ne_eq]; exact hbad
-  unfold irq.validate.validate_msix_request
+  unfold irq.validate.msix.validate_msix_request
   rw [hfk]
   simp only [lift, bind_tc_ok]
   rw [hcond]

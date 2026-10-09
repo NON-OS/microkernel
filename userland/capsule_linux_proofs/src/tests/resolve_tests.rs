@@ -17,10 +17,10 @@
 
 //! Turning a guest's path into a store key.
 
-use crate::resolve::absolute;
+use crate::resolve::visible;
 
 fn at(cwd: &str, path: &str) -> String {
-    String::from_utf8(absolute(cwd.as_bytes(), path.as_bytes())).unwrap()
+    String::from_utf8(visible(cwd.as_bytes(), path.as_bytes())).unwrap()
 }
 
 #[test]

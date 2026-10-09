@@ -16,54 +16,60 @@
 
 //! The distribution's package index, as this capsule needs it.
 
+use super::pkg::bare;
+pub use super::pkg::Pkg;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub struct Pkg {
-    pub name: String,
-    pub version: String,
-}
-
 pub struct Index {
-    /// soname -> package
-    pub libs: Vec<(String, Pkg)>,
-    /// package name -> package
-    pub names: Vec<(String, Pkg)>,
+    pkgs: Vec<Pkg>,
+    /// soname, and name or provided name, to the package that has it.
+    libs: Vec<(String, usize)>,
+    names: Vec<(String, usize)>,
 }
 
 impl Index {
+    /// Records are stored at their blank line; `D:` and `p:` follow `V:`.
     pub fn parse(raw: &[u8]) -> Index {
         let text = String::from_utf8_lossy(raw);
-        let (mut libs, mut names) = (Vec::new(), Vec::new());
-        let (mut name, mut version) = (String::new(), String::new());
-        for line in text.lines() {
+        let mut index = Index { pkgs: Vec::new(), libs: Vec::new(), names: Vec::new() };
+        let (mut cur, mut provides) = (Pkg::default(), Vec::new());
+        for line in text.lines().chain(core::iter::once("")) {
+            let rest = line.get(2..).unwrap_or("");
             match line.as_bytes().first() {
-                Some(b'P') => name = String::from(&line[2..]),
-                Some(b'V') => {
-                    version = String::from(&line[2..]);
-                    names
-                        .push((name.clone(), Pkg { name: name.clone(), version: version.clone() }));
-                }
-                Some(b'p') => {
-                    for token in line[2..].split_whitespace() {
-                        if let Some(so) = token.strip_prefix("so:") {
-                            let so = so.split('=').next().unwrap_or(so);
-                            let pkg = Pkg { name: name.clone(), version: version.clone() };
-                            libs.push((String::from(so), pkg));
-                        }
-                    }
-                }
+                None => index.finish(core::mem::take(&mut cur), core::mem::take(&mut provides)),
+                Some(b'C') => cur.checksum = super::auth::checksum(rest),
+                Some(b'P') => cur.name = String::from(rest),
+                Some(b'V') => cur.version = String::from(rest),
+                Some(b'D') => cur.read_depends(rest),
+                Some(b'p') => provides = rest.split_whitespace().map(bare).collect(),
                 _ => {}
             }
         }
-        Index { libs, names }
+        index
+    }
+
+    fn finish(&mut self, pkg: Pkg, provides: Vec<String>) {
+        if pkg.name.is_empty() || pkg.version.is_empty() {
+            return;
+        }
+        let at = self.pkgs.len();
+        self.names.push((pkg.name.clone(), at));
+        for name in provides {
+            match name.strip_prefix("so:") {
+                Some(so) => self.libs.push((String::from(so), at)),
+                None if !name.contains(':') => self.names.push((name, at)),
+                None => {}
+            }
+        }
+        self.pkgs.push(pkg);
     }
 
     pub fn by_lib(&self, soname: &str) -> Option<&Pkg> {
-        self.libs.iter().find(|(k, _)| k == soname).map(|(_, v)| v)
+        self.libs.iter().find(|(k, _)| k == soname).and_then(|(_, i)| self.pkgs.get(*i))
     }
 
     pub fn by_name(&self, name: &str) -> Option<&Pkg> {
-        self.names.iter().find(|(k, _)| k == name).map(|(_, v)| v)
+        self.names.iter().find(|(k, _)| k == name).and_then(|(_, i)| self.pkgs.get(*i))
     }
 }

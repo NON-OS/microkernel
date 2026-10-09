@@ -25,23 +25,55 @@ use super::topmost_target::topmost_target;
 const REQUERY_EVERY: u32 = 4;
 
 pub(super) fn hover_motion(ctx: &mut Context, event: &InputEvent, x: u32, y: u32) -> u32 {
+    let now = nonos_libc::mk_uptime_ms();
     if let Some(hover) = ctx.hover {
         if hover.contains(x, y) {
-            return deliver_local(ctx, hover, event, x, y);
+            if hover.fresh(now) {
+                return deliver_local(ctx, hover, event, x, y);
+            }
+            // Still inside, but long enough that the window manager is asked
+            // again: a window opened over this one, or this one moved, would
+            // otherwise keep the hover here until the pointer left the rect.
+            return rehover(ctx, Some(hover), event, x, y, now);
         }
         send_leave(ctx, hover.pid, event);
         ctx.hover = None;
     }
     ctx.hover_tick = ctx.hover_tick.wrapping_add(1);
-    if ctx.hover_tick % REQUERY_EVERY != 0 {
+    if !ctx.hover_tick.is_multiple_of(REQUERY_EVERY) {
         return 0;
     }
-    match topmost_target(ctx, x, y) {
-        Some(t) if t.owner_pid != shell_pid(ctx) => {
-            let hover = Hover { pid: t.owner_pid, x: t.win_x, y: t.win_y, w: t.win_w, h: t.win_h };
-            ctx.hover = Some(hover);
-            deliver_local(ctx, hover, event, x, y)
-        }
+    rehover(ctx, None, event, x, y, now)
+}
+
+// Ask the window manager what is on top at (x, y) and hover it; the window
+// hovered before, when another one, is told the pointer left.
+fn rehover(
+    ctx: &mut Context,
+    before: Option<Hover>,
+    event: &InputEvent,
+    x: u32,
+    y: u32,
+    now: i64,
+) -> u32 {
+    let shell = shell_pid(ctx);
+    let next = match topmost_target(ctx, x, y) {
+        Some(t) if t.owner_pid != shell => Some(Hover {
+            pid: t.owner_pid,
+            x: t.win_x,
+            y: t.win_y,
+            w: t.win_w,
+            h: t.win_h,
+            checked_ms: now,
+        }),
+        _ => None,
+    };
+    if let Some(before) = before.filter(|b| next.map(|n| n.pid) != Some(b.pid)) {
+        send_leave(ctx, before.pid, event);
+    }
+    ctx.hover = next;
+    match next {
+        Some(hover) if hover.contains(x, y) => deliver_local(ctx, hover, event, x, y),
         _ => 0,
     }
 }

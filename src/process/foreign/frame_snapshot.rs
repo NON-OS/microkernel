@@ -43,7 +43,7 @@ const R14: usize = FRAME_WORDS - 2;
 const R15: usize = FRAME_WORDS - 1;
 const _: () = assert!(RDX < RBX);
 
-pub fn capture(frame: &[u64; FRAME_WORDS], user_rsp: u64) -> SavedUser {
+pub(super) fn capture(frame: &[u64; FRAME_WORDS], user_rsp: u64) -> SavedUser {
     SavedUser {
         rax: frame[RAX],
         rbx: frame[RBX],

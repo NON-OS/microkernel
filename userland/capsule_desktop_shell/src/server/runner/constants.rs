@@ -17,4 +17,3 @@
 pub(super) const SERVICE_INBOX: u64 = 0;
 pub(super) const RECV_BLOCK: u64 = 1000;
 pub(super) const RECV_RETRY_MS: u64 = 16;
-pub(super) const CLOCK_REFRESH_MS: u64 = 1000;

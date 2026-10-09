@@ -19,7 +19,7 @@ use crate::version::{blocks, Ecc};
 /// The smallest version 1..=10 whose byte-mode capacity holds `len` data bytes
 /// at this EC level, or None when it does not fit.
 pub(crate) fn choose_version(len: usize, ecc: Ecc) -> Option<u8> {
-    for v in 1..=10u8 {
+    for v in 1..=crate::version::MAX_VERSION {
         let cap = blocks(v, ecc).total_data_codewords();
         let count_bits = if v <= 9 { 8 } else { 16 };
         let needed = (4 + count_bits + len * 8).div_ceil(8);

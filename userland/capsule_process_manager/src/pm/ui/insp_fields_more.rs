@@ -24,7 +24,7 @@ use crate::pm::format::mem_human;
 use crate::pm::format_labels::{regions, split};
 use crate::pm::format_sys::{count_human, rate_human};
 use crate::pm::state::Row;
-use crate::pm::theme::FOREGROUND;
+use crate::pm::theme::{FOREGROUND, MUTED};
 
 use super::insp_fields::field;
 
@@ -52,6 +52,10 @@ pub fn block(fb: &mut PaintBuffer, x: u32, y: u32, row: &Row) -> u32 {
     y = field(fb, x, y, b"Switched in", &buf[..n], FOREGROUND);
     let n = split(row.user_pct, row.cpu_pct.saturating_sub(row.user_pct), &mut buf);
     y = field(fb, x, y, b"User / kernel", &buf[..n], FOREGROUND);
+    /* A guest's mappings are kept by its supervisor; the kernel lists none. */
+    if row.name().starts_with(b"foreign:") {
+        return field(fb, x, y, b"Mmapped", b"kept by its supervisor", MUTED);
+    }
     let n = mem_human(row.mapped_kb, &mut buf);
     let n = regions(row.vma_count, &mut buf, n);
     field(fb, x, y, b"Mmapped", &buf[..n], FOREGROUND)

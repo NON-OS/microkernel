@@ -16,7 +16,7 @@
 
 use super::math::sqrt;
 
-// Row-major 2x3 affine: x' = a*x + c*y + e, y' = b*x + d*y + f.
+/// Row-major 2x3 affine: x' = a*x + c*y + e, y' = b*x + d*y + f.
 #[derive(Clone, Copy)]
 pub(super) struct Affine(pub [f32; 6]);
 
@@ -33,7 +33,7 @@ impl Affine {
         Affine([sx, 0.0, 0.0, sy, 0.0, 0.0])
     }
 
-    // self ∘ rhs: rhs applies first.
+    /// The composition of self after rhs: rhs applies first.
     pub fn then(&self, rhs: &Affine) -> Affine {
         let a = self.0;
         let b = rhs.0;
@@ -52,9 +52,20 @@ impl Affine {
         [m[0] * p[0] + m[2] * p[1] + m[4], m[1] * p[0] + m[3] * p[1] + m[5]]
     }
 
-    // Average absolute scale, for stroke widths under non-uniform scaling.
+    /// Average absolute scale, for stroke widths under non-uniform scaling.
     pub fn scale_avg(&self) -> f32 {
         let m = self.0;
         (sqrt(m[0] * m[0] + m[1] * m[1]) + sqrt(m[2] * m[2] + m[3] * m[3])) / 2.0
+    }
+
+    /// The inverse map, None when the matrix collapses the plane.
+    pub fn invert(&self) -> Option<Affine> {
+        let [a, b, c, d, e, f] = self.0;
+        let det = a * d - b * c;
+        if !det.is_finite() || det.abs() < 1e-12 {
+            return None;
+        }
+        let (ia, ib, ic, id) = (d / det, -b / det, -c / det, a / det);
+        Some(Affine([ia, ib, ic, id, -(ia * e + ic * f), -(ib * e + id * f)]))
     }
 }

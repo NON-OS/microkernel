@@ -20,9 +20,9 @@ use crate::pm::state::{Screen, State};
 use crate::pm::theme::{MUTED, TITLE};
 
 use super::chips;
+use super::fit::sidebar_w;
 use super::metrics::{
-    BODY_PX, HEAD_H, INSPECTOR_W, PANE_PAD_TOP, PANE_PAD_X, SEARCH_META_GAP, SIDEBAR_W, STATUS_H,
-    TITLE_PX,
+    BODY_PX, HEAD_H, INSPECTOR_W, PANE_PAD_TOP, PANE_PAD_X, SEARCH_META_GAP, STATUS_H, TITLE_PX,
 };
 use super::search;
 use super::text;
@@ -41,10 +41,11 @@ pub struct Rect {
 
 pub fn pane_rect(fb_w: u32, fb_h: u32, inspector: bool) -> Rect {
     let right = if inspector { fb_w.saturating_sub(INSPECTOR_W) } else { fb_w };
+    let side = sidebar_w(fb_w);
     Rect {
-        x: SIDEBAR_W + PANE_PAD_X,
+        x: side + PANE_PAD_X,
         y: PANE_PAD_TOP + HEAD_H,
-        w: right.saturating_sub(SIDEBAR_W + PANE_PAD_X * 2),
+        w: right.saturating_sub(side + PANE_PAD_X * 2),
         h: fb_h.saturating_sub(PANE_PAD_TOP + HEAD_H + STATUS_H + PANE_PAD_X),
     }
 }
@@ -55,10 +56,10 @@ pub fn pane_rect(fb_w: u32, fb_h: u32, inspector: bool) -> Rect {
 pub fn page_head(fb: &mut PaintBuffer, state: &State, meta: &[u8]) {
     let title_top = text::centred_top(PANE_PAD_TOP, HEAD_H, TITLE_PX);
     let label = state.screen.nav_label();
-    text::left(fb, SIDEBAR_W + PANE_PAD_X, title_top, label, TITLE, TITLE_PX);
+    text::left(fb, sidebar_w(fb.width) + PANE_PAD_X, title_top, label, TITLE, TITLE_PX);
     let meta_top = text::centred_top(PANE_PAD_TOP, HEAD_H, BODY_PX);
     let right_x = search::rect(fb.width, state.screen).0.saturating_sub(SEARCH_META_GAP);
-    if meta_fits(state.screen, right_x, text::width(fb, meta, BODY_PX)) {
+    if meta_fits(fb.width, state.screen, right_x, text::width(fb, meta, BODY_PX)) {
         text::right(fb, right_x, meta_top, meta, MUTED, BODY_PX);
     }
     chips::paint(fb, state);
@@ -67,8 +68,8 @@ pub fn page_head(fb: &mut PaintBuffer, state: &State, meta: &[u8]) {
 
 // The chip row and the meta line share the middle of the band. The chips carry
 // state the user can act on, so the count is the one that yields on a collision.
-fn meta_fits(screen: Screen, right_x: u32, meta_w: u32) -> bool {
-    match chips::origin(screen) {
+fn meta_fits(fb_w: u32, screen: Screen, right_x: u32, meta_w: u32) -> bool {
+    match chips::origin(fb_w, screen) {
         None => true,
         Some(x) => x + chips::width() + SEARCH_META_GAP <= right_x.saturating_sub(meta_w),
     }

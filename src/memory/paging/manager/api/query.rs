@@ -47,6 +47,12 @@ pub fn address_spaces_count() -> usize {
     lock_responsive(&PAGING_MANAGER).address_spaces_count()
 }
 
+// The calling cpu's asid. One manager-wide value was whichever cpu switched
+// last, so on more than one cpu a loader asked for "the active address space"
+// could be handed another cpu's and map an image into the wrong process.
 pub fn active_asid() -> Option<u32> {
-    lock_responsive(&PAGING_MANAGER).active_asid()
+    if !lock_responsive(&PAGING_MANAGER).is_initialized() {
+        return None;
+    }
+    Some(crate::smp::percpu::active_asid())
 }

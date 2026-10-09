@@ -18,7 +18,7 @@ use core::sync::atomic::Ordering;
 
 use crate::process::core::{clear_current_if, Pid, ProcessState, CURRENT_PID, PROCESS_TABLE};
 
-pub fn teardown(pid: Pid, exit_code: i32, _by_signal: bool) {
+pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     let pcb = match PROCESS_TABLE.find_by_pid(pid) {
         Some(p) => p,
         None => return,
@@ -27,6 +27,21 @@ pub fn teardown(pid: Pid, exit_code: i32, _by_signal: bool) {
         return;
     }
 
+    // A guest thread ending on a signal (a fault, not its own exit) is
+    // reported to its supervisor, which owns the guest; the Linux personality
+    // ends the whole process, as Linux does. Only when the thread ends itself:
+    // a supervisor killing its guest comes through MkKill with a different
+    // current pid, and must not loop back into another notice.
+    if by_signal && crate::process::current_pid() == Some(pid) {
+        crate::process::foreign::note_signal_death(pid, exit_code);
+    }
+
+    // Only when its tables are freed with it: a thread whose group lives on
+    // hands them over, frames and all.
+    if crate::process::address_space::lifecycle::release::holder_after(&pcb).is_none() {
+        crate::kernel_core::surface_registry::pin::exit::keep_at_exit(pid);
+    }
+    crate::kernel_core::surface_registry::pin::orphans::abandon_owner(pid);
     crate::kernel_core::surface_registry::release_owned_by_pid(pid);
     crate::kernel_core::surface_registry::attach_map::forget_pid(pid);
     let current = CURRENT_PID.load(Ordering::Acquire) == pid;
@@ -36,16 +51,39 @@ pub fn teardown(pid: Pid, exit_code: i32, _by_signal: bool) {
     crate::hardware::broker::pio_release_all_for_pid(pid);
     crate::syscall::microkernel::ipc::release_pending_replies_for_pid(pid);
 
-    crate::kernel_core::process_spawn::defer_kernel_stack_release(pid);
-
+    super::end_note::note(pid, exit_code, by_signal);
     pcb.exit_code.store(exit_code, Ordering::Release);
     *pcb.state.lock() = ProcessState::Zombie(exit_code);
+    super::finalize::release_names(pid, &pcb);
+    /*
+     * Queued only once the process is a zombie. A CPU that claimed it just
+     * before then checks for a zombie after naming it as its own, and the
+     * release checks for such a CPU, so one of the two always sees the other.
+     */
+    crate::kernel_core::process_spawn::defer_kernel_stack_release(pid);
     super::reap_log::record(pid, pcb.parent_pid(), exit_code);
-    super::postmortem::retain(pid, pcb.parent_pid());
+    /*
+     * A thread's inbox carries its replies, not output a parent drains: it
+     * goes now. Kept, every finished worker took a slot of the 64 and could
+     * push out a real child's stdout before its parent read it.
+     */
+    let group = pcb.thread_group_id();
+    if group != 0 && group != pid {
+        super::postmortem::forget_thread(pid);
+    } else {
+        super::postmortem::retain(pid, pcb.parent_pid());
+    }
     crate::sched::remove_from_run_queue(pid);
     clear_current_if(pid);
+    super::stop_elsewhere::stop_elsewhere(pid);
     crate::process::scheduler::preemption::proc_ticks::clear(pid);
     crate::process::accounting::clear(pid);
     crate::process::foreign::clear(pid);
     super::pending::enqueue(pid);
+    /*
+     * A terminal's runs of the Linux personality end with it rather than
+     * pass to init: nothing else can read or answer them. This pid is a
+     * zombie already, so a run's own teardown cannot come back here for it.
+     */
+    crate::userspace::capsule_linux::end_terminal_runs_of(pid);
 }

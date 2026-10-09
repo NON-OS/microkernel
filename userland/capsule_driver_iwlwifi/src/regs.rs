@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_libc::Deadline;
+
 #[derive(Clone, Copy)]
 pub struct Regs {
     base: usize,
@@ -24,22 +26,32 @@ impl Regs {
         Self { base: base as usize }
     }
     pub fn read32(&self, off: usize) -> u32 {
+        // SAFETY: `base` is the BAR0 window the broker mapped uncached for this
+        // process (`setup::mmio`), and every offset passed is a register the
+        // window holds; the gen3 path checks its length before using it.
         unsafe { core::ptr::read_volatile((self.base + off) as *const u32) }
     }
     pub fn write32(&self, off: usize, val: u32) {
+        // SAFETY: as for `read32`.
         unsafe { core::ptr::write_volatile((self.base + off) as *mut u32, val) }
     }
     pub fn set_bits(&self, off: usize, bits: u32) {
         self.write32(off, self.read32(off) | bits);
     }
-    pub fn poll_set(&self, off: usize, mask: u32, iters: usize) -> bool {
-        for _ in 0..iters {
+    /// Wait up to `ms` on the uptime clock for every bit of `mask` to read
+    /// set. A count of reads would last as long as the bus takes per read,
+    /// which differs from machine to machine.
+    pub fn poll_set(&self, off: usize, mask: u32, ms: u64) -> bool {
+        let deadline = Deadline::after_ms(ms);
+        loop {
             if self.read32(off) & mask == mask {
                 return true;
             }
+            if deadline.expired() {
+                return self.read32(off) & mask == mask;
+            }
             core::hint::spin_loop();
         }
-        false
     }
 }
 

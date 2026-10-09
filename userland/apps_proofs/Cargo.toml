@@ -1,0 +1,24 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for what the desktop apps say when a service is
+# missing, a list comes back empty or an input is too large. Builds for the
+# host so `cargo test` runs the real capsule source (included via #[path]) for
+# the apps that have no proofs crate of their own.
+[package]
+name = "apps_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The calculator's scientific functions, which its operator and unary
+# arithmetic reach, call libm as the capsule does.
+libm = { version = "0.2", default-features = false }
+# The apps' shared text input: what a pasted line becomes in a field.
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+# The audio player's bar tells an output fault from a track's by the audio
+# service's own sentences.
+nonos_audio_proto = { path = "../audio_proto" }

@@ -19,15 +19,34 @@ extern crate alloc;
 use alloc::format;
 use alloc::string::String;
 
-pub const NONOS_VERSION: &str = "1.0.0";
-pub const NONOS_RELEASE: &str = "1.0.0-nonos";
-pub const NONOS_CODENAME: &str = "Genesis";
-pub const BUILD_DATE: &str = "2026-01-01";
-pub const BUILD_TIME: &str = "00:00:00";
-pub const COMPILER_VERSION: &str = "rustc 1.85.0";
+use crate::sys::clock::civil::from_unix;
+
+/* The release as the VERSION file states it; build.rs passes it in. */
+pub const NONOS_VERSION: &str = env!("NONOS_KERNEL_VERSION");
+pub const NONOS_CHANNEL: &str = env!("NONOS_RELEASE_CHANNEL");
+pub const NONOS_RELEASE: &str =
+    concat!(env!("NONOS_KERNEL_VERSION"), "-", env!("NONOS_RELEASE_CHANNEL"));
+/* "epoch:<SOURCE_DATE_EPOCH>" when the build pinned its time, else "reproducible:none". */
+pub const BUILD_TIME: &str = env!("NONOS_KERNEL_BUILD_TIME");
+/* The `rustc --version` line of the compiler that built the kernel. */
+pub const COMPILER_VERSION: &str = env!("NONOS_KERNEL_RUSTC_VERSION");
+
+/* The pinned build time in UTC; a build without SOURCE_DATE_EPOCH records none. */
+fn build_date() -> String {
+    match BUILD_TIME.strip_prefix("epoch:").and_then(|s| s.parse::<u64>().ok()) {
+        Some(secs) => {
+            let t = from_unix(secs);
+            format!(
+                "{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC",
+                t.year, t.month, t.day, t.hour, t.minute, t.second
+            )
+        }
+        None => String::from("build time not recorded"),
+    }
+}
 
 pub fn read_version() -> String {
-    format!("NONOS version {} ({}) ({})\n", NONOS_RELEASE, COMPILER_VERSION, BUILD_DATE)
+    format!("NONOS version {} ({}) ({})\n", NONOS_RELEASE, COMPILER_VERSION, build_date())
 }
 
 pub fn get_kernel_version() -> &'static str {
@@ -39,12 +58,13 @@ pub fn get_kernel_release() -> &'static str {
 }
 
 pub fn read_version_signature() -> String {
-    format!("NONOS {} {} SMP\n", NONOS_RELEASE, BUILD_DATE)
+    format!("NONOS {} {} SMP\n", NONOS_RELEASE, build_date())
 }
 
 pub fn read_os_release() -> String {
     format!(
-        "NAME=\"NONOS\"\nVERSION=\"{}\"\nID=nonos\nVERSION_ID=\"{}\"\nPRETTY_NAME=\"NONOS {}\"\nHOME_URL=\"https://nonos.io\"\nBUG_REPORT_URL=\"https://github.com/nonos/nonos/issues\"\n",
-        NONOS_VERSION, NONOS_VERSION, NONOS_CODENAME
+        "NAME=\"NONOS\"\nVERSION=\"{v} {c}\"\nID=nonos\nVERSION_ID=\"{v}\"\nPRETTY_NAME=\"NONOS {v} {c}\"\nHOME_URL=\"https://nonos.systems\"\n",
+        v = NONOS_VERSION,
+        c = NONOS_CHANNEL
     )
 }

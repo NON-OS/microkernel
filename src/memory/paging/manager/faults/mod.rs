@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cow;
+mod cow_race;
 mod demand;
 mod demand_cap;
+mod demand_refuse;
 mod handler;

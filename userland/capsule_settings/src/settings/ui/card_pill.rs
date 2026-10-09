@@ -29,11 +29,6 @@ pub fn block_pill(state: &State, b: &Block) -> Option<(ValBuf, Tone)> {
         Pill::None => None,
         Pill::Net => Some(link_state(state)),
         Pill::Radio => Some(radio(state)),
-        Pill::Fixed(label, tone) => {
-            let mut v = ValBuf::new();
-            v.push_str(label);
-            Some((v, tone))
-        }
     }
 }
 

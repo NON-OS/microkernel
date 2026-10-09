@@ -19,7 +19,7 @@ pub mod hdr;
 pub mod limits;
 pub mod ops;
 
-pub use errno::{E_BAD_LEN, E_INVAL, E_NOT_FOUND, E_OK, E_RANGE};
+pub use errno::{E_BAD_LEN, E_INVAL, E_IO, E_NOT_FOUND, E_OK, E_RANGE};
 pub use hdr::{Header, HDR_LEN};
 pub use limits::{CHUNK_MAX, IPC_PAYLOAD_MAX};
 pub use ops::{OP_GET_CHUNK, OP_GET_COUNT, OP_GET_SIZE, OP_GET_SLUG};

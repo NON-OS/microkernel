@@ -30,8 +30,19 @@ pub fn undo(state: &mut State) -> EventOutcome {
         state.status = b"nothing to undo";
         return EventOutcome::Repaint;
     };
-    let pid = state.owner_pid;
-    let done = match &op {
+    let (done, tried) = reverse(state.owner_pid, &op);
+    refresh(state);
+    state.status = match done {
+        n if n == tried => b"undone",
+        0 => b"undo failed",
+        _ => b"undo: some could not be put back",
+    };
+    EventOutcome::Repaint
+}
+
+/// Put `op` back; how many single steps took, of how many.
+fn reverse(pid: u32, op: &Op) -> (usize, usize) {
+    let done = match op {
         Op::Rename { from, to } => {
             rename(pid, from.trim_end_matches('/').as_bytes(), to.as_bytes())
         }
@@ -41,8 +52,13 @@ pub fn undo(state: &mut State) -> EventOutcome {
             let mode = if *writable { MODE_RW } else { MODE_RO };
             chmod(pid, path.trim_end_matches('/').as_bytes(), mode)
         }
+        Op::Batch(ops) => {
+            return ops
+                .iter()
+                .rev()
+                .map(|o| reverse(pid, o))
+                .fold((0, 0), |a, b| (a.0 + b.0, a.1 + b.1));
+        }
     };
-    refresh(state);
-    state.status = if done.is_ok() { b"undone" } else { b"undo failed" };
-    EventOutcome::Repaint
+    (usize::from(done.is_ok()), 1)
 }

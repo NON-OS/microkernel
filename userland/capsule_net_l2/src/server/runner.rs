@@ -19,7 +19,7 @@ use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::{
-    parse, E_BAD_OP, HDR_LEN, IPC_PAYLOAD_MAX, OP_ARP_RESOLVE, OP_GET_LINK, OP_GET_MAC,
+    parse, refused, E_BAD_OP, HDR_LEN, IPC_PAYLOAD_MAX, OP_ARP_RESOLVE, OP_GET_LINK, OP_GET_MAC,
     OP_HEALTHCHECK, OP_POLL_FRAME, OP_SEND_FRAME, OP_SET_IP,
 };
 
@@ -40,7 +40,14 @@ pub fn run() -> ! {
             continue;
         }
         let len = n as usize;
-        let Ok((req, body)) = parse(&rx[..len]) else { continue };
+        let (req, body) = match parse(&rx[..len]) {
+            Ok(parsed) => parsed,
+            Err(errno) => {
+                let req = refused(&rx[..len]);
+                let _ = respond_status_only(sender_pid, req.op, errno, req.request_id, &mut tx);
+                continue;
+            }
+        };
         match req.op {
             OP_HEALTHCHECK => handlers::health::handle(sender_pid, &req, &mut tx),
             OP_GET_MAC => handlers::get_mac::handle(sender_pid, &req, &mut tx),

@@ -21,7 +21,7 @@ use super::rect::{self, Rect};
 
 pub const ACTIONS: usize = 4;
 
-pub const LABELS: [&[u8]; ACTIONS] = [b"Resume", b"Restart", b"Settings", b"Quit"];
+pub const LABELS: [&[u8]; ACTIONS] = [b"Resume", b"Restart", b"Settings", b"Home"];
 
 pub fn title_h() -> u32 {
     line_height(PX_TITLE).max(1) as u32

@@ -49,6 +49,11 @@ impl KeyTargets {
         }
     }
 
+    // The pid holding `code` down, if any, left in place.
+    pub fn held_by(&self, code: u32) -> Option<u32> {
+        self.held.iter().find(|h| h.pid != 0 && h.code == code).map(|h| h.pid)
+    }
+
     // Return and clear the pid that received the down for `code`, if known.
     pub fn take(&mut self, code: u32) -> Option<u32> {
         let slot = self.held.iter_mut().find(|h| h.pid != 0 && h.code == code)?;
@@ -62,5 +67,11 @@ impl KeyTargets {
         for h in self.held.iter_mut().filter(|h| h.pid == pid) {
             *h = Held { code: 0, pid: 0 };
         }
+    }
+}
+
+impl Default for KeyTargets {
+    fn default() -> Self {
+        Self::new()
     }
 }

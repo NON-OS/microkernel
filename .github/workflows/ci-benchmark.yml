@@ -31,14 +31,6 @@ on:
     secrets:
       SIGNING_KEY_BASE64:
         required: false
-      ZK_BOOT_INDEX:
-        required: false
-      ZK_BOOT_SECRET_X:
-        required: false
-      ZK_BOOT_SECRET_R:
-        required: false
-      ZK_BOOT_NONCE_SEED:
-        required: false
 
 permissions:
   contents: read
@@ -55,6 +47,11 @@ jobs:
   benchmark:
     name: benchmark
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -66,6 +63,8 @@ jobs:
         # driver, each into its own target tree. That overruns the ~14 GB free
         # on a stock ubuntu-latest runner (No space left on device, error 28).
         # Drop the preinstalled toolchains this build never uses to free ~25 GB.
+        # It runs before Nix is installed, so in the runner's own shell.
+        shell: bash
         run: |
           set -eux
           sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android \
@@ -73,11 +72,9 @@ jobs:
             /usr/local/lib/node_modules "${AGENT_TOOLSDIRECTORY:-}" || true
           sudo docker image prune --all --force || true
           df -h /
-      - uses: ./.github/actions/nonos-setup
+      - uses: ./.github/actions/nix-setup
         with:
-          targets: x86_64-nonos,x86_64-unknown-uefi
-          qemu: "true"
-          module: benchmark
+          cache: ${{ vars.NONOS_CACHIX }}
       - name: Prepare benchmark artifact root
         run: mkdir -p "${{ inputs['output-root'] }}/${{ github.run_id }}-${{ github.run_attempt }}"
       - name: Provision benchmark trust material
@@ -88,27 +85,15 @@ jobs:
         env:
           NONOS_CI_TRUST_MODE: ${{ inputs['trust-mode'] }}
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-          ZK_BOOT_INDEX: ${{ secrets.ZK_BOOT_INDEX }}
-          ZK_BOOT_SECRET_X: ${{ secrets.ZK_BOOT_SECRET_X }}
-          ZK_BOOT_SECRET_R: ${{ secrets.ZK_BOOT_SECRET_R }}
-          ZK_BOOT_NONCE_SEED: ${{ secrets.ZK_BOOT_NONCE_SEED }}
         run: |
           set -euo pipefail
           case "${NONOS_CI_TRUST_MODE}" in
             scratch)
               bash nonos-ci/setup-signing-key.sh
-              echo "NONOS_DEV=1" >> "$GITHUB_ENV"
               bash -x nonos-ci/scratch-trust-bootstrap.sh
               ;;
             production)
               bash nonos-ci/setup-signing-key.sh
-              # The kernel self-attestation is transparent and needs no
-              # secrets. The ZK_BOOT values are the device binding's prover
-              # material: the opening of an enrolled device slot, which
-              # belongs to the machine's owner at install time and never to a
-              # vendor pipeline. A release therefore ships without a binding
-              # sidecar, and their absence here is the correct state, not a
-              # missing provisioning step.
               make nonos-mk-check-trust-manifest
               ;;
             *)
@@ -134,9 +119,6 @@ jobs:
             export NONOS_BENCH_SKIP_BOOT=1
           fi
           boot_args="PLAN_A_SERIAL=${NONOS_BENCH_OUT}/boot/qemu-serial.log PLAN_A_RESULT=${NONOS_BENCH_OUT}/boot/plan-a-result.log"
-          if [ "${{ inputs['trust-mode'] }}" = "scratch" ]; then
-            boot_args="ZK_BOOT_LABELS=target/ci/zk/device_labels.txt ZK_BOOT_ROOT=target/ci/zk/device_root.bin ZK_BOOT_COMMITMENTS=target/ci/zk/device_commitments.bin ZK_BOOT_SECRETS=target/ci/zk/device_secrets.txt ${boot_args}"
-          fi
           export NONOS_BENCH_BOOT_CMD="make ${boot_args} nonos-mk-plan-a-runtime"
           make nonos-mk-bench
       - name: Upload benchmark artifacts

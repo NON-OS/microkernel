@@ -16,7 +16,8 @@
 
 use alloc::vec::Vec;
 
-use super::seal::{hop_delays_for, seal_one};
+use super::seal::{delay_ms, hop_delays_for, seal_one};
+use crate::ack::ledger::first_wait_ms;
 use crate::ack::{build_surb_ack, FRAG_ID_BYTES};
 use crate::crypto::random::fill_random;
 use crate::message::prepare_built;
@@ -49,10 +50,20 @@ pub struct Addressed<'a> {
 /// then split across as many packets as it needs. Each of those carries its
 /// own acknowledgement and its own key agreement, so two packets of the same
 /// message share nothing an observer could group them by.
-pub fn encode_message(addressed: &Addressed<'_>, request: &[u8]) -> Option<Vec<Vec<u8>>> {
+pub fn encode_message(addressed: &Addressed<'_>, request: &[u8]) -> Option<Vec<Encoded>> {
     let message =
         crate::message::repliable_data(addressed.sender_tag, addressed.reply_surbs, request);
     encode_built(addressed, message)
+}
+
+/// One fragment on its way: the packet that carries it, and what it takes to
+/// send it again if its acknowledgement does not come home.
+pub struct Encoded {
+    pub frag_id: [u8; FRAG_ID_BYTES],
+    pub fragment: Vec<u8>,
+    pub packet: Vec<u8>,
+    /// How long to wait for the acknowledgement before resending.
+    pub wait_ms: i64,
 }
 
 /// Turn a message that is already built into the packets that carry it.
@@ -60,7 +71,7 @@ pub fn encode_message(addressed: &Addressed<'_>, request: &[u8]) -> Option<Vec<V
 /// A request is one kind of message. A top up of reply blocks is another, and
 /// travels identically: same padding, same splitting, same per packet
 /// acknowledgement and key agreement. Only the building differs.
-pub fn encode_built(addressed: &Addressed<'_>, message: Vec<u8>) -> Option<Vec<Vec<u8>>> {
+pub fn encode_built(addressed: &Addressed<'_>, message: Vec<u8>) -> Option<Vec<Encoded>> {
     let mut set_seed = [0u8; 4];
     fill_random(&mut set_seed).ok()?;
     // The top bit is the header's own marker, so the id stays below it.
@@ -73,39 +84,55 @@ pub fn encode_built(addressed: &Addressed<'_>, message: Vec<u8>) -> Option<Vec<V
     crate::trace::say_num(b"build: fragments", prepared.fragments.len() as u64);
     let mut out = Vec::with_capacity(prepared.fragments.len());
 
-    for (index, fragment) in prepared.fragments.iter().enumerate() {
+    for (index, fragment) in prepared.fragments.into_iter().enumerate() {
         let mut frag_id = [0u8; FRAG_ID_BYTES];
         frag_id[..4].copy_from_slice(&set_id.to_be_bytes());
         frag_id[4] = (index + 1) as u8;
-
-        let Some(home_delays) = hop_delays_for(addressed.home.len()) else {
-            crate::trace::say(b"build: no delays for the route home");
-            return None;
-        };
-        let ack = match build_surb_ack(
-            addressed.home,
-            &home_delays,
-            addressed.our_identity,
-            addressed.ack_key,
-            frag_id,
-        ) {
-            Ok(ack) => ack,
-            Err(_) => {
-                crate::trace::say(b"build: could not build the acknowledgement");
-                return None;
-            }
-        };
-
-        let Ok(payload) = build_payload(&ack, addressed.destination_encryption, fragment) else {
-            crate::trace::say(b"build: could not seal the payload");
-            return None;
-        };
-        let Some(packet) = seal_one(addressed.destination, addressed.destination_gateway, &payload)
-        else {
-            crate::trace::say_num(b"build: could not seal the packet, bytes", payload.len() as u64);
-            return None;
-        };
-        out.push(packet);
+        let (packet, wait_ms) = encode_fragment(addressed, frag_id, &fragment)?;
+        out.push(Encoded { frag_id, fragment, packet, wait_ms });
     }
     Some(out)
+}
+
+/// Seal one fragment into a packet of its own, with a fresh acknowledgement,
+/// a fresh route and a fresh key agreement.
+///
+/// A resend comes through here too. Nothing of the first packet is reused,
+/// so the two cannot be told for copies of each other by any mix that sees
+/// both, and neither is a replay a mix would refuse. Returns the packet and
+/// how long to wait for its acknowledgement.
+pub fn encode_fragment(
+    addressed: &Addressed<'_>,
+    frag_id: [u8; FRAG_ID_BYTES],
+    fragment: &[u8],
+) -> Option<(Vec<u8>, i64)> {
+    let Some(home_delays) = hop_delays_for(addressed.home.len()) else {
+        crate::trace::say(b"build: no delays for the route home");
+        return None;
+    };
+    let ack = match build_surb_ack(
+        addressed.home,
+        &home_delays,
+        addressed.our_identity,
+        addressed.ack_key,
+        frag_id,
+    ) {
+        Ok(ack) => ack,
+        Err(_) => {
+            crate::trace::say(b"build: could not build the acknowledgement");
+            return None;
+        }
+    };
+
+    let Ok(payload) = build_payload(&ack, addressed.destination_encryption, fragment) else {
+        crate::trace::say(b"build: could not seal the payload");
+        return None;
+    };
+    let Some((packet, out_ms)) =
+        seal_one(addressed.destination, addressed.destination_gateway, &payload)
+    else {
+        crate::trace::say_num(b"build: could not seal the packet, bytes", payload.len() as u64);
+        return None;
+    };
+    Some((packet, first_wait_ms(out_ms, delay_ms(&home_delays))))
 }

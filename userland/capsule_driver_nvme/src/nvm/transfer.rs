@@ -30,6 +30,7 @@ impl IoQueue {
         if bytes == 0 || bytes > DATA_BYTES {
             return Err(NvmeError::InvalidTransfer);
         }
+        self.settle(regs)?;
         let (prp1, prp2) = build_prp(self, bytes);
         let cid = self.cid;
         self.cid = self.cid.wrapping_add(1).max(1);

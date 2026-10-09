@@ -19,7 +19,10 @@ use crate::sys::boot_log;
 
 pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
+    super::app_choice::apply_profile();
     run_user_entry_proof();
+    #[cfg(feature = "nonos-attest-refusal-smoketest")]
+    crate::userspace::attest_refusal::run();
     run_std_proof();
     run_ripgrep();
     run_sd();
@@ -32,6 +35,8 @@ pub fn run_init() -> ! {
     spawn_plan::spawn_desktop();
     spawn_plan::spawn_market();
     spawn_plan::spawn_apps();
+    run_shield();
+    run_shield_vectors();
     run_tokio_smoke();
     run_flacprobe();
     boot_log::ok("INIT", "Capsules spawned");
@@ -60,6 +65,30 @@ fn run_std_proof() {
 
 #[cfg(not(feature = "nonos-capsule-std-proof"))]
 fn run_std_proof() {}
+
+/* The shield service starts after the network it reads over, and waits for
+ * the wallet window. */
+#[cfg(feature = "nonos-capsule-shield")]
+fn run_shield() {
+    use crate::userspace::capsule_shield as c;
+    super::capsule_boot::boot("SHIELD", "shield", c::spawn_shield_capsule, c::shared_state);
+}
+
+#[cfg(not(feature = "nonos-capsule-shield"))]
+fn run_shield() {}
+
+/* Test 5, development images only: four proofs on every core, after the
+ * rest of the system is up. */
+#[cfg(feature = "nonos-capsule-shield-vectors")]
+fn run_shield_vectors() {
+    match crate::userspace::capsule_shield_vectors::spawn_shield_vectors_capsule() {
+        Ok(()) => boot_log::ok("SHIELD-VECTORS", "capsule spawned"),
+        Err(_) => boot_log::error("SHIELD-VECTORS capsule spawn failed"),
+    }
+}
+
+#[cfg(not(feature = "nonos-capsule-shield-vectors"))]
+fn run_shield_vectors() {}
 
 #[cfg(feature = "nonos-capsule-flacprobe")]
 fn run_flacprobe() {
@@ -112,7 +141,7 @@ fn run_tool_selftest() {
     ];
     for (service, argv, label) in TESTS {
         boot_log::ok("TOOL-SELFTEST run", label);
-        if crate::userspace::tool_capsules::run_named(service, argv).is_none() {
+        if crate::userspace::tool_capsules::run_named(service, argv).is_err() {
             boot_log::error("tool self-test spawn failed");
         }
         // Let the scheduler run the tool to completion before the next one, so

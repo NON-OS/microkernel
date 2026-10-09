@@ -14,50 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
+//! Table-driven Huffman decoding. An entry holds the code length in bits
+//! 0..8 (0: no code), extra bits in 8..12, the kind in 12..16 and the
+//! value in 16..32. Codes longer than the primary width (log2 of `N`) go
+//! through a second-level table in `sub`, whose primary entry has kind
+//! `SUB`, the table's offset as value and its width as length.
+
 use alloc::vec::Vec;
 
-use super::bits::Bits;
+pub const LIT: u32 = 0x0000;
+pub const LEN: u32 = 0x1000;
+pub const EOB: u32 = 0x2000;
+pub const SUB: u32 = 0x3000;
+pub const BAD: u32 = 0x4000;
+pub const KIND: u32 = 0xF000;
 
-pub struct Huff {
-    counts: [u16; 16],
-    symbols: Vec<u16>,
+pub struct Table<const N: usize> {
+    pub primary: [u32; N],
+    pub sub: Vec<u32>,
 }
 
-pub fn build(lengths: &[u8]) -> Huff {
-    let mut counts = [0u16; 16];
-    for &l in lengths {
-        counts[(l & 15) as usize] += 1;
-    }
-    counts[0] = 0;
-    let mut offsets = [0u16; 16];
-    for i in 1..16 {
-        offsets[i] = offsets[i - 1] + counts[i - 1];
-    }
-    let mut symbols = vec![0u16; lengths.len()];
-    for (sym, &l) in lengths.iter().enumerate() {
-        if l != 0 {
-            symbols[offsets[l as usize] as usize] = sym as u16;
-            offsets[l as usize] += 1;
-        }
-    }
-    Huff { counts, symbols }
-}
+impl<const N: usize> Table<N> {
+    pub const BITS: u32 = N.trailing_zeros();
 
-pub fn decode(b: &mut Bits, h: &Huff) -> Option<u16> {
-    let mut code = 0i32;
-    let mut first = 0i32;
-    let mut index = 0i32;
-    for len in 1..16 {
-        code |= b.bit()? as i32;
-        let count = h.counts[len] as i32;
-        if code - first < count {
-            return h.symbols.get((index + (code - first)) as usize).copied();
-        }
-        index += count;
-        first += count;
-        first <<= 1;
-        code <<= 1;
+    pub fn new() -> Self {
+        Table { primary: [0; N], sub: Vec::new() }
     }
-    None
+
+    /// The entry for the code at the bottom of `buf`.
+    #[inline(always)]
+    pub fn lookup(&self, buf: u64) -> u32 {
+        let e = self.primary[buf as usize & (N - 1)];
+        if e & KIND != SUB {
+            return e;
+        }
+        let at = (buf >> Self::BITS) as usize & ((1usize << (e & 0xFF)) - 1);
+        self.sub[(e >> 16) as usize + at]
+    }
 }

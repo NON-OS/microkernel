@@ -20,8 +20,10 @@ use super::theme::{HEIGHT, WIDTH};
 
 const INPUT_KEY_DOWN_BIT: u32 = 1 << 0;
 const INPUT_POINTER_ABS_BIT: u32 = 1 << 3;
+const INPUT_WHEEL_BIT: u32 = 1 << 4;
 const INPUT_BUTTON_DOWN_BIT: u32 = 1 << 5;
-const INPUT_MASK: u32 = INPUT_KEY_DOWN_BIT | INPUT_POINTER_ABS_BIT | INPUT_BUTTON_DOWN_BIT;
+const INPUT_MASK: u32 =
+    INPUT_KEY_DOWN_BIT | INPUT_POINTER_ABS_BIT | INPUT_WHEEL_BIT | INPUT_BUTTON_DOWN_BIT;
 
 pub fn manifest() -> AppManifest {
     AppManifest {

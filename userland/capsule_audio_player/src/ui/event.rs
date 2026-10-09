@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::control::Control;
-use crate::resample::OUT_RATE;
 use crate::transport::{State, Transport};
 use nonos_app_skeleton::{EventOutcome, KEY_ENTER, KEY_LEFT, KEY_RIGHT};
 
@@ -36,10 +35,10 @@ pub fn apply(tp: &mut Transport, c: Control) {
         Control::Volume(p) => tp.set_volume((0x8000i32 * p as i32) / 1000),
         Control::Mute => tp.toggle_mute(),
         Control::SeekBackSecs(s) => {
-            tp.seek_frames(tp.pos_frames().saturating_sub(s as u64 * OUT_RATE as u64));
+            tp.seek_frames(tp.pos_frames().saturating_sub(tp.secs_to_frames(s)));
         }
         Control::SeekFwdSecs(s) => {
-            tp.seek_frames(tp.pos_frames() + s as u64 * OUT_RATE as u64);
+            tp.seek_frames(tp.pos_frames() + tp.secs_to_frames(s));
         }
         Control::Prev | Control::Next | Control::Shuffle | Control::Repeat => {}
     }

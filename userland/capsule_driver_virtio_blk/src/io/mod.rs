@@ -15,6 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod error;
 mod read_seq;
+mod rearm;
+mod settle;
 mod submit;
+mod wait_slice;
+mod wait_used;
 pub use error::BlkError;
+pub use settle::settle;
 pub use submit::submit;

@@ -39,6 +39,8 @@ pub fn default_net() -> NetStatus {
         tls_finished_ok: false,
         tls_client_finished_ok: false,
         rpc_chain_ok: false,
+        rpc_host: "",
+        route: None,
         status: b"net unchecked",
     }
 }

@@ -20,7 +20,7 @@
 //! values most likely to reach deep code paths, including absurd length
 //! prefixes. One survivor short of the count is a boot-time denial of service.
 
-use crate::attest::{enroll_kernel, proof_parser_is_total};
+use crate::attest::{enroll_kernel, trailer_parser_is_total};
 use crate::rng::Rng;
 
 /// Fuzz the parser for `iterations` inputs. Returns false on the first input that
@@ -60,7 +60,7 @@ pub fn fuzz(iterations: usize) -> bool {
             }
         }
 
-        if !proof_parser_is_total(&buf) {
+        if !trailer_parser_is_total(&buf) {
             println!("  [FAIL] parser panicked on a {}-byte input (iteration {i})", buf.len());
             return false;
         }

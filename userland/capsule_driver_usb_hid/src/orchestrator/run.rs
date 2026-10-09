@@ -14,16 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_yield;
+use nonos_libc::{mk_exit, mk_idle_ms, say_absent, EXIT_ABSENT};
 
+use super::find_within::find_within;
+
+const DRIVER: &[u8] = b"driver.usb_hid";
+/// The kernel registers driver.xhci0 when it spawns the host controller
+/// driver, before this one, and drops it when that driver exits. A lookup can
+/// still race a spawn that has not finished, so it is retried, asleep in
+/// between, for about two seconds; past that there is no controller.
+const LOOKUP_ATTEMPTS: u32 = 100;
+const LOOKUP_PAUSE_MS: u64 = 20;
+
+/// Find the host controller, or say there is none and leave. This used to
+/// retry the lookup with `mk_yield` and no bound, which on a machine without
+/// xHCI held a core for as long as the machine ran.
 pub fn run() -> ! {
-    let port = loop {
-        match crate::xhci::lookup() {
-            Some(p) => break p,
-            None => {
-                mk_yield();
-            }
-        }
+    let found = find_within(LOOKUP_ATTEMPTS, crate::xhci::lookup, || {
+        let _ = mk_idle_ms(LOOKUP_PAUSE_MS);
+    });
+    let Some(port) = found else {
+        say_absent(DRIVER);
+        mk_exit(EXIT_ABSENT)
     };
     super::poll::run(port)
 }

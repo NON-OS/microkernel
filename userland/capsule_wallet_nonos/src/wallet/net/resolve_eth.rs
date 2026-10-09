@@ -14,11 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{DNS_MAGIC, ETH_RPC_HOST, OP_RESOLVE_A};
+use super::constants::{DNS_MAGIC, OP_RESOLVE_A};
 
 pub fn resolve_eth(dns_port: u32) -> Result<[u8; 4], ()> {
     let mut rx = [0u8; 32];
-    let n = super::call::call(dns_port, DNS_MAGIC, OP_RESOLVE_A, ETH_RPC_HOST, &mut rx, 2800)?;
+    let n = super::call::call(
+        dns_port,
+        DNS_MAGIC,
+        OP_RESOLVE_A,
+        crate::wallet::chain::rpc_host().as_bytes(),
+        &mut rx,
+        2800,
+    )?;
     if n < 24 {
         return Err(());
     }

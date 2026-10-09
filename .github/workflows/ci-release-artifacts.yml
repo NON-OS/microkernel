@@ -1,25 +1,16 @@
 name: ci-release-artifacts
 
-# Reusable release artifact proof. Builds the ESP release image, copies the
-# required boot/kernel/trust artifacts into one bundle, and emits checksums plus
-# source/workflow provenance.
+# The release bundle a tag publishes: the flake's reproducible build, unsigned,
+# with its bill of materials, the public trust roots and checksums over all of
+# it (nonos-verify release). CI holds no key and signs nothing. The sealed
+# image is ek's (nix run .#seal --release), uploaded to the same release, and
+# anyone can rebuild this bundle and check the sealed kernel and loader are
+# the same bytes.
 
 on:
   workflow_call:
     secrets:
-      SIGNING_KEY_BASE64:
-        required: true
-      # The device binding's prover material belongs to a machine owner at
-      # install time, never to this pipeline; a release builds unbound. The
-      # names stay declared so stray references evaluate to empty instead of
-      # failing the call, and optional so their absence is legal.
-      ZK_BOOT_INDEX:
-        required: false
-      ZK_BOOT_SECRET_X:
-        required: false
-      ZK_BOOT_SECRET_R:
-        required: false
-      ZK_BOOT_NONCE_SEED:
+      CACHIX_AUTH_TOKEN:
         required: false
 
 permissions:
@@ -37,97 +28,57 @@ jobs:
   release-artifacts:
     name: release-artifacts
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
+    defaults:
+      run:
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          submodules: recursive
           persist-credentials: false
-      - uses: ./.github/actions/nonos-setup
+      - uses: ./.github/actions/nix-setup
         with:
-          targets: x86_64-nonos,x86_64-unknown-uefi
-          # qemu=true is what installs gdisk and mtools; the usb image rule
-          # (sgdisk, mformat, mcopy) dies with a bare 127 without them.
-          qemu: "true"
-          module: release
-      - name: Provision production trust material
-        env:
-          NONOS_CI_TRUST_MODE: production
-          SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
+          cache: ${{ vars.NONOS_CACHIX }}
+          cachix-token: ${{ github.event_name == 'push' && secrets.CACHIX_AUTH_TOKEN || '' }}
+      - name: nix build, the standard profile and its bill of materials
+        run: nix build .#standard -L
+      - name: The attestation surface's verifier
         run: |
-          set -euo pipefail
-          bash nonos-ci/setup-signing-key.sh
-              # The kernel self-attestation is transparent and needs no
-              # secrets. The ZK_BOOT values are the device binding's prover
-              # material: the opening of an enrolled device slot, which
-              # belongs to the machine's owner at install time and never to a
-              # vendor pipeline. A release therefore ships without a binding
-              # sidecar, and their absence here is the correct state, not a
-              # missing provisioning step.
-          make nonos-mk-check-trust-manifest
-          echo "NONOS_DEVICE_BINDING=unbound" >> "$GITHUB_ENV"
-          echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
-      # The bootable artifact itself, built from the same tree the lanes above
-      # checked. Capsules are attested before packaging so a capsule that
-      # cannot be enrolled stops the release rather than shipping unenforced.
-      - name: Build the attested ZeroState image
-        run: |
-          set -euo pipefail
-          make nonos-mk-all-capsules-attested
-          make nonos-mk-zerostate
-          make nonos-mk-esp
-          make nonos-mk-usb-img
-
-      - name: Collect the image and its roots
-        run: |
-          set -euo pipefail
+          # The verify page checks proofs in the browser with the verifier the
+          # gates link: nox_verify_wasm from NON-OS/STARKs at the commit
+          # flake.lock pins, built by the flake.
           mkdir -p release
-          cp target/nonos.img release/nonos.img
-          cp target/kernel_attested.bin release/nonos-kernel.bin
-          cp nonos-bootloader/target/x86_64-unknown-uefi/release/nonos_boot.efi \
-             release/nonos-boot.efi
-          cp nonos-data/trust/policy/zk_capsule_policy_root.bin release/
-          cp nonos-data/trust/policy/kernel_attest_root.bin release/
-          cp nonos-data/trust/policy/nonos_trust_anchor.policy.bin release/
-          ( cd release && sha256sum * > SHA256SUMS && cat SHA256SUMS )
-
-      - name: Build the attestation surface
-        run: |
-          set -euo pipefail
-          # The verify page's fixture set, generated from the artifacts this
-          # lane just built and refused unless every proof verifies and both
-          # roots reproduce from the binaries. What ships is what was proven.
-          rustup target add wasm32-unknown-unknown
-          cargo build --release --manifest-path stark-attest/cli/Cargo.toml             --bin gen-os-fixtures
-          cargo build --release --target wasm32-unknown-unknown             --manifest-path stark-attest/verifier-wasm/Cargo.toml
-          make -s nonos-mk-enrolled-tsv 2>/dev/null | grep -P '\t0x' > /tmp/enrolled.tsv
-          test "$(wc -l < /tmp/enrolled.tsv)" -ge 80
-          stark-attest/target/release/gen-os-fixtures surface             --policy-root nonos-data/trust/policy/zk_capsule_policy_root.bin             --epoch 1             --kernel-elf target/kernel-attest/kernel.enrolled.elf             --kernel-root nonos-data/trust/policy/kernel_attest_root.bin             --kernel-trailer target/kernel-attest/kernel.zk_trailer.bin             --capsules /tmp/enrolled.tsv
-          cp stark-attest/web-os/index.html stark-attest/web-os/app.js              stark-attest/web-os/smoke.mjs surface/
-          cp stark-attest/target/wasm32-unknown-unknown/release/stark_attest_verifier_wasm.wasm              surface/verifier.wasm
-          cp target/kernel_attested.bin              nonos-bootloader/target/x86_64-unknown-uefi/release/nonos_boot.efi surface/
-          ( cd surface && node smoke.mjs )
-          tar -C surface -czf attestation-surface.tar.gz .
-          sha256sum attestation-surface.tar.gz
-          cp attestation-surface.tar.gz release/
-          ( cd release && sha256sum attestation-surface.tar.gz >> SHA256SUMS )
-
+          cp "$(nix build .#verifier-wasm --no-link --print-out-paths)/verifier.wasm" release/verifier.wasm
       - name: nonos-verify release
-        env:
-          ZK_BOOT_INDEX: ${{ secrets.ZK_BOOT_INDEX }}
-          ZK_BOOT_SECRET_X: ${{ secrets.ZK_BOOT_SECRET_X }}
-          ZK_BOOT_SECRET_R: ${{ secrets.ZK_BOOT_SECRET_R }}
-          ZK_BOOT_NONCE_SEED: ${{ secrets.ZK_BOOT_NONCE_SEED }}
         run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- release
-      - name: Upload the bootable image
+      - name: The release assets, and sums over exactly them
+        run: |
+          # The bundle's own sums name the files inside the tarball; the
+          # release's sums name the files a person downloads.
+          mv release/SHA256SUMS release/BUNDLE-SHA256SUMS
+          mv release/BLAKE3SUMS release/BUNDLE-BLAKE3SUMS
+          cp result/nonos.cdx.json result/nonos-build.json release/
+          cd release
+          assets="nonos-release-bundle.tar.gz BUNDLE-SHA256SUMS BUNDLE-BLAKE3SUMS provenance.json nonos.cdx.json nonos-build.json verifier.wasm"
+          sha256sum $assets > SHA256SUMS
+          b3sum $assets > BLAKE3SUMS
+      - name: Upload the release bundle
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: nonos-image
-          path: release/
+          path: |
+            release/nonos-release-bundle.tar.gz
+            release/SHA256SUMS
+            release/BLAKE3SUMS
+            release/BUNDLE-SHA256SUMS
+            release/BUNDLE-BLAKE3SUMS
+            release/provenance.json
+            release/nonos.cdx.json
+            release/nonos-build.json
+            release/verifier.wasm
           retention-days: 30
           if-no-files-found: error
-
-      - name: Upload release artifacts
+      - name: Upload release reports
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:

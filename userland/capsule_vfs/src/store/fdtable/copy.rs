@@ -18,6 +18,7 @@ use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use super::budget::copy_of;
 use super::types::{File, Store, StoreError, StoreResult, MAX_FILES};
 
 impl Store {
@@ -32,15 +33,29 @@ impl Store {
         if self.find(dst).is_some() {
             return Err(StoreError::Exists);
         }
+        /*
+         * A streamed entry is never brought into memory, and a copy would be
+         * exactly that, so it is refused; a directory holding one is too.
+         */
+        if self.is_streamed(src_idx) {
+            return Err(StoreError::Inval);
+        }
         if !self.files[src_idx].is_dir {
-            if self.files.len() >= MAX_FILES {
+            if self.files.len() >= MAX_FILES || !self.may_name(owner, 1) {
                 return Err(StoreError::Full);
             }
-            let data = self.files[src_idx].data.clone();
+            let data = copy_of(&self.files[src_idx].data, self.held_except(None))?;
             self.files.push(File::new(String::from(dst), data, false, owner));
             return Ok(1);
         }
+        if recursive {
+            let prefix = format!("{src}/");
+            if self.files.iter().any(|f| f.streamed.is_some() && f.name.starts_with(prefix.as_str())) {
+                return Err(StoreError::Inval);
+            }
+        }
         let mut additions: Vec<File> = Vec::new();
+        let mut held = self.held_except(None);
         additions.push(File::new(String::from(dst), Vec::new(), true, owner));
         if recursive {
             let mut src_prefix = String::from(src);
@@ -51,10 +66,12 @@ impl Store {
                 if self.find(&new_name).is_some() {
                     return Err(StoreError::Exists);
                 }
-                additions.push(File::new(new_name, f.data.clone(), f.is_dir, owner));
+                let data = copy_of(&f.data, held)?;
+                held = held.saturating_add(data.capacity());
+                additions.push(File::new(new_name, data, f.is_dir, owner));
             }
         }
-        if self.files.len() + additions.len() > MAX_FILES {
+        if self.files.len() + additions.len() > MAX_FILES || !self.may_name(owner, additions.len()) {
             return Err(StoreError::Full);
         }
         let count = additions.len() as u32;

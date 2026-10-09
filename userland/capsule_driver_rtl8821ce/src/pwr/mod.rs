@@ -20,8 +20,16 @@
 //! engine they run on, proven against a modeled device.
 
 pub mod command;
+mod cycle;
+mod poll;
+mod presys;
+mod rpwm;
 mod run;
+mod switch;
+mod sysinit;
 mod tables;
 
+pub use cycle::{CARD_DISABLE, CARD_EMULATE, CR_UNPOWERED};
 pub use run::run_pwr_seq;
+pub use switch::{power_on, PowerOn};
 pub use tables::CARD_ENABLE;

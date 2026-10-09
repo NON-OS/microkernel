@@ -39,6 +39,8 @@ pub(super) fn reap(state: &mut State) {
             state.close_block(status == 0, elapsed);
             env.merge_back(state);
             state.fg_running = false;
+            // A program that ended with its tty still raw leaves the next one cooked.
+            state.scrollback.vt.modes.raw_input = false;
             state.last_status = status;
         }
     }

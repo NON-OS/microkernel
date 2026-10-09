@@ -18,17 +18,9 @@ use nonos_policy_proto::Field;
 
 use crate::settings::schema::rows::{Block, Pill, Row};
 
-pub const PRIVACY: &[Block] = &[
-    Block {
-        title: "Identity",
-        note: Some("What this device reveals about itself when it talks to a network."),
-        pill: Pill::None,
-        rows: &[Row::Field(Field::AnonymousMode), Row::Field(Field::NymEnabled)],
-    },
-    Block {
-        title: "Screen",
-        note: None,
-        pill: Pill::None,
-        rows: &[Row::Field(Field::ScreenTimeout)],
-    },
-];
+pub const PRIVACY: &[Block] = &[Block {
+    title: "Memory",
+    note: Some("Chosen once, during setup. Without it, nothing is written to disk."),
+    pill: Pill::None,
+    rows: &[Row::Field(Field::Persistent)],
+}];

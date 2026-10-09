@@ -28,9 +28,15 @@ mod mixnet_recv;
 mod mixnet_residual;
 mod mixnet_send;
 mod poll;
+mod reap;
 mod recv;
+pub(crate) mod recv_cap;
+mod recv_replay;
+mod release;
 mod send;
 mod setsockopt;
 mod socket;
 
+pub use connect::{advance as advance_connects, waiting as connects_waiting};
 pub use dispatch::dispatch;
+pub use reap::reap_if_due;

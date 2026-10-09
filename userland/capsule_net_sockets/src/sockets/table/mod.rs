@@ -17,6 +17,7 @@
 mod close;
 mod lookup;
 mod open;
+mod reap;
 mod types;
 
 pub use types::{Socket, SOCKETS};

@@ -16,6 +16,8 @@
 
 use core::ptr::{read_volatile, write_volatile};
 
+use super::lo_hi::{join_lo_hi, split_lo_hi};
+
 #[derive(Clone, Copy)]
 pub struct Regs {
     base: u64,
@@ -30,15 +32,21 @@ impl Regs {
         read_volatile((self.base + off as u64) as *const u32)
     }
 
+    /// A 64-bit register read as its low dword and then its high one.
     pub unsafe fn r64(self, off: u32) -> u64 {
-        read_volatile((self.base + off as u64) as *const u64)
+        let lo = self.r32(off);
+        let hi = self.r32(off + 4);
+        join_lo_hi(lo, hi)
     }
 
     pub unsafe fn w32(self, off: u32, value: u32) {
         write_volatile((self.base + off as u64) as *mut u32, value);
     }
 
+    /// A 64-bit register written as its low dword and then its high one.
     pub unsafe fn w64(self, off: u32, value: u64) {
-        write_volatile((self.base + off as u64) as *mut u64, value);
+        let (lo, hi) = split_lo_hi(value);
+        self.w32(off, lo);
+        self.w32(off + 4, hi);
     }
 }

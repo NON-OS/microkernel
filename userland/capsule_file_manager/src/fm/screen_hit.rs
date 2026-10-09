@@ -79,7 +79,7 @@ fn kind_chip_at(state: &State, x: u32, y: u32) -> Option<Option<super::filetype:
     kind_at(&chips, x, y)
 }
 
-// The active screen's one layout pass. Browse and Shared lay out no lines.
+// The active screen's one layout pass. Browse lays out no lines.
 fn lines_of(state: &State) -> Vec<Line> {
     let now = mk_time_millis().max(0) as u64;
     match state.screen {
@@ -87,7 +87,7 @@ fn lines_of(state: &State) -> Vec<Line> {
         Screen::Recents => recents_lines(state, now),
         Screen::Search => search_lines(state),
         Screen::Tags => tag_lines(state),
-        Screen::Browse | Screen::Shared => Vec::new(),
+        Screen::Browse => Vec::new(),
     }
 }
 

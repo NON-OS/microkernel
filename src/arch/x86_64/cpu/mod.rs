@@ -34,7 +34,10 @@ pub mod features;
 pub mod frequency;
 mod frequency_api;
 pub mod frequency_cpuid;
+mod frequency_pick;
 pub mod frequency_pit;
+mod frequency_pit_io;
+mod frequency_report;
 pub mod identification;
 mod identification_detect;
 mod identification_types;
@@ -44,6 +47,7 @@ mod msr_safe;
 pub mod msr_stats;
 pub mod per_cpu;
 pub mod state;
+mod state_features;
 mod state_getters;
 pub mod state_globals;
 mod state_init;
@@ -55,6 +59,7 @@ pub mod topology_leaf0b;
 mod topology_types;
 pub mod tsc;
 mod vendor;
+pub mod xstate;
 
 pub use api::{
     cache_info, cpu_count, cpu_id, current_cpu_id, features, get_stats, has_feature, init, init_ap,
@@ -70,11 +75,13 @@ pub use features::CpuFeatures;
 pub use frequency::{core_frequency, tsc_frequency};
 pub use frequency_cpuid::{detect_frequency_cpuid_16h, detect_tsc_frequency_cpuid_15h};
 pub use frequency_pit::calibrate_tsc_with_pit;
+pub use frequency_report::report_ap_tsc_rate;
 pub use identification::CpuId;
 pub use msr::{rdmsr, try_rdmsr, try_wrmsr, wrmsr};
 pub use msr_stats::{increment_reads, increment_writes};
 pub use per_cpu::{PerCpuData, MAX_CPUS};
 pub use state::CpuStats;
+pub use state_features::detect_features;
 pub use state_globals::{
     AP_DATA, BSP_DATA, CACHE_INFO, CPU_COUNT, CPU_FEATURES, CPU_ID, INITIALIZED, TOPOLOGY,
 };

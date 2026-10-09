@@ -14,36 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
+use crate::browser::html::input::decode;
+use crate::browser::html::tokenizer::TextMode;
 
-use crate::browser::html::parse::read_entity::read_entity;
-
-use super::consume::consume;
-use super::flush_text::flush_text;
-use super::limits::MAX_NODES;
+use super::builder::{fragment_state, Builder};
+use super::node::Ns;
+use super::quirks::Quirks;
 use super::tree::Dom;
 
+/// Parse a whole document: the WHATWG tokenizer and tree builder, so the
+/// tree is the one every other browser builds from the same bytes, with
+/// html, head and body always present. Never fails: bytes that are not
+/// UTF-8 decode to U+FFFD, and past the node cap the tree stops growing
+/// with `truncated` saying so.
 pub fn parse(bytes: &[u8]) -> Dom {
-    let mut dom = Dom::new();
-    let Ok(text) = core::str::from_utf8(bytes) else {
-        return dom;
+    let src = decode(bytes);
+    let mut b = Builder::document();
+    b.run(&src, TextMode::Data);
+    b.finish()
+}
+
+/// Parse markup as the contents of the element `context_tag` names, the
+/// way innerHTML does (13.4). A foreign context carries its namespace as
+/// a prefix, "svg path" or "math mi" (see `Node::context_tag`); a bare name
+/// is an HTML element. Node 0's children are the fragment's top-level
+/// nodes, and no html, head or body is added. The fragment is parsed as a
+/// no-quirks document.
+pub fn parse_fragment(input: &[u8], context_tag: &str) -> Dom {
+    let (ns, tag) = match context_tag.split_once(' ') {
+        Some(("svg", tag)) => (Ns::Svg, tag),
+        Some(("math", tag)) => (Ns::MathMl, tag),
+        _ => (Ns::Html, context_tag),
     };
-    let mut cur = 0usize;
-    let mut buf = String::new();
-    let mut chars = text.char_indices().peekable();
-    while let Some((_, c)) = chars.next() {
-        if dom.nodes.len() >= MAX_NODES {
-            break;
-        }
-        match c {
-            '<' => {
-                flush_text(&mut dom, cur, &mut buf);
-                cur = consume(&mut dom, cur, &mut chars);
-            }
-            '&' => read_entity(&mut chars, &mut buf),
-            _ => buf.push(c),
-        }
-    }
-    flush_text(&mut dom, cur, &mut buf);
-    dom
+    let src = decode(input);
+    let mut b = Builder::fragment(tag, ns, Quirks::No);
+    b.run(&src, fragment_state(tag, ns));
+    b.finish()
 }
