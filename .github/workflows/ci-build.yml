@@ -119,6 +119,17 @@ jobs:
           . ~/.nix-profile/etc/profile.d/nix.sh
           cd ~/nonos && make doctor && make build
       - name: make check
+        # make check builds the kernel debug profiles (qemu, standard, hardened)
+        # with debug info and assertions on, and the default fan-out runs several
+        # of those rustc at once. In the WSL2 VM that overruns the memory a
+        # memory-mapped file needs faulted in, and rustc takes SIGBUS (signal 7),
+        # not the host OOM killer, so it reads as a compiler crash. One rustc at a
+        # time stays within the VM; the lane's budget is six hours, and on it
+        # finishing matters more than finishing fast. NONOS_JOBS and
+        # CARGO_BUILD_JOBS are ?= in mk/00-config.mk, so these win.
+        env:
+          NONOS_JOBS: "1"
+          CARGO_BUILD_JOBS: "1"
         run: |
           set -euo pipefail
           . ~/.nix-profile/etc/profile.d/nix.sh
