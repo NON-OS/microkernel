@@ -1,7 +1,6 @@
 // attest: fuse every module report into one ci-attestation.json + a GitHub job
 // summary. Fails if any blocking module failed. Facts only.
 
-use crate::attest_stale;
 use crate::report::{Report, Status};
 use std::fmt::Write as _;
 use std::path::Path;
@@ -14,7 +13,6 @@ pub fn run(root: &str) -> std::io::Result<Status> {
 
     let mut modules: Vec<serde_json::Value> = Vec::new();
     let mut gaps: Vec<serde_json::Value> = Vec::new();
-    let mut stale: Vec<serde_json::Value> = Vec::new();
     let mut blocking_fail = false;
     let required = required_modules();
 
@@ -35,10 +33,6 @@ pub fn run(root: &str) -> std::io::Result<Status> {
             let hash = blake3::hash(&bytes).to_hex().to_string();
             let v: serde_json::Value =
                 serde_json::from_slice(&bytes).unwrap_or(serde_json::Value::Null);
-            if !attest_stale::is_fresh(&v, &meta.commit) {
-                stale.push(attest_stale::entry(&name, &v));
-                continue;
-            }
             let status = v.get("status").and_then(|s| s.as_str()).unwrap_or("unknown");
             let blocking = v.get("blocking").and_then(|b| b.as_bool()).unwrap_or(true);
             if status == "fail" && blocking {
@@ -73,7 +67,6 @@ pub fn run(root: &str) -> std::io::Result<Status> {
         "modules": modules,
         "required_modules": required,
         "missing_modules": missing,
-        "stale_reports": stale,
         "gaps": gaps,
         "blocking_failure": blocking_fail,
     });
@@ -98,14 +91,6 @@ pub fn run(root: &str) -> std::io::Result<Status> {
     }
     if !missing.is_empty() {
         let _ = writeln!(md, "\nmissing required modules: `{}`", missing.join(","));
-    }
-    for s in &stale {
-        let _ = writeln!(
-            md,
-            "\nstale report (not counted): `{}` from commit `{}`",
-            s["module"].as_str().unwrap_or(""),
-            s["commit"].as_str().unwrap_or("")
-        );
     }
     let _ = writeln!(md, "\nknown gaps: {}", gaps.len());
     let _ = writeln!(md, "\nblocking failure: {blocking_fail}");

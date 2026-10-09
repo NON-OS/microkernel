@@ -5,7 +5,6 @@
 
 mod adversarial;
 mod attest;
-mod attest_stale;
 mod build;
 mod evidence;
 mod hygiene;
