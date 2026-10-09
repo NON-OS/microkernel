@@ -39,9 +39,11 @@ concurrency:
 jobs:
   boot-smoke:
     runs-on: ubuntu-latest
-    # Two STARK enrollments dominate (about 35 minutes measured); the build
-    # itself comes from the cache.
-    timeout-minutes: 120
+    # STARK enrollment dominates: 115 capsules at about 1.85 minutes each, 2 at
+    # a time on this runner, about 213 minutes measured (run 37846807471), on
+    # top of about 58 minutes of building while no binary cache is set. Held
+    # under the hosted runners' 360 minute ceiling.
+    timeout-minutes: 345
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:
