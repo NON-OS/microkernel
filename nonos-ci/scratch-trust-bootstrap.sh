@@ -152,6 +152,10 @@ echo "[scratch-trust-bootstrap] wiping stale committed policy + certs + manifest
 # root over capsule hashes and capability masks, independent of signing keys,
 # and the kernel embeds it at compile time; keep the committed one.
 rm -f nonos-data/trust/policy/nonos_trust_anchor.policy.bin
+# ek's boot-root record names the sealed bootloader and is signed by the
+# committed device policy key, which this runner replaced with a scratch one;
+# without it the build signs a record for its own loader (nonos-mk-boot-root-record).
+rm -f nonos-data/trust/policy/boot_root.approval
 rm -f nonos-data/trust/capsules/*.nonos_id_cert.bin
 rm -f nonos-data/trust/capsules/*.manifest.bin
 
