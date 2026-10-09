@@ -38,6 +38,12 @@ if [ -z "${CAPSULE_SLUGS:-}" ] || [ -z "${CAPSULE_KEY_PREFIXES:-}" ]; then
         prefix="$(awk -F ':=' '$1 ~ /^[[:space:]]*CAPSULE_BIN_NAME[[:space:]]*$/ { gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2; exit }' "${capsule_mk}")"
         [ -n "${slug}" ] || { echo "::error::missing CAPSULE_SLUG in ${capsule_mk}"; exit 1; }
         [ -n "${prefix}" ] || { echo "::error::missing CAPSULE_BIN_NAME in ${capsule_mk}"; exit 1; }
+        # A development test capsule is on NONOS_DEV_CAPSULES, which no make
+        # lane signs or enrolls (nonos-mk/capsule.mk); only the seal of a
+        # development image takes it.
+        if awk -F ':=' '$1 ~ /^[[:space:]]*CAPSULE_DEV_ONLY[[:space:]]*$/ { gsub(/[[:space:]]/, "", $2); if ($2 != "") found = 1 } END { exit !found }' "${capsule_mk}"; then
+            continue
+        fi
         derived_slugs="${derived_slugs} ${slug}"
         derived_prefixes="${derived_prefixes} ${prefix}"
     done < "${capsule_inventory}"
