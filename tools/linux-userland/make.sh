@@ -7,7 +7,13 @@ tar -xzf "$(fetch make)" -C "$work"
 # No Guile and no native language support; no load directive, since the
 # personality maps no object it has not proved.
 (cd "$work/make-4.4.1" &&
-	CC="$CC" AR="$AR" RANLIB="$RANLIB" CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+	# configure's AC_PROG_CXX probes the build host for a C++ compiler and bakes
+	# the name it finds into make's built-in $(CXX) (default.c, MAKE_CXX): a Linux
+	# host gives g++, a macOS host gives c++, the one byte by which the same make
+	# built on the two hosts differed. make itself is C only and never calls it,
+	# so pin the name to the Linux default the target expects, the same on either
+	# host. config.guess feeds --build only, which configure does not bake.
+	CC="$CC" CXX=g++ AR="$AR" RANLIB="$RANLIB" CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
 		./configure --host=x86_64-linux-musl --build="$(sh build-aux/config.guess)" --prefix=/usr \
 		--disable-nls --without-guile --disable-load >/dev/null &&
 	make -j8 >/dev/null)

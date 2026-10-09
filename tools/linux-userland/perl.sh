@@ -168,7 +168,13 @@ done
 taken=$(echo $hostset | wc -w)
 for f in Config.pm Config_heavy.pl; do
 	argc=$(sed -n "s/^config_argc='\([0-9]*\)'\$/\1/p" "$out/perl5/$f")
+	# Configure probes the build machine's echo for how it drops a trailing
+	# newline and records it in $Config{n}: a Linux echo wants \c, so n is
+	# empty, a Mac's wants -n. It describes the build machine, not the Linux
+	# target, and was the one line by which Config_heavy.pl differed between the
+	# two; pin it to the target's value so either machine writes the same file.
 	sed -e "s|$work|/build|g" -e "s| --host-[a-z_-]*=[a-z_]*=[a-z0-9]*||g" \
+		-e "s/^n='[^']*'/n=''/" \
 		${argc:+-e "s/^config_argc='$argc'\$/config_argc='$((argc - taken))'/"} \
 		"$out/perl5/$f" >"$work/$f" && cp "$work/$f" "$out/perl5/$f"
 done
