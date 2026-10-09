@@ -114,6 +114,14 @@ jobs:
           git config --global --add safe.directory '*'
           git clone -q --no-hardlinks . ~/nonos
       - name: make build
+        # Same reason as make check below: the default fan-out builds several
+        # kernel profiles' rustc at once, which overruns the WSL2 VM's memory
+        # and a build-script rustc takes SIGBUS (signal 7). One at a time stays
+        # within the VM. Only make check carried this cap before, so a heavier
+        # make build (production profiles) still crashed.
+        env:
+          NONOS_JOBS: "1"
+          CARGO_BUILD_JOBS: "1"
         run: |
           set -euo pipefail
           . ~/.nix-profile/etc/profile.d/nix.sh
