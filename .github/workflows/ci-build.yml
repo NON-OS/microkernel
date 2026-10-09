@@ -32,7 +32,10 @@ defaults:
     shell: bash
 
 concurrency:
-  group: ci-build-${{ github.ref }}
+  # build and production-build both call this workflow in one run. With the
+  # group keyed on the ref alone they shared it, so whichever entered second
+  # was cancelled before it ran. The trust mode tells the two apart.
+  group: ci-build-${{ github.ref }}-${{ inputs.trust-mode }}
   cancel-in-progress: false
 
 jobs:
