@@ -1104,13 +1104,13 @@ DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
 		driver-virtio-rng driver-virtio-blk driver-nvme driver-ahci \
 		driver-virtio-gpu \
 		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid driver-usb-msc \
-		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
+		net-core net-sockets net-nym net-anon socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
 		clipboard login wallpaper toolkit about install install-cli model-fetch linux boot-splash \
 		calculator market app_store setup-wizard \
 		browser wallet-nonos terminal file-manager text-editor \
 		settings process-manager attest power prove \
-		audio driver-hda audio_player video-player
+		audio driver-hda audio_player video-player shield
 
 DESKTOP_BASE_CAPSULE_ARTIFACTS := \
 		$(foreach s,$(DESKTOP_BASE_SLUGS),$($(s)_ARTIFACTS))
