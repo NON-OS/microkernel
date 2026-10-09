@@ -117,7 +117,10 @@ done
 # scratch operator, written over the committed public key on this runner
 # only. A workflow that seals a release profile commits that key locally
 # first, since the seal seals only a committed tree.
-if [ ! -f .keys/marketplace_operator_ed25519.seed ]; then
+# NONOS_SCRATCH_OPERATOR=0 keeps the operator key in the tree: a seal with no
+# seed keeps the index and catalogue the operator signed (tools/nonos_seal),
+# and model-fetch, which compiles the key in, keeps its bytes and enrollment.
+if [ "${NONOS_SCRATCH_OPERATOR:-1}" = "1" ] && [ ! -f .keys/marketplace_operator_ed25519.seed ]; then
     echo "[scratch-trust-bootstrap] generating scratch marketplace operator key"
     "${CS}" keygen --alg ed25519 --out .keys/marketplace_operator_ed25519
     # capsule-sign writes the key in an 11-byte NONOSSK1/NONOSPK1 container,
