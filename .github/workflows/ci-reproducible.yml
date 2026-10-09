@@ -1,28 +1,25 @@
 name: ci-reproducible
 
-# Reusable reproducibility proof. `nonos-verify reproducible` builds the release
-# artifact target twice from clean detached worktrees with fixed deterministic
-# inputs and compares artifact hashes.
+# The reproducibility proof. Three machines (Linux x86_64, Linux aarch64,
+# macOS on Apple silicon) each build the artifacts from the same commit with
+# nothing shared: no binary cache, so none can take another's output. Each
+# hands over the nonos-build.json it wrote, every artifact by sha256, and
+# `nonos-verify reproducible` fails unless all three name the same bytes.
+#
+# The boundary is the compiled artifacts: the kernel, every capsule, the Linux
+# userland and the bootloader. Enrollment and signing come after them, draw
+# fresh randomness and need keys no CI holds, so the sealed image is never
+# compared, by design (tools/nix/README.md).
 
 on:
   workflow_call:
     inputs:
       trust-mode:
-        description: "scratch for nightly/dev proof, production for release gates"
+        description: "kept for the callers; the reproducible build needs no trust material"
         required: false
         type: string
         default: "scratch"
-    secrets:
-      SIGNING_KEY_BASE64:
-        required: false
-      ZK_BOOT_INDEX:
-        required: false
-      ZK_BOOT_SECRET_X:
-        required: false
-      ZK_BOOT_SECRET_R:
-        required: false
-      ZK_BOOT_NONCE_SEED:
-        required: false
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -36,59 +33,58 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  reproducible:
-    name: reproducible
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
+  build:
+    name: build (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x86_64, runner: ubuntu-latest }
+          - { name: macos-aarch64, runner: macos-latest }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          submodules: recursive
           persist-credentials: false
-      - uses: ./.github/actions/nonos-setup
+      - uses: ./.github/actions/nix-setup
         with:
-          targets: x86_64-nonos,x86_64-unknown-uefi
-          module: reproducible
-      - name: Provision reproducible trust material
-        env:
-          NONOS_CI_TRUST_MODE: ${{ inputs.trust-mode }}
-          SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-          ZK_BOOT_INDEX: ${{ secrets.ZK_BOOT_INDEX }}
-          ZK_BOOT_SECRET_X: ${{ secrets.ZK_BOOT_SECRET_X }}
-          ZK_BOOT_SECRET_R: ${{ secrets.ZK_BOOT_SECRET_R }}
-          ZK_BOOT_NONCE_SEED: ${{ secrets.ZK_BOOT_NONCE_SEED }}
+          use-cache: "false"
+      - name: nix build, from source
+        run: nix build .#default -L --keep-going
+      - name: The build manifest
         run: |
-          set -euo pipefail
-          case "${NONOS_CI_TRUST_MODE}" in
-            scratch)
-              bash nonos-ci/setup-signing-key.sh
-              echo "NONOS_DEV=1" >> "$GITHUB_ENV"
-              ;;
-            production)
-              bash nonos-ci/setup-signing-key.sh
-              # The kernel self-attestation is transparent and needs no
-              # secrets. The ZK_BOOT values are the device binding's prover
-              # material: the opening of an enrolled device slot, which
-              # belongs to the machine's owner at install time and never to a
-              # vendor pipeline. A release therefore ships without a binding
-              # sidecar, and their absence here is the correct state, not a
-              # missing provisioning step.
-              echo "NONOS_DEVICE_BINDING=unbound" >> "$GITHUB_ENV"
-              echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
-              ;;
-            *)
-              echo "::error::unknown trust-mode '${NONOS_CI_TRUST_MODE}'"
-              exit 1
-              ;;
-          esac
+          mkdir -p manifests
+          cp result/nonos-build.json "manifests/${{ matrix.name }}.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: repro-${{ matrix.name }}
+          path: manifests/
+          retention-days: 14
+          if-no-files-found: error
+
+  compare:
+    name: compare
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/nix-setup
+        with:
+          cache: ${{ vars.NONOS_CACHIX }}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: repro-*
+          path: manifests
+          merge-multiple: true
       - name: nonos-verify reproducible
-        env:
-          ZK_BOOT_INDEX: ${{ secrets.ZK_BOOT_INDEX }}
-          ZK_BOOT_SECRET_X: ${{ secrets.ZK_BOOT_SECRET_X }}
-          ZK_BOOT_SECRET_R: ${{ secrets.ZK_BOOT_SECRET_R }}
-          ZK_BOOT_NONCE_SEED: ${{ secrets.ZK_BOOT_NONCE_SEED }}
-        run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- reproducible
-      - name: Upload reproducibility artifacts
+        run: |
+          NONOS_REPRO_MANIFESTS="$(ls manifests/*.json | tr '\n' ' ')" \
+            nix develop --command cargo run --release --manifest-path nonos-verify/Cargo.toml -- reproducible
+      - name: Upload reproducibility report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:

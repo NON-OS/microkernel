@@ -39,6 +39,8 @@ pub fn apply(app: &mut VideoApp, action: Action) -> EventOutcome {
             app.playing = !app.playing;
             if app.playing {
                 rebase(app, app.next, upf);
+            } else {
+                app.note_position();
             }
             EventOutcome::Repaint
         }

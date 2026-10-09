@@ -22,6 +22,8 @@ mod footer;
 mod hash;
 mod helpers;
 mod key;
+mod policy;
+mod self_attest;
 mod signature;
 mod signature_display;
 mod signature_ed25519;
@@ -30,8 +32,7 @@ mod signature_message;
 mod signature_passed;
 mod signature_policy;
 mod size;
-#[cfg(feature = "stark-kernel-attest")]
-mod stark_attest;
+mod trailer;
 mod types;
 mod verify;
 mod verify_error;

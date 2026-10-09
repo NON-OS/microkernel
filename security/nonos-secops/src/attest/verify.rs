@@ -14,25 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Verify a kernel self-attestation exactly as the bootloader does before jump.
+//! Check a kernel self-attestation exactly as the bootloader does before the jump.
 
-use super::constants::{DEPTH, EXTRA_BLOWUP_BITS, GRIND_BITS, LOG_ROUNDS, N_QUERIES};
+use super::constants::DEPTH;
 use super::context::kernel_context;
-use nonos_stark::air::{verify_membership_trailer, Poseidon, RATE};
-use nonos_stark::field::Fp;
+use nonos_attest_path::{verify, Kind};
 
-/// Verify a trailer against an enrolled root, the boot-side check byte for byte.
+/// Check a trailer against an enrolled root, the boot-side check byte for byte.
 pub fn verify_kernel_attestation(root: &[u8; 32], kernel_bytes: &[u8], trailer: &[u8]) -> bool {
-    let hasher = Poseidon::new(LOG_ROUNDS, [Fp::ZERO; RATE]);
-    verify_membership_trailer(
-        &hasher,
-        LOG_ROUNDS,
-        *root,
-        DEPTH,
-        trailer,
-        &kernel_context(kernel_bytes),
-        N_QUERIES,
-        GRIND_BITS,
-        EXTRA_BLOWUP_BITS,
-    )
+    verify(root, DEPTH, Kind::Kernel, &kernel_context(kernel_bytes), trailer)
 }

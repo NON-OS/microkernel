@@ -10,15 +10,19 @@
 
 #[path = "../../capsule_driver_virtio_blk/src/constants/mod.rs"]
 pub mod constants;
+pub mod modern;
 #[path = "../../capsule_driver_virtio_blk/src/protocol/mod.rs"]
 pub mod protocol;
 pub mod queue;
 pub mod regs;
 pub mod server;
 pub mod setup;
+pub mod transport;
 
 #[cfg(test)]
 mod blk_tests;
+#[cfg(test)]
+mod capacity_tests;
 
 #[cfg(kani)]
 mod kani_proofs;

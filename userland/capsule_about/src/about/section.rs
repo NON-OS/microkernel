@@ -19,6 +19,7 @@ use nonos_toolkit::icons::IconId;
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Section {
     Overview,
+    Proofs,
     System,
     Trust,
     Verify,
@@ -28,8 +29,9 @@ pub enum Section {
 
 // Sidebar order. The nav painter and the click router both walk this slice, so
 // the rail can never draw an entry the hit test does not know about.
-pub const SECTIONS: [Section; 6] = [
+pub const SECTIONS: [Section; 7] = [
     Section::Overview,
+    Section::Proofs,
     Section::System,
     Section::Trust,
     Section::Verify,
@@ -41,6 +43,7 @@ impl Section {
     pub fn nav_label(self) -> &'static [u8] {
         match self {
             Section::Overview => b"Overview",
+            Section::Proofs => b"Proofs",
             Section::System => b"System",
             Section::Trust => b"Trust",
             Section::Verify => b"Verify",
@@ -53,6 +56,7 @@ impl Section {
     pub fn head_meta(self) -> &'static [u8] {
         match self {
             Section::Overview => b"identity and terms",
+            Section::Proofs => b"attested and anonymous, proven live",
             Section::System => b"build and address space",
             Section::Trust => b"signing chain and capabilities",
             Section::Verify => b"claims this machine can check on itself",
@@ -63,6 +67,7 @@ impl Section {
     pub fn icon(self) -> IconId {
         match self {
             Section::Overview => IconId::PmOverview,
+            Section::Proofs => IconId::PmAuthority,
             Section::System => IconId::SettingsDeveloper,
             Section::Trust => IconId::PmAuthority,
             Section::Verify => IconId::SettingsSecurity,
@@ -73,11 +78,12 @@ impl Section {
     pub fn index(self) -> usize {
         match self {
             Section::Overview => 0,
-            Section::System => 1,
-            Section::Trust => 2,
-            Section::Verify => 3,
-            Section::Display => 4,
-            Section::Licenses => 5,
+            Section::Proofs => 1,
+            Section::System => 2,
+            Section::Trust => 3,
+            Section::Verify => 4,
+            Section::Display => 5,
+            Section::Licenses => 6,
         }
     }
 }

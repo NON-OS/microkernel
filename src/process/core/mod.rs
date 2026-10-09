@@ -15,13 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod api;
+pub mod inbox_name;
 pub mod init;
 pub mod isolation;
-pub mod inbox_name;
 pub mod pcb;
 mod pcb_memory;
 mod pcb_memory_share;
 mod pcb_ops;
+mod pcb_reserve_unmapped;
+mod pcb_vma_cut;
+mod pcb_vmas;
 pub mod suspend;
 pub mod table;
 pub mod thread_group;

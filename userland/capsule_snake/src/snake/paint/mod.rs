@@ -35,6 +35,7 @@ mod play_rail;
 mod play_rail_tip;
 mod rank;
 mod rank_awards;
+mod rank_kept;
 mod rank_rows;
 mod receipt;
 mod screen;

@@ -19,14 +19,22 @@
 //! capsules, so it can never reach an app installed at runtime; the installer
 //! owns that load instead. The pid it returns is remembered, so a later click
 //! raises the running window rather than loading a second copy.
+//!
+//! The load takes seconds and this is the shell's frame loop, so the request
+//! is only issued here: a quick answer is acted on at once, and a load still
+//! running is followed on the shell's later turns
+//! (`installed_launch_poll.rs`), with a toast saying the app is starting.
 
 use alloc::vec::Vec;
 
-use nonos_libc::{mk_ipc_send_to_pid, mk_service_lookup, mk_time_millis, mk_yield};
+use nonos_app_skeleton::log_line::{say as log, Line};
+use nonos_libc::{mk_ipc_send_to_pid, mk_service_lookup, mk_yield};
 
+use super::launch_children::children;
 use super::launcher_request::focus_frame;
-use crate::installer_client::load_by_name;
+use crate::installer_client::{issue_load, Issued};
 use crate::render::sync_toast_layer;
+use crate::state::launch::Launch;
 use crate::state::{Context, NotifyLevel};
 
 pub fn launch(ctx: &mut Context, name: &[u8]) {
@@ -43,13 +51,31 @@ pub fn launch(ctx: &mut Context, name: &[u8]) {
         }
         ctx.installed_pids.remove(name);
     }
-    match load_by_name(name) {
-        Ok(pid) => {
+    /*
+     * One load at a time: the installer serves them in turn anyway, and each
+     * one followed holds places in its reply queue (`state/launch.rs`).
+     */
+    if let Some(pending) = ctx.launch.as_ref() {
+        let text = if pending.name == name {
+            said(b"Starting ", name, b"...")
+        } else {
+            said(b"Wait: ", &pending.name, b" is starting")
+        };
+        toast(ctx, &text, NotifyLevel::Info);
+        return;
+    }
+    let before = children();
+    match issue_load(name) {
+        Issued::Loaded(pid) => {
             ctx.installed_pids.insert(name.to_vec(), pid);
             boot(pid);
         }
-        Err(ERR_EXIST) => focus_running(ctx, name),
-        Err(status) => report_failure(ctx, status),
+        Issued::Refused(ERR_EXIST) => focus_running(ctx, name),
+        Issued::Refused(status) => report_failure(ctx, name, status),
+        Issued::InFlight => {
+            ctx.launch = Some(Launch::new(name, before, crate::server::dock_clock::now()));
+            toast(ctx, &said(b"Starting ", name, b"..."), NotifyLevel::Info);
+        }
     }
 }
 
@@ -76,14 +102,29 @@ fn focus_running(ctx: &mut Context, name: &[u8]) {
 /// A refused load used to look exactly like nothing happening; say why on
 /// screen, and call out a verification rejection distinctly since it means
 /// the store artifacts themselves failed attestation.
-fn report_failure(ctx: &mut Context, status: i32) {
+fn report_failure(ctx: &mut Context, name: &[u8], status: i32) {
     let text: &[u8] = if status == ERR_REJECTED {
         b"app rejected: failed verification"
     } else {
         b"app failed to launch"
     };
-    ctx.toasts.push(text, NotifyLevel::Error, mk_time_millis());
+    toast(ctx, text, NotifyLevel::Error);
+    let line = Line::new(b"LAUNCH").text(name).text(b": ").text(text);
+    let _ = log(&line.text(b" (installer ").num(status.into()).text(b")"));
+}
+
+pub(super) fn toast(ctx: &mut Context, text: &[u8], level: NotifyLevel) {
+    ctx.toasts.push(text, level, crate::server::toast_clock::now());
     sync_toast_layer(ctx);
+}
+
+/// A toast's words around an app's name.
+pub(super) fn said(before: &[u8], name: &[u8], after: &[u8]) -> Vec<u8> {
+    let mut text = Vec::with_capacity(before.len() + name.len() + after.len());
+    text.extend_from_slice(before);
+    text.extend_from_slice(name);
+    text.extend_from_slice(after);
+    text
 }
 
 // The kernel registers the app's `proc.<pid>` inbox inside the load syscall
@@ -95,7 +136,7 @@ const FOCUS_ATTEMPTS: u32 = 3;
 /// Deliver the focus frame a freshly loaded app blocks on before it builds its
 /// window. Without it the app attests, runs, and then waits forever, so nothing
 /// appears until a second click takes the already-running path above.
-fn boot(pid: u32) {
+pub(super) fn boot(pid: u32) {
     if focus(pid) {
         return;
     }
@@ -112,7 +153,7 @@ fn boot(pid: u32) {
 /// second copy then dies in the kernel on the service endpoint the live
 /// instance still holds, with no marker and no reply, so ask the registry
 /// before loading.
-fn already_running(name: &[u8]) -> Option<u32> {
+pub(super) fn already_running(name: &[u8]) -> Option<u32> {
     let mut service = Vec::with_capacity(b"app.".len() + name.len());
     service.extend_from_slice(b"app.");
     service.extend_from_slice(name);

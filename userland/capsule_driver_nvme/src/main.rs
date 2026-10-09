@@ -20,33 +20,44 @@
 extern crate alloc;
 
 mod admin;
+mod clock;
 mod constants;
 mod controller;
 mod discover;
 mod dma;
 mod error;
 mod handles;
+mod log;
 mod nvm;
 mod protocol;
 mod regs;
 mod server;
 mod setup;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, start_driver};
 
-use crate::error::exit_code;
+use crate::error::reason;
+
+const DRIVER: &[u8] = b"driver.nvme";
 
 /// # Safety
 /// The capsule entry point. The kernel loader calls this once on a fresh stack
 /// with the capsule's heap region reserved; it must never be called from Rust.
+///
+/// Without a controller the driver says so and leaves (`EXIT_ABSENT`) before
+/// claiming anything. A controller that is there is brought up on the shared
+/// bounded schedule, each failed attempt releasing what it took, and running
+/// out is `EXIT_GAVE_UP`.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    let mut driver = match setup::run() {
+    let started =
+        start_driver(DRIVER, discover::find_nvme(), |found| setup::run(found).map_err(reason));
+    let mut driver = match started {
         Ok(driver) => driver,
-        Err(e) => mk_exit(exit_code(e)),
+        Err(code) => mk_exit(code),
     };
     server::run(&mut driver);
 }

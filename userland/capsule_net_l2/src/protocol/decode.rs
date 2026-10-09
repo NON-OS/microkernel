@@ -38,3 +38,16 @@ pub fn parse(bytes: &[u8]) -> Result<(Request, &[u8]), u16> {
     }
     Ok((Request { op, request_id }, &bytes[HDR_LEN..want]))
 }
+
+/// The request a frame `parse` refused is answered under: the op and request
+/// id it names, or zeros when it is too short to name them. Its caller is
+/// blocked in its call until a reply comes, so a refusal is answered too.
+pub fn refused(bytes: &[u8]) -> Request {
+    let Some(head) = bytes.first_chunk::<HDR_LEN>() else {
+        return Request { op: 0, request_id: 0 };
+    };
+    Request {
+        op: u16::from_le_bytes([head[6], head[7]]),
+        request_id: u32::from_le_bytes([head[12], head[13], head[14], head[15]]),
+    }
+}

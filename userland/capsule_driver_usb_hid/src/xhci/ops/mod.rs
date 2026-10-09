@@ -15,17 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod address_device;
+mod address_routed;
 mod alloc_transfer_ring;
 mod config_descriptor;
+mod configure_hub;
 mod control_transfer;
+mod disable_slot;
 mod enable_slot;
 mod interrupt_in;
 mod port_status;
 
 pub use address_device::address_device;
+pub use address_routed::address_routed;
 pub use alloc_transfer_ring::alloc_transfer_ring;
-pub use config_descriptor::get_config_descriptor;
+pub use config_descriptor::{get_config_descriptor, MAX_DESCRIPTOR_LEN};
+pub use configure_hub::configure_hub;
 pub use control_transfer::control_transfer;
+pub use disable_slot::disable_slot;
 pub use enable_slot::enable_slot;
 pub use interrupt_in::interrupt_in;
 pub use port_status::{port_status, PortSnapshot};

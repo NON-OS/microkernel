@@ -359,15 +359,20 @@ def arch.paging.descriptor.aarch64.build.leaf
   else ok entry6
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::build::table]:
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/build.rs', lines 71:0-73:1
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/build.rs', lines 73:0-80:1
     Visibility: public -/
 def arch.paging.descriptor.aarch64.build.table
-  (pa : Std.U64) (_user_accessible : Bool) : Result Std.U64 := do
+  (pa : Std.U64) (user_accessible : Bool) : Result Std.U64 := do
   let i ← lift (pa &&& arch.paging.descriptor.aarch64.bits.ADDR_MASK)
   let i1 ← arch.paging.descriptor.aarch64.bits.VALID
   let i2 ← lift (i ||| i1)
   let i3 ← arch.paging.descriptor.aarch64.bits.TABLE_OR_PAGE
-  ok (i2 ||| i3)
+  let entry ← lift (i2 ||| i3)
+  if user_accessible
+  then ok entry
+  else
+    let i4 ← arch.paging.descriptor.aarch64.bits.APTABLE_NO_EL0
+    ok (entry ||| i4)
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::read::is_present]:
     Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/read.rs', lines 20:0-22:1

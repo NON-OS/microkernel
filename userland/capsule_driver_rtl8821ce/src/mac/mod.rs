@@ -19,11 +19,13 @@
 //! this stage) the init table itself. The engine is proven against a modeled
 //! device in `rtl8821ce_proofs`.
 
+mod burst;
 pub mod op;
 mod run;
 mod tables;
 mod trx;
 
+pub use burst::set_dma_burst;
 pub use run::run_mac_table;
 pub use tables::MAC_INIT;
 pub use trx::{init_trx_cfg, reset_trx_dma};

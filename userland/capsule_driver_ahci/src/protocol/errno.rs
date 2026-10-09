@@ -16,7 +16,21 @@
 
 pub const E_OK: i32 = 0;
 pub const E_INVAL: i32 = -22;
+/// The sender may not reach the medium (`server::medium`).
+pub const E_ACCES: i32 = -13;
 pub const E_IO: i32 = -5;
 pub const E_NXIO: i32 = -6;
 pub const E_MSGSIZE: i32 = -90;
 pub const E_NODEV: i32 = -19;
+/// The command got no completion within its time.
+pub const E_TIMEDOUT: i32 = -110;
+/// Device statuses ride above the errnos: a command the disk ended with an
+/// error answers -(ATA_STATUS_BASE | PxTFD.ERR << 8 | PxTFD.STS), so a failed
+/// install can say what the disk said, not only that it failed. A client
+/// that does not know the range reads it as an I/O error.
+pub const ATA_STATUS_BASE: i32 = 0x1_0000;
+
+/// The reply status for a command the disk failed with task file `tfd`.
+pub const fn ata_status(tfd: u32) -> i32 {
+    -(ATA_STATUS_BASE | (tfd & 0xffff) as i32)
+}

@@ -11,14 +11,19 @@ CAPSULE_FEATURE          := nonos-capsule-desktop-shell
 CAPSULE_NAMESPACE        := systems.nonos.desktop_shell
 CAPSULE_SERVICE_ENDPOINT := service:4410:desktop_shell
 CAPSULE_REPLY_ENDPOINT   := reply:4411:endpoint.desktop_shell.reply
-# CoreExec | Network | IPC | Memory | GraphicsDisplayQuery
-# | GraphicsSurfaceCreate | SpawnWindow
-# = 0x01 | 0x04 | 0x08 | 0x10 | 0x800 | 0x1000 | 0x1000000 = 0x100181d
-# The shell-frametime counter is the only consumer of Debug; re-add 0x100 here
-# and in spawn.rs when that build is enabled. Must stay in sync with
-# requested_caps in src/userspace/capsule_desktop_shell/spawn.rs.
-CAPSULE_REQUIRED_CAPS    := 0x100191D
-
+# CoreExec | Network | IPC | Memory | FileSystem | GraphicsSurfaceCreate | SpawnWindow
+# = 0x01 | 0x04 | 0x08 | 0x10 | 0x40 | 0x1000 | 0x1000000 = 0x100105d
+# FileSystem: the desktop lists the root and asks the store's state through
+# vfs (src/vfs_client), which serves only a holder of it.
+# No GraphicsDisplayQuery: the shell learns the screen size from the
+# compositor and makes neither call that bit admits.
+# Debug, which is optional, carries the shell-frametime counter and the
+# stuck-setup line in src/wait_for_setup.rs. Must stay in sync with requested_caps in
+# src/userspace/capsule_desktop_shell/spawn.rs.
+CAPSULE_REQUIRED_CAPS    := 0x100105D
+# Debug, granted only by a build that compiles `capsule-serial-debug`: the
+# kernel mirror folds it in through serial_debug_cap().
+CAPSULE_OPTIONAL_CAPS    := 0x100
 # Uncomment for a frame-time measurement build; leave off for release.
 # CAPSULE_CARGO_FEATURES := shell-frametime
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_desktop_shell

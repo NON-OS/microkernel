@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "attest_doc_proofs"
 version = "0.1.0"
+dependencies = [
+ "nonos_route_proof",
+]
+
+[[package]]
+name = "nonos_route_proof"
+version = "0.1.0"

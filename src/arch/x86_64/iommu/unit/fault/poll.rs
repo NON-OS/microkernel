@@ -24,13 +24,15 @@ const INTERVAL: u64 = 128;
 
 /// Called from the timer interrupt. Delivery by interrupt would need an MSI
 /// vector programmed into FECTL; until that exists this is what makes a
-/// denial visible rather than silent.
+/// denial visible rather than silent. The AMD-Vi event logs are read on the
+/// same pace, so the timer has one IOMMU poll whichever vendor is present.
 pub fn poll_faults(ticks: u64) {
     if !ticks.is_multiple_of(INTERVAL) {
         return;
     }
-    if !is_enforcing() {
-        return;
+    if is_enforcing() {
+        drain_faults();
     }
-    drain_faults();
+    #[cfg(feature = "nonos-iommu-amdvi")]
+    crate::arch::x86_64::iommu::amd_vi::drain_events();
 }

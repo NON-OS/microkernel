@@ -29,5 +29,6 @@ pub fn set(field: Field, value: i8) -> bool {
         }
         _ => return false,
     }
+    super::state::changed();
     true
 }

@@ -14,29 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The confirmation: what is about to be erased, then the word typed back.
-//! `--yes` skips the prompt for a script that already named the disk on
-//! its command line; naming it once is the confirmation in that case.
+//! The confirmation: the disk, then everything the install erases and
+//! writes with its size, read off the plan the write follows, then the word
+//! typed back. `--yes` skips the prompt for a script that already named the
+//! disk on its command line; naming it once is the confirmation then.
 
 use std::io::{BufRead, Write};
 
 use nonos_blk_client::{Contents, Disk};
+use nonos_disk::{describe, Carried, Plan};
 
 use super::source::bytes;
 
-pub fn confirm(d: &Disk, word: &str, yes: bool) -> bool {
+pub fn confirm(d: &Disk, plan: &Plan<'_>, carried: &Carried, word: &str, yes: bool) -> bool {
     let name = d.identity.map(|i| i.model_str().to_string());
-    println!("disk     {}", name.as_deref().unwrap_or(d.label()));
-    println!("bus      {}", d.label());
+    println!("disk         {}", name.as_deref().unwrap_or(d.label()));
+    println!("bus          {}", d.label());
     if let Some(i) = d.identity {
-        println!("serial   {}", i.serial_str());
+        println!("serial       {}", i.serial_str());
     }
-    println!("size     {}", bytes(d.bytes()));
-    println!("holds    {}", d.contents.text());
-    match d.contents {
-        Contents::Nonos => println!("this disk holds NONOS already; it will be replaced"),
-        Contents::Blank => {}
-        _ => println!("everything on this disk is erased"),
+    println!("size         {}", bytes(d.bytes()));
+    println!("holds        {}", d.contents.text());
+    if d.contents == Contents::Nonos {
+        println!("             its store and its data volume are lost");
+    }
+    for row in describe(plan, carried) {
+        println!("{:<12} {}", row.label, row.value);
     }
     if yes {
         return true;

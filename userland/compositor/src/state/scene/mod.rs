@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod drop_by_pid;
+mod drop_surface;
 mod layer;
 mod layers;
 mod new;
+mod raise;
 mod reap_unattachable;
 mod snapshot;
 mod submit;

@@ -54,7 +54,6 @@ pub const RANK_ROWS: usize = 10;
 
 pub const ICON_SM: u32 = 14;
 pub const ICON_MD: u32 = 18;
-pub const ICON_LG: u32 = 26;
 
 pub const PX_WORDMARK: f32 = 52.0;
 pub const PX_TITLE: f32 = 30.0;

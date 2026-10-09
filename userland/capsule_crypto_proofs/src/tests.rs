@@ -18,4 +18,6 @@
 
 mod anchor_tests;
 mod scheme_tests;
+mod sha1_prefixed_tests;
+mod sha1_vector;
 mod unprefixed_tests;

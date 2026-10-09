@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::about::data::caps::{is_granted, ALL_CAPS, MASK};
+use crate::about::data::caps::ALL_CAPS;
 use crate::about::format::{hex_u64, u64_decimal};
 
 use super::super::card;
@@ -22,16 +22,17 @@ use super::super::chip_wrap::wrap_h;
 use super::super::kv::ROW_H;
 use super::tile_text::push;
 
-pub const CAP_SLOTS: usize = 21;
+pub const CAP_SLOTS: usize = ALL_CAPS.len();
 pub const ROLE_GAP: u32 = 12;
 pub const DENIED_GAP: u32 = 14;
 
 // The grid is driven off the descriptor table, never off a list typed here, so a
 // capability added to the kernel's mask appears on the correct side by itself.
-pub fn names(dst: &mut [&'static [u8]; CAP_SLOTS], granted: bool) -> usize {
+// `mask` is the word the kernel recorded for this window.
+pub fn names(dst: &mut [&'static [u8]; CAP_SLOTS], mask: u64, granted: bool) -> usize {
     let mut n = 0usize;
     for cap in ALL_CAPS {
-        if is_granted(cap.bit) == granted && n < dst.len() {
+        if (mask & cap.bit != 0) == granted && n < dst.len() {
             dst[n] = cap.name;
             n += 1;
         }
@@ -39,30 +40,35 @@ pub fn names(dst: &mut [&'static [u8]; CAP_SLOTS], granted: bool) -> usize {
     n
 }
 
-// "Granted 5 of 21   mask 0x1819", assembled from the table's own arithmetic so
-// the count and the mask cannot drift apart.
-pub fn summary<'a>(dst: &'a mut [u8; 48], granted: bool, mask: bool) -> &'a [u8] {
+// "Granted 6 of 22   mask 0x80001819", assembled from the table's own arithmetic
+// so the count and the mask cannot drift apart.
+pub fn summary<'a>(dst: &'a mut [u8; 48], mask: u64, granted: bool, show: bool) -> &'a [u8] {
     let mut slots: [&'static [u8]; CAP_SLOTS] = [b""; CAP_SLOTS];
-    let count = names(&mut slots, granted) as u64;
+    let count = names(&mut slots, mask, granted) as u64;
     let mut a = [0u8; 20];
     let mut b = [0u8; 20];
     let mut n = push(dst, 0, if granted { b"Granted " } else { b"Denied " });
     n = push(dst, n, u64_decimal(count, &mut a));
     n = push(dst, n, b" of ");
     n = push(dst, n, u64_decimal(ALL_CAPS.len() as u64, &mut b));
-    if mask {
+    if show {
         let mut hex = [0u8; 20];
         n = push(dst, n, b"    mask ");
-        n = push(dst, n, hex_u64(MASK, &mut hex));
+        n = push(dst, n, hex_u64(mask, &mut hex));
     }
     &dst[..n]
 }
 
-pub fn height(inner: u32) -> u32 {
+// A table that did not answer leaves the card one line tall: the line that
+// says so.
+pub fn height(inner: u32, held: Option<u64>) -> u32 {
+    let Some(mask) = held else {
+        return card::OVERHEAD + ROW_H;
+    };
     let mut slots: [&'static [u8]; CAP_SLOTS] = [b""; CAP_SLOTS];
-    let granted = names(&mut slots, true);
+    let granted = names(&mut slots, mask, true);
     let chips = wrap_h(&slots[..granted], inner);
-    let denied = names(&mut slots, false);
+    let denied = names(&mut slots, mask, false);
     let denied_chips = wrap_h(&slots[..denied], inner);
     let roles = granted as u32 * ROW_H;
     card::OVERHEAD + ROW_H + chips + ROLE_GAP + roles + DENIED_GAP + ROW_H + denied_chips

@@ -18,6 +18,7 @@ use core::mem;
 use core::ptr;
 
 use super::super::state::TableRegistry;
+use super::entries::{record_processor, CpuContext};
 use crate::arch::x86_64::acpi::data::*;
 use crate::arch::x86_64::acpi::tables::madt::*;
 
@@ -31,21 +32,14 @@ pub fn parse_lapic_override(registry: &mut TableRegistry, ptr: u64, len: u8) {
     }
 }
 
-pub fn parse_x2apic(registry: &mut TableRegistry, ptr: u64, len: u8) {
+pub fn parse_x2apic(registry: &mut TableRegistry, ptr: u64, len: u8, ctx: CpuContext) {
     if len < mem::size_of::<MadtLocalX2Apic>() as u8 {
         return;
     }
-    unsafe {
-        let entry = ptr::read_volatile(ptr as *const MadtLocalX2Apic);
-        if entry.is_usable() {
-            registry.data.processors.push(ProcessorInfo::new(
-                entry.x2apic_id,
-                entry.processor_uid,
-                true,
-                entry.is_enabled(),
-            ));
-        }
-    }
+    // SAFETY: the caller bounded `ptr..ptr + len` inside the mapped MADT and
+    // `len` covers the struct.
+    let entry = unsafe { ptr::read_volatile(ptr as *const MadtLocalX2Apic) };
+    record_processor(registry, ctx, entry.x2apic_id, entry.processor_uid, entry.flags, true);
 }
 
 pub fn parse_x2apic_nmi(registry: &mut TableRegistry, ptr: u64, len: u8) {

@@ -1,0 +1,11 @@
+[package]
+name = "nonos_download"
+version = "0.1.0"
+edition = "2021"
+description = "A file downloaded over a route: URL, redirects, resume, chunked bodies, a size limit and an audio check, no_std and pure"
+license = "AGPL-3.0"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]

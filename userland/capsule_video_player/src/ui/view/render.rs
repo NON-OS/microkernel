@@ -18,20 +18,29 @@ use nonos_app_skeleton::paint::PaintBuffer;
 
 use crate::app::state::VideoApp;
 use crate::ui::frame::{region, sidebar, topbar};
+use crate::ui::layout::Rect;
 use crate::ui::screen::Route;
 use crate::ui::theme;
 
 pub fn hint(route: Route) -> &'static str {
     match route {
-        Route::Settings => "Search settings",
-        Route::Files => "Search this folder",
-        Route::Playlists => "Search playlists",
-        _ => "Search videos, playlists, folders",
+        Route::Files => "Type to search this folder",
+        _ => "Type to search videos",
     }
 }
 
 pub fn has_tools(route: Route) -> bool {
-    matches!(route, Route::Home | Route::Library | Route::Files)
+    matches!(route, Route::Library | Route::Files)
+}
+
+/// Where a page draws its videos, for the click test: the same rect the
+/// page's painter fills, or `None` on a page with no video list.
+pub fn content(route: Route, body: Rect) -> Option<Rect> {
+    match route {
+        Route::Library => Some(super::library::area(body)),
+        Route::Files => Some(super::files::area(body)),
+        _ => None,
+    }
 }
 
 pub fn paint_route(fb: &mut PaintBuffer, app: &VideoApp) {
@@ -41,19 +50,16 @@ pub fn paint_route(fb: &mut PaintBuffer, app: &VideoApp) {
     let (w, h) = (fb.width, fb.height);
     let route = app.route();
     sidebar::paint_sidebar(fb, route, app.browse.items.len());
-    topbar::paint_search(fb, w, h, hint(route), &app.browse.query);
+    // Search and the view switch act on the video list, so they show only
+    // on the pages that have one.
     if has_tools(route) {
-        let sort = "Sort by name";
-        let filter = "All videos";
-        topbar::paint_tools(fb, w, h, filter, sort, app.browse.grid);
+        topbar::paint_search(fb, w, h, hint(route), &app.browse.query);
+        topbar::paint_tools(fb, w, h, app.browse.grid);
     }
     let body = region::body(w, h);
     match route {
-        Route::Home => super::home::paint(fb, app, body),
         Route::Library => super::library::paint(fb, app, body),
-        Route::Playlists => super::playlists::paint(fb, app, body),
         Route::Files => super::files::paint(fb, app, body),
-        Route::Settings => super::settings::paint(fb, app, body),
         Route::Details => super::details::paint(fb, app, body),
         Route::Player => {}
     }

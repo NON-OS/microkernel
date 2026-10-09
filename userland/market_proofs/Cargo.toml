@@ -1,0 +1,21 @@
+# NØNOS userland: market_proofs
+#
+# Host proofs for the market capsule's install readiness gate, the wire
+# format its clients share (market_proto), and the marketplace window's
+# pure logic. The shipped source is included through #[path], so a proof
+# here constrains the code that runs and not a copy of it.
+
+[package]
+name = "nonos_market_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The encoder writes the well formed indexes the decode proofs damage.
+nonos_marketplace_abi = { path = "../marketplace_abi", features = ["canonical-encode"] }
+nonos_market_proto = { path = "../market_proto" }

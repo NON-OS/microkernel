@@ -14,86 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const INTEL_VENDOR_ID: u16 = 0x8086;
-pub const BAR_INDEX: u32 = 0;
-pub const BAR_OFFSET: u64 = 0;
-// Runtime ucode images are hundreds of KB to ~1 MB; the old 64 KB staging
-// buffer could not hold a single image, so staging truncated on real firmware.
-pub const FW_STAGING_SIZE: u64 = 2 * 1024 * 1024;
-pub const PAGE_MASK: u64 = 0xFFF;
+//! The legacy register offsets, bits and staging layout, one file per
+//! concern.
 
-// Flow Handler (FH) registers for the legacy (pre-8000) firmware-load DMA path.
-// The FH service channel (9) transfers a staged section from host DRAM into the
-// device's internal SRAM at a destination address. Offsets from iwl-fh.h.
-pub const FH_TFDIB_CTRL0_REG: usize = 0x1948;
-pub const FH_TFDIB_CTRL1_REG: usize = 0x194C;
-pub const FH_SRVC_CHNL_SRAM_ADDR_REG: usize = 0x19C8;
-pub const FH_TCSR_CHNL_TX_CONFIG_REG: usize = 0x1E20;
-pub const FH_TCSR_CHNL_TX_BUF_STS_REG: usize = 0x1E28;
-pub const FH_TFDIB_REG1_ADDR_BITSHIFT: u32 = 28;
-pub const FH_TCSR_TX_CONFIG_DMA_PAUSE: u32 = 0x0000_0000;
-pub const FH_TCSR_TX_CONFIG_DMA_ENABLE: u32 = 0x8000_0000;
-pub const FH_TCSR_TX_CONFIG_CIRQ_HOST_ENDTFD: u32 = 0x0010_0000;
-pub const FH_TCSR_TX_BUF_STS_TFDB_VALID: u32 = (1 << 20) | (1 << 12) | 0x1;
-pub const FH_TX_POLL_ITERS: usize = 500_000;
+mod cmd_queue;
+mod csr;
+mod fh_load;
+mod fw_api;
+mod pci;
+mod prph;
+mod rx_ring;
 
-// Peripheral (PRPH) indirect register access through the HBUS window, and the
-// CPU-release register that starts the loaded firmware. After every ucode
-// section is in SRAM, releasing the CPU reset boots the firmware, which then
-// raises the ALIVE interrupt. Offsets from iwl-io.h / iwl-prph.h.
-pub const HBUS_TARG_PRPH_WADDR: usize = 0x0444;
-pub const HBUS_TARG_PRPH_WDAT: usize = 0x044C;
-pub const PRPH_WADDR_ADDR_MASK: u32 = 0x000F_FFFF;
-pub const PRPH_WADDR_WORD_ENABLE: u32 = 0x3 << 24;
-pub const RELEASE_CPU_RESET: u32 = 0x300C;
-pub const RELEASE_CPU_RESET_BIT: u32 = 0x0100_0000;
-pub const CSR_INT_COALESCING: usize = 0x004;
-pub const CSR_INT: usize = 0x008;
-pub const CSR_INT_MASK: usize = 0x00C;
-pub const CSR_FH_INT_STATUS: usize = 0x010;
-pub const CSR_GP_CNTRL: usize = 0x024;
-pub const CSR_HW_REV: usize = 0x028;
-pub const GP_CNTRL_MAC_CLOCK_READY: u32 = 0x0000_0002;
-pub const GP_CNTRL_INIT_DONE: u32 = 0x0000_0004;
-pub const GP_CNTRL_MAC_ACCESS_REQ: u32 = 0x0000_0008;
-pub const GP_CNTRL_XTAL_ON: u32 = 0x0000_0400;
-pub const ALL_INTS_MASK: u32 = 0xFFFF_FFFF;
-pub const INT_MASK_DISABLED: u32 = 0;
-pub const INT_COALESCING_TIMEOUT: u32 = 64;
-pub const APM_POLL_ITERS: usize = 250_000;
-pub const INT_BIT_ALIVE: u32 = 1 << 0;
-pub const ALIVE_POLL_ITERS: usize = 2_000_000;
-pub const IWL_FW_MAGIC: u32 = 0x0A4C_5749;
-pub const FW_API_VERSION_MASK: u32 = 0xFFFF;
-pub const MIN_FW_API_VERSION: u16 = 22;
-pub const MAX_FW_API_VERSION: u16 = 77;
-
-// Host-command / transmit-queue interface. Once the firmware is alive, the
-// driver hands it commands through a TFD ring per transmit queue. The
-// write-pointer doorbell in the HBUS window tells the firmware a queue's new
-// write index; the legacy ring holds this many descriptors (a power of two).
-// Offset from iwl-prph.h / iwl-fh.h.
-pub const HBUS_TARG_WRPTR: usize = 0x0460;
-pub const TFD_QUEUE_SIZE: usize = 256;
-
-// The command queue and its layout inside the DMA buffer that staged the
-// firmware (reused once the firmware is alive): a TFD ring followed by a
-// per-slot command area. Sized to fit within FW_STAGING_SIZE.
-pub const CMD_QUEUE_ID: u8 = 4;
-pub const CMD_SLOT_SIZE: usize = 512;
-pub const CMD_RING_OFFSET: usize = 0;
-pub const CMD_AREA_OFFSET: usize = TFD_QUEUE_SIZE * 128;
-
-// The receive ring, laid out after the command area in the same DMA buffer.
-// The firmware posts packets into RX_QUEUE_SIZE receive buffers of RB_SIZE each
-// and advances the write-pointer register as it does. RX_RB_OFFSET + the ring
-// fits within FW_STAGING_SIZE. Register offset from iwl-fh.h.
-pub const RX_QUEUE_SIZE: usize = 256;
-pub const RB_SIZE: usize = 4096;
-pub const RX_RB_OFFSET: usize = CMD_AREA_OFFSET + TFD_QUEUE_SIZE * CMD_SLOT_SIZE;
-pub const RX_WPTR_REG: usize = 0x1BC0;
-
-// The last byte the command ring and the receive ring occupy in the DMA buffer.
-// The driver refuses to touch the DMA area unless the grant is at least this
-// large, so a short grant cannot turn into an out-of-bounds access.
-pub const DMA_LAYOUT_END: usize = RX_RB_OFFSET + RX_QUEUE_SIZE * RB_SIZE;
+pub use cmd_queue::*;
+pub use csr::*;
+pub use fh_load::*;
+pub use fw_api::*;
+pub use pci::*;
+pub use prph::*;
+pub use rx_ring::*;

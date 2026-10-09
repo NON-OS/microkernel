@@ -14,61 +14,57 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use super::bits::Bits;
-use super::codes::codes;
-use super::huff::{build, decode};
-use super::tables::{MAX_OUT, ORDER};
+use super::codes::{codes, symbol};
+use super::huff::Table;
+use super::huff_build::build;
+use super::meta;
+use super::out::Out;
+use super::tables::{Codes, ORDER};
+use super::types::End;
 
-pub fn dynamic(b: &mut Bits, out: &mut Vec<u8>) -> Option<()> {
+/// A block that sends its own codes (RFC 1951 3.2.7).
+pub fn dynamic(b: &mut Bits, out: &mut Out, c: &mut Codes) -> Result<(), End> {
     let hlit = b.bits(5)? as usize + 257;
     let hdist = b.bits(5)? as usize + 1;
     let hclen = b.bits(4)? as usize + 4;
     if hlit > 286 || hdist > 30 {
-        return None;
+        return Err(End::Corrupt);
     }
     let mut cl = [0u8; 19];
-    for i in 0..hclen {
-        cl[ORDER[i]] = b.bits(3)? as u8;
+    for &i in ORDER.iter().take(hclen) {
+        cl[i] = b.bits(3)? as u8;
     }
-    let mut lengths: Vec<u8> = Vec::with_capacity(hlit + hdist);
-    let clh = build(&cl);
-    while lengths.len() < hlit + hdist {
-        let sym = decode(b, &clh)?;
-        push_lengths(sym, b, &mut lengths, hlit + hdist)?;
-    }
-    let lit = build(&lengths[..hlit]);
-    let dist = build(&lengths[hlit..hlit + hdist]);
-    codes(b, out, &lit, &dist)
+    build(&mut c.cl, &cl, meta::plain)?;
+    let lens = lengths(b, &c.cl, hlit + hdist)?;
+    build(&mut c.lit, &lens[..hlit], meta::litlen)?;
+    build(&mut c.dist, &lens[hlit..hlit + hdist], meta::dist)?;
+    codes(b, out, &c.lit, &c.dist)
 }
 
-fn push_lengths(sym: u16, b: &mut Bits, lengths: &mut Vec<u8>, limit: usize) -> Option<()> {
-    match sym {
-        0..=15 => lengths.push(sym as u8),
-        16 => {
-            let prev = *lengths.last()?;
-            let n = 3 + b.bits(2)? as usize;
-            if lengths.len().checked_add(n)? > limit || lengths.len().checked_add(n)? > MAX_OUT {
-                return None;
+/// The literal/length and distance code lengths, run-length coded with
+/// the code-length code: 16 repeats the previous length, 17 and 18 zeros.
+fn lengths(b: &mut Bits, cl: &Table<128>, total: usize) -> Result<[u8; 316], End> {
+    let mut lens = [0u8; 316];
+    let mut n = 0;
+    while n < total {
+        b.refill();
+        let sym = (symbol(b, cl)? >> 16) as u8;
+        let (val, rep) = match sym {
+            0..=15 => (sym, 1),
+            16 => {
+                (*n.checked_sub(1).and_then(|p| lens.get(p)).ok_or(End::Corrupt)?, 3 + b.bits(2)?)
             }
-            for _ in 0..n {
-                lengths.push(prev);
-            }
+            17 => (0, 3 + b.bits(3)?),
+            18 => (0, 11 + b.bits(7)?),
+            _ => return Err(End::Corrupt),
+        };
+        let end = n + rep as usize;
+        if end > total {
+            return Err(End::Corrupt);
         }
-        17 | 18 => push_zeroes(sym, b, lengths, limit)?,
-        _ => return None,
+        lens[n..end].fill(val);
+        n = end;
     }
-    (lengths.len() <= limit).then_some(())
-}
-
-fn push_zeroes(sym: u16, b: &mut Bits, lengths: &mut Vec<u8>, limit: usize) -> Option<()> {
-    let n = if sym == 17 { 3 + b.bits(3)? as usize } else { 11 + b.bits(7)? as usize };
-    if lengths.len().checked_add(n)? > limit {
-        return None;
-    }
-    for _ in 0..n {
-        lengths.push(0);
-    }
-    Some(())
+    Ok(lens)
 }

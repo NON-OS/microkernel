@@ -16,4 +16,6 @@
 
 mod stream;
 
-pub use stream::{fill_random_bytes, get_random_bytes};
+pub use stream::{fill_random_bytes, get_random_bytes, get_random_bytes_secure};
+#[cfg(test)]
+pub use stream::{replay_from, set_unavailable};

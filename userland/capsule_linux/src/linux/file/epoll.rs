@@ -17,13 +17,12 @@
 //! `epoll_create1` and `epoll_ctl`: the interest list a program keeps.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Fd, Guest, Kind};
+use crate::linux::guest::{Fd, Guest, Kind, Watch};
 
+use super::epoll_rules::{exclusive_ok, loops, EPOLL_CTL_ADD, EPOLL_CTL_MOD};
 use super::slot::install;
 
-const EPOLL_CTL_ADD: u64 = 1;
 const EPOLL_CTL_DEL: u64 = 2;
-const EPOLL_CTL_MOD: u64 = 3;
 
 /// `struct epoll_event` is packed on x86_64: a u32 of events then a u64
 /// of caller data, twelve bytes and not sixteen.
@@ -36,6 +35,13 @@ pub fn epoll_create(guest: &mut Guest) -> u64 {
     }
 }
 
+/// Add, change or drop one entry, refused as Linux refuses it: a closed
+/// descriptor is EBADF, a regular file or directory EPERM (always ready, so
+/// never worth waiting on; Go's os.Open falls back to blocking reads on it),
+/// watching the list itself EINVAL, EPOLLEXCLUSIVE where Linux does not
+/// allow it EINVAL, an epoll that would end up watching itself or nest too
+/// deep ELOOP, adding twice EEXIST, changing or dropping what is not there
+/// ENOENT.
 pub fn epoll_ctl(guest: &mut Guest, ep: u64, op: u64, fd: u64, event: u64) -> u64 {
     let entry = match op {
         EPOLL_CTL_DEL => None,
@@ -45,14 +51,57 @@ pub fn epoll_ctl(guest: &mut Guest, ep: u64, op: u64, fd: u64, event: u64) -> u6
         },
         _ => return errno::fail(errno::EINVAL),
     };
-    let Some(list) = guest.fds.get_mut(ep as usize).filter(|f| f.kind == Kind::Epoll) else {
+    let open = |n: u64| guest.fds.get(n as usize).is_some_and(|f| f.is_open());
+    if !open(ep) || !open(fd) {
+        return errno::fail(errno::EBADF);
+    }
+    let unpollable = |f: &Fd| f.kind == Kind::Device && !super::dev::polls(f.handle);
+    let refused = |f: &Fd| matches!(f.kind, Kind::File | Kind::Dir) || unpollable(f);
+    if guest.fds.get(fd as usize).is_some_and(refused) {
+        return errno::fail(errno::EPERM);
+    }
+    let Some(list) = guest.fds.get(ep as usize).filter(|f| f.kind == Kind::Epoll) else {
+        return errno::fail(errno::EINVAL);
+    };
+    let present = list.watch.iter().find(|w| w.fd == fd).map(|w| w.events);
+    if fd == ep {
+        return errno::fail(errno::EINVAL);
+    }
+    let target_epoll = guest.fds.get(fd as usize).is_some_and(|f| f.kind == Kind::Epoll);
+    if let Some((events, _)) = entry {
+        if let Err(e) = exclusive_ok(op, events, target_epoll, present) {
+            return errno::fail(e);
+        }
+    }
+    let lists = |at: u64| {
+        let f = guest.fds.get(at as usize).filter(|f| f.kind == Kind::Epoll)?;
+        Some(f.watch.iter().map(|w| w.fd).collect())
+    };
+    if op == EPOLL_CTL_ADD && target_epoll && loops(&lists, ep, fd) {
+        return errno::fail(errno::ELOOP);
+    }
+    match op {
+        EPOLL_CTL_ADD if present.is_some() => return errno::fail(errno::EEXIST),
+        EPOLL_CTL_MOD | EPOLL_CTL_DEL if present.is_none() => return errno::fail(errno::ENOENT),
+        _ => {}
+    }
+    let Some(list) = guest.fds.get_mut(ep as usize) else {
         return errno::fail(errno::EBADF);
     };
-    list.watch.retain(|(f, _, _)| *f != fd);
+    // A change re-arms the entry: it is looked at afresh, as a new one is.
+    list.watch.retain(|w| w.fd != fd);
     if let Some((events, data)) = entry {
-        list.watch.push((fd, events, data));
+        list.watch.push(Watch::new(fd, events, data));
     }
     errno::ok(0)
+}
+
+/// Drop `fd` from every interest list, as Linux does when a descriptor is
+/// closed, so a later descriptor given its number starts unregistered.
+pub fn forget(guest: &mut Guest, fd: u64) {
+    for list in guest.fds.iter_mut().filter(|f| f.kind == Kind::Epoll) {
+        list.watch.retain(|w| w.fd != fd);
+    }
 }
 
 fn read_event(guest: &Guest, at: u64) -> Option<(u32, u64)> {

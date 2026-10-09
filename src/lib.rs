@@ -25,26 +25,25 @@
 #![allow(clippy::declare_interior_mutable_const)]
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 
-// x86_64 is the production release target. aarch64 and riscv64 are brought up
-// behind `nonos-arch-preview`: the arch trees compile and boot in QEMU but are
-// not yet release-signed. Without the feature, a non-x86_64 build is refused so
-// a release can never ship an unfinished arch by accident.
+// x86_64 is the production release target. Any other architecture builds only
+// with `nonos-arch-preview`; without it, the build is refused here so a release
+// cannot ship another architecture by accident.
 #[cfg(all(not(target_arch = "x86_64"), not(feature = "nonos-arch-preview")))]
 compile_error!(
     "Developer Preview 1.0 ships only x86_64. Build aarch64/riscv64 with \
      --features nonos-arch-preview (QEMU bring-up, not a release target)."
 );
 
-#[cfg(all(feature = "nonos-production", feature = "nonos-dev-unverified-capsules"))]
+#[cfg(all(feature = "nonos-production", feature = "nonos-attest-refusal-smoketest"))]
 compile_error!(
-    "nonos-production and nonos-dev-unverified-capsules are mutually exclusive: \
-     production builds must not enable the unverified capsule spawn path."
+    "nonos-attest-refusal-smoketest embeds deliberately broken capsules; it is a \
+     test profile and never part of a production build."
 );
 
-#[cfg(all(feature = "nonos-production", feature = "nonos-zk-rollout"))]
+#[cfg(all(feature = "nonos-release", feature = "nonos-dev-attest"))]
 compile_error!(
-    "nonos-production and nonos-zk-rollout are mutually exclusive: production \
-     builds must enforce attestation, not log-and-continue on a failed proof."
+    "nonos-dev-attest admits capsules on their path alone, without the STARK \
+     proof; it is for development images and never part of a production build."
 );
 
 #[macro_use]

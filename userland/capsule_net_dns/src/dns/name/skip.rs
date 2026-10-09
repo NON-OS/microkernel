@@ -36,6 +36,10 @@ pub fn skip(message: &[u8], start: usize) -> Result<usize, NameError> {
         if steps > NAME_MAX {
             return Err(NameError::LoopDetected);
         }
+        // The labels so far and the root after them fit in 255 bytes.
+        if i - start >= NAME_MAX {
+            return Err(NameError::TooLong);
+        }
     }
 }
 

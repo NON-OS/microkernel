@@ -17,10 +17,10 @@
 //! A private file mapping.
 
 use crate::linux::abi::errno;
-use crate::linux::file::pread64;
 use crate::linux::guest::Guest;
 
 use super::map_exec::proven;
+use super::map_fill::{fill_from, fill_read};
 use super::map_req::MapReq;
 use super::prot::PROT_EXEC;
 use super::prot_span::protect_span;
@@ -32,33 +32,32 @@ pub fn file(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
      * half-filled span left behind by a late refusal is memory the guest still
      * holds and did not ask to keep.
      */
-    if req.prot & PROT_EXEC != 0 && !proven(guest, req.fd) {
+    let proved = (req.prot & PROT_EXEC != 0).then(|| proven(guest, req.fd));
+    if let Some(None) = proved {
         return errno::fail(errno::EPERM);
     }
-    if guest.map(at, span, true, false) < 0 {
+    if !req.make_room(guest, at, span) || guest.map(at, span, true, false) < 0 {
         return errno::fail(errno::ENOMEM);
     }
-    let mut done = 0u64;
-    while done < req.len {
-        let n = pread64(guest, req.fd, at + done, req.len - done, req.off + done) as i64;
-        if n < 0 {
+    /* Linux reloads a file's bytes after MADV_DONTNEED; this capsule cannot. */
+    guest.mark_kept(at, span);
+    if let Some(Some(bytes)) = proved {
+        if fill_from(guest, &bytes, req, at) < 0 {
             return errno::fail(errno::EACCES);
         }
-        if n == 0 {
-            /*
-             * Short of the requested span: the rest of the mapping is the
-             * zeroes the fresh frames already hold, which is what a segment's
-             * bss is.
-             */
-            break;
-        }
-        done += n as u64;
+        return finish(guest, req, at, span);
     }
-    if protect_span(guest, at, span, req.prot) < 0 {
+    if fill_read(guest, req, at) < 0 {
         return errno::fail(errno::EACCES);
     }
-    if req.fixed().is_none() {
-        guest.mmap_next += span;
+    /* Not proved, since nothing asked to run it: it stays that way. */
+    guest.mark_unproven(at, span);
+    finish(guest, req, at, span)
+}
+
+fn finish(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
+    if protect_span(guest, at, span, req.prot) < 0 {
+        return errno::fail(errno::EACCES);
     }
     errno::ok(at)
 }

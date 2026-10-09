@@ -26,7 +26,8 @@
 use crate::arch::aarch64::cpu::{has_feature, CpuFeature};
 
 /// `MSR PAN, #0`, encoded by hand so the assembler takes it without the build
-/// enabling `+pan` everywhere. `PAN` is `MSR (immediate)` with op1 = 0, op2 = 4.
+/// enabling `+pan` everywhere. `PAN` is `MSR (immediate)` with op1 = 0, op2 = 4
+/// and the immediate in CRm: 0xd500401f | op2 << 5 | imm << 8.
 #[inline(always)]
 pub(super) fn allow() {
     if !supported() {
@@ -36,7 +37,7 @@ pub(super) fn allow() {
     // writable at EL1. Writing it changes only PSTATE.PAN, and the guard that
     // called this restores it.
     unsafe {
-        core::arch::asm!("msr pan, #0", options(nomem, nostack, preserves_flags));
+        core::arch::asm!(".inst 0xd500409f", options(nomem, nostack, preserves_flags));
     }
 }
 
@@ -48,7 +49,7 @@ pub(super) fn deny() {
     // SAFETY: as for `allow`. Setting the bit is the safe direction: it can
     // only turn an access that would have succeeded into a fault.
     unsafe {
-        core::arch::asm!("msr pan, #1", options(nomem, nostack, preserves_flags));
+        core::arch::asm!(".inst 0xd500419f", options(nomem, nostack, preserves_flags));
     }
 }
 

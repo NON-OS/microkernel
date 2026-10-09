@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::{kind_of, KIND_I8, KIND_U8};
+use nonos_policy_proto::{kind_of, Field, KIND_I8, KIND_U8};
 
 use crate::settings::schema::read_only;
 use crate::settings::state::{current_field, State};
 
 use super::adjust_i8::adjust_i8;
+use super::adjust_tier::adjust_tier;
 use super::adjust_u8::adjust_u8;
 
 pub fn adjust(state: &mut State, delta: i32) {
@@ -33,6 +34,7 @@ pub fn adjust(state: &mut State, delta: i32) {
         return;
     }
     match kind_of(field) {
+        _ if field == Field::QwenTier => adjust_tier(state, delta),
         KIND_U8 => adjust_u8(state, field, delta),
         KIND_I8 => adjust_i8(state, field, delta),
         _ => {}

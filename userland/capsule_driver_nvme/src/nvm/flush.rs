@@ -21,6 +21,7 @@ use crate::regs::Regs;
 
 impl IoQueue {
     pub fn flush(&mut self, regs: Regs) -> NvmeResult<()> {
+        self.settle(regs)?;
         let cid = self.cid;
         self.cid = self.cid.wrapping_add(1).max(1);
         let nsid = self.nsid;

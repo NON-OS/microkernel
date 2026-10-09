@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod firmware;
+pub mod loader_check;
+mod modules;
 pub mod secure_boot;
+pub mod slots;
 
 pub use secure_boot::{
     add_trusted_key, generate_attestation_report, get_boot_measurements, get_policy,

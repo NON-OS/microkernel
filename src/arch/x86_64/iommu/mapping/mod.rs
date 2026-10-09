@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod commit;
+mod domain_root;
 mod map_identity;
 mod map_range;
 mod unmap_range;

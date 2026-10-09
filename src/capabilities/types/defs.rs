@@ -40,22 +40,17 @@ capability_table! {
     DeviceEnum = 1 << 15,
     /// Claim and release a device through the broker.
     Driver = 1 << 16,
-    /// Map a slice of a claimed device's BAR into the holder's own
-    /// address space.
+    /// Map a slice of a claimed device's BAR into the holder's own address space.
     Mmio = 1 << 17,
-    /// Bind a claimed device's interrupt to a kernel-delivered
-    /// notification slot.
+    /// Bind a claimed device's interrupt to a kernel-delivered notification slot.
     Irq = 1 << 18,
-    /// Receive a DMA-coherent buffer a claimed device may read or
-    /// write through.
+    /// Receive a DMA-coherent buffer a claimed device may read or write through.
     Dma = 1 << 19,
-    /// Mint a PIO grant against a port BAR and run kernel-mediated
-    /// `in` and `out` on its ports.
+    /// Mint a PIO grant against a port BAR and run kernel-mediated `in` and `out` on its ports.
     Pio = 1 << 20,
     InputSource = 1 << 21,
     TimeSet = 1 << 22,
-    /// Attribute a capsule load's parent to a kernel-attested pid other than
-    /// the caller.
+    /// Attribute a capsule load's parent to a kernel-attested pid other than the caller.
     SpawnBroker = 1 << 23,
     /// Spawn another instance of an already embedded, attested app capsule.
     SpawnWindow = 1 << 24,
@@ -74,10 +69,15 @@ capability_table! {
     /// Read the attestation registry: which capsules are running,
     /// their measurements and their capability masks.
     AttestRead = 1 << 31,
-    /// Host code this kernel has not verified: create a process with no
-    /// capabilities, build its address space, and answer the syscalls it makes
-    /// that the kernel refuses.
+    /// Host code this kernel has not verified: create a process with no capabilities,
+    /// build its address space, and answer the syscalls it makes that the kernel refuses.
     ForeignExec = 1 << 32,
     /// Mint a proof that this machine agreed to run bytes it installed itself.
     LocalSign = 1 << 33,
+    /// Stream a file into the data volume, kept only if it hashes to the digest
+    /// named when the stream began. Nothing on the volume is read back through it.
+    StreamImport = 1 << 34,
+    /// Receive this machine's TPM-derived device secret, the witness of the anonymous
+    /// device proof. Held by nonos.prove alone.
+    DeviceSecret = 1 << 35,
 }

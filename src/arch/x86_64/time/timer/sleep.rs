@@ -17,33 +17,6 @@
 use super::time::now_ns;
 use super::tsc::{ns_to_tsc, rdtsc};
 
-pub fn sleep_long_ns<F>(ns: u64, callback: F)
-where
-    F: Fn(),
-{
-    let start = now_ns();
-    let end_time = start + ns;
-    while now_ns() < end_time {
-        callback();
-        let remaining_ns = end_time.saturating_sub(now_ns());
-        if remaining_ns > 10_000_000 {
-            x86_64::instructions::interrupts::enable();
-            x86_64::instructions::hlt();
-            x86_64::instructions::interrupts::disable();
-        } else if remaining_ns > 1000 {
-            for _ in 0..(remaining_ns / 100) {
-                unsafe {
-                    core::arch::asm!("pause");
-                }
-            }
-        } else {
-            unsafe {
-                core::arch::asm!("nop");
-            }
-        }
-    }
-}
-
 pub fn busy_sleep_ns(ns: u64) {
     let start = now_ns();
     while now_ns() - start < ns {

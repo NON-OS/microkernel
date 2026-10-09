@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_dma_map, DmaMapOut, IrqBindOut};
+use nonos_libc::{mk_dma_map, DmaMapOut, MK_DMA_MAP_COHERENT};
 
 use super::super::registers::RegisterGrant;
 use super::rollback;
@@ -24,16 +24,18 @@ pub fn map_tx_queue(
     device_id: u64,
     claim_epoch: u64,
     reg: &RegisterGrant,
-    irq: &IrqBindOut,
     rx_queue: &DmaMapOut,
     rx_buffer: &DmaMapOut,
 ) -> Result<DmaMapOut, &'static str> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-    let r = mk_dma_map(device_id, claim_epoch, VQ_REGION_SIZE as u64, 0, &mut out);
+    // The virtqueue is read and written by both sides while it runs: mapped
+    // uncached, so neither needs a cache flush (virtio 1.2, 2.7.13).
+    let r =
+        mk_dma_map(device_id, claim_epoch, VQ_REGION_SIZE as u64, MK_DMA_MAP_COHERENT, &mut out);
     if r >= 0 {
         return Ok(out);
     }
-    if !rollback::after(device_id, reg, irq, &[rx_buffer.grant_id, rx_queue.grant_id]) {
+    if !rollback::after(device_id, reg, &[rx_buffer.grant_id, rx_queue.grant_id]) {
         return Err("dma rollback failed (tx queue)");
     }
     Err("dma map failed (tx queue)")

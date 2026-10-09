@@ -27,14 +27,29 @@ pub(super) fn poll(bs: &BootServices) -> Nav {
         return Nav::None;
     };
     match input.read_key() {
-        Ok(Some(Key::Special(ScanCode::UP))) => Nav::Up,
-        Ok(Some(Key::Special(ScanCode::DOWN))) => Nav::Down,
-        Ok(Some(Key::Printable(ch))) => match char::from_u32(u16::from(ch) as u32) {
-            Some('\r') | Some('\n') => Nav::Enter,
-            Some('w') | Some('W') | Some('k') | Some('K') => Nav::Up,
-            Some('s') | Some('S') | Some('j') | Some('J') => Nav::Down,
-            _ => Nav::None,
-        },
+        Ok(Some(Key::Special(code))) => special(code),
+        Ok(Some(Key::Printable(ch))) => printable(u16::from(ch)),
         _ => Nav::None,
+    }
+}
+
+fn special(code: ScanCode) -> Nav {
+    match code {
+        ScanCode::UP => Nav::Up,
+        ScanCode::DOWN => Nav::Down,
+        ScanCode::HOME | ScanCode::PAGE_UP => Nav::First,
+        ScanCode::END | ScanCode::PAGE_DOWN => Nav::Last,
+        _ => Nav::Stop,
+    }
+}
+
+fn printable(ch: u16) -> Nav {
+    match char::from_u32(ch as u32) {
+        Some('\r') | Some('\n') => Nav::Enter,
+        Some('w') | Some('W') | Some('k') | Some('K') => Nav::Up,
+        Some('s') | Some('S') | Some('j') | Some('J') => Nav::Down,
+        Some(d @ '1'..='9') => Nav::Jump(d as usize - '1' as usize),
+        Some(_) => Nav::Stop,
+        None => Nav::None,
     }
 }

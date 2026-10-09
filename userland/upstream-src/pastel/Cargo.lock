@@ -1056,3 +1056,11 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[patch.unused]]
+name = "atty"
+version = "0.2.14"
+
+[[patch.unused]]
+name = "getrandom"
+version = "0.2.17"

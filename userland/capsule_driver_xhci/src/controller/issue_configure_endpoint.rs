@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::ring_doorbell::ring_doorbell;
-use super::wait_command_completion::wait_command_completion;
+
+use super::run_command::run_command;
 use crate::error::{XhciError, XhciResult};
 use crate::rings::command::CommandRing;
 use crate::rings::event::EventRing;
@@ -28,9 +28,7 @@ pub fn issue_configure_endpoint(
     slot_id: u8,
 ) -> XhciResult<()> {
     let trb = configure_endpoint_command(input_context_phys, slot_id, cmd_ring.cycle() != 0);
-    let issued_phys = cmd_ring.enqueue(trb)?;
-    ring_doorbell(doorbell_base, 0, 0);
-    let completion = wait_command_completion(intr_base, issued_phys, evt_ring)?;
+    let completion = run_command(doorbell_base, intr_base, cmd_ring, evt_ring, trb)?;
     if completion.slot_id != slot_id {
         return Err(XhciError::UnexpectedCompletionSlot);
     }

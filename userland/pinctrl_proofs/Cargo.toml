@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for nonos_pinctrl: every Intel layout checked against the shape
+# and pin count of the Linux table it was transcribed from, firmware pin
+# numbers resolved to the pads Linux names, and the Intel and AMD register
+# arithmetic at its edges.
+[package]
+name = "pinctrl_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_pinctrl = { path = "../nonos_pinctrl" }

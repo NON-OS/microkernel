@@ -27,10 +27,12 @@ mod path_without_query;
 mod request_target;
 mod scheme_rest;
 mod split_path;
+mod to_string;
 mod types;
 
 pub use authority::authority;
 pub use join::join;
 pub use parse::parse;
 pub use request_target::request_target;
+pub use to_string::to_string;
 pub use types::{Scheme, Url};

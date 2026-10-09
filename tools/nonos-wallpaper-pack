@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""The wallpaper collection: one file the store carries, and the pins the
+catalog holds each wallpaper in it to.
+
+    tools/nonos-wallpaper-pack pack OUT   write the collection to OUT
+    tools/nonos-wallpaper-pack pins       rewrite the pins (userland/nonos_wallpapers)
+    tools/nonos-wallpaper-pack check      fail if the pins are stale
+
+The collection is the files nonos-data/wallpapers/catalog.txt names, in its
+order, end to end. vfs streams it from the device and never loads it; the
+catalog reads only the wallpapers the person kept, one at a time, and holds
+each to the offset, length and SHA-256 pinned in its own signed image, so a
+store whose bytes differ shows that wallpaper as missing rather than shows
+what the device says.
+"""
+
+import hashlib
+import os
+import sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DIR = os.path.join(ROOT, "nonos-data/wallpapers")
+PINS = os.path.join(ROOT, "userland/nonos_wallpapers/src/pins.rs")
+HEADER = """// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// Written by tools/nonos-wallpaper-pack from nonos-data/wallpapers; do not
+// edit. Each wallpaper's place in the store's collection and the SHA-256 its
+// bytes must have, in catalog order.
+
+use super::pin::Pin;
+
+"""
+
+
+def catalog():
+    out = []
+    with open(os.path.join(DIR, "catalog.txt")) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                slug, name = line.split()
+                with open(os.path.join(DIR, name), "rb") as g:
+                    out.append((slug, g.read()))
+    if not out or len(out) > 64:
+        sys.exit("nonos-wallpaper-pack: the kept set is 64 bits, so 1 to 64 wallpapers")
+    return out
+
+
+def pins_text(entries):
+    lines, at = [], 0
+    for slug, data in entries:
+        digest = ", ".join(f"0x{b:02x}" for b in hashlib.sha256(data).digest())
+        lines.append(f"    Pin {{\n        slug: b\"{slug}\",\n        offset: {at},\n        len: {len(data)},\n"
+                     f"        sha256: [{digest}],\n    }},\n")
+        at += len(data)
+    return HEADER + f"pub const PINS: [Pin; {len(entries)}] = [\n" + "".join(lines) + "];\n"
+
+
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] not in ("pack", "pins", "check"):
+        sys.exit(__doc__)
+    entries = catalog()
+    if sys.argv[1] == "pack":
+        if len(sys.argv) != 3:
+            sys.exit(__doc__)
+        os.makedirs(os.path.dirname(os.path.abspath(sys.argv[2])), exist_ok=True)
+        with open(sys.argv[2], "wb") as f:
+            for _, data in entries:
+                f.write(data)
+        print(f"nonos-wallpaper-pack: {len(entries)} wallpapers, {sum(len(d) for _, d in entries)} bytes")
+    elif sys.argv[1] == "pins":
+        with open(PINS, "w") as f:
+            f.write(pins_text(entries))
+    else:
+        with open(PINS) as f:
+            if f.read() != pins_text(entries):
+                sys.exit("nonos-wallpaper-pack: the wallpaper pins are stale; run tools/nonos-wallpaper-pack pins")
+
+
+if __name__ == "__main__":
+    main()

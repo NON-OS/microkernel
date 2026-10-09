@@ -14,53 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel's own transparent, post-quantum self-attestation. Signature trust says
-//! a key vouched for this image; this says, in zero knowledge and without a trusted
-//! setup, that the running kernel's measurement is enrolled under the trust root the
-//! boot chain carries, bound to the boot epoch. It is the same money-grade membership
-//! the capsule gate uses, one layer up: capsules attest to the kernel, the kernel
-//! attests to its own enrolled measurement. The root is the boot chain's, never the
-//! trailer's.
+//! The kernel's own self-attestation check, the one the bootloader makes before
+//! the jump: the image's measurement at the boot epoch is enrolled under the
+//! root the boot chain carries. A v4 trailer, its path folded and its STARK
+//! proof of the same slot checked over words built from the image alone. The
+//! root is the boot chain's, never the trailer's.
+//!
+//! Nothing in the kernel calls this today; it is the same check as the
+//! bootloader's, kept beside the spawn gate so the two cannot drift.
 
-use crate::crypto::stark::air::{verify_membership_trailer, Poseidon, RATE};
-use crate::crypto::stark::field::Fp;
 use crate::security::capsule_attest::AttestError;
-// One definition, in crate::crypto::stark. Prover and verifier must
-// agree exactly; a drift downward in queries or grinding still verifies.
-use crate::crypto::stark::attest_params::{GRIND_BITS, LOG_ROUNDS, N_QUERIES, EXTRA_BLOWUP_BITS as EXTRA_BLOWUP_BITS};
+use nonos_attest_path::{boot_context, parse_v4, root_words, verify, Kind};
+use nox_verify::attest::{words, KIND_KERNEL};
+use nox_verify::statements::ATTEST;
 
 const DEPTH: usize = 8;
 const BOOT_EPOCH: u64 = 1;
 
-/// Verify the kernel's self-attestation: its measurement is enrolled under `root`,
-/// bound to the boot epoch. `root` is the enrolled kernel root the boot chain holds.
-/// The image is measured into the context so the proof is tied to exactly this
-/// kernel. Refuses on any malformed trailer or failed proof.
+/// Check the kernel's v4 self-attestation trailer against `root`. Refuses on
+/// any malformed trailer, a path that does not fold, or a proof that does not
+/// verify.
 #[must_use = "the boot chain must halt if the kernel does not self-attest"]
 pub fn verify_kernel_self_attestation(
     root: [u8; 32],
     trailer: &[u8],
     kernel_image: &[u8],
 ) -> Result<(), AttestError> {
-    let measurement = *blake3::hash(kernel_image).as_bytes();
-    let mut ctx = [0u8; 40];
-    ctx[..32].copy_from_slice(&measurement);
-    ctx[32..40].copy_from_slice(&BOOT_EPOCH.to_be_bytes());
-
-    let hasher = Poseidon::new(LOG_ROUNDS, [Fp::ZERO; RATE]);
-    if verify_membership_trailer(
-        &hasher,
-        LOG_ROUNDS,
-        root,
-        DEPTH,
-        trailer,
-        &ctx,
-        N_QUERIES,
-        GRIND_BITS,
-        EXTRA_BLOWUP_BITS,
-    ) {
-        Ok(())
-    } else {
-        Err(AttestError::Rejected)
+    let v = parse_v4(trailer, Kind::Kernel, ATTEST.max_proof_bytes).ok_or(AttestError::Malformed)?;
+    let ctx = boot_context(blake3::hash(kernel_image).as_bytes(), BOOT_EPOCH);
+    if !verify(&root, DEPTH, Kind::Kernel, &ctx, v.path) {
+        return Err(AttestError::Rejected);
     }
+    let publics = words(root_words(&root).ok_or(AttestError::RootUnavailable)?, &ctx, KIND_KERNEL)
+        .ok_or(AttestError::Rejected)?;
+    nox_verify::verify(&ATTEST, v.proof, &publics).map_err(|r| AttestError::ProofRefused(r.code()))
 }

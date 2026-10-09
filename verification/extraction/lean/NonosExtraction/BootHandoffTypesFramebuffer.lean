@@ -15,7 +15,7 @@ set_option maxRecDepth 2048
 namespace nonos_x_boot_handoff_types_framebuffer
 
 /-- [nonos_x_boot_handoff_types_framebuffer::boot::handoff::types::framebuffer::FramebufferInfo]
-    Source: 'src/boot/handoff/types/../../../../../../../../src/boot/handoff/types/framebuffer.rs', lines 21:0-31:1
+    Source: 'src/boot/handoff/types/../../../../../../../../src/boot/handoff/types/framebuffer.rs', lines 21:0-33:1
     Visibility: public -/
 structure boot.handoff.types.framebuffer.FramebufferInfo where
   ptr : Std.U64
@@ -25,10 +25,10 @@ structure boot.handoff.types.framebuffer.FramebufferInfo where
   stride : Std.U32
   pixel_format : Std.U32
   cursor_y : Std.U32
-  reserved : Std.U32
+  phys_mm : Std.U32
 
 /-- [nonos_x_boot_handoff_types_framebuffer::boot::handoff::types::framebuffer::{nonos_x_boot_handoff_types_framebuffer::boot::handoff::types::framebuffer::FramebufferInfo}::is_valid]:
-    Source: 'src/boot/handoff/types/../../../../../../../../src/boot/handoff/types/framebuffer.rs', lines 35:4-37:5
+    Source: 'src/boot/handoff/types/../../../../../../../../src/boot/handoff/types/framebuffer.rs', lines 37:4-39:5
     Visibility: public -/
 def boot.handoff.types.framebuffer.FramebufferInfo.is_valid
   (self : boot.handoff.types.framebuffer.FramebufferInfo) : Result Bool := do
@@ -42,7 +42,7 @@ def boot.handoff.types.framebuffer.FramebufferInfo.is_valid
   else ok false
 
 /-- [nonos_x_boot_handoff_types_framebuffer::boot::handoff::types::framebuffer::{nonos_x_boot_handoff_types_framebuffer::boot::handoff::types::framebuffer::FramebufferInfo}::bytes_per_pixel]:
-    Source: 'src/boot/handoff/types/../../../../../../../../src/boot/handoff/types/framebuffer.rs', lines 40:4-46:5
+    Source: 'src/boot/handoff/types/../../../../../../../../src/boot/handoff/types/framebuffer.rs', lines 50:4-56:5
     Visibility: public -/
 def boot.handoff.types.framebuffer.FramebufferInfo.bytes_per_pixel
   (self : boot.handoff.types.framebuffer.FramebufferInfo) :

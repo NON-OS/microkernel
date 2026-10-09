@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::constant_time::compiler_fence;
+use super::chacha_core::{keystream, setup};
+use crate::crypto::constant_time::{compiler_fence, volatile_write};
 
 pub const CHACHA20_BLOCK_SIZE: usize = 64;
-
-pub(crate) const CHACHA_CONSTANT: [u32; 4] = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574];
 
 #[inline]
 pub(crate) fn secure_zero_bytes(buf: &mut [u8]) {
@@ -30,81 +29,39 @@ pub(crate) fn secure_zero_bytes(buf: &mut [u8]) {
     compiler_fence();
 }
 
-#[inline(always)]
-fn quarter_round(state: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize) {
-    state[a] = state[a].wrapping_add(state[b]);
-    state[d] ^= state[a];
-    state[d] = state[d].rotate_left(16);
-
-    state[c] = state[c].wrapping_add(state[d]);
-    state[b] ^= state[c];
-    state[b] = state[b].rotate_left(12);
-
-    state[a] = state[a].wrapping_add(state[b]);
-    state[d] ^= state[a];
-    state[d] = state[d].rotate_left(8);
-
-    state[c] = state[c].wrapping_add(state[d]);
-    state[b] ^= state[c];
-    state[b] = state[b].rotate_left(7);
-}
-
+/// Writes the key-stream block number `counter` for `key` and `nonce`.
 pub fn chacha20_block(key: &[u8; 32], nonce: &[u8; 12], counter: u32, out: &mut [u8; 64]) {
-    let mut state = [0u32; 16];
-
-    state[0] = CHACHA_CONSTANT[0];
-    state[1] = CHACHA_CONSTANT[1];
-    state[2] = CHACHA_CONSTANT[2];
-    state[3] = CHACHA_CONSTANT[3];
-
-    for i in 0..8 {
-        state[4 + i] =
-            u32::from_le_bytes([key[i * 4], key[i * 4 + 1], key[i * 4 + 2], key[i * 4 + 3]]);
-    }
-
+    let mut state = setup(key, nonce);
     state[12] = counter;
-
-    state[13] = u32::from_le_bytes([nonce[0], nonce[1], nonce[2], nonce[3]]);
-    state[14] = u32::from_le_bytes([nonce[4], nonce[5], nonce[6], nonce[7]]);
-    state[15] = u32::from_le_bytes([nonce[8], nonce[9], nonce[10], nonce[11]]);
-
-    let initial = state;
-
-    for _ in 0..10 {
-        quarter_round(&mut state, 0, 4, 8, 12);
-        quarter_round(&mut state, 1, 5, 9, 13);
-        quarter_round(&mut state, 2, 6, 10, 14);
-        quarter_round(&mut state, 3, 7, 11, 15);
-        quarter_round(&mut state, 0, 5, 10, 15);
-        quarter_round(&mut state, 1, 6, 11, 12);
-        quarter_round(&mut state, 2, 7, 8, 13);
-        quarter_round(&mut state, 3, 4, 9, 14);
-    }
-
-    for i in 0..16 {
-        let word = state[i].wrapping_add(initial[i]);
-        out[i * 4..(i + 1) * 4].copy_from_slice(&word.to_le_bytes());
+    let words = keystream(&state);
+    for (dst, w) in out.as_chunks_mut::<4>().0.iter_mut().zip(words) {
+        *dst = w.to_le_bytes();
     }
 }
 
+/// XORs the key stream, from block `counter` on, into `data`. Whole
+/// blocks are XORed a word at a time with the key-stream words, never
+/// serialized to a byte buffer; only a short tail goes through a stack
+/// block. That block and the state, which holds the key, are wiped
+/// before return.
 pub(crate) fn chacha20_xor(key: &[u8; 32], nonce: &[u8; 12], counter: u32, data: &mut [u8]) {
-    let mut block = [0u8; 64];
-    let mut block_counter = counter;
-    let mut offset = 0;
-
-    while offset < data.len() {
-        chacha20_block(key, nonce, block_counter, &mut block);
-
-        let remaining = data.len() - offset;
-        let to_xor = core::cmp::min(64, remaining);
-
-        for i in 0..to_xor {
-            data[offset + i] ^= block[i];
+    let mut state = setup(key, nonce);
+    state[12] = counter;
+    let (blocks, tail) = data.as_chunks_mut::<64>();
+    for block in blocks {
+        let words = keystream(&state);
+        for (dst, w) in block.as_chunks_mut::<4>().0.iter_mut().zip(words) {
+            *dst = (u32::from_le_bytes(*dst) ^ w).to_le_bytes();
         }
-
-        offset += to_xor;
-        block_counter = block_counter.wrapping_add(1);
+        state[12] = state[12].wrapping_add(1);
     }
-
-    secure_zero_bytes(&mut block);
+    if !tail.is_empty() {
+        let mut stream = [0u8; 64];
+        chacha20_block(key, nonce, state[12], &mut stream);
+        for (d, k) in tail.iter_mut().zip(stream.iter()) {
+            *d ^= k;
+        }
+        secure_zero_bytes(&mut stream);
+    }
+    volatile_write(&mut state, [0; 16]);
 }

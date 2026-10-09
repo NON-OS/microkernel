@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{
-    mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
-};
+use nonos_libc::{mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND};
 
+use super::command_word::command_word;
 use crate::discover::Found;
 
 pub fn enable_bus_master(dev: Found, claim_epoch: u64) -> Result<(), &'static str> {
-    let command = dev.command_bits | MK_PCI_CMD_BUS_MASTER;
+    let command = command_word(dev.command_bits);
     let r = mk_pci_config_write(dev.device_id, claim_epoch, MK_PCI_CFG_COMMAND, command);
     if r < 0 {
         let _ = mk_device_release(dev.device_id);

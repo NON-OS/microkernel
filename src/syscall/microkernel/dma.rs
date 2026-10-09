@@ -23,7 +23,8 @@ use core::mem::size_of;
 use core::sync::atomic::{AtomicU32, Ordering};
 
 use super::errnos::{
-    ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOMEM, ERRNO_NOTSUP, ERRNO_PERM, ERRNO_STALE,
+    ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOMEM, ERRNO_NOTSUP, ERRNO_PERM, ERRNO_RANGE,
+    ERRNO_STALE,
 };
 use crate::hardware::broker::{DmaError, DmaMapError, DmaMapRequest};
 use crate::process::current_pid;
@@ -105,5 +106,8 @@ fn errno_for(e: DmaMapError) -> i64 {
         }
         DmaMapError::UnsupportedFlags => ERRNO_NOTSUP,
         DmaMapError::NoMemory | DmaMapError::NoVaSpace | DmaMapError::MapFailed => ERRNO_NOMEM,
+        // A 32-bit device would truncate the address: said apart from plain
+        // exhaustion so the driver can name it.
+        DmaMapError::Above4G => ERRNO_RANGE,
     }
 }

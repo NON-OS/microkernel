@@ -32,8 +32,7 @@ pub(super) fn paint_once<A: App>(
     request_id: &mut u32,
     maximized: bool,
 ) -> bool {
-    let toolkit_rid = next(request_id);
-    paint(app, manifest, binding, peers.toolkit, toolkit_rid, DecorationHit::None, maximized);
+    paint(app, manifest, binding, DecorationHit::None, maximized, peers.toolkit, next(request_id));
     let rid = next(request_id);
     compositor::damage_commit(
         peers.compositor,

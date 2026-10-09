@@ -27,7 +27,7 @@
 // The load is resumable now and runs on a time budget, so the receive path gets
 // control back after a few milliseconds and the longest anyone waits is a single
 // block request.
-use nonos_libc::mk_debug;
+use nonos_libc::{mk_debug, mk_uptime_ms};
 
 use crate::blk::load::Load;
 
@@ -40,7 +40,6 @@ const POLL_MS: u64 = 250;
 /// chunk per poll.
 pub(super) const SLICE_MS: u64 = 8;
 pub(super) const QUIET_POLLS: u32 = 2;
-pub(super) const MAX_ATTEMPTS: u32 = 5;
 
 pub struct PackageSeeder {
     pub(super) attempts: u32,
@@ -49,18 +48,32 @@ pub struct PackageSeeder {
     /// The load in progress. Held across idle slots, which is the whole point:
     /// each slot advances it and hands the receive loop back.
     pub(super) load: Option<Load>,
+    pub(super) last_slice_ms: i64,
+    /// When vfs started, which a disk not there yet is waited for from.
+    pub(super) started_ms: i64,
+    /// The last error said on the log, so each change is said once.
+    pub(super) said: Option<crate::blk::error::BlkError>,
 }
 
 impl PackageSeeder {
     pub fn new() -> Self {
-        Self { attempts: 0, quiet: 0, done: false, load: None }
+        let now = mk_uptime_ms();
+        Self {
+            attempts: 0,
+            quiet: 0,
+            done: false,
+            load: None,
+            last_slice_ms: now,
+            started_ms: now,
+            said: None,
+        }
     }
 
     pub fn poll_ms(&self) -> u64 {
-        if self.done {
-            0
-        } else {
-            POLL_MS
+        match (self.done, self.load.is_some()) {
+            (true, _) => 0,
+            (false, true) => 1,
+            (false, false) => POLL_MS,
         }
     }
 

@@ -14,56 +14,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod args;
+mod call;
+mod counter_style;
+mod function;
+mod numerals;
+mod string;
+
 use alloc::string::String;
 
-// The text of a content declaration: the first quoted string with CSS escapes
-// decoded, notably the hex form icon fonts use ("\e90d"). none, counters,
-// attr() and url() yield None and the pseudo box is skipped.
-pub(super) fn content_text(value: &str) -> Option<String> {
+use crate::browser::dom::node::Node;
+
+use super::walk::Counters;
+use function::function;
+use string::string_token;
+
+/* Generated text kept from one content value. */
+const MAX_TEXT: usize = 4096;
+
+/* The text a content value generates on `node`'s pseudo-element: its
+ * strings (CSS escapes decoded, the hex form icon fonts use included),
+ * attr() values, counter() and counters() in their list styles and the
+ * quote marks, in order. The alternative text after '/' is for speech
+ * and is dropped. None for none and normal, which generate no box; an
+ * empty string still makes one. url() and gradient images draw nothing
+ * here and are skipped. */
+pub(super) fn content_text(
+    value: &str,
+    node: &Node,
+    mut counters: Option<&mut Counters>,
+) -> Option<String> {
     let v = value.trim();
-    let quote = *v.as_bytes().first()?;
-    if quote != b'"' && quote != b'\'' {
+    if v.eq_ignore_ascii_case("none") || v.eq_ignore_ascii_case("normal") {
         return None;
     }
-    let inner = &v[1..v.rfind(quote as char)?.max(1)];
     let mut out = String::new();
-    let mut chars = inner.chars().peekable();
-    while let Some(ch) = chars.next() {
-        if ch != '\\' {
-            out.push(ch);
-            continue;
-        }
-        let mut hex = String::new();
-        while hex.len() < 6 {
-            match chars.peek() {
-                Some(c) if c.is_ascii_hexdigit() => {
-                    hex.push(*c);
-                    chars.next();
-                }
-                _ => break,
-            }
-        }
-        if hex.is_empty() {
-            // A non-hex escape stands for the character itself.
-            if let Some(c) = chars.next() {
-                out.push(c);
-            }
-        } else {
-            // One whitespace after a hex escape terminates it and is eaten.
-            if chars.peek() == Some(&' ') {
-                chars.next();
-            }
-            if let Some(c) = u32::from_str_radix(&hex, 16).ok().and_then(char::from_u32) {
-                out.push(c);
-            }
-        }
-        if out.len() > 256 {
+    let mut rest = v;
+    while let Some(&b) = rest.as_bytes().first() {
+        if out.len() > MAX_TEXT || b == b'/' {
             break;
         }
+        let used = if b == b'"' || b == b'\'' {
+            let (text, used) = string_token(rest);
+            out.push_str(&text);
+            used
+        } else {
+            let (call, used) = function(rest);
+            call::apply(call, node, counters.as_deref_mut(), &mut out);
+            used
+        };
+        rest = rest.get(used..).unwrap_or("").trim_start();
     }
-    if out.is_empty() {
-        None
-    } else {
-        Some(out)
-    }
+    Some(out)
 }

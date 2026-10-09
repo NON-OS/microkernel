@@ -14,42 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// id-ce-subjectAltName, 2.5.29.17.
+const OID_SUBJECT_ALT_NAME: [u8; 3] = [0x55, 0x1d, 0x11];
+// dNSName, [2] IMPLICIT IA5String: the one GeneralName a host is matched against.
+const DNS_NAME: u8 = 0x82;
+
+/*
+ * The extension is found by walking the TBSCertificate's extension list, not by
+ * searching the certificate for the OID's bytes. A search finds the first copy
+ * anywhere, and the subject public key comes before the extensions: an RSA
+ * modulus can be ground to carry a second, planted subjectAltName that a CA
+ * then signs for whoever asked. Each GeneralName is stepped over by its own
+ * DER length, long form included, so no entry's value is ever read as a name.
+ */
 pub fn matches(cert: &[u8], host: &[u8]) -> bool {
-    let Some(san) = san_value(cert) else {
+    let Some(value) = super::cert_ext::extension_value(cert, &OID_SUBJECT_ALT_NAME) else {
         return false;
     };
-    let mut pos = 0usize;
-    while pos + 2 <= san.len() {
-        let len = san[pos + 1] as usize;
-        if len < 128 {
-            if pos + 2 + len > san.len() {
-                return false;
-            }
-            if san[pos] == 0x82 && host_match(&san[pos + 2..pos + 2 + len], host) {
-                return true;
-            }
-            pos += 2 + len;
-        } else {
-            pos += 1;
+    let Some((0x30, mut pos, end)) = super::der_tlv::der_tlv(value, 0) else {
+        return false;
+    };
+    if end != value.len() {
+        return false;
+    }
+    while pos < end {
+        let Some((tag, start, next)) = super::der_tlv::der_tlv(value, pos) else {
+            return false;
+        };
+        if tag == DNS_NAME && host_match(&value[start..next], host) {
+            return true;
         }
+        pos = next;
     }
     false
-}
-
-fn san_value(cert: &[u8]) -> Option<&[u8]> {
-    let needle = [0x06u8, 0x03, 0x55, 0x1D, 0x11];
-    let p = cert.windows(5).position(|w| w == needle)?;
-    let (tag, v, e) = super::der_tlv::der_tlv(cert, p + 5)?;
-    let (octag, octv, _) =
-        if tag == 0x01 { super::der_tlv::der_tlv(cert, e)? } else { (tag, v, e) };
-    if octag != 0x04 {
-        return None;
-    }
-    let (seqtag, sv, se) = super::der_tlv::der_tlv(cert, octv)?;
-    if seqtag != 0x30 {
-        return None;
-    }
-    Some(&cert[sv..se])
 }
 
 fn host_match(name: &[u8], host: &[u8]) -> bool {

@@ -19,6 +19,7 @@ pub enum ComponentKind {
     Panel,
     Button,
     Label,
+    Frame,
 }
 
 impl ComponentKind {
@@ -26,6 +27,7 @@ impl ComponentKind {
         match v {
             1 => ComponentKind::Button,
             2 => ComponentKind::Label,
+            3 => ComponentKind::Frame,
             _ => ComponentKind::Panel,
         }
     }

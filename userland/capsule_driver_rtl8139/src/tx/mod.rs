@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod poll_done;
+mod reclaim;
 mod send;
 
+pub use reclaim::{full, reclaim};
 pub use send::send;

@@ -1,15 +1,16 @@
 extern crate alloc;
+use crate::viewer::caption::nav_shown;
 use crate::viewer::gallery::input::GalleryAction;
 use crate::viewer::gallery::{input as gin, paint as gpaint, scan, thumbs};
 use crate::viewer::manifest::manifest;
 use crate::viewer::nav::{hit_nav, swipe_delta};
+use crate::viewer::says::rescan_on_press;
 use crate::viewer::state::{Mode, ViewerState};
 use crate::viewer::viewport::{clamp_pan_mode, place_mode, zoom_at, FitMode};
 use crate::viewer::{load, render};
-use nonos_app_skeleton::discover::lookup_service;
 use nonos_app_skeleton::input::{KEY_BACKSPACE, KEY_ESC, KEY_LEFT, KEY_RIGHT};
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, InputKind, PaintBuffer};
-use nonos_libc::mk_time_millis;
+use nonos_libc::{mk_getpid, mk_time_millis};
 
 pub struct ViewerApp {
     st: ViewerState,
@@ -18,7 +19,13 @@ pub struct ViewerApp {
 impl ViewerApp {
     pub fn new() -> Self {
         let mut st = ViewerState::new();
-        st.owner_pid = lookup_service(b"app.image_viewer").map(|s| s.pid).unwrap_or(0);
+        // The store refuses a request whose claimed owner is not the process
+        // sending it. A lookup of "app.image_viewer" names the base service, so
+        // an on-demand instance (app.image_viewer.1, .2) claimed another pid,
+        // and a lookup that missed claimed 0: every list and read came back
+        // "access denied". The kernel's answer for this process is the one.
+        st.owner_pid = mk_getpid();
+        st.started_ms = mk_time_millis();
         ViewerApp { st }
     }
 }
@@ -30,18 +37,33 @@ impl App for ViewerApp {
 
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
         if self.st.mode == Mode::Gallery {
+            // A store that could not be listed, or held no image, is asked
+            // again on the next key or click, by the tick: never per pointer
+            // move, never in a loop.
+            let press = matches!(event.kind, InputKind::KeyDown | InputKind::ButtonDown);
+            let g = &self.st.gallery;
+            if press && rescan_on_press(g.scanned, g.scan_error, g.entries.len()) {
+                self.st.gallery.scanned = false;
+            }
             return gallery_event(&mut self.st, &event);
         }
         if event.kind == InputKind::KeyDown
             && (event.code == KEY_ESC || event.code == KEY_BACKSPACE)
         {
             self.st.mode = Mode::Gallery;
+            // The slideshow belongs to the single view; it does not carry on
+            // unseen behind the gallery.
+            self.st.slideshow_on = false;
             return EventOutcome::Repaint;
         }
         match event.kind {
             InputKind::Wheel => on_wheel(&mut self.st, &event),
             InputKind::ButtonDown => {
-                if let Some(d) = hit_nav(event.x, event.y, self.st.view_w, self.st.view_h) {
+                // Only where the buttons are drawn: the same test paints them.
+                let nav = nav_shown(self.st.dir.len())
+                    .then(|| hit_nav(event.x, event.y, self.st.view_w, self.st.view_h))
+                    .flatten();
+                if let Some(d) = nav {
                     load::step(&mut self.st, d);
                     return EventOutcome::Repaint;
                 }
@@ -49,6 +71,7 @@ impl App for ViewerApp {
                 self.st.drag_x = event.x;
                 self.st.drag_y = event.y;
                 self.st.swipe_start_x = event.x;
+                self.st.swipe_start_y = event.y;
                 EventOutcome::Idle
             }
             InputKind::PointerAbs => on_pointer(&mut self.st, &event),
@@ -75,17 +98,23 @@ impl App for ViewerApp {
         match self.st.mode {
             Mode::Gallery => {
                 if !self.st.gallery.scanned {
-                    let paths = scan::scan(self.st.owner_pid);
-                    let found = !paths.is_empty();
+                    let (paths, error) = match scan::scan(self.st.owner_pid) {
+                        Ok(paths) => (paths, None),
+                        Err(e) => (alloc::vec::Vec::new(), Some(e)),
+                    };
                     self.st.gallery.entries = paths.into_iter().map(mk_entry).collect();
+                    self.st.gallery.scan_error = error;
                     // Marked done either way. Setting this only when something
                     // was found meant an empty gallery rescanned the whole
                     // filesystem every tick, forever, asking for a repaint each
-                    // time. The paint already says "No images found".
+                    // time. One repaint now, so "Looking for images..." gives
+                    // way to the tiles, "No images found" or why the store
+                    // could not be listed.
                     self.st.gallery.scanned = true;
-                    return found;
+                    return true;
                 }
-                thumbs::decode_next(&mut self.st.gallery, self.st.owner_pid)
+                let (w, h) = (self.st.view_w, self.st.view_h);
+                thumbs::decode_next(&mut self.st.gallery, self.st.owner_pid, w, h)
             }
             Mode::Single => {
                 if self.st.slideshow_on {
@@ -102,7 +131,7 @@ impl App for ViewerApp {
     }
 
     fn tick_interval_ms(&self) -> i64 {
-        150
+        crate::viewer::arg_cadence::TICK_MS
     }
 }
 
@@ -135,14 +164,15 @@ fn on_wheel(st: &mut ViewerState, event: &InputEvent) -> EventOutcome {
     let Some(img) = st.img.as_ref() else { return EventOutcome::Idle };
     let (iw, ih) = (img.w, img.h);
     let factor = if event.delta_y > 0 { 1.25 } else { 0.8 };
-    zoom_at(&mut st.view, st.fit_mode, iw, ih, st.view_w, st.view_h, event.x, event.y, factor);
+    let window = (st.view_w, st.view_h);
+    zoom_at(&mut st.view, st.fit_mode, (iw, ih), window, (event.x, event.y), factor);
     EventOutcome::Repaint
 }
 
 fn on_button_up(st: &mut ViewerState, event: &InputEvent) -> EventOutcome {
     st.dragging = false;
     let dx = event.x - st.swipe_start_x;
-    let dy = event.y - st.drag_y;
+    let dy = event.y - st.swipe_start_y;
     let pannable = h_pannable(st);
     if let Some(step) = swipe_delta(dx, dy, pannable) {
         load::step(st, step);
@@ -178,7 +208,7 @@ fn zoom_center(st: &mut ViewerState, factor: f32) {
     let Some(img) = st.img.as_ref() else { return };
     let (iw, ih) = (img.w, img.h);
     let (cx, cy) = ((st.view_w / 2) as i32, (st.view_h / 2) as i32);
-    zoom_at(&mut st.view, st.fit_mode, iw, ih, st.view_w, st.view_h, cx, cy, factor);
+    zoom_at(&mut st.view, st.fit_mode, (iw, ih), (st.view_w, st.view_h), (cx, cy), factor);
 }
 
 fn reset_view(st: &mut ViewerState) {
@@ -224,6 +254,10 @@ fn on_key(st: &mut ViewerState, code: u32) -> EventOutcome {
         b'i' => st.info_visible = !st.info_visible,
         b'?' => st.help_visible = !st.help_visible,
         b' ' => {
+            if !st.slideshow_on && st.dir.len() <= 1 {
+                st.status = alloc::string::String::from("A slideshow needs more than one image");
+                return EventOutcome::Repaint;
+            }
             st.slideshow_on = !st.slideshow_on;
             st.last_advance_ms = now_ms();
         }

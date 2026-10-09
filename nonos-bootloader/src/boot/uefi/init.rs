@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::config::load_bootloader_config;
-use crate::display::{init_boot_screen, init_gop, report_gop_mode};
+use crate::display::gop::report_gop_handle;
+use crate::display::{
+    init_boot_screen, init_gop, report_gop_mode, update_stage, StageStatus, STAGE_UEFI,
+};
 use crate::firmware::detect_firmware_quirks;
 use crate::log::logger::{init_logger, log_info};
 use uefi::prelude::*;
@@ -29,11 +32,13 @@ pub fn run_uefi_init(st: &mut SystemTable<Boot>) -> UefiInitResult {
     init_logger(st);
     log_info("boot", "UEFI services initialized");
     report_gop_mode();
+    report_gop_handle();
     let _config = load_bootloader_config(st);
     let _quirks = detect_firmware_quirks(st);
     log_info("firmware", "detected firmware quirks");
     if gop_available {
         init_boot_screen();
     }
+    update_stage(STAGE_UEFI, StageStatus::Success);
     UefiInitResult { gop_available }
 }

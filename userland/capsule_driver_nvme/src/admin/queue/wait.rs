@@ -14,50 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::read_volatile;
-
-use nonos_libc::Deadline;
-
-use super::constants::{ADMIN_ENTRIES, COMPLETION_TIMEOUT_MS};
-use super::cq0_head::cq0_head;
+use super::constants::COMPLETION_TIMEOUT_MS;
 use super::types::AdminQueue;
-use crate::admin::Completion;
-use crate::error::{NvmeError, NvmeResult};
+use crate::error::NvmeResult;
 use crate::regs::Regs;
 
-// Check the wall-time deadline only every this many spins so the completion
-// poll stays a tight loop and does not make a syscall per iteration.
-const DEADLINE_CHECK_SPINS: u32 = 1024;
-
 impl AdminQueue {
-    pub(super) fn wait(&mut self, regs: Regs, stride: u8, cid: u16) -> NvmeResult<()> {
-        let deadline = Deadline::after_ms(COMPLETION_TIMEOUT_MS);
-        let mut spins = 0u32;
-        loop {
-            let c = self.completion();
-            if c.phase() == self.phase && c.cid == cid {
-                self.advance(regs, stride);
-                return if c.successful() { Ok(()) } else { Err(NvmeError::AdminCommandFailed) };
-            }
-            spins = spins.wrapping_add(1);
-            if spins.is_multiple_of(DEADLINE_CHECK_SPINS) && deadline.expired() {
-                return Err(NvmeError::ControllerTimeout);
-            }
-            core::hint::spin_loop();
-        }
-    }
-
-    fn completion(&self) -> Completion {
-        let slot =
-            self.cq.user_va() + (self.head as u64) * (core::mem::size_of::<Completion>() as u64);
-        unsafe { read_volatile(slot as *const Completion) }
-    }
-
-    fn advance(&mut self, regs: Regs, stride: u8) {
-        self.head = (self.head + 1) % ADMIN_ENTRIES;
-        if self.head == 0 {
-            self.phase = !self.phase;
-        }
-        unsafe { regs.w32(cq0_head(stride), self.head as u32) };
+    /// Wait for admin command `cid`, which `what` names on the console should
+    /// it fail, time out, or lose the clock it is timed on.
+    pub(super) fn wait(&mut self, regs: Regs, stride: u8, cid: u16, what: &str) -> NvmeResult<()> {
+        self.wait_ms(regs, stride, cid, what, COMPLETION_TIMEOUT_MS)
     }
 }

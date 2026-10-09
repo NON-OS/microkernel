@@ -19,7 +19,9 @@
 mod card;
 mod kv;
 mod progress;
+mod section;
 
 pub use card::card;
 pub use kv::kv;
 pub use progress::bar;
+pub use section::section;

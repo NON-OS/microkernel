@@ -25,40 +25,43 @@ use nonos_libc::mk_time_millis;
 use crate::install::format::{bytes, percent, rate};
 use crate::install::state::{Screen, State};
 use crate::install::ui::frame::Body;
-use crate::install::ui::metrics::{BODY_PX, LINE_H, TITLE_PX};
 use crate::install::ui::text::right;
 use crate::install::ui::widgets::bar;
 use crate::install::ui::{text, theme};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     let Some(job) = state.job.as_ref() else { return };
+    let m = &b.m;
     let verifying = state.screen == Screen::Verifying;
     let what = if verifying {
         "Reading every sector back and comparing it with what was sent."
     } else {
-        "Writing the bootloader and the kernel image to the disk."
+        "Writing the boot partition, the store, the disk plan and the table."
     };
-    text::line(fb, b.x, b.y, what, theme::FOREGROUND, BODY_PX);
+    text::line(fb, b.x, b.y, what, theme::FOREGROUND, m.body_px);
 
-    let y = b.y + 2 * LINE_H + 8;
+    // The percentage in the lead size, the bar under it, the counts under that.
+    let y = b.y + 2 * m.line_h + m.unit;
     let pct = alloc::format!("{}%", percent(job.done, job.total));
-    text::line(fb, b.x, y, &pct, theme::TITLE, TITLE_PX);
+    text::line(fb, b.x, y, &pct, theme::TITLE, m.lead_px);
     let colour = if verifying { theme::OK } else { theme::ACCENT };
-    bar(fb, b.x, y + 40, b.w, job.done, job.total, colour);
+    let bar_y = y + 5 * m.unit;
+    bar(fb, m, b.x, bar_y, b.w, job.done, job.total, colour);
 
     let now = mk_time_millis().max(0) as u64;
     let elapsed = now.saturating_sub(job.started_ms);
     let counts = alloc::format!("{} of {}", bytes(job.done), bytes(job.total));
-    text::line(fb, b.x, y + 70, &counts, theme::FOREGROUND, BODY_PX);
+    let counts_y = bar_y + m.bar_h + 2 * m.unit;
+    text::line(fb, b.x, counts_y, &counts, theme::FOREGROUND, m.body_px);
     let speed = if verifying {
         alloc::format!("{}  read", rate(job.done, elapsed.saturating_sub(job.write_seconds * 1000)))
     } else {
         alloc::format!("{}  write", rate(job.done, elapsed))
     };
-    right(fb, b.x + b.w, y + 70, &speed, theme::MUTED, BODY_PX);
+    right(fb, b.x + b.w, counts_y, &speed, theme::MUTED, m.body_px);
 
     if verifying {
         let wrote = alloc::format!("written in {} s, table and flush done", job.write_seconds);
-        text::line(fb, b.x, y + 70 + LINE_H, &wrote, theme::MUTED, BODY_PX);
+        text::line(fb, b.x, counts_y + m.line_h, &wrote, theme::MUTED, m.body_px);
     }
 }

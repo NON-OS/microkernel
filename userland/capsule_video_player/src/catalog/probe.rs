@@ -14,36 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use nonos_app_skeleton::clients::vfs::{read_file, stat};
 use nonos_avi::parse_avih;
 
 use super::kind::MediaKind;
 use super::media::MediaItem;
+use super::says::SILENT;
 use super::thumb;
 
 const HEAD_BYTES: u32 = 512 * 1024;
 const AVIH: &[u8; 4] = b"avih";
 
-pub fn probe(owner_pid: u32, item: &mut MediaItem) {
-    if let Ok((size, _)) = stat(owner_pid, item.path.as_bytes()) {
-        item.size = size;
+/// Fill in what the file says of itself. False when the store did not
+/// answer, so the scan asks nothing more of it.
+pub fn probe(owner_pid: u32, item: &mut MediaItem) -> bool {
+    match stat(owner_pid, item.path.as_bytes()) {
+        Ok((size, _)) => item.size = size,
+        Err(SILENT) => return false,
+        Err(_) => {}
     }
     if item.kind != MediaKind::Avi {
-        return;
+        return true;
     }
-    let Ok(head) = read_file(owner_pid, item.path.as_bytes(), HEAD_BYTES) else {
-        return;
+    let head = match read_file(owner_pid, item.path.as_bytes(), HEAD_BYTES) {
+        Ok(head) => head,
+        Err(e) => return e != SILENT,
     };
-    let Some(at) = find_avih(&head) else { return };
+    let Some(at) = find_avih(&head) else { return true };
     let Ok(header) = parse_avih(&head[at..]) else {
-        return;
+        return true;
     };
     item.width = header.width;
     item.height = header.height;
     item.duration_ms =
         (header.total_frames as u64 * header.micro_sec_per_frame as u64 / 1000) as i64;
     item.thumb = thumb::extract(&head, header.width, header.height);
+    true
 }
 
 fn find_avih(head: &[u8]) -> Option<usize> {

@@ -18,8 +18,9 @@
 //! that blocks it instead of a blanket "not implemented", so the status bar
 //! names the missing piece rather than the missing handler.
 
-pub(in crate::editor) const NO_HANDLER: &[u8] = b"unavailable: not built into this capsule";
 pub(in crate::editor) const NO_DOC_MODE: &[u8] =
     b"unavailable: lists, tables and page breaks need document mode";
 
 pub(in crate::editor) const NO_TABLE_AT_CARET: &[u8] = b"place the caret inside a table first";
+
+pub(in crate::editor) const NO_ROOM: &[u8] = b"no room: the document is at its 256 KiB limit";

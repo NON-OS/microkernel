@@ -19,6 +19,7 @@ pub mod lifecycle_subscribe;
 pub mod query_focus;
 pub mod query_topmost;
 pub mod route_focus;
+mod shell_pid;
 pub(crate) mod u32_at;
 pub mod window_close;
 pub mod window_focus;

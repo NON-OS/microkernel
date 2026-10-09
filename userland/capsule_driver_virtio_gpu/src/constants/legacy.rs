@@ -20,3 +20,6 @@ pub const LEG_QUEUE_NUM: usize = 0x0C;
 pub const LEG_QUEUE_SEL: usize = 0x0E;
 pub const LEG_QUEUE_NOTIFY: usize = 0x10;
 pub const LEG_STATUS: usize = 0x12;
+// The device-specific configuration in the legacy window. No MSI-X vector is
+// enabled (the driver polls), so it starts here rather than four bytes on.
+pub const LEG_DEVICE_CFG: usize = 0x14;

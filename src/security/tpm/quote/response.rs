@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::consts::{TPM_HEADER_LEN, TPM_RC_SUCCESS};
+use super::consts::{TPM_HEADER_LEN, TPM_RC_SUCCESS, TPM_ST_SESSIONS};
 use super::error::QuoteError;
 
 /// The two halves a verifier needs: the structure the TPM signed, and the
@@ -30,38 +30,30 @@ pub struct QuoteResult<'a> {
 
 /// Split a `TPM2_Quote` response into the signed structure and its signature.
 ///
-/// The response code is checked first: a failed command still returns a
-/// well-formed header, and treating its body as a quote would parse whatever
-/// follows as attestation data.
+/// The code is checked first: a failed command still has a well-formed
+/// header. Quote is sent with a session, so the parameters sit behind a 4-byte
+/// `parameterSize` and the session's answer follows them; reading from the
+/// header on would take the size for the attest length.
 pub fn parse_quote(resp: &[u8]) -> Result<QuoteResult<'_>, QuoteError> {
-    if resp.len() < TPM_HEADER_LEN {
-        return Err(QuoteError::Truncated);
-    }
-    let size = u32::from_be_bytes([resp[2], resp[3], resp[4], resp[5]]) as usize;
-    let code = u32::from_be_bytes([resp[6], resp[7], resp[8], resp[9]]);
+    let head = resp.get(..TPM_HEADER_LEN).ok_or(QuoteError::Truncated)?;
+    let code = u32::from_be_bytes([head[6], head[7], head[8], head[9]]);
     if code != TPM_RC_SUCCESS {
         return Err(QuoteError::Tpm(code));
     }
-    if size > resp.len() || size < TPM_HEADER_LEN {
-        return Err(QuoteError::Truncated);
+    let size = u32::from_be_bytes([head[2], head[3], head[4], head[5]]) as usize;
+    let body = resp.get(TPM_HEADER_LEN..size).ok_or(QuoteError::Truncated)?;
+    if u16::from_be_bytes([head[0], head[1]]) != TPM_ST_SESSIONS {
+        return Err(QuoteError::NotAQuote);
     }
-
-    // TPM2B_ATTEST: a 16-bit length then that many bytes.
-    let body = &resp[TPM_HEADER_LEN..size];
-    if body.len() < 2 {
-        return Err(QuoteError::Truncated);
-    }
-    let attest_len = u16::from_be_bytes([body[0], body[1]]) as usize;
-    let attest_end = 2 + attest_len;
-    if attest_end > body.len() {
-        return Err(QuoteError::Truncated);
-    }
-    let attest = &body[2..attest_end];
-
-    // Everything after is the TPMT_SIGNATURE. It is handed back whole because
-    // its shape depends on the key's algorithm, and the verifier owns that.
-    let signature = &body[attest_end..];
-    if signature.is_empty() {
+    let n = body.get(..4).ok_or(QuoteError::Truncated)?;
+    let n = u32::from_be_bytes([n[0], n[1], n[2], n[3]]) as usize;
+    let params = body.get(4..4usize.saturating_add(n)).ok_or(QuoteError::Truncated)?;
+    /* TPM2B_ATTEST, then the TPMT_SIGNATURE whole: its shape is the key's. */
+    let len = params.get(..2).ok_or(QuoteError::Truncated)?;
+    let end = 2 + u16::from_be_bytes([len[0], len[1]]) as usize;
+    let attest = params.get(2..end).ok_or(QuoteError::Truncated)?;
+    let signature = params.get(end..).ok_or(QuoteError::Truncated)?;
+    if attest.is_empty() || signature.is_empty() {
         return Err(QuoteError::Truncated);
     }
     Ok(QuoteResult { attest, signature })

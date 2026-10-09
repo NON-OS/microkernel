@@ -17,6 +17,7 @@
 mod consts;
 mod init;
 mod rdtsc;
+mod scale;
 mod time;
 
 pub use consts::{BOOT_TSC, BOOT_UNIX_MS, NTP_OFFSET_MS, TSC_HZ};

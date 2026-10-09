@@ -1,0 +1,26 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the TPM side of device enrollment. The command
+# builders and response parsers are the kernel's own files, included via
+# `#[path]`, run against a software TPM 2.0 (swtpm) over its TCP command port,
+# with tpm2-tools and openssl playing the registrar and the manufacturer.
+# Without swtpm on the PATH the live tests pass as skipped and say so.
+[package]
+name = "tpm_enroll_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+spin = "0.9"
+
+[dev-dependencies]
+# The kernel's SHA-256 is replaced by this one, and the AK's signature is
+# checked with p256, independently of the TPM that made it.
+sha2 = "0.10"
+p256 = { version = "0.13", default-features = false, features = ["ecdsa"] }

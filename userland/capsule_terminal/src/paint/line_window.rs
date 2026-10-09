@@ -15,18 +15,52 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which slice of a long line is on screen.
+//!
+//! The line is UTF-8 and the screen is cells: a character takes one to four
+//! bytes and none to two cells. Counting bytes as cells put the cursor block
+//! to the right of where the caret was, by a cell for every extra byte
+//! before it, and scrolled a line of accented text before it was full.
 
-use super::line_chars::char_floor;
+use nonos_vt::width::width;
 
-/// The byte range of the line to draw, so the cursor is always visible.
-///
-/// Measured in cells but indexing bytes, so both ends are moved back to a
-/// character boundary: cutting one in half would draw the rest of the line
-/// as damage.
+use super::line_chars::chars_of;
+
+/// The cells `bytes` take on screen.
+pub fn cells_of(bytes: &[u8]) -> usize {
+    chars_of(bytes).map(width).sum()
+}
+
+/// How many bytes of `bytes` fit in `cells`, whole characters only.
+pub fn fit_cells(bytes: &[u8], cells: usize) -> usize {
+    let (mut used, mut end) = (0usize, 0usize);
+    for ch in chars_of(bytes) {
+        let w = width(ch);
+        if used + w > cells {
+            break;
+        }
+        used += w;
+        end += ch.len_utf8();
+    }
+    end
+}
+
+/// The byte range of the line to draw in `cells`, so the cursor is always
+/// visible, and the cell the cursor is in from the window's left edge.
 pub fn window(body: &[u8], cursor: usize, cells: usize) -> (usize, usize, usize) {
-    let scroll = if cursor < cells { 0 } else { cursor - cells + 1 };
-    let end = (scroll + cells).min(body.len());
-    let start = char_floor(body, scroll);
-    let stop = char_floor(body, end).max(start);
-    (start, stop, scroll)
+    let cursor = cursor.min(body.len());
+    let cursor_col = cells_of(&body[..cursor]);
+    // The cursor needs a cell of its own, the last one at the furthest.
+    let scroll = (cursor_col + 1).saturating_sub(cells.max(1));
+    // Start at the first character wholly right of the scroll: a wide
+    // character cut by the left edge is left out rather than drawn in half.
+    let (mut start, mut col) = (0usize, 0usize);
+    for ch in chars_of(body) {
+        if col >= scroll {
+            break;
+        }
+        col += width(ch);
+        start += ch.len_utf8();
+    }
+    let stop = start + fit_cells(&body[start..], cells);
+    (start, stop.max(start), cursor_col.saturating_sub(col))
 }

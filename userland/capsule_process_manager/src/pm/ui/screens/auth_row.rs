@@ -17,7 +17,6 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::{draw, IconId};
 
-use crate::pm::critical::is_critical;
 use crate::pm::state::{Row, State};
 use crate::pm::theme::{ACCENT, BAND, FOREGROUND, SELECT_BG};
 
@@ -38,7 +37,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, row: &Row, slot: usi
     } else if (state.scroll + slot) % 2 == 1 {
         fb.fill_rect(r.x + 1, y, body_w, geom::ROW_H, BAND);
     }
-    let protected = is_critical(row.name());
+    let protected = state.is_protected(row);
     name(fb, r, row, y, protected);
     auth_cells::paint(fb, r, row, y, protected);
 }

@@ -30,11 +30,27 @@
 //! specification describes, not against timing or silicon errata. The README says what a concurrent model can and cannot reach, and why a
 //! property it cannot reach stays documented rather than asserted.
 
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
 
 use super::bar::FakeBar;
+
+/// Device models running now, and every turn any of them has taken. A host
+/// clock shim reads them through [`turns`] so that a driver's deadline cannot
+/// expire before the device had its turn: on a loaded builder a spinning
+/// driver can hold the core past its whole deadline while the model waits to
+/// be scheduled, and that reads as a part that never answered.
+static RUNNING: AtomicUsize = AtomicUsize::new(0);
+static TURNS: AtomicU64 = AtomicU64::new(0);
+
+/// The turns device models have taken so far, or `None` when none is running.
+pub fn turns() -> Option<u64> {
+    if RUNNING.load(Ordering::Acquire) == 0 {
+        return None;
+    }
+    Some(TURNS.load(Ordering::Acquire))
+}
 
 /// A device model running against a window. Stopping it joins the thread, so a
 /// test that drops this guard has no model still touching the window.
@@ -48,6 +64,7 @@ impl Drop for LiveDevice {
         self.stop.store(true, Ordering::Release);
         if let Some(h) = self.handle.take() {
             let _ = h.join();
+            RUNNING.fetch_sub(1, Ordering::AcqRel);
         }
     }
 }
@@ -64,9 +81,11 @@ where
 {
     let stop = Arc::new(AtomicBool::new(false));
     let (b, s) = (Arc::clone(bar), Arc::clone(&stop));
+    RUNNING.fetch_add(1, Ordering::AcqRel);
     let handle = thread::spawn(move || {
         while !s.load(Ordering::Acquire) {
             device(&b);
+            TURNS.fetch_add(1, Ordering::AcqRel);
             std::hint::spin_loop();
         }
     });

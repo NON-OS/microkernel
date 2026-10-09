@@ -22,7 +22,7 @@
 //! its own reply inbox; a kernel-internal caller (pid 0) keeps the
 //! legacy fixed reply endpoint it drains by request id.
 
-use core::sync::atomic::{AtomicU32, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicUsize, Ordering};
 
 use nonos_libc::{mk_ipc_reply, mk_ipc_send};
 
@@ -34,7 +34,27 @@ pub fn set_sender(pid: u32) {
     SENDER.store(pid, Ordering::Relaxed);
 }
 
+/// While set, a handler's reply is held in its buffer rather than sent, so
+/// the controller multiplexer can read it, rewrite the ids in it, and send
+/// it itself (`mux`).
+static CAPTURE: AtomicBool = AtomicBool::new(false);
+static CAPTURED_LEN: AtomicUsize = AtomicUsize::new(0);
+
+/// Run `f` with replies held; returns the length of the reply it built, 0
+/// if it sent none.
+pub fn captured(f: impl FnOnce()) -> usize {
+    CAPTURED_LEN.store(0, Ordering::Relaxed);
+    CAPTURE.store(true, Ordering::Relaxed);
+    f();
+    CAPTURE.store(false, Ordering::Relaxed);
+    CAPTURED_LEN.load(Ordering::Relaxed)
+}
+
 pub fn send(tx: *const u8, len: usize) {
+    if CAPTURE.load(Ordering::Relaxed) {
+        CAPTURED_LEN.store(len, Ordering::Relaxed);
+        return;
+    }
     let pid = SENDER.load(Ordering::Relaxed);
     if pid != 0 {
         let _ = mk_ipc_reply(pid, tx, len);

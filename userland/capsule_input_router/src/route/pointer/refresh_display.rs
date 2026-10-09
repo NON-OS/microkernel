@@ -17,12 +17,25 @@
 use crate::clients::compositor;
 use crate::state::Context;
 
+// How often the display size is asked again once it is known. The compositor
+// moves from the firmware framebuffer to the virtio-gpu display once that
+// driver answers, at that display's size; asked once, the cursor kept the old
+// edges for the rest of the session.
+const RECHECK_MS: i64 = 2000;
+
 pub(super) fn refresh_display(ctx: &mut Context) {
-    if ctx.cursor.configured {
+    let now = nonos_libc::mk_uptime_ms();
+    let since = now.saturating_sub(ctx.display_checked_ms);
+    if ctx.cursor.configured && (0..RECHECK_MS).contains(&since) {
         return;
     }
+    ctx.display_checked_ms = now;
     let rid = ctx.issue_request_id();
     if let Some((width, height)) = compositor::display_size(&mut ctx.compositor_port, rid) {
-        ctx.cursor.configure(width, height);
+        if ctx.cursor.configured {
+            ctx.cursor.resize(width, height);
+        } else {
+            ctx.cursor.configure(width, height);
+        }
     }
 }

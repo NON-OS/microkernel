@@ -19,51 +19,56 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::clients::vfs::list_paths;
 use nonos_libc::mk_getpid;
 
+use super::playable::is_playable;
 use super::track::Track;
 
-const AUDIO_DIR: &[u8] = b"/audio";
+/// The library is the person's own music: what they download and what they
+/// copy in. Nothing ships with the system.
+const MUSIC_DIR: &str = crate::fetch::name::MUSIC_DIR;
 
 pub struct Library {
     pub tracks: Vec<Track>,
+    /// Why the music folder could not be listed, if it could not: an empty library
+    /// from a failed listing is not the same as an empty folder.
+    pub error: Option<&'static str>,
 }
 
 impl Library {
     pub fn scan() -> Self {
         let mut tracks = Vec::new();
-        match list_paths(mk_getpid(), AUDIO_DIR) {
+        let mut error = None;
+        // Made if absent, so Files shows the folder to copy music into.
+        let pid = mk_getpid();
+        for dir in ["/home", "/home/nonos", MUSIC_DIR] {
+            let _ = nonos_app_skeleton::clients::vfs::mkdir(pid, dir.as_bytes());
+        }
+        match list_paths(pid, MUSIC_DIR.as_bytes()) {
             Ok(paths) => {
-                let mut m = [0u8; 24];
-                m[..16].copy_from_slice(b"[AP] audio n=   ");
-                m[16] = b'0' + (paths.len() % 10) as u8;
-                m[17] = b'\n';
-                nonos_libc::mk_debug(m.as_ptr(), 18);
+                // The count is for the boot harness; an empty library is
+                // listed again up to 24 times, a line each.
+                #[cfg(feature = "nonos-audio-player-smoketest")]
+                {
+                    let m = alloc::format!("[AP] audio n={}\n", paths.len());
+                    nonos_libc::mk_debug(m.as_ptr(), m.len());
+                }
                 for p in paths {
-                    if is_audio(&p) {
+                    if is_playable(&p) {
                         tracks.push(Track::from_path(&p));
                     }
                 }
             }
             Err(e) => {
-                nonos_libc::mk_debug(b"[AP] audio list ERR: ".as_ptr(), 20);
+                let head = b"[AP] audio list ERR: ";
+                nonos_libc::mk_debug(head.as_ptr(), head.len());
                 nonos_libc::mk_debug(e.as_ptr(), e.len());
                 nonos_libc::mk_debug(b"\n".as_ptr(), 1);
+                error = Some(e);
             }
         }
-        Library { tracks }
+        Library { tracks, error }
     }
 
     pub fn get(&self, i: usize) -> Option<&Track> {
         self.tracks.get(i)
     }
-}
-
-fn is_audio(path: &str) -> bool {
-    let ext = match path.rfind('.') {
-        Some(i) => &path[i + 1..],
-        None => return false,
-    };
-    ext.eq_ignore_ascii_case("wav")
-        || ext.eq_ignore_ascii_case("mp3")
-        || ext.eq_ignore_ascii_case("flac")
-        || ext.eq_ignore_ascii_case("ogg")
 }

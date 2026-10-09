@@ -24,7 +24,6 @@ const TPM_ALG_NULL: u16 = 0x0010;
 const TPM_ALG_ECDSA: u16 = 0x0018;
 const TPM_ECC_NIST_P256: u16 = 0x0003;
 
-
 /// The template whose derivation gives this machine its identity.
 ///
 /// A primary key is derived from the hierarchy's seed and this template, so
@@ -32,7 +31,7 @@ const TPM_ECC_NIST_P256: u16 = 0x0003;
 /// stored. That is what lets an amnesic system still have an identity a
 /// counterparty can pin across reboots: change one byte here and the machine
 /// becomes a different one to every verifier.
-pub(super) fn ak_template() -> Vec<u8> {
+pub(in crate::security::tpm) fn ak_template() -> Vec<u8> {
     let mut pubarea = Vec::with_capacity(64);
     pubarea.extend_from_slice(&TPM_ALG_ECC.to_be_bytes());
     pubarea.extend_from_slice(&TPM_ALG_SHA256.to_be_bytes());

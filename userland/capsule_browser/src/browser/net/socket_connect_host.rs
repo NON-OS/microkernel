@@ -16,7 +16,13 @@
 
 use alloc::vec;
 
+use super::ask::{ask, Fault};
 use super::constants::{OP_CONNECT_HOST, SOCKETS_MAGIC};
+
+/// net.sockets' status for a connect by name whose lookup could not be made:
+/// no DNS server is reachable (E_NO_DNS in
+/// userland/capsule_net_sockets/src/protocol/errno.rs).
+pub const E_NO_DNS: u16 = 16;
 
 const CONNECT_TIMEOUT_MS: u64 = 9000;
 
@@ -25,13 +31,16 @@ pub fn socket_connect_host(
     handle: u32,
     host: &str,
     port: u16,
-) -> Result<(), ()> {
-    if super::mixnet::is_on() {
-        return super::mixnet::connect();
+) -> Result<(), Option<u16>> {
+    // A name goes to net.sockets to resolve and connect, which is direct.
+    // A conversation with a proxy is never dialled: its CONNECT names the
+    // host for the exit.
+    if super::mixnet::is_proxied(handle) || !super::mixnet::direct_allowed() {
+        return Err(None);
     }
     let h = host.as_bytes();
     if h.is_empty() || h.len() > 253 {
-        return Err(());
+        return Err(None);
     }
     let mut body = vec![0u8; 8 + h.len()];
     body[0..4].copy_from_slice(&handle.to_le_bytes());
@@ -39,13 +48,9 @@ pub fn socket_connect_host(
     body[6..8].copy_from_slice(&(h.len() as u16).to_le_bytes());
     body[8..].copy_from_slice(h);
     let mut rx = [0u8; 20];
-    super::call::call_t(
-        sockets_port,
-        SOCKETS_MAGIC,
-        OP_CONNECT_HOST,
-        &body,
-        &mut rx,
-        CONNECT_TIMEOUT_MS,
-    )?;
-    Ok(())
+    match ask(sockets_port, SOCKETS_MAGIC, OP_CONNECT_HOST, &body, &mut rx, CONNECT_TIMEOUT_MS) {
+        Ok(_) => Ok(()),
+        Err(Fault::Status(status)) => Err(Some(status)),
+        Err(Fault::Lost | Fault::Garbled) => Err(None),
+    }
 }

@@ -36,9 +36,6 @@
 
 use spin::{Mutex, MutexGuard};
 
-use crate::memory::paging::manager::handle_shootdown_ipi;
-use crate::smp::cpus_online;
-
 /// Acquire `lock`, servicing TLB shootdowns while it is contended.
 ///
 /// Use this in place of `lock()` anywhere the caller holds interrupts
@@ -50,14 +47,7 @@ pub fn lock_responsive<T>(lock: &Mutex<T>) -> MutexGuard<'_, T> {
         if let Some(guard) = lock.try_lock() {
             return guard;
         }
-        /*
-         * Nothing can be pending on a uniprocessor, and resolving the current
-         * CPU costs an interrupt-controller read, so the common case pays
-         * only the compare.
-         */
-        if cpus_online() > 1 {
-            handle_shootdown_ipi();
-        }
+        super::serve::serve_shootdowns();
         core::hint::spin_loop();
     }
 }

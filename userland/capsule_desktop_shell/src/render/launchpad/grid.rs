@@ -19,39 +19,39 @@ const DOTS_BAND_LOGICAL: u32 = 44;
 const ROWS_MAX: u32 = 5;
 
 pub(super) fn tile() -> u32 {
-    TILE_LOGICAL * ui_font::scale()
+    ui_font::px(TILE_LOGICAL)
 }
 
 pub(super) fn cell_w() -> u32 {
-    CELL_W_LOGICAL * ui_font::scale()
+    ui_font::px(CELL_W_LOGICAL)
 }
 
 pub(super) fn cell_h() -> u32 {
-    CELL_H_LOGICAL * ui_font::scale()
+    ui_font::px(CELL_H_LOGICAL)
 }
 
 pub(super) fn title_y() -> u32 {
-    TITLE_Y_LOGICAL * ui_font::scale()
+    ui_font::px(TITLE_Y_LOGICAL)
 }
 
 pub(super) fn search_y() -> u32 {
-    SEARCH_Y_LOGICAL * ui_font::scale()
+    ui_font::px(SEARCH_Y_LOGICAL)
 }
 
 pub(super) fn search_w() -> u32 {
-    SEARCH_W_LOGICAL * ui_font::scale()
+    ui_font::px(SEARCH_W_LOGICAL)
 }
 
 pub(super) fn search_h() -> u32 {
-    SEARCH_H_LOGICAL * ui_font::scale()
+    ui_font::px(SEARCH_H_LOGICAL)
 }
 
 pub(super) fn grid_top() -> u32 {
-    GRID_TOP_LOGICAL * ui_font::scale()
+    ui_font::px(GRID_TOP_LOGICAL)
 }
 
 pub(super) fn dots_band() -> u32 {
-    DOTS_BAND_LOGICAL * ui_font::scale()
+    ui_font::px(DOTS_BAND_LOGICAL)
 }
 
 pub(super) fn rows(height: u32) -> u32 {

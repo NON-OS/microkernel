@@ -23,6 +23,10 @@ pub enum ApicError {
     MmioMapFailed,
     InvalidVector,
     IcrBusy,
+    /// The id does not fit the destination field of the current mode.
+    DestinationUnreachable,
+    /// The local APIC logged a send error (ESR) for the command.
+    SendRejected,
 }
 
 impl ApicError {
@@ -35,6 +39,8 @@ impl ApicError {
             Self::MmioMapFailed => "APIC MMIO mapping failed",
             Self::InvalidVector => "Invalid interrupt vector",
             Self::IcrBusy => "ICR busy timeout",
+            Self::DestinationUnreachable => "APIC id not addressable in this mode",
+            Self::SendRejected => "IPI send error latched in ESR",
         }
     }
 
@@ -45,6 +51,8 @@ impl ApicError {
             Self::NotInitialized | Self::MmioMapFailed => -5,
             Self::InvalidVector => -22,
             Self::IcrBusy => -16,
+            Self::DestinationUnreachable => -22,
+            Self::SendRejected => -5,
         }
     }
 }

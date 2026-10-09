@@ -18,15 +18,13 @@
 //! stuck DHCP: no TX means net_core handed nothing down, RX frames without parsed
 //! frames means the AP replies but the frames never decrypt.
 
-use core::ptr;
+use nonos_wifi_client::{find, OP_STATUS, WIFI_HDR};
 
-use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup};
-
-const DRIVER_SERVICE: &[u8] = b"driver.rtl8821ce0";
-const WIFI_MAGIC: u32 = 0x5749_4649;
-const OP_STATUS: u16 = 4;
-const WIFI_HDR: usize = 10;
 const STATUS_TIMEOUT_MS: u64 = 500;
+/// The firmware report's offset past the stage byte (it follows the 52 bytes of
+/// counters and registers), and where its 25 bytes end, counted from the stage.
+const FW_REPORT_AT: usize = 52;
+const FW_REPORT_END: usize = 1 + FW_REPORT_AT + 25;
 
 /// The driver's TX and RX frame counts since bring-up, plus the number of
 /// net_core link-protocol requests it has answered (zero means the stack never
@@ -50,33 +48,21 @@ pub struct DataPath {
     /// registers are being read from the wrong window.
     pub bar_index: u32,
     pub window_va: u32,
+    /// Where firmware bring-up stopped (0: it did not stop), the chunks that
+    /// had landed, and `REG_MCUFW_CTRL` as the stop left it. Zero from a driver
+    /// built before the report.
+    pub fw_step: u8,
+    pub fw_chunks: u32,
+    pub fw_ctrl: u32,
 }
 
-/// Query the driver for its data-path counts. `None` when the driver service is
-/// absent or does not answer with the counters.
+/// Query the driver for its data-path counts. `None` when no Wi-Fi driver is
+/// registered or it does not answer with the counters (the iwlwifi driver
+/// answers the status op with its stage alone).
 pub fn driver_datapath() -> Option<DataPath> {
-    let mut port: u32 = 0;
-    let rc = mk_service_lookup(
-        DRIVER_SERVICE.as_ptr(),
-        DRIVER_SERVICE.len(),
-        &mut port as *mut u32,
-        ptr::null_mut(),
-    );
-    if rc != 0 || port == 0 {
-        return None;
-    }
-    let mut req = [0u8; WIFI_HDR];
-    req[0..4].copy_from_slice(&WIFI_MAGIC.to_le_bytes());
-    req[4..6].copy_from_slice(&OP_STATUS.to_le_bytes());
-    let mut resp = [0u8; WIFI_HDR + 45];
-    let n = mk_ipc_call_timeout(
-        port as u64,
-        req.as_ptr(),
-        req.len(),
-        resp.as_mut_ptr(),
-        resp.len(),
-        STATUS_TIMEOUT_MS,
-    );
+    let driver = find()?;
+    let mut resp = [0u8; WIFI_HDR + FW_REPORT_END];
+    let n = driver.request(OP_STATUS, &[], &mut resp, STATUS_TIMEOUT_MS)? as i64;
     if n < (WIFI_HDR + 25) as i64 {
         return None;
     }
@@ -85,6 +71,7 @@ pub fn driver_datapath() -> Option<DataPath> {
     // answers the shorter reply and those three stay zero rather than failing the
     // whole read.
     let long = n >= (WIFI_HDR + 45) as i64;
+    let fw = n >= (WIFI_HDR + FW_REPORT_END) as i64;
     let word = |i: usize| u32::from_le_bytes([b[i], b[i + 1], b[i + 2], b[i + 3]]);
     Some(DataPath {
         tx_ok: word(0),
@@ -98,5 +85,8 @@ pub fn driver_datapath() -> Option<DataPath> {
         efuse_ldo: if long { word(32) } else { 0 },
         bar_index: if long { word(36) } else { 0xFFFF_FFFF },
         window_va: if long { word(40) } else { 0 },
+        fw_step: if fw { b[FW_REPORT_AT] } else { 0 },
+        fw_chunks: if fw { word(FW_REPORT_AT + 1) } else { 0 },
+        fw_ctrl: if fw { word(FW_REPORT_AT + 5) } else { 0 },
     })
 }

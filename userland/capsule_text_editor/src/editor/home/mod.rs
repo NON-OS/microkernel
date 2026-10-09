@@ -15,11 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod brand;
-mod create;
 mod doc_click;
 mod docs;
 mod event;
-mod footer;
 mod metrics;
 mod metrics_pane;
 mod mru;

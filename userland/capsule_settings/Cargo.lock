@@ -64,7 +64,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_audio_proto"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_policy_client"
+version = "0.1.0"
+dependencies = [
+ "nonos_policy_proto",
+ "nonos_userland_libc",
+]
+
+[[package]]
 name = "nonos_policy_proto"
+version = "0.3.0"
+
+[[package]]
+name = "nonos_seal"
 version = "0.3.0"
 
 [[package]]
@@ -72,9 +88,11 @@ name = "nonos_settings"
 version = "0.3.0"
 dependencies = [
  "nonos_app_skeleton",
+ "nonos_audio_proto",
  "nonos_policy_proto",
  "nonos_toolkit",
  "nonos_userland_libc",
+ "nonos_wifi_client",
 ]
 
 [[package]]
@@ -91,6 +109,17 @@ name = "nonos_userland_libc"
 version = "0.3.0"
 dependencies = [
  "linked_list_allocator",
+]
+
+[[package]]
+name = "nonos_wifi_client"
+version = "0.1.0"
+dependencies = [
+ "nonos_app_skeleton",
+ "nonos_policy_client",
+ "nonos_policy_proto",
+ "nonos_seal",
+ "nonos_userland_libc",
 ]
 
 [[package]]

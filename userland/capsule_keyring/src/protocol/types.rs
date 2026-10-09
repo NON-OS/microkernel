@@ -39,6 +39,15 @@ pub const OP_WALLET_GENERATE_HD: u16 = 21;
 pub const OP_WALLET_RECOVER: u16 = 22;
 pub const OP_VAULT_SEAL: u16 = 23;
 pub const OP_VAULT_OPEN: u16 = 24;
+/// An EIP-1559 transaction the wallet reviewed: mainnet or Sepolia, any calldata.
+pub const OP_SIGN_TX: u16 = 25;
+/// The recovery words of an HD wallet, for the wallet that owns it.
+pub const OP_SHIELD_MATERIAL: u16 = 26;
+/// Those words sealed to this machine, and opened again.
+pub const OP_SHIELD_SEAL: u16 = 27;
+pub const OP_SHIELD_OPEN: u16 = 28;
+/// A further account of an HD wallet, m/44'/60'/0'/0/i from the same words.
+pub const OP_WALLET_DERIVE: u16 = 29;
 
 pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_0002;
 

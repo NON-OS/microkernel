@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::{Request, E_INVAL, E_NOENT, WINDOW_RESTORE_REQ_LEN};
-use crate::server::respond;
+use crate::server::{full_screen_notify, respond};
 use crate::state::Context;
 use crate::window::Visibility;
+use crate::z_order::raise;
 
 pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != WINDOW_RESTORE_REQ_LEN {
@@ -28,12 +29,18 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     };
-    let new_z = ctx.z.allocate();
+    let was = full_screen_notify::covering(ctx, sender_pid, window_id);
     let Some(window) = ctx.windows.find_mut(sender_pid, window_id) else {
         let _ = respond::status(sender_pid, req, E_NOENT, tx);
         return;
     };
     window.visibility = Visibility::Visible;
-    window.z = new_z;
+    // The dock restores a window that was never minimized too, to bring it
+    // up; the compositor hears of that raise like any other.
+    if raise(&mut ctx.windows, &mut ctx.z, sender_pid, window_id) == Some(true) {
+        crate::server::tell_compositor::lift(ctx, sender_pid);
+    }
+    // A full-screen window brought back from the dock hides the dock again.
+    full_screen_notify::tell_if_changed(ctx, sender_pid, window_id, was);
     let _ = respond::status(sender_pid, req, 0, tx);
 }

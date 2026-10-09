@@ -13,48 +13,37 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{
-    DATA_OFFSET, KBD_ENABLE_SCANNING, STATUS_INPUT_FULL, STATUS_OFFSET, STATUS_OUTPUT_FULL,
-};
-use nonos_libc::{mk_pio_read, mk_pio_write};
+use super::read_port;
+use super::wait::{wait_input_clear, WaitError, ACK_TIMEOUT_MS, CTL_TIMEOUT_MS};
+use crate::constants::{DATA_OFFSET, KBD_ENABLE_SCANNING, MOUSE_ACK};
+use nonos_libc::mk_pio_write;
 
-const WAIT_SPINS: u32 = 10_000;
-
-pub fn enable_scanning(grant_id: u64) -> Result<(), &'static str> {
-    let mut spins = 0u32;
-    while spins < WAIT_SPINS {
-        let mut status = 0u32;
-        if mk_pio_read(grant_id, STATUS_OFFSET, 1, &mut status) < 0 {
-            return Err("kbd status read failed");
-        }
-        if status as u8 & STATUS_INPUT_FULL == 0 {
-            if mk_pio_write(grant_id, DATA_OFFSET, 1, KBD_ENABLE_SCANNING as u32) < 0 {
-                return Err("kbd enable-scanning write failed");
-            }
-            consume_ack(grant_id);
-            return Ok(());
-        }
-        spins += 1;
+/// Send the keyboard a byte and wait for its answer. Ok(Some(byte)) is what
+/// came back, Ok(None) is a keyboard that stayed silent past the bound.
+pub(super) fn send(grant_id: u64, byte: u8, timeout_ms: u64) -> Result<Option<u8>, &'static str> {
+    match wait_input_clear(grant_id, CTL_TIMEOUT_MS) {
+        Ok(()) => {}
+        Err(WaitError::Read) => return Err("kbd status read failed"),
+        Err(WaitError::Timeout) => return Err("kbd input buffer busy"),
     }
-    Err("kbd input buffer busy")
+    if mk_pio_write(grant_id, DATA_OFFSET, 1, byte as u32) < 0 {
+        return Err("kbd write failed");
+    }
+    read_reply(grant_id, timeout_ms)
 }
 
-// The keyboard answers 0xF4 with an ACK (0xFA). It must be consumed here: the
-// mouse bring-up that follows reads the controller config byte through the same
-// output buffer, and an ACK still sitting there gets latched as the config
-// value, whose write-back sets the port-1 clock-disable bit and kills the
-// keyboard. A missing ACK is tolerated (dead device); an unconsumed one is not.
-fn consume_ack(grant_id: u64) {
-    for _ in 0..WAIT_SPINS {
-        let mut status = 0u32;
-        if mk_pio_read(grant_id, STATUS_OFFSET, 1, &mut status) < 0 {
-            return;
-        }
-        if status as u8 & STATUS_OUTPUT_FULL != 0 {
-            let mut data = 0u32;
-            let _ = mk_pio_read(grant_id, DATA_OFFSET, 1, &mut data);
-            return;
-        }
-        core::hint::spin_loop();
+/// The next byte the keyboard sends within `timeout_ms`, if any; a byte
+/// from the aux port is not the keyboard's.
+pub(super) fn read_reply(grant_id: u64, timeout_ms: u64) -> Result<Option<u8>, &'static str> {
+    match read_port(grant_id, false, timeout_ms) {
+        Ok(byte) => Ok(byte),
+        Err(WaitError::Read) => Err("kbd status read failed"),
+        Err(WaitError::Timeout) => Ok(None),
     }
+}
+
+/// Start scanning (0xF4) and eat the acknowledgement, so a late ACK is never
+/// read as the reply to a later controller command. True when it was ACKed.
+pub fn enable_scanning(grant_id: u64) -> Result<bool, &'static str> {
+    Ok(send(grant_id, KBD_ENABLE_SCANNING, ACK_TIMEOUT_MS)? == Some(MOUSE_ACK))
 }

@@ -18,33 +18,36 @@ use crate::catalog_client::lookup_catalog;
 use crate::policy_client::{get_wallpaper, lookup_policy};
 use crate::state::Context;
 
-use super::apply::apply;
+use super::settle::settle;
+use super::start::start;
 
+/// Ask the policy which wallpaper it wants this often, in service loop turns.
+/// The first turn asks, so the chosen wallpaper's job starts as soon as the
+/// service is up.
 const POLL_EVERY: u32 = 300;
 
+/// One turn of the service loop: pick up a job's answer, ask the policy when
+/// due, and start the next job. Nothing here waits on the catalog.
 pub fn tick(ctx: &mut Context) {
-    ctx.subscriber_ticks = ctx.subscriber_ticks.wrapping_add(1);
-    if ctx.subscriber_ticks % POLL_EVERY != 0 {
-        return;
+    settle(ctx);
+    if ctx.subscriber_ticks % POLL_EVERY == 0 {
+        poll_policy(ctx);
     }
+    ctx.subscriber_ticks = ctx.subscriber_ticks.wrapping_add(1);
+    start(ctx);
+}
+
+fn poll_policy(ctx: &mut Context) {
     if ctx.policy_port.is_none() {
         ctx.policy_port = lookup_policy();
     }
     if ctx.catalog_port.is_none() {
         ctx.catalog_port = lookup_catalog();
     }
-    let policy_port = match ctx.policy_port {
-        Some(p) => p,
-        None => return,
-    };
-    let wanted = match get_wallpaper(policy_port) {
-        Some(v) => v,
-        None => return,
-    };
-    if ctx.applied_wallpaper == Some(wanted) {
+    let Some(policy_port) = ctx.policy_port else {
         return;
-    }
-    if apply(ctx, wanted) {
-        ctx.applied_wallpaper = Some(wanted);
+    };
+    if let Some(wanted) = get_wallpaper(policy_port) {
+        ctx.plan.want(wanted);
     }
 }

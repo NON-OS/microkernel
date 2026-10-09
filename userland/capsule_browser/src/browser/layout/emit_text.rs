@@ -20,6 +20,9 @@ use alloc::vec::Vec;
 use super::doc::{RenderLine, LINE_H};
 use super::wrap;
 
+// Each argument is one property of the run being laid out, passed straight
+// through from the walker that read it.
+#[allow(clippy::too_many_arguments)]
 pub(super) fn emit_text(
     lines: &mut Vec<RenderLine>,
     line: &mut RenderLine,

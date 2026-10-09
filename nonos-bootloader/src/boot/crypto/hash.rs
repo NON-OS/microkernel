@@ -17,9 +17,7 @@
 use uefi::prelude::*;
 
 use crate::display::{animate_hash_reveal, draw_boot_progress, log_hash, log_ok};
-use crate::display::{
-    show_crypto_verification, update_stage, BootCryptoState, StageStatus, STAGE_BLAKE3_HASH,
-};
+use crate::display::{update_stage, BootCryptoState, StageStatus, STAGE_BLAKE3_HASH};
 use crate::kernel_verify::{verify_kernel_crypto, CryptoVerifyResult};
 use crate::security::{audit, set_kernel_measurement, AuditEvent};
 
@@ -39,7 +37,7 @@ pub fn compute_hash(
     audit(AuditEvent::HashComputed, 0, b"kernel hash");
     state.kernel_hash.copy_from_slice(&result.kernel_hash_full);
     if gop {
-        animate_hash_display(state);
+        animate_hash_display();
     }
     update_stage(STAGE_BLAKE3_HASH, StageStatus::Success);
     draw_boot_progress(6, TOTAL_BOOT_STAGES);
@@ -50,10 +48,9 @@ pub fn compute_hash(
     result
 }
 
-fn animate_hash_display(state: &BootCryptoState) {
+fn animate_hash_display() {
     for _ in 0..32 {
         animate_hash_reveal();
-        show_crypto_verification(state);
         micro_delay();
     }
 }

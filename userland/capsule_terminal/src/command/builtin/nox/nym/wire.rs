@@ -24,7 +24,6 @@ pub const TIMEOUT_MS: u64 = 3_000;
 
 pub const OP_HEALTHCHECK: u16 = 1;
 pub const OP_TOPOLOGY_STATUS: u16 = 15;
-pub const OP_TIMING_STATUS: u16 = 16;
 
 /// Request header the nym server parses: magic, version 1, opcode,
 /// then a zeroed errno/request-id/payload-len tail.

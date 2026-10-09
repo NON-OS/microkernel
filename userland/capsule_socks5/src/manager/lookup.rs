@@ -18,13 +18,13 @@ use super::table::Manager;
 
 impl Manager {
     /// The client socket for `id`, or `None` if unknown or closed.
-    pub fn socket_of(&self, id: u64) -> Option<u32> {
+    pub fn socket_of(&self, id: u64) -> Option<u64> {
         self.slots.iter().find(|s| s.used && s.id == id).map(|s| s.socket)
     }
 
     /// Close the connection named by `id`, returning the client socket to
     /// close.
-    pub fn close(&mut self, id: u64) -> Option<u32> {
+    pub fn close(&mut self, id: u64) -> Option<u64> {
         let slot = self.slots.iter_mut().find(|s| s.used && s.id == id)?;
         slot.used = false;
         Some(slot.socket)
@@ -32,7 +32,7 @@ impl Manager {
 
     /// Close the connection whose client socket is `socket`, the client having
     /// hung up, returning the id so its tunnel can be closed too.
-    pub fn close_socket(&mut self, socket: u32) -> Option<u64> {
+    pub fn close_socket(&mut self, socket: u64) -> Option<u64> {
         let slot = self.slots.iter_mut().find(|s| s.used && s.socket == socket)?;
         slot.used = false;
         Some(slot.id)

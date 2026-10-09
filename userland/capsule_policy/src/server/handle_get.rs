@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::{kind_of, Field, KIND_BOOL, KIND_I8, KIND_STR, KIND_U8};
+use nonos_policy_proto::{kind_of, Field, KIND_BOOL, KIND_I8, KIND_STR, KIND_U64, KIND_U8};
 
-use super::handlers::{get_bool, get_i8, get_str, get_u8};
+use super::handlers::{get_bool, get_i8, get_str, get_u64, get_u8};
 
 pub fn dispatch(pid: u32, field: Field) {
     match kind_of(field) {
@@ -24,6 +24,7 @@ pub fn dispatch(pid: u32, field: Field) {
         KIND_U8 => get_u8::handle(pid, field),
         KIND_I8 => get_i8::handle(pid, field),
         KIND_STR => get_str::handle(pid, field),
+        KIND_U64 => get_u64::handle(pid, field),
         _ => {}
     }
 }

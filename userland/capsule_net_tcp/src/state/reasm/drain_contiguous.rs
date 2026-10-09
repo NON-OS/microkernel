@@ -24,7 +24,18 @@ impl Reasm {
     pub fn drain_contiguous(&mut self, mut rcv_nxt: u32) -> Vec<u8> {
         let mut out = Vec::new();
         loop {
-            let Some(key) = self.segs.keys().next().copied() else { break; };
+            /*
+             * Keys are plain u32s and the map orders them as numbers, which is
+             * not sequence order once the space wraps: just below 2^32 the
+             * held segment that comes next has the largest key, and taking
+             * the smallest stopped the drain at a gap that was not there and
+             * left segments already passed holding their slots for good. The
+             * next segment is the one earliest relative to RCV.NXT.
+             */
+            let Some(key) = self.segs.keys().copied().min_by_key(|k| k.wrapping_sub(rcv_nxt) as i32)
+            else {
+                break;
+            };
             if !seq::leq(key, rcv_nxt) {
                 break;
             }

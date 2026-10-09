@@ -25,7 +25,9 @@
 
 use nonos_devmodel::FakeBar;
 
-use crate::constants::{INTCTL, INTCTL_GIE, SDCTL_IOCE, SDCTL_RUN, SDSTS_BCIS, SD_CTL, SD_STS};
+use crate::constants::{
+    INTCTL, INTCTL_GIE, SDCTL_IOCE, SDCTL_RUN, SDSTS_BCIS, SDSTS_MASK, SD_CTL, SD_STS,
+};
 use crate::model::WINDOW;
 use crate::proofs::stream_tests::{play, BDL_BYTES, INDEX, OFF};
 
@@ -50,7 +52,9 @@ fn a_stale_completion_status_is_cleared_before_the_engine_is_started() {
     let (bar, bdl) = (FakeBar::new(WINDOW), FakeBar::new(BDL_BYTES));
     bar.present8((OFF + SD_STS) as usize, SDSTS_BCIS);
     play(&bar, &bdl);
-    assert_eq!(bar.wrote8((OFF + SD_STS) as usize), SDSTS_BCIS, "the latch was not acknowledged");
+    let sts = bar.wrote8((OFF + SD_STS) as usize);
+    assert_eq!(sts & SDSTS_BCIS, SDSTS_BCIS, "the latch was not acknowledged");
+    assert_eq!(sts, SDSTS_MASK, "the FIFO and descriptor error latches were left set");
 }
 
 #[test]

@@ -16,33 +16,28 @@
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Route {
-    Home,
     Library,
-    Playlists,
     Files,
-    Settings,
     Player,
     Details,
 }
 
-pub const NAV: [Route; 5] =
-    [Route::Home, Route::Library, Route::Playlists, Route::Files, Route::Settings];
+// The player keeps no watch history, playlists or settings of its own, so it
+// offers the two pages its catalogue can fill: every video, and by folder.
+pub const NAV: [Route; 2] = [Route::Library, Route::Files];
 
 impl Route {
     pub fn label(self) -> &'static str {
         match self {
-            Route::Home => "Home",
             Route::Library => "Library",
-            Route::Playlists => "Playlists",
-            Route::Files => "Files",
-            Route::Settings => "Settings",
+            Route::Files => "Folders",
             Route::Player => "Now Playing",
             Route::Details => "Media Details",
         }
     }
 
     pub fn in_nav(self) -> bool {
-        NAV.iter().any(|r| *r == self)
+        NAV.contains(&self)
     }
 
     pub fn chrome(self) -> bool {

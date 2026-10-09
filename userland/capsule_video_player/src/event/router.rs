@@ -24,23 +24,18 @@ use crate::app::state::VideoApp;
 use crate::ui::frame::region;
 use crate::ui::layout::{layout, Rect};
 use crate::ui::screen::Route;
-use crate::ui::view::{details, prefs_geom};
+use crate::ui::view::render::{content, has_tools};
+use crate::ui::view::{details, files};
 use crate::ui::widget::tabs::tab_hit;
 
-fn settings_click(app: &VideoApp, body: Rect, x: i32, y: i32) -> Action {
-    if let Some(index) = prefs_geom::section_at(body, x, y) {
-        return Action::SetSection(index);
+fn folders_click(body: Rect, x: i32, y: i32) -> Option<Action> {
+    if let Some(folder) = files::folder_at(body, x, y) {
+        return Some(Action::Folder(folder));
     }
-    if let Some(index) = prefs_geom::toggle_at(body, app.prefs.section, x, y) {
-        return Action::TogglePref(index);
+    if files::open_button(body).contains(x, y) {
+        return Some(Action::OpenSelected);
     }
-    if prefs_geom::reset_button(body).contains(x, y) {
-        return Action::ResetPrefs;
-    }
-    if prefs_geom::cancel_button(body).contains(x, y) {
-        return Action::Back;
-    }
-    Action::None
+    None
 }
 
 fn chrome_click(app: &VideoApp, x: i32, y: i32) -> Action {
@@ -49,8 +44,10 @@ fn chrome_click(app: &VideoApp, x: i32, y: i32) -> Action {
         return Action::Goto(route);
     }
     let body = region::body(w, h);
-    if app.route() == Route::Settings {
-        return settings_click(app, body, x, y);
+    if app.route() == Route::Files {
+        if let Some(action) = folders_click(body, x, y) {
+            return action;
+        }
     }
     if app.route() == Route::Details {
         return match tab_hit(body.x, body.y, &details::TABS, x, y) {
@@ -64,28 +61,41 @@ fn chrome_click(app: &VideoApp, x: i32, y: i32) -> Action {
         }
         return Action::None;
     }
-    match hit::item(&app.browse, body, x, y) {
+    let Some(area) = content(app.route(), body) else {
+        return Action::None;
+    };
+    match hit::item(&app.browse, area, x, y) {
         Some(index) => Action::OpenIndex(index),
         None => Action::None,
     }
 }
 
 fn action_for(app: &VideoApp, event: InputEvent) -> Action {
-    let chrome = app.route() != Route::Player;
+    let chrome = app.route().chrome();
     match event.kind {
-        InputKind::KeyDown if chrome => from_library_key(event.code),
+        InputKind::KeyDown if chrome => match from_library_key(event.code) {
+            // Typing goes to the search field, which only the list pages show.
+            Action::Type(_) | Action::Erase if !has_tools(app.route()) => Action::None,
+            action => action,
+        },
         InputKind::KeyDown => from_key(event.code),
         InputKind::ButtonDown if chrome => chrome_click(app, event.x, event.y),
         InputKind::ButtonDown => {
             let l = layout(app.dims.0, app.dims.1);
             from_click(&l, app.dims.0, event.x, event.y)
         }
-        InputKind::Wheel if chrome => Action::MoveSel(-event.delta_y.signum()),
+        InputKind::Wheel if chrome => Action::Scroll(event.delta_y),
         _ => Action::None,
     }
 }
 
 pub fn on_event(app: &mut VideoApp, event: InputEvent) -> EventOutcome {
+    // A store that could not be listed is asked again on the next key or click,
+    // by the tick that scans: never per pointer move, never in a loop.
+    let press = matches!(event.kind, InputKind::KeyDown | InputKind::ButtonDown);
+    if press && app.browse.scan_error.is_some() {
+        app.browse.scanned = false;
+    }
     let action = action_for(app, event);
     super::apply::apply(app, action)
 }

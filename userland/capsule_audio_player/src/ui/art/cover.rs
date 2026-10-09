@@ -31,6 +31,10 @@ pub fn cover(fb: &mut PaintBuffer, r: Rect, id: &str, rad: u32) {
     if r.w <= 0 || r.h <= 0 {
         return;
     }
+    // The playing track's own cover, when its tags carry one.
+    if super::picture::draw_if_current(fb, r, id) {
+        return;
+    }
     let h = hue(id);
     ground::ground(fb, r, rad, ground_top(h), ground_bottom(h));
     let c = alpha(stroke_rgb(h), 0xE6);

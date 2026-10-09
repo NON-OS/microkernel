@@ -10,7 +10,10 @@ CAPSULE_FEATURE          := nonos-capsule-net-nym
 CAPSULE_NAMESPACE        := systems.nonos.net.nym
 CAPSULE_SERVICE_ENDPOINT := service:4470:net.nym
 CAPSULE_REPLY_ENDPOINT   := reply:4471:endpoint.net.nym.reply
-CAPSULE_REQUIRED_CAPS    := 0x0013d
+CAPSULE_REQUIRED_CAPS    := 0x0003c
+# Debug, granted only by a build that compiles `capsule-serial-debug`: the
+# kernel mirror folds it in through serial_debug_cap().
+CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_net_nym
 
 include nonos-mk/capsule.mk

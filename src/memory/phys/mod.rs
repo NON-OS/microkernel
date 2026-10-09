@@ -18,6 +18,8 @@ mod bitmap;
 pub mod constants;
 pub mod error;
 mod types;
+mod usable_span;
+mod usage;
 
 pub use allocator::{
     phys_alloc as alloc, phys_alloc_contiguous as alloc_contiguous,
@@ -25,14 +27,13 @@ pub use allocator::{
     phys_find_first_free as find_first_free, phys_free as free,
     phys_free_contiguous as free_contiguous, phys_init as init,
     phys_init_with_bitmap as init_with_bitmap, phys_is_initialized as is_initialized,
-    phys_largest_free_run as largest_free_run, phys_managed_range as managed_range,
+    phys_keep_usable as keep_usable, phys_largest_free_run as largest_free_run,
+    phys_managed_range as managed_range, phys_reserve as reserve,
     phys_total_free_frames as total_free_frames, phys_total_memory as total_memory,
     phys_zone_stats as zone_stats,
 };
 
-pub fn free_memory() -> u64 {
-    total_memory().saturating_sub((total_free_frames() as u64) * 4096)
-}
 pub use constants::*;
 pub use error::{PhysAllocError, PhysAllocResult};
 pub use types::{AllocFlags, AllocatorState, Frame, PhysFrame, ZoneStats};
+pub use usage::free_memory;

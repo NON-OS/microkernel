@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod bottom_up;
+pub mod raise;
 pub mod stack;
 
+pub use bottom_up::bottom_up;
+pub use raise::raise;
 pub use stack::ZStack;

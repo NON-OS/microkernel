@@ -42,6 +42,24 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         return;
     }
 
+    // A full table may be full of ports whose clients have ended.
+    let outcome = match bind_socket(sender_pid, local_port) {
+        BindOutcome::TableFull => {
+            crate::server::reap::reap_now();
+            bind_socket(sender_pid, local_port)
+        }
+        other => other,
+    };
+
+    let errno = match outcome {
+        BindOutcome::Ok => E_OK,
+        BindOutcome::BindFailed => E_BIND_FAILED,
+        BindOutcome::TableFull => E_NO_SOCKET,
+    };
+    let _ = reply(sender_pid, MAGIC_NUDP, OP_BIND, errno, req.request_id, &[], tx);
+}
+
+fn bind_socket(sender_pid: u32, local_port: u16) -> BindOutcome {
     let outcome = state::with_iface(|_iface, sockets, _dev| {
         let rx =
             udp::PacketBuffer::new(alloc::vec![PacketMetadata::EMPTY; 16], alloc::vec![0u8; 4096]);
@@ -59,14 +77,8 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
             BindOutcome::TableFull
         }
     });
-
-    let errno = match match outcome {
+    match outcome {
         Some(value) => value,
         None => BindOutcome::TableFull,
-    } {
-        BindOutcome::Ok => E_OK,
-        BindOutcome::BindFailed => E_BIND_FAILED,
-        BindOutcome::TableFull => E_NO_SOCKET,
-    };
-    let _ = reply(sender_pid, MAGIC_NUDP, OP_BIND, errno, req.request_id, &[], tx);
+    }
 }

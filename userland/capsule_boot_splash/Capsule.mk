@@ -1,9 +1,12 @@
 # boot_splash capsule. Bridges the post-handoff gap: as the first
-# compositor client (before the desktop fleet) it attaches a fullscreen
-# surface, paints a "NONOS initializing" splash with the boot-chain
+# compositor client (before the desktop fleet) it registers and shares a
+# fullscreen surface, paints a "NONOS initializing" splash with the boot-chain
 # attestation status, optionally shows detail on a keypress, then exits
 # so the desktop takes over. Same leaf-renderer capset as setup_wizard
 # (no SurfaceMap/Present).
+# IPC | Memory | GraphicsSurfaceCreate = 0x1018.
+# No GraphicsDisplayQuery: it learns the screen size from the compositor
+# and makes neither call that bit admits.
 
 CAPSULE_SLUG             := boot-splash
 CAPSULE_HANDLE           := app.boot_splash
@@ -14,7 +17,7 @@ CAPSULE_FEATURE          := nonos-capsule-boot-splash
 CAPSULE_NAMESPACE        := systems.nonos.app.boot_splash
 CAPSULE_SERVICE_ENDPOINT := service:4796:app.boot_splash
 CAPSULE_REPLY_ENDPOINT   := reply:4797:endpoint.app.boot_splash.reply
-CAPSULE_REQUIRED_CAPS    := 0x1819
+CAPSULE_REQUIRED_CAPS    := 0x1018
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_boot_splash
 
 include nonos-mk/capsule.mk

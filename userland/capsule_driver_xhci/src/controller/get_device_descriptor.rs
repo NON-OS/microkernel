@@ -17,12 +17,16 @@ use super::ring_doorbell::ring_doorbell;
 use super::wait_transfer_completion::wait_transfer_completion;
 use crate::dma::DmaRegion;
 use crate::error::XhciResult;
-use crate::rings::event::EventRing;
+use crate::rings::event::{EventRing, IssuedTransfer};
 use crate::rings::transfer::TransferRing;
 use crate::trb::builders::data_stage::data_stage_in;
 use crate::trb::builders::setup_stage::setup_stage_get_descriptor;
 use crate::trb::builders::status_stage::status_stage_out;
 pub const DEVICE_DESCRIPTOR_LEN: u16 = 18;
+const DCI_EP0: u8 = 1;
+/// The first bytes of the device descriptor, bMaxPacketSize0 among them,
+/// read before EP0's size is known: one packet at any size.
+pub const DEVICE_DESCRIPTOR_PREFIX: u16 = 8;
 pub fn get_device_descriptor(
     doorbell_base: u64,
     intr_base: u64,
@@ -31,11 +35,32 @@ pub fn get_device_descriptor(
     ep0: &mut TransferRing,
     out: &DmaRegion,
 ) -> XhciResult<usize> {
+    read_device_descriptor(
+        doorbell_base,
+        intr_base,
+        evt_ring,
+        slot_id,
+        ep0,
+        out,
+        DEVICE_DESCRIPTOR_LEN,
+    )
+}
+/// GET_DESCRIPTOR(Device) for the first `length` bytes into `out`.
+pub fn read_device_descriptor(
+    doorbell_base: u64,
+    intr_base: u64,
+    evt_ring: &mut EventRing,
+    slot_id: u8,
+    ep0: &mut TransferRing,
+    out: &DmaRegion,
+    length: u16,
+) -> XhciResult<usize> {
     let cycle = ep0.cycle() != 0;
-    ep0.enqueue(setup_stage_get_descriptor(DEVICE_DESCRIPTOR_LEN, cycle))?;
-    ep0.enqueue(data_stage_in(out.phys(), DEVICE_DESCRIPTOR_LEN, ep0.cycle() != 0))?;
+    let setup_phys = ep0.enqueue(setup_stage_get_descriptor(length, cycle))?;
+    let data_phys = ep0.enqueue(data_stage_in(out.phys(), length, ep0.cycle() != 0))?;
     let status_phys = ep0.enqueue(status_stage_out(ep0.cycle() != 0))?;
-    ring_doorbell(doorbell_base, slot_id, 1);
-    wait_transfer_completion(intr_base, status_phys, evt_ring)?;
-    Ok(DEVICE_DESCRIPTOR_LEN as usize)
+    ring_doorbell(doorbell_base, slot_id, DCI_EP0);
+    let issued = IssuedTransfer { phys: status_phys, slot: slot_id, dci: DCI_EP0 };
+    wait_transfer_completion(intr_base, issued, &[setup_phys, data_phys], evt_ring)?;
+    Ok(length as usize)
 }

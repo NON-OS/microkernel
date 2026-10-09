@@ -69,14 +69,22 @@ pub fn wallet_recover(store: &mut Store, req: Request<'_>, sender_pid: u32) -> V
         wipe_words(&mut words);
         return encode_response(req.seq, EINVAL, &[]);
     };
-    wipe_words(&mut words);
     if !eth_secret_valid(&key) {
+        wipe_words(&mut words);
         wipe(&mut key);
         return encode_response(req.seq, EINVAL, &[]);
     }
 
     let result = store.store(KeyType::Secp256k1Eth, &key, caller_pid, now, expires_at);
     wipe(&mut key);
+    let result = match result {
+        Ok(id) if super::super::hd::keep_seed(store, id, &words[..count], caller_pid, now, expires_at) => {
+            Ok(id)
+        }
+        Ok(_) => Err(StoreError::Full),
+        Err(e) => Err(e),
+    };
+    wipe_words(&mut words);
     match result {
         Ok(id) => encode_response(req.seq, 0, &id.to_le_bytes()),
         Err(StoreError::Full) => encode_response(req.seq, ENOSPC, &[]),

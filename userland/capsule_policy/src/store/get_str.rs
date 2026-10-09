@@ -24,6 +24,8 @@ pub fn get(field: Field, out: &mut [u8; STRING_CAP]) -> Option<usize> {
     let src = match field {
         Field::Hostname => &s.hostname,
         Field::DomainName => &s.domainname,
+        Field::Username => &s.username,
+        Field::QwenTier => &s.qwen_tier,
         _ => return None,
     };
     out[..src.len].copy_from_slice(&src.bytes[..src.len]);

@@ -18,6 +18,7 @@ pub mod capsule_spawn;
 mod context;
 mod kernel_stack;
 mod pending_stack_free;
+mod pending_stack_held;
 mod user_stack;
 
 pub(crate) use context::setup_initial_user_context;

@@ -14,3 +14,6 @@ mod find;
 
 pub use crs::parse_controller_crs;
 pub use find::find_i2c_controller_devices;
+// The GPIO community enumerator reuses the descriptor decode, as in the kernel.
+#[cfg(test)]
+pub(super) use memory32::parse_memory32_fixed;

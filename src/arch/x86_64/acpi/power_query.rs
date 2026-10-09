@@ -20,7 +20,12 @@ use super::power_types::SleepState;
 pub fn is_sleep_state_supported(state: SleepState) -> bool {
     match state {
         SleepState::S0 => true,
-        SleepState::S5 => parser::with_data(|data| data.pm1a_control != 0).unwrap_or(false),
+        SleepState::S5 => parser::with_data(|data| {
+            let Some(fadt) = data.fadt else { return false };
+            let reg = if fadt.is_hw_reduced() { fadt.sleep_control } else { fadt.pm1a_cnt };
+            data.s5.is_some() && reg.is_accessible()
+        })
+        .unwrap_or(false),
         _ => false,
     }
 }

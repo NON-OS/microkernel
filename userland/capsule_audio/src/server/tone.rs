@@ -19,11 +19,8 @@ const SAMPLE_RATE: u32 = 48_000;
 pub fn synth(freq_hz: u32, ms: u32, gain_q15: u16, out: &mut [i16]) {
     let frames = out.len() / 2;
     let fill = ((ms as usize * SAMPLE_RATE as usize) / 1000).min(frames);
-    let half = if freq_hz == 0 {
-        frames.max(1)
-    } else {
-        (SAMPLE_RATE / (2 * freq_hz)).max(1) as usize
-    };
+    let half =
+        if freq_hz == 0 { frames.max(1) } else { (SAMPLE_RATE / (2 * freq_hz)).max(1) as usize };
     let amp = gain_q15 as i16;
     let mut i = 0usize;
     while i < fill {

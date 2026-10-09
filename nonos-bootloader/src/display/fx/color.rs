@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) fn mix(bg: u32, fg: u32, a: u32) -> u32 {
+pub fn mix(bg: u32, fg: u32, a: u32) -> u32 {
     let a = a.min(255);
     let ia = 255 - a;
     let br = (bg >> 16) & 0xFF;

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The NONOS syscall ABI: 4-byte ASCII tags packed by `tag4`; `abi::REGISTRY` is the truth.
+
 mod convert;
 mod defs;
 

@@ -16,14 +16,16 @@
 
 mod bar;
 mod rail;
+mod rail_geom;
 mod ground;
 mod sidebar;
 mod topbar;
 mod transport;
 
 pub use bar::bar;
-pub use rail::{queue_at as rail_queue_at, rail, tab_at as rail_tab_at};
+pub use rail::{control_at as rail_control_at, rail};
+pub use rail_geom::queue_track_at as rail_queue_track_at;
 pub use ground::Ground;
-pub use sidebar::{plist_at, row_at as nav_at, sidebar};
+pub use sidebar::{row_at as nav_at, sidebar};
 pub use topbar::{clear as search_clear, field as search_field, topbar};
 pub use transport::transport;

@@ -21,3 +21,9 @@ impl SubscriptionTable {
         Self { entries: [Subscription { pid: 0, kind_mask: 0, in_use: false }; MAX_SUBSCRIBERS] }
     }
 }
+
+impl Default for SubscriptionTable {
+    fn default() -> Self {
+        Self::new()
+    }
+}

@@ -18,7 +18,9 @@ use nonos_libc::{
     INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_POINTER_REL, INPUT_KIND_WHEEL,
 };
 
+use super::button_changes::button_changes;
 use super::mouse_event::MouseEvent;
+use super::mouse_report::MOUSE_BUTTONS;
 use super::post_wire::send;
 
 pub fn publish(ev: MouseEvent, previous_buttons: u8) -> bool {
@@ -33,17 +35,10 @@ pub fn publish(ev: MouseEvent, previous_buttons: u8) -> bool {
 }
 
 fn publish_buttons(previous: u8, current: u8) -> bool {
-    let changed = (previous ^ current) & 0x1f;
     let mut ok = true;
-    let mut bit = 0u8;
-    while bit < 5 {
-        let mask = 1u8 << bit;
-        if changed & mask != 0 {
-            let down = current & mask != 0;
-            let kind = if down { INPUT_KIND_BUTTON_DOWN } else { INPUT_KIND_BUTTON_UP };
-            ok &= send(kind, 0, u32::from(bit) + 1, 0, 0);
-        }
-        bit += 1;
-    }
+    button_changes(previous, current, MOUSE_BUTTONS, |button, down| {
+        let kind = if down { INPUT_KIND_BUTTON_DOWN } else { INPUT_KIND_BUTTON_UP };
+        ok &= send(kind, 0, button, 0, 0);
+    });
     ok
 }

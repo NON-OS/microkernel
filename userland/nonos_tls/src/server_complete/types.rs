@@ -25,8 +25,17 @@ use crate::traffic_keys::TrafficKeys;
 pub struct ServerComplete {
     pub handshake: TrafficKeys,
     pub app: TrafficKeys,
-    pub transcript: Vec<u8>,
+    /// Hash of ClientHello through the server Finished, which the client
+    /// Finished and the application keys are both computed over.
+    pub transcript_hash: [u8; 32],
     /// The Certificate message body, so a caller that authenticates the peer
     /// itself can reach the leaf. Empty if none arrived.
     pub certificates: Vec<u8>,
+    /// The empty Certificate message the client owes when the server sent a
+    /// CertificateRequest; `None` when it did not.
+    pub client_certificate: Option<Vec<u8>>,
+    /// Hash of ClientHello through the client's own Certificate when it owes
+    /// one, else the same as `transcript_hash`. The client Finished covers
+    /// this; the application keys never do.
+    pub finished_hash: [u8; 32],
 }

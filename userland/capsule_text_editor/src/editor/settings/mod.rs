@@ -19,7 +19,6 @@ mod event;
 mod geom;
 pub(crate) mod live;
 mod paint;
-mod pane;
 mod rail;
 mod sect;
 mod sect_event;

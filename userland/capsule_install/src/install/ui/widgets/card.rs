@@ -14,19 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A bordered panel with a small caption on its top edge.
+//! A bordered panel with a mono caption on its top edge.
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::install::ui::metrics::{RADIUS, SMALL_PX};
-use crate::install::ui::{text, theme};
+use crate::install::ui::metrics::Metrics;
+use alloc::string::String;
+
+use crate::install::ui::theme;
+use nonos_brand::label;
 
 /// Paints the card and returns the y where content starts inside it.
-pub fn card(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, caption: &str) -> u32 {
-    fb.panel(x, y, w, h, RADIUS, theme::CARD_BG, theme::CARD_BORDER);
+pub fn card(
+    fb: &mut PaintBuffer,
+    m: &Metrics,
+    x: u32,
+    y: u32,
+    w: u32,
+    h: u32,
+    caption: &str,
+) -> u32 {
+    fb.panel(x, y, w, h, m.radius, theme::CARD_BG, theme::CARD_BORDER);
     if !caption.is_empty() {
-        text::line(fb, x + 16, y + 10, caption, theme::MUTED, SMALL_PX);
-        return y + 36;
+        let caps: String = caption.chars().map(|c| c.to_ascii_uppercase()).collect();
+        label(fb, x + m.inset, y + m.unit + m.unit / 2, &caps, theme::MUTED, m.label_px);
+        return y + m.card_top;
     }
-    y + 16
+    y + m.inset
 }

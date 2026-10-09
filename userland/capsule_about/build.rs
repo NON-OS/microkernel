@@ -20,6 +20,8 @@ use std::process::Command;
 fn main() {
     let sha = resolve_sha();
     println!("cargo:rustc-env=ABOUT_GIT_SHA={sha}");
+    let toolchain = resolve_toolchain();
+    println!("cargo:rustc-env=ABOUT_TOOLCHAIN={toolchain}");
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=src");
     println!("cargo:rerun-if-changed=../../LICENSE");
@@ -50,4 +52,19 @@ fn resolve_sha() -> String {
         }
     }
     "unknown".into()
+}
+
+// The compiler that is building this image, as it names itself (`rustc -V`),
+// so the System screen reports what built the binary rather than what a
+// constant once said. Cargo hands a build script the compiler in RUSTC.
+fn resolve_toolchain() -> String {
+    let rustc = env::var("RUSTC").unwrap_or_else(|_| "rustc".into());
+    Command::new(rustc)
+        .arg("-V")
+        .output()
+        .ok()
+        .and_then(|o| if o.status.success() { String::from_utf8(o.stdout).ok() } else { None })
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "unknown".into())
 }

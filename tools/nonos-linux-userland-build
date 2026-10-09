@@ -1,0 +1,88 @@
+#!/bin/sh
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+
+# The Linux programs a production image carries in its store, built from
+# source: each upstream release at the sha256 its own site publishes, cross
+# compiled by the pinned zig (tools/nonos-zig) to static, non-PIE x86-64 musl,
+# the shape the personality runs, and stripped. Build time and build paths are
+# fixed and mapped out, so the same sources give the same bytes.
+#   tools/nonos-linux-userland-build PROGRAM OUT
+# PROGRAM names a recipe, tools/linux-userland/PROGRAM.sh, which says what it
+# builds and what it writes to OUT. Each recipe is its own file, and the flake
+# hands a build only its own recipe and the pins it fetches, so an edit to one
+# program rebuilds that program alone.
+# Environment:
+#   NONOS_SRC_CACHE   a directory to keep fetched tarballs in, held to the
+#                     same sha256 when reused (default target/src-cache)
+
+set -eu
+
+program=${1:?usage: tools/nonos-linux-userland-build PROGRAM OUT}
+out=${2:?usage: tools/nonos-linux-userland-build PROGRAM OUT}
+root=$(cd "$(dirname "$0")/.." && pwd)
+zig=$("$root/tools/nonos-zig")
+cache=${NONOS_SRC_CACHE:-"$root/target/src-cache"}
+mkdir -p "$cache" "$out"
+out=$(cd "$out" && pwd)
+work=$(mktemp -d "${TMPDIR:-/tmp}/nonos-userland.XXXXXX")
+LC_ALL=C TZ=UTC
+export LC_ALL TZ
+# Compiler chatter goes to a log beside the output, and only a failure shows it.
+log="$out/$program.build.log"
+exec 3>&2 2>"$log"
+trap 'status=$?; rm -rf "$work"; if [ $status -ne 0 ]; then tail -40 "$log" >&3; fi' EXIT
+
+sha() { sha256sum "$1" | cut -d' ' -f1; }
+
+# fetch NAME: the source tools/nix/sources.txt pins under NAME, from the
+# cache, downloaded when absent, and refused when its bytes are not the pinned
+# ones. The flake fills the cache from the same lines, so it never downloads.
+fetch() {
+	set -- $(awk -v n="$1" '$1 == n { print $2, $3 }' "$root/tools/nix/sources.txt")
+	[ $# -eq 2 ] || { echo "nonos-linux-userland-build: no pin for that source" >&3; exit 1; }
+	file="$cache/$(basename "$1")"
+	if [ ! -f "$file" ]; then
+		# ftp.gnu.org resets or stalls often enough to fail a build, so a
+		# GNU pin falls back to the kernel.org GNU mirror, as the flake's
+		# fetch does (tools/nix/userland.nix); the sha256 below decides.
+		get="curl -fsSL --retry 3 --connect-timeout 30 --max-time 600 -o $file.part"
+		case $1 in
+		https://ftp.gnu.org/gnu/*)
+			$get "$1" || $get "https://mirrors.kernel.org/gnu/${1#https://ftp.gnu.org/gnu/}" ;;
+		*) $get "$1" ;;
+		esac
+		mv "$file.part" "$file"
+	fi
+	got=$(sha "$file")
+	if [ "$got" != "$2" ]; then
+		echo "nonos-linux-userland-build: $(basename "$1") is $got, not the pinned $2" >&3
+		exit 1
+	fi
+	echo "$file"
+}
+
+CC="$zig cc -target x86_64-linux-musl"
+CXX="$zig c++ -target x86_64-linux-musl"
+AR="$zig ar"
+RANLIB="$zig ranlib"
+CFLAGS="-O2 -g0 -fno-pie -ffile-prefix-map=$work=/build"
+LDFLAGS="-static -no-pie -s"
+
+recipe="$root/tools/linux-userland/$program.sh"
+case $program in *[!a-z0-9-]* | "") recipe=/nonexistent ;; esac
+if [ ! -f "$recipe" ]; then
+	echo "nonos-linux-userland-build: no program called $program" >&3
+	exit 1
+fi
+. "$recipe"

@@ -16,11 +16,16 @@
 
 use super::args::Args;
 use crate::syscall::microkernel::dma::{sys_dma_map, sys_dma_unmap};
+use crate::syscall::microkernel::errnos::ERRNO_INVAL;
+use crate::syscall::microkernel::narrow::u32_arg;
 use crate::syscall::microkernel::numbers::*;
 
 pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
     Some(match nr {
-        SYS_DMA_MAP => sys_dma_map(a.a0, a.a1, a.a2, a.a3 as u32, a.a4),
+        SYS_DMA_MAP => match u32_arg(a.a3) {
+            Some(flags) => sys_dma_map(a.a0, a.a1, a.a2, flags, a.a4),
+            None => ERRNO_INVAL,
+        },
         SYS_DMA_UNMAP => sys_dma_unmap(a.a0),
         _ => return None,
     })

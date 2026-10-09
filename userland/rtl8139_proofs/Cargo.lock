@@ -3,5 +3,17 @@
 version = 4
 
 [[package]]
+name = "nonos_mac"
+version = "0.3.0"
+
+[[package]]
 name = "rtl8139_proofs"
+version = "0.3.0"
+dependencies = [
+ "nonos_mac",
+ "rtl8139_proofs_libc_shim",
+]
+
+[[package]]
+name = "rtl8139_proofs_libc_shim"
 version = "0.1.0"

@@ -17,10 +17,12 @@ mod bits;
 mod controller_index;
 mod defs;
 mod device_info;
+mod hid_info;
 mod lpss;
 
 pub use bits::*;
 pub use controller_index::controller_index;
 pub use defs::*;
-pub use device_info::device_info;
+pub use device_info::{device_info, is_bxt_family, UNKNOWN_LPSS_CLOCK_HZ};
+pub use hid_info::*;
 pub use lpss::*;

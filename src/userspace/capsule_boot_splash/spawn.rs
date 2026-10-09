@@ -47,10 +47,8 @@ pub fn spawn_boot_splash_capsule() -> Result<(), SpawnError> {
         manifest_bytes: BOOT_SPLASH_MANIFEST_BYTES,
         attestation_trailer: BOOT_SPLASH_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit(),
         debug_tag: b"",
     };

@@ -46,3 +46,9 @@ pub const KEYCODE_PGUP: u32 = 0x1207;
 pub const KEYCODE_PGDN: u32 = 0x1208;
 pub const KEYCODE_INS: u32 = 0x1209;
 pub const KEYCODE_DEL: u32 = 0x120A;
+// The system keys: the laptop's Fn volume keys and the power button. The
+// router hands them to the desktop shell whatever window has focus.
+pub const KEYCODE_MUTE: u32 = 0x1301;
+pub const KEYCODE_VOLUME_DOWN: u32 = 0x1302;
+pub const KEYCODE_VOLUME_UP: u32 = 0x1303;
+pub const KEYCODE_POWER: u32 = 0x1304;

@@ -18,6 +18,8 @@
 //! and multicast table, receive ring, transmit ring. The driver's ring state
 //! is programmed in place; the server loop reads it afterwards.
 
+use crate::constants::regs::{REG_CTRL, REG_STATUS};
+use crate::report;
 use crate::setup::Driver;
 
 use super::{mac_filter, reset, rx_setup, station_address, tx_setup};
@@ -34,5 +36,9 @@ pub fn bring_up(driver: &mut Driver) -> Result<(), &'static str> {
     mac_filter::program(&driver.regs, &mac);
     rx_setup::program(&driver.regs, &driver.rx, driver.rx_ring_device_addr);
     tx_setup::program(&driver.regs, &driver.tx, driver.tx_ring_device_addr);
+    // SAFETY: `driver.regs` carries the broker MmioMap base for BAR0; CTRL
+    // and STATUS are 32-bit aligned offsets in it.
+    let (ctrl, status) = unsafe { (driver.regs.r32(REG_CTRL), driver.regs.r32(REG_STATUS)) };
+    report::up(ctrl, status);
     Ok(())
 }

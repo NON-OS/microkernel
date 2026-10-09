@@ -14,25 +14,55 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Writing a document to a file.
+//!
+//! The document takes the new name only when the write lands, so a Save As
+//! that fails leaves the document named after the file that holds its text.
+
 use nonos_app_skeleton::{clients::vfs, EventOutcome};
 
+use super::path_prompt;
 use super::resolve_owner_pid::resolve_owner_pid;
-use super::state::State;
+use super::save_said::save_failed;
+use super::state::{PromptOp, State};
 
 pub(super) fn ctrl_save(state: &mut State) -> EventOutcome {
-    if !resolve_owner_pid(state) {
-        state.status = b"save failed";
-        return EventOutcome::Repaint;
+    // An untitled document has nowhere to go yet, so Save means Save As.
+    if state.path_len == 0 {
+        return path_prompt::start(state, PromptOp::Save);
     }
     let path = state.path[..state.path_len].to_vec();
-    let ok = vfs::write_file(state.owner_pid, &path, &state.buf[..state.len]).is_ok();
-    if ok {
-        super::notify::notify_saved(state);
-    }
-    // Only a write that landed makes the document clean again.
-    if ok {
-        state.dirty = false;
-    }
-    state.status = if ok { b"saved" } else { b"save failed" };
+    write_to(state, &path);
     EventOutcome::Repaint
+}
+
+/// Whether a file is already at `path`, for asking before replacing it.
+pub(super) fn exists(state: &mut State, path: &[u8]) -> bool {
+    resolve_owner_pid(state) && vfs::stat(state.owner_pid, path).is_ok()
+}
+
+pub(super) fn write_to(state: &mut State, path: &[u8]) -> bool {
+    if path.is_empty() || path.len() > state.path.len() {
+        state.status = b"save failed: no path given";
+        return false;
+    }
+    if !resolve_owner_pid(state) {
+        state.status = b"save failed: file service not reachable";
+        return false;
+    }
+    if let Err(err) = vfs::write_file(state.owner_pid, path, &state.buf[..state.len]) {
+        state.status = save_failed(err);
+        return false;
+    }
+    state.path[..path.len()].copy_from_slice(path);
+    state.path_len = path.len();
+    state.mark_saved();
+    super::notify::notify_saved(state);
+    // The file takes the text; the ribbon's formatting is not in it.
+    state.status = if state.has_formatting() {
+        b"saved the text; formatting goes out with Export (.docx, .pdf, .md)"
+    } else {
+        b"saved"
+    };
+    true
 }

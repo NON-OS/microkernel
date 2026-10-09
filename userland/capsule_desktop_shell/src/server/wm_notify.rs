@@ -14,45 +14,68 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::handlers::instances::app_of_pid;
 use super::refresh_taskbar::refresh_taskbar;
-use super::wm_notify_app_index::resolve_app_index;
 use super::wm_notify_toast::toast_window_event;
-use crate::protocol::{read_u16, read_u32};
-use crate::state::{set_taskbar_open, Context, TASKBAR_WINDOW_ID};
-use crate::wm_client;
-
-const OPENED: u32 = 0;
-const CLOSED: u32 = 1;
-const MAGIC: u32 = 0x4E57_4D56;
-const VERSION: u16 = 1;
-const FRAME_LEN: usize = 28;
+use crate::state::wm_notice::{decode_wm_notice, WmEvent};
+use crate::state::{
+    set_full_screen, track_window_closed, track_window_opened, Context, TASKBAR_WINDOW_ID,
+    TOAST_WINDOW_ID,
+};
 
 pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
-    if buf.len() != FRAME_LEN || read_u32(buf, 0) != Some(MAGIC) {
+    let Some(notice) = decode_wm_notice(buf) else {
         return false;
-    }
-    if read_u16(buf, 4) != Some(VERSION) {
-        return true;
-    }
-    let (Some(event_kind), Some(owner_pid), Some(window_id)) =
-        (read_u32(buf, 8), read_u32(buf, 12), read_u32(buf, 16))
-    else {
+    };
+    let Some(notice) = notice else {
         return true;
     };
-    if event_kind != OPENED && event_kind != CLOSED {
+    let (owner_pid, window_id) = (notice.owner_pid, notice.window_id);
+    if window_id == TASKBAR_WINDOW_ID || window_id == TOAST_WINDOW_ID {
         return true;
     }
-    if window_id == TASKBAR_WINDOW_ID {
-        return true;
+    // A full-screen window shown or gone hides or brings back the dock, for
+    // any app's window, in the launcher table or not; the dock's sync after
+    // this batch draws it and opens or closes its window.
+    match notice.event {
+        WmEvent::FullScreen(on) => {
+            set_full_screen(&mut ctx.taskbar, owner_pid, window_id, on);
+            return true;
+        }
+        WmEvent::Closed => {
+            set_full_screen(&mut ctx.taskbar, owner_pid, window_id, false);
+        }
+        WmEvent::Opened => {}
     }
-    let opened = event_kind == OPENED;
-    if opened {
-        let _ = wm_client::window_raise(ctx.wm_port, ctx.issue_request_id(), TASKBAR_WINDOW_ID);
+    // The dock's window is never raised: the shell draws the dock in its
+    // chrome band, over every application window, and the window manager
+    // ranks the shell's popup windows over every other window whatever their
+    // z, so what is drawn on top and what a press there reaches stay one.
+    let opened = notice.event == WmEvent::Opened;
+    let named = ctx.taskbar.active;
+    // Any instance of an app counts as that app ("app.terminal.2" is the
+    // Terminal), so the dock marks it, the menubar names it and the toast
+    // says which app opened. A close is matched by window id to the open the
+    // shell saw: the closing process may already be out of the registry.
+    let app = if opened {
+        let app = app_of_pid(owner_pid);
+        if let Some(index) = app {
+            track_window_opened(&mut ctx.taskbar, window_id, owner_pid, index);
+        }
+        app
+    } else {
+        track_window_closed(&mut ctx.taskbar, owner_pid, window_id)
+    };
+    if let Some(index) = app {
+        // The menubar names the active app. Only the dock was presented here,
+        // so after a close the bar went on naming the app that had gone until
+        // something else repainted it.
+        if ctx.taskbar.active != named {
+            super::repaint::repaint(ctx);
+        } else {
+            refresh_taskbar(ctx);
+        }
+        toast_window_event(ctx, opened, index);
     }
-    if let Some(index) = resolve_app_index(owner_pid) {
-        set_taskbar_open(&mut ctx.taskbar, index, opened);
-        refresh_taskbar(ctx);
-    }
-    toast_window_event(ctx, opened, owner_pid);
     true
 }

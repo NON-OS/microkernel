@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::command::output::Output;
-use crate::term::dimensions::COLS;
+use crate::term::dimensions::LINE_MAX;
 use crate::term::history::History;
 use crate::term::util::format_u64;
 
@@ -24,7 +24,7 @@ pub fn run(out: &mut Output<'_>, history: &History, _argv: &[&[u8]]) {
         let mut numbuf = [0u8; 4];
         let nn = format_u64(i as u64, &mut numbuf);
         let p = nn.min(3);
-        let mut line = [0u8; COLS];
+        let mut line = [0u8; LINE_MAX];
         let mut o = 0;
         for k in 0..p {
             line[o] = numbuf[nn - p + k];
@@ -34,7 +34,7 @@ pub fn run(out: &mut Output<'_>, history: &History, _argv: &[&[u8]]) {
         line[o + 1] = b' ';
         o += 2;
         let body = history.get(i);
-        let take = body.len().min(COLS - o);
+        let take = body.len().min(LINE_MAX - o);
         line[o..o + take].copy_from_slice(&body[..take]);
         out.writeln(&line[..o + take]);
     }

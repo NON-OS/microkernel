@@ -4,11 +4,11 @@ version = 4
 
 [[package]]
 name = "nonos-manifest"
-version = "0.1.0"
+version = "0.2.0"
 
 [[package]]
 name = "nonos-sign-bridge"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "nonos-manifest",
 ]

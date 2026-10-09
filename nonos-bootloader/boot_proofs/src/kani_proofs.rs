@@ -14,58 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Kani harnesses: the anti-rollback invariants hold for every u64 version and
-//! floor, not just the sampled ones in the runnable tests.
+//! Kani harnesses: the rollback counter's read and the image footer, for every
+//! input of the checked size, not just the sampled ones in the runnable tests.
 
 use crate::image_format::parse::parse_image_footer;
-use crate::security::anti_rollback::AntiRollbackState;
+use crate::security::tpm_nv::floor_cmd::{floor_read, succeeded, FloorRead};
 
-fn active(minimum_kernel: u64) -> AntiRollbackState {
-    let mut s = AntiRollbackState::new();
-    s.initialized = true;
-    s.tpm_available = true;
-    s.state.minimum_kernel = minimum_kernel;
-    s
-}
-
-// A version is accepted if and only if it is non-zero and at least the floor.
+// Any answer and any claimed length: the read never panics or reads past the
+// buffer, and a value comes only from a success in the read's own shape.
 #[kani::proof]
-fn check_accepts_exactly_the_valid_versions() {
-    let minimum: u64 = kani::any();
-    let version: u64 = kani::any();
-    let s = active(minimum);
-    match s.check_kernel_version(version) {
-        Ok(()) => {
-            assert!(version != 0);
-            assert!(version >= minimum);
-        }
-        Err(_) => {
-            assert!(version == 0 || version < minimum);
-        }
+fn floor_read_is_total_and_a_value_only_on_success() {
+    let resp: [u8; 32] = kani::any();
+    let n: usize = kani::any();
+    if let FloorRead::Value(v) = floor_read(&resp, n) {
+        assert!(n >= 24 && n <= 32);
+        assert!(resp[6..10] == [0, 0, 0, 0]);
+        assert!(resp[10..16] == [0, 0, 0, 10, 0, 8]);
+        assert!(v.to_be_bytes() == resp[16..24]);
     }
+    let _ = succeeded(&resp, n);
 }
 
-// No update can ever lower the floor, whatever version is presented.
+// Uninitialized is that one response code and nothing else.
 #[kani::proof]
-fn update_never_lowers_the_floor() {
-    let minimum: u64 = kani::any();
-    let version: u64 = kani::any();
-    let timestamp: u64 = kani::any();
-    let mut s = active(minimum);
-    let _ = s.update_kernel_version(version, timestamp);
-    assert!(s.state.minimum_kernel >= minimum);
-}
-
-// Once a version boots, every strictly older version is rejected forever.
-#[kani::proof]
-fn no_rollback_after_a_successful_boot() {
-    let minimum: u64 = kani::any();
-    let version: u64 = kani::any();
-    let mut s = active(minimum);
-    if s.update_kernel_version(version, 0).is_ok() {
-        let older: u64 = kani::any();
-        kani::assume(older < version);
-        assert!(s.check_kernel_version(older).is_err());
+fn only_nv_uninitialized_reads_as_uninitialized() {
+    let resp: [u8; 16] = kani::any();
+    let n: usize = kani::any();
+    if floor_read(&resp, n) == FloorRead::Uninitialized {
+        assert!(n >= 10 && n <= 16);
+        assert!(resp[6..10] == [0, 0, 0x01, 0x4A]);
     }
 }
 

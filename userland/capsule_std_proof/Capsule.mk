@@ -15,12 +15,16 @@ CAPSULE_FEATURE            := nonos-capsule-std-proof
 CAPSULE_NAMESPACE          := systems.nonos.std_proof
 CAPSULE_SERVICE_ENDPOINT   := service:4502:std_proof
 CAPSULE_REPLY_ENDPOINT     := reply:4503:endpoint.std_proof.reply
-# CoreExec | IPC | Memory | Debug = 0x01 | 0x08 | 0x10 | 0x100 = 0x119.
-# Debug is the proof's output channel (println -> MkDebug -> serial and
-# the proc.<pid> inbox the terminal drains). The baked boot spawn folds
-# it through serial_debug_cap(); a store install grants it from this
-# manifest, which is the point of a proof capsule.
-CAPSULE_REQUIRED_CAPS      := 0x119
+# CoreExec | IPC | Memory | FileSystem = 0x01 | 0x08 | 0x10 | 0x40 = 0x59,
+# FileSystem for the file I/O proof, which std::fs sends to vfs. Debug (0x100)
+# optional. The proof's println reaches the proc.<pid> inbox the terminal
+# drains with or without Debug; Debug adds the copy on the serial line a
+# smoke lane reads. The baked boot spawn folds it in through
+# serial_debug_cap(), and a store install that asks for it is granted it.
+CAPSULE_REQUIRED_CAPS      := 0x59
+# Debug, granted only by a build that compiles `capsule-serial-debug`: the
+# kernel mirror folds it in through serial_debug_cap().
+CAPSULE_OPTIONAL_CAPS      := 0x100
 CAPSULE_KERNEL_MIRROR      := src/userspace/capsule_std_proof
 
 include nonos-mk/capsule.mk

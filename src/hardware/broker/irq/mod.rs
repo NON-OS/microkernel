@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Shared types across all arch backends.
+mod errors;
+mod grant;
 mod types;
 
 // x86 backend: INTx (IO-APIC) + MSI-X. Existing files retain their
-// file-level `#![cfg(target_arch = "x86_64")]` gates.
+// own file-level x86_64 arch-gate attributes.
 #[cfg(target_arch = "x86_64")]
 mod bind;
 #[cfg(target_arch = "x86_64")]
@@ -65,7 +67,6 @@ pub use riscv64::{
     wait_disarm,
 };
 
-pub use types::{
-    IrqBindError, IrqBindRequest, IrqBindResult, IrqError, IrqGrant, IrqGrantKind, IrqPollResult,
-    BIND_MSIX, FLAGS_KNOWN,
-};
+pub use errors::{IrqBindError, IrqError, IrqPollResult};
+pub use grant::{IrqGrant, IrqGrantKind};
+pub use types::{IrqBindRequest, IrqBindResult, BIND_MSI, BIND_MSIX, FLAGS_KNOWN};

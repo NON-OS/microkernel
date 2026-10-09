@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_mmap, mk_yield};
+use nonos_libc::{mk_mmap, mk_munmap};
 
 use crate::compositor_client;
 
@@ -30,15 +30,10 @@ pub struct Overlay {
 }
 
 pub fn allocate(compositor_port: u32, request_id: u32) -> Result<Overlay, &'static str> {
-    let mut display = None;
-    for _ in 0..8 {
-        if let Ok(info) = compositor_client::query_display_info(compositor_port, request_id) {
-            display = Some(info);
-            break;
-        }
-        mk_yield();
-    }
-    let display = display.ok_or("compositor call failed")?;
+    let display = super::patient::patiently(20, 50, || {
+        compositor_client::query_display_info(compositor_port, request_id)
+            .map_err(|_| "compositor call failed")
+    })?;
     let stride = display.stride;
     let byte_len =
         (stride as u64).checked_mul(display.height as u64).ok_or("overlay size overflow")?;
@@ -54,4 +49,9 @@ pub fn allocate(compositor_port: u32, request_id: u32) -> Result<Overlay, &'stat
         byte_len,
         backing_va: base as u64,
     })
+}
+
+/// Give the backing back, once nothing the compositor holds points at it.
+pub fn free(overlay: &Overlay) {
+    let _ = mk_munmap(overlay.backing_va as *mut u8, overlay.byte_len as usize);
 }

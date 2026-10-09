@@ -19,31 +19,39 @@
 
 use crate::render::menubar_menu;
 use crate::server::desktop;
-use crate::server::handlers::{launcher_request, launchpad};
-use crate::server::refresh_taskbar::refresh_taskbar;
-use crate::state::{reveal_taskbar, Context, LAUNCHER_APPS};
-use nonos_libc::mk_time_millis;
+use crate::server::handlers::launcher_request::{self, LaunchOutcome};
+use crate::server::handlers::launchpad;
+use crate::state::{go_step, reveal_taskbar, Context, GoStep, LAUNCHER_APPS};
 
 pub(super) fn activate(ctx: &mut Context, title: usize, row: usize) {
     match (title, row) {
         (0, 0) => front_window(ctx),
         (0, 1) | (2, 0) => launchpad::open(ctx),
-        (0, 2) | (4, 0) => launch(b"app.about"),
+        (0, 2) | (4, 0) => launch(ctx, b"app.about"),
         (1, 0) => desktop::create_entry(ctx, false),
         (1, 1) => desktop::create_entry(ctx, true),
-        (1, 2) => launch(b"app.file_manager"),
+        (1, 2) => launch(ctx, b"app.file_manager"),
         (2, 1) => show_dock(ctx),
         (2, 2) => refresh_desktop(ctx),
-        (3, 0) => launch(b"app.terminal"),
-        (3, 1) => launch(b"app.browser"),
-        (3, 2) => launch(b"app.settings"),
-        (4, 1) => launch(b"app.process_manager"),
+        (3, 0) => launch(ctx, b"app.terminal"),
+        (3, 1) => launch(ctx, b"app.browser"),
+        (3, 2) => launch(ctx, b"app.settings"),
+        (4, 1) => launch(ctx, b"app.process_manager"),
         _ => {}
     }
 }
 
-fn launch(service: &[u8]) {
-    let _ = launcher_request::request_service(service);
+/// Bring an app's open window forward (restoring a minimised one), and open
+/// a window only for an app with none, so a menu click is not a new window
+/// every time.
+fn launch(ctx: &mut Context, service: &[u8]) {
+    let index = LAUNCHER_APPS.iter().position(|a| a.service == service);
+    if let GoStep::Focus(i) = go_step(&ctx.taskbar, index) {
+        if launcher_request::focus_app(ctx, i) == LaunchOutcome::Focused {
+            return;
+        }
+    }
+    crate::apps_off::open(ctx, service);
 }
 
 fn front_window(ctx: &mut Context) {
@@ -51,16 +59,14 @@ fn front_window(ctx: &mut Context) {
         refresh_desktop(ctx);
         return;
     };
-    if let Some(app) = LAUNCHER_APPS.get(index) {
-        let _ = launcher_request::focus_service(app.service);
+    if launcher_request::focus_app(ctx, index) == LaunchOutcome::Failed {
+        let service = LAUNCHER_APPS[index].service;
+        crate::apps_off::toast_failed(ctx, service, crate::server::toast_clock::now());
     }
 }
 
 fn show_dock(ctx: &mut Context) {
-    if !ctx.taskbar.visible {
-        reveal_taskbar(&mut ctx.taskbar, mk_time_millis());
-        refresh_taskbar(ctx);
-    }
+    reveal_taskbar(&mut ctx.taskbar, crate::server::dock_clock::now());
 }
 
 fn refresh_desktop(ctx: &mut Context) {

@@ -16,6 +16,7 @@
 
 use crate::protocol::{Request, E_INVAL, SCENE_REMOVE_REQ_LEN};
 use crate::server::respond;
+use crate::state::attach_kernel::Kernel;
 use crate::state::{scene_remove, Context};
 
 pub fn handle(
@@ -43,10 +44,9 @@ pub fn handle(
     if let Some(rect) = scene_remove::remove_by_pid(&mut ctx.scene, owner_pid) {
         ctx.damage.accumulate(rect);
     }
+    let mut released = true;
     for handle in gone.iter().take(n) {
-        if ctx.attach.forget(*handle).is_err() {
-            return respond::status(sender_pid, req, E_INVAL, tx);
-        }
+        released &= ctx.attach.forget(*handle, &mut Kernel);
     }
-    respond::status(sender_pid, req, 0, tx)
+    respond::status(sender_pid, req, if released { 0 } else { E_INVAL }, tx)
 }

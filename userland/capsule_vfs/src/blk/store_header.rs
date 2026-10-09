@@ -18,17 +18,14 @@
 // 32-byte header followed by `count` fixed-size descriptors. The device is
 // outside this capsule's trust boundary, so a foreign or corrupt sector 0 has
 // to fail here rather than size an allocation later.
+use nonos_disk_map::{STORE_MAGIC, STORE_VERSION};
+
 use super::error::BlkError;
 
-const MAGIC: &[u8; 8] = b"NONOSTR1";
-const VERSION: u32 = 1;
-
-pub const HEADER_LEN: usize = 32;
-pub const ENTRY_LEN: usize = 128;
-pub const MAX_ENTRIES: usize = 64;
+pub use nonos_disk_map::{ENTRY_LEN, HEADER_LEN, MAX_ENTRIES};
 
 pub fn entry_count(head: &[u8]) -> Result<usize, BlkError> {
-    if head.len() < HEADER_LEN || &head[0..8] != MAGIC || le_u32(head, 8) != VERSION {
+    if head.len() < HEADER_LEN || head[0..8] != STORE_MAGIC || le_u32(head, 8) != STORE_VERSION {
         return Err(BlkError::BadContainer);
     }
     let count = le_u32(head, 12) as usize;

@@ -46,6 +46,7 @@ pub const MMIO: u64 = 1 << 17;
 pub const IRQ: u64 = 1 << 18;
 pub const DMA: u64 = 1 << 19;
 pub const PIO: u64 = 1 << 20;
+pub const ATTEST_READ: u64 = 1 << 31;
 
 // Reach that lets a capsule drive physical devices without going through a
 // broker. Grouped here because it is asked for as one question far more often
@@ -93,15 +94,12 @@ pub const ALL_CAPS: &[CapDescriptor] = &[
     CapDescriptor { bit: IRQ, name: b"Irq", role: b"bind a device irq" },
     CapDescriptor { bit: DMA, name: b"Dma", role: b"grant a dma window" },
     CapDescriptor { bit: PIO, name: b"Pio", role: b"raw port io" },
+    CapDescriptor { bit: ATTEST_READ, name: b"AttestRead", role: b"read the attestation registry" },
 ];
 
-// What this capsule's own manifest asks for. It is a declaration, not a
-// measurement: the kernel is the only party that knows what was actually
-// granted, and the Verify screen holds this constant up against the mask the
-// kernel recorded for our pid. If the two ever part, the check fails and says
-// so, which is the only way a hardcoded mask earns its place in a build.
-pub const MASK: u64 = CORE_EXEC | IPC | MEMORY | GFX_DISPLAY_QUERY | GFX_SURFACE_CREATE;
+pub use super::own_caps::MASK;
 
-pub fn is_granted(bit: u64) -> bool {
-    MASK & bit != 0
+/// How many of the named capabilities `mask` holds.
+pub fn granted(mask: u64) -> u64 {
+    ALL_CAPS.iter().filter(|c| mask & c.bit != 0).count() as u64
 }

@@ -17,6 +17,7 @@
 use crate::memory::addr::VirtAddr;
 
 use super::super::core::PagingManager;
+use super::super::pending_flush::PendingFlush;
 use crate::memory::paging::constants::{page_align_down, PAGE_SIZE_4K};
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::stats::PagingStatistics;
@@ -28,7 +29,7 @@ impl PagingManager {
         &mut self,
         virtual_addr: VirtAddr,
         stats: &PagingStatistics,
-    ) -> PagingResult<()> {
+    ) -> PagingResult<PendingFlush> {
         // A write fault on a *present* page is legitimate only when that page
         // was mapped copy-on-write. Any other present+write fault is a
         // protection violation: a write to a read-only page (a RELRO'd GOT,
@@ -39,12 +40,14 @@ impl PagingManager {
             return Err(PagingError::UnhandledPageFault);
         }
         let page_addr = page_align_down(virtual_addr.as_u64());
+        if self.cow_raced(virtual_addr, page_addr) {
+            return Ok(PendingFlush::none());
+        }
         let original =
             self.mappings.get(&page_addr).ok_or(PagingError::UnhandledPageFault)?.permissions;
         if !original.contains(PagePermissions::COW) {
             return Err(PagingError::UnhandledPageFault);
         }
-
         let new_frame = frame_alloc::allocate_frame().ok_or(PagingError::FrameAllocationFailed)?;
 
         if let Ok(original_pa) = self.translate_address(virtual_addr) {
@@ -62,8 +65,11 @@ impl PagingManager {
         // Resolve the copy-on-write: drop the COW marker and grant the deferred
         // write, preserving the original permissions (never fabricating USER).
         let permissions = original.remove(PagePermissions::COW).insert(PagePermissions::WRITE);
-        self.map_page(virtual_addr, new_frame, permissions, PageSize::Size4KiB, stats)?;
-
-        Ok(())
+        /*
+         * A frame change on a present entry: another thread of the process on
+         * another cpu may cache the read-only entry for the shared frame and
+         * would go on reading it, so the flush this returns is a real one.
+         */
+        self.map_page(virtual_addr, new_frame, permissions, PageSize::Size4KiB, stats)
     }
 }

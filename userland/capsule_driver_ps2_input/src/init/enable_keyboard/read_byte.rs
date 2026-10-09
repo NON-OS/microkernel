@@ -13,24 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{DATA_OFFSET, STATUS_OFFSET, STATUS_OUTPUT_FULL};
-use nonos_libc::mk_pio_read;
+use crate::init::read_port;
+use crate::init::wait::{WaitError, REPLY_TIMEOUT_MS};
 
-const WAIT_SPINS: u32 = 100_000;
-
-pub(super) fn read_byte(grant_id: u64) -> Result<u8, &'static str> {
-    for _ in 0..WAIT_SPINS {
-        let mut status = 0u32;
-        if mk_pio_read(grant_id, STATUS_OFFSET, 1, &mut status) < 0 {
-            return Err("kbd status read failed");
-        }
-        if status as u8 & STATUS_OUTPUT_FULL != 0 {
-            let mut value = 0u32;
-            if mk_pio_read(grant_id, DATA_OFFSET, 1, &mut value) < 0 {
-                return Err("kbd data read failed");
-            }
-            return Ok(value as u8);
-        }
+/// The controller's reply to a command (the configuration byte), or None
+/// when it gave none within the bound. A byte from the aux port is not it.
+pub(super) fn read_byte(grant_id: u64) -> Result<Option<u8>, &'static str> {
+    match read_port(grant_id, false, REPLY_TIMEOUT_MS) {
+        Ok(byte) => Ok(byte),
+        Err(WaitError::Read) => Err("kbd status read failed"),
+        Err(WaitError::Timeout) => Ok(None),
     }
-    Err("kbd read timeout")
 }

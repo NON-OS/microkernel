@@ -1,15 +1,22 @@
-# Redox donor source — local reference only, not redistributed.
+# Redox donor source: a local reference only, not redistributed.
 # Ignore the vendored source but keep the audit manifest tracked.
 third_party/redox/*
 !third_party/redox/IMPORT_MAP.md
 
 # Build outputs
 target/
+# nix build's links to its outputs
+/result
+/result-*
 *.iso
 *.img
 *.bin
 !firmware/*.fd
 !nonos-bootloader/firmware/**/*.bin
+# Captured proof vectors are source, not build output.
+!userland/*_proofs/vectors/*.bin
+# The pinned wallet vectors Test 5 proves on the machine.
+!userland/capsule_shield_vectors/vectors/*/proof-format7.bin
 
 # IDE and editor
 .vscode/
@@ -97,3 +104,16 @@ nonos-bootloader/keys
 # Build output from vendored crates.io tool sources
 userland/upstream-src/*/target/
 userland/capsule_net_nym/tests/live_gateway/target/
+
+# Folded-in trees keep the artifacts their own repos tracked.
+!stark-attest/**/*.bin
+!nonos-data/**/*.bin
+!nonos-data/cacert.pem
+
+# Evidence is committed whole: its logs and captured files are the proof.
+
+# CI writes its reports here; a binary in them is never evidence.
+ci-reports/**/nonos-kernel*
+
+# Proof vectors are inputs, not build outputs.
+!userland/*_proofs/vectors/*.bin

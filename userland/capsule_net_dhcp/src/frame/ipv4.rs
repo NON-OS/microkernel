@@ -49,7 +49,23 @@ pub fn write(
     HDR_LEN
 }
 
-pub fn parse(bytes: &[u8]) -> Option<([u8; 4], [u8; 4], u8, usize)> {
+/// What a received IPv4 header says: source, destination, protocol, and
+/// where the payload starts and ends.
+pub struct Received {
+    pub src: [u8; 4],
+    pub dst: [u8; 4],
+    pub proto: u8,
+    pub header_len: usize,
+    pub total_len: usize,
+}
+
+/*
+ * The DHCP client reads off the link with no net.ip below it, so it makes
+ * net.ip's checks itself: the header checksum, a total length that covers
+ * the header and fits the frame (what follows it is Ethernet padding), and
+ * no fragment, which this client cannot reassemble.
+ */
+pub fn parse(bytes: &[u8]) -> Option<Received> {
     if bytes.len() < HDR_LEN {
         return None;
     }
@@ -61,7 +77,14 @@ pub fn parse(bytes: &[u8]) -> Option<([u8; 4], [u8; 4], u8, usize)> {
         return None;
     }
     let header_len = ihl_words * 4;
-    if bytes.len() < header_len {
+    if bytes.len() < header_len || fold(&bytes[..header_len]) != 0 {
+        return None;
+    }
+    let total_len = usize::from(u16::from_be_bytes([bytes[2], bytes[3]]));
+    if total_len < header_len || total_len > bytes.len() {
+        return None;
+    }
+    if u16::from_be_bytes([bytes[6], bytes[7]]) & 0x3FFF != 0 {
         return None;
     }
     let proto = bytes[9];
@@ -69,5 +92,5 @@ pub fn parse(bytes: &[u8]) -> Option<([u8; 4], [u8; 4], u8, usize)> {
     let mut dst = [0u8; 4];
     src.copy_from_slice(&bytes[12..16]);
     dst.copy_from_slice(&bytes[16..20]);
-    Some((src, dst, proto, header_len))
+    Some(Received { src, dst, proto, header_len, total_len })
 }

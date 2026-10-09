@@ -7,8 +7,13 @@ CAPSULE_FEATURE          := nonos-capsule-login
 CAPSULE_NAMESPACE        := systems.nonos.login
 CAPSULE_SERVICE_ENDPOINT := service:4416:login
 CAPSULE_REPLY_ENDPOINT   := reply:4417:endpoint.login.reply
-# IPC | Memory = 0x08 | 0x10 = 0x19
-CAPSULE_REQUIRED_CAPS    := 0x19
+# IPC | Memory | GraphicsDisplayQuery | GraphicsSurfaceCreate
+#   = 0x08 | 0x10 | 0x800 | 0x1000 = 0x1818
+# The lock screen asks the display its size and registers and shares its
+# own surface during setup (src/setup/run.rs); without the two graphics
+# bits setup is refused and retried forever. No CoreExec: login never asks
+# its own pid or arguments.
+CAPSULE_REQUIRED_CAPS    := 0x1818
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_login
 
 include nonos-mk/capsule.mk

@@ -27,7 +27,6 @@ pub fn icon(section: Section) -> IconId {
         Section::Appearance => IconId::SettingsAppearance,
         Section::Privacy => IconId::SettingsPrivacy,
         Section::Sound => IconId::SettingsSound,
-        Section::Storage => IconId::SettingsStorage,
         Section::Updates => IconId::SettingsUpdates,
         Section::Developer => IconId::SettingsDeveloper,
     }

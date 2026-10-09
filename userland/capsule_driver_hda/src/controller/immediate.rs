@@ -14,61 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::{IC, IR, IRS, IRS_BUSY, IRS_VALID, VERB_GET_PARAMETER};
-use crate::error::{HdaError, HdaResult};
+//! The Immediate Command interface (HDA 1.0a section 3.4.3): one verb out
+//! through ICOI, its answer back through ICII, with ICIS carrying the busy
+//! (ICB) and result-valid (IRV) bits. The specification has software use this
+//! or the CORB, not both at once, so it is taken only as the fallback once a
+//! CORB send has failed to reach a codec, and never while the ring runs.
+
+use crate::constants::{ICII, ICIS, ICIS_ICB, ICIS_IRV, ICOI, VERB_GET_PARAMETER};
+use crate::controller::compose_verb;
+use crate::controller::wait::until;
 use crate::regs::Regs;
 
-const WAIT_SPINS: u32 = 1_000_000;
+/// Far more than the microseconds a codec needs to answer, under the
+/// hundred-millisecond ceiling the rest of the driver waits a codec out.
+const IMMEDIATE_MS: u64 = 100;
 
-pub fn get_parameter(regs: Regs, codec: u8, node: u8, param: u16) -> HdaResult<u32> {
-    send(regs, compose_verb(codec, node, VERB_GET_PARAMETER, param))
-}
-
-fn send(regs: Regs, verb: u32) -> HdaResult<u32> {
-    wait_busy_clear(regs)?;
+/// Read a codec's Get Parameter result from `address`'s root node over the
+/// Immediate Command interface. `None` when the controller stays busy or never
+/// marks the result valid inside the bounded wait.
+pub fn get_parameter(regs: Regs, address: u8, param: u16) -> Option<u32> {
+    // A prior command is read out before a new one is posted: ICB clears when
+    // the controller is free.
+    if !until(IMMEDIATE_MS, || unsafe { regs.r16(ICIS) } & ICIS_ICB == 0) {
+        return None;
+    }
+    let verb = compose_verb(address, 0, VERB_GET_PARAMETER, param);
     unsafe {
-        regs.w8(IRS, IRS_VALID);
-        regs.w32(IC, verb);
-        regs.w8(IRS, IRS_BUSY);
+        regs.w32(ICOI, verb);
+        // Posting sets ICB; the controller clears it and sets IRV once the
+        // answer is in ICII.
+        regs.w16(ICIS, ICIS_ICB);
     }
-    wait_response(regs)
-}
-
-fn wait_busy_clear(regs: Regs) -> HdaResult<()> {
-    let mut spins = 0u32;
-    while spins < WAIT_SPINS {
-        if unsafe { regs.r8(IRS) } & IRS_BUSY == 0 {
-            return Ok(());
-        }
-        spins = spins.wrapping_add(1);
-        core::hint::spin_loop();
+    if !until(IMMEDIATE_MS, || unsafe { regs.r16(ICIS) } & ICIS_IRV != 0) {
+        return None;
     }
-    Err(HdaError::ImmediateCommandBusy)
-}
-
-fn wait_response(regs: Regs) -> HdaResult<u32> {
-    let mut spins = 0u32;
-    while spins < WAIT_SPINS {
-        let status = unsafe { regs.r8(IRS) };
-        if status & IRS_BUSY == 0 && status & IRS_VALID != 0 {
-            return Ok(unsafe { regs.r32(IR) });
-        }
-        spins = spins.wrapping_add(1);
-        core::hint::spin_loop();
-    }
-    Err(HdaError::ImmediateResponseTimeout)
-}
-
-pub(crate) const fn compose_verb(codec: u8, node: u8, verb: u16, payload: u16) -> u32 {
-    ((codec as u32 & 0x0f) << 28)
-        | ((node as u32 & 0x7f) << 20)
-        | ((verb as u32 & 0x0fff) << 8)
-        | (payload as u32 & 0xff)
-}
-
-pub(crate) const fn compose_verb_long(cad: u8, nid: u8, verb4: u16, payload16: u16) -> u32 {
-    ((cad as u32 & 0x0f) << 28)
-        | ((nid as u32 & 0x7f) << 20)
-        | ((verb4 as u32 & 0x0f) << 16)
-        | (payload16 as u32)
+    let result = unsafe { regs.r32(ICII) };
+    // IRV is write-one-to-clear; leave it clear for the next command.
+    unsafe { regs.w16(ICIS, ICIS_IRV) };
+    Some(result)
 }

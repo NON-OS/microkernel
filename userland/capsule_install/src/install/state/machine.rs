@@ -20,6 +20,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::outcome::Outcome;
+use super::prepared::Prepared;
 use super::screen::Screen;
 use crate::install::job::Job;
 use crate::install::source::{Boot, Image};
@@ -34,10 +35,28 @@ pub struct State {
     pub typed: Vec<u8>,
     pub image: Option<Image>,
     pub boot: Boot,
+    /// The plan for the chosen disk, made when it was chosen, or why there
+    /// is none.
+    pub prepared: Option<Result<Prepared, String>>,
     pub job: Option<Job>,
     pub outcome: Option<Outcome>,
     /// Why the image or the disk list is unavailable, when it is.
     pub notice: Option<String>,
+    /// The last look found no disk to install to and an Intel RST or VMD
+    /// controller on the bus: the firmware's storage mode hides the disks.
+    pub raid: bool,
+    /// The last look found nothing to install to, or a missing driver, so
+    /// the disks screen looks again on its own.
+    pub incomplete: bool,
+    /// When the last look at the disks ended and how long it took.
+    pub looked: Option<Looked>,
+}
+
+/// Milliseconds of uptime.
+#[derive(Clone, Copy)]
+pub struct Looked {
+    pub ended: i64,
+    pub took: i64,
 }
 
 impl State {
@@ -54,9 +73,13 @@ impl State {
             typed: Vec::new(),
             image,
             boot,
+            prepared: None,
             job: None,
             outcome: None,
             notice,
+            raid: false,
+            incomplete: false,
+            looked: None,
         }
     }
 

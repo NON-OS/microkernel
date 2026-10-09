@@ -27,11 +27,14 @@ fn main() {
         b.warnings(false);
         b.flag("-O2");
         b.flag("-DNDEBUG");
+        // Date and performance read the clocks the browser lends (cutils.h),
+        // in this build too, so the host proofs exercise that path.
+        b.flag("-DNJS_HOST_CLOCKS");
         // macOS spells malloc_usable_size differently.
         if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("macos") {
             b.flag("-Dmalloc_usable_size=malloc_size");
         }
-        b.flag(&format!("-I{root}/vendor"));
+        b.flag(format!("-I{root}/vendor"));
         for f in
             ["quickjs.c", "libregexp.c", "libunicode.c", "dtoa.c", "eval_shim.c", "dom_bindings.c"]
         {
@@ -40,6 +43,7 @@ fn main() {
         }
         b.compile("qjs");
         println!("cargo:rerun-if-changed=build.rs");
+        println!("cargo:rerun-if-changed=vendor");
         return;
     }
     let mut b = cc::Build::new();
@@ -51,7 +55,7 @@ fn main() {
     // a compile error: clang builds for whatever it defaulted to and the
     // mismatch only surfaces as "incompatible" objects at link time.
     let arch = target_arch();
-    b.flag(&format!("--target={arch}-unknown-none"));
+    b.flag(format!("--target={arch}-unknown-none"));
     b.flag("-ffreestanding");
     b.flag("-fno-stack-protector");
     b.flag("-fno-builtin");
@@ -64,11 +68,14 @@ fn main() {
     b.flag("-fPIC");
     b.flag("-O2");
     b.flag("-DNDEBUG");
+    // The bare target has no clock of its own: Date and performance read the
+    // ones the browser lends (cutils.h, eval_shim.c).
+    b.flag("-DNJS_HOST_CLOCKS");
     b.flag("-Dalloca=__builtin_alloca");
     b.flag("-nostdinc");
-    b.flag(&format!("-isystem{root}/shim"));
-    b.flag(&format!("-isystem{}", clang_resource_include()));
-    b.flag(&format!("-I{root}/vendor"));
+    b.flag(format!("-isystem{root}/shim"));
+    b.flag(format!("-isystem{}", clang_resource_include()));
+    b.flag(format!("-I{root}/vendor"));
     for f in [
         "quickjs.c",
         "libregexp.c",
@@ -83,4 +90,8 @@ fn main() {
     }
     b.compile("qjs");
     println!("cargo:rerun-if-changed=build.rs");
+    /* The bindings are one C file built from .inc pieces, and the prelude
+     * is text in them: a change to any piece has to rebuild the library,
+     * which naming only the .c files never did. */
+    println!("cargo:rerun-if-changed=vendor");
 }

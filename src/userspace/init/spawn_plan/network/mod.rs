@@ -27,6 +27,7 @@ mod spawn_l2;
 mod spawn_legacy_stack;
 #[cfg(not(feature = "nonos-capsule-net-core"))]
 mod spawn_ntp;
+mod spawn_anon;
 mod spawn_nym;
 mod spawn_socks5;
 mod spawn_sockets;

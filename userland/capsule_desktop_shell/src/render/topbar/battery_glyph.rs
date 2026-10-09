@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A battery outline filled in proportion to the real charge. Green when
-//! healthy, amber when low; on AC power the caller draws no fill.
+//! healthy, amber when low. Drawn only for a reading the kernel gave.
 
 use crate::render::palette;
 use crate::render::surface::surface;

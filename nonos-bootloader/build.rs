@@ -10,14 +10,12 @@ fn main() {
     println!("cargo:rerun-if-env-changed=NONOS_SIGNING_KEY");
     println!("cargo:rerun-if-env-changed=NONOS_MLDSA65_PUBKEY");
     println!("cargo:rerun-if-env-changed=NONOS_TRUST_ANCHOR_PUBKEY");
-    println!("cargo:rerun-if-env-changed=NONOS_ZK_DEVICE_ROOT");
     println!("cargo:rerun-if-env-changed=NONOS_KERNEL_ATTEST_ROOT");
     println!("cargo:rerun-if-env-changed=NONOS_GOP_PREF");
     println!("cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH");
     println!("cargo:rerun-if-changed=boot-splash.png");
 
     generate_keys();
-    generate_zk_registry();
     generate_kernel_attest_root();
     configure_uefi();
     configure_optimization();
@@ -239,46 +237,15 @@ fn derive_ed25519_public_key(seed: &[u8; 32]) -> [u8; 32] {
     compute_ed25519_pubkey(seed)
 }
 
-fn generate_zk_registry() {
-    generate_transparent_zk_registry();
-}
-
-fn generate_transparent_zk_registry() {
-    let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
-    let dest_path = Path::new(&out_dir).join("zk_generated.rs");
-    fs::write(&dest_path, b"").expect("Cannot create zk_generated.rs");
-    let root_path = resolve_device_root_path();
-    let root = fs::read(&root_path).unwrap_or_else(|e| {
-        panic!("production bootloader requires NONOS_ZK_DEVICE_ROOT to be readable: {e}")
-    });
-    if root.len() != 32 {
-        panic!("production bootloader requires 32-byte NONOS_ZK_DEVICE_ROOT");
-    }
-    println!("cargo:rerun-if-changed={root_path}");
-    println!("cargo:rustc-env=NONOS_ZK_DEVICE_ROOT={root_path}");
-    let fp = blake3::hash(&root);
-    let fp_hex = fp.as_bytes().iter().take(8).map(|b| format!("{:02x}", b)).collect::<String>();
-    println!("cargo:rustc-env=NONOS_ZK_FINGERPRINT={fp_hex}");
-    eprintln!("NONOS transparent ZK device root fingerprint: {fp_hex}");
-}
-
-fn resolve_device_root_path() -> String {
-    match env::var("NONOS_ZK_DEVICE_ROOT") {
-        Ok(path) if !path.trim().is_empty() => path,
-        _ => panic!("production bootloader requires NONOS_ZK_DEVICE_ROOT"),
-    }
-}
-
 // The enrolled kernel measurement root the pre-jump self-attestation checks
-// against. When the stark-kernel-attest feature is on, an enrolled root is
-// mandatory: a build that turns the gate on must say what it trusts, so a missing
-// or wrong-sized root is a hard build error rather than a silent zero. When the
-// feature is off the root is emitted as zero so the source still compiles; that
-// path is never consulted, since the verifier is compiled out with the feature.
+// against. Every build but a dev one must say what it trusts, so a missing or
+// zero root is a hard build error rather than a silent zero. A dev build may
+// leave it unset: its gate then admits no kernel, and dev mode boots the kernel
+// on signature trust with a warning, as it always has.
 fn generate_kernel_attest_root() {
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
     let dest = Path::new(&out_dir).join("kernel_attest_root.rs");
-    let gate_on = cargo_feature("STARK_KERNEL_ATTEST");
+    let gate_on = !dev_mode();
     let root: [u8; 32] = match env::var("NONOS_KERNEL_ATTEST_ROOT") {
         Ok(path) if !path.trim().is_empty() => {
             println!("cargo:rerun-if-changed={path}");
@@ -289,12 +256,12 @@ fn generate_kernel_attest_root() {
                 panic!("NONOS_KERNEL_ATTEST_ROOT must be 32 bytes, got {}", bytes.len());
             }
             if gate_on && bytes == [0u8; 32] {
-                panic!("stark-kernel-attest is on but NONOS_KERNEL_ATTEST_ROOT is all zeroes; enroll the kernel first");
+                panic!("NONOS_KERNEL_ATTEST_ROOT is all zeroes; enroll the kernel first");
             }
             bytes.try_into().expect("32-byte root")
         }
         _ if gate_on => panic!(
-            "stark-kernel-attest is on but NONOS_KERNEL_ATTEST_ROOT is not set; enroll the kernel and point it at the 32-byte root"
+            "NONOS_KERNEL_ATTEST_ROOT is not set; enroll the kernel and point it at the 32-byte root"
         ),
         _ => [0u8; 32],
     };
@@ -304,7 +271,7 @@ fn generate_kernel_attest_root() {
         eprintln!("NONOS kernel attest root fingerprint: {fp_hex}");
     }
     let body = root.iter().map(u8::to_string).collect::<Vec<_>>().join(", ");
-    fs::write(&dest, format!("pub const KERNEL_ATTEST_ROOT: [u8; 32] = [{body}];\n"))
+    fs::write(&dest, format!("pub static KERNEL_ATTEST_ROOT: [u8; 32] = [{body}];\n"))
         .expect("write kernel_attest_root.rs");
 }
 
@@ -372,11 +339,17 @@ fn compile_mldsa65() {
     build.compiler("clang");
     build.flag("-target");
     build.flag("x86_64-unknown-windows");
-    for entry in fs::read_dir(mldsa).expect("cannot read ML-DSA-65 source directory") {
-        let path = entry.expect("bad ML-DSA-65 source entry").path();
-        if path.extension().and_then(|s| s.to_str()) == Some("c") {
-            build.file(path);
-        }
+    // read_dir yields entries in the filesystem's order, which differs between
+    // machines; sort so the C sources are added, compiled and archived in the
+    // same order everywhere and the bytes do not depend on the host.
+    let mut mldsa_sources: Vec<_> = fs::read_dir(mldsa)
+        .expect("cannot read ML-DSA-65 source directory")
+        .map(|entry| entry.expect("bad ML-DSA-65 source entry").path())
+        .filter(|path| path.extension().and_then(|s| s.to_str()) == Some("c"))
+        .collect();
+    mldsa_sources.sort();
+    for path in mldsa_sources {
+        build.file(path);
     }
     build.file(format!("{common}/fips202.c"));
     build.file("src/crypto/mldsa65/chkstk.c");

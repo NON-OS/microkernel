@@ -16,7 +16,7 @@
 
 use super::icon_path::Icon;
 use super::screen::Screen;
-use super::theme::{AMBER, BLUE_LT, CY, GRN, INK3};
+use super::theme::{AMBER, BLUE_LT, CY, GRN};
 
 /// One Home category. `path` is both the store prefix its figure is counted
 /// from and the place a click browses to; `screen` is a surface a click switches
@@ -43,13 +43,12 @@ const fn cat(
     Cat { title, icon, tint, path, screen, counted }
 }
 
-/// The category row, in drawn order. Recents counts the access journal, the
-/// three prefix cards count their own subtree, and Shared has no identity
-/// backend to count against so it carries no figure.
-pub const CATS: [Cat; 5] = [
+/// The category row, in drawn order. Recents counts the access journal and the
+/// three prefix cards count their own subtree. There is no Shared card: the
+/// capsule holds no identity or sharing backend, so it would have no files.
+pub const CATS: [Cat; 4] = [
     cat("Recents", Icon::Clock, BLUE_LT, None, Some(Screen::Recents), true),
     cat("Projects", Icon::Folder, AMBER, Some("/projects/"), None, true),
     cat("Downloads", Icon::Download, GRN, Some("/downloads/"), None, true),
-    cat("Shared", Icon::People, INK3, None, Some(Screen::Shared), false),
     cat("Capsules", Icon::Cube, CY, Some("/capsules/"), None, true),
 ];

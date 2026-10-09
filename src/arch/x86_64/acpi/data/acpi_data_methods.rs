@@ -32,7 +32,7 @@ impl AcpiData {
     }
 
     pub fn find_ioapic_for_gsi(&self, gsi: u32) -> Option<&IoApicInfo> {
-        self.ioapics.iter().find(|io| gsi >= io.gsi_base && gsi < io.gsi_base + 24)
+        super::ioapic::owner_of_gsi(&self.ioapics, gsi)
     }
 
     pub fn find_override(&self, irq: u8) -> Option<&InterruptOverride> {

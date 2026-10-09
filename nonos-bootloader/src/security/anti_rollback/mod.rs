@@ -14,17 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod nvram;
-mod state;
-mod types;
-mod util;
+//! The rollback floor by profile. The floor itself is the TPM counter in
+//! `security::tpm_nv`; the legacy NVRAM version state it replaced was never
+//! defined on any TPM and is gone (REVIEW R20).
 
-pub use api::{
-    check_kernel_version, get_version_state, init_anti_rollback, update_kernel_version,
-    ANTI_ROLLBACK,
-};
-pub use state::AntiRollbackState;
-pub use types::{
-    RollbackError, VersionState, DS_ROLLBACK, NVRAM_BOOTLOADER_INDEX, NVRAM_VERSION_INDEX,
-};
+mod floor_rule;
+
+pub use floor_rule::{floor_rule, Floor};

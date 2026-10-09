@@ -21,6 +21,13 @@ impl RegisterGrant {
         match self {
             Self::Mmio(g) => mk_mmio_unmap(g.grant_id) >= 0,
             Self::Pio(g) => mk_pio_release(g.grant_id) >= 0,
+            Self::Modern(w) => {
+                let mut ok = true;
+                for &id in w.grant_ids().iter().rev().flatten() {
+                    ok = mk_mmio_unmap(id) >= 0 && ok;
+                }
+                ok
+            }
         }
     }
 }

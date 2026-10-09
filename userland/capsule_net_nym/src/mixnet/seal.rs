@@ -28,12 +28,14 @@ use crate::sphinx::packet::build_packet;
 ///
 /// The route is drawn per packet rather than per message. Two packets of the
 /// same message then share no path, which is what stops a mix that sees both
-/// from grouping them.
+/// from grouping them. The mixing delay the route was given comes back with
+/// it: it is how long the packet is meant to take, so it is what a missing
+/// acknowledgement is measured against.
 pub fn seal_one(
     destination: &[u8; DESTINATION_ADDRESS_LENGTH],
     gateway_identity: &[u8; 32],
     payload: &[u8],
-) -> Option<Vec<u8>> {
+) -> Option<(Vec<u8>, u64)> {
     let mut seed = [0u8; 32];
     fill_random(&mut seed).ok()?;
     let route = route_to(&seed, gateway_identity)?;
@@ -45,7 +47,13 @@ pub fn seal_one(
     let dest = Destination { address: *destination, identifier: [0u8; 16] };
     let first_hop = route[0].address;
     let packet = build_packet(&secret, &route, &dest, &delays, PACKET_VERSION, payload).ok()?;
-    Some(frame_mix_packet(&first_hop, &packet.to_bytes()?))
+    Some((frame_mix_packet(&first_hop, &packet.to_bytes()?), delay_ms(&delays)))
+}
+
+/// The total of a route's delays, in milliseconds. A header carries them in
+/// nanoseconds.
+pub fn delay_ms(delays: &[[u8; 8]]) -> u64 {
+    delays.iter().fold(0u64, |sum, d| sum.saturating_add(u64::from_be_bytes(*d))) / 1_000_000
 }
 
 /// Delays for a route of `hops` length, drawn fresh so an acknowledgement

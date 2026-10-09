@@ -23,6 +23,11 @@ const VERSION: u16 = 1;
 const OP_WRITE_PCM: u16 = 7;
 const OP_STREAM_START: u16 = 8;
 const OP_STREAM_STOP: u16 = 9;
+/// driver.hda0's `OP_OUTPUT_STATUS`: its verdict on this machine's audio.
+const OP_OUTPUT_STATUS: u16 = 10;
+/// The driver's status reply: header, status, then verdict u32, codec
+/// vendor u16, codec device u16, outputs u8, plugged u8, reserved u16.
+pub const OUTPUT_REPLY_LEN: usize = HDR_LEN + STATUS_LEN + 12;
 const E_OK: i32 = 0;
 
 pub fn request(request_id: u32, pcm: &[u8], out: &mut [u8]) -> usize {
@@ -61,6 +66,28 @@ pub fn start_request(request_id: u32, out: &mut [u8]) -> usize {
 
 pub fn stop_request(request_id: u32, out: &mut [u8]) -> usize {
     ctl_request(OP_STREAM_STOP, request_id, out)
+}
+
+pub fn output_status_request(request_id: u32, out: &mut [u8]) -> usize {
+    ctl_request(OP_OUTPUT_STATUS, request_id, out)
+}
+
+/// The driver's verdict and the output flags `nonos_audio_proto::output`
+/// gives applications, from its status reply. The verdict numbers are the
+/// same on both wires. The outputs byte keeps its bits (speaker, headphone,
+/// line out) and plugged becomes bit 8. None for a short or refused reply,
+/// or a verdict outside the ones the driver gives.
+pub fn read_output_status(rx: &[u8]) -> Option<(u32, u32)> {
+    if rx.len() < OUTPUT_REPLY_LEN || reply_status(rx) != E_OK {
+        return None;
+    }
+    let b = &rx[HDR_LEN + STATUS_LEN..];
+    let verdict = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
+    if verdict == 1 || verdict > 6 {
+        return None;
+    }
+    let flags = (b[8] & 0x07) as u32 | if b[9] != 0 { 1 << 8 } else { 0 };
+    Some((verdict, flags))
 }
 
 pub fn reply_ok(rx: &[u8]) -> bool {

@@ -27,7 +27,7 @@ pub fn map_huge_page(
     permissions: PagePermissions,
     size: PageSize,
 ) -> PagingResult<()> {
-    without_interrupts(|| {
+    let flush = without_interrupts(|| {
         lock_responsive(&PAGING_MANAGER).map_page(
             virtual_addr,
             physical_addr,
@@ -35,5 +35,7 @@ pub fn map_huge_page(
             size,
             &PAGING_STATS,
         )
-    })
+    })?;
+    flush.commit();
+    Ok(())
 }

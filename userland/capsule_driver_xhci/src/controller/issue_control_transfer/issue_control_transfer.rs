@@ -18,7 +18,7 @@ use super::direction::direction;
 use crate::controller::ring_doorbell::ring_doorbell;
 use crate::controller::wait_transfer_completion::wait_transfer_completion;
 use crate::error::XhciResult;
-use crate::rings::event::EventRing;
+use crate::rings::event::{EventRing, IssuedTransfer};
 use crate::rings::transfer::TransferRing;
 use crate::trb::builders::data_stage::data_stage_in;
 use crate::trb::builders::data_stage_out::data_stage_out;
@@ -37,7 +37,7 @@ pub fn issue_control_transfer(
 ) -> XhciResult<()> {
     let dir = direction(req.bm_request_type, req.data_len);
     let cycle = ep0.cycle() != 0;
-    ep0.enqueue(setup_stage(
+    let setup_phys = ep0.enqueue(setup_stage(
         req.bm_request_type,
         req.b_request,
         req.w_value,
@@ -46,10 +46,11 @@ pub fn issue_control_transfer(
         dir,
         cycle,
     ))?;
+    let mut data_phys = setup_phys;
     if matches!(dir, SetupDir::DeviceToHost) {
-        ep0.enqueue(data_stage_in(req.data_phys, req.data_len, ep0.cycle() != 0))?;
+        data_phys = ep0.enqueue(data_stage_in(req.data_phys, req.data_len, ep0.cycle() != 0))?;
     } else if matches!(dir, SetupDir::HostToDevice) {
-        ep0.enqueue(data_stage_out(req.data_phys, req.data_len, ep0.cycle() != 0))?;
+        data_phys = ep0.enqueue(data_stage_out(req.data_phys, req.data_len, ep0.cycle() != 0))?;
     }
     let status = match dir {
         SetupDir::DeviceToHost => status_stage_out(ep0.cycle() != 0),
@@ -57,5 +58,6 @@ pub fn issue_control_transfer(
     };
     let status_phys = ep0.enqueue(status)?;
     ring_doorbell(doorbell_base, slot_id, DCI_EP0_BIDIR);
-    wait_transfer_completion(intr_base, status_phys, evt_ring)
+    let issued = IssuedTransfer { phys: status_phys, slot: slot_id, dci: DCI_EP0_BIDIR };
+    wait_transfer_completion(intr_base, issued, &[setup_phys, data_phys], evt_ring)
 }

@@ -14,21 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proving what this machine built, so it will run it.
+//! Vouching for what this machine built, so it will run it.
 //!
-//! One secret, one leaf, one root. Each local build gets a membership proof
-//! whose challenge binds the measurement and the capabilities, so a trailer
-//! minted for a capsule holding nothing does not verify for the same bytes
-//! installed with more.
+//! One key, one root. Each local build gets a keyed tag over its context, so
+//! a trailer minted for a capsule holding nothing does not verify for the same
+//! bytes installed with more. The key never leaves the kernel, so only this
+//! machine can mint or check a tag, and the root names the key without giving
+//! it away.
 //!
-//! Nothing here enrols. Minting a proof is not consent.
+//! Nothing here enrols. Minting a tag is not consent.
 
+mod consent;
 mod error;
 mod identity;
 mod sign;
 mod trailer;
-mod tree;
 
+pub use consent::token as consent_token;
 pub use error::LocalBuildError;
 pub use identity::root;
-pub use sign::sign;
+pub use sign::{sign, verify};
+pub use trailer::MAGIC;

@@ -13,12 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::bars::bars;
 use super::first_register_bar::first_register_bar;
 use super::found::Found;
 use super::is_match::is_match;
 use nonos_libc::{mk_device_list, DeviceRecord};
 
-const MAX_DEVICES: usize = 32;
+/// The device list holds ACPI and fabricated records beside PCI functions;
+/// at 32 a machine with more stopped short of the device behind a root port.
+const MAX_DEVICES: usize = 128;
 
 pub fn find_virtio_rng() -> Option<Found> {
     let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
@@ -28,16 +31,21 @@ pub fn find_virtio_rng() -> Option<Found> {
     }
     let count = core::cmp::min(n as usize, MAX_DEVICES);
     for r in &buf[..count] {
-        if !is_match(r) || r.irq_pin == 0 || r.irq_line == 0xFF {
+        /*
+         * Identity only: the driver binds no interrupt (see `setup::irq`),
+         * so an unrouted legacy line does not make the device unusable.
+         */
+        if !is_match(r) {
             continue;
         }
         if let Some((idx, kind, size)) = first_register_bar(r) {
             return Some(Found {
                 device_id: r.device_id,
-                irq_line: r.irq_line,
                 register_bar: idx,
                 register_kind: kind,
                 register_size: size,
+                pci_device: r.device,
+                bars: bars(r),
             });
         }
     }

@@ -17,14 +17,17 @@
 //! Reply blocks: the routes home we hand out so an answer can reach us
 //! without the sender ever learning where we are.
 
+mod budget;
 mod build;
 mod bytes;
 mod keys;
+mod store;
 mod supply;
 mod types;
 
+pub use budget::Budget;
 pub use build::build_surb;
 pub use bytes::surb_bytes;
-pub use keys::{candidates, remember};
-pub use supply::{build_supply, SURBS_PER_REQUEST};
-pub use types::{ReplySurb, SURB_KEY_BYTES};
+pub use keys::{held as keys_held, remember, take as take_key};
+pub use supply::build_supply;
+pub use types::ReplySurb;

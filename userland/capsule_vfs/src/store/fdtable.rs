@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod budget;
 mod chmod;
 mod close;
 mod copy;
+mod streamed;
 mod dirstat;
 mod install;
 mod journal;
@@ -28,6 +30,7 @@ mod packages;
 mod persist;
 mod query;
 mod read;
+mod reap;
 mod rename;
 mod rmdir;
 mod search;

@@ -20,6 +20,7 @@ mod fifo_tests;
 mod fixture;
 mod handler_tests;
 mod last_byte_tests;
+mod lpss_tests;
 mod nack_tests;
 mod order_tests;
 mod probe_tests;

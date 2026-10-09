@@ -14,15 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::stream::restart;
+use super::stream::{open, restart};
 use crate::audio;
-use crate::protocol::{Request, E_OK};
+use crate::controller::dma_sync::flush;
+use crate::protocol::{Request, E_INVAL, E_OK};
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
 
-pub fn handle(driver: &Driver, req: &Request, tx: &mut [u8], played: &mut bool) {
+/// One pass of the test tone on request. The stream counts as running, so
+/// the refill overwrites the ring with whatever the queue holds (silence when
+/// it is empty) after the first pass, and OP_STREAM_STOP ends it and closes
+/// the outputs. A tone left looping on its own never stops.
+pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8], played: &mut bool, running: &mut bool) {
     audio::fill(driver.sample.user_va, driver.sample.length as usize);
-    restart(driver);
+    flush(driver.sample.user_va, driver.sample.length);
+    let ok = restart(driver) && open(driver, true);
+    if !ok {
+        crate::controller::stream_run::stop(driver.regs, driver.stream_off);
+        let _ = open(driver, false);
+    }
     *played = false;
-    reply_with_status(tx, req, E_OK);
+    *running = ok;
+    reply_with_status(tx, req, if ok { E_OK } else { E_INVAL });
 }

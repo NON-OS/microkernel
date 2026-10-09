@@ -32,6 +32,8 @@ pub enum OpenOutcome {
     SendFailed,
     /// The request could not be built for this destination.
     BadRequest,
+    /// net.nym no longer holds the session the request went out on.
+    SessionLost,
 }
 
 impl OpenOutcome {
@@ -41,8 +43,16 @@ impl OpenOutcome {
             OpenOutcome::Opened => crate::wire::REP_OK,
             OpenOutcome::NoSession => crate::wire::REP_NET_UNREACH,
             OpenOutcome::NoExit => crate::wire::REP_HOST_UNREACH,
-            OpenOutcome::SendFailed => crate::wire::REP_CONN_REFUSED,
+            OpenOutcome::SendFailed | OpenOutcome::SessionLost => crate::wire::REP_CONN_REFUSED,
             OpenOutcome::BadRequest => crate::wire::REP_GENERAL_FAIL,
+        }
+    }
+
+    /// A second session lost in a row is a send that failed.
+    fn settled(self) -> Self {
+        match self {
+            OpenOutcome::SessionLost => OpenOutcome::SendFailed,
+            outcome => outcome,
         }
     }
 }
@@ -54,6 +64,16 @@ impl OpenOutcome {
 /// open across it would stall the client on a path built to add delay.
 pub fn open_tunnel(conn_id: u64, dest: &Dest) -> OpenOutcome {
     super::trace::destination(dest);
+    match try_open(conn_id, dest) {
+        // net.nym had dropped the session this capsule held, and the failed
+        // send has dropped it here too: one more try opens a fresh one,
+        // rather than refusing this connection for a fault already mended.
+        OpenOutcome::SessionLost => try_open(conn_id, dest).settled(),
+        outcome => outcome,
+    }
+}
+
+fn try_open(conn_id: u64, dest: &Dest) -> OpenOutcome {
     if open_session().is_none() {
         super::trace::open_failed(b"no session", 0);
         return OpenOutcome::NoSession;
@@ -61,6 +81,10 @@ pub fn open_tunnel(conn_id: u64, dest: &Dest) -> OpenOutcome {
     match connect_request(conn_id, dest) {
         Ok(frame) => match crate::nym::send_through_mixnet(&frame) {
             Ok(()) => OpenOutcome::Opened,
+            Err(SendError::Remote(crate::nym::E_NO_SESSION)) => {
+                super::trace::open_failed(b"session gone, opening another", 0);
+                OpenOutcome::SessionLost
+            }
             Err(SendError::Remote(code)) => {
                 super::trace::open_failed(b"send", code);
                 OpenOutcome::SendFailed

@@ -14,37 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `mprotect`, and the rule that makes it necessary.
+//! `mprotect`, and the rule that makes it necessary. Its arguments are
+//! checked in `prot_args`, which the host proofs hold.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{span_within, Guest, STACK_TOP};
+use crate::linux::guest::Guest;
 
-use super::prot_span::protect_span;
-
-pub const PROT_WRITE: u64 = 2;
-pub const PROT_EXEC: u64 = 4;
-
-/// A request for both at once.
-pub fn wx_refused(prot: u64) -> bool {
-    prot & PROT_WRITE != 0 && prot & PROT_EXEC != 0
-}
+pub use super::prot_args::{PROT_ANY, PROT_EXEC, PROT_WRITE};
 
 pub fn mprotect(guest: &mut Guest, addr: u64, len: u64, prot: u64) -> u64 {
-    if len == 0 {
-        return errno::ok(0);
-    }
-    if wx_refused(prot) {
+    /*
+     * Checked before anything else, because `len` is the guest's: `addr +
+     * len` wraps, and a span computed from the wrapped value comes out
+     * enormous.
+     */
+    let (start, span) = match super::prot_args::prot_span(addr, len, prot) {
+        Ok(Some(span)) => span,
+        Ok(None) => return errno::ok(0),
+        Err(e) => return errno::fail(e),
+    };
+    /*
+     * A file mapped without exec was never proved, and making it executable
+     * now would run bytes the exec path would have refused. Anonymous memory
+     * may still become executable, as a JIT needs; that is the guest's own
+     * code, confined by its token rather than by provenance.
+     */
+    if prot & PROT_EXEC != 0 && guest.span_unproven(start, span) {
         return errno::fail(errno::EPERM);
     }
-    /*
-     * Checked, because `len` is the guest's: `addr + len` wraps and the
-     * span computed from the wrapped value comes out enormous.
-     */
-    let Some((start, span)) = span_within(addr, len, STACK_TOP) else {
-        return errno::fail(errno::EINVAL);
-    };
-    if protect_span(guest, start, span, prot) < 0 {
-        return errno::fail(errno::EACCES);
-    }
-    errno::ok(0)
+    super::prot_walk::walk(guest, start, span, prot)
 }

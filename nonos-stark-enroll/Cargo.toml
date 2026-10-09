@@ -3,12 +3,16 @@ name = "nonos-stark-enroll"
 version = "0.2.0"
 edition = "2021"
 license = "AGPL-3.0"
-description = "Enroll capsule and kernel measurements and emit their transparent STARK attestation trailers"
+description = "Enroll capsule, kernel and bootloader measurements and emit the v4 trailers the attestation gates check"
 
 [[bin]]
 name = "nonos-stark-enroll"
 path = "src/main.rs"
 
 [dependencies]
-nonos-stark = { path = "../stark-attest/crates/stark-core" }
+nonos-attest-path = { path = "../nonos-attest-path", features = ["alloc"] }
+nonos-boot-measure = { path = "../nonos-boot-measure" }
+# The STARK lane's prover and the gates' verifier, pinned by rev, never vendored.
+stark_proofs = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8", "parallel"] }
+nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
 blake3 = "1"

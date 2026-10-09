@@ -16,11 +16,16 @@
 
 use alloc::vec::Vec;
 
-use super::constants::{EXT_SUPPORTED_GROUPS, GROUP_X25519};
+use super::constants::{EXT_SUPPORTED_GROUPS, GROUP_SECP256R1, GROUP_X25519};
 
+/*
+ * X25519 first, then secp256r1: relays of the Tor lineage (Anyone) answer
+ * ECDHE over P-256 alone and refuse a hello that names only X25519.
+ */
 pub fn ext_groups(out: &mut Vec<u8>) {
-    let mut body = Vec::with_capacity(4);
-    super::push::u16(&mut body, 2);
+    let mut body = Vec::with_capacity(6);
+    super::push::u16(&mut body, 4);
     super::push::u16(&mut body, GROUP_X25519);
+    super::push::u16(&mut body, GROUP_SECP256R1);
     super::push::ext(out, EXT_SUPPORTED_GROUPS, &body);
 }

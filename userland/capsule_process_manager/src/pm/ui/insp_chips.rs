@@ -16,33 +16,36 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::pm::format::CAP_TABLE;
-use crate::pm::theme::{PILL_BG, PILL_BORDER};
+use crate::pm::format_caps::CAP_TABLE;
+use crate::pm::theme::MUTED;
 
-use super::metrics::{BODY_PX, CHIP_GAP, CHIP_H, CHIP_PAD_X, CHIP_RADIUS};
-use super::text;
+use super::insp_chip::{chip, chip_w, more, more_w};
+use super::metrics::{CHIP_GAP, CHIP_H};
 use super::tint::cap_tint;
 
 // The decoded grant list, wrapped by measured width rather than by a glyph
-// count, because the body face is proportional. This is the surface with the
-// room the table's Authority column never had.
-pub fn paint(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, caps: u64) -> u32 {
-    let mut cx = x;
-    let mut cy = y;
-    for &(bit, label) in CAP_TABLE {
-        if caps & bit == 0 {
-            continue;
+// count, because the body face is proportional. It stops above `bottom`, where
+// the actions begin: grants that would not fit are counted in a last "+N more"
+// chip on the final row that does, never drawn under the buttons.
+pub fn paint(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, bottom: u32, caps: u64) {
+    let total = CAP_TABLE.iter().filter(|(bit, _)| caps & bit != 0).count() as u32;
+    let (mut cx, mut cy, mut shown) = (x, y, 0u32);
+    for &(bit, label) in CAP_TABLE.iter().filter(|(bit, _)| caps & bit != 0) {
+        let cw = chip_w(fb, label);
+        let wrap = cx > x && cx + cw > x + w;
+        let (nx, ny) = if wrap { (x, cy + CHIP_H + CHIP_GAP) } else { (cx, cy) };
+        let after = total - shown - 1;
+        let last_row = ny + CHIP_H * 2 + CHIP_GAP > bottom;
+        let squeezed = after > 0 && last_row && nx + cw + CHIP_GAP + more_w(fb, after) > x + w;
+        if ny + CHIP_H > bottom || squeezed {
+            break;
         }
-        let cw = text::width(fb, label, BODY_PX) + CHIP_PAD_X * 2;
-        if cx > x && cx + cw > x + w {
-            cx = x;
-            cy += CHIP_H + CHIP_GAP;
-        }
-        fb.fill_round(cx, cy, cw, CHIP_H, CHIP_RADIUS, PILL_BG);
-        fb.stroke_round(cx, cy, cw, CHIP_H, CHIP_RADIUS, 1, PILL_BORDER);
-        let top = text::centred_top(cy, CHIP_H, BODY_PX);
-        text::left(fb, cx + CHIP_PAD_X, top, label, cap_tint(bit), BODY_PX);
-        cx += cw + CHIP_GAP;
+        chip(fb, nx, ny, label, cap_tint(bit));
+        (cx, cy, shown) = (nx + cw + CHIP_GAP, ny, shown + 1);
     }
-    cy + CHIP_H
+    if shown < total && cy + CHIP_H <= bottom {
+        let mut buf = [0u8; 16];
+        let n = more(total - shown, &mut buf);
+        chip(fb, cx, cy, &buf[..n], MUTED);
+    }
 }

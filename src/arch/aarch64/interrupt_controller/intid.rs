@@ -22,12 +22,12 @@
 
 use crate::arch::interrupt_controller::Ipi;
 
-pub const SGI_TLB_SHOOTDOWN: u32 = 0;
-pub const SGI_RESCHEDULE: u32 = 1;
-pub const SGI_CALL_FUNCTION: u32 = 2;
-pub const SGI_BARRIER: u32 = 3;
-pub const SGI_PANIC: u32 = 4;
-pub const SGI_STOP: u32 = 5;
+pub(super) const SGI_TLB_SHOOTDOWN: u32 = 0;
+pub(super) const SGI_RESCHEDULE: u32 = 1;
+pub(super) const SGI_CALL_FUNCTION: u32 = 2;
+pub(super) const SGI_BARRIER: u32 = 3;
+pub(super) const SGI_PANIC: u32 = 4;
+pub(super) const SGI_STOP: u32 = 5;
 
 pub const fn intid_of(ipi: Ipi) -> u32 {
     match ipi {

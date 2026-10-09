@@ -52,6 +52,6 @@ pub fn can_back(state: &State) -> bool {
 /// Whether the forward control has anywhere to go. Nothing in the capsule
 /// records a directory the user has left, so this is always false and the
 /// control is always drawn dimmed rather than silently doing nothing.
-pub fn can_fwd(_state: &State) -> bool {
-    false
+pub fn can_fwd(state: &State) -> bool {
+    state.trail.can_forward()
 }

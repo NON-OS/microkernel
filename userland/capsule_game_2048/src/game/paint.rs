@@ -30,19 +30,27 @@ const ORIGIN_Y: u32 = 150;
 const TILE: u32 = 66;
 const STEP: u32 = 76;
 
+/// The game is laid out at its opening window's size. A larger window
+/// (green, full screen) gets the same game centred on the ground, which
+/// fills the whole window; it was drawn in the top left corner.
+const LAYOUT_W: u32 = super::manifest::WIDTH;
+const LAYOUT_H: u32 = super::manifest::HEIGHT;
+
 pub fn paint(fb: &mut PaintBuffer, game: &Game<4>, over: bool) {
     fb.clear(BG);
-    fb.text_scaled(24, 34, b"2048", ACCENT, 4);
-    fb.text(210, 40, b"SCORE", TEXT);
+    let ox = fb.width.saturating_sub(LAYOUT_W) / 2;
+    let oy = fb.height.saturating_sub(LAYOUT_H) / 2;
+    fb.text_scaled(ox + 24, oy + 34, b"2048", ACCENT, 4);
+    fb.text(ox + 210, oy + 40, b"SCORE", TEXT);
     let mut sbuf = [0u8; DIGITS];
-    fb.text_scaled(210, 58, render_u32(game.score() as u32, &mut sbuf), TEXT, 2);
-    fb.fill_rect(ORIGIN_X - 9, ORIGIN_Y - 9, STEP * 4, STEP * 4, BOARD_BG);
+    fb.text_scaled(ox + 210, oy + 58, render_u32(game.score() as u32, &mut sbuf), TEXT, 2);
+    fb.fill_rect(ox + ORIGIN_X - 9, oy + ORIGIN_Y - 9, STEP * 4, STEP * 4, BOARD_BG);
     let board = game.board();
     for r in 0..4 {
         for c in 0..4 {
             let v = board[r][c];
-            let x = ORIGIN_X + c as u32 * STEP;
-            let y = ORIGIN_Y + r as u32 * STEP;
+            let x = ox + ORIGIN_X + c as u32 * STEP;
+            let y = oy + ORIGIN_Y + r as u32 * STEP;
             fb.fill_rect(x, y, TILE, TILE, tile_color(v));
             if v != 0 {
                 let mut tbuf = [0u8; DIGITS];
@@ -53,6 +61,6 @@ pub fn paint(fb: &mut PaintBuffer, game: &Game<4>, over: bool) {
         }
     }
     if over {
-        fb.text_scaled(64, 250, b"GAME OVER", ACCENT, 4);
+        fb.text_scaled(ox + 64, oy + 250, b"GAME OVER", ACCENT, 4);
     }
 }

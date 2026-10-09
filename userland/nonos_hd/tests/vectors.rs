@@ -26,7 +26,7 @@ use nonos_hd::bip32::{
     Xprv, ORDER,
 };
 use nonos_hd::bip39::{entropy_to_words, seed_from_words, word_index, words_to_entropy, MAX_WORDS};
-use nonos_hd::{derive_eth_key, hmac_sha512, sha256, sha512, ENGLISH_WORDLIST};
+use nonos_hd::{derive_eth_key, derive_eth_key_at, hmac_sha512, sha256, sha512, ENGLISH_WORDLIST};
 
 use k256::elliptic_curve::sec1::ToEncodedPoint;
 use k256::elliptic_curve::PrimeField;
@@ -232,6 +232,56 @@ fn eth_account_path_end_to_end() {
     let digest = Keccak256::digest(&pubkey[1..]);
     let address = &digest[12..];
     assert_eq!(hex::encode(address), "9858effd232b4033e47d90003d41ec34ecaeda94");
+}
+
+#[test]
+fn further_accounts_follow_the_published_development_accounts() {
+    // Hardhat's and Anvil's default phrase: its first three accounts are
+    // printed by both tools on every start, keys and addresses alike.
+    let phrase = "test test test test test test test test test test test junk";
+    let indices = phrase_to_indices(phrase);
+    let mut seed = [0u8; 64];
+    assert!(seed_from_words(&indices, b"", &mut seed));
+    let published = [
+        (
+            0,
+            "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+            "f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        ),
+        (
+            1,
+            "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+            "70997970c51812dc3a010c7d01b50e0d17dc79c8",
+        ),
+        (
+            2,
+            "5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a",
+            "3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
+        ),
+    ];
+    for (index, want_key, want_address) in published {
+        let mut key = [0u8; 32];
+        assert!(derive_eth_key_at(&seed, pubkey65, index, &mut key));
+        assert_eq!(hex::encode(key), want_key, "account {index}");
+        let pubkey = pubkey65(&key).expect("pubkey");
+        let digest = Keccak256::digest(&pubkey[1..]);
+        assert_eq!(hex::encode(&digest[12..]), want_address, "account {index}");
+    }
+    let mut zero = [0u8; 32];
+    assert!(derive_eth_key(&seed, pubkey65, &mut zero));
+    let mut at0 = [0u8; 32];
+    assert!(derive_eth_key_at(&seed, pubkey65, 0, &mut at0));
+    assert_eq!(zero, at0, "account 0 is the one derive_eth_key gives");
+}
+
+#[test]
+fn a_hardened_account_index_is_refused() {
+    let indices = phrase_to_indices("test test test test test test test test test test test junk");
+    let mut seed = [0u8; 64];
+    assert!(seed_from_words(&indices, b"", &mut seed));
+    let mut key = [7u8; 32];
+    assert!(!derive_eth_key_at(&seed, pubkey65, 0x8000_0000, &mut key));
+    assert_eq!(key, [0u8; 32], "the output is zeroed on refusal");
 }
 
 #[test]

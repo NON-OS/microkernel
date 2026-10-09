@@ -26,7 +26,7 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::ui::art::cover;
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{cap_h, line_h, BODY, HERO, LABEL, R_CARD, S3, S4, S5, S6, S7};
+use crate::ui::metrics::{cap_h, line_h, BODY, HERO, LABEL, R_CARD, S3, S4, S6, S7};
 use crate::ui::paint::{fill, stroke, text, text_right};
 use crate::ui::text::{truncate_to_width, upper};
 use crate::ui::theme::{CYAN, EDGE, INK, MID, MUTE, RAISED};
@@ -52,6 +52,7 @@ pub fn hero(
     title: &str,
     copy: &str,
     stamp: (&str, &str),
+    actions: [(&str, Glyph); 2],
 ) {
     fill(fb, r, R_CARD, RAISED);
     let wash = Rect::new(r.x + r.w * 42 / 100, r.y, r.w - r.w * 42 / 100, r.h);
@@ -74,7 +75,7 @@ pub fn hero(
     text_right(fb, sub, stamp.1, MUTE, LABEL);
     fill(fb, Rect::new(sub.right() - 38, sub.bottom() + S4, 38, 1), 0, CYAN);
 
-    button(fb, icons, action_rect(r, 0), "Play", Some(Glyph::Play), Variant::Solid);
-    button(fb, icons, action_rect(r, 1), "Shuffle", Some(Glyph::Shuffle), Variant::Ghost);
-    let _ = (S5, icons);
+    let [(first, g0), (second, g1)] = actions;
+    button(fb, icons, action_rect(r, 0), first, Some(g0), Variant::Solid);
+    button(fb, icons, action_rect(r, 1), second, Some(g1), Variant::Ghost);
 }

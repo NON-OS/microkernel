@@ -18,6 +18,26 @@
 //! station data path, checked against the crate's public API.
 
 #[cfg(test)]
+mod ap_sim;
+#[cfg(test)]
+mod crypto_tests;
+#[cfg(test)]
+mod handshake_tests;
+#[cfg(test)]
+mod mlme_tests;
+#[cfg(test)]
 mod netif_tests;
 #[cfg(test)]
+mod protect_tests;
+#[cfg(test)]
+mod receive_tests;
+#[cfg(test)]
+mod rsn_tests;
+#[cfg(test)]
+mod sae_tests;
+#[cfg(test)]
+mod scan_list_tests;
+#[cfg(test)]
 mod station_tests;
+#[cfg(test)]
+mod supplicant_tests;

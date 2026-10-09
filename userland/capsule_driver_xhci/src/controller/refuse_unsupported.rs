@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::error::{XhciError, XhciResult};
-use crate::regs::cap::{ac64, max_slots};
+use crate::regs::cap::max_slots;
+
+/// A controller with no device slots cannot serve a device. One without
+/// 64-bit addressing (HCCPARAMS1.AC64 clear) is served: its DMA pool keeps
+/// every buffer below 4 GiB instead (`DmaPool::with_ac64`). Refusing it, as
+/// this once did, turned away working 32-bit controllers.
 pub fn refuse_unsupported(mmio_base: u64) -> XhciResult<()> {
-    if !ac64(mmio_base) {
-        return Err(XhciError::ControllerUnsupported);
-    }
     if max_slots(mmio_base) == 0 {
         return Err(XhciError::ControllerUnsupported);
     }

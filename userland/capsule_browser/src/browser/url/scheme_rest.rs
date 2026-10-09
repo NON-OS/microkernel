@@ -16,8 +16,12 @@
 
 use super::types::Scheme;
 
+/* Split off the scheme. A "://" counts only ahead of the first '/', '?' or
+ * '#': one inside a path or query ("example.com/?u=https://x.org") is data,
+ * and the address has no scheme, which means https. */
 pub fn scheme_rest(input: &str) -> Option<(Scheme, &str)> {
-    if let Some(i) = input.find("://") {
+    let stop = input.find(['/', '?', '#']).unwrap_or(input.len());
+    if let Some(i) = input.find("://").filter(|&i| i < stop) {
         let scheme = &input[..i];
         let rest = &input[i + 3..];
         if scheme.eq_ignore_ascii_case("https") {

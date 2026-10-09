@@ -27,14 +27,12 @@ pub const ATA_DEV_LBA: u8 = 1 << 6;
 pub const CMD_HEADER_WRITE: u8 = 1 << 6;
 
 pub const SECTOR_SIZE: usize = 512;
+/// A 48-bit LBA names sectors below this. The H2D FIS has no room for more
+/// address bits, so no sector at or past it can be addressed.
+pub const LBA48_LIMIT: u64 = 1 << 48;
 pub const MAX_SECTORS: u32 = 64;
 pub const DATA_BUF_BYTES: u64 = MAX_SECTORS as u64 * SECTOR_SIZE as u64;
+/// Most bytes one PRD entry can move: its DBC field holds a 22-bit byte count
+/// less one (AHCI 1.3.1, 4.2.3.3).
+pub const PRD_MAX_BYTES: u32 = 4 << 20;
 pub const STRUCT_REGION_BYTES: u64 = 4096;
-pub const COMPLETION_POLL_LIMIT: u32 = 5_000_000;
-/// Milliseconds to hold the PHY in COMRESET before releasing it.
-pub const COMRESET_HOLD_MS: u64 = 2;
-/// Wall-time bound on waiting for the PHY link and the device to become ready.
-/// A real SATA drive can take hundreds of milliseconds to link up after spin-up;
-/// this is measured against the monotonic clock, not a CPU-speed-dependent spin
-/// count.
-pub const LINK_TIMEOUT_MS: u64 = 2_000;

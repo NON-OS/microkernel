@@ -17,6 +17,7 @@
 pub mod handlers;
 pub mod respond;
 pub mod runner;
+pub mod scene;
 pub mod tick;
 
 pub use runner::run;

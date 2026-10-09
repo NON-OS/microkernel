@@ -36,16 +36,18 @@ pub const REG_RXDESC_ADDR_HI: usize = 0xE8;
 pub const CMD_RESET: u8 = 0x10;
 pub const CMD_RX_ENABLE: u8 = 0x08;
 pub const CMD_TX_ENABLE: u8 = 0x04;
-pub const TX_POLL_HPQ: u8 = 0x80;
+/// TPPoll bit 6 polls the normal-priority ring, the one TNPDS points at and
+/// the only one set up. Bit 7 (0x80) is the high-priority ring, whose base
+/// (THPDS) is never written: ringing it sent the part to fetch from zero, so
+/// no frame was ever sent.
+pub const TX_POLL_NPQ: u8 = 0x40;
 
 pub const TX_CONFIG_IFG: u32 = 3 << 24;
 pub const TX_CONFIG_DMA: u32 = 7 << 8;
-pub const PHY_STATUS_LINK_UP: u8 = 1 << 1;
 pub const RX_CONFIG_ACCEPT_PHYS: u32 = 1 << 1;
 pub const RX_CONFIG_ACCEPT_MULTI: u32 = 1 << 2;
 pub const RX_CONFIG_ACCEPT_BCAST: u32 = 1 << 3;
 pub const RX_CONFIG_DMA: u32 = 7 << 8;
-pub const RX_CONFIG_MAXDMA: u32 = 7 << 13;
 
 pub const ISR_ROK: u16 = 0x0001;
 pub const ISR_RER: u16 = 0x0002;

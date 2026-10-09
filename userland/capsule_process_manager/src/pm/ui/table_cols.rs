@@ -17,10 +17,7 @@
 //! The columns a table can show, their fixed widths, and which of them
 //! the table can be ordered by.
 
-use super::metrics::{
-    COL_AUTH_W, COL_CPU_W, COL_FAULTS_W, COL_MEM_W, COL_PID_W, COL_RATE_W, COL_STATE_W,
-    COL_UPTIME_W,
-};
+use super::metrics::{COL_AUTH_W, COL_CPU_W, COL_MEM_W, COL_PID_W, COL_RATE_W, COL_STATE_W};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Col {
@@ -31,15 +28,13 @@ pub enum Col {
     Mem,
     Ipc,
     Sysc,
-    Faults,
-    Uptime,
     Auth,
 }
 
 pub const COLS_OVERVIEW: [Col; 7] =
     [Col::Name, Col::Pid, Col::Cpu, Col::Mem, Col::Ipc, Col::Sysc, Col::Auth];
-// Faults and uptime stay in the inspector: with it docked the pane holds
-// eight columns and a name that can still be read.
+// Faults and uptime are not columns: they stay in the inspector, so with it
+// docked the pane holds eight columns and a name that can still be read.
 pub const COLS_FULL: [Col; 8] =
     [Col::Name, Col::Pid, Col::State, Col::Cpu, Col::Mem, Col::Ipc, Col::Sysc, Col::Auth];
 
@@ -53,8 +48,6 @@ pub fn fixed_w(col: Col) -> u32 {
         Col::Cpu => COL_CPU_W,
         Col::Mem => COL_MEM_W,
         Col::Ipc | Col::Sysc => COL_RATE_W,
-        Col::Faults => COL_FAULTS_W,
-        Col::Uptime => COL_UPTIME_W,
         Col::Auth => COL_AUTH_W,
     }
 }

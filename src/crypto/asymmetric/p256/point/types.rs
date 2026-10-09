@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::{FieldElement, Scalar};
+use super::super::FieldElement;
 
 #[derive(Clone)]
 pub struct AffinePoint {
@@ -28,34 +28,4 @@ pub struct ProjectivePoint {
     pub x: FieldElement,
     pub y: FieldElement,
     pub z: FieldElement,
-}
-
-impl AffinePoint {
-    pub fn scalar_mul(&self, k: &Scalar) -> AffinePoint {
-        let mut result =
-            AffinePoint { x: FieldElement::ZERO, y: FieldElement::ZERO, infinity: true };
-
-        let k_bytes = k.to_bytes();
-        for i in (0..32).rev() {
-            for j in (0..8).rev() {
-                result = result.double();
-                if (k_bytes[i] >> j) & 1 == 1 {
-                    result = result.add(self);
-                }
-            }
-        }
-
-        result
-    }
-
-    fn double(&self) -> AffinePoint {
-        if self.infinity {
-            return self.clone();
-        }
-        self.clone()
-    }
-
-    fn add(&self, _other: &AffinePoint) -> AffinePoint {
-        self.clone()
-    }
 }

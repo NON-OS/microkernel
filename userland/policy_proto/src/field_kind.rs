@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::field::Field;
-use super::kind::{KIND_BOOL, KIND_I8, KIND_STR, KIND_U8};
+use super::kind::{KIND_BOOL, KIND_I8, KIND_STR, KIND_U64, KIND_U8};
 
 pub fn kind_of(field: Field) -> u8 {
     match field {
@@ -31,9 +31,12 @@ pub fn kind_of(field: Field) -> u8 {
         | Field::Wallpaper
         | Field::ProxyMode
         | Field::Volume
-        | Field::AudioBalance => KIND_U8,
+        | Field::AudioBalance
+        | Field::AppsOff
+        | Field::NetworkRoute => KIND_U8,
         Field::Timezone => KIND_I8,
-        Field::Hostname | Field::DomainName => KIND_STR,
+        Field::WallpapersKept => KIND_U64,
+        Field::Hostname | Field::DomainName | Field::Username | Field::QwenTier => KIND_STR,
         _ => KIND_BOOL,
     }
 }

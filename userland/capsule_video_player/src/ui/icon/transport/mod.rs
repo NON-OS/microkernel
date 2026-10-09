@@ -15,9 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod basic;
-mod level;
-mod mode;
 
-pub use basic::{next, pause, play, prev, rewind};
-pub use level::{mute, volume};
-pub use mode::{repeat, shuffle};
+pub use basic::{next, pause, play, prev};

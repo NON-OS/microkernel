@@ -22,3 +22,6 @@ dependencies = [
 [[package]]
 name = "rtl8169_proofs_libc_shim"
 version = "0.1.0"
+dependencies = [
+ "nonos_devmodel",
+]

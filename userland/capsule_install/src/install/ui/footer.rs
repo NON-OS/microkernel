@@ -14,35 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The keys that do something on this screen, and nothing else: a person
-//! should never have to guess what Enter does on an installer.
+/* The footer: the keys this screen takes, from `hints`, in mono capitals. */
+
+use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::metrics::{FOOTER_H, PAD, SMALL_PX};
-use super::text::{right, top_of};
-use super::{text, theme};
+use super::hints::hints;
+use super::metrics::Metrics;
+use super::text::{keys_px, top_of};
+use super::theme;
 use crate::install::state::{Screen, State};
+use nonos_brand::{label, label_w};
 
-pub fn paint(fb: &mut PaintBuffer, state: &State, w: u32, h: u32) {
-    let y = h - FOOTER_H;
+pub fn paint(fb: &mut PaintBuffer, m: &Metrics, state: &State, w: u32, h: u32) {
+    let y = h - m.footer_h;
     fb.fill_rect(0, y, w, 1, theme::RULE);
-    let top = top_of(y, FOOTER_H, SMALL_PX);
-    let (left, right_hint) = match state.screen {
-        Screen::Welcome if state.image.is_some() => ("Esc  close", "Enter  choose a disk"),
-        Screen::Welcome => ("Esc  close", ""),
-        Screen::Disks => ("Esc  back", "Up/Down  select    Enter  continue"),
-        Screen::Confirm => ("Esc  back", "type the word, then Enter"),
-        Screen::Writing => ("Esc  stop (disk left without a table)", "do not power off"),
-        Screen::Verifying => ("", "do not power off"),
-        Screen::Done => ("Esc  close", "Enter  restart now"),
-        Screen::Failed => ("Esc  close", "Enter  choose another disk"),
-    };
-    text::line(fb, PAD, top, left, theme::MUTED, SMALL_PX);
+    let (left, right_hint) = hints(state);
+    let room = w.saturating_sub(2 * m.pad);
+    let px = keys_px(left, right_hint, room, m.inset, m.small_px, m.label_px);
+    let top = top_of(y, m.footer_h, px);
+    keys(fb, m.pad, top, left, theme::MUTED, w - m.pad, px);
     let colour = if matches!(state.screen, Screen::Writing | Screen::Verifying) {
         theme::WARN
     } else {
         theme::FOREGROUND
     };
-    right(fb, w - PAD, top, right_hint, colour, SMALL_PX);
+    keys(fb, 0, top, right_hint, colour, w - m.pad, px);
+}
+
+/// One side of the footer: left-aligned at `x`, or right-aligned to `right`
+/// when `x` is zero.
+pub fn keys(fb: &mut PaintBuffer, x: u32, top: u32, s: &str, argb: u32, right: u32, px: f32) {
+    let caps: String = s.chars().map(|c| c.to_ascii_uppercase()).collect();
+    let x = if x == 0 { right.saturating_sub(label_w(&caps, px)) } else { x };
+    label(fb, x, top, &caps, argb, px);
 }

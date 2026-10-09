@@ -32,14 +32,19 @@ pub struct Load {
     pub(super) data: Vec<u8>,
     /// Entries finished and verified.
     pub(super) staged: Vec<StoreEntry>,
+    /// Entries left out because they were damaged: refused by the table
+    /// decode before the walk, or by their digest at the end of it.
+    pub(super) refused: usize,
 }
 
 pub enum Step {
     /// More work remains. Call again on the next idle slot.
     More,
-    /// Everything read and verified.
-    Done(Vec<StoreEntry>),
-    /// The container is unreadable. The caller records the class and stops:
-    /// retrying a corrupt table of contents produces the same answer slower.
+    /// Everything read. Each entry that verified is staged; the count is of
+    /// the damaged ones left out, which the caller reports as corruption.
+    Done(Vec<StoreEntry>, usize),
+    /// The container is unreadable, or the device failed a read. The caller
+    /// records the class; retrying a corrupt header produces the same answer
+    /// slower, a device that was not ready may answer the next attempt.
     Failed(BlkError),
 }

@@ -1,0 +1,28 @@
+# NONOS userland: capsule_driver_rtsx
+#
+# Realtek PCIe SD card reader capsule (RTS5227, RTS522A). It drives the
+# reader through the kernel hardware broker (MkDeviceList, MkDeviceClaim,
+# MkMmioMap, MkDmaMap), polls instead of taking an interrupt, and reads SD
+# cards over the reader's command buffer and ADMA engine.
+
+[package]
+name = "nonos_capsule_driver_rtsx"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS userland Realtek PCIe SD card reader driver capsule"
+
+[[bin]]
+name = "driver_rtsx"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

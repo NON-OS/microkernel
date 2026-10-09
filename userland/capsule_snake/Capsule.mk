@@ -10,6 +10,9 @@ CAPSULE_REPLY_ENDPOINT   := reply:4733:endpoint.app.snake.reply
 CAPSULE_INSTANCE_ENDPOINTS := service:4850:app.snake.1 reply:4851:endpoint.app.snake.1.reply service:4852:app.snake.2 reply:4853:endpoint.app.snake.2.reply
 # CoreExec|IPC|Memory|FileSystem|GraphicsDisplayQuery|GraphicsSurfaceCreate
 CAPSULE_REQUIRED_CAPS    := 0x1859
+# Debug, granted only by a build that compiles `capsule-serial-debug`: the
+# kernel mirror folds it in through serial_debug_cap(), for its [APP] log lines.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_snake
 
 include nonos-mk/capsule.mk

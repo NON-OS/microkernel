@@ -10,6 +10,8 @@ pub fn filter_images(paths: Vec<String>) -> Vec<String> {
     out
 }
 
-pub fn scan(owner_pid: u32) -> Vec<String> {
-    filter_images(list_paths(owner_pid, b"/").unwrap_or_default())
+/// The store's images, or why it could not be listed: a failed listing must
+/// not read as a store with no images.
+pub fn scan(owner_pid: u32) -> Result<Vec<String>, &'static str> {
+    list_paths(owner_pid, b"/").map(filter_images)
 }

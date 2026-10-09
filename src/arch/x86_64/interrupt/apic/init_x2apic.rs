@@ -17,12 +17,16 @@
 use super::constants::*;
 use super::state::wrmsr;
 
+// Directed-EOI suppression stays off: nothing writes the I/O APIC's EOI
+// register, so with it on a level-triggered line would never be released.
+// LINT0 is masked because devices go through the I/O APIC; LINT1 is the PC
+// default NMI input.
 pub(super) fn init_x2apic() {
-    let svr = SVR_APIC_ENABLE as u64 | VEC_SPURIOUS as u64 | SVR_EOI_SUPPRESS as u64;
+    let svr = SVR_APIC_ENABLE as u64 | VEC_SPURIOUS as u64;
     wrmsr(IA32_X2APIC_SVR, svr);
-    wrmsr(IA32_X2APIC_LVT_LINT0, LVT_NMI as u64);
-    wrmsr(IA32_X2APIC_LVT_LINT1, LVT_MASKED as u64);
-    wrmsr(IA32_X2APIC_LVT_THERM, LVT_FIXED as u64 | VEC_THERMAL as u64);
+    wrmsr(IA32_X2APIC_LVT_LINT0, LVT_MASKED as u64);
+    wrmsr(IA32_X2APIC_LVT_LINT1, LVT_NMI as u64);
+    wrmsr(IA32_X2APIC_LVT_THERM, LVT_MASKED as u64);
     wrmsr(IA32_X2APIC_LVT_ERROR, LVT_FIXED as u64 | VEC_ERROR as u64);
     wrmsr(IA32_X2APIC_LVT_TIMER, LVT_MASKED as u64);
 }

@@ -29,7 +29,7 @@ pub fn run() -> ! {
     let pool = Pool::new();
     loop {
         let n = mk_ipc_recv(0, buf.as_mut_ptr(), MAX_MSG, 0);
-        if n <= 0 {
+        if !nonos_libc::recv_ready(n) {
             continue;
         }
         let n = n as usize;

@@ -17,6 +17,7 @@
 mod endpoint;
 mod ephemeral;
 mod handle;
+mod liveness;
 mod open_socket;
 mod reply_outcome;
 mod types;

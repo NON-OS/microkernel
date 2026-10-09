@@ -15,6 +15,18 @@ const KEY_ENTER: u32 = 0x0D;
 const KEY_ESC: u32 = 0x1B;
 const MAX_QUERY: usize = 64;
 
+/// Ctrl+V in the search: the clipboard's first line, appended to the query.
+pub fn paste(ctx: &mut Context) {
+    let mut query = core::mem::take(&mut ctx.launchpad_query);
+    let changed = crate::server::paste::paste_into(ctx, &mut query, MAX_QUERY);
+    ctx.launchpad_query = query;
+    if changed {
+        ctx.launchpad_page = 0;
+        rebuild(ctx);
+    }
+    repaint(ctx);
+}
+
 pub fn key(ctx: &mut Context, code: u32) {
     match code {
         KEY_ESC => {

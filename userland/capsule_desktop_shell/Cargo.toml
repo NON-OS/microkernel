@@ -24,4 +24,7 @@ nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_toolkit = { path = "../toolkit" }
+# The clipboard client the apps use, for Ctrl+V in the shell's own fields.
+# Without the runtime: the shell brings up its own heap and frame loop.
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 

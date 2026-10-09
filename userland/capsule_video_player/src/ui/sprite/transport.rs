@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Play, pause and seek marks for the transport bar.
+//! Play, pause and the two seek marks for the transport bar.
 
 use super::canvas::Sprite;
 use super::shape::{rrect, tri};
 use super::stroke::line;
-use super::unit::{blank, path, W};
+use super::unit::{blank, W};
 
 pub fn play(px: u32, rgb: u32) -> Sprite {
     let (mut s, m) = blank(px);
@@ -46,13 +46,5 @@ pub fn next(px: u32, rgb: u32) -> Sprite {
     let (mut s, m) = blank(px);
     tri(&mut s, [(m(22), m(22)), (m(22), m(78)), (m(64), m(50))], rgb);
     line(&mut s, (m(74), m(22)), (m(74), m(78)), m(W), rgb);
-    s
-}
-
-pub fn rewind(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    let t = m(W);
-    path(&mut s, &m, &[(52, 22), (28, 50), (52, 78)], t, rgb);
-    path(&mut s, &m, &[(80, 22), (56, 50), (80, 78)], t, rgb);
     s
 }

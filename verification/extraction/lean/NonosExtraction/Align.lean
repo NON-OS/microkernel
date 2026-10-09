@@ -130,17 +130,19 @@ def layout_align_down (x : Std.U64) (a : Std.U64) : Result Std.U64 := do
   layout_outer.manager.align.align_down x a
 
 /-- [nonos_align::phys_outer::helpers::align_up]:
-    Source: 'src/phys_outer/../../../../../src/memory/phys/constants/helpers.rs', lines 20:0-25:1
+    Source: 'src/phys_outer/../../../../../src/memory/phys/constants/helpers.rs', lines 20:0-30:1
     Visibility: public -/
 def phys_outer.helpers.align_up
   (value : Std.U64) (align : Std.U64) : Result Std.U64 := do
   if align = 0#u64
   then ok value
   else
-    let i ← value + align
-    let i1 ← i - 1#u64
-    let i2 ← i1 / align
-    i2 * align
+    let whole ← value / align
+    let i ← whole * align
+    if i = value
+    then ok value
+    else let i1 ← whole + 1#u64
+         i1 * align
 
 /-- [nonos_align::phys_align_up]:
     Source: 'src/lib.rs', lines 38:0-40:1
@@ -149,7 +151,7 @@ def phys_align_up (value : Std.U64) (align : Std.U64) : Result Std.U64 := do
   phys_outer.helpers.align_up value align
 
 /-- [nonos_align::phys_outer::helpers::align_down]:
-    Source: 'src/phys_outer/../../../../../src/memory/phys/constants/helpers.rs', lines 28:0-33:1
+    Source: 'src/phys_outer/../../../../../src/memory/phys/constants/helpers.rs', lines 33:0-38:1
     Visibility: public -/
 def phys_outer.helpers.align_down
   (value : Std.U64) (align : Std.U64) : Result Std.U64 := do

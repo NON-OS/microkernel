@@ -3,10 +3,13 @@
 #
 # Install NONOS onto a disk. A desktop app on nonos_app_skeleton: lists the
 # disks the block driver capsules are serving, shows what this boot verified,
-# asks for the disk to be named, then writes the image the machine is running
-# (the bootloader and the attested kernel image, taken from the memory the
-# bootloader left them in) as a GPT disk with one EFI system partition, and
-# reads every sector back before it says done.
+# shows everything it will erase and write, asks for the disk to be named,
+# then writes a whole NONOS disk: the image the machine is running (the
+# bootloader and the attested kernel image, from the memory the bootloader
+# left them in) on an EFI system partition, a package store carrying this
+# boot's setup answers and signed programs, the disk plan, and the data
+# volume's cleared key header and blank ring. It reads every sector it wrote
+# back before it says done.
 
 [package]
 name = "nonos_install"
@@ -25,8 +28,11 @@ path = "src/main.rs"
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_brand = { path = "brand" }
 nonos_disk = { path = "../nonos_disk" }
+nonos_disk_map = { path = "../nonos_disk_map" }
 nonos_blk_client = { path = "../nonos_blk_client" }
+nonos_policy_proto = { path = "../policy_proto" }
 
 [profile.release]
 panic = "abort"

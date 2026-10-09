@@ -19,7 +19,8 @@ use crate::version::alignment_positions;
 
 impl Matrix {
     pub(super) fn place_alignment(&mut self, version: u8) {
-        let pos = alignment_positions(version);
+        let (at, count) = alignment_positions(version);
+        let pos = &at[..count];
         let n = self.n;
         for &cy in pos {
             for &cx in pos {

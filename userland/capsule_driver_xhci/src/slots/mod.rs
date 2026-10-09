@@ -17,5 +17,5 @@ mod dci;
 mod resources;
 mod table;
 pub use dci::dci_from_ep_address;
-pub use resources::SlotResources;
-pub use table::SlotTable;
+pub use resources::{InterruptEndpoint, SlotResources, MAX_INTERRUPT_ENDPOINTS};
+pub use table::{SlotTable, PORT_FREE};

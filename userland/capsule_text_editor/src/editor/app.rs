@@ -49,7 +49,10 @@ pub struct Editor {
     /// A close was asked for on a document with unsaved edits and refused
     /// once. Cleared by anything else, so the confirmation cannot be
     /// satisfied by a keystroke from a minute ago.
-    pub(super) close_armed: bool,
+    /// The tab whose unsaved text the next close request discards.
+    pub(super) close_armed: Option<usize>,
+    /// The window close button was pressed once with unsaved tabs open.
+    pub(super) quit_armed: bool,
     pub(super) owner_pid: u32,
     // Tab pixel spans from the last paint, used to hit-test tab-strip clicks.
     pub(super) tab_layout: Vec<TabSpan>,
@@ -82,7 +85,8 @@ impl Editor {
             mru: Vec::new(),
             sidebar_open: true,
             chord_ctrl_k: false,
-            close_armed: false,
+            close_armed: None,
+            quit_armed: false,
             owner_pid: 0,
             tab_layout: Vec::new(),
             last_w: 0,
@@ -123,5 +127,13 @@ impl App for Editor {
 
     fn paint(&mut self, fb: &mut PaintBuffer) {
         self.paint_shell(fb);
+    }
+
+    fn on_tick(&mut self) -> bool {
+        self.poll_open_arg()
+    }
+
+    fn close_requested(&mut self) -> bool {
+        self.confirm_quit()
     }
 }

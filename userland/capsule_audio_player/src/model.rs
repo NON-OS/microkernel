@@ -16,8 +16,8 @@
 
 extern crate alloc;
 use alloc::string::String;
-use crate::resample::OUT_RATE;
 use crate::transport::{State, Transport};
+use crate::trouble::output_trouble;
 
 pub struct TrackMeta { pub title: String, pub artist: String, pub format: String }
 
@@ -33,6 +33,8 @@ pub struct PlayerView {
     pub muted: bool,
     pub shuffle: bool,
     pub repeat: bool,
+    /// Why the player cannot play, drawn in red in place of the artist.
+    pub notice: Option<&'static str>,
 }
 
 impl Transport {
@@ -41,13 +43,14 @@ impl Transport {
             title: meta.title.clone(),
             artist: meta.artist.clone(),
             format: meta.format.clone(),
-            pos_ms: (self.pos_frames() * 1000 / OUT_RATE as u64) as u32,
-            dur_ms: (self.dur_frames() * 1000 / OUT_RATE as u64) as u32,
+            pos_ms: self.frames_to_ms(self.pos_frames()),
+            dur_ms: self.frames_to_ms(self.dur_frames()),
             volume_q15: self.volume_q15(),
             state: self.state(),
             muted: self.muted(),
             shuffle: false,
             repeat: false,
+            notice: self.fault().map(output_trouble),
         }
     }
 }

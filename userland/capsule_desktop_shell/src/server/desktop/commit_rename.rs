@@ -16,11 +16,15 @@
 
 //! Finish an inline rename: rename the entry on the filesystem and re-sync.
 
-use alloc::format;
 use alloc::string::ToString;
-use nonos_libc::mk_time_millis;
 
+use nonos_app_skeleton::log_line::{say as log, Line};
+
+use super::home::home_path;
 use crate::state::{Context, NotifyLevel};
+
+/// A desktop name is one entry: not empty, "." or "..", and no '/'.
+const NOT_A_NAME: &[u8] = b"Could not rename: no '/', and not . or ..";
 
 pub fn commit_rename(ctx: &mut Context) {
     super::release_keys::release_keys(ctx);
@@ -34,16 +38,22 @@ pub fn commit_rename(ctx: &mut Context) {
         Some(item) => item.name.clone(),
         None => return,
     };
-    if new_name.is_empty() || new_name == old_name || new_name.contains('/') {
+    if new_name == old_name {
         return;
     }
-    let old = format!("/{old_name}");
-    let new = format!("/{new_name}");
-    if crate::vfs_client::rename(old.as_bytes(), new.as_bytes()) {
-        let _ = super::refresh::refresh(ctx);
-    } else {
-        // The name silently snapped back to the old one before.
-        let now = mk_time_millis();
-        ctx.toasts.push(b"could not rename", NotifyLevel::Error, now);
+    // Both names under the home directory the icon was listed from; a name
+    // that is not a single entry there ("..", one with a '/') renames nothing,
+    // and says so rather than letting the old name snap back unexplained.
+    let (Some(old), Some(new)) = (home_path(&old_name), home_path(&new_name)) else {
+        ctx.toasts.push(NOT_A_NAME, NotifyLevel::Error, crate::server::toast_clock::now());
+        let line = Line::new(b"SHELL").text(b"desktop: rename refused: ");
+        let _ = log(&line.text(NOT_A_NAME));
+        return;
+    };
+    match crate::vfs_client::rename(old.as_bytes(), new.as_bytes()) {
+        Ok(()) => {
+            let _ = super::refresh::refresh(ctx);
+        }
+        Err(code) => super::say::refused(ctx, b"Could not rename: ", code),
     }
 }

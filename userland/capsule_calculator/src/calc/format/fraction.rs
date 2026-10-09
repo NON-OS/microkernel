@@ -25,7 +25,7 @@ pub fn effective_fraction_digits(frac_part: u128, typed: u8) -> u32 {
     }
     let mut digits = MAX_FRACTION_DIGITS;
     let mut value = frac_part;
-    while digits > 0 && value % 10 == 0 {
+    while digits > 0 && value.is_multiple_of(10) {
         value /= 10;
         digits -= 1;
     }

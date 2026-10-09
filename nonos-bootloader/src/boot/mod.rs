@@ -24,10 +24,8 @@ pub mod security;
 pub mod shell;
 pub mod uefi;
 pub mod util;
-pub mod zk_challenge;
-pub mod zk_init;
 
-pub use attestation::{attest_kernel, run_zk_attestation};
+pub use attestation::{attest_kernel, BootAttestationResult};
 pub use crypto::{commit_rollback, run_crypto_verification};
 pub use elf::run_elf_parse;
 pub use hardware::run_hardware_discovery;
@@ -37,4 +35,3 @@ pub use security::{enforce_policy, run_security_checks};
 pub use shell::exit_to_shell;
 pub use uefi::{run_boot_screen_init, run_uefi_init};
 pub use util::{fatal_reset, micro_delay, mini_delay, print_u64};
-pub use zk_init::initialize_zk_replay_protection;

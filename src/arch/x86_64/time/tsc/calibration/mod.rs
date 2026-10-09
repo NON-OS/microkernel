@@ -17,7 +17,9 @@
 mod calibrate;
 pub mod cpuid;
 pub mod hpet;
+pub mod math;
 pub mod pit;
+pub mod pmtimer;
 
 pub use calibrate::{
     calibrate, calibrate_with_hpet_base, get_frequency, get_frequency_mhz, set_frequency,

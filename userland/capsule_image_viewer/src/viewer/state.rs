@@ -29,10 +29,17 @@ pub struct ViewerState {
     pub drag_x: i32,
     pub drag_y: i32,
     pub swipe_start_x: i32,
+    /// Where the press that may become a swipe went down; `drag_y` follows
+    /// the pointer while panning, so it cannot say how far the swipe went.
+    pub swipe_start_y: i32,
     pub view_w: u32,
     pub view_h: u32,
     pub mode: Mode,
     pub gallery: GalleryState,
+    /// When the window started and when it next asks the shell for a path
+    /// (arg_cadence.rs).
+    pub started_ms: i64,
+    pub arg_due_ms: i64,
 }
 
 impl ViewerState {
@@ -55,10 +62,13 @@ impl ViewerState {
             drag_x: 0,
             drag_y: 0,
             swipe_start_x: 0,
+            swipe_start_y: 0,
             view_w: 0,
             view_h: 0,
             mode: Mode::Gallery,
             gallery: GalleryState::new(),
+            started_ms: 0,
+            arg_due_ms: 0,
         }
     }
 }

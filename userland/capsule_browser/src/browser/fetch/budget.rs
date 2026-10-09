@@ -14,70 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How long to wait, given what is carrying the request.
+//! How long a fetch may wait, in milliseconds rather than in ticks: under
+//! load a tick took half a second, and a budget counted in ticks ran out on a
+//! flight that had arrived. A mixnet holds every packet at every hop on
+//! purpose, so its budgets are larger in proportion.
 //!
-//! A direct socket answers in milliseconds, and a request that has gone quiet
-//! for a few seconds has almost certainly failed. A mixnet holds every packet
-//! at every hop on purpose, so the same exchange takes seconds, and the parts
-//! of one answer arrive separated by more silence than a direct fetch would
-//! ever survive.
-//!
-//! The same numbers cannot serve both. Tuned for the socket they cut a mixnet
-//! handshake in half and call it a failure; tuned for the mixnet they leave a
-//! broken direct fetch hanging for minutes. So the transport is asked.
+//! Anyone does not: an onion circuit relays at once, so an answer that has
+//! not come in 30 s is not coming, the bound route_link holds its readers to
+//! on that network. Under the mixnet's three minutes a dead Anyone stream
+//! kept the reader looking at "Connecting" for as long.
 
-use super::constants;
-use crate::browser::net::mixnet;
+use crate::browser::net::mixnet::Network;
 
-/// Longest a whole fetch may take.
-pub fn max_fetch_ms() -> i64 {
-    if mixnet::is_on() {
-        // A handshake alone is several round trips, and each one is paid for
-        // in mixing. The direct budget expires before the certificate has
-        // finished arriving.
-        180_000
-    } else {
-        constants::MAX_FETCH_MS
-    }
+/*
+ * Silent: without a byte arriving or the phase moving. Total: in all,
+ * however steadily bytes arrive. Connect: for a connection to be accepted.
+ * Idle: quiet after which a response with no length is taken as whole.
+ * Reuse: for a request on a kept connection to draw its first byte.
+ */
+pub struct Budget {
+    pub silent_ms: i64,
+    pub total_ms: i64,
+    pub connect_ms: i64,
+    pub idle_ms: i64,
+    pub reuse_ms: i64,
 }
 
-/// Quiet reads before an answer that has produced nothing is given up on.
-pub fn first_wait() -> u32 {
-    if mixnet::is_on() {
-        240
-    } else {
-        constants::FIRST_WAIT
-    }
-}
+pub const DIRECT: Budget = Budget {
+    silent_ms: 12_000,
+    total_ms: 120_000,
+    connect_ms: 8_000,
+    idle_ms: 2_000,
+    reuse_ms: 4_000,
+};
 
-/// Quiet reads before a body that has stopped arriving is taken as finished.
-pub fn idle_after() -> u32 {
-    if mixnet::is_on() {
-        120
-    } else {
-        constants::IDLE_AFTER
-    }
-}
+pub const NYM: Budget = Budget {
+    silent_ms: 180_000,
+    total_ms: 900_000,
+    connect_ms: 180_000,
+    idle_ms: 24_000,
+    reuse_ms: 48_000,
+};
 
-/// Quiet reads before a handshake flight that looks complete is believed.
-///
-/// This is the one that matters most. A flight looks settled as soon as one
-/// whole record of it has arrived, and over the mixnet the rest of the same
-/// flight can be seconds behind. Believing it early means verifying half a
-/// certificate.
-pub fn flight_settle() -> u32 {
-    if mixnet::is_on() {
-        90
-    } else {
-        constants::FLIGHT_SETTLE
-    }
-}
+pub const ANYONE: Budget = Budget {
+    silent_ms: 30_000,
+    total_ms: 300_000,
+    connect_ms: 30_000,
+    idle_ms: 8_000,
+    reuse_ms: 15_000,
+};
 
-/// Quiet reads before a handshake is abandoned.
-pub fn hs_wait() -> u32 {
-    if mixnet::is_on() {
-        400
-    } else {
-        constants::HS_WAIT
+/// The budget of a fetch through `net`.
+pub fn budget(net: Network) -> &'static Budget {
+    match net {
+        Network::Direct => &DIRECT,
+        Network::Nym => &NYM,
+        Network::Anyone => &ANYONE,
     }
 }

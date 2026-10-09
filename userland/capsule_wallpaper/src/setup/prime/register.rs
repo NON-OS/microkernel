@@ -15,20 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_libc::{
-    mk_surface_register, mk_surface_release, mk_surface_share, SurfaceDescriptor,
-    SURFACE_FORMAT_ARGB8888,
+    mk_munmap, mk_surface_register, mk_surface_share, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
 };
 
 use super::backing::Backing;
-use crate::compositor_client::push_scene_submit;
 
-const BOTTOM_Z: u32 = 0;
-
-pub fn register_wallpaper(
-    compositor_port: u32,
-    request_id: u32,
-    backing: &Backing,
-) -> Result<u64, &'static str> {
+/// Make the backing a surface the compositor can map, and the handle it is
+/// shared under. The compositor is told about it later (server/scene), and
+/// asked again until it answers, so a compositor busy with a frame no longer
+/// sends setup back to the start. That used to map a new backing each round,
+/// a whole screen's worth, and leave the old one behind.
+pub fn share_surface(backing: &Backing) -> Result<u64, &'static str> {
     let desc = SurfaceDescriptor {
         width: backing.width,
         height: backing.height,
@@ -40,29 +37,18 @@ pub fn register_wallpaper(
     };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
+        give_back(backing);
         return Err("surface register rejected");
     }
     let handle = mk_surface_share(sid as u64);
     if handle <= 0 {
+        // The registered surface still names the backing, so it stays.
         return Err("surface share rejected");
     }
-    if let Err(e) = push_scene_submit(
-        compositor_port,
-        request_id,
-        handle as u64,
-        0,
-        0,
-        backing.width,
-        backing.height,
-        BOTTOM_Z,
-    ) {
-        if e == "compositor call failed" {
-            return Err(e);
-        }
-        if mk_surface_release(handle as u64) < 0 {
-            return Err("wallpaper surface release rejected");
-        }
-        return Err(e);
-    }
     Ok(handle as u64)
+}
+
+/* Nothing names the backing yet: setup starts over and maps its own. */
+fn give_back(backing: &Backing) {
+    let _ = mk_munmap(backing.backing_va as *mut u8, backing.byte_len as usize);
 }

@@ -19,6 +19,7 @@
 use core::ffi::c_void;
 use core::ptr;
 
+use crate::browser::dom::script_scroll::Block;
 use crate::browser::url;
 use crate::qjs_dom::{cdup, cstr, dom};
 
@@ -50,6 +51,44 @@ pub unsafe extern "C" fn njs_dom_resolve(host: *mut c_void, rel: *const u8) -> *
         Some(base) => cdup(&url::join(&base, &relative)),
         None => cdup(&relative),
     }
+}
+
+/// The reader's session history for `history.length`: with `which` 0 how
+/// many entries it holds, with 1 which of them is shown.
+#[no_mangle]
+pub unsafe extern "C" fn njs_dom_history(host: *mut c_void, which: i32) -> i32 {
+    let (n, at) = dom(host).history;
+    (if which == 0 { n } else { at }).min(i32::MAX as u32) as i32
+}
+
+/// How far the page is scrolled down, in pixels.
+#[no_mangle]
+pub unsafe extern "C" fn njs_dom_scroll_y(host: *mut c_void) -> i32 {
+    dom(host).scroll_y.min(i32::MAX as u32) as i32
+}
+
+/// A script's `scrollTo`, `scroll` or `scrollBy`: scroll the page to `y`
+/// within what it can scroll, and answer where it is now. The window
+/// follows when the script returns (event::scroll_by).
+#[no_mangle]
+pub unsafe extern "C" fn njs_dom_scroll_to(host: *mut c_void, y: i32) -> i32 {
+    dom(host).script_scroll(y as i64).min(i32::MAX as u32) as i32
+}
+
+/// A script's `el.scrollIntoView`, with `block` as `Block::from_code`
+/// reads it. A node that was not laid out moves nothing.
+#[no_mangle]
+pub unsafe extern "C" fn njs_dom_scroll_into_view(host: *mut c_void, node: i32, block: i32) -> i32 {
+    let d = dom(host);
+    let want = match node {
+        n if n < 0 => None,
+        n => d.into_view_y(n as usize, Block::from_code(block)),
+    };
+    match want {
+        Some(y) => d.script_scroll(y),
+        None => d.scroll_y,
+    }
+    .min(i32::MAX as u32) as i32
 }
 
 /// One number from a node's laid-out box, as `getBoundingClientRect` and the

@@ -33,6 +33,7 @@ impl Entry {
             rtt: crate::tcp::rtt::Rtt::new(),
             reasm: crate::state::Reasm::new(),
             cc: crate::tcp::cc::Cc::new(),
+            persist: crate::tcp::persist::Persist::IDLE,
         }
     }
 }

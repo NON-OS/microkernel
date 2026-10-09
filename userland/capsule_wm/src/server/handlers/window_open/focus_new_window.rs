@@ -14,19 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::compositor_client::push_focus_set;
 use crate::state::Context;
+use crate::z_order::raise;
 
 pub(super) fn focus_new_window(ctx: &mut Context, sender_pid: u32, window_id: u32) -> bool {
+    // A window opened afresh already has the top z. One its owner opens again
+    // while the table still holds it keeps its old z, so it goes on top here,
+    // as the compositor puts the layer the owner submits for it on top.
+    let raised = raise(&mut ctx.windows, &mut ctx.z, sender_pid, window_id) == Some(true);
     let unchanged = matches!(
         ctx.focus.current(),
         Some(f) if f.owner_pid == sender_pid && f.window_id == window_id
     );
-    if unchanged {
+    if unchanged && !raised {
         return true;
     }
     let changed = ctx.focus.set(sender_pid, window_id);
-    let rid = ctx.issue_request_id();
-    let _ = push_focus_set(ctx.compositor_port, rid, sender_pid);
+    crate::server::tell_compositor::lift(ctx, sender_pid);
     changed
 }

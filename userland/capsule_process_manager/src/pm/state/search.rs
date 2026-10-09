@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::query_paste::{paste_query, QueryPaste};
 use super::State;
 
 // A process name is capped at PROC_NAME_LEN, so a query longer than this can
@@ -47,6 +48,22 @@ impl State {
             self.query.buf[self.query.len] = byte;
             self.query.len += 1;
             self.scroll = 0;
+        }
+    }
+
+    /// Ctrl+V or Shift+Insert into the field: the clipboard's first line,
+    /// by the same rule as typing. Rewinds the scroll as an edit does.
+    pub fn paste_into_query(&mut self, line: &str) {
+        match paste_query(&mut self.query.buf, self.query.len, line) {
+            QueryPaste::Took { len, cut } => {
+                self.query.len = len;
+                self.scroll = 0;
+                self.notice = if cut { b"paste: cut to what the search holds" } else { b"" };
+            }
+            QueryPaste::Refused => {
+                self.notice = b"paste refused: process names are plain ASCII";
+            }
+            QueryPaste::Empty => self.notice = b"paste: the clipboard holds no text",
         }
     }
 

@@ -29,3 +29,10 @@ pub fn end_of(guest: &Guest, fd: u64) -> Option<(usize, bool)> {
         false => None,
     }
 }
+
+/// Whether the other end of pipe `slot` is open anywhere in the family, seen
+/// from the end that is `writable` or not. A pipe made during this answer is
+/// not in the family's note yet, and both its ends are open.
+pub fn other_end_open(guest: &Guest, slot: usize, writable: bool) -> bool {
+    guest.pipe_ends.get(slot).is_none_or(|&(read, write)| if writable { read } else { write })
+}

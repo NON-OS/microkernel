@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use capsule_text_editor_layout_tests::covered;
 use capsule_text_editor_layout_tests::doc::block::{Block, Run};
 use capsule_text_editor_layout_tests::doc::document::Doc;
 use capsule_text_editor_layout_tests::doc::export::md::to_markdown;
@@ -41,7 +42,7 @@ fn markers_are_emitted_per_run_and_combine() {
         Run { len: 2, style: styled(false, true, false) },
         Run { len: 2, style: styled(true, true, true) },
     ];
-    assert!(b.covered());
+    assert!(covered(&b));
     assert_eq!(to_markdown(&doc_of(vec![b])), "ab**cd***ef*~~***gh***~~\n");
 }
 
@@ -52,7 +53,7 @@ fn an_empty_run_emits_nothing() {
         Run { len: 0, style: styled(true, true, true) },
         Run { len: 2, style: styled(false, false, false) },
     ];
-    assert!(b.covered());
+    assert!(covered(&b));
     assert_eq!(to_markdown(&doc_of(vec![b])), "hi\n");
 }
 
@@ -63,7 +64,7 @@ fn runs_covering_the_whole_text_reproduce_it() {
         Run { len: 6, style: RunStyle::body() },
         Run { len: 5, style: RunStyle::body() },
     ];
-    assert!(b.covered());
+    assert!(covered(&b));
     assert_eq!(to_markdown(&doc_of(vec![b])), "hello world\n");
 }
 
@@ -90,7 +91,7 @@ fn a_leading_hash_is_escaped_only_at_line_start() {
     let d = doc_of(vec![
         Block::plain(BlockKind::Paragraph, "# not a heading", RunStyle::body()),
         Block::plain(BlockKind::Paragraph, "a # b", RunStyle::body()),
-        Block::plain(BlockKind::Bullet, "# item", RunStyle::body()),
+        Block::plain(BlockKind::Paragraph, "- # item", RunStyle::body()),
     ]);
     assert_eq!(to_markdown(&d), "\\# not a heading\n\na # b\n\n- # item\n");
 }
@@ -108,6 +109,6 @@ fn multibyte_run_boundaries_do_not_panic() {
         Run { len: 3, style: styled(true, false, false) },
         Run { len: 3, style: styled(false, false, false) },
     ];
-    assert!(b.covered());
+    assert!(covered(&b));
     assert_eq!(to_markdown(&doc_of(vec![b])), "**hé**llo\n");
 }

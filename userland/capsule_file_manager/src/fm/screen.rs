@@ -20,7 +20,6 @@
 pub enum Screen {
     Home,
     Recents,
-    Shared,
     Tags,
     Browse,
     Search,

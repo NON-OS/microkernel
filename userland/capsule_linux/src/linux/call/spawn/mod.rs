@@ -17,6 +17,7 @@
 //! Making and replacing processes: clone, fork, exec, wait.
 
 mod clone;
+mod clone_flags;
 mod exec;
 mod exec_args;
 mod exec_clear;
@@ -25,10 +26,20 @@ mod exec_resolve;
 mod exec_shebang;
 mod exec_threads;
 mod fork;
+mod fork_child;
 mod fork_copy;
+pub mod tasks;
+mod vfork;
+mod vfork_clone;
+mod vfork_flags;
 mod wait;
+mod wait_opts;
+mod waitid;
 
 pub use clone::clone;
 pub use exec::execve;
 pub use fork::fork;
-pub use wait::wait4;
+pub use vfork::vfork;
+pub use vfork_clone::clone_process;
+pub use wait::{wait4, wait4_usage, WALL, WCLONE, WEXITED, WNOHANG, WNOWAIT};
+pub use waitid::waitid;

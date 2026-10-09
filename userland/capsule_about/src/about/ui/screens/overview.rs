@@ -36,7 +36,7 @@ pub fn content_h(_rect: &Rect) -> u32 {
 pub fn paint(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
     let mut pane = fb.sub(rect.x, rect.y, rect.w, rect.h);
     let y = -(state.scroll as i32);
-    overview_hero::paint(&mut pane, y, rect.w);
-    overview_tiles::paint(&mut pane, y + TILES_Y as i32, rect.w);
+    overview_hero::paint(&mut pane, y, rect.w, state.admission);
+    overview_tiles::paint(&mut pane, y + TILES_Y as i32, rect.w, state.held);
     overview_cards::paint(&mut pane, y + CARDS_Y as i32, rect.w);
 }

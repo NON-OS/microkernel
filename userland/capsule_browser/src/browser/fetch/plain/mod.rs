@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod read_body;
+pub(super) mod request;
 mod send_req;
 
 pub(super) use read_body::read_body;

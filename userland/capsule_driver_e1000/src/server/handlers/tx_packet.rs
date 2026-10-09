@@ -14,44 +14,54 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::{fence, Ordering};
+
 use crate::constants::queue::TX_DESC_COUNT;
 use crate::constants::regs::REG_TDT;
 use crate::constants::{MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME};
-use crate::protocol::{Request, E_INVAL, E_IO, E_MSGSIZE, MAX_TX_PAYLOAD_BYTES};
+use crate::protocol::{Request, E_AGAIN, E_INVAL, E_MSGSIZE, MAX_TX_PAYLOAD_BYTES};
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
 
-const TX_DD_POLL_BUDGET: u32 = 1_000_000;
-
-pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
+/*
+ * A frame is answered once it is queued, not once it is on the wire. Waiting
+ * for DD held the caller for as long as the link was down, reported E_IO for a
+ * frame the part still sent later (so a retry sent it twice), and left the
+ * descriptor posted for the next call to overwrite. Completion is now what
+ * `reclaim` observes, and a ring with no free slot says so.
+ */
+pub fn handle(sender: u32, driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
     if req.payload_len as usize != body.len() {
-        reply_with_status(tx, req, E_MSGSIZE);
+        reply_with_status(sender, tx, req, E_MSGSIZE);
         return;
     }
     if body.len() < MIN_ETHERNET_FRAME
         || body.len() > MAX_ETHERNET_FRAME
         || body.len() as u32 > MAX_TX_PAYLOAD_BYTES
     {
-        reply_with_status(tx, req, E_INVAL);
+        reply_with_status(sender, tx, req, E_INVAL);
+        return;
+    }
+    driver.tx.reclaim();
+    if driver.tx.full() {
+        reply_with_status(sender, tx, req, E_AGAIN);
         return;
     }
     let dst = driver.tx.buffer_va(driver.tx.tail) as *mut u8;
+    // SAFETY: `dst` is slot `tail` of the TX buffer grant, TX_BUFFER_LEN
+    // bytes long, and `body` was held to MAX_ETHERNET_FRAME, which is
+    // shorter; the caller's message and the grant never overlap.
     unsafe {
         core::ptr::copy_nonoverlapping(body.as_ptr(), dst, body.len());
     }
     let idx = driver.tx.post(body.len() as u16);
     let next_tdt = ((idx as u32) + 1) % (TX_DESC_COUNT as u32);
+    // The frame bytes are plain stores; the tail write is what lets the part read them.
+    fence(Ordering::Release);
+    // SAFETY: `driver.regs` carries the broker MmioMap base for BAR0 and TDT
+    // is a 32-bit aligned offset in it.
     unsafe {
         driver.regs.w32(REG_TDT, next_tdt);
     }
-    let mut spins = 0u32;
-    while !driver.tx.done(idx) {
-        spins += 1;
-        if spins > TX_DD_POLL_BUDGET {
-            reply_with_status(tx, req, E_IO);
-            return;
-        }
-        core::hint::spin_loop();
-    }
-    reply_with_status(tx, req, 0);
+    reply_with_status(sender, tx, req, 0);
 }

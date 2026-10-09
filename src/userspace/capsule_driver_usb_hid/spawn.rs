@@ -48,8 +48,7 @@ pub fn spawn_driver_usb_hid_capsule() -> Result<(), SpawnError> {
         manifest_bytes: DRIVER_USB_HID_MANIFEST_BYTES,
         attestation_trailer: DRIVER_USB_HID_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             | Capability::InputSource.bit(),
         debug_tag: b"",

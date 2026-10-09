@@ -36,7 +36,7 @@ pub fn handle(ctx: &Context, req: &Request, tx: &mut [u8]) {
         let portsc = portsc_read(ctx.driver.layout.op_base, port_id);
         portsc_clear_changes(ctx.driver.layout.op_base, port_id, portsc);
         tx[o] = port_id;
-        tx[o + 1] = 0;
+        tx[o + 1] = ctx.driver.slots.port_state(port_id);
         tx[o + 2] = 0;
         tx[o + 3] = 0;
         tx[o + 4..o + 8].copy_from_slice(&portsc.to_le_bytes());

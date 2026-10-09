@@ -16,7 +16,7 @@
 
 use super::constants::MAX_CPUS;
 use super::types::CpuDescriptor;
-use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicUsize, Ordering};
 
 pub(crate) static CPU_DESCRIPTORS: [CpuDescriptor; MAX_CPUS] = {
     const INIT: CpuDescriptor = CpuDescriptor::new();
@@ -51,7 +51,7 @@ pub(crate) fn cpus_online() -> usize {
 
 /// Whether `cpu` is a CPU that came up and is running.
 ///
-/// An AP that missed its start deadline is left `Offline` by `ap_unit::start`,
+/// An AP that missed its start deadline is left `Starting` by `ap_unit::start`,
 /// and a slot that was never attempted has never left its initial state, so
 /// this is the only safe way to decide whether a cpu number can be expected to
 /// answer an IPI.

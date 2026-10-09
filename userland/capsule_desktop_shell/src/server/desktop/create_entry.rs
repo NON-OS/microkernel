@@ -16,29 +16,26 @@
 
 //! Create a file or folder from the desktop right-click menu.
 
-use alloc::string::String;
-use nonos_libc::mk_time_millis;
+use super::home::home_path;
+use crate::state::Context;
 
-use crate::state::{Context, NotifyLevel};
-
-/// Create a new file or folder at the root under a non-colliding name and pull
-/// the desktop back in sync. Repainting is left to the caller so it can first
+/// Create a new file or folder on the desktop (the home directory the icons
+/// list) under a non-colliding name and pull the desktop back in sync. Repainting is left to the caller so it can first
 /// tidy up its own state, such as closing the menu that triggered this.
 pub fn create_entry(ctx: &mut Context, is_file: bool) {
     let base = if is_file { "New File" } else { "New Folder" };
     let name = super::unique_name::unique_name(ctx, base);
-    let mut path = String::from("/");
-    path.push_str(&name);
+    let Some(path) = home_path(&name) else { return };
     let created = if is_file {
         crate::vfs_client::create_file(path.as_bytes())
     } else {
         crate::vfs_client::mkdir(path.as_bytes())
     };
-    if created {
-        let _ = super::refresh::refresh(ctx);
-    } else {
+    match created {
+        Ok(()) => {
+            let _ = super::refresh::refresh(ctx);
+        }
         // A full or read-only volume produced nothing and said nothing.
-        let now = mk_time_millis();
-        ctx.toasts.push(b"could not create", NotifyLevel::Error, now);
+        Err(code) => super::say::refused(ctx, b"Could not create: ", code),
     }
 }

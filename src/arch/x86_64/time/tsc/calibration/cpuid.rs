@@ -16,31 +16,22 @@
 
 use super::super::asm::{cpuid, cpuid_max_leaf};
 use super::super::constants::{MAX_FREQUENCY, MIN_FREQUENCY};
+use super::math::{cpuid_tsc_hz, family_model, vendor_from_leaf0};
 
+/// The TSC frequency CPUID enumerates, or None (AMD, older Intel, or a part
+/// that reports no ratio), in which case the TSC has to be measured against
+/// the PIT or the ACPI PM timer. See `math::cpuid_tsc_hz`.
 pub fn get_cpuid_frequency() -> Option<u64> {
     let max_leaf = cpuid_max_leaf();
-    if max_leaf < 0x15 {
-        return None;
-    }
-
-    let (eax, ebx, ecx, _) = cpuid(0x15, 0);
-
-    if eax != 0 && ebx != 0 && ecx != 0 {
-        let tsc_freq = (ecx as u64 * ebx as u64) / eax as u64;
-        if tsc_freq >= MIN_FREQUENCY && tsc_freq <= MAX_FREQUENCY {
-            return Some(tsc_freq);
-        }
-    }
-
-    if max_leaf >= 0x16 {
-        let (base_mhz, _, _, _) = cpuid(0x16, 0);
-        if base_mhz != 0 {
-            let tsc_freq = (base_mhz as u64) * 1_000_000;
-            if tsc_freq >= MIN_FREQUENCY && tsc_freq <= MAX_FREQUENCY {
-                return Some(tsc_freq);
-            }
-        }
-    }
-
-    None
+    let (_, ebx0, ecx0, edx0) = cpuid(0, 0);
+    let vendor = vendor_from_leaf0(ebx0, edx0, ecx0);
+    let (eax1, _, _, _) = if max_leaf >= 1 { cpuid(1, 0) } else { (0, 0, 0, 0) };
+    let (family, model) = family_model(eax1);
+    let leaf15 = (max_leaf >= 0x15).then(|| {
+        let (a, b, c, _) = cpuid(0x15, 0);
+        (a, b, c)
+    });
+    let leaf16 = (max_leaf >= 0x16).then(|| cpuid(0x16, 0).0);
+    cpuid_tsc_hz(vendor, family, model, leaf15, leaf16)
+        .filter(|hz| (MIN_FREQUENCY..=MAX_FREQUENCY).contains(hz))
 }

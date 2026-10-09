@@ -21,6 +21,11 @@ pub mod error;
 #[path = "../../../../src/usercopy/policy.rs"]
 pub mod policy;
 
+// The fallible buffer a copy of a caller-chosen length lands in.
+#[cfg(test)]
+#[path = "../../../../src/usercopy/buffer.rs"]
+pub mod buffer;
+
 pub const USER_SPACE_END: u64 = policy::USER_SPACE_END;
 pub const MAX_COPY_SIZE: usize = policy::MAX_COPY_SIZE;
 pub const PAGE_SIZE: u64 = policy::PAGE_SIZE;

@@ -15,18 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What an install produced, in the terms a person and a verifier both
-//! need: the identifiers a firmware menu will show, the geometry that was
-//! chosen, and where every file's bytes landed so they can be read back.
+//! need: the identifiers a firmware menu or a partition tool will show, the
+//! layout and geometry that were chosen, where every file's bytes landed,
+//! and every write that stays on the disk, for the read-back.
 
 use alloc::vec::Vec;
 
 use crate::fat32::Geometry;
-use crate::gpt::Layout;
 use crate::guid::Guid;
+use crate::layout::Layout;
+use crate::session::Job;
 
-/// One file's bytes and the first sector holding them. The data is the
-/// source slice the install was given, so a read-back compares against the
-/// original rather than against a copy of it.
+/// One file's bytes on the ESP and the first sector holding them. The data
+/// is the source slice the install was given.
 #[derive(Debug, Clone, Copy)]
 pub struct FileRun<'a> {
     pub lba: u64,
@@ -36,9 +37,20 @@ pub struct FileRun<'a> {
 #[derive(Debug)]
 pub struct Receipt<'a> {
     pub disk_guid: Guid,
-    pub partition_guid: Guid,
+    /// Each partition's unique GUID, in `Region::ALL` order.
+    pub partitions: [Guid; 4],
     pub layout: Layout,
     pub geometry: Geometry,
     pub bytes_written: u64,
+    /// Files in the store the install wrote.
+    pub store_files: usize,
     pub files: Vec<FileRun<'a>>,
+    pub(crate) written: Vec<Job<'a>>,
+}
+
+impl Receipt<'_> {
+    /// The ESP's unique GUID, the one a firmware boot entry names.
+    pub fn esp_guid(&self) -> Guid {
+        self.partitions[3]
+    }
 }

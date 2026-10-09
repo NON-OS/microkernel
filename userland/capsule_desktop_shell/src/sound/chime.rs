@@ -20,6 +20,7 @@ use nonos_policy_client::{get_bool, lookup};
 use nonos_policy_proto::Field;
 
 /// 660 Hz for 180 ms: lower and longer than an alert, so the two are not
+/// mistaken for each other.
 const CHIME_HZ: u32 = 660;
 const CHIME_MS: u32 = 180;
 
@@ -35,5 +36,8 @@ pub fn chime() {
     if get_bool(port, Field::StartupChime) != Some(true) {
         return;
     }
-    super::play::play(CHIME_HZ, CHIME_MS, super::alert::GAIN);
+    super::levels::follow(port);
+    if let Some(gain) = super::levels::gain() {
+        super::play::play(CHIME_HZ, CHIME_MS, gain);
+    }
 }

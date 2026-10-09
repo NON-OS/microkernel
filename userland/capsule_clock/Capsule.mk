@@ -10,6 +10,9 @@ CAPSULE_REPLY_ENDPOINT   := reply:4731:endpoint.app.clock.reply
 CAPSULE_INSTANCE_ENDPOINTS := service:4842:app.clock.1 reply:4843:endpoint.app.clock.1.reply service:4844:app.clock.2 reply:4845:endpoint.app.clock.2.reply
 # CoreExec|IPC|Memory|GraphicsDisplayQuery|GraphicsSurfaceCreate|TimeSet
 CAPSULE_REQUIRED_CAPS    := 0x401819
+# Debug, granted only by a build that compiles `capsule-serial-debug`: the
+# kernel mirror folds it in through serial_debug_cap(), for its [APP] log lines.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_clock
 
 include nonos-mk/capsule.mk

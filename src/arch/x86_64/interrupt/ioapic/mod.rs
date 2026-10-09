@@ -26,6 +26,7 @@ mod ops_msi;
 mod ops_query;
 mod ops_route;
 mod ops_status;
+pub(crate) mod reg_lock;
 pub mod state;
 mod state_alloc;
 mod state_chip;

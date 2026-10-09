@@ -24,7 +24,13 @@ pub fn init() -> Result<(), CpuError> {
 
 #[inline]
 pub unsafe fn init_ap(cpu_id: u16, apic_id: u32) -> Result<(), CpuError> {
-    unsafe { state::init_ap(cpu_id, apic_id) }
+    let r = unsafe { state::init_ap(cpu_id, apic_id) };
+    // Whatever became of the per-CPU record, this CPU must see the
+    // framebuffer through the same table as the boot CPU before it runs a
+    // thread that presents.
+    // SAFETY: the AP's bring-up, interrupts off, before its first thread.
+    unsafe { crate::arch::x86_64::pat::mirror_on_ap() };
+    r
 }
 
 #[inline]

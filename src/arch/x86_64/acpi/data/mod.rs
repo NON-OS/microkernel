@@ -26,7 +26,7 @@ mod stats;
 
 pub use acpi_data_struct::AcpiData;
 pub use interrupt::{InterruptOverride, NmiConfig};
-pub use ioapic::IoApicInfo;
+pub use ioapic::{owner_of_gsi, IoApicInfo};
 pub use numa::NumaMemoryRegion;
 pub use pcie::PcieSegment;
 pub use processor::ProcessorInfo;

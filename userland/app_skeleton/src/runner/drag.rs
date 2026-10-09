@@ -14,21 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_toolkit::decorations::{hit_test, margin, DecorationHit};
+use nonos_toolkit::decorations::{hit_test_at, margin_at, scaled, titlebar_rect_at, DecorationHit};
 
+use super::press_part::PressGrab;
 use crate::input::{InputEvent, InputKind};
 
-/// The shell's bar, from the one definition. As i64 because the drag maths
-/// works in signed coordinates.
-const MENUBAR_H: i64 = super::chrome::MENUBAR_H as i64;
+use super::min_size::{MIN_H, MIN_W};
+
 const EDGE: u32 = 10; // grab band on the right / bottom borders
-const MIN_W: u32 = 300;
-const MIN_H: u32 = 200;
 const STEP: u32 = 8; // only resize once the drag moves this far (throttle reallocs)
 
 pub(super) struct DragState {
     pub active: bool,
     pub hover: DecorationHit,
+    /// Which part of the window holds the press, so a drag keeps every event
+    /// until its release (see press_part).
+    pub press: PressGrab,
     press_x: i32,
     press_y: i32,
     base_x: u32,
@@ -45,6 +46,7 @@ impl DragState {
         Self {
             active: false,
             hover: DecorationHit::None,
+            press: PressGrab::new(),
             press_x: 0,
             press_y: 0,
             base_x: 0,
@@ -74,25 +76,50 @@ pub(super) fn handle(
     maximized: bool,
     event: &InputEvent,
 ) -> PointerAction {
-    let m = margin(maximized);
+    let q = super::chrome::quarters();
+    handle_at(state, (width, height), (win_x, win_y), maximized, event, q)
+}
+
+/// The same, with the frame at `quarters` of display scale: the border band
+/// that resizes and the title bar that moves are measured on the frame as
+/// drawn at that scale.
+pub(super) fn handle_at(
+    state: &mut DragState,
+    (width, height): (u32, u32),
+    (win_x, win_y): (u32, u32),
+    maximized: bool,
+    event: &InputEvent,
+    quarters: u32,
+) -> PointerAction {
+    let m = margin_at(maximized, quarters);
+    let edge = scaled(EDGE, quarters);
     match event.kind {
         InputKind::ButtonDown => {
             if event.x >= 0 && event.y >= 0 {
                 let (x, y) = (event.x as u32, event.y as u32);
-                let on_right = x + EDGE + m >= width;
-                let on_bottom = y + EDGE + m >= height;
+                let on_right = x + edge + m >= width;
+                let on_bottom = y + edge + m >= height;
                 // Resize grabs the right/bottom borders (below the titlebar);
-                // the titlebar itself still moves the window.
-                if (on_right || on_bottom) && (event.y as i64) >= MENUBAR_H {
+                // the titlebar itself still moves the window. Below means past
+                // the titlebar's own bottom edge, in the window's coordinates
+                // the press arrives in. This compared against the menubar's
+                // height instead, a screen measure, so the right end of the
+                // titlebar's lowest pixels started a resize, not a move.
+                let bar = titlebar_rect_at(width, height, maximized, quarters);
+                let below_bar = y >= bar.y.saturating_add(bar.h);
+                if (on_right || on_bottom) && below_bar {
                     state.resizing = true;
                     state.rz_right = on_right;
                     state.rz_bottom = on_bottom;
+                    state.press_x = event.x;
+                    state.press_y = event.y;
                     state.last_w = width;
                     state.last_h = height;
                     state.active = false;
                     return PointerAction::None;
                 }
-                if hit_test(width, height, maximized, x, y) == DecorationHit::Titlebar {
+                if hit_test_at(width, height, maximized, x, y, quarters) == DecorationHit::Titlebar
+                {
                     state.active = true;
                     state.resizing = false;
                     state.press_x = event.x;
@@ -117,8 +144,17 @@ pub(super) fn handle(
         }
         InputKind::PointerAbs if state.resizing => {
             // Track the target size during the drag; do NOT reallocate yet.
-            let nw = if state.rz_right { (event.x.max(0) as u32 + m).max(MIN_W) } else { width };
-            let nh = if state.rz_bottom { (event.y.max(0) as u32 + m).max(MIN_H) } else { height };
+            // The border moves by what the pointer moved since the press. It
+            // was put at the pointer plus the frame's margin instead, so the
+            // first step of every resize jumped the border by however far
+            // inside the grab band the press had landed.
+            let grow = |size: u32, now: i32, at: i32, min: u32| {
+                (size as i64 + (now as i64 - at as i64)).clamp(min as i64, u32::MAX as i64) as u32
+            };
+            let nw =
+                if state.rz_right { grow(width, event.x, state.press_x, MIN_W) } else { width };
+            let nh =
+                if state.rz_bottom { grow(height, event.y, state.press_y, MIN_H) } else { height };
             state.last_w = nw;
             state.last_h = nh;
             let _ = STEP;
@@ -127,11 +163,12 @@ pub(super) fn handle(
         InputKind::PointerAbs if state.active => {
             let nx = state.base_x as i64 + (event.x - state.press_x) as i64;
             let ny = state.base_y as i64 + (event.y - state.press_y) as i64;
-            PointerAction::MoveTo(nx.max(0) as u32, ny.max(MENUBAR_H) as u32)
+            let top = super::chrome::menubar_h() as i64;
+            PointerAction::MoveTo(nx.max(0) as u32, ny.max(top) as u32)
         }
         InputKind::PointerAbs => {
             let hit = if event.x >= 0 && event.y >= 0 {
-                hit_test(width, height, maximized, event.x as u32, event.y as u32)
+                hit_test_at(width, height, maximized, event.x as u32, event.y as u32, quarters)
             } else {
                 DecorationHit::None
             };

@@ -14,38 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The pane header: greeting, strapline, and the search field. The field is
-//! display-only until there is an index to search, so it is drawn sunk, with
-//! a glyph and hint text.
+//! The pane header: a title and a line saying what the lists below hold.
+//!
+//! It greeted a named person ("Welcome back, Mehedi") on every machine, and
+//! drew a search field that took no input and a "Create New" card of
+//! templates (Report, Letter, Resume, Project Plan) that did nothing. The
+//! editor has no accounts, no document index and no templates; a new document
+//! is File > New Tab or Ctrl+N.
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::editor::widget::{paint_searchbox, truncate_to_width, SearchStyle};
+use crate::editor::widget::truncate_to_width;
 
 use super::metrics::{lh, BODY, HEAD, PANE_PAD};
-use super::metrics_pane::{pane_content, search_rect};
-use super::palette::{dim, FIELD_BG, FIELD_LINE, LABEL, MUTED, TITLE};
+use super::metrics_pane::pane_content;
+use super::palette::{LABEL, TITLE};
 
-const GREETING: &str = "Welcome back, Mehedi";
-const STRAPLINE: &str = "Create, open, and manage your documents.";
+const TITLE_TEXT: &str = "Documents";
+const STRAPLINE: &str = "Open a file from the store, or one this session opened.";
 
 pub(super) fn paint_pane_head(fb: &mut PaintBuffer) {
     let (x, w) = pane_content(fb.width);
-    let head = truncate_to_width(fb, GREETING, HEAD, w as i32);
+    let head = truncate_to_width(fb, TITLE_TEXT, HEAD, w as i32);
     let _ = fb.text_ttf(x as i32, PANE_PAD as i32, head, TITLE, HEAD);
     let sub_y = (PANE_PAD + lh(HEAD) + 4) as i32;
     let sub = truncate_to_width(fb, STRAPLINE, BODY, w as i32);
     let _ = fb.text_ttf(x as i32, sub_y, sub, LABEL, BODY);
-    let st = SearchStyle {
-        bg: FIELD_BG,
-        border: FIELD_LINE,
-        radius: 10,
-        text: TITLE,
-        placeholder: dim(MUTED),
-        glyph: dim(MUTED),
-        pad_x: 14,
-        gap: 8,
-    };
-    let rect = search_rect(fb.width);
-    paint_searchbox(fb, rect, "⌕", "", "Search documents...", BODY, &st);
 }

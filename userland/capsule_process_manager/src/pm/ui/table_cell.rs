@@ -16,10 +16,10 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::pm::format::{mem_human, pct_1dp, state_label, u32_decimal, uptime_human};
-use crate::pm::format_sys::{count_human, rate_human};
+use crate::pm::format::{mem_human, percent, state_label, u32_decimal};
+use crate::pm::format_sys::rate_human;
 use crate::pm::state::Row;
-use crate::pm::theme::{FOREGROUND, MUTED, WARNING};
+use crate::pm::theme::{FOREGROUND, MUTED};
 
 use super::chrome::Rect;
 use super::metrics::{BODY_PX, CELL_PAD_X, NUM_PX, RISK_SLOT_H, ROW_H};
@@ -37,12 +37,10 @@ pub fn paint(fb: &mut PaintBuffer, r: &Rect, cols: &[Col], row: &Row, col: Col, 
     let mut buf = [0u8; 24];
     let (n, tint) = match col {
         Col::Pid => (u32_decimal(row.pid, &mut buf), MUTED),
-        Col::Cpu => (pct_1dp(row.cpu_pct, &mut buf), FOREGROUND),
+        Col::Cpu => (percent(row.cpu_pct, &mut buf), FOREGROUND),
         Col::Mem => (mem_human(row.mem_kb, &mut buf), FOREGROUND),
         Col::Ipc => (rate_human(row.ipc_ps, &mut buf), rate_tint(row.ipc_ps)),
         Col::Sysc => (rate_human(row.sysc_ps, &mut buf), rate_tint(row.sysc_ps)),
-        Col::Faults => (count_human(row.faults, &mut buf), MUTED),
-        Col::Uptime => (uptime_human(row.uptime_ms / 1000, &mut buf), WARNING),
         Col::State => {
             text::left(fb, x, top, state_label(row.state), state_tint(row.state), BODY_PX);
             return;

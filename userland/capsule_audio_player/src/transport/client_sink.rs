@@ -26,7 +26,7 @@ impl FeedSink for AudioClient {
         match self.feed(pcm) {
             Ok(FeedResult::Fed) => Fed::Accepted,
             Ok(FeedResult::WouldBlock) => Fed::WouldBlock,
-            Err(_) => Fed::WouldBlock,
+            Err(why) => Fed::Failed(why),
         }
     }
 

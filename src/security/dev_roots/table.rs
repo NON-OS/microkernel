@@ -39,7 +39,7 @@ impl Table {
     /// Returns the slot, or None when full or already present. Enrolling the
     /// same key twice is not an error worth failing a session over, but it
     /// must not consume a second slot.
-    pub fn insert(&mut self, root: [u8; 32]) -> Option<u8> {
+    pub(super) fn insert(&mut self, root: [u8; 32]) -> Option<u8> {
         for (i, slot) in self.roots.iter().enumerate() {
             if slot.used && slot.root == root {
                 return Some(i as u8);
@@ -57,15 +57,18 @@ impl Table {
 
     /// Checked before a challenge is shown, so a user is never asked to
     /// approve an enrolment that cannot be stored.
-    pub fn is_full(&self) -> bool {
+    pub(super) fn is_full(&self) -> bool {
         self.roots.iter().all(|s| s.used)
     }
 
-    pub fn find(&self, root: &[u8; 32]) -> Option<u8> {
-        self.roots
-            .iter()
-            .position(|s| s.used && &s.root == root)
-            .map(|i| i as u8)
+    pub(super) fn remove(&mut self, root: &[u8; 32]) {
+        for slot in self.roots.iter_mut().filter(|s| s.used && &s.root == root) {
+            *slot = DevRoot { root: [0u8; 32], used: false };
+        }
+    }
+
+    pub(super) fn find(&self, root: &[u8; 32]) -> Option<u8> {
+        self.roots.iter().position(|s| s.used && &s.root == root).map(|i| i as u8)
     }
 }
 

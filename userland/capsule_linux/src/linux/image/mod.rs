@@ -32,5 +32,5 @@ mod stack_guard;
 mod stack_strings;
 mod stack_words;
 
-pub use interp::{program, EXEC_BASE};
+pub use interp::program;
 pub use stack::build;

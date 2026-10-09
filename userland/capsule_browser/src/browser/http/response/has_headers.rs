@@ -14,6 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::head::{scan, Scan};
+
+/* True once the final response's header section has arrived (interim
+1xx responses do not count), or bytes arrived that are no response. */
 pub fn has_headers(raw: &[u8]) -> bool {
-    raw.windows(4).any(|w| w == b"\r\n\r\n")
+    !matches!(scan(raw), Scan::More)
+}
+
+/* True unless the response is framed and its server keeps the
+connection: a `Connection: close`, an HTTP/1.0 response without
+keep-alive, or a head that does not scan. */
+pub fn wants_close(raw: &[u8]) -> bool {
+    match scan(raw) {
+        Scan::Head(h) => h.close,
+        _ => true,
+    }
 }

@@ -18,10 +18,12 @@
 
 use crate::writer::Receipt;
 
+/// The receipt rides unboxed: one is made per install, at its last step.
+#[allow(clippy::large_enum_variant)]
 pub enum Progress<'a> {
-    /// Bytes of the volume written so far, out of the total the plan holds.
+    /// Bytes written so far, out of the total the plan holds.
     Writing { done: u64, total: u64 },
-    /// The volume is complete and the partition table just went down.
+    /// Every partition is complete and the partition table just went down.
     TableWritten,
     /// Flushed. The receipt is the last word.
     Done(Receipt<'a>),

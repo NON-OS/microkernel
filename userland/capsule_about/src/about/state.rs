@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::data::admission::Admission;
 use super::data::attest_doc::{request, Attestation};
+use super::data::own;
+use super::data::proofs::{read as read_proofs, Snapshot};
 use super::section::{Section, SECTIONS};
 use super::ui::metrics::SCROLL_STEP;
 
@@ -34,6 +37,15 @@ pub struct State {
     // until the window closes: a document re-signed on every repaint would put
     // the TPM on the paint path for no gain in truth.
     pub attest: Attestation,
+    // The live proof board, sampled when the screen opens and once a second
+    // while it stays open, so painting it never waits on IPC.
+    pub proofs: Option<Snapshot>,
+    // The capability word the kernel recorded for this window, and how its
+    // spawn gate admitted it. Read once at open: neither changes while the
+    // process lives, and the Overview and Trust screens draw from these
+    // rather than from what the build declared.
+    pub held: Option<u64>,
+    pub admission: Admission,
 }
 
 impl State {
@@ -46,6 +58,9 @@ impl State {
             view_h: 0,
             content_h: 0,
             attest: Attestation::NotAsked,
+            proofs: None,
+            held: own::held_mask(),
+            admission: own::admission(),
         }
     }
     pub fn record_extent(&mut self, view_h: u32, content_h: u32) {
@@ -68,6 +83,18 @@ impl State {
         if section == Section::Verify && matches!(self.attest, Attestation::NotAsked) {
             self.attest = request();
         }
+        if section == Section::Proofs {
+            self.proofs = Some(read_proofs());
+        }
+        true
+    }
+    /// Take a fresh sample when the proof board is on screen. True when the
+    /// window should repaint.
+    pub fn refresh_proofs(&mut self) -> bool {
+        if self.section != Section::Proofs {
+            return false;
+        }
+        self.proofs = Some(read_proofs());
         true
     }
     pub fn select_next_section(&mut self) {

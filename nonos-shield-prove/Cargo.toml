@@ -1,0 +1,21 @@
+[package]
+name = "nonos-shield-prove"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "A NOX Shield spend proved on NONOS: the production pool's statement, without std, on one core"
+
+[dependencies]
+# The prover, from STARKs main. The commit is the flake's starks input, which
+# tools/nonos-starks-sync writes into the lock. not_before is the production
+# pool's statement: 37 limbs, the earliest settlement time on a 600 s grid.
+nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
+stark_proofs = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", default-features = false, features = ["fri8", "not_before"] }
+
+[features]
+default = []
+# The host build the vector tests run: every core, through rayon.
+parallel = ["stark_proofs/std", "stark_proofs/parallel", "nonos-stark/parallel"]
+
+[profile.release]
+opt-level = 3

@@ -18,7 +18,8 @@ use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use super::node::{Node, NodeKind};
+use super::node::{Node, NodeKind, Ns};
+use super::quirks::Quirks;
 
 pub struct Dom {
     pub nodes: Vec<Node>,
@@ -36,6 +37,26 @@ pub struct Dom {
     /// no size. The numbers exist in the display list already; they are
     /// copied here because that is what a script can reach.
     pub rects: Vec<[i32; 4]>,
+    /// The viewport the document is laid out in, width and height, which a
+    /// script's matchMedia is judged against as the page's own @media is.
+    pub viewport: (u32, u32),
+    /// How far the page is scrolled down, which a script reads as
+    /// window.scrollY and takes off getBoundingClientRect's top.
+    pub scroll_y: u32,
+    /// How tall the page was at its last layout, which a script's own
+    /// scroll is held within.
+    pub content_h: u32,
+    /// The cascade result of each node at the last layout, which a
+    /// script's getComputedStyle reads (style_facts).
+    pub facts: Vec<super::style_facts::Facts>,
+    /// The reader's session history as history.length reads it: how
+    /// many entries it holds and which is shown (State::note_history).
+    pub history: (u32, u32),
+    /// What the parser left out, as `limits::TRUNC_*` bits: nodes past the
+    /// node cap, attributes past the budget, nesting past the depth cap.
+    pub truncated: u8,
+    /// The rendering mode the doctype selected.
+    pub quirks: Quirks,
 }
 
 impl Dom {
@@ -47,8 +68,31 @@ impl Dom {
             attrs: Vec::new(),
             parent: 0,
             children: Vec::new(),
+            ns: Ns::Html,
         };
-        Dom { nodes: vec![root], base: String::new(), rects: Vec::new() }
+        Dom {
+            nodes: vec![root],
+            base: String::new(),
+            rects: Vec::new(),
+            viewport: (0, 0),
+            scroll_y: 0,
+            content_h: 0,
+            facts: Vec::new(),
+            history: (0, 0),
+            truncated: 0,
+            quirks: Quirks::No,
+        }
+    }
+}
+
+impl Dom {
+    /// Whether the parser left part of the page out: nodes past the node
+    /// cap, or attributes past a tag's or the document's limit, which loses
+    /// links, sources and classes. Nesting flattened past the depth cap is
+    /// not counted: every node is still there, only placed beside rather
+    /// than inside.
+    pub fn cut_short(&self) -> bool {
+        self.truncated & (super::limits::TRUNC_NODES | super::limits::TRUNC_ATTRS) != 0
     }
 }
 

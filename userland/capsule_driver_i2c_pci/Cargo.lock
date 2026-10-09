@@ -24,8 +24,13 @@ dependencies = [
 name = "nonos_capsule_driver_i2c_pci"
 version = "0.3.0"
 dependencies = [
+ "nonos_pinctrl",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_pinctrl"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_userland_libc"

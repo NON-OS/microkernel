@@ -29,13 +29,14 @@ pub fn parse_config(raw: &[u8]) -> Result<ProbeResult, i32> {
     }
     let mut out = ProbeResult::empty();
     let mut current = None;
+    let mut last_ep = 0u8;
     let mut pos = 0usize;
     while pos + 2 <= total {
         let len = raw[pos] as usize;
         if len < 2 || pos + len > total {
             return Err(E_INVAL);
         }
-        visit_record(&raw[pos..pos + len], &mut current, &mut out);
+        visit_record(&raw[pos..pos + len], &mut current, &mut last_ep, &mut out);
         pos += len;
     }
     if out.count == 0 {

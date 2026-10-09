@@ -24,3 +24,7 @@ pub const OP_GET_CONFIG_DESCRIPTOR: u16 = 0x0008;
 pub const OP_ALLOC_TRANSFER_RING: u16 = 0x0009;
 pub const OP_CONTROL_TRANSFER: u16 = 0x000B;
 pub const OP_INTERRUPT_IN: u16 = 0x000E;
+pub const OP_CONFIGURE_BULK: u16 = 0x0010;
+pub const OP_BULK_OUT: u16 = 0x0011;
+pub const OP_BULK_IN: u16 = 0x0012;
+pub const OP_RESET_BULK: u16 = 0x0013;

@@ -13,16 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::Deadline;
+use nonos_libc::{mk_idle_ms, Deadline};
 
 use crate::constants::USBCMD_HCRST;
 use crate::error::{XhciError, XhciResult};
 use crate::regs::op::{usbcmd_read, usbcmd_write};
 
 const RESET_TIMEOUT_MS: u64 = 1_000;
+/// Linux's XHCI_INTEL_HOST quirk: an Intel controller touched within about
+/// a millisecond of HCRST can hang the system, so nothing reads it until
+/// this has passed. Every other controller only loses the millisecond.
+const POST_HCRST_MS: u64 = 1;
 
 pub fn reset(op_base: u64) -> XhciResult<()> {
     usbcmd_write(op_base, usbcmd_read(op_base) | USBCMD_HCRST);
+    let _ = mk_idle_ms(POST_HCRST_MS);
     let deadline = Deadline::after_ms(RESET_TIMEOUT_MS);
     loop {
         if usbcmd_read(op_base) & USBCMD_HCRST == 0 {

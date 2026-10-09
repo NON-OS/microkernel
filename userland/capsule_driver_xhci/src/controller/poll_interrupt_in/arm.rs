@@ -13,17 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use crate::controller::ring_doorbell::ring_doorbell;
-use crate::error::{XhciError, XhciResult};
-use crate::slots::SlotResources;
+use crate::error::XhciResult;
+use crate::slots::InterruptEndpoint;
 use crate::trb::builders::normal::normal;
-pub fn arm(doorbell_base: u64, res: &mut SlotResources, length: u16) -> XhciResult<()> {
-    let buffer_phys = res.int_buf.as_ref().ok_or(XhciError::ControllerUnsupported)?.phys();
-    let ring = res.int_ring.as_mut().ok_or(XhciError::ControllerUnsupported)?;
-    let cycle = ring.cycle() != 0;
-    let trb = normal(buffer_phys, length as u32, cycle, true, false);
-    let issued_phys = ring.enqueue(trb)?;
-    ring_doorbell(doorbell_base, res.slot_id, res.int_dci);
-    res.int_armed = Some(issued_phys);
+pub fn arm(
+    doorbell_base: u64,
+    slot: u8,
+    ep: &mut InterruptEndpoint,
+    length: u16,
+) -> XhciResult<()> {
+    let cycle = ep.ring.cycle() != 0;
+    let trb = normal(ep.buf.phys(), length as u32, cycle, true, false);
+    let issued_phys = ep.ring.enqueue(trb)?;
+    ring_doorbell(doorbell_base, slot, ep.dci);
+    ep.armed = Some(issued_phys);
     Ok(())
 }

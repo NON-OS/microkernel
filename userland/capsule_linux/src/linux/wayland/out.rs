@@ -51,6 +51,15 @@ impl Event {
         self
     }
 
+    /// An array of words is its length in bytes, then the words.
+    pub fn words(mut self, words: &[u32]) -> Event {
+        self.body.extend_from_slice(&(words.len() as u32 * 4).to_le_bytes());
+        for w in words {
+            self.body.extend_from_slice(&w.to_le_bytes());
+        }
+        self
+    }
+
     pub fn send(mut self, to_client: &mut Vec<u8>) {
         let size = self.body.len() as u16;
         self.body[6..8].copy_from_slice(&size.to_le_bytes());

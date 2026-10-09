@@ -21,15 +21,18 @@ mod app_impl_manifest;
 mod app_impl_on_event;
 mod app_impl_on_tick;
 mod app_impl_paint;
+mod close_tab;
 mod new;
 mod palette_act;
 mod palette_key;
 mod palette_pick;
+mod pointer;
 mod rail_click;
 mod rail_wheel;
 #[cfg(feature = "nonos-autorun-selftest")]
 pub mod selftest;
 mod tabs;
+mod take_handed;
 mod types;
 
 pub use types::Terminal;

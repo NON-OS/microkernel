@@ -14,14 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::display::{log_hash, log_hex, log_ok, show_handoff_message};
+use crate::display::{log_hex, log_ok, show_handoff_message};
+use crate::entropy::{rdrand64, rdseed64};
 use crate::loader::KernelImage;
 
-pub fn show_handoff_status(rng_seed: &[u8; 32]) {
+/*
+ * The seed is the kernel's first secret: it seeds the CSPRNG that keys are
+ * drawn from, so it is never shown or logged. The screen says only that
+ * entropy was gathered and from what.
+ */
+pub fn show_handoff_status() {
     log_ok(b"Entropy collected");
-    log_hash(b"RNGseed ", rng_seed);
+    log_ok(entropy_source());
     log_ok(b"CryptoHandoff prepared");
     log_ok(b"FirmwareHandoff prepared");
+}
+
+fn entropy_source() -> &'static [u8] {
+    if rdseed64().is_some() {
+        b"Entropy source RDSEED, TSC jitter, RTC"
+    } else if rdrand64().is_some() {
+        b"Entropy source RDRAND, TSC jitter, RTC"
+    } else {
+        b"Entropy source TSC jitter, RTC"
+    }
 }
 
 pub fn show_completion_status(kernel_image: &KernelImage) {

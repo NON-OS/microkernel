@@ -15,12 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod consent;
+pub mod delete_prompt;
+pub mod dialog_key;
+pub mod escape_chord;
+pub mod hand_over;
 pub mod health;
 pub mod installed_launch;
+pub mod instances;
+pub mod installed_launch_poll;
+mod launch_children;
 pub mod launcher_focus;
 pub mod launcher_request;
 pub mod launchpad;
 pub mod launchpad_key;
+pub mod live_prompt;
 pub mod menubar_action;
 pub mod menubar_click;
 pub mod notify;
@@ -29,6 +37,7 @@ pub mod pkg_consent;
 pub mod pkg_install;
 pub mod spotlight_open;
 pub mod spotlight_toggle;
+pub mod system_keys;
 pub mod take_open_arg;
 pub mod tray_register;
 pub mod tray_remove;

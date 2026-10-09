@@ -34,10 +34,11 @@ pub struct UsedEntry {
 pub fn read_entry(layout: QueueLayout, ring_slot: u16) -> UsedEntry {
     let slot = ring_slot % layout.queue_size;
     let p = used_ring_entry(layout, slot);
+    // Order these reads after the used index that proved them written.
+    fence(Ordering::Acquire);
     unsafe {
         let id = read_volatile(p);
         let len = read_volatile(p.add(1));
-        fence(Ordering::Acquire);
         UsedEntry { id, len }
     }
 }

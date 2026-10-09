@@ -1,0 +1,50 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The messages of one sendmmsg or recvmmsg, one after another.
+
+use crate::linux::abi::errno;
+use crate::linux::guest::Guest;
+
+use super::mmsg::MOST;
+
+/// struct mmsghdr on x86_64: a msghdr, then msg_len.
+const MMSGHDR: u64 = 64;
+const LEN_AT: u64 = 56;
+
+/// Run `one` on each message from `skip` until one fails: the count moved,
+/// or the first failure's errno when none was.
+pub fn each(
+    guest: &mut Guest,
+    a: [u64; 6],
+    skip: usize,
+    mut one: impl FnMut(&mut Guest, u64, bool) -> u64,
+) -> u64 {
+    let vlen = a[2].min(MOST);
+    let mut moved = 0u64;
+    for i in skip as u64..vlen {
+        let at = a[1] + i * MMSGHDR;
+        let got = one(guest, at, moved == 0);
+        let Some(n) = errno::slot(got) else {
+            return if moved == 0 { got } else { errno::ok(moved) };
+        };
+        if guest.write(at + LEN_AT, &(n as u32).to_le_bytes()) < 4 {
+            return if moved == 0 { errno::fail(errno::EFAULT) } else { errno::ok(moved) };
+        }
+        moved += 1;
+    }
+    errno::ok(moved)
+}

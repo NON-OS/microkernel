@@ -15,7 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod dns_privacy;
-pub mod zkids;
 
 pub use dns_privacy::*;
-pub use zkids::*;

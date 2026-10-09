@@ -35,6 +35,24 @@ for mk in sorted(glob.glob("userland/capsule_driver_*/Capsule.mk")):
     cert, manifest, trailer = (f"nonos-data/trust/capsules/{name}.nonos_id_cert.bin", f"nonos-data/trust/capsules/{name}.manifest.bin", f"nonos-data/trust/capsules/{name}.zk_trailer.bin")
     hay = "\n".join(body for _, body in src_text if cdir in body or name in body or service in body)
     missing = []
+    # A driver that is not shipped yet (CAPSULE_NOT_IN_IMAGE) claims no
+    # hardware support. It must say so in its README, and must really be
+    # absent from the image: a certificate or a kernel embed for it is a
+    # contradiction, and the marker has to go.
+    if vars.get("CAPSULE_NOT_IN_IMAGE"):
+        with open(readme, encoding="utf-8") as fh:
+            said = re.search(r"^Status: .*not in the ", fh.read(), re.M)
+        if not said:
+            missing.append("README Status: line saying it is not in the image")
+        for path in (cert, manifest, trailer):
+            if os.path.exists(path):
+                missing.append(f"{path} exists, so CAPSULE_NOT_IN_IMAGE must be removed")
+        if name and name in hay:
+            missing.append("kernel source names it, so CAPSULE_NOT_IN_IMAGE must be removed")
+        if missing:
+            failures.append({"capsule": slug or mk, "missing": missing})
+        capsules.append({"slug": slug, "bin": name, "service": service, "caps": caps, "status": "fail" if missing else "not-in-image"})
+        continue
     for key in ("CAPSULE_SLUG", "CAPSULE_BIN_NAME", "CAPSULE_DIR", "CAPSULE_SERVICE_ENDPOINT", "CAPSULE_REPLY_ENDPOINT", "CAPSULE_REQUIRED_CAPS"):
         if not vars.get(key):
             missing.append(key)
@@ -57,7 +75,7 @@ for mk in sorted(glob.glob("userland/capsule_driver_*/Capsule.mk")):
     if missing:
         failures.append({"capsule": slug or mk, "missing": missing})
     capsules.append({"slug": slug, "bin": name, "service": service, "caps": caps, "status": status})
-report = {"schema": "nonos.hardware.support.source.v1", "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "status": "fail" if failures else "pass", "capsule_count": len(capsules), "capsules": capsules, "failures": failures}
+report = {"schema": "nonos.hardware.support.source.v1", "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "status": "fail" if failures else "pass", "capsule_count": len(capsules), "not_in_image": sorted(c["slug"] for c in capsules if c["status"] == "not-in-image"), "capsules": capsules, "failures": failures}
 out_dir = os.path.dirname(out)
 if out_dir:
     os.makedirs(out_dir, exist_ok=True)

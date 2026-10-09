@@ -24,13 +24,18 @@
 use super::path::{VAULT_DIR, VAULT_PATH};
 use super::persist::persist;
 use super::save_ops::{close, mkdir, open_created, write_all};
+use super::unsealed::Unsealed;
 
-pub fn save_blob(blob: &[u8]) -> bool {
+pub fn save_blob(blob: &[u8]) -> Result<(), Unsealed> {
+    save_file(VAULT_PATH, blob)
+}
+
+/// Write `data` and persist it, or say why it did not reach the disk.
+pub fn save_file(path: &[u8], data: &[u8]) -> Result<(), Unsealed> {
     mkdir(VAULT_DIR);
-    let Some(fd) = open_created(VAULT_PATH) else {
-        return false;
-    };
-    let wrote = write_all(fd, blob);
+    let fd = open_created(path).ok_or(Unsealed::Store)?;
+    let wrote = write_all(fd, data);
     close(fd);
-    wrote && persist(VAULT_PATH)
+    wrote?;
+    persist(path)
 }

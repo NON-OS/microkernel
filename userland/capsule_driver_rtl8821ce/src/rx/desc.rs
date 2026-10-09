@@ -19,9 +19,11 @@
 //! word carries the frame length, the driver-info size (in 8-byte units) and a
 //! shift, which together give the offset from the descriptor to the frame, plus
 //! the CRC and ICV error flags and whether the frame is a firmware command
-//! (C2H) rather than an 802.11 frame. Bit positions follow the rtw88 `rx.h`
-//! `GET_RX_DESC_*` accessors and `rtw8821c_query_rx_desc`; checked against
-//! known-answer descriptors in `rtl8821ce_proofs`.
+//! (C2H) rather than an 802.11 frame, and the security type with the
+//! software-decrypt flag, which together say whether the chip decrypted a
+//! protected frame (rtw88 `rtw_rx_query_rx_desc`: decrypted = !SWDEC and
+//! ENC_TYPE != none). Bit positions follow the rtw88 `rx.h` `RTW_RX_DESC_W*`
+//! fields; checked against known-answer descriptors in `rtl8821ce_proofs`.
 
 use super::regs::{RX_BUF_DESC_SIZE, RX_PKT_DESC_SIZE};
 
@@ -31,9 +33,12 @@ const W0_CRC32: u32 = 1 << 14;
 const W0_ICV_ERR: u32 = 1 << 15;
 const W0_DRV_INFO_SHIFT: u32 = 16; // GENMASK(19, 16), in 8-byte units
 const W0_DRV_INFO_MASK: u32 = 0xF;
+const W0_ENC_TYPE_SHIFT: u32 = 20; // GENMASK(22, 20)
+const W0_ENC_TYPE_MASK: u32 = 0x7;
 const W0_SHIFT_SHIFT: u32 = 24; // GENMASK(25, 24), in bytes
 const W0_SHIFT_MASK: u32 = 0x3;
 const W0_PHYST: u32 = 1 << 26;
+const W0_SWDEC: u32 = 1 << 27;
 // Word 2 fields.
 const W2_C2H: u32 = 1 << 28;
 
@@ -47,6 +52,10 @@ pub struct RxInfo {
     pub crc_err: bool,
     pub icv_err: bool,
     pub is_c2h: bool,
+    /// The security type the chip saw (`RX_DESC_ENC_*`; 0 none, 4 AES).
+    pub enc_type: u8,
+    /// The chip left decryption to software.
+    pub swdec: bool,
 }
 
 impl RxInfo {
@@ -62,6 +71,11 @@ impl RxInfo {
     /// an error frame.
     pub fn deliverable(&self) -> bool {
         !self.is_c2h && !self.crc_err && !self.icv_err && self.pkt_len != 0
+    }
+    /// The chip decrypted (and verified) a protected frame. It leaves the
+    /// CCMP header and MIC in place.
+    pub fn decrypted(&self) -> bool {
+        !self.swdec && self.enc_type != 0
     }
 }
 
@@ -81,6 +95,8 @@ pub fn parse(buf: &[u8]) -> Option<RxInfo> {
         crc_err: w0 & W0_CRC32 != 0,
         icv_err: w0 & W0_ICV_ERR != 0,
         is_c2h: w2 & W2_C2H != 0,
+        enc_type: ((w0 >> W0_ENC_TYPE_SHIFT) & W0_ENC_TYPE_MASK) as u8,
+        swdec: w0 & W0_SWDEC != 0,
     })
 }
 

@@ -16,11 +16,18 @@
 
 use crate::window::Window;
 
+use super::types::PER_OWNER;
 use super::WindowTable;
 
 impl WindowTable {
+    // Window open answers every refusal (duplicate, past the owner's share,
+    // full) with E_NOMEM, so () says all.
+    #[allow(clippy::result_unit_err)]
     pub fn insert(&mut self, window: Window) -> Result<(), ()> {
         if self.find(window.owner_pid, window.window_id).is_some() {
+            return Err(());
+        }
+        if self.held_by(window.owner_pid) >= PER_OWNER {
             return Err(());
         }
         for slot in self.entries.iter_mut() {

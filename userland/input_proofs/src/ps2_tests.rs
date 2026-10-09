@@ -77,3 +77,22 @@ fn wheel_from_fourth_byte() {
     // Three bytes still decode with no wheel movement.
     assert_eq!(parse(&[0x08, 0, 0]).unwrap().dz, 0);
 }
+
+// The IntelliMouse wheel byte counts a notch toward the user as +1 (QEMU's
+// PS/2 mouse sends 0xFF for a notch away). The input ring counts a notch away
+// as +1, as USB and I2C HID mice report it and as every app reads it (+1
+// scrolls toward the top), so the PS/2 step is posted negated.
+#[test]
+fn a_wheel_notch_away_is_posted_as_a_step_up() {
+    nonos_libc::reset();
+    let away = parse(&[0x08, 0, 0, 0xFF]).unwrap();
+    assert!(crate::ps2_mouse_post::publish(away, 0));
+    let toward = parse(&[0x08, 0, 0, 0x01]).unwrap();
+    assert!(crate::ps2_mouse_post::publish(toward, 0));
+    let steps: Vec<i32> = nonos_libc::take_posted()
+        .iter()
+        .filter(|e| e.kind == nonos_libc::INPUT_KIND_WHEEL)
+        .map(|e| e.delta_y)
+        .collect();
+    assert_eq!(steps, [1, -1]);
+}

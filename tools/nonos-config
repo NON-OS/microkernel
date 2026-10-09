@@ -208,7 +208,6 @@ resolve_selection() {
 feature_string() {
   local f="${BASE_FEATURES}" s
   for s in ${SELECTED}; do f="${f},$(feat_of "$s")"; done
-  [[ "${SEL_ATTEST}" -eq 1 ]] && f="${f},nonos-stark-attest"
   echo "${f}"
 }
 

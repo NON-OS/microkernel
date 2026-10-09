@@ -40,13 +40,13 @@ static PID_RUN_QUEUE: Mutex<VecDeque<u32>> = Mutex::new(VecDeque::new());
 
 pub fn add_to_run_queue(pid: u32) {
     if insert(pid, false) {
-        crate::smp::wake_idle_cpu();
+        super::super::selection::wake_for(pid);
     }
 }
 
 pub fn add_to_run_queue_front(pid: u32) {
     if insert(pid, true) {
-        crate::smp::wake_idle_cpu();
+        super::super::selection::wake_for(pid);
     }
 }
 

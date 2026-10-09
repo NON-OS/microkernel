@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod firmware_remap;
+mod invalidation;
+mod release;
 mod root_table;
 mod service;
 mod translation;
 
+pub use release::{release_from_firmware, Released};
 pub use root_table::install_root_table;
 pub use service::bring_into_service;
 pub use translation::enable_translation;

@@ -18,6 +18,7 @@ mod claim;
 mod dma;
 mod driver;
 mod irq;
+mod modern;
 mod registers;
 mod sequence;
 

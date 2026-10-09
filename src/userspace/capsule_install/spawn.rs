@@ -19,7 +19,11 @@
 //! The capability set is what the installer's Capsule.mk declares and
 //! nothing more: Admin is there for the reboot at the end, DeviceEnum for
 //! the disk list and the running image, Crypto for the GUIDs it mints,
-//! AttestRead for the verdict it shows before a disk is chosen.
+//! FileSystem for what it carries, which it reads from vfs, and
+//! StoreWrite for the disk itself, since the disk drivers serve raw sectors
+//! to the kernel and to StoreWrite holders alone. The
+//! window's manifest also requires AttestRead, to count the capsules the
+//! kernel proved; a required bit is installed from the manifest, not asked.
 
 use super::embed::{
     INSTALL_ATTESTATION_BYTES, INSTALL_ELF, INSTALL_MANIFEST_BYTES, INSTALL_NONOS_ID_CERT_BYTES,
@@ -38,20 +42,27 @@ const REPLY_INBOX: &str = "endpoint.app.install.reply";
 const REPLY_PORT: u32 = 4933;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
-/// The set both installers run with; the window and the command line do the
-/// same work and hold the same authority, declared once.
+/// The set the command line installer is granted from the tool registry. It
+/// does the window's work and draws nothing, so it holds no display bits;
+/// userland/tool_install/Capsule.mk carries the same set.
 pub const CLI_CAPS: u64 = Capability::CoreExec.bit()
     | Capability::IPC.bit()
     | Capability::Memory.bit()
     | Capability::Crypto.bit()
+    | Capability::FileSystem.bit()
     | Capability::Admin.bit()
-    | Capability::Debug.bit()
-    | Capability::GraphicsDisplayQuery.bit()
-    | Capability::GraphicsSurfaceCreate.bit()
+    | crate::capabilities::serial_debug_cap()
     | Capability::DeviceEnum.bit()
-    | Capability::AttestRead.bit();
+    | Capability::StoreWrite.bit();
 
-pub fn spawn_install_capsule() -> Result<u32, SpawnError> {
+/// The window's set: the command line's and the two bits it draws with.
+/// AttestRead, for the window's proofs screen, is required by its manifest and
+/// installed whatever this grant says, so it is not repeated here.
+const WINDOW_CAPS: u64 = CLI_CAPS
+    | Capability::GraphicsDisplayQuery.bit()
+    | Capability::GraphicsSurfaceCreate.bit();
+
+pub(super) fn spawn_install_capsule() -> Result<u32, SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
         .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
     let spec = CapsuleSpecVerified {
@@ -64,7 +75,7 @@ pub fn spawn_install_capsule() -> Result<u32, SpawnError> {
         manifest_bytes: INSTALL_MANIFEST_BYTES,
         attestation_trailer: INSTALL_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: CLI_CAPS,
+        requested_caps: WINDOW_CAPS,
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

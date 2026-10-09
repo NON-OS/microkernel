@@ -14,25 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_recv_from;
+use nonos_libc::{mk_ipc_recv_from, mk_uptime_ms};
 
 use super::constants::{RECV_BLOCK, RECV_RETRY_MS, SERVICE_INBOX};
+use super::tick::{wait_ms, wake_due};
 use crate::protocol::parse;
 use crate::server::respond;
 use crate::state::Context;
 
-pub(super) fn drain(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) {
+/// Handle what is in the inbox until it goes quiet or the loop's wake at
+/// uptime `wake_ms` (the next tick, or the next toast's expiry) is due.
+pub(super) fn drain(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8], wake_ms: i64) {
     loop {
+        if wake_due(mk_uptime_ms(), wake_ms) {
+            return;
+        }
         let mut sender_pid = 0u32;
-        let timeout = if crate::server::ready_to_block::ready_to_block(ctx) {
+        let most = if crate::server::ready_to_block::ready_to_block(ctx) {
             RECV_BLOCK
         } else {
             RECV_RETRY_MS
         };
+        let timeout = wait_ms(mk_uptime_ms(), wake_ms, most);
         let n =
             mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), timeout, &mut sender_pid);
         crate::server::retry_input_subscription::retry_input_subscription(ctx);
         crate::server::retry_wm_subscription::retry_wm_subscription(ctx);
+        crate::server::reap_tray::reap_if_due(ctx);
+        crate::server::handlers::installed_launch_poll::poll(ctx);
         if n <= 0 || sender_pid == 0 {
             return;
         }

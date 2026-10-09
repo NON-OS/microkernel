@@ -23,5 +23,13 @@ pub(super) fn alloc_resources(
     port: u8,
     speed: u8,
 ) -> XhciResult<SlotResources> {
-    SlotResources::allocate(&ctx.driver.dma_pool, ctx.driver.layout.context_size, slot, port, speed)
+    let usb3 = ctx.driver.layout.ports.is_usb3(port);
+    SlotResources::allocate(
+        &ctx.driver.dma_pool,
+        ctx.driver.layout.context_size,
+        slot,
+        port,
+        speed,
+        usb3,
+    )
 }

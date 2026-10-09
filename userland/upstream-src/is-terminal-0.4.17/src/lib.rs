@@ -101,12 +101,12 @@ impl<Stream: AsFd> IsTerminal for Stream {
             hermit_abi::isatty(self.as_fd().as_fd().as_raw_fd())
         }
 
-        // A NONOS capsule runs attached to the terminal surface it was launched
-        // from, so its standard streams are interactive by construction.
+        // NONOS asks the kernel, through std: the launcher that renders this
+        // process's output says which of its streams reach a terminal, and a
+        // stage feeding a pipe or a file is told it reaches none.
         #[cfg(target_vendor = "nonos")]
         {
-            let _ = self.as_fd();
-            true
+            std::io::IsTerminal::is_terminal(&self.as_fd())
         }
     }
 }

@@ -17,12 +17,12 @@
 use crate::clients::compositor;
 use crate::clients::wm::WindowPlacement;
 use crate::discover::Peers;
-use nonos_libc::mk_yield;
+use nonos_libc::mk_idle_ms;
 
+use super::patience::SCENE_SUBMIT;
 use super::request_id::bump;
 
 const APP_LAYER_Z: u32 = 2;
-const SCENE_SUBMIT_ATTEMPTS: usize = 8;
 
 pub(super) fn submit_scene(
     peers: &Peers,
@@ -31,7 +31,7 @@ pub(super) fn submit_scene(
     placement: WindowPlacement,
 ) -> Result<(), &'static str> {
     let mut last = "compositor rejected scene_submit";
-    for _ in 0..SCENE_SUBMIT_ATTEMPTS {
+    for attempt in 0..SCENE_SUBMIT.attempts {
         let rid = bump(request_id);
         match compositor::scene_submit(
             peers.compositor,
@@ -46,7 +46,9 @@ pub(super) fn submit_scene(
             Ok(()) => return Ok(()),
             Err(e) => last = e,
         }
-        mk_yield();
+        if attempt + 1 < SCENE_SUBMIT.attempts {
+            mk_idle_ms(SCENE_SUBMIT.rest_ms);
+        }
     }
     Err(last)
 }

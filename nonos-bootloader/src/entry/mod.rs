@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod action;
+mod approval;
 mod boot;
+mod boot_evidence;
 mod dev;
 mod init;
 mod install_source;
 mod mode;
 mod pipeline;
+mod proofs;
 
 pub use boot::boot_entry;

@@ -7,16 +7,38 @@ use crate::protocol::{parse_delivery, DELIVERY_LEN};
 use crate::render::screens;
 use crate::state::Context;
 
-use super::step::{self, DONE};
+use super::order::DONE;
+use super::say::say;
+use super::step;
 
 pub fn run(mut ctx: Context) -> ! {
-    let _ = input_router::subscribe(ctx.router_port, 1);
-    let _ = input_router::grab_keyboard(ctx.router_port, 2);
+    if input_router::subscribe(ctx.router_port, 1).is_err() {
+        say(b"[SETUP] the input router refused the subscription\n");
+    }
+    /*
+     * The boot splash holds the keyboard until it hands off, and it may not
+     * have when setup first asks. Keys sent while nobody holds it go to focus,
+     * and before the desktop exists there is no focus to take them, so setup
+     * asks again until it holds the keyboard.
+     */
+    let mut held = false;
+    let mut rid = 2u32;
     redraw(&ctx);
     let mut rx = vec![0u8; DELIVERY_LEN.max(64)];
     loop {
+        if !held {
+            held = input_router::grab_keyboard(ctx.router_port, rid).is_ok();
+            rid = rid.wrapping_add(1).max(2);
+            if held {
+                say(b"[SETUP] keyboard held\n");
+            }
+        }
+        let wait = super::wait::wait_ms(&ctx, held);
         let mut sender = 0u32;
-        let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx.len(), 0, &mut sender);
+        let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx.len(), wait, &mut sender);
+        if super::wait::tick(&mut ctx) {
+            redraw(&ctx);
+        }
         if n <= 0 {
             continue;
         }
@@ -30,7 +52,7 @@ pub fn run(mut ctx: Context) -> ! {
         ctx.step = step::apply(ctx.step, outcome);
         if ctx.step >= DONE {
             let _ = compositor::push_scene_remove(ctx.compositor_port, 3);
-            mk_exit(0);
+            mk_exit(screens::mode::exit_code(&ctx));
         }
         redraw(&ctx);
     }

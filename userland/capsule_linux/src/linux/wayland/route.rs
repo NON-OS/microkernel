@@ -23,7 +23,8 @@ use super::object::Object;
 use super::ops::req;
 use super::serve::is_destructor;
 use super::args::Args;
-use super::{buffer, commit, handlers, seat, shm, surface, xdg};
+use super::fit::Mode;
+use super::{buffer, commit, handlers, seat, shm, surface, toplevel, xdg};
 
 pub fn route(
     guest: &mut Guest,
@@ -52,10 +53,26 @@ pub fn route(
             xdg::ack_configure(guest, id, args)
         }
         (Some(Object::XdgSurface), req::XDG_SURFACE_SET_GEOMETRY) => {}
+        (Some(Object::XdgSurface), req::XDG_SURFACE_DESTROY) => {
+            super::forget::forget(guest, object, id)
+        }
         (Some(Object::XdgToplevel), req::TOPLEVEL_SET_TITLE | req::TOPLEVEL_SET_APP_ID) => {}
+        (Some(Object::XdgToplevel), req::TOPLEVEL_DESTROY) => toplevel::destroy(guest, id),
+        (Some(Object::XdgToplevel), req::TOPLEVEL_SET_MAXIMIZED) => {
+            toplevel::set(guest, id, Mode::Maximized, args)
+        }
+        (Some(Object::XdgToplevel), req::TOPLEVEL_SET_FULLSCREEN) => {
+            toplevel::set(guest, id, Mode::FullScreen, args)
+        }
+        (Some(Object::XdgToplevel), req::TOPLEVEL_UNSET_MAXIMIZED) => {
+            toplevel::unset(guest, id, Mode::Maximized)
+        }
+        (Some(Object::XdgToplevel), req::TOPLEVEL_UNSET_FULLSCREEN) => {
+            toplevel::unset(guest, id, Mode::FullScreen)
+        }
         (Some(Object::Seat), req::SEAT_GET_POINTER) => seat::get_pointer(guest, args),
         (Some(Object::Seat), req::SEAT_GET_KEYBOARD) => seat::get_keyboard(guest, args),
-        (o, c) if is_destructor(o, c) => guest.objects.drop_id(id),
+        (o, c) if is_destructor(o, c) => super::forget::forget(guest, o, id),
         _ => return false,
     }
     true

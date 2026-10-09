@@ -17,7 +17,8 @@
 //! Row tables. The row index is the action selector, so order is load-bearing.
 
 use super::items::MenuCmd::{
-    CloseTab, Ctrl, Info, NewTab, PageBreak, Special, Table, Todo, ToggleSidebar, WordCount,
+    CloseTab, Ctrl, Info, Markup, NewTab, PageBreak, Special, Table, Theme, ToggleSidebar,
+    WordCount,
 };
 use super::items::MenuRow;
 
@@ -44,11 +45,17 @@ pub(super) const VIEW: [MenuRow; 5] = [
     ("Zoom In", Ctrl(0x3D, false)),
     ("Zoom Out", Ctrl(0x2D, false)),
     ("Reset Zoom", Ctrl(0x30, false)),
-    ("Toggle Theme", Ctrl(0x42, false)),
+    // Not a Ctrl chord: Ctrl+B is the file tree, and the theme is cycled by
+    // the two-key Ctrl+K T, which a single Ctrl row cannot send.
+    ("Toggle Theme", Theme),
     ("Toggle Sidebar", ToggleSidebar),
 ];
-pub(super) const INSERT: [MenuRow; 4] =
-    [("Image", Todo), ("Link", Todo), ("Page Break", PageBreak), ("Special Character", Special)];
+pub(super) const INSERT: [MenuRow; 4] = [
+    ("Image", Markup(true)),
+    ("Link", Markup(false)),
+    ("Page Break", PageBreak),
+    ("Special Character", Special),
+];
 pub(super) const FORMAT: [MenuRow; 4] = [
     ("Bold", Ctrl(0x42, true)),
     ("Italic", Ctrl(0x49, false)),

@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::hooks;
-use super::state;
-
-// The EWMA decay constants in the load-average module assume a five-second
-// sampling period; the LAPIC preemption timer runs at 100 Hz.
-const LOAD_SAMPLE_TICKS: u64 = 500;
-
 pub fn on_timer_interrupt() {
     /*
      * Per-CPU evidence that this CPU takes interrupts at all. The tick counter
@@ -33,9 +26,12 @@ pub fn on_timer_interrupt() {
     crate::smp::percpu::current()
         .last_tick_tsc
         .store(crate::arch::read_time_counter(), core::sync::atomic::Ordering::Relaxed);
-    state::increment_ticks();
-    if option_env!("NONOS_FBCONSOLE").is_some() {
-        super::heartbeat::on_tick(state::get_ticks());
+    /*
+     * Only the boot CPU keeps the machine's clock; see `clock`.
+     */
+    let counts = crate::smp::cpu_id() == 0;
+    if counts {
+        super::clock::advance();
     }
     crate::sched::tick();
     #[cfg(feature = "input-probe-inject")]
@@ -45,21 +41,25 @@ pub fn on_timer_interrupt() {
     // sockets; capsule-side networking, when present, drives its own
     // timers via IPC.
     crate::sched::scheduler::process::check_sleeping_processes();
+    crate::process::scheduler::dispatch::try_wake::drain_deferred();
 
-    if state::get_ticks() % 10 == 0 {
-        crate::process::alarm::tick();
+    if counts {
+        super::clock::paced_work();
     }
 
-    if state::get_ticks() % LOAD_SAMPLE_TICKS == 0 {
-        crate::fs::procfs::update_load_averages();
-    }
-
-    #[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
-    crate::arch::x86_64::iommu::unit::fault::poll_faults(state::get_ticks());
-
-    hooks::invoke_hook();
-
-    if crate::sched::scheduler::preemption::need_reschedule() {
+    /*
+     * Only a tick that interrupted user mode may switch. Kernel code here
+     * holds plain spin locks with interrupts open, and a switch taken inside
+     * one hands the CPU to a task whose resume takes the same lock: on one
+     * processor that spin never ends, as runG7 hung in the paging manager.
+     * A kernel path waits by yielding, which picks up the pending request.
+     */
+    let from_user =
+        crate::smp::percpu::current().tick_from_user.load(core::sync::atomic::Ordering::Relaxed);
+    if from_user
+        && crate::smp::preempt_enabled()
+        && crate::sched::scheduler::preemption::need_reschedule()
+    {
         crate::sched::scheduler::preemption::clear_reschedule();
         if crate::process::scheduler::contract::switch(
             crate::process::scheduler::contract::SwitchIntent::Preempt,

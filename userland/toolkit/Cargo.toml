@@ -25,4 +25,4 @@ runtime = ["nonos_libc/heap", "nonos_libc/panic-handler"]
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
 spin = "0.9"
-ab_glyph = { version = "0.2", default-features = false, features = ["libm"] }
+ab_glyph = { version = "0.2", default-features = false, features = ["libm", "variable-fonts"] }

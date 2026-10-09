@@ -29,7 +29,7 @@ impl AdminQueue {
             stride,
             Submission::identify_namespace(cid, nsid, self.identify.device_addr()),
         );
-        self.wait(regs, stride, cid)?;
+        self.wait(regs, stride, cid, "identify namespace (CNS 00h)")?;
         Ok(unsafe {
             core::slice::from_raw_parts(self.identify.user_va() as *const u8, IDENTIFY_SLICE_BYTES)
         })

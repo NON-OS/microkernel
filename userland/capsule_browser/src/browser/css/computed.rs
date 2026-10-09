@@ -14,6 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod shadow;
+pub use shadow::{Shadow, ShadowLayer, MAX_SHADOWS};
+mod bg_layer;
+mod bg_tile_rect;
+mod object_fit;
+mod table_style;
+
+pub use bg_layer::{BgLayer, BgLen, BgSize};
+pub use object_fit::ObjectFit;
+
+pub use table_style::TableStyle;
+
 pub const DEFAULT_FG: u32 = 0xFF1A_1A1A;
 pub const DEFAULT_FONT_PX: u32 = 16;
 
@@ -22,29 +34,26 @@ pub enum Size {
     Auto,
     Px(u32),
     Pct(u16),
-    // calc(): fixed pixels plus per-mille of the containing base, either
-    // part possibly negative.
+    /* calc(): fixed pixels plus per-mille of the containing base, either
+     * part possibly negative. */
     Calc(i32, i32),
+    /* min()/max()/clamp() with a percentage argument, decided at layout. */
+    Math(super::calc::MathSize),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum WhiteSpace {
-    // Collapse runs of whitespace and wrap at the content edge.
+    /* Collapse runs of whitespace and wrap at the content edge. */
     Normal,
-    // Preserve spaces and newlines; wrap only at a newline.
+    /* Preserve spaces and newlines; wrap only at a newline. */
     Pre,
-    // Collapse whitespace but never wrap.
+    /* Collapse whitespace but never wrap. */
     Nowrap,
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum ObjectFit {
-    // Fit the whole image inside the box, letterboxing the spare space.
-    Contain,
-    // Fill the box, cropping whatever overflows after covering it.
-    Cover,
-    // Stretch the image to the box, ignoring its aspect ratio.
-    Fill,
+    /* Preserve spaces and newlines, and wrap at spaces as normal text does
+     * (pre-wrap and break-spaces). */
+    PreWrap,
+    /* Collapse spaces but keep every newline as a line break. */
+    PreLine,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -52,6 +61,10 @@ pub enum TextAlign {
     Left,
     Center,
     Right,
+    /* The logical edges: left and right in left-to-right text, the other
+     * way round when the direction is rtl. start is the initial value. */
+    Start,
+    End,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -62,16 +75,6 @@ pub enum TextTransform {
     Capitalize,
 }
 
-// background-size for the box's image layer. Auto keeps the natural size and
-// tiles per background-repeat; a length scales the tile width keeping aspect.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum BgSize {
-    Auto,
-    Cover,
-    Contain,
-    Px(u16),
-}
-
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Justify {
     Start,
@@ -79,6 +82,8 @@ pub enum Justify {
     End,
     Between,
     Around,
+    /* space-evenly: equal space before, between and after the items. */
+    Evenly,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -87,6 +92,15 @@ pub enum Align {
     Center,
     End,
     Stretch,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Overflow {
+    Visible,
+    Hidden,
+    Clip,
+    Auto,
+    Scroll,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -114,38 +128,37 @@ pub enum Clear {
     Both,
 }
 
-// One grid column track: a length, a percentage of the row, or a fraction
-// of the leftover space.
+/* One grid track: a length, a percentage of the grid's size in hundredths
+ * of a percent, a fraction of the leftover space in hundredths of an fr,
+ * or sized by its items' content (auto, min-content, max-content). Four
+ * bytes, so the column and row templates stay small in every style. */
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GridTrack {
-    Px(u32),
+    Px(u16),
     Pct(u16),
     Fr(u16),
+    Auto,
+    MinContent,
+    MaxContent,
 }
 
-pub const MAX_GRID_COLS: usize = 8;
+pub const MAX_GRID_COLS: usize = 12;
+/* Explicit row tracks kept from grid-template-rows; later ones drop. */
+pub const MAX_GRID_ROWS: usize = 8;
 
-// repeat(auto-fill | auto-fit, ...): how many times the track repeats depends
-// on the container width, which the cascade does not know, so it records the
-// keyword and layout resolves the count. auto-fit additionally drops the
-// tracks no item lands in, so the occupied ones share the whole width.
+/* repeat(auto-fill | auto-fit, ...): how many times the track repeats depends
+ * on the container width, which the cascade does not know, so it records the
+ * keyword and layout resolves the count. auto-fit additionally drops the
+ * tracks no item lands in, so the occupied ones share the whole width. */
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum AutoRepeat {
     Fill,
     Fit,
 }
 
-// Inherited fields: color, bold, font_size_px, text_align, line_height_px.
-// Everything else is per-element; the cascade walk starts each element from
-// root() and copies only the inherited fields across.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Shadow {
-    pub dx: i32,
-    pub dy: i32,
-    pub blur: u32,
-    pub color: u32,
-}
-
+/* Inherited fields: color, bold, font_size_px, text_align, line_height_px.
+ * Everything else is per-element; the cascade walk starts each element from
+ * root() and copies only the inherited fields across. */
 #[derive(Clone, Copy)]
 pub struct Computed {
     pub display_none: bool,
@@ -154,31 +167,46 @@ pub struct Computed {
     pub bold: bool,
     pub mono: bool,
     pub font_size_px: u32,
+    /* The same size unrounded, and the parent's, which em and % in a
+     * font-size resolve against; inherited. */
+    pub font_px: f32,
+    pub em_parent: f32,
+    /* font-style italic or oblique: text draws slanted; inherited. */
+    pub italic: bool,
     pub text_align: TextAlign,
     pub white_space: WhiteSpace,
     pub object_fit: ObjectFit,
     pub text_transform: TextTransform,
-    // Family key of the custom face this text draws in, 0 for the built-in
-    // face; the fonts registry maps keys to loaded faces.
+    /* Family key of the custom face this text draws in, 0 for the built-in
+     * face; the fonts registry maps keys to loaded faces. */
     pub font_key: u32,
-    // Text draws in a webfont icon family (Material Icons/Symbols, Font
-    // Awesome) whose face we do not load. Ligature names like "arrow_forward"
-    // are mapped to a Unicode glyph so the icon reads as a symbol, not a word.
+    /* Text draws in a webfont icon family (Material Icons/Symbols, Font
+     * Awesome) whose face we do not load. Ligature names like "arrow_forward"
+     * are mapped to a Unicode glyph so the icon reads as a symbol, not a word. */
     pub icon_font: bool,
-    pub bg_size: BgSize,
-    pub bg_repeat: bool,
-    // Element opacity 0..255; multiplies down the subtree at layout.
+    pub bg_layer: BgLayer,
+    /* Element opacity 0..255; multiplies down the subtree at layout. */
     pub opacity: u8,
-    // Extra advance in px between glyphs, letter-spacing; inherited, may be
-    // negative for tightened headings.
+    /* visibility: hidden or collapse on this element. Its box keeps its
+     * space and paints nothing, its subtree included (alpha); kept apart
+     * from opacity so each reads as it was set. */
+    pub hidden: bool,
+    /* Extra advance in px between glyphs, letter-spacing; inherited, may be
+     * negative for tightened headings. */
     pub letter_spacing: f32,
     pub underline: bool,
-    // 0 means unset: derive 1.3 * font size where a line height is needed.
+    /* 0 means unset: derive 1.3 * font size where a line height is needed. */
     pub line_height_px: u32,
-    pub margin_top: u32,
-    pub margin_right: u32,
-    pub margin_bottom: u32,
-    pub margin_left: u32,
+    /* A unitless line-height: this multiple of the element's own font size,
+     * inherited as the number, not the px it gave the parent. 0 when unset. */
+    pub line_ratio: f32,
+    pub margin_top: i32,
+    pub margin_right: i32,
+    pub margin_bottom: i32,
+    pub margin_left: i32,
+    /* The percentage part of each margin (top, right, bottom, left), per
+     * mille of the containing block's width, added to the px part at layout. */
+    pub margin_pml: [i32; 4],
     pub pad_top: u32,
     pub pad_right: u32,
     pub pad_bottom: u32,
@@ -187,7 +215,7 @@ pub struct Computed {
     pub border_right: u32,
     pub border_bottom: u32,
     pub border_left: u32,
-    // 0 means unset: borders fall back to the text color.
+    /* 0 means unset: borders fall back to the text color. */
     pub border_color: u32,
     pub width: Size,
     pub max_width: Size,
@@ -195,19 +223,19 @@ pub struct Computed {
     pub height: Size,
     pub min_height: Size,
     pub max_height: Size,
-    // Set when both horizontal margins are auto: an in-flow block centres in
-    // its available width. The per-side flags track partial declarations.
+    /* Set when both horizontal margins are auto: an in-flow block centres in
+     * its available width. The per-side flags track partial declarations. */
     pub margin_auto_x: bool,
     pub margin_left_auto: bool,
     pub margin_right_auto: bool,
-    // box-sizing: border-box makes width/height span the border box; the
-    // default content-box adds padding and border on top.
+    /* box-sizing: border-box makes width/height span the border box; the
+     * default content-box adds padding and border on top. */
     pub border_box: bool,
     pub is_block: bool,
     pub is_flex: bool,
     pub is_inline_block: bool,
-    // Table roles, set from the tag as a user-agent default or `display: table*`.
-    // A table box lays its rows and cells into a shared column grid.
+    /* Table roles, set from the tag as a user-agent default or `display: table*`.
+     * A table box lays its rows and cells into a shared column grid. */
     pub is_table: bool,
     pub is_table_row: bool,
     pub is_table_cell: bool,
@@ -215,41 +243,74 @@ pub struct Computed {
     pub flex_col: bool,
     pub justify: Justify,
     pub align: Align,
-    pub gap: u32,
+    /* The space between rows (row-gap) and between columns (column-gap) of
+     * a grid, and between flex lines and flex items. */
+    pub row_gap: u32,
+    pub column_gap: u32,
+    /* justify-items, and this item's justify-self and align-self; None is
+     * normal or auto, which a grid item takes as stretch and a flex item as
+     * its container's align-items. */
+    pub justify_items: Option<Align>,
+    pub justify_self: Option<Align>,
+    pub align_self: Option<Align>,
+    /* flex-grow and flex-shrink in hundredths, so 0.5 keeps its weight. */
     pub flex_grow: u32,
-    // flex-basis: the main-size base before grow/shrink. Auto means size to
-    // content or the width property, as CSS specifies.
+    pub flex_shrink: u32,
+    /* flex-basis: the main-size base before grow/shrink. Auto means size to
+     * content or the width property, as CSS specifies. */
     pub flex_basis: Size,
     pub position: Position,
-    // float takes the box to one side and flows following content around it;
-    // clear drops a box below the floats named by it.
+    /* float takes the box to one side and flows following content around it;
+     * clear drops a box below the floats named by it. */
     pub float: Float,
     pub clear: Clear,
-    // position: fixed is laid out like absolute but painted without the
-    // scroll offset, so it pins to the viewport.
+    /* position: fixed is laid out like absolute but painted without the
+     * scroll offset, so it pins to the viewport. */
     pub is_fixed: bool,
-    // position: sticky flows normally and clamps against the viewport top
-    // once scrolled past its threshold.
+    /* position: sticky flows normally and clamps against the viewport top
+     * once scrolled past its threshold. */
     pub is_sticky: bool,
     pub top: Size,
     pub right: Size,
     pub bottom: Size,
     pub left: Size,
-    pub overflow_hidden: bool,
+    /* overflow-x and overflow-y; hidden and clip cut the content off at
+     * the padding box, auto and scroll only horizontally here. */
+    pub overflow_x: Overflow,
+    pub overflow_y: Overflow,
     pub z: i32,
-    pub radius: u32,
+    /* border-radius per corner: top-left, top-right, bottom-right,
+     * bottom-left; a percentage resolves against the box at layout. */
+    pub radius: [Size; 4],
+    /* aspect-ratio as width / height; None is auto. */
+    pub aspect: Option<f32>,
+    /* transform, transform-origin and clip-path, applied after layout. */
+    pub fx: crate::browser::layout::boxmodel::Fx,
     pub shadow: Option<Shadow>,
     pub is_grid: bool,
-    // display: contents drops the box and promotes the children.
+    /* display: contents drops the box and promotes the children. */
     pub is_contents: bool,
     pub grid_cols: [GridTrack; MAX_GRID_COLS],
     pub grid_col_n: u8,
-    // Set when the template is a single repeat(auto-fill | auto-fit, track);
-    // grid_cols then holds that one track and grid_auto_min its floor.
+    /* Set when the template is a single repeat(auto-fill | auto-fit, track);
+     * grid_cols then holds that one track and grid_auto_min its floor. */
     pub grid_auto: Option<AutoRepeat>,
     pub grid_auto_min: GridTrack,
-    // list-style-type: none suppresses the marker on li boxes; inherited.
+    /* grid-template-rows, and the size of the implicit rows and columns
+     * that grid-auto-rows and grid-auto-columns give. */
+    pub grid_rows: [GridTrack; MAX_GRID_ROWS],
+    pub grid_row_n: u8,
+    pub grid_auto_rows: GridTrack,
+    pub grid_auto_cols: GridTrack,
+    /* grid-auto-flow: column fills columns first; dense backfills holes. */
+    pub grid_flow_col: bool,
+    pub grid_dense: bool,
+    /* list-style-type: none suppresses the marker on li boxes; inherited. */
     pub list_none: bool,
+    /* direction: rtl, from the property or a dir attribute; inherited. */
+    pub rtl: bool,
+    /* The table model's properties and attributes. */
+    pub table: TableStyle,
 }
 
 impl Computed {
@@ -261,22 +322,27 @@ impl Computed {
             bold: false,
             mono: false,
             font_size_px: DEFAULT_FONT_PX,
-            text_align: TextAlign::Left,
+            font_px: DEFAULT_FONT_PX as f32,
+            em_parent: DEFAULT_FONT_PX as f32,
+            italic: false,
+            text_align: TextAlign::Start,
             white_space: WhiteSpace::Normal,
-            object_fit: ObjectFit::Contain,
+            object_fit: ObjectFit::CONTAIN,
             text_transform: TextTransform::None,
             font_key: 0,
             icon_font: false,
-            bg_size: BgSize::Auto,
-            bg_repeat: true,
+            bg_layer: BgLayer::INITIAL,
             opacity: 255,
+            hidden: false,
             letter_spacing: 0.0,
             underline: false,
             line_height_px: 0,
+            line_ratio: 0.0,
             margin_top: 0,
             margin_right: 0,
             margin_bottom: 0,
             margin_left: 0,
+            margin_pml: [0; 4],
             pad_top: 0,
             pad_right: 0,
             pad_bottom: 0,
@@ -306,8 +372,13 @@ impl Computed {
             flex_col: false,
             justify: Justify::Start,
             align: Align::Stretch,
-            gap: 0,
+            row_gap: 0,
+            column_gap: 0,
+            justify_items: None,
+            justify_self: None,
+            align_self: None,
             flex_grow: 0,
+            flex_shrink: 100,
             flex_basis: Size::Auto,
             position: Position::Static,
             float: Float::None,
@@ -318,43 +389,71 @@ impl Computed {
             right: Size::Auto,
             bottom: Size::Auto,
             left: Size::Auto,
-            overflow_hidden: false,
+            overflow_x: Overflow::Visible,
+            overflow_y: Overflow::Visible,
             z: 0,
-            radius: 0,
+            radius: [Size::Px(0); 4],
+            aspect: None,
+            fx: crate::browser::layout::boxmodel::Fx::NONE,
             shadow: None,
             is_grid: false,
             is_contents: false,
-            grid_cols: [GridTrack::Fr(1); MAX_GRID_COLS],
+            grid_cols: [GridTrack::Auto; MAX_GRID_COLS],
             grid_col_n: 0,
             grid_auto: None,
             grid_auto_min: GridTrack::Px(0),
+            grid_rows: [GridTrack::Auto; MAX_GRID_ROWS],
+            grid_row_n: 0,
+            grid_auto_rows: GridTrack::Auto,
+            grid_auto_cols: GridTrack::Auto,
+            grid_flow_col: false,
+            grid_dense: false,
             list_none: false,
+            rtl: false,
+            table: TableStyle::INITIAL,
         }
     }
 
-    // Fresh element style: defaults for everything, inherited fields carried
-    // over from the parent.
+    /* Fresh element style: defaults for everything, inherited fields carried
+     * over from the parent. */
     pub fn inherit_from(parent: &Computed) -> Self {
         let mut c = Computed::root();
         c.color = parent.color;
         c.bold = parent.bold;
         c.mono = parent.mono;
         c.font_size_px = parent.font_size_px;
+        c.font_px = parent.font_px;
+        c.em_parent = parent.font_px;
+        c.italic = parent.italic;
         c.text_align = parent.text_align;
         c.white_space = parent.white_space;
         c.underline = parent.underline;
         c.line_height_px = parent.line_height_px;
+        c.line_ratio = parent.line_ratio;
         c.list_none = parent.list_none;
+        c.rtl = parent.rtl;
         c.text_transform = parent.text_transform;
         c.font_key = parent.font_key;
         c.icon_font = parent.icon_font;
         c.letter_spacing = parent.letter_spacing;
+        c.table = parent.table.inherit();
         c
     }
 
-    // Line height in px, deriving the CSS "normal" ratio when unset.
+    /* The opacity the box paints at: none at all while it is hidden. */
+    pub fn alpha(&self) -> u8 {
+        if self.hidden {
+            0
+        } else {
+            self.opacity
+        }
+    }
+
+    /* Line height in px, deriving the CSS "normal" ratio when unset. */
     pub fn line_height(&self) -> u32 {
-        if self.line_height_px != 0 {
+        if self.line_ratio > 0.0 {
+            (self.line_ratio * self.font_px + 0.5) as u32
+        } else if self.line_height_px != 0 {
             self.line_height_px
         } else {
             (self.font_size_px * 13 + 5) / 10

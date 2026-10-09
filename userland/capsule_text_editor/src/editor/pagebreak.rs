@@ -20,7 +20,7 @@
 
 use super::app::Editor;
 use super::mode::Mode;
-use super::unsupported::NO_DOC_MODE;
+use super::unsupported::{NO_DOC_MODE, NO_ROOM};
 
 impl Editor {
     pub(super) fn insert_page_break(&mut self) {
@@ -32,6 +32,8 @@ impl Editor {
         let at = doc.caret.min(doc.len);
         let opening = at > 0 && doc.buf.get(at - 1) != Some(&b'\n');
         let bytes: &[u8] = if opening { b"\n\x0c\n" } else { b"\x0c\n" };
-        let _ = doc.insert(bytes);
+        if !doc.insert(bytes) {
+            doc.status = NO_ROOM;
+        }
     }
 }

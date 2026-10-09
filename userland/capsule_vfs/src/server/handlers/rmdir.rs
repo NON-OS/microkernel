@@ -42,7 +42,9 @@ pub fn rmdir(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Err(_) => return encode_response(OP_RMDIR, req.flags, req.request_id, EINVAL, &[]),
     };
     let recursive = rest.get(1 + len).is_some_and(|&b| b != 0);
-    let path = normalize(path);
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_RMDIR, req.flags, req.request_id, EINVAL, &[]);
+    };
     if is_read_only(&path) {
         return encode_response(OP_RMDIR, req.flags, req.request_id, EACCES, &[]);
     }

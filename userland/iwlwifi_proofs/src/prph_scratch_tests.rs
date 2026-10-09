@@ -50,10 +50,11 @@ fn the_addresses_land_at_their_documented_offsets() {
     let mut buf = [0xEEu8; PRPH_SCRATCH_SIZE];
     assert!(s.write(&mut buf));
 
-    // version @0: mac_id, version, size-in-dwords (84/4 = 21).
+    // version @0: mac_id, version, and the whole structure's size in dwords
+    // (1724 / 4 = 431), which Linux writes as `sizeof(*prph_scratch) / 4`.
     assert_eq!(rd16(&buf, 0), 0x0034);
     assert_eq!(rd16(&buf, 2), 0x0001);
-    assert_eq!(rd16(&buf, 4), 21);
+    assert_eq!(rd16(&buf, 4), 431);
 
     // control @8, control_ext @12.
     assert_eq!(rd32(&buf, 8), CTRL_RB_SIZE_4K);

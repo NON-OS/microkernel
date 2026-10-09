@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_virtio::Bars;
+
 #[derive(Clone, Copy)]
 pub struct Found {
     pub device_id: u64,
-    pub irq_line: u8,
     pub register_bar: u8,
     pub register_kind: u8,
     pub register_size: u64,
     pub pci_device: u16,
+    /// Every BAR, for the capability checks.
+    pub bars: Bars,
 }

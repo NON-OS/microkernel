@@ -1,0 +1,55 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! TX bring-up, after Linux e1000_configure_tx: zero the ring, program the
+//! ring registers, copy TXDCTL0 into TXDCTL1 (an erratum wants both queues
+//! alike), and enable the transmitter padding short frames, retrying on
+//! late collisions, with collision threshold 15 and distance 63. TIPG is
+//! left at the value the NVM loads, as Linux leaves it.
+
+use core::sync::atomic::{fence, Ordering};
+
+use crate::constants::queue::{TX_DESC_COUNT, TX_RING_BYTES};
+use crate::constants::regs::{
+    REG_TCTL, REG_TDBAH, REG_TDBAL, REG_TDH, REG_TDLEN, REG_TDT, REG_TXDCTL0, REG_TXDCTL1,
+};
+use crate::constants::rxtx::{
+    TCTL_COLD_DEFAULT, TCTL_COLD_MASK, TCTL_CT_DEFAULT, TCTL_CT_MASK, TCTL_EN, TCTL_PSP, TCTL_RTLC,
+};
+use crate::queue::layout::TxDesc;
+use crate::queue::TxRing;
+use crate::regs::Regs;
+
+pub fn program(regs: &Regs, tx: &TxRing, ring_phys: u64) {
+    // SAFETY: `tx.ring_user_va` is the TX ring DMA grant, TX_DESC_COUNT
+    // descriptors long; the registers are 4-byte offsets in BAR0.
+    unsafe {
+        let descs = tx.ring_user_va as *mut TxDesc;
+        for i in 0..TX_DESC_COUNT {
+            *descs.add(i) = TxDesc::default();
+        }
+        // The ring was written with plain stores; the part reads it from here on.
+        fence(Ordering::Release);
+        regs.w32(REG_TDBAL, ring_phys as u32);
+        regs.w32(REG_TDBAH, (ring_phys >> 32) as u32);
+        regs.w32(REG_TDLEN, TX_RING_BYTES as u32);
+        regs.w32(REG_TDH, 0);
+        regs.w32(REG_TDT, 0);
+        regs.w32(REG_TXDCTL1, regs.r32(REG_TXDCTL0));
+        let on = TCTL_EN | TCTL_PSP | TCTL_RTLC | TCTL_CT_DEFAULT | TCTL_COLD_DEFAULT;
+        regs.modify(REG_TCTL, TCTL_CT_MASK | TCTL_COLD_MASK, on);
+    }
+}

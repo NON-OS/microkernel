@@ -227,21 +227,20 @@ fn memory_used_is_the_resident_sum_and_saturates() {
 fn an_empty_process_table_is_unknown_memory_rather_than_zero() {
     let m = summarize(&[], 0);
     assert_eq!(m.used_kb, Metric::Unknown);
-    assert!(!m.used_kb.is_known() && !m.used_kb.is_unsupported());
 }
 
 #[test]
 fn only_swap_has_no_source_at_all() {
     let m = summarize(&[proc_with(1, 8)], 2 * 1024 * 1024);
     assert_eq!(m.total_kb, Metric::Known(2 * 1024 * 1024));
-    assert!(m.swap_used_kb.is_unsupported());
+    assert!(m.swap_used_kb == Metric::Unsupported);
 }
 
 #[test]
 fn an_unreadable_memory_map_leaves_the_total_unmeasured_rather_than_absent() {
     let m = summarize(&[proc_with(1, 8)], 0);
     assert_eq!(m.total_kb, Metric::Unknown);
-    assert!(!m.total_kb.is_unsupported());
+    assert!(m.total_kb != Metric::Unsupported);
 }
 
 #[test]
@@ -264,8 +263,12 @@ fn a_pre_bound_or_short_reply_leaves_the_interface_down() {
 fn the_figures_nonos_cannot_measure_stay_unsupported() {
     let s = Sample::EMPTY;
     let up = decode_lease(&lease(3, [1, 2, 3, 4], 8));
-    assert!(up.ipv6.is_unsupported() && up.rx_bps.is_unsupported() && up.tx_bps.is_unsupported());
-    assert!(s.disk.total_kb.is_unsupported() && s.disk.used_kb == Metric::Unknown);
+    assert!(
+        up.ipv6 == Metric::Unsupported
+            && up.rx_bps == Metric::Unsupported
+            && up.tx_bps == Metric::Unsupported
+    );
+    assert!(s.disk.total_kb == Metric::Unsupported && s.disk.used_kb == Metric::Unknown);
     assert!(s.load_avg == Metric::Unknown, "load has a source, it is merely unread");
     assert_eq!(Metric::Known(7u32).value(), Some(7));
 }
@@ -283,7 +286,7 @@ fn usage(status: i32, bytes: u64) -> [u8; DISK_REPLY_LEN] {
 fn a_usage_reply_yields_the_bytes_the_store_holds() {
     let d = decode_usage(&usage(0, 5 * 1024 * 1024));
     assert_eq!(d.used_kb, Metric::Known(5 * 1024));
-    assert!(d.total_kb.is_unsupported());
+    assert!(d.total_kb == Metric::Unsupported);
 }
 
 #[test]

@@ -18,22 +18,25 @@ use crate::wallet::net::NetStatus;
 use alloc::vec::Vec;
 
 pub const MAX_RAILS: usize = 8;
-pub const MAX_STAKE: u32 = 18204;
 pub const VIEW_HOME: u8 = 0;
 pub const VIEW_RECEIVE: u8 = 1;
 pub const VIEW_SEND: u8 = 2;
-pub const VIEW_PROOF: u8 = 3;
 // New hardened-wallet + private-swap + NOX screens.
-pub const VIEW_SIGN: u8 = 4;
-pub const VIEW_APPROVALS: u8 = 5;
 pub const VIEW_SHIELD: u8 = 6;
-pub const VIEW_UNSHIELD: u8 = 7;
-pub const VIEW_SHIELDED: u8 = 8;
 pub const VIEW_NOX: u8 = 9;
 pub const VIEW_SWAP: u8 = 10;
+pub const VIEW_SETTINGS: u8 = 11;
+pub const VIEW_IMPORT: u8 = 12;
+pub const VIEW_RECOVER: u8 = 13;
+pub const VIEW_EXPORT: u8 = 14;
+pub const VIEW_ACCOUNTS: u8 = 15;
+/* Whether the keyring holds account 0's recovery words this session. */
+pub const WORDS_UNREAD: u8 = 0;
+pub const WORDS_HELD: u8 = 1;
+/* The wallet came from a private key: there are no words. */
+pub const WORDS_NONE: u8 = 2;
 pub const SEND_FIELD_TO: u8 = 0;
 pub const SEND_FIELD_AMOUNT: u8 = 1;
-pub const SEND_FIELD_NONCE: u8 = 2;
 
 #[derive(Clone, Copy)]
 pub struct Rail {
@@ -75,16 +78,42 @@ pub struct State {
     /// One attempt per window. A vault that will not open must not be retried
     /// on every hydrate, which would put a TPM derivation on a timer.
     pub vault_restore_tried: bool,
+    /// The uptime the vault's store first went unanswered, while it has
+    /// not answered since: past the patience a new wallet is asked twice
+    /// rather than refused (`event::replace_rule`).
+    pub vault_silent_since: Option<i64>,
+    /// A vault is on the disk that this boot could not open or name: a new
+    /// wallet over it is asked twice (`event::may_replace`).
+    pub vault_present: bool,
+    /// What the last keep came to, when it did not keep the wallet across
+    /// reboots: drawn on the phrase screen and on home, where the person
+    /// decides whether to write the words down (`event::keep_plan`).
+    pub kept_note: Option<&'static str>,
+    /// The first press of a replace was made and said; the next goes on.
+    pub custody_armed: bool,
+    /// The recovery words being typed are drawn, not masked.
+    pub recover_shown: bool,
     pub address: [u8; 20],
     pub address_ready: bool,
     pub balance_ready: bool,
     pub balance_wei: [u8; 32],
+    /// USDC held on the picked network, in its six-place units.
+    pub usdc_ready: bool,
+    pub usdc_units: [u8; 32],
     pub nonce_ready: bool,
     pub live_nonce: u64,
     pub fee_ready: bool,
     pub fee_wei: u64,
     pub view: u8,
+    /// How far an Etna screen has scrolled, reset when the view changes.
+    pub scroll: u32,
     pub send_focus: u8,
+    /// Form, review or sent (`send::STAGE_*`).
+    pub send_stage: u8,
+    /// The payment the review shows and the confirm signs.
+    pub send_draft: Option<crate::wallet::send::Draft>,
+    /// What an Etna screen refused, in one sentence, until dismissed.
+    pub failure: Option<&'static str>,
     pub send_to_hex: [u8; 40],
     pub send_to_len: usize,
     /// What to send, typed at chain precision on the shared keypad. It replaced
@@ -93,6 +122,22 @@ pub struct State {
     pub send_amount: crate::wallet::num::Amount,
     pub send_nonce: u64,
     pub tx_hash: [u8; 32],
+    /// The signed transaction's nonce, the most ETH it can take, and the
+    /// token it moves, for the ledger once it goes.
+    pub tx_nonce: u64,
+    /// The tip and the cap per gas the last review read from the network's
+    /// recent blocks (`send::fees`), or None when it did not come.
+    pub offered_fees: Option<(u128, u128)>,
+    /// The send form's amount is everything held, the fee left out of an
+    /// ETH payment at the fees the review reads.
+    pub send_all: bool,
+    /// The last whole read of mainnet (0) and Sepolia (1), for the screens.
+    pub last_read: [Option<crate::wallet::net::last_read::LastRead>; 2],
+    pub tx_cost: u128,
+    pub tx_token: Option<(u8, u128)>,
+    /// Every transaction sent and not yet settled, per network and account,
+    /// kept across a switch (`send::sent`).
+    pub sent: crate::wallet::send::sent::Ledger,
     pub tx_len: u32,
     pub tx_raw: Vec<u8>,
     pub tx_ready: bool,
@@ -105,6 +150,10 @@ pub struct State {
     pub broadcast_ready: bool,
     pub broadcast_hash: [u8; 32],
     pub receipt_ready: bool,
+    /// The broadcast broke once the transaction had begun to go, so whether
+    /// the node took it is not known; it is never sent again, and its
+    /// receipt is followed all the same.
+    pub broadcast_unknown: bool,
     pub receipt_ok: bool,
     pub proof_count: u8,
     pub proof_eth_hash: [u8; 32],
@@ -168,6 +217,14 @@ pub struct State {
      */
     pub stake_step: u8,
     /*
+     * The staking transaction the stake screen reviews, made from fresh
+     * reads; Confirm signs exactly this. None while the form is up.
+     */
+    pub stake_draft: Option<crate::wallet::send::Draft>,
+    /* What the receipt followed now is for, and when it went. */
+    pub follow_purpose: crate::wallet::act::Purpose,
+    pub sent_at_ms: i64,
+    /*
      * Which asset the send screen transfers: 0 = ETH, 1 = NOX.
      */
     pub send_token: u8,
@@ -204,10 +261,20 @@ pub struct State {
      */
     pub nox: crate::wallet::nox::NoxStatus,
     /*
-     * Which field the incremental probe refreshes next. One network read per
-     * tick keeps the UI responsive instead of blocking on a burst of them.
+     * One when a refresh is wanted at the next idle tick rather than at the
+     * next interval: after a wallet arrives, or the network changes.
      */
     pub probe_step: u8,
+    /*
+     * The refresh under way, stepped a slice per tick so the window never
+     * waits on the network. None between refreshes.
+     */
+    pub net_job: Option<crate::wallet::net::step::Job>,
+    /*
+     * The network work a press started, stepped like the refresh, which
+     * waits while it runs. None when no press is being answered.
+     */
+    pub action: Option<crate::wallet::act::Action>,
     /*
      * The framebuffer width recorded on the last paint, so pointer handlers can
      * hit-test the same width-relative layout the screens draw.
@@ -218,13 +285,27 @@ pub struct State {
      * hit-test the same height-relative layout the screens draw.
      */
     pub view_h: u32,
-    /*
-     * Local shielded UTXO set, reconstructed from the note secrets.
-     */
-    pub notes: crate::wallet::shield::notes::NoteStore,
     /// Whether a shield capsule answered the service probe this session.
     ///
     /// Starts `Unknown` and is only ever set from a real lookup, so the
     /// shielded screens cannot enable themselves by default.
     pub shield: crate::wallet::shield::probe::Shield,
+    /* The Shield screens: which is up and what was picked on it. */
+    pub shield_ui: super::shield_ui::ShieldUi,
+    /* The accounts of this phrase in use, account 0 first, and which one is
+     * open. Empty until a wallet exists. */
+    pub accounts: alloc::vec::Vec<crate::wallet::accounts::Account>,
+    /* Receive shows the private nox1 address, else the public 0x one. */
+    pub receive_private: bool,
+    pub account_open: u8,
+    /* The account list read at boot, while some of its accounts are not
+     * derived yet: how many, and which was open. */
+    pub accounts_owed: Option<(u8, u8)>,
+    /* When the owed accounts are asked for again (uptime ms). */
+    pub accounts_retry_at: i64,
+    /* WORDS_*: the shield opens from the words, and from the key only for
+     * a wallet known to have come from one. */
+    pub words: u8,
+    /* The Swap screen's no-price banner, dismissed until the amount changes. */
+    pub swap_note_hidden: bool,
 }

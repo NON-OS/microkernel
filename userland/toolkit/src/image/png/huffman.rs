@@ -1,11 +1,14 @@
-use crate::image::png::deflate::BitReader;
+use crate::image::png::deflate::{BitReader, ByteSource};
 use crate::image::types::DecodeError;
+
+use super::huffman_fast::{fast_table, FAST_BITS};
 
 pub const MAX_SYMBOLS: usize = 288;
 
 pub struct Huffman {
     counts: [u16; 16],
     symbols: [u16; MAX_SYMBOLS],
+    fast: [u16; 1 << FAST_BITS],
 }
 
 impl Huffman {
@@ -35,18 +38,29 @@ impl Huffman {
                 offsets[l as usize] += 1;
             }
         }
-        Ok(Self { counts, symbols })
+        Ok(Self { counts, symbols, fast: fast_table(lengths, &counts) })
     }
 
-    pub fn decode(&self, bits: &mut BitReader<'_>) -> Result<u16, DecodeError> {
-        let mut code: i32 = 0;
-        let mut first: i32 = 0;
-        let mut index: i32 = 0;
-        let mut len = 1usize;
+    /* Short codes come straight from the fast table; longer ones by the
+     * canonical walk, a bit at a time from a peeked window, consumed only
+     * once a symbol matches. */
+    pub fn decode<S: ByteSource>(&self, bits: &mut BitReader<S>) -> Result<u16, DecodeError> {
+        let (mut window, avail) = bits.peek16();
+        let hit = self.fast[(window & ((1 << FAST_BITS) - 1)) as usize];
+        if hit != 0 && (hit & 15) as u32 <= avail {
+            bits.consume((hit & 15) as u32);
+            return Ok(hit >> 4);
+        }
+        let (mut code, mut first, mut index, mut len) = (0i32, 0i32, 0i32, 1usize);
         while len < 16 {
-            code |= bits.read_bits(1)? as i32;
+            if len as u32 > avail {
+                return Err(DecodeError::Truncated);
+            }
+            code |= (window & 1) as i32;
+            window >>= 1;
             let count = self.counts[len] as i32;
             if code - first < count {
+                bits.consume(len as u32);
                 let pos = (index + (code - first)) as usize;
                 return self.symbols.get(pos).copied().ok_or(DecodeError::Unsupported);
             }

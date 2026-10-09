@@ -20,8 +20,7 @@ use super::cause::TrapCause;
 /// this on its concrete frame; the contract goes through these methods
 /// only.
 ///
-/// Only x86 projects a real frame here today. Other arches add their
-/// own projection when their trap shims land.
+/// Each architecture's trap shim implements it beside its own frame.
 pub trait TrapFrame {
     fn instruction_pointer(&self) -> u64;
     fn stack_pointer(&self) -> u64;
@@ -30,4 +29,11 @@ pub trait TrapFrame {
     /// Cause projection runs here. Arch-specific status reads (CR2,
     /// ESR_EL1, scause / stval) happen in the impl, not in the contract.
     fn cause(&self) -> TrapCause;
+
+    /// The raw syndrome word, on an architecture whose frame captured a
+    /// syndrome register (aarch64: ESR_EL1). None elsewhere: x86_64 folds
+    /// what its error code says into the cause.
+    fn syndrome(&self) -> Option<u64> {
+        None
+    }
 }

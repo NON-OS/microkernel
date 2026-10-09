@@ -25,13 +25,8 @@ use crate::editor::layout::ACTIVITY_W;
 pub(super) const RAIL_W: u32 = 246;
 pub(super) const RAIL_PAD: u32 = 16;
 pub(super) const PANE_PAD: u32 = 26;
-pub(super) const CARD_W: u32 = 230;
-pub(super) const CARD_PAD: u32 = 16;
-pub(super) const COL_GAP: u32 = 26;
 pub(super) const BRAND_SIDE: u32 = 28;
 pub(super) const BRAND_Y: u32 = 18;
-pub(super) const AVATAR: u32 = 32;
-pub(super) const SEARCH_H: u32 = 44;
 pub(super) const DOC_ICON: u32 = 34;
 pub(super) const BODY: f32 = 17.0;
 pub(super) const SUBHEAD: f32 = 19.0;
@@ -52,8 +47,4 @@ pub(super) fn pane_x() -> u32 {
 pub(super) fn nav_rect() -> (u32, u32, u32) {
     let y = BRAND_Y + BRAND_SIDE + 22;
     (rail_x() + RAIL_PAD, y, RAIL_W - RAIL_PAD * 2)
-}
-
-pub(super) fn footer_h() -> u32 {
-    lh(BODY) * 2 + 32
 }

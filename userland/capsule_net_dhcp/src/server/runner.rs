@@ -16,14 +16,16 @@
 
 use alloc::vec;
 
-use nonos_libc::mk_ipc_recv_from;
+use nonos_libc::{mk_ipc_recv_from, mk_service_lookup};
 
 use crate::protocol::{
-    E_BAD_OP, OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST, OP_LEASE_STATUS,
+    E_BAD_OP, E_PERM, OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST,
+    OP_LEASE_STATUS,
 };
 
 use super::handlers;
-use super::parse_req::{parse, HDR_LEN};
+use super::lease_admin::may_change_lease;
+use super::parse_req::{parse, refused, HDR_LEN};
 use super::respond::respond;
 
 const SERVICE_INBOX: u64 = 0;
@@ -40,7 +42,19 @@ pub fn run() -> ! {
             continue;
         }
         let len = n as usize;
-        let Ok((req, _body)) = parse(&rx[..len]) else { continue };
+        let (req, _body) = match parse(&rx[..len]) {
+            Ok(parsed) => parsed,
+            Err(errno) => {
+                let req = refused(&rx[..len]);
+                let _ = respond(sender_pid, req.op, errno, req.request_id, 0, &mut tx);
+                continue;
+            }
+        };
+        let changes_lease = matches!(req.op, OP_LEASE_REQUEST | OP_LEASE_RENEW | OP_LEASE_RELEASE);
+        if changes_lease && !may_change_lease(sender_pid, service_pid) {
+            let _ = respond(sender_pid, req.op, E_PERM, req.request_id, 0, &mut tx);
+            continue;
+        }
         match req.op {
             OP_HEALTHCHECK => handlers::health::handle(sender_pid, &req, &mut tx),
             OP_LEASE_REQUEST => handlers::lease_request::handle(sender_pid, &req, &mut tx),
@@ -52,4 +66,12 @@ pub fn run() -> ! {
             }
         }
     }
+}
+
+/// The pid the service registry names for `name`, looked up on every
+/// request so a restarted service is recognised at once.
+fn service_pid(name: &[u8]) -> Option<u32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+    (rc >= 0 && pid != 0).then_some(pid)
 }

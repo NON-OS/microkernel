@@ -23,6 +23,8 @@ pub struct PcieSegment {
 }
 
 impl PcieSegment {
+    /// `base_address` is the ECAM address of bus 0 even when `start_bus` is
+    /// above 0; see `McfgEntry::config_address`.
     pub fn config_address(&self, bus: u8, device: u8, function: u8, offset: u16) -> Option<u64> {
         if bus < self.start_bus || bus > self.end_bus {
             return None;

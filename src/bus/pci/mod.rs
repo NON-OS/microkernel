@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(target_arch = "x86_64")]
+mod aer;
 mod assign;
 mod config;
 mod device;
@@ -22,6 +24,8 @@ mod find;
 mod init;
 mod types;
 
+#[cfg(target_arch = "x86_64")]
+pub use aer::report_aer;
 pub use assign::{assign_unassigned, set_windows};
 pub use config::*;
 pub use enable::*;

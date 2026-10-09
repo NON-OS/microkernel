@@ -16,7 +16,7 @@
 
 use spin::Once;
 
-use super::super::types::BootHandoffV1;
+use super::super::types::{flags, BootHandoffV1};
 
 pub(crate) static BOOT_HANDOFF: Once<&'static BootHandoffV1> = Once::new();
 
@@ -32,4 +32,12 @@ pub fn is_initialized() -> bool {
 
 pub fn total_memory() -> u64 {
     get_handoff().map(|h| unsafe { h.mmap.total_usable_memory() }).unwrap_or(0)
+}
+
+/*
+ * Whether the boot menu's "Install NONOS" started this boot. False with no
+ * handoff: a kernel that cannot read the request runs as it always does.
+ */
+pub fn install_requested() -> bool {
+    get_handoff().is_some_and(|h| h.has_flag(flags::INSTALL_REQUESTED))
 }

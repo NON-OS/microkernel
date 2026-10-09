@@ -65,8 +65,8 @@ pub const TILE_RING_T: u32 = 7;
 pub const TILE_RING_TOP: u32 = 16;
 pub const TILE_SUB_GAP: u32 = 4;
 
-// One wheel notch / arrow key. Scroll is in pixels, so a step is a size, not a
-// row count: see state.rs.
+// One arrow key; a wheel notch is three (scroll_wheel.rs). Scroll is in
+// pixels, so a step is a size, not a row count: see state.rs.
 pub const SCROLL_STEP: u32 = 24;
 
 pub const TITLE_PX: f32 = 21.0;

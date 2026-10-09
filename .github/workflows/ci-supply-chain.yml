@@ -1,9 +1,10 @@
 name: ci-supply-chain
 
-# Reusable supply-chain proof. `nonos-verify supply-chain` runs cargo-audit and
-# cargo-deny, captures the duplicate dependency surface, verifies submodule pin
-# integrity, generates an SBOM where tooling allows, and records the
-# reproducibility inputs (the full double-build compare runs nightly).
+# Reusable supply-chain proof. The flake's bill of materials (nix build
+# .#sbom) lists every input the build reads by version and hash and is kept
+# with the reports; `nonos-verify supply-chain` then runs cargo-audit and
+# cargo-deny, captures the duplicate dependency surface and the cargo SBOM,
+# with the tools pinned by the flake.
 
 on:
   workflow_call:
@@ -27,14 +28,22 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          submodules: recursive
           persist-credentials: false
-      - uses: ./.github/actions/nonos-setup
+      - uses: ./.github/actions/nix-setup
         with:
-          tools: audit,deny,cyclonedx
-          module: supply-chain
+          cache: ${{ vars.NONOS_CACHIX }}
+      # The flake's bill of materials: every crate of every lock, every C
+      # source, every toolchain and flake input, by version and hash.
+      - name: The SBOM
+        run: |
+          set -euo pipefail
+          mkdir -p ci-reports/supply-chain
+          cp "$(nix build .#sbom --no-link --print-out-paths)" ci-reports/supply-chain/nonos.cdx.json
+          jq -e '.bomFormat == "CycloneDX" and (.components | length) > 0' ci-reports/supply-chain/nonos.cdx.json
+          jq -r '"\(.components | length) components, \([.components[] | select(.hashes)] | length) of them by hash"' \
+            ci-reports/supply-chain/nonos.cdx.json >> "$GITHUB_STEP_SUMMARY"
       - name: nonos-verify supply-chain
-        run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- supply-chain
+        run: nix develop --command cargo run --release --manifest-path nonos-verify/Cargo.toml -- supply-chain
       - name: Upload supply-chain artifacts
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

@@ -14,35 +14,52 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Raw DEFLATE (RFC 1951) streams.
+
 use alloc::vec::Vec;
 
 use super::bits::Bits;
 use super::dynamic::dynamic;
 use super::fixed::fixed;
+use super::out::Out;
 use super::stored::stored;
-use super::tables::MAX_OUT;
+use super::tables::{Codes, MAX_OUT};
+use super::types::{End, Inflated};
 
+/// The whole stream's output, or `None` when it is cut short, corrupt or
+/// would exceed `MAX_OUT`. Bytes after the final block are ignored.
 pub fn inflate(src: &[u8]) -> Option<Vec<u8>> {
-    inflate_counted(src).map(|(out, _)| out)
+    raw_partial(src, MAX_OUT).complete()
 }
 
-/// The same, and how many bytes of `src` the stream occupied.
-pub fn inflate_counted(src: &[u8]) -> Option<(Vec<u8>, usize)> {
+/// Decodes as much of `src` as it can, stopping at `cap` output bytes.
+pub fn raw_partial(src: &[u8], cap: usize) -> Inflated {
+    run(src, cap, src.len().saturating_mul(4))
+}
+
+/// The same, with room reserved up front for about `hint` output bytes.
+pub(super) fn run(src: &[u8], cap: usize, hint: usize) -> Inflated {
     let mut b = Bits::new(src);
-    let mut out: Vec<u8> = Vec::new();
+    let mut out = Out::new(cap, hint);
+    let end = match blocks(&mut b, &mut out) {
+        Ok(()) => End::Complete,
+        Err(e) => e,
+    };
+    Inflated { out: out.finish(), end, used: b.consumed() }
+}
+
+fn blocks(b: &mut Bits, out: &mut Out) -> Result<(), End> {
+    let mut c = Codes::new();
     loop {
-        let last = b.bit()?;
+        let last = b.bits(1)?;
         match b.bits(2)? {
-            0 => stored(&mut b, &mut out)?,
-            1 => fixed(&mut b, &mut out)?,
-            2 => dynamic(&mut b, &mut out)?,
-            _ => return None,
-        }
-        if out.len() > MAX_OUT {
-            return None;
+            0 => stored(b, out)?,
+            1 => fixed(b, out, &mut c)?,
+            2 => dynamic(b, out, &mut c)?,
+            _ => return Err(End::Corrupt),
         }
         if last == 1 {
-            return Some((out, b.consumed()));
+            return Ok(());
         }
     }
 }

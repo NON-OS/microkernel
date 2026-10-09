@@ -23,3 +23,6 @@ cd userland/driver_proofs
 cargo test --release
 cargo kani                # all-input bounds (requires Kani)
 ```
+
+See [drivers](../../docs/handbook/drivers.md) and
+[proofs](../../docs/handbook/verification/proofs.md).

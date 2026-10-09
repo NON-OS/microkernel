@@ -22,23 +22,30 @@
 //! from 4 up, one per peer.
 //!
 //! The `LinkPort` (`RtlLink`) is the Ethernet data path net_core drives. It holds
-//! a shared `LinkStation` fixed to `Ccmp::Hardware`: the station frames plaintext
-//! 802.11 and the radio does CCMP from the CAM, so we never encrypt in software.
-//! Transmit hands the framed MPDU to the TX ring with the CCMP security type set;
-//! receive pulls a decrypted MPDU off the RX ring and the station parses it back
-//! to Ethernet. Both are checked against the real `LinkPort`/`KeyStore` traits in
-//! `rtl8821ce_proofs`.
+//! a shared `LinkStation` in `Ccmp::SoftwareTxHwRx`: transmit frames are CCMP
+//! encrypted in software (this chip's transmit encryption did not work), and
+//! receive frames are decrypted by the radio from the CAM where it can, by the
+//! station otherwise. Every received frame goes through the station's checks
+//! (from the BSS, protected, not a replay) before the stack sees it, and the
+//! access point's group key handshakes are answered here, the new key handed
+//! to the serve loop to install in the CAM. Both directions are checked against
+//! the real `LinkPort`/`KeyStore` traits in `rtl8821ce_proofs`.
 
+use alloc::vec::Vec;
+
+use nonos_wifi_core::dot11::auth::{deauth_frame, parse_leave};
 use nonos_wifi_core::key::KeyStore;
 use nonos_wifi_core::netif::LinkPort;
-use nonos_wifi_core::station::{Ccmp, LinkStation};
+use nonos_wifi_core::station::{Ccmp, LinkStation, Rx, RxDrop};
+use nonos_wifi_core::wpa::supplicant::Supplicant;
 
 use crate::fw::dma::{DmaMem, Grant};
 use crate::regs::Mmio;
+use crate::rx::fcs::without_fcs;
 use crate::rx::ring::{RxState, RX_BUF_STRIDE, RX_DESC_COUNT};
-use crate::rx::{poll_one, program as rx_program};
+use crate::rx::{poll_one_info, program as rx_program};
 use crate::sec::{clear_cam, write_cam, Key, CAM_AES};
-use crate::tx::desc::{FrameMeta, DESC_RATE_6M, SEC_TYPE_CCMP};
+use crate::tx::desc::{FrameMeta, DESC_RATE_6M};
 use crate::tx::regs::QSEL_BE;
 use crate::tx::ring::{TxState, TX_DESC_COUNT};
 use crate::tx::{enqueue, program as tx_program};
@@ -168,6 +175,11 @@ pub struct LinkStats {
     /// Frames dropped for a CRC or ICV error; a climbing count while a lease is
     /// awaited points at a reply that arrives but does not decrypt.
     pub rx_err: u32,
+    /// Data frames the station's checks refused (another BSS, unprotected,
+    /// a replay, undecryptable).
+    pub rx_refused: u32,
+    /// Group key handshakes answered on the link.
+    pub rekeys: u32,
 }
 
 /// The Ethernet data path net_core drives for this radio. It owns the transmit
@@ -185,6 +197,13 @@ pub struct RtlLink<M: Mmio, D: DmaMem, RB: RxBuffers> {
     rx_state: RxState,
     station: LinkStation,
     stats: LinkStats,
+    /// Management frame protection is on for this association: an unprotected
+    /// deauthentication is then a forgery and is ignored.
+    pmf: bool,
+    /// A group key the AP delivered on the link, for the serve loop to install.
+    new_group_key: Option<(u8, [u8; 16])>,
+    /// The reason code of a deauthentication the AP sent; the link is down.
+    left: Option<u16>,
 }
 
 impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
@@ -199,6 +218,8 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         rx_buffers: RB,
         our_mac: [u8; 6],
     ) -> Self {
+        // rtw88 sets the DMA burst sizes before the ring addresses (pci.c:403).
+        crate::mac::set_dma_burst(&mmio);
         tx_program(&mmio, tx_ring.device_addr());
         rx_program(&mmio, &rx_ring, rx_buffers.device_addr());
         // With the ring addresses set, reset the DMA interface so the card starts
@@ -214,6 +235,9 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
             rx_state: RxState::new(RX_DESC_COUNT),
             station: LinkStation::new(our_mac),
             stats: LinkStats::default(),
+            pmf: false,
+            new_group_key: None,
+            left: None,
         }
     }
 
@@ -235,6 +259,17 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
     /// receive path leaves the sec engine on.
     pub fn associate(&mut self, bssid: [u8; 6], ptk: [u8; 16]) {
         self.station.associate(bssid, Ccmp::SoftwareTxHwRx { tk: ptk });
+        self.pmf = false;
+        self.new_group_key = None;
+        self.left = None;
+    }
+
+    /// Hand the link the supplicant the join finished with, so it answers the
+    /// AP's group key handshakes and repeated message 3s, and decrypts group
+    /// frames the chip does not.
+    pub fn set_supplicant(&mut self, sup: Supplicant) {
+        self.pmf = sup.pmf();
+        self.station.set_supplicant(sup);
     }
 
     /// Drop the association; the link reports down and refuses to transmit until
@@ -243,18 +278,77 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         self.station.deassociate();
     }
 
+    /// Tell the access point the station is leaving (reason 3, "deauthenticated
+    /// because sending station is leaving"), so it does not hold the
+    /// association, and with management frame protection does not have to
+    /// probe for it before the station can join again. Protected under the
+    /// pairwise key when protection is on. Best effort: a full ring drops it.
+    pub fn send_deauth(&mut self) {
+        if !self.station.is_associated() {
+            return;
+        }
+        let frame = deauth_frame(self.station.mac(), self.station.bssid(), 0, 3);
+        let frame = if self.pmf { self.station.protect_mgmt(&frame) } else { Some(frame) };
+        if let Some(f) = frame {
+            self.send_raw(&f);
+        }
+    }
+
+    /// A group key the AP delivered since the last call, for the CAM.
+    pub fn take_group_key(&mut self) -> Option<(u8, [u8; 16])> {
+        self.new_group_key.take()
+    }
+
+    /// The reason code of a deauthentication received since the last call.
+    pub fn take_left(&mut self) -> Option<u16> {
+        self.left.take()
+    }
+
     /// Pull the next received 802.11 frame off the ring unparsed, for the scan to
-    /// read beacons the data path would otherwise drop. Returns its length, or
-    /// `None` when nothing is queued.
+    /// read beacons the data path would otherwise drop. Returns its length
+    /// without the FCS, or `None` when nothing is queued.
     pub fn poll_raw(&mut self, out: &mut [u8]) -> Option<usize> {
-        poll_one(
+        self.poll_frame(out).map(|(n, _)| n)
+    }
+
+    // The next received frame without its FCS, and whether the chip decrypted it.
+    fn poll_frame(&mut self, out: &mut [u8]) -> Option<(usize, bool)> {
+        let (n, info) = poll_one_info(
             &self.mmio,
             &self.rx_ring,
             self.rx_buffers.bytes(),
             self.rx_buffers.device_addr(),
             &mut self.rx_state,
             out,
-        )
+        )?;
+        Some((without_fcs(n)?, info.decrypted()))
+    }
+
+    // A deauthentication or disassociation from the AP takes the link down,
+    // unless management frame protection is on: then an unprotected one may
+    // be forged, and the station does not process protected management frames,
+    // so it relies on the AP's own teardown instead.
+    fn note_leave(&mut self, frame: &[u8]) -> bool {
+        if self.pmf {
+            return false;
+        }
+        let Some(reason) = parse_leave(frame, &self.station.mac(), &self.station.bssid()) else {
+            return false;
+        };
+        self.station.deassociate();
+        self.left = Some(reason);
+        true
+    }
+
+    // Send what a key handshake on the link produced, and keep its new key.
+    fn handshake(&mut self, frame: Option<Vec<u8>>, group_key: Option<(u8, [u8; 16])>) {
+        if let Some(f) = frame {
+            self.send_raw(&f);
+        }
+        if group_key.is_some() {
+            self.new_group_key = group_key;
+            self.stats.rekeys = self.stats.rekeys.wrapping_add(1);
+        }
     }
 
     /// Transmit a fully-formed 802.11 frame unencrypted, at the robust early
@@ -308,13 +402,11 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> LinkPort for RtlLink<M, D, RB> {
         // never registers one after association), so a rate-controlled data frame
         // is dropped before it reaches the air; a fixed rate transmits, exactly as
         // the fixed-rate handshake frames already do.
-        let meta = FrameMeta {
-            qsel: QSEL_BE,
-            bmc: false,
-            rate: Some(DESC_RATE_6M),
-            seq,
-            sec_type: SEC_TYPE_CCMP,
-        };
+        // No security type: `tx_frame` has already encrypted the frame in
+        // software (header, CCMP header, MIC). A descriptor tagged CCMP asks
+        // the MAC to encrypt it again, as rtw88 does only for frames with a
+        // hardware key, and the AP then fails the MIC on every data frame.
+        let meta = FrameMeta { qsel: QSEL_BE, bmc: false, rate: Some(DESC_RATE_6M), seq, sec_type: 0 };
         let ok =
             enqueue(&self.mmio, &self.tx_ring, &self.tx_buffers, &mut self.tx_state, &mpdu, &meta);
         if ok {
@@ -340,20 +432,23 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> LinkPort for RtlLink<M, D, RB> {
         // starve the caller; the next poll resumes the drain.
         let mut mpdu = [0u8; RX_BUF_STRIDE];
         for _ in 0..RX_DRAIN_MAX {
-            let n = poll_one(
-                &self.mmio,
-                &self.rx_ring,
-                self.rx_buffers.bytes(),
-                self.rx_buffers.device_addr(),
-                &mut self.rx_state,
-                &mut mpdu,
-            )?;
+            let (n, hw_decrypted) = self.poll_frame(&mut mpdu)?;
             self.stats.rx_ring = self.stats.rx_ring.wrapping_add(1);
-            if let Some(eth) = self.station.rx_frame(&mpdu[..n]) {
-                self.stats.rx_eth = self.stats.rx_eth.wrapping_add(1);
-                let m = eth.len().min(out.len());
-                out[..m].copy_from_slice(&eth[..m]);
-                return Some(m);
+            let frame = &mpdu[..n];
+            if self.note_leave(frame) {
+                return None;
+            }
+            match self.station.receive(frame, hw_decrypted) {
+                // A frame larger than the caller's buffer is dropped, never cut.
+                Rx::Ethernet(eth) if eth.len() <= out.len() => {
+                    self.stats.rx_eth = self.stats.rx_eth.wrapping_add(1);
+                    out[..eth.len()].copy_from_slice(&eth);
+                    return Some(eth.len());
+                }
+                Rx::Handshake { frame, group_key } => self.handshake(frame, group_key),
+                // Non-data frames (beacons) are the common case and are not news.
+                Rx::Dropped(RxDrop::Malformed) => {}
+                _ => self.stats.rx_refused = self.stats.rx_refused.wrapping_add(1),
             }
         }
         None

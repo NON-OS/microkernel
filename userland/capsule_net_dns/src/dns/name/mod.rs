@@ -16,8 +16,10 @@
 
 mod encode;
 mod error;
+mod read;
 mod skip;
 
 pub use encode::encode;
 pub use error::NameError;
+pub use read::{read, Name};
 pub use skip::skip;

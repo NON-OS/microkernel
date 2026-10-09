@@ -37,26 +37,44 @@ impl ConfigSpace {
     }
 
     pub fn read8(&self, offset: u16) -> Result<u8> {
+        if self.address.segment != 0 {
+            return super::super::vmd::config::read8(self.address, offset);
+        }
         read8(self.address.bus, self.address.device, self.address.function, offset)
     }
 
     pub fn read16(&self, offset: u16) -> Result<u16> {
+        if self.address.segment != 0 {
+            return super::super::vmd::config::read16(self.address, offset);
+        }
         read16(self.address.bus, self.address.device, self.address.function, offset)
     }
 
     pub fn read32(&self, offset: u16) -> Result<u32> {
+        if self.address.segment != 0 {
+            return super::super::vmd::config::read32(self.address, offset);
+        }
         read32(self.address.bus, self.address.device, self.address.function, offset)
     }
 
     pub fn write8(&self, offset: u16, value: u8) -> Result<()> {
+        if self.address.segment != 0 {
+            return super::super::vmd::config::write8(self.address, offset, value);
+        }
         write8(self.address.bus, self.address.device, self.address.function, offset, value)
     }
 
     pub fn write16(&self, offset: u16, value: u16) -> Result<()> {
+        if self.address.segment != 0 {
+            return super::super::vmd::config::write16(self.address, offset, value);
+        }
         write16(self.address.bus, self.address.device, self.address.function, offset, value)
     }
 
     pub fn write32(&self, offset: u16, value: u32) -> Result<()> {
+        if self.address.segment != 0 {
+            return super::super::vmd::config::write32(self.address, offset, value);
+        }
         write32(self.address.bus, self.address.device, self.address.function, offset, value)
     }
 

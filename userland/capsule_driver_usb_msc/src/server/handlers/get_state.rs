@@ -15,10 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::{Request, HDR_LEN, STATUS_LEN};
+use crate::scan::Report;
 use crate::server::respond;
 use crate::state::State;
 
-pub fn handle(state: &State, sender_pid: u32, req: &Request, tx: &mut [u8]) {
-    let n = state.write_snapshot(&mut tx[HDR_LEN + STATUS_LEN..]);
+/// The counters, then where the search for the device stands (scan/report.rs).
+pub fn handle(state: &State, report: &Report, sender_pid: u32, req: &Request, tx: &mut [u8]) {
+    let out = &mut tx[HDR_LEN + STATUS_LEN..];
+    let n = state.write_snapshot(out);
+    let n = n + report.encode(&mut out[n..]);
     let _ = respond::payload(sender_pid, req, n, tx);
 }

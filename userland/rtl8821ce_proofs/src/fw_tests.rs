@@ -9,7 +9,7 @@
 use crate::fw::header::{parse, FW_HDR_LEN};
 
 // The actual firmware image, embedded from the driver tree.
-const FW: &[u8] = include_bytes!("../../capsule_driver_rtl8821ce/firmware/rtw8821c_fw.bin");
+const FW: &[u8] = include_bytes!("../../../nonos-bootloader/firmware/realtek/rtw8821c_fw.bin");
 
 #[test]
 fn header_matches_the_real_firmware() {

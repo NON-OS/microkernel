@@ -16,7 +16,7 @@
 
 use super::keypad_geom::stride;
 use super::metrics::KEY_GAP;
-use crate::calc::buttons::{grid, Role};
+use crate::calc::buttons::grid;
 use crate::calc::mode::Mode;
 
 pub fn at(mode: Mode, win_w: i32, win_h: i32, x: i32, y: i32) -> Option<(usize, usize)> {
@@ -34,7 +34,7 @@ pub fn at(mode: Mode, win_w: i32, win_h: i32, x: i32, y: i32) -> Option<(usize, 
         let n = btn.span.max(1) as i32;
         if col < start + n {
             let ends = ax + (start + n - 1) * (cw + KEY_GAP) + cw;
-            if x >= ends || matches!(btn.role, Role::Blank) {
+            if x >= ends {
                 return None;
             }
             return Some((row as usize, idx));

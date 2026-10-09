@@ -18,8 +18,7 @@ use alloc::vec;
 
 use super::recv_accept::accept;
 use super::recv_control::control;
-use crate::gateway_client::{self, E_RECV_TIMEOUT};
-use crate::protocol::WIRE_PACKET_MAX;
+use crate::gateway_client::{self, E_RECV_BAD_FRAME, E_RECV_CLOSED, E_RECV_TIMEOUT, FRAME_MAX};
 use crate::setup;
 use crate::state::TABLE;
 use crate::trace;
@@ -34,7 +33,9 @@ pub fn drain_stream(wait_ms: i64) {
         Some(gateway) if tcp_port != 0 => gateway,
         _ => return,
     };
-    let mut chunk = vec![0u8; WIRE_PACKET_MAX];
+    // Sized for any frame the link will carry, not for one regular packet:
+    // a reply comes back in whatever packet size the exit chose to use.
+    let mut chunk = vec![0u8; FRAME_MAX];
     for pass in 0..BURST {
         // Only the first pass waits.
         let budget = if pass == 0 { wait_ms } else { 0 };
@@ -45,6 +46,13 @@ pub fn drain_stream(wait_ms: i64) {
                 // flight. Anything else is the link itself in trouble.
                 if e != E_RECV_TIMEOUT {
                     trace::say_num(b"gateway link error", e as u64);
+                }
+                // A link that closed, or that has lost its place in the byte
+                // stream, will not carry another reply. Reading on found
+                // nothing or garbage until a send happened to fail; dropping
+                // the binding now has the next idle moment dial again.
+                if e == E_RECV_CLOSED || e == E_RECV_BAD_FRAME {
+                    crate::server::gateway_lost();
                 }
                 return;
             }

@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use super::traffic_keys::TrafficKeys;
+use super::transcript::Transcript;
 
+/// What the ServerHello yields: the handshake keys, the transcript through it,
+/// and how many flight bytes its record took.
 pub struct ServerContext {
     pub used: usize,
     pub keys: TrafficKeys,
-    pub transcript: Vec<u8>,
-    pub cert11: Vec<u8>,
-    pub validated: bool,
+    pub transcript: Transcript,
 }

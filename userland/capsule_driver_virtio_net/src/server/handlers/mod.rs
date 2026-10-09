@@ -17,5 +17,8 @@
 pub mod health;
 pub mod link_status;
 pub mod mac_address;
+pub mod rx_batch;
+pub mod rx_fill;
 pub mod rx_packet;
+pub mod rx_send;
 pub mod tx_packet;

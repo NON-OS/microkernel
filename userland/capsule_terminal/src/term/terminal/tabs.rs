@@ -22,7 +22,7 @@ use super::types::Terminal;
 use crate::term::prefs::RAIL_VISIBLE;
 use crate::term::state::State;
 
-const MAX_TABS: usize = 9;
+pub(super) const MAX_TABS: usize = 9;
 const KEY_T: u32 = 0x54;
 const KEY_W: u32 = 0x57;
 
@@ -60,17 +60,6 @@ impl Terminal {
             self.tabs.push(State::new());
             self.active = self.tabs.len() - 1;
         }
-    }
-
-    pub(super) fn close_tab(&mut self) -> EventOutcome {
-        if self.tabs.len() <= 1 {
-            return EventOutcome::Close;
-        }
-        self.tabs.remove(self.active);
-        if self.active >= self.tabs.len() {
-            self.active = self.tabs.len() - 1;
-        }
-        EventOutcome::Repaint
     }
 
     fn switch(&mut self, delta: i32) {

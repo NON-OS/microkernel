@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
+use crate::arch::run_without_interrupts as without_interrupts;
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::constants::PAGE_SIZE_4K;
 use crate::memory::paging::error::PagingResult;
@@ -25,7 +26,21 @@ pub fn update_page_flags(
     virtual_addr: VirtAddr,
     new_permissions: PagePermissions,
 ) -> PagingResult<()> {
-    lock_responsive(&PAGING_MANAGER).update_page_flags(virtual_addr, new_permissions, &PAGING_STATS)
+    /*
+     * Masked like every other holder of the manager lock: a tick taken with
+     * it held reaches `switch_to_process_address_space`, which takes the same
+     * lock on the same cpu and never gets it. The flush is paid after the
+     * lock is released.
+     */
+    let flush = without_interrupts(|| {
+        lock_responsive(&PAGING_MANAGER).update_page_flags(
+            virtual_addr,
+            new_permissions,
+            &PAGING_STATS,
+        )
+    })?;
+    flush.commit();
+    Ok(())
 }
 
 pub fn update_page_protection(

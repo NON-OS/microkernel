@@ -38,8 +38,7 @@ mod grid_tracks;
 mod hex;
 mod hsl_fn;
 pub(crate) mod icon_font;
-mod matches;
-mod matching;
+pub mod matching;
 mod matching_paren;
 mod named;
 mod one_track;
@@ -52,13 +51,13 @@ mod pseudo_style;
 mod rgb_fn;
 mod rule;
 mod rule_index;
-mod select;
 pub mod selector;
 mod set_len;
 mod sides;
 mod size_resolve;
 pub mod specificity;
 mod strip_unit;
+pub mod style_facts;
 mod ua;
 mod vars;
 mod walk;
@@ -66,15 +65,12 @@ mod walk;
 pub use cache::{compute_cached, CssCache};
 pub use collect::collect_css;
 pub use color::parse_color;
-// The render harness computes styles directly; the capsule uses compute_cached.
 #[cfg(feature = "harness")]
 pub use compute::compute;
-pub use computed::Shadow;
 pub use computed::{
-    Align, AutoRepeat, BgSize, Clear, Computed, Float, GridTrack, Justify, ObjectFit, Position,
-    Size, TextAlign, TextTransform, WhiteSpace,
+    Align, AutoRepeat, BgLayer, Clear, Computed, Float, GridTrack, Justify, ObjectFit, Overflow,
+    Position, Shadow, Size, TextAlign, TextTransform, WhiteSpace,
 };
 pub use grid_spec::GridSpec;
-pub use matches::{closest, matches};
+pub use matching::{closest, matches, select, select_in};
 pub use pseudo_style::PseudoText;
-pub use select::select;

@@ -21,15 +21,20 @@ const MAGIC: u32 = 0x4e4f_4358;
 const OP_RSA_VERIFY: u16 = 21;
 
 pub fn verify_rsa(scheme: u8, hashid: u8, spki: &[u8], sig: &[u8], digest: &[u8]) -> bool {
+    // The frame gives each length two bytes. A longer key or signature would
+    // be cut to its low sixteen bits and its tail read as the next field.
+    let (Ok(spki_len), Ok(sig_len)) = (u16::try_from(spki.len()), u16::try_from(sig.len())) else {
+        return false;
+    };
     let Some(port) = super::crypto_port::crypto_port() else {
         return false;
     };
     let mut body: Vec<u8> = Vec::with_capacity(6 + spki.len() + sig.len() + digest.len());
     body.push(scheme);
     body.push(hashid);
-    body.extend_from_slice(&(spki.len() as u16).to_le_bytes());
+    body.extend_from_slice(&spki_len.to_le_bytes());
     body.extend_from_slice(spki);
-    body.extend_from_slice(&(sig.len() as u16).to_le_bytes());
+    body.extend_from_slice(&sig_len.to_le_bytes());
     body.extend_from_slice(sig);
     body.extend_from_slice(digest);
     let mut tx = vec![0u8; 20 + body.len()];

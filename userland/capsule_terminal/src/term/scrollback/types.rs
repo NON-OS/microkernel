@@ -16,9 +16,16 @@
 
 use alloc::vec::Vec;
 
-use crate::term::grid::types::Grid;
+use nonos_vt::Term;
 
 pub struct Scrollback {
     pub(super) capture: Option<Vec<Vec<u8>>>,
-    pub grid: Grid,
+    /// The screen and its history.
+    pub vt: Term,
+    /// Output processing a tty does by default: a line feed also returns
+    /// the carriage, since the shell and most programs end lines with `\n`
+    /// alone. A program that turns output processing off gets bare feeds.
+    pub onlcr: bool,
+    /// The theme the palette was last taken from.
+    pub(super) theme_of: Option<u16>,
 }

@@ -21,5 +21,6 @@ mod recv;
 mod send;
 mod types;
 
+pub use read::{E_BAD_FRAME, FRAME_MAX};
 pub use recv::{recv_binary, Frame, E_CLOSED, E_TIMEOUT};
 pub use send::{send_binary, send_close, send_ping, send_text};

@@ -22,7 +22,7 @@ use nonos_libc::{mk_getpid, mk_uptime_ms};
 
 use super::browse::Browse;
 use super::nav::Nav;
-use super::prefs::Prefs;
+use crate::catalog::media::MediaItem;
 use crate::player::{Clock, FrameDecoder, Source};
 use crate::ui::screen::Route;
 
@@ -43,14 +43,16 @@ pub struct VideoApp {
     pub(super) opened: bool,
     pub(crate) playing: bool,
     pub(crate) status: Option<&'static str>,
-    pub(crate) volume: u32,
-    pub(crate) muted: bool,
     pub(crate) dims: (u32, u32),
     pub(crate) force_decode: bool,
     pub(crate) nav: Nav,
     pub(crate) browse: Browse,
-    pub(crate) prefs: Prefs,
     pub(crate) path: String,
+    /// A video handed over from outside the library's folders, probed so
+    /// its details and position are its own and not the library selection's.
+    pub(crate) outside: Option<MediaItem>,
+    /// When next to ask the shell for a file to open (uptime, ms).
+    pub(super) arg_due_ms: i64,
 }
 
 impl VideoApp {
@@ -68,14 +70,13 @@ impl VideoApp {
             opened: false,
             playing: false,
             status: None,
-            volume: 80,
-            muted: false,
             dims: (1180, 760),
             force_decode: false,
-            nav: Nav::new(Route::Home),
+            nav: Nav::new(Route::Library),
             browse: Browse::new(),
-            prefs: Prefs::new(),
             path: String::from(PATH),
+            outside: None,
+            arg_due_ms: 0,
         }
     }
 
@@ -97,13 +98,26 @@ impl VideoApp {
     fn open(&mut self) -> Result<(), &'static str> {
         let mut source = Source::open(mk_getpid(), self.path.as_bytes())?;
         let head = source.read_header(HEADER_MAX)?;
-        let file = AviFile::parse(&head).map_err(|_| "not a playable avi")?;
+        // A film longer than the head keeps its index past it; read that
+        // apart rather than refuse the file (`nonos_avi::AviFile::parse_parts`).
+        let file = match AviFile::parse(&head) {
+            Ok(file) => file,
+            Err(_) => {
+                let idx1 = source.read_index(&head)?;
+                AviFile::parse_parts(&head, &idx1).map_err(|_| "not a playable avi")?
+            }
+        };
+        let upf = file.header.micro_sec_per_frame;
+        let start = self.start_frame(file.index.len() as u32, upf);
         let pixels = (file.video.width as usize)
             .checked_mul(file.video.height as usize)
             .ok_or("frame dimensions overflow")?;
         self.frame.try_reserve(pixels).map_err(|_| "frame too large")?;
         self.frame.resize(pixels, 0xff00_0000);
-        self.clock = Clock::new(mk_uptime_ms(), 0, file.header.micro_sec_per_frame);
+        // Opened where it was left in this window, if it was.
+        self.clock = Clock::new(mk_uptime_ms(), Clock::new(0, 0, upf).pts_ms(start), upf);
+        self.next = start;
+        self.force_decode = true;
         self.source = Some(source);
         self.file = Some(file);
         Ok(())

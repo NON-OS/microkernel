@@ -36,7 +36,7 @@ impl Store {
             acc.push('/');
             acc.push_str(comp);
             if self.find(&acc).is_none() {
-                if self.files.len() >= MAX_FILES {
+                if self.files.len() >= MAX_FILES || !self.may_name(owner, 1) {
                     return Err(StoreError::Full);
                 }
                 self.files.push(File::new(acc.clone(), Vec::new(), true, owner));

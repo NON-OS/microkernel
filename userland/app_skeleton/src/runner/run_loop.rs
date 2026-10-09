@@ -23,35 +23,35 @@ use crate::discover::require_peers;
 
 use super::boot::boot;
 use super::dispatch::DELIVERY_LEN;
-use super::fail::fail;
 use super::idle;
+use super::open_peers::open_peers;
 use super::repaint::repaint;
 use super::service_frame::service_frame;
 
 pub fn run_loop<A: App, F: Fn() -> A>(build: F) -> ! {
-    let peers = match require_peers() {
-        Ok(p) => p,
-        Err(_) => fail(2, b"[app] peers fail\n"),
-    };
     let mut request_id: u32 = 1;
     let mut rx = vec![0u8; DELIVERY_LEN.max(256)];
+    let mut peers = None;
     loop {
         idle::wait(&mut rx);
+        let Some(peers) = open_peers(&mut peers, || require_peers().ok()) else {
+            continue;
+        };
         let app = build();
-        let mut booted = match boot(app, &peers, &mut request_id) {
+        let mut booted = match boot(app, peers, &mut request_id) {
             Ok(b) => b,
             Err(_) => continue,
         };
         let mut last_tick_ms: i64 = 0;
         loop {
-            if service_frame(&mut booted, &mut rx, &peers, &mut request_id) {
+            if service_frame(&mut booted, &mut rx, peers, &mut request_id) {
                 break;
             }
             let now = mk_time_millis();
             if now.wrapping_sub(last_tick_ms) >= booted.app.tick_interval_ms() {
                 last_tick_ms = now;
                 if booted.app.on_tick() && !booted.minimized {
-                    repaint(&mut booted, &peers, &mut request_id);
+                    repaint(&mut booted, peers, &mut request_id);
                 }
             }
             // Pace the frame. With pending async work, yield cooperatively so

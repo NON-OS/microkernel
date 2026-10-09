@@ -39,9 +39,9 @@ pub fn run_security_checks(st: &mut SystemTable<Boot>, gop: bool) -> SecurityCon
     let mut security = init_subsystems(st, gop);
     verify_chain(&security, st);
     match tpm_counter_selftest(st.boot_services()) {
-        Ok((first, second)) => {
+        Ok(value) => {
             security.tpm_counter_ok = true;
-            log_info("tpm-counter", &format!("monotonic v1={} v2={}", first, second))
+            log_info("tpm-counter", &format!("NV counter answers, value {}", value))
         }
         Err(rc) if rc == RC_NO_TPM => log_info("tpm-counter", "no TPM present, selftest skipped"),
         Err(rc) => log_warn("tpm-counter", &format!("selftest rc=0x{:08x}", rc)),

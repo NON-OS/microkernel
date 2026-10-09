@@ -17,41 +17,21 @@
 //! Builder table indexed by `Glyph`. Order is load-bearing.
 
 use super::canvas::Sprite;
-use super::{arrow, mark, media, mode, nav, tool, transport, view};
+use super::{arrow, nav, tool, transport, view};
 
 pub type Builder = fn(u32, u32) -> Sprite;
 
-pub const COUNT: usize = 31;
+pub const COUNT: usize = 11;
 
 pub const BUILDERS: [Builder; COUNT] = [
     transport::play,
     transport::pause,
     transport::prev,
     transport::next,
-    transport::rewind,
-    mode::repeat,
-    mode::shuffle,
-    mode::volume,
-    mode::mute,
-    nav::home,
     nav::library,
-    nav::playlist,
     nav::files,
-    tool::gear,
     tool::video,
-    tool::disc,
     arrow::back,
-    arrow::chevron_down,
-    arrow::chevron_left,
-    arrow::chevron_right,
-    mark::plus,
-    mark::close,
-    mark::check,
-    mark::dots,
-    media::cc,
-    media::clock,
-    media::fullscreen,
-    media::pip,
     view::search,
     view::list,
     view::info,

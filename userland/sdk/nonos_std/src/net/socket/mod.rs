@@ -21,6 +21,8 @@ use crate::net::proto::{call, port, BODY_OFF, OP_CLOSE, OP_SOCKET};
 
 pub(crate) const KIND_STREAM: u16 = 1;
 pub(crate) const KIND_DGRAM: u16 = 2;
+/// net.sockets' Nym mixnet socket: a name goes to the exit unresolved.
+pub(crate) const KIND_MIXNET: u16 = 3;
 
 pub(crate) struct Socket {
     port: u32,

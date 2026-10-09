@@ -13,12 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 mod block;
 mod dynamic;
 mod fixed_litlen;
 mod inflate_zlib;
-mod put;
 mod stored;
 mod tables;
+mod window;
 
 pub use inflate_zlib::inflate_zlib;
+pub use window::Sink;

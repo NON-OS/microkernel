@@ -1,5 +1,6 @@
 mod acpi_hid;
 mod doorbell;
+pub mod gate;
 mod seq;
 mod service;
 mod transfer;

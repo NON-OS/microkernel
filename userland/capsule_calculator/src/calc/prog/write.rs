@@ -45,11 +45,8 @@ fn to_digits(mut m: u128, radix: u32, tmp: &mut [u8; DIGITS]) -> usize {
 
 pub fn write(value: i64, base: Base, out: &mut [u8]) -> usize {
     let neg = base.signed() && value < 0;
-    let mag: u128 = if base.signed() {
-        (value as i128).unsigned_abs()
-    } else {
-        value as u32 as u128
-    };
+    let mag: u128 =
+        if base.signed() { (value as i128).unsigned_abs() } else { value as u32 as u128 };
     let mut tmp = [0u8; DIGITS];
     let mut n = to_digits(mag, base.radix(), &mut tmp);
     while n < base.pad() && n < DIGITS {
@@ -65,7 +62,7 @@ pub fn write(value: i64, base: Base, out: &mut [u8]) -> usize {
     while i > 0 {
         i -= 1;
         w = push(out, w, tmp[i]);
-        if group > 0 && i > 0 && i % group == 0 {
+        if group > 0 && i > 0 && i.is_multiple_of(group) {
             w = push(out, w, b' ');
         }
     }

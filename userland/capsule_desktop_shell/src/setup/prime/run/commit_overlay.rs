@@ -16,19 +16,17 @@
 
 use crate::compositor_client::push_damage_commit;
 use crate::state::Context;
-use nonos_libc::mk_yield;
 
-const COMMIT_RETRIES: usize = 16;
+const COMMIT_TRIES: u32 = 4;
 
-pub fn commit_overlay(ctx: &mut Context) -> Result<(), &'static str> {
-    let mut last = "compositor rejected damage_commit";
-    for _ in 0..COMMIT_RETRIES {
-        let rid = ctx.issue_request_id();
-        match push_damage_commit(ctx.compositor_port, rid, 0, 0, ctx.width, ctx.height) {
-            Ok(()) => return Ok(()),
-            Err(e) => last = e,
-        }
-        mk_yield();
-    }
-    Err(last)
+/// Ask for the first full frame. Best effort: the runner's first repaint
+/// commits the whole screen again, so a compositor too busy to answer here is
+/// no reason to start setup over.
+pub fn commit_overlay(ctx: &mut Context) {
+    let (port, w, h) = (ctx.compositor_port, ctx.width, ctx.height);
+    let mut rid = ctx.issue_request_id();
+    let _ = crate::setup::prime::patient::patiently(COMMIT_TRIES, 20, || {
+        rid = rid.wrapping_add(1);
+        push_damage_commit(port, rid, 0, 0, w, h)
+    });
 }

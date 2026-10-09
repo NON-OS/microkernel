@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""STARKs is pinned in one place: the `starks` input in flake.lock.
+
+The manifests that depend on it name the repository and its main branch, and
+nothing else. Cargo still writes a commit into every Cargo.lock, so this tool
+writes the one from flake.lock into each of them, and --check fails when any
+lock or manifest says something else.
+
+    nix flake update starks              move the pin to STARKs main
+    tools/nonos-starks-sync              write that commit into every lock
+    tools/nonos-starks-sync --check      what nix flake check runs (offline)
+
+Syncing runs cargo, which fetches the commit and any crate it newly needs, so
+it needs the network; run it in nix develop. It changes nothing but the
+STARKs crates in each lock (cargo update --precise).
+"""
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+URL = "https://github.com/NON-OS/STARKs.git"
+SOURCE = f"git+{URL}?branch=main#"
+SKIP = {"target", ".git", "node_modules"}
+
+# Crates that cannot follow main yet, and why. The list only shrinks: each
+# leaves when its code builds against main, and nothing new may join it.
+WAITING = {}
+
+# A manifest line that depends on STARKs.
+DEP = re.compile(r'^(?P<head>.*git\s*=\s*"' + re.escape(URL) + r'"\s*,\s*)(?P<pin>(rev|tag|branch)\s*=\s*"[^"]*")', re.M)
+
+
+def files(root, name):
+    for p in sorted(root.rglob(name)):
+        if not SKIP.intersection(p.relative_to(root).parts):
+            yield p
+
+
+def flake_rev(root):
+    lock = json.loads((root / "flake.lock").read_text())
+    return lock["nodes"]["starks"]["locked"]["rev"]
+
+
+def lock_packages(lock):
+    """(name, version, source) of every STARKs crate a Cargo.lock holds."""
+    out, cur = [], {}
+    for line in lock.read_text().splitlines() + [""]:
+        if line == "[[package]]" or line == "":
+            if cur.get("source", "").startswith(f"git+{URL}"):
+                out.append((cur["name"], cur["version"], cur["source"]))
+            cur = {}
+            continue
+        m = re.match(r'^(name|version|source) = "(.*)"$', line)
+        if m:
+            cur[m.group(1)] = m.group(2)
+    return out
+
+
+def waiting(root, path):
+    return str(path.parent.relative_to(root)) in WAITING
+
+
+def check(root, rev):
+    bad = []
+    for name, why in sorted(WAITING.items()):
+        print(f"STARKs: {name} waits on STARKs: {why}")
+    for m in files(root, "Cargo.toml"):
+        if waiting(root, m):
+            continue
+        for d in DEP.finditer(m.read_text()):
+            if d.group("pin") != 'branch = "main"':
+                bad.append(f"{m.relative_to(root)}: {d.group('pin')} (want branch = \"main\")")
+    for lock in files(root, "Cargo.lock"):
+        if waiting(root, lock):
+            continue
+        for name, version, source in lock_packages(lock):
+            if source != SOURCE + rev:
+                bad.append(f"{lock.relative_to(root)}: {name} {version} from {source}")
+    if bad:
+        print("STARKs is pinned by flake.lock at " + rev + "; these disagree:", file=sys.stderr)
+        for b in bad:
+            print("  " + b, file=sys.stderr)
+        print("run tools/nonos-starks-sync in nix develop", file=sys.stderr)
+        return 1
+    print(f"STARKs: every manifest follows main, every lock names {rev[:9]}")
+    return 0
+
+
+def sync(root, rev):
+    for m in files(root, "Cargo.toml"):
+        if waiting(root, m):
+            continue
+        text = m.read_text()
+        new = DEP.sub(lambda d: d.group("head") + 'branch = "main"', text)
+        if new != text:
+            m.write_text(new)
+            print(f"  {m.relative_to(root)}: follows main")
+    failed = []
+    for lock in files(root, "Cargo.lock"):
+        pkgs = lock_packages(lock)
+        names = sorted({n for n, _, _ in pkgs})
+        if not names or waiting(root, lock):
+            continue
+        manifest = lock.parent / "Cargo.toml"
+        cmd = ["cargo", "update", "--manifest-path", str(manifest), "--precise", rev]
+        # Each crate by its full id, so a lock that holds two STARKs commits
+        # is not ambiguous about which one moves.
+        for spec in sorted({f"{src.split('#')[0]}#{n}@{v}" for n, v, src in pkgs}):
+            cmd += ["-p", spec]
+        print(f"  {lock.relative_to(root)}: {', '.join(names)}")
+        r = subprocess.run(cmd, capture_output=True, text=True)
+        if r.returncode != 0:
+            # A lock that held two STARKs commits needs a plain resolve of
+            # those crates first, so --precise has one source to move.
+            subprocess.run(["cargo", "update", "--manifest-path", str(manifest)] + cmd[6:],
+                           capture_output=True, text=True)
+            r = subprocess.run(cmd, capture_output=True, text=True)
+            if r.returncode != 0:
+                failed.append((lock.relative_to(root), r.stderr.strip().splitlines()))
+    for lock, err in failed:
+        print(f"{lock} cannot follow STARKs {rev[:9]}:", file=sys.stderr)
+        for line in err[-8:]:
+            print("    " + line, file=sys.stderr)
+    return check(root, rev)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--check", action="store_true", help="fail on any manifest or lock that disagrees")
+    ap.add_argument("--rev", help="the commit to hold them to (default: flake.lock's)")
+    ap.add_argument("--root", default=".", type=Path)
+    a = ap.parse_args()
+    rev = a.rev or flake_rev(a.root)
+    sys.exit(check(a.root, rev) if a.check else sync(a.root, rev))
+
+
+if __name__ == "__main__":
+    main()

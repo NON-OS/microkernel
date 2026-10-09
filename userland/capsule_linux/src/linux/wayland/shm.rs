@@ -35,15 +35,18 @@ pub fn formats(guest: &mut Guest, id: u32) {
 }
 
 /// The descriptor was passed in the control data of the sendmsg that
-/// carried this request, so it is taken from the queue in order.
+/// carried this request, so it is taken from the queue in order. An fd
+/// argument has no word in the body: the body is the new id and the size.
 pub fn create_pool(guest: &mut Guest, args: &mut Args<'_>) {
-    let (Some(id), Some(_fd_slot), Some(size)) = (args.u32(), args.u32(), args.u32()) else {
+    let (Some(id), Some(size)) = (args.u32(), args.u32()) else {
         return;
     };
     let Some(fd) = take_fd(guest) else {
         return;
     };
     let Some((at, _)) = mapped_at(guest, fd as u64) else {
+        let line = b"[WAYLAND] shm pool over a descriptor the client never mapped\n";
+        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
         /*
          * A pool over a descriptor the client never mapped has no pixels to
          * read, and reading zero would show a black window rather than say
@@ -59,7 +62,10 @@ pub fn create_pool(guest: &mut Guest, args: &mut Args<'_>) {
     if size == 0 {
         return;
     }
-    guest.objects.put(id, Object::ShmPool);
+    if !guest.objects.put(id, Object::ShmPool) {
+        return;
+    }
+    guest.scene.pools.retain(|p| p.id != id);
     guest.scene.pools.push(Pool { id, at, size });
 }
 

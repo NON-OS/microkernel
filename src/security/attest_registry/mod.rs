@@ -22,6 +22,7 @@
 //! proof was checked against, and removed when it exits. `registry_root`
 //! folds that set into one digest, which is the value an attestation signs.
 
+mod authority;
 mod complete;
 mod dump;
 mod entry;
@@ -31,6 +32,7 @@ mod record;
 mod root;
 mod table;
 
+pub use authority::authority_of;
 pub use complete::registry_complete;
 pub use dump::registry_entries;
 pub use entry::AttestedCapsule;

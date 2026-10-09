@@ -8,32 +8,44 @@
 //! dismisses the overlay. A store app is absent from the kernel's compile-time
 //! spawn table, so it goes to the installer rather than the dock's spawn path.
 
-use crate::render::launchpad::{dots_hit, hit_target, page_slice, rebuild, search_hit, Target};
-use crate::server::handlers::launcher_request;
+use super::launcher_request::LaunchOutcome;
+use crate::render::launchpad::{
+    dots_hit, hit_target, page_slice, pages as launchpad_pages, rebuild, search_hit, Target,
+};
 use crate::server::repaint::repaint;
-use crate::state::{Context, LAUNCHER_APPS};
+use crate::state::open_arg::{tool_command, TERMINAL};
+use crate::state::{Context, LAUNCHER_APPS, TOOL_APPS};
 
 /// KEY_DOWN kind bit, grabbed for the overlay's lifetime so keys typed into the
 /// search field reach the shell rather than whatever window sits behind it.
-const KEY_DOWN_BIT: u32 = 1;
-
 pub fn open(ctx: &mut Context) {
     ctx.launchpad = true;
     ctx.launchpad_query.clear();
     ctx.launchpad_page = 0;
+    ctx.launchpad_wheel.reset();
     rebuild(ctx);
-    let rid = ctx.issue_request_id();
-    let _ = crate::input_router_client::grab(ctx.input_router_port, rid, KEY_DOWN_BIT);
+    crate::server::grabs::sync(ctx);
     repaint(ctx);
 }
 
 pub fn close(ctx: &mut Context) {
     ctx.launchpad = false;
-    let rid = ctx.issue_request_id();
-    let _ = crate::input_router_client::release_grab(ctx.input_router_port, rid);
+    crate::server::grabs::sync(ctx);
     ctx.launchpad_query.clear();
     ctx.launchpad_page = 0;
+    ctx.launchpad_wheel.reset();
     repaint(ctx);
+}
+
+/// The wheel over the open Launchpad turns its pages (state::launchpad_wheel).
+/// Its pointer grab brings every wheel event here, wherever the pointer is.
+pub fn wheel(ctx: &mut Context, delta_y: i32) {
+    let pages = launchpad_pages(ctx);
+    let page = ctx.launchpad_wheel.turn(ctx.launchpad_page, pages, delta_y);
+    if page != ctx.launchpad_page {
+        ctx.launchpad_page = page;
+        repaint(ctx);
+    }
 }
 
 pub fn click(ctx: &mut Context, px: u32, py: u32) {
@@ -62,15 +74,25 @@ pub fn launch_first(ctx: &mut Context) {
 
 fn launch(ctx: &mut Context, t: Target) {
     match t {
-        Target::App(a) => {
-            let _ = launcher_request::request(&LAUNCHER_APPS[a]);
-        }
-        Target::Tool(_) => {
-            // A tool is a command-line program: it runs in the terminal,
-            // where the kernel spawns it parented to the shell so its output
-            // streams into the scrollback. Opening the terminal is the
-            // launch; the user runs the tool there by name.
-            let _ = launcher_request::request_service(b"app.terminal");
+        Target::App(a) => crate::apps_off::open(ctx, LAUNCHER_APPS[a].service),
+        Target::Tool(i) => {
+            // A tool is a command-line program: it runs in the Terminal,
+            // which spawns it as its own job so its output streams into the
+            // tab. The tile hands the Terminal the tool's command line, run
+            // or typed for its arguments (state::open_arg).
+            // A name the table should never hold opens a bare Terminal.
+            match tool_command(TOOL_APPS[i].label) {
+                Some(line) => {
+                    if super::hand_over::hand_command(ctx, line) == LaunchOutcome::Failed {
+                        crate::apps_off::toast_failed(
+                            ctx,
+                            TERMINAL,
+                            crate::server::toast_clock::now(),
+                        );
+                    }
+                }
+                None => crate::apps_off::open(ctx, TERMINAL),
+            }
         }
         Target::Installed(i) => {
             if let Some(name) = ctx.installed_apps.get(i).cloned() {

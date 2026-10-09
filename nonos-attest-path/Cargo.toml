@@ -1,0 +1,34 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# The attestation path check: the one crate the bootloader, the capsule spawn
+# gate, secops and the enroll tool all use to decide whether a measurement is
+# enrolled. It holds only the width-8 Poseidon, the leaf, the fold and the
+# trailer, so the boot path carries no STARK code at all.
+
+[package]
+name = "nonos-attest-path"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = []
+# Tree building and trailer emission, for the enroll tool. The gates never
+# enable it, so nothing on the verify path allocates.
+alloc = []
+
+[dependencies]
+blake3 = { version = "1.5", default-features = false, features = ["pure"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

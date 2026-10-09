@@ -18,35 +18,46 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::crypto::zk_kernel::prove_enrolled;
-use crate::security::capsule_attest::layout::POLICY_EPOCH;
-
 use super::error::LocalBuildError;
 use super::identity::with_identity;
-use super::trailer::encode;
+use super::trailer::{context, decode, encode, tag};
 
-/// Laid out as `against_root::verify` lays it out. If the two disagree the
-/// proof verifies against nothing.
-fn context(elf: &[u8], granted_caps: u64) -> [u8; 48] {
-    let mut ctx = [0u8; 48];
-    ctx[..32].copy_from_slice(blake3::hash(elf).as_bytes());
-    ctx[32..40].copy_from_slice(&granted_caps.to_be_bytes());
-    ctx[40..48].copy_from_slice(&POLICY_EPOCH.to_be_bytes());
-    ctx
-}
-
-/// Prove this machine may run `elf` holding `granted_caps`.
+/// Tag `elf` so this machine may run it holding `granted_caps`.
 pub fn sign(elf: &[u8], granted_caps: u64) -> Result<Vec<u8>, LocalBuildError> {
     /*
-     * This used to refuse under `nonos-stark-attest`, because the verifier
-     * picked its parser from that flag and would have read these NZKCAPS2
-     * bytes as a malformed STARK.
+     * A tag made here admits a capsule holding what it names, so it names
+     * nothing beyond what every process inherits. Minting LocalSign, or any
+     * scarce right, would let a signer hand out authority it cannot be asked
+     * to justify.
      */
-    let ctx = context(elf, granted_caps);
-    let proof = with_identity(|id| {
-        prove_enrolled(&id.secret, &id.blinding, 0, &super::tree::empty_siblings(), &id.root, &ctx)
-    })
-    .ok_or(LocalBuildError::NoIdentity)?
-    .ok_or(LocalBuildError::ProofFailed)?;
-    encode(&proof).ok_or(LocalBuildError::TrailerShape)
+    if granted_caps & !crate::process::core::AMBIENT_CAPS != 0 {
+        return Err(LocalBuildError::ScarceCapability);
+    }
+    let digest = crate::security::capsule_attest::measure::measure(elf);
+    let ctx = context(&digest, granted_caps);
+    with_identity(|id| encode(&id.root, &tag(&id.key, &ctx))).ok_or(LocalBuildError::NoIdentity)
+}
+
+/// Whether `trailer` is this machine's tag for the image measured as `digest`,
+/// holding `granted_caps`, under `root`. Returns the measurement when it is.
+///
+/// Refused unless `root` is this machine's own: a root enrolled from
+/// elsewhere names a key this kernel does not hold, so no tag here can be
+/// checked against it.
+pub fn verify(trailer: &[u8], digest: &[u8; 32], granted_caps: u64, root: &[u8; 32]) -> Option<[u8; 32]> {
+    let (carried_root, carried_tag) = decode(trailer)?;
+    if carried_root != *root {
+        return None;
+    }
+    let ctx = context(digest, granted_caps);
+    let ok = with_identity(|id| {
+        /* blake3::Hash compares in constant time. */
+        id.root == *root && tag(&id.key, &ctx) == blake3::Hash::from(carried_tag)
+    })?;
+    if !ok {
+        return None;
+    }
+    let mut measurement = [0u8; 32];
+    measurement.copy_from_slice(&ctx[..32]);
+    Some(measurement)
 }

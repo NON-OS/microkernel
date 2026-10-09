@@ -16,13 +16,10 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
-use crate::arch::x86_64::asm::syscall_entry_asm;
-use crate::arch::x86_64::gdt::constants::{
-    SEL_KERNEL_CODE_RAW, SEL_KERNEL_DATA_RAW, SEL_USER_CODE, SEL_USER_DATA, SEL_USER_DATA_RAW,
-};
-use crate::arch::x86_64::syscall::msr;
+use super::program::program_this_cpu;
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
+static BOOT_CPU_PROGRAMMED: AtomicBool = AtomicBool::new(false);
 
 // Programs LSTAR/STAR/SFMASK and enables EFER.SCE so the `syscall`
 // instruction at CPL=3 enters `syscall_entry_asm` at CPL=0.
@@ -35,23 +32,18 @@ pub fn init() -> Result<(), &'static str> {
     if INITIALIZED.swap(true, Ordering::SeqCst) {
         return Err("syscall already initialized");
     }
-    msr::setup_star(SEL_KERNEL_CODE_RAW, SEL_USER_DATA_RAW)?;
-    msr::setup_lstar(syscall_entry_asm as *const () as u64);
-    msr::setup_fmask();
-    msr::enable_sce();
-
-    let star = msr::read_msr(msr::IA32_STAR);
-    let syscall_cs = ((star >> 32) & 0xFFFF) as u16;
-    let syscall_ss = syscall_cs.wrapping_add(8);
-    let sysret_base = ((star >> 48) & 0xFFFF) as u16;
-    let sysret_ss = sysret_base.wrapping_add(8);
-    let sysret_cs = sysret_base.wrapping_add(16);
-    if syscall_cs != SEL_KERNEL_CODE_RAW
-        || syscall_ss != SEL_KERNEL_DATA_RAW
-        || sysret_cs != SEL_USER_CODE
-        || sysret_ss != SEL_USER_DATA
-    {
-        return Err("STAR encoding produces wrong SYSCALL/SYSRET selectors");
-    }
+    program_this_cpu()?;
+    BOOT_CPU_PROGRAMMED.store(true, Ordering::SeqCst);
     Ok(())
+}
+
+/// The same registers on an application processor. They are per CPU, and one
+/// that never had them programmed took the first `syscall` from user mode as
+/// an invalid opcode. Refused until the boot CPU has run `init`, so the checks
+/// there have passed once before any other CPU relies on the same encoding.
+pub fn init_ap() -> Result<(), &'static str> {
+    if !BOOT_CPU_PROGRAMMED.load(Ordering::SeqCst) {
+        return Err("syscall not initialized on the boot cpu");
+    }
+    program_this_cpu()
 }

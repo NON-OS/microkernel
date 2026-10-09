@@ -36,6 +36,10 @@ impl CapsuleState {
         let last = self.last_exit_ms();
         last == 0 || now_ms.saturating_sub(last) >= self.debounce_ms.load(Ordering::SeqCst)
     }
+    pub fn max_restarts(&self) -> u32 {
+        self.max_restarts.load(Ordering::SeqCst)
+    }
+
     pub fn set_max_restarts(&self, value: u32) {
         self.max_restarts.store(value, Ordering::SeqCst);
     }

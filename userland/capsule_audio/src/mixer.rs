@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::volume::scale;
+
 pub const FRAMES: usize = 1024;
 pub const SAMPLES: usize = FRAMES * 2;
 pub const BYTES: usize = SAMPLES * 2;
@@ -44,11 +46,13 @@ impl Mixer {
         }
     }
 
-    pub fn write_bytes(&self, out: &mut [u8]) {
+    /// The mix as little endian bytes, each sample at the master volume's
+    /// `gain` (crate::volume), so streams and tones alike follow it.
+    pub fn write_bytes(&self, out: &mut [u8], gain: i32) {
         let n = (out.len() / 2).min(SAMPLES);
         let mut i = 0;
         while i < n {
-            let le = self.acc[i].to_le_bytes();
+            let le = scale(self.acc[i], gain).to_le_bytes();
             out[i * 2] = le[0];
             out[i * 2 + 1] = le[1];
             i += 1;

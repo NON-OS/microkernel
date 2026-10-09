@@ -18,6 +18,7 @@ use super::cmd_header::CmdHeader;
 use super::cmd_table::CmdTable;
 use super::fis::FisH2D;
 use super::port::Port;
+use crate::constants::regs::PORT_TFD;
 use crate::constants::ata::{
     ATA_DEV_LBA, ATA_FLUSH_EXT, FIS_H2D_COMMAND, FIS_H2D_LEN_DWORDS, FIS_TYPE_REG_H2D,
 };
@@ -45,8 +46,10 @@ pub fn flush(port: &mut Port, regs: Regs) -> AhciResult<()> {
         core::ptr::write_volatile(table_va as *mut FisH2D, fis);
         core::ptr::write_volatile(port.clb.user_va() as *mut CmdHeader, header);
     }
-    if let Err(e) = super::issue::issue_slot0(regs, port.base) {
-        super::recover::recover(regs, port.base);
+    if let Err(e) = super::issue::issue_slot0(regs, port.base, port.sclo) {
+        // SAFETY: the port's register block lies inside the mapped ABAR.
+        port.last_tfd = unsafe { regs.r32(port.base + PORT_TFD) };
+        let _ = super::recover::recover(regs, port.base, port.sclo);
         return Err(e);
     }
     Ok(())

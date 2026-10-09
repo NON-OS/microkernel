@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The document list behind the Home pane. "Home" is every file the VFS
-//! listing returned; "Recent" is what this session has actually opened. The
-//! remaining nav rows have no store behind them and list nothing.
+//! listing returned; "Recent" is what this session has actually opened.
 
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;

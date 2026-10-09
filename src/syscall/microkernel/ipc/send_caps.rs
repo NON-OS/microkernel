@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::capabilities::caps_to_bits;
-use crate::services::registry::{lookup_port, lookup_service};
+use crate::services::registry::{caller_may_write_inbox, lookup_port, lookup_service};
 use crate::syscall::caps::current_caps_or_default;
+use crate::syscall::microkernel::narrow::u32_arg;
 
 /// Whether this caller may send to `endpoint`.
 ///
@@ -34,7 +35,7 @@ use crate::syscall::caps::current_caps_or_default;
 /// not exist yet, and win the race when it appears.
 pub(super) fn caller_satisfies_endpoint(endpoint: u64, target: &str) -> bool {
     let Some(required) = lookup_service(target)
-        .or_else(|| lookup_port(endpoint as u32))
+        .or_else(|| u32_arg(endpoint).and_then(lookup_port))
         .map(|ep| ep.caps_required)
     else {
         return false;
@@ -42,5 +43,35 @@ pub(super) fn caller_satisfies_endpoint(endpoint: u64, target: &str) -> bool {
     if required == 0 {
         return false;
     }
-    caps_to_bits(&current_caps_or_default().permissions) & required == required
+    let held = caps_to_bits(&current_caps_or_default().permissions);
+    if held & required == required {
+        return true;
+    }
+    /*
+     * Said, not only refused: a capsule that may not reach a service is told
+     * nothing more than EPERM, and this line is what shows which one.
+     */
+    let pid = crate::process::current_pid().unwrap_or(0);
+    crate::log::warn!(
+        "[CAP-DENY] pid={} ipc to {} needs caps {:#x}, holds {:#x}",
+        pid,
+        target,
+        required,
+        held
+    );
+    false
+}
+
+/// Whether this caller may write straight into `dest`'s own inbox with
+/// MkIpcSendToPid. That inbox is where every endpoint `dest` serves is read,
+/// so the send passes each one's gate, as a send by name would; checking
+/// none of them let a capsule without Network reach net.sockets by its pid.
+pub(super) fn caller_satisfies_inbox(dest: u32) -> bool {
+    let held = caps_to_bits(&current_caps_or_default().permissions);
+    if caller_may_write_inbox(dest, held) {
+        return true;
+    }
+    let pid = crate::process::current_pid().unwrap_or(0);
+    crate::log::warn!("[CAP-DENY] pid={} ipc to pid {} fails a gate it serves, holds {:#x}", pid, dest, held);
+    false
 }

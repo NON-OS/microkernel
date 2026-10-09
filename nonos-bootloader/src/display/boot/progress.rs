@@ -17,16 +17,12 @@
 use core::sync::atomic::{AtomicU8, Ordering};
 
 use super::layout::splash;
-use super::vignette::lerp;
-use crate::display::font::draw_string;
-use crate::display::fx::blend_rect;
-use crate::display::gop::{fill_rect, is_initialized, vline};
-
-const BG: u32 = 0xFF04070B;
-const TRACK: u32 = 0xFF2C3B3F;
-const CYAN_DIM: u32 = 0xFF0A5F58;
-const CYAN_HOT: u32 = 0xFF9BFFF1;
-const LABEL: u32 = 0xFF46AEB6;
+use crate::display::fx::clear_region;
+use crate::display::gop::{get_dimensions, hline, is_initialized};
+use crate::display::ink::palette::{BORDER, CYAN, TEXT_2, TEXT_3};
+use crate::display::ink::{label, label_width, metrics, round_rect, Style};
+use crate::display::text::Text;
+use crate::display::version::version_label;
 
 static CURRENT_STAGE: AtomicU8 = AtomicU8::new(0);
 static TOTAL_STAGES: AtomicU8 = AtomicU8::new(10);
@@ -41,47 +37,24 @@ pub fn get_progress() -> (u8, u8) {
     (CURRENT_STAGE.load(Ordering::Relaxed), TOTAL_STAGES.load(Ordering::Relaxed))
 }
 
+/// The footer, as on the menu: the stage count with a cyan line that grows,
+/// and the release on the right.
 fn render_progress_bar() {
     if !is_initialized() {
         return;
     }
-    let lay = splash();
+    let s = splash();
+    let (w, h) = get_dimensions();
     let (cur, total) = get_progress();
-    let pct = if total == 0 { 0 } else { (cur as u32 * 100) / total as u32 };
-    let (x, y, w) = (lay.bar_x, lay.bar_y, lay.bar_w);
-
-    fill_rect(x, y.saturating_sub(26), w, 18, BG);
-    draw_string(x, y.saturating_sub(26), b"verified boot", LABEL);
-    draw_pct(x + w.saturating_sub(32), y.saturating_sub(26), pct);
-
-    fill_rect(x, y, w, 3, TRACK);
-    let fill_w = w * pct / 100;
-    for i in 0..fill_w {
-        vline(x + i, y, 3, lerp(CYAN_DIM, CYAN_HOT, i * 256 / fill_w.max(1)));
-    }
-    if fill_w > 0 && fill_w < w {
-        let hx = x + fill_w;
-        blend_rect(hx.saturating_sub(4), y.saturating_sub(4), 10, 11, CYAN_HOT, 90);
-        fill_rect(hx.saturating_sub(1), y.saturating_sub(1), 3, 5, CYAN_HOT);
-    }
-}
-
-fn draw_pct(x: u32, y: u32, pct: u32) {
-    let p = pct.min(100);
-    let mut buf = [b' '; 4];
-    let n = if p >= 100 {
-        buf[0..3].copy_from_slice(b"100");
-        3
-    } else if p >= 10 {
-        buf[0] = b'0' + (p / 10) as u8;
-        buf[1] = b'0' + (p % 10) as u8;
-        2
-    } else {
-        buf[0] = b'0' + p as u8;
-        1
-    };
-    buf[n] = b'%';
-    let s = &buf[..n + 1];
-    let sx = x.saturating_sub((n as u32).saturating_sub(1) * 8);
-    draw_string(sx, y, s, LABEL);
+    let (u, mono) = (s.u, metrics(Style::Mono));
+    let (side, y) = (8 * u, s.footer_y + mono.line + 2 * u);
+    clear_region(0, s.footer_y, w, h.saturating_sub(s.footer_y));
+    hline(0, s.footer_y, w, BORDER);
+    let t = Text::new().push(b"STEP ").dec(cur as u64).push(b" OF ").dec(total as u64);
+    let tw = label(side, y, t.as_bytes(), TEXT_2);
+    let span = tw.max(label_width(b"STEP 10 OF 10"));
+    round_rect(side, y + mono.line + u, span, 2, 1, BORDER);
+    round_rect(side, y + mono.line + u, (span * cur as u32 / total.max(1) as u32).max(2), 2, 1, CYAN);
+    let v = version_label();
+    label(w.saturating_sub(side + label_width(v.as_bytes())), y, v.as_bytes(), TEXT_3);
 }

@@ -51,20 +51,17 @@ pub fn parse_dqt(seg: &[u8], tables: &mut [QuantTable; MAX_QT]) -> Result<(), De
             return Err(DecodeError::Truncated);
         }
         let mut t = QuantTable::new();
-        if pq == 0 {
-            let mut i = 0usize;
-            while i < 64 {
-                t.values[i] = seg[p + i] as u16;
-                i += 1;
-            }
-        } else {
-            let mut i = 0usize;
-            while i < 64 {
-                let hi = seg[p + i * 2] as u16;
-                let lo = seg[p + i * 2 + 1] as u16;
-                t.values[i] = (hi << 8) | lo;
-                i += 1;
-            }
+        /*
+         * Kept in the file's zigzag order, the order both decoders index it
+         * in: the streaming one by scan position, the coefficient one when it
+         * builds its natural-order copy.
+         */
+        for (i, v) in t.values.iter_mut().enumerate() {
+            *v = if pq == 0 {
+                seg[p + i] as u16
+            } else {
+                ((seg[p + i * 2] as u16) << 8) | seg[p + i * 2 + 1] as u16
+            };
         }
         t.present = true;
         tables[tq] = t;

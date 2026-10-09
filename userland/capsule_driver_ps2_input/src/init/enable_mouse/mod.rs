@@ -20,6 +20,5 @@ mod mouse_command;
 mod pio_write;
 mod read_data;
 mod wait_input_clear;
-mod wait_output_full;
 mod write_data;
 pub use enable::enable_mouse;

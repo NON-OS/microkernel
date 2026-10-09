@@ -17,7 +17,6 @@
 mod claim;
 mod dma;
 mod driver;
-mod irq;
 mod mmio;
 mod rollback;
 mod sequence;

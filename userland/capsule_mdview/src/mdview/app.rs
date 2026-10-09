@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
+use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, InputKind, PaintBuffer};
 
 use super::doc::Doc;
 use super::event::on_event;
@@ -22,12 +22,17 @@ use super::layout::{wrap, Line};
 use super::manifest::manifest;
 use super::measure::measure;
 use super::paint::paint;
+use super::scroll::{max_scroll, wheel};
 use super::theme::MARGIN;
 
 pub struct MdView {
     doc: Doc,
     lines: Vec<Line>,
     wrapped_width: u32,
+    /// How far the page is scrolled up, in pixels, and the window height it
+    /// was last drawn in, which is what the wheel measures its end against.
+    scroll: u32,
+    view_h: u32,
 }
 
 impl MdView {
@@ -36,6 +41,8 @@ impl MdView {
             doc: Doc::new(),
             lines: Vec::new(),
             wrapped_width: 0,
+            scroll: 0,
+            view_h: 0,
         }
     }
 
@@ -56,11 +63,23 @@ impl App for MdView {
     }
 
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
+        // The page used to stop at the window's bottom edge with no way on;
+        // the wheel now scrolls it.
+        if event.kind == InputKind::Wheel {
+            let next = wheel(self.scroll, &self.lines, self.view_h, event.delta_y);
+            if next == self.scroll {
+                return EventOutcome::Idle;
+            }
+            self.scroll = next;
+            return EventOutcome::Repaint;
+        }
         on_event(event)
     }
 
     fn paint(&mut self, fb: &mut PaintBuffer) {
         self.relayout(fb.width);
-        paint(fb, &self.lines, self.doc.error);
+        self.view_h = fb.height;
+        self.scroll = self.scroll.min(max_scroll(&self.lines, fb.height));
+        paint(fb, &self.lines, self.doc.error, self.scroll);
     }
 }

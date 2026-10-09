@@ -35,6 +35,13 @@ pub(in crate::elf::loader::core) fn load_segment(
     let perms = pte_perms_from_phdr(header);
     let file_bytes = &elf_data[plan.file_offset..plan.file_end];
     for page_index in 0..plan.pages {
+        /*
+         * A segment is copied a page at a time with interrupts masked, and an
+         * image is megabytes. Answer TLB shootdowns between pages: nothing
+         * is held here but the kernel's copy of the image, and the next
+         * page's frame is not mapped yet.
+         */
+        crate::smp::serve_shootdowns();
         let copy = source::page(file_bytes, &plan, page_index)?;
         populate_page(target_asid, copy.page_va, perms, copy.dst_off, copy.src)?;
     }

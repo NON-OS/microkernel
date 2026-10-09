@@ -18,13 +18,9 @@ use core::sync::atomic::Ordering;
 
 use crate::sys::serial;
 
-use super::constants::{
-    LAPIC_ESR, LAPIC_ID, LAPIC_LVT_ERROR, LAPIC_LVT_LINT0, LAPIC_LVT_LINT1, LAPIC_LVT_TIMER,
-    LAPIC_SVR, LAPIC_TPR, LAPIC_VERSION, LOCAL_APIC_DEFAULT_BASE, LVT_MASKED, SPURIOUS_VECTOR,
-    SVR_APIC_ENABLE,
-};
-use super::regs::{lapic_read_raw, lapic_write_raw};
-use super::state::{LAPIC_BASE, LAPIC_INIT};
+use super::constants::{LAPIC_ID, LAPIC_VERSION};
+use super::regs::lapic_read_raw;
+use super::state::{LAPIC_BASE, LAPIC_INIT, LAPIC_PHYS};
 
 pub fn init_local_apic() {
     if LAPIC_INIT.load(Ordering::Relaxed) {
@@ -34,37 +30,28 @@ pub fn init_local_apic() {
 
     // Detect x2APIC hand-off before touching any register: if firmware left
     // the APIC in x2APIC mode the accessors below must use MSRs, not MMIO.
+    // This also reads where the register page is: firmware may move it off
+    // 0xFEE00000, and IA32_APIC_BASE is the only place that says so.
     super::x2apic::detect_mode();
 
-    unsafe {
-        // Boot phase: still on identity-mapped physical. VM init will
-        // republish to the kernel-half UC virtual page via rebind.
-        LAPIC_BASE.store(LOCAL_APIC_DEFAULT_BASE, Ordering::SeqCst);
+    // Boot phase: still on identity-mapped physical. VM init will republish
+    // to the kernel-half UC virtual page via rebind.
+    LAPIC_BASE.store(LAPIC_PHYS.load(Ordering::Acquire), Ordering::SeqCst);
 
-        // Enable APIC and pin the spurious vector at 0xFF.
-        lapic_write_raw(LAPIC_SVR, SVR_APIC_ENABLE | SPURIOUS_VECTOR);
-
-        // Task priority 0 — do not mask any vector.
-        lapic_write_raw(LAPIC_TPR, 0);
-
-        lapic_write_raw(LAPIC_ESR, 0);
-        lapic_read_raw(LAPIC_ESR);
-
-        // Park every LVT entry until the subsystem owner installs a
-        // vector through setup_timer / enable_irq.
-        lapic_write_raw(LAPIC_LVT_TIMER, LVT_MASKED);
-        lapic_write_raw(LAPIC_LVT_LINT0, LVT_MASKED);
-        lapic_write_raw(LAPIC_LVT_LINT1, LVT_MASKED);
-        lapic_write_raw(LAPIC_LVT_ERROR, LVT_MASKED);
-    }
+    // SAFETY: the APIC is enabled in the latched mode, and in xAPIC mode the
+    // base above is the identity-mapped register page.
+    unsafe { super::program::program_local_vectors(true) };
 
     LAPIC_INIT.store(true, Ordering::SeqCst);
 
     let version = unsafe { lapic_read_raw(LAPIC_VERSION) };
-    let id = unsafe { lapic_read_raw(LAPIC_ID) >> 24 };
+    let raw_id = unsafe { lapic_read_raw(LAPIC_ID) };
+    let x2 = super::x2apic::is_x2(Ordering::Acquire);
+    let id = if x2 { raw_id } else { raw_id >> 24 };
     serial::print(b"[APIC] Local APIC enabled, ID=");
     serial::print_dec(id as u64);
     serial::print(b" Version=0x");
     serial::print_hex((version & 0xFF) as u64);
+    serial::print(if x2 { b" mode=x2APIC" } else { b" mode=xAPIC" });
     serial::println(b"");
 }

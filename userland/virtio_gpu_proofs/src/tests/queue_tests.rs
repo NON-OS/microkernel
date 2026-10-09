@@ -50,6 +50,14 @@ fn a_part_that_completes_a_descriptor_the_driver_did_not_publish_is_refused() {
 }
 
 #[test]
+fn a_used_id_equal_only_in_its_low_16_bits_is_refused() {
+    let h = harness();
+    let _part = answering(&h.region, Answer::AliasedDescriptor);
+    let err = h.queue.submit(&request(0x0104), RESP_HDR_LEN as u32).err();
+    assert_eq!(err, Some("virtio-gpu: used id mismatch"));
+}
+
+#[test]
 fn a_part_that_never_answers_is_given_up_on() {
     let h = harness();
     let err = h.queue.submit(&request(0x0104), RESP_HDR_LEN as u32).err();

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod acpi_tables;
+mod cpu_tables;
 mod init_core_systems;
 #[cfg(feature = "nonos-user-entry-proof")]
 mod syscall_msrs;

@@ -6,10 +6,14 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+mod announce;
 mod claim;
 mod dma;
+mod grants;
 mod irq;
+mod irq_plan;
 mod mmio;
 mod sequence;
 
+pub use announce::announce;
 pub use sequence::run;

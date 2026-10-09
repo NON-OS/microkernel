@@ -18,3 +18,16 @@ extern crate alloc;
 
 #[path = "../../src/doc/mod.rs"]
 pub mod doc;
+
+use doc::block::Block;
+use doc::document::Doc;
+
+/// Every byte of the block's text is under exactly one run: the runs' lengths
+/// add up to the text's. Each edit and restyle must keep this.
+pub fn covered(b: &Block) -> bool {
+    b.runs.iter().map(|r| r.len).sum::<usize>() == b.text.len()
+}
+
+pub fn doc_covered(d: &Doc) -> bool {
+    d.blocks.iter().all(covered)
+}

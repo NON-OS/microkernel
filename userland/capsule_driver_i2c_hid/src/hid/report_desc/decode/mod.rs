@@ -16,8 +16,10 @@
 
 //! Decode one input report into an absolute touch sample using a parsed layout.
 
+mod decode_mouse;
 mod decode_touch;
 mod types;
 
+pub use decode_mouse::decode_mouse;
 pub use decode_touch::decode_touch;
 pub use types::TouchSample;

@@ -14,6 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod cmd;
+mod config;
+mod data;
 mod enable;
 mod enable_port;
+mod pio_write;
+mod read_byte;
+mod reset;
+mod wait_clear;
+
+pub use config::keyboard_config;
 pub use enable::enable_keyboard;

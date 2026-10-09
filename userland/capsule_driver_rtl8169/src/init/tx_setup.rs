@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::chip::MacVersion;
 use crate::constants::queue::TX_DESC_COUNT;
-use crate::constants::regs::{
-    DESC_EOR, REG_TXDESC_ADDR_HI, REG_TXDESC_ADDR_LO, REG_TX_CONFIG, TX_CONFIG_DMA, TX_CONFIG_IFG,
-};
+use crate::constants::regs::{DESC_EOR, REG_TXDESC_ADDR_HI, REG_TXDESC_ADDR_LO, REG_TX_CONFIG};
+use crate::hw::tx_config;
 use crate::queue::desc::{desc_mut, Descriptor};
 use crate::queue::TxRing;
 use crate::regs::Regs;
@@ -35,6 +35,14 @@ pub fn program(regs: &Regs, tx: &TxRing) {
     unsafe {
         regs.w32(REG_TXDESC_ADDR_LO, tx.desc_da as u32);
         regs.w32(REG_TXDESC_ADDR_HI, (tx.desc_da >> 32) as u32);
-        regs.w32(REG_TX_CONFIG, TX_CONFIG_IFG | TX_CONFIG_DMA);
+    }
+}
+
+/// TxConfig for this version, written once the transmitter is enabled
+/// (see `run`).
+pub fn configure(regs: &Regs, ver: MacVersion) {
+    // SAFETY: TxConfig (0x40) lies inside every mapped window.
+    unsafe {
+        regs.w32(REG_TX_CONFIG, tx_config(ver));
     }
 }

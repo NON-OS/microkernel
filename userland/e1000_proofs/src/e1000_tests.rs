@@ -110,7 +110,7 @@ fn post_programs_exactly_the_tail_descriptor_and_wraps() {
 
 #[test]
 fn decode_never_panics_and_reads_fields_from_their_offsets() {
-    const MAGIC: u32 = 0x4E45_3130; // the wire tag from protocol/header.rs
+    const MAGIC: u32 = 0x4E4E_4554; // the NNET wire tag from protocol/header.rs
     for seed in 1..100_000u64 {
         let mut s = seed;
         let blen = (xorshift(&mut s) % 40) as usize;

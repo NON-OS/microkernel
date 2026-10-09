@@ -17,8 +17,7 @@
 //! Proofs for the HID report-descriptor parser and the absolute-touch decoder,
 //! driven by a realistic precision-touchpad descriptor and report.
 
-use crate::decode::decode_touch;
-use crate::parse::parse;
+use crate::hid::{decode_touch, parse};
 
 // A single-finger precision-touchpad report descriptor: report id 1, a tip
 // switch, 7 padding bits, 12-bit-range X and Y (16-bit fields), an 8-bit
@@ -194,10 +193,10 @@ fn decodes_full_size_multi_contact_report() {
     assert_eq!(s.y, 500);
     assert_eq!(s.contacts, 3, "three-finger count read from past byte 64");
     assert!(s.button, "clickpad button read from past byte 64");
-    // The same report truncated to the old 64-byte cap loses the trailer: the
-    // contact count reads as zero and the button is gone, which is the exact
-    // gesture breakage the read-size fix removes.
-    let truncated = decode_touch(&report[..64], &layout).unwrap();
-    assert_eq!(truncated.contacts, 0);
-    assert!(!truncated.button);
+    /*
+     * The same report cut at the old 64-byte cap ends before the contact count
+     * and the button. The decoder drops it whole rather than read zeros there,
+     * so a short read can neither lose a finger nor release a held button.
+     */
+    assert!(decode_touch(&report[..64], &layout).is_none());
 }

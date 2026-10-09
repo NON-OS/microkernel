@@ -17,11 +17,14 @@
 //! The install in flight: a disk-writer session or a read-back, advanced
 //! one budget per tick so the window keeps painting.
 
+mod advance;
 mod finish;
+mod prepare;
 mod start;
 mod tick;
 mod work;
 
+pub use prepare::prepare;
 pub use start::start;
 pub use tick::tick;
-pub use work::Job;
+pub use work::{Job, Phase};

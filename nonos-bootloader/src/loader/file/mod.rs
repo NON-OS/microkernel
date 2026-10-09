@@ -14,10 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod boot_partition;
+mod disk_mirror;
 mod load;
 mod own_volume;
+mod pages;
 mod read;
+mod store_copy;
 mod types;
 
+pub use boot_partition::boot_partition;
+pub use disk_mirror::disk_mirror;
 pub use load::{file_exists, load_file_from_esp, load_kernel_binary};
+pub use store_copy::store_copy;
 pub use types::{FileLoadError, FileResult};

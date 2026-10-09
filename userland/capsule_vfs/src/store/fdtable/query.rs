@@ -18,6 +18,9 @@ use alloc::vec::Vec;
 
 use super::types::{Store, StoreError};
 
+/// Where the Linux personality keeps each family's private directories.
+const PRIVATE: &str = "/linux-private";
+
 impl Store {
     pub fn stat(&self, path: &str) -> Result<(u64, bool, u64, u16), StoreError> {
         match self.find(path) {
@@ -25,7 +28,7 @@ impl Store {
                 let f = &self.files[i];
                 // A directory reports its immediate child count in place of a
                 // byte size, so a listing can show how full each folder is.
-                let size = if f.is_dir { self.child_count(path) } else { f.data.len() as u64 };
+                let size = if f.is_dir { self.child_count(path) } else { self.size_of(i) };
                 Ok((size, f.is_dir, f.mtime, f.mode))
             }
             None => Err(StoreError::NotFound),
@@ -44,10 +47,13 @@ impl Store {
             .count() as u64
     }
 
-    pub fn list(&self, prefix: &str, max_bytes: usize) -> Vec<u8> {
+    /// Every path under `prefix` that `viewer` may see. A Linux family's
+    /// scratch directories are its own: listed to the process that made
+    /// them, and to no file manager, editor or other capsule.
+    pub fn list(&self, prefix: &str, max_bytes: usize, viewer: u32) -> Vec<u8> {
         let mut out = Vec::new();
         for f in self.files.iter() {
-            if !f.name.starts_with(prefix) {
+            if !f.name.starts_with(prefix) || (f.name.starts_with(PRIVATE) && f.owner != viewer) {
                 continue;
             }
             let mut nb = Vec::from(f.name.as_bytes());

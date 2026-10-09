@@ -20,6 +20,8 @@
 //! drive each step on its own as well, so the module is assembled locally
 //! and re-exports them under names that say which step they are.
 
+#[path = "../../../capsule_driver_rtl8169/src/init/finish.rs"]
+mod finish;
 #[path = "../../../capsule_driver_rtl8169/src/init/mac.rs"]
 mod mac;
 #[path = "../../../capsule_driver_rtl8169/src/init/reset.rs"]
@@ -31,8 +33,11 @@ mod rx_setup;
 #[path = "../../../capsule_driver_rtl8169/src/init/tx_setup.rs"]
 mod tx_setup;
 
+pub use finish::finish;
 pub use mac::program as mac_program;
 pub use reset::run as reset_run;
 pub use run::bring_up;
+pub use rx_setup::configure as rx_configure;
 pub use rx_setup::program as rx_program;
+pub use tx_setup::configure as tx_configure;
 pub use tx_setup::program as tx_program;

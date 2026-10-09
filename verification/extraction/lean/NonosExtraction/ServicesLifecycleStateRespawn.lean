@@ -210,7 +210,7 @@ def capsulestate_should_respawn
   services.lifecycle.state.respawn.CapsuleState.should_respawn this now_ms
 
 /-- [nonos_x_services_lifecycle_state_respawn::services::lifecycle::state::respawn::{nonos_x_services_lifecycle_state_respawn::services::lifecycle::state::types::CapsuleState}::set_max_restarts]:
-    Source: 'src/services/lifecycle/state/../../../../../../../../src/services/lifecycle/state/respawn.rs', lines 39:4-41:5
+    Source: 'src/services/lifecycle/state/../../../../../../../../src/services/lifecycle/state/respawn.rs', lines 43:4-45:5
     Visibility: public -/
 def services.lifecycle.state.respawn.CapsuleState.set_max_restarts
   (self : services.lifecycle.state.types.CapsuleState) (value : Std.U32) :
@@ -229,7 +229,7 @@ def capsulestate_set_max_restarts
   services.lifecycle.state.respawn.CapsuleState.set_max_restarts this value
 
 /-- [nonos_x_services_lifecycle_state_respawn::services::lifecycle::state::respawn::{nonos_x_services_lifecycle_state_respawn::services::lifecycle::state::types::CapsuleState}::set_debounce_ms]:
-    Source: 'src/services/lifecycle/state/../../../../../../../../src/services/lifecycle/state/respawn.rs', lines 42:4-44:5
+    Source: 'src/services/lifecycle/state/../../../../../../../../src/services/lifecycle/state/respawn.rs', lines 46:4-48:5
     Visibility: public -/
 def services.lifecycle.state.respawn.CapsuleState.set_debounce_ms
   (self : services.lifecycle.state.types.CapsuleState) (value : Std.U64) :

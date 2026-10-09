@@ -38,6 +38,7 @@ pub fn find_controllers(out: &mut [Found]) -> usize {
             out[count] = Found {
                 device_id: r.device_id,
                 irq_line: r.irq_line,
+                bar0_base: bar0.base,
                 bar0_size: bar0.size,
                 pci_device: r.device,
                 clock_hz,

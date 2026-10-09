@@ -1,0 +1,6 @@
+HTTP/1.1 200 OK
+Content-Length: 47
+Content-Length: 18446744073709551615
+
+<!doc;ext="x"type html><title>t</titContent-Encoding: deflate
+le><p>café oi</p>

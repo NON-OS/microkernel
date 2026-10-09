@@ -40,10 +40,6 @@ pub fn paint_tag(fb: &mut PaintBuffer, x: u32, y: u32, label: &str) -> u32 {
     paint_chip(fb, x, y, label, theme::TEXT_DIM, theme::PANEL_ALT)
 }
 
-pub fn paint_badge(fb: &mut PaintBuffer, x: u32, y: u32, label: &str) -> u32 {
-    paint_chip(fb, x, y, label, theme::APP_BG, theme::ACCENT_DIM)
-}
-
 pub fn paint_row(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, labels: &[&str]) -> u32 {
     let mut pen = x;
     let mut row = y;

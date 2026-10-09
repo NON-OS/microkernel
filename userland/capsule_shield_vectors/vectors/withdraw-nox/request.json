@@ -1,0 +1,17 @@
+{
+  "not_before": 1790000400,
+  "asset_id": 1,
+  "pool_leaves": ["0xf26989f230eac5bab162f21e11f77d1c968e3634b9a7fceb6997892f97298a2b", "0xc063e97f59bc65065da8013f18113fa3c629294dff61c2dd68ca30ca2ed42407"],
+  "assoc_leaves": ["0xf26989f230eac5bab162f21e11f77d1c968e3634b9a7fceb6997892f97298a2b", "0xc063e97f59bc65065da8013f18113fa3c629294dff61c2dd68ca30ca2ed42407"],
+  "input_pool_index": [0, 1],
+  "input_assoc_index": [0, 1],
+  "note_root": "0x69d3815ff002ec30a924f6a704156c30f457a2cbbda9430197947c290038b453",
+  "assoc_root": "0x69d3815ff002ec30a924f6a704156c30f457a2cbbda9430197947c290038b453",
+  "recipient": "0x8ba1f109551bd432803012645ac136ddd64dba72",
+  "fee_recipient": "0x0000000000000000000000000000000000000001",
+  "clearing_price": 1000000,
+  "public_amount": 10000000000000,
+  "fee": 2050000000000,
+  "output_values": [7950000000000, 0],
+  "output_spend_pk": ["self", "self"]
+}

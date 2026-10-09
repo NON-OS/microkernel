@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_time_millis;
+use crate::state::{Context, NotifyLevel, LAUNCHER_APPS};
 
-use super::wm_notify_label::resolve_label;
-use crate::state::{Context, NotifyLevel};
-
-pub fn toast_window_event(ctx: &mut Context, opened: bool, owner_pid: u32) {
-    let Some(label) = resolve_label(owner_pid) else {
+/// "<App> opened" or "<App> closed", the app named as its dock tile names it.
+pub fn toast_window_event(ctx: &mut Context, opened: bool, index: usize) {
+    let Some(label) = LAUNCHER_APPS.get(index).map(|a| a.label) else {
         return;
     };
     let verb: &[u8] = if opened { b" opened" } else { b" closed" };
@@ -28,5 +26,5 @@ pub fn toast_window_event(ctx: &mut Context, opened: bool, owner_pid: u32) {
     let n = label.len().min(40);
     text[..n].copy_from_slice(&label[..n]);
     text[n..n + verb.len()].copy_from_slice(verb);
-    ctx.toasts.push(&text[..n + verb.len()], NotifyLevel::Info, mk_time_millis());
+    ctx.toasts.push(&text[..n + verb.len()], NotifyLevel::Info, crate::server::toast_clock::now());
 }

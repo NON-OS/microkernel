@@ -18,21 +18,27 @@
 //! hundred megabytes go to a disk.
 //!
 //! The whole disk is planned before the first sector is written: layout,
-//! geometry, placement, the tables, and a queue of jobs in the order they
-//! land. Each `step` writes at most a budget of bytes from the front of the
-//! queue and reports how far it got. The caller decides the budget from how
-//! often it wants to paint; the disk does not care.
+//! geometry, placement, the store, the tables, and a queue of jobs in the
+//! order they land. Each `step` writes at most a budget of bytes from the
+//! front of the queue and reports how far it got. The caller decides the
+//! budget from how often it wants to paint; the disk does not care.
 
 mod finish;
+mod ids;
 mod job;
 mod plan;
 mod progress;
 mod queue;
+mod queue_esp;
+mod queue_state;
 mod runs;
+mod start;
 mod step;
 mod verify;
 
+pub use ids::{Ids, ENTROPY_BYTES};
+pub use job::Job;
 pub use plan::Plan;
 pub use progress::Progress;
-pub use step::Session;
+pub use step::{Attempt, Session};
 pub use verify::Verifier;

@@ -14,11 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The two tones the desktop plays, and the switches that decide whether it does.
+//! The two tones the desktop plays, the switches that decide whether it does,
+//! and the master volume the volume keys set.
 
 mod alert;
+mod audio_port;
 mod chime;
+mod levels;
 mod play;
+mod volume;
 
 pub use alert::{mark, service};
 pub use chime::chime;
+pub use volume::volume_key;

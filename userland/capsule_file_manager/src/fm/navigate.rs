@@ -32,6 +32,7 @@ pub fn navigate(state: &mut State, path: &str) {
     let dir = path.ends_with('/');
     let prefix = if dir { path } else { parent_of(path) };
     if state.prefix.as_str() != prefix {
+        state.trail.arrived(prefix);
         state.prefix = String::from(prefix);
     }
     state.cursor = 0;

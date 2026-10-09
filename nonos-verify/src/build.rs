@@ -41,6 +41,31 @@ pub fn run(root: &str) -> std::io::Result<Status> {
     let ok = run_logged("make", &["nonos-mk-capsules"], &out.join("build-x86_64.txt"));
     rpt.check("build-x86_64-capsules", st(ok), "make nonos-mk-capsules");
 
+    // What ring 0 is, from the dep-info of the kernel just built. It may not
+    // grow past its budget; a PR that raises the budget has to say why.
+    let tcb = [
+        "tools/nonos-tcb",
+        "--by-module",
+        "--baseline",
+        "nonos-ci/baselines/tcb-x86_64-capsules.txt",
+    ];
+    let ok = run_logged("python3", &tcb, &out.join("tcb-budget.txt"));
+    rpt.check(
+        "tcb-budget",
+        st(ok),
+        "ring 0 lines within nonos-ci/baselines/tcb-x86_64-capsules.txt",
+    );
+
+    // The share of ring 0 under a theorem over extracted code; may not shrink.
+    let proof =
+        ["tools/nonos-proof-coverage", "--baseline", "scripts/baselines/proof-coverage.txt"];
+    let ok = run_logged("python3", &proof, &out.join("proof-coverage.txt"));
+    rpt.check(
+        "proof-coverage",
+        st(ok),
+        "extracted-code theorem lines at or above scripts/baselines/proof-coverage.txt",
+    );
+
     let kbin = "target/x86_64-nonos/release/nonos-kernel";
     if Path::new(kbin).exists() {
         let (_, sz) = capture("size", &[kbin]);
@@ -75,20 +100,24 @@ pub fn run(root: &str) -> std::io::Result<Status> {
         rpt.check("section-size", Status::Skip, "kernel ELF absent (build did not produce it)");
     }
 
-    for arch in ["aarch64", "riscv64"] {
-        if Path::new(&format!("{arch}-nonos.json")).exists() {
-            rpt.check(
-                &format!("build-{arch}"),
-                Status::Gap,
-                "kernel target json present, build lane not wired",
-            );
+    // aarch64 is built by `make nonos-mk-arm` in ci-build-aarch64 and booted
+    // in ci-boot-aarch64; riscv64 has no kernel target and ships in no release.
+    let mk = std::fs::read_to_string("mk/20-build.mk").unwrap_or_default();
+    let arm = Path::new("aarch64-nonos.json").exists() && mk.contains("\nnonos-mk-arm:");
+    rpt.check(
+        "build-aarch64",
+        if arm { Status::Pass } else { Status::Gap },
+        if arm {
+            "lane wired: make nonos-mk-arm (ci-build-aarch64, ci-boot-aarch64)"
         } else {
-            rpt.gap(
-                format!("kernel build lane for {arch}"),
-                format!("a {arch}-nonos.json kernel target + a make build target (only userland/{arch}-nonos-user.json exists today)"),
-            );
-        }
-    }
+            "aarch64-nonos.json or the nonos-mk-arm target is missing"
+        },
+    );
+    rpt.check(
+        "build-riscv64",
+        if Path::new("riscv64-nonos.json").exists() { Status::Gap } else { Status::Skip },
+        "no riscv64 kernel target; not a release architecture",
+    );
 
     rpt.finish(root)
 }

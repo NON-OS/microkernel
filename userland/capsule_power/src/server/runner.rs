@@ -16,7 +16,7 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, mk_yield};
+use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 
 use super::handlers::route;
 use crate::protocol::IPC_PAYLOAD_MAX;
@@ -38,8 +38,7 @@ pub fn run() -> ! {
             RECV_TIMEOUT_MS,
             &mut sender_pid,
         );
-        if received <= 0 || sender_pid == 0 {
-            mk_yield();
+        if !nonos_libc::recv_ready(received) || sender_pid == 0 {
             continue;
         }
         let n = route(&mut state, &in_buf[..received as usize], &mut out_buf);

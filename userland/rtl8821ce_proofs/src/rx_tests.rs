@@ -215,3 +215,76 @@ fn poll_returns_none_when_no_frame_is_ready() {
         "nothing ready"
     );
 }
+
+#[test]
+fn the_descriptor_says_whether_the_chip_decrypted_the_frame() {
+    // Word 0 bits 20-22 carry the security type (4 = AES), bit 27 SWDEC.
+    let with = |extra: u32| {
+        let mut d = rx_desc(64, 0, 0, false, false, false);
+        let w0 = u32::from_le_bytes([d[0], d[1], d[2], d[3]]) | extra;
+        d[0..4].copy_from_slice(&w0.to_le_bytes());
+        parse(&d).unwrap()
+    };
+    let aes = with(4 << 20);
+    assert_eq!(aes.enc_type, 4, "the AES security type");
+    assert!(!aes.swdec);
+    assert!(aes.decrypted(), "AES without SWDEC: the chip decrypted and checked it");
+    let sw = with((4 << 20) | (1 << 27));
+    assert!(sw.swdec);
+    assert!(!sw.decrypted(), "SWDEC: the frame is still ciphertext");
+    assert!(!with(0).decrypted(), "no security type: nothing was decrypted");
+    assert_eq!(with(7 << 20).pkt_len, 64, "the security bits leave the length alone");
+}
+
+#[test]
+fn a_descriptor_claiming_more_than_its_slot_is_skipped_not_read() {
+    // Slot 0 claims the largest length the field holds, past its own slot;
+    // slot 1 is a good frame.
+    let card = Card::new(2);
+    let ring = MockRing::new(RX_DESC_COUNT as usize * 8, 0x9000_0000);
+    let mut buffers = new_buffers();
+    let mut state = RxState::new(RX_DESC_COUNT);
+    place(&mut buffers, 0, &rx_desc(0x3FFF, 0xF, 3, false, false, false), &[], 24);
+    let good = [0x33u8; 60];
+    place(&mut buffers, 1, &rx_desc(good.len() as u16, 0, 0, false, false, false), &good, 24);
+
+    let mut out = [0u8; 1600];
+    let n = poll_one(&card, &ring, &buffers, BUF_DEV, &mut state, &mut out).expect("the good one");
+    assert_eq!(&out[..n], &good[..], "the oversized claim is skipped");
+    assert_eq!(state.rp, 2, "and its slot handed back");
+}
+
+#[test]
+fn a_slot_the_mapping_does_not_cover_is_skipped_not_read() {
+    // The CPU view covers only the first slot and a half; the card says three
+    // frames are ready. Slot 0 delivers, slot 1 is cut short and slot 2 is
+    // past the end: both are re-armed and skipped without a panic.
+    let card = Card::new(3);
+    let ring = MockRing::new(RX_DESC_COUNT as usize * 8, 0x9000_0000);
+    let mut buffers = new_buffers();
+    let frame = [0x44u8; 40];
+    place(&mut buffers, 0, &rx_desc(frame.len() as u16, 0, 0, false, false, false), &frame, 24);
+    let long = [0x55u8; 3000];
+    place(&mut buffers, 1, &rx_desc(long.len() as u16, 0, 0, false, false, false), &long, 24);
+    buffers.truncate(RX_BUF_STRIDE + RX_BUF_STRIDE / 2);
+    let mut state = RxState::new(RX_DESC_COUNT);
+
+    let mut out = [0u8; RX_BUF_STRIDE];
+    let n = poll_one(&card, &ring, &buffers, BUF_DEV, &mut state, &mut out).expect("slot 0");
+    assert_eq!(&out[..n], &frame[..]);
+    assert!(poll_one(&card, &ring, &buffers, BUF_DEV, &mut state, &mut out).is_none());
+    assert_eq!(state.rp, 3, "the uncovered slots were handed back");
+}
+
+#[test]
+fn a_frame_larger_than_the_caller_buffer_is_skipped_not_cut() {
+    let card = Card::new(1);
+    let ring = MockRing::new(RX_DESC_COUNT as usize * 8, 0x9000_0000);
+    let mut buffers = new_buffers();
+    let frame = [0x66u8; 200];
+    place(&mut buffers, 0, &rx_desc(frame.len() as u16, 0, 0, false, false, false), &frame, 24);
+    let mut state = RxState::new(RX_DESC_COUNT);
+    let mut out = [0u8; 100];
+    assert!(poll_one(&card, &ring, &buffers, BUF_DEV, &mut state, &mut out).is_none());
+    assert_eq!(state.rp, 1, "the slot is handed back");
+}

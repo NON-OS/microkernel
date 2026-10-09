@@ -16,6 +16,7 @@
 
 mod args;
 mod capability;
+mod data;
 mod debug;
 mod device;
 mod dma;

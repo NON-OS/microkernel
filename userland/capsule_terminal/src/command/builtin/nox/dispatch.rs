@@ -76,8 +76,12 @@ pub fn dispatch(state: &mut State, args: &[&[u8]]) -> Outcome {
             set::run(state, &[]);
             true
         }
-        b"caps" | b"ps" => {
+        b"caps" => {
             caps::run(state);
+            true
+        }
+        b"ps" => {
+            crate::command::builtin::ps::run(&mut Output::new(&mut state.scrollback));
             true
         }
         b"svc" => {

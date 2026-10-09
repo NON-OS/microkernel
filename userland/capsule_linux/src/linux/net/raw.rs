@@ -19,29 +19,48 @@
 use alloc::vec::Vec;
 
 use super::call::call;
-use super::ops::{DOMAIN, KIND_MIXNET, OP_CONNECT_HOST, OP_SOCKET};
+use super::ops::{DOMAIN, KIND_MIXNET, KIND_STREAM, OP_CONNECT_HOST, OP_SOCKET};
 
-/// Over the mixnet, like everything else.
-pub fn open_stream() -> Option<u32> {
+/// A stream to `ip`: over the mixnet, like everything else, unless `ip` is a
+/// mirror on the local network (`route::is_local`), which is dialled directly
+/// and said so.
+pub fn open_stream_to(ip: &str) -> Option<u32> {
+    let kind = match super::route::is_local(ip) {
+        true => {
+            let line =
+                alloc::format!("[LINUX] mirror {ip} is on the local network: reached directly\n");
+            let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+            KIND_STREAM
+        }
+        false => KIND_MIXNET,
+    };
     let mut body = Vec::with_capacity(4);
     body.extend_from_slice(&DOMAIN.to_le_bytes());
-    body.extend_from_slice(&KIND_MIXNET.to_le_bytes());
+    body.extend_from_slice(&kind.to_le_bytes());
     match call(OP_SOCKET, &body, 8) {
         Some((0, out)) if out.len() >= 4 => {
             Some(u32::from_le_bytes([out[0], out[1], out[2], out[3]]))
         }
-        _ => None,
+        got => failed("socket", ip, got.map(|g| g.0)),
     }
 }
 
 pub fn connect_host(handle: u32, host: &str, port: u16) -> Option<()> {
-    let mut body = Vec::with_capacity(7 + host.len());
-    body.extend_from_slice(&handle.to_le_bytes());
-    body.extend_from_slice(&port.to_le_bytes());
-    body.push(host.len() as u8);
-    body.extend_from_slice(host.as_bytes());
+    let body = super::host_body::host_body(handle, port, host.as_bytes())?;
     match call(OP_CONNECT_HOST, &body, 0) {
         Some((0, _)) => Some(()),
-        _ => None,
+        got => failed("connect", host, got.map(|g| g.0)),
     }
+}
+
+/// Which step a mirror fetch stopped at, and what net.sockets said: an
+/// install that fails with only "no package index" cannot be told apart
+/// from a mirror that is down.
+fn failed<T>(step: &str, to: &str, status: Option<u16>) -> Option<T> {
+    let line = match status {
+        Some(code) => alloc::format!("[LINUX] mirror {to}: {step} refused, status {code}\n"),
+        None => alloc::format!("[LINUX] mirror {to}: {step} got no reply\n"),
+    };
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    None
 }

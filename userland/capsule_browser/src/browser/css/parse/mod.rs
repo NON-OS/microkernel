@@ -14,21 +14,53 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod after_element;
+mod after_rules;
+mod attr_parts;
 mod attr_test;
+mod build;
+mod complex;
 mod compound;
+mod compound_part;
+mod cursor;
+mod cursor_trivia;
 mod decls;
-mod is_expand;
+mod element_args;
+mod element_code;
+mod element_names;
+mod escape;
+mod expand;
+mod expand_merge;
+mod hoist;
+mod ident;
+mod inline_style;
+mod list;
+mod list_kind;
 mod matching_brace;
 mod media_feature;
 mod media_matches;
+mod media_range;
+mod media_value;
 mod nth;
+mod nth_num;
 mod parse_into;
 mod pseudo;
+mod pseudo_arg;
+mod pseudo_element;
+mod pseudo_fn;
+mod pseudo_names;
+mod pseudo_nth;
+mod pseudo_states;
+mod seal;
 pub mod selectors;
-mod simple;
+mod skip;
+mod spec;
+mod string;
 mod strip_comments;
 mod stylesheet;
+mod type_sel;
 
 pub use decls::parse_decls;
+pub use inline_style::{css_name, style_get, style_set};
 pub use selectors::parse_selectors;
 pub use stylesheet::parse;

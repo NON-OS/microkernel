@@ -16,15 +16,15 @@
 
 //! The parser-robustness oracle the fuzzer drives.
 
-use nonos_stark::air::deserialize_proof_ext;
+use nonos_attest_path::{verify, Kind};
 
-/// Feed a byte string to the untrusted money-grade proof deserializer and report
-/// whether it completed rather than panicking. The gate parses adversarial input
-/// before it verifies, so a parser that can be driven to panic is a boot-time
-/// denial of service. This wraps the exact deserializer the bootloader links.
-pub fn proof_parser_is_total(bytes: &[u8]) -> bool {
+/// Feed a byte string to the gate as a trailer and report whether the check
+/// completed rather than panicking. The gate reads adversarial input before it
+/// decides, so a check that can be driven to panic is a boot-time denial of
+/// service. This is the exact code the bootloader links, parse and fold both.
+pub fn trailer_parser_is_total(bytes: &[u8]) -> bool {
     std::panic::catch_unwind(|| {
-        let _ = deserialize_proof_ext(bytes);
+        let _ = verify(&[1; 32], 8, Kind::Kernel, &[0; 40], bytes);
     })
     .is_ok()
 }

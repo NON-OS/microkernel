@@ -1,0 +1,27 @@
+#!/bin/sh
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+
+# The cmake llama.cpp is configured with, release 4.4.3. Prints the path of the
+# cmake binary. The flake pins it (tools/nix/pins.nix) and says where it is in
+# NONOS_CMAKE, both in `nix develop` and inside `nix build`; outside the flake
+# there is no pinned cmake, so this refuses rather than use whatever the host has.
+#   tools/nonos-cmake
+
+set -eu
+
+if [ -z "${NONOS_CMAKE:-}" ]; then
+	echo "nonos-cmake: the pinned cmake comes from the flake; run this inside nix develop" >&2
+	exit 1
+fi
+echo "$NONOS_CMAKE"

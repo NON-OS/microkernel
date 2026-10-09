@@ -20,7 +20,10 @@ use crate::handoff::config::framebuffer::stride_to_bytes;
 use crate::handoff::types::FramebufferInfo;
 use uefi::proto::console::gop::GraphicsOutput;
 
-pub(super) fn current_framebuffer_info(gop: &mut GraphicsOutput) -> Option<FramebufferInfo> {
+pub(super) fn current_framebuffer_info(
+    gop: &mut GraphicsOutput,
+    phys_mm: u32,
+) -> Option<FramebufferInfo> {
     let mode_info = gop.current_mode_info();
     let pixel_format = mode_usable(&mode_info)?;
     let (width, height) = mode_info.resolution();
@@ -45,6 +48,6 @@ pub(super) fn current_framebuffer_info(gop: &mut GraphicsOutput) -> Option<Frame
         stride: stride as u32,
         pixel_format,
         cursor_y: get_cursor_y(),
-        reserved: 0,
+        phys_mm,
     })
 }

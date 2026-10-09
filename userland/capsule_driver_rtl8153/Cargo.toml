@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_rtl8153
+# eK@nonos.systems
+#
+# Realtek RTL8153 and RTL8153B USB Gigabit Ethernet in their vendor mode,
+# as Linux r8152 drives them. It sits above driver.xhci0 through
+# nonos_usbnet and serves Ethernet frames to net.core over NNET. It has no
+# controller, MMIO, IRQ or DMA authority.
+
+[package]
+name = "nonos_capsule_driver_rtl8153"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Realtek RTL8153 USB Ethernet driver capsule"
+
+[[bin]]
+name = "driver_rtl8153"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usbnet = { path = "../nonos_usbnet" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

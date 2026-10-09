@@ -15,8 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Carrying git's requests to a remote over HTTPS.
 
+pub mod ask;
 mod https;
 mod io;
 mod round_trip;
+mod stepped;
 
 pub use https::Https;
+pub use stepped::Stepped;

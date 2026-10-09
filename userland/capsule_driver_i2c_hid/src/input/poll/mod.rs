@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cycle;
+mod read_frame;
+mod repeat;
 mod signal_raw_report;
+mod touch_frame;
 
 pub use cycle::poll;

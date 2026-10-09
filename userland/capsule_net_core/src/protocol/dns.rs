@@ -20,6 +20,10 @@ pub const OP_RESOLVE_A: u16 = 2;
 
 pub const E_OK: u16 = 0;
 pub const E_BAD_OP: u16 = 3;
+/// No DNS server answered in time: the code net.dns used before net.core
+/// took its name, which the browser and net.sockets still read as a network
+/// with no working resolver rather than a name that does not exist.
+pub const E_TIMEOUT: u16 = 6;
 pub const E_NAME_INVALID: u16 = 9;
 pub const E_SERVFAIL: u16 = 10;
 pub const E_NO_LEASE: u16 = 11;

@@ -1,0 +1,23 @@
+[package]
+name = "nonos-device-attest"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "The anonymous device statement: an approved bootloader, an approved kernel and an enrolled device, proven without naming the device"
+
+[dependencies]
+# The prover, from STARKs main. The commit is the flake's starks input, which
+# tools/nonos-starks-sync writes into the lock. Local work against a checkout
+# overrides it with a [patch] in ~/.cargo/config.toml.
+nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
+stark_proofs = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", default-features = false, features = ["fri8"] }
+nonos-attest-path = { path = "../nonos-attest-path", features = ["alloc"] }
+blake3 = { version = "1.5", default-features = false, features = ["pure"] }
+
+[features]
+default = ["std", "parallel"]
+# The prover crate's host modules. The nonos.prove capsule builds without it.
+std = ["stark_proofs/std"]
+# The prover's all-cores path, through rayon, which needs std. The host tools
+# keep it; the nonos.prove capsule builds without it and proves on one core.
+parallel = ["std", "nonos-stark/parallel", "stark_proofs/parallel"]

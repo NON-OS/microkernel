@@ -21,8 +21,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::super::app::Editor;
 use super::super::theme;
-use super::create::paint_create;
-use super::metrics::{pane_x, CARD_W, COL_GAP, PANE_PAD};
+use super::metrics::{pane_x, PANE_PAD};
 use super::pane::paint_pane_head;
 use super::rail::paint_rail;
 use super::recent::paint_recent;
@@ -43,8 +42,7 @@ pub(crate) fn paint_home(ed: &mut Editor, fb: &mut PaintBuffer) {
     let st = HomeState::load();
     paint_rail(fb, &st);
     paint_pane_head(fb);
-    if w >= pane_x() + PANE_PAD * 2 + CARD_W + COL_GAP + MIN_COLS_W {
+    if w >= pane_x() + PANE_PAD * 2 + MIN_COLS_W {
         paint_recent(ed, fb, st.nav);
-        paint_create(fb);
     }
 }

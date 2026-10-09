@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-use crate::sphinx::constants::{HEADER_SIZE, NODE_ADDRESS_LENGTH, PAYLOAD_KEY_SIZE};
+use crate::sphinx::constants::{HEADER_SIZE, NODE_ADDRESS_LENGTH, PAYLOAD_KEY_SEED_SIZE};
 
 /// Bytes of the key a reply is sealed with before its route is applied. This
 /// is an AES128 counter mode key, so it is half the width of the keys used
@@ -28,5 +28,7 @@ pub struct ReplySurb {
     pub key: [u8; SURB_KEY_BYTES],
     pub header: [u8; HEADER_SIZE],
     pub first_hop_address: [u8; NODE_ADDRESS_LENGTH],
-    pub payload_keys: Vec<[u8; PAYLOAD_KEY_SIZE]>,
+    /// One per hop. The far end stretches each into the key that hop will
+    /// peel, as the hop itself does from its shared secret.
+    pub payload_key_seeds: Vec<[u8; PAYLOAD_KEY_SEED_SIZE]>,
 }

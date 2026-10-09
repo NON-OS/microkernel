@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Approve a kernel release for the device secret.
+
+The device secret is usable only under a TPM policy that asks the release's
+P-256 policy key to have approved the kernel's PCR 9. This computes that PCR 9
+for a release, the policy the key signs, and writes the approval the kernel
+hands the TPM: key x, key y, r, s, 32 bytes each, big-endian.
+
+    nonos-policy-approve approve --transcript kernel_attest_root.bin.transcript \\
+        --root kernel_attest_root.bin --key policy_p256.pem --out kernel.approval
+    nonos-policy-approve show --transcript ... --root ... --pub policy_p256.pub.pem
+    nonos-policy-approve boot-root --root ... --epoch N --key ... --out boot_root.approval
+
+It never creates a key. The P-256 policy key comes from the key bootstrap and
+is kept with the release keys: whoever holds it decides which kernels may
+unseal a device's secret.
+
+The layout mirrors src/security/tpm/device_secret (public.rs, digest.rs) and
+nonos-bootloader/src/boot/attestation/kernel_gate.rs. If any of them changes,
+this must change with it, or no device will unseal.
+"""
+
+import argparse
+import hashlib
+import os
+import struct
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from nonos_policy import cli as boot_root_cli  # noqa: E402
+
+TPM_CC_POLICY_PCR = 0x0000017F
+TPM_CC_POLICY_AUTHORIZE = 0x0000016A
+TPM_ALG_ECC = 0x0023
+TPM_ALG_ECDSA = 0x0018
+TPM_ALG_SHA256 = 0x000B
+TPM_ALG_NULL = 0x0010
+TPM_ECC_NIST_P256 = 0x0003
+P256_ATTRIBUTES = 0x00040000
+POLICY_REF = b"NONOS-DEVICE-SECRET-v1"
+
+
+def sha256(b):
+    return hashlib.sha256(b).digest()
+
+
+def selection(pcrs):
+    bitmap = bytearray(3)
+    for p in pcrs:
+        bitmap[p // 8] |= 1 << (p % 8)
+    return struct.pack(">IHB", 1, TPM_ALG_SHA256, 3) + bytes(bitmap)
+
+
+def policy_pcr(prev, pcrs, values):
+    return sha256(prev + struct.pack(">I", TPM_CC_POLICY_PCR) + selection(pcrs) + sha256(b"".join(values)))
+
+
+def kernel_pcr9(kernel_blake3, root):
+    """PCR 9 after the bootloader admits this kernel: one extend of the
+    SHA-256 of SHA-256(kernel_blake3 || root)."""
+    measurement = sha256(kernel_blake3 + root)
+    return sha256(bytes(32) + sha256(measurement))
+
+
+def approved_policy(pcr9):
+    return policy_pcr(bytes(32), [9], [pcr9])
+
+
+def a_hash(approved):
+    return sha256(approved + POLICY_REF)
+
+
+def p256_public(x, y):
+    return (
+        struct.pack(">HHIH", TPM_ALG_ECC, TPM_ALG_SHA256, P256_ATTRIBUTES, 0)
+        + struct.pack(">HHHHH", TPM_ALG_NULL, TPM_ALG_ECDSA, TPM_ALG_SHA256, TPM_ECC_NIST_P256, TPM_ALG_NULL)
+        + struct.pack(">H", 32) + x
+        + struct.pack(">H", 32) + y
+    )
+
+
+def p256_name(x, y):
+    return struct.pack(">H", TPM_ALG_SHA256) + sha256(p256_public(x, y))
+
+
+def policy_authorize(name):
+    first = sha256(bytes(32) + struct.pack(">I", TPM_CC_POLICY_AUTHORIZE) + name)
+    return sha256(first + POLICY_REF)
+
+
+def kernel_blake3_from(transcript):
+    """The kernel measurement the enroll tool recorded: the one slot line."""
+    slots = [l.split() for l in open(transcript) if l.startswith("slot ")]
+    kernels = [s for s in slots if len(s) == 4 and s[2] == "kernel"]
+    if len(kernels) != 1:
+        sys.exit(f"{transcript}: want exactly one kernel slot, found {len(kernels)}")
+    return bytes.fromhex(kernels[0][3])
+
+
+def read_root(path):
+    b = open(path, "rb").read()
+    if len(b) != 32:
+        sys.exit(f"{path}: a root is 32 bytes, this is {len(b)}")
+    if b == bytes(32):
+        sys.exit(f"{path}: the zero root was never enrolled")
+    return b
+
+
+def load_key(path, private):
+    try:
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import ec
+    except ImportError:
+        sys.exit("needs the 'cryptography' package")
+    data = open(path, "rb").read()
+    key = serialization.load_pem_private_key(data, None) if private else serialization.load_pem_public_key(data)
+    pub = key.public_key() if private else key
+    if not isinstance(pub, ec.EllipticCurvePublicKey) or pub.curve.name != "secp256r1":
+        sys.exit(f"{path}: not a P-256 key")
+    n = pub.public_numbers()
+    return key, n.x.to_bytes(32, "big"), n.y.to_bytes(32, "big")
+
+
+def statement(args):
+    kb3 = kernel_blake3_from(args.transcript)
+    root = read_root(args.root)
+    pcr9 = kernel_pcr9(kb3, root)
+    approved = approved_policy(pcr9)
+    return kb3, root, pcr9, approved
+
+
+def approve(args):
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import ec, utils
+
+    key, x, y = load_key(args.key, private=True)
+    _, _, pcr9, approved = statement(args)
+    digest = a_hash(approved)
+    # The TPM verifies ECDSA over this digest as given, so it is signed prehashed.
+    der = key.sign(digest, ec.ECDSA(utils.Prehashed(hashes.SHA256())))
+    r, s = utils.decode_dss_signature(der)
+    key.public_key().verify(der, digest, ec.ECDSA(utils.Prehashed(hashes.SHA256())))
+    with open(args.out, "wb") as f:
+        f.write(x + y + r.to_bytes(32, "big") + s.to_bytes(32, "big"))
+    print(f"pcr9      {pcr9.hex()}")
+    print(f"approved  {approved.hex()}")
+    print(f"a_hash    {digest.hex()}")
+    print(f"wrote {args.out}")
+
+
+def show(args):
+    _, x, y = load_key(args.pub, private=False)
+    kb3, root, pcr9, approved = statement(args)
+    name = p256_name(x, y)
+    print(f"kernel    {kb3.hex()}")
+    print(f"root      {root.hex()}")
+    print(f"pcr9      {pcr9.hex()}")
+    print(f"approved  {approved.hex()}")
+    print(f"a_hash    {a_hash(approved).hex()}")
+    print(f"key name  {name.hex()}")
+    print(f"authorize {policy_authorize(name).hex()}")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    for name, fn, keyarg in [("approve", approve, "key"), ("show", show, "pub")]:
+        p = sub.add_parser(name)
+        p.add_argument("--transcript", required=True, help="the kernel enrollment transcript")
+        p.add_argument("--root", required=True, help="the 32-byte kernel attestation root")
+        p.add_argument(f"--{keyarg}", required=True, help="P-256 policy key, PEM")
+        if name == "approve":
+            p.add_argument("--out", required=True, help="where to write the 128-byte approval")
+        p.set_defaults(fn=fn)
+    boot_root_cli.add(sub, read_root, load_key)
+    args = ap.parse_args()
+    args.fn(args)
+
+
+if __name__ == "__main__":
+    main()

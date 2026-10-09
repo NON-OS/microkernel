@@ -1,5 +1,8 @@
 mod app;
 mod arg;
+pub(crate) mod arg_cadence;
+pub(crate) mod budget;
+pub(crate) mod caption;
 mod decode;
 mod ext;
 pub(crate) mod flip;
@@ -10,6 +13,7 @@ mod nav;
 mod overlay;
 mod render;
 pub(crate) mod rotate;
+pub(crate) mod says;
 pub(crate) mod scale;
 mod state;
 pub(crate) mod viewport;

@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
-
 use crate::constants::{MAC_LEN, MAX_ETHERNET_FRAME};
 
 pub const STATUS_LEN: usize = 4;
@@ -30,3 +23,8 @@ pub const MAC_ADDRESS_PAYLOAD_LEN: usize = MAC_LEN;
 pub const LINK_STATUS_PAYLOAD_LEN: usize = 1;
 
 pub const RX_PAYLOAD_PREFIX_LEN: usize = 4;
+/// Frames one batch carries at most: most of the 64 slot ring, so the
+/// device keeps buffers to fill while the batch is on its way.
+pub const BATCH_MAX_FRAMES: usize = 44;
+/// Frame bytes one batch carries at most, prefixes included.
+pub const BATCH_MAX_BYTES: usize = 64 * 1024;

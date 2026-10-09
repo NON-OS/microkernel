@@ -15,32 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::draw::draw_entry_at;
-use crate::display::log_panel::buffer::get_count;
-use crate::display::log_panel::types::{max_visible_lines, MAX_LOG_LINES};
+use crate::display::log_panel::buffer::{get_count, get_entry};
+use crate::display::log_panel::types::{LogLevel, MAX_LOG_LINES};
 
-fn redraw_all_visible(total: usize) {
-    if total == 0 {
-        return;
-    }
-    let max_lines = max_visible_lines();
-    let visible_count = total.min(max_lines);
-    let start_entry = if total > max_lines { total - max_lines } else { 0 };
-    for line in 0..visible_count {
-        let entry_idx = (start_entry + line) % MAX_LOG_LINES;
-        draw_entry_at(line, entry_idx);
-    }
+/* The splash shows one line under its headline: the latest warning, error or
+security note. Everything else (results, addresses, hashes, stage names) is in
+the step list or on the serial console. */
+fn latest_shown(total: usize) -> Option<usize> {
+    let kept = total.min(MAX_LOG_LINES);
+    (0..kept).map(|back| (total - 1 - back) % MAX_LOG_LINES).find(|&i| {
+        get_entry(i).is_some_and(|e| e.len > 0 && shown(e.level))
+    })
+}
+
+fn shown(level: LogLevel) -> bool {
+    matches!(level, LogLevel::Warn | LogLevel::Error | LogLevel::Security)
 }
 
 pub fn redraw_all() {
     let count = get_count();
-    if count > 0 {
-        redraw_all_visible(count);
-    }
-}
-
-fn log_delay() {
-    for _ in 0..300_000 {
-        core::hint::spin_loop();
+    if let Some(i) = latest_shown(count) {
+        draw_entry_at(0, i);
     }
 }
 
@@ -48,12 +43,8 @@ pub fn render_after_log(count: usize) {
     if count == 0 {
         return;
     }
-    let max_lines = max_visible_lines();
-    if count > max_lines {
-        redraw_all_visible(count);
-    } else {
-        let line_num = count - 1;
-        draw_entry_at(line_num, line_num);
+    let i = (count - 1) % MAX_LOG_LINES;
+    if get_entry(i).is_some_and(|e| shown(e.level)) {
+        draw_entry_at(0, i);
     }
-    log_delay();
 }

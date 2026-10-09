@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod budget;
+mod count;
 mod drain;
 mod log;
 mod poll;
+mod reason;
 mod record;
 mod status;
 mod take;
 
+pub use budget::{Budget, LINES_PER_POLL};
+pub use count::fault_total;
 pub use drain::drain_faults;
 pub use poll::poll_faults;
+pub use reason::{bdf_text, is_interrupt, reason_text};
 pub use record::FaultRecord;

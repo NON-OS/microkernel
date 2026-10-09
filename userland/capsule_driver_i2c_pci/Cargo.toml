@@ -13,6 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_pinctrl = { path = "../nonos_pinctrl" }
 
 [profile.release]
 panic = "abort"

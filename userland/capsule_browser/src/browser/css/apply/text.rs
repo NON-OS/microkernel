@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::css::color::parse_color;
-use crate::browser::css::computed::{Computed, TextAlign, TextTransform, WhiteSpace};
-use crate::browser::css::parse_line_height::parse_line_height;
-use crate::browser::css::parse_px::parse_px;
+use crate::browser::css::computed::Computed;
 
-const MAX_FONT_PX: u32 = 96;
+use super::font_size::font_size;
 
-// Text properties: color, weight, family, size, line height and alignment.
+/* Text properties: color, weight, family, size, line height and decoration;
+ * wrapping, spacing and alignment go on to apply_text_flow. */
 pub(super) fn apply_text(
     c: &mut Computed,
     name: &str,
@@ -35,78 +34,25 @@ pub(super) fn apply_text(
                 c.color = rgb;
             }
         }
-        "font-weight" => match value.trim() {
-            "normal" | "100" | "200" | "300" | "400" => c.bold = false,
-            "bold" | "bolder" | "500" | "600" | "700" | "800" | "900" => c.bold = true,
-            _ => {}
-        },
-        // The monospace generic (or an explicit mono family) switches text to
-        // the fixed-pitch face. A named first family keys the custom face the
-        // text draws in once its @font-face loads; a generic keeps the
-        // built-in one.
-        "font-family" => {
-            c.mono = value.to_ascii_lowercase().contains("mono");
-            let first = value.split(',').next().unwrap_or("").trim();
-            let bare = first.trim_matches('"').trim_matches('\'').trim();
-            let lower = bare.to_ascii_lowercase();
-            c.icon_font = crate::browser::css::icon_font::is_icon_family(&lower);
-            c.font_key = match lower.as_str() {
-                "" | "sans-serif" | "serif" | "system-ui" | "ui-sans-serif" => 0,
-                "monospace" | "ui-monospace" | "cursive" | "fantasy" => 0,
-                _ => crate::browser::fonts::family_key(bare),
-            };
-        }
-        // Em resolves against the parent font size. Clamp above zero so a
-        // styled element never reads as "no CSS size" downstream.
+        "font-weight" => super::font_family::apply_font_weight(c, value),
+        "font-family" => super::font_family::apply_font_family(c, value),
+        "font-style" => super::font_family::apply_font_style(c, value),
+        /* em and % resolve against the parent's size, kept unrounded when
+         * the style was inherited from that parent (its whole-pixel size
+         * agrees with the cascade's); the whole-pixel size is what the box
+         * model reads. */
         "font-size" => {
-            if let Some(px) = parse_px(value, parent_fs) {
-                c.font_size_px = px.clamp(1, MAX_FONT_PX);
-            }
-        }
-        "line-height" => {
-            if let Some(px) = parse_line_height(value, fs) {
-                c.line_height_px = px.min(4 * MAX_FONT_PX);
+            let exact = (c.em_parent - parent_fs as f32).abs() < 1.0;
+            let parent = if exact { c.em_parent } else { parent_fs as f32 };
+            if let Some(px) = font_size(value, parent) {
+                c.font_px = px;
+                c.font_size_px = (px + 0.5) as u32;
             }
         }
         "text-decoration" | "text-decoration-line" => {
             c.underline = value.split_whitespace().any(|t| t == "underline");
         }
-        "letter-spacing" => {
-            // Negative tracking tightens headings; parse the magnitude and
-            // restore the sign, since lengths only parse unsigned.
-            let v = value.trim();
-            if v.eq_ignore_ascii_case("normal") {
-                c.letter_spacing = 0.0;
-            } else {
-                let (mag, sign) = match v.strip_prefix('-') {
-                    Some(rest) => (rest, -1.0f32),
-                    None => (v, 1.0f32),
-                };
-                if let Some(px) = parse_px(mag, fs) {
-                    c.letter_spacing = (px.min(64) as f32) * sign;
-                }
-            }
-        }
-        "white-space" => match value.trim() {
-            "pre" | "pre-wrap" | "pre-line" | "break-spaces" => c.white_space = WhiteSpace::Pre,
-            "nowrap" => c.white_space = WhiteSpace::Nowrap,
-            "normal" => c.white_space = WhiteSpace::Normal,
-            _ => {}
-        },
-        "text-transform" => match value.trim() {
-            "uppercase" => c.text_transform = TextTransform::Upper,
-            "lowercase" => c.text_transform = TextTransform::Lower,
-            "capitalize" => c.text_transform = TextTransform::Capitalize,
-            "none" => c.text_transform = TextTransform::None,
-            _ => {}
-        },
-        "text-align" => match value.trim() {
-            "left" | "start" => c.text_align = TextAlign::Left,
-            "center" => c.text_align = TextAlign::Center,
-            "right" | "end" => c.text_align = TextAlign::Right,
-            _ => {}
-        },
-        _ => return false,
+        _ => return super::text_flow::apply_text_flow(c, name, value, fs),
     }
     true
 }

@@ -14,31 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::clients::{nym, tcp};
-use crate::protocol::{E_NO_HANDLE, E_NO_TRANSPORT, E_OK};
+use crate::clients::nym;
+use crate::protocol::{E_NO_HANDLE, E_NO_TRANSPORT, E_OK, OP_CONNECT_HOST};
+use crate::server::parse_req::Request;
 use crate::sockets::{Kind, RemoteAddr4, SocketKey, SOCKETS};
 use crate::state;
 
-use super::{connect_nym, install_transport, wait_established};
+use super::{connect_nym, install_transport, pending, status_host};
 
-pub fn finish(key: SocketKey, ip: [u8; 4], port: u16) -> u16 {
+/// Connect the caller's socket to an address its name resolved to. A stream
+/// is answered when its handshake resolves; the others are answered here.
+pub fn finish(pid: u32, req: &Request, key: SocketKey, ip: [u8; 4], port: u16, tx: &mut [u8]) {
     let Some(sock) = SOCKETS.with(key, |s| *s) else {
-        return E_NO_HANDLE;
+        return status_host::status(pid, req, E_NO_HANDLE, tx);
     };
-    match sock.kind {
+    let errno = match sock.kind {
         Kind::Datagram => SOCKETS
             .with(key, |s| s.remote = Some(RemoteAddr4 { ip, port }))
             .map_or(E_NO_HANDLE, |_| E_OK),
-        Kind::Stream => match tcp::connect(state::tcp(), ip, port) {
-            Ok(h) => {
-                if !wait_established::wait_established(state::tcp(), h) {
-                    let _ = tcp::close(state::tcp(), h);
-                    return E_NO_TRANSPORT;
-                }
-                install_transport::install_transport(key, Kind::Stream, ip, port, h)
-            }
-            Err(_) => E_NO_TRANSPORT,
-        },
+        Kind::Stream => return pending::start(pid, OP_CONNECT_HOST, req, key, ip, port, tx),
         Kind::Mixnet => match connect_nym::connect_nym() {
             Ok(h) => {
                 let e = install_transport::install_transport(key, Kind::Mixnet, ip, port, h);
@@ -49,5 +43,6 @@ pub fn finish(key: SocketKey, ip: [u8; 4], port: u16) -> u16 {
             }
             Err(_) => E_NO_TRANSPORT,
         },
-    }
+    };
+    status_host::status(pid, req, errno, tx);
 }

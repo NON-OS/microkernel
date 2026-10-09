@@ -44,6 +44,11 @@ const _: () = {
         OP_WALLET_RECOVER,
         OP_VAULT_SEAL,
         OP_VAULT_OPEN,
+        OP_SIGN_TX,
+        OP_SHIELD_MATERIAL,
+        OP_SHIELD_SEAL,
+        OP_SHIELD_OPEN,
+        OP_WALLET_DERIVE,
     ];
     let mut i = 0;
     while i < ops.len() {

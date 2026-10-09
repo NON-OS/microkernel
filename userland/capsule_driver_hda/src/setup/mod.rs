@@ -13,17 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
+mod choose;
 mod claim;
 mod dma;
 mod driver;
 mod fail;
 mod irq;
+pub mod irq_plan;
 mod mark;
 mod mmio;
 mod pci;
 mod sequence;
 
-pub use driver::Driver;
+pub use driver::{Driver, Started};
 pub use fail::mark_setup_fail;
-pub use sequence::run;
+pub(crate) use mark::Line;
+pub use sequence::{machine_verdict, run};

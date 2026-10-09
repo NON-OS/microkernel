@@ -16,11 +16,11 @@
 
 use alloc::vec::Vec;
 
-use crate::term::state::State;
+use crate::command::output::Output;
 use crate::term::util::format_u64;
 
 // Operator-grade success line: "loaded <name> as pid <n>".
-pub(super) fn emit_ok(state: &mut State, stem: &[u8], pid: u32) {
+pub(super) fn emit_ok(out: &mut Output<'_>, stem: &[u8], pid: u32) {
     let mut num = [0u8; 24];
     let k = format_u64(pid as u64, &mut num);
     let mut line = Vec::with_capacity(18 + stem.len() + k);
@@ -28,13 +28,13 @@ pub(super) fn emit_ok(state: &mut State, stem: &[u8], pid: u32) {
     line.extend_from_slice(stem);
     line.extend_from_slice(b" as pid ");
     line.extend_from_slice(&num[..k]);
-    state.scrollback.push_line(&line);
+    out.writeln(&line);
 }
 
 // Failure line. Map the load path's coarse errnos to a precise reason; a
 // tampered artifact whose hash no longer matches its manifest lands here as
 // a verification rejection, refused before execution.
-pub(super) fn emit_err(state: &mut State, status: i32) {
+pub(super) fn emit_err(out: &mut Output<'_>, status: i32) {
     let reason: &[u8] = match status {
         -11 => b"install rejected: installer not ready, try again",
         -13 => b"install rejected: signature, manifest, or attestation failed verification",
@@ -44,7 +44,7 @@ pub(super) fn emit_err(state: &mut State, status: i32) {
         _ => b"",
     };
     if !reason.is_empty() {
-        state.scrollback.push_error(reason);
+        out.writeln_error(reason);
         return;
     }
     let mut num = [0u8; 24];
@@ -52,5 +52,5 @@ pub(super) fn emit_err(state: &mut State, status: i32) {
     let mut line = Vec::with_capacity(20 + k);
     line.extend_from_slice(b"install failed: -");
     line.extend_from_slice(&num[..k]);
-    state.scrollback.push_error(&line);
+    out.writeln_error(&line);
 }

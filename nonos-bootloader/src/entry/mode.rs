@@ -17,7 +17,7 @@
 use super::action::resolve_action;
 use nonos_boot::bootmenu;
 use nonos_boot::hardware::HardwareInfo;
-use nonos_boot::menu::SecurityMode;
+use nonos_boot::menu::{BootIntent, SecurityMode};
 use nonos_boot::security::SecurityContext;
 use uefi::prelude::*;
 
@@ -26,11 +26,11 @@ pub fn select_security_mode(
     dev_override: bool,
     security: &SecurityContext,
     hw: &HardwareInfo,
-) -> Result<SecurityMode, Status> {
+) -> Result<(SecurityMode, BootIntent), Status> {
     if dev_override {
         let _ = st.stdout().output_string(uefi::cstr16!("[WARN] DEV MODE - SECURITY BYPASSED\r\n"));
-        return Ok(SecurityMode::Development);
+        return Ok((SecurityMode::Development, BootIntent::Run));
     }
     let action = bootmenu::run(st, security, hw);
-    resolve_action(st, action)
+    Ok((resolve_action(st, action)?, BootIntent::of(action)))
 }

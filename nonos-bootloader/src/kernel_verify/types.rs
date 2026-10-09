@@ -25,9 +25,9 @@ pub struct CryptoVerifyResult {
     pub kernel_hash_full: [u8; 32],
     pub kernel_code_size: usize,
     pub signature_present: bool,
-    /// The kernel's STARK self-attestation verified against the enrolled root.
-    #[cfg(feature = "stark-kernel-attest")]
-    pub stark_attested: bool,
+    pub path_attested: bool,
+    pub proof_present: bool,
+    pub proof_len: usize,
 }
 
 impl Default for CryptoVerifyResult {
@@ -38,8 +38,9 @@ impl Default for CryptoVerifyResult {
             kernel_hash_full: [0u8; 32],
             kernel_code_size: 0,
             signature_present: false,
-            #[cfg(feature = "stark-kernel-attest")]
-            stark_attested: false,
+            path_attested: false,
+            proof_present: false,
+            proof_len: 0,
         }
     }
 }
@@ -47,20 +48,5 @@ impl Default for CryptoVerifyResult {
 impl CryptoVerifyResult {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    /// Whether the kernel self-attestation gate is satisfied for boot. With the
-    /// stark-kernel-attest feature off this is always true, so non-STARK builds
-    /// are unaffected. With it on, the kernel must have proven its transparent
-    /// STARK self-attestation against the enrolled boot root.
-    pub fn stark_gate_satisfied(&self) -> bool {
-        #[cfg(feature = "stark-kernel-attest")]
-        {
-            self.stark_attested
-        }
-        #[cfg(not(feature = "stark-kernel-attest"))]
-        {
-            true
-        }
     }
 }

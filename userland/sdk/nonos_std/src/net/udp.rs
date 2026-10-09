@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::io::Result;
+use crate::io::{Error, ErrorKind, Result};
 use crate::net::addr::{resolve, ToSocketAddrs};
 use crate::net::socket::{Socket, KIND_DGRAM};
+use crate::net::way::{direct_only, DATAGRAMS_OFF_DIRECT};
+use crate::net::Route;
 
 pub struct UdpSocket {
     inner: Socket,
 }
 
 impl UdpSocket {
+    /// A datagram socket, on the Direct network only: neither the Nym
+    /// mixnet nor the Anyone network carries datagrams (net/way.rs).
     pub fn bind<A: ToSocketAddrs>(addr: A) -> Result<Self> {
+        direct_only(Route::chosen(), DATAGRAMS_OFF_DIRECT)
+            .map_err(|why| Error::new(ErrorKind::PermissionDenied, why))?;
         let (ip, port) = resolve(addr)?;
         let inner = Socket::open(KIND_DGRAM)?;
         inner.bind(ip, port)?;
@@ -31,6 +37,8 @@ impl UdpSocket {
     }
 
     pub fn connect<A: ToSocketAddrs>(&self, addr: A) -> Result<()> {
+        direct_only(Route::chosen(), DATAGRAMS_OFF_DIRECT)
+            .map_err(|why| Error::new(ErrorKind::PermissionDenied, why))?;
         let (ip, port) = resolve(addr)?;
         self.inner.connect(ip, port)
     }

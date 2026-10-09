@@ -21,8 +21,6 @@ use crate::state::Context;
 
 /// KEY_DOWN kind bit, grabbed so typed keys reach the shell during the rename
 /// even though the desktop is not a focusable window.
-const KEY_DOWN_BIT: u32 = 1;
-
 pub fn start_rename(ctx: &mut Context, index: usize) {
     let name = match ctx.desktop_items.get(index) {
         Some(item) => item.name.clone(),
@@ -30,6 +28,5 @@ pub fn start_rename(ctx: &mut Context, index: usize) {
     };
     ctx.rename_buf = name;
     ctx.rename = Some(index);
-    let rid = ctx.issue_request_id();
-    let _ = crate::input_router_client::grab(ctx.input_router_port, rid, KEY_DOWN_BIT);
+    crate::server::grabs::sync(ctx);
 }

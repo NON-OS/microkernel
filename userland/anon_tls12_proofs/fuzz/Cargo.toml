@@ -1,0 +1,45 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+#
+# Fuzz target for net.anon's TLS 1.2 client: a whole handshake driven by
+# whatever the "server" sends, and each message reader on its own. Run with:
+#   cargo +nightly-2026-01-16 fuzz run anon_tls12 <corpus>
+# seeding the corpus with the recorded OpenSSL flights in ../vectors.
+
+[package]
+name = "anon_tls12_proofs-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+anon_tls12_proofs = { path = ".." }
+nonos_libc = { package = "anon_tls12_proofs_shim", path = "../shim" }
+nonos_tls = { package = "anon_tls12_proofs_tls", path = "../tls_shim" }
+
+[[bin]]
+name = "anon_tls12"
+path = "fuzz_targets/anon_tls12.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

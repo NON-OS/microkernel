@@ -17,6 +17,11 @@
 pub fn parse_quantity32(resp: &[u8]) -> Option<[u8; 32]> {
     let value = super::find_result::find_result(resp)?;
     let hex = value.strip_prefix(b"0x")?;
+    // "0x" with no digits is no number (an eth_call to an address with no code
+    // answers it); zero is "0x0".
+    if hex.is_empty() {
+        return None;
+    }
     if hex.len() > 64 {
         return None;
     }

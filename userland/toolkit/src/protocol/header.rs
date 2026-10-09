@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::errno::{E_INVAL, E_SHORT};
+
 pub const MAGIC: u32 = 0x4E4F_544B;
 pub const HDR_LEN: usize = 16;
 
@@ -44,6 +46,20 @@ pub fn decode(bytes: &[u8]) -> Option<Header> {
         request_id: u32::from_le_bytes(req),
         payload_len: u32::from_le_bytes(pl),
     })
+}
+
+/// The header and status a frame `decode` refused is answered with: the op
+/// and request id it names, or zeros when it is too short to name them, and
+/// E_SHORT for a frame shorter than a header, E_INVAL for any other. Its
+/// caller is blocked in its call until a reply comes, so a refusal is
+/// answered too.
+pub fn refusal(bytes: &[u8]) -> (Header, u16) {
+    let Some(h) = bytes.first_chunk::<HDR_LEN>() else {
+        return (Header { op: 0, request_id: 0, payload_len: 0 }, E_SHORT);
+    };
+    let op = u16::from_le_bytes([h[4], h[5]]);
+    let request_id = u32::from_le_bytes([h[8], h[9], h[10], h[11]]);
+    (Header { op, request_id, payload_len: 0 }, E_INVAL)
 }
 
 pub fn encode(out: &mut [u8], h: &Header, status: u16) {

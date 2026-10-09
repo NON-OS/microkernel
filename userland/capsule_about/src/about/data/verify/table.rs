@@ -16,17 +16,15 @@
 
 //! One read of the kernel process table, tallied.
 
-// The same ceiling `runtime::sample` reads with, so the two screens describe the
-// same table rather than two different truncations of it.
-pub(super) const MAX_PROCS: usize = 64;
+use alloc::vec::Vec;
 
 pub(super) const INIT_NAME: &[u8] = b"init";
 
 /// Every capsule's granted mask, kept so a caller can ask several questions of
 /// one instant instead of re-reading the table per question.
 pub struct Tally {
-    pub(super) masks: [u64; MAX_PROCS],
-    pub(super) is_init: [bool; MAX_PROCS],
+    pub(super) masks: Vec<u64>,
+    pub(super) is_init: Vec<bool>,
     pub total: u32,
     pub unmasked: u32,
     pub own_mask: u64,
@@ -34,12 +32,12 @@ pub struct Tally {
 
 impl Tally {
     pub fn holders(&self, mask: u64) -> u32 {
-        self.masks[..self.total as usize].iter().filter(|m| *m & mask != 0).count() as u32
+        self.masks.iter().filter(|m| *m & mask != 0).count() as u32
     }
 
     /// Holders other than init.
     pub fn stray(&self, mask: u64) -> u32 {
-        let n = self.total as usize;
-        (0..n).filter(|i| self.masks[*i] & mask != 0 && !self.is_init[*i]).count() as u32
+        let held = self.masks.iter().zip(&self.is_init);
+        held.filter(|(m, init)| *m & mask != 0 && !**init).count() as u32
     }
 }

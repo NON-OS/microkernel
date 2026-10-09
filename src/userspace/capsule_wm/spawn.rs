@@ -44,8 +44,7 @@ pub fn spawn_wm_capsule() -> Result<(), SpawnError> {
         manifest_bytes: WM_MANIFEST_BYTES,
         attestation_trailer: WM_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit(),
         debug_tag: b"",
     };

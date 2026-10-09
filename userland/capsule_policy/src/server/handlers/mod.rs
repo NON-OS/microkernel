@@ -17,8 +17,10 @@
 pub mod get_bool;
 pub mod get_i8;
 pub mod get_str;
+pub mod get_u64;
 pub mod get_u8;
 pub mod set_bool;
 pub mod set_i8;
 pub mod set_str;
+pub mod set_u64;
 pub mod set_u8;

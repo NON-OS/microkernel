@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-const MAX_GROW: u32 = 100;
+/* Factors past this all mean "take nearly everything" (flex-grow: 9999
+ * is the idiom); clamping keeps the weighted sums in range. */
+const MAX_FACTOR: f32 = 10_000.0;
 
-// flex-grow factor rounded to whole units, capped to keep the math sane.
+/* A flex-grow or flex-shrink factor in hundredths, so 0.5 and 1.5 keep
+ * their weight against 1. A negative or non-numeric factor is rejected. */
 pub(super) fn parse_grow(value: &str) -> Option<u32> {
     let f = value.trim().parse::<f32>().ok()?;
-    if f.is_finite() && (0.0..=MAX_GROW as f32).contains(&f) {
-        Some((f + 0.5) as u32)
-    } else {
-        None
-    }
+    (f.is_finite() && f >= 0.0).then(|| (f.min(MAX_FACTOR) * 100.0 + 0.5) as u32)
 }

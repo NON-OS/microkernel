@@ -14,24 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::browser::net::mixnet;
 use crate::browser::proxy::parse_socks5;
+use crate::browser::proxy::said::{said, Outcome};
 use crate::browser::state::State;
 
 pub fn command(state: &mut State, input: &str) -> bool {
     let Some(rest) = input.trim().strip_prefix("proxy ") else {
         return false;
     };
-    if rest.trim() == "off" {
+    let line = if rest.trim() == "off" {
         state.proxy = None;
-        state.status = alloc::string::String::from("proxy off");
-        return true;
-    }
-    match parse_socks5::parse_socks5(rest.trim()) {
-        Some(cfg) => {
-            state.status = alloc::format!("proxy socks5://{}:{}", cfg.host, cfg.port);
-            state.proxy = Some(cfg);
+        said(Outcome::Off, mixnet::chosen())
+    } else {
+        match parse_socks5::parse_socks5(rest.trim()) {
+            Some(cfg) => {
+                let line = said(Outcome::Set(&cfg.host, cfg.port), mixnet::chosen());
+                state.proxy = Some(cfg);
+                line
+            }
+            None => said(Outcome::Bad, mixnet::chosen()),
         }
-        None => state.status = alloc::string::String::from("bad proxy"),
-    }
+    };
+    state.tell(line);
     true
 }

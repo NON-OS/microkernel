@@ -12,22 +12,28 @@ defaults:
 
 concurrency:
   group: ci-evidence-${{ github.ref }}
-  cancel-in-progress: true
+  # A pull request's older run is moot; a run on main finishes, so every
+  # commit there gets a verdict (the newest queued push runs next).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   evidence:
     name: evidence tooling
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
           persist-credentials: false
-      - uses: ./.github/actions/nonos-setup
+      - uses: ./.github/actions/nix-setup
         with:
-          targets: x86_64-nonos,x86_64-unknown-uefi
-          module: evidence
+          cache: ${{ vars.NONOS_CACHIX }}
       - name: nonos-verify evidence
         run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- evidence
       - name: Upload evidence artifacts

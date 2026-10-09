@@ -22,6 +22,6 @@ mod ecc;
 mod size;
 
 pub(crate) use alignment::alignment_positions;
-pub(crate) use blocks::blocks;
+pub(crate) use blocks::{blocks, MAX_VERSION};
 pub use ecc::Ecc;
 pub(crate) use size::size;

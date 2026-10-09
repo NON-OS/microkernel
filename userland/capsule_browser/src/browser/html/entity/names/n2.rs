@@ -1,0 +1,73 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::rows::rows;
+
+/// Named references `SquareSubset;` to `boxvr;`, sorted by bytes.
+pub static ROWS: &[(&str, char, char)] = rows! {
+    "SquareSubset" 0x228F "SquareSubsetEqual" 0x2291 "SquareSuperset" 0x2290
+    "SquareSupersetEqual" 0x2292 "SquareUnion" 0x2294 "Sscr" 0x1D4AE "Star" 0x22C6 "Sub" 0x22D0
+    "Subset" 0x22D0 "SubsetEqual" 0x2286 "Succeeds" 0x227B "SucceedsEqual" 0x2AB0
+    "SucceedsSlantEqual" 0x227D "SucceedsTilde" 0x227F "SuchThat" 0x220B "Sum" 0x2211 "Sup" 0x22D1
+    "Superset" 0x2283 "SupersetEqual" 0x2287 "Supset" 0x22D1 "THORN" 0xDE "TRADE" 0x2122
+    "TSHcy" 0x40B "TScy" 0x426 "Tab" 0x9 "Tau" 0x3A4 "Tcaron" 0x164 "Tcedil" 0x162 "Tcy" 0x422
+    "Tfr" 0x1D517 "Therefore" 0x2234 "Theta" 0x398 "ThickSpace" 0x205F+0x200A "ThinSpace" 0x2009
+    "Tilde" 0x223C "TildeEqual" 0x2243 "TildeFullEqual" 0x2245 "TildeTilde" 0x2248 "Topf" 0x1D54B
+    "TripleDot" 0x20DB "Tscr" 0x1D4AF "Tstrok" 0x166 "Uacute" 0xDA "Uarr" 0x219F "Uarrocir" 0x2949
+    "Ubrcy" 0x40E "Ubreve" 0x16C "Ucirc" 0xDB "Ucy" 0x423 "Udblac" 0x170 "Ufr" 0x1D518
+    "Ugrave" 0xD9 "Umacr" 0x16A "UnderBar" 0x5F "UnderBrace" 0x23DF "UnderBracket" 0x23B5
+    "UnderParenthesis" 0x23DD "Union" 0x22C3 "UnionPlus" 0x228E "Uogon" 0x172 "Uopf" 0x1D54C
+    "UpArrow" 0x2191 "UpArrowBar" 0x2912 "UpArrowDownArrow" 0x21C5 "UpDownArrow" 0x2195
+    "UpEquilibrium" 0x296E "UpTee" 0x22A5 "UpTeeArrow" 0x21A5 "Uparrow" 0x21D1 "Updownarrow" 0x21D5
+    "UpperLeftArrow" 0x2196 "UpperRightArrow" 0x2197 "Upsi" 0x3D2 "Upsilon" 0x3A5 "Uring" 0x16E
+    "Uscr" 0x1D4B0 "Utilde" 0x168 "Uuml" 0xDC "VDash" 0x22AB "Vbar" 0x2AEB "Vcy" 0x412
+    "Vdash" 0x22A9 "Vdashl" 0x2AE6 "Vee" 0x22C1 "Verbar" 0x2016 "Vert" 0x2016 "VerticalBar" 0x2223
+    "VerticalLine" 0x7C "VerticalSeparator" 0x2758 "VerticalTilde" 0x2240 "VeryThinSpace" 0x200A
+    "Vfr" 0x1D519 "Vopf" 0x1D54D "Vscr" 0x1D4B1 "Vvdash" 0x22AA "Wcirc" 0x174 "Wedge" 0x22C0
+    "Wfr" 0x1D51A "Wopf" 0x1D54E "Wscr" 0x1D4B2 "Xfr" 0x1D51B "Xi" 0x39E "Xopf" 0x1D54F
+    "Xscr" 0x1D4B3 "YAcy" 0x42F "YIcy" 0x407 "YUcy" 0x42E "Yacute" 0xDD "Ycirc" 0x176 "Ycy" 0x42B
+    "Yfr" 0x1D51C "Yopf" 0x1D550 "Yscr" 0x1D4B4 "Yuml" 0x178 "ZHcy" 0x416 "Zacute" 0x179
+    "Zcaron" 0x17D "Zcy" 0x417 "Zdot" 0x17B "ZeroWidthSpace" 0x200B "Zeta" 0x396 "Zfr" 0x2128
+    "Zopf" 0x2124 "Zscr" 0x1D4B5 "aacute" 0xE1 "abreve" 0x103 "ac" 0x223E "acE" 0x223E+0x333
+    "acd" 0x223F "acirc" 0xE2 "acute" 0xB4 "acy" 0x430 "aelig" 0xE6 "af" 0x2061 "afr" 0x1D51E
+    "agrave" 0xE0 "alefsym" 0x2135 "aleph" 0x2135 "alpha" 0x3B1 "amacr" 0x101 "amalg" 0x2A3F
+    "amp" 0x26 "and" 0x2227 "andand" 0x2A55 "andd" 0x2A5C "andslope" 0x2A58 "andv" 0x2A5A
+    "ang" 0x2220 "ange" 0x29A4 "angle" 0x2220 "angmsd" 0x2221 "angmsdaa" 0x29A8 "angmsdab" 0x29A9
+    "angmsdac" 0x29AA "angmsdad" 0x29AB "angmsdae" 0x29AC "angmsdaf" 0x29AD "angmsdag" 0x29AE
+    "angmsdah" 0x29AF "angrt" 0x221F "angrtvb" 0x22BE "angrtvbd" 0x299D "angsph" 0x2222
+    "angst" 0xC5 "angzarr" 0x237C "aogon" 0x105 "aopf" 0x1D552 "ap" 0x2248 "apE" 0x2A70
+    "apacir" 0x2A6F "ape" 0x224A "apid" 0x224B "apos" 0x27 "approx" 0x2248 "approxeq" 0x224A
+    "aring" 0xE5 "ascr" 0x1D4B6 "ast" 0x2A "asymp" 0x2248 "asympeq" 0x224D "atilde" 0xE3
+    "auml" 0xE4 "awconint" 0x2233 "awint" 0x2A11 "bNot" 0x2AED "backcong" 0x224C
+    "backepsilon" 0x3F6 "backprime" 0x2035 "backsim" 0x223D "backsimeq" 0x22CD "barvee" 0x22BD
+    "barwed" 0x2305 "barwedge" 0x2305 "bbrk" 0x23B5 "bbrktbrk" 0x23B6 "bcong" 0x224C "bcy" 0x431
+    "bdquo" 0x201E "becaus" 0x2235 "because" 0x2235 "bemptyv" 0x29B0 "bepsi" 0x3F6 "bernou" 0x212C
+    "beta" 0x3B2 "beth" 0x2136 "between" 0x226C "bfr" 0x1D51F "bigcap" 0x22C2 "bigcirc" 0x25EF
+    "bigcup" 0x22C3 "bigodot" 0x2A00 "bigoplus" 0x2A01 "bigotimes" 0x2A02 "bigsqcup" 0x2A06
+    "bigstar" 0x2605 "bigtriangledown" 0x25BD "bigtriangleup" 0x25B3 "biguplus" 0x2A04
+    "bigvee" 0x22C1 "bigwedge" 0x22C0 "bkarow" 0x290D "blacklozenge" 0x29EB "blacksquare" 0x25AA
+    "blacktriangle" 0x25B4 "blacktriangledown" 0x25BE "blacktriangleleft" 0x25C2
+    "blacktriangleright" 0x25B8 "blank" 0x2423 "blk12" 0x2592 "blk14" 0x2591 "blk34" 0x2593
+    "block" 0x2588 "bne" 0x3D+0x20E5 "bnequiv" 0x2261+0x20E5 "bnot" 0x2310 "bopf" 0x1D553
+    "bot" 0x22A5 "bottom" 0x22A5 "bowtie" 0x22C8 "boxDL" 0x2557 "boxDR" 0x2554 "boxDl" 0x2556
+    "boxDr" 0x2553 "boxH" 0x2550 "boxHD" 0x2566 "boxHU" 0x2569 "boxHd" 0x2564 "boxHu" 0x2567
+    "boxUL" 0x255D "boxUR" 0x255A "boxUl" 0x255C "boxUr" 0x2559 "boxV" 0x2551 "boxVH" 0x256C
+    "boxVL" 0x2563 "boxVR" 0x2560 "boxVh" 0x256B "boxVl" 0x2562 "boxVr" 0x255F "boxbox" 0x29C9
+    "boxdL" 0x2555 "boxdR" 0x2552 "boxdl" 0x2510 "boxdr" 0x250C "boxh" 0x2500 "boxhD" 0x2565
+    "boxhU" 0x2568 "boxhd" 0x252C "boxhu" 0x2534 "boxminus" 0x229F "boxplus" 0x229E
+    "boxtimes" 0x22A0 "boxuL" 0x255B "boxuR" 0x2558 "boxul" 0x2518 "boxur" 0x2514 "boxv" 0x2502
+    "boxvH" 0x256A "boxvL" 0x2561 "boxvR" 0x255E "boxvh" 0x253C "boxvl" 0x2524 "boxvr" 0x251C
+};

@@ -18,16 +18,21 @@ use alloc::vec::Vec;
 
 use nonos_base64::decode_b64;
 
-// Payload bytes of a data: URI, "data:[mediatype][;base64],payload".
-// Base64 payloads decode; plain payloads percent-decode.
+/* Payload bytes of a data: URI, "data:[mediatype][;base64],payload". The
+ * payload is percent-decoded first, as the fetch spec's data: URL processor
+ * does, so an escaped "%2B" or "%3D" reaches the base64 decoder as '+' or
+ * '='. A ;base64 payload then decodes as forgiving base64: every ASCII
+ * whitespace byte (form feed included) is skipped and padding is optional. */
 pub(crate) fn data_uri_bytes(uri: &str) -> Option<Vec<u8>> {
     let rest = uri.strip_prefix("data:")?;
     let comma = rest.find(',')?;
     let (meta, payload) = (&rest[..comma], &rest[comma + 1..]);
-    if meta.to_ascii_lowercase().contains(";base64") {
-        return decode_b64(payload);
+    let bytes = percent_decode(payload);
+    if !meta.to_ascii_lowercase().contains(";base64") {
+        return Some(bytes);
     }
-    Some(percent_decode(payload))
+    let text = core::str::from_utf8(&bytes).ok()?;
+    decode_b64(&text.replace('\x0C', ""))
 }
 
 fn percent_decode(s: &str) -> Vec<u8> {

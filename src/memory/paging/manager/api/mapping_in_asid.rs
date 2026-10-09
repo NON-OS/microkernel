@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
+#[cfg(not(target_arch = "x86_64"))]
+use crate::arch::run_without_interrupts as without_interrupts;
+#[cfg(target_arch = "x86_64")]
 use crate::arch::x86_64::idt::without_interrupts;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::error::PagingResult;
@@ -27,7 +30,7 @@ pub fn map_page_in_asid(
     physical_addr: PhysAddr,
     permissions: PagePermissions,
 ) -> PagingResult<()> {
-    without_interrupts(|| {
+    let flush = without_interrupts(|| {
         lock_responsive(&PAGING_MANAGER).map_page_in_asid(
             asid,
             virtual_addr,
@@ -36,7 +39,12 @@ pub fn map_page_in_asid(
             PageSize::Size4KiB,
             &PAGING_STATS,
         )
-    })
+    })?;
+    /*
+     * After the lock; a leaf that was absent owes nothing remote.
+     */
+    flush.commit();
+    Ok(())
 }
 
 pub fn unmap_page_in_asid(
@@ -44,7 +52,7 @@ pub fn unmap_page_in_asid(
     virtual_addr: VirtAddr,
     permissions: PagePermissions,
 ) -> PagingResult<PhysAddr> {
-    without_interrupts(|| {
+    let (frame, flush) = without_interrupts(|| {
         lock_responsive(&PAGING_MANAGER).unmap_page_in_asid(
             asid,
             virtual_addr,
@@ -52,7 +60,12 @@ pub fn unmap_page_in_asid(
             PageSize::Size4KiB,
             &PAGING_STATS,
         )
-    })
+    })?;
+    /*
+     * Before the frame goes back to the caller, which may free it.
+     */
+    flush.commit();
+    Ok(frame)
 }
 
 pub fn translate_in_asid(asid: u32, virtual_addr: VirtAddr) -> Option<PhysAddr> {

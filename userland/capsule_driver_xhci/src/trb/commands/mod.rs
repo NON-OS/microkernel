@@ -17,9 +17,13 @@ mod address_device;
 mod configure_endpoint;
 mod disable_slot;
 mod enable_slot;
+mod endpoint;
 mod noop;
 pub use address_device::address_device_command;
 pub use configure_endpoint::configure_endpoint_command;
 pub use disable_slot::disable_slot_command;
 pub use enable_slot::enable_slot_command;
+pub use endpoint::{
+    evaluate_context_command, reset_endpoint_command, set_dequeue_command, stop_endpoint_command,
+};
 pub use noop::noop_command;

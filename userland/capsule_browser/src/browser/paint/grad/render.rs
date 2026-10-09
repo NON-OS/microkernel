@@ -16,55 +16,40 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::parse::Linear;
-use super::stops::color_at;
-use super::trig::{cos, sin};
+use super::composite::over;
+use super::painter::{Kind, Painter};
+use super::radial::radial_row;
 
-// Fill the box [x, y, w, h] with a linear gradient, source-over compositing so
-// a semi-transparent overlay shows the content beneath it. The gradient line
-// runs along the CSS angle; a pixel's projection onto it gives its stop t.
-pub(super) fn fill_linear(fb: &mut PaintBuffer, g: &Linear, x: i32, y: i32, w: i32, h: i32) {
-    if w <= 0 || h <= 0 {
-        return;
-    }
-    let rad = g.angle * core::f32::consts::PI / 180.0;
-    // Axis unit vector: 0deg points up, angle increases clockwise.
-    let (ux, uy) = (sin(rad), -cos(rad));
-    // Project the four corners to normalize the gradient line to 0..1.
-    let mut lo = f32::MAX;
-    let mut hi = f32::MIN;
-    for &(cx, cy) in &[(0.0, 0.0), (w as f32, 0.0), (0.0, h as f32), (w as f32, h as f32)] {
-        let p = cx * ux + cy * uy;
-        lo = lo.min(p);
-        hi = hi.max(p);
-    }
-    let span = (hi - lo).max(1.0);
-    for py in 0..h {
-        for px in 0..w {
-            let t = ((px as f32 * ux + py as f32 * uy) - lo) / span;
-            put_pixel(fb, x + px, y + py, color_at(&g.stops, t));
+impl Painter {
+    /* Row y of the gradient box, from column x0 for out.len() pixels. A
+     * linear row steps its table index in 16.16 fixed point; one whose index
+     * does not move along x (0 and 180 degrees) is a single color fill. */
+    pub fn row(&self, y: i32, x0: i32, out: &mut [u32]) {
+        match self.kind {
+            Kind::Linear { base, dy, step } => {
+                let n = self.n as i64;
+                let at = |t: i64| self.lut[((t + 0x8000) >> 16).clamp(0, n) as usize];
+                let mut t = ((y as f32 * dy + base) * 65536.0) as i64 + step * x0 as i64;
+                if step == 0 {
+                    out.fill(at(t));
+                    return;
+                }
+                for o in out.iter_mut() {
+                    *o = at(t);
+                    t += step;
+                }
+            }
+            Kind::Radial { w, h, r2 } => radial_row(self, [w, h], r2, [x0, y], out),
         }
     }
 }
 
-// Source-over one gradient sample onto the framebuffer.
+/* Source-over one gradient sample onto the framebuffer. */
 pub(crate) fn put_pixel(fb: &mut PaintBuffer, x: i32, y: i32, argb: u32) {
     if x < 0 || y < 0 || x as u32 >= fb.width || y as u32 >= fb.height {
         return;
     }
     let idx = y as usize * fb.stride_words as usize + x as usize;
-    let Some(dst) = fb.pixels.get(idx).copied() else { return };
-    let a = (argb >> 24) & 0xff;
-    if a == 0 {
-        return;
-    }
-    if a == 255 {
-        fb.pixels[idx] = 0xff00_0000 | (argb & 0x00ff_ffff);
-        return;
-    }
-    let mix = |s: u32, d: u32| (s * a + d * (255 - a)) / 255;
-    let r = mix((argb >> 16) & 0xff, (dst >> 16) & 0xff);
-    let gr = mix((argb >> 8) & 0xff, (dst >> 8) & 0xff);
-    let b = mix(argb & 0xff, dst & 0xff);
-    fb.pixels[idx] = 0xff00_0000 | (r << 16) | (gr << 8) | b;
+    let Some(dst) = fb.pixels.get_mut(idx) else { return };
+    *dst = over(*dst, argb);
 }

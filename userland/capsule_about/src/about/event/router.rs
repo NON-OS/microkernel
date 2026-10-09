@@ -29,11 +29,22 @@ use super::on_page_up::on_page_up;
 use super::on_pointer_button::on_pointer_button;
 use super::on_shift_tab::on_shift_tab;
 use super::on_tab::on_tab;
+use crate::about::scroll_wheel::wheel_to;
 use crate::about::state::State;
 
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
     if event.kind == InputKind::ButtonDown {
         return on_pointer_button(state, event.x, event.y);
+    }
+    // The wheel was delivered and dropped, so the longer screens (Licenses,
+    // Proofs, Trust) could only be read with the keys.
+    if event.kind == InputKind::Wheel {
+        let next = wheel_to(state.scroll, state.max_scroll(), event.delta_y);
+        if next == state.scroll {
+            return EventOutcome::Idle;
+        }
+        state.scroll = next;
+        return EventOutcome::Repaint;
     }
     if !event.is_key_down() {
         return EventOutcome::Idle;

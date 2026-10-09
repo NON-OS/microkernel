@@ -15,29 +15,39 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::entries::ENTRIES;
-use super::theme::{CYAN, CYAN_HOT, DIM};
-use crate::display::font::{draw_string_2x, CHAR_WIDTH};
-use crate::display::fx::{blend_rect, bloom_char};
+use super::layout::Layout;
+use crate::display::gop::hline;
+use crate::display::ink::palette::{BORDER, CYAN, TEXT, TEXT_2, TEXT_3};
+use crate::display::ink::{draw, label, label_width, marker, metrics, round_rect, Style};
 
-const ROW_PITCH: u32 = 50;
+/// The entries, numbered as the brand numbers its sections, on thin rules.
+/// The selected one is lit: its number in cyan, a cyan bar at its edge.
+pub(super) fn draw_list(l: &Layout, sel: usize, default: usize) {
+    let mono = metrics(Style::Mono);
+    marker(l.col_x, l.list_y - mono.line - 4 * l.u, b"START", CYAN, TEXT_2);
+    for i in 0..ENTRIES.len() {
+        draw_row(l, i, i == sel, i == default);
+    }
+    hline(l.col_x, l.list_y + l.row_h * ENTRIES.len() as u32, l.col_w, BORDER);
+}
 
-pub(super) fn draw_list(w: u32, top: u32, sel: usize) {
-    for (i, entry) in ENTRIES.iter().enumerate() {
-        let label = entry.label().as_bytes();
-        let lw = label.len() as u32 * CHAR_WIDTH * 2;
-        let x = w.saturating_sub(lw) / 2;
-        let y = top + i as u32 * ROW_PITCH;
-        if i == sel {
-            let ux = x.saturating_sub(8);
-            blend_rect(ux, y + 33, lw + 16, 5, CYAN, 18);
-            blend_rect(ux, y + 34, lw + 16, 3, CYAN, 60);
-            let mut cx = x;
-            for &ch in label {
-                bloom_char(cx, y, ch, 2, CYAN_HOT, CYAN);
-                cx += CHAR_WIDTH * 2;
-            }
-        } else {
-            draw_string_2x(x, y, label, DIM);
-        }
+fn draw_row(l: &Layout, i: usize, selected: bool, default: bool) {
+    let u = l.u;
+    let top = l.list_y + l.row_h * i as u32;
+    hline(l.col_x, top, l.col_w, BORDER);
+    let (mono, lab) = (metrics(Style::Mono), metrics(Style::Label));
+    let num = [b'0', b'1' + i as u8];
+    let ny = top + l.row_h.saturating_sub(mono.line) / 2;
+    let ly = top + l.row_h.saturating_sub(lab.line) / 2;
+    let text_x = l.col_x + 3 * u + label_width(b"00") + 3 * u;
+    if selected {
+        round_rect(l.col_x, top + 2 * u, (u / 2).max(2), l.row_h.saturating_sub(4 * u), 1, CYAN);
+    }
+    label(l.col_x + 3 * u, ny, &num, if selected { CYAN } else { TEXT_3 });
+    draw(text_x, ly, ENTRIES[i].label, Style::Label, if selected { TEXT } else { TEXT_2 });
+    if default {
+        let tag: &[u8] = b"DEFAULT";
+        let tx = (l.col_x + l.col_w).saturating_sub(label_width(tag));
+        label(tx, ny, tag, if selected { CYAN } else { TEXT_3 });
     }
 }

@@ -27,6 +27,7 @@ mod init;
 pub mod integrity;
 pub mod memory;
 pub mod root_of_trust;
+pub mod tcg_log;
 pub mod timing;
 mod tpm_extend;
 mod tpm_nv;
@@ -34,9 +35,7 @@ mod tpm_types;
 mod types;
 mod verify;
 
-pub use anti_rollback::{
-    check_kernel_version, init_anti_rollback, update_kernel_version, RollbackError,
-};
+pub use anti_rollback::{floor_rule, Floor};
 pub use attestation::{
     generate_attestation_quote, init_attestation, set_bootloader_measurement,
     set_kernel_measurement, set_signature_attestation, set_zk_attestation,
@@ -62,7 +61,7 @@ pub use init::{assess_security_posture, initialize_security_subsystem};
 pub use memory::{
     init_canaries, verify_heap_canary, verify_stack_canary, zeroize_slice, SecureBuffer, SecureKey,
 };
-pub use tpm_extend::{extend_pcr_measurement, measure_boot_components};
+pub use tpm_extend::{extend_pcr_measurement, measure_boot_components, tpm_present};
 pub use tpm_nv::{commit_floor, read_floor, tpm_counter_selftest, RC_NO_TPM};
 pub use tpm_types::{EV_POST_CODE, PCR_BOOTLOADER, PCR_CAPSULE, PCR_KERNEL};
 pub use types::SecurityContext;

@@ -29,20 +29,25 @@ mod server;
 mod setup;
 mod tx;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, start_driver};
 
+const DRIVER: &[u8] = b"driver.rtl8139";
+
+/// Without a card the driver says so and leaves (`EXIT_ABSENT`) before
+/// claiming anything. With one, each attempt takes the grants and programs
+/// the part, giving every grant back when either half fails; the attempts
+/// are bounded and slept between, and running out is `EXIT_GAVE_UP`.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    let mut driver = match setup::run() {
+    let started = start_driver(DRIVER, discover::find_rtl8139(), |dev| {
+        setup::run(*dev).and_then(init::finish)
+    });
+    let mut driver = match started {
         Ok(d) => d,
-        Err(_) => mk_exit(2),
+        Err(code) => mk_exit(code),
     };
-    if init::bring_up(&mut driver).is_err() {
-        driver.release();
-        mk_exit(3);
-    }
     server::run(&mut driver);
 }

@@ -20,5 +20,6 @@
 
 pub const VERSION: &str = include_str!("../../../../../VERSION");
 pub const GIT_SHA: &str = env!("SETTINGS_GIT_SHA");
-pub const TOOLCHAIN: &str = "nightly-2026-01-16";
-pub const ARCHITECTURE: &str = "x86_64 (NONOS user target)";
+// The compiler's own `rustc -V` and cargo's target, read by build.rs.
+pub const TOOLCHAIN: &str = env!("SETTINGS_RUSTC");
+pub const ARCHITECTURE: &str = env!("SETTINGS_ARCH");

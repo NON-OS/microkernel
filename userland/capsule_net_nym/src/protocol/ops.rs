@@ -40,3 +40,8 @@ pub const OP_SET_IDENTITY: u16 = 18;
 /// Ask for an exit the directory published, so a client does not have to
 /// carry one compiled in.
 pub const OP_GET_EXIT: u16 = 19;
+
+/// Collect everything the mixnet delivered that fits in one answer, as
+/// records. One message per read made a page that arrived as sixty messages
+/// cost sixty round trips through every capsule on the way to the reader.
+pub const OP_RECV_BATCH: u16 = 20;

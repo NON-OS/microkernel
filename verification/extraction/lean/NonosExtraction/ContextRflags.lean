@@ -15,33 +15,28 @@ set_option maxRecDepth 2048
 namespace nonos_x_context_rflags
 
 /-- [nonos_x_context_rflags::context_rflags::RFLAGS_PRIVILEGED_MASK]
-    Source: 'src/../../../../../src/arch/x86_64/context/rflags.rs', lines 29:0-29:62
-    Visibility: public -/
+    Source: 'src/../../../../../src/arch/x86_64/context/rflags.rs', lines 29:0-29:69 -/
 @[global_simps, irreducible]
 def context_rflags.RFLAGS_PRIVILEGED_MASK : Std.U64 := 2061568#u64
 
 /-- [nonos_x_context_rflags::context_rflags::RFLAGS_RESERVED_SET]
-    Source: 'src/../../../../../src/arch/x86_64/context/rflags.rs', lines 32:0-32:59
-    Visibility: public -/
+    Source: 'src/../../../../../src/arch/x86_64/context/rflags.rs', lines 32:0-32:66 -/
 @[global_simps, irreducible]
 def context_rflags.RFLAGS_RESERVED_SET : Std.U64 := 2#u64
 
 /-- [nonos_x_context_rflags::context_rflags::RFLAGS_IF]
-    Source: 'src/../../../../../src/arch/x86_64/context/rflags.rs', lines 38:0-38:49
-    Visibility: public -/
+    Source: 'src/../../../../../src/arch/x86_64/context/rflags.rs', lines 38:0-38:56 -/
 @[global_simps, irreducible] def context_rflags.RFLAGS_IF : Std.U64 := 512#u64
 
 /-- [nonos_x_context_rflags::context_rflags::sanitize]:
-    Source: 'src/../../../../../src/arch/x86_64/context/rflags.rs', lines 41:0-43:1
-    Visibility: public -/
+    Source: 'src/../../../../../src/arch/x86_64/context/rflags.rs', lines 41:0-43:1 -/
 def context_rflags.sanitize (rflags : Std.U64) : Result Std.U64 := do
   let i ← lift (~~~ context_rflags.RFLAGS_PRIVILEGED_MASK)
   let i1 ← lift (rflags &&& i)
   ok (i1 ||| context_rflags.RFLAGS_RESERVED_SET)
 
 /-- [nonos_x_context_rflags::context_rflags::sanitize_user]:
-    Source: 'src/../../../../../src/arch/x86_64/context/rflags.rs', lines 46:0-48:1
-    Visibility: public -/
+    Source: 'src/../../../../../src/arch/x86_64/context/rflags.rs', lines 46:0-48:1 -/
 def context_rflags.sanitize_user (rflags : Std.U64) : Result Std.U64 := do
   let i ← context_rflags.sanitize rflags
   ok (i ||| context_rflags.RFLAGS_IF)

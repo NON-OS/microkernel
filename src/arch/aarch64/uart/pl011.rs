@@ -24,6 +24,5 @@ mod rx;
 mod tx;
 
 pub use api::{getc, init_uart, putc, puts};
-pub use config::{Pl011ConfigError, Pl011ConfigResult};
 pub use device::Pl011;
 pub use interrupt::handle_uart_interrupt;

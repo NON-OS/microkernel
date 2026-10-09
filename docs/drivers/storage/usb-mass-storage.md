@@ -1,0 +1,88 @@
+# USB mass storage
+
+How NONOS reads and writes USB sticks and USB disks through `driver.usb_msc0`, and what it does not support.
+
+## What it binds
+
+`driver.usb_msc0` binds a USB interface of class 08h (mass storage), subclass 06h (SCSI transparent) and protocol 50h, the Bulk-Only Transport, with one bulk IN and one bulk OUT endpoint (`userland/capsule_driver_usb_msc/src/descriptors/visitor.rs:43-52`, `PROTOCOL_BULK_ONLY`). USB Attached SCSI (UAS) is not implemented in this release, so a device that offers only UAS is not served. The driver reads the SuperSpeed endpoint companion, so a USB 3 device's burst size reaches the controller (`userland/capsule_driver_usb_msc/src/descriptors/visitor.rs:71-93`, `visit_companion`).
+
+## Where it sits
+
+The driver is a class [capsule](../../overview/glossary.md#capsule) with no hardware [capability](../../overview/glossary.md#capability): it holds CoreExec, IPC and Memory, the word 0x19 (`userland/capsule_driver_usb_msc/Capsule.mk:15-18`, `CAPSULE_REQUIRED_CAPS`). Every transfer goes through the xHCI driver `driver.xhci0`, which the kernel lets only this driver and `driver.usb_hid0` reach (`src/services/registry/held_table.rs:30-32`, `driver.xhci0`).
+
+```mermaid
+sequenceDiagram
+    participant K as kernel block layer
+    participant M as driver.usb_msc0
+    participant X as driver.xhci0
+    participant D as USB stick
+    K->>M: OP_BLK_READ in 512-byte sectors
+    M->>X: OP_BULK_OUT with the CBW
+    X->>D: bulk OUT
+    M->>X: OP_BULK_IN for the data
+    M->>X: OP_BULK_IN for the CSW
+    M->>K: status and sectors
+```
+
+The kernel block layer sends `OP_BLK_READ`, `OP_BLK_WRITE` or `OP_BLK_FLUSH` in 512-byte sectors (`userland/capsule_driver_usb_msc/src/protocol/ops.rs:32-35`, `OP_BLK_READ`). A read, or a write that covers whole device blocks, becomes one SCSI command; a write that covers part of a block becomes a read and a write. Each command goes out in a Command Block Wrapper (CBW) with `OP_BULK_OUT`, its data moves in pieces of at most 4096 bytes, and the answer comes back in a Command Status Wrapper (CSW) read with `OP_BULK_IN` (`userland/capsule_driver_usb_msc/src/disk/bot.rs:17-27`, `data_phase`; `userland/capsule_driver_xhci/src/protocol/limits.rs:37-38`, `BULK_MAX`).
+
+## Finding the device
+
+The kernel starts this driver on any machine with an xHCI controller, since a stick is known only after USB enumeration. The driver then (`userland/capsule_driver_usb_msc/src/scan/scanner.rs:38-44`, `WINDOW_MS`):
+
+- waits up to 30 s for `driver.xhci0` to register;
+- looks for a device for 10 s after that, and gives the ports 1.5 s to report their devices;
+- once that window closes, looks at the ports again every 5 s, so a stick plugged in late is still taken.
+
+Each root port gets three tries (`userland/capsule_driver_usb_msc/src/scan/pass.rs:27-28`, `TRIES`). A device of another class is left to its own driver. The first device that binds is served for the rest of the boot, and the driver does not look for a second one (`userland/capsule_driver_usb_msc/src/server/runner.rs:47-71`, `Medium::Absent`).
+
+The driver looks at the root ports of the xHCI controllers only. A stick behind a USB hub is not found in this release (`userland/capsule_driver_usb_msc/src/xhci/port.rs:34-47`, `connected_ports`); see [USB hubs](../usb/hubs.md).
+
+## Bringing a device up
+
+Bring-up opens with INQUIRY (`userland/capsule_driver_usb_msc/src/disk/ready.rs:39-97`, `unit_ready`):
+
+- INQUIRY first, up to five tries, since some firmware answers nothing else correctly until it has seen one;
+- TEST UNIT READY up to 600 times, 50 ms apart, which gives a USB-SATA bridge or a slow stick 30 s, with one START STOP UNIT when the medium reports NOT READY;
+- on a card reader with several logical units, the first unit with a medium is served, and an empty slot that is not the last unit is given up at once.
+
+It then reads the size with READ CAPACITY(10), and asks READ CAPACITY(16) of a device past 2^32 blocks (`userland/capsule_driver_usb_msc/src/disk/ready.rs:99-119`, `capacity`).
+
+## Reads, writes and flush
+
+- Reads and writes use READ(10) and WRITE(10), or READ(16) and WRITE(16) when a request passes the 32-bit LBA or the 16-bit block count (`userland/capsule_driver_usb_msc/src/span/mod.rs:73-77`, `needs_cdb16`).
+- The kernel asks in 512-byte sectors, at most 64 per request (`userland/capsule_driver_usb_msc/src/protocol/limits.rs:23-27`, `BLK_MAX_SECTORS`).
+- Device blocks of 1024, 2048 or 4096 bytes are mapped onto those sectors: a request that starts or ends inside a block reads it whole, and a write changes it and writes it back (`userland/capsule_driver_usb_msc/src/span/mod.rs:17-34`, `sectors_per_block`). Any other block length is reported as it is, and the kernel passes the device over (`src/hardware/block_device/fit.rs:32-43`, `usb_msc_sectors_fit`).
+- A flush is SYNCHRONIZE CACHE(10). A device that answers ILLEGAL REQUEST has no cache to flush, and that counts as done (`userland/capsule_driver_usb_msc/src/disk/ready.rs:121-132`, `sync_cache`).
+
+Two habits of real devices that the Bulk-Only specification does not allow are accepted: a zero-length packet before the CSW, and a CSW sent in place of a data phase the device skipped. A transport that loses its phase is reset with Bulk-Only reset recovery (`userland/capsule_driver_usb_msc/src/disk/bot.rs:20-30`, `reset_recovery`).
+
+## Access
+
+The driver serves service [endpoint](../../overview/glossary.md#endpoint) 4224 (`userland/capsule_driver_usb_msc/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`), a [held endpoint](../../overview/glossary.md#held-endpoint) that no capsule may send to (`src/services/registry/held_table.rs:30`, `driver.usb_msc0`). The driver makes the same check itself: its block surface answers the kernel's client alone, which arrives as sender pid 0. Every other sender gets `E_ACCES`, so the medium is written only through the kernel block layer (`userland/capsule_driver_usb_msc/src/server/handlers/block.rs:17-43`, `E_ACCES`). The installer therefore cannot install to a USB disk: its block client knows only the NVMe, SATA and virtio-blk drivers; see [Storage drivers](README.md#the-installers-disk-list).
+
+When a stick carries NONOS, the block layer asks it before any internal disk, so a live boot keeps its state on the stick; see [Storage drivers](README.md#how-a-disk-becomes-the-nonos-disk).
+
+The driver holds no Debug capability and writes nothing to the [serial console](../../overview/glossary.md#serial-console) (`src/userspace/capsule_driver_usb_msc/spawn.rs:51-53`, `requested_caps`). The kernel says where the driver's search stands instead, in one `[USB-MSC]` line read from the driver's state reply (`src/hardware/usb_msc_capsule/report.rs:18-38`, `report_line`).
+
+## How it was verified
+
+- `userland/usb_msc_proofs` is the [proof crate](../../overview/glossary.md#proof-crate). It runs the descriptor walk, the BOT and SCSI codecs, the sector spans and the transport against a scripted device behind `driver.xhci0`. Its flake check fails on this commit: clippy, run with warnings as errors, rejects `State::new` without a `Default` (`userland/capsule_driver_usb_msc/src/state/types.rs:38`, `State::new`). The check recorded no test count.
+- The boot matrix, `make nonos-mk-boot-matrix`, has two cells with the NONOS store on a USB stick on a `qemu-xhci` controller, one of 512-byte and one of 4096-byte blocks (`scripts/bootmatrix/cells.py:59-60`, `usb_block`; `scripts/bootmatrix/qemu.py:50-57`, `usb_stick`). No run of the matrix is reported for this commit.
+- `tools/nonos_qemu` plugs the sealed stick into the xHCI controller as a `usb-storage` device (`tools/nonos_qemu/machine.py:80-88`, `usb_stick`). From a checkout with a sealed image:
+
+```
+nix run .#qemu -- --stick --usb
+```
+
+Not tested in this release.
+
+USB sticks and USB disks have not been tested on hardware in this release.
+
+## See also
+
+- [Storage drivers](README.md)
+- [USB and the xHCI host controller](../usb/README.md)
+- [USB hubs](../usb/hubs.md)
+- [SD cards and eMMC](sd-and-emmc.md)
+- [Write a USB stick](../../install/usb-stick.md)

@@ -14,15 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The WPA2-PSK 4-way handshake, supplicant side. This is chip-independent:
-//! it consumes only the proven key-derivation (`wpa::ptk`), the EAPOL codec
-//! (`eapol`), and the AES key-unwrap (`ccmp::keywrap`), so any WiFi driver
-//! (Intel, Realtek) drives the same state machine. Given the PMK and the two
-//! MAC addresses, `step` is fed each EAPOL-Key frame the AP sends and returns
-//! the frame to transmit back, deriving the pairwise key on message 1 and
-//! installing the group key on message 3.
+//! The RSN 4-way and group key handshakes, supplicant side, for WPA2-PSK,
+//! PSK-SHA256 and WPA3-SAE. This is chip-independent: it consumes only the
+//! proven key derivation (`wpa::ptk`, `wpa::akm`), the EAPOL codec (`eapol`),
+//! and the AES key-unwrap (`ccmp::keywrap`), so any WiFi driver (Intel,
+//! Realtek) drives the same state machine. Given the PMK, the two MAC
+//! addresses and the elements of the association, `step` is fed each
+//! EAPOL-Key frame the AP sends and returns the frame to transmit back,
+//! deriving the pairwise key on message 1, taking the group keys on message 3
+//! and on each group key handshake after it.
 
+mod group;
+pub mod ie;
+mod keys;
+mod message3;
+mod reply;
 mod state;
 pub mod step;
 
-pub use state::{State, Supplicant};
+pub use state::{Config, Failure, State, Supplicant};
+pub use step::StepOutput;

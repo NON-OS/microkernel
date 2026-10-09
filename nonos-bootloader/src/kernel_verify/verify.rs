@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use uefi::prelude::*;
-use super::delay::mini_delay;
-use super::display_status::{
-    print_kernel_size, print_verification_failure, print_verification_success,
+use super::{
+    delay::mini_delay,
+    display_status::{print_kernel_size, print_verification_failure, print_verification_success},
+    footer::handle_missing_footer,
+    helpers::{compute_and_display_hash, initialize_crypto_if_needed, validate_kernel_size, verify_and_display_signature},
+    trailer::verify_kernel_self_attestation,
+    types::CryptoVerifyResult,
 };
-use super::footer::handle_missing_footer;
-use super::helpers::{
-    compute_and_display_hash, initialize_crypto_if_needed, validate_kernel_size,
-    verify_and_display_signature,
-};
-use super::types::CryptoVerifyResult;
 use crate::image_format::{has_production_footer, validate_image};
 use crate::log::logger::{log_error, log_info};
+use uefi::prelude::*;
 
 pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> CryptoVerifyResult {
     log_info("kernel_verify", "Starting cryptographic verification");
@@ -71,33 +69,7 @@ pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> C
     } else {
         print_verification_failure(st);
     }
-    #[cfg(feature = "stark-kernel-attest")]
-    verify_kernel_stark_self_attestation(&parsed, &mut result);
+    verify_kernel_self_attestation(&parsed, &mut result);
     log_info("kernel_verify", "Cryptographic verification complete");
     result
-}
-
-/// Verify the kernel's transparent STARK self-attestation carried in the proof
-/// footer, against the enrolled boot root. A kernel that ships a trailer must
-/// prove its measurement; one that does not is left to signature trust alone.
-#[cfg(feature = "stark-kernel-attest")]
-fn verify_kernel_stark_self_attestation(
-    parsed: &crate::image_format::ParsedImage<'_>,
-    result: &mut CryptoVerifyResult,
-) {
-    const MAGIC: &[u8; 8] = b"NZKSTRK1";
-    let Some(trailer) = parsed.proof_bytes else {
-        log_info("kernel_verify", "no STARK self-attestation trailer present");
-        return;
-    };
-    if trailer.len() < 8 || &trailer[0..8] != MAGIC {
-        return;
-    }
-    if super::stark_attest::verify_kernel_self_attestation(parsed.kernel_bytes, trailer) {
-        result.stark_attested = true;
-        log_info("kernel_verify", "kernel STARK self-attestation verified");
-    } else {
-        result.stark_attested = false;
-        log_error("kernel_verify", "kernel STARK self-attestation FAILED");
-    }
 }

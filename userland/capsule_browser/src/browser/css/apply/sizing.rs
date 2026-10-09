@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::css::computed::{Computed, ObjectFit, Size};
+use crate::browser::css::computed::{Computed, Size};
 use crate::browser::css::parse_size::parse_size;
 
-// Width and height with their min/max clamps. `none` lifts a clamp.
+/* Width and height with their min/max clamps. `none` lifts a clamp. */
 pub(super) fn apply_sizing(c: &mut Computed, name: &str, value: &str, fs: u32) -> bool {
     match name {
         "box-sizing" => match value.trim() {
@@ -25,12 +25,7 @@ pub(super) fn apply_sizing(c: &mut Computed, name: &str, value: &str, fs: u32) -
             "content-box" => c.border_box = false,
             _ => {}
         },
-        "object-fit" => match value.trim() {
-            "cover" => c.object_fit = ObjectFit::Cover,
-            "fill" => c.object_fit = ObjectFit::Fill,
-            "contain" | "scale-down" | "none" => c.object_fit = ObjectFit::Contain,
-            _ => {}
-        },
+        "object-fit" | "object-position" => super::object::apply_object(c, name, value, fs),
         "width" => {
             if let Some(s) = parse_size(value, fs) {
                 c.width = s;
@@ -67,7 +62,7 @@ pub(super) fn apply_sizing(c: &mut Computed, name: &str, value: &str, fs: u32) -
                 c.max_height = s;
             }
         }
-        _ => return false,
+        _ => return super::aspect::apply_aspect(c, name, value),
     }
     true
 }

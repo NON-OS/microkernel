@@ -20,10 +20,17 @@ pub enum HardwareFamily {
     StorageAhci,
     StorageUsbMsc,
     StorageVirtioBlk,
+    /// An Intel VMD: a PCI domain hiding NVMe and SATA controllers behind
+    /// it (`vmd`). Listed, never spawned for.
+    StorageVmd,
+    /// An Intel eMMC host (`emmc`): the soldered disk of Atom, Celeron and
+    /// Pentium Silver laptops. Served by the AHCI capsule at present.
+    StorageEmmc,
     NetworkVirtio,
     NetworkE1000,
     NetworkRtl8139,
     NetworkRtl8169,
+    NetworkRtl8821ce,
     NetworkIwlwifi,
     DisplayGopFramebuffer,
     DisplayVirtioGpu,

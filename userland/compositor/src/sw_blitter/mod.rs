@@ -15,11 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod copy_rect;
+pub mod downscale;
 pub mod fill;
 pub mod row;
+pub mod upscale;
 
 pub use copy_rect::composite_layer;
+pub use downscale::downscale;
 pub use fill::fill_rect;
+pub use upscale::upscale;
 
 #[derive(Clone, Copy, Default)]
 pub struct Surface {

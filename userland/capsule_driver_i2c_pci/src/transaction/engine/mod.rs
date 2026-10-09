@@ -13,10 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod budget;
 mod check_abort;
 mod done;
 mod drain_rx;
+mod presence;
 mod probe;
+mod probe_hid;
 mod read_cmd;
 mod run;
 mod rx_space;
@@ -24,5 +27,7 @@ mod take_write;
 mod transfer;
 mod tx_space;
 
-pub use probe::{probe, probe_hid};
+pub use presence::Presence;
+pub use probe::probe;
+pub use probe_hid::probe_hid;
 pub use transfer::transfer;

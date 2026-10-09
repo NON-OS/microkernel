@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Hit test for the brand region, so a click on the logo opens the launcher.
+//! Hit test for the brand region, so a click on the logo brings up the dock.
 
 use super::metrics::brand_right;
 use crate::render::layout::menubar_height;

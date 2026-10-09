@@ -19,20 +19,22 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_blk_client::Contents;
 
-use crate::install::ui::metrics::BODY_PX;
+use crate::install::ui::metrics::Metrics;
+use crate::install::ui::text::top_of;
 use crate::install::ui::{text, theme};
 
 /// What erasing this particular disk destroys, in the colour of the loss.
-pub fn warn(fb: &mut PaintBuffer, x: u32, y: u32, contents: Contents) {
+pub fn warn(fb: &mut PaintBuffer, m: &Metrics, x: u32, y: u32, contents: Contents) {
     let (line, colour) = match contents {
-        Contents::Nonos => ("holds NØNOS already; it will be replaced", theme::WARN),
+        Contents::Nonos => ("holds NØNOS; its store and data volume are lost", theme::WARN),
         Contents::OtherGpt | Contents::Mbr => {
             ("holds another system; all of it is erased", theme::DANGER)
         }
         Contents::Unknown => {
             ("holds data this installer cannot identify; all of it is erased", theme::DANGER)
         }
+        Contents::Unread(_) => ("did not answer a read; it is not offered", theme::DANGER),
         Contents::Blank => ("blank; nothing is lost", theme::MUTED),
     };
-    text::line(fb, x, y + 4, line, colour, BODY_PX);
+    text::line(fb, x, top_of(y, m.line_h, m.body_px), line, colour, m.body_px);
 }

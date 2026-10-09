@@ -21,7 +21,7 @@ mod header;
 mod limits;
 mod ops;
 
-pub use decode::parse;
+pub use decode::{parse, refused};
 pub use encode::write_header;
 pub use errno::{
     E_BAD_LEN, E_BAD_OP, E_NO_LINK, E_NO_NEIGHBOUR, E_OK, E_PERM, E_RX_EMPTY, E_TX_BUSY,

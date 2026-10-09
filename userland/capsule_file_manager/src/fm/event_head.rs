@@ -17,6 +17,7 @@
 use nonos_app_skeleton::EventOutcome;
 
 use super::event_crumb::crumb_nav;
+use super::event_forward::open_forward;
 use super::event_parent::open_parent;
 use super::event_undo::undo;
 use super::header_slots::HeadHit;
@@ -51,7 +52,7 @@ pub fn on_head(state: &mut State, hit: HeadHit) -> EventOutcome {
         HeadHit::Undo => return undo(state),
         HeadHit::New => return start_prompt(state, PromptKind::NewFile, b"new file: "),
         HeadHit::NavBack => return open_parent(state),
-        HeadHit::NavFwd => return EventOutcome::Idle,
+        HeadHit::NavFwd => return open_forward(state),
     }
     EventOutcome::Repaint
 }

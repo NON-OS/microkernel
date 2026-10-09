@@ -15,45 +15,60 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One disk on the list: what the part calls itself, its size, the bus,
-//! the serial, and what it holds now. A driver that did not answer gets
-//! the same row in the fault colour.
+//! the serial, and what it holds now. A row that is not a target says why
+//! in place of what it holds: in the fault colour for a driver that is
+//! missing or did not answer, in the warning colour for a disk that may
+//! be the one this boot came from.
+
+use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_blk_client::{Contents, Disk};
 
 use crate::install::format::bytes;
-use crate::install::ui::metrics::{BODY_PX, SMALL_PX};
+use crate::install::ui::metrics::Metrics;
 use crate::install::ui::text::right;
 use crate::install::ui::{text, theme};
 
-pub fn row(fb: &mut PaintBuffer, d: &Disk, bx: u32, y: u32, bw: u32) {
-    let x = bx + 18;
-    let top = y + 8;
-    match &d.fault {
-        None => {
-            let name = d.identity.map(|i| alloc::string::String::from(i.model_str()));
-            let title = name.as_deref().unwrap_or(d.label());
-            text::line(fb, x, top, title, theme::TITLE, BODY_PX);
-            right(fb, bx + bw - 18, top, &bytes(d.bytes()), theme::FOREGROUND, BODY_PX);
-            let colour = match d.contents {
-                Contents::Blank => theme::MUTED,
-                Contents::Nonos => theme::ACCENT,
-                _ => theme::WARN,
-            };
-            let sub = match d.identity {
-                Some(i) => alloc::format!(
-                    "{}  serial {}  {}",
-                    d.label(),
-                    i.serial_str(),
-                    d.contents.text()
-                ),
-                None => alloc::format!("{}  {}", d.label(), d.contents.text()),
-            };
-            text::line(fb, x, top + 24, &sub, colour, SMALL_PX);
-        }
-        Some(fault) => {
-            text::line(fb, x, top, d.label(), theme::MUTED, BODY_PX);
-            text::line(fb, x, top + 24, fault, theme::DANGER, SMALL_PX);
-        }
+pub fn row(fb: &mut PaintBuffer, m: &Metrics, d: &Disk, bx: u32, y: u32, bw: u32) {
+    let x = bx + m.inset;
+    let top = y + m.unit;
+    let second = top + m.line_h;
+    let name = d.identity.map(|i| String::from(i.model_str())).filter(|s| !s.is_empty());
+    let title = name.as_deref().unwrap_or(d.label());
+    let lit = if d.device.is_some() { theme::TITLE } else { theme::MUTED };
+    text::line(fb, x, top, title, lit, m.body_px);
+    if d.bytes() > 0 {
+        right(fb, bx + bw - m.inset, top, &bytes(d.bytes()), theme::FOREGROUND, m.body_px);
+    }
+    let (sub, colour) = match &d.fault {
+        None => (described(d), held_colour(d.contents)),
+        Some(why) if d.bytes() > 0 => (alloc::format!("{}  {why}", d.label()), theme::WARN),
+        Some(why) => (String::from(why.as_str()), theme::DANGER),
+    };
+    text::line(fb, x, second, &sub, colour, m.small_px);
+}
+
+/* The bus, the serial when the part has one, a block size that is not the
+ * usual 512 bytes, and what the disk holds now. */
+fn described(d: &Disk) -> String {
+    let mut s = String::from(d.label());
+    if let Some(serial) = d.identity.as_ref().map(|i| i.serial_str()).filter(|s| !s.is_empty()) {
+        s.push_str("  serial ");
+        s.push_str(serial);
+    }
+    if d.block > 512 {
+        s.push_str(&alloc::format!("  {}-byte blocks", d.block));
+    }
+    s.push_str("  ");
+    s.push_str(d.contents.text());
+    s
+}
+
+fn held_colour(c: Contents) -> u32 {
+    match c {
+        Contents::Blank => theme::MUTED,
+        Contents::Nonos => theme::ACCENT,
+        _ => theme::WARN,
     }
 }

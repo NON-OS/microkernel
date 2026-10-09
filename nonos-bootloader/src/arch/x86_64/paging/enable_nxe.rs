@@ -32,8 +32,10 @@ const CPUID_NX_BIT: u32 = 1 << 20;
 /// Set EFER.NXE when the CPU supports the NX feature. Every x86_64
 /// processor does; the CPUID gate is defense against exotic
 /// virtualization profiles that mask it, where the NX-carrying
-/// mappings would be unusable and the caller must not install them.
-/// Returns whether NXE is on when this returns.
+/// mappings would be unusable. Returns whether NXE is on when this
+/// returns. `switch_to_kernel_pml4` ignores the result and installs the
+/// NX-carrying PML4 either way; a CPU without NX is refused earlier by
+/// the loader's hardware check.
 pub fn enable_nxe() -> bool {
     let (mut eax, mut ebx, mut ecx, mut edx): (u32, u32, u32, u32);
     unsafe {

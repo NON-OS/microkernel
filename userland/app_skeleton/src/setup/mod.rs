@@ -20,6 +20,7 @@ mod binding;
 mod ensure_input_subscription;
 mod input_mask;
 mod open;
+pub mod patience;
 mod register;
 mod request_id;
 mod resize;

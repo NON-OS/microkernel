@@ -1,0 +1,48 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Fuzz target for the IPC request decoders of the driver capsules and the vfs,
+# each mounted by its proof crate. Run with:
+# cargo +nightly-2026-01-16 fuzz run ipc_decoders
+
+[package]
+name = "driver_proofs-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+driver_proofs = { path = ".." }
+nvme_proofs = { path = "../../nvme_proofs" }
+virtio_blk_proofs = { path = "../../virtio_blk_proofs" }
+e1000_proofs = { path = "../../e1000_proofs" }
+rtl8139_proofs = { path = "../../rtl8139_proofs" }
+xhci_proofs = { path = "../../xhci_proofs" }
+virtio_net_proofs = { path = "../../virtio_net_proofs" }
+fs_proofs = { path = "../../fs_proofs" }
+
+[[bin]]
+name = "ipc_decoders"
+path = "fuzz_targets/ipc_decoders.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

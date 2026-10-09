@@ -22,18 +22,18 @@ use crate::dhcp::{CLIENT_PORT, SERVER_PORT};
 // Strip ethernet + ipv4 + udp headers and return the BOOTP body
 // slice if the frame is a DHCP server reply addressed at the
 // client port. Returns `None` for any unmatched frame.
-pub fn dhcp_payload<'a>(frame: &'a [u8]) -> Option<&'a [u8]> {
+pub fn dhcp_payload(frame: &[u8]) -> Option<&[u8]> {
     let (_dst, _src, ethertype) = ethernet::parse(frame)?;
     if ethertype != ETHERTYPE_IPV4 {
         return None;
     }
     let ip_body = &frame[ethernet::HDR_LEN..];
-    let (_ip_src, _ip_dst, proto, ip_hdr_len) = ipv4::parse(ip_body)?;
-    if proto != PROTO_UDP {
+    let ip = ipv4::parse(ip_body)?;
+    if ip.proto != PROTO_UDP {
         return None;
     }
-    let udp_body = &ip_body[ip_hdr_len..];
-    let (src_port, dst_port, udp_seg_len) = udp::parse(udp_body)?;
+    let udp_body = &ip_body[ip.header_len..ip.total_len];
+    let (src_port, dst_port, udp_seg_len) = udp::parse(&ip.src, &ip.dst, udp_body)?;
     if src_port != SERVER_PORT || dst_port != CLIENT_PORT {
         return None;
     }

@@ -18,13 +18,14 @@
 
 use super::server_hello_vectors::{good_exts, hello, AES128};
 use crate::server_hello::key_share;
+use crate::server_share::ServerShare;
 
 #[test]
 fn a_well_formed_hello_yields_the_suite_and_the_peer_key() {
     let msg = hello(AES128, &[7u8; 32], &good_exts([0xAB; 32]), [0x01; 32]);
     let (suite, key) = key_share(&msg).expect("a conforming hello must parse");
     assert_eq!(suite, AES128);
-    assert_eq!(key, [0xAB; 32]);
+    assert_eq!(key, ServerShare::X25519([0xAB; 32]));
 }
 #[test]
 fn the_echoed_session_id_may_be_any_length() {
@@ -32,6 +33,6 @@ fn the_echoed_session_id_may_be_any_length() {
         let sid = vec![9u8; len];
         let msg = hello(AES128, &sid, &good_exts([0xCD; 32]), [0x02; 32]);
         let (_, key) = key_share(&msg).unwrap_or_else(|| panic!("session id of {len} bytes"));
-        assert_eq!(key, [0xCD; 32]);
+        assert_eq!(key, ServerShare::X25519([0xCD; 32]));
     }
 }

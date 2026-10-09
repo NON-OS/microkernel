@@ -26,7 +26,7 @@ type P = [f32; 2];
 const ELLIPSE_STEPS: u32 = 48;
 
 fn a(attrs: &str, name: &str) -> f32 {
-    attr(attrs, name).and_then(|v| super::num::parse_len(v)).unwrap_or(0.0)
+    attr(attrs, name).and_then(super::num::parse_len).unwrap_or(0.0)
 }
 
 // Basic shape elements as closed/open polylines in user coordinates.

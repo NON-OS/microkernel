@@ -20,11 +20,14 @@ mod errno;
 mod header;
 mod limits;
 mod notify;
+pub mod notify_send;
 mod ops;
 
 pub use decode::parse;
 pub use encode::{response_header, write_status};
-pub use errno::{E_BAD_OP, E_INVAL, E_NOENT, E_NOMEM, E_PERM};
+pub use errno::{
+    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_INVAL, E_NOENT, E_NOMEM, E_PERM,
+};
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};
 pub use limits::{
     IPC_PAYLOAD_MAX, QUERY_FOCUS_RESP_LEN, QUERY_TOPMOST_REQ_LEN, QUERY_TOPMOST_RESP_LEN,
@@ -32,7 +35,9 @@ pub use limits::{
     WINDOW_MAXIMIZE_REQ_LEN, WINDOW_MINIMIZE_REQ_LEN, WINDOW_MOVE_REQ_LEN, WINDOW_OPEN_REQ_LEN,
     WINDOW_OPEN_RESP_LEN, WINDOW_RAISE_REQ_LEN, WINDOW_RESIZE_REQ_LEN, WINDOW_RESTORE_REQ_LEN,
 };
-pub use notify::{encode_notify, NOTIFY_KIND_CLOSED, NOTIFY_KIND_OPENED, NOTIFY_LEN};
+pub use notify::{
+    encode_notify, NOTIFY_KIND_CLOSED, NOTIFY_KIND_FULL_SCREEN, NOTIFY_KIND_OPENED, NOTIFY_LEN,
+};
 pub use ops::{
     OP_HEALTHCHECK, OP_LIFECYCLE_SUBSCRIBE, OP_QUERY_FOCUS, OP_QUERY_TOPMOST, OP_ROUTE_FOCUS,
     OP_WINDOW_CLOSE, OP_WINDOW_FOCUS, OP_WINDOW_MAXIMIZE, OP_WINDOW_MINIMIZE, OP_WINDOW_MOVE,

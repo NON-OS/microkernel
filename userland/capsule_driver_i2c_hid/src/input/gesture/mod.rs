@@ -16,9 +16,9 @@
 
 //! Turn a stream of touch samples into pointer gestures: relative cursor
 //! motion with speed-dependent acceleration under one finger, two-finger
-//! scroll, and palm suppression via the PTP confidence bit. Clicks come only
-//! from the physical clickpad button; taps deliberately do nothing, so a
-//! brush of the pad can never click. Motion is relative, not absolute: a
+//! scroll, and palm suppression via the PTP confidence bit. Clicks come from
+//! the physical clickpad button and from a short tap that barely travels; a
+//! brush that moves is a drag and never clicks. Motion is relative, not absolute: a
 //! laptop pad is a motion surface, and absolute mapping would teleport the
 //! cursor to wherever the finger lands. Pure state so it can be exercised by
 //! host tests without a device.

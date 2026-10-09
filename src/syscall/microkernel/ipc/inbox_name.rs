@@ -20,6 +20,7 @@ use alloc::string::String;
 
 use crate::services::registry::{lookup_port, lookup_service};
 use crate::syscall::microkernel::errnos::{ERRNO_ACCES, ERRNO_NOENT};
+use crate::syscall::microkernel::narrow::u32_arg;
 
 // Resolve a syscall `endpoint` argument to the registry name the
 // receive path should drain. `0` means "my own per-process inbox";
@@ -29,7 +30,7 @@ pub(super) fn resolve_for_recv(endpoint: u64, pid: u32) -> Result<String, i64> {
         return Ok(alloc::format!("proc.{}", pid));
     }
     let numeric = alloc::format!("endpoint.{}", endpoint);
-    let ep = lookup_service(&numeric).or_else(|| lookup_port(endpoint as u32));
+    let ep = lookup_service(&numeric).or_else(|| u32_arg(endpoint).and_then(lookup_port));
     match ep {
         None => Err(ERRNO_NOENT),
         Some(ep) if ep.pid == pid => {

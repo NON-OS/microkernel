@@ -22,13 +22,19 @@ pub struct Assembly {
     pub(super) total: u8,
     pub(super) pieces: Vec<Option<Vec<u8>>>,
     pub(super) held: u8,
+    /// Payload bytes held across the pieces, so the pool can be bounded by
+    /// what it holds rather than by how many sets it names.
+    pub(super) bytes: usize,
+    /// When the last fragment of this set arrived. A set that has heard
+    /// nothing for long enough is not going to complete.
+    pub(super) touched_ms: i64,
 }
 
 impl Assembly {
-    pub(super) fn new(set_id: i32, total: u8) -> Self {
+    pub(super) fn new(set_id: i32, total: u8, now_ms: i64) -> Self {
         let mut pieces = Vec::with_capacity(total as usize);
         pieces.resize_with(total as usize, || None);
-        Self { set_id, total, pieces, held: 0 }
+        Self { set_id, total, pieces, held: 0, bytes: 0, touched_ms: now_ms }
     }
 
     /// Whether this holds fragments of `set_id`.

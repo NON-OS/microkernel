@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the way a mixnet reply comes home. Builds for the
+# host so `cargo test` runs the real net.nym source (included via `#[path]`)
+# against hand-built fragments and gateway frames: reassembly in any order,
+# copies and losses, delivery to the reader without cutting a message, the
+# reply block budget, and the bounds that keep any of it from growing memory.
+[package]
+name = "nym_reply_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The stand-in nonos_libc the request decode's reply goes through.
+nonos_libc = { package = "net_proofs_shim", path = "../net_proofs/shim" }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }

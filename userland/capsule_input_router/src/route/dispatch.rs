@@ -43,6 +43,11 @@ pub fn route_event(ctx: &mut Context, event: &InputEvent) -> u32 {
             ev.y = y as i32;
         }
         let n = deliver_one(holder, &ev);
+        let pressed = if is_pointer(ev.kind) {
+            pointer::release_under_grab(ctx, holder, event, ev.x as u32, ev.y as u32)
+        } else {
+            0
+        };
         if n == 0 {
             // A holder that cannot receive its grabbed stream (inbox full or
             // dead) must not keep the grab: the lost event may be the very
@@ -52,8 +57,8 @@ pub fn route_event(ctx: &mut Context, event: &InputEvent) -> u32 {
             ctx.grabs.release(holder);
             ctx.forget_pid(holder);
         }
-        ctx.record(n);
-        return n;
+        ctx.record(n + pressed);
+        return n + pressed;
     }
     if is_pointer(event.kind) {
         return pointer::route_pointer(ctx, event);

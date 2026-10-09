@@ -14,38 +14,74 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// x2APIC register access for the BSP local-APIC surface. Real UEFI firmware
-// frequently hands off with x2APIC already enabled, in which case the MMIO
-// window is disabled and the registers are model-specific registers. We detect
-// that hand-off state (without ever forcing the mode) and map an MMIO register
-// offset to its MSR index: MSR = 0x800 + (offset >> 4).
+// x2APIC register access for the local-APIC surface, and the choice of mode.
+// In x2APIC mode the MMIO window is disabled and the registers are
+// model-specific registers: MSR = 0x800 + (offset >> 4).
+//
+// The mode is the firmware's unless the machine forces another. Real UEFI
+// firmware frequently hands off in x2APIC already, and that is kept: leaving
+// x2APIC would need a pass through the disabled state, and a part with an id
+// above 0xFE needs x2APIC anyway. The one switch made here is the other way:
+// firmware left xAPIC but the MADT lists an id xAPIC cannot address, and the
+// part supports x2APIC. Then the boot CPU moves to x2APIC (a legal direct
+// transition, SDM 10.12.5) so every CPU can be reached.
 
 use core::sync::atomic::Ordering;
 
-use crate::arch::x86_64::boot::cpu_ops::{rdmsr, wrmsr};
+use crate::arch::x86_64::boot::cpu_ops::{cpuid, rdmsr, wrmsr};
+use crate::arch::x86_64::interrupt::apic::plan;
 
-use super::state::LAPIC_X2;
+use super::state::{LAPIC_PHYS, LAPIC_X2};
 
 const IA32_APIC_BASE: u32 = 0x1B;
-const APIC_BASE_GLOBAL_ENABLE: u64 = 1 << 11;
-const APIC_BASE_X2_ENABLE: u64 = 1 << 10;
 const X2APIC_MSR_BASE: u32 = 0x800;
 
-// Latch whether firmware left the APIC in x2APIC mode, and make sure the
-// APIC is globally enabled before any register access. Bit 11 of
-// IA32_APIC_BASE is the hardware global-enable: with it clear, both the
-// xAPIC MMIO window and the x2APIC MSRs are dead and every LAPIC write
-// (SVR, timer LVT, EOI) silently vanishes, so no interrupt is ever
-// delivered. QEMU hands off with it set; some real firmware does not, and
-// leaving it clear is exactly the "boots but the timer never ticks"
-// symptom. Setting it is a no-op where firmware already did. The x2APIC
-// mode bit is preserved, never forced.
+// Latch the mode and the register page, and make sure the APIC is globally
+// enabled before any register access. Bit 11 of IA32_APIC_BASE is the
+// hardware global-enable: with it clear, both the xAPIC MMIO window and the
+// x2APIC MSRs are dead and every LAPIC write (SVR, timer LVT, EOI) silently
+// vanishes, so no interrupt is ever delivered. QEMU hands off with it set;
+// some real firmware does not, and leaving it clear is exactly the "boots but
+// the timer never ticks" symptom.
 pub(in crate::sys::apic) fn detect_mode() {
-    let base = unsafe { rdmsr(IA32_APIC_BASE) };
-    if base & APIC_BASE_GLOBAL_ENABLE == 0 {
-        unsafe { wrmsr(IA32_APIC_BASE, base | APIC_BASE_GLOBAL_ENABLE) };
+    let mut base = unsafe { rdmsr(IA32_APIC_BASE) };
+    if base & plan::BASE_ENABLE == 0 {
+        base = (base & !plan::BASE_EXTD) | plan::BASE_ENABLE;
+        unsafe { wrmsr(IA32_APIC_BASE, base) };
     }
-    LAPIC_X2.store(base & APIC_BASE_X2_ENABLE != 0, Ordering::Release);
+    let mut x2 = base & plan::BASE_EXTD != 0;
+    if !x2 && cpu_has_x2apic() && madt_requires_x2apic() {
+        base |= plan::BASE_EXTD;
+        unsafe { wrmsr(IA32_APIC_BASE, base) };
+        x2 = true;
+    }
+    LAPIC_PHYS.store(plan::base_phys(base), Ordering::Release);
+    LAPIC_X2.store(x2, Ordering::Release);
+}
+
+/// Bring an AP's own APIC into the mode the boot CPU chose. INIT leaves the
+/// mode as firmware set it, which need not match, and the only legal way out
+/// of x2APIC is through disabled; `plan::base_transition` gives the writes.
+pub(in crate::sys::apic) fn enter_mode_on_ap() {
+    let want = LAPIC_X2.load(Ordering::Acquire);
+    let current = unsafe { rdmsr(IA32_APIC_BASE) };
+    let (writes, n) = plan::base_transition(current, want);
+    for value in &writes[..n] {
+        unsafe { wrmsr(IA32_APIC_BASE, *value) };
+    }
+}
+
+fn cpu_has_x2apic() -> bool {
+    cpuid(1).2 & (1 << 21) != 0
+}
+
+fn madt_requires_x2apic() -> bool {
+    let ids: alloc::vec::Vec<u32> = crate::arch::x86_64::acpi::processors()
+        .iter()
+        .filter(|p| p.enabled)
+        .map(|p| p.apic_id)
+        .collect();
+    plan::requires_x2apic(&ids)
 }
 
 pub(in crate::sys::apic) fn is_x2(reg_order: Ordering) -> bool {

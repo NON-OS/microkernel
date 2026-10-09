@@ -31,6 +31,6 @@ impl AdminQueue {
         let cid = self.cid;
         self.cid = self.cid.wrapping_add(1).max(1);
         self.submit(regs, stride, Submission::create_io_cq(cid, qid, qsize, cq_phys));
-        self.wait(regs, stride, cid)
+        self.wait(regs, stride, cid, "create I/O completion queue")
     }
 }

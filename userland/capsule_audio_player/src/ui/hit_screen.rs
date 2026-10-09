@@ -19,7 +19,7 @@
 
 use super::control::Control;
 use super::geometry::Rect;
-use super::hit::Action;
+use super::hit::{Action, Lists};
 use super::screen;
 use super::shell as chrome;
 use super::state::{UiState, View};
@@ -49,14 +49,20 @@ pub fn bar_hit(r: Rect, x: i32, y: i32) -> Option<Action> {
     Some(Action::Ctl(c))
 }
 
-pub fn content_hit(ui: &UiState, p: Rect, rows: &[usize], n: usize, x: i32, y: i32) -> Option<Action> {
+pub fn content_hit(ui: &UiState, p: Rect, l: &Lists, x: i32, y: i32) -> Option<Action> {
+    let (rows, n, downloads) = (l.rows, l.n, l.downloads);
     match ui.view {
+        View::Home if n == 0 => match hero_action_at(p, x, y) {
+            Some(0) => Some(Action::Go(View::Search)),
+            Some(_) => Some(Action::Go(View::Downloads)),
+            None => None,
+        },
         View::Home => match hero_action_at(p, x, y) {
             Some(0) => Some(Action::Select(0)),
             Some(_) => Some(Action::Ctl(Control::Shuffle)),
+            None if screen::see_all_at(p, n, x, y) => Some(Action::Go(View::Library)),
             None => screen::card_at(p, n, x, y).map(Action::Select),
         },
-        View::Browse => screen::card_at(p, n, x, y).map(Action::Select),
         View::Library => {
             if let Some(t) = screen::tab_hit(p, x, y) {
                 return Some(Action::LibTab(t));
@@ -64,6 +70,13 @@ pub fn content_hit(ui: &UiState, p: Rect, rows: &[usize], n: usize, x: i32, y: i
             screen::lib_row_at(p, ui.scroll, rows.len(), x, y)
                 .and_then(|i| rows.get(i).copied())
                 .map(Action::Select)
+        }
+        // The page's Clear, and Download when the field holds an address.
+        View::Search if !ui.query.is_empty() && screen::search_clear_rect(p).contains(x, y) => {
+            Some(Action::ClearQuery)
+        }
+        View::Search if crate::fetch::is_address(&ui.query) => {
+            screen::search_play_rect(p).contains(x, y).then_some(Action::Download)
         }
         View::Search if screen::search_play_at(p, rows, x, y).is_some() => {
             screen::search_play_at(p, rows, x, y).map(Action::Select)
@@ -76,13 +89,14 @@ pub fn content_hit(ui: &UiState, p: Rect, rows: &[usize], n: usize, x: i32, y: i
             screen::SettingsHit::Toggle(1) => Action::Ctl(Control::Repeat),
             screen::SettingsHit::Toggle(_) => Action::Ctl(Control::Mute),
             screen::SettingsHit::Volume(p) => Action::Ctl(Control::Volume(p)),
-            screen::SettingsHit::Section(i) => Action::Section(i),
         }),
-        View::Downloads => {
-            screen::downloads_row_at(p, n.min(screen::downloads_visible(p)), x, y).map(Action::Select)
+        View::Downloads if screen::any_finished(downloads)
+            && screen::downloads_clear_rect(p).contains(x, y) =>
+        {
+            Some(Action::ClearDownloads)
         }
-        View::Radio => screen::radio_tile_at(p, x, y).map(Action::Select),
+        View::Downloads => screen::download_act_at(p, downloads, ui.scroll, x, y)
+            .map(|(id, act)| Action::Fetched(id, act)),
         View::NowPlaying => None,
     }
 }
-

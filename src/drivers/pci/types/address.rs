@@ -22,11 +22,19 @@ pub struct PciAddress {
     pub bus: u8,
     pub device: u8,
     pub function: u8,
+    /// 0 for the machine's own config space. Anything else names a private
+    /// domain behind an Intel VMD, reached through that VMD's CFGBAR; see
+    /// `drivers::pci::vmd`.
+    pub segment: u16,
 }
 
 impl PciAddress {
     pub const fn new(bus: u8, device: u8, function: u8) -> Self {
-        Self { bus, device, function }
+        Self { bus, device, function, segment: 0 }
+    }
+
+    pub const fn in_segment(segment: u16, bus: u8, device: u8, function: u8) -> Self {
+        Self { bus, device, function, segment }
     }
 
     pub const fn from_bdf(bdf: u16) -> Self {
@@ -34,6 +42,7 @@ impl PciAddress {
             bus: ((bdf >> 8) & 0xFF) as u8,
             device: ((bdf >> 3) & 0x1F) as u8,
             function: (bdf & 0x07) as u8,
+            segment: 0,
         }
     }
 
@@ -48,6 +57,9 @@ impl PciAddress {
 
 impl fmt::Display for PciAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.segment != 0 {
+            write!(f, "{:04x}:", self.segment)?;
+        }
         write!(f, "{:02x}:{:02x}.{}", self.bus, self.device, self.function)
     }
 }

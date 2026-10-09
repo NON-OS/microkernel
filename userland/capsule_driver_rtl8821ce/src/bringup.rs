@@ -20,7 +20,7 @@
 //! ring exists.
 
 use crate::constants::regs::{mmio_dead, REG_SYS_CFG1};
-use crate::pwr::{run_pwr_seq, CARD_ENABLE};
+use crate::pwr::{power_on, PowerOn};
 use crate::regs::Mmio;
 
 /// How far cold-start got, reported on screen so a first boot is legible.
@@ -36,8 +36,14 @@ pub enum BringUp {
 /// Power the MAC on and read a register back. Returns the chip-id readback, or
 /// the stage that failed.
 pub fn probe<M: Mmio>(mmio: &M) -> Result<u32, BringUp> {
-    if !run_pwr_seq(mmio, CARD_ENABLE) {
-        return Err(BringUp::PowerFailed);
+    match power_on(mmio) {
+        PowerOn::Failed => return Err(BringUp::PowerFailed),
+        PowerOn::WasLeftPowered { cr_after_off } => {
+            crate::status::line(b"[rtl8821ce] chip was left powered; powered off first, cr=");
+            crate::status::hex16(cr_after_off as u16);
+            crate::status::line(b"\n");
+        }
+        PowerOn::FromCold => {}
     }
     let id = mmio.read32(REG_SYS_CFG1);
     if mmio_dead(id) {

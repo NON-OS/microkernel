@@ -15,9 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod handlers;
+mod orphans;
 mod parse_req;
+pub mod persist;
 mod respond;
 pub mod retransmit;
+pub mod room;
 mod runner;
 pub mod sender;
 mod tcp_rx;

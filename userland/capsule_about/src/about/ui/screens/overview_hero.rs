@@ -16,7 +16,8 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::about::data::{abi, build, product, trust};
+use crate::about::data::admission::{self, Admission};
+use crate::about::data::{abi, build, product};
 use crate::about::format::trimmed;
 use crate::about::theme::{ACCENT, FOREGROUND, MUTED, TITLE};
 
@@ -29,12 +30,11 @@ use super::super::metrics::{
 use super::super::text::{self, line};
 use super::overview_mark::mark;
 
-const BADGE: &[u8] = b"Verified";
-
 // The identity band: the mark, the product, and the four facts that name this
-// exact image. The badge on the right is a passive label, not a control: reaching
-// _start is what proves it, and nothing here can toggle that.
-pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
+// exact image. The badge on the right is a passive label, not a control: it
+// says how the kernel's spawn gate admitted this window, as the attestation
+// registry records it, and is green only for an admission under a proof.
+pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, admission: Admission) {
     card::panel(fb, 0, y, w, HERO_H);
     mark(fb, y);
     line(fb, HERO_TEXT_X, y + HERO_TITLE_TOP as i32, product::NAME, TITLE, VALUE_PX);
@@ -42,7 +42,7 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
     let cut = text::fit(fb, product::TAGLINE, BODY_PX, w.saturating_sub(HERO_TEXT_X + CARD_PAD));
     line(fb, HERO_TEXT_X, sub, cut, FOREGROUND, BODY_PX);
     meta(fb, y + HERO_META_TOP as i32);
-    badge(fb, y, w);
+    badge(fb, y, w, admission);
 }
 
 fn meta(fb: &mut PaintBuffer, y: i32) {
@@ -54,14 +54,15 @@ fn meta(fb: &mut PaintBuffer, y: i32) {
     }
 }
 
-fn badge(fb: &mut PaintBuffer, y: i32, w: u32) {
+fn badge(fb: &mut PaintBuffer, y: i32, w: u32, admission: Admission) {
+    let (label, pass, sub) = admission::badge(admission);
     let top = y + HERO_TITLE_TOP as i32;
-    let bw = super::super::chip::width_of(BADGE);
+    let bw = super::super::chip::width_of(label);
     let x = w.saturating_sub(CARD_PAD + bw);
     if top >= 0 && top + CHIP_H as i32 <= fb.height as i32 {
-        chip(fb, x, top as u32, BADGE, true);
+        chip(fb, x, top as u32, label, pass);
     }
-    let sw = text::width_of(trust::HYBRID_SCHEME, BODY_PX);
+    let sw = text::width_of(sub, BODY_PX);
     let sx = w.saturating_sub(CARD_PAD + sw);
-    line(fb, sx, top + (CHIP_H + 10) as i32, trust::HYBRID_SCHEME, MUTED, BODY_PX);
+    line(fb, sx, top + (CHIP_H + 10) as i32, sub, MUTED, BODY_PX);
 }

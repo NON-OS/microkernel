@@ -1,9 +1,10 @@
-pub const DONE: u8 = 10;
+use nonos_app_skeleton::{KEY_DOWN, KEY_END, KEY_HOME, KEY_UP};
+
+use super::order::DONE;
 
 pub const K_ENTER: u32 = 0x0D;
 pub const K_ENTER_LF: u32 = 0x0A;
 pub const K_ESC: u32 = 0x1B;
-pub const K_BACKSPACE: u32 = 0x08;
 
 pub enum Outcome {
     Advance,
@@ -27,16 +28,25 @@ pub fn default_key(code: u32) -> Outcome {
     }
 }
 
+/// Moving through a list: the arrows, Home and End, j and k, or a digit.
 pub fn list_nav(sel: &mut u8, len: u8, code: u32) -> Option<Outcome> {
     match code {
-        0x6B => {
+        KEY_UP | 0x6B => {
             *sel = sel.saturating_sub(1);
             Some(Outcome::Stay)
         }
-        0x6A => {
+        KEY_DOWN | 0x6A => {
             if *sel + 1 < len {
                 *sel += 1;
             }
+            Some(Outcome::Stay)
+        }
+        KEY_HOME => {
+            *sel = 0;
+            Some(Outcome::Stay)
+        }
+        KEY_END => {
+            *sel = len.saturating_sub(1);
             Some(Outcome::Stay)
         }
         0x31..=0x39 => {

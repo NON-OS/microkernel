@@ -14,14 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The installer's pure parsers, included from the capsule.
+
+pub mod auth;
+
+#[path = "../../../capsule_linux/src/linux/install/http_reply.rs"]
+pub mod http_reply;
+
+/* How a mirror is named and asked, and how its reply is read off a stream
+ * through the chosen network: the decisions, without the stream. */
+#[path = "../../../capsule_linux/src/linux/install/mirror.rs"]
+pub mod mirror;
+
+#[path = "../../../capsule_linux/src/linux/install/route_read.rs"]
+pub mod route_read;
+
+#[path = "../../../capsule_linux/src/linux/install/tools.rs"]
+pub mod tools;
 
 #[path = "../../../capsule_linux/src/linux/install/tar_field.rs"]
 pub mod tar_field;
 
+#[path = "../../../capsule_linux/src/linux/install/tar_kind.rs"]
+pub mod tar_kind;
+
+#[path = "../../../capsule_linux/src/linux/install/tar_pax.rs"]
+pub mod tar_pax;
+
+#[path = "../../../capsule_linux/src/linux/install/tar_path.rs"]
+pub mod tar_path;
+
 #[path = "../../../capsule_linux/src/linux/install/tar.rs"]
 pub mod tar;
 
+#[path = "../../../capsule_linux/src/linux/install/pkg.rs"]
+pub mod pkg;
+
 #[path = "../../../capsule_linux/src/linux/install/index.rs"]
 pub mod index;
+
+#[path = "../../../capsule_linux/src/linux/install/hex.rs"]
+pub mod hex;
+
+pub mod deb;
+pub mod pacman;
+pub mod pgp;
+
+#[path = "../../../capsule_linux/src/linux/install/manifest.rs"]
+pub mod manifest;
+/* `unrecord` is an uninstall's, which nothing here runs. */
+#[allow(dead_code)]
+#[path = "../../../capsule_linux/src/linux/install/place_links.rs"]
+pub mod place_links;
+#[cfg(test)]
+mod place_links_tests;
+
+#[path = "../../../capsule_linux/src/linux/install/unpacked.rs"]
+pub mod unpacked;

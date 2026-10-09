@@ -14,53 +14,82 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::format;
+
 use nonos_libc::mk_debug;
 
-use crate::audio::PcmQueue;
+use crate::audio::{PcmQueue, Period, Periods};
 use crate::constants::SD_LPIB;
-use crate::controller::bdl::{N_PERIODS, PERIOD_BYTES};
+use crate::controller::bdl::{N_PERIODS, PERIOD_BYTES, RING_BYTES};
+use crate::controller::dma_sync::flush;
+use crate::controller::position::Position;
 use crate::setup::Driver;
 
+/*
+ * The serial console hears about a stream three times at most: the first
+ * period it played, the first underrun, and the totals when it stops. Every
+ * other period is only counted, so a long playback or an idle stream cannot
+ * fill the log.
+ */
 const REFILL_MARK: &str = "[HDA] refill\n";
-const UNDERRUN_MARK: &str = "[HDA] underrun\n";
-const MARK_CAP: u32 = 64;
+const UNDERRUN_MARK: &str = "[HDA] underrun: the queue ran dry; counted, totals at stream stop\n";
 
 pub(super) struct Refill {
     wpos: usize,
-    marks: u32,
-    unders: u32,
+    periods: Periods,
+    buffer: bool,
+    position: Position,
 }
 
 impl Refill {
-    pub(super) fn new() -> Self {
-        Refill { wpos: 0, marks: 0, unders: 0 }
+    /// `buffer`: the controller writes a DMA position buffer for the stream.
+    pub(super) fn new(buffer: bool) -> Self {
+        Refill { wpos: 0, periods: Periods::new(), buffer, position: Position::new(buffer) }
     }
 
     pub(super) fn reset(&mut self) {
         self.wpos = 0;
-        self.marks = 0;
-        self.unders = 0;
+        self.periods = Periods::new();
+        self.position = Position::new(self.buffer);
+    }
+
+    /// One line with this run's totals, if it played anything, then a fresh
+    /// count for the next run.
+    pub(super) fn report(&mut self) {
+        let p = self.periods;
+        if p.any() {
+            let line = format!("[HDA] stream stop: {} periods played, {} underruns\n", p.played, p.underruns);
+            mk_debug(line.as_ptr(), line.len());
+        }
+        self.reset();
     }
 }
 
 pub(super) fn refill(driver: &Driver, q: &mut PcmQueue, rf: &mut Refill) {
-    let lpib = unsafe { driver.regs.r32(driver.stream_off + SD_LPIB) } as u64;
-    let rp = ((lpib / PERIOD_BYTES) as usize) % N_PERIODS;
+    let lpib = unsafe { driver.regs.r32(driver.stream_off + SD_LPIB) };
+    let buffer = match driver.posbuf_va {
+        Some(va) => {
+            flush(va, 8);
+            unsafe { core::ptr::read_volatile(va as *const u32) }
+        }
+        None => 0,
+    };
+    let pos = rf.position.pick(buffer, lpib, RING_BYTES as u32) as u64;
+    let rp = ((pos / PERIOD_BYTES) as usize) % N_PERIODS;
     while rf.wpos != rp {
         let base = driver.sample.user_va + (rf.wpos as u64) * PERIOD_BYTES;
         let slot = unsafe { core::slice::from_raw_parts_mut(base as *mut u8, PERIOD_BYTES as usize) };
-        if q.pop_into(slot) == PERIOD_BYTES as usize {
-            emit(&mut rf.marks, REFILL_MARK);
-        } else {
-            emit(&mut rf.unders, UNDERRUN_MARK);
+        let filled = q.pop_into(slot);
+        flush(base, PERIOD_BYTES);
+        match rf.periods.period(filled, PERIOD_BYTES as usize) {
+            Period::Played if rf.periods.played == 1 => mark(REFILL_MARK),
+            Period::Underrun if rf.periods.underruns == 1 => mark(UNDERRUN_MARK),
+            _ => {}
         }
         rf.wpos = (rf.wpos + 1) % N_PERIODS;
     }
 }
 
-fn emit(counter: &mut u32, s: &str) {
-    if *counter < MARK_CAP {
-        *counter += 1;
-        mk_debug(s.as_ptr(), s.len());
-    }
+fn mark(s: &str) {
+    mk_debug(s.as_ptr(), s.len());
 }

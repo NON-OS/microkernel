@@ -6,6 +6,7 @@
 
 extern crate alloc;
 
+pub mod arch;
 pub mod syscall;
 
 pub fn sys_battery_status() -> i64 {

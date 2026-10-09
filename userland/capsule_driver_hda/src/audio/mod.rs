@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod periods;
 mod queue;
 mod tone;
 
+pub use periods::{Period, Periods};
 pub use queue::PcmQueue;
 pub use tone::fill;

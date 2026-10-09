@@ -18,9 +18,5 @@ use crate::sys::boot_log;
 
 pub(super) fn fatal(stage: &str, detail: &str) -> ! {
     boot_log::error(stage);
-    crate::sys::serial::print(b"[FATAL] ");
-    crate::sys::serial::print_str(stage);
-    crate::sys::serial::print(b": ");
-    crate::sys::serial::println(detail.as_bytes());
-    crate::arch::halt_loop()
+    crate::boot::stop(stage, detail)
 }

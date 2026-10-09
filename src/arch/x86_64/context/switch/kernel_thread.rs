@@ -48,12 +48,7 @@ pub(super) fn resume_kernel_thread(pcb: &Arc<ProcessControlBlock>, pid: u32) {
     let ctx = match INTERRUPT_SAVED_CONTEXTS.write().remove(&pid) {
         Some(c) => c,
         None => {
-            // No saved context to resume. Leaving the task Ready let the
-            // scheduler re-select it every iteration and fail to resume, which
-            // spins the core. Drop it from the run queue and park it so an
-            // unresumable task is not re-picked.
-            crate::process::scheduler::dispatch::remove_from_run_queue(pid);
-            *pcb.state.lock() = ProcessState::Sleeping;
+            super::retry_unsaved::retry_unsaved(pid);
             return;
         }
     };

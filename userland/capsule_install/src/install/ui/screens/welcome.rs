@@ -23,41 +23,38 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::install::format::{bytes, hex_prefix};
 use crate::install::state::State;
 use crate::install::ui::frame::Body;
-use crate::install::ui::metrics::{BODY_PX, LINE_H};
 use crate::install::ui::widgets::{card, kv};
 use crate::install::ui::wrap::{paragraph, Ink};
 use crate::install::ui::{text, theme};
 
-const INTRO: &str = "NØNOS runs from memory and keeps nothing on disk. Installing puts the \
-image you are running now onto a drive in this computer so it can boot without the stick. \
-The drive you choose is erased. Nothing else on the computer is touched.";
+const INTRO: &str = "Installs the system you are running onto a disk in this computer, with \
+its store and an encrypted data volume. The disk you choose is erased. Nothing else is touched.";
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
-    let mut y = paragraph(fb, b.x, b.y, b.w, INTRO, Ink::body(theme::FOREGROUND));
-    y += 12;
-    let inner = card(fb, b.x, y, b.w, 5 * LINE_H + 40, "what will be written");
-    let x = b.x + 16;
-    let w = b.w - 32;
+    let m = &b.m;
+    let mut y = paragraph(fb, b.x, b.y, b.w, INTRO, Ink::body(m, theme::FOREGROUND));
+    y += m.gap;
+    let caption = "what will be written, and this machine";
+    let inner = card(fb, m, b.x, y, b.w, m.card_h(6), caption);
+    let x = b.x + m.inset;
+    let w = b.w - 2 * m.inset;
     match &state.image {
         Some(image) => {
-            let mut r = kv(fb, x, inner, w, "bootloader", &bytes(image.loader.len() as u64), false);
-            r = kv(fb, x, r, w, "kernel image", &bytes(image.kernel.len() as u64), false);
-            r = kv(fb, x, r, w, "kernel measurement", &hex_prefix(&state.boot.kernel_blake3), true);
-            r = kv(fb, x, r, w, "boot verdict", state.boot.verdict(), false);
+            let loader = bytes(image.loader.len() as u64);
+            let mut r = kv(fb, m, x, inner, w, "bootloader", &loader, false);
+            r = kv(fb, m, x, r, w, "kernel image", &bytes(image.kernel.len() as u64), false);
+            let measured = hex_prefix(&state.boot.kernel_blake3);
+            r = kv(fb, m, x, r, w, "kernel measurement", &measured, true);
+            r = kv(fb, m, x, r, w, "boot verdict", state.boot.verdict(), false);
             let sb = if state.boot.secure_boot { "on" } else { "off" };
-            kv(fb, x, r, w, "firmware secure boot", sb, false);
+            r = kv(fb, m, x, r, w, "firmware secure boot", sb, false);
+            kv(fb, m, x, r, w, "TPM", state.boot.tpm.text(), false);
         }
         None => {
             let why = state.notice.as_deref().unwrap_or("the image is not available");
-            text::line(fb, x, inner, why, theme::DANGER, BODY_PX);
-            text::line(
-                fb,
-                x,
-                inner + LINE_H,
-                "Nothing can be installed from this boot.",
-                theme::MUTED,
-                BODY_PX,
-            );
+            text::line(fb, x, inner, why, theme::DANGER, m.body_px);
+            let after = "Nothing can be installed from this boot.";
+            text::line(fb, x, inner + m.line_h, after, theme::MUTED, m.body_px);
         }
     }
 }

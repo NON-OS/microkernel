@@ -20,6 +20,9 @@ pub enum AttestError {
     Malformed,
     RootUnavailable,
     Rejected,
+    /// The path folded, and the STARK proof of the same slot did not verify.
+    /// Carries `nox_verify`'s stable refusal code, 1 to 7, for the log.
+    ProofRefused(u32),
 }
 
 impl AttestError {
@@ -29,6 +32,7 @@ impl AttestError {
             AttestError::Malformed => "capsule attestation trailer malformed",
             AttestError::RootUnavailable => "capsule attestation policy root unavailable",
             AttestError::Rejected => "capsule attestation rejected",
+            AttestError::ProofRefused(_) => "capsule attestation STARK proof refused",
         }
     }
 }

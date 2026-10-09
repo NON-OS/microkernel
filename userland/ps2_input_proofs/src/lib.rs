@@ -35,8 +35,14 @@ pub mod constants;
 pub mod discover;
 #[path = "../../capsule_driver_ps2_input/src/init/mod.rs"]
 pub mod init;
+pub mod mouse;
 #[path = "../../capsule_driver_ps2_input/src/setup/mod.rs"]
 pub mod setup;
+// The scan set 1 decode, and the event flags it reads the prefix and the
+// break bit from, at the `crate::ring` path the decode names them by.
+pub mod keymap;
+#[path = "../../capsule_driver_ps2_input/src/ring/flags.rs"]
+pub mod ring;
 
 #[cfg(test)]
 mod tests;

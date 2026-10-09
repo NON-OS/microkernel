@@ -32,9 +32,11 @@ pub mod idt;
 pub mod interrupt;
 pub mod interrupt_controller;
 #[cfg(feature = "nonos-arch-iommu")]
+#[cfg(feature = "nonos-arch-iommu")]
 pub mod iommu;
 pub mod multiboot;
 pub mod paging;
+pub mod pat;
 pub mod pci;
 pub mod port;
 pub mod serial;

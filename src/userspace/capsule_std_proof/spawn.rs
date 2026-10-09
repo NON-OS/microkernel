@@ -48,6 +48,7 @@ pub fn spawn_std_proof_capsule() -> Result<(), SpawnError> {
         requested_caps: Capability::CoreExec.bit()
             | Capability::IPC.bit()
             | Capability::Memory.bit()
+            | Capability::FileSystem.bit()
             | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };

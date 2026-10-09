@@ -14,46 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// CSS gradient painting. Linear gradients parse to an angle and color stops
-// and fill their box with source-over compositing. Radial and conic
-// gradients are not drawn yet, so a box keeps its color rather than guessing.
+/* CSS gradient painting: linear gradients at any angle and radial gradients
+ * (a circle from the box centre to its corners), parsed once, sampled into a
+ * color table and filled with integer steps; conic gradients are not drawn,
+ * so a box keeps its color rather than guessing. */
 
+mod cache;
 mod color;
+mod composite;
+mod mask_layers;
+mod paint;
+mod painter;
 mod parse;
 mod radial;
+mod raster;
 mod render;
+mod shape;
 mod split;
 mod sqrt;
 mod stop_list;
 mod stops;
 mod trig;
 
+pub(crate) use mask_layers::{mask_layers, MaskLayer};
+pub(crate) use paint::paint_gradient;
 pub(crate) use render::put_pixel;
-
-use nonos_app_skeleton::PaintBuffer;
-
-// True when the background value is a gradient function this module owns.
-pub(super) fn is_gradient(src: &str) -> bool {
-    src.starts_with("linear-gradient(") || src.starts_with("radial-gradient(")
-}
-
-// Paint a gradient background into the box; returns false when the value is
-// not a gradient we render, so the caller can fall back.
-pub(super) fn paint_gradient(
-    fb: &mut PaintBuffer,
-    src: &str,
-    x: i32,
-    y: i32,
-    w: i32,
-    h: i32,
-) -> bool {
-    if let Some(g) = parse::parse_linear(src) {
-        render::fill_linear(fb, &g, x, y, w, h);
-        return true;
-    }
-    if let Some(stops) = radial::parse_radial(src) {
-        radial::fill_radial(fb, &stops, x, y, w, h);
-        return true;
-    }
-    false
-}
+pub(crate) use shape::is_gradient;

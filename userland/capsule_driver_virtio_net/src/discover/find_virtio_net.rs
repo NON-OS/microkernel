@@ -16,6 +16,7 @@
 
 use nonos_libc::{mk_device_list, DeviceRecord};
 
+use super::bars::bars;
 use super::constants::MAX_DEVICES;
 use super::first_register_bar::first_register_bar;
 use super::found::Found;
@@ -29,22 +30,24 @@ pub fn find_virtio_net() -> Option<Found> {
     }
     let count = core::cmp::min(n as usize, MAX_DEVICES);
     for r in &buf[..count] {
-        // Match on identity and a usable register BAR only. Legacy INTx
-        // routing (irq_pin / irq_line) is not required: q35 firmware often
-        // leaves irq_line at 0xFF, and irq::bind prefers MSI-X anyway,
-        // falling back to the legacy line when one is present. Filtering on
-        // those fields here discarded MSI-X-capable NICs before bind could
-        // run, which left setup looping forever on q35.
+        /*
+         * Match on identity and a usable register BAR only. Legacy INTx
+         * routing (irq_pin / irq_line) is not required: q35 firmware often
+         * leaves irq_line at 0xFF, and the driver binds no interrupt at all
+         * (see `setup::irq`). Filtering on those fields here once discarded
+         * usable NICs, which left setup looping forever on q35.
+         */
         if !is_match(r) {
             continue;
         }
         if let Some((idx, kind, size)) = first_register_bar(r) {
             return Some(Found {
                 device_id: r.device_id,
-                irq_line: r.irq_line,
                 register_bar: idx,
                 register_kind: kind,
                 register_size: size,
+                pci_device: r.device,
+                bars: bars(r),
             });
         }
     }

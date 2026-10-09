@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::History;
-use crate::term::dimensions::{COLS, HISTORY_DEPTH};
+use crate::term::dimensions::{LINE_MAX, HISTORY_DEPTH};
 
 impl History {
     pub fn push(&mut self, line: &[u8]) {
@@ -37,7 +37,7 @@ impl History {
             self.count = HISTORY_DEPTH - 1;
         }
         let slot = self.count;
-        let n = line.len().min(COLS);
+        let n = line.len().min(LINE_MAX);
         self.entries[slot][..n].copy_from_slice(&line[..n]);
         self.lengths[slot] = n;
         self.count += 1;

@@ -25,6 +25,7 @@ name = "nonos_capsule_driver_virtio_gpu"
 version = "0.3.0"
 dependencies = [
  "nonos_userland_libc",
+ "nonos_virtio",
 ]
 
 [[package]]
@@ -33,6 +34,10 @@ version = "0.3.0"
 dependencies = [
  "linked_list_allocator",
 ]
+
+[[package]]
+name = "nonos_virtio"
+version = "0.1.0"
 
 [[package]]
 name = "scopeguard"

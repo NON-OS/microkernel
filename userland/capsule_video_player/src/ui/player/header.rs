@@ -26,10 +26,6 @@ pub const HEADER_H: u32 = 46;
 const ARROW: u32 = 18;
 const TITLE_X: u32 = PAD + ARROW + 14;
 
-pub fn header(w: u32) -> Rect {
-    Rect { x: 0, y: TOP, w, h: HEADER_H }
-}
-
 pub fn back_button() -> Rect {
     let side = ARROW + 12;
     Rect { x: PAD.saturating_sub(6), y: TOP + (HEADER_H - side) / 2, w: side, h: side }

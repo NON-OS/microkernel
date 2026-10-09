@@ -33,6 +33,11 @@ pub struct Window {
     pub visibility: Visibility,
     pub z: u32,
     pub in_use: bool,
+    /// The client made it full screen with its green button: it fills the
+    /// display below the menubar down to the bottom edge, where the dock is
+    /// drawn, so the desktop shell hides the dock while it shows
+    /// (window/full_screen.rs).
+    pub full_screen: bool,
 }
 
 impl Default for Window {
@@ -45,6 +50,7 @@ impl Default for Window {
             visibility: Visibility::Hidden,
             z: 0,
             in_use: false,
+            full_screen: false,
         }
     }
 }

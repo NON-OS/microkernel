@@ -25,6 +25,9 @@ pub enum Answer {
     Spec,
     Reject,
     WrongDescriptor,
+    /// The published head with bit 16 set: equal to it only if the id is
+    /// cut to 16 bits.
+    AliasedDescriptor,
     BadEdidMagic,
     WrongFence,
 }

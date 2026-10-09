@@ -35,3 +35,14 @@ pub const VIRTIO_NET_F_STATUS: u32 = 16;
 
 
 pub const VIRTIO_NET_S_LINK_UP: u16 = 1;
+// Offset of the status word in struct virtio_net_config, after the MAC.
+pub const NET_CFG_STATUS: usize = 6;
+
+/*
+ * The device-type features this driver takes. Never VIRTIO_NET_F_MAC: the
+ * address a hypervisor or a card hands out names this machine to every
+ * network it joins, and the virtio specification says a driver that does not
+ * take the feature picks a random address, which `setup::station` does.
+ */
+pub const LEGACY_WANTED: u32 = 1 << VIRTIO_NET_F_STATUS;
+pub const MODERN_WANTED: u64 = 1 << VIRTIO_NET_F_STATUS;

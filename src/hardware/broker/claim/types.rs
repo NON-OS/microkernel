@@ -27,4 +27,6 @@ pub enum ClaimError {
     AlreadyClaimed,
     NotHolder,
     NotClaimed,
+    /// A remapping unit is in service and would not take the device.
+    Unconfined,
 }

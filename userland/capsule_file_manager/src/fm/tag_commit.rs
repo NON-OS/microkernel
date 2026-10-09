@@ -16,26 +16,24 @@
 
 extern crate alloc;
 
+use alloc::string::String;
+use alloc::vec::Vec;
+
+use super::selection_acting::acting;
 use super::state::State;
 use super::store_meta::save_meta;
+use super::tags_toggle::toggle_tag;
 
-/// Toggle `name` on the cursor path and write the sidecar back. Typing a tag
-/// that is already there removes it, which is the only way to untag from the
-/// keyboard, and is why this reports which way it went.
-///
-/// The tag axis is sidecar metadata, so nothing here touches the filesystem and
-/// nothing is pushed onto the undo stack, whose ops are all vfs calls.
+/// The tag prompt's Enter: the selection's band offers Tag, so the tag goes
+/// on every selected entry (or the one under the cursor), not only the row
+/// the cursor sits on as it did. When all of them carry it already, it comes
+/// off all of them.
 pub fn tag_commit(state: &mut State, name: &str) {
-    let Some(entry) = state.entries.get(state.cursor) else {
+    let paths: Vec<String> = acting(state).into_iter().map(|(p, _)| p).collect();
+    if paths.is_empty() {
         state.status = b"no selection";
         return;
-    };
-    let path = entry.full_path.clone();
-    state.status = if state.tags.add(path.as_str(), name) {
-        b"tagged"
-    } else {
-        state.tags.remove(path.as_str(), name);
-        b"untagged"
-    };
+    }
+    state.status = toggle_tag(&mut state.tags, &paths, name);
     save_meta(state);
 }

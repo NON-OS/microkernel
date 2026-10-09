@@ -16,43 +16,39 @@
 
 use spin::Mutex;
 
+use super::store::{KeyStore, DIGEST_BYTES};
 use super::types::SURB_KEY_BYTES;
+use crate::crypto::hash::blake3;
 
-/// How many outstanding reply keys are kept.
-///
-/// A reply arrives sealed under one of these and carries nothing saying
-/// which, so every one held is a candidate to try. Keeping them forever would
-/// grow that work without bound; the oldest is dropped instead, which costs a
-/// reply that came back long after the request it answers.
-///
-/// Every request hands out a fresh set, and a mixnet round trip is measured
-/// in seconds, so several are always outstanding at once. Held too few and
-/// the ring wraps while replies are still in the air: the key that opens one
-/// is gone by the time it lands, and a real answer is dropped as though it
-/// were addressed to somebody else. Sized for the tens of requests a page
-/// load actually produces.
-const CAP: usize = 512;
-
-static KEYS: Mutex<[[u8; SURB_KEY_BYTES]; CAP]> = Mutex::new([[0u8; SURB_KEY_BYTES]; CAP]);
-static NEXT: Mutex<usize> = Mutex::new(0);
+/// Keys of the reply blocks handed out, by the digest a reply names them by.
+/// See `store` for why they are kept until answered rather than in a ring.
+static STORE: Mutex<KeyStore> = Mutex::new(KeyStore::new());
 
 /// Keep a key so a reply sealed under it can be opened.
+///
+/// The digest is worked out once, here, rather than for every held key on
+/// every packet that arrives: that was 512 hashes a packet, and a page is
+/// hundreds of packets.
 pub fn remember(key: [u8; SURB_KEY_BYTES]) {
-    let mut at = NEXT.lock();
-    KEYS.lock()[*at % CAP] = key;
-    *at = at.wrapping_add(1);
+    let mut digest = [0u8; DIGEST_BYTES];
+    // A key whose digest cannot be worked out could never be matched, so it
+    // is not kept.
+    if blake3(&key, &mut digest).is_err() {
+        return;
+    }
+    STORE.lock().remember(key, digest);
 }
 
-/// Every key a reply might be sealed under, newest first.
-///
-/// Newest first because a reply usually answers the most recent request, so
-/// the first key tried is the likeliest to be the right one.
-pub fn candidates() -> [[u8; SURB_KEY_BYTES]; CAP] {
-    let held = *KEYS.lock();
-    let at = *NEXT.lock();
-    let mut out = [[0u8; SURB_KEY_BYTES]; CAP];
-    for (index, slot) in out.iter_mut().enumerate() {
-        *slot = held[(at + CAP - 1 - index) % CAP];
+/// The key a reply names by `digest`, taken out of the store.
+pub fn take(digest: &[u8]) -> Option<[u8; SURB_KEY_BYTES]> {
+    let mut store = STORE.lock();
+    if store.is_empty() {
+        return None;
     }
-    out
+    store.take(digest)
+}
+
+/// Keys held for blocks not yet answered on.
+pub fn held() -> usize {
+    STORE.lock().len()
 }

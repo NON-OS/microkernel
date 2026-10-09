@@ -1,0 +1,8 @@
+Origin: NONOS test
+Suite: nonos
+Codename: nonos
+Architectures: amd64
+Components: main
+SHA256:
+ 2988735bb409b93f3e27af06c1924bb77201af1fdd8b5244b511c38ed7d03f8f 1116 main/binary-amd64/Packages
+ b95796d87e52e1edb953c316c0202b284b574f8480c4b9543fa245bfe633504c 620 main/binary-amd64/Packages.xz

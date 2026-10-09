@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::queue::{RX_BUFFER_LEN, RX_DESC_COUNT, RX_STATUS_DD, RX_STATUS_EOP};
-use crate::constants::MAX_ETHERNET_FRAME;
+//! RX ring state: where the descriptors and the buffer pool live, and `head`,
+//! the next descriptor the part fills. `consume` is in rx_consume.rs.
+
+use crate::constants::queue::RX_BUFFER_LEN;
 
 use super::layout::RxDesc;
-use core::ptr::{addr_of, addr_of_mut, read_volatile, write_volatile};
 
 pub struct RxRing {
     pub ring_user_va: u64,
@@ -47,34 +48,5 @@ impl RxRing {
 
     pub fn buffer_va(&self, idx: u16) -> u64 {
         self.buffer_user_va + (idx as u64) * (RX_BUFFER_LEN as u64)
-    }
-
-    pub fn consume(&mut self) -> Option<(u16, u16)> {
-        let desc = unsafe { self.descriptor(self.head) };
-        /*
-         * The part writes these fields by DMA, so every read goes to memory. A
-         * status read hoisted out of the poll loop would never see the
-         * descriptor complete.
-         */
-        let status = unsafe { read_volatile(addr_of!((*desc).status)) };
-        if status & RX_STATUS_DD == 0 {
-            return None;
-        }
-        let errors = unsafe { read_volatile(addr_of!((*desc).errors)) };
-        let len = unsafe { read_volatile(addr_of!((*desc).length)) };
-        let idx = self.head;
-        unsafe {
-            write_volatile(addr_of_mut!((*desc).status), 0);
-            write_volatile(addr_of_mut!((*desc).errors), 0);
-        }
-        self.head = (self.head + 1) % (RX_DESC_COUNT as u16);
-        if status & RX_STATUS_EOP == 0
-            || errors != 0
-            || len == 0
-            || len as usize > MAX_ETHERNET_FRAME
-        {
-            return Some((idx, 0));
-        }
-        Some((idx, len))
     }
 }

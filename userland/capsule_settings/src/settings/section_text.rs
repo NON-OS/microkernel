@@ -31,32 +31,23 @@ pub fn subtitle(section: Section) -> &'static str {
 fn text(section: Section) -> (&'static str, &'static str, &'static str) {
     match section {
         Section::General => {
-            ("General", "General", "Device identity, language and how NONOS presents itself.")
+            ("General", "General", "This machine's name, the clock and notifications.")
         }
         Section::Network => {
             ("Network", "Network", "Manage how NONOS connects to networks and the internet.")
         }
-        Section::Wifi => {
-            ("Wi-Fi", "Wi-Fi", "Join a wireless network and manage the ones you have saved.")
+        Section::Wifi => ("Wi-Fi", "Wi-Fi", "Find and join a wireless network."),
+        Section::Security => {
+            ("Security", "Security", "This machine's keys and the protections the kernel keeps on.")
         }
-        Section::Security => (
-            "Security",
-            "Security",
-            "Lock behaviour, attestation, and the kernel hardening posture.",
-        ),
         Section::Appearance => {
-            ("Appearance", "Appearance", "Theme, wallpaper, and how text and pointers are sized.")
+            ("Appearance", "Appearance", "The wallpaper and how the pointer moves.")
         }
         Section::Privacy => {
-            ("Privacy", "Privacy", "Identity and anonymity for everything this device sends.")
+            ("Privacy", "Privacy", "What this machine keeps once it is switched off.")
         }
-        Section::Sound => ("Sound", "Sound", "Output levels and system alert behaviour."),
-        Section::Storage => {
-            ("Storage", "Storage", "How the capsule store and the filesystem are being used.")
-        }
-        Section::Updates => ("Updates", "Updates", "The signed image this machine is running."),
-        Section::Developer => {
-            ("Developer", "Developer", "Diagnostics and kernel switches for development builds.")
-        }
+        Section::Sound => ("Sound", "Sound", "System tones and how loud they are."),
+        Section::Updates => ("Updates", "Updates", "The image this machine is running."),
+        Section::Developer => ("Developer", "Developer", "How the scheduler shares the processor."),
     }
 }

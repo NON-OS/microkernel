@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::settings::schema::rows::{Block, Live, Pill, Row, Tone};
+use crate::settings::schema::rows::{Block, Live, Pill, Row};
 
 pub const UPDATES: &[Block] = &[Block {
     title: "System image",
-    note: Some("Recorded when this image was built and signed."),
-    pill: Pill::Fixed("Signed", Tone::Ok),
+    // No "Signed" badge: Settings cannot check the image's signature, and a
+    // badge it cannot back would only repeat what the build claimed.
+    note: Some("Recorded when this image was built."),
+    pill: Pill::None,
     rows: &[
         Row::Live("Version", Live::Version),
         Row::Live("Commit", Live::Commit),

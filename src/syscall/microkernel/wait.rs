@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::errnos::{ERRNO_CHILD, ERRNO_TIMEDOUT};
+use super::errnos::{ERRNO_CHILD, ERRNO_INVAL, ERRNO_TIMEDOUT};
+use super::narrow::u32_arg;
 use crate::process::{current_pid, exit_status, get_parent_pid};
 
 const SLICE_MS: u64 = 5;
@@ -24,11 +25,14 @@ pub fn sys_wait(pid: u64, timeout_ms: u64) -> i64 {
     if caller == 0 {
         return ERRNO_CHILD;
     }
-    match get_parent_pid(pid as u32) {
+    let Some(pid) = u32_arg(pid) else {
+        return ERRNO_INVAL;
+    };
+    match get_parent_pid(pid) {
         Some(parent) if parent == caller => {}
         Some(_) => return ERRNO_CHILD,
         None => {
-            return match crate::process::exit::reap_exit_status_for(pid as u32, caller) {
+            return match crate::process::exit::reap_exit_status_for(pid, caller) {
                 Some(code) => code as i64,
                 None => ERRNO_CHILD,
             };
@@ -36,7 +40,7 @@ pub fn sys_wait(pid: u64, timeout_ms: u64) -> i64 {
     }
     let deadline = crate::time::timestamp_millis().saturating_add(timeout_ms);
     loop {
-        if let Some(code) = exit_status(pid as u32) {
+        if let Some(code) = exit_status(pid) {
             return code as i64;
         }
         if crate::time::timestamp_millis() >= deadline {

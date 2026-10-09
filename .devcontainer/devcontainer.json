@@ -1,0 +1,12 @@
+{
+  "name": "NONOS",
+  "build": { "dockerfile": "Dockerfile" },
+  "remoteUser": "nonos",
+  "privileged": true,
+  "postCreateCommand": "nix develop --command true",
+  "customizations": {
+    "vscode": {
+      "extensions": ["rust-lang.rust-analyzer", "jnoortheen.nix-ide"]
+    }
+  }
+}

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_dma_map, mk_dma_unmap, DmaMapOut};
+use nonos_libc::{mk_dma_map, mk_dma_unmap, DmaMapOut, MK_DMA_MAP_DMA32};
+
+use crate::constants::regs::CAP_S64A;
 
 use crate::error::{AhciError, AhciResult};
 
@@ -25,9 +27,11 @@ pub struct DmaRegion {
 }
 
 impl DmaRegion {
-    pub fn map(device_id: u64, claim_epoch: u64, length: u64) -> AhciResult<Self> {
+    /// Map `length` bytes for the HBA. `flags` is `MK_DMA_MAP_DMA32` for an
+    /// HBA without CAP.S64A (`dma_flags`), which names memory with 32 bits.
+    pub fn map(device_id: u64, claim_epoch: u64, length: u64, flags: u32) -> AhciResult<Self> {
         let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-        let r = mk_dma_map(device_id, claim_epoch, length, 0, &mut out);
+        let r = mk_dma_map(device_id, claim_epoch, length, flags, &mut out);
         if r < 0 {
             return Err(AhciError::BrokerCallFailed(r));
         }
@@ -46,5 +50,16 @@ impl DmaRegion {
 impl Drop for DmaRegion {
     fn drop(&mut self) {
         let _ = mk_dma_unmap(self.grant_id);
+    }
+}
+
+/// The DMA map flags for an HBA whose CAP reads `cap`. Without S64A the
+/// upper address registers (PxCLBU, PxFBU, CTBAU, DBAU) are read-only zero,
+/// so a buffer above 4 GiB would be reached at its address modulo 4 GiB.
+pub const fn dma_flags(cap: u32) -> u32 {
+    if cap & CAP_S64A == 0 {
+        MK_DMA_MAP_DMA32
+    } else {
+        0
     }
 }

@@ -21,27 +21,14 @@ use crate::ui::icon;
 use crate::ui::layout::Rect;
 use crate::ui::paint::{rrect, shape};
 use crate::ui::theme;
-use crate::ui::widget::dropdown::paint_dropdown;
 use crate::ui::widget::field::paint_field;
 
 pub const VIEW_W: u32 = 78;
-pub const SORT_W: u32 = 150;
-pub const FILTER_W: u32 = 130;
 const HALF: u32 = VIEW_W / 2;
 const GLYPH: u32 = 16;
 
-const GAP: u32 = 10;
-
 pub fn view_toggle(w: u32, h: u32) -> Rect {
     tool(w, h, 0, VIEW_W)
-}
-
-pub fn sort_box(w: u32, h: u32) -> Rect {
-    tool(w, h, VIEW_W + GAP, SORT_W)
-}
-
-pub fn filter_box(w: u32, h: u32) -> Rect {
-    tool(w, h, VIEW_W + SORT_W + GAP * 2, FILTER_W)
 }
 
 pub fn grid_half(r: Rect) -> Rect {
@@ -72,8 +59,8 @@ pub fn paint_search(fb: &mut PaintBuffer, w: u32, h: u32, hint: &str, query: &st
     paint_field(fb, search(w, h), hint, query, !query.is_empty());
 }
 
-pub fn paint_tools(fb: &mut PaintBuffer, w: u32, h: u32, filter: &str, sort: &str, grid: bool) {
-    paint_dropdown(fb, filter_box(w, h), filter);
-    paint_dropdown(fb, sort_box(w, h), sort);
+/// The grid and list switch. The list is always sorted by name and holds only
+/// playable videos, so there is no sort or filter menu beside it.
+pub fn paint_tools(fb: &mut PaintBuffer, w: u32, h: u32, grid: bool) {
     paint_view(fb, view_toggle(w, h), grid);
 }

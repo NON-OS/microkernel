@@ -35,11 +35,20 @@ const SEAT_POINTER_AND_KEYBOARD: u32 = 3;
 pub fn sync(guest: &mut Guest, args: &mut Args<'_>) {
     let Some(id) = args.u32() else { return };
     Event::new(id, CALLBACK_DONE).u32(0).send(&mut guest.display.to_client);
+    delete_id(guest, id);
+}
+
+/// wl_display.delete_id: the object `id` is gone, and the client may give
+/// its id to a new one. Without it a client never reuses an id.
+pub fn delete_id(guest: &mut Guest, id: u32) {
+    Event::new(1, super::ops::ev::DISPLAY_DELETE_ID).u32(id).send(&mut guest.display.to_client);
 }
 
 pub fn registry(guest: &mut Guest, args: &mut Args<'_>) {
     let Some(id) = args.u32() else { return };
-    guest.objects.put(id, Object::Registry);
+    if !guest.objects.put(id, Object::Registry) {
+        return;
+    }
     for global in GLOBALS {
         Event::new(id, REGISTRY_GLOBAL)
             .u32(global.name)
@@ -62,7 +71,9 @@ pub fn bind(guest: &mut Guest, args: &mut Args<'_>) {
         return;
     };
     let Some(global) = by_name(name) else { return };
-    guest.objects.put(id, global.object);
+    if !guest.objects.put(id, global.object) {
+        return;
+    }
     match global.object {
         /*
          * A client reads the format list before it asks for a pool, and
@@ -70,6 +81,7 @@ pub fn bind(guest: &mut Guest, args: &mut Args<'_>) {
          */
         Object::Shm => crate::linux::wayland::shm::formats(guest, id),
         Object::Seat => seat_caps(guest, id),
+        Object::Output => super::output::announce(guest, id),
         _ => {}
     }
 }

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The flush, and the request ceiling the read and write paths split at.
-//! Callers hand in whole sectors; a slice above the per-request ceiling is
-//! split in `read.rs` and `write.rs`, so the disk writer above never has
-//! to know what the ceiling is.
+//! The flush. Reads and writes are in `read.rs` and `write.rs`; callers
+//! hand them whole sectors of any length, and `span.rs` splits them at the
+//! per-request ceiling in the disk's own blocks, so the disk writer above
+//! never has to know what the ceiling or the block size is.
 
 use super::handle::BlockDevice;
 use crate::error::BlkError;
@@ -27,7 +27,8 @@ impl BlockDevice {
     pub fn flush(&self) -> Result<(), BlkError> {
         let op = self.driver.ops().flush;
         let mut rx = [0u8; HDR_LEN + STATUS_LEN];
-        let (n, id) = call(self.port, self.driver.magic(), op, &[], &mut rx)?;
-        decode_reply(&rx, n, self.driver.magic(), op, id).map(|_| ())
+        let done = call(self.port, self.driver.magic(), op, &[], &mut rx)
+            .and_then(|(n, id)| decode_reply(&rx, n, self.driver.magic(), op, id).map(|_| ()));
+        done.inspect_err(|e| super::refused::refused("flush", 0, 0, e))
     }
 }

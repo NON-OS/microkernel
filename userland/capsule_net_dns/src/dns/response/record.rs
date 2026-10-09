@@ -18,26 +18,56 @@ use super::answer::Answer;
 use super::error::ParseError;
 use crate::dns::{TYPE_A, TYPE_AAAA};
 
-pub(super) fn read_answer(message: &[u8], pos: usize) -> Result<(Answer, usize), ParseError> {
-    if pos + 10 > message.len() {
-        return Err(ParseError::Truncated);
-    }
-    let rtype = u16::from_be_bytes([message[pos], message[pos + 1]]);
-    let ttl = be32(message, pos + 4);
-    let rdlen = u16::from_be_bytes([message[pos + 8], message[pos + 9]]) as usize;
+/// The fixed part of a resource record after its owner name, and where its
+/// data lies in the message.
+pub(super) struct Record {
+    pub rtype: u16,
+    pub class: u16,
+    pub ttl: u32,
+    pub rdata: usize,
+    pub rdlen: usize,
+    /// Offset of the next record.
+    pub next: usize,
+}
+
+/// The record whose fixed part starts at `pos`, its data bounded by the
+/// message.
+pub(super) fn read_record(message: &[u8], pos: usize) -> Result<Record, ParseError> {
+    let fixed = message.get(pos..pos.checked_add(10).ok_or(ParseError::Truncated)?).ok_or(ParseError::Truncated)?;
+    let rdlen = usize::from(u16::from_be_bytes([fixed[8], fixed[9]]));
     let rdata = pos + 10;
-    if rdata + rdlen > message.len() {
+    let next = rdata + rdlen;
+    if next > message.len() {
         return Err(ParseError::Truncated);
     }
-    Ok((answer_from(rtype, ttl, &message[rdata..rdata + rdlen]), rdata + rdlen))
+    Ok(Record {
+        rtype: u16::from_be_bytes([fixed[0], fixed[1]]),
+        class: u16::from_be_bytes([fixed[2], fixed[3]]),
+        ttl: sane_ttl(u32::from_be_bytes([fixed[4], fixed[5], fixed[6], fixed[7]])),
+        rdata,
+        rdlen,
+        next,
+    })
 }
 
-fn be32(message: &[u8], pos: usize) -> u32 {
-    u32::from_be_bytes([message[pos], message[pos + 1], message[pos + 2], message[pos + 3]])
+/// RFC 2181 8: a TTL with the top bit set is treated as zero.
+fn sane_ttl(raw: u32) -> u32 {
+    if raw > 0x7FFF_FFFF {
+        0
+    } else {
+        raw
+    }
 }
 
-fn answer_from(rtype: u16, ttl: u32, rdata: &[u8]) -> Answer {
-    Answer { rtype, ttl, ipv4: ipv4_from(rtype, rdata), ipv6: ipv6_from(rtype, rdata) }
+/// The address an A or AAAA record carries, if its data has that type's size.
+pub(super) fn answer_from(rtype: u16, ttl: u32, rdata: &[u8]) -> Option<Answer> {
+    let answer = Answer { rtype, ttl, ipv4: ipv4_from(rtype, rdata), ipv6: ipv6_from(rtype, rdata) };
+    let whole = match answer.rtype {
+        TYPE_A => answer.ipv4.is_some(),
+        TYPE_AAAA => answer.ipv6.is_some(),
+        _ => false,
+    };
+    whole.then_some(answer)
 }
 
 fn ipv4_from(rtype: u16, rdata: &[u8]) -> Option<[u8; 4]> {

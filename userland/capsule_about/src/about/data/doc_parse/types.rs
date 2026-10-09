@@ -22,9 +22,29 @@ pub struct Doc {
     /// Clear once any running capsule could not be recorded, which is the
     /// machine saying it no longer knows everything it is running.
     pub registry_complete: bool,
+    /// 0 no IOMMU, 1 Intel VT-d, 2 AMD-Vi.
+    pub iommu_vendor: u8,
+    /// Whether the IOMMU translates with the kernel's tables.
+    pub iommu_enforcing: bool,
+    /// Mappings a device could reach with no IOMMU domain confining them. With
+    /// enforcing set and this above zero, the unit is in service and DMA still
+    /// goes around it.
+    pub unconfined_grants: u32,
     /// Whether the challenge came back unchanged. This is the anti-replay check
     /// and the one part of the document this capsule can verify on its own.
     pub challenge_echoed: bool,
     pub attest_len: u32,
     pub signature_len: u32,
+}
+
+impl Doc {
+    /// The IOMMU the kernel named, or None when the machine has none. The
+    /// parser refuses a vendor past AMD-Vi, so nothing else reaches here.
+    pub fn iommu_unit(&self) -> Option<&'static [u8]> {
+        match self.iommu_vendor {
+            1 => Some(b"VT-d"),
+            2 => Some(b"AMD-Vi"),
+            _ => None,
+        }
+    }
 }

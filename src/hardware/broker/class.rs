@@ -60,6 +60,9 @@ pub fn classify_pci(class: u8, subclass: u8, progif: u8) -> Class {
         (0x01, 0x06) => ids::BLOCK, // SATA / AHCI
         (0x01, 0x08) => ids::BLOCK, // NVMe
         (0x01, _) => ids::BLOCK,
+        // An SD host controller: on Atom-class laptops the soldered eMMC,
+        // the machine's only disk, sits behind one.
+        (0x08, 0x05) => ids::BLOCK,
         // Network
         (0x02, _) => ids::NETWORK,
         // Display

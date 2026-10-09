@@ -23,7 +23,7 @@ mod ops;
 pub use decode::{decode_request, read_u32_le, read_u64_le};
 pub use encode::{encode_response_header, write_status};
 pub use endpoint::KERNEL_REPLY_ENDPOINT;
-pub use errno::{E_INVAL, E_IO, E_MSGSIZE, E_NXIO};
+pub use errno::{E_ACCES, E_INVAL, E_IO, E_MSGSIZE, E_NXIO};
 pub use header::{Request, HDR_LEN, RESP_HDR_LEN};
 pub use limits::{
     CAPACITY_PAYLOAD_LEN, MAX_RW_PAYLOAD_BYTES, READ_REQ_LEN, RW_HEADER_LEN, STATUS_LEN,

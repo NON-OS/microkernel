@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::{Request, E_INVAL, E_NOMEM, NOTIFY_KIND_OPENED};
-use crate::server::{notify_fanout, respond, respond_window_opened};
+use crate::server::{full_screen_notify, notify_fanout, respond, respond_window_opened};
 use crate::state::Context;
+use crate::window::reopen::reopen;
 use crate::window::{Kind, Visibility, Window};
 
 use super::decode::decode;
@@ -29,11 +30,16 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     };
-    if let Some(existing) = ctx.windows.find(sender_pid, window_id) {
+    let (display_w, display_h) = (ctx.display_width, ctx.display_height);
+    let was = full_screen_notify::covering(ctx, sender_pid, window_id);
+    if let Some(existing) = ctx.windows.find_mut(sender_pid, window_id) {
+        reopen(existing, kind, requested, display_w, display_h);
         let existing_rect = existing.rect;
         if kind == Kind::Normal {
             let _ = focus_new_window(ctx, sender_pid, window_id);
         }
+        // Left full screen, it comes back at the size it currently asks for.
+        full_screen_notify::tell_if_changed(ctx, sender_pid, window_id, was);
         let _ = respond_window_opened::window_opened(sender_pid, req, 0, existing_rect, tx);
         return;
     }
@@ -47,6 +53,7 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         visibility: Visibility::Visible,
         z,
         in_use: true,
+        full_screen: false,
     };
     if ctx.windows.insert(window).is_err() {
         let _ = respond::status(sender_pid, req, E_NOMEM, tx);

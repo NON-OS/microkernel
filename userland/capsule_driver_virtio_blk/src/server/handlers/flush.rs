@@ -19,7 +19,8 @@ use crate::queue::Direction;
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
 pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
-    let outcome = submit(driver.regs, &mut driver.queue, driver.irq_grant, Direction::Flush, 0, 0);
+    let outcome =
+        submit(driver.transport, &mut driver.queue, driver.irq_grant, Direction::Flush, 0, 0);
     let status = match outcome {
         Ok(()) => 0,
         Err(BlkError::Unsupported) => E_INVAL,

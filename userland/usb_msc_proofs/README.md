@@ -16,7 +16,7 @@ accepted binding is structurally sound: its IN endpoint carries the direction
 bit, its OUT endpoint does not, and both are present. A Kani harness proves
 totality and the binding invariants over every buffer within its bound.
 
-Bound, stated plainly: the descriptor-walk harness covers every buffer up to
+Bound, stated plainly: the descriptor-walk Kani harness covers every buffer up to
 64 bytes with `#[kani::unwind(40)]`, which exceeds the maximum 33 loop
 iterations a 64-byte total permits, so the bound does not truncate any path
 within the modeled size. Descriptors longer than 64 bytes are covered by the
@@ -55,3 +55,6 @@ cd userland/usb_msc_proofs
 cargo test --release
 cargo kani                # all-input totality and bounds (requires Kani)
 ```
+
+See [drivers](../../docs/handbook/drivers.md) and
+[proofs](../../docs/handbook/verification/proofs.md).

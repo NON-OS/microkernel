@@ -18,34 +18,42 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::attr::AttrTest;
+use super::comb::Comb;
 use super::pseudo::Pseudo;
 
-// One compound selector: tag.class#id[attr=v]:pseudo.
+/* One compound selector: tag.class#id[attr=v]:pseudo. Names are stored
+ * unescaped; tags and attribute names in ASCII lower case. */
+#[derive(Clone)]
 pub struct Simple {
     pub tag: Option<String>,
     pub id: Option<String>,
     pub classes: Vec<String>,
     pub attrs: Vec<(String, AttrTest)>,
     pub pseudo: Vec<Pseudo>,
+    /* name_hash of each class, in the order of `classes`. */
+    pub class_keys: Vec<u64>,
+    /* id_key of the id, 0 without one. */
+    pub id_key: u64,
 }
 
 impl Simple {
     pub fn empty() -> Self {
-        Simple { tag: None, id: None, classes: Vec::new(), attrs: Vec::new(), pseudo: Vec::new() }
+        Simple {
+            tag: None,
+            id: None,
+            classes: Vec::new(),
+            attrs: Vec::new(),
+            pseudo: Vec::new(),
+            class_keys: Vec::new(),
+            id_key: 0,
+        }
     }
 }
 
-// An ancestor constraint; `direct` requires the immediate parent (the `>`
-// combinator) instead of any ancestor.
+/* A compound left of the key and the combinator joining it to the compound
+ * on its right. */
+#[derive(Clone)]
 pub struct Step {
     pub simple: Simple,
-    pub direct: bool,
-}
-
-pub struct Selector {
-    pub key: Simple,
-    pub ancestors: Vec<Step>,
-    // 0 plain, 1 ::before, 2 ::after: the rule styles generated content on
-    // the matched element rather than the element itself.
-    pub element: u8,
+    pub comb: Comb,
 }

@@ -19,6 +19,7 @@ mod event;
 mod ipc;
 mod manifest;
 mod paint;
+mod qwen_tier;
 mod schema;
 mod section;
 mod section_text;

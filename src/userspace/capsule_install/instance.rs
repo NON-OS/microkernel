@@ -25,10 +25,14 @@ use super::state;
 use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 pub fn spawn_install_instance() -> Result<u32, SpawnError> {
-    let st = state::shared_state();
-    let pid = st.pid();
-    if st.is_alive() && crate::process::core::PROCESS_TABLE.find_by_pid(pid).is_some() {
-        return Ok(pid);
+    if install_running() {
+        return Ok(state::shared_state().pid());
     }
     spawn_install_capsule()
+}
+
+/* Whether an installer window is running now. */
+pub fn install_running() -> bool {
+    let st = state::shared_state();
+    st.is_alive() && crate::process::core::PROCESS_TABLE.find_by_pid(st.pid()).is_some()
 }

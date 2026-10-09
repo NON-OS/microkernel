@@ -52,9 +52,9 @@ fn no_prefix_of_a_certificate_passes_a_structural_check() {
 }
 
 /*
- * cert_dns_match is not in the list above. It finds the subjectAltName by
- * searching for its OID as a byte pattern rather than by walking the
- * structure, so a certificate cut off after that extension still answers
- * which name it claims. What stops a truncated certificate being believed is
- * the signature over it, checked before any of this is consulted.
+ * cert_dns_match is not in the list above; chain_names_forged holds the same
+ * property for it. It used to find the subjectAltName by searching for the
+ * OID's bytes, which let a cut certificate still claim a name, and let a name
+ * planted in a signed public key be believed. It now walks the extension list
+ * as these do.
  */

@@ -16,13 +16,23 @@
 
 use alloc::string::String;
 
+use nonos_app_skeleton::input::text::{is_paste, typed_char};
 use nonos_app_skeleton::{EventOutcome, InputEvent, KEY_BACKSPACE, KEY_ENTER, KEY_ESC};
 
+use super::field_paste::paste_field;
 use super::prompt_commit::commit;
 use super::state::{Mode, State};
+use super::text_field::{name_char, push_within, NAME_MAX};
 
 pub fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
     let Mode::Prompt(kind) = state.mode else { return EventOutcome::Idle };
+    if is_paste(&event) {
+        let refused = b"paste refused: a name takes no spaces or tabs";
+        if let Some(note) = paste_field(&mut state.input, NAME_MAX, name_char, refused) {
+            state.status = note;
+        }
+        return EventOutcome::Repaint;
+    }
     match event.code {
         KEY_ESC => {
             state.mode = Mode::Browse;
@@ -33,11 +43,9 @@ pub fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
             state.input.pop();
         }
         KEY_ENTER => commit(state, kind),
-        code => {
-            if let Some(ch) = char::from_u32(code) {
-                if ch.is_ascii_graphic() && state.input.len() < 64 {
-                    state.input.push(ch);
-                }
+        _ => {
+            if let Some(ch) = typed_char(&event) {
+                push_within(&mut state.input, ch, NAME_MAX, name_char);
             }
         }
     }

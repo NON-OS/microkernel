@@ -14,22 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The desktop's palette, the same values the About window uses, so the
-//! installer looks like the system it installs.
+//! The installer's colours: the NØNOS palette (install/brand/palette.rs),
+//! named for what each does on these screens.
 
-pub const BACKGROUND: u32 = 0xFF0B1319;
-pub const HEADER_BG: u32 = 0xFF0A1218;
-pub const CARD_BG: u32 = 0xFF101C24;
-pub const CARD_BORDER: u32 = 0xFF16262F;
-pub const RULE: u32 = 0xFF16262F;
-pub const SELECTED_BG: u32 = 0xFF15303B;
+use nonos_brand::palette as p;
 
-pub const TITLE: u32 = 0xFFEAF4F8;
-pub const FOREGROUND: u32 = 0xFFCDDDE5;
-pub const MUTED: u32 = 0xFF6D818C;
-pub const ACCENT: u32 = 0xFF22C3F0;
-pub const WARN: u32 = 0xFFF0B429;
-pub const DANGER: u32 = 0xFFF25C5C;
-pub const OK: u32 = 0xFF3DDC97;
+pub const BACKGROUND: u32 = p::INK;
+pub const HEADER_BG: u32 = p::INK;
+pub const CARD_BG: u32 = p::CARD;
+pub const CARD_BORDER: u32 = p::RULE;
+pub const RULE: u32 = p::RULE;
+pub const SELECTED_BG: u32 = p::CYAN_SOFT;
 
-pub const BAR_TRACK: u32 = 0xFF122029;
+pub const TITLE: u32 = p::TEXT;
+pub const FOREGROUND: u32 = p::TEXT;
+pub const MUTED: u32 = p::TEXT_3;
+pub const ACCENT: u32 = p::CYAN;
+pub const WARN: u32 = p::WARN;
+pub const DANGER: u32 = p::BAD;
+pub const OK: u32 = p::CYAN;
+
+pub const BAR_TRACK: u32 = p::RULE;

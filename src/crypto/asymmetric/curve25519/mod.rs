@@ -20,9 +20,8 @@ mod ed25519;
 mod field;
 mod util;
 
-// X25519 ECDH is reached only from the legacy onion/wifi/zkids paths
-// (`crate::network::onion::*`, `crate::drivers::wifi::*`, and
-// `crate::security::network::zkids::*`). The trusted-path microkernel
+// X25519 ECDH is reached only from the legacy onion and wifi paths
+// (`crate::network::onion::*` and `crate::drivers::wifi::*`). The trusted-path microkernel
 // build performs no X25519, and the `cfg(not(feature = "crypto-curve25519"))`
 // fallback in `x25519.rs` is broken (missing imports for `FieldElement`,
 // `X25519_BASEPOINT`, and `x25519_clamp`). Compile the module only when

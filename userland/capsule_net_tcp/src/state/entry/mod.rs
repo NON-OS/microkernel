@@ -20,6 +20,7 @@ mod push_accept;
 mod push_rx;
 mod retx_push;
 mod rwnd;
+mod take_rx;
 mod types;
 
 pub use types::{Entry, RX_DEPTH};

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::{Request, E_IO, E_NODEV};
+use crate::protocol::{Request, E_NODEV};
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
 
@@ -24,6 +24,9 @@ pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
         Some(i) => i,
         None => return reply_with_status(tx, req, E_NODEV),
     };
-    let status = if io.flush(regs).is_ok() { 0 } else { E_IO };
+    let status = match io.flush(regs) {
+        Ok(()) => 0,
+        Err(e) => io.failure_status(e),
+    };
     reply_with_status(tx, req, status);
 }

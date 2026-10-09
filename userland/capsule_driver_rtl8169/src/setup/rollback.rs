@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{
-    mk_device_release, mk_dma_unmap, mk_irq_unbind, mk_mmio_unmap, IrqBindOut, MmioMapOut,
-};
+use nonos_libc::{mk_device_release, mk_dma_unmap, mk_mmio_unmap, MmioMapOut};
 
-pub fn after(device_id: u64, mmio: &MmioMapOut, irq: &IrqBindOut, dma_grants: &[u64]) {
+pub fn after(device_id: u64, mmio: &MmioMapOut, dma_grants: &[u64]) {
     for grant in dma_grants {
         let _ = mk_dma_unmap(*grant);
     }
-    let _ = mk_irq_unbind(irq.grant_id);
     let _ = mk_mmio_unmap(mmio.grant_id);
     let _ = mk_device_release(device_id);
 }

@@ -212,3 +212,17 @@ fn a_reconciler_can_build_reorder_and_update_a_list() {
     dom.detach(first);
     assert_eq!(read(&dom), ["ONE", "two"]);
 }
+
+/* The "page truncated" notice reads this: it used to guess from the node
+ * count alone, and a page that lost attributes at the limits said nothing. */
+#[test]
+fn a_page_that_lost_attributes_or_nodes_is_cut_short_and_deep_nesting_is_not() {
+    assert!(!parse(b"<p class=a>fine</p>").cut_short());
+    let many: String = (0..70).map(|i| format!(" a{i}=v")).collect();
+    let lost = parse(format!("<div{many}>x</div>").as_bytes());
+    assert!(lost.cut_short(), "attributes past a tag's limit were dropped");
+    let deep = "<div>".repeat(400);
+    assert!(!parse(deep.as_bytes()).cut_short(), "flattened, but every node is there");
+    let nodes = "<i></i>".repeat(61_000);
+    assert!(parse(nodes.as_bytes()).cut_short(), "nodes past the cap were dropped");
+}

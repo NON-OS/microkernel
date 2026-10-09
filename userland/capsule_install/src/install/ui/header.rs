@@ -14,25 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The band across the top: the install icon, the screen's title, and
-//! which of the five steps this is.
+//! The band across the top: the NØNOS mark, the screen's title, and which
+//! of the five steps this is, in the brand's mono.
+
+use alloc::format;
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::icons::{draw, IconId};
 
-use super::metrics::{HEADER_H, PAD, SMALL_PX, TITLE_PX};
-use super::text::{right, top_of};
+use super::metrics::Metrics;
+use super::text::top_of;
 use super::{text, theme};
 use crate::install::state::Screen;
+use nonos_brand::{label, label_w, mark};
 
-const ICON: u32 = 28;
-
-pub fn paint(fb: &mut PaintBuffer, screen: Screen, w: u32) {
-    fb.fill_rect(0, 0, w, HEADER_H, theme::HEADER_BG);
-    fb.fill_rect(0, HEADER_H - 1, w, 1, theme::RULE);
-    draw(fb, IconId::Install, PAD, (HEADER_H - ICON) / 2, ICON, theme::ACCENT);
-    let title_x = PAD + ICON + 16;
-    text::line(fb, title_x, top_of(0, HEADER_H, TITLE_PX), screen.title(), theme::TITLE, TITLE_PX);
-    let step = alloc::format!("step {} of 5", screen.step());
-    right(fb, w - PAD, top_of(0, HEADER_H, SMALL_PX), &step, theme::MUTED, SMALL_PX);
+pub fn paint(fb: &mut PaintBuffer, m: &Metrics, screen: Screen, w: u32) {
+    let band = m.header_h;
+    fb.fill_rect(0, 0, w, band, theme::HEADER_BG);
+    fb.fill_rect(0, band - 1, w, 1, theme::RULE);
+    let mark_h = m.scale.px(56);
+    mark(fb, m.pad + m.inset, band / 2, mark_h, theme::ACCENT, 140);
+    let title_x = m.pad + 5 * m.unit + m.unit / 2;
+    let top = top_of(0, band, m.title_px);
+    text::title(fb, title_x, top, screen.title(), theme::TITLE, m.title_px);
+    let step = format!("{:02} / 05", screen.step());
+    let sx = (w - m.pad).saturating_sub(label_w(&step, m.small_px));
+    label(fb, sx, top_of(0, band, m.small_px), &step, theme::MUTED, m.small_px);
 }

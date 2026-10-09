@@ -18,20 +18,10 @@ use nonos_policy_proto::Field;
 
 pub fn note(field: Field) -> Option<&'static str> {
     Some(match field {
-        Field::KernelAslr => "Randomise the kernel's virtual layout each boot.",
-        Field::KernelStackGuard => "Trap on stack overflow with a guard page.",
-        Field::KernelNxBit => "Refuse execution from writable pages.",
-        Field::KernelSmep => "Block the kernel from running user-mode pages.",
-        Field::KernelSmap => "Block stray kernel reads of user memory.",
-        Field::KernelIommu => "Confine device DMA to granted pages.",
-        Field::KernelSeccomp => "Restrict capsules to their declared syscalls.",
-        Field::KernelWatchdog => "Reset the machine if the scheduler stalls.",
-        Field::KernelDebug => "Emit kernel debug records on the serial line.",
-        Field::KernelSerial => "Mirror kernel logging to the serial port.",
-        Field::KernelPreempt => "Preempt kernel threads on the timer tick.",
-        Field::KernelHugepages => "Back large mappings with 2 MiB pages.",
-        Field::Hostname => "The name this machine announces on a network.",
-        Field::DomainName => "The domain this machine reports itself under.",
+        Field::KernelPreempt => "End a program's turn on the timer, so none can hold the CPU.",
+        Field::Hostname => "Shown in the terminal. Never sent on a network.",
+        Field::Username => "Shown in the terminal as your name. Never sent on a network.",
+        Field::QwenTier => "The model qwen runs when no tier is named. Left and Right choose.",
         _ => return None,
     })
 }

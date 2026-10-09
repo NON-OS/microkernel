@@ -20,31 +20,28 @@
 //! could do to a half-written disk except wait.
 
 use super::after::on_after_key;
-use super::cancel::cancel;
+use super::cancel::{cancel, stoppable};
 use super::confirm::on_confirm_key;
+use super::start::on_start_key;
+use crate::install::job::prepare;
 use crate::install::state::{Screen, State};
+use crate::install::survey::look;
 use nonos_app_skeleton::{
     EventOutcome, InputEvent, InputKind, KEY_DOWN, KEY_ENTER, KEY_ESC, KEY_UP,
 };
-use nonos_blk_client::scan;
+
+/* R on the disks screen looks at the disks again. */
+const KEY_LOOK_AGAIN: u32 = b'r' as u32;
+const KEY_LOOK_AGAIN_CAPS: u32 = b'R' as u32;
 
 pub fn on_event(state: &mut State, e: InputEvent) -> EventOutcome {
     if e.kind != InputKind::KeyDown {
         return EventOutcome::Idle;
     }
     match state.screen {
-        Screen::Welcome => match e.code {
-            KEY_ESC => EventOutcome::Close,
-            KEY_ENTER if state.image.is_some() => {
-                state.disks = scan();
-                state.selected = 0;
-                state.screen = Screen::Disks;
-                EventOutcome::Repaint
-            }
-            _ => EventOutcome::Idle,
-        },
+        Screen::Welcome | Screen::Proofs => on_start_key(state, e.code),
         Screen::Disks => match e.code {
-            KEY_ESC => back(state, Screen::Welcome),
+            KEY_ESC => back(state, Screen::Proofs),
             KEY_UP if state.selected > 0 => {
                 state.selected -= 1;
                 EventOutcome::Repaint
@@ -53,15 +50,20 @@ pub fn on_event(state: &mut State, e: InputEvent) -> EventOutcome {
                 state.selected += 1;
                 EventOutcome::Repaint
             }
+            KEY_LOOK_AGAIN | KEY_LOOK_AGAIN_CAPS => {
+                look(state);
+                EventOutcome::Repaint
+            }
             KEY_ENTER if state.selected_disk().is_some_and(|d| d.device.is_some()) => {
                 state.typed.clear();
+                prepare(state);
                 state.screen = Screen::Confirm;
                 EventOutcome::Repaint
             }
             _ => EventOutcome::Idle,
         },
         Screen::Confirm => on_confirm_key(state, e.code),
-        Screen::Writing if e.code == KEY_ESC => cancel(state),
+        Screen::Writing if e.code == KEY_ESC && stoppable(state) => cancel(state),
         Screen::Writing | Screen::Verifying => EventOutcome::Idle,
         Screen::Done | Screen::Failed => on_after_key(state, e.code),
     }

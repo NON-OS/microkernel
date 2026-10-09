@@ -16,10 +16,9 @@
 
 use nonos_libc::mk_yield;
 
-use crate::protocol::{Header, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX, OP_GET_CHUNK, OP_GET_COUNT, OP_GET_SIZE, OP_GET_SLUG};
+use crate::protocol::IPC_PAYLOAD_MAX;
 
-use super::handlers::{op_get_chunk, op_get_count, op_get_size, op_get_slug};
-use super::{recv, respond};
+use super::{recv, serve};
 
 pub fn run(endpoint: u64) -> ! {
     let mut buf = [0u8; IPC_PAYLOAD_MAX];
@@ -30,19 +29,6 @@ pub fn run(endpoint: u64) -> ! {
             mk_yield();
             continue;
         }
-        if (n as usize) < HDR_LEN {
-            continue;
-        }
-        let hdr = match Header::decode(&buf[..HDR_LEN]) {
-            Some(h) => h,
-            None => continue,
-        };
-        match hdr.op {
-            OP_GET_COUNT => op_get_count::handle(sender),
-            OP_GET_SIZE => op_get_size::handle(sender, hdr.index),
-            OP_GET_CHUNK => op_get_chunk::handle(sender, hdr.index, hdr.offset),
-            OP_GET_SLUG => op_get_slug::handle(sender, hdr.index),
-            _ => respond::err(sender, hdr.op, hdr.index, E_INVAL),
-        }
+        serve::serve(sender, &buf[..n as usize]);
     }
 }

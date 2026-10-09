@@ -23,8 +23,14 @@ pub struct NetState {
     pub sockets: SocketSet<'static>,
     pub device: NicDevice,
     pub dhcp_handle: SocketHandle,
-    pub dns_handle: Option<SocketHandle>,
+    pub dns: DnsSockets,
 }
+
+/// Every DNS server a DHCP lease can name (smoltcp's DHCP client keeps three).
+pub const DNS_SERVERS: usize = 3;
+
+/// One DNS socket per server the lease named, in the lease's order.
+pub type DnsSockets = [Option<SocketHandle>; DNS_SERVERS];
 
 unsafe impl Send for NetState {}
 

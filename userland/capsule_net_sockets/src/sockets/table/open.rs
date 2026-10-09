@@ -18,13 +18,16 @@ use core::sync::atomic::Ordering;
 
 use crate::sockets::{Kind, SocketKey};
 
-use super::types::{Socket, Table};
+use super::types::{Socket, Table, PER_PID_MAX};
 
 impl Table {
     pub fn open(&self, pid: u32, kind: Kind) -> Option<SocketKey> {
+        let mut g = self.inner.lock();
+        if g.iter().flatten().filter(|s| s.key.pid == pid).count() >= PER_PID_MAX {
+            return None;
+        }
         let handle = self.next_handle.fetch_add(1, Ordering::Relaxed);
         let key = SocketKey { pid, handle };
-        let mut g = self.inner.lock();
         for slot in g.iter_mut() {
             if slot.is_none() {
                 *slot = Some(Socket::new(key, kind));

@@ -16,7 +16,7 @@
 //! The `git` builtin.
 
 mod add;
-mod clone;
+pub mod clone;
 mod commit;
 mod dispatch;
 mod init;

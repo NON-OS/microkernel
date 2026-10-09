@@ -22,13 +22,11 @@ impl Cache {
     pub fn insert(&mut self, ipv4: [u8; 4], mac: MacAddress) {
         let seq = self.next_seq;
         self.next_seq = self.next_seq.wrapping_add(1);
-        for slot in &mut self.entries {
-            if let Some(e) = slot {
-                if e.ipv4 == ipv4 {
-                    e.mac = mac;
-                    e.seq = seq;
-                    return;
-                }
+        for e in self.entries.iter_mut().flatten() {
+            if e.ipv4 == ipv4 {
+                e.mac = mac;
+                e.seq = seq;
+                return;
             }
         }
         if let Some(slot) = self.entries.iter_mut().find(|e| e.is_none()) {

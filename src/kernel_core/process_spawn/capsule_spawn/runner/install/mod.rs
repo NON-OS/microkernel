@@ -17,6 +17,7 @@
 mod install;
 mod install_caps;
 mod load_elf_into_pid;
+mod own_inboxes;
 mod params;
 mod priority;
 mod spawn_log;

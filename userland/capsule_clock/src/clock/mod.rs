@@ -28,6 +28,7 @@ mod paint_settime;
 mod paint_stopwatch;
 mod paint_tabbar;
 mod paint_timer;
+mod says;
 mod state;
 mod stopwatch;
 mod tabs;

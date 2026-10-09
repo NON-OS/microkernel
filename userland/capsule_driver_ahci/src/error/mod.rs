@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod reason;
 mod types;
 
-pub use types::{exit_code, AhciError, AhciResult};
+pub use reason::reason;
+pub use types::{AhciError, AhciResult};

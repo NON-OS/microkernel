@@ -21,10 +21,14 @@ extern crate alloc;
 
 mod bot;
 mod descriptors;
+mod disk;
 mod protocol;
+mod scan;
 mod scsi;
 mod server;
+mod span;
 mod state;
+mod xhci;
 
 use nonos_libc::{heap_init, mk_exit};
 

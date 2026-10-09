@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
+use alloc::vec::Vec;
+
 use nonos_app_skeleton::clients::vfs::{copy, rename};
 
+use super::clipboard::Clip;
 use super::refresh::refresh;
 use super::state::State;
+use super::undo::Op;
 
 pub fn paste(state: &mut State) {
     if state.clipboard.is_empty() {
@@ -28,6 +33,7 @@ pub fn paste(state: &mut State) {
     let cut = clips.first().map(|c| c.cut).unwrap_or(false);
     let pid = state.owner_pid;
     let mut failed = false;
+    let mut undo = Vec::new();
     for clip in &clips {
         let Some(base) = clip.path.rsplit('/').next().filter(|b| !b.is_empty()) else { continue };
         let dest = alloc::format!("{}{}", state.prefix, base);
@@ -36,7 +42,13 @@ pub fn paste(state: &mut State) {
         } else {
             copy(pid, clip.path.as_bytes(), dest.as_bytes(), clip.is_dir)
         };
-        failed |= result.is_err();
+        match result {
+            Ok(_) => undo.push(inverse(clip, dest)),
+            Err(_) => failed = true,
+        }
+    }
+    if let Some(op) = Op::group(undo) {
+        state.undo.push(op);
     }
     if cut {
         state.clipboard.clear();
@@ -49,4 +61,16 @@ pub fn paste(state: &mut State) {
     } else {
         b"pasted"
     };
+}
+
+/// What Undo does to a pasted entry: a move goes back where it came from, a
+/// copy is removed.
+fn inverse(clip: &Clip, dest: String) -> Op {
+    if clip.cut {
+        Op::Rename { from: dest, to: clip.path.clone() }
+    } else if clip.is_dir {
+        Op::Rmdir { path: dest }
+    } else {
+        Op::Unlink { path: dest }
+    }
 }

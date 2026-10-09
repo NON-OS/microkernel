@@ -17,6 +17,9 @@
 pub const DESC_CONFIGURATION: u8 = 0x02;
 pub const DESC_INTERFACE: u8 = 0x04;
 pub const DESC_ENDPOINT: u8 = 0x05;
+/// The SuperSpeed Endpoint Companion that follows each endpoint of a USB 3
+/// device (USB 3.2 section 9.6.7); byte 2 is bMaxBurst.
+pub const DESC_SS_EP_COMPANION: u8 = 0x30;
 pub const CLASS_MASS_STORAGE: u8 = 0x08;
 pub const SUBCLASS_SCSI_TRANSPARENT: u8 = 0x06;
 pub const PROTOCOL_BULK_ONLY: u8 = 0x50;

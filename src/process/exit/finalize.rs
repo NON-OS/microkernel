@@ -20,6 +20,35 @@ pub(super) fn finalize_teardown(pid: Pid) {
     let _ = crate::hardware::broker::dma_release_all_for_pid(pid, false);
     #[cfg(target_arch = "x86_64")]
     let _ = crate::hardware::broker::pio_release_all_for_pid(pid);
+    /* Done at the exit already; again here for an exit that came another way. */
+    release_names(pid, &pcb);
+    if !super::postmortem::is_retained(pid) {
+        let _ = crate::ipc::nonos_inbox::unregister_for_pid(pid);
+    } else {
+        /*
+         * Output is kept for the parent to drain; input has no reader left.
+         */
+        let _ = crate::ipc::nonos_inbox::unregister_stdin_for_pid(pid);
+    }
+
+    crate::syscall::microkernel::tty_table::forget(pid);
+    crate::process::clear_interrupt_context(pid);
+    crate::process::clear_fpu_state(pid);
+    crate::process::core::init::reparent_orphans(pid);
+    let _ = PROCESS_TABLE.terminate_process(pid);
+}
+
+/*
+ * The names a process answers by: its endpoints, its reply endpoint and that
+ * inbox, and a terminal run's slot. Released the moment it is a zombie, not
+ * when its tables are freed: the tables wait for every CPU to leave them,
+ * which can take a while on a machine with many idle CPUs, and every relaunch
+ * in that wait found the dead process's names. It collided on them
+ * (EndpointCollision), was handed to the zombie as a live instance, or was
+ * refused a Linux window as busy. A dead process answers nothing, so nothing
+ * is lost by dropping them at once. Each step is a no-op the second time.
+ */
+pub(super) fn release_names(pid: Pid, pcb: &crate::process::nonos_core::ProcessControlBlock) {
     let _ = crate::services::registry::unregister_endpoints_for_pid(pid);
     /*
      * The reply endpoint is registered kernel-owned (pid 0), so the per-pid
@@ -31,12 +60,9 @@ pub(super) fn finalize_teardown(pid: Pid) {
         let _ = crate::services::registry::unregister_endpoint_by_name(reply.as_str());
         let _ = crate::ipc::nonos_inbox::unregister_inbox(reply.as_str());
     }
-    if !super::postmortem::is_retained(pid) {
-        let _ = crate::ipc::nonos_inbox::unregister_for_pid(pid);
-    }
-
-    crate::process::clear_interrupt_context(pid);
-    crate::process::clear_fpu_state(pid);
-    crate::process::core::init::reparent_orphans(pid);
-    let _ = PROCESS_TABLE.terminate_process(pid);
+    /*
+     * A terminal run's slot is free for the next run only with both of its
+     * endpoints gone, or that run would collide on them.
+     */
+    crate::userspace::capsule_linux::terminal_run_gone(pid);
 }

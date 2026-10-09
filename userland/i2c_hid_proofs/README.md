@@ -52,3 +52,6 @@ as the division it is. No behaviour changed.
 cd userland/i2c_hid_proofs
 cargo test --release
 ```
+
+See [drivers](../../docs/handbook/drivers.md) and
+[proofs](../../docs/handbook/verification/proofs.md).

@@ -20,9 +20,10 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use nonos_disk_map::digest16;
 use nonos_libc::mk_debug;
 
-use super::digest::digest16;
+use super::streamed::Extent;
 use super::error::BlkError;
 use super::store_toc::TocEntry;
 use super::wire::SECTOR_SIZE;
@@ -30,12 +31,16 @@ use super::wire::SECTOR_SIZE;
 pub struct StoreEntry {
     pub name: String,
     pub data: Vec<u8>,
+    /// Set for an entry served from the device (`streamed`); `data` is then
+    /// empty.
+    pub streamed: Option<Extent>,
 }
 
-// Hand-synced with the `--lba` flag mk/40-run.mk passes to nonos-store-pack.
-// 256 keeps the container clear of blockfs's header ring, which rewrites
-// LBA (generation % 256) on every commit and lands on 0 at generation 0.
-pub(super) const STORE_BASE_LBA: u64 = 256;
+/*
+ * The disk map's, which mk/40-run.mk also passes to nonos-store-pack as
+ * `--lba` and the installer writes the store at.
+ */
+pub(super) use nonos_disk_map::STORE_BASE_LBA;
 
 /// Verify a payload and turn it into a staged entry.
 ///
@@ -43,19 +48,25 @@ pub(super) const STORE_BASE_LBA: u64 = 256;
 /// way. A second copy of this is how one of them ends up trusting bytes the
 /// other would have refused.
 pub(super) fn finish_entry(entry: &TocEntry, data: Vec<u8>) -> Result<StoreEntry, BlkError> {
-    verify(entry, &data)?;
-    Ok(StoreEntry { name: entry.name.clone(), data })
+    verify(&entry.digest, &entry.name, &data)?;
+    Ok(StoreEntry { name: entry.name.clone(), data, streamed: None })
 }
 
-fn verify(entry: &TocEntry, data: &[u8]) -> Result<(), BlkError> {
-    if entry.digest == [0u8; 16] {
+/// An entry served from the device: its place is kept, none of its bytes.
+pub(super) fn stream_entry(entry: &TocEntry) -> StoreEntry {
+    let extent = Extent { offset: entry.offset, len: entry.len };
+    StoreEntry { name: entry.name.clone(), data: Vec::new(), streamed: Some(extent) }
+}
+
+fn verify(digest: &[u8; 16], name: &str, data: &[u8]) -> Result<(), BlkError> {
+    if *digest == [0u8; 16] {
         return Ok(());
     }
-    if digest16(data) == entry.digest {
-        mark(b"[PKG] vfy ok ", &entry.name);
+    if digest16(data) == *digest {
+        mark(b"[PKG] vfy ok ", name);
         Ok(())
     } else {
-        mark(b"[PKG] vfy FAIL ", &entry.name);
+        mark(b"[PKG] vfy FAIL ", name);
         Err(BlkError::BadContainer)
     }
 }

@@ -19,35 +19,42 @@
 
 extern crate alloc;
 
+mod chip;
 mod constants;
 mod discover;
+mod hw;
 mod init;
+mod link;
+mod log;
 mod protocol;
 mod queue;
+mod regmap;
 mod regs;
 mod rx;
 mod server;
 mod setup;
 mod tx;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, start_driver};
 
+const DRIVER: &[u8] = b"driver.rtl8169";
 const EXIT_HEAP_INIT: i32 = 1;
-const EXIT_SETUP_FAILED: i32 = 2;
-const EXIT_BRING_UP_FAILED: i32 = 3;
 
+/// Without a card the driver says so and leaves (`EXIT_ABSENT`) before
+/// claiming anything. With one, each attempt takes the grants and programs
+/// the part, giving every grant back when either half fails; the attempts
+/// are bounded and slept between, and running out is `EXIT_GAVE_UP`.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(EXIT_HEAP_INIT);
     }
-    let mut driver = match setup::run() {
+    let started = start_driver(DRIVER, discover::find_rtl8169(), |dev| {
+        setup::run(*dev).and_then(init::finish)
+    });
+    let mut driver = match started {
         Ok(d) => d,
-        Err(_) => mk_exit(EXIT_SETUP_FAILED),
+        Err(code) => mk_exit(code),
     };
-    if init::bring_up(&mut driver).is_err() {
-        driver.release();
-        mk_exit(EXIT_BRING_UP_FAILED);
-    }
     server::run(&mut driver);
 }

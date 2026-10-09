@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::entry::{TrayEntry, MAX_TRAY_ITEMS};
+use super::entry::{TrayEntry, MAX_TRAY_ITEMS, PER_OWNER};
 use crate::protocol::TRAY_LABEL_MAX;
 
 pub struct TrayTable {
-    entries: [TrayEntry; MAX_TRAY_ITEMS],
+    pub(super) entries: [TrayEntry; MAX_TRAY_ITEMS],
 }
 
 impl TrayTable {
@@ -35,6 +35,9 @@ impl TrayTable {
     }
     pub fn insert(&mut self, entry: TrayEntry) -> Result<(), ()> {
         if self.find(entry.owner_pid, entry.tray_id).is_some() {
+            return Err(());
+        }
+        if self.held_by(entry.owner_pid) >= PER_OWNER {
             return Err(());
         }
         for slot in self.entries.iter_mut() {
@@ -61,5 +64,13 @@ impl TrayTable {
             }
         }
         false
+    }
+
+    /// Every live item's label, in table order: what the menu bar shows.
+    pub fn labels(&self) -> impl Iterator<Item = &[u8]> {
+        self.entries
+            .iter()
+            .filter(|e| e.in_use)
+            .map(|e| &e.label[..(e.label_len as usize).min(TRAY_LABEL_MAX)])
     }
 }

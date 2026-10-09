@@ -30,13 +30,10 @@ pub(super) const MUTED: u32 = 0xFF61_788F;
 pub(super) const ACCENT: u32 = 0xFF17_BED9;
 pub(super) const NAV_ACCENT: u32 = 0xFF0C_4C5D;
 pub(super) const NAV_RING: u32 = 0x4017_BED9;
-pub(super) const FIELD_BG: u32 = 0xFF0B_1524;
-pub(super) const FIELD_LINE: u32 = 0xFF1C_2F47;
 pub(super) const ICON_BG: u32 = 0xFF13_2539;
-pub(super) const CARD_BG: u32 = 0xFF0B_1524;
 
-/// Sink an opaque colour part-way back into the page, marking a control that
-/// is drawn but has nothing wired behind it yet.
+/// Sink an opaque colour part-way back into the page: the empty-list line,
+/// and "View all" while it would lead to the list already shown.
 pub(super) fn dim(argb: u32) -> u32 {
     let mix = |c: u32, b: u32| (c * 11 + b * 9) / 20;
     let r = mix((argb >> 16) & 0xFF, (BG >> 16) & 0xFF);

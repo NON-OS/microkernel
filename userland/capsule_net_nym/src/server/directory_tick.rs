@@ -21,13 +21,15 @@ use super::directory_outcome::record;
 use crate::directory_sync::sync_step;
 use crate::setup;
 use crate::state::{directory_exit_count, directory_gateway_count};
+use crate::topology;
 use crate::trace;
 
 
 /// Fetch the node list while nothing is asking to be served.
 pub fn directory_tick() {
-    // Not done until the directory carries both a gateway and an exit.
-    if directory_gateway_count() > 0 && directory_exit_count() > 0 {
+    // Until the directory carries a gateway and an exit, and again before a
+    // fetched one expires (topology/refresh.rs).
+    if !topology::fetch_due_now(directory_gateway_count(), directory_exit_count()) {
         return;
     }
     if now_ms() < NEXT_TRY_MS.load(Ordering::Relaxed) {

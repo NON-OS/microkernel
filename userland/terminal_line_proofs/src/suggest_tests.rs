@@ -2,7 +2,7 @@
 //! "did you mean". A suggester that proposes nonsense is worse than silence,
 //! so the refusals matter more here than the hits.
 
-use crate::suggest::{distance, nearest};
+use crate::suggest::{distance, nearest_two};
 
 const NAMES: &[&[u8]] = &[
     b"ls",
@@ -25,7 +25,9 @@ const NAMES: &[&[u8]] = &[
 ];
 
 fn near(typed: &str) -> Option<String> {
-    nearest(typed.as_bytes(), NAMES.iter().copied()).map(|c| String::from_utf8(c.to_vec()).unwrap())
+    nearest_two(typed.as_bytes(), NAMES.iter().copied())
+        .0
+        .map(|c| String::from_utf8(c.to_vec()).unwrap())
 }
 
 #[test]
@@ -126,8 +128,6 @@ fn a_transposition_beats_an_unrelated_name_at_the_same_letters() {
 }
 
 // Two names, when two are equally near.
-
-use crate::suggest::nearest_two;
 
 fn near2(typed: &str) -> (Option<String>, Option<String>) {
     let (a, b) = nearest_two(typed.as_bytes(), NAMES.iter().copied());

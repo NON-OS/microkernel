@@ -31,6 +31,21 @@ pub fn init() {
     *l = Some(mgr);
 }
 
+/// The shutdown wipe's: overwrite what the logger holds in RAM. It never
+/// waits for the lock, since a holder may be the very CPU that is shutting
+/// down; a log held at that moment keeps its text until power goes.
+pub fn wipe_ram_log() -> bool {
+    match LOGGER.try_lock() {
+        Some(mut l) => {
+            if let Some(mgr) = l.as_mut() {
+                mgr.wipe();
+            }
+            true
+        }
+        None => false,
+    }
+}
+
 pub fn log(sev: Severity, msg: &str) {
     if let Some(mgr) = LOGGER.lock().as_mut() {
         mgr.log(sev, msg);

@@ -15,13 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The station-side association MLME: the chip-independent brain that takes a
-//! network name and passphrase to a connected, keyed link. It consumes the
-//! 802.11 frame layer (`dot11`) to scan, open-authenticate and associate, then
-//! hands the AP's EAPOL frames to the proven WPA2 `supplicant`. It emits the
-//! frames to transmit and never touches hardware, so any driver (Intel,
-//! Realtek) drives the same state machine and it is proven on the host.
+//! network name and passphrase to a connected, keyed link. It reads the
+//! network's beacon to choose SAE or PSK under the person's policy
+//! (`rsn::select`), authenticates (Open System, or the SAE exchange),
+//! associates with the matching RSNE, then hands the AP's EAPOL frames to the
+//! supplicant. It emits the frames to transmit and never touches hardware, so
+//! any driver (Intel, Realtek) drives the same state machine and it is proven
+//! on the host.
 
+mod assoc;
+mod auth;
+mod beacon;
+mod failure;
 mod state;
 mod step;
 
-pub use state::{Mlme, MlmeOutput, MlmeState};
+pub use failure::MlmeFailure;
+pub use state::{Entropy, JoinRequest, Mlme, MlmeOutput, MlmeState, SAE_ENTROPY, SECRET_MAX};

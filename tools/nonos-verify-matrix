@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Run verify-matrix rows on a tree and write the evidence: one log per row and
+one JSON summary, under evidence/<label>/ of the repository it is run
+from. The same command makes the baselines, the run on main and a hardware run.
+
+    tools/nonos-verify-matrix --tree ../base-branch --label baseline/branch proof-crates static-checks
+    tools/nonos-verify-matrix --tree . --label main crates proof-crates static-checks
+
+A row passes when every step exits 0. The summary names the tree's commit, so a
+result is always tied to the bytes it ran on.
+"""
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from nonos_matrix import rows, run  # noqa: E402
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("--tree", default=".", help="the checkout to run on")
+    ap.add_argument("--label", required=True, help="evidence folder, e.g. baseline/main or main")
+    ap.add_argument("--keys", default="/home/user/scratch-keys", help="scratch check keys, never committed")
+    ap.add_argument("row", nargs="+", choices=sorted(rows.ROWS))
+    a = ap.parse_args()
+    tree = os.path.abspath(a.tree)
+    out = os.path.join("HANDOFF", "evidence", a.label)
+    os.makedirs(out, exist_ok=True)
+    commit = subprocess.run(["git", "-C", tree, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    summary = {"tree": commit, "label": a.label, "rows": {}}
+    for row in a.row:
+        log = os.path.join(out, f"{row}.log")
+        open(log, "w").close()
+        args = (tree, a.keys) if row == "crates" else (tree,)
+        steps = [run.run(cmd, cwd, log) for cmd, cwd in rows.ROWS[row](*args)]
+        ok = all(s["rc"] == 0 for s in steps)
+        summary["rows"][row] = {"pass": ok, "steps": steps}
+        print(f"{row}: {'pass' if ok else 'FAIL'}, {sum(s['rc'] != 0 for s in steps)} of {len(steps)} steps failed")
+    with open(os.path.join(out, "summary.json"), "w") as f:
+        json.dump(summary, f, indent=1)
+        f.write("\n")
+
+
+if __name__ == "__main__":
+    main()

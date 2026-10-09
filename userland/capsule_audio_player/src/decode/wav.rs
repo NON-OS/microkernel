@@ -46,6 +46,10 @@ impl Decoder for WavDecoder {
         }
     }
 
+    fn kind(&self) -> &'static str {
+        "WAV"
+    }
+
     fn next(&mut self, out: &mut [i16]) -> usize {
         let bytes_per_sample = (self.bits / 8) as usize;
         let total_samples = self.data_len / bytes_per_sample;
@@ -67,6 +71,11 @@ impl Decoder for WavDecoder {
         let total_samples = self.data_len / bytes_per_sample;
         let sample = frame.saturating_mul(self.channels as u64);
         self.pos = (sample as usize).min(total_samples);
+        true
+    }
+
+    fn rewind(&mut self) -> bool {
+        self.pos = 0;
         true
     }
 }

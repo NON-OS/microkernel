@@ -20,10 +20,12 @@ mod dma;
 mod dma_set;
 mod driver;
 mod irq;
+mod modern;
 mod queues;
 mod registers;
 mod sequence;
 mod stage;
+mod station;
 
 pub use driver::Driver;
 pub use sequence::run;

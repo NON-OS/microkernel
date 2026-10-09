@@ -16,7 +16,8 @@
 
 use alloc::string::String;
 
-use super::state::{MAX_PER_SERVICE, PENDING};
+use super::share::admits;
+use super::state::PENDING;
 
 pub(in crate::syscall::microkernel::ipc) fn push(
     server_pid: u32,
@@ -26,7 +27,8 @@ pub(in crate::syscall::microkernel::ipc) fn push(
 ) -> bool {
     let mut map = PENDING.lock();
     let queue = map.entry(server_pid).or_default();
-    if queue.len() < MAX_PER_SERVICE {
+    let mine = queue.iter().filter(|(pid, _, _)| *pid == caller_pid).count();
+    if admits(queue.len(), mine) {
         queue.push_back((caller_pid, caller_inbox, token));
         true
     } else {

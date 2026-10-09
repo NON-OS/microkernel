@@ -34,4 +34,4 @@ pub use dir::encode as encode_dir;
 pub use fat::build as build_fat;
 pub use geometry::{plan, Geometry, PlanError, FAT_COUNT, RESERVED_SECTORS};
 pub use tree::{place_with, Content, Node, Placed};
-pub use write::{build_reserved, data_lba, WriteVolumeError};
+pub use write::{build_reserved, check as check_volume, data_lba, WriteVolumeError};

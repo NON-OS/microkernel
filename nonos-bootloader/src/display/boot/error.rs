@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::layout::splash;
-use crate::display::constants::{COLOR_BOX_BG, COLOR_ERROR, COLOR_TEXT_DIM, COLOR_TEXT_PRIMARY};
-use crate::display::font::{draw_string, draw_string_2x};
-use crate::display::gop::{draw_rect, fill_rect, get_dimensions, hline, is_initialized};
+use super::refusal::{advice, draw_card, hold};
+use crate::display::gop::{get_dimensions, is_initialized};
 
+/// Show why the boot was refused and what to do, then hold the screen until
+/// a key or 30 s. The caller then restarts; nothing here changes that.
 pub fn show_error_screen(msg: &[u8]) {
     if !is_initialized() {
         return;
@@ -27,18 +27,6 @@ pub fn show_error_screen(msg: &[u8]) {
     if w == 0 || h == 0 {
         return;
     }
-    fill_rect(0, 0, w, h, 0xFF0A0202);
-    let lay = splash();
-    let (x, pw) = (lay.col_x, lay.col_w);
-    let y = h / 3;
-    fill_rect(x, y, pw, 120, COLOR_BOX_BG);
-    draw_rect(x, y, pw, 120, COLOR_ERROR);
-    fill_rect(x + 12, y + 9, 6, 6, COLOR_ERROR);
-    draw_string(x + 26, y + 4, b"verified boot halted", COLOR_TEXT_DIM);
-    hline(x, y + 24, pw, COLOR_ERROR);
-    draw_string_2x(x + 14, y + 36, b"BOOT ERROR", COLOR_ERROR);
-    let max_chars = (pw.saturating_sub(28) / 8) as usize;
-    draw_string(x + 14, y + 74, &msg[..msg.len().min(max_chars)], COLOR_TEXT_PRIMARY);
-    let note = b"the system will reset; nothing unverified was run";
-    draw_string(x + 14, y + 96, note, COLOR_TEXT_DIM);
+    let scene = draw_card(&advice(msg), msg);
+    hold(&scene);
 }

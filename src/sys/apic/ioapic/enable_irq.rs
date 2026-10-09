@@ -16,8 +16,16 @@
 
 use super::set_irq::ioapic_set_irq;
 
-// Convenience wrapper: route `irq` to `vector` on the BSP, no extra
-// redir flags, edge-triggered active-high (ACPI ISOs still override).
+// Convenience wrapper: route `irq` to `vector` on this CPU (the boot CPU at
+// boot), no extra redir flags, edge-triggered active-high (ACPI ISOs still
+// override). The destination used to be a literal 0, which is the boot CPU
+// only where its APIC id happens to be 0; on a machine where it is not, every
+// such line went to some other CPU or to none.
 pub fn enable_irq(irq: u8, vector: u8) {
-    ioapic_set_irq(irq, vector, 0, 0);
+    let own = crate::sys::apic::local_apic_id().unwrap_or(0);
+    let Some(dest) = crate::arch::x86_64::interrupt::apic::device_irq_dest(own) else {
+        crate::sys::serial::println(b"[APIC] ERROR: no CPU addressable for an IOAPIC route");
+        return;
+    };
+    ioapic_set_irq(irq, vector, dest as u8, 0);
 }

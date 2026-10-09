@@ -48,7 +48,8 @@ pub fn spawn_hello_capsule() -> Result<(), SpawnError> {
             | Capability::IPC.bit()
             | Capability::Memory.bit()
             | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit(),
+            | Capability::GraphicsSurfaceCreate.bit()
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

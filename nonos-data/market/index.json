@@ -1,0 +1,705 @@
+{
+  "schema_version": 2,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1791331871000,
+  "serial": 1791331871,
+  "entries": [
+    {
+      "listing_id": "linux.qwen-small",
+      "capsule_id": "224ece466619a0c05294c434af99b9feec94d8e598a4e348370dd83486ccf4bb",
+      "name": "Qwen (small, 0.5B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5 0.5B Instruct, running on this machine with no network. Fast on any CPU.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-small@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "a82e1ee3ff469d13e1b5fa446c78f8f84ab3c967c598a70564a60d558eaabec5d6b8023baa5a433d25118004835b60e30ea90fe3974bf59419942f221166a404",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-medium",
+      "capsule_id": "02ca3fab7efe72edbe0220f56c690340a9316871f2d05c06fc29bba0eb914941",
+      "name": "Qwen (medium, 1.5B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5 1.5B Instruct, running on this machine with no network. A good balance of quality and speed.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-medium@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "5cd99f4c495f945b87e03c4769889efbb546d4f10dd51e29d0e5146fc0ea5c5cb0f6d6d94d3e6b448ab2879329cf6b29edf62b8f626c6bce8adfb7124a2d3702",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-large",
+      "capsule_id": "08b56513797390a71a7dfc7d52513dafb03a064a9931d73a41ab3723851e87a2",
+      "name": "Qwen (large, 3B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5 3B Instruct, running on this machine with no network. Noticeably stronger answers.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-large@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "e5b0eacc42163e41b0d533ff7dd923bc15ec52379cb1531616ed663787d2fde00f4882387522785358ed4cd93f159baaf05744a1ed8afcfdcf8cfc91f8e4290c",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-xlarge",
+      "capsule_id": "00e1536b659ff7a08828c2b2954ad452616a4ba4f893a2052af7aaeef4fd9823",
+      "name": "Qwen (extra large, 7B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5 7B Instruct, running on this machine with no network. Strong all-round answers.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-xlarge@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "9bf2c986829c0324700e0f88d8145159a5a2844b414bb1fcec822c9216d4fbdffa742e29b206f866bb47cba42c1f7792c1e065df19fb495ef4bcd6ed2997ee03",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-xxl",
+      "capsule_id": "068196dd696bfc8f4d2d0d16b64e4c77dbe8aafd8c55739b1729b8dde586687b",
+      "name": "Qwen (xxl, 14B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5 14B Instruct, running on this machine with no network. Much stronger reasoning and writing.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-xxl@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "1e934e489d768a68ee390f5654149840b518149ab229121c7fdb36f7b85d96fee650c203424b4dc5685575e1aeee5f8d18ea6bbe3d7cfd5f939efdeab7248b04",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-max",
+      "capsule_id": "1b93c8a458fa01e5b5192d02a4ca7d8ea5eb726654042db9b7c7cb834d5fbd15",
+      "name": "Qwen (max, 32B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5 32B Instruct, running on this machine with no network. The largest Qwen2.5 tier. Slow on a CPU.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-max@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "2bda6d267681acdee280b43bb8cdc76e2654f7a7ddb69fd8cef065ae472798264406ebc3613e8956d450c8bf834a6c9049a408dceef15646a9085b02abd1f503",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-qwen3-0.6b",
+      "capsule_id": "59d34d7236217b66e7f672c25bd17ad17a3f647e3ab3eafc5a73bc9f7c727f24",
+      "name": "Qwen3 (0.6B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen3 0.6B, running on this machine with no network. The smallest Qwen3, fast on any CPU.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-qwen3-0.6b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "a5f1cee6fda300b232c078f53fe4ab8e09526c28be32f2c0c8e08f3a2e3b97c4a39237de1e015e8f9db5fc9b8da8999c50cb1862601d5d6d320b6aa8e4b2060e",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-qwen3-1.7b",
+      "capsule_id": "6edc9235d5cabe7faa479936592d777e78ab6101930d327f08f5edabcd6b7ede",
+      "name": "Qwen3 (1.7B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen3 1.7B, running on this machine with no network. Quick and capable for its size.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-qwen3-1.7b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "b5632339d2f2dc238307d7ddce35ec8efa8a700eddcb7dcad57500ccd880d5d52fdb469b4f8f6c5dfa8bc9fa8592cc03f7f8b87018897ddc952a05b1c0fad60b",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-qwen3-4b",
+      "capsule_id": "07942f3185126bd6490aa8eee792f22a4d1b9829adb5c4cffce70b4fd3d85252",
+      "name": "Qwen3 (4B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen3 4B, running on this machine with no network. A strong everyday model.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-qwen3-4b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "087db1951f506ef92e9a0078ac1b8034a21ccd9d3defc4da87903f1ac6c0b1e90c850d9ce01b3bec235272d26c5c40c322c42d7fe483e240054c31631a432409",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-qwen3-8b",
+      "capsule_id": "714453ab7e2efd5f4932fc73fd05d9b77835b81338465f507b5bda7fe0ec56d2",
+      "name": "Qwen3 (8B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen3 8B, running on this machine with no network. Noticeably stronger answers.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-qwen3-8b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "46f70c49699a49c64d672e2e44b5e69b15c0b74ad159114c580df13418ca6b4753b1edb91edd431069946852755e666d5a788161877d932c9d8d6e98ebab1d0b",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-qwen3-14b",
+      "capsule_id": "72630eb01d776048bf9ed6a721696bc5a36cef6beb4feb564fcf61cd922c61d7",
+      "name": "Qwen3 (14B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen3 14B, running on this machine with no network.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-qwen3-14b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "db3a6adbb214b8f51bb493a4a78b9d8d80d1644671fd4ca7b4b63fe4e28f990d53ee520a225db46f102b46a2fcc681badb4c1604252a4b171af4163433961e0e",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-qwen3-30b-a3b",
+      "capsule_id": "7b5750f114c4909231c80d5d578a6d2f371a2d0a1c7a1b05435e061288a198ab",
+      "name": "Qwen3 (30B-A3B, MoE)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen3 30B-A3B, a mixture of experts with 3B active per token, running on this machine with no network. Answers far faster on a CPU than its size suggests.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-qwen3-30b-a3b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "1507bf5a88ff992c4d76c813bb37dae6cdbf4e4311ecf9da5be6c582aae045772c0d3a103c1e0e8364837e8474c217cb71e963888029027bbb15b1fade31d20f",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-qwen3-32b",
+      "capsule_id": "453141424e140cb9bd8e600842102306b719fff4b20d48e8efaf3a0e2d4783bd",
+      "name": "Qwen3 (32B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen3 32B, running on this machine with no network. The strongest Qwen3 tier. Slow on a CPU.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-qwen3-32b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "64cd9e4b436906e1b428f18356b753843366d525720523d4e22d4bcd62bed384913ed8e98e3b36379768bb7bcfd9bd13b1433bd530ad60dacc55334fc1a2a70a",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-coder-1.5b",
+      "capsule_id": "abcecbf4918c905092eb4cbd6fa1ea4040072de011daeac2e1c858f24dbf2c03",
+      "name": "Qwen Coder (1.5B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5-Coder 1.5B Instruct, running on this machine with no network. Tuned for code.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-coder-1.5b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "985043a748fa6898a88a656e4553f445117f9b4da175f64dd5d63ac89c664df7df0863f453f875246437ac2d4a1509219ff75586270b3d30ae8d2031154c7e0f",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-coder-7b",
+      "capsule_id": "0f96919cc907ce54672ca46ca04df32705fd2dcfe0954cf0af3b3e2b82916e49",
+      "name": "Qwen Coder (7B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5-Coder 7B Instruct, running on this machine with no network. Tuned for code.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-coder-7b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "a418103ee49d17dcef02f9ca638709c98b3d237e4bec5a1ba1f49b2a6d1eb6a34c57602494051f7a5b8cc8c63c0ae1752fad9ec63cc22236a8411ab7a8751309",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-coder-14b",
+      "capsule_id": "777a05f09f38611531d12e4da9cf2baa26ca0344c27ede652a8a3a8ee883a8b5",
+      "name": "Qwen Coder (14B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5-Coder 14B Instruct, running on this machine with no network. Tuned for code.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-coder-14b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "f0ccf40e18149c69262754d3789d6ea71a11db853c939a20128be6c0ef168520e11fcf21565897178b13c19f1c99b6fe4cbc5d5767433ad623cc91bf03aae404",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-coder-32b",
+      "capsule_id": "564d0420a845c876f728bd0cbc39b0c29b1f8ff1ae55da0257ac4ecc22c8a0d3",
+      "name": "Qwen Coder (32B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5-Coder 32B Instruct, running on this machine with no network. The strongest code tier. Slow on a CPU.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-coder-32b@1",
+          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "c1cf56a2d355bd1045223211d89d8be0cb6653e093b137f40284bc6ae179815f8f7b3f1c6bbd650483c1414efe2455ac2c943c51963479f6bb74e769f249280d",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1791331871000
+          }
+        }
+      ]
+    }
+  ]
+}

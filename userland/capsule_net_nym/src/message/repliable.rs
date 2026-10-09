@@ -16,7 +16,11 @@
 
 use alloc::vec::Vec;
 
-use super::types::{SENDER_TAG_SIZE, TAG_ADDITIONAL_SURBS, TAG_DATA, TYPE_REPLIABLE};
+use super::types::{
+    SENDER_TAG_SIZE, SURB_BASE_BYTES, SURB_KEY_ROTATION_UNKNOWN, TAG_ADDITIONAL_SURBS, TAG_DATA,
+    TYPE_REPLIABLE,
+};
+use crate::sphinx::constants::PAYLOAD_KEY_SEED_SIZE;
 
 /// Build a repliable data message.
 ///
@@ -25,22 +29,14 @@ use super::types::{SENDER_TAG_SIZE, TAG_ADDITIONAL_SURBS, TAG_DATA, TYPE_REPLIAB
 /// the reply surbs are the only route it has back: it never learns where we
 /// are, so without one attached it has no way to answer at all.
 ///
-/// Layout is the message type, the sender tag, the content tag, the number of
-/// surbs, the surbs themselves, then the request.
+/// Layout is the message type, the sender tag, the content tag, the reply
+/// blocks as `blocks_header` lays them out, then the request.
 pub fn repliable_data(
     sender_tag: &[u8; SENDER_TAG_SIZE],
     reply_surbs: &[Vec<u8>],
     message: &[u8],
 ) -> Vec<u8> {
-    let surb_bytes: usize = reply_surbs.iter().map(|s| s.len()).sum();
-    let mut out = Vec::with_capacity(1 + SENDER_TAG_SIZE + 1 + 4 + surb_bytes + message.len());
-    out.push(TYPE_REPLIABLE);
-    out.extend_from_slice(sender_tag);
-    out.push(TAG_DATA);
-    out.extend_from_slice(&(reply_surbs.len() as u32).to_be_bytes());
-    for surb in reply_surbs {
-        out.extend_from_slice(surb);
-    }
+    let mut out = with_blocks(sender_tag, TAG_DATA, reply_surbs, message.len());
     out.extend_from_slice(message);
     out
 }
@@ -54,16 +50,38 @@ pub fn repliable_additional_surbs(
     sender_tag: &[u8; SENDER_TAG_SIZE],
     reply_surbs: &[Vec<u8>],
 ) -> Vec<u8> {
+    with_blocks(sender_tag, TAG_ADDITIONAL_SURBS, reply_surbs, 0)
+}
+
+/// The head of a repliable message and its reply blocks, with room for `more`.
+///
+/// The blocks go as a big endian u16 count, the hops each block has, the key
+/// rotation they were built against, then the blocks back to back. Every block
+/// is built alike, so the first one's width says the hops of all of them.
+fn with_blocks(
+    sender_tag: &[u8; SENDER_TAG_SIZE],
+    tag: u8,
+    reply_surbs: &[Vec<u8>],
+    more: usize,
+) -> Vec<u8> {
     let surb_bytes: usize = reply_surbs.iter().map(|s| s.len()).sum();
-    let mut out = Vec::with_capacity(1 + SENDER_TAG_SIZE + 1 + 4 + surb_bytes);
+    let mut out = Vec::with_capacity(1 + SENDER_TAG_SIZE + 1 + 4 + surb_bytes + more);
     out.push(TYPE_REPLIABLE);
     out.extend_from_slice(sender_tag);
-    out.push(TAG_ADDITIONAL_SURBS);
-    out.extend_from_slice(&(reply_surbs.len() as u32).to_be_bytes());
-    for surb in reply_surbs {
+    out.push(tag);
+    let count = reply_surbs.len().min(u16::MAX as usize);
+    out.extend_from_slice(&(count as u16).to_be_bytes());
+    out.push(reply_surbs.first().map_or(0, |s| block_hops(s.len())));
+    out.push(SURB_KEY_ROTATION_UNKNOWN);
+    for surb in &reply_surbs[..count] {
         out.extend_from_slice(surb);
     }
     out
+}
+
+/// The hops of a reply block `len` bytes wide: one seed for each.
+pub fn block_hops(len: usize) -> u8 {
+    (len.saturating_sub(SURB_BASE_BYTES) / PAYLOAD_KEY_SEED_SIZE) as u8
 }
 
 /// Pad a message out to whole packets before it is split.

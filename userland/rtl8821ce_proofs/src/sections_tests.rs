@@ -9,7 +9,7 @@
 use crate::fw::header::{parse, FW_HDR_LEN};
 use crate::fw::sections::{sections, SECTION_CHKSUM_LEN};
 
-const FW: &[u8] = include_bytes!("../../capsule_driver_rtl8821ce/firmware/rtw8821c_fw.bin");
+const FW: &[u8] = include_bytes!("../../../nonos-bootloader/firmware/realtek/rtw8821c_fw.bin");
 
 #[test]
 fn the_real_firmware_splits_into_three_addressed_sections() {

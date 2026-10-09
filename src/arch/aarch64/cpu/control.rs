@@ -21,8 +21,8 @@ use core::arch::asm;
 /// Deliberately leaves M, C and I alone. Translation and the caches come on
 /// together in `mmu::control::enable_mmu`, once TTBR and TCR are loaded and the
 /// tables describe the image. Setting M here faults on the next instruction
-/// fetch, before the vectors are installed to report it, so the machine hangs
-/// with nothing on the console to say why.
+/// fetch, and with no tables loaded the fetch of the vector faults too, so the
+/// machine hangs with nothing on the console to say why.
 ///
 /// SA0 keeps stack alignment checked at EL0. UCI lets EL0 issue the cache
 /// maintenance it is permitted. WXN is cleared because write implying

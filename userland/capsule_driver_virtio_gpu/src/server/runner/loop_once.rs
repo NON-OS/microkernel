@@ -18,7 +18,8 @@ use nonos_libc::mk_ipc_recv_from;
 
 use super::dispatch::dispatch;
 use crate::driver::Driver;
-use crate::protocol::parse;
+use crate::protocol::{parse, refused, E_INVAL};
+use crate::server::respond;
 
 const SERVICE_INBOX: u64 = 0;
 
@@ -26,10 +27,13 @@ pub fn loop_once(driver: Driver, rx: &mut [u8], tx: &mut [u8]) -> ! {
     loop {
         let mut sender_pid = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), 0, &mut sender_pid);
-        if n <= 0 || sender_pid == 0 {
+        if !nonos_libc::recv_ready(n) || sender_pid == 0 {
             continue;
         }
-        let Some((req, body)) = parse(&rx[..n as usize]) else { continue };
+        let Some((req, body)) = parse(&rx[..n as usize]) else {
+            let _ = respond::status(sender_pid, &refused(&rx[..n as usize]), E_INVAL, tx);
+            continue;
+        };
         dispatch(&driver, sender_pid, req, body, tx);
     }
 }

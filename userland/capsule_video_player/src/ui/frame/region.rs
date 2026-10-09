@@ -43,7 +43,8 @@ pub fn body(w: u32, h: u32) -> Rect {
 
 pub fn search(w: u32, h: u32) -> Rect {
     let t = topbar(w, h);
-    let width = t.w.saturating_sub(420).clamp(180, 460);
+    // Room is left on the right for the grid and list switch.
+    let width = t.w.saturating_sub(140).clamp(180, 460);
     Rect { x: t.x, y: t.y + 8, w: width, h: 38 }
 }
 

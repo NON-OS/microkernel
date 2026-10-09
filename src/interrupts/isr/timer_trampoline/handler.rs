@@ -22,7 +22,8 @@ use crate::process::userspace::types::UserContext;
 /// On entry, `ctx` points at a stack-resident region whose layout
 /// matches the first 160 bytes of `UserContext` (15 GPRs + iretq
 /// frame). The pointer is valid only for the duration of this call;
-/// the trampoline reuses the memory on return.
+/// the trampoline reuses the memory on return. `fx` is the 512-byte
+/// FXSAVE area the trampoline reloads the FPU from on the way out.
 ///
 /// When the trap originated from CPL=3, this function snapshots the
 /// frame onto the current PCB's `saved_user_context` so the scheduler
@@ -31,7 +32,7 @@ use crate::process::userspace::types::UserContext;
 /// later context write overwrites earlier ones, and the scheduler
 /// `take()`s the most recent one.
 #[no_mangle]
-pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
+pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext, fx: *mut u8) {
     // SAFETY: eK@nonos.systems — `ctx` was produced by the trampoline
     // above and points at 160 bytes of valid stack memory laid out as
     // the leading fields of `UserContext`. We read those fields here;
@@ -89,15 +90,20 @@ pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
     send_eoi();
     crate::process::accounting::set_tick_origin(from_user);
     timer::on_timer_interrupt();
-    // Never reclaim while the interrupted context is a dying one: after
-    // exit_and_yield tears the current process down, CURRENT_PID is cleared
-    // and the CPU keeps looping on the dead pid's kernel stack under its
-    // CR3 until something runnable appears. Draining here in that window
-    // would free the very stack this trap frame sits on and the live page
-    // tables. The queues are retried on every tick, so reclamation happens
-    // as soon as a real context is interrupted instead.
-    if crate::process::current_pid().is_some() {
-        crate::process::exit::drain_pending_teardowns();
-        crate::kernel_core::process_spawn::drain_pending_kernel_stacks();
+    /*
+     * Back here means this frame, not the snapshot, is what resumes: either
+     * no switch happened or the task came back on its kernel context. A
+     * snapshot left behind would later resume the task at this old rip, so a
+     * guest parked in a syscall woke inside code it had already left.
+     */
+    if from_user {
+        if let Some(pcb) = crate::process::current_process() {
+            *pcb.saved_user_context.lock() = None;
+        }
+    }
+    super::reclaim::on_tick(from_user);
+    if from_user {
+        drop(_ctx_guard);
+        super::guest_stop::on_user_tick(ctx, fx);
     }
 }

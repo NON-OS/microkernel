@@ -17,6 +17,7 @@
 use alloc::vec::Vec;
 
 use super::difficulty::Difficulty;
+use super::kept::Kept;
 use super::mode::Mode;
 use super::options::Options;
 use super::phase::{Dir, Phase};
@@ -48,5 +49,7 @@ pub struct Game {
     pub last_ms: i64,
     pub runs: Vec<RunRecord>,
     pub awards: Vec<u16>,
+    // Where the ranks and awards ended up, for the Ranks screen.
+    pub kept: Kept,
     pub rng: u64,
 }

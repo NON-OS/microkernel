@@ -24,14 +24,21 @@ const EXCHANGE_DEADLINE_MS: i64 = 3000;
 const RESEND_MS: i64 = 400;
 
 pub fn sync_once() -> Option<i64> {
-    let req = sntp::build_request();
+    /* The transmit time doubles as the nonce the reply must echo. A random one
+     * needs the Crypto capability this capsule does not hold. */
     let t0 = mk_time_millis();
+    let nonce = (t0 as u64).to_be_bytes();
+    let req = sntp::build_request(nonce);
     let mut last_send = t0 - RESEND_MS;
     while mk_time_millis().wrapping_sub(t0) <= EXCHANGE_DEADLINE_MS {
         let due = mk_time_millis().wrapping_sub(last_send) >= RESEND_MS;
         let sent = due
             && udp_client::send_to(
-                state::udp_port(), state::LOCAL_PORT, DEFAULT_NTP_SERVER, NTP_PORT, &req,
+                state::udp_port(),
+                state::LOCAL_PORT,
+                DEFAULT_NTP_SERVER,
+                NTP_PORT,
+                &req,
             )
             .is_ok();
         if sent {
@@ -39,7 +46,11 @@ pub fn sync_once() -> Option<i64> {
         }
         match udp_client::recv_from(state::udp_port(), state::LOCAL_PORT) {
             Ok(dg) if dg.src == DEFAULT_NTP_SERVER && dg.src_port == NTP_PORT => {
-                return apply(&dg.payload);
+                /* A reply that fails the checks is ignored, not fatal, so one
+                 * forged packet cannot cancel the exchange either. */
+                if let Some(ms) = apply(&dg.payload, &nonce) {
+                    return Some(ms);
+                }
             }
             _ => {
                 mk_yield();
@@ -49,8 +60,8 @@ pub fn sync_once() -> Option<i64> {
     None
 }
 
-fn apply(payload: &[u8]) -> Option<i64> {
-    let correct_ms = sntp::parse_reply(payload).ok()?;
+fn apply(payload: &[u8], nonce: &[u8; 8]) -> Option<i64> {
+    let correct_ms = sntp::parse_reply(payload, nonce).ok()?;
     if mk_time_adjust(correct_ms) == 0 {
         Some(correct_ms as i64)
     } else {

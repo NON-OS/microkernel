@@ -14,50 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::manifest::{HEIGHT, WIDTH};
+use super::calc::{eval_value, V};
 
-use super::strip_unit::strip_unit;
+/* The ceiling on any parsed length. Without it a value such as
+ * width:4000000000px reaches layout as ~4.29e9 and overflows the i32
+ * box-model arithmetic, which aborts under release overflow-checks. */
+pub(super) const MAX_LEN_PX: f32 = 100_000.0;
 
-const ROOT_EM: f32 = 16.0;
+/// A signed length in px: a number with any length unit, or a math function
+/// (calc, min, max, clamp) whose result has no percentage part. Zero may be
+/// written without a unit. Anything else is rejected.
+pub(super) fn parse_len_f(value: &str, em_base: u32) -> Option<f32> {
+    match eval_value(value, em_base as f32)? {
+        V::Num(0.0) => Some(0.0),
+        V::Len { px, pml } if pml == 0.0 && px.is_finite() && px.abs() <= MAX_LEN_PX => Some(px),
+        _ => None,
+    }
+}
 
-// Resolve a CSS length to whole pixels. Supports px, em (against em_base),
-// rem (against the 16px root) and vw/vh (against the viewport). Anything
-// else is rejected.
+/// Resolve a CSS length to whole non-negative pixels; em resolves against
+/// `em_base`, rem against the root element's font size, viewport units against the
+/// viewport the cascade published. A negative length is rejected.
 pub(super) fn parse_px(value: &str, em_base: u32) -> Option<u32> {
-    let v = value.trim();
-    // calc() with no percentage part is a plain length here.
-    if let Some(inner) = super::parse_size::strip_calc(v) {
-        let (px, pml) = super::calc::eval_calc(inner, em_base)?;
-        if pml == 0.0 && px.is_finite() && (0.0..=100_000.0).contains(&px) {
-            return Some((px + 0.5) as u32);
-        }
-        return None;
-    }
-    if v == "0" {
-        return Some(0);
-    }
-    // rem before em: "rem" also ends in "em".
-    let (num, unit_px) = if let Some(n) = strip_unit(v, "px") {
-        (n, 1.0)
-    } else if let Some(n) = strip_unit(v, "rem") {
-        (n, ROOT_EM)
-    } else if let Some(n) = strip_unit(v, "em") {
-        (n, em_base as f32)
-    } else if let Some(n) = strip_unit(v, "vw") {
-        (n, WIDTH as f32 / 100.0)
-    } else if let Some(n) = strip_unit(v, "vh") {
-        (n, HEIGHT as f32 / 100.0)
-    } else {
-        return None;
+    let px = parse_len_f(value, em_base)?;
+    (px >= 0.0).then_some((px + 0.5) as u32)
+}
+
+/// A signed margin: px, and per-mille of the containing block's width for
+/// a percentage part, each rounded half away from zero. A min()/max()
+/// comparison involving a percentage has no single such pair and drops.
+pub(super) fn parse_margin(value: &str, em_base: u32) -> Option<(i32, i32)> {
+    let (px, pml) = match eval_value(value, em_base as f32)? {
+        V::Num(0.0) => (0.0, 0.0),
+        V::Len { px, pml } => (px, pml),
+        _ => return None,
     };
-    let f = num.trim().parse::<f32>().ok()?;
-    let px = f * unit_px;
-    // Cap the length like the calc() branch above. Without a ceiling a value
-    // such as width:4000000000px reaches layout as ~4.29e9 and overflows the
-    // i32 box-model arithmetic, which aborts under release overflow-checks.
-    if px.is_finite() && (0.0..=100_000.0).contains(&px) {
-        Some((px + 0.5) as u32)
-    } else {
-        None
-    }
+    let ok = |v: f32| v.is_finite() && v.abs() <= MAX_LEN_PX;
+    let round = |v: f32| if v < 0.0 { (v - 0.5) as i32 } else { (v + 0.5) as i32 };
+    (ok(px) && ok(pml)).then(|| (round(px), round(pml)))
 }

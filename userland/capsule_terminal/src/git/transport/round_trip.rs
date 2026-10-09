@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 
 use nonos_git::TransportError;
 use nonos_http::parse_response;
-use nonos_socket::TcpStream;
+use nonos_route_link::RouteStream;
 use nonos_tls::exchange;
 
 use super::https::Https;
@@ -39,12 +39,24 @@ const MAX_RESPONSE: usize = 64 * 1024 * 1024;
 
 /// Connect, handshake, send, read, and hand back the body.
 ///
+/// The connection goes over the route the transport was made with, the
+/// network the person chose. It used to dial the host directly whatever
+/// that choice was, so every clone named this machine to the remote and
+/// asked for the remote's name in the clear. A route that is down, or a
+/// network that will not carry the connection, is unreachable with its
+/// reason kept for the person; nothing tries another way.
+///
 /// A status other than 200 is an error rather than a body, because git's own
 /// error pages are valid HTTP and would otherwise be parsed as a pack.
 pub(super) fn round_trip(https: &mut Https, request: Vec<u8>) -> Result<Vec<u8>, TransportError> {
-    let stream =
-        TcpStream::connect(&https.remote.host, 443).map_err(|_| TransportError::Unreachable)?;
-    let mut io = SocketIo { stream };
+    let stream = match RouteStream::connect(https.route, &https.remote.host, 443) {
+        Ok(stream) => stream,
+        Err(why) => {
+            https.refused = Some(why);
+            return Err(TransportError::Unreachable);
+        }
+    };
+    let mut io = SocketIo { stream, patience_ms: https.route.patience_ms() };
     let raw = exchange(&mut io, &https.remote.host, &request, https.now, MAX_RESPONSE)
         .map_err(|_| TransportError::Closed)?;
     let response = parse_response(&raw).map_err(|_| TransportError::Malformed)?;

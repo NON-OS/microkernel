@@ -40,6 +40,7 @@ pub fn set(field: Field, value: bool) -> bool {
         Field::WifiAskToJoin => s.wifi_ask_to_join = value,
         Field::AlertSounds => s.alert_sounds = value,
         Field::StartupChime => s.startup_chime = value,
+        Field::Persistent => s.persistent = value,
         Field::KernelAslr => s.kernel_aslr = value,
         Field::KernelStackGuard => s.kernel_stack_guard = value,
         Field::KernelNxBit => s.kernel_nx_bit = value,
@@ -54,5 +55,6 @@ pub fn set(field: Field, value: bool) -> bool {
         Field::KernelSeccomp => s.kernel_seccomp = value,
         _ => return false,
     }
+    super::state::changed();
     true
 }

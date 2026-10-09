@@ -17,11 +17,14 @@
 //! What a job holds while it runs: the device, the writer or the verifier,
 //! the counters the screen shows, and the receipt once the write is done.
 
+use alloc::boxed::Box;
+
 use nonos_blk_client::DeviceSink;
 use nonos_disk::{Receipt, Session, Verifier};
 
+/// The session is boxed: it holds the whole plan, the verifier a cursor.
 pub enum Phase {
-    Writing(Session<'static>),
+    Writing(Box<Session<'static>>),
     Verifying(Verifier<'static>),
 }
 
@@ -33,6 +36,8 @@ pub struct Job {
     pub total: u64,
     pub started_ms: u64,
     pub write_seconds: u64,
+    /// The driver status of the failure that ended the job, if it was one.
+    pub status: Option<i32>,
 }
 
 impl Job {
@@ -40,11 +45,12 @@ impl Job {
         Job {
             sink,
             total: session.total_bytes(),
-            phase: Phase::Writing(session),
+            phase: Phase::Writing(Box::new(session)),
             receipt: None,
             done: 0,
             started_ms: now_ms,
             write_seconds: 0,
+            status: None,
         }
     }
 

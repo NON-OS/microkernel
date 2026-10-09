@@ -27,6 +27,8 @@ pub enum IoApicError {
     MmioMapFailed,
     InvalidGsi,
     TooManyIoApics,
+    /// No CPU has an APIC id the 8-bit destination field can hold.
+    NoReachableCpu,
 }
 
 impl IoApicError {
@@ -43,6 +45,7 @@ impl IoApicError {
             Self::MmioMapFailed => "MMIO mapping failed",
             Self::InvalidGsi => "Invalid GSI",
             Self::TooManyIoApics => "Too many I/O APICs",
+            Self::NoReachableCpu => "No CPU addressable by an 8-bit destination",
         }
     }
 }

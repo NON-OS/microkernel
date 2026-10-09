@@ -14,8 +14,11 @@ CAPSULE_INSTANCE_ENDPOINTS := \
 	service:4762:app.browser.1 reply:4763:endpoint.app.browser.1.reply \
 	service:4764:app.browser.2 reply:4765:endpoint.app.browser.2.reply \
 	service:4766:app.browser.3 reply:4767:endpoint.app.browser.3.reply
-# CoreExec|IPC|Memory|Crypto|GraphicsDisplayQuery|GraphicsSurfaceCreate
+# CoreExec|Network|IPC|Memory|Crypto|GraphicsDisplayQuery|GraphicsSurfaceCreate
 CAPSULE_REQUIRED_CAPS    := 0x183d
+# Debug, granted only by a build that compiles `capsule-serial-debug`: the
+# kernel mirror folds it in through serial_debug_cap(), for the [BROWSER lines.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_browser
 
 include nonos-mk/capsule.mk

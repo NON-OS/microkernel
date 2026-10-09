@@ -53,9 +53,13 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_BUSY, tx);
         return;
     }
+    // A full tray may be full of items whose clients have ended.
     if ctx.tray.insert(entry).is_err() {
-        let _ = respond::status(sender_pid, req, E_NOMEM, tx);
-        return;
+        crate::server::reap_tray::reap_now(ctx);
+        if ctx.tray.insert(entry).is_err() {
+            let _ = respond::status(sender_pid, req, E_NOMEM, tx);
+            return;
+        }
     }
     paint_chrome(ctx);
     let r = menubar_rect(ctx.width);

@@ -16,36 +16,16 @@
 
 use nonos_toolkit::icons::IconId;
 
-use crate::snake::state::{Difficulty, Mode, Screen};
+use crate::snake::state::Mode;
 
 // Every mark in the capsule comes from the shared icon source, so a screen's
 // art is the same file the dock and the shell already carry.
-pub fn screen(screen: Screen) -> IconId {
-    match screen {
-        Screen::Home => IconId::GameTrophy,
-        Screen::Setup => IconId::GameGauge,
-        Screen::Play => IconId::GameTarget,
-        Screen::Pause => IconId::GameStopwatch,
-        Screen::Over => IconId::GameCrown,
-        Screen::Rank => IconId::GameTrophy,
-    }
-}
-
 pub fn mode(mode: Mode) -> IconId {
     match mode {
         Mode::Arcade => IconId::GameBolt,
         Mode::Classic => IconId::GameTarget,
         Mode::TimeAttack => IconId::GameStopwatch,
         Mode::Zen => IconId::GameLotus,
-    }
-}
-
-pub fn difficulty(diff: Difficulty) -> IconId {
-    match diff {
-        Difficulty::Easy => IconId::GameLotus,
-        Difficulty::Normal => IconId::GameGauge,
-        Difficulty::Hard => IconId::GameBolt,
-        Difficulty::Insane => IconId::GameCrown,
     }
 }
 

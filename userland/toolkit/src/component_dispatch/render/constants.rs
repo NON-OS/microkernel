@@ -14,3 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const HEADER_LEN: usize = 28;
+
+/// A frame (kind 3) is answered with the live theme revision as one u32, so an
+/// app can fetch the theme only when it changed.
+pub const FRAME_REPLY_LEN: usize = 4;

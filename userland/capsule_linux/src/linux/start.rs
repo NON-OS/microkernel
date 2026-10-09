@@ -16,23 +16,42 @@
 
 //! Bring one Linux program up and stay with it until it ends.
 
-use nonos_libc::{heap_init, mk_debug, mk_exit, mk_foreign_spawn};
+use nonos_libc::{mk_exit, mk_foreign_spawn};
 
-use super::guest::Guest;
+pub(super) use super::say::say;
 use super::serve::serve;
 use super::source::source;
 use super::start_guest::start;
+pub(super) use super::start_say::routine;
+use super::{file::family::choose, guest::Guest};
 
 pub fn run() -> ! {
-    let _ = heap_init();
-    say(b"[LINUX] personality up\n");
-    if let Some(name) = super::request::install_request() {
+    super::heap::init();
+    routine(b"[LINUX] personality up\n");
+    if let Some((name, pin)) = super::request::install_request() {
         say(b"[LINUX] installing\n");
-        let ok = super::install::install(&name);
-        say(if ok { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
-        mk_exit(if ok { 0 } else { 1 })
+        // A USB boot loads the store from the stick a minute or more after the
+        // desktop is up: an install asked for before then waits for it rather
+        // than reading a store that is not there yet.
+        let _ = super::settle::wait_settled();
+        let pkg = choose(&name);
+        super::file::allow_shared_writes();
+        // The exit code names the reason, which the store shows.
+        let done = super::install::install(pkg, &pin);
+        say(if done.is_ok() { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
+        mk_exit(done.map_or_else(|why| why.code(), |()| 0))
     }
-    let (path, bytes, origin) = source();
+    if let Some(name) = super::request::uninstall_request() {
+        say(b"[LINUX] uninstalling\n");
+        let pkg = choose(&name);
+        super::file::allow_shared_writes();
+        // The exit code names the reason, which the store shows.
+        let done = super::install::uninstall(pkg);
+        say(if done.is_ok() { b"[LINUX] uninstalled\n" } else { b"[LINUX] uninstall failed\n" });
+        mk_exit(done.map_or_else(|why| why.code(), |()| 0))
+    }
+    /* source() has said why when it starts nothing. */
+    let Some(launch) = source() else { mk_exit(1) };
     let pid = mk_foreign_spawn(b"linux");
     if pid < 0 {
         say(b"[LINUX] no guest, errno ");
@@ -41,21 +60,25 @@ pub fn run() -> ! {
         say(&digits);
         mk_exit(1)
     }
+    super::call::mark_start();
+    if !super::file::prepare_private() {
+        say(b"[LINUX] no private directories, not starting\n");
+        mk_exit(1)
+    }
     let mut guest = Guest::new(pid as u32);
-    let code = match start(&mut guest, &path, &bytes, origin) {
+    guest.links = alloc::rc::Rc::new(super::guest::Links::load());
+    let code = match start(&mut guest, launch) {
         Ok(()) => {
-            say(b"[LINUX] guest running\n");
-            serve(&mut guest)
+            routine(b"[LINUX] guest running\n");
+            serve(guest)
         }
         Err(step) => {
+            super::file::clear_private();
             say(step);
             mk_exit(2)
         }
     };
-    say(b"[LINUX] guest exited\n");
+    super::file::clear_private();
+    routine(b"[LINUX] guest exited\n");
     mk_exit(code)
-}
-
-pub(super) fn say(line: &[u8]) {
-    let _ = mk_debug(line.as_ptr(), line.len());
 }

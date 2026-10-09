@@ -16,14 +16,41 @@
 //! Getting a descriptor's buffered bytes onto the store.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::Guest;
+use crate::linux::guest::{Guest, Kind};
 
+/*
+ * fsync and fdatasync: the store keeps no metadata apart from the bytes,
+ * so the two are one.
+ */
 pub fn fsync(guest: &Guest, fd: u64) -> u64 {
     let Some(entry) = guest.fds.get(fd as usize).filter(|f| f.is_open()) else {
         return errno::fail(errno::EBADF);
     };
-    match super::close::flush(entry) {
-        true => errno::ok(0),
-        false => errno::fail(errno::EIO),
+    /* Linux answers EINVAL for what cannot be synced: a pipe, a socket. */
+    if !matches!(entry.kind, Kind::File | Kind::Dir) {
+        return errno::fail(errno::EINVAL);
+    }
+    if entry.kind == Kind::Dir || super::synth::owns(&entry.path) {
+        return errno::ok(0);
+    }
+    match super::cache::flush(&entry.path, true) {
+        Ok(()) => errno::ok(0),
+        Err(e) => errno::fail(e),
+    }
+}
+
+/* sync(2) cannot fail; syncfs answers its errors, and EBADF for a bad fd. */
+pub fn sync() -> u64 {
+    let _ = super::cache::flush_all();
+    errno::ok(0)
+}
+
+pub fn syncfs(guest: &Guest, fd: u64) -> u64 {
+    if !guest.fds.get(fd as usize).is_some_and(|f| f.is_open()) {
+        return errno::fail(errno::EBADF);
+    }
+    match super::cache::flush_all() {
+        Ok(()) => errno::ok(0),
+        Err(e) => errno::fail(e),
     }
 }

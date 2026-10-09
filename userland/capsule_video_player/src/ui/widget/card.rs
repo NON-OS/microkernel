@@ -51,7 +51,7 @@ pub fn paint_tile(fb: &mut PaintBuffer, r: Rect, item: &MediaItem, selected: boo
     let border = if selected { theme::ACCENT_DIM } else { theme::BORDER };
     rrect::panel(fb, r.x, r.y, r.w, r.h, 12, theme::PANEL, border);
     let art = Rect { x: r.x + 8, y: r.y + 8, w: r.w - 16, h: ART_H };
-    paint_poster(fb, art, item.kind);
+    paint_poster(fb, art, item.kind, item.thumb.as_deref());
     let permille = item.permille();
     if permille > 0 {
         let bar = Rect { x: art.x, y: art.y + art.h - BAR_H, w: art.w, h: BAR_H };

@@ -2,117 +2,113 @@
 
 ## Role
 
-`capsule_settings` is a real production application capsule built on
-`nonos_app_skeleton`. It owns a toggle list with cursor navigation and a
-boolean state per row. The capsule keeps its own state, has no globals, and
-reads keyboard input through the toolkit. The capsule routes UI rendering
-through the toolkit IPC path rather than through any kernel UI code.
+`capsule_settings` is the desktop's Settings window (`app.settings`), the
+editor for the `policy` store. It is an app on `nonos_app_skeleton`, 760 by
+520, with nine sections: General, Network, Wifi, Security, Appearance,
+Privacy, Sound, Updates and Developer (`src/settings/section.rs`).
+The handbook page is
+[System apps and services](../../docs/handbook/apps/system-apps.md).
 
 ```text
 settings app
     |
-    | UI frame request
+    | get / set by Field id
     v
-toolkit endpoint
+policy (service:4108)  -- kernel-mirrored fields --> MkAdminPolicyPush
     |
-    `-- app event loop on app endpoint
+    `-- desktop_shell: "settings applied" notice
 ```
 
 ## Microkernel contract
 
-The capsule uses the basic Mk surface that every app skeleton uses:
-
-- `MkIpcCall` sends a UI frame request to the toolkit endpoint.
-- `MkIpcRecv` receives application messages on the app endpoint.
-- `MkYield` backs off when no message is available.
-- `MkDebug` emits ownership and proof markers.
-- `MkExit` exits when the IPC surface is parked.
-
-The active spawn path is the standard `nonos_app_skeleton::run` entry point.
+- The window, input and frame loop come from `nonos_app_skeleton::run`.
+- `MkIpcCall` to `policy` reads every field on open and sets one on each
+  edit; on success `notify_applied` sends `desktop_shell` a notice. The
+  Qwen model row is a choice among the pinned tiers (setup's `qwen/labels.rs`,
+  held to the pins by setup's build): Left, Right and Enter step through them
+  (`src/settings/qwen_tier/`, held by `capsule_settings_proofs`).
+- `MkDeviceList` finds the Wi-Fi adapters the device broker knows.
+- `MkIpcCall` to `net.dhcp.client` reads the lease; the Wi-Fi client
+  (`nonos_wifi_client`) scans, joins and remembers networks.
+- `CryptoMachineKey` derives the TPM key that seals the remembered networks,
+  kept through vfs at `/nonos/wifi/saved`.
 
 ## Interface contract
 
-| Call | Purpose |
-|---|---|
-| `MkIpcCall` to toolkit | request a UI frame through userland toolkit policy |
-| `MkIpcRecv` on app endpoint | receive app input messages |
-| `MkYield`, `MkDebug`, `MkExit` | cooperative loop and proof markers |
-
-The keyboard surface accepts `j` and `k` for cursor movement, Space or Enter
-to toggle the highlighted row, and Esc to leave the panel.
+It serves no IPC of its own; its service and the instance endpoints
+`app.settings.1` and `app.settings.2` exist so the shell can focus it and
+open more windows. The `policy` service accepts writes only from these
+three names and the setup wizard.
 
 ## Authority
 
-The capsule keeps the narrow capability set defined by the app skeleton. It
-does not request system settings authority, graphics, network, filesystem,
-device drivers, or direct framebuffer authority. The toggles displayed are
-local UI state today; no system settings are actually mutated.
+`CAPSULE_REQUIRED_CAPS = 0x987d`:
+
+| Bit | Capability | Purpose |
+|---|---|---|
+| 0x0001 | CoreExec | run user code |
+| 0x0004 | Network | ask `net.dhcp.client` for the Wi-Fi lease |
+| 0x0008 | IPC | policy, desktop shell, Wi-Fi client, window services |
+| 0x0010 | Memory | heap |
+| 0x0020 | Crypto | the TPM machine key that seals saved Wi-Fi networks |
+| 0x0040 | FileSystem | read and keep saved networks through vfs, which serves only a holder of it |
+| 0x0800, 0x1000 | GraphicsDisplayQuery, GraphicsSurfaceCreate | its window |
+| 0x8000 | DeviceEnum | list the Wi-Fi adapters |
+
+No Admin: kernel-mirrored fields reach the kernel through the policy
+capsule, which holds it.
 
 ## Privacy and persistence
 
-The capsule keeps no profile, no telemetry, and no persistent state. The
-toggles and the cursor position disappear with the process. Persistence is
-explicitly out of scope until a settings storage contract exists.
+Settings holds no state of its own beyond the window. The values live in
+the policy store, which is RAM only: a change made here is gone at reboot,
+except the answers first-boot setup kept, which the policy capsule restores
+on a persistent install. Saved Wi-Fi networks are the exception: they are
+sealed under a TPM-derived key and kept through vfs.
 
 ## Runtime lifecycle
 
-The capsule emits ownership markers, enters the app skeleton run loop, and
-processes input events through `MkIpcRecv` until the IPC surface is parked. On
-clean shutdown the runtime state is gone with the process.
+On open, `hydrate` reads every field it knows from `policy`. `hydrate_fields`
+stops at the first read that timed out, so a silent policy service costs one
+timeout rather than one per field, and the status strip says the values shown
+are not the stored ones (`src/settings/ipc/hydrate_pass.rs`). Each edit sends
+the matching set and, on success, the shell notice.
 
 ## Failure model
 
-Toolkit failure is observable through proof markers and never grants the
-capsule a fallback framebuffer path. Invalid input is dropped by the settings
-state machine and never escalates to a kernel call.
-
-## Current implemented surface
-
-- Source for the toggle list, cursor state, theme, painter, and event loop.
-- Toggle navigation with `j`, `k`, Space, Enter, and Esc.
-- Local boolean state per row.
-- Runs above `nonos_app_skeleton` with toolkit-only UI.
-
-## Wire format
-
-Input messages arrive on the app endpoint as toolkit input events. UI requests
-go out on the toolkit endpoint.
-
-## State ownership
-
-The capsule owns the toggle list and the cursor. The toolkit owns rendering.
-The compositor owns scene and focus. The kernel owns no settings state.
+- Policy unreachable: values shown are defaults, and the status strip says
+  so.
+- A set the policy service refuses leaves the old value.
+- No adapter, no lease or no TPM: the Wi-Fi section says which.
+- A scan or join that will not run says why on the Wi-Fi page: the switch
+  is off, no driver is running, or the highlighted row is not one the scan
+  found (`src/settings/state/wifi_refusal.rs`).
+- Kept wallpapers that were not read show `--`, and a change to them is
+  refused rather than written over the stored set.
 
 ## Operating rules
 
-- Route UI through toolkit IPC only.
-- Do not request direct framebuffer authority.
-- Keep all app state volatile until a storage contract exists.
-- Do not introduce kernel UI exports for this app.
-
-## Release target
-
-The release version is a signed application capsule with `Capsule.mk`, signed
-manifest, feature gated spawn, toolkit only UI rendering, an explicit storage
-contract for any persistent toggles, and validation evidence that settings policy
-stays out of the kernel.
-
-## Release checklist
-
-- `Capsule.mk` and signed manifest exist.
-- Toolkit IPC validation passes.
-- Feature gated spawn is present.
-- Static gate confirms no kernel app UI exports.
-
-## Explicit non-goals today
-
-No production manifest, signed spawn path, persistent settings storage,
-network access, filesystem access, graphics driver access, or direct
-framebuffer authority belongs in this directory.
+- A compile-time check fails the build if a field is listed but placed on no
+  screen (`src/settings/schema/coverage.rs`, `all_placed`).
+- `Persistent` is shown and never edited (`src/settings/schema/read_only.rs`);
+  persistence is granted with consent in the setup wizard. The policy store
+  itself has no read-only notion.
+- Security shows no stored "keys generated" flag, which nothing set. Each
+  time the page opens it asks the kernel for the TPM machine key under a
+  label of its own, says what came back, and wipes the 32 bytes
+  (`src/settings/state/machine_key_probe.rs`).
+- Updates reports `rustc -V` and cargo's target as `build.rs` read them.
+- Wi-Fi keys (`src/settings/event/wifi_key.rs`): Enter or Space scans, C
+  joins, D leaves, R remembers joins, F forgets, W turns the switch on or
+  off. Off also leaves the joined network.
 
 ## Verification
 
-- Build: `cargo build --manifest-path userland/capsule_settings/Cargo.toml`
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Promotion check: add `Capsule.mk`, manifest signing, feature gated spawn,
-  and validation evidence before claiming production app status.
+- Build: `make nonos-mk-settings`; sign: `make nonos-mk-settings-sign`.
+- Kernel mirror: `src/userspace/capsule_settings`, under the feature
+  `nonos-capsule-settings`.
+- `userland/wifi_panel_proofs` runs the Wi-Fi panel and the saved-network
+  list on the host.
+- `userland/capsule_settings_proofs` runs the section tables, the machine
+  key row (`security_tests`), the Qwen tier choice (`qwen_tier_tests`) and
+  the Wi-Fi keys and refusals (`wifi_key_tests`).

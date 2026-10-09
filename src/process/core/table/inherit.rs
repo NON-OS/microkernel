@@ -22,7 +22,7 @@
 //! the initial token via `process::caps::new_token`. The bits stay
 //! in the `crate::capabilities::Capability` namespace.
 //!
-//! Two policy knobs live here:
+//! One policy knob lives here:
 //!   - `AMBIENT_CAPS`: init's production-ambient set, also the
 //!     upper bound on inheritance. Hardware authority (Driver,
 //!     DeviceEnum, Mmio, Irq, Dma, Pio), Admin, Debug, and the
@@ -44,7 +44,7 @@ use crate::capabilities::Capability;
 // spawner. `RegisterService` and `Network`/`FileSystem`/`Crypto`/
 // `Hardware` are not part of the active syscall surface today and
 // are deliberately excluded from the ambient.
-const AMBIENT_CAPS: u64 =
+pub(crate) const AMBIENT_CAPS: u64 =
     Capability::CoreExec.bit() | Capability::IPC.bit() | Capability::Memory.bit();
 
 // Bits that must never appear in `AMBIENT_CAPS` in any production
@@ -62,11 +62,12 @@ const FORBIDDEN_AMBIENT: u64 = Capability::Admin.bit()
     | Capability::GraphicsSurfaceCreate.bit()
     | Capability::GraphicsSurfaceMap.bit()
     | Capability::GraphicsPresent.bit()
-    | Capability::SpawnBroker.bit();
+    | Capability::SpawnBroker.bit()
+    | Capability::DeviceSecret.bit();
 
 const _: () = assert!(
     AMBIENT_CAPS & FORBIDDEN_AMBIENT == 0,
-    "AMBIENT_CAPS must not include Admin/Driver/DeviceEnum/Mmio/Irq/Dma/Pio/Debug/Graphics*/SpawnBroker"
+    "AMBIENT_CAPS must not include Admin/Driver/DeviceEnum/Mmio/Irq/Dma/Pio/Debug/Graphics*/SpawnBroker/DeviceSecret"
 );
 
 pub(super) fn compute_inherited_caps(pid: Pid, parent_pid: Pid) -> u64 {

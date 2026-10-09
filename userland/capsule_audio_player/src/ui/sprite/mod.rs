@@ -30,6 +30,6 @@ mod transport_b;
 pub use canvas::Sprite;
 pub use glyph_a::{magnifier, note, speaker};
 pub use glyph_b::{check, close, plus};
-pub use glyph_c::{bell, chevron, compass, download, gear, grid, heart, home, radio};
+pub use glyph_c::{download, gear, grid, home};
 pub use transport_a::{next, pause, play, prev};
 pub use transport_b::{repeat, shuffle};

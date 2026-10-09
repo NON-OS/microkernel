@@ -24,9 +24,9 @@
 
 use std::sync::Arc;
 
-use nonos_devmodel::FakeBar;
+use nonos_devmodel::{run, FakeBar, LiveDevice};
 
-use crate::constants::{CORBWP, IRS, IRS_BUSY, IRS_VALID, RIRBWP};
+use crate::constants::{CORBWP, RIRBWP};
 use crate::controller::StreamDescriptor;
 
 /// The smallest HDA BAR the capsule accepts. It covers the global registers,
@@ -56,18 +56,34 @@ pub fn rings(response: u32) -> (Arc<FakeBar>, Arc<FakeBar>) {
 /// and the driver only reads it, so nothing here races.
 pub fn corb_engine(bar: &FakeBar) {
     bar.present16(RIRBWP as usize, bar.wrote16(CORBWP as usize) & 0xff);
-}
-
-/// A codec answering on the immediate command interface: the driver raises
-/// IRS_BUSY, the controller drops it and raises IRS_VALID.
-pub fn immediate_responder(bar: &FakeBar) {
-    if bar.wrote8(IRS as usize) & IRS_BUSY != 0 {
-        bar.present8(IRS as usize, IRS_VALID);
-    }
+    // The driver's waits are in milliseconds now; a model that never gives
+    // its core back starves the other tests' models past them.
+    std::thread::yield_now();
 }
 
 /// The descriptor the layout gives global stream `index`.
 pub fn descriptor(index: u16) -> StreamDescriptor {
     let mmio_offset = 0x80 + index as u32 * 0x20;
     StreamDescriptor { kind: 2, local_index: 0, global_index: index, mmio_offset }
+}
+
+/// `run`, returning once the model has made its first pass. A thread can
+/// take longer than a millisecond to start, longer than some of the
+/// driver's waits, and a model that misses the edge it reacts to proves
+/// nothing.
+pub fn live<F>(bar: &Arc<FakeBar>, device: F) -> LiveDevice
+where
+    F: Fn(&FakeBar) + Send + 'static,
+{
+    use std::sync::atomic::{AtomicBool, Ordering};
+    let up = Arc::new(AtomicBool::new(false));
+    let seen = Arc::clone(&up);
+    let dev = run(bar, move |b| {
+        device(b);
+        seen.store(true, Ordering::Release);
+    });
+    while !up.load(Ordering::Acquire) {
+        std::thread::yield_now();
+    }
+    dev
 }

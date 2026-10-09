@@ -16,7 +16,7 @@
 
 //! Carrying out one keyboard action.
 
-use crate::pm::state::{Filter, Sort, State, SCREENS, SIGKILL, SIGTERM};
+use crate::pm::state::{Filter, Sort, State, SCREENS};
 use crate::pm::ui::keys::Act;
 
 // One arm per action, so a binding added to the table without a case here fails
@@ -26,8 +26,7 @@ pub fn apply(state: &mut State, act: Act) {
         Act::Screen(i) => state.set_screen(SCREENS[i.min(SCREENS.len() - 1)]),
         Act::NextScreen => state.set_screen(state.screen.next()),
         Act::Security => state.toggle_security(),
-        Act::Terminate => state.kill_selected(SIGTERM),
-        Act::ForceKill => state.kill_selected(SIGKILL),
+        Act::Terminate => state.end_selected(),
         Act::SortCpu => state.set_sort(Sort::Cpu),
         Act::SortMem => state.set_sort(Sort::Mem),
         Act::SortName => state.set_sort(Sort::Name),

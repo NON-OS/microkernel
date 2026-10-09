@@ -21,20 +21,21 @@ mod commit_rename;
 mod create_entry;
 mod delete_entry;
 mod drag_grab;
+mod home;
 mod move_into;
 mod refresh;
-
-pub use refresh::HOME;
 mod release_keys;
 mod rename_key;
 mod same;
+mod say;
 mod start_rename;
 mod unique_name;
 
 pub use create_entry::create_entry;
-pub use delete_entry::delete_entry;
+pub use delete_entry::{ask_delete, delete_entry};
 pub use drag_grab::{grab_drag, release_drag};
+pub use home::home_path;
 pub use move_into::move_into;
 pub use refresh::refresh;
-pub use rename_key::rename_key;
+pub use rename_key::{rename_key, rename_paste};
 pub use start_rename::start_rename;

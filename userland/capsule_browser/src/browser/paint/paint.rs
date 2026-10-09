@@ -16,18 +16,37 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::paint::{box_page, chrome, document, home_page};
+use crate::browser::omnibox::Damage;
+use crate::browser::paint::{chrome, home_page, page_parts};
 use crate::browser::state::{State, View};
 
-pub fn paint(state: &State, fb: &mut PaintBuffer) {
-    chrome::paint(state, fb);
-    match state.view {
-        View::Home => home_page::paint(state, fb),
-        View::Page => match state.box_doc.as_ref() {
-            Some(doc) => box_page::paint(state, doc, fb),
-            None => document::paint(state, fb),
-        },
+/* Draw what `parts` says changed. A full paint draws the chrome, the view
+ * and the settings panel over it; otherwise each dirtied part redraws on
+ * its own: the pill for a keystroke, the toolbar for a load starting or
+ * ending, the page, a scroll, or just the hovered-link bubble. */
+pub fn paint(state: &mut State, fb: &mut PaintBuffer, parts: Damage) {
+    if parts.has(Damage::FULL) {
+        chrome::paint(state, fb);
+        match state.view {
+            View::Home => home_page::paint(state, fb),
+            View::Page => page_parts::page_full(state, fb),
+        }
+        super::short_notice::paint(state, fb);
+        crate::browser::settings::paint(state, fb);
+        return;
     }
-    // The settings panel draws last so it overlays the page.
-    crate::browser::settings::paint(state, fb);
+    if parts.has(Damage::TOOLBAR) {
+        chrome::paint(state, fb);
+    } else if parts.has(Damage::PILL) {
+        chrome::pill(state, fb);
+    }
+    match state.view {
+        View::Home if parts.has(Damage::PAGE) => home_page::paint(state, fb),
+        View::Home if parts.has(Damage::HOME_BAR) => home_page::search_bar(state, fb),
+        View::Home => {}
+        View::Page => {
+            page_parts::page_parts(state, fb, parts);
+            super::short_notice::paint(state, fb);
+        }
+    }
 }

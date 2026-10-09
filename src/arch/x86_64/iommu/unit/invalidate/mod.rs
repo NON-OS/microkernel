@@ -16,8 +16,11 @@
 
 mod all;
 mod context;
+mod every;
 mod iotlb;
+mod write_buffer;
 
-pub use all::invalidate_all;
+pub use all::{invalidate_all, invalidate_iotlb};
 pub use context::invalidate_context_global;
+pub use every::{invalidate_all_units, invalidate_iotlb_all_units};
 pub use iotlb::invalidate_iotlb_global;

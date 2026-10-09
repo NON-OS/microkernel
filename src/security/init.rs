@@ -17,8 +17,9 @@
 use crate::security::{boot, crypto, hardening, module_db, monitoring, network, policy, quantum};
 
 /* DEV NOTES eK@nonos.systems
-   Complete security subsystem initialization sequence. This must be called during kernel boot
-   after drivers are initialized but before scheduler starts. The initialization order matters:
+   Complete security subsystem initialization sequence. Nothing calls it: the boot runs
+   speculation::init from init_core_services, and a step below with no other caller does
+   not run. The order it would apply:
    1. CPU mitigations (spectre) - must be first to protect subsequent code
    2. Memory sanitization - protects heap/stack operations
    3. Cryptographic primitives - needed by key management and storage
@@ -53,7 +54,6 @@ pub fn init_all_security() -> Result<(), &'static str> {
     monitoring::leak_detection::add_sensitive_pattern("secret");
     monitoring::leak_detection::add_sensitive_pattern("token");
     network::dns_privacy::scan_dns_queries();
-    network::zkids::init_zkids()?;
     let _ = quantum::pqc::QuantumSecurityEngine::new();
     policy::session::init()?;
     Ok(())

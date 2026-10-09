@@ -14,20 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::catalog::get_bytes;
-use crate::protocol::{CHUNK_MAX, E_NOT_FOUND, E_RANGE, OP_GET_CHUNK};
+use crate::catalog::{release, with_bytes, Fetch};
+use crate::protocol::{CHUNK_MAX, E_IO, E_NOT_FOUND, E_RANGE, OP_GET_CHUNK};
 
 use super::super::respond;
 
 pub fn handle(pid: u32, index: u32, offset: u32) {
-    let bytes = match get_bytes(index) {
-        Some(b) => b,
-        None => return respond::err(pid, OP_GET_CHUNK, index, E_NOT_FOUND),
-    };
-    let start = offset as usize;
-    if start > bytes.len() {
-        return respond::err(pid, OP_GET_CHUNK, index, E_RANGE);
+    let served = with_bytes(index, |bytes| {
+        let start = offset as usize;
+        if start > bytes.len() {
+            respond::err(pid, OP_GET_CHUNK, index, E_RANGE);
+            return false;
+        }
+        let end = core::cmp::min(start + CHUNK_MAX, bytes.len());
+        respond::ok(pid, OP_GET_CHUNK, index, offset, &bytes[start..end]);
+        end == bytes.len()
+    });
+    match served {
+        // The whole wallpaper has gone out, so it is let go.
+        Ok(true) => release(index),
+        Ok(false) => {}
+        Err(Fetch::Unknown) => respond::err(pid, OP_GET_CHUNK, index, E_NOT_FOUND),
+        Err(Fetch::Unavailable) => respond::err(pid, OP_GET_CHUNK, index, E_IO),
     }
-    let end = core::cmp::min(start + CHUNK_MAX, bytes.len());
-    respond::ok(pid, OP_GET_CHUNK, index, offset, &bytes[start..end]);
 }

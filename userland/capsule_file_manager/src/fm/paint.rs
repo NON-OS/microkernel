@@ -27,7 +27,6 @@ use super::screen::Screen;
 use super::screen_home::paint_home;
 use super::screen_recents::paint_recents;
 use super::screen_search::paint_search;
-use super::screen_shared::paint_shared;
 use super::screen_tags::paint_tags;
 use super::sel_band::paint_band;
 use super::state::{Mode, State, ViewKind};
@@ -56,7 +55,6 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         Screen::Recents => paint_recents(state, fb),
         Screen::Search => paint_search(state, fb),
         Screen::Tags => paint_tags(state, fb),
-        Screen::Shared => paint_shared(state, fb),
     }
     paint_footer(state, fb);
 }

@@ -24,3 +24,9 @@ impl GrabTable {
         }
     }
 }
+
+impl Default for GrabTable {
+    fn default() -> Self {
+        Self::new()
+    }
+}

@@ -2,44 +2,51 @@
 
 ## Role
 
-`capsule_input_proof` is the input end-to-end proof capsule. It runs as a
-CPL=3 capsule, subscribes to the input router, and exercises the full
-pointer and keyboard delivery path so a boot validation can assert that a
-hardware event observed by a driver capsule reaches a focused client
-unaltered. It owns no hardware and renders nothing; its only product is a
-sequence of `MkDebug` markers and a PASS / FAIL verdict on the proof
-surface.
+`capsule_input_proof` is the input end-to-end proof capsule. It is an app on
+`nonos_app_skeleton`: it opens a plain window, subscribes to input through the
+skeleton, and records the first key press, pointer motion and click it is
+delivered, so a boot validation can assert that a hardware event observed by
+a driver capsule reaches a focused window. It owns no hardware and paints only
+a background; its product is a sequence of `MkDebug` markers ("surface
+composited", "surface ready", "key down", "pointer motion", "focus routed")
+ending in a PASS line (`src/proof/markers.rs`). The input path is described in
+[Compositor](../../docs/handbook/desktop/compositor.md).
 
 ```text
 driver.ps2_kbd0 / driver.usb_hid0
         |
         v
-input_router -- OP_SUBSCRIBE / NINP delivery --> capsule_input_proof
+input_router -- OP_SUBSCRIBE / NINP delivery --> capsule_input_proof (window)
         |
-        `-- MkDebug PASS/FAIL markers
+        `-- MkDebug markers, then PASS
 ```
 
 ## Microkernel contract
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x1919
+CAPSULE_REQUIRED_CAPS = 0x1819
+CAPSULE_OPTIONAL_CAPS = 0x100
 ```
 
-The capsule resolves the input router with `MkServiceLookup`, subscribes
-with `MkIpcSend`, receives delivery envelopes with `MkIpcRecvFrom`, and
-emits proof markers with `MkDebug`. `MkExit` is the only termination path.
+The optional bit is `Debug`. Only a `capsule-serial-debug` build grants it, so a kernel profile that
+runs this proof must compile that feature for the markers to appear.
+
+The required bits are CoreExec, IPC, Memory, GraphicsDisplayQuery and
+GraphicsSurfaceCreate, for the window. `nonos_app_skeleton::run` does the
+service lookups, the window, the subscription and the receive loop; the
+capsule's own code adds only `MkDebug` for the markers.
 
 ## Interface contract
 
-The capsule is a client, not a server. It posts a subscription, waits for
-the expected event chain, and maps the outcome to a single PASS or FAIL
-marker. It exposes no operations of its own.
+The capsule is a client, not a server. It exposes no operations of its own.
+Endpoints: `service:4790:app.input_proof`, reply `4791`; the kernel mirror is
+`src/userspace/capsule_input_proof`.
 
 ## Authority
 
-The capsule may talk to the input router over IPC and write to the debug
-surface. It has no PCI, MMIO, IRQ, DMA, PIO, filesystem, network,
-display, or focus-routing authority.
+The capsule may talk to the desktop services over IPC, draw its own window
+and, on a serial-debug build, write to the debug surface. It has no PCI,
+MMIO, IRQ, DMA, PIO, filesystem, network or focus-routing authority.
 
 ## Privacy and persistence
 

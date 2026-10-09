@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn verify(secret: &[u8; 32], transcript: &[u8], verify_data: &[u8]) -> bool {
+/*
+ * The comparison is the MAC's own constant-time one. It was a plain array
+ * equality, which stops at the first byte that differs.
+ */
+/// Whether `verify_data` is the peer's Finished over the transcript hash `th`.
+pub fn verify(secret: &[u8; 32], th: &[u8; 32], verify_data: &[u8]) -> bool {
     if verify_data.len() != 32 {
         return false;
     }
-    let Some(hash) = super::hash_sha256::hash_sha256(transcript) else { return false };
     let Some(key) = super::finished_key::finished_key(secret) else { return false };
-    let mut out = [0u8; 32];
-    let n = nonos_libc::crypto_hmac_sha256(
-        key.as_ptr(),
-        key.len(),
-        hash.as_ptr(),
-        hash.len(),
-        out.as_mut_ptr(),
-    );
-    n == 32 && out == verify_data
+    super::hmac_sha256::verify(&key, &[th], verify_data)
 }

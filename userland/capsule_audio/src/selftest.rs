@@ -16,8 +16,11 @@
 
 use alloc::vec;
 
+use nonos_libc::mk_idle_ms;
+
 use crate::mark::mark;
 use crate::mixer::Mixer;
+use crate::server::proto::{E_AGAIN, E_OK};
 use crate::server::pump::PumpState;
 use crate::server::streams::StreamTable;
 use crate::sink::Sink;
@@ -27,27 +30,53 @@ const CHUNK_BYTES: usize = 4096;
 const HALF_PERIOD: usize = 44;
 const AMPLITUDE: i16 = 0x1800;
 const REPLY_MSG: usize = 24;
+/// A period is about 43 ms; 50 waits of 10 ms outlast the queue draining.
+const AGAIN_WAITS: u32 = 50;
+const AGAIN_PAUSE_MS: u64 = 10;
 
-pub fn run(sink: &Sink) {
+/// The boot self-tests, in order. They leave the DAC running with nothing
+/// queued; stopped here, it idles until a client plays and the pump starts it.
+pub fn boot(mixer: &mut Mixer, sink: &Sink) {
+    run_mix(mixer, sink);
+    sink.stream_start(3);
+    crate::selftest_stream::run_streams(sink);
+    run(sink);
+    sink.stream_stop(4);
+}
+
+/*
+ * The stream test just before this one leaves the driver's queue full, and a
+ * write to a full queue is answered E_AGAIN. That is the driver pacing its
+ * client, not a broken sink, so the write is retried while the DAC drains;
+ * only another answer, or a queue that never drains, is a fail.
+ */
+fn run(sink: &Sink) {
     let mut pcm = vec![0u8; CHUNK_BYTES];
     fill_tone(&mut pcm);
-    if sink.write_pcm(&pcm, 1) {
+    let mut status = sink.write_pcm_status(&pcm, 1);
+    let mut waits = 0;
+    while status == E_AGAIN && waits < AGAIN_WAITS {
+        let _ = mk_idle_ms(AGAIN_PAUSE_MS);
+        waits += 1;
+        status = sink.write_pcm_status(&pcm, 1);
+    }
+    if status == E_OK {
         mark("[AUDIO] sink-ok\n");
     } else {
         mark("[AUDIO] sink-fail\n");
     }
 }
 
-pub fn run_mix(mixer: &mut Mixer, sink: &Sink) {
+fn run_mix(mixer: &mut Mixer, sink: &Sink) {
     let mut tx = [0u8; REPLY_MSG];
     let mut table = StreamTable::new();
     let mut pump = PumpState::new();
     let mut a = [0u8; TONE_MSG];
     let na = tone_request(1, 440, 20, 0x2000, &mut a);
-    crate::server::handle(&a[..na], mixer, sink, &mut table, &mut pump, &mut tx);
+    crate::server::handle(&a[..na], mixer, sink, &mut table, &mut pump, &mut tx, 0);
     let mut b = [0u8; TONE_MSG];
     let nb = tone_request(2, 660, 20, 0x2000, &mut b);
-    crate::server::handle(&b[..nb], mixer, sink, &mut table, &mut pump, &mut tx);
+    crate::server::handle(&b[..nb], mixer, sink, &mut table, &mut pump, &mut tx, 0);
 }
 
 fn tone_request(id: u32, freq: u32, ms: u32, gain: u16, out: &mut [u8]) -> usize {

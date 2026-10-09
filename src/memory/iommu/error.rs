@@ -29,4 +29,8 @@ pub enum IommuError {
     DeviceDetachFailed,
     PageTableExhausted,
     BackendFault,
+    /// IVRS describes AMD-Vi hardware and this kernel has no AMD-Vi backend.
+    AmdViNotDriven,
+    /// The firmware described neither a DMAR remapping unit nor an IVRS table.
+    NoIommu,
 }

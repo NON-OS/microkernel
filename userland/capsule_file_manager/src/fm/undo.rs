@@ -25,10 +25,35 @@ const UNDO_DEPTH: usize = 16;
 // The already-computed inverse of a completed operation, so undo never has to
 // re-derive it from a forward record.
 pub enum Op {
-    Rename { from: String, to: String },
-    Rmdir { path: String },
-    Unlink { path: String },
-    Chmod { path: String, writable: bool },
+    Rename {
+        from: String,
+        to: String,
+    },
+    Rmdir {
+        path: String,
+    },
+    Unlink {
+        path: String,
+    },
+    Chmod {
+        path: String,
+        writable: bool,
+    },
+    /// One paste, move or duplicate of several entries: undone together, in
+    /// reverse, by one press of Undo.
+    Batch(Vec<Op>),
+}
+
+impl Op {
+    /// The ops of one action as one entry: a single op stands alone, none is
+    /// nothing to push.
+    pub fn group(mut ops: Vec<Op>) -> Option<Op> {
+        match ops.len() {
+            0 => None,
+            1 => ops.pop(),
+            _ => Some(Op::Batch(ops)),
+        }
+    }
 }
 
 #[derive(Default)]
@@ -53,10 +78,6 @@ impl UndoStack {
     // that would silently fail.
     pub fn clear(&mut self) {
         self.ops.clear();
-    }
-
-    pub fn len(&self) -> usize {
-        self.ops.len()
     }
 
     pub fn is_empty(&self) -> bool {

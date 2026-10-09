@@ -14,41 +14,58 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::{String, ToString};
+use crate::browser::css::selector::{Pseudo, Simple};
 
-use crate::browser::css::selector::Simple;
+use super::compound_part::Compound;
 
-// Scan "tag.class#id" into the simple's tag, id and class list. :root keys
-// on the html element regardless of a written tag.
-pub(super) fn parse_compound(tok: &str, pseudo_root: bool, s: &mut Simple) {
-    let b = tok.as_bytes();
-    let mut i = 0;
-    while i < b.len() && b[i] != b'.' && b[i] != b'#' {
-        i += 1;
+use super::attr_test::attr;
+use super::compound_part::id;
+use super::cursor::Cur;
+use super::ident::ident;
+use super::pseudo::pseudo;
+use super::spec::Spec;
+use super::type_sel::type_selector;
+
+/* One compound selector, scanned in a single pass: an optional type or
+ * universal selector first, then ids, classes, attributes, pseudo-classes
+ * and the nesting selector in any order, then at most one pseudo-element
+ * with what may follow it. A pseudo segment ends where its name (and any
+ * balanced argument) ends, so classes and ids after it still belong to the
+ * compound. None when nothing is here or something malformed is. */
+pub(super) fn compound(c: &mut Cur) -> Option<Compound> {
+    let mut out = Compound { simple: Simple::empty(), spec: Spec::default(), element: 0 };
+    let mut any = type_selector(c, &mut out)?;
+    loop {
+        c.comments();
+        let Some(b) = c.peek() else { break };
+        if out.element != 0 && b != b':' {
+            break;
+        }
+        match b {
+            b'#' => {
+                c.i += 1;
+                id(&mut out.simple, ident(c)?);
+                out.spec.a += 1;
+            }
+            b'.' => {
+                c.i += 1;
+                out.simple.classes.push(ident(c)?);
+                out.spec.b += 1;
+            }
+            b'[' => {
+                attr(c, &mut out.simple)?;
+                out.spec.b += 1;
+            }
+            /* The nesting selector outside any nested rule is :scope, with
+             * no specificity of its own. */
+            b'&' => {
+                c.i += 1;
+                out.simple.pseudo.push(Pseudo::Scope);
+            }
+            b':' => pseudo(c, &mut out)?,
+            _ => break,
+        }
+        any = true;
     }
-    s.tag = if pseudo_root {
-        Some(String::from("html"))
-    } else {
-        match &tok[..i] {
-            "" | "*" => None,
-            t => Some(t.to_ascii_lowercase()),
-        }
-    };
-    while i < b.len() {
-        let marker = b[i];
-        i += 1;
-        let start = i;
-        while i < b.len() && b[i] != b'.' && b[i] != b'#' {
-            i += 1;
-        }
-        let name = &tok[start..i];
-        if name.is_empty() {
-            continue;
-        }
-        if marker == b'#' {
-            s.id = Some(name.to_string());
-        } else if s.classes.len() < 16 {
-            s.classes.push(name.to_string());
-        }
-    }
+    any.then_some(out)
 }

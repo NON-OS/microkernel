@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod entry;
+pub mod folders;
 pub mod kind;
 pub mod media;
 pub mod probe;
+pub mod says;
 pub mod thumb;
 pub mod scan;

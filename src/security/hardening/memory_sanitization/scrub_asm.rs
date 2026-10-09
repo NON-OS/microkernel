@@ -20,7 +20,7 @@
 
 use core::arch::global_asm;
 
-global_asm!(include_str!("scrub.S"));
+global_asm!(include_str!("../../../arch/x86_64/asm/scrub/scrub.S"));
 
 extern "C" {
     /// Zero `len` bytes at `ptr` with architecturally ordered stores.
@@ -28,7 +28,7 @@ extern "C" {
     /// # Safety
     /// `ptr` must be valid for writes of `len` bytes. The routine writes
     /// exactly that range and touches no other memory.
-    pub fn nonos_scrub_bytes(ptr: *mut u8, len: usize);
+    pub(super) fn nonos_scrub_bytes(ptr: *mut u8, len: usize);
 }
 
 #[cfg(test)]

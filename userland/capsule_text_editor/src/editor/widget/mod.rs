@@ -19,20 +19,18 @@
 
 mod docrow;
 mod docrow_hit;
-mod dropdown;
 mod navlist;
 mod navlist_hit;
-mod searchbox;
 mod toggle;
 mod toggle_hit;
 mod truncate;
 
 pub(in crate::editor) use docrow::{paint_docrow, DocRowStyle};
 pub(in crate::editor) use docrow_hit::docrow_hit;
-pub(in crate::editor) use dropdown::{dropdown_w, paint_dropdown, DropdownStyle};
+
 pub(in crate::editor) use navlist::{nav_row_h, paint_navlist, NavStyle};
 pub(in crate::editor) use navlist_hit::navlist_hit;
-pub(in crate::editor) use searchbox::{paint_searchbox, searchbox_hit, SearchStyle};
+
 pub(in crate::editor) use toggle::paint_toggle;
 pub(in crate::editor) use toggle_hit::toggle_hit;
 pub(in crate::editor) use truncate::truncate_to_width;

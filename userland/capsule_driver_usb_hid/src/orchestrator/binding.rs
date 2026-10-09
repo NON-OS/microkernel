@@ -21,16 +21,29 @@ use crate::xhci::{alloc_transfer_ring, control_transfer};
 
 use super::enumerate::HidEndpoint;
 
+const SET_IDLE: u8 = 0x0A;
+const SET_PROTOCOL: u8 = 0x0B;
+
 pub fn configure_binding(
     xhci_port: u32,
     slot: u8,
+    root_port: u8,
     binding: HidBinding,
     out: &mut Vec<HidEndpoint>,
 ) {
+    let iface = binding.interface_number as u16;
+    let mut dummy = [0u8; 0];
     if matches!(binding.kind, HidKind::Keyboard | HidKind::Mouse) {
-        let iface = binding.interface_number as u16;
-        let mut dummy = [0u8; 0];
-        let _ = control_transfer(xhci_port, slot, 0x21, 0x0B, 0, iface, 0, &mut dummy);
+        // SET_PROTOCOL(boot): the reports are then the fixed boot layouts the
+        // decoders read. A device that refuses it is still bound; the
+        // controller driver recovers the stalled pipe.
+        let _ = control_transfer(xhci_port, slot, 0x21, SET_PROTOCOL, 0, iface, 0, &mut dummy);
+    }
+    if binding.kind == HidKind::Keyboard {
+        // SET_IDLE(0): report on change only, as Linux asks of keyboards.
+        // Held keys repeat from here, so the default 500 ms resend is noise;
+        // many devices STALL the request, which is fine.
+        let _ = control_transfer(xhci_port, slot, 0x21, SET_IDLE, 0, iface, 0, &mut dummy);
     }
     let Ok(dci) = alloc_transfer_ring(
         xhci_port,
@@ -43,6 +56,7 @@ pub fn configure_binding(
     };
     out.push(HidEndpoint {
         port: xhci_port,
+        root_port,
         slot,
         dci,
         kind: binding.kind,

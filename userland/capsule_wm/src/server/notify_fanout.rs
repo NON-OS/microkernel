@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_send_to_pid;
+use nonos_libc::{mk_ipc_send_to_pid, mk_yield};
 
+use crate::protocol::notify_send::offer;
 use crate::protocol::{encode_notify, NOTIFY_LEN};
 use crate::state::Context;
 
@@ -32,7 +33,11 @@ pub fn broadcast(
     let mut stale = [0u32; crate::state::subscriptions::MAX_SUBSCRIBERS];
     let mut stale_count = 0usize;
     for pid in ctx.subscriptions.iter() {
-        if mk_ipc_send_to_pid(pid, frame.as_ptr(), frame.len()) < 0 && stale_count < stale.len() {
+        let send = || mk_ipc_send_to_pid(pid, frame.as_ptr(), frame.len());
+        let gone = offer(send, || {
+            let _ = mk_yield();
+        });
+        if gone && stale_count < stale.len() {
             stale[stale_count] = pid;
             stale_count += 1;
         }

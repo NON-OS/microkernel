@@ -30,25 +30,34 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkBatteryStatus
         | SyscallNumber::MkProcStat
         | SyscallNumber::MkAttestStatus
+        | SyscallNumber::MkAttestPolicy
+        | SyscallNumber::MkBootAttest
         | SyscallNumber::MkCapCheck => caps.is_valid(),
 
         /*
-         * An attestation and the entries behind it are readable by any capsule
-         * holding a valid token, because neither carries authority. The
-         * document's weight is a TPM signature over a challenge the caller did
-         * not choose, and the entries are checked against it; a capsule that
-         * alters either produces something a verifier rejects. Restricting them
-         * would hide from a program what the machine already tells strangers.
+         * The document is signed by the TPM's attestation key, which derives
+         * from the endorsement seed under a fixed template: the same key on
+         * every boot and across a reinstall. Whoever holds a quote holds a
+         * hardware identifier that outlives everything else this machine
+         * forgets. So it goes only to a capsule that reads the registry, and
+         * never to one that can reach the network itself; the quote leaves
+         * the machine only when the user carries it out.
          */
-        SyscallNumber::MkAttestDoc => caps.is_valid(),
+        SyscallNumber::MkAttestDoc => caps.can_attest_doc(),
 
         /*
          * The entries name every running capsule with its measurement and
-         * its capability mask. That is the machine's inventory, so reading it
-         * takes a capability of its own rather than any valid token; the
-         * programs that render a receipt hold it.
+         * capability mask, the machine's inventory, so reading them takes a
+         * capability of its own, which the programs that render a receipt hold.
          */
         SyscallNumber::MkAttestEntries => caps.can_attest_read(),
+        SyscallNumber::MkLogTail => caps.can_attest_read(),
+        /* The witness of the anonymous device proof, for nonos.prove alone. */
+        SyscallNumber::MkDeviceSecret => caps.can_device_secret(),
+        /* Its boot slots, which narrow down the release: for the prover alone too. */
+        SyscallNumber::MkBootSlots => caps.can_device_secret(),
+        /* The EK and the AK name this machine for its TPM's life: the prover's. */
+        SyscallNumber::MkEnroll => caps.can_device_secret(),
         /*
          * The bytes of the image this machine booted, for writing to a
          * disk. Public bytes, but a hundred megabytes of them; the same
@@ -64,7 +73,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          */
         SyscallNumber::MkDevRootRequest
         | SyscallNumber::MkDevRootConfirm
-        | SyscallNumber::MkDevRootLocal => caps.can_enrol_dev_root(),
+        | SyscallNumber::MkDevRootLocal
+        | SyscallNumber::MkLocalConsent
+        | SyscallNumber::MkLocalRestore => caps.can_enrol_dev_root(),
 
         SyscallNumber::MkTimeAdjust => caps.can_set_time(),
 
@@ -104,9 +115,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkServiceLookup
         | SyscallNumber::MkServiceRegister => caps.can_ipc(),
         /*
-         * The handlers ask for Admin again and refuse to grant a bit the
-         * caller lacks. The table asks first, so a capsule without Admin is
-         * turned away before the handler runs.
+         * The handlers ask for Admin again and refuse a bit the caller lacks;
+         * the table asks first, so a capsule without Admin never reaches them.
          */
         SyscallNumber::MkCapGrant | SyscallNumber::MkCapRevoke => caps.can_admin(),
 
@@ -126,8 +136,14 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkPioRelease => caps.can_pio(),
 
         SyscallNumber::MkDebug => caps.can_debug(),
-        SyscallNumber::MkStdoutWrite => caps.can_ipc(),
-        SyscallNumber::MkStoreWrite => caps.can_store_write(),
+        SyscallNumber::MkStdoutWrite | SyscallNumber::MkPrivateWrite => caps.can_ipc(),
+        SyscallNumber::MkStoreWrite | SyscallNumber::MkStoreRead => caps.can_store_write(),
+        SyscallNumber::MkDataImport => caps.can_store_write() && caps.can_open_files(),
+        SyscallNumber::MkDataPassphrase => caps.can_store_write() && caps.can_open_files(),
+        SyscallNumber::MkDataStat | SyscallNumber::MkDataRead => caps.can_open_files(),
+        SyscallNumber::MkDataFeedBegin
+        | SyscallNumber::MkDataFeed
+        | SyscallNumber::MkDataRemove => caps.can_stream_import(),
 
         /*
          * Hosting unverified code is one right, and it covers every call
@@ -138,6 +154,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkForeignStart
         | SyscallNumber::MkForeignWait
         | SyscallNumber::MkForeignReply
+        | SyscallNumber::MkForeignContext
+        | SyscallNumber::MkForeignSignal
+        | SyscallNumber::MkForeignInterrupt
         | SyscallNumber::MkPeerMap
         | SyscallNumber::MkPeerCopy
         | SyscallNumber::MkPeerProtect
@@ -153,15 +172,14 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          */
         SyscallNumber::MkLocalSign => caps.can_local_sign(),
 
-        /*
-         * Asking is not minting.
-         */
+        /* Asking is not minting. */
         SyscallNumber::MkLocalVerify => caps.can_foreign_exec(),
 
-        /*
-         * The right to ask, which is not the right to host.
-         */
-        SyscallNumber::MkAppInstall => caps.can_app_install(),
+        /* The right to ask, which is not the right to host. */
+        SyscallNumber::MkAppInstall
+        | SyscallNumber::MkAppLaunch
+        | SyscallNumber::MkAppInstallStatus
+        | SyscallNumber::MkAppUninstall => caps.can_app_install(),
 
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare
@@ -193,6 +211,13 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          * baked, attested set can be named.
          */
         SyscallNumber::MkToolRun => caps.can_ipc(),
+        /*
+         * Saying what a child's streams are on is part of driving its stdio,
+         * so it needs what running the child needed. Asking about one's own
+         * streams reveals nothing about anyone else.
+         */
+        SyscallNumber::MkTtySet => caps.can_ipc(),
+        SyscallNumber::MkTtyQuery => true,
 
         _ => return None,
     })

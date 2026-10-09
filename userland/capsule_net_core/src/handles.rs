@@ -14,45 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod table;
+
+use alloc::vec::Vec;
+
 use smoltcp::iface::SocketHandle;
 use spin::Mutex;
 
+use table::Handles;
+
 pub const MAX_SOCKETS: usize = 32;
 
-static TABLE: Mutex<[Option<(u32, SocketHandle)>; MAX_SOCKETS]> = Mutex::new([None; MAX_SOCKETS]);
+static TABLE: Mutex<Handles<SocketHandle, MAX_SOCKETS>> = Mutex::new(Handles::new());
 
-// Handles are 1-based: 0 is reserved as the null handle so a caller can use zero
-// as a sentinel (net.sockets stores a transport handle and treats 0 as "not
-// connected"). The external handle is `slot index + 1`; get/free undo the offset.
 pub fn alloc(owner_pid: u32, handle: SocketHandle) -> Option<u32> {
-    let mut table = TABLE.lock();
-    for (i, slot) in table.iter_mut().enumerate() {
-        if slot.is_none() {
-            *slot = Some((owner_pid, handle));
-            return Some(i as u32 + 1);
-        }
-    }
-    None
+    TABLE.lock().alloc(owner_pid, handle)
 }
 
 pub fn get(index: u32, sender_pid: u32) -> Option<SocketHandle> {
-    if index == 0 {
-        return None;
-    }
-    let table = TABLE.lock();
-    table
-        .get((index - 1) as usize)
-        .and_then(|s| s.and_then(|(owner, h)| if owner == sender_pid { Some(h) } else { None }))
+    TABLE.lock().get(index, sender_pid)
 }
 
 pub fn free(index: u32, sender_pid: u32) {
-    if index == 0 {
-        return;
-    }
-    let mut table = TABLE.lock();
-    if let Some(slot) = table.get_mut((index - 1) as usize) {
-        if matches!(slot, Some((owner, _)) if *owner == sender_pid) {
-            *slot = None;
-        }
-    }
+    TABLE.lock().free(index, sender_pid)
+}
+
+/// Take out the connections of every client `alive` says has ended.
+pub fn take_ended(alive: impl Fn(u32) -> bool) -> Vec<SocketHandle> {
+    TABLE.lock().take_ended(alive)
+}
+
+/// Forget every connection. A rebuilt stack has a new socket set: a handle
+/// from the old one names some other client's socket in it, or a socket of
+/// the wrong kind, or none, and smoltcp panics on the last two.
+pub fn forget_all() {
+    TABLE.lock().forget_all()
 }

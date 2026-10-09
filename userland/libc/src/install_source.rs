@@ -23,6 +23,16 @@ use crate::syscall::{call_raw, N_MK_INSTALL_SOURCE};
 
 pub const INSTALL_SOURCE_LOADER_IMAGE: u64 = 1;
 pub const INSTALL_SOURCE_KERNEL_IMAGE: u64 = 2;
+/* Not an image: the loader's forty-byte record of the partition it was
+ * read from, which `nonos_disk::BootPartition` reads. */
+pub const INSTALL_SOURCE_BOOT_MEDIA: u64 = 3;
+/* The records the kernel checks the loader against, `bootloader.trailer`
+ * and `boot_root.approval` beside the kernel on the ESP. */
+pub const INSTALL_SOURCE_BOOT_TRAILER: u64 = 5;
+pub const INSTALL_SOURCE_BOOT_ROOT_RECORD: u64 = 6;
+/* The release's approval of the kernel, `kernel.approval`; the kernel holds
+ * none when the running image had none. */
+pub const INSTALL_SOURCE_KERNEL_APPROVAL: u64 = 0x100;
 
 /// Copy up to `out.len()` bytes of image `kind` starting at `offset`. Returns
 /// the bytes written, zero at the end of the image, or a negative errno. The

@@ -14,11 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::command::output::Output;
+use alloc::vec::Vec;
 
+use crate::command::output::Output;
+use crate::term::identity::username;
+
+/*
+ * The name first and bare, as `whoami` prints it anywhere, then the capsule.
+ * Who signed it is the kernel's record of this process, not a line the binary
+ * carries about itself.
+ */
 pub fn run(out: &mut Output<'_>, _argv: &[&[u8]]) {
+    out.writeln(username());
     out.writeln(b"  capsule: app.terminal");
-    out.writeln(b"  namespace: systems.nonos.app.terminal0");
+    out.writeln(b"  namespace: systems.nonos.app.terminal");
     out.writeln(b"  cpl: 3 (user)");
-    out.writeln(b"  trust: signed by NONOS publisher cert (Ed25519+ML-DSA-65)");
+    let mut line = Vec::from(&b"  signed by: "[..]);
+    line.extend_from_slice(super::receipt::own_line());
+    out.writeln(&line);
 }

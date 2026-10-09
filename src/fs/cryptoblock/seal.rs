@@ -24,6 +24,13 @@ pub fn seal(
     lba: u64,
     plain: &[u8],
 ) -> Result<[u8; SECTOR_BYTES], CryptoBlockError> {
+    /*
+     * One sector is the unit of work of every volume read and write, which
+     * run inside system calls with interrupts masked and can span thousands
+     * of sectors. Answer any TLB shootdown here; only kernel buffers are in
+     * hand, so nothing translated from user memory is held across it.
+     */
+    crate::smp::serve_shootdowns();
     if plain.len() != PLAIN_BLOCK_BYTES {
         return Err(CryptoBlockError::InvalidLength);
     }

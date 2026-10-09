@@ -16,6 +16,12 @@
 
 use super::fadt_struct::Fadt;
 
+// Each X_ field is used only when the table is long enough to hold it whole
+// (field offset plus 12 bytes, ACPI 6.5 table 5.9). A `Fadt` read out of a
+// short table holds bytes past its end, so these checks are what keep them
+// out. The kernel's own parse goes through `hw::fadt_decode`, which never
+// reads past the table at all.
+
 impl Fadt {
     pub fn dsdt_address(&self) -> u64 {
         if self.header.length >= 148 && self.x_dsdt != 0 {
@@ -32,49 +38,49 @@ impl Fadt {
         }
     }
     pub fn pm1a_event_address(&self) -> u64 {
-        if self.header.length >= 172 && self.x_pm1a_event_block.is_valid() {
+        if self.header.length >= 160 && self.x_pm1a_event_block.is_valid() {
             self.x_pm1a_event_block.address
         } else {
             self.pm1a_event_block as u64
         }
     }
     pub fn pm1b_event_address(&self) -> u64 {
-        if self.header.length >= 184 && self.x_pm1b_event_block.is_valid() {
+        if self.header.length >= 172 && self.x_pm1b_event_block.is_valid() {
             self.x_pm1b_event_block.address
         } else {
             self.pm1b_event_block as u64
         }
     }
     pub fn pm1a_control_address(&self) -> u64 {
-        if self.header.length >= 196 && self.x_pm1a_control_block.is_valid() {
+        if self.header.length >= 184 && self.x_pm1a_control_block.is_valid() {
             self.x_pm1a_control_block.address
         } else {
             self.pm1a_control_block as u64
         }
     }
     pub fn pm1b_control_address(&self) -> u64 {
-        if self.header.length >= 208 && self.x_pm1b_control_block.is_valid() {
+        if self.header.length >= 196 && self.x_pm1b_control_block.is_valid() {
             self.x_pm1b_control_block.address
         } else {
             self.pm1b_control_block as u64
         }
     }
     pub fn pm_timer_address(&self) -> u64 {
-        if self.header.length >= 232 && self.x_pm_timer_block.is_valid() {
+        if self.header.length >= 220 && self.x_pm_timer_block.is_valid() {
             self.x_pm_timer_block.address
         } else {
             self.pm_timer_block as u64
         }
     }
     pub fn gpe0_address(&self) -> u64 {
-        if self.header.length >= 244 && self.x_gpe0_block.is_valid() {
+        if self.header.length >= 232 && self.x_gpe0_block.is_valid() {
             self.x_gpe0_block.address
         } else {
             self.gpe0_block as u64
         }
     }
     pub fn gpe1_address(&self) -> u64 {
-        if self.header.length >= 256 && self.x_gpe1_block.is_valid() {
+        if self.header.length >= 244 && self.x_gpe1_block.is_valid() {
             self.x_gpe1_block.address
         } else {
             self.gpe1_block as u64

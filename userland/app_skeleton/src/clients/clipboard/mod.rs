@@ -16,6 +16,8 @@
 
 mod copy;
 mod paste;
+mod paste_line;
 
 pub use copy::clipboard_copy;
 pub use paste::clipboard_paste;
+pub use paste_line::clipboard_paste_line;

@@ -34,12 +34,15 @@ impl Terminal {
         if let Some(outcome) = self.rail_click(event) {
             return outcome;
         }
+        if let Some(outcome) = self.body_pointer(event) {
+            return outcome;
+        }
         let outcome = on_event(self.cur(), event);
         self.drain_chrome_req();
         outcome
     }
 
-    fn drain_chrome_req(&mut self) {
+    pub(super) fn drain_chrome_req(&mut self) {
         let before = (self.theme, self.font_scale);
         let s = self.cur();
         let theme = s.theme_req.take();

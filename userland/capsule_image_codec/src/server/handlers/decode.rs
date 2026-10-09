@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
-use alloc::vec::Vec;
-use nonos_libc::{mk_surface_attach, mk_surface_release, SurfaceDescriptor};
-use nonos_toolkit::image::{bmp, gif, jpeg, lz4_raw, png, types::{DecodeError, ImageSize}};
+use nonos_libc::{mk_surface_attach, mk_surface_release, mk_uptime_ms, SurfaceDescriptor};
+use nonos_toolkit::image::types::ImageSize;
 
-use crate::protocol::{DECODE_LZ4_PREFIX_LEN, DECODE_REQ_LEN, DECODE_RESP_LEN, E_BAD_LEN, E_INVAL, E_NOMEM, E_UNSUPPORTED, HDR_LEN, OP_DECODE_BMP, OP_DECODE_GIF, OP_DECODE_JPEG, OP_DECODE_LZ4_RAW, OP_DECODE_PNG, Request, STATUS_LEN};
+use crate::protocol::{DECODE_REQ_LEN, DECODE_RESP_LEN, E_BAD_LEN, HDR_LEN, Request, STATUS_LEN};
+use crate::server::outputs::{Output, Outputs};
 use crate::server::{handlers::surface::register_argb_surface, respond};
 
-const MAX_OUT_PIXELS: usize = 16_777_216;
+use super::decode_sized::decode_sized;
 
-pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
+pub fn handle(outputs: &mut Outputs, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() < DECODE_REQ_LEN {
         return fail(sender_pid, req, E_BAD_LEN, tx);
     }
@@ -40,59 +39,23 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let result = decode_sized(req.op, img);
     let _ = mk_surface_release(in_handle);
     match result {
-        Ok((pixels, size)) => finish(sender_pid, req, &pixels, size, tx),
+        Ok((pixels, size)) => finish(outputs, sender_pid, req, &pixels, size, tx),
         Err(e) => fail(sender_pid, req, e, tx),
     }
 }
 
 fn fail(sender_pid: u32, req: &Request, errno: i32, tx: &mut [u8]) { let _ = respond::status(sender_pid, req, errno, tx); }
 
-fn peek_size(op: u16, img: &[u8]) -> Result<ImageSize, i32> {
-    let r = match op {
-        OP_DECODE_PNG => png::png_dimensions(img),
-        OP_DECODE_BMP => bmp::bmp_dimensions(img),
-        OP_DECODE_GIF => gif::gif_dimensions(img),
-        OP_DECODE_JPEG => jpeg::parse_jpeg_header(img).map(|(s, _)| s),
-        _ => return Err(E_INVAL),
-    };
-    r.map_err(map_decode_error)
-}
-
-fn decode_into(op: u16, img: &[u8], out: &mut [u32]) -> Result<ImageSize, DecodeError> {
-    match op {
-        OP_DECODE_PNG => png::decoder::decode_png_argb8888(img, out),
-        OP_DECODE_BMP => bmp::decode_bmp_argb8888(img, out),
-        OP_DECODE_GIF => gif::decode_gif_argb8888(img, out),
-        OP_DECODE_JPEG => jpeg::decode_jpeg_argb8888(img, out),
-        OP_DECODE_LZ4_RAW => decode_lz4(img, out),
-        _ => Err(DecodeError::Unsupported),
-    }
-}
-
-fn decode_sized(op: u16, img: &[u8]) -> Result<(Vec<u32>, ImageSize), i32> {
-    let size = if op == OP_DECODE_LZ4_RAW {
-        if img.len() < DECODE_LZ4_PREFIX_LEN { return Err(E_BAD_LEN); }
-        let w = u32::from_le_bytes([img[0], img[1], img[2], img[3]]);
-        let h = u32::from_le_bytes([img[4], img[5], img[6], img[7]]);
-        ImageSize::new(w, h).map_err(map_decode_error)?
-    } else {
-        peek_size(op, img)?
-    };
+fn finish(outputs: &mut Outputs, sender_pid: u32, req: &Request, pixels: &[u32], size: ImageSize, tx: &mut [u8]) {
     let count = size.pixel_count() as usize;
-    if count == 0 || count > MAX_OUT_PIXELS {
-        return Err(E_NOMEM);
-    }
-    let mut pixels = vec![0u32; count];
-    let decoded = decode_into(op, img, &mut pixels).map_err(map_decode_error)?;
-    Ok((pixels, decoded))
-}
-
-fn finish(sender_pid: u32, req: &Request, pixels: &[u32], size: ImageSize, tx: &mut [u8]) {
-    let count = size.pixel_count() as usize;
-    let (handle, stride, byte_len) = match register_argb_surface(&pixels[..count], size) {
+    let (handle, stride, byte_len, (base, len)) = match register_argb_surface(&pixels[..count], size) {
         Ok(v) => v,
         Err(e) => return fail(sender_pid, req, e, tx),
     };
+    let made = Output { client: sender_pid, base, len, made_ms: mk_uptime_ms() };
+    if let Some(oldest) = outputs.hold(made) {
+        crate::server::release_output(oldest);
+    }
     let o = HDR_LEN + STATUS_LEN;
     tx[o..o + 8].copy_from_slice(&handle.to_le_bytes());
     tx[o + 8..o + 12].copy_from_slice(&size.width.to_le_bytes());
@@ -103,13 +66,3 @@ fn finish(sender_pid: u32, req: &Request, pixels: &[u32], size: ImageSize, tx: &
     let _ = respond::payload(sender_pid, req, DECODE_RESP_LEN, tx);
 }
 
-fn decode_lz4(body: &[u8], out: &mut [u32]) -> Result<ImageSize, DecodeError> {
-    if body.len() < DECODE_LZ4_PREFIX_LEN { return Err(DecodeError::Truncated); }
-    let width = u32::from_le_bytes(body[0..4].try_into().map_err(|_| DecodeError::Truncated)?);
-    let height = u32::from_le_bytes(body[4..8].try_into().map_err(|_| DecodeError::Truncated)?);
-    lz4_raw::decode_lz4_raw_argb8888(width, height, &body[8..], out)
-}
-
-fn map_decode_error(err: DecodeError) -> i32 {
-    match err { DecodeError::BadMagic => E_INVAL, DecodeError::Unsupported => E_UNSUPPORTED, DecodeError::BadDimensions => E_BAD_LEN, DecodeError::OutputTooSmall => E_BAD_LEN, DecodeError::Truncated => E_BAD_LEN }
-}

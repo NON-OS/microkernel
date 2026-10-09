@@ -16,14 +16,6 @@
 
 use super::super::FieldElement;
 
-pub(crate) const D: FieldElement = FieldElement([
-    0x34dca135978a3,
-    0x1a8283b156ebd,
-    0x5e7a26001c029,
-    0x739c663a03cbb,
-    0x52036cee2b6ff,
-]);
-
 pub(crate) const D2: FieldElement = FieldElement([
     0x69b9426b2f159,
     0x35050762add7a,

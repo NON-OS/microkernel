@@ -22,8 +22,9 @@ returns `Unsupported` loudly; nothing pretends.
 | Surface | State | Backing |
 |---|---|---|
 | heap (`alloc`) | real | dlmalloc over `MMAP`, spin-locked (thread-safe) |
-| `println!` / stdout / stderr | real | `MDBG` serial sink, mirrored to `proc.<pid>` inbox |
-| stdin | real | blocking read of this process's kernel stdin channel (`MSRD`), fed by a launcher (the terminal); no EOF-on-close yet |
+| `println!` / stdout / stderr | real | `MSOW` (MkStdoutWrite) in 240-byte chunks: mirrored to the `proc.<pid>` inbox, and written to the serial console only when the capsule holds Debug |
+| stdin | real | `MSRD` reads this process's kernel stdin channel, fed by a launcher (the terminal). The kernel read does not block: an empty read yields (`MYLD`) and asks again, and a negative return reads as end of input; no EOF-on-close yet |
+| `IsTerminal` | real | `MTTQ`: true for a standard stream the launcher said reaches its screen (`MTTY`); a stage feeding a pipe or a file, or a process no terminal started, gets false |
 | `args` | real | `MKAR` |
 | env vars | real, process-local | in-process map; nothing is inherited across spawns yet |
 | `current_dir` | fixed `/` | capsules see the VFS from its root; `chdir` unsupported |
@@ -44,12 +45,12 @@ returns `Unsupported` loudly; nothing pretends.
 | TLS destructors | real | dtor list run at thread exit / runtime cleanup |
 | `Mutex`/`RwLock`/`Condvar`/`Once`/parking | real | std futex backends over the kernel wait queue (`MFTW`/`MFTK`): a waiter sleeps and a waker wakes it directly, so contention no longer spins a core. Each wait is capped so a raced wakeup self-heals |
 | mpsc channels | real | thread parking above |
-| `available_parallelism` | 1 | no core-count syscall yet; honest lower bound |
+| `available_parallelism` | real | the cores online from the `MPST` (MkProcStat) header; one when the kernel refuses or answers out of range |
 | thread names | no-op | nowhere to put them yet |
 | detached thread stacks | leaked | join frees; without join nobody learns when the task dies |
-| net `TcpStream` connect/read/write | real | `net.sockets` IPC through the userland stack |
+| net `TcpStream` connect/read/write | real | `net.sockets` IPC through the userland stack, always a direct socket: this layer does not read the system's chosen network (Nym, Anyone or Direct) |
 | net `TcpListener`, `UdpSocket` core | real | same service; IPv4 only |
-| DNS (`ToSocketAddrs` by name) | real | `net.dns` |
+| DNS (`ToSocketAddrs` by name) | real | `net.dns`, a lookup in the clear |
 | socket options/timeouts/peek/nonblocking | mostly no-op | the sockets protocol does not carry them yet |
 | IPv6, multicast | unsupported | userland stack is IPv4 |
 | `process::Command` (spawn subprocesses) | unsupported | capsule spawn is the installer's job, by design |
@@ -80,8 +81,12 @@ non-ASCII letters.
 ## Proofs
 
 - Host: `userland/fs_proofs` includes the real VFS store source and covers
-  the seek semantics (`cargo test`, 84 green).
+  the seek semantics among its tests (`cargo test`; `nix flake check` runs it
+  as `proofs-fs_proofs`).
 - Boot: `capsule_std_proof` prints one PASS/FAIL line per subsystem
   (crates.io code, threads+channels+mutex, env, fs incl. seek, TCP socket
   against a host responder) and is spawned through the signed, attested
   capsule path.
+
+The handbook page for this layer is
+[userland/libc-and-std.md](../../docs/handbook/userland/libc-and-std.md).

@@ -14,51 +14,59 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::End;
+
+/// LSB-first bit reader over a 64-bit buffer. `cnt` bits of `buf` are
+/// valid; the bits above them are zero or already the next input bits, so
+/// a refill can OR a whole little-endian word in without masking.
+#[derive(Clone, Copy)]
 pub struct Bits<'a> {
-    d: &'a [u8],
-    byte: usize,
-    bit: u32,
+    pub(super) d: &'a [u8],
+    pub(super) pos: usize,
+    pub buf: u64,
+    pub cnt: u32,
 }
 
 impl<'a> Bits<'a> {
     pub fn new(d: &'a [u8]) -> Self {
-        Bits { d, byte: 0, bit: 0 }
+        Bits { d, pos: 0, buf: 0, cnt: 0 }
     }
 
-    pub fn bit(&mut self) -> Option<u32> {
-        let b = *self.d.get(self.byte)?;
-        let v = (b >> self.bit) & 1;
-        self.bit += 1;
-        if self.bit == 8 {
-            self.bit = 0;
-            self.byte += 1;
+    /// Tops the buffer up to at least 56 bits, or to all the input has left.
+    #[inline(always)]
+    pub fn refill(&mut self) {
+        if let Some(w) = self.d.get(self.pos..self.pos.wrapping_add(8)) {
+            let w = u64::from_le_bytes([w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7]]);
+            self.buf |= w << self.cnt;
+            self.pos += ((63 - self.cnt) >> 3) as usize;
+            self.cnt |= 56;
+            return;
         }
-        Some(v as u32)
-    }
-
-    pub fn bits(&mut self, n: u32) -> Option<u32> {
-        let mut v = 0u32;
-        for i in 0..n {
-            v |= self.bit()? << i;
-        }
-        Some(v)
-    }
-
-    pub fn align(&mut self) {
-        if self.bit != 0 {
-            self.bit = 0;
-            self.byte += 1;
+        while self.cnt <= 56 {
+            let Some(&b) = self.d.get(self.pos) else { return };
+            self.buf |= u64::from(b) << self.cnt;
+            self.pos += 1;
+            self.cnt += 8;
         }
     }
 
-    /// Bytes consumed so far, rounded up to a whole byte.
-    pub fn consumed(&self) -> usize {
-        self.byte + usize::from(self.bit != 0)
+    #[inline(always)]
+    pub fn drop_bits(&mut self, n: u32) {
+        self.buf >>= n;
+        self.cnt -= n;
     }
 
-    pub fn take(&mut self) -> Option<u8> {
-        let b = *self.d.get(self.byte)?;
-        self.byte += 1;
-        Some(b)
+    /// The next `n` bits (at most 32), or `Truncated` when the input ends.
+    #[inline(always)]
+    pub fn bits(&mut self, n: u32) -> Result<u32, End> {
+        if self.cnt < n {
+            self.refill();
+            if self.cnt < n {
+                return Err(End::Truncated);
+            }
+        }
+        let v = (self.buf & ((1u64 << n) - 1)) as u32;
+        self.drop_bits(n);
+        Ok(v)
     }
 }

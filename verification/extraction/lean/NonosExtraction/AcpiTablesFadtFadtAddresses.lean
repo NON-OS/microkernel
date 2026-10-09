@@ -115,7 +115,7 @@ structure arch.x86_64.acpi.tables.fadt.fadt_struct.Fadt where
   hypervisor_vendor_id : Std.U64
 
 /-- [nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_addresses::{nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_struct::Fadt}::dsdt_address]:
-    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 20:4-26:5
+    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 26:4-32:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.dsdt_address
   (self : arch.x86_64.acpi.tables.fadt.fadt_struct.Fadt) : Result Std.U64 := do
@@ -127,7 +127,7 @@ def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.dsdt_address
   else ok (UScalar.cast .U64 self.dsdt)
 
 /-- [nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_addresses::{nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_struct::Fadt}::firmware_control_address]:
-    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 27:4-33:5
+    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 33:4-39:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.firmware_control_address
   (self : arch.x86_64.acpi.tables.fadt.fadt_struct.Fadt) : Result Std.U64 := do
@@ -139,11 +139,11 @@ def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.firmware_control_address
   else ok (UScalar.cast .U64 self.firmware_ctrl)
 
 /-- [nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_addresses::{nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_struct::Fadt}::pm1a_event_address]:
-    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 34:4-40:5
+    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 40:4-46:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.pm1a_event_address
   (self : arch.x86_64.acpi.tables.fadt.fadt_struct.Fadt) : Result Std.U64 := do
-  if self.header.length >= 172#u32
+  if self.header.length >= 160#u32
   then
     let b ←
       arch.x86_64.acpi.tables.sdt.generic_address.GenericAddress.is_valid
@@ -154,11 +154,11 @@ def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.pm1a_event_address
   else ok (UScalar.cast .U64 self.pm1a_event_block)
 
 /-- [nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_addresses::{nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_struct::Fadt}::pm1b_event_address]:
-    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 41:4-47:5
+    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 47:4-53:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.pm1b_event_address
   (self : arch.x86_64.acpi.tables.fadt.fadt_struct.Fadt) : Result Std.U64 := do
-  if self.header.length >= 184#u32
+  if self.header.length >= 172#u32
   then
     let b ←
       arch.x86_64.acpi.tables.sdt.generic_address.GenericAddress.is_valid
@@ -169,11 +169,11 @@ def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.pm1b_event_address
   else ok (UScalar.cast .U64 self.pm1b_event_block)
 
 /-- [nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_addresses::{nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_struct::Fadt}::pm1a_control_address]:
-    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 48:4-54:5
+    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 54:4-60:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.pm1a_control_address
   (self : arch.x86_64.acpi.tables.fadt.fadt_struct.Fadt) : Result Std.U64 := do
-  if self.header.length >= 196#u32
+  if self.header.length >= 184#u32
   then
     let b ←
       arch.x86_64.acpi.tables.sdt.generic_address.GenericAddress.is_valid
@@ -184,11 +184,11 @@ def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.pm1a_control_address
   else ok (UScalar.cast .U64 self.pm1a_control_block)
 
 /-- [nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_addresses::{nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_struct::Fadt}::pm1b_control_address]:
-    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 55:4-61:5
+    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 61:4-67:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.pm1b_control_address
   (self : arch.x86_64.acpi.tables.fadt.fadt_struct.Fadt) : Result Std.U64 := do
-  if self.header.length >= 208#u32
+  if self.header.length >= 196#u32
   then
     let b ←
       arch.x86_64.acpi.tables.sdt.generic_address.GenericAddress.is_valid
@@ -199,11 +199,11 @@ def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.pm1b_control_address
   else ok (UScalar.cast .U64 self.pm1b_control_block)
 
 /-- [nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_addresses::{nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_struct::Fadt}::pm_timer_address]:
-    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 62:4-68:5
+    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 68:4-74:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.pm_timer_address
   (self : arch.x86_64.acpi.tables.fadt.fadt_struct.Fadt) : Result Std.U64 := do
-  if self.header.length >= 232#u32
+  if self.header.length >= 220#u32
   then
     let b ←
       arch.x86_64.acpi.tables.sdt.generic_address.GenericAddress.is_valid
@@ -214,11 +214,11 @@ def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.pm_timer_address
   else ok (UScalar.cast .U64 self.pm_timer_block)
 
 /-- [nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_addresses::{nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_struct::Fadt}::gpe0_address]:
-    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 69:4-75:5
+    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 75:4-81:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.gpe0_address
   (self : arch.x86_64.acpi.tables.fadt.fadt_struct.Fadt) : Result Std.U64 := do
-  if self.header.length >= 244#u32
+  if self.header.length >= 232#u32
   then
     let b ←
       arch.x86_64.acpi.tables.sdt.generic_address.GenericAddress.is_valid
@@ -229,11 +229,11 @@ def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.gpe0_address
   else ok (UScalar.cast .U64 self.gpe0_block)
 
 /-- [nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_addresses::{nonos_x_acpi_tables_fadt_fadt_addresses::arch::x86_64::acpi::tables::fadt::fadt_struct::Fadt}::gpe1_address]:
-    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 76:4-82:5
+    Source: 'src/arch/x86_64/acpi/tables/fadt/../../../../../../../../../../src/arch/x86_64/acpi/tables/fadt/fadt_addresses.rs', lines 82:4-88:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.fadt.fadt_addresses.Fadt.gpe1_address
   (self : arch.x86_64.acpi.tables.fadt.fadt_struct.Fadt) : Result Std.U64 := do
-  if self.header.length >= 256#u32
+  if self.header.length >= 244#u32
   then
     let b ←
       arch.x86_64.acpi.tables.sdt.generic_address.GenericAddress.is_valid

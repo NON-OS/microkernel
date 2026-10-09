@@ -16,56 +16,57 @@
 
 use super::affine::Affine;
 use super::attr::{attr, style_prop};
-use super::color::parse_paint;
-use super::num::parse_len;
+use super::color::CURRENT_COLOR;
+use super::defs::Defs;
+use super::gradient::fraction;
+use super::ink::{inks, Ink};
+use super::pen::Pen;
 use super::transform::parse_transform;
 
-// Inherited paint state at one point of the element walk.
+/// Inherited paint state at one point of the element walk. `clip` is the
+/// walk's current group clip mask, if any.
 #[derive(Clone, Copy)]
 pub(super) struct Paint {
     pub t: Affine,
-    pub fill: Option<u32>,
-    pub stroke: Option<u32>,
-    pub stroke_w: f32,
+    pub fill: Option<Ink>,
+    pub stroke: Option<Ink>,
+    pub pen: Pen,
+    /// What currentColor paints: the inherited `color` property.
+    pub color: u32,
     pub evenodd: bool,
+    pub fill_op: f32,
+    pub stroke_op: f32,
+    pub clip: Option<usize>,
 }
 
 impl Paint {
+    /// SVG paints black fill and no stroke by default.
     pub fn root(t: Affine) -> Self {
-        // SVG paints black by default.
-        Paint { t, fill: Some(0xFF00_0000), stroke: None, stroke_w: 1.0, evenodd: false }
+        let (fill, pen, color) = (Some(Ink::Solid(0xFF00_0000)), Pen::initial(), CURRENT_COLOR);
+        let (fill_op, stroke_op, clip) = (1.0, 1.0, None);
+        Paint { t, fill, stroke: None, pen, color, evenodd: false, fill_op, stroke_op, clip }
     }
 
-    // This element's state: its presentation attributes and inline style
-    // layered over the inherited values, its transform composed on.
-    pub fn derive(&self, attrs: &str) -> Paint {
+    /// This element's state: its presentation attributes and inline style
+    /// layered over the inherited values, its transform composed on. Group
+    /// opacity is folded into both paints' opacity.
+    pub fn derive(&self, attrs: &str, defs: &Defs) -> Paint {
         let mut p = *self;
         if let Some(tr) = attr(attrs, "transform") {
             p.t = p.t.then(&parse_transform(tr));
         }
         let style = attr(attrs, "style").unwrap_or("");
-        let prop = |name: &str| attr(attrs, name).or_else(|| style_prop(style, name));
-        if let Some(v) = prop("fill") {
-            p.fill = parse_paint(v);
-        }
-        if let Some(v) = prop("stroke") {
-            p.stroke = parse_paint(v);
-        }
-        if let Some(v) = prop("stroke-width").and_then(parse_len) {
-            p.stroke_w = v;
-        }
+        let prop = |name: &str| style_prop(style, name).or_else(|| attr(attrs, name));
+        inks(&mut p, prop, defs);
+        p.pen.derive(prop);
         if let Some(v) = prop("fill-rule") {
             p.evenodd = v.trim().eq_ignore_ascii_case("evenodd");
         }
-        // A single group opacity scales both paints' alpha.
-        if let Some(o) = prop("opacity").and_then(parse_len) {
-            let scale = o.clamp(0.0, 1.0);
-            let apply = |c: u32| {
-                let a = ((c >> 24) as f32 * scale) as u32;
-                (a << 24) | (c & 0x00FF_FFFF)
-            };
-            p.fill = p.fill.map(apply);
-            p.stroke = p.stroke.map(apply);
+        let op = |name: &str| prop(name).and_then(fraction).map(|v| v.clamp(0.0, 1.0));
+        p.fill_op = op("fill-opacity").unwrap_or(p.fill_op);
+        p.stroke_op = op("stroke-opacity").unwrap_or(p.stroke_op);
+        if let Some(o) = op("opacity") {
+            (p.fill_op, p.stroke_op) = (p.fill_op * o, p.stroke_op * o);
         }
         p
     }

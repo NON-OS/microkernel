@@ -1,7 +1,9 @@
 mod decoder;
-mod deinterlaced_row;
+mod frame;
 mod header;
 mod lzw;
+mod lzw_dict;
+mod lzw_expand;
 mod sub_blocks;
 mod to_argb;
 

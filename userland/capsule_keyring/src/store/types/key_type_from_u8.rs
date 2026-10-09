@@ -27,6 +27,7 @@ impl KeyType {
             6 => Some(Self::MasterKey),
             7 => Some(Self::SigningKey),
             8 => Some(Self::Secp256k1Eth),
+            9 => Some(Self::ShieldSeed),
             _ => None,
         }
     }

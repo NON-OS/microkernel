@@ -20,15 +20,12 @@
 
 use crate::state::Context;
 
-// Pointer-motion, button-down and button-up kind bits (1 << kind).
-const DRAG_KINDS: u32 = (1 << 3) | (1 << 5) | (1 << 6);
-
+// The drag's pointer grab is part of what the shell holds (server/grabs.rs):
+// these take it up and put it down right where the drag starts and ends.
 pub fn grab_drag(ctx: &mut Context) {
-    let rid = ctx.issue_request_id();
-    let _ = crate::input_router_client::grab(ctx.input_router_port, rid, DRAG_KINDS);
+    crate::server::grabs::sync(ctx);
 }
 
 pub fn release_drag(ctx: &mut Context) {
-    let rid = ctx.issue_request_id();
-    let _ = crate::input_router_client::release_grab(ctx.input_router_port, rid);
+    crate::server::grabs::sync(ctx);
 }

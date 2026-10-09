@@ -16,6 +16,7 @@
 
 use super::constants::*;
 use super::mmio::{mmio_r32, mmio_w32};
+use super::plan::{x2apic_icr, xapic_icr_high};
 use super::state::*;
 use core::sync::atomic::Ordering;
 
@@ -31,58 +32,99 @@ use core::sync::atomic::Ordering;
  */
 const ICR_SEND: u64 = ICR_DELIV_FIXED | ICR_LEVEL_ASSERT | ICR_TRIG_EDGE;
 
-pub fn ipi_self(vec: u8) {
+/// How long an xAPIC send may stay pending before it is called stuck, in
+/// microseconds of calibrated time. The same 100 ms Linux allows in
+/// `safe_apic_wait_icr_idle`. A healthy send clears in well under a
+/// microsecond; this only bounds a broken one.
+const ICR_IDLE_TIMEOUT_US: u64 = 100_000;
+
+/// Polls allowed when the counter rate is not known yet. Each poll is an
+/// uncached MMIO read, around a microsecond, so this is the same order.
+const ICR_IDLE_FALLBACK_POLLS: u64 = 100_000;
+
+/// Write one interrupt command. `dest` is ignored by the processor when `low`
+/// carries a shorthand, and callers pass 0 then.
+///
+/// x2APIC: one 64-bit WRMSR with the full 32-bit destination, and no delivery
+/// status to poll, because the x2APIC ICR has none (SDM 10.12.9). WRMSR to the
+/// x2APIC range is not serialising and does not wait for earlier stores, so it
+/// is fenced first, as Linux does with `weak_wrmsr_fence`: a reschedule or
+/// shootdown that overtook the store announcing its work would find nothing
+/// to do and the target would go back to sleep.
+///
+/// xAPIC: the destination has 8 bits, so an id it cannot hold is refused, not
+/// truncated onto another CPU. The previous send must have left the ICR first,
+/// and the low write is what sends, so the high word goes first.
+///
+/// False means nothing was sent.
+pub(super) fn icr_write(dest: u32, low: u32) -> bool {
     if X2APIC_MODE.load(Ordering::Acquire) {
-        wrmsr(IA32_X2APIC_ICR, ICR_SEND | ICR_SH_SELF | (vec as u64));
-    } else {
-        wait_icr_idle();
-        mmio_w32(LAPIC_ICR_HIGH, 0);
-        mmio_w32(LAPIC_ICR_LOW, (ICR_SEND | ICR_SH_SELF) as u32 | vec as u32);
+        // SAFETY: fences touch no memory beyond ordering it.
+        unsafe { core::arch::asm!("mfence", "lfence", options(nostack, preserves_flags)) };
+        wrmsr(IA32_X2APIC_ICR, x2apic_icr(dest, low));
+        return true;
     }
+    let shorthand = low as u64 & ICR_SH_OTHERS != 0;
+    let high = if shorthand {
+        0
+    } else {
+        match xapic_icr_high(dest) {
+            Some(h) => h,
+            None => return false,
+        }
+    };
+    // The two halves go out with interrupts off: an interrupt handler that
+    // sends its own IPI between them redirected this one to its target.
+    crate::arch::run_without_interrupts(|| {
+        if !wait_icr_idle() {
+            return false;
+        }
+        mmio_w32(LAPIC_ICR_HIGH, high);
+        mmio_w32(LAPIC_ICR_LOW, low);
+        true
+    })
 }
 
-pub fn ipi_one(apic_id: u32, vec: u8) {
-    if X2APIC_MODE.load(Ordering::Acquire) {
-        wrmsr(
-            IA32_X2APIC_ICR,
-            (apic_id as u64) << 32
-                | ICR_SEND
-                | ICR_DST_PHYSICAL
-                | ICR_SH_NONE
-                | (vec as u64),
-        );
-    } else {
-        wait_icr_idle();
-        mmio_w32(LAPIC_ICR_HIGH, apic_id << 24);
-        mmio_w32(LAPIC_ICR_LOW, ICR_SEND as u32 | vec as u32);
-    }
+pub fn ipi_self(vec: u8) -> bool {
+    icr_write(0, (ICR_SEND | ICR_SH_SELF) as u32 | vec as u32)
 }
 
-pub fn ipi_all(vec: u8) {
-    if X2APIC_MODE.load(Ordering::Acquire) {
-        wrmsr(IA32_X2APIC_ICR, ICR_SEND | ICR_SH_ALL | (vec as u64));
-    } else {
-        wait_icr_idle();
-        mmio_w32(LAPIC_ICR_HIGH, 0);
-        mmio_w32(LAPIC_ICR_LOW, (ICR_SEND | ICR_SH_ALL) as u32 | vec as u32);
-    }
+pub fn ipi_one(apic_id: u32, vec: u8) -> bool {
+    icr_write(apic_id, (ICR_SEND | ICR_DST_PHYSICAL | ICR_SH_NONE) as u32 | vec as u32)
 }
 
-pub fn ipi_others(vec: u8) {
-    if X2APIC_MODE.load(Ordering::Acquire) {
-        wrmsr(IA32_X2APIC_ICR, ICR_SEND | ICR_SH_OTHERS | (vec as u64));
-    } else {
-        wait_icr_idle();
-        mmio_w32(LAPIC_ICR_HIGH, 0);
-        mmio_w32(LAPIC_ICR_LOW, (ICR_SEND | ICR_SH_OTHERS) as u32 | vec as u32);
-    }
+pub fn ipi_all(vec: u8) -> bool {
+    icr_write(0, (ICR_SEND | ICR_SH_ALL) as u32 | vec as u32)
 }
 
-pub(super) fn wait_icr_idle() {
-    for _ in 0..100_000 {
-        if (mmio_r32(LAPIC_ICR_LOW) & ICR_BUSY) == 0 {
-            return;
+pub fn ipi_others(vec: u8) -> bool {
+    icr_write(0, (ICR_SEND | ICR_SH_OTHERS) as u32 | vec as u32)
+}
+
+/// Wait for the xAPIC delivery status bit to clear, bounded in calibrated
+/// time rather than in loop turns, whose length depends on the part. True
+/// when the ICR is free. Meaningless in x2APIC mode, where it is not called.
+pub(super) fn wait_icr_idle() -> bool {
+    if mmio_r32(LAPIC_ICR_LOW) & ICR_BUSY == 0 {
+        return true;
+    }
+    let hz = crate::sys::timer::tsc::tsc_frequency();
+    if hz == 0 {
+        for _ in 0..ICR_IDLE_FALLBACK_POLLS {
+            if mmio_r32(LAPIC_ICR_LOW) & ICR_BUSY == 0 {
+                return true;
+            }
+            core::hint::spin_loop();
+        }
+        return false;
+    }
+    let budget = (hz as u128 * ICR_IDLE_TIMEOUT_US as u128 / 1_000_000) as u64;
+    let start = crate::sys::timer::tsc::rdtsc();
+    while mmio_r32(LAPIC_ICR_LOW) & ICR_BUSY != 0 {
+        if crate::sys::timer::tsc::rdtsc().wrapping_sub(start) > budget {
+            return false;
         }
         core::hint::spin_loop();
     }
+    true
 }

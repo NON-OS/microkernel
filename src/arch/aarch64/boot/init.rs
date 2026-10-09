@@ -50,18 +50,18 @@ pub fn init(boot_info: &BootInfo) {
     );
     crate::arch::aarch64::rtc::set_base(boot_info.rtc_base);
     exceptions::install_vbar_el1();
-    if security::init_all().is_err() {
-        cpu::halt();
+    if let Err(error) = security::init_all() {
+        super::refuse(b"security", super::security_reason(error));
     }
     mmu::init_mmu(boot_info);
     if boot_info.gic_unsupported {
-        cpu::halt();
+        super::refuse(b"gic", b"the device tree names a GIC other than v3, the only one driven");
     }
     gic::init_gic(boot_info.gic_dist_base, boot_info.gic_redist_base);
     timer::init_timer();
     timer::configure_preemption_intid(boot_info.timer_phys_intid);
-    if timer::install_on_cpu().is_err() {
-        cpu::halt();
+    if let Err(reason) = timer::install_on_cpu() {
+        super::refuse(b"timer tick", reason.as_bytes());
     }
     if super::multicore::roster::len() > 1 {
         super::multicore::start_secondary_cpus(boot_info);

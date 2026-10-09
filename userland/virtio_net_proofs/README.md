@@ -16,11 +16,12 @@ position: `take_one` never panics and never touches memory outside the queue
 region and buffer area; a returned frame lies exactly in the payload area of
 the slot the id selects, after the virtio-net header, never in another slot
 or outside the buffers; a used length at or below the header yields an empty
-frame; an oversized used length is clamped to the slot payload; a wild
-descriptor id is reduced into the slot range; and the drained slot is handed
-back through the avail ring on the next call.
+frame; an oversized used length is clamped to the slot payload; an entry
+whose descriptor id names no primed slot yields nothing and is never posted
+back to the device; and the drained slot is handed back through the avail
+ring on the next call.
 
-Stated plainly: this property is proven by the runnable harness over two
+Stated plainly: this property is proven by the runnable test harness over two
 hundred thousand adversarial entries plus the boundary set, not by the model
 checker. A Kani harness for it does not converge in the SAT backend (CBMC
 ran for hours in both the pointer-equality and the weakened clamp-only
@@ -35,6 +36,14 @@ Ethernet minimum, and both extremes must fit behind the virtio-net header in
 a TX slot. A test asserts those relations against the real constants, so
 widening the MTU or shrinking the buffers fails the proof before it ships.
 
+## The station address and the modern MAC read
+
+`station_tests` holds that neither transport takes the device's MAC feature,
+that link status is still taken, and that the driver draws its own address.
+`mac_tests` runs the modern-transport MAC read: the first six bytes of the
+device region, zero without the MAC feature as on the legacy path, and a
+region shorter than the promised fields refused.
+
 ## Wire header
 
 Header decoding is total, rejects short or mistagged buffers, reads every
@@ -47,5 +56,8 @@ and field faithfulness.
 ```sh
 cd userland/virtio_net_proofs
 cargo test --release
-cargo kani                # all-input slot confinement (requires Kani)
+cargo kani                # wire header decode (requires Kani)
 ```
+
+See [drivers](../../docs/handbook/drivers.md) and
+[proofs](../../docs/handbook/verification/proofs.md).

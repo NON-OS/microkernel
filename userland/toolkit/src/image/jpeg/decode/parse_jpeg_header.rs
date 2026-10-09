@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::image::jpeg::marker::{
-    is_rst, is_sof_unsupported, read_marker, read_segment_len, M_EOI, M_SOF0, M_SOI,
+    is_rst, is_sof_unsupported, read_marker, read_segment_len, M_EOI, M_SOF0, M_SOF1, M_SOF2, M_SOI,
 };
 use crate::image::jpeg::sof0::parse_sof0;
 use crate::image::types::{DecodeError, ImageSize};
+
+/// A frame coded with a process neither JPEG decoder reads: lossless,
+/// hierarchical or arithmetic-coded, or samples past 8 bits. Every path
+/// that meets one refuses it with this value.
+pub const OTHER_PROCESS: DecodeError = DecodeError::Unsupported;
 
 pub fn parse_jpeg_header(input: &[u8]) -> Result<(ImageSize, u8), DecodeError> {
     if input.len() < 2 || input[0] != 0xFF || input[1] != M_SOI {
@@ -29,13 +34,13 @@ pub fn parse_jpeg_header(input: &[u8]) -> Result<(ImageSize, u8), DecodeError> {
         match marker {
             M_SOI => continue,
             M_EOI => return Err(DecodeError::Unsupported),
-            M_SOF0 => {
+            M_SOF0 | M_SOF1 | M_SOF2 => {
                 let seg_len = read_segment_len(input, &mut pos)?;
                 let frame = parse_sof0(&input[pos..pos + seg_len])?;
                 let size = ImageSize::new(frame.width as u32, frame.height as u32)?;
                 return Ok((size, frame.num_comps));
             }
-            m if is_sof_unsupported(m) => return Err(DecodeError::Unsupported),
+            m if is_sof_unsupported(m) => return Err(OTHER_PROCESS),
             m if is_rst(m) || m == 0x01 => continue,
             _ => {
                 let seg_len = read_segment_len(input, &mut pos)?;

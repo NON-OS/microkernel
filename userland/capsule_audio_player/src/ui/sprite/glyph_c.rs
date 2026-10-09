@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Navigation glyphs: home, grid, gear, chevron, download, heart.
+//! Navigation glyphs: home, grid, gear, download.
 
 use super::canvas::Sprite;
 use super::{prim, shape, stroke};
@@ -48,51 +48,11 @@ pub fn gear(px: u32, rgb: u32) -> Sprite {
     s
 }
 
-pub fn chevron(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    stroke::line(&mut s, (m(38), m(22)), (m(64), m(50)), m(10), rgb);
-    stroke::line(&mut s, (m(64), m(50)), (m(38), m(78)), m(10), rgb);
-    s
-}
-
 pub fn download(px: u32, rgb: u32) -> Sprite {
     let (mut s, m) = blank(px);
     stroke::line(&mut s, (m(50), m(14)), (m(50), m(60)), m(10), rgb);
     stroke::line(&mut s, (m(30), m(42)), (m(50), m(62)), m(10), rgb);
     stroke::line(&mut s, (m(70), m(42)), (m(50), m(62)), m(10), rgb);
     stroke::line(&mut s, (m(20), m(82)), (m(80), m(82)), m(10), rgb);
-    s
-}
-
-pub fn heart(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    prim::disc(&mut s, m(34), m(38), m(19), rgb);
-    prim::disc(&mut s, m(66), m(38), m(19), rgb);
-    shape::tri(&mut s, [(m(15), m(45)), (m(85), m(45)), (m(50), m(86))], rgb);
-    s
-}
-
-pub fn compass(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    prim::ring(&mut s, m(50), m(50), m(40), m(9), rgb);
-    shape::tri(&mut s, [(m(66), m(34)), (m(56), m(56)), (m(34), m(66))], rgb);
-    prim::disc(&mut s, m(50), m(50), m(7), rgb);
-    s
-}
-
-pub fn radio(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    prim::disc(&mut s, m(50), m(50), m(11), rgb);
-    prim::ring(&mut s, m(50), m(50), m(26), m(8), rgb);
-    prim::ring(&mut s, m(50), m(50), m(44), m(8), rgb);
-    s
-}
-
-pub fn bell(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    prim::disc(&mut s, m(50), m(44), m(26), rgb);
-    shape::rrect(&mut s, m(24), m(44), m(52), m(26), m(6), rgb);
-    shape::rrect(&mut s, m(16), m(66), m(68), m(10), m(5), rgb);
-    shape::rrect(&mut s, m(42), m(78), m(16), m(12), m(6), rgb);
     s
 }

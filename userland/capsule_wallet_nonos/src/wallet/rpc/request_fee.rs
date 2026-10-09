@@ -25,3 +25,15 @@ pub fn request_fee(id: u64) -> Vec<u8> {
     out.extend_from_slice(b"}");
     out
 }
+
+/// The last ten blocks' base fees, the next block's after them, and each
+/// block's median tip: what a transaction's fees are set from.
+pub fn request_fee_history(id: u64) -> Vec<u8> {
+    let mut out = Vec::with_capacity(112);
+    out.extend_from_slice(
+        b"{\"jsonrpc\":\"2.0\",\"method\":\"eth_feeHistory\",\"params\":[\"0xa\",\"latest\",[50]],\"id\":",
+    );
+    super::append_dec_u64::append_dec_u64(&mut out, id);
+    out.extend_from_slice(b"}");
+    out
+}

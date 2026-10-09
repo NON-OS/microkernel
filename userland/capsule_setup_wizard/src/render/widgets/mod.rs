@@ -1,4 +1,3 @@
-pub mod field;
-pub mod progress;
+pub mod lines;
 pub mod rows;
-pub mod toggles;
+pub mod text;

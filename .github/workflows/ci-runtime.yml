@@ -16,14 +16,6 @@ on:
     secrets:
       SIGNING_KEY_BASE64:
         required: false
-      ZK_BOOT_INDEX:
-        required: false
-      ZK_BOOT_SECRET_X:
-        required: false
-      ZK_BOOT_SECRET_R:
-        required: false
-      ZK_BOOT_NONCE_SEED:
-        required: false
 
 permissions:
   contents: read
@@ -40,44 +32,34 @@ jobs:
   runtime:
     name: runtime
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
           persist-credentials: false
-      - uses: ./.github/actions/nonos-setup
+      - uses: ./.github/actions/nix-setup
         with:
-          targets: x86_64-nonos,x86_64-unknown-uefi
-          qemu: "true"
-          module: runtime
+          cache: ${{ vars.NONOS_CACHIX }}
       - name: Provision CI trust material
         env:
           NONOS_CI_TRUST_MODE: ${{ inputs.trust-mode }}
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-          ZK_BOOT_INDEX: ${{ secrets.ZK_BOOT_INDEX }}
-          ZK_BOOT_SECRET_X: ${{ secrets.ZK_BOOT_SECRET_X }}
-          ZK_BOOT_SECRET_R: ${{ secrets.ZK_BOOT_SECRET_R }}
-          ZK_BOOT_NONCE_SEED: ${{ secrets.ZK_BOOT_NONCE_SEED }}
         run: |
           set -euo pipefail
           case "${NONOS_CI_TRUST_MODE}" in
             scratch)
               bash nonos-ci/setup-signing-key.sh
-              echo "NONOS_DEV=1" >> "$GITHUB_ENV"
               bash nonos-ci/scratch-trust-bootstrap.sh
               ;;
             production)
               bash nonos-ci/setup-signing-key.sh
-              # The kernel self-attestation is transparent and needs no
-              # secrets. The ZK_BOOT values are the device binding's prover
-              # material: the opening of an enrolled device slot, which
-              # belongs to the machine's owner at install time and never to a
-              # vendor pipeline. A release therefore ships without a binding
-              # sidecar, and their absence here is the correct state, not a
-              # missing provisioning step.
               make nonos-mk-check-trust-manifest
-              echo "NONOS_DEVICE_BINDING=unbound" >> "$GITHUB_ENV"
               echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
               ;;
             *)
@@ -86,11 +68,6 @@ jobs:
               ;;
           esac
       - name: nonos-verify runtime
-        env:
-          ZK_BOOT_INDEX: ${{ secrets.ZK_BOOT_INDEX }}
-          ZK_BOOT_SECRET_X: ${{ secrets.ZK_BOOT_SECRET_X }}
-          ZK_BOOT_SECRET_R: ${{ secrets.ZK_BOOT_SECRET_R }}
-          ZK_BOOT_NONCE_SEED: ${{ secrets.ZK_BOOT_NONCE_SEED }}
         run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- runtime
       - name: Upload runtime artifacts
         if: always()

@@ -21,6 +21,7 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_getpid;
 
+use super::unsealed::Unsealed;
 use super::vfs::{call, HDR_LEN, OP_CLOSE, OP_MKDIR, OP_OPEN, OP_WRITE, O_CREATE, O_TRUNC};
 
 /// Missing is the normal case on a fresh machine and already-there is the
@@ -50,14 +51,23 @@ pub(super) fn open_created(path: &[u8]) -> Option<u32> {
     Some(u32::from_le_bytes([rx[HDR_LEN + 4], rx[HDR_LEN + 5], rx[HDR_LEN + 6], rx[HDR_LEN + 7]]))
 }
 
-pub(super) fn write_all(fd: u32, data: &[u8]) -> bool {
+pub(super) fn write_all(fd: u32, data: &[u8]) -> Result<(), Unsealed> {
     let pid = mk_getpid();
     let mut body = Vec::with_capacity(8 + data.len());
     body.extend_from_slice(&pid.to_le_bytes());
     body.extend_from_slice(&fd.to_le_bytes());
     body.extend_from_slice(data);
     let mut rx = vec![0u8; 64];
-    call(OP_WRITE, &body, &mut rx).worked()
+    stored(call(OP_WRITE, &body, &mut rx))
+}
+
+/// What a store answer means for a save.
+pub(super) fn stored(answer: super::answer::Answer) -> Result<(), Unsealed> {
+    match answer {
+        super::answer::Answer::Ok(_) => Ok(()),
+        super::answer::Answer::Refused(code) => Err(Unsealed::from_store(code)),
+        super::answer::Answer::Silent => Err(Unsealed::Store),
+    }
 }
 
 pub(super) fn close(fd: u32) {

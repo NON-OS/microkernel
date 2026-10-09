@@ -14,27 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_irq_ack, mk_yield};
+use nonos_libc::mk_yield;
 
-use crate::constants::{LEG_QUEUE_NOTIFY, MIN_ETHERNET_FRAME, Q_TX, VIRTIO_NET_HDR_LEN};
+use crate::constants::{MIN_ETHERNET_FRAME, Q_TX};
 use crate::queue::TxQueue;
-use crate::regs::Regs;
+use crate::transport::Transport;
 
 const MAX_YIELDS: u32 = 200_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TxError {
-    IrqAck,
     Timeout,
 }
 
-pub fn send(regs: Regs, tx: &mut TxQueue, irq_grant: u64, frame: &[u8]) -> Result<(), TxError> {
+pub fn send(transport: Transport, tx: &mut TxQueue, frame: &[u8]) -> Result<(), TxError> {
     let eth_len = if frame.len() < MIN_ETHERNET_FRAME {
         MIN_ETHERNET_FRAME
     } else {
         frame.len()
     };
-    let total = (VIRTIO_NET_HDR_LEN + eth_len) as u32;
+    // A zeroed header of the transport's length: no offloads, one buffer.
+    let hdr_len = tx.hdr_len;
+    let total = (hdr_len + eth_len) as u32;
     let mut tries = 0u32;
     while tx.next_avail.wrapping_sub(tx.used_idx()) >= tx.buf_count {
         if tries >= MAX_YIELDS {
@@ -49,12 +50,10 @@ pub fn send(regs: Regs, tx: &mut TxQueue, irq_grant: u64, frame: &[u8]) -> Resul
         for b in buf.iter_mut() {
             *b = 0;
         }
-        buf[VIRTIO_NET_HDR_LEN..VIRTIO_NET_HDR_LEN + frame.len()].copy_from_slice(frame);
+        buf[hdr_len..hdr_len + frame.len()].copy_from_slice(frame);
     }
     tx.post_packet(slot, total);
-    unsafe {
-        regs.w16(LEG_QUEUE_NOTIFY, Q_TX);
-    }
+    transport.notify(Q_TX);
     let target = tx.next_avail.wrapping_add(1);
     tx.next_avail = target;
     tries = 0;
@@ -69,8 +68,5 @@ pub fn send(regs: Regs, tx: &mut TxQueue, irq_grant: u64, frame: &[u8]) -> Resul
         tries = tries.wrapping_add(1);
     }
     tx.last_used = target;
-    if mk_irq_ack(irq_grant) < 0 {
-        return Err(TxError::IrqAck);
-    }
     Ok(())
 }

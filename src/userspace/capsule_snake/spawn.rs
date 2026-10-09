@@ -66,7 +66,8 @@ pub fn spawn_snake_instance() -> Result<u32, SpawnError> {
             | Capability::Memory.bit()
             | Capability::FileSystem.bit()
             | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit(),
+            | Capability::GraphicsSurfaceCreate.bit()
+            | crate::capabilities::serial_debug_cap(),
         instances: SNAKE_INSTANCES,
         debug_tag: b"[SNAKE-INSTANCE] elf error:",
     })
@@ -90,7 +91,8 @@ pub fn spawn_snake_capsule() -> Result<(), SpawnError> {
             | Capability::Memory.bit()
             | Capability::FileSystem.bit()
             | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit(),
+            | Capability::GraphicsSurfaceCreate.bit()
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

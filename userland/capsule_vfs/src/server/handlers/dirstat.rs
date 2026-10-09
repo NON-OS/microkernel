@@ -42,7 +42,9 @@ pub fn dirstat(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> 
         Ok(s) => s,
         Err(_) => return encode_response(OP_DIRSTAT, req.flags, req.request_id, EINVAL, &[]),
     };
-    let prefix = normalize(prefix);
+    let Some(prefix) = normalize(prefix) else {
+        return encode_response(OP_DIRSTAT, req.flags, req.request_id, EINVAL, &[]);
+    };
     let (files, dirs, bytes, truncated) = store.dirstat(&prefix, DIRSTAT_MAX_NODES);
     let mut body = Vec::with_capacity(20);
     body.extend_from_slice(&files.to_le_bytes());

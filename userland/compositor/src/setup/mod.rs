@@ -14,10 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod canvas;
+mod canvas_floor;
+mod canvas_release;
+mod canvas_scale;
 mod discover;
+mod panel_mm;
 mod prime;
 mod prime_gop;
 mod prime_once;
+mod upgrade;
 
+pub use canvas::fit_canvas;
 pub use prime::run_virtio;
 pub use prime_gop::run_gop_once as run_gop;
+pub use upgrade::upgrade_to_virtio;

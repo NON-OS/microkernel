@@ -21,5 +21,4 @@ mod types;
 mod watchlist;
 
 pub use monitor::Monitor;
-pub use posture::Posture;
 pub use types::{Alert, Level};

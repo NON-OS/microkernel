@@ -31,7 +31,7 @@ pub use chips_geom::{at, origin, width};
 // down, so the fill and the border go through blending primitives; the active
 // one wears the accent wash the sidebar's current row wears.
 pub fn paint(fb: &mut PaintBuffer, state: &State) {
-    let Some(mut cx) = origin(state.screen) else {
+    let Some(mut cx) = origin(fb.width, state.screen) else {
         return;
     };
     let y = chips_geom::top();

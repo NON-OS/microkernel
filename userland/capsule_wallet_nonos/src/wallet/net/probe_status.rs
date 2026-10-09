@@ -14,13 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// The status line after a probe: how far the handshake got, and when the
+/// connection was never made on the chosen route, the route's own reason
+/// (the network that is not running, or the one that refused).
 pub fn probe_status(
     tls: &super::probe_tls_rpc::TlsProbe,
     rpc_tcp_ok: bool,
     route_ready: bool,
+    refused: Option<&'static str>,
 ) -> &'static [u8] {
     if tls.chain_id {
-        b"rpc chain 0x1"
+        /* The chain id the node gave is the picked network's. */
+        if crate::wallet::chain::is_sepolia() {
+            b"connected to Sepolia"
+        } else {
+            b"connected to Ethereum mainnet"
+        }
     } else if tls.client_finished {
         b"rpc client finish"
     } else if tls.finished {
@@ -43,6 +52,8 @@ pub fn probe_status(
         b"rpc tls hello"
     } else if rpc_tcp_ok {
         b"rpc tcp ready"
+    } else if let Some(why) = refused {
+        why.as_bytes()
     } else if route_ready {
         b"route ready"
     } else {

@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const MAGIC: u32 = 0x4E52_3639;
+/// "NNET", the NIC protocol net_core and net_l2 speak (virtio-net's too).
+/// The per-driver tag this replaced made every request from the stack
+/// undecodable, so the wired NICs never served it.
+pub const MAGIC: u32 = 0x4E4E_4554;
 pub const VERSION: u16 = 1;
 pub const HDR_LEN: usize = 20;
 pub const RESP_HDR_LEN: usize = HDR_LEN;

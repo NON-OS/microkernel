@@ -1,0 +1,22 @@
+# NONOS userland: nonos_disk_map
+# eK@nonos.systems
+#
+# Where a NONOS disk keeps what, in sectors: the package store from LBA 256,
+# the disk plan at 65536 with the key header after it, the data volume from
+# 131072, and the store's container format. The installer that writes a
+# disk and the vfs that reads and appends its store both take these from
+# here. The kernel keeps its own copies; the tests in this crate read the
+# kernel's and the host tools' sources and fail when a number differs.
+
+[package]
+name = "nonos_disk_map"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "Fixed LBAs and the package store format of a NONOS disk"
+
+[lib]
+
+[dependencies]

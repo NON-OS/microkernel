@@ -16,6 +16,7 @@
 
 mod alloc_route;
 mod free_vector;
+mod line_mode;
 mod mask;
 mod program_route;
 mod program_route_external;

@@ -14,49 +14,63 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `socket` and `connect`, over net.sockets.
-
-use alloc::vec::Vec;
-
-use super::ops::{DOMAIN, KIND_MIXNET, OP_SOCKET};
+//! `socket` for AF_INET and AF_UNIX. The socket is the family's until it
+//! connects outside 127.0.0.0/8 (then net.sockets or net.anon holds the
+//! stream, guest_route.rs) or to the display's path (then it is the display
+//! connection).
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Fd, Guest};
+use crate::linux::guest::Guest;
 
-use super::call::call;
+use super::fd::{install, SOCK_CLOEXEC, SOCK_NONBLOCK};
+use super::policy::refuse;
+use super::sock::{self, Domain, Proto};
+use super::sockaddr::{AF_INET, AF_UNIX};
 
-const AF_INET: u64 = 2;
 const SOCK_STREAM: u64 = 1;
 const SOCK_DGRAM: u64 = 2;
-/// Linux ORs these into the type; neither changes what is opened here.
-const TYPE_MASK: u64 = 0xFF;
+const SOCK_RAW: u64 = 3;
+const SOCK_SEQPACKET: u64 = 5;
+const TYPE_MASK: u64 = 0xF;
+const IPPROTO_TCP: u64 = 6;
+const IPPROTO_UDP: u64 = 17;
+/// The one protocol a Unix socket takes besides 0.
+const PF_UNIX: u64 = 1;
 
-pub fn socket(guest: &mut Guest, family: u64, kind: u64) -> u64 {
-    if family != AF_INET {
-        return errno::fail(errno::EAFNOSUPPORT);
+pub fn socket(guest: &mut Guest, family: u64, kind: u64, protocol: u64) -> u64 {
+    let flags = kind & (SOCK_NONBLOCK | SOCK_CLOEXEC);
+    if kind & !(TYPE_MASK | flags) != 0 {
+        return errno::fail(errno::EINVAL);
     }
+    let domain = match family {
+        f if f == u64::from(AF_INET) => Domain::Inet,
+        f if f == u64::from(AF_UNIX) => Domain::Unix,
+        _ => return errno::fail(errno::EAFNOSUPPORT),
+    };
+    let (proto, own) = match (kind & TYPE_MASK, domain) {
+        (SOCK_STREAM, Domain::Inet) => (Proto::Stream, IPPROTO_TCP),
+        (SOCK_DGRAM, Domain::Inet) => (Proto::Dgram, IPPROTO_UDP),
+        (SOCK_RAW, Domain::Inet) => {
+            return refuse("SOCK_RAW: raw sockets reach below any confinement", errno::EPERM)
+        }
+        (SOCK_STREAM, Domain::Unix) => (Proto::Stream, PF_UNIX),
+        /* Linux gives a raw Unix socket datagram semantics. */
+        (SOCK_DGRAM | SOCK_RAW, Domain::Unix) => (Proto::Dgram, PF_UNIX),
+        (SOCK_SEQPACKET, Domain::Unix) => {
+            return refuse(
+                "SOCK_SEQPACKET: a Unix stream here does not keep message boundaries",
+                errno::ESOCKTNOSUPPORT,
+            )
+        }
+        _ => return errno::fail(errno::ESOCKTNOSUPPORT),
+    };
     /*
-     * A guest's stream goes over the mixnet, never the open network, and it
-     * holds no capability that could name a socket: there is no second route
-     * to disable and no firewall rule to remove.
+     * Anything but the type's own protocol, MPTCP included, is one this
+     * stack does not have; Go falls back to TCP on this answer.
      */
-    let want = match kind & TYPE_MASK {
-        SOCK_STREAM => KIND_MIXNET,
-        SOCK_DGRAM => return super::dns::open(guest),
-        _ => return errno::fail(errno::ENOSYS),
-    };
-    let mut body = Vec::with_capacity(4);
-    body.extend_from_slice(&DOMAIN.to_le_bytes());
-    body.extend_from_slice(&want.to_le_bytes());
-    let Some((status, out)) = call(OP_SOCKET, &body, 8) else {
-        return errno::fail(errno::EIO);
-    };
-    if status != 0 || out.len() < 4 {
-        return errno::fail(errno::ENOMEM);
+    if protocol != 0 && protocol != own {
+        return errno::fail(errno::EPROTONOSUPPORT);
     }
-    let handle = u32::from_le_bytes([out[0], out[1], out[2], out[3]]);
-    match crate::linux::file::install(guest, Fd::socket(handle)) {
-        Some(n) => errno::ok(n),
-        None => errno::fail(errno::EMFILE),
-    }
+    let id = sock::with(|t| t.open(domain, proto, Some(guest.pid)));
+    install(guest, id, flags)
 }

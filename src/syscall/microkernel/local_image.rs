@@ -18,7 +18,7 @@
 
 use alloc::vec::Vec;
 
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL};
+use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM};
 
 /// A Linux program with its interpreter is comfortably inside this.
 pub(super) const MAX_ELF: usize = 64 << 20;
@@ -27,7 +27,19 @@ pub(super) fn copy_in(ptr: u64, len: u64, cap: usize) -> Result<Vec<u8>, i64> {
     if len == 0 || len as usize > cap {
         return Err(ERRNO_INVAL);
     }
-    let mut out = alloc::vec![0u8; len as usize];
+    let len = len as usize;
+    /*
+     * Up to 64 MiB, so the range is checked before anything is allocated for
+     * it, and the buffer is taken fallibly: an image the heap cannot hold is
+     * ENOMEM, where the infallible allocation this was halted the machine.
+     */
+    if crate::usercopy::validate_user_read(ptr, len).is_err() {
+        return Err(ERRNO_FAULT);
+    }
+    let Ok(mut out) = crate::usercopy::take_buffer(len) else {
+        return Err(ERRNO_NOMEM);
+    };
+    out.resize(len, 0);
     match crate::usercopy::copy_from_user(ptr, &mut out) {
         Ok(()) => Ok(out),
         Err(_) => Err(ERRNO_FAULT),

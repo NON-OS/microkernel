@@ -87,17 +87,17 @@ def arch.x86_64.acpi.tables.mcfg_types.Mcfg.entries_offset
   core.mem.size_of arch.x86_64.acpi.tables.mcfg_types.Mcfg
 
 /-- [nonos_x_x86_64_acpi_tables_mcfg_types::arch::x86_64::acpi::tables::mcfg_types::{nonos_x_x86_64_acpi_tables_mcfg_types::arch::x86_64::acpi::tables::mcfg_types::McfgEntry}::bus_count]:
-    Source: 'src/arch/x86_64/acpi/tables/../../../../../../../../../src/arch/x86_64/acpi/tables/mcfg_types.rs', lines 66:4-68:5
+    Source: 'src/arch/x86_64/acpi/tables/../../../../../../../../../src/arch/x86_64/acpi/tables/mcfg_types.rs', lines 72:4-74:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.mcfg_types.McfgEntry.bus_count
   (self : arch.x86_64.acpi.tables.mcfg_types.McfgEntry) : Result Std.U16 := do
   let i ← lift (UScalar.cast .U16 self.end_bus)
-  let i1 ← lift (UScalar.cast .U16 self.start_bus)
-  let i2 ← i - i1
-  i2 + 1#u16
+  let i1 ← i + 1#u16
+  let i2 ← lift (UScalar.cast .U16 self.start_bus)
+  ok (core.num.U16.saturating_sub i1 i2)
 
 /-- [nonos_x_x86_64_acpi_tables_mcfg_types::arch::x86_64::acpi::tables::mcfg_types::{nonos_x_x86_64_acpi_tables_mcfg_types::arch::x86_64::acpi::tables::mcfg_types::McfgEntry}::contains_bus]:
-    Source: 'src/arch/x86_64/acpi/tables/../../../../../../../../../src/arch/x86_64/acpi/tables/mcfg_types.rs', lines 69:4-71:5
+    Source: 'src/arch/x86_64/acpi/tables/../../../../../../../../../src/arch/x86_64/acpi/tables/mcfg_types.rs', lines 75:4-77:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.mcfg_types.McfgEntry.contains_bus
   (self : arch.x86_64.acpi.tables.mcfg_types.McfgEntry) (bus : Std.U8) :
@@ -108,7 +108,7 @@ def arch.x86_64.acpi.tables.mcfg_types.McfgEntry.contains_bus
   else ok false
 
 /-- [nonos_x_x86_64_acpi_tables_mcfg_types::arch::x86_64::acpi::tables::mcfg_types::{nonos_x_x86_64_acpi_tables_mcfg_types::arch::x86_64::acpi::tables::mcfg_types::McfgEntry}::memory_size]:
-    Source: 'src/arch/x86_64/acpi/tables/../../../../../../../../../src/arch/x86_64/acpi/tables/mcfg_types.rs', lines 72:4-74:5
+    Source: 'src/arch/x86_64/acpi/tables/../../../../../../../../../src/arch/x86_64/acpi/tables/mcfg_types.rs', lines 78:4-80:5
     Visibility: public -/
 def arch.x86_64.acpi.tables.mcfg_types.McfgEntry.memory_size
   (self : arch.x86_64.acpi.tables.mcfg_types.McfgEntry) : Result Std.U64 := do

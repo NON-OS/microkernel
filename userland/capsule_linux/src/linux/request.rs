@@ -14,28 +14,71 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Reading what this capsule was asked to do.
 
 use alloc::string::String;
 
 use nonos_libc::mk_args;
 
+use super::run_mode::{parse, Mode};
+
 /// Matches the buffer the program path is read into.
 const MAX_ARGS: usize = 256;
 
-/// Arguments `install` then `<name>` ask this capsule to fetch a package
-/// rather than run a program.
-pub fn install_request() -> Option<String> {
+/// `install <name> <hash>` asks this capsule to fetch a package rather than
+/// run a program. The hash is the market's BLAKE3 of the package the user
+/// chose, as hex; a request without one is not an install request.
+pub fn install_request() -> Option<(String, [u8; 32])> {
     let mut buf = [0u8; MAX_ARGS];
     let n = mk_args(buf.as_mut_ptr(), buf.len());
     if n <= 0 {
         return None;
     }
-    let mut parts = buf[..n as usize].split(|b| *b == 0);
+    let mut parts = buf.get(..n as usize)?.split(|b| *b == 0);
     if parts.next()? != b"install" {
         return None;
     }
     let name = parts.next().filter(|s| !s.is_empty())?;
+    let hex = parts.next()?;
+    if hex.len() != 64 {
+        return None;
+    }
+    let mut pin = [0u8; 32];
+    for (slot, pair) in pin.iter_mut().zip(hex.chunks(2)) {
+        let s = core::str::from_utf8(pair).ok()?;
+        *slot = u8::from_str_radix(s, 16).ok()?;
+    }
+    Some((String::from(core::str::from_utf8(name).ok()?), pin))
+}
+
+/// `install <name> <hash> direct`: the person chose, in the store, to
+/// download this Qwen tier's model over a direct connection, for this
+/// install only (init's `linux_jobs::direct`).
+pub fn direct_asked() -> bool {
+    let mut buf = [0u8; MAX_ARGS];
+    let n = mk_args(buf.as_mut_ptr(), buf.len());
+    let Some(args) = usize::try_from(n).ok().and_then(|n| buf.get(..n)) else { return false };
+    let mut parts = args.split(|b| *b == 0);
+    parts.next() == Some(b"install") && parts.nth(2) == Some(b"direct")
+}
+
+/// `uninstall <name>` asks this capsule to take out what package `name`
+/// installed.
+pub fn uninstall_request() -> Option<String> {
+    let mut buf = [0u8; MAX_ARGS];
+    let n = mk_args(buf.as_mut_ptr(), buf.len());
+    let mut parts = buf.get(..usize::try_from(n).ok()?)?.split(|b| *b == 0);
+    if parts.next()? != b"uninstall" {
+        return None;
+    }
+    let name = parts.next().filter(|s| !s.is_empty())?;
     Some(String::from(core::str::from_utf8(name).ok()?))
+}
+
+/// `run <name> [cli]` asks this capsule to start what package `name`
+/// installed, in its window or, with `cli`, on the terminal that asked.
+pub fn run_request() -> Option<(String, Mode)> {
+    let mut buf = [0u8; MAX_ARGS];
+    let n = mk_args(buf.as_mut_ptr(), buf.len());
+    parse(buf.get(..usize::try_from(n).ok()?)?)
 }

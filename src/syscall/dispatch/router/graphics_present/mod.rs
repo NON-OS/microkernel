@@ -19,5 +19,6 @@
 mod blit;
 mod consts;
 mod handle;
+mod store;
 
 pub(in crate::syscall::dispatch::router) use handle::handle;

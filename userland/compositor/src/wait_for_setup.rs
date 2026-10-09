@@ -14,28 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_yield;
+use alloc::format;
 
-// Give a virtio-gpu driver time to announce its gfx service before
-// falling back to the GOP framebuffer path, so a machine that has
-// virtio-gpu always uses it and only real hardware / hypervisors
-// without it take the GOP route.
-const VIRTIO_ATTEMPTS_BEFORE_GOP: u32 = 6;
+use nonos_libc::{mk_uptime_ms, mk_yield};
 
-pub fn wait_for_setup() -> crate::state::Context {
-    let mut attempt: u32 = 0;
+use crate::say::{say, say_display};
+use crate::state::Context;
+
+// How long a virtio-gpu driver gets to announce its gfx service before the
+// GOP framebuffer is taken, so a machine that has virtio-gpu uses it and
+// real hardware takes the GOP route. On the uptime clock: six rounds of 64
+// yields lasted however long the yields took, and that changes with the
+// number of cores. A driver that announces later still gets the display
+// through upgrade_to_virtio.
+const VIRTIO_WAIT_MS: i64 = 500;
+// Between two asks, so a machine with neither display does not spin.
+const RETRY_MS: i64 = 20;
+
+pub fn wait_for_setup() -> Context {
+    let start = mk_uptime_ms();
+    let mut said_none = false;
     loop {
         if let Ok(ctx) = crate::setup::run_virtio() {
-            return ctx;
+            return fitted(ctx, "virtio-gpu");
         }
-        if attempt >= VIRTIO_ATTEMPTS_BEFORE_GOP {
-            if let Ok(ctx) = crate::setup::run_gop() {
-                return ctx;
+        if mk_uptime_ms().saturating_sub(start) >= VIRTIO_WAIT_MS {
+            match crate::setup::run_gop() {
+                Ok(ctx) => return fitted(ctx, "GOP framebuffer"),
+                Err(why) if !said_none => {
+                    say(&format!("no display yet ({}); waiting for a virtio-gpu driver", why));
+                    said_none = true;
+                }
+                Err(_) => {}
             }
         }
-        attempt = attempt.saturating_add(1);
-        for _ in 0..64 {
+        let next = mk_uptime_ms().saturating_add(RETRY_MS);
+        while mk_uptime_ms() < next {
             mk_yield();
         }
     }
+}
+
+fn fitted(mut ctx: Context, path: &str) -> Context {
+    crate::setup::fit_canvas(&mut ctx);
+    say_display(&ctx, path);
+    ctx
 }

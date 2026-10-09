@@ -22,7 +22,7 @@ use super::consts::{DIGEST_LEN, TPM_ALG_SHA256, TPM_CC_HMAC, TPM_ST_SESSIONS};
 use super::error::KeyError;
 use super::wire::{checked, digest_at, frame};
 
-pub(super) fn build_hmac(key: u32, session: u32, label: &[u8]) -> Vec<u8> {
+pub(in crate::security::tpm) fn build_hmac(key: u32, session: u32, label: &[u8]) -> Vec<u8> {
     let mut body = Vec::with_capacity(24 + label.len());
     body.extend_from_slice(&key.to_be_bytes());
     /*
@@ -43,7 +43,7 @@ pub(super) fn build_hmac(key: u32, session: u32, label: &[u8]) -> Vec<u8> {
 
 /// With a session on the command the response carries a parameter size ahead
 /// of the digest, so the TPM2B sits at 14 rather than 10.
-pub(super) fn parse_hmac(resp: &[u8]) -> Result<[u8; DIGEST_LEN], KeyError> {
+pub(in crate::security::tpm) fn parse_hmac(resp: &[u8]) -> Result<[u8; DIGEST_LEN], KeyError> {
     let r = checked(resp)?;
     digest_at(r, 14)
 }

@@ -25,6 +25,7 @@
 //!   0x20        APIC timer
 //!   0x21..0x2F  legacy PIC-remapped IRQs (PS/2, ATA, RTC, ...)
 //!   0x30..0x7E  IO-APIC dynamic pool (kernel-internal)
+//!   0x40..0x45  SMP IPIs, inside that pool's range
 //!   0x7F        unused
 //!   0x80        SYSCALL trap gate (DPL=3)
 //!   0x81..0xC0  broker IRQ pool (this module)

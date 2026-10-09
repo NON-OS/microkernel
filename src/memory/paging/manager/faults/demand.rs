@@ -17,6 +17,7 @@
 use crate::memory::addr::VirtAddr;
 
 use super::super::core::PagingManager;
+use super::super::pending_flush::PendingFlush;
 use crate::memory::paging::constants::PAGE_SIZE_4K;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::stats::PagingStatistics;
@@ -28,28 +29,30 @@ impl PagingManager {
         &mut self,
         virtual_addr: VirtAddr,
         stats: &PagingStatistics,
-    ) -> PagingResult<()> {
-        // Only user-space addresses may be demand-backed. A not-present fault
-        // in the kernel half is never a legitimate lazy mapping; backing it
-        // silently would hand a capsule kernel-range memory. Surface it as an
-        // unhandled fault so the fault path kills the offender (user) or traps
-        // the real kernel bug, instead of papering over it.
-        if !layout::in_user_space(virtual_addr.as_u64()) {
-            return Err(PagingError::UnhandledPageFault);
-        }
-
-        // Never demand-back the null page. A fault in the lowest page is a null
-        // or near-null dereference; backing it would silently satisfy the bug
-        // instead of trapping it. Leave the page unmapped as a guard so the
-        // fault path kills the offending capsule.
-        if virtual_addr.as_u64() < PAGE_SIZE_4K as u64 {
-            return Err(PagingError::UnhandledPageFault);
-        }
-
-        // Charge the page against the faulting process's demand budget. A
-        // runaway capsule is refused here and killed by the fault path instead
-        // of exhausting physical memory.
+    ) -> PagingResult<PendingFlush> {
         let pid = crate::process::current_pid().unwrap_or(0);
+        if super::demand_refuse::refused(virtual_addr.as_u64(), pid) {
+            return Err(PagingError::UnhandledPageFault);
+        }
+
+        /*
+         * The fault reported the page absent when it was taken, not now. Two
+         * threads of one process on two CPUs can fault on the same page at
+         * once; the second waits on the manager lock while the first fills
+         * it. Filling again would put a fresh zero page over the one the
+         * first thread may already have written, and leak it. The caller
+         * holds the lock, so nothing can change the entry between this check
+         * and the fill below; present means the faulting access is retried.
+         */
+        if self.leaf_entry(virtual_addr).is_ok() {
+            return Ok(PendingFlush::none());
+        }
+
+        /*
+         * Charge the page against the faulting process's demand budget. A
+         * runaway capsule is refused here and killed by the fault path instead
+         * of exhausting physical memory.
+         */
         if !super::demand_cap::charge(pid) {
             return Err(PagingError::UnhandledPageFault);
         }
@@ -62,8 +65,10 @@ impl PagingManager {
         }
 
         let permissions = PagePermissions::READ | PagePermissions::WRITE | PagePermissions::USER;
-        self.map_page(virtual_addr, new_frame, permissions, PageSize::Size4KiB, stats)?;
-
-        Ok(())
+        /*
+         * The entry is absent (checked above, under the lock), so the install
+         * owes no remote flush.
+         */
+        self.map_page(virtual_addr, new_frame, permissions, PageSize::Size4KiB, stats)
     }
 }

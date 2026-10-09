@@ -1,0 +1,84 @@
+{
+ "pagination": {
+  "total": 5,
+  "page": 0,
+  "size": 5
+ },
+ "data": [
+  {
+   "node_id": 1664,
+   "contract_node_type": "nym_node",
+   "description": {
+    "host_information": {
+     "keys": {
+      "ed25519": "FmbUngD26tUGvJN8QqL78iK96bZYV2bWkjWZU7fDwBN1"
+     }
+    },
+    "network_requester": {
+     "address": "4tDEAEbB6L2DjM2Da9n2so6MUJpBxyBV3PQsqNkh3rUE.8GSTAtTKtEiPdzyqLAWEhNquHzZb6s5PUzaVreXfkrNG@FmbUngD26tUGvJN8QqL78iK96bZYV2bWkjWZU7fDwBN1",
+     "uses_exit_policy": true
+    }
+   }
+  },
+  {
+   "node_id": 755,
+   "contract_node_type": "nym_node",
+   "description": {
+    "host_information": {
+     "keys": {
+      "ed25519": "CRrLDzZi88zFDUg7sAyw3KYr4K3yKudEY5byLyh2NZ3x"
+     }
+    },
+    "network_requester": {
+     "address": "APtrPFmjc5z2LounHWvundCD8HUFKcRnhhVHWJJhMLaP.J7KcVwxAUeepETxg7o7MgjAH3h5DTW78Zd7xeCydPtB4@CRrLDzZi88zFDUg7sAyw3KYr4K3yKudEY5byLyh2NZ3x",
+     "uses_exit_policy": true
+    }
+   }
+  },
+  {
+   "node_id": 1791,
+   "contract_node_type": "nym_node",
+   "description": {
+    "host_information": {
+     "keys": {
+      "ed25519": "A9J5Gc9bHNpFhDcr3MJ2sBLeCgxzbLRfrWjdVf4xxe1s"
+     }
+    },
+    "network_requester": {
+     "address": "62jcpQXg1FSvAFe1BghoqFdUmbEbrSZ6oUPBrg3iPdtk.9S7LUcCxBi2cu8zo3PauPierXnSq7z8bFyU4tounwEq4@A9J5Gc9bHNpFhDcr3MJ2sBLeCgxzbLRfrWjdVf4xxe1s",
+     "uses_exit_policy": true
+    }
+   }
+  },
+  {
+   "node_id": 1803,
+   "contract_node_type": "nym_node",
+   "description": {
+    "host_information": {
+     "keys": {
+      "ed25519": "CXcCVGiamYSwgVwaxW3mEkXkZh1sKY2TXnWjjTjxDxzA"
+     }
+    },
+    "network_requester": {
+     "address": "Ht4gVegGguGvdw74hXumfCMEFNNHAVyLiSSraWFnv4y3.8QEMqgxcHr2XFp51fcptpveV3pBVArvBsyE18kL9GzEb@CXcCVGiamYSwgVwaxW3mEkXkZh1sKY2TXnWjjTjxDxzA",
+     "uses_exit_policy": true
+    }
+   }
+  },
+  {
+   "node_id": 999999,
+   "contract_node_type": "nym_node",
+   "description": {
+    "host_information": {
+     "keys": {
+      "ed25519": "FmbUngD26tUGvJN8QqL78iK96bZYV2bWkjWZU7fDwBN1"
+     }
+    },
+    "network_requester": {
+     "address": "not-a-requester-address",
+     "uses_exit_policy": true
+    }
+   }
+  }
+ ]
+}

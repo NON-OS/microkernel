@@ -32,7 +32,7 @@ use super::wire::{checked, frame, u32_at};
 /// The password session handle, for the owner hierarchy's own empty auth.
 const TPM_RS_PW: u32 = 0x4000_0009;
 
-pub(super) fn build_create(policy: &[u8; DIGEST_LEN]) -> Vec<u8> {
+pub(in crate::security::tpm) fn build_create(policy: &[u8; DIGEST_LEN]) -> Vec<u8> {
     let template = template(policy);
     let mut body = Vec::with_capacity(32 + template.len());
     body.extend_from_slice(&TPM_RH_OWNER.to_be_bytes());
@@ -69,7 +69,7 @@ fn template(policy: &[u8; DIGEST_LEN]) -> Vec<u8> {
 }
 
 /// The object handle leads the response, ahead of the parameter area.
-pub(super) fn parse_create(resp: &[u8]) -> Result<u32, KeyError> {
+pub(in crate::security::tpm) fn parse_create(resp: &[u8]) -> Result<u32, KeyError> {
     let r = checked(resp)?;
     u32_at(r, 10)
 }

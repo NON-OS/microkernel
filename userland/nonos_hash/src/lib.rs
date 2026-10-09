@@ -21,10 +21,12 @@
 
 mod hmac512;
 mod sha256;
+mod sha256_stream;
 mod sha512;
 mod wipe;
 
 pub use hmac512::{hmac_sha512, HmacSha512};
 pub use sha256::sha256;
+pub use sha256_stream::Sha256;
 pub use sha512::{sha512, Sha512};
 pub use wipe::wipe;

@@ -15,3 +15,11 @@ license = "AGPL-3.0-or-later"
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+nonos_vt = { path = "../nonos_vt" }
+# The route values the policy store holds, for the direct-only commands.
+nonos_policy_proto = { path = "../policy_proto" }
+# The apps' shared text input (which key types what, the clipboard's first
+# line), which the line editor's paste reads.
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }

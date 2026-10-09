@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::firmware::FirmwareHandoff;
-use crate::handoff::types::{CryptoHandoff, FramebufferInfo, Module};
+use crate::handoff::types::{CryptoHandoff, FramebufferInfo, InstallHandoff};
 
 pub struct HandoffInitParams {
     pub fb_info: FramebufferInfo,
@@ -32,5 +32,6 @@ pub struct HandoffInitParams {
     /// One loader-data page that receives the module array the handoff
     /// points at.
     pub modules_addr: u64,
-    pub install_source: [Module; 2],
+    /* The two images for the installer, and whether one was asked for. */
+    pub install: InstallHandoff,
 }

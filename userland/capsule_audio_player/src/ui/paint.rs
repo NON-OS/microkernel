@@ -77,16 +77,23 @@ pub fn text(fb: &mut PaintBuffer, x: i32, top: i32, s: &str, argb: u32, px: f32)
     fb.text_ttf(x, top, s, argb, px)
 }
 
+/// The top to draw text at so its capitals sit on `cy`. The face's glyph
+/// box carries room above the capitals, and placing the box a cap height up
+/// drew every centred label a few pixels high, beside icons that were not.
+pub fn mid_top(cy: i32, px: f32) -> i32 {
+    cy - cap_h(px) * 3 / 4
+}
+
 pub fn text_mid(fb: &mut PaintBuffer, r: Rect, s: &str, argb: u32, px: f32) -> i32 {
-    fb.text_ttf(r.x, r.cy() - cap_h(px), s, argb, px)
+    fb.text_ttf(r.x, mid_top(r.cy(), px), s, argb, px)
 }
 
 pub fn text_centre(fb: &mut PaintBuffer, r: Rect, s: &str, argb: u32, px: f32) -> i32 {
     let x = r.x + (r.w - width(s, px)) / 2;
-    fb.text_ttf(x, r.cy() - cap_h(px), s, argb, px)
+    fb.text_ttf(x, mid_top(r.cy(), px), s, argb, px)
 }
 
 pub fn text_right(fb: &mut PaintBuffer, r: Rect, s: &str, argb: u32, px: f32) -> i32 {
     let x = r.right() - width(s, px);
-    fb.text_ttf(x, r.cy() - cap_h(px), s, argb, px)
+    fb.text_ttf(x, mid_top(r.cy(), px), s, argb, px)
 }

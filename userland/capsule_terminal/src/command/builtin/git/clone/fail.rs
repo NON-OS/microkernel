@@ -24,11 +24,24 @@ use nonos_git::TransportError;
 use crate::command::output::Output;
 use crate::term::state::State;
 
-/// Report a failure in terms of what the user can do about it.
+/// Report a failure in terms of what the user can do about it. `why` is the
+/// route's own reason when the chosen network refused the connection, which
+/// says more than that the host could not be reached.
 pub(in crate::command::builtin::git) fn fail_with(
     state: &mut State,
     command: &str,
     error: TransportError,
+    why: Option<&'static str>,
+) {
+    say_failure(&mut Output::new(&mut state.scrollback), command, error, why);
+}
+
+/// The same, from a job's step, where only the output is at hand.
+pub(in crate::command::builtin::git) fn say_failure(
+    out: &mut Output<'_>,
+    command: &str,
+    error: TransportError,
+    why: Option<&'static str>,
 ) {
     let reason: &[u8] = match error {
         TransportError::Unreachable => b"cannot reach the host, check the network",
@@ -41,8 +54,9 @@ pub(in crate::command::builtin::git) fn fail_with(
         TransportError::Malformed => b"the server sent something unreadable",
         TransportError::Refused => b"the server refused the update",
     };
+    let reason = why.map(str::as_bytes).unwrap_or(reason);
     let mut line = Vec::from(command.as_bytes());
     line.extend_from_slice(b": ");
     line.extend_from_slice(reason);
-    Output::new(&mut state.scrollback).writeln(&line);
+    out.writeln(&line);
 }

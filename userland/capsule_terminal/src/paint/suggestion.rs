@@ -19,6 +19,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::line_text::text;
+use super::line_window::fit_cells;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
@@ -51,7 +52,7 @@ pub fn draw_suggestion(
     let tail = &full[body.len()..];
     // A tail that runs past the edge is cut to what fits rather than wrapping
     // into the row below, which belongs to the scrollback.
-    let shown = tail.len().min(room_cells);
+    let shown = fit_cells(tail, room_cells);
     if shown == 0 {
         return;
     }

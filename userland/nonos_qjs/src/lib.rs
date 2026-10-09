@@ -34,4 +34,6 @@ mod misc_stubs;
 #[cfg(not(feature = "hosted"))]
 mod str_stubs;
 
-pub use engine::Engine;
+pub use engine::{
+    Asked, Dialog, Engine, Key, Limits, Press, Stop, MOD_ALT, MOD_CTRL, MOD_META, MOD_SHIFT,
+};

@@ -39,6 +39,7 @@ pub(crate) fn service() {
             PendingApp::AudioPlayer => spawn_audio_player(),
             PendingApp::VideoPlayer => spawn_video_player(),
             PendingApp::Install => spawn_install(),
+            PendingApp::Prove => crate::userspace::capsule_prove::spawn_prove_instance(),
         };
         match result {
             /*
@@ -71,6 +72,7 @@ fn spawn_error_name(e: SpawnError) -> &'static [u8] {
         SpawnError::NonosIdCertRejected(_) => b"CertRejected",
         SpawnError::ManifestRejected(_) => b"ManifestRejected",
         SpawnError::AttestationRejected => b"AttestationRejected",
+        SpawnError::ProfileRefused => b"ProfileRefused",
     }
 }
 

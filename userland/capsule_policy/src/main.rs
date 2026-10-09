@@ -20,7 +20,9 @@
 extern crate alloc;
 
 mod bootstrap;
+mod keep;
 mod push;
+mod restore;
 mod server;
 mod store;
 

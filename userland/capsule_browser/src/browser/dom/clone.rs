@@ -38,6 +38,7 @@ impl Dom {
         let copy = self.create(kind, tag)?;
         self.nodes[copy].text = self.nodes[id].text.clone();
         self.nodes[copy].attrs = self.nodes[id].attrs.clone();
+        self.nodes[copy].ns = self.nodes[id].ns;
         if deep {
             self.clone_children(id, copy, 0);
         }

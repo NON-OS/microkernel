@@ -34,7 +34,7 @@ impl Regs {
 
     /// # Safety
     /// `offset` must be a 4-byte-aligned register the device exposes
-    /// in the mapped BAR0 window. eK@nonos.systems — the broker's
+    /// in the mapped BAR0 window. The broker's
     /// `MmioMap` grant guarantees the page is present, user-mapped,
     /// uncached, and read+write; the offset bound is the caller's
     /// responsibility.
@@ -43,7 +43,7 @@ impl Regs {
     }
 
     /// # Safety
-    /// Same conditions as `r32`. eK@nonos.systems — the device may
+    /// Same conditions as `r32`. The device may
     /// observe the write any time after the volatile store retires;
     /// callers that need a fence should issue one themselves.
     pub unsafe fn w32(&self, offset: usize, value: u32) {

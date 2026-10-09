@@ -25,6 +25,13 @@ pub struct Outcome {
     pub partition_guid: [u8; 36],
     pub bytes_written: u64,
     pub bytes_verified: u64,
+    /// Files in the new disk's store.
+    pub store_files: usize,
     pub seconds: u64,
     pub error: Option<String>,
+    /// The request the writer was on when it stopped, in its words, with
+    /// the part of the disk it was writing.
+    pub request: Option<String>,
+    /// The driver status the writer's sink carried, when the stop was one.
+    pub status: Option<i32>,
 }

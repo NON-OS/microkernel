@@ -19,3 +19,5 @@ pub const EIO: i32 = -5;
 pub const EACCES: i32 = -13;
 pub const EINVAL: i32 = -22;
 pub const EMFILE: i32 = -24;
+pub const EFBIG: i32 = -27;
+pub const ENOSPC: i32 = -28;

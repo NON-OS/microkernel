@@ -19,6 +19,10 @@ use alloc::vec::Vec;
 use crate::protocol::{encode_response, Request, OP_STORE_STATUS};
 
 pub fn store_status(req: Request<'_>) -> Vec<u8> {
-    let code = crate::blk::status::current();
-    encode_response(OP_STORE_STATUS, req.flags, req.request_id, 0, &code.to_le_bytes())
+    // The settled word follows the code, so a client reading only the code
+    // is unaffected.
+    let mut body = [0u8; 8];
+    body[..4].copy_from_slice(&crate::blk::status::current().to_le_bytes());
+    body[4..].copy_from_slice(&u32::from(crate::blk::status::settled()).to_le_bytes());
+    encode_response(OP_STORE_STATUS, req.flags, req.request_id, 0, &body)
 }

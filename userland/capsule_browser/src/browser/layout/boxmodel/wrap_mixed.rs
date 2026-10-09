@@ -18,13 +18,15 @@ use alloc::vec::Vec;
 
 use crate::browser::css::Computed;
 
+use super::abs_out_of_flow::out_of_flow;
 use super::tree::BoxNode;
 use super::wrap_runs::wrap_runs;
 
-// A block container must hold only blocks: when block and inline children
-// mix, consecutive inline runs get an anonymous block around them.
+/* A block container must hold only blocks: when in-flow block and inline
+ * children mix, consecutive inline runs get an anonymous block around them.
+ * An out-of-flow box takes no part in flow, so it never forces the wrap. */
 pub(super) fn wrap_mixed(parent: &Computed, children: Vec<BoxNode>) -> Vec<BoxNode> {
-    let has_block = children.iter().any(|c| c.kind.block_level());
+    let has_block = children.iter().any(|c| c.kind.block_level() && !out_of_flow(&c.style));
     if !has_block {
         return children;
     }

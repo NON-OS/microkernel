@@ -13,21 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Describing the command and response rings to the controller.
 //!
 //! Both rings are named by a 64-bit physical address split across two
 //! registers, and the controller fetches from them by DMA. An address landing
-//! in the wrong half, or the two rings swapped, aims a bus master at memory
-//! the driver did not allocate. That is not a stuck device, it is a write into
-//! somebody else's page, which is why each half is asserted separately.
+//! in the wrong half aims a bus master at memory the driver did not allocate.
 
 use nonos_devmodel::FakeBar;
 
 use crate::constants::{
-    CORBLBASE, CORBSIZE, CORBSIZE_256, CORBUBASE, RIRBLBASE, RIRBSIZE, RIRBSIZE_256, RIRBUBASE,
+    CORBLBASE, CORBSIZE, CORBUBASE, RINGSIZE_16, RINGSIZE_256,
+    RINGSIZE_CAP_16, RINGSIZE_CAP_2, RINGSIZE_CAP_256, RIRBLBASE, RIRBSIZE, RIRBUBASE,
 };
-use crate::controller::corb;
+use crate::controller::corb::{self, ring_size, Rings};
 use crate::model::WINDOW;
 use crate::regs::Regs;
 
@@ -39,7 +37,8 @@ pub const RIRB_PA: u64 = 0x0000_0007_ABCD_E080;
 /// A window a full ring bring-up has already run against.
 pub fn brought_up() -> FakeBar {
     let bar = FakeBar::new(WINDOW);
-    assert!(corb::init(Regs::new(bar.base()), CORB_PA, RIRB_PA).is_ok(), "ring bring-up");
+    let rings = corb::init(Regs::new(bar.base()), CORB_PA, RIRB_PA);
+    assert_eq!(rings, Rings { entries: 256, rp_handshake: true }, "ring bring-up");
     bar
 }
 
@@ -53,13 +52,21 @@ fn each_ring_address_reaches_the_controller_whole_and_in_the_right_halves() {
 }
 
 #[test]
-fn each_ring_is_sized_to_match_the_memory_that_was_allocated_for_it() {
-    /*
-     * The size field is an encoding, not a count. Telling a controller it has
-     * 256 entries when 16 were allocated has it wrap past the end of the
-     * buffer and keep going, still by DMA.
-     */
-    let bar = brought_up();
-    assert_eq!(bar.wrote8(CORBSIZE as usize), CORBSIZE_256);
-    assert_eq!(bar.wrote8(RIRBSIZE as usize), RIRBSIZE_256);
+fn the_ring_size_is_the_largest_the_controller_offers() {
+    assert_eq!(ring_size(RINGSIZE_CAP_256 | RINGSIZE_CAP_16 | RINGSIZE_CAP_2), (RINGSIZE_256, 256));
+    assert_eq!(ring_size(RINGSIZE_CAP_16 | RINGSIZE_CAP_2), (RINGSIZE_16, 16));
+    assert_eq!(ring_size(RINGSIZE_CAP_2), (0, 2));
+    // No capability bits at all: 256, the size every controller Linux drives takes.
+    assert_eq!(ring_size(0), (RINGSIZE_256, 256));
+}
+
+#[test]
+fn a_controller_offering_only_sixteen_entries_gets_sixteen_on_both_rings() {
+    let bar = FakeBar::new(WINDOW);
+    bar.present8(CORBSIZE as usize, RINGSIZE_CAP_16);
+    bar.present8(RIRBSIZE as usize, RINGSIZE_CAP_16);
+    let rings = corb::init(Regs::new(bar.base()), CORB_PA, RIRB_PA);
+    assert_eq!(rings.entries, 16, "the driver would count to 256 on a 16-entry ring");
+    assert_eq!(bar.wrote8(CORBSIZE as usize) & 3, RINGSIZE_16);
+    assert_eq!(bar.wrote8(RIRBSIZE as usize) & 3, RINGSIZE_16);
 }

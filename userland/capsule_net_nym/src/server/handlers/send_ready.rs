@@ -38,7 +38,11 @@ pub struct Ready {
 /// but would arrive unanswerable or linkable, so it is refused instead. A
 /// request that cannot be replied to is not a cheaper request; it is a
 /// request whose answer is lost after the exit has already acted on it.
-pub fn ready(session: &Session) -> Result<Ready, u16> {
+///
+/// `blocks` is how many reply blocks to build for the message to carry. A
+/// top up builds its own and passes none: it used to build a request's worth
+/// here as well and throw them away, keys and all.
+pub fn ready(session: &Session, blocks: usize) -> Result<Ready, u16> {
     // Zeros mean the tag was never drawn. Sending it would give every such
     // session the same one, which is the link the tag exists to prevent.
     if session.sender_tag == [0u8; 16] {
@@ -57,7 +61,7 @@ pub fn ready(session: &Session) -> Result<Ready, u16> {
     // Reply blocks and acknowledgements both need a route ending at the
     // gateway holding our session, which needs the directory's record for it.
     let gateway_identity = session.gateway.identity;
-    let Some(reply_surbs) = build_supply(&gateway_identity, &identity.public) else {
+    let Some(reply_surbs) = build_supply(&gateway_identity, &identity.public, blocks) else {
         trace::say(b"send refused: no reply blocks, gateway not in directory yet");
         return Err(E_NO_ROUTE);
     };

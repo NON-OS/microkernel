@@ -15,32 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Pure validator for `MkPciConfigWrite`. The whole authority lives
-//! in this function: only PCI Command bit 2 (Bus Master Enable) and
-//! the MSI-X Message Control register's Function Mask + Enable bits
-//! may flip. Every other config-space write — BAR programming,
+//! here and in `command`: only PCI Command bits 1 (Memory Space), 2 (Bus
+//! Master Enable) and 10 (Interrupt Disable) and the MSI-X Message
+//! Control register's Function Mask + Enable bits may flip; the
+//! caller (`write::write`, through `ownership::resolve`) has already
+//! checked that the writing pid holds the device's claim at the
+//! current epoch. Every other config-space write (BAR programming,
 //! interrupt line, IDs, status, expansion ROM, capability pointer
-//! mutation, PCIe / AER — is rejected before it reaches the bus.
+//! mutation, PCIe / AER) is rejected before it reaches the bus, but for the
+//! few vendor bits `quirk_bits` names for audio and network functions.
 
-use crate::drivers::pci::constants::{
-    CFG_COMMAND, CMD_BUS_MASTER, CMD_MEMORY_SPACE, MSIX_CTRL_ENABLE, MSIX_CTRL_FUNCTION_MASK,
-};
+use crate::drivers::pci::constants::{CFG_COMMAND, MSIX_CTRL_ENABLE, MSIX_CTRL_FUNCTION_MASK};
 use crate::drivers::pci::types::MsixInfo;
 
+use super::command::validate_command;
+use super::quirk_bits::{only, writable, Ident};
 use super::types::{PciWriteError, PciWriteRequest, WriteAction};
 
 const MSIX_CONTROL_WRITABLE: u16 = MSIX_CTRL_ENABLE | MSIX_CTRL_FUNCTION_MASK;
 
-// The only PCI Command bits a driver capsule may flip: Bus Master (for DMA)
-// and Memory Space (so its MMIO BAR is decoded). Firmware often leaves
-// Memory Space clear on an LPSS controller it did not use, and then every
-// MMIO register access silently drops, so a driver must be able to assert
-// it. No other command bit (I/O space, interrupt disable, SERR, etc.) is
-// writable through this path.
-const COMMAND_WRITABLE: u16 = CMD_BUS_MASTER | CMD_MEMORY_SPACE;
-
 pub fn validate(
     req: &PciWriteRequest,
     msix: Option<&MsixInfo>,
+    ident: &Ident,
     current_register: u16,
 ) -> Result<WriteAction, PciWriteError> {
     if req.offset == CFG_COMMAND as u32 {
@@ -52,15 +49,14 @@ pub fn validate(
             return validate_msix_control(req.value, current_register, ctrl_offset as u16);
         }
     }
-    Err(PciWriteError::OffsetNotAllowed)
-}
-
-fn validate_command(new: u16, current: u16) -> Result<WriteAction, PciWriteError> {
-    let desired = if new & !COMMAND_WRITABLE == 0 { current | new } else { new };
-    if (desired ^ current) & !COMMAND_WRITABLE != 0 {
-        return Err(PciWriteError::BitsNotAllowed);
+    /* The vendor bits of `quirk_bits`, and nothing beside them. */
+    if let Some(mask) = writable(ident, req.offset) {
+        if !only(mask, req.value, current_register) {
+            return Err(PciWriteError::BitsNotAllowed);
+        }
+        return Ok(WriteAction::Bits { offset: req.offset as u16, value: req.value });
     }
-    Ok(WriteAction::Command(desired))
+    Err(PciWriteError::OffsetNotAllowed)
 }
 
 fn validate_msix_control(

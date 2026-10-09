@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Row tables for Editing, Auto Save and Language. Every switch here is backed
-//! by a persisted bit; the dropdowns have no popup behind them, so they are
-//! listed as `Drop` and the painter draws them from the dimmed style.
+//! The row table for Editing. Every switch here is read by `live.rs`.
 
 use super::sect::{Ctl, Section};
 

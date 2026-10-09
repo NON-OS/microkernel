@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ip_client::{poll_segment, RecvError};
-use crate::state::ip_port;
+use crate::state::{ip_port, local_ip};
 use crate::tcp::{parse, Endpoint4, FLAG_ACK, FLAG_SYN};
 
 use super::{accept, existing, RxAction};
@@ -27,6 +27,10 @@ pub fn drain_one() -> bool {
         Err(RecvError::Empty) | Err(_) => return false,
     };
     let Ok((hdr, payload)) = parse(&pkt.src, &pkt.dst, &pkt.segment) else { return true };
+    // Not between two unicast hosts: no connection, no listener, no reset.
+    if !super::unicast::usable_pair(pkt.src, pkt.dst, local_ip()) {
+        return true;
+    }
     let local = Endpoint4 { ip: pkt.dst, port: hdr.dst_port };
     let remote = Endpoint4 { ip: pkt.src, port: hdr.src_port };
     match existing::update(local, remote, hdr, payload) {
@@ -41,7 +45,7 @@ pub fn drain_one() -> bool {
         RxAction::Reap(_) | RxAction::None => {}
     }
     if hdr.has_flag(FLAG_SYN) && !hdr.has_flag(FLAG_ACK) {
-        if let Some(plan) = accept::syn(local, remote, hdr.seq) {
+        if let Some(plan) = accept::syn(local, remote, hdr.seq, hdr.mss) {
             let _ = tcp_tx::send(plan, FLAG_SYN | FLAG_ACK, &[]);
         }
     }

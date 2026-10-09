@@ -14,19 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::{MAC_LEN, VIRTIO_NET_F_MAC};
-use crate::regs::Regs;
-
 pub fn feature_enabled(features: u32, bit: u32) -> bool {
     features & (1u32 << bit) != 0
-}
-
-pub fn read_mac(regs: Regs, features: u32, mac_offset: usize) -> [u8; MAC_LEN] {
-    let mut mac = [0u8; MAC_LEN];
-    if feature_enabled(features, VIRTIO_NET_F_MAC) {
-        for (i, b) in mac.iter_mut().enumerate() {
-            *b = unsafe { regs.r8(mac_offset + i) };
-        }
-    }
-    mac
 }

@@ -61,4 +61,7 @@ pub fn dump_trap(name: &[u8], frame: &InterruptStackFrame, err: Option<u64>, cr2
         print_hex_u64(c);
     }
     crate::sys::serial::println(b"");
+    if let (3, Some(c)) = (cpl, cr2) {
+        super::walk_fault::print_walk(cr3, c);
+    }
 }

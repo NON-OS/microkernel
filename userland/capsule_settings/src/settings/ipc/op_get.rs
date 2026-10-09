@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_policy_proto::{
-    kind_of, Field, IPC_PAYLOAD_MAX, KIND_BOOL, KIND_I8, KIND_STR, KIND_U8, OP_GET,
+    kind_of, Field, IPC_PAYLOAD_MAX, KIND_BOOL, KIND_I8, KIND_STR, KIND_U64, KIND_U8, OP_GET,
 };
 
 use crate::settings::state::cache::{FieldValue, STRING_CAP};
@@ -35,6 +35,7 @@ pub fn op_get(port: u32, field: Field) -> Result<FieldValue, IpcError> {
         KIND_U8 => u8_value(reply.payload)?,
         KIND_I8 => i8_value(reply.payload)?,
         KIND_STR => str_value(reply.payload)?,
+        KIND_U64 => u64_value(reply.payload)?,
         _ => return Err(IpcError::KindMismatch),
     })
 }
@@ -51,6 +52,11 @@ fn u8_value(p: &[u8]) -> Result<FieldValue, IpcError> {
         return Err(IpcError::ShortReply);
     }
     Ok(FieldValue::U8(p[0]))
+}
+
+fn u64_value(p: &[u8]) -> Result<FieldValue, IpcError> {
+    let raw = p.get(..8).ok_or(IpcError::ShortReply)?;
+    Ok(FieldValue::U64(u64::from_le_bytes(raw.try_into().map_err(|_| IpcError::ShortReply)?)))
 }
 
 fn i8_value(p: &[u8]) -> Result<FieldValue, IpcError> {

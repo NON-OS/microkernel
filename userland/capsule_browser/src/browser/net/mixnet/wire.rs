@@ -14,112 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU32, Ordering};
 
-use super::call::exchange;
-use super::route::with;
+use super::io::ask_once;
+use super::route::{insert, remove};
 
-/// The handle the browser carries while proxied.
+/// The bit every handle of a conversation with a proxy carries, and no
+/// handle net.sockets gives out: it counts its handles up from 1, and one
+/// that reached this bit is refused (`socket_open`) rather than mistaken.
+pub const PROXIED: u32 = 0x8000_0000;
+
+/// The number in the next conversation's handle.
 ///
-/// One conversation at a time per capsule: `net.socks5` keys its handshakes on
-/// the sender the kernel attests, so the pid is the identity and a second
-/// number here would add nothing.
-const HANDLE: u32 = 1;
+/// Every conversation gets a handle of its own, so a close or a read for a
+/// fetch that has already gone cannot reach the one that replaced it.
+static NEXT: AtomicU32 = AtomicU32::new(1);
 
-pub fn open() -> Result<u32, ()> {
-    let port = with(|route| route.socks_port)?;
-    with(|route| {
-        route.pending.clear();
-        route.closed = false;
-    })?;
-    // A refusal here is not fatal: the proxy may simply not have a
-    // conversation to forget yet, which is the normal case for the first
-    // page of a session.
-    let _ = exchange(port, &[STREAM_RESET]);
-    Ok(HANDLE)
+/// Whether `handle` names a conversation with a proxy.
+pub fn is_proxied(handle: u32) -> bool {
+    handle & PROXIED != 0
 }
 
-/// Nothing is dialled here. The destination travels in the SOCKS CONNECT
-/// request the browser sends next, and the proxy opens the tunnel when it
-/// arrives.
-pub fn connect() -> Result<(), ()> {
-    Ok(())
-}
-
-/// The proxy marks every answer, so that an answer carrying no bytes is still
-/// an answer. Without it "nothing yet" and "no reply at all" are the same
-/// thing on the wire, and the caller waits out a timeout to tell them apart.
-const STREAM_CLOSED: u8 = 1;
-
-/// The proxy needs the same marker on the way in. A request carrying no
-/// bytes is how it is asked whether the far end has answered, and the kernel
-/// refuses a zero length message, so the ask needs a byte to travel on.
-const STREAM_BYTES: u8 = 0;
-
-/// Tell the proxy to forget the previous conversation. It keys handshake
-/// state on the caller, so without this a second page load meets a
-/// connection still relaying the first, and its greeting is carried to the
-/// exit as stream bytes rather than starting a handshake.
-const STREAM_RESET: u8 = 1;
-
-/// One exchange with the proxy, marker on and marker off.
-fn ask(port: u32, payload: &[u8]) -> Result<Vec<u8>, ()> {
-    let mut framed = Vec::with_capacity(1 + payload.len());
-    framed.push(STREAM_BYTES);
-    framed.extend_from_slice(payload);
-    exchange(port, &framed)
-}
-
-/// Take the marker off an answer and record what it said about the tunnel.
-fn absorb(reply: &[u8]) -> Result<(), ()> {
-    let Some((&marker, body)) = reply.split_first() else {
+/// Begin a conversation with the proxy at `port`, on a stream of its own
+/// (`streams`), so several run side by side. Its reset is asked here, once
+/// and briefly; a proxy that does not answer in the poll wait is asked
+/// again by the ticks that follow, before anything else goes. A call
+/// refused outright (no proxy, a dead port) fails the open at once, as
+/// does a proxy whose every stream the browser already holds.
+pub fn open(port: u32) -> Result<u32, ()> {
+    let n = (NEXT.fetch_add(1, Ordering::Relaxed) & !PROXIED).max(1);
+    let handle = PROXIED | n;
+    insert(handle, port).ok_or(())?;
+    if ask_once(handle).is_err() {
+        remove(handle, false);
         return Err(());
-    };
-    with(|route| {
-        route.pending.extend_from_slice(body);
-        route.closed = marker == STREAM_CLOSED;
-    })
-}
-
-/// Write bytes to the proxy and keep whatever it answers for the next read.
-pub fn send(payload: &[u8]) -> Result<(), ()> {
-    let port = with(|route| route.socks_port)?;
-    let reply = ask(port, payload)?;
-    absorb(&reply)
-}
-
-/// Take what the proxy has already answered.
-///
-/// Zero means nothing is waiting, which is what the callers above expect from
-/// a socket that has not been spoken to yet.
-///
-/// An empty exchange is how the proxy is asked whether more has arrived. A
-/// reply crosses several hops with a delay chosen at each one, so it is
-/// almost never ready inside the same call that sent the request. Reading
-/// only what a send happened to bring back meant the answer to every request
-/// arrived after the only chance to collect it.
-pub fn recv(out: &mut [u8]) -> Result<usize, ()> {
-    let port = with(|route| route.socks_port)?;
-    // Nothing held and the tunnel still open means the answer may simply not
-    // have arrived yet, so ask. A closed tunnel has nothing more to give and
-    // asking again would only stall the reader.
-    if with(|route| route.pending.is_empty() && !route.closed)? {
-        if let Ok(more) = ask(port, &[]) {
-            absorb(&more)?;
-        }
     }
-    with(|route| {
-        let n = out.len().min(route.pending.len());
-        out[..n].copy_from_slice(&route.pending[..n]);
-        route.pending.drain(..n);
-        n
-    })
+    Ok(handle)
 }
 
-pub fn close() -> bool {
-    with(|route| {
-        route.pending.clear();
-        route.closed = false;
-    })
-    .is_ok()
+/// Let the conversation go. The proxy is told on a later tick, without
+/// holding this one (`io::tell_reset`).
+pub fn close(handle: u32) -> bool {
+    remove(handle, true);
+    true
 }

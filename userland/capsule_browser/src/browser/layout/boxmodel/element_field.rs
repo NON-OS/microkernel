@@ -16,31 +16,46 @@
 
 use alloc::vec::Vec;
 
-use crate::browser::css::Computed;
+use crate::browser::css::{Computed, WhiteSpace};
 
-use super::field_label::field_label;
+use super::box_kind::box_kind;
+use super::contexts::field_size::size_field;
+use super::field_label::{field_label, widest_option};
 use super::leaf::leaf;
 use super::tree::{BoxKind, BoxNode};
 use super::walk::{ElementIn, Walk};
 
-// Box for an <input> or <select>: a block carrying its current visible
-// field label as a text child. Hidden inputs render nothing.
-pub(super) fn element_field(w: &Walk, item: &ElementIn, style: Computed) -> Option<BoxNode> {
+/* Box for an <input> or <select>: an atomic inline, like an inline-block,
+ * unless its display makes it a block, sized as the control is (see
+ * field_size.rs) where CSS leaves a side auto, and carrying its visible
+ * label (value, placeholder or chosen option) as one unwrapped line of
+ * text. Hidden inputs render nothing. */
+#[inline(never)]
+pub(super) fn element_field(w: &Walk, item: &ElementIn, mut style: Computed) -> Option<BoxNode> {
     if item.c.attr("type").is_some_and(|t| t.eq_ignore_ascii_case("hidden")) {
         return None;
     }
+    let widest = (item.c.tag == "select").then(|| widest_option(w.dom, item.ch));
+    size_field(item.c, &mut style, widest.as_deref());
     let label = field_label(w.dom, item.ch);
     let mut kids: Vec<BoxNode> = Vec::new();
     if !label.is_empty() {
-        kids.push(leaf(BoxKind::Text(label), &style, &None, item.ch));
+        let mut text = leaf(BoxKind::Text(label), &style, &None, item.ch);
+        text.style.white_space = WhiteSpace::Pre;
+        kids.push(text);
     }
+    let kind = match box_kind(&style) {
+        BoxKind::Inline => BoxKind::InlineBlock,
+        k => k,
+    };
     Some(BoxNode {
-        kind: BoxKind::Block,
+        kind,
         style,
         href: None,
         dom_id: item.ch,
         bg_image: None,
         grid_place: None,
         children: kids,
+        aux: Default::default(),
     })
 }

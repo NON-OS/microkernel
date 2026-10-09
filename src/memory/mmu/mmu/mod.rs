@@ -26,3 +26,7 @@ mod tlb;
 pub use api::*;
 pub use core::MMU;
 pub use protect::report as report_protection;
+pub use protect::{
+    apply_this_cpu as apply_protection_this_cpu, matches_boot as protection_matches_boot,
+    report_cpu as report_protection_cpu,
+};

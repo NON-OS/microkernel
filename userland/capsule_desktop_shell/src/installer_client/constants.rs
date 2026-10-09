@@ -20,6 +20,7 @@ pub(super) const SERVICE: &[u8] = b"installer";
 pub(super) const HDR_LEN: usize = 8;
 pub(super) const SEQ: u32 = 1;
 
+pub(super) const OP_HEALTHCHECK: u16 = 1;
 pub(super) const OP_LIST_INSTALLED: u16 = 5;
 pub(super) const OP_LOAD_BY_NAME: u16 = 4;
 pub(super) const OP_PKG_QUERY: u16 = 6;
@@ -32,6 +33,15 @@ pub(super) const TIMEOUT_MS: u64 = 300;
 /// binary legitimately takes seconds. The listing budget would abandon a load
 /// that is still running correctly.
 pub(super) const LOAD_TIMEOUT_MS: u64 = 30_000;
+
+/// A Launchpad launch does not wait a load out on the shell's frame loop: it
+/// waits this long for a quick answer (a refusal, a missing name) and follows
+/// a load still running on later turns (`state/launch.rs`).
+pub(super) const ISSUE_TIMEOUT_MS: u64 = 40;
+
+/// A health probe the installer answers at once when it is free. Busy with a
+/// load, it answers once the load is done, long after this.
+pub(super) const PROBE_TIMEOUT_MS: u64 = 20;
 
 /// Ceiling on the optional caps the loaded capsule may receive. The verified
 /// manifest and the identity certificate are the real bounds; this only avoids

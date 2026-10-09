@@ -16,16 +16,23 @@
 
 use crate::blk::error::BlkError;
 use crate::protocol::{EACCES, EBADF, EEXIST, EINVAL, EISDIR, ENOENT, ENOSPC, ENOTEMPTY};
+use crate::protocol::{EIO, ENODEV, EUCLEAN};
 use crate::store::StoreError;
 
-// A name already in the TOC and the 16 MiB extent budget are both refusals a
-// caller can act on, so they must not collapse into the generic EINVAL that
-// every wire-level block failure maps to.
+// A name already in the TOC and the extent budget (MAX_TOTAL_BYTES) are both
+// refusals a caller can act on, so they must not collapse into the generic
+// EINVAL a malformed request gets. Nor may the store's three failure
+// families: no NONOS disk (a live boot, by design), a disk that faulted, and
+// a store that does not decode used to share that EINVAL, so a caller could
+// not tell "nothing to keep it on" from "what you keep it on is damaged".
 pub(super) fn map_blk_err(e: BlkError) -> i32 {
     match e {
         BlkError::Exists => EEXIST,
-        BlkError::BadLength => ENOSPC,
-        _ => EINVAL,
+        BlkError::BadLength | BlkError::NoSpace => ENOSPC,
+        BlkError::NoService => ENODEV,
+        BlkError::Transport(_) | BlkError::Status(_) => EIO,
+        BlkError::ShortReply(_) | BlkError::BadContainer => EUCLEAN,
+        BlkError::Inval | BlkError::NoMemory => EINVAL,
     }
 }
 

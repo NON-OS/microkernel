@@ -19,7 +19,7 @@ use nonos_libc::mk_yield;
 use super::discover;
 use crate::compositor_client::{probe_compositor, query_display_info};
 use crate::focus::FocusModel;
-use crate::state::{Context, SubscriptionList};
+use crate::state::{Context, Restack, SubscriptionList};
 use crate::window::WindowTable;
 use crate::z_order::ZStack;
 
@@ -47,5 +47,6 @@ fn run_once() -> Result<Context, &'static str> {
         subscriptions: SubscriptionList::new(),
         next_request_id: 3,
         input_router_pid: 0,
+        restack: Restack::new(),
     })
 }

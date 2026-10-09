@@ -17,6 +17,7 @@ mod contiguous;
 mod init;
 mod query;
 mod random;
+mod reserve;
 mod zeroing;
 
 pub use alloc::{allocate_frame, deallocate_frame};
@@ -25,4 +26,5 @@ pub use contiguous::{allocate_contiguous, free_contiguous};
 pub use init::init_with_bitmap;
 pub use query::{get_zone_stats, largest_free_run, managed_range, total_memory};
 pub use random::{derive_seed, mix64};
+pub use reserve::{phys_keep_usable, phys_reserve, reserve_range};
 pub use zeroing::zero_frame;

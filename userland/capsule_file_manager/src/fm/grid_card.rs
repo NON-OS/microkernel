@@ -26,8 +26,6 @@ use super::file_color::color;
 use super::file_kind::kind_of;
 use super::human_size::human_size;
 use super::icon;
-use super::icon_draw::draw;
-use super::icon_path::Icon;
 use super::list_kind_label::kind_label;
 use super::measure_text::{truncate_to_width, width_of};
 use super::theme::{HAIR_CY, INK, INK2, INK3, PANEL, RAISE, TINT_BOT, TINT_TOP};
@@ -36,8 +34,6 @@ const IDLE: Plate = Plate::new(PANEL).tint(TINT_TOP, TINT_BOT);
 const LIT: Plate = Plate::new(RAISE).line(HAIR_CY).tint(TINT_TOP, TINT_BOT).glow(3);
 const GLYPH: u32 = 44;
 const GLYPH_DY: u32 = 10;
-const MENU_S: u32 = 14;
-const MENU_PAD: u32 = 6;
 const NAME_PX: f32 = 14.0;
 const META_PX: f32 = 13.0;
 
@@ -62,7 +58,6 @@ pub fn card(fb: &mut PaintBuffer, entry: &Entry, x: u32, y: u32, w: u32, h: u32,
     let meta = meta_line(entry);
     let mx = x + w.saturating_sub(width_of(fb, &meta, META_PX)) / 2;
     let _ = fb.text_ttf(mx as i32, (gy + GLYPH + 26) as i32, &meta, INK3, META_PX);
-    draw(fb, Icon::Ellipsis, x + w.saturating_sub(MENU_S + MENU_PAD), y + MENU_PAD, MENU_S, INK3);
 }
 
 /// A file's size where the walk reported one, and its kind otherwise, so the

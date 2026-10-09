@@ -14,24 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
 use crate::crypto::Key;
 use crate::packet::REPLAY_TAG_LEN;
+use crate::surb::Budget;
 
 use super::gateway::Gateway;
 use super::replay::ReplayWindow;
-
-/// Messages held for a reader that has not collected them yet.
-///
-/// A response arrives as many messages, and the reader only asks between its
-/// own writes, so a whole page can queue up before anything is taken. When
-/// this fills the oldest is dropped, and dropping the oldest of a byte stream
-/// leaves a hole the far end will never resend: everything after it waits for
-/// bytes that are gone. Sized so that filling it means the reader has stopped
-/// reading, not that the answer was large.
-pub const RX_DEPTH: usize = 256;
+use super::rx_queue::RxQueue;
 
 pub struct Session {
     pub owner: u32,
@@ -53,8 +44,10 @@ pub struct Session {
     /// the exit never learns anything else about where we are, and a tag
     /// derived from something it already knows would tell it more.
     pub sender_tag: [u8; 16],
+    /// Reply blocks the far end is believed to hold under that tag.
+    pub surbs: Budget,
     replay: ReplayWindow,
-    rx: VecDeque<Vec<u8>>,
+    rx: RxQueue,
 }
 
 impl Session {
@@ -69,40 +62,35 @@ impl Session {
             dest_gateway: [0u8; 32],
             dest_id: [0u8; 16],
             sender_tag: random_tag(),
+            surbs: Budget::new(),
             replay: ReplayWindow::new(),
-            rx: VecDeque::new(),
+            rx: RxQueue::new(),
         }
     }
 
     pub fn push(&mut self, body: Vec<u8>) {
-        if self.rx.len() == RX_DEPTH && self.rx.pop_front().is_none() {
-            return;
-        }
-        self.rx.push_back(body);
+        let _ = self.rx.push(body);
     }
 
     pub fn pop(&mut self) -> Option<Vec<u8>> {
-        self.rx.pop_front()
+        self.rx.take(usize::MAX)
+    }
+
+    /// Messages and bytes waiting for the reader.
+    pub fn backlog(&self) -> (usize, usize) {
+        (self.rx.len(), self.rx.bytes())
     }
 
     /// Take at most `limit` bytes of the next message, leaving the rest where
-    /// a later read will find it.
-    ///
-    /// A reply is whatever the far end had to say and can be larger than one
-    /// reply carries. Taking it whole or not at all meant a message that did
-    /// not fit was popped and thrown away, and it was the long ones that did
-    /// not fit: the acknowledgements and the small answers arrived, the page
-    /// bodies were destroyed one hop from the reader.
+    /// a later read will find it. See `RxQueue::take`.
     pub fn take(&mut self, limit: usize) -> Option<Vec<u8>> {
-        if limit == 0 {
-            return None;
-        }
-        let mut body = self.rx.pop_front()?;
-        if body.len() > limit {
-            let rest = body.split_off(limit);
-            self.rx.push_front(rest);
-        }
-        Some(body)
+        self.rx.take(limit)
+    }
+
+    /// Move as many queued messages as fit into `out`, as records. See
+    /// `RxQueue::fill_records`.
+    pub fn fill_records(&mut self, out: &mut [u8]) -> usize {
+        self.rx.fill_records(out)
     }
 
     pub fn accept_replay_tag(&mut self, tag: &[u8; REPLAY_TAG_LEN]) -> bool {

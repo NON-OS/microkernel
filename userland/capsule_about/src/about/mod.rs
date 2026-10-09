@@ -20,6 +20,7 @@ mod event;
 mod format;
 mod format_hex;
 mod manifest;
+mod scroll_wheel;
 mod section;
 mod state;
 mod theme;

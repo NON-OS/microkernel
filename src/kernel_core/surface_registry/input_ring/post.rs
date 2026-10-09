@@ -16,8 +16,9 @@
 
 use core::sync::atomic::Ordering;
 
+use super::super::ring_math;
 use super::super::types::{InputEvent, RegistryError, INPUT_RING_CAP};
-use super::ring::{DIAG, DROPPED, FIRST_INPUT_POST, KIND_DIAG_BASE, RING, SEQ, WAITER};
+use super::ring::{Ring, DIAG, DROPPED, FIRST_INPUT_POST, KIND_DIAG_BASE, RING, SEQ, WAITER};
 
 pub fn post_input(ev: InputEvent) -> Result<(), RegistryError> {
     if ev.kind >= KIND_DIAG_BASE {
@@ -27,22 +28,41 @@ pub fn post_input(ev: InputEvent) -> Result<(), RegistryError> {
         }
         return Ok(());
     }
-    {
-        let mut ring = RING.lock();
-        let next = super::super::ring_math::wrap(ring.head, INPUT_RING_CAP);
-        if next == ring.tail {
-            DROPPED.fetch_add(1, Ordering::Relaxed);
-            return Err(RegistryError::OutOfSlots);
-        }
-        let head = ring.head;
-        ring.buf[head] = ev;
-        ring.head = next;
+    push(&mut RING.lock(), ev)?;
+    published();
+    Ok(())
+}
+
+/// `post_input` for interrupt context: `None`, with nothing posted, when the
+/// ring's lock is held. The lock is a spin lock that syscall paths take, so
+/// a timer tick that waited on it could spin on the CPU whose interrupted
+/// code holds it. The caller keeps the event and tries again next tick.
+pub fn try_post_input(ev: InputEvent) -> Option<Result<(), RegistryError>> {
+    let mut ring = RING.try_lock()?;
+    let r = push(&mut ring, ev);
+    drop(ring);
+    if r.is_ok() {
+        published();
     }
+    Some(r)
+}
+
+fn push(ring: &mut Ring, ev: InputEvent) -> Result<(), RegistryError> {
+    if ring_math::is_full(ring.head, ring.tail, INPUT_RING_CAP) {
+        DROPPED.fetch_add(1, Ordering::Relaxed);
+        return Err(RegistryError::OutOfSlots);
+    }
+    let head = ring.head;
+    ring.buf[head] = ev;
+    ring.head = ring_math::wrap(head, INPUT_RING_CAP);
+    Ok(())
+}
+
+fn published() {
     SEQ.fetch_add(1, Ordering::Release);
     crate::sys::bench::mark_once(&FIRST_INPUT_POST, b"input_post_first");
     let waiter = WAITER.swap(0, Ordering::AcqRel);
     if waiter != 0 {
         crate::sched::wake_process(waiter as u32);
     }
-    Ok(())
 }

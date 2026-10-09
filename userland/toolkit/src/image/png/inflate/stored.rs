@@ -13,12 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::image::png::deflate::BitReader;
+
+use crate::image::png::deflate::{BitReader, ByteSource};
 use crate::image::types::DecodeError;
 
-use super::put::put;
+use super::window::{Out, Sink};
 
-pub fn stored(bits: &mut BitReader<'_>, out: &mut [u8], w: &mut usize) -> Result<(), DecodeError> {
+pub fn stored<S: ByteSource, K: Sink>(
+    bits: &mut BitReader<S>,
+    out: &mut Out<'_, K>,
+) -> Result<(), DecodeError> {
     bits.align_byte();
     let len = bits.read_bits(16)? as usize;
     let nlen = bits.read_bits(16)?;
@@ -26,8 +30,11 @@ pub fn stored(bits: &mut BitReader<'_>, out: &mut [u8], w: &mut usize) -> Result
         return Err(DecodeError::BadMagic);
     }
     for _ in 0..len {
+        if out.done() {
+            return Ok(());
+        }
         let b = bits.read_bits(8)? as u8;
-        put(out, w, b)?;
+        out.lit(b)?;
     }
     Ok(())
 }

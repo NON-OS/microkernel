@@ -15,18 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::hardware::broker::claim;
+use crate::hardware::broker::dma::flags::{
+    DMA_MAP_COHERENT, DMA_MAP_DMA32, DMA_MAP_HIGH, DMA_MAP_WC,
+};
 use crate::hardware::broker::dma::limits::dma_page_limit_for_class;
-use crate::hardware::broker::dma::types::{DmaMapError, DmaMapRequest, DMA_MAP_HIGH};
+use crate::hardware::broker::dma::types::{DmaMapError, DmaMapRequest};
 use crate::hardware::broker::table;
 
 pub(super) const PAGE_SIZE: u64 = 4096;
 const PAGE_MASK: u64 = PAGE_SIZE - 1;
-const FLAGS_KNOWN: u32 = DMA_MAP_HIGH;
+const FLAGS_KNOWN: u32 = DMA_MAP_HIGH | DMA_MAP_DMA32 | DMA_MAP_COHERENT | DMA_MAP_WC;
 
 // Returns the claim epoch on success so the caller can record it
 // without a second lookup. All state is observed read-only here.
 pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<u64, DmaMapError> {
     if req.flags & !FLAGS_KNOWN != 0 {
+        return Err(DmaMapError::UnsupportedFlags);
+    }
+    // High memory and 32-bit memory are opposite asks.
+    if req.flags & DMA_MAP_HIGH != 0 && req.flags & DMA_MAP_DMA32 != 0 {
+        return Err(DmaMapError::UnsupportedFlags);
+    }
+    // One memory type per grant.
+    if req.flags & DMA_MAP_COHERENT != 0 && req.flags & DMA_MAP_WC != 0 {
         return Err(DmaMapError::UnsupportedFlags);
     }
     if req.length == 0 || req.length & PAGE_MASK != 0 {

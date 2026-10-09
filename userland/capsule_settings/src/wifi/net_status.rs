@@ -22,6 +22,7 @@ use core::ptr;
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup};
 
 use super::lease::{Lease, NetStatus};
+use super::net_poll::LEASE_TIMEOUT_MS;
 
 const NET_DHCP_SERVICE: &[u8] = b"net.dhcp.client";
 const MAGIC_NDHC: u32 = 0x4E44_4843;
@@ -29,7 +30,6 @@ const OP_LEASE_STATUS: u16 = 3;
 const HDR_LEN: usize = 20;
 // Generous: a bound net_core spends most of a poll draining frames, so a short
 // deadline misses its reply and the panel wrongly reads the stack as absent.
-const LEASE_TIMEOUT_MS: u64 = 2500;
 const STATE_BOUND: u8 = 3;
 
 /// Query net_core for its lease. `Down` when the service is not registered;

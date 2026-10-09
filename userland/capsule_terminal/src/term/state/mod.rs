@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod new;
+mod shade;
 mod types;
 
 pub use types::State;

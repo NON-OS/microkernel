@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_dma_map, DmaMapOut, IrqBindOut};
+use nonos_libc::{mk_dma_map, DmaMapOut};
 
 use super::super::registers::RegisterGrant;
 use super::rollback;
@@ -24,7 +24,6 @@ pub fn map_tx_buffer(
     device_id: u64,
     claim_epoch: u64,
     reg: &RegisterGrant,
-    irq: &IrqBindOut,
     rx_queue: &DmaMapOut,
     rx_buffer: &DmaMapOut,
     tx_queue: &DmaMapOut,
@@ -36,7 +35,7 @@ pub fn map_tx_buffer(
         return Ok(out);
     }
     let grants = &[tx_queue.grant_id, rx_buffer.grant_id, rx_queue.grant_id];
-    if !rollback::after(device_id, reg, irq, grants) {
+    if !rollback::after(device_id, reg, grants) {
         return Err("dma rollback failed (tx buffer)");
     }
     Err("dma map failed (tx buffer)")

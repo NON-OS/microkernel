@@ -16,6 +16,7 @@
 
 mod connect;
 mod hello;
+pub mod hold;
 mod method;
 mod next_phase;
 mod recv_some;

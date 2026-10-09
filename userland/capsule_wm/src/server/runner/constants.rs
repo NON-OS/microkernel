@@ -16,4 +16,6 @@
 
 pub(super) const SERVICE_INBOX: u64 = 0;
 pub(super) const RECV_TIMEOUT_MS: u64 = 250;
+/// The idle wait while the compositor is owed a restack (state/restack.rs).
+pub(super) const OWED_RECV_TIMEOUT_MS: u64 = 50;
 pub(super) const SWEEP_INTERVAL_TICKS: u32 = 4;

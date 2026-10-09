@@ -35,7 +35,12 @@ const MAX_HEADERS: usize = 128;
 pub(super) fn header(line: &[u8]) -> Result<(String, String), HttpError> {
     let colon = line.iter().position(|b| *b == b':').ok_or(HttpError::Header)?;
     let (name, rest) = line.split_at(colon);
-    if name.is_empty() {
+    /*
+     * A name is a token (RFC 9110 5.1), and no whitespace may sit before the
+     * colon (RFC 9112 5.1). "Content-Length : 5" named a field no lookup
+     * found, so the stated length was ignored.
+     */
+    if name.is_empty() || !name.iter().all(|b| is_tchar(*b)) {
         return Err(HttpError::Header);
     }
     let mut lower = String::with_capacity(name.len());
@@ -48,10 +53,23 @@ pub(super) fn header(line: &[u8]) -> Result<(String, String), HttpError> {
 
 /// Every header line up to the blank line.
 pub(super) fn headers(head: &[u8]) -> Result<Vec<(String, String)>, HttpError> {
-    let mut out = Vec::new();
+    let mut out: Vec<(String, String)> = Vec::new();
     for line in head.split(|b| *b == b'\n') {
         let line = line.strip_suffix(b"\r").unwrap_or(line);
         if line.is_empty() {
+            continue;
+        }
+        /*
+         * A line that starts with whitespace continues the field before it,
+         * an obsolete fold a user agent replaces with a space (RFC 9112 5.2).
+         */
+        if matches!(line.first(), Some(b' ') | Some(b'\t')) {
+            let (_, value) = out.last_mut().ok_or(HttpError::Header)?;
+            let more = core::str::from_utf8(line).map_err(|_| HttpError::Header)?.trim();
+            if !more.is_empty() {
+                value.push(' ');
+                value.push_str(more);
+            }
             continue;
         }
         if out.len() >= MAX_HEADERS {
@@ -60,4 +78,9 @@ pub(super) fn headers(head: &[u8]) -> Result<Vec<(String, String)>, HttpError> {
         out.push(header(line)?);
     }
     Ok(out)
+}
+
+/// The characters a token is made of (RFC 9110 5.6.2).
+fn is_tchar(b: u8) -> bool {
+    b.is_ascii_alphanumeric() || b"!#$%&'*+-.^_`|~".contains(&b)
 }

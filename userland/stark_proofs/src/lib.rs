@@ -1,6 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Host-runnable proofs for the STARK verification primitives. Includes the
-//! real src/crypto source and checks it against its specification.
+//! Host-runnable proofs for the stark-attest engine, the nonos-stark crate in
+//! stark-attest/crates/stark-core, beside the kernel's hash and constant-time
+//! files from src/crypto. The kernel's v4 gates link nox_verify, not this.
 
 extern crate alloc;
 
@@ -14,6 +15,8 @@ mod air_tests;
 mod barycentric_tests;
 #[cfg(test)]
 mod enroll_batch_tests;
+#[cfg(test)]
+mod private_leaf_forgery_tests;
 #[cfg(test)]
 mod field_ext_tests;
 #[cfg(test)]

@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::reply::send_reply;
 use super::transfer::do_transfer;
-use crate::protocol::{Request, CONTROL_TRANSFER_REQUEST_LEN, E_INVAL, E_IO};
+use crate::error::XhciError;
+use crate::protocol::{Request, CONTROL_TRANSFER_REQUEST_LEN, E_INVAL, E_IO, E_PIPE};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
+use crate::server::handlers::recover::{recover_after, DCI_EP0};
 
 // Largest data stage this handler will accept. The reply is copied into the
 // fixed-size `tx` buffer, so w_len must be clamped or a client-chosen w_len up
@@ -59,6 +61,16 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     };
     match do_transfer(ctx, slot, request) {
         Ok(()) => send_reply(tx, req, data_len, region.as_ref()),
-        Err(_) => reply_with_status(tx, req, E_IO),
+        Err(e) => {
+            recover_after(ctx, slot, DCI_EP0, e);
+            reply_with_status(tx, req, if is_stall(e) { E_PIPE } else { E_IO })
+        }
     }
 }
+
+/// The device answered with a STALL: a request it does not support, which
+/// the class driver may take as an answer rather than a fault.
+fn is_stall(e: XhciError) -> bool {
+    e == XhciError::TransferCompletionFailed(CC_STALL)
+}
+const CC_STALL: u8 = 6;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::classify::classify_family;
+use super::classify::classify_device;
 use super::driver::family_driver;
 use super::family::HardwareFamily;
 use super::missing::missing_path;
@@ -38,13 +38,7 @@ pub struct InventoryRecord {
 
 impl InventoryRecord {
     pub fn from_device_record(rec: &DeviceRecord) -> Self {
-        let family = classify_family(
-            rec.pci_class,
-            rec.pci_subclass,
-            rec.pci_progif,
-            rec.vendor,
-            rec.device,
-        );
+        let family = classify_device(rec);
         Self {
             device_id: rec.device_id,
             vendor: rec.vendor,

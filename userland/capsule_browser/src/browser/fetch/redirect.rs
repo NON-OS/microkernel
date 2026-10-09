@@ -17,16 +17,22 @@
 use alloc::string::String;
 
 use crate::browser::fetch::constants;
-use crate::browser::state::{State, View};
+use crate::browser::omnibox::Change;
+use crate::browser::state::{Origin, State, View};
 use crate::browser::url;
 
-pub(super) fn redirect(state: &mut State, location: String) {
+/* Follow a 3xx. The hop continues the same navigation: it keeps the
+ * history mode of the load it came from (`suppress`: rewrite the current
+ * entry), leaves keyboard focus and the address bar alone, and the final
+ * address is what history records at commit. */
+pub(super) fn redirect(state: &mut State, location: String, suppress: bool) {
     state.view = View::Page;
     if state.redirect_count >= constants::MAX_REDIRECTS {
         state.redirect_count = 0;
         state.status = String::from("too many redirects");
         state.document = None;
         state.box_doc = None;
+        state.mark(Change::Full);
         return;
     }
     state.redirect_count += 1;
@@ -35,6 +41,7 @@ pub(super) fn redirect(state: &mut State, location: String) {
         None => location,
     };
     state.status = alloc::format!("redirecting to {}", next);
-    state.address = next.clone();
+    state.suppress_history_push = suppress;
     state.pending_nav = Some(next);
+    state.ui.origin = Origin::Auto;
 }

@@ -42,6 +42,7 @@ static STAGE_NAMES: [&[u8]; 11] = [
 pub fn update_stage(stage: u8, status: StageStatus) {
     let name =
         if (stage as usize) < STAGE_NAMES.len() { STAGE_NAMES[stage as usize] } else { b"unknown" };
+    super::steps::set(stage, status);
     match status {
         StageStatus::Pending => {}
         StageStatus::Running => log_info(name),

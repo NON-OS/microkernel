@@ -19,13 +19,13 @@
 
 use nonos_i2cmodel::Config;
 
-use super::fixture::{bench, core, PAD};
-use crate::transaction::{probe, probe_hid};
+use super::fixture::{bench, bench_with, core, pad, PAD};
+use crate::transaction::{probe, probe_hid, Presence};
 
 #[test]
 fn the_hid_probe_recognises_a_device_by_its_descriptor_length() {
     let b = bench(Config::LPSS);
-    assert_eq!(probe_hid(&b.driver, PAD).ok(), Some(true));
+    assert_eq!(probe_hid(&b.driver, PAD, 0x0001).ok(), Some(Presence::HidDescriptor(0x0001)));
     assert!(core(|c| c.violations().is_empty()), "{:?}", core(|c| c.violations().to_vec()));
 }
 
@@ -37,7 +37,7 @@ fn the_hid_probe_says_no_for_an_address_nobody_answers() {
      * that reported it as a failure would abandon the controller.
      */
     let b = bench(Config::LPSS);
-    assert_eq!(probe_hid(&b.driver, 0x2C).ok(), Some(false));
+    assert_eq!(probe_hid(&b.driver, 0x2C, 0x0001).ok(), Some(Presence::Absent));
 }
 
 #[test]
@@ -45,4 +45,28 @@ fn the_bare_probe_finds_the_same_device_with_a_single_read() {
     let b = bench(Config::LPSS);
     assert_eq!(probe(&b.driver, PAD).ok(), Some(true));
     assert_eq!(probe(&b.driver, 0x2C).ok(), Some(false));
+}
+
+#[test]
+fn a_synaptics_style_descriptor_at_0x20_is_found_when_the_firmware_named_it() {
+    let b = bench_with(Config::LPSS, pad().descriptor_at(0x0020));
+    assert_eq!(probe_hid(&b.driver, PAD, 0x0020).ok(), Some(Presence::HidDescriptor(0x0020)));
+}
+
+#[test]
+fn a_synaptics_style_descriptor_is_found_even_when_the_firmware_register_is_a_guess() {
+    /*
+     * Firmware that computes its _DSM at run time leaves the kernel the
+     * 0x0001 default. The probe tries the registers in use before it gives
+     * up, or setup binds a controller only by its name and the HID driver
+     * reads the wrong register.
+     */
+    let b = bench_with(Config::LPSS, pad().descriptor_at(0x0020));
+    assert_eq!(probe_hid(&b.driver, PAD, 0x0001).ok(), Some(Presence::HidDescriptor(0x0020)));
+}
+
+#[test]
+fn a_device_that_answers_but_is_not_hid_is_present_and_not_bound_as_a_descriptor() {
+    let b = bench_with(Config::LPSS, pad().descriptor_at(0x0040));
+    assert_eq!(probe_hid(&b.driver, PAD, 0x0001).ok(), Some(Presence::Acked));
 }

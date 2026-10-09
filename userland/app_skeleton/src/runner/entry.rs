@@ -16,58 +16,66 @@
 
 use alloc::vec;
 
-use nonos_libc::{heap_init, mk_exit, mk_time_millis, HeapError};
+use nonos_libc::{heap_init, mk_exit, HeapError};
 
 use crate::app::App;
 use crate::discover::require_peers;
+use crate::log_line::{say, Line};
 
 use super::boot::boot;
 use super::dispatch::DELIVERY_LEN;
 use super::ephemeral::is_window_instance;
-use super::fail::fail;
+use super::fail::{fail, Who};
+use super::frame_loop::frame_loop;
 use super::idle;
-use super::repaint::repaint;
-use super::service_frame::service_frame;
+use super::no_window::{no_window, NoWindow};
+use super::open_peers::open_peers;
 
 pub fn run<A: App, F: Fn() -> A>(build: F) -> ! {
     match heap_init() {
         Ok(()) | Err(HeapError::AlreadyInitialized) => {}
-        Err(_) => fail(1, b"[app] heap fail\n"),
+        Err(_) => fail(1, Who::Pid, b"no heap"),
     }
-    let peers = match require_peers() {
-        Ok(p) => p,
-        Err(_) => fail(2, b"[app] peers fail\n"),
-    };
-    // On-demand window instances exit when closed so their RAM is zeroized and
-    // their slot is freed; base apps return to idle and can be relaunched.
+    /* An on-demand instance exits when closed; a base app returns to idle. */
     let ephemeral = is_window_instance();
     let mut request_id: u32 = 1;
     let mut rx = vec![0u8; DELIVERY_LEN.max(256)];
+    let mut peers = None;
     loop {
         idle::wait(&mut rx);
-        let app = build();
-        let mut booted = match boot(app, &peers, &mut request_id) {
-            Ok(b) => b,
-            Err(_) => continue,
+        /* A base app stays for the next open; an instance nobody can see
+         * would only hold its slot, so it exits. */
+        let Some(peers) = open_peers(&mut peers, || require_peers().ok()) else {
+            if no_window(ephemeral) == NoWindow::Exit {
+                fail(2, Who::Pid, b"no window: the desktop's services did not answer");
+            }
+            continue;
         };
-        let mut last_tick_ms: i64 = 0;
-        loop {
-            if service_frame(&mut booted, &mut rx, &peers, &mut request_id) {
-                break;
+        let app = build();
+        let title = app.manifest().title;
+        let mut booted = match boot(app, peers, &mut request_id) {
+            Ok(b) => b,
+            /* An instance with no window would hold its slot for nothing
+             * (no_window.rs): it ends, and the next click spawns afresh. */
+            Err(why) if no_window(ephemeral) == NoWindow::Exit => {
+                fail(3, Who::Titled(title), &no_window_why(why))
             }
-            let now = mk_time_millis();
-            if now.wrapping_sub(last_tick_ms) >= booted.app.tick_interval_ms() {
-                last_tick_ms = now;
-                if booted.app.on_tick() && !booted.minimized {
-                    repaint(&mut booted, &peers, &mut request_id);
-                }
+            /* A base app waits for the next open, and says this one failed. */
+            Err(why) => {
+                let _ =
+                    say(&Line::new(b"APP-FAIL").text(title).text(b": ").text(&no_window_why(why)));
+                continue;
             }
-        }
-        // The window was closed. An instance exits here; the kernel tears it
-        // down and zeroizes its pages, leaving no resident state and a free
-        // slot for a fresh, re-attested spawn on the next launch.
+        };
+        frame_loop(&mut booted, &mut rx, peers, &mut request_id);
+        /* Closed: the kernel zeroizes an exiting instance and frees its slot. */
         if ephemeral {
             mk_exit(0);
         }
     }
+}
+
+/* "no window: <the step that failed>", in the words boot gave. */
+fn no_window_why(step: &str) -> alloc::vec::Vec<u8> {
+    [&b"no window: "[..], step.as_bytes()].concat()
 }

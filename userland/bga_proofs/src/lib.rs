@@ -49,3 +49,6 @@ mod mode_tests;
 
 #[cfg(test)]
 mod offset_tests;
+
+#[cfg(test)]
+mod reason_tests;

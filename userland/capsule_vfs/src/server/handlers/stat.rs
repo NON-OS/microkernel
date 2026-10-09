@@ -49,7 +49,9 @@ pub fn stat(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Ok(s) => s,
         Err(_) => return encode_response(OP_STAT, req.flags, req.request_id, EINVAL, &[]),
     };
-    let path = normalize(path);
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_STAT, req.flags, req.request_id, EINVAL, &[]);
+    };
     match store.stat(&path) {
         Ok((size, is_dir, mtime, mode)) => {
             let writable = mode & MODE_WRITE != 0 && !is_read_only(&path);

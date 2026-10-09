@@ -15,21 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::fetch::types::{Fetch, Phase, TlsCtx};
-use crate::browser::net;
+use crate::browser::fetch::wire::Wire;
 use crate::browser::tls13;
 
-pub(in crate::browser::fetch) fn hello(port: u32, f: &mut Fetch, now: u64) {
-    let host = f.url.host.clone();
-    let Some(cf) = tls13::client_flight(host.as_bytes()) else {
-        f.error = Some("tls init failed");
-        f.phase = Phase::Error;
-        return;
+/// Send the ClientHello on a connection that has just been accepted.
+pub(in crate::browser::fetch) fn hello<W: Wire>(w: &mut W, f: &mut Fetch) {
+    let Some(cf) = tls13::client_flight(f.url.host.as_bytes()) else {
+        return f.stop("tls init failed");
     };
-    if net::socket_send(port, f.handle, &cf.record).is_err() {
-        f.error = Some("send failed");
-        f.phase = Phase::Error;
-        return;
+    if w.send(f.handle, &cf.record).is_err() {
+        return f.stop("send failed");
     }
-    f.tls = Some(TlsCtx { cf, flight: alloc::vec::Vec::new(), now, server_app: None });
+    f.tls = Some(TlsCtx::new(cf, w.rtc_now()));
     f.phase = Phase::TlsFlight;
 }

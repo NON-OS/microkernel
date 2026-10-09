@@ -19,5 +19,6 @@ mod wire;
 
 pub(crate) use session::{call, port};
 pub(crate) use wire::{
-    BODY_OFF, OP_ACCEPT, OP_BIND, OP_CLOSE, OP_CONNECT, OP_LISTEN, OP_RECV, OP_SEND, OP_SOCKET,
+    BODY_OFF, OP_ACCEPT, OP_BIND, OP_CLOSE, OP_CONNECT, OP_CONNECT_HOST, OP_LISTEN, OP_RECV,
+    OP_SEND, OP_SOCKET,
 };

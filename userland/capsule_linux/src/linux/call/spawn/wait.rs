@@ -14,35 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `wait4`: which of this guest's children has ended.
-
-use nonos_libc::mk_pid_alive;
+//! `wait4`: a child that has ended, or a wait until one does. The call only
+//! checks what it was asked and parks the caller; the family, which sees
+//! every process, answers it at once when a child has ended, with 0 under
+//! WNOHANG, or with ECHILD when no child fits, and otherwise when one ends.
 
 use crate::linux::abi::errno;
+use crate::linux::guest::sigwaits::{ChildWait, Which};
 use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
 
-/// Set by a caller that will not wait.
-const WNOHANG: u64 = 1;
+use super::wait_opts::wait4_options;
+pub use super::wait_opts::{WALL, WCLONE, WEXITED, WNOHANG, WNOWAIT};
 
-pub fn wait4(guest: &mut Guest, want: u64, status: u64, flags: u64) -> Answer {
-    if guest.children.is_empty() {
-        return Answer::value(errno::fail(errno::ECHILD));
-    }
-    let gone = guest.children.iter().copied().find(|pid| {
-        (want as i64) <= 0 || want as u32 == *pid
-    }).filter(|pid| !mk_pid_alive(*pid));
-    let Some(pid) = gone else {
-        let _ = flags & WNOHANG;
-        return Answer::value(errno::fail(errno::EAGAIN));
+pub fn wait4(guest: &mut Guest, want: u64, status: u64, flags: u64, tid: u32) -> Answer {
+    wait4_usage(guest, want, status, flags, 0, tid)
+}
+
+/// wait4 with its rusage: written as zeros, since the kernel reports no CPU
+/// time for a guest.
+pub fn wait4_usage(
+    guest: &mut Guest,
+    want: u64,
+    status: u64,
+    flags: u64,
+    rusage: u64,
+    tid: u32,
+) -> Answer {
+    let options = match wait4_options(flags) {
+        Ok(options) => options,
+        Err(e) => return Answer::value(errno::fail(e)),
     };
-    guest.children.retain(|p| *p != pid);
-    /*
-     * The exit code a guest passed to exit is not readable from here: the
-     * kernel records it and nothing hands it back.
-     */
-    if status != 0 && guest.write(status, &0u32.to_le_bytes()) < 4 {
-        return Answer::value(errno::fail(errno::EFAULT));
-    }
-    Answer::value(errno::ok(pid as u64))
+    let which = match want as i64 as i32 {
+        -1 => Which::Any,
+        0 => Which::Group(guest.pgid),
+        p if p < 0 => Which::Group(p.unsigned_abs()),
+        p => Which::Pid(p as u32),
+    };
+    park(guest, ChildWait { tid, which, options, out: status, rusage, waitid: false })
+}
+
+pub(super) fn park(guest: &mut Guest, w: ChildWait) -> Answer {
+    guest.signals.childwaits.push(w);
+    Answer::Park
 }

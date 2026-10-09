@@ -13,23 +13,31 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::mk_irq_ack;
+use nonos_libc::{mk_device_release, mk_irq_ack};
 
 use crate::discover::Found;
 use crate::driver::Driver;
-use crate::init::bring_up;
+use crate::init::{bring_up, BusSetup};
 use crate::regs::Regs;
 use crate::setup::{claim, irq, mmio, pci};
 
-pub(super) fn bring_up_one(dev: Found) -> Result<Driver, &'static str> {
+use super::unlisted_gate::unlisted_gate;
+
+pub(super) fn bring_up_one(dev: Found, standard_mode: bool) -> Result<Driver, &'static str> {
     let claim_epoch = claim::claim(dev.device_id)?;
     if !dev.is_acpi {
-        pci::enable(dev.device_id, claim_epoch)?;
+        pci::enable(dev.device_id, claim_epoch).map_err(|e| release(dev.device_id, e))?;
     }
     let mmio = mmio::map(dev, claim_epoch)?;
     let irq = irq::bind(dev, claim_epoch);
     let regs = Regs::new(mmio.user_va);
-    let init = bring_up(regs, dev.clock_hz)?;
+    unlisted_gate(&dev, regs).map_err(|e| release(dev.device_id, e))?;
+    let setup = BusSetup {
+        clock_hz: dev.clock_hz,
+        lpss_base: dev.is_lpss().then_some(dev.bar0_base),
+        standard_mode,
+    };
+    let init = bring_up(regs, setup).map_err(|e| release(dev.device_id, e))?;
     if irq.grant_id != 0 {
         let _ = mk_irq_ack(irq.grant_id);
     }
@@ -50,6 +58,16 @@ pub(super) fn bring_up_one(dev: Found) -> Result<Driver, &'static str> {
         status: init.status,
         bound_by_probe: false,
         bound_addr: 0,
+        bound_desc_reg: 0,
+        doorbell: None,
         regs,
     })
+}
+
+/// Give the controller back when bringing it up fails, so its claim, BAR
+/// mapping and IRQ binding do not outlive the attempt and the fallback loops
+/// in `run.rs` can claim it again. The kernel cascades the teardown.
+fn release(device_id: u64, why: &'static str) -> &'static str {
+    let _ = mk_device_release(device_id);
+    why
 }

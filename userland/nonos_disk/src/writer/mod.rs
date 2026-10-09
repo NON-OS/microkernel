@@ -17,6 +17,7 @@
 //! The install itself: layout, volume, table, flush, receipt, read-back.
 
 mod error;
+mod error_text;
 mod install;
 mod receipt;
 mod verify;

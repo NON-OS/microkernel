@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Naming a call this capsule does not serve.
 
 use crate::linux::abi::{errno, name};
@@ -22,9 +21,15 @@ use crate::linux::abi::{errno, name};
 /// Name what was asked for. A guest that dies on a missing call should
 /// leave behind the name of the call it needed.
 pub fn unserved(number: u64) -> u64 {
+    super::tally::missed();
     let mut line = [0u8; 64];
     let head = b"[LINUX] unserved ";
-    let tag = name::of(number);
+    // The name table covers what is served; anything else is named by number.
+    let mut digits = [0u8; 24];
+    let tag = match name::of(number) {
+        b"?" => decimal(number, &mut digits),
+        known => known,
+    };
     let n = head.len().min(line.len());
     line[..n].copy_from_slice(&head[..n]);
     let m = (n + tag.len()).min(line.len());
@@ -33,4 +38,20 @@ pub fn unserved(number: u64) -> u64 {
     line[m..end].copy_from_slice(b"\n");
     let _ = nonos_libc::mk_debug(line.as_ptr(), end);
     errno::fail(errno::ENOSYS)
+}
+
+/// `nr=<number>`, written into `out`.
+fn decimal(mut v: u64, out: &mut [u8; 24]) -> &[u8] {
+    let mut at = out.len();
+    loop {
+        at -= 1;
+        out[at] = b'0' + (v % 10) as u8;
+        v /= 10;
+        if v == 0 || at <= 3 {
+            break;
+        }
+    }
+    at -= 3;
+    out[at..at + 3].copy_from_slice(b"nr=");
+    &out[at..]
 }

@@ -36,14 +36,16 @@ pub fn visible(cwd: &[u8], path: &[u8]) -> Vec<u8> {
     joined.extend_from_slice(path);
 
     let mut parts: Vec<&[u8]> = Vec::new();
+    let mut clamped = false;
     for part in joined.split(|b| *b == b'/') {
         match part {
             b"" | b"." => {}
-            b".." => {
-                parts.pop();
-            }
+            b".." => clamped |= parts.pop().is_none(),
             name => parts.push(name),
         }
+    }
+    if clamped {
+        super::clamp::note(path);
     }
 
     let mut out: Vec<u8> = Vec::new();
