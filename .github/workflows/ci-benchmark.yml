@@ -114,6 +114,10 @@ jobs:
             production)
               bash nonos-ci/setup-signing-key.sh
               make nonos-mk-check-trust-manifest
+              # Reuse the committed STARK enrollment rather than proving the
+              # whole capsule set afresh (hours on a runner's two prover slots);
+              # the committed trailers are already proven for these bytes.
+              echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
               echo "NONOS_CAPSULE_BINS=$(nix build .#capsules --no-link --print-out-paths)" >> "$GITHUB_ENV"
               ;;
             *)
