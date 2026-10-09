@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "operator_id": "nonos.marketplace.v1",
-  "published_at_ms": 1791331871000,
-  "serial": 1791331871,
+  "published_at_ms": 1791466416000,
+  "serial": 1791466416,
   "entries": [
     {
       "listing_id": "linux.qwen-small",
@@ -40,7 +40,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -81,7 +81,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -122,7 +122,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -163,7 +163,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -204,7 +204,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -245,7 +245,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -286,7 +286,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -327,7 +327,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -368,7 +368,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -409,7 +409,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -450,7 +450,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -491,7 +491,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -532,7 +532,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -573,7 +573,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -614,7 +614,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -655,7 +655,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
@@ -696,7 +696,7 @@
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791331871000
+            "validated_at_ms": 1791466416000
           }
         }
       ]
