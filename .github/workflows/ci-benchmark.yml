@@ -52,7 +52,7 @@ jobs:
         # every step after the setup runs in `nix develop`, the shell a
         # developer gets, so CI and a contributor run the same tools
         shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
-    timeout-minutes: 345
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -80,9 +80,8 @@ jobs:
       - name: Provision benchmark trust material
         # The benchmark builds the full zerostate ship image (every capsule and
         # driver), not the lighter desktop cut, so provisioning it takes longer
-        # than the old profile did: about 49 minutes of building, then 115 STARK
-        # enrollments at about 1.85 minutes each, 2 at a time (run 37846808267).
-        timeout-minutes: 290
+        # than the old profile did.
+        timeout-minutes: 75
         env:
           NONOS_CI_TRUST_MODE: ${{ inputs['trust-mode'] }}
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}

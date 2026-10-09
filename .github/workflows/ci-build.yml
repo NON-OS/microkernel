@@ -190,9 +190,7 @@ jobs:
   verify:
     name: nonos-verify build
     runs-on: ubuntu-latest
-    # Provisioning enrolls 115 capsules under one STARK policy root, about
-    # 1.85 minutes each, 2 at a time (run 37846808267), before the build.
-    timeout-minutes: 345
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
