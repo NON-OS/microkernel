@@ -109,6 +109,7 @@ jobs:
               # them, and persist the path for the benchmark step that follows.
               caps="$(nix build .#capsules --no-link --print-out-paths)"
               echo "NONOS_CAPSULE_BINS=${caps}" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="${caps}"
               NONOS_CAPSULE_BINS="${caps}" bash -x nonos-ci/scratch-trust-bootstrap.sh
               ;;
             production)
@@ -118,22 +119,17 @@ jobs:
               # whole capsule set afresh (hours on a runner's two prover slots);
               # the committed trailers are already proven for these bytes.
               echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
-              echo "NONOS_CAPSULE_BINS=$(nix build .#capsules --no-link --print-out-paths)" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${NONOS_CAPSULE_BINS}" >> "$GITHUB_ENV"
               ;;
             *)
               echo "::error::unknown trust-mode '${NONOS_CI_TRUST_MODE}'"
               exit 1
               ;;
           esac
-          # The capsules carry only each program's ELF; the store also takes
-          # the files beside it (python312.zip, perl5, john.conf, tcl8.6).
-          # Lay the flake's Linux userland where make looks, so the boot step
-          # reads them instead of compiling CPython, perl, john and tclsh
-          # inside its timeout.
-          mkdir -p target/linux-userland
-          cp -rL "$(nix build .#linux-userland --no-link --print-out-paths)"/. target/linux-userland/
-          chmod -R u+w target/linux-userland
-          find target/linux-userland -exec touch {} +
+          # The tools the kernel embeds and the Linux userland, from the flake,
+          # where make reads them by path.
+          bash nonos-ci/lay-prebuilt.sh
       - name: Run benchmark suite
         timeout-minutes: 30
         env:
