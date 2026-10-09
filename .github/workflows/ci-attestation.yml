@@ -47,8 +47,30 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           pattern: ci-reports-*
-          merge-multiple: true
-          path: ci-reports
+          path: ci-reports-in
+      # each artifact uploads all of ci-reports/; take only its own module so a
+      # stale copy in one artifact cannot overwrite the fresh one in another
+      - name: Take each module from its own artifact
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          artifacts=(ci-reports-in/ci-reports-*/)
+          if [ "${#artifacts[@]}" -eq 0 ]; then
+            echo "::error::no ci-reports-<module>/ artifact directories under ci-reports-in/"
+            exit 1
+          fi
+          for dir in "${artifacts[@]}"; do
+            name="$(basename "$dir")"
+            module="${name#ci-reports-}"
+            if [ ! -d "$dir$module" ]; then
+              echo "$name: no $module/ directory, nothing taken"
+              continue
+            fi
+            rm -rf "ci-reports/$module"
+            mkdir -p ci-reports
+            cp -R "$dir$module" "ci-reports/$module"
+            echo "$name: took $module/ ($(find "ci-reports/$module" -type f | wc -l | tr -d ' ') files)"
+          done
       - name: nonos-verify attest
         env:
           NONOS_VERIFY_REQUIRED_MODULES: ${{ inputs.required-modules }}
