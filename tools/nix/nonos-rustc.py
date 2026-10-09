@@ -101,6 +101,9 @@ def parse_remaps(environ):
     work = environ.get("NONOS_WORK", "")
     if work:
         remaps.append((work, "/build"))
+    out = environ.get("OUT_DIR", "")
+    if out:
+        remaps.append((out, "/out"))
     return remaps
 
 
@@ -358,6 +361,16 @@ def remap_args(environ):
     work = environ.get("NONOS_WORK", "")
     if work:
         toks.append("--remap-path-prefix=" + work + "=/build")
+    # A crate with a build script compiles what it generated into OUT_DIR,
+    # target/<t>/release/build/<crate>-<hash>/out. That hash is cargo's for the
+    # build script, which is compiled for the build host, so it differs between
+    # a Linux and a macOS host; a generated file pulled in with include! then
+    # put the host-specific path into panic locations and LLVM's symbol names,
+    # and tokei came out with different bytes on each host. Fold it to /out,
+    # last, so it wins over the general maps.
+    out = environ.get("OUT_DIR", "")
+    if out:
+        toks.append("--remap-path-prefix=" + out + "=/out")
     return toks
 
 
