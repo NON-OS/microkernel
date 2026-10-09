@@ -1059,7 +1059,11 @@ max_size  = "16MiB"
 # to lto="fat" + codegen-units=1.
 [profile.release]
 opt-level       = 3
-lto             = "thin"
+# Fat, not thin: ThinLTO promotes a module's local symbols with a .llvm.<n>
+# suffix hashed from module identity, and that hash came out different on a
+# macOS and a Linux host, so the kernel differed in its symbol table alone.
+# Fat LTO merges into one module and promotes nothing.
+lto             = "fat"
 # One codegen unit, to keep the build reproducible. Thin LTO across several
 # units settles its imports and partition boundaries per run, which is a known
 # way for two builds of one commit to diverge. Measured here the kernel ELF came
