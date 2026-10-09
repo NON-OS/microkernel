@@ -108,6 +108,7 @@ dependencies = [
 name = "nonos_shield_vectors"
 version = "0.1.0"
 dependencies = [
+ "blake3",
  "nonos_userland_libc",
  "nox_prover",
  "rayon",

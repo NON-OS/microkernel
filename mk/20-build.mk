@@ -271,6 +271,14 @@ $(NONOS_STD_PAL_STAMP): $(NONOS_STD_PAL_SRCS) | $(TARGET_DIR)/.nonos-toolchain.s
 .PHONY: nonos-mk-apply-std
 nonos-mk-apply-std: $(NONOS_STD_PAL_STAMP)
 
+# Every upstream tool links with one codegen unit, whatever its own profile
+# asks. sd and huniq set fat LTO and leave the default sixteen units, and fat
+# LTO merges those modules in the order the codegen threads finish, so two
+# builds on one busy host came out different. The workspace pins one unit for
+# the same reason (Cargo.toml [profile.release]); tools/nix/capsules.nix sets
+# the same for its build.
+UPSTREAM_CARGO_ENV := CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+
 # Unmodified crates.io binaries, built for the NONOS target through the std
 # PAL + nonos-rt start object. This is the reproducible source of the
 # ripgrep ELF the kernel mirror and the VFS bootstrap store embed; it
@@ -282,7 +290,7 @@ UPSTREAM_RIPGREP_BIN     := $(TARGET_DIR)/upstream-ripgrep/rg
 $(UPSTREAM_RIPGREP_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream ripgrep $(UPSTREAM_RIPGREP_VERSION) for NONOS (unmodified crates.io source)..."
-	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
+	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install ripgrep --version $(UPSTREAM_RIPGREP_VERSION) \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
 		-Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
@@ -302,7 +310,7 @@ UPSTREAM_SD_BIN     := $(TARGET_DIR)/upstream-sd/sd
 $(UPSTREAM_SD_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream sd $(UPSTREAM_SD_VERSION) for NONOS (unmodified crates.io source)..."
-	@cd $(UPSTREAM_SD_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+	@cd $(UPSTREAM_SD_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) \
 		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install --path . \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
@@ -321,7 +329,7 @@ UPSTREAM_TOKIO_SMOKE_BIN := $(TARGET_DIR)/upstream-tokio-smoke/tokio-smoke
 $(UPSTREAM_TOKIO_SMOKE_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building tokio-smoke runtime gate for NONOS (tokio via mio backend + socket2 shim)..."
-	@cd $(UPSTREAM_TOKIO_SMOKE_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+	@cd $(UPSTREAM_TOKIO_SMOKE_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) \
 		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install --path . \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
@@ -352,7 +360,7 @@ define nonos_upstream_tool_rule
 $(TARGET_DIR)/upstream-$(1)/bin/$(1): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream $(1) for NONOS (unmodified crates.io source)..."
-	@cd userland/upstream-src/$(1) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+	@cd userland/upstream-src/$(1) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) \
 		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ)) --cfg getrandom_backend=\"rdrand\"" \
 		$(CARGO) install --path . $(or $($(1)_CARGO_FEATURES),$(NONOS_TOOL_FEATURES_DEFAULT)) \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \

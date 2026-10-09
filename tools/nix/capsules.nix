@@ -180,6 +180,9 @@ let
           cmp ${dir}/Cargo.lock ${lock}
         ''}
         export RUSTFLAGS='-Clink-arg=${rt}/nonos_rt.o${lib.optionalString rdrand " --cfg getrandom_backend=\"rdrand\""}'
+        # One codegen unit, as make builds them (mk/20-build.mk): fat LTO over
+        # several units merges them in the order the threads finish.
+        export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
         cd ${dir}
         cargo install --frozen --path . ${features} \
           --target $NIX_BUILD_TOP/source/userland/${userTarget}.json \
