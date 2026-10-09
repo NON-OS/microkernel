@@ -92,6 +92,47 @@ jobs:
         with:
           distribution: Ubuntu-24.04
           additional-packages: curl xz-utils git make ca-certificates
+      # setup-wsl has no install-location input, so the distro's ext4.vhdx
+      # lands on C:, which make check fills until the guest sees EIO and a
+      # read-only root. Move it to the workspace drive when that drive has more
+      # room, under the same name, which the wsl-bash wrapper and the root
+      # default user both rely on.
+      - name: Move the WSL2 disk to the workspace drive
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          $distro = 'Ubuntu-24.04'
+          $drive = Split-Path -Qualifier $env:GITHUB_WORKSPACE
+          $target = Join-Path $drive "wsl\$distro"
+          Get-PSDrive C, $drive.TrimEnd(':') | Format-Table Name,Used,Free
+          $freeC = (Get-PSDrive C).Free
+          $freeW = (Get-PSDrive $drive.TrimEnd(':')).Free
+          if ($drive -eq 'C:' -or $freeW -le $freeC) {
+            Write-Output "$drive has no more room than C: ($freeW vs $freeC bytes free), the disk stays on C:"
+            exit 0
+          }
+          wsl --shutdown
+          wsl --manage $distro --move $target
+          if ($LASTEXITCODE -ne 0) {
+            Write-Output "wsl --manage --move exited $LASTEXITCODE, exporting and importing in place instead"
+            New-Item -ItemType Directory -Force -Path $target | Out-Null
+            $vhd = Join-Path $target 'ext4.vhdx'
+            Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $vhd
+            wsl --export $distro $vhd --vhd
+            if ($LASTEXITCODE -ne 0) { throw "wsl --export exited $LASTEXITCODE" }
+            wsl --unregister $distro
+            if ($LASTEXITCODE -ne 0) { throw "wsl --unregister exited $LASTEXITCODE" }
+            wsl --import-in-place $distro $vhd
+            if ($LASTEXITCODE -ne 0) { throw "wsl --import-in-place exited $LASTEXITCODE" }
+            wsl --set-default $distro
+            if ($LASTEXITCODE -ne 0) { throw "wsl --set-default exited $LASTEXITCODE" }
+          }
+          $base = (Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss |
+            Where-Object { $_.GetValue('DistributionName') -eq $distro }).GetValue('BasePath')
+          Write-Output "$distro BasePath: $base"
+          if ($base -notlike "*$drive\*") { throw "$distro is still at $base, not on $drive" }
+          $user = (wsl --distribution $distro whoami | Out-String).Trim()
+          if ($user -ne 'root') { throw "$distro default user is '$user', not root" }
       - name: Install Nix in WSL2
         run: |
           set -euo pipefail
@@ -118,11 +159,18 @@ jobs:
           set -euo pipefail
           . ~/.nix-profile/etc/profile.d/nix.sh
           cd ~/nonos && make doctor && make build
+      - name: Disk space before make check
+        shell: pwsh
+        run: Get-PSDrive C,D -ErrorAction SilentlyContinue | Format-Table Name,Used,Free
       - name: make check
         run: |
           set -euo pipefail
           . ~/.nix-profile/etc/profile.d/nix.sh
           cd ~/nonos && make check
+      - name: Disk space after make check
+        if: always()
+        shell: pwsh
+        run: Get-PSDrive C,D -ErrorAction SilentlyContinue | Format-Table Name,Used,Free
 
   container:
     name: nix build (devcontainer)
