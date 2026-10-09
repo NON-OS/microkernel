@@ -82,10 +82,14 @@ jobs:
 
   benchmark:
     uses: ./.github/workflows/ci-benchmark.yml
-    # Inherit secrets so the job receives CACHIX_AUTH_TOKEN: it is the only
-    # lane that builds the full zerostate ship image, so it must be allowed to
-    # write that build back to the cache, or it rebuilds from zero every run
-    # and overruns its provision timeout.
+    with:
+      # Production trust-mode reuses the committed STARK enrollment instead of
+      # proving all ~115 capsule slots afresh. A GitHub runner has the cores to
+      # prove only two slots at a time, so a fresh (scratch) enrollment overran
+      # the provision timeout every run. The committed enrollment is already
+      # proven for these exact capsule bytes, so the gate just checks it.
+      trust-mode: production
+    # Inherit secrets so the job receives CACHIX_AUTH_TOKEN and SIGNING_KEY_BASE64.
     secrets: inherit
 
   attestation:
