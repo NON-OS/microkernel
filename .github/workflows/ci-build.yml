@@ -91,6 +91,20 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - name: Reclaim runner disk space
+        # The WSL2 disk image grows on C:, and make check ran C: out of space
+        # after make build had filled most of it. The image's preinstalled
+        # SDKs nothing here uses take the room back.
+        shell: pwsh
+        run: |
+          Get-PSDrive C | Format-Table Used, Free
+          foreach ($d in 'C:\Android', 'C:\hostedtoolcache\windows\CodeQL', 'C:\hostedtoolcache\windows\go',
+                          'C:\hostedtoolcache\windows\PyPy', 'C:\hostedtoolcache\windows\Ruby',
+                          'C:\Program Files\dotnet', 'C:\ghcup', 'C:\Strawberry', 'C:\Miniconda',
+                          'C:\Program Files (x86)\Android') {
+            if (Test-Path $d) { cmd /c rmdir /s /q "$d" }
+          }
+          Get-PSDrive C | Format-Table Used, Free
       - uses: Vampire/setup-wsl@d1da7f2c0322a5ee4f24975344f67fc0f5baf364 # v7.0.0
         with:
           distribution: Ubuntu-24.04
@@ -129,6 +143,7 @@ jobs:
           set -euo pipefail
           . ~/.nix-profile/etc/profile.d/nix.sh
           cd ~/nonos && make doctor && make build
+          df -h / | tail -1
       - name: make check
         # make check builds the kernel debug profiles (qemu, standard, hardened)
         # with debug info and assertions on, and the default fan-out runs several
@@ -181,7 +196,11 @@ jobs:
           case "${NONOS_CI_TRUST_MODE}" in
             scratch)
               bash nonos-ci/setup-signing-key.sh
-              nix develop --command bash nonos-ci/scratch-trust-bootstrap.sh
+              # Sign the flake's capsules, from the binary cache, rather than a
+              # cargo build of each in turn (ci-benchmark.yml does the same).
+              caps="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${caps}" >> "$GITHUB_ENV"
+              NONOS_CAPSULE_BINS="${caps}" nix develop --command bash nonos-ci/scratch-trust-bootstrap.sh
               ;;
             production)
               bash nonos-ci/setup-signing-key.sh
@@ -198,6 +217,14 @@ jobs:
               exit 1
               ;;
           esac
+          # The capsules carry only each program's ELF; the store also takes
+          # the files beside it (python312.zip, perl5, john.conf, tcl8.6).
+          # Lay the flake's Linux userland where make looks, so make reads them
+          # instead of compiling CPython, perl, john and tclsh again.
+          mkdir -p target/linux-userland
+          cp -rL "$(nix build .#linux-userland --no-link --print-out-paths)"/. target/linux-userland/
+          chmod -R u+w target/linux-userland
+          find target/linux-userland -exec touch {} +
       - name: nonos-verify build
         run: nix develop --command cargo run --release --manifest-path nonos-verify/Cargo.toml -- build
       - name: Upload build reports
