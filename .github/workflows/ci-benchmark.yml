@@ -125,6 +125,15 @@ jobs:
               exit 1
               ;;
           esac
+          # The capsules carry only each program's ELF; the store also takes
+          # the files beside it (python312.zip, perl5, john.conf, tcl8.6).
+          # Lay the flake's Linux userland where make looks, so the boot step
+          # reads them instead of compiling CPython, perl, john and tclsh
+          # inside its timeout.
+          mkdir -p target/linux-userland
+          cp -rL "$(nix build .#linux-userland --no-link --print-out-paths)"/. target/linux-userland/
+          chmod -R u+w target/linux-userland
+          find target/linux-userland -exec touch {} +
       - name: Run benchmark suite
         timeout-minutes: 30
         env:
