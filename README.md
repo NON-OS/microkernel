@@ -30,8 +30,8 @@ booted machine and what it has shown only on the host is set out under
 | Install | amnesic by default; first-boot setup and an installer that writes NONOS to a disk only when the person types the disk's word |
 | Proofs screen | About shows every admitted capsule with its measurement and enroller, and how traffic is leaving right now |
 
-The handbook page for each is in [the handbook](docs/handbook/README.md). The person at the
-keyboard should read [Using NONOS 0.9.2](docs/release/0.9.2/user-guide.md).
+The handbook page for each is in [the handbook](docs/README.md). The person at the
+keyboard should read [Using NONOS 0.9.2](docs/using/README.md).
 
 ## The kernel
 
@@ -58,10 +58,10 @@ holds no socket and cannot send to the network services' inboxes by pid. Driver 
 their device only through a broker claim, with DMA confined by the IOMMU where a remapping unit
 is in service.
 
-[Architecture](docs/handbook/architecture.md) is the place to start reading the kernel. Then
-[capabilities](docs/handbook/kernel/capabilities.md), [IPC](docs/handbook/kernel/ipc.md),
-[memory](docs/handbook/kernel/memory.md), [the IOMMU](docs/handbook/kernel/iommu.md) and
-[the syscall surface](docs/handbook/kernel/syscalls.md).
+[Architecture](docs/overview/architecture.md) is the place to start reading the kernel. Then
+[capabilities](docs/kernel/capabilities.md), [IPC](docs/kernel/ipc.md),
+[memory](docs/kernel/memory-and-paging.md), [the IOMMU](docs/kernel/iommu.md) and
+[the syscall surface](docs/kernel/syscalls.md).
 
 ## Capsules
 
@@ -91,8 +91,8 @@ sequenceDiagram
 
 The capabilities installed come from the verified manifest, never from what the spawn site
 asked for. Every capsule is listed with its service and decoded word in
-[the capsule catalog](docs/handbook/apps/capsule-catalog.md). Writing one is in
-[adding a capsule](docs/handbook/extending/capsule.md).
+[the capsule catalog](docs/using/apps.md). Writing one is in
+[adding a capsule](docs/userland/writing-an-app.md).
 
 ## Privacy
 
@@ -130,9 +130,9 @@ flowchart LR
  other["a capsule without Network"] -. "refused at the syscall".-> socks
 ```
 
-The whole model, with what it does not cover, is in [privacy](docs/handbook/privacy.md),
-[the amnesic design](docs/handbook/kernel/hardening.md), [storage](docs/handbook/storage.md) and
-[the route model](docs/handbook/network/socks5-and-routes.md).
+The whole model, with what it does not cover, is in [privacy](docs/security/README.md),
+[the amnesic design](docs/security/protections-and-limits.md), [storage](docs/drivers/storage/README.md) and
+[the route model](docs/security/anonymity-transports.md).
 
 ## The STARK gate
 
@@ -161,8 +161,8 @@ itself, so a trailer lifted from another image fails.
 Signatures still answer what signatures answer well. The kernel is signed with Ed25519 and
 ML-DSA-65 together and measured into the TPM behind an anti-rollback counter: who released this
 image, and is it older than what this machine already accepted. The details are in
-[the STARK layer](docs/handbook/trust/stark.md), [signing](docs/handbook/trust/signing.md),
-[keys](docs/handbook/trust/keys.md) and [the TPM](docs/handbook/trust/tpm.md).
+[the STARK layer](docs/security/stark-attestation.md), [signing](docs/security/boot-chain-and-signatures.md),
+[keys](docs/security/device-secrets-and-keys.md) and [the TPM](docs/security/measured-boot-and-tpm.md).
 
 ## Lean 4 and the proofs
 
@@ -177,7 +177,7 @@ crates pull the shipped source in through `#[path]` and run it.
 
 NONOS does not claim functional correctness of the whole kernel. The proved surface is what may
 run, what it may reach, and what survives a power cut.
-[The proof suites](docs/handbook/verification/proofs.md) says what each one guarantees and
+[The proof suites](docs/security/checking-the-claims.md) says what each one guarantees and
 which run in CI. [verification/MAP.md](verification/MAP.md) ties each property to the source it
 constrains.
 
@@ -190,7 +190,7 @@ under QEMU. Wi-Fi joins WPA2 and WPA3 networks on the RTL8821CE and on Intel AX2
 whose device is missing leaves at once, and one whose device fails gives up after a few seconds.
 
 Each driver, what it does and what a boot must still confirm on it are in
-[drivers](docs/handbook/drivers.md) and
+[drivers](docs/drivers/README.md) and
 
 ## Build it
 
@@ -228,7 +228,7 @@ A build is one of six profiles, set in `nonos.toml` or as `PROFILE=airgapped mak
 
 A release image is built `hardened`. [docs/build](docs/build/README.md) is the step by step
 guide, from installing Nix on each platform to an installed disk.
-[Build and verify](docs/handbook/build/build-and-verify.md) is the whole flow,
+[Build and verify](docs/build/README.md) is the whole flow,
 [tools/nix/README.md](tools/nix/README.md) the build in one page, and
 [CONTRIBUTING.md](CONTRIBUTING.md) the way in.
 
@@ -247,11 +247,11 @@ the known gaps are at the end of [the changelog](CHANGELOG-0.9.2.md#known-gaps).
 
 | | |
 |---|---|
-| [The handbook](docs/handbook/README.md) | how NONOS works, one page per subsystem, every claim tied to a file and line |
+| [The handbook](docs/README.md) | how NONOS works, one page per subsystem, every claim tied to a file and line |
 | [Building NONOS](docs/build/README.md) | from a fresh machine to a sealed, booted and installed image, one page per step |
-| [Using NONOS 0.9.2](docs/release/0.9.2/user-guide.md) | what changed for the person at the keyboard |
-| [Building on 0.9.2](docs/release/0.9.2/developer-guide.md) | the rules for capsule and driver authors |
-| [Capabilities in 0.9.2](docs/release/0.9.2/capabilities.md) | every bit and every capsule's mask |
+| [Using NONOS 0.9.2](docs/using/README.md) | what changed for the person at the keyboard |
+| [Building on 0.9.2](docs/userland/README.md) | the rules for capsule and driver authors |
+| [Capabilities in 0.9.2](docs/abi/capabilities.md) | every bit and every capsule's mask |
 | [CHANGELOG-0.9.2.md](CHANGELOG-0.9.2.md) | every change and the proof behind it |
 
 Design work happens at [discord.gg/nonos](https://discord.gg/nonos).
