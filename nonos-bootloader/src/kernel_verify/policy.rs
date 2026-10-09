@@ -17,9 +17,6 @@
 use super::types::CryptoVerifyResult;
 
 impl CryptoVerifyResult {
-    /// What the kernel is told it was checked against. Everything is zero
-    /// unless the path gate passed, so a dev boot that skipped it reports no
-    /// root rather than one it never met.
     pub fn attest_policy(&self) -> crate::handoff::types::AttestPolicy {
         use crate::handoff::types::AttestPolicy;
         if self.path_attested {
@@ -45,7 +42,6 @@ impl CryptoVerifyResult {
         }
     }
 
-    /// Whether the kernel's measurement is enrolled under the boot root.
     pub fn kernel_attested(&self) -> bool {
         self.path_attested
     }

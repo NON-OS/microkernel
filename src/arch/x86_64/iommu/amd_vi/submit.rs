@@ -20,7 +20,7 @@
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
-use super::command::{completion_wait, Command};
+use super::command::{command_opcode, completion_wait, Command};
 use super::error::AmdViError;
 use super::regs;
 use super::ring::RINGS;
@@ -64,6 +64,9 @@ pub(super) fn submit(index: usize, batch: &[Command]) -> Result<(), AmdViError> 
     if done {
         Ok(())
     } else {
+        if let Some(first) = batch.first() {
+            crate::log::warn!("[amd-vi] command opcode {} did not complete in time", command_opcode(*first));
+        }
         Err(AmdViError::Timeout)
     }
 }

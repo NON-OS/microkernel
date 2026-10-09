@@ -28,7 +28,7 @@ pub fn dispatch(op: u16, payload: &[u8], reply: &mut [u8]) -> (u16, usize) {
         TOOLKIT_OP_THEME_APPLY => (theme::apply(payload), 0),
         TOOLKIT_OP_THEME_GET => theme_get(reply),
         TOOLKIT_OP_ANIMATION_TICK => animation::tick(payload, reply),
-        TOOLKIT_OP_COMPONENT_RENDER => (component_dispatch::render(payload), 0),
+        TOOLKIT_OP_COMPONENT_RENDER => component_dispatch::render(payload, reply),
         _ => (E_BAD_OP, 0),
     }
 }

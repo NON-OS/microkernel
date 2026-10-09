@@ -27,6 +27,17 @@ pub const STATESTS: u32 = 0x0e;
 pub const GSTS: u32 = 0x10;
 pub const INTCTL: u32 = 0x20;
 pub const INTSTS: u32 = 0x24;
+/// Immediate Command interface (HDA 1.0a section 3.4.3): one verb out through
+/// ICOI, its answer back through ICII, for reading a codec parameter without
+/// the CORB ring.
+pub const ICOI: u32 = 0x60;
+pub const ICII: u32 = 0x64;
+pub const ICIS: u32 = 0x68;
+/// ICIS bit 0: a command is in flight (Immediate Command Busy).
+pub const ICIS_ICB: u16 = 1 << 0;
+/// ICIS bit 1: the answer in ICII is valid (Immediate Result Valid).
+pub const ICIS_IRV: u16 = 1 << 1;
+
 pub const DPLBASE: u32 = 0x70;
 pub const DPUBASE: u32 = 0x74;
 

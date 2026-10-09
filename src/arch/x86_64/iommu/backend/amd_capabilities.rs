@@ -14,18 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::now_ns;
+//! What AMD-Vi guarantees while its units are in service. Leaves carry FC,
+//! so every translated access snoops CPU caches, which is what snoop control
+//! means on VT-d.
 
-#[derive(Clone, Copy, Debug)]
-pub struct Instant {
-    nanos: u64,
-}
+use crate::arch::x86_64::iommu::amd_vi::domain::MAX_DOMAINS;
+use crate::arch::x86_64::iommu::amd_vi::is_enforcing;
+use crate::memory::iommu::{IommuCapabilities, IommuVendor};
 
-impl Instant {
-    pub fn now() -> Self {
-        Self { nanos: now_ns() }
+pub(super) fn amd_vi() -> IommuCapabilities {
+    if !is_enforcing() {
+        return IommuCapabilities::none_in_force(IommuVendor::AmdVi);
     }
-    pub fn elapsed(&self) -> u64 {
-        now_ns().saturating_sub(self.nanos)
+    IommuCapabilities {
+        vendor: IommuVendor::AmdVi,
+        enforcing: true,
+        address_width_bits: 48,
+        interrupt_remapping: false,
+        page_sizes: 1 << 12,
+        snoop_control: true,
+        domain_count: MAX_DOMAINS as u32,
     }
 }

@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// The x86_64 VT-d / AMD-Vi backend lives in the arch tree
+// (`src/arch/x86_64/iommu/backend/`) next to the hardware it drives;
+// it is pulled in here by path so `memory::iommu` stays the single
+// facade generic kernel code reaches through.
 #[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
-#[path = "backend_x86_64/mod.rs"]
+#[path = "../../arch/x86_64/iommu/backend/mod.rs"]
 mod inner;
 #[cfg(not(all(target_arch = "x86_64", feature = "nonos-arch-iommu")))]
 #[path = "backend_unsupported.rs"]

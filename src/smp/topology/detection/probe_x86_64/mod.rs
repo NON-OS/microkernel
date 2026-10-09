@@ -57,7 +57,7 @@ pub(super) fn detect() -> usize {
     };
 
     // The count is what will actually be started, plus this CPU: the MADT's
-    // enabled entries after the planner has dropped duplicates, placeholders,
+    // enabled entries after the planner has dropped duplicates, reserved-id entries,
     // unaddressable ids and anything past MAX_CPUS. CPUID's count is only the
     // answer on a machine with no MADT.
     let aps = secondaries(topology.logical_cpus);

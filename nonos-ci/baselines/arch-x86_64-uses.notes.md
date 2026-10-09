@@ -1,46 +1,72 @@
 # `crate::arch::x86_64::*` baseline notes
 
-The number in `arch-x86_64-uses.txt` only ever shrinks unless an
-intentional bump is recorded here.
+The number in `arch-x86_64-uses.txt` is the count of direct
+`crate::arch::x86_64::` path uses under `src/`, excluding `src/arch/`, as
+the static gate measures it:
 
-## Current breakdown (baseline 93)
+```
+grep -rn 'crate::arch::x86_64::' src --include='*.rs' | grep -v '^src/arch/' | wc -l
+```
 
-- 67 long-standing or architecturally-correct refs:
-  - `crate::arch::x86_64::cpu`, `time::*`, `interrupt::apic`, `idt`,
-    `pci`, `vga`, `iommu`, `cpuid`, `watchdog`, `serial`
-    (used by SMP, log, usercopy, scheduler, drivers, time path).
-  - `boot/main/core_init.rs::arch::x86_64::gdt::init()` — Slice A
-    (replaced the legacy `sys::gdt::setup`). Permanent.
-  - `interrupts/handlers/exceptions/{page_fault,gpf,opcode}.rs::
-    arch::x86_64::diag::dump_trap` — trap handlers are
-    arch-coupled by definition. Permanent.
+Generic kernel code should reach the platform through the `Arch` trait
+(`src/arch/abi.rs`); a direct path import is an arch-leak. The baseline is
+shrink-only and must not grow without an entry here.
 
-- 26 temporary diagnostic refs from the slice #74 observability
-  pass. All marked for cleanup:
-  - `process/userspace/asm.rs` (5): `dump_gdt`, `print_hex_u64` x4
-    for the user-entry frame. Delete after iretq into CPL=3 is
-    proven and the user side runs without #GP/#PF.
-  - `process/scheduler/dispatch/run_queue.rs` (2),
-    `process/scheduler/selection/switching.rs` (3),
-    `interrupts/isr/timer_trampoline.rs` (2): `[SCHED]` traces.
-  - `process/scheduler/selection/select.rs` (6): `[SCHED] select`
-    trace, capped at 32 events per boot.
-  - `syscall/microkernel/dispatch.rs` (4): `[SC]` trace +
-    sc_kind/print, capped at 32 events.
-  - `syscall/dispatch/router/mod.rs` (1): `[SYSCALL-UNKNOWN]`
-    once-per-pid loud failure log on unmapped syscall numbers.
-    Stays after cleanup; failing loud is the policy.
-  - misc helper sites in the same diag pass.
+## Current value: 100
 
-## Cleanup track
+The actual count had regressed to 132 while the committed baseline stayed
+at 100, which is what the gate was failing on. This pass brought the actual
+back down to the 100 baseline with real code changes, so the gate passes
+again with no bump.
 
-- T1: CPL=3 proven without #GP → delete the 5 userspace/asm
-  diagnostic refs.
-- T2: introduce `crate::diag::*` shim and route the 17 sched / IPC
-  / SC prints through it. The arch-x86_64 ref count drops by ~16
-  (one ref per shim leaf instead of one per call site).
-- T3: keep `[SYSCALL-UNKNOWN]` and the 3 trap-handler `dump_trap`
-  refs as permanent loud-failure paths.
-- T4: any further shrink is M-ARCH-0 work behind the Arch trait.
+## What this pass removed (132 -> 100)
 
-The baseline value must not grow without an entry here.
+- Moved `src/memory/iommu/backend_x86_64/` to
+  `src/arch/x86_64/iommu/backend/` (the x86 VT-d / AMD-Vi backend, which
+  lives next to the hardware it drives). `memory::iommu::backend` still
+  pulls it in by `#[path]`, so `memory::iommu` stays the single facade, but
+  the 25 `crate::arch::x86_64::` uses inside those files are now internal to
+  `src/arch` and no longer counted.
+- Deleted `src/nonos_time/` (orphaned, never compiled): removed 4 uses
+  (`high_precision.rs` x3, `mod.rs` x1).
+- Deleted `src/kernel_core/init/entry/diagnostics_silenced.rs` (a
+  comment-only bring-up helper whose body was entirely inside a block
+  comment) and its `mod` line: removed 1 use.
+- Reworded a doc comment in `src/syscall/contract/mod.rs` that literally
+  contained `crate::arch::x86_64::...` and tripped the grep: removed 1.
+- Deleted the unused `LegacyPciStats` re-export in
+  `src/drivers/pci/mod.rs`: removed 1.
+
+Related fix folded in: the earlier commit that moved `amd_vi` under
+`arch::x86_64::iommu::amd_vi` left callers pointing at the old
+`arch::x86_64::amd_vi` path. The outside-`src/arch` caller
+(`kernel_core/init/entry/init_dma_protection.rs`) broke the x86_64 build
+(E0433); it and the five in-tree callers were repointed at the real
+`iommu::amd_vi` path. The outside caller still counts (same arm, longer
+path), so this does not change the count.
+
+## Breakdown of the 100 (all checkable with the grep above)
+
+By `src/` subsystem:
+
+- interrupts 21, sys 13, smp 13, hardware 12, boot 10, kernel_core 9,
+  process 6, log 6, memory 5, drivers 2, syscall 1, security 1, crypto 1
+
+By arch submodule reached:
+
+- acpi 22, diag 17, interrupt 13, cpu 10, vga 6, iommu 6, gdt 5, boot 4,
+  time 3, syscall 3, paging 3, pat 2, idt 2, interrupt_controller 1,
+  cpu_random 1, context 1, asm 1
+
+These fall into:
+
+- Arch-coupled by definition, permanent: the trap handlers under
+  `interrupts/handlers/exceptions/*` calling `diag::dump_trap` /
+  `diag::emit_fatal_notice` (x86 trap frames), GDT/IDT setup, the x86 APIC
+  and ACPI readers used by SMP bring-up and the IRQ broker, VGA log output,
+  and the x86 IOMMU bring-up in `init_dma_protection`.
+- Reducible arch-leaks, the shrink track (M-ARCH-0): call sites that could
+  reach the platform through the `Arch` trait or a thin `crate::diag`
+  facade instead of naming `crate::arch::x86_64` directly. The diag facade
+  alone (routing the ~17 `diag::*` uses through one shim) is the next
+  planned drop. As each lands, lower this number and record it here.

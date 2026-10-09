@@ -66,6 +66,12 @@ impl Link {
         Link { regs, corb_va, rirb_va, mask, wp: 0, rp: 0, unsolicited: 0 }
     }
 
+    /// The controller register window, for the Immediate Command fallback when
+    /// a verb gets no answer over the ring.
+    pub fn regs(&self) -> Regs {
+        self.regs
+    }
+
     /// Unsolicited responses seen and set aside. A codec sends one when a
     /// pin's jack changes, so a new one is a reason to read the jack now.
     pub fn unsolicited(&self) -> u32 {

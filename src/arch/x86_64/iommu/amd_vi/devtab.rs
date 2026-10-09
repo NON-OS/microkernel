@@ -20,7 +20,7 @@
 
 use core::sync::atomic::{compiler_fence, AtomicU64, Ordering};
 
-use super::dte::{blocked, Dte};
+use super::dte::{blocked, stray_writer, Dte};
 use super::error::AmdViError;
 use super::regs::DEV_TABLE_PAGES;
 use crate::arch::x86_64::iommu::tables::frame::entries_mut;
@@ -47,6 +47,24 @@ pub(super) fn device_table() -> Result<u64, AmdViError> {
     }
     TABLE.store(phys, Ordering::Release);
     Ok(phys)
+}
+
+/// Refuse before a unit is enabled if any entry would let a device write
+/// untranslated memory. The kernel writes only blocked entries or translated
+/// page tables, so a stray writer means the table was left tampered with or
+/// half-written; enabling over it would defeat the unit's whole purpose.
+pub(super) fn deny_stray_writers(table: u64) -> Result<(), AmdViError> {
+    for page in 0..DEV_TABLE_PAGES {
+        let words =
+            entries_mut(table + page as u64 * 4096).map_err(|_| AmdViError::TableUnreachable)?;
+        for entry in words.chunks_exact(4) {
+            let dte: Dte = [entry[0], entry[1], entry[2], entry[3]];
+            if stray_writer(dte) {
+                return Err(AmdViError::StrayWriter);
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Replace the entry for `device_id`, the first quadword (V, TV, mode and

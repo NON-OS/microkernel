@@ -19,7 +19,7 @@
 //! on every unit before returning.
 
 use super::super::devtab::{read_dte, write_dte};
-use super::super::dte::{blocked, mode_of, passthrough, translated, Dte};
+use super::super::dte::{blocked, domain_of, mode_of, passthrough, translated, Dte};
 use super::super::error::AmdViError;
 use super::super::flush::flush_device;
 use super::super::pte::LEVELS;
@@ -44,14 +44,16 @@ pub fn attach(domain: u16, id: u16) -> Result<(), AmdViError> {
 /// Deny the device everything, from identity or from a capsule domain.
 pub fn detach(id: u16) -> Result<(), AmdViError> {
     let _roots = ROOTS.lock();
-    if read_dte(id)? == blocked() {
+    let current = read_dte(id)?;
+    if current == blocked() {
         return Err(AmdViError::DeviceNotAttached);
     }
+    crate::log::info!("[amd-vi] detaching device {} from domain {}", id, domain_of(current));
     replace(id, blocked())
 }
 
 /// Identity for a device the kernel enumerated, at bring-up.
-pub(in crate::arch::x86_64::amd_vi) fn pass(id: u16) -> Result<(), AmdViError> {
+pub(in crate::arch::x86_64::iommu::amd_vi) fn pass(id: u16) -> Result<(), AmdViError> {
     write_dte(id, passthrough())
 }
 

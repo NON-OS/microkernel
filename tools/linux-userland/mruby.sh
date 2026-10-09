@@ -5,6 +5,7 @@
 # mruby releases by git tag and publishes no tarball digest; the pin is the
 # commit the 3.4.0 tag names, a309524d0bc90eef077a24634db2495a6f68e318
 # ("Update version and release date"), and the hash of its tree.
+command -v ruby >/dev/null 2>&1 || { echo "mruby.sh: ruby not on PATH (the flake shell provides it)" >&2; exit 1; }
 . "$root/tools/linux-userland/lib/git.sh"
 src=$(fetch_git mruby)
 m="$work/mruby"

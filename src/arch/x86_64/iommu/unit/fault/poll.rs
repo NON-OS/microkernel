@@ -34,5 +34,5 @@ pub fn poll_faults(ticks: u64) {
         drain_faults();
     }
     #[cfg(feature = "nonos-iommu-amdvi")]
-    crate::arch::x86_64::amd_vi::drain_events();
+    crate::arch::x86_64::iommu::amd_vi::drain_events();
 }

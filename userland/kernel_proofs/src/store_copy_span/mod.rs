@@ -20,7 +20,7 @@
  */
 
 #[allow(dead_code)]
-#[path = "../../../../src/syscall/microkernel/store_copy_span.rs"]
+#[path = "../../../../src/hardware/block_device/store_copy/span.rs"]
 mod span;
 
 #[cfg(test)]

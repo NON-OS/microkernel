@@ -20,15 +20,15 @@
  * IOMMU spec 48882 and the encodings in Linux drivers/iommu/amd.
  */
 
-#[path = "../../../../src/arch/x86_64/amd_vi/command.rs"]
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/command.rs"]
 pub mod command;
-#[path = "../../../../src/arch/x86_64/amd_vi/dte.rs"]
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/dte.rs"]
 pub mod dte;
-#[path = "../../../../src/arch/x86_64/amd_vi/event.rs"]
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/event.rs"]
 pub mod event;
-#[path = "../../../../src/arch/x86_64/amd_vi/pte.rs"]
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/pte.rs"]
 pub mod pte;
-#[path = "../../../../src/arch/x86_64/amd_vi/regs.rs"]
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/regs.rs"]
 pub mod regs;
 mod command_tests;
 mod table_tests;

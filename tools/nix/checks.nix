@@ -12,7 +12,7 @@ let
   root = src.everything;
   kernelSource = src.crate "." [ "x86_64-nonos.json" ];
   userlandDirs = builtins.attrNames (lib.filterAttrs (_: t: t == "directory") (builtins.readDir (src.root + "/userland")));
-  kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" ];
+  kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" "nonos-iommu-amdvi" "nonos-iommu-intremap" ];
   hasLock = d: builtins.pathExists (src.root + "/${d}/Cargo.lock");
 
   # Every *_proofs crate, the host crates CI tests beside them, and the
@@ -309,5 +309,73 @@ let
     # nonos.toml resolves, for every profile, against Cargo.toml's features.
     config = pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
   };
+
+  # The determinism property, proved on Linux alone. A capsule is built twice in
+  # the one sandbox from two different absolute roots (so the absolute path of
+  # its ../libc path dependency differs, the R2 leak) and under two different
+  # __CARGO_DEFAULT_LIB_METADATA values (the exact channel cargo folds the rustc
+  # host triple through, so a stand-in foreign host, the R1 leak), then the two
+  # ELFs are compared. With the nonos-rustc wrapper recomputing each crate's
+  # -C metadata from host- and path-neutral inputs, the two are byte-identical;
+  # revert the wrapper (or set NONOS_RUSTC_NORMALIZE=0) and they differ, which
+  # is how this check earns its keep.
+  reproChecks =
+    let
+      dir = "userland/capsule_proof_io";
+      capsuleSrc = src.crate dir [ "userland/x86_64-nonos-user.json" ];
+      vendor = cargo.vendor {
+        name = "repro-proof-io";
+        lockFiles = [ (src.root + "/${dir}/Cargo.lock") ];
+        buildStd = true;
+      };
+    in
+    {
+      repro-host-independence = pkgs.stdenvNoCC.mkDerivation {
+        name = "repro-host-independence";
+        src = capsuleSrc;
+        nativeBuildInputs = [ pins.rust pins.python pins.llvm.clang-unwrapped pins.llvm.llvm pkgs.git ];
+        dontConfigure = true;
+        dontFixup = true;
+        dontInstall = true;
+        buildPhase = ''
+          runHook preBuild
+          export AR=llvm-ar RANLIB=llvm-ranlib
+          # The wrapper's own property test, as a gate.
+          python3 ${./nonos-rustc.py} --self-test
+          ${cargo.setup vendor}
+
+          # Build proof_io once in a given root, under a given stand-in host.
+          buildone() {
+            root="$1"; fakehost="$2"; dest="$3"
+            rm -rf "$root"; mkdir -p "$root"
+            cp -r ${capsuleSrc}/. "$root"/
+            chmod -R u+w "$root"
+            export NONOS_WORK="$root"
+            export NONOS_RUSTC_IDS="$root/.nonos-rustc-ids"; mkdir -p "$NONOS_RUSTC_IDS"
+            export CARGO_TARGET_DIR="$root/target"
+            export __CARGO_DEFAULT_LIB_METADATA="$fakehost"
+            ( cd "$root/${dir}" &&
+              cargo build --frozen --release --target ../x86_64-nonos-user.json -Zbuild-std=core )
+            cp "$CARGO_TARGET_DIR/x86_64-nonos-user/release/proof_io" "$dest"
+          }
+
+          # Two roots of different names and lengths, two foreign host identities.
+          buildone "$NIX_BUILD_TOP/repro-root-alpha-longer-path" \
+            "nonos-stand-in-host-alpha-x86_64-unknown-linux-gnu" "$TMPDIR/a.elf"
+          buildone "$NIX_BUILD_TOP/r2" \
+            "nonos-stand-in-host-bravo-aarch64-apple-darwin" "$TMPDIR/b.elf"
+
+          echo "a: $(sha256sum < $TMPDIR/a.elf)"
+          echo "b: $(sha256sum < $TMPDIR/b.elf)"
+          if ! cmp "$TMPDIR/a.elf" "$TMPDIR/b.elf"; then
+            echo "repro-host-independence: the two builds are NOT byte-identical" >&2
+            exit 1
+          fi
+          mkdir -p $out
+          cp "$TMPDIR/a.elf" $out/proof_io
+          runHook postBuild
+        '';
+      };
+    };
 in
-proofChecks // cargoChecks // profileChecks // staticChecks // driftChecks
+proofChecks // cargoChecks // profileChecks // staticChecks // driftChecks // reproChecks

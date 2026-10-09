@@ -339,11 +339,17 @@ fn compile_mldsa65() {
     build.compiler("clang");
     build.flag("-target");
     build.flag("x86_64-unknown-windows");
-    for entry in fs::read_dir(mldsa).expect("cannot read ML-DSA-65 source directory") {
-        let path = entry.expect("bad ML-DSA-65 source entry").path();
-        if path.extension().and_then(|s| s.to_str()) == Some("c") {
-            build.file(path);
-        }
+    // read_dir yields entries in the filesystem's order, which differs between
+    // machines; sort so the C sources are added, compiled and archived in the
+    // same order everywhere and the bytes do not depend on the host.
+    let mut mldsa_sources: Vec<_> = fs::read_dir(mldsa)
+        .expect("cannot read ML-DSA-65 source directory")
+        .map(|entry| entry.expect("bad ML-DSA-65 source entry").path())
+        .filter(|path| path.extension().and_then(|s| s.to_str()) == Some("c"))
+        .collect();
+    mldsa_sources.sort();
+    for path in mldsa_sources {
+        build.file(path);
     }
     build.file(format!("{common}/fips202.c"));
     build.file("src/crypto/mldsa65/chkstk.c");

@@ -35,7 +35,15 @@ pub(super) fn repaint<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_
         paint_partial(booted, peers, next(request_id), rect);
         return;
     }
-    paint(&mut booted.app, &booted.manifest, &booted.binding, booted.drag.hover, booted.maximized);
+    paint(
+        &mut booted.app,
+        &booted.manifest,
+        &booted.binding,
+        booted.drag.hover,
+        booted.maximized,
+        peers.toolkit,
+        next(request_id),
+    );
     let rid = next(request_id);
     let _ = compositor::damage_commit(
         peers.compositor,

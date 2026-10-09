@@ -24,7 +24,7 @@ use crate::state::Context;
 pub fn run() -> Result<Context, &'static str> {
     let peers = peers::resolve()?;
     super::healthcheck_peers::healthcheck_peers(&peers)?;
-    let wallpaper_policy_sent = crate::server::wallpaper_policy::send(peers.wallpaper_port);
+    let wallpaper_policy_sent = crate::setup::wallpaper_policy::send(peers.wallpaper_port);
     let overlay = overlay::allocate(peers.compositor_port, 1)?;
     let desk = match overlay::allocate(peers.compositor_port, 1) {
         Ok(desk) => desk,

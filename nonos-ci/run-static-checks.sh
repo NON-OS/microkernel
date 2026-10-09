@@ -1562,9 +1562,12 @@ else
     note ok "capsule_driver_ahci kernel mirror/client/spawn wiring present"
 fi
 
-# capsule_driver_hda is a userland controller capsule. P0 may map
-# BAR0 and bind the controller IRQ only; CORB/RIRB, stream BDLs,
-# and playback/recording wait for a later DMA-backed slice.
+# capsule_driver_hda is a userland HD Audio controller capsule on the
+# DMA-slice contract AHCI and NVMe use: it maps BAR0 and binds the
+# controller IRQ through the broker, and drives CORB/RIRB, the stream
+# BDLs and the PCM ring through one audited broker DMA map. No inline
+# asm and no port I/O; the DMA grant is bounded at its one map site and
+# the engines are stopped before the claim goes back.
 hda_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_hda --include='*.rs' || true; } )"
 if [ -n "${hda_kernel_drivers}" ]; then
     fail_with "capsule_driver_hda must not import crate::drivers"
@@ -1583,14 +1586,26 @@ else
 fi
 unset hda_kernel_mem
 
-hda_forbidden_hw="$( { grep -rEn 'asm!|mk_pio_|mk_dma_' userland/capsule_driver_hda --include='*.rs' || true; } )"
+hda_forbidden_hw="$( { grep -rEn 'asm!|mk_pio_' userland/capsule_driver_hda --include='*.rs' || true; } )"
 if [ -n "${hda_forbidden_hw}" ]; then
-    fail_with "capsule_driver_hda P0 must not use inline asm, PIO, or DMA"
+    fail_with "capsule_driver_hda P0 must not use inline asm or PIO"
     printf '%s\n' "${hda_forbidden_hw}" >&2
 else
-    note ok "capsule_driver_hda P0 uses broker MMIO/IRQ only"
+    note ok "capsule_driver_hda P0 uses broker MMIO/IRQ/DMA only"
 fi
 unset hda_forbidden_hw
+
+# The audio path maps DMA at one audited broker site (the private map()
+# in setup/dma.rs that every CORB/RIRB/BDL/ring grant routes through),
+# and the kernel mirror grants Capability::Dma. More than one map site
+# would spread the grant surface the broker audits.
+hda_dma_sites="$( { grep -rho 'mk_dma_map(' userland/capsule_driver_hda --include='*.rs' || true; } | wc -l | tr -d ' ')"
+if [ "${hda_dma_sites}" != "1" ] || ! grep -q 'Capability::Dma.bit' src/hardware/hda_capsule/spawn.rs; then
+    fail_with "capsule_driver_hda audio path must map DMA at one audited broker site and request Capability::Dma"
+else
+    note ok "capsule_driver_hda maps DMA at one audited broker call site"
+fi
+unset hda_dma_sites
 
 hda_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_hda --include='*.rs' || true; } )"
 if [ -n "${hda_dead_code}" ]; then
@@ -1652,7 +1667,7 @@ if ! grep -rq 'spawn_driver_hda_capsule' src/userspace/init/ ||
    ! grep -q 'codec_list' src/hardware/hda_capsule/client/mod.rs ||
    ! grep -q 'Capability::Mmio.bit' src/hardware/hda_capsule/spawn.rs ||
    ! grep -q 'Capability::Irq.bit' src/hardware/hda_capsule/spawn.rs ||
-   grep -q 'Capability::Dma.bit' src/hardware/hda_capsule/spawn.rs ||
+   ! grep -q 'Capability::Dma.bit' src/hardware/hda_capsule/spawn.rs ||
    grep -q 'Capability::Pio.bit' src/hardware/hda_capsule/spawn.rs ||
    ! grep -q 'driver.hda0' src/hardware/hda_capsule/spawn.rs; then
     fail_with "capsule_driver_hda kernel mirror/client/spawn wiring is incomplete"
@@ -1936,25 +1951,32 @@ else
 fi
 unset dma_limits dma_validate dma_errno_map dma_types
 
-# MSI-X runtime LAPIC destination. The MSI message builder must
-# take a destination APIC id from the caller, not hardcode 0. The
-# bind path reads `crate::arch::interrupt_controller::local_id()`
-# (the LAPIC id on x86_64) so the broker programs each MSI-X entry
-# against the current LAPIC.
+# MSI-X runtime LAPIC destination. The MSI message builder takes an
+# explicit destination APIC id from the caller, never a hardcoded 0.
+# The bind path derives it from the running CPU's LAPIC id through
+# `device_irq_dest`, which fits an x2APIC id into the 8-bit field or
+# refuses, so a wide id is never truncated to the wrong CPU (a plain
+# `as u8` would send 0x104 to CPU 4). Both the MSI and MSI-X route
+# paths take the destination from `dest_apic_id()?`.
 msi_msg='src/drivers/pci/types/msi.rs'
-msi_bind='src/hardware/broker/irq/bind/msix.rs'
+msi_dest='src/hardware/broker/irq/bind/message.rs'
 msix_real='src/hardware/broker/irq/msix_ops/real.rs'
+msi_route='src/hardware/broker/irq/bind/msi_route.rs'
+msix_route='src/hardware/broker/irq/bind/msix_route.rs'
 if ! grep -qE 'pub fn for_local_apic\(vector: u8, dest_apic_id: u8\) -> Self' "${msi_msg}"; then
     fail_with "${msi_msg} for_local_apic must take an explicit dest_apic_id"
 elif grep -rnE 'for_local_apic\([^,)]+\)' "${msi_msg}" "${msix_real}" src/drivers/pci/msi 2>/dev/null \
         | grep -vE '(fn for_local_apic|/tests/)' | grep -q .; then
     fail_with "for_local_apic still has single-arg callers; wire dest_apic_id through"
-elif ! grep -qE 'dest_apic_id = crate::arch::interrupt_controller::local_id\(\) as u8' "${msi_bind}"; then
-    fail_with "${msi_bind} must read dest_apic_id from the runtime LAPIC, not hardcode CPU 0"
+elif ! grep -qE 'crate::arch::interrupt_controller::local_id\(\)' "${msi_dest}" ||
+     ! grep -qE 'device_irq_dest\(local\)' "${msi_dest}"; then
+    fail_with "${msi_dest} dest_apic_id must come from local_id() via device_irq_dest, not a hardcoded CPU"
+elif ! grep -qE 'dest_apic_id\(\)\?' "${msi_route}" || ! grep -qE 'dest_apic_id\(\)\?' "${msix_route}"; then
+    fail_with "msi/msix route paths must take the destination from dest_apic_id()"
 else
-    note ok "MSI-X dest_apic_id sourced from runtime local_id() at bind time"
+    note ok "MSI-X dest_apic_id sourced from runtime local_id() via device_irq_dest"
 fi
-unset msi_msg msi_bind msix_real
+unset msi_msg msi_dest msix_real msi_route msix_route
 
 # x86 GSI kernel-vs-capsule partition. `program_route_external` (the
 # broker INTx path) must CAS the GSI Free -> Capsule via the
@@ -1992,7 +2014,7 @@ unset gsi_owners gsi_state gsi_claim ioapic_bind broker_release
 # `map_device_memory` callers in the kernel TCB only (memory/paging
 # itself, memory/mmio, memory/unified LAPIC rebind, drivers, apic,
 # virtio, IOMMU unit probe, TPM register window, aarch64 PCI windows).
-device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } )"
+device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } )"
 if [ -n "${device_map_external}" ]; then
     fail_with "map_device_memory called from outside the kernel TCB; user-facing MMIO must go through the broker"
     printf '%s\n' "${device_map_external}" >&2
@@ -2145,25 +2167,26 @@ else
 fi
 unset mk_tool_drift
 
-# Operator pubkey trust list must compile in. The 0xNOX live
-# operator pubkey baked here is the only key the marketplace
-# capsule trusts in production; rotation requires a kernel image
-# rebuild. keys.rs pulls the key in with include_bytes!, so the
-# referenced .pub file must hold exactly the 0xNOX key bytes.
+# Operator pubkey trust list must compile in. keys.rs pulls the
+# marketplace operator pubkey in from the committed .pub with
+# include_bytes!, and TRUSTED_OPERATORS wires it in. The key is
+# rotated by recommitting its .pub, cert and manifest (see
+# nonos-data/CUSTODY.md, publisher rotation); the referenced .pub
+# file must hold exactly the committed operator key bytes.
 trust_keys='userland/capsule_market/src/bootstrap_trust/keys.rs'
-nox_operator_hex='295f84c97c62013c438bca3d81c180981b9f0a043ba1fae254ad0e12ea8e0763'
+operator_pubkey_hex='bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2'
 trust_key_rel="$( { grep -A1 'const NOX_OPERATOR_V1: \[u8; 32\] =' "${trust_keys}" 2>/dev/null || true; } | { grep -oE 'include_bytes!\("[^"]+marketplace_operator_ed25519\.pub"\)' || true; } | head -n 1 | sed -E 's/^include_bytes!\("//; s/"\)$//')"
 trust_key_file="$(dirname "${trust_keys}")/${trust_key_rel}"
 if [ ! -f "${trust_keys}" ]; then
     fail_with "missing ${trust_keys} (operator trust list)"
 elif [ -z "${trust_key_rel}" ] || [ ! -f "${trust_key_file}" ] ||
-     [ "$(od -An -tx1 -v "${trust_key_file}" | tr -d ' \n')" != "${nox_operator_hex}" ] ||
+     [ "$(od -An -tx1 -v "${trust_key_file}" | tr -d ' \n')" != "${operator_pubkey_hex}" ] ||
      ! grep -qE 'TRUSTED_OPERATORS: &\[\[u8; 32\]\] = &\[NOX_OPERATOR_V1\]' "${trust_keys}"; then
-    fail_with "0xNOX operator pubkey missing from bootstrap_trust"
+    fail_with "marketplace operator pubkey missing from bootstrap_trust or not the committed key"
 else
-    note ok "0xNOX operator pubkey baked into capsule_market trust list"
+    note ok "marketplace operator pubkey baked into capsule_market trust list"
 fi
-unset trust_keys nox_operator_hex trust_key_rel trust_key_file
+unset trust_keys operator_pubkey_hex trust_key_rel trust_key_file
 
 boot_build='nonos-bootloader/build.rs'
 if [ ! -f "${boot_build}" ]; then
@@ -4055,11 +4078,16 @@ unset ipc_primitives ipc_dispatch ipc_defs ipc_cap ipc_libc ipc_missing f
 # syscall names, no POSIX fd rhetoric, no compatibility-shim or
 # stub language. Header comments and `description =` strings are
 # user-visible ABI claims and live under the same gate.
+# Skip .git: the static gate runs against a throwaway git tree, and git 2.55
+# auto-maintenance repacks loose objects while this walks, so descending into
+# .git/objects races a dir git is deleting and find exits non-zero under set -e.
+# No Cargo.toml lives there in any case.
 cargo_files="$(find . -maxdepth 5 -name 'Cargo.toml' \
+    -not -path './.git/*' \
     -not -path './target/*' \
     -not -path './nonos-sign/target/*' -not -path './nonos-mk/target/*' -not -path './userland/*/target/*' \
     -not -path './nonos-bootloader/target/*' -not -path './docs/legacy/*' \
-    2>/dev/null)"
+    2>/dev/null || true)"
 
 cargo_int80="$( { grep -nE '\bint80\b' ${cargo_files} 2>/dev/null || true; } )"
 if [ -n "${cargo_int80}" ]; then
