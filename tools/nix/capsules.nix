@@ -112,6 +112,12 @@ let
       lockFiles = [ (src.root + "/${e.dir}/Cargo.lock") ];
       rust = if e.needs_rt then rustStd else pins.rust;
       script = ''
+        # The capsule C (QuickJS, minimp3) asks for "clang" by name. On macOS
+        # the first clang is the stdenv wrapper, which adds host flags, so the
+        # same C compiled to different code there than on Linux and the
+        # capsule was not reproducible across hosts. Put the unwrapped one
+        # first, as the bootloader build does (image.nix).
+        export PATH=${pins.llvm.clang-unwrapped}/bin:$PATH
         ${signedInputs}
         ${lib.optionalString (e.slug == "linux") ''
           # The personality's built-in BusyBox, built from source here; the
@@ -126,7 +132,14 @@ let
           export NONOS_PERIODIC_CACHE=${periodic}/periodic.top
         ''}
         cd ${e.dir}
-        ${lib.optionalString e.needs_rt ''export RUSTFLAGS="-Clink-arg=${rt}/nonos_rt.o"''}
+        # Pin curve25519-dalek's backend. Left to choose, it reads the BUILD
+        # host's CPU and takes an AVX/SIMD backend on an x86 host and the serial
+        # one on aarch64, so the same capsule came out with different bytes on a
+        # Linux runner than on a macOS one and `reproducible / compare` failed.
+        # The kernel and image builds already pin serial (mk/20-build.mk,
+        # image.nix); the capsule build must match so the artifact is the same
+        # on any host. Inert for capsules that do not pull curve25519.
+        export RUSTFLAGS='--cfg curve25519_dalek_backend="serial"${lib.optionalString e.needs_rt " -Clink-arg=${rt}/nonos_rt.o"}'
         cargo build --frozen --release --target ../${userTarget}.json \
           ${lib.optionalString (e.cargo_features != "") "--features ${e.cargo_features}"} \
           -Zbuild-std=${e.build_std} \

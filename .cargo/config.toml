@@ -1,6 +1,13 @@
 [target.x86_64-nonos]
 rustflags = [
   "-C", "force-frame-pointers=yes",
+  # Pin curve25519-dalek's backend for the kernel too. Left to choose it reads
+  # the build host's CPU (AVX/SIMD on an x86 host, serial on aarch64), so the
+  # kernel ELF came out with different bytes on a Linux host than a macOS one
+  # and `reproducible / compare` failed on it. Set here rather than in a
+  # RUSTFLAGS env so the frame-pointer flag above is kept (env would replace
+  # the whole set). The make and image builds already pin it the same way.
+  "--cfg", 'curve25519_dalek_backend="serial"',
 ]
 
 # Platform-specific runners are defined in the Makefile for portability

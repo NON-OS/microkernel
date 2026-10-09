@@ -206,6 +206,9 @@ let
         ln -s ${x86Binutils}/bin/x86_64-unknown-linux-gnu-strip $TMPDIR/x86bin/strip
         export PATH=$TMPDIR/x86bin:$PATH''}
       mkdir -p $TMPDIR/kheaders $out
+      # One strip on every host: llvm-strip from the pinned LLVM reads and
+      # writes x86_64 ELF the same way on Linux and macOS (see the script).
+      STRIP=${pins.llvm.llvm}/bin/llvm-strip \
       CC=$TMPDIR/musl-cc KHEADERS=$TMPDIR/kheaders BUSYBOX_TARBALL=$tarball \
         sh tools/nonos-busybox-build $out/busybox
     '';
