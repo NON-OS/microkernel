@@ -182,7 +182,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: ${{ inputs.trust-mode == 'production' && 'ci-reports-build-production' || 'ci-reports-build' }}
+          name: ci-reports-build
           path: ci-reports/
           retention-days: 14
           if-no-files-found: error
