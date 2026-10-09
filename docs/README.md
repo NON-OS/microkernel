@@ -41,6 +41,7 @@ You want to know how the system is built, from the boot to a running capsule.
 5. [Writing an app](userland/writing-an-app.md), then [Shipping an app](userland/shipping-an-app.md): a windowed app from its crate to a tile on the dock.
 6. [The ABI](abi/README.md) when you need exact numbers and layouts.
 7. [Architectures](architectures/README.md) and [Build NONOS](build/README.md).
+8. [Kernel internals: the source map](internals/README.md) when you want the `src/` tree itself — one page per module, with the key types and functions and where each lives.
 
 ### A security reviewer
 
