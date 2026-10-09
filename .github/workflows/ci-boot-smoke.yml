@@ -80,19 +80,15 @@ jobs:
             echo "accel: TCG, no KVM on this runner (deadline 900s)" >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Scratch keys, for this runner only
+        # The operator key stays the one in the tree, so the seal keeps the
+        # index and catalogue the operator signed and the enrollment that
+        # proves those exact capsules, instead of re-proving all of them on
+        # this runner's two prover slots.
         run: |
           set -euo pipefail
           bash nonos-ci/setup-signing-key.sh
           NONOS_HOST_TOOLS="$(nix build .#host-tools --no-link --print-out-paths)" NONOS_SCRATCH_KEYS_ONLY=1 \
-            nix develop --command bash nonos-ci/scratch-trust-bootstrap.sh
-          # The scratch marketplace operator key replaced the committed public
-          # key on this runner. The seal seals only a committed tree, so the
-          # scratch key is committed here, on this runner, and never pushed
-          # (the checkout keeps no credentials): the image is built from
-          # exactly the tree it is sealed from.
-          git -c user.name="boot-smoke" -c user.email="boot-smoke@localhost" \
-            commit -q -m "scratch marketplace operator key for this runner" \
-            -- .keys/marketplace_operator_ed25519.pub
+            NONOS_SCRATCH_OPERATOR=0 nix develop --command bash nonos-ci/scratch-trust-bootstrap.sh
       - name: Seal the qemu profile
         run: nix run .#seal -- --profile qemu
       - name: Boot it
