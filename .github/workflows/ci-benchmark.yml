@@ -52,7 +52,7 @@ jobs:
         # every step after the setup runs in `nix develop`, the shell a
         # developer gets, so CI and a contributor run the same tools
         shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
-    timeout-minutes: 120
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -75,13 +75,26 @@ jobs:
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
+          # Write the ship-image build back to the cache. Without this the job
+          # reads the cache but never populates it, so provisioning builds the
+          # full image cold on every run; with it, the first run warms the
+          # cache and later runs provision from it in minutes. Empty on pull
+          # requests, where the token is withheld, so those stay read-only.
+          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Prepare benchmark artifact root
         run: mkdir -p "${{ inputs['output-root'] }}/${{ github.run_id }}-${{ github.run_attempt }}"
       - name: Provision benchmark trust material
-        # The benchmark builds the full zerostate ship image (every capsule and
-        # driver), not the lighter desktop cut, so provisioning it takes longer
-        # than the old profile did.
-        timeout-minutes: 75
+        # The benchmark provisions the full zerostate ship image: every capsule
+        # and driver, ~116 of them. Building those ELFs through the flake
+        # (nix build .#capsules) instead of a cold cargo compile is what keeps
+        # this step from timing out: the capsule set is a cacheable nix
+        # derivation, so the first run that builds it pushes it to the binary
+        # cache and every run after realises it from the cache in seconds, then
+        # signs those exact bytes with the scratch keys. This is the mechanism
+        # the production build already uses (nonos-mk/capsule.mk via
+        # NONOS_CAPSULE_BINS). The timeout is headroom for the one cold build
+        # before the cache is warm.
+        timeout-minutes: 110
         env:
           NONOS_CI_TRUST_MODE: ${{ inputs['trust-mode'] }}
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
@@ -90,11 +103,18 @@ jobs:
           case "${NONOS_CI_TRUST_MODE}" in
             scratch)
               bash nonos-ci/setup-signing-key.sh
-              bash -x nonos-ci/scratch-trust-bootstrap.sh
+              # Build the capsule ELFs through the flake so they come from the
+              # binary cache, not a cold compile of all ~116. Point the sign
+              # loop at them so it signs those bytes instead of rebuilding
+              # them, and persist the path for the benchmark step that follows.
+              caps="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${caps}" >> "$GITHUB_ENV"
+              NONOS_CAPSULE_BINS="${caps}" bash -x nonos-ci/scratch-trust-bootstrap.sh
               ;;
             production)
               bash nonos-ci/setup-signing-key.sh
               make nonos-mk-check-trust-manifest
+              echo "NONOS_CAPSULE_BINS=$(nix build .#capsules --no-link --print-out-paths)" >> "$GITHUB_ENV"
               ;;
             *)
               echo "::error::unknown trust-mode '${NONOS_CI_TRUST_MODE}'"
