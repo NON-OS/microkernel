@@ -11,7 +11,7 @@ lua           https://www.lua.org/ftp/lua-5.4.9.tar.gz                          
 zstd          https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz               eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3
 john          https://www.openwall.com/john/k/john-1.9.0.tar.xz                                         0b266adcfef8c11eed690187e71494baea539efbd632fe221181063ba09508df
 python        https://www.python.org/ftp/python/3.12.15/Python-3.12.15.tar.xz                          c2c4321961fab0fb999d66e0cecf521c2ab3994c7992873ea99e306c1094fd5a
-zlib          https://zlib.net/zlib-1.3.2.tar.gz                                                        bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
+zlib          https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.gz                                                        bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
 openssl       https://github.com/openssl/openssl/releases/download/openssl-3.5.9/openssl-3.5.9.tar.gz  603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a
 util-linux    https://www.kernel.org/pub/linux/utils/util-linux/v2.42/util-linux-2.42.4.tar.xz         fbd62a100ab7bb8746ba0661255c3c48185b1e9021507c624da01fbc696330ec
 libffi        https://github.com/libffi/libffi/releases/download/v3.8.0/libffi-3.8.0.tar.gz             7da3e2d9a171eb0a038f592ecad3ff2bb2550f3496d87b3b29ad0cf4430c0db4
