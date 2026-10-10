@@ -53,12 +53,13 @@ jobs:
     with:
       trust-mode: production
 
+  # Scratch keys, as the nightly runs it: the boot it proves is a kernel this
+  # runner builds and signs, which only its own keys can approve. The
+  # committed trust set is held to the sealed bytes by build and reproducible.
   runtime:
     needs: build
     uses: ./.github/workflows/ci-runtime.yml
     secrets: inherit
-    with:
-      trust-mode: production
 
   release-artifacts:
     needs: [build, trust-chain, adversarial, supply-chain, evidence]

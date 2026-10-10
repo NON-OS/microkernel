@@ -55,6 +55,11 @@ jobs:
           case "${NONOS_CI_TRUST_MODE}" in
             scratch)
               bash nonos-ci/setup-signing-key.sh
+              # Sign the flake's capsules, from the binary cache, rather than a
+              # cargo build of each in turn (ci-build.yml does the same).
+              caps="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${caps}" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="${caps}"
               bash nonos-ci/scratch-trust-bootstrap.sh
               ;;
             production)
@@ -67,6 +72,9 @@ jobs:
               exit 1
               ;;
           esac
+      - name: The flake's prebuilt tools and Linux userland, where make reads them
+        if: env.NONOS_CAPSULE_BINS != ''
+        run: bash nonos-ci/lay-prebuilt.sh
       - name: nonos-verify runtime
         run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- runtime
       - name: Upload runtime artifacts
