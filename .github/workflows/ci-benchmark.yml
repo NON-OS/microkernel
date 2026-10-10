@@ -135,7 +135,10 @@ jobs:
         env:
           NONOS_BENCH_OUT: ${{ inputs['output-root'] }}/${{ github.run_id }}-${{ github.run_attempt }}
           NONOS_BENCH_BUILD_CMD: cargo run --release --manifest-path nonos-verify/Cargo.toml -- build
-          NONOS_BENCH_BOOT_TIMEOUT: "420"
+          # The boot command builds the kernel and proves the kernel and the
+          # loader (one STARK slot each) before QEMU starts, about five minutes
+          # on a four-core runner, so 420 s left the boot itself seconds.
+          NONOS_BENCH_BOOT_TIMEOUT: "900"
           NONOS_BENCH_BOOT_RUNS: ${{ inputs['boot-runs'] }}
         run: |
           set -euo pipefail
