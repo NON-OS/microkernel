@@ -32,6 +32,11 @@ let
     pkgs.dosfstools
     pkgs.osslsigncode
     pkgs.openssl
+    # How openssl-sys finds the OpenSSL above when make builds sign-kernel, as
+    # the flake's own host-tool build does (image.nix). Without it the crate
+    # fell back to the host's /usr/include, a different OpenSSL from the
+    # library it links.
+    pkgs.pkg-config
     pkgs.b3sum
     # the verify page's smoke test and the browser prelude's tests
     pkgs.nodejs
