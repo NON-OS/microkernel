@@ -14,21 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::idt::register_irq_handler;
-use crate::sys::apic::vectors::IRQ_TIMER;
 use crate::sys::apic::{setup_timer, stop_timer};
-
-use super::tick_handler::timer_tick;
 
 // 10 ms slice. Lines up with scheduler::preemption::tick's per-tick
 // decrement of CURRENT_TIME_SLICE.
 const TICK_HZ: u32 = 100;
 
-// BSP path. Registers the IRQ-0 handler in the global IDT table and
-// programs this CPU's LAPIC timer. APs reuse the registered handler
-// and only program their own LAPIC via `install_on_ap`.
+// BSP path. Programs this CPU's LAPIC timer. The tick itself is served by
+// the loaded IDT's `timer_trampoline` gate, shared by every CPU, so APs
+// only program their own LAPIC via `install_on_ap`.
 pub fn install_on_bsp() -> Result<(), &'static str> {
-    register_irq_handler(IRQ_TIMER, timer_tick).map_err(|_| "irq registration failed")?;
     setup_timer(TICK_HZ);
     Ok(())
 }
