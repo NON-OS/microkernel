@@ -27,6 +27,12 @@ const ROOTS: &[&str] = &[
     "nonos-data/trust/policy/kernel_attest_root.bin",
 ];
 
+/// The whole committed enrollment: every capsule's STARK trailer, manifest
+/// and certificate, and every policy root with its transcript and the
+/// boot-root record, so the bundle carries the proofs verifier.wasm checks,
+/// not only the roots they check against.
+const PROOF_DIRS: &[&str] = &["nonos-data/trust/policy", "nonos-data/trust/capsules"];
+
 pub fn run(root: &str) -> std::io::Result<Status> {
     let mut rpt = Report::new("release", true);
     let out = Path::new(root).join("release");
@@ -55,6 +61,15 @@ pub fn run(root: &str) -> std::io::Result<Status> {
     }
     for rel in ROOTS {
         rows.push(take(&Path::new(root).join(rel), &bundle.join(rel), rel)?);
+    }
+    for dir in PROOF_DIRS {
+        for rel in files(&Path::new(root).join(dir)) {
+            let rel = format!("{dir}/{rel}");
+            if ROOTS.contains(&rel.as_str()) {
+                continue;
+            }
+            rows.push(take(&Path::new(root).join(&rel), &bundle.join(&rel), &rel)?);
+        }
     }
     rows.sort_by(|a, b| a["path"].as_str().cmp(&b["path"].as_str()));
 
