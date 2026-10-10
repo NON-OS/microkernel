@@ -46,6 +46,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:
           persist-credentials: false
+          # The seal keeps the committed enrollment only when git shows no
+          # capsule source changed since the commit it was proved at
+          # (tools/nonos_seal), which a one-commit clone cannot answer: it
+          # then re-proved all of them, two at a time, past the timeout.
+          fetch-depth: 0
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
