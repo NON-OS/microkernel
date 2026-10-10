@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{acpi, cpu, gdt, port, serial, syscall, time, vga};
+use super::{acpi, cpu, gdt, idt, port, serial, syscall, time, vga};
 
 pub fn init() -> Result<(), &'static str> {
     gdt::init().map_err(|_| "GDT initialization failed")?;
-    crate::interrupts::init_idt();
+    idt::init().map_err(|_| "IDT initialization failed")?;
     cpu::init().map_err(|_| "CPU initialization failed")?;
     port::init().map_err(|_| "Port initialization failed")?;
     serial::init().map_err(|_| "Serial initialization failed")?;
@@ -37,13 +37,13 @@ pub fn init_with_acpi() -> Result<(), &'static str> {
 }
 
 pub fn is_initialized() -> bool {
-    gdt::is_initialized() && crate::interrupts::idt::is_loaded() && cpu::is_initialized()
+    gdt::is_initialized() && idt::is_initialized() && cpu::is_initialized()
 }
 
 #[derive(Debug, Clone)]
 pub struct ArchStats {
     pub gdt: gdt::GdtStats,
-    pub idt: (u64, u64, u64, u64),
+    pub idt: idt::IdtStats,
     pub cpu: cpu::CpuStats,
     pub vga: vga::VgaStats,
 }
@@ -51,7 +51,7 @@ pub struct ArchStats {
 pub fn get_stats() -> ArchStats {
     ArchStats {
         gdt: gdt::get_stats(),
-        idt: crate::interrupts::get_stats_tuple(),
+        idt: idt::get_stats(),
         cpu: cpu::get_stats(),
         vga: vga::get_stats(),
     }

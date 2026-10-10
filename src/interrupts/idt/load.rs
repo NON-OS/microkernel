@@ -16,8 +16,6 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
-use x86_64::structures::idt::InterruptDescriptorTable;
-
 use super::table::IDT;
 
 static IDT_LOADED: AtomicBool = AtomicBool::new(false);
@@ -29,16 +27,6 @@ pub fn load() {
 
 pub fn is_loaded() -> bool {
     IDT_LOADED.load(Ordering::Acquire)
-}
-
-pub fn is_installed() -> bool {
-    if !is_loaded() {
-        return false;
-    }
-    let idtr = x86_64::instructions::tables::sidt();
-    let table: *const InterruptDescriptorTable = &*IDT;
-    idtr.base.as_u64() == table as u64
-        && usize::from(idtr.limit) == core::mem::size_of::<InterruptDescriptorTable>() - 1
 }
 
 pub fn enable_interrupts() {

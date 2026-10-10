@@ -21,16 +21,17 @@
 //! aarch64 in a vector page that `VBAR_EL1` points at; both amount to the
 //! same question and neither is answerable from shared code.
 
-/// Whether the trap vectors are installed. On x86_64 this asks whether this
-/// CPU's IDTR still names the `interrupts::idt` table every CPU loads, base
-/// and limit; the entries themselves are not compared.
+/// Whether the trap vectors are installed. On x86_64 this asks the
+/// `arch::x86_64::idt` table, which the boot path never loads (the live IDT
+/// is `interrupts::idt`), and only reports whether it was initialized, so
+/// the answer there is false and no entry is compared.
 ///
 /// `false` is a finding, not an error: the caller reports it rather than
 /// acting on it.
 pub(crate) fn is_intact() -> bool {
     #[cfg(target_arch = "x86_64")]
     {
-        crate::interrupts::idt::is_installed()
+        crate::arch::x86_64::idt::verify_idt_integrity()
     }
     #[cfg(target_arch = "aarch64")]
     {
