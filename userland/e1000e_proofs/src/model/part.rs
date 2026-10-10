@@ -27,7 +27,8 @@ use nonos_devmodel::FakeBar;
 use super::phy::Phy;
 use crate::constants::ctrl::{CTRL_LANPHYPC_OVERRIDE, CTRL_PHY_RST, CTRL_RST};
 use crate::constants::regs::{REG_CTRL, REG_EECD, REG_EXTCNF_CTRL, REG_STATUS};
-use crate::constants::regs_pch::{REG_FWSM, REG_H2ME};
+use crate::constants::pch_bits::{FEXTNVM3_PHY_CFG_COUNTER_50MSEC, FEXTNVM3_PHY_CFG_COUNTER_MASK};
+use crate::constants::regs_pch::{REG_FEXTNVM3, REG_FWSM, REG_H2ME};
 use crate::constants::status::*;
 
 #[derive(Default)]
@@ -62,7 +63,13 @@ pub fn step(bar: &FakeBar, phy: &Phy, how: &Behaviour) {
     {
         bar.present32(REG_FWSM, bar.wrote32(REG_FWSM) & !FWSM_ULP_CFG_DONE);
     }
-    if how.wakes_on_lanphypc.load(Ordering::SeqCst) && ctrl & CTRL_LANPHYPC_OVERRIDE != 0 {
+    // The pin is held for one millisecond, which a model thread on a loaded
+    // runner can sleep through. The toggle's first write, the PHY counter to
+    // 50 ms, stays in the window and only the toggle makes it, so it marks
+    // the power cycle as well; the PHY is not looked at again until after.
+    let toggled = ctrl & CTRL_LANPHYPC_OVERRIDE != 0
+        || bar.wrote32(REG_FEXTNVM3) & FEXTNVM3_PHY_CFG_COUNTER_MASK == FEXTNVM3_PHY_CFG_COUNTER_50MSEC;
+    if how.wakes_on_lanphypc.load(Ordering::SeqCst) && toggled {
         phy.silent.store(false, Ordering::SeqCst);
     }
     super::mdic::serve(bar, phy);
