@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::frame_ref::share_frame;
-use super::types::{pte_flags, AddressSpace, PageTable, PageTableEntry, KERNEL_SPACE_START};
+use super::frame_ref::{release_frame, share_frame};
+use super::types::{
+    pte_flags, AddressSpace, PageTable, PageTableEntry, HUGE_PAGE_SIZE, KERNEL_SPACE_START,
+    LARGE_PAGE_SIZE, PAGE_SIZE,
+};
 use crate::memory::addr::PhysAddr;
 
 impl AddressSpace {
@@ -199,6 +202,8 @@ fn free_pdpt(pdpt_phys: PhysAddr) {
             let entry = (*pdpt_ptr).entry(i);
             if entry.is_present() && !entry.is_huge_page() {
                 free_pd(entry.phys_addr());
+            } else if entry.is_present() {
+                release_frame(entry.phys_addr(), (HUGE_PAGE_SIZE / PAGE_SIZE) as usize);
             }
         }
     }
@@ -216,12 +221,30 @@ fn free_pd(pd_phys: PhysAddr) {
         unsafe {
             let entry = (*pd_ptr).entry(i);
             if entry.is_present() && !entry.is_huge_page() {
-                let _ = crate::memory::phys::free(crate::memory::phys::Frame(
-                    entry.phys_addr().as_u64(),
-                ));
+                free_pt(entry.phys_addr());
+            } else if entry.is_present() {
+                release_frame(entry.phys_addr(), (LARGE_PAGE_SIZE / PAGE_SIZE) as usize);
             }
         }
     }
 
     let _ = crate::memory::phys::free(crate::memory::phys::Frame(pd_phys.as_u64()));
+}
+
+fn free_pt(pt_phys: PhysAddr) {
+    let pt_ptr = (pt_phys.as_u64() + KERNEL_SPACE_START) as *const PageTable;
+
+    for i in 0..512 {
+        // SAFETY: pt_phys is a valid page table address from a present PD entry.
+        // Adding KERNEL_SPACE_START converts physical to kernel virtual address.
+        // Every present entry at this level maps a 4KB frame, never a table.
+        unsafe {
+            let entry = (*pt_ptr).entry(i);
+            if entry.is_present() {
+                release_frame(entry.phys_addr(), 1);
+            }
+        }
+    }
+
+    let _ = crate::memory::phys::free(crate::memory::phys::Frame(pt_phys.as_u64()));
 }
