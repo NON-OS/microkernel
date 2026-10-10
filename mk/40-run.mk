@@ -88,6 +88,9 @@ $(QEMU_OVMF_VARS_RW): $(OVMF_VARS)
 	@mkdir -p $(dir $@)
 	@[ -n "$(OVMF_VARS)" ] || { echo "::error::OVMF_VARS not found"; exit 1; }
 	@cp "$(OVMF_VARS)" "$@"
+	@# The firmware writes its variables here, and a copy out of the
+	@# read-only nix store keeps the store's read-only mode.
+	@chmod u+w "$@"
 
 # The kernel link and the ESP come last, in that order, because everything
 # before them can refresh capsule ELFs and trailers the kernel embeds and an
