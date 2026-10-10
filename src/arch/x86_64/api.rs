@@ -43,7 +43,7 @@ pub fn is_initialized() -> bool {
 #[derive(Debug, Clone)]
 pub struct ArchStats {
     pub gdt: gdt::GdtStats,
-    pub idt: crate::interrupts::InterruptStats,
+    pub idt: (u64, u64, u64, u64),
     pub cpu: cpu::CpuStats,
     pub vga: vga::VgaStats,
 }
@@ -51,7 +51,7 @@ pub struct ArchStats {
 pub fn get_stats() -> ArchStats {
     ArchStats {
         gdt: gdt::get_stats(),
-        idt: crate::interrupts::get_stats(),
+        idt: crate::interrupts::get_stats_tuple(),
         cpu: cpu::get_stats(),
         vga: vga::get_stats(),
     }
