@@ -31,8 +31,12 @@ let
     esac
   '';
 
-  # The build time every artifact carries: the commit's, never the clock's.
-  epoch = toString (self.lastModified or 1);
+  # The build time every artifact carries: the release date in
+  # tools/nix/source-date-epoch, never the clock's and never the commit's. The
+  # kernel signs it into its manifest, so the commit time made every commit,
+  # a docs one included, a different kernel: the image a seal made on one
+  # commit could not match a build of the commit that records it.
+  epoch = lib.removeSuffix "\n" (builtins.readFile ./source-date-epoch);
 
   # The kernel's build script signs a legacy manifest section with
   # NONOS_SIGNING_KEY and refuses a release build without one. Nothing reads
