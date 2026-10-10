@@ -17,8 +17,8 @@
 /// Halts rather than hand out bytes that did not come from an entropy source.
 #[cold]
 pub(crate) fn entropy_unavailable() -> ! {
-    panic!(
-        "no hardware entropy: RDRAND/RDSEED and virtio-rng all unavailable; \
-         refusing to produce predictable random bytes"
+    crate::boot::stop(
+        "no hardware entropy",
+        "RDRAND/RDSEED and virtio-rng all unavailable; refusing to produce predictable random bytes",
     )
 }
