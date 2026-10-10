@@ -31,8 +31,8 @@ pub use constants::{
 pub use entry::{validate_handler_address, validate_ist_index, EntryError, EntryOptions, GateType};
 pub use init::init;
 pub use load::{
-    are_interrupts_enabled, disable_interrupts, enable_interrupts, halt, halt_loop, is_loaded,
-    load as load_idt, without_interrupts,
+    are_interrupts_enabled, disable_interrupts, enable_interrupts, halt, halt_loop, is_installed,
+    is_loaded, load as load_idt, without_interrupts,
 };
 pub use table::IDT;
 pub use vectors::{
