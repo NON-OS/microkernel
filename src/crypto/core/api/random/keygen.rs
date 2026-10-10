@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::platform::{
-    get_stack_pointer, random64_or_counter, read_cycle_counter, read_pit_counter,
-    read_rtc_timestamp, KEYGEN_COUNTER,
+    get_stack_pointer, random64_or_halt, read_cycle_counter, read_pit_counter, read_rtc_timestamp,
+    KEYGEN_COUNTER,
 };
 use crate::crypto::blake3_hash;
 use crate::crypto::util::rng;
@@ -40,7 +40,7 @@ pub fn generate_secure_key() -> [u8; 32] {
     }
     let tsc_start = read_cycle_counter();
     for _ in 0..8 {
-        let val = random64_or_counter();
+        let val = random64_or_halt();
         entropy_pool[offset..offset + 8].copy_from_slice(&val.to_le_bytes());
         offset += 8;
     }
@@ -59,7 +59,7 @@ pub fn generate_secure_key() -> [u8; 32] {
         for _ in 0..delay_loops {
             core::hint::spin_loop();
         }
-        let val = random64_or_counter();
+        let val = random64_or_halt();
         entropy_pool[offset..offset + 8].copy_from_slice(&val.to_le_bytes());
         offset += 8;
     }
@@ -112,7 +112,7 @@ pub fn generate_secure_key() -> [u8; 32] {
         for _ in 0..(pit_d & 0x1F) as u32 + i * 8 {
             core::hint::spin_loop();
         }
-        let val = random64_or_counter();
+        let val = random64_or_halt();
         entropy_pool[offset..offset + 8].copy_from_slice(&val.to_le_bytes());
         offset += 8;
     }
