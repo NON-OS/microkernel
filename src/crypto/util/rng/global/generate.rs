@@ -16,6 +16,7 @@
 
 use super::super::entropy::get_entropy64_secure;
 use super::super::error::{RngError, RngResult};
+use super::super::unavailable::entropy_unavailable;
 use super::init::ensure_initialized;
 use super::state::GLOBAL_RNG;
 
@@ -74,12 +75,7 @@ pub fn random_u64() -> u64 {
         }
     }
 
-    get_entropy64_secure().unwrap_or_else(|_| {
-        static FALLBACK_COUNTER: core::sync::atomic::AtomicU64 =
-            core::sync::atomic::AtomicU64::new(0);
-        let ticks = crate::arch::read_time_counter();
-        ticks ^ FALLBACK_COUNTER.fetch_add(1, core::sync::atomic::Ordering::Relaxed)
-    })
+    get_entropy64_secure().unwrap_or_else(|_| entropy_unavailable())
 }
 
 pub fn random_u64_secure() -> RngResult<u64> {
@@ -139,12 +135,8 @@ pub fn random_range_secure(n: u32) -> RngResult<u32> {
 }
 
 fn fill_with_fallback_secure(buf: &mut [u8]) {
-    static FALLBACK_COUNTER: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
     for chunk in buf.chunks_mut(8) {
-        let v = get_entropy64_secure().unwrap_or_else(|_| {
-            let ticks = crate::arch::read_time_counter();
-            ticks ^ FALLBACK_COUNTER.fetch_add(1, core::sync::atomic::Ordering::Relaxed)
-        });
+        let v = get_entropy64_secure().unwrap_or_else(|_| entropy_unavailable());
         let bytes = v.to_le_bytes();
         for (i, b) in chunk.iter_mut().enumerate() {
             *b = bytes[i];

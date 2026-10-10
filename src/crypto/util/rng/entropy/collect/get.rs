@@ -37,34 +37,7 @@ pub fn get_entropy64_secure() -> Result<u64, EntropyError> {
 }
 
 pub fn get_entropy64() -> u64 {
-    if let Ok(v) = get_entropy64_secure() {
-        return v;
-    }
-    crate::log_warn!(
-        "[ENTROPY] All hardware entropy sources failed — falling back to emergency TSC-jitter mix"
-    );
-    emergency_entropy_mix()
-}
-
-#[cold]
-pub(super) fn emergency_entropy_mix() -> u64 {
-    let counter = ENTROPY_COUNTER.fetch_add(1, Ordering::SeqCst);
-    let tsc1 = read_cycle_counter();
-    let stack_addr = crate::arch::stack_pointer();
-    for _ in 0..counter.wrapping_rem(16).wrapping_add(1) {
-        core::hint::spin_loop();
-    }
-    let tsc2 = read_cycle_counter();
-    let jitter = tsc2.wrapping_sub(tsc1);
-    let mut state = counter;
-    state = state.wrapping_add(0x9e3779b97f4a7c15);
-    state ^= tsc1;
-    state = (state ^ (state >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
-    state ^= stack_addr;
-    state = (state ^ (state >> 27)).wrapping_mul(0x94d049bb133111eb);
-    state ^= jitter;
-    state ^= state >> 31;
-    state
+    get_entropy64_secure().unwrap_or_else(|_| super::super::super::entropy_unavailable())
 }
 
 pub fn get_tsc_entropy() -> u64 {

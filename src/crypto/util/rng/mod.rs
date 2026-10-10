@@ -19,6 +19,7 @@ mod csprng;
 mod entropy;
 mod error;
 pub mod global;
+mod unavailable;
 
 pub use api::{fill_bytes, secure_random_u64};
 
@@ -32,6 +33,8 @@ pub use entropy::{
 };
 
 pub use error::{RngError, RngResult};
+
+pub(crate) use unavailable::entropy_unavailable;
 
 pub use global::{
     fill_random_bytes, fill_random_bytes_secure, get_random_bytes, get_random_bytes_secure,
