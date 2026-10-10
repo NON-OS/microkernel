@@ -17,7 +17,6 @@
 use super::ioapic::{enable_irq, init_ioapic, IOAPIC_INIT};
 use super::local::{init_local_apic, LAPIC_INIT};
 use super::vectors::{IRQ_KEYBOARD, IRQ_MOUSE, VECTOR_KEYBOARD, VECTOR_MOUSE};
-use crate::arch::x86_64::idt::register_irq_handler;
 use crate::sys::serial;
 use core::sync::atomic::Ordering;
 
@@ -38,15 +37,10 @@ pub fn setup_keyboard_irq() {
     serial::println(b"[APIC] Keyboard IRQ enabled");
 }
 
-fn mouse_irq_handler(_irq: u8) {
-    crate::interrupts::handlers::irq::mouse();
-}
-
 pub fn setup_mouse_irq() {
     if !is_init() {
         init();
     }
-    let _ = register_irq_handler(IRQ_MOUSE, mouse_irq_handler);
     enable_irq(IRQ_MOUSE, VECTOR_MOUSE);
     serial::println(b"[APIC] Mouse IRQ enabled");
 }
