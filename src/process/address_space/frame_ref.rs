@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::{pte_flags, PageTableEntry};
 use crate::memory::addr::PhysAddr;
-use crate::memory::page_info::{self, PageFlags, PageInfoError};
+use crate::memory::page_info::{self, PageFlags};
 
 pub(super) fn share_frame(pa: PhysAddr) -> Result<(), &'static str> {
     if page_info::get_page_info(pa).is_none() {
@@ -24,14 +25,19 @@ pub(super) fn share_frame(pa: PhysAddr) -> Result<(), &'static str> {
     page_info::increment_ref_count(pa).map(|_| ()).map_err(|e| e.as_str())
 }
 
-pub(super) fn release_frame(pa: PhysAddr, frames: usize) {
-    match page_info::decrement_ref_count(pa) {
-        Ok(0) => {
-            let _ = page_info::remove_page(pa);
-            free_frames(pa, frames);
-        }
-        Err(PageInfoError::PageNotFound) => free_frames(pa, frames),
-        _ => {}
+pub(super) fn is_device_leaf(entry: PageTableEntry, huge: bool) -> bool {
+    let pat = if huge { pte_flags::PAT_HUGE } else { pte_flags::PAT_4K };
+    entry.raw() & (pte_flags::NO_CACHE | pte_flags::WRITE_THROUGH | pat) != 0
+}
+
+pub(super) fn release_frame(entry: PageTableEntry, frames: usize) {
+    if is_device_leaf(entry, frames > 1) {
+        return;
+    }
+    let pa = entry.phys_addr();
+    if let Ok(0) = page_info::decrement_ref_count(pa) {
+        let _ = page_info::remove_page(pa);
+        free_frames(pa, frames);
     }
 }
 

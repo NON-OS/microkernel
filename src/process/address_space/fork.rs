@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::frame_ref::{release_frame, share_frame};
+use super::frame_ref::{is_device_leaf, release_frame, share_frame};
 use super::tlb::flush_tlb_everywhere;
 use super::types::{
     pte_flags, AddressSpace, PageTable, PageTableEntry, HUGE_PAGE_SIZE, KERNEL_SPACE_START,
@@ -76,7 +76,9 @@ fn clone_entries(
                 *(*dst_ptr).entry_mut(i) = PageTableEntry::new(table, src_entry.flags());
                 clone_entries(src_entry.phys_addr(), table, level - 1, 512)?;
             } else {
-                share_frame(src_entry.phys_addr())?;
+                if !is_device_leaf(src_entry, level > 1) {
+                    share_frame(src_entry.phys_addr())?;
+                }
                 *(*dst_ptr).entry_mut(i) = src_entry;
             }
         }
@@ -205,7 +207,7 @@ fn free_pdpt(pdpt_phys: PhysAddr) {
             if entry.is_present() && !entry.is_huge_page() {
                 free_pd(entry.phys_addr());
             } else if entry.is_present() {
-                release_frame(entry.phys_addr(), (HUGE_PAGE_SIZE / PAGE_SIZE) as usize);
+                release_frame(*entry, (HUGE_PAGE_SIZE / PAGE_SIZE) as usize);
             }
         }
     }
@@ -225,7 +227,7 @@ fn free_pd(pd_phys: PhysAddr) {
             if entry.is_present() && !entry.is_huge_page() {
                 free_pt(entry.phys_addr());
             } else if entry.is_present() {
-                release_frame(entry.phys_addr(), (LARGE_PAGE_SIZE / PAGE_SIZE) as usize);
+                release_frame(*entry, (LARGE_PAGE_SIZE / PAGE_SIZE) as usize);
             }
         }
     }
@@ -243,7 +245,7 @@ fn free_pt(pt_phys: PhysAddr) {
         unsafe {
             let entry = (*pt_ptr).entry(i);
             if entry.is_present() {
-                release_frame(entry.phys_addr(), 1);
+                release_frame(*entry, 1);
             }
         }
     }
