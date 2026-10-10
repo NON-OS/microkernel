@@ -59,6 +59,8 @@ CAPSULE_SOURCES = [
     "nonos-bench", "nonos-device-attest", "nonos-attest-path", "nonos-boot-measure", "nonos-sign",
     "tools/nonos-pack", "LICENSE", "VERSION", "rust-toolchain.toml", ".cargo",
     ":(exclude)nonos-data/trust", ":(exclude,glob)**/*.md",
+    # The host proof crates read capsule code; no capsule reads them.
+    ":(exclude,glob)userland/*_proofs/**",
     # Phase 1 writes these two and they are committed after the seal, so they
     # always differ from the enrolled commit. Whether the capsules that embed
     # them kept their bytes is what the enrollment check below decides.
