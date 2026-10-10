@@ -110,12 +110,15 @@ jobs:
       # and the kernel serves that copy. The kernel takes a disk only at its
       # first block I/O, which this boot never makes, so it is not asked to
       # bind the stick here.
+      # Several CPUs write the serial console at once and their lines can
+      # interleave, so the driver's start is matched by any one of the records
+      # it leaves: spawned, queued to run, or its own line.
       - name: Boot it from a USB stick
         run: |
           nix run .#qemu -- --profile qemu --tpm --stick --usb --headless --net off --timeout "$BOOT_TIMEOUT" \
             --serial target/qemu/serial-usb.log \
             --expect 'Handoff OK' --expect 'Capsules spawned' --expect '\[VFS\] serving, store status ' \
-            --expect '\[DRIVER-USB-MSC\] capsule spawned'
+            --expect 'name=driver\.usb_msc0|runqueue_ok:driver\.usb_msc0|\[DRIVER-USB-MSC\] capsule spawned'
       - name: Upload the serial log and the seal's record
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
