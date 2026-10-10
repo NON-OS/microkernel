@@ -35,7 +35,11 @@ const PROOF_DIRS: &[&str] = &["nonos-data/trust/policy", "nonos-data/trust/capsu
 
 pub fn run(root: &str) -> std::io::Result<Status> {
     let mut rpt = Report::new("release", true);
-    let out = Path::new(root).join("release");
+    // The assets go to release/ in the tree, where ci-release-artifacts.yml
+    // sums and uploads them; only this lane's report goes under `root`.
+    let out = Path::new("release").to_path_buf();
+    // The roots and proofs are the tree's own, read from where it is checked out.
+    let tree = Path::new(".");
     let bundle = out.join("bundle");
     std::fs::create_dir_all(&bundle)?;
     let built =
@@ -60,15 +64,15 @@ pub fn run(root: &str) -> std::io::Result<Status> {
         }
     }
     for rel in ROOTS {
-        rows.push(take(&Path::new(root).join(rel), &bundle.join(rel), rel)?);
+        rows.push(take(&tree.join(rel), &bundle.join(rel), rel)?);
     }
     for dir in PROOF_DIRS {
-        for rel in files(&Path::new(root).join(dir)) {
+        for rel in files(&tree.join(dir)) {
             let rel = format!("{dir}/{rel}");
             if ROOTS.contains(&rel.as_str()) {
                 continue;
             }
-            rows.push(take(&Path::new(root).join(&rel), &bundle.join(&rel), &rel)?);
+            rows.push(take(&tree.join(&rel), &bundle.join(&rel), &rel)?);
         }
     }
     rows.sort_by(|a, b| a["path"].as_str().cmp(&b["path"].as_str()));
@@ -127,7 +131,16 @@ fn take(src: &Path, dst: &Path, name: &str) -> std::io::Result<serde_json::Value
     if let Some(parent) = dst.parent() {
         std::fs::create_dir_all(parent)?;
     }
+    // A file out of the read-only nix store keeps its mode in the copy; make
+    // it writable so a second run can replace it.
+    if dst.exists() {
+        std::fs::remove_file(dst)?;
+    }
     std::fs::copy(src, dst)?;
+    let mut perms = std::fs::metadata(dst)?.permissions();
+    #[allow(clippy::permissions_set_readonly_false)]
+    perms.set_readonly(false);
+    std::fs::set_permissions(dst, perms)?;
     let bytes = std::fs::read(src)?;
     Ok(row(
         name,
