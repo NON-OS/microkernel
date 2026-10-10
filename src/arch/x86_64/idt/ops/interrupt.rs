@@ -14,47 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::arch::asm;
 
-use super::table::IDT;
-
-static IDT_LOADED: AtomicBool = AtomicBool::new(false);
-
-pub fn load() {
-    IDT.load();
-    IDT_LOADED.store(true, Ordering::Release);
+#[inline]
+pub fn enable() {
+    // SAFETY: Enabling interrupts via STI instruction.
+    unsafe {
+        asm!("sti", options(nomem, nostack));
+    }
 }
 
-pub fn is_loaded() -> bool {
-    IDT_LOADED.load(Ordering::Acquire)
+#[inline]
+pub fn disable() {
+    // SAFETY: Disabling interrupts via CLI instruction.
+    unsafe {
+        asm!("cli", options(nomem, nostack));
+    }
 }
 
-pub fn enable_interrupts() {
-    x86_64::instructions::interrupts::enable();
-}
-
-pub fn disable_interrupts() {
-    x86_64::instructions::interrupts::disable();
-}
-
-pub fn are_interrupts_enabled() -> bool {
-    x86_64::instructions::interrupts::are_enabled()
+#[inline]
+pub fn are_enabled() -> bool {
+    let flags: u64;
+    // SAFETY: Reading RFLAGS to check interrupt flag.
+    unsafe {
+        asm!(
+            "pushfq",
+            "pop {}",
+            out(reg) flags,
+            options(nomem, preserves_flags)
+        );
+    }
+    (flags & (1 << 9)) != 0
 }
 
 pub fn without_interrupts<F, R>(f: F) -> R
 where
     F: FnOnce() -> R,
 {
-    x86_64::instructions::interrupts::without_interrupts(f)
-}
-
-pub fn halt() {
-    x86_64::instructions::hlt();
-}
-
-pub fn halt_loop() -> ! {
-    loop {
-        disable_interrupts();
-        halt();
+    let were_enabled = are_enabled();
+    disable();
+    let result = f();
+    if were_enabled {
+        enable();
     }
+    result
 }

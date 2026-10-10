@@ -56,5 +56,5 @@ pub use state::{get_stats, is_complete};
 pub use state_globals::{
     BOOT_COMPLETE, BOOT_ERROR, BOOT_STAGE, BOOT_TSC, EXCEPTION_COUNT, STAGE_TSC,
 };
-pub use types::{BootStats, CpuFeatures, ExceptionContext, Tss};
+pub use types::{BootStats, CpuFeatures, ExceptionContext, InterruptFrame, Tss};
 pub use validation::{SimdLevel, SimdSupport};

@@ -14,7 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod install;
-mod tick_handler;
+mod handlers;
+mod init;
+pub mod init_exceptions;
+pub mod init_irqs;
+mod interrupt;
+mod pic;
+mod stats;
 
-pub use install::{disable, install_on_ap, install_on_bsp};
+pub use handlers::register_handler;
+pub use handlers::{register_irq_handler, register_syscall_handler, unregister_irq_handler};
+pub use init::{init, is_initialized, load_on_ap};
+pub use init_exceptions::setup_exceptions;
+pub use init_irqs::setup_irqs;
+pub use interrupt::{are_enabled, disable, enable, without_interrupts};
+pub use pic::{disable_pic, get_pic_masks, remap_pic, set_pic_masks};
+pub use stats::{get_stats, get_vector_count, IdtStats};

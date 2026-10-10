@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod install;
-mod tick_handler;
+use super::ops::is_initialized;
 
-pub use install::{disable, install_on_ap, install_on_bsp};
+pub fn verify_idt_integrity() -> bool {
+    if !is_initialized() {
+        return false;
+    }
+    true
+}

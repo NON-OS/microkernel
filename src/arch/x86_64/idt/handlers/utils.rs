@@ -14,7 +14,4 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod install;
-mod tick_handler;
-
-pub use install::{disable, install_on_ap, install_on_bsp};
+pub(crate) use super::utils_io::{inb, io_wait, outb, read_cr2, send_eoi};
