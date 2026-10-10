@@ -14,19 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod fork;
-mod frame_ref;
-pub mod lifecycle;
-mod ops;
-mod pcid;
-mod pte;
-mod tlb;
-mod types;
+use crate::memory::addr::PhysAddr;
+use crate::memory::page_info::{self, PageFlags};
 
-pub use api::*;
-pub use fork::*;
-pub use ops::*;
-pub use pcid::*;
-pub use tlb::*;
-pub use types::*;
+pub(super) fn share_frame(pa: PhysAddr) -> Result<(), &'static str> {
+    if page_info::get_page_info(pa).is_none() {
+        page_info::add_page(pa, None, PageFlags::USER).map_err(|e| e.as_str())?;
+    }
+    page_info::increment_ref_count(pa).map(|_| ()).map_err(|e| e.as_str())
+}

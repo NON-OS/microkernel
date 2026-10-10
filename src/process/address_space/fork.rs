@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::frame_ref::share_frame;
 use super::types::{pte_flags, AddressSpace, PageTable, PageTableEntry, KERNEL_SPACE_START};
 use crate::memory::addr::PhysAddr;
 
@@ -41,21 +42,37 @@ impl AddressSpace {
 }
 
 pub fn clone_page_tables(src_pml4: PhysAddr, dst_pml4: PhysAddr) -> Result<(), &'static str> {
-    let src_ptr = (src_pml4.as_u64() + KERNEL_SPACE_START) as *const PageTable;
-    let dst_ptr = (dst_pml4.as_u64() + KERNEL_SPACE_START) as *mut PageTable;
+    clone_entries(src_pml4, dst_pml4, 4, 256)
+}
 
-    for i in 0..256 {
-        // SAFETY: Both src_pml4 and dst_pml4 are valid page table addresses:
-        // - src_pml4 comes from an existing AddressSpace
-        // - dst_pml4 was just allocated in AddressSpace::new()
-        // Adding KERNEL_SPACE_START converts physical to kernel virtual address.
-        // We only iterate user-space entries (0-255) to avoid touching kernel mappings.
+fn clone_entries(
+    src_phys: PhysAddr,
+    dst_phys: PhysAddr,
+    level: u8,
+    count: usize,
+) -> Result<(), &'static str> {
+    let src_ptr = (src_phys.as_u64() + KERNEL_SPACE_START) as *const PageTable;
+    let dst_ptr = (dst_phys.as_u64() + KERNEL_SPACE_START) as *mut PageTable;
+
+    for i in 0..count {
+        // SAFETY: src_phys is the parent's PML4 or a table reached from one of its
+        // present entries; dst_phys is the child's PML4 or a table this walk
+        // allocated and linked into it. Adding KERNEL_SPACE_START converts physical
+        // to kernel virtual address. A new table is linked before it is filled and
+        // a leaf is copied only after its frame reference is taken, so on any error
+        // the child's teardown sees exactly the tables and references it holds.
         unsafe {
-            let src_entry = (*src_ptr).entry(i);
-            if src_entry.is_present() {
-                let new_pdpt = clone_table(src_entry.phys_addr(), 3)?;
-                let entry = (*dst_ptr).entry_mut(i);
-                *entry = PageTableEntry::new(new_pdpt, src_entry.flags());
+            let src_entry = *(*src_ptr).entry(i);
+            if !src_entry.is_present() {
+                continue;
+            }
+            if level > 1 && !src_entry.is_huge_page() {
+                let table = alloc_table()?;
+                *(*dst_ptr).entry_mut(i) = PageTableEntry::new(table, src_entry.flags());
+                clone_entries(src_entry.phys_addr(), table, level - 1, 512)?;
+            } else {
+                share_frame(src_entry.phys_addr())?;
+                *(*dst_ptr).entry_mut(i) = src_entry;
             }
         }
     }
@@ -63,36 +80,18 @@ pub fn clone_page_tables(src_pml4: PhysAddr, dst_pml4: PhysAddr) -> Result<(), &
     Ok(())
 }
 
-fn clone_table(src_phys: PhysAddr, level: u8) -> Result<PhysAddr, &'static str> {
-    let dst_frame = crate::memory::phys::alloc(crate::memory::phys::AllocFlags::empty())
+fn alloc_table() -> Result<PhysAddr, &'static str> {
+    let frame = crate::memory::phys::alloc(crate::memory::phys::AllocFlags::empty())
         .ok_or("Failed to allocate page table clone")?;
 
-    let src_ptr = (src_phys.as_u64() + KERNEL_SPACE_START) as *const PageTable;
-    let dst_ptr = (dst_frame.0 + KERNEL_SPACE_START) as *mut PageTable;
-
-    // SAFETY: src_phys is a valid page table physical address from a present entry.
-    // dst_frame was just allocated from the frame allocator. Adding KERNEL_SPACE_START
-    // converts physical to kernel virtual address. The recursive clone ensures all
-    // intermediate page tables are properly duplicated.
+    // SAFETY: frame was just allocated from the frame allocator. Adding
+    // KERNEL_SPACE_START converts physical to kernel virtual address, and a
+    // zeroed PageTable is a valid empty table.
     unsafe {
-        (*dst_ptr).zero();
-
-        for i in 0..512 {
-            let src_entry = (*src_ptr).entry(i);
-            if src_entry.is_present() {
-                if level > 1 && !src_entry.is_huge_page() {
-                    let new_table = clone_table(src_entry.phys_addr(), level - 1)?;
-                    let entry = (*dst_ptr).entry_mut(i);
-                    *entry = PageTableEntry::new(new_table, src_entry.flags());
-                } else {
-                    let entry = (*dst_ptr).entry_mut(i);
-                    *entry = *src_entry;
-                }
-            }
-        }
+        (*((frame.0 + KERNEL_SPACE_START) as *mut PageTable)).zero();
     }
 
-    Ok(PhysAddr::new(dst_frame.0))
+    Ok(PhysAddr::new(frame.0))
 }
 
 pub fn mark_cow_pages(space: &mut AddressSpace) -> Result<(), &'static str> {
