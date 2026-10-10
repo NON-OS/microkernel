@@ -18,6 +18,7 @@ use core::sync::atomic::Ordering;
 
 use super::counters::COUNTERS;
 
+#[derive(Debug, Clone)]
 pub struct InterruptStats {
     pub timer_ticks: u64,
     pub keyboard_presses: u64,

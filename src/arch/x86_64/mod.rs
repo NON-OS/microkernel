@@ -54,11 +54,6 @@ pub use gdt::{
     SEL_KERNEL_CODE, SEL_KERNEL_DATA, SEL_NULL, SEL_TSS, SEL_USER_CODE, SEL_USER_DATA,
 };
 
-pub use idt::{
-    are_enabled, disable, enable, without_interrupts, InterruptFrame, IRQ_BASE, VEC_BREAKPOINT,
-    VEC_DEBUG, VEC_DIVIDE_ERROR, VEC_DOUBLE_FAULT, VEC_GENERAL_PROTECTION, VEC_NMI, VEC_PAGE_FAULT,
-};
-
 pub use x86_64::structures::idt::InterruptStackFrame;
 
 pub use cpu::{cli, hlt, lfence, mfence, pause, rdtsc, sfence, sti};
