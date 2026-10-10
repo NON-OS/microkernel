@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::frame_ref::{release_frame, share_frame};
+use super::tlb::flush_tlb_everywhere;
 use super::types::{
     pte_flags, AddressSpace, PageTable, PageTableEntry, HUGE_PAGE_SIZE, KERNEL_SPACE_START,
     LARGE_PAGE_SIZE, PAGE_SIZE,
@@ -22,17 +23,18 @@ use super::types::{
 use crate::memory::addr::PhysAddr;
 
 impl AddressSpace {
-    pub fn clone_for_fork(&self, new_pid: u64) -> Result<Self, &'static str> {
+    pub fn clone_for_fork(&mut self, new_pid: u64) -> Result<Self, &'static str> {
         let mut new_space = AddressSpace::new(new_pid)?;
-
-        for vma in &self.vmas {
-            let mut new_vma = vma.clone();
-            new_vma.cow = true;
-            new_space.vmas.push(new_vma);
-        }
 
         clone_page_tables(self.pml4_phys, new_space.pml4_phys)?;
         mark_cow_pages(&mut new_space)?;
+        mark_cow_pages(self)?;
+        flush_tlb_everywhere(self.pcid);
+
+        for vma in self.vmas.iter_mut() {
+            vma.cow = true;
+            new_space.vmas.push(vma.clone());
+        }
 
         new_space.brk = self.brk;
         new_space.brk_max = self.brk_max;
