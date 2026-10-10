@@ -28,7 +28,6 @@ pub mod cpu_random;
 pub mod diag;
 pub mod gdt;
 pub(crate) mod idle;
-pub mod idt;
 pub mod interrupt;
 pub mod interrupt_controller;
 #[cfg(feature = "nonos-arch-iommu")]
@@ -52,11 +51,6 @@ pub use api::{get_stats, init, init_with_acpi, is_initialized, ArchStats};
 pub use gdt::{
     IST_DEBUG, IST_DOUBLE_FAULT, IST_GP, IST_MACHINE_CHECK, IST_NMI, IST_PAGE_FAULT,
     SEL_KERNEL_CODE, SEL_KERNEL_DATA, SEL_NULL, SEL_TSS, SEL_USER_CODE, SEL_USER_DATA,
-};
-
-pub use idt::{
-    are_enabled, disable, enable, without_interrupts, InterruptFrame, IRQ_BASE, VEC_BREAKPOINT,
-    VEC_DEBUG, VEC_DIVIDE_ERROR, VEC_DOUBLE_FAULT, VEC_GENERAL_PROTECTION, VEC_NMI, VEC_PAGE_FAULT,
 };
 
 pub use x86_64::structures::idt::InterruptStackFrame;
