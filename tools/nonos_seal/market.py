@@ -32,6 +32,17 @@ CATALOGUE = "nonos-data/models/catalogue.bin"
 USERLAND = "target/linux-userland"
 
 
+def committed(*paths):
+    """Whether every path is tracked and the same as at HEAD."""
+    for path in paths:
+        tracked = subprocess.run(["git", "ls-files", "--error-unmatch", "--", path],
+                                 capture_output=True).returncode == 0
+        same = subprocess.run(["git", "diff", "--quiet", "HEAD", "--", path]).returncode == 0
+        if not (os.path.isfile(path) and tracked and same):
+            return False
+    return True
+
+
 def place_userland(linux_out):
     """The index names the Qwen runner by the BLAKE3 of the binary the store
     carries, which the catalogue tool reads from target/linux-userland."""
@@ -74,6 +85,15 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
     # development image may go without; this asks only whether the key is
     # there, never what it holds.
     if not os.path.isfile(keys.OPERATOR_SEED):
+        # The operator signs deterministically from SOURCES, so the index and
+        # catalogue a seal committed are the ones it would sign again for an
+        # unchanged tree. A seal without the seed (a CI runner's) keeps those,
+        # under the operator key in the tree: it signs nothing, so it can
+        # forge nothing, and the image checks both signatures itself.
+        if committed(INDEX, CATALOGUE, keys.OPERATOR_PUB):
+            say("  no market operator key: kept the index and the model catalogue the operator signed")
+            place_userland(linux_out)
+            return
         if required:
             raise SystemExit(f"  no market operator key at {keys.OPERATOR_SEED}: this image would ship an empty "
                              "Marketplace and no Qwen tier to fetch, so it is not sealed")

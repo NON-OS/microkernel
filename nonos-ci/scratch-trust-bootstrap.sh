@@ -38,6 +38,12 @@ if [ -z "${CAPSULE_SLUGS:-}" ] || [ -z "${CAPSULE_KEY_PREFIXES:-}" ]; then
         prefix="$(awk -F ':=' '$1 ~ /^[[:space:]]*CAPSULE_BIN_NAME[[:space:]]*$/ { gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2; exit }' "${capsule_mk}")"
         [ -n "${slug}" ] || { echo "::error::missing CAPSULE_SLUG in ${capsule_mk}"; exit 1; }
         [ -n "${prefix}" ] || { echo "::error::missing CAPSULE_BIN_NAME in ${capsule_mk}"; exit 1; }
+        # A development test capsule is on NONOS_DEV_CAPSULES, which no make
+        # lane signs or enrolls (nonos-mk/capsule.mk); only the seal of a
+        # development image takes it.
+        if awk -F ':=' '$1 ~ /^[[:space:]]*CAPSULE_DEV_ONLY[[:space:]]*$/ { gsub(/[[:space:]]/, "", $2); if ($2 != "") found = 1 } END { exit !found }' "${capsule_mk}"; then
+            continue
+        fi
         derived_slugs="${derived_slugs} ${slug}"
         derived_prefixes="${derived_prefixes} ${prefix}"
     done < "${capsule_inventory}"
@@ -111,7 +117,10 @@ done
 # scratch operator, written over the committed public key on this runner
 # only. A workflow that seals a release profile commits that key locally
 # first, since the seal seals only a committed tree.
-if [ ! -f .keys/marketplace_operator_ed25519.seed ]; then
+# NONOS_SCRATCH_OPERATOR=0 keeps the operator key in the tree: a seal with no
+# seed keeps the index and catalogue the operator signed (tools/nonos_seal),
+# and model-fetch, which compiles the key in, keeps its bytes and enrollment.
+if [ "${NONOS_SCRATCH_OPERATOR:-1}" = "1" ] && [ ! -f .keys/marketplace_operator_ed25519.seed ]; then
     echo "[scratch-trust-bootstrap] generating scratch marketplace operator key"
     "${CS}" keygen --alg ed25519 --out .keys/marketplace_operator_ed25519
     # capsule-sign writes the key in an 11-byte NONOSSK1/NONOSPK1 container,
@@ -146,6 +155,10 @@ echo "[scratch-trust-bootstrap] wiping stale committed policy + certs + manifest
 # root over capsule hashes and capability masks, independent of signing keys,
 # and the kernel embeds it at compile time; keep the committed one.
 rm -f nonos-data/trust/policy/nonos_trust_anchor.policy.bin
+# ek's boot-root record names the sealed bootloader and is signed by the
+# committed device policy key, which this runner replaced with a scratch one;
+# without it the build signs a record for its own loader (nonos-mk-boot-root-record).
+rm -f nonos-data/trust/policy/boot_root.approval
 rm -f nonos-data/trust/capsules/*.nonos_id_cert.bin
 rm -f nonos-data/trust/capsules/*.manifest.bin
 

@@ -113,6 +113,10 @@ let
         ${placeCapsules cfg.enabled}
         ${placeholder}
         python3 -c 'import struct; open("nonos-data/trust/policy/image_capability_ceiling.bin", "wb").write(struct.pack("<Q", ${toString (ceilingOf cfg.enabled)}))'
+        # build.rs compiles the arch C with "clang" by name; on macOS the first
+        # clang is the stdenv wrapper and adds host flags, so the kernel differed
+        # between a macOS and a Linux host. Unwrapped first, as for the loader.
+        export PATH=${llvm.clang-unwrapped}/bin:$PATH
         export SOURCE_DATE_EPOCH=${epoch} NONOS_USER_TARGET=x86_64-nonos-user
         export LLVM_AR=${llvm.llvm}/bin/llvm-ar LLVM_RANLIB=${llvm.llvm}/bin/llvm-ranlib
         cargo build --frozen --release --target x86_64-nonos.json \

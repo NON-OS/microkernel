@@ -82,10 +82,11 @@ jobs:
 
   benchmark:
     uses: ./.github/workflows/ci-benchmark.yml
-    # Inherit secrets so the job receives CACHIX_AUTH_TOKEN: it is the only
-    # lane that builds the full zerostate ship image, so it must be allowed to
-    # write that build back to the cache, or it rebuilds from zero every run
-    # and overruns its provision timeout.
+    # Scratch keys: the boot it measures is a kernel this runner builds and
+    # signs, which only its own keys can approve. The committed enrollment is
+    # kept when it proves the flake's capsules (mk/20-build.mk), so nothing is
+    # proven afresh.
+    # Inherit secrets so the job receives CACHIX_AUTH_TOKEN and SIGNING_KEY_BASE64.
     secrets: inherit
 
   attestation:

@@ -36,9 +36,18 @@ reach them. This wrapper recomputes `-C metadata` for every unit from inputs
 that are already host- and path-independent (the crate name, version and root
 source remapped through NONOS_REMAP, the crate types, the cfgs/features, the
 target spec by base name only, the curated codegen flags, and the host-neutral
-identity of each dependency), and leaves `-C extra-filename` untouched so the
-output file names cargo expects do not move. Two builds on any host, from any
-directory, then produce byte-identical artifacts.
+identity of each dependency). Two builds on any host, from any directory, then
+produce byte-identical artifacts.
+
+The file names leak too. Cargo names each output with `-C extra-filename`, a
+hash with the same host triple in it, and rustc names every object inside an
+rlib after that file. Fat LTO sorts the modules it merges by those names, so a
+different hash merged them in a different order: the code was the same, laid
+out differently, and capsules differed between a Linux and a macOS host. The
+wrapper gives rustc a host-neutral extra-filename (from the same identity) and
+moves each output to the name cargo expects as soon as rustc reports it, so
+cargo, and the dependents pipelining starts on an rmeta, find what they look
+for.
 
 Preserving uniqueness
 =====================
@@ -63,8 +72,10 @@ Self-test:  nonos-rustc --self-test
 """
 
 import hashlib
+import json
 import os
 import re
+import subprocess
 import sys
 import tempfile
 
@@ -101,6 +112,9 @@ def parse_remaps(environ):
     work = environ.get("NONOS_WORK", "")
     if work:
         remaps.append((work, "/build"))
+    out = environ.get("OUT_DIR", "")
+    if out:
+        remaps.append((out, "/out"))
     return remaps
 
 
@@ -351,6 +365,104 @@ def rewrite_metadata(args, new_value):
     return out
 
 
+def rewrite_extra_filename(args, new_value):
+    """Return args with the `-C extra-filename=` value replaced."""
+    out = []
+    i = 0
+    n = len(args)
+    while i < n:
+        a = args[i]
+        if a in ("-C", "--codegen") and i + 1 < n and args[i + 1].startswith("extra-filename="):
+            out += [a, "extra-filename=" + new_value]
+            i += 2
+            continue
+        if a.startswith("-Cextra-filename="):
+            out.append("-Cextra-filename=" + new_value)
+        elif a.startswith("--codegen=extra-filename="):
+            out.append("--codegen=extra-filename=" + new_value)
+        else:
+            out.append(a)
+        i += 1
+    return out
+
+
+def out_dir_of(args):
+    for i, a in enumerate(args):
+        if a == "--out-dir" and i + 1 < len(args):
+            return args[i + 1]
+        if a.startswith("--out-dir="):
+            return a.split("=", 1)[1]
+    return None
+
+
+def link_name(path, neutral, cargo):
+    """Give an output rustc has announced the name cargo expects as well, as a
+    hard link: rustc still reads it (the rmeta goes into the rlib), so it must
+    not move yet. Returns the cargo path, or the old one when it does not carry
+    the neutral name."""
+    base = os.path.basename(path)
+    if neutral not in base:
+        return path
+    dest = os.path.join(os.path.dirname(path), base.replace(neutral, cargo))
+    try:
+        if os.path.lexists(dest):
+            os.unlink(dest)
+        os.link(path, dest)
+    except OSError:
+        return path
+    return dest
+
+
+def restore_name(path, neutral, cargo):
+    """Move an output rustc wrote under the neutral extra-filename to the name
+    cargo expects, rewriting the paths inside a dep-info file. Returns the new
+    path, or the old one when it does not carry the neutral name."""
+    base = os.path.basename(path)
+    if neutral not in base:
+        return path
+    dest = os.path.join(os.path.dirname(path), base.replace(neutral, cargo))
+    if base.endswith(".d"):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                text = f.read()
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(text.replace(neutral, cargo))
+        except OSError:
+            pass
+    try:
+        os.replace(path, dest)
+    except OSError:
+        return path
+    return dest
+
+
+def run_renaming(rustc, args, neutral, cargo, out_dir):
+    """Run rustc, linking each artifact it announces (--json=artifacts, the
+    signal cargo pipelines on) under cargo's name before passing the line on,
+    then moving everything it wrote under the neutral name once it exits. The
+    jobserver descriptors cargo handed down stay open for rustc."""
+    proc = subprocess.Popen([rustc] + args, stderr=subprocess.PIPE, close_fds=False)
+    for raw in proc.stderr:
+        line = raw
+        if b'"artifact"' in raw:
+            try:
+                msg = json.loads(raw)
+                art = msg.get("artifact")
+                if isinstance(art, str):
+                    msg["artifact"] = link_name(art, neutral, cargo)
+                    line = (json.dumps(msg, separators=(",", ":")) + "\n").encode("utf-8")
+            except ValueError:
+                pass
+        sys.stderr.buffer.write(line)
+        sys.stderr.buffer.flush()
+    rc = proc.wait()
+    if out_dir and os.path.isdir(out_dir):
+        for name in os.listdir(out_dir):
+            if neutral in name:
+                restore_name(os.path.join(out_dir, name), neutral, cargo)
+    return rc
+
+
 def remap_args(environ):
     """The --remap-path-prefix tokens to append: the general NONOS_REMAP first,
     then the specific NONOS_WORK map, so the latter wins in rustc."""
@@ -358,6 +470,16 @@ def remap_args(environ):
     work = environ.get("NONOS_WORK", "")
     if work:
         toks.append("--remap-path-prefix=" + work + "=/build")
+    # A crate with a build script compiles what it generated into OUT_DIR,
+    # target/<t>/release/build/<crate>-<hash>/out. That hash is cargo's for the
+    # build script, which is compiled for the build host, so it differs between
+    # a Linux and a macOS host; a generated file pulled in with include! then
+    # put the host-specific path into panic locations and LLVM's symbol names,
+    # and tokei came out with different bytes on each host. Fold it to /out,
+    # last, so it wins over the general maps.
+    out = environ.get("OUT_DIR", "")
+    if out:
+        toks.append("--remap-path-prefix=" + out + "=/out")
     return toks
 
 
@@ -369,6 +491,7 @@ def run(argv, environ):
     ids_dir = environ.get("NONOS_RUSTC_IDS", "")
     normalize = environ.get("NONOS_RUSTC_NORMALIZE", "1") != "0"
 
+    rename = None
     if normalize:
         u = parse_unit(args, remaps)
         if u.metadata is not None and u.crate_name:
@@ -376,8 +499,23 @@ def run(argv, environ):
             key = u.extra_filename if u.extra_filename is not None else u.metadata
             write_sidecar(ids_dir, key, new_meta)
             args = rewrite_metadata(args, new_meta)
+            cargo = u.extra_filename
+            if cargo and cargo.startswith("-") and len(cargo) > 1:
+                neutral = "-" + new_meta[: len(cargo) - 1]
+                if neutral != cargo:
+                    args = rewrite_extra_filename(args, neutral)
+                    rename = (neutral, cargo, out_dir_of(args))
 
     args = args + remap_args(environ)
+
+    if rename:
+        argv_rustc = args
+        if used_argfile:
+            fd, tmp = tempfile.mkstemp(suffix=".args")
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write("\n".join(args))
+            argv_rustc = ["@" + tmp]
+        sys.exit(run_renaming(rustc, argv_rustc, *rename))
 
     # execvp, not execv: cargo may hand us rustc as a bare name to resolve on
     # PATH (as the shell wrapper's `exec "$rustc"` did), not an absolute path.

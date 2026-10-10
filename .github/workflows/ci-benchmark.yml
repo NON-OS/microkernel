@@ -109,18 +109,27 @@ jobs:
               # them, and persist the path for the benchmark step that follows.
               caps="$(nix build .#capsules --no-link --print-out-paths)"
               echo "NONOS_CAPSULE_BINS=${caps}" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="${caps}"
               NONOS_CAPSULE_BINS="${caps}" bash -x nonos-ci/scratch-trust-bootstrap.sh
               ;;
             production)
               bash nonos-ci/setup-signing-key.sh
               make nonos-mk-check-trust-manifest
-              echo "NONOS_CAPSULE_BINS=$(nix build .#capsules --no-link --print-out-paths)" >> "$GITHUB_ENV"
+              # Reuse the committed STARK enrollment rather than proving the
+              # whole capsule set afresh (hours on a runner's two prover slots);
+              # the committed trailers are already proven for these bytes.
+              echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${NONOS_CAPSULE_BINS}" >> "$GITHUB_ENV"
               ;;
             *)
               echo "::error::unknown trust-mode '${NONOS_CI_TRUST_MODE}'"
               exit 1
               ;;
           esac
+          # The tools the kernel embeds and the Linux userland, from the flake,
+          # where make reads them by path.
+          bash nonos-ci/lay-prebuilt.sh
       - name: Run benchmark suite
         timeout-minutes: 30
         env:

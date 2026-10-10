@@ -32,7 +32,10 @@ defaults:
     shell: bash
 
 concurrency:
-  group: ci-build-${{ github.ref }}
+  # build and production-build both call this workflow in one run. With the
+  # group keyed on the ref alone they shared it, so whichever entered second
+  # was cancelled before it ran. The trust mode tells the two apart.
+  group: ci-build-${{ github.ref }}-${{ inputs.trust-mode }}
   cancel-in-progress: false
 
 jobs:
@@ -88,6 +91,20 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - name: Reclaim runner disk space
+        # The WSL2 disk image grows on C:, and make check ran C: out of space
+        # after make build had filled most of it. The image's preinstalled
+        # SDKs nothing here uses take the room back.
+        shell: pwsh
+        run: |
+          Get-PSDrive C | Format-Table Used, Free
+          foreach ($d in 'C:\Android', 'C:\hostedtoolcache\windows\CodeQL', 'C:\hostedtoolcache\windows\go',
+                          'C:\hostedtoolcache\windows\PyPy', 'C:\hostedtoolcache\windows\Ruby',
+                          'C:\Program Files\dotnet', 'C:\ghcup', 'C:\Strawberry', 'C:\Miniconda',
+                          'C:\Program Files (x86)\Android') {
+            if (Test-Path $d) { cmd /c rmdir /s /q "$d" }
+          }
+          Get-PSDrive C | Format-Table Used, Free
       - uses: Vampire/setup-wsl@d1da7f2c0322a5ee4f24975344f67fc0f5baf364 # v7.0.0
         with:
           distribution: Ubuntu-24.04
@@ -114,10 +131,19 @@ jobs:
           git config --global --add safe.directory '*'
           git clone -q --no-hardlinks . ~/nonos
       - name: make build
+        # Same reason as make check below: the default fan-out builds several
+        # kernel profiles' rustc at once, which overruns the WSL2 VM's memory
+        # and a build-script rustc takes SIGBUS (signal 7). One at a time stays
+        # within the VM. Only make check carried this cap before, so a heavier
+        # make build (production profiles) still crashed.
+        env:
+          NONOS_JOBS: "1"
+          CARGO_BUILD_JOBS: "1"
         run: |
           set -euo pipefail
           . ~/.nix-profile/etc/profile.d/nix.sh
           cd ~/nonos && make doctor && make build
+          df -h / | tail -1
       - name: make check
         # make check builds the kernel debug profiles (qemu, standard, hardened)
         # with debug info and assertions on, and the default fan-out runs several
@@ -170,7 +196,12 @@ jobs:
           case "${NONOS_CI_TRUST_MODE}" in
             scratch)
               bash nonos-ci/setup-signing-key.sh
-              nix develop --command bash nonos-ci/scratch-trust-bootstrap.sh
+              # Sign the flake's capsules, from the binary cache, rather than a
+              # cargo build of each in turn (ci-benchmark.yml does the same).
+              caps="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${caps}" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="${caps}"
+              NONOS_CAPSULE_BINS="${caps}" nix develop --command bash nonos-ci/scratch-trust-bootstrap.sh
               ;;
             production)
               bash nonos-ci/setup-signing-key.sh
@@ -180,13 +211,17 @@ jobs:
               # enrolls what nix builds), so the make lane checks it against
               # those bytes, not against a cargo build of its own whose paths
               # differ (nonos-mk/capsule.mk, NONOS_CAPSULE_BINS).
-              echo "NONOS_CAPSULE_BINS=$(nix build .#capsules --no-link --print-out-paths)" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${NONOS_CAPSULE_BINS}" >> "$GITHUB_ENV"
               ;;
             *)
               echo "::error::unknown trust-mode '${NONOS_CI_TRUST_MODE}'"
               exit 1
               ;;
           esac
+          # The tools the kernel embeds and the Linux userland, from the flake,
+          # where make reads them by path.
+          bash nonos-ci/lay-prebuilt.sh
       - name: nonos-verify build
         run: nix develop --command cargo run --release --manifest-path nonos-verify/Cargo.toml -- build
       - name: Upload build reports

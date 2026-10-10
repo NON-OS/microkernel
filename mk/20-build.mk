@@ -271,6 +271,14 @@ $(NONOS_STD_PAL_STAMP): $(NONOS_STD_PAL_SRCS) | $(TARGET_DIR)/.nonos-toolchain.s
 .PHONY: nonos-mk-apply-std
 nonos-mk-apply-std: $(NONOS_STD_PAL_STAMP)
 
+# Every upstream tool links with one codegen unit, whatever its own profile
+# asks. sd and huniq set fat LTO and leave the default sixteen units, and fat
+# LTO merges those modules in the order the codegen threads finish, so two
+# builds on one busy host came out different. The workspace pins one unit for
+# the same reason (Cargo.toml [profile.release]); tools/nix/capsules.nix sets
+# the same for its build.
+UPSTREAM_CARGO_ENV := CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+
 # Unmodified crates.io binaries, built for the NONOS target through the std
 # PAL + nonos-rt start object. This is the reproducible source of the
 # ripgrep ELF the kernel mirror and the VFS bootstrap store embed; it
@@ -282,7 +290,7 @@ UPSTREAM_RIPGREP_BIN     := $(TARGET_DIR)/upstream-ripgrep/rg
 $(UPSTREAM_RIPGREP_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream ripgrep $(UPSTREAM_RIPGREP_VERSION) for NONOS (unmodified crates.io source)..."
-	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
+	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install ripgrep --version $(UPSTREAM_RIPGREP_VERSION) \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
 		-Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
@@ -302,7 +310,7 @@ UPSTREAM_SD_BIN     := $(TARGET_DIR)/upstream-sd/sd
 $(UPSTREAM_SD_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream sd $(UPSTREAM_SD_VERSION) for NONOS (unmodified crates.io source)..."
-	@cd $(UPSTREAM_SD_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+	@cd $(UPSTREAM_SD_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) \
 		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install --path . \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
@@ -321,7 +329,7 @@ UPSTREAM_TOKIO_SMOKE_BIN := $(TARGET_DIR)/upstream-tokio-smoke/tokio-smoke
 $(UPSTREAM_TOKIO_SMOKE_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building tokio-smoke runtime gate for NONOS (tokio via mio backend + socket2 shim)..."
-	@cd $(UPSTREAM_TOKIO_SMOKE_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+	@cd $(UPSTREAM_TOKIO_SMOKE_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) \
 		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install --path . \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
@@ -352,7 +360,7 @@ define nonos_upstream_tool_rule
 $(TARGET_DIR)/upstream-$(1)/bin/$(1): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream $(1) for NONOS (unmodified crates.io source)..."
-	@cd userland/upstream-src/$(1) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+	@cd userland/upstream-src/$(1) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) \
 		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ)) --cfg getrandom_backend=\"rdrand\"" \
 		$(CARGO) install --path . $(or $($(1)_CARGO_FEATURES),$(NONOS_TOOL_FEATURES_DEFAULT)) \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
@@ -597,12 +605,24 @@ ifeq ($(NONOS_TRUST_REUSE),1)
 $(ZK_CAPSULE_ROOT):
 	@test -f $@ || { echo "::error::$@ is not committed; a reuse build cannot enroll"; exit 1; }
 else
+# The root and trailers prove each capsule's bytes and capabilities, not who
+# signed it, so a tree whose committed enrollment already proves these exact
+# binaries keeps it, as the seal does (tools/nonos_seal/capsules.py): checked
+# by the gate the kernel runs at spawn, and only enrolled afresh when that
+# check fails. A scratch-key build re-signs every capsule, and re-proving the
+# whole set on a CI runner's two prover slots took hours for the same root.
 $(ZK_CAPSULE_ROOT): $(NONOS_STARK_ENROLL) \
 		$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_BIN) $($(s)_MANIFEST))
-	@echo "Enrolling $(words $(NONOS_ENROLLED_CAPSULES)) capsules under one transparent STARK policy root..."
 	@mkdir -p $(dir $(ZK_CAPSULE_ROOT)) $(NONOS_BAKED_TRUST_DIR)/capsules
-	@$(NONOS_STARK_ENROLL) capsules $(ZK_CAPSULE_ROOT) \
-		$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_REQUIRED_CAPS):$($(s)_BIN):$($(s)_ATTESTATION))
+	@if [ -f $(ZK_CAPSULE_ROOT) ] && $(NONOS_STARK_ENROLL) verify $(ZK_CAPSULE_ROOT) \
+		$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_REQUIRED_CAPS):$($(s)_BIN):$($(s)_ATTESTATION)) >/dev/null 2>&1; then \
+		echo "Kept the enrollment of $(words $(NONOS_ENROLLED_CAPSULES)) capsules: every trailer proves its capsule"; \
+		touch $(ZK_CAPSULE_ROOT) $(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_ATTESTATION)); \
+	else \
+		echo "Enrolling $(words $(NONOS_ENROLLED_CAPSULES)) capsules under one transparent STARK policy root..."; \
+		$(NONOS_STARK_ENROLL) capsules $(ZK_CAPSULE_ROOT) \
+			$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_REQUIRED_CAPS):$($(s)_BIN):$($(s)_ATTESTATION)); \
+	fi
 endif
 
 .PHONY: nonos-mk-stark-enroll-capsules
@@ -1096,13 +1116,13 @@ DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
 		driver-virtio-rng driver-virtio-blk driver-nvme driver-ahci \
 		driver-virtio-gpu \
 		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid driver-usb-msc \
-		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
+		net-core net-sockets net-nym net-anon socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
 		clipboard login wallpaper toolkit about install install-cli model-fetch linux boot-splash \
 		calculator market app_store setup-wizard \
 		browser wallet-nonos terminal file-manager text-editor \
 		settings process-manager attest power prove \
-		audio driver-hda audio_player video-player
+		audio driver-hda audio_player video-player shield
 
 DESKTOP_BASE_CAPSULE_ARTIFACTS := \
 		$(foreach s,$(DESKTOP_BASE_SLUGS),$($(s)_ARTIFACTS))

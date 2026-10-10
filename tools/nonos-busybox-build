@@ -52,6 +52,11 @@ cc=${CC:-musl-gcc}
 # this machine and never reach the binary. Its Makefile says gcc, which macOS
 # does not have.
 hostcc=${HOSTCC:-cc}
+# The strip BusyBox's last link step runs ($(CROSS_COMPILE)strip). Left to the
+# PATH it is GNU strip on Linux and the macOS toolchain's strip on a Mac, and
+# the two rewrite the ELF differently, so the same zig-built binary came out
+# with different bytes on each host. Callers pin one (llvm-strip) here.
+strip=${STRIP:-strip}
 work=$(mktemp -d "${TMPDIR:-/tmp}/nonos-busybox.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 
@@ -83,7 +88,7 @@ if ! cmp -s .config "$config"; then
     exit 1
 fi
 jobs=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)
-if ! make -s -j"$jobs" CC="$cc" HOSTCC="$hostcc" EXTRA_CFLAGS="-isystem $kh -ffile-prefix-map=$work=." busybox >"$work/build.log" 2>&1; then
+if ! make -s -j"$jobs" CC="$cc" HOSTCC="$hostcc" STRIP="$strip" EXTRA_CFLAGS="-isystem $kh -ffile-prefix-map=$work=." busybox >"$work/build.log" 2>&1; then
     tail -40 "$work/build.log" >&2
     exit 1
 fi
