@@ -36,13 +36,13 @@ pub fn init() -> Result<(), IdtError> {
         return Err(IdtError::AlreadyInitialized);
     }
     unsafe {
-        asm!("cli", options(nomem, nostack, preserves_flags));
+        asm!("cli", options(nostack, preserves_flags));
         let idt = &mut *addr_of_mut!(IDT);
         setup_exceptions(idt);
         setup_irqs(idt);
         remap_pic();
         load_idt();
-        asm!("sti", options(nomem, nostack, preserves_flags));
+        asm!("sti", options(nostack, preserves_flags));
     }
     INITIALIZED.store(true, Ordering::Release);
     Ok(())
