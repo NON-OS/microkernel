@@ -20,7 +20,7 @@ use core::arch::asm;
 pub fn enable() {
     // SAFETY: Enabling interrupts via STI instruction.
     unsafe {
-        asm!("sti", options(nomem, nostack));
+        asm!("sti", options(nostack));
     }
 }
 
@@ -28,7 +28,7 @@ pub fn enable() {
 pub fn disable() {
     // SAFETY: Disabling interrupts via CLI instruction.
     unsafe {
-        asm!("cli", options(nomem, nostack));
+        asm!("cli", options(nostack));
     }
 }
 
