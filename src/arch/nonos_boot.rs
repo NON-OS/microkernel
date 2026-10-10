@@ -17,7 +17,6 @@
 use crate::arch::x86_64::acpi;
 use crate::arch::x86_64::cpu;
 use crate::arch::x86_64::gdt;
-use crate::arch::x86_64::idt;
 use crate::arch::x86_64::multiboot;
 use crate::arch::x86_64::pci;
 use crate::arch::x86_64::serial;
@@ -25,7 +24,7 @@ use crate::arch::x86_64::serial;
 pub fn init_early() -> Result<(), &'static str> {
     cpu::init().map_err(|_| "cpu init failed")?;
     gdt::init().map_err(|_| "gdt init failed")?;
-    idt::init().map_err(|_| "idt init failed")?;
+    crate::interrupts::init_idt();
     acpi::init().map_err(|_| "acpi init failed")?;
     multiboot::init().map_err(|_| "multiboot init failed")?;
     serial::init().map_err(|_| "serial init failed")?;
