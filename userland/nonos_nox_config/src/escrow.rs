@@ -27,8 +27,10 @@ pub const MAX_DELIVERY: u64 = 7 * DAY;
 pub const DISPUTE_WINDOW: u64 = 3 * DAY;
 /// The seller's agent delivers only with at least this much time left.
 pub const DELIVER_MARGIN: u64 = HOUR;
-/// The least deliveryDeadline the buyer writes, after ORDER_NEW.
-pub const ORDER_MIN_LEAD: u64 = 6 * HOUR;
+/// The least deliveryDeadline the buyer writes, after ORDER_NEW: a fresh
+/// Shield note ripens in about 6 hours, and the seller still needs its time
+/// (v1.4.17).
+pub const ORDER_MIN_LEAD: u64 = 24 * HOUR;
 /// The least UNBOND_DELAY: every order funded before an unbond request
 /// ends inside it.
 pub const UNBOND_DELAY_MIN: u64 = MAX_DELIVERY + DISPUTE_WINDOW + DAY;

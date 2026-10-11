@@ -17,7 +17,7 @@
 //! INTENT: check that the calldata's selector belongs to its kind, and quote
 //! it: `to` is the kind's config contract, its NOX flags read again now; an
 //! approve's spender must be the config Settlement, Escrow or Bond, read the
-//! same way. Then the sender's next nonce, the node's estimate (padded by a
+//! same way; a ShieldClaim must pay its sender. Then the sender's next nonce, the node's estimate (padded by a
 //! fifth) and fee suggestions, in one batch. The calldata is the key
 //! holder's; settle returns none and changes none.
 
@@ -26,7 +26,7 @@ use alloc::vec::Vec;
 use nonos_eth_rpc::{object_for_id, parse_u64, request_batch, request_estimate_gas};
 use nonos_eth_rpc::{request_fee_history, request_nonce};
 use nonos_nox_config::{address, Contract};
-use nonos_settle_proto::{approve_spender, kind_of, padded, Intent, Quote, EINVAL};
+use nonos_settle_proto::{approve_spender, claim_ok, kind_of, padded, Intent, Quote, EINVAL};
 
 use super::gas::{fees_in, nonce_in};
 use crate::settle::Settle;
@@ -36,6 +36,9 @@ const SPENDERS: [Contract; 3] = [Contract::Settlement, Contract::Escrow, Contrac
 pub fn intent(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
     let i = Intent::parse(body).ok_or(EINVAL)?;
     let kind = kind_of(i.kind, &i.calldata).ok_or(EINVAL)?;
+    if kind.contract == Contract::ShieldPool && !claim_ok(&i.calldata, &i.from) {
+        return Err(EINVAL);
+    }
     let to = s.live.fresh(&mut s.rpc, i.chain_id, kind.contract)?;
     if kind.contract == Contract::NoxToken {
         let spender = approve_spender(&i.calldata).ok_or(EINVAL)?;

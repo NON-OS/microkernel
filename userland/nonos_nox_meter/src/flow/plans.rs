@@ -14,22 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The transactions each job signs, from settle's GAS and, for CLOSE, the
-//! contract's GRACE.
+//! The transactions each job signs, from settle's GAS and its one read:
+//! GRACE for CLOSE, what is claimable for CLAIM.
 
 use alloc::vec::Vec;
 
 use nonos_settle_proto::Gas;
 
-use super::work::{Contracts, Work};
+use super::ask::Contracts;
+use super::work::Work;
 use crate::error::MeterError;
 use crate::open::{open_plan, TxRequest};
-use crate::settle::{close_plan, topup_plan};
+use crate::settle::{claim_plan, close_plan, topup_plan};
 use crate::state::MeterState;
 
 pub(super) fn txs(
     work: &Work,
-    grace: Option<u64>,
+    read: Option<u128>,
     g: &Gas,
     s: &MeterState,
     c: &Contracts,
@@ -43,8 +44,11 @@ pub(super) fn txs(
         }
         Work::TopUp(t) => Vec::from(topup_plan(s, t, (&c.nox, &c.settlement), g, now)?),
         Work::Close(cl) => {
-            let grace = grace.ok_or(MeterError::TooEarly)?;
+            let grace = read.and_then(|r| u64::try_from(r).ok()).ok_or(MeterError::TooEarly)?;
             Vec::from([close_plan(s, cl, &c.settlement, g, (now, grace))?])
+        }
+        Work::Claim { chain_id, meter } => {
+            Vec::from([claim_plan(*chain_id, meter, &c.pool, read.unwrap_or(0), g)?])
         }
     })
 }
