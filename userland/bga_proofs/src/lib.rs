@@ -14,41 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Bochs DISPI mode set, proved against a register window rather than
-//! against a display adapter.
+//! The Bochs adapter driver, proved against stand-ins rather than against a
+//! display adapter: a register window in memory, and a model of the DISPI
+//! registers that records every access in order.
 //!
 //! Each `#[path]` below pulls in the shipping driver source, so these tests
-//! run the code that boots, not a copy of it. The BGA capsule had no host
-//! coverage before this crate: the only way to learn that a mode set was
-//! wrong was to boot a machine and look at a black screen, which says nothing
-//! about which of the five register writes was at fault.
-//!
-//! The interface is worth proving without hardware because Bochs, QEMU and
-//! every clone of them implement the same published register set. A driver
-//! that programs the wrong bits-per-pixel, or leaves the linear framebuffer
-//! undecoded, is wrong against all of them, and a black screen is the same
-//! symptom for each. That is exactly the class of defect a test with no
-//! adapter can pin down.
+//! run the code that boots, not a copy of it. Bochs, QEMU and every clone
+//! implement the same published register set, so a mode set in the wrong
+//! order, a rect copied past its row, or a present from the wrong process is
+//! wrong against all of them, and is caught here without a boot.
 
 #[path = "../../capsule_driver_bga/src/constants.rs"]
 pub mod constants;
-
+pub mod dispi;
 #[path = "../../capsule_driver_bga/src/error.rs"]
 pub mod error;
-
+pub mod gfx;
+#[path = "../../capsule_driver_bga/src/hw.rs"]
+pub mod hw;
+pub mod model;
+#[path = "../../capsule_driver_bga/src/protocol/mod.rs"]
+pub mod protocol;
 #[path = "../../capsule_driver_bga/src/regs.rs"]
 pub mod regs;
+#[path = "../../capsule_driver_virtio_gpu/src/protocol/limits.rs"]
+pub mod virtio_limits;
+#[path = "../../capsule_driver_virtio_gpu/src/protocol/ops.rs"]
+pub mod virtio_ops;
 
-pub mod dispi;
-
+#[cfg(test)]
+mod choose_tests;
 #[cfg(test)]
 mod clear_tests;
-
+#[cfg(test)]
+mod copy_tests;
 #[cfg(test)]
 mod mode_tests;
-
 #[cfg(test)]
 mod offset_tests;
-
+#[cfg(test)]
+mod read_tests;
 #[cfg(test)]
 mod reason_tests;
+#[cfg(test)]
+mod screen_tests;
+#[cfg(test)]
+mod window_tests;
+#[cfg(test)]
+mod wire_tests;
