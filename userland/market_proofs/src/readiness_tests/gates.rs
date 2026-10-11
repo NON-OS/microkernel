@@ -14,37 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Which releases the gate offers, and which it holds back.
 
-use alloc::string::String;
-use alloc::vec;
-
-use nonos_marketplace_abi::{CapsuleRelease, ValidationReport, ValidationStatus};
-
+use super::fixture::release;
 use crate::install_ready::arch::{HOSTED_ARCH, RUNNING_ARCH};
 use crate::install_ready::checks::evaluate;
-
-pub(crate) fn release(arch: &str, trailer: u8) -> CapsuleRelease {
-    CapsuleRelease {
-        release_id: String::from("pkg@1"),
-        manifest_hash: [1; 32],
-        package_hash: [2; 32],
-        package_url: String::from("http://mirror/pkg-1.apk"),
-        publisher_signature: vec![0; 64],
-        supported_arches: vec![String::from(arch)],
-        kernel_abi_min: 1,
-        required_capabilities: vec![],
-        zk_trailer_hash: [trailer; 32],
-        ext: Some(crate::abi_v3::fixtures::plain_ext()),
-        validation: ValidationReport {
-            status: ValidationStatus::Validated,
-            note: String::new(),
-            validator_id: String::from("v"),
-            validated_at_ms: 1,
-        },
-    }
-}
 
 /*
  * Only a machine that hosts a second triple has distribution packages. The
