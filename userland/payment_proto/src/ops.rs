@@ -48,3 +48,5 @@ pub const OP_ORDER_PLAINTEXT: u16 = 18;
 /// The store-to-wallet mailbox: 19/0 POST from app.store, 19/1 TAKE from
 /// the wallet (plan/21, plan/27).
 pub const OP_PURCHASE: u16 = 19;
+/// One listing's cap, the rest of the budget kept (v1.4.43, wallet).
+pub const OP_LISTING_CAP: u16 = 20;
