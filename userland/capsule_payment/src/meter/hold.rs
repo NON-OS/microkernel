@@ -29,8 +29,8 @@ use crate::keys::{self, Keys};
 
 pub struct Meter {
     pub state: MeterState,
-    /// Open once the bound root can be derived (C2c) and the key is back in
-    /// the keyring; until then every op that needs it answers EAGAIN.
+    /// Open once the bound root derives and the key is back in the keyring;
+    /// until then every op that needs it answers with why.
     pub(super) keys: Option<Keys>,
     /// Whether the file on disk has been read: saving before reading would
     /// overwrite the channels the meter signed on with an empty table.
