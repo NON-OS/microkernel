@@ -50,7 +50,11 @@ pub struct Expected<'a> {
 
 impl Expected<'_> {
     pub(super) fn accepts_day(&self, window: u64) -> bool {
-        let (lo, hi) = self.days;
-        hi >= lo && hi - lo < MAX_DAYS && (lo..=hi).contains(&window)
+        accepts_day(self.days, window)
     }
+}
+
+/// `window` inside `days`, inclusive, a span of fewer than MAX_DAYS days.
+pub(super) fn accepts_day((lo, hi): (u64, u64), window: u64) -> bool {
+    hi >= lo && hi - lo < MAX_DAYS && (lo..=hi).contains(&window)
 }

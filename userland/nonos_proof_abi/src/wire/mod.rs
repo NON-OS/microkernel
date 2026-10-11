@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod deliver;
 pub mod fetch;
 mod frame;
 mod header;
 mod prove;
 mod status;
 
+pub use deliver::{DeliverRequest, DELIVER, DELIVER_DATA_MAX, DELIVER_HEAD};
 pub use frame::{reply, reply_body, request, ReplyError, FRAME_MAX};
 pub use header::{Header, HDR_LEN, PROVE_MAGIC, STATUS_LEN, VERSION};
 pub use prove::{job_of, ProveRequest, GET, GET_MAX, HEALTH, PROVE, PROVE_BODY, STATUS};
-pub use status::{status_body, Stage, NOT_ENROLLED, OUTSIDE, POLICY, PROVER, STALE_REGISTRY};
+pub use status::{
+    status_body, Stage, NOT_ENROLLED, NOT_VENDOR, OUTSIDE, POLICY, PROVER, STALE_REGISTRY,
+};
