@@ -22,6 +22,7 @@ pub mod etna;
 mod event;
 mod ipc;
 mod manifest;
+mod meter;
 mod net;
 mod nox;
 mod num;

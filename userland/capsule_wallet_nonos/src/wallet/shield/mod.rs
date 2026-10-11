@@ -27,7 +27,7 @@ pub mod client;
 mod follow;
 pub mod fund_meter;
 pub mod job;
-mod meter_call;
+pub(crate) mod meter_call;
 mod kept_names;
 pub mod open;
 pub mod probe;

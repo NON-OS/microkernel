@@ -30,6 +30,8 @@ pub const VIEW_IMPORT: u8 = 12;
 pub const VIEW_RECOVER: u8 = 13;
 pub const VIEW_EXPORT: u8 = 14;
 pub const VIEW_ACCOUNTS: u8 = 15;
+/* The meter's account and budget (B8). */
+pub const VIEW_METER: u8 = 16;
 /* Whether the keyring holds account 0's recovery words this session. */
 pub const WORDS_UNREAD: u8 = 0;
 pub const WORDS_HELD: u8 = 1;
@@ -292,6 +294,7 @@ pub struct State {
     pub shield: crate::wallet::shield::probe::Shield,
     /* The Shield screens: which is up and what was picked on it. */
     pub shield_ui: super::shield_ui::ShieldUi,
+    pub meter: crate::wallet::meter::MeterUi,
     /* The accounts of this phrase in use, account 0 first, and which one is
      * open. Empty until a wallet exists. */
     pub accounts: alloc::vec::Vec<crate::wallet::accounts::Account>,

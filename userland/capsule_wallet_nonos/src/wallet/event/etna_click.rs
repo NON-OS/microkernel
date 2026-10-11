@@ -22,7 +22,7 @@ use nonos_app_skeleton::EventOutcome;
 use crate::wallet::screen;
 use crate::wallet::screen::hits::{at, Press};
 use crate::wallet::state::{
-    State, VIEW_ACCOUNTS, VIEW_EXPORT, VIEW_HOME, VIEW_IMPORT, VIEW_NOX, VIEW_RECEIVE,
+    State, VIEW_ACCOUNTS, VIEW_EXPORT, VIEW_METER, VIEW_HOME, VIEW_IMPORT, VIEW_NOX, VIEW_RECEIVE,
     VIEW_RECOVER, VIEW_SEND, VIEW_SETTINGS, VIEW_SHIELD, VIEW_SWAP,
 };
 
@@ -133,6 +133,7 @@ pub fn etna_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
         VIEW_ACCOUNTS if state.address_ready => screen::accounts::click::click(state, press),
         _ if !state.address_ready => welcome(state, press),
         VIEW_SHIELD => screen::shield::click::click(state, press),
+        VIEW_METER => screen::meter::click::click(state, press),
         VIEW_SWAP => screen::swap::click::click(state, press),
         VIEW_SEND => screen::pay::click::click(state, press),
         VIEW_NOX => screen::stake::click::click(state, press),
