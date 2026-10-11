@@ -89,6 +89,8 @@ pub mod replace_rule;
 pub mod sent;
 #[path = "../../capsule_wallet_nonos/src/wallet/attest/mod.rs"]
 pub mod attest;
+#[path = "../../capsule_wallet_nonos/src/wallet/typed/mod.rs"]
+pub mod typed;
 #[path = "../../capsule_wallet_nonos/src/wallet/meter/budget_form.rs"]
 pub mod meter_budget;
 #[path = "../../capsule_wallet_nonos/src/wallet/meter/channel.rs"]
@@ -149,6 +151,10 @@ mod fund_meter_tests;
 mod attest_tests;
 #[cfg(test)]
 mod meter_budget_tests;
+#[cfg(test)]
+mod typed_tests;
+#[cfg(test)]
+mod typed_hash_tests;
 #[cfg(test)]
 mod meter_job_tests;
 #[cfg(test)]
