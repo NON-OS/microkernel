@@ -39,12 +39,13 @@ const LEAD: &str = "One key holds an account on Ethereum mainnet and on Sepolia.
      Sepolia is the test network, where the shield pool runs and nothing has value.";
 
 /// The rows of the key list, in press order.
-pub const ROWS: [&str; 5] = [
+pub const ROWS: [&str; 6] = [
     "Show the private key",
     "Restore from recovery words",
     "Import a private key",
     "Lock the screen",
     "The meter: its budget and channels",
+    "Publish a listing: sign its binding and attests",
 ];
 
 fn heading(fb: &mut PaintBuffer, c: Rect, y: u32, text: &str) -> u32 {
@@ -88,14 +89,15 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     y += fact(fb, c.x, y, c.w, "mainnet, last read", &line(state.last_read[0], now));
     y += fact(fb, c.x, y, c.w, "Sepolia, last read", &line(state.last_read[1], now));
     y += fact(fb, c.x, y, c.w, "chain id", &alloc::format!("{}", chain::current().id)) + GAP;
-    let rows: [(&str, bool); 5] = [
+    let rows: [(&str, bool); 6] = [
         (ROWS[0], state.address_ready),
         (ROWS[1], true),
         (ROWS[2], true),
         (ROWS[3], state.address_ready),
         (ROWS[4], state.address_ready),
+        (ROWS[5], state.address_ready),
     ];
-    let mut at = [Rect::new(0, 0, 0, 0); 5];
+    let mut at = [Rect::new(0, 0, 0, 0); 6];
     y += quiet_group(fb, c.x, y, c.w, &rows, &mut at);
     for (i, r) in at.iter().enumerate() {
         if rows[i].1 {

@@ -91,6 +91,8 @@ pub mod sent;
 pub mod attest;
 #[path = "../../capsule_wallet_nonos/src/wallet/typed/mod.rs"]
 pub mod typed;
+#[path = "../../capsule_wallet_nonos/src/wallet/hex_id.rs"]
+pub mod hex_id;
 #[path = "../../capsule_wallet_nonos/src/wallet/intent/mod.rs"]
 pub mod intent;
 #[path = "../../capsule_wallet_nonos/src/wallet/publisher/mod.rs"]

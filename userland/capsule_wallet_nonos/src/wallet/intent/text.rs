@@ -16,32 +16,12 @@
 
 /*
  * Text for an intent's review: contract names, and hex as a person reads
- * it (an address whole, a 32-byte id as its head and tail).
+ * it (hex_id).
  */
-
-use alloc::string::String;
 
 use nonos_nox_config::Contract;
 
-const HEX: &[u8; 16] = b"0123456789abcdef";
-
-pub fn hex(b: &[u8]) -> String {
-    let mut s = String::from("0x");
-    b.iter().for_each(|x| {
-        s.push(HEX[(x >> 4) as usize] as char);
-        s.push(HEX[(x & 15) as usize] as char);
-    });
-    s
-}
-
-/// 0x and the first 8 and last 6 hex digits of a 32-byte id.
-pub fn id(b: &[u8; 32]) -> String {
-    let full = hex(b);
-    let mut s = String::from(&full[..10]);
-    s.push_str("...");
-    s.push_str(&full[full.len() - 6..]);
-    s
-}
+pub use super::super::hex_id::{hex, id};
 
 pub fn contract_name(c: Contract) -> &'static str {
     match c {

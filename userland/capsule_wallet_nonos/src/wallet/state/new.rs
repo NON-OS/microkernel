@@ -142,6 +142,7 @@ pub fn new_state() -> State {
         shield: crate::wallet::shield::probe::Shield::Unknown,
         shield_ui: super::shield_ui::ShieldUi::default(),
         meter: crate::wallet::meter::MeterUi::default(),
+        publisher: crate::wallet::publish::PublisherUi::default(),
         accounts: alloc::vec::Vec::new(),
         /* Mainnet is picked at start, and it has no shield pool. */
         receive_private: false,

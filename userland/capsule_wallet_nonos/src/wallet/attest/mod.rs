@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod decode;
-mod file;
+pub mod file;
 mod log;
 mod types;
 
 pub use decode::decode;
-pub use file::{encode, FILE_LEN, MAX_ATTESTS, RECORD_LEN};
+pub use file::{encode, FILE_LEN, MAX_ATTESTS};
 pub use log::{decide, signed};
 pub use types::{Attest, Decision, Record, Refusal};

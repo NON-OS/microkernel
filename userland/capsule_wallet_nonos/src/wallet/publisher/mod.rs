@@ -19,5 +19,5 @@ mod binding;
 mod path;
 
 pub use attest::{attest_of, attest_rows};
-pub use binding::{binding_plan, BindingPlan, Refused};
+pub use binding::{binding_plan, Refused};
 pub use path::{attest_sig_path, binding_sig_path, doc_path_ok};
