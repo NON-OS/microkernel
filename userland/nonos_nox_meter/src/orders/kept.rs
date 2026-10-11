@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! ORDER_DELIVERED's bad-chunk answers, kept in memory (v1.4.49): a later
 //! ask for the order answers the kept one instead of opening the delivery
 //! again. A reboot loses them, and the next ask reopens. An OK needs no

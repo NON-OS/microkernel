@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! A delivery's bad-chunk answer is kept and answered again (v1.4.49).
 
 use nonos_nox_meter::orders::{KeptDelivered, MAX_KEPT};
