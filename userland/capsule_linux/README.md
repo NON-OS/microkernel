@@ -114,7 +114,9 @@ a third takes NET_ANON away. Only a vendor row carries its list today (`dests=` 
 - An XRGB8888 buffer is shown opaque (`opaque.rs`); only ARGB8888 and XRGB8888 are taken.
 - NONOS carries no clipboard or drag between guests, or to the desktop, by design: a guest
   cannot read what another program copied. `data_device.rs` gives a client its sources and
-  a device per seat, and cancels any selection or drag at once.
+  a device per seat, and cancels any selection or drag at once. The primary selection is served the
+  same way (`route_select.rs`), and a cursor shape a guest asks for changes nothing: the
+  cursor is the compositor's own.
 - Decorations are always server-side (`decoration.rs`): the window manager frames a guest's
   window like any other.
 - zxdg_output_manager_v1 says the one screen's logical place and size, as wl_output does.

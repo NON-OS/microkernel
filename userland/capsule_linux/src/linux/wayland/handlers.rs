@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The three requests a client makes before it asks for anything real.
 
 use crate::linux::guest::Guest;
 
+use super::args::Args;
+use super::global::by_name;
 use super::object::Object;
 use super::out::Event;
-use super::registry::{by_name, GLOBALS};
-use super::args::Args;
+use super::registry::GLOBALS;
 
 const CALLBACK_DONE: u16 = 0;
 const REGISTRY_GLOBAL: u16 = 0;
