@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What fails a package before any of it is written: a member name that is
-//! malformed or the personality's own (member_name.rs), or a path another
-//! installed package holds (member_conflict.rs). Said with the member and
+//! malformed or the personality's own (member/name.rs), one that takes the
+//! place of the image's own files (member/image.rs), or a path another
+//! installed package holds (member/conflict.rs). Said with the member and
 //! the reason; the install fails as Package and nothing of it lands.
 
 use alloc::format;
@@ -25,10 +26,12 @@ use alloc::vec::Vec;
 use nonos_libc::mk_debug;
 
 use super::super::member::conflict::held_by_another;
-use super::super::member::name::{member_refused, Refused};
+use super::super::member::image::shadows;
+use super::super::member::name::member_refused;
 use super::super::proof_names::is_proof_name;
 use super::super::tar::{Entry, Kind};
 use super::super::Why;
+use super::image::IMAGE_FILES;
 use crate::linux::file::visible;
 
 pub(super) fn check(entries: &[Entry], pkg: &str) -> Result<(), Why> {
@@ -40,27 +43,23 @@ pub(super) fn check(entries: &[Entry], pkg: &str) -> Result<(), Why> {
         };
         for named in core::iter::once(e.name.as_slice()).chain(target) {
             if let Some(why) = member_refused(named) {
-                return refuse(pkg, named, about(why));
+                return refuse(pkg, named, why.about());
             }
         }
         // The names entry.rs passes over silently are not this package's.
         let placed = !e.name.starts_with(b".") && !is_proof_name(&e.name);
         if placed && !matches!(e.kind, Kind::Dir) {
-            mine.push(visible(b"/", &e.name));
+            let at = visible(b"/", &e.name);
+            if shadows(&at, matches!(e.kind, Kind::Symlink(_)), IMAGE_FILES) {
+                return refuse(pkg, &e.name, "the image carries it, or a file under it");
+            }
+            mine.push(at);
         }
     }
     let others = super::super::package_record::others(pkg);
     match held_by_another(&mine, &others) {
         Some(at) => refuse(pkg, at, "another installed package holds it"),
         None => Ok(()),
-    }
-}
-
-fn about(why: Refused) -> &'static str {
-    match why {
-        Refused::Escapes => "it names a `..` component",
-        Refused::Absolute => "it is absolute",
-        Refused::Reserved => "it is one of the personality's own paths",
     }
 }
 
