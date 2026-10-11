@@ -17,6 +17,7 @@
 mod broadcast;
 mod channel_state;
 mod fetch;
+mod fetch_escrow;
 mod gas;
 mod intent;
 mod listing;

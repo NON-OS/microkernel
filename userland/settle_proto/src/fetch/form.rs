@@ -16,13 +16,16 @@
 
 //! OP_FETCH. The first byte is the form:
 //! - 0 RELEASE: lp(u16) https url, at most MAX_URL | releaseHash[32];
-//! - 2 PAGE: releaseHash[32] | offset u32, the rest of the one release settle
-//!   holds;
-//! - 1 ESCROW: plan/22 step 1, B5; EINVAL until then.
+//! - 2 PAGE: key[32] | offset u32, the rest of what settle holds under that
+//!   key: the one release, by releaseHash, or the one escrow answer, by
+//!   buyer_pk and to the pid that asked for it alone;
+//! - 1 ESCROW: plan/22 step 1 (fetch_escrow.rs).
 //!
-//! The reply to RELEASE and PAGE is a Page.
+//! The reply to each is a Page.
 
 use alloc::vec::Vec;
+
+use super::escrow::Escrow;
 
 pub const FETCH_RELEASE: u8 = 0;
 pub const FETCH_ESCROW: u8 = 1;
@@ -35,13 +38,20 @@ pub const MAX_RELEASE: usize = 1024 * 1024;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Fetch {
-    Release { url: Vec<u8>, release_hash: [u8; 32] },
-    Page { release_hash: [u8; 32], offset: u32 },
-    Escrow,
+    Release {
+        url: Vec<u8>,
+        release_hash: [u8; 32],
+    },
+    /// `release_hash` is the key: a release's hash, or a buyer_pk.
+    Page {
+        release_hash: [u8; 32],
+        offset: u32,
+    },
+    Escrow(Escrow),
 }
 
 impl Fetch {
-    /// None for ESCROW, whose body is B5's, or a url past MAX_URL.
+    /// None for a url or solution past its limit.
     pub fn encode(&self) -> Option<Vec<u8>> {
         let mut out = Vec::new();
         match self {
@@ -56,6 +66,7 @@ impl Fetch {
                 out.extend_from_slice(release_hash);
                 out.extend_from_slice(&offset.to_le_bytes());
             }
+            Fetch::Escrow(e) => return e.encode(),
             _ => return None,
         }
         Some(out)
