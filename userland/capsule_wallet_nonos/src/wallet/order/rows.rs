@@ -44,6 +44,9 @@ pub fn status_rows(s: &OrderStatus, nox: fn(u128) -> String) -> Vec<(&'static st
         ("order", String::from(state_name(s.state))),
         ("funded", format!("{} NOX", nox(s.funded))),
     ]);
+    if s.plain {
+        rows.push(("package", String::from("checked and sealed for the install")));
+    }
     if s.pending > 0 {
         rows.push((
             "waiting",

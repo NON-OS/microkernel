@@ -18,6 +18,7 @@
 //! only, so a store that lies can name a listing and nothing else.
 //!   POST 0 | chain_id u64 | lp(u16) listing | lp(u16) release (app.store)
 //!   TAKE 1 -> chain_id | lp listing | lp release (the wallet)
+//!   READY 2 | the names | orderId[32] (the wallet); TAKE_READY 3 (app.store)
 //! The listing is never empty; an empty release is the listing's default.
 
 use alloc::vec::Vec;
@@ -25,8 +26,13 @@ use alloc::vec::Vec;
 use crate::cursor::Cursor;
 use crate::cursor_put::put_lp;
 
+mod form;
+pub use form::{parse_purchase, Purchase, Ready};
+
 pub const PURCHASE_POST: u8 = 0;
 pub const PURCHASE_TAKE: u8 = 1;
+pub const PURCHASE_READY: u8 = 2;
+pub const PURCHASE_TAKE_READY: u8 = 3;
 /// The longest listing or release name the mailbox carries.
 pub const MAX_NAME: usize = 128;
 
@@ -60,16 +66,7 @@ impl Names {
         n.fits().then_some(n)
     }
 
-    fn fits(&self) -> bool {
+    pub(crate) fn fits(&self) -> bool {
         !self.listing.is_empty() && self.listing.len() <= MAX_NAME && self.release.len() <= MAX_NAME
-    }
-}
-
-/// A PURCHASE body: Some(Some(names)) for POST, Some(None) for TAKE.
-pub fn parse_purchase(b: &[u8]) -> Option<Option<Names>> {
-    match b.split_first()? {
-        (&PURCHASE_POST, rest) => Names::parse(rest).map(Some),
-        (&PURCHASE_TAKE, []) => Some(None),
-        _ => None,
     }
 }

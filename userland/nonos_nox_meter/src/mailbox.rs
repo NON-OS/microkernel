@@ -14,37 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The store-to-wallet mailbox (op 19, the plan, the plan): one purchase's
-//! names, held at most HOLD_MS. A second POST while one waits is EBUSY, so
-//! the store says so; TAKE hands the names over once, and they are gone.
+//! The store-to-wallet mailbox (op 19, the plan, the plan, v1.4.42): one
+//! purchase's names from the store, and once ORDER_NEW has answered, the
+//! names with their orderId back from the wallet. Each slot holds one, at
+//! most HOLD_MS; a second POST while one waits is EBUSY, so the poster says
+//! so; a TAKE hands it over once, and it is gone.
 
-use nonos_payment_proto::{Names, EBUSY};
+use nonos_payment_proto::{Names, Ready, EBUSY};
 
-/// How long posted names wait for the wallet: ten minutes.
+/// How long a posting waits to be taken: ten minutes.
 pub const HOLD_MS: u64 = 600_000;
 
-#[derive(Default)]
-pub struct Mailbox {
-    held: Option<(Names, u64)>,
+pub struct Slot<T> {
+    held: Option<(T, u64)>,
 }
 
-impl Mailbox {
-    pub fn post(&mut self, names: Names, now_ms: u64) -> Result<(), i32> {
+impl<T> Default for Slot<T> {
+    fn default() -> Self {
+        Slot { held: None }
+    }
+}
+
+impl<T> Slot<T> {
+    pub fn post(&mut self, item: T, now_ms: u64) -> Result<(), i32> {
         if self.waiting(now_ms) {
             return Err(EBUSY);
         }
-        self.held = Some((names, now_ms));
+        self.held = Some((item, now_ms));
         Ok(())
     }
 
-    /// The waiting names, once; None when none wait or they waited too long.
-    pub fn take(&mut self, now_ms: u64) -> Option<Names> {
+    /// The waiting posting, once; None when none waits or it waited too long.
+    pub fn take(&mut self, now_ms: u64) -> Option<T> {
         let live = self.waiting(now_ms);
-        let (names, _) = self.held.take()?;
-        live.then_some(names)
+        let (item, _) = self.held.take()?;
+        live.then_some(item)
     }
 
     fn waiting(&self, now_ms: u64) -> bool {
         self.held.as_ref().is_some_and(|(_, at)| now_ms.saturating_sub(*at) < HOLD_MS)
     }
+}
+
+/// 19/0 and 19/1 use `names`; 19/2 and 19/3 use `ready`.
+#[derive(Default)]
+pub struct Mailbox {
+    pub names: Slot<Names>,
+    pub ready: Slot<Ready>,
 }

@@ -30,14 +30,21 @@ fn nox(v: u128) -> String {
 fn the_state_and_what_waits_are_read_out() {
     assert_eq!(state_name(1), "funded: waiting for the seller to deliver");
     assert_eq!(state_name(9), "a state this wallet does not know");
-    let s = OrderStatus { state: 0, funded: 0, pending: 0 };
+    let s = OrderStatus { state: 0, funded: 0, pending: 0, plain: false };
     assert_eq!(status_rows(&s, nox).len(), 2, "nothing waits: no third row");
-    let s = OrderStatus { state: 0, funded: 0, pending: 5 };
+    let s = OrderStatus { state: 0, funded: 0, pending: 5, plain: false };
     let rows = status_rows(&s, nox);
     assert_eq!(
         rows[2],
         ("waiting", String::from("5 NOX at the deposit address, not yet in the order"))
     );
+}
+
+#[test]
+fn a_sealed_plaintext_says_so() {
+    let s = OrderStatus { state: 2, funded: 9, pending: 0, plain: true };
+    let rows = status_rows(&s, nox);
+    assert_eq!(rows[2], ("package", String::from("checked and sealed for the install")));
 }
 
 #[test]

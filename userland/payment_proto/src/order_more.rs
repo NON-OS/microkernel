@@ -17,7 +17,8 @@
 //! The other ORDER bodies:
 //!
 //!   ORDER_NEW's result     orderId[32] | depositAddress[20] | 14 term words
-//!   ORDER_STATUS orderId   -> state u8 | funded u128 | pending u128 (a job)
+//!   ORDER_STATUS orderId   -> state u8 | funded u128 | pending u128 | plain u8
+//!                             (a job; plain 1 once ORDER_DELIVERED sealed it)
 //!   ORDER_DELIVERED        orderId[32] | K[32] (a job)
 //!   ORDER_REFUND orderId   -> refundTo[20] | refundSalt[32]
 
@@ -25,7 +26,7 @@ use alloc::vec::Vec;
 
 use crate::cursor::Cursor;
 
-pub const ORDER_STATUS_LEN: usize = 1 + 16 + 16;
+pub const ORDER_STATUS_LEN: usize = 1 + 16 + 16 + 1;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct OrderStatus {
@@ -33,6 +34,8 @@ pub struct OrderStatus {
     pub funded: u128,
     /// NOX at the deposit address plus what the pool credits it.
     pub pending: u128,
+    /// ORDER_DELIVERED has sealed the plaintext, so op 18 serves it.
+    pub plain: bool,
 }
 
 impl OrderStatus {
@@ -40,13 +43,15 @@ impl OrderStatus {
         let mut out = Vec::from([self.state]);
         out.extend_from_slice(&self.funded.to_le_bytes());
         out.extend_from_slice(&self.pending.to_le_bytes());
+        out.push(self.plain as u8);
         out
     }
 
     pub fn parse(b: &[u8]) -> Option<Self> {
         let mut r = Cursor::new(b);
         let (state, funded, pending) = (r.u8()?, r.u128()?, r.u128()?);
-        r.end(OrderStatus { state, funded, pending })
+        let plain = crate::cursor_put::flag(r.u8()?)?;
+        r.end(OrderStatus { state, funded, pending, plain })
     }
 }
 
