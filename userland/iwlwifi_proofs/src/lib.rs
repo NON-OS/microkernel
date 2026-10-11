@@ -181,4 +181,6 @@ mod network;
 #[path = "../../nonos_wifi_client/src/join_wire.rs"]
 mod client_join_wire;
 #[cfg(test)]
+mod link_gate_tests;
+#[cfg(test)]
 mod serve_tests;

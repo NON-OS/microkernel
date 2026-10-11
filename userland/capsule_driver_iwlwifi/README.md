@@ -38,7 +38,12 @@ manifest, routes IPC, brokers grants, and revokes every grant on capsule exit.
 Only `net.core` and the Wi-Fi panels (`app.settings` in any of its three
 windows, and `app.setup_wizard`) may send to `driver.iwlwifi0`: the kernel
 holds the endpoint to them (`src/services/registry/held.rs`), by name and by
-pid. That covers all three request families, the older NIWF one included.
+pid. Within that, the driver serves the link protocol (raw frames onto the
+air) and its own NIWF protocol only to the process that owns `net.core`, as
+the registry names it on each request; anyone else is refused (EPERM), so a
+panel cannot put frames on the air around the route the person chose. The
+panels keep the Wi-Fi control family: scan, join and status
+(`src/server/link_serve.rs`, `src/server/own.rs`, `nonos_wifi_core::netif::gate`).
 
 Two limits of this grant shape the driver:
 

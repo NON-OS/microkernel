@@ -21,7 +21,9 @@
 //! implementation supplies the association state, the CCMP data path and the
 //! firmware rings.
 
+pub mod gate;
 pub mod serve;
 pub mod wire;
 
+pub use gate::{is_link, link_admits, refuse_link, STATUS_NOT_PERMITTED};
 pub use serve::{serve, LinkPort, MAX_RESPONSE};
