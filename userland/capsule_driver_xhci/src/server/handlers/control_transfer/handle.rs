@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::region::data_region;
 use super::reply::send_reply;
 use super::transfer::do_transfer;
 use crate::error::XhciError;
@@ -36,19 +37,8 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let w_value = u16::from_le_bytes([body[4], body[5]]);
     let w_index = u16::from_le_bytes([body[6], body[7]]);
     let w_len = u16::from_le_bytes([body[8], body[9]]).min(CONTROL_TRANSFER_DATA_MAX);
-    let region = if w_len > 0 {
-        match ctx.driver.dma_pool.alloc(w_len as u64) {
-            Ok(r) => {
-                r.zero();
-                Some(r)
-            }
-            Err(_) => {
-                reply_with_status(tx, req, E_IO);
-                return;
-            }
-        }
-    } else {
-        None
+    let Ok(region) = data_region(&ctx.driver.dma_pool, w_len) else {
+        return reply_with_status(tx, req, E_IO);
     };
     let (data_phys, data_len) = region.as_ref().map_or((0u64, 0u16), |r| (r.phys(), w_len));
     let request = crate::controller::ControlRequest {
