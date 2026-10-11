@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod call;
+mod tx;
 mod wallet;
 
 pub(crate) use call::call;
+pub(crate) use tx::sign_tx;
 pub(crate) use wallet::{address, export, generate, import};

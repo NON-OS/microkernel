@@ -21,15 +21,12 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_libc::{mk_ipc_call, mk_service_lookup};
-
 use nonos_payment_proto::EAGAIN;
 
 const KEYRING: &[u8] = b"keyring";
 
-/// The whole reply, header and exactly `body_len` bytes of body after it, or
-/// the keyring's status. The body starts at 8; a caller holding a secret
-/// wipes the whole buffer.
-pub(crate) fn call(op: u16, payload: &[u8], body_len: usize) -> Result<Vec<u8>, i32> {
+/// The reply buffer and how many bytes of it arrived, once the status is 0.
+fn exchange(op: u16, payload: &[u8], cap: usize) -> Result<(Vec<u8>, usize), i32> {
     let (mut port, mut pid) = (0u32, 0u32);
     if mk_service_lookup(KEYRING.as_ptr(), KEYRING.len(), &mut port, &mut pid) != 0 {
         return Err(EAGAIN);
@@ -39,7 +36,7 @@ pub(crate) fn call(op: u16, payload: &[u8], body_len: usize) -> Result<Vec<u8>, 
     tx.extend_from_slice(&op.to_le_bytes());
     tx.extend_from_slice(&0u16.to_le_bytes());
     tx.extend_from_slice(payload);
-    let mut rx = vec![0u8; 8 + body_len];
+    let mut rx = vec![0u8; 8 + cap];
     let n = mk_ipc_call(port as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len());
     if n < 8 {
         return Err(EAGAIN);
@@ -48,8 +45,22 @@ pub(crate) fn call(op: u16, payload: &[u8], body_len: usize) -> Result<Vec<u8>, 
     if status != 0 {
         return Err(status);
     }
-    if n as usize != 8 + body_len {
+    Ok((rx, n as usize))
+}
+
+/// The whole reply, header and exactly `body_len` bytes of body after it, or
+/// the keyring's status. The body starts at 8; a caller holding a secret
+/// wipes the whole buffer.
+pub(crate) fn call(op: u16, payload: &[u8], body_len: usize) -> Result<Vec<u8>, i32> {
+    let (rx, n) = exchange(op, payload, body_len)?;
+    if n != 8 + body_len {
         return Err(EAGAIN);
     }
     Ok(rx)
+}
+
+/// The body alone, of any length up to `max`.
+pub(crate) fn call_upto(op: u16, payload: &[u8], max: usize) -> Result<Vec<u8>, i32> {
+    let (rx, n) = exchange(op, payload, max)?;
+    Ok(rx[8..n].to_vec())
 }

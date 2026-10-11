@@ -19,6 +19,7 @@ mod market;
 mod settle;
 mod typed;
 
+pub(crate) use lookup::port_of;
 pub(crate) use market::offer;
-pub(crate) use settle::channel_state;
+pub(crate) use settle::{broadcast, channel_state, gas, opened};
 pub(crate) use typed::sign_voucher;
