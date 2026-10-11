@@ -19,6 +19,7 @@ mod api;
 pub mod cpu;
 mod device;
 pub mod distributor;
+mod frames;
 pub mod icc;
 mod in_service;
 pub mod irq_handlers;

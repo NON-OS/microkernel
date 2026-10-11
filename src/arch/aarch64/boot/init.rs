@@ -40,7 +40,9 @@ pub fn init(boot_info: &BootInfo) {
     if boot_info.gic_unsupported {
         super::refuse(b"gic", b"the device tree names a GIC other than v3, the only one driven");
     }
-    gic::init_gic(boot_info.gic_dist_base, boot_info.gic_redist_base);
+    if let Err(reason) = gic::init_gic(boot_info.gic_dist_base, boot_info.gic_redist_base) {
+        super::refuse(b"gic", reason.as_bytes());
+    }
     timer::init_timer();
     timer::configure_preemption_intid(boot_info.timer_phys_intid);
     if let Err(reason) = timer::install_on_cpu() {
