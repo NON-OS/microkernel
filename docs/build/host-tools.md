@@ -122,7 +122,6 @@ python3 tools/nonos-linux-pack --sysroot target/alpine --program usr/bin/jq
 
 Not tested in this release.
 
-Neither tool signs anything. `nonos-linux-pack` accepts `--sign` and `--publisher`, and its help says each program then gets a certificate, a manifest and a trailer, but its `main` reads neither option (`main`, `tools/nonos_linux_pack/pack.py:27-71`). The Linux personality runs a program from the store only when its proof verifies (`prove`, `userland/capsule_linux/src/linux/start_guest.rs:57-60`), and maps a file executable only when it is proved (`proven`, `userland/capsule_linux/src/linux/call/mem/map_file.rs:35-38`). A program packed only this way carries no proof, so the personality refuses it when it starts.
 
 ### Build the image's Linux programs
 
