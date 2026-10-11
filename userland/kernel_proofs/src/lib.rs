@@ -98,6 +98,8 @@ pub mod legacy_ports;
 #[cfg(test)]
 pub mod claim_holds;
 #[cfg(test)]
+pub mod mmio_memory_type;
+#[cfg(test)]
 pub mod smp_bringup;
 #[cfg(test)]
 pub mod futex_waiters;
