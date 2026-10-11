@@ -5157,6 +5157,7 @@
    "userland/capsule_driver_hda/src/protocol/ops.rs",
    "userland/capsule_driver_hda/src/protocol/output.rs",
    "userland/capsule_driver_usb_audio/src/serve/answer.rs",
+   "userland/capsule_driver_usb_audio/src/serve/loss.rs",
    "userland/capsule_driver_usb_audio/src/serve/play.rs",
    "userland/capsule_driver_usb_audio/src/serve/queue.rs",
    "userland/capsule_driver_usb_audio/src/serve/reply.rs",
