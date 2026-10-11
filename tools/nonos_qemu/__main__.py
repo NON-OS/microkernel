@@ -134,7 +134,7 @@ def main():
         lane = lanes.plan(a.lane, TARGET, machine.audio())
     except lanes.LaneError as e:
         sys.exit(str(e))
-    if (lane.nic and a.net == "off") or (lane.tpm and not a.tpm):
+    if ("nic" in lane.swaps and a.net == "off") or ("tpm" in lane.swaps and not a.tpm):
         sys.exit("a nic= lane needs the network on, and tpm-tis needs --tpm: each swaps a device in")
     lanes.make_images(lane.images)
     vars_copy = os.path.join(TARGET, "OVMF_VARS.fd")
@@ -154,7 +154,7 @@ def main():
     cmd = ["qemu-system-x86_64", "-machine", "q35", "-m", a.mem, "-smp", str(machine.cpus(a.smp)), *machine.accel(),
            *machine.firmware(os.environ["OVMF"], vars_copy),
            *machine.disks(boot, target if (a.install_target or a.installed) else None, a.installed, a.usb),
-           *machine.devices(a.net, sock, os.path.join(TARGET, "qmp.sock"), lane.nic, lane.tpm), *lane.args,
+           *machine.devices(a.net, sock, os.path.join(TARGET, "qmp.sock"), lane.swaps), *lane.args,
            *(machine.usb_stick(stick) if a.usb else []),
            *serial, *machine.display(a.headless), "-no-reboot"]
     print(" ".join(cmd), flush=True)

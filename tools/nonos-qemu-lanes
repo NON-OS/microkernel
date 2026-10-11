@@ -22,6 +22,7 @@ lanes are tools/nonos_qemu/lanes.py's, so `make QEMU_LANES=...` and
   nonos-qemu-lanes args   --dir D LANE...  the QEMU lines to add
   nonos-qemu-lanes nic    --dir D LANE...  the NIC model in virtio-net's place
   nonos-qemu-lanes tpm    --dir D LANE...  the TPM interface in tpm-crb's place
+  nonos-qemu-lanes gpu    --dir D LANE...  the display device in virtio-vga's place
   nonos-qemu-lanes images --dir D LANE...  make the lanes' disks, once"""
 
 import argparse
@@ -36,7 +37,7 @@ from nonos_qemu import lanes
 def main():
     ap = argparse.ArgumentParser(prog="nonos-qemu-lanes", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("what", choices=["args", "nic", "tpm", "images"])
+    ap.add_argument("what", choices=["args", "nic", "tpm", "gpu", "images"])
     ap.add_argument("--dir", required=True, help="where the lanes' disks are kept")
     ap.add_argument("--audio", default="none", help="the audio backend usb-audio plays to")
     ap.add_argument("lane", nargs="*")
@@ -50,7 +51,7 @@ def main():
     elif a.what == "args":
         print(" ".join(plan.args))
     else:
-        print(getattr(plan, a.what) or "")
+        print(plan.swaps.get(a.what, ""))
 
 
 if __name__ == "__main__":
