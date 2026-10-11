@@ -19,6 +19,7 @@
 
 use nonos_nox_chunks::{dispute_call, Dispute, OrderTerms};
 use nonos_payment_proto::{DeliveredMade, OrderMade};
+use nonos_settle_proto::Quote;
 
 use super::fixture::{buy, made, offer, NOW, REFUND_TO};
 
@@ -35,4 +36,18 @@ pub(super) fn order() -> (OrderMade, DeliveredMade) {
         leaf_proof: vec![[0x33; 32]; 7],
     };
     (m, DeliveredMade::BadChunk { index: 3, calldata: dispute_call(&t, &d) })
+}
+
+pub(super) const ESCROW: [u8; 20] = [0xE5; 20];
+pub(super) const GWEI: u128 = 1_000_000_000;
+
+pub(super) fn word(n: u64) -> [u8; 32] {
+    let mut w = [0; 32];
+    w[24..].copy_from_slice(&n.to_be_bytes());
+    w
+}
+
+pub(super) fn quote() -> Quote {
+    let (gas_limit, max_fee, max_priority) = (300_000, 20 * GWEI, GWEI);
+    Quote { kind: 10, to: ESCROW, nonce: 0, gas_limit, max_fee, max_priority }
 }

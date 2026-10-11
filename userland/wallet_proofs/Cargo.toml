@@ -32,6 +32,8 @@ nonos_market_proto = { path = "../market_proto" }
 nonos_marketplace_abi = { path = "../marketplace_abi" }
 # The publisher's intents (B8): settle_proto's kind table and its limits.
 nonos_settle_proto = { path = "../settle_proto" }
+# SIGN_FROM_FRESH's request, for the dispute sent from refundTo (v1.4.51).
+shield_wire = { path = "../shield_wire" }
 
 # keccak-256 on the host, for the EIP-55 examples (the wallet asks the
 # crypto service for it on the device).
