@@ -51,7 +51,7 @@ const PACKET_PATH: [&str; 7] = [
     "driver.rtl8821ce0",
     "net.core",
 ];
-const PACKET_PATH_VM: [&str; 2] = ["driver.pcnet0", "driver.vmxnet3_0"];
+const PACKET_PATH_VM: [&str; 3] = ["driver.pcnet0", "driver.vmxnet3_0", "driver.tulip0"];
 
 /*
  * The disk drivers. Each waits in `mk_ipc_recv_from` with no timeout and
