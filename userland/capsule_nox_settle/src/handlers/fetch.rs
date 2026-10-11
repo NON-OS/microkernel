@@ -27,11 +27,12 @@ use nonos_settle_proto::{https_target, Fetch, Page, EINVAL, ENOENT, EPROTO, MAX_
 
 use nonos_marketplace_abi::{decode_release_document, release_hash as signed_hash};
 
+use super::fetch_escrow::escrow;
 use crate::keccak::Host;
 use crate::net::get;
-use crate::settle::{Held, Settle};
+use crate::settle::{Held, HeldEscrow, Settle};
 
-pub fn fetch(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
+pub fn fetch(s: &mut Settle, sender: u32, body: &[u8]) -> Result<Vec<u8>, i32> {
     match Fetch::parse(body).ok_or(EINVAL)? {
         Fetch::Release { url, release_hash } => {
             let (host, path) = https_target(&url).ok_or(EINVAL)?;
@@ -44,10 +45,13 @@ pub fn fetch(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
             s.held = Some(Held { release_hash, bytes });
             Ok(first)
         }
-        Fetch::Page { release_hash, offset } => {
-            let held = s.held.as_ref().filter(|h| h.release_hash == release_hash).ok_or(ENOENT)?;
-            Page::of(&held.bytes, offset).map(|p| p.encode()).ok_or(EINVAL)
+        Fetch::Page { release_hash: key, offset } => {
+            let release = s.held.as_ref().filter(|h| h.release_hash == key).map(|h| &h.bytes);
+            let mine = |e: &&HeldEscrow| e.buyer_pk == key && e.pid == sender;
+            let sealed = s.escrow.as_ref().filter(mine).map(|e| &e.bytes);
+            let bytes = release.or(sealed).ok_or(ENOENT)?;
+            Page::of(bytes, offset).map(|p| p.encode()).ok_or(EINVAL)
         }
-        Fetch::Escrow => Err(EINVAL),
+        Fetch::Escrow(e) => escrow(s, sender, &e),
     }
 }

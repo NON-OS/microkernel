@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What settle keeps between calls: its RPC hosts, which config contracts
-//! passed the start checks, and the one verified release FETCH pages from.
+//! passed the start checks, and the one verified release and the one sealed
+//! escrow answer FETCH pages from.
 
 use alloc::vec::Vec;
 
@@ -28,10 +29,18 @@ pub struct Held {
     pub bytes: Vec<u8>,
 }
 
+/// The one escrow answer held, sealed, for the pid that asked (v1.4.24).
+pub struct HeldEscrow {
+    pub buyer_pk: [u8; 32],
+    pub pid: u32,
+    pub bytes: Vec<u8>,
+}
+
 pub struct Settle {
     pub rpc: Rpc,
     pub live: Live,
     pub held: Option<Held>,
+    pub escrow: Option<HeldEscrow>,
     /// LISTING's per-chain cursors over the registry's logs.
     pub cursors: Cursors,
 }
@@ -40,8 +49,8 @@ impl Settle {
     /// Settle as it starts: every contract is checked once now. One a check
     /// could not reach is checked again when it is first used.
     pub fn start() -> Settle {
-        let mut s =
-            Settle { rpc: Rpc::new(), live: Live::new(), held: None, cursors: Cursors::default() };
+        let (rpc, live, cursors) = (Rpc::new(), Live::new(), Cursors::default());
+        let mut s = Settle { rpc, live, held: None, escrow: None, cursors };
         s.live.check_all(&mut s.rpc);
         s
     }
