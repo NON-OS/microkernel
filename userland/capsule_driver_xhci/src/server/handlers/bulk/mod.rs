@@ -16,7 +16,7 @@
 //! Bulk endpoints for a mass-storage class driver: configure them, move
 //! data through them, and recover one that stalled.
 mod configure;
-mod reply;
+pub(super) mod reply;
 mod reset;
 mod run;
 mod transfer;

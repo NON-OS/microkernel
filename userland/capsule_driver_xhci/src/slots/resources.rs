@@ -50,6 +50,7 @@ pub struct SlotResources {
     /// scheduling it, and its device went silent.
     pub interrupt: Vec<InterruptEndpoint>,
     pub bulk: Option<crate::controller::BulkPipes>,
+    pub isoch: Option<crate::controller::IsochPipe>,
 }
 impl SlotResources {
     pub fn allocate(
@@ -85,6 +86,7 @@ impl SlotResources {
             ep0,
             interrupt: Vec::new(),
             bulk: None,
+            isoch: None,
         })
     }
 
