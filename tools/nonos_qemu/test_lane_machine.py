@@ -36,9 +36,12 @@ class LaneMachine(unittest.TestCase):
         plain = machine.devices("nat", "/s", None)
         self.assertIn("virtio-net-pci,netdev=net0", plain)
         self.assertIn("tpm-crb,tpmdev=tpm0", plain)
-        swapped = machine.devices("nat", "/s", None, "rtl8139", "tpm-tis")
-        self.assertEqual([a for a in swapped if a not in plain], ["rtl8139,netdev=net0", "tpm-tis,tpmdev=tpm0"])
-        self.assertEqual(lanes.plan([], "/d"), lanes.Plan([], [], None, None))
+        swaps = lanes.plan(["nic=rtl8139", "tpm-tis", "vmware-svga"], "/d").swaps
+        swapped = machine.devices("nat", "/s", None, swaps)
+        self.assertEqual([a for a in swapped if a not in plain],
+                         ["vmware-svga", "rtl8139,netdev=net0", "tpm-tis,tpmdev=tpm0"])
+        self.assertEqual(len(swapped), len(plain))
+        self.assertEqual(lanes.plan([], "/d"), lanes.Plan([], [], {}))
 
     def test_a_disk_is_made_once_and_then_kept(self):
         with tempfile.TemporaryDirectory() as d:
