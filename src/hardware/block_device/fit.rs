@@ -25,6 +25,7 @@ pub(super) fn sectors_fit(backend: Backend) -> bool {
     match backend {
         Backend::Nvme => nvme_sectors_fit(),
         Backend::UsbMsc => usb_msc_sectors_fit(),
+        Backend::Wire(i) => super::wire::sectors_fit(i),
         Backend::Ahci | Backend::VirtioBlk => true,
     }
 }

@@ -16,14 +16,21 @@
 
 //! Saying, once, which disk the block layer settled on.
 
+use alloc::format;
+
 use super::backend::Backend;
 
 pub(super) fn announce(backend: Backend) -> Backend {
+    let wire;
     let line = match backend {
         Backend::Nvme => "[BLOCK] NONOS disk on NVMe (driver.nvme0)",
         Backend::Ahci => "[BLOCK] NONOS disk on SATA (driver.ahci0)",
         Backend::VirtioBlk => "[BLOCK] NONOS disk on virtio-blk (driver.virtio_blk0)",
         Backend::UsbMsc => "[BLOCK] NONOS disk on USB mass storage (driver.usb_msc0)",
+        Backend::Wire(i) => {
+            wire = format!("[BLOCK] NONOS disk on {}", super::wire::shown(i));
+            wire.as_str()
+        }
     };
     crate::sys::serial::println(line.as_bytes());
     crate::log::info!("{}", line);

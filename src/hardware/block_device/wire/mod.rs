@@ -1,0 +1,50 @@
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The kernel's one client for every driver on the block wire (PLAN.md,
+//! section 4). An endpoint is a capsule the kernel spawns; `Backend::Wire`
+//! names it by its index in `table`.
+
+mod codec;
+mod decode;
+mod endpoint;
+mod error;
+mod gate;
+mod header;
+mod layout;
+mod map;
+mod native;
+mod ops;
+mod read;
+mod span;
+mod status;
+mod table;
+mod transport;
+mod write;
+
+// The sector-to-block map NVMe's client already proves; it moves to
+// block_device/lba_map/ (A14) and this line follows it.
+#[allow(dead_code)]
+#[path = "../../nvme_capsule/client/lba_map.rs"]
+mod lba_map;
+
+pub use endpoint::{Endpoint, Slot};
+pub use error::WireError;
+pub(super) use map::map_wire_error;
+pub use ops::{capacity, flush, healthcheck, sectors_fit};
+pub use read::read_blocks;
+pub use table::{count, said, shown};
+pub use write::write_blocks;

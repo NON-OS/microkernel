@@ -22,8 +22,14 @@ use super::backend::Backend;
 /// may hold an installed NONOS. The kernel is not told which disk the
 /// firmware booted, so this order stands in for that answer. Then NVMe
 /// before SATA, so a machine with an NVMe data disk and a SATA boot disk
-/// settles on the NVMe one without reading the other; virtio-blk last.
+/// settles on the NVMe one without reading the other. The block-wire
+/// drivers (eMMC and SD) follow SATA, where eMMC was asked while the AHCI
+/// capsule served it; virtio-blk last.
 /// The cost: on a machine with an xHCI controller, every disk waits while
 /// driver.usb_msc0 looks for a device, about 1.5 s when none is plugged in.
-pub(super) const ORDER: [Backend; 4] =
-    [Backend::UsbMsc, Backend::Nvme, Backend::Ahci, Backend::VirtioBlk];
+pub(super) fn order() -> impl Iterator<Item = Backend> {
+    [Backend::UsbMsc, Backend::Nvme, Backend::Ahci]
+        .into_iter()
+        .chain((0..super::wire::count()).map(Backend::Wire))
+        .chain([Backend::VirtioBlk])
+}
