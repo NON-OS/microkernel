@@ -29,6 +29,6 @@ pub(crate) const AT_MASK: usize = 48;
 pub(crate) const AT_LISTING: usize = 56;
 pub(crate) const AT_RELEASE: usize = 88;
 pub(crate) const AT_NET_DESTS: usize = 120;
-pub(crate) const AT_SYSCALLS: usize = 128;
+pub(crate) const AT_SYSCALLS: usize = 152;
 /// From the end of the syscall set to the end, all zero.
-pub(crate) const AT_PAD_TAIL: usize = 193;
+pub(crate) const AT_PAD_TAIL: usize = 217;

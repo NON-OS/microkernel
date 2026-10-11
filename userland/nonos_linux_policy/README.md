@@ -29,9 +29,10 @@ It is a `no_std` library with no capsule, service or capability word.
 
 ## Tests
 
-19 host tests in `src/tests/`:
+21 host tests in `src/tests/`:
 - every field's offset;
 - every refusal;
+- the bit order of the syscall set, least significant first;
 - a single-bit flip anywhere in the 256 bytes either is refused or decodes to
   a policy that encodes back to the flipped bytes;
 - the hashes are domain-separated;
