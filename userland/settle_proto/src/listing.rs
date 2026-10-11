@@ -28,9 +28,12 @@ use crate::registry_log::Listed;
 
 const ROW_HEAD: usize = 32 * 3 + 8 + 2;
 
-/// The reply for `rows`, the first LISTED_MAX of them.
+/// The reply for `rows`, the first LISTED_MAX whose uri is 1 to MAX_URL
+/// bytes: a longer one would not fit its u16 length, and the bytes past
+/// the wrapped length would read as rows the log never had.
 pub fn listing_reply(rows: &[Listed]) -> Vec<u8> {
-    let rows = &rows[..rows.len().min(LISTED_MAX)];
+    let fits = |r: &&Listed| !r.uri.is_empty() && r.uri.len() <= MAX_URL;
+    let rows: Vec<&Listed> = rows.iter().filter(fits).take(LISTED_MAX).collect();
     let mut out = Vec::from([rows.len() as u8]);
     for r in rows {
         [&r.release_id, &r.release_hash, &r.bond_id].iter().for_each(|w| out.extend_from_slice(*w));

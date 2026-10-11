@@ -55,6 +55,14 @@ fn a_listing_reply_reads_whole_or_not_at_all() {
     let mut more = b.clone();
     more[0] = 17;
     no(&more, "seventeen rows");
-    no(&listing_reply(&[row(1, b"")]), "an empty uri");
-    no(&listing_reply(&[row(1, &[b'u'; MAX_URL + 1])]), "a uri past MAX_URL");
+    let raw = |len: usize| {
+        let mut r = vec![1u8];
+        r.extend_from_slice(&[0; 104]);
+        r.extend_from_slice(&(len as u16).to_le_bytes());
+        r.extend(std::iter::repeat_n(b'u', len));
+        r
+    };
+    no(&raw(0), "an empty uri");
+    no(&raw(MAX_URL + 1), "a uri past MAX_URL");
+    assert_eq!(listing_reply(&[row(1, b"")]), [0], "never written");
 }
