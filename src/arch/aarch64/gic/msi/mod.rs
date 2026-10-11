@@ -17,12 +17,14 @@
 //! Message signalled interrupts for the broker, through whichever controller
 //! the device tree's `msi-map` names: an ITS or a GICv2m frame.
 
+mod announce;
 mod controller;
 mod error;
 mod route;
 mod vector;
 
-pub use controller::{bring_up, device_id, doorbell};
+pub use announce::bring_up_and_report;
+pub use controller::{bring_up, describe, device_id, doorbell};
 pub use error::MsiError;
 pub use route::{bind, enable, unbind, MAX_VECTORS};
 pub use vector::Vector;

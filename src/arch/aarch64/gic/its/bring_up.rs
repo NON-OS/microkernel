@@ -28,13 +28,14 @@ use super::queue::Queue;
 use super::regs::{Regs, CTLR, CTLR_ENABLED, TRANSLATER, TYPER};
 use super::state::{Its, COLLECTION, EVENT_BITS, ITS, LPI_WORDS, MAX_DEVICES};
 use super::{lpi_tables, tables};
+use crate::arch::fdt::find::smmu::IommuMap;
 
 /// INTID bits the LPI tables describe: 16383 is past the last LPI handed out.
 const ID_BITS: u32 = 14;
 
-/// Bring up the ITS at `base` for device ids below `device_ids`, and return
+/// Bring up the ITS at `base` for the device ids `map` hands out, and return
 /// the physical address of the doorbell a device writes its events to.
-pub fn bring_up(base: u64, device_ids: u64) -> Result<u64, &'static str> {
+pub fn bring_up(base: u64, map: &IommuMap) -> Result<u64, &'static str> {
     if ITS.lock().is_some() {
         return Err("an ITS is already in service");
     }
@@ -51,7 +52,7 @@ pub fn bring_up(base: u64, device_ids: u64) -> Result<u64, &'static str> {
     let rd = frames::this_cpu().ok_or("the boot CPU has no redistributor frame")?;
     regs.quiesce()?;
     let lpi = lpi_tables::bring_up(&rd, id_bits)?;
-    let device_limit = tables::program(regs, &typer, device_ids)?;
+    let device_limit = tables::program(regs, &typer, device_ids(map))?;
     let target = target(typer.pta, rd.base(), rd.processor_number());
     let mut queue = Queue::new(regs, target)?;
     regs.write32(CTLR, regs.read32(CTLR) | CTLR_ENABLED);
@@ -64,4 +65,10 @@ pub fn bring_up(base: u64, device_ids: u64) -> Result<u64, &'static str> {
         Its { regs, queue, typer, event_bits, device_limit, lpi, devices, lpis: [0; LPI_WORDS] };
     *ITS.lock() = Some(its);
     Ok(base + TRANSLATER)
+}
+
+/// One past the highest id the map hands out, which sizes the device table.
+fn device_ids(map: &IommuMap) -> u64 {
+    let ends = map.entries[..map.count].iter().map(|e| u64::from(e.sid_base) + u64::from(e.length));
+    ends.max().unwrap_or(0)
 }
