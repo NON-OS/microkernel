@@ -44,3 +44,11 @@ fn the_deadline_window_and_empty_orders() {
     let nobody = Buyer { refund_to: [0; 20], ..buyer(NOW + ORDER_MIN_LEAD) };
     assert_eq!(t(sale(), nobody), Err(OrderWrong::Empty));
 }
+
+#[test]
+fn a_buyers_salts_never_show_in_its_debug() {
+    let b = Buyer { refund_salt: [0xab; 32], salt: [0xcd; 32], ..buyer(NOW + ORDER_MIN_LEAD) };
+    let shown = format!("{b:?}");
+    assert!(!shown.contains("171") && !shown.contains("205"), "{shown}");
+    assert!(shown.contains("refund_salt: \"redacted\"") && shown.contains("deadline"));
+}

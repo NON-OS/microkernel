@@ -32,12 +32,24 @@ pub struct Sale {
 }
 
 /// The buyer's deadline, its committed refund address, and two fresh salts.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+/// The salts are secret (rule 5): its Debug names them redacted.
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Buyer {
     pub deadline: u64,
     pub refund_to: [u8; 20],
     pub refund_salt: [u8; 32],
     pub salt: [u8; 32],
+}
+
+impl core::fmt::Debug for Buyer {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Buyer")
+            .field("deadline", &self.deadline)
+            .field("refund_to", &self.refund_to)
+            .field("refund_salt", &"redacted")
+            .field("salt", &"redacted")
+            .finish()
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
