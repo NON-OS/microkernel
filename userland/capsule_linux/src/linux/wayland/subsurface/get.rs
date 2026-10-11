@@ -15,18 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `wl_subcompositor.get_subsurface`: a surface placed on another, as foot
-//! and toolkits draw their decorations and overlays.
-//!
-//! A subsurface is made an object, so its id is the client's to use and to
-//! destroy, and its surface's commits are answered like any other's. Its
-//! pixels are not composed onto the window yet: only a surface with a
-//! toplevel reaches the screen (commit.rs), so a subsurface never takes
-//! the window's place.
+//! and toolkits draw their overlays. It starts synchronized, at its
+//! parent's corner, on top of its parent's stack, and shows nothing until
+//! it commits a buffer. A surface with a role already, or a parent placed
+//! on the surface itself, gets no subsurface.
+
+use alloc::vec;
 
 use crate::linux::guest::Guest;
 
-use super::args::Args;
-use super::object::Object;
+use super::super::args::Args;
+use super::super::object::Object;
+use super::order::Stack;
+use super::restack::placed_on;
+use super::state::Sub;
 
 pub fn get(guest: &mut Guest, args: &mut Args<'_>) {
     let (Some(id), Some(surface), Some(parent)) = (args.u32(), args.u32(), args.u32()) else {
@@ -36,5 +38,27 @@ pub fn get(guest: &mut Guest, args: &mut Args<'_>) {
     if surface == parent || !is_surface(surface) || !is_surface(parent) {
         return;
     }
-    let _ = guest.objects.put(id, Object::Subsurface);
+    let scene = &guest.scene;
+    let shell = scene.surfaces.iter().any(|s| s.id == surface && s.xdg.is_some());
+    if shell || scene.subs.of(surface).is_some() || placed_on(&scene.subs, parent, surface) {
+        return;
+    }
+    if !guest.objects.put(id, Object::Subsurface) {
+        return;
+    }
+    let subs = &mut guest.scene.subs;
+    subs.list.push(Sub {
+        id,
+        surface,
+        parent,
+        at: (0, 0),
+        next_at: None,
+        sync: true,
+        shown: None,
+        waiting: None,
+    });
+    match subs.stacks.iter_mut().find(|s| s.parent == parent) {
+        Some(stack) => stack.ids.push(surface),
+        None => subs.stacks.push(Stack { parent, ids: vec![parent, surface] }),
+    }
 }

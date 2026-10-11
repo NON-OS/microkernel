@@ -54,10 +54,11 @@ pub fn route(
         (Some(Object::Compositor), req::COMPOSITOR_CREATE_REGION) => region::create(guest, args),
         (Some(Object::Region), req::REGION_ADD | req::REGION_SUBTRACT) => {}
         (Some(Object::Subcompositor), req::SUBCOMPOSITOR_GET_SUBSURFACE) => {
-            subsurface::get(guest, args)
+            subsurface::get::get(guest, args)
         }
-        /* Placed, stacked, synced: none of it is composed yet (subsurface.rs). */
-        (Some(Object::Subsurface), req::SUBSURFACE_SET_POSITION..=req::SUBSURFACE_SET_DESYNC) => {}
+        (Some(Object::Subsurface), req::SUBSURFACE_SET_POSITION..=req::SUBSURFACE_SET_DESYNC) => {
+            return subsurface::request::route(guest, id, opcode, args)
+        }
         (Some(Object::Seat), req::SEAT_GET_POINTER) => seat::get_pointer(guest, args),
         (Some(Object::Seat), req::SEAT_GET_KEYBOARD) => seat::get_keyboard(guest, args),
         (o, c) if is_destructor(o, c) => super::super::forget::forget(guest, o, id),
