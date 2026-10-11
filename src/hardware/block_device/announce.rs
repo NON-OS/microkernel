@@ -1,5 +1,5 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -20,19 +20,9 @@ use alloc::format;
 
 use super::backend::Backend;
 
-pub(super) fn announce(backend: Backend) -> Backend {
-    let wire;
-    let line = match backend {
-        Backend::Nvme => "[BLOCK] NONOS disk on NVMe (driver.nvme0)",
-        Backend::Ahci => "[BLOCK] NONOS disk on SATA (driver.ahci0)",
-        Backend::VirtioBlk => "[BLOCK] NONOS disk on virtio-blk (driver.virtio_blk0)",
-        Backend::UsbMsc => "[BLOCK] NONOS disk on USB mass storage (driver.usb_msc0)",
-        Backend::Wire(i) => {
-            wire = format!("[BLOCK] NONOS disk on {}", super::wire::shown(i));
-            wire.as_str()
-        }
-    };
+pub(super) fn announce(b: Backend) -> Backend {
+    let line = format!("[BLOCK] NONOS disk on {}", (b.disk.announced)(b.key));
     crate::sys::serial::println(line.as_bytes());
     crate::log::info!("{}", line);
-    backend
+    b
 }

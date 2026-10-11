@@ -29,17 +29,17 @@ pub fn healthcheck(index: u8) -> Result<(), WireError> {
 }
 
 /// The disk's size in 512-byte sectors, whatever its block size.
-pub fn capacity(index: u8) -> Result<u64, WireError> {
+pub(super) fn capacity(index: u8) -> Result<u64, WireError> {
     let l = layout(gate(index)?)?;
     capacity_sectors(l.lba_count, l.lba_bytes).ok_or(WireError::BlockSize)
 }
 
-pub fn flush(index: u8) -> Result<(), WireError> {
+pub(super) fn flush(index: u8) -> Result<(), WireError> {
     call(gate(index)?, OP_FLUSH, &[]).map(|_| ())
 }
 
 /// False only for a disk whose block size 512-byte sectors cannot map to;
 /// the layout has said so on the log.
-pub fn sectors_fit(index: u8) -> bool {
+pub(super) fn sectors_fit(index: u8) -> bool {
     !matches!(gate(index).and_then(layout), Err(WireError::BlockSize))
 }
