@@ -81,6 +81,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_market_proto"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_marketplace_abi"
 version = "0.3.0"
 dependencies = [
@@ -154,6 +158,7 @@ name = "wallet_proofs"
 version = "0.3.0"
 dependencies = [
  "nonos_hd",
+ "nonos_market_proto",
  "nonos_marketplace_abi",
  "nonos_nox_chunks",
  "nonos_nox_config",
