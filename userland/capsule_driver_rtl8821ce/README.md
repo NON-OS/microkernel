@@ -14,6 +14,12 @@ net.core, Settings, setup wizard (the only senders the kernel admits)
 driver.rtl8821ce0 -- brokered MMIO/DMA, polled --> Realtek RTL8821CE PCIe device
 ```
 
+The link protocol, which puts raw frames on the air, is served only to the
+process that owns `net.core`, as the registry names it on each request;
+Settings and the wizard get the Wi-Fi control family (scan, join, status),
+and a link request from them is refused (EPERM) (`src/serve/answer.rs`,
+`nonos_wifi_core::netif::gate`).
+
 The 802.11 management, the WPA3-SAE exchange (group 19, hash-to-element and
 hunting-and-pecking), the WPA2 four-way and group key handshakes, key
 derivation, CCMP and the receive checks run in the shared `nonos_wifi_core`

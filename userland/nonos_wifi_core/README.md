@@ -21,7 +21,6 @@ under `cargo test`.
 | `mlme` | the association state machine: beacon, authentication (Open System or SAE), association, then the handshake, emitting the frames to send |
 | `station` | the data path: ethernet to 802.11 and back, CCMP in software or hardware, the transmit sequence and packet numbers, and a check of every received frame against the association (BSS, protection, replay) |
 | `scan_list` | the networks a scan heard, deduplicated per access point, hidden ones dropped, aged by sweep, encoded for the Settings panel with WPA2 and WPA3 flags |
-| `netif` | the link protocol `net.core` speaks to a NIC, served over a `LinkPort`, so DHCP, DNS and TCP run over Wi-Fi as over a wired card |
 | `key`, `frame` | the key-installation seam and the plaintext frame contract between the core and a driver |
 
 A network saved as WPA3 is joined with SAE or not at all, and the station
