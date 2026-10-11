@@ -60,7 +60,7 @@ fn carry(
             break;
         }
         let Ok(stream) = RouteStream::connect(route, host, port) else { continue };
-        let mut io = RouteIo { stream, between: &mut *between };
+        let mut io = RouteIo { stream, between: &mut *between, until };
         match crate::exchange::exchange(&mut io, host, &req, body.is_none(), (read_ms, until)) {
             Ok(b) => return Ok(b),
             Err(Some(s)) => return Err(s),
