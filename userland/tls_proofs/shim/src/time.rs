@@ -44,8 +44,21 @@ pub fn mk_time_rtc(_out: *mut RtcTime) -> i64 {
 
 static START: OnceLock<Instant> = OnceLock::new();
 
+std::thread_local! {
+    /// Time a proof has skipped on its own thread, so a peer that waits
+    /// seconds between bytes is played in microseconds. Tests run one per
+    /// thread, so no proof moves another's clock.
+    static SKIPPED: std::cell::Cell<i64> = const { std::cell::Cell::new(0) };
+}
+
+/// Move this thread's uptime on by `ms`.
+pub fn skip_ms(ms: i64) {
+    SKIPPED.with(|s| s.set(s.get().saturating_add(ms)));
+}
+
 pub fn mk_uptime_ms() -> i64 {
-    START.get_or_init(Instant::now).elapsed().as_millis() as i64
+    let real = START.get_or_init(Instant::now).elapsed().as_millis() as i64;
+    real.saturating_add(SKIPPED.with(|s| s.get()))
 }
 
 pub fn mk_time_millis() -> i64 {

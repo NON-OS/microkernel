@@ -23,6 +23,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use crate::handshake_state::Progress;
+use crate::session::deadline::handshake_end;
 use crate::session::{Io, SessionError};
 
 use super::gather::gather;
@@ -33,17 +34,23 @@ use super::types::Stream;
 /// Handshake with a peer whose certificate is not expected to chain to a public
 /// root, and return a session that stays open.
 pub fn connect_unauthenticated<S: Io>(io: &mut S, sni: &[u8]) -> Result<Stream, SessionError> {
-    open(io, sni, None)
+    open(io, sni, None, None)
 }
 
 /// Handshake with `host`, whose chain must verify for it at `now` before the
 /// session is returned; `SessionError::Certificate` when it does not.
 pub fn connect<S: Io>(io: &mut S, host: &[u8], now: u64) -> Result<Stream, SessionError> {
-    open(io, host, Some(now))
+    open(io, host, Some(now), None)
 }
 
-fn open<S: Io>(io: &mut S, sni: &[u8], now: Option<u64>) -> Result<Stream, SessionError> {
+pub(super) fn open<S: Io>(
+    io: &mut S,
+    sni: &[u8],
+    now: Option<u64>,
+    until: Option<i64>,
+) -> Result<Stream, SessionError> {
     let client = crate::client_flight(sni).ok_or(SessionError::Init)?;
+    let stop = handshake_end(until);
     io.write_all(&client.record)?;
 
     let mut buf: Vec<u8> = Vec::new();
@@ -52,13 +59,13 @@ fn open<S: Io>(io: &mut S, sni: &[u8], now: Option<u64>) -> Result<Stream, Sessi
      * that finds the Finished is the one that verifies it, so the key
      * agreement is not repeated at the end.
      */
-    let mut state = handshake_keys(io, &client, &mut buf)?;
+    let mut state = handshake_keys(io, &client, &mut buf, stop)?;
     loop {
         match state.advance(&buf) {
             Progress::Broken => return Err(SessionError::Handshake),
             Progress::Alert(description) => return Err(SessionError::PeerAlert(description)),
             Progress::Complete(end) => return settle(io, &state, buf, end, now.map(|t| (sni, t))),
-            Progress::Incomplete => gather(io, &mut buf)?,
+            Progress::Incomplete => gather(io, &mut buf, stop)?,
         }
     }
 }

@@ -38,4 +38,4 @@ pub use count::{counts, reset, Counts};
 pub use crypto::{crypto_hash, crypto_hmac_sha256, crypto_random};
 pub use crypto::{crypto_x25519_public, crypto_x25519_shared};
 pub use ipc::{mk_ipc_call, mk_service_lookup, POOL_PORT};
-pub use time::{mk_time_millis, mk_time_rtc, mk_uptime_ms, mk_yield, RtcTime};
+pub use time::{mk_time_millis, mk_time_rtc, mk_uptime_ms, mk_yield, skip_ms, RtcTime};

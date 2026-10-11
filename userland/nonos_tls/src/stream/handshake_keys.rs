@@ -35,11 +35,12 @@ pub(super) fn handshake_keys<S: Io>(
     io: &mut S,
     client: &ClientFlight,
     buf: &mut Vec<u8>,
+    end: i64,
 ) -> Result<HandshakeState, SessionError> {
     loop {
         if let Some(state) = crate::session::start::start(client, buf)? {
             return Ok(state);
         }
-        gather(io, buf)?;
+        gather(io, buf, end)?;
     }
 }

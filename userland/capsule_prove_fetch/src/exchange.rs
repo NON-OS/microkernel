@@ -15,14 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One connection to the relay: TLS with the chain checked, the request,
-//! then the answer, each read within the route's budget and the op's end.
+//! then the answer, each read within the route's budget and the op's end;
+//! the handshake stops at the op's end too (connect_until).
 //! `Err(None)` is worth another connection; `Err(Some)` ends the op.
 
 use alloc::vec::Vec;
 
 use nonos_libc::mk_uptime_ms;
 use nonos_proof_abi::wire::fetch::RELAY;
-use nonos_tls::stream::connect;
+use nonos_tls::stream::connect_until;
 use nonos_tls::{rtc_now, SessionError};
 
 use crate::desk::{verdict, Read, Refused, Reply};
@@ -35,7 +36,7 @@ pub fn exchange(
     get: bool,
     (read_ms, until): (i64, i64),
 ) -> Result<Vec<u8>, Option<i32>> {
-    let mut tls = connect(io, host.as_bytes(), rtc_now()).map_err(|e| match e {
+    let mut tls = connect_until(io, host.as_bytes(), rtc_now(), until).map_err(|e| match e {
         SessionError::Certificate => Some(RELAY),
         _ => None,
     })?;
