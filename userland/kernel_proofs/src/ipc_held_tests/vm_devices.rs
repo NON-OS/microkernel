@@ -16,7 +16,8 @@
 
 //! The devices a hypervisor emulates take the clients their physical
 //! counterparts take: an input device the kernel alone (its driver posts
-//! onto the input ring and serves nothing), a display the compositor alone.
+//! onto the input ring and serves nothing), a display the compositor alone,
+//! a sound device the audio server alone.
 
 use super::common::{owner, IPC};
 use super::held::{callers_of, endpoint_admits, inbox_admits};
@@ -43,5 +44,17 @@ fn a_virtual_display_takes_the_compositor_alone() {
     for other in ["app.terminal", "wm", "input_router", "net.core", "driver.virtio_gpu0"] {
         let one: &'static [&'static str] = Box::leak(Box::new([other]));
         assert!(!endpoint_admits("driver.vmware_svga0", owner(one)), "took {other}");
+    }
+}
+
+/// A virtual sound device takes the audio server alone, as HD Audio does:
+/// an application reaches sound only through the server's mixer.
+#[test]
+fn a_virtual_sound_device_takes_the_audio_server_alone() {
+    let server: &'static [&'static str] = &["audio.server"];
+    assert!(endpoint_admits("driver.ac97_0", owner(server)));
+    for other in ["app.audio_player", "app.terminal", "wm", "compositor", "driver.hda0"] {
+        let one: &'static [&'static str] = Box::leak(Box::new([other]));
+        assert!(!endpoint_admits("driver.ac97_0", owner(one)), "took {other}");
     }
 }
