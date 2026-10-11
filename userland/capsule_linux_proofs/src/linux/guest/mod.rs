@@ -24,6 +24,12 @@ pub mod fd_kind;
 pub mod futex_pick;
 #[path = "../../../../capsule_linux/src/linux/guest/layout.rs"]
 pub mod layout;
+#[path = "../../../../capsule_linux/src/linux/guest/links.rs"]
+pub mod links;
+#[path = "../../../../capsule_linux/src/linux/guest/links_add.rs"]
+pub mod links_add;
+#[path = "../../../../capsule_linux/src/linux/guest/links_load.rs"]
+pub mod links_load;
 #[path = "../../../../capsule_linux/src/linux/guest/links_room.rs"]
 pub mod links_room;
 #[path = "../../../../capsule_linux/src/linux/guest/mem.rs"]
