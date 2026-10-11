@@ -27,8 +27,6 @@ use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_PERM};
 use crate::usercopy::{validate_user_write, write_user_value};
 
-const DEFAULT_WAIT_MS: u64 = 100;
-
 pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
@@ -50,7 +48,7 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
     };
     let mut deadline = None;
     if armed == last_seq {
-        let wait = if timeout_ms == 0 { DEFAULT_WAIT_MS } else { timeout_ms };
+        let wait = super::bound::wait_ms(timeout_ms);
         let at = crate::time::timestamp_millis().saturating_add(wait);
         crate::sched::sleep_until_unless_woken(pid, at, token);
         crate::sched::yield_now();

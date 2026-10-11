@@ -71,4 +71,6 @@ pub enum PioError {
     NotHolder,
     BadOffset,
     BadWidth,
+    /// The window includes a port the machine keeps (window.rs, K6).
+    ReservedPort,
 }
