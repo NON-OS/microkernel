@@ -26,7 +26,7 @@ pub fn policy() -> LinuxAppPolicy {
         mask: WAYLAND | MODELS_RO,
         listing_id: [0x22; 32],
         release_id: [0x33; 32],
-        net_dests_hash: [0x44; 8],
+        net_dests_hash: [0x44; 32],
         syscall_set: SyscallSet::NONE.with(0).with(1).with(231).with(511).with(9999),
     }
 }

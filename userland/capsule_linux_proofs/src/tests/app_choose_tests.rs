@@ -56,7 +56,7 @@ fn a_bad_file_refuses_rather_than_defaults() {
     let other = policy(5, WAYLAND).encode();
     assert_eq!(choose(&[6; 32], &[], Some(&other)), Err("its policy names another program"));
     let mut bad = policy(6, WAYLAND).encode();
-    bad[200] = 1;
+    bad[230] = 1;
     assert_eq!(choose(&[6; 32], &[], Some(&bad)), Err("its policy is malformed"));
     assert_eq!(choose(&[6; 32], &[], Some(&bad[..255])), Err("its policy is malformed"));
 }

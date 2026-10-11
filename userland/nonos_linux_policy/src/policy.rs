@@ -28,9 +28,10 @@ pub struct LinuxAppPolicy {
     /// program the vendor ships in the image.
     pub listing_id: [u8; 32],
     pub release_id: [u8; 32],
-    /// First 8 bytes of BLAKE3 of the destinations it may reach; zero means
-    /// any, so long as the route is over the anonymity net.
-    pub net_dests_hash: [u8; 8],
+    /// BLAKE3("NONOS.linux.netdests.v1" | the destinations it may reach);
+    /// zero means any, so long as the route is over the anonymity net. The
+    /// whole 32 bytes: a prefix short enough to grind is no commitment.
+    pub net_dests_hash: [u8; 32],
     /// The system calls it may complete.
     pub syscall_set: SyscallSet,
 }
