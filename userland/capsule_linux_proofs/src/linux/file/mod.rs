@@ -39,5 +39,5 @@ pub mod path;
 pub mod punch;
 pub mod store;
 
-pub use crate::resolve::key;
+pub use crate::resolve::{key, visible};
 pub use store::{read as store_read, write as store_write};
