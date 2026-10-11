@@ -35,7 +35,7 @@ fn answer(o: Order, state: u128, extra: u128, waiting: (u128, u128)) -> Result<N
 }
 
 fn body(state: u8, pending: u128) -> Vec<u8> {
-    OrderStatus { state, funded: 900, pending }.encode()
+    OrderStatus { state, funded: 900, pending, plain: false }.encode()
 }
 
 #[test]
