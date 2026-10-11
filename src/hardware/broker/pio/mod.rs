@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod access;
+mod bar_window;
 mod grant;
+mod grant_drain;
 mod map;
 mod release;
 mod types;
