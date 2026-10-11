@@ -14,31 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The guest's threads, and the ones parked on a futex.
+//! The guest's threads parked on a futex: woken by a reply, and forgotten.
 
 use alloc::vec::Vec;
 
 use nonos_libc::mk_foreign_reply;
 
-use super::fd::Kind;
-use super::futex_pick::{pick, MATCH_ANY};
-use super::handle::Guest;
+use super::super::futex_pick::{pick, MATCH_ANY};
+use super::super::handle::Guest;
 
 impl Guest {
-    /// The net.sockets handle behind `fd`, if it is a socket.
-    pub fn socket_handle(&self, fd: u64) -> Option<u32> {
-        match self.fds.get(fd as usize) {
-            Some(f) if f.kind == Kind::Socket => Some(f.handle),
-            _ => None,
-        }
-    }
-
-    /// True for the guest and for every thread of it, which is what the
-    /// serve loop needs: a trap arrives under the thread's own tid.
-    pub fn owns(&self, pid: u32) -> bool {
-        pid == self.pid || self.threads.contains(&pid)
-    }
-
     /// Reply to at most `count` waiters on `uaddr` and report how many.
     /// The reply is the wake: each was left parked inside its own trap.
     pub fn wake(&mut self, uaddr: u64, count: u64) -> u64 {
