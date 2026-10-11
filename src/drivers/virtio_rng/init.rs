@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::availability::{available, may_program, DELIVERS};
 use super::device::VirtioRngDevice;
 use super::{VIRTIO_RNG, VIRTIO_RNG_AVAILABLE, VIRTIO_VENDOR_ID};
 use super::{VIRTIO_RNG_DEVICE_ID_MODERN, VIRTIO_RNG_DEVICE_ID_TRANSITIONAL};
@@ -22,6 +23,10 @@ use crate::sys::serial;
 use core::sync::atomic::Ordering;
 
 pub fn init() -> Result<(), &'static str> {
+    // Never programmed while it cannot deliver: see availability.rs.
+    if !may_program(DELIVERS) {
+        return Err("virtio-rng: unavailable in the kernel until P9");
+    }
     if !pci::is_init() {
         return Err("virtio-rng: PCI not initialized");
     }
@@ -51,7 +56,7 @@ pub fn init() -> Result<(), &'static str> {
             match VirtioRngDevice::from_bar0(dev.bar0) {
                 Ok(rng_dev) => {
                     *VIRTIO_RNG.lock() = Some(rng_dev);
-                    VIRTIO_RNG_AVAILABLE.store(true, Ordering::SeqCst);
+                    VIRTIO_RNG_AVAILABLE.store(available(DELIVERS, true), Ordering::SeqCst);
                     return Ok(());
                 }
                 Err(e) => {
