@@ -201,6 +201,30 @@ _aarch64_secondary_start:
     msr     sctlr_el1, x1
     isb
 
+    /* The boot CPU's translation and caching, before any Rust: with the
+     * MMU off this CPU's stores bypass the caches the others read, and
+     * its atomics act on Device memory (mmu/secondary.rs). The block was
+     * written to memory before CPU_ON, so it reads right with the cache
+     * off. Stale instruction lines go before the I-cache comes on. */
+    adrp    x1, AARCH64_MMU_CONTEXT
+    add     x1, x1, :lo12:AARCH64_MMU_CONTEXT
+    ldp     x2, x3, [x1]
+    ldp     x4, x5, [x1, #16]
+    ldr     x6, [x1, #32]
+    msr     mair_el1, x2
+    msr     tcr_el1, x3
+    msr     ttbr0_el1, x4
+    msr     ttbr1_el1, x5
+    isb
+    tlbi    vmalle1
+    ic      iallu
+    dsb     nsh
+    isb
+    mrs     x2, sctlr_el1
+    orr     x2, x2, x6
+    msr     sctlr_el1, x2
+    isb
+
     /* Vectors and FP/SIMD before any Rust runs, as on the boot CPU.
      * x0 still carries the context id, so x1 does the work. */
     mov     x1, #(3 << 20)
