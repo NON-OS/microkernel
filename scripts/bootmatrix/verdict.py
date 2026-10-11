@@ -28,12 +28,14 @@ restrictions read back on: SMEP, SMAP, NX and WP, from the kernel's own
 
 import re
 
+from . import virtio
+
 STORE_SERVING = "[VFS] serving, store status "
 DESKTOP = ("[COMPOSITOR] capsule spawned", "[WM] capsule spawned", "[desktop_shell]", "[compositor]")
 READY = ["Handoff OK", "Capsules spawned", STORE_SERVING]
 FATAL = ("[FATAL]", "[PANIC]", "[TRAP GP]", "[TRAP UD]", "[ZK-ATTEST] FAIL", "[SMP-PROOF] FAIL")
 UNRESTRICTED = "DMA is unrestricted"
-REMAPPED = "[VT-D] enumerated devices identity mapped; others denied"
+REMAPPED = "[VT-D] enumerated devices blocked until claimed"
 AMD_VI_NAMED = "[AMD-VI] IVRS present"
 # Every posture line carries the unconfined count beside enforcing=. The line
 # is printed again each time the count changes, so the last one is current.
@@ -94,6 +96,7 @@ def judge(cell, text, reached, ending):
             bad.append("kernel reports DMA is unrestricted with an IOMMU present")
         if REMAPPED not in text:
             bad.append("VT-d never reported devices remapped")
+    bad += virtio.verdict(cell, text)
     if cell.iommu == "amd-iommu" and AMD_VI_NAMED not in text:
         bad.append("kernel never named the AMD-Vi hardware it does not drive")
     if cell.usb_block:
