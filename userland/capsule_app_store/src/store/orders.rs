@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The order a purchase became (B9, v1.4.42): its names awaited back from
-//! the wallet, then its orderId, followed by order_watch.rs.
+//! The order a purchase became (B9, v1.4.42): the names posted, then the
+//! orderId READY hands back for exactly those names, followed by
+//! order_watch.rs. A READY for other names is never this order.
 
-use nonos_payment_proto::Ready;
+use nonos_payment_proto::{Names, Ready};
 
 #[derive(Default)]
 pub struct Orders {
-    /// Names went to the wallet and their orderId has not come back yet.
-    pub awaiting: bool,
+    /// The names this store posted at 19/0, for the order it follows.
+    pub posted: Option<Names>,
     pub order: Option<Ready>,
     pub(super) job: Option<u32>,
     pub(super) at_ms: i64,
