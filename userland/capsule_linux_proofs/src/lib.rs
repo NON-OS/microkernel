@@ -26,6 +26,8 @@ pub mod args;
 pub mod wayland_object;
 #[path = "../../capsule_linux/src/linux/wayland/frame_len.rs"]
 pub mod frame_len;
+#[path = "../../capsule_linux/src/linux/wayland/opaque.rs"]
+pub mod opaque;
 #[path = "../../capsule_linux/src/linux/wayland/window_damage.rs"]
 pub mod window_damage;
 /* A guest window full screen and back, and taken down when it ends. */

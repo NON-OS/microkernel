@@ -20,17 +20,22 @@ use crate::linux::guest::Guest;
 
 use super::args::Args;
 use super::object::Object;
+use super::ops::{FORMAT_ARGB8888, FORMAT_XRGB8888};
 use super::state::Buffer;
 
 /// Bytes per pixel in both formats this capsule advertises.
 const BPP: u64 = 4;
 
 pub fn create_buffer(guest: &mut Guest, pool: u32, args: &mut Args<'_>) {
-    let (Some(id), Some(offset), Some(width), Some(height), Some(stride), Some(_fmt)) =
+    let (Some(id), Some(offset), Some(width), Some(height), Some(stride), Some(format)) =
         (args.u32(), args.u32(), args.u32(), args.u32(), args.u32(), args.u32())
     else {
         return;
     };
+    /* Only the two formats shm.rs advertises; a client sends no other. */
+    if format != FORMAT_ARGB8888 && format != FORMAT_XRGB8888 {
+        return;
+    }
     let Some(size) = guest.scene.pools.iter().find(|p| p.id == pool).map(|p| p.size) else {
         return;
     };
@@ -41,7 +46,15 @@ pub fn create_buffer(guest: &mut Guest, pool: u32, args: &mut Args<'_>) {
         return;
     }
     guest.scene.buffers.retain(|b| b.id != id);
-    guest.scene.buffers.push(Buffer { id, pool, offset: offset as u64, width, height, stride });
+    guest.scene.buffers.push(Buffer {
+        id,
+        pool,
+        offset: offset as u64,
+        width,
+        height,
+        stride,
+        opaque: format == FORMAT_XRGB8888,
+    });
 }
 
 /// Whether the rectangle lies wholly inside a pool of `size` bytes.

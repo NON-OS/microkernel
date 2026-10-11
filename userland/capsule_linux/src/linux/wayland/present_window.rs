@@ -36,8 +36,8 @@ use nonos_libc::mk_surface_release;
 use crate::linux::guest::Guest;
 
 use super::fit::origin;
+use super::present_source::{take, Source};
 use super::present_surface::{register, say};
-use super::reshape::Shape;
 use super::scene::Scene;
 use super::scene_pixels::Pixels;
 use super::window_life::Shown;
@@ -51,7 +51,8 @@ const GUEST_WINDOWS: u32 = 0x4C4E_0000;
 /// on `surface`, on a new surface of its shape: opened, raised and focused
 /// the first time, at the acked configure's corner when one is due, else
 /// where the window was, else centred below the top bar.
-pub fn show(guest: &mut Guest, surface: u32, src: u64, bytes: usize, shape: Shape) {
+pub fn show(guest: &mut Guest, surface: u32, src: &Source) {
+    let (bytes, shape) = (src.bytes, src.shape);
     let (Some(comp), Some(wm)) = (lookup_port(b"compositor"), lookup_port(b"wm")) else {
         say("[WAYLAND] no compositor or window manager for a window\n".into());
         return;
@@ -62,7 +63,7 @@ pub fn show(guest: &mut Guest, surface: u32, src: u64, bytes: usize, shape: Shap
     };
     let pid = guest.pid;
     let Some(frame) = fresh.frame(bytes) else { return };
-    if !Guest::read_into(pid, src, frame) {
+    if !take(pid, src, frame) {
         return;
     }
     let Some(handle) = register(&fresh, shape) else { return };
