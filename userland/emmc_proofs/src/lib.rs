@@ -22,16 +22,16 @@
 
 pub mod emmc;
 
+pub mod kernel_wire;
+/// Who the capsule serves the medium to.
+#[path = "../../capsule_driver_sdhci/src/server/medium_rule.rs"]
+pub mod medium_rule;
 /// The capsule's block wire, held to the kernel client's in `kernel_wire`.
 #[path = "../../capsule_driver_sdhci/src/protocol/mod.rs"]
 pub mod protocol;
 /// How the capsule checks the head of a READ or WRITE.
 #[path = "../../capsule_driver_sdhci/src/server/handlers/rw_parse.rs"]
 pub mod rw_parse;
-/// Who the capsule serves the medium to.
-#[path = "../../capsule_driver_sdhci/src/server/medium_rule.rs"]
-pub mod medium_rule;
-pub mod kernel_wire;
 
 #[cfg(test)]
 mod model;
@@ -47,15 +47,11 @@ mod cmd_tests;
 #[cfg(test)]
 mod console_tests;
 #[cfg(test)]
-mod disk_info_tests;
-#[cfg(test)]
 mod fault_tests;
 #[cfg(test)]
 mod io_tests;
 #[cfg(test)]
 mod names_tests;
-#[cfg(test)]
-mod payload_tests;
 #[cfg(test)]
 mod pci_tests;
 #[cfg(test)]

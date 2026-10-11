@@ -27,4 +27,4 @@ pub mod status;
 
 pub use caps::Caps;
 pub use cmd::Resp;
-pub use host::{Cmd, Data, Host, Snapshot};
+pub use host::{Cmd, Data, Host};
