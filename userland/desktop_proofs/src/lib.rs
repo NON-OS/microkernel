@@ -337,3 +337,11 @@ pub mod router_shell_keys;
 
 #[cfg(test)]
 mod system_key_tests;
+
+// Who the shell believes a key event or a window notice from: only the
+// process the registry names for the input router or the window manager.
+#[path = "../../capsule_desktop_shell/src/server/peer_rule.rs"]
+pub mod shell_peer_rule;
+
+#[cfg(test)]
+mod peer_rule_tests;
