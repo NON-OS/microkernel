@@ -29,6 +29,9 @@ pub struct HostCfg {
     pub cd_inserted: bool,
     /// The card's write-protect switch is on.
     pub write_protected: bool,
+    /// Once this many commands are issued, the card is taken out and an
+    /// identical one put in before the last is answered: a swap mid-request.
+    pub swap_at_cmd: Option<usize>,
 }
 
 /// Intel Gemini Lake eMMC-like: spec 3.00, 200 MHz, ADMA2, 64-bit,
@@ -45,6 +48,7 @@ impl Default for HostCfg {
             reset_reads: 2,
             cd_inserted: true,
             write_protected: false,
+            swap_at_cmd: None,
         }
     }
 }

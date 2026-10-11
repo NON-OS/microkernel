@@ -18,7 +18,7 @@
 
 use super::super::super::env::{Clock, Deadline, Log, Mmio};
 use super::super::super::error::{EmmcError, EmmcResult};
-use super::super::regs::{INT_STATUS, RESET_CMD, RESET_DATA, SOFTWARE_RESET};
+use super::super::regs::{ENGINE_STATUS, INT_STATUS, RESET_CMD, RESET_DATA, SOFTWARE_RESET};
 use super::engine::Host;
 use super::limits::RESET_MS;
 
@@ -39,10 +39,10 @@ impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
     }
 
     /// After a failed command: reset the CMD line, then the DAT line (as
-    /// sdhci_request_done does), and clear every status.
+    /// sdhci_request_done does), and clear the engine's statuses.
     pub(super) fn clear_lines(&self) {
         let _ = self.reset(RESET_CMD);
         let _ = self.reset(RESET_DATA);
-        self.io.w32(INT_STATUS, u32::MAX);
+        self.io.w32(INT_STATUS, ENGINE_STATUS);
     }
 }
