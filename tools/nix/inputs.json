@@ -29,6 +29,9 @@
    "nonos-data/trust/capsules/driver_pcnet.manifest.bin",
    "nonos-data/trust/capsules/driver_pcnet.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_pcnet.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -3463,6 +3466,9 @@
    "nonos-data/trust/capsules/driver_pcnet.manifest.bin",
    "nonos-data/trust/capsules/driver_pcnet.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_pcnet.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -4895,6 +4901,33 @@
    "userland/nonos_virtio/src/pci",
    "userland/nonos_virtio/src/select.rs",
    "userland/virtio_transport_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/vmxnet3_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_vmxnet3/src/constants",
+   "userland/capsule_driver_vmxnet3/src/init/activate.rs",
+   "userland/capsule_driver_vmxnet3/src/init/finish.rs",
+   "userland/capsule_driver_vmxnet3/src/init/run.rs",
+   "userland/capsule_driver_vmxnet3/src/init/shared_area.rs",
+   "userland/capsule_driver_vmxnet3/src/init/station_address.rs",
+   "userland/capsule_driver_vmxnet3/src/init/version.rs",
+   "userland/capsule_driver_vmxnet3/src/protocol",
+   "userland/capsule_driver_vmxnet3/src/queue",
+   "userland/capsule_driver_vmxnet3/src/regs/device.rs",
+   "userland/capsule_driver_vmxnet3/src/regs/doorbell.rs",
+   "userland/capsule_driver_vmxnet3/src/report",
+   "userland/capsule_driver_vmxnet3/src/server/handlers/rx_fill.rs",
+   "userland/capsule_driver_vmxnet3/src/server/handlers/tx_stage.rs",
+   "userland/capsule_driver_vmxnet3/src/setup/driver.rs",
+   "userland/capsule_driver_vmxnet3/src/setup/grant.rs",
+   "userland/capsule_driver_vmxnet3/src/shared",
+   "userland/nonos_mac",
+   "userland/vmxnet3_proofs"
   ],
   "md": [],
   "signed": []

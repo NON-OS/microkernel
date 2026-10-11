@@ -34,7 +34,8 @@ mod desktop_services;
     feature = "nonos-capsule-driver-iwlwifi",
     feature = "nonos-capsule-driver-rtl8821ce",
     feature = "nonos-capsule-driver-pcnet",
-    feature = "nonos-capsule-driver-vmxnet3"
+    feature = "nonos-capsule-driver-vmxnet3",
+    feature = "nonos-capsule-driver-virtio-input"
 ))]
 mod device_present;
 mod drivers_bus;

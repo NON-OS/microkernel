@@ -16,6 +16,7 @@
 
 pub(super) fn spawn() {
     spawn_ps2_input();
+    spawn_virtio_input();
 }
 
 #[cfg(feature = "nonos-capsule-driver-ps2-input")]
@@ -31,3 +32,21 @@ fn spawn_ps2_input() {
 
 #[cfg(not(feature = "nonos-capsule-driver-ps2-input"))]
 fn spawn_ps2_input() {}
+
+#[cfg(feature = "nonos-capsule-driver-virtio-input")]
+fn spawn_virtio_input() {
+    use crate::hardware::inventory::HardwareFamily;
+    use crate::hardware::virtio_input_capsule as c;
+    if !super::device_present::present("DRIVER-VIRTIO-INPUT", HardwareFamily::InputVirtio) {
+        return;
+    }
+    super::boot::capsule(
+        "DRIVER-VIRTIO-INPUT",
+        "driver_virtio_input",
+        c::spawn_driver_virtio_input_capsule,
+        c::shared_state,
+    );
+}
+
+#[cfg(not(feature = "nonos-capsule-driver-virtio-input"))]
+fn spawn_virtio_input() {}

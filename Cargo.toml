@@ -152,6 +152,7 @@ nonos-capsule-driver-virtio-blk = []
 nonos-capsule-driver-virtio-gpu = []
 nonos-capsule-driver-virtio-net = []
 nonos-capsule-driver-ps2-input  = []
+nonos-capsule-driver-virtio-input= []
 nonos-capsule-driver-xhci       = []
 nonos-capsule-driver-usb-hid    = []
 nonos-capsule-driver-usb-msc    = []
@@ -437,6 +438,13 @@ microkernel-driver-vmxnet3 = [
   "nonos-capsule-driver-vmxnet3",
 ]
 
+microkernel-driver-virtio-input = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-input",
+]
+
 microkernel-driver-ahci = [
   "microkernel-core",
   "nonos-production",
@@ -652,6 +660,7 @@ microkernel-full-gui = [
   "nonos-capsule-driver-rtl8169",
   "nonos-capsule-driver-pcnet",
   "nonos-capsule-driver-vmxnet3",
+  "nonos-capsule-driver-virtio-input",
   "nonos-capsule-driver-iwlwifi",
   "nonos-capsule-driver-rtl8821ce",
   "nonos-capsule-driver-hda",
