@@ -23,6 +23,7 @@
 
 use super::grant::{self, PioGrant};
 use super::types::{PioError, PioGrantRequest, PioGrantResult};
+use super::window::{window, Refused};
 use crate::hardware::broker::claim;
 use crate::hardware::broker::device::BAR_KIND_PIO;
 use crate::hardware::broker::table;
@@ -55,15 +56,10 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
     if bar.size == 0 {
         return Err(PioError::ZeroSize);
     }
-    if bar.base > u16::MAX as u64 {
-        return Err(PioError::PortOverflow);
-    }
-    let port_base = bar.base as u16;
-    let last_port = bar.base.checked_add(bar.size).ok_or(PioError::PortOverflow)?;
-    if last_port > u16::MAX as u64 + 1 {
-        return Err(PioError::PortOverflow);
-    }
-    let port_count = (bar.size & u16::MAX as u64) as u16;
+    let (port_base, port_count) = window(bar.base, bar.size).map_err(|r| match r {
+        Refused::Overflow => PioError::PortOverflow,
+        Refused::Reserved => PioError::ReservedPort,
+    })?;
 
     let grant_id = grant::allocate_id();
     grant::insert(PioGrant {

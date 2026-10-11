@@ -16,6 +16,14 @@
 
 pub mod table;
 #[cfg(test)]
+#[path = "../../../../src/hardware/broker/pio/window.rs"]
+mod pio_window;
+#[cfg(test)]
+#[path = "../../../../src/syscall/microkernel/irq/bound.rs"]
+mod irq_bound;
+#[cfg(test)]
+mod rows_k6;
+#[cfg(test)]
 mod tests;
 #[cfg(test)]
 mod token;
