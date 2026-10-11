@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod busy;
 mod claim_owned;
 pub mod drop_attach;
 pub mod exit;
@@ -22,6 +23,7 @@ pub mod gate;
 pub mod held;
 pub mod orphans;
 pub mod register_check;
+pub mod register_race;
 pub mod register_rule;
 mod unmap_receiver;
 pub mod unmap_rule;

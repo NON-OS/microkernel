@@ -21,18 +21,22 @@ use crate::kernel_core::surface_registry::table::{register_surface, SLOTS};
 use crate::kernel_core::surface_registry::types::{
     RegistryError, SurfaceDescriptor, SurfaceHandle, SurfaceSid,
 };
-use crate::memory::addr::PhysAddr;
+use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::paging::manager::api::translate_address;
 use crate::smp::lock_responsive;
 
+use super::busy::busy_over;
 use super::gate::GATE;
 use super::orphans::ORPHANS;
+use super::register_race::still_mapped;
 use super::register_rule::may_register;
 
 /*
  * Register `frames` for `pid` only if they are its own to give
- * (`register_rule`). The check, the slot and the owner's attach record are
- * made under the pin gate: an exit, an attach or a second registration
- * between the check and the slot would make the check stale.
+ * (`register_rule`) and still where the walk found them (`register_race`).
+ * The checks, the slot and the owner's attach record are made under the pin
+ * gate: an exit, an attach or a second registration between the checks and
+ * the slot would make them stale.
  */
 pub fn register_owned(
     pid: u32,
@@ -40,8 +44,15 @@ pub fn register_owned(
     frames: Vec<PhysAddr>,
 ) -> Result<(SurfaceSid, SurfaceHandle), RegistryError> {
     let _gate = lock_responsive(&GATE);
-    let device = crate::hardware::broker::touches_device_window(desc.base_va, desc.byte_len);
     let mut new: Vec<u64> = frames.iter().map(|f| f.as_u64()).collect();
+    let now = (0..new.len() as u64).map(|i| {
+        let va = VirtAddr::new(desc.base_va + i * 4096);
+        translate_address(va).map(|pa| pa.as_u64() & !0xFFF)
+    });
+    if busy_over(desc.base_va, desc.byte_len) || !still_mapped(&new, now) {
+        return Err(RegistryError::InvalidArg);
+    }
+    let device = crate::hardware::broker::touches_device_window(desc.base_va, desc.byte_len);
     new.sort_unstable();
     {
         // Nowhere else holds both; taken in this order, nothing can wait on
