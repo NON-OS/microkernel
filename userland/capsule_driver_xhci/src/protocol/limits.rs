@@ -18,7 +18,8 @@ pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 56;
 pub const PORT_ENTRY_BYTES: usize = 8;
 pub const MAX_PORTS_REPORTED: usize = 255;
 pub const PORT_STATUS_HEADER_BYTES: usize = 4;
-pub const MAX_REQUEST_PAYLOAD_LEN: usize = BULK_HEADER_LEN + BULK_MAX;
+/// The larger of a bulk OUT and an isoch OUT request.
+pub const MAX_REQUEST_PAYLOAD_LEN: usize = ISOCH_REQUEST_MAX;
 pub const SLOT_ENABLE_PAYLOAD_LEN: usize = 4;
 pub const SLOT_DISABLE_PAYLOAD_LEN: usize = 1;
 pub const ADDRESS_DEVICE_REQUEST_LEN: usize = 2;
@@ -39,3 +40,10 @@ pub const BULK_MAX: usize = 4096;
 pub const BULK_HEADER_LEN: usize = 4;
 pub const CONFIGURE_BULK_REQUEST_LEN: usize = 8;
 pub const RESET_BULK_REQUEST_LEN: usize = 2;
+pub const CONFIGURE_ISOCH_REQUEST_LEN: usize = 8;
+/// An isoch OUT batch: `slot, dci, packets, 0`, a u16 length per packet,
+/// then the packets' bytes, at most ISOCH_MAX of them.
+pub const ISOCH_HEADER_LEN: usize = 4;
+pub const ISOCH_PACKETS_MAX: usize = 32;
+pub const ISOCH_MAX: usize = 4096;
+pub const ISOCH_REQUEST_MAX: usize = ISOCH_HEADER_LEN + 2 * ISOCH_PACKETS_MAX + ISOCH_MAX;

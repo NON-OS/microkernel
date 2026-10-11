@@ -16,7 +16,7 @@
 //! Replies for the bulk operations: the status, a four-byte prefix, and
 //! for a bulk IN the bytes that came in.
 use crate::protocol::{encode_response_header, write_status, Request, RESP_HDR_LEN, STATUS_LEN};
-pub(super) fn send_prefix(tx: &mut [u8], req: &Request, prefix: [u8; 4]) {
+pub(crate) fn send_prefix(tx: &mut [u8], req: &Request, prefix: [u8; 4]) {
     send_with_data(tx, req, prefix, 0);
 }
 /// Send the reply whose `data_len` data bytes the caller already wrote

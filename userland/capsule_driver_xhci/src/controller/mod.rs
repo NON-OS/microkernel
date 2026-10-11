@@ -20,6 +20,7 @@ mod drain_events;
 mod get_config_descriptor;
 mod get_device_descriptor;
 mod halt;
+mod isoch;
 mod issue_address_device;
 mod issue_configure_endpoint;
 mod issue_control_transfer;
@@ -56,6 +57,7 @@ pub use get_device_descriptor::{
     get_device_descriptor, read_device_descriptor, DEVICE_DESCRIPTOR_LEN, DEVICE_DESCRIPTOR_PREFIX,
 };
 pub use halt::halt;
+pub use isoch::{isoch_endpoint, isoch_out, write_isoch_input, IsochEndpoint, IsochPipe};
 pub use issue_address_device::issue_address_device;
 pub use issue_configure_endpoint::issue_configure_endpoint;
 pub use issue_control_transfer::{issue_control_transfer, ControlRequest};
