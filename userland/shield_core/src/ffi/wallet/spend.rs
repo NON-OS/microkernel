@@ -56,9 +56,7 @@ impl Wallet {
         // The pool's own fee, checked by its policy before any proving, paid to whoever lands it.
         let tor = self.tor()?;
         let public = if matches!(to, Destination::Withdraw { .. }) { amount } else { 0 };
-        if public != 0 && crate::net::policy_paused::policy_paused(tor.as_ref(), &ACTIVE)? {
-            return Err(WalletError::WithdrawalsPaused);
-        }
+        super::spend_gate::may_spend(tor.as_ref(), &ACTIVE, asset, amount, public != 0)?;
         let fee = crate::net::fee_schedule::spend_fee(tor.as_ref(), &ACTIVE, asset, public)?
             .ok_or(WalletError::FeeTooHigh)?;
         self.keep_to_quote((coin, amount, public != 0), fee)?;
