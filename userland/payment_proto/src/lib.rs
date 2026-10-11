@@ -35,6 +35,7 @@ mod open;
 mod open_codec;
 mod ops;
 mod order_delivered;
+mod order_delivered_made;
 mod order_made;
 mod order_more;
 mod order_new;

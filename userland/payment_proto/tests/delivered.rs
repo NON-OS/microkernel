@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! ORDER_DELIVERED's request and result (plan/29), exactly.
 
 use nonos_payment_proto::{DeliveredAsk, DeliveredMade, DELIVERED_ASK_LEN};
@@ -35,11 +34,21 @@ fn a_delivery_result_is_ok_with_its_length_or_the_dispute() {
     let b = ok.encode();
     assert_eq!((b.len(), b[0]), (9, 0));
     assert_eq!(DeliveredMade::parse(&b), Some(ok));
-    assert_eq!(DeliveredMade::parse(&[b.as_slice(), &[0]].concat()), None, "OK carries nothing more");
+    assert_eq!(
+        DeliveredMade::parse(&[b.as_slice(), &[0]].concat()),
+        None,
+        "OK carries nothing more"
+    );
     let bad = DeliveredMade::BadChunk { index: 3, calldata: vec![0xab; 100] };
     let b = bad.encode();
     assert_eq!((b[0], &b[1..9], b.len()), (1, &3u64.to_le_bytes()[..], 109));
     assert_eq!(DeliveredMade::parse(&b), Some(bad));
     assert_eq!(DeliveredMade::parse(&b[..9]), None, "a bad chunk carries its calldata");
     assert_eq!(DeliveredMade::parse(&[2, 0, 0, 0, 0, 0, 0, 0, 0]), None);
+}
+
+#[test]
+fn the_content_key_never_shows_in_debug() {
+    let shown = format!("{:?}", DeliveredAsk { order_id: [1; 32], key: [0xee; 32] });
+    assert!(!shown.contains("238") && shown.contains("key: \"redacted\""), "{shown}");
 }
