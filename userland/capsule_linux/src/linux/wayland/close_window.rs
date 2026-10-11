@@ -20,61 +20,14 @@
 
 use core::mem;
 
-use nonos_app_skeleton::clients::compositor::scene_remove;
-use nonos_app_skeleton::clients::wm::window_close;
-use nonos_app_skeleton::discover::lookup_port;
-use nonos_libc::mk_surface_release;
-
 use crate::linux::guest::Guest;
 
+use super::close_steps::Calls;
 use super::fit::Fit;
 use super::present::surface::say;
 use super::scene::Scene;
 use super::scene_pixels::Pixels;
-use super::window_life::{take_down, takes_down, End, Steps};
-
-struct Calls {
-    handle: u64,
-    window: Option<u32>,
-    pixels: Option<Pixels>,
-    serial: u32,
-}
-
-impl Calls {
-    fn rid(&mut self) -> u32 {
-        self.serial = self.serial.wrapping_add(1);
-        self.serial
-    }
-}
-
-impl Steps for Calls {
-    fn scene_remove(&mut self) -> bool {
-        let rid = self.rid();
-        // The compositor holds one layer per process, and its remove takes
-        // that layer, which is this window's.
-        lookup_port(b"compositor").is_some_and(|port| scene_remove(port, rid, 0).is_ok())
-    }
-
-    fn release_surface(&mut self) -> bool {
-        mk_surface_release(self.handle) >= 0
-    }
-
-    fn free_pixels(&mut self) {
-        self.pixels = None;
-    }
-
-    fn keep_pixels(&mut self) {
-        if let Some(p) = self.pixels.take() {
-            mem::forget(p);
-        }
-    }
-
-    fn wm_close(&mut self) -> bool {
-        let Some(id) = self.window else { return true };
-        let rid = self.rid();
-        lookup_port(b"wm").is_some_and(|port| window_close(port, rid, id).is_ok())
-    }
-}
+use super::window_life::{take_down, takes_down, End};
 
 /// Take down the window `end` ends, if it ends the one shown.
 pub fn close_for(scene: &mut Scene, end: End) {

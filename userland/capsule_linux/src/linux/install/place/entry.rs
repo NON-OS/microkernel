@@ -44,7 +44,7 @@ pub(super) fn one(entry: &Entry) -> Placed {
         say(b"[LINUX] a file of the package could not be written\n");
         return Placed::Failed;
     }
-    super::super::enrol::vouch_elf(&at, &entry.body);
+    super::super::record::vouch::vouch_elf(&at, &entry.body);
     Placed::Landed(at)
 }
 

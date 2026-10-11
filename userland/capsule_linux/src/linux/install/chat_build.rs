@@ -28,5 +28,5 @@ use alloc::vec::Vec;
 /// line said when it is chosen, if any. A tier starts the first one the
 /// store holds.
 pub fn choices(program: &'static [u8]) -> Vec<(&'static [u8], &'static [u8])> {
-    super::chat_pick::pick(program, super::cpu::tcg::under_tcg(), super::cpu::isa::runs_v3())
+    super::chat_pick::pick(program, super::tcg::under_tcg(), super::isa::runs_v3())
 }
