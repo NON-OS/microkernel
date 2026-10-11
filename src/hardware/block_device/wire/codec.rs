@@ -16,11 +16,12 @@
 
 use alloc::vec::Vec;
 
+use super::frame::frame;
 use super::header::{MAGIC, MAX_TRANSFER_BYTES, VERSION};
 use crate::services::lifecycle::transport::{self, DecodedResponse};
 
-pub(super) fn encode_request(op: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
-    transport::encode_request(MAGIC, VERSION, op, 0, request_id, body)
+pub(super) fn encode_request(op: u16, unit: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
+    frame(op, unit, request_id, body)
 }
 
 pub(super) fn decode_response(buf: &[u8]) -> Option<DecodedResponse<'_>> {
