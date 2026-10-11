@@ -16,6 +16,7 @@
 
 use crate::arch::fdt::endian::be_u32;
 use crate::arch::fdt::error::FdtError;
+use crate::arch::fdt::limits::MAX_CELLS;
 
 use super::reg_iter::RegIter;
 use super::string_list::StringList;
@@ -31,6 +32,26 @@ impl<'a> Property<'a> {
         be_u32(self.data, 0)
     }
 
+    /// A `#...-cells` value: exactly one cell, no more than `MAX_CELLS`.
+    pub fn cell_count(&self) -> Result<u32, FdtError> {
+        if self.data.len() != 4 {
+            return Err(FdtError::BadCells);
+        }
+        let n = self.u32()?;
+        if n > MAX_CELLS {
+            return Err(FdtError::BadCells);
+        }
+        Ok(n)
+    }
+
+    /// The value as one string, without its terminator.
+    pub fn string(&self) -> Result<&'a [u8], FdtError> {
+        match self.data.split_last() {
+            Some((0, body)) if !body.contains(&0) => Ok(body),
+            _ => Err(FdtError::BadString),
+        }
+    }
+
     pub fn reg_iter(&self, address_cells: u32, size_cells: u32) -> RegIter<'a> {
         RegIter::new(self.data, address_cells, size_cells)
     }
@@ -40,11 +61,6 @@ impl<'a> Property<'a> {
     }
 
     pub fn compatible_matches(&self, needle: &[u8]) -> bool {
-        for s in self.stringlist() {
-            if s == needle {
-                return true;
-            }
-        }
-        false
+        self.stringlist().any(|s| s == needle)
     }
 }

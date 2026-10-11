@@ -23,3 +23,11 @@ pub const MAX_BLOB: usize = 2 << 20;
 /// Deepest node nesting accepted, the root at depth 0. Real trees stop around
 /// six levels; the bound is what lets every per-depth table be fixed storage.
 pub const MAX_DEPTH: usize = 16;
+
+/// Most cells one `#address-cells`, `#size-cells` or `#interrupt-cells` may
+/// name. PCI addresses are three and GIC specifiers at most four.
+pub const MAX_CELLS: u32 = 4;
+
+/// What the spec says a node without `#address-cells` / `#size-cells` uses.
+pub const DEFAULT_ADDRESS_CELLS: u32 = 2;
+pub const DEFAULT_SIZE_CELLS: u32 = 1;
