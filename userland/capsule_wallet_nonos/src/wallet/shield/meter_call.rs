@@ -45,3 +45,26 @@ pub fn account() -> Option<Account> {
     }
     Account::parse(reply_body(&rx[..n as usize], OP_ACCOUNT, id).ok()?)
 }
+
+/// SET_BUDGET (payment_proto op 6): Ok once the meter has written it, or
+/// the meter's status.
+pub fn set_budget(body: &[u8]) -> Result<(), i32> {
+    use nonos_payment_proto::{EAGAIN, EIO, OP_SET_BUDGET};
+    let (mut port, mut pid) = (0u32, 0u32);
+    if mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut port, &mut pid) != 0 || pid == 0 {
+        return Err(EAGAIN);
+    }
+    let id = mk_time_millis() as u32;
+    let tx = request(OP_SET_BUDGET, id, body);
+    let mut rx = vec![0u8; HDR_LEN + STATUS_LEN];
+    let (out, cap) = (rx.as_mut_ptr(), rx.len());
+    let n = mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), out, cap, TIMEOUT_MS);
+    if n <= 0 {
+        return Err(EAGAIN);
+    }
+    match reply_body(&rx[..n as usize], OP_SET_BUDGET, id) {
+        Ok(_) => Ok(()),
+        Err(nonos_payment_proto::ReplyError::Status(s)) => Err(s),
+        Err(_) => Err(EIO),
+    }
+}
