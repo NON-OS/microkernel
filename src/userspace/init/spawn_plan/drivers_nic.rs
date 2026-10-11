@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod realtek;
+
 pub(super) fn spawn() {
     spawn_e1000();
     spawn_e1000e();
     spawn_igb();
     spawn_ixgbe();
-    super::drivers_nic_realtek::spawn();
+    realtek::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-e1000")]
