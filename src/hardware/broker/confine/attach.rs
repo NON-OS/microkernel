@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-use alloc::vec::Vec;
-
-use super::iova::IOVA_BASE;
 use super::posture::unconfined_allowed;
 use super::table::{pci_address, say, Capsule, CAPSULES};
 use crate::memory::iommu::IommuDomain;
@@ -51,7 +46,7 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
         Some(i) => i,
         None => match IommuDomain::allocate() {
             Ok(domain) => {
-                all.push(Capsule { pid, domain, devices: Vec::new(), next_iova: IOVA_BASE });
+                all.push(Capsule::new(pid, domain));
                 all.len() - 1
             }
             /*
