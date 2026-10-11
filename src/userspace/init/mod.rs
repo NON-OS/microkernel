@@ -32,7 +32,7 @@ pub(crate) use linux_jobs::has_pending as installs_pending;
 pub(crate) use linux_jobs::service as service_installs;
 pub(crate) use prove_job::{
     has_pending as prove_job_pending, request as request_prove_job, service as service_prove_job,
-    ProveAsk,
+    ask_for as prove_job_ask, Caller as ProveCaller,
 };
 pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
 pub(crate) use instance_spawn::service as service_instance_spawns;

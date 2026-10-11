@@ -26,11 +26,9 @@ use crate::security::attest_registry::attested_of;
 use crate::security::dev_roots::Authority;
 use crate::services::registry::caller_owns;
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_PERM};
-use crate::userspace::init::ProveAsk;
+use crate::userspace::init::{prove_job_ask, ProveCaller};
 
 const STORE: &str = "app.store";
-const PROVE: u64 = 1;
-const DELIVER: u64 = 2;
 
 /// 0 once a job is asked for; EBUSY while one is asked for, a prover runs,
 /// or the supervisor's measurement delivered within the rate's span.
@@ -38,15 +36,15 @@ pub fn sys_prove_job(kind: u64) -> i64 {
     let Some(pid) = crate::process::current_pid() else {
         return ERRNO_PERM;
     };
-    let ask = match kind {
-        PROVE if caller_owns(STORE) => ProveAsk::Prove(pid),
-        DELIVER => match attested_of(pid) {
-            Some(c) if c.authority == Authority::Vendor && supervises_live(pid) => {
-                ProveAsk::Deliver(pid, c.measurement)
-            }
-            _ => return ERRNO_PERM,
-        },
-        _ => return ERRNO_PERM,
+    let vendor = attested_of(pid).filter(|c| c.authority == Authority::Vendor);
+    let caller = ProveCaller {
+        pid,
+        owns_store: caller_owns(STORE),
+        vendor: vendor.map(|c| c.measurement),
+        supervises_live: supervises_live(pid),
+    };
+    let Some(ask) = prove_job_ask(kind, &caller) else {
+        return ERRNO_PERM;
     };
     if crate::userspace::init::request_prove_job(ask) {
         0
