@@ -40,9 +40,8 @@ pub(super) fn finish(
     };
     let max_network_fee = u128::from(gas).checked_mul(fees.max_fee).ok_or(NetError::ReplyShape)?;
     if !nox_verified::fee::covers(ether, value, max_network_fee) {
-        return Ok(ShieldChecked::Refused(
-            "The ETH balance does not cover this and the most the network fee can be.",
-        ));
+        let short = super::shield_batch_txs::short(ether, value, max_network_fee);
+        return Ok(ShieldChecked::ShortOfEth(short));
     }
     let waiting = super::held::floor(tor, chain, sends, pending)?;
     let tx = Eip1559 {

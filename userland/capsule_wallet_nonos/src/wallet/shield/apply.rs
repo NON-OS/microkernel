@@ -47,6 +47,7 @@ pub fn apply(state: &mut State, op: u16, body: &str) {
         OP_SEND | OP_WITHDRAW => proved(state, op, body),
         OP_SIGN_FROM_FRESH => crate::wallet::order::escrow_sign::signed(state, body),
         OP_FRESH_ADDRESS => crate::wallet::shield::scan_job::derived(state, body),
+        OP_SHIELD_FROM_FRESH => super::fresh_move_job::applied(state, body),
         OP_FOLLOW => {
             super::follow::followed(state, body);
             refresh(state);

@@ -6,7 +6,7 @@ use super::shield_view::{refused, shown};
 use super::ticket::{approve_calldata, sentence};
 use super::{Pending, Wallet};
 use crate::error::{NetError, WalletError};
-use crate::evm::shield::{review_shield, ShieldChecked, ShieldOrder};
+use crate::evm::shield::{review_shield, ShieldChecked, ShieldOrder, ETH_SHORT};
 use crate::evm::{self, Network};
 use crate::ffi::amount_read::parse_base_units;
 use crate::ffi::evm::parse_evm_address;
@@ -55,6 +55,7 @@ impl Wallet {
         let review = match review_shield(&tor, &from, &order, &sends)? {
             ShieldChecked::Ready(review) => review,
             ShieldChecked::Refused(why) => return Ok(refused(amount, why)),
+            ShieldChecked::ShortOfEth(_) => return Ok(refused(amount, ETH_SHORT)),
         };
         let id = self.next_review_id();
         let note = (!review.approval).then(|| request.note.clone());
