@@ -24,6 +24,7 @@ mod fixture;
 mod held;
 mod held_pages;
 mod order_of;
+mod props;
 mod purchase;
 mod read;
 mod read_fixture;
