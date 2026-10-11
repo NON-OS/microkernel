@@ -16,7 +16,7 @@
 
 use super::endian::be_u32;
 use super::error::FdtError;
-use super::tokens::{FDT_LAST_COMP_VERSION, FDT_MAGIC};
+use super::tokens::{FDT_FIRST_VERSION, FDT_LAST_COMP_VERSION, FDT_MAGIC};
 
 #[derive(Debug, Clone, Copy)]
 pub struct FdtHeader {
@@ -38,13 +38,8 @@ pub fn parse(blob: &[u8]) -> Result<FdtHeader, FdtError> {
     if blob.len() < HEADER_SIZE {
         return Err(FdtError::OutOfBounds);
     }
-    let magic = be_u32(blob, 0)?;
-    if magic != FDT_MAGIC {
+    if be_u32(blob, 0)? != FDT_MAGIC {
         return Err(FdtError::BadMagic);
-    }
-    let last_comp_version = be_u32(blob, 24)?;
-    if last_comp_version > FDT_LAST_COMP_VERSION {
-        return Err(FdtError::BadVersion);
     }
     let header = FdtHeader {
         totalsize: be_u32(blob, 4)?,
@@ -52,11 +47,16 @@ pub fn parse(blob: &[u8]) -> Result<FdtHeader, FdtError> {
         off_dt_strings: be_u32(blob, 12)?,
         off_mem_rsvmap: be_u32(blob, 16)?,
         version: be_u32(blob, 20)?,
-        last_comp_version,
+        last_comp_version: be_u32(blob, 24)?,
         boot_cpuid_phys: be_u32(blob, 28)?,
         size_dt_strings: be_u32(blob, 32)?,
         size_dt_struct: be_u32(blob, 36)?,
     };
+    // `size_dt_struct` only exists from version 17; an older blob would leave
+    // the structure block's end to a guess.
+    if header.version < FDT_FIRST_VERSION || header.last_comp_version > FDT_LAST_COMP_VERSION {
+        return Err(FdtError::BadVersion);
+    }
     if (header.totalsize as usize) < HEADER_SIZE {
         return Err(FdtError::TotalSizeTooSmall);
     }
