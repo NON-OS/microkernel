@@ -52,3 +52,10 @@ fn the_content_key_never_shows_in_debug() {
     let shown = format!("{:?}", DeliveredAsk { order_id: [1; 32], key: [0xee; 32] });
     assert!(!shown.contains("238") && shown.contains("key: \"redacted\""), "{shown}");
 }
+
+#[test]
+fn the_content_key_is_wiped_as_the_ask_drops() {
+    let mut a = DeliveredAsk { order_id: [1; 32], key: [0xee; 32] };
+    a.wipe();
+    assert_eq!((a.key, a.order_id), ([0; 32], [1; 32]));
+}
