@@ -20,6 +20,8 @@
 use super::install::{ask, open, remove, Asked};
 use super::next_step::{on_enter, Enter};
 use super::progress::Progress;
+use super::purchase::post;
+use super::purchase_said::by_wallet;
 use super::state::State;
 
 /// What Enter means for the selected listing, as far as it has got.
@@ -31,6 +33,8 @@ pub fn primary(state: &mut State) -> Option<Asked> {
         Enter::Remove => Some(remove(state)),
         // The pane says why; asking again would only fail the same way.
         Enter::Cannot => Some(Asked::Cannot),
+        // A sold listing is bought in the wallet, which installs it after.
+        Enter::Install if state.current().is_some_and(by_wallet) => Some(post(state)),
         Enter::Install => {
             let asked = ask(state);
             if asked == Asked::Queued {

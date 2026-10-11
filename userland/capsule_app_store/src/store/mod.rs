@@ -19,6 +19,8 @@
 //! on this machine.
 
 mod app;
+mod asked;
+mod asked_label;
 mod event;
 mod event_actions;
 mod event_click;
@@ -31,12 +33,16 @@ mod fill;
 mod fill_order;
 mod fill_step;
 pub(crate) mod install;
+mod install_direct;
 mod install_primary;
+mod install_remove;
 mod listing;
 mod poll;
 pub mod price;
 mod progress;
 mod progress_text;
+mod purchase;
+mod purchase_said;
 mod reasons;
 mod refused;
 mod route_offer;

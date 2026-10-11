@@ -17,5 +17,6 @@
 pub mod fixture;
 mod order;
 mod price;
+mod purchase;
 mod reasons;
 mod recheck;

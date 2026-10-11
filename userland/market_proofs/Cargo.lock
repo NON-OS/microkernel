@@ -140,6 +140,7 @@ dependencies = [
  "nonos_market_proto",
  "nonos_marketplace_abi",
  "nonos_nox_config",
+ "nonos_payment_proto",
  "nonos_secp256k1",
  "sha3",
 ]
@@ -157,6 +158,10 @@ dependencies = [
 
 [[package]]
 name = "nonos_nox_config"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_payment_proto"
 version = "0.1.0"
 
 [[package]]
