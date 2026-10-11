@@ -38,7 +38,7 @@ pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    nonos_usbnet::run(TAG, bind);
+    nonos_usbnet::run(TAG, "driver.rtl8153_0", bind);
 }
 
 /// The driver's binding, with the chip it found and its link changes put
