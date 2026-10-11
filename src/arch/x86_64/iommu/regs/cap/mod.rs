@@ -32,6 +32,6 @@ pub use extended::{
     extended_interrupt_mode, interrupt_remapping, queued_invalidation, snoop_control,
 };
 pub use fault::{fault_recording_count, fault_recording_offset};
-pub use limits::{domain_count, max_address_width};
+pub use limits::{domain_count, max_address_width, usable_domain_ids};
 pub use pages::best_leaf_level;
 pub use shared::{all_support, shared_address_width, shared_domain_count, shared_levels};
