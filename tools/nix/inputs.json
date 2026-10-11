@@ -800,6 +800,7 @@
    ".cargo",
    "userland/ax88179_proofs",
    "userland/capsule_driver_ax88179/src/ax",
+   "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
    "userland/nonos_usbnet/src/desc",
@@ -2766,6 +2767,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_cdc_ecm/src/ecm",
+   "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/cdc_ecm_proofs",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
@@ -2788,6 +2790,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_cdc_ncm/src/ncm",
+   "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/cdc_ncm_proofs",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
@@ -4215,6 +4218,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_rndis/src/rndis",
+   "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
    "userland/nonos_usbnet/src/desc",
@@ -4305,6 +4309,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_rtl8153/src/r8153",
+   "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
    "userland/nonos_usbnet/src/desc",
@@ -5059,6 +5064,7 @@
    "userland/capsule_driver_usb_audio/src/uac",
    "userland/capsule_driver_usb_audio/src/wire",
    "userland/capsule_driver_usb_audio/src/xhci/portsc.rs",
+   "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
    "userland/nonos_usbnet/src/desc",
@@ -5131,6 +5137,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
    "userland/nonos_usbnet/src/desc",
