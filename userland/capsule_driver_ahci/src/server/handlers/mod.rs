@@ -16,7 +16,6 @@
 
 pub mod capacity;
 pub mod controller_info;
-pub mod emmc;
 mod failure;
 pub mod flush;
 pub mod health;
