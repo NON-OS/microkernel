@@ -7,8 +7,9 @@
 # named here runs in the owner's default box (UNLISTED_MASK).
 #
 # One program a line: its path in the store, then the services it is served,
-# from WAYLAND NET_ANON NET_LISTEN_LO FILES_HOME FILES_USER MODELS_RO EXEC JIT
-# TTY, then optionally calls=<130 hex digits>, the set as nonos.prove's
+# from WAYLAND NET_ANON NET_LISTEN_LO FILES_HOME MODELS_RO EXEC JIT TTY
+# (FILES_USER is reserved, and refused, until something serves it), then
+# optionally calls=<130 hex digits>, the set as nonos.prove's
 # `[PROVE] syscall buckets ok=` line prints it. With no calls= every call may
 # complete, until the owner's runs measure the set (plan/32). A NET_ANON
 # program may name where it reaches with dests=<item>,<item>..., each

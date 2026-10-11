@@ -19,6 +19,7 @@
 //! script and this crate's tests read it alike, so what the build accepts is
 //! what they check.
 
+use crate::mask::FILES_USER;
 use crate::syscall_set::SyscallSet;
 
 use super::dests_arg::dests_of;
@@ -61,6 +62,10 @@ pub fn parse(line: &str) -> Result<Option<Line<'_>>, String> {
         }
         mask |=
             bit_named(word).ok_or_else(|| format!("{store_path}: no service is named {word}"))?;
+    }
+    // Nothing serves the person's files yet; a vendor row may not claim them (plan/32).
+    if mask & FILES_USER != 0 {
+        return Err(format!("{store_path}: FILES_USER is reserved: nothing serves it yet"));
     }
     Ok(Some(Line { store_path, file, mask, calls, dests }))
 }
