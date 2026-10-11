@@ -24,7 +24,7 @@ use nonos_nox_meter::escrow::{escrow_request, Want, NONCE_TRIES};
 
 use super::x::D;
 
-fn want() -> Want {
+pub fn want() -> Want {
     Want {
         chain_id: 11_155_111,
         url: b"https://agent.example/escrow".to_vec(),
