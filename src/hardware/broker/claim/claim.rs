@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::hold;
 use super::state::{next_epoch, CLAIMS};
 use super::types::{Claim, ClaimError};
 
@@ -21,6 +22,7 @@ use super::types::{Claim, ClaimError};
 // must have already verified that `device_id` exists in the broker
 // table.
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
+    hold::admits(pid, device_id)?;
     let epoch = {
         let mut claims = CLAIMS.lock();
         if claims.iter().any(|c| c.device_id == device_id) {
@@ -31,7 +33,11 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
         epoch
     };
     // Confined before it is powered, so the device never runs unconfined.
-    if crate::hardware::broker::confine::attach(pid, device_id).is_err() {
+    // VMMDev is the exception: it reads guest-physical addresses past any
+    // IOMMU, so it keeps them, and its grants are counted unconfined.
+    if hold::untranslated(device_id) {
+        crate::log::info!("[BROKER] pid={} VMMDev: untranslated, its grants unconfined", pid);
+    } else if crate::hardware::broker::confine::attach(pid, device_id).is_err() {
         CLAIMS.lock().retain(|c| !(c.pid == pid && c.device_id == device_id));
         return Err(ClaimError::Unconfined);
     }
