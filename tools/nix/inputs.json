@@ -3607,8 +3607,6 @@
    "userland/capsule_linux/src/linux/install/apps_coder.rs",
    "userland/capsule_linux/src/linux/install/apps_qwen25.rs",
    "userland/capsule_linux/src/linux/install/apps_qwen3.rs",
-   "userland/capsule_linux/src/linux/install/model_dep.rs",
-   "userland/capsule_linux/src/linux/install/model_remove.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
    "userland/capsule_market/linux-guests.json",
    "userland/capsule_model_fetch/src/catalogue",
