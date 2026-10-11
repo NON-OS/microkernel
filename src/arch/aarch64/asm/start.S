@@ -1,9 +1,16 @@
-/* aarch64 kernel ELF entry.
+/* aarch64 kernel entry, as an ELF and as an arm64 Image.
  *   x0  = dtb_ptr (preserved in x19 across EL2 drop)
  *   sp  = bootloader-provided
  *   may be at EL1 or EL2; we always continue at EL1.
  * Symbols: __stack_top, __bss_start, __bss_end from linker.ld.
- * Tail-calls kernel_entry(dtb_ptr). */
+ * Tail-calls kernel_entry(dtb_ptr).
+ *
+ * The first 64 bytes are the Image header Linux's arm64 boot protocol
+ * defines (Documentation/arch/arm64/booting.rst). A loader that sees the
+ * magic places the image text_offset past a 2 MiB aligned RAM base and
+ * hands over the device tree in x0; QEMU's -kernel does that for an Image
+ * and passes nothing for an ELF. The kernel is linked at 0x4008_0000, so
+ * text_offset is 0x8_0000 and the base has to be virt's 0x4000_0000. */
 
 .section .text._start, "ax", %progbits
 .balign 16
@@ -11,6 +18,19 @@
 .type  _start, %function
 
 _start:
+    b       .L_entry                    /* code0: jump over the header */
+    .long   0                           /* code1 */
+    .quad   0x80000                     /* text_offset */
+    .quad   __kernel_image_size         /* image_size, BSS and stack included */
+    .quad   0x2                         /* flags: little endian, 4 KiB pages,
+                                           placed near the base of DRAM */
+    .quad   0                           /* res2 */
+    .quad   0                           /* res3 */
+    .quad   0                           /* res4 */
+    .ascii  "ARM\x64"                   /* magic */
+    .long   0                           /* res5: no PE/COFF header */
+
+.L_entry:
     mov     x19, x0
 
     /* Drop to EL1 if firmware left us at EL2. SCTLR_EL1 is set to a
