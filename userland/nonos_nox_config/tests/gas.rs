@@ -20,3 +20,10 @@
 fn approve_and_open_limits_are_the_plans() {
     assert_eq!((nonos_nox_config::APPROVE_GAS, nonos_nox_config::OPEN_GAS), (60_000, 200_000));
 }
+
+#[test]
+fn the_fee_caps_are_1000_and_10_gwei() {
+    let gwei = 1_000_000_000u128;
+    assert_eq!(nonos_nox_config::MAX_FEE_PER_GAS, 1_000 * gwei);
+    assert_eq!(nonos_nox_config::MAX_PRIORITY_FEE_PER_GAS, 10 * gwei);
+}

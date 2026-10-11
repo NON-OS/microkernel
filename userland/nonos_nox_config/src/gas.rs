@@ -22,3 +22,10 @@
 pub const APPROVE_GAS: u64 = 60_000;
 /// NoxSettlement open(payee, listingId, amount, expiry, reclaimTo).
 pub const OPEN_GAS: u64 = 200_000;
+
+/// The most per gas the OS signs for: 1000 gwei, the wallet's FEE_CEILING_WEI
+///. The chain sets the base fee, so a lying fee
+/// suggestion can overpay only the tip.
+pub const MAX_FEE_PER_GAS: u128 = 1_000_000_000_000;
+/// The most tip per gas the OS signs for: 10 gwei.
+pub const MAX_PRIORITY_FEE_PER_GAS: u128 = 10_000_000_000;

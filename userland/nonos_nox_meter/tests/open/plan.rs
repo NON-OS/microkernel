@@ -43,13 +43,25 @@ fn approve_then_open_at_the_next_two_nonces() {
 }
 
 #[test]
-fn zero_amounts_short_gas_and_a_tip_above_the_cap_are_refused() {
+fn zero_amounts_short_gas_and_fees_past_the_caps_are_refused() {
     let zero = OpenStart { amount: 0, ..start() };
     assert_eq!(open_plan(&zero, &NOX, &SETTLEMENT, &gas()).err(), Some(MeterError::Mismatch));
     let short = Gas { balance: 260_000 * 10 - 1, ..gas() };
     assert_eq!(open_plan(&start(), &NOX, &SETTLEMENT, &short).err(), Some(MeterError::NoGas));
-    let huge = Gas { max_fee_per_gas: u128::MAX, max_priority_fee_per_gas: 1, ..gas() };
-    assert_eq!(open_plan(&start(), &NOX, &SETTLEMENT, &huge).err(), Some(MeterError::NoGas));
-    let tip = Gas { max_priority_fee_per_gas: 11, ..gas() };
-    assert_eq!(open_plan(&start(), &NOX, &SETTLEMENT, &tip).err(), Some(MeterError::Mismatch));
+    let (gwei, rich) = (1_000_000_000u128, u128::MAX);
+    for (fee, tip) in [(1_000 * gwei + 1, 1), (11 * gwei, 10 * gwei + 1), (10, 11)] {
+        let g = Gas { balance: rich, max_fee_per_gas: fee, max_priority_fee_per_gas: tip, ..gas() };
+        assert_eq!(
+            open_plan(&start(), &NOX, &SETTLEMENT, &g).err(),
+            Some(MeterError::NoGas),
+            "{fee} {tip}"
+        );
+    }
+    let at_caps = Gas {
+        balance: rich,
+        max_fee_per_gas: 1_000 * gwei,
+        max_priority_fee_per_gas: 10 * gwei,
+        ..gas()
+    };
+    assert!(open_plan(&start(), &NOX, &SETTLEMENT, &at_caps).is_ok());
 }
