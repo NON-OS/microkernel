@@ -141,6 +141,8 @@ pub mod rsdp_address;
 #[cfg(test)]
 pub mod scan_hidden;
 pub mod security;
+#[cfg(test)]
+pub mod speculation_policy;
 /// Which registered services take Network to reach.
 #[path = "../../../src/services/registry/policy.rs"]
 pub mod service_policy;

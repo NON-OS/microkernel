@@ -16,6 +16,7 @@
 
 mod barriers;
 mod constants;
+mod cpu_apply;
 mod cpuid;
 mod detect;
 mod enable;
@@ -26,15 +27,18 @@ mod init;
 mod l1d;
 mod mds;
 mod msr;
+mod policy;
 mod report;
 mod retpoline;
 mod rsb;
 mod ssbd;
 mod state;
 mod stibp;
+mod switch;
 mod types;
 
 pub use barriers::{array_access_nospec, array_index_mask_nospec, lfence, mfence, sfence};
+pub use cpu_apply::apply_on_this_cpu;
 pub use detect::detect_vulnerabilities;
 pub use enable::enable_mitigations;
 pub use hooks::{context_switch_mitigations, kernel_entry_mitigations, kernel_exit_mitigations};
@@ -51,4 +55,5 @@ pub use retpoline::{
 pub use rsb::{rsb_clear, rsb_fill};
 pub use ssbd::{ssbd_disable, ssbd_enable};
 pub use stibp::{stibp_disable, stibp_enable};
+pub use switch::switch_barrier;
 pub use types::{CpuVulnerabilities, MitigationStatus};

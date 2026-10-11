@@ -16,10 +16,10 @@
 
 //! What an application processor needs before it may run user code.
 //!
-//! The `syscall` registers and the ring-0 restrictions are per CPU, and the
-//! boot CPU setting its own does nothing for the others. An AP that has not
-//! got both stays online for interrupts and shootdowns but never takes a
-//! process off the run queue.
+//! The `syscall` registers, the ring-0 restrictions and the speculation
+//! controls are per CPU, and the boot CPU setting its own does nothing for
+//! the others. An AP without the first two stays online for interrupts and
+//! shootdowns but never takes a process off the run queue.
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
@@ -36,6 +36,8 @@ pub(super) struct Prepared {
 /// Program this CPU's registers. Before `sti`, and silent: printing takes
 /// the serial lock, which must not be contended with interrupts masked.
 pub(super) fn prepare() -> Prepared {
+    // Bits decided on the boot CPU in `speculation::init`, before any AP ran.
+    crate::security::hardening::spectre_mitigations::apply_on_this_cpu();
     Prepared {
         syscall: crate::arch::x86_64::syscall::manager::init_ap().is_ok(),
         protection: crate::memory::mmu::apply_protection_this_cpu(),
