@@ -64,6 +64,7 @@ pub(super) fn produce(
         iommu_vendor: dma.vendor,
         iommu_enforcing: dma.enforcing,
         unconfined_grants: dma.unconfined_grants,
+        identity_devices: dma.identity_devices,
         attest: Vec::from(quote.attest),
         signature: Vec::from(quote.signature),
         ak_public,

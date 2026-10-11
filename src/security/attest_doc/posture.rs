@@ -16,7 +16,7 @@
 
 use super::binding::DmaPosture;
 use super::document::{IOMMU_AMD_VI, IOMMU_ARM_SMMU_V3, IOMMU_INTEL_VTD, IOMMU_NONE};
-use crate::memory::iommu::{capabilities, unconfined_grants, IommuVendor};
+use crate::memory::iommu::{capabilities, identity_devices, unconfined_grants, IommuVendor};
 
 /// Read once, so the values bound into the quote are the values the document
 /// carries.
@@ -28,5 +28,11 @@ pub(super) fn dma_posture() -> DmaPosture {
         IommuVendor::AmdVi => IOMMU_AMD_VI,
         IommuVendor::ArmSmmuV3 => IOMMU_ARM_SMMU_V3,
     };
-    DmaPosture { vendor, enforcing: caps.enforcing, unconfined_grants: unconfined_grants() }
+    let identity = u32::try_from(identity_devices()).unwrap_or(u32::MAX);
+    DmaPosture {
+        vendor,
+        enforcing: caps.enforcing,
+        unconfined_grants: unconfined_grants(),
+        identity_devices: identity,
+    }
 }

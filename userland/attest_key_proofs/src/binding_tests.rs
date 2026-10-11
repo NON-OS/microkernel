@@ -26,7 +26,7 @@ const CHALLENGE: [u8; 32] = [7; 32];
 const ROOT: [u8; 32] = [0xAB; 32];
 
 fn posture() -> DmaPosture {
-    DmaPosture { vendor: 1, enforcing: true, unconfined_grants: 13 }
+    DmaPosture { vendor: 1, enforcing: true, unconfined_grants: 13, identity_devices: 2 }
 }
 
 #[test]
@@ -47,6 +47,8 @@ fn every_part_of_the_posture_changes_what_is_signed() {
         DmaPosture { enforcing: false, ..posture() },
         DmaPosture { vendor: 0, ..posture() },
         DmaPosture { vendor: 2, ..posture() },
+        DmaPosture { identity_devices: 0, ..posture() },
+        DmaPosture { identity_devices: 3, ..posture() },
     ];
     for v in variants {
         assert_ne!(

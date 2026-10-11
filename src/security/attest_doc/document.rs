@@ -19,7 +19,7 @@ use alloc::vec::Vec;
 /// Wire format version. A verifier that does not recognise it must refuse
 /// rather than parse optimistically: a document it half understands is worse
 /// than one it rejects.
-pub const DOC_VERSION: u32 = 3;
+pub const DOC_VERSION: u32 = 4;
 
 pub const DOC_MAGIC: &[u8; 8] = b"NONOSATT";
 
@@ -49,10 +49,13 @@ pub struct AttestationDoc {
     pub iommu_enforcing: bool,
     /// Mappings a device could reach with no IOMMU domain confining them when
     /// the document was produced. With `iommu_enforcing` set and this above
-    /// zero, the unit is in service and device DMA still goes around it; only
-    /// the two together say whether DMA on the machine is confined. Like the
-    /// registry root, all three are folded into what the TPM signs.
+    /// zero, the unit is in service and device DMA still goes around it. Like
+    /// the registry root, these are folded into what the TPM signs.
     pub unconfined_grants: u32,
+    /// Devices found and not claimed that the unit still lets reach all of
+    /// memory. Grants can all be confined while these are not, so DMA on the
+    /// machine is confined only when this and `unconfined_grants` are zero.
+    pub identity_devices: u32,
     /// The `TPMS_ATTEST` the TPM produced, byte for byte as signed.
     pub attest: Vec<u8>,
     pub signature: Vec<u8>,

@@ -33,6 +33,7 @@ impl AttestationDoc {
         out.push(self.iommu_vendor);
         out.push(u8::from(self.iommu_enforcing));
         out.extend_from_slice(&self.unconfined_grants.to_be_bytes());
+        out.extend_from_slice(&self.identity_devices.to_be_bytes());
         out.extend_from_slice(&(self.attest.len() as u32).to_be_bytes());
         out.extend_from_slice(&self.attest);
         out.extend_from_slice(&(self.signature.len() as u32).to_be_bytes());

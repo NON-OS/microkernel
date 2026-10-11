@@ -46,6 +46,7 @@ mod trust_hops;
 mod verify_boot;
 mod verify_boot_body;
 mod verify_census;
+mod verify_dma_evidence;
 mod verify_doc;
 mod verify_doc_body;
 mod verify_doc_cover;

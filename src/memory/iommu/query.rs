@@ -40,3 +40,10 @@ pub fn capabilities() -> IommuCapabilities {
 pub fn translates(device: super::device::DeviceAddress) -> bool {
     backend::translates(device)
 }
+
+/// Devices the unit still lets reach all of memory: found, not claimed, left
+/// in VT-d's identity domain or on AMD-Vi passthrough. Zero on SMMUv3, where
+/// an unclaimed stream aborts.
+pub fn identity_devices() -> usize {
+    backend::identity_devices()
+}
