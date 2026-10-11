@@ -29,7 +29,7 @@ use crate::protocol::{
 
 pub fn run(opened: &mut Opened) -> ! {
     // One request's largest data, a READ reply or a WRITE body.
-    let most = opened.disk.max_sectors() as usize * SECTOR_SIZE;
+    let most = opened.slot.max_sectors() as usize * SECTOR_SIZE;
     let rx_len = HDR_LEN + RW_HEADER_LEN + most;
     let mut rx = vec![0u8; rx_len];
     let mut tx = vec![0u8; RESP_HDR_LEN + STATUS_LEN + most];

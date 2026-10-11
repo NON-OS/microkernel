@@ -32,5 +32,7 @@ pub mod pci;
 pub mod sd;
 #[path = "../../../capsule_driver_sdhci/src/emmc/sdhci/mod.rs"]
 pub mod sdhci;
+#[path = "../../../capsule_driver_sdhci/src/emmc/slot/mod.rs"]
+pub mod slot;
 #[path = "../../../capsule_driver_sdhci/src/emmc/text/mod.rs"]
 pub mod text;

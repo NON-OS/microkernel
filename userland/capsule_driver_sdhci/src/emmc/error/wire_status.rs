@@ -28,6 +28,7 @@ pub const fn wire_status(e: EmmcError) -> i32 {
             let bit = if status == 0 { 0 } else { 31 - status.leading_zeros() as i32 };
             -(CARD_ERROR_BASE | ((cmd as i32 & 0x3f) << 16) | bit)
         }
+        EmmcError::NoMedium => -123,
         _ => -5,
     }
 }
