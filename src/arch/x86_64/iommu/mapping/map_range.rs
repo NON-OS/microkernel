@@ -67,5 +67,5 @@ pub fn map_range(
         Frame::at(slot.table_phys)?.write(slot.index, entry)?;
         touched.note(slot.table_phys);
     }
-    commit(touched)
+    commit(touched, domain, true)
 }
