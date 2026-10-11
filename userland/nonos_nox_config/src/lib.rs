@@ -53,7 +53,7 @@ pub use offer::{ESCROW_POW_EFFORT, MAX_OFFERS, OFFER_TTL};
 pub use gas::{
     APPROVE_GAS, CLAIM_GAS, CLOSE_GAS, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, OPEN_GAS,
 };
-pub use gas::{SETTLE_GAS_MAX, TOPUP_GAS};
+pub use gas::{DISPUTE_GAS, REFUND_GAS, SETTLE_GAS_MAX, TOPUP_GAS};
 pub use hex::{hex20, hex32};
 pub use lookup::{address, deployed};
 pub use shield_events::{INTENT_UNSHIELDED, NOTE_COMMITTED, PAYOUT_CLAIMED, PAYOUT_CREDITED};

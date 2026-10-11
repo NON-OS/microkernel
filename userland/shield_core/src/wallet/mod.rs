@@ -8,6 +8,7 @@ mod deposit;
 mod deposit_gate;
 mod deposit_read;
 pub mod deposit_split;
+pub mod fresh;
 pub mod handoff;
 pub mod history;
 pub(crate) mod history_join;

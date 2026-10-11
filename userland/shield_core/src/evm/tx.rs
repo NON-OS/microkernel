@@ -48,10 +48,15 @@ impl Eip1559 {
         out
     }
 
+    /// The hash the signature is over.
+    pub(crate) fn digest(&self) -> [u8; 32] {
+        Keccak256::digest(Self::typed(&self.fields())).into()
+    }
+
     /// Sign with `key`, adding only the recovery bit, r and s, so the review a
     /// screen showed is the transaction sent.
     pub fn sign(&self, key: &SigningKey) -> Option<Signed> {
-        let digest: [u8; 32] = Keccak256::digest(Self::typed(&self.fields())).into();
+        let digest = self.digest();
         let (signature, recovery) = key.sign_prehash_recoverable(&digest).ok()?;
         let (r, s) = signature.split_bytes();
         let mut items = self.fields();

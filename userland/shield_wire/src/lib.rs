@@ -31,16 +31,24 @@
 
 extern crate alloc;
 
+mod callers;
 mod frame;
+mod fresh;
+mod hexes;
 mod ops;
 mod values;
 
+pub use callers::{from_wallet, WALLETS};
 pub use frame::{
     decode_reply, decode_request, encode_reply, encode_request, Reply, Request, BODY_MAX,
     MESSAGE_MAX,
 };
+pub use fresh::{FreshAsk, OP_SIGN_FROM_FRESH};
+pub use hexes::{hex, unhex};
 pub use ops::*;
 pub use values::{field, fields, Values};
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tests_fresh;

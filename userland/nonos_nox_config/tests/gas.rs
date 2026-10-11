@@ -33,3 +33,9 @@ fn the_fee_caps_are_1000_and_10_gwei() {
     assert_eq!(nonos_nox_config::MAX_FEE_PER_GAS, 1_000 * gwei);
     assert_eq!(nonos_nox_config::MAX_PRIORITY_FEE_PER_GAS, 10 * gwei);
 }
+
+#[test]
+fn refund_to_sends_dispute_and_refund_under_these_limits() {
+    use nonos_nox_config::{DISPUTE_GAS, REFUND_GAS};
+    assert_eq!((DISPUTE_GAS, REFUND_GAS), (400_000, 150_000));
+}

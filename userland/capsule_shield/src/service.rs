@@ -24,15 +24,12 @@ use crate::{jobs, ops};
 
 const MAX_MSG: usize = MESSAGE_MAX;
 
-/// The wallet window's service names; nothing else may call the shield.
-const WALLETS: [&[u8]; 3] = [b"app.nonos_wallet", b"app.nonos_wallet.1", b"app.nonos_wallet.2"];
-
-fn from_wallet(sender: u32) -> bool {
-    WALLETS.iter().any(|name| {
-        let (mut port, mut pid) = (0u32, 0u32);
-        let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
-        rc >= 0 && pid != 0 && pid == sender
-    })
+/// The pid holding `name`, for shield_wire's caller check: nothing but the
+/// wallet window may call the shield.
+fn pid_of(name: &[u8]) -> Option<u32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+    (rc >= 0 && pid != 0).then_some(pid)
 }
 
 fn answer(status: i32, values: &Values) -> (i32, String) {
@@ -115,6 +112,7 @@ fn dispatch(op: u16, body: &str) -> (i32, String) {
             job("review settle", move || ops::review_self_settle(&borrowed(&f)))
         }
         OP_TAKE_BACK => job("take back", ops::take_back),
+        OP_SIGN_FROM_FRESH => job("sign", move || crate::fresh::sign_from_fresh(&borrowed(&f))),
         _ => (STATUS_MALFORMED, String::new()),
     }
 }
@@ -130,7 +128,7 @@ pub fn run() -> ! {
         let used = n as usize;
         let reply = match decode_request(&buf[..used]) {
             None => encode_reply(0, STATUS_MALFORMED, ""),
-            Some(req) if !from_wallet(sender) => encode_reply(req.seq, STATUS_DENIED, ""),
+            Some(req) if !from_wallet(sender, pid_of) => encode_reply(req.seq, STATUS_DENIED, ""),
             Some(req) => {
                 let (status, body) = dispatch(req.op, req.body);
                 encode_reply(req.seq, status, &body)

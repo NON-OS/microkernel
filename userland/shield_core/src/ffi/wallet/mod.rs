@@ -34,6 +34,7 @@ mod settle_self;
 mod shield;
 mod shield_split;
 mod shield_view;
+mod sign_fresh;
 mod spend;
 mod spend_gate;
 mod swap_rate;
