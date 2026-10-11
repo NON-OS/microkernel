@@ -30,6 +30,7 @@ mod fetch_desk_tests;
 mod fetch_put_tests;
 mod fetch_refusal_tests;
 mod fetch_relay_tests;
+mod fetch_reply_tests;
 mod fetch_wire_tests;
 mod ids_vector_tests;
 mod policy_vector_tests;

@@ -42,13 +42,13 @@ impl Reply {
 
     pub fn feed(&mut self, b: &[u8]) -> Result<Read, Refused> {
         self.raw.extend_from_slice(b);
-        let Some(end) = self.raw.windows(4).position(|w| w == b"\r\n\r\n") else {
+        let end = self.raw.windows(4).position(|w| w == b"\r\n\r\n");
+        let Some(end) = end.filter(|&e| e <= HEAD_MAX) else {
             return if self.raw.len() > HEAD_MAX { Err(Refused) } else { Ok(Read::More) };
         };
         let head = core::str::from_utf8(&self.raw[..end]).map_err(|_| Refused)?;
         let mut lines = head.split("\r\n");
-        let code = lines.next().and_then(|s| s.strip_prefix("HTTP/1.")).and_then(|s| s.get(2..5));
-        let code: u16 = code.ok_or(Refused)?.parse().map_err(|_| Refused)?;
+        let code = lines.next().and_then(status).ok_or(Refused)?;
         if !(self.want_body && code == 200) {
             return Ok(Read::Done(code, Vec::new()));
         }
@@ -60,4 +60,14 @@ impl Reply {
             _ => Err(Refused),
         }
     }
+}
+
+/// "HTTP/1.0" or "HTTP/1.1", one space, three digits, then a space or the end.
+fn status(line: &str) -> Option<u16> {
+    let b = line.strip_prefix("HTTP/1.")?.as_bytes();
+    let shape = matches!(b.get(..2)?, b"0 " | b"1 ") && matches!(b.get(5), None | Some(b' '));
+    let digits = b.get(2..5)?;
+    let code = digits.iter().all(u8::is_ascii_digit).then(|| core::str::from_utf8(digits));
+    shape.then_some(())?;
+    code?.ok()?.parse().ok()
 }
