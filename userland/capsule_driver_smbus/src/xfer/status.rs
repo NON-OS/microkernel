@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading HST_STS (ICH and PCH datasheets, Host Status). HOST_BUSY is set
-//! while a transaction runs; at its end exactly one of INTR (success),
-//! DEV_ERR, BUS_ERR or FAILED is set, each cleared by writing it back.
+//! Reading HST_STS (ICH and PCH datasheets' Host Status, as recalled,
+//! unverified). HOST_BUSY is set while a transaction runs; at its end
+//! exactly one of INTR (success), DEV_ERR, BUS_ERR or FAILED is set, each
+//! cleared by writing it back.
 
 use crate::errno::{E_AGAIN, E_IO, E_NXIO};
 use crate::regs::{STS_BUS_ERR, STS_DEV_ERR, STS_ERROR, STS_FAILED, STS_HOST_BUSY, STS_INTR};
