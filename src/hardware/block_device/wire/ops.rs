@@ -19,7 +19,8 @@
 
 use super::error::WireError;
 use super::gate::gate;
-use super::header::{OP_FLUSH, OP_HEALTHCHECK};
+use super::header::{OP_FLUSH, OP_HEALTHCHECK, OP_IDENTIFY};
+use super::identity::{decode_identity, Identity};
 use super::layout::layout;
 use super::lba_map::capacity_sectors;
 use super::transport::call;
@@ -43,4 +44,12 @@ pub(super) fn flush(index: u8, unit: u16) -> Result<(), WireError> {
 /// the layout has said so on the log.
 pub(super) fn sectors_fit(index: u8, unit: u16) -> bool {
     !matches!(gate(index, unit).and_then(layout), Err(WireError::BlockSize))
+}
+
+/// What unit `unit` behind endpoint `index` says it is. A driver with no
+/// name to give answers ENODEV, which reads as `NoDevice`; a body that
+/// breaks the wire's rules is refused, not shown.
+pub fn identify(index: u8, unit: u16) -> Result<Identity, WireError> {
+    let body = call(gate(index, unit)?, OP_IDENTIFY, &[])?;
+    decode_identity(&body).ok_or(WireError::ProtocolMismatch)
 }
