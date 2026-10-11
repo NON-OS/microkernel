@@ -16,14 +16,19 @@
 
 //! Why a listing will not install, named (B9, the plan): the first gate of
 //! INSTALL_READY's eleven that failed, as a sentence a person can act on.
-//! The bond's byte is 0 both while the market is still reading the bond and
-//! when it could not; the store says which from its own rechecks (#60).
+//! The bond's failure is named by its code (v1.4.35); an Unread bond is
+//! "checking" while the store still asks again (#60), and only then "could
+//! not be read".
+
+use nonos_market_proto::BondCode;
 
 use super::market::Readiness;
 use super::verdict::BOND_GATE;
 
 pub const CHECKING: &[u8] = b"Checking the seller's bond on chain";
 pub const BOND_UNREAD: &[u8] = b"Seller's bond could not be read";
+/// A bond gate that failed with a code that names no failure.
+const BOND_FAILED: &[u8] = b"Seller's bond did not pass the market's check";
 
 const WHY: [&[u8]; 11] = [
     b"The market index's signature did not verify",
@@ -47,16 +52,18 @@ pub fn reason(r: &Readiness, checking: bool) -> Option<&'static [u8]> {
     }
     let first = r.gates.iter().position(|ok| !ok)?;
     Some(match first {
-        BOND_GATE if checking => CHECKING,
+        BOND_GATE if checking && r.bond == BondCode::Unread => CHECKING,
+        BOND_GATE => r.bond.sentence().unwrap_or(BOND_FAILED),
         i => WHY.get(i).copied()?,
     })
 }
 
-/// The mark on a gate's row: pass, fail, or for the bond "not checked".
-pub fn mark(gate: usize, pass: bool) -> &'static [u8] {
+/// The mark on a gate's row: pass, fail, or for an unread bond "not
+/// checked".
+pub fn mark(gate: usize, pass: bool, bond: BondCode) -> &'static [u8] {
     match (pass, gate) {
         (true, _) => b"pass",
-        (false, BOND_GATE) => b"not checked",
+        (false, BOND_GATE) if bond == BondCode::Unread => b"not checked",
         (false, _) => b"fail",
     }
 }
