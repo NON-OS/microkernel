@@ -40,13 +40,16 @@ pub struct Dispute {
 
 pub fn dispute(k: &impl Keccak, i: u64, hashes: &[[u8; 32]], ciphertext: &[u8]) -> Option<Dispute> {
     let at = usize::try_from(i).ok()?;
+    // An index past the content never wraps onto another chunk.
+    let start = at.checked_mul(CHUNK)?;
+    let cipher_chunk = ciphertext.get(start..start.checked_add(CHUNK)?)?.to_vec();
     let c = cipher_hashes(k, ciphertext)?;
     let leaves = |tree: u8, hs: &[[u8; 32]]| -> Vec<[u8; 32]> {
         hs.iter().enumerate().map(|(j, h)| leaf(k, tree, j as u64, h)).collect()
     };
     Some(Dispute {
         index: i,
-        cipher_chunk: ciphertext.get(at * CHUNK..(at + 1) * CHUNK)?.to_vec(),
+        cipher_chunk,
         plain_hash: *hashes.get(at)?,
         cipher_proof: proof(k, &leaves(CIPHER_TREE, &c), at)?,
         leaf_proof: proof(k, &leaves(PLAIN_TREE, hashes), at)?,

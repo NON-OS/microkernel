@@ -49,7 +49,9 @@ pub fn open_delivery(
     if key_commit(k, key) != *commit {
         return Err(Delivered::WrongKey);
     }
-    if ciphertext.len() != hashes.len() * CHUNK || content_len > ciphertext.len() as u64 {
+    if hashes.len().checked_mul(CHUNK) != Some(ciphertext.len())
+        || content_len > ciphertext.len() as u64
+    {
         return Err(Delivered::NotTheOffer);
     }
     let mut out = Vec::with_capacity(ciphertext.len());
