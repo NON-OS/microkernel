@@ -10,7 +10,14 @@ use crate::fixtures::{VIRT_GICV3, VIRT_SMMUV3};
 #[test]
 fn virt_names_one_coherent_smmu_and_maps_every_rid_to_itself() {
     let f = Fdt::from_bytes(VIRT_SMMUV3).unwrap();
-    let want = SmmuInfo { base: 0x0905_0000, size: 0x2_0000, phandle: 0x8005, coherent: true };
+    let want = SmmuInfo {
+        base: 0x0905_0000,
+        size: 0x2_0000,
+        phandle: 0x8005,
+        coherent: true,
+        eventq_intid: 106,
+        gerror_intid: 109,
+    };
     assert_eq!(find(&f), Ok(Some(want)));
     let map = pci_iommu_map(&f).unwrap().unwrap();
     assert_eq!((map.count, map.mask), (1, u32::MAX));
