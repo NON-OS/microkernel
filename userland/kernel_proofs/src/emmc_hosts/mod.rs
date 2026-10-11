@@ -15,11 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Which SD host controllers start the storage capsule as an eMMC disk. The
- * inventory's list is included by path. Before it an Atom-class laptop whose
- * only disk is soldered eMMC started no storage driver at all.
+ * Which SD host controllers start the storage capsule: as an eMMC disk, or
+ * as any other SD host, a card reader among them. The inventory's lists are
+ * included by path. Before them an Atom-class laptop whose only disk is
+ * soldered eMMC started no storage driver at all.
  */
 
 #[path = "../../../../src/hardware/inventory/emmc.rs"]
 pub mod emmc;
+#[path = "../../../../src/hardware/inventory/sd_host.rs"]
+pub mod sd_host;
+mod sd_host_tests;
 mod tests;
