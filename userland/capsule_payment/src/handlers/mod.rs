@@ -23,6 +23,7 @@ mod open_flow;
 mod orders;
 mod pay;
 mod pay_charge;
+mod refund;
 mod tokens;
 
 pub(crate) use account::account;
@@ -30,6 +31,7 @@ pub(crate) use budget::set_budget;
 pub(crate) use channel_ops::{claim, close, job, topup};
 pub(crate) use drain::drain;
 pub(crate) use open::open;
-pub(crate) use orders::{order_new, order_refund, order_status};
+pub(crate) use orders::{order_new, order_status};
 pub(crate) use pay::pay;
+pub(crate) use refund::order_refund;
 pub(crate) use tokens::tokens;
