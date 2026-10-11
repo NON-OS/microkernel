@@ -4891,6 +4891,42 @@
   "md": [],
   "signed": []
  },
+ "userland/usb_audio_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_audio/src/sink/wire.rs",
+   "userland/capsule_driver_hda/src/protocol/decode.rs",
+   "userland/capsule_driver_hda/src/protocol/encode.rs",
+   "userland/capsule_driver_hda/src/protocol/errno.rs",
+   "userland/capsule_driver_hda/src/protocol/header.rs",
+   "userland/capsule_driver_hda/src/protocol/limits.rs",
+   "userland/capsule_driver_hda/src/protocol/ops.rs",
+   "userland/capsule_driver_hda/src/protocol/output.rs",
+   "userland/capsule_driver_usb_audio/src/serve/answer.rs",
+   "userland/capsule_driver_usb_audio/src/serve/play.rs",
+   "userland/capsule_driver_usb_audio/src/serve/queue.rs",
+   "userland/capsule_driver_usb_audio/src/serve/reply.rs",
+   "userland/capsule_driver_usb_audio/src/uac",
+   "userland/capsule_driver_usb_audio/src/wire",
+   "userland/capsule_driver_usb_audio/src/xhci/portsc.rs",
+   "userland/nonos_usbnet/src/bind.rs",
+   "userland/nonos_usbnet/src/bus.rs",
+   "userland/nonos_usbnet/src/desc",
+   "userland/nonos_usbnet/src/found.rs",
+   "userland/nonos_usbnet/src/halt.rs",
+   "userland/nonos_usbnet/src/nic.rs",
+   "userland/nonos_usbnet/src/nnet",
+   "userland/nonos_usbnet/src/scan/book.rs",
+   "userland/nonos_usbnet/src/scan/port.rs",
+   "userland/nonos_usbnet/src/setup.rs",
+   "userland/nonos_usbnet/src/xhci/wire.rs",
+   "userland/usb_audio_proofs",
+   "userland/usbnet_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/usb_msc_proofs": {
   "exclude": [],
   "include": [
