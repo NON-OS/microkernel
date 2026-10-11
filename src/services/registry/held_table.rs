@@ -36,7 +36,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.usb_msc0", KERNEL_ONLY),
     ("driver.smbus0", KERNEL_ONLY),
     ("driver.virtio_rng", KERNEL_ONLY),
-    ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0", "driver.usb_audio0"]),
+    ("driver.xhci0", XHCI_CLIENTS),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.virtio_gpu0", &["compositor"]),
     ("driver.bga0", &["compositor"]),
@@ -49,6 +49,19 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
 /// host has no driver above it yet: a raw transfer reaches any device on the
 /// bus, so it is opened to one when one exists.
 const KERNEL_ONLY: &[&str] = &[];
+
+/// The class drivers above the xHCI controller, each searching the ports
+/// for its own kind of device.
+const XHCI_CLIENTS: &[&str] = &[
+    "driver.usb_hid0",
+    "driver.usb_msc0",
+    "driver.usb_audio0",
+    "driver.cdc_ecm0",
+    "driver.cdc_ncm0",
+    "driver.rndis0",
+    "driver.ax88179_0",
+    "driver.rtl8153_0",
+];
 
 /// net.core carries the frames and asks each card for its link; net.l2 finds
 /// the wired cards.

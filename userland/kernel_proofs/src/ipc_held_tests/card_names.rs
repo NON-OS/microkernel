@@ -52,6 +52,11 @@ fn the_table_names_every_card_the_kernel_starts() {
         include_str!("../../../../src/hardware/rtl8139_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/igb_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/ixgbe_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/cdc_ecm_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/cdc_ncm_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/rndis_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/ax88179_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/rtl8153_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/iwlwifi_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/rtl8821ce_capsule/spawn.rs"),
     ];
