@@ -21,14 +21,16 @@ use crate::container::Kind;
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Verdict {
     pub kind: Kind,
+    pub window: u64,
     pub record_id: [u8; 32],
     pub app_id: [u8; 32],
-    /// The device's tag in this listing's scope on `day`.
+    /// The device's tag in this listing's scope on `window`.
     pub tag: [u64; 4],
-    pub day: u64,
     /// N, every call the family made.
     pub calls: u64,
-    /// U, the calls outside the declared set, each of which failed.
+    /// U, the calls outside the declared set, each of them refused.
     pub outside: u64,
+    /// |A|, how many buckets the declared set lets succeed.
+    pub declared: u32,
     pub anchor: [u8; 32],
 }

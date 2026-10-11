@@ -57,3 +57,12 @@ fn the_reserved_bytes_and_the_diag_slot_stay_zero() {
         assert!(b[lo..hi].iter().all(|&x| x == 0), "{lo}..{hi}");
     }
 }
+
+#[test]
+fn the_verifiers_decoder_reads_the_kernels_record() {
+    let f = facts();
+    let r = nonos_proof_abi::decode_record(&encode(&f)).expect("a record the verifier reads");
+    assert_eq!((r.flags, r.authority, r.seal_no, r.rows), (f.flags, 255, f.seal_no, f.rows));
+    assert_eq!((r.sup_meas, r.trace, r.hc, r.meas), (f.sup_meas, f.trace, f.hc, f.meas));
+    assert_eq!((r.sup_caps, r.n_meas, r.app_id), (f.sup_caps, f.n_meas, f.app_id));
+}

@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_proof_abi::{encode, parse, tag, Kind};
+use nonos_proof_abi::{parse, tag};
 
-fn sample() -> Vec<u8> {
-    let rec = [0u8; 240];
-    encode(Kind::Isolation, &[(tag::RECORD, &rec), (tag::DEVICE, b"d"), (tag::ATTEST, b"t")])
-        .expect("a container")
-}
+use super::container_tests::sample;
 
 #[test]
 fn a_trailing_or_missing_byte_is_refused() {
@@ -32,15 +28,16 @@ fn a_trailing_or_missing_byte_is_refused() {
 #[test]
 fn a_section_length_that_runs_past_the_end_is_refused() {
     let mut b = sample();
-    let at = 12 + 6 + 240 + 2;
+    let at = 20 + 6 + 240 + 2;
     b[at..at + 4].copy_from_slice(&u32::MAX.to_le_bytes());
     assert!(parse(&b).is_none());
 }
 
 #[test]
-fn a_tag_out_of_order_in_the_bytes_is_refused() {
-    let mut b = sample();
-    let second = 12 + 6 + 240;
-    b[second] = tag::RECORD as u8;
-    assert!(parse(&b).is_none());
+fn a_tag_the_kind_does_not_carry_there_is_refused() {
+    for t in [tag::RECORD, tag::ATTEST, tag::DELIVERY] {
+        let mut b = sample();
+        b[20 + 6 + 240] = t as u8;
+        assert!(parse(&b).is_none(), "tag {t} in the device's place");
+    }
 }

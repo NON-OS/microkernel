@@ -16,26 +16,35 @@
 
 //! The 32 bytes that go on chain for a proof.
 //!
-//! anchor = keccak256(abi.encodePacked("NONOS-PROOF-ANCHOR-v1", uint8 kind,
-//! bytes32 record_id, bytes32 tag, bytes32 keccak256(container))), with the
-//! device tag's four words as 32 little-endian bytes. Keccak so a contract
-//! can recompute it from calldata.
-
-use alloc::vec::Vec;
+//!   ANCHOR_TAG = keccak256("NONOS.proof.anchor.v1")
+//!   anchor = keccak256(abi.encode(ANCHOR_TAG, uint8 kind, bytes32 listingId,
+//!                                 bytes32 record_id, bytes32 tag, bytes32 keccak256(container)))
+//!
+//! with the device tag's four words as 32 little-endian bytes. The listing is
+//! inside, so a copy under another listing is another anchor; keccak, so a
+//! contract recomputes it from calldata.
 
 use nonos_stark::hash::keccak256;
 
 use crate::container::Kind;
 use crate::words::words_le;
 
-pub const ANCHOR_DOMAIN: &[u8] = b"NONOS-PROOF-ANCHOR-v1";
+pub const ANCHOR_LABEL: &[u8] = b"NONOS.proof.anchor.v1";
 
-pub fn anchor(kind: Kind, record_id: &[u8; 32], tag: &[u64; 4], container: &[u8]) -> [u8; 32] {
-    let mut b = Vec::with_capacity(ANCHOR_DOMAIN.len() + 1 + 96);
-    b.extend_from_slice(ANCHOR_DOMAIN);
-    b.push(kind.code());
-    b.extend_from_slice(record_id);
-    b.extend_from_slice(&words_le(tag));
-    b.extend_from_slice(&keccak256(container));
-    keccak256(&b)
+pub fn anchor_tag() -> [u8; 32] {
+    keccak256(ANCHOR_LABEL)
+}
+
+pub fn anchor(
+    kind: Kind,
+    listing_id: &[u8; 32],
+    record_id: &[u8; 32],
+    tag: &[u64; 4],
+    container: &[u8],
+) -> [u8; 32] {
+    let mut kind_word = [0u8; 32];
+    kind_word[31] = kind.code();
+    let words =
+        [anchor_tag(), kind_word, *listing_id, *record_id, words_le(tag), keccak256(container)];
+    keccak256(&words.concat())
 }

@@ -22,7 +22,7 @@ use crate::fixture::family;
 fn the_fixtures_words_follow_from_its_histogram_and_set() {
     let f = family();
     let mut set = [0u8; 65];
-    set.copy_from_slice(&f.policy[128..193]);
+    set.copy_from_slice(&f.policy[152..217]);
     let ok = |b: usize| u64::from(f.hist[2 * b]);
     let err = |b: usize| u64::from(f.hist[2 * b + 1]);
     let n: u64 = (0..513).map(|b| ok(b) + err(b)).sum();

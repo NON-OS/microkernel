@@ -16,44 +16,58 @@
 
 use nonos_proof_abi::{encode, parse, tag, Kind, MAX_BYTES};
 
-fn sample() -> Vec<u8> {
-    let rec = [0u8; 240];
-    encode(Kind::Isolation, &[(tag::RECORD, &rec), (tag::DEVICE, b"d"), (tag::ATTEST, b"t")])
-        .expect("a container")
+pub fn sections() -> Vec<(u16, Vec<u8>)> {
+    vec![
+        (tag::RECORD, vec![0; 240]),
+        (tag::DEVICE, b"d".to_vec()),
+        (tag::ISOLATION, b"i".to_vec()),
+        (tag::PUBLICS, vec![0; 80]),
+        (tag::MEASUREMENTS, vec![0; 32]),
+        (tag::POLICY, vec![0; 256]),
+    ]
+}
+
+pub fn sample() -> Vec<u8> {
+    let s = sections();
+    let refs: Vec<(u16, &[u8])> = s.iter().map(|(t, b)| (*t, &b[..])).collect();
+    encode(Kind::Isolation, 20_372, &refs).expect("a container")
 }
 
 #[test]
 fn what_encode_writes_parse_reads() {
     let b = sample();
     let c = parse(&b).expect("parses");
-    assert_eq!(c.kind, Kind::Isolation);
+    assert_eq!((c.kind, c.window), (Kind::Isolation, 20_372));
     assert_eq!(c.get(tag::RECORD).map(<[u8]>::len), Some(240));
-    assert_eq!(c.get(tag::DEVICE), Some(&b"d"[..]));
-    assert_eq!(c.get(tag::ISOLATION), None);
-    assert_eq!(c.get(99), None);
+    assert_eq!((c.get(tag::DEVICE), c.get(tag::ATTEST)), (Some(&b"d"[..]), None));
+    let only = encode(Kind::Authenticity, 1, &[(tag::ATTEST, b"t")]).expect("kind 3");
+    assert_eq!(parse(&only).map(|c| c.kind), Some(Kind::Authenticity));
 }
 
 #[test]
-fn encode_refuses_what_parse_would() {
-    let rec = [0u8; 240];
-    let bad: [&[(u16, &[u8])]; 5] = [
-        &[(tag::DEVICE, b"d"), (tag::RECORD, &rec)],
-        &[(tag::DEVICE, b"d"), (tag::DEVICE, b"e")],
-        &[(9, b"x")],
-        &[(tag::RECORD, &rec[..239])],
-        &[(tag::MEASUREMENTS, &rec[..33])],
-    ];
-    for s in bad {
-        assert_eq!(encode(Kind::Isolation, s), None);
+fn encode_takes_exactly_the_kinds_sections() {
+    let s = sections();
+    let refs: Vec<(u16, &[u8])> = s.iter().map(|(t, b)| (*t, &b[..])).collect();
+    let mut short = refs.clone();
+    short.remove(4);
+    let mut extra = refs.clone();
+    extra.insert(4, (tag::ATTEST, b"t"));
+    let mut swapped = refs.clone();
+    swapped.swap(1, 2);
+    for bad in [short, extra, swapped] {
+        assert_eq!(encode(Kind::Isolation, 1, &bad), None);
     }
+    assert_eq!(encode(Kind::Delivery, 1, &refs), None, "another kind's sections");
     let big = vec![1u8; MAX_BYTES];
-    assert_eq!(encode(Kind::Isolation, &[(tag::DEVICE, &big)]), None);
+    let mut huge = refs.clone();
+    huge[1] = (tag::DEVICE, &big);
+    assert_eq!(encode(Kind::Isolation, 1, &huge), None);
 }
 
 #[test]
 fn every_header_field_is_checked() {
     let b = sample();
-    for (at, v) in [(0, b'X'), (4, 2), (6, 4), (6, 0), (8, 1), (10, 2), (10, 4)] {
+    for (at, v) in [(0, b'X'), (4, 2), (6, 3), (6, 0), (8, 1), (18, 5), (18, 7)] {
         let mut g = b.clone();
         g[at] = v;
         assert!(parse(&g).is_none(), "byte {at} = {v}");

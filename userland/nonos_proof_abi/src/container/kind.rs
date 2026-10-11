@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::tag::{ATTEST, DELIVERY, DEVICE, ISOLATION, MEASUREMENTS, POLICY, PUBLICS, RECORD};
+
 /// What a container proves. The number is the anchor's kind byte and the
 /// kind NoxProofAnchor records.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -35,5 +37,15 @@ impl Kind {
 
     pub fn code(self) -> u8 {
         self as u8
+    }
+
+    /// The exact sections the kind carries, ascending. Nothing missing and
+    /// nothing more, so one proof has one container and one hash.
+    pub fn sections(self) -> &'static [u16] {
+        match self {
+            Kind::Isolation => &[RECORD, DEVICE, ISOLATION, PUBLICS, MEASUREMENTS, POLICY],
+            Kind::Delivery => &[RECORD, DEVICE, DELIVERY, MEASUREMENTS],
+            Kind::Authenticity => &[ATTEST],
+        }
     }
 }

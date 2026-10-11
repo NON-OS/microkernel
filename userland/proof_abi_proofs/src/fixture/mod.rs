@@ -16,6 +16,7 @@
 
 mod container;
 mod device;
+mod expected;
 mod honest;
 mod policy;
 mod run;
@@ -23,6 +24,7 @@ mod trees;
 
 pub use container::{container, Parts};
 pub use device::{prove_bound, DAY, LISTING};
-pub use honest::{honest, pins};
-pub use policy::decode_policy;
+pub use expected::expected;
+pub use honest::honest;
+pub use policy::{decode_policy, policy};
 pub use run::{family, Family};

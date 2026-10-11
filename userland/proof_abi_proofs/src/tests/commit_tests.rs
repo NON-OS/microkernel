@@ -67,5 +67,7 @@ fn a_bit_past_512_has_no_root() {
 #[test]
 fn buckets_and_sides_at_their_edges() {
     assert_eq!((bucket(0), bucket(511), bucket(512), bucket(u64::MAX)), (0, 511, 512, 512));
-    assert_eq!((side(0), side(i64::MAX as u64), side(u64::MAX), side(1 << 63)), (0, 0, 1, 1));
+    let (eperm, enosys, ebadf) = (-1i64 as u64, -38i64 as u64, -9i64 as u64);
+    assert_eq!((side(0), side(i64::MAX as u64), side(1 << 63), side(ebadf)), (0, 0, 0, 0));
+    assert_eq!((side(eperm), side(enosys)), (1, 1), "only the two refusals");
 }

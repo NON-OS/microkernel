@@ -14,18 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Why a container was refused, one per step of the order. Stable, so a
+/// Why a container was refused, one per check of the order. Stable, so a
 /// verifier may log the code; nothing about the proof beyond it is said.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Refusal {
-    /// Not an NPRF v1 container, or a section the kind needs is missing.
+    /// Not an NPRF v1 container with exactly its kind's sections.
     Format,
     /// A kind this version cannot check yet.
     Kind,
+    /// Proven on a day the verifier did not ask about.
+    Window,
     Record,
+    /// Not final, saturated, or sealed by a supervisor that is not pinned.
+    Supervisor,
     /// The device section does not decode, or is not bound to this record.
     DeviceBinding,
-    /// Roots, depth, listing or day the verifier did not accept.
+    /// Roots, registry, day or listing the verifier does not accept.
     DeviceTrust,
     DeviceProof,
     Measurements,
@@ -41,14 +45,16 @@ impl Refusal {
         match self {
             Refusal::Format => 1,
             Refusal::Kind => 2,
-            Refusal::Record => 3,
-            Refusal::DeviceBinding => 4,
-            Refusal::DeviceTrust => 5,
-            Refusal::DeviceProof => 6,
-            Refusal::Measurements => 7,
-            Refusal::Policy => 8,
-            Refusal::AppId => 9,
-            Refusal::Publics => 10,
+            Refusal::Window => 3,
+            Refusal::Record => 4,
+            Refusal::Supervisor => 5,
+            Refusal::DeviceBinding => 6,
+            Refusal::DeviceTrust => 7,
+            Refusal::DeviceProof => 8,
+            Refusal::Measurements => 9,
+            Refusal::Policy => 10,
+            Refusal::AppId => 11,
+            Refusal::Publics => 12,
             Refusal::Isolation(c) => 100 + c,
         }
     }

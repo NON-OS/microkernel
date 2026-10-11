@@ -18,21 +18,23 @@ use alloc::vec::Vec;
 
 use super::kind::Kind;
 use super::parse::{HEAD, MAGIC, MAX_BYTES, SECTION_HEAD, VERSION};
-use super::tag::{fits, LAST};
+use super::tag::fits;
 
-/// A container from `(tag, bytes)` pairs. `None` when the pairs break a rule
-/// `parse` enforces, so whatever this writes, `parse` reads.
-pub fn encode(kind: Kind, sections: &[(u16, &[u8])]) -> Option<Vec<u8>> {
-    let n = u16::try_from(sections.len()).ok()?;
-    let mut last = 0u16;
+/// A container from `(tag, bytes)` pairs. `None` unless the pairs are exactly
+/// the kind's sections, each of a length it may have, so whatever this
+/// writes, `parse` reads.
+pub fn encode(kind: Kind, window: u64, sections: &[(u16, &[u8])]) -> Option<Vec<u8>> {
+    let want = kind.sections();
+    if sections.len() != want.len() {
+        return None;
+    }
     let mut size = HEAD;
-    for &(tag, bytes) in sections {
-        if tag <= last || tag > LAST || !fits(tag, bytes.len()) {
+    for (&(tag, bytes), &expected) in sections.iter().zip(want) {
+        if tag != expected || !fits(tag, bytes.len()) {
             return None;
         }
         u32::try_from(bytes.len()).ok()?;
         size = size.checked_add(SECTION_HEAD + bytes.len())?;
-        last = tag;
     }
     if size > MAX_BYTES {
         return None;
@@ -42,7 +44,8 @@ pub fn encode(kind: Kind, sections: &[(u16, &[u8])]) -> Option<Vec<u8>> {
     out.extend_from_slice(&VERSION.to_le_bytes());
     out.extend_from_slice(&(kind as u16).to_le_bytes());
     out.extend_from_slice(&0u16.to_le_bytes());
-    out.extend_from_slice(&n.to_le_bytes());
+    out.extend_from_slice(&window.to_le_bytes());
+    out.extend_from_slice(&(want.len() as u16).to_le_bytes());
     for &(tag, bytes) in sections {
         out.extend_from_slice(&tag.to_le_bytes());
         out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());

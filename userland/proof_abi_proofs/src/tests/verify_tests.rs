@@ -18,48 +18,58 @@
 //! step through the publics accepts; the last refuses, since the bytes in the
 //! isolation section are not a proof until isolation_stark lands.
 
-use nonos_proof_abi::{verify, Pins, Refusal};
+use nonos_proof_abi::{tag, verify, Expected, Refusal};
 
-use crate::fixture::{honest, pins, DAY};
+use crate::fixture::{expected, honest, DAY};
 
 #[test]
 fn an_honest_container_reaches_the_isolation_proof() {
-    let (_, parts, roots) = honest();
-    let got = verify(&parts.bytes(), &pins(&[roots]));
+    let (f, parts, pinned) = honest();
+    let pins = pinned.trust();
+    let got = verify(&parts.bytes(), &expected(&f.policy, &pins));
     // Header, length or publics: nox_verify's codes 2 to 4, never anything earlier.
     assert!(matches!(got, Err(Refusal::Isolation(2..=4))), "{got:?}");
 }
 
 #[test]
 fn a_device_proof_for_another_record_is_refused() {
-    let (mut f, mut parts, roots) = honest();
+    let (mut f, mut parts, pinned) = honest();
     f.record.seal_no += 1;
-    parts.set(1, f.record.encode().to_vec());
-    assert_eq!(verify(&parts.bytes(), &pins(&[roots])), Err(Refusal::DeviceBinding));
+    parts.set(tag::RECORD, f.record.encode().to_vec());
+    let pins = pinned.trust();
+    let got = verify(&parts.bytes(), &expected(&f.policy, &pins));
+    assert_eq!(got, Err(Refusal::DeviceBinding));
 }
 
 #[test]
-fn roots_listing_and_days_are_the_verifiers() {
-    let (_, parts, roots) = honest();
-    let (b, accepted) = (parts.bytes(), [roots]);
-    let mut other = roots;
-    other.kernel_root[0] ^= 1;
-    assert_eq!(verify(&b, &pins(&[other])), Err(Refusal::DeviceTrust));
-    let mut p = pins(&accepted);
-    p.listing_id[0] ^= 1;
-    assert_eq!(verify(&b, &p), Err(Refusal::DeviceTrust));
+fn the_window_must_be_a_day_the_verifier_asked_about() {
+    let (f, mut parts, pinned) = honest();
+    let pins = pinned.trust();
+    let b = parts.bytes();
     for days in [(DAY + 1, DAY + 3), (DAY - 4, DAY + 4), (DAY + 1, DAY)] {
-        let p = Pins { days, ..pins(&accepted) };
-        assert_eq!(verify(&b, &p), Err(Refusal::DeviceTrust), "{days:?}");
+        let ex = Expected { days, ..expected(&f.policy, &pins) };
+        assert_eq!(verify(&b, &ex), Err(Refusal::Window), "{days:?}");
     }
+    parts.window = DAY + 1; // a day the scope was not made for
+    let got = verify(&parts.bytes(), &expected(&f.policy, &pins));
+    assert_eq!(got, Err(Refusal::DeviceTrust));
 }
 
 #[test]
-fn a_tampered_device_proof_is_refused() {
-    let (_, mut parts, roots) = honest();
-    let mut d = parts.sections[1].1.clone();
-    let mid = 192 + (d.len() - 192) / 2;
-    d[mid] ^= 0x01;
-    parts.set(2, d);
-    assert_eq!(verify(&parts.bytes(), &pins(&[roots])), Err(Refusal::DeviceProof));
+fn roots_registry_life_and_listing_are_the_verifiers() {
+    let (f, parts, pinned) = honest();
+    let b = parts.bytes();
+    let mut kernel = pinned.clone();
+    kernel.kernel_root[0] ^= 1;
+    let mut expired = pinned.clone();
+    expired.registrars[0].life_days = 10;
+    let mut depth = pinned.clone();
+    depth.registrars[0].depth += 1;
+    for p in [kernel, expired, depth] {
+        let pins = p.trust();
+        assert_eq!(verify(&b, &expected(&f.policy, &pins)), Err(Refusal::DeviceTrust));
+    }
+    let pins = pinned.trust();
+    let ex = Expected { listing_id: [0x4D; 32], ..expected(&f.policy, &pins) };
+    assert_eq!(verify(&b, &ex), Err(Refusal::DeviceTrust), "another listing's scope");
 }

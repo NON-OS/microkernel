@@ -22,6 +22,7 @@ impl Record {
         let mut b = [0u8; RECORD_BYTES];
         b[..4].copy_from_slice(MAGIC);
         b[4..6].copy_from_slice(&VERSION.to_le_bytes());
+        b[FLAGS..FLAGS + 2].copy_from_slice(&self.flags.to_le_bytes());
         b[SUP_MEAS..SUP_MEAS + 32].copy_from_slice(&self.sup_meas);
         b[SUP_CAPS..SUP_CAPS + 8].copy_from_slice(&self.sup_caps.to_le_bytes());
         b[AUTHORITY] = self.authority;
@@ -32,7 +33,6 @@ impl Record {
         b[MEAS..MEAS + 32].copy_from_slice(&self.meas);
         b[N_MEAS..N_MEAS + 4].copy_from_slice(&self.n_meas.to_le_bytes());
         b[APP_ID..APP_ID + 32].copy_from_slice(&self.app_id);
-        b[DIAG..DIAG + 32].copy_from_slice(&self.diag);
         b
     }
 }

@@ -20,15 +20,18 @@
 use alloc::vec::Vec;
 
 use super::layout::RECORD_BYTES;
+use crate::container::Kind;
 
 const CTX_DOMAIN: &[u8] = b"NONOS-PROOF-RECORD-v1";
 const ID_CONTEXT: &str = "NONOS-PROOF-RECORD-ID-v1";
 
-/// BLAKE3(domain | LE32 240 | record), read as the attestation gates read a
-/// digest: four little-endian words, each reduced below p.
-pub fn ctx(record: &[u8; RECORD_BYTES]) -> [u64; 4] {
-    let mut b = Vec::with_capacity(CTX_DOMAIN.len() + 4 + RECORD_BYTES);
+/// BLAKE3(domain | kind u16 | LE32 240 | record), read as the attestation
+/// gates read a digest: four little-endian words, each reduced below p. The
+/// kind is inside, so one record never stands for two kinds of proof.
+pub fn ctx(kind: Kind, record: &[u8; RECORD_BYTES]) -> [u64; 4] {
+    let mut b = Vec::with_capacity(CTX_DOMAIN.len() + 6 + RECORD_BYTES);
     b.extend_from_slice(CTX_DOMAIN);
+    b.extend_from_slice(&(kind as u16).to_le_bytes());
     b.extend_from_slice(&(RECORD_BYTES as u32).to_le_bytes());
     b.extend_from_slice(record);
     nox_verify::attest::digest_words(blake3::hash(&b).as_bytes())

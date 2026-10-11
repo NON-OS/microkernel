@@ -16,13 +16,15 @@
 
 mod bind;
 mod device_step;
-mod pins;
+mod expected;
+mod policy_step;
+mod record_step;
 mod refusal;
 mod run;
 mod verdict;
 
 pub use bind::app_id;
-pub use pins::{DeviceRoots, Pins, PolicyDecode, PolicyView};
+pub use expected::{Expected, PolicyDecode, PolicyView, MAX_DAYS};
 pub use refusal::Refusal;
 pub use run::verify;
 pub use verdict::Verdict;

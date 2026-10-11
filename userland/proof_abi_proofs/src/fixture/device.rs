@@ -19,8 +19,9 @@
 use std::sync::OnceLock;
 
 use nonos_attest_path::Kind;
-use nonos_device_attest::{commit, prove, scope, tag, Slot, Statement, Witness};
-use nonos_proof_abi::{encode_device, verifier_id, DeviceRoots};
+use nonos_device_attest::{commit, prove, tag, Slot, Statement, Witness};
+use nonos_proof_abi::trust::DeviceRoot;
+use nonos_proof_abi::{encode_device, market_scope};
 use nonos_stark::field::Fp;
 
 use super::trees::{path_of, registry, tree, DEPTH, SECRET};
@@ -29,7 +30,9 @@ pub const LISTING: [u8; 32] = [0x4C; 32];
 pub const DAY: u64 = 20_372;
 
 pub struct Proven {
-    pub roots: DeviceRoots,
+    pub boot_root: [u64; 4],
+    pub kernel_root: [u64; 4],
+    pub registry: DeviceRoot,
     pub section: Vec<u8>,
 }
 
@@ -46,7 +49,7 @@ fn make(ctx: [u64; 4]) -> Proven {
     let (kernel_root, kernel, kd) = tree(Kind::Kernel, b"kernel context");
     let s = SECRET.map(Fp::from_u64);
     let (device_root, device) = registry(commit(&s), 5);
-    let e = scope(&verifier_id(&LISTING), DAY).expect("scope");
+    let e = market_scope(&LISTING, DAY).map(Fp::from_u64);
     let st = Statement {
         boot_root,
         kernel_root,
@@ -64,12 +67,8 @@ fn make(ctx: [u64; 4]) -> Proven {
     };
     let proof = prove(&st, &w, &[0x3D; 64]).expect("a device proof");
     let words = |w: &[Fp; 4]| w.map(|f| f.to_u64());
-    let roots = DeviceRoots {
-        boot_root: words(&boot_root),
-        kernel_root: words(&kernel_root),
-        device_root: words(&device_root),
-        device_depth: DEPTH,
-    };
+    let registry =
+        DeviceRoot { root: words(&device_root), depth: DEPTH, from_day: DAY - 30, life_days: 365 };
     let section = encode_device(&st, &proof).expect("a device section");
-    Proven { roots, section }
+    Proven { boot_root: words(&boot_root), kernel_root: words(&kernel_root), registry, section }
 }
