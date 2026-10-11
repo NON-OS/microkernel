@@ -19,6 +19,7 @@ mod domain;
 mod init;
 mod limit;
 mod message;
+mod rmrr_say;
 mod run;
 mod verdict;
 
