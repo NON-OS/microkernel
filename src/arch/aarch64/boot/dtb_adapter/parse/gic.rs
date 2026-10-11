@@ -14,24 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::describe;
 use crate::arch::aarch64::boot::info::BootInfo;
 use crate::arch::aarch64::gic::GicVersion;
 use crate::arch::fdt::find::gic::{find, GicVersion as FdtGicVersion};
 use crate::arch::fdt::Fdt;
 
-/// What the tree says about the GIC. A tree without one leaves the virt
-/// defaults and the version for the CPU to decide.
-pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) {
-    if let Ok(Some(g)) = find(fdt) {
-        info.gic_dist_base = g.dist_base;
-        // The second `reg` entry is the CPU interface on GICv2 and the first
-        // redistributor region on GICv3.
-        if g.version == FdtGicVersion::V3 {
-            info.gic_version = Some(GicVersion::V3);
-            info.gic_redist_base = g.redist_or_cpu_base;
-        } else {
-            info.gic_version = Some(GicVersion::V2);
-            info.gic_cpu_base = g.redist_or_cpu_base;
-        }
+/// The GIC the tree names. Every board this kernel boots on has one, so a
+/// tree without one we drive is refused rather than met with virt's.
+pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> Result<(), &'static [u8]> {
+    let g = find(fdt)
+        .map_err(describe)?
+        .ok_or(&b"the device tree names no GIC this kernel drives"[..])?;
+    info.gic_dist_base = g.dist_base;
+    // The second `reg` entry is the CPU interface on GICv2 and the first
+    // redistributor region on GICv3.
+    if g.version == FdtGicVersion::V3 {
+        info.gic_version = Some(GicVersion::V3);
+        info.gic_redist_base = g.redist_or_cpu_base;
+    } else {
+        info.gic_version = Some(GicVersion::V2);
+        info.gic_cpu_base = g.redist_or_cpu_base;
     }
+    Ok(())
 }
