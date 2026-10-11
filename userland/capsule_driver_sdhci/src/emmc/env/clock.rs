@@ -18,6 +18,8 @@
 
 /// A monotonic millisecond clock. Every wait in the engine is bounded by it,
 /// never by a count of loop turns, so a fast CPU does not cut a wait short.
+/// A clock that cannot be read answers `u64::MAX`: every deadline has then
+/// passed, and a broken clock fails the wait instead of holding it forever.
 pub trait Clock {
     fn now_ms(&self) -> u64;
     /// Called once per turn of every polling loop.
@@ -46,8 +48,8 @@ impl Deadline {
 /// point inside its first tick can run up to one tick short, so the wait
 /// runs one tick past `ms`.
 pub fn pause<C: Clock>(clock: &C, ms: u64) {
-    let start = clock.now_ms();
-    while clock.now_ms().saturating_sub(start) <= ms {
+    let d = Deadline::after(clock, ms.saturating_add(1));
+    while !d.passed(clock) {
         clock.relax();
     }
 }
