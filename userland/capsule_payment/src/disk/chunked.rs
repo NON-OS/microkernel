@@ -26,7 +26,9 @@ use super::ops;
 pub(super) const IO_MAX: usize = 60 * 1024;
 
 pub(super) fn read_all(fd: u32, len: usize) -> Answer<Vec<u8>> {
-    let mut out = Vec::with_capacity(len);
+    // `len` may come from the file's own head: reserve one piece, never what
+    // it claims. A file shorter than that ends at its first short piece.
+    let mut out = Vec::with_capacity(len.min(IO_MAX));
     while out.len() < len {
         let piece = ops::read(fd, (len - out.len()).min(IO_MAX))?;
         out.extend_from_slice(&piece);
