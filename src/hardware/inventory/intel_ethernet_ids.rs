@@ -16,9 +16,8 @@
 
 //! The Intel Ethernet parts by driver, as Linux binds them: e1000
 //! (8254x), e1000e (8257x, 82583 and the PCH I217/I218/I219), igb (82575,
-//! 82576, 82580, I350, I354, I210, I211) and igc (I225, I226). The e1000,
-//! e1000e and igc lists are the capsules' own, which kernel_proofs holds
-//! them to; igb has no capsule yet, and its list is Linux's igb_pci_tbl.
+//! 82576, 82580, I350, I354, I210, I211) and igc (I225, I226). Each list is
+//! its capsule's own, which kernel_proofs holds it to.
 //!
 //! Pure, with no imports, so host proofs can include it by path.
 
