@@ -38,9 +38,10 @@ pub fn create_domain() -> Result<u16, AmdViError> {
 }
 
 /// Free the id. Devices must already be detached; the cached translations
-/// are dropped first so the next owner of the id inherits none of them.
-/// The tables stay allocated, as on VT-d: a walk racing the teardown must
-/// not land in a reused frame.
+/// are dropped first so the next owner of the id inherits none of them, and
+/// only once that flush has completed do the tables go back, as on VT-d: no
+/// walk can be in them by then. If they cannot all go back, the id stays
+/// taken with its root, quarantined, and the error reaches the caller.
 pub fn destroy_domain(id: u16) -> Result<(), AmdViError> {
     let mut roots = ROOTS.lock();
     let slot = roots.get_mut(id as usize).ok_or(AmdViError::DomainNotFound)?;
@@ -48,6 +49,7 @@ pub fn destroy_domain(id: u16) -> Result<(), AmdViError> {
         return Err(AmdViError::DomainNotFound);
     }
     flush_domain(id)?;
+    super::teardown::release_tables(*slot)?;
     *slot = 0;
     Ok(())
 }

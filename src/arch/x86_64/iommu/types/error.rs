@@ -41,6 +41,9 @@ pub enum VtdError {
     /// Firmware left translation enabled with its own tables. Taking them over
     /// would strand in-flight DMA.
     FirmwareOwnsUnit,
+    /// The frame allocator would not take a dead domain's table back; it and
+    /// the tables not yet returned stay allocated, never reused.
+    TableNotFreed,
     Timeout,
     /// The unit refused a queued invalidation descriptor (Fault Status IQE).
     InvalidationRejected,
