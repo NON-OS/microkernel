@@ -14,19 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::fdt::property::Property;
-
 use super::kind::UartKind;
 
-// Inspect `compatible` for a UART variant we support.
-pub fn classify(compat: &Property) -> Option<UartKind> {
-    for s in compat.stringlist() {
-        if s == b"arm,pl011" {
-            return Some(UartKind::Pl011);
-        }
-        if s == b"ns16550a" || s == b"ns16550" {
-            return Some(UartKind::Ns16550);
-        }
+/// The UARTs we can drive, by the `compatible` strings that name them.
+pub(super) const NEEDLES: &[&[u8]] = &[b"arm,pl011", b"ns16550a", b"ns16550"];
+
+pub(super) fn kind(needle: usize) -> UartKind {
+    match needle {
+        0 => UartKind::Pl011,
+        _ => UartKind::Ns16550,
     }
-    None
 }
