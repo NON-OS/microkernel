@@ -3958,6 +3958,7 @@
    "userland/capsule_prove/src/market/buckets.rs",
    "userland/capsule_prove/src/market/check.rs",
    "userland/capsule_prove/src/market/container.rs",
+   "userland/capsule_prove/src/market/delivery.rs",
    "userland/capsule_prove/src/market/device.rs",
    "userland/capsule_prove/src/market/isolation.rs",
    "userland/capsule_prove/src/market/sealed.rs",

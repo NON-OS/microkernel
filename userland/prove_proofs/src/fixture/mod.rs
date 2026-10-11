@@ -19,12 +19,14 @@
 
 mod device;
 mod market;
+mod market_live;
 mod registry;
 mod release;
 mod request;
 
 pub use device::device;
 pub use market::{hist, policy, record, sealed_bytes, LISTING, SALT};
+pub use market_live::{ask, live};
 pub use registry::{answer, area, field_p, registry, secret_of, DEPTH, SECRET};
 pub use release::{release, Release};
 pub use request::{request, root_bytes, NONCE, VERIFIER, WINDOW};

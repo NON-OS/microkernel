@@ -16,6 +16,7 @@
 
 mod answer;
 mod argv;
+mod deliver;
 mod device;
 mod isolation;
 mod run;

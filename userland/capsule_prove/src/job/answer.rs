@@ -21,7 +21,8 @@ use alloc::vec::Vec;
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 use nonos_proof_abi::wire::{
-    job_of, reply, status_body, Header, Stage, GET, GET_MAX, HEALTH, PROVE, PROVE_MAGIC, STATUS,
+    job_of, reply, status_body, Header, Stage, DELIVER, GET, GET_MAX, HEALTH, PROVE, PROVE_MAGIC,
+    STATUS,
 };
 
 use super::state::Job;
@@ -33,7 +34,7 @@ const EINVAL: i32 = -22;
 pub fn answer(job: Option<&mut Job>, sender: u32, h: &Header, body: &[u8]) -> Vec<u8> {
     let (status, out): (i32, Vec<u8>) = match (h.op, job) {
         (HEALTH, _) => (0, Vec::new()),
-        (PROVE, _) => (EBUSY, Vec::new()),
+        (PROVE | DELIVER, _) => (EBUSY, Vec::new()),
         (STATUS | GET, Some(j))
             if job_of(body).is_some_and(|(id, _)| id == j.id) && sender == j.owner =>
         {

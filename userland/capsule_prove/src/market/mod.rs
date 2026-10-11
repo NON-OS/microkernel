@@ -17,6 +17,7 @@
 mod buckets;
 mod check;
 mod container;
+mod delivery;
 mod device;
 mod isolation;
 mod sealed;
@@ -24,6 +25,7 @@ mod sealed;
 pub use buckets::line;
 pub use check::{check, program};
 pub use container::container;
+pub use delivery::{body_of, container2, delivery_bound, live_check};
 pub use device::{registrar, root_bytes, scope_and_context};
 pub use isolation::witness;
 pub use sealed::{split, Sealed, WITNESS_BYTES};

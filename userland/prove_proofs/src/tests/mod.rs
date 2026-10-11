@@ -19,6 +19,8 @@ mod ek_tests;
 mod market_buckets_tests;
 mod market_check_tests;
 mod market_container_tests;
+mod market_delivery_tests;
+mod market_delivery_verify_tests;
 mod market_device_tests;
 mod market_sealed_tests;
 mod market_witness_tests;
