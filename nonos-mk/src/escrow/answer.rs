@@ -14,58 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One answer (plan/22 step 1): a body that parses, a chain the config knows,
-//! this release's listing_key and release_key, an Equi-X solution over
-//! listing_key | buyer_pk that verifies and was not answered before; then a
-//! fresh K and a fresh agent key, the offer, sealed to buyer_pk. K is
-//! returned for the seller's key file and is revealed only by deliver().
+//! One answer (plan/29): a body that parses, a chain the config knows, this
+//! release's listing_key and release_key, a proof of work pow_check takes at
+//! ESCROW_POW_EFFORT and not answered within OFFER_TTL; then a fresh K and a
+//! fresh agent key, the offer, sealed to buyer_pk for this release. K and
+//! the offer's keyCommit and cipherRoot go to the seller's key file.
 
-use nonos_equix::{verify, Solution};
-use nonos_nox_chunks::{equix_challenge, seal_answer};
-use nonos_nox_config::Chain;
+use nonos_nox_chunks::{pow_check, seal_answer};
+use nonos_nox_config::{Chain, ESCROW_POW_EFFORT};
 
+use super::answer_types::{Answered, Refusal, Served};
 use super::body::Asked;
 use super::offer::offer;
 use super::seen::Seen;
 use super::x::Dalek;
 use crate::hosts::Host;
 
-/// The release this agent sells, its keys and its bytes.
-pub struct Served {
-    pub listing_key: [u8; 32],
-    pub release_key: [u8; 32],
-    pub content: Vec<u8>,
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Refusal {
-    Body,
-    Chain,
-    NotServed,
-    Solution,
-    Seen,
-    /// buyer_pk makes no shared secret, or the content is empty.
-    Seal,
-}
-
 pub fn answer(
     s: &Served,
     seen: &mut Seen,
     body: &[u8],
+    now: u64,
     draw: &mut impl FnMut() -> [u8; 32],
-) -> Result<(Vec<u8>, [u8; 32]), Refusal> {
+) -> Result<Answered, Refusal> {
     let a = Asked::parse(body).ok_or(Refusal::Body)?;
     Chain::from_id(a.chain_id).ok_or(Refusal::Chain)?;
     if (a.listing_key, a.release_key) != (s.listing_key, s.release_key) {
         return Err(Refusal::NotServed);
     }
-    let challenge = equix_challenge(&a.listing_key, &a.buyer_pk);
-    verify(&challenge, &Solution::from_bytes(&a.solution)).map_err(|_| Refusal::Solution)?;
-    if !seen.take(&a.solution, &a.buyer_pk) {
+    if !pow_check(&a.listing_key, &a.buyer_pk, &a.pow, ESCROW_POW_EFFORT) {
+        return Err(Refusal::Solution);
+    }
+    if !seen.take(&a.pow, &a.buyer_pk, now) {
         return Err(Refusal::Seen);
     }
     let (k, agent_sk) = (draw(), draw());
     let o = offer(&s.content, &k).ok_or(Refusal::Seal)?;
-    let sealed = seal_answer((&Host, &Dalek), &agent_sk, &a.buyer_pk, &o).ok_or(Refusal::Seal)?;
-    Ok((sealed, k))
+    let keys = (&s.listing_key, &s.release_key);
+    let sealed =
+        seal_answer((&Host, &Dalek), &agent_sk, &a.buyer_pk, keys, &o).ok_or(Refusal::Seal)?;
+    let (key_commit, cipher_root, buyer_pk) = (o.key_commit, o.cipher_root, a.buyer_pk);
+    Ok(Answered { sealed, k, key_commit, cipher_root, buyer_pk })
 }
