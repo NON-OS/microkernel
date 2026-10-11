@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{InputEvent, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH};
+use nonos_libc::{
+    InputEvent, INPUT_ABS_MAX, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
+};
 
-const ABS_RANGE_MAX: i64 = 0x7FFF;
+// Every absolute event spans the whole display as 0 to INPUT_ABS_MAX on both
+// axes, whatever the device reported; the drivers scale into it.
+const ABS_RANGE_MAX: i64 = INPUT_ABS_MAX as i64;
 
 pub struct CursorState {
     pub x: i32,
