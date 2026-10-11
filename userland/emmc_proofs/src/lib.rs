@@ -45,13 +45,21 @@ mod clock_tests;
 #[cfg(test)]
 mod cmd_tests;
 #[cfg(test)]
-mod fault_tests;
+mod console_tests;
 #[cfg(test)]
-mod info_tests;
+mod disk_info_tests;
+#[cfg(test)]
+mod fault_tests;
 #[cfg(test)]
 mod io_tests;
 #[cfg(test)]
+mod names_tests;
+#[cfg(test)]
+mod payload_tests;
+#[cfg(test)]
 mod pci_tests;
+#[cfg(test)]
+mod reason_tests;
 #[cfg(test)]
 mod register_tests;
 #[cfg(test)]
