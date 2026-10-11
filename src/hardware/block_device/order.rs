@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::backend::Backend;
+use super::rows::{AHCI, NVME, USB_MSC, VIRTIO_BLK};
 
 /// Asked in this order. A USB stick that carries NONOS is first: it is
 /// there because someone brought it to boot a live session from it, and
@@ -28,8 +29,10 @@ use super::backend::Backend;
 /// The cost: on a machine with an xHCI controller, every disk waits while
 /// driver.usb_msc0 looks for a device, about 1.5 s when none is plugged in.
 pub(super) fn order() -> impl Iterator<Item = Backend> {
-    [Backend::UsbMsc, Backend::Nvme, Backend::Ahci]
+    let row = |disk| Backend::of(disk, 0);
+    [&USB_MSC, &NVME, &AHCI]
+        .map(row)
         .into_iter()
-        .chain((0..super::wire::count()).map(Backend::Wire))
-        .chain([Backend::VirtioBlk])
+        .chain(super::wire::rows())
+        .chain([row(&VIRTIO_BLK)])
 }

@@ -27,7 +27,7 @@ use super::span::span;
 /// Read `out.len()` bytes from 512-byte sector `sector` of endpoint
 /// `index`'s disk, cut into requests the driver takes. A part of a block at
 /// either end is read whole and the covered bytes copied out.
-pub fn read_blocks(index: u8, sector: u64, out: &mut [u8]) -> Result<(), WireError> {
+pub(super) fn read_blocks(index: u8, sector: u64, out: &mut [u8]) -> Result<(), WireError> {
     let e = gate(index)?;
     let layout = layout(e)?;
     let plan = span(layout.lba_bytes, layout.lba_count, sector, out.len())?;
