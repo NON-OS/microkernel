@@ -41,9 +41,9 @@ nothing else.
     with the kernel's keccak, and host tools with their own.
 - Typed structs: `VOUCHER`, `PUBLISHER_BINDING` and `RELEASE_ATTEST`. They are
   listed in `TYPED` in the order of the keyring's table.
-- Tags: `CHANNEL_TAG`, `ORDER_TAG`, `BOND_TAG`, `LISTING_TAG` and
-  `RELEASE_TAG`, each the keccak256 of `NONOS.nox.<x>.v1`. Each is used as the
-  first word inside `abi.encode` of its id.
+- Tags: `CHANNEL_TAG`, `ORDER_TAG`, `BOND_TAG`, `LISTING_TAG`, `RELEASE_TAG`
+  and `REFUND_TAG`, each the keccak256 of `NONOS.nox.<x>.v1`. Each is used as
+  the first word inside `abi.encode` of its id or commitment.
 - Units: install, proof, call, second and byte.
 - Gas limits for what the OS encodes itself: `APPROVE_GAS` 60000,
   `OPEN_GAS` 200000, `TOPUP_GAS` and `CLOSE_GAS` 120000, and
