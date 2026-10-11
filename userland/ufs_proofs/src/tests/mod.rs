@@ -26,6 +26,7 @@ mod ocs_tests;
 mod rw_fail_tests;
 mod rw_tests;
 mod sense_tests;
+mod stop_tests;
 mod text_tests;
 mod unit_tests;
 mod wedge_tests;
