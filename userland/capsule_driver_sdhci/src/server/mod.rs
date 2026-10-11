@@ -14,25 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every controller found that a disk could be served from.
+mod dispatch;
+mod error;
+mod handlers;
+mod medium;
+pub mod medium_rule;
+mod reply;
+mod runner;
 
-use alloc::vec::Vec;
-
-use crate::discover::Found as AhciFound;
-use crate::emmc::{self, Found as EmmcFound};
-
-/// Every controller this capsule could serve a disk from.
-pub struct Hosts {
-    pub ahci: Vec<AhciFound>,
-    pub emmc: Vec<EmmcFound>,
-}
-
-impl Hosts {
-    pub fn find() -> Self {
-        Self { ahci: crate::discover::find_ahci(), emmc: emmc::discover() }
-    }
-
-    pub fn any(&self) -> bool {
-        !self.ahci.is_empty() || !self.emmc.is_empty()
-    }
-}
+pub use runner::run;

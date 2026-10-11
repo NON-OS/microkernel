@@ -163,6 +163,7 @@ nonos-capsule-driver-rtl8821ce  = []
 nonos-capsule-driver-rtl8139    = []
 nonos-capsule-driver-rtl8169    = []
 nonos-capsule-driver-ahci       = []
+nonos-capsule-driver-sdhci      = []
 nonos-capsule-driver-hda        = []
 nonos-capsule-audio             = []
 nonos-capsule-driver-nvme       = []
@@ -428,6 +429,13 @@ microkernel-driver-ahci = [
   "nonos-capsule-driver-ahci",
 ]
 
+microkernel-driver-sdhci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-sdhci",
+]
+
 microkernel-driver-hda = [
   "microkernel-core",
   "nonos-production",
@@ -548,6 +556,7 @@ microkernel-desktop-offline = [
   "nonos-capsule-driver-virtio-blk",
   "nonos-capsule-driver-nvme",
   "nonos-capsule-driver-ahci",
+  "nonos-capsule-driver-sdhci",
   "nonos-capsule-driver-virtio-gpu",
   "nonos-capsule-driver-ps2-input",
   "nonos-capsule-driver-xhci",
@@ -916,7 +925,7 @@ nonos_bench_core = { path = "nonos-bench", version = "0.1.0" }
 # The attestation path check, shared with the bootloader and secops.
 nonos-attest-path = { path = "nonos-attest-path" }
 nonos-boot-measure = { path = "nonos-boot-measure" }
-# The STARK lane's gate verifier, no_std. Every capsule is admitted only when
+# The STARK project's gate verifier, no_std. Every capsule is admitted only when
 # its path and its STARK proof over the same slot both check. Pinned by rev.
 nox_verify = { version = "0.1", git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
 # Synchronization. spin is the kernel-wide lock primitive (no_std,
