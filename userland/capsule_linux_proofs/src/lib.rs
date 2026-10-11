@@ -58,7 +58,7 @@ pub mod reshape;
 pub mod scene_pixels;
 pub mod wayland_popup;
 pub mod wayland_sub;
-#[path = "../../capsule_linux/src/linux/wayland/window_life.rs"]
+#[path = "../../capsule_linux/src/linux/wayland/window_life/mod.rs"]
 pub mod window_life;
 
 mod host_doubles;

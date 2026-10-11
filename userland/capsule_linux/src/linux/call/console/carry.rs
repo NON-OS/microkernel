@@ -14,35 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A guest's console output: carried to the host's log, or, once the family
-//! holds a model or is on a terminal, only to its launcher's inbox.
+//! A console write carried out of the capsule, a line at a time.
 
 use crate::linux::abi::errno;
 use crate::linux::console::{private, split, wipe};
-use crate::linux::guest::Guest;
-
-/// Cap on one transfer, matching the kernel's own peer-copy ceiling.
-const MAX_IO: u64 = 1 << 20;
 
 /// The longest line the kernel's debug channel and a private write take;
 /// each refuses a longer one whole (src/syscall/microkernel/debug.rs and
 /// private_write.rs MAX_LEN).
 const MAX_LINE: usize = 256;
-
-/// A write of the guest's buffer to its console, `stream` 1 or 2. The bytes
-/// are the guest's and are never interpreted, only forwarded, and zeroed
-/// after.
-pub(super) fn console(guest: &Guest, buf: u64, len: u64, stream: u8) -> u64 {
-    if len == 0 {
-        return errno::ok(0);
-    }
-    let Some(mut bytes) = guest.read(buf, len.min(MAX_IO) as usize) else {
-        return errno::fail(errno::EFAULT);
-    };
-    let sent = carry(&bytes, stream);
-    wipe(&mut bytes);
-    sent
-}
 
 /*
  * Forwarded in pieces the kernel takes. The count returned is what was

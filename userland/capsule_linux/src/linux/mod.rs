@@ -48,6 +48,7 @@ pub mod serve;
 mod settle;
 mod source;
 mod source_named;
+mod source_run;
 mod start;
 mod start_guest;
 mod start_install;
