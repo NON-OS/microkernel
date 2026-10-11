@@ -19,6 +19,7 @@
 use crate::linux::abi::errno;
 use crate::linux::file;
 use crate::linux::net;
+use nonos_linux_policy::mask::TTY;
 
 use super::console::console;
 
@@ -49,6 +50,7 @@ pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
         /*
          * What the terminal typed, or end of file on no terminal.
          */
+        Some(Kind::Stdin) if !crate::linux::app::granted(guest, TTY) => errno::ok(0),
         Some(Kind::Stdin) => crate::linux::console::read(guest, buf, len),
         Some(Kind::File) => file::read(guest, fd, buf, len),
         Some(Kind::Timer) => file::timerfd_read(guest, fd, buf, len),

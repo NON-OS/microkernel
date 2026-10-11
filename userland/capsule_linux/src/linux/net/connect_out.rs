@@ -30,13 +30,14 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::connect_dial::{dial, open};
 use super::guest_route::{path, Path};
-use super::ops::{NET_E_NAME_REFUSED, NET_E_NO_TRANSPORT};
-use super::sock::{self, Addr, Backend};
+use super::sock::{self, Addr};
 use super::Route;
 
 pub fn connect(guest: &Guest, id: u32, to: Addr) -> u64 {
+    if !crate::linux::app::may_dial(guest) {
+        return crate::linux::app::refuse("an outbound stream", "NET_ANON", errno::ENETUNREACH);
+    }
     if sock::with(|t| t.get(id).is_some_and(|s| s.connected || s.listening || s.svc.is_some())) {
         return errno::fail(errno::EISCONN);
     }
@@ -50,42 +51,5 @@ pub fn connect(guest: &Guest, id: u32, to: Addr) -> u64 {
         Path::Anyone(port) => return super::connect_anon::connect(guest, id, to, port),
         Path::Unreachable(why) => return super::policy::unreachable(to, why),
     }
-    let handle = match open() {
-        Ok(h) => h,
-        Err(e) => return e,
-    };
-    let status = match dial(guest, handle, to) {
-        Ok(s) => s,
-        Err(e) => {
-            super::stream::close(handle);
-            return e;
-        }
-    };
-    /*
-     * No transport is a mixnet holding no gateway: there is no route out, which
-     * a tool has to read as unreachable, not as a peer that answered and
-     * refused.
-     */
-    /*
-     * A name the mixnet cannot carry is no route out either: net.sockets
-     * refused to resolve it in the clear, so nothing left the machine.
-     */
-    let answer = match status {
-        Some((0, _)) => errno::ok(0),
-        Some((NET_E_NO_TRANSPORT | NET_E_NAME_REFUSED, _)) => errno::fail(errno::ENETUNREACH),
-        Some(_) => errno::fail(errno::ECONNREFUSED),
-        None => errno::fail(errno::EIO),
-    };
-    if answer != 0 {
-        super::stream::close(handle);
-        return answer;
-    }
-    sock::with(|t| {
-        if let Some(s) = t.get_mut(id) {
-            s.svc = Some(Backend::Sockets(handle));
-            s.remote = Some(to);
-            s.connected = true;
-        }
-    });
-    answer
+    super::connect_mixnet::mixnet(guest, id, to)
 }

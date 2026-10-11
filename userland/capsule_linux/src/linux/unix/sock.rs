@@ -32,6 +32,9 @@ pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
          */
         return errno::fail(errno::ECONNREFUSED);
     }
+    if !crate::linux::app::granted(guest, nonos_linux_policy::mask::WAYLAND) {
+        return crate::linux::app::refuse("the display", "WAYLAND", errno::EACCES);
+    }
     match guest.fds.get_mut(fd as usize) {
         Some(entry) if entry.kind == Kind::Unix => {
             entry.writable = true;
