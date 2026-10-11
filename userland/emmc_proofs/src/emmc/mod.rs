@@ -16,19 +16,19 @@
 
 //! The driver tree as the capsule builds it, without `platform`.
 
-#[path = "../../../capsule_driver_ahci/src/emmc/disk/mod.rs"]
+#[path = "../../../capsule_driver_sdhci/src/emmc/disk/mod.rs"]
 pub mod disk;
-#[path = "../../../capsule_driver_ahci/src/emmc/env/mod.rs"]
+#[path = "../../../capsule_driver_sdhci/src/emmc/env/mod.rs"]
 pub mod env;
-#[path = "../../../capsule_driver_ahci/src/emmc/error/mod.rs"]
+#[path = "../../../capsule_driver_sdhci/src/emmc/error/mod.rs"]
 pub mod error;
-#[path = "../../../capsule_driver_ahci/src/emmc/info/mod.rs"]
+#[path = "../../../capsule_driver_sdhci/src/emmc/info/mod.rs"]
 pub mod info;
-#[path = "../../../capsule_driver_ahci/src/emmc/mmc/mod.rs"]
+#[path = "../../../capsule_driver_sdhci/src/emmc/mmc/mod.rs"]
 pub mod mmc;
-#[path = "../../../capsule_driver_ahci/src/emmc/pci/mod.rs"]
+#[path = "../../../capsule_driver_sdhci/src/emmc/pci/mod.rs"]
 pub mod pci;
-#[path = "../../../capsule_driver_ahci/src/emmc/sdhci/mod.rs"]
+#[path = "../../../capsule_driver_sdhci/src/emmc/sdhci/mod.rs"]
 pub mod sdhci;
-#[path = "../../../capsule_driver_ahci/src/emmc/text/mod.rs"]
+#[path = "../../../capsule_driver_sdhci/src/emmc/text/mod.rs"]
 pub mod text;
