@@ -270,6 +270,7 @@ version = "0.1.0"
 dependencies = [
  "nonos_marketplace_abi",
  "nonos_nox_config",
+ "nonos_seal",
 ]
 
 [[package]]
@@ -312,6 +313,10 @@ dependencies = [
  "nonos_socket",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_seal"
+version = "0.3.0"
 
 [[package]]
 name = "nonos_settle_proto"
