@@ -182,7 +182,6 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          */
         SyscallNumber::MkSealNote => caps.can_foreign_exec(),
         SyscallNumber::MkSealRead => caps.can_device_secret(),
-        SyscallNumber::MkCallerMeas => caps.can_device_secret(),
 
         /* The right to ask, which is not the right to host. */
         SyscallNumber::MkAppInstall
