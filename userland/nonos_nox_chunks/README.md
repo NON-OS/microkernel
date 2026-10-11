@@ -21,6 +21,10 @@ from the caller through marketplace_abi's `Keccak`.
   needed); `open_delivery` once K is revealed (K against keyCommit, every
   decrypted chunk against its hash, else the first bad index); `dispute`
   builds dispute()'s arguments for that index.
+- Deposit addresses (`deposit_address`, `create2`, `clone_initcode_hash`):
+  CREATE2 by the escrow, salt orderId, of an EIP-1167 clone of the
+  DepositForwarder; `create2` meets EIP-1014's examples.
+- The seller's agent (`reveal_ok`, `may_send`, `Mine`): the plan step 4.
 - Orders (`OrderTerms`, `order_id`, `refund_commit`): the fourteen-word
   terms tuple settle_proto names for fund(T), under ORDER_TAG and REFUND_TAG
   from nonos_nox_config.
