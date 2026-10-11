@@ -29,4 +29,8 @@ pub enum ClaimError {
     NotClaimed,
     /// A remapping unit is in service and would not take the device.
     Unconfined,
+    /// Held for the one capsule spawned to drive it.
+    Held,
+    /// Refused to every claimant until the owner's decision allows it.
+    Refused,
 }
