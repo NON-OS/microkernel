@@ -1,7 +1,6 @@
 # capsule_driver_ax88179
 
 Status: not in the 0.9.2 image. The capsule builds and its host proofs
-pass, but it has no owner certificate and the kernel never spawns it:
 driver.xhci0 has no bulk IN poll or control OUT data stage yet.
 
 ## Role
@@ -58,22 +57,23 @@ are set as `ax88179_link_reset` sets them.
 
 ## Contract
 
-Caps `0x200018` (IPC, Memory, Debug). Service `driver.ax88179_0` on port
+Caps `0x18` (IPC, Memory), Debug `0x100` optional. Service `driver.ax88179_0` on port
 4256, reply port 4257. Proofs: `userland/ax88179_proofs`. Page:
 `docs/hardware/ax88179.md`.
 
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory` and `Debug`:
+The manifest grants `IPC` and `Memory`; `Debug` only in a serial-debug build:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x200018
+CAPSULE_REQUIRED_CAPS = 0x18
+CAPSULE_OPTIONAL_CAPS = 0x100
 ```
 
 The capsule receives requests with `MkIpcRecvFrom` and answers with
-`MkIpcReply`, finds driver.xhci0 with `MkServiceLookup` and calls it with
+`MkIpcReply`, finds driver.xhci0 and its own pid with `MkServiceLookup` and calls it with
 `MkIpcCall` (bounded by a timeout), writes its `[usbnet ax88179]` lines with
-`MkDebug`, and waits on the
+`MkDebug` when Debug is granted, and waits on the
 clock between bring-up steps with libc's `mk_idle_ms`. It makes no enumeration, MMIO, IRQ, DMA
 or PIO broker syscall: driver.xhci0 owns the controller.
 

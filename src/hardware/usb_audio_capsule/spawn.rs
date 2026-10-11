@@ -48,9 +48,8 @@ pub fn spawn_driver_usb_audio_capsule() -> Result<(), SpawnError> {
         attestation_trailer: DRIVER_USB_AUDIO_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
         // A class driver above xHCI: no device, MMIO, IRQ or DMA of its own.
-        // CoreExec is for MkGetPid, to drop the replies it sent itself.
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
+        // Its own pid comes from MkServiceLookup, so no CoreExec.
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
