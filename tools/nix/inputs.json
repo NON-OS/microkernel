@@ -3630,6 +3630,26 @@
    "nonos-data/models/catalogue.bin"
   ]
  },
+ "userland/modes_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/modes_proofs",
+   "userland/nonos_edid",
+   "userland/nonos_modes/data",
+   "userland/nonos_modes/src/check.rs",
+   "userland/nonos_modes/src/cvt",
+   "userland/nonos_modes/src/dmt.rs",
+   "userland/nonos_modes/src/dmt_parse.rs",
+   "userland/nonos_modes/src/fit.rs",
+   "userland/nonos_modes/src/lex.rs",
+   "userland/nonos_modes/src/link.rs",
+   "userland/nonos_modes/src/make.rs",
+   "userland/nonos_modes/src/resolve.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/net_anon_proofs": {
   "exclude": [],
   "include": [
