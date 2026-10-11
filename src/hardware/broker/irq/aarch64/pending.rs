@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64};
 
 // 128 GIC bindings per kernel; the trap path's linear scan stays cheap.
 pub(super) const MAX_GRANTS: usize = 128;
@@ -31,6 +31,9 @@ pub(super) struct Entry {
     pub(super) pending: AtomicU64,
     pub(super) overflow: AtomicU64,
     pub(super) waiter: AtomicU32, // the pid in `MkIrqWait`, zero for none
+    /// Raised by a message, not a line: edge by nature, so never masked at
+    /// the GIC between deliveries, and nothing for `MkIrqAck` to undo.
+    pub(super) message: AtomicBool,
 }
 
 pub(super) static SLOTS: [Entry; MAX_GRANTS] = [const {
@@ -43,33 +46,6 @@ pub(super) static SLOTS: [Entry; MAX_GRANTS] = [const {
         pending: AtomicU64::new(0),
         overflow: AtomicU64::new(0),
         waiter: AtomicU32::new(0),
+        message: AtomicBool::new(false),
     }
 }; MAX_GRANTS];
-
-static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
-
-// CAS-claim a free slot and grant id; None when full or `intid` is bound.
-pub(super) fn alloc(
-    intid: u32,
-    pid: u32,
-    device_id: u64,
-    claim_epoch: u64,
-) -> Option<(&'static Entry, u64)> {
-    if super::pending_find::find_by_intid(intid).is_some() {
-        return None;
-    }
-    for e in SLOTS.iter() {
-        if e.intid.compare_exchange(0, intid, Ordering::AcqRel, Ordering::Acquire).is_ok() {
-            let id = NEXT_GRANT_ID.fetch_add(1, Ordering::Relaxed);
-            e.pid.store(pid, Ordering::Release);
-            e.grant_id.store(id, Ordering::Release);
-            e.device_id.store(device_id, Ordering::Release);
-            e.claim_epoch.store(claim_epoch, Ordering::Release);
-            e.pending.store(0, Ordering::Release);
-            e.overflow.store(0, Ordering::Release);
-            e.waiter.store(0, Ordering::Release);
-            return Some((e, id));
-        }
-    }
-    None
-}
