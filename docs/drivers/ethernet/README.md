@@ -44,7 +44,7 @@ Every wired driver answers the same link protocol: a 20-byte header tagged `NNET
 
 The kernel holds the four wired endpoints in the image to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/held_table.rs:20-24`, `HELD`; `src/services/registry/held_table.rs:41-44`, `WIRED_STACK`). See [held endpoint](../../overview/glossary.md#held-endpoint).
 
-`net.core` binds the first candidate whose link answers up. Wi-Fi comes first, then `driver.virtio_net0`, `driver.e1000_0`, `driver.rtl8169_0` and `driver.rtl8139_0`, then the USB drivers (`userland/capsule_net_core/src/setup/candidates.rs:25-38`, `WIRED_NICS`). The e1000e and igc capsules are not on that list.
+`net.core` binds the first candidate whose link answers up. Wi-Fi comes first, then the wired cards in the order of the kernel's card table: `driver.virtio_net0`, the PCI cards, then the USB drivers (`src/services/registry/nics.rs`, `NICS`; `userland/capsule_net_core/src/setup/candidates.rs`, `candidate`). The igc capsule is not on that table.
 
 ## The receive fault
 
