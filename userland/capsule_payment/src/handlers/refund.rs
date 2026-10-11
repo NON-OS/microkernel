@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! ORDER_REFUND (op 11, the plan): the wallet alone gets refundTo and
 //! refundSalt of a kept order.
 
