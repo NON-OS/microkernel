@@ -30,6 +30,8 @@ pub enum HardwareFamily {
     NetworkE1000,
     NetworkRtl8139,
     NetworkRtl8169,
+    /// AMD PCnet (Am79C970A/Am79C973): VirtualBox's default NIC.
+    NetworkPcnet,
     NetworkRtl8821ce,
     NetworkIwlwifi,
     DisplayGopFramebuffer,

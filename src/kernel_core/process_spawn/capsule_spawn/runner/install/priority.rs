@@ -40,13 +40,14 @@ const INTERACTIVE: [&str; 4] =
  * yielding in a loop, and two of those in this band could hold it for a whole
  * connect timeout.
  */
-const PACKET_PATH: [&str; 7] = [
+const PACKET_PATH: [&str; 8] = [
     "driver.virtio_net0",
     "driver.e1000_0",
     "driver.rtl8169_0",
     "driver.rtl8139_0",
     "driver.iwlwifi0",
     "driver.rtl8821ce0",
+    "driver.pcnet0",
     "net.core",
 ];
 

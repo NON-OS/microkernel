@@ -548,6 +548,7 @@ include userland/capsule_driver_usb_msc/Capsule.mk
 include userland/capsule_driver_e1000/Capsule.mk
 include userland/capsule_driver_rtl8139/Capsule.mk
 include userland/capsule_driver_rtl8169/Capsule.mk
+include userland/capsule_driver_pcnet/Capsule.mk
 include userland/capsule_driver_ahci/Capsule.mk
 include userland/capsule_driver_hda/Capsule.mk
 include userland/capsule_audio/Capsule.mk

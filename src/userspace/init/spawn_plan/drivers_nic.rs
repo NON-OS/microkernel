@@ -18,6 +18,7 @@ pub(super) fn spawn() {
     spawn_e1000();
     spawn_rtl8139();
     spawn_rtl8169();
+    spawn_pcnet();
 }
 
 #[cfg(feature = "nonos-capsule-driver-e1000")]
@@ -58,3 +59,16 @@ fn spawn_rtl8169() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-rtl8169"))]
 fn spawn_rtl8169() {}
+
+#[cfg(feature = "nonos-capsule-driver-pcnet")]
+fn spawn_pcnet() {
+    use crate::hardware::pcnet_capsule as c;
+    super::boot::capsule(
+        "DRIVER-PCNET",
+        "driver_pcnet",
+        c::spawn_driver_pcnet_capsule,
+        c::shared_state,
+    );
+}
+#[cfg(not(feature = "nonos-capsule-driver-pcnet"))]
+fn spawn_pcnet() {}
