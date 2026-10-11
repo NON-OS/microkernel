@@ -15,11 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod access;
+pub mod aux_ch;
+pub mod aux_regs;
 pub mod cursor;
+pub mod dpll;
+pub mod dpll_cfgcr;
+pub mod dpll_ctrl;
+pub mod dpll_hdmi;
+pub mod dpll_split;
 pub mod error;
 pub mod flip;
 pub mod ggtt;
 pub mod ggtt_range;
+pub mod mn;
 pub mod pipe;
 pub mod plane;
 pub mod plane_read;
@@ -30,4 +38,5 @@ pub mod scanout_start;
 pub mod scanout_stop;
 pub mod takeover;
 pub mod timing;
+pub mod timing_write;
 pub mod vblank;
