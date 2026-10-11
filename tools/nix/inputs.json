@@ -747,6 +747,7 @@
   "include": [
    ".cargo",
    "src/security/attest_doc/document.rs",
+   "src/security/attest_doc/document_encode.rs",
    "src/security/attest_policy/record.rs",
    "src/security/boot/loader_check/record.rs",
    "userland/attest_doc_proofs",
@@ -769,6 +770,7 @@
    ".cargo",
    "src/security/attest_doc/binding.rs",
    "src/security/attest_doc/document.rs",
+   "src/security/attest_doc/document_encode.rs",
    "src/security/tpm/ak/attributes.rs",
    "src/security/tpm/ak/cursor.rs",
    "src/security/tpm/ak/public.rs",

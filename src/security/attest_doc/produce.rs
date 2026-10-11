@@ -16,26 +16,16 @@
 
 use alloc::vec::Vec;
 
-use super::binding::{qualifying_data, DmaPosture};
-use super::document::{
-    AttestationDoc, IOMMU_AMD_VI, IOMMU_ARM_SMMU_V3, IOMMU_INTEL_VTD, IOMMU_NONE,
-};
+use super::binding::qualifying_data;
+use super::document::AttestationDoc;
 use super::error::AttestDocError;
-use crate::memory::iommu::{capabilities, unconfined_grants, IommuVendor};
+use super::posture::dma_posture;
+use super::quote_shape::{QUOTED_PCRS, RESPONSE_MAX};
 use crate::security::attest_registry::{attested_count, registry_complete, registry_root};
 use crate::security::tpm::ak::ak_public;
 use crate::security::tpm::error::TpmError;
 use crate::security::tpm::quote::{build_quote, check_attest, parse_quote};
 use crate::security::tpm::transact_resending;
-
-/// PCRs covered by the quote: the firmware and boot chain measurements the
-/// firmware extended. Naming them explicitly rather than quoting every PCR
-/// keeps the document meaningful, since a verifier has to know which values it
-/// is being shown.
-const QUOTED_PCRS: [u8; 4] = [0, 1, 2, 7];
-
-/// Largest response this driver will accept from the part.
-const RESPONSE_MAX: usize = 4096;
 
 /// Answer "what is this machine running", signed.
 ///
@@ -78,17 +68,4 @@ pub(super) fn produce(
         signature: Vec::from(quote.signature),
         ak_public,
     })
-}
-
-/// Read once, so the values bound into the quote are the values the document
-/// carries.
-fn dma_posture() -> DmaPosture {
-    let caps = capabilities();
-    let vendor = match caps.vendor {
-        IommuVendor::Absent => IOMMU_NONE,
-        IommuVendor::IntelVtd => IOMMU_INTEL_VTD,
-        IommuVendor::AmdVi => IOMMU_AMD_VI,
-        IommuVendor::ArmSmmuV3 => IOMMU_ARM_SMMU_V3,
-    };
-    DmaPosture { vendor, enforcing: caps.enforcing, unconfined_grants: unconfined_grants() }
 }
