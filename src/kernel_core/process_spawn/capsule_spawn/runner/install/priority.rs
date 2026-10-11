@@ -25,8 +25,8 @@ use crate::services::registry::nics;
 /// running process, so a band holding a single runnable member always falls
 /// through to `Normal` on the next switch - a promoted capsule that spun
 /// would cost half the CPU, never all of it.
-const INTERACTIVE: [&str; 4] =
-    ["driver.ps2_kbd0", "input_router", "compositor", "driver.virtio_gpu0"];
+const INTERACTIVE: [&str; 5] =
+    ["driver.ps2_kbd0", "input_router", "compositor", "driver.virtio_gpu0", "driver.bga0"];
 
 /*
  * Capsules that move a frame between the card and TCP: the card drivers
