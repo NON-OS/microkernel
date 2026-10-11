@@ -18,5 +18,6 @@ mod fixture;
 mod purchase;
 mod read;
 mod read_fixture;
+mod voucher;
 mod requests;
 mod rows;
