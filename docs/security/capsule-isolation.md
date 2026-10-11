@@ -72,7 +72,7 @@ A send straight to a process's [inbox](../overview/glossary.md#inbox) by pid (`M
 
 The kernel names the sender. `IpcMessage::new` is given `proc.<pid>` of the calling process (`src/syscall/microkernel/ipc/send_to_pid.rs:68-70`), so a service can trust the sender's pid rather than a pid written in the payload. The keyring relies on this; see [Device secrets and keys](device-secrets-and-keys.md).
 
-Keystrokes have their own rule. [Driver capsules](../overview/glossary.md#driver-capsule) hold `Irq`, and `can_input_source` accepts `Irq` so drivers can post events, but draining the input ring, or blocking until it has events, needs `can_input_consumer`, which accepts only `InputSource` or `Admin` (`src/syscall/contract/cap_table/mk.rs:190-200`). A driver capsule cannot read what is typed into another program.
+Keystrokes have their own rule. [Driver capsules](../overview/glossary.md#driver-capsule) hold `Irq`, and `can_input_source` accepts `Irq` so drivers can post events, but draining the input ring, or blocking until it has events, needs `can_input_consumer`, which accepts only `InputDrain` or `Admin` (`src/syscall/contract/cap_table/mk.rs:190-198`). `InputDrain` is held by `input_router` alone; the input drivers hold `InputSource`, which posts. A driver capsule cannot read what is typed into another program.
 
 ## Drivers: the broker and the IOMMU
 
