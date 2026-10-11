@@ -22,31 +22,34 @@ use nonos_payment_proto::DeliveredMade;
 
 use super::dispute_fixture::{order, quote, word, AT, ESCROW, GWEI};
 use super::fixture::REFUND_TO;
+
+const SEPOLIA: u64 = 11_155_111;
 use crate::order::dispute_said::{NOT_REFUND_TO, TOO_LATE};
-use crate::order::dispute_step::{DisputeStep, Disputed};
-use crate::order::dispute_steps::landed;
+use crate::order::dispute_steps::{landed, Disputed};
+use crate::order::send_gas::{after_balance, after_quote};
+use crate::order::send_step::SendStep;
 
 #[test]
 fn a_dispute_goes_from_order_of_to_its_signature() {
     let (m, bad) = order();
-    let d = Disputed { made: &m, delivered: &bad, refund_to: REFUND_TO, chain_id: 11_155_111 };
+    let d = Disputed { made: &m, delivered: &bad, refund_to: REFUND_TO };
     let of = [word(2), word(9), word(0), word(5), word(AT)];
-    assert_eq!(d.after_read(Some(&of), AT + 60), DisputeStep::RefundTo((2, AT)));
-    let DisputeStep::Quoting(send) = d.after_refund_to(REFUND_TO, (2, AT), AT + 60) else {
+    assert_eq!(d.after_read(Some(&of), AT + 60), SendStep::RefundTo((2, AT)));
+    let SendStep::Quoting(send) = d.after_refund_to(REFUND_TO, (2, AT), AT + 60) else {
         panic!("not quoting")
     };
     let DeliveredMade::BadChunk { calldata, .. } = &bad else { unreachable!() };
     assert_eq!((send.from, &send.calldata), (REFUND_TO, calldata));
-    let gas = d.after_quote(send.clone(), quote(), Some(ESCROW), 0);
+    let gas = after_quote(send.clone(), quote(), Some(ESCROW), 0, SEPOLIA);
     let size = 10_000_000_000_000_000;
-    assert_eq!(gas, DisputeStep::Gas { send: send.clone(), quote: quote(), size });
+    assert_eq!(gas, SendStep::Gas { send: send.clone(), quote: quote(), size });
     let cost = 300_000 * 20 * GWEI;
-    assert_eq!(d.after_balance(gas.clone(), cost - 1), gas, "the withdraw has not landed");
-    let DisputeStep::Signing(ask) = d.after_balance(gas, cost) else { panic!("not signing") };
-    assert_eq!((ask.address, ask.to, ask.value, ask.chain_id), (REFUND_TO, ESCROW, 0, 11_155_111));
+    assert_eq!(after_balance(gas.clone(), cost - 1, SEPOLIA), gas, "the withdraw has not landed");
+    let SendStep::Signing(ask) = after_balance(gas, cost, SEPOLIA) else { panic!("not signing") };
+    assert_eq!((ask.address, ask.to, ask.value, ask.chain_id), (REFUND_TO, ESCROW, 0, SEPOLIA));
     assert_eq!((ask.gas, ask.max_fee, &ask.data), (300_000, 20 * GWEI, calldata));
-    let paid = d.after_quote(send, quote(), Some(ESCROW), cost);
-    assert!(matches!(paid, DisputeStep::Signing(_)), "gas already there");
+    let paid = after_quote(send, quote(), Some(ESCROW), cost, SEPOLIA);
+    assert!(matches!(paid, SendStep::Signing(_)), "gas already there");
     assert!(landed(Some(&[word(3), word(9), word(0), word(5), word(AT)])));
     assert!(!landed(Some(&of)) && !landed(None));
 }
@@ -54,13 +57,13 @@ fn a_dispute_goes_from_order_of_to_its_signature() {
 #[test]
 fn a_disputed_order_a_closed_window_or_another_refund_to_stops_it() {
     let (m, bad) = order();
-    let d = Disputed { made: &m, delivered: &bad, refund_to: REFUND_TO, chain_id: 11_155_111 };
+    let d = Disputed { made: &m, delivered: &bad, refund_to: REFUND_TO };
     let at = |state| [word(state), word(9), word(0), word(5), word(AT)];
-    assert_eq!(d.after_read(Some(&at(3)), AT), DisputeStep::Disputed);
-    assert!(matches!(d.after_read(None, AT), DisputeStep::Failed(_)));
+    assert_eq!(d.after_read(Some(&at(3)), AT), SendStep::Done);
+    assert!(matches!(d.after_read(None, AT), SendStep::Failed(_)));
     let late = AT + DISPUTE_WINDOW;
-    assert_eq!(d.after_read(Some(&at(2)), late), DisputeStep::Failed(TOO_LATE));
+    assert_eq!(d.after_read(Some(&at(2)), late), SendStep::Failed(TOO_LATE));
     let other = d.after_refund_to([0x99; 20], (2, AT), AT);
-    assert_eq!(other, DisputeStep::Failed(NOT_REFUND_TO));
+    assert_eq!(other, SendStep::Failed(NOT_REFUND_TO));
     assert!(DISPUTE_GAS >= quote().gas_limit);
 }

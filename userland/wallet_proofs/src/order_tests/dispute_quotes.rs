@@ -21,15 +21,15 @@ use nonos_nox_config::{DISPUTE_GAS, MAX_FEE_PER_GAS};
 use nonos_settle_proto::Quote;
 
 use super::dispute_fixture::{quote, ESCROW};
-use crate::order::dispute_quote::{gas_size, quote_refusal};
+use crate::order::send_quote::{gas_size, quote_refusal};
 
 const CENTI: u128 = 10_000_000_000_000_000;
 
 #[test]
 fn a_quote_out_of_bounds_is_refused() {
     let q = quote();
-    assert_eq!(quote_refusal(&q, Some(ESCROW)), None);
-    let refused = |q: Quote, escrow| quote_refusal(&q, escrow).is_some();
+    assert_eq!(quote_refusal(&q, 10, Some(ESCROW)), None);
+    let refused = |q: Quote, escrow| quote_refusal(&q, 10, escrow).is_some();
     assert!(refused(Quote { kind: 11, ..q }, Some(ESCROW)), "a refund's quote");
     assert!(refused(q, Some([1; 20])), "another contract");
     assert!(refused(q, None), "no Escrow in the config");

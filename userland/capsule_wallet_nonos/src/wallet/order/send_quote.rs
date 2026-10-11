@@ -15,26 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A dispute's transaction from refundTo (B8, kind 10, v1.4.51): settle's
- * INTENT quote held to the config's Escrow, DISPUTE_GAS and the meter's fee
- * caps; the Shield ETH withdraw that pays its gas, the smallest standard
- * size at or above the most it can cost; and SIGN_FROM_FRESH's request.
+ * A transaction from refundTo (B8, kinds 10 and 11, v1.4.51): settle's
+ * INTENT quote held to the config's Escrow, the kind's gas limit and the
+ * meter's fee caps; the Shield ETH withdraw that pays its gas, the smallest
+ * standard size at or above the most it can cost; SIGN_FROM_FRESH's request.
  */
 
-use nonos_nox_config::DISPUTE_GAS;
+use nonos_nox_config::{DISPUTE_GAS, REFUND_GAS};
 use nonos_settle_proto::Quote;
 use shield_wire::FreshAsk;
 
-use super::dispute::DisputeSend;
+use super::send_step::{EscrowSend, DISPUTE};
 
-const DISPUTE: u8 = 10;
 const CENTI_ETH: u128 = 10_000_000_000_000_000;
 /// The largest standard ETH size, 10 ETH, in hundredths.
 const MOST_CENTS: u128 = 1_000;
 
-/// Why settle's quote is not signed, if it is not.
-pub fn quote_refusal(q: &Quote, escrow: Option<[u8; 20]>) -> Option<&'static str> {
-    super::super::intent::held_to(q, DISPUTE, escrow, DISPUTE_GAS)
+/// Why settle's quote for `kind` is not signed, if it is not.
+pub fn quote_refusal(q: &Quote, kind: u8, escrow: Option<[u8; 20]>) -> Option<&'static str> {
+    let gas_max = if kind == DISPUTE { DISPUTE_GAS } else { REFUND_GAS };
+    super::super::intent::held_to(q, kind, escrow, gas_max)
 }
 
 /// The ETH withdraw for the gas: 1, 2 or 5 hundredths times a power of ten,
@@ -54,8 +54,8 @@ pub fn gas_size(q: &Quote) -> Option<u128> {
     None
 }
 
-/// SIGN_FROM_FRESH's request for the dispute on `chain_id`, as quoted.
-pub fn fresh_ask(d: &DisputeSend, q: &Quote, chain_id: u64) -> FreshAsk {
+/// SIGN_FROM_FRESH's request for the send on `chain_id`, as quoted.
+pub fn fresh_ask(d: &EscrowSend, q: &Quote, chain_id: u64) -> FreshAsk {
     FreshAsk {
         address: d.from,
         chain_id,

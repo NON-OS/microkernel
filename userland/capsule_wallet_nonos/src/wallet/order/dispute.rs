@@ -30,14 +30,8 @@ use nonos_payment_proto::{DeliveredMade, OrderMade};
 
 use super::dispute_said::*;
 use super::order_of::{window_end, DELIVERED};
+use super::send_step::{EscrowSend, DISPUTE};
 
-const DISPUTE: u8 = 10;
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct DisputeSend {
-    pub from: [u8; 20],
-    pub calldata: Vec<u8>,
-}
 
 fn selector() -> Option<[u8; 4]> {
     let k = nonos_settle_proto::KINDS.iter().find(|k| k.id == DISPUTE)?;
@@ -52,7 +46,7 @@ pub fn dispute(
     from: [u8; 20],
     of: (u8, u64),
     now: u64,
-) -> Result<DisputeSend, &'static str> {
+) -> Result<EscrowSend, &'static str> {
     let DeliveredMade::BadChunk { calldata, .. } = made else { return Err(NOTHING) };
     if refund_to == [0; 20] || from != refund_to {
         return Err(NOT_REFUND_TO);
@@ -67,5 +61,5 @@ pub fn dispute(
     if end.saturating_sub(now) < DELIVER_MARGIN {
         return Err(TOO_LATE);
     }
-    Ok(DisputeSend { from, calldata: calldata.clone() })
+    Ok(EscrowSend { kind: DISPUTE, from, calldata: calldata.clone() })
 }

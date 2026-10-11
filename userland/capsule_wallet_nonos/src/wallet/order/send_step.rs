@@ -15,45 +15,42 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A dispute's steps from the wallet (B8, kind 10, v1.4.51), each moved on
- * by one answer: orderOf (settle READ 20), refundTo (ORDER_REFUND), the
- * quote (INTENT), refundTo's ETH (GAS) until a Shield withdraw has paid
- * for the gas, the signature (SIGN_FROM_FRESH), the broadcast, then
- * orderOf until it reads Disputed. Pure: the calls are the caller's.
+ * A transaction from refundTo (B8, the plan, v1.4.51): a dispute (kind 10)
+ * or a refund (kind 11), each moved on by one answer: the quote (INTENT),
+ * refundTo's ETH (GAS) until a Shield withdraw has paid for the gas, the
+ * signature (SIGN_FROM_FRESH), the broadcast, then orderOf until it reads
+ * the state the call makes. Pure: the calls are the caller's.
  */
 
-use nonos_payment_proto::{DeliveredMade, OrderMade};
+use alloc::vec::Vec;
+
 use nonos_settle_proto::Quote;
 use shield_wire::FreshAsk;
 
-use super::dispute::DisputeSend;
+pub const DISPUTE: u8 = 10;
+pub const REFUND: u8 = 11;
 
-pub const DISPUTED: u8 = 3;
-
+/// What goes from refundTo: its kind and the calldata, unchanged.
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub enum DisputeStep {
-    Reading,
-    /// orderOf's state and deliveredAt, the window open: ORDER_REFUND next.
-    RefundTo((u8, u64)),
-    Quoting(DisputeSend),
-    /// refundTo holds less than the gas can cost: a Shield withdraw of
-    /// `size` wei of ETH to it, then GAS until it arrives.
-    Gas {
-        send: DisputeSend,
-        quote: Quote,
-        size: u128,
-    },
-    Signing(FreshAsk),
-    Broadcasting(alloc::vec::Vec<u8>),
-    Sent([u8; 32]),
-    Disputed,
-    Failed(&'static str),
+pub struct EscrowSend {
+    pub kind: u8,
+    pub from: [u8; 20],
+    pub calldata: Vec<u8>,
 }
 
-/// The order, its bad chunk, and refundTo drawn at Buy.
-pub struct Disputed<'a> {
-    pub made: &'a OrderMade,
-    pub delivered: &'a DeliveredMade,
-    pub refund_to: [u8; 20],
-    pub chain_id: u64,
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum SendStep {
+    Reading,
+    /// orderOf's state and deliveredAt allow it: ORDER_REFUND next.
+    RefundTo((u8, u64)),
+    Quoting(EscrowSend),
+    /// refundTo holds less than the gas can cost: a Shield withdraw of
+    /// `size` wei of ETH to it, then GAS until it arrives.
+    Gas { send: EscrowSend, quote: Quote, size: u128 },
+    Signing(FreshAsk),
+    Broadcasting(Vec<u8>),
+    Sent([u8; 32]),
+    /// orderOf reads Disputed, or Refunded.
+    Done,
+    Failed(&'static str),
 }
