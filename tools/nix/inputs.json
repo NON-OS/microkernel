@@ -3472,6 +3472,7 @@
    "userland/capsule_driver_usb_msc/src/scan/report.rs",
    "userland/kernel_proofs",
    "userland/libc/src/bringup/policy.rs",
+   "userland/libc/src/broker/dma.rs",
    "userland/libc/src/broker/dma_lines.rs"
   ],
   "md": [],
@@ -3544,6 +3545,7 @@
    "src/arch/x86_64/context/rflags.rs",
    "src/arch/x86_64/iommu/regs/cap",
    "src/arch/x86_64/iommu/tables/context.rs",
+   "src/arch/x86_64/iommu/tables/pair.rs",
    "src/arch/x86_64/iommu/tables/sl_pte.rs",
    "src/capabilities/chain/constants.rs",
    "src/capabilities/delegation/lifetime.rs",
