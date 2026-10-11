@@ -21,7 +21,7 @@ use super::BlockDeviceError;
 /// The kept disk's size; until one is kept, the size of the boot disk the
 /// loader copied ranges of, as `read` answers from that copy.
 pub fn capacity() -> Result<u64, BlockDeviceError> {
-    if super::select::chosen().is_none() {
+    if super::kept::chosen().is_none() {
         if let Some(sectors) = super::mirror::capacity() {
             return Ok(sectors);
         }
