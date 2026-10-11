@@ -11,6 +11,8 @@ pub use crate::pick::Route;
 pub mod route_text;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/bounds.rs"]
 pub mod bounds;
+#[path = "../../../../capsule_wallet_nonos/src/wallet/net/handshake_end.rs"]
+pub mod handshake_end;
 /* The blocking reader, only here: the model `step::gather` is proved against. */
 #[allow(dead_code)]
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/routed_read.rs"]
