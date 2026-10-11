@@ -27,6 +27,7 @@ pub(in crate::hardware::broker) fn map(
     device_id: u64,
     phys: u64,
     length: u64,
+    protection: IommuProtection,
 ) -> Option<(u64, bool)> {
     let mut all = CAPSULES.lock();
     let held = |c: &&mut super::table::Capsule| c.devices.iter().any(|(d, _)| *d == device_id);
@@ -35,13 +36,13 @@ pub(in crate::hardware::broker) fn map(
     };
     let iova = iova::take(c, length)?;
     // SAFETY: eK@nonos.systems - `[phys, phys+length)` is a run the broker just
-    // allocated and zeroed for this grant, and frees only after `unmap` below
-    // returns true. `[iova, iova+length)` was taken fresh from this domain's
-    // allocator, so nothing is mapped there. Both are page aligned: the broker
-    // refuses a length that is not, and IOVA_BASE is.
-    let mapped = unsafe {
-        c.domain.map(iova, PhysAddr::new(phys), length as usize, IommuProtection::READ_WRITE)
-    };
+    // allocated and zeroed for this grant, freed only after `unmap` below
+    // returns true, or with `DOORBELL` the page of an MSI controller's doorbell,
+    // whose one register takes a message and reads as zero. `[iova, iova+length)`
+    // was taken fresh from this domain's allocator, so nothing is mapped there.
+    // Both are page aligned: the broker refuses a length that is not, and
+    // IOVA_BASE is.
+    let mapped = unsafe { c.domain.map(iova, PhysAddr::new(phys), length as usize, protection) };
     if mapped.is_err() {
         iova::give_back(c, iova, length);
         return None;
