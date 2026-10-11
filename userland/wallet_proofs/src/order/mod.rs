@@ -26,6 +26,8 @@ pub mod dispute;
 pub mod dispute_said;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute_steps.rs"]
 pub mod dispute_steps;
+#[cfg(test)]
+pub mod drive;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/escrow_offer.rs"]
 pub mod escrow_offer;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/escrowed.rs"]
