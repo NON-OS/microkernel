@@ -23,18 +23,28 @@ use crate::linux::guest::Guest;
 use super::ops::ev;
 use super::out::Event;
 use super::present::show::present;
+use super::subsurface::commit::sub_commit;
+use super::subsurface::compose::repaint;
+use super::subsurface::restack::parent_commit;
 
 /// A commit with a buffer is the only thing that reaches the screen, and
-/// only a window's: the surface of a toplevel. Any other surface, a
-/// subsurface or a cursor, has its buffer released and its frames answered,
-/// so its client draws on, and never takes the window's place.
+/// only a window's, the surface of a toplevel, with its subsurfaces laid
+/// on it (subsurface/). A cursor's buffer is released and its frames
+/// answered, so its client draws on, and never takes the window's place.
 pub fn commit(guest: &mut Guest, id: u32) {
+    let changed = sub_commit(guest, id) == Some(true);
+    parent_commit(&mut guest.scene.subs, id);
     let Some((buffer, window)) = surface_buffer(guest, id) else {
+        if changed {
+            repaint(guest);
+        }
         return;
     };
     if window {
         present(guest, id, buffer);
         super::output_enter::shown(guest);
+    } else if changed {
+        repaint(guest);
     }
     Event::new(buffer, ev::BUFFER_RELEASE).send(&mut guest.display.to_client);
     let owed = take_frames(guest, id);

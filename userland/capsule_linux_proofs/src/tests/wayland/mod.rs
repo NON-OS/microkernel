@@ -18,6 +18,9 @@
 
 mod conn_tests;
 mod frame_tests;
+mod subsurface_blend_tests;
+mod subsurface_commit_tests;
+mod subsurface_paint_tests;
 mod wayland_data_tests;
 mod wayland_focus_step_tests;
 mod wayland_held_keys_tests;

@@ -25,6 +25,7 @@ use super::window_life::End;
 
 pub fn forget(guest: &mut Guest, what: Option<Object>, id: u32) {
     guest.objects.drop_id(id);
+    super::subsurface::life::gone(guest, what, id);
     if what == Some(Object::Surface) {
         // The window its pixels made goes with it.
         super::close_window::close_for(&mut guest.scene, End::Surface(id));
