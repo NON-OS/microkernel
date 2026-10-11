@@ -23,9 +23,10 @@ endef
 # Device lanes, opt-in, to boot one driver under QEMU: QEMU_LANES names them,
 # as in `make QEMU_LANES="nic=e1000e emmc" nonos-mk-run-serial-log`, and
 # nonos-mk-run, nonos-mk-run-serial and nonos-mk-run-serial-log add them.
-# tools/nonos_qemu/lanes.py holds the list and the device lines, so make and
+# tools/nonos_qemu/lane_disks.py and lane_devices.py hold the lanes, so make and
 # `nix run .#qemu -- --lane` boot the same machine. A nic= lane takes the
-# virtio NIC's place, and tpm-tis takes tpm-crb's (nonos-mk-run's TPM).
+# virtio NIC's place, vmware-svga the virtio GPU's, and tpm-tis tpm-crb's
+# (nonos-mk-run's TPM). A new lane is a line there, not here.
 QEMU_LANES ?=
 QEMU_LANE_DIR := $(TARGET_DIR)/lanes
 nonos_lanes = $(NONOS_PYTHON) tools/nonos-qemu-lanes $(1) --dir "$(QEMU_LANE_DIR)" \
@@ -34,6 +35,7 @@ ifneq ($(strip $(QEMU_LANES)),)
 QEMU_LANE_ARGS := $(shell $(call nonos_lanes,args))
 QEMU_LANE_NIC := $(shell $(call nonos_lanes,nic))
 QEMU_LANE_TPM := $(shell $(call nonos_lanes,tpm))
+QEMU_LANE_GPU := $(shell $(call nonos_lanes,gpu))
 QEMU_LANE_IMAGES := nonos-mk-lane-images
 ifneq ($(QEMU_LANE_NIC),)
 QEMU_NET := $(subst virtio-net-pci,$(QEMU_LANE_NIC),$(QEMU_NET))
@@ -41,6 +43,9 @@ QEMU_NET_DESC := $(subst virtio-net,$(QEMU_LANE_NIC),$(QEMU_NET_DESC))
 endif
 ifneq ($(QEMU_LANE_TPM),)
 QEMU_TPM := $(subst tpm-crb,$(QEMU_LANE_TPM),$(QEMU_TPM))
+endif
+ifneq ($(QEMU_LANE_GPU),)
+QEMU_GPU := -device $(QEMU_LANE_GPU)
 endif
 endif
 
