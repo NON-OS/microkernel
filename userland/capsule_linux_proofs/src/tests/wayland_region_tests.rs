@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The region and surface opcodes the server takes, against wayland.xml:
-//! a request is served by its number, so a wrong one serves another.
+//! The region, surface and pool opcodes the server takes, against
+//! wayland.xml: a request is served by its number, so a wrong one serves
+//! another.
 
 use crate::ops::req;
 use crate::wayland_object::{Object, Objects};
@@ -24,6 +25,7 @@ use crate::wayland_object::{Object, Objects};
 fn region_and_surface_opcodes_are_the_protocols() {
     assert_eq!((req::COMPOSITOR_CREATE_SURFACE, req::COMPOSITOR_CREATE_REGION), (0, 1));
     assert_eq!((req::REGION_DESTROY, req::REGION_ADD, req::REGION_SUBTRACT), (0, 1, 2));
+    assert_eq!((req::POOL_CREATE_BUFFER, req::POOL_DESTROY, req::POOL_RESIZE), (0, 1, 2));
     let surface = [
         req::SURFACE_DESTROY,
         req::SURFACE_ATTACH,
