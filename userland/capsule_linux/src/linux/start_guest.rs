@@ -61,7 +61,7 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
 /// either kind is bound to the policy it runs under.
 fn prove(path: &[u8], bytes: &[u8], origin: &Origin) -> Result<AppIdentity, &'static str> {
     match origin {
-        Origin::BuiltIn => bind_built_in(bytes),
+        Origin::BuiltIn => Ok(bind_built_in(bytes)),
         Origin::Store => super::attest::verify(path, bytes).and_then(|_| bind(path, bytes)),
     }
 }
