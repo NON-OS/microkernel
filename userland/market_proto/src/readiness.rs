@@ -18,8 +18,8 @@
 //! it: the verdict, then one byte per gate.
 
 /// The gates, in the order the capsule writes them after the verdict. The
-/// last three are schema 3's; an older reader stops at six.
-pub const GATES: [&[u8]; 10] = [
+/// four after six are schema 3's, the last the bond (v1.4.23).
+pub const GATES: [&[u8]; 11] = [
     b"index signature",
     b"package present",
     b"publisher signature",
@@ -30,17 +30,18 @@ pub const GATES: [&[u8]; 10] = [
     b"release attest",
     b"guest policy",
     b"price",
+    b"bond",
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Readiness {
     pub install_ready: bool,
-    pub gates: [bool; 10],
+    pub gates: [bool; 11],
 }
 
 pub fn parse_readiness(body: &[u8]) -> Option<Readiness> {
     let bytes = body.get(..1 + GATES.len())?;
-    let mut gates = [false; 10];
+    let mut gates = [false; 11];
     for (g, b) in gates.iter_mut().zip(&bytes[1..]) {
         *g = *b != 0;
     }
