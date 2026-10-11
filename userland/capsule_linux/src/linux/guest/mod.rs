@@ -55,6 +55,7 @@ mod links_list;
 mod links_load;
 mod links_room;
 mod mem;
+mod mem_commit;
 mod mem_copy;
 mod mem_like;
 mod mem_map;

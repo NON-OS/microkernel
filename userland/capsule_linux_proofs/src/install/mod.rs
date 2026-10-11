@@ -55,9 +55,9 @@ pub mod pgp;
 pub mod manifest;
 #[path = "../../../capsule_linux/src/linux/install/member/mod.rs"]
 pub mod member;
-/* `unrecord` is an uninstall's, which nothing here runs. */
-#[allow(dead_code)]
-#[path = "../../../capsule_linux/src/linux/install/place_links.rs"]
+/* The link table's writer, which only the tests here call. */
+#[cfg(test)]
+#[path = "../../../capsule_linux/src/linux/install/place_links/mod.rs"]
 pub mod place_links;
 #[cfg(test)]
 mod place_links_more_tests;

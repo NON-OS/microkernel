@@ -27,14 +27,14 @@ use super::super::manifest::{encode, Manifest};
 use super::one::{at, dir, read};
 
 /// Every other package's manifest, so what two packages share stays.
-pub(in crate::linux::install) fn others(name: &str) -> Vec<Manifest> {
+pub(in super::super) fn others(name: &str) -> Vec<Manifest> {
     let listed = vfs::list_paths(mk_getpid(), &dir()).unwrap_or_default();
     let names = listed.iter().map(|p| p.rsplit('/').next().unwrap_or(p)).map(String::from);
     names.filter(|n| !n.is_empty() && n != name).filter_map(|n| read(&n)).collect()
 }
 
 /// Keep only what is still to take out, or drop the record once nothing is.
-pub(in crate::linux::install) fn settle(name: &str, left: &Manifest) -> bool {
+pub(in super::super) fn settle(name: &str, left: &Manifest) -> bool {
     let pid = mk_getpid();
     if left.files.is_empty() && left.links.is_empty() {
         return vfs::unlink(pid, &at(name)).is_ok();

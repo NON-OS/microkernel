@@ -13,23 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! `select`, answered from the same readiness the poll path reports. The
-//! count and the sets are checked in `ready_sets`, which the host proofs hold.
 
-use alloc::vec;
+//! select and pselect6: the sets read, each descriptor looked at, the
+//! answers written back.
+
 use alloc::vec::Vec;
 
+use super::super::ready;
+use super::super::ready_sets::{first_closed, narrow, select_count, set_bytes};
+use super::sets::{POLLIN, POLLOUT};
 use crate::linux::abi::errno;
 use crate::linux::file::MAX_FDS;
 use crate::linux::guest::Guest;
-
-use super::ready_sets::{first_closed, narrow, select_count, set_bytes};
-use super::{ready, POLLERR, POLLHUP};
-
-/// What makes a descriptor count as ready in each set, as Linux's select
-/// counts it: end of file is readable, and an error is both.
-const POLLIN: u16 = 0x001 | POLLHUP | POLLERR;
-const POLLOUT: u16 = 0x004 | POLLERR;
 
 /// Count what is ready among `[readfds, writefds, exceptfds]`, narrowing
 /// the sets to it. In Linux's order: a negative count is EINVAL, a set that
@@ -76,15 +71,4 @@ pub fn select(guest: &mut Guest, nfds: u64, sets: [u64; 3]) -> u64 {
         }
     }
     errno::ok(hits)
-}
-
-/// The sets as a select whose time ran out leaves them: empty.
-pub fn clear(guest: &mut Guest, nfds: u64, sets: [u64; 3]) {
-    let Ok(nfds) = select_count(nfds, MAX_FDS as u64) else {
-        return;
-    };
-    let empty = vec![0u8; set_bytes(nfds)];
-    for at in sets.into_iter().filter(|&at| at != 0) {
-        let _ = guest.write(at, &empty);
-    }
 }

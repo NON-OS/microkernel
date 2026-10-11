@@ -14,33 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * The metadata for a path, from the store, the family's copies and
- * the trees the personality makes.
- */
+/* A path's metadata, from the store, the family's copies and the trees
+ * the personality makes. */
 
+use super::super::super::super::synth::{self, S_IFDIR, S_IFLNK, S_IFREG};
+use super::super::super::super::{cache, dev, models, modes, resolve, store, walk};
+use super::super::super::statbuf::Meta;
+use super::super::device::device;
+use super::super::fd::now;
+use super::super::made::made;
+use super::made::{at, built_in};
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::super::super::synth::{self, S_IFDIR, S_IFLNK, S_IFREG};
-use super::super::super::{cache, dev, models, modes, mounts, resolve, store, times, walk};
-use super::super::statbuf::inode;
-use super::super::statbuf::Meta;
-use super::device::device;
-use super::fd::now;
-use super::made::made;
-
 pub const S_IFIFO: u32 = 0o010000;
-pub const S_IFSOCK: u32 = 0o140000;
 
-pub(super) fn at(path: &[u8], mode: u32, size: u64, mtime_ms: u64) -> Meta {
-    let dev = mounts::dev(mounts::of(path).0);
-    let (atime_ms, mtime_ms) = match times::of(path) {
-        Some(t) if t.written_ms >= mtime_ms => (t.atime_ms, t.mtime_ms),
-        _ => (mtime_ms, mtime_ms),
-    };
-    Meta { mode, size, ino: inode(path), nlink: 1, rdev: 0, dev, mtime_ms, atime_ms }
-}
+pub const S_IFSOCK: u32 = 0o140000;
 
 /* The path's metadata; its last component followed when `follow` is set. */
 pub fn of(guest: &Guest, named: alloc::vec::Vec<u8>, follow: bool) -> Result<Meta, i64> {
@@ -73,13 +62,4 @@ pub fn of(guest: &Guest, named: alloc::vec::Vec<u8>, follow: bool) -> Result<Met
         (true, false) => modes::FILE,
     };
     Ok(at(&full, kind | modes::of(&full).unwrap_or(default), size, mtime))
-}
-
-/// One of the built-in BusyBox's programs in a bin directory the tree has no
-/// file for: execve runs it (exec_resolve), so it is there to a shell's PATH
-/// search and to make's, which look before they run. Read-only, executable,
-/// the built-in's size.
-fn built_in(full: &[u8]) -> Option<Meta> {
-    crate::linux::built_in::serves(full)?;
-    Some(at(full, S_IFREG | 0o555, crate::linux::built_in::size(), 0))
 }

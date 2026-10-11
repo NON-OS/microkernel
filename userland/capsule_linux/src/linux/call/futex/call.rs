@@ -14,21 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `futex`, entirely in this capsule.
-//!
-//! A waiter is a guest thread already parked inside its trap, so the wait
-//! is the absence of a reply and the wake is the reply. The kernel needs
-//! to know nothing about it. What the call asks for is decoded and checked
-//! in `futex_op`, which the host proofs hold.
+//! The futex call, its operation decoded and answered.
 
+use super::super::futex_op::{decode, wake_count, Cmd};
+use super::super::futex_requeue::requeue;
+use super::super::futex_time::deadline;
+use super::wait::wait;
 use crate::linux::abi::errno;
-use crate::linux::guest::futex_pick::MATCH_ANY;
 use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
-
-use super::futex_op::{decode, wake_count, Cmd};
-use super::futex_requeue::requeue;
-use super::futex_time::deadline;
 
 /// `futex(uaddr, op, val, timeout or val2, uaddr2, val3)`. A wait records
 /// its bitset, and a wake takes only waiters whose bitset meets its own, so
@@ -50,39 +44,4 @@ pub fn futex(guest: &mut Guest, tid: u32, a: [u64; 6]) -> Answer {
             requeue(guest, [uaddr, val, a[3], a[4]], compare.then_some(a[5] as u32))
         }
     }
-}
-
-fn wait(
-    guest: &mut Guest,
-    tid: u32,
-    uaddr: u64,
-    val: u64,
-    bits: u32,
-    until: Result<Option<u64>, u64>,
-) -> Answer {
-    let until = match until {
-        Ok(until) => until,
-        Err(refused) => return Answer::value(refused),
-    };
-    let Some(seen) = super::futex_requeue::word(guest, uaddr) else {
-        return Answer::value(errno::fail(errno::EFAULT));
-    };
-    // The word changed between the caller's own check and this one, so
-    // the condition it was going to sleep on is already false.
-    if u64::from(seen) != val & 0xFFFF_FFFF {
-        return Answer::value(errno::fail(errno::EAGAIN));
-    }
-    /* A thread waits on one word at a time; anything left of an old wait goes. */
-    guest.forget_futex(tid);
-    if let Some(when) = until {
-        if when <= super::now_ms(super::futex_time::CLOCK_MONOTONIC).unwrap_or(0) {
-            return Answer::value(errno::fail(errno::ETIMEDOUT));
-        }
-        guest.futex_until.push((when, tid));
-    }
-    if bits != MATCH_ANY {
-        guest.futex_bits.push((tid, bits));
-    }
-    guest.waits.push((tid, uaddr));
-    Answer::Park
 }

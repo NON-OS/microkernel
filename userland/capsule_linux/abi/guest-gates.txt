@@ -52,7 +52,7 @@ gate wayland/present/show.rs | popup::ends::end_all(guest) | a grab outliving a 
 # the gates above: a parked call already passed them.
 reply call/spawn/exec.rs
 reply call/spawn/exec_threads.rs
-reply guest/threads.rs
+reply guest/threads/futex.rs
 reply serve/deliver_interrupt.rs
 reply serve/deliver_sigwait.rs
 reply serve/family_answer.rs
