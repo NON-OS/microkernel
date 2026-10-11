@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for the eMMC driver (`userland/capsule_driver_ahci/src/emmc`). The
+//! Host proofs for the eMMC driver (`userland/capsule_driver_sdhci/src/emmc`). The
 //! driver tree is included file by file with `#[path]`, everything but
 //! `platform` (the broker glue), so its `super::` paths resolve unchanged.
 //! `model` is a register level SDHCI host with an eMMC device behind it, so
