@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::arch::x86_64::iommu::device::bdf_to_source_id;
-use crate::arch::x86_64::iommu::globals::state::{DeviceBinding, STATE};
+use crate::arch::x86_64::iommu::globals::state::{DeviceBinding, VtdState, STATE};
 use crate::arch::x86_64::iommu::tables::root::set_context;
-use crate::arch::x86_64::iommu::types::{DomainId, VtdError};
+use crate::arch::x86_64::iommu::types::{DomainId, SourceId, VtdError};
 
 /// Give every enumerated PCI function a context entry, and report how many.
 pub(super) fn assign_enumerated(
@@ -30,16 +30,28 @@ pub(super) fn assign_enumerated(
     let mut count = 0;
     for dev in devices.iter() {
         let source = bdf_to_source_id(dev.bus, dev.device, dev.function);
-        if state.bindings.iter().any(|binding| binding.source == source) {
-            continue;
-        }
-        // Bookkeeping first: a device programmed but unrecorded could never be
-        // detached again.
-        if state.bindings.push(DeviceBinding { source, domain }).is_err() {
-            return Err(VtdError::DomainTableFull);
-        }
-        set_context(source, root, domain, address_width)?;
-        count += 1;
+        count += usize::from(bind(&mut state, source, root, domain, address_width)?);
     }
     Ok(count)
+}
+
+/// Give `source` a context entry in `domain` unless it has one already; true
+/// when it was added.
+pub(super) fn bind(
+    state: &mut VtdState,
+    source: SourceId,
+    root: u64,
+    domain: DomainId,
+    address_width: u8,
+) -> Result<bool, VtdError> {
+    if state.bindings.iter().any(|binding| binding.source == source) {
+        return Ok(false);
+    }
+    // Bookkeeping first: a device programmed but unrecorded could never be
+    // detached again.
+    if state.bindings.push(DeviceBinding { source, domain }).is_err() {
+        return Err(VtdError::DomainTableFull);
+    }
+    set_context(source, root, domain, address_width)?;
+    Ok(true)
 }
