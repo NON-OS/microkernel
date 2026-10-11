@@ -30,10 +30,15 @@ pub mod frame;
 #[path = "../../../../src/hardware/block_device/wire/header.rs"]
 #[allow(dead_code)]
 pub mod header;
+#[path = "../../../../src/hardware/block_device/wire/identity.rs"]
+#[allow(dead_code)]
+pub mod identity;
 #[path = "../../../../src/hardware/block_device/wire/status.rs"]
 #[allow(dead_code)]
 pub mod status;
 
+#[cfg(test)]
+mod identify_tests;
 #[cfg(test)]
 mod status_tests;
 #[cfg(test)]
