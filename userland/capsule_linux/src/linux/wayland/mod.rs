@@ -25,6 +25,7 @@ mod configure;
 mod data_device;
 mod decoration;
 mod destructor;
+mod display_error;
 mod evdev;
 mod evdev_keys;
 mod fit;
