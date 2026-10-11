@@ -16,8 +16,9 @@
 
 //! What a transfer puts in the host's registers and takes back out, decided
 //! from the request alone. The registers are the ICH and PCH datasheets'
-//! SMBus I/O block: HST_ADD, HST_CMD, HST_D0, HST_D1 and HST_CNT. Pure, so
-//! the proofs can hold every protocol's shape.
+//! SMBus I/O block, as recalled and unverified (regs.rs): HST_ADD, HST_CMD,
+//! HST_D0, HST_D1 and HST_CNT. Pure, so the proofs can hold every
+//! protocol's shape.
 
 use super::kind::Kind;
 use super::request::Xfer;
