@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::iova;
+use super::map_fail::{after_refusal, MapFail};
 use super::table::CAPSULES;
 use crate::memory::addr::PhysAddr;
-use crate::memory::iommu::IommuProtection;
+use crate::memory::iommu::{IommuError, IommuProtection};
 
 /// The address a device is given for a grant, and whether it is an IOVA in
 /// the capsule's domain. A device no unit confines gets the physical address,
@@ -28,24 +29,31 @@ pub(in crate::hardware::broker) fn map(
     phys: u64,
     length: u64,
     access: IommuProtection,
-) -> Option<(u64, bool)> {
+) -> Result<(u64, bool), MapFail> {
     let mut all = CAPSULES.lock();
     let held = |c: &&mut super::table::Capsule| c.devices.iter().any(|(d, _)| *d == device_id);
     let Some(c) = all.iter_mut().filter(|c| c.pid == pid).find(held) else {
-        return Some((phys, false));
+        return Ok((phys, false));
     };
-    let iova = iova::take(c, length)?;
+    let iova = iova::take(c, length).ok_or(MapFail::Freeable)?;
     // SAFETY: eK@nonos.systems - `[phys, phys+length)` is a run the broker just
     // allocated and zeroed for this grant, and frees only after `unmap` below
-    // returns true. `[iova, iova+length)` was taken fresh from this domain's
+    // returns true, or after a refused map is known to have left it unmapped. `[iova, iova+length)` was taken fresh from this domain's
     // allocator, so nothing is mapped there. Both are page aligned: the broker
     // refuses a length that is not, and IOVA_BASE is.
-    let mapped = unsafe { c.domain.map(iova, PhysAddr::new(phys), length as usize, access) };
-    if mapped.is_err() {
-        iova::give_back(c, iova, length);
-        return None;
+    match unsafe { c.domain.map(iova, PhysAddr::new(phys), length as usize, access) } {
+        Ok(()) => Ok((iova, true)),
+        // Written but not confirmed: the device may reach the frames, so they
+        // go back only if an unmap takes the range away.
+        Err(e) => {
+            let unmap = || c.domain.unmap(iova, length as usize).is_ok();
+            let fail = after_refusal(e == IommuError::Uncommitted, unmap);
+            if fail == MapFail::Freeable {
+                iova::give_back(c, iova, length);
+            }
+            Err(fail)
+        }
     }
-    Some((iova, true))
 }
 
 /// True once no device can reach the grant, which is when its frames may be

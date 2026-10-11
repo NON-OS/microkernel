@@ -19,7 +19,7 @@
 use crate::arch::x86_64::iommu::domain::DomainId as VtdDomainId;
 use crate::arch::x86_64::iommu::mapping::{map_range, unmap_range};
 use crate::arch::x86_64::iommu::regs::cap::zero_length_read;
-use crate::arch::x86_64::iommu::types::IommuPageFlags;
+use crate::arch::x86_64::iommu::types::{IommuPageFlags, VtdError};
 use crate::arch::x86_64::iommu::unit::report::probed;
 use crate::memory::addr::PhysAddr;
 use crate::memory::iommu::{DomainId, IommuError, IommuProtection};
@@ -46,8 +46,12 @@ pub(crate) fn map(
         user: false,
         snoop: true,
     };
-    map_range(VtdDomainId::new(domain.as_u16()), iova, phys.as_u64(), size, flags)
-        .map_err(|_| IommuError::BackendFault)
+    map_range(VtdDomainId::new(domain.as_u16()), iova, phys.as_u64(), size, flags).map_err(|e| {
+        match e {
+            VtdError::Uncommitted => IommuError::Uncommitted,
+            _ => IommuError::BackendFault,
+        }
+    })
 }
 
 /// Ungated for the same reason `free_domain` is: the range can only be mapped

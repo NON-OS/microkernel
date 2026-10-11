@@ -45,6 +45,9 @@ pub enum VtdError {
     /// the tables not yet returned stay allocated, never reused.
     TableNotFreed,
     Timeout,
+    /// A map's entries were written and its invalidation or write-buffer
+    /// flush failed: the range may be live.
+    Uncommitted,
     /// The unit refused a queued invalidation descriptor (Fault Status IQE).
     InvalidationRejected,
     /// Interrupt remapping is not on, so there is no entry to route through.

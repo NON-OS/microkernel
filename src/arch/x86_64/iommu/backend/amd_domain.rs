@@ -19,6 +19,7 @@
 //! unit walks.
 
 use crate::arch::x86_64::iommu::amd_vi::domain;
+use crate::arch::x86_64::iommu::amd_vi::error::AmdViError;
 use crate::memory::addr::PhysAddr;
 use crate::memory::iommu::{DomainId, IommuError, IommuProtection};
 
@@ -38,8 +39,10 @@ pub(super) fn map(
     protection: IommuProtection,
 ) -> Result<(), IommuError> {
     let access = (protection.read, protection.write);
-    domain::map_range(id.as_u16(), iova, phys.as_u64(), size, access)
-        .map_err(|_| IommuError::BackendFault)
+    domain::map_range(id.as_u16(), iova, phys.as_u64(), size, access).map_err(|e| match e {
+        AmdViError::Uncommitted => IommuError::Uncommitted,
+        _ => IommuError::BackendFault,
+    })
 }
 
 pub(super) fn unmap(id: DomainId, iova: u64, size: usize) -> Result<(), IommuError> {

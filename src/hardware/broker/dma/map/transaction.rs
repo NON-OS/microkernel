@@ -47,10 +47,7 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
     let placed = Placed { phys_start, pages, length: req.length, user_va };
 
     let access = IommuProtection { read: device_reads(req.flags), write: device_writes(req.flags) };
-    let Some((device_addr, confined)) =
-        crate::hardware::broker::confine::map(pid, req.device_id, phys_start, req.length, access)
-    else {
-        placed.undo();
+    let Some((device_addr, confined)) = placed.confine(pid, req.device_id, access) else {
         return fail("confine", DmaMapError::MapFailed);
     };
     /*
