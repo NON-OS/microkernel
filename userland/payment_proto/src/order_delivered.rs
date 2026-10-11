@@ -22,13 +22,24 @@
 use alloc::vec::Vec;
 
 use crate::cursor::Cursor;
+pub use crate::order_delivered_made::DeliveredMade;
 
 pub const DELIVERED_ASK_LEN: usize = 64;
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+/// K is the content's key (rule 5): its Debug names it redacted.
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct DeliveredAsk {
     pub order_id: [u8; 32],
     pub key: [u8; 32],
+}
+
+impl core::fmt::Debug for DeliveredAsk {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("DeliveredAsk")
+            .field("order_id", &self.order_id)
+            .field("key", &"redacted")
+            .finish()
+    }
 }
 
 impl DeliveredAsk {
@@ -40,34 +51,5 @@ impl DeliveredAsk {
         let mut r = Cursor::new(b);
         let (order_id, key) = (r.fixed()?, r.fixed()?);
         r.end(DeliveredAsk { order_id, key })
-    }
-}
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum DeliveredMade {
-    Ok { content_len: u64 },
-    BadChunk { index: u64, calldata: Vec<u8> },
-}
-
-impl DeliveredMade {
-    pub fn encode(&self) -> Vec<u8> {
-        match self {
-            DeliveredMade::Ok { content_len } => [&[0u8][..], &content_len.to_le_bytes()].concat(),
-            DeliveredMade::BadChunk { index, calldata } => {
-                [&[1u8][..], &index.to_le_bytes(), calldata].concat()
-            }
-        }
-    }
-
-    pub fn parse(b: &[u8]) -> Option<Self> {
-        let mut r = Cursor::new(b);
-        let (tag, n) = (r.u8()?, r.u64()?);
-        match tag {
-            0 => r.end(DeliveredMade::Ok { content_len: n }),
-            1 if b.len() > 9 => {
-                Some(DeliveredMade::BadChunk { index: n, calldata: b[9..].to_vec() })
-            }
-            _ => None,
-        }
     }
 }
