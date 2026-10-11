@@ -17,8 +17,8 @@
 /*
  * A purchase the store named, taken from the meter's mailbox (op 19/1,
  * plan/27): asked every TAKE_EVERY_MS while the wallet is open, unlocked
- * and holds no other purchase. Its terms are read from the market at once,
- * and the consent screen opens on them.
+ * and holds no other purchase. The consent screen opens at once and fills
+ * as the market is read, one call a tick (consent.rs).
  */
 
 use alloc::boxed::Box;
@@ -26,17 +26,22 @@ use alloc::boxed::Box;
 use nonos_libc::mk_uptime_ms;
 use nonos_payment_proto::{Names, OrderMade, OrderNew};
 
-use super::market::read;
+use super::fees::Fees;
 use super::read::Named;
+use super::reading::Reading;
 use crate::wallet::meter::order_calls::take;
 use crate::wallet::state::{State, VIEW_PURCHASE};
 
 const TAKE_EVERY_MS: u64 = 2_000;
+const READING: &str = "Reading the listing's terms from the market.";
 
 pub struct Pending {
     pub names: Names,
-    /// The market's terms, or why there are none to confirm.
+    /// The market's terms, or why there are none to confirm yet.
     pub read: Result<Named, &'static str>,
+    /// The market call to make next; None once the terms are read.
+    pub reading: Option<Reading>,
+    pub fees: Fees,
     pub step: Step,
     /// The fresh address a refund goes to, drawn when the person confirms.
     pub refund_to: [u8; 20],
@@ -62,8 +67,8 @@ pub fn take_due(state: &mut State) -> bool {
     }
     state.meter.take_at = now + TAKE_EVERY_MS;
     let Some(names) = take() else { return false };
-    let read = read(&names);
-    let p = Pending { names, read, step: Step::Consent, refund_to: [0; 20] };
+    let (read, reading, fees) = (Err(READING), Some(Reading::Commerce), Fees::Unasked);
+    let p = Pending { names, read, reading, fees, step: Step::Consent, refund_to: [0; 20] };
     state.meter.purchase = Some(Box::new(p));
     state.view = VIEW_PURCHASE;
     state.scroll = 0;
