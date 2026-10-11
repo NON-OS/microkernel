@@ -180,6 +180,9 @@ pub mod uefi_attrs;
 #[cfg(test)]
 pub mod uefi_revision;
 pub mod usercopy;
+/// The PCI Command register a driver may write.
+#[cfg(test)]
+pub mod pci_command;
 /// Which virtio devices may be confined.
 #[cfg(test)]
 pub mod virtio_confine;

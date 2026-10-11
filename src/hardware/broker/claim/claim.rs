@@ -33,6 +33,8 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     if crate::hardware::broker::confine::attach(pid, device_id).is_err() {
         return Err(ClaimError::Unconfined);
     }
+    // Bus Master off: the driver turns it on itself, once it holds Dma.
+    super::quiesce::stop_bus_master_quietly(device_id);
     // Bring the device to power state D0 before its driver maps MMIO. Done
     // outside the claims lock: it touches config space and settles for a moment.
     crate::hardware::broker::power::power_on_device(device_id);
