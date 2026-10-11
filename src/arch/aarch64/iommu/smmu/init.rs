@@ -62,7 +62,7 @@ pub fn bring_up() -> Result<(), &'static str> {
         features,
         map,
         phandle: info.phandle,
-        _eventq: eventq,
+        eventq,
     });
     Ok(())
 }

@@ -37,7 +37,7 @@ pub(super) struct Smmu {
     pub(super) features: Features,
     pub(super) map: Option<IommuMap>,
     pub(super) phandle: u32,
-    pub(super) _eventq: Eventq,
+    pub(super) eventq: Eventq,
 }
 
 pub(super) static SMMU: Mutex<Option<Smmu>> = Mutex::new(None);
@@ -47,11 +47,14 @@ pub(super) static SMMU: Mutex<Option<Smmu>> = Mutex::new(None);
 pub(super) static DESCRIBED: Once<(SmmuInfo, Option<IommuMap>)> = Once::new();
 
 /// Run `f` on the unit, or answer `NotInitialized` before it is in service.
+/// Faults the unit recorded meanwhile are reported on the way out.
 pub(super) fn with<T>(f: impl FnOnce(&mut Smmu) -> Result<T, IommuError>) -> Result<T, IommuError> {
-    match SMMU.lock().as_mut() {
-        Some(smmu) => f(smmu),
-        None => Err(IommuError::NotInitialized),
-    }
+    let mut guard = SMMU.lock();
+    let smmu = guard.as_mut().ok_or(IommuError::NotInitialized)?;
+    let result = f(smmu);
+    smmu.eventq.drain(smmu.regs);
+    super::gerror::report(smmu.regs);
+    result
 }
 
 impl Smmu {

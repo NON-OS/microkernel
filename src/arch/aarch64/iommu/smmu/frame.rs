@@ -48,7 +48,12 @@ pub(super) fn words(phys: u64) -> Result<&'static mut [u64; WORDS], IommuError> 
     Ok(unsafe { &mut *(virt.as_u64() as *mut [u64; WORDS]) })
 }
 
-/// Return a frame once nothing the unit can still walk points at it.
+/// Return a frame once nothing the unit can still walk points at it,
+/// scrubbed first: page tables and CDs name physical memory, which the
+/// next owner of the frame has no business reading.
 pub(super) fn free(phys: u64) {
+    if let Ok(view) = words(phys) {
+        view.fill(0);
+    }
     let _ = deallocate_frame(PhysAddr::new(phys));
 }

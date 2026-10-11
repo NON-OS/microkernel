@@ -25,6 +25,7 @@ mod domain;
 pub mod encode;
 mod eventq;
 mod frame;
+mod gerror;
 mod init;
 mod mmio;
 mod pgtable;
