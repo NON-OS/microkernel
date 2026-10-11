@@ -2961,6 +2961,27 @@
   "md": [],
   "signed": []
  },
+ "userland/edid_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-bootloader/src/display/gop/pick.rs",
+   "userland/edid_proofs",
+   "userland/nonos_edid/data",
+   "userland/nonos_edid/src/base",
+   "userland/nonos_edid/src/blocks.rs",
+   "userland/nonos_edid/src/cta",
+   "userland/nonos_edid/src/displayid",
+   "userland/nonos_edid/src/edid.rs",
+   "userland/nonos_edid/src/error.rs",
+   "userland/nonos_edid/src/query.rs",
+   "userland/nonos_edid/src/source.rs",
+   "userland/nonos_edid/src/timing.rs",
+   "userland/nonos_edid/src/walk.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/editor_proofs": {
   "exclude": [],
   "include": [
