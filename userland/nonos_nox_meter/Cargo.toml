@@ -12,6 +12,8 @@ crate-type = ["rlib"]
 nonos_marketplace_abi = { path = "../marketplace_abi" }
 nonos_nox_config = { path = "../nonos_nox_config" }
 nonos_nox_chunks = { path = "../nonos_nox_chunks" }
+# The Equi-X solution an escrow request carries.
+nonos_equix = { path = "../nonos_equix" }
 nonos_payment_proto = { path = "../payment_proto" }
 nonos_settle_proto = { path = "../settle_proto" }
 
@@ -19,3 +21,5 @@ nonos_settle_proto = { path = "../settle_proto" }
 # independent implementation.
 [dev-dependencies]
 sha3 = { version = "=0.10.9", default-features = false }
+# X25519 on the host, as shield_core pins it.
+x25519-dalek = { version = "=2.0.1", default-features = false, features = ["static_secrets"] }
