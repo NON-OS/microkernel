@@ -32,15 +32,17 @@ use crate::app::{files, tpm};
 use crate::assemble::{bound, enrolled_where, slots, wipe, wipe_bytes, Refusal, TRANSCRIPT_MAX};
 use crate::market::{registrar, root_bytes};
 
+use super::status::failed;
+
 const TRANSCRIPT: &[u8] = b"/prove/registry.transcript";
 
 pub fn proof(day: u64, (e, context): ([Fp; 2], [Fp; RATE])) -> Result<Vec<u8>, i32> {
     // No pins until the owner seals a release: nothing proves before then.
     let trust = release().ok_or(STALE_REGISTRY)?;
-    let transcript = files::read(TRANSCRIPT, TRANSCRIPT_MAX).map_err(|e| e as i32)?;
+    let transcript = files::read(TRANSCRIPT, TRANSCRIPT_MAX).map_err(failed)?;
     let (eks, rc) = tpm::ek_answers();
     if eks.is_empty() {
-        return Err(if rc < 0 { rc as i32 } else { NOT_ENROLLED });
+        return Err(if rc < 0 { failed(rc) } else { NOT_ENROLLED });
     }
     let answers: Vec<&[u8]> = eks.iter().map(|a| a.as_slice()).collect();
     let found = Cell::new(None);
@@ -50,13 +52,13 @@ pub fn proof(day: u64, (e, context): ([Fp; 2], [Fp; RATE])) -> Result<Vec<u8>, i
     };
     let device = enrolled_where(&transcript, accept, &answers).map_err(refused)?;
     let reg = found.get().ok_or(STALE_REGISTRY)?;
-    let record = tpm::slots_record().map_err(|e| e as i32)?;
+    let record = tpm::slots_record().map_err(failed)?;
     let slots = slots(&record).map_err(|_| PROVER)?;
     let mut secret = [0u8; 32];
     let rc = tpm::secret(&mut secret);
     let made = (rc == 0).then(|| bound(e, context, &root_bytes(&reg), device, slots, &secret));
     wipe_bytes(&mut secret);
-    let (st, mut w) = made.ok_or(rc as i32)?.map_err(|_| PROVER)?;
+    let (st, mut w) = made.ok_or(failed(rc))?.map_err(|_| PROVER)?;
     let mut entropy = [0u8; 64];
     let drawn = nonos_libc::crypto_random(entropy.as_mut_ptr(), entropy.len());
     let proof = (drawn >= 0).then(|| nonos_device_attest::prove(&st, &w, &entropy));

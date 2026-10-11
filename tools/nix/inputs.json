@@ -3956,6 +3956,7 @@
    "userland/capsule_prove/src/assemble/wipe.rs",
    "userland/capsule_prove/src/assemble/words.rs",
    "userland/capsule_prove/src/job/bound.rs",
+   "userland/capsule_prove/src/job/status.rs",
    "userland/capsule_prove/src/market/buckets.rs",
    "userland/capsule_prove/src/market/check.rs",
    "userland/capsule_prove/src/market/container.rs",
