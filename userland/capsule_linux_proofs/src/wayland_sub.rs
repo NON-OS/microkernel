@@ -19,6 +19,8 @@
 
 #[path = "../../capsule_linux/src/linux/wayland/subsurface/blend.rs"]
 pub mod blend;
+#[path = "../../capsule_linux/src/linux/wayland/subsurface/may.rs"]
+pub mod may;
 #[path = "../../capsule_linux/src/linux/wayland/subsurface/order.rs"]
 pub mod order;
 #[path = "../../capsule_linux/src/linux/wayland/subsurface/restack.rs"]
