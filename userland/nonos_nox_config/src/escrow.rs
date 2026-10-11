@@ -34,3 +34,10 @@ pub const ORDER_MIN_LEAD: u64 = 24 * HOUR;
 /// The least UNBOND_DELAY: every order funded before an unbond request
 /// ends inside it.
 pub const UNBOND_DELAY_MIN: u64 = MAX_DELIVERY + DISPUTE_WINDOW + DAY;
+
+/// keccak256 of the DepositForwarder clone's creation code on `chain_id`, as
+/// depositAddress(orderId) needs it (plan/27). Pinned with a test vector when
+/// the owner deploys the escrow; None until then, and ORDER_NEW refuses.
+pub const fn forwarder_initcode_hash(_chain_id: u64) -> Option<[u8; 32]> {
+    None
+}
