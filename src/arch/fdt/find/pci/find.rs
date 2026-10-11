@@ -22,6 +22,7 @@
 //! registers as ECAM would walk garbage as if it were a bus.
 
 use crate::arch::fdt::error::FdtError;
+use crate::arch::fdt::node::NodeRef;
 use crate::arch::fdt::parser::Fdt;
 
 use super::bus_range::bus_range;
@@ -30,11 +31,15 @@ use super::ranges::{iter as range_iter, SPACE_IO, SPACE_MEM32};
 
 const ECAM: &[&[u8]] = &[b"pci-host-ecam-generic"];
 
+/// The first enabled generic ECAM host bridge, the one `find` describes.
+pub fn host<'a>(fdt: &Fdt<'a>) -> Result<Option<NodeRef<'a>>, FdtError> {
+    fdt.devices(ECAM).next().transpose().map(|found| found.map(|(node, _)| node))
+}
+
 pub fn find(fdt: &Fdt) -> Result<Option<PciHost>, FdtError> {
-    let Some(found) = fdt.devices(ECAM).next() else {
+    let Some(node) = host(fdt)? else {
         return Ok(None);
     };
-    let (node, _) = found?;
     let Some((ecam_base, ecam_size)) = fdt.mmio(&node, 0)? else {
         return Ok(None);
     };

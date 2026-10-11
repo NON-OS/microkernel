@@ -2,7 +2,7 @@
 //! Every entry point over one blob, results ignored: what matters to the
 //! mutation sweep is that none of them panics or fails to return.
 
-use crate::arch::fdt::find::{cpus, gic, memory, pci, rtc, timer, uart};
+use crate::arch::fdt::find::{cpus, gic, memory, pci, rtc, smmu, timer, uart};
 use crate::arch::fdt::irq::{gic_edge, gic_intid};
 use crate::arch::fdt::Fdt;
 
@@ -15,6 +15,7 @@ pub fn all(bytes: &[u8]) {
     let _ = cpus::find(&fdt, &mut ids);
     let _ = (uart::find(&fdt), gic::find(&fdt), timer::find(&fdt));
     let _ = (pci::find(&fdt), rtc::find(&fdt), fdt.stdout(), fdt.initrd());
+    let _ = (smmu::find(&fdt), smmu::pci_iommu_map(&fdt));
     let _ = fdt.reserved_memory(&mut held);
     let _ = fdt.reservations().count();
     let _ = fdt.resolve(b"serial0/bluetooth");
