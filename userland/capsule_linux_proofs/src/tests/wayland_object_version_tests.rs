@@ -16,7 +16,8 @@
 
 //! The version each object is made at: a bound global's own, and for what a
 //! request makes, that of the object the request was sent to. And a client
-//! told of a fatal error holds nothing and is given nothing more.
+//! told of a fatal error holds nothing and is given nothing more. And the
+//! objects of one kind, which a surface entering the outputs reads.
 
 use crate::wayland_object::{Object, Objects};
 
@@ -58,4 +59,15 @@ fn a_failed_client_holds_only_the_display_and_is_given_nothing() {
     assert!(!objects.put(6, Object::Surface), "nothing is made after");
     assert!(!objects.bound(7, Object::Seat, 1));
     assert!(objects.get(6).is_none() && objects.get(7).is_none());
+}
+
+#[test]
+fn all_names_every_object_of_a_kind_oldest_first() {
+    let mut objects = Objects::new();
+    assert!(objects.bound(9, Object::Output, 2));
+    assert!(objects.bound(4, Object::Seat, 5));
+    assert!(objects.bound(6, Object::Output, 1));
+    assert_eq!(objects.all(Object::Output).collect::<alloc::vec::Vec<_>>(), [9, 6]);
+    objects.drop_id(9);
+    assert_eq!(objects.all(Object::Output).collect::<alloc::vec::Vec<_>>(), [6]);
 }
