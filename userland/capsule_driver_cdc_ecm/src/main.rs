@@ -32,5 +32,5 @@ pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    nonos_usbnet::run(b"cdc-ecm", ecm::bind::<XhciBus>);
+    nonos_usbnet::run(b"cdc-ecm", "driver.cdc_ecm0", ecm::bind::<XhciBus>);
 }

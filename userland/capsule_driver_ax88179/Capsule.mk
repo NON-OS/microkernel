@@ -12,11 +12,16 @@ CAPSULE_FEATURE          := nonos-capsule-driver-ax88179
 CAPSULE_NAMESPACE        := systems.nonos.driver.ax88179_0
 CAPSULE_SERVICE_ENDPOINT := service:4256:driver.ax88179_0
 CAPSULE_REPLY_ENDPOINT   := reply:4257:endpoint.4294967363
-# IPC | Memory | Debug = 0x08 | 0x10 | 0x200000 = 0x200018
+# IPC | Memory = 0x08 | 0x10 = 0x18. The loop drops what it sent itself by
+# its own pid, read back through MkServiceLookup (IPC) rather than
+# MkGetPid, so no CoreExec.
 # No Driver/DeviceEnum/Mmio/Irq/Dma/Pio: this is a class capsule above
 # xHCI. No Crypto either, so a chip without a station address is not
-# given a random one. Debug carries its [usbnet ax88179] lines.
-CAPSULE_REQUIRED_CAPS    := 0x200018
+# given a random one.
+CAPSULE_REQUIRED_CAPS    := 0x18
+# Debug, granted only by a build that compiles `capsule-serial-debug`, for
+# the [usbnet ax88179] lines; frames never reach them.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 
 include nonos-mk/capsule.mk
 # Builds and is proven on the host, but has no owner certificate, no kernel
