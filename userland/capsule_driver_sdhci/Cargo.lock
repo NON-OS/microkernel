@@ -21,9 +21,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_blk_wire"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_capsule_driver_sdhci"
 version = "0.1.0"
 dependencies = [
+ "nonos_blk_wire",
  "nonos_userland_libc",
 ]
 
