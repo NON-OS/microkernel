@@ -1742,6 +1742,7 @@
    "userland/libc",
    "userland/nonos_ed25519",
    "userland/nonos_hash",
+   "userland/nonos_linux_policy",
    "userland/nonos_route_link",
    "userland/nonos_socket",
    "userland/nonos_tls",
@@ -1769,6 +1770,8 @@
    "userland/capsule_linux/src/linux/abi/errno.rs",
    "userland/capsule_linux/src/linux/abi/errno_io.rs",
    "userland/capsule_linux/src/linux/abi/errno_sock.rs",
+   "userland/capsule_linux/src/linux/app/choose.rs",
+   "userland/capsule_linux/src/linux/app/identity.rs",
    "userland/capsule_linux/src/linux/applets.rs",
    "userland/capsule_linux/src/linux/call/futex_op.rs",
    "userland/capsule_linux/src/linux/call/ioctl_req.rs",
@@ -1873,6 +1876,7 @@
    "userland/inflate",
    "userland/nonos_ed25519",
    "userland/nonos_hash",
+   "userland/nonos_linux_policy",
    "userland/nonos_route_link/src/pick.rs",
    "userland/openpgp",
    "userland/policy_proto",
@@ -3708,6 +3712,15 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_linux_policy": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_linux_policy"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_secp256k1": {
   "exclude": [],
   "include": [
@@ -4886,6 +4899,7 @@
    "userland/assets/fonts/JetBrainsMono-Regular.ttf",
    "userland/assets/icons/nonos_logo.rgba",
    "userland/capsule_keyring/src/server/secp.rs",
+   "userland/capsule_keyring/src/server/typed",
    "userland/capsule_keyring/src/server/vault_gate/rule.rs",
    "userland/capsule_keyring/src/server/words_own.rs",
    "userland/capsule_keyring/src/store/count.rs",

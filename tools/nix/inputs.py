@@ -62,6 +62,7 @@ EXTRA_ROOTS = [
     "userland/nonos_ed25519",
     "userland/nonos_i2cmodel",
     "userland/attest_receipt",
+    "userland/nonos_linux_policy",
     "userland/upstream-src/sd-1.0.0",
     "userland/upstream-src/tokio-smoke",
     "userland/upstream-src/grex",
