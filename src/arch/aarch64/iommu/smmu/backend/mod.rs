@@ -24,4 +24,4 @@ mod query;
 pub use devices::{attach_device, detach_device};
 pub use domains::{allocate_domain, free_domain};
 pub use mapping::{map, unmap};
-pub use query::{capabilities, select_vendor, translates};
+pub use query::{capabilities, identity_devices, select_vendor, translates};
