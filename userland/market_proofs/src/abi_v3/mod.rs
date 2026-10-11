@@ -19,6 +19,8 @@ mod attest_fixture;
 mod baseline;
 mod binding;
 mod blobs;
+mod bond;
+mod bond_gate;
 mod commerce;
 mod digest;
 mod document;
