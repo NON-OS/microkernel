@@ -34,6 +34,11 @@ fn run(ctx: &mut Context, slot: u8, dir_in: bool) -> XhciResult<()> {
     let d = &mut ctx.driver;
     let res =
         d.slots.resources_mut(slot, d.layout.max_slots).ok_or(XhciError::ControllerUnsupported)?;
+    // The dequeue pointer moves past the polled IN's TRB too: it will never
+    // complete, so the next poll arms a fresh one.
+    if let (true, Some(p)) = (dir_in, res.bulk.as_mut()) {
+        p.armed = None;
+    }
     reset_bulk_endpoint(
         d.layout.doorbell_base,
         d.layout.primary_intr_base,
