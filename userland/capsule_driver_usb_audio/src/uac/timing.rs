@@ -1,0 +1,66 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! How the stream is cut into packets: one per service interval, each the
+//! frames 48 kHz plays in it, and a batch of them per isoch OUT request.
+
+use super::format::{FRAME_BYTES, RATE_HZ};
+
+/// Port speed ids (xHCI PORTSC bits 13:10).
+pub const SPEED_HIGH: u8 = 3;
+
+/// The most one isoch request carries: driver.xhci0's ISOCH_PACKETS_MAX
+/// and ISOCH_MAX.
+const BATCH_PACKETS_MAX: u32 = 32;
+/// Less than ISOCH_MAX: the request also carries a u16 per packet, and the
+/// xHCI client sends 4112 body bytes at most.
+const BATCH_BYTES_MAX: u32 = 4032;
+/// About this much sound per request, so a write the audio server makes
+/// while a batch plays waits no longer than one.
+const BATCH_US: u32 = 8_000;
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Timing {
+    pub packet_bytes: u16,
+    pub packets: u8,
+}
+
+impl Timing {
+    pub fn batch_bytes(&self) -> usize {
+        self.packet_bytes as usize * self.packets as usize
+    }
+}
+
+/// `None` when the endpoint cannot carry 48 kHz stereo at its interval: a
+/// fraction of a frame per interval, or more than its packets hold.
+pub fn timing(speed: u8, b_interval: u8, max_packet: u16) -> Option<Timing> {
+    let exp = b_interval.clamp(1, 16) as u32 - 1;
+    // Full speed counts 1 ms frames, faster buses 125 us microframes.
+    let unit_us = if speed >= SPEED_HIGH { 125 } else { 1000 };
+    let interval_us = unit_us << exp.min(10);
+    let frames_e6 = RATE_HZ as u64 * interval_us as u64;
+    if !frames_e6.is_multiple_of(1_000_000) {
+        return None;
+    }
+    let packet = (frames_e6 / 1_000_000) as u32 * FRAME_BYTES;
+    let transactions = if speed == SPEED_HIGH { ((max_packet >> 11) & 0x3) as u32 + 1 } else { 1 };
+    if packet == 0 || packet > (max_packet & 0x7FF) as u32 * transactions {
+        return None;
+    }
+    let packets =
+        (BATCH_US / interval_us).clamp(1, BATCH_PACKETS_MAX).min(BATCH_BYTES_MAX / packet);
+    (packets > 0).then_some(Timing { packet_bytes: packet as u16, packets: packets as u8 })
+}
