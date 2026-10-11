@@ -31,7 +31,8 @@ pub const WRITABLE: u64 = 1 << 1;
 /// Reachable from EL0 / ring 3.
 pub const USER: u64 = 1 << 2;
 pub const WRITE_THROUGH: u64 = 1 << 3;
-/// Uncached. Set for device memory.
+/// Uncached: device registers, and RAM a device and the CPU share without
+/// snooping.
 pub const NO_CACHE: u64 = 1 << 4;
 pub const ACCESSED: u64 = 1 << 5;
 pub const DIRTY: u64 = 1 << 6;
@@ -40,5 +41,11 @@ pub const DIRTY: u64 = 1 << 6;
 pub const HUGE: u64 = 1 << 7;
 /// Survives an address-space switch.
 pub const GLOBAL: u64 = 1 << 8;
+/// Device registers, not memory: reads have side effects and nothing may be
+/// gathered, merged or fetched ahead. x86_64 says this through NO_CACHE and
+/// ignores bit 52, which an x86 entry leaves to software (Intel SDM Vol. 3A,
+/// 4.5); aarch64 needs it to tell registers from uncached RAM, which would
+/// otherwise share one memory type.
+pub const DEVICE: u64 = 1 << 52;
 /// Instruction fetch is denied.
 pub const NO_EXECUTE: u64 = 1 << 63;
