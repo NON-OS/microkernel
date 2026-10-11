@@ -29,7 +29,7 @@ use crate::drivers::pci::constants::{CFG_COMMAND, MSIX_CTRL_ENABLE, MSIX_CTRL_FU
 use crate::drivers::pci::types::MsixInfo;
 
 use super::command::validate_command;
-use super::quirk_bits::{clear_only, cleared_only, only, writable, Ident};
+use super::quirk_bits::{only, writable, Ident};
 use super::types::{PciWriteError, PciWriteRequest, WriteAction};
 
 const MSIX_CONTROL_WRITABLE: u16 = MSIX_CTRL_ENABLE | MSIX_CTRL_FUNCTION_MASK;
@@ -49,16 +49,14 @@ pub fn validate(
             return validate_msix_control(req.value, current_register, ctrl_offset as u16);
         }
     }
-    /* The vendor bits of `quirk_bits`: some it may only turn off. */
-    let fits = match (clear_only(ident, req.offset), writable(ident, req.offset)) {
-        (Some(mask), _) => cleared_only(mask, req.value, current_register),
-        (None, Some(mask)) => only(mask, req.value, current_register),
-        (None, None) => return Err(PciWriteError::OffsetNotAllowed),
-    };
-    if !fits {
-        return Err(PciWriteError::BitsNotAllowed);
+    /* The vendor bits of `quirk_bits`, and nothing beside them. */
+    if let Some(mask) = writable(ident, req.offset) {
+        if !only(mask, req.value, current_register) {
+            return Err(PciWriteError::BitsNotAllowed);
+        }
+        return Ok(WriteAction::Bits { offset: req.offset as u16, value: req.value });
     }
-    Ok(WriteAction::Bits { offset: req.offset as u16, value: req.value })
+    Err(PciWriteError::OffsetNotAllowed)
 }
 
 fn validate_msix_control(
