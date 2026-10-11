@@ -1,0 +1,42 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The stream on the chosen route as TLS reads and writes it. Every read
+//! and write first answers what has come in on fetch's endpoint, so STATUS
+//! is answered while a transfer is under way, and a read waits at most a
+//! slice for its first byte; the transfer keeps its own read budget.
+
+use nonos_route_link::RouteStream;
+use nonos_tls::{Io, SessionError};
+
+const SLICE_MS: u64 = 500;
+
+pub struct RouteIo<'a> {
+    pub stream: RouteStream,
+    pub between: &'a mut dyn FnMut(),
+}
+
+impl Io for RouteIo<'_> {
+    fn write_all(&mut self, data: &[u8]) -> Result<(), SessionError> {
+        (self.between)();
+        self.stream.write_all(data).map_err(|_| SessionError::Io)
+    }
+
+    fn read(&mut self, into: &mut [u8]) -> Result<usize, SessionError> {
+        (self.between)();
+        self.stream.read_wait(into, SLICE_MS).map_err(|_| SessionError::Io)
+    }
+}
