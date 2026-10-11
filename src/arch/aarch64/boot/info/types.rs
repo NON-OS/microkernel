@@ -18,6 +18,7 @@ use super::limits::{MAX_CPUS, MAX_MEMORY_REGIONS};
 use super::memory::MemoryRegion;
 use super::reserved::Reserved;
 use crate::arch::aarch64::gic::GicVersion;
+use crate::arch::fdt::find::msi::MsiController;
 use crate::arch::fdt::find::smmu::{IommuMap, SmmuInfo};
 use crate::arch::fdt::find::uart::UartInfo;
 
@@ -30,8 +31,7 @@ pub struct BootInfo {
     pub dtb_base: u64,
     pub dtb_size: u64,
     pub uart: UartInfo,
-    /// The GIC the device tree names, `None` when there is no tree and the
-    /// CPU's own ID registers decide.
+    /// The GIC the tree names; `None` without a tree, and the CPU decides.
     pub gic_version: Option<GicVersion>,
     pub gic_dist_base: u64,
     /// GICv3's redistributor region.
@@ -39,9 +39,8 @@ pub struct BootInfo {
     /// GICv2's CPU interface.
     pub gic_cpu_base: u64,
     pub cpu_count: u32,
-    /// Each CPU's MPIDR affinity, in device-tree order: PSCI names a core by
-    /// it and the GIC matches a redistributor frame by it. Fixed storage, as
-    /// for the memory map: filled before the heap exists.
+    /// Each CPU's MPIDR affinity in tree order, which PSCI and the GIC's
+    /// redistributors name a core by. Fixed: filled before the heap exists.
     pub cpu_affinities: [u64; MAX_CPUS],
     pub cpu_affinity_count: usize,
     pub timer_phys_intid: u32,
@@ -55,15 +54,16 @@ pub struct BootInfo {
     /// The buses the ECAM window covers; its first megabyte is the first bus.
     pub pci_bus_start: u8,
     pub pci_bus_end: u8,
-    /// The memory window the host bridge forwards to its devices. Booting from
-    /// a device tree means no firmware has assigned any BAR, so the kernel
-    /// hands out addresses from here itself.
+    /// The memory window the host bridge forwards to its devices. No firmware
+    /// assigned a BAR before a tree boot, so the kernel assigns them from it.
     pub pci_mmio_base: u64,
     pub pci_mmio_size: u64,
     /// MMIO base of the PL031 real-time clock, zero when the board has none.
     pub rtc_base: u64,
     /// The SMMUv3 and the host bridge's `iommu-map`, when the tree has one.
     pub smmu: Option<(SmmuInfo, Option<IommuMap>)>,
+    /// The MSI controller the host bridge's functions write to, and its map.
+    pub msi: Option<(MsiController, IommuMap)>,
     /// Fixed storage: this is filled from the device tree in `kernel_entry`,
     /// long before the heap exists, so it cannot be a `Vec`.
     pub memory_regions: [MemoryRegion; MAX_MEMORY_REGIONS],
