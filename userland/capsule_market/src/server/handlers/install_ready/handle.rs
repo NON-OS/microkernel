@@ -45,7 +45,8 @@ pub(crate) fn handle(store: &Store, bonds: &mut Bonds, body: &[u8], req: &Reques
     let base =
         evaluate(accepted.signature_verified, listing_id, release, publisher_ok, escrow(entry));
     let more = market_gates(&Host, entry, release, publisher_ok);
-    let bond = bond_gate(&mut bonds.cache, entry, chain, now_ms() / 1000);
+    let code = bond_gate(&mut bonds.cache, entry, chain, now_ms() / 1000);
+    let bond = code.passes();
     let slot = match body_slot(tx, READINESS_LEN) {
         Some(s) => s,
         None => return reply_status(tx, req, E_INVAL),
@@ -62,5 +63,6 @@ pub(crate) fn handle(store: &Store, bonds: &mut Bonds, body: &[u8], req: &Reques
     slot[9] = more.policy as u8;
     slot[10] = more.price as u8;
     slot[11] = bond as u8;
+    slot[12] = code as u8;
     reply_with_body(tx, req, READINESS_LEN);
 }

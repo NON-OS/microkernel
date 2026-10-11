@@ -39,7 +39,7 @@ pub fn paint(fb: &mut PaintBuffer, x: u32, mut top: i32, r: &Readiness) -> i32 {
         top += 24;
     }
     for (i, (label, pass)) in GATES.iter().zip(r.gates.iter()).enumerate() {
-        let (mark, hue): (&[u8], u32) = (mark(i, *pass), if *pass { OK } else { DANGER });
+        let (mark, hue): (&[u8], u32) = (mark(i, *pass, r.bond), if *pass { OK } else { DANGER });
         text::line(fb, x, top, label, MUTED, SMALL_PX);
         text::line(fb, x + MARK_X, top, mark, hue, SMALL_PX);
         top += GATE_ROW_H as i32;
