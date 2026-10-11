@@ -18,9 +18,13 @@ mod answer;
 mod ask;
 mod drive;
 mod send;
+mod solve;
+mod solving;
 mod start;
 mod work;
 
 pub(crate) use answer::on_frame;
+pub(crate) use solve::solve_step;
+pub(crate) use solving::Solving;
 pub(crate) use start::start;
 pub(crate) use work::Work;

@@ -18,9 +18,13 @@ mod kept;
 mod kept_id;
 mod offer_work;
 mod request;
+mod walk;
+mod walk_found;
 mod want;
 
 pub use kept::{KeptOffer, KEPT_HEAD};
 pub use offer_work::OfferWork;
-pub use request::{escrow_request, NONCE_TRIES};
+pub use request::escrow_request;
+pub use walk::Walk;
+pub use walk_found::{Walked, NONCE_TRIES};
 pub use want::{Asked, Want};

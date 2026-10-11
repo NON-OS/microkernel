@@ -21,7 +21,7 @@ use nonos_payment_proto::{parse_header, reply, EINVAL};
 
 use super::call::Call;
 use super::dispatch::dispatch;
-use crate::jobs::{on_frame, Work};
+use crate::jobs::{on_frame, solve_step, Work};
 use crate::meter::{now_ms, Meter};
 
 /// Its own reply inbox: 0x1_0000_0010 was driver_hda's too, and of two
@@ -37,6 +37,8 @@ pub fn run() -> ! {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, work.wait_ms(), &mut sender);
         work.tick(now_ms());
+        // A slice of an offer's proof of work between requests (v1.4.34).
+        solve_step(&mut work, &mut meter);
         // A job step's answer from settle is taken here and needs no reply.
         if n <= 0 || on_frame(&mut work, &meter, sender, &buf[..n as usize]) {
             continue;

@@ -25,7 +25,7 @@ use nonos_equix::{verify, Blake2b, Solution, SOLUTION_BYTES};
 
 use crate::pow_field::PowField;
 
-/// 32 + 32 + 16 + 4. the plan says 104; its four fields make 84 (B #62).
+/// listing_key | buyer_pk | nonce | effort: 32 + 32 + 16 + 4.
 pub const CHALLENGE_LEN: usize = 84;
 pub fn pow_challenge(
     listing_key: &[u8; 32],
