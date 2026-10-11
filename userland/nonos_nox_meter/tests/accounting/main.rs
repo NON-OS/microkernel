@@ -21,6 +21,7 @@ mod floor;
 #[path = "../host/mod.rs"]
 mod host;
 mod persist;
+mod persist_settle;
 mod sealed;
 mod state;
 mod vouchers;

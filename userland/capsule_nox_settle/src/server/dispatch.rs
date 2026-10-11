@@ -16,17 +16,22 @@
 
 use alloc::vec::Vec;
 
-use nonos_settle_proto::{EINVAL, OP_BROADCAST, OP_CHANNEL_STATE, OP_FETCH, OP_GAS};
-use nonos_settle_proto::{OP_HEALTHCHECK, OP_INTENT, OP_OPENED, OP_READ};
+use nonos_settle_proto::{EINVAL, EPERM, OP_BROADCAST, OP_CHANNEL_STATE, OP_FETCH, OP_GAS};
+use nonos_settle_proto::{OP_HEALTHCHECK, OP_INTENT, OP_OPENED, OP_READ, OP_SETTLE};
 
 use super::call::Call;
+use super::gate::admitted;
 use crate::handlers;
 use crate::settle::Settle;
 
-/// Every op is open to any caller: settle holds no key, and what it answers
-/// is the chain's, or a broadcast of bytes another signed. Op 3 (the old
-/// READ_NONCE) is READ's view 14 now, and EINVAL like any unknown op.
-pub fn dispatch(s: &mut Settle, req: &Call<'_>) -> Vec<u8> {
+/// Each op answers only its callers (settle_proto::callers, v1.4.7): every
+/// argument reaches an RPC host or a URL, so a capsule without Network must
+/// not reach the network through settle. The caller is checked before the
+/// body is read. Op 3 (the old READ_NONCE) answers no one.
+pub fn dispatch(s: &mut Settle, sender: u32, req: &Call<'_>) -> Vec<u8> {
+    if !admitted(req.op, sender) {
+        return req.answer(EPERM, &[]);
+    }
     let r = match req.op {
         OP_HEALTHCHECK => Ok(Vec::new()),
         OP_BROADCAST => handlers::broadcast(s, req.body),
@@ -36,6 +41,7 @@ pub fn dispatch(s: &mut Settle, req: &Call<'_>) -> Vec<u8> {
         OP_READ => handlers::read(s, req.body),
         OP_INTENT => handlers::intent(s, req.body),
         OP_FETCH => handlers::fetch(s, req.body),
+        OP_SETTLE => handlers::settle_now(s, req.body),
         _ => Err(EINVAL),
     };
     req.result(r)

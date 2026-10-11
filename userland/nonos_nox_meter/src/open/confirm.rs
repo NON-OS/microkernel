@@ -67,5 +67,6 @@ pub fn confirmed(
         usage_root: [0; 32],
         sig: NO_SIG,
         frozen: false,
+        carried: 0,
     })
 }

@@ -10,7 +10,7 @@ wire is `settle_proto`.
 
 ```text
 meter (payment) / wallet / store
-        |  settle_proto: READ, INTENT, GAS, CHANNEL_STATE, OPENED, BROADCAST, FETCH
+        |  settle_proto: READ, INTENT, GAS, CHANNEL_STATE, OPENED, BROADCAST, FETCH, SETTLE
         v
 capsule_nox_settle --> Route::for_wallet(): the Nym mixnet or the Anyone network
                    --> an RPC host (TLS by nonos_tls, the chain checked)
@@ -25,8 +25,12 @@ CAPSULE_REQUIRED_CAPS = 0x3C
 Network, IPC, Memory and Crypto (nonos_tls draws its randomness through
 Crypto). There is no FileSystem and no key. Service `service:5200:nox_settle`;
 replies go to its own kernel reply endpoint, 0x1_0000_001C (port 5201).
-Every op is open to any caller: what settle answers is the chain's, or a
-broadcast of bytes another signed.
+Every argument reaches an RPC host or a URL, so each op answers only its
+callers (settle_proto's `callers`, v1.4.7), by which registry names the
+kernel-stamped sender owns: HEALTHCHECK anyone; BROADCAST payment and the
+wallet; CHANNEL_STATE, GAS, OPENED, READ and INTENT those two, app.store,
+market.index and the installer; FETCH app.store and market.index; SETTLE
+the wallet and the installer.
 
 `nonos-capsule-nox-settle` turns it on. It is in `networkFeatures`
 (tools/nix/config.nix), so the airgapped image drops it, and no profile array
@@ -76,3 +80,10 @@ escrow and bond constants join the checks when the config holds them (B5).
 - FETCH: RELEASE holds a release only if keccak256 of its bytes is the
   releaseHash asked, and answers its first page; PAGE pages through the one
   release held. ESCROW is EINVAL until B5.
+- SETTLE (op 10): one drain round on a chain. Settle reads the meter's
+  vouchers (DRAIN LIST), keeps those whose channel the config Settlement
+  holds open with settled below their cumulative (at most twelve), quotes
+  the meter's gas, estimates settle() (encoded here only for the estimate),
+  has the meter build and sign its own (DRAIN SIGN), and broadcasts it. The
+  reply names the transaction and what it carries; ENOENT when nothing is
+  owed. Settle also drains at start and every six hours.

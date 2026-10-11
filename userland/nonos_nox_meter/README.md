@@ -24,7 +24,8 @@ meter, the plan) links it.
 - `state`: the two together. Every change returns a new value, which the
   capsule writes to disk before anything is signed from it. A full channel
   table forgets only a channel past expiry and fully settled.
-- `persist`: the state file (`NXMT` v2), always `FILE_LEN` bytes because the
+- `persist`: the state file (`NXMT` v3: the last settle and each channel's
+  `carried`), always `FILE_LEN` bytes because the
   vfs replaces a record only at its own length, and tagged under a key only
   the meter can derive, since any FileSystem holder can unlink and recreate
   the name.
@@ -33,6 +34,11 @@ meter, the plan) links it.
   cap, or ETH short of gas for both; their calldata is encoded here, with
   pinned selectors, and `sign_tx_request` is the keyring's op 25 body.
   `confirmed` is CONFIRM's check of the ChannelOpened event.
+- `settle`: DRAIN SIGN's `settle_plan`, the settle() calldata, and the
+  TOPUP and CLOSE plans. Another settle() is signed only for a newer voucher
+  than the last one carried, or at that one's own nonce; every plan stays
+  under the fee caps, and a settle() under `SETTLE_GAS_MAX`.
+- `channel`: no charge within `CHARGE_MARGIN` (a day) of expiry.
 - `root`: the label the meter's root is derived under, 0x01 (C2c's bound
   prefix) then "nonos.meter.root.v1".
 - `caller`: which registry names may call which op.

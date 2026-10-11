@@ -145,6 +145,7 @@ dependencies = [
  "nonos_app_skeleton",
  "nonos_nox_config",
  "nonos_payment_proto",
+ "nonos_settle_proto",
  "nonos_userland_libc",
 ]
 
@@ -155,6 +156,13 @@ version = "0.1.0"
 [[package]]
 name = "nonos_payment_proto"
 version = "0.1.0"
+
+[[package]]
+name = "nonos_settle_proto"
+version = "0.1.0"
+dependencies = [
+ "nonos_nox_config",
+]
 
 [[package]]
 name = "nonos_toolkit"

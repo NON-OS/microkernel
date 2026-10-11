@@ -16,11 +16,12 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_ipc_recv_from, mk_ipc_send};
+use nonos_libc::{mk_ipc_recv_from, mk_ipc_send, mk_uptime_ms};
 use nonos_settle_proto::{parse_header, reply, EINVAL, HDR_LEN, MAX_RAW_TX};
 
 use super::call::Call;
 use super::dispatch::dispatch;
+use crate::drain::{drain_all, DRAIN_EVERY_MS};
 use crate::settle::Settle;
 
 /// This capsule's own reply inbox (Capsule.mk's reply endpoint).
@@ -31,16 +32,22 @@ const MAX_MSG: usize = HDR_LEN + 8 + MAX_RAW_TX;
 pub fn run() -> ! {
     let mut buf = vec![0u8; MAX_MSG];
     let mut settle = Settle::start();
+    let mut next_drain = mk_uptime_ms();
     loop {
+        if mk_uptime_ms() >= next_drain {
+            drain_all(&mut settle);
+            next_drain = mk_uptime_ms().saturating_add(DRAIN_EVERY_MS as i64);
+        }
+        let wait = next_drain.saturating_sub(mk_uptime_ms()).max(1) as u64;
         let mut sender = 0u32;
-        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, 0, &mut sender);
+        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, wait, &mut sender);
         if n <= 0 {
             continue;
         }
         let resp = match parse_header(&buf[..n as usize]) {
             Some((h, body)) => {
                 let call = Call { op: h.op, flags: h.flags, id: h.request_id, body };
-                dispatch(&mut settle, &call)
+                dispatch(&mut settle, sender, &call)
             }
             /*
              * Not this wire's frame: answered under op and id zero, so the

@@ -18,4 +18,5 @@ mod floor;
 mod state;
 mod voucher;
 
+pub use charge::CHARGE_MARGIN;
 pub use state::{Channel, MAX_CHANNELS, NO_SIG};

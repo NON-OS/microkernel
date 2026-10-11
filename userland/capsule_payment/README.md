@@ -16,7 +16,7 @@ capsule_payment --> market.index   OP_GET_COMMERCE: is the release trusted, what
                 --> nox_settle     CHANNEL_STATE, GAS, BROADCAST, OPENED (settle_proto)
                 --> keyring        op 30 (voucher), op 25 (approve, open), ops 8/9/10/15 (its key)
                 --> vfs            /data/meter.state, /data/meter.key
-nox_settle --> OP_DRAIN: the newest signed voucher of each channel
+nox_settle --> OP_DRAIN: LIST the newest signed vouchers, SIGN a settle() of them
 ```
 
 ## Microkernel contract
@@ -65,12 +65,19 @@ status defined there.
 |---|---|---|---|
 | 1 HEALTHCHECK | anyone | none | none |
 | 2 PAY | payers (installer, app.store, the wallet) | `PayRequest` | one `VoucherRecord` |
-| 3 DRAIN | nox_settle | first index u8 | `Drain` |
+| 3 DRAIN | nox_settle | `DrainRequest`: LIST (first index u8) or SIGN | LIST: `Drain`. SIGN: the raw settle() of the named channels' newest vouchers, signed by the meter's key; ENOENT when none is above its floor, or none is newer than the last settle carried and the nonce is not that settle's own (a fee bump) |
 | 4 LIST_TOKENS | anyone | none | one NOX row per chain where it is deployed (`nonos_nox_config`) |
 | 5 ACCOUNT | wallet | first index u8 | `Account` |
 | 6 SET_BUDGET | wallet | `SetBudget` | none |
 | 7 | - | - | EINVAL: NXL1 is not in v1 |
 | 8-11 | - | - | EINVAL until ORDER_* land with escrow (B5) |
 | 12 OPEN | wallet | `OpenStart` or `OpenConfirm` | START: approveTx[32] and openTx[32], both signed by the meter's key and broadcast by settle, never above the config's fee caps (EGAS); CONFIRM: the channel id, once a ChannelOpened matching the request is mined (EAGAIN before) |
+| 13 TOPUP | wallet | `TopUp` | approveTx[32] and topUpTx[32], signed by the meter's key and broadcast by settle |
+| 14 CLOSE | wallet | `Close` | closeTx[32]; ETIME before expiry plus the contract's GRACE. Anyone may close: the meter's key is a convenience |
 
 Every refusal is a status named in `nonos_payment_proto::status`.
+
+PAY refuses on a channel within a day of its expiry (ETIME), so the last
+drain lands before anyone may close it. The state file (NXMT v3) keeps the
+chain and nonce of the last settle() the meter signed and, per channel, the
+cumulative it carried: the bound on SIGN.

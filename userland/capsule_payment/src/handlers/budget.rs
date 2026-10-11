@@ -39,7 +39,7 @@ pub fn set_budget(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
     if let Err(code) = meter.ready() {
         return req.answer(code, &[]);
     }
-    let next = MeterState { budget, channels: meter.state.channels.clone() };
+    let next = MeterState { budget, ..meter.state.clone() };
     match meter.commit(next) {
         Ok(()) => req.answer(0, &[]),
         Err(code) => req.answer(code, &[]),

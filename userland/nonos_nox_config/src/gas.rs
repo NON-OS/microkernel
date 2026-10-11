@@ -22,6 +22,13 @@
 pub const APPROVE_GAS: u64 = 60_000;
 /// NoxSettlement open(payee, listingId, amount, expiry, reclaimTo).
 pub const OPEN_GAS: u64 = 200_000;
+/// NoxSettlement topUp(channelId, amount) (v1.4.7).
+pub const TOPUP_GAS: u64 = 120_000;
+/// NoxSettlement close(channelId) (v1.4.7).
+pub const CLOSE_GAS: u64 = 120_000;
+/// The most gas the meter signs one settle() for, whatever settle's estimate
+/// says: twelve vouchers, each a signature recovery and a transfer.
+pub const SETTLE_GAS_MAX: u64 = 3_000_000;
 
 /// The most per gas the OS signs for: 1000 gwei, the wallet's FEE_CEILING_WEI
 ///. The chain sets the base fee, so a lying fee

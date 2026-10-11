@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::fixture::{channel, NOW, ROOT};
+use nonos_nox_meter::channel::CHARGE_MARGIN;
 use nonos_nox_meter::MeterError;
 
 #[test]
@@ -30,6 +31,9 @@ fn a_charge_raises_cumulative_and_seq_and_nothing_else() {
 fn nothing_is_charged_at_or_past_expiry_or_past_the_numbers() {
     let c = channel();
     assert_eq!(c.charged(1, ROOT, c.expiry), Err(MeterError::Expired));
+    let last_day = c.expiry - CHARGE_MARGIN;
+    assert_eq!(c.charged(1, ROOT, last_day), Err(MeterError::Expired), "within a day");
+    assert!(c.charged(1, ROOT, last_day - 1).is_ok());
     assert_eq!(c.charged(u128::MAX, ROOT, NOW), Err(MeterError::OverDeposit));
     let near = nonos_nox_meter::channel::Channel { cumulative: 1, deposit: u128::MAX, ..c };
     assert_eq!(near.charged(u128::MAX, ROOT, NOW), Err(MeterError::Overflow));

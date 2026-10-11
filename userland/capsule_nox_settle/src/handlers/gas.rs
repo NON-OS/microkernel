@@ -42,16 +42,20 @@ pub fn gas(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
     let b: &[u8; 28] = body.try_into().map_err(|_| EINVAL)?;
     let chain_id = u64::from_le_bytes(b[..8].try_into().map_err(|_| EINVAL)?);
     let addr: [u8; 20] = b[8..].try_into().map_err(|_| EINVAL)?;
-    let parts = [request_balance(&addr, 1), request_nonce(&addr, 2), request_fee_history(3)];
+    Ok(quote_gas(s, chain_id, &addr)?.encode().to_vec())
+}
+
+/// `addr`'s balance, next nonce and fee suggestions, in one batch.
+pub(crate) fn quote_gas(s: &mut Settle, chain_id: u64, addr: &[u8; 20]) -> Result<Gas, i32> {
+    let parts = [request_balance(addr, 1), request_nonce(addr, 2), request_fee_history(3)];
     let refs: Vec<&[u8]> = parts.iter().map(Vec::as_slice).collect();
     let resp = s.rpc.call(chain_id, &request_batch(&refs))?;
     let balance = object_for_id(&resp, 1).and_then(parse_quantity32).ok_or(EPROTO)?;
     let (tip, cap) = fees_in(&resp, 3)?;
-    let gas = Gas {
+    Ok(Gas {
         balance: word_u128(&balance).ok_or(EPROTO)?,
         tx_nonce: nonce_in(&resp, 2)?,
         max_fee_per_gas: cap,
         max_priority_fee_per_gas: tip,
-    };
-    Ok(gas.encode().to_vec())
+    })
 }

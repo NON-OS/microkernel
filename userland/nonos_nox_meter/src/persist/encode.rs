@@ -31,6 +31,9 @@ pub fn encode(s: &MeterState) -> Option<Vec<u8>> {
     out.extend_from_slice(&MAGIC);
     out.extend_from_slice(&VERSION.to_le_bytes());
     out.extend_from_slice(&0u16.to_le_bytes());
+    let (chain, nonce) = s.last_settle.unwrap_or((0, 0));
+    out.extend_from_slice(&chain.to_le_bytes());
+    out.extend_from_slice(&nonce.to_le_bytes());
     out.extend_from_slice(&b.cap.to_le_bytes());
     out.extend_from_slice(&b.spent.to_le_bytes());
     out.extend_from_slice(&b.expiry.to_le_bytes());
@@ -65,5 +68,6 @@ fn channel(out: &mut Vec<u8>, c: &Channel) {
     out.extend_from_slice(&c.usage_root);
     out.extend_from_slice(&c.sig);
     out.push(c.frozen as u8);
+    out.extend_from_slice(&c.carried.to_le_bytes());
     debug_assert_eq!(out.len() - start, CHANNEL_LEN);
 }
