@@ -26,12 +26,12 @@
  * and the fetcher answered goes in, so model_fetch_proofs holds the rules.
  */
 
-use super::super::fetch_exit::{
+use super::fetch_exit::{
     of_errno, ANYONE_NOT_UP, ANYONE_NO_EXIT, ANYONE_UNREACHABLE, BUSY, DONE, LOCKED, MIRROR_UNREACHABLE, MISMATCH,
     NO_CATALOGUE, NO_MEMORY, NO_NETWORK, NO_ROOM, NO_VOLUME, NYM_NO_EXIT, NYM_UNREACHABLE, REFUSED,
     TOO_LITTLE_MEMORY, UNKEPT, USAGE, VOLUME_FAILED,
 };
-use super::super::why::Why;
+use super::why::Why;
 
 /* The volume's answers come to the installer positive. */
 const ENOENT: i64 = 2;

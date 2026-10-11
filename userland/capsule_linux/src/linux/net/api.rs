@@ -38,5 +38,5 @@ pub use super::select::{clear as select_clear, select};
 pub use super::shutdown::shutdown;
 pub use super::socket::socket;
 pub use super::try_call::try_call;
-pub use super::xfer::inbound::read as recv;
 pub use super::xfer::outbound::write as send;
+pub use super::xfer::read::read as recv;

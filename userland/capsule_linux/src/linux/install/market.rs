@@ -21,9 +21,9 @@
 
 use nonos_libc::mk_debug;
 
-use super::enrol::sign_beside;
 use super::market_arg::MARKET_LEN;
 use super::market_check::{admit, names_program};
+use super::record::vouch::sign_beside;
 use super::{install, recorded, uninstall, Why};
 use crate::linux::attest_paths::beside;
 use crate::linux::file::{key, store_read, store_write};

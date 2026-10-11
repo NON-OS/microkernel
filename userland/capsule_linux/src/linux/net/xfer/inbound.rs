@@ -17,8 +17,6 @@
 //! Bytes into a guest from a family socket, or a stream net.sockets or
 //! net.anon holds.
 
-use alloc::vec;
-
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
@@ -67,12 +65,4 @@ pub fn recv(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64) -> Resul
         iov::scatter(guest, iov, skip, &bytes)?;
     }
     Ok(In { n: bytes.len(), whole, from })
-}
-
-/// `read` on a socket.
-pub fn read(guest: &Guest, id: u32, buf: u64, len: u64) -> u64 {
-    match recv(guest, id, &vec![(buf, len)], 0, 0) {
-        Ok(got) => errno::ok(got.n as u64),
-        Err(e) => e,
-    }
 }
