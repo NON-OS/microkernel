@@ -25,13 +25,13 @@ use alloc::vec::Vec;
 use nonos_stark::air::{Air, LiveGate, Publics, ShieldRegion, WiredMultiGen};
 use nonos_stark::field::Fp;
 use stark_proofs::shield::wire::offsets;
-use stark_proofs::shield::wire_pack::{groups_enforce, packed_groups, CAP};
+use stark_proofs::shield::wire_pack::{groups_enforce, packed_groups};
 
 use super::chains::{a_chain, h_chain};
 use super::gates::gates;
 use super::layout::{kinds, PUBLICS};
 use super::wires::classes;
-use crate::params::{LOG_TRACE, MASK_COLUMNS};
+use crate::params::{LOG_TRACE, MASK_COLUMNS, WIRE_CAP};
 use crate::statement::{Statement, Witness};
 
 pub struct Built {
@@ -51,7 +51,7 @@ pub fn build(st: &Statement, w: Option<&Witness>) -> Option<Built> {
     rows.push(Air::rows(&publics));
     let (off, span) = offsets(&rows);
     let cls = classes(&off);
-    let groups = packed_groups(span, &cls, CAP);
+    let groups = packed_groups(span, &cls, WIRE_CAP);
     if !groups_enforce(&groups, &cls) {
         return None;
     }

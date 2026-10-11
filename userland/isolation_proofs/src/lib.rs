@@ -18,6 +18,7 @@
 //! program image from the circuit itself.
 
 pub mod image;
+pub mod sample;
 
 #[cfg(test)]
 mod tests;

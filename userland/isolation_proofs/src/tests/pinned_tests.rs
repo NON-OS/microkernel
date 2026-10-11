@@ -20,6 +20,7 @@
 use crate::image::{encode, pins, record};
 use isolation_stark::{shape, EXTRA_BLOWUP_BITS, GRIND_BITS, QUERIES, WORDS};
 use nonos_proof_abi::isolation::STATEMENT as PIN;
+use nonos_stark::air::domain_params_blown;
 
 use super::fixture::proven;
 
@@ -42,6 +43,9 @@ fn the_pinned_statement_is_the_circuits() {
     let point = &PIN.points[0];
     assert_eq!(PIN.points.len(), 1);
     assert_eq!((point.params, point.queries, point.grind_bits), (p.params, QUERIES, GRIND_BITS));
+    // L1-Shield's format-7 adapter takes log domain 23 at rate bits 6, and
+    // nothing else (plan/12's L1).
+    assert_eq!(domain_params_blown(&air, EXTRA_BLOWUP_BITS), (23, 6));
     assert!(proof.len() <= PIN.max_proof_bytes, "a {} byte proof", proof.len());
     assert_eq!(nox_verify::verify_why(&PIN, proof, &st.words()), Ok(()));
 }
