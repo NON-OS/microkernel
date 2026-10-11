@@ -19,13 +19,17 @@ under `cargo test`.
 | `eapol` | the EAPOL-Key codec, KDEs and MICs |
 | `ccmp` | AES, AES-CCM, AES-CMAC and AES key unwrap, for chips without hardware CCMP |
 | `mlme` | the association state machine: beacon, authentication (Open System or SAE), association, then the handshake, emitting the frames to send |
-| `station` | the data path: ethernet to 802.11 and back, CCMP in software or hardware, the transmit sequence and packet numbers, and a check of every received frame against the association (BSS, protection, replay) |
+| `station` | the data path: ethernet to 802.11 and back, CCMP in software or hardware, the transmit sequence and packet numbers, a check of every received frame against the association (BSS, protection, replay), and the management frames of a live link (deauthentication under PMF, the SA Query) |
 | `scan_list` | the networks a scan heard, deduplicated per access point, hidden ones dropped, aged by sweep, encoded for the Settings panel with WPA2 and WPA3 flags |
+| `regdom` | the regulatory domain: wireless-regdb rules, the world domain as the default, Annex E channel frequencies, the Country element (narrows, never widens) and the scan plan that probes only where initiating radiation is allowed |
+| `pmf` | management frame protection: the MMIE, BIP-CMAC-128, and the SA Query frames and procedure the station runs on a protected link |
 | `netif` | the link protocol `net.core` speaks to a NIC, served over a `LinkPort`, so DHCP, DNS and TCP run over Wi-Fi as over a wired card |
 | `key`, `frame` | the key-installation seam and the plaintext frame contract between the core and a driver |
 
 A network saved as WPA3 is joined with SAE or not at all, and the station
-listens only to the access point it chose.
+listens only to the access point it chose. A join runs under the world
+regulatory domain unless the driver is given another: an access point on a
+channel the domain closes is treated as not heard.
 
 ## Dependencies
 
@@ -44,8 +48,8 @@ build for the capsule target.
 
 `userland/nonos_wifi_core_proofs` runs the crate on the host: RSN parsing and
 selection, SAE against the IEEE Std 802.11-2020 Annex J.10 vectors, the
-handshakes against a simulated access point, the MLME, the receive checks and
-the `netif` protocol. `rtl8821ce_proofs` and `iwlwifi_proofs` use it through
+handshakes against a simulated access point, the MLME, the receive checks,
+the regulatory domain, BIP and the SA Query, and the `netif` protocol. `rtl8821ce_proofs` and `iwlwifi_proofs` use it through
 their drivers.
 
 See [drivers](../../docs/handbook/drivers.md) and
