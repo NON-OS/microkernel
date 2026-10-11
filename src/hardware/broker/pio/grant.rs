@@ -40,7 +40,7 @@ pub(super) struct PioGrant {
     pub port_count: u16,
 }
 
-static GRANTS: Mutex<Vec<PioGrant>> = Mutex::new(Vec::new());
+pub(super) static GRANTS: Mutex<Vec<PioGrant>> = Mutex::new(Vec::new());
 static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
 
 pub(super) fn allocate_id() -> u64 {
@@ -68,32 +68,4 @@ pub(super) fn remove(pid: u32, grant_id: u64) -> Result<PioGrant, PioError> {
         return Err(PioError::NotHolder);
     }
     Ok(grants.remove(idx))
-}
-
-pub(super) fn drain_for_pid(pid: u32) -> Vec<PioGrant> {
-    let mut grants = GRANTS.lock();
-    let mut taken = Vec::new();
-    grants.retain(|g| {
-        if g.pid == pid {
-            taken.push(*g);
-            false
-        } else {
-            true
-        }
-    });
-    taken
-}
-
-pub(super) fn drain_for_device(pid: u32, device_id: u64) -> Vec<PioGrant> {
-    let mut grants = GRANTS.lock();
-    let mut taken = Vec::new();
-    grants.retain(|g| {
-        if g.pid == pid && g.device_id == device_id {
-            taken.push(*g);
-            false
-        } else {
-            true
-        }
-    });
-    taken
 }
