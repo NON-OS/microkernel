@@ -17,6 +17,7 @@
 //! The generated vendor table: every row is a canonical policy for its own
 //! program, with no listing or release, as the market checks it.
 
+use crate::dests::{check, dests_hash};
 use crate::vendor::{by_program, TABLE};
 use crate::{decode, unlisted};
 
@@ -38,4 +39,18 @@ fn a_program_the_vendor_does_not_ship_has_no_row() {
     assert!(TABLE.iter().all(|r| r.program_blake3 != stranger));
     assert_eq!(by_program(&stranger), None);
     assert_eq!(unlisted(stranger).program_blake3, stranger);
+}
+
+#[test]
+fn every_rows_list_is_the_one_its_policy_names() {
+    for row in TABLE {
+        let hash = decode(&row.policy).expect(row.store_path).net_dests_hash;
+        match row.dests {
+            [] => assert_eq!(hash, [0; 32], "{}", row.store_path),
+            list => {
+                assert!(check(list).is_ok(), "{}", row.store_path);
+                assert_eq!(hash, dests_hash(list), "{}", row.store_path);
+            }
+        }
+    }
 }

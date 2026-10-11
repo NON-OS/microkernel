@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The rules each gate asks before a guest is served: the declared calls,
-//! an internet socket, and a stream out of the family.
+//! and an internet socket. A stream out of the family is app_reach_tests'.
 
-use crate::app::rules::{call_refused, inet_allowed, may_dial};
+use crate::app::rules::{call_refused, inet_allowed};
 use nonos_linux_policy::mask::{KNOWN, NET_ANON, NET_LISTEN_LO, TTY, WAYLAND};
 use nonos_linux_policy::SyscallSet;
 
@@ -50,16 +50,4 @@ fn an_internet_socket_needs_one_of_the_network_bits() {
     assert!(inet_allowed(NET_ANON) && inet_allowed(NET_LISTEN_LO));
     assert!(!inet_allowed(0) && !inet_allowed(TTY | WAYLAND));
     assert!(inet_allowed(KNOWN));
-}
-
-#[test]
-fn reaching_out_needs_net_anon_and_no_destination_list() {
-    assert!(may_dial(NET_ANON, &[0; 32]));
-    assert!(!may_dial(NET_LISTEN_LO, &[0; 32]) && !may_dial(0, &[0; 32]));
-    // Any byte of the 32 names a list, which is refused until C7 reads it.
-    for at in [0, 7, 8, 31] {
-        let mut named = [0; 32];
-        named[at] = 1;
-        assert!(!may_dial(NET_ANON, &named) && !may_dial(KNOWN, &named), "byte {at}");
-    }
 }

@@ -34,12 +34,6 @@ pub fn inet_allowed(mask: u64) -> bool {
     grants(mask, NET_ANON) || grants(mask, NET_LISTEN_LO)
 }
 
-/// A stream out of the family. Destination lists are not specified yet, so
-/// a policy naming one is refused rather than read as "anywhere".
-pub fn may_dial(mask: u64, net_dests_hash: &[u8; 32]) -> bool {
-    grants(mask, NET_ANON) && *net_dests_hash == [0; 32]
-}
-
 /// What a run does once its program's policy is bound, by whether the box
 /// has NET_ANON and whether this role holds Network.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

@@ -18,15 +18,16 @@
 
 use std::fmt::Write;
 
-pub type Row = (String, [u8; 32], [u8; crate::layout::LEN]);
+/// Store path, program BLAKE3, policy, destination list (empty for none).
+pub type Row = (String, [u8; 32], [u8; crate::layout::LEN], Vec<u8>);
 
 pub fn source(rows: &[Row]) -> String {
     let mut out = String::from("&[\n");
-    for (store_path, program_blake3, policy) in rows {
+    for (store_path, program_blake3, policy, dests) in rows {
         let _ = writeln!(
             out,
             "    VendorRow {{ store_path: {store_path:?}, program_blake3: {program_blake3:?}, \
-             policy: {policy:?} }},"
+             policy: {policy:?}, dests: &{dests:?} }},"
         );
     }
     out.push(']');
