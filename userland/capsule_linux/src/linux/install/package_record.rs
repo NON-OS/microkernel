@@ -45,7 +45,7 @@ fn at(name: &str) -> Vec<u8> {
 /// (`place::unpack` takes it out again).
 pub(super) fn write(name: &str, m: &Manifest) -> bool {
     let pid = mk_getpid();
-    super::program::make_records(pid);
+    super::record::program::make_records(pid);
     let _ = vfs::mkdir(pid, &dir());
     let kept = vfs::write_file(pid, &at(name), &encode(m)).is_ok();
     if !kept {
