@@ -21,6 +21,7 @@ mod keccak;
 mod primitives;
 mod random;
 mod machine_key;
+mod machine_key_errno;
 
 pub use aead::{
     handle_crypto_decrypt, handle_crypto_decrypt_aad, handle_crypto_encrypt,
