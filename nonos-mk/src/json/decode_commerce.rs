@@ -44,5 +44,6 @@ pub(super) fn ext_to_json(x: &ReleaseExt) -> ReleaseExtJson {
         chunk_root: hex_or_empty(&x.chunk_root),
         content_len: x.content_len,
         proof_anchors: x.proof_anchors.iter().map(hex::encode).collect(),
+        release_attest_sig: hex_or_empty(&x.release_attest_sig),
     }
 }
