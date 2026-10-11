@@ -63,27 +63,7 @@ pub struct AttestationDoc {
     pub ak_public: [u8; 64],
 }
 
-impl AttestationDoc {
-    /// Length-prefixed and versioned, so a verifier never has to guess where a
-    /// field ends. Big-endian throughout to match the TPM structures it
-    /// carries, rather than mixing conventions inside one document.
-    pub fn encode(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(128 + self.attest.len() + self.signature.len());
-        out.extend_from_slice(DOC_MAGIC);
-        out.extend_from_slice(&DOC_VERSION.to_be_bytes());
-        out.extend_from_slice(&self.challenge);
-        out.extend_from_slice(&self.registry_root);
-        out.extend_from_slice(&self.capsule_count.to_be_bytes());
-        out.push(u8::from(self.registry_complete));
-        out.push(self.iommu_vendor);
-        out.push(u8::from(self.iommu_enforcing));
-        out.extend_from_slice(&self.unconfined_grants.to_be_bytes());
-        out.extend_from_slice(&(self.attest.len() as u32).to_be_bytes());
-        out.extend_from_slice(&self.attest);
-        out.extend_from_slice(&(self.signature.len() as u32).to_be_bytes());
-        out.extend_from_slice(&self.signature);
-        out.extend_from_slice(&(self.ak_public.len() as u32).to_be_bytes());
-        out.extend_from_slice(&self.ak_public);
-        out
-    }
-}
+// The encoder, beside this file so each stays in bounds; a child module, so
+// whoever mounts this file by path has the encoder too.
+#[path = "document_encode.rs"]
+mod encode;
