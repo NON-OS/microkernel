@@ -33,6 +33,7 @@ pub mod rows;
 pub mod said;
 pub mod step;
 pub mod voucher;
+pub mod voucher_cap;
 pub mod voucher_form;
 mod voucher_open;
 pub mod watch;

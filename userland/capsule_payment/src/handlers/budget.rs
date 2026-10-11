@@ -15,14 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! SET_BUDGET, from the wallet: a fresh allowance (payment_proto::SetBudget),
-//! on disk before it counts. On a boot that keeps nothing it is refused, so
-//! the budget stays zero.
+//! on disk before it counts; and LISTING_CAP (op 20, v1.4.43), one listing's
+//! cap with the rest kept. On a boot that keeps nothing both are refused,
+//! so the budget stays zero.
 
 use alloc::vec::Vec;
 
 use nonos_nox_meter::state::MeterState;
 use nonos_nox_meter::wire::budget as allowance;
-use nonos_payment_proto::{SetBudget, EINVAL};
+use nonos_payment_proto::{ListingCapAsk, SetBudget, EINVAL};
 
 use crate::meter::Meter;
 use crate::server::{status_of, Call};
@@ -44,4 +45,19 @@ pub fn set_budget(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
         Ok(()) => req.answer(0, &[]),
         Err(code) => req.answer(code, &[]),
     }
+}
+
+pub fn listing_cap(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
+    let Some(a) = ListingCapAsk::parse(req.body) else {
+        return req.answer(EINVAL, &[]);
+    };
+    if let Err(code) = meter.ready() {
+        return req.answer(code, &[]);
+    }
+    let budget = match meter.state.budget.with_listing_cap(a.listing_id, a.cap) {
+        Ok(b) => b,
+        Err(e) => return req.answer(status_of(e), &[]),
+    };
+    let next = MeterState { budget, ..meter.state.clone() };
+    req.answer(meter.commit(next).err().unwrap_or(0), &[])
 }

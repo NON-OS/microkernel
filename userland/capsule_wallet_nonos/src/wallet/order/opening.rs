@@ -44,10 +44,11 @@ pub(super) fn refused(status: i32) -> &'static str {
 pub fn open(state: &mut State) -> Option<&'static str> {
     let p = state.meter.purchase.as_deref_mut()?;
     let (Step::Consent, Ok(Named::Voucher(v))) = (&p.step, &p.read) else { return None };
-    let (amount, expiry) = match p.form.read(nonos_tls::rtc_now()) {
+    let (amount, expiry, cap) = match p.form.read(nonos_tls::rtc_now()) {
         Ok(read) => read,
         Err(why) => return Some(why),
     };
+    p.form.cap_wei = cap;
     let s = match fresh_address().and_then(|to| v.open(amount, expiry, to, nonos_tls::rtc_now())) {
         Ok(s) => s,
         Err(why) => return Some(why),

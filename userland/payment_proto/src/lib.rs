@@ -50,7 +50,7 @@ mod status;
 mod voucher;
 
 pub use account::{Account, AccountRow, ACCOUNT_ROWS_MAX, ACCOUNT_ROW_LEN, KEPT, READY};
-pub use budget::{SetBudget, MAX_LISTING_CAPS};
+pub use budget::{ListingCapAsk, SetBudget, LISTING_CAP_LEN, MAX_LISTING_CAPS};
 pub use channel_ops::{Close, TopUp};
 pub use drain::Drain;
 pub use drain_form::{DrainRequest, DrainSign, DRAIN_LIST, DRAIN_SIGN};

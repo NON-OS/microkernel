@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod budget;
+mod budget_one;
 mod channel;
 mod fixture;
 mod floor;

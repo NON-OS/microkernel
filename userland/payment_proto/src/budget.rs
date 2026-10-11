@@ -21,6 +21,9 @@ use alloc::vec::Vec;
 
 use crate::cursor::Cursor;
 
+mod listing_cap;
+pub use listing_cap::{ListingCapAsk, LISTING_CAP_LEN};
+
 pub const MAX_LISTING_CAPS: usize = 32;
 
 #[derive(Clone, PartialEq, Eq, Debug)]

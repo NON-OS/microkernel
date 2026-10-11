@@ -41,7 +41,9 @@ pub fn rows(p: &Pending) -> Vec<(&'static str, String)> {
     let mut out = Vec::from([("listing", text(&p.names.listing)), ("release", release)]);
     let b = match &p.read {
         Ok(Named::Escrow(b)) => b,
-        Ok(Named::Voucher(v)) => return [out, super::voucher_rows::rows(v, &p.step)].concat(),
+        Ok(Named::Voucher(v)) => {
+            return [out, super::voucher_rows::rows(v, &p.step, &p.form)].concat()
+        }
         Err(_) => return out,
     };
     let bond: String = b.bond_id.iter().take(6).map(|x| format!("{x:02x}")).collect();
