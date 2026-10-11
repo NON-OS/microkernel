@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::region::data_region;
+use super::region::{data_region, stage_fits};
 use super::reply::send_reply;
 use super::transfer::do_transfer;
 use crate::error::XhciError;
@@ -28,16 +28,22 @@ use crate::server::handlers::recover::{recover_after, DCI_EP0};
 // and leaves ample headroom in tx (512 + header < 2068).
 const CONTROL_TRANSFER_DATA_MAX: u16 = 512;
 
+/// A request OUT carries its data stage after the ten setup bytes, wLength
+/// of them; one IN carries none. The OUT stage used to go out as zeros, so
+/// a class request that sets a value (a sampling rate) set 0.
 pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
-    if body.len() != CONTROL_TRANSFER_REQUEST_LEN {
-        reply_with_status(tx, req, E_INVAL);
-        return;
+    let Some((head, out)) = body.split_first_chunk::<CONTROL_TRANSFER_REQUEST_LEN>() else {
+        return reply_with_status(tx, req, E_INVAL);
+    };
+    let (slot, bm_rt, b_req) = (head[0], head[2], head[3]);
+    let w_value = u16::from_le_bytes([head[4], head[5]]);
+    let w_index = u16::from_le_bytes([head[6], head[7]]);
+    let asked = u16::from_le_bytes([head[8], head[9]]);
+    if !stage_fits(bm_rt, asked, out.len(), CONTROL_TRANSFER_DATA_MAX) {
+        return reply_with_status(tx, req, E_INVAL);
     }
-    let (slot, bm_rt, b_req) = (body[0], body[2], body[3]);
-    let w_value = u16::from_le_bytes([body[4], body[5]]);
-    let w_index = u16::from_le_bytes([body[6], body[7]]);
-    let w_len = u16::from_le_bytes([body[8], body[9]]).min(CONTROL_TRANSFER_DATA_MAX);
-    let Ok(region) = data_region(&ctx.driver.dma_pool, w_len) else {
+    let w_len = asked.min(CONTROL_TRANSFER_DATA_MAX);
+    let Ok(region) = data_region(&ctx.driver.dma_pool, w_len, out) else {
         return reply_with_status(tx, req, E_IO);
     };
     let (data_phys, data_len) = region.as_ref().map_or((0u64, 0u16), |r| (r.phys(), w_len));
