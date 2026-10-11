@@ -29,6 +29,7 @@ mod desktop_services;
     feature = "nonos-capsule-driver-ahci",
     feature = "nonos-capsule-driver-nvme",
     feature = "nonos-capsule-driver-sdhci",
+    feature = "nonos-capsule-driver-ufs",
     feature = "nonos-capsule-driver-virtio-blk",
     feature = "nonos-capsule-driver-virtio-net",
     feature = "nonos-capsule-driver-usb-msc",
@@ -41,6 +42,7 @@ mod drivers_input;
 mod drivers_nic;
 mod drivers_sdhci;
 mod drivers_storage;
+mod drivers_ufs;
 mod drivers_usb;
 mod drivers_virtio;
 mod drivers_virtio_display;

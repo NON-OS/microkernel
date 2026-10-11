@@ -35,12 +35,15 @@ pub enum Controller {
     /// An Intel eMMC host: the soldered disk of an Atom-class laptop,
     /// served by driver.sdhci0 on the block wire.
     Emmc,
+    /// A UFS host (class 01h/09h), served by driver.ufs0 on the block wire.
+    Ufs,
 }
 
 const CLASS_STORAGE: u8 = 0x01;
 const SUBCLASS_RAID: u8 = 0x04;
 const SUBCLASS_SATA: u8 = 0x06;
 const SUBCLASS_NVM: u8 = 0x08;
+const SUBCLASS_UFS: u8 = 0x09;
 const PROGIF_NVME: u8 = 0x02;
 
 const VENDOR_INTEL: u16 = 0x8086;
@@ -91,6 +94,7 @@ pub fn classify(
         /* The SATA driver takes every interface value: some vendors report
          * 00h for an AHCI HBA. */
         (SUBCLASS_SATA, _) => Some(Controller::Ahci),
+        (SUBCLASS_UFS, _) => Some(Controller::Ufs),
         (SUBCLASS_RAID, _) if intel => Some(Controller::IntelRaid),
         _ if vendor == VENDOR_VIRTIO && VIRTIO_BLK.contains(&device) => Some(Controller::VirtioBlk),
         _ => None,

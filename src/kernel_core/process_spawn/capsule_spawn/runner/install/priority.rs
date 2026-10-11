@@ -50,8 +50,14 @@ const PACKET_PATH: [&str; 1] = ["net.core"];
  * answering on four threads) kept a driver off the CPU past its request's
  * budget, and a model load died on a read that a disk had long finished.
  */
-const STORAGE_PATH: [&str; 5] =
-    ["driver.virtio_blk0", "driver.ahci0", "driver.nvme0", "driver.usb_msc0", "driver.sdhci0"];
+const STORAGE_PATH: [&str; 6] = [
+    "driver.virtio_blk0",
+    "driver.ahci0",
+    "driver.nvme0",
+    "driver.usb_msc0",
+    "driver.sdhci0",
+    "driver.ufs0",
+];
 
 /// Scheduling band a freshly installed capsule starts in.
 pub(super) fn for_capsule(name: &str) -> Priority {

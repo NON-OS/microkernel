@@ -28,6 +28,7 @@ impl Driver {
             Driver::Nvme => Controller::Nvme,
             Driver::Ahci => Controller::Ahci,
             Driver::Wire => Controller::Emmc,
+            Driver::Ufs => Controller::Ufs,
         }
     }
 
@@ -43,6 +44,7 @@ impl Driver {
             Driver::Nvme => b"NVMe",
             Driver::Ahci => b"SATA",
             Driver::Wire => b"eMMC",
+            Driver::Ufs => b"UFS",
         }
     }
 }

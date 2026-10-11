@@ -64,12 +64,12 @@ pub fn discover(present: &[Controller]) -> Vec<Found> {
     out
 }
 
-/// An NVMe controller is one disk. SATA and eMMC serve their disk from
-/// whichever controller holds one; a virtio-blk device can be the medium
-/// this boot came from.
+/// An NVMe controller is one disk, and a UFS host one device. SATA and eMMC
+/// serve their disk from whichever controller holds one; a virtio-blk device
+/// can be the medium this boot came from.
 fn one_disk_each(driver: Driver) -> bool {
     match driver {
-        Driver::Nvme => true,
+        Driver::Nvme | Driver::Ufs => true,
         Driver::Ahci | Driver::VirtioBlk | Driver::Wire => false,
     }
 }
