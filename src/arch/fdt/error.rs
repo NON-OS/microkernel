@@ -44,6 +44,12 @@ pub enum FdtError {
     /// A property after a subnode in the same node, which the spec forbids
     /// and which would hide it from every cell-size lookup.
     PropertyAfterNode,
-    /// A value spread over more cells than a u64 holds.
+    /// A cell count of zero where one is needed, or past `MAX_CELLS`.
     BadCells,
+    /// A string property without its terminator, or with one inside it.
+    BadString,
+    /// A `reg` address that no `ranges` entry above it maps to the CPU.
+    NotTranslatable,
+    /// A phandle, path or alias that names no node.
+    NoSuchNode,
 }
