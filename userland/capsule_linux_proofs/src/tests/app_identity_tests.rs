@@ -18,7 +18,9 @@
 
 use crate::app_identity::AppIdentity;
 use nonos_linux_policy::mask::{EXEC, KNOWN, NET_ANON, TTY, WAYLAND};
-use nonos_linux_policy::{app_id, policy_hash, unlisted, LinuxAppPolicy, SyscallSet};
+use nonos_linux_policy::{
+    app_id, policy_hash, unlisted, LinuxAppPolicy, SyscallSet, UNLISTED_MASK,
+};
 
 fn policy(program: u8, mask: u64, calls: SyscallSet) -> LinuxAppPolicy {
     LinuxAppPolicy { mask, syscall_set: calls, ..unlisted([program; 32]) }
@@ -58,4 +60,14 @@ fn a_chain_of_execs_never_widens() {
         assert_eq!(g.mask & !TTY, 0);
         assert!(g.calls.allows(1) && !g.calls.allows(2));
     }
+}
+
+#[test]
+fn the_built_in_runs_in_the_default_box_with_no_app_id() {
+    let b = AppIdentity::built_in([7; 32]);
+    assert_eq!(b.policy, unlisted([7; 32]));
+    assert_eq!((b.app_id, b.mask, b.calls), ([0; 32], UNLISTED_MASK, SyscallSet::ALL));
+    let vendor = AppIdentity::of(policy(2, KNOWN, SyscallSet::ALL));
+    assert_eq!(vendor.exec(&b).app_id, [0; 32]);
+    assert_eq!(b.exec(&vendor).mask, UNLISTED_MASK);
 }

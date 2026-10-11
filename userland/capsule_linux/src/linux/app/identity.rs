@@ -37,8 +37,7 @@ pub struct AppIdentity {
 }
 
 impl AppIdentity {
-    /// A guest no program has been proved into yet: served nothing, and no
-    /// call it makes may complete.
+    /// A guest with no program proved into it yet: no service, no call.
     pub const NOTHING: Self = Self {
         policy: nonos_linux_policy::unlisted([0; 32]),
         policy_hash: [0; 32],
@@ -57,6 +56,11 @@ impl AppIdentity {
             mask: policy.mask,
             calls: policy.syscall_set,
         }
+    }
+
+    /// The capsule's own BusyBox: the default box, and an app_id no verifier takes.
+    pub fn built_in(program: [u8; 32]) -> Self {
+        Self { app_id: [0; 32], ..Self::of(nonos_linux_policy::unlisted(program)) }
     }
 
     /// `program`, exec'd by the guest this is: its identity, inside what

@@ -41,10 +41,10 @@ pub fn bind(path: &[u8], image: &[u8]) -> Result<AppIdentity, &'static str> {
     choose(&program, TABLE, file.as_deref()).map(AppIdentity::of)
 }
 
-/// A program out of this capsule's own image, which no file stands beside.
-pub fn bind_built_in(image: &[u8]) -> Result<AppIdentity, &'static str> {
-    let program = *blake3::hash(image).as_bytes();
-    choose(&program, TABLE, None).map(AppIdentity::of)
+/// A program out of this capsule's own image. No file stands beside it and
+/// the vendor table does not name it: it runs in the owner's default box.
+pub fn bind_built_in(image: &[u8]) -> AppIdentity {
+    AppIdentity::built_in(*blake3::hash(image).as_bytes())
 }
 
 fn vouched(path: &[u8]) -> Result<Option<Vec<u8>>, &'static str> {
