@@ -36,6 +36,8 @@ pub const OP_READ: u16 = 7;
 pub const OP_INTENT: u16 = 8;
 /// A release's signing bytes, verified, in pages (Fetch, Page).
 pub const OP_FETCH: u16 = 9;
+/// One drain round now: the meter's vouchers to the chain (Settled).
+pub const OP_SETTLE: u16 = 10;
 
 /// The largest raw transaction BROADCAST takes.
 pub const MAX_RAW_TX: usize = 128 * 1024;
@@ -43,6 +45,8 @@ pub const MAX_RAW_TX: usize = 128 * 1024;
 pub const EAGAIN: i32 = -11;
 pub const ENOENT: i32 = -2;
 pub const EINVAL: i32 = -22;
+/// A caller the op does not answer (callers.rs).
+pub const EPERM: i32 = -1;
 /// The RPC failed, or two hosts disagree.
 pub const EIO: i32 = -5;
 /// Bytes that are not what was asked for: a wrong hash or chain id.

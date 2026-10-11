@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! INTENT's kinds, numbered from 1. Each names the contract that is
-//! its `to` and the calls whose selector belongs to it. Each selector is
-//! pinned by a test against its signature.
+//! INTENT's kinds, numbered from 1. Each names the contract that
+//! is its `to` and the calls whose selector belongs to it. Each selector is
+//! pinned by a test against its signature. 17, 18 and 19 are one call,
+//! withdrawCredit(address), on Settlement, the Escrow and the Bond (v1.4.6).
 
 use nonos_nox_config::Contract;
 
@@ -41,7 +42,7 @@ uint64,bytes32,uint64,bytes32,bytes32,bytes32,bytes32)";
 pub const VOUCHER_TUPLE: &str =
     "(bytes32,address,address,bytes32,bytes32,uint256,uint64,uint64,bytes32)";
 
-pub const KINDS: [Kind; 17] = [
+pub const KINDS: [Kind; 19] = [
     k(1, N, &[("approve(address,uint256)", 0x095ea7b3)]),
     k(2, B, &[("bond(bytes32,uint256)", 0x51f93215)]),
     k(3, B, &[("setDeliveryAgent(bytes32,address)", 0xc6a70f23)]),
@@ -59,4 +60,6 @@ pub const KINDS: [Kind; 17] = [
     k(15, S, &[("close(bytes32)", 0x39c79e0c)]),
     k(16, S, &[("settle(V[],bytes[])", 0x13508ec8)]),
     k(17, S, &[("withdrawCredit(address)", 0x6c8cc9d9)]),
+    k(18, E, &[("withdrawCredit(address)", 0x6c8cc9d9)]),
+    k(19, B, &[("withdrawCredit(address)", 0x6c8cc9d9)]),
 ];

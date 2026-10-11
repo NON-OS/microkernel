@@ -18,6 +18,7 @@ mod discover;
 mod dispatch;
 mod handlers;
 mod pay_call;
+mod settle_call;
 mod runner;
 
 pub use runner::run;

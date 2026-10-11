@@ -26,6 +26,7 @@
 
 extern crate alloc;
 
+mod callers;
 mod chain;
 mod channel_state;
 mod fetch;
@@ -42,10 +43,12 @@ mod ops;
 mod page;
 mod quote;
 mod read;
+mod settled;
 mod url;
 mod view;
 mod views;
 
+pub use callers::{admits, callers, BROADCASTERS, FETCHERS, READERS, SETTLERS};
 pub use chain::{chain_hash, parse_chain_hash, ChainHash};
 pub use channel_state::{ChannelState, CHANNEL_STATE_LEN};
 pub use fetch::{Fetch, FETCH_ESCROW, FETCH_PAGE, FETCH_RELEASE, MAX_RELEASE, MAX_URL, PAGE_LEN};
@@ -61,6 +64,7 @@ pub use ops::*;
 pub use page::Page;
 pub use quote::{padded, Quote, QUOTE_LEN};
 pub use read::{parse_read_reply, read_reply, Read};
+pub use settled::{Settled, SETTLED_MAX};
 pub use url::https_target;
 pub use view::{view, view_calldata, Arg, View};
 pub use views::VIEWS;

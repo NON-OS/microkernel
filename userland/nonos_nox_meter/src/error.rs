@@ -45,4 +45,9 @@ pub enum MeterError {
     Duplicate,
     /// Persisted state that does not read back as this format.
     Corrupt,
+    /// Nothing for a settle() to carry: no named channel has a voucher above
+    /// its floor, or none newer than the last settle carried (v1.4.7).
+    NothingOwed,
+    /// Too soon: a close before expiry plus the contract's grace.
+    TooEarly,
 }

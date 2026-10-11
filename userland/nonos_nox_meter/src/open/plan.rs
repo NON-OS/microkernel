@@ -22,13 +22,14 @@
 
 use alloc::vec::Vec;
 
-use nonos_nox_config::{APPROVE_GAS, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, OPEN_GAS};
+use nonos_nox_config::{APPROVE_GAS, OPEN_GAS};
 use nonos_payment_proto::OpenStart;
 use nonos_settle_proto::Gas;
 
 use super::calldata::{approve_data, open_data};
 use super::tx::TxRequest;
 use crate::error::MeterError;
+use crate::fees::{covers, fees_ok};
 
 pub struct OpenPlan {
     pub approve: TxRequest,
@@ -45,17 +46,8 @@ pub fn open_plan(
     if s.amount == 0 {
         return Err(MeterError::Mismatch);
     }
-    let tip = g.max_priority_fee_per_gas;
-    if g.max_fee_per_gas > MAX_FEE_PER_GAS
-        || tip > MAX_PRIORITY_FEE_PER_GAS
-        || tip > g.max_fee_per_gas
-    {
-        return Err(MeterError::NoGas);
-    }
-    let need = (APPROVE_GAS as u128 + OPEN_GAS as u128).checked_mul(g.max_fee_per_gas);
-    if need.is_none_or(|n| g.balance < n) {
-        return Err(MeterError::NoGas);
-    }
+    fees_ok(g.max_fee_per_gas, g.max_priority_fee_per_gas)?;
+    covers(g.balance, APPROVE_GAS + OPEN_GAS, g.max_fee_per_gas)?;
     let next = g.tx_nonce.checked_add(1).ok_or(MeterError::Overflow)?;
     let tx = |to: &[u8; 20], nonce, gas, data: Vec<u8>| TxRequest {
         chain_id: s.chain_id,

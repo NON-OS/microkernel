@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DRAIN, for settle: the request is one byte, the first voucher wanted; the
-//! reply is total u8 | rows u8 | rows x VoucherRecord, at most DRAIN_ROWS_MAX.
+//! DRAIN LIST's reply (drain_form.rs has both forms): total u8 | rows u8
+//! | rows x VoucherRecord, at most DRAIN_ROWS_MAX.
 //! Reading takes nothing away: only a channel's newest voucher is worth
 //! settling, and it stays the newest until the next charge.
 

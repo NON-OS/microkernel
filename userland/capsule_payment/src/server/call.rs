@@ -32,4 +32,12 @@ impl Call<'_> {
     pub fn answer(&self, status: i32, body: &[u8]) -> Vec<u8> {
         reply(self.op, self.flags, self.id, status, body)
     }
+
+    /// The body, or the status, as one reply.
+    pub fn result(&self, r: Result<Vec<u8>, i32>) -> Vec<u8> {
+        match r {
+            Ok(body) => self.answer(0, &body),
+            Err(status) => self.answer(status, &[]),
+        }
+    }
 }

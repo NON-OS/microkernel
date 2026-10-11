@@ -14,23 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DRAIN, for capsule_nox_settle: the newest signed voucher of each channel
-//! (payment_proto::Drain). The body is one byte, the first voucher wanted.
+//! DRAIN (op 3), for capsule_nox_settle only, in two forms
+//! (payment_proto::DrainRequest):
+//!
+//! - LIST: the newest signed voucher of each channel, a page from `from`.
+//! - SIGN: settle(vouchers, sigs) from the meter's own newest vouchers of
+//!   the named channels, signed with its own key. The state recording what
+//!   it carries reaches disk first, so a crash can lose a settle but never
+//!   let the meter sign one more than the bound allows (`settle_plan`).
 
 use alloc::vec::Vec;
 
+use nonos_nox_config::{address, Contract};
+use nonos_nox_meter::settle::settle_plan;
 use nonos_nox_meter::wire::drain as view;
-use nonos_payment_proto::EINVAL;
+use nonos_payment_proto::{DrainRequest, DrainSign, EINVAL, ENOENT};
 
+use crate::keyring::sign_tx;
 use crate::meter::Meter;
-use crate::server::Call;
+use crate::server::{status_of, Call};
 
 pub fn drain(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
-    let [from] = req.body else {
-        return req.answer(EINVAL, &[]);
+    let run = match DrainRequest::parse(req.body) {
+        Some(DrainRequest::List { from }) => list(meter, from),
+        Some(DrainRequest::Sign(s)) => sign(meter, &s),
+        None => Err(EINVAL),
     };
-    match meter.ready() {
-        Ok(k) => req.answer(0, &view(&meter.state, &k.address, *from as usize).encode()),
-        Err(code) => req.answer(code, &[]),
-    }
+    req.result(run)
+}
+
+fn list(meter: &mut Meter, from: u8) -> Result<Vec<u8>, i32> {
+    let k = meter.ready()?;
+    Ok(view(&meter.state, &k.address, from as usize).encode())
+}
+
+fn sign(meter: &mut Meter, s: &DrainSign) -> Result<Vec<u8>, i32> {
+    let k = meter.ready()?;
+    let settlement = address(s.chain_id, Contract::Settlement).map_err(|_| ENOENT)?;
+    let (next, tx) = settle_plan(&meter.state, &k.address, s, &settlement).map_err(status_of)?;
+    meter.commit(next)?;
+    sign_tx(k.key_id, &tx)
 }

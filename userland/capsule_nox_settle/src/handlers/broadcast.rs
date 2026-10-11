@@ -31,14 +31,18 @@ pub fn broadcast(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
         return Err(EINVAL);
     }
     let chain_id = u64::from_le_bytes(body[..8].try_into().map_err(|_| EINVAL)?);
-    let raw = &body[8..];
+    Ok(send_raw(s, chain_id, &body[8..])?.to_vec())
+}
+
+/// Send `raw` and answer its hash, which must be keccak256 of the bytes.
+pub(crate) fn send_raw(s: &mut Settle, chain_id: u64, raw: &[u8]) -> Result<[u8; 32], i32> {
     let hash = keccak(raw);
     let resp = s.rpc.call(chain_id, &request_broadcast(raw, 1))?;
     match parse_hash32(&resp) {
-        Some(h) if h == hash => Ok(h.to_vec()),
+        Some(h) if h == hash => Ok(h),
         Some(_) => Err(EPROTO),
         None => match broadcast_error(&resp) {
-            NodeSaid::AlreadyKnown => Ok(hash.to_vec()),
+            NodeSaid::AlreadyKnown => Ok(hash),
             NodeSaid::Refused(_) => Err(EPROTO),
         },
     }

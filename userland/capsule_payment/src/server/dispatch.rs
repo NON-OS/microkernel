@@ -18,7 +18,7 @@ use alloc::vec::Vec;
 
 use nonos_nox_meter::caller::Role;
 use nonos_payment_proto::{EINVAL, EPERM, OP_ACCOUNT, OP_DRAIN, OP_HEALTHCHECK, OP_LIST_TOKENS};
-use nonos_payment_proto::{OP_OPEN, OP_PAY, OP_SET_BUDGET};
+use nonos_payment_proto::{OP_CLOSE, OP_OPEN, OP_PAY, OP_SET_BUDGET, OP_TOPUP};
 
 use super::call::Call;
 use super::gate::admits;
@@ -33,7 +33,7 @@ pub fn dispatch(meter: &mut Meter, sender: u32, req: &Call<'_>) -> Vec<u8> {
         OP_HEALTHCHECK | OP_LIST_TOKENS => Role::Anyone,
         OP_PAY => Role::Payer,
         OP_DRAIN => Role::Settle,
-        OP_ACCOUNT | OP_SET_BUDGET | OP_OPEN => Role::Wallet,
+        OP_ACCOUNT | OP_SET_BUDGET | OP_OPEN | OP_TOPUP | OP_CLOSE => Role::Wallet,
         _ => return req.answer(EINVAL, &[]),
     };
     if !admits(role, sender) {
@@ -46,6 +46,8 @@ pub fn dispatch(meter: &mut Meter, sender: u32, req: &Call<'_>) -> Vec<u8> {
         OP_DRAIN => handlers::drain(meter, req),
         OP_ACCOUNT => handlers::account(meter, req),
         OP_OPEN => handlers::open(meter, req),
+        OP_TOPUP => handlers::topup(meter, req),
+        OP_CLOSE => handlers::close(meter, req),
         _ => handlers::set_budget(meter, req),
     }
 }

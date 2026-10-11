@@ -23,6 +23,9 @@ path = "src/main.rs"
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_eth_rpc = { path = "../nonos_eth_rpc" }
 nonos_nox_config = { path = "../nonos_nox_config" }
+# settle() as the meter encodes it, for the estimate of a drain round.
+nonos_nox_meter = { path = "../nonos_nox_meter" }
+nonos_payment_proto = { path = "../payment_proto" }
 nonos_route_link = { path = "../nonos_route_link" }
 nonos_settle_proto = { path = "../settle_proto" }
 nonos_tls = { path = "../nonos_tls" }

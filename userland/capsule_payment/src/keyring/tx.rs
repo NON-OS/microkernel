@@ -26,8 +26,9 @@ use nonos_payment_proto::EIO;
 
 use super::call::call_upto;
 
-/// No transaction the meter signs comes near this.
-const RAW_MAX: usize = 1024;
+/// No transaction the meter signs comes near this: a settle() of twelve
+/// vouchers is under 6 KiB.
+const RAW_MAX: usize = 8 * 1024;
 
 /// The raw signed transaction, 0x02 and its RLP.
 pub(crate) fn sign_tx(key_id: u32, t: &TxRequest) -> Result<Vec<u8>, i32> {

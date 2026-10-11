@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod chain;
+mod drain;
 mod handlers;
 mod keccak;
 mod net;

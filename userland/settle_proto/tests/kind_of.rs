@@ -22,7 +22,7 @@ fn a_selector_belongs_to_its_kind_only() {
     assert_eq!(kind_of(15, &close).map(|k| k.id), Some(15));
     assert_eq!(kind_of(14, &close), None, "close is no topUp");
     assert_eq!(kind_of(15, &close[..35]), None, "a cut word");
-    assert_eq!(kind_of(18, &close), None, "no kind 18");
+    assert_eq!(kind_of(20, &close), None, "no kind 20");
     assert_eq!(kind_of(0, &close), None);
     let fund_from = [&0xaba72c43u32.to_be_bytes()[..], &[0; 480]].concat();
     assert_eq!(kind_of(9, &fund_from).map(|k| k.id), Some(9), "fundFrom is a Fund");

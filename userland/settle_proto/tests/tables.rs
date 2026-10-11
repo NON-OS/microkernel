@@ -48,7 +48,7 @@ fn every_view_selector_is_its_signatures_and_ids_are_unique() {
 }
 
 #[test]
-fn every_kind_selector_is_its_signatures_and_kinds_run_1_to_17() {
+fn every_kind_selector_is_its_signatures_and_kinds_run_1_to_19() {
     for (i, k) in KINDS.iter().enumerate() {
         assert_eq!(k.id as usize, i + 1);
         for (sig, sel) in k.calls {
@@ -59,6 +59,9 @@ fn every_kind_selector_is_its_signatures_and_kinds_run_1_to_17() {
     }
     assert_eq!(KINDS[0].contract, Contract::NoxToken);
     assert_eq!(KINDS[12].calls[0].1, 0x631969a5, "the meter's open");
+    let credit: Vec<_> = KINDS[16..].iter().map(|k| (k.calls[0].1, k.contract)).collect();
+    let owners = [Contract::Settlement, Contract::Escrow, Contract::PublisherBond];
+    assert_eq!(credit, owners.map(|c| (0x6c8cc9d9, c)), "one call on three contracts");
 }
 
 #[test]

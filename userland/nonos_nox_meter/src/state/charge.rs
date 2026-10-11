@@ -35,7 +35,7 @@ impl MeterState {
         let at = self.live(payee, listing, chain, amount, now).ok_or(MeterError::NoChannel)?;
         let channel = self.channels[at].charged(amount, root, now)?;
         let budget = self.budget.spending(listing, amount, now)?;
-        let mut next = MeterState { budget, channels: self.channels.clone() };
+        let mut next = MeterState { budget, channels: self.channels.clone(), ..*self };
         next.channels[at] = channel;
         Ok((next, channel))
     }

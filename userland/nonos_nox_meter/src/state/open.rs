@@ -31,7 +31,7 @@ impl MeterState {
             let spent = next
                 .channels
                 .iter()
-                .position(|c| !c.live(now) && c.settled >= c.cumulative)
+                .position(|c| c.expired(now) && c.settled >= c.cumulative)
                 .ok_or(MeterError::Full)?;
             next.channels.remove(spent);
         }

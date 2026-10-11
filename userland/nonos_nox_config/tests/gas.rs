@@ -22,6 +22,12 @@ fn approve_and_open_limits_are_the_plans() {
 }
 
 #[test]
+fn topup_close_and_the_settle_bound_are_pinned() {
+    use nonos_nox_config::{CLOSE_GAS, SETTLE_GAS_MAX, TOPUP_GAS};
+    assert_eq!((TOPUP_GAS, CLOSE_GAS, SETTLE_GAS_MAX), (120_000, 120_000, 3_000_000));
+}
+
+#[test]
 fn the_fee_caps_are_1000_and_10_gwei() {
     let gwei = 1_000_000_000u128;
     assert_eq!(nonos_nox_config::MAX_FEE_PER_GAS, 1_000 * gwei);
