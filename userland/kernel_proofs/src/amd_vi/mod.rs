@@ -28,6 +28,8 @@ pub mod dte;
 pub mod event;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/pte.rs"]
 pub mod pte;
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/pte_child.rs"]
+pub mod pte_child;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/regs.rs"]
 pub mod regs;
 mod command_tests;

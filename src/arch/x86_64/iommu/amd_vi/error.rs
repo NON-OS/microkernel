@@ -28,6 +28,9 @@ pub enum AmdViError {
     /// No frame, or no contiguous run, for a table.
     NoFrames,
     TableUnreachable,
+    /// The frame allocator would not take a dead domain's table back; the
+    /// tables not yet returned stay allocated, never reused.
+    TableNotFreed,
     RegistersUnmappable,
     DomainNotFound,
     DomainTableFull,

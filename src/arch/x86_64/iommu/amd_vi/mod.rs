@@ -51,6 +51,7 @@ mod mmio;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod poll;
 pub mod pte;
+pub mod pte_child;
 pub mod regs;
 mod release;
 #[cfg(feature = "nonos-iommu-amdvi")]

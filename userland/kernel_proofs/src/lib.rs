@@ -106,6 +106,8 @@ pub mod iommu_fault;
 #[cfg(test)]
 pub mod iommu_queue;
 #[cfg(test)]
+pub mod iommu_release;
+#[cfg(test)]
 pub mod iommu_remap;
 #[cfg(test)]
 pub mod iommu_units;
