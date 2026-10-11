@@ -18,7 +18,7 @@
 //! and wayland.xml, laid out in each interface's own order so a gap or a
 //! swap between the two tables shows.
 
-use crate::ops::{req, shell};
+use crate::ops::{ev, req, shell, ERROR_INVALID_OBJECT};
 
 #[test]
 fn xdg_toplevel_requests_run_zero_to_thirteen() {
@@ -66,4 +66,10 @@ fn wm_base_surface_positioner_and_popup() {
     assert_eq!((shell::POPUP_DESTROY, shell::POPUP_GRAB), (0, 1));
     // xdg_popup events: configure 0, popup_done 1.
     assert_eq!(shell::POPUP_DONE, 1);
+}
+
+#[test]
+fn display_error_is_event_zero_with_invalid_object_zero() {
+    // wl_display events: error 0, delete_id 1; error codes: invalid_object 0.
+    assert_eq!((ev::DISPLAY_ERROR, ev::DISPLAY_DELETE_ID, ERROR_INVALID_OBJECT), (0, 1, 0));
 }

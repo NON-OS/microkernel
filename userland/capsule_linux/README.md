@@ -120,8 +120,10 @@ a third takes NET_ANON away. Only a vendor row carries its list today (`dests=` 
   surface, and a menu it opens is not shown. Moving, resizing and minimizing are the window
   manager's, which the person drives, so a guest asking does nothing. The cursor is the
   compositor's own, so a cursor surface is taken and never shown, and touch is never sent
-  (`route_seat.rs`). Every object a request makes is made, so no later request names an id
-  that was never there.
+  (`route_seat.rs`). Every object a request makes is made, so a request naming an id the
+  client never made, or one already gone, is its own mistake: it is answered with
+  wl_display.error (invalid_object), which ends the client, and nothing more from it is
+  served (`display_error.rs`).
 - Keys are sent as the evdev keys of a US board, with the xkb modifier masks (`evdev.rs`,
   `xkb_mods.rs`); buttons as BTN_LEFT onward, the wheel as axis events (`pointer_codes.rs`).
   Other layouts need the scancode in the input event. No leave events are sent: the router

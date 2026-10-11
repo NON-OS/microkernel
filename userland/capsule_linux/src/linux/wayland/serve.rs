@@ -25,23 +25,26 @@ use super::route::route;
 use super::unserved::unserved;
 use super::wire::{malformed, walk, Msg};
 
-/// Serve what has arrived, while the client is reading what it is told: a
-/// client that is not has its requests wait (`unix::Conn::backlogged`), and
-/// its reads come back here to go on.
-///
-/// The requests are walked where they lie and the ones served cut from the
-/// queue once (`wire::walk`). No handler writes to the queue, so it is held
-/// apart from the guest while they run.
+/// Serve what has arrived while the client reads what it is told; one that
+/// does not has its requests wait (`unix::Conn::backlogged`). They are walked
+/// where they lie and the served cut once (`wire::walk`); no handler writes
+/// the queue, so it is held apart from the guest while they run.
 pub fn serve(guest: &mut Guest) {
     let mut queue = mem::take(&mut guest.display.to_server);
+    let mut ended = false;
     let served = match guest.display.backlogged() {
         true => 0,
         false => walk(&queue, |msg| {
-            one(guest, msg);
-            !guest.display.backlogged()
+            let fine = one(guest, msg);
+            ended |= !fine;
+            fine && !guest.display.backlogged()
         }),
     };
     queue.drain(..served);
+    // After a fatal error nothing more from this client is served.
+    if ended {
+        queue.clear();
+    }
     guest.display.to_server = queue;
     /*
      * A header that claims less than a header can never complete, so the
@@ -56,11 +59,16 @@ pub fn serve(guest: &mut Guest) {
 }
 
 /// One message, already walked past, so a handler that refuses it cannot
-/// have it served again.
-fn one(guest: &mut Guest, msg: Msg<'_>) {
-    let object = guest.objects.get(msg.object);
+/// have it served again. False when it names an object the client never
+/// made, which ends the client (display_error.rs).
+fn one(guest: &mut Guest, msg: Msg<'_>) -> bool {
+    let Some(object) = guest.objects.get(msg.object) else {
+        super::display_error::invalid_object(guest, msg.object);
+        return false;
+    };
     let mut args = Args::new(msg.args);
-    if !route(guest, object, msg.object, msg.opcode, &mut args) {
-        unserved(object, msg.opcode);
+    if !route(guest, Some(object), msg.object, msg.opcode, &mut args) {
+        unserved(Some(object), msg.opcode);
     }
+    true
 }
