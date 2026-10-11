@@ -35,4 +35,11 @@ impl GicRedistributor {
         let addr = (self.base + offset) as *const u64;
         unsafe { read_volatile(addr) }
     }
+
+    pub(super) fn write_reg64(&self, offset: u64, value: u64) {
+        let addr = (self.base + offset) as *mut u64;
+        // SAFETY: `base` is this frame's RD_base, mapped as device memory at
+        // boot, and `offset` is one of its 64-bit registers.
+        unsafe { write_volatile(addr, value) }
+    }
 }
