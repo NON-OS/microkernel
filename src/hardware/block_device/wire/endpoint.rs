@@ -31,8 +31,14 @@ pub struct Endpoint {
     /// The kernel inbox the capsule replies to.
     pub reply_inbox: &'static str,
     pub state: &'static CapsuleState,
+    /// How many disks the driver may serve, units 0 up; no more than
+    /// `MAX_UNITS` are asked.
+    pub units: u16,
     pub slot: &'static Slot,
 }
+
+/// The units the client keeps state for, per endpoint.
+pub const MAX_UNITS: usize = 4;
 
 /// The client's own state for one endpoint, kept beside it so a mirror
 /// declares everything in two statics.
@@ -44,10 +50,10 @@ pub struct Slot {
     /// written back, and two at once would undo each other.
     pub(super) write: Mutex<()>,
     pub(super) seq: AtomicU32,
-    /// The geometry, for the capsule generation it was asked of.
-    pub(super) layout: Mutex<Option<(u64, Layout)>>,
-    /// The hash of the last line the block layer said for this disk.
-    pub(in crate::hardware::block_device) said: AtomicU64,
+    /// Each unit's geometry, for the capsule generation it was asked of.
+    pub(super) layout: Mutex<[Option<(u64, Layout)>; MAX_UNITS]>,
+    /// The hash of the last line the block layer said for each unit.
+    pub(super) said: [AtomicU64; MAX_UNITS],
 }
 
 impl Slot {
@@ -56,8 +62,8 @@ impl Slot {
             call: Mutex::new(()),
             write: Mutex::new(()),
             seq: AtomicU32::new(1),
-            layout: Mutex::new(None),
-            said: AtomicU64::new(0),
+            layout: Mutex::new([None; MAX_UNITS]),
+            said: [const { AtomicU64::new(0) }; MAX_UNITS],
         }
     }
 }
