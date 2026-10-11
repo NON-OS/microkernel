@@ -56,8 +56,17 @@ pub(super) fn say(what: &[u8], pid: u32, device: DeviceAddress) {
     let serial = crate::sys::serial::print;
     serial(b"[VT-D] pid=");
     crate::sys::serial::print_dec(pid as u64);
-    serial(b" device=");
-    crate::sys::serial::print_hex(device.as_u32() as u64);
+    // Segment above the requester id, so segment 0 prints as it always has.
+    match device {
+        DeviceAddress::Pci { segment, rid } => {
+            serial(b" device=");
+            crate::sys::serial::print_hex((segment as u64) << 16 | rid as u64);
+        }
+        DeviceAddress::Stream(sid) => {
+            serial(b" stream=");
+            crate::sys::serial::print_hex(sid as u64);
+        }
+    }
     serial(b" ");
     crate::sys::serial::println(what);
 }
