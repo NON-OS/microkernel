@@ -34,6 +34,7 @@ impl Account {
         out.push(self.rows.len() as u8);
         for r in &self.rows {
             out.extend_from_slice(&r.channel_id);
+            out.extend_from_slice(&r.listing_id);
             out.extend_from_slice(&r.chain_id.to_le_bytes());
             for v in [r.deposit, r.settled, r.cumulative] {
                 out.extend_from_slice(&v.to_le_bytes());
@@ -50,10 +51,20 @@ impl Account {
         let (cap, spent, expiry, left) = (r.u128()?, r.u128()?, r.u64()?, r.u128()?);
         let (total, n) = (r.u8()?, r.u8()? as usize);
         let row = |r: &mut Cursor| -> Option<AccountRow> {
-            let (channel_id, chain_id) = (r.fixed()?, r.u64()?);
+            let (channel_id, listing_id, chain_id) = (r.fixed()?, r.fixed()?, r.u64()?);
             let (deposit, settled, cumulative) = (r.u128()?, r.u128()?, r.u128()?);
             let (expiry, frozen) = (r.u64()?, flag(r.u8()?)?);
-            Some(AccountRow { channel_id, chain_id, deposit, settled, cumulative, expiry, frozen })
+            let row = AccountRow {
+                channel_id,
+                listing_id,
+                chain_id,
+                deposit,
+                settled,
+                cumulative,
+                expiry,
+                frozen,
+            };
+            Some(row)
         };
         let rows = (0..n.min(ACCOUNT_ROWS_MAX)).map(|_| row(&mut r)).collect::<Option<Vec<_>>>()?;
         (n <= ACCOUNT_ROWS_MAX).then_some(())?;

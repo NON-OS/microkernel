@@ -43,7 +43,7 @@ pub fn rows(p: &Pending) -> Vec<(&'static str, String)> {
     let b = match &p.read {
         Ok(Named::Escrow(b)) => b,
         Ok(Named::Voucher(v)) => {
-            return [out, super::voucher_rows::rows(v, &p.step, &p.form)].concat()
+            return [out, super::voucher_rows::rows(v, &p.step, &p.form, p.held)].concat()
         }
         Err(_) => return out,
     };

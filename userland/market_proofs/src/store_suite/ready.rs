@@ -29,5 +29,7 @@ fn a_ready_for_other_names_is_never_this_order() {
     assert_eq!(ours(Some(r.clone()), Some(&names(b"linux.b"))), None, "another listing");
     let other_chain = Names { chain_id: 1, ..names(b"linux.a") };
     assert_eq!(ours(Some(r.clone()), Some(&other_chain)), None, "another chain");
+    let other_release = Names { release: b"2.0".to_vec(), ..names(b"linux.a") };
+    assert_eq!(ours(Some(r.clone()), Some(&other_release)), None, "another release");
     assert_eq!(ours(Some(r), None), None, "nothing posted");
 }
