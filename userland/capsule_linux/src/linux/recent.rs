@@ -25,6 +25,12 @@
 
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering::Relaxed};
 
+/* Every answered call also goes into the sealed diagnostic chain (plan/32). */
+#[path = "serve/trace.rs"]
+pub mod trace;
+#[path = "serve/trace_link.rs"]
+pub mod trace_link;
+
 pub(super) const KEEP: usize = 16;
 
 /*
@@ -40,4 +46,5 @@ pub fn note(number: u64, arg0: u64, result: u64) {
         CALLS[at * 3 + i].store(v, Relaxed);
     }
     NEXT.store((at + 1) % KEEP, Relaxed);
+    trace::step(number, result);
 }
