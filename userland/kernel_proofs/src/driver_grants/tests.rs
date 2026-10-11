@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The map's cap column is the cap table's: each call passes with its cap
-//! alone and with Admin, and with every other cap but not those two it is
-//! refused. Every driver-grant call is in the map, and nothing else is.
+//! alone, and with every other cap it is refused; Admin drives no device
+//! (K6), and lists them as DeviceEnum does.
+//! Every driver-grant call is in the map, and nothing else is.
 
 extern crate alloc;
 use alloc::format;
@@ -30,16 +31,16 @@ use crate::syscall::contract::is_allowed;
 use crate::syscall::numbers::SyscallNumber;
 
 #[test]
-fn each_call_needs_exactly_its_cap_or_admin() {
+fn each_call_needs_exactly_its_cap_and_admin_is_not_it() {
     for row in SURFACE {
         let (call, cap) = (row.0, row.1);
         assert!(is_allowed(&token(alloc::vec![cap]), call), "{call:?} with {cap:?}");
-        assert!(is_allowed(&token(alloc::vec![Capability::Admin]), call), "{call:?}, Admin");
-        let rest: Vec<Capability> = Capability::all()
-            .iter()
-            .copied()
-            .filter(|c| *c != cap && *c != Capability::Admin)
-            .collect();
+        // Listing devices still takes DeviceEnum or Admin; driving one, never Admin.
+        let lists = call == SyscallNumber::MkDeviceList;
+        let admin = is_allowed(&token(alloc::vec![Capability::Admin]), call);
+        assert_eq!(admin, lists, "{call:?} with Admin");
+        let other = |c: &Capability| *c != cap && !(lists && *c == Capability::Admin);
+        let rest: Vec<Capability> = Capability::all().iter().copied().filter(other).collect();
         assert!(!is_allowed(&token(rest), call), "{call:?} without {cap:?}");
     }
 }
