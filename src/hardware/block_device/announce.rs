@@ -19,9 +19,12 @@
 use alloc::format;
 
 use super::backend::Backend;
+use super::gpt::Places;
 
-pub(super) fn announce(b: Backend) -> Backend {
-    let line = format!("[BLOCK] NONOS disk on {}", (b.disk.announced)(b.key));
+pub(super) fn announce(b: Backend, p: &Places) -> Backend {
+    let (store, plan) = (p.store.first, p.plan.first);
+    let disk = (b.disk.announced)(b.key);
+    let line = format!("[BLOCK] NONOS disk on {disk}: store at LBA {store}, plan at LBA {plan}");
     crate::sys::serial::println(line.as_bytes());
     crate::log::info!("{}", line);
     b
