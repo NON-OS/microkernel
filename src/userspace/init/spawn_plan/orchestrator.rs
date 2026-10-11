@@ -32,11 +32,12 @@ pub(in crate::userspace::init) fn spawn_display_core() {}
 
 pub(in crate::userspace::init) fn spawn_drivers() {
     super::drivers_virtio::spawn();
-    super::drivers_vm_display::spawn();
+    super::vm::spawn_display();
     super::drivers_bus::spawn();
     super::drivers_input::spawn();
+    super::vm::spawn_input();
     super::drivers_nic::spawn();
-    super::drivers_vm_nic::spawn();
+    super::vm::spawn_nics();
     super::drivers_usb::spawn();
     super::drivers_storage::spawn();
     super::services_audio::spawn();
