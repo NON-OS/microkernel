@@ -138,6 +138,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "isolation_stark"
+version = "0.1.0"
+dependencies = [
+ "nonos-stark",
+ "nonos_proof_abi",
+ "stark_proofs",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -179,6 +188,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_proof_abi"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "nonos-device-attest",
+ "nonos-stark",
+ "nox_verify",
+]
+
+[[package]]
 name = "nox_verify"
 version = "0.1.0"
 source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a41bb8bb0dacfea614acc6fb500d0b96abd78d2b"
@@ -190,9 +209,12 @@ dependencies = [
 name = "prove_proofs"
 version = "0.1.0"
 dependencies = [
+ "isolation_stark",
  "nonos-attest-path",
  "nonos-boot-measure",
  "nonos-device-attest",
+ "nonos-stark",
+ "nonos_proof_abi",
 ]
 
 [[package]]
