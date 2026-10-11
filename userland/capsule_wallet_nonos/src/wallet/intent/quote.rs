@@ -25,7 +25,6 @@ use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use nonos_nox_config::{MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS};
 use nonos_settle_proto::Quote;
 
 use super::call::Publisher;
@@ -36,28 +35,7 @@ use super::encode::to;
 pub const PUBLISHER_GAS_MAX: u64 = 1_000_000;
 
 pub fn quote_refusal(p: &Publisher, chain_id: u64, q: &Quote) -> Option<&'static str> {
-    held_to(q, p.kind(), to(p, chain_id), PUBLISHER_GAS_MAX)
-}
-
-/// Why a quote is not signed: another kind, a contract other than `to`, gas
-/// past `gas_max`, or fees past the caps. Shared with the dispute (B8).
-pub fn held_to(q: &Quote, kind: u8, to: Option<[u8; 20]>, gas_max: u64) -> Option<&'static str> {
-    if q.kind != kind {
-        return Some("settle quoted another kind of transaction, not signing");
-    }
-    if to != Some(q.to) {
-        return Some("settle quoted a contract other than the config's, not signing");
-    }
-    if q.gas_limit == 0 || q.gas_limit > gas_max {
-        return Some("settle's gas limit is out of bounds, not signing");
-    }
-    if q.max_fee == 0 || q.max_fee > MAX_FEE_PER_GAS {
-        return Some("network fee zero or above 1000 gwei, not signing");
-    }
-    if q.max_priority > q.max_fee || q.max_priority > MAX_PRIORITY_FEE_PER_GAS {
-        return Some("the tip is above the fee or above 10 gwei, not signing");
-    }
-    None
+    super::super::order::send_bounds::held_to(q, p.kind(), to(p, chain_id), PUBLISHER_GAS_MAX)
 }
 
 /// The most the transaction can cost in ETH, in wei.

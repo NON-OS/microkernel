@@ -67,6 +67,7 @@ pub fn rows(p: &Pending) -> Vec<(&'static str, String)> {
         out.push(("deposit", checksummed_text(&m.deposit)));
         p.watch.status.iter().for_each(|s| out.extend(status_rows(s, exact)));
         p.delivery.made.iter().for_each(|d| out.push(("delivery", delivered_line(d))));
+        out.extend(super::escrow_rows::rows(p));
     }
     out
 }

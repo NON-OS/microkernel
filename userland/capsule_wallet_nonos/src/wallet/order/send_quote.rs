@@ -25,6 +25,7 @@ use nonos_nox_config::{DISPUTE_GAS, REFUND_GAS};
 use nonos_settle_proto::Quote;
 use shield_wire::FreshAsk;
 
+use super::send_bounds::held_to;
 use super::send_step::{EscrowSend, DISPUTE};
 
 const CENTI_ETH: u128 = 10_000_000_000_000_000;
@@ -34,7 +35,7 @@ const MOST_CENTS: u128 = 1_000;
 /// Why settle's quote for `kind` is not signed, if it is not.
 pub fn quote_refusal(q: &Quote, kind: u8, escrow: Option<[u8; 20]>) -> Option<&'static str> {
     let gas_max = if kind == DISPUTE { DISPUTE_GAS } else { REFUND_GAS };
-    super::super::intent::held_to(q, kind, escrow, gas_max)
+    held_to(q, kind, escrow, gas_max)
 }
 
 /// The ETH withdraw for the gas: 1, 2 or 5 hundredths times a power of ten,

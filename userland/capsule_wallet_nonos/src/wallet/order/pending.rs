@@ -43,6 +43,8 @@ pub struct Pending {
     pub step: Step,
     /// The fresh address a refund goes to, drawn when the person confirms.
     pub refund_to: [u8; 20],
+    /// A dispute or refund under way from refundTo (v1.4.51 to v1.4.53).
+    pub escrow: Option<super::escrowing::Escrowing>,
 }
 
 pub enum Step {
