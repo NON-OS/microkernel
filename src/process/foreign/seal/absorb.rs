@@ -16,7 +16,7 @@
 
 //! Rows into a live family. Each is nothing for a process no family holds.
 
-use super::super::registry::supervisor_of;
+use super::super::registry::{is_foreign, supervisor_of};
 use super::super::trap_table::Answer;
 use super::family::Family;
 use super::table::{with_family, LIVE};
@@ -46,18 +46,18 @@ pub(crate) fn abandon(pid: u32) {
 
 /// A call the kernel turned away itself: a native number, or one past the
 /// numbers a supervisor is ever handed. Bucket 512, by its number.
-/// A refusal row in the calling guest's family; false for a non-guest.
+/// A refusal row in the calling guest's family, if it still has one; false
+/// for a non-guest. An orphaned guest is refused with no row.
 pub(super) fn refused(nr: u64, ret: u64) -> bool {
-    let Some(pid) = crate::process::current_pid() else {
+    let Some(pid) = crate::process::current_pid().filter(|&p| is_foreign(p)) else {
         return false;
     };
-    let Some(sup) = supervisor_of(pid) else {
-        return false;
-    };
-    with_family(sup, |f| {
-        let seq = f.stamp();
-        f.absorb(&Row { seq, pid, what: REFUSED, nr, ret });
-    });
+    if let Some(sup) = supervisor_of(pid) {
+        with_family(sup, |f| {
+            let seq = f.stamp();
+            f.absorb(&Row { seq, pid, what: REFUSED, nr, ret });
+        });
+    }
     true
 }
 

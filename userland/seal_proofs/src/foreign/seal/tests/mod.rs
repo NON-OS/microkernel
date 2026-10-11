@@ -18,6 +18,7 @@ mod calls_tests;
 mod commit_tests;
 mod fixture;
 mod meas_tests;
+mod orphan_tests;
 mod overflow_tests;
 mod record_tests;
 mod rows_tests;
