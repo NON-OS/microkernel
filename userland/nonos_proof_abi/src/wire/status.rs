@@ -25,6 +25,9 @@ pub const POLICY: i32 = -1102;
 pub const NOT_ENROLLED: i32 = -1103;
 /// A proof did not come out, or did not verify, or its certificate held not.
 pub const PROVER: i32 = -1104;
+/// The sealed run had a call outside the policy's set succeed: there is
+/// nothing true to prove.
+pub const OUTSIDE: i32 = -1105;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[repr(u8)]
