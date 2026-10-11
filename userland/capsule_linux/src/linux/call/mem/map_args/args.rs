@@ -14,31 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What Linux refuses of an mmap before it looks for room, from the
-//! arguments alone, and where a hint asks the mapping to go. Pure, so the
-//! host proofs hold every refusal and its errno.
+//! What Linux refuses of an mmap's arguments, and where a hint asks the
+//! mapping to go.
 
+use super::super::prot_args::wx_refused;
+use super::flags::{exact, MAP_PRIVATE, MAP_SHARED, MAP_SHARED_VALIDATE, MAP_TYPE, MIN_ADDR};
 use crate::linux::abi::errno;
 use crate::linux::guest::{page_down, page_len, PAGE};
-
-use super::prot_args::wx_refused;
-
-pub const MAP_SHARED: u64 = 0x01;
-pub const MAP_PRIVATE: u64 = 0x02;
-/// MAP_SHARED with every flag checked: shared, as far as this capsule goes.
-const MAP_SHARED_VALIDATE: u64 = 0x03;
-/// The bits that say shared or private.
-const MAP_TYPE: u64 = 0x0f;
-pub const MAP_FIXED: u64 = 0x10;
-pub const MAP_FIXED_NOREPLACE: u64 = 0x10_0000;
-/// Linux's default vm.mmap_min_addr. Nothing is mapped at an exact address
-/// below it, so a null pointer, or one a little past null, is never memory.
-pub const MIN_ADDR: u64 = 0x1_0000;
-
-/// True for MAP_FIXED and MAP_FIXED_NOREPLACE: the exact address or failure.
-pub fn exact(flags: u64) -> bool {
-    flags & (MAP_FIXED | MAP_FIXED_NOREPLACE) != 0
-}
 
 /// Linux's order: a misaligned offset or an empty length EINVAL, neither
 /// shared nor private EINVAL, an exact address off a page boundary EINVAL, a

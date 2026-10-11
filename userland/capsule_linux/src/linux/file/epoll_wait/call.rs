@@ -14,22 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `epoll_wait`: which of the watched descriptors are ready now.
-//!
-//! A level-triggered entry is reported for as long as its readiness holds.
-//! An EPOLLET entry is reported when readiness rises: bits already seen at
-//! the last look are left out until they fall, or until a call on the
-//! descriptor answers EAGAIN (`epoll_arm`). An EPOLLONESHOT entry reports
-//! once and then nothing until it is modified.
-
-use alloc::vec::Vec;
+//! epoll_wait's checks, and what it reports written to the guest.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Guest, Kind, EPOLLONESHOT};
-use crate::linux::net::ready;
+use crate::linux::guest::{Guest, Kind};
 
-use super::epoll::EVENT_LEN;
-use super::epoll_rules::{live, seen};
+use super::super::epoll::EVENT_LEN;
+use super::collect::collect;
 
 /// The most events one call can ask for, as Linux bounds it.
 const MOST: u64 = (i32::MAX as u64) / EVENT_LEN as u64;
@@ -48,24 +39,7 @@ pub fn epoll_wait(guest: &mut Guest, ep: u64, out: u64, max: u64) -> u64 {
         return errno::fail(errno::EINVAL);
     }
     let mut watch = list.watch.clone();
-    let mut blob: Vec<u8> = Vec::new();
-    let mut hits = 0u64;
-    for w in watch.iter_mut().filter(|w| w.armed) {
-        if hits >= max {
-            break;
-        }
-        // Hang-up and error are reported whether they were asked for or not.
-        let level = u32::from(ready(guest, w.fd));
-        let live = live(level, w.events, w.fired);
-        w.fired = seen(level, w.events);
-        if live == 0 {
-            continue;
-        }
-        w.armed = w.events & EPOLLONESHOT == 0;
-        blob.extend_from_slice(&live.to_le_bytes());
-        blob.extend_from_slice(&w.data.to_le_bytes());
-        hits += 1;
-    }
+    let (blob, hits) = collect(guest, &mut watch, max);
     if !blob.is_empty() && guest.write(out, &blob) < blob.len() as i64 {
         return errno::fail(errno::EFAULT);
     }

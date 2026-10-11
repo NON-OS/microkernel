@@ -21,7 +21,7 @@ gate call/mem/prot.rs | mask::JIT | mprotect +x without JIT
 gate call/mem/prot.rs | guest.span_unproven(start, span) | +x on file bytes never proved
 gate call/mem/map_file.rs | proven(guest, req.fd) | an executable file mapping never proved
 gate call/mem/prot_args.rs | if wx_refused(prot) | a page writable and executable
-gate call/mem/map_args.rs | wx_refused(prot) | a mapping writable and executable
+gate call/mem/map_args/args.rs | wx_refused(prot) | a mapping writable and executable
 gate file/models/open.rs | mask::MODELS_RO | a model without MODELS_RO
 gate file/models/stat.rs | crate::linux::app::models() | /models without MODELS_RO
 gate file/private/names.rs | crate::linux::app::home() | a private home without FILES_HOME

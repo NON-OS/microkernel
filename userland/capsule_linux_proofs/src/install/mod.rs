@@ -51,7 +51,7 @@ pub mod deb;
 pub mod pacman;
 pub mod pgp;
 
-#[path = "../../../capsule_linux/src/linux/install/manifest.rs"]
+#[path = "../../../capsule_linux/src/linux/install/manifest/mod.rs"]
 pub mod manifest;
 #[path = "../../../capsule_linux/src/linux/install/member/mod.rs"]
 pub mod member;

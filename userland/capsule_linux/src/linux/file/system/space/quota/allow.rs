@@ -14,32 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * The family's quota on its private directories, apart from the store
- * and the calls that ask: what may be kept, and which changes it refuses.
- * Pure, so the host proofs hold it.
- */
+/* Which changes the quota takes, to the store and to the family's copies. */
 
+use super::super::super::declared::{PRIVATE, PRIVATE_NAMES};
+use super::kept::Kept;
 use crate::linux::abi::errno;
-
-use super::super::declared::{PRIVATE, PRIVATE_NAMES};
-
-/* What the family keeps there: bytes, and names, a file or directory each. */
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Kept {
-    pub bytes: u64,
-    pub names: u64,
-}
-
-impl Kept {
-    /* `self` with `more` added, saturating: a count can only be refused. */
-    pub fn plus(self, more: Kept) -> Kept {
-        Kept {
-            bytes: self.bytes.saturating_add(more.bytes),
-            names: self.names.saturating_add(more.names),
-        }
-    }
-}
 
 /*
  * Whether a change from `now` to `then` is taken: ENOSPC when it makes
@@ -69,9 +48,4 @@ pub fn allows(now: Kept, then: Kept) -> Result<(), i64> {
 pub fn copies_allow(total: u64, was: u64, len: u64) -> Result<(), i64> {
     let then = total.saturating_sub(was).saturating_add(len);
     allows(Kept { bytes: total, names: 0 }, Kept { bytes: then, names: 0 })
-}
-
-/* The names left before the next one is refused, as statfs's f_ffree. */
-pub fn names_free(now: Kept) -> u64 {
-    PRIVATE_NAMES.saturating_sub(now.names)
 }
