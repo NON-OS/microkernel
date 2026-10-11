@@ -19,8 +19,6 @@
 use crate::wallet::order::fees::Fees;
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::read::Named;
-use crate::wallet::screen::shield::sizes::sizes;
-use crate::wallet::state::shield_ui::ASSET_NOX;
 
 pub const CONSENT: &str = "The store asks to buy this. What follows is the market's own record, \
      not the store's: buy only if it is what you meant.";
@@ -28,20 +26,18 @@ const QUOTING: &str = "Asking the Shield what funding this price costs. It decid
      the price is one of its standard amounts today.";
 const REFUSED: &str = "The Shield will not fund this price, so it cannot be paid privately, \
      and this wallet does not pay escrow from a plain address yet.";
-const VOUCHER: &str = "This listing is paid by voucher as it is used: open a channel for it \
-     from the Meter screen.";
+const VOUCHER: &str = "This listing is paid by voucher as it is used. Open a channel: set a \
+     deposit and how long it runs; what is not spent comes back to a fresh address of this wallet.";
+const OPENING: &str = "The meter is signing the channel's approval and opening.";
+const CONFIRMING: &str = "Waiting for the chain to mine the channel's opening.";
+const OPENED: &str = "The channel is open. Install the app again from the store: it pays from \
+     this channel by voucher.";
 const OFFERING: &str = "The meter is asking the seller's agent for its sealed offer. Its proof \
      of work runs between other payments, so this can take a minute.";
 const ORDERING: &str = "The meter is making the order and checking its deposit address against \
      the chain.";
 const FUND: &str = "The order is made. Fund it from the Shield: send exactly the price, in NOX, \
      to its deposit address. If the seller does not deliver, it comes back to you.";
-
-/// Where the Shield's standard NOX sizes hold `amount`, if they do: the
-/// only prices a withdrawal can fund.
-pub fn standard(amount: u128) -> Option<u8> {
-    sizes(ASSET_NOX).iter().position(|(_, v)| *v == amount).map(|i| i as u8)
-}
 
 /// The lead sentence, and the action offered beside Close, if any.
 pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
@@ -51,16 +47,23 @@ pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
             Fees::Refused(_) => (REFUSED, None),
             Fees::Unasked | Fees::Asking => (QUOTING, None),
         },
-        (Step::Consent, Ok(Named::Voucher(_))) => (VOUCHER, None),
+        (Step::Consent, Ok(Named::Voucher(_))) => (VOUCHER, Some("Open channel")),
         (Step::Consent, Err(why)) => (why, None),
         (Step::Offering(_), _) => (OFFERING, None),
         (Step::Ordering(..), _) => (ORDERING, None),
         (Step::Fund(_), _) => (FUND, Some("Fund from the Shield")),
+        (Step::Opening(..), _) => (OPENING, None),
+        (Step::Confirming(..), _) => (CONFIRMING, None),
+        (Step::Opened(_), _) => (OPENED, None),
         (Step::Failed(why), _) => (why, None),
     }
 }
 
-/// Whether the person may close the screen: not while a job runs.
+/// Whether the person may close the screen: not while a job runs, nor
+/// while a mined opening still waits for the meter to record it.
 pub fn closable(p: &Pending) -> bool {
-    !matches!(p.step, Step::Offering(_) | Step::Ordering(..))
+    !matches!(
+        p.step,
+        Step::Offering(_) | Step::Ordering(..) | Step::Opening(..) | Step::Confirming(..)
+    )
 }
