@@ -18,6 +18,8 @@
 pub mod buy;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/confirm.rs"]
 mod confirm;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/delivered.rs"]
+pub mod delivered;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/escrowed.rs"]
 mod escrowed;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/fees_kind.rs"]

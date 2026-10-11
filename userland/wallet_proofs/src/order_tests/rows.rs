@@ -19,7 +19,8 @@
 
 use nonos_payment_proto::{DeliveredMade, OrderStatus};
 
-use crate::order::rows::{delivered_line, state_name, status_rows};
+use crate::order::delivered::delivered_line;
+use crate::order::rows::{state_name, status_rows};
 
 fn nox(v: u128) -> String {
     format!("{v}")

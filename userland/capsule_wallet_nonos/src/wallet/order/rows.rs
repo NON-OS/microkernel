@@ -17,15 +17,15 @@
 /*
  * An escrow order as lines a person reads (B8, plan/24, plan/29): its state
  * by the escrow's own numbers, what was funded and what still waits at the
- * deposit address, and what a delivery's check found. Pure: the NOX figures
- * come through `nox`, so wallet_proofs reads real replies with it.
+ * deposit address. Pure: the NOX figures come through `nox`, so
+ * wallet_proofs reads real replies with it.
  */
 
 use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use nonos_payment_proto::{DeliveredMade, OrderStatus};
+use nonos_payment_proto::OrderStatus;
 
 pub fn state_name(state: u8) -> &'static str {
     match state {
@@ -51,15 +51,4 @@ pub fn status_rows(s: &OrderStatus, nox: fn(u128) -> String) -> Vec<(&'static st
         ));
     }
     rows
-}
-
-pub fn delivered_line(d: &DeliveredMade) -> String {
-    match d {
-        DeliveredMade::Ok { content_len } => {
-            format!("every chunk checked: {content_len} bytes ready to install")
-        }
-        DeliveredMade::BadChunk { index, .. } => {
-            format!("chunk {index} is not what was listed: dispute it before the window ends")
-        }
-    }
 }
