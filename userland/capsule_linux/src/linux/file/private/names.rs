@@ -48,11 +48,17 @@ pub fn root() -> Vec<u8> {
     out
 }
 
+/// The private prefixes that are a home, the family's own only when its
+/// program's policy grants one (linux::app::home).
+const HOMES: &[&[u8]] = &[b"/home", b"/root"];
+
 /// True when `visible` is one of the private prefixes or below one.
 pub fn is_private(visible: &[u8]) -> bool {
-    PRIVATE
-        .iter()
-        .any(|p| visible.starts_with(p) && matches!(visible.get(p.len()), None | Some(b'/')))
+    PRIVATE.iter().any(|p| {
+        visible.starts_with(p)
+            && matches!(visible.get(p.len()), None | Some(b'/'))
+            && (!HOMES.contains(p) || crate::linux::app::home())
+    })
 }
 
 /// Only the install path writes the shared tree; a running guest never does.

@@ -15,8 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bind;
+mod calls;
 mod choose;
+mod family;
+mod gate;
 mod identity;
+mod rules;
 
 pub use bind::{bind, bind_built_in};
+pub use calls::outside;
+pub use family::{grant, home, models};
+pub use gate::{granted, inet, may_dial, refuse};
 pub use identity::AppIdentity;

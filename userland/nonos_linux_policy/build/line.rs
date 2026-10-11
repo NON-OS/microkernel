@@ -21,10 +21,15 @@
 use crate::mask::{
     EXEC, FILES_HOME, FILES_USER, JIT, MODELS_RO, NET_ANON, NET_LISTEN_LO, TTY, WAYLAND,
 };
-use crate::syscall_set::{SyscallSet, SET_LEN};
+use crate::syscall_set::SyscallSet;
+
+use super::set_hex::set_of;
 
 pub struct Line<'a> {
     pub store_path: &'a str,
+    /// Where the file is, for a test guest's line; the vendor's are found in
+    /// the Linux userland build.
+    pub file: Option<&'a str>,
     pub mask: u64,
     pub calls: SyscallSet,
 }
@@ -50,8 +55,12 @@ pub fn parse(line: &str) -> Result<Option<Line<'_>>, String> {
     if !store_path.starts_with("/bin/") || store_path.len() == 5 || store_path[5..].contains('/') {
         return Err(format!("{store_path}: not a program in /bin"));
     }
-    let (mut mask, mut calls) = (0, SyscallSet::ALL);
+    let (mut mask, mut calls, mut file) = (0, SyscallSet::ALL, None);
     for word in words {
+        if let Some(path) = word.strip_prefix("file=").filter(|p| p.starts_with('/')) {
+            file = Some(path);
+            continue;
+        }
         if let Some(hex) = word.strip_prefix("calls=") {
             calls = set_of(hex).ok_or_else(|| format!("{store_path}: calls= is not a set"))?;
             continue;
@@ -59,17 +68,5 @@ pub fn parse(line: &str) -> Result<Option<Line<'_>>, String> {
         let bit = NAMES.iter().find(|(n, _)| *n == word).map(|(_, b)| *b);
         mask |= bit.ok_or_else(|| format!("{store_path}: no service is named {word}"))?;
     }
-    Ok(Some(Line { store_path, mask, calls }))
-}
-
-/// 130 hex digits, byte 0 first, as `[PROVE] syscall buckets ok=` prints the set.
-pub fn set_of(hex: &str) -> Option<SyscallSet> {
-    if hex.len() != SET_LEN * 2 || !hex.is_ascii() {
-        return None;
-    }
-    let mut b = [0u8; SET_LEN];
-    for (i, out) in b.iter_mut().enumerate() {
-        *out = u8::from_str_radix(&hex[2 * i..2 * i + 2], 16).ok()?;
-    }
-    SyscallSet::from_bytes(b).ok()
+    Ok(Some(Line { store_path, file, mask, calls }))
 }

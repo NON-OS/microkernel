@@ -30,6 +30,9 @@ pub fn open(guest: &mut Guest, path: &[u8], flags: u64) -> Option<u64> {
     if !owns(path) {
         return None;
     }
+    if !crate::linux::app::granted(guest, nonos_linux_policy::mask::MODELS_RO) {
+        return Some(crate::linux::app::refuse("a model", "MODELS_RO", errno::EACCES));
+    }
     if let Some(got) = super::catalog::open(guest, path, flags) {
         return Some(got);
     }

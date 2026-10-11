@@ -16,7 +16,7 @@
 
 //! The identity a guest carries, and that an exec never widens its box.
 
-use crate::app_identity::AppIdentity;
+use crate::app::identity::AppIdentity;
 use nonos_linux_policy::mask::{EXEC, KNOWN, NET_ANON, TTY, WAYLAND};
 use nonos_linux_policy::{
     app_id, policy_hash, unlisted, LinuxAppPolicy, SyscallSet, UNLISTED_MASK,
