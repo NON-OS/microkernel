@@ -17,30 +17,23 @@
 //! driver.sdhci0 against the kernel client that talks to it.
 
 use super::decode::decode;
+use super::frame::frame;
 use super::header as k;
 use crate::emmc::disk::{DATA_BUF_BYTES, MAX_SECTORS, SECTOR_SIZE};
 use crate::protocol as c;
 
-/// A request header as the kernel's encoder lays it out.
-fn kernel_frame(magic: u32, op: u16, id: u32, payload: u32) -> [u8; 20] {
-    let mut f = [0u8; 20];
-    f[0..4].copy_from_slice(&magic.to_le_bytes());
-    f[4..6].copy_from_slice(&k::VERSION.to_le_bytes());
-    f[6..8].copy_from_slice(&op.to_le_bytes());
-    f[12..16].copy_from_slice(&id.to_le_bytes());
-    f[16..20].copy_from_slice(&payload.to_le_bytes());
-    f
-}
-
 #[test]
 fn both_ends_frame_the_same_wire() {
-    let req = c::decode_request(&kernel_frame(k::MAGIC, k::OP_READ, 7, 12)).expect("taken");
-    assert_eq!((req.op, req.request_id, req.payload_len), (c::OP_READ, 7, 12));
-    assert!(c::decode_request(&kernel_frame(0x4E41_4843, k::OP_READ, 7, 12)).is_none());
-    // The reply repeats the kernel's magic, version, op and id.
+    let sent = frame(k::OP_READ, 2, 7, &[0; 12]);
+    let req = c::decode_request(&sent).expect("taken");
+    assert_eq!((req.op, req.unit, req.request_id, req.payload_len), (c::OP_READ, 2, 7, 12));
+    let mut ahci = sent.clone();
+    ahci[..4].copy_from_slice(&0x4E41_4843u32.to_le_bytes());
+    assert!(c::decode_request(&ahci).is_none());
+    // The reply repeats the kernel's magic, version, op, unit and id.
     let mut reply = [0u8; 24];
     c::encode_response_header(&mut reply, &req, 4);
-    assert_eq!(reply[..20], kernel_frame(k::MAGIC, k::OP_READ, 7, 4));
+    assert_eq!(reply[..20], frame(k::OP_READ, 2, 7, &[0; 4])[..20]);
     assert_eq!(c::HDR_LEN, 20);
     let ops = [c::OP_HEALTHCHECK, c::OP_GEOMETRY, c::OP_READ, c::OP_WRITE, c::OP_FLUSH];
     assert_eq!(ops, [k::OP_HEALTHCHECK, k::OP_GEOMETRY, k::OP_READ, k::OP_WRITE, k::OP_FLUSH]);

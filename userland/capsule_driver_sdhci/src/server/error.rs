@@ -27,6 +27,6 @@ pub fn reply_with_status(tx: &mut [u8], req: &crate::protocol::Request, status: 
 }
 
 pub fn reply_decode_failed(tx: &mut [u8], status: i32) {
-    let req = crate::protocol::Request { op: 0, flags: 0, request_id: 0, payload_len: 0 };
+    let req = crate::protocol::Request { op: 0, flags: 0, unit: 0, request_id: 0, payload_len: 0 };
     reply_with_status(tx, &req, status);
 }
