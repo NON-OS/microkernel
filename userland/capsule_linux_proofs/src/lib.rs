@@ -128,6 +128,8 @@ pub mod anon_server_end;
 
 #[path = "../../capsule_linux/src/linux/applets.rs"]
 pub mod applets;
+#[path = "../../capsule_linux/src/linux/file/private/rule.rs"]
+pub mod private_rule;
 
 /* The box a guest runs in: its policy, its identity, what it allows. */
 pub mod app;
