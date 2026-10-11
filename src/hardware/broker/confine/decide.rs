@@ -23,8 +23,6 @@
 //! owner's development opt-in, which lib.rs refuses in a release; the
 //! posture line states it, and unconfined grants are counted into the quote.
 
-use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
-
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum Verdict {
     /// Into the capsule's own domain; grants are IOVAs there.
@@ -66,5 +64,5 @@ pub(crate) const fn verdict(
 /// Whether a DMA grant may hand a device its physical address: never, but
 /// under the opt-in.
 pub(crate) const fn physical_dma() -> bool {
-    opted_in(OPT_IN, PRODUCTION)
+    crate::memory::iommu::dev_unconfined::holds()
 }
