@@ -32,7 +32,6 @@ pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_001A;
 pub(super) const HDR_LEN: usize = 8;
 
 pub const EINVAL: i32 = -22;
-pub const EAGAIN: i32 = -11;
 
 pub struct Request<'a> {
     pub seq: u32,
