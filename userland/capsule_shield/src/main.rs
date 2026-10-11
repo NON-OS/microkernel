@@ -24,6 +24,8 @@
 //! from the public account when nobody else will. Every byte it sends goes
 //! over the anonymity network the machine has chosen; it never goes direct.
 
+mod answers;
+mod dispatch;
 mod fresh;
 mod fresh_once;
 mod guard;
@@ -33,6 +35,7 @@ mod periodic;
 mod pool;
 mod random;
 mod reply;
+mod secret;
 mod service;
 mod steps;
 

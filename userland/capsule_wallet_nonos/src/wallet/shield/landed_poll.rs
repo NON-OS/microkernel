@@ -14,58 +14,57 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The landed rows' reads (B7, v1.4.52): the Shield's handed list once the
-//! Shield screen opens, then each address's NOX, one READ balanceOf at a
-//! time over settle ASYNC, never while a dispute or refund holds the call.
+//! The landed reads (B7, v1.4.56): one address per settle READ of NOX's
+//! balanceOf, spaced by a random few seconds, never while a dispute or
+//! refund holds the call. The scan's address goes first while one runs,
+//! then the due list's; nothing else is ever read.
 
-use nonos_libc::mk_uptime_ms;
+use nonos_libc::{crypto_random, mk_uptime_ms};
 use nonos_nox_config::{address, Contract};
 use nonos_settle_proto::{parse_read_reply, Read, OP_READ};
-use shield_wire::{fields, FRESH_HANDED, OP_FRESH_ADDRESS, STATUS_OK};
 
-use super::client::call;
-use super::landed::{balance_of, parse_handed, Landed};
+use super::landed::{balance_of, spacing};
+use crate::wallet::order::send_step::SendStep;
 use crate::wallet::screen::shield::consts::CHAIN_ID;
 use crate::wallet::settle::LANDED;
-use crate::wallet::state::{State, VIEW_SHIELD};
+use crate::wallet::state::State;
 
 const BALANCE_OF: u16 = 1;
 
+fn draw() -> u16 {
+    let mut b = [0u8; 2];
+    let _ = crypto_random(b.as_mut_ptr(), b.len());
+    u16::from_le_bytes(b)
+}
+
 /// Whether the screen changed.
 pub fn poll(state: &mut State) -> bool {
-    if state.view != VIEW_SHIELD || !super::open::here() {
-        state.meter.landed = Landed::default();
-        return false;
-    }
-    let sending = state.meter.purchase.as_deref().is_some_and(|p| p.escrow.is_some());
-    let l = &mut state.meter.landed;
-    let Some(list) = l.list.as_ref() else {
-        let a = call(OP_FRESH_ADDRESS, &[FRESH_HANDED]).ok().filter(|a| a.status == STATUS_OK);
-        l.list = Some(a.map(|a| parse_handed(fields(&a.body, "handed"))).unwrap_or_default());
-        return false;
-    };
-    let Some((index, addr)) = list.get(l.next).copied() else { return false };
-    let settle = &mut state.meter.settle;
-    if sending {
-        return false;
-    }
-    if let Some(r) = settle.take(OP_READ, LANDED) {
-        l.next += 1;
+    super::due_feed::feed(state);
+    let now = mk_uptime_ms().max(0) as u64;
+    let escrow = state.meter.purchase.as_deref().and_then(|p| p.escrow.as_ref());
+    let sending = escrow.is_some_and(|e| !matches!(e.step, SendStep::Done | SendStep::Failed(_)));
+    let (l, settle) = (&mut state.meter.landed, &mut state.meter.settle);
+    if let Some((addr, scan)) = l.reading {
+        let Some(r) = settle.take(OP_READ, LANDED) else { return false };
         let nox = r.ok().and_then(|b| parse_read_reply(&b)).and_then(|w| balance_of(&w));
-        if let Some(n) = nox.filter(|n| *n > 0) {
-            l.found.push((index, n));
-            return true;
+        match scan {
+            true => l.scan.read(nox),
+            false => l.due.read(addr, nox, now),
         }
+        (l.reading, l.next_ms) = (None, now + spacing(draw()));
+        return true;
+    }
+    let chain_id: u64 = CHAIN_ID.parse().unwrap_or(0);
+    if sending || now < l.next_ms || address(chain_id, Contract::NoxToken).is_err() {
         return false;
     }
-    let chain_id = CHAIN_ID.parse().unwrap_or(0);
-    if address(chain_id, Contract::NoxToken).is_err() {
-        return false;
-    }
+    let next = l.scan.next().map(|a| (a, true)).or_else(|| l.due.next(now).map(|a| (a, false)));
+    let Some((addr, scan)) = next else { return false };
     let mut w = [0u8; 32];
     w[12..].copy_from_slice(&addr);
     let body = Read { chain_id, view: BALANCE_OF, args: [w].into() }.encode();
-    let now = mk_uptime_ms().max(0) as u64;
-    let _ = body.map(|b| settle.ask(OP_READ, LANDED, &b, now));
+    if body.is_some_and(|b| settle.ask(OP_READ, LANDED, &b, now).is_ok()) {
+        l.reading = Some((addr, scan));
+    }
     false
 }
