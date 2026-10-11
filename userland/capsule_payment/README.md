@@ -30,7 +30,7 @@ reply endpoint. Requests arrive through `MkIpcRecvFrom`, so each op's caller
 is checked by which registry names the kernel-stamped pid owns
 (`nonos_nox_meter::caller`).
 
-`nonos-capsule-payment` is in `microkernel-desktop-base`. The kernel mirror is
+`nonos-capsule-payment` turns the meter on. No profile array names it: the
 `src/userspace/capsule_payment`. Init spawns it with the desktop services
 (`spawn_plan/payment.rs`), after the keyring and the vfs. A change to the caps
 
