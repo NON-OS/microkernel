@@ -555,6 +555,7 @@ include userland/capsule_audio/Capsule.mk
 include userland/capsule_audio_player/Capsule.mk
 include userland/capsule_driver_nvme/Capsule.mk
 include userland/capsule_driver_sdhci/Capsule.mk
+include userland/capsule_driver_ufs/Capsule.mk
 include userland/capsule_net_l2/Capsule.mk
 include userland/capsule_net_core/Capsule.mk
 include userland/capsule_net_ip/Capsule.mk

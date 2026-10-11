@@ -27,9 +27,12 @@ pub enum Driver {
     /// A driver on the block wire (driver.sdhci0, eMMC), speaking GEOMETRY
     /// where the others answer a capacity, and IDENTIFY.
     Wire,
+    /// The UFS host's driver (driver.ufs0), on the same block wire.
+    Ufs,
 }
 
-pub const ALL: [Driver; 4] = [Driver::Nvme, Driver::Ahci, Driver::Wire, Driver::VirtioBlk];
+pub const ALL: [Driver; 5] =
+    [Driver::Nvme, Driver::Ahci, Driver::Wire, Driver::Ufs, Driver::VirtioBlk];
 
 impl Driver {
     /// The service name of instance `n` of this driver, `None` past the
@@ -46,6 +49,7 @@ impl Driver {
             Driver::Nvme => &[b"driver.nvme0", b"driver.nvme1", b"driver.nvme2", b"driver.nvme3"],
             Driver::Ahci => &[b"driver.ahci0", b"driver.ahci1", b"driver.ahci2", b"driver.ahci3"],
             Driver::Wire => &[b"driver.sdhci0"],
+            Driver::Ufs => &[b"driver.ufs0"],
         };
         names.get(n as usize).copied()
     }
@@ -53,7 +57,7 @@ impl Driver {
     /// How many instance names [`Driver::service`] knows.
     pub fn instances(self) -> u8 {
         match self {
-            Driver::VirtioBlk | Driver::Wire => 1,
+            Driver::VirtioBlk | Driver::Wire | Driver::Ufs => 1,
             Driver::Nvme | Driver::Ahci => 4,
         }
     }
