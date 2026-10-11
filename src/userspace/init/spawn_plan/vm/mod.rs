@@ -20,14 +20,17 @@
     feature = "nonos-capsule-driver-pcnet",
     feature = "nonos-capsule-driver-vmxnet3",
     feature = "nonos-capsule-driver-virtio-input",
-    feature = "nonos-capsule-driver-vmware-svga"
+    feature = "nonos-capsule-driver-vmware-svga",
+    feature = "nonos-capsule-driver-ac97"
 ))]
 mod present;
 
+mod audio;
 mod display;
 mod input;
 mod nic;
 
+pub(super) use audio::spawn as spawn_audio;
 pub(super) use display::spawn as spawn_display;
 pub(super) use input::spawn as spawn_input;
 pub(super) use nic::spawn as spawn_nics;
