@@ -28,10 +28,11 @@ impl Wallet {
         let asset = ACTIVE.asset(coin).ok_or(WalletError::Amount)?;
         let policy = ACTIVE.policy.ok_or(WalletError::Unavailable)?;
         let units = parse_amount(coin, amount)?;
-        if !asset.allows(units) {
+        let tor = self.tor()?;
+        if !crate::net::policy_standard::standard_now(tor.as_ref(), &ACTIVE, asset, units)? {
             return Err(WalletError::NotStandard);
         }
-        let found = quote(self.tor()?.as_ref(), policy, asset, if withdraw { units } else { 0 })?;
+        let found = quote(tor.as_ref(), policy, asset, if withdraw { units } else { 0 })?;
         let fee = found.and_then(|q| q.total());
         let held = fee.map(|fee| Quoted { order: (coin, units, withdraw), fee });
         *self.quoted.lock().map_err(|_| NetError::Transport)? = held;

@@ -12,6 +12,8 @@ pub mod fee_schedule;
 pub mod pool;
 pub mod pool_errors;
 pub mod policy_paused;
+pub mod policy_rules;
+pub mod policy_standard;
 mod pools;
 pub mod relay;
 pub mod rpc;
