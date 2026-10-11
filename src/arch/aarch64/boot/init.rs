@@ -37,10 +37,13 @@ pub fn init(boot_info: &BootInfo) {
         super::refuse(b"security", super::security_reason(error));
     }
     mmu::init_mmu(boot_info);
-    if boot_info.gic_unsupported {
-        super::refuse(b"gic", b"the device tree names a GIC other than v3, the only one driven");
-    }
-    if let Err(reason) = gic::init_gic(boot_info.gic_dist_base, boot_info.gic_redist_base) {
+    let gic = gic::init_gic(
+        boot_info.gic_version,
+        boot_info.gic_dist_base,
+        boot_info.gic_cpu_base,
+        boot_info.gic_redist_base,
+    );
+    if let Err(reason) = gic {
         super::refuse(b"gic", reason.as_bytes());
     }
     timer::init_timer();

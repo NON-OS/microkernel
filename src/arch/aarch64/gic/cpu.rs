@@ -19,14 +19,13 @@ use super::icc;
 use super::redistributor;
 use super::state::redist_base;
 
-/// Bring up the per-CPU half of the GIC on the calling core: find the
-/// redistributor frame that names it, configure its SGIs and PPIs, and turn
-/// on the CPU interface.
+/// Bring up the calling core's half of a GICv3: find the redistributor frame
+/// that names it, configure its SGIs and PPIs, and turn on the CPU interface.
 ///
 /// Without its redistributor this CPU can neither wake for SGIs nor enable
 /// its private interrupts, so the timer tick would never arrive. That is an
 /// error for the caller to report, not something to boot on past.
-pub fn init_gic_cpu() -> Result<(), &'static str> {
+pub(super) fn init_gic_cpu() -> Result<(), &'static str> {
     let redist = redistributor::for_this_cpu(redist_base())
         .ok_or("no GICv3 redistributor frame claims this CPU")?;
     redist.init()?;

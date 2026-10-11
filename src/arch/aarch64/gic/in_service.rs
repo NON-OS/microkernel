@@ -48,7 +48,7 @@ pub fn enter(acked: Acked) -> u32 {
 pub fn complete() {
     let raw = slot().swap(IDLE, Ordering::Relaxed);
     if raw != IDLE {
-        super::icc::end_interrupt(raw);
+        super::serve::end(raw);
     }
 }
 

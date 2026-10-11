@@ -15,10 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::acked::Acked;
+use super::state::{cpu_base, version};
+use super::version::GicVersion;
+use super::{icc, v2};
 
 /// The highest-priority pending interrupt, now active on this CPU; `None` for
 /// a spurious read.
 pub fn acknowledge_interrupt() -> Option<Acked> {
-    let intid = super::icc::acknowledge_interrupt()?;
-    Some(Acked { intid, raw: intid })
+    match version()? {
+        GicVersion::V3 => icc::acknowledge_interrupt().map(|intid| Acked { intid, raw: intid }),
+        GicVersion::V2 => v2::acknowledge(cpu_base()),
+    }
+}
+
+/// Write `raw`, an acknowledge value, back as this CPU's end of interrupt.
+pub(super) fn end(raw: u32) {
+    match version() {
+        Some(GicVersion::V3) => icc::end_interrupt(raw),
+        Some(GicVersion::V2) => v2::end(cpu_base(), raw),
+        None => {}
+    }
 }
