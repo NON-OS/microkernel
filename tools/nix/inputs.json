@@ -3523,6 +3523,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_igb/src/constants",
+   "userland/capsule_driver_igb/src/discover/choose.rs",
    "userland/capsule_driver_igb/src/init",
    "userland/capsule_driver_igb/src/link",
    "userland/capsule_driver_igb/src/log",

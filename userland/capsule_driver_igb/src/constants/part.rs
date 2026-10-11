@@ -16,6 +16,15 @@
 //! Which igb MAC a device ID is, as Linux igb_set_mac_type decides it. The
 //! reset, the receive-address table and the PHY access differ between them.
 
+/// The port's media as its device ID names it (igb_pci_tbl's comments,
+/// the Intel part names): only copper is brought up (init/media.rs).
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Media {
+    Copper,
+    /// Fiber, SerDes, SGMII or backplane.
+    Other,
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Part {
     I82575,

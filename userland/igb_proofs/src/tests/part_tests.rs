@@ -20,7 +20,7 @@ use crate::constants::part::Part;
 use crate::constants::pci::{part_of, IGB_PARTS};
 
 fn ids(of: Part) -> Vec<u16> {
-    IGB_PARTS.iter().filter(|(_, p)| *p == of).map(|(id, _)| *id).collect()
+    IGB_PARTS.iter().filter(|(_, p, _)| *p == of).map(|(id, ..)| *id).collect()
 }
 
 #[test]
@@ -60,6 +60,6 @@ fn all() -> [Part; 7] {
 #[test]
 fn igc_and_e1000_parts_are_not_taken() {
     for id in [0x15F2u16, 0x15F3, 0x125B, 0x125C, 0x100E, 0x100F, 0x10D3, 0x153A, 0x15B8] {
-        assert!(IGB_PARTS.iter().all(|(i, _)| *i != id), "{id:#06x} is not an igb part");
+        assert!(IGB_PARTS.iter().all(|(i, ..)| *i != id), "{id:#06x} is not an igb part");
     }
 }
