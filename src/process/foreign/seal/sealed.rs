@@ -43,13 +43,12 @@ pub(crate) const fn len_for(n: usize) -> usize {
 }
 
 impl Sealed {
-    /// H as 1026 little-endian u32s, the salt as four u64s, then the diag.
-    pub(crate) fn witness(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(WITNESS_BYTES);
+    /// H as 1026 little-endian u32s, the salt as four u64s, then the diag,
+    /// written straight into `out`, so no other copy is left to clear.
+    fn witness_into(&self, out: &mut Vec<u8>) {
         self.hist.iter().for_each(|c| out.extend_from_slice(&c.to_le_bytes()));
         self.salt.iter().for_each(|w| out.extend_from_slice(&w.to_le_bytes()));
         out.extend_from_slice(&self.diag);
-        out
     }
 
     pub(crate) fn bytes_len(&self) -> usize {
@@ -60,7 +59,7 @@ impl Sealed {
     pub(crate) fn bytes(&self) -> Vec<u8> {
         let mut out = Vec::with_capacity(self.bytes_len());
         out.extend_from_slice(&self.record);
-        out.extend_from_slice(&self.witness());
+        self.witness_into(&mut out);
         self.list.iter().for_each(|m| out.extend_from_slice(m));
         out
     }
