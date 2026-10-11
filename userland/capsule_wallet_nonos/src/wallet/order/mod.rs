@@ -17,6 +17,8 @@
 pub mod buy;
 mod confirm;
 pub mod consent;
+pub mod deliver;
+pub mod delivered;
 mod escrowed;
 pub mod fees;
 mod fees_kind;
