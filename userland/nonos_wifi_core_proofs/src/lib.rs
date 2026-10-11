@@ -50,6 +50,8 @@ mod pmf_query_tests;
 #[cfg(test)]
 mod pmf_sim;
 #[cfg(test)]
+mod prf_tests;
+#[cfg(test)]
 mod protect_tests;
 #[cfg(test)]
 mod receive_tests;
