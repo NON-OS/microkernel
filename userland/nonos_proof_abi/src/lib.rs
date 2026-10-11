@@ -32,6 +32,7 @@ mod container;
 mod delivery;
 mod device;
 mod hist;
+pub mod isolation;
 mod meas;
 mod poseidon;
 mod record;

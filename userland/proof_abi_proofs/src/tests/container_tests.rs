@@ -21,7 +21,7 @@ pub fn sections() -> Vec<(u16, Vec<u8>)> {
         (tag::RECORD, vec![0; 240]),
         (tag::DEVICE, b"d".to_vec()),
         (tag::ISOLATION, b"i".to_vec()),
-        (tag::PUBLICS, vec![0; 80]),
+        (tag::PUBLICS, vec![0; tag::PUBLICS_BYTES]),
         (tag::MEASUREMENTS, vec![0; 32]),
         (tag::POLICY, vec![0; 256]),
     ]

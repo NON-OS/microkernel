@@ -57,8 +57,8 @@ pub(super) fn measurements(list: &[u8], rec: &Record, program: &[u8; 32]) -> Res
 }
 
 /// The ten words, canonical, with Hc the record's and A the policy's set.
-pub(super) fn publics(b: &[u8], rec: &Record, view: &PolicyView) -> Result<[u64; 10], Refusal> {
-    let mut w = [0u64; 10];
+pub(super) fn publics(b: &[u8], rec: &Record, view: &PolicyView) -> Result<[u64; 8], Refusal> {
+    let mut w = [0u64; 8];
     for (i, v) in w.iter_mut().enumerate() {
         *v = u64_at(b, 8 * i).ok_or(Refusal::Format)?;
     }

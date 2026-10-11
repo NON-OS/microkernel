@@ -58,8 +58,6 @@ pub fn verify(container: &[u8], ex: &Expected) -> Result<Verdict, Refusal> {
         record_id: id,
         app_id: rec.app_id,
         tag: device_tag,
-        calls: words[8],
-        outside: words[9],
         declared: (0..513).filter(|&b| allows(&view.syscall_set, b)).count() as u32,
         anchor: anchor(c.kind, &ex.listing_id, &id, &device_tag, container),
     })

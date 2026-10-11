@@ -33,8 +33,8 @@ pub struct Family {
     pub meas: Vec<[u8; 32]>,
     pub policy: [u8; 256],
     pub record: Record,
-    /// Hc, A, N and U, the isolation statement's words.
-    pub publics: [u64; 10],
+    /// Hc and A, the isolation statement's words.
+    pub publics: [u64; 8],
 }
 
 pub fn family() -> Family {
@@ -62,6 +62,6 @@ pub fn family() -> Family {
         n_meas: meas.len() as u32,
         app_id: app_id(&policy),
     };
-    let p = [hc[0], hc[1], hc[2], hc[3], a[0], a[1], a[2], a[3], 47, 3];
+    let p = [hc[0], hc[1], hc[2], hc[3], a[0], a[1], a[2], a[3]];
     Family { hist, salt, meas, policy, record, publics: p }
 }

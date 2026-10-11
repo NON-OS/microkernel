@@ -3381,6 +3381,21 @@
   "md": [],
   "signed": []
  },
+ "userland/isolation_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "userland/isolation_proofs",
+   "userland/isolation_stark",
+   "userland/nonos_proof_abi"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/iwlwifi_proofs": {
   "exclude": [],
   "include": [
@@ -3875,6 +3890,7 @@
    ".cargo",
    "nonos-attest-path",
    "nonos-device-attest",
+   "userland/isolation_stark",
    "userland/nonos_proof_abi",
    "userland/proof_abi_proofs"
   ],

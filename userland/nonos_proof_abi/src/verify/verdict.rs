@@ -16,8 +16,8 @@
 
 use crate::container::Kind;
 
-/// What an accepted container says. "Only served calls" is `outside == 0`,
-/// and that call is the verifier's, not this crate's.
+/// What an accepted container says: on `window`, a genuine device ran the
+/// policy's program, and no call outside its declared set succeeded.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Verdict {
     pub kind: Kind,
@@ -26,10 +26,6 @@ pub struct Verdict {
     pub app_id: [u8; 32],
     /// The device's tag in this listing's scope on `window`.
     pub tag: [u64; 4],
-    /// N, every call the family made.
-    pub calls: u64,
-    /// U, the calls outside the declared set, each of them refused.
-    pub outside: u64,
     /// |A|, how many buckets the declared set lets succeed.
     pub declared: u32,
     pub anchor: [u8; 32],

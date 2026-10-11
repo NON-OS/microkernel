@@ -31,8 +31,8 @@ pub const POLICY: u16 = 8;
 /// The highest tag this version knows.
 pub const LAST: u16 = POLICY;
 
-/// The isolation statement's public words, ten little-endian u64s.
-pub const PUBLICS_BYTES: usize = 80;
+/// The isolation statement's public words, Hc and A: eight little-endian u64s.
+pub const PUBLICS_BYTES: usize = 64;
 pub const POLICY_BYTES: usize = 256;
 
 /// Whether `len` bytes can be section `tag`. Fixed sections have their exact
