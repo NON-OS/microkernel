@@ -18,8 +18,8 @@
 //! or an embedded slot the eMMC list does not name. It starts the SD host
 //! controller capsule too, which serves a fixed slot's eMMC or, on a
 //! machine with none, a reader's card. Intel's SDIO hosts carry the board's
-//! Wi-Fi or Bluetooth, never a disk, and are left out by id, as Linux's
-//! sdhci-pci names them (drivers/mmc/host/sdhci-pci-core.c).
+//! Wi-Fi or Bluetooth, never a disk, and are left out by id (the ids observed in
+//! Linux sdhci-pci-core.c, unverified against Intel's datasheets).
 //!
 //! Pure, with no imports, so host proofs can include it by path.
 
