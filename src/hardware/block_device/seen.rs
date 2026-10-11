@@ -43,16 +43,6 @@ pub(super) enum Seen {
     },
 }
 
-pub(super) fn name(backend: Backend) -> &'static str {
-    match backend {
-        Backend::UsbMsc => "USB stick (driver.usb_msc0)",
-        Backend::Nvme => "NVMe (driver.nvme0)",
-        Backend::Ahci => "SATA (driver.ahci0)",
-        Backend::VirtioBlk => "virtio-blk (driver.virtio_blk0)",
-        Backend::Wire(i) => super::wire::shown(i),
-    }
-}
-
 /// The eight bytes as text where printable, `.` elsewhere.
 fn shown(head: &[u8; 8]) -> String {
     head.iter().map(|&b| if (0x20..0x7f).contains(&b) { b as char } else { '.' }).collect()
@@ -81,5 +71,5 @@ pub(super) fn line(backend: Backend, seen: &Seen) -> String {
             format!("{sectors} sectors; LBA {lba} holds {}{plan}", sector(got))
         }
     };
-    format!("[BLOCK] asked {}: {what}", name(backend))
+    format!("[BLOCK] asked {}: {what}", super::name::name(backend))
 }

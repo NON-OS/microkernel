@@ -27,6 +27,7 @@ mod map_nvme;
 mod map_usb_msc;
 mod map_virtio;
 mod mirror;
+mod name;
 mod nvme_fit;
 mod order;
 mod read;
