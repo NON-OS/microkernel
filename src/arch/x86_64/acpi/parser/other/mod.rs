@@ -14,26 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod acpi_path;
 mod dmar;
+pub mod dmar_andd;
+mod dmar_namespace_lookup;
+pub mod dmar_namespace_scope;
+mod dmar_namespace_store;
+pub mod dmar_namespace_walk;
 pub mod dmar_rmrr;
 mod dmar_rmrr_store;
 pub mod dmar_scope;
 pub mod dmar_scope_walk;
 mod dmar_units;
-mod ivrs;
-pub mod ivrs_walk;
 mod hpet;
 mod ivhd_entry;
 mod ivhd_kind;
 pub mod ivhd_scope;
+mod ivrs;
+pub mod ivrs_walk;
 mod mcfg;
 mod srat;
 mod srat_memory;
 
 pub use dmar::parse_dmar;
+pub use dmar_namespace_lookup::{namespace_devices, namespace_dropped, namespace_requester};
 pub use dmar_rmrr_store::{rmrr_dropped, rmrr_regions};
-pub use dmar_units::{foreign_segment_units, remap_unit_bases, remap_unit_scopes};
 pub use dmar_scope::{translated_by_some, UnitScope};
+pub use dmar_units::{foreign_segment_units, remap_unit_bases, remap_unit_scopes};
 pub use hpet::parse_hpet;
 pub use ivrs::{amd_iommu_bases, amd_iommu_spans, parse_ivrs};
 pub use mcfg::parse_mcfg;
