@@ -20,7 +20,9 @@ use nonos_libc::mk_uptime_ms;
 
 use super::super::super::env::Clock;
 
-/// Milliseconds since boot, from the kernel.
+/// Milliseconds since boot, from the kernel. A refused read is the end of
+/// time (`Clock`), never zero: a deadline set or checked against zero would
+/// not pass while the clock stays broken.
 #[derive(Clone, Copy, Default)]
 pub struct UptimeClock;
 
@@ -28,7 +30,7 @@ impl Clock for UptimeClock {
     fn now_ms(&self) -> u64 {
         let t = mk_uptime_ms();
         if t < 0 {
-            0
+            u64::MAX
         } else {
             t as u64
         }
