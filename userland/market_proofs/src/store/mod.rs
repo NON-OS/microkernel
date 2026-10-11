@@ -40,6 +40,14 @@ pub mod verdict;
 #[path = "../../../capsule_app_store/src/store/reasons.rs"]
 pub mod reasons;
 
+/* What the store says after asking, and which listings the wallet buys. */
+#[path = "../../../capsule_app_store/src/store/asked.rs"]
+pub mod asked;
+#[path = "../../../capsule_app_store/src/store/asked_label.rs"]
+pub mod asked_label;
+#[path = "../../../capsule_app_store/src/store/purchase_said.rs"]
+pub mod purchase_said;
+
 #[path = "../../../capsule_app_store/src/store/tab.rs"]
 pub mod tab;
 
