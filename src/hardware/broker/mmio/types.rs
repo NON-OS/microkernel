@@ -50,5 +50,9 @@ pub enum MmioMapError {
     NoVaSpace,
     MapFailed,
     WouldExposeMsixTable,
+    /// Write-combining asked of a BAR that is not prefetchable.
+    NotPrefetchable,
+    /// The kernel maps the range itself with two memory types.
+    MixedMemoryType,
     WouldExposePba,
 }
