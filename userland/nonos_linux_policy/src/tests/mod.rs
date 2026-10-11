@@ -20,6 +20,7 @@ mod decode_tests;
 mod dests_allows_tests;
 mod dests_check_tests;
 mod dests_hash_tests;
+mod dests_line_tests;
 mod dests_name_tests;
 mod dests_write;
 mod guard_tests;

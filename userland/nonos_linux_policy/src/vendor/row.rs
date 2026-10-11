@@ -27,4 +27,7 @@ pub struct VendorRow {
     /// Its policy, canonical: ids zero, the services and calls policies.txt
     /// gives it.
     pub policy: [u8; LEN],
+    /// The destination list its policy's net_dests_hash names, canonical
+    /// (crate::dests); empty when the hash is zero.
+    pub dests: &'static [u8],
 }

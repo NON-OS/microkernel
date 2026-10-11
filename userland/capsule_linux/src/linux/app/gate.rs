@@ -17,6 +17,7 @@
 //! Whether a guest's box grants a service, and the refusal when it does
 //! not, said by name where the person running it reads it.
 
+use nonos_linux_policy::dests::Target;
 use nonos_linux_policy::mask::grants;
 
 use crate::linux::abi::errno;
@@ -32,9 +33,9 @@ pub fn inet(guest: &Guest) -> bool {
     super::rules::inet_allowed(guest.app.mask)
 }
 
-/// A stream out of the family (rules::may_dial).
-pub fn may_dial(guest: &Guest) -> bool {
-    super::rules::may_dial(guest.app.mask, &guest.app.policy.net_dests_hash)
+/// A stream out of the family to `to` on `port` (reach::may_dial).
+pub fn may_dial(guest: &Guest, to: Target<'_>, port: u16) -> bool {
+    super::reach::may_dial(guest.app.mask, &guest.app.reach, to, port)
 }
 
 /// `errno` for `what`, after saying that the program's policy does not

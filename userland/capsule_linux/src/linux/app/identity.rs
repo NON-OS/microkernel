@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which program a guest is running, the box it was published with, and
-//! the box it actually runs in.
-//!
-//! The two boxes differ after an exec: the new program brings its own
-//! policy, but runs with only what both it and the program that exec'd it
-//! were given. So a shell with no network cannot exec its way onto one.
+//! Which program a guest is running, the box it was published with, and the
+//! box it runs in, which is narrower after an exec (identity_exec.rs) or
+//! when a policy names a destination list this capsule does not hold.
 
 use nonos_linux_policy::{app_id, policy_hash, LinuxAppPolicy, SyscallSet};
+
+use super::reach::{reach_of, Lists, ANYWHERE};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AppIdentity {
@@ -34,6 +33,8 @@ pub struct AppIdentity {
     pub mask: u64,
     /// The calls the guest may complete now.
     pub calls: SyscallSet,
+    /// The destination lists its streams out are held to (reach.rs).
+    pub reach: Lists,
 }
 
 impl AppIdentity {
@@ -44,32 +45,31 @@ impl AppIdentity {
         app_id: [0; 32],
         mask: 0,
         calls: SyscallSet::NONE,
+        reach: ANYWHERE,
     };
 
-    /// A program started afresh, in exactly the box its policy names.
+    /// A program started afresh in the box its policy names, holding no list.
     pub fn of(policy: LinuxAppPolicy) -> Self {
+        Self::bound(policy, None)
+    }
+
+    /// The same, with the list its policy's net_dests_hash names, if this
+    /// capsule holds it; without it the box is served no NET_ANON.
+    pub fn bound(policy: LinuxAppPolicy, list: Option<&'static [u8]>) -> Self {
         let policy_hash = policy_hash(&policy.encode());
+        let (mask, reach) = reach_of(policy.mask, &policy.net_dests_hash, list);
         Self {
             app_id: app_id(&policy.program_blake3, &policy_hash),
             policy,
             policy_hash,
-            mask: policy.mask,
+            mask,
             calls: policy.syscall_set,
+            reach,
         }
     }
 
     /// The capsule's own BusyBox: the default box, and an app_id no verifier takes.
     pub fn built_in(program: [u8; 32]) -> Self {
         Self { app_id: [0; 32], ..Self::of(nonos_linux_policy::unlisted(program)) }
-    }
-
-    /// `program`, exec'd by the guest this is: its identity, inside what
-    /// both were allowed.
-    pub fn exec(&self, program: &AppIdentity) -> Self {
-        Self {
-            mask: nonos_linux_policy::mask::narrow(self.mask, program.mask),
-            calls: self.calls.meet(&program.calls),
-            ..*program
-        }
     }
 }

@@ -22,6 +22,11 @@
 pub mod choose;
 #[path = "../../../capsule_linux/src/linux/app/identity.rs"]
 pub mod identity;
+#[path = "../../../capsule_linux/src/linux/app/identity_exec.rs"]
+mod identity_exec;
+/* Where a guest may reach out to: its lists, through an exec. */
+#[path = "../../../capsule_linux/src/linux/app/reach.rs"]
+pub mod reach;
 /* What a box allows: the call set, the network, before anything is served. */
 #[path = "../../../capsule_linux/src/linux/app/rules.rs"]
 pub mod rules;

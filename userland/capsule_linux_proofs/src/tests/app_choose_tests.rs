@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which policy binds a program: the vendor's table first, then a vouched
-//! file, then the owner's default; a bad file refuses the program.
+//! Which policy binds a program: the vendor's table, a vouched file, or the
+//! owner's default; a bad file refuses the program.
 
 use crate::app::choose::choose;
 use nonos_linux_policy::mask::{MODELS_RO, NET_ANON, WAYLAND};
-use nonos_linux_policy::vendor::VendorRow;
-use nonos_linux_policy::{unlisted, LinuxAppPolicy, SyscallSet, UNLISTED_MASK};
+use nonos_linux_policy::{unlisted, vendor::VendorRow, LinuxAppPolicy, SyscallSet, UNLISTED_MASK};
 
 fn policy(program: u8, mask: u64) -> LinuxAppPolicy {
     LinuxAppPolicy { mask, syscall_set: SyscallSet::NONE.with(1), ..unlisted([program; 32]) }
 }
 
 fn row(p: LinuxAppPolicy) -> VendorRow {
-    VendorRow { store_path: "/bin/x", program_blake3: p.program_blake3, policy: p.encode() }
+    let (program_blake3, policy) = (p.program_blake3, p.encode());
+    VendorRow { store_path: "/bin/x", program_blake3, policy, dests: &[] }
 }
 
 #[test]

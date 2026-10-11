@@ -23,7 +23,7 @@ use crate::linux::file::{key, store_found, store_read};
 
 use super::choose::choose;
 use super::identity::AppIdentity;
-use nonos_linux_policy::vendor::TABLE;
+use nonos_linux_policy::vendor::{by_program, TABLE};
 
 /// One byte past a policy, so a longer file is read long and refused.
 const MAX_POLICY: u32 = nonos_linux_policy::LEN as u32 + 1;
@@ -34,11 +34,14 @@ const GUEST_CAPS: u64 = 0;
 
 /// The identity of the program at `path`, whose `image` has just been
 /// proved. A policy file beside it counts only if this machine vouched for
-/// it; one that is there and not vouched for refuses the program.
+/// it; one that is there and not vouched for refuses the program. Only a
+/// vendor row carries a destination list today; a market policy naming one
+/// is served without NET_ANON until its list travels with it.
 pub fn bind(path: &[u8], image: &[u8]) -> Result<AppIdentity, &'static str> {
     let file = vouched(path)?;
     let program = *blake3::hash(image).as_bytes();
-    choose(&program, TABLE, file.as_deref()).map(AppIdentity::of)
+    let list = by_program(&program).map(|row| row.dests);
+    choose(&program, TABLE, file.as_deref()).map(|policy| AppIdentity::bound(policy, list))
 }
 
 /// A program out of this capsule's own image. No file stands beside it and

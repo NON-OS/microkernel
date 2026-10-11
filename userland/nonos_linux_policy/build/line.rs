@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One line of userland/capsule_linux/policies.txt: a vendor program's store
-//! path, its services, and optionally its calls. The build script and this
-//! crate's tests read it alike, so what the build accepts is what they check.
+//! path, its services, and optionally its calls and destinations. The build
+//! script and this crate's tests read it alike, so what the build accepts is
+//! what they check.
 
-use crate::mask::{
-    EXEC, FILES_HOME, FILES_USER, JIT, MODELS_RO, NET_ANON, NET_LISTEN_LO, TTY, WAYLAND,
-};
 use crate::syscall_set::SyscallSet;
 
+use super::dests_arg::dests_of;
+use super::mask_names::bit_named;
 use super::set_hex::set_of;
 
 pub struct Line<'a> {
@@ -32,19 +32,9 @@ pub struct Line<'a> {
     pub file: Option<&'a str>,
     pub mask: u64,
     pub calls: SyscallSet,
+    /// The canonical destination list (src/dests), when the line names one.
+    pub dests: Option<Vec<u8>>,
 }
-
-const NAMES: [(&str, u64); 9] = [
-    ("WAYLAND", WAYLAND),
-    ("NET_ANON", NET_ANON),
-    ("NET_LISTEN_LO", NET_LISTEN_LO),
-    ("FILES_HOME", FILES_HOME),
-    ("FILES_USER", FILES_USER),
-    ("MODELS_RO", MODELS_RO),
-    ("EXEC", EXEC),
-    ("JIT", JIT),
-    ("TTY", TTY),
-];
 
 /// None for a blank line or a comment; the line's fault otherwise.
 pub fn parse(line: &str) -> Result<Option<Line<'_>>, String> {
@@ -55,7 +45,7 @@ pub fn parse(line: &str) -> Result<Option<Line<'_>>, String> {
     if !store_path.starts_with("/bin/") || store_path.len() == 5 || store_path[5..].contains('/') {
         return Err(format!("{store_path}: not a program in /bin"));
     }
-    let (mut mask, mut calls, mut file) = (0, SyscallSet::ALL, None);
+    let (mut mask, mut calls, mut file, mut dests) = (0, SyscallSet::ALL, None, None);
     for word in words {
         if let Some(path) = word.strip_prefix("file=").filter(|p| p.starts_with('/')) {
             file = Some(path);
@@ -65,8 +55,12 @@ pub fn parse(line: &str) -> Result<Option<Line<'_>>, String> {
             calls = set_of(hex).ok_or_else(|| format!("{store_path}: calls= is not a set"))?;
             continue;
         }
-        let bit = NAMES.iter().find(|(n, _)| *n == word).map(|(_, b)| *b);
-        mask |= bit.ok_or_else(|| format!("{store_path}: no service is named {word}"))?;
+        if let Some(text) = word.strip_prefix("dests=") {
+            dests = Some(dests_of(text).map_err(|why| format!("{store_path}: {why}"))?);
+            continue;
+        }
+        mask |=
+            bit_named(word).ok_or_else(|| format!("{store_path}: no service is named {word}"))?;
     }
-    Ok(Some(Line { store_path, file, mask, calls }))
+    Ok(Some(Line { store_path, file, mask, calls, dests }))
 }
