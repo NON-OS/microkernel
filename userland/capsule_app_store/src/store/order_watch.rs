@@ -24,6 +24,7 @@ use nonos_payment_proto::{EAGAIN, OP_JOB, OP_ORDER_STATUS, OP_PURCHASE, PURCHASE
 
 use super::asked::Asked;
 use super::meter_call::call;
+use super::purchase_said::ours;
 use super::state::State;
 
 const TAKE_MS: i64 = 2_000;
@@ -48,15 +49,15 @@ impl State {
             self.asked = line.or(self.asked);
             return changed;
         }
-        if now < o.at_ms || (!o.awaiting && o.order.is_none()) {
+        if now < o.at_ms || o.posted.is_none() {
             return false;
         }
         match o.order.as_ref() {
             None => {
                 o.at_ms = now + TAKE_MS;
                 let got = call(OP_PURCHASE, &[PURCHASE_TAKE_READY], 300).ok();
-                o.order = got.and_then(|b| Ready::parse(&b));
-                o.awaiting = o.order.is_none();
+                let ready = got.and_then(|b| Ready::parse(&b));
+                o.order = ours(ready, o.posted.as_ref());
             }
             Some(r) => {
                 o.at_ms = now + WATCH_MS;
