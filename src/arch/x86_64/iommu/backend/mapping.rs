@@ -18,7 +18,9 @@
 
 use crate::arch::x86_64::iommu::domain::DomainId as VtdDomainId;
 use crate::arch::x86_64::iommu::mapping::{map_range, unmap_range};
+use crate::arch::x86_64::iommu::regs::cap::zero_length_read;
 use crate::arch::x86_64::iommu::types::IommuPageFlags;
+use crate::arch::x86_64::iommu::unit::report::probed;
 use crate::memory::addr::PhysAddr;
 use crate::memory::iommu::{DomainId, IommuError, IommuProtection};
 
@@ -35,8 +37,10 @@ pub(crate) fn map(
     // LIMIT: snoop is asserted unconditionally. The contract has no
     // per-mapping snoop control yet; revisit when a non-snooping
     // consumer (e.g., GPU scratch surfaces) needs the choice.
+    // A write-only grant keeps read on a unit without CAP.ZLR, as Linux does.
+    let zlr = probed().is_some_and(|unit| zero_length_read(unit.cap));
     let flags = IommuPageFlags {
-        read: protection.read,
+        read: protection.read || (protection.write && !zlr),
         write: protection.write,
         execute: false,
         user: false,

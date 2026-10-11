@@ -222,8 +222,11 @@ it is not (`src/hardware/broker/dma/map/`, `confine/map.rs`).
   from the display pool or high memory; `DMA_MAP_DMA32` (2) keeps the frames
   below 4 GiB (`ENOMEM` when there are none) and the device address too
   (`ERANGE` when it would not fit); `DMA_MAP_COHERENT` (4) maps uncached;
-  `DMA_MAP_WC` (8) maps write-combining. `DMA_MAP_HIGH` with `DMA_MAP_DMA32`, or
-  `DMA_MAP_COHERENT` with `DMA_MAP_WC`, is `ENOTSUP`, as is any unknown bit.
+  `DMA_MAP_WC` (8) maps write-combining; `DMA_MAP_TO_DEVICE` (0x10) lets a
+  confined device only read the grant and `DMA_MAP_FROM_DEVICE` (0x20) only
+  write it (read and write on a VT-d unit without CAP.ZLR). `DMA_MAP_HIGH` with
+  `DMA_MAP_DMA32`, `DMA_MAP_COHERENT` with `DMA_MAP_WC`, or the two directions
+  together, is `ENOTSUP`, as is any unknown bit.
 
 `MkDmaUnmap` takes the grant from the device first, then scrubs the frames and
 frees them; frames the device's domain will not give up are kept out of use

@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::direction::{device_reads, device_writes};
 use super::super::flags::DMA_MAP_DMA32;
 use super::super::types::{DmaMapError, DmaMapRequest, DmaMapResult};
 use super::fail::fail;
 use super::placed::Placed;
 use super::{alloc, install, record, validate};
+use crate::memory::iommu::IommuProtection;
 
 // `MkDmaMap`: validate -> alloc+zero frames -> install user pages ->
 // record. Each step is a single responsibility in its own file; this
@@ -44,8 +46,9 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
     };
     let placed = Placed { phys_start, pages, length: req.length, user_va };
 
+    let access = IommuProtection { read: device_reads(req.flags), write: device_writes(req.flags) };
     let Some((device_addr, confined)) =
-        crate::hardware::broker::confine::map(pid, req.device_id, phys_start, req.length)
+        crate::hardware::broker::confine::map(pid, req.device_id, phys_start, req.length, access)
     else {
         placed.undo();
         return fail("confine", DmaMapError::MapFailed);

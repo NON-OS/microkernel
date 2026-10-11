@@ -26,6 +26,7 @@ mod shared;
 pub use agaw::{preferred_levels, AgawLevels};
 pub use behaviour::{
     caching_mode, has_protected_regions, page_walk_coherent, requires_write_buffer_flush,
+    zero_length_read,
 };
 pub use drain::{read_drain, write_drain};
 pub use extended::{
