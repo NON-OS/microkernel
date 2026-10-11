@@ -18,6 +18,7 @@ use super::describe;
 use crate::arch::aarch64::boot::info::BootInfo;
 use crate::arch::fdt::find::pci::find as find_pci;
 use crate::arch::fdt::find::rtc::find as find_rtc;
+use crate::arch::fdt::find::smmu;
 use crate::arch::fdt::find::timer::find as find_timer;
 use crate::arch::fdt::find::uart::find as find_uart;
 use crate::arch::fdt::Fdt;
@@ -54,5 +55,10 @@ pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> Result<(), &'static [u
     info.pci_mmio_base = if identity { pci.mem_cpu_base } else { 0 };
     info.pci_mmio_size = if identity { pci.mem_size } else { 0 };
     info.rtc_base = find_rtc(fdt).map_err(describe)?.unwrap_or(0);
+    // A malformed iommu-map would confine devices to the wrong streams, so
+    // it refuses the tree like any other untrustworthy property.
+    if let Some(unit) = smmu::find(fdt).map_err(describe)? {
+        info.smmu = Some((unit, smmu::pci_iommu_map(fdt).map_err(describe)?));
+    }
     Ok(())
 }

@@ -18,6 +18,7 @@ use super::limits::{MAX_CPUS, MAX_MEMORY_REGIONS};
 use super::memory::MemoryRegion;
 use super::reserved::Reserved;
 use crate::arch::aarch64::gic::GicVersion;
+use crate::arch::fdt::find::smmu::{IommuMap, SmmuInfo};
 use crate::arch::fdt::find::uart::UartInfo;
 
 #[derive(Debug, Clone)]
@@ -38,17 +39,14 @@ pub struct BootInfo {
     /// GICv2's CPU interface.
     pub gic_cpu_base: u64,
     pub cpu_count: u32,
-    /// Each CPU's MPIDR affinity, in device-tree order. PSCI needs one to name
-    /// a core to power on and the GIC needs one to match a redistributor
-    /// frame; a plain counter only happens to work on a single-cluster board.
-    /// Fixed storage for the same reason as the memory map: filled from the
-    /// device tree before the heap exists.
+    /// Each CPU's MPIDR affinity, in device-tree order: PSCI names a core by
+    /// it and the GIC matches a redistributor frame by it. Fixed storage, as
+    /// for the memory map: filled before the heap exists.
     pub cpu_affinities: [u64; MAX_CPUS],
     pub cpu_affinity_count: usize,
     pub timer_phys_intid: u32,
     pub timer_virt_intid: u32,
-    /// The PCI host bridge's configuration and I/O windows, all zero when the
-    /// board has no PCI at all.
+    /// The PCI host bridge's config and I/O windows; zero with no PCI at all.
     pub pci_ecam_base: u64,
     pub pci_ecam_size: u64,
     pub pci_io_cpu_base: u64,
@@ -64,6 +62,8 @@ pub struct BootInfo {
     pub pci_mmio_size: u64,
     /// MMIO base of the PL031 real-time clock, zero when the board has none.
     pub rtc_base: u64,
+    /// The SMMUv3 and the host bridge's `iommu-map`, when the tree has one.
+    pub smmu: Option<(SmmuInfo, Option<IommuMap>)>,
     /// Fixed storage: this is filled from the device tree in `kernel_entry`,
     /// long before the heap exists, so it cannot be a `Vec`.
     pub memory_regions: [MemoryRegion; MAX_MEMORY_REGIONS],

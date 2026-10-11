@@ -65,6 +65,7 @@ impl Default for BootInfo {
             pci_mmio_size: 0x2eff_0000,
             // PL031, the board's real-time clock.
             rtc_base: 0x0901_0000,
+            smmu: None, // only `iommu=smmuv3` adds one, and a tree says so
             memory_regions: memory_map(),
             memory_region_count: 1,
             reserved: Reserved::EMPTY,
