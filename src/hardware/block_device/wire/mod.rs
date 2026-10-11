@@ -29,6 +29,7 @@ mod map;
 mod native;
 mod ops;
 mod read;
+mod row;
 mod span;
 mod status;
 mod table;
@@ -43,8 +44,5 @@ mod lba_map;
 
 pub use endpoint::{Endpoint, Slot};
 pub use error::WireError;
-pub(super) use map::map_wire_error;
-pub use ops::{capacity, flush, healthcheck, sectors_fit};
-pub use read::read_blocks;
-pub use table::{count, said, shown};
-pub use write::write_blocks;
+pub use ops::healthcheck;
+pub(super) use row::rows;
