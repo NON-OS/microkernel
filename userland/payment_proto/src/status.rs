@@ -25,6 +25,8 @@ pub const ENOENT: i32 = -2;
 pub const EIO: i32 = -5;
 /// Not ready yet: the store, the keyring or the bound root is not there.
 pub const EAGAIN: i32 = -11;
+/// Another job is running: the meter runs one at a time.
+pub const EBUSY: i32 = -16;
 pub const EINVAL: i32 = -22;
 /// The channel table is full.
 pub const ENFILE: i32 = -23;
