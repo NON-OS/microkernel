@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! wl_subcompositor and wl_subsurface, against wayland.xml, and the
-//! subsurface requests the route takes without effect.
+//! subsurface requests the route hands to subsurface/request.rs.
 
 use crate::ops::req;
 use crate::wayland_object::{Object, Objects};
@@ -25,10 +25,11 @@ fn subcompositor_and_subsurface_opcodes_are_the_protocols() {
     assert_eq!((req::SUBCOMPOSITOR_DESTROY, req::SUBCOMPOSITOR_GET_SUBSURFACE), (0, 1));
     // destroy, set_position, place_above, place_below, set_sync, set_desync
     assert_eq!((req::SUBSURFACE_DESTROY, req::SUBSURFACE_SET_POSITION), (0, 1));
-    assert_eq!(req::SUBSURFACE_SET_DESYNC, 5);
-    let no_effect = req::SUBSURFACE_SET_POSITION..=req::SUBSURFACE_SET_DESYNC;
-    assert!(no_effect.clone().all(|op| op != req::SUBSURFACE_DESTROY));
-    assert_eq!(no_effect.count(), 5);
+    assert_eq!((req::SUBSURFACE_PLACE_ABOVE, req::SUBSURFACE_PLACE_BELOW), (2, 3));
+    assert_eq!((req::SUBSURFACE_SET_SYNC, req::SUBSURFACE_SET_DESYNC), (4, 5));
+    let routed = req::SUBSURFACE_SET_POSITION..=req::SUBSURFACE_SET_DESYNC;
+    assert!(routed.clone().all(|op| op != req::SUBSURFACE_DESTROY));
+    assert_eq!(routed.count(), 5);
 }
 
 #[test]

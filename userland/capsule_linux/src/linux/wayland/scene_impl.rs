@@ -22,6 +22,7 @@ use super::fit::Fit;
 use super::held_keys::HeldKeys;
 use super::scene::Scene;
 use super::scene_pixels::Pixels;
+use super::subsurface::state::Subs;
 
 impl Scene {
     pub fn new() -> Scene {
@@ -44,6 +45,7 @@ impl Scene {
             on_output: None,
             subscribed: false,
             held: HeldKeys::new(),
+            subs: Subs::default(),
         }
     }
 
