@@ -14,35 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::line::Line;
+use super::super::wait;
 use super::constants::*;
 use super::device::Pl011;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Pl011ConfigError {
-    InvalidBaud,
-    InvalidClock,
-}
-
-pub(super) type Pl011ConfigResult<T> = Result<T, Pl011ConfigError>;
-
 impl Pl011 {
-    pub fn init(&self, baud: u32, clock: u32) -> Pl011ConfigResult<()> {
-        let denom = 16u64.checked_mul(baud as u64).ok_or(Pl011ConfigError::InvalidBaud)?;
-        if denom == 0 || (clock as u64) < denom {
-            return Err(Pl011ConfigError::InvalidClock);
-        }
-        let mut integer = clock as u64 / denom;
-        let rem = clock as u64 % denom;
-        let mut fractional = ((rem * 64) + (denom / 2)) / denom;
-        if fractional == 64 {
-            integer += 1;
-            fractional = 0;
-        }
+    pub(crate) fn init(&self, line: Line) {
+        let Line::Pl011 { integer, fraction } = line else {
+            // Firmware's speed stands; make sure it can send and receive.
+            let cr = self.read_reg(UARTCR);
+            self.write_reg(UARTCR, cr | CR_UARTEN | CR_TXE | CR_RXE);
+            return;
+        };
+        // The divisors only take while the UART is off, and turning it off
+        // mid-byte garbles that byte; firmware may still be draining its
+        // last line. A transmitter that never goes idle is reprogrammed
+        // anyway, since waiting longer would not make it idle either.
+        wait::until(|| self.read_reg(UARTFR) & FR_BUSY == 0);
         self.write_reg(UARTCR, 0);
-        self.write_reg(UARTIBRD, integer as u32);
-        self.write_reg(UARTFBRD, fractional as u32);
+        self.write_reg(UARTIBRD, integer);
+        self.write_reg(UARTFBRD, fraction);
         self.write_reg(UARTLCR_H, LCR_WLEN_8 | LCR_FEN);
         self.write_reg(UARTCR, CR_UARTEN | CR_TXE | CR_RXE);
-        Ok(())
     }
 }
