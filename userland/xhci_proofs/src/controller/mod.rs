@@ -14,15 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The controller files that talk to registers and host DMA memory and
-//! nothing else.
-//!
-//! Each is the shipping file. `park` is public here because `reset_port`
-//! reaches it as `crate::controller::park`, the same path it has in the
-//! capsule. The handoff's two files are included as siblings so `claim`
-//! resolves through `super` exactly as it does in the capsule. The two
-//! completion waits are public modules so a test can call them by the path
-//! their siblings use; in the capsule they are reached the same way.
+//! The shipping controller files that touch only registers and DMA memory.
+//! `park` and the waits are public for the paths siblings and tests use;
+//! the handoff's two files are siblings so `claim` resolves through `super`.
 
 #[path = "../../../capsule_driver_xhci/src/controller/bulk/mod.rs"]
 mod bulk;
@@ -30,6 +24,7 @@ mod bulk;
 mod claim;
 #[path = "../../../capsule_driver_xhci/src/controller/drain_events.rs"]
 mod drain_events;
+mod exports;
 #[path = "../../../capsule_driver_xhci/src/controller/get_device_descriptor.rs"]
 mod get_device_descriptor;
 #[path = "../../../capsule_driver_xhci/src/controller/halt.rs"]
@@ -50,10 +45,10 @@ mod poll_interrupt_in;
 mod program_command_ring;
 #[path = "../../../capsule_driver_xhci/src/controller/program_event_ring.rs"]
 mod program_event_ring;
-#[path = "../../../capsule_driver_xhci/src/controller/refuse_unsupported.rs"]
-mod refuse_unsupported;
 #[path = "../../../capsule_driver_xhci/src/controller/recover_endpoint.rs"]
 mod recover_endpoint;
+#[path = "../../../capsule_driver_xhci/src/controller/refuse_unsupported.rs"]
+mod refuse_unsupported;
 #[path = "../../../capsule_driver_xhci/src/controller/reset.rs"]
 mod reset;
 #[path = "../../../capsule_driver_xhci/src/controller/reset_port.rs"]
@@ -77,28 +72,4 @@ mod wait_hc_running;
 #[path = "../../../capsule_driver_xhci/src/controller/wait_transfer_completion.rs"]
 pub mod wait_transfer_completion;
 
-pub use bulk::{bulk_transfer, reset_bulk_endpoint, write_bulk_input, BulkEndpoint, BulkPipes};
-pub use isoch::{
-    batch_fits, burst_fields, isoch_endpoint, isoch_out, write_isoch_input, IsochEndpoint,
-    IsochPipe,
-};
-pub use drain_events::{drain_events, DRAIN_BATCH};
-pub use get_device_descriptor::{
-    get_device_descriptor, read_device_descriptor, DEVICE_DESCRIPTOR_LEN, DEVICE_DESCRIPTOR_PREFIX,
-};
-pub use halt::halt;
-pub use issue_address_device::{issue_address_device, SET_ADDRESS_SETTLE_MS};
-pub use issue_enable_slot::issue_enable_slot;
-pub use legacy_handoff::legacy_handoff;
-pub use poll_interrupt_in::{poll_interrupt_in, IntrPoll};
-pub use program_command_ring::program_command_ring;
-pub use program_event_ring::program_event_ring;
-pub use refuse_unsupported::refuse_unsupported;
-pub use recover_endpoint::{recover_endpoint, Recovered, CC_CONTEXT_STATE_ERROR};
-pub use reset::reset;
-pub use reset_port::{port_action, power_all_ports, reset_port, PortAction};
-pub use run_command::run_command;
-pub use scratchpad::{aligned_page, Scratchpads};
-pub use start::start;
-pub use wait_cnr_clear::wait_cnr_clear;
-pub use wait_hc_running::wait_hc_running;
+pub use exports::*;
