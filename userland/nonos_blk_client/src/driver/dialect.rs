@@ -19,7 +19,8 @@
 
 use super::table::Driver;
 
-/// Opcodes in the order capacity, read, write, flush.
+/// Opcodes in the order capacity, read, write, flush. Every request goes to
+/// unit 0, the word the header leaves zero; each driver serves one disk.
 pub struct Ops {
     pub capacity: u16,
     pub read: u16,
@@ -33,6 +34,7 @@ impl Driver {
             Driver::VirtioBlk => 0x4E42_4C4B,
             Driver::Nvme => 0x4E4E_564D,
             Driver::Ahci => 0x4E41_4843,
+            Driver::Wire => 0x4E42_5731,
         }
     }
 
@@ -41,6 +43,8 @@ impl Driver {
             Driver::VirtioBlk => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
             Driver::Nvme => Ops { capacity: 6, read: 7, write: 8, flush: 9 },
             Driver::Ahci => Ops { capacity: 4, read: 5, write: 6, flush: 7 },
+            // GEOMETRY opens with the block count, as a capacity reply does.
+            Driver::Wire => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
         }
     }
 }
