@@ -13,8 +13,8 @@ installer / app.store / wallet
         |  OP_PAY v2                     wallet: OP_ACCOUNT, OP_SET_BUDGET
         v
 capsule_payment --> market.index   OP_GET_COMMERCE: is the release trusted, what does it sell
-                --> nox_settle     OP_CHANNEL_STATE: deposited, settled, expiry, closed
-                --> keyring        op 30 (voucher), ops 8/9/10/15 (its own key)
+                --> nox_settle     CHANNEL_STATE, GAS, BROADCAST, OPENED (settle_proto)
+                --> keyring        op 30 (voucher), op 25 (approve, open), ops 8/9/10/15 (its key)
                 --> vfs            /data/meter.state, /data/meter.key
 nox_settle --> OP_DRAIN: the newest signed voucher of each channel
 ```
@@ -70,6 +70,7 @@ status defined there.
 | 5 ACCOUNT | wallet | first index u8 | `Account` |
 | 6 SET_BUDGET | wallet | `SetBudget` | none |
 | 7 | - | - | EINVAL: NXL1 is not in v1 |
-| 8-12 | - | - | EINVAL until ORDER_* (B5) and OPEN (B3c) land |
+| 8-11 | - | - | EINVAL until ORDER_* land with escrow (B5) |
+| 12 OPEN | wallet | `OpenStart` or `OpenConfirm` | START: approveTx[32] and openTx[32], both signed by the meter's key and broadcast by settle; CONFIRM: the channel id, once a ChannelOpened matching the request is mined (EAGAIN before) |
 
 Every refusal is a status named in `nonos_payment_proto::status`.

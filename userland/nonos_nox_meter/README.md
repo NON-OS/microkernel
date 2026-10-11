@@ -28,6 +28,11 @@ meter, plan/20) links it.
   vfs replaces a record only at its own length, and tagged under a key only
   the meter can derive, since any FileSystem holder can unlink and recreate
   the name.
+- `open`: OPEN's two calls. `open_plan` is START's approve and open at the
+  meter's next two nonces, refused for a zero amount, a tip above the fee
+  cap, or ETH short of gas for both; their calldata is encoded here, with
+  pinned selectors, and `sign_tx_request` is the keyring's op 25 body.
+  `confirmed` is CONFIRM's check of the ChannelOpened event.
 - `root`: the label the meter's root is derived under, 0x01 (C2c's bound
   prefix) then "nonos.meter.root.v1".
 - `caller`: which registry names may call which op.
@@ -51,7 +56,7 @@ TPM NV index, which is later work.
 
 ## Tests
 
-36 host tests in `tests/`, with `sha3` as a dev-dependency, so every hash is
+42 host tests in `tests/`, with `sha3` as a dev-dependency, so every hash is
 checked against an independent implementation.
 
 ```sh
