@@ -29,6 +29,7 @@ pub mod shell;
 
 pub mod ev {
     pub const CALLBACK_DONE: u16 = 0;
+    pub const DISPLAY_ERROR: u16 = 0;
     pub const DISPLAY_DELETE_ID: u16 = 1;
     pub const SHM_FORMAT: u16 = 0;
     pub const BUFFER_RELEASE: u16 = 0;
@@ -39,3 +40,6 @@ pub mod ev {
 /// wl_shm formats. Zero and one are the two every client understands.
 pub const FORMAT_ARGB8888: u32 = 0;
 pub const FORMAT_XRGB8888: u32 = 1;
+
+/// wl_display.error's code for a request to an object that does not exist.
+pub const ERROR_INVALID_OBJECT: u32 = 0;
