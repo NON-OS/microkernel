@@ -41,6 +41,7 @@ pub(super) fn enabled(assigned: usize) {
     line.str(b" devices=").hex(assigned as u64).end();
     serial::println(b"[VT-D] enumerated devices identity mapped; others denied");
     Line::new().str(b"[VT-D] units programmed=").hex(unit_count() as u64).end();
+    super::rmrr_say::say();
     let foreign = foreign_segment_units();
     if foreign > 0 {
         let mut line = Line::new();
