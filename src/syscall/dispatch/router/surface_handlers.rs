@@ -17,9 +17,10 @@
 use alloc::vec::Vec;
 
 use crate::kernel_core::surface_registry::pin::drop_attach::drop_attach;
+use crate::kernel_core::surface_registry::pin::register_check::register_owned;
 use crate::kernel_core::surface_registry::{
-    attach_map, attach_surface, lookup_attached_va, lookup_owned, register_surface, share_surface,
-    wait_for_vsync, SurfaceDescriptor,
+    attach_map, attach_surface, lookup_attached_va, lookup_owned, share_surface, wait_for_vsync,
+    SurfaceDescriptor,
 };
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::manager::api::translate_address;
@@ -108,9 +109,8 @@ pub(super) fn do_register(desc_ptr: u64) -> SyscallResult {
         };
         frames.push(PhysAddr::new(pa.as_u64() & !0xFFF));
     }
-    match register_surface(pid, &desc, frames) {
-        Ok((sid, h)) => {
-            attach_map::record(pid, h, desc.base_va, desc.byte_len);
+    match register_owned(pid, &desc, frames) {
+        Ok((sid, _)) => {
             crate::sys::bench::mark_once(&FIRST_SURFACE_REGISTER, b"surface_register_first");
             log_display_mode(&desc);
             SyscallResult::success_audited(sid as i64)
