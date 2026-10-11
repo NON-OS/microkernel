@@ -20,6 +20,7 @@
 use nonos_nox_config::Contract;
 use nonos_payment_proto::{Close, OpenStart, TopUp};
 
+use crate::escrow::OfferWork;
 use crate::orders::Order;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -37,6 +38,8 @@ pub enum Work {
     OrderNew(Order),
     /// ORDER_STATUS: orderOf, and NOX waiting at the deposit address.
     OrderStatus(Order),
+    /// ORDER_OFFER: fetch, open and check one escrow offer (plan/29).
+    Offer(alloc::boxed::Box<OfferWork>),
 }
 
 impl Work {
@@ -47,6 +50,7 @@ impl Work {
             Work::Close(c) => c.chain_id,
             Work::Claim { chain_id, .. } => *chain_id,
             Work::OrderNew(o) | Work::OrderStatus(o) => o.chain_id,
+            Work::Offer(w) => w.want.chain_id,
         }
     }
 
@@ -58,6 +62,7 @@ impl Work {
             Work::Claim { .. } => &[Contract::ShieldPool],
             Work::OrderNew(_) => &[Contract::NoxToken, Contract::Escrow],
             Work::OrderStatus(_) => &[Contract::NoxToken, Contract::Escrow],
+            Work::Offer(_) => &[],
         }
     }
 }
