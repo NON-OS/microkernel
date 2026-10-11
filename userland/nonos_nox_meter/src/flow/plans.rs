@@ -22,6 +22,7 @@ use alloc::vec::Vec;
 use nonos_settle_proto::Gas;
 
 use super::ask::Contracts;
+use super::words::first_u128;
 use super::work::Work;
 use crate::error::MeterError;
 use crate::open::{open_plan, TxRequest};
@@ -30,7 +31,7 @@ use crate::state::MeterState;
 
 pub(super) fn txs(
     work: &Work,
-    read: Option<u128>,
+    got: &[Vec<[u8; 32]>],
     g: &Gas,
     s: &MeterState,
     c: &Contracts,
@@ -44,11 +45,18 @@ pub(super) fn txs(
         }
         Work::TopUp(t) => Vec::from(topup_plan(s, t, (&c.nox, &c.settlement), g, now)?),
         Work::Close(cl) => {
-            let grace = read.and_then(|r| u64::try_from(r).ok()).ok_or(MeterError::TooEarly)?;
+            let grace = first_u128(got.first())
+                .and_then(|r| u64::try_from(r).ok())
+                .ok_or(MeterError::TooEarly)?;
             Vec::from([close_plan(s, cl, &c.settlement, g, (now, grace))?])
         }
-        Work::Claim { chain_id, meter } => {
-            Vec::from([claim_plan(*chain_id, meter, &c.pool, read.unwrap_or(0), g)?])
-        }
+        Work::OrderNew(_) | Work::OrderStatus(_) => return Err(MeterError::Mismatch),
+        Work::Claim { chain_id, meter } => Vec::from([claim_plan(
+            *chain_id,
+            meter,
+            &c.pool,
+            first_u128(got.first()).unwrap_or(0),
+            g,
+        )?]),
     })
 }
