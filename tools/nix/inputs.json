@@ -26,9 +26,18 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/driver_ax88179.manifest.bin",
+   "nonos-data/trust/capsules/driver_ax88179.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ax88179.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_cdc_ecm.manifest.bin",
+   "nonos-data/trust/capsules/driver_cdc_ecm.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_cdc_ecm.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_cdc_ncm.manifest.bin",
+   "nonos-data/trust/capsules/driver_cdc_ncm.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_cdc_ncm.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_e1000e.manifest.bin",
    "nonos-data/trust/capsules/driver_e1000e.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_e1000e.zk_trailer.bin",
@@ -38,6 +47,12 @@
    "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
    "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_rndis.manifest.bin",
+   "nonos-data/trust/capsules/driver_rndis.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_rndis.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_rtl8153.manifest.bin",
+   "nonos-data/trust/capsules/driver_rtl8153.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_rtl8153.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
@@ -1349,6 +1364,17 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_driver_ax88179": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ax88179",
+   "userland/libc",
+   "userland/nonos_usbnet"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_driver_bga": {
   "exclude": [],
   "include": [
@@ -1359,6 +1385,28 @@
    "userland/capsule_driver_virtio_gpu/src/protocol/header.rs",
    "userland/capsule_driver_virtio_gpu/src/protocol/read.rs",
    "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_cdc_ecm": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_cdc_ecm",
+   "userland/libc",
+   "userland/nonos_usbnet"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_cdc_ncm": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_cdc_ncm",
+   "userland/libc",
+   "userland/nonos_usbnet"
   ],
   "md": [],
   "signed": []
@@ -1480,6 +1528,17 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_driver_rndis": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_rndis",
+   "userland/libc",
+   "userland/nonos_usbnet"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_driver_rtl8139": {
   "exclude": [],
   "include": [
@@ -1487,6 +1546,17 @@
    "userland/capsule_driver_rtl8139",
    "userland/libc",
    "userland/nonos_mac"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_rtl8153": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_rtl8153",
+   "userland/libc",
+   "userland/nonos_usbnet"
   ],
   "md": [],
   "signed": []
@@ -3699,9 +3769,18 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/driver_ax88179.manifest.bin",
+   "nonos-data/trust/capsules/driver_ax88179.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ax88179.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_cdc_ecm.manifest.bin",
+   "nonos-data/trust/capsules/driver_cdc_ecm.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_cdc_ecm.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_cdc_ncm.manifest.bin",
+   "nonos-data/trust/capsules/driver_cdc_ncm.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_cdc_ncm.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_e1000e.manifest.bin",
    "nonos-data/trust/capsules/driver_e1000e.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_e1000e.zk_trailer.bin",
@@ -3711,6 +3790,12 @@
    "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
    "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_rndis.manifest.bin",
+   "nonos-data/trust/capsules/driver_rndis.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_rndis.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_rtl8153.manifest.bin",
+   "nonos-data/trust/capsules/driver_rtl8153.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_rtl8153.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",

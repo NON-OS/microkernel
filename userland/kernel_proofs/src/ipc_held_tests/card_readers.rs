@@ -30,6 +30,8 @@ fn the_capsules_read_the_kernels_table() {
     ];
     for (who, src) in readers {
         assert!(src.contains(mount), "{who} keeps its own list of cards");
-        assert!(!src.contains("\"driver.e1000_0\""), "{who} still names a card itself");
+        for card in ["\"driver.e1000_0\"", "\"driver.cdc_ecm0\""] {
+            assert!(!src.contains(card), "{who} still names {card} itself");
+        }
     }
 }
