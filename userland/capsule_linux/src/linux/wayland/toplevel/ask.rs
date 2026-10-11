@@ -28,6 +28,7 @@ use super::super::fit::{Mode, Rect};
 use super::super::present::surface::say;
 
 pub(super) fn ask(guest: &mut Guest, toplevel: u32, want: Mode) {
+    super::super::popup::ends::end_all(guest);
     let Some(xdg) = guest.scene.surfaces.iter().find(|s| s.toplevel == Some(toplevel)).and_then(|s| s.xdg)
     else {
         return;
