@@ -35,6 +35,7 @@ pub mod escrow;
 mod fees;
 pub mod flow;
 pub mod job;
+pub mod mailbox;
 pub mod merkle;
 pub mod open;
 pub mod orders;
