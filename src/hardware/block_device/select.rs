@@ -23,29 +23,20 @@
 //! first that does is kept for the boot. Nothing is kept before that: a driver
 //! still starting, or a caller without the rights to ask, is asked again.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use core::sync::atomic::{AtomicBool, Ordering};
 
 use spin::Once;
 
 use super::announce::announce;
 use super::backend::Backend;
 use super::identify::{identify, Found};
-use super::seen::{line, Seen};
+use super::order::ORDER;
+use super::said::say;
+use super::seen::line;
 use super::BlockDeviceError;
 
 static SELECTED: Once<Backend> = Once::new();
 static TOLD_NONE: AtomicBool = AtomicBool::new(false);
-
-/// Asked in this order. A USB stick that carries NONOS is first: it is
-/// there because someone brought it to boot a live session from it, and
-/// that session keeps its state on the stick, not on an internal disk that
-/// may hold an installed NONOS. The kernel is not told which disk the
-/// firmware booted, so this order stands in for that answer. Then NVMe
-/// before SATA, so a machine with an NVMe data disk and a SATA boot disk
-/// settles on the NVMe one without reading the other; virtio-blk last.
-/// The cost: on a machine with an xHCI controller, every disk waits while
-/// driver.usb_msc0 looks for a device, about 1.5 s when none is plugged in.
-const ORDER: [Backend; 4] = [Backend::UsbMsc, Backend::Nvme, Backend::Ahci, Backend::VirtioBlk];
 
 /// The disk already kept for this boot, without asking any disk.
 pub fn chosen() -> Option<Backend> {
@@ -58,7 +49,7 @@ pub fn selected() -> Result<Backend, BlockDeviceError> {
     }
     for backend in ORDER {
         let (found, seen) = identify(backend);
-        say(backend, &seen);
+        say(backend, &line(backend, &seen));
         match found {
             Found::Layout => return Ok(*SELECTED.call_once(|| announce(backend))),
             Found::Absent => {}
@@ -76,29 +67,4 @@ pub fn selected() -> Result<Backend, BlockDeviceError> {
         crate::log::warn!("{}", line);
     }
     Err(BlockDeviceError::Dead)
-}
-
-/// The last line said for each backend, and for the USB driver's own
-/// search, by its hash: a disk asked on every store read is said only when
-/// what it shows changes.
-static SAID: [AtomicU64; 5] = [const { AtomicU64::new(0) }; 5];
-const USB_SEARCH: usize = 4;
-
-fn say(backend: Backend, seen: &Seen) {
-    once(backend as usize, &line(backend, seen));
-    /* The stick driver cannot write to the log; its search is said here. */
-    if backend == Backend::UsbMsc {
-        if let Some(report) = crate::hardware::usb_msc_capsule::report_line() {
-            once(USB_SEARCH, &report);
-        }
-    }
-}
-
-fn once(slot: usize, text: &str) {
-    let hash = text
-        .bytes()
-        .fold(0xcbf2_9ce4_8422_2325u64, |h, b| (h ^ u64::from(b)).wrapping_mul(0x100_0000_01b3));
-    if SAID[slot].swap(hash, Ordering::Relaxed) != hash {
-        crate::sys::serial::println(text.as_bytes());
-    }
 }
