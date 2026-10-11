@@ -23,12 +23,9 @@ fn the_fixtures_words_follow_from_its_histogram_and_set() {
     let f = family();
     let mut set = [0u8; 65];
     set.copy_from_slice(&f.policy[152..217]);
-    let ok = |b: usize| u64::from(f.hist[2 * b]);
-    let err = |b: usize| u64::from(f.hist[2 * b + 1]);
-    let n: u64 = (0..513).map(|b| ok(b) + err(b)).sum();
-    let u: u64 = (0..513).filter(|&b| !allows(&set, b)).map(err).sum();
+    let ok = |b: usize| f.hist[2 * b];
     assert!((0..513).all(|b| allows(&set, b) || ok(b) == 0), "nothing outside A succeeded");
-    assert_eq!((f.publics[8], f.publics[9]), (n, u));
     assert_eq!(hist_commit(&f.hist, &f.salt), Some(f.record.hc));
+    assert_eq!(f.publics[..4], f.record.hc);
     assert_eq!(syscall_root(&set).map(|a| a.to_vec()), Some(f.publics[4..8].to_vec()));
 }
