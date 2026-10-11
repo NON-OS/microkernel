@@ -16,6 +16,11 @@ from the caller through marketplace_abi's `Keccak`.
 - Roots (`chunk_root`, `cipher_root`, `plain_hashes`, `root_of_hashes`).
 - Cipher (`keystream_word`, `xor_chunk`, `key_commit`): word j of chunk i is
   keccak256(abi.encode(K, uint64 i, uint32 j)); the same XOR decrypts.
+- The buyer's checks: `check_offer` before funding (the hash list makes
+  chunk_root for content_len, the ciphertext makes cipherRoot, no key
+  needed); `open_delivery` once K is revealed (K against keyCommit, every
+  decrypted chunk against its hash, else the first bad index); `dispute`
+  builds dispute()'s arguments for that index.
 - Orders (`OrderTerms`, `order_id`, `refund_commit`): the fourteen-word
   terms tuple settle_proto names for fund(T), under ORDER_TAG and REFUND_TAG
   from nonos_nox_config.
