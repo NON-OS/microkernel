@@ -19,6 +19,7 @@
 use alloc::vec::Vec;
 
 use super::fit::Fit;
+use super::held_keys::HeldKeys;
 use super::reshape::Shape;
 use super::scene_pixels::Pixels;
 use super::state::{Buffer, Pool, Surface};
@@ -51,44 +52,6 @@ pub struct Scene {
     pub keyboard_entered: bool,
     /// Whether the input router has taken this personality's subscription.
     pub subscribed: bool,
-}
-
-impl Scene {
-    pub fn new() -> Scene {
-        Scene {
-            pools: Vec::new(),
-            buffers: Vec::new(),
-            surfaces: Vec::new(),
-            serial: 1,
-            out: None,
-            at: None,
-            shape: None,
-            window: None,
-            shown: None,
-            fit: Fit::default(),
-            pixels: Pixels::empty(),
-            pointer: None,
-            keyboard: None,
-            pointer_entered: false,
-            keyboard_entered: false,
-            subscribed: false,
-        }
-    }
-
-    pub fn next_serial(&mut self) -> u32 {
-        self.serial += 1;
-        self.serial
-    }
-
-    /// Where the window is on screen and how large, once it is shown.
-    pub fn rect(&self) -> Option<(u32, u32, u32, u32)> {
-        let ((x, y), (w, h, _)) = (self.at?, self.shape?);
-        Some((x, y, w, h))
-    }
-}
-
-impl Default for Scene {
-    fn default() -> Scene {
-        Scene::new()
-    }
+    /// The keys down now, so a driver's repeat is not sent as a press.
+    pub held: HeldKeys,
 }
