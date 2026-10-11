@@ -19,4 +19,5 @@
 
 pub mod conflict;
 pub mod image;
+pub mod merged;
 pub mod name;
