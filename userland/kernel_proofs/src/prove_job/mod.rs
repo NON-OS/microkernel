@@ -15,13 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Init's DELIVER rate (plan/15) and the argv init hands the headless prover,
- * both included by path: one delivery per supervisor measurement per ten
- * minutes, and a job told its op and the one pid it serves.
+ * Init's prove-job rule, queue and DELIVER rate (plan/15), and the argv init
+ * hands the headless prover, all included by path: who may ask, PROVE first,
+ * one delivery per supervisor measurement per ten minutes, and a job told
+ * its op and the one pid it serves.
  */
 
+#[path = "../../../../src/userspace/init/prove_job/ask.rs"]
+mod ask;
+
+mod ask_tests;
 #[path = "../../../../src/userspace/capsule_prove/job_argv.rs"]
 mod job_argv;
 #[path = "../../../../src/userspace/init/prove_job/rate.rs"]
 mod rate;
+#[path = "../../../../src/userspace/init/prove_job/slots.rs"]
+mod slots;
 mod tests;
