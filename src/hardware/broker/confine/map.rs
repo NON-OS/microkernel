@@ -19,21 +19,32 @@ use super::table::CAPSULES;
 use crate::memory::addr::PhysAddr;
 use crate::memory::iommu::IommuProtection;
 
-/// The address a device is given for a grant, and whether it is an IOVA in
-/// the capsule's domain. A device no unit confines gets the physical address,
-/// and the grant is marked so its teardown knows there is nothing to unmap.
+/// Why a grant got no device address: no domain confines the device
+/// (decide.rs), or the domain would not map it.
+pub(in crate::hardware::broker) enum NoAddress {
+    Unconfined,
+    Failed,
+}
+
+/// A grant's device address, and whether it is an IOVA in the capsule's
+/// domain. Under the development opt-in alone, an unconfined device gets its
+/// physical address, marked so its teardown knows there is nothing to unmap.
 pub(in crate::hardware::broker) fn map(
     pid: u32,
     device_id: u64,
     phys: u64,
     length: u64,
-) -> Option<(u64, bool)> {
+) -> Result<(u64, bool), NoAddress> {
     let mut all = CAPSULES.lock();
     let held = |c: &&mut super::table::Capsule| c.devices.iter().any(|(d, _)| *d == device_id);
     let Some(c) = all.iter_mut().filter(|c| c.pid == pid).find(held) else {
-        return Some((phys, false));
+        return if super::decide::physical_dma() {
+            Ok((phys, false))
+        } else {
+            Err(NoAddress::Unconfined)
+        };
     };
-    let iova = iova::take(c, length)?;
+    let iova = iova::take(c, length).ok_or(NoAddress::Failed)?;
     // SAFETY: eK@nonos.systems - `[phys, phys+length)` is a run the broker just
     // allocated and zeroed for this grant, and frees only after `unmap` below
     // returns true. `[iova, iova+length)` was taken fresh from this domain's
@@ -44,25 +55,7 @@ pub(in crate::hardware::broker) fn map(
     };
     if mapped.is_err() {
         iova::give_back(c, iova, length);
-        return None;
+        return Err(NoAddress::Failed);
     }
-    Some((iova, true))
-}
-
-/// True once no device can reach the grant, which is when its frames may be
-/// scrubbed and handed to someone else. False means they must not be.
-pub(in crate::hardware::broker) fn unmap(pid: u32, iova: u64, length: u64, confined: bool) -> bool {
-    if !confined {
-        return true;
-    }
-    let mut all = CAPSULES.lock();
-    let Some(c) = all.iter_mut().find(|c| c.pid == pid) else {
-        // The capsule's last device was detached, which denied it this too.
-        return true;
-    };
-    if c.domain.unmap(iova, length as usize).is_err() {
-        return false;
-    }
-    iova::give_back(c, iova, length);
-    true
+    Ok((iova, true))
 }

@@ -19,6 +19,7 @@ use super::super::types::{DmaMapError, DmaMapRequest, DmaMapResult};
 use super::fail::fail;
 use super::placed::Placed;
 use super::{alloc, install, record, validate};
+use crate::hardware::broker::confine::NoAddress;
 
 // `MkDmaMap`: validate -> alloc+zero frames -> install user pages ->
 // record. Each step is a single responsibility in its own file; this
@@ -44,12 +45,18 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
     };
     let placed = Placed { phys_start, pages, length: req.length, user_va };
 
-    let Some((device_addr, confined)) =
-        crate::hardware::broker::confine::map(pid, req.device_id, phys_start, req.length)
-    else {
-        placed.undo();
-        return fail("confine", DmaMapError::MapFailed);
-    };
+    let (device_addr, confined) =
+        match crate::hardware::broker::confine::map(pid, req.device_id, phys_start, req.length) {
+            Ok(got) => got,
+            Err(no) => {
+                placed.undo();
+                let e = match no {
+                    NoAddress::Unconfined => DmaMapError::Unconfined,
+                    NoAddress::Failed => DmaMapError::MapFailed,
+                };
+                return fail("confine", e);
+            }
+        };
     /*
      * A 32-bit device is handed an address that fits its descriptor or nothing.
      * The frames were placed below 4GB and an IOVA is drawn below 4GB, so this
