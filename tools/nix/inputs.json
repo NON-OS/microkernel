@@ -4732,6 +4732,30 @@
   "md": [],
   "signed": []
  },
+ "userland/tg3_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/pci/quirk_bits",
+   "userland/capsule_driver_tg3/src/chip",
+   "userland/capsule_driver_tg3/src/constants",
+   "userland/capsule_driver_tg3/src/init",
+   "userland/capsule_driver_tg3/src/link",
+   "userland/capsule_driver_tg3/src/log",
+   "userland/capsule_driver_tg3/src/phy",
+   "userland/capsule_driver_tg3/src/protocol",
+   "userland/capsule_driver_tg3/src/queue",
+   "userland/capsule_driver_tg3/src/regs.rs",
+   "userland/capsule_driver_tg3/src/setup/config.rs",
+   "userland/capsule_driver_tg3/src/setup/driver.rs",
+   "userland/capsule_driver_tg3/src/setup/pci_command.rs",
+   "userland/nonos_devmodel",
+   "userland/nonos_mac",
+   "userland/tg3_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/theme_proofs": {
   "exclude": [],
   "include": [
