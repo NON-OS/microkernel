@@ -24,6 +24,7 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         NetworkRtl8821ce => DataPath,
         NetworkPcnet => DataPath,
         NetworkVmxnet3 => DataPath,
+        NetworkTulip => DataPath,
         DisplayGopFramebuffer | DisplayVirtioGpu | DisplayBga => DataPath,
         DisplayVmwareSvga => DataPath,
         UsbXhci | InputPs2 | InputUsbHid => DataPath,

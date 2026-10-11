@@ -34,6 +34,8 @@ pub enum HardwareFamily {
     NetworkPcnet,
     /// VMware vmxnet3: VMware's paravirtual NIC, also emulated by QEMU.
     NetworkVmxnet3,
+    /// DEC 21140/21143: Hyper-V's legacy network adapter, QEMU's tulip.
+    NetworkTulip,
     NetworkRtl8821ce,
     NetworkIwlwifi,
     DisplayGopFramebuffer,
