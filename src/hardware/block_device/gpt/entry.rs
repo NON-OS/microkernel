@@ -49,7 +49,8 @@ pub(crate) fn entries(h: &Header, array: &[u8]) -> Option<Vec<Entry>> {
         let mut unique = [0u8; 16];
         unique.copy_from_slice(&e[16..32]);
         let (first, last) = (le64(e, 32), le64(e, 40));
-        // A partition outside the usable range (UEFI 2.10, 5.3.3) is not
+        // A partition outside the usable range (UEFI 2.10 5.3.3 as recalled,
+        // unverified) is not
         // one to read or write through.
         if first < h.first_usable || first > last || last > h.last_usable {
             continue;

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The class request that sets the endpoint's sampling frequency (USB Audio
-//! 1.0, section 5.2.3.2.3.1): SET_CUR of SAMPLING_FREQ_CONTROL to the
+//! 1.0 5.2.3.2.3.1, as recalled, unverified): SET_CUR of SAMPLING_FREQ_CONTROL to the
 //! endpoint, the rate in three little-endian bytes.
 
 use nonos_usbnet::setup::Setup;

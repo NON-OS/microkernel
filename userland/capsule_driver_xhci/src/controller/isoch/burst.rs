@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The burst fields of an isoch TD (xHCI 1.2 section 4.11.2.3).
+//! The burst fields of an isoch TD (xHCI 1.2 4.11.2.3, as recalled,
+//! unverified).
 //! Below SuperSpeed both count packets: TBC is 0 and TLBPC is the TD's
 //! packets less one. At SuperSpeed they count bursts of `max_burst + 1`.
 

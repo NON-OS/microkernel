@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Watching a started transaction to its end, within a bound. SMBus 2.0
-//! lets a slave stretch the clock for 25 ms in all and calls a bus stuck
+//! (as recalled, unverified) lets a slave stretch the clock for 25 ms in all and calls a bus stuck
 //! low for 35 ms timed out; a 32-byte block at the slowest 10 kHz clock is
 //! about 35 ms more. 200 ms covers all of that with room, and a host that
 //! takes longer is stopped with KILL (HST_CNT bit 1), which must then be

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the device plays into, from its Output Terminals (USB Audio 1.0
-//! section 4.3.2.2; terminal types from "Universal Serial Bus Device Class
+//! 4.3.2.2 as recalled, unverified; terminal types from "Universal Serial Bus Device Class
 //! Definition for Terminal Types" 1.0), so the settings page names it.
 
 use nonos_usbnet::desc::walk;

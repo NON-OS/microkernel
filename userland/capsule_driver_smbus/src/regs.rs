@@ -16,7 +16,8 @@
 
 //! The SMBus host registers in the I/O BAR, and the HOSTC config byte, named
 //! as the Intel ICH and PCH datasheets name them ("SMBus I/O Registers",
-//! "SMBus PCI Configuration Registers").
+//! "SMBus PCI Configuration Registers"). Every offset and bit here is from
+//! those datasheets as recalled, unverified: they cannot be reached here.
 
 pub const HSTSTS: u16 = 0x00;
 pub const HSTCNT: u16 = 0x02;

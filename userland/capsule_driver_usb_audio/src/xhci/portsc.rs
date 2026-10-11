@@ -20,7 +20,7 @@
 
 const ENTRY: usize = 8;
 
-/// Current Connect Status, PORTSC bit 0 (xHCI 1.2 section 5.4.8). CSC is
+/// Current Connect Status, PORTSC bit 0 (xHCI 1.2 5.4.8 as recalled, unverified). CSC is
 /// left alone: driver.xhci0 clears it on read, for every class driver.
 const PORTSC_CCS: u32 = 1;
 
@@ -31,7 +31,8 @@ fn portsc_of(data: &[u8], port: u8) -> Option<u32> {
     Some(u32::from_le_bytes([e[4], e[5], e[6], e[7]]))
 }
 
-/// The Port Speed id of `port` (PORTSC bits 13:10, xHCI 1.2 section 5.4.8).
+/// The Port Speed id of `port` (PORTSC bits 13:10, xHCI 1.2 5.4.8 as
+/// recalled, unverified).
 pub fn speed_in(data: &[u8], port: u8) -> Option<u8> {
     Some(((portsc_of(data, port)? >> 10) & 0xF) as u8)
 }

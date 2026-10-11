@@ -22,7 +22,7 @@ pub(super) const CS_INTERFACE: u8 = 0x24;
 pub(super) const CS_ENDPOINT: u8 = 0x25;
 pub(super) const CLASS_AUDIO: u8 = 0x01;
 pub(super) const SUBCLASS_STREAMING: u8 = 0x02;
-/// bInterfaceProtocol of a USB Audio 1.0 function; 2.0 says 0x20.
+/// bInterfaceProtocol of a USB Audio 1.0 function; 2.0 says 0x20 (as recalled, unverified).
 pub(super) const UAC1: u8 = 0x00;
 pub(super) const ISOCH: u8 = 0x01;
 
