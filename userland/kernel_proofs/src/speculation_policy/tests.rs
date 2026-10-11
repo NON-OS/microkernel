@@ -60,3 +60,11 @@ fn every_ap_applies_the_bits_and_every_switch_asks() {
     // Firmware bits survive: the apply ors into what is there.
     assert!(APPLY.contains("rdmsr(MSR_IA32_SPEC_CTRL) | bits"));
 }
+
+#[test]
+fn after_an_aborted_switch_the_next_switch_to_any_process_takes_the_barrier() {
+    // An aborted switch leaves 0 on the CPU, not the group it was going to.
+    for next in [1, 7, 9, u32::MAX] {
+        assert!(barrier_on_switch(true, 0, next), "{next}");
+    }
+}
