@@ -24,7 +24,7 @@ use super::super::ops::say_failed;
 use super::super::r1::errors;
 
 /// Send a command; log and pass on a failure.
-pub(super) fn step<M: Mmio, C: Clock, L: Log>(
+pub fn step<M: Mmio, C: Clock, L: Log>(
     h: &mut Host<M, C, L>,
     cmd: &Cmd,
     what: &[u8],
@@ -32,11 +32,7 @@ pub(super) fn step<M: Mmio, C: Clock, L: Log>(
     h.send(cmd).inspect_err(|&e| say_failed(h, what, e))
 }
 
-pub(super) fn r1_ok<M: Mmio, C: Clock, L: Log>(
-    h: &Host<M, C, L>,
-    cmd: u8,
-    status: u32,
-) -> EmmcResult<()> {
+pub fn r1_ok<M: Mmio, C: Clock, L: Log>(h: &Host<M, C, L>, cmd: u8, status: u32) -> EmmcResult<()> {
     if errors(status) != 0 {
         let e = EmmcError::Status { cmd, status };
         h.say(Line::new().s(b"CMD").dec(cmd as u64).s(b" status error ").hex(status as u64));
