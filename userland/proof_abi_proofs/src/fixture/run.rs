@@ -25,7 +25,7 @@ use super::device::LISTING;
 use super::policy::{app_id, policy, PROGRAM};
 
 pub const SUP_MEAS: [u8; 32] = [0x5C; 32];
-pub const SUP_CAPS: u64 = 0x3_0400_1979;
+pub const SUP_CAPS: u64 = nonos_proof_abi::trust::LINUX_CAPS;
 
 pub struct Family {
     pub hist: [u32; HIST_WORDS],
