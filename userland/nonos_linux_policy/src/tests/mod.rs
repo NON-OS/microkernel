@@ -20,4 +20,5 @@ mod identity_tests;
 mod mask_tests;
 mod refuse_tests;
 mod sample;
+mod set_order_tests;
 mod set_tests;
