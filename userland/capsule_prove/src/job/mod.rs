@@ -24,6 +24,7 @@ mod run;
 mod serve;
 mod start;
 mod state;
+mod status;
 
 pub use argv::{bound, is_job};
 pub use serve::serve;

@@ -59,7 +59,7 @@ fn live(pid: u32) -> Result<Sealed, i32> {
     wipe_bytes(&mut buf);
     match s {
         Some(s) => Ok(s),
-        None if n < 0 => Err(n as i32),
+        None if n < 0 => Err(super::status::failed(n)),
         None => Err(PROVER),
     }
 }
