@@ -30,7 +30,7 @@ use spin::Once;
 use super::announce::announce;
 use super::backend::Backend;
 use super::identify::{identify, Found};
-use super::order::ORDER;
+use super::order::order;
 use super::said::say;
 use super::seen::line;
 use super::BlockDeviceError;
@@ -47,7 +47,7 @@ pub fn selected() -> Result<Backend, BlockDeviceError> {
     if let Some(&backend) = SELECTED.get() {
         return Ok(backend);
     }
-    for backend in ORDER {
+    for backend in order() {
         let (found, seen) = identify(backend);
         say(backend, &line(backend, &seen));
         match found {
