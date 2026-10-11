@@ -44,7 +44,8 @@ impl Parts {
 pub fn container(
     record: &[u8],
     device: &[u8],
-    publics: &[u64; 10],
+    isolation: &[u8],
+    publics: &[u64; 8],
     meas: &[[u8; 32]],
     policy: &[u8],
 ) -> Parts {
@@ -55,9 +56,7 @@ pub fn container(
         sections: vec![
             (tag::RECORD, record.to_vec()),
             (tag::DEVICE, device.to_vec()),
-            // No isolation prover exists before isolation_stark: these bytes
-            // are not a proof, and the order's last step must say so.
-            (tag::ISOLATION, b"NOXP not yet".to_vec()),
+            (tag::ISOLATION, isolation.to_vec()),
             (tag::PUBLICS, words),
             (tag::MEASUREMENTS, meas.concat()),
             (tag::POLICY, policy.to_vec()),

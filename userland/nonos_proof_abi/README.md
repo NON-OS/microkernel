@@ -12,6 +12,8 @@ in (PLAN interface 1, the plan and the plan):
 - `scope`, `anchor`, `meas_chain` and `Delivery`: the device proof's scope for
   a listing, the 32 bytes that go on chain, the measurement chain M and the
   delivery body.
+- `isolation::STATEMENT`: the pinned isolation program image, its MANIFEST
+  and the numbers beside it, written by isolation_proofs from the circuit.
 - `verify`: parse, device proof bound to the record under trusted roots and
   an accepted day, measurements, app_id, publics, then the isolation proof.
 
