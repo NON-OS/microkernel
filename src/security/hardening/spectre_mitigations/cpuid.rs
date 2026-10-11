@@ -52,3 +52,14 @@ pub(super) fn is_amd() -> bool {
     vendor[8..12].copy_from_slice(&result.ecx.to_le_bytes());
     vendor == *b"AuthenticAMD"
 }
+
+/// Enhanced IBRS (ARCH_CAPABILITIES.IBRS_ALL): IBRS set once covers every
+/// later entry to the kernel.
+pub(super) fn has_enhanced_ibrs() -> bool {
+    // SAFETY: CPUID reported ARCH_CAPABILITIES, so the MSR exists and a read
+    // has no side effect.
+    has_arch_capabilities()
+        && unsafe { super::msr::rdmsr(super::constants::MSR_IA32_ARCH_CAPABILITIES) }
+            & super::constants::ARCH_CAP_IBRS_ALL
+            != 0
+}

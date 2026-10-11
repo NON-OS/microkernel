@@ -18,9 +18,11 @@
 
 use core::sync::atomic::{AtomicU32, Ordering};
 
-use super::cpuid;
-use super::hooks::context_switch_mitigations;
+use super::constants::{MSR_IA32_PRED_CMD, PRED_CMD_IBPB};
+use super::cpu_apply::has_ibpb;
+use super::msr::wrmsr;
 use super::policy::barrier_on_switch;
+use super::rsb::rsb_fill;
 use crate::smp::MAX_CPUS;
 
 /// The thread group each CPU last switched to; 0 before its first switch.
@@ -31,7 +33,9 @@ static LAST_GROUP: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(0) }; MAX_CPU
 pub fn switch_barrier(next: u32) {
     let cpu = crate::smp::cpu_id();
     let prev = LAST_GROUP.get(cpu).map_or(0, |last| last.swap(next, Ordering::Relaxed));
-    if barrier_on_switch(cpuid::has_ibrs_ibpb(), prev, next) {
-        context_switch_mitigations();
+    if barrier_on_switch(has_ibpb(), prev, next) {
+        // SAFETY: `has_ibpb` means CPUID reported IBRS/IBPB, so PRED_CMD exists.
+        unsafe { wrmsr(MSR_IA32_PRED_CMD, PRED_CMD_IBPB) };
+        rsb_fill();
     }
 }
