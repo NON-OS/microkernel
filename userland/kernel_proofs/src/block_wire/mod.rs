@@ -25,6 +25,8 @@ mod decode;
 #[path = "../../../../src/hardware/block_device/wire/error.rs"]
 #[allow(dead_code)]
 mod error;
+#[path = "../../../../src/hardware/block_device/wire/frame.rs"]
+mod frame;
 #[path = "../../../../src/hardware/block_device/wire/header.rs"]
 #[allow(dead_code)]
 mod header;
@@ -36,6 +38,7 @@ mod span;
 #[path = "../../../../src/hardware/block_device/wire/status.rs"]
 mod status;
 
+mod frame_tests;
 mod geometry_tests;
 mod span_tests;
 mod status_tests;

@@ -20,10 +20,10 @@
 //! card swapped in the slot keeps the generation and changes the disk.
 
 use super::decode::decode;
-use super::endpoint::Endpoint;
 use super::error::WireError;
 use super::header::{MAX_TRANSFER_BYTES, OP_GEOMETRY};
 use super::lba_map::addressable;
+use super::target::Target;
 use super::transport::call;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,14 +35,15 @@ pub(super) struct Layout {
     pub read_only: bool,
 }
 
-pub(super) fn layout(e: &'static Endpoint) -> Result<Layout, WireError> {
+pub(super) fn layout(t: Target) -> Result<Layout, WireError> {
+    let e = t.e;
     let generation = e.state.generation();
-    if let Some((asked_of, layout)) = *e.slot.layout.lock() {
+    if let Some((asked_of, layout)) = e.slot.layout.lock()[t.at()] {
         if asked_of == generation {
             return Ok(layout);
         }
     }
-    let g = decode(&call(e, OP_GEOMETRY, &[])?).ok_or(WireError::ProtocolMismatch)?;
+    let g = decode(&call(t, OP_GEOMETRY, &[])?).ok_or(WireError::ProtocolMismatch)?;
     if !g.media_present() {
         return Err(WireError::NoMedium);
     }
@@ -63,7 +64,7 @@ pub(super) fn layout(e: &'static Endpoint) -> Result<Layout, WireError> {
         read_only: g.read_only(),
     };
     if !g.removable() {
-        *e.slot.layout.lock() = Some((generation, layout));
+        e.slot.layout.lock()[t.at()] = Some((generation, layout));
     }
     Ok(layout)
 }

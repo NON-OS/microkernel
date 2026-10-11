@@ -17,12 +17,17 @@
 //! Routing one request to the op that answers it.
 
 use crate::emmc::{wire_status, Opened};
-use crate::protocol::{Request, E_INVAL, OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_READ, OP_WRITE};
+use crate::protocol::{
+    serves_unit, Request, E_INVAL, E_NXIO, OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_READ, OP_WRITE,
+};
 
 use super::error::reply_with_status;
 use super::handlers::{geometry, rw};
 
 pub fn dispatch(o: &mut Opened, req: &Request, body: &[u8], tx: &mut [u8]) {
+    if !serves_unit(req.unit) {
+        return reply_with_status(tx, req, E_NXIO);
+    }
     let bare = matches!(req.op, OP_HEALTHCHECK | OP_GEOMETRY | OP_FLUSH);
     if bare && !body.is_empty() {
         return reply_with_status(tx, req, E_INVAL);

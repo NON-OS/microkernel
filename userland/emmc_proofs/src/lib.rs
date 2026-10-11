@@ -20,6 +20,8 @@
 //! `model` is a register level SDHCI host with an eMMC device behind it, so
 //! the real bring-up, read, write, flush and recovery run end to end.
 
+extern crate alloc;
+
 pub mod emmc;
 
 /// The kernel's list of the Intel eMMC hosts it starts the capsule for.

@@ -19,7 +19,7 @@
 
 use core::sync::atomic::AtomicU64;
 
-use super::endpoint::Endpoint;
+use super::endpoint::{Endpoint, MAX_UNITS};
 
 static DRIVERS: &[&Endpoint] = &[
     #[cfg(feature = "nonos-capsule-driver-sdhci")]
@@ -40,10 +40,13 @@ pub(super) fn shown(index: u8) -> &'static str {
     endpoint(index).map_or("an unknown block-wire driver", |e| e.shown)
 }
 
-/// Where the block layer keeps the hash of its last line for endpoint
-/// `index`. Past the table (never asked: the order only counts to `count`)
-/// the lines share one slot.
-pub(super) fn said(index: u8) -> &'static AtomicU64 {
+/// Where the block layer keeps the hash of its last line for a unit. Past
+/// the table (never asked: the rows only count what it holds) the lines
+/// share one slot.
+pub(super) fn said(index: u8, unit: u16) -> &'static AtomicU64 {
     static PAST: AtomicU64 = AtomicU64::new(0);
-    endpoint(index).map_or(&PAST, |e| &e.slot.said)
+    match endpoint(index) {
+        Some(e) if (unit as usize) < MAX_UNITS => &e.slot.said[unit as usize],
+        _ => &PAST,
+    }
 }
