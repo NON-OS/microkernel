@@ -33,6 +33,12 @@ pub fn take() -> Option<Names> {
     Names::parse(&reply)
 }
 
+/// 19/2 READY: the names and their orderId, held for the store.
+pub fn ready(r: &nonos_payment_proto::Ready) -> Result<(), i32> {
+    let body = r.post().ok_or(nonos_payment_proto::EINVAL)?;
+    call(OP_PURCHASE, &body, 0).map(|_| ())
+}
+
 /// OPEN CONFIRM: the channel id once its opening is mined, EAGAIN before.
 pub fn open_confirm(body: &[u8]) -> Result<Vec<u8>, i32> {
     call(nonos_payment_proto::OP_OPEN, body, 32)

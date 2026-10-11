@@ -66,5 +66,6 @@ pub fn order_plan(
         refund_to,
         refund_salt,
         refund_taken: false,
+        plain: false,
     })
 }
