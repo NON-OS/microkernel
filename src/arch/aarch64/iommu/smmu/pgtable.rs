@@ -17,7 +17,7 @@
 //! Mapping 4 KiB pages in a domain's stage 1 tables, all or nothing: every
 //! page is checked before any is changed.
 
-use crate::memory::iommu::IommuError;
+use crate::memory::iommu::{IommuError, IommuProtection};
 
 use super::encode::pte;
 use super::walk::leaf;
@@ -36,13 +36,13 @@ pub(super) fn map(
     iova: u64,
     phys: u64,
     size: u64,
-    read: bool,
-    write: bool,
+    prot: IommuProtection,
 ) -> Result<(), IommuError> {
+    let leaf_at = |phys| pte::page(phys, prot.read, prot.write, prot.mmio);
     if phys % PAGE != 0 {
         return Err(IommuError::InvalidSize);
     }
-    if pte::page(phys, read, write).is_none() {
+    if leaf_at(phys).is_none() {
         return Err(IommuError::InvalidIova);
     }
     for page in pages(iova, size)? {
@@ -59,7 +59,7 @@ pub(super) fn map(
                 return Err(failed.err().unwrap_or(IommuError::PageTableExhausted));
             }
         };
-        *slot = pte::page(phys + (page - iova), read, write).unwrap_or(0);
+        *slot = leaf_at(phys + (page - iova)).unwrap_or(0);
     }
     super::wait::publish();
     Ok(())
