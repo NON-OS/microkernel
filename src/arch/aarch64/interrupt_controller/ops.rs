@@ -25,10 +25,12 @@ pub fn local_id() -> u32 {
     cpu_affinity()
 }
 
-/// The GIC has no in-service register to consult: the handler has to name the
-/// INTID it is finishing, or the running priority never drops.
-pub fn end_of_interrupt(ipi: Ipi) {
-    gic::end_interrupt(intid_of(ipi));
+/// Finish the interrupt this CPU is serving, which is the IPI whose handler
+/// is calling. The GIC wants back exactly what it handed out at acknowledge
+/// (on GICv2 that includes the sender), so the in-service slot is used rather
+/// than `ipi`, and the dispatcher's own EOI after the handler then does nothing.
+pub fn end_of_interrupt(_ipi: Ipi) {
+    gic::complete_interrupt();
 }
 
 pub fn send_ipi(target: u32, ipi: Ipi) -> Result<(), ()> {
