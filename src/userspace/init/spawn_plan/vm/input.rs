@@ -19,6 +19,7 @@
 
 pub(in crate::userspace::init::spawn_plan) fn spawn() {
     spawn_virtio_input();
+    spawn_vmmdev();
 }
 
 #[cfg(feature = "nonos-capsule-driver-virtio-input")]
@@ -38,3 +39,21 @@ fn spawn_virtio_input() {
 
 #[cfg(not(feature = "nonos-capsule-driver-virtio-input"))]
 fn spawn_virtio_input() {}
+
+#[cfg(feature = "nonos-capsule-driver-vmmdev")]
+fn spawn_vmmdev() {
+    use crate::hardware::inventory::HardwareFamily;
+    use crate::hardware::vmmdev_capsule as c;
+    if !super::present::present("DRIVER-VMMDEV", HardwareFamily::InputVmmdev) {
+        return;
+    }
+    super::super::boot::capsule(
+        "DRIVER-VMMDEV",
+        "driver_vmmdev",
+        c::spawn_driver_vmmdev_capsule,
+        c::shared_state,
+    );
+}
+
+#[cfg(not(feature = "nonos-capsule-driver-vmmdev"))]
+fn spawn_vmmdev() {}

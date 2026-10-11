@@ -42,6 +42,7 @@ pub fn classify_family(
             _ => HardwareFamily::Unknown,
         },
         0x06 => HardwareFamily::BridgePci,
+        0x08 if vendor == 0x80EE && device == 0xCAFE => HardwareFamily::InputVmmdev,
         0x08 if is_intel_emmc(vendor, device, class, subclass) => HardwareFamily::StorageEmmc,
         0x08 => HardwareFamily::SystemPeripheral,
         0x09 if vendor == 0x1af4 && device == 0x1052 => HardwareFamily::InputVirtio,

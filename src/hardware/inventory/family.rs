@@ -54,6 +54,8 @@ pub enum HardwareFamily {
     /// virtio-input: QEMU's virtio tablet, keyboard and mouse.
     InputVirtio,
     AudioHda,
+    /// VirtualBox's guest device (80ee:cafe): its mouse integration.
+    InputVmmdev,
     /// Intel ICH AC'97 (8086:2415): QEMU's AC97 and VirtualBox's AC'97.
     AudioAc97,
     SerialI2c,
