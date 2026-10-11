@@ -57,5 +57,5 @@ pub(super) fn record_run(
         slots::activate(base_slot + i, base_grant + i as u64, NO_LINE);
     }
 
-    IrqBindResult { grant_id: base_grant, vector: base_vector }
+    IrqBindResult { grant_id: base_grant, vector: base_vector, grants: n as u32 }
 }

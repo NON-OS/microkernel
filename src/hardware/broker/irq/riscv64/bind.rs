@@ -84,5 +84,5 @@ pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError
         .map_err(|_| IrqBindError::PlatformError)?;
     plic::enable_irq(req.irq_source).map_err(|_| IrqBindError::PlatformError)?;
 
-    Ok(IrqBindResult { grant_id, vector: 0 })
+    Ok(IrqBindResult { grant_id, vector: 0, grants: 1 })
 }

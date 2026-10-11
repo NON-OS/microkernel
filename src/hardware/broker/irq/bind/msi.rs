@@ -64,5 +64,5 @@ pub(super) fn bind_msi(
     });
     slots::activate(slot, grant_id, NO_LINE);
     crate::log::info!("[IRQ] {} msi vector {:#x}", handle.address, vector);
-    Ok(IrqBindResult { grant_id, vector })
+    Ok(IrqBindResult { grant_id, vector, grants: 1 })
 }
