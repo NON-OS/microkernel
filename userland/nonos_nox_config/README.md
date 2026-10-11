@@ -18,9 +18,14 @@ nothing else.
 - `MAINNET` (1) and `SEPOLIA` (11155111). These are the only chains a lookup
   resolves.
 - `Deployment` per chain, with these contracts:
-  - NOX token. Mainnet uses the live V2.1 token; Sepolia uses the wallet's test
-    token.
-  - Settlement, Escrow, PublisherBond, ListingRegistry, ProofAnchor.
+  - NOX token. Mainnet uses the live V3_1 token (since block 25,960,151):
+    fees up to 300 bps that the Safe can change, skipped when either side is
+    fee exempt, a blacklist, EIP-2612 permit under domain "NONOS" (no op-30
+    entry uses it), and a revert on any zero-amount transfer between two
+    non-exempt addresses. Sepolia uses the wallet's test token.
+  - Settlement, Escrow, PublisherBond, ListingRegistry, ProofAnchor. The
+    PublisherBond label names the new NoxListingBond (plan/24), not the
+    retired suite's NoxPublisherBond.
 - Every address is an `Option`. An undeployed contract is `None`, and
   `address()` answers `NotDeployed`, never a zero address. Today every new
   contract is `None`, so every caller fails closed until the owner deploys.
