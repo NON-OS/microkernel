@@ -19,6 +19,7 @@
 
 pub mod cd;
 pub mod cmd;
+pub mod event;
 pub mod idr;
 pub mod oas;
 pub mod pte;
