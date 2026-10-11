@@ -16,20 +16,25 @@
 
 pub mod ahci_capsule;
 pub mod audio_capsule;
+pub mod ax88179_capsule;
 pub mod bga_capsule;
 pub mod block_device;
 pub mod broker;
+pub mod cdc_ecm_capsule;
+pub mod cdc_ncm_capsule;
 pub mod e1000_capsule;
 pub mod e1000e_capsule;
 pub mod hda_capsule;
 pub mod i2c_pci_capsule;
 pub mod igb_capsule;
-pub mod ixgbe_capsule;
 pub mod inventory;
 pub mod iwlwifi_capsule;
+pub mod ixgbe_capsule;
 pub mod nvme_capsule;
 pub mod ps2_kbd_capsule;
+pub mod rndis_capsule;
 pub mod rtl8139_capsule;
+pub mod rtl8153_capsule;
 pub mod rtl8169_capsule;
 pub mod rtl8821ce_capsule;
 pub mod sdhci_capsule;

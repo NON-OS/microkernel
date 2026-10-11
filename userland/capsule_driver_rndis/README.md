@@ -1,7 +1,9 @@
 # capsule_driver_rndis
 
-Status: not in the 0.9.2 image. The capsule builds and its host proofs
-driver.xhci0 has no bulk IN poll or control OUT data stage yet.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/rndis_capsule`)
+embeds it under `nonos-capsule-driver-rndis` and spawns it where an
+xHCI controller is; net.core and net.l2 reach it through
+`src/services/registry/nics.rs`, and it reaches driver.xhci0, which serves
 
 ## Role
 
@@ -172,8 +174,7 @@ is on main yet.
 
 - Capsule builds with zero warnings; clippy clean.
 - rndis_proofs passes.
-- driver.xhci0 serves OP_BULK_IN_POLL and control OUT data stages.
-- The kernel spawns the capsule and holds its endpoint.
+  capsule_attack re-signed for the NIC table.
 - On hardware: `[usbnet rndis] port N up, mac ...` and
   `[NET-CORE] bind: interface up on driver.rndis0`, then DHCP and a page.
 

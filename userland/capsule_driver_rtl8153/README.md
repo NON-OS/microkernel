@@ -1,7 +1,9 @@
 # capsule_driver_rtl8153
 
-Status: not in the 0.9.2 image. The capsule builds and its host proofs
-driver.xhci0 has no bulk IN poll or control OUT data stage yet.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/rtl8153_capsule`)
+embeds it under `nonos-capsule-driver-rtl8153` and spawns it where an
+xHCI controller is; net.core and net.l2 reach it through
+`src/services/registry/nics.rs`, and it reaches driver.xhci0, which serves
 
 ## Role
 
@@ -165,8 +167,7 @@ is on main yet.
 
 - Capsule builds with zero warnings; clippy clean.
 - rtl8153_proofs passes.
-- driver.xhci0 serves OP_BULK_IN_POLL and control OUT data stages.
-- The kernel spawns the capsule and holds its endpoint.
+  capsule_attack re-signed for the NIC table.
 - On hardware: `[usbnet rtl8153] port N up, mac ...` and
   `[NET-CORE] bind: interface up on driver.rtl8153_0`, then DHCP and a page.
 

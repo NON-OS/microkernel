@@ -21,9 +21,6 @@ CAPSULE_REQUIRED_CAPS    := 0x18
 # Debug, granted only by a build that compiles `capsule-serial-debug`, for
 # the [usbnet cdc-ecm] lines; frames never reach them.
 CAPSULE_OPTIONAL_CAPS    := 0x100
+CAPSULE_KERNEL_MIRROR    := src/hardware/cdc_ecm_capsule
 
 include nonos-mk/capsule.mk
-# Builds and is proven on the host, but has no owner certificate, no kernel
-# embed and no spawn yet: scripts/hardware_support_evidence.py reports it as
-# not in the image instead of as supported hardware. Remove when it ships.
-CAPSULE_NOT_IN_IMAGE     := 1
