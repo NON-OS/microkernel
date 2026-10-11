@@ -19,11 +19,14 @@
 //! sign their two transactions and broadcast each; CLOSE first reads GRACE.
 //! The capsule sends each ask as an ASYNC request and feeds the answer back.
 
+mod after;
 mod ask;
 mod plans;
+mod reads;
 mod step;
+mod words;
 mod work;
 
-pub use ask::{Ask, Contracts, Next};
-pub use step::{Flow, Step};
+pub use ask::{Ask, Contracts, Next, Step};
+pub use step::Flow;
 pub use work::Work;

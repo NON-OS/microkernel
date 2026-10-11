@@ -19,22 +19,13 @@
 use alloc::vec::Vec;
 
 use nonos_nox_meter::flow::Ask;
-use nonos_nox_meter::settle::NOX_ASSET;
 use nonos_settle_proto::{parse_read_reply, Gas, Read, OP_BROADCAST, OP_GAS, OP_READ};
 
 /// Settlement's GRACE() and the pool's claimable(uint64,address) (READ).
-const VIEW_GRACE: u16 = 16;
-const VIEW_CLAIMABLE: u16 = 60;
-
 pub(super) fn request(ask: &Ask, chain_id: u64, meter: &[u8; 20]) -> Option<(u16, Vec<u8>)> {
     Some(match ask {
-        Ask::Grace => (OP_READ, Read { chain_id, view: VIEW_GRACE, args: Vec::new() }.encode()?),
-        Ask::Claimable => {
-            let (mut asset, mut owner) = ([0u8; 32], [0u8; 32]);
-            asset[24..].copy_from_slice(&NOX_ASSET.to_be_bytes());
-            owner[12..].copy_from_slice(meter);
-            let args = Vec::from([asset, owner]);
-            (OP_READ, Read { chain_id, view: VIEW_CLAIMABLE, args }.encode()?)
+        Ask::View { view, args } => {
+            (OP_READ, Read { chain_id, view: *view, args: args.clone() }.encode()?)
         }
         Ask::Gas => (OP_GAS, Gas::request(chain_id, meter).to_vec()),
         Ask::Broadcast(raw) => (OP_BROADCAST, [&chain_id.to_le_bytes()[..], raw].concat()),
@@ -42,9 +33,8 @@ pub(super) fn request(ask: &Ask, chain_id: u64, meter: &[u8; 20]) -> Option<(u16
 }
 
 /// A READ's one uint word (GRACE, claimable), refused past u128.
-pub(super) fn uint(body: &[u8]) -> Option<u128> {
-    let w = *parse_read_reply(body)?.first()?;
-    w[..16].iter().all(|b| *b == 0).then(|| u128::from_be_bytes(w[16..].try_into().unwrap()))
+pub(super) fn words(body: &[u8]) -> Option<Vec<[u8; 32]>> {
+    parse_read_reply(body)
 }
 
 pub(super) fn hash(body: &[u8]) -> Option<[u8; 32]> {

@@ -25,7 +25,8 @@ use super::drive::advance;
 use super::work::{Running, Work};
 use crate::meter::{now_ms, Meter};
 
-pub(crate) fn start(work: &mut Work, meter: &mut Meter, job: Job) -> Result<u32, i32> {
+/// Start `job` for `owner`, the pid alone that JOB then answers.
+pub(crate) fn start(work: &mut Work, meter: &mut Meter, job: Job, owner: u32) -> Result<u32, i32> {
     let keys = meter.ready()?;
     let chain = job.chain_id();
     for c in job.needs() {
@@ -34,7 +35,7 @@ pub(crate) fn start(work: &mut Work, meter: &mut Meter, job: Job) -> Result<u32,
     let at = |c| address(chain, c).unwrap_or([0; 20]);
     let (nox, settlement) = (at(Contract::NoxToken), at(Contract::Settlement));
     let contracts = Contracts { nox, settlement, pool: at(Contract::ShieldPool) };
-    let id = work.jobs.start()?;
+    let id = work.jobs.start(owner)?;
     let (flow, next) = Flow::begin(job);
     let (key_id, address) = (keys.key_id, keys.address);
     work.run = Some(Running { id, flow, contracts, key_id, address, pending: None });

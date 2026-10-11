@@ -22,6 +22,7 @@ use nonos_nox_meter::MeterError;
 use nonos_payment_proto::{Close, TopUp};
 
 use super::fixture::{gas, state, CHAIN, NOW, NOX, SETTLEMENT};
+use super::ret::ret;
 
 const AT: Contracts = Contracts { nox: NOX, settlement: SETTLEMENT, pool: [0; 20] };
 
@@ -46,7 +47,7 @@ fn a_topup_asks_gas_signs_two_and_broadcasts_each_in_order() {
 fn a_close_reads_grace_first() {
     let c = Close { chain_id: CHAIN, channel_id: [1; 32] };
     let (mut f, first) = Flow::begin(Work::Close(c));
-    assert_eq!(first, Next::Ask(Ask::Grace));
+    assert_eq!(first, Next::Ask(Ask::View { view: 16, args: vec![] }));
     let late = state().channels[0].expiry + 3_600;
     let (mut early, _) = Flow::begin(Work::Close(c));
     assert_eq!(
@@ -54,7 +55,7 @@ fn a_close_reads_grace_first() {
         Err(MeterError::TooEarly),
         "no grace yet"
     );
-    assert_eq!(f.on_read(3_600), Ok(Next::Ask(Ask::Gas)));
+    assert_eq!(f.on_view(ret(3_600)), Ok(Next::Ask(Ask::Gas)));
     assert_eq!(f.on_gas(&gas(), &state(), (&AT, late - 1)), Err(MeterError::TooEarly));
     let tx = close_plan(&state(), &c, &SETTLEMENT, &gas(), (late, 3_600)).unwrap();
     assert_eq!(f.on_gas(&gas(), &state(), (&AT, late)), Ok(Next::Sign(vec![tx])));

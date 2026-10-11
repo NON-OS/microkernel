@@ -18,7 +18,9 @@
 
 use alloc::vec::Vec;
 
+use crate::error::MeterError;
 use crate::open::TxRequest;
+use crate::orders::Order;
 
 /// The config's contracts on the job's chain; one the job does not need is
 /// zero.
@@ -29,13 +31,11 @@ pub struct Contracts {
     pub pool: [u8; 20],
 }
 
-/// The next request to settle: Settlement's GRACE() (READ view 16), the
-/// pool's claimable(NOX, meter) (READ view 60), the meter's GAS, or a
-/// BROADCAST of one signed transaction.
+/// The next request to settle: a READ of one view with its argument words,
+/// the meter's GAS, or a BROADCAST of one signed transaction.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Ask {
-    Grace,
-    Claimable,
+    View { view: u16, args: Vec<[u8; 32]> },
     Gas,
     Broadcast(Vec<u8>),
 }
@@ -45,6 +45,12 @@ pub enum Next {
     Ask(Ask),
     /// Sign these with the meter's key, then hand the raw transactions back.
     Sign(Vec<TxRequest>),
-    /// The job's answer: each broadcast transaction's hash, in order.
+    /// The job's answer: each broadcast transaction's hash, in order, or an
+    /// order's status.
     Done(Vec<u8>),
+    /// Seal and keep this order first, then answer with these bytes.
+    Keep(alloc::boxed::Box<Order>, Vec<u8>),
 }
+
+/// The next step, or why the job ends here.
+pub type Step = Result<Next, MeterError>;

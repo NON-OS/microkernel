@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a job is for: its chain, its first ask, the contracts it needs.
+//! What a job is for: its chain and the contracts it needs. What it reads
+//! first is in reads.rs.
 
 use nonos_nox_config::Contract;
 use nonos_payment_proto::{Close, OpenStart, TopUp};
 
-use super::ask::Ask;
+use crate::orders::Order;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Work {
@@ -31,6 +32,11 @@ pub enum Work {
         chain_id: u64,
         meter: [u8; 20],
     },
+    /// ORDER_NEW, its order planned: the escrow agrees on the deposit
+    /// address, and the policy is not paused (v1.4.20).
+    OrderNew(Order),
+    /// ORDER_STATUS: orderOf, and NOX waiting at the deposit address.
+    OrderStatus(Order),
 }
 
 impl Work {
@@ -40,15 +46,7 @@ impl Work {
             Work::TopUp(t) => t.chain_id,
             Work::Close(c) => c.chain_id,
             Work::Claim { chain_id, .. } => *chain_id,
-        }
-    }
-
-    /// The first ask: CLOSE reads GRACE, CLAIM what is claimable, the rest GAS.
-    pub fn first(&self) -> Ask {
-        match self {
-            Work::Close(_) => Ask::Grace,
-            Work::Claim { .. } => Ask::Claimable,
-            _ => Ask::Gas,
+            Work::OrderNew(o) | Work::OrderStatus(o) => o.chain_id,
         }
     }
 
@@ -58,6 +56,8 @@ impl Work {
             Work::Open(_) | Work::TopUp(_) => &[Contract::NoxToken, Contract::Settlement],
             Work::Close(_) => &[Contract::Settlement],
             Work::Claim { .. } => &[Contract::ShieldPool],
+            Work::OrderNew(_) => &[Contract::NoxToken, Contract::Escrow],
+            Work::OrderStatus(_) => &[Contract::NoxToken, Contract::Escrow],
         }
     }
 }

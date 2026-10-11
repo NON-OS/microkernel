@@ -30,31 +30,36 @@ use crate::jobs::{start, Work};
 use crate::meter::Meter;
 use crate::server::Call;
 
-fn started(work: &mut Work, meter: &mut Meter, job: Option<Job>, req: &Call<'_>) -> Vec<u8> {
-    let r = job.ok_or(EINVAL).and_then(|j| start(work, meter, j));
+pub(super) fn started(
+    work: &mut Work,
+    meter: &mut Meter,
+    job: Result<Job, i32>,
+    req: &Call<'_>,
+) -> Vec<u8> {
+    let r = job.and_then(|j| start(work, meter, j, req.sender));
     req.result(r.map(|id| job_id(id).to_vec()))
 }
 
 pub fn topup(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
-    started(work, meter, TopUp::parse(req.body).map(Job::TopUp), req)
+    started(work, meter, TopUp::parse(req.body).map(Job::TopUp).ok_or(EINVAL), req)
 }
 
 pub fn close(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
-    started(work, meter, Close::parse(req.body).map(Job::Close), req)
+    started(work, meter, Close::parse(req.body).map(Job::Close).ok_or(EINVAL), req)
 }
 
 pub fn open_start(meter: &mut Meter, work: &mut Work, job: Job, req: &Call<'_>) -> Vec<u8> {
-    started(work, meter, Some(job), req)
+    started(work, meter, Ok(job), req)
 }
 
 /// CLAIM (op 16, v1.4.17): body chain_id u64; the meter claims to itself.
 pub fn claim(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
     let chain = req.body.try_into().ok().map(u64::from_le_bytes);
     let at = meter.ready().map(|k| k.address).ok();
-    let job = chain.zip(at).map(|(chain_id, meter)| Job::Claim { chain_id, meter });
+    let job = chain.zip(at).map(|(chain_id, meter)| Job::Claim { chain_id, meter }).ok_or(EINVAL);
     started(work, meter, job, req)
 }
 
 pub fn job(work: &mut Work, req: &Call<'_>) -> Vec<u8> {
-    req.result(parse_job_id(req.body).ok_or(EINVAL).and_then(|id| work.jobs.take(id)))
+    req.result(parse_job_id(req.body).ok_or(EINVAL).and_then(|id| work.jobs.take(id, req.sender)))
 }

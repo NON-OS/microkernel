@@ -22,4 +22,6 @@
 pub const STATE_PATH: &[u8] = b"/data/meter.state";
 /// The meter's secp256k1 secret, sealed to this machine under its bound root.
 pub const KEY_PATH: &[u8] = b"/data/meter.key";
+/// The meter's escrow orders, sealed: each holds a refund salt.
+pub const ORDERS_PATH: &[u8] = b"/data/meter.orders";
 pub(super) const DIR: &[u8] = b"/data";

@@ -43,8 +43,8 @@ pub fn run() -> ! {
         }
         let resp = match parse_header(&buf[..n as usize]) {
             Some((h, body)) => {
-                let call = Call { op: h.op, flags: h.flags, id: h.request_id, body };
-                dispatch(&mut meter, &mut work, sender, &call)
+                let call = Call { op: h.op, flags: h.flags, id: h.request_id, body, sender };
+                dispatch(&mut meter, &mut work, &call)
             }
             /*
              * Not this wire's frame: answered under op and id zero. The caller

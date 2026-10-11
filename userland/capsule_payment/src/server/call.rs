@@ -26,6 +26,8 @@ pub(crate) struct Call<'a> {
     pub flags: u16,
     pub id: u32,
     pub body: &'a [u8],
+    /// The kernel-stamped pid the call came from.
+    pub sender: u32,
 }
 
 impl Call<'_> {
