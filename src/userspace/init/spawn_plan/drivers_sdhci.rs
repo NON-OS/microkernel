@@ -15,14 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The SD host controller capsule, started for the eMMC hosts the
-//! inventory knows. It took them over from the AHCI capsule, which no
-//! longer starts for an eMMC host.
+//! inventory knows, which it took over from the AHCI capsule, and for any
+//! other SD host: a card reader is served on a machine with no eMMC.
 
 #[cfg(feature = "nonos-capsule-driver-sdhci")]
 pub(super) fn spawn() {
-    use crate::hardware::inventory::HardwareFamily;
+    use crate::hardware::inventory::{present as has, HardwareFamily};
     use crate::hardware::sdhci_capsule as c;
-    if !super::device_present::present("DRIVER-SDHCI", HardwareFamily::StorageEmmc) {
+    let present = super::device_present::present;
+    if !has(HardwareFamily::StorageEmmc) && !present("DRIVER-SDHCI", HardwareFamily::StorageSdhci) {
         return;
     }
     super::boot::capsule(

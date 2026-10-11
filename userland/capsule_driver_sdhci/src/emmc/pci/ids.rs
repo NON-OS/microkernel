@@ -38,20 +38,14 @@ pub const INTEL_EMMC: &[u16] = &[
     0x4dc4, // Jasper Lake (JSL_EMMC)
 ];
 
-/// Intel SD card reader and SDIO hosts: never the internal disk.
-pub const INTEL_NOT_EMMC: &[u16] = &[
-    0x31ca, // GLK_SD
-    0x31d0, // GLK_SDIO
-    0x5aca, // APL_SD
-    0x5ad0, // APL_SDIO
-    0x0aca, // BXT_SD
-    0x0ad0, // BXT_SDIO
+/// Intel SDIO hosts: the board's Wi-Fi or Bluetooth, never a disk. Intel's
+/// SD card readers (GLK_SD, APL_SD and the rest) are not listed: they are
+/// generic hosts, served as removable slots on a machine with no eMMC.
+pub const INTEL_SDIO: &[u16] = &[
     0x0f15, // BYT_SDIO
-    0x0f16, // BYT_SD
     0x2295, // BSW_SDIO
-    0x2296, // BSW_SD
+    0x0ad0, // BXT_SDIO
+    0x5ad0, // APL_SDIO
+    0x31d0, // GLK_SDIO
     0x9d2c, // SPT_SDIO
-    0x9d2d, // SPT_SD
-    0x4b48, // EHL_SD
-    0x4df8, // JSL_SD
 ];
