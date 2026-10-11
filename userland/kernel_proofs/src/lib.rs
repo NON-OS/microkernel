@@ -38,6 +38,9 @@ pub mod capabilities;
 pub mod clock_scale;
 #[cfg(test)]
 pub mod confine_posture;
+/// When firmware's DMA protection may be let go.
+#[cfg(test)]
+pub mod iommu_handover;
 pub mod pci_quirk_bits;
 #[cfg(test)]
 pub mod prove_job;

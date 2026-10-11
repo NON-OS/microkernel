@@ -17,14 +17,20 @@
 //! What AMD-Vi bring-up says on the console, and the call boot makes.
 
 use super::release::release_from_firmware;
+use crate::arch::x86_64::iommu::handover::amd_stop;
 use crate::sys::serial;
 #[cfg(feature = "nonos-iommu-amdvi")]
 use crate::sys::serial::Line;
 
-/// Take every unit back from firmware, then, in a kernel built with
-/// `nonos-iommu-amdvi`, put them in service with the kernel's tables.
+/// In a kernel built with `nonos-iommu-amdvi`, take every unit back from
+/// firmware and put it in service with the kernel's tables. Without it, a
+/// unit firmware left running keeps running (iommu::handover), but under the
+/// development opt-in.
 pub fn init() {
-    release_from_firmware();
+    let dev = crate::memory::iommu::dev_unconfined::holds();
+    if amd_stop(cfg!(feature = "nonos-iommu-amdvi"), dev) {
+        release_from_firmware();
+    }
     #[cfg(feature = "nonos-iommu-amdvi")]
     match super::bringup::bring_up() {
         Ok(assigned) => {
