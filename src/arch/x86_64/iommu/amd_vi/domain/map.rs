@@ -48,5 +48,7 @@ pub fn map_range(
         let (table, slot) = walk_create(root, iova + page * PAGE)?;
         leaves(table)?.write(slot, leaf(phys + page * PAGE, read, write))?;
     }
-    flush_domain(domain)
+    // The entries are in place whatever the flush says; the caller must not
+    // free their frames on this error as if nothing were mapped.
+    flush_domain(domain).map_err(|_| AmdViError::Uncommitted)
 }
