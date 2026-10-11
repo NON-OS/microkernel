@@ -29,6 +29,8 @@ nonos_payment_proto = { path = "../payment_proto" }
 # Typed data the wallet signs through keyring op 30 (B8): the words and
 # the hasher trait.
 nonos_marketplace_abi = { path = "../marketplace_abi" }
+# The publisher's intents (B8): settle_proto's kind table and its limits.
+nonos_settle_proto = { path = "../settle_proto" }
 
 # keccak-256 on the host, for the EIP-55 examples (the wallet asks the
 # crypto service for it on the device).
