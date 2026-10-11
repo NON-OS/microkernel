@@ -28,5 +28,6 @@ mod status;
 mod why;
 
 pub(crate) use queue::{has_pending, request_install, request_quiet_run, request_run, request_uninstall};
+pub(crate) use run::request_net_run;
 pub(crate) use service::service;
 pub(crate) use status::{get as install_stage, Stage};
