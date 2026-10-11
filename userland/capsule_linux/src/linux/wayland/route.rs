@@ -14,17 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Which handler a request belongs to. False means nothing served it.
 
 use crate::linux::guest::Guest;
 
+use super::args::Args;
+use super::destructor::is_destructor;
 use super::object::Object;
 use super::ops::req;
-use super::serve::is_destructor;
-use super::args::Args;
-use super::fit::Mode;
-use super::{buffer, commit, handlers, seat, shm, surface, toplevel, xdg};
+use super::{buffer, commit, handlers, region, seat, shm, surface};
 
 pub fn route(
     guest: &mut Guest,
@@ -44,36 +42,20 @@ pub fn route(
         (Some(Object::Surface), req::SURFACE_FRAME) => surface::frame(guest, id, args),
         (Some(Object::Surface), req::SURFACE_COMMIT) => commit::commit(guest, id),
         (Some(Object::Surface), req::SURFACE_DAMAGE | req::SURFACE_DAMAGE_BUFFER) => {}
-        (Some(Object::XdgBase), req::XDG_BASE_GET_SURFACE) => xdg::get_xdg_surface(guest, args),
-        (Some(Object::XdgBase), req::XDG_BASE_PONG) => {}
-        (Some(Object::XdgSurface), req::XDG_SURFACE_GET_TOPLEVEL) => {
-            xdg::get_toplevel(guest, id, args)
-        }
-        (Some(Object::XdgSurface), req::XDG_SURFACE_ACK_CONFIGURE) => {
-            xdg::ack_configure(guest, id, args)
-        }
-        (Some(Object::XdgSurface), req::XDG_SURFACE_SET_GEOMETRY) => {}
-        (Some(Object::XdgSurface), req::XDG_SURFACE_DESTROY) => {
-            super::forget::forget(guest, object, id)
-        }
-        (Some(Object::XdgToplevel), req::TOPLEVEL_SET_TITLE | req::TOPLEVEL_SET_APP_ID) => {}
-        (Some(Object::XdgToplevel), req::TOPLEVEL_DESTROY) => toplevel::destroy(guest, id),
-        (Some(Object::XdgToplevel), req::TOPLEVEL_SET_MAXIMIZED) => {
-            toplevel::set(guest, id, Mode::Maximized, args)
-        }
-        (Some(Object::XdgToplevel), req::TOPLEVEL_SET_FULLSCREEN) => {
-            toplevel::set(guest, id, Mode::FullScreen, args)
-        }
-        (Some(Object::XdgToplevel), req::TOPLEVEL_UNSET_MAXIMIZED) => {
-            toplevel::unset(guest, id, Mode::Maximized)
-        }
-        (Some(Object::XdgToplevel), req::TOPLEVEL_UNSET_FULLSCREEN) => {
-            toplevel::unset(guest, id, Mode::FullScreen)
-        }
+        /* Nothing a surface says about its own pixels changes how they are shown (region.rs). */
+        (
+            Some(Object::Surface),
+            req::SURFACE_SET_OPAQUE_REGION
+            | req::SURFACE_SET_INPUT_REGION
+            | req::SURFACE_SET_BUFFER_TRANSFORM
+            | req::SURFACE_SET_BUFFER_SCALE,
+        ) => {}
+        (Some(Object::Compositor), req::COMPOSITOR_CREATE_REGION) => region::create(guest, args),
+        (Some(Object::Region), req::REGION_ADD | req::REGION_SUBTRACT) => {}
         (Some(Object::Seat), req::SEAT_GET_POINTER) => seat::get_pointer(guest, args),
         (Some(Object::Seat), req::SEAT_GET_KEYBOARD) => seat::get_keyboard(guest, args),
         (o, c) if is_destructor(o, c) => super::forget::forget(guest, o, id),
-        _ => return false,
+        _ => return super::route_xdg::route(guest, object, id, opcode, args),
     }
     true
 }
