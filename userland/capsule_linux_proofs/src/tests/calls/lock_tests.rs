@@ -22,7 +22,7 @@
 
 use super::super::random::Regs;
 use crate::linux::abi::errno::ENOLCK;
-use crate::linux::file::lock::apply::{applied, count_after};
+use crate::linux::file::lock::apply::ranges::{applied, count_after};
 use crate::linux::file::lock::room::{fits, MOST_LOCKS};
 use crate::linux::file::lock::table::{Lock, Owner};
 
