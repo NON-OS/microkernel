@@ -20,19 +20,17 @@ use super::types::{Claim, ClaimError};
 // Register a claim. Returns the granted epoch on success. The caller
 // must have already verified that `device_id` exists in the broker
 // table.
+/*
+ * The claim is published last (K5, A10 gap 4): until it is in CLAIMS no
+ * epoch exists, so no thread of the caller can reach the device's config
+ * space or set Bus Master before it is confined, powered and snooping.
+ */
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
-    let epoch = {
-        let mut claims = CLAIMS.lock();
-        if claims.iter().any(|c| c.device_id == device_id) {
-            return Err(ClaimError::AlreadyClaimed);
-        }
-        let epoch = next_epoch();
-        claims.push(Claim { pid, device_id, epoch });
-        epoch
-    };
+    if CLAIMS.lock().iter().any(|c| c.device_id == device_id) {
+        return Err(ClaimError::AlreadyClaimed);
+    }
     // Confined before it is powered, so the device never runs unconfined.
     if crate::hardware::broker::confine::attach(pid, device_id).is_err() {
-        CLAIMS.lock().retain(|c| !(c.pid == pid && c.device_id == device_id));
         return Err(ClaimError::Unconfined);
     }
     // Bring the device to power state D0 before its driver maps MMIO. Done
@@ -41,5 +39,14 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     // Before the driver can turn bus mastering on, so no request it ever
     // makes is no-snoop.
     super::no_snoop::snoop_every_request(device_id);
+    let mut claims = CLAIMS.lock();
+    // Another claim won the device meanwhile: this one's attach is undone.
+    if claims.iter().any(|c| c.device_id == device_id) {
+        drop(claims);
+        crate::hardware::broker::confine::detach(pid, device_id);
+        return Err(ClaimError::AlreadyClaimed);
+    }
+    let epoch = next_epoch();
+    claims.push(Claim { pid, device_id, epoch });
     Ok(epoch)
 }

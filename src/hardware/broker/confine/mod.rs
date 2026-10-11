@@ -30,6 +30,8 @@ mod posture;
 mod refuse;
 mod table;
 mod unmap;
+mod virtio;
+mod virtio_rule;
 
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
