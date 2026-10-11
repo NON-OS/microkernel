@@ -16,10 +16,12 @@
 //! Bulk endpoints for a mass-storage class driver: configure them, move
 //! data through them, and recover one that stalled.
 mod configure;
+mod poll;
 pub(super) mod reply;
 mod reset;
 mod run;
 mod transfer;
 pub use configure::configure;
+pub use poll::poll_in;
 pub use reset::reset;
 pub use transfer::{transfer_in, transfer_out};

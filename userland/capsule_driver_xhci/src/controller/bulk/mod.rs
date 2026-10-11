@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod input;
+mod look;
 mod pipes;
+mod poll;
 mod recover;
 mod transfer;
 mod wait;
 pub use input::{write_bulk_input, BulkEndpoint};
 pub use pipes::BulkPipes;
+pub use poll::{poll_bulk_in, BulkPoll};
 pub use recover::reset_bulk_endpoint;
 pub use transfer::bulk_transfer;

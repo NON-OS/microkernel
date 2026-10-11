@@ -20,8 +20,9 @@
 //! the completion code, the slot and endpoint ids, the residual length and
 //! the 64-bit pointer. These proofs run the driver's own `EventRing` and
 //! every function that consumes it (the interrupt drain, both completion
-//! waits, the interrupt-IN poll and the bulk wait) over host DMA memory,
-//! with a producer written from the specification on the other side.
+//! waits, the interrupt-IN poll, the bulk wait and the bulk poll) over host
+//! DMA memory, with a producer written from the specification on the other
+//! side.
 
 mod events;
 mod fixture;
@@ -29,6 +30,8 @@ mod producer;
 
 mod address_tests;
 mod boundary_tests;
+mod bulk_poll_more_tests;
+mod bulk_poll_tests;
 mod dequeue_tests;
 mod erdp_tests;
 mod fuzz_tests;
