@@ -26,4 +26,7 @@ pub struct SmmuInfo {
     /// `dma-coherent`: its table and queue walks snoop the CPU caches, so
     /// the kernel need not clean them to memory before the SMMU reads.
     pub coherent: bool,
+    /// The event queue's and global error SPIs, zero when not wired.
+    pub eventq_intid: u32,
+    pub gerror_intid: u32,
 }
