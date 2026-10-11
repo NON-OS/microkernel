@@ -14,52 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Serde shape mirrors the field names in
-//! `abi/marketplace_index.schema.json`. Hex-encoded fields stay as
-//! strings here and are converted at the IR boundary; numeric and
-//! enum fields keep the JSON spelling so a hand-edited JSON file is
-//! the authority.
-
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct IndexJson {
-    pub schema_version: u32,
-    pub operator_id: String,
-    pub published_at_ms: u64,
-    pub serial: u64,
-    pub entries: Vec<EntryJson>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EntryJson {
-    pub listing_id: String,
-    pub capsule_id: String,
-    pub name: String,
-    pub publisher_name: String,
-    pub publisher_pubkey: String,
-    pub publisher_eth_address: String,
-    pub description: String,
-    pub price: PriceJson,
-    pub token: TokenJson,
-    pub releases: Vec<ReleaseJson>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PriceJson {
-    pub kind: String,
-    pub amount_atomic: String,
-    pub period_seconds: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TokenJson {
-    pub symbol: String,
-    pub decimals: u8,
-    pub chain_id: u64,
-    #[serde(default)]
-    pub contract_address: String,
-}
+use super::commerce::ReleaseExtJson;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ReleaseJson {
@@ -75,6 +32,9 @@ pub struct ReleaseJson {
     /// Hex of the release's own zk trailer, empty when it ships none.
     #[serde(default)]
     pub zk_trailer_hash: String,
+    /// The schema 3 fields. `sign-release` fills in the commerce hash.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ext: Option<ReleaseExtJson>,
     pub validation: ValidationJson,
 }
 

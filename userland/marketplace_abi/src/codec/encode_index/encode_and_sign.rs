@@ -18,21 +18,25 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::encode_index::encode_index;
+use super::encode::encode_index;
+use crate::codec::encode_error::EncodeError;
 use crate::codec::writer::Writer;
 use crate::types::MarketplaceIndex;
 
-pub fn encode_and_sign<F>(mut index: MarketplaceIndex, sign: F) -> (Vec<u8>, [u8; 64])
+pub fn encode_and_sign<F>(
+    mut index: MarketplaceIndex,
+    sign: F,
+) -> Result<(Vec<u8>, [u8; 64]), EncodeError>
 where
     F: FnOnce(&[u8]) -> [u8; 64],
 {
     index.index_signature.clear();
-    let encoded = encode_index(&index);
+    let encoded = encode_index(&index)?;
     let signature = sign(&encoded.signed_bytes);
     let mut blob = encoded.signed_bytes;
     {
         let mut w = Writer::new(&mut blob);
         w.lp_bytes(&signature);
     }
-    (blob, signature)
+    Ok((blob, signature))
 }

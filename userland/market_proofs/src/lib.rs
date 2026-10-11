@@ -31,6 +31,9 @@ pub mod find_release;
 mod protocol;
 
 #[cfg(test)]
+mod abi_v3;
+
+#[cfg(test)]
 mod index_decode_tests;
 
 pub mod release_wire;
