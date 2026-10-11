@@ -19,12 +19,14 @@
 //! but to the wallet's ORDER_REFUND.
 
 mod delivered;
+mod kept;
 mod plan;
 mod record;
 mod table;
 mod take;
 
 pub use delivered::{deliver, Opened};
+pub use kept::{KeptDelivered, MAX_KEPT};
 pub use plan::order_plan;
 pub use record::{Order, ORDER_LEN};
 pub use table::{decode_orders, encode_orders, MAX_ORDERS, ORDERS_LEN};
