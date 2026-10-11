@@ -23,14 +23,8 @@ use nonos_app_skeleton::EventOutcome;
 use super::escrow_words::offered;
 use crate::wallet::order::escrow_offer::Offer;
 use crate::wallet::order::escrowing::Escrowing;
-use crate::wallet::order::fees::exact;
 use crate::wallet::order::send_step::{SendStep, DISPUTE, REFUND};
-use crate::wallet::shield::{actions, open};
-use crate::wallet::state::shield_ui::SHIELD_WITHDRAW;
-use crate::wallet::state::{State, VIEW_SHIELD};
-
-const OFF_SHIELD: &str = "The Shield is on another network: switch to Sepolia to pay the gas.";
-const ETH: u8 = 0;
+use crate::wallet::state::State;
 
 /// Whether the made order offers an action beside Close.
 pub fn offering(state: &State) -> bool {
@@ -56,16 +50,6 @@ fn pay_gas(state: &mut State) -> EventOutcome {
     let Some(SendStep::Gas { send, size, .. }) = e.map(|e| &e.step) else {
         return EventOutcome::Idle;
     };
-    let (to, amount) = (send.from, exact(*size));
-    if !open::here() {
-        state.failure = Some(OFF_SHIELD);
-        return EventOutcome::Repaint;
-    }
-    let ui = &mut state.shield_ui;
-    (ui.screen, ui.asset, ui.size, ui.amount) = (SHIELD_WITHDRAW, ETH, None, amount);
-    (ui.to_meter, ui.to_deposit, ui.failure) = (false, Some(to), None);
-    state.view = VIEW_SHIELD;
-    state.scroll = 0;
-    actions::review_withdraw(state);
-    EventOutcome::Repaint
+    let (to, size) = (send.from, *size);
+    crate::wallet::shield::gas_withdraw::withdraw_gas(state, to, size)
 }

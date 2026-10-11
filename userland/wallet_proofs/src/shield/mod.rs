@@ -20,6 +20,10 @@ pub mod due;
 pub mod due_entry;
 #[path = "../../../capsule_wallet_nonos/src/wallet/shield/due_why.rs"]
 pub mod due_why;
+#[path = "../../../capsule_wallet_nonos/src/wallet/shield/fresh_move.rs"]
+pub mod fresh_move;
+#[path = "../../../capsule_wallet_nonos/src/wallet/shield/fresh_move_act.rs"]
+pub mod fresh_move_act;
 #[path = "../../../capsule_wallet_nonos/src/wallet/shield/landed.rs"]
 pub mod landed;
 #[path = "../../../capsule_wallet_nonos/src/wallet/shield/landed_held.rs"]

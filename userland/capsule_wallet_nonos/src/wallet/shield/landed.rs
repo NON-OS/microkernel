@@ -21,6 +21,7 @@
 use alloc::vec::Vec;
 
 use super::due::Due;
+use super::fresh_move::Moving;
 use super::landed_held::Reading;
 use super::scan::Scan;
 
@@ -38,6 +39,8 @@ pub struct Landed {
     pub reading: Option<Reading>,
     /// The scan's batch was asked of the Shield as a job.
     pub derive_asked: bool,
+    /// NOX at a landed address being moved into the Shield.
+    pub moving: Option<Moving>,
 }
 
 /// The wait before the next read, from a random 16-bit draw.
