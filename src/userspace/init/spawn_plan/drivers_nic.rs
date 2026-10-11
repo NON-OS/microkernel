@@ -21,7 +21,6 @@ pub(super) fn spawn() {
     spawn_e1000e();
     spawn_igb();
     spawn_ixgbe();
-    spawn_tg3();
     realtek::spawn();
 }
 
@@ -63,12 +62,3 @@ fn spawn_ixgbe() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-ixgbe"))]
 fn spawn_ixgbe() {}
-
-#[cfg(feature = "nonos-capsule-driver-tg3")]
-fn spawn_tg3() {
-    use crate::hardware::tg3_capsule as c;
-    let spawn = c::spawn_driver_tg3_capsule;
-    super::boot::capsule("DRIVER-TG3", "driver_tg3", spawn, c::shared_state);
-}
-#[cfg(not(feature = "nonos-capsule-driver-tg3"))]
-fn spawn_tg3() {}
