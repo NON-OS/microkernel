@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_nox_meter::persist::{open, FILE_LEN};
+use nonos_payment_proto::EAGAIN;
 
 use super::hold::Meter;
 use crate::disk::{self, Loaded, STATE_PATH};
 use crate::keccak::Host;
-use crate::protocol::EAGAIN;
 
 impl Meter {
     /// Read the state file, until the store answers. No file, or one that

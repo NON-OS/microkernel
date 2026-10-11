@@ -22,10 +22,10 @@
 use nonos_libc::mk_getpid;
 use nonos_nox_meter::typed::{parse_reply, voucher_request, OP_SIGN_TYPED_DATA, REPLY_LEN};
 use nonos_nox_meter::voucher::Voucher;
+use nonos_payment_proto::EIO;
 
 use crate::keccak::Host;
 use crate::keyring;
-use crate::protocol::EIO;
 
 pub(crate) fn sign_voucher(key_id: u32, chain_id: u64, v: &Voucher) -> Result<[u8; 65], i32> {
     let tx = voucher_request(mk_getpid(), key_id, chain_id, v);

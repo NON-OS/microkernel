@@ -22,6 +22,11 @@
 /// The wallet's endpoints: its first window and the later ones.
 pub const WALLET: [&[u8]; 3] = [b"app.nonos_wallet", b"app.nonos_wallet.1", b"app.nonos_wallet.2"];
 
+/// Who may start and follow an escrow order: the
+/// wallet and the store. ORDER_REFUND is the wallet's alone.
+pub const BUYERS: [&[u8]; 4] =
+    [b"app.store", b"app.nonos_wallet", b"app.nonos_wallet.1", b"app.nonos_wallet.2"];
+
 /// capsule_nox_settle, the only reader of signed vouchers.
 pub const SETTLE: [&[u8]; 1] = [b"nox_settle"];
 
@@ -38,6 +43,7 @@ pub enum Role {
     Wallet,
     Settle,
     Payer,
+    Buyer,
 }
 
 impl Role {
@@ -47,6 +53,7 @@ impl Role {
             Role::Wallet => &WALLET,
             Role::Settle => &SETTLE,
             Role::Payer => &PAYERS,
+            Role::Buyer => &BUYERS,
         }
     }
 

@@ -20,12 +20,12 @@
 //! not open is refused, never replaced.
 
 use nonos_libc::crypto_random;
+use nonos_payment_proto::{EAGAIN, EIO, ENOPERSIST};
 use nonos_seal::NONCE_LEN;
 use nonos_vault::OVERHEAD;
 
 use crate::disk::{self, Loaded, KEY_PATH};
 use crate::keyring;
-use crate::protocol::{EACCES, EAGAIN, EIO};
 use crate::wipe::wipe;
 
 const RECORD: &[u8] = b"meter.secp256k1";
@@ -43,7 +43,7 @@ pub fn restore(root: &[u8; 32]) -> Result<u32, i32> {
             wipe(&mut secret);
             id
         }
-        Loaded::Absent if !disk::kept() => Err(EACCES),
+        Loaded::Absent if !disk::kept() => Err(ENOPERSIST),
         Loaded::Absent => fresh(root),
     }
 }

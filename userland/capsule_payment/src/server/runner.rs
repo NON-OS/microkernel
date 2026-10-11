@@ -17,11 +17,15 @@
 use alloc::vec;
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_send};
+use nonos_payment_proto::{parse_header, reply, EINVAL};
 
+use super::call::Call;
 use super::dispatch::dispatch;
 use crate::meter::Meter;
-use crate::protocol::{decode_request, encode_response, EINVAL, KERNEL_REPLY_ENDPOINT};
 
+/// Its own reply inbox: 0x1_0000_0010 was driver_hda's too, and of two
+/// holders of one reply inbox, the second registered could never answer.
+const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_001B;
 const MAX_MSG: usize = 4096;
 
 pub fn run() -> ! {
@@ -33,14 +37,17 @@ pub fn run() -> ! {
         if n <= 0 {
             continue;
         }
-        let resp = match decode_request(&buf[..n as usize]) {
-            Some(req) => dispatch(&mut meter, sender, req),
+        let resp = match parse_header(&buf[..n as usize]) {
+            Some((h, body)) => {
+                let call = Call { op: h.op, flags: h.flags, id: h.request_id, body };
+                dispatch(&mut meter, sender, &call)
+            }
             /*
-             * Refused by the decode: answered under a zero sequence number.
-             * The caller is blocked in its call until a reply comes, and the
-             * kernel keeps its place in this service's reply queue until then.
+             * Not this wire's frame: answered under op and id zero. The caller
+             * is blocked in its call until a reply comes, and the kernel keeps
+             * its place in this service's reply queue until then.
              */
-            None => encode_response(0, EINVAL, &[]),
+            None => reply(0, 0, 0, EINVAL, &[]),
         };
         let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, resp.as_ptr(), resp.len());
     }

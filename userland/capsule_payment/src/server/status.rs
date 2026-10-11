@@ -14,25 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What each refusal of the meter's accounting reads as on the wire.
+//! What each refusal of the meter's accounting reads as on the wire
+//! (payment_proto::status).
 
 use nonos_nox_meter::MeterError;
+use nonos_payment_proto as p;
 
 pub fn status_of(e: MeterError) -> i32 {
     match e {
-        MeterError::NoChannel => -2,
-        MeterError::Corrupt => -5,
-        MeterError::Duplicate => -22,
-        MeterError::Untrusted => -129,
-        MeterError::Mismatch => -71,
-        MeterError::NotMetered => -95,
-        MeterError::BelowMinimum => -33,
-        MeterError::Full => -23,
-        // Settled above what this meter signed (E13); payment_proto names it.
-        MeterError::Frozen => -1002,
-        MeterError::OverDeposit => -28,
-        MeterError::Expired => -62,
-        MeterError::Overflow => -75,
-        MeterError::OverBudget => -122,
+        MeterError::NoChannel => p::ENOENT,
+        MeterError::Corrupt => p::EIO,
+        MeterError::Duplicate => p::EINVAL,
+        MeterError::Untrusted => p::EKEYREJECTED,
+        MeterError::Mismatch => p::EPROTO,
+        MeterError::NotMetered => p::EOPNOTSUPP,
+        MeterError::BelowMinimum => p::EDOM,
+        MeterError::Full => p::ENFILE,
+        MeterError::Frozen => p::EFROZEN,
+        MeterError::OverDeposit => p::ENOSPC,
+        MeterError::Expired => p::ETIME,
+        MeterError::Overflow => p::EOVERFLOW,
+        MeterError::OverBudget => p::EDQUOT,
     }
 }

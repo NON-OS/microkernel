@@ -23,9 +23,9 @@ use nonos_libc::mk_ipc_call_timeout;
 use nonos_market_proto::{pair_body, parse_commerce, reply_body, request, OP_GET_COMMERCE};
 use nonos_market_proto::{ReplyError, SERVICE};
 use nonos_nox_meter::pay::Offer;
+use nonos_payment_proto::{EAGAIN, EINVAL};
 
 use super::lookup::port_of;
-use crate::protocol::{EAGAIN, EINVAL};
 
 const TIMEOUT_MS: u64 = 2000;
 const REPLY_MAX: usize = 8192;
