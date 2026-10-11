@@ -33,10 +33,11 @@ mod transcript_line;
 mod wipe;
 mod words;
 
-pub use enrolled::{enrolled, Enrolled, TRANSCRIPT_MAX};
+pub use enrolled::{enrolled, enrolled_where, Enrolled, TRANSCRIPT_MAX};
+pub use error::Refusal;
 pub use output::encode;
 pub use output_read::decode;
 pub use request::{parse_request, Request, REQUEST_MAX};
 pub use slots::{slots, Slots};
-pub use statement::assemble;
+pub use statement::{assemble, bound};
 pub use wipe::{wipe, wipe_bytes};
