@@ -22,8 +22,8 @@ and NOX are described in
 
 ## Limits
 
-`TREASURY` is a placeholder: the bytes `NONOS` followed by zeros and a final
-1, not the treasury address in `abi/nox_deployment.json`.
+The crate names no payee. The broker checks a payment against the payee the
+signed listing names and the token `nonos_nox_config` names.
 
 ## Tests
 
