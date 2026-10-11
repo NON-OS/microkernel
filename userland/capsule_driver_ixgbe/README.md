@@ -1,7 +1,10 @@
 # capsule_driver_ixgbe
 
-Status: not in the image. The capsule builds and its host proofs pass, but
-it has no owner certificate, no kernel embed and no spawn yet.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/ixgbe_capsule`)
+embeds and spawns it under `nonos-capsule-driver-ixgbe` (the
+`microkernel-driver-ixgbe` build), and net.core and net.l2 reach it through
+`src/services/registry/nics.rs`. It has no owner certificate yet, so no image
+carries it until the owner signs it.
 
 ## Role
 
@@ -111,8 +114,8 @@ completing through `net.core`.
 
 ## Release checklist
 
-- Kernel inventory family, mirror, spawn and NIC table entry.
-- Signed by the owner and added to the image's features.
+- Signed by the owner and added to the image's features, with net.core,
+  net.l2, the setup wizard and capsule_attack re-signed for the NIC table.
 - One machine of each MAC photographed with those lines.
 
 ## Explicit non-goals today
