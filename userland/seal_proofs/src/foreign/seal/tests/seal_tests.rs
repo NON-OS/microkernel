@@ -41,13 +41,16 @@ fn a_sealed_family_reads_back_whole() {
     f.answered(5, 0, Answer::Value(4));
     f.trapped(6, 101); // never answered: sealed as died, a success
     LIVE.lock().push(f);
-    let n = finish(77, true).expect("a seal");
+    let n = finish(77).expect("a seal");
     assert!(LIVE.lock().iter().all(|f| f.sup != 77), "a sealed family is no longer live");
     let sealed = SEALED.lock();
     let s = sealed.iter().find(|s| s.seal_no == n).expect("kept");
     let r = &s.record;
     let hc: Vec<u64> =
         (0..4).map(|i| u64::from_le_bytes(r[104 + 8 * i..][..8].try_into().unwrap())).collect();
+    let all = s.bytes();
+    assert_eq!((all.len(), &all[..240]), (s.bytes_len(), &r[..]), "record first");
+    assert_eq!(&all[240 + 4 * HIST_WORDS + 64..], &[0xC3; 32][..], "the list last");
     let (h, salt, diag) = witness_of(&s.witness());
     assert_eq!(
         (&r[6..8], &r[56..64], &r[176..208]),
@@ -58,5 +61,5 @@ fn a_sealed_family_reads_back_whole() {
     assert_eq!(&r[136..168], &meas_chain(&[[0xC3; 32]])[..]);
     assert!(r[208..].iter().all(|&x| x == 0), "the diag never enters the record");
     drop(sealed);
-    assert_eq!(finish(77, true), None, "nothing left to seal");
+    assert_eq!(finish(77), None, "nothing left to seal");
 }

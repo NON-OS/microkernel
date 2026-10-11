@@ -14,44 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `MkSealRead(seal_no, part, out_ptr, out_len)`: a sealed family, part by
-//! part. The record and the measurement list are public; the witness is the
-//! prover's alone.
+//! `MkSealRead(app_id, buf, len)`: nonos.prove takes the newest final record
+//! sealed for an app, as record | witness | measurement list. The record is
+//! dropped as it is read, so one sealed run yields at most one proof.
 
-use alloc::vec::Vec;
-
+use super::sealed::Sealed;
 use super::table::SEALED;
-use crate::syscall::microkernel::errnos::{
-    ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_NOMEM, ERRNO_PERM,
-};
+use crate::syscall::microkernel::device_secret_caller;
+use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_NOENT, ERRNO_NOMEM, ERRNO_PERM};
 
-const RECORD: u64 = 0;
-const WITNESS: u64 = 1;
-const MEASUREMENTS: u64 = 2;
+fn take(app_id: &[u8; 32], room: u64) -> Result<Sealed, i64> {
+    let mut sealed = SEALED.lock();
+    let at = sealed.iter().rposition(|s| s.app_id == *app_id).ok_or(ERRNO_NOENT)?;
+    if sealed[at].bytes_len() as u64 > room {
+        return Err(ERRNO_NOMEM);
+    }
+    sealed.remove(at).ok_or(ERRNO_NOENT)
+}
 
-/// Bytes written, or why not. The witness needs DeviceSecret, which signing
-/// keeps to nonos.prove: the histogram and its salt never reach anyone else.
-pub(crate) fn sys_seal_read(seal_no: u64, part: u64, out_ptr: u64, out_len: u64) -> i64 {
-    if part == WITNESS && !crate::syscall::caps::current_caps_or_default().can_device_secret() {
+pub(crate) fn sys_seal_read(app_id_ptr: u64, out_ptr: u64, out_len: u64) -> i64 {
+    if !device_secret_caller() {
         return ERRNO_PERM;
     }
-    let bytes: Vec<u8> = {
-        let sealed = SEALED.lock();
-        let Some(s) = sealed.iter().find(|s| s.seal_no == seal_no) else {
-            return ERRNO_NOENT;
-        };
-        match part {
-            RECORD => s.record.to_vec(),
-            WITNESS => s.witness(),
-            MEASUREMENTS => s.measurements(),
-            _ => return ERRNO_INVAL,
-        }
+    let mut app_id = [0u8; 32];
+    if crate::usercopy::copy_from_user(app_id_ptr, &mut app_id).is_err() {
+        return ERRNO_FAULT;
+    }
+    let s = match take(&app_id, out_len) {
+        Ok(s) => s,
+        Err(e) => return e,
     };
-    if bytes.len() as u64 > out_len {
-        return ERRNO_NOMEM;
+    let bytes = s.bytes();
+    if crate::usercopy::write_user_bytes(out_ptr, &bytes).is_err() {
+        // A bad buffer loses nothing: the record goes back for the next read.
+        SEALED.lock().push_back(s);
+        return ERRNO_FAULT;
     }
-    match crate::usercopy::write_user_bytes(out_ptr, &bytes) {
-        Ok(()) => bytes.len() as i64,
-        Err(_) => ERRNO_FAULT,
-    }
+    bytes.len() as i64
 }

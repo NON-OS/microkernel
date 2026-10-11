@@ -30,12 +30,25 @@ fn the_kernels_m_is_the_verifiers() {
     assert_eq!((f.meas, f.n_meas, f.list.as_slice()), (meas_chain(&list), 3, &list[..]));
 }
 
+fn nth(i: usize) -> [u8; 32] {
+    let mut m = [0u8; 32];
+    m[..8].copy_from_slice(&(i as u64).to_le_bytes());
+    m
+}
+
 #[test]
-fn a_list_past_its_bound_cannot_rebuild_m() {
+fn a_measurement_seen_again_is_not_absorbed_again() {
     let mut f = family(SUP);
-    for i in 0..=MAX_MEAS {
-        f.measured(&[i as u8; 32]);
-    }
-    assert_eq!((f.list.len(), f.n_meas as usize), (MAX_MEAS, MAX_MEAS + 1));
-    assert_ne!(meas_chain(&f.list), f.meas, "the kept list proves nothing");
+    [1, 2, 1, 1, 2].iter().for_each(|&i| f.measured(&nth(i)));
+    assert_eq!((f.list.as_slice(), f.n_meas), (&[nth(1), nth(2)][..], 2));
+    assert_eq!(f.meas, meas_chain(&f.list));
+}
+
+#[test]
+fn past_its_bound_m_stops_and_the_list_still_rebuilds_it() {
+    let mut f = family(SUP);
+    (0..MAX_MEAS + 3).for_each(|i| f.measured(&nth(i)));
+    assert!(f.overflow);
+    assert_eq!((f.list.len(), f.n_meas as usize), (MAX_MEAS, MAX_MEAS));
+    assert_eq!(meas_chain(&f.list), f.meas, "the kept list is exactly M's");
 }

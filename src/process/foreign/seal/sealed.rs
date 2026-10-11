@@ -25,6 +25,8 @@ use super::record::RECORD_BYTES;
 
 pub(crate) struct Sealed {
     pub(crate) seal_no: u64,
+    /// Slot 0, the app MkSealRead finds the record by.
+    pub(crate) app_id: [u8; 32],
     pub(crate) record: [u8; RECORD_BYTES],
     pub(crate) hist: Box<[u32; HIST_WORDS]>,
     pub(crate) salt: [u64; 4],
@@ -32,7 +34,7 @@ pub(crate) struct Sealed {
     pub(crate) list: Vec<[u8; 32]>,
 }
 
-/// The two parts a reader may ask for beyond the record.
+/// H, the salt and the diag.
 pub(crate) const WITNESS_BYTES: usize = 4 * HIST_WORDS + 64;
 
 impl Sealed {
@@ -45,7 +47,16 @@ impl Sealed {
         out
     }
 
-    pub(crate) fn measurements(&self) -> Vec<u8> {
-        self.list.concat()
+    pub(crate) fn bytes_len(&self) -> usize {
+        RECORD_BYTES + WITNESS_BYTES + 32 * self.list.len()
+    }
+
+    /// What MkSealRead hands over: record | witness | measurement list.
+    pub(crate) fn bytes(&self) -> Vec<u8> {
+        let mut out = Vec::with_capacity(self.bytes_len());
+        out.extend_from_slice(&self.record);
+        out.extend_from_slice(&self.witness());
+        self.list.iter().for_each(|m| out.extend_from_slice(m));
+        out
     }
 }

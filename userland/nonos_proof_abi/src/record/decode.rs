@@ -27,7 +27,7 @@ pub fn decode_record(b: &[u8]) -> Option<Record> {
         return None;
     }
     let flags = u16_at(b, FLAGS)?;
-    if flags & !(FLAG_FINAL | FLAG_SATURATED) != 0 {
+    if flags & !(FLAG_FINAL | FLAG_SATURATED | FLAG_OVERFLOW) != 0 {
         return None;
     }
     if RESERVED.iter().any(|&(lo, hi)| b[lo..hi].iter().any(|&x| x != 0)) {
