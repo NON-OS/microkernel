@@ -34,6 +34,8 @@ const SPACE_SHIFT: u32 = 24;
 const SPACE_MASK: u32 = 0b11;
 /// The space code for I/O.
 pub const SPACE_IO: u32 = 0b01;
+/// The space code for 32-bit memory.
+pub(super) const SPACE_MEM32: u32 = 0b10;
 
 pub struct Range {
     pub space: u32,
