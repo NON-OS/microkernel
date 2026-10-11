@@ -4,6 +4,8 @@
 
 #[path = "../../../capsule_wallet_nonos/src/wallet/chain.rs"]
 pub mod chain;
+#[cfg(test)]
+pub mod meter;
 pub mod net;
 /* The names the capsule's nox module gives the pure files the fetch reads. */
 pub mod nox {
@@ -18,5 +20,7 @@ pub mod paint;
 #[path = "../../../capsule_wallet_nonos/src/wallet/rpc/mod.rs"]
 pub mod rpc;
 pub mod send;
+#[cfg(test)]
+pub mod settle;
 pub mod swap;
 pub mod vault;
