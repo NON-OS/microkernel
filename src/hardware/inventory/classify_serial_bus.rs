@@ -16,12 +16,17 @@
 
 use super::family::HardwareFamily;
 
-pub(super) fn classify_serial_bus(subclass: u8, progif: u8) -> HardwareFamily {
+/// Linux's i2c-i801 drives Intel's SMBus hosts only; another vendor's (AMD's
+/// FCH among them) has a register set of its own.
+const INTEL: u16 = 0x8086;
+
+pub(super) fn classify_serial_bus(subclass: u8, progif: u8, vendor: u16) -> HardwareFamily {
     match (subclass, progif) {
         (0x03, 0x30) => HardwareFamily::UsbXhci,
         (0x03, 0x20) => HardwareFamily::UsbEhci,
         (0x03, 0x10) => HardwareFamily::UsbOhci,
         (0x03, 0x00) => HardwareFamily::UsbUhci,
+        (0x05, _) if vendor == INTEL => HardwareFamily::SerialSmbus,
         (0x05, _) => HardwareFamily::SerialI2c,
         _ => HardwareFamily::Unknown,
     }
