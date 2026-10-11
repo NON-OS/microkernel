@@ -24,6 +24,7 @@ mod enable;
 mod frames;
 pub mod icc;
 mod in_service;
+pub mod intid;
 pub mod irq_handlers;
 pub mod redistributor;
 pub mod select;

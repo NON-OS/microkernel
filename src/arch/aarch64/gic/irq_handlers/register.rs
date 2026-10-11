@@ -16,7 +16,8 @@
 
 use core::sync::atomic::Ordering;
 
-use super::state::{IRQ_HANDLERS, IRQ_OWNERS, MAX_INTID, OWNER_CAPSULE, OWNER_FREE, OWNER_KERNEL};
+use super::super::intid::slot;
+use super::state::{IRQ_HANDLERS, IRQ_OWNERS, OWNER_CAPSULE, OWNER_FREE, OWNER_KERNEL};
 
 #[derive(Debug, Clone, Copy)]
 pub enum GicIrqError {
@@ -42,24 +43,20 @@ pub fn unregister_for_capsule(intid: u32) -> Result<(), GicIrqError> {
 }
 
 fn claim(intid: u32, handler: fn(u32), owner: u8) -> Result<(), GicIrqError> {
-    if intid >= MAX_INTID {
-        return Err(GicIrqError::OutOfRange);
-    }
-    IRQ_OWNERS[intid as usize]
+    let at = slot(intid).ok_or(GicIrqError::OutOfRange)?;
+    IRQ_OWNERS[at]
         .compare_exchange(OWNER_FREE, owner, Ordering::AcqRel, Ordering::Acquire)
         .map_err(|_| GicIrqError::AlreadyClaimed)?;
-    IRQ_HANDLERS[intid as usize].store(handler as *mut (), Ordering::Release);
+    IRQ_HANDLERS[at].store(handler as *mut (), Ordering::Release);
     Ok(())
 }
 
 fn release(intid: u32, expected: u8) -> Result<(), GicIrqError> {
-    if intid >= MAX_INTID {
-        return Err(GicIrqError::OutOfRange);
-    }
-    if IRQ_OWNERS[intid as usize].load(Ordering::Acquire) != expected {
+    let at = slot(intid).ok_or(GicIrqError::OutOfRange)?;
+    if IRQ_OWNERS[at].load(Ordering::Acquire) != expected {
         return Err(GicIrqError::NotOwner);
     }
-    IRQ_HANDLERS[intid as usize].store(core::ptr::null_mut(), Ordering::Release);
-    IRQ_OWNERS[intid as usize].store(OWNER_FREE, Ordering::Release);
+    IRQ_HANDLERS[at].store(core::ptr::null_mut(), Ordering::Release);
+    IRQ_OWNERS[at].store(OWNER_FREE, Ordering::Release);
     Ok(())
 }

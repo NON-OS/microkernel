@@ -16,18 +16,19 @@
 
 use core::sync::atomic::{AtomicPtr, AtomicU8};
 
-pub(super) const MAX_INTID: u32 = 1020;
+use super::super::intid::SLOTS;
 
-pub(super) static IRQ_HANDLERS: [AtomicPtr<()>; MAX_INTID as usize] = {
+// Indexed by `intid::slot`: the lines, then the LPIs the kernel hands out.
+pub(super) static IRQ_HANDLERS: [AtomicPtr<()>; SLOTS] = {
     const INIT: AtomicPtr<()> = AtomicPtr::new(core::ptr::null_mut());
-    [INIT; MAX_INTID as usize]
+    [INIT; SLOTS]
 };
 
 pub(super) const OWNER_FREE: u8 = 0;
 pub(super) const OWNER_KERNEL: u8 = 1;
 pub(super) const OWNER_CAPSULE: u8 = 2;
 
-pub(super) static IRQ_OWNERS: [AtomicU8; MAX_INTID as usize] = {
+pub(super) static IRQ_OWNERS: [AtomicU8; SLOTS] = {
     const INIT: AtomicU8 = AtomicU8::new(OWNER_FREE);
-    [INIT; MAX_INTID as usize]
+    [INIT; SLOTS]
 };

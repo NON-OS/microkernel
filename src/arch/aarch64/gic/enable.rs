@@ -16,11 +16,17 @@
 
 use super::device::Gic;
 use super::distributor::GicDistributor;
+use super::intid::LINES;
 use super::state::{dist_base, version};
 use super::version::GicVersion;
 
-/// Enable `irq`. An SGI or PPI is enabled for the calling CPU only.
+/// Enable `irq`. An SGI or PPI is enabled for the calling CPU only. An LPI
+/// is not a line: its enable bit is in the configuration table the ITS
+/// driver keeps, and a distributor register past the SPIs is not its.
 pub fn enable_irq(irq: u32) {
+    if irq >= LINES {
+        return;
+    }
     match version() {
         Some(GicVersion::V3) => Gic::new(dist_base()).enable_irq(irq),
         Some(GicVersion::V2) => GicDistributor::new(dist_base()).enable_irq(irq),
@@ -29,6 +35,9 @@ pub fn enable_irq(irq: u32) {
 }
 
 pub fn disable_irq(irq: u32) {
+    if irq >= LINES {
+        return;
+    }
     match version() {
         Some(GicVersion::V3) => Gic::new(dist_base()).disable_irq(irq),
         Some(GicVersion::V2) => GicDistributor::new(dist_base()).disable_irq(irq),
