@@ -30,6 +30,8 @@ mod read;
 mod refused;
 mod span;
 mod transfer;
+mod wire;
+mod wire_identity_parse;
 mod write;
 
 pub use discover::{discover, Found};
