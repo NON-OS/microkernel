@@ -25,6 +25,7 @@ let
       "userland/nonos_ed25519"
       "userland/nonos_i2cmodel"
       "userland/attest_receipt"
+      "userland/nonos_linux_policy"
       "nonos-attest-path"
       "nonos-sign"
     ];
