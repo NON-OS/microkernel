@@ -14,15 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The meter's escrow request: a fresh buyer key, its public half
-//! in the request, and a 36-byte proof of work the agent's pow_check accepts
-//! at ESCROW_POW_EFFORT; nothing without a key or a nonce to start from.
+//! The meter's escrow request: a fresh buyer key, and a 36-byte
+//! proof of work pow_check takes at ESCROW_POW_EFFORT; else nothing.
 
 use nonos_equix::Solver;
 use nonos_nox_chunks::{pow_check, PowField, POW_FIELD_LEN, X25519};
 use nonos_nox_config::ESCROW_POW_EFFORT;
 use nonos_nox_meter::escrow::{escrow_request, Want, NONCE_TRIES};
 
+#[path = "../host/mod.rs"]
+mod host;
+mod kept;
+mod offer;
+mod offer_run;
+mod seller;
 mod x;
 use x::D;
 

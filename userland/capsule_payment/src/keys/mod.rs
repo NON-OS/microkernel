@@ -18,6 +18,8 @@ mod bound;
 mod open;
 mod record;
 mod secp;
+mod x25519;
 
 pub use open::{open, Keys};
 pub use record::{open_record, random, seal_record};
+pub use x25519::Dalek;

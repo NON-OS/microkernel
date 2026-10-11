@@ -20,6 +20,7 @@ use nonos_payment_proto::{EAGAIN, ENOPERSIST};
 use nonos_policy_client::{get_bool, lookup};
 use nonos_policy_proto::Field;
 
+use super::chunked::{read_all, write_all};
 use super::ops;
 use super::paths::DIR;
 use super::vfs::{ENOENT, O_CREATE, O_TRUNC};
@@ -38,7 +39,7 @@ pub fn load(path: &[u8], len: usize) -> Loaded {
         Err(Some(ENOENT)) => return Loaded::Absent,
         Err(_) => return Loaded::Silent,
     };
-    let got = ops::read(fd, len);
+    let got = read_all(fd, len);
     ops::close(fd);
     got.map_or(Loaded::Silent, Loaded::Bytes)
 }
@@ -61,7 +62,7 @@ pub fn save(path: &[u8], data: &[u8]) -> Result<(), i32> {
     let _ = ops::mkdir(DIR);
     let _ = ops::unlink(path);
     let fd = ops::open(path, O_CREATE | O_TRUNC).map_err(code)?;
-    let wrote = ops::write(fd, data);
+    let wrote = write_all(fd, data);
     ops::close(fd);
     wrote.map_err(code)?;
     ops::persist(path).map_err(code)
