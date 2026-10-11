@@ -52,6 +52,12 @@ fn anything_less_is_refused() {
     );
     let bare = ReleaseEscrow { content_len: 0, ..e.clone() };
     assert!(read_named(CHAIN, &c, &bare, &ok).is_err(), "no escrowed package");
+    let mut per_call = commerce(SettleMode::Escrow);
+    let mut b = nonos_marketplace_abi::commerce_from_bytes(&per_call.block).unwrap();
+    b.unit = nonos_nox_config::UNIT_CALL;
+    per_call.block = nonos_marketplace_abi::commerce_bytes(&b);
+    let said = read_named(CHAIN, &per_call, &e, &ok);
+    assert!(matches!(said, Err(s) if s.contains("by the install")), "escrow is per install");
     let garbled = Commerce { block: vec![1, 2, 3], ..commerce(SettleMode::Escrow) };
     assert!(read_named(CHAIN, &garbled, &e, &ok).is_err());
 }

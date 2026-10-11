@@ -29,7 +29,7 @@ fn block(mode: SettleMode) -> Block {
     Block {
         payee: b.payee,
         bond_id: b.bond_id,
-        unit: [0; 32],
+        unit: nonos_nox_config::UNIT_INSTALL,
         unit_price: b.amount,
         min_charge: 0,
         settle_mode: mode,

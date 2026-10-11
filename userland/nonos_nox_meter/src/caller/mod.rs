@@ -17,5 +17,5 @@
 mod names;
 mod role;
 
-pub use names::{BUYERS, DELIVERERS, INSTALL, PAYERS, SETTLE, WALLET};
+pub use names::{BUYERS, DELIVERERS, INSTALL, PAYERS, SETTLE, STORE, WALLET};
 pub use role::Role;

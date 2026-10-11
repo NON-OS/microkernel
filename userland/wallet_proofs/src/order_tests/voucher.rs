@@ -40,7 +40,7 @@ fn a_voucher_listing_reads_as_a_channel_without_escrow_fields() {
     let v = voucher();
     let b = buy();
     assert_eq!((v.chain_id, v.payee, v.listing_id), (CHAIN, b.payee, b.listing_id));
-    assert_eq!((v.unit, v.unit_price, v.min_charge), ([0; 32], b.amount, 0));
+    assert_eq!((v.unit, v.unit_price, v.min_charge), (nonos_nox_config::UNIT_INSTALL, b.amount, 0));
 }
 
 #[test]
