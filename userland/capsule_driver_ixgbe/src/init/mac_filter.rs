@@ -1,0 +1,49 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The receive filters under the drawn address, as ixgbe_init_rx_addrs
+//! leaves them: the drawn address in RAR0 with AV, every other entry cleared,
+//! and the multicast table zeroed. Firmware or a previous OS can leave old
+//! entries, and the factory address in RAR0 is the identifier the drawn one
+//! replaces.
+//!
+//! RAH's pool bits (MPSAR) are left as the reset leaves them: with VMDq off
+//! (MRQC as the reset leaves it) none is read.
+
+use crate::constants::ctrl::RAH_AV;
+use crate::constants::regs::{ral, MTA_ENTRY_COUNT, RAR_ENTRIES, REG_MTA_BASE};
+use crate::constants::MAC_LEN;
+use crate::regs::Regs;
+
+pub fn program(regs: &Regs, mac: &[u8; MAC_LEN]) {
+    let low = u32::from_le_bytes([mac[0], mac[1], mac[2], mac[3]]);
+    let high = u32::from_le_bytes([mac[4], mac[5], 0, 0]) | RAH_AV;
+    // SAFETY: `regs` carries a valid broker MmioMap base for BAR0; RAL/RAH
+    // below RAR_ENTRIES and MTA 0..128 are 32-bit registers inside it
+    // (ixgbe_type.h).
+    unsafe {
+        for i in 1..RAR_ENTRIES {
+            regs.w32(ral(i), 0);
+            regs.w32(ral(i) + 4, 0);
+        }
+        // RAL before RAH: the entry only goes live with the AV write.
+        regs.w32(ral(0), low);
+        regs.w32(ral(0) + 4, high);
+        for i in 0..MTA_ENTRY_COUNT {
+            regs.w32(REG_MTA_BASE + i * 4, 0);
+        }
+    }
+}
