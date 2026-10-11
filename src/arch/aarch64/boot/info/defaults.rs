@@ -18,6 +18,7 @@ use super::limits::MAX_CPUS;
 use super::reserved::Reserved;
 use super::types::BootInfo;
 use super::virt_ram::{memory_map, RAM_BASE, RAM_SIZE};
+use super::virt_uart::VIRT_UART;
 
 impl Default for BootInfo {
     fn default() -> Self {
@@ -28,7 +29,7 @@ impl Default for BootInfo {
             kernel_size: 0x0020_0000,
             dtb_base: 0,
             dtb_size: 0,
-            uart_base: 0x0900_0000,
+            uart: VIRT_UART,
             // virt puts the distributor at the same place for either GIC, the
             // GICv3 redistributors at 0x080a_0000 and the GICv2 CPU interface
             // at 0x0801_0000. Which one is there is the CPU's to say.
