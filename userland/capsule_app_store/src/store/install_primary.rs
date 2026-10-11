@@ -20,7 +20,7 @@
 use super::install::{ask, open, remove, Asked};
 use super::next_step::{on_enter, Enter};
 use super::progress::Progress;
-use super::purchase::post;
+use super::purchase::{names_of, post};
 use super::purchase_said::{by_wallet, ordered};
 use super::state::State;
 
@@ -36,8 +36,10 @@ pub fn primary(state: &mut State) -> Option<Asked> {
         // A sold listing is bought in the wallet, which installs it after.
         Enter::Install if state.current().is_some_and(by_wallet) => {
             let asked = post(state);
-            let order = state.current().is_some_and(ordered);
-            state.orders.awaiting |= asked == Asked::InWallet && order;
+            if asked == Asked::InWallet && state.current().is_some_and(ordered) {
+                state.orders.posted = state.current().map(names_of);
+                state.orders.order = None;
+            }
             Some(asked)
         }
         Enter::Install => {
