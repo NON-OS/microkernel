@@ -18,8 +18,8 @@
 /// between a few units at most; more than this is refused, not truncated.
 pub const MAX_MAP_ENTRIES: usize = 8;
 
-/// One `iommu-map` entry: requester ids `[rid_base, rid_base + length)` reach
-/// the unit `phandle` as stream ids from `sid_base` on.
+/// One `iommu-map` or `msi-map` entry: requester ids `[rid_base, rid_base +
+/// length)` reach `phandle` as ids from `sid_base` on.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct MapEntry {
     pub rid_base: u32,
@@ -28,7 +28,7 @@ pub struct MapEntry {
     pub length: u32,
 }
 
-/// A host bridge's `iommu-map`, with `iommu-map-mask` applied to every
+/// A host bridge's `iommu-map` or `msi-map`, with its mask applied to every
 /// requester id before it is looked up.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct IommuMap {
@@ -38,10 +38,16 @@ pub struct IommuMap {
 }
 
 impl IommuMap {
-    /// The stream id `rid` carries at the unit `phandle`, or `None` when no
-    /// entry sends it there. The first matching entry wins, as the binding
-    /// says, so an overlap is resolved the way Linux resolves it.
+    /// The stream id `rid` carries at the unit `phandle`.
     pub fn stream_id(&self, rid: u16, phandle: u32) -> Option<u32> {
+        self.output(rid, phandle)
+    }
+
+    /// The id `rid` is known by at `phandle`, a stream id at an SMMU or a
+    /// device id at an ITS, or `None` when no entry sends it there. The first
+    /// matching entry wins, as the binding says, so an overlap is resolved the
+    /// way Linux resolves it.
+    pub fn output(&self, rid: u16, phandle: u32) -> Option<u32> {
         let rid = u32::from(rid) & self.mask;
         let entry = self.entries[..self.count]
             .iter()
