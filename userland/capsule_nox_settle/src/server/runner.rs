@@ -16,11 +16,12 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_ipc_recv_from, mk_ipc_send, mk_uptime_ms};
-use nonos_settle_proto::{parse_header, reply, EINVAL, HDR_LEN, MAX_RAW_TX};
+use nonos_libc::{mk_ipc_recv_from, mk_ipc_send, mk_ipc_send_to_pid, mk_uptime_ms};
+use nonos_settle_proto::{parse_header, reply, EINVAL, FLAG_ASYNC, HDR_LEN, MAX_RAW_TX};
 
 use super::call::Call;
 use super::dispatch::dispatch;
+use super::gate::flags_admitted;
 use crate::drain::{drain_all, DRAIN_EVERY_MS};
 use crate::settle::Settle;
 
@@ -44,9 +45,12 @@ pub fn run() -> ! {
         if n <= 0 {
             continue;
         }
+        let mut to_pid = false;
         let resp = match parse_header(&buf[..n as usize]) {
             Some((h, body)) => {
                 let call = Call { op: h.op, flags: h.flags, id: h.request_id, body };
+                // ASYNC: the meter is not blocked in a call, so its answer goes to its inbox.
+                to_pid = h.flags & FLAG_ASYNC != 0 && flags_admitted(h.flags, sender);
                 dispatch(&mut settle, sender, &call)
             }
             /*
@@ -55,6 +59,9 @@ pub fn run() -> ! {
              */
             None => reply(0, 0, 0, EINVAL, &[]),
         };
-        let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, resp.as_ptr(), resp.len());
+        let _ = match to_pid {
+            true => mk_ipc_send_to_pid(sender, resp.as_ptr(), resp.len()),
+            false => mk_ipc_send(KERNEL_REPLY_ENDPOINT, resp.as_ptr(), resp.len()),
+        };
     }
 }

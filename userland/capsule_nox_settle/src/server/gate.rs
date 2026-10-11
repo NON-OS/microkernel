@@ -18,12 +18,19 @@
 //! pid owns each name the op admits.
 
 use nonos_libc::mk_service_lookup;
-use nonos_settle_proto::admits;
+use nonos_settle_proto::{admits, admits_flags};
+
+fn owner_of(name: &[u8]) -> Option<u32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+    (rc == 0 && pid != 0).then_some(pid)
+}
 
 pub fn admitted(op: u16, sender: u32) -> bool {
-    admits(op, sender, |name| {
-        let (mut port, mut pid) = (0u32, 0u32);
-        let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
-        (rc == 0 && pid != 0).then_some(pid)
-    })
+    admits(op, sender, owner_of)
+}
+
+/// ASYNC (flags bit 0) from payment's pid alone (v1.4.15).
+pub fn flags_admitted(flags: u16, sender: u32) -> bool {
+    admits_flags(flags, sender, owner_of)
 }

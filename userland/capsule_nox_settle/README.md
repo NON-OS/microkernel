@@ -68,6 +68,10 @@ intent the flags of `to`, and of an approve's spender, are read again.
 
 ## Ops
 
+ASYNC (header flags bit 0) is taken from payment's registry pid only, else
+EINVAL; its answer goes back with mk_ipc_send_to_pid, echoing op, flags and
+id, into the meter's service inbox (v1.4.15).
+
 - READ: a view of the table by number; the caller never names `to` or
   calldata. The raw ABI return, as words.
 - INTENT: the calldata's selector must belong to its kind, and an approve's
