@@ -27,10 +27,12 @@
 const INTEL: u16 = 0x8086;
 
 /// Bay Trail (two), Braswell/Cherry Trail, Broxton, Broxton-M, Apollo Lake,
-/// Gemini Lake, Cannon Point, Ice Point, Cedar Fork, Elkhart Lake, Jasper
-/// Lake.
-pub const INTEL_EMMC_DEVICE_IDS: [u16; 12] = [
-    0x0f14, 0x0f50, 0x2294, 0x0acc, 0x1aa8, 0x5acc, 0x31cc, 0x9dc4, 0x34c4, 0x18db, 0x4b47, 0x4dc4,
+/// Gemini Lake, Sunrise Point, Cannon Point, Ice Point, Cedar Fork, Elkhart
+/// Lake, Jasper Lake: the capsule's own list (emmc_proofs holds the two
+/// together), so no host it would serve goes without the capsule started.
+pub const INTEL_EMMC_DEVICE_IDS: [u16; 13] = [
+    0x0f14, 0x0f50, 0x2294, 0x0acc, 0x1aa8, 0x5acc, 0x31cc, 0x9d2b, 0x9dc4, 0x34c4, 0x18db, 0x4b47,
+    0x4dc4,
 ];
 
 const PCI_CLASS_SYSTEM: u8 = 0x08;
