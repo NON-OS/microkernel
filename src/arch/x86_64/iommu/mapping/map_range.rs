@@ -67,5 +67,7 @@ pub fn map_range(
         Frame::at(slot.table_phys)?.write(slot.index, entry)?;
         touched.note(slot.table_phys);
     }
-    commit(touched, domain, true)
+    // The entries are in place whatever the flush says; the caller must not
+    // free their frames on this error as if nothing were mapped.
+    commit(touched, domain, true).map_err(|_| VtdError::Uncommitted)
 }

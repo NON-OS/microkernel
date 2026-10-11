@@ -25,6 +25,9 @@ pub enum AmdViError {
     /// A unit did not store a completion wait within `COMMAND_MS`, or its
     /// command buffer stopped draining.
     Timeout,
+    /// A map's entries were written and the domain flush failed: the range
+    /// may be live.
+    Uncommitted,
     /// No frame, or no contiguous run, for a table.
     NoFrames,
     TableUnreachable,
