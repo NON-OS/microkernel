@@ -16,11 +16,12 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_ipc_recv_from, mk_pid_alive, mk_uptime_ms};
+use nonos_libc::{mk_ipc_recv_from, mk_uptime_ms};
 
 use super::announce::announce;
 use super::pump::PumpState;
 use super::streams::StreamTable;
+use super::tidy::tidy;
 use super::{handle, no_sink};
 use crate::mark::mark;
 use crate::mixer::Mixer;
@@ -34,12 +35,9 @@ const TX_LEN: usize = if super::proto::OUTPUT_REPLY_LEN > super::proto::VOLUME_R
     super::proto::VOLUME_REPLY_LEN
 };
 const RECV_TIMEOUT_MS: u64 = 5;
-/// How often the streams of clients that ended are looked for.
+/// How often the streams of clients that ended, and a USB device come or
+/// gone, are looked for.
 const REAP_GAP_MS: i64 = 2_000;
-
-fn alive(pid: u32) -> bool {
-    mk_pid_alive(pid)
-}
 
 pub fn run() -> ! {
     mark("[AUDIO] up\n");
@@ -57,7 +55,7 @@ pub fn run() -> ! {
         let now = mk_uptime_ms();
         if now.wrapping_sub(last_reap) >= REAP_GAP_MS {
             last_reap = now;
-            table.reap(alive);
+            tidy(&mut table, &mut pump, sink.as_ref());
         }
         if !nonos_libc::recv_ready(n) {
             if let Some(ref s) = sink {
