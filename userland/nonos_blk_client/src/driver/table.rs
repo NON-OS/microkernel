@@ -19,8 +19,6 @@
 //! here, and the driver's own tests are what hold the two together until
 //! the three protocols become one.
 
-use super::pci::Controller;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Driver {
     VirtioBlk,
@@ -29,14 +27,6 @@ pub enum Driver {
 }
 
 pub const ALL: [Driver; 3] = [Driver::Nvme, Driver::Ahci, Driver::VirtioBlk];
-
-/// Opcodes in the order capacity, read, write, flush.
-pub struct Ops {
-    pub capacity: u16,
-    pub read: u16,
-    pub write: u16,
-    pub flush: u16,
-}
 
 impl Driver {
     /// The service name of instance `n` of this driver, `None` past the
@@ -61,46 +51,6 @@ impl Driver {
         match self {
             Driver::VirtioBlk => 1,
             Driver::Nvme | Driver::Ahci => 4,
-        }
-    }
-
-    /// The kind of controller on the bus this driver serves.
-    pub fn controller(self) -> Controller {
-        match self {
-            Driver::VirtioBlk => Controller::VirtioBlk,
-            Driver::Nvme => Controller::Nvme,
-            Driver::Ahci => Controller::Ahci,
-        }
-    }
-
-    /// Whether this driver serves a disk from controller `c`: the SATA
-    /// driver also serves the eMMC hosts.
-    pub fn serves(self, c: Controller) -> bool {
-        c == self.controller() || (self == Driver::Ahci && c == Controller::Emmc)
-    }
-
-    pub fn magic(self) -> u32 {
-        match self {
-            Driver::VirtioBlk => 0x4E42_4C4B,
-            Driver::Nvme => 0x4E4E_564D,
-            Driver::Ahci => 0x4E41_4843,
-        }
-    }
-
-    pub fn ops(self) -> Ops {
-        match self {
-            Driver::VirtioBlk => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
-            Driver::Nvme => Ops { capacity: 6, read: 7, write: 8, flush: 9 },
-            Driver::Ahci => Ops { capacity: 4, read: 5, write: 6, flush: 7 },
-        }
-    }
-
-    /// The bus, as a person sees it in the disk list.
-    pub fn label(self) -> &'static [u8] {
-        match self {
-            Driver::VirtioBlk => b"virtio",
-            Driver::Nvme => b"NVMe",
-            Driver::Ahci => b"SATA",
         }
     }
 }
