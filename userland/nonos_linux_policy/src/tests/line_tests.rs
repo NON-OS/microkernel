@@ -61,3 +61,9 @@ fn calls_read_as_the_ok_line_prints_them() {
     assert_eq!((l.mask, l.calls), (TTY, set));
     assert_eq!(set_of(&format!("{}01", "ff".repeat(64))), Some(SyscallSet::ALL));
 }
+
+#[test]
+fn files_user_is_reserved_in_the_vendor_table_too() {
+    let why = parse("/bin/prog WAYLAND FILES_USER").err().unwrap();
+    assert!(why.contains("FILES_USER is reserved"), "{why}");
+}
