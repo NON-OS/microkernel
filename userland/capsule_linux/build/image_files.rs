@@ -50,7 +50,7 @@ pub fn image_files(store: &str) -> Result<Vec<String>, String> {
         let value = value.strip_prefix(':').map(str::trim_start).unwrap_or("");
         let value = value.strip_prefix('"').ok_or("a path that is not a string")?;
         let path = &value[..value.find('"').ok_or("a path never ends")?];
-        let file = path.strip_prefix("/linux/").ok_or_else(|| format!("{path}: not under /linux"))?;
+        let file = path.strip_prefix("/linux/").ok_or_else(|| format!("{path}: not in /linux"))?;
         if !file.bytes().all(|b| b.is_ascii_graphic() && b != b'\\') {
             return Err(format!("{path}: not a plain name"));
         }
