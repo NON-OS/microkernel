@@ -15,8 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod dmar;
+mod dmar_cover;
 mod dmar_flags;
+mod dmar_parse;
 mod dmar_reserved;
+mod dmar_translated;
 mod dmar_units;
 pub mod dmar_rmrr;
 pub mod dmar_scope;
