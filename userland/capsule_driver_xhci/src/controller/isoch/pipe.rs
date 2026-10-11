@@ -18,11 +18,16 @@
 //! batch each, and the last TD of the batch still in flight.
 
 use super::endpoint::IsochEndpoint;
+use crate::constants::COMMAND_RING_TRBS;
 use crate::dma::{DmaPool, DmaRegion};
 use crate::error::XhciResult;
-use crate::protocol::ISOCH_MAX;
+use crate::protocol::{ISOCH_MAX, ISOCH_PACKETS_MAX};
 use crate::rings::event::IssuedTransfer;
 use crate::rings::transfer::TransferRing;
+
+// A batch in flight and the next one queued, one TRB a packet, never past
+// the ring's usable TRBs, or the second overwrites the first's first TD.
+const _: () = assert!(2 * ISOCH_PACKETS_MAX < COMMAND_RING_TRBS);
 
 pub struct IsochPipe {
     pub ring: TransferRing,
@@ -32,7 +37,7 @@ pub struct IsochPipe {
     /// The half the next batch is written to.
     pub(super) half: usize,
     /// The last TD of the batch queued before, whose completion the next
-    /// batch waits for. Two batches at most are on the ring, 64 TRBs at
+    /// batch waits for. Two batches at most are on the ring, 62 TRBs at
     /// most, so the 63 it holds never wrap onto one in flight.
     pub(super) pending: Option<IssuedTransfer>,
 }

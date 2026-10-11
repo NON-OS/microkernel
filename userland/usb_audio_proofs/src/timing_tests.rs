@@ -16,7 +16,7 @@ fn full_speed_sends_one_millisecond_a_packet_and_eight_a_batch() {
 
 #[test]
 fn high_speed_counts_microframes() {
-    assert_eq!(timing(HIGH, 1, 192), Some(Timing { packet_bytes: 24, packets: 32 }));
+    assert_eq!(timing(HIGH, 1, 192), Some(Timing { packet_bytes: 24, packets: 31 }));
     assert_eq!(timing(HIGH, 4, 192), Some(Timing { packet_bytes: 192, packets: 8 }));
     // SuperSpeed ids also count 125 us, with no extra transactions.
     assert_eq!(timing(4, 4, 192), Some(Timing { packet_bytes: 192, packets: 8 }));
@@ -38,10 +38,28 @@ fn a_batch_fits_one_isoch_request() {
     for speed in [FULL, HIGH] {
         for interval in 1..=16 {
             if let Some(t) = timing(speed, interval, 0x1fff) {
-                assert!(t.batch_bytes() <= 4032 && t.packets as usize <= 32 && t.packets > 0);
+                assert!(t.batch_bytes() <= 4032 && t.packets as usize <= 31 && t.packets > 0);
             }
         }
     }
     // 32 ms of sound a packet: one packet a batch, and still too large.
     assert_eq!(timing(FULL, 6, 1023), None);
+}
+
+#[test]
+fn a_batch_is_never_more_packets_than_driver_xhci0_takes() {
+    // Two batches share a 63-TRB ring (the the review): xhci's
+    // ISOCH_PACKETS_MAX is 31, and every batch this driver builds fits it.
+    let xhci = include_str!("../../capsule_driver_xhci/src/protocol/limits.rs");
+    let max: usize = xhci
+        .lines()
+        .find_map(|l| l.strip_prefix("pub const ISOCH_PACKETS_MAX: usize = "))
+        .and_then(|v| v.trim_end_matches(';').parse().ok())
+        .expect("xhci names its batch limit");
+    assert!(2 * max < 64, "two batches overrun the ring");
+    for interval in 1..=4u8 {
+        if let Some(t) = timing(HIGH, interval, 1024) {
+            assert!(t.packets as usize <= max, "interval {interval}: {}", t.packets);
+        }
+    }
 }
