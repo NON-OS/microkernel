@@ -42,12 +42,12 @@ fn an_async_request_is_a_plain_one_with_bit_0() {
 
 #[test]
 fn only_payment_and_the_market_may_ask_async() {
-    assert!(admits_flags(0, 99, owner), "a plain call is the op table's business");
-    assert!(admits_flags(FLAG_ASYNC, PAYMENT, owner));
-    assert!(admits_flags(FLAG_ASYNC, MARKET, owner), "v1.4.23: its bond cache");
-    assert!(!admits_flags(FLAG_ASYNC, 99, owner));
-    assert!(!admits_flags(FLAG_ASYNC, 0, |_| Some(0)));
-    assert!(!admits_flags(FLAG_ASYNC | 2, 99, owner));
+    assert!(admits_flags(0, OP_GAS, 99, owner), "a plain call is the op table's business");
+    assert!(admits_flags(FLAG_ASYNC, OP_GAS, PAYMENT, owner));
+    assert!(admits_flags(FLAG_ASYNC, OP_GAS, MARKET, owner), "v1.4.23: its bond cache");
+    assert!(!admits_flags(FLAG_ASYNC, OP_GAS, 99, owner));
+    assert!(!admits_flags(FLAG_ASYNC, OP_GAS, 0, |_| Some(0)));
+    assert!(!admits_flags(FLAG_ASYNC | 2, OP_GAS, 99, owner));
 }
 
 #[test]
