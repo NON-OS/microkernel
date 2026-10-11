@@ -4,11 +4,14 @@
 # Policies.mk and tools/nix/capsules.nix; /bin/<name> is <name> there) and
 # compiles its policy into nonos_linux_policy::vendor::TABLE, the one copy
 # capsule_linux, the market and nonos_proof_abi all read. A program not
+# named here runs in the owner's default box (UNLISTED_MASK).
 #
 # One program a line: its path in the store, then the services it is served,
-# from WAYLAND NET_ANON NET_LISTEN_LO FILES_HOME FILES_USER MODELS_RO EXEC JIT
-# TTY, then optionally calls=<130 hex digits>, the set as nonos.prove's
+# from WAYLAND NET_ANON NET_LISTEN_LO FILES_HOME MODELS_RO EXEC JIT TTY
+# (FILES_USER is reserved, and refused, until something serves it), then
+# optionally calls=<130 hex digits>, the set as nonos.prove's
 # `[PROVE] syscall buckets ok=` line prints it. With no calls= every call may
+# complete, until the owner's runs measure the set. A NET_ANON
 # program may name where it reaches with dests=<item>,<item>..., each
 # <IPv4>/<prefix>:<ports>, [<IPv6>]/<prefix>:<ports> or <name>:<ports>, the
 # ports N or N-M (build/dests_arg.rs). Its list goes into the table beside
