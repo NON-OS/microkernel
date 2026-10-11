@@ -1732,6 +1732,7 @@
   "include": [
    ".cargo",
    "src/userspace/init/app_choice/bits.rs",
+   "tools/nix/store.json",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -1765,6 +1766,8 @@
    "src/userspace/capsule_linux/family.rs",
    "src/userspace/capsule_linux/terminal/tier.rs",
    "src/userspace/init/app_choice/bits.rs",
+   "tools/nix/store.json",
+   "userland/capsule_linux/build",
    "userland/capsule_linux/guests/busybox.elf",
    "userland/capsule_linux/keys",
    "userland/capsule_linux/policies.txt",

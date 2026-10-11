@@ -18,4 +18,5 @@
 //! a name it may not place, and a path another package holds.
 
 pub mod conflict;
+pub mod image;
 pub mod name;
