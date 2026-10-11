@@ -16,6 +16,8 @@
 
 mod dispute;
 mod dispute_fixture;
+mod dispute_flow;
+mod dispute_quotes;
 mod exact;
 mod order_of;
 mod fixture;
