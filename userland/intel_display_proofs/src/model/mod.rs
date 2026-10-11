@@ -27,6 +27,7 @@ pub mod sink;
 pub mod sink_aux;
 pub mod sink_link;
 pub mod sink_status;
+pub mod south;
 
 pub use clock::Ticks;
 pub use expiry::Polls;
