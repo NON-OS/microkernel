@@ -24,7 +24,7 @@ use nonos_settle_proto::{Gas, Intent, Quote, OP_GAS, OP_INTENT};
 use super::escrowing::{Ctx, Escrowing};
 use super::send_gas::{after_balance, after_quote};
 use super::send_step::SendStep;
-use crate::wallet::settle::SettleCall;
+use crate::wallet::settle::{SettleCall, ESCROW};
 
 pub(super) const GAS_EVERY_MS: u64 = 10_000;
 const NO_QUOTE: &str = "settle did not quote the transaction; try again.";
@@ -32,10 +32,10 @@ const NO_QUOTE: &str = "settle did not quote the transaction; try again.";
 /// INTENT for the send, then its quote held to the kind's bounds.
 pub fn quoting(settle: &mut SettleCall, e: &mut Escrowing, c: &Ctx) -> bool {
     let SendStep::Quoting(send) = &e.step else { return false };
-    let Some(r) = settle.take(OP_INTENT) else {
+    let Some(r) = settle.take(OP_INTENT, ESCROW) else {
         let (kind, from, calldata) = (send.kind, send.from, send.calldata.clone());
         let i = Intent { chain_id: c.chain_id, kind, from, value: 0, calldata };
-        let _ = settle.ask(OP_INTENT, &i.encode(), c.now_ms);
+        let _ = settle.ask(OP_INTENT, ESCROW, &i.encode(), c.now_ms);
         return false;
     };
     let escrow = address(c.chain_id, Contract::Escrow).ok();
@@ -49,10 +49,10 @@ pub fn quoting(settle: &mut SettleCall, e: &mut Escrowing, c: &Ctx) -> bool {
 /// GAS for refundTo every GAS_EVERY_MS until it holds the gas's cost.
 pub fn gas(settle: &mut SettleCall, e: &mut Escrowing, c: &Ctx) -> bool {
     let SendStep::Gas { send, .. } = &e.step else { return false };
-    let Some(r) = settle.take(OP_GAS) else {
+    let Some(r) = settle.take(OP_GAS, ESCROW) else {
         if c.now_ms >= e.next_ms {
             e.next_ms = c.now_ms + GAS_EVERY_MS;
-            let _ = settle.ask(OP_GAS, &Gas::request(c.chain_id, &send.from), c.now_ms);
+            let _ = settle.ask(OP_GAS, ESCROW, &Gas::request(c.chain_id, &send.from), c.now_ms);
         }
         return false;
     };
