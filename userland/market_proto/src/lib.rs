@@ -37,6 +37,7 @@ pub mod ops;
 pub mod readiness;
 pub mod reason;
 pub mod release;
+pub mod release_escrow;
 pub mod reply;
 pub mod request;
 pub mod status;
@@ -56,6 +57,7 @@ pub use ops::{
 pub use readiness::{parse_readiness, Readiness, GATES, READINESS_LEN};
 pub use reason::{installed_line, reason, removal_only, Reason};
 pub use release::{parse_release, Release};
+pub use release_escrow::{parse_release_escrow, ReleaseEscrow};
 pub use reply::{reply_body, ReplyError};
 pub use request::request;
 pub use status::{status_name, SERVICE};

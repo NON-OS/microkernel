@@ -42,5 +42,9 @@ pub(super) fn encode_release(rel: &CapsuleRelease) -> Vec<u8> {
     write_lp_string(&mut out, &rel.validation.note);
     write_lp_string(&mut out, &rel.validation.validator_id);
     out.extend_from_slice(&rel.validation.validated_at_ms.to_le_bytes());
+    // The escrow fields (B8, v1.4.36): zero for a release not escrowed.
+    let ext = rel.ext.as_ref();
+    out.extend_from_slice(&ext.map_or([0; 32], |x| x.chunk_root));
+    out.extend_from_slice(&ext.map_or(0, |x| x.content_len).to_le_bytes());
     out
 }

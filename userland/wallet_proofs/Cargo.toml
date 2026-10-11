@@ -26,6 +26,7 @@ nonos_secp256k1 = { path = "../nonos_secp256k1" }
 # a withdrawal to the meter reads its ACCOUNT (B7).
 nonos_nox_config = { path = "../nonos_nox_config" }
 nonos_payment_proto = { path = "../payment_proto" }
+nonos_market_proto = { path = "../market_proto" }
 # Typed data the wallet signs through keyring op 30 (B8): the words and
 # the hasher trait.
 nonos_marketplace_abi = { path = "../marketplace_abi" }

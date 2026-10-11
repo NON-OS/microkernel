@@ -188,9 +188,10 @@ fn a_release_reads_back_what_the_market_encodes() {
     assert_eq!(got.version, b"linux.htop@3.3.0");
     assert_eq!(got.short_version(), b"3.3.0");
     assert_eq!(got.note, b"hashed 123 bytes");
-    // The validator id ("v", five bytes framed) and the eight-byte time
-    // follow the note and are not read: a cut anywhere before them fails.
-    let unread = 5 + 8;
+    // The validator id ("v", five bytes framed), the eight-byte time and the
+    // escrow fields (40) follow the note and are not read here: a cut
+    // anywhere before them fails.
+    let unread = 5 + 8 + 40;
     for n in 0..body.len() - unread {
         assert!(parse_release(&body[..n]).is_none(), "cut at {n}");
     }

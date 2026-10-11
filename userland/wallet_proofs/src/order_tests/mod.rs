@@ -16,5 +16,7 @@
 
 mod fixture;
 mod purchase;
+mod read;
+mod read_fixture;
 mod requests;
 mod rows;
