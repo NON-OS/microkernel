@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the flattened device tree parser. Builds for the
+# host so `cargo test` runs the kernel's own `src/arch/fdt` (included via
+# #[path]) over QEMU virt and Raspberry Pi 4 blobs and over hostile ones,
+# without a boot.
+[package]
+name = "fdt_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

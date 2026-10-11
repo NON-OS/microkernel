@@ -3023,6 +3023,16 @@
   "md": [],
   "signed": []
  },
+ "userland/fdt_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/fdt",
+   "userland/fdt_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/fs_proofs": {
   "exclude": [],
   "include": [
