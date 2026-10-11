@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! FETCH. RELEASE fetches a release's signing bytes from its https url over
-//! the wallet's route, at most MAX_RELEASE, no redirect, and holds them only
-//! if keccak256 of them is the releaseHash asked; its reply is the first
-//! page. PAGE pages on through the one release held; any other hash is
+//! FETCH. RELEASE fetches a release document (plan/25: one schema 3 release
+//! in the index's encoding) from its https url over the wallet's route, at
+//! most MAX_RELEASE, no redirect. It holds the document only if it decodes
+//! whole and keccak256 of its v3 signing form, recomputed from the decoded
+//! release, is the releaseHash asked; its reply is the first page. PAGE pages on through the one release held; any other hash is
 //! ENOENT. ESCROW is B5's, EINVAL until then.
 
 use alloc::vec::Vec;
 
 use nonos_settle_proto::{https_target, Fetch, Page, EINVAL, ENOENT, EPROTO, MAX_RELEASE};
 
-use crate::keccak::keccak;
+use nonos_marketplace_abi::{decode_release_document, release_hash as signed_hash};
+
+use crate::keccak::Host;
 use crate::net::get;
 use crate::settle::{Held, Settle};
 
@@ -33,7 +36,8 @@ pub fn fetch(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
         Fetch::Release { url, release_hash } => {
             let (host, path) = https_target(&url).ok_or(EINVAL)?;
             let bytes = get(host, path, MAX_RELEASE)?;
-            if keccak(&bytes) != release_hash {
+            let release = decode_release_document(&bytes).map_err(|_| EPROTO)?;
+            if signed_hash(&Host, &release) != Some(release_hash) {
                 return Err(EPROTO);
             }
             let first = Page::of(&bytes, 0).ok_or(EINVAL)?.encode();

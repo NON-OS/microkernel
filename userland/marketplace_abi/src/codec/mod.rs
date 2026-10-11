@@ -42,6 +42,7 @@ mod encode_token;
 mod encode_validation;
 mod error;
 mod reader;
+mod release_document;
 mod release_signing;
 mod schema;
 mod strings;
@@ -56,5 +57,8 @@ pub use encode_error::EncodeError;
 #[cfg(feature = "canonical-encode")]
 pub use encode_index::{encode_and_sign, encode_index, EncodedIndex};
 pub use error::DecodeError;
+pub use release_document::decode_release_document;
+#[cfg(feature = "canonical-encode")]
+pub use release_document::encode_release_document;
 pub use release_signing::release_signing_bytes;
 pub use schema::{CURRENT_SCHEMA, SCHEMA_V2, SCHEMA_V3};

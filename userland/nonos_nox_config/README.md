@@ -30,7 +30,7 @@ nothing else.
     mainnet until Shield L1 deploys there (O3).
 - Each contract is `Deployed { address, block }`: `block` is where a log read
   starts (plan/26). Mainnet NOX's is V3_1's block. Sepolia NOX's is not
-  recorded, so it is 0 and a log read of it starts at genesis.
+  recorded, so it is 0: unknown, and settle refuses log reads of it.
   `deployed()` answers both; `CONTRACTS` lists them in the order settle checks.
 - Every address is an `Option`. An undeployed contract is `None`, and
   `address()` answers `NotDeployed`, never a zero address. Today every new
