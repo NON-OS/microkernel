@@ -4732,6 +4732,21 @@
   "md": [],
   "signed": []
  },
+ "userland/ufs_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_sdhci/src/emmc/env/clock.rs",
+   "userland/capsule_driver_sdhci/src/emmc/env/dma_buf.rs",
+   "userland/capsule_driver_sdhci/src/emmc/env/log.rs",
+   "userland/capsule_driver_sdhci/src/emmc/text/append.rs",
+   "userland/capsule_driver_ufs/src/platform/hosts.rs",
+   "userland/capsule_driver_ufs/src/ufs",
+   "userland/ufs_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/upstream-src/csview": {
   "exclude": [],
   "include": [
