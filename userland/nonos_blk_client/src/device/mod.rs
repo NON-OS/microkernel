@@ -16,7 +16,9 @@
 
 //! A device a caller holds: found by driver, then read, written, flushed.
 
+mod chunks;
 mod discover;
+mod geometry;
 mod handle;
 mod identity;
 mod identity_parse;
@@ -27,10 +29,11 @@ mod present;
 mod read;
 mod refused;
 mod span;
+mod transfer;
 mod write;
 
 pub use discover::{discover, Found};
+pub use geometry::Geometry;
 pub use handle::BlockDevice;
 pub use identity::Identity;
 pub use present::controllers;
-pub use span::Geometry;
