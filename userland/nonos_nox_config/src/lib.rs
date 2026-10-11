@@ -33,6 +33,7 @@ mod escrow;
 mod gas;
 mod hex;
 mod lookup;
+mod shield_events;
 mod tags;
 mod typed;
 mod units;
@@ -52,6 +53,8 @@ pub use gas::{
 pub use gas::{SETTLE_GAS_MAX, TOPUP_GAS};
 pub use hex::{hex20, hex32};
 pub use lookup::{address, deployed};
+pub use shield_events::{INTENT_UNSHIELDED, NOTE_COMMITTED, PAYOUT_CLAIMED, PAYOUT_CREDITED};
+pub use shield_events::{POLICY_PAUSED, POLICY_UNPAUSED, SHIELD_EVENTS};
 pub use tags::{BOND_TAG, CHANNEL_TAG, LISTING_TAG, ORDER_TAG, REFUND_TAG, RELEASE_TAG, TAGS};
 pub use typed::{TypedData, PUBLISHER_BINDING, RELEASE_ATTEST, TYPED, VOUCHER};
 pub use units::{UNITS, UNIT_BYTE, UNIT_CALL, UNIT_INSTALL, UNIT_PROOF, UNIT_SECOND};
