@@ -32,6 +32,7 @@ nonos_policy_proto = { path = "../policy_proto" }
 nonos_nox_config = { path = "../nonos_nox_config" }
 # The meter's ACCOUNT: the address a Shield withdraw funds (B7).
 nonos_payment_proto = { path = "../payment_proto" }
+nonos_market_proto = { path = "../market_proto" }
 # The publisher screen reads an entry document and derives ids (B8, plan/31).
 nonos_marketplace_abi = { path = "../marketplace_abi" }
 
