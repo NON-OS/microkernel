@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod click;
+mod fund;
 mod rows;
 mod show;
 mod words;
