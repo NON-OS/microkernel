@@ -4,7 +4,8 @@
 
 `capsule_driver_vmware_svga` drives the SVGA II display adapter (PCI
 15ad:0405): VMware Workstation's, Fusion's and ESXi's, VirtualBox's VMSVGA,
-and QEMU's `vmware-svga`. It sets the mode, keeps the compositor's surface,
+and QEMU's `vmware-svga`; and VirtualBox's VBoxSVGA, the same registers
+under 80ee:beef with its BARs in VirtualBox's order. It sets the mode, keeps the compositor's surface,
 copies what the compositor drew into the framebuffer and asks the host to
 redraw it. The compositor reaches it exactly as it reaches virtio-gpu.
 
@@ -19,10 +20,13 @@ kernel surface registry                                SVGA_CMD_UPDATE in the FI
 ## Microkernel contract
 
 - `MkDeviceList` finds the adapter: 15ad:0405 with an I/O BAR0 and memory
-  BARs 1 and 2.
-- `MkDeviceClaim`, then `MkPioGrant` on BAR0 for the index and value ports.
-- `MkMmioMap` maps the FIFO (BAR2, the size SVGA_REG_MEM_SIZE gives) and the
-  visible framebuffer only (BAR1, from FB_OFFSET for `pitch * height`).
+  BARs 1 (framebuffer) and 2 (FIFO), or 80ee:beef with the framebuffer in
+  BAR0 and the ports in BAR1 (VBoxSVGA; VBoxVGA, with no port window, is
+  left alone).
+- `MkDeviceClaim`, then `MkPioGrant` on the port BAR for the index and value
+  ports.
+- `MkMmioMap` maps the FIFO (the size SVGA_REG_MEM_SIZE gives) and the
+  visible framebuffer only (from FB_OFFSET for `pitch * height`).
 - `MkMmap` and `MkSurfaceRegister`/`MkSurfaceShare` make the primary surface
   in the capsule's own memory; the framebuffer is never handed to another
   process.
@@ -103,7 +107,7 @@ compositor owns what is drawn.
 ## Release target
 
 The desktop at the resolution the firmware chose, in VMware, VirtualBox
-(VMSVGA) and QEMU (`vmware-svga`).
+(VMSVGA and VBoxSVGA) and QEMU (`vmware-svga`).
 
 ## Release evidence
 
@@ -118,7 +122,7 @@ reading. A boot is the owner's.
 - Signed manifest and kernel mirror present (`driver_vmware_svga` keys).
 - `vmware_svga_proofs` passes.
 - QEMU `-vga none -device vmware-svga`, VMware, and VirtualBox with VMSVGA
-  show the desktop and redraw as it changes.
+  or VBoxSVGA show the desktop and redraw as it changes.
 
 ## Explicit non-goals today
 

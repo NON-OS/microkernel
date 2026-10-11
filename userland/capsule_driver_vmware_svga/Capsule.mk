@@ -1,6 +1,6 @@
-# vmware-svga — the SVGA II display adapter (15ad:0405): VMware's, VirtualBox's
-# VMSVGA and QEMU's vmware-svga. Port I/O for the registers, MMIO for the
-# framebuffer and the FIFO, no DMA. Serves the compositor the display
+# vmware-svga — the SVGA II display adapter (15ad:0405, and VBoxSVGA under
+# 80ee:beef): VMware, VirtualBox, QEMU. Port I/O for the registers, MMIO
+# for the framebuffer and the FIFO, no DMA. Serves the compositor the display
 # protocol virtio-gpu serves; the kernel holds the endpoint to it alone.
 
 CAPSULE_SLUG             := driver-vmware-svga
