@@ -40,7 +40,11 @@ pub fn destroy_domain(id: DomainId) -> Result<(), VtdError> {
         return Err(VtdError::DomainNotFound);
     }
     for binding in state.bindings.iter().filter(|b| b.domain == id) {
-        clear_context(binding.source)?;
+        // An entry a failed attach already took back is denied already.
+        match clear_context(binding.source) {
+            Ok(()) | Err(VtdError::DeviceNotAttached) => {}
+            Err(e) => return Err(e),
+        }
     }
     if probed().is_some() {
         invalidate_all_units()?;
