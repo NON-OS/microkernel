@@ -41,4 +41,7 @@ pub enum Object {
     DataDevice,
     DecorationManager,
     Decoration,
+    Positioner,
+    Popup,
+    Touch,
 }

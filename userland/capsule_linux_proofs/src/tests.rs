@@ -69,6 +69,7 @@ mod wayland_mods_tests;
 mod wayland_opaque_tests;
 mod wayland_pointer_tests;
 mod wayland_region_tests;
+mod wayland_shell_tests;
 mod wayland_subsurface_tests;
 mod gram_tests;
 mod family_tests;

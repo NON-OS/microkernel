@@ -22,6 +22,10 @@ pub mod data;
 pub mod decoration;
 #[path = "ops_req.rs"]
 pub mod req;
+#[path = "ops_seat.rs"]
+pub mod seat;
+#[path = "ops_shell.rs"]
+pub mod shell;
 
 pub mod ev {
     pub const CALLBACK_DONE: u16 = 0;

@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The region, surface and pool opcodes the server takes, against
+//! The region, surface, pool and seat opcodes the server takes, against
 //! wayland.xml: a request is served by its number, so a wrong one serves
 //! another.
 
-use crate::ops::req;
+use crate::ops::{req, seat};
 use crate::wayland_object::{Object, Objects};
 
 #[test]
@@ -48,4 +48,13 @@ fn a_region_is_an_object_of_its_own_kind() {
     assert!(objects.get(7) == Some(Object::Region));
     objects.drop_id(7);
     assert!(objects.get(7).is_none());
+}
+
+#[test]
+fn seat_pointer_keyboard_and_touch() {
+    let seat =
+        [req::SEAT_GET_POINTER, req::SEAT_GET_KEYBOARD, seat::SEAT_GET_TOUCH, seat::SEAT_RELEASE];
+    assert!(seat.iter().copied().eq(0..4));
+    assert_eq!((seat::POINTER_SET_CURSOR, seat::POINTER_RELEASE), (0, 1));
+    assert_eq!((seat::KEYBOARD_RELEASE, seat::TOUCH_RELEASE), (0, 0));
 }
