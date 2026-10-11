@@ -50,6 +50,8 @@ mod input_probe_fleet;
 mod install_first;
 mod network;
 mod orchestrator;
+#[cfg(not(feature = "microkernel-input-probe"))]
+mod payment;
 mod services_audio;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod wizard_plan;

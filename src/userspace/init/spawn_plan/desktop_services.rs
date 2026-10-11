@@ -21,6 +21,7 @@ pub(super) fn spawn() {
     spawn_clipboard();
     spawn_attest();
     spawn_installer();
+    super::payment::spawn();
     spawn_login();
     spawn_toolkit();
 }

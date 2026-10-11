@@ -16,8 +16,10 @@
 
 pub const OP_HEALTHCHECK: u16 = 1;
 pub const OP_PAY: u16 = 2;
-pub const OP_DRAIN_RECEIPTS: u16 = 3;
+pub const OP_DRAIN: u16 = 3;
 pub const OP_LIST_TOKENS: u16 = 4;
+pub const OP_ACCOUNT: u16 = 5;
+pub const OP_SET_BUDGET: u16 = 6;
 
 /// Its own reply inbox: 0x1_0000_0010 was driver_hda's too, and of two holders of one reply
 /// inbox, the second registered could never answer a call.
@@ -25,6 +27,10 @@ pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_001B;
 
 pub(super) const HDR_LEN: usize = 8;
 
+pub const EPERM: i32 = -1;
+pub const EIO: i32 = -5;
+pub const EACCES: i32 = -13;
+pub const ENOENT: i32 = -2;
 pub const EINVAL: i32 = -22;
 pub const EAGAIN: i32 = -11;
 

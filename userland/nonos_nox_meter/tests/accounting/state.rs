@@ -16,6 +16,7 @@
 
 use super::fixture::{channel, funded_state, LISTING, NOW, PAYEE, ROOT};
 use nonos_nox_meter::channel::Channel;
+use nonos_nox_meter::state::ChainView;
 use nonos_nox_meter::MeterError;
 
 #[test]
@@ -58,4 +59,16 @@ fn reopening_a_channel_never_rewinds_what_was_signed() {
         (s.channels[0].cumulative, s.channels[0].seq, s.channels[0].deposit),
         (250, 1, 2000)
     );
+}
+
+#[test]
+fn the_chain_closes_a_channel_and_a_charge_prefers_one_with_room() {
+    let v = ChainView { deposit: 1000, settled: 200, expiry: channel().expiry, closed: true };
+    let s = funded_state().from_chain(&channel().id, &v);
+    assert_eq!((s.channels[0].deposit, s.channels[0].cumulative), (200, 200));
+    assert_eq!(s.charged(&PAYEE, &LISTING, 1, 1, ROOT, NOW).err(), Some(MeterError::OverDeposit));
+    let fresh = Channel { id: [7; 32], expiry: NOW + 60, ..channel() };
+    let (_, c) =
+        s.with_channel(fresh, NOW).unwrap().charged(&PAYEE, &LISTING, 1, 1, ROOT, NOW).unwrap();
+    assert_eq!(c.id, fresh.id);
 }
