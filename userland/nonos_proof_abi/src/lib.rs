@@ -40,6 +40,7 @@ mod scope;
 mod syscall_root;
 pub mod trust;
 mod verify;
+pub mod wire;
 mod words;
 
 pub use anchor::{anchor, anchor_tag, ANCHOR_LABEL};
