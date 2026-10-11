@@ -26,6 +26,14 @@ mod country_tests;
 #[cfg(test)]
 mod crypto_tests;
 #[cfg(test)]
+mod gcm_key_tests;
+#[cfg(test)]
+mod gcm_tests;
+#[cfg(test)]
+mod gcmp_frame_tests;
+#[cfg(test)]
+mod gcmp_malformed_tests;
+#[cfg(test)]
 mod handshake_tests;
 #[cfg(test)]
 mod mlme_tests;
