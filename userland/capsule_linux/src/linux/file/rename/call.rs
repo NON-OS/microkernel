@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* Moving a name. */
+//! renameat2's checks: its flags, both names, and the tree they are in.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::at::resolve_at;
-use super::meta::look;
-use super::resolve::key;
-use super::{cache, modes, store_name, synth};
+use super::super::at::resolve_at;
+use super::super::meta::look;
+use super::super::resolve::key;
+use super::super::synth;
+use super::store::move_name;
 
 const RENAME_NOREPLACE: u64 = 1;
 
@@ -51,26 +52,5 @@ pub fn renameat2(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64, fl
     if guest.links.rename(&from, to.clone()) {
         return errno::ok(0);
     }
-    if look(&from).is_none() {
-        return errno::fail(errno::ENOENT);
-    }
-    /* A file in the way is replaced, as rename(2) replaces it. */
-    if let Some((_, false)) = look(&to) {
-        cache::forget(&to);
-        let _ = store_name::unlink(&key(&to));
-    }
-    /* The store renames what it has: the family's copy goes in first. */
-    if let Err(e) = cache::flush(&from, true) {
-        return errno::fail(e);
-    }
-    match store_name::rename(&key(&from), &key(&to)) {
-        Ok(()) => {
-            cache::renamed(&from, &to);
-            modes::renamed(&from, &to);
-            super::times::renamed(&from, &to);
-            super::xattr_table::renamed(&from, &to);
-            errno::ok(0)
-        }
-        Err(e) => errno::fail(super::store_err::errno_of(e)),
-    }
+    move_name(&from, &to)
 }

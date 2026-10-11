@@ -14,23 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Calls that wait for a descriptor: `epoll_wait`, `poll`, `ppoll`,
-//! `select` and `pselect6` until their timeout, and a read or write that
-//! would block (`waits_try`).
-//!
-//! Each is tried when it arrives. One that cannot complete is left parked
-//! in its trap, and the family tries it again after every answer and at its
-//! deadline (`family_waits`), so the other threads and processes it hosts
-//! keep being served while it waits.
+//! epoll_wait, poll, ppoll, select and pselect6: tried now, else parked until
+//! something they watch is ready or their deadline.
 
-use crate::linux::abi::errno;
+use super::super::answer::Answer;
+use super::super::waits_mask;
+use super::super::waits_time::span;
+use super::super::waits_try::{attempt, expire};
+use super::io::park;
 use crate::linux::call::now_ms;
 use crate::linux::guest::{Blocked, Guest};
-
-use super::answer::Answer;
-use super::waits_mask;
-use super::waits_time::span;
-use super::waits_try::{attempt, expire};
 
 const CLOCK_MONOTONIC: u64 = 1;
 
@@ -59,22 +52,4 @@ pub fn timed(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
     };
     waits_mask::leave(guest, tid, nr);
     Answer::value(value)
-}
-
-/// A read or write that answers EAGAIN waits instead, unless its descriptor
-/// is non-blocking.
-pub fn io(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
-    let mut wait = Blocked { tid, nr, args: a, deadline: None, done: 0 };
-    match attempt(guest, &mut wait) {
-        Some(v) => Answer::value(v),
-        None if guest.fds.get(a[0] as usize).is_some_and(|f| f.nonblock) => {
-            Answer::value(errno::fail(errno::EAGAIN))
-        }
-        None => park(guest, wait),
-    }
-}
-
-fn park(guest: &mut Guest, wait: Blocked) -> Answer {
-    guest.blocked.push(wait);
-    Answer::Park
 }

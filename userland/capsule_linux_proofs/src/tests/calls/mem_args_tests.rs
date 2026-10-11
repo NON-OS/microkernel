@@ -20,7 +20,7 @@
 
 use super::super::random::Regs;
 use crate::linux::abi::errno::{EINVAL, ENOMEM, EPERM};
-use crate::linux::call::mem::map_args::{hint, map_args, MIN_ADDR};
+use crate::linux::call::mem::map_args::{flags::MIN_ADDR, hint, map_args};
 use crate::linux::call::mem::prot_args::{prot_span, wx_refused};
 use crate::linux::call::mem::remap_args::{end_of, remap_args, unmap_span};
 use crate::linux::guest::{maps_full, page_len, MAX_MAPS, PAGE, USER_MAX};

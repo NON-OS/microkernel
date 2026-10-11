@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `shutdown`: one direction or both, on the socket rather than the
-//! descriptor, which stays open. A dup'd or inherited descriptor sees it too.
+//! shutdown's checks, and a direction shut on a socket of the family.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::fd::sock_of;
-use super::policy::refuse;
-use super::sock::{self, Backend, Proto, Via};
+use super::super::fd::sock_of;
+use super::super::sock::{self, Proto};
+use super::outside::outside;
 
 const SHUT_RD: u64 = 0;
 const SHUT_WR: u64 = 1;
@@ -41,20 +40,8 @@ pub fn shutdown(guest: &Guest, fd: u64, how: u64) -> u64 {
         let Some(s) = t.get_mut(id) else {
             return errno::fail(errno::EBADF);
         };
-        if let Some(Via::Sockets(_)) = s.svc.as_ref().map(Backend::via) {
-            return refuse(
-                "shutdown of a stream outside the family: net.sockets has no half-close",
-                errno::EOPNOTSUPP,
-            );
-        }
-        if let Some(Via::Anon) = s.svc.as_ref().map(Backend::via) {
-            return match s.shut_anon(rd, wr) {
-                Ok(()) => errno::ok(0),
-                Err(e) => refuse(
-                    "shutdown of one side of a stream outside the family: net.anon has no half-close",
-                    e,
-                ),
-            };
+        if let Some(answer) = outside(s, rd, wr) {
+            return answer;
         }
         if s.listening {
             /* Shutting a listener's reading side stops it listening. */

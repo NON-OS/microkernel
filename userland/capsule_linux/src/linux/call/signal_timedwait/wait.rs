@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! rt_sigtimedwait takes a pending signal of its set without running a
-//! handler, or parks until one comes or its time runs out with EAGAIN.
+//! rt_sigtimedwait: a pending signal of the set taken now, else the thread
+//! parked until one comes or its time runs out.
 
-use super::signal_act::wait_set;
-use super::signal_wait::SIGSET_LEN;
+use super::super::signal_act::wait_set;
+use super::super::signal_wait::SIGSET_LEN;
+use super::timeout::wait_ms;
 use crate::linux::abi::errno;
 use crate::linux::call::now_ms;
 use crate::linux::guest::sigwaits::SigWait;
@@ -26,7 +27,6 @@ use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
 
 const CLOCK_MONOTONIC: u64 = 1;
-const NSEC: u64 = 1_000_000_000;
 
 pub fn rt_sigtimedwait(
     guest: &mut Guest,
@@ -62,15 +62,4 @@ pub fn rt_sigtimedwait(
     }
     guest.signals.sigwaits.push(SigWait { tid, set: want, info, due, records: 0 });
     Answer::Park
-}
-
-/// A relative timespec, in whole milliseconds rounded up.
-fn wait_ms(guest: &Guest, at: u64) -> Result<u64, u64> {
-    let raw = guest.read(at, 16).ok_or(errno::fail(errno::EFAULT))?;
-    let secs = u64::from_le_bytes(raw[..8].try_into().unwrap_or([0; 8]));
-    let nanos = u64::from_le_bytes(raw[8..].try_into().unwrap_or([0; 8]));
-    if nanos >= NSEC || secs > i64::MAX as u64 {
-        return Err(errno::fail(errno::EINVAL));
-    }
-    Ok(secs.saturating_mul(1000).saturating_add(nanos.div_ceil(1_000_000)))
 }

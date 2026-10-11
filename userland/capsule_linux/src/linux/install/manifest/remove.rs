@@ -14,44 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What one package put into the store, kept beside its program record so it
-//! can be taken out again: each file it wrote, and each link it added to the
-//! link table. One line each, `f <path>` or `l <path>`; a path holding a
-//! newline cannot be written in it, and the link table refuses those too.
-//! Pure, so capsule_linux_proofs holds the format and the removal rules.
+//! What an uninstall takes out: the paths no other package lists, and the
+//! link table without its lines.
 
 use alloc::vec::Vec;
 
-#[derive(Default, PartialEq, Eq, Debug)]
-pub struct Manifest {
-    pub files: Vec<Vec<u8>>,
-    pub links: Vec<Vec<u8>>,
-}
-
-pub fn encode(m: &Manifest) -> Vec<u8> {
-    let mut out = Vec::new();
-    let tagged = m.files.iter().map(|p| (b'f', p)).chain(m.links.iter().map(|p| (b'l', p)));
-    for (tag, path) in tagged.filter(|(_, p)| !p.is_empty() && !p.contains(&b'\n')) {
-        out.push(tag);
-        out.push(b' ');
-        out.extend_from_slice(path);
-        out.push(b'\n');
-    }
-    out
-}
-
-/// Every well formed line; anything else is skipped rather than guessed at.
-pub fn decode(bytes: &[u8]) -> Manifest {
-    let mut m = Manifest::default();
-    for line in bytes.split(|b| *b == b'\n') {
-        match line {
-            [b'f', b' ', path @ ..] if !path.is_empty() => m.files.push(path.to_vec()),
-            [b'l', b' ', path @ ..] if !path.is_empty() => m.links.push(path.to_vec()),
-            _ => {}
-        }
-    }
-    m
-}
+use super::format::Manifest;
 
 /// `mine` less every path another installed package also lists: a file two
 /// packages both wrote stays until neither needs it.

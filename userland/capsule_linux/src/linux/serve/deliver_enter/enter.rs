@@ -14,21 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Entering a handler: the frame on the thread's stack, or at the top of its
-//! alternate stack when the handler asked for SA_ONSTACK and the thread is not
-//! already on it; the mask while the handler runs is the thread's own, the
-//! handler's sa_mask, and the signal itself unless SA_NODEFER.
+//! A signal's frame written to the thread's stack and the thread sent into
+//! its handler; one whose frame cannot be written ends its process.
 
 use nonos_libc::{mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER};
 
-use super::deliver_say::say;
-use super::deliver_stack::placement;
+use super::super::deliver_stack::placement;
+use super::handler::in_handler;
 use crate::linux::call::killed;
 use crate::linux::call::sigframe::Entry;
 use crate::linux::call::sigframe_build::build;
-use crate::linux::guest::sigalt::entered;
 use crate::linux::guest::siginfo::SigInfo;
-use crate::linux::guest::sigstate::{bit, SigAction, SA_NODEFER, SA_RESETHAND, SIGSEGV};
+use crate::linux::guest::sigstate::SIGSEGV;
 use crate::linux::guest::Guest;
 
 const RSP: usize = 15;
@@ -63,16 +60,6 @@ pub fn enter(guest: &mut Guest, tid: u32, regs: &ForeignRegs, info: SigInfo) -> 
         let _ = guest.signals.raise(tid, info);
         return false;
     }
-    let during =
-        t.blocked | act.mask | if act.flags & SA_NODEFER != 0 { 0 } else { bit(info.signo) };
-    guest.signals.set_blocked(tid, during);
-    let thread = guest.signals.thread(tid);
-    thread.saved = None;
-    /* SS_AUTODISARM: the stack is off until this handler's frame returns it. */
-    thread.alt = entered(thread.alt);
-    if act.flags & SA_RESETHAND != 0 {
-        guest.signals.set(info.signo as usize, SigAction::default());
-    }
-    say(tid, info.signo, act.handler);
+    in_handler(guest, tid, t.blocked, &act, info.signo);
     true
 }
