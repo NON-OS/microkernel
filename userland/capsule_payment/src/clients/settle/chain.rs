@@ -24,19 +24,26 @@ use nonos_settle_proto::{
 
 use super::call::settle_call;
 
-/// Best effort: a settle that is down, slow, or whose two RPC hosts
-/// disagree leaves the meter on its cached state and its local floor, which
-/// is what an airgapped image runs on.
-pub(crate) fn channel_state(chain_id: u64, channel_id: &[u8; 32]) -> Option<ChainView> {
-    let b =
-        settle_call(OP_CHANNEL_STATE, &chain_hash(chain_id, channel_id), CHANNEL_STATE_LEN, 1500)
-            .ok()?;
+/// The longest wait for an answer that crosses the mixnet: settle may try
+/// more than one RPC host, each a TLS connection over Nym or Anyone.
+pub(crate) const ROUTED_MS: u64 = 120_000;
+
+/// Best effort, waiting at most `timeout_ms`: a settle that is down, slow,
+/// or whose two RPC hosts disagree leaves the meter on its cached state and
+/// its local floor, which is what an airgapped image runs on.
+pub(crate) fn channel_state(
+    chain_id: u64,
+    channel_id: &[u8; 32],
+    timeout_ms: u64,
+) -> Option<ChainView> {
+    let body = chain_hash(chain_id, channel_id);
+    let b = settle_call(OP_CHANNEL_STATE, &body, CHANNEL_STATE_LEN, timeout_ms).ok()?;
     let s = ChannelState::parse(&b)?;
     Some(ChainView { deposit: s.deposited, settled: s.settled, expiry: s.expiry, closed: s.closed })
 }
 
 /// The meter's ETH balance, next nonce and fee suggestions.
 pub(crate) fn gas(chain_id: u64, address: &[u8; 20]) -> Result<Gas, i32> {
-    let b = settle_call(OP_GAS, &Gas::request(chain_id, address), GAS_LEN, 5000)?;
+    let b = settle_call(OP_GAS, &Gas::request(chain_id, address), GAS_LEN, ROUTED_MS)?;
     Gas::parse(&b).ok_or(EIO)
 }

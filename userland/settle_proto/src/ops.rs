@@ -21,9 +21,7 @@ pub const OP_HEALTHCHECK: u16 = 1;
 /// A signed raw transaction to send. Body: chain_id u64 | the bytes, at most
 /// MAX_RAW_TX. Reply: its hash[32].
 pub const OP_BROADCAST: u16 = 2;
-/// openNonce(payer), the nonce the next open will use. Informational: the
-/// ChannelOpened event is authoritative.
-pub const OP_READ_NONCE: u16 = 3;
+// 3 was READ_NONCE; READ's view 14 (openNonce) replaces it, and 3 is EINVAL.
 /// deposited, settled, expiry and closed for one channel (ChannelState).
 pub const OP_CHANNEL_STATE: u16 = 4;
 /// An address's ETH balance, next nonce and fee suggestions (Gas).
@@ -32,9 +30,24 @@ pub const OP_GAS: u16 = 5;
 /// is unmined, ENOENT if it emitted none.
 pub const OP_OPENED: u16 = 6;
 
+/// One config contract's view (Read): the raw ABI return.
+pub const OP_READ: u16 = 7;
+/// Check and quote a transaction its key holder built (Intent, Quote).
+pub const OP_INTENT: u16 = 8;
+/// A release's signing bytes, verified, in pages (Fetch, Page).
+pub const OP_FETCH: u16 = 9;
+
 /// The largest raw transaction BROADCAST takes.
 pub const MAX_RAW_TX: usize = 128 * 1024;
 
 pub const EAGAIN: i32 = -11;
 pub const ENOENT: i32 = -2;
 pub const EINVAL: i32 = -22;
+/// The RPC failed, or two hosts disagree.
+pub const EIO: i32 = -5;
+/// Bytes that are not what was asked for: a wrong hash or chain id.
+pub const EPROTO: i32 = -71;
+/// A release past MAX_RELEASE.
+pub const EFBIG: i32 = -27;
+/// The anonymous route is down; settle never falls back to Direct.
+pub const ENETDOWN: i32 = -100;

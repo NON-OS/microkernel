@@ -37,14 +37,16 @@ mod typed;
 mod units;
 
 pub use chain::{Chain, MAINNET, SEPOLIA};
-pub use contract::Contract;
-pub use deploy::{deployment, Deployment};
-pub use domain::{domain_words, domain_words_at, Domain, BOND, EIP712_DOMAIN_TYPE};
+pub use contract::{Contract, CONTRACTS};
+pub use deploy::{deployment, Deployed, Deployment};
+pub use domain::{
+    domain_answer_matches, domain_words, domain_words_at, Domain, BOND, EIP712_DOMAIN_TYPE,
+};
 pub use domain::{EIP712_DOMAIN_TYPEHASH, ESCROW, LISTING, SETTLEMENT, VERSION_HASH};
 pub use error::ConfigError;
 pub use gas::{APPROVE_GAS, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, OPEN_GAS};
 pub use hex::{hex20, hex32};
-pub use lookup::address;
+pub use lookup::{address, deployed};
 pub use tags::{BOND_TAG, CHANNEL_TAG, LISTING_TAG, ORDER_TAG, RELEASE_TAG, TAGS};
 pub use typed::{TypedData, PUBLISHER_BINDING, RELEASE_ATTEST, TYPED, VOUCHER};
 pub use units::{UNITS, UNIT_BYTE, UNIT_CALL, UNIT_INSTALL, UNIT_PROOF, UNIT_SECOND};

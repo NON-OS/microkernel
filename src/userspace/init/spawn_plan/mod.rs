@@ -51,6 +51,7 @@ mod install_first;
 mod network;
 mod orchestrator;
 #[cfg(not(feature = "microkernel-input-probe"))]
+mod nox_settle;
 mod payment;
 mod services_audio;
 #[cfg(feature = "microkernel-setup-wizard")]

@@ -22,9 +22,11 @@
 use nonos_libc::mk_time_millis;
 
 use super::hold::Meter;
-use crate::clients::channel_state;
+use crate::clients::{channel_state, ROUTED_MS};
 
 const STALE_MS: u64 = 60_000;
+/// A charge does not wait on the network: a refresh before one is short.
+const CHARGE_MS: u64 = 1_500;
 
 pub(crate) fn now_ms() -> u64 {
     mk_time_millis().max(0) as u64
@@ -35,7 +37,7 @@ impl Meter {
         let ids: alloc::vec::Vec<([u8; 32], u64)> =
             self.state.channels.iter().map(|c| (c.id, c.chain_id)).collect();
         for (id, chain) in ids {
-            self.refresh(&id, chain);
+            self.refresh(&id, chain, ROUTED_MS);
         }
     }
 
@@ -52,12 +54,12 @@ impl Meter {
             .map(|c| c.id)
             .collect();
         for id in stale {
-            self.refresh(&id, chain);
+            self.refresh(&id, chain, CHARGE_MS);
         }
     }
 
-    fn refresh(&mut self, id: &[u8; 32], chain: u64) {
-        let Some(view) = channel_state(chain, id) else { return };
+    fn refresh(&mut self, id: &[u8; 32], chain: u64, timeout_ms: u64) {
+        let Some(view) = channel_state(chain, id, timeout_ms) else { return };
         let next = self.state.from_chain(id, &view);
         self.note(next);
         self.seen.retain(|(seen, _)| seen != id);

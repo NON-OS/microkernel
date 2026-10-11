@@ -18,4 +18,4 @@ mod deployment;
 mod mainnet;
 mod sepolia;
 
-pub use deployment::{deployment, Deployment};
+pub use deployment::{deployment, Deployed, Deployment};

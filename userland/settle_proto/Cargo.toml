@@ -13,3 +13,11 @@ description = "capsule_nox_settle's ops and bodies, no_std"
 
 [lib]
 crate-type = ["rlib"]
+
+[dependencies]
+nonos_nox_config = { path = "../nonos_nox_config" }
+
+[dev-dependencies]
+# keccak-256 on the host only, so the tests derive every pinned selector
+# from its signature.
+sha3 = { version = "=0.10.9", default-features = false }

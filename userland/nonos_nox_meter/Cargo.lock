@@ -94,6 +94,9 @@ version = "0.1.0"
 [[package]]
 name = "nonos_settle_proto"
 version = "0.1.0"
+dependencies = [
+ "nonos_nox_config",
+]
 
 [[package]]
 name = "sha3"
