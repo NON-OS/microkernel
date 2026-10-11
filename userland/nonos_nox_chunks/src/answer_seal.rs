@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The escrow agent's sealed answer: agent_pk[32]
-//! | ChaCha20-Poly1305 over the Offer, keyed by keccak256(ANSWER_TAG |
-//! X25519(agent_sk, buyer_pk) | agent_pk | buyer_pk), nonce zero, with
-//! buyer_pk | agent_pk as associated data. The agent draws agent_sk for each
-//! request, so no key seals twice. The meter alone holds buyer_sk.
+//! The escrow agent's sealed answer: agent_pk[32] |
+//! ChaCha20-Poly1305 over the Offer, keyed by keccak256(ANSWER_TAG | X25519
+//! shared | agent_pk | buyer_pk), nonce zero, with listing_key | release_key
+//! as associated data, so an answer for another release never opens. The
+//! buyer key is fresh per offer and the agent's per answer: no key seals twice.
 
 use alloc::vec;
 use alloc::vec::Vec;
@@ -29,10 +29,14 @@ use nonos_seal::{open, seal, NONCE_LEN, TAG_LEN};
 use crate::answer::Offer;
 use crate::answer_types::{answer_key, AnswerWrong, X25519};
 
+/// listing_key and release_key, the request's two.
+pub type Release<'a> = (&'a [u8; 32], &'a [u8; 32]);
+
 pub fn seal_answer<K: Keccak, X: X25519>(
     (k, x): (&K, &X),
     agent_sk: &[u8; 32],
     buyer_pk: &[u8; 32],
+    (listing, release): Release<'_>,
     offer: &Offer,
 ) -> Option<Vec<u8>> {
     let (agent_pk, shared) = (x.public(agent_sk), x.dh(agent_sk, buyer_pk));
@@ -41,14 +45,16 @@ pub fn seal_answer<K: Keccak, X: X25519>(
     let plain = offer.encode();
     let mut out = vec![0u8; 32 + plain.len() + TAG_LEN];
     out[..32].copy_from_slice(&agent_pk);
-    let ad = [&buyer_pk[..], &agent_pk].concat();
+    let ad = [&listing[..], release].concat();
     seal(&key, &[0; NONCE_LEN], &ad, &plain, &mut out[32..]).ok()?;
     Some(out)
 }
 
+/// The offer for `content_len`, opened under buyer_sk for this release.
 pub fn open_answer<K: Keccak, X: X25519>(
     (k, x): (&K, &X),
     buyer_sk: &[u8; 32],
+    ((listing, release), content_len): (Release<'_>, u64),
     sealed: &[u8],
 ) -> Result<Offer, AnswerWrong> {
     let (agent_pk, body) = sealed.split_first_chunk::<32>().ok_or(AnswerWrong::Short)?;
@@ -57,7 +63,7 @@ pub fn open_answer<K: Keccak, X: X25519>(
     (shared != [0; 32]).then_some(()).ok_or(AnswerWrong::LowOrder)?;
     let key = answer_key(k, &shared, (agent_pk, &buyer_pk));
     let mut plain = vec![0u8; body.len() - TAG_LEN];
-    let ad = [&buyer_pk[..], agent_pk].concat();
+    let ad = [&listing[..], release].concat();
     open(&key, &[0; NONCE_LEN], &ad, body, &mut plain).map_err(|_| AnswerWrong::Seal)?;
-    Offer::parse(&plain).ok_or(AnswerWrong::Body)
+    Offer::parse(&plain, content_len).ok_or(AnswerWrong::Body)
 }

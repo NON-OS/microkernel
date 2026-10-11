@@ -14,33 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The offer inside a sealed answer reads back exactly, and the Equi-X
-//! challenge is listing_key | buyer_pk.
+//! The offer inside a sealed answer has no count: n comes from the release's
+//! content_len, and the body is exactly 64 + 1056 n bytes.
 
+#[path = "common/answer_fixture.rs"]
+mod answer_fixture;
 #[path = "common/k.rs"]
 mod k;
 #[path = "common/seller.rs"]
 mod seller;
 
-use k::{kec, K};
-use nonos_nox_chunks::{equix_challenge, key_commit, Offer};
-use seller::{content, offer, KEY};
-
-fn honest() -> Offer {
-    let (hashes, ciphertext, cipher_root) = offer(&content(), None);
-    Offer { cipher_root, key_commit: key_commit(&K, &KEY), hashes, ciphertext }
-}
+use answer_fixture::{honest, len};
+use k::kec;
+use nonos_nox_chunks::{offer_len, Offer};
+use seller::KEY;
 
 #[test]
-fn an_offer_body_reads_back_exactly() {
+fn the_body_is_exactly_its_length_for_the_release() {
     let o = honest();
     let b = o.encode();
-    assert_eq!(b.len(), 68 + 32 * o.hashes.len() + o.ciphertext.len());
-    assert_eq!(Offer::parse(&b), Some(o.clone()));
-    assert_eq!(Offer::parse(&b[..68 + 31]), None, "short of its own count");
-    let mut huge = b.clone();
-    huge[64..68].copy_from_slice(&u32::MAX.to_le_bytes());
-    assert_eq!(Offer::parse(&huge), None);
+    assert_eq!(b.len(), 64 + 1056 * 3);
+    assert_eq!(offer_len(len()), Some(b.len()));
+    assert_eq!(Offer::parse(&b, len()), Some(o.clone()));
+    assert_eq!(Offer::parse(&b, 2048), None, "two chunks' worth is another length");
+    assert_eq!(Offer::parse(&b[..b.len() - 1], len()), None, "short");
+    assert_eq!(Offer::parse(&[b.as_slice(), &[0]].concat(), len()), None, "long");
+    assert_eq!(offer_len(0), None, "no content, no offer");
+    assert_eq!(offer_len(1), Some(64 + 1056));
     assert_eq!(o.key_commit, kec(&[&KEY]), "keyCommit is keccak256(abi.encode(K))");
-    assert_eq!(equix_challenge(&[1; 32], &[2; 32])[31..33], [1, 2]);
 }

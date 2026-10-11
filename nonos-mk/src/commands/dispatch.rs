@@ -52,7 +52,7 @@ fn print_usage() {
            inspect   --in <blob>\n\
            keygen    --out <seed-file>\n\
            escrow-serve --listing-key <hex32> --release-key <hex32> --package <file>\n\
-                     --keys <file> [--listen 127.0.0.1:8640]\n\n\
+                     --keys <file> [--listen 127.0.0.1:8640] [--per-minute 30]\n\n\
          signing seed sources: --key-file <path-with-32-byte-binary-seed>\n\
          or --key-env <ENV_WITH_32_BYTE_HEX_SEED>. The CLI never\n\
          prints, copies, or otherwise emits private key material.\n"
