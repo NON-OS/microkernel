@@ -20,4 +20,6 @@ pub enum Backend {
     Ahci,
     Nvme,
     UsbMsc,
+    /// A driver on the block wire, by its index in `wire`'s table.
+    Wire(u8),
 }
