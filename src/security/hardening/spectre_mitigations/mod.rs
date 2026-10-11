@@ -56,5 +56,5 @@ pub use retpoline::{
 pub use rsb::{rsb_clear, rsb_fill};
 pub use ssbd::{ssbd_disable, ssbd_enable};
 pub use stibp::{stibp_disable, stibp_enable};
-pub use switch::switch_barrier;
+pub use switch::{switch_aborted, switch_barrier};
 pub use types::{CpuVulnerabilities, MitigationStatus};
