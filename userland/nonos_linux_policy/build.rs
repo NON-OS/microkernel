@@ -38,6 +38,8 @@ pub mod syscall_set;
 #[path = "src/unlisted.rs"]
 pub mod unlisted;
 
+#[path = "build/guard.rs"]
+pub mod guard;
 #[path = "build/line.rs"]
 pub mod line;
 #[path = "build/set_hex.rs"]
@@ -52,12 +54,21 @@ const POLICIES: &str = "../capsule_linux/policies.txt";
 fn main() {
     println!("cargo:rerun-if-changed=build");
     println!("cargo:rerun-if-changed=src");
-    println!("cargo:rerun-if-env-changed=NONOS_LINUX_USERLAND");
-    println!("cargo:rerun-if-env-changed=NONOS_LINUX_GUEST_POLICIES");
+    for var in ["NONOS_LINUX_USERLAND", "NONOS_LINUX_GUEST_POLICIES", "NONOS_IN_FLAKE"] {
+        println!("cargo:rerun-if-env-changed={var}");
+    }
     let out =
         Path::new(&env::var_os("OUT_DIR").expect("cargo sets OUT_DIR")).join("vendor_table.rs");
-    if let Err(why) = table::write(Path::new(POLICIES), &out) {
-        eprintln!("nonos_linux_policy: {why}");
-        process::exit(1);
-    }
+    let rows = table::write(Path::new(POLICIES), &out).unwrap_or_else(|why| fail(&why));
+    let [target, host, profile] =
+        ["TARGET", "HOST", "PROFILE"].map(|v| env::var(v).unwrap_or_default());
+    let in_flake = env::var("NONOS_IN_FLAKE").is_ok_and(|v| v == "1");
+    let build = guard::Build { target: &target, host: &host, profile: &profile, in_flake };
+    let userland = env::var_os("NONOS_LINUX_USERLAND").is_some();
+    guard::may_build(&build, userland, rows).unwrap_or_else(|why| fail(&why));
+}
+
+fn fail(why: &str) -> ! {
+    eprintln!("nonos_linux_policy: {why}");
+    process::exit(1)
 }
