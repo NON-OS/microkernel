@@ -40,6 +40,7 @@ impl Asked {
             }
             Asked::NoDirect => b"no direct download to offer for this one",
             Asked::InWallet => b"confirm the purchase in your wallet",
+            Asked::Order(state, plain) => super::order_line::order_line(state, plain),
             Asked::WalletWaiting => {
                 b"another purchase waits in your wallet: confirm it or let it lapse"
             }

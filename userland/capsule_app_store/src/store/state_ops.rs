@@ -34,6 +34,7 @@ impl State {
             fb_h: 0,
             trouble: None,
             asked: None,
+            orders: Default::default(),
             search: super::search::Search::default(),
             port: 0,
             loaded: false,
