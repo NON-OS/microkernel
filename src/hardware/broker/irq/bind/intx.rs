@@ -23,7 +23,7 @@ use super::intx_open::open_intx;
 use super::intx_say::say_route;
 use crate::arch::interrupt::broker::vector_of;
 use crate::arch::interrupt::ioapic;
-use crate::hardware::broker::table;
+use crate::hardware::broker::{pio, table};
 
 pub(super) fn bind_intx(
     pid: u32,
@@ -34,7 +34,8 @@ pub(super) fn bind_intx(
         .into_iter()
         .find(|r| r.device_id == req.device_id)
         .ok_or(IrqBindError::UnknownDevice)?;
-    validate_intx_request(&req, device.irq_pin, device.irq_line)?;
+    let (pin, line) = pio::intx_view(&device, req.irq_source);
+    validate_intx_request(&req, pin, line)?;
     // The driver names its line by ISA IRQ number; the IOAPIC is programmed by
     // GSI. Resolve the MADT override once (identity when none) and route, mask
     // and record by that GSI so ack/unmask hit the same redirection entry.
