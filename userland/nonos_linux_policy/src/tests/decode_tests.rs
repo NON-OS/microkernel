@@ -32,13 +32,13 @@ fn fields_sit_where_the_plan_puts_them() {
     assert_eq!(&b[48..56], &0x21u64.to_le_bytes());
     assert_eq!(&b[56..88], &[0x22; 32]);
     assert_eq!(&b[88..120], &[0x33; 32]);
-    assert_eq!(&b[120..128], &[0x44; 8]);
+    assert_eq!(&b[120..152], &[0x44; 32]);
     // calls 0 and 1, 231, 511, and 9999 in the shared last bucket
-    assert_eq!(b[128], 0b11);
-    assert_eq!(b[128 + 28], 1 << 7);
-    assert_eq!(b[128 + 63], 1 << 7);
-    assert_eq!(b[128 + 64], 1);
-    assert!(b[193..].iter().all(|&x| x == 0));
+    assert_eq!(b[152], 0b11);
+    assert_eq!(b[152 + 28], 1 << 7);
+    assert_eq!(b[152 + 63], 1 << 7);
+    assert_eq!(b[152 + 64], 1);
+    assert!(b[217..].iter().all(|&x| x == 0));
 }
 
 #[test]
