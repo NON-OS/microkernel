@@ -4869,6 +4869,16 @@ else
 fi
 unset mirror_out
 
+# The keymap a Wayland guest is given is generated data; regenerating it is a
+# deliberate step (tools/nonos-linux-keymap), and this holds it to its pin.
+if keymap_out="$(python3 scripts/check_keymap.py 2>&1)"; then
+    note ok "the guest keymap is the pinned one (check_keymap)"
+else
+    tail -n 5 <<< "${keymap_out}" >&2
+    fail_with "check_keymap: keymap-us.xkb differs from its pin"
+fi
+unset keymap_out
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"
