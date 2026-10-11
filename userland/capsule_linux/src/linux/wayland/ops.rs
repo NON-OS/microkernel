@@ -20,6 +20,8 @@
 pub mod data;
 #[path = "ops_decoration.rs"]
 pub mod decoration;
+#[path = "ops_output.rs"]
+pub mod output;
 #[path = "ops_req.rs"]
 pub mod req;
 #[path = "ops_seat.rs"]

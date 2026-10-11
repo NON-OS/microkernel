@@ -46,6 +46,10 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::Positioner => b"xdg_positioner",
         Object::Popup => b"xdg_popup",
         Object::Touch => b"wl_touch",
+        Object::XdgOutputManager => b"zxdg_output_manager_v1",
+        Object::XdgOutput => b"zxdg_output_v1",
+        Object::Viewporter => b"wp_viewporter",
+        Object::Viewport => b"wp_viewport",
     }
 }
 

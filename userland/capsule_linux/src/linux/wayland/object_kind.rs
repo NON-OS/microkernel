@@ -44,4 +44,8 @@ pub enum Object {
     Positioner,
     Popup,
     Touch,
+    XdgOutputManager,
+    XdgOutput,
+    Viewporter,
+    Viewport,
 }

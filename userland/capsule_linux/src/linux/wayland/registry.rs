@@ -44,6 +44,13 @@ pub const GLOBALS: &[Global] = &[
         version: 1,
         object: Object::DecorationManager,
     },
+    Global {
+        name: 9,
+        interface: b"zxdg_output_manager_v1",
+        version: 2,
+        object: Object::XdgOutputManager,
+    },
+    Global { name: 10, interface: b"wp_viewporter", version: 1, object: Object::Viewporter },
 ];
 
 pub fn by_name(name: u32) -> Option<&'static Global> {

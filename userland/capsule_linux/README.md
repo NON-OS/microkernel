@@ -116,6 +116,9 @@ a third takes NET_ANON away. Only a vendor row carries its list today (`dests=` 
   a device per seat, and cancels any selection or drag at once.
 - Decorations are always server-side (`decoration.rs`): the window manager frames a guest's
   window like any other.
+- zxdg_output_manager_v1 says the one screen's logical place and size, as wl_output does.
+  wp_viewporter makes viewports, but their source and destination change nothing: a buffer is
+  shown at its own size (`route_output.rs`).
 - A popup is dismissed as soon as it is asked for (`route_rest.rs`): a guest's window is one
   surface, and a menu it opens is not shown. Moving, resizing and minimizing are the window
   manager's, which the person drives, so a guest asking does nothing. The cursor is the
