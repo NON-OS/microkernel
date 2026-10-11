@@ -37,6 +37,9 @@ pub mod price;
 #[path = "../../../capsule_app_store/src/store/verdict.rs"]
 pub mod verdict;
 
+#[path = "../../../capsule_app_store/src/store/reasons.rs"]
+pub mod reasons;
+
 #[path = "../../../capsule_app_store/src/store/tab.rs"]
 pub mod tab;
 
