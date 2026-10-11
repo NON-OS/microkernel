@@ -28,7 +28,7 @@ use crate::services::lifecycle::transport;
 /// Write `data` at 512-byte sector `sector` of endpoint `index`'s disk, cut
 /// into requests the driver takes. A part of a block at either end is read,
 /// patched and written back whole.
-pub fn write_blocks(index: u8, sector: u64, data: &[u8]) -> Result<(), WireError> {
+pub(super) fn write_blocks(index: u8, sector: u64, data: &[u8]) -> Result<(), WireError> {
     let e = gate(index)?;
     let layout = layout(e)?;
     if layout.read_only {
