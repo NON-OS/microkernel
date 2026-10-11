@@ -14,14 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod attest;
+mod attest_digest;
 mod binding;
 mod binding_kind;
 mod commerce;
 mod digest;
+mod policy;
+mod policy_kind;
 mod recover;
 
+pub use attest::{attest_verdict, attest_verdict_at, AttestVerdict};
+pub use attest_digest::{attest_digest_at, attest_words};
 pub use binding::{binding_verdict, binding_verdict_at};
 pub use binding_kind::BindingVerdict;
 pub use commerce::{commerce_verdict, CommerceVerdict};
 pub use digest::{binding_digest, binding_digest_at};
+pub use policy::{policy_verdict, AT_LISTING, AT_RELEASE};
+pub use policy::{POLICY_LEN, POLICY_MAGIC, POLICY_VERSION};
+pub use policy_kind::PolicyVerdict;
 pub use recover::Recover;

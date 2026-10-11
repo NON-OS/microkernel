@@ -69,6 +69,4 @@ pub use types::{
     CapsuleRelease, Commerce, InstallReadiness, MarketplaceEntry, MarketplaceIndex, PriceKind,
     PriceModel, ProofReq, ReleaseExt, SettleMode, TokenInfo, ValidationReport, ValidationStatus,
 };
-pub use verdict::{binding_digest, binding_digest_at, binding_verdict, binding_verdict_at};
-pub use verdict::{commerce_verdict, Recover};
-pub use verdict::{BindingVerdict, CommerceVerdict};
+pub use verdict::*;

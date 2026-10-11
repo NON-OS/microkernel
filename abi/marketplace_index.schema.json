@@ -375,6 +375,11 @@
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"
           }
+        },
+        "release_attest_sig": {
+          "type": "string",
+          "pattern": "^([0-9a-f]{130})?$",
+          "description": "The payee's EIP-712 ReleaseAttest (plan/23) over listingId, releaseId, bondId, chunkRoot, contentLen and packageHash, r | s | v; empty when the entry has no payee."
         }
       }
     },

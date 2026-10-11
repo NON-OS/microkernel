@@ -17,25 +17,29 @@
 //! Why a listing can or cannot be installed, as `OP_INSTALL_READY` returns
 //! it: the verdict, then one byte per gate.
 
-/// The six gates, in the order the capsule writes them after the verdict.
-pub const GATES: [&[u8]; 6] = [
+/// The gates, in the order the capsule writes them after the verdict. The
+/// last three are schema 3's (plan/25); an older reader stops at six.
+pub const GATES: [&[u8]; 9] = [
     b"index signature",
     b"package present",
     b"publisher signature",
     b"operator validation",
     b"architecture",
     b"attestation",
+    b"commerce",
+    b"release attest",
+    b"guest policy",
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Readiness {
     pub install_ready: bool,
-    pub gates: [bool; 6],
+    pub gates: [bool; 9],
 }
 
 pub fn parse_readiness(body: &[u8]) -> Option<Readiness> {
     let bytes = body.get(..1 + GATES.len())?;
-    let mut gates = [false; 6];
+    let mut gates = [false; 9];
     for (g, b) in gates.iter_mut().zip(&bytes[1..]) {
         *g = *b != 0;
     }

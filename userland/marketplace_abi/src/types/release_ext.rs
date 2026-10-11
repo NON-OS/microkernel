@@ -33,4 +33,7 @@ pub struct ReleaseExt {
     pub content_len: u64,
     /// Anchors of the publisher's own reference proofs (plan/11).
     pub proof_anchors: Vec<[u8; 32]>,
+    /// The payee's ReleaseAttest (plan/23) over this release, r, s, v; zero
+    /// when the entry has no payee. Two of them differing are slashable.
+    pub release_attest_sig: [u8; 65],
 }
