@@ -33,7 +33,7 @@ pub fn enable_mitigations() -> MitigationStatus {
     let bits = decide();
     apply_on_this_cpu();
     status.ibrs_enabled = bits & SPEC_CTRL_IBRS != 0;
-    status.ibpb_enabled = cpuid::has_ibrs_ibpb();
+    status.ibpb_enabled = super::cpu_apply::has_ibpb();
     status.stibp_enabled = bits & SPEC_CTRL_STIBP != 0;
     status.ssbd_enabled = bits & SPEC_CTRL_SSBD != 0;
 
