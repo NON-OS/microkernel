@@ -22,6 +22,7 @@ mod host;
 mod fixture;
 mod deliver_flow;
 mod flow;
+mod kept;
 mod plan;
 #[path = "../settle/ret.rs"]
 mod ret;
