@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "emmc_proofs"
 version = "0.1.0"
+dependencies = [
+ "nonos_blk_wire",
+]
+
+[[package]]
+name = "nonos_blk_wire"
+version = "0.1.0"

@@ -18,7 +18,6 @@ mod dispatch;
 mod error;
 mod handlers;
 mod medium;
-pub mod medium_rule;
 mod reply;
 mod runner;
 
