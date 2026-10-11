@@ -60,3 +60,16 @@ fn each_driver_names_its_own_bus() {
     let named: Vec<&[u8]> = ALL.iter().map(|d| d.label()).collect();
     assert_eq!(named, [&b"NVMe"[..], b"SATA", b"eMMC", b"UFS", b"virtio"]);
 }
+
+#[test]
+fn the_capacity_reply_buffer_holds_the_block_wires_geometry() {
+    // A GEOMETRY reply is 44 bytes; a receive sized for an 8-byte count
+    // refuses it, and the installer opens no eMMC or UFS disk (R7).
+    use nonos_blk_wire::{GEOMETRY_LEN, HDR_LEN, STATUS_LEN};
+    let room = std::hint::black_box(HDR_LEN + STATUS_LEN + super::dialect::CAPACITY_BODY_MAX);
+    // driver.sdhci0 and driver.ufs0 both answer nonos_blk_wire's GEOMETRY;
+    // the other dialects answer an 8-byte count.
+    for body in [GEOMETRY_LEN, 8] {
+        assert!(HDR_LEN + STATUS_LEN + body <= room, "{body}-byte body");
+    }
+}

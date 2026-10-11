@@ -19,6 +19,10 @@
 
 use super::table::Driver;
 
+/// The longest capacity body any dialect answers with: the block wire's
+/// GEOMETRY, 20 bytes. The others answer 8, a block count alone.
+pub const CAPACITY_BODY_MAX: usize = 20;
+
 /// Opcodes in the order capacity, read, write, flush. Every request goes to
 /// unit 0, the word the header leaves zero; each driver serves one disk.
 pub struct Ops {
