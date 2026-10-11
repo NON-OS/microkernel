@@ -26,7 +26,7 @@ use super::read_fixture::{commerce, escrow, ready, CHAIN};
 use crate::order::read::{read_named, Named};
 use crate::order::voucher::Voucher;
 
-fn voucher() -> Voucher {
+pub(super) fn voucher() -> Voucher {
     let c = commerce(SettleMode::Voucher);
     let bare = ReleaseEscrow { chunk_root: [0; 32], content_len: 0, ..escrow() };
     match read_named(CHAIN, &c, &bare, &ready(&[1], BondCode::Active)) {

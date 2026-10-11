@@ -25,6 +25,7 @@ use common::refused_cut_and_tail;
 fn account_and_drain_round_trip() {
     let row = AccountRow {
         channel_id: [9; 32],
+        listing_id: [8; 32],
         chain_id: 1,
         deposit: 10,
         settled: 2,
@@ -43,7 +44,7 @@ fn account_and_drain_round_trip() {
         rows: vec![row],
     };
     let b = a.encode();
-    assert_eq!((b.len(), ACCOUNT_ROW_LEN), (79 + 97, 97));
+    assert_eq!((b.len(), ACCOUNT_ROW_LEN), (79 + 129, 129));
     assert_eq!(Account::parse(&b), Some(a));
     refused_cut_and_tail(&b, Account::parse);
     let mut bad = b.clone();

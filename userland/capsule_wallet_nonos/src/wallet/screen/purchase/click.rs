@@ -19,6 +19,7 @@
 use nonos_app_skeleton::EventOutcome;
 
 use super::fund::funding;
+use super::held::{choose, held};
 use super::words::closable;
 use crate::wallet::screen::hits::Press;
 use crate::wallet::state::{State, VIEW_HOME};
@@ -28,6 +29,7 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
         Press::Dismiss => state.failure = None,
         Press::Footer(1) if funding(state) => return super::fund::fund(state),
         Press::Footer(1) if opening(state) => return open_channel(state),
+        Press::Footer(n @ (1 | 2)) if held(state).is_some() => choose(state, n),
         Press::Footer(1) if budgeting(state) => {
             return super::budget::set_budget_for_channel(state)
         }

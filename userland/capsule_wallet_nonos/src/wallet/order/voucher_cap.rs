@@ -31,7 +31,7 @@ use crate::wallet::state::State;
 pub const NO_CAP: &str = "The meter did not take the listing's cap; set it from the Meter screen.";
 
 pub fn in_force(now: u64) -> bool {
-    account().is_some_and(|a| a.cap > 0 && a.expiry > now)
+    account(0).is_some_and(|a| a.cap > 0 && a.expiry > now)
 }
 
 /// Once the channel is open, its cap once. Whether the screen changed.
