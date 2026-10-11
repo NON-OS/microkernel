@@ -18,13 +18,11 @@
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EmmcError {
-    /// The broker refused a claim, a PCI command write, a mapping or a DMA
-    /// region; the value is its errno.
+    /// The broker refused a claim, command write, mapping or DMA region.
     Broker(i64),
     /// The register window is too small for one SDHCI slot.
     Window,
-    /// A generic SDHCI host whose slot is not an embedded one: it is a card
-    /// reader or an SDIO slot, not the internal disk.
+    /// A generic host whose slot is not embedded: a card reader or SDIO slot.
     NotEmbedded,
     /// The host does not offer ADMA2, the only DMA mode this driver drives.
     NoAdma,
@@ -68,6 +66,8 @@ pub enum EmmcError {
     DmaAddress,
     /// The sectors asked for lie outside the disk or the data buffer.
     OutOfRange,
+    /// A removable slot is empty, or holds a card GEOMETRY has not described.
+    NoMedium,
 }
 
 pub type EmmcResult<T> = Result<T, EmmcError>;
