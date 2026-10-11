@@ -38,3 +38,29 @@ fn an_empty_or_wrapping_range_flushes_nothing() {
     assert_eq!(dma_sync_lines(VA, 0).1, 0);
     assert_eq!(dma_sync_lines(u64::MAX - 10, 64).1, 0);
 }
+
+#[test]
+fn any_power_of_two_line_steps_over_every_byte_once() {
+    use super::dma_lines::dma_sync_lines_of;
+    for line in [16u64, 32, 64, 128, 256, 2048] {
+        for off in 0..line + 3 {
+            for len in [1u64, line - 1, line, line + 1, 3 * line + 5] {
+                let (first, n) = dma_sync_lines_of(VA + off, len, line);
+                assert_eq!(first % line, 0);
+                assert!(first <= VA + off && VA + off - first < line);
+                assert!(first + n * line >= VA + off + len, "covers the last byte");
+                assert!(first + (n - 1) * line < VA + off + len, "no line past it");
+            }
+        }
+    }
+    assert_eq!(dma_sync_lines_of(VA, 0, 16).1, 0);
+}
+
+#[test]
+fn ctr_dminline_is_words_as_a_power_of_two() {
+    use super::dma_lines::ctr_dminline_bytes;
+    assert_eq!(ctr_dminline_bytes(4 << 16), 64, "DminLine 4: sixteen words");
+    assert_eq!(ctr_dminline_bytes(0x8444_c004), 64, "other CTR_EL0 fields ignored");
+    assert_eq!(ctr_dminline_bytes(0), 4);
+    assert_eq!(ctr_dminline_bytes(0xf << 16), 4 << 15);
+}
