@@ -187,7 +187,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkAppInstall
         | SyscallNumber::MkAppLaunch
         | SyscallNumber::MkAppInstallStatus
-        | SyscallNumber::MkAppUninstall => caps.can_app_install(),
+        | SyscallNumber::MkAppUninstall
+        | SyscallNumber::MkProveJob => caps.can_app_install(),
 
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare
