@@ -39,3 +39,23 @@ pub fn inet_allowed(mask: u64) -> bool {
 pub fn may_dial(mask: u64, net_dests_hash: &[u8; 32]) -> bool {
     grants(mask, NET_ANON) && *net_dests_hash == [0; 32]
 }
+
+/// What a run does once its program's policy is bound, by whether the box
+/// has NET_ANON and whether this role holds Network (plan/32).
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum NetStep {
+    /// Run here: the role holds Network exactly when the box asks for it.
+    Run,
+    /// The run role holds no Network: ask to be started again with it.
+    AskAgain,
+    /// The network role, for a box without NET_ANON: run nothing.
+    Refuse,
+}
+
+pub fn net_step(mask: u64, holds_network: bool) -> NetStep {
+    match (grants(mask, NET_ANON), holds_network) {
+        (true, false) => NetStep::AskAgain,
+        (false, true) => NetStep::Refuse,
+        _ => NetStep::Run,
+    }
+}
