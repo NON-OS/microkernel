@@ -16,8 +16,8 @@
 
 //! The RAM QEMU `virt` gives a guest that boots without a device tree.
 
+use super::limits::MAX_MEMORY_REGIONS;
 use super::memory::{MemoryRegion, MemoryType};
-use super::types::MAX_MEMORY_REGIONS;
 
 pub(super) const RAM_BASE: u64 = 0x4000_0000;
 /// Deliberately small. Without a device tree there is no way to learn how
