@@ -16,9 +16,10 @@
 use alloc::vec::Vec;
 
 use super::cursor::Cursor;
+use super::decode_channel::channel;
 use super::layout::{CHANNEL_LEN, LISTING_LEN, MAGIC, STATE_LEN, VERSION};
 use crate::budget::{Budget, ListingCap, MAX_LISTING_CAPS};
-use crate::channel::{Channel, MAX_CHANNELS};
+use crate::channel::MAX_CHANNELS;
 use crate::error::MeterError;
 use crate::state::MeterState;
 
@@ -33,6 +34,11 @@ fn read(r: &mut Cursor<'_>) -> Option<MeterState> {
     if r.fixed::<4>()? != MAGIC || r.u16()? != VERSION || r.u16()? != 0 {
         return None;
     }
+    let last_settle = match (r.u64()?, r.u64()?) {
+        (0, 0) => None,
+        (0, _) => return None,
+        pair => Some(pair),
+    };
     let (cap, spent, expiry) = (r.u128()?, r.u128()?, r.u64()?);
     let n = r.u16()? as usize;
     let mut listings = Vec::with_capacity(n.min(MAX_LISTING_CAPS));
@@ -46,28 +52,5 @@ fn read(r: &mut Cursor<'_>) -> Option<MeterState> {
         channels.push(channel(r)?);
     }
     r.zeros(MAX_CHANNELS.checked_sub(m)? * CHANNEL_LEN)?;
-    Some(MeterState { budget: Budget { cap, spent, expiry, listings }, channels })
-}
-
-fn channel(r: &mut Cursor<'_>) -> Option<Channel> {
-    Some(Channel {
-        id: r.fixed()?,
-        payee: r.fixed()?,
-        listing_id: r.fixed()?,
-        chain_id: r.u64()?,
-        open_nonce: r.u64()?,
-        unit: r.fixed()?,
-        deposit: r.u128()?,
-        settled: r.u128()?,
-        cumulative: r.u128()?,
-        seq: r.u64()?,
-        expiry: r.u64()?,
-        usage_root: r.fixed()?,
-        sig: r.fixed()?,
-        frozen: match r.fixed::<1>()?[0] {
-            0 => false,
-            1 => true,
-            _ => return None,
-        },
-    })
+    Some(MeterState { budget: Budget { cap, spent, expiry, listings }, channels, last_settle })
 }

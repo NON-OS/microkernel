@@ -21,5 +21,5 @@ mod typed;
 
 pub(crate) use lookup::port_of;
 pub(crate) use market::offer;
-pub(crate) use settle::{broadcast, channel_state, gas, opened, ROUTED_MS};
+pub(crate) use settle::{broadcast, channel_state, gas, opened, read, word_u64, ROUTED_MS};
 pub(crate) use typed::sign_voucher;

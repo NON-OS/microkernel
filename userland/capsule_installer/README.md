@@ -76,3 +76,9 @@ checks every other word against the release's signed commerce block, its
 budget and its channels. The installer believes the meter's reply only for its
 own call and only as one whole voucher. Until a channel is open (the meter's
 OPEN) a paid `OP_INSTALL` answers the meter's refusal.
+
+A paid install's voucher reaches the chain before the install goes on
+(v1.4.7): after the meter's PAY, the installer asks nox_settle for a drain
+round (SETTLE, op 10) and answers the voucher only when the settle() it
+broadcast carries it. ENOENT, an error, or a settle() without it fails the
+install. This costs the meter one settle()'s gas per install.

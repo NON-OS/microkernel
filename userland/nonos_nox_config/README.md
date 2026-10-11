@@ -45,9 +45,11 @@ nothing else.
   `RELEASE_TAG`, each the keccak256 of `NONOS.nox.<x>.v1`. Each is used as the
   first word inside `abi.encode` of its id.
 - Units: install, proof, call, second and byte.
-- Gas limits for what the OS encodes itself: `APPROVE_GAS` 60000 and
-  `OPEN_GAS` 200000; and the fee caps it signs under, `MAX_FEE_PER_GAS`
-  1000 gwei and `MAX_PRIORITY_FEE_PER_GAS` 10 gwei.
+- Gas limits for what the OS encodes itself: `APPROVE_GAS` 60000,
+  `OPEN_GAS` 200000, `TOPUP_GAS` and `CLOSE_GAS` 120000, and
+  `SETTLE_GAS_MAX` 3000000, the most one settle() is signed for.
+- The fee caps the OS signs under: `MAX_FEE_PER_GAS` 1000 gwei and
+  `MAX_PRIORITY_FEE_PER_GAS` 10 gwei.
 
 ## Known copies
 

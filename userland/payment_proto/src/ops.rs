@@ -30,3 +30,7 @@ pub const OP_ORDER_STATUS: u16 = 9;
 pub const OP_ORDER_DELIVERED: u16 = 10;
 pub const OP_ORDER_REFUND: u16 = 11;
 pub const OP_OPEN: u16 = 12;
+/// Wallet: approve and topUp a channel with the meter's key (TopUp).
+pub const OP_TOPUP: u16 = 13;
+/// Wallet: close a channel past expiry plus GRACE (Close).
+pub const OP_CLOSE: u16 = 14;

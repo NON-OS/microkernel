@@ -21,11 +21,15 @@ mod gas;
 mod intent;
 mod opened;
 mod read;
+mod settle_now;
 
 pub use broadcast::broadcast;
+pub(crate) use broadcast::send_raw;
 pub use channel_state::channel_state;
 pub use fetch::fetch;
 pub use gas::gas;
+pub(crate) use gas::quote_gas;
 pub use intent::intent;
 pub use opened::opened;
 pub use read::read;
+pub use settle_now::settle_now;

@@ -44,7 +44,8 @@ pub use domain::{
 };
 pub use domain::{EIP712_DOMAIN_TYPEHASH, ESCROW, LISTING, SETTLEMENT, VERSION_HASH};
 pub use error::ConfigError;
-pub use gas::{APPROVE_GAS, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, OPEN_GAS};
+pub use gas::{APPROVE_GAS, CLOSE_GAS, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, OPEN_GAS};
+pub use gas::{SETTLE_GAS_MAX, TOPUP_GAS};
 pub use hex::{hex20, hex32};
 pub use lookup::{address, deployed};
 pub use tags::{BOND_TAG, CHANNEL_TAG, LISTING_TAG, ORDER_TAG, RELEASE_TAG, TAGS};
