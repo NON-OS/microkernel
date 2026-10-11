@@ -69,4 +69,6 @@ mod store_words_tests;
 #[cfg(test)]
 mod readiness_wire_tests;
 #[cfg(test)]
+mod release_escrow_tests;
+#[cfg(test)]
 mod wire_tests;
