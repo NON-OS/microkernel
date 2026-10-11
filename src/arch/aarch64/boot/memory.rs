@@ -21,16 +21,16 @@
 //! allocator is the same: one contiguous managed range, plus a below-4 GiB pool
 //! for devices whose DMA descriptors are only 32 bits wide.
 
-use super::info::{BootInfo, MemoryRegion, MemoryType};
+mod dma_window;
+mod regions;
+
+use super::info::BootInfo;
 use crate::hardware::broker::dma;
 use crate::memory::addr::PhysAddr;
 use crate::sys::serial;
+use dma_window::find_low_dma_region;
+use regions::largest_available;
 
-/// The top a 32-bit DMA address can name.
-const DMA_CEILING_32BIT: u64 = 0x1_0000_0000;
-/// Keep the pool clear of the bottom of RAM, where the kernel image and the
-/// secondary-CPU trampoline live.
-const DMA_POOL_MIN_BASE: u64 = 0x0100_0000;
 const PAGE_SIZE: u64 = 0x1000;
 
 extern "C" {
@@ -71,47 +71,4 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
 
     dma::init_display_pool();
     dma::init_low32_pool(dma_base, dma_pages);
-}
-
-/// The widest `Available` region the device tree reported, page aligned inward.
-fn largest_available(info: &BootInfo) -> Option<(u64, u64)> {
-    info.memory_map()
-        .iter()
-        .filter(|r| r.region_type == MemoryType::Available)
-        .filter_map(|r| bounds(r))
-        .max_by_key(|(start, end)| end - start)
-}
-
-/// Page-aligned `[start, end)` for a region, or `None` if nothing is left of
-/// it once both ends are aligned inward.
-fn bounds(region: &MemoryRegion) -> Option<(u64, u64)> {
-    let start = region.base.checked_add(PAGE_SIZE - 1)? & !(PAGE_SIZE - 1);
-    let end = region.base.checked_add(region.size)? & !(PAGE_SIZE - 1);
-    (end > start).then_some((start, end))
-}
-
-/// A below-4 GiB window that does not overlap the general allocator's range,
-/// or `(0, 0)` when there is none. Overlapping the two would let both hand out
-/// the same frame.
-fn find_low_dma_region(info: &BootInfo, main_start: u64, main_end: u64) -> (u64, usize) {
-    let want_pages = dma::low32_default_pages();
-    let want_bytes = (want_pages as u64) * PAGE_SIZE;
-
-    for region in info.memory_map().iter() {
-        if region.region_type != MemoryType::Available {
-            continue;
-        }
-        let Some((start, end)) = bounds(region) else {
-            continue;
-        };
-        let base = start.max(DMA_POOL_MIN_BASE);
-        let top = end.min(DMA_CEILING_32BIT);
-        if base >= top || top - base < want_bytes {
-            continue;
-        }
-        if base + want_bytes <= main_start || base >= main_end {
-            return (base, want_pages);
-        }
-    }
-    (0, 0)
 }
