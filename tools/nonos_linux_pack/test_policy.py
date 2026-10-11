@@ -21,7 +21,7 @@ import re
 import unittest
 from pathlib import Path
 
-from .policy import MASK, encode, listing_id, release_id
+from .policy import MASK, encode, listing_id, market_ready, release_id
 
 CRATE = Path(__file__).parents[2] / "userland/nonos_linux_policy/src"
 # From the crate: LinuxAppPolicy { [0x11;32], WAYLAND|NET_ANON|MODELS_RO|TTY,
@@ -56,6 +56,13 @@ class Policy(unittest.TestCase):
             bad[bucket // 8] = bad[bucket // 8] | (1 << bucket % 8) if flip else bad[bucket // 8] & ~(1 << bucket % 8)
             with self.assertRaises(ValueError):
                 encode(bytes(32), 0, bytes(32), bytes(32), bytes(32), bytes(bad))
+
+    def test_files_user_is_reserved(self):
+        calls = bytes.fromhex(CALLS)
+        self.assertTrue(market_ready(calls, MASK["FILES_HOME"]))
+        self.assertFalse(market_ready(calls, MASK["FILES_USER"]))
+        with self.assertRaisesRegex(ValueError, "FILES_USER is reserved"):
+            encode(bytes(32), MASK["FILES_USER"] | MASK["TTY"], bytes(32), bytes(32), bytes(32), calls)
 
 
 if __name__ == "__main__":
