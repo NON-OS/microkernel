@@ -25,6 +25,7 @@ mod commerce;
 mod digest;
 mod document;
 mod encoder;
+mod entry_document;
 pub(crate) mod fixtures;
 mod hosts;
 mod ids;

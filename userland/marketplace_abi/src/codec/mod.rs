@@ -40,6 +40,7 @@ mod encode_release;
 mod encode_token;
 #[cfg(feature = "canonical-encode")]
 mod encode_validation;
+mod entry_document;
 mod error;
 mod reader;
 mod release_document;
@@ -56,6 +57,9 @@ pub use decode_index::{decode_index, DecodedIndex};
 pub use encode_error::EncodeError;
 #[cfg(feature = "canonical-encode")]
 pub use encode_index::{encode_and_sign, encode_index, EncodedIndex};
+pub use entry_document::decode_entry_document;
+#[cfg(feature = "canonical-encode")]
+pub use entry_document::encode_entry_document;
 pub use error::DecodeError;
 pub use release_document::decode_release_document;
 #[cfg(feature = "canonical-encode")]

@@ -93,6 +93,8 @@ pub mod attest;
 pub mod typed;
 #[path = "../../capsule_wallet_nonos/src/wallet/intent/mod.rs"]
 pub mod intent;
+#[path = "../../capsule_wallet_nonos/src/wallet/publisher/mod.rs"]
+pub mod publisher;
 #[path = "../../capsule_wallet_nonos/src/wallet/meter/budget_form.rs"]
 pub mod meter_budget;
 #[path = "../../capsule_wallet_nonos/src/wallet/meter/channel.rs"]
@@ -157,6 +159,8 @@ mod meter_budget_tests;
 mod typed_tests;
 #[cfg(test)]
 mod intent_tests;
+#[cfg(test)]
+mod publisher_tests;
 #[cfg(test)]
 mod meter_job_tests;
 #[cfg(test)]
