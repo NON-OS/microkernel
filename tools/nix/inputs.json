@@ -4653,6 +4653,15 @@
   "md": [],
   "signed": []
  },
+ "userland/uart_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/uart_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/udp_proofs": {
   "exclude": [],
   "include": [
