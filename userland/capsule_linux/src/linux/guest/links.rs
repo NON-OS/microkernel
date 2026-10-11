@@ -24,7 +24,7 @@
 //! link cannot point out of the guest's tree, and a program reached through
 //! one is proved by its own path, never the link's.
 
-/* Removing and moving a link, for unlink and rename. */
+#[path = "links/edit.rs"]
 mod edit;
 
 use alloc::vec::Vec;

@@ -65,6 +65,8 @@ mod place_links_more_tests;
 mod place_links_tests;
 
 mod escrow_files;
+#[cfg(test)]
+pub mod image_list;
 mod tar_files;
 #[path = "../../../capsule_linux/src/linux/install/unpacked.rs"]
 pub mod unpacked;

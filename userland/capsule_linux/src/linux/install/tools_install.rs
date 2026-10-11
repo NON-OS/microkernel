@@ -52,7 +52,7 @@ pub fn install(tool: &str, pin: &[u8; 32]) -> Result<(), Why> {
     // Held to the signed index's pin above, so these are authenticated bytes.
     let files = Verified::checked(content);
     let listing = alloc::format!("{PREFIX}{tool}");
-    unpack(&files, &listing, true).map(|_| ())
+    unpack(&files, &listing, true, false).map(|_| ())
 }
 
 fn say(line: &[u8]) {

@@ -17,11 +17,8 @@
 //! C10d: the image's own files, as the build lists them from the committed
 //! catalogue, and the members that would take their place.
 
-#[path = "../../../../capsule_linux/build/image_files.rs"]
-mod image_files;
-
+use crate::install::image_list::image_files::{image_files, source, write};
 use crate::install::member::image::shadows;
-use image_files::{image_files, source, write};
 
 const STORE: &str = include_str!("../../../../../tools/nix/store.json");
 

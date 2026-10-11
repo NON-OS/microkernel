@@ -41,6 +41,7 @@ mod listing_family_tests;
 mod manifest_tests;
 mod market_tests;
 mod member_refusal_tests;
+mod merged_name_tests;
 mod mirror_tests;
 mod mixnet_name_tests;
 mod model_name_tests;

@@ -28,14 +28,13 @@ use crate::linux::file::visible;
 /// many landed. `name` is the package's own name, under which what it wrote
 /// is kept (`package_record`) so it can be taken out again; `chosen` says it
 /// is the package the person asked for, whose program is recorded so it can
-/// be started later.
+/// be started later; `merged`, that it is Debian's (deb/merged_usr.rs).
 ///
 /// All or nothing: a package with a file the store would not take, or
-/// links the table could not hold, is not installed. What of it was
-/// written is taken out again and the install fails as `Partial`, rather
-/// than reporting Installed over a program missing half its files. Its
-/// program is recorded only once every file is in.
-pub fn unpack(files: &Verified, name: &str, chosen: bool) -> Result<usize, Why> {
+/// links the table could not hold, is not installed. What of it was written
+/// is taken out again and the install fails as `Partial`. Its program is
+/// recorded only once every file is in.
+pub fn unpack(files: &Verified, name: &str, chosen: bool, merged: bool) -> Result<usize, Why> {
     let archive = walk(files.files());
     super::check::check(&archive.entries, name)?;
     let mut landed: Vec<Vec<u8>> = Vec::new();
@@ -58,6 +57,9 @@ pub fn unpack(files: &Verified, name: &str, chosen: bool) -> Result<usize, Why> 
             // Directories are implied by the paths under them.
             _ => {}
         }
+    }
+    if merged {
+        links.extend(super::super::deb::merged_usr::by_name_for(&landed, &links, name));
     }
     // A package missing files gets no links into the table either.
     let linked = match failed {

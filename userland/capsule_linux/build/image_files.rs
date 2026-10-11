@@ -66,7 +66,7 @@ pub fn image_files(store: &str) -> Result<Vec<String>, String> {
 
 /// The list as the Rust constant install/place/image.rs includes.
 pub fn source(files: &[String]) -> String {
-    let mut out = String::from("pub(super) const IMAGE_FILES: &[&[u8]] = &[\n");
+    let mut out = String::from("pub(in crate::linux::install) const IMAGE_FILES: &[&[u8]] = &[\n");
     for f in files {
         out.push_str(&format!("    b\"{f}\",\n"));
     }

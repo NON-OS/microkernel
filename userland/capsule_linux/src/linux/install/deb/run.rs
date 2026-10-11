@@ -41,7 +41,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let Some(index) = load(&src, &ring) else {
         return say(b"[LINUX] no verified Debian index\n", Why::Index);
     };
-    let _ = super::merged_usr::lay_out();
+    super::merged_usr::lay_out()?;
     let (max, mut done): (usize, Vec<String>) = (max_packages(), Vec::new());
     let mut wanted: Vec<Vec<String>> = vec![vec![String::from(name)]];
     while let Some(group) = wanted.pop() {
@@ -61,7 +61,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
         let Some(files) = fetch(&src, rec, chosen.then_some(pin)) else {
             return Err(Why::Package);
         };
-        unpack(&files, &rec.name, chosen)?;
+        unpack(&files, &rec.name, chosen, true)?;
         done.push(rec.name.clone());
         wanted.extend(rec.depends.iter().cloned());
     }
