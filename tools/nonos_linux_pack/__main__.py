@@ -14,17 +14,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-"""nonos-linux-pack [--sysroot ...] packs a program; `syscalls` measures one."""
+"""nonos-linux-pack [--sysroot ...] packs a program; `syscalls` measures one;
+`policy` writes a market release's guest_policy."""
 
 import sys
 
-from . import pack, syscalls
+from . import pack, policy_cli, syscalls
 
 
 def main() -> int:
     argv = sys.argv[1:]
     if argv[:1] == ["syscalls"]:
         return syscalls.main(argv[1:])
+    if argv[:1] == ["policy"]:
+        return policy_cli.main(argv[1:])
     return pack.main(argv)
 
 
