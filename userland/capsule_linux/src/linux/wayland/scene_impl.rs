@@ -39,8 +39,8 @@ impl Scene {
             pixels: Pixels::empty(),
             pointer: None,
             keyboard: None,
-            pointer_entered: false,
-            keyboard_entered: false,
+            pointer_on: None,
+            keyboard_on: None,
             subscribed: false,
             held: HeldKeys::new(),
         }
