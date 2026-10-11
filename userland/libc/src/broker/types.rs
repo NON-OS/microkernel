@@ -22,7 +22,7 @@ mod irq;
 mod mmio;
 mod pio;
 
-pub use bar::{Bar, BAR_FLAG_MEM64, BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO};
+pub use bar::{Bar, BAR_FLAG_FIXED, BAR_FLAG_MEM64, BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO};
 pub use bus::{BUS_KIND_ACPI, BUS_KIND_PCI, BUS_KIND_VIRT};
 pub use device::{DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
 pub use dma::DmaMapOut;

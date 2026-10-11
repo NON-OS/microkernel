@@ -71,4 +71,5 @@ pub enum PioError {
     NotHolder,
     BadOffset,
     BadWidth,
+    WindowHeld,
 }
