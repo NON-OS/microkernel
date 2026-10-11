@@ -14,7 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for nonos_proof_abi.
+//! Host proofs for nonos_proof_abi, and for the fetch capsule's pure half,
+//! which holds containers to it.
+
+extern crate alloc;
+
+/// nonos.prove.fetch's desk, the files that ship.
+#[path = "../../capsule_prove_fetch/src/desk/mod.rs"]
+pub mod fetch_desk;
 
 #[cfg(test)]
 mod fixture;
