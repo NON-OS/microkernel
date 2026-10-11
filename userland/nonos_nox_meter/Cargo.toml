@@ -1,0 +1,18 @@
+[package]
+name = "nonos_nox_meter"
+version = "0.1.0"
+edition = "2021"
+description = "The meter's accounting: channels, budget, vouchers and their signing request, no_std"
+license = "AGPL-3.0"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+nonos_marketplace_abi = { path = "../marketplace_abi" }
+nonos_nox_config = { path = "../nonos_nox_config" }
+
+# keccak-256 on the host, so the tests check every hash against an
+# independent implementation.
+[dev-dependencies]
+sha3 = { version = "=0.10.9", default-features = false }
