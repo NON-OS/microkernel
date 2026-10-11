@@ -172,6 +172,7 @@ nonos-capsule-driver-hda        = []
 nonos-capsule-driver-ac97       = []
 nonos-capsule-driver-vmmdev     = []
 nonos-capsule-driver-piix-ide   = []
+nonos-capsule-driver-virtio-scsi = []
 nonos-capsule-audio             = []
 nonos-capsule-driver-nvme       = []
 nonos-capsule-net-l2            = []
@@ -499,6 +500,13 @@ microkernel-driver-piix-ide = [
   "nonos-capsule-driver-piix-ide",
 ]
 
+microkernel-driver-virtio-scsi = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-scsi",
+]
+
 microkernel-driver-nvme = [
   "microkernel-core",
   "nonos-production",
@@ -709,6 +717,7 @@ microkernel-full-gui = [
   "nonos-capsule-driver-ac97",
   "nonos-capsule-driver-vmmdev",
   "nonos-capsule-driver-piix-ide",
+  "nonos-capsule-driver-virtio-scsi",
   "nonos-capsule-driver-usb-msc",
   "nonos-capsule-driver-i2c-pci",
   "nonos-capsule-driver-i2c-hid",
