@@ -23,8 +23,10 @@ use super::{Ccmp, LinkStation};
 use crate::wpa::supplicant::Supplicant;
 
 impl LinkStation {
-    /// Hand over the supplicant the join finished with, taking its group key.
+    /// Hand over the supplicant the join finished with, taking its group key
+    /// and, with management frame protection, its integrity group key.
     pub fn set_supplicant(&mut self, sup: Supplicant) {
+        self.pmf.take_igtk(&sup);
         if sup.gtk().len() == 16 {
             let mut key = [0u8; 16];
             key.copy_from_slice(sup.gtk());

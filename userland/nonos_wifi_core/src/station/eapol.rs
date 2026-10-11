@@ -37,6 +37,8 @@ impl LinkStation {
             return Rx::Dropped(RxDrop::NoSupplicant);
         };
         let out = sup.step(eapol);
+        // A group rekey under management frame protection carries a new IGTK.
+        self.pmf.take_igtk(sup);
         let group_key = if out.new_group_key && sup.gtk().len() == 16 {
             let mut key = [0u8; 16];
             key.copy_from_slice(sup.gtk());

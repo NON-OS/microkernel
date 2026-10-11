@@ -20,6 +20,8 @@
 #[cfg(test)]
 mod ap_sim;
 #[cfg(test)]
+mod bip_tests;
+#[cfg(test)]
 mod country_tests;
 #[cfg(test)]
 mod crypto_tests;
@@ -30,6 +32,16 @@ mod mlme_tests;
 #[cfg(test)]
 mod netif_tests;
 #[cfg(test)]
+mod pmf_frames;
+#[cfg(test)]
+mod pmf_link_tests;
+#[cfg(test)]
+mod pmf_plain_tests;
+#[cfg(test)]
+mod pmf_query_tests;
+#[cfg(test)]
+mod pmf_sim;
+#[cfg(test)]
 mod protect_tests;
 #[cfg(test)]
 mod receive_tests;
@@ -39,6 +51,8 @@ mod regdom_mlme_tests;
 mod regdom_tests;
 #[cfg(test)]
 mod rsn_tests;
+#[cfg(test)]
+mod sa_query_tests;
 #[cfg(test)]
 mod sae_tests;
 #[cfg(test)]

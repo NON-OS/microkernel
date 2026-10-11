@@ -14,16 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The station data-path engine shared by every WiFi driver. A driver holds one
-//! `LinkStation`, feeds it its association facts, and then converts between
-//! ethernet and 802.11 with two calls; its `LinkPort` implementation becomes a
-//! thin shim over its own rings. It owns the transmit sequence number and the
-//! software packet-number counter, so no driver keeps its own.
+//! The station data-path engine shared by every WiFi driver: a driver feeds
+//! one `LinkStation` its association facts and converts between ethernet and
+//! 802.11 with it. It owns the transmit sequence number and the software
+//! packet-number counter, so no driver keeps its own.
 //!
 //! [`LinkStation::receive`] checks each frame against the association before
 //! it reaches the stack and answers the AP's key handshakes (`eapol`);
-//! `rx_frame` remains the bare structural decap, without those checks.
+//! `rx_frame` remains the bare structural decap. `receive_mgmt` takes the
+//! management frames, under management frame protection when it is on.
 
+use super::pmf_state::PmfState;
 use super::replay::Replay;
 use super::Ccmp;
 use crate::dot11::header::MacAddr;
@@ -42,6 +43,7 @@ pub struct LinkStation {
     pub(super) group_keys: [Option<[u8; 16]>; 4],
     /// The join's supplicant, answering the AP's later key handshakes.
     pub(super) supplicant: Option<Supplicant>,
+    pub(super) pmf: PmfState,
 }
 
 impl LinkStation {
@@ -57,19 +59,7 @@ impl LinkStation {
             replay: Replay::new(),
             group_keys: [None; 4],
             supplicant: None,
+            pmf: PmfState::OFF,
         }
-    }
-
-    /// Record association to `bssid` with the given CCMP mode, resetting the
-    /// sequence and packet-number counters for the new session.
-    pub fn associate(&mut self, bssid: MacAddr, ccmp: Ccmp) {
-        self.bssid = bssid;
-        self.ccmp = ccmp;
-        self.pn = 0;
-        self.seq = 0;
-        self.associated = true;
-        self.replay = Replay::new();
-        self.group_keys = [None; 4];
-        self.supplicant = None;
     }
 }

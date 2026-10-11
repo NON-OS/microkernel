@@ -14,18 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the driver may ask the link about, and how it ends it.
+//! How the link starts and ends, and what the driver may ask it.
 
-use super::LinkStation;
+use super::pmf_state::PmfState;
+use super::replay::Replay;
+use super::{Ccmp, LinkStation};
 use crate::dot11::header::MacAddr;
 
 impl LinkStation {
+    /// Record association to `bssid` with the given CCMP mode, resetting the
+    /// sequence and packet-number counters for the new session.
+    pub fn associate(&mut self, bssid: MacAddr, ccmp: Ccmp) {
+        self.bssid = bssid;
+        self.ccmp = ccmp;
+        self.pn = 0;
+        self.seq = 0;
+        self.associated = true;
+        self.replay = Replay::new();
+        self.group_keys = [None; 4];
+        self.supplicant = None;
+        self.pmf = PmfState::OFF;
+    }
+
     /// Drop the association; the station stops framing until it associates
     /// again, and forgets the keys and the supplicant.
     pub fn deassociate(&mut self) {
         self.associated = false;
         self.group_keys = [None; 4];
         self.supplicant = None;
+        self.pmf = PmfState::OFF;
     }
 
     /// The BSSID of the current association.
