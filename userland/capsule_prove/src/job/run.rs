@@ -26,7 +26,9 @@ use nonos_proof_abi::wire::{ProveRequest, Stage, PROVER};
 use nonos_proof_abi::{app_id, RECORD_BYTES};
 
 use crate::assemble::wipe_bytes;
-use crate::market::{check, container, line, program, split, Sealed, WITNESS_BYTES};
+use crate::market::{
+    check, container, line, program, scope_and_context, split, Sealed, WITNESS_BYTES,
+};
 
 /// The kernel keeps at most this many measurements in a family (plan/10).
 const LIST_MAX: usize = 4096;
@@ -41,7 +43,7 @@ pub fn prove(req: &ProveRequest, stage: &mut dyn FnMut(Stage)) -> Result<Vec<u8>
     check(req.policy, req.listing_id, &s.record)?;
     let day = today()?;
     stage(Stage::Device);
-    let device = super::device::proof(req.listing_id, day, &s)?;
+    let device = super::device::proof(day, scope_and_context(req.listing_id, day, &s.raw))?;
     stage(Stage::Isolation);
     let (isolation, st) = super::isolation::proof(&s, req.policy)?;
     container(day, &s, &device, &isolation, &st, req.policy).ok_or(PROVER)
@@ -62,6 +64,6 @@ fn sealed(req: &ProveRequest) -> Result<Sealed, i32> {
     }
 }
 
-fn today() -> Result<u64, i32> {
+pub(super) fn today() -> Result<u64, i32> {
     u64::try_from(mk_time_millis()).ok().filter(|&ms| ms > 0).map(|ms| ms / DAY_MS).ok_or(PROVER)
 }
