@@ -17,13 +17,15 @@
 use super::iova;
 use super::table::CAPSULES;
 use crate::memory::addr::PhysAddr;
-use crate::memory::iommu::IommuProtection;
+use crate::memory::iommu::{IommuError, IommuProtection};
 
 /// Why a grant got no device address: no domain confines the device
 /// (decide.rs), or the domain would not map it.
 pub(in crate::hardware::broker) enum NoAddress {
     Unconfined,
     Failed,
+    /// The failed map may still be reachable: its frames are never reused.
+    Stranded,
 }
 
 /// A grant's device address, and whether it is an IOVA in the capsule's
@@ -53,9 +55,14 @@ pub(in crate::hardware::broker) fn map(
     let mapped = unsafe {
         c.domain.map(iova, PhysAddr::new(phys), length as usize, IommuProtection::READ_WRITE)
     };
-    if mapped.is_err() {
-        iova::give_back(c, iova, length);
-        return Err(NoAddress::Failed);
+    match mapped {
+        Ok(()) => {}
+        // The IOVA stays taken as well: the unit may still translate it.
+        Err(IommuError::Stranded) => return Err(NoAddress::Stranded),
+        Err(_) => {
+            iova::give_back(c, iova, length);
+            return Err(NoAddress::Failed);
+        }
     }
     Ok((iova, true))
 }

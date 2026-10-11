@@ -40,4 +40,7 @@ pub enum AmdViError {
     /// The device table held a writer entry with no valid translation before a
     /// unit was enabled; the unit is refused rather than let it through.
     StrayWriter,
+    /// A failed map's leaves could not be made unreachable: the unit may
+    /// still hold them, so the frames must never be reused.
+    Stranded,
 }
