@@ -16,9 +16,9 @@
 
 //! The domain separator against the EIP-712 specification's own example.
 
+use super::typed_hash_tests::{hex, keccak};
 use crate::server::typed::domain::Domain;
 use crate::server::typed::preimage::domain_preimage;
-use crate::typed_hash_tests::{hex, keccak};
 
 /// EIP-712's "Ether Mail" domain: name "Ether Mail", version "1", chain 1,
 /// contract 0xCcCC..cccC, whose separator the specification gives.

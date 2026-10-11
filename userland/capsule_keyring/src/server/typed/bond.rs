@@ -38,12 +38,14 @@ pub static PUBLISHER_BINDING: Entry = Entry {
     contracts: [None; CHAINS.len()],
 };
 
+/// Escrow releases set packageHash to zero; others set chunkRoot to zero and
+/// contentLen to 0.
 pub static RELEASE_ATTEST: Entry = Entry {
     id: 3,
-    type_string:
-        "ReleaseAttest(bytes32 listingId,bytes32 releaseId,bytes32 chunkRoot,bytes32 packageHash)",
+    type_string: "ReleaseAttest(bytes32 listingId,bytes32 releaseId,bytes32 bondId,\
+                  bytes32 chunkRoot,uint64 contentLen,bytes32 packageHash)",
     domain: &BOND,
-    fields: &[B32; 4],
+    fields: &[B32, B32, B32, B32, Field { kind: Kind::Uint(64), is_signer: false }, B32],
     callers: WALLET,
     contracts: [None; CHAINS.len()],
 };
