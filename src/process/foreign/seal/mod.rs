@@ -36,6 +36,7 @@ mod sys_read;
 mod table;
 pub(crate) mod trace;
 mod vendor;
+mod wipe;
 
 pub(in crate::process::foreign) use absorb::answered;
 pub(crate) use absorb::{abandon, measured, native};
