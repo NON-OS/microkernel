@@ -18,12 +18,13 @@
 
 use crate::linux::guest::Guest;
 
-use super::super::close_window::close_for;
+use super::super::close::close_window::close_for;
 use super::super::object::Object;
 use super::super::window_life::End;
 
 /// xdg_toplevel.destroy: the window it made goes with it.
 pub fn destroy(guest: &mut Guest, toplevel: u32) {
+    super::super::popup::ends::end_all(guest);
     close_for(&mut guest.scene, End::Toplevel(toplevel));
     for s in guest.scene.surfaces.iter_mut().filter(|s| s.toplevel == Some(toplevel)) {
         s.toplevel = None;
