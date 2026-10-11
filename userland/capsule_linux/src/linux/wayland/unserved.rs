@@ -38,6 +38,11 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::Region => b"wl_region",
         Object::Subcompositor => b"wl_subcompositor",
         Object::Subsurface => b"wl_subsurface",
+        Object::DataDeviceManager => b"wl_data_device_manager",
+        Object::DataSource => b"wl_data_source",
+        Object::DataDevice => b"wl_data_device",
+        Object::DecorationManager => b"zxdg_decoration_manager_v1",
+        Object::Decoration => b"zxdg_toplevel_decoration_v1",
     }
 }
 

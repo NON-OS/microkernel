@@ -22,6 +22,8 @@ mod buffer;
 mod close_window;
 mod commit;
 mod configure;
+mod data_device;
+mod decoration;
 mod destructor;
 mod fit;
 mod forget;

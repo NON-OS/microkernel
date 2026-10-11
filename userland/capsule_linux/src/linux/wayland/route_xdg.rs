@@ -59,7 +59,7 @@ pub fn route(
         (Some(Object::XdgToplevel), req::TOPLEVEL_UNSET_FULLSCREEN) => {
             toplevel::unset(guest, id, Mode::FullScreen)
         }
-        _ => return false,
+        _ => return super::data_device::route(guest, object, id, opcode, args),
     }
     true
 }
