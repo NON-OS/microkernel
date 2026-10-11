@@ -28,6 +28,7 @@ mod desktop_services;
 #[cfg(any(
     feature = "nonos-capsule-driver-ahci",
     feature = "nonos-capsule-driver-nvme",
+    feature = "nonos-capsule-driver-sdhci",
     feature = "nonos-capsule-driver-virtio-blk",
     feature = "nonos-capsule-driver-virtio-net",
     feature = "nonos-capsule-driver-usb-msc",
@@ -38,6 +39,7 @@ mod device_present;
 mod drivers_bus;
 mod drivers_input;
 mod drivers_nic;
+mod drivers_sdhci;
 mod drivers_storage;
 mod drivers_usb;
 mod drivers_virtio;

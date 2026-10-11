@@ -14,15 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one disk the capsule serves: a SATA driver or an opened eMMC host.
+use super::header::{Request, HDR_LEN, MAGIC, VERSION};
 
-use crate::emmc::Opened;
-use crate::setup::Driver;
-
-// One value for the life of the capsule, so the size of the larger variant
-// costs nothing a box would save.
-#[allow(clippy::large_enum_variant)]
-pub enum Served {
-    Sata(Driver),
-    Emmc(Opened),
+pub fn decode_request(buf: &[u8]) -> Option<Request> {
+    if buf.len() < HDR_LEN {
+        return None;
+    }
+    if u32::from_le_bytes(buf[0..4].try_into().ok()?) != MAGIC {
+        return None;
+    }
+    if u16::from_le_bytes(buf[4..6].try_into().ok()?) != VERSION {
+        return None;
+    }
+    Some(Request {
+        op: u16::from_le_bytes(buf[6..8].try_into().ok()?),
+        flags: u16::from_le_bytes(buf[8..10].try_into().ok()?),
+        request_id: u32::from_le_bytes(buf[12..16].try_into().ok()?),
+        payload_len: u32::from_le_bytes(buf[16..20].try_into().ok()?),
+    })
 }

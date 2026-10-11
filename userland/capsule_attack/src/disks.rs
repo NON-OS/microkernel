@@ -26,7 +26,7 @@ pub struct Disk {
 }
 
 /// Each driver's contract, as `nonos_blk_client` copies it.
-pub const DISKS: [Disk; 3] = [
+pub const DISKS: [Disk; 4] = [
     Disk {
         service: b"driver.nvme0",
         magic: 0x4E4E_564D,
@@ -50,5 +50,13 @@ pub const DISKS: [Disk; 3] = [
         write: 4,
         read_what: b"read a raw virtio-blk sector without StoreWrite, MkIpcCall",
         write_what: b"write a raw virtio-blk sector without StoreWrite, MkIpcCall",
+    },
+    Disk {
+        service: b"driver.sdhci0",
+        magic: 0x4E42_5731,
+        read: 3,
+        write: 4,
+        read_what: b"read a raw eMMC sector without StoreWrite, MkIpcCall",
+        write_what: b"write a raw eMMC sector without StoreWrite, MkIpcCall",
     },
 ];

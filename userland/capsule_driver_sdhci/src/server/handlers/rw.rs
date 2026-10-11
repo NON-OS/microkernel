@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! READ_BLOCKS and WRITE_BLOCKS.
+//! READ and WRITE.
 
 use crate::emmc::{wire_status, Opened, SECTOR_SIZE};
-use crate::protocol::{Request, E_MSGSIZE, READ_REQ_LEN, RESP_HDR_LEN, RW_HEADER_LEN, STATUS_LEN};
+use crate::protocol::{Request, E_MSGSIZE, RESP_HDR_LEN, RW_HEADER_LEN, STATUS_LEN};
 use crate::server::error::reply_with_status;
+use crate::server::reply::finish;
 
-use super::reply::finish;
+use super::rw_parse::parse;
 
-pub(super) fn read(o: &mut Opened, req: &Request, body: &[u8], tx: &mut [u8]) {
-    if req.payload_len as usize != READ_REQ_LEN {
-        return reply_with_status(tx, req, E_MSGSIZE);
-    }
-    let (lba, n) = match super::super::rw_parse::parse(body, o.disk.capacity_sectors()) {
+pub fn serve_read(o: &mut Opened, req: &Request, body: &[u8], tx: &mut [u8]) {
+    let (lba, n) = match parse(body, o.disk.capacity_sectors(), o.disk.max_sectors()) {
         Ok(v) => v,
         Err(s) => return reply_with_status(tx, req, s),
     };
@@ -38,18 +36,14 @@ pub(super) fn read(o: &mut Opened, req: &Request, body: &[u8], tx: &mut [u8]) {
     finish(tx, req, bytes);
 }
 
-pub(super) fn write(o: &mut Opened, req: &Request, body: &[u8], tx: &mut [u8]) {
-    let (lba, n) = match super::super::rw_parse::parse(body, o.disk.capacity_sectors()) {
+pub fn serve_write(o: &mut Opened, req: &Request, body: &[u8], tx: &mut [u8]) {
+    let (lba, n) = match parse(body, o.disk.capacity_sectors(), o.disk.max_sectors()) {
         Ok(v) => v,
         Err(s) => return reply_with_status(tx, req, s),
     };
-    let bytes = n as usize * SECTOR_SIZE;
-    if body.len() != RW_HEADER_LEN + bytes || req.payload_len as usize != RW_HEADER_LEN + bytes {
+    if body.len() != RW_HEADER_LEN + n as usize * SECTOR_SIZE {
         return reply_with_status(tx, req, E_MSGSIZE);
     }
-    let status = match o.disk.write(lba, n, &body[RW_HEADER_LEN..]) {
-        Ok(()) => 0,
-        Err(e) => wire_status(e),
-    };
+    let status = o.disk.write(lba, n, &body[RW_HEADER_LEN..]).map_or_else(wire_status, |()| 0);
     reply_with_status(tx, req, status);
 }
