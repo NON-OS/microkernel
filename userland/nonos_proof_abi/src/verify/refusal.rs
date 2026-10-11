@@ -38,6 +38,9 @@ pub enum Refusal {
     /// Hc or A in the public words disagrees with the record or the policy.
     Publics,
     Isolation(u32),
+    /// A delivery body that is not this record's, this service's, or the
+    /// buyer's own request, answer, order and channel.
+    Body,
 }
 
 impl Refusal {
@@ -55,6 +58,7 @@ impl Refusal {
             Refusal::Policy => 10,
             Refusal::AppId => 11,
             Refusal::Publics => 12,
+            Refusal::Body => 13,
             Refusal::Isolation(c) => 100 + c,
         }
     }
