@@ -4,7 +4,7 @@
 use crate::server::choose::choose;
 
 const HDA: u32 = 4218;
-const USB: u32 = 4242;
+const USB: u32 = 4246;
 
 #[test]
 fn a_ready_usb_device_plays_over_hd_audio() {

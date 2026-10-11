@@ -30,7 +30,7 @@ driver.ixgbe_0 -- broker MMIO + DMA rings --> 82599 / X540 / X550
   Bus Master Enable.
 - `MkMmioMap` maps BAR0; `MkDmaMap` takes the RX ring, RX buffers, TX ring
   and TX buffers.
-- `MkIpcRecv` and `MkIpcSend` serve `service:4276:driver.ixgbe_0`.
+- `MkIpcRecv` and `MkIpcSend` serve `service:4248:driver.ixgbe_0`.
 - `CryptoRandom` draws the station address each boot.
 
 No interrupt is bound and every cause is masked (EIMC and EIMC_EX).

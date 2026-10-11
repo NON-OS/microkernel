@@ -13,8 +13,8 @@ CAPSULE_DIR              := userland/capsule_driver_ixgbe
 CAPSULE_BIN_NAME         := driver_ixgbe
 CAPSULE_FEATURE          := nonos-capsule-driver-ixgbe
 CAPSULE_NAMESPACE        := systems.nonos.driver.ixgbe_0
-CAPSULE_SERVICE_ENDPOINT := service:4276:driver.ixgbe_0
-CAPSULE_REPLY_ENDPOINT   := reply:4277:endpoint.4294967393
+CAPSULE_SERVICE_ENDPOINT := service:4248:driver.ixgbe_0
+CAPSULE_REPLY_ENDPOINT   := reply:4249:endpoint.4294967393
 # IPC|Memory|Crypto|Driver|DeviceEnum|Mmio|Dma = 0xB8038, the NIC mask.
 CAPSULE_REQUIRED_CAPS    := 0xB8038
 # Debug, granted only by a build that compiles `capsule-serial-debug`, for

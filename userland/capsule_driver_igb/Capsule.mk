@@ -13,8 +13,8 @@ CAPSULE_DIR              := userland/capsule_driver_igb
 CAPSULE_BIN_NAME         := driver_igb
 CAPSULE_FEATURE          := nonos-capsule-driver-igb
 CAPSULE_NAMESPACE        := systems.nonos.driver.igb_0
-CAPSULE_SERVICE_ENDPOINT := service:4274:driver.igb_0
-CAPSULE_REPLY_ENDPOINT   := reply:4275:endpoint.4294967392
+CAPSULE_SERVICE_ENDPOINT := service:4242:driver.igb_0
+CAPSULE_REPLY_ENDPOINT   := reply:4243:endpoint.4294967392
 # IPC|Memory|Crypto|Driver|DeviceEnum|Mmio|Dma = 0xB8038, the set rtl8169
 # holds. Driver covers MkPciConfigWrite, which sets Bus Master and Memory
 # Space after the claim. No Irq: the driver polls and binds no line.
