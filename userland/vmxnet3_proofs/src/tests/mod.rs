@@ -16,6 +16,7 @@
 
 mod batch;
 mod bring_up;
+mod command;
 mod grants;
 mod health;
 mod layout;

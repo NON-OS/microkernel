@@ -22,8 +22,13 @@ mod debug;
 mod dma;
 mod entropy;
 mod grants;
+mod pci;
 
 pub use debug::{logged, mk_debug};
 pub use dma::{dma_flags_asked, mk_dma_map, script_dma, DmaMapOut, MK_DMA_MAP_COHERENT};
 pub use entropy::{crypto_random, entropy};
 pub use grants::{given_back, mk_device_release, mk_dma_unmap, mk_mmio_unmap};
+pub use pci::{
+    mk_pci_config_write, pci_writes, script_pci, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
+    MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE,
+};
