@@ -24,6 +24,9 @@ pub mod decode;
 #[path = "../../../../src/hardware/block_device/wire/error.rs"]
 #[allow(dead_code)]
 pub mod error;
+#[path = "../../../../src/hardware/block_device/wire/frame.rs"]
+#[allow(dead_code)]
+pub mod frame;
 #[path = "../../../../src/hardware/block_device/wire/header.rs"]
 #[allow(dead_code)]
 pub mod header;
