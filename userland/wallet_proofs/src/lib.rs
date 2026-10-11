@@ -192,6 +192,10 @@ mod vault_gate_tests;
 
 #[cfg(kani)]
 mod kani_proofs;
+#[cfg(kani)]
+mod kani_order;
+#[cfg(kani)]
+mod kani_gas;
 
 #[cfg(test)]
 mod tests;
