@@ -24,22 +24,23 @@ use super::layout::layout;
 use super::lba_map::capacity_sectors;
 use super::transport::call;
 
+/// Whether endpoint `index`'s driver answers, asked of its first unit.
 pub fn healthcheck(index: u8) -> Result<(), WireError> {
-    call(gate(index)?, OP_HEALTHCHECK, &[]).map(|_| ())
+    call(gate(index, 0)?, OP_HEALTHCHECK, &[]).map(|_| ())
 }
 
 /// The disk's size in 512-byte sectors, whatever its block size.
-pub(super) fn capacity(index: u8) -> Result<u64, WireError> {
-    let l = layout(gate(index)?)?;
+pub(super) fn capacity(index: u8, unit: u16) -> Result<u64, WireError> {
+    let l = layout(gate(index, unit)?)?;
     capacity_sectors(l.lba_count, l.lba_bytes).ok_or(WireError::BlockSize)
 }
 
-pub(super) fn flush(index: u8) -> Result<(), WireError> {
-    call(gate(index)?, OP_FLUSH, &[]).map(|_| ())
+pub(super) fn flush(index: u8, unit: u16) -> Result<(), WireError> {
+    call(gate(index, unit)?, OP_FLUSH, &[]).map(|_| ())
 }
 
 /// False only for a disk whose block size 512-byte sectors cannot map to;
 /// the layout has said so on the log.
-pub(super) fn sectors_fit(index: u8) -> bool {
-    !matches!(gate(index).and_then(layout), Err(WireError::BlockSize))
+pub(super) fn sectors_fit(index: u8, unit: u16) -> bool {
+    !matches!(gate(index, unit).and_then(layout), Err(WireError::BlockSize))
 }

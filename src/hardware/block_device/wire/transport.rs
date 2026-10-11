@@ -17,17 +17,18 @@
 use alloc::vec::Vec;
 
 use super::codec::{decode_response, encode_request};
-use super::endpoint::Endpoint;
 use super::error::WireError;
 use super::status::lift;
+use super::target::Target;
 use crate::services::lifecycle::transport::{self, TransportError};
 
-/// Send `op` with `body` and wait for its reply; the payload on success, the
-/// lifted status otherwise.
-pub(super) fn call(e: &'static Endpoint, op: u16, body: &[u8]) -> Result<Vec<u8>, WireError> {
+/// Send `op` for the target's unit with `body` and wait for its reply; the
+/// payload on success, the lifted status otherwise.
+pub(super) fn call(t: Target, op: u16, body: &[u8]) -> Result<Vec<u8>, WireError> {
+    let e = t.e;
     let _one = transport::lock_yielding(&e.slot.call);
     let request_id = transport::next_request_id(&e.slot.seq);
-    let frame = encode_request(op, request_id, body);
+    let frame = encode_request(op, t.unit, request_id, body);
     let resp = transport::round_trip(
         request_id,
         &frame,

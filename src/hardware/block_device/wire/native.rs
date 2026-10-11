@@ -19,9 +19,9 @@
 
 use alloc::vec::Vec;
 
-use super::endpoint::Endpoint;
 use super::error::WireError;
 use super::header::{OP_READ, OP_WRITE, RW_HEADER_LEN};
+use super::target::Target;
 use super::transport::call;
 
 fn head(lba: u64, blocks: u64) -> Result<Vec<u8>, WireError> {
@@ -35,13 +35,8 @@ fn head(lba: u64, blocks: u64) -> Result<Vec<u8>, WireError> {
     Ok(body)
 }
 
-pub(super) fn read_lbas(
-    e: &'static Endpoint,
-    lba: u64,
-    blocks: u64,
-    out: &mut [u8],
-) -> Result<(), WireError> {
-    let body = call(e, OP_READ, &head(lba, blocks)?)?;
+pub(super) fn read_lbas(t: Target, lba: u64, blocks: u64, out: &mut [u8]) -> Result<(), WireError> {
+    let body = call(t, OP_READ, &head(lba, blocks)?)?;
     // A short or long reply is a driver that read something else.
     if body.len() != out.len() {
         return Err(WireError::ProtocolMismatch);
@@ -50,13 +45,8 @@ pub(super) fn read_lbas(
     Ok(())
 }
 
-pub(super) fn write_lbas(
-    e: &'static Endpoint,
-    lba: u64,
-    blocks: u64,
-    data: &[u8],
-) -> Result<(), WireError> {
+pub(super) fn write_lbas(t: Target, lba: u64, blocks: u64, data: &[u8]) -> Result<(), WireError> {
     let mut body = head(lba, blocks)?;
     body.extend_from_slice(data);
-    call(e, OP_WRITE, &body).map(|_| ())
+    call(t, OP_WRITE, &body).map(|_| ())
 }

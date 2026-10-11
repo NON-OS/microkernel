@@ -21,7 +21,7 @@ pub fn encode_response_header(out: &mut [u8], req: &Request, payload_len: u32) {
     out[4..6].copy_from_slice(&VERSION.to_le_bytes());
     out[6..8].copy_from_slice(&req.op.to_le_bytes());
     out[8..10].copy_from_slice(&req.flags.to_le_bytes());
-    out[10..12].copy_from_slice(&0u16.to_le_bytes());
+    out[10..12].copy_from_slice(&req.unit.to_le_bytes());
     out[12..16].copy_from_slice(&req.request_id.to_le_bytes());
     out[16..20].copy_from_slice(&payload_len.to_le_bytes());
 }

@@ -14,28 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The block wire's row of the block layer's table: one disk per endpoint,
-//! keyed by the endpoint's index.
+//! The block wire's row of the block layer's table: one disk per unit of
+//! each endpoint, keyed endpoint << 16 | unit.
 
 use super::super::backend::Backend;
 use super::super::disk::Disk;
 use super::map::map_wire_error;
+use super::target::units;
 use super::{ops, read, table, write};
 
+const fn key(index: u8, unit: u16) -> u32 {
+    (index as u32) << 16 | unit as u32
+}
+
+const fn index(k: u32) -> u8 {
+    (k >> 16) as u8
+}
+
+const fn unit(k: u32) -> u16 {
+    k as u16
+}
+
 pub(in super::super) static WIRE: Disk = Disk {
-    shown: |k| table::shown(k as u8),
-    announced: |k| table::shown(k as u8),
-    capacity: |k| ops::capacity(k as u8).map_err(map_wire_error),
-    read: |k, lba, out| read::read_blocks(k as u8, lba, out).map_err(map_wire_error),
-    write: |k, lba, data| write::write_blocks(k as u8, lba, data).map_err(map_wire_error),
-    flush: |k| ops::flush(k as u8).map_err(map_wire_error),
-    fits: |k| ops::sectors_fit(k as u8),
-    said: |k| table::said(k as u8),
+    shown: |k| table::shown(index(k)),
+    announced: |k| table::shown(index(k)),
+    capacity: |k| ops::capacity(index(k), unit(k)).map_err(map_wire_error),
+    read: |k, lba, out| read::read_blocks(index(k), unit(k), lba, out).map_err(map_wire_error),
+    write: |k, lba, data| write::write_blocks(index(k), unit(k), lba, data).map_err(map_wire_error),
+    flush: |k| ops::flush(index(k), unit(k)).map_err(map_wire_error),
+    fits: |k| ops::sectors_fit(index(k), unit(k)),
+    said: |k| table::said(index(k), unit(k)),
     copy_answers: false,
     report: None,
 };
 
-/// Every endpoint's disk, in table order.
+/// Every unit of every endpoint, in table order.
 pub(in super::super) fn rows() -> impl Iterator<Item = Backend> {
-    (0..table::count()).map(|i| Backend::of(&WIRE, i as u32))
+    (0..table::count()).flat_map(|i| {
+        let n = table::endpoint(i).map_or(0, units);
+        (0..n).map(move |u| Backend::of(&WIRE, key(i, u)))
+    })
 }
