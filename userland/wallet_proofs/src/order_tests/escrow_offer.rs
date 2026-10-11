@@ -44,8 +44,10 @@ fn each_state_offers_its_action_or_none() {
     assert_eq!(at(status(1, 0), None, DEADLINE), Some(Offer::Refund));
     assert_eq!(at(status(0, 5), None, DEADLINE), Some(Offer::Refund), "NOX waiting");
     assert_eq!(at(status(0, 0), None, DEADLINE), None, "nothing at the deposit");
-    assert_eq!(at(status(4, 0), None, DEADLINE), None, "released");
-    assert_eq!(at(status(5, 0), None, DEADLINE), None, "refunded");
+    assert_eq!(at(status(4, 0), None, DEADLINE), None, "released, nothing waiting");
+    assert_eq!(at(status(5, 0), None, DEADLINE), None, "refunded, nothing waiting");
+    assert_eq!(at(status(4, 1), None, 0), Some(Offer::Refund), "released, NOX waiting");
+    assert_eq!(at(status(5, 1), None, 0), Some(Offer::Refund), "refunded, NOX waiting");
     assert_eq!(offer(None, None, Some(&bad), DEADLINE, DEADLINE), None, "no status yet");
 }
 
