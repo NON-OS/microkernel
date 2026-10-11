@@ -51,6 +51,7 @@ impl BlockDevice {
                 Ok(Some(Identity { model, serial, emmc: false }))
             }
             Driver::Ahci => Ok(ahci_identity(self.port)),
+            Driver::Wire => Ok(super::wire::identity(self.port)),
             Driver::VirtioBlk => Ok(None),
         }
     }

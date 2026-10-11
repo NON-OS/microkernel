@@ -27,11 +27,11 @@
 #[path = "../../nonos_blk_client/src/device/chunks.rs"]
 mod chunks;
 #[path = "../../nonos_blk_client/src/device/geometry.rs"]
-mod geometry;
+pub(crate) mod geometry;
 #[path = "../../nonos_blk_client/src/device/span.rs"]
 mod span;
 #[path = "../../nonos_blk_client/src/device/transfer.rs"]
-mod transfer;
+pub(crate) mod transfer;
 
 use chunks::Native;
 use geometry::Geometry;
