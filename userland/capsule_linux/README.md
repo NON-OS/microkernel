@@ -120,6 +120,9 @@ a third takes NET_ANON away. Only a vendor row carries its list today (`dests=` 
 - zxdg_output_manager_v1 says the one screen's logical place and size, as wl_output does.
   wp_viewporter makes viewports, but their source and destination change nothing: a buffer is
   shown at its own size (`route_output.rs`).
+- xdg_activation_v1 issues tokens, done on commit, but activating changes nothing: a guest has
+  one window and focus is the person's. A single-pixel buffer is a real wl_buffer, but only
+  pixels from shared memory are shown, so a commit of one shows nothing (`route_misc.rs`).
 - A popup is dismissed as soon as it is asked for (`route_rest.rs`): a guest's window is one
   surface, and a menu it opens is not shown. Moving, resizing and minimizing are the window
   manager's, which the person drives, so a guest asking does nothing. The cursor is the

@@ -46,7 +46,7 @@ pub fn route(
         | (Some(XdgOutput), XDG_OUTPUT_DESTROY)
         | (Some(Viewporter), VIEWPORTER_DESTROY)
         | (Some(Viewport), VIEWPORT_DESTROY) => super::forget::forget(guest, object, id),
-        _ => return false,
+        _ => return super::route_misc::route(guest, object, id, op, args),
     }
     true
 }
