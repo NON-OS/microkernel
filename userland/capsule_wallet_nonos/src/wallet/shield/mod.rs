@@ -22,6 +22,8 @@
  */
 
 pub mod actions;
+mod actions_confirm;
+mod actions_withdraw;
 mod apply;
 pub mod client;
 mod follow;
