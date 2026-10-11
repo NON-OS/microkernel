@@ -34,6 +34,33 @@ pub trait Expiry {
     fn expired(&self) -> bool;
 }
 
+/// A monotonic microsecond clock; None when it cannot be read, which a
+/// wait treats as its deadline passed.
+pub trait Clock {
+    fn now_us(&self) -> Option<u64>;
+}
+
+/// A deadline `us` from now on `clock`.
+pub struct Until<'a> {
+    clock: &'a dyn Clock,
+    end: Option<u64>,
+}
+
+impl<'a> Until<'a> {
+    pub fn new(clock: &'a dyn Clock, us: u64) -> Self {
+        Until { clock, end: clock.now_us().map(|t| t.saturating_add(us)) }
+    }
+}
+
+impl Expiry for Until<'_> {
+    fn expired(&self) -> bool {
+        match (self.end, self.clock.now_us()) {
+            (Some(end), Some(now)) => now >= end,
+            _ => true,
+        }
+    }
+}
+
 /// Read, change the bits in `mask` to `value`, write back.
 pub fn rmw(m: &mut dyn Mmio, offset: u32, mask: u32, value: u32) {
     let old = m.read(offset);
