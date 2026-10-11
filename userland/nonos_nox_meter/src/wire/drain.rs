@@ -26,6 +26,7 @@
 use alloc::vec::Vec;
 
 use crate::state::MeterState;
+use crate::voucher::Voucher;
 
 pub const DRAIN_ROWS_MAX: usize = 12;
 pub const VOUCHER_RECORD_LEN: usize = 32 + 20 + 20 + 32 + 32 + 16 + 8 + 8 + 32 + 65;
@@ -37,16 +38,21 @@ pub fn drain_reply(s: &MeterState, payer: &[u8; 20], from: usize) -> Vec<u8> {
     out.push(signed().count() as u8);
     out.push(signed().skip(from).take(DRAIN_ROWS_MAX).count() as u8);
     for (v, sig) in signed().skip(from).take(DRAIN_ROWS_MAX) {
-        out.extend_from_slice(&v.channel_id);
-        out.extend_from_slice(&v.payer);
-        out.extend_from_slice(&v.payee);
-        out.extend_from_slice(&v.listing_id);
-        out.extend_from_slice(&v.unit);
-        out.extend_from_slice(&v.cumulative.to_le_bytes());
-        out.extend_from_slice(&v.seq.to_le_bytes());
-        out.extend_from_slice(&v.expiry.to_le_bytes());
-        out.extend_from_slice(&v.usage_root);
-        out.extend_from_slice(&sig);
+        voucher_record(&mut out, &v, &sig);
     }
     out
+}
+
+/// One signed voucher, VOUCHER_RECORD_LEN bytes: DRAIN's row and PAY's reply.
+pub fn voucher_record(out: &mut Vec<u8>, v: &Voucher, sig: &[u8; 65]) {
+    out.extend_from_slice(&v.channel_id);
+    out.extend_from_slice(&v.payer);
+    out.extend_from_slice(&v.payee);
+    out.extend_from_slice(&v.listing_id);
+    out.extend_from_slice(&v.unit);
+    out.extend_from_slice(&v.cumulative.to_le_bytes());
+    out.extend_from_slice(&v.seq.to_le_bytes());
+    out.extend_from_slice(&v.expiry.to_le_bytes());
+    out.extend_from_slice(&v.usage_root);
+    out.extend_from_slice(sig);
 }

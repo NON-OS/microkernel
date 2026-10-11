@@ -16,24 +16,25 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_ipc_recv, mk_ipc_send};
+use nonos_libc::{mk_ipc_recv_from, mk_ipc_send};
 
 use super::dispatch::dispatch;
+use crate::meter::Meter;
 use crate::protocol::{decode_request, encode_response, EINVAL, KERNEL_REPLY_ENDPOINT};
-use crate::store::State;
 
 const MAX_MSG: usize = 4096;
 
 pub fn run() -> ! {
     let mut buf = vec![0u8; MAX_MSG];
-    let mut state = State::new();
+    let mut meter = Meter::start();
     loop {
-        let n = mk_ipc_recv(0, buf.as_mut_ptr(), MAX_MSG, 0);
+        let mut sender = 0u32;
+        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, 0, &mut sender);
         if n <= 0 {
             continue;
         }
         let resp = match decode_request(&buf[..n as usize]) {
-            Some(req) => dispatch(&mut state, req),
+            Some(req) => dispatch(&mut meter, sender, req),
             /*
              * Refused by the decode: answered under a zero sequence number.
              * The caller is blocked in its call until a reply comes, and the

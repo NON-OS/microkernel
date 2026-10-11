@@ -29,6 +29,14 @@ pub enum MeterError {
     NoChannel,
     /// The channel table is full.
     Full,
+    /// The market does not stand behind the release's commerce block.
+    Untrusted,
+    /// A PAY word that is not what the release sells.
+    Mismatch,
+    /// The listing is not sold by voucher.
+    NotMetered,
+    /// Less than the listing's minimum charge, or nothing.
+    BelowMinimum,
     /// A budget naming one listing twice.
     Duplicate,
     /// Persisted state that does not read back as this format.

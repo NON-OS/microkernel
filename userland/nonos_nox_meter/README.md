@@ -26,6 +26,10 @@ meter, the plan) links it.
   the meter can derive, since any FileSystem holder can unlink and recreate
   the name.
 - `caller`: which registry names may call which op.
+- `pay`: PAY v2's body, and `priced`, which refuses unless the release is
+  trusted and every word of the request equals its signed commerce block.
+- `state::ChainView`: settle's CHANNEL_STATE; a closed channel takes no
+  further charge.
 - `wire`: the bodies of SET_BUDGET, ACCOUNT and DRAIN.
 
 Hashes are injected through `nonos_marketplace_abi::Keccak`.
@@ -38,7 +42,7 @@ index, which is later work.
 
 ## Tests
 
-31 host tests in `tests/`, with `sha3` as a dev-dependency, so every hash is
+37 host tests in `tests/`, with `sha3` as a dev-dependency, so every hash is
 checked against an independent implementation.
 
 ```sh

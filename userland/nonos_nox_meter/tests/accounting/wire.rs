@@ -16,7 +16,7 @@
 
 use super::fixture::{funded_state, LISTING, NOW, PAYEE, ROOT};
 use nonos_nox_meter::wire::{account_reply, drain_reply, parse_budget, Identity};
-use nonos_nox_meter::wire::{ACCOUNT_ROW_LEN, VOUCHER_RECORD_LEN};
+use nonos_nox_meter::wire::{ACCOUNT_ROW_LEN, KEPT, READY, VOUCHER_RECORD_LEN};
 use nonos_nox_meter::MeterError;
 
 #[test]
@@ -38,15 +38,16 @@ fn a_budget_body_parses_exactly_or_not_at_all() {
 #[test]
 fn account_shows_identity_budget_and_channel_rows() {
     let s = funded_state();
-    let none = account_reply(&s, None, NOW, 0);
+    let none = account_reply(&s, None, false, NOW, 0);
     assert_eq!(none.len(), 111 + ACCOUNT_ROW_LEN);
     assert!(none[..53].iter().all(|&x| x == 0));
     let who = Identity { address: [0xaa; 20], ed25519: [0xed; 32] };
-    let r = account_reply(&s, Some(&who), NOW, 0);
-    assert_eq!((r[0], &r[1..21], &r[21..53]), (1, &[0xaa; 20][..], &[0xed; 32][..]));
+    let r = account_reply(&s, Some(&who), true, NOW, 0);
+    assert_eq!((r[0], &r[1..21], &r[21..53]), (READY | KEPT, &[0xaa; 20][..], &[0xed; 32][..]));
     assert_eq!(&r[93..109], &500u128.to_le_bytes());
     assert_eq!((r[109], r[110], &r[111..143]), (1, 1, &s.channels[0].id[..]));
-    assert_eq!(account_reply(&s, None, NOW, 1)[109..111], [1, 0]);
+    assert_eq!(account_reply(&s, None, true, NOW, 1)[..1], [KEPT]);
+    assert_eq!(account_reply(&s, None, false, NOW, 1)[109..111], [1, 0]);
 }
 
 #[test]

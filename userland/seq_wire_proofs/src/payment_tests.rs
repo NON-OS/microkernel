@@ -26,7 +26,7 @@ use crate::payment::{decode_request, encode_response, EINVAL};
 /// The receive buffer the loop hands the decode a slice of.
 const MAX_MSG: usize = 4096;
 /// The last op the service knows.
-const LAST_OP: u16 = crate::payment::OP_LIST_TOKENS;
+const LAST_OP: u16 = crate::payment::OP_SET_BUDGET;
 /// Whether the decode also refuses a frame whose bytes 6 and 7 are not zero.
 const RESERVED_CHECKED: bool = false;
 
