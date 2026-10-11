@@ -29,7 +29,7 @@ const AP_UNPRIV: u64 = 1 << 6;
 /// AP[2]: read-only.
 const AP_RDONLY: u64 = 1 << 7;
 const SH_INNER: u64 = 0b11 << 8;
-/// Device memory is outer shareable whatever the entry says; Linux says so.
+/// Device memory is Outer Shareable whatever SH says (DDI 0487, Device memory).
 const SH_OUTER: u64 = 0b10 << 8;
 /// AttrIndx 1: MAIR attribute 1, Device-nGnRE.
 const ATTR_DEVICE: u64 = 1 << 2;
