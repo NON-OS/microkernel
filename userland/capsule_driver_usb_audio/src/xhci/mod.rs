@@ -19,4 +19,4 @@ mod portsc;
 mod speed;
 
 pub use isoch::{configure_isoch, isoch_out};
-pub use speed::port_speed;
+pub use speed::{port_connected, port_speed};
