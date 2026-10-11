@@ -21,6 +21,7 @@ pub mod proto;
 pub mod pump;
 mod pump_gate;
 mod pump_mix;
+pub mod pump_rule;
 mod pump_state;
 mod ring;
 mod run;

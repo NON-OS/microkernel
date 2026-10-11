@@ -20,6 +20,7 @@
 use super::proto::E_AGAIN;
 use super::pump_gate::gate;
 use super::pump_mix::{mark_progress, mix, to_bytes};
+use super::pump_rule::still_running;
 pub use super::pump_state::PumpState;
 use super::streams::StreamTable;
 use crate::sink::Sink;
@@ -41,6 +42,11 @@ pub fn step(state: &mut PumpState, table: &mut StreamTable, sink: &Sink) {
         if status == E_AGAIN {
             return;
         }
+        if !still_running(status) {
+            // Kept, to go out first once the stream is started again.
+            state.running = false;
+            return;
+        }
         state.pending = None;
         state.sent += 1;
         mark_progress(state.sent);
@@ -48,7 +54,8 @@ pub fn step(state: &mut PumpState, table: &mut StreamTable, sink: &Sink) {
     for _ in 0..KEEP_AHEAD {
         let samples = mix(&mut state.mixer, table, gain);
         let status = sink.write_pcm_status(&to_bytes(&samples), state.sent as u32);
-        if status == E_AGAIN {
+        if status == E_AGAIN || !still_running(status) {
+            state.running = still_running(status);
             state.pending = Some(samples);
             break;
         }

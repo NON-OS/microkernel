@@ -18,6 +18,7 @@
 //! when the last one stops.
 
 use super::pump::PumpState;
+use super::pump_rule::started;
 use super::streams::StreamTable;
 use crate::mark::mark;
 use crate::sink::Sink;
@@ -33,8 +34,11 @@ pub(super) fn gate(state: &mut PumpState, table: &StreamTable, sink: &Sink) -> b
         return false;
     }
     if !state.running {
-        state.running = true;
-        sink.stream_start(state.sent as u32);
+        // Refused, it is asked again on the next step.
+        state.running = started(sink.stream_start(state.sent as u32));
+        if !state.running {
+            return false;
+        }
         mark("[AUDIO] dac-start\n");
     }
     true
