@@ -175,6 +175,14 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         /* Asking is not minting. */
         SyscallNumber::MkLocalVerify => caps.can_foreign_exec(),
 
+        /*
+         * A family's seal is its supervisor's to close and to note in. Reading
+         * a sealed record is reading an attestation; the witness has a second
+         * gate in its handler.
+         */
+        SyscallNumber::MkForeignSeal | SyscallNumber::MkSealNote => caps.can_foreign_exec(),
+        SyscallNumber::MkSealRead => caps.can_attest_read(),
+
         /* The right to ask, which is not the right to host. */
         SyscallNumber::MkAppInstall
         | SyscallNumber::MkAppLaunch
