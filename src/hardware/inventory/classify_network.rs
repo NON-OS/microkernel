@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::broadcom_ids::TG3_DEVICE_IDS;
 use super::family::HardwareFamily;
 use super::intel_ethernet_ids::{
     E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS, IXGBE_DEVICE_IDS,
@@ -29,6 +30,7 @@ pub(super) fn classify_network(subclass: u8, vendor: u16, device: u16) -> Hardwa
         0x1af4 => HardwareFamily::NetworkVirtio,
         0x8086 if subclass == SUBCLASS_OTHER => HardwareFamily::NetworkIwlwifi,
         0x8086 => intel_ethernet(device),
+        0x14e4 if TG3_DEVICE_IDS.contains(&device) => HardwareFamily::NetworkTg3,
         0x10ec if device == RTL8821CE_DEVICE_ID => HardwareFamily::NetworkRtl8821ce,
         // Realtek's other wireless parts (8822CE, 8852AE and the rest).
         0x10ec if subclass == SUBCLASS_OTHER => HardwareFamily::NetworkRealtekWifi,

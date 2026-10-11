@@ -16,11 +16,12 @@
 
 //! Each kernel table is its capsule's, and no part is in two.
 
+use super::broadcom_ids::TG3_DEVICE_IDS;
 use super::intel_ethernet_ids::{
     E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS, IXGBE_DEVICE_IDS,
 };
 use super::realtek_ids::{RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS};
-use super::{e1000, e1000e, igb, igc, ixgbe, rtl8139, rtl8169};
+use super::{e1000, e1000e, igb, igc, ixgbe, rtl8139, rtl8169, tg3};
 
 fn sorted(ids: &[u16]) -> Vec<u16> {
     let mut v = ids.to_vec();
@@ -50,6 +51,8 @@ fn each_table_is_its_capsules() {
     assert_eq!(IXGBE_DEVICE_IDS[..], ixgbe[..], "ixgbe_pci_tbl's share, in its order");
     assert_eq!(sorted(&RTL8169_DEVICE_IDS), sorted(rtl8169::RTL8169_DEVICE_IDS));
     assert_eq!(RTL8139_DEVICE_ID, rtl8139::RTL8139_DEVICE_ID);
+    let tg3: Vec<u16> = tg3::TG3_PARTS.iter().map(|(id, _)| *id).collect();
+    assert_eq!(TG3_DEVICE_IDS[..], tg3[..], "tg3_pci_tbl's 57765 class, in its order");
 }
 
 #[test]
