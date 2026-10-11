@@ -89,4 +89,11 @@ pub trait App {
     fn close_requested(&mut self) -> bool {
         true
     }
+
+    /// A frame from a process other than the input router: an answer the app
+    /// asked a service for without waiting. True repaints. Defaults to
+    /// dropping it unread, as every frame not from the router always was.
+    fn peer_frame(&mut self, _sender: u32, _frame: &[u8]) -> bool {
+        false
+    }
 }

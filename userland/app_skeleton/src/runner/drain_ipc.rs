@@ -68,11 +68,13 @@ pub(super) fn drain<A: App>(
             ControlOutcome::Handled => continue,
             ControlOutcome::NotControl => {}
         }
-        let Some(event) = parse_delivery(&rx[..n as usize]) else { continue };
-        // Routed input only: a frame any other process sent is not the user.
+        // Routed input only: a frame any other process sent is not the user,
+        // and goes to the app's peer_frame, which drops it unless it asked.
         if !crate::discover::from_router(sender) {
+            repaint |= app.peer_frame(sender, &rx[..n as usize]);
             continue;
         }
+        let Some(event) = parse_delivery(&rx[..n as usize]) else { continue };
         let event = decorations::normalize(event);
         click_focus::handle(event, wm_port, window_id, request_id);
         match decorations::handle(width, height, maximized, event) {
