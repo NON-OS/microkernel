@@ -39,6 +39,8 @@ pub enum HardwareFamily {
     DisplayGopFramebuffer,
     DisplayVirtioGpu,
     DisplayBga,
+    /// SVGA II: VMware's adapter, VirtualBox's VMSVGA, QEMU's vmware-svga.
+    DisplayVmwareSvga,
     DisplayNativeIntel,
     DisplayNativeAmd,
     DisplayNativeNvidia,

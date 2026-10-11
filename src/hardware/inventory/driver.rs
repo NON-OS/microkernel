@@ -32,6 +32,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         NetworkRtl8821ce => "driver_rtl8821ce",
         NetworkIwlwifi => "driver_iwlwifi",
         DisplayVirtioGpu => "driver_virtio_gpu",
+        DisplayVmwareSvga => "driver_vmware_svga",
         // DisplayBga stays undispatched: the BGA capsule is a broker-path
         // proof that re-modes the adapter and serves no gfx protocol, so
         // spawning it destroys the firmware scanout the compositor's GOP

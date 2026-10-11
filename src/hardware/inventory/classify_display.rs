@@ -20,6 +20,7 @@ pub(super) fn classify_display(vendor: u16) -> HardwareFamily {
     match vendor {
         0x1af4 => HardwareFamily::DisplayVirtioGpu,
         0x1234 => HardwareFamily::DisplayBga,
+        0x15ad => HardwareFamily::DisplayVmwareSvga,
         0x8086 => HardwareFamily::DisplayNativeIntel,
         0x1002 => HardwareFamily::DisplayNativeAmd,
         0x10de => HardwareFamily::DisplayNativeNvidia,
