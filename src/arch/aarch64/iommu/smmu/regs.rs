@@ -25,6 +25,8 @@ pub(super) const CR0ACK: u64 = 0x24;
 pub(super) const CR1: u64 = 0x28;
 pub(super) const CR2: u64 = 0x2c;
 pub(super) const GBPA: u64 = 0x44;
+pub(super) const IRQ_CTRL: u64 = 0x50;
+pub(super) const IRQ_CTRLACK: u64 = 0x54;
 pub(super) const GERROR: u64 = 0x60;
 pub(super) const GERRORN: u64 = 0x64;
 pub(super) const STRTAB_BASE: u64 = 0x80;
@@ -48,6 +50,10 @@ pub(super) const CR0_CMDQEN: u32 = 1 << 3;
 pub(super) const CR1_VALUE: u32 = 0b11 << 10 | 0b01 << 8 | 0b01 << 6 | 0b11 << 4 | 0b01 << 2 | 0b01;
 /// Record invalid stream IDs; private TLB maintenance only.
 pub(super) const CR2_VALUE: u32 = 1 << 1 | 1 << 2;
+
+/// Wired interrupts the unit may raise; PRIQ is never used.
+pub(super) const IRQ_CTRL_GERROR: u32 = 1 << 0;
+pub(super) const IRQ_CTRL_EVENTQ: u32 = 1 << 2;
 
 pub(super) const GBPA_UPDATE: u32 = 1 << 31;
 pub(super) const GBPA_ABORT: u32 = 1 << 20;

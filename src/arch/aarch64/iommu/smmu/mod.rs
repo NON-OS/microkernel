@@ -27,6 +27,7 @@ mod eventq;
 mod frame;
 mod gerror;
 mod init;
+mod irq;
 mod mmio;
 mod pgtable;
 mod pgtable_unmap;

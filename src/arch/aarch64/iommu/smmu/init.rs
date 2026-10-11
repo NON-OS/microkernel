@@ -64,5 +64,6 @@ pub fn bring_up() -> Result<(), &'static str> {
         phandle: info.phandle,
         eventq,
     });
+    super::irq::wire(regs, info.eventq_intid, info.gerror_intid);
     Ok(())
 }
