@@ -16,7 +16,9 @@
 
 use super::assign::assign_enumerated;
 use super::domain::identity_domain;
-use crate::arch::x86_64::iommu::globals::{set_enforcing, set_page_levels, set_snoop_control};
+use crate::arch::x86_64::iommu::globals::{
+    set_enforcing, set_identity_domain, set_page_levels, set_snoop_control,
+};
 use crate::arch::x86_64::iommu::regs::offsets;
 use crate::arch::x86_64::iommu::tables::root::root_table;
 use crate::arch::x86_64::iommu::types::VtdError;
@@ -48,6 +50,7 @@ pub fn bring_up() -> Result<usize, VtdError> {
     let root = root_table()?;
 
     let (domain, sl_root) = identity_domain(levels, info.cap)?;
+    set_identity_domain(domain.as_u16());
     let assigned = assign_enumerated(sl_root, domain, info.levels.context_aw())?;
 
     // A unit that fails after others came up leaves those translating through
