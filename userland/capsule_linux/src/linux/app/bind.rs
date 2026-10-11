@@ -23,7 +23,7 @@ use crate::linux::file::{key, store_found, store_read};
 
 use super::choose::choose;
 use super::identity::AppIdentity;
-use super::vendor::TABLE;
+use nonos_linux_policy::vendor::TABLE;
 
 /// One byte past a policy, so a longer file is read long and refused.
 const MAX_POLICY: u32 = nonos_linux_policy::LEN as u32 + 1;
