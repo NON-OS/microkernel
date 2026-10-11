@@ -38,6 +38,7 @@ pub mod virtio_gpu_capsule;
 pub mod virtio_input_capsule;
 pub mod virtio_net_capsule;
 pub mod virtio_rng_capsule;
+pub mod virtio_scsi_capsule;
 pub mod vmmdev_capsule;
 pub mod vmware_svga_capsule;
 pub mod vmxnet3_capsule;

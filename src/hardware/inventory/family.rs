@@ -20,6 +20,8 @@ pub enum HardwareFamily {
     StorageAhci,
     StorageUsbMsc,
     StorageVirtioBlk,
+    /// virtio-scsi (1af4:1048, 1af4:1004): QEMU's virtio-scsi-pci.
+    StorageVirtioScsi,
     /// An Intel VMD: a PCI domain hiding NVMe and SATA controllers behind
     /// it (`vmd`). Listed, never spawned for.
     StorageVmd,

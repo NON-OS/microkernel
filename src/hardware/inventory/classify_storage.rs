@@ -35,6 +35,9 @@ pub(super) fn classify_storage(subclass: u8, vendor: u16, device: u16) -> Hardwa
     if is_intel_vmd(vendor, device) {
         return HardwareFamily::StorageVmd;
     }
+    if vendor == VENDOR_VIRTIO && matches!(device, 0x1004 | 0x1048) {
+        return HardwareFamily::StorageVirtioScsi;
+    }
     if vendor == VENDOR_VIRTIO {
         return HardwareFamily::StorageVirtioBlk;
     }
