@@ -65,6 +65,8 @@ mod region;
 mod registry;
 mod reshape;
 mod route;
+mod route_rest;
+mod route_seat;
 mod route_xdg;
 mod serve;
 mod unserved;
