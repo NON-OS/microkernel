@@ -52,3 +52,11 @@ fn a_buyers_salts_never_show_in_its_debug() {
     assert!(!shown.contains("171") && !shown.contains("205"), "{shown}");
     assert!(shown.contains("refund_salt: \"redacted\"") && shown.contains("deadline"));
 }
+
+#[test]
+fn a_buyers_salts_are_wiped_as_it_drops() {
+    let mut b = Buyer { refund_salt: [0xab; 32], salt: [0xcd; 32], ..buyer(NOW + ORDER_MIN_LEAD) };
+    b.wipe();
+    assert_eq!((b.refund_salt, b.salt), ([0; 32], [0; 32]));
+    assert_ne!(b.refund_to, [0; 20], "only the secrets go");
+}

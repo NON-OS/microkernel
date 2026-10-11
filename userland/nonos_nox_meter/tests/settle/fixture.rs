@@ -44,6 +44,7 @@ pub fn channel(id: u8, cumulative: u128, sig: [u8; 65]) -> Channel {
         sig,
         frozen: false,
         carried: 0,
+        reclaim_to: [0x5e; 20],
     }
 }
 

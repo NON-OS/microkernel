@@ -41,6 +41,7 @@ impl Account {
             }
             out.extend_from_slice(&r.expiry.to_le_bytes());
             out.push(r.frozen as u8);
+            out.extend_from_slice(&r.reclaim_to);
         }
         out
     }
@@ -53,8 +54,9 @@ impl Account {
         let row = |r: &mut Cursor| -> Option<AccountRow> {
             let (channel_id, listing_id, chain_id) = (r.fixed()?, r.fixed()?, r.u64()?);
             let (deposit, settled, cumulative) = (r.u128()?, r.u128()?, r.u128()?);
-            let (expiry, frozen) = (r.u64()?, flag(r.u8()?)?);
-            let row = AccountRow {
+            let (expiry, frozen, reclaim_to) = (r.u64()?, flag(r.u8()?)?, r.fixed()?);
+            let (channel_id, listing_id) = (channel_id, listing_id);
+            Some(AccountRow {
                 channel_id,
                 listing_id,
                 chain_id,
@@ -63,8 +65,8 @@ impl Account {
                 cumulative,
                 expiry,
                 frozen,
-            };
-            Some(row)
+                reclaim_to,
+            })
         };
         let rows = (0..n.min(ACCOUNT_ROWS_MAX)).map(|_| row(&mut r)).collect::<Option<Vec<_>>>()?;
         (n <= ACCOUNT_ROWS_MAX).then_some(())?;
