@@ -23,6 +23,7 @@ mod auth;
 mod endpoint;
 mod error;
 mod held;
+pub(crate) mod nics;
 mod peers;
 mod peers_check;
 mod policy;
