@@ -31,6 +31,9 @@ pub const BROADCASTERS: [&[u8]; 4] = [b"payment", W0, W1, W2];
 pub const READERS: [&[u8]; 7] =
     [b"payment", W0, W1, W2, b"app.store", b"market.index", b"installer"];
 pub const FETCHERS: [&[u8]; 2] = [b"app.store", b"market.index"];
+/// FETCH 1 ESCROW, and the PAGEs of its answer (v1.4.24).
+pub const ESCROW_FETCHERS: [&[u8]; 1] = [b"payment"];
+const ALL_FETCHERS: [&[u8]; 3] = [b"app.store", b"market.index", b"payment"];
 pub const SETTLERS: [&[u8]; 4] = [W0, W1, W2, b"installer"];
 
 /// The names that may call `op`: None for anyone (HEALTHCHECK), an empty
@@ -40,7 +43,9 @@ pub fn callers(op: u16) -> Option<&'static [&'static [u8]]> {
         OP_HEALTHCHECK => None,
         OP_BROADCAST => Some(&BROADCASTERS),
         OP_CHANNEL_STATE | OP_GAS | OP_OPENED | OP_READ | OP_INTENT => Some(&READERS),
-        OP_FETCH | OP_LISTING => Some(&FETCHERS),
+        // Settle checks each FETCH form's own list (fetch_callers).
+        OP_FETCH => Some(&ALL_FETCHERS),
+        OP_LISTING => Some(&FETCHERS),
         OP_SETTLE => Some(&SETTLERS),
         _ => Some(&[]),
     }
@@ -52,5 +57,15 @@ pub fn admits(op: u16, sender: u32, owner_of: impl Fn(&[u8]) -> Option<u32>) -> 
     match callers(op) {
         None => sender != 0,
         Some(names) => sender != 0 && names.iter().any(|n| owner_of(n) == Some(sender)),
+    }
+}
+
+/// Who may send this FETCH body: ESCROW payment alone, RELEASE the store and
+/// the market. A PAGE goes to whoever settle holds that key for.
+pub fn fetch_callers(body: &[u8]) -> &'static [&'static [u8]] {
+    match body.first() {
+        Some(&crate::fetch::FETCH_ESCROW) => &ESCROW_FETCHERS,
+        Some(&crate::fetch::FETCH_RELEASE) => &FETCHERS,
+        _ => &ALL_FETCHERS,
     }
 }

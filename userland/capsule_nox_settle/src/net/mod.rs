@@ -17,8 +17,10 @@
 mod hosts;
 mod https;
 mod io;
+mod post;
 mod rpc;
 mod rpc_second;
 
 pub use https::get;
+pub use post::post_to;
 pub use rpc::Rpc;

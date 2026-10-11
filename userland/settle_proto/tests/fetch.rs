@@ -17,7 +17,7 @@
 use nonos_settle_proto::*;
 
 #[test]
-fn fetch_forms_round_trip_and_escrow_waits() {
+fn fetch_forms_round_trip() {
     let url = b"https://pkg.example/x".to_vec();
     let rel = Fetch::Release { url: url.clone(), release_hash: [4; 32] };
     let b = rel.encode().unwrap();
@@ -32,8 +32,7 @@ fn fetch_forms_round_trip_and_escrow_waits() {
     assert_eq!(Fetch::parse(&[p.as_slice(), &[0]].concat()), None);
     let long = Fetch::Release { url: vec![b'a'; MAX_URL + 1], release_hash: [0; 32] };
     assert_eq!(long.encode(), None);
-    assert_eq!(Fetch::Escrow.encode(), None);
-    assert_eq!(Fetch::parse(&[FETCH_ESCROW, 1, 2]), Some(Fetch::Escrow));
+    assert_eq!(Fetch::parse(&[FETCH_ESCROW, 1, 2]), None, "an escrow body too short");
     assert_eq!(Fetch::parse(&[3]), None);
 }
 

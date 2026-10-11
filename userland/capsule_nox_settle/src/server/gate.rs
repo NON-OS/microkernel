@@ -18,7 +18,7 @@
 //! pid owns each name the op admits.
 
 use nonos_libc::mk_service_lookup;
-use nonos_settle_proto::{admits, admits_flags};
+use nonos_settle_proto::{admits, admits_flags, fetch_callers};
 
 fn owner_of(name: &[u8]) -> Option<u32> {
     let (mut port, mut pid) = (0u32, 0u32);
@@ -33,4 +33,9 @@ pub fn admitted(op: u16, sender: u32) -> bool {
 /// ASYNC (flags bit 0) from payment's or market.index's pid alone (v1.4.23).
 pub fn flags_admitted(flags: u16, sender: u32) -> bool {
     admits_flags(flags, sender, owner_of)
+}
+
+/// A FETCH form's own callers: ESCROW from payment alone (v1.4.24).
+pub fn fetch_admitted(body: &[u8], sender: u32) -> bool {
+    sender != 0 && fetch_callers(body).iter().any(|n| owner_of(n) == Some(sender))
 }

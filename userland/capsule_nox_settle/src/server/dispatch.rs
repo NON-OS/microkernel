@@ -20,7 +20,7 @@ use nonos_settle_proto::{EINVAL, EPERM, OP_BROADCAST, OP_CHANNEL_STATE, OP_FETCH
 use nonos_settle_proto::{OP_HEALTHCHECK, OP_INTENT, OP_LISTING, OP_OPENED, OP_READ, OP_SETTLE};
 
 use super::call::Call;
-use super::gate::{admitted, flags_admitted};
+use super::gate::{admitted, fetch_admitted, flags_admitted};
 use crate::handlers;
 use crate::settle::Settle;
 
@@ -35,6 +35,9 @@ pub fn dispatch(s: &mut Settle, sender: u32, req: &Call<'_>) -> Vec<u8> {
     if !flags_admitted(req.flags, sender) {
         return req.answer(EINVAL, &[]);
     }
+    if req.op == OP_FETCH && !fetch_admitted(req.body, sender) {
+        return req.answer(EPERM, &[]);
+    }
     let r = match req.op {
         OP_HEALTHCHECK => Ok(Vec::new()),
         OP_BROADCAST => handlers::broadcast(s, req.body),
@@ -43,7 +46,7 @@ pub fn dispatch(s: &mut Settle, sender: u32, req: &Call<'_>) -> Vec<u8> {
         OP_OPENED => handlers::opened(s, req.body),
         OP_READ => handlers::read(s, req.body),
         OP_INTENT => handlers::intent(s, req.body),
-        OP_FETCH => handlers::fetch(s, req.body),
+        OP_FETCH => handlers::fetch(s, sender, req.body),
         OP_SETTLE => handlers::settle_now(s, req.body),
         OP_LISTING => handlers::listing(s, req.body),
         _ => Err(EINVAL),
