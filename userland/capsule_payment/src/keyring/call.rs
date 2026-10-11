@@ -20,10 +20,13 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_libc::{mk_ipc_call, mk_service_lookup};
+use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup};
 use nonos_payment_proto::EAGAIN;
 
 const KEYRING: &[u8] = b"keyring";
+/// The meter's own key needs no person to confirm: a keyring silent this
+/// long is down, and the call fails EAGAIN rather than hold the meter.
+const TIMEOUT_MS: u64 = 5_000;
 
 /// The reply buffer and how many bytes of it arrived, once the status is 0.
 fn exchange(op: u16, payload: &[u8], cap: usize) -> Result<(Vec<u8>, usize), i32> {
@@ -37,7 +40,8 @@ fn exchange(op: u16, payload: &[u8], cap: usize) -> Result<(Vec<u8>, usize), i32
     tx.extend_from_slice(&0u16.to_le_bytes());
     tx.extend_from_slice(payload);
     let mut rx = vec![0u8; 8 + cap];
-    let n = mk_ipc_call(port as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len());
+    let (out, cap) = (rx.as_mut_ptr(), rx.len());
+    let n = mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), out, cap, TIMEOUT_MS);
     if n < 8 {
         return Err(EAGAIN);
     }
