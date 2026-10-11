@@ -44,7 +44,9 @@ impl Mmio for Model {
             UTRLCLR => {
                 let mut h = self.host.borrow_mut();
                 h.clears.push(v);
-                h.regs[(UTRLDBR / 4) as usize] &= v;
+                if !self.cfg.borrow().clear_never {
+                    h.regs[(UTRLDBR / 4) as usize] &= v;
+                }
             }
             _ => self.host.borrow_mut().regs[(off / 4) as usize] = v,
         }

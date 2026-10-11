@@ -14,33 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One request through slot 0, polled (ufshcd_send_command and the
-//! completion path without an interrupt): the command descriptor, the UTRD,
+//! One request through slot 0, polled: the command descriptor, the UTRD,
 //! the doorbell, and the doorbell bit seen dropped. A request the host never
-//! finishes is cleared through UTRLCLR, as ufshcd_clear_cmd does, so the slot
-//! is free for the next one.
+//! finishes is cleared through UTRLCLR; a clear that does not take leaves
+//! the slot latched as the host's (Ctx::wedged).
 
-use super::layout::{Lists, CMD_AT, PRDT_AT, RSP_AT, RSP_READ, SLOT, UTRD_LEN};
+use super::layout::{CMD_AT, PRDT_AT, RSP_AT, RSP_READ, SLOT, UTRD_LEN};
 use super::prdt::entry;
-use super::utrd::{ocs, utrd, Dir};
+pub use super::req::Req;
+use super::utrd::{ocs, utrd};
+use crate::ufs::ctx::Ctx;
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
 use crate::ufs::hci::regs::{IS, IS_UTRCS, UTRLCLR, UTRLDBR};
 use crate::ufs::hci::wait::until;
 use crate::ufs::time::CLEAR_MS;
 
-/// What to send: the UTRD command type, the data direction, the UPIU, how
-/// many bytes of the data region the PRDT hands the host, and the bound.
-pub struct Req<'a> {
-    pub cmd_type: u32,
-    pub dir: Dir,
-    pub upiu: &'a [u8],
-    pub data_len: usize,
-    pub ms: u64,
-}
-
 /// The response UPIU's first RSP_READ bytes, once the host reports success.
-pub fn issue<H: Hw>(hw: &H, l: &Lists, r: &Req) -> Result<[u8; RSP_READ], UfsError> {
+pub fn issue<H: Hw>(hw: &H, c: &Ctx, r: &Req) -> Result<[u8; RSP_READ], UfsError> {
+    if c.slot_held(hw) {
+        return Err(UfsError::Host);
+    }
+    let l = &c.lists;
     let prdt = match r.data_len {
         0 => None,
         n => Some(entry(l.data.bus, n).ok_or(UfsError::Host)?),
@@ -58,7 +53,9 @@ pub fn issue<H: Hw>(hw: &H, l: &Lists, r: &Req) -> Result<[u8; RSP_READ], UfsErr
     if !until(hw, r.ms, || hw.r32(UTRLDBR) & bit == 0) {
         // A 0 frees the slot; every 1 leaves its slot alone.
         hw.w32(UTRLCLR, !bit);
-        let _ = until(hw, CLEAR_MS, || hw.r32(UTRLDBR) & bit == 0);
+        if !until(hw, CLEAR_MS, || hw.r32(UTRLDBR) & bit == 0) {
+            c.wedged.set(true);
+        }
         return Err(UfsError::Timeout);
     }
     hw.w32(IS, IS_UTRCS);

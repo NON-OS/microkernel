@@ -48,6 +48,10 @@ pub fn write<H: Hw>(
     src: &[u8],
 ) -> Result<(), UfsError> {
     let bytes = n as usize * u.block_len as usize;
+    // Before the bounce buffer is touched: an old READ may still land in it.
+    if d.ctx.slot_held(hw) {
+        return Err(UfsError::Host);
+    }
     d.ctx.lists.data.put(0, &src[..bytes]);
     exec(hw, &d.ctx, u.lun, rw(true, lba, n), Data::Out(bytes), SCSI_MS)
 }

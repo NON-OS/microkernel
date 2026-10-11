@@ -28,3 +28,4 @@ mod rw_tests;
 mod sense_tests;
 mod text_tests;
 mod unit_tests;
+mod wedge_tests;

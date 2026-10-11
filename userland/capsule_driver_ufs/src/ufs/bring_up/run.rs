@@ -39,7 +39,7 @@ pub fn bring_up<H: Hw>(hw: &H, l: Lists, intel: bool) -> Result<Ufs, UfsError> {
     }
     link::startup(hw, intel).map_err(|e| failed(hw, b"link startup", e))?;
     lists::run(hw, l.utrl.bus, l.utmrl.bus).map_err(|e| failed(hw, b"transfer lists", e))?;
-    let ctx = Ctx { lists: l, caps };
+    let ctx = Ctx { lists: l, caps, wedged: core::cell::Cell::new(false) };
     nop::verify(hw, &ctx).map_err(|e| failed(hw, b"NOP OUT", e))?;
     init::complete(hw, &ctx).map_err(|e| failed(hw, b"fDeviceInit", e))?;
     let (found, n) = luns::report(hw, &ctx).map_err(|e| failed(hw, b"REPORT LUNS", e))?;
