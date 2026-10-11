@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The request body most ops share: chain_id u64 | a 32-byte id (a channel
-//! for CHANNEL_STATE, a transaction hash for OPENED). GAS names an address.
+//! for CHANNEL_STATE, a transaction hash for OPENED, a listing for LISTING).
+//! GAS names an address.
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct ChainHash {

@@ -17,7 +17,7 @@
 use alloc::vec::Vec;
 
 use nonos_settle_proto::{EINVAL, EPERM, OP_BROADCAST, OP_CHANNEL_STATE, OP_FETCH, OP_GAS};
-use nonos_settle_proto::{OP_HEALTHCHECK, OP_INTENT, OP_OPENED, OP_READ, OP_SETTLE};
+use nonos_settle_proto::{OP_HEALTHCHECK, OP_INTENT, OP_LISTING, OP_OPENED, OP_READ, OP_SETTLE};
 
 use super::call::Call;
 use super::gate::{admitted, flags_admitted};
@@ -45,6 +45,7 @@ pub fn dispatch(s: &mut Settle, sender: u32, req: &Call<'_>) -> Vec<u8> {
         OP_INTENT => handlers::intent(s, req.body),
         OP_FETCH => handlers::fetch(s, req.body),
         OP_SETTLE => handlers::settle_now(s, req.body),
+        OP_LISTING => handlers::listing(s, req.body),
         _ => Err(EINVAL),
     };
     req.result(r)

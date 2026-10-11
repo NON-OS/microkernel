@@ -20,6 +20,7 @@
 use alloc::vec::Vec;
 
 use crate::chain::Live;
+use crate::listing::Cursors;
 use crate::net::Rpc;
 
 pub struct Held {
@@ -31,13 +32,16 @@ pub struct Settle {
     pub rpc: Rpc,
     pub live: Live,
     pub held: Option<Held>,
+    /// LISTING's per-chain cursors over the registry's logs.
+    pub cursors: Cursors,
 }
 
 impl Settle {
     /// Settle as it starts: every contract is checked once now. One a check
     /// could not reach is checked again when it is first used.
     pub fn start() -> Settle {
-        let mut s = Settle { rpc: Rpc::new(), live: Live::new(), held: None };
+        let mut s =
+            Settle { rpc: Rpc::new(), live: Live::new(), held: None, cursors: Cursors::default() };
         s.live.check_all(&mut s.rpc);
         s
     }

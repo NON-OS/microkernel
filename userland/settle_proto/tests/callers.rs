@@ -39,6 +39,7 @@ fn each_op_answers_only_its_callers() {
         assert_eq!(allowed(op), vec![10, 11, 12, 13, 14], "op {op}");
     }
     assert_eq!(allowed(OP_FETCH), vec![12, 13]);
+    assert_eq!(allowed(OP_LISTING), vec![12, 13]);
     assert_eq!(allowed(OP_SETTLE), vec![11, 14]);
     assert_eq!(allowed(3), Vec::<u32>::new(), "a retired op");
     assert!(!may(OP_HEALTHCHECK, 0) && !may(OP_READ, 0), "pid zero is no sender");
