@@ -24,16 +24,16 @@ use crate::wallet::meter::job::{outcome, JobKind, MeterJob, Outcome};
 use crate::wallet::meter::topup::topup_request;
 use crate::wallet::state::State;
 
-fn picked(state: &State) -> Option<(u64, [u8; 32])> {
+fn picked(state: &State) -> Option<(u64, [u8; 32], [u8; 20])> {
     let a = state.meter.account.as_ref()?;
     let row = a.rows.get(state.meter.picked? as usize)?;
-    Some((row.chain_id, row.channel_id))
+    Some((row.chain_id, row.channel_id, row.reclaim_to))
 }
 
 pub(super) fn begin(state: &mut State, kind: JobKind, op: u16, body: &[u8]) -> EventOutcome {
     match crate::wallet::meter::call::start(op, body) {
         Ok(id) => {
-            state.meter.job = Some(MeterJob { id, kind });
+            state.meter.job = Some(MeterJob { id, kind, reclaim_to: None });
             state.meter.news = None;
             state.status = b"sent to the meter; it answers when the network has";
         }
@@ -47,7 +47,7 @@ pub(super) fn begin(state: &mut State, kind: JobKind, op: u16, body: &[u8]) -> E
 }
 
 pub fn topup(state: &mut State) -> EventOutcome {
-    let Some((chain, channel)) = picked(state) else {
+    let Some((chain, channel, _)) = picked(state) else {
         return EventOutcome::Idle;
     };
     match topup_request(chain, channel, &state.meter.topup_text) {
@@ -63,8 +63,12 @@ pub fn topup(state: &mut State) -> EventOutcome {
 }
 
 pub fn close(state: &mut State) -> EventOutcome {
-    let Some((chain_id, channel_id)) = picked(state) else {
+    let Some((chain_id, channel_id, reclaim_to)) = picked(state) else {
         return EventOutcome::Idle;
     };
-    begin(state, JobKind::Close, OP_CLOSE, &Close { chain_id, channel_id }.encode())
+    let shown = begin(state, JobKind::Close, OP_CLOSE, &Close { chain_id, channel_id }.encode());
+    if let Some(job) = state.meter.job.as_mut().filter(|j| j.kind == JobKind::Close) {
+        job.reclaim_to = Some(reclaim_to);
+    }
+    shown
 }

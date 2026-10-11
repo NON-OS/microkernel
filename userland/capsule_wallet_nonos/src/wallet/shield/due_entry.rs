@@ -23,6 +23,8 @@ pub enum Why {
     RefundSent,
     DisputeSent,
     RefundOwed,
+    /// A CLOSE this wallet sent: the channel's reclaimTo (v1.4.60).
+    ChannelClosed,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

@@ -17,7 +17,8 @@
 //! What a made order offers beside Close (B8, v1.4.51): a dispute for a bad
 //! chunk inside its window, a refund once the escrow allows one, the gas for
 //! a send under way, or a send again after one failed. NOX waiting at the
-//! deposit address counts in every state: the refund sweeps it (v1.4.55). Pure.
+//! deposit address counts in every state, and extra after Released or
+//! Refunded (v1.4.55, v1.4.60): the refund sweeps and pays both. Pure.
 
 use nonos_payment_proto::{DeliveredMade, OrderStatus};
 
@@ -55,7 +56,7 @@ pub fn offer(
         3 => Some(Offer::Refund),
         1 if now_s >= deadline => Some(Offer::Refund),
         0 if s.pending > 0 && now_s >= deadline => Some(Offer::Refund),
-        4 | 5 if s.pending > 0 => Some(Offer::Refund),
+        4 | 5 if s.pending.saturating_add(s.extra) > 0 => Some(Offer::Refund),
         _ => None,
     }
 }

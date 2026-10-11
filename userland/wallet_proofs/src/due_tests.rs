@@ -30,7 +30,7 @@ fn n(nox: u128) -> Option<Held> {
 }
 
 fn status(state: u8) -> OrderStatus {
-    OrderStatus { state, funded: 9, pending: 0, plain: false }
+    OrderStatus { state, funded: 9, pending: 0, extra: 0, plain: false }
 }
 
 #[test]
