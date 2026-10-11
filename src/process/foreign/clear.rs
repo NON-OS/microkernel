@@ -28,9 +28,9 @@ pub fn clear(pid: u32) {
      * Each guest ends by the teardown a kill uses, so a thread running on
      * another CPU is sent off it and reaped only once no CPU is on it. Only
      * answering the parked ones left a running guest with no one to serve
-     * its calls, holding its memory and its CPU for good. Its row still names
-     * this supervisor while it goes, so no call of its is refused in the
-     * meantime; the row goes in its own teardown, once it is a zombie. This
+     * its calls, holding its memory and its CPU for good. Its row stays,
+     * orphaned by drop_rows, while it goes, so every call of its is refused in
+     * the meantime; the row goes in its own teardown, once it is a zombie. This
      * supervisor is a zombie already, and a guest's teardown ends no one but
      * the guests it hosts itself, so nothing here comes back to it.
      */
