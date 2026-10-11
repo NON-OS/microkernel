@@ -52,7 +52,7 @@ pub fn route(
         (Some(Activation), ACTIVATION_DESTROY)
         | (Some(ActivationToken), TOKEN_DESTROY)
         | (Some(SinglePixel), SINGLE_PIXEL_DESTROY) => super::forget::forget(guest, object, id),
-        _ => return false,
+        _ => return super::route_select::route(guest, object, id, op, args),
     }
     true
 }
