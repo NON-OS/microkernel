@@ -32,6 +32,7 @@ pub mod caller;
 pub mod channel;
 mod error;
 pub mod merkle;
+pub mod pay;
 pub mod persist;
 pub mod state;
 pub mod typed;

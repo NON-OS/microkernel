@@ -2,113 +2,79 @@
 
 ## Role
 
-`capsule_payment` is the userland payment authority. It runs as a CPL=3
-capsule and issues signed NOX install receipts: a caller asks it to settle
-an install, the capsule records the charge against a monotonic nonce, and
-it has the keyring sign an EIP-712 receipt and returns the receipt's struct
-hash. It owns the payment nonce and the pending outbox of signed receipts.
-The install path it serves is described in
-[docs/handbook/apps/market-and-store.md](../../docs/handbook/apps/market-and-store.md).
+`capsule_payment` is the meter (plan/20 and plan/21). It signs cumulative NOX
+vouchers on prefunded channels, within a budget the owner sets from the
+wallet. Each voucher is signed with the meter's own secp256k1 key, through
+the keyring's `OP_SIGN_TYPED_DATA` entry 1. The accounting is
+`nonos_nox_meter`'s; this capsule is the I/O around it.
 
 ```text
-installer / marketplace client
-        |
-        | OP_PAY / OP_DRAIN_RECEIPTS / OP_LIST_TOKENS
+installer / app.store / wallet
+        |  OP_PAY v2                     wallet: OP_ACCOUNT, OP_SET_BUDGET
         v
-capsule_payment -- MkIpcCall --> keyring (secp256k1 receipt signature)
-        |
-        `-- nonce + outbox state
+capsule_payment --> market.index   OP_GET_COMMERCE: is the release trusted, what does it sell
+                --> nox_settle     OP_CHANNEL_STATE: deposited, settled, expiry, closed
+                --> keyring        op 30 (voucher), ops 8/9/10/15 (its own key)
+                --> vfs            /data/meter.state, /data/meter.key
+nox_settle --> OP_DRAIN: the newest signed voucher of each channel
 ```
 
 ## Microkernel contract
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x18
+CAPSULE_REQUIRED_CAPS = 0x79
 ```
 
-IPC and Memory. Service `service:4114:payment`; replies go to the kernel
-reply endpoint. The capsule resolves the keyring with `MkServiceLookup`,
-requests receipt signatures with `MkIpcCall`, receives with `MkIpcRecv`,
-answers with `MkIpcSend`, and reads the clock with `MkTimeMillis`. It requests
-no hardware grants.
+CoreExec, IPC, Memory, Crypto and FileSystem. There is no Network: settle
+talks to the chain. Service `service:4114:payment`; replies go to the kernel
+reply endpoint. Requests arrive through `MkIpcRecvFrom`, so each op's caller
+is checked by which registry names the kernel-stamped pid owns
+(`nonos_nox_meter::caller`).
 
-No kernel profile turns on `nonos-capsule-payment`: the capsule is built,
-signed and enrolled, but no image carries it, so the installer's paid path
-answers `EAGAIN` on every image.
+`nonos-capsule-payment` is in `microkernel-desktop-base`. The kernel mirror is
+`src/userspace/capsule_payment`. Init spawns it with the desktop services
+(`spawn_plan/payment.rs`), after the keyring and the vfs. A change to the caps
+or the ELF needs the owner to re-sign the manifest and id-cert and re-enroll.
+
+## Keys
+
+The meter's root is the machine key under the caller-bound label
+`nonos.meter.root.v1`. No other capsule can derive it (C2c). From the root:
+- the state file's tag key;
+- the Ed25519 key for NXL1;
+- the sealing key for the secp256k1 secret. That secret is generated in the
+  keyring once, exported, sealed to `/data/meter.key`, and imported again at
+  every boot. A sealed key that does not open is refused, never replaced:
+  channels are bound to the meter's address.
+
+Until C2c names the bound prefix byte, `keys::bound::BOUND_PREFIX` is `None`.
+Every op that needs a key answers EAGAIN, and no state is loaded or saved. On
+a boot that keeps nothing, the meter changes no state (EACCES), so its budget
+stays zero.
 
 ## Interface contract
 
-| Operation | Input | Output |
-|---|---|---|
-| `OP_HEALTHCHECK` (1) | none | status 0 |
-| `OP_PAY` (2) | owner pid, wallet id, capsule id, publisher address, amount, receipt type | the signed receipt's 32-byte struct hash |
-| `OP_DRAIN_RECEIPTS` (3) | none | a count and up to 13 pending 297-byte receipt records, taken from the outbox |
-| `OP_LIST_TOKENS` (4) | none | supported wallet/payment assets |
+Header `seq u32 | op u16 | reserved u16`; reply `seq u32 | status i32 | body`.
 
-Unknown operations and malformed bodies reply `EINVAL`. `OP_PAY` answers
-`EAGAIN` when no keyring runs or the outbox holds its 1024 records already.
+| Op | Caller | Body | Reply |
+|---|---|---|---|
+| 1 HEALTHCHECK | anyone | none | none |
+| 2 PAY | payers | `nonos_nox_meter::pay` (v2); the old 124-byte body is EINVAL | the signed voucher, 265 bytes |
+| 3 DRAIN | nox_settle | first index u8 | `wire::drain_reply` |
+| 4 LIST_TOKENS | anyone | none | one NOX row per chain where it is deployed (`nonos_nox_config`) |
+| 5 ACCOUNT | wallet | first index u8 | `wire::account_reply` |
+| 6 SET_BUDGET | wallet | `wire::parse_budget` | none |
 
-## Authority
-
-The capsule may talk to the keyring over IPC. It has no PCI, MMIO, IRQ,
-DMA, PIO, network, display, or focus-routing authority. It never moves
-funds itself.
-
-## Limits
-
-The keyring signs a receipt only when the owner pid in the request is the pid
-the kernel stamped on the message (`resolve_caller`), and only with a key that
-pid owns. `OP_PAY` forwards the wallet owner's pid while the kernel stamps the
-payment capsule's own, so the keyring refuses the signature with `EACCES`
-and `OP_PAY` returns that status.
-
-## Privacy and persistence
-
-The nonce and outbox live in capsule memory for the life of the boot.
-A receipt record carries the capsule id, publisher address, amount, nonce,
-epoch, expiry and receipt type, the paying account's address and the
-keyring's signature.
-
-## Token registry
-
-`OP_LIST_TOKENS` returns the payment capsule's asset registry as a compact
-binary payload:
-
-```text
-u32 count
-repeat count:
-  u8  symbol_len
-  u8  decimals
-  u16 settlement_kind
-  u32 flags
-  u64 chain_id
-  u8  contract_address[20]
-  u8  symbol[symbol_len]
-```
-
-Settlement kinds:
-
-| Value | Meaning |
-|---:|---|
-| 1 | Native ETH |
-| 2 | NOX receipt settlement |
-| 3 | Primer x402 settlement |
-
-Flags:
-
-| Bit | Meaning |
-|---:|---|
-| `1 << 0` | enabled |
-| `1 << 1` | native token |
-| `1 << 2` | ERC-20 token |
-| `1 << 3` | settled by local receipt |
-| `1 << 4` | settled by x402/Primer rail |
-| `1 << 5` | contract/configuration required before live settlement |
-
-Current built-ins:
-
-| Symbol | Chain | Contract | Status |
-|---|---:|---|---|
-| ETH | 1 | native | enabled |
-| NOX | 1 | `0x0a26c80Be4E060e688d7C23aDdB92cBb5D2C9eCA` | enabled |
-| PR | 8453 | pending | reserved for Primer x402; requires verified contract/config |
+Refusals:
+- ENOENT: no channel, or no NOX on the chain;
+- EIO: a bad file or reply;
+- ENFILE: the table is full;
+- ENOSPC: past the deposit;
+- ETIME: expired;
+- EOVERFLOW;
+- EDQUOT: over budget;
+- EPROTO: a request word off the signed block;
+- EOPNOTSUPP: not a voucher listing;
+- EDOM: below the minimum charge;
+- EKEYREJECTED: an untrusted release;
+- EPERM: the caller does not hold the op's role.

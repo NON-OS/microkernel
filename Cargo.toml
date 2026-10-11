@@ -147,6 +147,8 @@ nonos-capsule-entropy           = []
 nonos-capsule-crypto            = []
 nonos-capsule-vfs               = []
 nonos-capsule-installer         = []
+# payment: the meter, which signs NOX vouchers with its own key.
+nonos-capsule-payment           = []
 nonos-capsule-driver-virtio-rng = []
 nonos-capsule-driver-virtio-blk = []
 nonos-capsule-driver-virtio-gpu = []
@@ -592,6 +594,7 @@ microkernel-desktop-base = [
   "microkernel-desktop-offline",
   "capsule-serial-debug",
   "nonos-capsule-installer",
+  "nonos-capsule-payment",
   "nonos-capsule-driver-virtio-net",
   "nonos-capsule-net-core",
   "nonos-capsule-net-sockets",
