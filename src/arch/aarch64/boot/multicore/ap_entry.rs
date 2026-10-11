@@ -33,7 +33,9 @@ pub extern "C" fn aarch64_ap_entry() -> ! {
     if let Err(error) = security::init_all() {
         refuse(b"secondary security", security_reason(error));
     }
-    init_gic_cpu();
+    if let Err(reason) = init_gic_cpu() {
+        refuse(b"secondary gic", reason.as_bytes());
+    }
     init_timer_cpu();
     if let Err(reason) = install_preemption_tick() {
         refuse(b"secondary timer tick", reason.as_bytes());
