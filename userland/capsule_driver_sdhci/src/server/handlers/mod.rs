@@ -15,5 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod geometry;
+pub mod identify;
 pub mod rw;
 mod rw_parse;

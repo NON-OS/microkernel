@@ -21,5 +21,7 @@
 pub const E_NXIO: i32 = -6;
 /// The sender may not reach the medium (`server::medium`).
 pub const E_ACCES: i32 = -13;
+/// The part has no name to give (IDENTIFY).
+pub const E_NODEV: i32 = -19;
 pub const E_INVAL: i32 = -22;
 pub const E_MSGSIZE: i32 = -90;
