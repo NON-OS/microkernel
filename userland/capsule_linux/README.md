@@ -20,7 +20,9 @@ the image (`src/linux/image/`), and enters the serve loop. Main modules under `s
 - `net/`: family-local sockets, and streams carried by `net.sockets` or `net.anon`.
 - `unix/`, `wayland/`: the display connection and a Wayland server for guest windows.
 - `console/`, `terminal*.rs`: terminal runs. `install/`: fetch, authenticate, unpack.
-- `attest*.rs`, `origin.rs`: proving a program before it runs.
+- `attest*.rs`, `origin.rs`: proving a program before it runs. `app/`: the policy it is
+  bound to: the vendor's (`policies.txt`, compiled into `nonos_linux_policy::vendor`), a
+  vouched file beside it, or the owner's default.
 
 ## How a guest syscall is served
 

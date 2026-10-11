@@ -19,19 +19,20 @@
 
 use crate::app_choose::choose;
 use nonos_linux_policy::mask::{MODELS_RO, NET_ANON, WAYLAND};
+use nonos_linux_policy::vendor::VendorRow;
 use nonos_linux_policy::{unlisted, LinuxAppPolicy, SyscallSet, UNLISTED_MASK};
 
 fn policy(program: u8, mask: u64) -> LinuxAppPolicy {
     LinuxAppPolicy { mask, syscall_set: SyscallSet::NONE.with(1), ..unlisted([program; 32]) }
 }
 
-fn table(ps: &[LinuxAppPolicy]) -> Vec<u8> {
-    ps.iter().flat_map(|p| p.encode()).collect()
+fn row(p: LinuxAppPolicy) -> VendorRow {
+    VendorRow { store_path: "/bin/x", program_blake3: p.program_blake3, policy: p.encode() }
 }
 
 #[test]
 fn the_vendor_table_names_its_own_programs() {
-    let t = table(&[policy(1, NET_ANON), policy(2, WAYLAND | MODELS_RO)]);
+    let t = [row(policy(1, NET_ANON)), row(policy(2, WAYLAND | MODELS_RO))];
     assert_eq!(choose(&[2; 32], &t, None), Ok(policy(2, WAYLAND | MODELS_RO)));
     let file = policy(2, NET_ANON).encode();
     assert_eq!(choose(&[2; 32], &t, Some(&file)), Ok(policy(2, WAYLAND | MODELS_RO)));
@@ -39,7 +40,7 @@ fn the_vendor_table_names_its_own_programs() {
 
 #[test]
 fn a_vouched_file_binds_a_program_the_table_does_not_name() {
-    let t = table(&[policy(1, NET_ANON)]);
+    let t = [row(policy(1, NET_ANON))];
     let file = policy(3, WAYLAND).encode();
     assert_eq!(choose(&[3; 32], &t, Some(&file)), Ok(policy(3, WAYLAND)));
 }
@@ -62,10 +63,13 @@ fn a_bad_file_refuses_rather_than_defaults() {
 }
 
 #[test]
-fn a_malformed_or_partial_table_entry_binds_nothing() {
-    let mut t = table(&[policy(7, WAYLAND)]);
-    t[0] = b'X';
-    t.extend_from_slice(&policy(8, WAYLAND).encode()[..100]);
-    assert_eq!(choose(&[7; 32], &t, None), Ok(unlisted([7; 32])));
-    assert_eq!(choose(&[8; 32], &t, None), Ok(unlisted([8; 32])));
+fn a_broken_vendor_row_refuses_rather_than_defaults() {
+    let mut bad = row(policy(7, WAYLAND));
+    bad.policy[0] = b'X';
+    let file = policy(7, WAYLAND).encode();
+    assert_eq!(choose(&[7; 32], &[bad], Some(&file)), Err("the vendor's table is broken"));
+    let mut elsewhere = row(policy(8, WAYLAND));
+    elsewhere.program_blake3 = [9; 32];
+    assert_eq!(choose(&[9; 32], &[elsewhere], None), Err("the vendor's table is broken"));
+    assert_eq!(choose(&[8; 32], &[elsewhere], None), Ok(unlisted([8; 32])));
 }
