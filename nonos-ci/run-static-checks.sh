@@ -4217,7 +4217,7 @@ unset handoff_init handoff_orch
 
 # NØNOS trust-anchor module ships the policy decoder and the
 # baked-policy slot the kernel embeds at build time. The slot can be
-# `Option<&[u8]> = None` during Lane B integration; once Lane B emits
+# `Option<&[u8]> = None` during run B integration; once run B emits
 # .keys/nonos_trust_anchor.policy.bin, baked.rs flips to a non-Option
 # include_bytes! and a separate gate enforces "no None" in production.
 ta_dir=src/security/nonos_trust_anchor
@@ -4868,6 +4868,16 @@ else
     fail_with "check_mirror_caps: a spawn mirror or README disagrees with its manifest"
 fi
 unset mirror_out
+
+# The keymap a Wayland guest is given is generated data; regenerating it is a
+# deliberate step (tools/nonos-linux-keymap), and this holds it to its pin.
+if keymap_out="$(python3 scripts/check_keymap.py 2>&1)"; then
+    note ok "the guest keymap is the pinned one (check_keymap)"
+else
+    tail -n 5 <<< "${keymap_out}" >&2
+    fail_with "check_keymap: keymap-us.xkb differs from its pin"
+fi
+unset keymap_out
 
 if [ "${fail}" -ne 0 ]; then
     echo
