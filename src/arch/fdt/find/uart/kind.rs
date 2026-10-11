@@ -18,4 +18,7 @@
 pub enum UartKind {
     Pl011,
     Ns16550,
+    /// The BCM2835 auxiliary "mini" UART, the Pi's default console: a 16550
+    /// register set at a four-byte stride with its own baud register.
+    MiniUart,
 }

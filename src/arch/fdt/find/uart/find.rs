@@ -17,7 +17,8 @@
 use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::parser::Fdt;
 
-use super::compatible::{kind, NEEDLES};
+use super::compatible::NEEDLES;
+use super::describe::describe;
 use super::info::UartInfo;
 
 /// The console: the UART `/chosen` names when it is one we drive, otherwise
@@ -25,18 +26,18 @@ use super::info::UartInfo;
 /// drive, or naming nothing, is passed over rather than trusted with the
 /// wrong register layout; `Fdt::stdout` is where the reason can be read.
 pub fn find(fdt: &Fdt) -> Result<Option<UartInfo>, FdtError> {
-    if let Ok(Some((node, _))) = fdt.stdout() {
+    if let Ok(Some((node, options))) = fdt.stdout() {
         if let (Some(needle), true) = (fdt.compatible_with(&node, NEEDLES)?, fdt.is_enabled(&node)?)
         {
-            if let Some((base, _)) = fdt.mmio(&node, 0)? {
-                return Ok(Some(UartInfo { kind: kind(needle), base }));
+            if let Some(info) = describe(fdt, &node, needle, options)? {
+                return Ok(Some(info));
             }
         }
     }
     for found in fdt.devices(NEEDLES) {
         let (node, needle) = found?;
-        if let Some((base, _)) = fdt.mmio(&node, 0)? {
-            return Ok(Some(UartInfo { kind: kind(needle), base }));
+        if let Some(info) = describe(fdt, &node, needle, &[])? {
+            return Ok(Some(info));
         }
     }
     Ok(None)
