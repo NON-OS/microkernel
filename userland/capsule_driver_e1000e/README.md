@@ -41,7 +41,7 @@ No interrupt is bound and IMS is never written.
 
 Same operations as `driver.e1000_0`: `OP_HEALTHCHECK`, `OP_LINK_STATUS`
 (1 byte), `OP_MAC_ADDRESS` (6 bytes), `OP_TX_PACKET`, `OP_RX_PACKET`
-(length and frame), `OP_STATS` (48-byte snapshot).
+(length and frame), `OP_STATS` on 7 (48-byte snapshot).
 
 ## Authority
 
