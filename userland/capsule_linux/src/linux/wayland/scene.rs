@@ -54,6 +54,8 @@ pub struct Scene {
     pub keyboard_on: Option<u32>,
     /// Whether the input router has taken this personality's subscription.
     pub subscribed: bool,
+    /// The surface told it is on the output (output_enter.rs).
+    pub on_output: Option<u32>,
     /// The keys down now, so a driver's repeat is not sent as a press.
     pub held: HeldKeys,
 }

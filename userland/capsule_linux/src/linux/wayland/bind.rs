@@ -56,7 +56,10 @@ pub fn bind(guest: &mut Guest, registry: u32, args: &mut Args<'_>) {
          */
         Object::Shm => super::shm::formats(guest, id),
         Object::Seat => seat_caps(guest, id),
-        Object::Output => super::output::announce(guest, id),
+        Object::Output => {
+            super::output::announce(guest, id);
+            super::output_enter::bound(guest, id);
+        }
         _ => {}
     }
 }

@@ -41,6 +41,7 @@ impl Scene {
             keyboard: None,
             pointer_on: None,
             keyboard_on: None,
+            on_output: None,
             subscribed: false,
             held: HeldKeys::new(),
         }
