@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The playback alternate setting a device offers, found in one of its
-//! configuration descriptors (USB Audio 1.0, section 4.5).
+//! configuration descriptors (USB Audio 1.0 4.5, as recalled, unverified).
 
 use nonos_usbnet::desc::walk;
 

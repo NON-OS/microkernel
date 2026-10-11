@@ -16,7 +16,8 @@
 
 //! Whether an AudioStreaming alternate setting carries what the audio
 //! server sends: PCM, two channels of 16 bits in two-byte subframes, at
-//! 48 kHz (USB Audio 1.0, Format Type I, sections 2.2 and 2.3.1).
+//! 48 kHz (USB Audio 1.0 Format Type I, 2.2 and 2.3.1,
+//! as recalled, unverified).
 
 pub const RATE_HZ: u32 = 48_000;
 /// bytes per frame: two channels of two bytes.
