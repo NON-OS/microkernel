@@ -23,6 +23,8 @@ use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::tokens::GAP;
 use crate::wallet::screen::hits::{self, Press};
 use crate::wallet::screen::shield::parts::field;
+use nonos_app_skeleton::EventOutcome;
+
 use crate::wallet::state::State;
 
 pub const FIELD_CAP: u8 = 0;
@@ -45,4 +47,27 @@ pub fn form(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
 /// Whether the meter has its key open, so it takes a budget.
 pub fn ready(state: &State) -> bool {
     state.meter.account.as_ref().is_some_and(|a| a.flags & nonos_payment_proto::READY != 0)
+}
+
+/// Set budget: the form as typed into SET_BUDGET, then the account again.
+pub fn set(state: &mut State) -> EventOutcome {
+    use crate::wallet::meter::budget_form::budget_request;
+    let asked = budget_request(&state.meter.cap_text, &state.meter.days_text, nonos_tls::rtc_now());
+    let body = match asked.map(|b| b.encode()) {
+        Ok(Some(body)) => body,
+        Ok(None) => return EventOutcome::Idle,
+        Err(why) => {
+            state.failure = Some(why);
+            return EventOutcome::Repaint;
+        }
+    };
+    match crate::wallet::meter::call::set_budget(&body) {
+        Ok(()) => {
+            state.status = b"budget set";
+            state.meter.cap_text.clear();
+            state.meter.days_text.clear();
+        }
+        Err(s) => state.failure = Some(crate::wallet::meter::said::budget_refusal(s)),
+    }
+    super::click::refresh(state)
 }

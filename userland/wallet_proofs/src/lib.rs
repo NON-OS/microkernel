@@ -93,6 +93,10 @@ pub mod attest;
 pub mod meter_budget;
 #[path = "../../capsule_wallet_nonos/src/wallet/meter/channel.rs"]
 pub mod meter_channel;
+#[path = "../../capsule_wallet_nonos/src/wallet/meter/job.rs"]
+pub mod meter_job;
+#[path = "../../capsule_wallet_nonos/src/wallet/meter/topup.rs"]
+pub mod meter_topup;
 #[path = "../../capsule_wallet_nonos/src/wallet/meter/rows.rs"]
 pub mod meter_rows;
 #[path = "../../capsule_wallet_nonos/src/wallet/shield/fund_meter.rs"]
@@ -145,6 +149,8 @@ mod fund_meter_tests;
 mod attest_tests;
 #[cfg(test)]
 mod meter_budget_tests;
+#[cfg(test)]
+mod meter_job_tests;
 #[cfg(test)]
 mod meter_rows_tests;
 #[cfg(test)]

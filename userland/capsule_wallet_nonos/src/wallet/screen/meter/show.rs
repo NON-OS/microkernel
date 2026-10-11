@@ -27,7 +27,6 @@ use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::parts::action::Weight;
 use crate::wallet::etna::parts::fact::fact;
-use crate::wallet::meter::channel::channel_line;
 use crate::wallet::meter::rows::{budget_rows, state_line};
 use crate::wallet::nox::nox_text as nox;
 use crate::wallet::screen::hits;
@@ -64,9 +63,10 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
         for (label, value) in budget_rows(a, nonos_tls::rtc_now(), nox) {
             y += fact(fb, c.x, y, c.w, label, &value);
         }
-        for row in &a.rows {
-            y += fact(fb, c.x, y, c.w, "channel", &channel_line(row, nox));
+        if let Some(news) = &state.meter.news {
+            y += fact(fb, c.x, y, c.w, "last job", news);
         }
+        y += super::channels::channels(state, a, fb, c, y);
         y += budget::form(state, fb, c, y);
     }
     hits::reach(y, state.scroll, l.content_bottom);

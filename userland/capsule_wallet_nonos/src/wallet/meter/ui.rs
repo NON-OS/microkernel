@@ -33,4 +33,10 @@ pub struct MeterUi {
     pub cap_text: String,
     pub days_text: String,
     pub focus: u8,
+    /* The channel row picked, the top-up as typed, the job running, and
+     * the last job's line once it was sent. */
+    pub picked: Option<u8>,
+    pub topup_text: String,
+    pub job: Option<super::job::MeterJob>,
+    pub news: Option<String>,
 }

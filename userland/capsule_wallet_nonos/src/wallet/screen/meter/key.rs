@@ -16,22 +16,28 @@
 
 use nonos_app_skeleton::{EventOutcome, KEY_BACKSPACE, KEY_ENTER, KEY_TAB};
 
-use super::budget::{FIELD_CAP, FIELD_DAYS};
+use super::budget::FIELD_CAP;
+use super::channels::FIELD_TOPUP;
 use crate::wallet::meter::budget_form::push_digit;
 use crate::wallet::state::{State, VIEW_METER};
 
 /// A key on the meter screen: digits into the focused field, Tab to the
-/// other, Backspace, and Enter to set the budget.
+/// next, Backspace, and Enter to set the budget or top up.
 pub fn key(state: &mut State, code: u32) -> Option<EventOutcome> {
     if state.view != VIEW_METER {
         return None;
     }
     let m = &mut state.meter;
-    let (text, max) =
-        if m.focus == FIELD_CAP { (&mut m.cap_text, 13) } else { (&mut m.days_text, 3) };
+    let fields = if m.picked.is_some() { 3 } else { 2 };
+    let (text, max) = match m.focus {
+        FIELD_CAP => (&mut m.cap_text, 13),
+        FIELD_TOPUP => (&mut m.topup_text, 13),
+        _ => (&mut m.days_text, 3),
+    };
     match code {
-        KEY_TAB => m.focus = if m.focus == FIELD_CAP { FIELD_DAYS } else { FIELD_CAP },
-        KEY_ENTER => return Some(super::click::set(state)),
+        KEY_TAB => m.focus = (m.focus + 1) % fields,
+        KEY_ENTER if m.focus == FIELD_TOPUP => return Some(super::jobs::topup(state)),
+        KEY_ENTER => return Some(super::budget::set(state)),
         KEY_BACKSPACE => {
             text.pop();
         }

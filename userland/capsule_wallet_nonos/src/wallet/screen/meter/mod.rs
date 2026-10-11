@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod budget;
+mod channels;
 pub mod click;
+mod jobs;
 pub mod key;
 mod show;
 
