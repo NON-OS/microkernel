@@ -3,8 +3,10 @@
 Status: wired, not yet signed. The kernel mirror
 (`src/hardware/usb_audio_capsule`) embeds and spawns it under
 `nonos-capsule-driver-usb-audio` (the `microkernel-driver-usb-audio` build)
-wherever the inventory sees an xHCI controller, before audio.server. It has
-no owner certificate yet, so no image carries it until the owner signs it.
+wherever the inventory sees an xHCI controller, before audio.server, which
+plays through it while it reports a device ready and through `driver.hda0`
+otherwise. It has no owner certificate yet, so no image carries it until the
+owner signs it.
 
 ## Role
 
