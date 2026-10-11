@@ -57,6 +57,10 @@ pub struct Known {
     /// What the release sells and how, from OP_GET_COMMERCE (B9).
     pub price: Option<Price>,
     pub judged: bool,
+    /// When to ask the gates again while the market reads the bond, and
+    /// how many times it has been asked so (fill_order::RECHECKS at most).
+    pub recheck_at: Option<u64>,
+    pub rechecks: u8,
 }
 
 impl Listing {

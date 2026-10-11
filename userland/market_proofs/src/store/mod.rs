@@ -34,6 +34,9 @@ pub mod source;
 #[path = "../../../capsule_app_store/src/store/price.rs"]
 pub mod price;
 
+#[path = "../../../capsule_app_store/src/store/verdict.rs"]
+pub mod verdict;
+
 #[path = "../../../capsule_app_store/src/store/tab.rs"]
 pub mod tab;
 

@@ -21,6 +21,8 @@ use super::fill_order::next;
 use super::market::Failure;
 use super::state::State;
 
+/// How soon the next step runs while there is one: quick enough that the
+/// pane fills as the cursor lands, without a busy loop.
 pub const STEP_MS: i64 = 30;
 
 /// What a step did.
@@ -45,6 +47,10 @@ impl State {
     /// has stopped answering (`port` zero), since every answer would be the
     /// same silence.
     pub fn filling(&self) -> bool {
-        self.port != 0 && next(&self.listings, self.current_index()).is_some()
+        self.port != 0 && next(&self.listings, self.current_index(), now_ms()).is_some()
     }
+}
+
+pub(super) fn now_ms() -> u64 {
+    nonos_libc::mk_time_millis().max(0) as u64
 }
