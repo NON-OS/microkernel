@@ -17,13 +17,8 @@
 //! DRAIN SIGN: settle(vouchers, sigs) built from the
 //! meter's own newest signed vouchers of the named channels, to the config
 //! Settlement. Settle supplies only the nonce, the gas limit and the fees.
-//!
-//! The bound: a settle that lied about settled could have the meter sign
-//! settle() again and again, each mined one spending gas. So the meter signs
-//! another only when a named channel has a newer voucher than the last
-//! settle carried, or to replace that last one at its own nonce (a fee bump:
-//! only one of the two can be mined). The returned state records what this
-//! one carries, and is written before the transaction is signed.
+//! The bound on another settle() is `bound::allowed`. The returned state
+//! records what this one carries, and is written before it is signed.
 
 use alloc::vec::Vec;
 
@@ -36,11 +31,14 @@ use crate::open::TxRequest;
 use crate::settle::calldata::settle_data;
 use crate::state::MeterState;
 
+use super::bound::allowed;
+
 pub fn settle_plan(
     s: &MeterState,
     payer: &[u8; 20],
     req: &DrainSign,
     settlement: &[u8; 20],
+    now: u64,
 ) -> Result<(MeterState, TxRequest), MeterError> {
     fees_ok(req.max_fee, req.max_priority)?;
     if req.gas_limit == 0 || req.gas_limit > SETTLE_GAS_MAX {
@@ -56,10 +54,7 @@ pub fn settle_plan(
         newer |= c.cumulative > c.carried;
         next.channels[at].carried = c.cumulative;
     }
-    let replacing = s.last_settle == Some((req.chain_id, req.nonce));
-    if !newer && !replacing {
-        return Err(MeterError::NothingOwed);
-    }
+    next.last_retry = allowed(s, req.chain_id, req.nonce, newer, now)?;
     next.last_settle = Some((req.chain_id, req.nonce));
     let tx = TxRequest {
         chain_id: req.chain_id,

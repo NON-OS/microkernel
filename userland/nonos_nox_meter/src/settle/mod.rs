@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod bound;
 mod calldata;
 mod channel_tx;
 mod close;
 mod plan;
 
+pub use bound::RETRY_EVERY;
 pub use calldata::{close_data, settle_data, topup_data};
 pub use calldata::{CLOSE_SELECTOR, SETTLE_SELECTOR, TOPUP_SELECTOR};
 pub use channel_tx::topup_plan;
