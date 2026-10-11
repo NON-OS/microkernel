@@ -3157,6 +3157,27 @@
   "md": [],
   "signed": []
  },
+ "userland/gfx_wire_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/gfx_wire_proofs",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_wire/src/body",
+   "userland/nonos_gfx_wire/src/bytes.rs",
+   "userland/nonos_gfx_wire/src/errno.rs",
+   "userland/nonos_gfx_wire/src/fit.rs",
+   "userland/nonos_gfx_wire/src/header.rs",
+   "userland/nonos_gfx_wire/src/kind.rs",
+   "userland/nonos_gfx_wire/src/ops.rs",
+   "userland/nonos_gfx_wire/src/reply.rs",
+   "userland/nonos_gfx_wire/src/request.rs",
+   "userland/nonos_gfx_wire/src/serial.rs",
+   "userland/nonos_modes"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/hda_proofs": {
   "exclude": [],
   "include": [
