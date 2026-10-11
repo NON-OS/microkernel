@@ -34,6 +34,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.usb_hid0", KERNEL_ONLY),
     ("driver.i2c_hid0", KERNEL_ONLY),
     ("driver.usb_msc0", KERNEL_ONLY),
+    ("driver.smbus0", KERNEL_ONLY),
     ("driver.virtio_rng", KERNEL_ONLY),
     ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0", "driver.usb_audio0"]),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
@@ -44,7 +45,9 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
 ];
 
 /// The kernel polls the keyboards and pointers, reads the random source and
-/// serves USB storage itself; no capsule has reason to reach them.
+/// serves USB storage itself; no capsule has reason to reach them. The SMBus
+/// host has no driver above it yet: a raw transfer reaches any device on the
+/// bus, so it is opened to one when one exists.
 const KERNEL_ONLY: &[&str] = &[];
 
 /// net.core carries the frames and asks each card for its link; net.l2 finds
