@@ -17,7 +17,7 @@
 //! `uninstall <name>`: take out what a package's install put in.
 //!
 //! Its manifest (`package_record`) says which files it wrote and which link
-//! lines it added. Each file goes, with any trailer minted beside it, unless
+//! lines it added. Each file goes, with what the machine wrote beside it, unless
 //! another installed package lists it too; its link lines go from the table;
 //! its program record goes, so `run` no longer finds it. What would not go
 //! stays in the manifest, so asking again finishes the job rather than
@@ -30,15 +30,12 @@
 
 use alloc::format;
 
-use nonos_libc::mk_debug;
-
 use super::apps::{wanted, Wanted};
 use super::manifest::{only_mine, Manifest};
-use super::model_remove::{remove_not_started, removed};
 use super::place_links::unrecord;
+use super::remove_files::take_out;
+use super::remove_tier::{say, tier};
 use super::Why;
-use crate::linux::attest_paths::beside;
-use crate::linux::file::{key, store_stat, store_unlink};
 
 pub fn uninstall(pkg: &str) -> Result<(), Why> {
     match wanted(pkg) {
@@ -53,14 +50,7 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
     let others = super::package_record::others(pkg);
     let files = only_mine(&mine.files, &others, |m| &m.files);
     let links = only_mine(&mine.links, &others, |m| &m.links);
-    let mut left = Manifest::default();
-    for at in &files {
-        // Gone already is as good as taken out.
-        if store_unlink(&key(at)).is_err() && store_stat(&key(at)).is_ok() {
-            left.files.push(at.clone());
-        }
-        let _ = store_unlink(&key(&beside(at, b".zk_trailer.bin")));
-    }
+    let mut left = Manifest { files: take_out(&files), ..Manifest::default() };
     if !links.is_empty() && !unrecord(&links) {
         left.links = links.clone();
     }
@@ -77,19 +67,4 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
         true => Ok(()),
         false => Err(Why::RemovePartial),
     }
-}
-
-/// A shipped tier: its program is the image's and stays; its model files go
-/// off the data volume by the model fetcher's `remove` (`model_remove`).
-fn tier(pkg: &str, tier: &str) -> Result<(), Why> {
-    let status = super::fetcher::remove(tier).map_err(|rc| {
-        say(&format!("[LINUX] {pkg}: the model fetcher did not start, errno {}\n", -rc));
-        remove_not_started(rc)
-    })?;
-    say(&format!("[LINUX] {pkg}: the model fetcher removed its model, status {status}\n"));
-    removed(status)
-}
-
-fn say(line: &str) {
-    let _ = mk_debug(line.as_ptr(), line.len());
 }

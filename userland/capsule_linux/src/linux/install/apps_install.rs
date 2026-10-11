@@ -82,7 +82,7 @@ pub fn install(app: &App, pin: &[u8; 32]) -> Result<(), Why> {
                 app.name
             ));
         }
-        let direct = crate::linux::request::direct_asked();
+        let direct = crate::linux::request_install::direct_asked();
         let status = fetch(app.tier(), direct).map_err(|rc| {
             let e = rc.saturating_neg();
             say(&format!("[LINUX] {}: the model fetcher did not start, errno {e}\n", app.name));
