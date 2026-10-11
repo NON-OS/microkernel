@@ -61,6 +61,8 @@ pub enum HardwareFamily {
     InputI2cHid,
     AudioHda,
     SerialI2c,
+    /// An Intel SMBus host, class 0Ch subclass 05h: the i801 capsule's.
+    SerialSmbus,
     SerialSpi,
     BridgePci,
     SystemPeripheral,
