@@ -30,7 +30,7 @@ driver.igb_0 -- broker MMIO + DMA rings --> 82575 .. I211 (internal PHY)
   Bus Master Enable.
 - `MkMmioMap` maps BAR0; `MkDmaMap` takes the RX ring, RX buffers, TX ring
   and TX buffers.
-- `MkIpcRecv` and `MkIpcSend` serve `service:4274:driver.igb_0`.
+- `MkIpcRecv` and `MkIpcSend` serve `service:4242:driver.igb_0`.
 - `CryptoRandom` draws the station address each boot.
 
 No interrupt is bound and IMS is never written.
