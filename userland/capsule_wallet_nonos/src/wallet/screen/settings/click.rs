@@ -37,6 +37,7 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
         Press::Row(2) => return crate::wallet::screen::custody::click::open(state, VIEW_IMPORT),
         Press::Row(3) => return crate::wallet::event::lock(state),
         Press::Row(4) => return crate::wallet::screen::meter::click::open(state),
+        Press::Row(5) => return crate::wallet::screen::publisher::click::open(state),
         _ => return EventOutcome::Idle,
     }
     state.scroll = 0;

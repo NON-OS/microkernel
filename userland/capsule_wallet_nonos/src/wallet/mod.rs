@@ -17,9 +17,11 @@
 pub mod accounts;
 mod act;
 mod app;
+mod attest;
 pub mod chain;
 pub mod etna;
 mod event;
+mod hex_id;
 mod ipc;
 mod manifest;
 mod meter;
@@ -29,6 +31,8 @@ mod num;
 pub mod paint;
 pub mod vault;
 mod pool;
+mod publish;
+mod publisher;
 mod rpc;
 mod send;
 pub mod screen;
@@ -38,6 +42,7 @@ mod swap;
 mod theme;
 mod tls13;
 mod tx_hash;
+mod typed;
 mod units;
 
 pub use app::Wallet;

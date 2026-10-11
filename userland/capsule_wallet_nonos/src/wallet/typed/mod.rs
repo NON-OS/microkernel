@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod check;
-mod reply;
+pub mod check;
+pub mod reply;
 mod request;
 mod words;
 
-pub use check::{believed, digest, struct_hash, Asked};
-pub use reply::{parse_reply, Signed, REPLY_LEN};
+pub use check::{believed, struct_hash, Asked};
+pub use reply::REPLY_LEN;
 pub use request::{typed_request, ENTRY_ATTEST, ENTRY_BINDING, OP_SIGN_TYPED_DATA};
 pub use words::{attest_words, binding_words, Wrong};
