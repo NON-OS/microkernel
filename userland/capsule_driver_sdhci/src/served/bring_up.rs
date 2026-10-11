@@ -26,7 +26,10 @@ pub fn bring_up(hosts: &[Found]) -> Result<Opened, &'static str> {
     let mut first = None;
     for host in hosts.iter() {
         match emmc::open(host) {
-            Ok(opened) => return Ok(opened),
+            Ok(opened) => {
+                opened.disk.say_part();
+                return Ok(opened);
+            }
             Err(e) => {
                 first.get_or_insert(e);
             }
