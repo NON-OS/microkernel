@@ -14,62 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Claiming a host, mapping its slot and DMA regions, and bringing its card up.
+//! Opening a host: as a fixed slot, whose card must come up, or as a
+//! removable one, served with or without a card.
 
-use nonos_libc::{
-    mk_device_claim, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
-    MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE,
-};
-
-use super::super::super::disk::{EmmcDisk, DATA_BUF_BYTES};
-use super::super::super::env::Log;
-use super::super::super::error::{EmmcError, EmmcResult};
+use super::super::super::disk::DATA_BUF_BYTES;
+use super::super::super::error::EmmcResult;
 use super::super::super::pci::Kind;
-use super::super::super::sdhci::Host;
-use super::super::super::text::Line;
+use super::super::super::slot::{HostParts, Slot};
 use super::super::discover::Found;
 use super::super::dma::DmaRegion;
-use super::super::env::{SerialLog, UptimeClock};
-use super::claim::Claim;
-use super::embedded::check_embedded;
-use super::map_slot::map_slot;
-use super::say::{say_dma, say_host};
+use super::super::env::{MmioWindow, SerialLog, UptimeClock};
+use super::embedded::{check_embedded, check_removable};
+use super::say::say_dma;
 use super::sizes::DESC_TABLE_BYTES;
+use super::take::take;
 use super::Opened;
 
-/// Claim `dev`, turn on its memory decoding and bus mastering (and quiet
-/// its INTx pin: completions are polled), map slot 0 and two DMA regions
-/// (the descriptor page and the 32 KiB data buffer), and bring its card up.
-/// Everything taken is given back on failure, so the next attempt can claim
-/// the host again.
+/// Claim `dev`, map its slot and two DMA regions (the descriptor page and
+/// the 32 KiB data buffer), and bring its card up. Everything taken is
+/// given back on failure, so the next attempt can claim the host again.
 pub fn open(dev: &Found) -> EmmcResult<Opened> {
     let log = SerialLog;
-    say_host(&log, dev);
-    let epoch = mk_device_claim(dev.device_id);
-    if epoch < 0 {
-        log.line(Line::new().s(b"claim refused (").dec(epoch.unsigned_abs()).s(b")").as_bytes());
-        return Err(EmmcError::Broker(epoch));
-    }
-    let epoch = epoch as u64;
-    let mut claim = Claim { device_id: dev.device_id, mmio_grant: None };
-
-    let cmd = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_INTX_DISABLE;
-    let r = mk_pci_config_write(dev.device_id, epoch, MK_PCI_CFG_COMMAND, cmd);
-    if r < 0 {
-        log.line(
-            Line::new().s(b"PCI command write refused (").dec(r.unsigned_abs()).s(b")").as_bytes(),
-        );
-        return Err(EmmcError::Broker(r));
-    }
-    let io = map_slot(&log, dev, epoch, &mut claim)?;
-
+    let (io, claim, epoch) = take(&log, dev)?;
     check_embedded(&log, dev, &io)?;
+    let (table, data) = regions(&log, dev, epoch)?;
+    let slot = Slot::fixed(parts(io, &table, dev), data.buf())?;
+    Ok(Opened { slot, _data: data, _table: table, _claim: claim })
+}
 
-    let table = DmaRegion::map(dev.device_id, epoch, DESC_TABLE_BYTES)
-        .inspect_err(|e| say_dma(&log, *e))?;
+/// The same for a removable slot, served with a card in it or without.
+pub fn open_removable(dev: &Found) -> EmmcResult<Opened> {
+    let log = SerialLog;
+    let (io, claim, epoch) = take(&log, dev)?;
+    check_removable(&log, &io)?;
+    let (table, data) = regions(&log, dev, epoch)?;
+    let slot = Slot::removable(parts(io, &table, dev), data.buf())?;
+    Ok(Opened { slot, _data: data, _table: table, _claim: claim })
+}
+
+fn regions(log: &SerialLog, dev: &Found, epoch: u64) -> EmmcResult<(DmaRegion, DmaRegion)> {
+    let table =
+        DmaRegion::map(dev.device_id, epoch, DESC_TABLE_BYTES).inspect_err(|e| say_dma(log, *e))?;
     let data = DmaRegion::map(dev.device_id, epoch, DATA_BUF_BYTES as u64)
-        .inspect_err(|e| say_dma(&log, *e))?;
-    let host = Host::new(io, UptimeClock, SerialLog, table.buf(), dev.kind == Kind::IntelEmmc);
-    let disk = EmmcDisk::bring_up(host, data.buf())?;
-    Ok(Opened { disk, _data: data, _table: table, _claim: claim })
+        .inspect_err(|e| say_dma(log, *e))?;
+    Ok((table, data))
+}
+
+fn parts(
+    io: MmioWindow,
+    table: &DmaRegion,
+    dev: &Found,
+) -> HostParts<MmioWindow, UptimeClock, SerialLog> {
+    HostParts {
+        io,
+        clock: UptimeClock,
+        log: SerialLog,
+        table: table.buf(),
+        intel_emmc: dev.kind == Kind::IntelEmmc,
+    }
 }

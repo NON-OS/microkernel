@@ -16,23 +16,35 @@
 
 //! One bring-up attempt over every host discovery found.
 
-use crate::emmc::{self, Found, Opened};
+use crate::emmc::{self, EmmcError, Found, Opened};
 
-/// The hosts in discovery order, Intel eMMC first, and the first whose card
-/// comes up is served. The attempt fails, and the bring-up schedule retries
-/// it, only when none did; everything a host took is released by then. The
-/// reason given is the first host's, the one most likely to be the disk.
+/// The internal disk first: the hosts in discovery order, Intel eMMC
+/// first, and the first whose card comes up is served. Only when every
+/// host was refused for not being embedded, so this machine has no eMMC
+/// host at all, is the first removable slot served, card or no card. The
+/// attempt fails, and the bring-up schedule retries it, when nothing was
+/// served; everything a host took is released by then. The reason given
+/// is the first host's, the one most likely to be the disk.
 pub fn bring_up(hosts: &[Found]) -> Result<Opened, &'static str> {
     let mut first = None;
+    let mut only_readers = !hosts.is_empty();
     for host in hosts.iter() {
         match emmc::open(host) {
             Ok(opened) => {
-                opened.disk.say_part();
+                if let Some(d) = &opened.slot.disk {
+                    d.say_part();
+                }
                 return Ok(opened);
             }
             Err(e) => {
+                only_readers &= e == EmmcError::NotEmbedded;
                 first.get_or_insert(e);
             }
+        }
+    }
+    if only_readers {
+        if let Some(opened) = hosts.iter().find_map(|h| emmc::open_removable(h).ok()) {
+            return Ok(opened);
         }
     }
     Err(first.map_or("no host", emmc::reason))
