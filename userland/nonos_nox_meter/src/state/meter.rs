@@ -28,6 +28,9 @@ pub struct MeterState {
     /// The chain and nonce of the last settle() this meter signed: the one
     /// nonce at which it may sign a replacement (a fee bump).
     pub last_settle: Option<(u64, u64)>,
+    /// When the meter last signed the same vouchers again because the last
+    /// settle's nonce went to another transaction, unix seconds (v1.4.12).
+    pub last_retry: u64,
 }
 
 impl MeterState {

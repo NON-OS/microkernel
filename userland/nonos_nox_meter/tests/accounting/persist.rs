@@ -18,7 +18,7 @@ use nonos_nox_meter::budget::ListingCap;
 use nonos_nox_meter::persist::{decode, encode, CHANNEL_LEN, LISTING_LEN, STATE_LEN};
 use nonos_nox_meter::MeterError;
 
-const HEADER: usize = 64;
+const HEADER: usize = 72;
 const CHANNELS_AT: usize = HEADER + 2 + 32 * LISTING_LEN;
 
 pub(super) fn sample() -> nonos_nox_meter::state::MeterState {
@@ -27,6 +27,7 @@ pub(super) fn sample() -> nonos_nox_meter::state::MeterState {
     s.budget.listings.push(ListingCap { listing_id: LISTING, cap: 77, spent: 5 });
     s.channels[0].carried = 100;
     s.last_settle = Some((1, 7));
+    s.last_retry = 99;
     s
 }
 

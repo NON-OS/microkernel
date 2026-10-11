@@ -51,7 +51,7 @@ pub fn channel(id: u8, cumulative: u128, sig: [u8; 65]) -> Channel {
 pub fn state() -> MeterState {
     let channels =
         vec![channel(1, 300, [0x11; 65]), channel(2, 40, [0x22; 65]), channel(3, 9, NO_SIG)];
-    MeterState { budget: Budget::default(), channels, last_settle: None }
+    MeterState { budget: Budget::default(), channels, last_settle: None, last_retry: 0 }
 }
 
 pub fn sign(nonce: u64, ids: &[u8]) -> DrainSign {

@@ -31,7 +31,7 @@ use nonos_nox_meter::wire::drain as view;
 use nonos_payment_proto::{DrainRequest, DrainSign, EINVAL, ENOENT};
 
 use crate::keyring::sign_tx;
-use crate::meter::Meter;
+use crate::meter::{now_ms, Meter};
 use crate::server::{status_of, Call};
 
 pub fn drain(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
@@ -51,7 +51,9 @@ fn list(meter: &mut Meter, from: u8) -> Result<Vec<u8>, i32> {
 fn sign(meter: &mut Meter, s: &DrainSign) -> Result<Vec<u8>, i32> {
     let k = meter.ready()?;
     let settlement = address(s.chain_id, Contract::Settlement).map_err(|_| ENOENT)?;
-    let (next, tx) = settle_plan(&meter.state, &k.address, s, &settlement).map_err(status_of)?;
+    let now = now_ms() / 1000;
+    let (next, tx) =
+        settle_plan(&meter.state, &k.address, s, &settlement, now).map_err(status_of)?;
     meter.commit(next)?;
     sign_tx(k.key_id, &tx)
 }
