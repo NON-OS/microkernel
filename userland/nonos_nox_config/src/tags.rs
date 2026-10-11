@@ -23,6 +23,7 @@
 //!   bondId    = keccak256(abi.encode(BOND_TAG, payee, publisherKey))
 //!   listingId = keccak256(abi.encode(LISTING_TAG, publisherKey, keccak256(appId)))
 //!   releaseId = keccak256(abi.encode(RELEASE_TAG, listingId, keccak256(version)))
+//!   refundCommit = keccak256(abi.encode(REFUND_TAG, refundTo, refundSalt))
 
 use crate::hex::hex32;
 
@@ -36,12 +37,15 @@ pub const LISTING_TAG: [u8; 32] =
     hex32("fc28c341928084c4d621b5d5ca20ad5fe5f9626b525ba55ca86203e2b12545b4");
 pub const RELEASE_TAG: [u8; 32] =
     hex32("77721460c4979894ffb77be556e591c2530f4f8cf95f1677009b6b0659ff9519");
+pub const REFUND_TAG: [u8; 32] =
+    hex32("f23dc5c999ebe275791128a480cc83d5d50ebc78da4c4e0cff83cd63f76d2524");
 
 /// Each tag beside the label it hashes, for the tests and for anyone checking.
-pub const TAGS: [(&str, [u8; 32]); 5] = [
+pub const TAGS: [(&str, [u8; 32]); 6] = [
     ("NONOS.nox.channel.v1", CHANNEL_TAG),
     ("NONOS.nox.order.v1", ORDER_TAG),
     ("NONOS.nox.bond.v1", BOND_TAG),
     ("NONOS.nox.listing.v1", LISTING_TAG),
     ("NONOS.nox.release.v1", RELEASE_TAG),
+    ("NONOS.nox.refund.v1", REFUND_TAG),
 ];
