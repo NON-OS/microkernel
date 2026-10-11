@@ -20,7 +20,10 @@ use super::domain_id::DomainId;
 use super::error::IommuError;
 
 /// Owned handle for an IOMMU translation domain. Dropping the handle
-/// destroys the domain; its page-table frames are not freed.
+/// destroys the domain: every device still attached is denied, the domain's
+/// translations are invalidated, and its table frames go back to the
+/// allocator. A domain that cannot be freed keeps its id and its tables so
+/// nothing reuses them, and the drop says so.
 pub struct IommuDomain {
     id: DomainId,
 }
@@ -55,6 +58,14 @@ impl IommuDomain {
 
 impl Drop for IommuDomain {
     fn drop(&mut self) {
-        let _ = backend::free_domain(self.id);
+        // Drop has no caller to hand the error to, so the log is where it goes;
+        // the backend has already left the frames quarantined.
+        if let Err(e) = backend::free_domain(self.id) {
+            crate::log::warn!(
+                "[IOMMU] domain {} not freed ({:?}); its id and tables stay quarantined",
+                self.id.as_u16(),
+                e
+            );
+        }
     }
 }
