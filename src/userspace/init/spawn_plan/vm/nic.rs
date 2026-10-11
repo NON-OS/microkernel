@@ -17,7 +17,7 @@
 //! The network cards a hypervisor emulates and no physical machine carries,
 //! each spawned only where the device table has its device.
 
-pub(super) fn spawn() {
+pub(in crate::userspace::init::spawn_plan) fn spawn() {
     spawn_pcnet();
     spawn_vmxnet3();
 }
@@ -26,10 +26,10 @@ pub(super) fn spawn() {
 fn spawn_pcnet() {
     use crate::hardware::inventory::HardwareFamily;
     use crate::hardware::pcnet_capsule as c;
-    if !super::device_present::present("DRIVER-PCNET", HardwareFamily::NetworkPcnet) {
+    if !super::present::present("DRIVER-PCNET", HardwareFamily::NetworkPcnet) {
         return;
     }
-    super::boot::capsule(
+    super::super::boot::capsule(
         "DRIVER-PCNET",
         "driver_pcnet",
         c::spawn_driver_pcnet_capsule,
@@ -43,10 +43,10 @@ fn spawn_pcnet() {}
 fn spawn_vmxnet3() {
     use crate::hardware::inventory::HardwareFamily;
     use crate::hardware::vmxnet3_capsule as c;
-    if !super::device_present::present("DRIVER-VMXNET3", HardwareFamily::NetworkVmxnet3) {
+    if !super::present::present("DRIVER-VMXNET3", HardwareFamily::NetworkVmxnet3) {
         return;
     }
-    super::boot::capsule(
+    super::super::boot::capsule(
         "DRIVER-VMXNET3",
         "driver_vmxnet3",
         c::spawn_driver_vmxnet3_capsule,
