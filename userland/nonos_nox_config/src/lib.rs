@@ -33,6 +33,7 @@ mod escrow;
 mod gas;
 mod hex;
 mod lookup;
+mod offer;
 mod shield_events;
 mod tags;
 mod typed;
@@ -48,6 +49,7 @@ pub use domain::{EIP712_DOMAIN_TYPEHASH, ESCROW, LISTING, SETTLEMENT, VERSION_HA
 pub use error::ConfigError;
 pub use escrow::{forwarder_initcode_hash, DELIVER_MARGIN, DISPUTE_WINDOW, MAX_DELIVERY};
 pub use escrow::{ORDER_MIN_LEAD, UNBOND_DELAY_MIN};
+pub use offer::{ESCROW_POW_EFFORT, MAX_OFFERS, OFFER_TTL};
 pub use gas::{
     APPROVE_GAS, CLAIM_GAS, CLOSE_GAS, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, OPEN_GAS,
 };

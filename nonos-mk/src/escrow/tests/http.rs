@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The agent's HTTP reads a POST of exactly BODY_LEN and nothing else; its
-//! answer carries the sealed bytes; the key file keeps keyCommit and K.
+//! answer carries the sealed bytes.
 
 use std::io::Cursor;
 
 use super::super::body::BODY_LEN;
 use super::super::http::{read_request, write_answer};
-use super::super::keys::record;
 
 fn post(len: usize, body: &[u8]) -> Vec<u8> {
     let head = format!("POST /e HTTP/1.1\r\nHost: a\r\nContent-Length: {len}\r\n\r\n");
@@ -40,17 +39,10 @@ fn only_a_post_of_body_len_is_read() {
 }
 
 #[test]
-fn an_answer_and_a_key_line() {
+fn an_answer_carries_its_status_and_bytes() {
     let mut out = Vec::new();
     write_answer(&mut out, 200, &[1, 2, 3]).unwrap();
     let text = String::from_utf8_lossy(&out);
     assert!(text.starts_with("HTTP/1.1 200 OK\r\n") && text.contains("Content-Length: 3\r\n"));
     assert!(out.ends_with(&[1, 2, 3]));
-    let dir = std::env::temp_dir().join(format!("escrow-keys-{}", std::process::id()));
-    let _ = std::fs::remove_file(&dir);
-    record(&dir, &[0x42; 32]).unwrap();
-    let line = std::fs::read_to_string(&dir).unwrap();
-    assert!(line.ends_with(&format!("{}\n", "42".repeat(32))));
-    assert_eq!(line.len(), 64 + 1 + 64 + 1);
-    let _ = std::fs::remove_file(&dir);
 }

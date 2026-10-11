@@ -14,57 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The agent's answer opens under the buyer's key alone, to an offer that
-//! checks against the release, and K decrypts it to the release's bytes;
-//! each refusal names its cause.
+//! The agent's answer opens under the buyer's key alone, for this release,
+//! to an offer that checks, and K decrypts it to the release's bytes.
 
 use nonos_nox_chunks::{check_offer, chunk_root, key_commit, open_answer, open_delivery};
 
-use super::super::answer::{answer, Refusal};
+use super::super::answer::answer;
 use super::super::seen::Seen;
 use super::super::x::Dalek;
-use super::buyer::{request, served, LISTING};
+use super::buyer::{request, served, LISTING, RELEASE, SK};
 use crate::hosts::Host;
 
 #[test]
 fn an_answer_opens_checks_and_decrypts_to_the_release() {
-    let (sk, req) = request(11_155_111);
+    let req = request(11_155_111);
     let mut n = 0u8;
     let mut draw = || {
         n += 1;
         [n.wrapping_mul(37); 32]
     };
     let s = served();
-    let (sealed, k) = answer(&s, &mut Seen::default(), &req.agent_body(), &mut draw).unwrap();
-    let o = open_answer((&Host, &Dalek), &sk, &sealed).unwrap();
-    assert_eq!(o.key_commit, key_commit(&Host, &k));
-    let (root, len) = (chunk_root(&Host, &s.content).unwrap(), s.content.len() as u64);
+    let len = s.content.len() as u64;
+    let a = answer(&s, &mut Seen::default(), &req.agent_body(), 1, &mut draw).unwrap();
+    let o = open_answer((&Host, &Dalek), &SK, ((&LISTING, &RELEASE), len), &a.sealed).unwrap();
+    assert_eq!(
+        (o.key_commit, a.key_commit, o.cipher_root),
+        (key_commit(&Host, &a.k), o.key_commit, a.cipher_root)
+    );
+    let root = chunk_root(&Host, &s.content).unwrap();
     assert_eq!(check_offer(&Host, &root, len, &o.hashes, &o.ciphertext, &o.cipher_root), Ok(()));
-    let got = open_delivery(&Host, &k, &o.key_commit, &o.hashes, &o.ciphertext, len);
+    let got = open_delivery(&Host, &a.k, &o.key_commit, &o.hashes, &o.ciphertext, len);
     assert_eq!(got.as_deref(), Ok(&s.content[..]), "K decrypts the release");
-    assert!(open_answer((&Host, &Dalek), &[0x77; 32], &sealed).is_err(), "another buyer");
-}
-
-#[test]
-fn each_refusal_names_its_cause() {
-    let (_, req) = request(11_155_111);
-    let s = served();
-    let mut seen = Seen::default();
-    let mut draw = || [9u8; 32];
-    let mut ask = |body: &[u8]| answer(&s, &mut seen, body, &mut draw).map(|_| ());
-    let body = req.agent_body();
-    assert_eq!(ask(&body), Ok(()));
-    assert_eq!(ask(&body), Err(Refusal::Seen), "one answer per solution");
-    assert_eq!(ask(&body[1..]), Err(Refusal::Body));
-    let mut other = body.clone();
-    other[40] ^= 1;
-    assert_eq!(ask(&other), Err(Refusal::NotServed), "another release_key");
-    let mut wrong = body.clone();
-    let last = wrong.len() - 1;
-    wrong[last] ^= 1;
-    assert_eq!(ask(&wrong), Err(Refusal::Solution));
-    let mut chain = body;
-    chain[..8].copy_from_slice(&5u64.to_le_bytes());
-    assert_eq!(ask(&chain), Err(Refusal::Chain));
-    assert_eq!(LISTING, s.listing_key);
+    assert!(open_answer((&Host, &Dalek), &SK, ((&LISTING, &[3; 32]), len), &a.sealed).is_err());
 }

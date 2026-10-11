@@ -15,17 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod answer;
+mod answer_types;
 mod body;
+mod bucket;
 mod http;
 mod keys;
 mod offer;
 mod seen;
+mod serve;
 mod x;
 
 #[cfg(test)]
 mod tests;
 
-pub use answer::{answer, Refusal, Served};
+pub use answer_types::Served;
+pub use bucket::Bucket;
 pub use http::{read_request, write_answer};
-pub use keys::record;
+pub use keys::prune;
 pub use seen::Seen;
+pub use serve::Agent;

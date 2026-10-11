@@ -14,39 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The agent reads exactly what settle's encoder sends; nothing else.
+//! The agent reads exactly what settle's encoder sends, and remembers a
+//! proof of work for OFFER_TTL and no longer.
+
+use nonos_nox_config::OFFER_TTL;
 
 use super::super::body::{Asked, BODY_LEN};
-use super::super::seen::{Seen, SEEN_MAX};
+use super::super::seen::Seen;
 use super::buyer::request;
 
 #[test]
 fn the_agent_reads_settles_body_exactly() {
-    let (_, req) = request(1);
+    let req = request(1);
     let b = req.agent_body();
     let a = Asked::parse(&b).unwrap();
     assert_eq!(b.len(), BODY_LEN);
-    assert_eq!((a.chain_id, a.buyer_pk, &a.solution[..]), (1, req.buyer_pk, &req.solution[..]));
+    assert_eq!((a.chain_id, a.buyer_pk, &a.pow[..]), (1, req.buyer_pk, &req.solution[..]));
     assert_eq!(Asked::parse(&[b.as_slice(), &[0]].concat()), None);
     let mut long = b.clone();
-    long[104] = 17;
-    assert_eq!(Asked::parse(&long), None, "a solution length other than 16");
+    long[104] = 16;
+    assert_eq!(Asked::parse(&long), None, "the old 16-byte solution length");
 }
 
 #[test]
-fn seen_forgets_only_past_its_cap() {
+fn a_proof_of_work_is_answered_once_within_offer_ttl() {
     let mut s = Seen::default();
-    let pk = [0u8; 32];
-    let sol = |i: u32| {
-        let mut x = [0u8; 16];
-        x[..4].copy_from_slice(&i.to_le_bytes());
-        x
-    };
-    assert!(s.take(&sol(0), &pk) && !s.take(&sol(0), &pk));
-    assert!(s.take(&sol(0), &[1; 32]), "another buyer's key is another request");
-    for i in 1..=SEEN_MAX as u32 {
-        s.take(&sol(i), &pk);
-    }
-    assert!(s.take(&sol(0), &pk), "the oldest was forgotten");
-    assert!(!s.take(&sol(SEEN_MAX as u32), &pk));
+    let (pow, pk) = ([7u8; 36], [0u8; 32]);
+    assert!(s.take(&pow, &pk, 100) && !s.take(&pow, &pk, 100 + OFFER_TTL - 1));
+    assert!(s.take(&pow, &[1; 32], 100), "another buyer key is another request");
+    assert!(s.take(&pow, &pk, 100 + OFFER_TTL), "past OFFER_TTL it is forgotten");
 }

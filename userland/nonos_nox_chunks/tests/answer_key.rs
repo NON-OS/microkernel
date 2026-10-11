@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The sealed answer's key is tagged and binds both public keys; its nonce
-//! is zero and its associated data buyer_pk | agent_pk (v1.4.24).
+//! The sealed answer's key is tagged "NONOS.nox.escrow.answer.v1" and binds
+//! both public keys; its nonce is zero and its AD listing_key | release_key.
 
+#[path = "common/answer_fixture.rs"]
+mod answer_fixture;
 #[path = "common/k.rs"]
 mod k;
 #[path = "common/seller.rs"]
@@ -24,26 +26,20 @@ mod seller;
 #[path = "common/x.rs"]
 mod x;
 
+use answer_fixture::{honest, AGENT, BUYER, LISTING, RELEASE};
 use k::{kec, K};
-use nonos_nox_chunks::{key_commit, seal_answer, Offer, ANSWER_TAG, X25519};
-use seller::{content, offer, KEY};
+use nonos_nox_chunks::{seal_answer, ANSWER_TAG, X25519};
 use x::D;
 
-const BUYER: [u8; 32] = [0x0b; 32];
-const AGENT: [u8; 32] = [0x0a; 32];
-
-fn honest() -> Offer {
-    let (hashes, ciphertext, cipher_root) = offer(&content(), None);
-    Offer { cipher_root, key_commit: key_commit(&K, &KEY), hashes, ciphertext }
-}
-
 #[test]
-fn the_key_is_tagged_and_binds_both_public_keys() {
+fn the_key_is_tagged_and_the_ad_is_the_release() {
+    assert_eq!(ANSWER_TAG, b"NONOS.nox.escrow.answer.v1");
     let (a, b) = (D.public(&AGENT), D.public(&BUYER));
     let key = kec(&[ANSWER_TAG, &D.dh(&AGENT, &b), &a, &b]);
     let plain = honest().encode();
     let mut out = vec![0u8; plain.len() + 16];
-    nonos_seal::seal(&key, &[0; 12], &[&b[..], &a].concat(), &plain, &mut out).unwrap();
-    let sealed = seal_answer((&K, &D), &AGENT, &b, &honest()).unwrap();
-    assert_eq!(sealed[32..], out[..], "nonce zero, AD buyer_pk | agent_pk");
+    nonos_seal::seal(&key, &[0; 12], &[LISTING, RELEASE].concat(), &plain, &mut out).unwrap();
+    let sealed = seal_answer((&K, &D), &AGENT, &b, (&LISTING, &RELEASE), &honest()).unwrap();
+    assert_eq!(sealed[..32], a);
+    assert_eq!(sealed[32..], out[..]);
 }
