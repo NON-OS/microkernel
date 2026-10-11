@@ -31,6 +31,7 @@ mod serve;
 mod sgi;
 mod state;
 mod sysregs;
+mod trigger;
 pub mod v2;
 pub mod version;
 mod wait;
@@ -51,4 +52,5 @@ pub use irq_handlers::{
 pub use redistributor::GicRedistributor;
 pub use serve::acknowledge_interrupt;
 pub use sgi::{send_sgi, send_sgi_all_others};
+pub use trigger::configure_spi;
 pub use version::GicVersion;
