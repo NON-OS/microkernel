@@ -21,6 +21,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         StorageNvme => "driver_nvme",
         StorageAhci => "driver_ahci",
         StorageEmmc | StorageSdhci => "driver_sdhci",
+        StorageUfs => "driver_ufs",
         StorageUsbMsc => "driver_usb_msc",
         StorageVirtioBlk => "driver_virtio_blk",
         NetworkVirtio => "driver_virtio_net",

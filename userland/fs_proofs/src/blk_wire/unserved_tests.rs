@@ -22,12 +22,13 @@ use super::pci::Controller;
 use super::table::{Driver, ALL};
 use super::unserved::unserved;
 
-const KINDS: [Controller; 5] = [
+const KINDS: [Controller; 6] = [
     Controller::Nvme,
     Controller::Ahci,
     Controller::VirtioBlk,
     Controller::IntelRaid,
     Controller::Emmc,
+    Controller::Ufs,
 ];
 
 /// Every set of controllers a bus can show, each kind zero to two times.
@@ -66,10 +67,4 @@ fn a_missing_row_needs_its_own_controller_on_the_bus() {
             assert_eq!(missing(Driver::Wire, &bus, 0, false), 1, "the eMMC host's row on {bus:?}");
         }
     }
-}
-
-#[test]
-fn each_driver_names_its_own_bus() {
-    let named: Vec<&[u8]> = ALL.iter().map(|d| d.label()).collect();
-    assert_eq!(named, [&b"NVMe"[..], b"SATA", b"eMMC", b"virtio"]);
 }

@@ -25,7 +25,6 @@ pub fn missing_path(family: HardwareFamily) -> Option<&'static str> {
         NetworkE1000e => "e1000e driver, built but not in the image",
         NetworkIgc => "igc driver, built but not in the image",
         NetworkRealtekWifi => "802.11 driver for this Realtek part",
-        StorageUfs => "UFS host controller driver",
         AudioHda => "stream DMA ring, playback path",
         InputI2cHid => "HID-over-I2C input report path",
         SerialI2c => "I2C transfer engine",
