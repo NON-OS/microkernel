@@ -24,8 +24,9 @@
 use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::parser::Fdt;
 
+use super::bus_range::bus_range;
 use super::info::PciHost;
-use super::ranges::{iter as range_iter, SPACE_IO};
+use super::ranges::{iter as range_iter, SPACE_IO, SPACE_MEM32};
 
 const ECAM: &[&[u8]] = &[b"pci-host-ecam-generic"];
 
@@ -37,18 +38,26 @@ pub fn find(fdt: &Fdt) -> Result<Option<PciHost>, FdtError> {
     let Some((ecam_base, ecam_size)) = fdt.mmio(&node, 0)? else {
         return Ok(None);
     };
-    let mut host = PciHost { ecam_base, ecam_size, ..PciHost::default() };
-    if let Some(ranges) = fdt.property(&node, b"ranges")? {
-        // A bridge may list several memory windows but conventionally has at
-        // most one I/O window. Its CPU side is in the bridge's parent's
-        // space, so it goes through the same translation as `reg`.
-        for range in range_iter(ranges.data, node.cells.address) {
-            if range.space == SPACE_IO && range.size != 0 {
-                host.io_cpu_base = fdt.translate(&node, range.parent, range.size)?;
-                host.io_port_base = range.child;
-                host.io_size = range.size;
-                break;
-            }
+    let (bus_start, bus_end) = bus_range(fdt, &node)?;
+    let mut host = PciHost { ecam_base, ecam_size, bus_start, bus_end, ..PciHost::default() };
+    let Some(ranges) = fdt.property(&node, b"ranges")? else {
+        return Ok(Some(host));
+    };
+    // The first I/O window and the first 32-bit memory window. Their CPU
+    // side is in the bridge's parent's space, so it goes through the same
+    // translation as `reg`.
+    for range in range_iter(ranges.data, node.cells.address) {
+        if range.size == 0 {
+            continue;
+        }
+        if range.space == SPACE_IO && host.io_size == 0 {
+            host.io_cpu_base = fdt.translate(&node, range.parent, range.size)?;
+            host.io_port_base = range.child;
+            host.io_size = range.size;
+        } else if range.space == SPACE_MEM32 && host.mem_size == 0 {
+            host.mem_cpu_base = fdt.translate(&node, range.parent, range.size)?;
+            host.mem_bus_base = range.child;
+            host.mem_size = range.size;
         }
     }
     Ok(Some(host))
