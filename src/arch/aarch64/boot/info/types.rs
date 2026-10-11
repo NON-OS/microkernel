@@ -53,6 +53,9 @@ pub struct BootInfo {
     pub pci_io_cpu_base: u64,
     pub pci_io_port_base: u64,
     pub pci_io_size: u64,
+    /// The buses the ECAM window covers; its first megabyte is the first bus.
+    pub pci_bus_start: u8,
+    pub pci_bus_end: u8,
     /// The memory window the host bridge forwards to its devices. Booting from
     /// a device tree means no firmware has assigned any BAR, so the kernel
     /// hands out addresses from here itself.

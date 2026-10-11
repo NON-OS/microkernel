@@ -58,6 +58,8 @@ impl Default for BootInfo {
             pci_io_cpu_base: 0x3eff_0000,
             pci_io_port_base: 0,
             pci_io_size: 0x0001_0000,
+            pci_bus_start: 0,
+            pci_bus_end: 0xff,
             pci_mmio_base: 0x1000_0000,
             pci_mmio_size: 0x2eff_0000,
             // PL031, the board's real-time clock.
