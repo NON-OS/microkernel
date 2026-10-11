@@ -18,6 +18,7 @@
 //! one capsule that holds the capabilities its guests do not.
 
 mod abi;
+mod app;
 mod applets;
 mod attest;
 mod attest_local;

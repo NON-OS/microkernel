@@ -17,6 +17,8 @@
 //! Every proof, by the thing it constrains.
 
 mod metrics_parse_tests;
+mod app_choose_tests;
+mod app_identity_tests;
 mod model_name_tests;
 mod pinned_published;
 mod pinned_tests;
