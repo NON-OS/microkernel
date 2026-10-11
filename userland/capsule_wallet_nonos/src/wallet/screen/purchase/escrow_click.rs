@@ -43,9 +43,9 @@ pub fn click(state: &mut State) -> EventOutcome {
     match offered(p) {
         Some(Offer::Dispute) => p.escrow = Some(Escrowing::new(DISPUTE)),
         Some(Offer::Refund) => p.escrow = Some(Escrowing::new(REFUND)),
-        Some(Offer::Again) => p.escrow = Some(Escrowing::new(kind)),
+        Some(Offer::Again) => p.escrow.get_or_insert_with(|| Escrowing::new(kind)).again(),
         Some(Offer::PayGas) => return pay_gas(state),
-        None => return EventOutcome::Idle,
+        Some(Offer::GasWaiting) | None => return EventOutcome::Idle,
     }
     EventOutcome::Repaint
 }

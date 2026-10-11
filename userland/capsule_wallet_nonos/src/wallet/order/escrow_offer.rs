@@ -28,6 +28,8 @@ pub enum Offer {
     Dispute,
     Refund,
     PayGas,
+    /// A Shield withdraw for the gas is under way: nothing to press.
+    GasWaiting,
     Again,
 }
 

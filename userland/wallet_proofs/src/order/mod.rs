@@ -30,6 +30,8 @@ pub mod dispute_steps;
 pub mod escrow_offer;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/escrowed.rs"]
 mod escrowed;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/escrowing.rs"]
+pub mod escrowing;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/fees_kind.rs"]
 pub mod fees_kind;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/held.rs"]
@@ -56,6 +58,8 @@ pub mod send_bounds;
 pub mod send_gas;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/send_quote.rs"]
 pub mod send_quote;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/send_resume.rs"]
+pub mod send_resume;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/send_step.rs"]
 pub mod send_step;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/voucher.rs"]

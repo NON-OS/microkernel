@@ -58,5 +58,6 @@ pub fn sign(state: &mut State) -> bool {
 pub fn signed(state: &mut State, body: &str) {
     let raw = field(body, "raw").and_then(unhex);
     let Some(e) = escrowing(state) else { return };
+    e.raw = raw.clone();
     e.step = raw.map_or(SendStep::Failed(NOT_SIGNED), SendStep::Broadcasting);
 }
