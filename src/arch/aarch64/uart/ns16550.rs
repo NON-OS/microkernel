@@ -14,28 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::state;
-use super::device::Pl011;
+mod config;
+mod constants;
+mod device;
+mod io;
+mod mini;
 
-fn current() -> Pl011 {
-    Pl011::new(state::uart_base())
-}
-
-pub fn init_uart(base: u64) {
-    state::set_uart_base(base);
-    if Pl011::new(base).init(115200, 24_000_000).is_err() {
-        crate::arch::aarch64::cpu::halt();
-    }
-}
-
-pub fn putc(c: char) {
-    current().putc(c as u8);
-}
-
-pub fn puts(s: &[u8]) {
-    current().puts(s);
-}
-
-pub fn getc() -> Option<u8> {
-    current().getc()
-}
+pub(super) use device::Ns16550;

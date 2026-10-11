@@ -19,17 +19,17 @@ use crate::arch::aarch64::boot::info::BootInfo;
 use crate::arch::fdt::find::pci::find as find_pci;
 use crate::arch::fdt::find::rtc::find as find_rtc;
 use crate::arch::fdt::find::timer::find as find_timer;
-use crate::arch::fdt::find::uart::{find as find_uart, UartKind};
+use crate::arch::fdt::find::uart::find as find_uart;
 use crate::arch::fdt::Fdt;
 
 /// The devices boot reaches before any driver. With a tree in hand, what it
 /// does not describe is absent: PCI and the RTC go to zero instead of
 /// keeping virt's addresses for a board that may not have them.
 pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> Result<(), &'static [u8]> {
-    if let Some(u) = find_uart(fdt).map_err(describe)? {
-        if u.kind == UartKind::Pl011 {
-            info.uart_base = u.base;
-        }
+    // No UART we drive keeps the default: a guess at the console costs less
+    // than a boot with none.
+    if let Some(uart) = find_uart(fdt).map_err(describe)? {
+        info.uart = uart;
     }
     super::gic::populate(fdt, info)?;
     let timer = find_timer(fdt).map_err(describe)?;
