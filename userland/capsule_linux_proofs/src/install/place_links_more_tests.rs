@@ -19,7 +19,8 @@
 //! would let it add a line of its own choosing; nor a table past its cap.
 //! And an uninstall takes out its own lines and leaves the others.
 
-use super::place_links::{record, unrecord, MAX_TABLE, TABLE};
+use super::place_links::table::{MAX_TABLE, TABLE};
+use super::place_links::{record, unrecord};
 use crate::linux::file::key;
 use crate::linux::file::store::{held, holding};
 

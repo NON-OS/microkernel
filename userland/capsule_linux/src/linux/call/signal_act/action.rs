@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `struct sigaction` as the guest passes it, the signal rt_sigaction may
-//! name, and the mask a waiting call waits under. Pure, over the guest's
-//! memory where it reads, so the host proofs hold all three.
+//! `struct sigaction` as the guest passes it, and the signal rt_sigaction
+//! may name. Pure, over the guest's memory, so the host proofs hold it.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::memory::Memory;
 use crate::linux::guest::sigstate::{blockable, SigAction, NSIG, SIGKILL, SIGSTOP};
 
 /// handler, flags, restorer, then a kernel sigset_t.
 pub const SIGACTION_LEN: usize = 32;
-pub const SIGSET_LEN: u64 = 8;
 
 /// The signal `signum` names, as the int it is, or EINVAL: a number outside
 /// 1..=64, and a new action for SIGKILL or SIGSTOP, which only ever take
@@ -54,29 +51,4 @@ pub fn encode(a: SigAction) -> [u8; SIGACTION_LEN] {
     b[16..24].copy_from_slice(&a.restorer.to_le_bytes());
     b[24..32].copy_from_slice(&a.mask.to_le_bytes());
     b
-}
-
-/// The mask a ppoll, pselect6, epoll_pwait or epoll_pwait2 waits under, as
-/// set_user_sigmask reads it: none for a null pointer, EINVAL for a size
-/// other than a kernel sigset_t's, EFAULT when it cannot be read, and never
-/// SIGKILL or SIGSTOP.
-pub fn wait_mask(mem: &impl Memory, at: u64, size: u64) -> Result<Option<u64>, i64> {
-    if at == 0 {
-        return Ok(None);
-    }
-    if size != SIGSET_LEN {
-        return Err(errno::EINVAL);
-    }
-    let raw = mem.read_at(at, 8).ok_or(errno::EFAULT)?;
-    let mask =
-        u64::from_le_bytes(raw.get(..8).and_then(|b| b.try_into().ok()).ok_or(errno::EFAULT)?);
-    Ok(Some(blockable(mask)))
-}
-
-/// The set an rt_sigtimedwait takes signals of, read from `at`: never
-/// SIGKILL or SIGSTOP, which Linux takes out of it, so no wait can take
-/// either in place of the end or the stop it brings.
-pub fn wait_set(mem: &impl Memory, at: u64) -> Option<u64> {
-    let raw = mem.read_at(at, 8)?;
-    Some(blockable(u64::from_le_bytes(raw.get(..8)?.try_into().ok()?)))
 }

@@ -14,40 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The clone flags Linux refuses whoever asks, and the ones a thread here
-//! may be made with. Pure, so the host proofs hold each refusal and its
-//! errno.
+//! The clone flags Linux refuses whoever asks, and the ones a thread here may
+//! be made with. Pure, so the host proofs hold each refusal and its errno.
 
+use super::flags::{
+    CLONE_DETACHED, CLONE_FILES, CLONE_FS, CLONE_NEWNS, CLONE_NEWPID, CLONE_NEWUSER, CLONE_PIDFD,
+    CLONE_SIGHAND, CLONE_THREAD, CLONE_VFORK, CLONE_VM, NEW_NAMESPACE,
+};
 use crate::linux::abi::errno;
-
-const CLONE_VM: u64 = 0x100;
-const CLONE_FS: u64 = 0x200;
-const CLONE_FILES: u64 = 0x400;
-const CLONE_SIGHAND: u64 = 0x800;
-const CLONE_PIDFD: u64 = 0x1000;
-const CLONE_VFORK: u64 = 0x4000;
-const CLONE_THREAD: u64 = 0x1_0000;
-const CLONE_NEWNS: u64 = 0x2_0000;
-const CLONE_DETACHED: u64 = 0x40_0000;
-const CLONE_NEWCGROUP: u64 = 0x200_0000;
-const CLONE_NEWUTS: u64 = 0x400_0000;
-const CLONE_NEWIPC: u64 = 0x800_0000;
-const CLONE_NEWUSER: u64 = 0x1000_0000;
-const CLONE_NEWPID: u64 = 0x2000_0000;
-const CLONE_NEWNET: u64 = 0x4000_0000;
-/// Every flag that asks for a namespace of its own.
-const NEW_NAMESPACE: u64 = CLONE_NEWNS
-    | CLONE_NEWCGROUP
-    | CLONE_NEWUTS
-    | CLONE_NEWIPC
-    | CLONE_NEWUSER
-    | CLONE_NEWPID
-    | CLONE_NEWNET;
-
-/// The flags the legacy clone call reads: its lower 32 bits.
-pub fn flags_of(raw: u64) -> u64 {
-    raw & 0xffff_ffff
-}
 
 /// What copy_process refuses whoever asks, EINVAL: a new mount namespace or
 /// user namespace that shares a filesystem view, a thread without shared
