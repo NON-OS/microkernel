@@ -1,0 +1,44 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! What settle keeps between calls: its RPC hosts, which config contracts
+//! passed the start checks, and the one verified release FETCH pages from.
+
+use alloc::vec::Vec;
+
+use crate::chain::Live;
+use crate::net::Rpc;
+
+pub struct Held {
+    pub release_hash: [u8; 32],
+    pub bytes: Vec<u8>,
+}
+
+pub struct Settle {
+    pub rpc: Rpc,
+    pub live: Live,
+    pub held: Option<Held>,
+}
+
+impl Settle {
+    /// Settle as it starts: every contract is checked once now. One a check
+    /// could not reach is checked again when it is first used.
+    pub fn start() -> Settle {
+        let mut s = Settle { rpc: Rpc::new(), live: Live::new(), held: None };
+        s.live.check_all(&mut s.rpc);
+        s
+    }
+}

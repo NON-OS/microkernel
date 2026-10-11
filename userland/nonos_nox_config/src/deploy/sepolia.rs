@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::deployment::at;
 use super::Deployment;
 use crate::hex::hex20;
 
-// The test token the wallet already offers on Sepolia.
+// The test token the wallet already offers on Sepolia; its block is not
+// recorded, so a log read of it starts at genesis. The Shield pool is
+// shield_core's ACTIVE pool (pools.rs PRODUCTION), from its deploy block.
 pub const SEPOLIA: Deployment = Deployment {
-    nox_token: Some(hex20("3e5249a65ca513d5e11260222e0d26f46b465d36")),
+    nox_token: at(hex20("3e5249a65ca513d5e11260222e0d26f46b465d36"), 0),
     settlement: None,
     escrow: None,
     publisher_bond: None,
     listing_registry: None,
     proof_anchor: None,
+    shield_pool: at(hex20("aee51e82965ec1ded870f3f4c248ad4addc3e1cb"), 11_817_433),
 };

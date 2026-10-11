@@ -45,7 +45,7 @@ fn topics(obj: &[u8]) -> Option<Vec<[u8; 32]>> {
         .collect()
 }
 
-fn log(obj: &[u8]) -> Option<Log> {
+pub(crate) fn log(obj: &[u8]) -> Option<Log> {
     Some(Log {
         address: hex_bytes(string_field(obj, b"address")?)?.try_into().ok()?,
         topics: topics(obj)?,
