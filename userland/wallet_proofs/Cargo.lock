@@ -66,6 +66,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce5d3ddc6d3fa000eb1536d85e147bfe31aacaba692ed6a876f95cb7c855be78"
 
 [[package]]
+name = "nonos_equix"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_hash"
 version = "0.1.0"
 
@@ -84,6 +88,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_nox_chunks"
+version = "0.1.0"
+dependencies = [
+ "nonos_equix",
+ "nonos_marketplace_abi",
+ "nonos_nox_config",
+ "nonos_seal",
+]
+
+[[package]]
 name = "nonos_nox_config"
 version = "0.1.0"
 
@@ -93,6 +107,10 @@ version = "0.1.0"
 
 [[package]]
 name = "nonos_policy_proto"
+version = "0.3.0"
+
+[[package]]
+name = "nonos_seal"
 version = "0.3.0"
 
 [[package]]
@@ -137,6 +155,7 @@ version = "0.3.0"
 dependencies = [
  "nonos_hd",
  "nonos_marketplace_abi",
+ "nonos_nox_chunks",
  "nonos_nox_config",
  "nonos_payment_proto",
  "nonos_policy_proto",

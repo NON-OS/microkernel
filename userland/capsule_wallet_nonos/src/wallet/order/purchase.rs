@@ -1,0 +1,67 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+/*
+ * Where a purchase goes on each job result (B8): a checked offer on to
+ * ORDER_NEW, a made order on to funding; a refusal is said in words.
+ */
+
+use alloc::boxed::Box;
+
+use nonos_payment_proto::{OfferMade, OrderMade, OrderNew, EAGAIN};
+
+use super::buy::Buy;
+use super::confirm::confirms;
+use super::said::{failed, Stage};
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum After {
+    /// The job runs on: ask JOB again on a later tick.
+    Wait,
+    /// Send ORDER_NEW with these terms.
+    Order(Box<OrderNew>),
+    /// The order is made: fund its deposit address with the amount.
+    Fund(Box<OrderMade>),
+    Failed(&'static str),
+}
+
+const UNREADABLE: &str = "The meter's answer could not be read; nothing was ordered.";
+const NOT_CONFIRMED: &str = "The order's terms are not the ones confirmed; do not fund it.";
+
+/// ORDER_OFFER's job result.
+pub fn after_offer(buy: &Buy, r: Result<&[u8], i32>, refund_to: [u8; 20], now: u64) -> After {
+    match r {
+        Err(EAGAIN) => After::Wait,
+        Err(s) => After::Failed(failed(Stage::Offer, s)),
+        Ok(b) => OfferMade::parse(b).map_or(After::Failed(UNREADABLE), |o| {
+            After::Order(Box::new(buy.order_new(&o, refund_to, now)))
+        }),
+    }
+}
+
+/// ORDER_NEW's job result, for the order `sent`: funded only when the
+/// terms the meter built are the ones the person confirmed.
+pub fn after_order(sent: &OrderNew, r: Result<&[u8], i32>) -> After {
+    match r {
+        Err(EAGAIN) => After::Wait,
+        Err(s) => After::Failed(failed(Stage::Order, s)),
+        Ok(b) => match OrderMade::parse(b) {
+            Some(m) if confirms(sent, &m.terms) => After::Fund(Box::new(m)),
+            Some(_) => After::Failed(NOT_CONFIRMED),
+            None => After::Failed(UNREADABLE),
+        },
+    }
+}

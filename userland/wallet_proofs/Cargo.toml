@@ -36,6 +36,7 @@ nonos_settle_proto = { path = "../settle_proto" }
 # crypto service for it on the device).
 [dev-dependencies]
 sha3 = { version = "0.10", default-features = false }
+nonos_nox_chunks = { path = "../nonos_nox_chunks" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

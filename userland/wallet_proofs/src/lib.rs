@@ -91,6 +91,8 @@ pub mod sent;
 pub mod attest;
 #[path = "../../capsule_wallet_nonos/src/wallet/typed/mod.rs"]
 pub mod typed;
+#[path = "../../capsule_wallet_nonos/src/wallet/order/mod.rs"]
+pub mod order;
 #[path = "../../capsule_wallet_nonos/src/wallet/hex_id.rs"]
 pub mod hex_id;
 #[path = "../../capsule_wallet_nonos/src/wallet/intent/mod.rs"]
@@ -127,6 +129,8 @@ mod accounts_file_tests;
 mod address_text_tests;
 #[cfg(test)]
 mod amount_tests;
+#[cfg(test)]
+mod order_tests;
 #[cfg(test)]
 mod fees_tests;
 #[cfg(test)]
