@@ -17,6 +17,7 @@
 //! Capsule domains on AMD-Vi, behind the same broker calls as VT-d.
 
 mod attach;
+mod identity;
 mod lifetime;
 mod map;
 mod range;
@@ -24,8 +25,9 @@ mod teardown;
 mod unmap;
 mod walk;
 
-pub use attach::{attach, detach, device_id};
 pub(super) use attach::pass;
+pub use attach::{attach, detach, device_id};
+pub use identity::identity_devices;
 pub use lifetime::{create_domain, destroy_domain, MAX_DOMAINS};
 pub use map::map_range;
 pub use unmap::unmap_range;
