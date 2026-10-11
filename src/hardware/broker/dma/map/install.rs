@@ -23,9 +23,12 @@ use crate::memory::addr::PhysAddr;
 // Reserve user VA + install page table entries. On a map failure the VA
 // slot is not released — the bump allocator leaks it for the life of the
 // boot; same shape as the original. The caller frees physical frames; this
-// layer owns only the VA/page state. A coherent or write-combining grant is
-// flushed from the caches first, so its non write-back mapping does not read
-// memory the zeroing left behind in a dirty line.
+// layer owns only the VA/page state. The zeroing went through the caches. A
+// coherent or write-combining grant is flushed first, so its non write-back
+// mapping does not read memory the zeroing left behind in a dirty line; so is
+// every grant where devices need not snoop, or the device would read the
+// frames' last owner's data, and a dirty zero line evicted later would land
+// on what the device wrote.
 pub(super) fn install(
     pages: u64,
     length: u64,
@@ -34,8 +37,11 @@ pub(super) fn install(
 ) -> Result<u64, DmaMapError> {
     let user_va = va::reserve(pages).ok_or(DmaMapError::NoVaSpace)?;
     let phys = PhysAddr::new(phys_start);
-    let mapped = if flags & (DMA_MAP_COHERENT | DMA_MAP_WC) != 0 {
+    let uncached = flags & (DMA_MAP_COHERENT | DMA_MAP_WC) != 0;
+    if uncached || !crate::arch::dma_snoops_caches() {
         flush_range(phys_start, length);
+    }
+    let mapped = if uncached {
         let wc = flags & DMA_MAP_WC != 0;
         crate::memory::paging::map_user_dma_coherent(user_va, phys, length as usize, wc)
     } else {

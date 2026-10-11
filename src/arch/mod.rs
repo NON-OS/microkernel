@@ -25,6 +25,7 @@ pub mod fdt;
 pub mod halt;
 pub(crate) mod idle;
 mod init_boot_memory;
+mod dma_snoops_caches;
 mod init_broker_irq_routing;
 pub mod interrupt_controller;
 pub mod paging;
@@ -61,6 +62,7 @@ pub use cpu::{cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle
 pub use halt::halt_loop;
 pub use image_holes::deliberately_unmapped;
 pub(crate) use init_boot_memory::init_boot_memory;
+pub(crate) use dma_snoops_caches::dma_snoops_caches;
 pub(crate) use init_broker_irq_routing::init_broker_irq_routing;
 pub(crate) use pci_intx_source::pci_intx_source;
 pub(crate) use percpu_base::set as set_percpu_base;
