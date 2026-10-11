@@ -40,6 +40,8 @@ pub mod clock_scale;
 pub mod confine_posture;
 pub mod pci_quirk_bits;
 #[cfg(test)]
+pub mod prove_job;
+#[cfg(test)]
 pub mod data_plan;
 #[cfg(test)]
 pub mod dma_memory_type;

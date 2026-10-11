@@ -18,9 +18,15 @@
 
 use crate::syscall::{call_raw, N_MK_PROVE_JOB};
 
-/// Ask init for nonos.prove on app.prove.job: 0, or EBUSY while one is asked
-/// for or a prover runs, or EPERM for any caller but app.store. The PROVE
-/// itself goes to app.prove.job in nonos_proof_abi::wire's frames.
-pub fn mk_prove_job() -> i64 {
-    call_raw(N_MK_PROVE_JOB, [0; 6])
+/// PROVE, the store's: the person's sealed run, proven for a listing.
+pub const PROVE_JOB_PROVE: u64 = 1;
+/// DELIVER, a vendor supervisor's: one served request, attested.
+pub const PROVE_JOB_DELIVER: u64 = 2;
+
+/// Ask init for nonos.prove on app.prove.job, bound to this caller: 0, or
+/// EBUSY while one is asked for, a prover runs, or the DELIVER rate holds,
+/// or EPERM for a caller the kind does not take. The frame itself goes to
+/// app.prove.job in nonos_proof_abi::wire's frames.
+pub fn mk_prove_job(kind: u64) -> i64 {
+    call_raw(N_MK_PROVE_JOB, [kind, 0, 0, 0, 0, 0])
 }
