@@ -19,7 +19,8 @@
 use nonos_app_skeleton::EventOutcome;
 use nonos_payment_proto::{EINVAL, OP_ORDER_OFFER};
 
-use super::words::closable;
+use super::fund::funding;
+use super::words::{closable, standard};
 use crate::wallet::meter::call::start;
 use crate::wallet::order::fresh::fresh_address;
 use crate::wallet::order::intake::Step;
@@ -31,6 +32,7 @@ use crate::wallet::state::{State, VIEW_HOME};
 pub fn click(state: &mut State, press: Press) -> EventOutcome {
     match press {
         Press::Dismiss => state.failure = None,
+        Press::Footer(1) if funding(state) => return super::fund::fund(state),
         Press::Footer(1) => return confirm(state),
         Press::Footer(0) if state.meter.purchase.as_deref().is_some_and(closable) => {
             state.meter.purchase = None;
@@ -47,6 +49,9 @@ fn confirm(state: &mut State) -> EventOutcome {
     let (Step::Consent, Ok(Named::Escrow(buy))) = (&p.step, &p.read) else {
         return EventOutcome::Idle;
     };
+    if standard(buy.amount).is_none() {
+        return EventOutcome::Idle;
+    }
     p.step = match fresh_address() {
         Err(why) => Step::Failed(why),
         Ok(to) => {

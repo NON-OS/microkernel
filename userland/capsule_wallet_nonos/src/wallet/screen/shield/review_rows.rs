@@ -46,6 +46,7 @@ pub fn lead(ui: &ShieldUi) -> &'static str {
              circuit and cannot see who pays whom or how much."
         }
         _ if ui.to_meter => METER,
+        _ if ui.to_deposit.is_some() => DEPOSIT,
         _ => {
             "The proof is built on this machine. The amount and the receiving address \
              become public when it settles."
@@ -97,6 +98,8 @@ pub fn rows(ui: &ShieldUi) -> Vec<(&'static str, String)> {
     out
 }
 
+const DEPOSIT: &str = "The proof is built on this machine. The amount and the order's deposit \
+     address become public when it settles; the escrow holds it until the seller delivers.";
 const METER: &str = "The proof is built on this machine. The amount and the meter's address \
      become public when it settles; nothing ties them to this wallet's own address.";
 
@@ -104,6 +107,8 @@ fn to_text(ui: &ShieldUi) -> String {
     let to = ui.withdraw_to.as_deref().map(short).unwrap_or_default();
     if ui.to_meter {
         format!("the meter, {to}")
+    } else if ui.to_deposit.is_some() {
+        format!("the order's deposit address, {to}")
     } else {
         to
     }
