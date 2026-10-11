@@ -92,16 +92,17 @@ def audio():
     return "coreaudio" if platform.system() == "Darwin" else "none"
 
 
-def devices(net, tpm_sock, qmp, nic=None, tpm=None):
-    """`nic` and `tpm`, a lane's (lanes.py), take the place of the virtio NIC
-    and of tpm-crb."""
-    args = ["-device", "virtio-vga,disable-modern=on,vectors=0,edid=on,xres=1920,yres=1080",
-            "-device", "qemu-xhci,id=xhci", "-device", "virtio-rng-pci"]
+def devices(net, tpm_sock, qmp, swaps=None):
+    """`swaps`, a lane's (lanes.py), puts a model in place of the virtio GPU,
+    the virtio NIC or tpm-crb."""
+    swap = swaps or {}
+    gpu = swap.get("gpu", "virtio-vga,disable-modern=on,vectors=0,edid=on,xres=1920,yres=1080")
+    args = ["-device", gpu, "-device", "qemu-xhci,id=xhci", "-device", "virtio-rng-pci"]
     if net == "nat":
-        args += ["-device", f"{nic or 'virtio-net-pci'},netdev=net0", "-netdev", "user,id=net0"]
+        args += ["-device", f"{swap.get('nic', 'virtio-net-pci')},netdev=net0", "-netdev", "user,id=net0"]
     if tpm_sock:
         args += ["-chardev", f"socket,id=chrtpm,path={tpm_sock}", "-tpmdev", "emulator,id=tpm0,chardev=chrtpm",
-                 "-device", f"{tpm or 'tpm-crb'},tpmdev=tpm0"]
+                 "-device", f"{swap.get('tpm', 'tpm-crb')},tpmdev=tpm0"]
     args += ["-audiodev", f"{audio()},id=snd0", "-device", "intel-hda", "-device", "hda-duplex,audiodev=snd0"]
     if qmp:
         args += ["-qmp", f"unix:{qmp},server,nowait"]
