@@ -29,10 +29,16 @@ use crate::ufs::time::{HCE_OFF_MS, HCE_ON_MS};
 pub const HCE_STUCK_ON: &str = "host would not stop: HCE still 1 after 10 ms";
 pub const HCE_STUCK_OFF: &str = "host would not start: HCE not 1 after 56 ms";
 
+/// HCE to 0, and true once it reads 0 within HCE_OFF_MS: the host has
+/// stopped and masters nothing more.
+pub fn stop<H: Hw>(hw: &H) -> bool {
+    hw.w32(HCE, 0);
+    until(hw, HCE_OFF_MS, || hw.r32(HCE) & HCE_ENABLE == 0)
+}
+
 /// Reset the host and bring it back; the UniPro link is down afterwards.
 pub fn restart<H: Hw>(hw: &H) -> Result<(), UfsError> {
-    hw.w32(HCE, 0);
-    if !until(hw, HCE_OFF_MS, || hw.r32(HCE) & HCE_ENABLE == 0) {
+    if !stop(hw) {
         return Err(failed(hw, HCE_STUCK_ON));
     }
     hw.w32(HCE, HCE_ENABLE);
