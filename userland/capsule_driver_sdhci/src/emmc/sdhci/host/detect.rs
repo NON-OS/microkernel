@@ -29,14 +29,15 @@ impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
     /// An embedded slot has no card detect switch, and a host that reads
     /// one as empty may refuse bus power or commands. Once the detect
     /// logic has settled, a slot that still reads empty is told it holds a
-    /// card through the Card Detect Test Level (SDHCI 2.00 and later).
+    /// card through the Card Detect Test Level (SDHCI 2.00 and later). A
+    /// removable slot's switch is the truth, and is left alone.
     pub(super) fn detect(&self) {
         let d = Deadline::after(&self.clock, DETECT_MS);
         while self.io.r32(PRESENT_STATE) & PS_CARD_STABLE == 0 && !d.passed(&self.clock) {
             self.clock.relax();
         }
         let ps = self.io.r32(PRESENT_STATE);
-        if ps & PS_CARD_INSERTED != 0 || self.caps.spec() < SPEC_200 {
+        if ps & PS_CARD_INSERTED != 0 || self.caps.spec() < SPEC_200 || self.removable() {
             return;
         }
         let hc = self.io.r8(HOST_CONTROL) | HC_CD_TEST_LEVEL | HC_CD_TEST_SELECT;
