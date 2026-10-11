@@ -46,7 +46,9 @@ chain, the wallet's own list; a failure moves to the next, and a host swapped
 in must first answer eth_chainId with the chain's id. CHANNEL_STATE reads
 `settled` from a second host as well and answers EIO when the two disagree.
 A release is fetched over https with the host's chain checked, at most 1 MiB,
-and a redirect is refused, never followed.
+and a redirect is refused, never followed. settle reads no logs yet; when it
+does, a contract whose deploy_block is 0 (unknown) is refused rather than
+read from genesis (v1.4.9).
 
 Stated: settle's reads share net.anon's circuits, so an RPC operator can link
 what one device reads. No unlinkability at the RPC is claimed.
@@ -77,8 +79,10 @@ escrow and bond constants join the checks when the config holds them (B5).
   signer bounds them.
 - CHANNEL_STATE, OPENED, BROADCAST: as the plan. A broadcast's hash must be
   keccak256 of the bytes sent.
-- FETCH: RELEASE holds a release only if keccak256 of its bytes is the
-  releaseHash asked, and answers its first page; PAGE pages through the one
+- FETCH: RELEASE fetches a release document (one schema 3 release in the
+  index's encoding, the plan) and holds it only if it decodes whole and
+  keccak256 of its v3 signing form, recomputed from the decoded release, is
+  the releaseHash asked; it answers the first page; PAGE pages through the one
   release held. ESCROW is EINVAL until B5.
 - SETTLE (op 10): one drain round on a chain. Settle reads the meter's
   vouchers (DRAIN LIST), keeps those whose channel the config Settlement

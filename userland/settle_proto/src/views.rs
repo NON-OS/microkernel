@@ -34,7 +34,7 @@ const fn v(
     View { id, contract, signature, selector: sel.to_be_bytes(), args }
 }
 
-pub const VIEWS: [View; 34] = [
+pub const VIEWS: [View; 33] = [
     v(1, N, "balanceOf(address)", 0x70a08231, &[A]),
     v(2, N, "allowance(address,address)", 0xdd62ed3e, &[A, A]),
     v(3, N, "feeExempt(address)", 0x398daa85, &[A]),
@@ -67,6 +67,5 @@ pub const VIEWS: [View; 34] = [
     v(40, R, "releaseOf(bytes32,bytes32)", 0xfb9006bf, &[W, W]),
     v(41, R, "eip712Domain()", 0x84b0196e, &[]),
     v(50, P, "anchoredAt(bytes32,uint8,bytes32)", 0xc4aea52d, &[W, U8, W]),
-    v(51, P, "eip712Domain()", 0x84b0196e, &[]),
     v(60, X, "claimable(uint64,address)", 0x88d8b2a7, &[U64, A]),
 ];

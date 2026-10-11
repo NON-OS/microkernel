@@ -42,7 +42,7 @@ fn every_view_selector_is_its_signatures_and_ids_are_unique() {
     }
     assert_eq!(view(60).unwrap().contract, Contract::ShieldPool);
     assert_eq!(view(14).unwrap().signature, "openNonce(address)");
-    for id in [0, 5, 19, 28, 38, 42, 52, 61, 0xffff] {
+    for id in [0, 5, 19, 28, 38, 42, 51, 52, 61, 0xffff] {
         assert_eq!(view(id), None, "{id}");
     }
 }

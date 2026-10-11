@@ -20,7 +20,7 @@ use nonos_nox_config::{address, Contract, MAINNET};
 use nonos_nox_license::{price_of, ToolId};
 use nonos_nox_receipt::TRANSFER_TOPIC;
 
-use crate::issue::PaidTo;
+use crate::issue::{PaidTo, Terms};
 
 pub const BUYER: [u8; 20] = [
     0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
@@ -31,6 +31,11 @@ pub const BUYER: [u8; 20] = [
 pub fn to() -> PaidTo {
     let token = address(MAINNET, Contract::NoxToken).expect("NOX on mainnet");
     PaidTo { payee: [0x5a; 20], token }
+}
+
+/// Terms with every field zero: no expiry, no device.
+pub fn terms() -> Terms {
+    Terms { now: 0, ttl_secs: 0, nonce: [0; 8], device: [0; 32] }
 }
 
 fn hex_of(bytes: &[u8]) -> String {
