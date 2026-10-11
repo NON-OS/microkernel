@@ -26,6 +26,7 @@ use nonos_libc::{
 use super::discover::Found;
 use super::env::HostEnv;
 use super::grants::{Claim, DmaRegion};
+use super::held::Held;
 use super::say::{host, refused};
 use crate::ufs::utp::layout::UCD_LEN;
 
@@ -35,13 +36,6 @@ const _: () = assert!(UCD_LEN as u64 <= PAGE);
 /// The data region: what one wire request moves at most. 64 KiB is 16
 /// blocks of a 4 KiB unit and fits one PRDT entry (up to 256 KiB).
 pub const DATA_BYTES: u64 = 64 * 1024;
-
-/// Field order is drop order: the regions go back before the claim, which
-/// is held for its drop alone.
-pub struct Held {
-    pub regions: [DmaRegion; 4],
-    _claim: Claim,
-}
 
 pub fn take(dev: &Found) -> Option<(HostEnv, Held)> {
     host(dev.vendor, dev.device);

@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the modelled host and device do: a QEMU-like host by default, and
-//! the knobs each test turns.
+//! The modelled host and device: QEMU-like by default, and each test's knobs.
 
 use super::lu::Lu;
 
 pub struct Cfg {
     pub cap: u32,
     pub ver: u32,
-    /// HCE never reads back 1.
+    /// HCE never reads back 1; with `hce_stuck_on`, never back 0.
     pub hce_never: bool,
+    pub hce_stuck_on: bool,
     /// HCE reads 0 this many times after it is set, as a host initialising.
     pub hce_settle: u32,
     /// The first this many DME_LINKSTARTUPs answer result 1.
@@ -55,6 +55,7 @@ impl Default for Cfg {
             // 64-bit addressing, 32 slots (NUTRS 31), UFSHCI 4.0.
             cap: 1 << 24 | 31,
             ver: 0x0400,
+            hce_stuck_on: false,
             hce_never: false,
             hce_settle: 2,
             link_fails: 0,
