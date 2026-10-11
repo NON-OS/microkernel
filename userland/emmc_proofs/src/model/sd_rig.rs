@@ -18,7 +18,8 @@
 
 use super::host::HostCfg;
 use super::sd::{SdCard, SdCfg};
-use super::{CardCfg, Rig};
+use super::{CardCfg, Rig, SimBus, TestClock, TestLog};
+use crate::emmc::slot::HostParts;
 
 /// A removable SD slot as QEMU's sdhci-pci reports it, ADMA2 and 64-bit
 /// added: spec 3.00, 200 MHz base clock, high speed, 3.3 V only, slot
@@ -36,5 +37,18 @@ impl Rig {
         let rig = Rig::new(host, CardCfg::default());
         rig.sim.borrow_mut().sd = Some(SdCard::new(card));
         rig
+    }
+
+    /// A removable slot with nothing in it.
+    pub fn empty_slot(host: HostCfg) -> Self {
+        let card = CardCfg { absent: true, ..CardCfg::default() };
+        Rig::new(HostCfg { cd_inserted: false, ..host }, card)
+    }
+
+    /// What a slot makes its hosts from.
+    pub fn parts(&self, intel_emmc: bool) -> HostParts<SimBus, TestClock, TestLog> {
+        let (io, clock, log) =
+            (SimBus(self.sim.clone()), TestClock(self.now.clone()), self.log.clone());
+        HostParts { io, clock, log, table: self.table, intel_emmc }
     }
 }

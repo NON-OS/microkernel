@@ -40,7 +40,10 @@ pub fn dispatch(o: &mut Opened, req: &Request, body: &[u8], tx: &mut [u8]) {
         OP_READ => rw::serve_read(o, req, body, tx),
         OP_WRITE => rw::serve_write(o, req, body, tx),
         OP_FLUSH => {
-            let status = o.disk.flush().map_or_else(wire_status, |()| 0);
+            let status = match o.slot.data_disk() {
+                Ok(d) => d.flush().map_or_else(wire_status, |()| 0),
+                Err(e) => wire_status(e),
+            };
             reply_with_status(tx, req, status);
         }
         _ => reply_with_status(tx, req, E_INVAL),

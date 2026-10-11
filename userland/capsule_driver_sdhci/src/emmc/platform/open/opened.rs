@@ -16,18 +16,19 @@
 
 //! An opened host and the order its resources are given back in.
 
-use super::super::super::disk::EmmcDisk;
+use super::super::super::slot::Slot;
 use super::super::dma::DmaRegion;
 use super::super::env::{MmioWindow, SerialLog, UptimeClock};
 use super::claim::Claim;
 
-pub type Disk = EmmcDisk<MmioWindow, UptimeClock, SerialLog>;
+pub type HostSlot = Slot<MmioWindow, UptimeClock, SerialLog>;
 
-/// A host with its card up. Dropping it stops the host first, then frees
-/// the DMA regions, then the window and the claim, so the controller never
-/// reaches memory that is gone.
+/// A host being served: a fixed slot with its card up, or a removable
+/// slot. Dropping it stops the host first, then frees the DMA regions,
+/// then the window and the claim, so the controller never reaches memory
+/// that is gone.
 pub struct Opened {
-    pub disk: Disk,
+    pub slot: HostSlot,
     pub(super) _data: DmaRegion,
     pub(super) _table: DmaRegion,
     pub(super) _claim: Claim,
@@ -35,6 +36,6 @@ pub struct Opened {
 
 impl Drop for Opened {
     fn drop(&mut self) {
-        self.disk.quiesce();
+        self.slot.quiesce();
     }
 }
