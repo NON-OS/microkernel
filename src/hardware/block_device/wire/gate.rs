@@ -14,18 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::endpoint::Endpoint;
 use super::error::WireError;
 use super::table::endpoint;
+use super::target::{units, Target};
 use crate::services::caps::{has_capability, CAP_DRIVER, CAP_STORAGE};
 
-/// The endpoint at `index`, for a caller with the authority the other disk
-/// clients ask: a driver, or the holder of the store (vfs persisting
-/// packages, the data volume's readers).
-pub(super) fn gate(index: u8) -> Result<&'static Endpoint, WireError> {
+/// Unit `unit` behind endpoint `index`, for a caller with the authority the
+/// other disk clients ask: a driver, or the holder of the store (vfs
+/// persisting packages, the data volume's readers).
+pub(super) fn gate(index: u8, unit: u16) -> Result<Target, WireError> {
     let pid = crate::process::current_pid().ok_or(WireError::NoCallerPid)?;
     if !has_capability(pid, CAP_DRIVER) && !has_capability(pid, CAP_STORAGE) {
         return Err(WireError::AccessDenied);
     }
-    endpoint(index).ok_or(WireError::Dead)
+    let e = endpoint(index).ok_or(WireError::Dead)?;
+    if unit >= units(e) {
+        return Err(WireError::NoDevice);
+    }
+    Ok(Target { e, unit })
 }

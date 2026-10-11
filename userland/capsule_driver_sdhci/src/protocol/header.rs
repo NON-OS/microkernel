@@ -24,6 +24,8 @@ pub const RESP_HDR_LEN: usize = HDR_LEN;
 pub struct Request {
     pub op: u16,
     pub flags: u16,
+    /// Which disk behind the endpoint; this capsule serves unit 0 alone.
+    pub unit: u16,
     pub request_id: u32,
     pub payload_len: u32,
 }
