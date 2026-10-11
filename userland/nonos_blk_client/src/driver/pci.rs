@@ -32,8 +32,8 @@ pub enum Controller {
     VirtioBlk,
     /// Intel RST in RAID mode, or a VMD domain the disks sit behind.
     IntelRaid,
-    /// An Intel eMMC host: the soldered disk of an Atom-class laptop. The
-    /// SATA driver serves it until the eMMC driver has keys of its own.
+    /// An Intel eMMC host: the soldered disk of an Atom-class laptop,
+    /// served by driver.sdhci0 on the block wire.
     Emmc,
 }
 

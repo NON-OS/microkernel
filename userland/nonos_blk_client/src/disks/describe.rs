@@ -71,6 +71,7 @@ impl Disk {
             Driver::Nvme => "nvme",
             Driver::Ahci => "sata",
             Driver::VirtioBlk => "virtio",
+            Driver::Wire => "emmc",
         };
         match self.instance {
             0 => String::from(bus),

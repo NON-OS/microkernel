@@ -37,14 +37,21 @@ impl Geometry {
     /// `None` for a block size that is not a power of two from 512 bytes to
     /// the buffer, or a transfer limit below one block.
     pub fn nvme(lba_size: u32, mdts: u8) -> Option<Geometry> {
-        if lba_size < SECTOR as u32 || !lba_size.is_power_of_two() || lba_size > DATA_BYTES {
-            return None;
-        }
-        let max = max_transfer_bytes(mdts);
-        if max < lba_size {
-            return None;
-        }
-        Some(Geometry { lba_size, max_bytes: max - max % lba_size })
+        Self::sized(lba_size, max_transfer_bytes(mdts))
+    }
+
+    /// A block-wire disk (driver.sdhci0): blocks of `lba_size` bytes, at
+    /// most `max_transfer` to a request as its GEOMETRY reply says, and
+    /// never more than the buffer here. `None` on the same terms as `nvme`.
+    pub fn wire(lba_size: u32, max_transfer: u32) -> Option<Geometry> {
+        Self::sized(lba_size, max_transfer.min(DATA_BYTES))
+    }
+
+    fn sized(lba_size: u32, max: u32) -> Option<Geometry> {
+        let fits = (SECTOR as u32..=DATA_BYTES.min(max)).contains(&lba_size);
+        // Lazily: `max % lba_size` must not run for a zero block size.
+        (fits && lba_size.is_power_of_two())
+            .then(|| Geometry { lba_size, max_bytes: max - max % lba_size })
     }
 
     pub fn lba_size(&self) -> u32 {
