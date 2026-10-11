@@ -22,6 +22,7 @@ mod codec;
 mod decode;
 mod endpoint;
 mod error;
+mod frame;
 mod gate;
 mod header;
 mod layout;
@@ -33,6 +34,7 @@ mod row;
 mod span;
 mod status;
 mod table;
+mod target;
 mod transport;
 mod write;
 
@@ -42,7 +44,7 @@ mod write;
 #[path = "../../nvme_capsule/client/lba_map.rs"]
 mod lba_map;
 
-pub use endpoint::{Endpoint, Slot};
+pub use endpoint::{Endpoint, Slot, MAX_UNITS};
 pub use error::WireError;
 pub use ops::healthcheck;
 pub(super) use row::rows;

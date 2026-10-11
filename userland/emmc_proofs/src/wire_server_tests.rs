@@ -17,7 +17,9 @@
 //! The capsule's own checks on a request, before the card is asked.
 
 use crate::medium_rule::allows;
-use crate::protocol::{E_INVAL, E_MSGSIZE, E_NXIO, OP_GEOMETRY, OP_HEALTHCHECK, OP_READ, OP_WRITE};
+use crate::protocol::{
+    serves_unit, E_INVAL, E_MSGSIZE, E_NXIO, OP_GEOMETRY, OP_HEALTHCHECK, OP_READ, OP_WRITE,
+};
 use crate::rw_parse::parse;
 
 fn head(lba: u64, n: u32) -> [u8; 12] {
@@ -55,4 +57,12 @@ fn only_the_kernel_or_a_store_writer_reaches_the_medium() {
         assert!(allows(op, 41, true), "a StoreWrite holder, op {op}");
     }
     assert!(allows(OP_HEALTHCHECK, 41, false));
+}
+
+#[test]
+fn only_unit_zero_is_served() {
+    assert!(serves_unit(0));
+    for unit in [1, 2, 3, u16::MAX] {
+        assert!(!serves_unit(unit), "unit {unit}");
+    }
 }
