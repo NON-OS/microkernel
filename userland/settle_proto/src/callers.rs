@@ -21,7 +21,7 @@
 //! `owner_of`.
 
 use crate::ops::{OP_BROADCAST, OP_CHANNEL_STATE, OP_FETCH, OP_GAS, OP_HEALTHCHECK};
-use crate::ops::{OP_INTENT, OP_OPENED, OP_READ, OP_SETTLE};
+use crate::ops::{OP_INTENT, OP_LISTING, OP_OPENED, OP_READ, OP_SETTLE};
 
 const W0: &[u8] = b"app.nonos_wallet";
 const W1: &[u8] = b"app.nonos_wallet.1";
@@ -40,7 +40,7 @@ pub fn callers(op: u16) -> Option<&'static [&'static [u8]]> {
         OP_HEALTHCHECK => None,
         OP_BROADCAST => Some(&BROADCASTERS),
         OP_CHANNEL_STATE | OP_GAS | OP_OPENED | OP_READ | OP_INTENT => Some(&READERS),
-        OP_FETCH => Some(&FETCHERS),
+        OP_FETCH | OP_LISTING => Some(&FETCHERS),
         OP_SETTLE => Some(&SETTLERS),
         _ => Some(&[]),
     }
