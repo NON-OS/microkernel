@@ -157,6 +157,7 @@ nonos-capsule-driver-usb-hid    = []
 nonos-capsule-driver-usb-msc    = []
 nonos-capsule-driver-e1000      = []
 nonos-capsule-driver-igb        = []
+nonos-capsule-driver-ixgbe      = []
 nonos-capsule-driver-i2c-pci    = []
 nonos-capsule-driver-i2c-hid    = []
 nonos-capsule-driver-iwlwifi    = []
@@ -418,6 +419,13 @@ microkernel-driver-igb = [
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-igb",
+]
+
+microkernel-driver-ixgbe = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ixgbe",
 ]
 
 microkernel-driver-rtl8139 = [

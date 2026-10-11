@@ -16,8 +16,9 @@
 
 //! The Intel Ethernet parts by driver, as Linux binds them: e1000
 //! (8254x), e1000e (8257x, 82583 and the PCH I217/I218/I219), igb (82575,
-//! 82576, 82580, I350, I354, I210, I211) and igc (I225, I226). Each list is
-//! its capsule's own, which kernel_proofs holds it to.
+//! 82576, 82580, I350, I354, I210, I211), igc (I225, I226) and ixgbe (the
+//! 82599, X540 and X550 it takes). Each list is its capsule's own, which
+//! kernel_proofs holds it to.
 //!
 //! Pure, with no imports, so host proofs can include it by path.
 
@@ -48,4 +49,11 @@ pub const IGB_DEVICE_IDS: [u16; 35] = [
 pub const IGC_DEVICE_IDS: [u16; 16] = [
     0x15f2, 0x15f3, 0x15f8, 0x15f7, 0x3100, 0x3101, 0x3102, 0x5502, 0x5503, 0x0d9f, 0x125b, 0x125c,
     0x125d, 0x125e, 0x125f, 0x15fd,
+];
+
+/// ixgbe_pci_tbl's 82599, X540 and X550 entries; the 82598 and X550EM are
+/// not the capsule's.
+pub const IXGBE_DEVICE_IDS: [u16; 17] = [
+    0x10f7, 0x1514, 0x1517, 0x10f8, 0x10f9, 0x10fb, 0x1529, 0x152a, 0x1557, 0x10fc, 0x151c, 0x154d,
+    0x1558, 0x1528, 0x1560, 0x1563, 0x15d1,
 ];

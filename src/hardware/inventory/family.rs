@@ -40,6 +40,8 @@ pub enum HardwareFamily {
     NetworkIgb,
     /// I225 and I226: the igc capsule's.
     NetworkIgc,
+    /// 82599, X540 and X550: the ixgbe capsule's.
+    NetworkIxgbe,
     NetworkRtl8139,
     NetworkRtl8169,
     NetworkRtl8821ce,

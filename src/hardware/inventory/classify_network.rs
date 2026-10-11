@@ -16,7 +16,7 @@
 
 use super::family::HardwareFamily;
 use super::intel_ethernet_ids::{
-    E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS,
+    E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS, IXGBE_DEVICE_IDS,
 };
 use super::realtek_ids::{RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_ID};
 
@@ -47,6 +47,8 @@ fn intel_ethernet(device: u16) -> HardwareFamily {
         HardwareFamily::NetworkIgb
     } else if IGC_DEVICE_IDS.contains(&device) {
         HardwareFamily::NetworkIgc
+    } else if IXGBE_DEVICE_IDS.contains(&device) {
+        HardwareFamily::NetworkIxgbe
     } else {
         HardwareFamily::Unknown
     }

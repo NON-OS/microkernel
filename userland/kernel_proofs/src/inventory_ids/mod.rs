@@ -45,6 +45,8 @@ mod igb;
 #[path = "../../../capsule_driver_igc/src/constants/pci.rs"]
 #[allow(dead_code)]
 mod igc;
+#[allow(dead_code)]
+mod ixgbe;
 #[path = "../../../capsule_driver_rtl8139/src/constants/pci.rs"]
 #[allow(dead_code)]
 mod rtl8139;

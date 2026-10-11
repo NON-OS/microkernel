@@ -20,16 +20,17 @@ use super::classify_network::classify_network;
 use super::classify_storage::classify_storage;
 use super::family::HardwareFamily::{self, *};
 use super::intel_ethernet_ids::{
-    E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS,
+    E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS, IXGBE_DEVICE_IDS,
 };
 
 #[test]
 fn intel_ethernet_by_table() {
-    let tables: [(&[u16], HardwareFamily); 4] = [
+    let tables: [(&[u16], HardwareFamily); 5] = [
         (&E1000_DEVICE_IDS, NetworkE1000),
         (&E1000E_DEVICE_IDS, NetworkE1000e),
         (&IGB_DEVICE_IDS, NetworkIgb),
         (&IGC_DEVICE_IDS, NetworkIgc),
+        (&IXGBE_DEVICE_IDS, NetworkIxgbe),
     ];
     for (ids, family) in tables {
         for &id in ids {
