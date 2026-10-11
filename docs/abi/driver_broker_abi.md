@@ -243,7 +243,7 @@ to its width, inside the first 256 bytes, and returns the value
 (`src/hardware/broker/pci/read.rs`). A write is one 16-bit register and may
 change only the Command register's Memory Space (bit 1), Bus Master (bit 2) and
 Interrupt Disable (bit 10) bits, the MSI-X Message Control register's Function
-Mask and Enable bits, and the vendor bits `pci/quirk_bits.rs` names for audio
+Mask and Enable bits, and the vendor bits `pci/quirk_bits/` names for audio
 and network functions (`src/hardware/broker/pci/allowlist.rs`). Anything else
 is `EINVAL`. A value too wide to be a 16-bit register is refused by the
 dispatch arm with `EINVAL` rather than written with its top half dropped.
