@@ -18,13 +18,7 @@
 
 mod rule;
 
-use nonos_libc::mk_service_lookup;
-
 /// Whether `sender_pid` is the wallet, by the registry's word now.
 pub fn allowed(sender_pid: u32) -> bool {
-    rule::may_use_vault(sender_pid, |name| {
-        let (mut port, mut pid) = (0u32, 0u32);
-        let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
-        (rc == 0 && pid != 0).then_some(pid)
-    })
+    rule::may_use_vault(sender_pid, super::registry::owner_of)
 }
