@@ -25,6 +25,11 @@ pub const COMPOSITOR_CREATE_REGION: u16 = 1;
 pub const REGION_DESTROY: u16 = 0;
 pub const REGION_ADD: u16 = 1;
 pub const REGION_SUBTRACT: u16 = 2;
+pub const SUBCOMPOSITOR_DESTROY: u16 = 0;
+pub const SUBCOMPOSITOR_GET_SUBSURFACE: u16 = 1;
+pub const SUBSURFACE_DESTROY: u16 = 0;
+pub const SUBSURFACE_SET_POSITION: u16 = 1;
+pub const SUBSURFACE_SET_DESYNC: u16 = 5;
 
 pub const SHM_CREATE_POOL: u16 = 0;
 pub const POOL_CREATE_BUFFER: u16 = 0;
