@@ -20,7 +20,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
     Some(match family {
         StorageNvme => "driver_nvme",
         StorageAhci => "driver_ahci",
-        StorageEmmc => "driver_ahci",
+        StorageEmmc => "driver_sdhci",
         StorageUsbMsc => "driver_usb_msc",
         StorageVirtioBlk => "driver_virtio_blk",
         NetworkVirtio => "driver_virtio_net",

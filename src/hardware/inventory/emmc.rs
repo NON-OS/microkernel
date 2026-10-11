@@ -19,8 +19,8 @@
 //! subclass 05h. These are the ids Linux's sdhci-pci driver names eMMC
 //! (drivers/mmc/host/sdhci-pci-core.c). The same platforms carry SD card
 //! and SDIO hosts with the same class; they are not a disk and are not
-//! listed. Until the eMMC driver gets its own publisher keys it lives in
-//! the AHCI capsule, which is what a host here starts.
+//! listed. A host here starts the SD host controller capsule,
+//! driver.sdhci0.
 //!
 //! Pure, with no imports, so host proofs can include it by path.
 
