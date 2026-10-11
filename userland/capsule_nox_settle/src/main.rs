@@ -23,6 +23,7 @@ mod chain;
 mod drain;
 mod handlers;
 mod keccak;
+mod listing;
 mod net;
 mod server;
 mod settle;
