@@ -35,3 +35,12 @@ pub fn pair_body(listing: &[u8], release: &[u8]) -> Vec<u8> {
     body.extend_from_slice(release);
     body
 }
+
+/// OP_INSTALL_READY's body (v1.4.23): the pair, then the chain_id the
+/// market reads the listing's bond on. Without it a sold listing's bond
+/// gate is "not checked", and fails.
+pub fn ready_body(listing: &[u8], release: &[u8], chain_id: u64) -> Vec<u8> {
+    let mut body = pair_body(listing, release);
+    body.extend_from_slice(&chain_id.to_le_bytes());
+    body
+}

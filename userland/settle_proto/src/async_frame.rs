@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! ASYNC (plan/28, v1.4.15): header flags bit 0, from payment only. The
-//! meter sends the request without waiting; settle answers with
-//! mk_ipc_send_to_pid(caller), the same frame echoing op, flags and id,
-//! into the meter's service inbox. The meter believes an answer only from
+//! ASYNC (plan/28, v1.4.15, v1.4.23): header flags bit 0, from payment and
+//! market.index only. The caller sends the request without waiting; settle
+//! answers with mk_ipc_send_to_pid(caller), the same frame echoing op, flags
+//! and id, into the caller's service inbox. Each believes an answer only from
 //! settle's registry pid, with this wire's magic and its own request id.
 
 use alloc::vec::Vec;
@@ -25,8 +25,9 @@ use alloc::vec::Vec;
 use crate::frame::{framed, reply_body, ReplyError};
 
 pub const FLAG_ASYNC: u16 = 1;
-/// The name the registry gives the one capsule that may ask ASYNC.
-pub const ASYNC_CALLER: &[u8] = b"payment";
+/// The names the registry gives the capsules that may ask ASYNC: the meter,
+/// and the market for its bond cache.
+pub const ASYNC_CALLERS: [&[u8]; 2] = [b"payment", b"market.index"];
 
 pub fn request_async(op: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
     framed(op, FLAG_ASYNC, request_id, &[body])
@@ -37,9 +38,9 @@ pub fn is_async(flags: u16) -> bool {
 }
 
 /// Whether `sender` may send with `flags`: a plain call from anyone the op
-/// admits, ASYNC from payment's pid alone.
+/// admits, ASYNC from an ASYNC_CALLERS pid alone.
 pub fn admits_flags(flags: u16, sender: u32, owner_of: impl Fn(&[u8]) -> Option<u32>) -> bool {
-    !is_async(flags) || (sender != 0 && owner_of(ASYNC_CALLER) == Some(sender))
+    !is_async(flags) || (sender != 0 && ASYNC_CALLERS.iter().any(|n| owner_of(n) == Some(sender)))
 }
 
 /// An ASYNC answer's body, believed only from `settle_pid` and only as the
