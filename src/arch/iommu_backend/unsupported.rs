@@ -16,12 +16,9 @@
 
 use crate::memory::addr::PhysAddr;
 
-use super::super::capabilities::IommuCapabilities;
-use super::super::device::DeviceAddress;
-use super::super::domain_id::DomainId;
-use super::super::error::IommuError;
-use super::super::protection::IommuProtection;
-use super::super::vendor::IommuVendor;
+use crate::memory::iommu::{
+    DeviceAddress, DomainId, IommuCapabilities, IommuError, IommuProtection, IommuVendor,
+};
 
 /// A build with no IOMMU backend reads no DMAR or IVRS table, so it has nothing to select.
 pub(in crate::memory::iommu) fn select_vendor() -> IommuVendor {
