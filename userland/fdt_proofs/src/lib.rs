@@ -35,6 +35,8 @@ mod reserve_tests;
 #[cfg(test)]
 mod rpi4_tests;
 #[cfg(test)]
+mod smmu_tests;
+#[cfg(test)]
 mod structure_tests;
 #[cfg(test)]
 mod translate_tests;

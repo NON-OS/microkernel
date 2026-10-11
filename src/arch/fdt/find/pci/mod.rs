@@ -19,5 +19,5 @@ mod find;
 mod info;
 mod ranges;
 
-pub use find::find;
+pub use find::{find, host};
 pub use info::PciHost;
