@@ -24,6 +24,7 @@ use super::feed::feed;
 use super::report::{finish, report, Outcome, Report};
 use super::send::{resend_after, transmit};
 use crate::mlme::{Mlme, MlmeState};
+use crate::softmac::assoc::announce;
 use crate::softmac::radio::{Env, Radio};
 
 pub fn drive<R: Radio, E: Env>(
@@ -57,8 +58,8 @@ pub fn drive<R: Radio, E: Env>(
         }
         let Some(rx) = r.recv(&mut buf) else { continue };
         c.recv += 1;
-        let before = m.state();
-        match feed(&mut m, &buf[..rx.len.min(buf.len())], &mut c) {
+        let (before, frame) = (m.state(), &buf[..rx.len.min(buf.len())]);
+        match feed(&mut m, frame, &mut c) {
             Some(mut f) => {
                 transmit(r, &mut f, &mut seq, &mut c);
                 (pending, quiet_since) = (f, now);
@@ -67,5 +68,6 @@ pub fn drive<R: Radio, E: Env>(
             None if m.state() != before => (pending, quiet_since) = (Vec::new(), now),
             None => {}
         }
+        announce(r, (before, m.state()), frame, beacon);
     }
 }

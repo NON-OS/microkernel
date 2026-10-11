@@ -21,7 +21,7 @@
 
 pub use crate::soft::rig::SimAir;
 use nonos_wifi_core::regdom::Band;
-use nonos_wifi_core::softmac::{Radio, RxInfo};
+use nonos_wifi_core::softmac::{Association, Radio, RxInfo};
 
 pub const STA: [u8; 6] = crate::ap_sim::SPA;
 
@@ -65,5 +65,9 @@ impl Radio for SimAir {
 
     fn set_bss(&mut self, bssid: Option<[u8; 6]>) {
         self.bss = bssid;
+    }
+
+    fn associated(&mut self, a: Option<&Association>) {
+        self.assoc.push(a.copied());
     }
 }

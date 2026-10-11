@@ -23,7 +23,7 @@ use std::rc::Rc;
 use crate::soft::ap::SimAp;
 use crate::soft::env::SimEnv;
 use nonos_wifi_core::regdom::Band;
-use nonos_wifi_core::softmac::SoftStation;
+use nonos_wifi_core::softmac::{Association, SoftStation};
 
 pub type Station = SoftStation<SimAir, SimEnv>;
 
@@ -37,6 +37,8 @@ pub struct SimAir {
     pub sent_on: Vec<Option<(Band, u8)>>,
     pub inbox: VecDeque<Vec<u8>>,
     pub(crate) beacon_at: u64,
+    /// Every association the station reported, in order.
+    pub assoc: Vec<Option<Association>>,
 }
 
 impl SimAir {
@@ -58,6 +60,7 @@ pub fn rig(ap: SimAp) -> Station {
         sent_on: Vec::new(),
         inbox,
         beacon_at: 0,
+        assoc: Vec::new(),
     };
     SoftStation::new(Some(air), SimEnv { clock, draws: 0 }, 0)
 }
