@@ -22,30 +22,29 @@
 //!   3. validate BAR containment of the request and find the pages it
 //!      touches, kept off every MSI-X table and PBA (`window`)
 //!   4. reserve a user VA window in the per-capsule MMIO region
-//!      and install pages with user / read+write / uncached / NX
+//!      and install pages user / read+write / NX, uncached, or write-combining
+//!      on a prefetchable BAR when asked (`memory_type`)
 //!   5. record the grant so revocation can find and undo it
 //!
 //! On any rejection no mapping is installed and no record is made.
 //!
-//! The result's `user_va` is the VA of the requested first byte, and
-//! `length` the bytes usable from there. Neither base nor length need be
-//! page aligned: a request inside a page (a 2 KiB AHCI ABAR at a base
-//! ending in 0x800) maps the whole page and returns a VA ending in the same
-//! 0x800. A page-aligned request gets a page-aligned VA and its own length,
-//! or less when an MSI-X table cuts it short, as before.
+//! The result's `user_va` is the VA of the requested first byte and `length`
+//! the bytes usable from there; neither need be page aligned (a 2 KiB AHCI
+//! ABAR at a base ending in 0x800 gets a VA ending in 0x800). An MSI-X table
+//! can cut a page-aligned request short.
 
 use super::map_bar::{claimed_bar, Claimed};
 use super::map_install::install;
 use super::map_notes::{note_shared_page, window_error};
+use super::map_type::memory_type;
+use super::memory_type::MMIO_MAP_WC;
 use super::msix_exclusion;
 use super::types::{MmioMapError, MmioMapRequest, MmioMapResult};
 use super::window;
 use crate::hardware::broker::grant::{self, MmioGrant};
 
-const FLAGS_KNOWN: u32 = 0;
-
 pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, MmioMapError> {
-    if req.flags & !FLAGS_KNOWN != 0 {
+    if req.flags & !MMIO_MAP_WC != 0 {
         return Err(MmioMapError::UnsupportedFlags);
     }
     if req.length == 0 {
@@ -56,7 +55,8 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     let w = window::window(bar.base, bar.size, req.offset, req.length, &protected)
         .map_err(window_error)?;
     note_shared_page(&device, &w);
-    let user_va = install(&w)?;
+    let kind = memory_type(req.flags, &bar, &w)?;
+    let user_va = install(&w, kind)?;
     let grant_id = grant::allocate_id();
     grant::insert(MmioGrant {
         grant_id,

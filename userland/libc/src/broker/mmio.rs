@@ -21,6 +21,11 @@
 use super::types::MmioMapOut;
 use crate::syscall::{call_raw, N_MK_MMIO_MAP, N_MK_MMIO_UNMAP};
 
+/// Map write-combining. Only a prefetchable BAR takes it (EINVAL otherwise);
+/// where the kernel maps the range itself, its own memory type wins. Stores
+/// may merge and reorder until an `sfence`, so a frame buffer only.
+pub const MK_MMIO_MAP_WC: u32 = 1 << 0;
+
 #[no_mangle]
 pub extern "C" fn mk_mmio_map(
     device_id: u64,

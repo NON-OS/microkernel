@@ -18,6 +18,8 @@ mod map;
 mod map_bar;
 mod map_install;
 mod map_notes;
+mod map_type;
+mod memory_type;
 pub mod msix_exclusion;
 mod release;
 mod types;
