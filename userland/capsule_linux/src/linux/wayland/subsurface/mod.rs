@@ -22,6 +22,7 @@ pub mod commit;
 pub mod compose;
 pub mod get;
 pub mod life;
+pub mod may;
 pub mod order;
 pub mod request;
 pub mod restack;
