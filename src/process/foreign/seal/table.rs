@@ -32,6 +32,11 @@ pub(crate) const MAX_SEALED: usize = 64;
 pub(crate) static LIVE: Mutex<Vec<Family>> = Mutex::new(Vec::new());
 pub(crate) static SEALED: Mutex<VecDeque<Sealed>> = Mutex::new(VecDeque::new());
 
+/// `sup` supervises a live family: a DELIVER may be queued for it.
+pub(crate) fn supervises_live(sup: u32) -> bool {
+    LIVE.lock().iter().any(|fam| fam.sup == sup)
+}
+
 /// `f` over the live family of `sup`, if it has one.
 pub(crate) fn with_family<R>(sup: u32, f: impl FnOnce(&mut Family) -> R) -> Option<R> {
     LIVE.lock().iter_mut().find(|fam| fam.sup == sup).map(f)
