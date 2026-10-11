@@ -24,6 +24,7 @@ mod geometry;
 mod header;
 mod limits;
 mod ops;
+mod unit;
 
 pub use decode::decode_request;
 pub use encode::{encode_response_header, write_status};
@@ -33,3 +34,4 @@ pub use geometry::{encode_geometry, MEDIA_PRESENT};
 pub use header::{Request, HDR_LEN, RESP_HDR_LEN};
 pub use limits::{GEOMETRY_LEN, RW_HEADER_LEN, STATUS_LEN};
 pub use ops::{OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_READ, OP_WRITE};
+pub use unit::serves_unit;

@@ -29,6 +29,7 @@ pub fn decode_request(buf: &[u8]) -> Option<Request> {
     Some(Request {
         op: u16::from_le_bytes(buf[6..8].try_into().ok()?),
         flags: u16::from_le_bytes(buf[8..10].try_into().ok()?),
+        unit: u16::from_le_bytes(buf[10..12].try_into().ok()?),
         request_id: u32::from_le_bytes(buf[12..16].try_into().ok()?),
         payload_len: u32::from_le_bytes(buf[16..20].try_into().ok()?),
     })
