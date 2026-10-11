@@ -68,5 +68,7 @@ mod once;
 mod pass;
 #[path = "fresh_test_rlp.rs"]
 mod rlp;
+#[path = "fresh_test_shield.rs"]
+mod shield;
 #[path = "fresh_test_sign.rs"]
 mod sign;

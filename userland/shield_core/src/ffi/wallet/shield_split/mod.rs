@@ -1,4 +1,11 @@
 mod approve;
 mod confirm;
+mod fresh_approve;
+mod fresh_confirm;
+mod fresh_part;
+mod fresh_requests;
+mod fresh_review;
+mod fresh_take;
+mod fresh_view;
 mod review;
 mod view;
