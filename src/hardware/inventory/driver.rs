@@ -24,6 +24,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         StorageUsbMsc => "driver_usb_msc",
         StorageVirtioBlk => "driver_virtio_blk",
         StorageIde => "driver_piix_ide",
+        StorageVirtioScsi => "driver_virtio_scsi",
         NetworkVirtio => "driver_virtio_net",
         NetworkE1000 => "driver_e1000",
         NetworkRtl8139 => "driver_rtl8139",
