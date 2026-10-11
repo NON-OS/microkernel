@@ -28,6 +28,7 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         DisplayVmwareSvga => DataPath,
         UsbXhci | InputPs2 | InputUsbHid => DataPath,
         InputVirtio => DataPath,
+        AudioAc97 => DataPath,
         NetworkIwlwifi | AudioHda | InputI2cHid | SerialI2c => ControllerStatus,
         DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => EnumerateOnly,
         StorageVmd => EnumerateOnly,
