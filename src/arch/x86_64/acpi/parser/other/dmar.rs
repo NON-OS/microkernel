@@ -18,6 +18,7 @@ use core::mem;
 use core::ptr;
 
 use super::super::state::TableRegistry;
+use super::dmar_namespace_store::{record_andd, ANDD_TYPE};
 use super::dmar_rmrr::RMRR_TYPE;
 use super::dmar_rmrr_store::record_rmrr;
 use super::dmar_units::record_drhd;
@@ -58,6 +59,8 @@ pub fn parse_dmar(registry: &mut TableRegistry) {
                 found_drhd |= record_drhd(drhd, bytes);
             } else if kind == RMRR_TYPE {
                 record_rmrr(bytes);
+            } else if kind == ANDD_TYPE {
+                record_andd(bytes);
             }
             cursor += length as u64;
         }

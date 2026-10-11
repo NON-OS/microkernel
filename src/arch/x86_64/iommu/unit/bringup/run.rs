@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::assign::assign_enumerated;
+use super::assign_named::assign_named;
 use super::domain::identity_domain;
 use crate::arch::x86_64::iommu::globals::{
     set_enforcing, set_identity_domain, set_page_levels, set_snoop_control,
@@ -51,7 +52,8 @@ pub fn bring_up() -> Result<usize, VtdError> {
 
     let (domain, sl_root) = identity_domain(levels, info.cap)?;
     set_identity_domain(domain.as_u16());
-    let assigned = assign_enumerated(sl_root, domain, info.levels.context_aw())?;
+    let aw = info.levels.context_aw();
+    let assigned = assign_enumerated(sl_root, domain, aw)? + assign_named(sl_root, domain, aw)?;
 
     // A unit that fails after others came up leaves those translating through
     // the identity domain, which still reaches every enumerated device's
