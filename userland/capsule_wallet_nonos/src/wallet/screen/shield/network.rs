@@ -22,9 +22,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::consts::{
-    CHAIN_ID, FAUCET, NOX_TOKEN, POLICY, POOL, POOL_FROM_BLOCK, REGISTRY, VERIFIER,
-};
+use super::consts::{CHAIN_ID, FAUCET, POLICY, POOL, POOL_FROM_BLOCK, REGISTRY, VERIFIER};
 use crate::wallet::etna::backdrop::Backdrop;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
@@ -64,12 +62,15 @@ pub fn network(state: &State, fb: &mut PaintBuffer) {
     for (name, value) in [("chain id", CHAIN_ID), ("events from block", POOL_FROM_BLOCK)] {
         y += fact(fb, c.x, y, c.w, name, value);
     }
+    /* NOX's address is nonos_nox_config's, through the chain table (B7). */
+    let nox = &crate::wallet::chain::SEPOLIA.nox;
+    let nox = crate::wallet::screen::receive_address::checksummed_text(nox);
     for (name, value) in [
         ("pool", POOL),
         ("verifier", VERIFIER),
         ("association registry", REGISTRY),
         ("amount policy", POLICY),
-        ("NOX token", NOX_TOKEN),
+        ("NOX token", nox.as_str()),
         ("faucet", FAUCET),
     ] {
         y += GAP / 2 + super::pick::label(fb, c, y + GAP / 2, &name.to_uppercase());

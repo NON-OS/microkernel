@@ -27,7 +27,6 @@ pub const POOL_FROM_BLOCK: &str = "11,817,433";
 pub const VERIFIER: &str = "0xDA9dD4A3e957AFD2179131273C93dabBA1186A44";
 pub const REGISTRY: &str = "0xF6B5c3470eb7F1bdE3412E72Eff4235A4536a206";
 pub const POLICY: &str = "0x660f66ab31Ca9919D9e1770FEDc88Ff2dd29CE59";
-pub const NOX_TOKEN: &str = "0x3E5249A65CA513D5e11260222e0D26f46b465d36";
 pub const FAUCET: &str = "0x871bc3AD5DA20c399d631817637cB5FB29eB04B4";
 
 /* What the holder types to spend a note before it has matured. */
