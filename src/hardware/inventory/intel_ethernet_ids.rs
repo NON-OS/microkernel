@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Intel Ethernet parts by driver, as Linux binds them: e1000
+//! The Intel Ethernet parts by driver, by MAC family: e1000
 //! (8254x), e1000e (8257x, 82583 and the PCH I217/I218/I219), igb (82575,
 //! 82576, 82580, I350, I354, I210, I211), igc (I225, I226) and ixgbe (the
 //! 82599, X540 and X550 it takes). Each list is its capsule's own, which

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The primary GPT header at LBA 1, held to the checks Linux's
-//! `is_gpt_valid` makes before it believes a table.
+//! The primary GPT header at LBA 1, held to the checks UEFI 2.10
+//! 5.3.2 lists before a table is believed: signature, CRC, its own LBA.
 
 use super::bytes::{le32, le64};
 use super::crc32::crc32;
@@ -23,7 +23,7 @@ use super::crc32::crc32;
 pub(crate) const SIGNATURE: &[u8; 8] = b"EFI PART";
 /// The CRC covers `header_size` bytes, at least these 92.
 const MIN_HEADER: usize = 92;
-/// Linux reads only 128-byte entries, and so does this.
+/// Only 128-byte entries are read (UEFI 2.10 5.3.2 allows 128 << n).
 pub(crate) const ENTRY_SIZE: usize = 128;
 /// A larger array is not one any writer makes; reading it is refused.
 pub(crate) const MAX_ENTRIES: u32 = 1024;

@@ -41,8 +41,8 @@ impl IsochEndpoint {
     }
 }
 
-/// The endpoint the controller is given for this speed (Linux
-/// `xhci_get_endpoint_max_burst`, `xhci_get_endpoint_mult`).
+/// The endpoint the controller is given for this speed (xHCI 1.2 6.2.3:
+/// Max Burst Size and Mult, from wMaxPacketSize or the SuperSpeed companion).
 pub fn isoch_endpoint(
     speed: u8,
     usb3: bool,

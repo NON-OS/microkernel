@@ -16,8 +16,8 @@
 
 use super::family::HardwareFamily;
 
-/// Linux's i2c-i801 drives Intel's SMBus hosts only; another vendor's (AMD's
-/// FCH among them) has a register set of its own.
+/// The i801 register set is Intel's (ICH and PCH datasheets); another
+/// vendor's SMBus host (AMD's FCH among them) has a register set of its own.
 const INTEL: u16 = 0x8086;
 
 pub(super) fn classify_serial_bus(subclass: u8, progif: u8, vendor: u16) -> HardwareFamily {
