@@ -65,6 +65,7 @@ mod guest_limits_tests;
 mod host_body_tests;
 mod mixnet_name_tests;
 mod http_reply_tests;
+mod market_tests;
 mod mirror_tests;
 mod route_read_tests;
 mod tools_tests;

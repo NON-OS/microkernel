@@ -28,18 +28,8 @@ use super::{file::family::choose, guest::Guest};
 pub fn run() -> ! {
     super::heap::init();
     routine(b"[LINUX] personality up\n");
-    if let Some((name, pin)) = super::request::install_request() {
-        say(b"[LINUX] installing\n");
-        // A USB boot loads the store from the stick a minute or more after the
-        // desktop is up: an install asked for before then waits for it rather
-        // than reading a store that is not there yet.
-        let _ = super::settle::wait_settled();
-        let pkg = choose(&name);
-        super::file::allow_shared_writes();
-        // The exit code names the reason, which the store shows.
-        let done = super::install::install(pkg, &pin);
-        say(if done.is_ok() { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
-        mk_exit(done.map_or_else(|why| why.code(), |()| 0))
+    if let Some(asked) = super::request_install::install_request() {
+        super::start_install::install(asked)
     }
     if let Some(name) = super::request::uninstall_request() {
         say(b"[LINUX] uninstalling\n");

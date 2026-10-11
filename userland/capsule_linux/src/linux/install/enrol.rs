@@ -29,6 +29,12 @@ const GUEST_CAPS: u64 = 0;
 
 /// Mint a trailer for `image` and write it beside `path`.
 pub fn vouch(path: &[u8], image: &[u8]) -> bool {
+    sign_beside(path, image, b".zk_trailer.bin")
+}
+
+/// Mint a trailer for `bytes`, a program or its policy, and write it beside
+/// `path` under `suffix`.
+pub(super) fn sign_beside(path: &[u8], image: &[u8], suffix: &[u8]) -> bool {
     let needed = mk_local_sign_len(image, GUEST_CAPS);
     let Ok(len) = usize::try_from(needed) else {
         // Negative: no enrolled identity, or this capsule may not mint.
@@ -40,7 +46,7 @@ pub fn vouch(path: &[u8], image: &[u8]) -> bool {
         return false;
     };
     trailer.truncate(got);
-    let at = beside(path, b".zk_trailer.bin");
+    let at = beside(path, suffix);
     store_write(&key(&at), &trailer).is_ok()
 }
 

@@ -72,7 +72,9 @@ fn install(listing: &str, release: &str) {
     let pinned = queued_get_release(listing, release).map(|r| r.package_hash);
     super::why::say(&asked, &pinned);
     let said: &[u8] = match (ready, pinned.ok()) {
-        (true, Some(hash)) => match spawn_install(&name, &hash, direct) {
+        // None: this tree's market is schema 2 and no release carries a
+        // guest_policy, so "-" is the truth here. I-C5 passes the real one.
+        (true, Some(hash)) => match spawn_install(&name, &hash, None, direct) {
             Ok(pid) => {
                 super::status::set(listing, Stage::Running(pid));
                 b"[LINUX-INSTALL] started "
