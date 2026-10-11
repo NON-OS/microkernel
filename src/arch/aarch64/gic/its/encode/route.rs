@@ -21,9 +21,9 @@ use super::cmd::{Cmd, MAPC, SYNC, VALID};
 
 const ADDR_51_16: u64 = 0x000f_ffff_ffff_0000;
 
-/// The redistributor a command names, as bits 51:16 of its third word: its
-/// physical address when `GITS_TYPER.PTA` says the ITS takes addresses, else
-/// its processor number, which Linux shifts into the same field.
+/// The redistributor a command names, in the RDbase field, bits 51:16 of the
+/// third word: its physical address when `GITS_TYPER.PTA` is one, else its
+/// `GICR_TYPER.Processor_Number` (IHI 0069, the MAPC command and GITS_TYPER).
 pub const fn target(pta: bool, rd_phys: u64, processor: u16) -> u64 {
     if pta {
         rd_phys & ADDR_51_16
