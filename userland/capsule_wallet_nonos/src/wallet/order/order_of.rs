@@ -23,7 +23,7 @@ pub const DELIVERED: u8 = 2;
 /// The terms' disputeWindow word (plan/22's OrderTerms).
 const WINDOW_WORD: usize = 7;
 
-fn tail_u64(w: &[u8; 32]) -> Option<u64> {
+pub(super) fn tail_u64(w: &[u8; 32]) -> Option<u64> {
     let (high, low) = w.split_at(24);
     high.iter().all(|b| *b == 0).then(|| u64::from_be_bytes(low.try_into().unwrap_or([0; 8])))
 }
