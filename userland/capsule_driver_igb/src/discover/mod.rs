@@ -17,6 +17,7 @@
 //! Finding an igb part in the broker's device list.
 
 mod bar_command;
+pub mod choose;
 mod found;
 mod scan;
 mod support;

@@ -27,6 +27,7 @@ mod phy_model;
 mod bring_up_parts_tests;
 mod bring_up_tests;
 mod control_tests;
+mod copper_first_tests;
 mod decode_fuzz;
 mod finish_tests;
 mod go_link_tests;
