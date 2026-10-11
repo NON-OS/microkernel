@@ -18,7 +18,7 @@ use nonos_nox_meter::settle::settle_plan;
 use nonos_nox_meter::MeterError;
 use nonos_payment_proto::DrainSign;
 
-use super::fixture::{sign, state, METER, SETTLEMENT};
+use super::fixture::{sign, state, METER, NOW, SETTLEMENT};
 
 #[test]
 fn sign_stays_under_the_fee_caps_and_the_gas_bound() {
@@ -32,7 +32,7 @@ fn sign_stays_under_the_fee_caps_and_the_gas_bound() {
     ] {
         let req = DrainSign { max_fee: fee, max_priority: tip, gas_limit: gas, ..sign(4, &[1]) };
         assert_eq!(
-            settle_plan(&s, &METER, &req, &SETTLEMENT).err(),
+            settle_plan(&s, &METER, &req, &SETTLEMENT, NOW).err(),
             Some(MeterError::NoGas),
             "{fee} {tip} {gas}"
         );

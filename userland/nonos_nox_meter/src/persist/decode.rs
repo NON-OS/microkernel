@@ -39,6 +39,7 @@ fn read(r: &mut Cursor<'_>) -> Option<MeterState> {
         (0, _) => return None,
         pair => Some(pair),
     };
+    let last_retry = r.u64()?;
     let (cap, spent, expiry) = (r.u128()?, r.u128()?, r.u64()?);
     let n = r.u16()? as usize;
     let mut listings = Vec::with_capacity(n.min(MAX_LISTING_CAPS));
@@ -52,5 +53,10 @@ fn read(r: &mut Cursor<'_>) -> Option<MeterState> {
         channels.push(channel(r)?);
     }
     r.zeros(MAX_CHANNELS.checked_sub(m)? * CHANNEL_LEN)?;
-    Some(MeterState { budget: Budget { cap, spent, expiry, listings }, channels, last_settle })
+    Some(MeterState {
+        budget: Budget { cap, spent, expiry, listings },
+        channels,
+        last_settle,
+        last_retry,
+    })
 }

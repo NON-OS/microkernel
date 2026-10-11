@@ -75,6 +75,9 @@ status defined there.
 Every refusal is a status named in `nonos_payment_proto::status`.
 
 PAY refuses on a channel within a day of its expiry (ETIME), so the last
-drain lands before anyone may close it. The state file (NXMT v3) keeps the
-chain and nonce of the last settle() the meter signed and, per channel, the
-cumulative it carried: the bound on SIGN.
+drain lands before anyone may close it. The state file (NXMT v4) keeps the
+chain and nonce of the last settle() the meter signed, per channel the
+cumulative it carried, and when it last signed the same vouchers again: the
+bound on SIGN. Once its account nonce has passed the last settle's (that
+nonce went to another transaction), the meter signs the same vouchers again
+at most once a day (v1.4.12).
