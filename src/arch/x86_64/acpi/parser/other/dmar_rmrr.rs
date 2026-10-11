@@ -1,0 +1,58 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! RMRR: memory the firmware keeps doing DMA to behind the kernel's back, such
+//! as USB legacy keyboard emulation and integrated graphics' stolen memory,
+//! which the devices it names must still reach once a unit translates. Pure,
+//! so the host proofs hold it.
+
+use super::dmar_scope::Scope;
+use super::dmar_scope_walk::walk_scopes;
+
+pub const RMRR_TYPE: u16 = 1;
+const RMRR_HEADER_LEN: usize = 24;
+pub const MAX_RMRR_SCOPES: usize = 8;
+const PAGE_MASK: u64 = 0xFFF;
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Rmrr {
+    pub segment: u16,
+    pub base: u64,
+    /// The last byte of the region, as the table states it.
+    pub limit: u64,
+    pub scopes: [Scope; MAX_RMRR_SCOPES],
+    pub count: u8,
+    pub truncated: bool,
+}
+
+/// Parse one RMRR (`bytes` is exactly its `length` bytes, type 1). `None` for
+/// a structure too short, or a region that is empty, inverted or not whole
+/// pages: firmware gets those wrong, and mapping a guess is worse than
+/// leaving the region out and saying so.
+pub fn parse_rmrr(bytes: &[u8]) -> Option<Rmrr> {
+    if bytes.len() < RMRR_HEADER_LEN || u16::from_le_bytes([bytes[0], bytes[1]]) != RMRR_TYPE {
+        return None;
+    }
+    let word = |at: usize| u64::from_le_bytes(bytes[at..at + 8].try_into().unwrap_or([0; 8]));
+    let (base, limit) = (word(8), word(16));
+    if base & PAGE_MASK != 0 || limit & PAGE_MASK != PAGE_MASK || limit < base {
+        return None;
+    }
+    let mut scopes = [Scope::EMPTY; MAX_RMRR_SCOPES];
+    let (count, truncated) = walk_scopes(bytes, RMRR_HEADER_LEN, &mut scopes);
+    let segment = u16::from_le_bytes([bytes[6], bytes[7]]);
+    Some(Rmrr { segment, base, limit, scopes, count, truncated })
+}
