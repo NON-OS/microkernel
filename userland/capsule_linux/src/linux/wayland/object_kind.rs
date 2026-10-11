@@ -48,4 +48,7 @@ pub enum Object {
     XdgOutput,
     Viewporter,
     Viewport,
+    Activation,
+    ActivationToken,
+    SinglePixel,
 }
