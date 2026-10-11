@@ -56,7 +56,7 @@ impl MeterState {
             .max_by_key(|&i| {
                 let c = &self.channels[i];
                 let room = c.deposit.saturating_sub(c.cumulative.max(c.settled));
-                (room >= amount, c.expiry)
+                (room >= amount && !c.frozen, c.expiry)
             })
     }
 }

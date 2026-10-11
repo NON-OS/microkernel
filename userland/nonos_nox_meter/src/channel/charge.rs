@@ -22,6 +22,9 @@ impl Channel {
     /// any voucher for it leaves, so a crash can lose a charge but never sign
     /// below one already signed.
     pub fn charged(&self, amount: u128, root: [u8; 32], now: u64) -> Result<Channel, MeterError> {
+        if self.frozen {
+            return Err(MeterError::Frozen);
+        }
         if now >= self.expiry {
             return Err(MeterError::Expired);
         }

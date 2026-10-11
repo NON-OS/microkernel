@@ -39,6 +39,7 @@ pub fn channel() -> Channel {
         expiry: NOW + 3600,
         usage_root: [0; 32],
         sig: NO_SIG,
+        frozen: false,
     }
 }
 
