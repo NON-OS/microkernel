@@ -31,6 +31,7 @@ mod refuse;
 mod table;
 mod unmap;
 mod virtio;
+mod virtio_read;
 mod virtio_rule;
 
 pub(super) use attach::attach;
