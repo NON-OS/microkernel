@@ -43,6 +43,7 @@ mod drivers_usb;
 mod drivers_virtio;
 mod drivers_virtio_display;
 mod drivers_virtio_io;
+mod drivers_vm_nic;
 mod drivers_wifi;
 #[cfg(feature = "microkernel-input-probe")]
 mod input_probe_fleet;

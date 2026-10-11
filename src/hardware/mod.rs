@@ -34,4 +34,5 @@ pub mod virtio_blk_capsule;
 pub mod virtio_gpu_capsule;
 pub mod virtio_net_capsule;
 pub mod virtio_rng_capsule;
+pub mod vmxnet3_capsule;
 pub mod xhci_capsule;

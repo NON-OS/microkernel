@@ -163,6 +163,7 @@ nonos-capsule-driver-rtl8821ce  = []
 nonos-capsule-driver-rtl8139    = []
 nonos-capsule-driver-rtl8169    = []
 nonos-capsule-driver-pcnet      = []
+nonos-capsule-driver-vmxnet3    = []
 nonos-capsule-driver-ahci       = []
 nonos-capsule-driver-hda        = []
 nonos-capsule-audio             = []
@@ -429,6 +430,13 @@ microkernel-driver-pcnet = [
   "nonos-capsule-driver-pcnet",
 ]
 
+microkernel-driver-vmxnet3 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmxnet3",
+]
+
 microkernel-driver-ahci = [
   "microkernel-core",
   "nonos-production",
@@ -643,6 +651,7 @@ microkernel-full-gui = [
   "nonos-capsule-driver-rtl8139",
   "nonos-capsule-driver-rtl8169",
   "nonos-capsule-driver-pcnet",
+  "nonos-capsule-driver-vmxnet3",
   "nonos-capsule-driver-iwlwifi",
   "nonos-capsule-driver-rtl8821ce",
   "nonos-capsule-driver-hda",

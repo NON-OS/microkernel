@@ -23,6 +23,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.rtl8169_0", WIRED_STACK),
     ("driver.rtl8139_0", WIRED_STACK),
     ("driver.pcnet0", WIRED_STACK),
+    ("driver.vmxnet3_0", WIRED_STACK),
     ("driver.iwlwifi0", WIFI_STACK),
     ("driver.rtl8821ce0", WIFI_STACK),
     ("driver.ps2_kbd0", KERNEL_ONLY),
