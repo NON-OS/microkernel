@@ -24,24 +24,12 @@
 //! listing's description is asked in turn so the search can match it.
 
 use super::fill_order::next;
-use super::market::{self, Failure};
+use super::fill_step::{kept, Step};
+use super::market;
 use super::state::State;
 
 /// How soon the next step runs while there is one: quick enough that the
 /// pane fills as the cursor lands, without a busy loop.
-pub const STEP_MS: i64 = 30;
-
-/// What a step did.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Step {
-    /// Nothing left to ask.
-    Done,
-    /// Asked about a listing; the screen shows what changed.
-    Shown,
-    /// Asked about a listing nothing on screen depends on yet.
-    Quiet,
-}
-
 impl State {
     /// One step of asking. A new description can change what the search
     /// keeps, so it is shown whenever a query is typed.
@@ -64,6 +52,7 @@ impl State {
             l.known.release = kept(release, &mut silent);
             let readiness = market::install_ready(port, market::next_id(), &l.id);
             l.known.readiness = kept(readiness, &mut silent);
+            l.known.price = kept(market::get_price(port, market::next_id(), &l.id), &mut silent);
             l.known.judged = true;
         }
         /*
@@ -79,17 +68,4 @@ impl State {
             false => Step::Quiet,
         }
     }
-
-    /// Whether the market still has something to be asked. False once it
-    /// has stopped answering (`port` zero), since every answer would be the
-    /// same silence.
-    pub fn filling(&self) -> bool {
-        self.port != 0 && next(&self.listings, self.current_index()).is_some()
-    }
-}
-
-/// The answer, noting when there was none at all.
-fn kept<T>(got: Result<T, Failure>, silent: &mut bool) -> Option<T> {
-    *silent |= matches!(got, Err(Failure::NoReply));
-    got.ok()
 }
