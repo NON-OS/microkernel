@@ -41,7 +41,7 @@ No interrupt is bound and every cause is masked (EIMC and EIMC_EX).
 
 Same operations as `driver.e1000_0`: `OP_HEALTHCHECK`, `OP_LINK_STATUS`
 (1 byte), `OP_MAC_ADDRESS` (6 bytes), `OP_TX_PACKET`, `OP_RX_PACKET`
-(length and frame), `OP_STATS` (48-byte snapshot, with RXCTRL and DMATXCTL
+(length and frame), `OP_STATS` on 7 (48-byte snapshot, with RXCTRL and DMATXCTL
 where e1000 has RCTL and TCTL).
 
 ## Authority
