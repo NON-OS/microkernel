@@ -20,6 +20,7 @@ mod attach;
 mod lifetime;
 mod map;
 mod range;
+mod teardown;
 mod unmap;
 mod walk;
 

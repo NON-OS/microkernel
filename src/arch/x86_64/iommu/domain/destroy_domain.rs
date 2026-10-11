@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::globals::is_present;
 use super::super::globals::state::STATE;
+use super::super::globals::{is_present, page_levels};
+use super::super::tables::release::release_tables;
 use super::super::tables::root::clear_context;
 use super::super::types::{DomainId, VtdError, MAX_VTD_DOMAINS};
 use super::super::unit::invalidate::invalidate_all_units;
@@ -23,7 +24,9 @@ use super::super::unit::report::probed;
 
 /// Devices still bound are denied first, and the caches dropped, before the
 /// slot is freed: a freed slot is reused by the next claim, and a device left
-/// pointing at it would reach whatever that claim maps.
+/// pointing at it would reach whatever that claim maps. Only then do the
+/// domain's tables go back to the allocator. If that fails, the slot stays
+/// taken with its root, quarantined, and the error reaches the caller.
 pub fn destroy_domain(id: DomainId) -> Result<(), VtdError> {
     if !is_present() {
         return Err(VtdError::NotPresent);
@@ -43,6 +46,10 @@ pub fn destroy_domain(id: DomainId) -> Result<(), VtdError> {
         invalidate_all_units()?;
     }
     state.bindings.retain(|binding| binding.domain != id);
+    let root = state.domains[index].root;
+    if root != 0 {
+        release_tables(root, page_levels().ok_or(VtdError::DepthUnknown)?)?;
+    }
     state.domains[index].used = false;
     state.domains[index].root = 0;
     Ok(())
