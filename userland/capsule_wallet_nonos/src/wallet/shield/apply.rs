@@ -120,6 +120,7 @@ pub fn apply(state: &mut State, op: u16, body: &str) {
         OP_CONFIRM => confirmed(state, body),
         OP_QUOTE => quoted(state, body),
         OP_SEND | OP_WITHDRAW => proved(state, op, body),
+        OP_SIGN_FROM_FRESH => crate::wallet::order::escrow_sign::signed(state, body),
         OP_FOLLOW => {
             super::follow::followed(state, body);
             refresh(state);
