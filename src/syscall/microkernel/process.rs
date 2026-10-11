@@ -18,25 +18,11 @@ extern crate alloc;
 
 use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM, ERRNO_PERM};
 use crate::process::current_pid;
-use core::sync::atomic::{AtomicU32, Ordering};
-
-static EXIT_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace_exit(label: &[u8], pid: u32) {
-    if !matches!(pid, 7 | 8 | 0x1b | 0x1c | 0x27)
-        || EXIT_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 24
-    {
-        return;
-    }
-    crate::sys::serial::print(b"[EXIT] ");
-    crate::sys::serial::println(label);
-}
 
 pub fn sys_exit(code: i32) -> i64 {
     let Some(pid) = current_pid() else {
         return ERRNO_INVAL;
     };
-    trace_exit(b"enter", pid);
     // A non-zero code is the one trace a silent capsule leaves: name it.
     if code != 0 {
         use crate::sys::serial::{print, print_dec, println};
