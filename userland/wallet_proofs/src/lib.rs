@@ -158,6 +158,8 @@ mod typed_tests;
 #[cfg(test)]
 mod typed_hash_tests;
 #[cfg(test)]
+mod typed_words_tests;
+#[cfg(test)]
 mod intent_tests;
 #[cfg(test)]
 mod intent_words_tests;
