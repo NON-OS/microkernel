@@ -23,7 +23,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use super::super::dte::blocked;
 use super::super::error::AmdViError;
 use super::super::regs::DEV_TABLE_PAGES;
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::memory::phys::{alloc_contiguous, AllocFlags};
 
 static TABLE: AtomicU64 = AtomicU64::new(0);
@@ -39,9 +39,11 @@ pub(in super::super) fn device_table() -> Result<u64, AmdViError> {
     let phys = alloc_contiguous(DEV_TABLE_PAGES, AllocFlags::ZERO).ok_or(AmdViError::NoFrames)?;
     for page in 0..DEV_TABLE_PAGES {
         let words =
-            entries_mut(phys + page as u64 * 4096).map_err(|_| AmdViError::TableUnreachable)?;
-        for entry in words.chunks_exact_mut(4) {
-            entry.copy_from_slice(&blocked());
+            Frame::at(phys + page as u64 * 4096).map_err(|_| AmdViError::TableUnreachable)?;
+        for entry in 0..PER_PAGE {
+            for (word, value) in blocked().into_iter().enumerate() {
+                words.write(entry * 4 + word, value)?;
+            }
         }
     }
     TABLE.store(phys, Ordering::Release);

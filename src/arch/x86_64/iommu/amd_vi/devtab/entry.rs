@@ -19,29 +19,29 @@ use core::sync::atomic::{compiler_fence, Ordering};
 use super::super::dte::Dte;
 use super::super::error::AmdViError;
 use super::table::{device_table, PER_PAGE};
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 
 /// Replace the entry for `device_id`, the first quadword (V, TV, mode and
 /// root) last, so a unit never reads a new root beside an old domain. The
 /// caller flushes the unit's cached copy afterwards.
 pub(in super::super) fn write_dte(device_id: u16, entry: Dte) -> Result<(), AmdViError> {
     let (words, at) = slot_of(device_id)?;
-    words[at + 3] = entry[3];
-    words[at + 2] = entry[2];
-    words[at + 1] = entry[1];
+    words.write(at + 3, entry[3])?;
+    words.write(at + 2, entry[2])?;
+    words.write(at + 1, entry[1])?;
     compiler_fence(Ordering::SeqCst);
-    words[at] = entry[0];
+    words.write(at, entry[0])?;
     Ok(())
 }
 
 pub(in super::super) fn read_dte(device_id: u16) -> Result<Dte, AmdViError> {
     let (words, at) = slot_of(device_id)?;
-    Ok([words[at], words[at + 1], words[at + 2], words[at + 3]])
+    Ok([words.read(at)?, words.read(at + 1)?, words.read(at + 2)?, words.read(at + 3)?])
 }
 
 /// The page holding `device_id`'s entry, and the entry's first quadword in it.
-fn slot_of(device_id: u16) -> Result<(&'static mut [u64], usize), AmdViError> {
+fn slot_of(device_id: u16) -> Result<(Frame, usize), AmdViError> {
     let page = device_table()? + (device_id as usize / PER_PAGE) as u64 * 4096;
-    let words = entries_mut(page).map_err(|_| AmdViError::TableUnreachable)?;
+    let words = Frame::at(page).map_err(|_| AmdViError::TableUnreachable)?;
     Ok((words, (device_id as usize % PER_PAGE) * 4))
 }

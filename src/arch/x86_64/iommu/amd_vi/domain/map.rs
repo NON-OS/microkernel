@@ -22,7 +22,7 @@ use super::super::error::AmdViError;
 use super::super::flush::flush_domain;
 use super::super::pte::{is_present, leaf};
 use super::lifetime::{root_of, ROOTS};
-use super::range::{leaf_at, pages, PAGE};
+use super::range::{leaves, pages, PAGE};
 use super::walk::walk_create;
 
 pub fn map_range(
@@ -40,13 +40,13 @@ pub fn map_range(
     let root = root_of(&roots, domain)?;
     for page in 0..count {
         let (table, slot) = walk_create(root, iova + page * PAGE)?;
-        if is_present(*leaf_at(table, slot)?) {
+        if is_present(leaves(table)?.read(slot)?) {
             return Err(AmdViError::RangeAlreadyMapped);
         }
     }
     for page in 0..count {
         let (table, slot) = walk_create(root, iova + page * PAGE)?;
-        *leaf_at(table, slot)? = leaf(phys + page * PAGE, read, write);
+        leaves(table)?.write(slot, leaf(phys + page * PAGE, read, write))?;
     }
     flush_domain(domain)
 }

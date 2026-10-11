@@ -17,8 +17,9 @@
 use super::context_table::slot_of;
 use super::table::root_table;
 use crate::arch::x86_64::iommu::tables::context::{context_index, entry_address, is_present};
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::pair::clear_pair;
 use crate::arch::x86_64::iommu::tables::publish::publish;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::types::{SourceId, VtdError};
 
 /// Deny a device again. The present bit goes first, so the device is denied
@@ -26,18 +27,17 @@ use crate::arch::x86_64::iommu::types::{SourceId, VtdError};
 pub fn clear_context(source: SourceId) -> Result<(), VtdError> {
     let root = root_table()?;
     let root_slot = slot_of(source.bus() as usize);
-    let low = entries_mut(root)?[root_slot];
+    let low = Frame::at(root)?.read(root_slot)?;
     if !is_present(low) {
         return Err(VtdError::DeviceNotAttached);
     }
     let table = entry_address(low);
     let slot = slot_of(context_index(source.device(), source.function()));
-    let entries = entries_mut(table)?;
-    if !is_present(entries[slot]) {
+    let frame = Frame::at(table)?;
+    if !is_present(frame.read(slot)?) {
         return Err(VtdError::DeviceNotAttached);
     }
-    entries[slot] = 0;
-    entries[slot + 1] = 0;
+    clear_pair(frame, slot)?;
     publish(table);
     Ok(())
 }
