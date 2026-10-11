@@ -26,6 +26,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         StorageVirtioBlk => "driver_virtio_blk",
         NetworkVirtio => "driver_virtio_net",
         NetworkE1000 => "driver_e1000",
+        NetworkE1000e => "driver_e1000e",
         NetworkIgb => "driver_igb",
         NetworkIxgbe => "driver_ixgbe",
         NetworkRtl8139 => "driver_rtl8139",
