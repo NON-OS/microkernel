@@ -32,6 +32,9 @@ pub fn ack_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
     if intid == 0 {
         return Err(IrqError::UnknownGrant);
     }
-    gic::enable_irq(intid);
+    // The trampoline never masked a message vector; there is nothing to undo.
+    if !e.message.load(Ordering::Acquire) {
+        gic::enable_irq(intid);
+    }
     Ok(())
 }
