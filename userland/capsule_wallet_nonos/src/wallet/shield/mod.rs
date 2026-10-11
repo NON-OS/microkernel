@@ -26,6 +26,7 @@ mod apply;
 pub mod client;
 mod follow;
 pub mod fund_meter;
+pub mod fund_order;
 pub mod job;
 mod kept_names;
 pub mod open;
