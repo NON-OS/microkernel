@@ -40,7 +40,7 @@ pub fn motion(guest: &mut Guest, x: i32, y: i32) {
         .u32(fixed(x))
         .u32(fixed(y))
         .send(&mut guest.display.to_client);
-    Event::new(id, POINTER_FRAME).send(&mut guest.display.to_client);
+    frame(guest, id);
 }
 
 /// `button` is the driver's, from 1; one with no Linux code sends nothing.
@@ -55,7 +55,15 @@ pub fn button(guest: &mut Guest, button: u32, state: u32) {
         .u32(code)
         .u32(state)
         .send(&mut guest.display.to_client);
-    Event::new(id, POINTER_FRAME).send(&mut guest.display.to_client);
+    frame(guest, id);
+}
+
+/// wl_pointer.frame came with version 5; an older pointer takes each event
+/// as it comes.
+fn frame(guest: &mut Guest, id: u32) {
+    if guest.objects.at_least(id, 5) {
+        Event::new(id, POINTER_FRAME).send(&mut guest.display.to_client);
+    }
 }
 
 fn time_ms() -> u32 {
