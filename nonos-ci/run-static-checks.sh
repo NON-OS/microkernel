@@ -1349,8 +1349,8 @@ fi
 if ! grep -q 'TRB_TYPE_ADDRESS_DEVICE_CMD' userland/capsule_driver_xhci/src/constants/trb_kinds.rs ||
    ! grep -q 'TRB_TYPE_TRANSFER_EVENT' userland/capsule_driver_xhci/src/constants/trb_kinds.rs ||
    ! grep -q 'context_size' userland/capsule_driver_xhci/src/regs/cap/mod.rs ||
-   ! grep -q 'reset_port' userland/capsule_driver_xhci/src/controller/mod.rs ||
-   ! grep -q 'set_dcbaa_slot' userland/capsule_driver_xhci/src/controller/mod.rs ||
+   ! grep -q 'reset_port' userland/capsule_driver_xhci/src/controller/exports.rs ||
+   ! grep -q 'set_dcbaa_slot' userland/capsule_driver_xhci/src/controller/exports.rs ||
    ! grep -q 'SlotResources' userland/capsule_driver_xhci/src/slots/resources.rs ||
    ! grep -q 'OP_ADDRESS_DEVICE' userland/capsule_driver_xhci/src/protocol/ops.rs ||
    ! grep -q 'OP_GET_DEVICE_DESCRIPTOR' userland/capsule_driver_xhci/src/protocol/ops.rs ||
@@ -4217,7 +4217,7 @@ unset handoff_init handoff_orch
 
 # NØNOS trust-anchor module ships the policy decoder and the
 # baked-policy slot the kernel embeds at build time. The slot can be
-# `Option<&[u8]> = None` during Lane B integration; once Lane B emits
+# `Option<&[u8]> = None` during run B integration; once run B emits
 # .keys/nonos_trust_anchor.policy.bin, baked.rs flips to a non-Option
 # include_bytes! and a separate gate enforces "no None" in production.
 ta_dir=src/security/nonos_trust_anchor
