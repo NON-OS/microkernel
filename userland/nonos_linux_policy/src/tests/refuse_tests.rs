@@ -32,7 +32,7 @@ fn refuses_wrong_magic_and_version() {
 
 #[test]
 fn refuses_every_reserved_byte() {
-    for at in (10..16).chain(193..LEN) {
+    for at in (10..16).chain(217..LEN) {
         let mut b = policy().encode();
         b[at] = 0x80;
         assert_eq!(decode(&b), Err(PolicyError::Reserved), "byte {at}");
@@ -48,7 +48,7 @@ fn refuses_unnamed_mask_bits_and_calls_past_the_last_bucket() {
     }
     for bit in 1..8 {
         let mut b = policy().encode();
-        b[192] |= 1 << bit;
+        b[216] |= 1 << bit;
         assert_eq!(decode(&b), Err(PolicyError::SyscallSet), "bit {bit}");
     }
 }
