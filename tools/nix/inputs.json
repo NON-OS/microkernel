@@ -3146,6 +3146,7 @@
    "userland/nonos_blk_client/src/device/identity_parse.rs",
    "userland/nonos_blk_client/src/device/span.rs",
    "userland/nonos_blk_client/src/device/transfer.rs",
+   "userland/nonos_blk_client/src/device/unserved.rs",
    "userland/nonos_blk_client/src/device/wire_identity_parse.rs",
    "userland/nonos_blk_client/src/disks/contents.rs",
    "userland/nonos_blk_client/src/disks/word.rs",
