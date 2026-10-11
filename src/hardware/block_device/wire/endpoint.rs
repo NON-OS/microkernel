@@ -37,8 +37,8 @@ pub struct Endpoint {
     pub slot: &'static Slot,
 }
 
-/// The units the client keeps state for, per endpoint.
-pub const MAX_UNITS: usize = 4;
+/// Units the client keeps state for, per endpoint: a UFS device's eight LUs.
+pub const MAX_UNITS: usize = 8;
 
 /// The client's own state for one endpoint, kept beside it so a mirror
 /// declares everything in two statics.

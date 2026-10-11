@@ -1,8 +1,11 @@
 # capsule_driver_ufs
 
-Status: not in the image. The capsule builds and its host proofs pass, but
-it has no owner certificate and the kernel never spawns it: it is not yet
-wired into the kernel mirror and the block wire table.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/ufs_capsule`)
+embeds and spawns it under `nonos-capsule-driver-ufs` (the
+`microkernel-driver-ufs` build) when the inventory sees a UFS host, and the
+kernel's block wire client and the installer (`nonos_blk_client`,
+`Driver::Ufs`) reach it. It has no owner certificate yet, so no image carries
+it until the owner signs it.
 
 ## Role
 
@@ -104,7 +107,7 @@ installer listing the unit, and a write read back; then one UFS machine.
 
 ## Release checklist
 
-- Wired into the kernel mirror and the block wire table, signed by the owner.
+- Signed by the owner and added to the desktop image's features.
 - A QEMU UFS lane, and one machine photographed with the `driver.ufs:` lines.
 
 ## Explicit non-goals today
@@ -112,7 +115,8 @@ installer listing the unit, and a write read back; then one UFS machine.
 No high-speed gear: the link stays in PWM-G1, one lane, as link startup
 leaves it, which is slow on hardware. No interrupts, MCQ, task management,
 inline crypto, write booster, RPMB, power management or descriptor writes.
-No ACPI-only UFS host.
+No ACPI-only UFS host. The installer lists unit 0 alone, as it asks every
+block wire driver; the kernel's client reaches all eight.
 
 ## Verification
 
