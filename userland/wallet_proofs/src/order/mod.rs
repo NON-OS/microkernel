@@ -22,6 +22,14 @@ mod confirm;
 pub mod delivered;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute.rs"]
 pub mod dispute;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute_gas.rs"]
+pub mod dispute_gas;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute_quote.rs"]
+pub mod dispute_quote;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute_step.rs"]
+pub mod dispute_step;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute_steps.rs"]
+pub mod dispute_steps;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute_said.rs"]
 pub mod dispute_said;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/escrowed.rs"]

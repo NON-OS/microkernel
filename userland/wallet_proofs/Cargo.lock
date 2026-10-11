@@ -142,6 +142,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "shield_wire"
+version = "0.1.0"
+
+[[package]]
 name = "typenum"
 version = "1.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -167,4 +171,5 @@ dependencies = [
  "nonos_secp256k1",
  "nonos_settle_proto",
  "sha3",
+ "shield_wire",
 ]
