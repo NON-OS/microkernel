@@ -18,10 +18,14 @@ pub mod endian;
 pub mod error;
 pub mod find;
 pub mod header;
+pub mod layout;
+pub mod limits;
 pub mod parser;
 pub mod property;
+mod raw;
 pub mod strings;
 pub mod tokens;
+mod validate;
 pub mod walker;
 
 pub use error::FdtError;
