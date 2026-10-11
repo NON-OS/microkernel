@@ -16,6 +16,8 @@
 
 //! What a listing's gate vector actually means for the user.
 
+use nonos_market_proto::BondCode;
+
 use crate::store::market::Readiness;
 
 /// The package gate's position in the vector the capsule returns.
@@ -30,7 +32,7 @@ pub enum Verdict {
     /// Every gate passes except the one asking for something to fetch.
     /// That is what a capsule already in the image looks like.
     Installed,
-    /// Every gate passes but the bond, which the market is still reading.
+    /// Every gate passes but the bond, which the market has not read yet.
     Checking,
     Blocked,
 }
@@ -45,7 +47,7 @@ impl Verdict {
         };
         match (only(PACKAGE_GATE), only(BOND_GATE)) {
             (true, _) => Verdict::Installed,
-            (_, true) => Verdict::Checking,
+            (_, true) if r.bond == BondCode::Unread => Verdict::Checking,
             _ => Verdict::Blocked,
         }
     }

@@ -26,6 +26,7 @@ extern crate alloc;
 
 pub mod app;
 pub mod body;
+pub mod bond_code;
 pub mod commerce;
 mod commerce_parse;
 pub mod header;
@@ -41,6 +42,7 @@ pub mod request;
 pub mod status;
 
 pub use app::{parse_app, App};
+pub use bond_code::BondCode;
 pub use body::{listing_body, pair_body, ready_body};
 pub use commerce::{Commerce, BINDING_VALID, COMMERCE_MATCHES};
 pub use commerce_parse::parse_commerce;
@@ -51,7 +53,7 @@ pub use ops::{
     OP_GET_APP, OP_GET_COMMERCE, OP_GET_RELEASE, OP_HEALTHCHECK, OP_INSTALL_READY, OP_LIST_APPS,
     OP_LOAD_INDEX,
 };
-pub use readiness::{parse_readiness, Readiness, GATES};
+pub use readiness::{parse_readiness, Readiness, GATES, READINESS_LEN};
 pub use reason::{installed_line, reason, removal_only, Reason};
 pub use release::{parse_release, Release};
 pub use reply::{reply_body, ReplyError};
