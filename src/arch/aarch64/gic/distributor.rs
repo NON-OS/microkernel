@@ -23,5 +23,6 @@ mod pending;
 mod priority;
 mod registers;
 mod route;
+mod settle;
 
 pub use device::GicDistributor;
