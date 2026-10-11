@@ -1783,7 +1783,7 @@
    "userland/capsule_linux/src/linux/call/futex_op.rs",
    "userland/capsule_linux/src/linux/call/ioctl_req.rs",
    "userland/capsule_linux/src/linux/call/iovec.rs",
-   "userland/capsule_linux/src/linux/call/mem/map_args.rs",
+   "userland/capsule_linux/src/linux/call/mem/map_args",
    "userland/capsule_linux/src/linux/call/mem/prot_args.rs",
    "userland/capsule_linux/src/linux/call/mem/remap_args.rs",
    "userland/capsule_linux/src/linux/call/random_flags.rs",
