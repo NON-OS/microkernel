@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! ACCOUNT pages the channel table (v1.4.48): a listing's open channel is
 //! looked for a page a tick until the table's end.
 
