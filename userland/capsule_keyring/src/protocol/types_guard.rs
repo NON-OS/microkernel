@@ -49,6 +49,7 @@ const _: () = {
         OP_SHIELD_SEAL,
         OP_SHIELD_OPEN,
         OP_WALLET_DERIVE,
+        OP_SIGN_TYPED_DATA,
     ];
     let mut i = 0;
     while i < ops.len() {
