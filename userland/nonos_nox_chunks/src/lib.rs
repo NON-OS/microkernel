@@ -1,0 +1,42 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Escrow's fair delivery: content cut into 1024-byte chunks, the
+//! plain and cipher Merkle trees over them, the per-order keystream, and the
+//! order and refund commitments. Pure and no_std; keccak comes from the
+//! caller, as marketplace_abi takes it.
+
+#![no_std]
+
+extern crate alloc;
+
+mod chunk;
+mod cipher;
+mod leaf;
+mod order;
+mod proof;
+mod roots;
+mod terms;
+mod tree;
+
+pub use chunk::{chunk, chunk_count, CHUNK};
+pub use cipher::{key_commit, keystream_word, xor_chunk};
+pub use leaf::{leaf, CIPHER_TREE, PLAIN_TREE};
+pub use order::{order_id, refund_commit};
+pub use proof::{proof, verify};
+pub use roots::{chunk_root, cipher_root, plain_hashes, root_of_hashes};
+pub use terms::{OrderTerms, TERMS_WORDS};
+pub use tree::root;
