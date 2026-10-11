@@ -43,6 +43,9 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::DataDevice => b"wl_data_device",
         Object::DecorationManager => b"zxdg_decoration_manager_v1",
         Object::Decoration => b"zxdg_toplevel_decoration_v1",
+        Object::Positioner => b"xdg_positioner",
+        Object::Popup => b"xdg_popup",
+        Object::Touch => b"wl_touch",
     }
 }
 
