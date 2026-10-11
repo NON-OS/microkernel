@@ -47,6 +47,8 @@ mod cmd_tests;
 #[cfg(test)]
 mod console_tests;
 #[cfg(test)]
+mod deadline_tests;
+#[cfg(test)]
 mod fault_tests;
 #[cfg(test)]
 mod io_tests;
