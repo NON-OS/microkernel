@@ -19,7 +19,8 @@ use alloc::vec::Vec;
 use nonos_nox_meter::caller::Role;
 use nonos_payment_proto::{EINVAL, EPERM, OP_ACCOUNT, OP_DRAIN, OP_HEALTHCHECK, OP_LIST_TOKENS};
 use nonos_payment_proto::{OP_CLAIM, OP_CLOSE, OP_JOB, OP_OPEN, OP_PAY, OP_SET_BUDGET, OP_TOPUP};
-use nonos_payment_proto::{OP_ORDER_NEW, OP_ORDER_OFFER, OP_ORDER_REFUND, OP_ORDER_STATUS};
+use nonos_payment_proto::{OP_ORDER_DELIVERED, OP_ORDER_NEW, OP_ORDER_OFFER};
+use nonos_payment_proto::{OP_ORDER_REFUND, OP_ORDER_STATUS};
 
 use super::call::Call;
 use super::gate::admits;
@@ -38,6 +39,7 @@ pub fn dispatch(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
         OP_DRAIN => Role::Settle,
         OP_ACCOUNT | OP_SET_BUDGET | OP_OPEN | OP_TOPUP | OP_CLOSE | OP_CLAIM => Role::Wallet,
         OP_ORDER_NEW | OP_ORDER_REFUND | OP_ORDER_OFFER => Role::Wallet,
+        OP_ORDER_DELIVERED => Role::Deliverer,
         _ => return req.answer(EINVAL, &[]),
     };
     if !admits(role, req.sender) {
@@ -58,6 +60,7 @@ pub fn dispatch(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
         OP_ORDER_STATUS => handlers::order_status(meter, work, req),
         OP_ORDER_REFUND => handlers::order_refund(req),
         OP_ORDER_OFFER => handlers::order_offer(meter, work, req),
+        OP_ORDER_DELIVERED => handlers::order_delivered(work, req),
         _ => handlers::set_budget(meter, req),
     }
 }
