@@ -42,7 +42,6 @@ pub(super) const fn decode(leaf7_edx: u32, ext8_ebx: u32) -> SpecControls {
 }
 
 /// This CPU's controls; a leaf the CPU does not have reads as no bits.
-#[cfg(target_arch = "x86_64")]
 pub(super) fn read() -> SpecControls {
     use core::arch::x86_64::{__cpuid, __cpuid_count};
     let leaf7 = if __cpuid(0).eax >= 7 { __cpuid_count(7, 0).edx } else { 0 };
