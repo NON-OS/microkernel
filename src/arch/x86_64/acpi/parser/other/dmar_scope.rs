@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which PCI devices a DMAR remapping unit (DRHD) covers. A device may be
-//! confined to a capsule's domain only when a unit in service translates it; a
-//! device no unit covers would take the IOVA it is handed for a physical address
-//! and DMA the wrong memory. Bring-up programs every segment 0 unit, so this is
-//! the check that the broker's IOVA and the hardware agree, not a second way of
-//! choosing units. This parses a
-//! DRHD's flags and device scopes (VT-d 3.x, 8.3 and 8.3.1) and answers the
-//! coverage question with no hardware, given a way to read a bridge's bus range.
-//! It holds no allocation so the host proofs can include it unchanged.
+//! DMAR device scopes (VT-d 3.x, 8.3.1): the types DRHD and RMRR share,
+//! parsed in dmar_parse.rs and resolved in dmar_cover.rs.
+
+pub use super::dmar_cover::scope_covers;
+pub use super::dmar_parse::{parse_drhd, read_scopes};
+pub use super::dmar_translated::{translated_by_some, Cover};
 
 /// DRHD flags bit 0: the unit covers every PCI device in its segment not named
 /// by another unit's scope. The spec requires such a unit to be listed last.
@@ -36,8 +33,8 @@ pub const MAX_SCOPES: usize = 16;
 /// Path hops kept per scope; a longer path is marked unresolvable.
 pub const MAX_PATH: usize = 4;
 
-const DRHD_HEADER_LEN: usize = 16;
-const SCOPE_HEADER_LEN: usize = 6;
+pub(super) const DRHD_HEADER_LEN: usize = 16;
+pub(super) const SCOPE_HEADER_LEN: usize = 6;
 
 /// One PCI device scope: its type, the bus its path starts on, and the
 /// (device, function) hops of the path.
@@ -50,7 +47,8 @@ pub struct Scope {
 }
 
 impl Scope {
-    const EMPTY: Scope = Scope { kind: 0, start_bus: 0, path: [(0, 0); MAX_PATH], path_len: 0 };
+    pub(super) const EMPTY: Scope =
+        Scope { kind: 0, start_bus: 0, path: [(0, 0); MAX_PATH], path_len: 0 };
 }
 
 /// What a DRHD says it covers.
@@ -73,134 +71,4 @@ impl UnitScope {
         count: 0,
         truncated: false,
     };
-}
-
-/// Parse one DRHD structure (`bytes` is exactly its `length` bytes, type 0).
-/// `None` for a structure too short to be a DRHD. Scope types other than
-/// endpoint and bridge (IOAPIC, HPET, ACPI namespace) name no PCI device and are
-/// skipped; a malformed scope ends the walk and marks the unit truncated.
-pub fn parse_drhd(bytes: &[u8]) -> Option<UnitScope> {
-    if bytes.len() < DRHD_HEADER_LEN || u16::from_le_bytes([bytes[0], bytes[1]]) != 0 {
-        return None;
-    }
-    let mut unit = UnitScope::EMPTY;
-    unit.include_all = bytes[4] & FLAG_INCLUDE_PCI_ALL != 0;
-    unit.segment = u16::from_le_bytes([bytes[6], bytes[7]]);
-    read_scopes(bytes, DRHD_HEADER_LEN, &mut unit);
-    Some(unit)
-}
-
-/// The device scopes from `from` to the end of a DRHD or RMRR structure,
-/// into `unit`. A malformed scope ends the walk and marks it truncated.
-pub fn read_scopes(bytes: &[u8], from: usize, unit: &mut UnitScope) {
-    let mut at = from;
-    while at + 2 <= bytes.len() {
-        let kind = bytes[at];
-        let len = bytes[at + 1] as usize;
-        if len < SCOPE_HEADER_LEN
-            || at + len > bytes.len()
-            || !(len - SCOPE_HEADER_LEN).is_multiple_of(2)
-        {
-            unit.truncated = true;
-            break;
-        }
-        if kind == SCOPE_ENDPOINT || kind == SCOPE_BRIDGE {
-            let hops = (len - SCOPE_HEADER_LEN) / 2;
-            if hops == 0 || hops > MAX_PATH || unit.count as usize >= MAX_SCOPES {
-                unit.truncated = true;
-            } else {
-                let mut s = Scope::EMPTY;
-                s.kind = kind;
-                s.start_bus = bytes[at + 5];
-                for h in 0..hops {
-                    let p = at + SCOPE_HEADER_LEN + h * 2;
-                    s.path[h] = (bytes[p], bytes[p + 1]);
-                }
-                s.path_len = hops as u8;
-                unit.scopes[unit.count as usize] = s;
-                unit.count += 1;
-            }
-        }
-        at += len;
-    }
-}
-
-/// Whether a unit covers a device.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Cover {
-    Yes,
-    No,
-    /// A scope could not be resolved (a bridge did not answer, or the unit's
-    /// scope list was truncated), so the answer is not known.
-    Unknown,
-}
-
-/// Does `unit`'s explicit scope list name the device at `segment`/`bdf`?
-/// `bridge_buses(bus, dev, func)` returns a bridge's (secondary, subordinate)
-/// bus numbers, or `None` if that function is not an answering bridge.
-/// INCLUDE_PCI_ALL is not consulted here; see `translated_by_first`.
-pub fn scope_covers<F>(unit: &UnitScope, segment: u16, bdf: (u8, u8, u8), bridge_buses: &F) -> Cover
-where
-    F: Fn(u8, u8, u8) -> Option<(u8, u8)>,
-{
-    if segment != unit.segment {
-        return Cover::No;
-    }
-    let mut unknown = unit.truncated;
-    for s in &unit.scopes[..unit.count as usize] {
-        let Some(target) = resolve(s, bridge_buses) else {
-            unknown = true;
-            continue;
-        };
-        if target == bdf {
-            return Cover::Yes;
-        }
-        if s.kind == SCOPE_BRIDGE {
-            match bridge_buses(target.0, target.1, target.2) {
-                Some((sec, sub)) if sec <= bdf.0 && bdf.0 <= sub => return Cover::Yes,
-                Some(_) => {}
-                None => unknown = true,
-            }
-        }
-    }
-    if unknown {
-        Cover::Unknown
-    } else {
-        Cover::No
-    }
-}
-
-// Walk a scope's path: every hop but the last is a bridge whose secondary bus
-// the next hop sits on (VT-d 8.3.1).
-fn resolve<F>(s: &Scope, bridge_buses: &F) -> Option<(u8, u8, u8)>
-where
-    F: Fn(u8, u8, u8) -> Option<(u8, u8)>,
-{
-    let hops = &s.path[..s.path_len as usize];
-    let (last, through) = hops.split_last()?;
-    let mut bus = s.start_bus;
-    for &(dev, func) in through {
-        bus = bridge_buses(bus, dev, func)?.0;
-    }
-    Some((bus, last.0, last.1))
-}
-
-/// Whether some unit in `units` (every one of them programmed) translates the
-/// device: a unit that covers its whole segment (INCLUDE_PCI_ALL), or a unit
-/// whose scope names the device. A device no unit claims, or whose claim cannot
-/// be resolved, is not translated: it keeps its physical address, which it can
-/// always use, instead of an IOVA nothing would translate.
-pub fn translated_by_some<F>(
-    units: &[UnitScope],
-    segment: u16,
-    bdf: (u8, u8, u8),
-    bridge_buses: &F,
-) -> bool
-where
-    F: Fn(u8, u8, u8) -> Option<(u8, u8)>,
-{
-    units.iter().any(|u| {
-        (u.include_all && u.segment == segment)
-            || scope_covers(u, segment, bdf, bridge_buses) == Cover::Yes
-    })
 }

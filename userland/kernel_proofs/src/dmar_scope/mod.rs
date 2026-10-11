@@ -22,4 +22,12 @@
 
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_scope.rs"]
 pub mod scope;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_parse.rs"]
+pub mod dmar_parse;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_cover.rs"]
+pub mod dmar_cover;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_translated.rs"]
+pub mod dmar_translated;
+// The siblings import the scope types by the kernel's file name.
+pub use scope as dmar_scope;
 mod tests;
