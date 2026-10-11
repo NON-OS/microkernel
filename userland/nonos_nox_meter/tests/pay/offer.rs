@@ -15,21 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_marketplace_abi::Commerce;
-use nonos_nox_meter::pay::{parse_pay, priced, Offer};
+use nonos_nox_meter::pay::{priced, Offer};
 use nonos_nox_meter::MeterError;
 
-use super::fixture::{body, commerce, offer, NOX};
+use super::fixture::{commerce, offer, request, NOX};
 
 #[test]
 fn a_request_equal_to_the_block_is_priced_qty_times_unit_price() {
-    let b = body(b"l", b"r");
-    assert_eq!(priced(&parse_pay(&b).unwrap(), &offer(&commerce()), &NOX), Ok(35));
+    assert_eq!(priced(&request(), &offer(&commerce()), &NOX), Ok(35));
 }
 
 #[test]
 fn any_word_off_the_block_or_an_untrusted_release_is_refused() {
-    let b = body(b"l", b"r");
-    let r = parse_pay(&b).unwrap();
+    let r = request();
     let good = offer(&commerce());
     assert_eq!(
         priced(&r, &Offer { trusted: false, ..good.clone() }, &NOX),

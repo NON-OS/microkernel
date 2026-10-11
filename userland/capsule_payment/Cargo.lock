@@ -87,11 +87,11 @@ dependencies = [
 name = "nonos_capsule_payment"
 version = "0.4.0"
 dependencies = [
- "nonos_ed25519",
  "nonos_market_proto",
  "nonos_marketplace_abi",
  "nonos_nox_config",
  "nonos_nox_meter",
+ "nonos_payment_proto",
  "nonos_policy_client",
  "nonos_policy_proto",
  "nonos_seal",
@@ -99,14 +99,6 @@ dependencies = [
  "nonos_userland_libc",
  "nonos_vault",
  "sha3",
-]
-
-[[package]]
-name = "nonos_ed25519"
-version = "0.1.0"
-dependencies = [
- "nonos_hash",
- "spin",
 ]
 
 [[package]]
@@ -141,7 +133,12 @@ version = "0.1.0"
 dependencies = [
  "nonos_marketplace_abi",
  "nonos_nox_config",
+ "nonos_payment_proto",
 ]
+
+[[package]]
+name = "nonos_payment_proto"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_policy_client"
@@ -193,12 +190,6 @@ dependencies = [
  "digest",
  "keccak",
 ]
-
-[[package]]
-name = "spin"
-version = "0.9.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3763264f6b73151db08c50ff20d7d8a0b8796e021cdea7ceedad07b80155fa0e"
 
 [[package]]
 name = "spinning_top"

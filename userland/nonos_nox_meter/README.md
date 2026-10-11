@@ -29,11 +29,14 @@ meter, plan/20) links it.
   the meter can derive, since any FileSystem holder can unlink and recreate
   the name.
 - `caller`: which registry names may call which op.
-- `pay`: PAY v2's body, and `priced`, which refuses unless the release is
-  trusted and every word of the request equals its signed commerce block.
+- `pay`: `priced`, which refuses a PAY v2 request (`nonos_payment_proto`)
+  unless the release is trusted and every word equals its signed commerce
+  block.
 - `state::ChainView`: settle's CHANNEL_STATE; a closed channel takes no
   further charge.
-- `wire`: the bodies of SET_BUDGET, ACCOUNT and DRAIN.
+- `wire`: the meter's state as payment_proto's ACCOUNT and DRAIN replies,
+  and SET_BUDGET's body as a fresh allowance. The byte layouts are
+  payment_proto's.
 
 Hashes are injected through `nonos_marketplace_abi::Keccak`.
 
@@ -46,7 +49,7 @@ TPM NV index, which is later work.
 
 ## Tests
 
-37 host tests in `tests/`, with `sha3` as a dev-dependency, so every hash is
+35 host tests in `tests/`, with `sha3` as a dev-dependency, so every hash is
 checked against an independent implementation.
 
 ```sh

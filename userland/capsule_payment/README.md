@@ -38,43 +38,35 @@ or the ELF needs the owner to re-sign the manifest and id-cert and re-enroll.
 
 ## Keys
 
-The meter's root is the machine key under the caller-bound label
-`nonos.meter.root.v1`. No other capsule can derive it (C2c). From the root:
-- the state file's tag key;
-- the Ed25519 key for NXL1;
-- the sealing key for the secp256k1 secret. That secret is generated in the
-  keyring once, exported, sealed to `/data/meter.key`, and imported again at
-  every boot. A sealed key that does not open is refused, never replaced:
-  channels are bound to the meter's address.
+The meter holds one key, its own secp256k1 key. It is generated in the
+keyring once, exported, sealed with nonos_vault under the root
+machine_key(BOUND_PREFIX | "nonos.meter.root.v1") to `/data/meter.key`, and
+imported again at every boot. Only the meter's manifest namespace can derive
+that root (C2c). The state file's tag key comes from the same root. A sealed
+key that does not open is refused, never replaced: channels are bound to the
+meter's address, and each names a reclaimTo for a key that is lost anyway.
+There is no Ed25519 key and no NXL1 in v1 (plan/20, v1.3).
 
-Until C2c names the bound prefix byte, `keys::bound::BOUND_PREFIX` is `None`.
-Every op that needs a key answers EAGAIN, and no state is loaded or saved. On
-a boot that keeps nothing, the meter changes no state (EACCES), so its budget
-stays zero.
+Until C2c names the bound prefix byte, `keys::bound::BOUND_PREFIX` is `None`
+and every op that needs the key answers EAGAIN. On a boot that keeps nothing
+the meter holds no key: PAY, SET_BUDGET and DRAIN answer ENOPERSIST, while
+LIST_TOKENS and ACCOUNT still answer. So the budget stays zero.
 
 ## Interface contract
 
-Header `seq u32 | op u16 | reserved u16`; reply `seq u32 | status i32 | body`.
+The wire is `nonos_payment_proto`: market_proto's 20-byte header under the
+magic "NPAY", a reply's payload starting with its status, every body and
+status defined there.
 
 | Op | Caller | Body | Reply |
 |---|---|---|---|
 | 1 HEALTHCHECK | anyone | none | none |
-| 2 PAY | payers | `nonos_nox_meter::pay` (v2); the old 124-byte body is EINVAL | the signed voucher, 265 bytes |
-| 3 DRAIN | nox_settle | first index u8 | `wire::drain_reply` |
+| 2 PAY | payers (installer, app.store, the wallet) | `PayRequest` | one `VoucherRecord` |
+| 3 DRAIN | nox_settle | first index u8 | `Drain` |
 | 4 LIST_TOKENS | anyone | none | one NOX row per chain where it is deployed (`nonos_nox_config`) |
-| 5 ACCOUNT | wallet | first index u8 | `wire::account_reply` |
-| 6 SET_BUDGET | wallet | `wire::parse_budget` | none |
+| 5 ACCOUNT | wallet | first index u8 | `Account` |
+| 6 SET_BUDGET | wallet | `SetBudget` | none |
+| 7 | - | - | EINVAL: NXL1 is not in v1 |
+| 8-12 | - | - | EINVAL until ORDER_* (B5) and OPEN (B3c) land |
 
-Refusals:
-- ENOENT: no channel, or no NOX on the chain;
-- EIO: a bad file or reply;
-- ENFILE: the table is full;
-- ENOSPC: past the deposit;
-- ETIME: expired;
-- EOVERFLOW;
-- EDQUOT: over budget;
-- EPROTO: a request word off the signed block;
-- EOPNOTSUPP: not a voucher listing;
-- EDOM: below the minimum charge;
-- EKEYREJECTED: an untrusted release;
-- EPERM: the caller does not hold the op's role.
+Every refusal is a status named in `nonos_payment_proto::status`.

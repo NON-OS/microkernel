@@ -15,7 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod offer;
-mod request;
 
 pub use offer::{priced, Offer};
-pub use request::{parse_pay, PayRequest};

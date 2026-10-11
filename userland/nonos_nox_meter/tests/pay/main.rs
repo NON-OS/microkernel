@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! PAY v2: the body's parse, and the check that the request is exactly what
+//! PAY v2: the check that the request is exactly what
 //! the release's signed commerce block sells.
 
 mod fixture;
 mod minimum;
 mod offer;
-mod request;

@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 
 use nonos_libc::{mk_ipc_call, mk_service_lookup};
 
-use crate::protocol::EAGAIN;
+use nonos_payment_proto::EAGAIN;
 
 const KEYRING: &[u8] = b"keyring";
 
