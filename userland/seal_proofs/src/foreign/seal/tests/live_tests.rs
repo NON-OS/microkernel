@@ -24,6 +24,7 @@ use super::fixture::{family, SALT};
 use crate::errnos::{ERRNO_NOMEM, ERRNO_SRCH};
 use crate::foreign::seal::finish::finish;
 use crate::foreign::seal::live::snapshot;
+use crate::foreign::seal::sealed::len_for;
 use crate::foreign::seal::table::{LIVE, SEALED};
 use crate::foreign::trap_table::Answer;
 
@@ -64,5 +65,9 @@ fn no_live_family_or_no_app_is_esrch_and_a_short_room_is_enomem() {
     assert_eq!(snapshot(93, 1 << 20).err(), Some(ERRNO_SRCH), "no app named yet");
     serving(94);
     assert_eq!(snapshot(94, 100).err(), Some(ERRNO_NOMEM), "the room is short");
+    let exact = len_for(1) as u64;
+    assert_eq!(snapshot(94, exact - 1).err(), Some(ERRNO_NOMEM), "one byte short");
+    let s = snapshot(94, exact).expect("exactly its length");
+    assert_eq!(s.bytes().len() as u64, exact);
     assert!(LIVE.lock().iter().any(|f| f.sup == 94), "nothing lost");
 }
