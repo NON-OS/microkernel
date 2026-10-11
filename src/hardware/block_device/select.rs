@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,54 +17,58 @@
 //! Which disk the block layer reads and writes: the one NONOS lives on.
 //!
 //! A machine may carry the firmware's boot disk on AHCI next to the data disk
-//! on NVMe, or an installer's blank target next to the disk it boots from. A
-//! disk that merely answers is not the one to write, so each backend is asked
-//! in turn whether its disk carries the store header or the disk plan, and the
-//! first that does is kept for the boot. Nothing is kept before that: a driver
-//! still starting, or a caller without the rights to ask, is asked again.
+//! on NVMe, or an installer's stick next to the disk it installed. A disk that
+//! merely answers is not the one to write, so each backend is asked in turn
+//! whether its disk carries the store header or the disk plan. With two such
+//! disks, the one whose table holds the partition the loader came from is
+//! kept; with no such partition named, the first, as before. Nothing is kept
+//! while a driver is still starting or a caller lacks the rights to ask.
 
-use core::sync::atomic::{AtomicBool, Ordering};
-
-use spin::Once;
-
-use super::announce::announce;
 use super::backend::Backend;
-use super::identify::{identify, Found};
+use super::booted;
+use super::found::Found;
+use super::identify::identify;
+use super::kept::{chosen, keep, none};
 use super::order::order;
 use super::said::say;
-use super::seen::line;
+use super::seen_line::line;
+use super::wait::waited_for_boot_disk;
 use super::BlockDeviceError;
 
-static SELECTED: Once<Backend> = Once::new();
-static TOLD_NONE: AtomicBool = AtomicBool::new(false);
-
-/// The disk already kept for this boot, without asking any disk.
-pub fn chosen() -> Option<Backend> {
-    SELECTED.get().copied()
-}
-
 pub fn selected() -> Result<Backend, BlockDeviceError> {
-    if let Some(&backend) = SELECTED.get() {
-        return Ok(backend);
+    if let Some(b) = chosen() {
+        return Ok(b);
     }
+    let boot = booted::partition();
+    let (mut other, mut refused) = (None, None);
     for backend in order() {
-        let (found, seen) = identify(backend);
+        let (found, seen) = identify(backend, boot.as_ref());
         say(backend, &line(backend, &seen));
         match found {
-            Found::Layout => return Ok(*SELECTED.call_once(|| announce(backend))),
+            Found::Layout { places, boot: true } => return Ok(keep(backend, places)),
+            Found::Layout { places, .. } if boot.is_none() => return Ok(keep(backend, places)),
+            Found::Layout { places, .. } => {
+                other.get_or_insert((backend, places));
+            }
             Found::Absent => {}
             /*
              * A backend that could not be asked is not passed over: the disk
-             * behind it may be the right one, and settling on a later disk
-             * now would split reads and writes across two disks.
+             * behind it may be the right one, and settling on another now
+             * would split reads and writes across two disks.
              */
-            Found::Refused(e) => return Err(e),
+            Found::Refused(e) if other.is_none() => return Err(e),
+            Found::Refused(e) => refused = Some(e),
         }
     }
-    if !TOLD_NONE.swap(true, Ordering::Relaxed) {
-        let line = "[BLOCK] no disk carries the NONOS store or disk plan yet; block I/O refused";
-        crate::sys::serial::println(line.as_bytes());
-        crate::log::warn!("{}", line);
+    match (other, refused) {
+        (Some((b, p)), None) => Ok(keep(b, p)),
+        (Some((b, p)), Some(e)) => {
+            if waited_for_boot_disk() {
+                Ok(keep(b, p))
+            } else {
+                Err(e)
+            }
+        }
+        (None, _) => Err(none()),
     }
-    Err(BlockDeviceError::Dead)
 }
