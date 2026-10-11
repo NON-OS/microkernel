@@ -58,5 +58,6 @@ pub fn order(k: &KeptOffer) -> Order {
         refund_to,
         refund_salt,
         refund_taken: false,
+        plain: false,
     }
 }

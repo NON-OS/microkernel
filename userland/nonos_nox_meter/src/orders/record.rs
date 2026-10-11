@@ -16,7 +16,9 @@
 
 //! One order as the meter keeps it: chain_id u64 | orderId[32] |
 //! depositAddress[20] | the 14 term words | refundTo[20] | refundSalt[32] |
-//! refund taken u8 (0 or 1: ORDER_REFUND has answered for it, v1.4.26).
+//! flags u8: bit 0, ORDER_REFUND has answered for it (v1.4.26); bit 1,
+//! ORDER_DELIVERED has sealed its plaintext (v1.4.42). Older records hold
+//! 0 or 1 there and read the same.
 
 use alloc::vec::Vec;
 
@@ -31,6 +33,7 @@ pub struct Order {
     pub refund_to: [u8; 20],
     pub refund_salt: [u8; 32],
     pub refund_taken: bool,
+    pub plain: bool,
 }
 
 impl Order {
@@ -41,10 +44,10 @@ impl Order {
         self.terms.iter().for_each(|w| out.extend_from_slice(w));
         out.extend_from_slice(&self.refund_to);
         out.extend_from_slice(&self.refund_salt);
-        out.push(self.refund_taken as u8);
+        out.push(self.refund_taken as u8 | (self.plain as u8) << 1);
     }
 
-    /// One record, or None for a short one, a flag not 0 or 1, or the zero
+    /// One record, or None for a short one, a flag past bit 1, or the zero
     /// chain an empty slot has.
     pub fn decode(b: &[u8]) -> Option<Order> {
         let b: &[u8; ORDER_LEN] = b.try_into().ok()?;
@@ -54,11 +57,9 @@ impl Order {
         for (i, w) in terms.iter_mut().enumerate() {
             *w = at(60 + 32 * i, 32).try_into().ok()?;
         }
-        let refund_taken = match b[560] {
-            0 => false,
-            1 => true,
-            _ => return None,
-        };
+        let flags = b[560];
+        (flags <= 3).then_some(())?;
+        let (refund_taken, plain) = (flags & 1 != 0, flags & 2 != 0);
         (chain_id != 0).then_some(())?;
         Some(Order {
             chain_id,
@@ -68,6 +69,7 @@ impl Order {
             refund_to: at(508, 20).try_into().ok()?,
             refund_salt: at(528, 32).try_into().ok()?,
             refund_taken,
+            plain,
         })
     }
 }

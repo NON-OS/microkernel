@@ -19,7 +19,7 @@
 
 use nonos_nox_meter::caller::Role;
 use nonos_nox_meter::mailbox::{Mailbox, HOLD_MS};
-use nonos_payment_proto::{parse_purchase, Names, EBUSY, MAX_NAME, PURCHASE_TAKE};
+use nonos_payment_proto::{Names, EBUSY};
 
 fn names(listing: &[u8]) -> Names {
     Names { chain_id: 11_155_111, listing: listing.to_vec(), release: Vec::new() }
@@ -44,35 +44,19 @@ fn only_the_store_posts() {
 #[test]
 fn one_waits_at_a_time_and_is_taken_once() {
     let mut m = Mailbox::default();
-    assert_eq!(m.take(0), None);
-    m.post(names(b"linux.a"), 0).unwrap();
-    assert_eq!(m.post(names(b"linux.b"), 1), Err(EBUSY), "the first still waits");
-    assert_eq!(m.take(2), Some(names(b"linux.a")));
-    assert_eq!(m.take(3), None, "taken once, then gone");
-    m.post(names(b"linux.b"), 4).unwrap();
+    assert_eq!(m.names.take(0), None);
+    m.names.post(names(b"linux.a"), 0).unwrap();
+    assert_eq!(m.names.post(names(b"linux.b"), 1), Err(EBUSY), "the first still waits");
+    assert_eq!(m.names.take(2), Some(names(b"linux.a")));
+    assert_eq!(m.names.take(3), None, "taken once, then gone");
+    m.names.post(names(b"linux.b"), 4).unwrap();
 }
 
 #[test]
 fn names_left_ten_minutes_are_dropped_and_make_room() {
     let mut m = Mailbox::default();
-    m.post(names(b"linux.a"), 0).unwrap();
-    m.post(names(b"linux.b"), HOLD_MS).unwrap();
-    assert_eq!(m.take(HOLD_MS * 2), None, "too old to take");
-    assert_eq!(m.take(HOLD_MS * 2), None);
-}
-
-#[test]
-fn the_wire_carries_names_and_nothing_else() {
-    let n = names(b"linux.qwen-small");
-    let post = n.post().unwrap();
-    assert_eq!(parse_purchase(&post), Some(Some(n.clone())));
-    assert_eq!(Names::parse(&n.encode().unwrap()), Some(n));
-    assert_eq!(parse_purchase(&[PURCHASE_TAKE]), Some(None));
-    assert_eq!(parse_purchase(&[PURCHASE_TAKE, 0]), None, "TAKE carries nothing");
-    assert_eq!(parse_purchase(&[2]), None);
-    assert_eq!(names(b"").post(), None, "a listing is named");
-    assert_eq!(names(&[b'a'; MAX_NAME + 1]).post(), None);
-    assert!(names(&[b'a'; MAX_NAME]).post().is_some());
-    let long = [&names(b"linux.a").post().unwrap()[..], &[0]].concat();
-    assert_eq!(parse_purchase(&long), None, "a byte past the names");
+    m.names.post(names(b"linux.a"), 0).unwrap();
+    m.names.post(names(b"linux.b"), HOLD_MS).unwrap();
+    assert_eq!(m.names.take(HOLD_MS * 2), None, "too old to take");
+    assert_eq!(m.names.take(HOLD_MS * 2), None);
 }

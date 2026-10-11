@@ -44,7 +44,7 @@ pub(super) fn status(o: &Order, got: &Got) -> Step {
         return Err(MeterError::Mismatch);
     };
     let pending = balance.checked_add(credit).ok_or(MeterError::Overflow)?;
-    let body = OrderStatus { state, funded, pending }.encode();
+    let body = OrderStatus { state, funded, pending, plain: o.plain }.encode();
     let ended = state == REFUNDED || (state == RELEASED && extra == 0);
     Ok(match ended && pending == 0 && o.refund_taken {
         true => Next::Drop(o.order_id, body),
