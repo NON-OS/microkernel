@@ -46,6 +46,8 @@ mod adma_tests;
 #[cfg(test)]
 mod bring_up_tests;
 #[cfg(test)]
+mod card_tests;
+#[cfg(test)]
 mod clock_tests;
 #[cfg(test)]
 mod cmd_tests;
@@ -65,8 +67,6 @@ mod pci_tests;
 mod reason_tests;
 #[cfg(test)]
 mod register_tests;
-#[cfg(test)]
-mod sd_tests;
 #[cfg(test)]
 mod start_list_tests;
 #[cfg(test)]

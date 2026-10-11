@@ -33,7 +33,9 @@
 //!   read, write and cache flush.
 //! - `sd`: the SD memory card's commands, registers and bring-up; a
 //!   removable slot tries it before `mmc`.
-//! - `disk`: `EmmcDisk`, the surface a server calls.
+//! - `disk`: `EmmcDisk`, one card's block surface.
+//! - `slot`: what a server calls: a fixed slot's disk, or a removable
+//!   slot's, which comes and goes with the card.
 //! - `info`: the reply payloads (DEVICE_INFO, CONTROLLER_INFO, PORT_LIST).
 //! - `pci`: which PCI functions are eMMC hosts.
 //! - `platform`: discovery, claim, MMIO and DMA through the broker.
@@ -47,8 +49,9 @@ pub mod pci;
 pub mod platform;
 pub mod sd;
 pub mod sdhci;
+pub mod slot;
 pub mod text;
 
 pub use disk::SECTOR_SIZE;
-pub use error::{reason, wire_status};
-pub use platform::{discover, open, Found, Opened};
+pub use error::{reason, wire_status, EmmcError};
+pub use platform::{discover, open, open_removable, Found, Opened};

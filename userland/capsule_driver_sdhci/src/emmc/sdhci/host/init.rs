@@ -21,9 +21,9 @@ use super::super::super::error::{EmmcError, EmmcResult};
 use super::super::super::text::Line;
 use super::super::caps::Caps;
 use super::super::regs::{
-    CAPABILITIES, CAPABILITIES_1, CLOCK_CONTROL, ERROR_ENABLE, HOST_CONTROL, HOST_CONTROL2,
-    HOST_VERSION, INT_ENABLE, INT_STATUS, NORMAL_ENABLE, POWER_CONTROL, RESET_ALL, SIGNAL_ENABLE,
-    SPEC_300, TIMEOUT_CONTROL, TIMEOUT_MAX,
+    CAPABILITIES, CAPABILITIES_1, CARD_ENABLE, CLOCK_CONTROL, ERROR_ENABLE, HOST_CONTROL,
+    HOST_CONTROL2, HOST_VERSION, INT_ENABLE, INT_STATUS, NORMAL_ENABLE, POWER_CONTROL, RESET_ALL,
+    SIGNAL_ENABLE, SPEC_300, TIMEOUT_CONTROL, TIMEOUT_MAX,
 };
 use super::engine::Host;
 
@@ -48,7 +48,8 @@ impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
             self.say(Line::new().s(b"host has no ADMA2"));
             return Err(EmmcError::NoAdma);
         }
-        self.io.w32(INT_ENABLE, NORMAL_ENABLE as u32 | (ERROR_ENABLE as u32) << 16);
+        let card = if self.removable() { CARD_ENABLE } else { 0 };
+        self.io.w32(INT_ENABLE, (NORMAL_ENABLE | card) as u32 | (ERROR_ENABLE as u32) << 16);
         self.io.w32(SIGNAL_ENABLE, 0);
         self.io.w32(INT_STATUS, u32::MAX);
         self.io.w8(TIMEOUT_CONTROL, TIMEOUT_MAX);

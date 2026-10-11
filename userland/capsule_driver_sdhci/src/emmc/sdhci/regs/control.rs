@@ -22,6 +22,8 @@ pub const PS_CMD_INHIBIT: u32 = 1 << 0;
 pub const PS_DAT_INHIBIT: u32 = 1 << 1;
 pub const PS_CARD_INSERTED: u32 = 1 << 16;
 pub const PS_CARD_STABLE: u32 = 1 << 17;
+/// Write Protect Switch Pin Level: set, the card may be written.
+pub const PS_WRITE_ENABLED: u32 = 1 << 19;
 
 // Host Control 1.
 pub const HC_4BIT: u8 = 1 << 1;

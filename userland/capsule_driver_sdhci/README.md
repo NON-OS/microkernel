@@ -4,7 +4,9 @@
 
 `capsule_driver_sdhci` is the SD Host Controller capsule. Its job is to own
 the SDHCI PCI function in userland, bring up the soldered eMMC behind it,
-and serve that part as a disk on the block wire, `driver.sdhci0`.
+and serve that part as a disk on the block wire, `driver.sdhci0`. On a
+machine with no eMMC host, it serves a card reader's removable slot
+instead: an SD memory card, or an MMC card, while one is in it.
 
 On Atom, Celeron and Pentium Silver laptops the only disk is often eMMC
 behind an SD Host Controller: the Intel eMMC hosts from Bay Trail to Jasper
@@ -88,6 +90,11 @@ bus master with INTx off, slot BAR mapped, a generic host refused unless its
 slot type is embedded, the two DMA regions mapped, the card brought from
 power on to transfer state, and sector 0 read once to prove the data path.
 The first host whose card comes up is served for the life of the capsule.
+Only when every host was refused for not being embedded is the first
+removable slot served, card or no card. Before each request such a slot
+reads its card detect and the removal the host latched: a card taken out is
+dropped, a card put in is brought up once (SD first, then MMC), and READ,
+WRITE and FLUSH wait until GEOMETRY has described the card in the slot.
 
 ## Failure model
 
@@ -101,23 +108,30 @@ wait is on the monotonic clock with its own deadline (`src/emmc/sdhci/`,
 `src/emmc/mmc/`). A failed request answers -110 for a timeout, a status
 carrying the host's Error Interrupt Status or the card's R1 error bit
 (`src/emmc/error/wire_codes.rs`), or -5; the kernel client reads every
-status it does not name as an I/O error.
+status it does not name as an I/O error. A removable slot with no card, or
+with one GEOMETRY has not described, answers -123; a card whose write
+protect switch is on refuses WRITE with -30.
 
 ## Current implemented surface
 
-- Intel eMMC hosts by id and generic embedded SDHCI slots.
+- Intel eMMC hosts by id and generic embedded SDHCI slots; a removable slot
+  on a machine with neither.
 - SDHCI reset, power, clock, ADMA2 descriptors and the polled command engine.
 - eMMC bring-up: OCR, CID, CSD, EXT_CSD, bus width and High Speed.
+- SD memory card bring-up: CMD8, ACMD41 with HCS, the card's own RCA, CSD
+  versions 1.0 and 2.0, four lines at Default Speed.
 - 512-byte block read, write and cache flush, up to 64 blocks a request.
-- The block wire: health, geometry, read, write, flush.
+- The block wire: health, geometry, read, write, flush, identify.
 
 ## Wire format
 
 Requests use the block wire's 20-byte header under magic `0x4E425731`
 (`NBW1`), version `1`. Replies repeat the header, then a 4-byte status, then
 the payload. GEOMETRY answers lba_count u64, lba_bytes u32 (512),
-max_transfer_bytes u32 (32768) and flags u32 (bit 2, media present). READ
-and WRITE carry lba u64 and count u32; WRITE follows them with the data.
+max_transfer_bytes u32 (32768) and flags u32 (bit 0 removable, bit 1 read
+only, bit 2 media present). READ and WRITE carry lba u64 and count u32;
+WRITE follows them with the data. IDENTIFY answers the part's model and
+serial and its medium: 1 eMMC, 2 SD.
 
 ## State ownership
 
@@ -127,7 +141,9 @@ mapping, disk selection and every filesystem above it.
 
 ## Operating rules
 
-- Serve only an embedded slot or a known Intel eMMC host.
+- Serve an embedded slot or a known Intel eMMC host; a removable slot only
+  on a machine with neither.
+- Never send data to a card GEOMETRY has not described.
 - Never answer a request outside the disk or larger than one buffer.
 - Quiesce the host before any DMA region is freed.
 - Report every failure upward; never retry a write silently.
