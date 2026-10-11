@@ -17,7 +17,9 @@
 use alloc::vec::Vec;
 
 use super::binding::{qualifying_data, DmaPosture};
-use super::document::{AttestationDoc, IOMMU_AMD_VI, IOMMU_INTEL_VTD, IOMMU_NONE};
+use super::document::{
+    AttestationDoc, IOMMU_AMD_VI, IOMMU_ARM_SMMU_V3, IOMMU_INTEL_VTD, IOMMU_NONE,
+};
 use super::error::AttestDocError;
 use crate::memory::iommu::{capabilities, unconfined_grants, IommuVendor};
 use crate::security::attest_registry::{attested_count, registry_complete, registry_root};
@@ -86,6 +88,7 @@ fn dma_posture() -> DmaPosture {
         IommuVendor::Absent => IOMMU_NONE,
         IommuVendor::IntelVtd => IOMMU_INTEL_VTD,
         IommuVendor::AmdVi => IOMMU_AMD_VI,
+        IommuVendor::ArmSmmuV3 => IOMMU_ARM_SMMU_V3,
     };
     DmaPosture { vendor, enforcing: caps.enforcing, unconfined_grants: unconfined_grants() }
 }

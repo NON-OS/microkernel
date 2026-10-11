@@ -25,6 +25,7 @@ pub mod exceptions;
 pub mod fpu;
 pub mod gic;
 pub mod interrupt_controller;
+pub mod iommu;
 pub mod mmu;
 pub mod psci;
 pub mod rtc;
