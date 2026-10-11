@@ -185,6 +185,9 @@ MSPR = 0x5250534D
 MDVW = 0x5756444D
 MIEP = 0x5045494D
 MIED = 0x4445494D
+MFSE = 0x4553464D
+MSLR = 0x524C534D
+MSNT = 0x544E534D
 
 [desc.CMKY]
 nr   = 0x594B4D43
@@ -715,6 +718,24 @@ ret  = {type="i64"}
 nr   = 0x5845464D
 caps = ["ForeignExec"]
 args = [{name="pid",type="u32",dir="in"},{name="entry",type="u64",dir="in"},{name="rsp",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MFSE]
+nr   = 0x4553464D
+caps = ["ForeignExec"]
+args = []
+ret  = {type="i64"}
+
+[desc.MSLR]
+nr   = 0x524C534D
+caps = ["AttestRead"]
+args = [{name="seal_no",type="u64",dir="in"},{name="part",type="u64",dir="in"},{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MSNT]
+nr   = 0x544E534D
+caps = ["ForeignExec"]
+args = [{name="slot",type="u64",dir="in"},{name="word_ptr",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MLSG]
