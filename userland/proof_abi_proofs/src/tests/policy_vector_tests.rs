@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! app_id held to nonos_linux_policy's pinned vector (C1), and A's set root
-//! read with the same bit order: bit b is bit b % 8 of byte b / 8.
+//! app_id held to nonos_linux_policy's pinned vector, C1's v1 layout (C1b
+//! re-pins it for v1.1), and A's bit order: bit b is bit b % 8 of byte b / 8.
 
 use nonos_proof_abi::{allows, app_id};
 

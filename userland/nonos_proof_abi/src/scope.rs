@@ -16,31 +16,27 @@
 
 //! The device proof's scope for a market listing.
 //!
-//! The verifier id is "nonos.market:" followed by the listing id's 32 bytes,
-//! and the window is the unix day. A device has one tag per scope, so its
-//! records link within one listing and one day and nowhere wider.
+//! e = words_of(BLAKE3("NONOS-MARKET-SCOPE-v1" | listing_id | window LE))[0..2],
+//! window the unix day of proving. Only nonos.prove's PROVE op derives it;
+//! the interactive prover's scope is a different hash and can never equal
+//! it. A device has one tag per scope, so its proofs link within one listing
+//! and one day and nowhere wider.
 
-use nonos_device_attest::scope as device_scope;
+use alloc::vec::Vec;
 
-pub const MARKET_PREFIX: &[u8; 13] = b"nonos.market:";
-
-const ID_BYTES: usize = MARKET_PREFIX.len() + 32;
-
-pub fn verifier_id(listing_id: &[u8; 32]) -> [u8; ID_BYTES] {
-    let mut id = [0u8; ID_BYTES];
-    id[..MARKET_PREFIX.len()].copy_from_slice(MARKET_PREFIX);
-    id[MARKET_PREFIX.len()..].copy_from_slice(listing_id);
-    id
-}
+const MARKET_DOMAIN: &[u8] = b"NONOS-MARKET-SCOPE-v1";
 
 /// The window of a unix time in seconds.
 pub fn day(unix_seconds: u64) -> u64 {
     unix_seconds / 86_400
 }
 
-/// The two scope words, exactly as `nonos_device_attest::scope` derives them,
-/// so a prover and a verifier cannot pack the same listing differently.
-pub fn scope(listing_id: &[u8; 32], day: u64) -> Option<[u64; 2]> {
-    let e = device_scope(&verifier_id(listing_id), day)?;
-    Some([e[0].to_u64(), e[1].to_u64()])
+/// The two scope words, each reduced below p as the gates read a digest.
+pub fn market_scope(listing_id: &[u8; 32], window: u64) -> [u64; 2] {
+    let mut b = Vec::with_capacity(MARKET_DOMAIN.len() + 40);
+    b.extend_from_slice(MARKET_DOMAIN);
+    b.extend_from_slice(listing_id);
+    b.extend_from_slice(&window.to_le_bytes());
+    let w = nox_verify::attest::digest_words(blake3::hash(&b).as_bytes());
+    [w[0], w[1]]
 }
