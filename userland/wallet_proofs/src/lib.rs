@@ -138,6 +138,22 @@ mod swap_curve_tests;
 #[cfg(test)]
 mod swap_limits_tests;
 #[cfg(test)]
+mod typed_admit_tests;
+#[cfg(test)]
+mod typed_check_tests;
+#[cfg(test)]
+mod typed_hash_tests;
+#[cfg(test)]
+mod typed_live_tests;
+#[cfg(test)]
+mod typed_request_tests;
+#[cfg(test)]
+mod typed_shape_tests;
+#[cfg(test)]
+mod typed_spec_tests;
+#[cfg(test)]
+mod typed_word_tests;
+#[cfg(test)]
 mod vault_gate_tests;
 
 #[cfg(kani)]
