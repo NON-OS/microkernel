@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// As many regions as the device tree walker reads in one pass.
-pub(super) const MAX_MEMORY_REGIONS: usize = 8;
-
-/// As many CPUs as the device tree walker reads in one pass.
-pub(super) const MAX_CPUS: usize = 64;
-
+use super::limits::{MAX_CPUS, MAX_MEMORY_REGIONS};
 use super::memory::MemoryRegion;
+use super::reserved::Reserved;
 use crate::arch::aarch64::gic::GicVersion;
 
 #[derive(Debug, Clone)]
@@ -68,4 +64,8 @@ pub struct BootInfo {
     /// long before the heap exists, so it cannot be a `Vec`.
     pub memory_regions: [MemoryRegion; MAX_MEMORY_REGIONS],
     pub memory_region_count: usize,
+    /// Inside RAM but not the allocator's: see `Reserved`.
+    pub reserved: Reserved,
+    /// The initrd the loader placed, `[start, end)`, if it placed one.
+    pub initrd: Option<(u64, u64)>,
 }

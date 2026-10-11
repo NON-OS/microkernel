@@ -15,10 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod defaults;
+mod limits;
 mod memory;
 mod methods;
+mod reserved;
 mod types;
 mod virt_ram;
 
 pub use memory::{MemoryRegion, MemoryType};
+pub use reserved::Reserved;
 pub use types::BootInfo;
