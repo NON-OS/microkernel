@@ -26,6 +26,7 @@ use crate::trust::Trust;
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct PolicyView {
     pub program_blake3: [u8; 32],
+    pub mask: u64,
     /// Zero for a vendor program.
     pub listing_id: [u8; 32],
     pub syscall_set: [u8; SET_BYTES],
