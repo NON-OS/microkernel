@@ -22,24 +22,22 @@
 
 pub mod emmc;
 
-/// The AHCI capsule's transfer limits, which the eMMC disk shares when the
-/// AHCI capsule serves it.
-#[path = "../../capsule_driver_ahci/src/constants/ata.rs"]
-pub mod ahci_ata;
-/// The AHCI capsule's op numbers; the eMMC disk answers the same ops.
-#[path = "../../capsule_driver_ahci/src/protocol/ops.rs"]
-pub mod ahci_ops;
-/// The AHCI capsule's IDENTIFY reply, which names an eMMC part too.
-#[path = "../../capsule_driver_ahci/src/protocol/identify_reply.rs"]
-pub mod ahci_identify;
+/// The capsule's block wire, held to the kernel client's in `kernel_wire`.
+#[path = "../../capsule_driver_sdhci/src/protocol/mod.rs"]
+pub mod protocol;
+/// How the capsule checks the head of a READ or WRITE.
+#[path = "../../capsule_driver_sdhci/src/server/handlers/rw_parse.rs"]
+pub mod rw_parse;
+/// Who the capsule serves the medium to.
+#[path = "../../capsule_driver_sdhci/src/server/medium_rule.rs"]
+pub mod medium_rule;
+pub mod kernel_wire;
 
 #[cfg(test)]
 mod model;
 
 #[cfg(test)]
 mod adma_tests;
-#[cfg(test)]
-mod ahci_contract_tests;
 #[cfg(test)]
 mod bring_up_tests;
 #[cfg(test)]
@@ -58,3 +56,5 @@ mod pci_tests;
 mod register_tests;
 #[cfg(test)]
 mod voltage_tests;
+#[cfg(test)]
+mod wire_server_tests;
