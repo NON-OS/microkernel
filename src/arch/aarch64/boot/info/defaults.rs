@@ -27,8 +27,13 @@ impl Default for BootInfo {
             dtb_base: 0,
             dtb_size: 0,
             uart_base: 0x0900_0000,
+            // virt puts the distributor at the same place for either GIC, the
+            // GICv3 redistributors at 0x080a_0000 and the GICv2 CPU interface
+            // at 0x0801_0000. Which one is there is the CPU's to say.
+            gic_version: None,
             gic_dist_base: 0x0800_0000,
             gic_redist_base: 0x080A_0000,
+            gic_cpu_base: 0x0801_0000,
             cpu_count: 1,
             cpu_affinities: [0; MAX_CPUS],
             cpu_affinity_count: 0,
@@ -38,7 +43,6 @@ impl Default for BootInfo {
             // device tree that names them overrides this.
             timer_phys_intid: 30,
             timer_virt_intid: 27,
-            gic_unsupported: false,
             // The virt board's PCIe host bridge. Config space is the high ECAM
             // window at 256 GiB, which is where the board puts it whenever the
             // CPU can address that far. The 16 MiB window at 0x3f00_0000 is the

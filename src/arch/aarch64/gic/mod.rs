@@ -15,24 +15,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod acked;
+mod announce;
 mod api;
-pub mod cpu;
+mod cpu;
 mod device;
 pub mod distributor;
+mod enable;
 mod frames;
 pub mod icc;
 mod in_service;
 pub mod irq_handlers;
 pub mod redistributor;
+pub mod select;
 mod serve;
+mod sgi;
 mod state;
+mod sysregs;
+pub mod v2;
+pub mod version;
 mod wait;
 
 pub use acked::Acked;
-pub use api::{disable_irq, enable_irq, init_gic, send_sgi, send_sgi_all_others};
-pub use cpu::init_gic_cpu;
-pub use device::Gic;
+pub use api::{init_gic, init_gic_cpu};
 pub use distributor::GicDistributor;
+pub use enable::{disable_irq, enable_irq};
 pub use icc::set_priority_mask;
 pub use in_service::{
     complete as complete_interrupt, enter as enter_service, leave as leave_service,
@@ -44,3 +50,5 @@ pub use irq_handlers::{
 };
 pub use redistributor::GicRedistributor;
 pub use serve::acknowledge_interrupt;
+pub use sgi::{send_sgi, send_sgi_all_others};
+pub use version::GicVersion;
