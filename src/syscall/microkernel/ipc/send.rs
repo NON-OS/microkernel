@@ -25,8 +25,6 @@ use crate::services::registry::{lookup_port, lookup_service};
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 use crate::syscall::microkernel::narrow::u32_arg;
 
-use super::send_trace::trace;
-
 pub fn sys_ipc_send(endpoint: u64, buf: u64, len: usize) -> i64 {
     let rc = send_with_correlation(endpoint, buf, len, 0);
     if rc == 0 {
@@ -67,7 +65,6 @@ pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correla
             {
                 return ERRNO_PERM;
             }
-            trace(pid, endpoint, &caller_inbox, len);
             /*
              * Enqueue straight into the caller's reply inbox, the exact inbox its
              * blocked mk_ipc_call is draining, stamped with the token that call
@@ -118,7 +115,6 @@ pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correla
             {
                 return ERRNO_PERM;
             }
-            trace(pid, endpoint, &target, len);
             match kernel_route_ipc_corr(pid, &target, &data, correlation) {
                 Ok(()) => 0,
                 Err(e) => e as i64,

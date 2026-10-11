@@ -16,25 +16,10 @@
 
 use crate::process::core::PROCESS_TABLE;
 use crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS;
-use core::sync::atomic::{AtomicU32, Ordering};
 
 use super::first_entry::try_first_entry;
 use super::kernel_thread::resume_kernel_thread;
 use super::resume::try_resume;
-
-static DISPATCH_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace(label: &[u8], pid: u32) {
-    if !matches!(pid, 7 | 8 | 9 | 0x1b | 0x1c | 0x26 | 0x27)
-        || DISPATCH_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 64
-    {
-        return;
-    }
-    crate::sys::serial::trace(b"[DISPATCH] pid=");
-    crate::sys::serial::trace_hex(pid as u64);
-    crate::sys::serial::trace(b" ");
-    crate::sys::serial::traceln(label);
-}
 
 pub(crate) fn switch_to_user_pcb_x86_64(pid: u32) {
     let pcb = match PROCESS_TABLE.find_by_pid(pid) {
@@ -60,14 +45,11 @@ pub(crate) fn switch_to_user_pcb_x86_64(pid: u32) {
     // context must win; resuming the stale user frame re-enters at an
     // arbitrary old RIP and skips the syscall continuation entirely.
     if INTERRUPT_SAVED_CONTEXTS.read().contains_key(&pid) {
-        trace(b"kernel ctx", pid);
         resume_kernel_thread(&pcb, pid);
         return;
     }
     if try_resume(&pcb, pid) {
-        trace(b"user ctx", pid);
         return;
     }
-    trace(b"fallback kernel", pid);
     resume_kernel_thread(&pcb, pid);
 }

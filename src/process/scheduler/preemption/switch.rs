@@ -20,19 +20,7 @@ use super::super::selection::{
 use super::hand_off::{count_switch, requeue, run_on};
 use super::save_syscall_user_rsp;
 use super::state::SCHEDULER_STATS;
-use core::sync::atomic::{AtomicU32, Ordering};
-
-static PREEMPT_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace(label: &[u8], pid: u32) {
-    if !matches!(pid, 0x1b | 0x1c | 0x26 | 0x27)
-        || PREEMPT_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 40
-    {
-        return;
-    }
-    crate::sys::serial::print(b"[PREEMPT] ");
-    crate::sys::serial::println(label);
-}
+use core::sync::atomic::Ordering;
 
 #[inline(never)]
 pub(crate) fn preempt_current_process() {
@@ -42,7 +30,6 @@ pub(crate) fn preempt_current_process() {
         Some(pid) => pid,
         None => return,
     };
-    trace(b"enter", curr_pid);
     adopt_current(curr_pid);
 
     save_fpu_state(curr_pid);
@@ -54,7 +41,6 @@ pub(crate) fn preempt_current_process() {
          * Resumed, possibly on another CPU: that CPU is off the stack it left.
          */
         release_leaving();
-        trace(b"restored", curr_pid);
         return;
     }
 
@@ -67,7 +53,6 @@ pub(crate) fn preempt_current_process() {
             SCHEDULER_STATS.context_switches.fetch_add(1, Ordering::Relaxed);
             SCHEDULER_STATS.preemptions.fetch_add(1, Ordering::Relaxed);
             count_switch(next);
-            trace(b"switch away", curr_pid);
             switch_to_process(next);
         }
         _ => run_on(curr_pid),
