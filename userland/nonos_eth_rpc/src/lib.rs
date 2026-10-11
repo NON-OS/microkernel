@@ -64,7 +64,7 @@ pub use parse_quantity32::parse_quantity32;
 pub use parse_receipt_ok::{parse_receipt_block, parse_receipt_for, parse_receipt_ok};
 pub use parse_u64::parse_u64;
 pub use request_fee::{request_fee, request_fee_history};
-pub use request_logs::request_logs;
+pub use request_logs::{block_pages, request_logs, LOG_PAGE_BLOCKS};
 pub use request_nonce::{request_nonce, request_nonce_latest};
 pub use request_receipt::{request_block_number, request_receipt};
 pub use {http_body::http_body, http_post::http_post};
