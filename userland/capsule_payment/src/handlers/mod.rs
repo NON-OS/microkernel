@@ -17,6 +17,7 @@
 mod account;
 mod budget;
 mod channel_ops;
+mod delivered;
 mod drain;
 mod offer;
 mod open;
@@ -30,6 +31,7 @@ mod tokens;
 pub(crate) use account::account;
 pub(crate) use budget::set_budget;
 pub(crate) use channel_ops::{claim, close, job, topup};
+pub(crate) use delivered::order_delivered;
 pub(crate) use drain::drain;
 pub(crate) use offer::order_offer;
 pub(crate) use open::open;

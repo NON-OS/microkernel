@@ -25,6 +25,7 @@ fn registry(name: &[u8]) -> Option<u32> {
         b"installer" => Some(30),
         b"app.store" => Some(31),
         b"app.other" => Some(40),
+        b"app.linux.install" => Some(50),
         _ => None,
     }
 }
@@ -54,4 +55,12 @@ fn anyone_means_any_named_sender_and_pid_zero_is_nobody() {
     }
     // A name nobody registered admits nobody.
     assert!(!Role::Wallet.admits(10, |_| None));
+}
+
+#[test]
+fn a_delivery_is_the_wallets_or_the_installers_and_plaintext_the_install_roles() {
+    assert!(Role::Deliverer.admits(10, registry) && Role::Deliverer.admits(30, registry));
+    assert!(!Role::Deliverer.admits(31, registry), "the store hands no K");
+    assert!(Role::Install.admits(50, registry));
+    assert!([10, 30, 31, 40].iter().all(|p| !Role::Install.admits(*p, registry)));
 }

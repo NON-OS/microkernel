@@ -14,10 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who may call which meter op (plan/21), decided by which registry names the
-//! sender's pid owns: the kernel stamps the pid, and the registry is asked
-//! forward, name by name, as the keyring's vault gate does. Pure: the capsule
-//! supplies `owner_of`.
+//! The registry names behind each role (plan/21, plan/29).
 
 /// The wallet's endpoints: its first window and the later ones.
 pub const WALLET: [&[u8]; 3] = [b"app.nonos_wallet", b"app.nonos_wallet.1", b"app.nonos_wallet.2"];
@@ -36,33 +33,10 @@ pub const SETTLE: [&[u8]; 1] = [b"nox_settle"];
 pub const PAYERS: [&[u8]; 5] =
     [b"installer", b"app.store", b"app.nonos_wallet", b"app.nonos_wallet.1", b"app.nonos_wallet.2"];
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Role {
-    /// Any sender the kernel named.
-    Anyone,
-    Wallet,
-    Settle,
-    Payer,
-    Buyer,
-}
+/// Who may hand an order its K (ORDER_DELIVERED, plan/21): the wallet, and
+/// the installer that fetched the release.
+pub const DELIVERERS: [&[u8]; 4] =
+    [b"installer", b"app.nonos_wallet", b"app.nonos_wallet.1", b"app.nonos_wallet.2"];
 
-impl Role {
-    pub fn names(self) -> &'static [&'static [u8]] {
-        match self {
-            Role::Anyone => &[],
-            Role::Wallet => &WALLET,
-            Role::Settle => &SETTLE,
-            Role::Payer => &PAYERS,
-            Role::Buyer => &BUYERS,
-        }
-    }
-
-    /// Whether `sender` (the kernel-stamped pid) plays this role, given the
-    /// pid that owns each name. Pid zero is no sender at all.
-    pub fn admits(self, sender: u32, owner_of: impl Fn(&[u8]) -> Option<u32>) -> bool {
-        if sender == 0 {
-            return false;
-        }
-        self == Role::Anyone || self.names().iter().any(|n| owner_of(n) == Some(sender))
-    }
-}
+/// The install role alone takes an order's plaintext (op 18, plan/29).
+pub const INSTALL: [&[u8]; 1] = [b"app.linux.install"];

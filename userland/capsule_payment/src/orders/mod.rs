@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod escrow;
 mod file;
 mod offers;
+mod sealed;
 
+pub(crate) use escrow::{bind, escrow_of, keep_plain};
 pub(crate) use file::{drop_order, find, keep};
-pub(crate) use offers::keep_offer;
+pub(crate) use offers::{keep_offer, offers};
