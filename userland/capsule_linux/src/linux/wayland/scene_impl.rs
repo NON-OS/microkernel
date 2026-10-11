@@ -20,6 +20,7 @@ use alloc::vec::Vec;
 
 use super::fit::Fit;
 use super::held_keys::HeldKeys;
+use super::popup::stack::Popups;
 use super::scene::Scene;
 use super::scene_pixels::Pixels;
 use super::subsurface::state::Subs;
@@ -46,6 +47,7 @@ impl Scene {
             subscribed: false,
             held: HeldKeys::new(),
             subs: Subs::default(),
+            popups: Popups::default(),
         }
     }
 
