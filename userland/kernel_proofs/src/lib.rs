@@ -167,6 +167,7 @@ pub mod uefi_attrs;
 pub mod uefi_revision;
 pub mod usercopy;
 /// The in-kernel virtio-rng's gate: never available while it cannot deliver.
+#[cfg(test)]
 pub mod virtio_rng_gate;
 #[cfg(test)]
 pub mod vga_attr;

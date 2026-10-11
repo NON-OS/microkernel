@@ -22,7 +22,7 @@ use super::availability::{available, may_program, DELIVERS};
 
 #[test]
 fn a_driver_that_cannot_deliver_is_never_available_or_programmed() {
-    assert!(!DELIVERS, "not until P9 moves it out of the kernel");
+    const { assert!(!DELIVERS, "not until P9 moves it out of the kernel") };
     assert!(!may_program(DELIVERS), "no bus mastering, no queue aimed at memory");
     assert!(!available(DELIVERS, true), "a device found and set up is still unavailable");
     assert!(!available(DELIVERS, false));
