@@ -21,17 +21,16 @@ use super::super::super::error::{EmmcError, EmmcResult};
 use super::super::super::sdhci::Host;
 use super::super::super::text::Line;
 use super::super::card::Card;
-use super::super::cmds::RCA;
 use super::super::ops::{say_failed, status};
 use super::super::r1::ready;
 
 /// Read the card's status once more: it must be ready for data in transfer
 /// state. Logs the card as brought up.
-pub(super) fn check_ready<M: Mmio, C: Clock, L: Log>(
+pub fn check_ready<M: Mmio, C: Clock, L: Log>(
     h: &mut Host<M, C, L>,
     card: &Card,
 ) -> EmmcResult<()> {
-    let s = match status(h, RCA) {
+    let s = match status(h, card.rca) {
         Ok(s) => s,
         Err(e) => {
             say_failed(h, b"CMD13 SEND_STATUS", e);
