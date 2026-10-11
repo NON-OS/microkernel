@@ -40,10 +40,6 @@ pub mod verdict;
 #[path = "../../../capsule_app_store/src/store/reasons.rs"]
 pub mod reasons;
 
-/* The prover's and the proof fetch's refusals by name (I-B9). */
-#[path = "../../../capsule_app_store/src/store/prove_said.rs"]
-pub mod prove_said;
-
 #[path = "../../../capsule_app_store/src/store/tab.rs"]
 pub mod tab;
 
