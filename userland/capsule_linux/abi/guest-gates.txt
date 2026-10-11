@@ -10,7 +10,7 @@ gate app/calls.rs | Some(errno::fail(errno::EPERM)) | a call outside the set is 
 gate serve/unserved.rs | errno::fail(errno::ENOSYS) | a call not served is ENOSYS (side 1)
 # The box (nonos_linux_policy::mask), each where its service is reached.
 gate net/socket.rs | !crate::linux::app::inet(guest) | AF_INET without NET_ANON or NET_LISTEN_LO
-gate net/connect_out.rs | crate::linux::app::may_dial(guest, target, to.port) | a stream out, NET_ANON and its dests
+gate net/connect/out.rs | crate::linux::app::may_dial(guest, target, to.port) | a stream out, NET_ANON and its dests
 gate net/bind.rs | mask::NET_LISTEN_LO | bind without NET_LISTEN_LO
 gate net/listen.rs | mask::NET_LISTEN_LO | listen without NET_LISTEN_LO
 gate net/named/connect.rs | app::granted(guest, WAYLAND) | the display without WAYLAND
@@ -32,8 +32,8 @@ gate call/io.rs | Some(Kind::Stdin) if !crate::linux::app::granted(guest, TTY) |
 gate call/ioctl.rs | mask::TTY | terminal control without TTY
 gate net/socket_kind.rs | (SOCK_RAW, Domain::Inet) | raw internet sockets, always EPERM
 gate net/dgram.rs | refuse_out("sendto", a) | a datagram out of the family
-gate net/connect_dgram.rs | refuse_out("connect", to) | a datagram peer out of the family
-gate net/msg.rs | refuse_out("sendmsg", *a) | a datagram out of the family
+gate net/connect/dgram.rs | refuse_out("connect", to) | a datagram peer out of the family
+gate net/msg/send.rs | refuse_out("sendmsg", *a) | a datagram out of the family
 # Where a guest's frame may be answered. A new one must show it is behind
 # the gates above: a parked call already passed them.
 reply call/spawn/exec.rs

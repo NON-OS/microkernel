@@ -25,7 +25,7 @@ use super::fetch::fetch;
 use super::keyring::pinned;
 use super::source::source;
 use crate::linux::install::limit::max_packages;
-use crate::linux::install::place::unpack;
+use crate::linux::install::place::all::unpack;
 use crate::linux::install::Why;
 
 pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {

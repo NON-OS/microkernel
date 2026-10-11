@@ -22,7 +22,7 @@ use crate::linux::guest::Guest;
 
 use super::ops::ev;
 use super::out::Event;
-use super::present::present;
+use super::present::show::present;
 
 /// A commit with a buffer is the only thing that reaches the screen, and
 /// only a window's: the surface of a toplevel. Any other surface, a

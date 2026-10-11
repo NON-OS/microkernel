@@ -46,7 +46,7 @@ pub fn route(
         | (Some(Object::Decoration), DECORATION_DESTROY) => {
             super::forget::forget(guest, object, id)
         }
-        _ => return super::route_rest::route(guest, object, id, op, args),
+        _ => return super::route::rest::route(guest, object, id, op, args),
     }
     true
 }

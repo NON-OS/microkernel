@@ -19,7 +19,7 @@
 use alloc::format;
 use alloc::vec::Vec;
 
-use super::http::get;
+use super::http::get::get;
 use super::run::{ARCH, BRANCHES, RELEASE};
 
 /// Either branch may hold it, and the index does not say which.

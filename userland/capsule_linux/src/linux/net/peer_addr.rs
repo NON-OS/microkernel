@@ -24,14 +24,14 @@ use super::flags::MSG_TRUNC;
 use super::named::UAddr;
 use super::sock::Addr;
 use super::sockaddr::{self, AF_INET, AF_UNIX};
-use super::xfer_in::In;
+use super::xfer::inbound::In;
 
 /// The count a receive answers, with the sender written out. A stream has
 /// no sender, and Linux says so with a length of zero.
 pub fn finish(guest: &mut Guest, got: In, flags: u64, at: u64, alen: u64) -> u64 {
     if at != 0 {
         let wrote = match &got.from {
-            Some(from) => super::sockaddr_out::write(guest, at, alen, from),
+            Some(from) => super::sockaddr::out::write(guest, at, alen, from),
             None if alen != 0 && guest.write(alen, &0u32.to_le_bytes()) < 4 => {
                 errno::fail(errno::EFAULT)
             }

@@ -20,7 +20,7 @@ use alloc::format;
 use alloc::vec::Vec;
 
 use super::auth::{rsa_verify, signed_index};
-use super::http::get;
+use super::http::get::get;
 use super::index::Index;
 use super::run::{ARCH, BRANCHES, RELEASE};
 use super::tar::entries;

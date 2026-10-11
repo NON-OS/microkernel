@@ -36,7 +36,7 @@ pub fn getsockname(guest: &mut Guest, fd: u64, at: u64, lenp: u64) -> u64 {
     }) else {
         return errno::fail(errno::EBADF);
     };
-    super::sockaddr_out::write(guest, at, lenp, &me)
+    super::sockaddr::out::write(guest, at, lenp, &me)
 }
 
 pub fn getpeername(guest: &mut Guest, fd: u64, at: u64, lenp: u64) -> u64 {
@@ -57,7 +57,7 @@ pub fn getpeername(guest: &mut Guest, fd: u64, at: u64, lenp: u64) -> u64 {
         })
     });
     match peer {
-        Some(p) => super::sockaddr_out::write(guest, at, lenp, &p),
+        Some(p) => super::sockaddr::out::write(guest, at, lenp, &p),
         None => errno::fail(errno::ENOTCONN),
     }
 }
