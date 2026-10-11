@@ -22,7 +22,8 @@ The capsule uses only Mk/broker interfaces:
 
 - `MkDeviceList` finds the part: AMD, 1022:2000, an Ethernet controller with
   a memory BAR1 of at least 32 bytes.
-- `MkDeviceClaim` owns the device claim.
+- `MkDeviceClaim` owns the device claim; `MkPciConfigWrite` sets memory
+  decode, Bus Master and Interrupt Disable.
 - `MkMmioMap` maps BAR1, the 32-byte memory twin of the I/O register file,
   so the capsule needs no port I/O.
 - `MkDmaMap` takes three grants below 4 GiB (`MK_DMA_MAP_DMA32`): one
