@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod attributes;
+mod boot_devices;
 mod boot_map;
 mod control;
 pub mod granule;

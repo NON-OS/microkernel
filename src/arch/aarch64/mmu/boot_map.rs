@@ -17,8 +17,8 @@
 use super::super::boot::info::{BootInfo, MemoryType as BootMemoryType};
 use super::{control, image_map, state, ttbr, PageAttributes};
 
-const BLOCK_2M: u64 = 2 * 1024 * 1024;
-const DEVICE_SLOT: usize = 3;
+pub(super) const BLOCK_2M: u64 = 2 * 1024 * 1024;
+pub(super) const DEVICE_SLOT: usize = 3;
 const MAX_RAM_SLOTS: usize = 3;
 
 /// Base of the kernel's direct map, matching what shared code adds to a
@@ -49,7 +49,7 @@ unsafe fn setup_kernel_page_tables(boot_info: &BootInfo) {
             map_range(slot, region.base, region.size, region.region_type);
         }
     }
-    map_devices(boot_info);
+    super::boot_devices::map_devices(boot_info);
     map_direct(boot_info);
     ttbr::set_ttbr1(state::l0_addr());
     ttbr::set_ttbr0(state::l0_addr(), 0);
@@ -135,67 +135,6 @@ unsafe fn map_range(slot: usize, base: u64, size: u64, kind: BootMemoryType) {
         }
         phys = phys.saturating_add(BLOCK_2M);
     }
-}
-
-/// Map the few devices the kernel must reach before any driver exists: the
-/// console, and both halves of the interrupt controller.
-///
-/// The redistributor belongs here alongside the distributor. It is a separate
-/// window, often megabytes away, and it is what enables a CPU's private
-/// interrupts, so leaving it unmapped means the timer tick never arrives on
-/// any core.
-unsafe fn map_devices(boot_info: &BootInfo) {
-    let attrs = PageAttributes::device();
-    // Redistributor frames run one per CPU at 64 or 128 KiB apiece, so a large
-    // machine reaches past the block holding the base.
-    let redist = boot_info.gic_redist_base & !(BLOCK_2M - 1);
-    let windows = [
-        boot_info.uart.base,
-        boot_info.gic_dist_base,
-        boot_info.gic_cpu_base,
-        redist,
-        redist.saturating_add(BLOCK_2M),
-    ];
-    for window in windows {
-        map_device_block(window, &attrs);
-    }
-    // The bridge's I/O window and the memory its BARs are assigned out of.
-    // Config space is deliberately absent: the board puts it at 256 GiB, past
-    // what one level 1 table here describes, and nothing touches it until the
-    // unified address space is up and the MMIO mapper can place it.
-    map_device_range(boot_info.pci_io_cpu_base, boot_info.pci_io_size, &attrs);
-    map_device_range(boot_info.pci_mmio_base, boot_info.pci_mmio_size, &attrs);
-    map_device_range(boot_info.rtc_base, BLOCK_2M, &attrs);
-}
-
-/// Identity map every 2MB block that a window touches.
-unsafe fn map_device_range(base: u64, size: u64, attrs: &PageAttributes) {
-    if base == 0 || size == 0 {
-        return;
-    }
-    let start = base & !(BLOCK_2M - 1);
-    let end = base.saturating_add(size).saturating_add(BLOCK_2M - 1) & !(BLOCK_2M - 1);
-    let mut addr = start;
-    while addr < end {
-        map_device_block(addr, attrs);
-        addr = addr.saturating_add(BLOCK_2M);
-    }
-}
-
-/// Identity map the 2MB block holding one MMIO window. Same rule as RAM: the
-/// level 1 entry follows the address, so the window lands where the driver
-/// expects to find it.
-unsafe fn map_device_block(addr: u64, attrs: &PageAttributes) {
-    const ENTRIES: u64 = 512;
-    const GIB: u64 = ENTRIES * BLOCK_2M;
-
-    let l1_idx = (addr / GIB) as usize;
-    if l1_idx >= ENTRIES as usize {
-        return;
-    }
-    state::l1().set_table(l1_idx, state::l2_addr(DEVICE_SLOT));
-    let l2_idx = ((addr / BLOCK_2M) % ENTRIES) as usize;
-    state::l2(DEVICE_SLOT).set_block(l2_idx, addr & !(BLOCK_2M - 1), attrs);
 }
 
 fn region_attrs(kind: BootMemoryType) -> PageAttributes {
