@@ -24,16 +24,9 @@ use crate::linux::guest::Guest;
 
 use super::args::Args;
 use super::object::Object;
+use super::ops::decoration::*;
 use super::ops::ev;
 use super::out::Event;
-
-const MANAGER_DESTROY: u16 = 0;
-const MANAGER_GET_TOPLEVEL_DECORATION: u16 = 1;
-const DECORATION_DESTROY: u16 = 0;
-const DECORATION_SET_MODE: u16 = 1;
-const DECORATION_UNSET_MODE: u16 = 2;
-const DECORATION_CONFIGURE: u16 = 0;
-const SERVER_SIDE: u32 = 2;
 
 pub fn route(
     guest: &mut Guest,

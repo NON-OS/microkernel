@@ -61,6 +61,7 @@ mod window_damage_tests;
 mod window_end_tests;
 mod window_fit_tests;
 mod window_reshape_tests;
+mod wayland_data_tests;
 mod wayland_keys_named_tests;
 mod wayland_keys_tests;
 mod wayland_mods_tests;
