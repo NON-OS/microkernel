@@ -24,6 +24,8 @@ fn memory_and_cpus() {
 fn console_gic_and_timer() {
     let u = uart::find(&fdt()).unwrap().unwrap();
     assert_eq!((u.kind, u.base), (uart::UartKind::Pl011, 0x0900_0000));
+    // The clock comes through `clocks` from virt's fixed 24 MHz APB clock.
+    assert_eq!((u.clock_hz, u.baud), (Some(24_000_000), None));
     let g = gic::find(&fdt()).unwrap().unwrap();
     assert_eq!(g.version, gic::GicVersion::V3);
     assert_eq!((g.dist_base, g.redist_or_cpu_base), (0x0800_0000, 0x080a_0000));
