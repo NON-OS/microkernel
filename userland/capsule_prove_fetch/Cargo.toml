@@ -1,0 +1,42 @@
+# NONOS userland: capsule_prove_fetch
+#
+# nonos.prove.fetch (plan/14): carries kind-1 proof containers to and from
+# the proof relay over Nym or Anyone, never directly. It uploads only bytes
+# that are a container, under the anchor it recomputes, and keeps a download
+# only when it hashes to the anchor asked for: the relay is trusted for
+# nothing, and fetch is never a general egress. Its pure half (src/desk)
+# runs on the host in userland/prove_fetch_proofs as it ships.
+
+[package]
+name = "nonos_prove_fetch"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS proof relay carrier: kind-1 containers over Nym or Anyone"
+
+[[bin]]
+name = "prove-fetch"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_cap = { package = "nonos-cap", path = "../nonos_cap" }
+# The wire, the container and its anchor. STARKs at the lock's commit.
+nonos_proof_abi = { path = "../nonos_proof_abi" }
+# The network the person chose, and TLS with the chain checked.
+nonos_route_link = { path = "../nonos_route_link" }
+nonos_tls = { path = "../nonos_tls" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
