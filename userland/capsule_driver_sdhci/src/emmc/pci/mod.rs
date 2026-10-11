@@ -23,17 +23,18 @@
 //! lists every device and matches here.
 //!
 //! Intel's SoCs carry up to three such functions: the eMMC host, the SD card
-//! reader and the SDIO host (for the WLAN). Only the eMMC host is the
-//! internal disk. The ids below are the ones Linux's sdhci-pci-core.c binds
-//! to its eMMC, SD and SDIO fixups; only ids known from that table are
-//! listed. Any other SDHCI function is a candidate only when its
-//! capabilities name an embedded slot, which `platform` checks after the
-//! window is mapped.
+//! reader and the SDIO host (for the WLAN). The eMMC host is the internal
+//! disk; the SDIO host is never served. The ids below are the ones Linux's
+//! sdhci-pci-core.c binds to its eMMC and SDIO fixups. Any other SDHCI
+//! function, Intel's card readers among them, is generic: served as fixed
+//! when its capabilities name an embedded slot, and as removable on a
+//! machine with no fixed host, which `platform` checks after the window is
+//! mapped.
 
 mod classify;
 mod ids;
 mod slot_info;
 
 pub use classify::{classify, Kind};
-pub use ids::{INTEL_EMMC, INTEL_NOT_EMMC};
+pub use ids::{INTEL_EMMC, INTEL_SDIO};
 pub use slot_info::{first_bar, PCI_SLOT_INFO};
