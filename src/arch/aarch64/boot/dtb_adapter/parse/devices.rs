@@ -38,10 +38,21 @@ pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> Result<(), &'static [u
     info.timer_virt_intid = timer.virtual_intid;
     let pci = find_pci(fdt).map_err(describe)?.unwrap_or_default();
     info.pci_ecam_base = pci.ecam_base;
-    info.pci_ecam_size = pci.ecam_size;
+    // Today's accessor reads bus 0 at the window base. A window that starts
+    // at a later bus waits for the ECAM registry, which takes the start bus.
+    info.pci_ecam_size = if pci.bus_start == 0 { pci.ecam_size } else { 0 };
     info.pci_io_cpu_base = pci.io_cpu_base;
     info.pci_io_port_base = pci.io_port_base;
     info.pci_io_size = pci.io_size;
+    info.pci_bus_start = pci.bus_start;
+    info.pci_bus_end = pci.bus_end;
+    // BARs are assigned from this window by bus address and mapped at the
+    // same number, so only a window the bridge does not translate can be
+    // used as it is; a translating one is left out until assignment can
+    // tell the two apart.
+    let identity = pci.mem_cpu_base == pci.mem_bus_base;
+    info.pci_mmio_base = if identity { pci.mem_cpu_base } else { 0 };
+    info.pci_mmio_size = if identity { pci.mem_size } else { 0 };
     info.rtc_base = find_rtc(fdt).map_err(describe)?.unwrap_or(0);
     Ok(())
 }
