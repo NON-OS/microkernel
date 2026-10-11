@@ -50,6 +50,9 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
     if let Some(out) = screen::meter::key::key(state, code) {
         return out;
     }
+    if let Some(out) = screen::publisher::key::key(state, code) {
+        return out;
+    }
     if let Some(out) = screen::pay::key::key(state, code) {
         return out;
     }

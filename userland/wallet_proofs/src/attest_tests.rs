@@ -16,7 +16,7 @@
 
 //! The ReleaseAttest log (plan/31, E15): one attest per release, ever.
 
-use crate::attest::*;
+use crate::attest::{file::RECORD_LEN, *};
 
 fn attest(release: u16) -> Attest {
     let mut release_id = [7; 32];
