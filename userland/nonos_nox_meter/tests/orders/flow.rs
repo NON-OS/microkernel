@@ -20,17 +20,17 @@ use nonos_nox_config::{Contract, ORDER_MIN_LEAD};
 use nonos_nox_meter::flow::{Ask, Flow, Next, Work};
 use nonos_nox_meter::orders::{order_plan, Order};
 use nonos_nox_meter::MeterError;
-use nonos_payment_proto::{OrderMade, OrderStatus};
+use nonos_payment_proto::OrderMade;
 
 use super::fixture::{new, ESCROW, FWD, NOW, NOX, SALTS};
 use super::host::Host;
 use super::ret::{ret, word};
 
-fn order() -> Order {
+pub fn order() -> Order {
     order_plan(&Host, &new(NOW + ORDER_MIN_LEAD, 1_000), (&NOX, &ESCROW, &FWD), SALTS, NOW).unwrap()
 }
 
-fn view(view: u16, args: Vec<[u8; 32]>) -> Next {
+pub fn view(view: u16, args: Vec<[u8; 32]>) -> Next {
     Next::Ask(Ask::View { view, args })
 }
 
@@ -55,20 +55,4 @@ fn a_paused_policy_or_another_deposit_address_ends_the_order() {
     assert_eq!(step(1, o.deposit), Err(MeterError::Paused));
     assert_eq!(step(2, o.deposit), Err(MeterError::Mismatch), "paused() is a strict bool");
     assert_eq!(step(0, [0xee; 20]), Err(MeterError::Untrusted));
-}
-
-#[test]
-fn a_status_is_order_of_then_what_waits_at_the_deposit_address() {
-    let o = order();
-    let (mut f, first) = Flow::begin(Work::OrderStatus(o));
-    assert_eq!(first, view(20, vec![o.order_id]));
-    let of = [ret(2), ret(900), ret(NOW.into()), ret(0)].concat();
-    assert_eq!(f.on_view(of.clone()), Ok(view(1, vec![word(&o.deposit)])));
-    assert_eq!(f.on_view(ret(70)), Ok(view(60, vec![ret(1)[0], word(&o.deposit)])));
-    let want = OrderStatus { state: 2, funded: 900, pending: 75 };
-    assert_eq!(f.on_view(ret(5)), Ok(Next::Done(want.encode())));
-    let (mut bad, _) = Flow::begin(Work::OrderStatus(o));
-    let wide = [ret(256), of[1..].to_vec()].concat();
-    let _ = bad.on_view(wide).and_then(|_| bad.on_view(ret(0)));
-    assert_eq!(bad.on_view(ret(0)), Err(MeterError::Mismatch), "a state past u8");
 }

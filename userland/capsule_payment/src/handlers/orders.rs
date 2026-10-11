@@ -17,14 +17,14 @@
 //! ORDER_NEW, ORDER_STATUS and ORDER_REFUND (plan/21, v1.4.20). NEW plans
 //! the order under fresh salts and runs it as a job that reads paused() and
 //! depositAddress, then seals it before answering; STATUS is a job over a
-//! kept order; REFUND answers the wallet the refund's destination and salt.
+//! kept order; REFUND (refund.rs) answers the wallet the refund pair.
 
 use alloc::vec::Vec;
 
 use nonos_nox_config::{address, forwarder_initcode_hash, Contract};
 use nonos_nox_meter::flow::Work as Job;
 use nonos_nox_meter::orders::{order_plan, Order};
-use nonos_payment_proto::{refund_reply, OrderNew, EINVAL, ENOENT};
+use nonos_payment_proto::{OrderNew, EINVAL, ENOENT};
 
 use super::channel_ops::started;
 use crate::jobs::Work;
@@ -56,16 +56,11 @@ fn planned(n: &OrderNew) -> Result<Order, i32> {
     o.map_err(status_of)
 }
 
-fn order_id(req: &Call<'_>) -> Result<[u8; 32], i32> {
+pub(super) fn order_id(req: &Call<'_>) -> Result<[u8; 32], i32> {
     req.body.try_into().map_err(|_| EINVAL)
 }
 
 pub fn order_status(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
     let job = order_id(req).and_then(|id| find(&id));
     started(work, meter, job.map(Job::OrderStatus), req)
-}
-
-pub fn order_refund(req: &Call<'_>) -> Vec<u8> {
-    let o = order_id(req).and_then(|id| find(&id));
-    req.result(o.map(|o| refund_reply(&o.refund_to, &o.refund_salt)))
 }

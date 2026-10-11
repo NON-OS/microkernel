@@ -48,6 +48,8 @@ pub enum Next {
     /// The job's answer: each broadcast transaction's hash, in order, or an
     /// order's status.
     Done(Vec<u8>),
+    /// Drop this order from the table first, then answer (v1.4.26).
+    Drop([u8; 32], Vec<u8>),
     /// Seal and keep this order first, then answer with these bytes.
     Keep(alloc::boxed::Box<Order>, Vec<u8>),
 }

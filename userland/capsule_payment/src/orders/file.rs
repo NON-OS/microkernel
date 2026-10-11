@@ -55,7 +55,18 @@ pub fn keep(o: &Order) -> Result<(), i32> {
         return Err(ENFILE);
     }
     all.push(*o);
-    let mut plain = encode_orders(&all).ok_or(EINVAL)?;
+    write(&all)
+}
+
+/// Let the order go: ORDER_STATUS found nothing of it left to refund.
+pub fn drop_order(order_id: &[u8; 32]) -> Result<(), i32> {
+    let mut all = orders()?;
+    all.retain(|x| x.order_id != *order_id);
+    write(&all)
+}
+
+fn write(all: &[Order]) -> Result<(), i32> {
+    let mut plain = encode_orders(all).ok_or(EINVAL)?;
     let sealed = seal_record(RECORD, &plain);
     wipe(&mut plain);
     disk::save(ORDERS_PATH, &sealed?)
