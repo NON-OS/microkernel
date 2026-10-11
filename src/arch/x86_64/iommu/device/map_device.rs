@@ -24,7 +24,7 @@
 
 use super::super::globals::is_enforcing;
 use super::super::globals::state::{DeviceBinding, STATE};
-use super::super::tables::root::set_context;
+use super::super::tables::root::{clear_context, set_context};
 use super::super::types::{DomainId, VtdError, MAX_VTD_DOMAINS};
 use super::super::unit::invalidate::invalidate_all_units;
 use super::super::unit::report::probed;
@@ -57,10 +57,17 @@ pub fn map_device(domain: DomainId, bus: u8, device: u8, function: u8) -> Result
     // kernel cannot later detach.
     state.bindings.push(DeviceBinding { source, domain }).map_err(|_| VtdError::DomainTableFull)?;
 
-    let programmed = set_context(source, sl_root, domain, info.levels.context_aw())
-        .and_then(|()| invalidate_all_units());
-    if let Err(e) = programmed {
+    if let Err(e) = set_context(source, sl_root, domain, info.levels.context_aw()) {
         state.bindings.retain(|binding| binding.source != source);
+        return Err(e);
+    }
+    // Written but not confirmed: a unit may already walk the entry. The
+    // binding goes only once the entry is gone and every unit says so; kept,
+    // it makes destroy_domain deny the device before freeing the tables.
+    if let Err(e) = invalidate_all_units() {
+        if clear_context(source).is_ok() && invalidate_all_units().is_ok() {
+            state.bindings.retain(|binding| binding.source != source);
+        }
         return Err(e);
     }
     Ok(())
