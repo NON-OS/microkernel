@@ -22,4 +22,8 @@ impl GicRedistributor {
     pub fn new(base: u64) -> Self {
         Self { base }
     }
+
+    pub fn base(&self) -> u64 {
+        self.base
+    }
 }
