@@ -47,6 +47,7 @@ pub fn decode_policy(b: &[u8]) -> Option<PolicyView> {
     }
     Some(PolicyView {
         program_blake3: b[16..48].try_into().ok()?,
+        mask: u64::from_le_bytes(b[48..56].try_into().ok()?),
         listing_id: b[56..88].try_into().ok()?,
         syscall_set: b[SET..SET + SET_BYTES].try_into().ok()?,
     })

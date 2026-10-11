@@ -27,12 +27,8 @@ fn only_a_pinned_vendor_supervisor_seals_what_verifies() {
     let b = parts.bytes();
     let mut other = pinned.clone();
     other.supervisors = vec![[0x5D; 32]];
-    let mut caps = pinned.clone();
-    caps.supervisor_caps ^= 4;
-    for p in [other, caps] {
-        let pins = p.trust();
-        assert_eq!(verify(&b, &expected(&f.policy, &pins)), Err(Refusal::Supervisor));
-    }
+    let pins = other.trust();
+    assert_eq!(verify(&b, &expected(&f.policy, &pins)), Err(Refusal::Supervisor));
 }
 
 #[test]

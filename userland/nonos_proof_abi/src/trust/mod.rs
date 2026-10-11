@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod caps;
 mod pins;
 mod release;
 
+pub use caps::{supervisor_caps, LINUX_CAPS, LINUX_NET_CAPS, NET_ANON};
 pub use pins::{DeviceRoot, Trust};
 pub use release::release;

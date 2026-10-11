@@ -15,16 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Step 2: a final record, not saturated, sealed by a pinned vendor
-//! supervisor, naming an app.
+//! supervisor with the caps the policy's mask calls for, naming an app.
 
 use super::refusal::Refusal;
 use crate::record::{Record, FLAG_FINAL};
-use crate::trust::Trust;
+use crate::trust::{supervisor_caps, Trust};
 
-pub(super) fn record(rec: &Record, pins: &Trust) -> Result<(), Refusal> {
+pub(super) fn record(rec: &Record, pins: &Trust, mask: u64) -> Result<(), Refusal> {
     let vendor = rec.authority == 0
         && pins.supervisors.contains(&rec.sup_meas)
-        && rec.sup_caps == pins.supervisor_caps;
+        && rec.sup_caps == supervisor_caps(mask);
     if rec.flags != FLAG_FINAL || !vendor {
         return Err(Refusal::Supervisor);
     }

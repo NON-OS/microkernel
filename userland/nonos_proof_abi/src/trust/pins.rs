@@ -16,8 +16,8 @@
 
 //! What a verifier trusts, per release: the trees a device proof must walk,
 //! the registrars' device roots and how long each is good for, the vendor
-//! supervisors that may seal a run, the vendor policies, and the isolation
-//! statement. Nothing here comes from a container.
+//! supervisors that may seal a run (their caps are pinned in caps.rs), the
+//! vendor policies, and the isolation statement. Nothing here comes from a container.
 
 use nox_verify::Statement;
 
@@ -45,8 +45,6 @@ pub struct Trust<'a> {
     pub registrars: &'a [DeviceRoot],
     /// The vendor capsule_linux measurements a sealing supervisor may have.
     pub supervisors: &'a [[u8; 32]],
-    /// The caps a vendor supervisor is installed with, exactly.
-    pub supervisor_caps: u64,
     /// The vendor table's policies, for programs shipped with the system.
     pub vendor_policies: &'a [[u8; 256]],
     pub isolation: &'a Statement,
