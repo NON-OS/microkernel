@@ -26,7 +26,8 @@
     feature = "nonos-capsule-driver-tulip",
     feature = "nonos-capsule-driver-piix-ide",
     feature = "nonos-capsule-driver-virtio-scsi",
-    feature = "nonos-capsule-driver-pvscsi"
+    feature = "nonos-capsule-driver-pvscsi",
+    feature = "nonos-capsule-driver-buslogic"
 ))]
 mod present;
 
