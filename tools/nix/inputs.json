@@ -3638,6 +3638,26 @@
   "md": [],
   "signed": []
  },
+ "userland/ixgbe_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ixgbe/src/constants",
+   "userland/capsule_driver_ixgbe/src/init",
+   "userland/capsule_driver_ixgbe/src/link",
+   "userland/capsule_driver_ixgbe/src/log",
+   "userland/capsule_driver_ixgbe/src/protocol",
+   "userland/capsule_driver_ixgbe/src/queue",
+   "userland/capsule_driver_ixgbe/src/regs.rs",
+   "userland/capsule_driver_ixgbe/src/setup/driver.rs",
+   "userland/capsule_driver_ixgbe/src/setup/pci_command.rs",
+   "userland/ixgbe_proofs",
+   "userland/nonos_devmodel",
+   "userland/nonos_mac"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/kernel_proofs": {
   "exclude": [
    "userland/kernel_proofs/fuzz"
