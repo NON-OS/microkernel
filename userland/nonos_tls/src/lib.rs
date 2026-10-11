@@ -60,5 +60,5 @@ pub use handshake_state::{Answer, HandshakeState, Progress, Refusal, Start};
 pub use rtc_now::rtc_now;
 pub use verify_rsa::verify_rsa;
 pub use server_complete::{server_complete, server_complete_unauthenticated, ServerComplete};
-pub use session::{exchange, Io, SessionError};
+pub use session::{exchange, Io, SessionError, HANDSHAKE_MS};
 pub use traffic_keys::TrafficKeys;

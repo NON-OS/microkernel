@@ -42,9 +42,10 @@ pub fn exchange<S: Io>(
     limit: usize,
 ) -> Result<Vec<u8>, SessionError> {
     let cf = crate::client_flight(host.as_bytes()).ok_or(SessionError::Init)?;
+    let until = super::deadline::handshake_end(None);
     io.write_all(&cf.record)?;
 
-    let (flight, state, end) = read_flight(io, &cf, MAX_FLIGHT)?;
+    let (flight, state, end) = read_flight(io, &cf, MAX_FLIGHT, until)?;
 
     /*
      * The chain, the CertificateVerify and Finished are checked here, once,
