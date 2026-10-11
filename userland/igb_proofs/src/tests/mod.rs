@@ -51,6 +51,7 @@ mod semaphore_tests;
 mod swfw_tests;
 mod timeout_text_tests;
 mod tx_encode_tests;
+mod tx_pad_tests;
 mod tx_queue_tests;
 mod tx_ring_tests;
 mod tx_wrap_tests;
