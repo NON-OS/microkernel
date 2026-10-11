@@ -25,6 +25,7 @@
 //! over the anonymity network the machine has chosen; it never goes direct.
 
 mod fresh;
+mod fresh_once;
 mod guard;
 mod jobs;
 mod ops;
