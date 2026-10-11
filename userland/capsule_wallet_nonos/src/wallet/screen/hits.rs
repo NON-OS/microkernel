@@ -38,6 +38,8 @@ pub enum Press {
     Asset(u8),
     Pick(u8),
     Field(u8),
+    /* Where a withdrawal goes: 0 a fresh address of this wallet, 1 the meter. */
+    Dest(u8),
     /* Ethereum mainnet (0) or Sepolia (1). */
     Network(u8),
     /* A row of a settings list, by its index. */

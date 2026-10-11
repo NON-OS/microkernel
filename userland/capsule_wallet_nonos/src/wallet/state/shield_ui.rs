@@ -126,8 +126,10 @@ pub struct ShieldUi {
     pub permille: Option<u16>,
     pub review: Option<Review>,
     pub quote: Option<Quote>,
-    /* The fresh public address a withdrawal pays. */
+    /* The public address a withdrawal pays: a fresh one of this wallet, or
+     * the meter's when `to_meter` (B7). */
     pub withdraw_to: Option<String>,
+    pub to_meter: bool,
     /* The coin and amount of the spend being proved, as confirmed. */
     pub proving: Option<(u8, String)>,
     pub spend: Option<Spend>,

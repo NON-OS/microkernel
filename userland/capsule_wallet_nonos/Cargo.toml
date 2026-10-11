@@ -27,6 +27,11 @@ nonos_route_link = { path = "../nonos_route_link" }
 # Whether this boot keeps anything past power off, as the store itself asks.
 nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
+# NOX's address and the Shield pool, from the one config every chain
+# constant lives in (B7).
+nonos_nox_config = { path = "../nonos_nox_config" }
+# The meter's ACCOUNT: the address a Shield withdraw funds (B7).
+nonos_payment_proto = { path = "../payment_proto" }
 
 [profile.release]
 panic = "abort"
