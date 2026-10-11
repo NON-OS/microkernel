@@ -36,13 +36,19 @@ use super::encode::to;
 pub const PUBLISHER_GAS_MAX: u64 = 1_000_000;
 
 pub fn quote_refusal(p: &Publisher, chain_id: u64, q: &Quote) -> Option<&'static str> {
-    if q.kind != p.kind() {
+    held_to(q, p.kind(), to(p, chain_id), PUBLISHER_GAS_MAX)
+}
+
+/// Why a quote is not signed: another kind, a contract other than `to`, gas
+/// past `gas_max`, or fees past the caps. Shared with the dispute (B8).
+pub fn held_to(q: &Quote, kind: u8, to: Option<[u8; 20]>, gas_max: u64) -> Option<&'static str> {
+    if q.kind != kind {
         return Some("settle quoted another kind of transaction, not signing");
     }
-    if to(p, chain_id) != Some(q.to) {
+    if to != Some(q.to) {
         return Some("settle quoted a contract other than the config's, not signing");
     }
-    if q.gas_limit == 0 || q.gas_limit > PUBLISHER_GAS_MAX {
+    if q.gas_limit == 0 || q.gas_limit > gas_max {
         return Some("settle's gas limit is out of bounds, not signing");
     }
     if q.max_fee == 0 || q.max_fee > MAX_FEE_PER_GAS {

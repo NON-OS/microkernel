@@ -24,7 +24,7 @@ mod text;
 
 pub use call::Publisher;
 pub use encode::{calldata, encode, to};
-pub use quote::{fee_rows, max_cost, quote_refusal, PUBLISHER_GAS_MAX};
+pub use quote::{fee_rows, held_to, max_cost, quote_refusal, PUBLISHER_GAS_MAX};
 pub use review::review_rows;
 pub use review_bond::Rows;
 pub use text::{contract_name, hex, id};
