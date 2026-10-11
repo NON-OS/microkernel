@@ -21,7 +21,7 @@
 use alloc::vec;
 
 use nonos_libc::{mk_exit, mk_ipc_recv_from, mk_ipc_reply, mk_time_millis, mk_yield};
-use nonos_proof_abi::wire::{Header, FRAME_MAX, PROVE, PROVE_MAGIC};
+use nonos_proof_abi::wire::{Header, DELIVER, FRAME_MAX, PROVE, PROVE_MAGIC};
 
 use super::answer::answer;
 use super::state::Job;
@@ -50,7 +50,7 @@ pub fn serve(held: bool) -> ! {
         let Some((h, body)) = Header::parse(&buf[..n], PROVE_MAGIC) else {
             continue;
         };
-        if h.op != PROVE || job.is_some() {
+        if !(h.op == PROVE || h.op == DELIVER) || job.is_some() {
             let tx = answer(job.as_mut(), sender, &h, body);
             let _ = mk_ipc_reply(sender, tx.as_ptr(), tx.len());
             continue;
