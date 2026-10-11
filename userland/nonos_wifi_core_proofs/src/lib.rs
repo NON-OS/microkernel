@@ -58,6 +58,10 @@ mod sae_tests;
 #[cfg(test)]
 mod scan_list_tests;
 #[cfg(test)]
+mod soft;
+#[cfg(test)]
+mod softmac;
+#[cfg(test)]
 mod station_tests;
 #[cfg(test)]
 mod supplicant_tests;
