@@ -16,7 +16,8 @@
 
 //! The installer's client for the block wire (`nonos_blk_client`'s
 //! `Driver::Wire`), held to driver.sdhci0's own source: the dialect, the
-//! controllers it serves, the geometry it builds and the IDENTIFY parse.
+//! controllers it serves, the geometry it builds, the IDENTIFY parse, and
+//! the rows the survey shows for a host nothing serves.
 
 #[path = "../../../nonos_blk_client/src/driver/bus.rs"]
 mod bus;
@@ -24,6 +25,8 @@ mod bus;
 mod dialect;
 #[path = "../../../nonos_blk_client/src/driver/table.rs"]
 mod table;
+#[path = "../../../nonos_blk_client/src/device/unserved.rs"]
+mod unserved;
 #[path = "../../../nonos_blk_client/src/device/wire_identity_parse.rs"]
 mod wire_identity_parse;
 
@@ -38,3 +41,4 @@ use crate::blk_span_tests::{geometry, transfer};
 mod dialect_tests;
 mod geometry_tests;
 mod identity_tests;
+mod unserved_tests;
