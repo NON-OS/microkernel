@@ -5217,6 +5217,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_driver_usb_msc/src/xhci/wire.rs",
    "userland/capsule_driver_xhci/src/constants",
    "userland/capsule_driver_xhci/src/contexts",
    "userland/capsule_driver_xhci/src/controller/bulk",
@@ -5254,6 +5255,7 @@
    "userland/capsule_driver_xhci/src/slots",
    "userland/capsule_driver_xhci/src/trb",
    "userland/nonos_devmodel",
+   "userland/nonos_usbnet/src/xhci/wire.rs",
    "userland/xhci_proofs"
   ],
   "md": [],
