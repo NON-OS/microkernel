@@ -46,16 +46,19 @@ def mask_of(names: str) -> int:
     return sum({MASK[w] for w in words})
 
 
-def market_ready(calls: bytes) -> bool:
+def market_ready(calls: bytes, mask: int) -> bool:
     has = lambda b: calls[b // 8] >> (b % 8) & 1
-    return all(has(b) for b in ALWAYS_SERVED) and not has(NATIVE_BUCKET)
+    sets = all(has(b) for b in ALWAYS_SERVED) and not has(NATIVE_BUCKET)
+    return sets and not mask & MASK["FILES_USER"]
 
 
 def encode(program: bytes, mask: int, listing: bytes, release: bytes,
            dests_hash: bytes, calls: bytes) -> bytes:
     if len(calls) != SET_LEN or calls[-1] & 0xFE:
         raise ValueError("calls is not a 65-byte set of buckets 0 to 512")
-    if not market_ready(calls):
+    if mask & MASK["FILES_USER"]:
+        raise ValueError("FILES_USER is reserved: nothing serves the person's files yet")
+    if not market_ready(calls, mask):
         raise ValueError("calls must name exit (60) and exit_group (231) and leave bucket 512 clear")
     for name, field in (("program", program), ("listing", listing), ("release", release), ("dests", dests_hash)):
         if len(field) != 32:
