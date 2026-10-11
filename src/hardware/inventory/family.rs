@@ -26,6 +26,9 @@ pub enum HardwareFamily {
     /// An Intel eMMC host (`emmc`): the soldered disk of Atom, Celeron and
     /// Pentium Silver laptops. Served by the SD host controller capsule.
     StorageEmmc,
+    /// Any other SD host (`sd_host`): a card reader, or an embedded slot
+    /// the eMMC list does not name. Served by the same capsule.
+    StorageSdhci,
     NetworkVirtio,
     NetworkE1000,
     NetworkRtl8139,

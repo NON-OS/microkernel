@@ -2996,6 +2996,7 @@
    "src/hardware/block_device/wire/identity.rs",
    "src/hardware/block_device/wire/status.rs",
    "src/hardware/inventory/emmc.rs",
+   "src/hardware/inventory/sd_host.rs",
    "userland/capsule_driver_sdhci/src/emmc/disk",
    "userland/capsule_driver_sdhci/src/emmc/env",
    "userland/capsule_driver_sdhci/src/emmc/error",
