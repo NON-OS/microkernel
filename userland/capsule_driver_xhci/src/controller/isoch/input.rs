@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The input context that adds one isochronous OUT endpoint (xHCI 1.2
-//! sections 4.14.2 and 6.2.3).
+//! 4.14.2 and 6.2.3, as recalled, unverified).
 
 use super::endpoint::IsochEndpoint;
 use crate::contexts::copy_slot_context;
