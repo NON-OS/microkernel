@@ -34,6 +34,8 @@ mod drain_events;
 mod get_device_descriptor;
 #[path = "../../../capsule_driver_xhci/src/controller/halt.rs"]
 mod halt;
+#[path = "../../../capsule_driver_xhci/src/controller/isoch/mod.rs"]
+mod isoch;
 #[path = "../../../capsule_driver_xhci/src/controller/issue_address_device.rs"]
 mod issue_address_device;
 #[path = "../../../capsule_driver_xhci/src/controller/issue_enable_slot.rs"]
@@ -76,6 +78,10 @@ mod wait_hc_running;
 pub mod wait_transfer_completion;
 
 pub use bulk::{bulk_transfer, reset_bulk_endpoint, write_bulk_input, BulkEndpoint, BulkPipes};
+pub use isoch::{
+    batch_fits, burst_fields, isoch_endpoint, isoch_out, write_isoch_input, IsochEndpoint,
+    IsochPipe,
+};
 pub use drain_events::{drain_events, DRAIN_BATCH};
 pub use get_device_descriptor::{
     get_device_descriptor, read_device_descriptor, DEVICE_DESCRIPTOR_LEN, DEVICE_DESCRIPTOR_PREFIX,

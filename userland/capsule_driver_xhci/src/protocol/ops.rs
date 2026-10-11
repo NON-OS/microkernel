@@ -28,3 +28,5 @@ pub const OP_CONFIGURE_BULK: u16 = 0x0010;
 pub const OP_BULK_OUT: u16 = 0x0011;
 pub const OP_BULK_IN: u16 = 0x0012;
 pub const OP_RESET_BULK: u16 = 0x0013;
+pub const OP_CONFIGURE_ISOCH: u16 = 0x0014;
+pub const OP_ISOCH_OUT: u16 = 0x0015;
