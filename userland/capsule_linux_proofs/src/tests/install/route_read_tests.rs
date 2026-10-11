@@ -24,7 +24,8 @@
 use alloc::vec::Vec;
 
 use crate::install::http_reply::{body, complete};
-use crate::install::route_read::{offline, read_reply, Reply, Source, CHUNK, FIRST_MS, QUIET_MS};
+use crate::install::route_read::read::{CHUNK, FIRST_MS, QUIET_MS};
+use crate::install::route_read::{offline, read_reply, Reply, Source};
 
 /// A stream that hands out `pieces` in order, then zeros, and records the
 /// wait each read was given.
