@@ -33,6 +33,11 @@ pub fn take() -> Option<Names> {
     Names::parse(&reply)
 }
 
+/// OPEN CONFIRM: the channel id once its opening is mined, EAGAIN before.
+pub fn open_confirm(body: &[u8]) -> Result<Vec<u8>, i32> {
+    call(nonos_payment_proto::OP_OPEN, body, 32)
+}
+
 /// JOB(id) for a purchase's job: EAGAIN while it runs, then its result.
 pub fn order_job(id: u32) -> Result<Vec<u8>, i32> {
     call(OP_JOB, &id.to_le_bytes(), ORDER_MADE_LEN)

@@ -17,16 +17,9 @@
 //! Buy starts the order; Close drops the purchase, never while a job runs.
 
 use nonos_app_skeleton::EventOutcome;
-use nonos_payment_proto::{EINVAL, OP_ORDER_OFFER};
 
 use super::fund::funding;
 use super::words::closable;
-use crate::wallet::meter::call::start;
-use crate::wallet::order::fees::Fees;
-use crate::wallet::order::fresh::fresh_address;
-use crate::wallet::order::intake::Step;
-use crate::wallet::order::read::Named;
-use crate::wallet::order::said::{failed, Stage};
 use crate::wallet::screen::hits::Press;
 use crate::wallet::state::{State, VIEW_HOME};
 
@@ -34,7 +27,9 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
     match press {
         Press::Dismiss => state.failure = None,
         Press::Footer(1) if funding(state) => return super::fund::fund(state),
-        Press::Footer(1) => return confirm(state),
+        Press::Footer(1) if opening(state) => return open_channel(state),
+        Press::Field(f) => state.meter.purchase.iter_mut().for_each(|p| p.form.focus = f),
+        Press::Footer(1) => return super::buy::confirm(state),
         Press::Footer(0) if state.meter.purchase.as_deref().is_some_and(closable) => {
             state.meter.purchase = None;
             state.view = VIEW_HOME;
@@ -44,25 +39,12 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
     EventOutcome::Repaint
 }
 
-/// The person confirmed: draw the refund address and start the offer.
-fn confirm(state: &mut State) -> EventOutcome {
-    let Some(p) = state.meter.purchase.as_mut() else { return EventOutcome::Idle };
-    let (Step::Consent, Ok(Named::Escrow(buy))) = (&p.step, &p.read) else {
-        return EventOutcome::Idle;
-    };
-    if !matches!(p.fees, Fees::Quoted(_)) {
-        return EventOutcome::Idle;
-    }
-    p.step = match fresh_address() {
-        Err(why) => Step::Failed(why),
-        Ok(to) => {
-            p.refund_to = to;
-            let body = buy.offer_ask().encode().ok_or(EINVAL);
-            match body.and_then(|b| start(OP_ORDER_OFFER, &b)) {
-                Ok(id) => Step::Offering(id),
-                Err(s) => Step::Failed(failed(Stage::Offer, s)),
-            }
-        }
-    };
+fn opening(state: &State) -> bool {
+    state.meter.purchase.as_deref().is_some_and(super::form::open_form)
+}
+
+/// Open channel: OPEN START with the form as typed, or why not.
+pub fn open_channel(state: &mut State) -> EventOutcome {
+    state.failure = crate::wallet::order::opening::open(state);
     EventOutcome::Repaint
 }
