@@ -23,12 +23,14 @@ const VERSION: u16 = 1;
 const OP_WRITE_PCM: u16 = 7;
 const OP_STREAM_START: u16 = 8;
 const OP_STREAM_STOP: u16 = 9;
-/// driver.hda0's `OP_OUTPUT_STATUS`: its verdict on this machine's audio.
+/// The sink driver's `OP_OUTPUT_STATUS`: its verdict on this machine's audio.
 const OP_OUTPUT_STATUS: u16 = 10;
 /// The driver's status reply: header, status, then verdict u32, codec
 /// vendor u16, codec device u16, outputs u8, plugged u8, reserved u16.
 pub const OUTPUT_REPLY_LEN: usize = HDR_LEN + STATUS_LEN + 12;
 const E_OK: i32 = 0;
+/// The verdict of a driver this machine plays through.
+pub const OUTPUT_READY: u32 = 0;
 
 pub fn request(request_id: u32, pcm: &[u8], out: &mut [u8]) -> usize {
     let payload_len = pcm.len();
