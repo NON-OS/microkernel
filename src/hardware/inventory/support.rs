@@ -22,12 +22,13 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         StorageVirtioBlk | StorageUsbMsc | StorageAhci | StorageNvme => DataPath,
         StorageEmmc | StorageSdhci => DataPath,
         NetworkVirtio | NetworkE1000 | NetworkRtl8139 | NetworkRtl8169 => DataPath,
+        NetworkE1000e | NetworkIgc => DataPath,
         NetworkRtl8821ce => DataPath,
         DisplayGopFramebuffer | DisplayVirtioGpu | DisplayBga => DataPath,
         UsbXhci | InputPs2 | InputUsbHid => DataPath,
         NetworkIwlwifi | AudioHda | InputI2cHid | SerialI2c => ControllerStatus,
         DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => EnumerateOnly,
-        StorageVmd => EnumerateOnly,
+        StorageVmd | StorageUfs | NetworkIgb | NetworkRealtekWifi => EnumerateOnly,
         UsbEhci | UsbOhci | UsbUhci | SerialSpi | BridgePci | SystemPeripheral | Unknown => {
             EnumerateOnly
         }

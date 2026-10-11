@@ -29,12 +29,23 @@ pub enum HardwareFamily {
     /// Any other SD host (`sd_host`): a card reader, or an embedded slot
     /// the eMMC list does not name. Served by the same capsule.
     StorageSdhci,
+    /// A UFS host controller, class 01h subclass 09h: no capsule yet.
+    StorageUfs,
     NetworkVirtio,
+    /// The 8254x parts the e1000 capsule takes.
     NetworkE1000,
+    /// 82574, 82583 and the PCH I217/I218/I219: the e1000e capsule's.
+    NetworkE1000e,
+    /// 82575 to I211: no capsule yet.
+    NetworkIgb,
+    /// I225 and I226: the igc capsule's.
+    NetworkIgc,
     NetworkRtl8139,
     NetworkRtl8169,
     NetworkRtl8821ce,
     NetworkIwlwifi,
+    /// A Realtek wireless part other than the RTL8821CE.
+    NetworkRealtekWifi,
     DisplayGopFramebuffer,
     DisplayVirtioGpu,
     DisplayBga,
