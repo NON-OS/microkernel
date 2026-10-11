@@ -15,27 +15,36 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What the wallet makes of a purchase the store names (B8, v1.4.36). The
- * store gives names only; the terms are the market's: OP_GET_COMMERCE's
- * block, trusted by publisher and payee, and the release's escrow fields.
- * INSTALL_READY must pass every gate but the package, the bond's included.
+ * What the wallet makes of a purchase the store names (B8, v1.4.36-38):
+ * an escrow order or a voucher channel. The store gives names only; the
+ * terms are the market's: OP_GET_COMMERCE's block, trusted by publisher
+ * and payee, and the release's escrow fields. INSTALL_READY must pass
+ * every gate but the package, the bond's included.
  */
 
 use nonos_market_proto::{Commerce, Readiness, ReleaseEscrow};
 use nonos_marketplace_abi::{commerce_from_bytes, SettleMode};
 
 use super::buy::Buy;
+use super::escrowed::escrowed;
+use super::voucher::Voucher;
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum Named {
+    Escrow(Buy),
+    Voucher(Voucher),
+}
 
 /// INSTALL_READY's package gate: the one an escrowed package may fail
 /// until it is bought.
 const PACKAGE_GATE: usize = 1;
 
-pub fn buy_from(
+pub fn read_named(
     chain_id: u64,
     c: &Commerce,
     e: &ReleaseEscrow,
     r: &Readiness,
-) -> Result<Buy, &'static str> {
+) -> Result<Named, &'static str> {
     if !c.trusted() {
         return Err("Its publisher and payee do not both stand behind this price.");
     }
@@ -47,21 +56,14 @@ pub fn buy_from(
         return Err("The market does not pass this release here; the store says why.");
     }
     let block = commerce_from_bytes(&c.block).map_err(|_| "Its commerce block does not read.")?;
-    if block.settle_mode != SettleMode::Escrow {
-        return Err("This release is not sold by escrow.");
+    let (listing_id, payee) = (c.listing_id, block.payee);
+    match block.settle_mode {
+        SettleMode::Free => Err("This release is free: there is nothing to buy."),
+        SettleMode::Voucher => {
+            let (unit, unit_price, min_charge) = (block.unit, block.unit_price, block.min_charge);
+            let v = Voucher { chain_id, payee, listing_id, unit, unit_price, min_charge };
+            Ok(Named::Voucher(v))
+        }
+        SettleMode::Escrow => escrowed(chain_id, c, &block, e).map(Named::Escrow),
     }
-    if e.chunk_root == [0; 32] || e.content_len == 0 {
-        return Err("The release names no escrowed package.");
-    }
-    Ok(Buy {
-        chain_id,
-        listing_id: c.listing_id,
-        release_id: c.release_id,
-        bond_id: block.bond_id,
-        payee: block.payee,
-        amount: block.unit_price,
-        chunk_root: e.chunk_root,
-        content_len: e.content_len,
-        url: e.package_url.clone(),
-    })
 }
