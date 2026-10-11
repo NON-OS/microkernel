@@ -17,6 +17,7 @@
 use nonos_app_skeleton::EventOutcome;
 
 use super::channels::{FIELD_TOPUP, ROW_CLOSE, ROW_TOPUP};
+use super::claim::ROW_CLAIM;
 use crate::wallet::screen::hits::Press;
 use crate::wallet::state::{State, VIEW_METER, VIEW_SETTINGS};
 
@@ -42,6 +43,7 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
         Press::Field(f) => state.meter.focus = f,
         Press::Row(ROW_TOPUP) => return super::jobs::topup(state),
         Press::Row(ROW_CLOSE) => return super::jobs::close(state),
+        Press::Row(ROW_CLAIM) => return super::claim::claim(state),
         Press::Row(i) => {
             state.meter.picked = Some(i);
             state.meter.focus = FIELD_TOPUP;

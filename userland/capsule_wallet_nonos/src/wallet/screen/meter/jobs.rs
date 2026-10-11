@@ -30,7 +30,7 @@ fn picked(state: &State) -> Option<(u64, [u8; 32])> {
     Some((row.chain_id, row.channel_id))
 }
 
-fn begin(state: &mut State, kind: JobKind, op: u16, body: &[u8]) -> EventOutcome {
+pub(super) fn begin(state: &mut State, kind: JobKind, op: u16, body: &[u8]) -> EventOutcome {
     match crate::wallet::meter::call::start(op, body) {
         Ok(id) => {
             state.meter.job = Some(MeterJob { id, kind });
