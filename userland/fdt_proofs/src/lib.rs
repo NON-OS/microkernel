@@ -27,6 +27,8 @@ mod mutate_tests;
 #[cfg(test)]
 mod node_tests;
 #[cfg(test)]
+mod pci_tests;
+#[cfg(test)]
 mod reserve_tests;
 #[cfg(test)]
 mod rpi4_tests;

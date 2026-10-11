@@ -37,6 +37,8 @@ fn pci_host_and_rtc() {
     let p = pci::find(&fdt()).unwrap().unwrap();
     assert_eq!((p.ecam_base, p.ecam_size), (0x40_1000_0000, 0x1000_0000));
     assert_eq!((p.io_cpu_base, p.io_port_base, p.io_size), (0x3eff_0000, 0, 0x1_0000));
+    assert_eq!((p.mem_cpu_base, p.mem_bus_base), (0x1000_0000, 0x1000_0000));
+    assert_eq!((p.mem_size, p.bus_start, p.bus_end), (0x2eff_0000, 0, 255));
     assert_eq!(rtc::find(&fdt()), Ok(Some(0x0901_0000)));
 }
 
