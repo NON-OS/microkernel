@@ -16,12 +16,13 @@
 
 //! OPEN's START: the two transactions the meter signs with
 //! its own key, approve then open, at the meter's next two nonces. Refused
-//! for a zero amount (a zero NOX approve or transfer reverts on V3_1), a
-//! fee cap below the tip, or ETH short of gas for both (EGAS).
+//! for a zero amount (a zero NOX approve or transfer reverts on V3_1), and,
+//! as NoGas (EGAS), for fees outside the config's caps (v1.4.3) or ETH
+//! short of gas for both.
 
 use alloc::vec::Vec;
 
-use nonos_nox_config::{APPROVE_GAS, OPEN_GAS};
+use nonos_nox_config::{APPROVE_GAS, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, OPEN_GAS};
 use nonos_payment_proto::OpenStart;
 use nonos_settle_proto::Gas;
 
@@ -41,8 +42,15 @@ pub fn open_plan(
     settlement: &[u8; 20],
     g: &Gas,
 ) -> Result<OpenPlan, MeterError> {
-    if s.amount == 0 || g.max_priority_fee_per_gas > g.max_fee_per_gas {
+    if s.amount == 0 {
         return Err(MeterError::Mismatch);
+    }
+    let tip = g.max_priority_fee_per_gas;
+    if g.max_fee_per_gas > MAX_FEE_PER_GAS
+        || tip > MAX_PRIORITY_FEE_PER_GAS
+        || tip > g.max_fee_per_gas
+    {
+        return Err(MeterError::NoGas);
     }
     let need = (APPROVE_GAS as u128 + OPEN_GAS as u128).checked_mul(g.max_fee_per_gas);
     if need.is_none_or(|n| g.balance < n) {

@@ -71,6 +71,6 @@ status defined there.
 | 6 SET_BUDGET | wallet | `SetBudget` | none |
 | 7 | - | - | EINVAL: NXL1 is not in v1 |
 | 8-11 | - | - | EINVAL until ORDER_* land with escrow (B5) |
-| 12 OPEN | wallet | `OpenStart` or `OpenConfirm` | START: approveTx[32] and openTx[32], both signed by the meter's key and broadcast by settle; CONFIRM: the channel id, once a ChannelOpened matching the request is mined (EAGAIN before) |
+| 12 OPEN | wallet | `OpenStart` or `OpenConfirm` | START: approveTx[32] and openTx[32], both signed by the meter's key and broadcast by settle, never above the config's fee caps (EGAS); CONFIRM: the channel id, once a ChannelOpened matching the request is mined (EAGAIN before) |
 
 Every refusal is a status named in `nonos_payment_proto::status`.
