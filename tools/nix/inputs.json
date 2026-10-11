@@ -778,6 +778,7 @@
    "userland/capsule_audio/src/server/proto.rs",
    "userland/capsule_audio/src/server/ring.rs",
    "userland/capsule_audio/src/server/streams.rs",
+   "userland/capsule_audio/src/sink/choose.rs",
    "userland/capsule_audio/src/sink/wire.rs",
    "userland/capsule_audio/src/volume.rs"
   ],

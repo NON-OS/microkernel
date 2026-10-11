@@ -49,6 +49,10 @@ impl PumpState {
     pub fn set_volume(&mut self, setting: MasterVolume) {
         self.volume.set(setting);
     }
+    /// The output moved to another driver: the next step starts it.
+    pub fn moved(&mut self) {
+        self.running = false;
+    }
     #[cfg(feature = "nonos-audio-smoketest")]
     pub fn sent(&self) -> usize {
         self.sent

@@ -15,9 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod call;
+mod choose;
 mod client;
 mod control;
 mod lookup;
+mod pcm;
+mod switch;
 mod wire;
 
 pub use client::Sink;

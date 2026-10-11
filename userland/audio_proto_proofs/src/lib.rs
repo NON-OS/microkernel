@@ -40,6 +40,8 @@ mod output_tests;
 #[cfg(test)]
 mod refusal_tests;
 #[cfg(test)]
+mod sink_choice_tests;
+#[cfg(test)]
 mod stream_owner_tests;
 #[cfg(test)]
 mod tone_tests;

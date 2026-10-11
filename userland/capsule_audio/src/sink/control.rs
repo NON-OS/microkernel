@@ -29,18 +29,26 @@ impl Sink {
     }
 
     pub fn stream_stop(&self, request_id: u32) -> bool {
+        self.stop_at(self.port.get(), request_id)
+    }
+
+    pub(super) fn stop_at(&self, port: u32, request_id: u32) -> bool {
         let mut tx = [0u8; wire::HDR_LEN];
-        self.control(wire::stop_request(request_id, &mut tx), &tx)
+        control(port, wire::stop_request(request_id, &mut tx), &tx)
     }
 
     fn control(&self, n: usize, tx: &[u8]) -> bool {
-        if n == 0 {
-            return false;
-        }
-        let mut rx = vec![0u8; wire::HDR_LEN + wire::STATUS_LEN];
-        match call(self.port, &tx[..n], &mut rx) {
-            Some(got) => wire::reply_ok(&rx[..got]),
-            None => false,
-        }
+        control(self.port.get(), n, tx)
+    }
+}
+
+fn control(port: u32, n: usize, tx: &[u8]) -> bool {
+    if n == 0 {
+        return false;
+    }
+    let mut rx = vec![0u8; wire::HDR_LEN + wire::STATUS_LEN];
+    match call(port, &tx[..n], &mut rx) {
+        Some(got) => wire::reply_ok(&rx[..got]),
+        None => false,
     }
 }

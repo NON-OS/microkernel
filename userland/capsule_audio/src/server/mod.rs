@@ -23,6 +23,7 @@ mod ring;
 mod run;
 mod serve;
 pub mod streams;
+mod tidy;
 pub mod tone;
 
 pub use dispatch::{handle, no_sink};
