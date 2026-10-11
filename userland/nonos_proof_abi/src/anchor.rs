@@ -26,7 +26,9 @@
 
 use nonos_stark::hash::keccak256;
 
-use crate::container::Kind;
+use crate::container::{parse, tag, Kind};
+use crate::device::decode_device;
+use crate::record::record_id;
 use crate::words::words_le;
 
 pub const ANCHOR_LABEL: &[u8] = b"NONOS.proof.anchor.v1";
@@ -47,4 +49,18 @@ pub fn anchor(
     let words =
         [anchor_tag(), kind_word, *listing_id, *record_id, words_le(tag), keccak256(container)];
     keccak256(&words.concat())
+}
+
+/// The anchor of a kind-1 container under `listing_id`, from its own record
+/// and device tag: `None` for bytes that are not one, so fetch never carries
+/// anything else and a reader never keeps anything else.
+pub fn anchor_of(listing_id: &[u8; 32], container: &[u8]) -> Option<[u8; 32]> {
+    let c = parse(container)?;
+    if c.kind != Kind::Isolation {
+        return None;
+    }
+    let record = c.get(tag::RECORD)?.try_into().ok()?;
+    let (st, _) = decode_device(c.get(tag::DEVICE)?)?;
+    let device_tag = st.tag.map(|f| f.to_u64());
+    Some(anchor(Kind::Isolation, listing_id, &record_id(record), &device_tag, container))
 }
