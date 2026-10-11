@@ -270,6 +270,7 @@ dependencies = [
 name = "nonos_nox_chunks"
 version = "0.1.0"
 dependencies = [
+ "nonos_equix",
  "nonos_marketplace_abi",
  "nonos_nox_config",
  "nonos_seal",

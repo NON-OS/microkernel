@@ -14,24 +14,58 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The seller's key file: one line per answer, keyCommit and K in hex,
-//! written and synced before the answer leaves, so deliver() can always find
-//! the K a funded order commits to. The file is created owner-only.
+//! The seller's key file: one line per answer, "unix keyCommit
+//! cipherRoot buyer_pk K" in hex, written and synced before the answer
+//! leaves, so deliver() can find K and check the terms' cipherRoot against
+//! it. Lines older than OFFER_TTL + MAX_DELIVERY are pruned: by then no order
+//! can still be delivered. The file is owner-only.
 
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 
-use nonos_nox_chunks::key_commit;
+use nonos_nox_config::{MAX_DELIVERY, OFFER_TTL};
 
-use crate::hosts::Host;
+pub const KEEP: u64 = OFFER_TTL + MAX_DELIVERY;
 
-pub fn record(path: &Path, k: &[u8; 32]) -> std::io::Result<()> {
+fn open(path: &Path, append: bool) -> std::io::Result<std::fs::File> {
     let mut o = OpenOptions::new();
-    o.create(true).append(true);
+    o.create(true).write(true).append(append).truncate(!append);
     #[cfg(unix)]
     std::os::unix::fs::OpenOptionsExt::mode(&mut o, 0o600);
-    let mut f = o.open(path)?;
-    writeln!(f, "{} {}", hex::encode(key_commit(&Host, k)), hex::encode(k))?;
+    o.open(path)
+}
+
+pub struct Kept<'a> {
+    pub key_commit: &'a [u8; 32],
+    pub cipher_root: &'a [u8; 32],
+    pub buyer_pk: &'a [u8; 32],
+    pub k: &'a [u8; 32],
+}
+
+pub fn record(path: &Path, now: u64, r: &Kept<'_>) -> std::io::Result<()> {
+    let mut f = open(path, true)?;
+    let hex = |b: &[u8; 32]| hex::encode(b);
+    let (c, root, pk, k) = (hex(r.key_commit), hex(r.cipher_root), hex(r.buyer_pk), hex(r.k));
+    writeln!(f, "{now} {c} {root} {pk} {k}")?;
     f.sync_all()
+}
+
+/// Rewrites the file without lines older than KEEP, or unreadable ones;
+/// returns how many went.
+pub fn prune(path: &Path, now: u64) -> std::io::Result<usize> {
+    let Ok(text) = std::fs::read_to_string(path) else { return Ok(0) };
+    let fresh = |l: &&str| {
+        l.split(' ')
+            .next()
+            .and_then(|t| t.parse::<u64>().ok())
+            .is_some_and(|t| now.saturating_sub(t) <= KEEP)
+    };
+    let kept: Vec<&str> = text.lines().filter(fresh).collect();
+    let tmp = path.with_extension("prune");
+    let mut f = open(&tmp, false)?;
+    kept.iter().try_for_each(|l| writeln!(f, "{l}"))?;
+    f.sync_all()?;
+    std::fs::rename(&tmp, path)?;
+    Ok(text.lines().count() - kept.len())
 }

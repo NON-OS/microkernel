@@ -15,5 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod request;
+mod want;
 
-pub use request::{escrow_request, Asked, Want, KEY_TRIES};
+pub use request::{escrow_request, NONCE_TRIES};
+pub use want::{Asked, Want};

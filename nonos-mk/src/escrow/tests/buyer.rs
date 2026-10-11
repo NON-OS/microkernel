@@ -14,39 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A buyer as the meter is one: a key, a solved request built by settle's
-//! own encoder, and the release the agent sells.
+//! A buyer as the meter is one: a key, a request with a proof of work at
+//! ESCROW_POW_EFFORT built by settle's own encoder, and the release the agent
+//! sells.
 
 use nonos_equix::{HashX, Solution, Solver, MAX_SOLS};
-use nonos_nox_chunks::{equix_challenge, X25519};
+use nonos_nox_chunks::{pow_challenge, pow_ok, PowField, X25519};
+use nonos_nox_config::ESCROW_POW_EFFORT;
 use nonos_settle_proto::Escrow;
 
-use super::super::answer::Served;
+use super::super::answer_types::Served;
 use super::super::x::Dalek;
 
 pub const LISTING: [u8; 32] = [1; 32];
 pub const RELEASE: [u8; 32] = [2; 32];
+pub const SK: [u8; 32] = [0x0b; 32];
 
 pub fn served() -> Served {
     let content = (0..5000u32).map(|i| (i % 253) as u8).collect();
     Served { listing_key: LISTING, release_key: RELEASE, content }
 }
 
-/// A buyer key with a solvable challenge, and its request as settle sends it.
-pub fn request(chain_id: u64) -> ([u8; 32], Escrow) {
+/// The proof of work for buyer_pk at `effort`, walking nonces from zero.
+pub fn pow(pk: &[u8; 32], effort: u32) -> PowField {
     let mut solver = Solver::new().unwrap();
-    for seed in 1..=8u8 {
-        let sk = [seed; 32];
-        let pk = Dalek.public(&sk);
-        let Some(h) = HashX::new(&equix_challenge(&LISTING, &pk)) else { continue };
+    for i in 0u32..512 {
+        let mut nonce = [0u8; 16];
+        nonce[..4].copy_from_slice(&i.to_le_bytes());
+        let c = pow_challenge(&LISTING, pk, &nonce, effort);
+        let Some(h) = HashX::new(&c) else { continue };
         let mut out = [Solution::default(); MAX_SOLS];
-        if solver.solve(&h, &mut out) == 0 {
-            continue;
+        let n = solver.solve(&h, &mut out);
+        if let Some(s) = out[..n].iter().map(|s| s.to_bytes()).find(|s| pow_ok(&c, s, effort)) {
+            return PowField { nonce, effort, solution: s };
         }
-        let url = b"https://agent.example/e".to_vec();
-        let solution = out[0].to_bytes().to_vec();
-        let (listing_key, release_key, buyer_pk) = (LISTING, RELEASE, pk);
-        return (sk, Escrow { chain_id, url, listing_key, release_key, buyer_pk, solution });
     }
-    panic!("no solvable key in eight");
+    panic!("no nonce in 512");
+}
+
+/// The request as settle sends it, at the agent's least effort.
+pub fn request(chain_id: u64) -> Escrow {
+    let buyer_pk = Dalek.public(&SK);
+    let solution = pow(&buyer_pk, ESCROW_POW_EFFORT).encode().to_vec();
+    let url = b"https://agent.example/e".to_vec();
+    Escrow { chain_id, url, listing_key: LISTING, release_key: RELEASE, buyer_pk, solution }
 }
