@@ -21,6 +21,7 @@
 pub(in crate::userspace::init::spawn_plan) fn spawn() {
     spawn_piix_ide();
     spawn_virtio_scsi();
+    spawn_pvscsi();
 }
 
 #[cfg(feature = "nonos-capsule-driver-piix-ide")]
@@ -56,3 +57,20 @@ fn spawn_virtio_scsi() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-virtio-scsi"))]
 fn spawn_virtio_scsi() {}
+
+#[cfg(feature = "nonos-capsule-driver-pvscsi")]
+fn spawn_pvscsi() {
+    use crate::hardware::inventory::HardwareFamily;
+    use crate::hardware::pvscsi_capsule as c;
+    if !super::present::present("DRIVER-PVSCSI", HardwareFamily::StorageVmwarePvscsi) {
+        return;
+    }
+    super::super::boot::capsule(
+        "DRIVER-PVSCSI",
+        "driver_pvscsi",
+        c::spawn_driver_pvscsi_capsule,
+        c::shared_state,
+    );
+}
+#[cfg(not(feature = "nonos-capsule-driver-pvscsi"))]
+fn spawn_pvscsi() {}

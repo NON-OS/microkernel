@@ -28,6 +28,7 @@ pub mod nvme_capsule;
 pub mod pcnet_capsule;
 pub mod piix_ide_capsule;
 pub mod ps2_kbd_capsule;
+pub mod pvscsi_capsule;
 pub mod rtl8139_capsule;
 pub mod rtl8169_capsule;
 pub mod rtl8821ce_capsule;

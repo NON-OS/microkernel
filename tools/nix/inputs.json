@@ -35,6 +35,9 @@
    "nonos-data/trust/capsules/driver_piix_ide.manifest.bin",
    "nonos-data/trust/capsules/driver_piix_ide.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_piix_ide.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.manifest.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_tulip.manifest.bin",
    "nonos-data/trust/capsules/driver_tulip.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_tulip.zk_trailer.bin",
@@ -3525,6 +3528,9 @@
    "nonos-data/trust/capsules/driver_piix_ide.manifest.bin",
    "nonos-data/trust/capsules/driver_piix_ide.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_piix_ide.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.manifest.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_tulip.manifest.bin",
    "nonos-data/trust/capsules/driver_tulip.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_tulip.zk_trailer.bin",
@@ -4060,6 +4066,26 @@
    "userland/capsule_driver_ps2_input/src/setup",
    "userland/nonos_keymap",
    "userland/ps2_input_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/pvscsi_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_pvscsi/src/adapter.rs",
+   "userland/capsule_driver_pvscsi/src/constants",
+   "userland/capsule_driver_pvscsi/src/discover.rs",
+   "userland/capsule_driver_pvscsi/src/hba.rs",
+   "userland/capsule_driver_pvscsi/src/regs.rs",
+   "userland/capsule_driver_pvscsi/src/wait.rs",
+   "userland/nonos_scsi",
+   "userland/nonos_scsi_serve/src/say",
+   "userland/nonos_scsi_serve/src/server",
+   "userland/nonos_scsi_serve/src/units.rs",
+   "userland/nonos_scsi_serve/src/wire",
+   "userland/pvscsi_proofs"
   ],
   "md": [],
   "signed": []

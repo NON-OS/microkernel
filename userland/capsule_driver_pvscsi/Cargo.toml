@@ -1,0 +1,32 @@
+# NONOS userland: capsule_driver_pvscsi
+#
+# Userland VMware paravirtual SCSI (15ad:07c0) driver capsule: VMware's
+# PVSCSI and QEMU's pvscsi. One MMIO register window, one coherent DMA grant
+# for the rings state, the request and completion rings, the sense buffer
+# and the 64 KiB buffer, polled. The disks and CD drives on its targets are
+# served on the block wire (NBW1) through nonos_scsi and nonos_scsi_serve.
+
+[package]
+name = "nonos_capsule_driver_pvscsi"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland VMware PVSCSI driver capsule"
+
+[[bin]]
+name = "driver_pvscsi"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_scsi = { path = "../nonos_scsi" }
+nonos_scsi_serve = { path = "../nonos_scsi_serve" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
