@@ -29,6 +29,7 @@ pub const REGION_SUBTRACT: u16 = 2;
 pub const SHM_CREATE_POOL: u16 = 0;
 pub const POOL_CREATE_BUFFER: u16 = 0;
 pub const POOL_DESTROY: u16 = 1;
+pub const POOL_RESIZE: u16 = 2;
 pub const BUFFER_DESTROY: u16 = 0;
 
 pub const SURFACE_DESTROY: u16 = 0;
