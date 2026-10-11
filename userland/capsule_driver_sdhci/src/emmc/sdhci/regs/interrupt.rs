@@ -38,6 +38,11 @@ pub const ERR_ADMA: u16 = 1 << 9;
 pub const NORMAL_ENABLE: u16 = INT_CMD_COMPLETE | INT_TRANSFER_COMPLETE;
 /// A removable slot also latches the card coming and going.
 pub const CARD_ENABLE: u16 = INT_CARD_INSERT | INT_CARD_REMOVE;
+/// Every status the command engine clears for itself: all of them but the
+/// card coming and going. Those latches belong to the slot's refresh, which
+/// reads and clears them before a request; cleared here, a card swapped
+/// while a command ran would look like the card it replaced.
+pub const ENGINE_STATUS: u32 = !(CARD_ENABLE as u32);
 /// Every error status the engine judges: the command and data errors,
 /// Auto CMD and ADMA. Current Limit (bit 7) and tuning (bit 10) are left
 /// off: neither applies to a fixed-voltage, untuned bus.

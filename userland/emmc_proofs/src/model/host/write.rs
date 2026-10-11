@@ -27,7 +27,10 @@ impl Sim {
                 if v & 1 != 0 {
                     self.reset_all();
                 } else if v & 6 != 0 {
-                    self.int = 0;
+                    // A CMD or DAT line reset clears the command and transfer
+                    // statuses (SD Host Controller spec 2.2.28); the card
+                    // insertion and removal latches (bits 6, 7) stay.
+                    self.int &= 1 << 6 | 1 << 7;
                     self.tc_at = None;
                 }
                 self.regs[0x2f] = v;
