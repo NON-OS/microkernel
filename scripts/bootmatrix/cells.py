@@ -40,6 +40,8 @@ class Cell:
     # virtio-blk. The stick is served by driver.xhci0 and driver.usb_msc0,
     # the path a live boot from a stick takes on hardware.
     usb_block: int = 0
+    # Add a transitional virtio-rng the kernel must refuse (K5, virtio.py).
+    legacy_virtio: bool = False
 
     def wants_smp_proof(self):
         return self.cpus > 1
@@ -55,6 +57,7 @@ CELLS = [
     Cell("q35-iommu-up", "up", "q35", 1, iommu="intel-iommu"),
     Cell("q35-iommu-smp4", "smp", "q35", 4, iommu="intel-iommu"),
     Cell("q35-amdvi-up", "up", "q35", 1, iommu="amd-iommu"),
+    Cell("q35-iommu-legacy-virtio", "up", "q35", 1, "intel-iommu", usb_block=512, legacy_virtio=True),
     Cell("q35-kill-reboot", "up", "q35", 1, kill=True),
     Cell("q35-usb-stick", "smp", "q35", 4, usb_block=512),
     Cell("q35-usb-stick-4k", "up", "q35", 1, usb_block=4096),
