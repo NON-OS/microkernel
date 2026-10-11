@@ -19,6 +19,7 @@
 use alloc::vec::Vec;
 
 use super::ops::{Put, CHUNK_MAX, GET_BODY};
+use crate::MAX_BYTES;
 
 pub fn get_body(listing_id: &[u8; 32], anchor: &[u8; 32], offset: u32) -> [u8; GET_BODY] {
     let mut b = [0u8; GET_BODY];
@@ -42,10 +43,14 @@ pub fn anchor_of_body(b: &[u8]) -> Option<[u8; 32]> {
     b.try_into().ok()
 }
 
-/// Every PUT body for `container`, in order.
+/// Every PUT body for `container`, in order; none for one over MAX_BYTES,
+/// which the desk would refuse, so every offset and the total fit a u32.
 pub fn put_bodies(listing_id: &[u8; 32], container: &[u8]) -> Vec<Vec<u8>> {
-    let total = container.len() as u32;
-    let at = |i: usize| (i * CHUNK_MAX) as u32;
+    let word = |n: usize| u32::try_from(n).ok().filter(|_| container.len() <= MAX_BYTES);
+    let Some(total) = word(container.len()) else {
+        return Vec::new();
+    };
+    let at = |i: usize| i.checked_mul(CHUNK_MAX).and_then(word).unwrap_or(total);
     let put = |(i, chunk)| Put { listing_id, total, offset: at(i), chunk }.encode();
     container.chunks(CHUNK_MAX).enumerate().map(put).collect()
 }
