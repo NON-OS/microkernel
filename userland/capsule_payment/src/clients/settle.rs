@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! OP_CHANNEL_STATE from capsule_nox_settle. Best effort: a settle that is
-//! down or slow leaves the meter on its cached state and its local floor,
-//! which is what an airgapped image runs on.
+//! down, slow, or whose two RPC hosts disagree leaves the meter on its cached
+//! state and its local floor, which is what an airgapped image runs on.
 
-use nonos_libc::mk_ipc_call_timeout;
+use alloc::vec;
+
+use nonos_libc::{mk_ipc_call_timeout, mk_time_millis};
 use nonos_nox_meter::state::ChainView;
-use nonos_settle_proto::{channel_state_request, parse_channel_state, CHANNEL_STATE_LEN};
-use nonos_settle_proto::{OP_CHANNEL_STATE, SERVICE};
+use nonos_settle_proto::{chain_hash, reply_body, request, ChannelState};
+use nonos_settle_proto::{CHANNEL_STATE_LEN, HDR_LEN, OP_CHANNEL_STATE, SERVICE, STATUS_LEN};
 
 use super::lookup::port_of;
 
@@ -29,10 +31,9 @@ const TIMEOUT_MS: u64 = 1500;
 
 pub(crate) fn channel_state(chain_id: u64, channel_id: &[u8; 32]) -> Option<ChainView> {
     let port = port_of(SERVICE)?;
-    let mut tx = [0u8; 8 + 40];
-    tx[4..6].copy_from_slice(&OP_CHANNEL_STATE.to_le_bytes());
-    tx[8..].copy_from_slice(&channel_state_request(chain_id, channel_id));
-    let mut rx = [0u8; 8 + CHANNEL_STATE_LEN];
+    let id = mk_time_millis() as u32;
+    let tx = request(OP_CHANNEL_STATE, id, &chain_hash(chain_id, channel_id));
+    let mut rx = vec![0u8; HDR_LEN + STATUS_LEN + CHANNEL_STATE_LEN];
     let n = mk_ipc_call_timeout(
         port as u64,
         tx.as_ptr(),
@@ -41,9 +42,10 @@ pub(crate) fn channel_state(chain_id: u64, channel_id: &[u8; 32]) -> Option<Chai
         rx.len(),
         TIMEOUT_MS,
     );
-    if n != rx.len() as i64 || rx[4..8] != [0; 4] {
+    if n <= 0 {
         return None;
     }
-    let s = parse_channel_state(&rx[8..])?;
+    let body = reply_body(&rx[..n as usize], OP_CHANNEL_STATE, id).ok()?;
+    let s = ChannelState::parse(body)?;
     Some(ChainView { deposit: s.deposited, settled: s.settled, expiry: s.expiry, closed: s.closed })
 }

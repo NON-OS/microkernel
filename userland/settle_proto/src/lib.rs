@@ -14,16 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! capsule_nox_settle's wire. Requests are seq u32 | op u16 | reserved u16 |
-//! body; replies are seq u32 | status i32 | body; all little-endian, as the
-//! meter's own. Settle holds no keys: it reads the chain and broadcasts what
-//! others signed.
+//! capsule_nox_settle's wire (plan/26, plan/42): market_proto's 20-byte
+//! header under the magic "NSTL", a reply's payload starting with a status,
+//! every body little-endian with every length explicit. Settle holds no keys:
+//! it reads the chain and broadcasts what others signed.
+//!
+//! This holds what the meter needs first (CHANNEL_STATE, GAS, BROADCAST,
+//! OPENED). READ, INTENT and FETCH land with settle itself (B4).
 
 #![no_std]
 
+extern crate alloc;
+
+mod chain;
 mod channel_state;
+mod frame;
+mod gas;
+mod header;
+mod opened;
 mod ops;
 
-pub use channel_state::{channel_state_reply, channel_state_request, parse_channel_state};
+pub use chain::{chain_hash, parse_chain_hash, ChainHash};
 pub use channel_state::{ChannelState, CHANNEL_STATE_LEN};
+pub use frame::{reply, reply_body, request, ReplyError};
+pub use gas::{Gas, GAS_LEN};
+pub use header::{parse_header, Header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
+pub use opened::{Opened, OPENED_LEN};
 pub use ops::*;
