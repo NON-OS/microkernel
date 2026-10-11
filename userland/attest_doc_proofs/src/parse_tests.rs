@@ -13,7 +13,11 @@ const CHALLENGE: [u8; 32] = [7u8; 32];
 const COMPLETE_AT: usize = 8 + 4 + 32 + 32 + 4;
 const VENDOR_AT: usize = COMPLETE_AT + 1;
 const ENFORCING_AT: usize = VENDOR_AT + 1;
-const ATTEST_LEN_AT: usize = ENFORCING_AT + 1 + 4;
+const IDENTITY_AT: usize = ENFORCING_AT + 1 + 4;
+const ATTEST_LEN_AT: usize = IDENTITY_AT + 4;
+
+/// Devices left reaching all of memory in every document built here.
+const IDENTITY: u32 = 5;
 
 /// A document exactly as the kernel encodes one, from the kernel's own encoder.
 fn encoded(
@@ -33,6 +37,7 @@ fn encoded(
         iommu_vendor: vendor,
         iommu_enforcing: enforcing,
         unconfined_grants: grants,
+        identity_devices: IDENTITY,
         attest: attest.to_vec(),
         signature: sig.to_vec(),
         ak_public: [0xCD; 64],
@@ -225,4 +230,21 @@ fn a_key_of_any_other_length_is_refused() {
         v[key_len_at..key_len_at + 4].copy_from_slice(&claimed.to_be_bytes());
         assert!(parse(&v, &CHALLENGE).is_none(), "key length {claimed} was accepted");
     }
+}
+
+/// The identity count is read where the kernel writes it, and a unit that
+/// enforces with no grant around it still does not hold DMA while devices it
+/// lets reach all of memory remain.
+#[test]
+fn devices_left_reaching_all_of_memory_fail_the_dma_verdict() {
+    let held = |identity: u32| {
+        let mut v = encoded(&CHALLENGE, &[1], &[9; 8], 3, IOMMU_INTEL_VTD, true, 0);
+        v[IDENTITY_AT..IDENTITY_AT + 4].copy_from_slice(&identity.to_be_bytes());
+        let d = parse(&v, &CHALLENGE).unwrap();
+        assert_eq!(d.identity_devices, identity);
+        d.dma_held()
+    };
+    assert!(held(0));
+    assert!(!held(1));
+    assert!(!held(IDENTITY));
 }
