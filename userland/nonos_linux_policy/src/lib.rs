@@ -27,6 +27,7 @@
 
 mod bucket;
 mod decode;
+pub mod dests;
 mod encode;
 mod error;
 mod identity;
