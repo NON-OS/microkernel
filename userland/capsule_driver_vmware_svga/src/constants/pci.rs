@@ -17,7 +17,31 @@
 pub const VMWARE_VENDOR_ID: u16 = 0x15AD;
 /// SVGA II: VMware's adapter, VirtualBox's VMSVGA and QEMU's vmware-svga.
 pub const SVGA2_DEVICE_ID: u16 = 0x0405;
-/// BAR0 is the index and value ports, BAR1 the framebuffer, BAR2 the FIFO.
-pub const PORT_BAR: u8 = 0;
-pub const FB_BAR: u32 = 1;
-pub const FIFO_BAR: u32 = 2;
+/// VirtualBox's VBoxSVGA: the same SVGA II registers under VirtualBox's own
+/// id (DevVGA.cpp with VMSVGA on and the VMware id off). VBoxVGA, which has
+/// no SVGA registers, carries the same id with no port window, and is left
+/// alone by discovery.
+pub const VBOX_VENDOR_ID: u16 = 0x80EE;
+pub const VBOXSVGA_DEVICE_ID: u16 = 0xBEEF;
+
+/// Which BAR holds the index and value ports, the framebuffer and the FIFO.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Layout {
+    pub port: u8,
+    pub fb: u32,
+    pub fifo: u32,
+}
+
+/// VMware's order, which VirtualBox keeps under the VMware id.
+pub const VMWARE_LAYOUT: Layout = Layout { port: 0, fb: 1, fifo: 2 };
+/// VirtualBox's order under its own id: VRAM first, then the ports.
+pub const VBOX_LAYOUT: Layout = Layout { port: 1, fb: 0, fifo: 2 };
+
+/// The layout a function's ids call for, or none for another device.
+pub const fn layout_of(vendor: u16, device: u16) -> Option<Layout> {
+    match (vendor, device) {
+        (VMWARE_VENDOR_ID, SVGA2_DEVICE_ID) => Some(VMWARE_LAYOUT),
+        (VBOX_VENDOR_ID, VBOXSVGA_DEVICE_ID) => Some(VBOX_LAYOUT),
+        _ => None,
+    }
+}
