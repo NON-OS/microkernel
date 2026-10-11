@@ -27,6 +27,8 @@ pub struct HostCfg {
     pub reset_reads: u32,
     /// Card detect reads present.
     pub cd_inserted: bool,
+    /// The card's write-protect switch is on.
+    pub write_protected: bool,
 }
 
 /// Intel Gemini Lake eMMC-like: spec 3.00, 200 MHz, ADMA2, 64-bit,
@@ -42,6 +44,7 @@ impl Default for HostCfg {
             power_ignores: 0,
             reset_reads: 2,
             cd_inserted: true,
+            write_protected: false,
         }
     }
 }
