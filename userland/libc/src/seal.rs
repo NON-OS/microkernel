@@ -14,32 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A supervisor family's seal: closing it, noting in it, and reading it
-//! back once sealed.
+//! A supervisor family's seal: noting in it while it lives, and taking it
+//! once the kernel has sealed it, when its last guest left.
 
-use crate::syscall::{call_raw, N_MK_FOREIGN_SEAL, N_MK_SEAL_NOTE, N_MK_SEAL_READ};
+use crate::syscall::{call_raw, N_MK_SEAL_NOTE, N_MK_SEAL_READ};
 
-/// The record, 240 bytes, public.
-pub const SEAL_RECORD: u64 = 0;
-/// The histogram, its salt and the diag, for nonos.prove alone.
-pub const SEAL_WITNESS: u64 = 1;
-/// The measurements, 32 bytes each, in the order the kernel chained them.
-pub const SEAL_MEASUREMENTS: u64 = 2;
-
-/// The app a family runs, noted once before its first call.
+/// The app a family runs, noted once before its first guest starts.
 pub const SEAL_APP_ID: u64 = 0;
 /// The supervisor's own diagnostic head; the last note is kept.
 pub const SEAL_DIAG: u64 = 1;
 
-/// Seal the caller's family once no guest is left: the seal number, or a
-/// negative errno (EBUSY while a guest lives, ENOENT with nothing to seal).
-pub fn mk_foreign_seal() -> i64 {
-    call_raw(N_MK_FOREIGN_SEAL, [0; 6])
-}
-
-/// One part of a sealed family into `out`: bytes written, or a negative errno.
-pub fn mk_seal_read(seal_no: u64, part: u64, out: &mut [u8]) -> i64 {
-    call_raw(N_MK_SEAL_READ, [seal_no, part, out.as_mut_ptr() as u64, out.len() as u64, 0, 0])
+/// Take the newest final record sealed for `app_id` into `out`, as record
+/// (240 bytes) | witness | measurement list, 32 bytes each. Bytes written,
+/// or a negative errno: ENOENT with no such record, ENOMEM when `out` is
+/// short. nonos.prove's alone; the record is dropped once read.
+pub fn mk_seal_read(app_id: &[u8; 32], out: &mut [u8]) -> i64 {
+    let args = [app_id.as_ptr() as u64, out.as_mut_ptr() as u64, out.len() as u64, 0, 0, 0];
+    call_raw(N_MK_SEAL_READ, args)
 }
 
 /// Note `word` in the caller's live family under `slot`.

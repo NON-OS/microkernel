@@ -34,7 +34,7 @@ pub(crate) fn reserve(supervisor: u32) -> Result<(), i64> {
     if with_family(supervisor, |f| f.enrolled) == Some(false) {
         return Ok(());
     }
-    super::finish::finish(supervisor, true);
+    super::finish::finish(supervisor);
     let (Some(trace), Some(salt)) = (trace_start(), salt()) else {
         return Err(ERRNO_BUSY);
     };
@@ -49,4 +49,8 @@ pub(crate) fn reserve(supervisor: u32) -> Result<(), i64> {
 /// A guest was recorded under `supervisor`: its family has begun.
 pub(crate) fn enrolled(supervisor: u32) {
     with_family(supervisor, |f| f.enrolled = true);
+}
+
+pub(crate) fn started(supervisor: u32) {
+    with_family(supervisor, |f| f.started = true);
 }

@@ -79,6 +79,7 @@ pub mod tool_run;
 pub mod tty;
 pub mod tty_table;
 pub mod wait;
+pub(crate) use device_proof::device_secret_caller;
 pub use attest::sys_attest_status;
 pub use attest_doc::sys_attest_doc;
 pub use attest_entries::sys_attest_entries;
