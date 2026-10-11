@@ -16,8 +16,12 @@
 
 //! A line of policies.txt, or of the test guests' list, as the build reads it.
 
+#[path = "../../build/dests_arg.rs"]
+mod dests_arg;
 #[path = "../../build/line.rs"]
 pub(super) mod line;
+#[path = "../../build/mask_names.rs"]
+mod mask_names;
 #[path = "../../build/set_hex.rs"]
 mod set_hex;
 

@@ -27,6 +27,9 @@
 //! whatever it connects to. The rule is guest_route.rs; the one exception on
 //! the installer's own path is design/install-network.md.
 
+use nonos_linux_policy::dests::Target;
+use nonos_linux_policy::mask::NET_ANON;
+
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
@@ -35,8 +38,14 @@ use super::sock::{self, Addr};
 use super::Route;
 
 pub fn connect(guest: &Guest, id: u32, to: Addr) -> u64 {
-    if !crate::linux::app::may_dial(guest) {
-        return crate::linux::app::refuse("an outbound stream", "NET_ANON", errno::ENETUNREACH);
+    let host = super::dns::host_for(guest, to.ip);
+    let target = host.as_deref().map_or(Target::V4(to.ip), Target::Name);
+    if !crate::linux::app::may_dial(guest, target, to.port) {
+        let needs = match crate::linux::app::granted(guest, NET_ANON) {
+            true => "this destination",
+            false => "NET_ANON",
+        };
+        return crate::linux::app::refuse("an outbound stream", needs, errno::ENETUNREACH);
     }
     if sock::with(|t| t.get(id).is_some_and(|s| s.connected || s.listening || s.svc.is_some())) {
         return errno::fail(errno::EISCONN);

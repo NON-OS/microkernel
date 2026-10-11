@@ -38,16 +38,12 @@ pub mod syscall_set;
 #[path = "src/unlisted.rs"]
 pub mod unlisted;
 
-#[path = "build/guard.rs"]
-pub mod guard;
-#[path = "build/line.rs"]
-pub mod line;
-#[path = "build/set_hex.rs"]
-pub mod set_hex;
-#[path = "build/source.rs"]
-pub mod source;
-#[path = "build/table.rs"]
-pub mod table;
+#[path = "src/dests/mod.rs"]
+pub mod dests;
+#[path = "build/mod.rs"]
+mod tools;
+
+use tools::{guard, table};
 
 const POLICIES: &str = "../capsule_linux/policies.txt";
 
