@@ -16,8 +16,6 @@
 
 //! Draining the client's requests and answering what is understood.
 
-use core::mem;
-
 use crate::linux::guest::Guest;
 
 use super::args::Args;
@@ -30,9 +28,9 @@ use super::wire::{malformed, walk, Msg};
 /// where they lie and the served cut once (`wire::walk`); no handler writes
 /// the queue, so it is held apart from the guest while they run.
 pub fn serve(guest: &mut Guest) {
-    let mut queue = mem::take(&mut guest.display.to_server);
-    let mut ended = false;
-    let served = match guest.display.backlogged() {
+    let mut queue = core::mem::take(&mut guest.display.to_server);
+    let mut ended = guest.objects.failed();
+    let served = match guest.display.backlogged() || ended {
         true => 0,
         false => walk(&queue, |msg| {
             let fine = one(guest, msg);
@@ -41,7 +39,7 @@ pub fn serve(guest: &mut Guest) {
         }),
     };
     queue.drain(..served);
-    // After a fatal error nothing more from this client is served.
+    // After a fatal error nothing more from this client is served, ever.
     if ended {
         queue.clear();
     }
@@ -59,16 +57,17 @@ pub fn serve(guest: &mut Guest) {
 }
 
 /// One message, already walked past, so a handler that refuses it cannot
-/// have it served again. False when it names an object the client never
-/// made, which ends the client (display_error.rs).
+/// have it served again. False when it ends the client: it names an object
+/// the client never made, or was fatal itself (display_error.rs).
 fn one(guest: &mut Guest, msg: Msg<'_>) -> bool {
     let Some(object) = guest.objects.get(msg.object) else {
         super::display_error::invalid_object(guest, msg.object);
         return false;
     };
+    guest.objects.serving(msg.object);
     let mut args = Args::new(msg.args);
     if !route(guest, Some(object), msg.object, msg.opcode, &mut args) {
         unserved(Some(object), msg.opcode);
     }
-    true
+    !guest.objects.failed()
 }

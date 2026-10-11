@@ -60,10 +60,14 @@ fn xdg_output(guest: &mut Guest, args: &mut Args<'_>) {
         return;
     }
     let (w, h) = super::output::screen();
+    // The name and description came with zxdg_output 2.
+    let v2 = guest.objects.at_least(id, 2);
     let to = &mut guest.display.to_client;
     Event::new(id, XDG_OUTPUT_LOGICAL_POSITION).u32(0).u32(0).send(to);
     Event::new(id, XDG_OUTPUT_LOGICAL_SIZE).u32(w).u32(h).send(to);
-    Event::new(id, XDG_OUTPUT_NAME).string(b"NONOS-1").send(to);
-    Event::new(id, XDG_OUTPUT_DESCRIPTION).string(b"the NONOS display").send(to);
+    if v2 {
+        Event::new(id, XDG_OUTPUT_NAME).string(b"NONOS-1").send(to);
+        Event::new(id, XDG_OUTPUT_DESCRIPTION).string(b"the NONOS display").send(to);
+    }
     Event::new(id, XDG_OUTPUT_DONE).send(to);
 }

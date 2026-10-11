@@ -49,8 +49,11 @@ pub fn send(guest: &mut Guest, keyboard: u32) {
     }
     guest.display.give.push(fd as u32);
     Event::new(keyboard, KEYBOARD_KEYMAP).u32(format).u32(size).send(&mut guest.display.to_client);
-    Event::new(keyboard, KEYBOARD_REPEAT_INFO)
-        .u32(REPEAT_RATE)
-        .u32(REPEAT_DELAY_MS)
-        .send(&mut guest.display.to_client);
+    // repeat_info came with wl_keyboard 4; an older one repeats as it likes.
+    if guest.objects.at_least(keyboard, 4) {
+        Event::new(keyboard, KEYBOARD_REPEAT_INFO)
+            .u32(REPEAT_RATE)
+            .u32(REPEAT_DELAY_MS)
+            .send(&mut guest.display.to_client);
+    }
 }
