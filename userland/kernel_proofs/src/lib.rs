@@ -42,6 +42,14 @@ pub mod pci_quirk_bits;
 #[cfg(test)]
 pub mod data_plan;
 #[cfg(test)]
+pub mod dma_direction;
+/// The broker's DMA flags, at the root so every module that tests them sees
+/// the `pub(super)` constants.
+#[cfg(test)]
+#[allow(dead_code)]
+#[path = "../../../src/hardware/broker/dma/flags.rs"]
+pub mod dma_flags;
+#[cfg(test)]
 pub mod dma_memory_type;
 #[cfg(test)]
 pub mod dma_placement;

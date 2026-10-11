@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cache;
+mod direction;
 mod drain;
 mod flags;
 mod limits;

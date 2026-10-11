@@ -20,6 +20,13 @@ pub const fn requires_write_buffer_flush(cap: u64) -> bool {
     cap & (1 << 4) != 0
 }
 
+/// CAP.ZLR: the unit lets a zero-length read reach a write-only page. Without
+/// it such a read, which some devices issue to flush their posted writes,
+/// faults, so a write-only grant has to keep read permission there.
+pub const fn zero_length_read(cap: u64) -> bool {
+    cap & (1 << 22) != 0
+}
+
 /// When set the unit caches not-present entries, so any change that creates a
 /// mapping must be followed by an invalidation.
 pub const fn caching_mode(cap: u64) -> bool {
