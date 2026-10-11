@@ -62,6 +62,8 @@ fn each_refusal_by_name() {
 mod fees;
 #[path = "fresh_test_handed.rs"]
 mod handed;
+#[path = "fresh_test_once.rs"]
+mod once;
 #[path = "fresh_test_pass.rs"]
 mod pass;
 #[path = "fresh_test_rlp.rs"]

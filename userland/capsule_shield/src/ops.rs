@@ -68,6 +68,8 @@ struct Seen {
     /// the store a proof holds. None for a wallet from a key; an error is
     /// the store's, never taken for that.
     fresh: Result<Option<String>, String>,
+    /// The account count and the addresses mode 1 may hand out (v1.4.52).
+    ahead: (u32, Vec<(u32, [u8; 20])>),
     /// The account's history from its store, one line an entry, oldest
     /// first, or why the store would not give it.
     history: Result<Vec<String>, String>,
@@ -281,6 +283,7 @@ pub fn remember() {
     let seen = open.map(|(account, wallet, live)| {
         let address = wallet.receiving_address().ok();
         let fresh = wallet.fresh_withdrawal_address().map_err(|e| e.to_string());
+        let ahead = wallet.fresh_ahead().unwrap_or_default();
         let history = wallet.history().map_err(|e| e.to_string()).map(|all| {
             all.iter()
                 .map(|h| {
@@ -302,7 +305,7 @@ pub fn remember() {
                 })
                 .collect()
         });
-        Seen { account, wallet, address, balances, live, fresh, history }
+        Seen { account, wallet, address, balances, live, fresh, ahead, history }
     });
     let Ok(mut slot) = SEEN.lock() else { return };
     // Locked while this ran: what was read belongs to a store no longer open.
@@ -576,6 +579,12 @@ pub fn take_back() -> Answer {
     let mut v = Values::new();
     v.put("returned", &n.to_string());
     Ok(v)
+}
+
+/// What mode 1 of OP_FRESH_ADDRESS answers from, read after the last job.
+pub(crate) fn seen_ahead() -> Option<(Arc<Wallet>, u32, Vec<(u32, [u8; 20])>)> {
+    let seen = SEEN.lock().ok()?;
+    seen.as_ref().map(|s| (Arc::clone(&s.wallet), s.ahead.0, s.ahead.1.clone()))
 }
 
 /// Answered at once from what the worker read after the last job: the
