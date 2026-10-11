@@ -21,6 +21,7 @@ pub(super) const MAX_MEMORY_REGIONS: usize = 8;
 pub(super) const MAX_CPUS: usize = 64;
 
 use super::memory::MemoryRegion;
+use crate::arch::aarch64::gic::GicVersion;
 
 #[derive(Debug, Clone)]
 pub struct BootInfo {
@@ -31,8 +32,14 @@ pub struct BootInfo {
     pub dtb_base: u64,
     pub dtb_size: u64,
     pub uart_base: u64,
+    /// The GIC the device tree names, `None` when there is no tree and the
+    /// CPU's own ID registers decide.
+    pub gic_version: Option<GicVersion>,
     pub gic_dist_base: u64,
+    /// GICv3's redistributor region.
     pub gic_redist_base: u64,
+    /// GICv2's CPU interface.
+    pub gic_cpu_base: u64,
     pub cpu_count: u32,
     /// Each CPU's MPIDR affinity, in device-tree order. PSCI needs one to name
     /// a core to power on and the GIC needs one to match a redistributor
@@ -43,7 +50,6 @@ pub struct BootInfo {
     pub cpu_affinity_count: usize,
     pub timer_phys_intid: u32,
     pub timer_virt_intid: u32,
-    pub gic_unsupported: bool,
     /// The PCI host bridge's configuration and I/O windows, all zero when the
     /// board has no PCI at all.
     pub pci_ecam_base: u64,
