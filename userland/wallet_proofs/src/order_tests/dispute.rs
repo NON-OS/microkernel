@@ -22,7 +22,8 @@ use nonos_payment_proto::DeliveredMade;
 
 use super::dispute_fixture::{order, AT};
 use super::fixture::REFUND_TO;
-use crate::order::dispute::{dispute, DisputeSend};
+use crate::order::dispute::dispute;
+use crate::order::send_step::EscrowSend;
 use crate::order::dispute_said::*;
 
 #[test]
@@ -30,7 +31,7 @@ fn the_meters_calldata_goes_through_untouched_from_refund_to() {
     let (m, bad) = order();
     let DeliveredMade::BadChunk { calldata, .. } = &bad else { unreachable!() };
     let got = dispute(&m, &bad, REFUND_TO, REFUND_TO, (2, AT), AT + 60).unwrap();
-    assert_eq!(got, DisputeSend { from: REFUND_TO, calldata: calldata.clone() });
+    assert_eq!(got, EscrowSend { kind: 10, from: REFUND_TO, calldata: calldata.clone() });
     let ok = DeliveredMade::Ok { content_len: 1 };
     assert_eq!(dispute(&m, &ok, REFUND_TO, REFUND_TO, (2, AT), AT), Err(NOTHING));
 }

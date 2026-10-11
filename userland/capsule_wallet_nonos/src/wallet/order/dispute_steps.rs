@@ -16,30 +16,40 @@
 
 //! A dispute's first steps (v1.4.51): orderOf, then ORDER_REFUND's refundTo.
 
+use nonos_payment_proto::{DeliveredMade, OrderMade};
+
 use super::dispute::dispute;
-use super::dispute_step::{DisputeStep, Disputed, DISPUTED};
+use super::send_step::SendStep;
 use super::order_of::order_of;
 
-const NO_ORDER: &str = "settle did not read the escrow's order.";
+pub const DISPUTED: u8 = 3;
+pub(super) const NO_ORDER: &str = "settle did not read the escrow's order.";
+
+/// The order, its bad chunk, and refundTo drawn at Buy.
+pub struct Disputed<'a> {
+    pub made: &'a OrderMade,
+    pub delivered: &'a DeliveredMade,
+    pub refund_to: [u8; 20],
+}
 
 impl Disputed<'_> {
     /// orderOf read: disputed already, or the window checked.
-    pub fn after_read(&self, words: Option<&[[u8; 32]]>, now: u64) -> DisputeStep {
-        let Some(of) = words.and_then(order_of) else { return DisputeStep::Failed(NO_ORDER) };
+    pub fn after_read(&self, words: Option<&[[u8; 32]]>, now: u64) -> SendStep {
+        let Some(of) = words.and_then(order_of) else { return SendStep::Failed(NO_ORDER) };
         if of.0 == DISPUTED {
-            return DisputeStep::Disputed;
+            return SendStep::Done;
         }
         match dispute(self.made, self.delivered, self.refund_to, self.refund_to, of, now) {
-            Ok(_) => DisputeStep::RefundTo(of),
-            Err(why) => DisputeStep::Failed(why),
+            Ok(_) => SendStep::RefundTo(of),
+            Err(why) => SendStep::Failed(why),
         }
     }
 
     /// ORDER_REFUND's refundTo, which must be the one drawn at Buy.
-    pub fn after_refund_to(&self, answered: [u8; 20], of: (u8, u64), now: u64) -> DisputeStep {
+    pub fn after_refund_to(&self, answered: [u8; 20], of: (u8, u64), now: u64) -> SendStep {
         match dispute(self.made, self.delivered, self.refund_to, answered, of, now) {
-            Ok(send) => DisputeStep::Quoting(send),
-            Err(why) => DisputeStep::Failed(why),
+            Ok(send) => SendStep::Quoting(send),
+            Err(why) => SendStep::Failed(why),
         }
     }
 }
