@@ -21,8 +21,9 @@ pub type Cd = [u64; 8];
 
 /// 39-bit input addresses: three levels of 4 KiB tables from level 1.
 pub const T0SZ: u64 = 25;
-/// MAIR attribute 0, normal memory write-back: what every leaf uses.
-pub const MAIR: u64 = 0xff;
+/// MAIR attribute 0, normal memory write-back, for every grant; attribute
+/// 1, Device-nGnRE, for an MSI doorbell.
+pub const MAIR: u64 = 0x04ff;
 
 const TG0_4K: u64 = 0b00 << 6;
 const IR0_WBWA: u64 = 0b01 << 8;
