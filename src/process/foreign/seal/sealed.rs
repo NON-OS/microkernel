@@ -37,6 +37,11 @@ pub(crate) struct Sealed {
 /// H, the salt and the diag.
 pub(crate) const WITNESS_BYTES: usize = 4 * HIST_WORDS + 64;
 
+/// MkSealRead's length for a list of `n` measurements, at most MAX_MEAS.
+pub(crate) const fn len_for(n: usize) -> usize {
+    RECORD_BYTES + WITNESS_BYTES + 32 * n
+}
+
 impl Sealed {
     /// H as 1026 little-endian u32s, the salt as four u64s, then the diag.
     pub(crate) fn witness(&self) -> Vec<u8> {
@@ -48,7 +53,7 @@ impl Sealed {
     }
 
     pub(crate) fn bytes_len(&self) -> usize {
-        RECORD_BYTES + WITNESS_BYTES + 32 * self.list.len()
+        len_for(self.list.len())
     }
 
     /// What MkSealRead hands over: record | witness | measurement list.
