@@ -17,11 +17,13 @@
 use super::kind::UartKind;
 
 /// The UARTs we can drive, by the `compatible` strings that name them.
-pub(super) const NEEDLES: &[&[u8]] = &[b"arm,pl011", b"ns16550a", b"ns16550"];
+pub(super) const NEEDLES: &[&[u8]] =
+    &[b"arm,pl011", b"ns16550a", b"ns16550", b"brcm,bcm2835-aux-uart"];
+
+/// What each needle names, index for index.
+const KINDS: [UartKind; 4] =
+    [UartKind::Pl011, UartKind::Ns16550, UartKind::Ns16550, UartKind::MiniUart];
 
 pub(super) fn kind(needle: usize) -> UartKind {
-    match needle {
-        0 => UartKind::Pl011,
-        _ => UartKind::Ns16550,
-    }
+    KINDS[needle]
 }

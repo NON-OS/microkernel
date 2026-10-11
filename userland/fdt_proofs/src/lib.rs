@@ -13,6 +13,8 @@ mod builder;
 mod exercise;
 #[cfg(test)]
 mod fixtures;
+#[cfg(test)]
+mod uart_tree;
 
 #[cfg(test)]
 mod chosen_tests;
@@ -36,6 +38,8 @@ mod rpi4_tests;
 mod structure_tests;
 #[cfg(test)]
 mod translate_tests;
+#[cfg(test)]
+mod uart_tests;
 #[cfg(test)]
 mod virt_tests;
 #[cfg(test)]

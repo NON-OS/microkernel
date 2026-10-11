@@ -36,14 +36,16 @@ fn the_gic_400_is_found_through_soc_ranges() {
 }
 
 #[test]
-fn console_is_the_mini_uart_and_no_known_driver_matches_it() {
+fn console_is_the_mini_uart_at_firmwares_speed() {
     let f = fdt();
     let (node, options) = f.stdout().unwrap().unwrap();
     assert_eq!((node.name, options), (&b"serial@7e215040"[..], &b"115200n8"[..]));
-    assert_eq!(f.mmio(&node, 0), Ok(Some((0xfe21_5040, 0x40))));
-    // Until the mini-UART has a driver the PL011 is the console found.
     let u = uart::find(&f).unwrap().unwrap();
-    assert_eq!((u.kind, u.base), (uart::UartKind::Pl011, 0xfe20_1000));
+    assert_eq!((u.kind, u.base), (uart::UartKind::MiniUart, 0xfe21_5040));
+    assert_eq!((u.reg_shift, u.io_width, u.baud), (2, 4, Some(115_200)));
+    // Its clock is the VPU's, behind a controller, so the tree gives no rate
+    // and the divisor firmware set has to stand.
+    assert_eq!(u.clock_hz, None);
 }
 
 #[test]
