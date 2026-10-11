@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod announce;
 mod describe;
 mod devices;
 mod gic;
 mod memory;
 mod processors;
+mod reserved;
 
 use crate::arch::aarch64::boot::info::BootInfo;
 use crate::arch::fdt::Fdt;
-use crate::sys::serial;
 
 use describe::describe;
 
@@ -50,31 +51,13 @@ pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> Outcome {
     };
     info.dtb_base = dtb_ptr;
     info.dtb_size = fdt.header.totalsize as u64;
-    announce(&fdt);
+    announce::model(&fdt);
     let steps = memory::populate(&fdt, info)
         .and_then(|()| devices::populate(&fdt, info))
-        .and_then(|()| processors::populate(&fdt, info));
+        .and_then(|()| processors::populate(&fdt, info))
+        .and_then(|()| reserved::populate(&fdt, info));
     match steps {
         Ok(()) => Outcome::Parsed,
         Err(reason) => Outcome::Broken(reason),
     }
-}
-
-/// One line naming the board, so a log shows which tree the facts came from.
-fn announce(fdt: &Fdt) {
-    let model = fdt.find_path(b"/").ok().flatten().and_then(|root| {
-        fdt.property(&root, b"model").ok().flatten().and_then(|p| p.string().ok())
-    });
-    // The model is the tree's to choose, so it is cut to a line of plain
-    // ASCII before it reaches the console.
-    let mut line = [b'?'; 64];
-    let model = model.unwrap_or(b"(none)");
-    let len = model.len().min(line.len());
-    for (out, &byte) in line.iter_mut().zip(&model[..len]) {
-        if byte.is_ascii_graphic() || byte == b' ' {
-            *out = byte;
-        }
-    }
-    serial::print(b"[DT] model: ");
-    serial::println(&line[..len]);
 }
