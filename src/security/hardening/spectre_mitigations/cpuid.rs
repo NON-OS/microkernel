@@ -14,21 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) fn has_ibrs_ibpb() -> bool {
-    let result = core::arch::x86_64::__cpuid_count(7, 0);
-    (result.edx & (1 << 26)) != 0
-}
-
-pub(super) fn has_stibp() -> bool {
-    let result = core::arch::x86_64::__cpuid_count(7, 0);
-    (result.edx & (1 << 27)) != 0
-}
-
-pub(super) fn has_ssbd() -> bool {
-    let result = core::arch::x86_64::__cpuid_count(7, 0);
-    (result.edx & (1 << 31)) != 0
-}
-
 pub(super) fn has_l1d_flush() -> bool {
     let result = core::arch::x86_64::__cpuid_count(7, 0);
     (result.edx & (1 << 28)) != 0
