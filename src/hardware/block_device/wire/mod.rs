@@ -25,6 +25,7 @@ mod error;
 mod frame;
 mod gate;
 mod header;
+mod identity;
 mod layout;
 mod map;
 mod native;
@@ -46,5 +47,6 @@ mod lba_map;
 
 pub use endpoint::{Endpoint, Slot, MAX_UNITS};
 pub use error::WireError;
-pub use ops::healthcheck;
+pub use identity::Identity;
+pub use ops::{healthcheck, identify};
 pub(super) use row::rows;

@@ -22,3 +22,5 @@ pub const OP_READ: u16 = 3;
 /// lba u64, count u32, then count * lba_bytes bytes.
 pub const OP_WRITE: u16 = 4;
 pub const OP_FLUSH: u16 = 5;
+/// No payload; the reply is the 64-byte body in `identify`.
+pub const OP_IDENTIFY: u16 = 6;
