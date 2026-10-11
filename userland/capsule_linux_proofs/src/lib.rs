@@ -37,6 +37,8 @@ pub mod evdev_keys;
 pub mod xkb_mods;
 #[path = "../../capsule_linux/src/linux/wayland/pointer_codes.rs"]
 pub mod pointer_codes;
+#[path = "../../capsule_linux/src/linux/wayland/held_keys.rs"]
+pub mod held_keys;
 #[path = "../../capsule_linux/src/linux/wayland/window_damage.rs"]
 pub mod window_damage;
 /* A guest window full screen and back, and taken down when it ends. */
