@@ -19,6 +19,7 @@
 mod metrics_parse_tests;
 mod app_choose_tests;
 mod app_identity_tests;
+mod app_net_step_tests;
 mod app_rules_tests;
 mod model_name_tests;
 mod pinned_published;
