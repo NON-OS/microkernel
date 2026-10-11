@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::describe;
 use crate::arch::aarch64::boot::info::BootInfo;
 use crate::arch::fdt::find::pci::find as find_pci;
 use crate::arch::fdt::find::rtc::find as find_rtc;
@@ -21,41 +22,26 @@ use crate::arch::fdt::find::timer::find as find_timer;
 use crate::arch::fdt::find::uart::{find as find_uart, UartKind};
 use crate::arch::fdt::Fdt;
 
-pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) {
-    populate_uart(fdt, info);
-    super::gic::populate(fdt, info);
-    populate_timer(fdt, info);
-    populate_pci(fdt, info);
-    populate_rtc(fdt, info);
-}
-
-fn populate_uart(fdt: &Fdt, info: &mut BootInfo) {
-    if let Ok(Some(u)) = find_uart(fdt) {
+/// The devices boot reaches before any driver. With a tree in hand, what it
+/// does not describe is absent: PCI and the RTC go to zero instead of
+/// keeping virt's addresses for a board that may not have them.
+pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> Result<(), &'static [u8]> {
+    if let Some(u) = find_uart(fdt).map_err(describe)? {
         if u.kind == UartKind::Pl011 {
             info.uart_base = u.base;
         }
     }
-}
-
-fn populate_timer(fdt: &Fdt, info: &mut BootInfo) {
-    if let Ok(Some(t)) = find_timer(fdt) {
-        info.timer_phys_intid = t.nonsecure_phys_intid;
-        info.timer_virt_intid = t.virtual_intid;
-    }
-}
-
-fn populate_pci(fdt: &Fdt, info: &mut BootInfo) {
-    if let Ok(Some(p)) = find_pci(fdt) {
-        info.pci_ecam_base = p.ecam_base;
-        info.pci_ecam_size = p.ecam_size;
-        info.pci_io_cpu_base = p.io_cpu_base;
-        info.pci_io_port_base = p.io_port_base;
-        info.pci_io_size = p.io_size;
-    }
-}
-
-fn populate_rtc(fdt: &Fdt, info: &mut BootInfo) {
-    if let Ok(Some(base)) = find_rtc(fdt) {
-        info.rtc_base = base;
-    }
+    super::gic::populate(fdt, info)?;
+    let timer = find_timer(fdt).map_err(describe)?;
+    let timer = timer.ok_or(&b"the device tree names no architected timer"[..])?;
+    info.timer_phys_intid = timer.nonsecure_phys_intid;
+    info.timer_virt_intid = timer.virtual_intid;
+    let pci = find_pci(fdt).map_err(describe)?.unwrap_or_default();
+    info.pci_ecam_base = pci.ecam_base;
+    info.pci_ecam_size = pci.ecam_size;
+    info.pci_io_cpu_base = pci.io_cpu_base;
+    info.pci_io_port_base = pci.io_port_base;
+    info.pci_io_size = pci.io_size;
+    info.rtc_base = find_rtc(fdt).map_err(describe)?.unwrap_or(0);
+    Ok(())
 }

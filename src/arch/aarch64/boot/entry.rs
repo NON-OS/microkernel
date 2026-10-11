@@ -24,6 +24,7 @@
 //! two arches differ in how they answer the questions in `KernelHandoff`, not
 //! in what happens afterwards.
 
+use super::dtb_adapter::Outcome;
 use super::info::BootInfo;
 use crate::sys::serial;
 
@@ -49,7 +50,10 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
     #[cfg(feature = "nonos-trap-proof-sp0")]
     super::trap_proof::sp_el0_vector();
 
-    let parsed = super::dtb_adapter::populate(dtb_ptr, &mut info);
+    let outcome = super::dtb_adapter::populate(dtb_ptr, &mut info);
+    if let Outcome::Broken(reason) = outcome {
+        super::refuse(b"device tree", reason);
+    }
 
     // Brings up the console, puts the MMU and caches into a known state, then
     // installs the vector table, the GIC and the timer.
@@ -58,7 +62,7 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
     #[cfg(feature = "nonos-trap-proof-kernel-abort")]
     super::trap_proof::kernel_data_abort();
 
-    if parsed {
+    if let Outcome::Parsed = outcome {
         serial::println(b"[NONOS] aarch64 boot init done");
     } else {
         // The defaults left in place describe the QEMU virt board. Say so:
