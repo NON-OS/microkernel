@@ -33,6 +33,8 @@ pub struct Buffer {
     pub width: u32,
     pub height: u32,
     pub stride: u32,
+    /// XRGB8888, taken as opaque (opaque.rs); ARGB8888 otherwise.
+    pub opaque: bool,
 }
 
 pub struct Surface {
