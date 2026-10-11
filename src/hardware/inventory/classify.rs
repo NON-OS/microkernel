@@ -48,7 +48,7 @@ pub fn classify_family(
         }
         0x08 if is_intel_emmc(vendor, device, class, subclass) => HardwareFamily::StorageEmmc,
         0x08 => HardwareFamily::StorageSdhci,
-        0x0c => classify_serial_bus(subclass, progif),
+        0x0c => classify_serial_bus(subclass, progif, vendor),
         _ => HardwareFamily::Unknown,
     }
 }

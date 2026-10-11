@@ -41,6 +41,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         InputI2cHid => "driver_i2c_hid",
         AudioHda => "driver_hda",
         SerialI2c => "driver_i2c_pci",
+        SerialSmbus => "driver_smbus",
         _ => return None,
     })
 }
