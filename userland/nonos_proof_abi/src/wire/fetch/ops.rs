@@ -69,6 +69,6 @@ impl<'a> Put<'a> {
     }
 
     pub fn last(&self) -> bool {
-        self.offset as usize + self.chunk.len() == self.total as usize
+        (self.offset as usize).checked_add(self.chunk.len()) == Some(self.total as usize)
     }
 }

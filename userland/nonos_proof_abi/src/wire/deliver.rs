@@ -46,7 +46,7 @@ impl<'a> DeliverRequest<'a> {
     pub fn encode(&self) -> Vec<u8> {
         let ids = [&self.nonce[..], self.order_id, self.channel_id];
         let span = [self.from.to_le_bytes(), self.to.to_le_bytes()].concat();
-        let n = (self.request.len() as u32).to_le_bytes();
+        let n = u32::try_from(self.request.len()).unwrap_or(u32::MAX).to_le_bytes(); // decode refuses
         let head = [&self.listing_id[..], self.policy, &ids.concat(), &span, &n].concat();
         [&head[..], self.request, self.response].concat()
     }

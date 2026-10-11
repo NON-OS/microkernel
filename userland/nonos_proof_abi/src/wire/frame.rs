@@ -23,13 +23,13 @@ use super::header::{Header, HDR_LEN, STATUS_LEN};
 
 /// The header for `op` and `id`, then `body`.
 pub fn request(magic: u32, op: u16, id: u32, body: &[u8]) -> Vec<u8> {
-    let h = Header { op, flags: 0, id, len: body.len() as u32 };
+    let h = Header { op, flags: 0, id, len: len_of(0, body) };
     [&h.encode(magic)[..], body].concat()
 }
 
 /// The reply to `req`: its op, flags and id echoed, then `status` and `body`.
 pub fn reply(magic: u32, req: &Header, status: i32, body: &[u8]) -> Vec<u8> {
-    let len = (STATUS_LEN + body.len()) as u32;
+    let len = len_of(STATUS_LEN, body);
     let h = Header { op: req.op, flags: req.flags, id: req.id, len };
     [&h.encode(magic)[..], &status.to_le_bytes(), body].concat()
 }
@@ -59,4 +59,10 @@ pub fn reply_body(rx: &[u8], magic: u32, op: u16, id: u32) -> Result<&[u8], Repl
 
 /// The largest frame either side sends: a GET's 64 KiB and a header and
 /// status around it.
+/// The header's length word. A body past u32 saturates it, so the frame
+/// fails Header::parse's exact length check instead of naming a shorter one.
+fn len_of(head: usize, body: &[u8]) -> u32 {
+    head.checked_add(body.len()).and_then(|n| u32::try_from(n).ok()).unwrap_or(u32::MAX)
+}
+
 pub const FRAME_MAX: usize = HDR_LEN + STATUS_LEN + super::prove::GET_MAX;
