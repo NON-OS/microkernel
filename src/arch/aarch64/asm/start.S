@@ -23,7 +23,9 @@
  *                 instructions trap. ATA with MTE2, or GCR_EL1 does.
  *   CNTHCTL_EL2   bits 1:0, EL1 reaches the physical counter and timer
  *   CNTVOFF_EL2   virtual counter equals physical
- *   CPTR_EL2 0x33ff  RES1 bits only: no FP/SIMD trap to EL2
+ *   CPTR_EL2      RES1 bits only, 0x33ff, less TZ with SVE and TSM with
+ *                 SME, which are RES1 only without them
+ *   ZCR_EL2       LEN at its largest, so EL1's vector length is uncapped
  *   HSTR_EL2      no trapped system registers
  *   HFG*TR_EL2    with fine-grained traps, none set
  *   HCRX_EL2      with it present, every extra control off
@@ -57,8 +59,19 @@
     msr     hstr_el2, xzr
 
     mov     x9, #0x33ff
-    msr     cptr_el2, x9
     mrs     x10, id_aa64pfr0_el1
+    ubfx    x11, x10, #32, #4           /* SVE */
+    cbz     x11, 4f
+    bic     x9, x9, #(1 << 8)           /* TZ */
+4:  mrs     x12, id_aa64pfr1_el1
+    ubfx    x12, x12, #24, #4           /* SME */
+    cbz     x12, 5f
+    bic     x9, x9, #(1 << 12)          /* TSM */
+5:  msr     cptr_el2, x9
+    isb
+    cbz     x11, 6f
+    mov     x9, #0xf
+    msr     S3_4_C1_C2_0, x9            /* ZCR_EL2 */
 
 6:  mrs     x9, id_aa64mmfr0_el1
     ubfx    x9, x9, #56, #4             /* FGT */
