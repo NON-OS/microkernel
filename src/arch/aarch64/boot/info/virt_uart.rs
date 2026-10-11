@@ -14,25 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{IMSC_RXIM, INTERRUPT_CLEAR_ALL, UARTICR, UARTIMSC, UARTMIS};
-use super::device::Pl011;
+//! The console QEMU `virt` gives a guest that boots without a device tree.
 
-impl Pl011 {
-    pub fn enable_rx_interrupt(&self) {
-        let imsc = self.read_reg(UARTIMSC);
-        self.write_reg(UARTIMSC, imsc | IMSC_RXIM);
-    }
+use crate::arch::fdt::find::uart::{UartInfo, UartKind};
 
-    pub fn disable_rx_interrupt(&self) {
-        let imsc = self.read_reg(UARTIMSC);
-        self.write_reg(UARTIMSC, imsc & !IMSC_RXIM);
-    }
-
-    pub fn clear_interrupts(&self) {
-        self.write_reg(UARTICR, INTERRUPT_CLEAR_ALL);
-    }
-
-    pub fn pending_interrupts(&self) -> u32 {
-        self.read_reg(UARTMIS)
-    }
-}
+/// virt's PL011 runs from a fixed 24 MHz clock, so its divisor can be set
+/// rather than inherited; QEMU accepts any, but the figure is the board's.
+pub(super) const VIRT_UART: UartInfo = UartInfo {
+    kind: UartKind::Pl011,
+    base: 0x0900_0000,
+    clock_hz: Some(24_000_000),
+    baud: None,
+    reg_shift: 0,
+    io_width: 4,
+};

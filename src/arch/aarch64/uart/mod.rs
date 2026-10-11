@@ -14,8 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod pl011;
-mod state;
+//! The console UART. Boards differ in which one they wire up: QEMU's virt
+//! and most servers give a PL011, the Pi's default console is the BCM2835
+//! mini-UART, and SoC boards often have a 16550 at some stride. The device
+//! tree says which; this module drives whichever it said.
 
-pub use pl011::{getc, handle_uart_interrupt, init_uart, putc, puts, Pl011};
-pub use state::{set_uart_base, uart_base};
+mod active;
+mod api;
+mod divisor;
+mod interrupt;
+mod line;
+mod ns16550;
+mod pl011;
+mod regs;
+mod state;
+mod transfer;
+mod wait;
+
+pub use api::{getc, init_uart, putc, puts, write_byte};
+pub use interrupt::handle_uart_interrupt;
+pub use state::uart_base;

@@ -14,15 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
 mod config;
 mod constants;
 mod device;
-mod interrupt;
-mod irq;
-mod rx;
-mod tx;
+mod io;
 
-pub use api::{getc, init_uart, putc, puts};
-pub use device::Pl011;
-pub use interrupt::handle_uart_interrupt;
+pub(super) use device::Pl011;

@@ -14,30 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{FR_RXFE, FR_TXFF, UARTDR, UARTFR};
-use super::device::Pl011;
+use super::constants::{LSR, LSR_DR, LSR_THRE, RBR, THR};
+use super::device::Ns16550;
 
-impl Pl011 {
-    pub fn getc(&self) -> Option<u8> {
-        if self.is_rx_ready() {
-            Some((self.read_reg(UARTDR) & 0xFF) as u8)
-        } else {
-            None
+impl Ns16550 {
+    /// THRE: the holding register (or the mini-UART's FIFO) has room.
+    pub(crate) fn tx_ready(&self) -> bool {
+        self.regs.read(LSR) & LSR_THRE != 0
+    }
+
+    pub(crate) fn send(&self, byte: u8) {
+        self.regs.write(THR, byte as u32);
+    }
+
+    pub(crate) fn receive(&self) -> Option<u8> {
+        if self.regs.read(LSR) & LSR_DR == 0 {
+            return None;
         }
-    }
-
-    pub fn getc_blocking(&self) -> u8 {
-        while !self.is_rx_ready() {
-            core::hint::spin_loop();
-        }
-        (self.read_reg(UARTDR) & 0xFF) as u8
-    }
-
-    pub fn is_rx_ready(&self) -> bool {
-        self.read_reg(UARTFR) & FR_RXFE == 0
-    }
-
-    pub fn is_tx_ready(&self) -> bool {
-        self.read_reg(UARTFR) & FR_TXFF == 0
+        Some((self.regs.read(RBR) & 0xFF) as u8)
     }
 }

@@ -1,0 +1,56 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use core::ptr::{read_volatile, write_volatile};
+
+/// A 16550-style register file: register `n` sits at `base + (n << shift)`
+/// and is accessed `width` bytes at a time. The finder only hands over
+/// widths of 1 and 4.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Regs {
+    pub(crate) base: u64,
+    pub(crate) shift: u8,
+    pub(crate) width: u8,
+}
+
+impl Regs {
+    fn at(&self, reg: u64) -> u64 {
+        self.base + (reg << self.shift)
+    }
+
+    pub(crate) fn read(&self, reg: u64) -> u32 {
+        let addr = self.at(reg);
+        // SAFETY: `base` is the console window the boot path mapped as device
+        // memory, and every register index used here lies inside it.
+        unsafe {
+            match self.width {
+                4 => read_volatile(addr as *const u32),
+                _ => read_volatile(addr as *const u8) as u32,
+            }
+        }
+    }
+
+    pub(crate) fn write(&self, reg: u64, value: u32) {
+        let addr = self.at(reg);
+        // SAFETY: as for `read`.
+        unsafe {
+            match self.width {
+                4 => write_volatile(addr as *mut u32, value),
+                _ => write_volatile(addr as *mut u8, value as u8),
+            }
+        }
+    }
+}

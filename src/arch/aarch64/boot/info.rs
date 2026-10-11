@@ -21,6 +21,7 @@ mod methods;
 mod reserved;
 mod types;
 mod virt_ram;
+mod virt_uart;
 
 pub use memory::{MemoryRegion, MemoryType};
 pub use reserved::Reserved;

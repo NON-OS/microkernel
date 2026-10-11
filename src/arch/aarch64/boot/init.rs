@@ -18,7 +18,9 @@ use super::info::BootInfo;
 use crate::arch::aarch64::{cpu, exceptions, gic, mmu, security, timer, uart};
 
 pub fn init(boot_info: &BootInfo) {
-    uart::init_uart(boot_info.uart_base);
+    if let Err(reason) = uart::init_uart(&boot_info.uart) {
+        super::refuse(b"console", reason.as_bytes());
+    }
     cpu::init_cpu();
     // Latch the CPU list before anything asks which CPU it is running on. The
     // GIC does, one call below, and its answer decides which redistributor
