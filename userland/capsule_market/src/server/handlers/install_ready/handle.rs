@@ -57,5 +57,6 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
     slot[7] = more.commerce as u8;
     slot[8] = more.attest as u8;
     slot[9] = more.policy as u8;
+    slot[10] = more.price as u8;
     reply_with_body(tx, req, READINESS_LEN);
 }

@@ -30,6 +30,7 @@ mod pinning;
 mod qwen_vector;
 mod policy;
 mod policy_fixture;
+mod price;
 mod refusals;
 mod roundtrip;
 mod signing;
