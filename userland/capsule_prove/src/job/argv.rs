@@ -24,15 +24,17 @@ use alloc::vec::Vec;
 use nonos_libc::mk_args;
 
 const JOB_ARG: &[u8] = b"--nonos-prove-job";
+/// More argv than this is not init's three words: no job is bound.
+const ARGS_MAX: usize = 64 * 1024;
 
 /// argv, NUL separated, as the kernel hands it over.
 fn args() -> Vec<Vec<u8>> {
     let needed = mk_args(core::ptr::null_mut(), 0);
-    let Ok(len) = usize::try_from(needed) else {
+    let Some(len) = usize::try_from(needed).ok().filter(|&n| n <= ARGS_MAX) else {
         return Vec::new();
     };
     let mut buf = vec![0u8; len];
-    let n = mk_args(buf.as_mut_ptr(), buf.len()).max(0) as usize;
+    let n = usize::try_from(mk_args(buf.as_mut_ptr(), buf.len())).unwrap_or(0);
     buf[..n.min(len)].split(|&b| b == 0).map(<[u8]>::to_vec).collect()
 }
 
