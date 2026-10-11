@@ -20,6 +20,7 @@ mod container_hostile_tests;
 mod container_tests;
 mod delivery_tests;
 mod device_tests;
+mod policy_vector_tests;
 mod record_digest_tests;
 mod record_tests;
 mod verify_refusal_tests;

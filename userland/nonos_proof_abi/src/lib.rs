@@ -50,4 +50,4 @@ pub use poseidon::chain;
 pub use record::{ctx, decode_record, record_id, Record, RECORD_BYTES};
 pub use scope::{day, scope, verifier_id, MARKET_PREFIX};
 pub use syscall_root::{allows, syscall_root, POL_DOMAIN, SET_BYTES};
-pub use verify::{verify, DeviceRoots, Pins, PolicyDecode, PolicyView, Refusal, Verdict};
+pub use verify::{app_id, verify, DeviceRoots, Pins, PolicyDecode, PolicyView, Refusal, Verdict};
