@@ -23,6 +23,8 @@
 pub mod quirk_bits;
 
 #[cfg(test)]
+mod broadcom_tests;
+#[cfg(test)]
 mod smbus_tests;
 #[cfg(test)]
 mod tests;
