@@ -16,6 +16,7 @@
 
 pub(super) fn spawn() {
     spawn_e1000();
+    spawn_igb();
     spawn_rtl8139();
     spawn_rtl8169();
 }
@@ -32,6 +33,14 @@ fn spawn_e1000() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-e1000"))]
 fn spawn_e1000() {}
+
+#[cfg(feature = "nonos-capsule-driver-igb")]
+fn spawn_igb() {
+    use crate::hardware::igb_capsule as c;
+    super::boot::capsule("DRIVER-IGB", "driver_igb", c::spawn_driver_igb_capsule, c::shared_state);
+}
+#[cfg(not(feature = "nonos-capsule-driver-igb"))]
+fn spawn_igb() {}
 
 #[cfg(feature = "nonos-capsule-driver-rtl8139")]
 fn spawn_rtl8139() {
