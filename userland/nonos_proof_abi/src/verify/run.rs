@@ -14,60 +14,53 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The order every verifier checks a container in (plan/11). Each step
-//! refuses with its own reason, and nothing later runs on bytes an earlier
-//! step did not accept.
+//! verify(container, expected), plan/13's order. Each step refuses with its
+//! own reason, and nothing later runs on bytes an earlier step did not accept.
 
-use super::bind::{app_id, measurements, publics};
+use super::bind::{measurements, publics};
 use super::device_step::device;
-use super::pins::Pins;
+use super::expected::Expected;
+use super::policy_step::policy;
+use super::record_step::record;
 use super::refusal::Refusal;
 use super::verdict::Verdict;
 use crate::anchor::anchor;
 use crate::container::{parse, tag, Kind};
 use crate::record::{ctx, decode_record, record_id};
+use crate::syscall_root::allows;
 
-/// Isolation containers only in v1. A delivery is checked by its buyer
-/// against the provider's isolation container; authenticity is the ATTEST
-/// trailer's own check at the gate.
-pub fn verify(container: &[u8], pins: &Pins) -> Result<Verdict, Refusal> {
+/// Isolation containers only: a delivery waits for A8, and authenticity is
+/// the ATTEST trailer's own check at the gate.
+pub fn verify(container: &[u8], ex: &Expected) -> Result<Verdict, Refusal> {
     let c = parse(container).ok_or(Refusal::Format)?;
     if c.kind != Kind::Isolation {
         return Err(Refusal::Kind);
     }
-    // A section this order does not check would ride under the anchor as if
-    // it had been: an isolation container carries none.
-    if c.get(tag::ATTEST).is_some() || c.get(tag::DELIVERY).is_some() {
-        return Err(Refusal::Format);
+    if !ex.accepts_day(c.window) {
+        return Err(Refusal::Window);
     }
     let need = |t| c.get(t).ok_or(Refusal::Format);
     let raw: &[u8; 240] = need(tag::RECORD)?.try_into().map_err(|_| Refusal::Format)?;
     let rec = decode_record(raw).ok_or(Refusal::Record)?;
-    let (cx, id) = (ctx(raw), record_id(raw));
-
-    let (device_tag, day) = device(need(tag::DEVICE)?, &cx, pins)?;
-
-    let policy = need(tag::POLICY)?;
-    let view = (pins.policy)(policy).ok_or(Refusal::Policy)?;
+    record(&rec, ex.pins)?;
+    let cx = ctx(c.kind, raw);
+    let device_tag = device(need(tag::DEVICE)?, &cx, &ex.listing_id, c.window, ex.pins)?;
+    let view = (ex.read_policy)(ex.policy).ok_or(Refusal::Policy)?;
     measurements(need(tag::MEASUREMENTS)?, &rec, &view.program_blake3)?;
-
-    let app = app_id(policy, &view.program_blake3);
-    if rec.app_id != app {
-        return Err(Refusal::AppId);
-    }
-
+    policy(need(tag::POLICY)?, &rec, ex)?;
     let words = publics(need(tag::PUBLICS)?, &rec, &view)?;
-    nox_verify::verify(pins.isolation, need(tag::ISOLATION)?, &words)
+    nox_verify::verify(ex.pins.isolation, need(tag::ISOLATION)?, &words)
         .map_err(|r| Refusal::Isolation(r.code()))?;
-
+    let id = record_id(raw);
     Ok(Verdict {
         kind: c.kind,
+        window: c.window,
         record_id: id,
-        app_id: app,
+        app_id: rec.app_id,
         tag: device_tag,
-        day,
         calls: words[8],
         outside: words[9],
-        anchor: anchor(c.kind, &id, &device_tag, container),
+        declared: (0..513).filter(|&b| allows(&view.syscall_set, b)).count() as u32,
+        anchor: anchor(c.kind, &ex.listing_id, &id, &device_tag, container),
     })
 }

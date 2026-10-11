@@ -21,4 +21,4 @@ mod layout;
 
 pub use decode::decode_record;
 pub use digest::{ctx, record_id};
-pub use layout::{Record, RECORD_BYTES};
+pub use layout::{Record, FLAG_FINAL, FLAG_SATURATED, RECORD_BYTES};

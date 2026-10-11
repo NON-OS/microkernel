@@ -14,45 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a verifier brings: the device trust roots it accepts, the listing
-//! and days it asks about, the isolation statement it pins, and a reader for
-//! the app's LinuxAppPolicy. Nothing here comes from the container.
-
-use nox_verify::Statement;
+//! What a verifier asks a container about: one listing, the policy its
+//! signed release carries, a few days, and the pins it trusts.
 
 use crate::syscall_root::SET_BYTES;
+use crate::trust::Trust;
 
-/// One accepted release: its bootloader and kernel trees, and the device
-/// registry at the depth it was published.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct DeviceRoots {
-    pub boot_root: [u64; 4],
-    pub kernel_root: [u64; 4],
-    pub device_root: [u64; 4],
-    pub device_depth: usize,
-}
-
-/// The two fields of a LinuxAppPolicy the order reads. The policy's owner
+/// The fields of a LinuxAppPolicy the order reads. The policy's owner
 /// decodes it (magic, version, reserved bytes); app_id is recomputed here
 /// from the raw bytes, never taken from the reader.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct PolicyView {
     pub program_blake3: [u8; 32],
+    /// Zero for a vendor program.
+    pub listing_id: [u8; 32],
     pub syscall_set: [u8; SET_BYTES],
 }
 
 /// `None` for bytes that are not a well-formed policy.
 pub type PolicyDecode = fn(&[u8]) -> Option<PolicyView>;
 
-/// The most days a verifier may accept at once; a wider window would let
-/// one device's tag link across more than the scope promises.
+/// The most days a verifier may accept at once; a wider span would let a
+/// device's tag link across more than the scope promises.
 pub const MAX_DAYS: u64 = 8;
 
-pub struct Pins<'a> {
-    pub roots: &'a [DeviceRoots],
+pub struct Expected<'a> {
     pub listing_id: [u8; 32],
+    pub policy: &'a [u8; 256],
     /// The first and last unix day accepted, inclusive.
     pub days: (u64, u64),
-    pub isolation: &'a Statement,
-    pub policy: PolicyDecode,
+    pub pins: &'a Trust<'a>,
+    pub read_policy: PolicyDecode,
+}
+
+impl Expected<'_> {
+    pub(super) fn accepts_day(&self, window: u64) -> bool {
+        let (lo, hi) = self.days;
+        hi >= lo && hi - lo < MAX_DAYS && (lo..=hi).contains(&window)
+    }
 }

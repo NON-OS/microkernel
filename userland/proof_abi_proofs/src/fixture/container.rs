@@ -19,9 +19,12 @@
 
 use nonos_proof_abi::{encode, tag, Kind};
 
+use super::device::DAY;
+
 /// The sections, owned, in tag order.
 pub struct Parts {
     pub kind: Kind,
+    pub window: u64,
     pub sections: Vec<(u16, Vec<u8>)>,
 }
 
@@ -34,7 +37,7 @@ impl Parts {
 
     pub fn bytes(&self) -> Vec<u8> {
         let refs: Vec<(u16, &[u8])> = self.sections.iter().map(|(t, b)| (*t, &b[..])).collect();
-        encode(self.kind, &refs).expect("a well-formed container")
+        encode(self.kind, self.window, &refs).expect("a well-formed container")
     }
 }
 
@@ -46,9 +49,9 @@ pub fn container(
     policy: &[u8],
 ) -> Parts {
     let words: Vec<u8> = publics.iter().flat_map(|w| w.to_le_bytes()).collect();
-    let list: Vec<u8> = meas.concat();
     Parts {
         kind: Kind::Isolation,
+        window: DAY,
         sections: vec![
             (tag::RECORD, record.to_vec()),
             (tag::DEVICE, device.to_vec()),
@@ -56,7 +59,7 @@ pub fn container(
             // are not a proof, and the order's last step must say so.
             (tag::ISOLATION, b"NOXP not yet".to_vec()),
             (tag::PUBLICS, words),
-            (tag::MEASUREMENTS, list),
+            (tag::MEASUREMENTS, meas.concat()),
             (tag::POLICY, policy.to_vec()),
         ],
     }

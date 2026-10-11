@@ -20,10 +20,14 @@ use super::layout::*;
 use crate::words::{b32_at, u16_at, u32_at, u64_at, words_of_le};
 
 /// A record read back. `None` for any length but 240, another magic or
-/// version, a reserved byte set, or an Hc word not below p: one record has
-/// one encoding, so two byte strings never name the same seal.
+/// version, an unknown flag, a reserved byte set, or an Hc word not below p:
+/// one record has one encoding, so two byte strings never name one seal.
 pub fn decode_record(b: &[u8]) -> Option<Record> {
     if b.len() != RECORD_BYTES || b.get(..4)? != MAGIC || u16_at(b, 4)? != VERSION {
+        return None;
+    }
+    let flags = u16_at(b, FLAGS)?;
+    if flags & !(FLAG_FINAL | FLAG_SATURATED) != 0 {
         return None;
     }
     if RESERVED.iter().any(|&(lo, hi)| b[lo..hi].iter().any(|&x| x != 0)) {
@@ -34,6 +38,7 @@ pub fn decode_record(b: &[u8]) -> Option<Record> {
         return None;
     }
     Some(Record {
+        flags,
         sup_meas: b32_at(b, SUP_MEAS)?,
         sup_caps: u64_at(b, SUP_CAPS)?,
         authority: b[AUTHORITY],
@@ -44,6 +49,5 @@ pub fn decode_record(b: &[u8]) -> Option<Record> {
         meas: b32_at(b, MEAS)?,
         n_meas: u32_at(b, N_MEAS)?,
         app_id: b32_at(b, APP_ID)?,
-        diag: b32_at(b, DIAG)?,
     })
 }

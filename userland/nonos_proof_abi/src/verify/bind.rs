@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 
 use nonos_stark::field::P;
 
-use super::pins::PolicyView;
+use super::expected::PolicyView;
 use super::refusal::Refusal;
 use crate::meas::meas_chain;
 use crate::record::Record;
