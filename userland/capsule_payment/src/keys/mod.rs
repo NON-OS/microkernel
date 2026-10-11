@@ -16,6 +16,8 @@
 
 mod bound;
 mod open;
+mod record;
 mod secp;
 
 pub use open::{open, Keys};
+pub use record::{open_record, random, seal_record};
