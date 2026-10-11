@@ -38,6 +38,8 @@ mod e1000;
 #[path = "../../../capsule_driver_e1000e/src/constants/ids.rs"]
 #[allow(dead_code)]
 mod e1000e;
+#[allow(dead_code)]
+mod igb;
 #[path = "../../../capsule_driver_igc/src/constants/pci.rs"]
 #[allow(dead_code)]
 mod igc;
