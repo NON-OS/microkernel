@@ -49,6 +49,8 @@ mod clear_tests;
 #[cfg(test)]
 mod copy_tests;
 #[cfg(test)]
+mod list_tests;
+#[cfg(test)]
 mod mode_tests;
 #[cfg(test)]
 mod offset_tests;

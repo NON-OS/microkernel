@@ -26,6 +26,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/driver_bga.manifest.bin",
+   "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
@@ -819,6 +822,7 @@
   "include": [
    ".cargo",
    "userland/bga_proofs",
+   "userland/capsule_driver_bga/Capsule.mk",
    "userland/capsule_driver_bga/src/constants.rs",
    "userland/capsule_driver_bga/src/dispi/choose.rs",
    "userland/capsule_driver_bga/src/dispi/clear.rs",
@@ -834,12 +838,14 @@
    "userland/capsule_driver_bga/src/hw.rs",
    "userland/capsule_driver_bga/src/protocol",
    "userland/capsule_driver_bga/src/regs.rs",
+   "userland/capsule_driver_virtio_gpu/Capsule.mk",
    "userland/capsule_driver_virtio_gpu/src/protocol/decode.rs",
    "userland/capsule_driver_virtio_gpu/src/protocol/encode.rs",
    "userland/capsule_driver_virtio_gpu/src/protocol/header.rs",
    "userland/capsule_driver_virtio_gpu/src/protocol/limits.rs",
    "userland/capsule_driver_virtio_gpu/src/protocol/ops.rs",
    "userland/capsule_driver_virtio_gpu/src/protocol/read.rs",
+   "userland/compositor/src/setup/discover.rs",
    "userland/nonos_devmodel"
   ],
   "md": [],
@@ -1324,6 +1330,20 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_ahci",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_bga": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_bga",
+   "userland/capsule_driver_virtio_gpu/src/protocol/decode.rs",
+   "userland/capsule_driver_virtio_gpu/src/protocol/encode.rs",
+   "userland/capsule_driver_virtio_gpu/src/protocol/header.rs",
+   "userland/capsule_driver_virtio_gpu/src/protocol/read.rs",
    "userland/libc"
   ],
   "md": [],
@@ -3598,6 +3618,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/driver_bga.manifest.bin",
+   "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",

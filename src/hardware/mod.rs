@@ -16,6 +16,7 @@
 
 pub mod ahci_capsule;
 pub mod audio_capsule;
+pub mod bga_capsule;
 pub mod block_device;
 pub mod broker;
 pub mod e1000_capsule;
