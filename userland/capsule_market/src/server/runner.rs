@@ -38,7 +38,7 @@ pub fn run<V: Verifier>(store: &mut Store, verifier: &V) -> ! {
         let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), RX_BUF_LEN, bonds.wait_ms(), &mut sender);
         bonds.tick(now_ms());
         // Settle's answer to a bond read is taken here and needs no reply.
-        if n <= 0 || bonds.on_frame(sender, &rx[..n as usize], now_ms()) {
+        if n <= 0 || bonds.on_frame(sender, rx.get(..n as usize).unwrap_or(&[]), now_ms()) {
             continue;
         }
         let n = n as usize;
