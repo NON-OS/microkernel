@@ -32,6 +32,9 @@
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
+   "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
@@ -1423,6 +1426,17 @@
    "userland/libc",
    "userland/nonos_mac",
    "userland/nonos_wifi_core"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_ixgbe": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ixgbe",
+   "userland/libc",
+   "userland/nonos_mac"
   ],
   "md": [],
   "signed": []
@@ -3676,6 +3690,8 @@
    "userland/capsule_driver_igb/src/constants/part.rs",
    "userland/capsule_driver_igb/src/constants/pci.rs",
    "userland/capsule_driver_igc/src/constants/pci.rs",
+   "userland/capsule_driver_ixgbe/src/constants/part.rs",
+   "userland/capsule_driver_ixgbe/src/constants/pci.rs",
    "userland/capsule_driver_rtl8139/src/constants/pci.rs",
    "userland/capsule_driver_rtl8169/src/constants/pci.rs",
    "userland/capsule_driver_usb_msc/src/scan/report.rs",
@@ -3695,6 +3711,9 @@
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
+   "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
