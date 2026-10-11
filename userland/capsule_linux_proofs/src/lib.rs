@@ -114,6 +114,12 @@ pub mod anon_server_end;
 #[path = "../../capsule_linux/src/linux/applets.rs"]
 pub mod applets;
 
+/* Which policy binds a proved program, and the box it runs in after exec. */
+#[path = "../../capsule_linux/src/linux/app/choose.rs"]
+pub mod app_choose;
+#[path = "../../capsule_linux/src/linux/app/identity.rs"]
+pub mod app_identity;
+
 pub mod calls;
 pub mod console;
 /* The call rules, at the crate paths they name in the capsule. */
