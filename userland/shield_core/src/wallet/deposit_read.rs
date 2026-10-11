@@ -6,7 +6,7 @@
 use super::deposit_gate::PoolState;
 use crate::error::NetError;
 use crate::net::pool::{Pool, Shape};
-use crate::net::rpc::{call_over_tor, calls_over_tor};
+use crate::net::rpc::calls_over_tor;
 use crate::net::tor::{Purpose, Tor};
 
 /// Selectors, from the compiled pool's method table.
@@ -20,8 +20,9 @@ const BETA_ADDR_CAP: [u8; 4] = [0x23, 0x38, 0x53, 0xbf];
 const BETA_TOTAL_DEPOSITED: [u8; 4] = [0x83, 0xf9, 0x56, 0xe2];
 const BETA_TOTAL_CAP: [u8; 4] = [0xf3, 0x0e, 0x5e, 0x0f];
 const SHIELD_FEE_BPS: [u8; 4] = [0x54, 0x12, 0x52, 0xf9];
-/// `bps()` of an amount policy, which holds the deposit fee once a pool has one.
+/// `bps()` and `paused()` of an amount policy, which holds the deposit fee once a pool has one.
 const POLICY_BPS: [u8; 4] = [0x68, 0x23, 0x73, 0x29];
+const POLICY_PAUSED: [u8; 4] = [0x5c, 0x97, 0x5a, 0xbb];
 /// Launch shape only: `scale(uint64)` and `openDeposits()`.
 const SCALE: [u8; 4] = [0x1e, 0x89, 0xff, 0x8f];
 const OPEN_DEPOSITS: [u8; 4] = [0xc3, 0xf8, 0x1c, 0xc5];
@@ -72,13 +73,21 @@ pub fn read_pool_state(
     } else {
         (1, false)
     };
-    let fee = match pool.policy {
+    let (fee, policy_paused) = match pool.policy {
         Some(policy) => {
-            let reply = call_over_tor(tor, Purpose::Deposit, host, policy, &POLICY_BPS)?;
-            <[u8; 32]>::try_from(reply.get(..32).ok_or(NetError::ReplyShape)?)
-                .map_err(|_| NetError::ReplyShape)?
+            let both = calls_over_tor(
+                tor,
+                Purpose::Deposit,
+                host,
+                policy,
+                &[call(&POLICY_BPS, &[]), call(&POLICY_PAUSED, &[])],
+            )?;
+            let [bps, paused] = <[Vec<u8>; 2]>::try_from(both).map_err(|_| NetError::ReplyShape)?;
+            let word =
+                |w: Vec<u8>| <[u8; 32]>::try_from(w.as_slice()).map_err(|_| NetError::ReplyShape);
+            (word(bps)?, flag(word(paused)?)?)
         }
-        None => words.pop().ok_or(NetError::ReplyShape)?,
+        None => (words.pop().ok_or(NetError::ReplyShape)?, false),
     };
     let [paused, wound, mode, bpaused, listed, used, cap, total_used, total_cap] =
         <[[u8; 32]; 9]>::try_from(words).map_err(|_| NetError::ReplyShape)?;
@@ -95,6 +104,7 @@ pub fn read_pool_state(
         total_deposited: amount(total_used),
         total_cap: amount(total_cap),
         fee_bps: u16::try_from(amount(fee)).map_err(|_| NetError::ReplyShape)?,
+        policy_paused,
     })
 }
 

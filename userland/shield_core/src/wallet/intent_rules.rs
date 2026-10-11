@@ -1,6 +1,6 @@
 //! What a spend must satisfy before proving. A transfer publishes no price, which would leak.
 
-use super::intent_limits::{fee_within_cap, in_range, representable};
+use super::intent_limits::{in_range, representable, withdraw_fee_ok};
 pub use super::intent_limits::{PoolRules, MAX_FEE_BPS};
 
 /// A spend as the wallet is about to prove it: two inputs in, two outputs out.
@@ -35,6 +35,7 @@ pub enum IntentRefusal {
     TransferHasPublicLeg,
     RecipientRequired,
     FeeExceedsCap,
+    FeeOffQuote,
 }
 
 /// Check an intent against the pool's, the prover's and the circuit's rules.
@@ -74,8 +75,9 @@ pub fn check_intent(it: &Intent, pool: &PoolRules) -> Result<(), IntentRefusal> 
         }
         return (it.fee <= pool.max_relay_fee).then_some(()).ok_or(IntentRefusal::FeeExceedsCap);
     }
-    if !fee_within_cap(it.fee, it.public_amount) {
-        return Err(IntentRefusal::FeeExceedsCap);
+    if !withdraw_fee_ok(it.fee, it.public_amount, pool) {
+        let off = pool.policy_fee.is_some();
+        return Err(if off { IntentRefusal::FeeOffQuote } else { IntentRefusal::FeeExceedsCap });
     }
     names(&it.recipient).then_some(()).ok_or(IntentRefusal::RecipientRequired)
 }

@@ -26,6 +26,7 @@ fn named(error: &WalletError) -> &'static str {
         WalletError::FeeTooHigh => "fee too high",
         WalletError::TooSoon => "too soon",
         WalletError::FeeChanged => "fee changed",
+        WalletError::WithdrawalsPaused => "withdrawals paused",
     }
 }
 
@@ -61,6 +62,7 @@ fn every_wallet_error_has_a_name_a_shell_can_look_up() {
         WalletError::FeeTooHigh,
         WalletError::TooSoon,
         WalletError::FeeChanged,
+        WalletError::WithdrawalsPaused,
     ];
     for error in &all {
         assert!(!named(error).is_empty(), "a variant reached the shells unnamed");
