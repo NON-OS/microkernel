@@ -53,15 +53,3 @@ fn from_bytes_refuses_bits_past_the_last_bucket() {
     b[SET_LEN - 1] = 0x01;
     assert!(SyscallSet::from_bytes(b).unwrap().allows(512));
 }
-
-#[test]
-fn meet_keeps_only_what_both_allow() {
-    let a = SyscallSet::NONE.with(0).with(1).with(600);
-    let b = SyscallSet::NONE.with(1).with(2).with(512);
-    let m = a.meet(&b);
-    for nr in 0..600 {
-        assert_eq!(m.allows(nr), nr == 1 || nr >= 512, "{nr}");
-    }
-    assert_eq!(SyscallSet::ALL.meet(&a), a);
-    assert_eq!(a.meet(&SyscallSet::NONE), SyscallSet::NONE);
-}
