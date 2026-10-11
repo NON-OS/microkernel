@@ -30,22 +30,22 @@ use crate::handshake_state::{HandshakeState, Progress};
 const QUIET_MS: i64 = 4_000;
 
 /*
- * The flight ends when a whole server Finished has been decrypted, not when
- * the socket goes quiet or some record count is reached: a server may send its
- * whole encrypted flight as one record, and a pause in the middle of a large
- * chain is not an ending. Returns the flight, the state that verified it, and
- * the offset where the server's application records begin.
+ * The flight ends when a whole server Finished is decrypted, not on a quiet
+ * socket or a record count: a pause mid-chain is not an ending. Returns the
+ * flight, the state that verified it, and where application records begin.
  */
 pub(super) fn read_flight<S: Io>(
     io: &mut S,
     client: &ClientFlight,
     limit: usize,
+    until: i64,
 ) -> Result<(Vec<u8>, HandshakeState, usize), SessionError> {
     let mut flight = Vec::new();
     let mut state: Option<HandshakeState> = None;
     let mut chunk = [0u8; 4096];
     let mut quiet_until = mk_uptime_ms().saturating_add(QUIET_MS);
     loop {
+        super::deadline::within(until)?;
         let n = io.read(&mut chunk)?;
         if n == 0 {
             if mk_uptime_ms() >= quiet_until {
@@ -55,7 +55,7 @@ pub(super) fn read_flight<S: Io>(
             continue;
         }
         quiet_until = mk_uptime_ms().saturating_add(QUIET_MS);
-        if flight.len() + n > limit {
+        if flight.len().saturating_add(n) > limit {
             return Err(SessionError::TooLarge);
         }
         flight.extend_from_slice(&chunk[..n]);

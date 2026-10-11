@@ -14,21 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Waiting for more bytes during a handshake, with a bound on both time and size.
+//! Waiting for more bytes during a handshake, with a bound on both time and
+//! size: a quiet spell, the handshake's whole end, and the flight cap over
+//! every record of the flight, since `buf` holds all of it.
 
 use alloc::vec::Vec;
 use nonos_libc::{mk_uptime_ms, mk_yield};
 
+use crate::session::deadline::within;
 use crate::session::{Io, SessionError};
 
 use super::limits::FLIGHT_MAX;
 
 const QUIET_MS: i64 = 8_000;
 
-pub(super) fn gather<S: Io>(io: &mut S, buf: &mut Vec<u8>) -> Result<(), SessionError> {
+pub(super) fn gather<S: Io>(io: &mut S, buf: &mut Vec<u8>, end: i64) -> Result<(), SessionError> {
     let mut chunk = [0u8; 4096];
     let deadline = mk_uptime_ms().saturating_add(QUIET_MS);
     loop {
+        within(end)?;
         let n = io.read(&mut chunk)?;
         if n == 0 {
             if mk_uptime_ms() >= deadline {
@@ -37,7 +41,7 @@ pub(super) fn gather<S: Io>(io: &mut S, buf: &mut Vec<u8>) -> Result<(), Session
             mk_yield();
             continue;
         }
-        if buf.len() + n > FLIGHT_MAX {
+        if buf.len().saturating_add(n) > FLIGHT_MAX {
             return Err(SessionError::TooLarge);
         }
         buf.extend_from_slice(&chunk[..n]);
