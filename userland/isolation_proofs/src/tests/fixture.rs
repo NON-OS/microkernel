@@ -14,30 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A family's sealed histogram for an app whose set allows read, write, exit
-//! and exit_group: forty reads, three refused writes, a refused ptrace
-//! outside the set, and an exit_group. Proven once per test run.
+//! The sample family, proven once per test run.
 
 use std::sync::OnceLock;
 
-use isolation_stark::{prove, Statement, Witness};
-use nonos_proof_abi::HIST_WORDS;
+use isolation_stark::{prove, Statement};
 
-pub const ALLOWED: [usize; 4] = [0, 1, 60, 231];
-
-pub fn witness() -> Witness {
-    let mut hist = [0u32; HIST_WORDS];
-    hist[0] = 40;
-    hist[2 + 1] = 3;
-    hist[2 * 231] = 1;
-    hist[2 * 101 + 1] = 2;
-    hist[2 * 512 + 1] = 1;
-    let mut set = [0u8; 65];
-    ALLOWED.iter().for_each(|&b| set[b / 8] |= 1 << (b % 8));
-    Witness { hist, salt: [11, 22, 33, 44], set }
-}
+pub use crate::sample::witness;
+use crate::sample::ENTROPY;
 
 pub fn proven() -> &'static (Statement, Vec<u8>) {
     static ONE: OnceLock<(Statement, Vec<u8>)> = OnceLock::new();
-    ONE.get_or_init(|| prove(&witness(), &[0x5A; 64]).expect("a proof"))
+    ONE.get_or_init(|| prove(&witness(), &ENTROPY).expect("a proof"))
 }
