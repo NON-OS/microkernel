@@ -36,6 +36,8 @@ fn each_role_admits_only_the_owner_of_one_of_its_names() {
     assert!(Role::Payer.admits(30, registry));
     assert!(Role::Payer.admits(31, registry));
     assert!(Role::Settle.admits(20, registry));
+    assert!(Role::Buyer.admits(10, registry) && Role::Buyer.admits(31, registry));
+    assert!(!Role::Buyer.admits(30, registry) && !Role::Wallet.admits(31, registry));
     for (role, pid) in
         [(Role::Wallet, 20), (Role::Wallet, 30), (Role::Settle, 10), (Role::Payer, 40)]
     {
@@ -47,7 +49,7 @@ fn each_role_admits_only_the_owner_of_one_of_its_names() {
 fn anyone_means_any_named_sender_and_pid_zero_is_nobody() {
     assert!(Role::Anyone.admits(40, registry));
     assert!(Role::Anyone.admits(99, |_| None));
-    for role in [Role::Anyone, Role::Wallet, Role::Settle, Role::Payer] {
+    for role in [Role::Anyone, Role::Wallet, Role::Settle, Role::Payer, Role::Buyer] {
         assert!(!role.admits(0, |_| Some(0)));
     }
     // A name nobody registered admits nobody.

@@ -21,11 +21,11 @@ path = "src/main.rs"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
-nonos_ed25519 = { path = "../nonos_ed25519" }
 nonos_market_proto = { path = "../market_proto" }
 nonos_marketplace_abi = { path = "../marketplace_abi" }
 nonos_nox_config = { path = "../nonos_nox_config" }
 nonos_nox_meter = { path = "../nonos_nox_meter" }
+nonos_payment_proto = { path = "../payment_proto" }
 nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
 nonos_seal = { path = "../nonos_seal" }

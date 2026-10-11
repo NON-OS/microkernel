@@ -14,12 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! One request as it arrived, and how it is answered: payment_proto's
+//! header, echoing the op, flags and request id.
+
 use alloc::vec::Vec;
 
-pub fn encode_response(seq: u32, status: i32, payload: &[u8]) -> Vec<u8> {
-    let mut out = Vec::with_capacity(8 + payload.len());
-    out.extend_from_slice(&seq.to_le_bytes());
-    out.extend_from_slice(&status.to_le_bytes());
-    out.extend_from_slice(payload);
-    out
+use nonos_payment_proto::reply;
+
+pub(crate) struct Call<'a> {
+    pub op: u16,
+    pub flags: u16,
+    pub id: u32,
+    pub body: &'a [u8],
+}
+
+impl Call<'_> {
+    pub fn answer(&self, status: i32, body: &[u8]) -> Vec<u8> {
+        reply(self.op, self.flags, self.id, status, body)
+    }
 }

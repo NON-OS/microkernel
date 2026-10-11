@@ -17,30 +17,30 @@
 use alloc::vec::Vec;
 
 use nonos_nox_meter::caller::Role;
+use nonos_payment_proto::{EINVAL, EPERM, OP_ACCOUNT, OP_DRAIN, OP_HEALTHCHECK, OP_LIST_TOKENS};
+use nonos_payment_proto::{OP_PAY, OP_SET_BUDGET};
 
+use super::call::Call;
 use super::gate::admits;
 use crate::handlers;
 use crate::meter::Meter;
-use crate::protocol::{
-    encode_response, Request, EINVAL, EPERM, OP_ACCOUNT, OP_DRAIN, OP_HEALTHCHECK, OP_LIST_TOKENS,
-    OP_PAY, OP_SET_BUDGET,
-};
 
 /// Each op with the role its caller must play. The caller is
-/// checked before the body is read.
-pub fn dispatch(meter: &mut Meter, sender: u32, req: Request<'_>) -> Vec<u8> {
+/// checked before the body is read. Op 7 (NXL1) is not in v1, and the
+/// ORDER_* ops and OPEN arrive with their own units; until then, EINVAL.
+pub fn dispatch(meter: &mut Meter, sender: u32, req: &Call<'_>) -> Vec<u8> {
     let role = match req.op {
         OP_HEALTHCHECK | OP_LIST_TOKENS => Role::Anyone,
         OP_PAY => Role::Payer,
         OP_DRAIN => Role::Settle,
         OP_ACCOUNT | OP_SET_BUDGET => Role::Wallet,
-        _ => return encode_response(req.seq, EINVAL, &[]),
+        _ => return req.answer(EINVAL, &[]),
     };
     if !admits(role, sender) {
-        return encode_response(req.seq, EPERM, &[]);
+        return req.answer(EPERM, &[]);
     }
     match req.op {
-        OP_HEALTHCHECK => encode_response(req.seq, 0, &[]),
+        OP_HEALTHCHECK => req.answer(0, &[]),
         OP_LIST_TOKENS => handlers::tokens(req),
         OP_PAY => handlers::pay(meter, req),
         OP_DRAIN => handlers::drain(meter, req),
