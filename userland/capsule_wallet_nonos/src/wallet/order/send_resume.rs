@@ -25,6 +25,7 @@ use super::send_step::SendStep;
 
 /// How long a started gas withdraw holds the button, in seconds.
 pub const GAS_WAIT_S: u64 = 600;
+const ETH: u8 = 0;
 
 /// The step after a retry's orderOf read: `next` as read, unless a raw was
 /// broadcast before; then Done if the call landed, the read's refusal if
@@ -46,4 +47,10 @@ pub fn gas_offer(o: Option<Offer>, paid_s: Option<u64>, now_s: u64) -> Option<Of
         }
         (o, _) => o,
     }
+}
+
+/// Whether a Shield withdraw of `asset` to `deposit` pays a send's gas from
+/// `refund_to`: ETH, to that address exactly, and never to zero.
+pub fn pays_gas(asset: u8, deposit: Option<[u8; 20]>, refund_to: [u8; 20]) -> bool {
+    asset == ETH && refund_to != [0; 20] && deposit == Some(refund_to)
 }

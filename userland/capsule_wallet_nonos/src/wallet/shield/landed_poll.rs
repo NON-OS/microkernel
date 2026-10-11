@@ -13,23 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! The landed reads (B7, v1.4.56): one address per settle READ of NOX's
-//! balanceOf, spaced by a random few seconds, never while a dispute or
-//! refund holds the call. The scan's address goes first while one runs,
-//! then the due list's; nothing else is ever read.
+//! The landed reads (B7, v1.4.55, v1.4.56): for one address at a time, NOX
+//! then ETH, each request spaced by a random few seconds, never while a
+//! dispute or refund holds the call. The scan's address goes first while
+//! one runs, then the due list's; nothing else is ever read.
 
 use nonos_libc::{crypto_random, mk_uptime_ms};
 use nonos_nox_config::{address, Contract};
-use nonos_settle_proto::{parse_read_reply, Read, OP_READ};
 
-use super::landed::{balance_of, spacing};
+use super::landed::spacing;
+use super::landed_ask::{answered, ask, op_of};
+use super::landed_held::{both, Reading};
 use crate::wallet::order::send_step::SendStep;
 use crate::wallet::screen::shield::consts::CHAIN_ID;
 use crate::wallet::settle::LANDED;
 use crate::wallet::state::State;
-
-const BALANCE_OF: u16 = 1;
 
 fn draw() -> u16 {
     let mut b = [0u8; 2];
@@ -44,14 +42,16 @@ pub fn poll(state: &mut State) -> bool {
     let escrow = state.meter.purchase.as_deref().and_then(|p| p.escrow.as_ref());
     let sending = escrow.is_some_and(|e| !matches!(e.step, SendStep::Done | SendStep::Failed(_)));
     let (l, settle) = (&mut state.meter.landed, &mut state.meter.settle);
-    if let Some((addr, scan)) = l.reading {
-        let Some(r) = settle.take(OP_READ, LANDED) else { return false };
-        let nox = r.ok().and_then(|b| parse_read_reply(&b)).and_then(|w| balance_of(&w));
-        match scan {
-            true => l.scan.read(nox),
-            false => l.due.read(addr, nox, now),
+    if let Some(r) = l.reading.filter(|r| r.asked) {
+        let Some(a) = settle.take(op_of(&r), LANDED) else { return false };
+        let got = answered(op_of(&r), a);
+        l.next_ms = now + spacing(draw());
+        l.reading = r.nox.is_none().then_some(Reading { nox: Some(got), asked: false, ..r });
+        match r.nox {
+            Some(nox) if r.scan => l.scan.read(both(nox, got)),
+            Some(nox) => l.due.read(r.address, both(nox, got), now),
+            None => {}
         }
-        (l.reading, l.next_ms) = (None, now + spacing(draw()));
         return true;
     }
     let chain_id: u64 = CHAIN_ID.parse().unwrap_or(0);
@@ -59,12 +59,12 @@ pub fn poll(state: &mut State) -> bool {
         return false;
     }
     let next = l.scan.next().map(|a| (a, true)).or_else(|| l.due.next(now).map(|a| (a, false)));
-    let Some((addr, scan)) = next else { return false };
-    let mut w = [0u8; 32];
-    w[12..].copy_from_slice(&addr);
-    let body = Read { chain_id, view: BALANCE_OF, args: [w].into() }.encode();
-    if body.is_some_and(|b| settle.ask(OP_READ, LANDED, &b, now).is_ok()) {
-        l.reading = Some((addr, scan));
+    let fresh = |(address, scan)| Reading { address, scan, nox: None, asked: false };
+    let Some(r) = l.reading.or_else(|| next.map(fresh)) else { return false };
+    let asked = ask(settle, &r, chain_id, now);
+    if !asked {
+        l.next_ms = now + spacing(draw());
     }
+    l.reading = Some(Reading { asked, ..r });
     false
 }

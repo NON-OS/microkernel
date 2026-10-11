@@ -20,6 +20,7 @@
 
 use alloc::vec::Vec;
 
+use super::landed_held::Held;
 use super::scan_state::TRIES;
 pub use super::scan_state::{Scan, ScanState, GAP_LIMIT, MAX_HANDED};
 
@@ -39,16 +40,17 @@ impl Scan {
         (self.state == ScanState::Reading).then(|| self.batch.get(self.at).map(|b| b.1)).flatten()
     }
 
-    /// The read of the current address: its NOX, or None when it did not answer.
-    pub fn read(&mut self, nox: Option<u128>) {
+    /// The read of the current address: what it holds, or None when a read
+    /// did not answer.
+    pub fn read(&mut self, held: Option<Held>) {
         let Some(&(index, address)) = self.batch.get(self.at) else { return };
-        match nox {
+        match held {
             None if self.tries + 1 < TRIES => {
                 self.tries += 1;
                 return;
             }
-            Some(n) if n > 0 => {
-                self.found.push((index, address, n));
+            Some(h) if h.any() => {
+                self.found.push((index, address, h));
                 self.empty_run = 0;
             }
             Some(_) => self.empty_run += 1,

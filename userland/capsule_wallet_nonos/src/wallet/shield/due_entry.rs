@@ -16,6 +16,8 @@
 
 //! One address with money due (v1.4.56): why, since when, and its last read.
 
+use super::landed_held::Held;
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Why {
     RefundSent,
@@ -29,6 +31,6 @@ pub struct Entry {
     pub why: Why,
     pub since_ms: u64,
     pub read_ms: Option<u64>,
-    /// NOX the last read found, if one answered.
-    pub nox: Option<u128>,
+    /// NOX and ETH the last read found, if both answered.
+    pub held: Option<Held>,
 }
