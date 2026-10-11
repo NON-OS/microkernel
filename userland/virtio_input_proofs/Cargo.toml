@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the virtio-input driver. Builds for the host so
+# `cargo test` runs the real driver source (included via #[path]): the event
+# queue over host memory, Linux events into reports and posts, the keyboard
+# against the PS/2 driver's own tables, and libc's absolute-range scaling.
+[package]
+name = "virtio_input_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_keymap = { path = "../nonos_keymap" }
+nonos_virtio = { path = "../nonos_virtio" }
+nonos_libc = { package = "virtio_input_proofs_libc_shim", path = "libc_shim" }
