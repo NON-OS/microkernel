@@ -22,7 +22,7 @@ use super::args::Args;
 use super::destructor::is_destructor;
 use super::object::Object;
 use super::ops::req;
-use super::{buffer, commit, handlers, region, seat, shm, surface};
+use super::{buffer, commit, handlers, pool_resize, region, seat, shm, surface};
 
 pub fn route(
     guest: &mut Guest,
@@ -38,6 +38,7 @@ pub fn route(
         (Some(Object::Compositor), req::COMPOSITOR_CREATE_SURFACE) => surface::create(guest, args),
         (Some(Object::Shm), req::SHM_CREATE_POOL) => shm::create_pool(guest, args),
         (Some(Object::ShmPool), req::POOL_CREATE_BUFFER) => buffer::create_buffer(guest, id, args),
+        (Some(Object::ShmPool), req::POOL_RESIZE) => pool_resize::resize(guest, id, args),
         (Some(Object::Surface), req::SURFACE_ATTACH) => surface::attach(guest, id, args),
         (Some(Object::Surface), req::SURFACE_FRAME) => surface::frame(guest, id, args),
         (Some(Object::Surface), req::SURFACE_COMMIT) => commit::commit(guest, id),

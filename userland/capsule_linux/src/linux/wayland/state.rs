@@ -24,6 +24,9 @@ pub struct Pool {
     pub at: u64,
     /// How many bytes are really there.
     pub size: u64,
+    /// The client's descriptor it was made over, which a resize looks at
+    /// again: the client may have mapped it anew at another address.
+    pub fd: u32,
 }
 
 pub struct Buffer {
