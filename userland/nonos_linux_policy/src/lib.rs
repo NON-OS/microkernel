@@ -25,6 +25,7 @@
 
 #![cfg_attr(not(test), no_std)]
 
+mod bucket;
 mod decode;
 mod encode;
 mod error;
@@ -35,12 +36,13 @@ mod policy;
 mod syscall_set;
 mod unlisted;
 
+pub use bucket::{bucket, BUCKETS};
 pub use decode::decode;
 pub use error::PolicyError;
 pub use identity::{app_id, policy_hash};
 pub use layout::{LEN, MAGIC, VERSION};
 pub use policy::LinuxAppPolicy;
-pub use syscall_set::{bucket, SyscallSet, BUCKETS, SET_LEN};
+pub use syscall_set::{SyscallSet, SET_LEN};
 pub use unlisted::{unlisted, UNLISTED_MASK};
 
 #[cfg(test)]

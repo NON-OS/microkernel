@@ -45,6 +45,8 @@ fn main() {
     pin("NONOS_PACMAN_KEYRING", &out.join("pacman-keyring.gpg"), None);
     // Kali's archive key is pinned by default; see design/package-trust.md.
     pin("NONOS_DEB_KEYRING", &out.join("deb-keyring.gpg"), Some("keys/kali/archive-key-2025.asc"));
+    // The vendor's Linux program policies (src/linux/app/vendor.rs).
+    pin("NONOS_LINUX_POLICIES", &out.join("linux-policies.bin"), None);
 }
 
 /// The keyring `var` names, else `default` (relative to this crate), else none.

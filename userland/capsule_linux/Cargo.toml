@@ -35,6 +35,8 @@ nonos_xz = { path = "../xz" }
 nonos_route_link = { path = "../nonos_route_link" }
 sha1 = { version = "0.10", default-features = false }
 blake3 = { version = "1", default-features = false, features = ["pure"] }
+# The box each guest runs in, as its publisher signed it (src/linux/app).
+nonos_linux_policy = { path = "../nonos_linux_policy" }
 
 [profile.release]
 panic = "abort"
