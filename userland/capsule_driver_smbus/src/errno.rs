@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The errors a transfer answers with, as Linux's i801 returns them.
+//! The errors a transfer answers with, as negative errno values.
 
 pub const E_OK: i32 = 0;
 /// No device acknowledged the address (DEV_ERR).

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Finding the SMBus host: an Intel function of class 0Ch subclass 05h whose
-//! BAR4 is an I/O range, as Linux's i801 takes it. The iSMT hosts of Atom
+//! BAR4 (the datasheets' SMB_BASE) is an I/O range. The iSMT hosts of Atom
 //! servers share the class but have no I/O BAR and a DMA interface of their
 //! own; requiring the I/O BAR leaves them out.
 

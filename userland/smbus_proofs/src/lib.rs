@@ -31,4 +31,8 @@ mod hostc_tests;
 #[cfg(test)]
 mod parse_tests;
 #[cfg(test)]
+mod plan_tests;
+#[cfg(test)]
+mod status_tests;
+#[cfg(test)]
 mod transfer_tests;
