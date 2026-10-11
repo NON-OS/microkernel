@@ -25,9 +25,11 @@ mod fixed;
 mod header;
 mod places;
 mod read;
+mod window;
 
 pub(crate) use boot::boot_guid;
 pub(crate) use fixed::FIXED;
 pub(crate) use places::{holds, places};
 pub use places::{Extent, Places};
 pub(crate) use read::table;
+pub(crate) use window::{plan_at, store_at};

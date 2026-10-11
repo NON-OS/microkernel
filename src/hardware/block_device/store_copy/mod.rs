@@ -151,7 +151,7 @@ fn compare() {
     let mut disk = alloc::vec![0u8; len.div_ceil(SECTOR) * SECTOR];
     for (i, chunk) in disk.chunks_mut(64 * SECTOR).enumerate() {
         let lba = STORE_BASE_LBA + (i * 64) as u64;
-        if crate::hardware::block_device::read(lba, chunk).is_err() {
+        if crate::hardware::block_device::read_store(lba, chunk).is_err() {
             if FAILED_CHECKS.fetch_add(1, Ordering::AcqRel) + 1 >= MAX_FAILED_CHECKS {
                 STATE.store(GAVE_UP, Ordering::Release);
                 crate::sys::serial::println(
