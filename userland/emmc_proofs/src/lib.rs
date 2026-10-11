@@ -22,6 +22,9 @@
 
 pub mod emmc;
 
+/// The kernel's list of the Intel eMMC hosts it starts the capsule for.
+#[path = "../../../src/hardware/inventory/emmc.rs"]
+pub mod kernel_inventory;
 pub mod kernel_wire;
 /// Who the capsule serves the medium to.
 #[path = "../../capsule_driver_sdhci/src/server/medium_rule.rs"]
@@ -60,6 +63,8 @@ mod pci_tests;
 mod reason_tests;
 #[cfg(test)]
 mod register_tests;
+#[cfg(test)]
+mod start_list_tests;
 #[cfg(test)]
 mod voltage_tests;
 #[cfg(test)]
