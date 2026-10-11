@@ -38,6 +38,9 @@
    "nonos-data/trust/capsules/driver_ufs.manifest.bin",
    "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_usb_audio.manifest.bin",
+   "nonos-data/trust/capsules/driver_usb_audio.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_usb_audio.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -1502,6 +1505,22 @@
    "userland/capsule_driver_ufs",
    "userland/libc",
    "userland/nonos_blk_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_usb_audio": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_hda/src/protocol/decode.rs",
+   "userland/capsule_driver_hda/src/protocol/encode.rs",
+   "userland/capsule_driver_hda/src/protocol/errno.rs",
+   "userland/capsule_driver_hda/src/protocol/header.rs",
+   "userland/capsule_driver_hda/src/protocol/output.rs",
+   "userland/capsule_driver_usb_audio",
+   "userland/libc",
+   "userland/nonos_usbnet"
   ],
   "md": [],
   "signed": []
@@ -3623,6 +3642,9 @@
    "nonos-data/trust/capsules/driver_ufs.manifest.bin",
    "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_usb_audio.manifest.bin",
+   "nonos-data/trust/capsules/driver_usb_audio.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_usb_audio.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
