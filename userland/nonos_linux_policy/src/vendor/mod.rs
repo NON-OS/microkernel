@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The vendor's policies for the programs it ships, pinned into this
-//! capsule by build.rs from NONOS_LINUX_POLICIES: 256-byte policies end to
-//! end. Measured with the rest of this capsule, so they need no proof of
-//! their own. Empty when the build names none.
+mod row;
+mod table;
 
-pub static TABLE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/linux-policies.bin"));
+pub use row::VendorRow;
+pub use table::{by_program, TABLE};

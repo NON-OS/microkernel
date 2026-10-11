@@ -17,7 +17,6 @@
 mod bind;
 mod choose;
 mod identity;
-mod vendor;
 
 pub use bind::{bind, bind_built_in};
 pub use identity::AppIdentity;
