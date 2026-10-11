@@ -3,7 +3,7 @@
 
 use crate::doc_parse::parse;
 use crate::kernel_document::{
-    AttestationDoc, DOC_VERSION, IOMMU_AMD_VI, IOMMU_INTEL_VTD, IOMMU_NONE,
+    AttestationDoc, DOC_VERSION, IOMMU_AMD_VI, IOMMU_ARM_SMMU_V3, IOMMU_INTEL_VTD, IOMMU_NONE,
 };
 
 const CHALLENGE: [u8; 32] = [7u8; 32];
@@ -178,8 +178,13 @@ fn the_dma_posture_is_read_as_written() {
 /// machine with no IOMMU is told apart from one whose IOMMU is bypassed.
 #[test]
 fn each_kernel_vendor_names_its_unit() {
-    let cases: [(u8, Option<&[u8]>); 3] =
-        [(IOMMU_NONE, None), (IOMMU_INTEL_VTD, Some(b"VT-d")), (IOMMU_AMD_VI, Some(b"AMD-Vi"))];
+    // An aarch64 machine writes SMMUv3; refused, its document did not parse.
+    let cases: [(u8, Option<&[u8]>); 4] = [
+        (IOMMU_NONE, None),
+        (IOMMU_INTEL_VTD, Some(b"VT-d")),
+        (IOMMU_AMD_VI, Some(b"AMD-Vi")),
+        (IOMMU_ARM_SMMU_V3, Some(b"SMMUv3")),
+    ];
     for (vendor, unit) in cases {
         let v = encoded(&CHALLENGE, &[1], &[9; 8], 3, vendor, vendor != IOMMU_NONE, 0);
         let d = parse(&v, &CHALLENGE).unwrap();
@@ -190,7 +195,7 @@ fn each_kernel_vendor_names_its_unit() {
 /// A vendor the parser does not know is a layout it would be guessing at.
 #[test]
 fn an_unknown_vendor_is_refused() {
-    for vendor in [3u8, 0x7F, 0xFF] {
+    for vendor in [IOMMU_ARM_SMMU_V3 + 1, 0x7F, 0xFF] {
         let mut d = good();
         d[VENDOR_AT] = vendor;
         assert!(parse(&d, &CHALLENGE).is_none(), "vendor {vendor} was accepted");
