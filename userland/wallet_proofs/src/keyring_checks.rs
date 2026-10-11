@@ -19,6 +19,8 @@
 
 #[path = "keyring_owner_tests.rs"]
 mod keyring_owner_tests;
+#[path = "retired_tests.rs"]
+mod retired_tests;
 #[path = "typed_admit_tests.rs"]
 mod typed_admit_tests;
 #[path = "typed_check_tests.rs"]
