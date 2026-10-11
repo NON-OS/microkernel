@@ -19,19 +19,19 @@
  * Delivered (state 2) and the plaintext is not sealed yet, the meter is
  * asked with the orderId alone. It reads K through settle itself, so K
  * never passes the wallet. ETIME, no Delivered log yet, is asked again
- * after ASK_MS.
+ * after ASK_MS; an answer, OK or a bad chunk, is never asked again.
  */
 
 use nonos_libc::mk_uptime_ms;
 use nonos_payment_proto::{DeliveredMade, EAGAIN, OP_ORDER_DELIVERED};
 
+use super::delivered::delivery_due;
 use super::intake::Step;
 use crate::wallet::meter::call::start;
 use crate::wallet::meter::order_calls::order_job;
 use crate::wallet::state::State;
 
 const ASK_MS: u64 = 30_000;
-const DELIVERED: u8 = 2;
 
 #[derive(Default)]
 pub struct Delivery {
@@ -55,9 +55,8 @@ pub fn poll(state: &mut State) -> bool {
             }
         };
     }
-    let due = p.watch.status.is_some_and(|s| s.state == DELIVERED && !s.plain);
     let now = mk_uptime_ms().max(0) as u64;
-    if due && d.made.is_none() && now >= d.at {
+    if delivery_due(p.watch.status.as_ref(), d.made.as_ref()) && now >= d.at {
         d.at = now + ASK_MS;
         d.job = start(OP_ORDER_DELIVERED, &m.order_id).ok();
     }
