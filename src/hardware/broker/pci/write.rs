@@ -29,7 +29,9 @@ pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
     let cfg = ConfigSpace::new(handle.address);
     let current = cfg.read16(req.offset as u16).map_err(|_| PciWriteError::PlatformError)?;
     let ident = ident(&cfg)?;
-    let action = validate(&req, handle.msix.as_ref(), &ident, current)?;
+    // Bus Master is for DMA: only a caller holding Dma may set it (K6).
+    let may_master = crate::process::caps::has(pid, crate::capabilities::Capability::Dma.bit());
+    let action = validate(&req, handle.msix.as_ref(), &ident, current, may_master)?;
     apply(&cfg, action)
 }
 
