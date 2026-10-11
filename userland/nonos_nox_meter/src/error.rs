@@ -27,6 +27,8 @@ pub enum MeterError {
     Overflow,
     /// No channel is open for this payee and listing.
     NoChannel,
+    /// Settle reported more settled on the channel than this meter signed.
+    Frozen,
     /// The channel table is full.
     Full,
     /// The market does not stand behind the release's commerce block.

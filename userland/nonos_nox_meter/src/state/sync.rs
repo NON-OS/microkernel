@@ -18,14 +18,12 @@ use super::meter::MeterState;
 
 impl MeterState {
     /// The state after the chain reported `deposit` and `settled` for one
-    /// channel. Spend the chain paid that this state had not counted, as a
-    /// rolled-back file would hide, is counted against the budget too.
+    /// channel (`Channel::synced`). A rolled-back file that lost a voucher
+    /// the chain has seen leaves the channel frozen, never charged below it.
     pub fn synced(&self, channel_id: &[u8; 32], deposit: u128, settled: u128) -> MeterState {
         let mut next = self.clone();
         if let Some(c) = next.channels.iter_mut().find(|c| &c.id == channel_id) {
-            let (channel, rose) = c.synced(deposit, settled);
-            *c = channel;
-            next.budget.absorb(&channel.listing_id, rose);
+            *c = c.synced(deposit, settled);
         }
         next
     }

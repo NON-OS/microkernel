@@ -17,14 +17,15 @@
 use super::state::Channel;
 
 impl Channel {
-    /// This channel as the chain reports it. What the contract settled is a
-    /// floor under `cumulative`: a state file rolled back to an older copy
-    /// cannot make the meter forget spend the chain has already paid. The
-    /// deposit is the chain's word outright. Returns how far the floor rose.
-    pub fn synced(&self, deposit: u128, settled: u128) -> (Channel, u128) {
-        let settled = self.settled.max(settled);
-        let cumulative = self.cumulative.max(settled);
-        let rose = cumulative - self.cumulative;
-        (Channel { deposit, settled, cumulative, ..*self }, rose)
+    /// This channel as settle reports it (plan/21, v1.3 E13). The settled
+    /// amount raises the floor only up to the largest cumulative this meter
+    /// signed. A report above that is either a lying RPC or a voucher this
+    /// meter never made, so the channel freezes and takes no further charge,
+    /// and its numbers stay as they were. The deposit is the chain's word.
+    pub fn synced(&self, deposit: u128, settled: u128) -> Channel {
+        if settled > self.cumulative {
+            return Channel { deposit, frozen: true, ..*self };
+        }
+        Channel { deposit, settled: self.settled.max(settled), ..*self }
     }
 }

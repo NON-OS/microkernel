@@ -13,16 +13,18 @@ meter, plan/20) links it.
 - `usage` and `merkle`: one charge as an OZ standard-tree leaf, and the
   sorted-pair root over a voucher's charges.
 - `channel`: a prefunded channel. `charged` refuses past the deposit, at or
-  past expiry, and on overflow. `synced` takes the chain's `settled` as a
-  floor under `cumulative`, so a rolled-back state file cannot sign below
-  what was paid. `voucher` builds the newest voucher with the channel's own
-  expiry, which the contract requires; the caller never picks one.
+  past expiry, on overflow, and on a frozen channel. `synced` raises the
+  settled floor only up to the largest cumulative this meter signed; a
+  report above that (a lying RPC, or a file rolled back past a voucher the
+  chain has seen) freezes the channel instead (v1.3, E13). `voucher`
+  builds the newest voucher with the channel's own expiry, which the
+  contract requires; the caller never picks one.
 - `budget`: the owner's caps, global and per listing, with an expiry. The
   default allows nothing; `fresh` is a new allowance from SET_BUDGET.
 - `state`: the two together. Every change returns a new value, which the
   capsule writes to disk before anything is signed from it. A full channel
   table forgets only a channel past expiry and fully settled.
-- `persist`: the state file (`NXMT` v1), always `FILE_LEN` bytes because the
+- `persist`: the state file (`NXMT` v2), always `FILE_LEN` bytes because the
   vfs replaces a record only at its own length, and tagged under a key only
   the meter can derive, since any FileSystem holder can unlink and recreate
   the name.
@@ -38,9 +40,9 @@ Hashes are injected through `nonos_marketplace_abi::Keccak`.
 ## What the tag does not stop
 
 A genuine older state file, replayed, restores budget the owner has since
-spent. Channel deposits bound it, and the chain's settled amounts raise each
-channel's floor again. Closing it needs a monotonic counter, such as a TPM NV
-index, which is later work.
+spent. Channel deposits bound it, and a channel the chain has settled past
+the file's record freezes. Closing it needs a monotonic counter, such as a
+TPM NV index, which is later work.
 
 ## Tests
 

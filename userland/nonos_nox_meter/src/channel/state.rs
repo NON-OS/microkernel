@@ -46,4 +46,7 @@ pub struct Channel {
     /// The keyring's signature over the newest voucher, or NO_SIG while it
     /// has not come back. DRAIN hands out only signed vouchers.
     pub sig: [u8; 65],
+    /// Settle reported more settled than this meter ever signed for: no
+    /// further charge lands here, and ACCOUNT says why.
+    pub frozen: bool,
 }

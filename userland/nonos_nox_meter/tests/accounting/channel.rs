@@ -38,13 +38,20 @@ fn nothing_is_charged_at_or_past_expiry_or_past_the_numbers() {
 }
 
 #[test]
-fn what_the_chain_settled_is_a_floor_under_cumulative() {
-    let c = channel().charged(100, ROOT, NOW).unwrap();
-    let (synced, rose) = c.synced(1200, 400);
-    assert_eq!((synced.cumulative, synced.settled, synced.deposit, rose), (400, 400, 1200, 300));
-    // The next voucher starts above what was already paid.
-    assert_eq!(synced.charged(10, ROOT, NOW).unwrap().cumulative, 410);
+fn settled_raises_the_floor_only_up_to_what_this_meter_signed() {
+    let c = channel().charged(500, ROOT, NOW).unwrap();
+    let synced = c.synced(1200, 400);
+    assert_eq!(
+        (synced.cumulative, synced.settled, synced.deposit, synced.frozen),
+        (500, 400, 1200, false)
+    );
+    // The next voucher starts above what was already signed.
+    assert_eq!(synced.charged(10, ROOT, NOW).unwrap().cumulative, 510);
     // A lower report never lowers anything.
-    let (again, rose) = synced.synced(1200, 50);
-    assert_eq!((again.cumulative, again.settled, rose), (400, 400, 0));
+    assert_eq!(synced.synced(1200, 50).settled, 400);
+    // More than this meter ever signed: frozen, numbers untouched.
+    let lied = synced.synced(1200, 501);
+    assert!(lied.frozen);
+    assert_eq!((lied.cumulative, lied.settled), (500, 400));
+    assert_eq!(lied.charged(1, ROOT, NOW), Err(MeterError::Frozen));
 }

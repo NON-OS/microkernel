@@ -31,7 +31,7 @@ fn sample() -> nonos_nox_meter::state::MeterState {
 fn the_state_reads_back_as_written_at_one_length() {
     let s = sample();
     let b = encode(&s).unwrap();
-    assert_eq!((b.len(), CHANNEL_LEN), (STATE_LEN, 293));
+    assert_eq!((b.len(), CHANNEL_LEN), (STATE_LEN, 294));
     assert_eq!(decode(&b), Ok(s));
     let empty = encode(&Default::default()).unwrap();
     assert_eq!(empty.len(), STATE_LEN);
