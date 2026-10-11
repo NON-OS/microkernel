@@ -36,6 +36,7 @@ mod home_more;
 mod home_parts;
 mod home_receive;
 pub mod key;
+mod nav;
 mod meter;
 mod network;
 pub mod parts;
