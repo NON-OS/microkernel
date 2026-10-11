@@ -549,6 +549,7 @@ include userland/capsule_driver_e1000/Capsule.mk
 include userland/capsule_driver_e1000e/Capsule.mk
 include userland/capsule_driver_igb/Capsule.mk
 include userland/capsule_driver_ixgbe/Capsule.mk
+include userland/capsule_driver_tg3/Capsule.mk
 include userland/capsule_driver_rtl8139/Capsule.mk
 include userland/capsule_driver_rtl8169/Capsule.mk
 include userland/capsule_driver_ahci/Capsule.mk
