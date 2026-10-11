@@ -22,16 +22,12 @@ mod confirm;
 pub mod delivered;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute.rs"]
 pub mod dispute;
-#[path = "../../../capsule_wallet_nonos/src/wallet/order/send_gas.rs"]
-pub mod send_gas;
-#[path = "../../../capsule_wallet_nonos/src/wallet/order/send_quote.rs"]
-pub mod send_quote;
-#[path = "../../../capsule_wallet_nonos/src/wallet/order/send_step.rs"]
-pub mod send_step;
-#[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute_steps.rs"]
-pub mod dispute_steps;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute_said.rs"]
 pub mod dispute_said;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute_steps.rs"]
+pub mod dispute_steps;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/escrow_offer.rs"]
+pub mod escrow_offer;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/escrowed.rs"]
 mod escrowed;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/fees_kind.rs"]
@@ -54,6 +50,14 @@ pub mod refund_said;
 pub mod rows;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/said.rs"]
 pub mod said;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/send_bounds.rs"]
+pub mod send_bounds;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/send_gas.rs"]
+pub mod send_gas;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/send_quote.rs"]
+pub mod send_quote;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/send_step.rs"]
+pub mod send_step;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/voucher.rs"]
 pub mod voucher;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/voucher_form.rs"]

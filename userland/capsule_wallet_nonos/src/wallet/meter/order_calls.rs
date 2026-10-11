@@ -50,6 +50,12 @@ pub fn open_confirm(body: &[u8]) -> Result<Vec<u8>, i32> {
     call(nonos_payment_proto::OP_OPEN, body, 32)
 }
 
+/// ORDER_REFUND: the order's refundTo and refundSalt, kept by the meter.
+pub fn order_refund(order_id: &[u8; 32]) -> Option<([u8; 20], [u8; 32])> {
+    let b = call(nonos_payment_proto::OP_ORDER_REFUND, order_id, 52).ok()?;
+    nonos_payment_proto::parse_refund_reply(&b)
+}
+
 /// JOB(id) for a purchase's job: EAGAIN while it runs, then its result,
 /// at most JOB_MAX: a bad chunk's dispute calldata runs past ORDER_NEW's.
 pub fn order_job(id: u32) -> Result<Vec<u8>, i32> {

@@ -32,7 +32,6 @@ use super::dispute_said::*;
 use super::order_of::{window_end, DELIVERED};
 use super::send_step::{EscrowSend, DISPUTE};
 
-
 fn selector() -> Option<[u8; 4]> {
     let k = nonos_settle_proto::KINDS.iter().find(|k| k.id == DISPUTE)?;
     Some(k.calls[0].1.to_be_bytes())

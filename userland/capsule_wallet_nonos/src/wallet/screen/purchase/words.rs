@@ -44,7 +44,9 @@ pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
         (Step::Consent, Err(why)) => (why, None),
         (Step::Offering(_), _) => (OFFERING, None),
         (Step::Ordering(..), _) => (ORDERING, None),
-        (Step::Fund(_), _) => (FUND, Some("Fund from the Shield")),
+        (Step::Fund(_), _) => {
+            super::escrow_words::lead(p).unwrap_or((FUND, Some("Fund from the Shield")))
+        }
         (Step::Consent, Ok(Named::Voucher(_))) => super::words_voucher::consent(p.held),
         (Step::Opening(..) | Step::Confirming(..) | Step::Opened(_) | Step::Kept(_), _) => {
             super::words_voucher::lead(p)
@@ -56,8 +58,11 @@ pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
 /// Whether the person may close the screen: not while a job runs, nor
 /// while a mined opening still waits for the meter to record it.
 pub fn closable(p: &Pending) -> bool {
-    !matches!(
-        p.step,
-        Step::Offering(_) | Step::Ordering(..) | Step::Opening(..) | Step::Confirming(..)
-    )
+    use crate::wallet::order::send_step::SendStep::{Broadcasting, Signing};
+    let sending = p.escrow.as_ref().is_some_and(|e| matches!(e.step, Signing(_) | Broadcasting(_)));
+    !sending
+        && !matches!(
+            p.step,
+            Step::Offering(_) | Step::Ordering(..) | Step::Opening(..) | Step::Confirming(..)
+        )
 }

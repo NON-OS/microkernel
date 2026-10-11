@@ -52,6 +52,7 @@ fn op_of(name: &str) -> Option<u16> {
         "follow" => OP_FOLLOW,
         "review settle" => OP_REVIEW_SELF_SETTLE,
         "take back" => OP_TAKE_BACK,
+        "sign" => OP_SIGN_FROM_FRESH,
         _ => return None,
     })
 }

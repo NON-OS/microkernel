@@ -42,4 +42,6 @@ pub struct MeterUi {
     /* A purchase the store named (B8), and when to ask the mailbox next. */
     pub purchase: Option<alloc::boxed::Box<crate::wallet::order::intake::Pending>>,
     pub take_at: u64,
+    /* The one ASYNC request to settle (v1.4.53), for a dispute or refund. */
+    pub settle: crate::wallet::settle::SettleCall,
 }
