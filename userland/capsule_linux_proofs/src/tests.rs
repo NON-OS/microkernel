@@ -62,6 +62,7 @@ mod window_end_tests;
 mod window_fit_tests;
 mod window_reshape_tests;
 mod wayland_data_tests;
+mod wayland_focus_step_tests;
 mod wayland_held_keys_tests;
 mod wayland_object_version_tests;
 mod wayland_keymap_tests;
