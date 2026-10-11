@@ -20,6 +20,7 @@ mod constants;
 mod init;
 mod priority;
 mod sgi;
+mod sgi_write;
 
 pub use ack::{acknowledge_interrupt, drop_priority, end_interrupt};
 pub use binary_point::{binary_point, set_binary_point};
