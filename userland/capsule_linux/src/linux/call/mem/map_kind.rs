@@ -19,8 +19,9 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::map_anon::{anonymous, memfd};
+use super::map_anon::anonymous;
 use super::map_file::file;
+use super::map_memfd::memfd;
 use super::map_req::MapReq;
 
 const MAP_SHARED: u64 = 0x01;

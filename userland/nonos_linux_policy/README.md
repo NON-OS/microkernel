@@ -25,6 +25,11 @@ checked against.
 its own home, and exec. That default is the owner's decision (O1). Changing it
 is changing `UNLISTED_MASK`.
 
+`market_ready` is the rule a market release is held to. The syscall set must
+name exit (60) and exit_group (231), which capsule_linux serves whatever the
+set says. It must leave bucket 512 clear, where a guest's native call lands.
+So an all-ones set is never market ready.
+
 It is a `no_std` library with no capsule, service or capability word.
 
 ## The vendor table
@@ -41,9 +46,13 @@ Without a userland build the file is still parsed and the table is empty. A
 program the file names that is not in the build fails the build, as does one
 program given two boxes.
 
+On a guest test image, `NONOS_LINUX_GUEST_POLICIES` names a second list:
+`userland/linux_guests/GuestPolicies.mk` writes it. It gives every test
+program in /bin every service and every call, each line with its `file=`.
+
 ## Tests
 
-27 host tests in `src/tests/`:
+30 host tests in `src/tests/`:
 - every field's offset;
 - every refusal;
 - the bit order of the syscall set, least significant first;
@@ -53,7 +62,8 @@ program given two boxes.
 - two pinned vectors;
 - policies.txt's lines, and the committed file's three qwenchat builds, which
   are the paths chat_pick runs;
-- every vendor row decodes canonically to its own program, with zero ids.
+- every vendor row decodes canonically to its own program, with zero ids;
+- market_ready: both exits in, bucket 512 out, all ones never.
 
 ```sh
 cargo test --locked

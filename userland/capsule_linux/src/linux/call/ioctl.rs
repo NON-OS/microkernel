@@ -29,7 +29,10 @@ pub fn ioctl(guest: &mut Guest, fd: u64, req: u64, arg: u64) -> u64 {
         return errno::fail(errno::EBADF);
     };
     let console = matches!(kind, Kind::Stdin | Kind::Stdout | Kind::Stderr);
-    let on_terminal = console && crate::linux::console::on_tty(stream(kind));
+    /* Without TTY in its policy, a program's console is the pipe it is off one. */
+    let on_terminal = console
+        && crate::linux::console::on_tty(stream(kind))
+        && crate::linux::app::granted(guest, nonos_linux_policy::mask::TTY);
     match request(kind, on_terminal, req) {
         Req::CloseOnExec(on) => {
             if let Some(entry) = guest.fds.get_mut(fd as usize) {
@@ -47,7 +50,7 @@ pub fn ioctl(guest: &mut Guest, fd: u64, req: u64, arg: u64) -> u64 {
             }
             None => errno::fail(errno::EFAULT),
         },
-        Req::Queued => match waiting(guest, fd, on_terminal) {
+        Req::Queued => match super::ioctl_queued::waiting(guest, fd, on_terminal) {
             Some(n) if guest.write(arg, &(n.min(i32::MAX as u64) as i32).to_le_bytes()) == 4 => {
                 errno::ok(0)
             }
@@ -56,21 +59,6 @@ pub fn ioctl(guest: &mut Guest, fd: u64, req: u64, arg: u64) -> u64 {
         },
         Req::NotTty => errno::fail(errno::ENOTTY),
         tty => super::ioctl_tty::tty(guest, tty, arg),
-    }
-}
-
-/// Bytes a read would find now: what a pipe holds, from either end, as
-/// Linux's pipe_ioctl counts it; what is left of a file past its offset;
-/// what was typed at the terminal; and nothing for the console off one,
-/// which is a pipe at its end. None for a descriptor Linux answers ENOTTY.
-fn waiting(guest: &Guest, fd: u64, on_terminal: bool) -> Option<u64> {
-    let entry = guest.fds.get(fd as usize)?;
-    match entry.kind {
-        _ if on_terminal => Some(crate::linux::console::queued()),
-        Kind::Stdin => Some(0),
-        Kind::Pipe => guest.pipes.get(entry.handle as usize).map(|p| p.len() as u64),
-        Kind::File => Some(entry.size.saturating_sub(entry.offset)),
-        _ => None,
     }
 }
 
