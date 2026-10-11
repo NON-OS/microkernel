@@ -39,6 +39,7 @@ pub(crate) fn plain_ext() -> ReleaseExt {
         chunk_root: [0; 32],
         content_len: 0,
         proof_anchors: vec![],
+        release_attest_sig: [0; 65],
     }
 }
 
@@ -64,6 +65,7 @@ pub(crate) fn sold() -> MarketplaceIndex {
             chunk_root: [0xcc + i as u8; 32],
             content_len: 4096 + i as u64,
             proof_anchors: vec![[0xa1; 32], [0xa2; 32]],
+            release_attest_sig: [0x5a + i as u8; 65],
         });
     }
     index

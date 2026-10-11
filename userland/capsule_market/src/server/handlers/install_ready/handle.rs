@@ -17,7 +17,8 @@
 use super::constants::READINESS_LEN;
 use super::find_release::find_release;
 use super::parse_pair::parse_pair;
-use crate::install_ready::evaluate;
+use crate::chain_hosts::Host;
+use crate::install_ready::{escrow, evaluate, market_gates, ready};
 use crate::protocol::{Request, E_INVAL, E_NODATA};
 use crate::server::error::reply_status;
 use crate::server::payload::{body_slot, reply_with_body};
@@ -38,17 +39,23 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
             None => return reply_status(tx, req, E_NODATA),
         };
     let publisher_ok = accepted.publisher_signature_verified(entry_index, release_index);
-    let verdict = evaluate(accepted.signature_verified, listing_id, release, publisher_ok);
+    let entry = &accepted.index.entries[entry_index];
+    let base =
+        evaluate(accepted.signature_verified, listing_id, release, publisher_ok, escrow(entry));
+    let more = market_gates(&Host, entry, release, publisher_ok);
     let slot = match body_slot(tx, READINESS_LEN) {
         Some(s) => s,
         None => return reply_status(tx, req, E_INVAL),
     };
-    slot[0] = verdict.install_ready as u8;
-    slot[1] = verdict.index_signature_valid as u8;
-    slot[2] = verdict.package_url_present as u8;
-    slot[3] = verdict.publisher_signature_present as u8;
-    slot[4] = verdict.validation_passed as u8;
-    slot[5] = verdict.arch_match as u8;
-    slot[6] = verdict.attestation_present as u8;
+    slot[0] = ready(accepted.signature_verified, entry, release, publisher_ok) as u8;
+    slot[1] = base.index_signature_valid as u8;
+    slot[2] = base.package_url_present as u8;
+    slot[3] = base.publisher_signature_present as u8;
+    slot[4] = base.validation_passed as u8;
+    slot[5] = base.arch_match as u8;
+    slot[6] = base.attestation_present as u8;
+    slot[7] = more.commerce as u8;
+    slot[8] = more.attest as u8;
+    slot[9] = more.policy as u8;
     reply_with_body(tx, req, READINESS_LEN);
 }

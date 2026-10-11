@@ -39,6 +39,11 @@ use crate::verify::CryptoVerifier as DefaultVerifier;
 #[cfg(feature = "offline-verify")]
 use crate::verify::RejectAll as DefaultVerifier;
 
+/// The capsule's entry point.
+///
+/// # Safety
+///
+/// Only the kernel calls it, once, on a fresh stack; nothing else may.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

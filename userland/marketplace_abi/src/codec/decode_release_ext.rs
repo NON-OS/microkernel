@@ -38,5 +38,13 @@ pub(super) fn read(r: &mut Reader<'_>) -> Result<ReleaseExt, DecodeError> {
     for _ in 0..n {
         proof_anchors.push(r.fixed::<32>()?);
     }
-    Ok(ReleaseExt { commerce_hash, guest_policy, chunk_root, content_len, proof_anchors })
+    let release_attest_sig = r.fixed::<65>()?;
+    Ok(ReleaseExt {
+        commerce_hash,
+        guest_policy,
+        chunk_root,
+        content_len,
+        proof_anchors,
+        release_attest_sig,
+    })
 }

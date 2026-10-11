@@ -57,4 +57,7 @@ pub struct ReleaseExtJson {
     pub content_len: u64,
     #[serde(default)]
     pub proof_anchors: Vec<String>,
+    /// The payee's ReleaseAttest signature, made in its wallet.
+    #[serde(default)]
+    pub release_attest_sig: String,
 }
