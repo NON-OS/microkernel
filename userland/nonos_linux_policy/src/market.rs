@@ -18,8 +18,12 @@
 //! serves exit and exit_group whatever the set says, so a set without them
 //! would let them succeed outside it. A guest's native call is a seal row in
 //! bucket 512, so a set with 512 would count one that went through as
-//! declared. An all-ones set is therefore never market ready.
+//! declared. An all-ones set is therefore never market ready. Nor is a box
+//! with FILES_USER: nothing serves the person's files yet, and a bit that
+//! grants nothing today would grant them silently the day something did
+//! (plan/32).
 
+use crate::mask::FILES_USER;
 use crate::policy::LinuxAppPolicy;
 
 /// x86_64 exit and exit_group, the calls capsule_linux always serves.
@@ -30,5 +34,7 @@ pub const NATIVE_BUCKET: u64 = 512;
 /// The rule the market's install_ready and the pack tool hold a release to.
 pub fn market_ready(policy: &LinuxAppPolicy) -> bool {
     let set = &policy.syscall_set;
-    ALWAYS_SERVED.iter().all(|&nr| set.allows(nr)) && !set.allows(NATIVE_BUCKET)
+    ALWAYS_SERVED.iter().all(|&nr| set.allows(nr))
+        && !set.allows(NATIVE_BUCKET)
+        && policy.mask & FILES_USER == 0
 }
