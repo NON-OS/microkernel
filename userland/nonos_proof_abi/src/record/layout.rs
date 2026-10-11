@@ -26,6 +26,8 @@ pub(crate) const VERSION: u16 = 1;
 pub const FLAG_FINAL: u16 = 1;
 /// Some count saturated: the counts are lower bounds only.
 pub const FLAG_SATURATED: u16 = 2;
+/// More than 4096 distinct measurements: M stopped absorbing (plan/11).
+pub const FLAG_OVERFLOW: u16 = 4;
 
 pub(super) const FLAGS: usize = 6;
 pub(super) const SUP_MEAS: usize = 8;

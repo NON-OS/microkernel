@@ -115,9 +115,8 @@ pub const SYS_FOREIGN_FORK: u64 = tag4(b"MFFK");
 pub const SYS_PEER_UNMAP: u64 = tag4(b"MPUN");
 /// Replace the program a parked guest is running.
 pub const SYS_FOREIGN_EXEC: u64 = tag4(b"MFEX");
-/// Seal a supervisor's family once no guest is left.
-pub const SYS_FOREIGN_SEAL: u64 = tag4(b"MFSE");
-/// Read a sealed family: its record, its witness or its measurements.
+/// Take the newest final record sealed for an app, with its witness and
+/// measurements; it is dropped as it is read.
 pub const SYS_SEAL_READ: u64 = tag4(b"MSLR");
 /// A supervisor's note in its family's record: the app, or a diagnostic.
 pub const SYS_SEAL_NOTE: u64 = tag4(b"MSNT");
