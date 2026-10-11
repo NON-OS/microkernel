@@ -1,6 +1,8 @@
 # capsule_driver_ixgbe
 
-Status: not in the image. The capsule builds and its host proofs pass, but
+Status: wired, not yet signed. The kernel mirror (`src/hardware/ixgbe_capsule`)
+embeds and spawns it under `nonos-capsule-driver-ixgbe` (the
+`microkernel-driver-ixgbe` build), and net.core and net.l2 reach it through
 
 ## Role
 
@@ -110,7 +112,7 @@ completing through `net.core`.
 
 ## Release checklist
 
-- Kernel inventory family, mirror, spawn and NIC table entry.
+  net.l2, the setup wizard and capsule_attack re-signed for the NIC table.
 - One machine of each MAC photographed with those lines.
 
 ## Explicit non-goals today
