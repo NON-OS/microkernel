@@ -1,0 +1,43 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Finding the driver the server plays through.
+
+use nonos_libc::{mk_idle_ms, mk_service_lookup};
+
+/// The kernel registers driver.hda0 when it spawns the HD Audio driver,
+/// before this capsule, and drops it when that driver exits (no controller,
+/// or one that never came up). The lookup is retried for about two seconds,
+/// asleep between tries; it used to be 2000 tries a yield apart, which on an
+/// idle machine is a spin and on a busy one has no fixed length.
+const LOOKUP_RETRIES: u32 = 100;
+const LOOKUP_PAUSE_MS: u64 = 20;
+
+/// The port `name` is served on, once it is registered.
+pub(super) fn resolve(name: &[u8]) -> Option<u32> {
+    for tries in 0..LOOKUP_RETRIES {
+        if tries > 0 {
+            let _ = mk_idle_ms(LOOKUP_PAUSE_MS);
+        }
+        let mut port = 0u32;
+        let mut pid = 0u32;
+        let r = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+        if r == 0 && port != 0 {
+            return Some(port);
+        }
+    }
+    None
+}
