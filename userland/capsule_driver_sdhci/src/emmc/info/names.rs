@@ -20,7 +20,7 @@ use super::super::mmc::Cid;
 use super::maker::maker;
 use super::{MODEL_MAX, SERIAL_LEN};
 
-/// An eMMC part's model and serial.
+/// A part's model and serial.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Names {
     pub model: [u8; MODEL_MAX],
@@ -34,10 +34,20 @@ impl Names {
     }
 }
 
+/// An eMMC part: the maker its JEDEC id names, then the product name.
 pub fn names(cid: &Cid) -> Names {
+    named(maker(cid.mid), cid)
+}
+
+/// An SD card: SD's manufacturer ids are not JEDEC's, so it is called SD.
+pub fn sd_names(cid: &Cid) -> Names {
+    named(b"SD", cid)
+}
+
+fn named(maker: &[u8], cid: &Cid) -> Names {
     let mut model = [0u8; MODEL_MAX];
     let mut n = 0;
-    for &c in maker(cid.mid) {
+    for &c in maker {
         model[n] = c;
         n += 1;
     }

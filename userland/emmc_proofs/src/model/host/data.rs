@@ -33,31 +33,31 @@ impl Sim {
                 return;
             }
         };
-        if self.host_width() != self.card.width || self.fail_next_data > 0 {
+        if self.host_width() != self.dev_ref().width() || self.fail_next_data > 0 {
             if self.fail_next_data > 0 {
                 self.fail_next_data -= 1;
             }
             // The card sends or takes the blocks; the host sees CRC errors.
-            self.card.end(now);
+            self.dev().end(now);
             self.int |= 1 << 15 | 1 << 21;
             return;
         }
         if card_reads {
             let mut bytes = bytes;
-            if self.card.cfg.broken8 && self.host_width() == 8 {
+            if self.dev_ref().corrupts(self.host_width()) {
                 for b in bytes.iter_mut().step_by(7) {
                     *b ^= 0x5a;
                 }
             }
             self.copy_in(&segs, &bytes);
-            self.card.end(now);
+            self.dev().end(now);
         } else {
             let v = self.copy_out(&segs, len);
-            self.card.take_write(lba, &v, now);
+            self.dev().take_write(lba, &v, now);
         }
         if mode & 0x04 != 0 {
             // Auto CMD12.
-            let _ = self.card.command(12, 0, 0, now);
+            let _ = self.dev().command(12, 0, 0, now);
         }
         if card_reads {
             self.int |= 1 << 1;

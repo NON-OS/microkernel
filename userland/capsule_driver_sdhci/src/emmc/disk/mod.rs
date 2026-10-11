@@ -20,6 +20,7 @@
 //! 32 KiB data buffer.
 
 mod block_io;
+mod card;
 mod describe;
 mod emmc_disk;
 mod lifecycle;

@@ -17,7 +17,6 @@
 //! A write to the Command register: the command recorded, held to the
 //! host's rules, and answered when the bus is powered and clocked.
 
-use super::super::card::St;
 use super::sim::Sim;
 use super::types::{CmdRec, Issued};
 
@@ -48,13 +47,9 @@ impl Sim {
             self.int |= 1 << 15 | 1 << 16;
             return;
         }
-        let limit = match self.card.state {
-            St::Idle | St::Ready | St::Ident | St::Off | St::Inactive => 400_000,
-            _ if self.card.hs => 52_000_000,
-            _ => 26_000_000,
-        };
+        let limit = self.dev_ref().max_hz();
         if hz > limit {
-            self.violate(format!("CMD{index} at {hz} Hz in {:?}, limit {limit}", self.card.state));
+            self.violate(format!("CMD{index} at {hz} Hz, the card's limit {limit}"));
         }
         self.answer(Issued { index, arg, mode, blocks, blksz, word, now });
     }
