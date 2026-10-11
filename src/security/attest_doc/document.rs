@@ -27,6 +27,7 @@ pub const DOC_MAGIC: &[u8; 8] = b"NONOSATT";
 pub const IOMMU_NONE: u8 = 0;
 pub const IOMMU_INTEL_VTD: u8 = 1;
 pub const IOMMU_AMD_VI: u8 = 2;
+pub const IOMMU_ARM_SMMU_V3: u8 = 3;
 
 /// What the machine hands to whoever asked what it is running.
 ///
