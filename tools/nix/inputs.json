@@ -32,6 +32,9 @@
    "nonos-data/trust/capsules/driver_virtio_input.manifest.bin",
    "nonos-data/trust/capsules/driver_virtio_input.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_virtio_input.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
@@ -3472,6 +3475,9 @@
    "nonos-data/trust/capsules/driver_virtio_input.manifest.bin",
    "nonos-data/trust/capsules/driver_virtio_input.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_virtio_input.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
@@ -3877,6 +3883,7 @@
    "userland/capsule_driver_pcnet/src/server/handlers/tx_stage.rs",
    "userland/capsule_driver_pcnet/src/setup/driver.rs",
    "userland/capsule_driver_pcnet/src/setup/grant.rs",
+   "userland/capsule_driver_pcnet/src/setup/pci.rs",
    "userland/nonos_mac",
    "userland/pcnet_proofs"
   ],
@@ -4935,6 +4942,26 @@
   "md": [],
   "signed": []
  },
+ "userland/vmware_svga_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_vmware_svga/src/constants",
+   "userland/capsule_driver_vmware_svga/src/discover.rs",
+   "userland/capsule_driver_vmware_svga/src/fifo",
+   "userland/capsule_driver_vmware_svga/src/init",
+   "userland/capsule_driver_vmware_svga/src/protocol",
+   "userland/capsule_driver_vmware_svga/src/regs/svga.rs",
+   "userland/capsule_driver_vmware_svga/src/screen",
+   "userland/capsule_driver_vmware_svga/src/server/dispatch.rs",
+   "userland/capsule_driver_vmware_svga/src/server/handlers",
+   "userland/capsule_driver_vmware_svga/src/server/respond.rs",
+   "userland/capsule_driver_vmware_svga/src/setup",
+   "userland/vmware_svga_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/vmxnet3_proofs": {
   "exclude": [],
   "include": [
@@ -4955,6 +4982,7 @@
    "userland/capsule_driver_vmxnet3/src/server/handlers/tx_stage.rs",
    "userland/capsule_driver_vmxnet3/src/setup/driver.rs",
    "userland/capsule_driver_vmxnet3/src/setup/grant.rs",
+   "userland/capsule_driver_vmxnet3/src/setup/pci.rs",
    "userland/capsule_driver_vmxnet3/src/shared",
    "userland/nonos_mac",
    "userland/vmxnet3_proofs"
