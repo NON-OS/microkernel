@@ -22,6 +22,7 @@ pub(super) fn spawn() {
     spawn_hda();
     spawn_nvme();
     super::drivers_sdhci::spawn();
+    super::drivers_ufs::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-ahci")]

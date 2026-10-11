@@ -32,6 +32,9 @@
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_ufs.manifest.bin",
+   "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -1446,6 +1449,22 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_sdhci",
+   "userland/libc",
+   "userland/nonos_blk_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_ufs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_sdhci/src/emmc/env/clock.rs",
+   "userland/capsule_driver_sdhci/src/emmc/env/dma_buf.rs",
+   "userland/capsule_driver_sdhci/src/emmc/env/log.rs",
+   "userland/capsule_driver_sdhci/src/emmc/text/append.rs",
+   "userland/capsule_driver_sdhci/src/server/handlers/rw_parse.rs",
+   "userland/capsule_driver_ufs",
    "userland/libc",
    "userland/nonos_blk_wire"
   ],
@@ -3112,6 +3131,8 @@
    "userland/capsule_driver_ahci/src/protocol/errno.rs",
    "userland/capsule_driver_nvme/src/protocol/errno.rs",
    "userland/capsule_driver_sdhci/src/protocol",
+   "userland/capsule_driver_ufs/Capsule.mk",
+   "userland/capsule_driver_ufs/src/platform/hosts.rs",
    "userland/capsule_file_manager/src/fm",
    "userland/capsule_net_ip/src/ipv4/addr.rs",
    "userland/capsule_net_ip/src/ipv4/checksum.rs",
@@ -3545,6 +3566,9 @@
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_ufs.manifest.bin",
+   "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
