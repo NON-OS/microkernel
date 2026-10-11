@@ -15,12 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::backend::Backend;
-use super::map_ahci::map_ahci_error;
-use super::map_nvme::map_nvme_error;
-use super::map_usb_msc::map_usb_msc_error;
-use super::map_virtio::map_virtio_error;
 use super::select::selected;
-use super::wire::{self, map_wire_error};
 use super::BlockDeviceError;
 
 /// The kept disk's size; until one is kept, the size of the boot disk the
@@ -35,14 +30,6 @@ pub fn capacity() -> Result<u64, BlockDeviceError> {
 }
 
 /// The size of one named backend's disk, for the probe that picks the backend.
-pub(super) fn capacity_on(backend: Backend) -> Result<u64, BlockDeviceError> {
-    match backend {
-        Backend::VirtioBlk => {
-            crate::hardware::virtio_blk_capsule::capacity().map_err(map_virtio_error)
-        }
-        Backend::Ahci => crate::hardware::ahci_capsule::capacity().map_err(map_ahci_error),
-        Backend::Nvme => crate::hardware::nvme_capsule::capacity().map_err(map_nvme_error),
-        Backend::UsbMsc => crate::hardware::usb_msc_capsule::capacity().map_err(map_usb_msc_error),
-        Backend::Wire(i) => wire::capacity(i).map_err(map_wire_error),
-    }
+pub(super) fn capacity_on(b: Backend) -> Result<u64, BlockDeviceError> {
+    (b.disk.capacity)(b.key)
 }
