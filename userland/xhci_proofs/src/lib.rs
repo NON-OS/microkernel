@@ -29,6 +29,8 @@ extern crate alloc;
 
 #[path = "../../capsule_driver_xhci/src/contexts/mod.rs"]
 pub mod contexts;
+#[path = "../../capsule_driver_xhci/src/server/handlers/control_transfer/region.rs"]
+pub mod control_region;
 pub mod controller;
 #[path = "../../capsule_driver_xhci/src/dma/mod.rs"]
 pub mod dma;
@@ -49,6 +51,8 @@ pub mod slots;
 
 #[cfg(test)]
 mod conformance;
+#[cfg(test)]
+mod control_out_tests;
 #[cfg(test)]
 mod event_ring;
 #[cfg(test)]
