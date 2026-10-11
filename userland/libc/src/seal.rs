@@ -34,6 +34,13 @@ pub fn mk_seal_read(app_id: &[u8; 32], out: &mut [u8]) -> i64 {
 }
 
 /// Note `word` in the caller's live family under `slot`.
+/// The live form (plan/15): the family `pid` supervises, as it stands, for
+/// DELIVER; nothing is dropped. ESRCH when it supervises none.
+pub fn mk_seal_read_live(pid: u32, out: &mut [u8]) -> i64 {
+    let args = [0, out.as_mut_ptr() as u64, out.len() as u64, u64::from(pid), 0, 0];
+    call_raw(N_MK_SEAL_READ, args)
+}
+
 pub fn mk_seal_note(slot: u64, word: &[u8; 32]) -> i64 {
     call_raw(N_MK_SEAL_NOTE, [slot, word.as_ptr() as u64, 0, 0, 0, 0])
 }

@@ -20,4 +20,4 @@
 #[path = "../../../src/syscall/microkernel/errnos.rs"]
 mod kernel;
 
-pub use kernel::ERRNO_NOENT;
+pub use kernel::{ERRNO_IO, ERRNO_NOENT, ERRNO_NOMEM, ERRNO_SRCH};
