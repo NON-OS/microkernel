@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! ASYNC (plan/28, v1.4.15, v1.4.23, v1.4.53): header flags bit 0, from
-//! payment and market.index, and from the wallet for BROADCAST, READ and
-//! INTENT only. The caller sends the request without waiting; settle
+//! payment and market.index, and from the wallet for BROADCAST, GAS, READ
+//! and INTENT only (v1.4.55). The caller sends the request without waiting; settle
 //! answers with mk_ipc_send_to_pid(caller), the same frame echoing op, flags
 //! and id, into the caller's service inbox. Each believes an answer only from
 //! settle's registry pid, with this wire's magic and its own request id.
@@ -24,16 +24,16 @@
 use alloc::vec::Vec;
 
 use crate::frame::{framed, reply_body, ReplyError};
-use crate::ops::{OP_BROADCAST, OP_INTENT, OP_READ};
+use crate::ops::{OP_BROADCAST, OP_GAS, OP_INTENT, OP_READ};
 
 pub const FLAG_ASYNC: u16 = 1;
 /// The names the registry gives the capsules that may ask ASYNC: the meter,
 /// and the market for its bond cache.
 pub const ASYNC_CALLERS: [&[u8]; 2] = [b"payment", b"market.index"];
-/// The wallet windows, ASYNC for WALLET_ASYNC_OPS alone (v1.4.53).
+/// The wallet windows, ASYNC for WALLET_ASYNC_OPS alone (v1.4.53, v1.4.55).
 pub const WALLET_ASYNC: [&[u8]; 3] =
     [b"app.nonos_wallet", b"app.nonos_wallet.1", b"app.nonos_wallet.2"];
-pub const WALLET_ASYNC_OPS: [u16; 3] = [OP_BROADCAST, OP_READ, OP_INTENT];
+pub const WALLET_ASYNC_OPS: [u16; 4] = [OP_BROADCAST, OP_GAS, OP_READ, OP_INTENT];
 
 pub fn request_async(op: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
     framed(op, FLAG_ASYNC, request_id, &[body])

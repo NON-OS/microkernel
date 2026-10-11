@@ -32,12 +32,12 @@ fn owner(name: &[u8]) -> Option<u32> {
 }
 
 #[test]
-fn the_wallet_may_ask_async_for_broadcast_read_and_intent_only() {
-    for op in [OP_BROADCAST, OP_READ, OP_INTENT] {
+fn the_wallet_may_ask_async_for_broadcast_gas_read_and_intent_only() {
+    for op in [OP_BROADCAST, OP_GAS, OP_READ, OP_INTENT] {
         assert!(admits_flags(FLAG_ASYNC, op, WALLET, owner), "op {op}");
         assert!(admits_flags(FLAG_ASYNC, op, WALLET_2, owner), "op {op}");
     }
-    for op in [OP_SETTLE, OP_DELIVERED, OP_GAS, OP_FETCH, OP_LISTING, OP_OPENED, 3, 0, 99] {
+    for op in [OP_SETTLE, OP_DELIVERED, OP_FETCH, OP_LISTING, OP_OPENED, 3, 0, 99] {
         assert!(!admits_flags(FLAG_ASYNC, op, WALLET, owner), "op {op}");
     }
     assert!(admits_flags(0, OP_SETTLE, WALLET, owner), "a plain call is the op table's business");
