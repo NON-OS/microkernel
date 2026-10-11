@@ -77,6 +77,8 @@ SECTIONS {
 
     __kernel_image_end = .;
     _end = .;
+    /* The Image header's image_size: everything a loader must leave free. */
+    __kernel_image_size = __kernel_image_end - __kernel_image_start;
 
     /DISCARD/ : {
         *(.eh_frame*)

@@ -873,7 +873,7 @@ nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 # Each aarch64 recipe names the aarch64 user target. This makefile exports
 # x86_64-nonos-user for the whole userland pipeline, and build.rs refuses to
 # embed capsules built for another architecture than the kernel's.
-.PHONY: nonos-mk-arm nonos-mk-arm-trap-sp0 nonos-mk-arm-trap-kernel-abort nonos-mk-arm-bench nonos-mk-bench-micro nonos-mk-arm-run nonos-mk-arm-gui nonos-mk-arm-gui-capsules nonos-mk-arm-gui-run
+.PHONY: nonos-mk-arm nonos-mk-arm-image nonos-mk-arm-run-image nonos-mk-arm-trap-sp0 nonos-mk-arm-trap-kernel-abort nonos-mk-arm-bench nonos-mk-bench-micro nonos-mk-arm-run nonos-mk-arm-gui nonos-mk-arm-gui-capsules nonos-mk-arm-gui-run
 nonos-mk-arm: | $(SIGNING_KEY)
 	@echo "Building kernel (aarch64, microkernel-core + nonos-arch-preview)..."
 	@NONOS_USER_TARGET=aarch64-nonos-user \
@@ -881,6 +881,17 @@ nonos-mk-arm: | $(SIGNING_KEY)
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-core$(_boot_comma)nonos-arch-preview
+
+# The same kernel as an arm64 Image, for loaders that hand over a device tree.
+# QEMU's -kernel passes one in x0 for an Image and none for an ELF, and the
+# header start.S puts first is what tells the two apart. objcopy keeps it: the
+# Image is the load segments from the link address on, BSS left to the kernel.
+LLVM_OBJCOPY ?= llvm-objcopy
+ARM_IMAGE := $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel.img
+
+nonos-mk-arm-image: nonos-mk-arm
+	@$(LLVM_OBJCOPY) -O binary $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel $(ARM_IMAGE)
+	@echo "Image: $(ARM_IMAGE)"
 
 # The same image with one deliberate exception compiled in, for the aarch64 boot
 # lane. Each stops at its exception by design, and scripts/check_aarch64_boot.py
@@ -905,9 +916,9 @@ nonos-mk-arm-trap-kernel-abort: | $(SIGNING_KEY)
 
 # Boot the aarch64 kernel under QEMU. Every flag here is load bearing.
 #
-#   gic-version=3   virt defaults to a GICv2, and the kernel drives a v3. Without
-#                   this the redistributor is not there and the first access to it
-#                   aborts.
+#   gic-version=3   virt defaults to a GICv2. The kernel drives either, chosen
+#                   from the device tree or, booted as an ELF without one, from
+#                   the CPU's ID registers; v3 is what this lane checks.
 #   -cpu max        advertises the optional features, so the paths guarded by an
 #                   ID register check are the ones that actually run. It is the
 #                   closer proxy for a Neoverse or an M series part than a72 is,
@@ -917,7 +928,7 @@ nonos-mk-arm-trap-kernel-abort: | $(SIGNING_KEY)
 #
 # QEMU passes no device tree when it boots an ELF, so x0 arrives as zero and the
 # board facts come from the defaults in BootInfo. That path is what this target
-# exercises; a device tree boot needs an Image-format target instead.
+# exercises; nonos-mk-arm-run-image boots the Image, with QEMU's tree in x0.
 ARM_QEMU_FLAGS := -M virt,gic-version=3 -cpu max -m 512 -nographic \
 		-serial mon:stdio -device virtio-rng-pci
 
@@ -943,6 +954,10 @@ nonos-mk-arm-run: nonos-mk-arm
 	@echo "Booting aarch64 kernel under QEMU (ctrl-a x to quit)..."
 	@qemu-system-aarch64 $(ARM_QEMU_FLAGS) \
 		-kernel $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel
+
+nonos-mk-arm-run-image: nonos-mk-arm-image
+	@echo "Booting aarch64 Image under QEMU with its device tree (ctrl-a x to quit)..."
+	@qemu-system-aarch64 $(ARM_QEMU_FLAGS) -kernel $(ARM_IMAGE)
 
 # The desktop needs a framebuffer, so this swaps -nographic for a virtio-gpu and
 # keeps the serial log on the terminal. virt has no VGA to fall back on: without
