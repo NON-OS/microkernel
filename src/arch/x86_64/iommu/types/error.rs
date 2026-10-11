@@ -49,4 +49,7 @@ pub enum VtdError {
     /// An xAPIC-format entry names eight bits of APIC id; this CPU's is wider.
     DestinationTooWide,
     RemapTableFull,
+    /// A failed map's leaves could not be made unreachable: the unit may
+    /// still hold them, so the frames must never be reused.
+    Stranded,
 }

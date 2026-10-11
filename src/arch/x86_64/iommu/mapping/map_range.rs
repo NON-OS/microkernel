@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::commit::commit;
 use super::domain_root::domain_root;
+use super::leaves::leaves;
 use super::validate_range::validate_range;
 use crate::arch::x86_64::iommu::globals::state::STATE;
-use crate::arch::x86_64::iommu::globals::{is_enforcing, page_levels, snoop_control};
+use crate::arch::x86_64::iommu::globals::{is_enforcing, page_levels};
 use crate::arch::x86_64::iommu::tables::frame::entries_mut;
-use crate::arch::x86_64::iommu::tables::sl_pte::{is_present, leaf};
-use crate::arch::x86_64::iommu::tables::touched::Touched;
+use crate::arch::x86_64::iommu::tables::sl_pte::is_present;
 use crate::arch::x86_64::iommu::tables::walk::walk_create;
 use crate::arch::x86_64::iommu::types::{DomainId, IommuPageFlags, VtdError, PAGE_SIZE_4K};
 
@@ -32,8 +31,7 @@ pub fn map_range(
     size: usize,
     flags: IommuPageFlags,
 ) -> Result<(), VtdError> {
-    // Not `is_present`: entries written into tables no unit walks would report
-    // an isolation the device does not have.
+    // Not `is_present`: tables no unit walks would report a false isolation.
     if !is_enforcing() {
         return Err(VtdError::NotEnforcing);
     }
@@ -45,13 +43,10 @@ pub fn map_range(
         return Err(VtdError::NoPermissionsRequested);
     }
     let levels = page_levels().ok_or(VtdError::DepthUnknown)?;
-
     let state = STATE.lock();
     let root = domain_root(&state, domain)?;
-    if iova + size as u64 > 1u64 << (12 + 9 * levels as u32) {
-        return Err(VtdError::RangeOutOfBounds);
-    }
-
+    let top = 1u64 << (12 + 9 * levels as u32);
+    iova.checked_add(size as u64).filter(|&end| end <= top).ok_or(VtdError::RangeOutOfBounds)?;
     // Checked whole first, so a rejected request leaves no partial mapping.
     for page in 0..pages {
         let slot = walk_create(root, iova + (page * PAGE_SIZE_4K) as u64, levels)?;
@@ -59,13 +54,6 @@ pub fn map_range(
             return Err(VtdError::RangeAlreadyMapped);
         }
     }
-    let mut touched = Touched::default();
-    for page in 0..pages {
-        let offset = (page * PAGE_SIZE_4K) as u64;
-        let slot = walk_create(root, iova + offset, levels)?;
-        entries_mut(slot.table_phys)?[slot.index] =
-            leaf(phys + offset, flags.read, flags.write, flags.snoop && snoop_control());
-        touched.note(slot.table_phys);
-    }
-    commit(touched)
+    // From the first leaf on, a failure is taken back first (leaves.rs).
+    leaves((root, levels), iova, phys, pages, flags)
 }

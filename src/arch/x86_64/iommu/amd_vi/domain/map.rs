@@ -23,7 +23,8 @@ use super::super::flush::flush_domain;
 use super::super::pte::{is_present, leaf};
 use super::lifetime::{root_of, ROOTS};
 use super::range::{leaf_at, pages, PAGE};
-use super::walk::walk_create;
+use super::walk::{walk_create, walk_lookup};
+use crate::arch::x86_64::iommu::place::{place, Unplaced};
 
 pub fn map_range(
     domain: u16,
@@ -44,9 +45,18 @@ pub fn map_range(
             return Err(AmdViError::RangeAlreadyMapped);
         }
     }
-    for page in 0..count {
+    // From the first leaf on, a failure is taken back first (iommu::place).
+    let put = |page: u64| -> Result<(), AmdViError> {
         let (table, slot) = walk_create(root, iova + page * PAGE)?;
         *leaf_at(table, slot)? = leaf(phys + page * PAGE, read, write);
-    }
-    flush_domain(domain)
+        Ok(())
+    };
+    let clear = |page: u64| match walk_lookup(root, iova + page * PAGE) {
+        Ok(Some((table, slot))) => leaf_at(table, slot).map(|l| *l = 0).is_ok(),
+        _ => false,
+    };
+    place(count, put, clear, || flush_domain(domain)).map_err(|u| match u {
+        Unplaced::Failed(e) => e,
+        Unplaced::Stranded => AmdViError::Stranded,
+    })
 }
