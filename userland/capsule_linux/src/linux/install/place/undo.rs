@@ -27,6 +27,7 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_debug;
 
+use super::super::Why;
 use crate::linux::attest_paths::beside;
 use crate::linux::file::{key, store_unlink};
 
@@ -46,4 +47,15 @@ pub(super) fn undo(landed: &[Vec<u8>], why: &str) {
         landed.len()
     );
     let _ = mk_debug(line.as_ptr(), line.len());
+}
+
+/// The install's failure once `failed` files, or the link table, would not
+/// go: what landed is taken out, and the package is Partial.
+pub(super) fn partial(landed: &[Vec<u8>], failed: usize) -> Why {
+    let what = match failed {
+        0 => alloc::string::String::from("the link table"),
+        n => format!("{n} file(s)"),
+    };
+    undo(landed, &what);
+    Why::Partial
 }

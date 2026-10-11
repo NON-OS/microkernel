@@ -53,6 +53,8 @@ pub mod pgp;
 
 #[path = "../../../capsule_linux/src/linux/install/manifest.rs"]
 pub mod manifest;
+#[path = "../../../capsule_linux/src/linux/install/member/mod.rs"]
+pub mod member;
 /* `unrecord` is an uninstall's, which nothing here runs. */
 #[allow(dead_code)]
 #[path = "../../../capsule_linux/src/linux/install/place_links.rs"]

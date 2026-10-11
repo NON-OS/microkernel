@@ -15,13 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Putting a package's files into the store, under the Linux root.
 
-use nonos_libc::mk_debug;
-
 use super::super::auth::Verified;
 use alloc::vec::Vec;
 
 use super::super::manifest::Manifest;
-use super::super::program::record;
 use super::super::tar::{walk, Kind};
 use super::super::Why;
 use super::entry::{allowed, one, Placed};
@@ -40,6 +37,7 @@ use crate::linux::file::visible;
 /// program is recorded only once every file is in.
 pub fn unpack(files: &Verified, name: &str, chosen: bool) -> Result<usize, Why> {
     let archive = walk(files.files());
+    super::check::check(&archive.entries, name)?;
     let mut landed: Vec<Vec<u8>> = Vec::new();
     let mut failed = 0usize;
     let mut links: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
@@ -69,34 +67,7 @@ pub fn unpack(files: &Verified, name: &str, chosen: bool) -> Result<usize, Why> 
     let count = linked.as_ref().map(Vec::len);
     super::report::say(landed.len(), links.len(), count, archive.dropped);
     let Some(linked) = linked.filter(|_| failed == 0) else {
-        let what = match failed {
-            0 => alloc::string::String::from("the link table"),
-            n => alloc::format!("{n} file(s)"),
-        };
-        super::undo::undo(&landed, &what);
-        return Err(Why::Partial);
+        return Err(super::undo::partial(&landed, failed));
     };
-    let kept = Manifest { files: landed, links: linked };
-    /*
-     * Installed means it can be started and taken out again: a package
-     * whose record, or whose program's record, the store would not keep is
-     * taken back out and fails as `Partial`, like a file that would not go
-     * in, rather than reading as installed and then as never installed.
-     */
-    let recorded = super::super::package_record::write(name, &kept);
-    if !recorded || (chosen && !record(name, files)) {
-        if recorded {
-            super::super::package_record::settle(name, &Manifest::default());
-        }
-        if !kept.links.is_empty() {
-            super::super::place_links::unrecord(&kept.links);
-        }
-        super::undo::undo(&kept.files, "its install record");
-        return Err(Why::Partial);
-    }
-    // Nothing persists unless asked, and never in plaintext. The store at
-    // rest is not encrypted, so an install lives until the next reboot.
-    let line = b"[LINUX] unserved persist: install kept in RAM, store at rest unencrypted\n";
-    let _ = mk_debug(line.as_ptr(), line.len());
-    Ok(kept.files.len())
+    super::keep::keep(files, name, chosen, Manifest { files: landed, links: linked })
 }
