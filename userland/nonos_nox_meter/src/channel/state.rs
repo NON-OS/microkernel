@@ -52,4 +52,6 @@ pub struct Channel {
     /// The cumulative the last settle() this meter signed carried for this
     /// channel, 0 before any: another settle needs a newer voucher (v1.4.7).
     pub carried: u128,
+    /// Where close() sends what the channel holds back (v1.4.60), for ACCOUNT.
+    pub reclaim_to: [u8; 20],
 }

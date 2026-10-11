@@ -68,5 +68,6 @@ pub fn confirmed(
         sig: NO_SIG,
         frozen: false,
         carried: 0,
+        reclaim_to: s.reclaim_to,
     })
 }

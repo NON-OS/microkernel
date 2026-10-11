@@ -16,7 +16,6 @@
 
 /* A meter job the wallet started (v1.4.14), and its result in words. */
 
-use alloc::format;
 use alloc::string::String;
 
 use nonos_payment_proto::EAGAIN;
@@ -24,6 +23,11 @@ use nonos_payment_proto::EAGAIN;
 /* Mounted by path so wallet_proofs reads the same sentences. */
 #[path = "job_said.rs"]
 mod said;
+#[path = "job_sent.rs"]
+mod sent;
+
+pub use sent::closed_due;
+use sent::sent;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum JobKind {
@@ -37,6 +41,8 @@ pub enum JobKind {
 pub struct MeterJob {
     pub id: u32,
     pub kind: JobKind,
+    /// A close's channel's reclaimTo (v1.4.60), for the due list once sent.
+    pub reclaim_to: Option<[u8; 20]>,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -44,22 +50,6 @@ pub enum Outcome {
     Running,
     Sent(String),
     Failed(&'static str),
-}
-
-fn short(h: &[u8]) -> String {
-    let hex: String = h.iter().take(4).map(|b| format!("{b:02x}")).collect();
-    format!("0x{hex}…")
-}
-
-fn sent(kind: JobKind, b: &[u8]) -> Option<String> {
-    Some(match (kind, b.len()) {
-        (JobKind::TopUp, 64) => {
-            format!("top-up sent: approve {}, topUp {}", short(&b[..32]), short(&b[32..]))
-        }
-        (JobKind::Close, 32) => format!("close sent: {}", short(b)),
-        (JobKind::Claim, 32) => format!("claim sent: {}", short(b)),
-        _ => return None,
-    })
 }
 
 pub fn outcome(kind: JobKind, r: Result<&[u8], i32>) -> Outcome {
