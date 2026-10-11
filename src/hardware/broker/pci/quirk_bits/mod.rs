@@ -32,39 +32,12 @@
 //! Anything else stays refused: these registers hold no address, no BAR, no
 //! routing, and change nothing about what the device may reach.
 
-/// What the broker knows of the claimed function.
-#[derive(Debug, Clone, Copy)]
-pub struct Ident {
-    pub vendor: u16,
-    pub class: u8,
-    pub subclass: u8,
-    /// The PCI Express capability's offset, when the function has one.
-    pub pcie_cap: Option<u16>,
-}
+mod ident;
+mod writable;
 
-const INTEL: u16 = 0x8086;
-const AMD: u16 = 0x1022;
-const ATI: u16 = 0x1002;
-
-/// The bits at `offset` a driver of `id` may change, or `None` when the
-/// register is not one of these.
-pub fn writable(id: &Ident, offset: u32) -> Option<u16> {
-    let audio = id.class == 0x04 && matches!(id.subclass, 0x01 | 0x03);
-    let smbus = id.class == 0x0C && id.subclass == 0x05;
-    match (id.vendor, offset) {
-        (INTEL, 0x40) if smbus => Some(0x0005),
-        (INTEL, 0x44) if audio => Some(0x0007),
-        (INTEL, 0x48) if audio => Some(0x0040),
-        (INTEL, 0x78) if audio => Some(0x0800),
-        (AMD | ATI, 0x42) if audio => Some(0x0007),
-        _ if id.class == 0x02 && id.pcie_cap.is_some_and(|c| offset == c as u32 + 0x28) => {
-            Some(0x001F)
-        }
-        _ => None,
-    }
-}
-
-/// Whether `new` differs from `current` only in the bits `mask` allows.
-pub fn only(mask: u16, new: u16, current: u16) -> bool {
-    (new ^ current) & !mask == 0
-}
+// Public for kernel_proofs, which mounts this module at its root; the
+// kernel itself holds it crate-private.
+#[allow(unreachable_pub)]
+pub use ident::Ident;
+#[allow(unreachable_pub)]
+pub use writable::{only, writable};
