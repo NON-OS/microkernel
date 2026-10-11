@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+pub mod assoc;
 pub mod control;
 pub mod engine;
 pub mod join;
@@ -20,6 +21,7 @@ pub mod radio;
 pub mod scanner;
 pub mod session;
 pub mod stats;
+pub use assoc::Association;
 pub use engine::SoftStation;
 pub use radio::{Env, Radio, RxInfo};
 pub use stats::LinkStats;

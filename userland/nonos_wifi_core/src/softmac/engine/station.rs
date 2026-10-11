@@ -54,8 +54,11 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
     // A session over, by the AP's word, silence or the person's: forget it,
     // open the receive filter and let the sweep start again.
     pub(super) fn end_session(&mut self) {
-        self.session = None;
+        let had = self.session.take().is_some();
         if let Some(r) = self.radio.as_mut() {
+            if had {
+                r.associated(None);
+            }
             r.set_bss(None);
         }
         self.scanner.resume();

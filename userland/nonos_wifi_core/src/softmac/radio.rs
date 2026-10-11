@@ -20,6 +20,7 @@
 //! keys, the data path, the control and link protocols) is the core's, so a
 //! chip driver is its registers and rings and nothing else.
 
+use super::assoc::Association;
 use crate::regdom::Band;
 
 /// One received frame: its length in the caller's buffer (FCS removed), the
@@ -48,6 +49,10 @@ pub trait Radio {
     /// Periodic chip work (calibration, temperature compensation), called
     /// from every serve pass with the uptime.
     fn service(&mut self, _now_ms: u64) {}
+    /// What association settled, once the AP accepts us (`None` when the
+    /// station leaves or the join fails after it). A chip that runs rate
+    /// adaptation or contention timing itself needs it; others ignore it.
+    fn associated(&mut self, _assoc: Option<&Association>) {}
     /// Chip-specific words the status op carries for a person diagnosing a
     /// bring-up on a machine with no serial console.
     fn diag(&self) -> [u32; 5] {

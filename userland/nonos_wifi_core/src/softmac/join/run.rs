@@ -61,6 +61,7 @@ pub fn join<R: Radio, E: Env>(
         report = attempt(r, env, domain, req, JoinPolicy::PSK_ONLY, &found.beacon)?;
     }
     if !matches!(report.outcome, Outcome::Joined { .. }) {
+        r.associated(None);
         r.set_bss(None);
     }
     Ok(Joined { report, band: found.band, channel: found.channel })
