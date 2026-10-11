@@ -3527,8 +3527,10 @@
    "userland/capsule_driver_igb/src/protocol",
    "userland/capsule_driver_igb/src/queue",
    "userland/capsule_driver_igb/src/regs.rs",
+   "userland/capsule_driver_igb/src/server/runner.rs",
    "userland/capsule_driver_igb/src/setup/driver.rs",
    "userland/capsule_driver_igb/src/setup/pci_command.rs",
+   "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/igb_proofs",
    "userland/nonos_devmodel",
    "userland/nonos_mac"
