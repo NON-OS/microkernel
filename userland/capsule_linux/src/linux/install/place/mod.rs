@@ -19,6 +19,7 @@
 pub(super) mod all;
 pub(super) mod check;
 pub(super) mod entry;
+pub(super) mod image;
 pub(super) mod keep;
 pub(super) mod report;
 pub(super) mod undo;

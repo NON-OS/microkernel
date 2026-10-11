@@ -47,6 +47,7 @@ mod auth_field_tests;
 mod auth_refusals_more;
 mod install_refusals_tests;
 mod member_refusal_tests;
+mod image_file_tests;
 mod auth_tests;
 mod clone_flag_tests;
 mod fd_flag_tests;
