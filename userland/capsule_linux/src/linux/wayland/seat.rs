@@ -36,5 +36,7 @@ pub fn get_keyboard(guest: &mut Guest, args: &mut Args<'_>) {
         return;
     }
     guest.scene.keyboard = Some(id);
+    // A new keyboard is told nothing is down (input_enter.rs), so nothing is.
+    guest.scene.held = super::held_keys::HeldKeys::new();
     super::keymap::send(guest, id);
 }
