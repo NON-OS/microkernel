@@ -37,6 +37,7 @@ mod random;
 mod reply;
 mod secret;
 mod service;
+mod shield_fresh;
 mod steps;
 
 fn main() {

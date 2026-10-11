@@ -32,7 +32,7 @@ pub fn pieces_by(units: u128, allows: impl Fn(u64) -> bool) -> Option<Vec<u64>> 
 }
 
 /// Every size `allows` takes of 1, 2 or 5 times a power of ten, largest first.
-fn sizes(allows: impl Fn(u64) -> bool) -> Vec<u64> {
+pub(crate) fn sizes(allows: impl Fn(u64) -> bool) -> Vec<u64> {
     let mut out = Vec::new();
     let mut ten: u64 = 1;
     loop {

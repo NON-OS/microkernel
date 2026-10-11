@@ -22,6 +22,7 @@
 
 use nonos_app_skeleton::EventOutcome;
 
+use super::landed_move::{MOVE_MAX, ROW_MOVE};
 use crate::wallet::screen::hits::Press;
 use crate::wallet::shield::scan_job;
 use crate::wallet::state::shield_ui::{FIELD_TO, SHIELD_HOME};
@@ -30,6 +31,7 @@ use crate::wallet::state::State;
 pub use super::nav::{back, open};
 
 pub fn click(state: &mut State, press: Press) -> EventOutcome {
+    let moves = ROW_MOVE..ROW_MOVE + MOVE_MAX;
     let ui = &mut state.shield_ui;
     match press {
         Press::Back => return back(state),
@@ -58,6 +60,9 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
         Press::Row(super::landed::ROW_SCAN) if ui.screen == SHIELD_HOME => scan_job::start(state),
         Press::Row(super::landed::ROW_FURTHER) if ui.screen == SHIELD_HOME => {
             scan_job::further(state)
+        }
+        Press::Row(r) if ui.screen == SHIELD_HOME && moves.contains(&r) => {
+            return super::landed_rows::click(state, r)
         }
         Press::Row(super::home_receive::ROW_COPY) if ui.screen == SHIELD_HOME => {
             super::home_receive::copy(state)
