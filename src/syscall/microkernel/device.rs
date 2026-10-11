@@ -74,10 +74,10 @@ pub fn sys_device_claim(device_id: u64) -> i64 {
     }
     match broker::claim_device(pid, device_id) {
         Ok(epoch) => epoch as i64,
-        Err(ClaimError::AlreadyClaimed) => ERRNO_BUSY,
+        Err(ClaimError::AlreadyClaimed) | Err(ClaimError::Held) => ERRNO_BUSY,
         Err(ClaimError::UnknownDevice) => ERRNO_NODEV,
         Err(ClaimError::NotHolder) | Err(ClaimError::NotClaimed) => ERRNO_INVAL,
-        Err(ClaimError::Unconfined) => ERRNO_PERM,
+        Err(ClaimError::Unconfined) | Err(ClaimError::Refused) => ERRNO_PERM,
     }
 }
 
@@ -108,6 +108,8 @@ pub fn sys_device_release(device_id: u64) -> i64 {
         Err(ClaimError::NotHolder) => ERRNO_PERM,
         Err(ClaimError::AlreadyClaimed)
         | Err(ClaimError::UnknownDevice)
-        | Err(ClaimError::Unconfined) => ERRNO_INVAL,
+        | Err(ClaimError::Unconfined)
+        | Err(ClaimError::Held)
+        | Err(ClaimError::Refused) => ERRNO_INVAL,
     }
 }
