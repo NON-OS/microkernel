@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* ftruncate and truncate. */
+/* ftruncate: the file a descriptor holds open, cut or grown. */
 
+use super::super::advice::resize;
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
-
-use super::super::super::{at, cache, resolve, store, walk};
-use super::advice::resize;
 
 pub fn ftruncate(guest: &mut Guest, fd: u64, len: u64) -> u64 {
     if (len as i64) < 0 {
@@ -44,7 +42,7 @@ pub fn ftruncate(guest: &mut Guest, fd: u64, len: u64) -> u64 {
          * length refused EFBIG is not one the file has, and remembered it
          * reads back from fstat and sizes a later fallocate.
          */
-        Kind::File if entry.writable && !super::super::super::synth::owns(&entry.path) => {
+        Kind::File if entry.writable && !super::super::super::super::synth::owns(&entry.path) => {
             let path = entry.path.clone();
             let done = resize(&path, len, true);
             if done == errno::ok(0) {
@@ -54,29 +52,4 @@ pub fn ftruncate(guest: &mut Guest, fd: u64, len: u64) -> u64 {
         }
         _ => errno::fail(errno::EINVAL),
     }
-}
-
-pub fn truncate(guest: &Guest, path: u64, len: u64) -> u64 {
-    if (len as i64) < 0 {
-        return errno::fail(errno::EINVAL);
-    }
-    let named = match at::resolve_at(guest, super::super::super::flags::AT_FDCWD, path) {
-        Ok(named) => named,
-        Err(e) => return errno::fail(e),
-    };
-    let full = walk::follow(guest, named, true);
-    if super::super::super::synth::owns(&full) {
-        return errno::fail(errno::EACCES);
-    }
-    match store::stat(&resolve::key(&full)) {
-        _ if cache::held(&full) => {}
-        Ok((_, true)) => return errno::fail(errno::EISDIR),
-        Ok(_) => {}
-        Err(_) => return errno::fail(errno::ENOENT),
-    }
-    if resolve::key(&full).writable().is_err() {
-        return errno::fail(errno::EROFS);
-    }
-    let kept = cache::held(&full);
-    resize(&full, len, kept)
 }
