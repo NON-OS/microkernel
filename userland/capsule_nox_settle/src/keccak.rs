@@ -16,8 +16,18 @@
 
 //! keccak-256 in this process: a release's hash and a sent transaction's.
 
+use nonos_marketplace_abi::Keccak;
 use sha3::{Digest, Keccak256};
 
 pub fn keccak(data: &[u8]) -> [u8; 32] {
     Keccak256::digest(data).into()
+}
+
+/// The same, as marketplace_abi's hasher.
+pub struct Host;
+
+impl Keccak for Host {
+    fn keccak256(&self, data: &[u8]) -> [u8; 32] {
+        keccak(data)
+    }
 }
