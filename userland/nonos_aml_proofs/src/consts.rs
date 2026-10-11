@@ -4,7 +4,7 @@
 //! else, and every other statement is counted, not run.
 
 use crate::arena::Imm;
-use crate::error::{Error, ErrorKind};
+use crate::exec::{Fault, FaultKind};
 use crate::load::{Aml, LoadExec};
 use crate::namespace::{Id, ROOT};
 use crate::op::Op;
@@ -15,21 +15,21 @@ pub struct Consts {
 }
 
 impl LoadExec for Consts {
-    fn condition(&mut self, aml: &mut Aml, table: u16, _: Id, node: u32) -> Result<bool, Error> {
+    fn condition(&mut self, aml: &mut Aml, table: u16, _: Id, node: u32) -> Result<bool, Fault> {
         let t = &aml.tables[table as usize];
         let pred = *t.arena.node(t.arena.kids(node)[0]).unwrap();
         match (pred.op, pred.imm) {
             (Op::ZERO | Op::ONE | Op::ONES, Imm::Int(v)) => Ok(v != 0),
             (op, Imm::Int(v)) if op.0 <= 0x0E => Ok(v != 0),
-            _ => Err(Error::new(ErrorKind::Misplaced(pred.op.0), pred.at)),
+            _ => Err(Fault::new(FaultKind::Type, table, pred.at)),
         }
     }
 
-    fn run(&mut self, aml: &mut Aml, table: u16, _: Id, node: u32) -> Result<(), Error> {
+    fn run(&mut self, aml: &mut Aml, table: u16, _: Id, node: u32) -> Result<(), Fault> {
         let n = *aml.tables[table as usize].arena.node(node).unwrap();
         self.ran.push(n.op);
         if n.op == Op::FATAL {
-            return Err(Error::new(ErrorKind::Misplaced(n.op.0), n.at));
+            return Err(Fault::new(FaultKind::Fatal, table, n.at));
         }
         Ok(())
     }

@@ -20,6 +20,7 @@ use super::{LoadExec, ParseScopes, Table};
 use crate::arena::{Arena, Limits};
 use crate::block::Block;
 use crate::error::{Error, ErrorKind};
+use crate::exec::Runtime;
 use crate::namespace::{Namespace, Notes, ROOT};
 use crate::parse;
 use alloc::vec::Vec;
@@ -30,11 +31,13 @@ pub struct Aml {
     pub tables: Vec<Table>,
     pub notes: Notes,
     pub limits: Limits,
+    pub rt: Runtime,
 }
 
 impl Aml {
     pub fn new(limits: Limits) -> Self {
-        Self { ns: Namespace::new(), tables: Vec::new(), notes: Notes::default(), limits }
+        let (ns, notes, rt) = (Namespace::new(), Notes::default(), Runtime::default());
+        Self { ns, tables: Vec::new(), notes, limits, rt }
     }
 
     /// Loads one definition block and returns its index. The DSDT must come

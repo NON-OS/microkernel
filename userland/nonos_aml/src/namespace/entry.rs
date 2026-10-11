@@ -56,6 +56,11 @@ pub struct Entry {
     pub parent: Id,
     pub kind: Kind,
     pub origin: Origin,
+    /// Bumped each time the slot is reused, so a reference taken to an
+    /// object a method made, and kept after the method returned, cannot
+    /// reach whatever took the slot next.
+    pub gen: u32,
+    pub(super) live: bool,
     /// Children in the order they were defined, as a linked list, so a walk
     /// in definition order (section 6.5.1's _INI order) needs no sort.
     pub(super) first: Option<Id>,

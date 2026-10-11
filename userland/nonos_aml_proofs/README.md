@@ -24,10 +24,20 @@ so no table enters the tree as an opaque blob.
 | `field_unit_tests` | field units laid out from Field, IndexField and BankField lists; a layout past 2^32 bits stops |
 | `load_exec_tests` | a load-time If loads the branch it chooses; other statements run as the table loads |
 | `load_arity_tests` | calls counted from earlier tables, by the search rules, and from a method's own scope |
+| `arith_tests`, `unary_tests`, `logic_tests` | every integer and logical operator against its definition, at 64 and 32 bits |
+| `convert_tests`, `text_tests` | implicit and explicit conversions; Concatenate, ConcatenateResTemplate, Mid, SizeOf |
+| `store_tests`, `ref_tests`, `debug_tests` | Store and CopyObject rules; RefOf, DerefOf, CondRefOf, Index, ObjectType |
+| `control_tests`, `call_tests` | control flow, arguments and locals, calls, method-made objects removed, serialized recursion |
+| `budget_tests`, `budget_limit_tests` | a loop runs exactly to its step budget; recursion, allocation and waiting stopped |
+| `sync_tests`, `event_tests`, `host_tests` | mutex nesting and sync order; events; Notify's queue; Fatal, Timer, Sleep, Stall |
+| `predefined_tests` | \_OS, \_OSI, \_REV; load-time code run by the interpreter |
+| `generated_tests` | 3000 random expressions against a model of the operators, at both widths |
+| `exec_mutation_tests` | thousands of mutated method tables loaded and every method run: a value or a fault, never a panic |
 | `mutation_tests` | thousands of mutated and random tables end in a tree or a refusal, never a panic |
 
 `src/tests/catalog*` holds one instance of every opcode; `src/flat.rs` is a
 namespace stand-in that knows methods by their last NameSeg; `src/consts.rs`
-is a load-time evaluator that understands only integer constants.
+is a load-time evaluator that understands only integer constants; `src/probe.rs`
+is a host that records what the interpreter asked of it.
 
 Run: `RUST_TEST_THREADS=1 cargo test --release --config profile.release.overflow-checks=true`.

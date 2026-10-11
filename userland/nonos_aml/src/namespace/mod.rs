@@ -26,6 +26,7 @@ mod method_info;
 mod note;
 mod path;
 mod predefined;
+mod remove;
 mod resolve;
 mod tree;
 

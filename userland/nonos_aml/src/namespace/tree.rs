@@ -17,7 +17,7 @@
 //! The tree itself: entries in a vector, and an index from (parent, NameSeg)
 //! to child.
 
-use super::{Entry, Id, Kind, Origin, Predefined, Seg, ROOT};
+use super::{Entry, Id, Seg};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 
@@ -25,24 +25,15 @@ use alloc::vec::Vec;
 pub struct Namespace {
     pub(super) entries: Vec<Entry>,
     pub(super) index: BTreeMap<(Id, Seg), Id>,
+    /// Slots of removed objects, reused before the vector grows.
+    pub(super) free: Vec<Id>,
+    /// What was added while a method ran, for removal when it returns.
+    pub(super) journal: Vec<Id>,
+    pub(super) journaling: u32,
 }
 
 impl Namespace {
-    /// An empty namespace holding only the root, before the predefined
-    /// objects are installed.
-    pub(super) fn bare() -> Self {
-        let root = Entry {
-            seg: *b"\\___",
-            parent: ROOT,
-            kind: Kind::Scope,
-            origin: Origin::Predefined(Predefined::Root),
-            first: None,
-            last: None,
-            next: None,
-        };
-        Self { entries: alloc::vec![root], index: BTreeMap::new() }
-    }
-
+    /// Slots in use or free; ids are below this.
     pub fn len(&self) -> usize {
         self.entries.len()
     }
@@ -51,8 +42,14 @@ impl Namespace {
         false
     }
 
+    /// Whether `id` still holds the object it held at generation `gen`.
+    pub fn live(&self, id: Id, gen: u32) -> bool {
+        self.get(id).is_some_and(|e| e.gen == gen)
+    }
+
+    /// The object in slot `id`, if one lives there now.
     pub fn get(&self, id: Id) -> Option<&Entry> {
-        self.entries.get(id as usize)
+        self.entries.get(id as usize).filter(|e| e.live)
     }
 
     pub fn child(&self, parent: Id, seg: Seg) -> Option<Id> {

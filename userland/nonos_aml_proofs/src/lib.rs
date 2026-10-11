@@ -11,12 +11,16 @@ pub mod arena;
 pub mod block;
 #[path = "../../nonos_aml/src/error.rs"]
 pub mod error;
+#[path = "../../nonos_aml/src/exec/mod.rs"]
+pub mod exec;
 #[path = "../../nonos_aml/src/grammar/mod.rs"]
 pub mod grammar;
 #[path = "../../nonos_aml/src/load/mod.rs"]
 pub mod load;
 #[path = "../../nonos_aml/src/namespace/mod.rs"]
 pub mod namespace;
+#[path = "../../nonos_aml/src/object/mod.rs"]
+pub mod object;
 #[path = "../../nonos_aml/src/op/mod.rs"]
 pub mod op;
 #[path = "../../nonos_aml/src/parse/mod.rs"]
@@ -30,5 +34,9 @@ mod consts;
 mod enc;
 #[cfg(test)]
 mod flat;
+#[cfg(test)]
+mod probe;
+#[cfg(test)]
+mod run;
 #[cfg(test)]
 mod tests;
