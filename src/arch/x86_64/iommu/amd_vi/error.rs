@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::arch::x86_64::iommu::tables::out_of_frame::OutOfFrame;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AmdViError {
     /// IVRS named no unit, or bring-up has not run.
@@ -40,4 +42,10 @@ pub enum AmdViError {
     /// The device table held a writer entry with no valid translation before a
     /// unit was enabled; the unit is refused rather than let it through.
     StrayWriter,
+}
+
+impl From<OutOfFrame> for AmdViError {
+    fn from(_: OutOfFrame) -> Self {
+        AmdViError::OutOfRange
+    }
 }

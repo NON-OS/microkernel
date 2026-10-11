@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::slot::LeafSlot;
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
 use crate::arch::x86_64::iommu::tables::sl_pte::{entry_address, index_for, is_present};
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::types::VtdError;
 
 /// `None` when no path reaches this address, the normal answer for an address
@@ -25,7 +25,7 @@ pub fn walk_lookup(root: u64, iova: u64, levels: u8) -> Result<Option<LeafSlot>,
     let mut current = root;
     let mut level = levels;
     while level > 1 {
-        let entry = entries_mut(current)?[index_for(iova, level)];
+        let entry = Frame::at(current)?.read(index_for(iova, level))?;
         if !is_present(entry) {
             return Ok(None);
         }

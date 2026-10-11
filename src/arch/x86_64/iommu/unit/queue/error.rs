@@ -20,7 +20,7 @@
 
 use super::descriptor::wait;
 use crate::arch::x86_64::iommu::regs::offsets;
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::access::RemapUnit;
 use crate::sys::serial::Line;
@@ -38,21 +38,18 @@ pub(super) fn take_error(
     let status = unit.read32(offsets::FSTS);
     if status & offsets::FSTS_IQE != 0 {
         let head = offsets::queue_index(unit.read64(offsets::IQH)) as usize;
-        let refused = match entries_mut(ring_phys) {
-            Ok(ring) => {
-                let low = ring[head * 2];
-                let replacement = wait(status_phys, sequence);
-                ring[head * 2 + 1] = replacement[1];
-                ring[head * 2] = replacement[0];
-                low
-            }
-            Err(_) => 0,
-        };
+        let replacement = wait(status_phys, sequence);
+        let refused = Frame::at(ring_phys).ok().and_then(|ring| {
+            let low = ring.read(head * 2).ok()?;
+            ring.write(head * 2 + 1, replacement[1]).ok()?;
+            ring.write(head * 2, replacement[0]).ok()?;
+            Some(low)
+        });
         // SAFETY: eK@nonos.systems - write-one-to-clear on a status bit; the
         // refused slot was replaced above, so the unit resumes on a wait.
         unsafe { unit.write32(offsets::FSTS, offsets::FSTS_IQE) };
         let mut line = Line::new();
-        line.str(b"[VT-D] IOMMU queue refused descriptor low=").hex(refused);
+        line.str(b"[VT-D] IOMMU queue refused descriptor low=").hex(refused.unwrap_or(0));
         line.str(b" at slot ").dec(head as u64).end();
         return Some(VtdError::InvalidationRejected);
     }

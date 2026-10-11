@@ -19,9 +19,9 @@ use super::domain_root::domain_root;
 use super::validate_range::validate_range;
 use crate::arch::x86_64::iommu::globals::state::STATE;
 use crate::arch::x86_64::iommu::globals::{is_enforcing, page_levels, snoop_control};
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
 use crate::arch::x86_64::iommu::tables::sl_pte::{is_present, leaf};
 use crate::arch::x86_64::iommu::tables::touched::Touched;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::tables::walk::walk_create;
 use crate::arch::x86_64::iommu::types::{DomainId, IommuPageFlags, VtdError, PAGE_SIZE_4K};
 
@@ -55,7 +55,7 @@ pub fn map_range(
     // Checked whole first, so a rejected request leaves no partial mapping.
     for page in 0..pages {
         let slot = walk_create(root, iova + (page * PAGE_SIZE_4K) as u64, levels)?;
-        if is_present(entries_mut(slot.table_phys)?[slot.index]) {
+        if is_present(Frame::at(slot.table_phys)?.read(slot.index)?) {
             return Err(VtdError::RangeAlreadyMapped);
         }
     }
@@ -63,8 +63,8 @@ pub fn map_range(
     for page in 0..pages {
         let offset = (page * PAGE_SIZE_4K) as u64;
         let slot = walk_create(root, iova + offset, levels)?;
-        entries_mut(slot.table_phys)?[slot.index] =
-            leaf(phys + offset, flags.read, flags.write, flags.snoop && snoop_control());
+        let entry = leaf(phys + offset, flags.read, flags.write, flags.snoop && snoop_control());
+        Frame::at(slot.table_phys)?.write(slot.index, entry)?;
         touched.note(slot.table_phys);
     }
     commit(touched)
