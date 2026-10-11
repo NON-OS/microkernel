@@ -882,6 +882,16 @@
   "md": [],
   "signed": []
  },
+ "userland/boot_memory_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/boot/memory/dma_place.rs",
+   "userland/boot_memory_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/boot_slots_proofs": {
   "exclude": [
    "nonos-attest-path/fuzz",
