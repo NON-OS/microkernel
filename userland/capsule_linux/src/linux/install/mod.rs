@@ -31,18 +31,17 @@ mod chat_pick;
 mod deb;
 mod download;
 mod enrol;
+mod exports;
 mod family;
 mod fetch;
-/*
- * The model fetcher's exit statuses, from its own source, so the reasons it
- * ends with and the ones read here are one table.
- */
+/* The model fetcher's exit statuses, from its own source: one table. */
 #[path = "../../../../capsule_model_fetch/src/exit.rs"]
 mod fetch_exit;
-mod fetcher;
 mod hex;
 mod http;
-mod http_route;
+mod model;
+mod place;
+mod remove;
 mod route_read;
 mod tools;
 mod tools_install;
@@ -56,22 +55,13 @@ mod market;
 mod market_arg;
 mod market_check;
 mod mirror;
-mod model_dep;
-mod model_remove;
 mod package_record;
 mod pacman;
 mod pgp;
 mod pkg;
-mod place;
-mod place_entry;
 mod proof_names;
 mod place_links;
-mod place_report;
-mod place_undo;
 mod program;
-mod remove;
-mod remove_files;
-mod remove_tier;
 mod run;
 mod tar;
 mod tar_field;
@@ -82,10 +72,4 @@ mod tcg;
 mod unpacked;
 mod why;
 
-pub use apps_run::launch;
-pub use family::install;
-pub use market::install_from;
-pub use market_arg::{market_arg, NotMarket, MARKET_LEN};
-pub use program::recorded;
-pub use remove::uninstall;
-pub use why::Why;
+pub use exports::*;
