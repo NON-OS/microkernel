@@ -14,20 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// aarch64 GIC-backed IRQ broker. SPIs only (intid 32..1019). PPIs and
-// SGIs are kernel-owned and not delegatable to capsules. MSI-X is not
-// part of the GICv3 substrate this kernel speaks.
+// aarch64 GIC-backed IRQ broker: INTx as SPIs the device tree routes, and
+// MSI or MSI-X through the ITS or GICv2m frame it names. PPIs and SGIs are
+// kernel-owned and not delegatable to capsules.
 #![cfg(target_arch = "aarch64")]
 
 mod ack;
 mod bind;
+mod message;
 mod pending;
+mod pending_alloc;
 mod pending_find;
 mod poll;
 mod release;
 mod trampoline;
 mod trigger;
+mod validate;
 mod wait;
+
+// The x86 broker's request checks and capability code are mounted below
+// this module and name the shared request types from here.
+use super::types;
 
 pub use ack::ack_grant;
 pub use bind::bind;
