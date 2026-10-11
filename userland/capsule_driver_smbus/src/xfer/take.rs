@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Taking the host for a transfer (ICH and PCH datasheets, Host Status).
+//! Taking the host for a transfer (ICH and PCH datasheets'
+//! Host Status, as recalled, unverified).
 
 use crate::errno::E_BUSY;
 use crate::ports::Ports;
