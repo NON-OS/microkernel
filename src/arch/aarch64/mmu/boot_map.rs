@@ -150,7 +150,7 @@ unsafe fn map_devices(boot_info: &BootInfo) {
     // machine reaches past the block holding the base.
     let redist = boot_info.gic_redist_base & !(BLOCK_2M - 1);
     let windows = [
-        boot_info.uart_base,
+        boot_info.uart.base,
         boot_info.gic_dist_base,
         boot_info.gic_cpu_base,
         redist,
