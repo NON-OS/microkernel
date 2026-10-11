@@ -27,3 +27,4 @@ pub use calls::outside;
 pub use family::{grant, home, models};
 pub use gate::{granted, inet, may_dial, refuse};
 pub use identity::AppIdentity;
+pub use rules::{net_step, NetStep};

@@ -42,6 +42,7 @@ mod recent_say;
 mod request;
 mod request_install;
 mod run_mode;
+mod run_net;
 mod say;
 pub mod serve;
 mod settle;
