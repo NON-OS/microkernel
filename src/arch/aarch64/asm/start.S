@@ -42,6 +42,32 @@ _start:
     mov     x0, #(1 << 31)
     msr     hcr_el2, x0
 
+    /* An EL1 kernel needs EL2 to stop trapping what it uses. Firmware
+     * that enters at EL2, as the Raspberry Pi's does, leaves this to the
+     * kernel, and reset values are UNKNOWN:
+     *   CNTHCTL_EL2 bits 1:0  EL1 reaches the physical counter and timer
+     *   CNTVOFF_EL2           virtual counter equals physical
+     *   CPTR_EL2 0x33ff       RES1 bits only: no FP/SIMD trap to EL2
+     *   HSTR_EL2              no trapped system registers
+     *   ICC_SRE_EL2           on a GICv3, SRE plus Enable, or EL1 cannot
+     *                         turn on its own system-register interface */
+    mrs     x0, cnthctl_el2
+    orr     x0, x0, #3
+    msr     cnthctl_el2, x0
+    msr     cntvoff_el2, xzr
+    mov     x0, #0x33ff
+    msr     cptr_el2, x0
+    msr     hstr_el2, xzr
+    mrs     x0, id_aa64pfr0_el1
+    ubfx    x0, x0, #24, #4             /* GIC: system registers present */
+    cbz     x0, .L_el2_no_gicv3
+    mrs     x0, S3_4_C12_C9_5           /* ICC_SRE_EL2 */
+    mov     x1, #0x9                    /* SRE | Enable */
+    orr     x0, x0, x1
+    msr     S3_4_C12_C9_5, x0
+    isb
+.L_el2_no_gicv3:
+
     /* SCTLR_EL1 reset: MMU/I/D off, RES1 bits 11/20/22/23/28/29. */
     mov     x0, #0x0838
     movk    x0, #0x30C5, lsl #16
