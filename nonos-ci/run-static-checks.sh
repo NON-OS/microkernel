@@ -4879,6 +4879,15 @@ else
 fi
 unset keymap_out
 
+# Every Wayland global foot looks for is offered, or held back with a reason.
+if foot_out="$(python3 scripts/check_foot_globals.py 2>&1)"; then
+    note ok "foot's Wayland globals are offered or held (check_foot_globals)"
+else
+    tail -n 5 <<< "${foot_out}" >&2
+    fail_with "check_foot_globals: a global foot looks for is neither offered nor held"
+fi
+unset foot_out
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"
