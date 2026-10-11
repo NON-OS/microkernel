@@ -16,6 +16,7 @@
 
 use super::describe;
 use crate::arch::aarch64::boot::info::BootInfo;
+use crate::arch::fdt::find::msi::pci_msi_map;
 use crate::arch::fdt::find::pci::find as find_pci;
 use crate::arch::fdt::find::rtc::find as find_rtc;
 use crate::arch::fdt::find::smmu;
@@ -64,5 +65,8 @@ pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> Result<(), &'static [u
     if let Some(unit) = smmu::find(fdt).map_err(describe)? {
         info.smmu = Some((unit, smmu::pci_iommu_map(fdt).map_err(describe)?));
     }
+    // So would a malformed msi-map: a function's messages would carry
+    // another's device id, and reach the capsule that holds that one.
+    info.msi = pci_msi_map(fdt).map_err(describe)?;
     Ok(())
 }
