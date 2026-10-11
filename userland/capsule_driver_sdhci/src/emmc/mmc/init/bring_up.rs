@@ -65,6 +65,7 @@ pub fn bring_up<M: Mmio, C: Clock, L: Log>(
         width: 1,
         hs: false,
         hz: h.sd_hz,
+        sd: false,
     };
     user_area(h, &mut card)?;
     super::super::speed::select(h, &mut card, data)?;
