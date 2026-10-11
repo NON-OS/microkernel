@@ -22,6 +22,7 @@ pub(super) fn spawn() {
     spawn_attest();
     spawn_installer();
     super::payment::spawn();
+    super::nox_settle::spawn();
     spawn_login();
     spawn_toolkit();
 }

@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod answer;
 mod consts;
 mod encode;
 
+pub use answer::domain_answer_matches;
 pub use consts::{Domain, BOND, EIP712_DOMAIN_TYPE, EIP712_DOMAIN_TYPEHASH};
 pub use consts::{ESCROW, LISTING, SETTLEMENT, VERSION_HASH};
 pub use encode::{domain_words, domain_words_at};

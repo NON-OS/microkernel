@@ -19,8 +19,8 @@
 //! every body little-endian with every length explicit. Settle holds no keys:
 //! it reads the chain and broadcasts what others signed.
 //!
-//! This holds what the meter needs first (CHANNEL_STATE, GAS, BROADCAST,
-//! OPENED). READ, INTENT and FETCH land with settle itself (B4).
+//! READ names a view from a fixed table and INTENT checks calldata against a
+//! fixed kind table, so no caller chooses what settle calls (plan/28).
 
 #![no_std]
 
@@ -28,16 +28,39 @@ extern crate alloc;
 
 mod chain;
 mod channel_state;
+mod fetch;
+mod fetch_parse;
 mod frame;
 mod gas;
 mod header;
+mod intent;
+mod intent_check;
+mod kinds;
 mod opened;
+mod opened_log;
 mod ops;
+mod page;
+mod quote;
+mod read;
+mod url;
+mod view;
+mod views;
 
 pub use chain::{chain_hash, parse_chain_hash, ChainHash};
 pub use channel_state::{ChannelState, CHANNEL_STATE_LEN};
+pub use fetch::{Fetch, FETCH_ESCROW, FETCH_PAGE, FETCH_RELEASE, MAX_RELEASE, MAX_URL, PAGE_LEN};
 pub use frame::{reply, reply_body, request, ReplyError};
 pub use gas::{Gas, GAS_LEN};
 pub use header::{parse_header, Header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
+pub use intent::{Intent, MAX_CALLDATA};
+pub use intent_check::{approve_spender, kind_of};
+pub use kinds::{Kind, KINDS, ORDER_TERMS_TUPLE, VOUCHER_TUPLE};
 pub use opened::{Opened, OPENED_LEN};
+pub use opened_log::{CHANNEL_OPENED, CHANNEL_OPENED_TOPIC};
 pub use ops::*;
+pub use page::Page;
+pub use quote::{padded, Quote, QUOTE_LEN};
+pub use read::{parse_read_reply, read_reply, Read};
+pub use url::https_target;
+pub use view::{view, view_calldata, Arg, View};
+pub use views::VIEWS;

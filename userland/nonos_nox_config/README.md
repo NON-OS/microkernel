@@ -26,11 +26,19 @@ nothing else.
   - Settlement, Escrow, PublisherBond, ListingRegistry, ProofAnchor. The
     PublisherBond label names the new NoxListingBond (plan/24), not the
     retired suite's NoxPublisherBond.
+  - ShieldPool: the Sepolia pool shield_core's ACTIVE pool names; `None` on
+    mainnet until Shield L1 deploys there (O3).
+- Each contract is `Deployed { address, block }`: `block` is where a log read
+  starts (plan/26). Mainnet NOX's is V3_1's block. Sepolia NOX's is not
+  recorded, so it is 0 and a log read of it starts at genesis.
+  `deployed()` answers both; `CONTRACTS` lists them in the order settle checks.
 - Every address is an `Option`. An undeployed contract is `None`, and
   `address()` answers `NotDeployed`, never a zero address. Today every new
   contract is `None`, so every caller fails closed until the owner deploys.
 - Domains: `SETTLEMENT`, `ESCROW`, `BOND` and `LISTING`, all version "1".
   - `domain_words` gives the 160 bytes the domain separator hashes.
+  - `domain_answer_matches` says whether a contract's ERC-5267
+    eip712Domain() return is exactly that domain, at that chain and address.
   - The crate holds no keccak. The keyring and the capsules hash those bytes
     with the kernel's keccak, and host tools with their own.
 - Typed structs: `VOUCHER`, `PUBLISHER_BINDING` and `RELEASE_ATTEST`. They are

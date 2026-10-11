@@ -16,17 +16,26 @@
 
 use crate::chain::Chain;
 use crate::contract::Contract;
-use crate::deploy::deployment;
+use crate::deploy::{deployment, Deployed};
 use crate::error::ConfigError;
 
-/// The address of `contract` on `chain_id`, or why there is none.
-pub const fn address(chain_id: u64, contract: Contract) -> Result<[u8; 20], ConfigError> {
+/// `contract` on `chain_id`, its address and deploy block, or why there is
+/// none.
+pub const fn deployed(chain_id: u64, contract: Contract) -> Result<Deployed, ConfigError> {
     let chain = match Chain::from_id(chain_id) {
         Some(c) => c,
         None => return Err(ConfigError::UnknownChain(chain_id)),
     };
-    match deployment(chain).get(contract) {
-        Some(a) => Ok(a),
+    match deployment(chain).deployed(contract) {
+        Some(d) => Ok(d),
         None => Err(ConfigError::NotDeployed(contract)),
+    }
+}
+
+/// The address of `contract` on `chain_id`, or why there is none.
+pub const fn address(chain_id: u64, contract: Contract) -> Result<[u8; 20], ConfigError> {
+    match deployed(chain_id, contract) {
+        Ok(d) => Ok(d.address),
+        Err(e) => Err(e),
     }
 }
