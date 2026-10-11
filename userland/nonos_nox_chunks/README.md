@@ -29,6 +29,8 @@ from the caller through marketplace_abi's `Keccak`.
   behind refundCommit, a deadline in [now + ORDER_MIN_LEAD, now +
   MAX_DELIVERY - DELIVER_MARGIN]; a test shows the seller's `reveal_ok`
   accepts what the buyer writes.
+- The escrow's calls as calldata (`fund`, `fund_from`, `release`, `refund`,
+  `dispute_call`), each taken by settle_proto's `kind_of` as its kind.
 - Orders (`OrderTerms`, `order_id`, `refund_commit`): the fourteen-word
   terms tuple settle_proto names for fund(T), under ORDER_TAG and REFUND_TAG
   from nonos_nox_config.
