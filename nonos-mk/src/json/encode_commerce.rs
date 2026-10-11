@@ -57,5 +57,6 @@ pub(super) fn to_ext(x: &ReleaseExtJson) -> Result<ReleaseExt, CliError> {
         chunk_root: hex_n(&x.chunk_root, "ext.chunk_root")?,
         content_len: x.content_len,
         proof_anchors,
+        release_attest_sig: hex_n(&x.release_attest_sig, "ext.release_attest_sig")?,
     })
 }

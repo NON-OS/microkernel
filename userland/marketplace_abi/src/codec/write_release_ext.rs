@@ -28,4 +28,5 @@ pub(super) fn write(w: &mut Writer<'_>, x: &ReleaseExt) {
     for anchor in &x.proof_anchors {
         w.fixed(anchor);
     }
+    w.fixed(&x.release_attest_sig);
 }

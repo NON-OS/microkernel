@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod attest;
+mod attest_fixture;
 mod baseline;
 mod binding;
 mod blobs;
@@ -24,6 +26,8 @@ pub(crate) mod fixtures;
 mod hosts;
 mod ids;
 mod pinning;
+mod policy;
+mod policy_fixture;
 mod refusals;
 mod roundtrip;
 mod signing;

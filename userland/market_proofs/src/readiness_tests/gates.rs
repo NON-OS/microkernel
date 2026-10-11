@@ -30,7 +30,7 @@ fn a_distribution_package_is_ready_without_shipping_a_proof() {
     if HOSTED_ARCH.is_empty() {
         return;
     }
-    assert!(evaluate(true, "linux.pkg", &release(HOSTED_ARCH, 0), true).install_ready);
+    assert!(evaluate(true, "linux.pkg", &release(HOSTED_ARCH, 0), true, false).install_ready);
 }
 
 #[test]
@@ -38,23 +38,23 @@ fn a_machine_that_hosts_nothing_readies_no_distribution_package() {
     if !HOSTED_ARCH.is_empty() {
         return;
     }
-    assert!(!evaluate(true, "linux.pkg", &release("x86_64-linux", 0), true).install_ready);
+    assert!(!evaluate(true, "linux.pkg", &release("x86_64-linux", 0), true, false).install_ready);
 }
 
 #[test]
 fn naming_the_hosted_arch_does_not_exempt_a_capsule_from_its_proof() {
-    let r = evaluate(true, "nonos.app.pkg", &release("x86_64-linux", 0), true);
+    let r = evaluate(true, "nonos.app.pkg", &release("x86_64-linux", 0), true, false);
     assert!(!r.install_ready && !r.attestation_present);
 }
 
 #[test]
 fn a_capsule_that_ships_a_proof_is_ready() {
-    assert!(evaluate(true, "nonos.app.pkg", &release(RUNNING_ARCH, 9), true).install_ready);
+    assert!(evaluate(true, "nonos.app.pkg", &release(RUNNING_ARCH, 9), true, false).install_ready);
 }
 
 #[test]
 fn no_signature_no_readiness() {
     let rel = release("x86_64-linux", 0);
-    assert!(!evaluate(false, "linux.pkg", &rel, true).install_ready);
-    assert!(!evaluate(true, "linux.pkg", &rel, false).install_ready);
+    assert!(!evaluate(false, "linux.pkg", &rel, true, false).install_ready);
+    assert!(!evaluate(true, "linux.pkg", &rel, false, false).install_ready);
 }

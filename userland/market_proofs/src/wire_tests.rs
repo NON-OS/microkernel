@@ -20,8 +20,8 @@
 use alloc::vec::Vec;
 
 use nonos_market_proto::{
-    listing_body, pair_body, parse_app, parse_list, parse_readiness, parse_release, reply_body,
-    request, status_name, ReplyError, HDR_LEN, MAGIC, OP_GET_APP, OP_LIST_APPS, VERSION,
+    listing_body, pair_body, parse_app, parse_list, parse_release, reply_body, request,
+    status_name, ReplyError, HDR_LEN, MAGIC, OP_GET_APP, OP_LIST_APPS, VERSION,
 };
 
 use crate::readiness_tests::release;
@@ -194,14 +194,6 @@ fn a_release_reads_back_what_the_market_encodes() {
     for n in 0..body.len() - unread {
         assert!(parse_release(&body[..n]).is_none(), "cut at {n}");
     }
-}
-
-#[test]
-fn readiness_is_the_verdict_then_one_byte_a_gate() {
-    let r = parse_readiness(&[1, 1, 0, 1, 1, 1, 0]).unwrap();
-    assert!(r.install_ready);
-    assert_eq!(r.gates, [true, false, true, true, true, false]);
-    assert!(parse_readiness(&[1, 1, 1, 1, 1, 1]).is_none());
 }
 
 #[test]
