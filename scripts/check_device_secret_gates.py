@@ -28,9 +28,8 @@ CALL = "can_device_secret()"
 
 # file -> what the cap opens there
 GATES = {
-    "src/syscall/contract/cap_table/mk.rs": "MkDeviceSecret, MkBootSlots, MkEnroll",
-    "src/syscall/microkernel/device_proof/gate.rs": "the device secret itself",
-    "src/process/foreign/seal/sys_read.rs": "a sealed family's witness, MkSealRead part 1",
+    "src/syscall/contract/cap_table/mk.rs": "MkDeviceSecret, MkBootSlots, MkEnroll, MkSealRead",
+    "src/syscall/microkernel/device_proof/gate.rs": "device_secret_caller(): the secret, and MkSealRead's witness",
 }
 
 

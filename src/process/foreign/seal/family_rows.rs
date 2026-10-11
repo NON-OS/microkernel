@@ -44,12 +44,19 @@ impl Family {
         self.hist[s] = self.hist[s].saturating_add(1);
     }
 
+    /// Each measurement once, in first-seen order, and M over exactly the
+    /// list, so section 7 always rebuilds it.
     pub(crate) fn measured(&mut self, m: &[u8; 32]) {
-        self.meas = meas_step(&self.meas, m);
-        self.n_meas = self.n_meas.saturating_add(1);
-        if self.list.len() < MAX_MEAS {
-            self.list.push(*m);
+        if self.overflow || self.list.contains(m) {
+            return;
         }
+        if self.list.len() >= MAX_MEAS {
+            self.overflow = true;
+            return;
+        }
+        self.meas = meas_step(&self.meas, m);
+        self.n_meas += 1;
+        self.list.push(*m);
     }
 
     pub(crate) fn stamp(&mut self) -> u64 {

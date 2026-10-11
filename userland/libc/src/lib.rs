@@ -121,8 +121,7 @@ pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
 pub use process::{mk_args, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
 pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
-pub use seal::{mk_foreign_seal, mk_seal_note, mk_seal_read, SEAL_APP_ID, SEAL_DIAG};
-pub use seal::{SEAL_MEASUREMENTS, SEAL_RECORD, SEAL_WITNESS};
+pub use seal::{mk_seal_note, mk_seal_read, SEAL_APP_ID, SEAL_DIAG};
 pub use spawn_instance::mk_spawn_instance;
 pub use store::{mk_store_read, mk_store_write};
 pub use surface_registry::{

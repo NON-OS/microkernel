@@ -108,7 +108,6 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MFFK", SyscallNumber::MkForeignFork, "MkForeignFork"),
     e(b"MPUN", SyscallNumber::MkPeerUnmap, "MkPeerUnmap"),
     e(b"MFEX", SyscallNumber::MkForeignExec, "MkForeignExec"),
-    e(b"MFSE", SyscallNumber::MkForeignSeal, "MkForeignSeal"),
     e(b"MSLR", SyscallNumber::MkSealRead, "MkSealRead"),
     e(b"MSNT", SyscallNumber::MkSealNote, "MkSealNote"),
     e(b"MLSG", SyscallNumber::MkLocalSign, "MkLocalSign"),

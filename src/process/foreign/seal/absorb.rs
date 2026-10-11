@@ -46,16 +46,25 @@ pub(crate) fn abandon(pid: u32) {
 
 /// A call the kernel turned away itself: a native number, or one past the
 /// numbers a supervisor is ever handed. Bucket 512, by its number.
-pub(crate) fn refused(nr: u64, ret: u64) {
+/// A refusal row in the calling guest's family; false for a non-guest.
+pub(super) fn refused(nr: u64, ret: u64) -> bool {
     let Some(pid) = crate::process::current_pid() else {
-        return;
+        return false;
     };
-    if let Some(sup) = supervisor_of(pid) {
-        with_family(sup, |f| {
-            let seq = f.stamp();
-            f.absorb(&Row { seq, pid, what: REFUSED, nr, ret });
-        });
-    }
+    let Some(sup) = supervisor_of(pid) else {
+        return false;
+    };
+    with_family(sup, |f| {
+        let seq = f.stamp();
+        f.absorb(&Row { seq, pid, what: REFUSED, nr, ret });
+    });
+    true
+}
+
+/// A guest naming a number the kernel knows gets EPERM before the cap table,
+/// MkTtyQuery included, as a row in bucket 512. True for a guest.
+pub(crate) fn native(nr: u64) -> bool {
+    refused(nr, (-(crate::syscall::types::errnos::EPERM as i64)) as u64)
 }
 
 /// A program the calling supervisor had the kernel verify, into its M.

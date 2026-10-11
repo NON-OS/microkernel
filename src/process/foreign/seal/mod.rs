@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod absorb;
+mod end;
 mod family;
 mod family_calls;
 mod family_new;
@@ -30,16 +31,14 @@ pub(crate) mod record;
 mod sealed;
 mod sys_note;
 mod sys_read;
-mod sys_seal;
 mod table;
 pub(crate) mod trace;
 mod vendor;
 
 pub(in crate::process::foreign) use absorb::answered;
-pub(crate) use absorb::{abandon, measured, refused};
-pub(crate) use finish::finish;
-pub(crate) use open::{enrolled, reserve};
+pub(crate) use absorb::{abandon, measured, native};
+pub(crate) use end::ended;
+pub(crate) use open::{enrolled, reserve, started};
 pub(in crate::process::foreign) use park::{park, refused_early};
 pub(crate) use sys_note::sys_seal_note;
 pub(crate) use sys_read::sys_seal_read;
-pub(crate) use sys_seal::sys_foreign_seal;

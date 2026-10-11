@@ -42,7 +42,7 @@ pub(crate) fn sys_seal_note(slot: u64, ptr: u64) -> i64 {
         if slot == DIAG {
             f.diag = word;
             0
-        } else if f.rows == 0 && f.app_id.is_none() {
+        } else if !f.started && f.app_id.is_none() {
             f.app_id = Some(word);
             0
         } else {

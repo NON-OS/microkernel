@@ -176,12 +176,12 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkLocalVerify => caps.can_foreign_exec(),
 
         /*
-         * A family's seal is its supervisor's to close and to note in. Reading
-         * a sealed record is reading an attestation; the witness has a second
-         * gate in its handler.
+         * A family's seal is its supervisor's to note in. Reading one hands out
+         * the private witness, so it is nonos.prove's alone; the handler also
+         * asks for Vendor authority.
          */
-        SyscallNumber::MkForeignSeal | SyscallNumber::MkSealNote => caps.can_foreign_exec(),
-        SyscallNumber::MkSealRead => caps.can_attest_read(),
+        SyscallNumber::MkSealNote => caps.can_foreign_exec(),
+        SyscallNumber::MkSealRead => caps.can_device_secret(),
 
         /* The right to ask, which is not the right to host. */
         SyscallNumber::MkAppInstall

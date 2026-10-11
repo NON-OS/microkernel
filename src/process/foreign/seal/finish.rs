@@ -14,23 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Sealing a family: its live state becomes a record and a witness.
+//! A family ends when its last guest leaves the registry, by exit or by
+//! teardown. Its live state becomes a final record and a witness, or nothing:
+//! a family no app was ever noted in is dropped, never kept.
 
 use super::hist::hist_commit;
 use super::nonce::seal_no;
-use super::record::{encode, Facts, FINAL, SATURATED};
+use super::record::{encode, Facts, FINAL, OVERFLOW, SATURATED};
 use super::sealed::Sealed;
 use super::table::{LIVE, MAX_SEALED, SEALED};
 
-/// Seal `supervisor`'s live family, if it has one, and return its handle.
-/// `whole` says no guest of it can still be running.
-pub(crate) fn finish(supervisor: u32, whole: bool) -> Option<u64> {
+/// End `supervisor`'s live family, if it has one. The handle of the record
+/// kept, or `None` when there was nothing to keep.
+pub(crate) fn finish(supervisor: u32) -> Option<u64> {
     let mut fam = {
         let mut live = LIVE.lock();
         let at = live.iter().position(|f| f.sup == supervisor)?;
         live.swap_remove(at)
     };
     fam.leave_all();
+    let app_id = fam.app_id?;
     // The salt was drawn below p, so the commitment always exists.
     let hc = hist_commit(&fam.hist, &fam.salt)?;
     let mut sealed = SEALED.lock();
@@ -38,9 +41,9 @@ pub(crate) fn finish(supervisor: u32, whole: bool) -> Option<u64> {
     while sealed.iter().any(|s| s.seal_no == no) {
         no = seal_no()?;
     }
-    let flags = if whole { FINAL } else { 0 } | if fam.saturated { SATURATED } else { 0 };
+    let flag = |on: bool, f: u16| if on { f } else { 0 };
     let record = encode(&Facts {
-        flags,
+        flags: FINAL | flag(fam.saturated, SATURATED) | flag(fam.overflow, OVERFLOW),
         sup_meas: fam.sup_meas,
         sup_caps: fam.sup_caps,
         authority: fam.authority,
@@ -50,12 +53,17 @@ pub(crate) fn finish(supervisor: u32, whole: bool) -> Option<u64> {
         hc,
         meas: fam.meas,
         n_meas: fam.n_meas,
-        app_id: fam.app_id.unwrap_or([0; 32]),
+        app_id,
     });
     if sealed.len() >= MAX_SEALED {
         sealed.pop_front();
     }
     let (hist, salt, list, diag) = (fam.hist, fam.salt, fam.list, fam.diag);
-    sealed.push_back(Sealed { seal_no: no, record, hist, salt, diag, list });
+    sealed.push_back(Sealed { seal_no: no, app_id, record, hist, salt, diag, list });
     Some(no)
+}
+
+/// End `supervisor`'s live family without keeping anything.
+pub(crate) fn drop_family(supervisor: u32) {
+    LIVE.lock().retain(|f| f.sup != supervisor);
 }

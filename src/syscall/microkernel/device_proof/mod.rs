@@ -25,3 +25,4 @@ mod gate;
 pub(in crate::syscall::microkernel) use boot_slots::sys_boot_slots;
 pub(in crate::syscall::microkernel) use device_secret::sys_device_secret;
 pub(in crate::syscall::microkernel) use enroll::sys_enroll;
+pub(crate) use gate::device_secret_caller;

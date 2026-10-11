@@ -36,8 +36,8 @@ fn every_reserved_byte_and_unknown_flag_is_refused() {
         assert_eq!(decode_record(&g), None, "reserved byte {at}");
     }
     let mut g = b;
-    g[6] = 4;
-    assert_eq!(decode_record(&g), None, "flag bit 2");
+    g[6] = 8;
+    assert_eq!(decode_record(&g), None, "flag bit 3, after overflow");
 }
 
 #[test]

@@ -138,7 +138,6 @@ pub enum SyscallNumber {
     MkForeignFork = tag4(b"MFFK"),
     MkPeerUnmap = tag4(b"MPUN"),
     MkForeignExec = tag4(b"MFEX"),
-    MkForeignSeal = tag4(b"MFSE"),
     MkSealRead = tag4(b"MSLR"),
     MkSealNote = tag4(b"MSNT"),
     MkLocalSign = tag4(b"MLSG"),

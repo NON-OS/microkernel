@@ -21,7 +21,7 @@ use crate::process::foreign::{
     sys_foreign_thread, sys_foreign_wait, sys_peer_copy, sys_peer_map, sys_peer_protect,
     sys_peer_tls, sys_peer_unmap,
 };
-use crate::process::foreign::seal::{sys_foreign_seal, sys_seal_note, sys_seal_read};
+use crate::process::foreign::seal::{sys_seal_note, sys_seal_read};
 use crate::syscall::microkernel::app_install::sys_app_install;
 use crate::syscall::microkernel::app_install_status::sys_app_install_status;
 use crate::syscall::microkernel::app_uninstall::sys_app_uninstall;
@@ -111,8 +111,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_FOREIGN_FORK => sys_foreign_fork(a.a0, a.a1),
         SYS_PEER_UNMAP => sys_peer_unmap(a.a0, a.a1, a.a2),
         SYS_FOREIGN_EXEC => sys_foreign_exec(a.a0, a.a1, a.a2),
-        SYS_FOREIGN_SEAL => sys_foreign_seal(),
-        SYS_SEAL_READ => sys_seal_read(a.a0, a.a1, a.a2, a.a3),
+        SYS_SEAL_READ => sys_seal_read(a.a0, a.a1, a.a2),
         SYS_SEAL_NOTE => sys_seal_note(a.a0, a.a1),
         SYS_LOCAL_SIGN => sys_local_sign(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_LOCAL_VERIFY => sys_local_verify(a.a0, a.a1, a.a2, a.a3, a.a4),

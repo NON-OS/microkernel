@@ -24,7 +24,9 @@ use super::hist::HIST_WORDS;
 /// The most measurements a family's list keeps. Past it M still chains and
 /// the record still counts them, so a container's list cannot rebuild M and
 /// the family proves nothing: an incomplete list never passes for a whole one.
-pub(crate) const MAX_MEAS: usize = 256;
+/// Distinct measurements a family keeps; past it the overflow flag is set and
+/// M takes nothing more, so a guest looping maps cannot grow kernel heap.
+pub(crate) const MAX_MEAS: usize = 4096;
 
 pub(crate) struct Family {
     pub(crate) sup: u32,
@@ -33,6 +35,8 @@ pub(crate) struct Family {
     pub(crate) authority: u8,
     /// A first guest has been recorded. Until then the seal is only reserved.
     pub(crate) enrolled: bool,
+    /// A guest of it was started; slot 0 is closed from then on.
+    pub(crate) started: bool,
     pub(crate) trace: [u8; 32],
     pub(crate) rows: u64,
     pub(crate) next_seq: u64,
@@ -42,6 +46,7 @@ pub(crate) struct Family {
     pub(crate) salt: [u64; 4],
     pub(crate) meas: [u8; 32],
     pub(crate) n_meas: u32,
+    pub(crate) overflow: bool,
     pub(crate) list: Vec<[u8; 32]>,
     pub(crate) app_id: Option<[u8; 32]>,
     pub(crate) diag: [u8; 32],

@@ -21,6 +21,7 @@
 pub fn clear(pid: u32) {
     // A guest's unanswered call goes into its family before its frame goes.
     super::seal::abandon(pid);
+    let host = super::registry::supervisor_of(pid);
     let orphans = super::registry::guests_of(pid);
     let whole = orphans.is_empty();
     /*
@@ -57,8 +58,8 @@ pub fn clear(pid: u32) {
     super::trap_frame::drop_frame(pid);
     super::notice::forget_supervisor(pid);
     super::interrupt::forget(pid);
-    // Final only if no guest of it was still running when it ended.
-    super::seal::finish(pid, whole);
+    // A family ends when its last guest leaves the registry (seal/end.rs).
+    super::seal::ended(pid, host, whole);
 }
 
 /*

@@ -33,10 +33,10 @@ fn the_kernels_hc_is_the_verifiers_at_the_edges() {
 }
 
 #[test]
-fn a_family_sealed_with_guests_running_is_not_final() {
+fn a_family_no_app_was_noted_in_is_dropped() {
+    let before = SEALED.lock().len();
     LIVE.lock().push(family(78));
-    let n = finish(78, false).expect("a seal");
-    let sealed = SEALED.lock();
-    let s = sealed.iter().find(|s| s.seal_no == n).expect("kept");
-    assert_eq!(&s.record[6..8], &[0, 0]);
+    assert_eq!(finish(78), None);
+    assert!(LIVE.lock().iter().all(|f| f.sup != 78), "it is no longer live");
+    assert_eq!(SEALED.lock().len(), before, "and nothing was kept");
 }

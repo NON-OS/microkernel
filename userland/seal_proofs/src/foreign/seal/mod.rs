@@ -35,6 +35,7 @@ pub mod hist;
 #[allow(dead_code)]
 #[path = "../../../../../src/process/foreign/seal/meas.rs"]
 pub mod meas;
+mod nonce;
 #[allow(dead_code)]
 #[path = "../../../../../src/process/foreign/seal/record.rs"]
 pub mod record;
@@ -44,9 +45,8 @@ pub mod sealed;
 #[allow(dead_code)]
 #[path = "../../../../../src/process/foreign/seal/table.rs"]
 pub mod table;
+#[cfg(test)]
+mod tests;
 #[allow(dead_code)]
 #[path = "../../../../../src/process/foreign/seal/trace.rs"]
 pub mod trace;
-mod nonce;
-#[cfg(test)]
-mod tests;

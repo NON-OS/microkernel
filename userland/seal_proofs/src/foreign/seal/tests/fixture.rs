@@ -22,7 +22,7 @@ pub const SUP: u32 = 41;
 pub const SALT: [u64; 4] = [5, 6, 7, 8];
 
 pub fn family(sup: u32) -> Family {
-    let mut f = Family::fresh(sup, ([0xAB; 32], 0x3_0400_1979, 0), [9; 32], SALT);
+    let mut f = Family::fresh(sup, ([0xAB; 32], 0x1_0400_1979, 0), [9; 32], SALT);
     f.enrolled = true;
     f
 }
