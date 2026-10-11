@@ -24,6 +24,7 @@ pub mod hits;
 pub mod home;
 pub mod custody;
 pub mod locked;
+pub mod meter;
 pub mod page;
 pub mod pay;
 pub mod settings;
