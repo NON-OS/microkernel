@@ -56,6 +56,8 @@ behind it.
 | `OP_INTERRUPT_IN` | poll one interrupt-IN report of at most `HID_REPORT_MAX` bytes | report bytes, or pending |
 | `OP_CONFIGURE_BULK` / `OP_RESET_BULK` | add a bulk IN and OUT pair; recover one after a STALL | DCIs / status word |
 | `OP_BULK_OUT` / `OP_BULK_IN` | one transfer of up to 4096 bytes; a STALL replies `E_PIPE` | bytes moved, IN data |
+| `OP_CONFIGURE_ISOCH` | add one isochronous OUT endpoint (interval, bursts and Mult by speed, CErr 0) | DCI |
+| `OP_ISOCH_OUT` | queue up to 32 packets, a TD each, Start Isoch ASAP; waits for the batch before, so two are on the ring | that batch's code: success or missed service |
 
 ## Authority
 
@@ -229,12 +231,13 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
   allowlist refuses. On those machines ports the firmware left routed to
   EHCI stay there. Chipsets from the 100 series (6th generation Core) on,
   and Atom, Celeron and Pentium N parts such as Gemini Lake, have no EHCI.
-- Isochronous transfers, streams, USB power management (U1/U2, suspend).
+- Isochronous IN transfers (capture, a feedback endpoint), frame-scheduled
+  isoch TDs, streams, USB power management (U1/U2, suspend).
 
 ## Explicit non-goals today
 
 Hub traversal, HID reports, USB mass storage, USB audio, CDC Ethernet,
-isochronous scheduling, and persistent USB inventory do not live here. They are
+the pacing of an audio stream, and persistent USB inventory do not live here. They are
 separate class-capsule responsibilities above `driver.xhci0`.
 
 ## Verification
