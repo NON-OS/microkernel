@@ -21,7 +21,10 @@ use core::sync::atomic::AtomicU64;
 
 use super::endpoint::Endpoint;
 
-static DRIVERS: &[&Endpoint] = &[];
+static DRIVERS: &[&Endpoint] = &[
+    #[cfg(feature = "nonos-capsule-driver-sdhci")]
+    &crate::hardware::sdhci_capsule::ENDPOINT,
+];
 
 /// How many endpoints this kernel carries.
 pub fn count() -> u8 {

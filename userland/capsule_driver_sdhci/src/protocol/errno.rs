@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The ops for an eMMC disk, the same wire as a SATA one. CONTROLLER_INFO
-//! and PORT_LIST carry the SDHCI registers where AHCI has its own (see
-//! `emmc::info`); IDENTIFY names the part with the medium set to eMMC.
+//! The statuses this capsule answers with itself. A failed host or card
+//! command answers what `emmc::wire_status` makes of it: -110 for a
+//! timeout, a status carrying the host's or card's own detail, or -5.
 
-mod describe;
-mod dispatch;
-mod reply;
-mod rw;
-
-pub use dispatch::dispatch;
+pub const E_NXIO: i32 = -6;
+/// The sender may not reach the medium (`server::medium`).
+pub const E_ACCES: i32 = -13;
+pub const E_INVAL: i32 = -22;
+pub const E_MSGSIZE: i32 = -90;
