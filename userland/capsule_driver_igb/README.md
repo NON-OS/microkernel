@@ -1,8 +1,10 @@
 # capsule_driver_igb
 
-Status: not in the image. The capsule builds and its host proofs pass, but
-it has no owner certificate and the kernel never spawns it: it is not yet
-wired into the kernel mirror and the stack.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/igb_capsule`)
+embeds and spawns it under `nonos-capsule-driver-igb` (the
+`microkernel-driver-igb` build), and net.core and net.l2 reach it through
+`src/services/registry/nics.rs`. It has no owner certificate yet, so no
+image carries it until the owner signs it.
 
 ## Role
 
@@ -107,7 +109,7 @@ line, and DHCP completing through `net.core`.
 
 ## Release checklist
 
-- Wired into the kernel mirror and the stack, sealed by the owner.
+- Signed by the owner and added to the desktop image's features.
 - The QEMU `igb` lane and one machine photographed with those lines.
 
 ## Explicit non-goals today
