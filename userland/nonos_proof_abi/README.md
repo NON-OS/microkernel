@@ -14,6 +14,8 @@ in (PLAN interface 1, plan/10 and plan/11):
   delivery body.
 - `isolation::STATEMENT`: the pinned isolation program image, its MANIFEST
   and the numbers beside it, written by isolation_proofs from the circuit.
+- `wire`: nonos.prove's frames (plan/14): market_proto's 20-byte header under
+  "NPRV", PROVE, STATUS, GET and HEALTH, and the named refusals beyond errnos.
 - `verify`: parse, device proof bound to the record under trusted roots and
   an accepted day, measurements, app_id, publics, then the isolation proof.
 
