@@ -17,6 +17,7 @@
 mod attest_gate;
 mod install;
 pub(crate) mod preflight;
+mod preflighted;
 mod profile_gate;
 mod profile_refuse;
 mod publisher_gate;
