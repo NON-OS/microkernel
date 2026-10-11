@@ -24,7 +24,7 @@ pub const SPEED_HIGH: u8 = 3;
 
 /// The most one isoch request carries: driver.xhci0's ISOCH_PACKETS_MAX
 /// and ISOCH_MAX.
-const BATCH_PACKETS_MAX: u32 = 32;
+const BATCH_PACKETS_MAX: u32 = 31;
 /// Less than ISOCH_MAX: the request also carries a u16 per packet, and the
 /// xHCI client sends 4112 body bytes at most.
 const BATCH_BYTES_MAX: u32 = 4032;
