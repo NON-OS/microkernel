@@ -23,7 +23,8 @@
     feature = "nonos-capsule-driver-vmware-svga",
     feature = "nonos-capsule-driver-ac97",
     feature = "nonos-capsule-driver-vmmdev",
-    feature = "nonos-capsule-driver-tulip"
+    feature = "nonos-capsule-driver-tulip",
+    feature = "nonos-capsule-driver-piix-ide"
 ))]
 mod present;
 
@@ -31,8 +32,10 @@ mod audio;
 mod display;
 mod input;
 mod nic;
+mod storage;
 
 pub(super) use audio::spawn as spawn_audio;
 pub(super) use display::spawn as spawn_display;
 pub(super) use input::spawn as spawn_input;
 pub(super) use nic::spawn as spawn_nics;
+pub(super) use storage::spawn as spawn_storage;

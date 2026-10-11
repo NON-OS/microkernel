@@ -26,6 +26,9 @@ pub enum HardwareFamily {
     /// An Intel eMMC host (`emmc`): the soldered disk of Atom, Celeron and
     /// Pentium Silver laptops. Served by the AHCI capsule at present.
     StorageEmmc,
+    /// Intel PIIX3/PIIX4 IDE (8086:7010, 8086:7111): QEMU's pc machine,
+    /// VirtualBox's default, Hyper-V Generation 1.
+    StorageIde,
     NetworkVirtio,
     NetworkE1000,
     NetworkRtl8139,

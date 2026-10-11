@@ -62,11 +62,20 @@ const PACKET_PATH_VM: [&str; 3] = ["driver.pcnet0", "driver.vmxnet3_0", "driver.
  */
 const STORAGE_PATH: [&str; 4] =
     ["driver.virtio_blk0", "driver.ahci0", "driver.nvme0", "driver.usb_msc0"];
+// The same in a virtual machine: its disk controllers poll a request out,
+// yielding and then sleeping a millisecond between looks.
+const STORAGE_PATH_VM: [&str; 1] = ["driver.piix_ide0"];
 
 /// Scheduling band a freshly installed capsule starts in.
 pub(super) fn for_capsule(name: &str) -> Priority {
-    let bands: [&[&str]; 5] =
-        [&INTERACTIVE, &INTERACTIVE_VM, &PACKET_PATH, &PACKET_PATH_VM, &STORAGE_PATH];
+    let bands: [&[&str]; 6] = [
+        &INTERACTIVE,
+        &INTERACTIVE_VM,
+        &PACKET_PATH,
+        &PACKET_PATH_VM,
+        &STORAGE_PATH,
+        &STORAGE_PATH_VM,
+    ];
     if bands.iter().any(|band| band.contains(&name)) {
         Priority::High
     } else {
