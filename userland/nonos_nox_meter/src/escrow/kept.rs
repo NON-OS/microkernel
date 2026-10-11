@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An offer as the meter keeps it, sealed one file each: chain_id
-//! u64 | listing_key | release_key | chunk_root | content_len u64 | buyer_sk
-//! | made_at u64 | the Offer (64 + 1056 n bytes for content_len). ORDER_NEW
-//! takes one whose keys and roots match; OFFER_TTL ends one nobody took.
+//! An offer as the meter keeps it, one sealed file each: chain_id
+//! u64 | listing_key | release_key | chunk_root | content_len u64 | buyer_sk |
+//! made_at u64 | the Offer. ORDER_NEW takes one whose keys and roots match.
 
 use alloc::vec::Vec;
 
@@ -25,7 +24,7 @@ use nonos_nox_chunks::Offer;
 
 pub const KEPT_HEAD: usize = 8 + 32 * 3 + 8 + 32 + 8;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct KeptOffer {
     pub chain_id: u64,
     pub listing_key: [u8; 32],

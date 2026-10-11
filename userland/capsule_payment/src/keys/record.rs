@@ -54,6 +54,10 @@ pub fn open_record(record: &[u8], blob: &[u8]) -> Result<Vec<u8>, i32> {
     let mut out = vec![0u8; blob.len().saturating_sub(OVERHEAD)];
     let opened = nonos_vault::open(&root, record, blob, &mut out);
     wipe(&mut root);
-    opened.map_err(|_| EIO)?;
+    if opened.is_err() {
+        // Whatever an open that failed wrote is not left behind.
+        wipe(&mut out);
+        return Err(EIO);
+    }
     Ok(out)
 }

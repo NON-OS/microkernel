@@ -40,7 +40,7 @@ impl Solving {
     /// The offer job for the walk's answer: FETCH 1 ESCROW, then its pages.
     pub(super) fn job(&self, asked: Asked) -> Result<Job, i32> {
         let buyer_pk = asked.request.buyer_pk;
-        let request = Fetch::Escrow(asked.request).encode().ok_or(EINVAL)?;
+        let request = Fetch::Escrow(asked.request.clone()).encode().ok_or(EINVAL)?;
         Ok(Job::Offer(Box::new(OfferWork {
             want: self.walk.want().clone(),
             chunk_root: self.chunk_root,

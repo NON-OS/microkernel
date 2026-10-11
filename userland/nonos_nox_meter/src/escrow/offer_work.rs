@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 
 use super::want::Want;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct OfferWork {
     pub want: Want,
     pub chunk_root: [u8; 32],

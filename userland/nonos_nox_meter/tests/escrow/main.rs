@@ -22,6 +22,7 @@ mod deliver_fixture;
 #[path = "../host/mod.rs"]
 mod host;
 mod kept;
+mod kept_secret;
 mod offer;
 mod offer_run;
 mod request;
