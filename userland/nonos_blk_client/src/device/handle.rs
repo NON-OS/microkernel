@@ -52,7 +52,7 @@ impl BlockDevice {
         }
         let geometry = match driver {
             Driver::Nvme => nvme::geometry(port)?,
-            Driver::Wire => super::wire::geometry(port)?,
+            Driver::Wire | Driver::Ufs => super::wire::geometry(port)?,
             Driver::Ahci | Driver::VirtioBlk => Geometry::SECTORS,
         };
         let mut dev = BlockDevice { driver, instance, port, sectors: 0, geometry };
