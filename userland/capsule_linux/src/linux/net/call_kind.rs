@@ -46,7 +46,7 @@ pub fn wants_all(stream: bool, n: u64, flags: u64) -> bool {
 
 /// A receive's answer: the count, or the errno.
 pub(super) fn bytes_in(guest: &Guest, id: u32, v: &iov::Iov, done: usize, flags: u64) -> u64 {
-    match super::xfer_in::recv(guest, id, v, done, flags) {
+    match super::xfer::inbound::recv(guest, id, v, done, flags) {
         Ok(got) => errno::ok(got.n as u64),
         Err(e) => e,
     }

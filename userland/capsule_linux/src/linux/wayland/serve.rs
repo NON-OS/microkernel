@@ -19,7 +19,7 @@
 use crate::linux::guest::Guest;
 
 use super::args::Args;
-use super::route::route;
+use super::route::all::route;
 use super::unserved::unserved;
 use super::wire::{malformed, walk, Msg};
 

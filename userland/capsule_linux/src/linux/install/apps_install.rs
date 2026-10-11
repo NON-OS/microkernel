@@ -30,8 +30,8 @@ use alloc::vec::Vec;
 use nonos_libc::mk_debug;
 
 use super::apps::App;
-use super::fetcher::fetch;
-use super::model_dep::{needs_fetch, not_started, settle};
+use super::fetch::fetcher::fetch;
+use super::model::dep::{needs_fetch, not_started, settle};
 use super::why::Why;
 use super::apps::STICK_TIER;
 use crate::linux::file::{key, store_hash, HashFault};
