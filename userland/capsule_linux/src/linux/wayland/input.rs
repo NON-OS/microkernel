@@ -27,8 +27,9 @@ use nonos_libc::mk_ipc_recv_from;
 
 use crate::linux::guest::Guest;
 
-/// Key down and up, absolute pointer, button down and up.
-const KINDS: u32 = 0x6B;
+/// Key down and up, absolute pointer, wheel, button down and up: one bit
+/// per input kind (app_skeleton input/decode.rs), wheel being 4.
+const KINDS: u32 = 0x7B;
 const OWN_INBOX: u64 = 0;
 const NOWAIT: u64 = 1;
 const NINP_MAGIC: u32 = 0x4E49_4E50;
