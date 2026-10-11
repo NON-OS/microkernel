@@ -18,3 +18,7 @@ crate-type = ["rlib"]
 
 [dependencies]
 blake3 = { version = "1", default-features = false, features = ["pure"] }
+
+# The vendor table (build.rs): each program's BLAKE3, from the Linux userland build.
+[build-dependencies]
+blake3 = { version = "1", default-features = false, features = ["pure"] }

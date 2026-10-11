@@ -19,23 +19,24 @@
 //! machine vouched for at install, then the owner's default for a program
 //! that came with none.
 
-use nonos_linux_policy::{decode, unlisted, LinuxAppPolicy, LEN};
+use nonos_linux_policy::vendor::VendorRow;
+use nonos_linux_policy::{decode, unlisted, LinuxAppPolicy};
 
-/// `table` is the vendor's policies end to end; `file`, the vouched policy
-/// beside the program, if there is one. A file that does not decode, or
-/// names another program, refuses the program rather than falling back to
-/// the default: the default could be wider than what was published.
+/// `table` is the vendor's (nonos_linux_policy::vendor::TABLE); `file`, the
+/// vouched policy beside the program, if there is one. A file that does not
+/// decode, or names another program, refuses the program rather than falling
+/// back to the default: the default could be wider than what was published.
+/// So does a vendor row that is not its program's: the build is broken.
 pub fn choose(
     program: &[u8; 32],
-    table: &[u8],
+    table: &[VendorRow],
     file: Option<&[u8]>,
 ) -> Result<LinuxAppPolicy, &'static str> {
-    let vendor = table
-        .chunks_exact(LEN)
-        .filter_map(|p| decode(p).ok())
-        .find(|p| p.program_blake3 == *program);
-    if let Some(p) = vendor {
-        return Ok(p);
+    if let Some(row) = table.iter().find(|r| r.program_blake3 == *program) {
+        return match decode(&row.policy) {
+            Ok(p) if p.program_blake3 == *program => Ok(p),
+            _ => Err("the vendor's table is broken"),
+        };
     }
     let Some(file) = file else {
         return Ok(unlisted(*program));

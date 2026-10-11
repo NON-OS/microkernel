@@ -35,6 +35,7 @@ pub mod mask;
 mod policy;
 mod syscall_set;
 mod unlisted;
+pub mod vendor;
 
 pub use bucket::{bucket, BUCKETS};
 pub use decode::decode;

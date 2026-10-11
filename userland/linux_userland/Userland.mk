@@ -235,3 +235,6 @@ ifeq ($(NONOS_LINUX_GUESTS),1)
 LINUX_USERLAND_STORE_DEPS :=
 LINUX_USERLAND_STORE_ENTRIES :=
 endif
+
+# The vendor programs above, bound to their boxes in the personality.
+include $(LINUX_USERLAND_DIR)/Policies.mk

@@ -17,8 +17,10 @@
 mod canonical_tests;
 mod decode_tests;
 mod identity_tests;
+mod line_tests;
 mod mask_tests;
 mod refuse_tests;
 mod sample;
 mod set_order_tests;
 mod set_tests;
+mod vendor_tests;
