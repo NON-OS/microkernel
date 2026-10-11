@@ -1870,6 +1870,7 @@
    "userland/capsule_linux/src/linux/wayland/scene_pixels.rs",
    "userland/capsule_linux/src/linux/wayland/seat.rs",
    "userland/capsule_linux/src/linux/wayland/subsurface/blend.rs",
+   "userland/capsule_linux/src/linux/wayland/subsurface/may.rs",
    "userland/capsule_linux/src/linux/wayland/subsurface/order.rs",
    "userland/capsule_linux/src/linux/wayland/subsurface/restack.rs",
    "userland/capsule_linux/src/linux/wayland/subsurface/state.rs",
