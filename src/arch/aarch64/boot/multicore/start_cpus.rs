@@ -36,6 +36,7 @@ const CHECKIN_SPINS: u64 = 200_000_000;
 /// boot into no boot at all.
 pub fn start_secondary_cpus(_boot_info: &BootInfo) {
     let entry = _aarch64_secondary_start as unsafe extern "C" fn() as u64;
+    crate::arch::aarch64::mmu::publish_for_secondaries();
     let mut released = 0u32;
 
     for index in 1..roster::len() {
