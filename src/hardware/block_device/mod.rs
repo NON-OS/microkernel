@@ -35,6 +35,7 @@ mod seen;
 mod select;
 pub mod store_copy;
 mod types;
+pub mod wire;
 mod write;
 
 pub use backend::Backend;
