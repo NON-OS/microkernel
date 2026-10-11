@@ -19,12 +19,13 @@
 pub(super) const IPC: u64 = 1 << 3;
 pub(super) const NETWORK: u64 = 1 << 2;
 
-pub(super) const WIRED: [&str; 5] = [
+pub(super) const WIRED: [&str; 6] = [
     "driver.virtio_net0",
     "driver.e1000_0",
     "driver.rtl8169_0",
     "driver.rtl8139_0",
     "driver.igb_0",
+    "driver.ixgbe_0",
 ];
 pub(super) const WIFI: [&str; 2] = ["driver.iwlwifi0", "driver.rtl8821ce0"];
 
