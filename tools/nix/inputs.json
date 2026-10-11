@@ -4595,6 +4595,7 @@
    "src/security/tpm/fifo/regs.rs",
    "src/security/tpm/fifo/send.rs",
    "src/security/tpm/fifo/session.rs",
+   "src/security/tpm/machine_key/bound_label.rs",
    "src/security/tpm/machine_key/consts.rs",
    "src/security/tpm/machine_key/create.rs",
    "src/security/tpm/machine_key/error.rs",
