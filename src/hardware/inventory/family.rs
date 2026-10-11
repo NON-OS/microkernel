@@ -32,6 +32,8 @@ pub enum HardwareFamily {
     NetworkRtl8169,
     /// AMD PCnet (Am79C970A/Am79C973): VirtualBox's default NIC.
     NetworkPcnet,
+    /// VMware vmxnet3: VMware's paravirtual NIC, also emulated by QEMU.
+    NetworkVmxnet3,
     NetworkRtl8821ce,
     NetworkIwlwifi,
     DisplayGopFramebuffer,
