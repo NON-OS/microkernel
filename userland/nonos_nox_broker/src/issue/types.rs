@@ -26,6 +26,17 @@ pub struct PaidTo {
     pub token: [u8; 20],
 }
 
+/// The grant's own terms, the broker's to choose: `now` and `ttl_secs` set
+/// the validity window (a zero `ttl_secs` never expires); `device` binds the
+/// grant to one install (all zero leaves it unbound).
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Terms {
+    pub now: u64,
+    pub ttl_secs: u64,
+    pub nonce: [u8; 8],
+    pub device: [u8; 32],
+}
+
 /// A granted entitlement, not yet signed, with the terms the broker settled on.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Issued {

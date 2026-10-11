@@ -19,29 +19,24 @@
 use nonos_nox_license::{price_of, Entitlement};
 use nonos_nox_receipt::verify_payment;
 
-use super::types::{IssueError, Issued, PaidTo};
+use super::types::{IssueError, Issued, PaidTo, Terms};
 use crate::spent::SpentSet;
 
 /// Decide whether the receipt earns an entitlement for `tool_id`.
 ///
 /// On success the funding hash is recorded in `spent` and the returned grant is
-/// ready to sign. `now` and `ttl_secs` set the validity window; a zero
-/// `ttl_secs` makes the grant never expire. `nonce` and `device` are the
-/// broker's to choose: `device` binds the grant to one install (all zero leaves
-/// it unbound). The number of uses is what arrived divided by the unit price,
-/// so paying a multiple of the price buys that many runs at once.
-#[allow(clippy::too_many_arguments)]
+/// ready to sign, on `terms`. The number of uses is what arrived divided by
+/// the unit price, so paying a multiple of the price buys that many runs at
+/// once.
 pub fn issue(
     spent: &mut SpentSet,
     tool_id: u32,
     to: &PaidTo,
     tx_hash: [u8; 32],
     receipt_json: &[u8],
-    now: u64,
-    ttl_secs: u64,
-    nonce: [u8; 8],
-    device: [u8; 32],
+    terms: &Terms,
 ) -> Result<Issued, IssueError> {
+    let Terms { now, ttl_secs, nonce, device } = *terms;
     let price = price_of(tool_id).ok_or(IssueError::UnknownTool)?;
     if to.payee == [0u8; 20] || to.token == [0u8; 20] {
         return Err(IssueError::NoPayee);

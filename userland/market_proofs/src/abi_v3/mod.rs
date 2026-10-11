@@ -21,6 +21,7 @@ mod binding;
 mod blobs;
 mod commerce;
 mod digest;
+mod document;
 mod encoder;
 pub(crate) mod fixtures;
 mod hosts;

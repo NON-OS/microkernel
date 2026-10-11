@@ -19,7 +19,7 @@ use super::Deployment;
 use crate::hex::hex20;
 
 // The test token the wallet already offers on Sepolia; its block is not
-// recorded, so a log read of it starts at genesis. The Shield pool is
+// recorded (0), so no log read of it is made. The Shield pool is
 // shield_core's ACTIVE pool (pools.rs PRODUCTION), from its deploy block.
 pub const SEPOLIA: Deployment = Deployment {
     nox_token: at(hex20("3e5249a65ca513d5e11260222e0d26f46b465d36"), 0),

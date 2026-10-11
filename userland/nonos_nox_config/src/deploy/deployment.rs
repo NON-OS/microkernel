@@ -19,7 +19,8 @@ use crate::chain::Chain;
 use crate::contract::Contract;
 
 /// One contract on one chain: its address, and the block it was deployed in,
-/// where a log read starts. A block of 0 means not known: read from genesis.
+/// where a log read starts. A block of 0 means not known, and settle refuses
+/// log reads of that contract rather than page from genesis (v1.4.9).
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Deployed {
     pub address: [u8; 20],

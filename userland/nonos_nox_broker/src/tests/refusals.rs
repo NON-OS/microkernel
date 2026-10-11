@@ -17,7 +17,7 @@
 use nonos_nox_license::ToolId;
 use nonos_nox_receipt::ReceiptError;
 
-use super::fixtures::{paying, price, receipt, to};
+use super::fixtures::{paying, price, receipt, terms, to};
 use crate::issue::{issue, IssueError, PaidTo};
 use crate::spent::SpentSet;
 
@@ -29,7 +29,7 @@ pub(super) fn try_issue(
     tx: [u8; 32],
     r: &str,
 ) -> Result<(), IssueError> {
-    issue(spent, RECON, to, tx, r.as_bytes(), 0, 0, [0; 8], [0; 32]).map(|_| ())
+    issue(spent, RECON, to, tx, r.as_bytes(), &terms()).map(|_| ())
 }
 
 #[test]
@@ -44,7 +44,7 @@ fn the_same_transaction_cannot_be_redeemed_twice() {
 fn an_unknown_tool_is_refused_before_any_payment_check() {
     let mut spent = SpentSet::new();
     let r = paying(price());
-    let out = issue(&mut spent, 999, &to(), [3; 32], r.as_bytes(), 0, 0, [0; 8], [0; 32]);
+    let out = issue(&mut spent, 999, &to(), [3; 32], r.as_bytes(), &terms());
     assert_eq!(out.map(|_| ()), Err(IssueError::UnknownTool));
     assert!(spent.is_empty());
 }

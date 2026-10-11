@@ -18,4 +18,4 @@ mod decide;
 mod types;
 
 pub use decide::issue;
-pub use types::{IssueError, Issued, PaidTo};
+pub use types::{IssueError, Issued, PaidTo, Terms};

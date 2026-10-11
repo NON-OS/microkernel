@@ -28,7 +28,7 @@
 mod issue;
 mod spent;
 
-pub use issue::{issue, IssueError, Issued, PaidTo};
+pub use issue::{issue, IssueError, Issued, PaidTo, Terms};
 pub use spent::{SpentSet, SPENT_CAPACITY};
 
 #[cfg(test)]
