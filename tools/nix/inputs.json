@@ -3151,6 +3151,7 @@
   "include": [
    ".cargo",
    "src/arch/aarch64/gic/intid.rs",
+   "src/arch/aarch64/gic/its/encode",
    "src/arch/aarch64/gic/select.rs",
    "src/arch/aarch64/gic/v2/encode.rs",
    "src/arch/aarch64/gic/version.rs",
