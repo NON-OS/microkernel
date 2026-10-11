@@ -23,8 +23,7 @@ mod core;
 mod desktop_fleet;
 #[cfg(not(feature = "microkernel-input-probe"))]
 mod desktop_services;
-// Every driver whose spawn asks it first: one left out here fails the build
-// of any profile that carries that driver alone.
+// Each driver whose spawn asks it first; one missing breaks its lone profile.
 #[cfg(any(
     feature = "nonos-capsule-driver-ahci",
     feature = "nonos-capsule-driver-nvme",
@@ -44,6 +43,7 @@ mod drivers_sdhci;
 mod drivers_storage;
 mod drivers_ufs;
 mod drivers_usb;
+mod drivers_usbnet;
 mod drivers_virtio;
 mod drivers_virtio_display;
 mod drivers_virtio_io;
