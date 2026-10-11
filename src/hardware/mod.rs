@@ -32,6 +32,7 @@ pub mod rtl8169_capsule;
 pub mod rtl8821ce_capsule;
 pub mod sdhci_capsule;
 pub mod ufs_capsule;
+pub mod usb_audio_capsule;
 pub mod usb_msc_capsule;
 pub mod virtio_blk_capsule;
 pub mod virtio_gpu_capsule;

@@ -35,11 +35,12 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.i2c_hid0", KERNEL_ONLY),
     ("driver.usb_msc0", KERNEL_ONLY),
     ("driver.virtio_rng", KERNEL_ONLY),
-    ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0"]),
+    ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0", "driver.usb_audio0"]),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.virtio_gpu0", &["compositor"]),
     ("driver.bga0", &["compositor"]),
     ("driver.hda0", &["audio.server"]),
+    ("driver.usb_audio0", &["audio.server"]),
 ];
 
 /// The kernel polls the keyboards and pointers, reads the random source and
