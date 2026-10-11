@@ -51,7 +51,7 @@ pub fn verify(container: &[u8], pins: &Pins) -> Result<Verdict, Refusal> {
     let view = (pins.policy)(policy).ok_or(Refusal::Policy)?;
     measurements(need(tag::MEASUREMENTS)?, &rec, &view.program_blake3)?;
 
-    let app = app_id(policy, &view);
+    let app = app_id(policy, &view.program_blake3);
     if rec.app_id != app {
         return Err(Refusal::AppId);
     }

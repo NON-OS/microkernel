@@ -21,6 +21,7 @@ mod refusal;
 mod run;
 mod verdict;
 
+pub use bind::app_id;
 pub use pins::{DeviceRoots, Pins, PolicyDecode, PolicyView};
 pub use refusal::Refusal;
 pub use run::verify;
