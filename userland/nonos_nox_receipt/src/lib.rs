@@ -17,8 +17,8 @@
 //! Prove a NOX payment from the transaction receipt the chain returns.
 //!
 //! `verify_payment` accepts a receipt only when it shows a successful
-//! transaction carrying an ERC20 `Transfer` from the buyer to the treasury,
-//! emitted by the NOX token, for at least the price. The scan reads only the
+//! transaction carrying an ERC20 `Transfer` from the buyer to the payee,
+//! emitted by the token, for at least the price. The scan reads only the
 //! fields the decision needs and never allocates, so a truncated or hostile
 //! receipt fails closed rather than reading as a payment.
 
@@ -28,7 +28,7 @@ mod hex;
 mod logs;
 mod verify;
 
-pub use verify::{verify_payment, Payment, ReceiptError, NOX_TOKEN, TRANSFER_TOPIC};
+pub use verify::{verify_payment, Payment, ReceiptError, TRANSFER_TOPIC};
 
 #[cfg(test)]
 mod tests;

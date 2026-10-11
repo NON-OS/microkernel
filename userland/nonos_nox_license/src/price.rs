@@ -17,7 +17,8 @@
 //! The tool catalogue: stable ids, human names and the NOX price of one use.
 //!
 //! Both the broker and the tool link this, so neither can drift from the
-//! other on what a tool is called, what it costs, or who gets paid. Prices are
+//! other on what a tool is called or what it costs. Who is paid is not here:
+//! the payee comes from the signed listing, never from a constant. Prices are
 //! in NOX base units (wei, 1e18 per NOX), matching the amount the wallet signs
 //! into a `transfer`.
 
@@ -44,14 +45,6 @@ impl ToolId {
         }
     }
 }
-
-/// The account every tool payment is made to. Payments to any other address do
-/// not fund an entitlement, so the broker checks the receipt's recipient
-/// against this. Low 20 bytes of the NOX treasury account.
-pub const TREASURY: [u8; 20] = [
-    0x4e, 0x4f, 0x4e, 0x4f, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x01,
-];
 
 /// NOX base units for one use of a tool. `None` for an unknown id, so an
 /// unpriced tool can never be sold by accident.
