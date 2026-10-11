@@ -32,11 +32,7 @@ mod desktop_services;
     feature = "nonos-capsule-driver-virtio-net",
     feature = "nonos-capsule-driver-usb-msc",
     feature = "nonos-capsule-driver-iwlwifi",
-    feature = "nonos-capsule-driver-rtl8821ce",
-    feature = "nonos-capsule-driver-pcnet",
-    feature = "nonos-capsule-driver-vmxnet3",
-    feature = "nonos-capsule-driver-virtio-input",
-    feature = "nonos-capsule-driver-vmware-svga"
+    feature = "nonos-capsule-driver-rtl8821ce"
 ))]
 mod device_present;
 mod drivers_bus;
@@ -47,8 +43,6 @@ mod drivers_usb;
 mod drivers_virtio;
 mod drivers_virtio_display;
 mod drivers_virtio_io;
-mod drivers_vm_display;
-mod drivers_vm_nic;
 mod drivers_wifi;
 #[cfg(feature = "microkernel-input-probe")]
 mod input_probe_fleet;
@@ -57,6 +51,7 @@ mod install_first;
 mod network;
 mod orchestrator;
 mod services_audio;
+mod vm;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod wizard_plan;
 pub(super) use app_orchestrator::spawn_apps;
