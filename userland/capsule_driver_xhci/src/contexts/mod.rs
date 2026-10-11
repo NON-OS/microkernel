@@ -28,7 +28,7 @@ pub use ep0::{
 };
 pub use evaluate::write_evaluate_ep0_input;
 pub use input::write_address_device_input;
-pub use interval::interrupt_interval;
+pub use interval::{interrupt_interval, isoch_interval};
 pub use size::{device_context_bytes, input_context_bytes};
 pub use slot_copy::copy_slot_context;
 // Reached by the host proofs (userland/xhci_proofs), not by the capsule.

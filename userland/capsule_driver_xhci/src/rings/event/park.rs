@@ -28,6 +28,7 @@
 //! waiter ever asks for, is not kept at all.
 use super::issued_transfer::IssuedTransfer;
 use super::state::{EventRing, PARKED};
+use crate::constants::{CC_RING_OVERRUN, CC_RING_UNDERRUN};
 use crate::trb::Trb;
 
 /// The completion codes of a TRB the endpoint was on when Stop Endpoint
@@ -37,11 +38,16 @@ const CC_STOPPED: u8 = 26;
 const CC_STOPPED_LENGTH_INVALID: u8 = 27;
 const CC_STOPPED_SHORT_PACKET: u8 = 28;
 
-/// Whether `event` reports a TRB an endpoint was stopped on.
+/// Whether `event` reports a TRB an endpoint was stopped on, or an isoch
+/// ring that ran dry or overfilled, which no TD names.
 fn is_stopped(event: &Trb) -> bool {
     matches!(
         event.completion_code(),
-        CC_STOPPED | CC_STOPPED_LENGTH_INVALID | CC_STOPPED_SHORT_PACKET
+        CC_STOPPED
+            | CC_STOPPED_LENGTH_INVALID
+            | CC_STOPPED_SHORT_PACKET
+            | CC_RING_UNDERRUN
+            | CC_RING_OVERRUN
     )
 }
 

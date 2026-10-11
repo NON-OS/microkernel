@@ -15,3 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const CC_SUCCESS: u8 = 1;
 pub const CC_SHORT_PACKET: u8 = 13;
+/// An isoch endpoint found its ring empty (OUT) or its buffer full (IN):
+/// no TD names it, so no waiter ever asks for the event.
+pub const CC_RING_UNDERRUN: u8 = 14;
+pub const CC_RING_OVERRUN: u8 = 15;
+/// An isoch TD whose service interval had passed when it was reached.
+pub const CC_MISSED_SERVICE: u8 = 23;

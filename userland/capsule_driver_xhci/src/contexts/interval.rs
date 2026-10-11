@@ -39,3 +39,16 @@ pub fn interrupt_interval(speed: u8, usb3: bool, b_interval: u8) -> u8 {
     let exp = 31 - microframes.leading_zeros();
     exp.clamp(FS_MIN_EXP, FS_MAX_EXP) as u8
 }
+
+/// The Interval of an isochronous endpoint. Its bInterval is an exponent at
+/// every speed (1 to 16): of 1 ms frames at full speed, of 125 us
+/// microframes above, so full speed adds the three that make a frame of
+/// microframes (Linux `xhci_get_endpoint_interval`).
+pub fn isoch_interval(speed: u8, usb3: bool, b_interval: u8) -> u8 {
+    let exp = b_interval.clamp(1, 16) - 1;
+    if is_superspeed(speed, usb3) || speed == SPEED_HIGH {
+        exp
+    } else {
+        (exp + 3).min(15)
+    }
+}

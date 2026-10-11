@@ -5223,6 +5223,7 @@
    "userland/capsule_driver_xhci/src/controller/drain_events.rs",
    "userland/capsule_driver_xhci/src/controller/get_device_descriptor.rs",
    "userland/capsule_driver_xhci/src/controller/halt.rs",
+   "userland/capsule_driver_xhci/src/controller/isoch",
    "userland/capsule_driver_xhci/src/controller/issue_address_device.rs",
    "userland/capsule_driver_xhci/src/controller/issue_enable_slot.rs",
    "userland/capsule_driver_xhci/src/controller/legacy_handoff/claim.rs",
