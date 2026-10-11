@@ -21,7 +21,7 @@
 
 use super::hist::hist_commit;
 use super::nonce::seal_no;
-use super::sealed::Sealed;
+use super::sealed::{len_for, Sealed};
 use super::snapshot::record_of;
 use super::table::LIVE;
 use crate::syscall::microkernel::errnos::{ERRNO_IO, ERRNO_NOMEM, ERRNO_SRCH};
@@ -33,13 +33,13 @@ pub(super) fn snapshot(pid: u64, room: u64) -> Result<Sealed, i64> {
     let live = LIVE.lock();
     let fam = live.iter().find(|f| f.sup == pid).ok_or(ERRNO_SRCH)?;
     let app_id = fam.app_id.ok_or(ERRNO_SRCH)?;
+    // Checked before H is committed or copied, so a short buffer costs nothing.
+    if len_for(fam.list.len()) as u64 > room {
+        return Err(ERRNO_NOMEM);
+    }
     let hc = hist_commit(&fam.hist, &fam.salt).ok_or(ERRNO_IO)?;
     let no = seal_no().ok_or(ERRNO_IO)?;
     let record = record_of(fam, 0, no, app_id, hc);
     let (hist, salt, diag, list) = (fam.hist.clone(), fam.salt, fam.diag, fam.list.clone());
-    let s = Sealed { seal_no: no, app_id, record, hist, salt, diag, list };
-    if s.bytes_len() as u64 > room {
-        return Err(ERRNO_NOMEM);
-    }
-    Ok(s)
+    Ok(Sealed { seal_no: no, app_id, record, hist, salt, diag, list })
 }
