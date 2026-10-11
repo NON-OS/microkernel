@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Refusing a generic host whose slot is not an embedded one.
+//! Which slot a host opens as: a generic host as fixed only when its slot
+//! is embedded, and any host as removable only when its slot is.
 
 use super::super::super::env::{Log, Mmio};
 use super::super::super::error::{EmmcError, EmmcResult};
 use super::super::super::pci::Kind;
-use super::super::super::sdhci::regs::{CAPABILITIES, SLOT_TYPE_EMBEDDED};
+use super::super::super::sdhci::regs::{CAPABILITIES, SLOT_TYPE_EMBEDDED, SLOT_TYPE_REMOVABLE};
 use super::super::super::sdhci::Caps;
 use super::super::super::text::Line;
 use super::super::discover::Found;
@@ -39,6 +40,23 @@ pub(super) fn check_embedded(log: &SerialLog, dev: &Found, io: &MmioWindow) -> E
             );
             return Err(EmmcError::NotEmbedded);
         }
+    }
+    Ok(())
+}
+
+/// Opened as removable only when the slot says it is: a shared bus slot is
+/// neither.
+pub(super) fn check_removable(log: &SerialLog, io: &MmioWindow) -> EmmcResult<()> {
+    let caps = Caps { caps: io.r32(CAPABILITIES), caps1: 0, version: 0 };
+    if caps.slot_type() != SLOT_TYPE_REMOVABLE {
+        log.line(
+            Line::new()
+                .s(b"slot type ")
+                .dec(caps.slot_type() as u64)
+                .s(b" is not removable")
+                .as_bytes(),
+        );
+        return Err(EmmcError::NotEmbedded);
     }
     Ok(())
 }

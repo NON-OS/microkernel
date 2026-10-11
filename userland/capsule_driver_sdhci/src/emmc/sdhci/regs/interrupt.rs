@@ -19,6 +19,8 @@
 // Normal Interrupt Status.
 pub const INT_CMD_COMPLETE: u16 = 1 << 0;
 pub const INT_TRANSFER_COMPLETE: u16 = 1 << 1;
+pub const INT_CARD_INSERT: u16 = 1 << 6;
+pub const INT_CARD_REMOVE: u16 = 1 << 7;
 pub const INT_ERROR: u16 = 1 << 15;
 
 // Error Interrupt Status.
@@ -34,6 +36,8 @@ pub const ERR_ADMA: u16 = 1 << 9;
 
 /// Normal statuses the engine waits on.
 pub const NORMAL_ENABLE: u16 = INT_CMD_COMPLETE | INT_TRANSFER_COMPLETE;
+/// A removable slot also latches the card coming and going.
+pub const CARD_ENABLE: u16 = INT_CARD_INSERT | INT_CARD_REMOVE;
 /// Every error status the engine judges: the command and data errors,
 /// Auto CMD and ADMA. Current Limit (bit 7) and tuning (bit 10) are left
 /// off: neither applies to a fixed-voltage, untuned bus.

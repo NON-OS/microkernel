@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Claim one host, map its slot and DMA regions, and bring its card up.
+//! Claim one host, map its slot and DMA regions, and open it as a fixed
+//! slot with its card up, or as a removable one.
 
 mod claim;
 mod embedded;
@@ -23,6 +24,7 @@ mod open_host;
 mod opened;
 mod say;
 mod sizes;
+mod take;
 
-pub use open_host::open;
+pub use open_host::{open, open_removable};
 pub use opened::Opened;

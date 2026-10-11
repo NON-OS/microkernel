@@ -18,8 +18,10 @@
 
 use super::limits::GEOMETRY_LEN;
 
-/// Bit 2 of the flags; bit 0 (removable) and bit 1 (read-only) stay clear
-/// for a soldered part.
+/// The flags: bit 0 a card reader's slot, bit 1 a card that may not be
+/// written, bit 2 a card in the slot. A soldered part is only present.
+pub const REMOVABLE: u32 = 1 << 0;
+pub const READ_ONLY: u32 = 1 << 1;
 pub const MEDIA_PRESENT: u32 = 1 << 2;
 
 /// Write the body into `out[..GEOMETRY_LEN]`, little endian in wire order.

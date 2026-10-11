@@ -3004,6 +3004,7 @@
    "userland/capsule_driver_sdhci/src/emmc/pci",
    "userland/capsule_driver_sdhci/src/emmc/sd",
    "userland/capsule_driver_sdhci/src/emmc/sdhci",
+   "userland/capsule_driver_sdhci/src/emmc/slot",
    "userland/capsule_driver_sdhci/src/emmc/text",
    "userland/capsule_driver_sdhci/src/protocol",
    "userland/capsule_driver_sdhci/src/server/handlers/rw_parse.rs",

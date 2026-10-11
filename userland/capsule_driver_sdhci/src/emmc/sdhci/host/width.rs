@@ -17,7 +17,7 @@
 //! The data bus width, and the widths and timings the host may run.
 
 use super::super::super::env::{Clock, Log, Mmio};
-use super::super::regs::{HC_4BIT, HC_8BIT, HOST_CONTROL};
+use super::super::regs::{HC_4BIT, HC_8BIT, HOST_CONTROL, SLOT_TYPE_REMOVABLE};
 use super::engine::Host;
 
 impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
@@ -38,6 +38,12 @@ impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
     /// is a known Intel eMMC host.
     pub fn can_bus8(&self) -> bool {
         self.caps.bus8() || self.intel_emmc
+    }
+
+    /// A slot a person puts cards in: Capabilities slot type 0, on a host
+    /// not known to be wired to an eMMC.
+    pub fn removable(&self) -> bool {
+        self.caps.slot_type() == SLOT_TYPE_REMOVABLE && !self.intel_emmc
     }
 
     /// The host may run High Speed timing.
