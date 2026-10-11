@@ -26,9 +26,9 @@ use alloc::string::String;
 
 use nonos_libc::{mk_app_install, mk_app_install_status};
 use nonos_market_proto::reason::WHY_NOT_INSTALLED;
-use nonos_market_proto::{pair_body, parse_readiness, reason, Stage, GATES, OP_INSTALL_READY};
+use nonos_market_proto::{reason, Stage, GATES};
 
-use super::call::call;
+use super::ready::readiness;
 use super::stage_text::stage_text;
 use crate::command::output::Output;
 
@@ -59,7 +59,7 @@ pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
         }
         _ => {}
     }
-    let ready = call(OP_INSTALL_READY, &pair_body(id, b"")).map(|b| parse_readiness(&b));
+    let ready = readiness(id);
     match ready {
         Ok(Some(r)) if !r.install_ready => {
             out.writeln(format!("market: {name} cannot install on this machine yet:").as_bytes());

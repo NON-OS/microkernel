@@ -199,6 +199,7 @@ dependencies = [
  "nonos_market_proto",
  "nonos_marketplace_abi",
  "nonos_secp256k1",
+ "nonos_settle_proto",
  "nonos_userland_libc",
  "sha3",
 ]
@@ -235,6 +236,13 @@ name = "nonos_secp256k1"
 version = "0.1.0"
 dependencies = [
  "nonos_hash",
+]
+
+[[package]]
+name = "nonos_settle_proto"
+version = "0.1.0"
+dependencies = [
+ "nonos_nox_config",
 ]
 
 [[package]]

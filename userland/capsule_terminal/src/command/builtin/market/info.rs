@@ -22,12 +22,13 @@ use alloc::string::String;
 
 use nonos_libc::mk_app_install_status;
 use nonos_market_proto::{
-    listing_body, pair_body, parse_app, parse_readiness, parse_release, Readiness, Stage, GATES,
-    OP_GET_APP, OP_GET_RELEASE, OP_INSTALL_READY,
+    listing_body, pair_body, parse_app, parse_release, Readiness, Stage, GATES, OP_GET_APP,
+    OP_GET_RELEASE,
 };
 
 use super::call::call;
 use super::failure::Failure;
+use super::ready::readiness;
 use super::stage_text::stage_text;
 use super::wrap::wrap;
 use crate::command::output::Output;
@@ -58,7 +59,7 @@ pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
     for line in wrap(&app.description, WIDTH) {
         out.writeln(format!("  {}", text(line)).as_bytes());
     }
-    match call(OP_INSTALL_READY, &pair_body(id, b"")).ok().and_then(|b| parse_readiness(&b)) {
+    match readiness(id).ok().flatten() {
         Some(r) => gates(out, &r),
         None => out.writeln(b"  gates      the market did not say"),
     }

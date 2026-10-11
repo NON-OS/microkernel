@@ -19,6 +19,9 @@
 #[path = "../../../capsule_market/src/install_ready/arch.rs"]
 pub mod arch;
 
+#[path = "../../../capsule_market/src/install_ready/bond.rs"]
+pub mod bond;
+
 #[path = "../../../capsule_market/src/install_ready/checks.rs"]
 pub mod checks;
 

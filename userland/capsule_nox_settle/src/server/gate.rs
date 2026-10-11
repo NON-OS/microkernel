@@ -30,7 +30,7 @@ pub fn admitted(op: u16, sender: u32) -> bool {
     admits(op, sender, owner_of)
 }
 
-/// ASYNC (flags bit 0) from payment's pid alone (v1.4.15).
+/// ASYNC (flags bit 0) from payment's or market.index's pid alone (v1.4.23).
 pub fn flags_admitted(flags: u16, sender: u32) -> bool {
     admits_flags(flags, sender, owner_of)
 }

@@ -19,9 +19,15 @@ use nonos_settle_proto::{ReplyError, FLAG_ASYNC, OP_GAS};
 
 const PAYMENT: u32 = 41;
 const SETTLE: u32 = 42;
+const MARKET: u32 = 43;
 
 fn owner(name: &[u8]) -> Option<u32> {
-    (name == b"payment").then_some(PAYMENT)
+    match name {
+        b"payment" => Some(PAYMENT),
+        b"market.index" => Some(MARKET),
+        b"app.store" => Some(99),
+        _ => None,
+    }
 }
 
 #[test]
@@ -35,9 +41,10 @@ fn an_async_request_is_a_plain_one_with_bit_0() {
 }
 
 #[test]
-fn only_payment_may_ask_async() {
+fn only_payment_and_the_market_may_ask_async() {
     assert!(admits_flags(0, 99, owner), "a plain call is the op table's business");
     assert!(admits_flags(FLAG_ASYNC, PAYMENT, owner));
+    assert!(admits_flags(FLAG_ASYNC, MARKET, owner), "v1.4.23: its bond cache");
     assert!(!admits_flags(FLAG_ASYNC, 99, owner));
     assert!(!admits_flags(FLAG_ASYNC, 0, |_| Some(0)));
     assert!(!admits_flags(FLAG_ASYNC | 2, 99, owner));

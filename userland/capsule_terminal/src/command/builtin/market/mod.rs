@@ -24,6 +24,7 @@ mod failure;
 mod info;
 mod install;
 mod list;
+mod ready;
 mod run;
 mod stage_text;
 mod uninstall;
