@@ -34,6 +34,7 @@ pub fn commit(guest: &mut Guest, id: u32) {
     };
     if window {
         present(guest, id, buffer);
+        super::output_enter::shown(guest);
     }
     Event::new(buffer, ev::BUFFER_RELEASE).send(&mut guest.display.to_client);
     let owed = take_frames(guest, id);

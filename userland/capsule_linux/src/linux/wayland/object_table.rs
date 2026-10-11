@@ -41,6 +41,11 @@ impl Objects {
         self.slots.iter().find(|s| s.0 == id).map(|s| s.1)
     }
 
+    /// Every id that names `what`, oldest first.
+    pub fn all(&self, what: Object) -> impl Iterator<Item = u32> + '_ {
+        self.slots.iter().filter(move |s| s.1 == what).map(|s| s.0)
+    }
+
     /// Record `id` as `what`, made by the request being served; false,
     /// recording nothing, when a new id would pass MAX_OBJECTS or the
     /// client has failed, so the request that asked for it makes nothing.
