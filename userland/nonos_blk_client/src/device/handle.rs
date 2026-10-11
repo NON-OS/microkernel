@@ -19,8 +19,8 @@
 
 use nonos_libc::mk_service_lookup;
 
+use super::geometry::Geometry;
 use super::nvme;
-use super::span::Geometry;
 use crate::driver::Driver;
 use crate::error::BlkError;
 use crate::wire::{call, decode_reply, HDR_LEN, STATUS_LEN};
