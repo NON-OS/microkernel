@@ -76,6 +76,8 @@ pub mod dma_wipe;
 pub mod efi_time;
 #[cfg(test)]
 pub mod emmc_hosts;
+#[cfg(test)]
+mod inventory_ids;
 pub mod elf;
 #[cfg(test)]
 pub mod fd_fork;
