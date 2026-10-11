@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The network cards a hypervisor emulates and no physical machine carries:
-//! each driver exits at once where its device is absent.
+//! The network cards a hypervisor emulates and no physical machine carries,
+//! each spawned only where the device table has its device.
 
 pub(super) fn spawn() {
     spawn_pcnet();
@@ -24,7 +24,11 @@ pub(super) fn spawn() {
 
 #[cfg(feature = "nonos-capsule-driver-pcnet")]
 fn spawn_pcnet() {
+    use crate::hardware::inventory::HardwareFamily;
     use crate::hardware::pcnet_capsule as c;
+    if !super::device_present::present("DRIVER-PCNET", HardwareFamily::NetworkPcnet) {
+        return;
+    }
     super::boot::capsule(
         "DRIVER-PCNET",
         "driver_pcnet",
@@ -37,7 +41,11 @@ fn spawn_pcnet() {}
 
 #[cfg(feature = "nonos-capsule-driver-vmxnet3")]
 fn spawn_vmxnet3() {
+    use crate::hardware::inventory::HardwareFamily;
     use crate::hardware::vmxnet3_capsule as c;
+    if !super::device_present::present("DRIVER-VMXNET3", HardwareFamily::NetworkVmxnet3) {
+        return;
+    }
     super::boot::capsule(
         "DRIVER-VMXNET3",
         "driver_vmxnet3",
