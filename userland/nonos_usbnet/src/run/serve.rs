@@ -20,9 +20,10 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_getpid, Deadline};
+use nonos_libc::Deadline;
 
 use super::bind_fn::BindFn;
+use super::me::own_pid;
 use super::one::serve_one;
 use crate::nic::{Nic, ETH_FRAME_MAX};
 use crate::nnet::{Stats, DATA_AT, HDR_LEN};
@@ -35,12 +36,13 @@ const SEARCH_POLL_MS: u64 = 1_000;
 /// Transfers failed in a row before the device is taken as gone.
 const LOST_AFTER: u32 = 8;
 
-pub fn run<N: Nic>(tag: &'static [u8], bind: BindFn<N>) -> ! {
+/// `service` is the name the capsule is spawned under, `driver.<x>0`.
+pub fn run<N: Nic>(tag: &'static [u8], service: &str, bind: BindFn<N>) -> ! {
     let mut rx = vec![0u8; HDR_LEN + ETH_FRAME_MAX + 64];
     let mut tx = vec![0u8; DATA_AT + 4 + ETH_FRAME_MAX + 64];
     let (mut stats, mut scanner) = (Stats::default(), Scanner::new());
     let mut bound: Option<Bound<N>> = None;
-    let (me, mut next_pass) = (mk_getpid(), Deadline::after_ms(0));
+    let (me, mut next_pass) = (own_pid(service), Deadline::after_ms(0));
     say(tag, &[b"started, looking for a device"]);
     loop {
         let wait = if bound.is_some() { 0 } else { SEARCH_POLL_MS };

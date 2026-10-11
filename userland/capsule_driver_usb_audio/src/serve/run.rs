@@ -19,10 +19,10 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_getpid, Deadline};
-use nonos_usbnet::say::say;
+use nonos_libc::Deadline;
 use nonos_usbnet::scan::{Bound, Scanner};
 use nonos_usbnet::xhci::disable_slot;
+use nonos_usbnet::{run::own_pid, say::say};
 
 use super::feed::feed;
 use super::one::serve_one;
@@ -42,7 +42,7 @@ pub fn run() -> ! {
     // A batch is at most 4032 bytes (`uac::timing`), so one PCM chunk holds it.
     let (mut rx, mut batch) = (vec![0u8; HDR_LEN + MAX_PCM_CHUNK], vec![0u8; MAX_PCM_CHUNK]);
     let mut tx = [0u8; REPLY_MAX];
-    let (mut play, mut scanner, me) = (Play::new(), Scanner::new(), mk_getpid());
+    let (mut play, mut scanner, me) = (Play::new(), Scanner::new(), own_pid("driver.usb_audio0"));
     let (mut bound, mut failing) = (None::<Bound<Speaker>>, 0u32);
     let mut next_pass = Deadline::after_ms(0);
     say(TAG, &[b"started, looking for a device"]);
