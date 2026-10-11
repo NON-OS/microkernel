@@ -3892,6 +3892,7 @@
    ".cargo",
    "nonos-attest-path",
    "nonos-device-attest",
+   "userland/capsule_prove_fetch/src/desk",
    "userland/isolation_stark",
    "userland/nonos_proof_abi",
    "userland/proof_abi_proofs"

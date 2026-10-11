@@ -49,7 +49,8 @@ impl Stage {
     }
 }
 
-/// STATUS's reply body: the stage, then the container's length once Held.
+/// STATUS's reply body: the stage, then the container's length when known
+/// (uploading or held), else 0.
 pub fn status_body(stage: Stage, total: u32) -> [u8; 5] {
     let mut b = [0u8; 5];
     b[0] = stage as u8;
