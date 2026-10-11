@@ -23,6 +23,7 @@ mod device_tests;
 mod policy_vector_tests;
 mod record_digest_tests;
 mod record_tests;
+mod sup_caps_tests;
 mod verify_kind_tests;
 mod verify_refusal_tests;
 mod verify_tests;
