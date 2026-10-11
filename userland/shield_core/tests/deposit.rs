@@ -107,6 +107,7 @@ fn the_pre_flight_refuses_what_the_contract_refuses_in_its_order() {
     };
     assert_eq!(with(|s| s.deposits_paused = true), Err(Refusal::DepositsPaused));
     assert_eq!(with(|s| s.wound_down = true), Err(Refusal::WoundDown));
+    assert_eq!(with(|s| s.policy_paused = true), Err(Refusal::PolicyPaused));
     assert_eq!(with(|s| s.beta_paused = true), Err(Refusal::BetaPaused));
     assert_eq!(with(|s| s.is_depositor = false), Err(Refusal::NotOnBetaList));
     assert_eq!(with(|s| s.addr_deposited = 10 * u128::from(NOX)), Err(Refusal::AddressCapReached));

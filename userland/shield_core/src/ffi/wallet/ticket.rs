@@ -67,6 +67,9 @@ pub(super) fn sentence(refusal: Refusal) -> &'static str {
     match refusal {
         Refusal::DepositsPaused => "The pool has paused deposits.",
         Refusal::WoundDown => "This pool is wound down. Money sent to it could not be spent.",
+        Refusal::PolicyPaused => {
+            "The pool's policy is paused. Money sent now could not leave until it resumes."
+        }
         Refusal::Amount => "That amount is zero, too large for one note, or all fee.",
         Refusal::NotWholeUnits => "The pool takes whole units only. Round the amount.",
         Refusal::BetaPaused => "The beta is paused.",

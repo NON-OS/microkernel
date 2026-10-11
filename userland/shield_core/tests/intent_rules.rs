@@ -5,9 +5,10 @@ use nox_shield_core::notes::MAX_VALUE;
 use nox_shield_core::wallet::{check_intent, Intent, IntentRefusal, PoolRules};
 
 /// The format 5 pool: eleven words, no relay fee.
-const FORMAT5: PoolRules = PoolRules { words_per_intent: 11, max_relay_fee: 0 };
+const FORMAT5: PoolRules = PoolRules { words_per_intent: 11, max_relay_fee: 0, policy_fee: None };
 /// A launch pool: twelve words, transfers may pay a relayer up to 1,000 units.
-const LAUNCH: PoolRules = PoolRules { words_per_intent: 12, max_relay_fee: 1_000 };
+const LAUNCH: PoolRules =
+    PoolRules { words_per_intent: 12, max_relay_fee: 1_000, policy_fee: None };
 const RELAYER: [u8; 20] = [9; 20];
 
 const NOX: u64 = 1_000_000_000_000_000_000;
