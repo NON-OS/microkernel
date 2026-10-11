@@ -55,7 +55,7 @@ impl App for Store {
             return true;
         }
         let moved = self.state.any_pending() && self.state.poll_pending();
-        let fetched = self.state.poll_fetch();
+        let fetched = self.state.poll_fetch() | self.state.watch_order();
         if moved {
             // "install requested" is stale once the system has said more.
             self.state.asked = None;

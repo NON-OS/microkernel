@@ -17,43 +17,18 @@
 //! 19/0 POST: the selected listing's names, and only its
 //! names, into the meter's mailbox for the wallet to take.
 
-use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_time_millis};
 use nonos_nox_config::SEPOLIA;
-use nonos_payment_proto::{reply_body, request, Names, EAGAIN, EINVAL, HDR_LEN};
-use nonos_payment_proto::{OP_PURCHASE, SERVICE, STATUS_LEN};
+use nonos_payment_proto::{Names, EINVAL, OP_PURCHASE};
 
 use super::asked::Asked;
+use super::meter_call::call;
 use super::purchase_said::handed;
 use super::state::State;
-
-/// The meter answers from memory.
-const TIMEOUT_MS: u64 = 2_000;
 
 pub fn post(state: &State) -> Asked {
     let Some(l) = state.current() else { return Asked::NotInstallable };
     let names = Names { chain_id: SEPOLIA, listing: l.id.clone(), release: Vec::new() };
-    handed(names.post().ok_or(EINVAL).and_then(|b| call(&b)))
-}
-
-fn call(body: &[u8]) -> Result<(), i32> {
-    let (mut port, mut pid) = (0u32, 0u32);
-    if mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut port, &mut pid) != 0 || pid == 0 {
-        return Err(EAGAIN);
-    }
-    let id = mk_time_millis() as u32;
-    let tx = request(OP_PURCHASE, id, body);
-    let mut rx = vec![0u8; HDR_LEN + STATUS_LEN];
-    let (out, cap) = (rx.as_mut_ptr(), rx.len());
-    let n = mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), out, cap, TIMEOUT_MS);
-    if n <= 0 {
-        return Err(EAGAIN);
-    }
-    match reply_body(&rx[..n as usize], OP_PURCHASE, id) {
-        Ok(_) => Ok(()),
-        Err(nonos_payment_proto::ReplyError::Status(s)) => Err(s),
-        Err(_) => Err(EAGAIN),
-    }
+    handed(names.post().ok_or(EINVAL).and_then(|b| call(OP_PURCHASE, &b, 0)).map(|_| ()))
 }
