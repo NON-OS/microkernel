@@ -1862,6 +1862,7 @@
    "userland/capsule_linux/src/linux/wayland/ops.rs",
    "userland/capsule_linux/src/linux/wayland/ops_data.rs",
    "userland/capsule_linux/src/linux/wayland/ops_decoration.rs",
+   "userland/capsule_linux/src/linux/wayland/ops_misc.rs",
    "userland/capsule_linux/src/linux/wayland/ops_output.rs",
    "userland/capsule_linux/src/linux/wayland/ops_req.rs",
    "userland/capsule_linux/src/linux/wayland/ops_seat.rs",
