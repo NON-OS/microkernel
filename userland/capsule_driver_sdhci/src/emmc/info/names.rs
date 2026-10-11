@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The model and serial IDENTIFY carries.
+//! The part's model and serial.
 
 use super::super::mmc::Cid;
 use super::maker::maker;
 use super::{MODEL_MAX, SERIAL_LEN};
 
-/// The model and serial IDENTIFY carries for an eMMC part.
+/// An eMMC part's model and serial.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Names {
     pub model: [u8; MODEL_MAX],

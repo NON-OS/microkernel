@@ -14,13 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The reply sizes and the fixed values the payloads carry.
+//! How long a part's name may be.
 
-/// IDENTIFY's medium byte for an eMMC part.
-pub const MEDIUM_EMMC: u8 = 1;
 pub const MODEL_MAX: usize = 40;
 pub const SERIAL_LEN: usize = 8;
-
-pub const CONTROLLER_INFO_LEN: usize = 24;
-pub const PORT_ENTRY_LEN: usize = 36;
-pub const PORT_KIND_EMMC: u8 = 5;

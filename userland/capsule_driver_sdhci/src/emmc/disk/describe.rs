@@ -14,29 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The descriptions the info ops reply with.
+//! What the served part is called, and the console line that says so.
 
 use super::super::env::{Clock, Log, Mmio};
-use super::super::info::{
-    controller_info, names, port_entry, Names, CONTROLLER_INFO_LEN, PORT_ENTRY_LEN,
-};
-use super::super::mmc::ops;
+use super::super::info::{names, Names};
+use super::super::text::Line;
 use super::EmmcDisk;
 
 impl<M: Mmio, C: Clock, L: Log> EmmcDisk<M, C, L> {
-    /// The model and serial IDENTIFY carries.
+    /// The part's model and serial, from its CID.
     pub fn names(&self) -> Names {
         names(&self.card.cid)
     }
 
-    pub fn controller_info(&self) -> [u8; CONTROLLER_INFO_LEN] {
-        controller_info(&self.host.caps, &self.host.snapshot())
-    }
-
-    /// The PORT_LIST entry, with the card's status read now.
-    pub fn port_entry(&mut self) -> [u8; PORT_ENTRY_LEN] {
-        let status = ops::status(&mut self.host, self.card.rca);
-        let snap = self.host.snapshot();
-        port_entry(status.is_ok(), &snap, self.card.ocr, status.unwrap_or(0))
+    /// One line naming the part being served and the OCR it came up with, so
+    /// a boot log says which chip a report is about.
+    pub fn say_part(&self) {
+        let n = self.names();
+        self.host.say(
+            Line::new()
+                .s(b"serving ")
+                .ascii(n.model())
+                .s(b", serial ")
+                .ascii(&n.serial)
+                .s(b", OCR ")
+                .hex(self.card.ocr as u64),
+        );
     }
 }
