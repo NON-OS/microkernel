@@ -20,6 +20,8 @@
 //! closing it exits it, and the kernel zeroizes everything it held.
 
 mod embed;
+mod job;
 mod spawn;
 
+pub use job::{prover_live, spawn_prove_job, JOB, JOB_ARG};
 pub use spawn::{spawn_prove_instance, PROVE_CAPS};

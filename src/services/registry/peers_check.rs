@@ -41,7 +41,7 @@ fn caller_name() -> Option<alloc::string::String> {
 }
 
 /// Whether the calling process owns the endpoint called `name`.
-fn caller_owns(name: &str) -> bool {
+pub(crate) fn caller_owns(name: &str) -> bool {
     let Some(group) = caller_group() else {
         return false;
     };

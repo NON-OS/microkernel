@@ -61,6 +61,7 @@ pub mod private_write;
 pub mod proc_output;
 pub mod proc_stdin;
 pub mod process;
+pub mod prove_job;
 pub mod procstat;
 mod procstat_boot;
 pub mod procstat_codes;

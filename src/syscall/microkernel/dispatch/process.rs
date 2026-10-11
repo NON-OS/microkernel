@@ -23,6 +23,7 @@ use crate::process::foreign::{
 };
 use crate::process::foreign::seal::{sys_seal_note, sys_seal_read};
 use crate::syscall::microkernel::app_install::sys_app_install;
+use crate::syscall::microkernel::prove_job::sys_prove_job;
 use crate::syscall::microkernel::app_install_status::sys_app_install_status;
 use crate::syscall::microkernel::app_uninstall::sys_app_uninstall;
 use crate::syscall::microkernel::app_launch::sys_app_launch;
@@ -113,6 +114,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_FOREIGN_EXEC => sys_foreign_exec(a.a0, a.a1, a.a2),
         SYS_SEAL_READ => sys_seal_read(a.a0, a.a1, a.a2),
         SYS_SEAL_NOTE => sys_seal_note(a.a0, a.a1),
+        SYS_PROVE_JOB => sys_prove_job(),
         SYS_LOCAL_SIGN => sys_local_sign(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_LOCAL_VERIFY => sys_local_verify(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_APP_INSTALL => sys_app_install(a.a0, a.a1, a.a2, a.a3),
