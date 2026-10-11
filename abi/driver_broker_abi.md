@@ -91,7 +91,7 @@ Bar {
     size:   u64
     aux:    u32      // LPSS I2C controller: source clock in Hz; else 0
     kind:   u8       // BAR_NONE=0, BAR_MMIO=1, BAR_PIO=2
-    flags:  u8       // PREFETCH=1, MEM64=2
+    flags:  u8       // PREFETCH=1, MEM64=2, FIXED=4 (a fixed legacy window)
     _pad:   [u8; 2]
 }
 ```
