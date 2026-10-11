@@ -65,6 +65,7 @@ mod wayland_keys_named_tests;
 mod wayland_keys_tests;
 mod wayland_mods_tests;
 mod wayland_opaque_tests;
+mod wayland_pointer_tests;
 mod wayland_region_tests;
 mod wayland_subsurface_tests;
 mod gram_tests;

@@ -43,8 +43,10 @@ pub fn motion(guest: &mut Guest, x: i32, y: i32) {
     Event::new(id, POINTER_FRAME).send(&mut guest.display.to_client);
 }
 
-pub fn button(guest: &mut Guest, code: u32, state: u32) {
+/// `button` is the driver's, from 1; one with no Linux code sends nothing.
+pub fn button(guest: &mut Guest, button: u32, state: u32) {
     let Some(id) = guest.scene.pointer else { return };
+    let Some(code) = super::pointer_codes::button_code(button) else { return };
     let serial = guest.scene.next_serial();
     let time = time_ms();
     Event::new(id, POINTER_BUTTON)

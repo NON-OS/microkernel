@@ -21,6 +21,7 @@ use nonos_app_skeleton::input::{InputEvent, InputKind};
 
 use crate::linux::guest::Guest;
 
+use super::input_axis::wheel;
 use super::input_key::key;
 use super::input_send::{button, motion};
 
@@ -36,6 +37,7 @@ pub fn deliver(guest: &mut Guest, event: &InputEvent) {
         InputKind::PointerAbs => motion(guest, event.x, event.y),
         InputKind::ButtonDown => button(guest, event.code, 1),
         InputKind::ButtonUp => button(guest, event.code, 0),
+        InputKind::Wheel => wheel(guest, event.delta_x, event.delta_y, event.x, event.y),
         _ => {}
     }
 }
