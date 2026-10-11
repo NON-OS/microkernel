@@ -22,7 +22,7 @@ mod etna_click;
 mod etna_scroll;
 mod export_key;
 mod generate;
-mod hex_digit;
+pub(crate) mod hex_digit;
 pub mod idle_lock;
 mod import;
 mod keep;

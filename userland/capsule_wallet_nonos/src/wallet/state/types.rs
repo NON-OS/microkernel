@@ -34,6 +34,8 @@ pub const VIEW_ACCOUNTS: u8 = 15;
 pub const VIEW_METER: u8 = 16;
 /* Signing a listing as its publisher (B8, plan/31). */
 pub const VIEW_PUBLISHER: u8 = 17;
+/* A purchase the store named, to confirm (B8, plan/27). */
+pub const VIEW_PURCHASE: u8 = 18;
 /* Whether the keyring holds account 0's recovery words this session. */
 pub const WORDS_UNREAD: u8 = 0;
 pub const WORDS_HELD: u8 = 1;

@@ -1,0 +1,55 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The terms a purchase shows: the market's, never the store's.
+
+use alloc::format;
+use alloc::string::String;
+use alloc::vec::Vec;
+
+use crate::wallet::etna::groups::shortened;
+use crate::wallet::nox::nox_text;
+use crate::wallet::order::buy::DELIVERY_ASKED;
+use crate::wallet::order::intake::{Pending, Step};
+use crate::wallet::order::read::Named;
+use crate::wallet::screen::receive_address::checksummed_text;
+
+fn text(b: &[u8]) -> String {
+    String::from_utf8_lossy(b).into_owned()
+}
+
+pub fn rows(p: &Pending) -> Vec<(&'static str, String)> {
+    let release = if p.names.release.is_empty() {
+        String::from("its default")
+    } else {
+        text(&p.names.release)
+    };
+    let mut out = Vec::from([("listing", text(&p.names.listing)), ("release", release)]);
+    let Ok(Named::Escrow(b)) = &p.read else { return out };
+    let bond: String = b.bond_id.iter().take(6).map(|x| format!("{x:02x}")).collect();
+    out.extend([
+        ("payee", shortened(&checksummed_text(&b.payee))),
+        ("price", format!("{} NOX, once", nox_text(b.amount))),
+        ("bond", format!("0x{bond}…, checked by the market")),
+        ("package", format!("{} bytes, checked chunk by chunk", b.content_len)),
+        ("delivery", format!("within {} days of the order", DELIVERY_ASKED / 86_400)),
+        ("refund", String::from("to a fresh address of this wallet")),
+    ]);
+    if let Step::Fund(m) = &p.step {
+        out.push(("deposit", checksummed_text(&m.deposit)));
+    }
+    out
+}

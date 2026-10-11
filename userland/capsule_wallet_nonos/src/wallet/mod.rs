@@ -28,6 +28,7 @@ mod meter;
 mod net;
 mod nox;
 mod num;
+mod order;
 pub mod paint;
 pub mod vault;
 mod pool;
