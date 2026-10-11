@@ -17,13 +17,33 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FdtError {
     NullPointer,
+    /// The blob does not start on the 8-byte boundary the spec requires.
+    Misaligned,
     BadMagic,
     BadVersion,
     OutOfBounds,
+    /// `totalsize` is past `MAX_BLOB` or past the bytes actually supplied.
+    TooLarge,
+    /// A block offset breaks the alignment its contents need.
+    BadLayout,
     UnalignedToken,
     UnknownToken,
     StringMissing,
     TruncatedNodeName,
     TruncatedProperty,
     TotalSizeTooSmall,
+    /// Nesting past `MAX_DEPTH`.
+    TooDeep,
+    /// An END_NODE with no node open, or FDT_END with one still open.
+    Unbalanced,
+    /// The structure block ran out before FDT_END.
+    MissingEnd,
+    /// Something other than one root node: a second root, a property outside
+    /// any node, or a root with a name.
+    BadRoot,
+    /// A property after a subnode in the same node, which the spec forbids
+    /// and which would hide it from every cell-size lookup.
+    PropertyAfterNode,
+    /// A value spread over more cells than a u64 holds.
+    BadCells,
 }
