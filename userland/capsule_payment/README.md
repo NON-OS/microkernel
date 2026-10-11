@@ -71,9 +71,10 @@ status defined there.
 | 6 SET_BUDGET | wallet | `SetBudget` | none |
 | 7 | - | - | EINVAL: NXL1 is not in v1 |
 | 8-11 | - | - | EINVAL until ORDER_* land with escrow (B5) |
-| 12 OPEN | wallet | `OpenStart` or `OpenConfirm` | START: approveTx[32] and openTx[32], both signed by the meter's key and broadcast by settle, never above the config's fee caps (EGAS); CONFIRM: the channel id, once a ChannelOpened matching the request is mined (EAGAIN before) |
-| 13 TOPUP | wallet | `TopUp` | approveTx[32] and topUpTx[32], signed by the meter's key and broadcast by settle |
-| 14 CLOSE | wallet | `Close` | closeTx[32]; ETIME before expiry plus the contract's GRACE. Anyone may close: the meter's key is a convenience |
+| 12 OPEN | wallet | `OpenStart` or `OpenConfirm` | START: a job id (u32), or EBUSY; the job's result is approveTx[32] and openTx[32], both signed by the meter's key and broadcast by settle, never above the config's fee caps (EGAS); CONFIRM: the channel id, once a ChannelOpened matching the request is mined (EAGAIN before) |
+| 13 TOPUP | wallet | `TopUp` | a job id, or EBUSY; its result is approveTx[32] and topUpTx[32], signed by the meter's key and broadcast by settle |
+| 14 CLOSE | wallet | `Close` | a job id, or EBUSY; its result is closeTx[32], or ETIME before expiry plus the contract's GRACE. Anyone may close: the meter's key is a convenience |
+| 15 JOB | wallet | id u32 | EAGAIN while the job runs, then its result once; ENOENT for any other id. Each step is an ASYNC settle request answered into this capsule's inbox; a step with no answer in 150 s fails the job (ETIME) |
 
 Every refusal is a status named in `nonos_payment_proto::status`.
 

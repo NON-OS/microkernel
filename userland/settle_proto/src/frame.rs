@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 
 use crate::header::{parse_header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
 
-fn framed(op: u16, flags: u16, request_id: u32, parts: &[&[u8]]) -> Vec<u8> {
+pub(crate) fn framed(op: u16, flags: u16, request_id: u32, parts: &[&[u8]]) -> Vec<u8> {
     let len: usize = parts.iter().map(|p| p.len()).sum();
     let mut out = Vec::with_capacity(HDR_LEN + len);
     out.extend_from_slice(&MAGIC.to_le_bytes());

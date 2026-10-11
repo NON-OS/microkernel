@@ -20,7 +20,7 @@ use nonos_settle_proto::{EINVAL, EPERM, OP_BROADCAST, OP_CHANNEL_STATE, OP_FETCH
 use nonos_settle_proto::{OP_HEALTHCHECK, OP_INTENT, OP_OPENED, OP_READ, OP_SETTLE};
 
 use super::call::Call;
-use super::gate::admitted;
+use super::gate::{admitted, flags_admitted};
 use crate::handlers;
 use crate::settle::Settle;
 
@@ -31,6 +31,9 @@ use crate::settle::Settle;
 pub fn dispatch(s: &mut Settle, sender: u32, req: &Call<'_>) -> Vec<u8> {
     if !admitted(req.op, sender) {
         return req.answer(EPERM, &[]);
+    }
+    if !flags_admitted(req.flags, sender) {
+        return req.answer(EINVAL, &[]);
     }
     let r = match req.op {
         OP_HEALTHCHECK => Ok(Vec::new()),
