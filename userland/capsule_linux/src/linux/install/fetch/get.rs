@@ -19,7 +19,7 @@
 use nonos_libc::mk_debug;
 
 use super::super::auth::{verified, Verified};
-use super::super::download::download;
+use super::super::get::package::download;
 use super::super::index::Pkg;
 
 /// The package's files, if its bytes authenticate. `pin` is the market's hash

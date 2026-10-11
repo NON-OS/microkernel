@@ -28,17 +28,9 @@
  * reason (`fetch_exit`).
  */
 
-use alloc::vec::Vec;
+use super::run::run;
 
-use nonos_libc::{mk_proc_output, mk_tool_run, mk_wait};
-
-const TOOL: &[u8] = b"tool.model-fetch";
 const VERB: &[u8] = b"get";
-const ETIMEDOUT: i64 = -110;
-/* How long one wait lasts before the fetcher's output is drained again. */
-const SLICE_MS: u64 = 200;
-/* The most the fetcher writes at once. */
-const LINE: usize = 256;
 
 /*
  * The fetcher's exit status for `get <tier>`, or MkToolRun's errno. With
@@ -59,30 +51,4 @@ pub fn fetch(tier: &str, direct: bool) -> Result<i64, i64> {
  */
 pub fn remove(tier: &str) -> Result<i64, i64> {
     run(b"remove", tier)
-}
-
-fn run(verb: &[u8], tier: &str) -> Result<i64, i64> {
-    let mut argv = Vec::with_capacity(verb.len() + 1 + tier.len());
-    argv.extend_from_slice(verb);
-    argv.push(0);
-    argv.extend_from_slice(tier.as_bytes());
-    let rc = mk_tool_run(TOOL, &argv);
-    let pid = match u32::try_from(rc) {
-        Ok(pid) if pid != 0 => pid,
-        _ => return Err(rc.min(-1)),
-    };
-    loop {
-        drain(pid);
-        let status = mk_wait(u64::from(pid), SLICE_MS);
-        if status != ETIMEDOUT {
-            drain(pid);
-            return Ok(status);
-        }
-    }
-}
-
-/* Read and drop what the fetcher has written so far. */
-fn drain(pid: u32) {
-    let mut line = [0u8; LINE];
-    while mk_proc_output(pid, line.as_mut_ptr(), line.len()) > 0 {}
 }

@@ -19,13 +19,13 @@
 use alloc::format;
 use alloc::vec::Vec;
 
-use super::auth::{rsa_verify, signed_index};
-use super::http::get::get;
-use super::index::Index;
-use super::run::{ARCH, BRANCHES, RELEASE};
-use super::tar::entries;
+use super::super::auth::{rsa_verify, signed_index};
+use super::super::http::get::get;
+use super::super::index::Index;
+use super::super::run::{ARCH, BRANCHES, RELEASE};
+use super::super::tar::entries;
 
-pub(super) fn load_index() -> Option<Index> {
+pub(in crate::linux::install) fn load_index() -> Option<Index> {
     let mut all: Vec<u8> = Vec::new();
     for branch in BRANCHES {
         let path = format!("/alpine/{RELEASE}/{branch}/{ARCH}/APKINDEX.tar.gz");

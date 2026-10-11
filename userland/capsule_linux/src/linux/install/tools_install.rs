@@ -26,7 +26,8 @@
 use nonos_libc::mk_debug;
 
 use super::auth::Verified;
-use super::http::get::{get_as, reachable};
+use super::http::get::get_as;
+use super::http::reach::reachable;
 use super::mirror::parse;
 use super::place::all::unpack;
 use super::tools::{content_path, PREFIX};

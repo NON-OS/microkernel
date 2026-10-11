@@ -21,8 +21,8 @@
  * the uninstall's exit code (`Why`). Pure, so model_fetch_proofs holds it.
  */
 
-use super::super::fetch_exit::{BUSY, DONE, LOCKED, NO_MEMORY, NO_VOLUME, USAGE, VOLUME_FAILED};
-use super::super::why::Why;
+use super::fetch_exit::{BUSY, DONE, LOCKED, NO_MEMORY, NO_VOLUME, USAGE, VOLUME_FAILED};
+use super::why::Why;
 
 /* MkToolRun's errnos, negative. */
 const NOT_BUILT: i64 = -2;

@@ -23,8 +23,9 @@ use crate::linux::guest::Guest;
 
 use super::super::reshape::{reshape, Reshape};
 use super::super::window_damage::window_damage;
+use super::refit::refit;
 use super::source::{source, take};
-use super::window::{refit, show};
+use super::window::show;
 
 const NO_ROOM: &[u8] = b"[WAYLAND] no room for the frame, not shown\n";
 

@@ -16,6 +16,8 @@
 
 //! timerfd: the descriptor, its spec, and reading its expirations.
 
+pub(super) mod get;
 pub(super) mod open;
 pub(super) mod read;
+pub(super) mod set;
 pub(super) mod spec;

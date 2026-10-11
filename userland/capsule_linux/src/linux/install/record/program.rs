@@ -21,8 +21,8 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
 
-use super::auth::Verified;
-use super::tar::entries;
+use super::super::auth::Verified;
+use super::super::tar::entries;
 
 // Outside every family's tree, where no guest can rewrite what its package
 // starts as. One directory per family, so two families' `jq` do not collide.
@@ -30,7 +30,7 @@ use crate::linux::file::family::records;
 
 /// Record `usr/bin/<name>` if the package has it, else its first program.
 /// True when it is recorded, or the package has no program to record.
-pub(super) fn record(name: &str, files: &Verified) -> bool {
+pub(in crate::linux::install) fn record(name: &str, files: &Verified) -> bool {
     let all = entries(files.files());
     let mut programs = all
         .iter()
@@ -48,7 +48,7 @@ pub(super) fn record(name: &str, files: &Verified) -> bool {
 }
 
 /// The directories the records sit in; ones already there are left alone.
-pub(super) fn make_records(pid: u32) {
+pub(in crate::linux::install) fn make_records(pid: u32) {
     for dir in [b"/nonos".as_slice(), b"/nonos/linux", records()] {
         let _ = vfs::mkdir(pid, dir);
     }
@@ -61,7 +61,7 @@ pub fn recorded(name: &str) -> Option<Vec<u8>> {
 
 /// Forget what `name` starts as, when it is uninstalled. True when there is
 /// no record left, whether or not there was one.
-pub(super) fn forget(name: &str) -> bool {
+pub(in crate::linux::install) fn forget(name: &str) -> bool {
     let at = at(name);
     let pid = mk_getpid();
     vfs::unlink(pid, &at).is_ok() || vfs::stat(pid, &at).is_err()

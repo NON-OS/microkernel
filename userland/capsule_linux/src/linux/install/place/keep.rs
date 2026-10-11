@@ -21,7 +21,7 @@ use nonos_libc::mk_debug;
 
 use super::super::auth::Verified;
 use super::super::manifest::Manifest;
-use super::super::program::record;
+use super::super::record::program::record;
 use super::super::Why;
 
 pub(super) fn keep(

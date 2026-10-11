@@ -54,7 +54,7 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
     if !links.is_empty() && !unrecord(&links) {
         left.links = links.clone();
     }
-    let forgot = super::super::program::forget(pkg);
+    let forgot = super::super::record::program::forget(pkg);
     let settled = super::super::package_record::settle(pkg, &left);
     say(&format!(
         "[LINUX] {pkg}: took out {} of {} file(s) and {} link(s); {} shared with another package stay\n",

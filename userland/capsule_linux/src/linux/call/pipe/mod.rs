@@ -18,6 +18,7 @@
 
 pub(super) mod dup;
 pub(super) mod end;
+pub(super) mod ends;
 pub(super) mod io;
 pub(super) mod make;
 pub(super) mod poll;

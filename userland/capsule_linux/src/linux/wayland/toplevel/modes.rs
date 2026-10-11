@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `xdg_toplevel`'s full screen and maximise, asked by the guest or by the
-//! person with F11, and its destroy.
+//! person with F11. Its destroy is destroy.rs.
 //!
 //! A guest window has no NONOS frame and no green button: its pixels are
 //! all the guest's. F11 is the key a Linux desktop makes a window full
@@ -23,19 +23,11 @@
 //! focused guest has a toplevel, and goes to the guest as before when it
 //! has none.
 
-use nonos_app_skeleton::clients::compositor::display_info;
-use nonos_app_skeleton::discover::lookup_port;
-use nonos_app_skeleton::runner::chrome::full_screen;
-
 use crate::linux::guest::Guest;
 
-use super::args::Args;
-use super::close_window::close_for;
-use super::configure::configure;
-use super::fit::{Mode, Rect};
-use super::object::Object;
-use super::present::surface::say;
-use super::window_life::End;
+use super::super::args::Args;
+use super::super::fit::Mode;
+use super::ask::ask;
 
 /// set_maximized and set_fullscreen.
 pub fn set(guest: &mut Guest, toplevel: u32, want: Mode, args: &mut Args<'_>) {
@@ -66,15 +58,6 @@ pub fn toggle(guest: &mut Guest) -> bool {
     true
 }
 
-/// xdg_toplevel.destroy: the window it made goes with it.
-pub fn destroy(guest: &mut Guest, toplevel: u32) {
-    close_for(&mut guest.scene, End::Toplevel(toplevel));
-    for s in guest.scene.surfaces.iter_mut().filter(|s| s.toplevel == Some(toplevel)) {
-        s.toplevel = None;
-    }
-    super::forget::forget(guest, Some(Object::XdgToplevel), toplevel);
-}
-
 /// Whether F11 is taken: the guest has a toplevel for it to act on.
 pub fn has_toplevel(guest: &Guest) -> bool {
     shown_toplevel(guest).is_some()
@@ -84,34 +67,4 @@ pub fn has_toplevel(guest: &Guest) -> bool {
 fn shown_toplevel(guest: &Guest) -> Option<u32> {
     let scene = &guest.scene;
     scene.shown.and_then(|s| s.toplevel).or_else(|| scene.surfaces.iter().find_map(|s| s.toplevel))
-}
-
-fn ask(guest: &mut Guest, toplevel: u32, want: Mode) {
-    let Some(xdg) = guest.scene.surfaces.iter().find(|s| s.toplevel == Some(toplevel)).and_then(|s| s.xdg)
-    else {
-        return;
-    };
-    let fill = match want.fills() {
-        true => match fill() {
-            Some(rect) => rect,
-            None => {
-                say("[WAYLAND] full screen refused: the compositor gave no display size\n".into());
-                return;
-            }
-        },
-        false => (0, 0, 0, 0),
-    };
-    let now = guest.scene.rect();
-    let serial = guest.scene.next_serial();
-    if let Some(told) = guest.scene.fit.ask(want, now, fill, serial) {
-        configure(toplevel, xdg, &told, &mut guest.display.to_client);
-    }
-}
-
-/// The green button's rect on this display: from the foot of the menubar
-/// down to the bottom edge, the whole width.
-fn fill() -> Option<Rect> {
-    let port = lookup_port(b"compositor")?;
-    let d = display_info(port, 1).ok()?;
-    Some(full_screen(d.width, d.height))
 }

@@ -16,6 +16,10 @@
 
 //! A committed buffer onto the NONOS surface the window shows.
 
+pub(super) mod adopt;
+pub(super) mod open;
+pub(super) mod place;
+pub(super) mod refit;
 pub(super) mod show;
 pub(super) mod source;
 pub(super) mod surface;

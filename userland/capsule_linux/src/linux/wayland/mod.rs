@@ -20,6 +20,7 @@
 mod args;
 mod bind;
 mod buffer;
+mod close_steps;
 mod close_window;
 mod commit;
 mod configure;

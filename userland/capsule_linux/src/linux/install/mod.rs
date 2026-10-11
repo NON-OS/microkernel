@@ -18,7 +18,6 @@
 
 mod apps;
 mod apps_coder;
-mod apps_install;
 mod apps_qwen25;
 mod apps_qwen3;
 mod apps_run;
@@ -28,27 +27,28 @@ mod anyone_wait;
 mod auth;
 mod chat_build;
 mod chat_pick;
-mod cpu;
 mod deb;
-mod download;
-mod enrol;
 mod exports;
 mod family;
 mod fetch;
 /* The model fetcher's exit statuses, from its own source: one table. */
 #[path = "../../../../capsule_model_fetch/src/exit.rs"]
 mod fetch_exit;
+mod get;
 mod hex;
 mod http;
-mod model;
+mod model_dep;
+mod model_remove;
 mod place;
+mod record;
 mod remove;
 mod route_read;
+mod tier;
 mod tools;
 mod tools_install;
 mod http_reply;
 mod index;
-mod index_load;
+mod isa;
 mod limit;
 mod manifest;
 mod market;
@@ -62,13 +62,13 @@ mod pgp;
 mod pkg;
 mod proof_names;
 mod place_links;
-mod program;
 mod run;
 mod tar;
 mod tar_field;
 mod tar_kind;
 mod tar_path;
 mod tar_pax;
+mod tcg;
 mod unpacked;
 mod why;
 

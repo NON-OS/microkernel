@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A program's models: the ones it needs, and taking one out.
+//! Installing a shipped tier: its program held to the market's pin, and its models to theirs.
 
-pub(super) mod dep;
-pub(super) mod remove;
+pub(super) mod fetch;
+pub(super) mod install;
+pub(super) mod program;
