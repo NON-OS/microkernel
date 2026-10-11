@@ -16,6 +16,7 @@
 
 pub(super) fn spawn() {
     spawn_e1000();
+    spawn_e1000e();
     spawn_igb();
     spawn_ixgbe();
     super::drivers_nic_realtek::spawn();
@@ -33,6 +34,15 @@ fn spawn_e1000() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-e1000"))]
 fn spawn_e1000() {}
+
+#[cfg(feature = "nonos-capsule-driver-e1000e")]
+fn spawn_e1000e() {
+    use crate::hardware::e1000e_capsule as c;
+    let spawn = c::spawn_driver_e1000e_capsule;
+    super::boot::capsule("DRIVER-E1000E", "driver_e1000e", spawn, c::shared_state);
+}
+#[cfg(not(feature = "nonos-capsule-driver-e1000e"))]
+fn spawn_e1000e() {}
 
 #[cfg(feature = "nonos-capsule-driver-igb")]
 fn spawn_igb() {
