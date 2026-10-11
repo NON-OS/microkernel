@@ -14,16 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the probe log calls each backend's disk.
+//! Whether a USB stick can be addressed in 512-byte sectors.
 
-use super::backend::Backend;
-
-pub(super) fn name(backend: Backend) -> &'static str {
-    match backend {
-        Backend::UsbMsc => "USB stick (driver.usb_msc0)",
-        Backend::Nvme => "NVMe (driver.nvme0)",
-        Backend::Ahci => "SATA (driver.ahci0)",
-        Backend::VirtioBlk => "virtio-blk (driver.virtio_blk0)",
-        Backend::Wire(i) => super::wire::shown(i),
+/// Its driver serves the stick's own blocks unmapped, so a stick whose
+/// blocks are not 512 bytes is passed over by name rather than misaddressed.
+pub(super) fn sectors_fit() -> bool {
+    match crate::hardware::usb_msc_capsule::geometry() {
+        Ok((_, block_len)) if block_len != 512 => {
+            crate::log::warn!(
+                "[BLOCK] USB mass-storage device uses {}-byte blocks; only 512 is addressed, not used",
+                block_len
+            );
+            false
+        }
+        _ => true,
     }
 }
