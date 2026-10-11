@@ -36,7 +36,7 @@ pub unsafe extern "C" fn _start() -> ! {
     let memory = app::claim();
     // The store's headless job serves one PROVE and exits; no window.
     if job::is_job() {
-        job::serve(memory == app::Memory::Held);
+        job::serve(memory == app::Memory::Held, job::bound());
     }
     run(move || app::Prove::new(memory))
 }

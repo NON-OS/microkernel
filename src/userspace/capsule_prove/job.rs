@@ -21,6 +21,7 @@
 use super::embed::{
     PROVE_ATTESTATION_BYTES, PROVE_ELF, PROVE_MANIFEST_BYTES, PROVE_NONOS_ID_CERT_BYTES,
 };
+use super::job_argv::{job_argv, JobKind};
 use super::spawn::{PROVE_CAPS, WINDOW};
 use crate::kernel_core::process_spawn::capsule_spawn::{
     spawn_verified, CapsuleSpecVerified, SpawnError,
@@ -34,9 +35,6 @@ const JOB_PORT: u32 = 5206;
 const JOB_REPLY: &str = "endpoint.app.prove.job.reply";
 const JOB_REPLY_PORT: u32 = 5207;
 
-/// The argv the capsule reads to serve one job, not open a window.
-pub const JOB_ARG: &str = "--nonos-prove-job";
-
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 /// A prover is live, as a job or as the window.
 pub fn prover_live() -> bool {
@@ -45,7 +43,8 @@ pub fn prover_live() -> bool {
         || lookup_service(WINDOW).is_some()
 }
 
-pub fn spawn_prove_job() -> Result<u32, SpawnError> {
+/// The job for `kind`, bound to `asker`: it serves that pid's frame alone.
+pub fn spawn_prove_job(kind: JobKind, asker: u32) -> Result<u32, SpawnError> {
     if PROVE_ELF.is_empty() {
         return Err(SpawnError::FeatureDisabled);
     }
@@ -69,7 +68,7 @@ pub fn spawn_prove_job() -> Result<u32, SpawnError> {
     };
     let pid = spawn_verified(&spec, &trust, None)?;
     crate::process::with_process(pid, |pcb| {
-        *pcb.argv.lock() = alloc::vec![alloc::string::String::from(JOB_ARG)];
+        *pcb.argv.lock() = job_argv(kind, asker);
     });
     Ok(pid)
 }

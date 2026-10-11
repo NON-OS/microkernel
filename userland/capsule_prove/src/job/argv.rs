@@ -14,25 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether this instance is the headless job: init spawns it with
-//! "--nonos-prove-job" (src/userspace/capsule_prove/job.rs).
+//! Whether this instance is the headless job, and whom it serves: init
+//! spawns it with "--nonos-prove-job", then "prove" or "deliver", then the
+//! pid that asked (src/userspace/capsule_prove/job_argv.rs).
 
 use alloc::vec;
+use alloc::vec::Vec;
 
 use nonos_libc::mk_args;
 
 const JOB_ARG: &[u8] = b"--nonos-prove-job";
 
-pub fn is_job() -> bool {
+/// argv, NUL separated, as the kernel hands it over.
+fn args() -> Vec<Vec<u8>> {
     let needed = mk_args(core::ptr::null_mut(), 0);
     let Ok(len) = usize::try_from(needed) else {
-        return false;
+        return Vec::new();
     };
     let mut buf = vec![0u8; len];
-    let n = mk_args(buf.as_mut_ptr(), buf.len());
-    let Ok(n) = usize::try_from(n) else {
-        return false;
-    };
-    // argv arrives NUL separated; the marker is one whole argument.
-    buf[..n.min(len)].split(|&b| b == 0).any(|arg| arg == JOB_ARG)
+    let n = mk_args(buf.as_mut_ptr(), buf.len()).max(0) as usize;
+    buf[..n.min(len)].split(|&b| b == 0).map(<[u8]>::to_vec).collect()
+}
+
+pub fn is_job() -> bool {
+    args().iter().any(|a| a == JOB_ARG)
+}
+
+/// The op this job serves and the one pid it takes it from (bound.rs).
+pub fn bound() -> Option<(u16, u32)> {
+    super::bound::parse(&args())
 }

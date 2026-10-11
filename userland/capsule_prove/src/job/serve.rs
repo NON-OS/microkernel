@@ -21,7 +21,7 @@
 use alloc::vec;
 
 use nonos_libc::{mk_exit, mk_ipc_recv_from, mk_ipc_reply, mk_time_millis, mk_yield};
-use nonos_proof_abi::wire::{Header, DELIVER, FRAME_MAX, PROVE, PROVE_MAGIC};
+use nonos_proof_abi::wire::{Header, FRAME_MAX, PROVE_MAGIC};
 
 use super::answer::answer;
 use super::state::Job;
@@ -31,8 +31,12 @@ use super::state::Job;
 const QUIET_MS: u64 = 10 * 60 * 1000;
 
 /// `held`: the prover's heap was had. Without it every PROVE is ENOMEM, and
-/// the job exits at once rather than fail halfway through a proof.
-pub fn serve(held: bool) -> ! {
+/// the job exits at once rather than fail halfway through a proof. `bound`:
+/// the op and the pid init spawned it for; no other first frame starts it.
+pub fn serve(held: bool, bound: Option<(u16, u32)>) -> ! {
+    if bound.is_none() {
+        mk_exit(1);
+    }
     let mut buf = vec![0u8; FRAME_MAX];
     let mut job: Option<Job> = None;
     let mut last = now();
@@ -50,7 +54,7 @@ pub fn serve(held: bool) -> ! {
         let Some((h, body)) = Header::parse(&buf[..n], PROVE_MAGIC) else {
             continue;
         };
-        if !(h.op == PROVE || h.op == DELIVER) || job.is_some() {
+        if job.is_some() || Some((h.op, sender)) != bound {
             let tx = answer(job.as_mut(), sender, &h, body);
             let _ = mk_ipc_reply(sender, tx.as_ptr(), tx.len());
             continue;

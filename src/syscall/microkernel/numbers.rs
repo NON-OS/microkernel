@@ -120,7 +120,8 @@ pub const SYS_FOREIGN_EXEC: u64 = tag4(b"MFEX");
 pub const SYS_SEAL_READ: u64 = tag4(b"MSLR");
 /// A supervisor's note in its family's record: the app, or a diagnostic.
 pub const SYS_SEAL_NOTE: u64 = tag4(b"MSNT");
-/// Ask for the headless prover, app.prove.job; the store's alone.
+/// Ask for the headless prover, app.prove.job: PROVE for the store, DELIVER
+/// for a vendor supervisor of a live family.
 pub const SYS_PROVE_JOB: u64 = tag4(b"MPJB");
 /// Mint a trailer for something this machine is installing.
 pub const SYS_LOCAL_SIGN: u64 = tag4(b"MLSG");

@@ -44,3 +44,4 @@ pub(crate) use open::{enrolled, reserve, started};
 pub(in crate::process::foreign) use park::{park, refused_early};
 pub(crate) use sys_note::sys_seal_note;
 pub(crate) use sys_read::sys_seal_read;
+pub(crate) use table::supervises_live;

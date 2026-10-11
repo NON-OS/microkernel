@@ -735,7 +735,7 @@ ret  = {type="i64"}
 [desc.MPJB]
 nr   = 0x424A504D
 caps = ["AppInstall"]
-args = []
+args = [{name="kind",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MLSG]

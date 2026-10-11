@@ -16,6 +16,7 @@
 
 mod answer;
 mod argv;
+mod bound;
 mod deliver;
 mod device;
 mod isolation;
@@ -24,5 +25,5 @@ mod serve;
 mod start;
 mod state;
 
-pub use argv::is_job;
+pub use argv::{bound, is_job};
 pub use serve::serve;

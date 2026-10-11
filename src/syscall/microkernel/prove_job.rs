@@ -14,23 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `MkProveJob()`: the store asks for the headless prover. Only
-//! the owner of app.store asks, under AppInstall; the market verifies and
-//! never proves. The job is spawned by init's loop; the caller then sends its
-//! PROVE to app.prove.job once that endpoint is registered.
+//! `MkProveJob(kind)`: ask for the headless prover. Kind 1
+//! PROVE: the caller owns app.store. Kind 2 DELIVER: the caller is at Vendor
+//! authority and supervises a live family, so no capsule without one can
+//! hold the prover for minutes. Anything else is EPERM. Init's loop spawns
+//! the job, bound to the caller; the caller then sends its frame to
+//! app.prove.job once that endpoint is registered.
 
+use crate::process::foreign::seal::supervises_live;
+use crate::security::attest_registry::attested_of;
+use crate::security::dev_roots::Authority;
 use crate::services::registry::caller_owns;
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_PERM};
+use crate::userspace::init::ProveAsk;
 
 const STORE: &str = "app.store";
+const PROVE: u64 = 1;
+const DELIVER: u64 = 2;
 
-/// 0 once a job is asked for; EBUSY while one is asked for or a prover runs,
-/// as the job or as the window; EPERM for any caller but the store.
-pub fn sys_prove_job() -> i64 {
-    if !caller_owns(STORE) {
+/// 0 once a job is asked for; EBUSY while one is asked for, a prover runs,
+/// or the supervisor's measurement delivered within the rate's span.
+pub fn sys_prove_job(kind: u64) -> i64 {
+    let Some(pid) = crate::process::current_pid() else {
         return ERRNO_PERM;
-    }
-    if crate::userspace::init::request_prove_job() {
+    };
+    let ask = match kind {
+        PROVE if caller_owns(STORE) => ProveAsk::Prove(pid),
+        DELIVER => match attested_of(pid) {
+            Some(c) if c.authority == Authority::Vendor && supervises_live(pid) => {
+                ProveAsk::Deliver(pid, c.measurement)
+            }
+            _ => return ERRNO_PERM,
+        },
+        _ => return ERRNO_PERM,
+    };
+    if crate::userspace::init::request_prove_job(ask) {
         0
     } else {
         ERRNO_BUSY
