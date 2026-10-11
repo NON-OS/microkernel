@@ -25,7 +25,7 @@ mod reach;
 mod rules;
 
 pub use bind::{bind, bind_built_in};
-pub use calls::outside;
+pub use calls::{outside, undeclared};
 pub use family::{grant, home, models};
 pub use gate::{granted, inet, may_dial, refuse};
 pub use identity::AppIdentity;
