@@ -26,7 +26,7 @@ pub enum Stage {
     Order,
 }
 
-pub(super) fn failed(stage: Stage, status: i32) -> &'static str {
+pub fn failed(stage: Stage, status: i32) -> &'static str {
     match (stage, status) {
         (Stage::Offer, ETIME) => "The seller's agent could not be asked in time; try again.",
         (Stage::Offer, EINVAL) => "This package is too large for an escrow purchase, or its seller's address is not https.",
