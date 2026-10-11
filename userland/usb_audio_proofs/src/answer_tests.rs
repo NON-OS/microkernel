@@ -13,9 +13,7 @@ fn without_a_device_the_stream_is_refused_and_status_says_so() {
     let r = ask(&mut play, &ctl(sink::output_status_request, 3));
     assert_eq!(sink::reply_status(&r), E_OK);
     assert_eq!(r.len(), sink::OUTPUT_REPLY_LEN);
-    assert_eq!(u32::from_le_bytes(r[24..28].try_into().unwrap()), OUTPUT_NO_DEVICE);
-    // The sink reads no device as no answer: the server falls back.
-    assert_eq!(sink::read_output_status(&r), None);
+    assert_eq!(sink::read_output_status(&r), Some((OUTPUT_NO_DEVICE, 0)));
     assert_eq!(sink::reply_status(&ask(&mut play, &ctl(sink::start_request, 4))), E_NODEV);
     assert_eq!(sink::reply_status(&ask(&mut play, &write(&[0; 64]))), E_NODEV);
     assert!(!play.running);

@@ -28,16 +28,17 @@ const LOOKUP_PAUSE_MS: u64 = 20;
 
 /// The port `name` is served on, once it is registered.
 pub(super) fn resolve(name: &[u8]) -> Option<u32> {
-    for tries in 0..LOOKUP_RETRIES {
+    (0..LOOKUP_RETRIES).find_map(|tries| {
         if tries > 0 {
             let _ = mk_idle_ms(LOOKUP_PAUSE_MS);
         }
-        let mut port = 0u32;
-        let mut pid = 0u32;
-        let r = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
-        if r == 0 && port != 0 {
-            return Some(port);
-        }
-    }
-    None
+        once(name)
+    })
+}
+
+/// The port `name` is served on, if it is registered now.
+pub(super) fn once(name: &[u8]) -> Option<u32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    let r = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+    (r == 0 && port != 0).then_some(port)
 }
