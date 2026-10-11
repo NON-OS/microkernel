@@ -53,3 +53,18 @@ fn a_top_up_is_whole_nox_within_bounds() {
         assert_eq!(topup_request(1, [4; 32], bad), Err(NO_AMOUNT), "{bad}");
     }
 }
+
+#[test]
+fn a_claim_is_one_hash_and_nothing_waiting_says_so() {
+    assert!(
+        matches!(outcome(JobKind::Claim, Ok(&[2; 32])), Outcome::Sent(l) if l.starts_with("claim sent: 0x02020202"))
+    );
+    assert!(
+        matches!(outcome(JobKind::Claim, Ok(&[2; 64])), Outcome::Failed(_)),
+        "a claim is one hash"
+    );
+    match outcome(JobKind::Claim, Err(ENOENT)) {
+        Outcome::Failed(why) => assert!(why.contains("Nothing waits to be claimed")),
+        other => panic!("{other:?}"),
+    }
+}

@@ -19,12 +19,18 @@
 use alloc::format;
 use alloc::string::String;
 
-use nonos_payment_proto::{EAGAIN, EBUSY, EGAS, ENOENT, ETIME};
+use nonos_payment_proto::EAGAIN;
+
+/* Mounted by path so wallet_proofs reads the same sentences. */
+#[path = "job_said.rs"]
+mod said;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum JobKind {
     TopUp,
     Close,
+    /// The NOX the Shield pool credited the meter (op 16, v1.4.17).
+    Claim,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -45,29 +51,24 @@ fn short(h: &[u8]) -> String {
     format!("0x{hex}…")
 }
 
+fn sent(kind: JobKind, b: &[u8]) -> Option<String> {
+    Some(match (kind, b.len()) {
+        (JobKind::TopUp, 64) => {
+            format!("top-up sent: approve {}, topUp {}", short(&b[..32]), short(&b[32..]))
+        }
+        (JobKind::Close, 32) => format!("close sent: {}", short(b)),
+        (JobKind::Claim, 32) => format!("claim sent: {}", short(b)),
+        _ => return None,
+    })
+}
+
 pub fn outcome(kind: JobKind, r: Result<&[u8], i32>) -> Outcome {
-    match (kind, r) {
-        (_, Err(EAGAIN)) => Outcome::Running,
-        (JobKind::TopUp, Ok(b)) if b.len() == 64 => Outcome::Sent(format!(
-            "top-up sent: approve {}, topUp {}",
-            short(&b[..32]),
-            short(&b[32..])
-        )),
-        (JobKind::Close, Ok(b)) if b.len() == 32 => {
-            Outcome::Sent(format!("close sent: {}", short(b)))
-        }
-        (_, Ok(_)) => Outcome::Failed("The meter's answer could not be read; check the channel."),
-        (_, Err(ENOENT)) => Outcome::Failed(
-            "The meter restarted, so this job's answer is gone. Refresh: the channel shows \
-             whether it went through.",
+    match r {
+        Err(EAGAIN) => Outcome::Running,
+        Ok(b) => sent(kind, b).map_or(
+            Outcome::Failed("The meter's answer could not be read; check the channel."),
+            Outcome::Sent,
         ),
-        (_, Err(EBUSY)) => Outcome::Failed("The meter is busy with another job; try again soon."),
-        (_, Err(EGAS)) => {
-            Outcome::Failed("The meter's ETH is short of gas, or the fees are above its caps.")
-        }
-        (JobKind::Close, Err(ETIME)) => Outcome::Failed(
-            "This channel cannot be closed before its expiry plus the contract's grace.",
-        ),
-        (_, Err(_)) => Outcome::Failed("The meter could not send it."),
+        Err(s) => Outcome::Failed(said::failed(kind, s)),
     }
 }
