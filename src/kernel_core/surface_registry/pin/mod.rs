@@ -21,6 +21,8 @@ mod frames_of;
 pub mod gate;
 pub mod held;
 pub mod orphans;
+pub mod register_check;
+pub mod register_rule;
 mod unmap_receiver;
 pub mod unmap_rule;
 mod window;
