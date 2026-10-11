@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{BootInfo, MAX_CPUS};
+use super::limits::MAX_CPUS;
+use super::reserved::Reserved;
+use super::types::BootInfo;
 use super::virt_ram::{memory_map, RAM_BASE, RAM_SIZE};
 
 impl Default for BootInfo {
@@ -62,6 +64,8 @@ impl Default for BootInfo {
             rtc_base: 0x0901_0000,
             memory_regions: memory_map(),
             memory_region_count: 1,
+            reserved: Reserved::EMPTY,
+            initrd: None,
         }
     }
 }
