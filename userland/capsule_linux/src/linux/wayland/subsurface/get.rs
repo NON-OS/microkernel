@@ -17,8 +17,7 @@
 //! `wl_subcompositor.get_subsurface`: a surface placed on another, as foot
 //! and toolkits draw their overlays. It starts synchronized, at its
 //! parent's corner, on top of its parent's stack, and shows nothing until
-//! it commits a buffer. A surface with a role already, or a parent placed
-//! on the surface itself, gets no subsurface.
+//! it commits a buffer, if it may be placed there at all (may.rs).
 
 use alloc::vec;
 
@@ -26,21 +25,18 @@ use crate::linux::guest::Guest;
 
 use super::super::args::Args;
 use super::super::object::Object;
+use super::may::may_place;
 use super::order::Stack;
-use super::restack::placed_on;
 use super::state::Sub;
 
 pub fn get(guest: &mut Guest, args: &mut Args<'_>) {
     let (Some(id), Some(surface), Some(parent)) = (args.u32(), args.u32(), args.u32()) else {
         return;
     };
-    let is_surface = |id| guest.objects.get(id) == Some(Object::Surface);
-    if surface == parent || !is_surface(surface) || !is_surface(parent) {
-        return;
-    }
+    let own = |id| guest.objects.get(id) == Some(Object::Surface);
     let scene = &guest.scene;
     let shell = scene.surfaces.iter().any(|s| s.id == surface && s.xdg.is_some());
-    if shell || scene.subs.of(surface).is_some() || placed_on(&scene.subs, parent, surface) {
+    if !may_place(&own, shell, &scene.subs, surface, parent) {
         return;
     }
     if !guest.objects.put(id, Object::Subsurface) {
