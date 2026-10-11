@@ -47,10 +47,6 @@ pub(super) fn allocate_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
 }
 
-pub(super) fn insert(record: PioGrant) {
-    GRANTS.lock().push(record);
-}
-
 pub(super) fn lookup_for_holder(pid: u32, grant_id: u64) -> Result<PioGrant, PioError> {
     let grants = GRANTS.lock();
     let g =
