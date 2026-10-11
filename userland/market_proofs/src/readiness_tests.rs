@@ -36,6 +36,7 @@ pub(crate) fn release(arch: &str, trailer: u8) -> CapsuleRelease {
         kernel_abi_min: 1,
         required_capabilities: vec![],
         zk_trailer_hash: [trailer; 32],
+        ext: Some(crate::abi_v3::fixtures::plain_ext()),
         validation: ValidationReport {
             status: ValidationStatus::Validated,
             note: String::new(),

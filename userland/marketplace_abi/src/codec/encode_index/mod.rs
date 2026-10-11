@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod encode;
 mod encode_and_sign;
-mod encode_index;
 mod encoded_index;
 
+pub use encode::encode_index;
 pub use encode_and_sign::encode_and_sign;
-pub use encode_index::encode_index;
 pub use encoded_index::EncodedIndex;
