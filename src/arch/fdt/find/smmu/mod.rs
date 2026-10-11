@@ -16,6 +16,7 @@
 
 mod find;
 mod info;
+mod irqs;
 mod map;
 mod map_parse;
 
