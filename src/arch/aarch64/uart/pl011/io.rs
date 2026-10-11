@@ -14,29 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{FR_BUSY, FR_TXFF, UARTDR, UARTFR};
+use super::constants::{FR_RXFE, FR_TXFF, INTERRUPT_CLEAR_ALL, UARTDR, UARTFR, UARTICR};
 use super::device::Pl011;
 
 impl Pl011 {
-    pub fn putc(&self, c: u8) {
-        while self.read_reg(UARTFR) & FR_TXFF != 0 {
-            core::hint::spin_loop();
-        }
-        self.write_reg(UARTDR, c as u32);
+    pub(crate) fn tx_ready(&self) -> bool {
+        self.read_reg(UARTFR) & FR_TXFF == 0
     }
 
-    pub fn puts(&self, s: &[u8]) {
-        for &c in s {
-            if c == b'\n' {
-                self.putc(b'\r');
-            }
-            self.putc(c);
-        }
+    pub(crate) fn send(&self, byte: u8) {
+        self.write_reg(UARTDR, byte as u32);
     }
 
-    pub fn flush(&self) {
-        while self.read_reg(UARTFR) & FR_BUSY != 0 {
-            core::hint::spin_loop();
+    pub(crate) fn receive(&self) -> Option<u8> {
+        if self.read_reg(UARTFR) & FR_RXFE != 0 {
+            return None;
         }
+        Some((self.read_reg(UARTDR) & 0xFF) as u8)
+    }
+
+    pub(crate) fn clear_interrupts(&self) {
+        self.write_reg(UARTICR, INTERRUPT_CLEAR_ALL);
     }
 }
