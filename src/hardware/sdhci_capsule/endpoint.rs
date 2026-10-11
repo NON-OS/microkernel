@@ -28,5 +28,7 @@ pub static ENDPOINT: Endpoint = Endpoint {
     sender: "kernel.driver_sdhci",
     reply_inbox: REPLY_INBOX,
     state: &STATE,
+    // One eMMC per host; SD and card readers with several slots get more.
+    units: 1,
     slot: &SLOT,
 };
