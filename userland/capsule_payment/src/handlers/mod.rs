@@ -18,6 +18,7 @@ mod account;
 mod budget;
 mod channel_ops;
 mod delivered;
+mod delivered_kept;
 mod drain;
 mod offer;
 mod open;

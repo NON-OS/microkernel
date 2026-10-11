@@ -19,7 +19,7 @@
 
 use nonos_payment_proto::{DeliveredMade, OrderStatus};
 
-use crate::order::delivered::delivered_line;
+use crate::order::delivered::{delivered_line, delivery_due};
 use crate::order::rows::{state_name, status_rows};
 
 fn nox(v: u128) -> String {
@@ -53,4 +53,17 @@ fn a_delivery_says_ready_or_names_the_bad_chunk() {
     assert_eq!(delivered_line(&ok), "every chunk checked: 70000 bytes ready to install");
     let bad = DeliveredMade::BadChunk { index: 3, calldata: Vec::new() };
     assert!(delivered_line(&bad).starts_with("chunk 3 is not what was listed"));
+}
+
+#[test]
+fn an_answered_delivery_is_never_asked_again() {
+    let s = |state, plain| OrderStatus { state, funded: 9, pending: 0, plain };
+    assert!(delivery_due(Some(&s(2, false)), None), "delivered, not sealed");
+    assert!(!delivery_due(Some(&s(1, false)), None), "not delivered yet");
+    assert!(!delivery_due(Some(&s(2, true)), None), "already sealed");
+    assert!(!delivery_due(None, None), "orderOf not read");
+    let bad = DeliveredMade::BadChunk { index: 3, calldata: Vec::new() };
+    assert!(!delivery_due(Some(&s(2, false)), Some(&bad)), "a bad chunk waits for the Dispute");
+    let ok = DeliveredMade::Ok { content_len: 1 };
+    assert!(!delivery_due(Some(&s(2, false)), Some(&ok)));
 }

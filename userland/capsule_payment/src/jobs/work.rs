@@ -51,6 +51,8 @@ pub(crate) struct Work {
     pub(crate) solving: Option<alloc::boxed::Box<super::solving::Solving>>,
     /// The store-to-wallet mailbox (op 19).
     pub(crate) mailbox: nonos_nox_meter::mailbox::Mailbox,
+    /// ORDER_DELIVERED's bad-chunk answers (v1.4.49).
+    pub(crate) delivered: nonos_nox_meter::orders::KeptDelivered,
 }
 
 impl Work {
