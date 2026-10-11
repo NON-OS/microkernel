@@ -40,6 +40,8 @@ pub struct Cfg {
     pub init_reads: u32,
     /// Every SCSI command is left in the doorbell.
     pub scsi_hang: bool,
+    /// A UTRLCLR is recorded but never takes: the slot stays the host's.
+    pub clear_never: bool,
     /// The OCS the host ends every SCSI command with; 0 is success.
     pub scsi_ocs: u8,
     pub lus: Vec<Lu>,
@@ -63,6 +65,7 @@ impl Default for Cfg {
             nop_wrong: 0,
             init_reads: 3,
             scsi_hang: false,
+            clear_never: false,
             scsi_ocs: 0,
             lus: vec![Lu::new(0, 4096, 1000)],
             extra_entries: Vec::new(),
