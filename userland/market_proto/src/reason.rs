@@ -92,6 +92,11 @@ pub const WHY_ANYONE_NOT_UP: u8 = 33;
 pub const WHY_PROGRAM_MISSING: u8 = 34;
 /// The store holds a shipped tier's program and could not read it.
 pub const WHY_PROGRAM_UNREADABLE: u8 = 35;
+/// The install role could not check or vouch for a market program's policy
+///. Nothing produces it before I-C5.
+pub const WHY_POLICY: u8 = 36;
+const POLICY_LINE: &str =
+    "The market's policy for this program could not be checked or vouched for; nothing was installed.";
 
 /// Whether `code` is one only an uninstall stops with, so a client says to
 /// uninstall again rather than install.
@@ -132,6 +137,7 @@ pub fn reason(code: u8) -> Reason {
              be loading from the stick. Retry in a minute; log VFSD says how it stands",
             true,
         ),
+        WHY_POLICY => said(POLICY_LINE, false),
         WHY_PROGRAM_UNREADABLE => said(
             "Its chat program, /bin/qwenchat, is in the store and could not be read; \
              the serial log (log LINUX) says why",
