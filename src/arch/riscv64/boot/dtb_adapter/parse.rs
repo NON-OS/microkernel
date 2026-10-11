@@ -26,7 +26,9 @@ use crate::arch::riscv64::cpu::caps;
 use crate::arch::riscv64::timer::set_frequency;
 
 pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> bool {
-    let fdt = match Fdt::from_ptr(dtb_ptr as *const u8) {
+    // SAFETY: paging is off, so a0 is the blob's physical address; zero is
+    // refused before any read, and a bad pointer faults before stvec is set.
+    let fdt = match unsafe { Fdt::from_ptr(dtb_ptr as *const u8) } {
         Ok(f) => f,
         Err(_) => return false,
     };
