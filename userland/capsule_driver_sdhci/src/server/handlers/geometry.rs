@@ -14,21 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! GEOMETRY: the soldered part is always there, fixed and writable.
+//! GEOMETRY: what is in the slot now. A soldered part is always present,
+//! fixed and writable; a card reader's slot says whether it holds a card
+//! and whether the card's switch lets it be written.
 
 use crate::emmc::{Opened, SECTOR_SIZE};
-use crate::protocol::{encode_geometry, Request, GEOMETRY_LEN, MEDIA_PRESENT};
+use crate::protocol::{
+    encode_geometry, Request, GEOMETRY_LEN, MEDIA_PRESENT, READ_ONLY, REMOVABLE,
+};
 use crate::server::reply::body_reply;
 
 pub fn serve(o: &mut Opened, req: &Request, tx: &mut [u8]) {
+    let m = o.slot.describe();
+    let flags = if m.present { MEDIA_PRESENT } else { 0 }
+        | if m.removable { REMOVABLE } else { 0 }
+        | if m.read_only { READ_ONLY } else { 0 };
+    let max_transfer = o.slot.max_sectors() * SECTOR_SIZE as u32;
     let mut out = [0u8; GEOMETRY_LEN];
-    let max_transfer = o.disk.max_sectors() * SECTOR_SIZE as u32;
-    encode_geometry(
-        &mut out,
-        o.disk.capacity_sectors(),
-        SECTOR_SIZE as u32,
-        max_transfer,
-        MEDIA_PRESENT,
-    );
+    encode_geometry(&mut out, m.sectors, SECTOR_SIZE as u32, max_transfer, flags);
     body_reply(tx, req, &out);
 }
