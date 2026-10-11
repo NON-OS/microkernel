@@ -31,24 +31,7 @@ pub fn init(boot_info: &BootInfo) {
             &boot_info.cpu_affinities[..boot_info.cpu_affinity_count],
         );
     }
-    // Port numbers are offsets into the bridge's I/O window on this arch, so
-    // the window has to be known before any driver reaches for a port. ECAM is
-    // the only way to config space here, and enumeration needs it.
-    crate::arch::port_io::set_io_window(
-        boot_info.pci_io_cpu_base,
-        boot_info.pci_io_port_base,
-        boot_info.pci_io_size,
-    );
-    super::pci_windows::publish(boot_info);
-    // Bus addresses, so the I/O window is named by its port base rather than
-    // where the CPU reaches it.
-    crate::bus::pci::set_windows(
-        boot_info.pci_mmio_base,
-        boot_info.pci_mmio_size,
-        boot_info.pci_io_port_base,
-        boot_info.pci_io_size,
-    );
-    crate::arch::aarch64::rtc::set_base(boot_info.rtc_base);
+    super::platform_windows::publish(boot_info);
     exceptions::install_vbar_el1();
     if let Err(error) = security::init_all() {
         super::refuse(b"security", super::security_reason(error));
