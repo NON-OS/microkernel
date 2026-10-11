@@ -31,6 +31,7 @@ pub mod rtl8139_capsule;
 pub mod rtl8169_capsule;
 pub mod rtl8821ce_capsule;
 pub mod sdhci_capsule;
+pub mod smbus_capsule;
 pub mod ufs_capsule;
 pub mod usb_audio_capsule;
 pub mod usb_msc_capsule;

@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The inventory names a network or storage part by the same id tables its
-//! capsule binds by: the kernel's tables and classification included by
-//! path, beside the capsules' own tables.
+//! The inventory names a network, storage or SMBus part as the capsule that
+//! takes it does: the kernel's tables and classification included by path,
+//! beside the capsules' own.
 
 #[path = "../../../../src/hardware/inventory/classify_network.rs"]
 mod classify_network;
+#[path = "../../../../src/hardware/inventory/classify_serial_bus.rs"]
+mod classify_serial_bus;
 #[path = "../../../../src/hardware/inventory/classify_storage.rs"]
 mod classify_storage;
 #[path = "../../../../src/hardware/inventory/family.rs"]
@@ -51,4 +53,5 @@ mod rtl8139;
 mod rtl8169;
 
 mod classify_tests;
+mod serial_bus_tests;
 mod table_tests;

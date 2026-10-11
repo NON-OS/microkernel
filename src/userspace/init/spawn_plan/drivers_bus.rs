@@ -18,7 +18,28 @@ pub(super) fn spawn() {
     super::drivers_wifi::spawn();
     spawn_i2c_pci();
     spawn_i2c_hid();
+    spawn_smbus();
 }
+
+/// The Intel SMBus host, only where the inventory saw one.
+#[cfg(feature = "nonos-capsule-driver-smbus")]
+fn spawn_smbus() {
+    use crate::hardware::inventory::{present, HardwareFamily};
+    use crate::hardware::smbus_capsule as c;
+    if !present(HardwareFamily::SerialSmbus) {
+        crate::sys::boot_log::ok("DRIVER-SMBUS", "no controller present, not spawned");
+        return;
+    }
+    super::boot::capsule(
+        "DRIVER-SMBUS",
+        "driver_smbus",
+        c::spawn_driver_smbus_capsule,
+        c::shared_state,
+    );
+}
+
+#[cfg(not(feature = "nonos-capsule-driver-smbus"))]
+fn spawn_smbus() {}
 
 #[cfg(feature = "nonos-capsule-driver-i2c-pci")]
 fn spawn_i2c_pci() {

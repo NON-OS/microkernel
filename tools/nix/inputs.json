@@ -35,6 +35,9 @@
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_smbus.manifest.bin",
+   "nonos-data/trust/capsules/driver_smbus.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_smbus.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ufs.manifest.bin",
    "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
@@ -1490,6 +1493,18 @@
    "userland/capsule_driver_sdhci",
    "userland/libc",
    "userland/nonos_blk_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_smbus": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_hda/src/protocol/decode.rs",
+   "userland/capsule_driver_hda/src/protocol/encode.rs",
+   "userland/capsule_driver_smbus",
+   "userland/libc"
   ],
   "md": [],
   "signed": []
@@ -3663,6 +3678,9 @@
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_smbus.manifest.bin",
+   "nonos-data/trust/capsules/driver_smbus.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_smbus.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ufs.manifest.bin",
    "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
