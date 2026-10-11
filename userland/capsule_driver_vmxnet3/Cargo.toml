@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_vmxnet3
+#
+# Userland VMware vmxnet3 (15ad:07b0) driver capsule: VMware Workstation's
+# and ESXi's paravirtual NIC, and QEMU's `vmxnet3`. Drives the device through
+# the kernel hardware broker (MkDeviceList / MkDeviceClaim / MkMmioMap /
+# MkDmaMap) over its two register pages and one shared control area. Frames
+# only; the wire protocol is the one net.core speaks to every wired card.
+
+[package]
+name = "nonos_capsule_driver_vmxnet3"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland VMware vmxnet3 driver capsule"
+
+[[bin]]
+name = "driver_vmxnet3"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_mac = { path = "../nonos_mac" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
