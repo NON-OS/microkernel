@@ -17,6 +17,7 @@
 mod commit;
 mod domain_root;
 mod map_identity;
+mod leaves;
 mod map_range;
 mod unmap_range;
 mod validate_range;
