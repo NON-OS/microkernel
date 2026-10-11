@@ -15,12 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod accept_tests;
+mod anchor_of_tests;
 mod anchor_tests;
 mod commit_tests;
 mod container_hostile_tests;
 mod container_tests;
 mod delivery_tests;
 mod device_tests;
+mod fetch_put_tests;
+mod fetch_wire_tests;
 mod ids_vector_tests;
 mod policy_vector_tests;
 mod record_digest_tests;
