@@ -18,8 +18,8 @@ use nonos_marketplace_abi::Keccak;
 use nonos_nox_config::{TypedData, PUBLISHER_BINDING, RELEASE_ATTEST};
 use sha3::{Digest, Keccak256};
 
+use super::layout::words;
 use crate::typed::struct_hash;
-use crate::typed_tests::words;
 
 struct K;
 impl Keccak for K {

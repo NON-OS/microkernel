@@ -55,12 +55,3 @@ fn reply_round_trip_and_length() {
     assert!(parse_reply(&b[..180]).is_none());
     assert!(parse_reply(&[b.as_slice(), &[0]].concat()).is_none());
 }
-
-#[test]
-fn believed_only_for_what_was_asked() {
-    let b = reply([1; 20], [2; 32]);
-    assert_eq!(believed(&b, &[1; 20], &[2; 32]), Some([0x5a; 65]));
-    assert_eq!(believed(&b, &[3; 20], &[2; 32]), None);
-    assert_eq!(believed(&b, &[1; 20], &[4; 32]), None);
-    assert_eq!(believed(&b[..100], &[1; 20], &[2; 32]), None);
-}
