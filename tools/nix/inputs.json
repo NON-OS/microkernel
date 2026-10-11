@@ -3194,9 +3194,11 @@
    "userland/capsule_driver_e1000e/src/queue",
    "userland/capsule_driver_e1000e/src/regs.rs",
    "userland/capsule_driver_e1000e/src/server/link_log.rs",
+   "userland/capsule_driver_e1000e/src/server/runner.rs",
    "userland/capsule_driver_e1000e/src/setup/driver.rs",
    "userland/capsule_driver_e1000e/src/swflag",
    "userland/capsule_driver_e1000e/src/wait.rs",
+   "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/e1000e_proofs",
    "userland/nonos_devmodel",
    "userland/nonos_mac"
@@ -3744,8 +3746,10 @@
    "userland/capsule_driver_ixgbe/src/protocol",
    "userland/capsule_driver_ixgbe/src/queue",
    "userland/capsule_driver_ixgbe/src/regs.rs",
+   "userland/capsule_driver_ixgbe/src/server/runner.rs",
    "userland/capsule_driver_ixgbe/src/setup/driver.rs",
    "userland/capsule_driver_ixgbe/src/setup/pci_command.rs",
+   "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/ixgbe_proofs",
    "userland/nonos_devmodel",
    "userland/nonos_mac"

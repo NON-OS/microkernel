@@ -33,6 +33,7 @@ mod protocol_tests;
 mod quiesce_tests;
 mod reset_fail_tests;
 mod reset_tests;
+mod rx_batch_tests;
 mod rx_ring_tests;
 mod rx_tests;
 mod swflag_tests;
