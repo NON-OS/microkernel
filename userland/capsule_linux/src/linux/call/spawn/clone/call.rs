@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `clone`, for threads only.
+//! clone's checks: what Linux refuses, and what this personality cannot make.
 
-use nonos_libc::{mk_foreign_thread, ForeignFrame};
+use nonos_libc::ForeignFrame;
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
 
-use super::clone_flags::{clone_valid, flags_of, thread_served};
+use super::super::clone_flags::{clone_valid, flags_of, thread_served};
+use super::start::start;
 
 const CLONE_SETTLS: u64 = 0x80000;
-const CLONE_CHILD_CLEARTID: u64 = 0x20_0000;
 
 /// A Linux clone child resumes at the instruction after its parent's
 /// `syscall`, on its parent's registers with rax zero and rsp the new stack.
@@ -61,25 +61,5 @@ pub fn clone(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     if stack == 0 {
         return Answer::value(errno::fail(errno::EINVAL));
     }
-    /* A thread is a task, which RLIMIT_NPROC counts as Linux does. */
-    if let Err(e) = super::tasks::room(guest.tasks) {
-        return Answer::value(errno::fail(e));
-    }
-    let tid = mk_foreign_thread(guest.pid, frame.rip, stack, tls, frame.pid);
-    if tid < 0 {
-        return Answer::value(errno::fail(errno::ENOMEM));
-    }
-    let tid = tid as u32;
-    guest.threads.push(tid);
-    guest.signals.born(frame.pid, tid); /* its creator's mask, as clone gives */
-    /*
-     * The SETTID words get the guest's number for the tid, which only the
-     * family knows: `serve::clone_tid` writes them with the reply. The
-     * CLEARTID word is zeroed and woken when the thread exits: musl's join
-     * waits on it.
-     */
-    if flags & CLONE_CHILD_CLEARTID != 0 {
-        guest.clear_tids.push((tid, a[3]));
-    }
-    Answer::value(errno::ok(u64::from(tid)))
+    start(guest, frame, (stack, tls), flags)
 }

@@ -38,7 +38,7 @@ pub(super) fn at(name: &str) -> Vec<u8> {
 /// Keep what `name` wrote. False, said on the log, when it cannot be kept:
 /// an install an uninstall could not find is not reported installed
 /// (`place::unpack` takes it out again).
-pub(in crate::linux::install) fn write(name: &str, m: &Manifest) -> bool {
+pub(in super::super) fn write(name: &str, m: &Manifest) -> bool {
     let pid = mk_getpid();
     super::super::record::program::make_records(pid);
     let _ = vfs::mkdir(pid, &dir());
@@ -51,6 +51,6 @@ pub(in crate::linux::install) fn write(name: &str, m: &Manifest) -> bool {
 }
 
 /// What `name` wrote, or None when no install of it is recorded.
-pub(in crate::linux::install) fn read(name: &str) -> Option<Manifest> {
+pub(in super::super) fn read(name: &str) -> Option<Manifest> {
     vfs::read_file(mk_getpid(), &at(name), MAX).ok().map(|b| decode(&b))
 }
