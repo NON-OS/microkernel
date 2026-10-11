@@ -18,8 +18,9 @@
 //! in the index's encoding) from its https url over the wallet's route, at
 //! most MAX_RELEASE, no redirect. It holds the document only if it decodes
 //! whole and keccak256 of its v3 signing form, recomputed from the decoded
-//! release, is the releaseHash asked; its reply is the first page. PAGE pages on through the one release held; any other hash is
-//! ENOENT. ESCROW is B5's, EINVAL until then.
+//! release, is the releaseHash asked; its reply is the first page. PAGE pages
+//! on through the one release held, or the escrow answer held for its asker
+//! (fetch_escrow.rs); any other key is ENOENT.
 
 use alloc::vec::Vec;
 
@@ -27,10 +28,10 @@ use nonos_settle_proto::{https_target, Fetch, Page, EINVAL, ENOENT, EPROTO, MAX_
 
 use nonos_marketplace_abi::{decode_release_document, release_hash as signed_hash};
 
-use super::fetch_escrow::escrow;
+use super::fetch_escrow::{escrow, escrow_page};
 use crate::keccak::Host;
 use crate::net::get;
-use crate::settle::{Held, HeldEscrow, Settle};
+use crate::settle::{Held, Settle};
 
 pub fn fetch(s: &mut Settle, sender: u32, body: &[u8]) -> Result<Vec<u8>, i32> {
     match Fetch::parse(body).ok_or(EINVAL)? {
@@ -46,11 +47,11 @@ pub fn fetch(s: &mut Settle, sender: u32, body: &[u8]) -> Result<Vec<u8>, i32> {
             Ok(first)
         }
         Fetch::Page { release_hash: key, offset } => {
-            let release = s.held.as_ref().filter(|h| h.release_hash == key).map(|h| &h.bytes);
-            let mine = |e: &&HeldEscrow| e.buyer_pk == key && e.pid == sender;
-            let sealed = s.escrow.as_ref().filter(mine).map(|e| &e.bytes);
-            let bytes = release.or(sealed).ok_or(ENOENT)?;
-            Page::of(bytes, offset).map(|p| p.encode()).ok_or(EINVAL)
+            if let Some(page) = escrow_page(s, sender, &key, offset) {
+                return page;
+            }
+            let release = s.held.as_ref().filter(|h| h.release_hash == key).ok_or(ENOENT)?;
+            Page::of(&release.bytes, offset).map(|p| p.encode()).ok_or(EINVAL)
         }
         Fetch::Escrow(e) => escrow(s, sender, &e),
     }
