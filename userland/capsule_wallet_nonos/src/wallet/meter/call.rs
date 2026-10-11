@@ -34,7 +34,7 @@ const HEAD_LEN: usize = 1 + 20 + 16 + 16 + 8 + 16 + 2;
 /// The largest job result: two transaction hashes.
 const JOB_MAX: usize = 64;
 
-fn call(op: u16, body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
+pub(super) fn call(op: u16, body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
     let (mut port, mut pid) = (0u32, 0u32);
     if mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut port, &mut pid) != 0 || pid == 0 {
         return Err(EAGAIN);

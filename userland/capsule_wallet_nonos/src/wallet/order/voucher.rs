@@ -15,13 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A voucher listing's channel (B8, v1.4.38): the market's terms, and OPEN
- * 12/0's request once the person sets the deposit and the expiry. close()
- * pays the unspent deposit to reclaimTo, a fresh Shield address, so a lost
- * meter key strands nothing.
+ * A voucher listing's channel (B8, v1.4.38): the market's terms. OPEN
+ * 12/0's request is voucher_open.rs's.
  */
-
-use nonos_payment_proto::OpenStart;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Voucher {
@@ -31,28 +27,4 @@ pub struct Voucher {
     pub unit: [u8; 32],
     pub unit_price: u128,
     pub min_charge: u128,
-}
-
-impl Voucher {
-    /// OPEN START with `amount` deposited until `expiry` (s), asked at `now`.
-    pub fn open(
-        &self,
-        amount: u128,
-        expiry: u64,
-        reclaim_to: [u8; 20],
-        now: u64,
-    ) -> Result<OpenStart, &'static str> {
-        if amount == 0 || amount < self.unit_price.max(self.min_charge) {
-            return Err("The deposit is less than one use of it costs.");
-        }
-        if expiry <= now {
-            return Err("The channel would expire before it opens.");
-        }
-        if reclaim_to == [0; 20] {
-            return Err("There is no address for the unspent deposit to go back to.");
-        }
-        let (chain_id, payee, listing_id, unit) =
-            (self.chain_id, self.payee, self.listing_id, self.unit);
-        Ok(OpenStart { chain_id, payee, listing_id, unit, amount, expiry, reclaim_to })
-    }
 }

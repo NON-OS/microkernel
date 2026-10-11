@@ -22,6 +22,14 @@
 use crate::wallet::meter::job::{outcome, Outcome};
 use crate::wallet::state::State;
 
+/// The meter's work on this tick: a running job, a purchase's step, or
+/// the mailbox (B8). Whether the screen changed.
+pub fn tick(state: &mut State) -> bool {
+    (state.meter.job.is_some() && poll(state))
+        || crate::wallet::order::step::poll(state)
+        || crate::wallet::order::intake::take_due(state)
+}
+
 /// Whether the screen changed.
 pub fn poll(state: &mut State) -> bool {
     let Some(job) = state.meter.job else {

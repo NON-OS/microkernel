@@ -26,6 +26,7 @@ pub mod custody;
 pub mod locked;
 pub mod meter;
 pub mod publisher;
+pub mod purchase;
 pub mod page;
 pub mod pay;
 pub mod settings;
