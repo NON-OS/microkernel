@@ -167,6 +167,8 @@ mod usb_msc_report_tests;
 pub mod watch_rule;
 pub mod spec;
 #[cfg(test)]
+pub mod surface_register;
+#[cfg(test)]
 pub mod surface_unmap;
 pub mod sys;
 pub mod syscall;
