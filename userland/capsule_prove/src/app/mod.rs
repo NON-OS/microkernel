@@ -19,7 +19,7 @@
 
 mod device;
 mod errno;
-mod files;
+pub(crate) mod files;
 mod flow;
 mod manifest;
 mod memory;
@@ -30,8 +30,8 @@ mod start;
 mod state;
 mod store;
 mod text;
-mod tpm;
+pub(crate) mod tpm;
 mod window;
 
-pub use memory::claim;
+pub use memory::{claim, Memory};
 pub use window::Prove;
