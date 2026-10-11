@@ -59,6 +59,8 @@ mod services_audio;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod wizard_plan;
 pub(super) use app_orchestrator::spawn_apps;
+#[cfg(feature = "microkernel-setup-wizard")]
+pub(super) use install_first::spawn_installer_first;
 #[cfg(any(feature = "microkernel-input-probe", not(feature = "microkernel-setup-wizard")))]
 pub(super) use orchestrator::spawn_desktop;
 #[cfg(not(feature = "microkernel-setup-wizard"))]
@@ -67,9 +69,6 @@ pub(super) use orchestrator::{
     spawn_core_after_ramfs, spawn_display_core, spawn_drivers, spawn_network, spawn_ramfs,
     spawn_vfs,
 };
-
-#[cfg(feature = "microkernel-setup-wizard")]
-pub(super) use install_first::spawn_installer_first;
 #[cfg(all(feature = "microkernel-setup-wizard", not(feature = "microkernel-input-probe")))]
 pub(super) use wizard_plan::spawn_desktop;
 #[cfg(feature = "microkernel-setup-wizard")]
