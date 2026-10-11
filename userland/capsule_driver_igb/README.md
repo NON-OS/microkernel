@@ -1,7 +1,8 @@
 # capsule_driver_igb
 
-Status: not in the image. The capsule builds and its host proofs pass, but
-wired into the kernel mirror and the stack.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/igb_capsule`)
+embeds and spawns it under `nonos-capsule-driver-igb` (the
+`microkernel-driver-igb` build), and net.core and net.l2 reach it through
 
 ## Role
 
