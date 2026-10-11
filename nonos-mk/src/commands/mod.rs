@@ -16,6 +16,7 @@
 
 mod dispatch;
 mod encode;
+mod escrow_serve;
 mod inspect;
 mod keygen;
 mod load_key;
