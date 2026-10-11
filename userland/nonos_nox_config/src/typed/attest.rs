@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The payee's word on one release's bytes. Two of these for the
-//! same release with different roots are equivocation, and anyone may slash.
+//! The payee's word on one release's bytes, carried in the release
+//! as release_attest_sig. Two of these by one payee for the same listing and
+//! release with any field different are equivocation, and anyone may slash.
+//! An escrow release sets packageHash to zero; any other sets chunkRoot to
+//! zero and contentLen to 0.
 
 use super::TypedData;
 use crate::domain::BOND;
 use crate::hex::hex32;
 
 pub const RELEASE_ATTEST: TypedData = TypedData {
-    type_string: "ReleaseAttest(bytes32 listingId,bytes32 releaseId,bytes32 chunkRoot,\
-bytes32 packageHash)",
-    typehash: hex32("965a3a1c2dbb18f31f6c4c74711e07019f038524876eb7077b2ff59ff972ec4a"),
+    type_string: "ReleaseAttest(bytes32 listingId,bytes32 releaseId,bytes32 bondId,\
+bytes32 chunkRoot,uint64 contentLen,bytes32 packageHash)",
+    typehash: hex32("2c3027b70e6539f80e45782d694163977de6df1bafcba6fa319d7a6c6283faf0"),
     domain: &BOND,
-    fields: 4,
+    fields: 6,
 };
