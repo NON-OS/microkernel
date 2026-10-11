@@ -18,7 +18,9 @@
 //! teardown. Its live state becomes a final record and a witness, or nothing:
 //! a family no app was ever noted in is dropped, never kept.
 
-use super::hist::hist_commit;
+use alloc::boxed::Box;
+
+use super::hist::{hist_commit, HIST_WORDS};
 use super::nonce::seal_no;
 use super::record::FINAL;
 use super::sealed::Sealed;
@@ -48,7 +50,9 @@ pub(crate) fn finish(supervisor: u32) -> Option<u64> {
     if sealed.len() >= MAX_SEALED {
         sealed.pop_front();
     }
-    let (hist, salt, list, diag) = (fam.hist, fam.salt, fam.list, fam.diag);
+    // Moved out by copy or swap: fam's own witness is cleared as it drops.
+    let hist = core::mem::replace(&mut fam.hist, Box::new([0; HIST_WORDS]));
+    let (salt, diag, list) = (fam.salt, fam.diag, core::mem::take(&mut fam.list));
     sealed.push_back(Sealed { seal_no: no, app_id, record, hist, salt, diag, list });
     Some(no)
 }

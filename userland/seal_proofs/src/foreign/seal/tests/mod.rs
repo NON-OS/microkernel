@@ -25,3 +25,4 @@ mod record_tests;
 mod rows_tests;
 mod seal_tests;
 mod trace_tests;
+mod wipe_tests;

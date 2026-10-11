@@ -22,6 +22,7 @@ use nonos_proof_abi::{hist_commit, meas_chain, HIST_WORDS};
 use super::fixture::{family, SALT};
 use crate::foreign::seal::finish::finish;
 use crate::foreign::seal::hist::slot;
+use crate::foreign::seal::sealed::WITNESS_BYTES;
 use crate::foreign::seal::table::{LIVE, SEALED};
 use crate::foreign::trap_table::Answer;
 
@@ -51,7 +52,7 @@ fn a_sealed_family_reads_back_whole() {
     let all = s.bytes();
     assert_eq!((all.len(), &all[..240]), (s.bytes_len(), &r[..]), "record first");
     assert_eq!(&all[240 + 4 * HIST_WORDS + 64..], &[0xC3; 32][..], "the list last");
-    let (h, salt, diag) = witness_of(&s.witness());
+    let (h, salt, diag) = witness_of(&all[240..240 + WITNESS_BYTES]);
     assert_eq!(
         (&r[6..8], &r[56..64], &r[176..208]),
         (&[1, 0][..], &n.to_le_bytes()[..], &[0xA1; 32][..])

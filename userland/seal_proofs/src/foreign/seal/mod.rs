@@ -56,3 +56,6 @@ mod tests;
 #[allow(dead_code)]
 #[path = "../../../../../src/process/foreign/seal/trace.rs"]
 pub mod trace;
+#[allow(dead_code)]
+#[path = "../../../../../src/process/foreign/seal/wipe.rs"]
+mod wipe;

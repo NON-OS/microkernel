@@ -4214,6 +4214,7 @@
    "src/process/foreign/seal/snapshot.rs",
    "src/process/foreign/seal/table.rs",
    "src/process/foreign/seal/trace.rs",
+   "src/process/foreign/seal/wipe.rs",
    "src/process/foreign/trap_table.rs",
    "src/syscall/microkernel/errnos.rs",
    "userland/nonos_proof_abi",
