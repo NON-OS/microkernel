@@ -35,6 +35,7 @@ pub mod frame;
 pub mod key;
 pub mod mlme;
 pub mod netif;
+pub mod pmf;
 pub mod regdom;
 pub mod rsn;
 pub mod sae;
