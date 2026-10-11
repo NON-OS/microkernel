@@ -87,22 +87,22 @@ fn the_field_holds_at_most_sixty_four_bytes() {
 #[test]
 fn the_selection_is_asked_about_first() {
     let all: Vec<Listing> = vec![listing(b"a", b"A"), listing(b"b", b"B")];
-    assert_eq!(next(&all, Some(1)), Some((1, true)));
-    assert_eq!(next(&all, None), Some((0, false)));
+    assert_eq!(next(&all, Some(1), 0), Some((1, true)));
+    assert_eq!(next(&all, None, 0), Some((0, false)));
 }
 
 #[test]
 fn a_selection_already_judged_is_not_asked_again() {
     let mut all: Vec<Listing> = vec![listing(b"a", b"A"), described(listing(b"b", b"B"), b"d")];
     all[1].known.judged = true;
-    assert_eq!(next(&all, Some(1)), Some((0, false)));
+    assert_eq!(next(&all, Some(1), 0), Some((0, false)));
 }
 
 #[test]
 fn every_description_is_asked_once_and_then_nothing() {
     let mut all: Vec<Listing> = vec![listing(b"a", b"A"), listing(b"b", b"B")];
     let mut asked = 0;
-    while let Some((at, selected)) = next(&all, None) {
+    while let Some((at, selected)) = next(&all, None, 0) {
         assert!(!selected);
         all[at].known.described = true;
         asked += 1;
@@ -114,5 +114,5 @@ fn every_description_is_asked_once_and_then_nothing() {
 #[test]
 fn a_selection_past_the_list_asks_about_nothing_but_descriptions() {
     let all: Vec<Listing> = vec![described(listing(b"a", b"A"), b"d")];
-    assert_eq!(next(&all, Some(5)), None);
+    assert_eq!(next(&all, Some(5), 0), None);
 }
