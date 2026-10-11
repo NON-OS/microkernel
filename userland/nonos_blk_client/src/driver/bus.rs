@@ -27,13 +27,13 @@ impl Driver {
             Driver::VirtioBlk => Controller::VirtioBlk,
             Driver::Nvme => Controller::Nvme,
             Driver::Ahci => Controller::Ahci,
+            Driver::Wire => Controller::Emmc,
         }
     }
 
-    /// Whether this driver serves a disk from controller `c`: the SATA
-    /// driver also serves the eMMC hosts.
+    /// Whether this driver serves a disk from controller `c`.
     pub fn serves(self, c: Controller) -> bool {
-        c == self.controller() || (self == Driver::Ahci && c == Controller::Emmc)
+        c == self.controller()
     }
 
     /// The bus, as a person sees it in the disk list.
@@ -42,6 +42,7 @@ impl Driver {
             Driver::VirtioBlk => b"virtio",
             Driver::Nvme => b"NVMe",
             Driver::Ahci => b"SATA",
+            Driver::Wire => b"eMMC",
         }
     }
 }
