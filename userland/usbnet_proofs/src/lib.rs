@@ -38,6 +38,8 @@ pub use nic::Nic;
 pub use setup::Setup;
 
 #[cfg(test)]
+mod batch_tests;
+#[cfg(test)]
 mod book_tests;
 #[cfg(test)]
 mod desc_tests;
