@@ -24,6 +24,8 @@ mod crypto_tests;
 #[cfg(test)]
 mod handshake_tests;
 #[cfg(test)]
+mod link_gate_tests;
+#[cfg(test)]
 mod mlme_tests;
 #[cfg(test)]
 mod netif_tests;

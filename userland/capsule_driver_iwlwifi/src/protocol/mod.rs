@@ -15,7 +15,7 @@ mod ops;
 
 pub use decode::{parse, refused};
 pub use encode::response;
-pub use errno::{E_BAD_OP, E_BUSY, E_FW_INVALID, E_INVAL, E_OK, E_TIMEOUT};
+pub use errno::{E_BAD_OP, E_BUSY, E_FW_INVALID, E_INVAL, E_OK, E_PERM, E_TIMEOUT};
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};
 pub use limits::{FW_NAME_MAX, IPC_PAYLOAD_MAX};
 pub use ops::{
