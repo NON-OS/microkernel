@@ -18,7 +18,7 @@
  * The ReleaseAttest log on disk, /data/wallet.attests: fixed length, so a
  * short or long file is plainly not this one.
  *
- *   "NXAT" | version u16 = 1 | n u16 | MAX_ATTESTS slots of RECORD_LEN
+ *   "NXAT" | version u16 = 1 | n u16 | MAX_ATTESTS (1024) slots of RECORD_LEN
  *   record = chain_id u64 | listing_id | release_id | bond_id | chunk_root
  *            | content_len u64 | package_hash | sig[65]
  *
@@ -29,7 +29,7 @@ use alloc::vec::Vec;
 
 use super::types::Record;
 
-pub const MAX_ATTESTS: usize = 64;
+pub const MAX_ATTESTS: usize = 1024;
 pub const RECORD_LEN: usize = 8 + 32 * 5 + 8 + 65;
 pub const FILE_LEN: usize = 8 + MAX_ATTESTS * RECORD_LEN;
 pub(super) const MAGIC: &[u8; 4] = b"NXAT";

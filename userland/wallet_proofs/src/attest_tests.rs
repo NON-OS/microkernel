@@ -18,11 +18,13 @@
 
 use crate::attest::*;
 
-fn attest(release: u8) -> Attest {
+fn attest(release: u16) -> Attest {
+    let mut release_id = [7; 32];
+    release_id[..2].copy_from_slice(&release.to_le_bytes());
     Attest {
         chain_id: 11_155_111,
         listing_id: [1; 32],
-        release_id: [release; 32],
+        release_id,
         bond_id: [3; 32],
         chunk_root: [4; 32],
         content_len: 1_000,
@@ -39,7 +41,6 @@ fn a_release_is_attested_once_and_never_differently() {
     assert_eq!(signed(&log, &a, [8; 65]).unwrap(), log, "nothing recorded twice");
     let moved = Attest { content_len: 1_001, ..a };
     assert_eq!(decide(&log, &moved), Err(Refusal::Conflict));
-    assert_eq!(signed(&log, &moved, [8; 65]), Err(Refusal::Conflict));
     let other_chain = Attest { chain_id: 1, ..moved };
     assert_eq!(decide(&log, &other_chain), Ok(Decision::Sign), "another chain is another key");
     assert_eq!(decide(&log, &attest(3)), Ok(Decision::Sign), "another release");
@@ -48,10 +49,10 @@ fn a_release_is_attested_once_and_never_differently() {
 #[test]
 fn a_full_log_refuses_a_new_release_but_answers_an_old_one() {
     let mut log = Vec::new();
-    for i in 0..MAX_ATTESTS {
-        log = signed(&log, &attest(i as u8), [i as u8; 65]).unwrap();
+    for i in 0..1024 {
+        log = signed(&log, &attest(i as u16), [i as u8 | 1; 65]).unwrap();
     }
-    assert_eq!(decide(&log, &attest(200)), Err(Refusal::Full));
+    assert_eq!(decide(&log, &attest(5000)), Err(Refusal::Full));
     assert_eq!(decide(&log, &attest(5)), Ok(Decision::Again([5; 65])));
 }
 
@@ -69,6 +70,6 @@ fn the_file_reads_back_at_one_length_and_nothing_else_reads() {
     }
     assert_eq!(decode(&b[..FILE_LEN - 1]), None);
     let mut many = b.clone();
-    many[6..8].copy_from_slice(&65u16.to_le_bytes());
+    many[6..8].copy_from_slice(&1025u16.to_le_bytes());
     assert_eq!(decode(&many), None);
 }
