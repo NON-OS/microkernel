@@ -34,3 +34,5 @@ pub const OP_OPEN: u16 = 12;
 pub const OP_TOPUP: u16 = 13;
 /// Wallet: close a channel past expiry plus GRACE (Close).
 pub const OP_CLOSE: u16 = 14;
+/// Wallet: a started job's result, once (job.rs).
+pub const OP_JOB: u16 = 15;
