@@ -3027,13 +3027,17 @@ unset cleanup_src
 # returns to a global bump.
 mmap_src='src/syscall/microkernel/memory/mmap.rs'
 munmap_src='src/syscall/microkernel/memory/munmap.rs'
+# The per-page loop lives in unmap_range.rs; sys_munmap frees through it.
+unmap_range_src='src/syscall/microkernel/memory/va/unmap_range.rs'
 if [ ! -f "${mmap_src}" ] || [ ! -f "${munmap_src}" ]; then
     fail_with "missing ${mmap_src} or ${munmap_src}"
 elif grep -qE '\bNEXT_USER_VA\b' "${mmap_src}" "${munmap_src}"; then
     fail_with "memory split reintroduced a global NEXT_USER_VA; reserve via pcb.mmap_va"
 elif ! awk '/pub fn sys_mmap/,/^\}/' "${mmap_src}" | grep -qE 'reserve_va\(' ; then
     fail_with "${mmap_src} sys_mmap must reserve via the per-pid allocator"
-elif ! awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'deallocate_frame\(' ; then
+elif ! { awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'deallocate_frame\(' \
+        || { awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'unmap_range\(' \
+             && awk '/fn unmap_range/,/^\}/' "${unmap_range_src}" | grep -qE 'deallocate_frame\(' ; } ; } ; then
     fail_with "${munmap_src} sys_munmap must deallocate the unmapped frames"
 elif ! awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'release_va\(' ; then
     fail_with "${munmap_src} sys_munmap must update per-pid mmap-VA state"

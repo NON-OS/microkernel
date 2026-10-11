@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::paging::{map_page, PagePermissions};
-use crate::memory::VirtAddr;
+use crate::memory::paging::PagePermissions;
 use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOMEM, ERRNO_PERM};
 
 use super::accounting::record_mmap;
 use super::consts::{is_user_space, MAX_MMAP_SIZE, PAGE_SIZE, PROT_EXEC, PROT_WRITE};
-use super::va::{any_mapped, release_va, reserve_va, rollback_mapped_pages};
+use super::va::{any_mapped, map_fresh, release_va, reserve_va};
 pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
     let pid = current_pid().unwrap_or(0);
     if length == 0 || length > MAX_MMAP_SIZE {
@@ -63,35 +62,11 @@ pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
     if !allocator_owned && any_mapped(base, pages) {
         return ERRNO_INVAL;
     }
-    for i in 0..pages as usize {
-        /*
-         * Up to a gigabyte mapped with interrupts masked: serve TLB shootdowns.
-         */
-        crate::smp::serve_shootdowns();
-        let va = VirtAddr::new(base + (i * PAGE_SIZE) as u64);
-        let frame = match crate::memory::frame_alloc::allocate_frame() {
-            Some(pa) => pa,
-            None => {
-                rollback_mapped_pages(base, i);
-                if allocator_owned && !release_va(base, pages) {
-                    crate::sys::serial::println(b"[MMAP] release_va_failed");
-                }
-                return ERRNO_NOMEM;
-            }
-        };
-        // Zeroed before it is mapped: mapped first, a sibling thread could
-        // read the frame's last owner's data through it until the zeroing.
-        crate::memory::frame_alloc::zero_frame(frame);
-        if map_page(va, frame, perms).is_err() {
-            if crate::memory::frame_alloc::deallocate_frame(frame).is_err() {
-                crate::sys::serial::println(b"[MMAP] frame_release_failed");
-            }
-            rollback_mapped_pages(base, i);
-            if allocator_owned && !release_va(base, pages) {
-                crate::sys::serial::println(b"[MMAP] release_va_failed");
-            }
-            return ERRNO_NOMEM;
+    if !map_fresh(base, pages, perms) {
+        if allocator_owned && !release_va(base, pages) {
+            crate::sys::serial::println(b"[MMAP] release_va_failed");
         }
+        return ERRNO_NOMEM;
     }
     record_mmap(pid, length, base);
     base as i64
