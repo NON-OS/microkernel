@@ -30,7 +30,7 @@ impl Sim {
         self.regs[0xfe..0x100].copy_from_slice(&self.cfg.version.to_le_bytes());
         self.int = 0;
         self.tc_at = None;
-        self.card.power(false);
+        self.dev().power(false);
     }
 
     pub(super) fn get(&self, off: u32, n: usize) -> u32 {

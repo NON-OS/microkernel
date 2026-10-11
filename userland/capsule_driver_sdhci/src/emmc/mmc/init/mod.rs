@@ -21,7 +21,7 @@
 
 mod bring_up;
 mod capacity;
-mod check_ready;
+pub mod check_ready;
 mod op_cond;
 mod power;
 mod power_on;
@@ -29,7 +29,7 @@ mod query_ocr;
 mod read_cid;
 mod read_ext;
 mod select_card;
-mod step;
+pub mod step;
 mod user_area;
 mod voltage;
 

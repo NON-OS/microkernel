@@ -25,7 +25,7 @@ impl Sim {
     pub(super) fn answer(&mut self, c: Issued) {
         let Issued { index, arg, mode, blocks, blksz, word, now } = c;
         let data = word & 0x20 != 0;
-        let out = self.card.command(index, arg, blocks, now);
+        let out = self.dev().command(index, arg, blocks, now);
         match out.reply {
             // A command that expects no response completes whether or not
             // anything is listening.
