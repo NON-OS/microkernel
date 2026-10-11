@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod call;
 mod client;
+mod control;
+mod lookup;
 mod wire;
 
 pub use client::Sink;
