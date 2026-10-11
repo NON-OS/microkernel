@@ -1,6 +1,7 @@
 //! One typed amount shielded from the public account as several standard deposits under one review.
 //! The pool is read and checked as for one deposit, each deposit gets its own note, and the notes
-//! travel with the held review, each stored before its deposit leaves.
+//! travel with the held review, each stored before its deposit leaves. The sizes follow the
+//! policy's rules() when the pool has a policy.
 
 use super::super::{PendingBatch, Wallet};
 use super::view::{plan, refused, ShieldSplit};
@@ -11,7 +12,8 @@ use crate::ffi::amount_read::parse_base_units;
 use crate::ffi::evm::parse_evm_address;
 use crate::net::asset::Coin;
 use crate::net::pool::{ACTIVE, RPCS};
-use crate::wallet::deposit_split::pieces;
+use crate::net::policy_standard::rule_now;
+use crate::wallet::deposit_split::{pieces, pieces_by};
 use crate::wallet::{check_deposit, prepare_deposit, read_pool_state_checked, DepositRequest};
 use std::time::Instant;
 
@@ -26,9 +28,13 @@ impl Wallet {
         let amount = parse_base_units(&amount)?;
         let units =
             amount.checked_div(asset.scale).filter(|_| amount.checked_rem(asset.scale) == Some(0));
-        let sizes = units.and_then(|u| pieces(u, &asset)).ok_or(WalletError::NotStandard)?;
-        let (from, to) = self.with(|s| (s.evm().address(), s.address()))?;
         let tor = self.tor()?;
+        let sizes = match rule_now(&tor, &ACTIVE, asset)? {
+            Some(rule) => units.and_then(|u| pieces_by(u, |s| rule.standard(s))),
+            None => units.and_then(|u| pieces(u, &asset)),
+        };
+        let sizes = sizes.ok_or(WalletError::NotStandard)?;
+        let (from, to) = self.with(|s| (s.evm().address(), s.address()))?;
         let state = read_pool_state_checked(&tor, &RPCS, &ACTIVE, &from, asset.id)?;
         if state.scale != asset.scale || state.beta_mode {
             return Ok(refused(
