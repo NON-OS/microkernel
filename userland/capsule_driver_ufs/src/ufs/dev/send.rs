@@ -25,5 +25,5 @@ use crate::ufs::utp::utrd::Dir;
 
 pub fn send<H: Hw>(hw: &H, c: &Ctx, upiu: &[u8], ms: u64) -> Result<[u8; RSP_READ], UfsError> {
     let req = Req { cmd_type: c.dev_type(), dir: Dir::None, upiu, data_len: 0, ms };
-    issue(hw, &c.lists, &req)
+    issue(hw, c, &req)
 }
