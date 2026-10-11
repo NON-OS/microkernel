@@ -14,40 +14,55 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::dma_place::place;
 use super::regions::bounds;
 use super::PAGE_SIZE;
 use crate::arch::aarch64::boot::info::{BootInfo, MemoryType};
 use crate::hardware::broker::dma;
 
-/// The top a 32-bit DMA address can name.
-const DMA_CEILING_32BIT: u64 = 0x1_0000_0000;
-/// Keep the pool clear of the bottom of RAM, where the kernel image and the
-/// secondary-CPU trampoline live.
-const DMA_POOL_MIN_BASE: u64 = 0x0100_0000;
+/// Off the first 16 MiB, where a board whose RAM starts at zero keeps
+/// firmware and the secondary-CPU trampoline.
+const FLOOR: u64 = 0x0100_0000;
+/// The allocator's span, the image, and room for every reserved range.
+const MAX_AVOID: usize = 32;
 
-/// A below-4 GiB window that overlaps neither the general allocator's range
-/// nor anything the device tree reserved, or `(0, 0)` when there is none.
-/// Overlapping the allocator would let both hand out the same frame.
-pub(super) fn find_low_dma_region(info: &BootInfo, main_start: u64, main_end: u64) -> (u64, usize) {
-    let want_pages = dma::low32_default_pages();
-    let want_bytes = (want_pages as u64) * PAGE_SIZE;
+/// Where the below-4 GiB DMA pool goes. `carved` means it lies inside the
+/// allocator's span, which the caller must then reserve.
+pub(super) struct LowPool {
+    pub(super) base: u64,
+    pub(super) pages: usize,
+    pub(super) carved: bool,
+}
 
-    for region in info.memory_map().iter() {
-        if region.region_type != MemoryType::Available {
-            continue;
-        }
-        let Some((start, end)) = bounds(region) else {
-            continue;
-        };
-        let base = start.max(DMA_POOL_MIN_BASE);
-        let top = end.min(DMA_CEILING_32BIT);
-        if base >= top || top - base < want_bytes {
-            continue;
-        }
-        let clear = base + want_bytes <= main_start || base >= main_end;
-        if clear && !info.reserved.overlaps(base, base + want_bytes) {
-            return (base, want_pages);
-        }
+/// A pool clear of the allocator's span `main`, the kernel `image` and every
+/// range the tree reserved, or, failing that, one carved from inside `main`
+/// clear of the image and the reservations. `None` when RAM below 4 GiB has
+/// no room either way.
+pub(super) fn find_low_dma_region(
+    info: &BootInfo,
+    main: (u64, u64),
+    image: (u64, u64),
+) -> Option<LowPool> {
+    let pages = dma::low32_default_pages();
+    let want = pages as u64 * PAGE_SIZE;
+    let mut available = [(0u64, 0u64); 8];
+    let mut n = 0;
+    let usable = info.memory_map().iter().filter(|r| r.region_type == MemoryType::Available);
+    for (slot, range) in available.iter_mut().zip(usable.filter_map(bounds)) {
+        *slot = range;
+        n += 1;
     }
-    (0, 0)
+    let reserved = info.reserved.ranges();
+    let mut avoid = [(0u64, 0u64); MAX_AVOID];
+    if reserved.len() + 2 > MAX_AVOID {
+        return None;
+    }
+    avoid[0] = main;
+    avoid[1] = image;
+    avoid[2..2 + reserved.len()].copy_from_slice(reserved);
+    let avoid = &avoid[..2 + reserved.len()];
+    if let Some(base) = place(&available[..n], avoid, FLOOR, want) {
+        return Some(LowPool { base, pages, carved: false });
+    }
+    place(&[main], &avoid[1..], FLOOR, want).map(|base| LowPool { base, pages, carved: true })
 }
