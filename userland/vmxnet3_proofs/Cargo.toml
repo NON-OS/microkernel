@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the VMware vmxnet3 driver. Builds for the host so
+# `cargo test` runs the real driver source (included via #[path]) against a
+# model of the device: the revision registers, the commands, ACTIVATE_DEV
+# reading the shared area as vmxnet3_defs.h lays it out, and both queues with
+# their generation bits, every DMA confined to the driver's grants.
+[package]
+name = "vmxnet3_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_mac = { path = "../nonos_mac" }
+nonos_libc = { package = "vmxnet3_proofs_libc_shim", path = "libc_shim" }
