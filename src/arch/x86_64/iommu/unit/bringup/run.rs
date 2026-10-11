@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::assign::assign_enumerated;
-use super::domain::identity_domain;
+use super::domain::blocked_domain;
 use crate::arch::x86_64::iommu::globals::{set_enforcing, set_page_levels, set_snoop_control};
 use crate::arch::x86_64::iommu::regs::offsets;
 use crate::arch::x86_64::iommu::tables::root::root_table;
@@ -23,17 +23,17 @@ use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::enable::bring_into_service;
 use crate::arch::x86_64::iommu::unit::report::{probed, units};
 
-/// Program the tables, assign the enumerated devices, then enable. The order
-/// is the safety argument and it is the reverse of the obvious one: every
+/// Program the tables, assign the enumerated devices, then enable. Every
 /// device the kernel knows about has a context entry before translation
-/// starts, so the disk and the network keep working. What changes is that
-/// anything not enumerated, including a card plugged in later, is denied.
+/// starts: in the blocked domain, or its own reserved memory (domain.rs). A
+/// driver reaches a device only once its capsule claims it; anything not
+/// enumerated, including a card plugged in later, is denied.
 ///
 /// Every unit is pointed at the same root table. A client Intel machine has
 /// one unit for the integrated graphics and one for everything else; the disk
 /// and the USB controller sit behind the second, so programming only the first
 /// would hand their capsules device addresses no hardware translates.
-pub fn bring_up() -> Result<usize, VtdError> {
+pub fn bring_up() -> Result<(usize, usize), VtdError> {
     let info = probed().ok_or(VtdError::NotPresent)?;
     // Checked for every unit before any is touched: one left enabled by
     // firmware cannot be taken over, and enabling the rest around it would
@@ -47,12 +47,11 @@ pub fn bring_up() -> Result<usize, VtdError> {
     set_snoop_control(info.ecap);
     let root = root_table()?;
 
-    let (domain, sl_root) = identity_domain(levels, info.cap)?;
-    let assigned = assign_enumerated(sl_root, domain, info.levels.context_aw())?;
+    let blocked = blocked_domain()?;
+    let assigned = assign_enumerated(blocked, levels, info.levels.context_aw())?;
 
     // A unit that fails after others came up leaves those translating through
-    // the identity domain, which still reaches every enumerated device's
-    // memory; enforcement is simply not claimed.
+    // the blocked and reserved domains; enforcement is simply not claimed.
     for unit in units() {
         // SAFETY: eK@nonos.systems - `root` is a table this module allocated
         // and never frees, so the unit may walk it by physical address for the
