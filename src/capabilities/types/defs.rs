@@ -80,4 +80,7 @@ capability_table! {
     /// Receive this machine's TPM-derived device secret, the witness of the anonymous
     /// device proof. Held by nonos.prove alone.
     DeviceSecret = 1 << 35,
+    /// Drain and wait on the raw input ring, which carries every keystroke.
+    /// Held by the input router alone; a driver posts with `InputSource`.
+    InputDrain = 1 << 36,
 }

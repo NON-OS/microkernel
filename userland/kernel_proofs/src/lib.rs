@@ -182,6 +182,8 @@ mod handover_tests;
 #[cfg(test)]
 mod inbox_name_tests;
 #[cfg(test)]
+mod input_authority_tests;
+#[cfg(test)]
 mod ipc_held_tests;
 #[cfg(test)]
 mod ipc_peers_tests;

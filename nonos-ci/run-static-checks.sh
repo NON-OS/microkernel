@@ -4869,6 +4869,16 @@ else
 fi
 unset mirror_out
 
+# Draining the raw input ring reads every key typed. Its bit belongs to the
+# input router and to no driver; the seal refuses it elsewhere too.
+if drain_out="$(python3 scripts/check_input_drain_cap.py 2>&1)"; then
+    note ok "InputDrain is held by the input router alone (check_input_drain_cap)"
+else
+    tail -n 5 <<< "${drain_out}" >&2
+    fail_with "check_input_drain_cap: a capsule other than the input router asks for InputDrain"
+fi
+unset drain_out
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"

@@ -26,7 +26,7 @@ flowchart LR
   ROUTER --> SHELL[desktop_shell]
 ```
 
-A driver decodes what its device sends and posts each key, motion, wheel or button event to the kernel input ring with `MkInputEventPost` (`src/syscall/contract/cap_table/mk.rs:190`). The kernel admits that call from a capsule holding the `InputSource`, `Irq` or `Admin` [capability](../../overview/glossary.md#capability) (`can_input_source`, `src/capabilities/token/types/authority_broker.rs:59-63`). Draining the ring, or sleeping until it has events, needs `InputSource` or `Admin`; `Irq` alone is not enough (`can_input_consumer`, `src/capabilities/token/types/authority_broker.rs:71-73`).
+A driver decodes what its device sends and posts each key, motion, wheel or button event to the kernel input ring with `MkInputEventPost` (`src/syscall/contract/cap_table/mk.rs:190`). The kernel admits that call from a capsule holding the `InputSource`, `Irq` or `Admin` [capability](../../overview/glossary.md#capability) (`can_input_source`, `src/capabilities/token/types/authority_broker.rs:59-63`). Draining the ring, or sleeping until it has events, needs `InputDrain` or `Admin`; neither `Irq` nor `InputSource` is enough (`can_input_consumer`, `src/capabilities/token/types/authority_broker.rs:70-72`).
 
 The ring holds 1024 events (`INPUT_RING_CAP`, `src/kernel_core/surface_registry/types.rs:18`). When it is full, `push` drops the new event and counts it rather than wait (`src/kernel_core/surface_registry/input_ring/post.rs:50-58`).
 
@@ -51,11 +51,11 @@ The drivers read the layout from the [policy store](../../overview/glossary.md#p
 
 ## Privacy
 
-No input driver writes a key to disk or to a log. The one exception for pointer data is the touchpad driver: when it holds the Debug capability it writes the first 16 bytes of each of its first six raw reports to the console, so a decode can be checked against the wire (`frame_dumps`, `userland/capsule_driver_i2c_hid/src/input/poll/read_frame.rs:55-58`). `input_router` is granted IPC, Memory and InputSource and nothing else, so it cannot write to the serial console (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_input_router/Capsule.mk:16`).
+No input driver writes a key to disk or to a log. The one exception for pointer data is the touchpad driver: when it holds the Debug capability it writes the first 16 bytes of each of its first six raw reports to the console, so a decode can be checked against the wire (`frame_dumps`, `userland/capsule_driver_i2c_hid/src/input/poll/read_frame.rs:55-58`). `input_router` is granted IPC, Memory and InputDrain and nothing else, so it cannot write to the serial console (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_input_router/Capsule.mk:17`).
 
 The kernel makes `driver.ps2_kbd0`, `driver.usb_hid0` and `driver.i2c_hid0` [held endpoints](../../overview/glossary.md#held-endpoint) with an empty sender list, so no capsule can ask a keyboard driver for keys (`KERNEL_ONLY`, `src/services/registry/held_table.rs:27-29`).
 
-Two limits follow from the capability rules above. A capsule holding `Irq` may post input events whatever its device, and the manifests of the AHCI, HD Audio, I2C controller, Intel Wi-Fi, NVMe, virtio-blk and xHCI drivers all ask for it. The three input drivers hold `InputSource` as well as `input_router`, so the kernel would let them drain the ring; in the shipped code only `input_router` calls the drain (`can_input_consumer`, `src/capabilities/token/types/authority_broker.rs:64-73`).
+Two limits follow from the capability rules above. A capsule holding `Irq` may post input events whatever its device, and the manifests of the AHCI, HD Audio, I2C controller, Intel Wi-Fi, NVMe, virtio-blk and xHCI drivers all ask for it. The three input drivers hold `InputSource`, which posts and nothing more: draining is `InputDrain`, which only `input_router` holds, and the static checks and the seal refuse it in any other capsule (`can_input_consumer`, `src/capabilities/token/types/authority_broker.rs:64-72`; `scripts/check_input_drain_cap.py`).
 
 ## What is not there
 
@@ -84,7 +84,6 @@ The check for `input_proofs` runs its tests without clippy, which the flake allo
 
 The QEMU run target gives the guest its keyboard and mouse through the q35 machine's i8042, and attaches xHCI on its own (`QEMU_USB`, `mk/10-qemu.mk:99-102`).
 
-For the PS/2 keyboard with its layouts, the I2C-HID touchpad on Intel LPSS, the power button and the volume keys there is one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
 
 ## See also
 
