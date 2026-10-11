@@ -180,6 +180,9 @@ pub mod uefi_attrs;
 #[cfg(test)]
 pub mod uefi_revision;
 pub mod usercopy;
+/// Which virtio devices may be confined (K5).
+#[cfg(test)]
+pub mod virtio_confine;
 /// The in-kernel virtio-rng's gate: never available while it cannot deliver.
 #[cfg(test)]
 pub mod virtio_rng_gate;
