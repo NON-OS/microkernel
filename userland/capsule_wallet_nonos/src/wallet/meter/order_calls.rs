@@ -39,6 +39,12 @@ pub fn ready(r: &nonos_payment_proto::Ready) -> Result<(), i32> {
     call(OP_PURCHASE, &body, 0).map(|_| ())
 }
 
+/// LISTING_CAP (op 20): one listing's cap, the rest of the budget kept.
+pub fn listing_cap(listing_id: [u8; 32], cap: u128) -> Result<(), i32> {
+    let body = nonos_payment_proto::ListingCapAsk { listing_id, cap }.encode();
+    call(nonos_payment_proto::OP_LISTING_CAP, &body, 0).map(|_| ())
+}
+
 /// OPEN CONFIRM: the channel id once its opening is mined, EAGAIN before.
 pub fn open_confirm(body: &[u8]) -> Result<Vec<u8>, i32> {
     call(nonos_payment_proto::OP_OPEN, body, 32)

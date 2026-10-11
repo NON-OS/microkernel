@@ -28,6 +28,9 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
         Press::Dismiss => state.failure = None,
         Press::Footer(1) if funding(state) => return super::fund::fund(state),
         Press::Footer(1) if opening(state) => return open_channel(state),
+        Press::Footer(1) if budgeting(state) => {
+            return super::budget::set_budget_for_channel(state)
+        }
         Press::Field(f) => state.meter.purchase.iter_mut().for_each(|p| p.form.focus = f),
         Press::Footer(1) => return super::buy::confirm(state),
         Press::Footer(0) if state.meter.purchase.as_deref().is_some_and(closable) => {
@@ -47,4 +50,9 @@ fn opening(state: &State) -> bool {
 pub fn open_channel(state: &mut State) -> EventOutcome {
     state.failure = crate::wallet::order::opening::open(state);
     EventOutcome::Repaint
+}
+
+fn budgeting(state: &State) -> bool {
+    use crate::wallet::order::voucher_form::Budgeted;
+    state.meter.purchase.as_deref().is_some_and(|p| p.form.budgeted == Budgeted::NoBudget)
 }
