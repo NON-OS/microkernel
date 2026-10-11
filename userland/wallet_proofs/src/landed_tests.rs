@@ -18,7 +18,8 @@
 //! each index once, at most BATCH_MAX; balanceOf's word only when one word
 //! fits; reads spaced by a random 2 to 4 seconds.
 
-use crate::shield::landed::{balance_of, line, parse_handed, spacing, BATCH_MAX, SPACE_MS};
+use crate::shield::landed::{balance_of, parse_handed, spacing, BATCH_MAX, SPACE_MS};
+use crate::shield::landed_held::{line, Held};
 
 fn word(n: u128) -> [u8; 32] {
     let mut w = [0; 32];
@@ -54,5 +55,7 @@ fn balance_of_is_one_word_that_fits_and_reads_are_spaced() {
     assert_eq!(balance_of(&[big]), None, "past u128");
     assert_eq!(balance_of(&[word(1), word(1)]), None, "two words");
     assert_eq!((spacing(0), spacing(u16::MAX)), (SPACE_MS, 2 * SPACE_MS));
-    assert!(line(&[0xab; 20], "12.5").starts_with("0xabababab…: 12.5 NOX"));
+    let l = |nox, eth| line(&[0xab; 20], Held { nox, eth }, |w| w.to_string());
+    assert!(l(12, 0).starts_with("0xabababab…: 12 NOX,"));
+    assert!(l(1, 2).contains(": 1 NOX and 2 ETH,") && l(0, 2).contains(": 2 ETH,"));
 }

@@ -19,6 +19,8 @@
 
 use alloc::vec::Vec;
 
+use super::landed_held::Held;
+
 pub const GAP_LIMIT: u32 = 64;
 pub const MAX_HANDED: u32 = 4096;
 /// Tries for one address before it is passed over, neither empty nor found.
@@ -42,5 +44,5 @@ pub struct Scan {
     pub at: usize,
     pub tries: u8,
     pub empty_run: u32,
-    pub found: Vec<(u32, [u8; 20], u128)>,
+    pub found: Vec<(u32, [u8; 20], Held)>,
 }
