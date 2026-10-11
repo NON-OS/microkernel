@@ -27,8 +27,8 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         UsbXhci | InputPs2 | InputUsbHid => DataPath,
         NetworkIwlwifi | AudioHda | InputI2cHid | SerialI2c => ControllerStatus,
         DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => EnumerateOnly,
-        StorageVmd | StorageUfs | NetworkIgb | NetworkRealtekWifi => EnumerateOnly,
-        NetworkE1000e | NetworkIgc => EnumerateOnly,
+        StorageVmd | StorageUfs | NetworkRealtekWifi => EnumerateOnly,
+        NetworkE1000e | NetworkIgb | NetworkIgc => EnumerateOnly,
         UsbEhci | UsbOhci | UsbUhci | SerialSpi | BridgePci | SystemPeripheral | Unknown => {
             EnumerateOnly
         }
