@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the PIIX IDE disk driver. Builds for the host so
+# `cargo test` runs the real driver source (included via #[path]) against a
+# model of the PIIX bus master function and the ATA drives on its channels,
+# the broker's port I/O routed into the model and its DMA grant on host
+# memory, from the channel reset to the sectors the engine moves, over the
+# block wire. The kernel's listing of compatibility-mode channels rides
+# along.
+[package]
+name = "piix_ide_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "piix_ide_proofs_libc_shim", path = "libc_shim" }
