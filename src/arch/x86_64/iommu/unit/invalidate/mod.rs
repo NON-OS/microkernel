@@ -20,7 +20,10 @@ mod every;
 mod iotlb;
 mod write_buffer;
 
-pub use all::{invalidate_all, invalidate_iotlb};
+pub use all::{invalidate_all, invalidate_iotlb, invalidate_iotlb_domain};
 pub use context::invalidate_context_global;
-pub use every::{invalidate_all_units, invalidate_iotlb_all_units};
+pub use every::{
+    flush_write_buffers_all_units, invalidate_all_units, invalidate_iotlb_all_units,
+    invalidate_iotlb_domain_all_units,
+};
 pub use iotlb::invalidate_iotlb_global;
