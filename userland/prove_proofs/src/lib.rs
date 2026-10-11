@@ -30,6 +30,9 @@ pub mod assemble;
 pub mod kernel_slots;
 /// The market half of capsule_prove (plan/14), the files that ship.
 pub mod market;
+/// The headless job's argv parse, the file that ships.
+#[path = "../../capsule_prove/src/job/bound.rs"]
+pub mod job_bound;
 
 #[cfg(test)]
 mod fixture;
