@@ -17,6 +17,8 @@
 //! The kernel module's own shape, minus `derive`, which needs the CRB
 //! transport and the kernel RNG. Everything it calls is here.
 
+#[path = "../../../../../../src/security/tpm/machine_key/bound_label.rs"]
+pub mod bound_label;
 #[path = "../../../../../../src/security/tpm/machine_key/consts.rs"]
 pub mod consts;
 #[path = "../../../../../../src/security/tpm/machine_key/create.rs"]
@@ -39,6 +41,8 @@ pub mod wire;
 pub use error::KeyError;
 pub use pcrs::BOUND_PCRS;
 
+#[cfg(test)]
+mod bound_label_tests;
 #[cfg(test)]
 mod command_tests;
 #[cfg(test)]
