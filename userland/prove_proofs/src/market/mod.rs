@@ -20,6 +20,8 @@ pub mod buckets;
 pub mod check;
 #[path = "../../../capsule_prove/src/market/container.rs"]
 pub mod container;
+#[path = "../../../capsule_prove/src/market/delivery.rs"]
+pub mod delivery;
 #[path = "../../../capsule_prove/src/market/device.rs"]
 pub mod device;
 #[path = "../../../capsule_prove/src/market/isolation.rs"]

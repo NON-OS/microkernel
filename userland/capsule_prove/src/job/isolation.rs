@@ -52,7 +52,7 @@ fn tries(w: &Witness, st: &Statement) -> Result<Vec<u8>, i32> {
     Err(PROVER)
 }
 
-fn clear(w: &mut Witness) {
+pub(super) fn clear(w: &mut Witness) {
     // SAFETY: valid, aligned fields of `w`, borrowed mutably.
     w.hist.iter_mut().for_each(|h| unsafe { core::ptr::write_volatile(h, 0) });
     w.salt.iter_mut().for_each(|x| unsafe { core::ptr::write_volatile(x, 0) });
