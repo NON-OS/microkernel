@@ -1446,7 +1446,8 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_sdhci",
-   "userland/libc"
+   "userland/libc",
+   "userland/nonos_blk_wire"
   ],
   "md": [],
   "signed": []
@@ -3026,8 +3027,8 @@
    "userland/capsule_driver_sdhci/src/emmc/text",
    "userland/capsule_driver_sdhci/src/protocol",
    "userland/capsule_driver_sdhci/src/server/handlers/rw_parse.rs",
-   "userland/capsule_driver_sdhci/src/server/medium_rule.rs",
-   "userland/emmc_proofs"
+   "userland/emmc_proofs",
+   "userland/nonos_blk_wire"
   ],
   "md": [],
   "signed": []
@@ -3175,6 +3176,7 @@
    "userland/nonos_blk_client/src/driver/pci.rs",
    "userland/nonos_blk_client/src/driver/table.rs",
    "userland/nonos_blk_client/src/status_text.rs",
+   "userland/nonos_blk_wire",
    "userland/nonos_disk",
    "userland/nonos_disk_map",
    "userland/nonos_ed25519",
