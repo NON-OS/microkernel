@@ -44,7 +44,7 @@ pub mod wayland_focus_step;
 #[path = "../../capsule_linux/src/linux/wayland/window_damage.rs"]
 pub mod window_damage;
 /* A guest window full screen and back, and taken down when it ends. */
-#[path = "../../capsule_linux/src/linux/wayland/fit.rs"]
+#[path = "../../capsule_linux/src/linux/wayland/fit/mod.rs"]
 pub mod fit;
 #[path = "../../capsule_linux/src/linux/wayland/ops.rs"]
 pub mod ops;
