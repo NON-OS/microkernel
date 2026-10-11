@@ -42,7 +42,7 @@ pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
         irq_line: dev.interrupt_line,
         irq_pin: dev.interrupt_pin,
         _pad1: [0; 1],
-        irq_source: dev.interrupt_line as u32,
+        irq_source: crate::arch::pci_intx_source(dev),
         bars,
     };
     // An IDE channel in compatibility mode, or VBoxVGA, decodes ports no BAR

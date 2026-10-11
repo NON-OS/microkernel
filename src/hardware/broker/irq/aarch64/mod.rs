@@ -25,6 +25,7 @@ mod pending;
 mod poll;
 mod release;
 mod trampoline;
+mod trigger;
 mod wait;
 
 pub use ack::ack_grant;

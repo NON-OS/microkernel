@@ -46,6 +46,10 @@ pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> Result<(), &'static [u
     info.pci_io_port_base = pci.io_port_base;
     info.pci_io_size = pci.io_size;
     info.pci_bus_start = pci.bus_start;
+    // Before enumeration, which records each function's INTx line from it.
+    if let Some(map) = crate::arch::fdt::find::pci::interrupt_map(fdt).map_err(describe)? {
+        crate::arch::aarch64::pci_intx::describe(map);
+    }
     info.pci_bus_end = pci.bus_end;
     // BARs are assigned from this window by bus address and mapped at the
     // same number, so only a window the bridge does not translate can be
