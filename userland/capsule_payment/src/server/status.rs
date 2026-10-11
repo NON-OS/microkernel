@@ -36,5 +36,7 @@ pub fn status_of(e: MeterError) -> i32 {
         MeterError::Expired => p::ETIME,
         MeterError::Overflow => p::EOVERFLOW,
         MeterError::OverBudget => p::EDQUOT,
+        MeterError::NothingOwed => p::ENOENT,
+        MeterError::TooEarly => p::ETIME,
     }
 }

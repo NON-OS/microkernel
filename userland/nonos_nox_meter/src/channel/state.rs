@@ -49,4 +49,7 @@ pub struct Channel {
     /// Settle reported more settled than this meter ever signed for: no
     /// further charge lands here, and ACCOUNT says why.
     pub frozen: bool,
+    /// The cumulative the last settle() this meter signed carried for this
+    /// channel, 0 before any: another settle needs a newer voucher (v1.4.7).
+    pub carried: u128,
 }

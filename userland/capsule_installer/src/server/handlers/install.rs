@@ -19,13 +19,19 @@
 //! of "install"; the installer checks that much and relays it, and the meter
 //! checks the rest against the release's signed commerce block. The reply is
 //! the meter's signed voucher. A free listing needs no call at all.
+//!
+//! The voucher reaches the chain before the install goes on (v1.4.7): the
+//! installer asks settle for a drain round now, and answers the voucher
+//! only when the settle() it broadcast carries it. Nothing broadcast, or a
+//! settle() without it, fails the install.
 
 use alloc::vec::Vec;
 
 use nonos_nox_config::UNIT_INSTALL;
-use nonos_payment_proto::PayRequest;
+use nonos_payment_proto::{PayRequest, VoucherRecord, EIO};
 
 use super::super::pay_call::request_payment;
+use super::super::settle_call::settle_now;
 use crate::protocol::{encode_response, Request, EINVAL};
 
 pub fn install(req: Request<'_>) -> Vec<u8> {
@@ -35,8 +41,15 @@ pub fn install(req: Request<'_>) -> Vec<u8> {
     if pay.unit != UNIT_INSTALL || pay.qty != 1 {
         return encode_response(req.seq, EINVAL, &[]);
     }
-    match request_payment(req.payload) {
+    match request_payment(req.payload).and_then(|v| settled(pay.chain_id, v)) {
         Ok(voucher) => encode_response(req.seq, 0, &voucher),
         Err(e) => encode_response(req.seq, e, &[]),
     }
+}
+
+/// `voucher`, once a settle() carrying it has been broadcast.
+fn settled(chain_id: u64, voucher: Vec<u8>) -> Result<Vec<u8>, i32> {
+    let v = VoucherRecord::parse(&voucher).ok_or(EIO)?;
+    let round = settle_now(chain_id)?;
+    round.carries(&v.channel_id, v.cumulative).then_some(voucher).ok_or(EIO)
 }

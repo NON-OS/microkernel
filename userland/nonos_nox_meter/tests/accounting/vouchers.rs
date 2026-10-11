@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::fixture::{channel, funded_state, LISTING, NOW, PAYEE, ROOT};
-use nonos_nox_meter::channel::{Channel, MAX_CHANNELS, NO_SIG};
+use nonos_nox_meter::channel::{Channel, CHARGE_MARGIN, MAX_CHANNELS, NO_SIG};
 use nonos_nox_meter::state::MeterState;
 use nonos_nox_meter::MeterError;
 
@@ -46,7 +46,7 @@ fn only_the_newest_voucher_takes_a_signature_and_a_charge_clears_it() {
 #[test]
 fn a_charge_lands_on_the_live_channel_that_lasts_longest() {
     let old = Channel { id: [1; 32], expiry: NOW, ..channel() };
-    let long = Channel { id: [2; 32], open_nonce: 2, expiry: NOW + 7200, ..channel() };
+    let long = Channel { id: [2; 32], open_nonce: 2, expiry: NOW + 3 * CHARGE_MARGIN, ..channel() };
     let s = funded_state().with_channel(old, NOW).unwrap().with_channel(long, NOW).unwrap();
     let (_, c) = s.charged(&PAYEE, &LISTING, 1, 5, ROOT, NOW).unwrap();
     assert_eq!(c.id, long.id);
@@ -60,7 +60,7 @@ fn a_full_table_forgets_only_a_dead_and_settled_channel() {
         s = s.with_channel(c, NOW).unwrap();
     }
     let extra = Channel { id: [0xff; 32], ..channel() };
-    let late = NOW + 3600;
+    let late = NOW + 3 * CHARGE_MARGIN;
     assert_eq!(s.with_channel(extra, NOW).err(), Some(MeterError::Full));
     // Past expiry, but each still holds spend the chain has not settled.
     assert_eq!(s.with_channel(extra, late).err(), Some(MeterError::Full));

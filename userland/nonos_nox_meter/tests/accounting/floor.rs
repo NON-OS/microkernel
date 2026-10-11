@@ -17,7 +17,7 @@
 //! What settle's report does to a channel (plan/21, v1.3 E13).
 
 use super::fixture::{channel, funded_state, LISTING, NOW, PAYEE, ROOT};
-use nonos_nox_meter::channel::Channel;
+use nonos_nox_meter::channel::{Channel, CHARGE_MARGIN};
 use nonos_nox_meter::state::ChainView;
 use nonos_nox_meter::MeterError;
 
@@ -41,7 +41,7 @@ fn the_chain_closes_a_channel_and_a_charge_prefers_one_with_room() {
     // Settled 200 on a channel nothing was signed on: frozen, and closed.
     assert_eq!((s.channels[0].deposit, s.channels[0].frozen), (200, true));
     assert_eq!(s.charged(&PAYEE, &LISTING, 1, 1, ROOT, NOW).err(), Some(MeterError::Frozen));
-    let fresh = Channel { id: [7; 32], expiry: NOW + 60, ..channel() };
+    let fresh = Channel { id: [7; 32], expiry: NOW + CHARGE_MARGIN + 60, ..channel() };
     let (_, c) =
         s.with_channel(fresh, NOW).unwrap().charged(&PAYEE, &LISTING, 1, 1, ROOT, NOW).unwrap();
     assert_eq!(c.id, fresh.id);

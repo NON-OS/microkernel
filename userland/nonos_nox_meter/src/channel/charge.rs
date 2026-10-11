@@ -16,6 +16,9 @@
 use super::state::{Channel, NO_SIG};
 use crate::error::MeterError;
 
+/// No charge lands within a day of a channel's expiry.
+pub const CHARGE_MARGIN: u64 = 86_400;
+
 impl Channel {
     /// This channel after a charge of `amount` whose usage root is `root`, or
     /// why there is none. Pure: the caller writes the result to disk before
@@ -25,7 +28,7 @@ impl Channel {
         if self.frozen {
             return Err(MeterError::Frozen);
         }
-        if now >= self.expiry {
+        if !self.live(now) {
             return Err(MeterError::Expired);
         }
         let base = self.cumulative.max(self.settled);
@@ -37,8 +40,14 @@ impl Channel {
         Ok(Channel { cumulative, seq, usage_root: root, sig: NO_SIG, ..*self })
     }
 
-    /// Whether a charge may land here at `now`.
+    /// Whether a charge may land here at `now`: not within CHARGE_MARGIN of
+    /// expiry, so the last drain lands before anyone may close (v1.4.7).
     pub fn live(&self, now: u64) -> bool {
-        now < self.expiry
+        now.saturating_add(CHARGE_MARGIN) < self.expiry
+    }
+
+    /// Whether the channel is past its expiry.
+    pub fn expired(&self, now: u64) -> bool {
+        now >= self.expiry
     }
 }

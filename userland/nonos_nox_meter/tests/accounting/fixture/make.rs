@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_nox_meter::budget::Budget;
-use nonos_nox_meter::channel::{Channel, NO_SIG};
+use nonos_nox_meter::channel::{Channel, CHARGE_MARGIN, NO_SIG};
 use nonos_nox_meter::state::MeterState;
 
 pub const NOW: u64 = 1_800_000_000;
@@ -36,16 +36,17 @@ pub fn channel() -> Channel {
         settled: 0,
         cumulative: 0,
         seq: 0,
-        expiry: NOW + 3600,
+        expiry: NOW + 2 * CHARGE_MARGIN,
         usage_root: [0; 32],
         sig: NO_SIG,
         frozen: false,
+        carried: 0,
     }
 }
 
 /// That channel, with a budget of 500 that lasts a day.
 pub fn funded_state() -> MeterState {
     let budget = Budget { cap: 500, spent: 0, expiry: NOW + 86_400, listings: vec![] };
-    let state = MeterState { budget, channels: vec![] };
+    let state = MeterState { budget, channels: vec![], last_settle: None };
     state.with_channel(channel(), NOW).expect("an empty table has room")
 }

@@ -16,6 +16,7 @@
 
 mod cursor;
 mod decode;
+mod decode_channel;
 mod encode;
 mod layout;
 mod seal;

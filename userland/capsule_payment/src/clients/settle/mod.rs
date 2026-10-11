@@ -17,6 +17,8 @@
 mod call;
 mod chain;
 mod open;
+mod read;
 
 pub(crate) use chain::{channel_state, gas, ROUTED_MS};
 pub(crate) use open::{broadcast, opened};
+pub(crate) use read::{read, word_u64};

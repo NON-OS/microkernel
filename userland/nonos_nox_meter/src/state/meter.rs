@@ -25,6 +25,9 @@ use crate::channel::Channel;
 pub struct MeterState {
     pub budget: Budget,
     pub channels: Vec<Channel>,
+    /// The chain and nonce of the last settle() this meter signed: the one
+    /// nonce at which it may sign a replacement (a fee bump).
+    pub last_settle: Option<(u64, u64)>,
 }
 
 impl MeterState {
