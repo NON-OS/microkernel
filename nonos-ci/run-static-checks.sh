@@ -4888,6 +4888,15 @@ else
 fi
 unset foot_out
 
+# Every gate between a Linux guest and the outside is where its table says.
+if gates_out="$(python3 scripts/check_linux_gates.py 2>&1)"; then
+    note ok "a Linux guest's gates are where guest-gates.txt says (check_linux_gates)"
+else
+    tail -n 10 <<< "${gates_out}" >&2
+    fail_with "check_linux_gates: a guest gate moved, went, or a new file answers a frame"
+fi
+unset gates_out
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"

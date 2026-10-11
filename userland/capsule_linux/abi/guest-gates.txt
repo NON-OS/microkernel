@@ -1,0 +1,49 @@
+# Every gate between a guest and what is outside it, in src/linux, held by
+# scripts/check_linux_gates.py. One per line, fields split by " | ":
+#   gate FILE | NEEDLE | what it refuses
+#   first FILE | EARLIER | LATER | why the order matters
+#   reply FILE                 (a file allowed to answer a guest's frame)
+# The declared calls: one outside them is EPERM, before anything else.
+first serve/route_life.rs | app::outside(guest, frame.nr) | first(guest, frame) | the set before any answer
+first serve/family_answer.rs | app::undeclared( | frame_in(&self.ns, frame) | the set before a pid's ESRCH
+gate app/calls.rs | Some(errno::fail(errno::EPERM)) | a call outside the set is EPERM (side 1)
+gate serve/unserved.rs | errno::fail(errno::ENOSYS) | a call not served is ENOSYS (side 1)
+# The box (nonos_linux_policy::mask), each where its service is reached.
+gate net/socket.rs | !crate::linux::app::inet(guest) | AF_INET without NET_ANON or NET_LISTEN_LO
+gate net/connect_out.rs | crate::linux::app::may_dial(guest, target, to.port) | a stream out, NET_ANON and its dests
+gate net/bind.rs | mask::NET_LISTEN_LO | bind without NET_LISTEN_LO
+gate net/listen.rs | mask::NET_LISTEN_LO | listen without NET_LISTEN_LO
+gate net/named/connect.rs | app::granted(guest, WAYLAND) | the display without WAYLAND
+gate unix/sock.rs | mask::WAYLAND | the display without WAYLAND
+gate call/spawn/exec.rs | mask::EXEC | execve without EXEC
+gate call/mem/map_anon.rs | granted(guest, JIT) | executable anonymous memory without JIT
+gate call/mem/prot.rs | mask::JIT | mprotect +x without JIT
+gate call/mem/prot.rs | guest.span_unproven(start, span) | +x on file bytes never proved
+gate call/mem/map_file.rs | proven(guest, req.fd) | an executable file mapping never proved
+gate call/mem/prot_args.rs | if wx_refused(prot) | a page writable and executable
+gate call/mem/map_args.rs | wx_refused(prot) | a mapping writable and executable
+gate file/models/open.rs | mask::MODELS_RO | a model without MODELS_RO
+gate file/models/stat.rs | crate::linux::app::models() | /models without MODELS_RO
+gate file/private/names.rs | crate::linux::app::home() | a private home without FILES_HOME
+gate start_guest.rs | app::grant(guest.app.mask) | the family's tree, from the program's mask
+gate file/root.rs | !super::private::shared_writes_allowed() | the shared tree is read-only to a guest
+gate call/io.rs | Some(Kind::Stdin) if !crate::linux::app::granted(guest, TTY) | typed input without TTY
+gate call/ioctl.rs | mask::TTY | terminal control without TTY
+gate net/socket_kind.rs | (SOCK_RAW, Domain::Inet) | raw internet sockets, always EPERM
+gate net/dgram.rs | refuse_out("sendto", a) | a datagram out of the family
+gate net/connect_dgram.rs | refuse_out("connect", to) | a datagram peer out of the family
+gate net/msg.rs | refuse_out("sendmsg", *a) | a datagram out of the family
+# Where a guest's frame may be answered. A new one must show it is behind
+# the gates above: a parked call already passed them.
+reply call/spawn/exec.rs
+reply call/spawn/exec_threads.rs
+reply guest/threads.rs
+reply serve/deliver_interrupt.rs
+reply serve/deliver_sigwait.rs
+reply serve/family_answer.rs
+reply serve/family_futex.rs
+reply serve/family_interrupt.rs
+reply serve/family_sleep.rs
+reply serve/family_wait.rs
+reply serve/family_waits.rs
+reply serve/pid_map.rs
