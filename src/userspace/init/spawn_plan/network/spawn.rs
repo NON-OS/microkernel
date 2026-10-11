@@ -26,4 +26,6 @@ pub(in crate::userspace::init::spawn_plan) fn spawn() {
     // After net.nym: the SOCKS front end resolves it at startup and would
     // otherwise spin waiting for a service that has not registered yet.
     super::spawn_socks5::spawn_socks5();
+    // After the routes it carries proofs over.
+    super::spawn_prove_fetch::spawn_prove_fetch();
 }
