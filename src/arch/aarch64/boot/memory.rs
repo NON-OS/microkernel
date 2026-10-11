@@ -23,6 +23,7 @@
 
 mod dma_window;
 mod regions;
+mod reserve;
 
 use super::info::BootInfo;
 use crate::hardware::broker::dma;
@@ -61,13 +62,12 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
 
     let (dma_base, dma_pages) = find_low_dma_region(info, start, end);
 
-    match crate::memory::phys::init(PhysAddr::new(start), PhysAddr::new(end)) {
-        Ok(()) => serial::println(b"[MEM] phys init OK"),
-        Err(_) => {
-            serial::println(b"[MEM] phys init failed");
-            return;
-        }
+    if crate::memory::phys::init(PhysAddr::new(start), PhysAddr::new(end)).is_err() {
+        serial::println(b"[MEM] phys init failed");
+        return;
     }
+    reserve::apply(info);
+    serial::println(b"[MEM] phys init OK");
 
     dma::init_display_pool();
     dma::init_low32_pool(dma_base, dma_pages);
