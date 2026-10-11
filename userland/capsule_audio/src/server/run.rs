@@ -18,6 +18,7 @@ use alloc::vec;
 
 use nonos_libc::{mk_ipc_recv_from, mk_pid_alive, mk_uptime_ms};
 
+use super::announce::announce;
 use super::pump::PumpState;
 use super::streams::StreamTable;
 use super::{handle, no_sink};
@@ -44,21 +45,7 @@ pub fn run() -> ! {
     mark("[AUDIO] up\n");
     let mut mixer = Mixer::new();
     let sink = Sink::resolve();
-    match sink {
-        #[cfg(feature = "nonos-audio-smoketest")]
-        Some(ref s) => crate::selftest::boot(&mut mixer, s),
-        #[cfg(not(feature = "nonos-audio-smoketest"))]
-        Some(_) => mark("[AUDIO] output driver.hda0\n"),
-        /* driver.hda0 is registered before this capsule is spawned and
-         * dropped when the driver finds no controller, so its absence after
-         * the lookup's two seconds means this machine has no output. A
-         * client asking why is told there is no sound hardware, a stream
-         * open is refused with E_NODEV, everything else with E_INVAL, and
-         * the desktop's chime and alerts are skipped without a sound. A
-         * machine the driver found but cannot play on keeps the driver,
-         * which says why (OP_OUTPUT_STATUS). */
-        None => mark("[AUDIO] no output device, playback refused\n"),
-    }
+    announce(sink.as_ref(), &mut mixer);
     let mut table = StreamTable::new();
     let mut pump = PumpState::new();
     let mut rx = vec![0u8; RX_LEN];
