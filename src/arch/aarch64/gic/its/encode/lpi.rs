@@ -20,7 +20,7 @@
 
 /// The priority every SPI gets, so an LPI neither starves nor preempts one.
 const PRIORITY: u8 = 0xa0;
-/// Bit 1 is RES1; Linux sets it as the group 1 bit some parts read it as.
+/// Bit 1 of a configuration byte is RES1 (IHI 0069, LPI Configuration tables).
 const GROUP1: u8 = 1 << 1;
 const ENABLE: u8 = 1;
 
