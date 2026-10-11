@@ -20,20 +20,22 @@
 
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
-use super::constants::{ARCH_CAP_IBRS_ALL, MSR_IA32_ARCH_CAPABILITIES, MSR_IA32_SPEC_CTRL};
+use super::constants::{MSR_IA32_SPEC_CTRL, SPEC_CTRL_IBRS};
 use super::cpuid;
-use super::ibrs::ibrs_enable;
 use super::msr::{rdmsr, wrmsr};
 use super::policy::{rewrite_on_entry, spec_ctrl_bits};
 
 static BITS: AtomicU64 = AtomicU64::new(0);
 static REWRITE_ON_ENTRY: AtomicBool = AtomicBool::new(false);
+/// CPUID is a VM exit under a hypervisor: asked once here, not per switch.
+static IBPB: AtomicBool = AtomicBool::new(false);
 
 /// Decide once, on the boot CPU, before any AP is started. Returns the bits.
 pub(super) fn decide() -> u64 {
     let ibrs = cpuid::has_ibrs_ibpb();
     let bits = spec_ctrl_bits(ibrs, cpuid::has_stibp(), cpuid::has_ssbd());
-    REWRITE_ON_ENTRY.store(rewrite_on_entry(ibrs, enhanced_ibrs()), Ordering::Relaxed);
+    REWRITE_ON_ENTRY.store(rewrite_on_entry(ibrs, cpuid::has_enhanced_ibrs()), Ordering::Relaxed);
+    IBPB.store(ibrs, Ordering::Relaxed);
     BITS.store(bits, Ordering::Release);
     bits
 }
@@ -55,13 +57,12 @@ pub fn apply_on_this_cpu() {
 #[inline(always)]
 pub(super) fn entry_rewrite() {
     if REWRITE_ON_ENTRY.load(Ordering::Relaxed) {
-        ibrs_enable();
+        // SAFETY: set only where CPUID reported IBRS, so SPEC_CTRL exists.
+        unsafe { wrmsr(MSR_IA32_SPEC_CTRL, rdmsr(MSR_IA32_SPEC_CTRL) | SPEC_CTRL_IBRS) };
     }
 }
 
-fn enhanced_ibrs() -> bool {
-    // SAFETY: CPUID reported ARCH_CAPABILITIES, so the MSR exists and a read
-    // has no side effect.
-    cpuid::has_arch_capabilities()
-        && unsafe { rdmsr(MSR_IA32_ARCH_CAPABILITIES) } & ARCH_CAP_IBRS_ALL != 0
+/// Whether the part has IBPB, as `decide` found it.
+pub(super) fn has_ibpb() -> bool {
+    IBPB.load(Ordering::Relaxed)
 }
