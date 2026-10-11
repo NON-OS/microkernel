@@ -29,3 +29,4 @@ mod common;
 mod devices;
 mod gates;
 mod names;
+mod vm_devices;
