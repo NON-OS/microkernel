@@ -5167,6 +5167,7 @@
    "userland/capsule_driver_usb_audio/src/uac",
    "userland/capsule_driver_usb_audio/src/wire",
    "userland/capsule_driver_usb_audio/src/xhci/portsc.rs",
+   "userland/capsule_driver_xhci/src/protocol/limits.rs",
    "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",

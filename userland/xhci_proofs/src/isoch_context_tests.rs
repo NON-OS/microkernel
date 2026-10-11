@@ -54,7 +54,7 @@ fn a_batch_the_endpoint_cannot_carry_is_refused() {
     let esit = 192;
     assert!(batch_fits(&[192, 96], &[0; 288], esit));
     assert!(!batch_fits(&[], &[], esit), "no packet");
-    assert!(!batch_fits(&[192; 33], &[0; 192 * 33], 4096), "past 32 packets");
+    assert!(!batch_fits(&[192; 32], &[0; 192 * 32], 4096), "past 31 packets");
     assert!(!batch_fits(&[0, 192], &[0; 192], esit), "an empty packet");
     assert!(!batch_fits(&[193], &[0; 193], esit), "past one interval's payload");
     assert!(!batch_fits(&[192], &[0; 191], esit), "lengths and bytes disagree");

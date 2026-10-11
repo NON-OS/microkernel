@@ -44,6 +44,8 @@ pub const CONFIGURE_ISOCH_REQUEST_LEN: usize = 8;
 /// An isoch OUT batch: `slot, dci, packets, 0`, a u16 length per packet,
 /// then the packets' bytes, at most ISOCH_MAX of them.
 pub const ISOCH_HEADER_LEN: usize = 4;
-pub const ISOCH_PACKETS_MAX: usize = 32;
+/// Two batches share the endpoint's ring, one in flight while the next is
+/// queued, and both must fit its 63 usable TRBs (the 64th is the link).
+pub const ISOCH_PACKETS_MAX: usize = 31;
 pub const ISOCH_MAX: usize = 4096;
 pub const ISOCH_REQUEST_MAX: usize = ISOCH_HEADER_LEN + 2 * ISOCH_PACKETS_MAX + ISOCH_MAX;
