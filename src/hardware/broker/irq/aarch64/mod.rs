@@ -22,6 +22,7 @@
 mod ack;
 mod bind;
 mod pending;
+mod pending_find;
 mod poll;
 mod release;
 mod trampoline;
