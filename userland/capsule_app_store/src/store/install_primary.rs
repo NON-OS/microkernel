@@ -34,7 +34,11 @@ pub fn primary(state: &mut State) -> Option<Asked> {
         // The pane says why; asking again would only fail the same way.
         Enter::Cannot => Some(Asked::Cannot),
         // A sold listing is bought in the wallet, which installs it after.
-        Enter::Install if state.current().is_some_and(by_wallet) => Some(post(state)),
+        Enter::Install if state.current().is_some_and(by_wallet) => {
+            let asked = post(state);
+            state.orders.awaiting |= asked == Asked::InWallet;
+            Some(asked)
+        }
         Enter::Install => {
             let asked = ask(state);
             if asked == Asked::Queued {

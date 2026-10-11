@@ -54,4 +54,6 @@ pub struct State {
     /// tier's install, and when it may be asked again (`fetch_status`).
     pub fetch: Option<crate::status_wire::Status>,
     pub fetch_at_ms: i64,
+    /// The order a purchase became, as the meter reports it (B9).
+    pub orders: super::orders::Orders,
 }

@@ -51,4 +51,6 @@ pub enum Asked {
     WalletWaiting,
     /// The meter, which carries the names, did not take them.
     NoMeter,
+    /// The order's state and plain byte, from ORDER_STATUS (v1.4.42).
+    Order(u8, bool),
 }

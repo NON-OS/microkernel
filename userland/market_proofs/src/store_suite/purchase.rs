@@ -23,6 +23,7 @@ use nonos_payment_proto::{EAGAIN, EBUSY, EPERM};
 use super::fixture::listing;
 use crate::store::asked::Asked;
 use crate::store::price::{Price, ESCROW, FREE, VOUCHER};
+use crate::store::order_line::order_line;
 use crate::store::purchase_said::{by_wallet, handed};
 
 fn priced(mode: u8, trusted: bool) -> crate::store::listing::Listing {
@@ -47,4 +48,16 @@ fn the_meters_answer_is_said_plainly() {
     assert!(handed(Err(EAGAIN)) == Asked::NoMeter && handed(Err(EPERM)) == Asked::NoMeter);
     assert_eq!(Asked::InWallet.label(), b"confirm the purchase in your wallet");
     assert!(Asked::WalletWaiting.label().starts_with(b"another purchase waits in your wallet"));
+}
+
+#[test]
+fn the_order_reads_by_the_escrows_state_and_plain() {
+    assert_eq!(Asked::Order(1, false).label(), b"bought: waiting for the seller to deliver");
+    assert_eq!(order_line(2, false), b"delivered: your wallet checks it");
+    assert_eq!(order_line(2, true), b"delivered and checked: ready to install");
+    let lines: Vec<&[u8]> = (0..6).map(|s| order_line(s, false)).collect();
+    for (i, a) in lines.iter().enumerate() {
+        assert!(lines[i + 1..].iter().all(|b| a != b), "state {i} reads as its own");
+    }
+    assert_eq!(order_line(9, true), b"an order state this store does not know");
 }
