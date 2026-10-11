@@ -22,6 +22,14 @@ impl GicDistributor {
         self.write_reg64(GICD_IROUTER + (irq as u64) * 8, affinity);
     }
 
+    /// Route every SPI below `num_irqs` to the CPU with MPIDR `affinity`.
+    /// IROUTER takes the MPIDR layout as is, Aff3 at bits 39:32.
+    pub(super) fn route_all_spis(&self, affinity: u64, num_irqs: u32) {
+        for irq in 32..num_irqs {
+            self.set_route(irq, affinity);
+        }
+    }
+
     pub fn num_irqs(&self) -> u32 {
         ((self.read_reg(GICD_TYPER) & 0x1F) + 1) * 32
     }
