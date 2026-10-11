@@ -24,12 +24,3 @@ pub fn authority_of(pid: u32) -> Option<Authority> {
     let t = TABLE.lock();
     t.entries[..t.used].iter().find(|e| e.pid == pid).map(|e| e.authority)
 }
-
-/// What the spawn gate proved `pid` to be: its measurement, and its authority
-/// as the byte the registry root folds in (0 vendor, 1+slot developer, 255
-/// publisher). `None` once it exited or when it passed no gate.
-pub fn meas_of(pid: u32) -> Option<([u8; 32], u8)> {
-    let t = TABLE.lock();
-    let e = t.entries[..t.used].iter().find(|e| e.pid == pid)?;
-    Some((e.measurement, e.digest_input()[44]))
-}
