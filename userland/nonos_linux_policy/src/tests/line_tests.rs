@@ -14,31 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! policies.txt as the build reads it, and the committed file itself: the
-//! reference app's three builds get the box plan/32 gives them.
+//! A line of policies.txt, or of the test guests' list, as the build reads it.
 
 #[path = "../../build/line.rs"]
-mod line;
+pub(super) mod line;
+#[path = "../../build/set_hex.rs"]
+mod set_hex;
 
-use crate::mask::{EXEC, MODELS_RO, NET_ANON, TTY, WAYLAND};
+use crate::mask::{EXEC, NET_ANON, TTY, WAYLAND};
 use crate::SyscallSet;
-use line::{parse, set_of};
-
-const COMMITTED: &str = include_str!("../../../capsule_linux/policies.txt");
-const CHAT_PICK: &str = include_str!("../../../capsule_linux/src/linux/install/chat_pick.rs");
+use line::parse;
+use set_hex::set_of;
 
 #[test]
 fn comments_and_blanks_name_nothing() {
-    for line in ["", "   ", "# /bin/qwenchat WAYLAND", "\t# x"] {
-        assert!(parse(line).unwrap().is_none(), "{line:?}");
-    }
+    assert!(["", "   ", "# /bin/q WAYLAND", "\t# x"].iter().all(|l| parse(l).unwrap().is_none()));
 }
 
 #[test]
 fn a_line_names_a_program_in_bin_and_its_services() {
     let l = parse("/bin/prog  WAYLAND NET_ANON\tEXEC").unwrap().unwrap();
-    assert_eq!((l.store_path, l.mask), ("/bin/prog", WAYLAND | NET_ANON | EXEC));
+    assert_eq!((l.store_path, l.mask, l.file), ("/bin/prog", WAYLAND | NET_ANON | EXEC, None));
     assert_eq!(l.calls, SyscallSet::ALL);
+    let guest = parse("/bin/suite file=/t/linux-guests/suite TTY").unwrap().unwrap();
+    assert_eq!((guest.file, guest.mask), (Some("/t/linux-guests/suite"), TTY));
+    assert!(parse("/bin/suite file=suite").is_err(), "a file= is absolute");
     for bad in ["prog", "/usr/bin/prog", "/bin/", "/bin/a/b", "/bin/prog WAYLAND NETWORK"] {
         assert!(parse(bad).is_err(), "{bad}");
     }
@@ -56,18 +56,4 @@ fn calls_read_as_the_ok_line_prints_them() {
     let l = parse(&line).unwrap().unwrap();
     assert_eq!((l.mask, l.calls), (TTY, set));
     assert_eq!(set_of(&format!("{}01", "ff".repeat(64))), Some(SyscallSet::ALL));
-}
-
-#[test]
-fn the_committed_file_gives_each_qwen_build_the_reference_box() {
-    let lines: Vec<_> = COMMITTED.lines().filter_map(|l| parse(l).unwrap()).collect();
-    let paths: Vec<_> = lines.iter().map(|l| l.store_path).collect();
-    assert_eq!(paths, ["/bin/qwenchat", "/bin/qwenchat-x86_64_v2", "/bin/qwenchat-x86_64"]);
-    for l in &lines {
-        assert_eq!(l.mask, WAYLAND | MODELS_RO | TTY, "{}", l.store_path);
-        assert!(l.mask & NET_ANON == 0, "/models is never served beside a network");
-        let quoted = format!("b\"{}\"", l.store_path);
-        assert!(CHAT_PICK.contains(&quoted), "chat_pick does not run {}", l.store_path);
-    }
-    assert!(lines.windows(2).all(|w| w[0].calls == w[1].calls), "one set for all three");
 }

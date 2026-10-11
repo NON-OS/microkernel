@@ -33,6 +33,13 @@ impl Guest {
         self.regions.iter().any(|r| r.unproven && r.at < end && at < r.at.saturating_add(r.len))
     }
 
+    /// Whether any region overlapping [at, at + len) is not executable now,
+    /// so making the span executable would make new code.
+    pub fn span_gains_exec(&self, at: u64, len: u64) -> bool {
+        let end = at.saturating_add(len);
+        self.regions.iter().any(|r| !r.exec && r.at < end && at < r.at.saturating_add(r.len))
+    }
+
     /// Every region overlapping [at, at + len) holds bytes Linux would give
     /// back after MADV_DONTNEED rather than zero.
     pub fn mark_kept(&mut self, at: u64, len: u64) {

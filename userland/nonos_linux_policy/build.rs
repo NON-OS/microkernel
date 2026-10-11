@@ -40,16 +40,20 @@ pub mod unlisted;
 
 #[path = "build/line.rs"]
 pub mod line;
+#[path = "build/set_hex.rs"]
+pub mod set_hex;
+#[path = "build/source.rs"]
+pub mod source;
 #[path = "build/table.rs"]
 pub mod table;
 
 const POLICIES: &str = "../capsule_linux/policies.txt";
 
 fn main() {
-    println!("cargo:rerun-if-changed={POLICIES}");
     println!("cargo:rerun-if-changed=build");
     println!("cargo:rerun-if-changed=src");
     println!("cargo:rerun-if-env-changed=NONOS_LINUX_USERLAND");
+    println!("cargo:rerun-if-env-changed=NONOS_LINUX_GUEST_POLICIES");
     let out =
         Path::new(&env::var_os("OUT_DIR").expect("cargo sets OUT_DIR")).join("vendor_table.rs");
     if let Err(why) = table::write(Path::new(POLICIES), &out) {
