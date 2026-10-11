@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The orders file's plain form, sealed by the capsule under the bound root:
-//! "NXOR" | version u16 = 1 | n u16 | MAX_ORDERS slots of ORDER_LEN, the
+//! "NXOR" | version u16 = 2 | n u16 | MAX_ORDERS slots of ORDER_LEN, the
 //! first n used and every byte of the rest zero. Fixed length, since the
 //! store replaces a kept record only at its own length; anything else reads
 //! as no orders file at all.
@@ -27,7 +27,7 @@ use super::record::{Order, ORDER_LEN};
 pub const MAX_ORDERS: usize = 32;
 pub const ORDERS_LEN: usize = 8 + MAX_ORDERS * ORDER_LEN;
 const MAGIC: [u8; 4] = *b"NXOR";
-const VERSION: u16 = 1;
+const VERSION: u16 = 2;
 
 pub fn encode_orders(orders: &[Order]) -> Option<Vec<u8>> {
     if orders.len() > MAX_ORDERS {

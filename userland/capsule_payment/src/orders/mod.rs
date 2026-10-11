@@ -16,4 +16,4 @@
 
 mod file;
 
-pub(crate) use file::{find, keep};
+pub(crate) use file::{drop_order, find, keep};

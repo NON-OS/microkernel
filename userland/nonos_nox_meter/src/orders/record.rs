@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One order as the meter keeps it: chain_id u64 | orderId[32] |
-//! depositAddress[20] | the 14 term words | refundTo[20] | refundSalt[32].
+//! depositAddress[20] | the 14 term words | refundTo[20] | refundSalt[32] |
+//! refund taken u8 (0 or 1: ORDER_REFUND has answered for it, v1.4.26).
 
 use alloc::vec::Vec;
 
-pub const ORDER_LEN: usize = 8 + 32 + 20 + 32 * 14 + 20 + 32;
+pub const ORDER_LEN: usize = 8 + 32 + 20 + 32 * 14 + 20 + 32 + 1;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Order {
@@ -29,6 +30,7 @@ pub struct Order {
     pub terms: [[u8; 32]; 14],
     pub refund_to: [u8; 20],
     pub refund_salt: [u8; 32],
+    pub refund_taken: bool,
 }
 
 impl Order {
@@ -39,9 +41,11 @@ impl Order {
         self.terms.iter().for_each(|w| out.extend_from_slice(w));
         out.extend_from_slice(&self.refund_to);
         out.extend_from_slice(&self.refund_salt);
+        out.push(self.refund_taken as u8);
     }
 
-    /// One record, or None for a short one or the zero chain an empty slot has.
+    /// One record, or None for a short one, a flag not 0 or 1, or the zero
+    /// chain an empty slot has.
     pub fn decode(b: &[u8]) -> Option<Order> {
         let b: &[u8; ORDER_LEN] = b.try_into().ok()?;
         let at = |from: usize, n: usize| &b[from..from + n];
@@ -50,6 +54,11 @@ impl Order {
         for (i, w) in terms.iter_mut().enumerate() {
             *w = at(60 + 32 * i, 32).try_into().ok()?;
         }
+        let refund_taken = match b[560] {
+            0 => false,
+            1 => true,
+            _ => return None,
+        };
         (chain_id != 0).then_some(())?;
         Some(Order {
             chain_id,
@@ -58,6 +67,7 @@ impl Order {
             terms,
             refund_to: at(508, 20).try_into().ok()?,
             refund_salt: at(528, 32).try_into().ok()?,
+            refund_taken,
         })
     }
 }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_nox_meter::orders::ORDER_LEN;
 use nonos_nox_meter::orders::{decode_orders, encode_orders, Order, MAX_ORDERS, ORDERS_LEN};
 
 fn order(i: u8) -> Order {
@@ -24,6 +25,7 @@ fn order(i: u8) -> Order {
         terms: [[i; 32]; 14],
         refund_to: [0xaa; 20],
         refund_salt: [0xbb; 32],
+        refund_taken: i.is_multiple_of(2),
     }
 }
 
@@ -56,4 +58,7 @@ fn nothing_else_reads_as_orders() {
     let mut zero_chain = b.clone();
     zero_chain[8..16].fill(0);
     no(&zero_chain, "a used slot with chain 0");
+    let mut flag = b.clone();
+    flag[8 + ORDER_LEN - 1] = 2;
+    no(&flag, "a refund flag not 0 or 1");
 }

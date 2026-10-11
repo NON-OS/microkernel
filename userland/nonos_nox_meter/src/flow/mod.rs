@@ -23,6 +23,7 @@ mod after;
 mod ask;
 mod plans;
 mod reads;
+mod status;
 mod step;
 mod words;
 mod work;

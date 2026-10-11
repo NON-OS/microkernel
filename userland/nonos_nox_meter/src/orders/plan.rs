@@ -65,5 +65,6 @@ pub fn order_plan(
         terms: terms.words(),
         refund_to,
         refund_salt,
+        refund_taken: false,
     })
 }
