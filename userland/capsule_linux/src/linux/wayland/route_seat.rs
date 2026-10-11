@@ -42,7 +42,7 @@ pub fn route(
         | (Some(Pointer), POINTER_RELEASE)
         | (Some(Keyboard), KEYBOARD_RELEASE)
         | (Some(Touch), TOUCH_RELEASE) => super::forget::forget(guest, object, id),
-        _ => return false,
+        _ => return super::route_output::route(guest, object, id, op, args),
     }
     true
 }
