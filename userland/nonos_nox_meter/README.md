@@ -27,6 +27,8 @@ meter, the plan) links it.
   vfs replaces a record only at its own length, and tagged under a key only
   the meter can derive, since any FileSystem holder can unlink and recreate
   the name.
+- `root`: the label the meter's root is derived under, 0x01 (C2c's bound
+  prefix) then "nonos.meter.root.v1".
 - `caller`: which registry names may call which op.
 - `pay`: `priced`, which refuses a PAY v2 request (`nonos_payment_proto`)
   unless the release is trusted and every word equals its signed commerce
@@ -47,7 +49,7 @@ TPM NV index, which is later work.
 
 ## Tests
 
-35 host tests in `tests/`, with `sha3` as a dev-dependency, so every hash is
+36 host tests in `tests/`, with `sha3` as a dev-dependency, so every hash is
 checked against an independent implementation.
 
 ```sh
