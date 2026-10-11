@@ -25,6 +25,8 @@ rayon = "=1.12.0"
 nox_verified = { path = "verified" }
 nonos_hd = { path = "../nonos_hd" }
 nonos_seal = { path = "../nonos_seal" }
+# The Escrow address per chain and the fee caps SIGN_FROM_FRESH holds to (v1.4.51).
+nonos_nox_config = { path = "../nonos_nox_config" }
 blake3 = { version = "=1.8.7", default-features = false, features = ["pure"] }
 getrandom = "=0.2.17"
 x25519-dalek = { version = "=2.0.1", default-features = false, features = ["static_secrets", "zeroize"] }

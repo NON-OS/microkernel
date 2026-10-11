@@ -81,7 +81,7 @@ fn refuse<T>(why: impl core::fmt::Display) -> Result<T, String> {
     Err(why.to_string())
 }
 
-fn wallet() -> Result<Arc<Wallet>, String> {
+pub(crate) fn wallet() -> Result<Arc<Wallet>, String> {
     let open = OPEN.lock().map_err(|_| String::from("the shield is busy"))?;
     open.as_ref()
         .map(|o| Arc::clone(&o.wallet))

@@ -28,6 +28,11 @@ pub const TOPUP_GAS: u64 = 120_000;
 pub const CLOSE_GAS: u64 = 120_000;
 /// ShieldedPool claim(assetId, to): one token transfer out of the pool (v1.4.17).
 pub const CLAIM_GAS: u64 = 150_000;
+/// Escrow dispute(T, i, c_i, plainHash, proofs) from refundTo (v1.4.51):
+/// two Merkle paths, a chunk hash and the bond's slash.
+pub const DISPUTE_GAS: u64 = 400_000;
+/// Escrow refund(T, refundTo, refundSalt) from refundTo (v1.4.51).
+pub const REFUND_GAS: u64 = 150_000;
 /// The most gas the meter signs one settle() for, whatever settle's estimate
 /// says: twelve vouchers, each a signature recovery and a transfer.
 pub const SETTLE_GAS_MAX: u64 = 3_000_000;
