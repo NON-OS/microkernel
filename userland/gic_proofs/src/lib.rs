@@ -7,4 +7,6 @@ pub mod gic;
 #[cfg(test)]
 mod encode_tests;
 #[cfg(test)]
+mod intid_tests;
+#[cfg(test)]
 mod select_tests;
