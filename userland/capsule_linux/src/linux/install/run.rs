@@ -61,7 +61,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
             return Err(super::Why::Package);
         };
         say(b"[LINUX] provenance Verified: index signature and checksums match\n");
-        unpack(&files, &pkg.name, pkg.name == name)?;
+        unpack(&files, &pkg.name, pkg.name == name, false)?;
         done.push(pkg.name.clone());
         wanted.extend(pkg.depends.iter().cloned());
     }
