@@ -330,6 +330,7 @@ dependencies = [
  "nonos_ed25519",
  "nonos_hash",
  "nonos_inflate",
+ "nonos_linux_policy",
  "nonos_openpgp",
  "nonos_route_link",
  "nonos_tls",
@@ -354,6 +355,13 @@ version = "0.1.0"
 [[package]]
 name = "nonos_inflate"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_linux_policy"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+]
 
 [[package]]
 name = "nonos_openpgp"
