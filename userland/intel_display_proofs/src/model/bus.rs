@@ -24,6 +24,7 @@ use crate::engine::regs;
 
 impl Gen9 {
     pub(super) fn on_read(&mut self, off: u32) -> u32 {
+        self.tick_pending();
         let timed = Pipe::ALL
             .iter()
             .any(|&p| off == regs::pipe_frmcnt(p) || off == r::plane_surflive(p, 1));
@@ -43,6 +44,7 @@ impl Gen9 {
         }
         self.regs.insert(off, v);
         self.aux_write(off, v);
+        self.south_write(off, v);
         for p in Pipe::ALL {
             if off == r::plane_surf(p, 1) {
                 self.armed[p.index() as usize] = true;
