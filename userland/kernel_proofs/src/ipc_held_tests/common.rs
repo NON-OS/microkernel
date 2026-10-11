@@ -19,7 +19,7 @@
 pub(super) const IPC: u64 = 1 << 3;
 pub(super) const NETWORK: u64 = 1 << 2;
 
-pub(super) const WIRED: [&str; 7] = [
+pub(super) const WIRED: [&str; 12] = [
     "driver.virtio_net0",
     "driver.e1000_0",
     "driver.e1000e_0",
@@ -27,6 +27,11 @@ pub(super) const WIRED: [&str; 7] = [
     "driver.rtl8139_0",
     "driver.igb_0",
     "driver.ixgbe_0",
+    "driver.cdc_ecm0",
+    "driver.cdc_ncm0",
+    "driver.rndis0",
+    "driver.ax88179_0",
+    "driver.rtl8153_0",
 ];
 pub(super) const WIFI: [&str; 2] = ["driver.iwlwifi0", "driver.rtl8821ce0"];
 
