@@ -18,7 +18,6 @@
 //! INTENT quote, then refundTo's ETH from GAS until the gas is there. Each
 //! asked ASYNC, one at a time.
 
-use nonos_nox_config::{address, Contract};
 use nonos_settle_proto::{Gas, Intent, Quote, OP_GAS, OP_INTENT};
 
 use super::escrowing::{Ctx, Escrowing};
@@ -38,9 +37,8 @@ pub fn quoting(settle: &mut SettleCall, e: &mut Escrowing, c: &Ctx) -> bool {
         let _ = settle.ask(OP_INTENT, ESCROW, &i.encode(), c.now_ms);
         return false;
     };
-    let escrow = address(c.chain_id, Contract::Escrow).ok();
     e.step = match r.ok().and_then(|b| Quote::parse(&b)) {
-        Some(q) => after_quote(send.clone(), q, escrow, 0, c.chain_id),
+        Some(q) => after_quote(send.clone(), q, c.escrow, 0, c.chain_id),
         None => SendStep::Failed(NO_QUOTE),
     };
     true
