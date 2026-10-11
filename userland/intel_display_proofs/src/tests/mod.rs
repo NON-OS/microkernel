@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod aux_ch_fail_tests;
+mod aux_ch_tests;
 mod cursor_tests;
 mod dp_aux_tests;
 mod dp_caps_tests;
@@ -21,13 +23,17 @@ mod dp_i2c_tests;
 mod dp_lane_tests;
 mod dp_train_fail_tests;
 mod dp_train_tests;
+mod dpll_hdmi_tests;
+mod dpll_tests;
 mod flip_tests;
 mod ggtt_tests;
 mod ids_tests;
+mod mn_tests;
 mod plane_refusal_tests;
 mod plane_tests;
 mod scanout_refusal_tests;
 mod scanout_tests;
 mod takeover_edge_tests;
 mod takeover_tests;
+mod timing_write_tests;
 mod vblank_tests;
