@@ -21,7 +21,7 @@
 use crate::linux::guest::Guest;
 
 use super::evdev::evdev_of;
-use super::input_enter::keyboard_enter_once;
+use super::input_enter::keyboard_on;
 use super::out::Event;
 use super::xkb_mods::{xkb_masks, ALT, ALTGR, CAPS, CTRL, META, NUM, SHIFT};
 
@@ -39,11 +39,13 @@ const _: () = {
 pub fn key(guest: &mut Guest, code: u32, flags: u16, state: u32) {
     let Some(id) = guest.scene.keyboard else { return };
     let Some(linux) = evdev_of(code) else { return };
+    if !keyboard_on(guest, id) {
+        return;
+    }
     let held = &mut guest.scene.held;
     if !(if state == 1 { held.press(linux) } else { held.release(linux) }) {
         return;
     }
-    keyboard_enter_once(guest, id);
     let serial = guest.scene.next_serial();
     let time = time_ms();
     Event::new(id, KEYBOARD_KEY)

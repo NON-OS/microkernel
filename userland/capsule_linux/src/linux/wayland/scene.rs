@@ -48,8 +48,10 @@ pub struct Scene {
     pub pixels: Pixels,
     pub pointer: Option<u32>,
     pub keyboard: Option<u32>,
-    pub pointer_entered: bool,
-    pub keyboard_entered: bool,
+    /// The surface the pointer and the keyboard were last told they are on
+    /// (focus_step.rs).
+    pub pointer_on: Option<u32>,
+    pub keyboard_on: Option<u32>,
     /// Whether the input router has taken this personality's subscription.
     pub subscribed: bool,
     /// The keys down now, so a driver's repeat is not sent as a press.

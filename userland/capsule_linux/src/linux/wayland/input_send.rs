@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One input event, written to the client.
+//! A pointer motion, written to the client; a button is input_button.rs.
 
 use crate::linux::guest::Guest;
 
-use super::input_enter::enter_once;
+use super::input_enter::pointer_on;
 use super::out::Event;
 
-/// wl_pointer: motion 2, button 3, frame 5.
+/// wl_pointer: motion 2, frame 5.
 const POINTER_MOTION: u16 = 2;
-const POINTER_BUTTON: u16 = 3;
 const POINTER_FRAME: u16 = 5;
 
 /// Wayland carries a surface coordinate as 24.8 fixed point.
@@ -33,7 +32,9 @@ fn fixed(value: i32) -> u32 {
 
 pub fn motion(guest: &mut Guest, x: i32, y: i32) {
     let Some(id) = guest.scene.pointer else { return };
-    enter_once(guest, id, x, y);
+    if !pointer_on(guest, id, x, y) {
+        return;
+    }
     let time = time_ms();
     Event::new(id, POINTER_MOTION)
         .u32(time)
@@ -43,29 +44,14 @@ pub fn motion(guest: &mut Guest, x: i32, y: i32) {
     frame(guest, id);
 }
 
-/// `button` is the driver's, from 1; one with no Linux code sends nothing.
-pub fn button(guest: &mut Guest, button: u32, state: u32) {
-    let Some(id) = guest.scene.pointer else { return };
-    let Some(code) = super::pointer_codes::button_code(button) else { return };
-    let serial = guest.scene.next_serial();
-    let time = time_ms();
-    Event::new(id, POINTER_BUTTON)
-        .u32(serial)
-        .u32(time)
-        .u32(code)
-        .u32(state)
-        .send(&mut guest.display.to_client);
-    frame(guest, id);
-}
-
 /// wl_pointer.frame came with version 5; an older pointer takes each event
 /// as it comes.
-fn frame(guest: &mut Guest, id: u32) {
+pub fn frame(guest: &mut Guest, id: u32) {
     if guest.objects.at_least(id, 5) {
         Event::new(id, POINTER_FRAME).send(&mut guest.display.to_client);
     }
 }
 
-fn time_ms() -> u32 {
+pub fn time_ms() -> u32 {
     crate::linux::call::family_ms() as u32
 }

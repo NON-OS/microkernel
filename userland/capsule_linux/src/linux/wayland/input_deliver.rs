@@ -22,8 +22,9 @@ use nonos_app_skeleton::input::{InputEvent, InputKind};
 use crate::linux::guest::Guest;
 
 use super::input_axis::wheel;
+use super::input_button::button;
 use super::input_key::key;
-use super::input_send::{button, motion};
+use super::input_send::motion;
 
 /// F11, which takes a guest window full screen and back (toplevel.rs).
 const KEY_F11: u32 = nonos_app_skeleton::KEY_F1 + 10;
