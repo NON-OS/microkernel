@@ -25,6 +25,7 @@ gate call/mem/map_args.rs | wx_refused(prot) | a mapping writable and executable
 gate file/models/open.rs | mask::MODELS_RO | a model without MODELS_RO
 gate file/models/stat.rs | crate::linux::app::models() | /models without MODELS_RO
 gate file/private/names.rs | crate::linux::app::home() | a private home without FILES_HOME
+gate file/private/rule.rs | (!HOMES.contains(p) || home) | /home and /root private only with FILES_HOME
 gate start_guest.rs | app::grant(guest.app.mask) | the family's tree, from the program's mask
 gate file/root.rs | !super::private::shared_writes_allowed() | the shared tree is read-only to a guest
 gate call/io.rs | Some(Kind::Stdin) if !crate::linux::app::granted(guest, TTY) | typed input without TTY

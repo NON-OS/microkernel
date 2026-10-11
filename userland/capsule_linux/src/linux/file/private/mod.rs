@@ -18,6 +18,7 @@
 
 mod life;
 mod names;
+mod rule;
 
 pub use life::{clear, prepare};
 pub use names::{allow_shared_writes, is_private, root, shared_writes_allowed};
