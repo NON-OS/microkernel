@@ -79,6 +79,9 @@ pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
                 return ERRNO_NOMEM;
             }
         };
+        // Zeroed before it is mapped: mapped first, a sibling thread could
+        // read the frame's last owner's data through it until the zeroing.
+        crate::memory::frame_alloc::zero_frame(frame);
         if map_page(va, frame, perms).is_err() {
             if crate::memory::frame_alloc::deallocate_frame(frame).is_err() {
                 crate::sys::serial::println(b"[MMAP] frame_release_failed");
@@ -89,7 +92,6 @@ pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
             }
             return ERRNO_NOMEM;
         }
-        crate::memory::frame_alloc::zero_frame(frame);
     }
     record_mmap(pid, length, base);
     base as i64
