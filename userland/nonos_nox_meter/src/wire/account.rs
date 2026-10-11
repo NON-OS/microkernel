@@ -32,6 +32,7 @@ pub fn account(
     let b = &s.budget;
     let rows = s.channels.iter().skip(from).take(ACCOUNT_ROWS_MAX).map(|c| AccountRow {
         channel_id: c.id,
+        listing_id: c.listing_id,
         chain_id: c.chain_id,
         deposit: c.deposit,
         settled: c.settled,

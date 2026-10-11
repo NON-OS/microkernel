@@ -62,7 +62,7 @@ pub fn review_withdraw(state: &mut State) {
 fn review_to_meter(state: &mut State) {
     use crate::wallet::screen::shield::consts::{CHAIN_ID, POOL};
     let chain = CHAIN_ID.parse().unwrap_or(0);
-    let account = crate::wallet::meter::call::account();
+    let account = crate::wallet::meter::call::account(0);
     match super::fund_meter::meter_destination(POOL, chain, account.as_ref()) {
         Ok(a) => {
             let to = crate::wallet::screen::receive_address::checksummed_text(&a);
