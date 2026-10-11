@@ -31,8 +31,8 @@ use crate::security::nonos_trust_anchor::{
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.igb_0";
-const SERVICE_PORT: u32 = 4274;
-const REPLY_PORT: u32 = 4275;
+const SERVICE_PORT: u32 = 4242;
+const REPLY_PORT: u32 = 4243;
 /// The capsule's reply endpoint, CAPSULE_REPLY_ENDPOINT in its Capsule.mk.
 const REPLY_INBOX: &str = "endpoint.4294967392";
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
