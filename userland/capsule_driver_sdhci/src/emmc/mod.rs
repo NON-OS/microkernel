@@ -31,6 +31,8 @@
 //! - `mmc`: the card: OCR, CID, CSD, EXT_CSD and R1 decoding, bring-up from
 //!   power on to transfer state, the speed and bus width choice, and block
 //!   read, write and cache flush.
+//! - `sd`: the SD memory card's commands, registers and bring-up; a
+//!   removable slot tries it before `mmc`.
 //! - `disk`: `EmmcDisk`, the surface a server calls.
 //! - `info`: the reply payloads (DEVICE_INFO, CONTROLLER_INFO, PORT_LIST).
 //! - `pci`: which PCI functions are eMMC hosts.
@@ -43,6 +45,7 @@ pub mod info;
 pub mod mmc;
 pub mod pci;
 pub mod platform;
+pub mod sd;
 pub mod sdhci;
 pub mod text;
 

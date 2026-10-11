@@ -23,4 +23,4 @@ mod maker;
 mod names;
 
 pub use layout::{MODEL_MAX, SERIAL_LEN};
-pub use names::{names, Names};
+pub use names::{names, sd_names, Names};
