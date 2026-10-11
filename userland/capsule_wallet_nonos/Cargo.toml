@@ -35,6 +35,8 @@ nonos_payment_proto = { path = "../payment_proto" }
 nonos_market_proto = { path = "../market_proto" }
 # The publisher screen reads an entry document and derives ids (B8, plan/31).
 nonos_marketplace_abi = { path = "../marketplace_abi" }
+# settle's wire: the wallet's ASYNC BROADCAST, READ and INTENT (v1.4.53).
+nonos_settle_proto = { path = "../settle_proto" }
 
 [profile.release]
 panic = "abort"

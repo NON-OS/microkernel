@@ -50,7 +50,7 @@ pub fn run() -> ! {
             Some((h, body)) => {
                 let call = Call { op: h.op, flags: h.flags, id: h.request_id, body };
                 // ASYNC: the meter is not blocked in a call, so its answer goes to its inbox.
-                to_pid = h.flags & FLAG_ASYNC != 0 && flags_admitted(h.flags, sender);
+                to_pid = h.flags & FLAG_ASYNC != 0 && flags_admitted(h.flags, h.op, sender);
                 dispatch(&mut settle, sender, &call)
             }
             /*
