@@ -111,6 +111,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MSLR", SyscallNumber::MkSealRead, "MkSealRead"),
     e(b"MSNT", SyscallNumber::MkSealNote, "MkSealNote"),
     e(b"MPJB", SyscallNumber::MkProveJob, "MkProveJob"),
+    e(b"MCMS", SyscallNumber::MkCallerMeas, "MkCallerMeas"),
     e(b"MLSG", SyscallNumber::MkLocalSign, "MkLocalSign"),
     e(b"MLVF", SyscallNumber::MkLocalVerify, "MkLocalVerify"),
     e(b"MAIN", SyscallNumber::MkAppInstall, "MkAppInstall"),

@@ -37,6 +37,7 @@ pub(crate) const N_MK_FOREIGN_EXEC: i64 = tag4(b"MFEX");
 pub(crate) const N_MK_SEAL_READ: i64 = tag4(b"MSLR");
 pub(crate) const N_MK_SEAL_NOTE: i64 = tag4(b"MSNT");
 pub(crate) const N_MK_PROVE_JOB: i64 = tag4(b"MPJB");
+pub(crate) const N_MK_CALLER_MEAS: i64 = tag4(b"MCMS");
 pub(crate) const N_MK_LOCAL_SIGN: i64 = tag4(b"MLSG");
 pub(crate) const N_MK_LOCAL_VERIFY: i64 = tag4(b"MLVF");
 pub(crate) const N_MK_APP_INSTALL: i64 = tag4(b"MAIN");
