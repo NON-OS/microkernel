@@ -33,6 +33,7 @@ mod map_usb_msc;
 mod map_virtio;
 mod mirror;
 mod order;
+mod pass;
 mod placed;
 mod read;
 mod rows;
@@ -43,6 +44,7 @@ mod select;
 pub mod store_copy;
 mod types;
 mod wait;
+mod wait_since;
 pub mod wire;
 mod write;
 

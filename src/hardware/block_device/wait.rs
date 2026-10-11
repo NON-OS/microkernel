@@ -21,20 +21,23 @@
 //! one has not, the other NONOS disk waits, and not past `BOOT_WAIT_MS`: a
 //! driver that never comes up must not leave the machine with no disk.
 
-use core::sync::atomic::{AtomicU64, Ordering};
+use core::sync::atomic::AtomicU64;
 
+use super::wait_since::{over, stamp};
 use crate::sys::timer::uptime_ms;
 
 const BOOT_WAIT_MS: u64 = 15_000;
 
-/// When a disk first waited, in uptime milliseconds plus one; 0 before.
+/// When a disk was first refused, in uptime milliseconds plus one; 0 before.
 static SINCE: AtomicU64 = AtomicU64::new(0);
 
+/// Start the wait at the first refusal, not after a whole pass: a pass that
+/// meets a silent driver is itself long, and that time counts.
+pub(super) fn refused_now() {
+    stamp(&SINCE, uptime_ms());
+}
+
 pub(super) fn waited_for_boot_disk() -> bool {
-    let now = uptime_ms().saturating_add(1);
-    let since = match SINCE.compare_exchange(0, now, Ordering::AcqRel, Ordering::Acquire) {
-        Ok(_) => now,
-        Err(first) => first,
-    };
-    now.saturating_sub(since) >= BOOT_WAIT_MS
+    refused_now();
+    over(&SINCE, uptime_ms(), BOOT_WAIT_MS)
 }

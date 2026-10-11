@@ -51,3 +51,17 @@ pub(super) fn none() -> BlockDeviceError {
     }
     BlockDeviceError::Dead
 }
+
+/// The end of a pass that found no boot disk: another NONOS disk is kept
+/// once every disk answered, or once the wait for a refused one runs out.
+pub(super) fn settle(
+    other: Option<(Backend, Places)>,
+    refused: Option<BlockDeviceError>,
+) -> Result<Backend, BlockDeviceError> {
+    match (other, refused) {
+        (Some((b, p)), None) => Ok(keep(b, p)),
+        (Some((b, p)), Some(_)) if super::wait::waited_for_boot_disk() => Ok(keep(b, p)),
+        (Some(_), Some(e)) => Err(e),
+        (None, _) => Err(none()),
+    }
+}

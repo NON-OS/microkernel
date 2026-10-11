@@ -28,11 +28,13 @@ use super::backend::Backend;
 use super::booted;
 use super::found::Found;
 use super::identify::identify;
-use super::kept::{chosen, keep, none};
+use super::kept::{chosen, keep, settle};
 use super::order::order;
+use super::pass::Pass;
 use super::said::say;
 use super::seen_line::line;
-use super::wait::waited_for_boot_disk;
+use super::wait::refused_now;
+use super::wire::endpoint_of;
 use super::BlockDeviceError;
 
 pub fn selected() -> Result<Backend, BlockDeviceError> {
@@ -40,8 +42,11 @@ pub fn selected() -> Result<Backend, BlockDeviceError> {
         return Ok(b);
     }
     let boot = booted::partition();
-    let (mut other, mut refused) = (None, None);
+    let (mut other, mut refused, mut pass) = (None, None, Pass::default());
     for backend in order() {
+        if pass.skips(endpoint_of(&backend)) {
+            continue;
+        }
         let (found, seen) = identify(backend, boot.as_ref());
         say(backend, &line(backend, &seen));
         match found {
@@ -56,19 +61,15 @@ pub fn selected() -> Result<Backend, BlockDeviceError> {
              * behind it may be the right one, and settling on another now
              * would split reads and writes across two disks.
              */
-            Found::Refused(e) if other.is_none() => return Err(e),
-            Found::Refused(e) => refused = Some(e),
-        }
-    }
-    match (other, refused) {
-        (Some((b, p)), None) => Ok(keep(b, p)),
-        (Some((b, p)), Some(e)) => {
-            if waited_for_boot_disk() {
-                Ok(keep(b, p))
-            } else {
-                Err(e)
+            Found::Refused(e) => {
+                refused_now();
+                if other.is_none() {
+                    return Err(e);
+                }
+                pass.refused(endpoint_of(&backend), e);
+                refused = Some(e);
             }
         }
-        (None, _) => Err(none()),
     }
+    settle(other, refused)
 }
