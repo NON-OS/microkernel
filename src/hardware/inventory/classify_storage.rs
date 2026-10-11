@@ -19,6 +19,7 @@ use super::vmd::is_intel_vmd;
 
 const VENDOR_INTEL: u16 = 0x8086;
 const VENDOR_VIRTIO: u16 = 0x1af4;
+const SUBCLASS_IDE: u8 = 0x01;
 const SUBCLASS_RAID: u8 = 0x04;
 const SUBCLASS_SATA: u8 = 0x06;
 const SUBCLASS_NVM: u8 = 0x08;
@@ -38,6 +39,9 @@ pub(super) fn classify_storage(subclass: u8, vendor: u16, device: u16) -> Hardwa
         return HardwareFamily::StorageVirtioBlk;
     }
     match subclass {
+        SUBCLASS_IDE if vendor == VENDOR_INTEL && matches!(device, 0x7010 | 0x7111) => {
+            HardwareFamily::StorageIde
+        }
         SUBCLASS_SATA => HardwareFamily::StorageAhci,
         SUBCLASS_RAID if vendor == VENDOR_INTEL => HardwareFamily::StorageAhci,
         SUBCLASS_NVM => HardwareFamily::StorageNvme,

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod init;
+mod legacy_ide;
 mod list;
 mod pci_record;
 mod state;
