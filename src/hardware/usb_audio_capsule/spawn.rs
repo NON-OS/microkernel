@@ -29,9 +29,9 @@ use crate::security::nonos_trust_anchor::{
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.usb_audio0";
-const SERVICE_PORT: u32 = 4242;
+const SERVICE_PORT: u32 = 4246;
 const REPLY_INBOX: &str = "endpoint.4294967327";
-const REPLY_PORT: u32 = 4243;
+const REPLY_PORT: u32 = 4247;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
 pub fn spawn_driver_usb_audio_capsule() -> Result<(), SpawnError> {
