@@ -39,6 +39,7 @@ mod scene_pixels;
 mod seat;
 mod frame_len;
 mod opaque;
+mod pool_resize;
 mod present;
 mod present_source;
 mod present_surface;
