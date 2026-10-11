@@ -17,7 +17,7 @@
 //! The display adapters a hypervisor emulates, each spawned only where the
 //! device table has its device.
 
-pub(super) fn spawn() {
+pub(in crate::userspace::init::spawn_plan) fn spawn() {
     spawn_vmware_svga();
 }
 
@@ -25,10 +25,10 @@ pub(super) fn spawn() {
 fn spawn_vmware_svga() {
     use crate::hardware::inventory::HardwareFamily;
     use crate::hardware::vmware_svga_capsule as c;
-    if !super::device_present::present("DRIVER-VMWARE-SVGA", HardwareFamily::DisplayVmwareSvga) {
+    if !super::present::present("DRIVER-VMWARE-SVGA", HardwareFamily::DisplayVmwareSvga) {
         return;
     }
-    super::boot::capsule(
+    super::super::boot::capsule(
         "DRIVER-VMWARE-SVGA",
         "driver_vmware_svga",
         c::spawn_driver_vmware_svga_capsule,
