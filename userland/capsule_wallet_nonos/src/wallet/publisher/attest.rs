@@ -29,7 +29,7 @@ use alloc::vec::Vec;
 use nonos_marketplace_abi::{attest_words as release_words, Keccak, MarketplaceEntry};
 
 use super::super::attest::Attest;
-use super::super::intent::{hex, id};
+use super::super::hex_id::{hex, id};
 use super::binding::Refused;
 
 pub fn attest_of(
