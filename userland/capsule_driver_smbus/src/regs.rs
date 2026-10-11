@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The SMBus host registers in the I/O BAR, and the HOSTC config byte, as
-//! Linux's i2c-i801.c names them (Intel ICH and PCH datasheets, "SMBus
-//! I/O Registers").
+//! The SMBus host registers in the I/O BAR, and the HOSTC config byte, named
+//! as the Intel ICH and PCH datasheets name them ("SMBus I/O Registers",
+//! "SMBus PCI Configuration Registers").
 
 pub const HSTSTS: u16 = 0x00;
 pub const HSTCNT: u16 = 0x02;
@@ -54,8 +54,8 @@ pub const CNT_BLOCK_DATA: u8 = 0x14;
 pub const AUX_E32B: u8 = 0x02;
 pub const AUX_CRC: u8 = 0x01;
 
-/// Config byte 0x40, HOSTC: the host enable, and I2C mode, which Linux
-/// clears for SMBus timing.
+/// Config byte 0x40, HOSTC: the host enable, and I2C mode, cleared so the
+/// host frames every protocol as SMBus does.
 pub const HOSTC: u32 = 0x40;
 pub const HOSTC_HST_EN: u16 = 0x01;
 pub const HOSTC_I2C_EN: u16 = 0x04;
