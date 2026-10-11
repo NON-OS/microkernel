@@ -15,7 +15,7 @@ pub fn all(bytes: &[u8]) {
     let _ = cpus::find(&fdt, &mut ids);
     let _ = (uart::find(&fdt), gic::find(&fdt), timer::find(&fdt));
     let _ = (pci::find(&fdt), rtc::find(&fdt), fdt.stdout(), fdt.initrd());
-    let _ = (smmu::find(&fdt), smmu::pci_iommu_map(&fdt));
+    let _ = (smmu::find(&fdt), smmu::pci_iommu_map(&fdt), pci::interrupt_map(&fdt));
     let _ = fdt.reserved_memory(&mut held);
     let _ = fdt.reservations().count();
     let _ = fdt.resolve(b"serial0/bluetooth");
