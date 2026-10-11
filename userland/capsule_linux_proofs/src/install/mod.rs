@@ -79,6 +79,7 @@ pub mod manifest;
 #[path = "../../../capsule_linux/src/linux/install/place_links.rs"]
 pub mod place_links;
 #[cfg(test)]
+mod place_links_more_tests;
 mod place_links_tests;
 
 #[path = "../../../capsule_linux/src/linux/install/unpacked.rs"]
