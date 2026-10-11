@@ -57,9 +57,7 @@ mod request_tests;
 #[cfg(test)]
 mod store_step_tests;
 #[cfg(test)]
-mod store_price_tests;
-#[cfg(test)]
-mod store_recheck_tests;
+mod store_suite;
 #[cfg(test)]
 mod store_tests;
 

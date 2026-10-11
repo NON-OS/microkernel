@@ -22,6 +22,7 @@ mod counter;
 mod detail;
 mod frame;
 mod gates;
+mod headline;
 pub mod geometry;
 mod hex;
 pub mod metrics;
