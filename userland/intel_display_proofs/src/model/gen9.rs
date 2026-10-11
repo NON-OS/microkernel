@@ -39,6 +39,9 @@ pub struct Gen9 {
     /// that never finishes when set.
     pub aux: Option<(crate::engine::aux_regs::Ddi, Box<dyn crate::dp::aux::Aux>)>,
     pub aux_stuck: bool,
+    /// Changes landing a few reads later; nothing answers when `dead`.
+    pub pending: Vec<(u32, u32, u32)>,
+    pub dead: bool,
 }
 
 impl Gen9 {
@@ -56,6 +59,8 @@ impl Gen9 {
             writes: Vec::new(),
             aux: None,
             aux_stuck: false,
+            pending: Vec::new(),
+            dead: false,
         }
     }
 

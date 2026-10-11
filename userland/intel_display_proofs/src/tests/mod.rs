@@ -16,6 +16,7 @@
 
 mod aux_ch_fail_tests;
 mod aux_ch_tests;
+mod backlight_tests;
 mod cursor_tests;
 mod dp_aux_tests;
 mod dp_caps_tests;
@@ -31,6 +32,8 @@ mod ids_tests;
 mod mn_tests;
 mod plane_refusal_tests;
 mod plane_tests;
+mod power_tests;
+mod pps_tests;
 mod scanout_refusal_tests;
 mod scanout_tests;
 mod takeover_edge_tests;
