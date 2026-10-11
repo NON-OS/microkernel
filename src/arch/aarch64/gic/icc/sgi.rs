@@ -22,7 +22,7 @@
 //! single write. Setting `IRM` instead broadcasts to every core but the sender
 //! and ignores the affinity fields entirely.
 
-use core::arch::asm;
+use super::sgi_write::write_sgi1r;
 
 /// Highest INTID the SGI range holds.
 const SGI_MAX: u32 = 15;
@@ -61,14 +61,4 @@ pub fn send_sgi_all_others(intid: u32) -> Result<(), ()> {
     }
     write_sgi1r(((intid as u64) << INTID_SHIFT) | IRM_ALL_OTHERS);
     Ok(())
-}
-
-fn write_sgi1r(value: u64) {
-    // SAFETY: ICC_SGI1R_EL1 is write-only and accessible at EL1 once the CPU
-    // interface is enabled, which `icc::init` did during GIC bring-up. The
-    // `isb` keeps the write from being observed after later interrupt state
-    // changes.
-    unsafe {
-        asm!("msr icc_sgi1r_el1, {0}", "isb", in(reg) value, options(nomem, nostack, preserves_flags));
-    }
 }
