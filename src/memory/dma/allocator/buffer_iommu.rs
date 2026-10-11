@@ -47,7 +47,7 @@ impl DmaAllocator {
         let region = self.allocate_coherent(size, constraints, stats)?;
         let protection = match direction {
             DmaDirection::ToDevice => IommuProtection::READ,
-            DmaDirection::FromDevice => IommuProtection { read: false, write: true },
+            DmaDirection::FromDevice => IommuProtection::WRITE,
             DmaDirection::Bidirectional => IommuProtection::READ_WRITE,
         };
         // SAFETY: ek@nonos.systems — `region` was just produced by
