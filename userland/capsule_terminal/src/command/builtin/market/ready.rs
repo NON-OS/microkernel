@@ -17,12 +17,30 @@
 //! INSTALL_READY for the listing's default release, its bond read on
 //! Sepolia, the one chain the contracts are on (v1.4.23).
 
-use nonos_market_proto::{parse_readiness, ready_body, Readiness, OP_INSTALL_READY};
+use alloc::format;
+use alloc::string::String;
+
+use nonos_market_proto::{parse_readiness, ready_body, Readiness, GATES, OP_INSTALL_READY};
 use nonos_nox_config::SEPOLIA;
 
 use super::call::call;
 use super::failure::Failure;
+use crate::command::output::Output;
 
 pub(super) fn readiness(id: &[u8]) -> Result<Option<Readiness>, Failure> {
     call(OP_INSTALL_READY, &ready_body(id, b"", SEPOLIA)).map(|b| parse_readiness(&b))
+}
+
+/// The verdict, then each gate with its own mark (`market info`).
+pub(super) fn gates(out: &mut Output<'_>, r: &Readiness) {
+    let verdict = match r.install_ready {
+        true => "ready to install on this machine",
+        false => "this machine will not install it yet",
+    };
+    out.writeln(format!("  install    {verdict}").as_bytes());
+    for (label, pass) in GATES.iter().zip(r.gates.iter()) {
+        let mark = if *pass { "pass" } else { "fail" };
+        let label = String::from_utf8_lossy(label);
+        out.writeln(format!("    {label:<22} {mark}").as_bytes());
+    }
 }

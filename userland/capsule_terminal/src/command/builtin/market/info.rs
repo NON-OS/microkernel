@@ -22,13 +22,12 @@ use alloc::string::String;
 
 use nonos_libc::mk_app_install_status;
 use nonos_market_proto::{
-    listing_body, pair_body, parse_app, parse_release, Readiness, Stage, GATES, OP_GET_APP,
-    OP_GET_RELEASE,
+    listing_body, pair_body, parse_app, parse_release, Stage, OP_GET_APP, OP_GET_RELEASE,
 };
 
 use super::call::call;
 use super::failure::Failure;
-use super::ready::readiness;
+use super::ready::{gates, readiness};
 use super::stage_text::stage_text;
 use super::wrap::wrap;
 use crate::command::output::Output;
@@ -66,18 +65,5 @@ pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
     if id.starts_with(b"linux.") {
         let stage = Stage::of(mk_app_install_status(id));
         out.writeln(format!("  status     {}", stage_text(id, stage)).as_bytes());
-    }
-}
-
-fn gates(out: &mut Output<'_>, r: &Readiness) {
-    let verdict = match r.install_ready {
-        true => "ready to install on this machine",
-        false => "this machine will not install it yet",
-    };
-    out.writeln(format!("  install    {verdict}").as_bytes());
-    for (label, pass) in GATES.iter().zip(r.gates.iter()) {
-        let mark = if *pass { "pass" } else { "fail" };
-        let label = String::from_utf8_lossy(label);
-        out.writeln(format!("    {label:<22} {mark}").as_bytes());
     }
 }
