@@ -59,9 +59,6 @@
    "nonos-data/trust/capsules/driver_smbus.manifest.bin",
    "nonos-data/trust/capsules/driver_smbus.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_smbus.zk_trailer.bin",
-   "nonos-data/trust/capsules/driver_tg3.manifest.bin",
-   "nonos-data/trust/capsules/driver_tg3.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/driver_tg3.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ufs.manifest.bin",
    "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
@@ -1609,17 +1606,6 @@
    "userland/capsule_driver_hda/src/protocol/encode.rs",
    "userland/capsule_driver_smbus",
    "userland/libc"
-  ],
-  "md": [],
-  "signed": []
- },
- "userland/capsule_driver_tg3": {
-  "exclude": [],
-  "include": [
-   ".cargo",
-   "userland/capsule_driver_tg3",
-   "userland/libc",
-   "userland/nonos_mac"
   ],
   "md": [],
   "signed": []
@@ -3782,7 +3768,6 @@
    "userland/capsule_driver_ixgbe/src/constants/pci.rs",
    "userland/capsule_driver_rtl8139/src/constants/pci.rs",
    "userland/capsule_driver_rtl8169/src/constants/pci.rs",
-   "userland/capsule_driver_tg3/src/constants/pci.rs",
    "userland/capsule_driver_usb_msc/src/scan/report.rs",
    "userland/capsule_net_core/src/setup/candidates.rs",
    "userland/capsule_net_l2/src/setup/discover.rs",
@@ -3826,9 +3811,6 @@
    "nonos-data/trust/capsules/driver_smbus.manifest.bin",
    "nonos-data/trust/capsules/driver_smbus.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_smbus.zk_trailer.bin",
-   "nonos-data/trust/capsules/driver_tg3.manifest.bin",
-   "nonos-data/trust/capsules/driver_tg3.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/driver_tg3.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ufs.manifest.bin",
    "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",

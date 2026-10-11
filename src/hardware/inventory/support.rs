@@ -22,7 +22,7 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         StorageVirtioBlk | StorageUsbMsc | StorageAhci | StorageNvme => DataPath,
         StorageEmmc | StorageSdhci | StorageUfs => DataPath,
         NetworkVirtio | NetworkE1000 | NetworkRtl8139 | NetworkRtl8169 => DataPath,
-        NetworkE1000e | NetworkIgb | NetworkIxgbe | NetworkTg3 => DataPath,
+        NetworkE1000e | NetworkIgb | NetworkIxgbe => DataPath,
         NetworkRtl8821ce => DataPath,
         DisplayGopFramebuffer | DisplayVirtioGpu | DisplayBga => DataPath,
         UsbXhci | InputPs2 | InputUsbHid => DataPath,
