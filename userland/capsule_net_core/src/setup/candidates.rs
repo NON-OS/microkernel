@@ -30,6 +30,7 @@ const WIRED_NICS: &[&str] = &[
     "driver.e1000_0",
     "driver.rtl8169_0",
     "driver.rtl8139_0",
+    "driver.pcnet0",
     "driver.cdc_ecm0",
     "driver.cdc_ncm0",
     "driver.rndis0",
