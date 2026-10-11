@@ -24,6 +24,7 @@
 //! from the public account when nobody else will. Every byte it sends goes
 //! over the anonymity network the machine has chosen; it never goes direct.
 
+mod fresh;
 mod guard;
 mod jobs;
 mod ops;
