@@ -26,7 +26,7 @@ use super::ask::request;
 use super::send::send;
 use super::work::{Pending, Work};
 use crate::keyring::sign_tx;
-use crate::orders::{drop_order, keep};
+use crate::orders::{drop_order, keep, keep_offer};
 
 enum Act {
     Sent(Pending),
@@ -41,6 +41,7 @@ pub(super) fn advance(work: &mut Work, mut next: Result<Next, i32>, now_ms: u64)
             Ok(Next::Done(hashes)) => Act::End(Ok(hashes)),
             Ok(Next::Keep(order, made)) => Act::End(keep(&order).map(|_| made)),
             Ok(Next::Drop(id, status)) => Act::End(drop_order(&id).map(|_| status)),
+            Ok(Next::KeepOffer(o, made)) => Act::End(keep_offer(&o, now_ms / 1000).map(|_| made)),
             Ok(Next::Sign(txs)) => {
                 let raws: Result<Vec<Vec<u8>>, i32> =
                     txs.iter().map(|t| sign_tx(run.key_id, t)).collect();

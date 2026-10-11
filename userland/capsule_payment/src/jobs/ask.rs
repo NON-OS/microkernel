@@ -19,7 +19,7 @@
 use alloc::vec::Vec;
 
 use nonos_nox_meter::flow::Ask;
-use nonos_settle_proto::{parse_read_reply, Gas, Read, OP_BROADCAST, OP_GAS, OP_READ};
+use nonos_settle_proto::{parse_read_reply, Gas, Read, OP_BROADCAST, OP_FETCH, OP_GAS, OP_READ};
 
 /// Settlement's GRACE() and the pool's claimable(uint64,address) (READ).
 pub(super) fn request(ask: &Ask, chain_id: u64, meter: &[u8; 20]) -> Option<(u16, Vec<u8>)> {
@@ -29,6 +29,7 @@ pub(super) fn request(ask: &Ask, chain_id: u64, meter: &[u8; 20]) -> Option<(u16
         }
         Ask::Gas => (OP_GAS, Gas::request(chain_id, meter).to_vec()),
         Ask::Broadcast(raw) => (OP_BROADCAST, [&chain_id.to_le_bytes()[..], raw].concat()),
+        Ask::Fetch(body) => (OP_FETCH, body.clone()),
     })
 }
 

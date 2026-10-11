@@ -34,6 +34,8 @@ pub struct HeldEscrow {
     pub buyer_pk: [u8; 32],
     pub pid: u32,
     pub bytes: Vec<u8>,
+    /// When it was fetched or last paged, in ms; ESCROW_IDLE_MS after, it goes.
+    pub at_ms: u64,
 }
 
 pub struct Settle {

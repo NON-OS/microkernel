@@ -19,6 +19,7 @@
 use alloc::vec::Vec;
 
 use crate::error::MeterError;
+use crate::escrow::KeptOffer;
 use crate::open::TxRequest;
 use crate::orders::Order;
 
@@ -35,9 +36,14 @@ pub struct Contracts {
 /// the meter's GAS, or a BROADCAST of one signed transaction.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Ask {
-    View { view: u16, args: Vec<[u8; 32]> },
+    View {
+        view: u16,
+        args: Vec<[u8; 32]>,
+    },
     Gas,
     Broadcast(Vec<u8>),
+    /// A FETCH body for settle.
+    Fetch(Vec<u8>),
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -52,6 +58,8 @@ pub enum Next {
     Drop([u8; 32], Vec<u8>),
     /// Seal and keep this order first, then answer with these bytes.
     Keep(alloc::boxed::Box<Order>, Vec<u8>),
+    /// Seal and keep this offer first, then answer with these bytes.
+    KeepOffer(alloc::boxed::Box<KeptOffer>, Vec<u8>),
 }
 
 /// The next step, or why the job ends here.

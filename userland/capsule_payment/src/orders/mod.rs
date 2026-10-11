@@ -15,5 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod file;
+mod offers;
 
 pub(crate) use file::{drop_order, find, keep};
+pub(crate) use offers::keep_offer;

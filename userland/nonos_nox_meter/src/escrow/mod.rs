@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod kept;
+mod kept_id;
+mod offer_work;
 mod request;
 mod want;
 
+pub use kept::{KeptOffer, KEPT_HEAD};
+pub use offer_work::OfferWork;
 pub use request::{escrow_request, NONCE_TRIES};
 pub use want::{Asked, Want};
