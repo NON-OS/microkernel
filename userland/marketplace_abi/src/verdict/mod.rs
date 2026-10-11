@@ -22,6 +22,7 @@ mod commerce;
 mod digest;
 mod policy;
 mod policy_kind;
+mod price;
 mod recover;
 
 pub use attest::{attest_verdict, attest_verdict_at, AttestVerdict};
@@ -33,4 +34,5 @@ pub use digest::{binding_digest, binding_digest_at};
 pub use policy::{policy_verdict, AT_LISTING, AT_RELEASE};
 pub use policy::{POLICY_LEN, POLICY_MAGIC, POLICY_VERSION};
 pub use policy_kind::PolicyVerdict;
+pub use price::{price_verdict, PriceVerdict};
 pub use recover::Recover;
