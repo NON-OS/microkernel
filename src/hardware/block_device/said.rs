@@ -21,29 +21,16 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::backend::Backend;
 
-/// The last line said for each backend, and for the USB driver's own
-/// search, by its hash: a disk asked on every store read is said only when
-/// what it shows changes. A block-wire disk keeps its own in its slot.
-static SAID: [AtomicU64; 5] = [const { AtomicU64::new(0) }; 5];
-const USB_SEARCH: usize = 4;
+/// The last line a driver's own report said, by its hash. Each disk keeps
+/// its own in its row: a disk asked on every store read is said only when
+/// what it shows changes.
+static REPORT: AtomicU64 = AtomicU64::new(0);
 
-fn slot(backend: Backend) -> &'static AtomicU64 {
-    match backend {
-        Backend::VirtioBlk => &SAID[0],
-        Backend::Ahci => &SAID[1],
-        Backend::Nvme => &SAID[2],
-        Backend::UsbMsc => &SAID[3],
-        Backend::Wire(i) => super::wire::said(i),
-    }
-}
-
-pub(super) fn say(backend: Backend, line: &str) {
-    once(slot(backend), line);
+pub(super) fn say(b: Backend, line: &str) {
+    once((b.disk.said)(b.key), line);
     /* The stick driver cannot write to the log; its search is said here. */
-    if backend == Backend::UsbMsc {
-        if let Some(report) = crate::hardware::usb_msc_capsule::report_line() {
-            once(&SAID[USB_SEARCH], &report);
-        }
+    if let Some(report) = b.disk.report.and_then(|r| r()) {
+        once(&REPORT, &report);
     }
 }
 
