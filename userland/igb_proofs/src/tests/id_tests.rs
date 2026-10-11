@@ -59,7 +59,7 @@ const IGB_PCI_TBL: [(u16, &str); 35] = [
 
 #[test]
 fn every_igb_pci_tbl_id_is_bound_in_order_and_nothing_else() {
-    let ids: Vec<u16> = IGB_PARTS.iter().map(|(id, _)| *id).collect();
+    let ids: Vec<u16> = IGB_PARTS.iter().map(|(id, ..)| *id).collect();
     let tbl: Vec<u16> = IGB_PCI_TBL.iter().map(|(id, _)| *id).collect();
     assert_eq!(ids, tbl);
     assert_eq!(INTEL_VENDOR_ID, 0x8086);

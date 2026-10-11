@@ -17,8 +17,10 @@
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO};
 
 use super::bar_command::command_bits;
+use super::choose::choose;
 use super::found::Found;
 use super::support::part;
+use crate::constants::pci::is_copper;
 
 /// The device list holds ACPI and fabricated records beside PCI functions;
 /// at 32 a machine with more stopped short of the device behind a root port.
@@ -31,25 +33,26 @@ pub fn find_igb() -> Option<Found> {
         return None;
     }
     let count = core::cmp::min(n as usize, MAX_DEVICES);
-    for r in &buf[..count] {
-        let Some(part) = part(r) else { continue };
-        // Interrupt routing is not asked for: the driver polls. UEFI firmware
-        // often leaves Interrupt Line at 0xFF, and filtering on it would skip
-        // a working NIC.
-        if r.bar_count == 0 {
-            continue;
-        }
-        let bar0 = r.bars[0];
-        if bar0.kind != BAR_KIND_MMIO || bar0.size == 0 {
-            continue;
-        }
-        return Some(Found {
-            device_id: r.device_id,
-            pci_device: r.device,
-            part,
-            bar0_size: bar0.size,
-            command_bits: command_bits(r),
-        });
+    choose(buf[..count].iter().filter_map(usable), |f| is_copper(f.pci_device))
+}
+
+fn usable(r: &DeviceRecord) -> Option<Found> {
+    let part = part(r)?;
+    // Interrupt routing is not asked for: the driver polls. UEFI firmware
+    // often leaves Interrupt Line at 0xFF, and filtering on it would skip
+    // a working NIC.
+    if r.bar_count == 0 {
+        return None;
     }
-    None
+    let bar0 = r.bars[0];
+    if bar0.kind != BAR_KIND_MMIO || bar0.size == 0 {
+        return None;
+    }
+    Some(Found {
+        device_id: r.device_id,
+        pci_device: r.device,
+        part,
+        bar0_size: bar0.size,
+        command_bits: command_bits(r),
+    })
 }
