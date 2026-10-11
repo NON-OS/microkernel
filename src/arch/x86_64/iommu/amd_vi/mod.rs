@@ -41,6 +41,7 @@ pub mod error;
 pub mod event;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod flush;
+pub mod identity_change;
 mod init;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod log_line;

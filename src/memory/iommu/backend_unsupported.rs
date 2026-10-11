@@ -32,6 +32,12 @@ pub(in crate::memory::iommu) fn translates(_device: DeviceAddress) -> bool {
     false
 }
 
+/// With no backend there is no identity domain: every device reaches memory
+/// directly, which the posture line already says with `none present`.
+pub(in crate::memory::iommu) fn identity_devices() -> usize {
+    0
+}
+
 // The domain calls, beside this file so each stays in bounds.
 #[path = "backend_unsupported_domain.rs"]
 mod domain_calls;

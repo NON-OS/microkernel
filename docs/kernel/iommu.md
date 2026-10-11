@@ -79,11 +79,11 @@ The device then reaches all of memory, and the kernel counts it instead of hidin
 `report_posture` prints the state once DMA protection has been set up, right after paging, and prints the first line again whenever the count changes (`src/memory/iommu/posture.rs:38-79`):
 
 ```
-[IOMMU] <none|intel-vt-d|amd-vi> present, enforcing=<0|1>, unconfined grants=<n>
+[IOMMU] <none|intel-vt-d|amd-vi> present, enforcing=<0|1>, unconfined grants=<n>, identity devices=<n>
 [IOMMU] capabilities aw=<bits> ir=<0|1> snoop=<0|1> pages=<mask> domains=<n>
 ```
 
-`enforcing=1` together with `unconfined grants=0` means that every DMA buffer the broker has granted is confined, because `unconfined_grants` counts every grant made without a domain (`src/memory/iommu/posture.rs:17-28`). It does not mean every device is confined: a device found at boot that no capsule has claimed stays in the identity domain and can still reach all memory. On a machine with no remapping hardware the boot prints `[IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted` and selects `IommuVendor::Absent` (`src/arch/x86_64/iommu/backend/select.rs:62-65`).
+`enforcing=1` together with `unconfined grants=0` means that every DMA buffer the broker has granted is confined, because `unconfined_grants` counts every grant made without a domain (`src/memory/iommu/posture.rs:17-28`). It does not mean every device is confined: a device found at boot that no capsule has claimed stays in the identity domain (VT-d) or keeps a passthrough device table entry (AMD-Vi) and can still reach all memory. `identity devices` counts those devices, and the line is printed again when a claim or a release changes that count (`src/memory/iommu/posture_line.rs`). Only `enforcing=1`, `unconfined grants=0` and `identity devices=0` together mean that no device reaches memory outside a capsule's grants. On a machine with no remapping hardware the boot prints `[IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted` and selects `IommuVendor::Absent` (`src/arch/x86_64/iommu/backend/select.rs:62-65`).
 
 ## AMD-Vi
 

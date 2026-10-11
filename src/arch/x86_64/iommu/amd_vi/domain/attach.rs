@@ -23,6 +23,7 @@ use super::super::dte::{blocked, domain_of, mode_of, passthrough, translated, Dt
 use super::super::error::AmdViError;
 use super::super::flush::flush_device;
 use super::super::pte::LEVELS;
+use super::identity::note;
 use super::lifetime::{root_of, ROOTS};
 
 pub fn device_id(bus: u8, device: u8, function: u8) -> u16 {
@@ -54,10 +55,15 @@ pub fn detach(id: u16) -> Result<(), AmdViError> {
 
 /// Identity for a device the kernel enumerated, at bring-up.
 pub(in crate::arch::x86_64::iommu::amd_vi) fn pass(id: u16) -> Result<(), AmdViError> {
-    write_dte(id, passthrough())
+    let before = read_dte(id)?;
+    write_dte(id, passthrough())?;
+    note(before, passthrough());
+    Ok(())
 }
 
 fn replace(id: u16, entry: Dte) -> Result<(), AmdViError> {
+    let before = read_dte(id)?;
     write_dte(id, entry)?;
+    note(before, entry);
     flush_device(id)
 }
