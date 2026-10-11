@@ -16,7 +16,7 @@
 
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO, BUS_KIND_PCI};
 
-use crate::constants::pci::{FB_BAR, FIFO_BAR, PORT_BAR, SVGA2_DEVICE_ID, VMWARE_VENDOR_ID};
+use crate::constants::pci::{layout_of, Layout};
 
 /// The device list holds ACPI and fabricated records beside PCI functions.
 const MAX_DEVICES: usize = 128;
@@ -24,6 +24,7 @@ const MAX_DEVICES: usize = 128;
 #[derive(Clone, Copy)]
 pub struct Found {
     pub device_id: u64,
+    pub layout: Layout,
     pub fb_bytes: u64,
     pub fifo_bytes: u64,
 }
@@ -34,18 +35,19 @@ pub fn find_svga() -> Option<Found> {
     if n <= 0 {
         return None;
     }
-    let r = buf[..core::cmp::min(n as usize, MAX_DEVICES)].iter().find(|r| is_match(r))?;
-    let (fb, fifo) = (r.bars[FB_BAR as usize], r.bars[FIFO_BAR as usize]);
-    Some(Found { device_id: r.device_id, fb_bytes: fb.size, fifo_bytes: fifo.size })
+    buf[..core::cmp::min(n as usize, MAX_DEVICES)].iter().find_map(found)
 }
 
-fn is_match(r: &DeviceRecord) -> bool {
+/// An SVGA II function with its ports in I/O space and its framebuffer and
+/// FIFO in memory, in the order its ids call for.
+pub fn found(r: &DeviceRecord) -> Option<Found> {
+    let l = layout_of(r.vendor, r.device)?;
     let kind = |i: usize| r.bars[i].kind;
-    r.vendor == VMWARE_VENDOR_ID
-        && r.device == SVGA2_DEVICE_ID
-        && r.bus_kind == BUS_KIND_PCI
+    let whole = r.bus_kind == BUS_KIND_PCI
         && r.bar_count > 2
-        && kind(PORT_BAR as usize) == BAR_KIND_PIO
-        && kind(FB_BAR as usize) == BAR_KIND_MMIO
-        && kind(FIFO_BAR as usize) == BAR_KIND_MMIO
+        && kind(l.port as usize) == BAR_KIND_PIO
+        && kind(l.fb as usize) == BAR_KIND_MMIO
+        && kind(l.fifo as usize) == BAR_KIND_MMIO;
+    let (fb, fifo) = (r.bars[l.fb as usize].size, r.bars[l.fifo as usize].size);
+    whole.then_some(Found { device_id: r.device_id, layout: l, fb_bytes: fb, fifo_bytes: fifo })
 }
