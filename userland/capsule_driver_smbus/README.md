@@ -9,8 +9,8 @@ certificate yet, so no image carries it until the owner signs it.
 
 ## Role
 
-`capsule_driver_smbus` drives the SMBus host of Intel's ICH and PCH chipsets
-(the controller Linux's `i2c-i801` drives) and serves SMBus transfers on
+`capsule_driver_smbus` drives the SMBus host of Intel's ICH and PCH chipsets,
+written from the ICH and PCH datasheets' SMBus chapters, and serves SMBus transfers on
 `driver.smbus0`. It owns the host, not what sits on the bus: SPD EEPROMs,
 sensors and SMBus touchpads are for drivers above it.
 
@@ -44,7 +44,7 @@ mounted) under the magic `NSMB`.
   word data, 1 to 32 for a block). The reply's data is a length byte and the
   bytes a read returned.
 
-Errors, as Linux's i801 returns them: -6 no device acknowledged, -5 the
+Errors, as negative errno values: -6 no device acknowledged, -5 the
 host failed, -11 arbitration lost, -16 host busy, -71 a block length outside
 1 to 32, -95 block transfers on a host older than ICH4, -110 timed out (the
 transaction is killed), -22 a malformed request.
@@ -59,10 +59,11 @@ registers.
 ## Current implemented surface
 
 - Quick, byte, byte data, word data and block (through the 32-byte buffer)
-  transfers, as `i801_access` runs them: a busy host refused, the flags a
-  transfer left cleared first, a 200 ms bounded wait polled 1 ms apart, a
-  kill on timeout, and the INUSE semaphore given back to firmware and ACPI
-  after every transfer.
+  transfers, each planned from the request (`xfer/plan.rs`): a busy host
+  refused, the flags a transfer left cleared first, a 200 ms bounded wait
+  polled 1 ms apart (SMBus 2.0's clock-stretch and timeout limits with
+  room), a kill on timeout, and the INUSE semaphore given back to firmware
+  and ACPI after every transfer.
 - At start, a read of byte 2 (the DRAM type) of each SPD EEPROM at 0x50 to
   0x57, logged.
 
