@@ -86,7 +86,7 @@ On x86_64 a driver holding `Pio` can ask for a grant on an I/O port BAR of a cla
 
 `MkPciConfigRead` needs `Driver` and the claim. `read` accepts widths 1, 2 and 4, aligned, inside the first 256 bytes (`src/hardware/broker/pci/read.rs:22-48`).
 
-`MkPciConfigWrite` accepts few changes. In the Command register only Bus Master, Memory Space and Interrupt Disable may change, as `COMMAND_WRITABLE` says (`src/hardware/broker/pci/command.rs:22-33`). In MSI-X Message Control only Enable and Function Mask may change, and otherwise only a few vendor bits for HD Audio controllers and the PCI Express completion timeout of a network controller, listed in `writable` (`src/hardware/broker/pci/quirk_bits.rs:49-61`). Any other offset, BARs, the interrupt line, the IDs and the capability pointers among them, `validate` refuses before the write reaches the bus (`src/hardware/broker/pci/allowlist.rs:37-60`).
+`MkPciConfigWrite` accepts few changes. In the Command register only Bus Master, Memory Space and Interrupt Disable may change, as `COMMAND_WRITABLE` says (`src/hardware/broker/pci/command.rs:22-33`). In MSI-X Message Control only Enable and Function Mask may change, and otherwise only a few vendor bits for HD Audio controllers and the PCI Express completion timeout of a network controller, listed in `writable` (`src/hardware/broker/pci/quirk_bits/writable.rs:25-41`). Any other offset, BARs, the interrupt line, the IDs and the capability pointers among them, `validate` refuses before the write reaches the bus (`src/hardware/broker/pci/allowlist.rs:37-60`).
 
 ## Interrupts
 
