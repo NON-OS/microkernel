@@ -1,11 +1,11 @@
 # capsule_driver_tg3
 
-Status: wired (`src/hardware/tg3_capsule`, `microkernel-driver-tg3`, nics.rs)
-but not signed, so no image carries it yet.
+Status: built and proven on the host; not yet embedded, spawned or signed.
 
 ## Role
 Broadcom 57765-class GbE (Linux `tg3`): BCM57761, 57762, 57765, 57766,
-57781, 57782, 57785, 57786, 57791, 57795 (last two 10/100); not in QEMU.
+57781, 57782, 57785, 57786, 57791 and 57795 (the last two 10/100 only).
+QEMU has no tg3: this runs on hardware only.
 
 ```text
 net.core / net.l2 --NNET IPC--> driver.tg3_0 --broker MMIO + DMA--> 57765
@@ -48,7 +48,7 @@ One standard ring (64 buffers posted of 512), its return ring, one send
 ring (63 frames in flight), 2 KiB slots, autonegotiated copper with pause.
 
 ## Wire format
-As e1000's: 20-byte NNET header, 4-byte status, per-op data.
+As `capsule_driver_e1000`: 20-byte NNET header, 4-byte status, per-op data.
 
 ## State ownership
 Here: rings, buffers, mode words, address. Stack: protocols. Kernel: grants.
@@ -57,7 +57,7 @@ Here: rings, buffers, mode words, address. Stack: protocols. Kernel: grants.
 Frames only; every wait bounded on the uptime clock.
 
 ## Release target
-A signed raw-frame NIC service for 57765-class laptops and desktops.
+A signed, spawned raw-frame NIC service for 57765-class laptops and desktops.
 
 ## Release evidence
 A boot on one 57765-class machine: `tg3: up`, `tg3: link up`, DHCP.
