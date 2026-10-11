@@ -22,6 +22,7 @@ use super::hex::short;
 use super::metrics::{BODY_PX, DETAIL_PAD, SMALL_PX, TITLE_PX};
 use super::text;
 use super::wrap::wrap;
+use crate::store::price::price_line;
 use crate::store::state::State;
 use crate::store::theme::{ACCENT, FOREGROUND, MUTED, PANE_BG, TITLE};
 
@@ -46,6 +47,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
             let mut line = b"Version ".to_vec();
             line.extend_from_slice(r.short_version());
             text::line(fb, left, top, &line, MUTED, SMALL_PX);
+            top += 20;
+        }
+        if let Some(p) = &listing.known.price {
+            text::line(fb, left, top, &price_line(p), ACCENT, SMALL_PX);
             top += 20;
         }
         top += 6;

@@ -17,7 +17,7 @@
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
 
 use super::event::on_event;
-use super::fill::{Step, STEP_MS};
+use super::fill_step::{Step, STEP_MS};
 use super::manifest::manifest;
 use super::state::State;
 use super::ui::frame;
