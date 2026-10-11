@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A request body and the release it should match.
+//! A request and the release it should match.
 
 use nonos_marketplace_abi::{commerce_bytes, Commerce, SettleMode};
 use nonos_nox_meter::pay::Offer;
+use nonos_payment_proto::PayRequest;
 
 pub const NOX: [u8; 20] = [0x0a; 20];
 
@@ -46,19 +47,18 @@ pub fn offer(c: &Commerce) -> Offer {
     }
 }
 
-pub fn body(listing: &[u8], release: &[u8]) -> Vec<u8> {
-    let mut b = Vec::new();
-    b.extend_from_slice(&[1; 32]);
-    b.extend_from_slice(&[2; 32]);
-    b.extend_from_slice(&[0xbb; 20]);
-    b.extend_from_slice(&[3; 32]);
-    b.extend_from_slice(&5u64.to_le_bytes());
-    b.extend_from_slice(&7u128.to_le_bytes());
-    b.extend_from_slice(&[4; 32]);
-    b.extend_from_slice(&1u64.to_le_bytes());
-    for s in [listing, release] {
-        b.extend_from_slice(&(s.len() as u32).to_le_bytes());
-        b.extend_from_slice(s);
+/// The request the fixture release sells: 5 units at 7.
+pub fn request() -> PayRequest<'static> {
+    PayRequest {
+        listing_id: [1; 32],
+        release_hash: [2; 32],
+        payee: [0xbb; 20],
+        unit: [3; 32],
+        qty: 5,
+        unit_price: 7,
+        call_id: [4; 32],
+        chain_id: 1,
+        listing: b"l",
+        release: b"r",
     }
-    b
 }

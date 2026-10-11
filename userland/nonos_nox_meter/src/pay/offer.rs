@@ -20,8 +20,8 @@ use alloc::vec::Vec;
 
 use nonos_marketplace_abi::{commerce_from_bytes, SettleMode};
 
-use super::request::PayRequest;
 use crate::error::MeterError;
+use nonos_payment_proto::PayRequest;
 
 /// What the market said about the release, as OP_GET_COMMERCE returns it.
 #[derive(Clone, PartialEq, Eq, Debug)]

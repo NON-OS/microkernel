@@ -21,20 +21,19 @@ use alloc::vec::Vec;
 
 use nonos_nox_meter::persist::seal;
 use nonos_nox_meter::state::MeterState;
+use nonos_payment_proto::{EAGAIN, EINVAL, ENOPERSIST};
 
 use crate::disk::{self, STATE_PATH};
 use crate::keccak::Host;
 use crate::keys::{self, Keys};
-use crate::protocol::{EAGAIN, EINVAL};
 
 pub struct Meter {
     pub state: MeterState,
-    /// Open once the bound root can be derived (C2c) and the secp256k1 key
-    /// is back in the keyring. Until then every op that needs a key, the
-    /// state file included, answers EAGAIN.
+    /// Open once the bound root can be derived (C2c) and the key is back in
+    /// the keyring; until then every op that needs it answers EAGAIN.
     pub(super) keys: Option<Keys>,
-    /// Whether the file on disk has been read. A meter that saved before
-    /// reading would overwrite channels it has signed on with an empty table.
+    /// Whether the file on disk has been read: saving before reading would
+    /// overwrite the channels the meter signed on with an empty table.
     pub(super) loaded: bool,
     /// When settle last reported each channel, in milliseconds.
     pub(super) seen: Vec<([u8; 32], u64)>,
@@ -48,8 +47,12 @@ impl Meter {
         m
     }
 
-    /// The meter's keys, once they are open and its state is read.
+    /// The meter's keys, once open and its state read. A boot that keeps
+    /// nothing holds no key at all.
     pub fn ready(&mut self) -> Result<Keys, i32> {
+        if !disk::kept() {
+            return Err(ENOPERSIST);
+        }
         if self.keys.is_none() {
             self.keys = Some(keys::open()?);
         }

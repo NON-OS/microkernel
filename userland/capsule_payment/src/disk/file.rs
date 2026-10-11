@@ -16,13 +16,13 @@
 
 use alloc::vec::Vec;
 
+use nonos_payment_proto::{EAGAIN, ENOPERSIST};
 use nonos_policy_client::{get_bool, lookup};
 use nonos_policy_proto::Field;
 
 use super::ops;
 use super::paths::DIR;
 use super::vfs::{ENOENT, O_CREATE, O_TRUNC};
-use crate::protocol::{EACCES, EAGAIN};
 
 pub enum Loaded {
     Bytes(Vec<u8>),
@@ -49,14 +49,14 @@ pub fn kept() -> bool {
     lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)
 }
 
-/// Write `data` and persist it, or EACCES on a boot that keeps nothing: the
+/// Write `data` and persist it, or ENOPERSIST on a boot that keeps nothing: the
 /// meter changes no state it could not find again. A record restored at boot
 /// belongs to no process, and the store persists only a file its caller
 /// made, so the name is made again before every write; the record on disk is
 /// replaced only by the persist, whole or not at all.
 pub fn save(path: &[u8], data: &[u8]) -> Result<(), i32> {
     if !kept() {
-        return Err(EACCES);
+        return Err(ENOPERSIST);
     }
     let _ = ops::mkdir(DIR);
     let _ = ops::unlink(path);

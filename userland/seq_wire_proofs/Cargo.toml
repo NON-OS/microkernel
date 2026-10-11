@@ -2,7 +2,8 @@
 # Copyright (C) 2026 NONOS Contributors
 #
 # Host-runnable proofs for the services that speak the seq | op wire and
-# answer through their reply endpoint: keyring, installer, payment and ramfs.
+# answer through their reply endpoint: keyring, installer and ramfs. The
+# meter left this wire for payment_proto's header, whose tests are its own.
 # The kernel brokers calls to them, and apps call them directly too. Builds
 # for the host so `cargo test` runs each one's real request decode and reply
 # encoder (included via #[path]) against any bytes a caller can send.

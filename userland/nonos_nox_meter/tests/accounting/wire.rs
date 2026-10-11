@@ -15,50 +15,41 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::fixture::{funded_state, LISTING, NOW, PAYEE, ROOT};
-use nonos_nox_meter::wire::{account_reply, drain_reply, parse_budget, Identity};
-use nonos_nox_meter::wire::{ACCOUNT_ROW_LEN, KEPT, READY, VOUCHER_RECORD_LEN};
+use nonos_nox_meter::wire::{account, budget, drain};
 use nonos_nox_meter::MeterError;
+use nonos_payment_proto::{SetBudget, KEPT, READY};
 
 #[test]
-fn a_budget_body_parses_exactly_or_not_at_all() {
-    let mut b = 500u128.to_le_bytes().to_vec();
-    b.extend_from_slice(&(NOW + 9).to_le_bytes());
-    b.push(1);
-    b.extend_from_slice(&LISTING);
-    b.extend_from_slice(&40u128.to_le_bytes());
-    let got = parse_budget(&b).unwrap();
-    assert_eq!((got.cap, got.expiry, got.listings[0].cap), (500, NOW + 9, 40));
-    for n in 0..b.len() {
-        assert_eq!(parse_budget(&b[..n]), Err(MeterError::Corrupt), "{n} bytes");
-    }
-    b.push(0);
-    assert_eq!(parse_budget(&b), Err(MeterError::Corrupt));
+fn a_set_budget_body_is_a_fresh_allowance_or_refused() {
+    let b = SetBudget { cap: 500, expiry: NOW + 9, listings: vec![(LISTING, 40)] };
+    let got = budget(&b).unwrap();
+    assert_eq!((got.cap, got.spent, got.expiry, got.listings[0].cap), (500, 0, NOW + 9, 40));
+    let twice = SetBudget { listings: vec![(LISTING, 1), (LISTING, 2)], ..b };
+    assert_eq!(budget(&twice), Err(MeterError::Duplicate));
 }
 
 #[test]
-fn account_shows_identity_budget_and_channel_rows() {
+fn account_shows_the_address_budget_and_channel_rows() {
     let s = funded_state();
-    let none = account_reply(&s, None, false, NOW, 0);
-    assert_eq!(none.len(), 111 + ACCOUNT_ROW_LEN);
-    assert!(none[..53].iter().all(|&x| x == 0));
-    let who = Identity { address: [0xaa; 20], ed25519: [0xed; 32] };
-    let r = account_reply(&s, Some(&who), true, NOW, 0);
-    assert_eq!((r[0], &r[1..21], &r[21..53]), (READY | KEPT, &[0xaa; 20][..], &[0xed; 32][..]));
-    assert_eq!(&r[93..109], &500u128.to_le_bytes());
-    assert_eq!((r[109], r[110], &r[111..143]), (1, 1, &s.channels[0].id[..]));
-    assert_eq!(account_reply(&s, None, true, NOW, 1)[..1], [KEPT]);
-    assert_eq!(account_reply(&s, None, false, NOW, 1)[109..111], [1, 0]);
+    let none = account(&s, None, false, NOW, 0);
+    assert_eq!((none.flags, none.address, none.rows.len()), (0, [0; 20], 1));
+    let a = account(&s, Some([0xaa; 20]), true, NOW, 0);
+    assert_eq!((a.flags, a.address, a.cap, a.left), (READY | KEPT, [0xaa; 20], 500, 500));
+    assert_eq!((a.total, a.rows[0].channel_id, a.rows[0].frozen), (1, s.channels[0].id, false));
+    let past = account(&s, None, true, NOW, 1);
+    assert_eq!((past.flags, past.total, past.rows.len()), (KEPT, 1, 0));
 }
 
 #[test]
 fn drain_hands_out_only_signed_vouchers() {
     let payer = [0xaa; 20];
     let (s, c) = funded_state().charged(&PAYEE, &LISTING, 1, 7, ROOT, NOW).unwrap();
-    assert_eq!(drain_reply(&s, &payer, 0), vec![0, 0]);
+    let d = drain(&s, &payer, 0);
+    assert_eq!((d.total, d.rows.len()), (0, 0));
     let s = s.signed(&c.id, c.seq, [9; 65]);
-    let r = drain_reply(&s, &payer, 0);
-    assert_eq!(r.len(), 2 + VOUCHER_RECORD_LEN);
-    assert_eq!((r[0], r[1], &r[2..34], &r[34..54]), (1, 1, &c.id[..], &payer[..]));
-    assert_eq!(&r[138..154], &7u128.to_le_bytes());
-    assert_eq!(&r[2 + VOUCHER_RECORD_LEN - 65..], &[9; 65]);
+    let d = drain(&s, &payer, 0);
+    assert_eq!((d.total, d.rows.len()), (1, 1));
+    let v = d.rows[0];
+    assert_eq!((v.channel_id, v.payer, v.cumulative, v.sig), (c.id, payer, 7, [9; 65]));
+    assert_eq!((v.expiry, v.usage_root), (c.expiry, ROOT));
 }

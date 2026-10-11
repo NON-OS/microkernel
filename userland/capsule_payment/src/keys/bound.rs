@@ -21,7 +21,7 @@
 
 use nonos_libc::machine_key;
 
-use crate::protocol::EAGAIN;
+use nonos_payment_proto::EAGAIN;
 
 /// The kernel's reserved prefix byte for bound labels. C2c's letter names
 /// it; until then there is no bound label to ask for, and every path that

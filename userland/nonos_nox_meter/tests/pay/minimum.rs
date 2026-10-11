@@ -15,15 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_marketplace_abi::{Commerce, SettleMode};
-use nonos_nox_meter::pay::{parse_pay, priced};
+use nonos_nox_meter::pay::priced;
 use nonos_nox_meter::MeterError;
 
-use super::fixture::{body, commerce, offer, NOX};
+use super::fixture::{commerce, offer, request, NOX};
 
 #[test]
 fn only_voucher_listings_at_or_above_their_minimum_are_metered() {
-    let b = body(b"l", b"r");
-    let r = parse_pay(&b).unwrap();
+    let r = request();
     let escrow = offer(&Commerce { settle_mode: SettleMode::Escrow, ..commerce() });
     assert_eq!(priced(&r, &escrow, &NOX), Err(MeterError::NotMetered));
     let dear = offer(&Commerce { min_charge: 36, ..commerce() });

@@ -20,8 +20,8 @@
 
 use nonos_nox_meter::channel::Channel;
 use nonos_nox_meter::merkle::root;
-use nonos_nox_meter::pay::PayRequest;
 use nonos_nox_meter::usage::Charge;
+use nonos_payment_proto::PayRequest;
 
 use crate::keccak::Host;
 use crate::meter::{now_ms, Meter};

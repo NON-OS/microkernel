@@ -24,14 +24,14 @@ use alloc::vec::Vec;
 
 use nonos_nox_config::{address, Contract, MAINNET, SEPOLIA};
 
-use crate::protocol::{encode_response, Request};
+use crate::server::Call;
 
 /// Paid by cumulative voucher on a prefunded channel.
 const SETTLEMENT_NOX_VOUCHER: u16 = 4;
 const TOKEN_ENABLED: u32 = 1 << 0;
 const TOKEN_ERC20: u32 = 1 << 2;
 
-pub fn tokens(req: Request<'_>) -> Vec<u8> {
+pub fn tokens(req: &Call<'_>) -> Vec<u8> {
     let rows: Vec<(u64, [u8; 20])> = [MAINNET, SEPOLIA]
         .into_iter()
         .filter_map(|chain| address(chain, Contract::NoxToken).ok().map(|a| (chain, a)))
@@ -47,5 +47,5 @@ pub fn tokens(req: Request<'_>) -> Vec<u8> {
         out.extend_from_slice(&contract);
         out.extend_from_slice(b"NOX");
     }
-    encode_response(req.seq, 0, &out)
+    req.answer(0, &out)
 }

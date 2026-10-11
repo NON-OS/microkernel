@@ -14,31 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! SET_BUDGET's body, little-endian:
-//!
-//!   cap u128 | expiry u64 | n u8 | n x (listing_id[32] | cap u128)
+//! SET_BUDGET's body as a fresh allowance.
 
-use alloc::vec::Vec;
+use nonos_payment_proto::SetBudget;
 
 use crate::budget::Budget;
 use crate::error::MeterError;
 
-const ROW: usize = 32 + 16;
-
-pub fn parse_budget(body: &[u8]) -> Result<Budget, MeterError> {
-    let head = body.get(..25).ok_or(MeterError::Corrupt)?;
-    let cap = u128::from_le_bytes(head[..16].try_into().map_err(|_| MeterError::Corrupt)?);
-    let expiry = u64::from_le_bytes(head[16..24].try_into().map_err(|_| MeterError::Corrupt)?);
-    let n = head[24] as usize;
-    let rows = &body[25..];
-    if rows.len() != n * ROW {
-        return Err(MeterError::Corrupt);
-    }
-    let mut listings = Vec::with_capacity(n);
-    for r in rows.chunks_exact(ROW) {
-        let id: [u8; 32] = r[..32].try_into().map_err(|_| MeterError::Corrupt)?;
-        let c = u128::from_le_bytes(r[32..].try_into().map_err(|_| MeterError::Corrupt)?);
-        listings.push((id, c));
-    }
-    Budget::fresh(cap, expiry, &listings)
+pub fn budget(b: &SetBudget) -> Result<Budget, MeterError> {
+    Budget::fresh(b.cap, b.expiry, &b.listings)
 }

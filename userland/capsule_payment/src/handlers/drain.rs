@@ -15,25 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! DRAIN, for capsule_nox_settle: the newest signed voucher of each channel
-//! (`wire::drain_reply`). The body is one byte, the first voucher wanted.
+//! (payment_proto::Drain). The body is one byte, the first voucher wanted.
 
 use alloc::vec::Vec;
 
-use nonos_nox_meter::wire::drain_reply;
+use nonos_nox_meter::wire::drain as view;
+use nonos_payment_proto::EINVAL;
 
 use crate::meter::Meter;
-use crate::protocol::{encode_response, Request, EINVAL};
+use crate::server::Call;
 
-pub fn drain(meter: &mut Meter, req: Request<'_>) -> Vec<u8> {
-    let [from] = req.payload else {
-        return encode_response(req.seq, EINVAL, &[]);
+pub fn drain(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
+    let [from] = req.body else {
+        return req.answer(EINVAL, &[]);
     };
     match meter.ready() {
-        Ok(k) => encode_response(
-            req.seq,
-            0,
-            &drain_reply(&meter.state, &k.identity.address, *from as usize),
-        ),
-        Err(code) => encode_response(req.seq, code, &[]),
+        Ok(k) => req.answer(0, &view(&meter.state, &k.address, *from as usize).encode()),
+        Err(code) => req.answer(code, &[]),
     }
 }

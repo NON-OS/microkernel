@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod call;
 mod dispatch;
 mod gate;
 mod runner;
 mod status;
 
+pub(crate) use call::Call;
 pub use runner::run;
 pub(crate) use status::status_of;

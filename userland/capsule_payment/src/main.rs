@@ -26,7 +26,6 @@ mod keccak;
 mod keyring;
 mod keys;
 mod meter;
-mod protocol;
 mod server;
 mod wipe;
 
