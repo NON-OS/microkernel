@@ -14,21 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The diagnostic chain's head for this capsule's family, kept as each
 //! answered call is noted and handed to the kernel through MkSealNote slot 1
-//! at the start of the next trap, so the head the seal keeps covers every
-//! call answered before the family's last one. One serve thread steps it.
+//! once every EVERY answered calls, at the start of the next trap: a note on
+//! every call would tax every guest call for a diagnostic. The head the seal
+//! keeps may so miss up to EVERY - 1 of the last links. One serve thread
+//! steps it.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering::Relaxed};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering::Relaxed};
 
 use super::trace_link::{label, link};
 
 const DIAG: u64 = 1;
+const EVERY: u32 = 16;
 
 static HEAD: [AtomicU64; 4] = [const { AtomicU64::new(0) }; 4];
 static UNSERVED: AtomicBool = AtomicBool::new(false);
-static DIRTY: AtomicBool = AtomicBool::new(false);
+/// Links folded in since the head was last handed over.
+static PENDING: AtomicU32 = AtomicU32::new(0);
 
 fn head() -> [u8; 32] {
     let mut b = [0u8; 32];
@@ -50,12 +53,13 @@ pub fn step(nr: u64, result: u64) {
     for (w, c) in HEAD.iter().zip(next.chunks_exact(8)) {
         w.store(u64::from_le_bytes(c.try_into().unwrap_or([0; 8])), Relaxed);
     }
-    DIRTY.store(true, Relaxed);
+    PENDING.fetch_add(1, Relaxed);
 }
 
-/// The head, to the kernel, when it moved since it was last handed over.
+/// The head, to the kernel, once EVERY links have been folded in since.
 pub fn flush() {
-    if DIRTY.swap(false, Relaxed) {
+    if PENDING.load(Relaxed) >= EVERY {
+        PENDING.store(0, Relaxed);
         let _ = nonos_libc::mk_seal_note(DIAG, &head());
     }
 }
