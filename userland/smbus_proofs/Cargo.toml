@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the i801 SMBus host capsule: its transfer engine,
+# request parsing and answers run here from the shipped source through
+# #[path], against a model of the host and the devices on its bus.
+[package]
+name = "smbus_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
