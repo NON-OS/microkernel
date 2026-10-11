@@ -70,6 +70,9 @@ pub fn parse_dmar(registry: &mut TableRegistry) {
         if !header.validate_checksum(addr as *const u8) {
             return;
         }
+        if header.length as usize >= mem::size_of::<Dmar>() {
+            super::dmar_flags::record(ptr::read_volatile(addr as *const Dmar).flags);
+        }
 
         let mut cursor = addr + mem::size_of::<Dmar>() as u64;
         let end = addr + header.length as u64;

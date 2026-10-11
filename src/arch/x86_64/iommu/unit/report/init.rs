@@ -15,15 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Probing the remapping units at boot and saying on the console what was
-//! found. Nothing here enables translation. The one write is taking each unit
-//! back from firmware (protected memory regions and translation it left on),
-//! since either blocks the DMA every driver issues from here on. Whether DMA ends up
-//! confined is bring-up's verdict to print, and it prints one on every path,
-//! so this module never states a posture it is too early to know.
+//! found. Nothing here enables translation, and firmware's protection is
+//! kept: it is let go after bring-up, or here under the development opt-in
+//! alone (iommu::handover). Whether DMA ends up confined is bring-up's
+//! verdict to print, so this module never states a posture too early.
 
 use super::super::probe::{probe_all, unit_count};
 use super::{describe, failure, state};
-use crate::arch::x86_64::iommu::unit::enable::release_from_firmware;
 use crate::sys::serial::{self, Line};
 
 /// Probe and report. Called once, after ACPI parsing has published the DRHD
@@ -46,24 +44,8 @@ pub fn init() {
     };
     for info in units.iter() {
         describe::unit(count, info);
-        // SAFETY: eK@nonos.systems - before any table is installed; DMA is
-        // unrestricted until bring-up, which the verdict line states.
-        match unsafe { release_from_firmware(&info.unit) } {
-            Ok(r) if r.protected_regions || r.translation => {
-                let mut line = Line::new();
-                line.str(b"[VT-D] firmware left");
-                if r.protected_regions {
-                    line.str(b" protected memory regions");
-                }
-                if r.translation {
-                    line.str(b" translation");
-                }
-                line.str(b" on; turned off").end();
-            }
-            Ok(_) => {}
-            Err(_) => serial::println(b"[VT-D] firmware protection would not turn off"),
-        }
     }
+    super::firmware::release_at_probe(&units);
     let shared = match state::merge(&units) {
         Ok(shared) => shared,
         Err(_) => {

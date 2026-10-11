@@ -31,6 +31,11 @@ pub(crate) const OPT_IN: bool = cfg!(feature = "nonos-dev-unconfined-dma");
 pub(crate) const PRODUCTION: bool =
     cfg!(any(feature = "nonos-production", feature = "nonos-release"));
 
+/// The opt-in holds: built in, and never beside a production build.
+pub(crate) const fn holds() -> bool {
+    OPT_IN && !PRODUCTION
+}
+
 /// The posture line's tail: empty unless the opt-in is built in.
 pub(crate) const fn posture_tail() -> &'static [u8] {
     if OPT_IN {

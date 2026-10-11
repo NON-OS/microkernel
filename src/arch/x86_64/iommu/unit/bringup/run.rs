@@ -62,6 +62,7 @@ pub fn bring_up() -> Result<usize, VtdError> {
             bring_into_service(&unit.unit, root, unit.ecap)?;
         }
     }
+    super::firmware::release_protected_regions_all();
     set_enforcing();
     Ok(assigned)
 }
