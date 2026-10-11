@@ -26,6 +26,7 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         NetworkVmxnet3 => DataPath,
         DisplayGopFramebuffer | DisplayVirtioGpu | DisplayBga => DataPath,
         UsbXhci | InputPs2 | InputUsbHid => DataPath,
+        InputVirtio => DataPath,
         NetworkIwlwifi | AudioHda | InputI2cHid | SerialI2c => ControllerStatus,
         DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => EnumerateOnly,
         StorageVmd => EnumerateOnly,
