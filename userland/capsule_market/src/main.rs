@@ -21,6 +21,7 @@ extern crate alloc;
 
 mod boot_index;
 mod bootstrap_trust;
+mod chain_hosts;
 mod ingest;
 mod install_ready;
 mod protocol;
