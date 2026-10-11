@@ -20,8 +20,9 @@
 
 use super::hist::hist_commit;
 use super::nonce::seal_no;
-use super::record::{encode, Facts, FINAL, OVERFLOW, SATURATED};
+use super::record::FINAL;
 use super::sealed::Sealed;
+use super::snapshot::record_of;
 use super::table::{LIVE, MAX_SEALED, SEALED};
 
 /// End `supervisor`'s live family, if it has one. The handle of the record
@@ -41,20 +42,7 @@ pub(crate) fn finish(supervisor: u32) -> Option<u64> {
     while sealed.iter().any(|s| s.seal_no == no) {
         no = seal_no()?;
     }
-    let flag = |on: bool, f: u16| if on { f } else { 0 };
-    let record = encode(&Facts {
-        flags: FINAL | flag(fam.saturated, SATURATED) | flag(fam.overflow, OVERFLOW),
-        sup_meas: fam.sup_meas,
-        sup_caps: fam.sup_caps,
-        authority: fam.authority,
-        seal_no: no,
-        trace: fam.trace,
-        rows: fam.rows,
-        hc,
-        meas: fam.meas,
-        n_meas: fam.n_meas,
-        app_id,
-    });
+    let record = record_of(&fam, FINAL, no, app_id, hc);
     if sealed.len() >= MAX_SEALED {
         sealed.pop_front();
     }

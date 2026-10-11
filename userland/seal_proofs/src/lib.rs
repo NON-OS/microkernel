@@ -21,4 +21,10 @@ extern crate alloc;
 mod arch;
 mod errnos;
 mod foreign;
+/// The path the live read takes its errnos by, as in the kernel.
+mod syscall {
+    pub(crate) mod microkernel {
+        pub(crate) use crate::errnos;
+    }
+}
 

@@ -723,7 +723,7 @@ ret  = {type="i64"}
 [desc.MSLR]
 nr   = 0x524C534D
 caps = ["DeviceSecret"]
-args = [{name="app_id_ptr",type="u64",dir="in"},{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"}]
+args = [{name="app_id_ptr",type="u64",dir="in"},{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"},{name="pid",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSNT]

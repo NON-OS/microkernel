@@ -112,7 +112,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_FOREIGN_FORK => sys_foreign_fork(a.a0, a.a1),
         SYS_PEER_UNMAP => sys_peer_unmap(a.a0, a.a1, a.a2),
         SYS_FOREIGN_EXEC => sys_foreign_exec(a.a0, a.a1, a.a2),
-        SYS_SEAL_READ => sys_seal_read(a.a0, a.a1, a.a2),
+        SYS_SEAL_READ => sys_seal_read(a.a0, a.a1, a.a2, a.a3),
         SYS_SEAL_NOTE => sys_seal_note(a.a0, a.a1),
         SYS_PROVE_JOB => sys_prove_job(),
         SYS_LOCAL_SIGN => sys_local_sign(a.a0, a.a1, a.a2, a.a3, a.a4),
