@@ -25,6 +25,11 @@ nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 # The prover without its host modules and without rayon: no_std, one core.
 nonos-device-attest = { path = "../../nonos-device-attest", default-features = false }
+# The market path: the record, container and pins, and the
+# isolation statement's prover, both no_std. STARKs at the lock's commit.
+nonos_proof_abi = { path = "../nonos_proof_abi" }
+isolation_stark = { path = "../isolation_stark" }
+nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
 
 [profile.release]
 panic = "abort"

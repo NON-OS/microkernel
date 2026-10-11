@@ -28,6 +28,8 @@ pub mod abi;
 pub mod assemble;
 /// The kernel's `MkBootSlots` slot and record encoders, unchanged.
 pub mod kernel_slots;
+/// The market half of capsule_prove, the files that ship.
+pub mod market;
 
 #[cfg(test)]
 mod fixture;

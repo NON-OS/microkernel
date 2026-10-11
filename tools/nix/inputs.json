@@ -2202,7 +2202,9 @@
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_prove",
+   "userland/isolation_stark",
    "userland/libc",
+   "userland/nonos_proof_abi",
    "userland/toolkit"
   ],
   "md": [],
@@ -3920,9 +3922,11 @@
    "userland/capsule_prove/src/assemble/transcript_line.rs",
    "userland/capsule_prove/src/assemble/wipe.rs",
    "userland/capsule_prove/src/assemble/words.rs",
+   "userland/isolation_stark",
    "userland/libc/src/boot_slots/record.rs",
    "userland/libc/src/enroll/frame.rs",
    "userland/libc/src/heap/span.rs",
+   "userland/nonos_proof_abi",
    "userland/prove_proofs"
   ],
   "md": [],
