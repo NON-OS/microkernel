@@ -39,4 +39,7 @@ pub struct MeterUi {
     pub topup_text: String,
     pub job: Option<super::job::MeterJob>,
     pub news: Option<String>,
+    /* A purchase the store named (B8), and when to ask the mailbox next. */
+    pub purchase: Option<alloc::boxed::Box<crate::wallet::order::intake::Pending>>,
+    pub take_at: u64,
 }

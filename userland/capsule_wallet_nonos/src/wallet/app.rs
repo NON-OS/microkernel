@@ -195,7 +195,7 @@ impl App for Wallet {
             return true;
         }
         // The meter's job, likewise asked after every tick while one runs.
-        if self.state.meter.job.is_some() && super::meter::poll::poll(&mut self.state) {
+        if super::meter::poll::tick(&mut self.state) {
             return true;
         }
         if self.state.shield_ui.waiting.is_some() || self.state.shield_ui.opened {
