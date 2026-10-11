@@ -20,6 +20,7 @@ use alloc::vec::Vec;
 
 use super::fit::Fit;
 use super::held_keys::HeldKeys;
+use super::popup::stack::Popups;
 use super::reshape::Shape;
 use super::scene_pixels::Pixels;
 use super::state::{Buffer, Pool, Surface};
@@ -61,4 +62,6 @@ pub struct Scene {
     pub held: HeldKeys,
     /// Surfaces placed on the window's (subsurface/).
     pub subs: Subs,
+    /// Menus and the like, composed on top of it (popup/).
+    pub popups: Popups,
 }

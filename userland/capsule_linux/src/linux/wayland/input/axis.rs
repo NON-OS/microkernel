@@ -37,7 +37,7 @@ pub fn wheel(guest: &mut Guest, dx: i32, dy: i32, x: i32, y: i32) {
     if steps.iter().all(|(_, s)| s.is_none()) {
         return;
     }
-    if !pointer_on(guest, id, x, y) {
+    if pointer_on(guest, id, x, y).is_none() {
         return;
     }
     let time = crate::linux::call::family_ms() as u32;

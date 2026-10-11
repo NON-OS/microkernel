@@ -25,17 +25,16 @@ use super::super::out::Event;
 pub const POINTER_LEAVE: u16 = 1;
 pub const KEYBOARD_LEAVE: u16 = 2;
 
-/// Leaves the surface last entered, as focus_step.rs says, and gives the
-/// one to enter; or Err with whether the event goes on (it is on the shown
-/// surface already) or is dropped (none is shown).
+/// Leaves the surface last entered (`was`) for `target`, as focus_step.rs
+/// says, and gives the one to enter; or Err with whether the event goes on
+/// (it is on `target` already) or is dropped (there is none).
 pub fn move_from(
     guest: &mut Guest,
     device: u32,
     leave_op: u16,
-    was: Option<u32>,
+    (was, target): (Option<u32>, Option<u32>),
 ) -> Result<u32, bool> {
-    let shown = guest.scene.shown.map(|w| w.surface);
-    match step(was, shown, |id| guest.objects.get(id) == Some(Object::Surface)) {
+    match step(was, target, |id| guest.objects.get(id) == Some(Object::Surface)) {
         Step::Drop => Err(false),
         Step::Stay => Err(true),
         Step::Move { leave, on } => {

@@ -32,9 +32,7 @@ fn fixed(value: i32) -> u32 {
 
 pub fn motion(guest: &mut Guest, x: i32, y: i32) {
     let Some(id) = guest.scene.pointer else { return };
-    if !pointer_on(guest, id, x, y) {
-        return;
-    }
+    let Some((x, y)) = pointer_on(guest, id, x, y) else { return };
     let time = time_ms();
     Event::new(id, POINTER_MOTION)
         .u32(time)

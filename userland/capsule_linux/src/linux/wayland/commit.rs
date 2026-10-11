@@ -32,6 +32,7 @@ use super::subsurface::restack::parent_commit;
 /// on it (subsurface/). A cursor's buffer is released and its frames
 /// answered, so its client draws on, and never takes the window's place.
 pub fn commit(guest: &mut Guest, id: u32) {
+    super::popup::gone::unheld_commit(guest, id);
     let changed = sub_commit(guest, id) == Some(true);
     parent_commit(&mut guest.scene.subs, id);
     let Some((buffer, window)) = surface_buffer(guest, id) else {

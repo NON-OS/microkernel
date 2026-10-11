@@ -65,7 +65,7 @@ fn wm_base_surface_positioner_and_popup() {
     );
     assert_eq!((shell::POPUP_DESTROY, shell::POPUP_GRAB), (0, 1));
     // xdg_popup events: configure 0, popup_done 1.
-    assert_eq!(shell::POPUP_DONE, 1);
+    assert_eq!((shell::POPUP_CONFIGURE, shell::POPUP_DONE), (0, 1));
 }
 
 #[test]

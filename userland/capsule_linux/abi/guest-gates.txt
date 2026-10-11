@@ -34,6 +34,20 @@ gate net/socket_kind.rs | (SOCK_RAW, Domain::Inet) | raw internet sockets, alway
 gate net/dgram.rs | refuse_out("sendto", a) | a datagram out of the family
 gate net/connect/dgram.rs | refuse_out("connect", to) | a datagram peer out of the family
 gate net/msg/send.rs | refuse_out("sendmsg", *a) | a datagram out of the family
+# Wayland popups (C8v): composed into their own window, grabbed only from
+# the latest press, and ended by everything that ends a grab today. A
+# focus-out from the input router will call end_all too (I-C8).
+first wayland/popup/grab.rs | may_grab(id, serial, root) | super::layer::lay( | the grab's rules before the popup shows
+gate wayland/input/button.rs | guest.scene.popups.last_press = Some(serial) | a grab naming a button press not the latest
+gate wayland/input/key.rs | guest.scene.popups.last_press = Some(serial) | a grab naming a key press not the latest
+gate wayland/popup/ends.rs | guest.scene.popups.last_press = None | a grab after an end, with no new press
+gate wayland/popup/ends.rs | keyboard_on(guest, keyboard) | the keyboard left on an ended popup
+gate wayland/commit.rs | popup::gone::unheld_commit(guest, id) | a popup shown with no grab
+gate wayland/forget.rs | popup::gone::parent_gone(guest, what, id) | a grab outliving its parent
+gate wayland/route/rest.rs | TOPLEVEL_SET_MINIMIZED) => popup::ends::end_all(guest) | a grab outliving a minimize
+gate wayland/toplevel/ask.rs | popup::ends::end_all(guest) | a grab outliving a full-screen or maximize change
+gate wayland/toplevel/destroy.rs | popup::ends::end_all(guest) | a grab outliving its toplevel
+gate wayland/present/show.rs | popup::ends::end_all(guest) | a grab outliving a reshape
 # Where a guest's frame may be answered. A new one must show it is behind
 # the gates above: a parked call already passed them.
 reply call/spawn/exec.rs

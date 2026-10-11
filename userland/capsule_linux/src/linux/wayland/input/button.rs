@@ -30,11 +30,15 @@ const POINTER_BUTTON: u16 = 3;
 pub fn button(guest: &mut Guest, button: u32, state: u32) {
     let Some(id) = guest.scene.pointer else { return };
     let shown = guest.scene.shown.map(|w| w.surface);
-    if shown.is_none() || guest.scene.pointer_on != shown {
+    let popup = |on: u32| guest.scene.popups.list.iter().any(|p| p.grabbed && p.surface == on);
+    if !guest.scene.pointer_on.is_some_and(|on| Some(on) == shown || popup(on)) {
         return;
     }
     let Some(code) = super::super::pointer_codes::button_code(button) else { return };
     let serial = guest.scene.next_serial();
+    if state == 1 {
+        guest.scene.popups.last_press = Some(serial);
+    }
     let time = time_ms();
     Event::new(id, POINTER_BUTTON)
         .u32(serial)

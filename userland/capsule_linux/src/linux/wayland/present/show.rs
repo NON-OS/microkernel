@@ -41,6 +41,7 @@ pub fn present(guest: &mut Guest, surface: u32, buffer: u32) {
     // personality holds no GfxPresent and needs none. A buffer of a shape
     // the surface does not have gets one that has it (reshape.rs).
     if reshape(guest.scene.shape, src.shape) != Reshape::Same {
+        super::super::popup::ends::end_all(guest);
         return show(guest, surface, &src);
     }
     /* Straight into the frame: a second buffer would hold the pixels twice. */

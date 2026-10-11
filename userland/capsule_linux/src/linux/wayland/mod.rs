@@ -20,8 +20,7 @@
 mod args;
 mod bind;
 mod buffer;
-mod close_steps;
-mod close_window;
+mod close;
 mod commit;
 mod configure;
 mod data_device;
@@ -64,6 +63,7 @@ mod subsurface;
 mod out;
 mod output;
 mod output_enter;
+mod popup;
 mod region;
 mod registry;
 mod reshape;

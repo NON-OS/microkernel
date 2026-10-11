@@ -47,6 +47,9 @@ pub fn key(guest: &mut Guest, code: u32, flags: u16, state: u32) {
         return;
     }
     let serial = guest.scene.next_serial();
+    if state == 1 {
+        guest.scene.popups.last_press = Some(serial);
+    }
     let time = time_ms();
     Event::new(id, KEYBOARD_KEY)
         .u32(serial)

@@ -56,6 +56,7 @@ pub mod configure;
 pub mod reshape;
 #[path = "../../capsule_linux/src/linux/wayland/scene_pixels.rs"]
 pub mod scene_pixels;
+pub mod wayland_popup;
 pub mod wayland_sub;
 #[path = "../../capsule_linux/src/linux/wayland/window_life.rs"]
 pub mod window_life;

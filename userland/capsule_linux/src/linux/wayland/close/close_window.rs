@@ -22,12 +22,12 @@ use core::mem;
 
 use crate::linux::guest::Guest;
 
+use super::super::fit::Fit;
+use super::super::present::surface::say;
+use super::super::scene::Scene;
+use super::super::scene_pixels::Pixels;
+use super::super::window_life::{take_down, takes_down, End};
 use super::close_steps::Calls;
-use super::fit::Fit;
-use super::present::surface::say;
-use super::scene::Scene;
-use super::scene_pixels::Pixels;
-use super::window_life::{take_down, takes_down, End};
 
 /// Take down the window `end` ends, if it ends the one shown.
 pub fn close_for(scene: &mut Scene, end: End) {
@@ -65,6 +65,6 @@ pub fn disconnect(guest: &mut Guest) {
     let subscribed = guest.scene.subscribed;
     guest.scene = Scene::new();
     guest.scene.subscribed = subscribed;
-    guest.objects = super::Objects::new();
+    guest.objects = super::super::Objects::new();
     guest.display = Default::default();
 }

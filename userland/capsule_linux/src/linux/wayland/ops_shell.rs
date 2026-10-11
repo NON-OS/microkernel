@@ -28,6 +28,7 @@ pub const POSITIONER_SET_LAST: u16 = 9;
 pub const POPUP_DESTROY: u16 = 0;
 pub const POPUP_GRAB: u16 = 1;
 pub const POPUP_DONE: u16 = 1;
+pub const POPUP_CONFIGURE: u16 = 0;
 pub const TOPLEVEL_SET_PARENT: u16 = 1;
 pub const TOPLEVEL_SHOW_WINDOW_MENU: u16 = 4;
 pub const TOPLEVEL_MOVE: u16 = 5;

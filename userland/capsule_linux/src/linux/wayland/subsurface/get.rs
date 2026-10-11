@@ -42,7 +42,7 @@ pub fn get(guest: &mut Guest, args: &mut Args<'_>) {
     if !guest.objects.put(id, Object::Subsurface) {
         return;
     }
-    let subs = &mut guest.scene.subs;
+    let (subs, popups) = (&mut guest.scene.subs, &guest.scene.popups.list);
     subs.list.push(Sub {
         id,
         surface,
@@ -54,7 +54,12 @@ pub fn get(guest: &mut Guest, args: &mut Args<'_>) {
         waiting: None,
     });
     match subs.stacks.iter_mut().find(|s| s.parent == parent) {
-        Some(stack) => stack.ids.push(surface),
+        // Below any popup open on the window, which stays on top.
+        Some(stack) => {
+            let popup = |i: &u32| popups.iter().any(|p| p.surface == *i);
+            let at = stack.ids.iter().position(popup).unwrap_or(stack.ids.len());
+            stack.ids.insert(at, surface)
+        }
         None => subs.stacks.push(Stack { parent, ids: vec![parent, surface] }),
     }
 }
