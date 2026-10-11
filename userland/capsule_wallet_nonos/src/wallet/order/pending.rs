@@ -18,11 +18,12 @@
 
 use alloc::boxed::Box;
 
-use nonos_payment_proto::{Names, OrderMade, OrderNew};
+use nonos_payment_proto::{Names, OpenConfirm, OpenStart, OrderMade, OrderNew};
 
 use super::fees::Fees;
 use super::read::Named;
 use super::reading::Reading;
+use super::voucher_form::VoucherForm;
 use super::watch::Watch;
 
 pub struct Pending {
@@ -33,6 +34,7 @@ pub struct Pending {
     pub reading: Option<Reading>,
     pub fees: Fees,
     pub watch: Watch,
+    pub form: VoucherForm,
     pub step: Step,
     /// The fresh address a refund goes to, drawn when the person confirms.
     pub refund_to: [u8; 20],
@@ -44,5 +46,9 @@ pub enum Step {
     Ordering(u32, Box<OrderNew>),
     /// The order is made: its deposit address waits for the NOX.
     Fund(Box<OrderMade>),
+    /// A voucher channel: OPEN START's job, then CONFIRM until it is mined.
+    Opening(u32, Box<OpenStart>),
+    Confirming(Box<OpenConfirm>, u64),
+    Opened([u8; 32]),
     Failed(&'static str),
 }

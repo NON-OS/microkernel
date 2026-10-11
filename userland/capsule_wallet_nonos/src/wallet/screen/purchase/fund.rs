@@ -21,14 +21,20 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use super::words::standard;
 use crate::wallet::order::intake::Step;
 use crate::wallet::order::read::Named;
+use crate::wallet::screen::shield::sizes::sizes;
 use crate::wallet::shield::{actions, open};
 use crate::wallet::state::shield_ui::{ASSET_NOX, SHIELD_WITHDRAW};
 use crate::wallet::state::{State, VIEW_SHIELD};
 
 const OFF_SHIELD: &str = "The Shield is on another network: switch to Sepolia to fund the order.";
+
+/// Where the Shield's standard NOX sizes hold `amount`, if they do: the
+/// only prices a withdrawal can fund.
+pub fn standard(amount: u128) -> Option<u8> {
+    sizes(ASSET_NOX).iter().position(|(_, v)| *v == amount).map(|i| i as u8)
+}
 
 /// Whether the purchase is at its funding step.
 pub fn funding(state: &State) -> bool {

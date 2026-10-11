@@ -22,10 +22,12 @@ use crate::wallet::meter::budget_form::push_digit;
 use crate::wallet::state::{State, VIEW_METER};
 
 /// A key on the meter screen: digits into the focused field, Tab to the
-/// next, Backspace, and Enter to set the budget or top up.
+/// next, Backspace, and Enter to set the budget or top up; on the purchase
+/// screen, its channel form's.
 pub fn key(state: &mut State, code: u32) -> Option<EventOutcome> {
     if state.view != VIEW_METER {
-        return None;
+        // The purchase screen's voucher form, the only other meter form.
+        return crate::wallet::screen::purchase::form::key(state, code);
     }
     let m = &mut state.meter;
     let fields = if m.picked.is_some() { 3 } else { 2 };

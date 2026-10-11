@@ -54,6 +54,9 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     for (label, value) in rows(p) {
         y += fact(fb, c.x, y, c.w, label, &value);
     }
+    if super::form::open_form(p) {
+        y += super::form::paint(p, fb, c, y);
+    }
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
     edges(&l, &[close, act]);

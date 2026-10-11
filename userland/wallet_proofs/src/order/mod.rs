@@ -34,5 +34,7 @@ pub mod rows;
 pub mod said;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/voucher.rs"]
 pub mod voucher;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/voucher_form.rs"]
+pub mod voucher_form;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/voucher_open.rs"]
 mod voucher_open;
