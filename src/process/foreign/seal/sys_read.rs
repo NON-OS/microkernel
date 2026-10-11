@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `MkSealRead(app_id, buf, len)`: nonos.prove takes the newest final record
-//! sealed for an app, as record | witness | measurement list. The record is
-//! dropped as it is read, so one sealed run yields at most one proof.
+//! `MkSealRead(app_id, buf, len, pid)`: nonos.prove takes the newest final
+//! record sealed for an app, as record | witness | measurement list. The
+//! record is dropped as it is read, so one sealed run yields at most one
+//! proof. With app_id 0 it is the live form: the family `pid`
+//! supervises, as it stands, for DELIVER; nothing is dropped.
 
 use super::sealed::Sealed;
 use super::table::SEALED;
@@ -32,9 +34,15 @@ fn take(app_id: &[u8; 32], room: u64) -> Result<Sealed, i64> {
     sealed.remove(at).ok_or(ERRNO_NOENT)
 }
 
-pub(crate) fn sys_seal_read(app_id_ptr: u64, out_ptr: u64, out_len: u64) -> i64 {
+pub(crate) fn sys_seal_read(app_id_ptr: u64, out_ptr: u64, out_len: u64, pid: u64) -> i64 {
     if !device_secret_caller() {
         return ERRNO_PERM;
+    }
+    if app_id_ptr == 0 {
+        return match super::live::snapshot(pid, out_len) {
+            Ok(s) => write(out_ptr, &s.bytes()),
+            Err(e) => e,
+        };
     }
     let mut app_id = [0u8; 32];
     if crate::usercopy::copy_from_user(app_id_ptr, &mut app_id).is_err() {
@@ -51,4 +59,11 @@ pub(crate) fn sys_seal_read(app_id_ptr: u64, out_ptr: u64, out_len: u64) -> i64 
         return ERRNO_FAULT;
     }
     bytes.len() as i64
+}
+
+fn write(out_ptr: u64, bytes: &[u8]) -> i64 {
+    match crate::usercopy::write_user_bytes(out_ptr, bytes) {
+        Ok(()) => bytes.len() as i64,
+        Err(_) => ERRNO_FAULT,
+    }
 }
