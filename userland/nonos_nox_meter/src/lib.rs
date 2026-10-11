@@ -32,6 +32,7 @@ pub mod caller;
 pub mod channel;
 mod error;
 mod fees;
+pub mod flow;
 pub mod job;
 pub mod merkle;
 pub mod open;

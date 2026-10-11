@@ -26,7 +26,7 @@ mod tokens;
 
 pub(crate) use account::account;
 pub(crate) use budget::set_budget;
-pub(crate) use channel_ops::{close, topup};
+pub(crate) use channel_ops::{close, job, topup};
 pub(crate) use drain::drain;
 pub(crate) use open::open;
 pub(crate) use pay::pay;

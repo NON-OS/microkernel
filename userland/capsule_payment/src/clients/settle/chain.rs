@@ -17,10 +17,7 @@
 //! What settle reads from the chain for the meter.
 
 use nonos_nox_meter::state::ChainView;
-use nonos_payment_proto::EIO;
-use nonos_settle_proto::{
-    chain_hash, ChannelState, Gas, CHANNEL_STATE_LEN, GAS_LEN, OP_CHANNEL_STATE, OP_GAS,
-};
+use nonos_settle_proto::{chain_hash, ChannelState, CHANNEL_STATE_LEN, OP_CHANNEL_STATE};
 
 use super::call::settle_call;
 
@@ -40,10 +37,4 @@ pub(crate) fn channel_state(
     let b = settle_call(OP_CHANNEL_STATE, &body, CHANNEL_STATE_LEN, timeout_ms).ok()?;
     let s = ChannelState::parse(&b)?;
     Some(ChainView { deposit: s.deposited, settled: s.settled, expiry: s.expiry, closed: s.closed })
-}
-
-/// The meter's ETH balance, next nonce and fee suggestions.
-pub(crate) fn gas(chain_id: u64, address: &[u8; 20]) -> Result<Gas, i32> {
-    let b = settle_call(OP_GAS, &Gas::request(chain_id, address), GAS_LEN, ROUTED_MS)?;
-    Gas::parse(&b).ok_or(EIO)
 }
