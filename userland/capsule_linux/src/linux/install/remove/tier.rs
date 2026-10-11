@@ -20,7 +20,7 @@ use alloc::format;
 
 use nonos_libc::mk_debug;
 
-use super::super::model::remove::{remove_not_started, removed};
+use super::super::model_remove::{remove_not_started, removed};
 use super::super::Why;
 
 /// A shipped tier: its program is the image's and stays; its model files go

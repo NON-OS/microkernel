@@ -34,7 +34,7 @@ pub fn vouch(path: &[u8], image: &[u8]) -> bool {
 
 /// Mint a trailer for `bytes`, a program or its policy, and write it beside
 /// `path` under `suffix`.
-pub(super) fn sign_beside(path: &[u8], image: &[u8], suffix: &[u8]) -> bool {
+pub(in crate::linux::install) fn sign_beside(path: &[u8], image: &[u8], suffix: &[u8]) -> bool {
     let needed = mk_local_sign_len(image, GUEST_CAPS);
     let Ok(len) = usize::try_from(needed) else {
         // Negative: no enrolled identity, or this capsule may not mint.
@@ -53,7 +53,7 @@ pub(super) fn sign_beside(path: &[u8], image: &[u8], suffix: &[u8]) -> bool {
 /// Every ELF a package lands, shared objects too: an interpreter loads them,
 /// and the gate measures whatever it loads. Only reached with a `Verified`
 /// package, so the machine only agrees to run authenticated bytes.
-pub(super) fn vouch_elf(at: &[u8], body: &[u8]) {
+pub(in crate::linux::install) fn vouch_elf(at: &[u8], body: &[u8]) {
     if body.starts_with(b"\x7fELF") && !vouch(at, body) {
         let line = b"[LINUX] installed but unvouched: no enrolled root, or may not mint\n";
         let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());

@@ -22,7 +22,8 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::{Event, Guest};
 
-use super::open::{slot_of, MOST};
+use super::open::MOST;
+use super::ready::slot_of;
 
 const WORD: u64 = 8;
 
