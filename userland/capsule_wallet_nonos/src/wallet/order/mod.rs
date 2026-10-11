@@ -28,6 +28,7 @@ pub mod escrow_offer;
 mod escrow_read;
 mod escrow_refund;
 pub mod escrow_sign;
+mod escrow_step;
 mod escrow_tx;
 mod escrowed;
 pub mod escrowing;
