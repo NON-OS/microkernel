@@ -19,6 +19,8 @@
  * the meter screen opens and on Refresh, never in the background.
  */
 
+use alloc::string::String;
+
 use nonos_payment_proto::Account;
 
 #[derive(Default)]
@@ -27,4 +29,8 @@ pub struct MeterUi {
     pub account: Option<Account>,
     /* Whether the meter was asked since the screen opened. */
     pub asked: bool,
+    /* The budget form, as typed, and the field that takes keys. */
+    pub cap_text: String,
+    pub days_text: String,
+    pub focus: u8,
 }
