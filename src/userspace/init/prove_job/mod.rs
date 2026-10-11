@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod ask;
 mod queue;
 mod rate;
+mod slots;
 
-pub(crate) use queue::{has_pending, request, service, ProveAsk};
+pub(crate) use ask::{ask_for, Caller};
+pub(crate) use queue::{has_pending, request, service};
