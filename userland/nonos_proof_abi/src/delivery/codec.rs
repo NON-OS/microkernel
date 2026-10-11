@@ -20,13 +20,13 @@ use crate::words::{b32_at, u64_at};
 impl Delivery {
     pub fn encode(&self) -> [u8; DELIVERY_BYTES] {
         let mut b = [0u8; DELIVERY_BYTES];
-        let words = [self.record_id, self.service_meas, self.req, self.rsp, self.order_id];
+        let words = [self.record_id, self.service_meas, self.req, self.rsp, self.order_ref];
         for (i, w) in words.iter().enumerate() {
             b[32 * i..32 * i + 32].copy_from_slice(w);
         }
         b[160..168].copy_from_slice(&self.from.to_le_bytes());
         b[168..176].copy_from_slice(&self.to.to_le_bytes());
-        b[176..].copy_from_slice(&self.channel_id);
+        b[176..].copy_from_slice(&self.channel_ref);
         b
     }
 
@@ -39,10 +39,10 @@ impl Delivery {
             service_meas: b32_at(b, 32)?,
             req: b32_at(b, 64)?,
             rsp: b32_at(b, 96)?,
-            order_id: b32_at(b, 128)?,
+            order_ref: b32_at(b, 128)?,
             from: u64_at(b, 160)?,
             to: u64_at(b, 168)?,
-            channel_id: b32_at(b, 176)?,
+            channel_ref: b32_at(b, 176)?,
         })
     }
 }

@@ -45,7 +45,7 @@ mod words;
 
 pub use anchor::{anchor, anchor_of, anchor_tag, ANCHOR_LABEL};
 pub use container::{encode, parse, tag, Container, Kind, MAGIC, MAX_BYTES, VERSION};
-pub use delivery::{req_digest, rsp_digest, Delivery, DELIVERY_BYTES};
+pub use delivery::{ctx2, nonce_ref, req_digest, rsp_digest, Delivery, DELIVERY_BYTES};
 pub use device::{decode_device, encode_device, DEVICE_HEAD, DEVICE_MAGIC, DEVICE_MAX};
 pub use hist::{bucket, hist_commit, side, BUCKETS, HIST_WORDS, ISO_DOMAIN, SIDES};
 pub use meas::{meas_chain, meas_step, MEAS_DOMAIN};

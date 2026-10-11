@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A delivery body: an attested-execution record of one served request.
-//! It shows what a measured service received and answered on a sealed
-//! family's device; it is not a proof that the answer was computed right.
-
-use alloc::vec::Vec;
+//! A delivery body: an attested-execution record of one served
+//! request. It shows what a measured service received and answered on a
+//! sealed family's device; it is not a proof that the answer was computed
+//! right. The buyer's nonce salts every digest of the buyer's own data, so
+//! the body names no request, answer, order or channel to anyone without it.
 
 pub const DELIVERY_BYTES: usize = 208;
 const REQ_DOMAIN: &[u8] = b"NONOS-DELIVERY-REQ-v1";
@@ -30,23 +30,33 @@ pub struct Delivery {
     pub service_meas: [u8; 32],
     pub req: [u8; 32],
     pub rsp: [u8; 32],
-    pub order_id: [u8; 32],
+    /// BLAKE3(nonce | order_id).
+    pub order_ref: [u8; 32],
     pub from: u64,
     pub to: u64,
-    pub channel_id: [u8; 32],
+    /// BLAKE3(nonce | channel_id).
+    pub channel_ref: [u8; 32],
 }
 
-fn digest(domain: &[u8], bytes: &[u8]) -> [u8; 32] {
-    let mut b = Vec::with_capacity(domain.len() + bytes.len());
-    b.extend_from_slice(domain);
-    b.extend_from_slice(bytes);
-    *blake3::hash(&b).as_bytes()
+fn digest(parts: &[&[u8]]) -> [u8; 32] {
+    let mut h = blake3::Hasher::new();
+    parts.iter().for_each(|p| {
+        h.update(p);
+    });
+    *h.finalize().as_bytes()
 }
 
-pub fn req_digest(request: &[u8]) -> [u8; 32] {
-    digest(REQ_DOMAIN, request)
+/// BLAKE3("NONOS-DELIVERY-REQ-v1" | nonce | request).
+pub fn req_digest(nonce: &[u8; 32], request: &[u8]) -> [u8; 32] {
+    digest(&[REQ_DOMAIN, nonce, request])
 }
 
-pub fn rsp_digest(response: &[u8]) -> [u8; 32] {
-    digest(RSP_DOMAIN, response)
+/// BLAKE3("NONOS-DELIVERY-RSP-v1" | nonce | response).
+pub fn rsp_digest(nonce: &[u8; 32], response: &[u8]) -> [u8; 32] {
+    digest(&[RSP_DOMAIN, nonce, response])
+}
+
+/// order_ref and channel_ref: BLAKE3(nonce | id).
+pub fn nonce_ref(nonce: &[u8; 32], id: &[u8; 32]) -> [u8; 32] {
+    digest(&[nonce, id])
 }

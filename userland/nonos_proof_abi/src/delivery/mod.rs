@@ -16,5 +16,7 @@
 
 mod body;
 mod codec;
+mod ctx2;
 
-pub use body::{req_digest, rsp_digest, Delivery, DELIVERY_BYTES};
+pub use body::{nonce_ref, req_digest, rsp_digest, Delivery, DELIVERY_BYTES};
+pub use ctx2::ctx2;

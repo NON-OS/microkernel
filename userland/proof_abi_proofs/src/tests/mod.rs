@@ -20,6 +20,7 @@ mod anchor_tests;
 mod commit_tests;
 mod container_hostile_tests;
 mod container_tests;
+mod delivery_ctx2_tests;
 mod delivery_tests;
 mod device_tests;
 mod fetch_desk_tests;
