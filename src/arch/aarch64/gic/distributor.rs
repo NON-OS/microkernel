@@ -24,5 +24,7 @@ mod priority;
 mod registers;
 mod route;
 mod settle;
+mod sgir;
+mod v2;
 
 pub use device::GicDistributor;

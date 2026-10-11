@@ -19,21 +19,21 @@ use super::frames;
 
 /// The GICv3 distributor, and through `frames` the calling CPU's own
 /// redistributor for the SGIs and PPIs that live there.
-pub struct Gic {
+pub(super) struct Gic {
     distributor: GicDistributor,
 }
 
 impl Gic {
-    pub fn new(dist_base: u64) -> Self {
+    pub(super) fn new(dist_base: u64) -> Self {
         Self { distributor: GicDistributor::new(dist_base) }
     }
 
-    pub fn init(&mut self) -> Result<(), &'static str> {
+    pub(super) fn init(&mut self) -> Result<(), &'static str> {
         self.distributor.init()?;
         super::cpu::init_gic_cpu()
     }
 
-    pub fn enable_irq(&self, irq: u32) {
+    pub(super) fn enable_irq(&self, irq: u32) {
         if irq >= 32 {
             self.distributor.enable_irq(irq);
         } else if let Some(frame) = frames::this_cpu() {
@@ -41,27 +41,11 @@ impl Gic {
         }
     }
 
-    pub fn disable_irq(&self, irq: u32) {
+    pub(super) fn disable_irq(&self, irq: u32) {
         if irq >= 32 {
             self.distributor.disable_irq(irq);
         } else if let Some(frame) = frames::this_cpu() {
             frame.disable_irq(irq);
-        }
-    }
-
-    pub fn set_priority(&self, irq: u32, priority: u8) {
-        if irq >= 32 {
-            self.distributor.set_priority(irq, priority);
-        } else if let Some(frame) = frames::this_cpu() {
-            frame.set_priority(irq, priority);
-        }
-    }
-
-    pub fn set_config(&self, irq: u32, edge: bool) {
-        if irq >= 32 {
-            self.distributor.set_config(irq, edge);
-        } else if let Some(frame) = frames::this_cpu() {
-            frame.set_config(irq, edge);
         }
     }
 }

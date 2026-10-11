@@ -38,7 +38,7 @@ pub use boot::init;
 pub use constants::{PAGE_SIZE, STACK_SIZE};
 pub use cpu::{cpu_id, disable_interrupts, enable_interrupts, halt};
 pub use exceptions::ExceptionFrame;
-pub use gic::{init_gic, send_sgi, Gic};
+pub use gic::{init_gic, send_sgi};
 pub use mmu::{init_mmu, map_page, unmap_page, PageTable};
 pub use psci::{cpu_off, cpu_on, system_off, system_reset};
 pub use timer::{current_time_ns, init_timer, set_timer};
