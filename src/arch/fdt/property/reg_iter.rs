@@ -16,6 +16,9 @@
 
 use crate::arch::fdt::endian::be_cells;
 
+/// `(address, size)` pairs. Cell counts past two cannot be read into a u64,
+/// and an entry of zero cells would never advance; either yields nothing, so
+/// a hostile `#address-cells` costs a missing device, not a hang.
 pub struct RegIter<'a> {
     data: &'a [u8],
     offset: usize,
@@ -27,20 +30,28 @@ impl<'a> RegIter<'a> {
     pub fn new(data: &'a [u8], address_cells: u32, size_cells: u32) -> Self {
         Self { data, offset: 0, address_cells, size_cells }
     }
+
+    /// True when the cell counts make a readable entry.
+    pub fn readable(&self) -> bool {
+        self.address_cells <= 2 && self.size_cells <= 2 && self.address_cells != 0
+    }
 }
 
 impl<'a> Iterator for RegIter<'a> {
     type Item = (u64, u64);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let cell_bytes = ((self.address_cells + self.size_cells) * 4) as usize;
-        if self.offset + cell_bytes > self.data.len() {
+        if !self.readable() {
+            return None;
+        }
+        let size_off = self.offset + self.address_cells as usize * 4;
+        let end = size_off + self.size_cells as usize * 4;
+        if end > self.data.len() {
             return None;
         }
         let addr = be_cells(self.data, self.offset, self.address_cells).ok()?;
-        let size_off = self.offset + (self.address_cells * 4) as usize;
         let size = be_cells(self.data, size_off, self.size_cells).ok()?;
-        self.offset += cell_bytes;
+        self.offset = end;
         Some((addr, size))
     }
 }

@@ -33,7 +33,7 @@ pub fn find(fdt: &Fdt, out: &mut [MemoryRange]) -> Result<usize, FdtError> {
 
     while let Some(event) = walker.next()? {
         match event {
-            Event::BeginNode { name } => {
+            Event::BeginNode { name, .. } => {
                 depth += 1;
                 if depth == 1 && (name == b"memory" || starts_with(name, b"memory@")) {
                     at_memory = true;
