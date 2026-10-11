@@ -58,16 +58,16 @@ fn a_budget_reads_as_figures_and_time_left() {
 
 #[test]
 fn a_channel_says_where_what_was_paid_and_whether_it_froze() {
-    let e18 = 1_000_000_000_000_000_000u128;
     let r = AccountRow {
         channel_id: [1; 32],
         listing_id: [2; 32],
         chain_id: 11_155_111,
-        deposit: 50 * e18,
-        settled: 10 * e18,
-        cumulative: 12 * e18,
+        deposit: 50 * 10u128.pow(18),
+        settled: 10 * 10u128.pow(18),
+        cumulative: 12 * 10u128.pow(18),
         expiry: NOW,
         frozen: false,
+        reclaim_to: [0; 20],
     };
     assert_eq!(channel_line(&r, nox), "Sepolia · 50 held · 10 paid · 12 signed");
     let f = channel_line(&AccountRow { frozen: true, chain_id: 1, ..r }, nox);

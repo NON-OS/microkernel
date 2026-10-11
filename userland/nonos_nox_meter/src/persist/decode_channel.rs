@@ -40,5 +40,6 @@ pub(super) fn channel(r: &mut Cursor<'_>) -> Option<Channel> {
             _ => return None,
         },
         carried: r.u128()?,
+        reclaim_to: r.fixed()?,
     })
 }

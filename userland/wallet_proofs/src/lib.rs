@@ -169,6 +169,8 @@ mod due_tests;
 #[cfg(test)]
 mod held_tests;
 #[cfg(test)]
+mod closed_due_tests;
+#[cfg(test)]
 mod move_tests;
 #[cfg(test)]
 mod scan_tests;

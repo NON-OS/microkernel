@@ -17,6 +17,10 @@
 //! The two sides of a buyer's order: what the sale fixes, and what the
 //! buyer itself chooses and draws.
 
+/* Rule 5's half of Buyer: its wipe, its Drop and its Debug. */
+#[path = "buyer_secret.rs"]
+mod secret;
+
 /// What the listing, its release and the checked offer fix.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Sale {
@@ -32,24 +36,14 @@ pub struct Sale {
 }
 
 /// The buyer's deadline, its committed refund address, and two fresh salts.
-/// The salts are secret (rule 5): its Debug names them redacted.
-#[derive(Clone, Copy, PartialEq, Eq)]
+/// The salts are secret (rule 5): its Debug names them redacted, it is not
+/// Copy, and dropping it wipes them.
+#[derive(Clone, PartialEq, Eq)]
 pub struct Buyer {
     pub deadline: u64,
     pub refund_to: [u8; 20],
     pub refund_salt: [u8; 32],
     pub salt: [u8; 32],
-}
-
-impl core::fmt::Debug for Buyer {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_struct("Buyer")
-            .field("deadline", &self.deadline)
-            .field("refund_to", &self.refund_to)
-            .field("refund_salt", &"redacted")
-            .field("salt", &"redacted")
-            .finish()
-    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

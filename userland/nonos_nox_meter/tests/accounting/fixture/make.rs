@@ -41,6 +41,7 @@ pub fn channel() -> Channel {
         sig: NO_SIG,
         frozen: false,
         carried: 0,
+        reclaim_to: [0x5e; 20],
     }
 }
 

@@ -39,6 +39,7 @@ pub fn account(
         cumulative: c.cumulative,
         expiry: c.expiry,
         frozen: c.frozen,
+        reclaim_to: c.reclaim_to,
     });
     Account {
         flags: if address.is_some() { READY } else { 0 } | if kept { KEPT } else { 0 },

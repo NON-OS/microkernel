@@ -32,6 +32,7 @@ fn account_and_drain_round_trip() {
         cumulative: 3,
         expiry: 4,
         frozen: true,
+        reclaim_to: [6; 20],
     };
     let a = Account {
         flags: READY | KEPT,
@@ -44,12 +45,14 @@ fn account_and_drain_round_trip() {
         rows: vec![row],
     };
     let b = a.encode();
-    assert_eq!((b.len(), ACCOUNT_ROW_LEN), (79 + 129, 129));
+    assert_eq!((b.len(), ACCOUNT_ROW_LEN), (79 + 149, 149), "v1.4.60's reclaim_to");
+    assert_eq!(&b[b.len() - 20..], &[6u8; 20], "reclaim_to ends the row");
     assert_eq!(Account::parse(&b), Some(a));
     refused_cut_and_tail(&b, Account::parse);
     let mut bad = b.clone();
-    *bad.last_mut().unwrap() = 2;
-    assert_eq!(Account::parse(&bad), None);
+    let frozen_at = bad.len() - 21;
+    bad[frozen_at] = 2;
+    assert_eq!(Account::parse(&bad), None, "frozen is 0 or 1");
     let v = VoucherRecord {
         channel_id: [1; 32],
         payer: [2; 20],

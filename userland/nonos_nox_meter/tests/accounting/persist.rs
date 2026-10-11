@@ -26,6 +26,7 @@ pub(super) fn sample() -> nonos_nox_meter::state::MeterState {
     let mut s = s.signed(&c.id, c.seq, [0x5a; 65]);
     s.budget.listings.push(ListingCap { listing_id: LISTING, cap: 77, spent: 5 });
     s.channels[0].carried = 100;
+    s.channels[0].reclaim_to = [0x77; 20];
     s.last_settle = Some((1, 7));
     s.last_retry = 99;
     s
@@ -35,7 +36,7 @@ pub(super) fn sample() -> nonos_nox_meter::state::MeterState {
 fn the_state_reads_back_as_written_at_one_length() {
     let s = sample();
     let b = encode(&s).unwrap();
-    assert_eq!((b.len(), CHANNEL_LEN), (STATE_LEN, 310));
+    assert_eq!((b.len(), CHANNEL_LEN), (STATE_LEN, 330), "v5: reclaim_to");
     assert_eq!(decode(&b), Ok(s));
     let empty = encode(&Default::default()).unwrap();
     assert_eq!(empty.len(), STATE_LEN);
@@ -58,6 +59,7 @@ fn a_wrong_header_a_count_or_a_byte_in_an_unused_slot_is_refused() {
     let b = encode(&sample()).unwrap();
     let unused_listing = HEADER + 2 + LISTING_LEN;
     let unused_channel = CHANNELS_AT + 2 + CHANNEL_LEN;
+    /* Byte 4 flipped reads version 4: the file before reclaim_to is refused. */
     for at in [0, 4, 6, unused_listing, unused_channel, STATE_LEN - 1] {
         let mut bad = b.clone();
         bad[at] ^= 1;

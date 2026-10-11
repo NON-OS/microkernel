@@ -19,7 +19,7 @@
 //! job every WATCH_MS, for the status line. The install waits on I-C5.
 
 use nonos_libc::mk_uptime_ms;
-use nonos_payment_proto::{job_id, parse_job_id, OrderStatus, Ready};
+use nonos_payment_proto::{job_id, parse_job_id, OrderStatus, Ready, ORDER_STATUS_LEN};
 use nonos_payment_proto::{EAGAIN, OP_JOB, OP_ORDER_STATUS, OP_PURCHASE, PURCHASE_TAKE_READY};
 
 use super::asked::Asked;
@@ -36,7 +36,7 @@ impl State {
         let now = mk_uptime_ms();
         let o = &mut self.orders;
         if let Some(id) = o.job {
-            let got = call(OP_JOB, &job_id(id), 34);
+            let got = call(OP_JOB, &job_id(id), ORDER_STATUS_LEN);
             if got == Err(EAGAIN) {
                 return false;
             }

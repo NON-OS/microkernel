@@ -19,7 +19,8 @@
  * JOB answers at once, so the window never waits on the network.
  */
 
-use crate::wallet::meter::job::{outcome, Outcome};
+use crate::wallet::meter::job::{closed_due, outcome, Outcome};
+use crate::wallet::shield::due::Why;
 use crate::wallet::state::State;
 
 /// The meter's work on this tick: a running job, a purchase's step, or
@@ -44,7 +45,12 @@ pub fn poll(state: &mut State) -> bool {
         return false;
     };
     let answer = super::call::job(job.id);
-    match outcome(job.kind, answer.as_deref().map_err(|e| *e)) {
+    let o = outcome(job.kind, answer.as_deref().map_err(|e| *e));
+    if let Some(reclaim_to) = closed_due(&job, &o) {
+        let now = nonos_libc::mk_uptime_ms().max(0) as u64;
+        state.meter.landed.due.add(reclaim_to, Why::ChannelClosed, now);
+    }
+    match o {
         Outcome::Running => return false,
         Outcome::Sent(line) => state.meter.news = Some(line),
         Outcome::Failed(why) => state.failure = Some(why),

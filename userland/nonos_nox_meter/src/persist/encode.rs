@@ -70,5 +70,6 @@ fn channel(out: &mut Vec<u8>, c: &Channel) {
     out.extend_from_slice(&c.sig);
     out.push(c.frozen as u8);
     out.extend_from_slice(&c.carried.to_le_bytes());
+    out.extend_from_slice(&c.reclaim_to);
     debug_assert_eq!(out.len() - start, CHANNEL_LEN);
 }

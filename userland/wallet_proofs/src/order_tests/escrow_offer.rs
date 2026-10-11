@@ -28,7 +28,7 @@ use crate::order::send_step::{EscrowSend, SendStep};
 const DEADLINE: u64 = 1_900_000_000;
 
 fn status(state: u8, pending: u128) -> OrderStatus {
-    OrderStatus { state, funded: 9, pending, plain: false }
+    OrderStatus { state, funded: 9, pending, extra: 0, plain: false }
 }
 
 #[test]
@@ -48,6 +48,11 @@ fn each_state_offers_its_action_or_none() {
     assert_eq!(at(status(5, 0), None, DEADLINE), None, "refunded, nothing waiting");
     assert_eq!(at(status(4, 1), None, 0), Some(Offer::Refund), "released, NOX waiting");
     assert_eq!(at(status(5, 1), None, 0), Some(Offer::Refund), "refunded, NOX waiting");
+    let extra = |state| OrderStatus { extra: 3, ..status(state, 0) };
+    assert_eq!(at(extra(4), None, 0), Some(Offer::Refund), "released, extra alone");
+    assert_eq!(at(extra(5), None, 0), Some(Offer::Refund), "refunded, extra alone");
+    let most = OrderStatus { extra: u128::MAX, ..status(4, u128::MAX) };
+    assert_eq!(at(most, None, 0), Some(Offer::Refund), "no overflow");
     assert_eq!(offer(None, None, Some(&bad), DEADLINE, DEADLINE), None, "no status yet");
 }
 
