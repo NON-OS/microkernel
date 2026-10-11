@@ -19,10 +19,7 @@
 
 use crate::memory::addr::PhysAddr;
 
-use super::super::super::device::DeviceAddress;
-use super::super::super::domain_id::DomainId;
-use super::super::super::error::IommuError;
-use super::super::super::protection::IommuProtection;
+use crate::memory::iommu::{DeviceAddress, DomainId, IommuError, IommuProtection};
 
 pub(in crate::memory::iommu) fn allocate_domain() -> Result<DomainId, IommuError> {
     Err(IommuError::NotSupported)
