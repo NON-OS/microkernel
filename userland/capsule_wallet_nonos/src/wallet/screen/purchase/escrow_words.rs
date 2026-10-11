@@ -17,31 +17,21 @@
 //! What a made order's dispute or refund says first, and the action offered
 //! beside Close (B8, v1.4.51 to v1.4.53).
 
+use super::escrow_said::*;
 use crate::wallet::order::escrow_offer::{offer, Offer};
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::refund::deadline;
+use crate::wallet::order::send_resume::gas_offer;
 use crate::wallet::order::send_step::{SendStep, DISPUTE};
-
-const BAD: &str = "A chunk of the delivery is not what was listed. Dispute it from this \
-     wallet's refund address before the window ends: the seller's bond answers for it.";
-const REFUNDABLE: &str = "The escrow allows a refund now. It goes to this wallet's refund \
-     address, and only this machine can send it: the order's record is kept here.";
-const READING: &str = "Reading the order from the escrow.";
-const QUOTING: &str = "Asking settle what the transaction costs, from the refund address.";
-const GAS: &str = "The refund address needs ETH for the gas. Pay it from the Shield: a \
-     standard amount, sent privately; what is left stays at that address.";
-const SIGNING: &str = "The Shield is signing from the refund address.";
-const SENDING: &str = "Sending the transaction through settle.";
-const SENT: &str = "Sent. Waiting for the escrow to record it.";
-const DISPUTED: &str = "Disputed: the seller's bond answers for it. A refund opens now.";
-const REFUNDED: &str = "Refunded to this wallet's refund address.";
 
 /// The made order's offer, now.
 pub fn offered(p: &Pending) -> Option<Offer> {
     let Step::Fund(m) = &p.step else { return None };
     let step = p.escrow.as_ref().map(|e| &e.step);
     let due = deadline(m).unwrap_or(u64::MAX);
-    offer(step, p.watch.status.as_ref(), p.delivery.made.as_ref(), due, nonos_tls::rtc_now())
+    let now = nonos_tls::rtc_now();
+    let o = offer(step, p.watch.status.as_ref(), p.delivery.made.as_ref(), due, now);
+    gas_offer(o, p.escrow.as_ref().and_then(|e| e.gas_paid_s), now)
 }
 
 /// The lead sentence and action while a dispute or refund is offered or
@@ -51,6 +41,7 @@ pub fn lead(p: &Pending) -> Option<(&'static str, Option<&'static str>)> {
         Offer::Dispute => "Dispute",
         Offer::Refund => "Refund",
         Offer::PayGas => "Pay the gas from the Shield",
+        Offer::GasWaiting => "Waiting for the gas withdraw",
         Offer::Again => "Try again",
     });
     let Some(e) = p.escrow.as_ref() else {

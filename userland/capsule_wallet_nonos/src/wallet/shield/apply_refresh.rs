@@ -47,6 +47,10 @@ pub fn failed(state: &mut State, op: u16, why: String) {
     if matches!(op, OP_OPEN_WORDS | OP_OPEN_KEY) {
         ui.opened = false;
     }
+    if op == OP_WITHDRAW {
+        crate::wallet::order::gas_paid::failed(state);
+    }
+    let ui = &mut state.shield_ui;
     if matches!(op, OP_SEND | OP_WITHDRAW) {
         ui.proving = None;
         if ui.screen == SHIELD_PROVING {

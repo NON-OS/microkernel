@@ -25,6 +25,7 @@ use super::escrow_refund::refund_now;
 use super::escrowing::{Ctx, Escrowing};
 use super::order_of::window_end;
 use super::refund_call::{refunded, state_and_extra};
+use super::send_resume::resume;
 use super::send_step::{SendStep, DISPUTE};
 use crate::wallet::settle::{SettleCall, ESCROW};
 
@@ -46,7 +47,8 @@ pub fn read(settle: &mut SettleCall, e: &mut Escrowing, c: &Ctx) -> bool {
     };
     let words = r.ok().and_then(|b| parse_read_reply(&b));
     let w = words.as_deref();
-    e.step = match (&e.step, e.kind, c.delivered) {
+    let landed_now = if e.kind == DISPUTE { landed(w) } else { refunded(w) };
+    let next = match (&e.step, e.kind, c.delivered) {
         (SendStep::Sent(_), DISPUTE, _) if landed(w) => SendStep::Done,
         (SendStep::Sent(_), _, _) if e.kind != DISPUTE && refunded(w) => SendStep::Done,
         (SendStep::Sent(h), _, _) => SendStep::Sent(*h),
@@ -57,6 +59,8 @@ pub fn read(settle: &mut SettleCall, e: &mut Escrowing, c: &Ctx) -> bool {
         (_, DISPUTE, None) => SendStep::Failed(super::dispute_said::NOTHING),
         _ => refund_now(c, w.and_then(state_and_extra)),
     };
+    let sent = matches!(next, SendStep::Sent(_) | SendStep::Done);
+    e.step = if sent { next } else { resume(next, e.raw.as_ref(), landed_now) };
     if let SendStep::RefundTo((_, at)) = e.step {
         e.window_end = window_end(c.made, at);
     }

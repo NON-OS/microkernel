@@ -32,5 +32,6 @@ mod refund;
 mod refund_cases;
 mod requests;
 mod rows;
+mod send_resume;
 mod voucher;
 mod voucher_form;
