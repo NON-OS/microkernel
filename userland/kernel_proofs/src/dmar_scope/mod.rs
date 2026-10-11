@@ -17,9 +17,19 @@
 /*
  * Which devices a DMAR remapping unit covers, from its flags and device
  * scopes, and the rule the broker confines by: a device gets an IOVA only when
- * a unit in service translates it. The parser and the rule are included by path.
+ * a unit in service translates it. Also the reserved memory regions (RMRR)
+ * firmware keeps doing DMA to. The parsers and the rule are included by path.
  */
 
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_rmrr.rs"]
+pub mod dmar_rmrr;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_scope_walk.rs"]
+pub mod dmar_scope_walk;
+mod rmrr_scope_tests;
+mod rmrr_tests;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_scope.rs"]
 pub mod scope;
 mod tests;
+
+/// The name the parsers reach the scope types by in the kernel.
+use scope as dmar_scope;
