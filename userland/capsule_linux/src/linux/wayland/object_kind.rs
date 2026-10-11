@@ -51,4 +51,9 @@ pub enum Object {
     Activation,
     ActivationToken,
     SinglePixel,
+    PrimaryManager,
+    PrimaryDevice,
+    PrimarySource,
+    CursorManager,
+    CursorDevice,
 }

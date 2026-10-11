@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! xdg_activation_v1 and wp_single_pixel_buffer_manager_v1, against
-//! xdg-activation-v1.xml and single-pixel-buffer-v1.xml.
+//! Activation, single-pixel buffers, the primary selection and cursor
+//! shapes, against each protocol's XML.
 
 use crate::ops::misc::*;
+use crate::ops::select::*;
 
 #[test]
 fn activation_numbers_are_the_protocols() {
@@ -31,4 +32,16 @@ fn activation_numbers_are_the_protocols() {
 #[test]
 fn single_pixel_numbers_are_the_protocols() {
     assert_eq!((SINGLE_PIXEL_DESTROY, SINGLE_PIXEL_CREATE_BUFFER), (0, 1));
+}
+
+#[test]
+fn primary_selection_and_cursor_shape_numbers_are_the_protocols() {
+    let manager =
+        (PRIMARY_MANAGER_CREATE_SOURCE, PRIMARY_MANAGER_GET_DEVICE, PRIMARY_MANAGER_DESTROY);
+    assert_eq!(manager, (0, 1, 2));
+    assert_eq!((PRIMARY_DEVICE_SET_SELECTION, PRIMARY_DEVICE_DESTROY), (0, 1));
+    // The source's requests offer, destroy; its events send, cancelled.
+    assert_eq!((PRIMARY_SOURCE_OFFER, PRIMARY_SOURCE_DESTROY, PRIMARY_SOURCE_CANCELLED), (0, 1, 1));
+    assert_eq!((CURSOR_MANAGER_DESTROY, CURSOR_MANAGER_GET_POINTER), (0, 1));
+    assert_eq!((CURSOR_DEVICE_DESTROY, CURSOR_DEVICE_SET_SHAPE), (0, 1));
 }

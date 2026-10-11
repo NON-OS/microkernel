@@ -28,6 +28,8 @@ pub mod output;
 pub mod req;
 #[path = "ops_seat.rs"]
 pub mod seat;
+#[path = "ops_select.rs"]
+pub mod select;
 #[path = "ops_shell.rs"]
 pub mod shell;
 
