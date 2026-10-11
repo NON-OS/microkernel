@@ -46,9 +46,8 @@ pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError
         return Err(IrqBindError::StaleEpoch);
     }
 
-    // Match the request against the broker-published device IRQ. The
-    // capsule does not get to invent intids; if the broker has not
-    // surfaced an irq_source for this device, no bind is possible.
+    // Match the request against the broker-published device IRQ: the
+    // capsule never invents intids, and no published source means no bind.
     let dev = table::list()
         .into_iter()
         .find(|r| r.device_id == req.device_id)
@@ -59,6 +58,7 @@ pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError
     if dev.irq_source != req.irq_source {
         return Err(IrqBindError::NotDeviceIrq);
     }
+    super::trigger::configure(req.irq_source)?;
 
     let (_idx, grant_id) = pending::alloc(req.irq_source, pid, req.device_id, claim.epoch)
         .ok_or(IrqBindError::AlreadyBound)?;
