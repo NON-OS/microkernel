@@ -64,7 +64,8 @@ const STORAGE_PATH: [&str; 4] =
     ["driver.virtio_blk0", "driver.ahci0", "driver.nvme0", "driver.usb_msc0"];
 // The same in a virtual machine: its disk controllers poll a request out,
 // yielding and then sleeping a millisecond between looks.
-const STORAGE_PATH_VM: [&str; 3] = ["driver.piix_ide0", "driver.virtio_scsi0", "driver.pvscsi0"];
+const STORAGE_PATH_VM: [&str; 4] =
+    ["driver.piix_ide0", "driver.virtio_scsi0", "driver.pvscsi0", "driver.buslogic0"];
 
 /// Scheduling band a freshly installed capsule starts in.
 pub(super) fn for_capsule(name: &str) -> Priority {

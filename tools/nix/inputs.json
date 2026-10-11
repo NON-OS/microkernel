@@ -29,6 +29,9 @@
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
+   "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_pcnet.manifest.bin",
    "nonos-data/trust/capsules/driver_pcnet.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_pcnet.zk_trailer.bin",
@@ -911,6 +914,28 @@
    "userland/capsule_browser/src/browser/http",
    "userland/capsule_browser/src/browser/url",
    "userland/inflate"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/buslogic_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/buslogic_proofs",
+   "userland/capsule_driver_buslogic/src/adapter.rs",
+   "userland/capsule_driver_buslogic/src/constants",
+   "userland/capsule_driver_buslogic/src/discover.rs",
+   "userland/capsule_driver_buslogic/src/hba.rs",
+   "userland/capsule_driver_buslogic/src/port.rs",
+   "userland/capsule_driver_buslogic/src/setup/driver.rs",
+   "userland/capsule_driver_buslogic/src/setup/sequence.rs",
+   "userland/capsule_driver_buslogic/src/wait.rs",
+   "userland/nonos_scsi",
+   "userland/nonos_scsi_serve/src/say",
+   "userland/nonos_scsi_serve/src/server",
+   "userland/nonos_scsi_serve/src/units.rs",
+   "userland/nonos_scsi_serve/src/wire"
   ],
   "md": [],
   "signed": []
@@ -3522,6 +3547,9 @@
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
+   "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_pcnet.manifest.bin",
    "nonos-data/trust/capsules/driver_pcnet.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_pcnet.zk_trailer.bin",

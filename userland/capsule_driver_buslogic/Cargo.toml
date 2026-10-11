@@ -1,0 +1,33 @@
+# NONOS userland: capsule_driver_buslogic
+#
+# Userland BusLogic MultiMaster (104b:1040, the BT-958) driver capsule:
+# VirtualBox's and VMware's BusLogic controllers. Port I/O for the adapter's
+# four registers, one coherent DMA grant below 4 GiB for the 32-bit
+# mailboxes, the command control block, the sense buffer and the 64 KiB
+# buffer, polled. The disks and CD drives on its targets are served on the
+# block wire (NBW1) through nonos_scsi and nonos_scsi_serve.
+
+[package]
+name = "nonos_capsule_driver_buslogic"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland BusLogic MultiMaster driver capsule"
+
+[[bin]]
+name = "driver_buslogic"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_scsi = { path = "../nonos_scsi" }
+nonos_scsi_serve = { path = "../nonos_scsi_serve" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

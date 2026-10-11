@@ -19,6 +19,7 @@ pub mod ahci_capsule;
 pub mod audio_capsule;
 pub mod block_device;
 pub mod broker;
+pub mod buslogic_capsule;
 pub mod e1000_capsule;
 pub mod hda_capsule;
 pub mod i2c_pci_capsule;

@@ -22,6 +22,7 @@ pub(in crate::userspace::init::spawn_plan) fn spawn() {
     spawn_piix_ide();
     spawn_virtio_scsi();
     spawn_pvscsi();
+    spawn_buslogic();
 }
 
 #[cfg(feature = "nonos-capsule-driver-piix-ide")]
@@ -74,3 +75,20 @@ fn spawn_pvscsi() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-pvscsi"))]
 fn spawn_pvscsi() {}
+
+#[cfg(feature = "nonos-capsule-driver-buslogic")]
+fn spawn_buslogic() {
+    use crate::hardware::buslogic_capsule as c;
+    use crate::hardware::inventory::HardwareFamily;
+    if !super::present::present("DRIVER-BUSLOGIC", HardwareFamily::StorageBuslogic) {
+        return;
+    }
+    super::super::boot::capsule(
+        "DRIVER-BUSLOGIC",
+        "driver_buslogic",
+        c::spawn_driver_buslogic_capsule,
+        c::shared_state,
+    );
+}
+#[cfg(not(feature = "nonos-capsule-driver-buslogic"))]
+fn spawn_buslogic() {}
