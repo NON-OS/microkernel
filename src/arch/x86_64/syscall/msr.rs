@@ -53,8 +53,7 @@ pub fn setup_lstar(entry_point: u64) {
 }
 
 pub fn setup_fmask() {
-    let mask = RFLAGS_IF | RFLAGS_TF | RFLAGS_DF | RFLAGS_AC;
-    write_msr(IA32_FMASK, mask);
+    write_msr(IA32_FMASK, SYSCALL_FMASK);
 }
 
 pub fn enable_sce() {

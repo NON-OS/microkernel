@@ -34,3 +34,10 @@ pub const RFLAGS_IF: u64 = 1 << 9;
 pub const RFLAGS_TF: u64 = 1 << 8;
 pub const RFLAGS_DF: u64 = 1 << 10;
 pub const RFLAGS_AC: u64 = 1 << 18;
+pub const RFLAGS_NT: u64 = 1 << 14;
+
+/// The flags SYSCALL clears on entry. NT among them: POPF sets it at CPL 3,
+/// SYSCALL kept it, and the kernel's own IRETQ back to a preempted process
+/// then raised #GP(0) (IRET in IA-32e mode with NT set), which the kernel
+/// took as its own fault and panicked on. Any capsule could halt the machine.
+pub const SYSCALL_FMASK: u64 = RFLAGS_IF | RFLAGS_TF | RFLAGS_DF | RFLAGS_AC | RFLAGS_NT;

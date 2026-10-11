@@ -169,6 +169,8 @@ pub mod spec;
 #[cfg(test)]
 pub mod surface_register;
 #[cfg(test)]
+pub mod syscall_fmask;
+#[cfg(test)]
 pub mod surface_unmap;
 pub mod sys;
 pub mod syscall;
