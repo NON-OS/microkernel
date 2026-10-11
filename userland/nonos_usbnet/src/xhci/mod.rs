@@ -26,6 +26,7 @@ mod slot;
 mod wire;
 mod xhci_bus;
 
+pub use call::call;
 pub use lookup::lookup;
 pub use port::connected_ports;
 pub use slot::{address_device, disable_slot, enable_slot};
