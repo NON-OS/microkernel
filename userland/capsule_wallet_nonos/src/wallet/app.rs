@@ -194,6 +194,10 @@ impl App for Wallet {
         if super::shield::open::retry_due(&mut self.state) {
             return true;
         }
+        // The meter's job, likewise asked after every tick while one runs.
+        if self.state.meter.job.is_some() && super::meter::poll::poll(&mut self.state) {
+            return true;
+        }
         if self.state.shield_ui.waiting.is_some() || self.state.shield_ui.opened {
             let mut shield = super::shield::job::poll(&mut self.state);
             shield |= super::shield::due(&mut self.state);
