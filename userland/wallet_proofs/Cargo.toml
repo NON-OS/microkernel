@@ -22,6 +22,10 @@ nonos_policy_proto = { path = "../policy_proto" }
 # BIP32 from nonos_hd, the curve from nonos_secp256k1, as the keyring links.
 nonos_hd = { path = "../nonos_hd" }
 nonos_secp256k1 = { path = "../nonos_secp256k1" }
+# The wallet's NOX address and the Shield pool come from the config, and
+# a withdrawal to the meter reads its ACCOUNT (B7).
+nonos_nox_config = { path = "../nonos_nox_config" }
+nonos_payment_proto = { path = "../payment_proto" }
 
 # keccak-256 on the host, for the EIP-55 examples (the wallet asks the
 # crypto service for it on the device).

@@ -87,6 +87,8 @@ pub mod records_whole;
 pub mod replace_rule;
 #[path = "../../capsule_wallet_nonos/src/wallet/send/sent.rs"]
 pub mod sent;
+#[path = "../../capsule_wallet_nonos/src/wallet/shield/fund_meter.rs"]
+pub mod fund_meter;
 #[path = "../../capsule_wallet_nonos/src/wallet/screen/shield/typed.rs"]
 pub mod shield_typed;
 #[path = "../../capsule_wallet_nonos/src/wallet/screen/status_words.rs"]
@@ -129,6 +131,8 @@ mod replace_tests;
 mod scale_tests;
 #[cfg(test)]
 mod sent_tests;
+#[cfg(test)]
+mod fund_meter_tests;
 #[cfg(test)]
 mod shield_typed_tests;
 #[cfg(test)]

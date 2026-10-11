@@ -75,6 +75,9 @@ pub fn review_send(state: &mut State) {
 }
 
 pub fn review_withdraw(state: &mut State) {
+    if state.shield_ui.to_meter {
+        return review_to_meter(state);
+    }
     let fresh = match call(OP_FRESH_ADDRESS, &[]) {
         Ok(a) => a,
         Err(why) => {
@@ -94,6 +97,22 @@ pub fn review_withdraw(state: &mut State) {
     state.shield_ui.withdraw_to = Some(String::from(to));
     let a = amount(&state.shield_ui);
     super::job::start(state, OP_QUOTE, &[coin(state.shield_ui.asset), &a, "1"]);
+}
+
+/* A withdrawal to the meter (B7): its address from the meter itself. */
+fn review_to_meter(state: &mut State) {
+    use crate::wallet::screen::shield::consts::{CHAIN_ID, POOL};
+    let chain = CHAIN_ID.parse().unwrap_or(0);
+    let account = super::meter_call::account();
+    match super::fund_meter::meter_destination(POOL, chain, account.as_ref()) {
+        Ok(a) => {
+            let to = crate::wallet::screen::receive_address::checksummed_text(&a);
+            state.shield_ui.withdraw_to = Some(to);
+            let amt = amount(&state.shield_ui);
+            super::job::start(state, OP_QUOTE, &[coin(state.shield_ui.asset), &amt, "1"]);
+        }
+        Err(why) => state.shield_ui.failure = Some(String::from(why)),
+    }
 }
 
 /* Confirm on the review: send what was reviewed, or prove the payment. */
