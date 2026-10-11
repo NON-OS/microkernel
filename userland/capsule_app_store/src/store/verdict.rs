@@ -20,6 +20,9 @@ use crate::store::market::Readiness;
 
 /// The package gate's position in the vector the capsule returns.
 const PACKAGE_GATE: usize = 1;
+/// The bond gate's (v1.4.23): the market reads a bond only once asked, so
+/// its first answer for a sold listing is a miss.
+pub const BOND_GATE: usize = 10;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Verdict {
@@ -27,6 +30,8 @@ pub enum Verdict {
     /// Every gate passes except the one asking for something to fetch.
     /// That is what a capsule already in the image looks like.
     Installed,
+    /// Every gate passes but the bond, which the market is still reading.
+    Checking,
     Blocked,
 }
 
@@ -35,10 +40,13 @@ impl Verdict {
         if r.install_ready {
             return Verdict::Ready;
         }
-        let others = r.gates.iter().enumerate().all(|(i, ok)| *ok || i == PACKAGE_GATE);
-        match others && !r.gates[PACKAGE_GATE] {
-            true => Verdict::Installed,
-            false => Verdict::Blocked,
+        let only = |gate: usize| {
+            !r.gates[gate] && r.gates.iter().enumerate().all(|(i, ok)| *ok || i == gate)
+        };
+        match (only(PACKAGE_GATE), only(BOND_GATE)) {
+            (true, _) => Verdict::Installed,
+            (_, true) => Verdict::Checking,
+            _ => Verdict::Blocked,
         }
     }
 
@@ -47,6 +55,7 @@ impl Verdict {
         match self {
             Verdict::Ready => b"Ready to install on this machine",
             Verdict::Installed => b"Already in this image, nothing to fetch",
+            Verdict::Checking => b"Checking the seller's bond on chain",
             Verdict::Blocked => b"This machine will not run it yet",
         }
     }

@@ -17,14 +17,29 @@
 //! The order the market is asked about listings in, apart from the asking
 //! so the proofs can hold it.
 
-use super::listing::Listing;
+use super::listing::{Known, Listing};
+use super::verdict::Verdict;
+
+/// How often the gates are asked again while the bond is read, and how far apart.
+pub const RECHECKS: u8 = 6;
+pub const RECHECK_MS: u64 = 5_000;
 
 /// Which listing to ask about next, and whether it is the selection: the
-/// selection first, until its release and gates are known, then the first
-/// listing whose description is unasked. None when every answer is held.
-pub fn next(listings: &[Listing], selected: Option<usize>) -> Option<(usize, bool)> {
-    if let Some(at) = selected.filter(|&at| listings.get(at).is_some_and(|l| !l.known.judged)) {
+/// selection first, until its release and gates are known or its recheck is
+/// due at `now_ms`, then the first listing whose description is unasked.
+/// None when every answer is held.
+pub fn next(listings: &[Listing], selected: Option<usize>, now_ms: u64) -> Option<(usize, bool)> {
+    let due = |l: &Listing| !l.known.judged || l.known.recheck_at.is_some_and(|t| now_ms >= t);
+    if let Some(at) = selected.filter(|&at| listings.get(at).is_some_and(due)) {
         return Some((at, true));
     }
     listings.iter().position(|l| !l.known.described).map(|at| (at, false))
+}
+
+/// Ask the gates again in RECHECK_MS while only the bond is unread, at most
+/// RECHECKS times; never once the gates are settled either way.
+pub fn recheck(k: &mut Known, now: u64) {
+    let checking = k.readiness.is_some_and(|r| Verdict::of(&r) == Verdict::Checking);
+    k.recheck_at = (checking && k.rechecks < RECHECKS).then(|| now + RECHECK_MS);
+    k.rechecks += u8::from(k.recheck_at.is_some());
 }

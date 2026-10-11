@@ -59,6 +59,8 @@ mod store_step_tests;
 #[cfg(test)]
 mod store_price_tests;
 #[cfg(test)]
+mod store_recheck_tests;
+#[cfg(test)]
 mod store_tests;
 
 #[cfg(test)]

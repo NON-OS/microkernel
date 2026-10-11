@@ -23,13 +23,11 @@
 //! listing per catalogue. The selected listing goes first; after it, each
 //! listing's description is asked in turn so the search can match it.
 
-use super::fill_order::next;
-use super::fill_step::{kept, Step};
+use super::fill_order::{next, recheck};
+use super::fill_step::{kept, now_ms, Step};
 use super::market;
 use super::state::State;
 
-/// How soon the next step runs while there is one: quick enough that the
-/// pane fills as the cursor lands, without a busy loop.
 impl State {
     /// One step of asking. A new description can change what the search
     /// keeps, so it is shown whenever a query is typed.
@@ -37,7 +35,8 @@ impl State {
         if !self.filling() {
             return Step::Done;
         }
-        let Some((at, selected)) = next(&self.listings, self.current_index()) else {
+        let now = now_ms();
+        let Some((at, selected)) = next(&self.listings, self.current_index(), now) else {
             return Step::Done;
         };
         let port = self.port;
@@ -47,13 +46,16 @@ impl State {
             l.known.detail = kept(market::get_app(port, market::next_id(), &l.id), &mut silent);
             l.known.described = true;
         }
-        if selected {
+        if selected && !l.known.judged {
             let release = market::get_release(port, market::next_id(), &l.id);
             l.known.release = kept(release, &mut silent);
+            l.known.price = kept(market::get_price(port, market::next_id(), &l.id), &mut silent);
+        }
+        if selected {
             let readiness = market::install_ready(port, market::next_id(), &l.id);
             l.known.readiness = kept(readiness, &mut silent);
-            l.known.price = kept(market::get_price(port, market::next_id(), &l.id), &mut silent);
             l.known.judged = true;
+            recheck(&mut l.known, now);
         }
         /*
          * A market that has stopped answering costs a timeout per call, and
