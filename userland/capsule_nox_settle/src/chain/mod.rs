@@ -20,6 +20,7 @@ mod check;
 mod flags;
 mod live;
 mod live_fresh;
+mod times;
 mod words;
 
 pub use call::{eth_calls, eth_calls_at};

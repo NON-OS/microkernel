@@ -32,6 +32,8 @@ mod offer;
 mod order;
 mod proof;
 mod roots;
+mod seller;
+mod seller_types;
 mod terms;
 mod tree;
 
@@ -44,5 +46,7 @@ pub use offer::{check_offer, cipher_hashes, OfferWrong};
 pub use order::{order_id, refund_commit};
 pub use proof::{proof, verify};
 pub use roots::{chunk_root, cipher_root, plain_hashes, root_of_hashes};
+pub use seller::{may_send, reveal_ok};
+pub use seller_types::{Mine, TermsWrong};
 pub use terms::{OrderTerms, TERMS_WORDS};
 pub use tree::root;
