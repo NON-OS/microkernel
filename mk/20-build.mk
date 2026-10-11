@@ -555,6 +555,7 @@ include userland/capsule_driver_vmware_svga/Capsule.mk
 include userland/capsule_driver_ahci/Capsule.mk
 include userland/capsule_driver_hda/Capsule.mk
 include userland/capsule_driver_ac97/Capsule.mk
+include userland/capsule_driver_vmmdev/Capsule.mk
 include userland/capsule_audio/Capsule.mk
 include userland/capsule_audio_player/Capsule.mk
 include userland/capsule_driver_nvme/Capsule.mk
