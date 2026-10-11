@@ -57,6 +57,8 @@ pub mod driver_end;
 pub mod device_windows;
 pub mod fs;
 pub mod hardware;
+#[cfg(test)]
+pub mod hypervisor_detect;
 pub mod fb_frame;
 pub mod store_copy_span;
 pub mod store_errno;
