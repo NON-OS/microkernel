@@ -14,11 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! A freshly set mode shows whatever VRAM held; the driver paints it once.
+
 use core::ptr::write_volatile;
 
-pub fn clear(fb_user_va: u64, pixels: u64, color: u32) {
+/// # Safety
+///
+/// `fb_user_va` is a live mapping of at least `pixels * 4` bytes.
+pub unsafe fn clear(fb_user_va: u64, pixels: u64, color: u32) {
     let base = fb_user_va as *mut u32;
-    for i in 0..pixels {
-        unsafe { write_volatile(base.add(i as usize), color) };
+    for i in 0..pixels as usize {
+        // SAFETY: `i < pixels`, inside the mapping the caller vouches for.
+        unsafe { write_volatile(base.add(i), color) };
     }
 }
