@@ -23,6 +23,7 @@ use super::held_keys::HeldKeys;
 use super::reshape::Shape;
 use super::scene_pixels::Pixels;
 use super::state::{Buffer, Pool, Surface};
+use super::subsurface::state::Subs;
 use super::window_life::Shown;
 
 pub struct Scene {
@@ -58,4 +59,6 @@ pub struct Scene {
     pub on_output: Option<u32>,
     /// The keys down now, so a driver's repeat is not sent as a press.
     pub held: HeldKeys,
+    /// Surfaces placed on the window's (subsurface/).
+    pub subs: Subs,
 }

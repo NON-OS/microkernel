@@ -29,6 +29,7 @@ use nonos_app_skeleton::discover::lookup_port;
 use crate::linux::guest::Guest;
 
 use super::super::fit::origin;
+use super::super::subsurface::compose::compose;
 use super::adopt::{adopt, Placed};
 use super::open::open_once;
 use super::place::place;
@@ -49,7 +50,10 @@ pub fn show(guest: &mut Guest, surface: u32, src: &Source) {
         say("[WAYLAND] no compositor or window manager for a window\n".into());
         return;
     };
-    let Some(fresh) = taken(guest.pid, src) else { return };
+    let Some(mut fresh) = taken(guest.pid, src) else { return };
+    if let Some(frame) = fresh.frame(src.bytes) {
+        compose(&mut guest.scene.subs, surface, frame, shape);
+    }
     let Some(handle) = register(&fresh, shape) else { return };
     let scene = &mut guest.scene;
     let (w, h, _) = shape;
