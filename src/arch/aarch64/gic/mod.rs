@@ -14,23 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod acked;
 mod api;
 pub mod cpu;
 mod device;
 pub mod distributor;
 pub mod icc;
+mod in_service;
 pub mod irq_handlers;
 pub mod redistributor;
+mod serve;
 mod state;
 
+pub use acked::Acked;
 pub use api::{disable_irq, enable_irq, init_gic, send_sgi, send_sgi_all_others};
 pub use cpu::init_gic_cpu;
 pub use device::Gic;
 pub use distributor::GicDistributor;
-pub use icc::{acknowledge_interrupt, end_interrupt, set_priority_mask};
+pub use icc::set_priority_mask;
+pub use in_service::{
+    complete as complete_interrupt, enter as enter_service, leave as leave_service,
+};
 pub use irq_handlers::{
     dispatch as dispatch_irq, register as register_irq_handler,
     register_for_capsule as register_irq_handler_for_capsule,
     unregister_for_capsule as unregister_irq_handler_for_capsule,
 };
 pub use redistributor::GicRedistributor;
+pub use serve::acknowledge_interrupt;
