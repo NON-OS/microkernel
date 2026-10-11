@@ -31,6 +31,7 @@ mod ident;
 mod io;
 mod io_socket;
 mod ioctl;
+mod ioctl_queued;
 mod ioctl_req;
 mod ioctl_tty;
 mod iovec;

@@ -17,7 +17,7 @@
 //! Which policy binds a program: the vendor's table first, then a vouched
 //! file, then the owner's default; a bad file refuses the program.
 
-use crate::app_choose::choose;
+use crate::app::choose::choose;
 use nonos_linux_policy::mask::{MODELS_RO, NET_ANON, WAYLAND};
 use nonos_linux_policy::vendor::VendorRow;
 use nonos_linux_policy::{unlisted, LinuxAppPolicy, SyscallSet, UNLISTED_MASK};

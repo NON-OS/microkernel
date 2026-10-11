@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod canonical_tests;
+mod committed_tests;
 mod decode_tests;
 mod identity_tests;
 mod line_tests;
+mod market_tests;
 mod mask_tests;
 mod refuse_tests;
 mod sample;

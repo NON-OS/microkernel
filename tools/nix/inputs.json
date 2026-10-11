@@ -1773,6 +1773,7 @@
    "userland/capsule_linux/src/linux/abi/errno_sock.rs",
    "userland/capsule_linux/src/linux/app/choose.rs",
    "userland/capsule_linux/src/linux/app/identity.rs",
+   "userland/capsule_linux/src/linux/app/rules.rs",
    "userland/capsule_linux/src/linux/applets.rs",
    "userland/capsule_linux/src/linux/call/futex_op.rs",
    "userland/capsule_linux/src/linux/call/ioctl_req.rs",
