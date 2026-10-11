@@ -35,7 +35,10 @@ pub struct Scanner {
 }
 
 impl Scanner {
-    pub(crate) fn new() -> Self {
+    // A Default impl would change every network driver's ELF, which are
+    // signed; the scanner is only ever made this way.
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
         let retry_all = Deadline::after_ms(RETRY_ALL_MS);
         Self { xhci: None, book: Book::default(), retry_all }
     }
