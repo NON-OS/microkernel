@@ -2997,6 +2997,7 @@
    "userland/capsule_desktop_shell/src/render/ui_font.rs",
    "userland/capsule_desktop_shell/src/render/whole_frame.rs",
    "userland/capsule_desktop_shell/src/server/desktop/home.rs",
+   "userland/capsule_desktop_shell/src/server/peer_rule.rs",
    "userland/capsule_desktop_shell/src/server/runner/tick.rs",
    "userland/capsule_desktop_shell/src/state/apps.rs",
    "userland/capsule_desktop_shell/src/state/delete_prompt.rs",
@@ -4595,6 +4596,16 @@
    "userland/capsule_driver_smbus/src/wire",
    "userland/capsule_driver_smbus/src/xfer",
    "userland/smbus_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/smmu_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/iommu/smmu/encode",
+   "userland/smmu_proofs"
   ],
   "md": [],
   "signed": []
