@@ -28,7 +28,8 @@ mod types;
 
 pub use device::{mk_device_claim, mk_device_list, mk_device_release};
 pub use dma::{
-    mk_dma_map, mk_dma_unmap, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32, MK_DMA_MAP_HIGH, MK_DMA_MAP_WC,
+    mk_dma_map, mk_dma_unmap, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32, MK_DMA_MAP_FROM_DEVICE,
+    MK_DMA_MAP_HIGH, MK_DMA_MAP_TO_DEVICE, MK_DMA_MAP_WC,
 };
 pub use dma_lines::{dma_sync_lines, DMA_SYNC_LINE};
 #[cfg(target_arch = "x86_64")]
