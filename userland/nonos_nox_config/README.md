@@ -40,7 +40,8 @@ nothing else.
   first word inside `abi.encode` of its id.
 - Units: install, proof, call, second and byte.
 - Gas limits for what the OS encodes itself: `APPROVE_GAS` 60000 and
-  `OPEN_GAS` 200000.
+  `OPEN_GAS` 200000; and the fee caps it signs under, `MAX_FEE_PER_GAS`
+  1000 gwei and `MAX_PRIORITY_FEE_PER_GAS` 10 gwei.
 
 ## Known copies
 
@@ -58,7 +59,7 @@ they are, and each must match this crate where they overlap:
 
 ## Tests
 
-15 host tests in `tests/`. `sha3` is a dev-dependency only, so every pinned
+16 host tests in `tests/`. `sha3` is a dev-dependency only, so every pinned
 hash is recomputed independently of the constant it checks:
 - typehashes from their type strings;
 - name hashes from their names;
