@@ -72,6 +72,7 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
             ui.focus = FIELD_TO;
             ui.news = None;
             ui.size = None;
+            ui.to_meter = false;
             ui.failure = None;
             state.scroll = 0;
         }
@@ -80,6 +81,7 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
             ui.size = None;
         }
         Press::Pick(i) => ui.size = Some(i),
+        Press::Dest(d) => ui.to_meter = d == 1,
         Press::Field(f) => ui.focus = f,
         Press::Footer(n) => return super::footer::footer(state, n),
         Press::Row(super::home_receive::ROW_COPY) if ui.screen == SHIELD_HOME => {

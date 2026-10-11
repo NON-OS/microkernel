@@ -45,6 +45,7 @@ pub fn lead(ui: &ShieldUi) -> &'static str {
             "The proof is built on this machine. A lander puts it on chain over a private \
              circuit and cannot see who pays whom or how much."
         }
+        _ if ui.to_meter => METER,
         _ => {
             "The proof is built on this machine. The amount and the receiving address \
              become public when it settles."
@@ -88,13 +89,22 @@ pub fn rows(ui: &ShieldUi) -> Vec<(&'static str, String)> {
         SHIELD_SEND => {
             Vec::from([("Pay privately", format!("{} {coin}", amount(ui))), ("To", short(&ui.to))])
         }
-        _ => Vec::from([
-            ("Withdraw", format!("{} {coin}", amount(ui))),
-            ("To", ui.withdraw_to.as_deref().map(short).unwrap_or_default()),
-        ]),
+        _ => Vec::from([("Withdraw", format!("{} {coin}", amount(ui))), ("To", to_text(ui))]),
     };
     out.extend(fees);
     out.push(("Proof", String::from("built on this machine")));
     out.push(net);
     out
+}
+
+const METER: &str = "The proof is built on this machine. The amount and the meter's address \
+     become public when it settles; nothing ties them to this wallet's own address.";
+
+fn to_text(ui: &ShieldUi) -> String {
+    let to = ui.withdraw_to.as_deref().map(short).unwrap_or_default();
+    if ui.to_meter {
+        format!("the meter, {to}")
+    } else {
+        to
+    }
 }

@@ -70,11 +70,20 @@ pub const fn hex20(s: &str) -> [u8; 20] {
     out
 }
 
+/// NOX on `chain_id`, from nonos_nox_config, the one place it is named (B7).
+/// A chain the wallet offers without NOX fails the build.
+const fn nox_of(chain_id: u64) -> [u8; 20] {
+    match nonos_nox_config::address(chain_id, nonos_nox_config::Contract::NoxToken) {
+        Ok(a) => a,
+        Err(_) => panic!("NOX is configured on every chain the wallet offers"),
+    }
+}
+
 pub const MAINNET: Chain = Chain {
     id: 1,
     name: "Ethereum mainnet",
     rpcs: &["ethereum-rpc.publicnode.com", "mainnet.gateway.tenderly.co", "rpc.mevblocker.io"],
-    nox: hex20("0a26c80be4e060e688d7c23addb92cbb5d2c9eca"),
+    nox: nox_of(1),
     usdc: hex20("a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
     staking: Some(hex20("a94d6009790ba13597a1e1b7cf4e1531ea513613")),
     shield: false,
@@ -89,7 +98,7 @@ pub const SEPOLIA: Chain = Chain {
         "sepolia.gateway.tenderly.co",
         "rpc.sepolia.ethpandaops.io",
     ],
-    nox: hex20("3e5249a65ca513d5e11260222e0d26f46b465d36"),
+    nox: nox_of(11_155_111),
     usdc: hex20("1c7d4b196cb0c7b01d743fbc6116a902379c7238"),
     staking: None,
     shield: true,
