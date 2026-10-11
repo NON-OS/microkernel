@@ -42,6 +42,17 @@ pub enum Refused {
     Reserved,
 }
 
+impl Refused {
+    /// The reason, as the install's log line gives it.
+    pub fn about(self) -> &'static str {
+        match self {
+            Refused::Escapes => "it names a `..` component",
+            Refused::Absolute => "it is absolute",
+            Refused::Reserved => "it is one of the personality's own paths",
+        }
+    }
+}
+
 pub fn member_refused(name: &[u8]) -> Option<Refused> {
     if name.first() == Some(&b'/') {
         return Some(Refused::Absolute);

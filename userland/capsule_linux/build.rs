@@ -23,6 +23,9 @@
 use std::path::{Path, PathBuf};
 use std::{env, fs, process};
 
+#[path = "build/image_files.rs"]
+mod image_files;
+
 const SETTINGS: [&str; 10] = [
     "NONOS_PACMAN_MIRROR",
     "NONOS_PACMAN_HOST",
@@ -45,6 +48,9 @@ fn main() {
     pin("NONOS_PACMAN_KEYRING", &out.join("pacman-keyring.gpg"), None);
     // Kali's archive key is pinned by default; see design/package-trust.md.
     pin("NONOS_DEB_KEYRING", &out.join("deb-keyring.gpg"), Some("keys/kali/archive-key-2025.asc"));
+    if let Err(e) = image_files::write(&out.join("image_files.rs")) {
+        fail(&e);
+    }
 }
 
 /// The keyring `var` names, else `default` (relative to this crate), else none.
