@@ -38,8 +38,6 @@ pub fn scan() -> Vec<Disk> {
  * and not mistaken for a missing disk. */
 pub fn survey() -> Survey {
     let present = controllers();
-    // The SATA driver's missing rows name eMMC when that is all it serves.
-    let emmc_only = present.contains(&Controller::Emmc) && !present.contains(&Controller::Ahci);
     let booted = Booted::ask();
     let mut out = Vec::new();
     for found in discover(&present) {
@@ -53,7 +51,7 @@ pub fn survey() -> Survey {
                     contents => target(driver, instance, device, contents),
                 },
             },
-            Err(e) => failed(driver, instance, &e, emmc_only),
+            Err(e) => failed(driver, instance, &e),
         };
         out.push(row);
     }
