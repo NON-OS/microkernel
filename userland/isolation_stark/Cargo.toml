@@ -1,0 +1,33 @@
+# NONOS userland: isolation_stark
+# eK@nonos.systems
+#
+# The isolation statement proven over a family's sealed histogram:
+# under Hc and A, nothing outside the declared set succeeded. Two Poseidon
+# chains and a LiveGate per bucket, all ShieldRegion kinds, so the device
+# proof's blinding and rank certificate apply unchanged. no_std, so
+# nonos.prove proves on the device; tested by isolation_proofs.
+
+[package]
+name = "isolation_stark"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS isolation statement: the STARK over a sealed family's histogram"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# STARKs from main, at the commit the flake's starks input names.
+nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
+stark_proofs = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", default-features = false, features = ["fri8"] }
+nonos_proof_abi = { path = "../nonos_proof_abi" }
+
+[features]
+default = []
+# The prover's all-cores path. The device proves on one core without it.
+parallel = ["nonos-stark/parallel", "stark_proofs/parallel"]
+# A forger's prover for the host proofs. Never in a capsule.
+forge = []

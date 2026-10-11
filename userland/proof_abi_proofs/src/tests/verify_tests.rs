@@ -14,22 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The verify order over a real device proof bound to a real record. Every
-//! step through the publics accepts; the last refuses, since the bytes in the
-//! isolation section are not a proof until isolation_stark lands.
+//! The verify order over a real device proof bound to a real record and a
+//! real isolation proof over its histogram.
 
 use nonos_proof_abi::{tag, verify, Expected, Refusal};
 
 use crate::fixture::{expected, honest, DAY};
-
-#[test]
-fn an_honest_container_reaches_the_isolation_proof() {
-    let (f, parts, pinned) = honest();
-    let pins = pinned.trust();
-    let got = verify(&parts.bytes(), &expected(&f.policy, &pins));
-    // Header, length or publics: nox_verify's codes 2 to 4, never anything earlier.
-    assert!(matches!(got, Err(Refusal::Isolation(2..=4))), "{got:?}");
-}
 
 #[test]
 fn a_device_proof_for_another_record_is_refused() {
