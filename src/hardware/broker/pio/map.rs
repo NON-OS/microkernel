@@ -23,6 +23,7 @@
 
 use super::bar_window::port_window;
 use super::grant::{self, PioGrant};
+use super::grant_insert::insert_exclusive;
 use super::types::{PioError, PioGrantRequest, PioGrantResult};
 use crate::hardware::broker::claim;
 use crate::hardware::broker::table;
@@ -51,13 +52,13 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
     let (port_base, port_count) = port_window(device.bars[bar_idx])?;
 
     let grant_id = grant::allocate_id();
-    grant::insert(PioGrant {
+    insert_exclusive(PioGrant {
         grant_id,
         pid,
         device_id: req.device_id,
         claim_epoch: claim.epoch,
         port_base,
         port_count,
-    });
+    })?;
     Ok(PioGrantResult { port_base, port_count, grant_id })
 }

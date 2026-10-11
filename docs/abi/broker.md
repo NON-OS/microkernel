@@ -160,7 +160,7 @@ An `I2C_HID` record reuses fields: `hid_record` puts the 7-bit I2C address in `v
 
 ## Other constants
 
-`BUS_KIND_*` says which bus a record came from, and `BAR_KIND_*` and `BAR_FLAG_*` describe a `Bar`. `DEVICE_FLAG_*` are defined, but no code sets them: `flags` is 0 on every record, and no record is built with `BUS_KIND_VIRT`. `DMA_MAP_*` are the `MkDmaMap` flags, and `BIND_*` the `MkIrqBind` flags. `DMA_MAP_COHERENT` maps uncached; `DMA_MAP_WC` maps write-combining where the PAT allows, else uncached. `DMA_MAP_TO_DEVICE` gives a confined device read-only access to the grant and `DMA_MAP_FROM_DEVICE` write-only access, or read and write on a VT-d unit without CAP.ZLR; neither changes anything for a device no IOMMU confines (`src/hardware/broker/dma/flags.rs:19-38`, `src/hardware/broker/dma/direction.rs`).
+`BUS_KIND_*` says which bus a record came from, and `BAR_KIND_*` and `BAR_FLAG_*` describe a `Bar`. A `BAR_FLAG_FIXED` bar is an I/O window the function decodes at a fixed address outside its BARs, put in the record by the broker: BARs 0 to 3 of an IDE function whose channel runs in compatibility mode (0x1F0/8 and 0x3F6/1 for the primary, 0x170/8 and 0x376/1 for the secondary), and VBoxVGA's DISPI ports (0x1CE/3) in its first free slot. `mk_pio_grant` grants it like any I/O BAR and answers `EBUSY` while another device's claimant holds a grant sharing a port; `MkIrqBind` takes IRQ 14 or 15 in INTx mode from the claimant of an IDE function whose primary or secondary channel runs in compatibility mode (`src/hardware/broker/legacy/`). `DEVICE_FLAG_*` are defined, but no code sets them: `flags` is 0 on every record, and no record is built with `BUS_KIND_VIRT`. `DMA_MAP_*` are the `MkDmaMap` flags, and `BIND_*` the `MkIrqBind` flags. `DMA_MAP_COHERENT` maps uncached; `DMA_MAP_WC` maps write-combining where the PAT allows, else uncached. `DMA_MAP_TO_DEVICE` gives a confined device read-only access to the grant and `DMA_MAP_FROM_DEVICE` write-only access, or read and write on a VT-d unit without CAP.ZLR; neither changes anything for a device no IOMMU confines (`src/hardware/broker/dma/flags.rs:19-38`, `src/hardware/broker/dma/direction.rs`).
 
 | Constant | Value | File |
 |---|---|---|
@@ -172,6 +172,7 @@ An `I2C_HID` record reuses fields: `hid_record` puts the 7-bit I2C address in `v
 | `BAR_KIND_PIO` | `0x2` | `src/hardware/broker/device/bar.rs` |
 | `BAR_FLAG_PREFETCH` | `0x1` | `src/hardware/broker/device/flags.rs` |
 | `BAR_FLAG_MEM64` | `0x2` | `src/hardware/broker/device/flags.rs` |
+| `BAR_FLAG_FIXED` | `0x4` | `src/hardware/broker/device/flags.rs` |
 | `DEVICE_FLAG_CLAIMED` | `0x1` | `src/hardware/broker/device/flags.rs` |
 | `DEVICE_FLAG_DISABLED` | `0x2` | `src/hardware/broker/device/flags.rs` |
 | `DMA_MAP_HIGH` | `0x1` | `src/hardware/broker/dma/flags.rs` |

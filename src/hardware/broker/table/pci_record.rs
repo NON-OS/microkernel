@@ -16,6 +16,7 @@
 
 use crate::drivers::pci::types::{PciBar, PciDevice};
 use crate::hardware::broker::device::{BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
+use crate::hardware::broker::legacy;
 use crate::hardware::broker::{classify_pci, Bar, BarKind, BusKind, DeviceRecord};
 
 pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
@@ -27,7 +28,7 @@ pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
             bar_span = (i + 1) as u8;
         }
     }
-    DeviceRecord {
+    let mut record = DeviceRecord {
         device_id,
         bus_kind: BusKind::Pci as u8,
         pci_class: dev.class,
@@ -43,7 +44,11 @@ pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
         _pad1: [0; 1],
         irq_source: dev.interrupt_line as u32,
         bars,
-    }
+    };
+    // An IDE channel in compatibility mode, or VBoxVGA, decodes ports no BAR
+    // names; they go in the record so only this function's claimant gets them.
+    legacy::attach(&mut record);
+    record
 }
 
 fn bar_from_pci(b: &PciBar) -> Bar {

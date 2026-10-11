@@ -19,6 +19,10 @@ pub const BAR_KIND_MMIO: u8 = 1;
 pub const BAR_KIND_PIO: u8 = 2;
 pub const BAR_FLAG_PREFETCH: u8 = 1 << 0;
 pub const BAR_FLAG_MEM64: u8 = 1 << 1;
+/// An I/O window the function decodes at a fixed address outside its BARs
+/// (an IDE channel in compatibility mode, VBoxVGA's DISPI ports). The broker
+/// puts it in the record; `mk_pio_grant` grants it like any I/O BAR.
+pub const BAR_FLAG_FIXED: u8 = 1 << 2;
 
 #[repr(C)]
 #[derive(Clone, Copy)]

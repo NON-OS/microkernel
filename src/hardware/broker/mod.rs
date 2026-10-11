@@ -33,6 +33,7 @@ mod grant;
 // GICv3 SPIs; riscv64 uses PLIC external sources. Backend selection
 // happens inside `irq::mod.rs` via `target_arch` cfg.
 pub mod irq;
+mod legacy;
 pub mod mmio;
 pub mod pci;
 pub(crate) mod pci_index;
