@@ -57,5 +57,7 @@ pub(super) extern "C" fn syscall_handler(
     );
     crate::process::accounting::bump_total(crate::process::accounting::Total::Syscalls);
     let result = contract_dispatch(sc, SyscallArgs::new([arg1, arg2, arg3, arg4, arg5, arg6]));
+    // A guest reaching a native number goes into its family's seal, bucket 512.
+    crate::process::foreign::seal::refused(number, result.value as u64);
     result.value as u64
 }

@@ -19,14 +19,17 @@
 Bit 35 is the device secret's only gate, and nothing in the kernel ties it to a
 name, so signing is what keeps it to one capsule. This refuses the bit in any
 other capsule's caps ceiling, required caps or optional caps. With no arguments
-it checks every userland/*/Capsule.mk; the capsule signing rules call it with
---slug and --caps before they sign a certificate or a manifest.
+it checks every userland/*/Capsule.mk and the kernel's gates on the bit; the
+capsule signing rules call it with --slug and --caps before they sign a
+certificate or a manifest.
 """
 
 import argparse
 import re
 import sys
 from pathlib import Path
+
+from check_device_secret_gates import gate_problems
 
 DEVICE_SECRET_BIT = 35
 HOLDERS = ("prove",)
@@ -57,6 +60,7 @@ def main() -> int:
     args = ap.parse_args()
     pairs = [(args.slug, args.caps)] if args.slug else list(every_capsule(args.root))
     found = [r for slug, caps in pairs for r in refusals(slug, caps)]
+    found += [] if args.slug else gate_problems(args.root)
     for r in found:
         print(f"device-secret-cap: {r}", file=sys.stderr)
     if not args.slug:

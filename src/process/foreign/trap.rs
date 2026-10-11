@@ -19,7 +19,7 @@
 use super::frame::ForeignFrame;
 use super::frame_snapshot::{capture, FRAME_WORDS};
 use super::registry;
-use super::trap_table::park;
+use super::seal::park;
 use super::trap_wait::wait_for_answer;
 use crate::process::core::ProcessState;
 
@@ -32,7 +32,7 @@ pub fn redirect(nr: u64, args: [u64; 6], frame: &[u64; FRAME_WORDS]) -> Option<u
      * for any number nobody serves, not a stop its supervisor answers 0.
      */
     if nr >= super::frame::NR_INTERRUPTED {
-        return None;
+        return super::seal::refused_early(nr);
     }
     let pid = crate::process::current_pid()?;
     let Some(supervisor) = registry::supervisor_of(pid) else {
@@ -46,7 +46,7 @@ pub fn redirect(nr: u64, args: [u64; 6], frame: &[u64; FRAME_WORDS]) -> Option<u
      */
     let saved = capture(frame, super::frame_cpu::user_rsp());
     super::trap_frame::keep(pid, saved);
-    if !park(ForeignFrame::new(pid, nr, args, saved.rip)) {
+    if !park(supervisor, ForeignFrame::new(pid, nr, args, saved.rip)) {
         end_if_dead(pid);
         return Some(super::trap_reply::ABANDONED);
     }

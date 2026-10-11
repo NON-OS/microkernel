@@ -4127,6 +4127,35 @@
   "md": [],
   "signed": []
  },
+ "userland/seal_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "src/process/foreign/frame.rs",
+   "src/process/foreign/registry.rs",
+   "src/process/foreign/seal/family.rs",
+   "src/process/foreign/seal/family_calls.rs",
+   "src/process/foreign/seal/family_new.rs",
+   "src/process/foreign/seal/family_rows.rs",
+   "src/process/foreign/seal/finish.rs",
+   "src/process/foreign/seal/hist.rs",
+   "src/process/foreign/seal/meas.rs",
+   "src/process/foreign/seal/record.rs",
+   "src/process/foreign/seal/sealed.rs",
+   "src/process/foreign/seal/table.rs",
+   "src/process/foreign/seal/trace.rs",
+   "src/process/foreign/trap_table.rs",
+   "src/syscall/microkernel/errnos.rs",
+   "userland/nonos_proof_abi",
+   "userland/seal_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/seq_wire_proofs": {
   "exclude": [],
   "include": [
