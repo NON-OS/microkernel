@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod aux_hw;
 pub mod bus;
+pub mod clock;
 pub mod expiry;
 pub mod firmware;
 pub mod gen9;
@@ -26,5 +28,6 @@ pub mod sink_aux;
 pub mod sink_link;
 pub mod sink_status;
 
+pub use clock::Ticks;
 pub use expiry::Polls;
 pub use gen9::Gen9;
