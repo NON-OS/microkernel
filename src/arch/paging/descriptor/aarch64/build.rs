@@ -16,12 +16,12 @@
 
 use super::super::flags;
 use super::bits::*;
-use crate::arch::aarch64::mmu::MemoryType;
+use super::memory_type::memory_type;
 
 /// A leaf entry mapping `pa` with `flags`.
 pub fn leaf(pa: u64, flags: u64) -> u64 {
-    let device = flags & flags::NO_CACHE != 0;
-    let kind = if device { MemoryType::DeviceNGnRnE } else { MemoryType::NormalWB };
+    let device = flags & flags::DEVICE != 0;
+    let kind = memory_type(flags);
     let user = flags & flags::USER != 0;
 
     let mut entry = (pa & ADDR_MASK) | AF | (kind.attr_index() << 2);
