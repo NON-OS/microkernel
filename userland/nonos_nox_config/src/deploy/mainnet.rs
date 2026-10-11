@@ -17,8 +17,10 @@
 use super::Deployment;
 use crate::hex::hex20;
 
-// NOX is the live V2.1 token: fee-on-transfer, capped, blacklisting. Count
-// what arrives, never what was sent. The marketplace set is not deployed.
+// NOX is the live V3_1 token behind this proxy: fees the Safe can change,
+// skipped when either side is fee exempt, a blacklist, permit, and a revert
+// on a zero-amount transfer. Count what arrives, never what was sent, and
+// never send zero. The marketplace set is not deployed.
 pub const MAINNET: Deployment = Deployment {
     nox_token: Some(hex20("0a26c80be4e060e688d7c23addb92cbb5d2c9eca")),
     settlement: None,
