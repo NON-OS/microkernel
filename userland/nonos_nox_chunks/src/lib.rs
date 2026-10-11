@@ -25,11 +25,13 @@ extern crate alloc;
 
 mod buyer;
 mod buyer_types;
+mod calls;
 mod chunk;
 mod cipher;
 mod delivery;
 mod deposit;
 mod dispute;
+mod dispute_call;
 mod leaf;
 mod offer;
 mod order;
@@ -42,11 +44,13 @@ mod tree;
 
 pub use buyer::buyer_terms;
 pub use buyer_types::{Buyer, OrderWrong, Sale};
+pub use calls::{fund, fund_from, refund, release, DISPUTE, FUND, FUND_FROM, REFUND, RELEASE};
 pub use chunk::{chunk, chunk_count, CHUNK};
 pub use cipher::{key_commit, keystream_word, xor_chunk};
 pub use delivery::{open_delivery, Delivered};
 pub use deposit::{clone_initcode_hash, create2, deposit_address};
 pub use dispute::{dispute, Dispute};
+pub use dispute_call::dispute_call;
 pub use leaf::{leaf, CIPHER_TREE, PLAIN_TREE};
 pub use offer::{check_offer, cipher_hashes, OfferWrong};
 pub use order::{order_id, refund_commit};
