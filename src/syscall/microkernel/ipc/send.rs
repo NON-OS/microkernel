@@ -115,6 +115,7 @@ pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correla
         Redirect::AsAddressed => {
             if !super::send_caps::caller_satisfies_endpoint(endpoint, &target)
                 || !crate::services::registry::caller_may_reach(&target)
+                || !super::send_address::caller_may_address(&target)
             {
                 return ERRNO_PERM;
             }

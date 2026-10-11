@@ -32,6 +32,7 @@ mod containment;
 mod errno;
 mod line;
 mod medium;
+mod reply_escape;
 
 /// # Safety
 /// The kernel enters here once, on a fresh stack.
@@ -39,6 +40,7 @@ mod medium;
 pub unsafe extern "C" fn _start() -> ! {
     attempts::cap_escape();
     attempts::inbox_escape();
+    reply_escape::reply_escape();
     authority::authority_escape();
     attempts::foreign_memory();
     attempts::register_service();
