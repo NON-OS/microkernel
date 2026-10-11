@@ -26,9 +26,11 @@ mod iova;
 mod iova_holes;
 mod iova_space;
 mod map;
+mod map_fail;
 mod posture;
 mod table;
 
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
 pub(super) use map::{map, unmap};
+pub(super) use map_fail::MapFail;

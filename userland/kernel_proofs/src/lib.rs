@@ -39,6 +39,8 @@ pub mod capabilities;
 #[cfg(test)]
 pub mod clock_scale;
 #[cfg(test)]
+pub mod confine_map_fail;
+#[cfg(test)]
 pub mod confine_posture;
 pub mod pci_quirk_bits;
 #[cfg(test)]
