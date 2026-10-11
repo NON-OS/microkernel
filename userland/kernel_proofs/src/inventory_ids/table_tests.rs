@@ -20,7 +20,7 @@ use super::intel_ethernet_ids::{
     E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS,
 };
 use super::realtek_ids::{RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS};
-use super::{e1000, e1000e, igc, rtl8139, rtl8169};
+use super::{e1000, e1000e, igb, igc, rtl8139, rtl8169};
 
 fn sorted(ids: &[u16]) -> Vec<u16> {
     let mut v = ids.to_vec();
@@ -43,6 +43,8 @@ fn each_table_is_its_capsules() {
         e1000e::PCH_PTP,
     ];
     assert_eq!(sorted(&E1000E_DEVICE_IDS), sorted(&boards.concat()));
+    let igb: Vec<u16> = igb::pci::IGB_PARTS.iter().map(|(id, _)| *id).collect();
+    assert_eq!(IGB_DEVICE_IDS[..], igb[..], "igb_pci_tbl, in its order");
     assert_eq!(sorted(&IGC_DEVICE_IDS), sorted(igc::IGC_DEVICE_IDS));
     assert_eq!(sorted(&RTL8169_DEVICE_IDS), sorted(rtl8169::RTL8169_DEVICE_IDS));
     assert_eq!(RTL8139_DEVICE_ID, rtl8139::RTL8139_DEVICE_ID);
