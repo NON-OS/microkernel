@@ -18,6 +18,7 @@
 
 use spin::Mutex;
 
+use super::dmar_namespace_store::record_namespace_scopes;
 use super::dmar_scope::{parse_drhd, UnitScope};
 use crate::arch::x86_64::acpi::tables::Drhd;
 
@@ -64,6 +65,7 @@ pub(super) fn record_drhd(drhd: Drhd, bytes: &[u8]) -> bool {
     let mut bases = REMAP_UNIT_BASES.lock();
     let mut scopes = REMAP_UNIT_SCOPES.lock();
     if bases.len() < MAX_REMAP_UNITS && scopes.len() < MAX_REMAP_UNITS {
+        record_namespace_scopes(bases.len() as u8, bytes);
         let _ = bases.push(drhd.register_base_address);
         let _ = scopes.push(scope);
         return true;
