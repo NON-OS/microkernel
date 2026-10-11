@@ -41,6 +41,9 @@ pub fn recover_after(ctx: &mut Context, slot: u8, dci: u8, err: XhciError) {
     } else if let Some(ep) = res.interrupt.iter_mut().find(|ep| ep.dci == dci) {
         ep.armed = None;
         &ep.ring
+    } else if let Some(p) = res.isoch.as_mut().filter(|p| p.ep.dci == dci) {
+        p.forget();
+        &p.ring
     } else if let Some(pipes) = res.bulk.as_ref() {
         if dci == pipes.dci_in {
             &pipes.in_ring
