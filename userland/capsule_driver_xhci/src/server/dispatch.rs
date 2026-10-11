@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::protocol::{
-    Request, E_INVAL, OP_ADDRESS_DEVICE, OP_ALLOC_TRANSFER_RING, OP_BULK_IN, OP_BULK_OUT,
-    OP_CONFIGURE_BULK, OP_CONFIGURE_ISOCH, OP_CONTROLLER_STATUS, OP_CONTROL_TRANSFER,
+    Request, E_INVAL, OP_ADDRESS_DEVICE, OP_ALLOC_TRANSFER_RING, OP_BULK_IN, OP_BULK_IN_POLL,
+    OP_BULK_OUT, OP_CONFIGURE_BULK, OP_CONFIGURE_ISOCH, OP_CONTROLLER_STATUS, OP_CONTROL_TRANSFER,
     OP_DISABLE_SLOT, OP_ENABLE_SLOT, OP_GET_CONFIG_DESCRIPTOR, OP_GET_DEVICE_DESCRIPTOR,
     OP_HEALTHCHECK, OP_INTERRUPT_IN, OP_ISOCH_OUT, OP_PORT_STATUS, OP_RESET_BULK,
 };
@@ -41,6 +41,7 @@ pub fn dispatch(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         OP_CONFIGURE_BULK => handlers::bulk::configure(ctx, req, body, tx),
         OP_BULK_OUT => handlers::bulk::transfer_out(ctx, req, body, tx),
         OP_BULK_IN => handlers::bulk::transfer_in(ctx, req, body, tx),
+        OP_BULK_IN_POLL => handlers::bulk::poll_in(ctx, req, body, tx),
         OP_RESET_BULK => handlers::bulk::reset(ctx, req, body, tx),
         OP_CONFIGURE_ISOCH => handlers::isoch::configure(ctx, req, body, tx),
         OP_ISOCH_OUT => handlers::isoch::out(ctx, req, body, tx),
