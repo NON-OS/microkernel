@@ -62,9 +62,12 @@ pub(super) fn request(
     let rules = PoolRules {
         words_per_intent: pool.words_per_intent,
         max_relay_fee: order.asset.max_relay_fee,
+        // The fee was read from the policy's quote (fee_schedule::spend_fee) and kept to it.
+        policy_fee: pool.policy.map(|_| order.fee),
     };
     check_intent(&intent, &rules).map_err(|refusal| match refusal {
         IntentRefusal::FeeExceedsCap => WalletError::FeeTooHigh,
+        IntentRefusal::FeeOffQuote => WalletError::FeeChanged,
         _ => WalletError::Amount,
     })?;
     Ok(request)
