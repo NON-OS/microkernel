@@ -23,6 +23,7 @@ under `cargo test`.
 | `scan_list` | the networks a scan heard, deduplicated per access point, hidden ones dropped, aged by sweep, encoded for the Settings panel with WPA2 and WPA3 flags |
 | `regdom` | the regulatory domain: wireless-regdb rules, the world domain as the default, Annex E channel frequencies, the Country element (narrows, never widens) and the scan plan that probes only where initiating radiation is allowed |
 | `pmf` | management frame protection: the MMIE, BIP-CMAC-128, and the SA Query frames and procedure the station runs on a protected link |
+| `softmac` | the whole station above a soft-MAC chip: a driver implements `softmac::Radio` (tune, send and receive whole frames, point the filter at a BSS) and `Env` (clock, randomness), and `SoftStation` runs the background scan, the join (hunt, the state machine with retransmission, the WPA3-to-WPA2 transition retry), the session (CCMP in software, PMF, SA Query, loss of the AP), the Wi-Fi control family and the net_core link protocol, on the same wires the existing drivers answer |
 | `netif` | the link protocol `net.core` speaks to a NIC, served over a `LinkPort`, so DHCP, DNS and TCP run over Wi-Fi as over a wired card |
 | `key`, `frame` | the key-installation seam and the plaintext frame contract between the core and a driver |
 
