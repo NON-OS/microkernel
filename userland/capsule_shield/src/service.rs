@@ -100,6 +100,9 @@ fn dispatch(op: u16, body: &str) -> (i32, String) {
         OP_LOCK => now(ops::lock()),
         OP_RESULT => answer(STATUS_OK, &jobs::result()),
         OP_CANCEL => now(ops::cancel()),
+        OP_FRESH_ADDRESS if fields.first() == Some(&FRESH_ONCE) => {
+            now(crate::fresh_once::fresh_once())
+        }
         OP_FRESH_ADDRESS => now(ops::fresh_address()),
         OP_SYNC => job("sync", ops::sync),
         OP_REVIEW_SHIELD => job("review shield", move || ops::review_shield(&borrowed(&f))),

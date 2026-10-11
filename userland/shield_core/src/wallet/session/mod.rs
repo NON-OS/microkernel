@@ -30,6 +30,8 @@ pub struct Session {
     pub(crate) imported: bool,
     /// The public address of the next account, unused, for a withdrawal. None for a key wallet.
     pub(crate) next_public: Option<[u8; 20]>,
+    /// Addresses past every account and handed index, for mode 1 (v1.4.52).
+    pub(crate) ahead: Vec<(u32, [u8; 20])>,
 }
 
 impl Session {
