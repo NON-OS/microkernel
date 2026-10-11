@@ -36,6 +36,7 @@ pub mod flow;
 pub mod job;
 pub mod merkle;
 pub mod open;
+pub mod orders;
 pub mod pay;
 pub mod persist;
 pub mod root;
