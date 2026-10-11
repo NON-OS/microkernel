@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The meter's root: the machine key under its caller-bound label
 //! (`nonos_nox_meter::root`). Only this capsule's manifest namespace can
 //! derive it; any other caller gets EPERM from the kernel.
