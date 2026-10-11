@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::kinds::every;
 use crate::intent::{hex, id, review_rows};
-use crate::intent_tests::every;
 
 fn nox(v: u128) -> String {
     format!("{v}")
