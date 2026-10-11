@@ -23,8 +23,11 @@
  * it each frame goes back to the allocator once.
  */
 
+#[path = "../../../../src/kernel_core/surface_registry/pin/register_race.rs"]
+pub mod register_race;
 #[path = "../../../../src/kernel_core/surface_registry/pin/register_rule.rs"]
 pub mod register_rule;
 mod model;
 mod model_tests;
+mod race_tests;
 mod tests;

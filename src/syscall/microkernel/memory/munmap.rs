@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::kernel_core::surface_registry::pin::held::Held;
-use crate::memory::paging::unmap_page;
-use crate::memory::VirtAddr;
 use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::ERRNO_INVAL;
 
 use super::accounting::record_munmap;
 use super::consts::{is_user_space, MAX_MMAP_SIZE, PAGE_SIZE};
-use super::va::release_va;
+use super::va::{release_va, unmap_range};
 
 pub fn sys_munmap(addr: u64, length: usize) -> i64 {
     if addr == 0 || length == 0 {
@@ -44,31 +41,8 @@ pub fn sys_munmap(addr: u64, length: usize) -> i64 {
         return ERRNO_INVAL;
     }
     let pages = ((length + PAGE_SIZE - 1) / PAGE_SIZE) as u64;
-    /*
-     * Frames of a surface another process still maps are not ours to free:
-     * freeing them let the allocator reuse a frame that process kept
-     * writing pixels into. They go to the surface registry instead.
-     */
     let pid = current_pid().unwrap_or(0);
-    let mut held = Held::collect(pid, addr, pages * PAGE_SIZE as u64);
-    for i in 0..pages as usize {
-        /*
-         * Up to a gigabyte unmapped with interrupts masked. Answer TLB
-         * shootdowns between pages; each page's frame is freed before the
-         * next serve point, so no translation is carried across one.
-         */
-        crate::smp::serve_shootdowns();
-        let va = VirtAddr::new(addr + (i * PAGE_SIZE) as u64);
-        if let Ok(phys) = unmap_page(va) {
-            if held.holds(va.as_u64(), phys) {
-                continue;
-            }
-            if crate::memory::frame_alloc::deallocate_frame(phys).is_err() {
-                crate::sys::serial::println(b"[MUNMAP] frame_release_failed");
-            }
-        }
-    }
-    held.settle();
+    unmap_range(pid, addr, pages);
     if !release_va(addr, pages) {
         crate::sys::serial::println(b"[MUNMAP] release_va_failed");
     }
