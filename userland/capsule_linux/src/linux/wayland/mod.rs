@@ -18,6 +18,7 @@
 //! The display server a Wayland client finds when it connects.
 
 mod args;
+mod bind;
 mod buffer;
 mod close_window;
 mod commit;

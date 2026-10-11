@@ -39,12 +39,20 @@ pub fn wheel(guest: &mut Guest, dx: i32, dy: i32, x: i32, y: i32) {
     }
     enter_once(guest, id, x, y);
     let time = crate::linux::call::family_ms() as u32;
+    // The source, the notches and the frame came with wl_pointer 5.
+    let v5 = guest.objects.at_least(id, 5);
     let to_client = &mut guest.display.to_client;
-    Event::new(id, POINTER_AXIS_SOURCE).u32(SOURCE_WHEEL).send(to_client);
+    if v5 {
+        Event::new(id, POINTER_AXIS_SOURCE).u32(SOURCE_WHEEL).send(to_client);
+    }
     for (axis, step) in steps {
         let Some((notches, distance)) = step else { continue };
-        Event::new(id, POINTER_AXIS_DISCRETE).u32(axis).u32(notches as u32).send(to_client);
+        if v5 {
+            Event::new(id, POINTER_AXIS_DISCRETE).u32(axis).u32(notches as u32).send(to_client);
+        }
         Event::new(id, POINTER_AXIS).u32(time).u32(axis).u32(distance).send(to_client);
     }
-    Event::new(id, POINTER_FRAME).send(to_client);
+    if v5 {
+        Event::new(id, POINTER_FRAME).send(to_client);
+    }
 }

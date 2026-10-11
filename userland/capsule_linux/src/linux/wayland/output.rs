@@ -59,6 +59,9 @@ pub fn announce(guest: &mut Guest, id: u32) {
         .u32(0)
         .send(to);
     Event::new(id, MODE).u32(MODE_CURRENT_PREFERRED).u32(w).u32(h).u32(REFRESH_MHZ).send(to);
-    Event::new(id, SCALE).u32(1).send(to);
-    Event::new(id, DONE).send(to);
+    // The scale and done came with wl_output 2.
+    if guest.objects.at_least(id, 2) {
+        Event::new(id, SCALE).u32(1).send(to);
+        Event::new(id, DONE).send(to);
+    }
 }

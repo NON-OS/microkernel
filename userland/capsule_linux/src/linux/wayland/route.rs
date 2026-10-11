@@ -34,7 +34,7 @@ pub fn route(
     match (object, opcode) {
         (Some(Object::Display), req::DISPLAY_SYNC) => handlers::sync(guest, args),
         (Some(Object::Display), req::DISPLAY_GET_REGISTRY) => handlers::registry(guest, args),
-        (Some(Object::Registry), req::REGISTRY_BIND) => handlers::bind(guest, args),
+        (Some(Object::Registry), req::REGISTRY_BIND) => super::bind::bind(guest, id, args),
         (Some(Object::Compositor), req::COMPOSITOR_CREATE_SURFACE) => surface::create(guest, args),
         (Some(Object::Shm), req::SHM_CREATE_POOL) => shm::create_pool(guest, args),
         (Some(Object::ShmPool), req::POOL_CREATE_BUFFER) => buffer::create_buffer(guest, id, args),
