@@ -51,3 +51,10 @@ fn the_ids_are_the_plans() {
         assert!(e.callers.iter().all(|c| c.starts_with(b"app.nonos_wallet")));
     }
 }
+
+/// NOX's own EIP-2612 permit signs under domain "NONOS"; an entry there
+/// would let op 30 sign a permit (plan/31).
+#[test]
+fn no_entry_signs_under_the_tokens_permit_domain() {
+    assert!(ENTRIES.iter().all(|e| e.domain.name != "NONOS"));
+}
