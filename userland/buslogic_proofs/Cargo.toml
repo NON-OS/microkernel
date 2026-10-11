@@ -1,0 +1,21 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the BusLogic MultiMaster driver. Builds for the
+# host so `cargo test` runs the real driver source and nonos_scsi_serve
+# (included via #[path]) against a MultiMaster model: the four registers and
+# the command protocol behind them, the hard reset, the extended mailboxes,
+# and each CCB the adapter takes executed on nonos_scsi's simulated logical
+# units, the broker's port I/O routed into the model and its DMA grant on
+# host memory.
+[package]
+name = "buslogic_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_scsi = { path = "../nonos_scsi" }
+nonos_libc = { package = "buslogic_proofs_libc_shim", path = "libc_shim" }
