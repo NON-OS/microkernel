@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for the eMMC driver (`userland/capsule_driver_sdhci/src/emmc`). The
-//! driver tree is included file by file with `#[path]`, everything but
-//! `platform` (the broker glue), so its `super::` paths resolve unchanged.
-//! `model` is a register level SDHCI host with an eMMC device behind it, so
-//! the real bring-up, read, write, flush and recovery run end to end.
+//! Host proofs for the SD host driver (`capsule_driver_sdhci/src/emmc`), its
+//! tree mounted by `#[path]` but for `platform` (the broker glue), against
+//! `model`: a register level SDHCI host with an eMMC or an SD card behind it.
 
 extern crate alloc;
 
 pub mod emmc;
 
-/// The kernel's list of the Intel eMMC hosts it starts the capsule for.
+/// The kernel's lists of the hosts it starts the capsule for.
 #[path = "../../../src/hardware/inventory/emmc.rs"]
 pub mod kernel_inventory;
+#[path = "../../../src/hardware/inventory/sd_host.rs"]
+pub mod kernel_sd_host;
 pub mod kernel_wire;
 /// Who the capsule serves the medium to.
 #[path = "../../capsule_driver_sdhci/src/server/medium_rule.rs"]

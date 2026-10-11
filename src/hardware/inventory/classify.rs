@@ -20,6 +20,7 @@ use super::classify_serial_bus::classify_serial_bus;
 use super::classify_storage::classify_storage;
 use super::emmc::is_intel_emmc;
 use super::family::HardwareFamily;
+use super::sd_host::is_sd_host;
 use crate::hardware::broker::{BarKind, DeviceRecord};
 
 /// AHCI 1.3.1, 2.1.11: the ABAR is BAR5.
@@ -41,8 +42,12 @@ pub fn classify_family(
             _ => HardwareFamily::Unknown,
         },
         0x06 => HardwareFamily::BridgePci,
+        // An SD host on an interface the capsule takes; a listed eMMC first.
+        0x08 if !is_sd_host(vendor, device, class, subclass, progif) => {
+            HardwareFamily::SystemPeripheral
+        }
         0x08 if is_intel_emmc(vendor, device, class, subclass) => HardwareFamily::StorageEmmc,
-        0x08 => HardwareFamily::SystemPeripheral,
+        0x08 => HardwareFamily::StorageSdhci,
         0x0c => classify_serial_bus(subclass, progif),
         _ => HardwareFamily::Unknown,
     }

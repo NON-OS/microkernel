@@ -30,22 +30,20 @@ fn intel_emmc_hosts_are_served_first() {
 }
 
 #[test]
-fn intel_sd_readers_and_sdio_hosts_are_never_served() {
-    for &d in INTEL_NOT_EMMC {
+fn intel_sdio_hosts_are_never_served_and_its_card_readers_are_generic() {
+    for &d in INTEL_SDIO.iter().chain(&[0x31d0, 0x0f15, 0x2295, 0x5ad0, 0x0ad0, 0x9d2c]) {
         assert_eq!(classify(0x8086, d, 0x08, 0x05, 0x01), None, "{d:#x}");
     }
-    for d in [
-        0x31ca, 0x31d0, 0x0f16, 0x0f15, 0x2296, 0x2295, 0x5aca, 0x5ad0, 0x0aca, 0x0ad0, 0x4df8,
-        0x4b48,
-    ] {
-        assert_eq!(classify(0x8086, d, 0x08, 0x05, 0x01), None, "{d:#x}");
+    // GLK, BYT, BSW, APL, BXT, SPT, JSL and EHL SD card readers.
+    for d in [0x31ca, 0x0f16, 0x2296, 0x5aca, 0x0aca, 0x9d2d, 0x4df8, 0x4b48] {
+        assert_eq!(classify(0x8086, d, 0x08, 0x05, 0x01), Some(Kind::Generic), "{d:#x}");
     }
 }
 
 #[test]
 fn the_lists_do_not_overlap() {
     for d in INTEL_EMMC {
-        assert!(!INTEL_NOT_EMMC.contains(d), "{d:#x}");
+        assert!(!INTEL_SDIO.contains(d), "{d:#x}");
     }
 }
 

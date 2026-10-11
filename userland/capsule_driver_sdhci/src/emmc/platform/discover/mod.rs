@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every SDHCI host the broker lists that may be the internal eMMC, Intel
-//! eMMC hosts first.
+//! Every SDHCI host the broker lists that may be served, Intel eMMC hosts
+//! first.
 
 mod found;
 mod list;
