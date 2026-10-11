@@ -10,7 +10,12 @@
 # from WAYLAND NET_ANON NET_LISTEN_LO FILES_HOME FILES_USER MODELS_RO EXEC JIT
 # TTY, then optionally calls=<130 hex digits>, the set as nonos.prove's
 # `[PROVE] syscall buckets ok=` line prints it. With no calls= every call may
-# complete, until the owner's runs measure the set.
+# complete, until the owner's runs measure the set. A NET_ANON
+# program may name where it reaches with dests=<item>,<item>..., each
+# <IPv4>/<prefix>:<ports>, [<IPv6>]/<prefix>:<ports> or <name>:<ports>, the
+# ports N or N-M (build/dests_arg.rs). Its list goes into the table beside
+# the policy, whose net_dests_hash names it; without dests= it reaches any
+# destination over the anonymity network.
 #
 # The Qwen conversation, three builds of one program, as chat_pick runs them
 # (install/chat_pick.rs): AVX2, x86-64-v2 without it, and plain x86-64 under

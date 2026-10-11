@@ -55,7 +55,7 @@ program in /bin every service and every call, each line with its `file=`.
 
 ## Tests
 
-46 host tests in `src/tests/`:
+49 host tests in `src/tests/`:
 - every field's offset;
 - every refusal;
 - the bit order of the syscall set, least significant first;
@@ -67,7 +67,7 @@ program in /bin every service and every call, each line with its `file=`.
   are the paths chat_pick runs;
 - every vendor row decodes canonically to its own program, with zero ids;
 - market_ready: both exits in, bucket 512 out, all ones never;
-- a destination list's one spelling, its hash, and what it lets a guest reach.
+- a destination list's one spelling, its hash, what it allows, and `dests=`.
 
 ```sh
 cargo test --locked
