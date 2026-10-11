@@ -39,10 +39,11 @@ fn hash(parts: &[&[u8]]) -> [u8; 32] {
     *h.finalize().as_bytes()
 }
 
-/// app_id = BLAKE3("NONOS.linux.app.v1" | program_blake3 | policy_hash).
-pub(super) fn app_id(policy: &[u8], view: &PolicyView) -> [u8; 32] {
+/// app_id = BLAKE3("NONOS.linux.app.v1" | program_blake3 | policy_hash),
+/// policy_hash = BLAKE3("NONOS.linux.policy.v1" | the policy's bytes).
+pub fn app_id(policy: &[u8], program_blake3: &[u8; 32]) -> [u8; 32] {
     let policy_hash = hash(&[POLICY_DOMAIN, policy]);
-    hash(&[APP_DOMAIN, &view.program_blake3, &policy_hash])
+    hash(&[APP_DOMAIN, program_blake3, &policy_hash])
 }
 
 /// The list rebuilds M exactly, link for link, and names the program.
