@@ -19,12 +19,16 @@
 use super::error::VolumeError;
 use super::key_header::{parse_key_header, Keyed, KEY_LBA};
 use super::key_seal::encode_key_header;
+use super::plan_types::PLAN_LBA;
 use crate::hardware::block_device;
+
+/// The key header's sector in the plan partition: the one after the plan.
+const KEY_INDEX: u64 = KEY_LBA - PLAN_LBA;
 
 /// How the volume is keyed, `None` for a disk without a key header.
 pub(super) fn read_key_header() -> Result<Option<Keyed>, VolumeError> {
     let mut sector = [0u8; 512];
-    block_device::read(KEY_LBA, &mut sector).map_err(VolumeError::Device)?;
+    block_device::read_plan_sector(KEY_INDEX, &mut sector).map_err(VolumeError::Device)?;
     parse_key_header(&sector).map_err(|way| {
         crate::log::warn!("[DATA] key header names way {} this kernel does not know", way);
         VolumeError::UnknownKeying
@@ -33,6 +37,7 @@ pub(super) fn read_key_header() -> Result<Option<Keyed>, VolumeError> {
 
 /// Record `keyed` and flush it to the medium before anything is sealed.
 pub(super) fn write_key_header(keyed: &Keyed) -> Result<(), VolumeError> {
-    block_device::write(KEY_LBA, &encode_key_header(keyed)).map_err(VolumeError::Device)?;
+    block_device::write_plan_sector(KEY_INDEX, &encode_key_header(keyed))
+        .map_err(VolumeError::Device)?;
     block_device::flush().map_err(VolumeError::Device)
 }
