@@ -20,12 +20,18 @@ pub mod buy;
 mod confirm;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/delivered.rs"]
 pub mod delivered;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute.rs"]
+pub mod dispute;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/dispute_said.rs"]
+pub mod dispute_said;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/escrowed.rs"]
 mod escrowed;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/fees_kind.rs"]
 pub mod fees_kind;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/held.rs"]
 pub mod held;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/order_of.rs"]
+pub mod order_of;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/purchase.rs"]
 pub mod purchase;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/read.rs"]
