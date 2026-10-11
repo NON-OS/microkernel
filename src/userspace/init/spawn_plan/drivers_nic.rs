@@ -17,6 +17,7 @@
 pub(super) fn spawn() {
     spawn_e1000();
     spawn_igb();
+    spawn_ixgbe();
     spawn_rtl8139();
     spawn_rtl8169();
 }
@@ -41,6 +42,15 @@ fn spawn_igb() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-igb"))]
 fn spawn_igb() {}
+
+#[cfg(feature = "nonos-capsule-driver-ixgbe")]
+fn spawn_ixgbe() {
+    use crate::hardware::ixgbe_capsule as c;
+    let spawn = c::spawn_driver_ixgbe_capsule;
+    super::boot::capsule("DRIVER-IXGBE", "driver_ixgbe", spawn, c::shared_state);
+}
+#[cfg(not(feature = "nonos-capsule-driver-ixgbe"))]
+fn spawn_ixgbe() {}
 
 #[cfg(feature = "nonos-capsule-driver-rtl8139")]
 fn spawn_rtl8139() {
