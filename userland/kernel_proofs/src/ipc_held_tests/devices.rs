@@ -19,8 +19,7 @@
 use super::common::{owner, IPC};
 use super::held::{callers_of, endpoint_admits, inbox_admits};
 
-/// A keyboard's or pointer's driver, the random source and USB storage
-/// answer the kernel alone: no capsule reaches them, whatever it owns.
+/// Keyboards, pointers, the random source and USB storage answer the kernel alone.
 #[test]
 fn what_the_kernel_drives_no_capsule_reaches() {
     let everyone: &'static [&'static str] = &[
@@ -51,14 +50,15 @@ fn what_the_kernel_drives_no_capsule_reaches() {
     }
 }
 
-/// The controllers, the GPU and the sound card take their one client.
+/// The controllers, the GPU and the sound devices take their one client.
 #[test]
 fn each_device_takes_its_service_alone() {
-    let cases: [(&str, &[&'static str]); 4] = [
-        ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0"]),
+    let cases: [(&str, &[&'static str]); 5] = [
+        ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0", "driver.usb_audio0"]),
         ("driver.i2c_pci0", &["driver.i2c_hid0"]),
         ("driver.virtio_gpu0", &["compositor"]),
         ("driver.hda0", &["audio.server"]),
+        ("driver.usb_audio0", &["audio.server"]),
     ];
     for (ep, clients) in cases {
         for c in clients {

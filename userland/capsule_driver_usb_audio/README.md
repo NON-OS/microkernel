@@ -1,7 +1,9 @@
 # capsule_driver_usb_audio
 
-Status: not in the image. The capsule builds and its host proofs pass, but
-audio.server still plays through `driver.hda0` alone.
+Status: wired, not yet signed. The kernel mirror
+(`src/hardware/usb_audio_capsule`) embeds and spawns it under
+`nonos-capsule-driver-usb-audio` (the `microkernel-driver-usb-audio` build)
+wherever the inventory sees an xHCI controller, before audio.server. It has
 
 ## Role
 
@@ -107,7 +109,7 @@ anywhere or kept past the process.
 
 ## Runtime lifecycle
 
-Spawned once. It looks for a device every second until one binds, serves
+Spawned once, where an xHCI controller is. It looks for a device every second until one binds, serves
 requests between batches while the stream runs, and waits in the kernel
 when it does not.
 
@@ -125,11 +127,11 @@ supported (SOF laptops, AMD ACP), through audio.server.
 
 ## Release evidence
 
-`usb_audio_proofs` on the host. No boot yet.
+`usb_audio_proofs` on the host; the held-table proofs in `kernel_proofs`.
+No boot yet.
 
 ## Release checklist
 
-- Kernel mirror, spawn and held-table entry; audio.server choosing it.
 - A QEMU `-device usb-audio` boot playing through `driver.usb_audio0`.
 
 ## Real hardware bring-up checklist
