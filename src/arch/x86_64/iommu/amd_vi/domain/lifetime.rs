@@ -28,6 +28,9 @@ pub const MAX_DOMAINS: usize = 256;
 
 /// Root of each domain's page table, zero while the id is free.
 pub(super) static ROOTS: Mutex<[u64; MAX_DOMAINS]> = Mutex::new([0; MAX_DOMAINS]);
+/// An id whose tables could not all go back: taken, never walked, never
+/// reused. Not page aligned, so it can never be a real root.
+const QUARANTINED: u64 = 1;
 
 /// The lowest free id, with a fresh zeroed root table.
 pub fn create_domain() -> Result<u16, AmdViError> {
@@ -41,15 +44,18 @@ pub fn create_domain() -> Result<u16, AmdViError> {
 /// are dropped first so the next owner of the id inherits none of them, and
 /// only once that flush has completed do the tables go back, as on VT-d: no
 /// walk can be in them by then. If they cannot all go back, the id stays
-/// taken with its root, quarantined, and the error reaches the caller.
+/// taken, quarantined, and the error reaches the caller.
 pub fn destroy_domain(id: u16) -> Result<(), AmdViError> {
     let mut roots = ROOTS.lock();
     let slot = roots.get_mut(id as usize).ok_or(AmdViError::DomainNotFound)?;
-    if *slot == 0 || id == 0 {
+    if *slot == 0 || *slot == QUARANTINED || id == 0 {
         return Err(AmdViError::DomainNotFound);
     }
     flush_domain(id)?;
-    super::teardown::release_tables(*slot)?;
+    // Never walked again, whatever happens next: a release that fails part
+    // way has already freed some of these frames.
+    let root = core::mem::replace(slot, QUARANTINED);
+    super::teardown::release_tables(root)?;
     *slot = 0;
     Ok(())
 }
@@ -57,7 +63,7 @@ pub fn destroy_domain(id: u16) -> Result<(), AmdViError> {
 /// The root of a live domain, read under the caller's lock.
 pub(super) fn root_of(roots: &[u64; MAX_DOMAINS], id: u16) -> Result<u64, AmdViError> {
     match roots.get(id as usize) {
-        Some(&root) if root != 0 && id != 0 => Ok(root),
+        Some(&root) if root != 0 && root != QUARANTINED && id != 0 => Ok(root),
         _ => Err(AmdViError::DomainNotFound),
     }
 }
