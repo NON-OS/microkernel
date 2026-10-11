@@ -22,13 +22,10 @@
 
 use nonos_app_skeleton::clients::input_router::subscribe;
 use nonos_app_skeleton::discover::{from_router, lookup_port};
-use nonos_app_skeleton::input::{InputEvent, InputKind};
+use nonos_app_skeleton::input::InputEvent;
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::linux::guest::Guest;
-
-use super::input_key::key;
-use super::input_send::{button, motion};
 
 /// Key down and up, absolute pointer, button down and up.
 const KINDS: u32 = 0x6B;
@@ -58,23 +55,7 @@ pub fn pump(guest: &mut Guest) {
             continue;
         }
         if let Some(event) = InputEvent::from_delivery(&rx[HEADER..]) {
-            deliver(guest, &event);
+            super::input_deliver::deliver(guest, &event);
         }
-    }
-}
-
-/// F11, which takes a guest window full screen and back (toplevel.rs).
-const KEY_F11: u32 = nonos_app_skeleton::KEY_F1 + 10;
-
-fn deliver(guest: &mut Guest, event: &InputEvent) {
-    match event.kind {
-        InputKind::KeyDown if event.code == KEY_F11 && super::toplevel::toggle(guest) => {}
-        InputKind::KeyUp if event.code == KEY_F11 && super::toplevel::has_toplevel(guest) => {}
-        InputKind::KeyDown => key(guest, event.code, 1),
-        InputKind::KeyUp => key(guest, event.code, 0),
-        InputKind::PointerAbs => motion(guest, event.x, event.y),
-        InputKind::ButtonDown => button(guest, event.code, 1),
-        InputKind::ButtonUp => button(guest, event.code, 0),
-        _ => {}
     }
 }

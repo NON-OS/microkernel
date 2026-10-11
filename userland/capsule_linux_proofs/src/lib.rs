@@ -28,6 +28,13 @@ pub mod wayland_object;
 pub mod frame_len;
 #[path = "../../capsule_linux/src/linux/wayland/opaque.rs"]
 pub mod opaque;
+/* A key as the Linux key it came from, and the modifiers it carries. */
+#[path = "../../capsule_linux/src/linux/wayland/evdev.rs"]
+pub mod evdev;
+#[path = "../../capsule_linux/src/linux/wayland/evdev_keys.rs"]
+pub mod evdev_keys;
+#[path = "../../capsule_linux/src/linux/wayland/xkb_mods.rs"]
+pub mod xkb_mods;
 #[path = "../../capsule_linux/src/linux/wayland/window_damage.rs"]
 pub mod window_damage;
 /* A guest window full screen and back, and taken down when it ends. */
