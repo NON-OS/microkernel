@@ -22,6 +22,7 @@ use nonos_app_skeleton::discover::lookup_port;
 use crate::linux::guest::Guest;
 
 use super::super::reshape::{reshape, Reshape};
+use super::super::subsurface::compose::compose;
 use super::super::window_damage::window_damage;
 use super::refit::refit;
 use super::source::{source, take};
@@ -50,6 +51,7 @@ pub fn present(guest: &mut Guest, surface: u32, buffer: u32) {
     if !take(pid, &src, frame) {
         return;
     }
+    compose(&mut guest.scene.subs, surface, frame, src.shape);
     if guest.scene.fit.due().is_some() {
         refit(&mut guest.scene);
     }
