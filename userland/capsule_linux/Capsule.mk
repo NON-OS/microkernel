@@ -41,13 +41,16 @@ CAPSULE_REPLY_ENDPOINT   := reply:4937:endpoint.app.linux.reply
 # before the capsule started. The two app.linux.term.N pairs are the slots a
 # terminal runs a Qwen tier in, as its own child
 # (src/userspace/capsule_linux/terminal/roles.rs); 4944/4945 belong to a Linux
-# guest (Guests.mk), so they start at 4946.
-CAPSULE_INSTANCE_ENDPOINTS := service:4938:app.linux.install reply:4939:endpoint.app.linux.install.reply service:4942:app.linux.run reply:4943:endpoint.app.linux.run.reply service:5100:app.linux.term reply:5101:endpoint.app.linux.term.reply service:4946:app.linux.term.1 reply:4947:endpoint.app.linux.term.1.reply service:4948:app.linux.term.2 reply:4949:endpoint.app.linux.term.2.reply
+# guest (Guests.mk), so they start at 4946. app.linux.run.net is the run
+# started again with Network for a program whose policy has NET_ANON
+# (src/userspace/capsule_linux/run_net.rs).
+CAPSULE_INSTANCE_ENDPOINTS := service:4938:app.linux.install reply:4939:endpoint.app.linux.install.reply service:4942:app.linux.run reply:4943:endpoint.app.linux.run.reply service:5204:app.linux.run.net reply:5205:endpoint.app.linux.run.net.reply service:5100:app.linux.term reply:5101:endpoint.app.linux.term.reply service:4946:app.linux.term.1 reply:4947:endpoint.app.linux.term.1.reply service:4948:app.linux.term.2 reply:4949:endpoint.app.linux.term.2.reply
 CAPSULE_REQUIRED_CAPS    := 0x104001979
-# Network (bit 2) and LocalSign (bit 33) are optional: only the install role
-# asks for them, to reach a package mirror through net.sockets and to vouch
-# for what it installed (roles.rs). A guest's run holds neither, so a guest
-# that escapes into the personality cannot sign a policy for itself.
+# Network (bit 2) and LocalSign (bit 33) are optional: the install role asks
+# for both, to reach a package mirror through net.sockets and to vouch for
+# what it installed (roles.rs), and the run.net role for Network alone. No
+# run holds LocalSign, so a guest that escapes into the personality cannot
+# sign a policy for itself.
 CAPSULE_OPTIONAL_CAPS    := 0x200000004
 CAPSULE_CAPS_CEILING     := 0x30400197D
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_linux

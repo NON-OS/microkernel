@@ -48,9 +48,9 @@ CAPSULE_OPTIONAL_CAPS    := 0x200000004
 ```
 
 The comment says no other capsule holds ForeignExec, and that Network (0x4) and LocalSign
-(0x200000000) are optional and requested only by the install role, so no run of a guest holds
-the right to vouch. Extra instance endpoints for install, run and terminal
-roles are listed in `CAPSULE_INSTANCE_ENDPOINTS`.
+(0x200000000) are optional: the install role asks for both and the run.net role for Network
+alone, so no run of a guest holds the right to vouch. Extra instance endpoints for the install,
+run, run.net and terminal roles are listed in `CAPSULE_INSTANCE_ENDPOINTS`.
 
 ## Interface
 
@@ -88,9 +88,13 @@ that is ENOBUFS. net.anon cannot be asked whether bytes wait without taking them
 or read takes them into the socket's own buffer, which never holds more than one 32 KiB reply
 (`net/sock/anon_rx.rs`).
 
-net.sockets and net.anon both take Network to reach. Only the install role is spawned with it
-(`CAPSULE_OPTIONAL_CAPS := 0x4`, `src/userspace/capsule_linux/roles.rs`); in the run and
-terminal roles neither service answers a guest.
+net.sockets and net.anon both take Network to reach. The run and terminal roles are spawned
+without it, so there neither service answers a guest. A run whose program's policy has
+NET_ANON asks the kernel, by `MkLinuxRunNet` naming its own pid, to be started again as
+`app.linux.run.net`, which holds Network, binds the same policy again and exits unless it has
+NET_ANON (`src/linux/run_net.rs`, `src/userspace/capsule_linux/run_net.rs`). That role answers
+no requests: its inbox takes only input_router's events, checked by sender. The install role
+holds Network as well (`src/userspace/capsule_linux/roles.rs`).
 
 ## Installing a shipped Qwen tier
 
