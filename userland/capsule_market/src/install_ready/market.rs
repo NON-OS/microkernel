@@ -16,8 +16,9 @@
 
 //! The gates schema 3 adds: whether the publisher and the payee
 //! stand behind what is sold, whether the payee attested to these bytes, and
-//! whether a Linux release carries the policy it was sold under. A free or
-//! schema 2 listing sells nothing, so the first two do not apply to it.
+//! whether a Linux release carries the policy it was sold under. They apply
+//! to schema 3 releases only: a schema 2 release keeps today's checks until
+//! the owner re-seals it (O5), and a free listing sells nothing to attest.
 
 use nonos_marketplace_abi::{attest_verdict, binding_verdict, commerce_verdict, policy_verdict};
 use nonos_marketplace_abi::{
@@ -50,7 +51,7 @@ pub fn market_gates<H: Keccak + Blake3 + Recover>(
             && commerce_verdict(h, entry, rel) == CommerceVerdict::Matches
             && binding_verdict(h, h, entry) == BindingVerdict::Valid);
     let attest = !sells || attest_verdict(h, h, entry, rel) == AttestVerdict::Valid;
-    let policy = policy_verdict(h, entry, rel).passes();
+    let policy = rel.ext.is_none() || policy_verdict(h, entry, rel).passes();
     MarketGates { commerce, attest, policy }
 }
 

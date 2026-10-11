@@ -26,6 +26,7 @@ pub(crate) mod fixtures;
 mod hosts;
 mod ids;
 mod pinning;
+mod qwen_vector;
 mod policy;
 mod policy_fixture;
 mod refusals;
