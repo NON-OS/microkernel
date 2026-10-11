@@ -47,6 +47,7 @@ pub fn rows(p: &Pending) -> Vec<(&'static str, String)> {
         ("package", format!("{} bytes, checked chunk by chunk", b.content_len)),
         ("delivery", format!("within {} days of the order", DELIVERY_ASKED / 86_400)),
         ("refund", String::from("to a fresh address of this wallet")),
+        ("fees", String::from("the Shield's, about 0.5% and one rung, quoted before you fund")),
     ]);
     if let Step::Fund(m) = &p.step {
         out.push(("deposit", checksummed_text(&m.deposit)));

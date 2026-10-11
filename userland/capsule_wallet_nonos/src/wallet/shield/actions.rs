@@ -78,6 +78,9 @@ pub fn review_withdraw(state: &mut State) {
     if state.shield_ui.to_meter {
         return review_to_meter(state);
     }
+    if let Some(deposit) = state.shield_ui.to_deposit {
+        return super::fund_order::review(state, deposit);
+    }
     let fresh = match call(OP_FRESH_ADDRESS, &[]) {
         Ok(a) => a,
         Err(why) => {

@@ -130,6 +130,8 @@ pub struct ShieldUi {
      * the meter's when `to_meter` (B7). */
     pub withdraw_to: Option<String>,
     pub to_meter: bool,
+    /* An escrow order's deposit address, when the withdrawal funds one (B8). */
+    pub to_deposit: Option<[u8; 20]>,
     /* The coin and amount of the spend being proved, as confirmed. */
     pub proving: Option<(u8, String)>,
     pub spend: Option<Spend>,
