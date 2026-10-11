@@ -37,6 +37,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.virtio_gpu0", &["compositor"]),
     ("driver.vmware_svga0", &["compositor"]),
     ("driver.hda0", &["audio.server"]),
+    ("driver.ac97_0", &["audio.server"]),
 ];
 
 /// The kernel polls the keyboards and pointers, reads the random source and

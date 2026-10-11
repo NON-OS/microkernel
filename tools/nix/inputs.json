@@ -26,6 +26,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/driver_ac97.manifest.bin",
+   "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_pcnet.manifest.bin",
    "nonos-data/trust/capsules/driver_pcnet.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_pcnet.zk_trailer.bin",
@@ -259,6 +262,37 @@
    "third_party/pqclean",
    "tools/nonos-pack",
    "userland/admission_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/ac97_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/ac97_proofs",
+   "userland/capsule_audio/src/sink/wire.rs",
+   "userland/capsule_driver_ac97/src/audio/periods.rs",
+   "userland/capsule_driver_ac97/src/audio/queue.rs",
+   "userland/capsule_driver_ac97/src/codec",
+   "userland/capsule_driver_ac97/src/constants",
+   "userland/capsule_driver_ac97/src/discover.rs",
+   "userland/capsule_driver_ac97/src/engine/bdl.rs",
+   "userland/capsule_driver_ac97/src/engine/control.rs",
+   "userland/capsule_driver_ac97/src/engine/position.rs",
+   "userland/capsule_driver_ac97/src/protocol",
+   "userland/capsule_driver_ac97/src/regs",
+   "userland/capsule_driver_ac97/src/say",
+   "userland/capsule_driver_ac97/src/server/dispatch.rs",
+   "userland/capsule_driver_ac97/src/server/refill.rs",
+   "userland/capsule_driver_ac97/src/server/respond.rs",
+   "userland/capsule_driver_ac97/src/server/stream.rs",
+   "userland/capsule_driver_ac97/src/setup/claim.rs",
+   "userland/capsule_driver_ac97/src/setup/dma.rs",
+   "userland/capsule_driver_ac97/src/setup/driver.rs",
+   "userland/capsule_driver_ac97/src/setup/grants.rs",
+   "userland/capsule_driver_ac97/src/setup/sequence.rs",
+   "userland/capsule_driver_ac97/src/wait.rs"
   ],
   "md": [],
   "signed": []
@@ -3470,6 +3504,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/driver_ac97.manifest.bin",
+   "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_pcnet.manifest.bin",
    "nonos-data/trust/capsules/driver_pcnet.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_pcnet.zk_trailer.bin",

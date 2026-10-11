@@ -36,6 +36,7 @@ pub fn classify_family(
         0x01 => classify_storage(subclass, vendor, device),
         0x02 => classify_network(subclass, vendor, device),
         0x03 => classify_display(vendor),
+        0x04 if vendor == 0x8086 && device == 0x2415 => HardwareFamily::AudioAc97,
         0x04 => match subclass {
             0x01 | 0x03 => HardwareFamily::AudioHda,
             _ => HardwareFamily::Unknown,
