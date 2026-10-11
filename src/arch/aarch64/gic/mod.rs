@@ -36,6 +36,7 @@ mod state;
 mod sysregs;
 mod trigger;
 pub mod v2;
+pub mod v2m;
 pub mod version;
 mod wait;
 
