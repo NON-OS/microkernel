@@ -14,12 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* What a delivery's check found, in one line (B8, the plan). */
+/* What a delivery's check found, in one line (B8, the plan), and when the
+ * meter is asked for it. */
 
 use alloc::format;
 use alloc::string::String;
 
-use nonos_payment_proto::DeliveredMade;
+use nonos_payment_proto::{DeliveredMade, OrderStatus};
+
+const DELIVERED: u8 = 2;
+
+/// Whether ORDER_DELIVERED is asked: once orderOf reads Delivered and the
+/// plaintext is not sealed, and never after an answer, OK or a bad chunk
+/// (v1.4.49): the meter keeps it, and a bad chunk waits for the Dispute.
+pub fn delivery_due(s: Option<&OrderStatus>, made: Option<&DeliveredMade>) -> bool {
+    made.is_none() && s.is_some_and(|s| s.state == DELIVERED && !s.plain)
+}
 
 pub fn delivered_line(d: &DeliveredMade) -> String {
     match d {
