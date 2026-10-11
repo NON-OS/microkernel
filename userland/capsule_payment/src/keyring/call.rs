@@ -62,5 +62,5 @@ pub(crate) fn call(op: u16, payload: &[u8], body_len: usize) -> Result<Vec<u8>, 
 /// The body alone, of any length up to `max`.
 pub(crate) fn call_upto(op: u16, payload: &[u8], max: usize) -> Result<Vec<u8>, i32> {
     let (rx, n) = exchange(op, payload, max)?;
-    Ok(rx[8..n].to_vec())
+    rx.get(8..n).map(<[u8]>::to_vec).ok_or(EAGAIN)
 }
