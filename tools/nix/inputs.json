@@ -1767,6 +1767,7 @@
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_linux/guests/busybox.elf",
    "userland/capsule_linux/keys",
+   "userland/capsule_linux/policies.txt",
    "userland/capsule_linux/src/linux/abi/errno.rs",
    "userland/capsule_linux/src/linux/abi/errno_io.rs",
    "userland/capsule_linux/src/linux/abi/errno_sock.rs",
@@ -3716,6 +3717,8 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_linux/policies.txt",
+   "userland/capsule_linux/src/linux/install/chat_pick.rs",
    "userland/nonos_linux_policy"
   ],
   "md": [],

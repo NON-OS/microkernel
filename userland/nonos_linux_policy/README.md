@@ -27,16 +27,33 @@ is changing `UNLISTED_MASK`.
 
 It is a `no_std` library with no capsule, service or capability word.
 
+## The vendor table
+
+`vendor::TABLE` holds the programs the vendor ships, one `VendorRow` each: the
+store path, the program's BLAKE3 and its policy. `build.rs` generates it from
+`userland/capsule_linux/policies.txt`. It hashes each named program's file
+from the Linux userland build (`NONOS_LINUX_USERLAND`; `/bin/<name>` is
+`<name>` there) and encodes each policy with this crate's own files, mounted by
+path. It is the only copy: capsule_linux binds by it now, and the market and
+`nonos_proof_abi` check vendor policies against it once the branches merge.
+
+Without a userland build the file is still parsed and the table is empty. A
+program the file names that is not in the build fails the build, as does one
+program given two boxes.
+
 ## Tests
 
-21 host tests in `src/tests/`:
+27 host tests in `src/tests/`:
 - every field's offset;
 - every refusal;
 - the bit order of the syscall set, least significant first;
 - a single-bit flip anywhere in the 256 bytes either is refused or decodes to
   a policy that encodes back to the flipped bytes;
 - the hashes are domain-separated;
-- two pinned vectors.
+- two pinned vectors;
+- policies.txt's lines, and the committed file's three qwenchat builds, which
+  are the paths chat_pick runs;
+- every vendor row decodes canonically to its own program, with zero ids.
 
 ```sh
 cargo test --locked
