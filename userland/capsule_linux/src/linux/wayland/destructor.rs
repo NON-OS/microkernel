@@ -27,5 +27,7 @@ pub fn is_destructor(object: Option<Object>, opcode: u16) -> bool {
             | (Some(Object::ShmPool), req::POOL_DESTROY)
             | (Some(Object::Surface), req::SURFACE_DESTROY)
             | (Some(Object::Region), req::REGION_DESTROY)
+            | (Some(Object::Subcompositor), req::SUBCOMPOSITOR_DESTROY)
+            | (Some(Object::Subsurface), req::SUBSURFACE_DESTROY)
     )
 }

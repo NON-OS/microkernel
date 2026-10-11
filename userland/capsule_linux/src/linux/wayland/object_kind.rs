@@ -34,4 +34,6 @@ pub enum Object {
     Keyboard,
     Output,
     Region,
+    Subcompositor,
+    Subsurface,
 }

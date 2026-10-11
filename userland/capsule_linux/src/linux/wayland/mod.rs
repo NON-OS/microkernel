@@ -51,6 +51,7 @@ mod surface;
 mod toplevel;
 mod xdg;
 mod state;
+mod subsurface;
 mod out;
 mod output;
 mod region;

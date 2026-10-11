@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The globals a client is told about, and what binding one means.
 
 use super::object::Object;
@@ -32,6 +31,7 @@ pub const GLOBALS: &[Global] = &[
     Global { name: 3, interface: b"xdg_wm_base", version: 2, object: Object::XdgBase },
     Global { name: 4, interface: b"wl_seat", version: 5, object: Object::Seat },
     Global { name: 5, interface: b"wl_output", version: 2, object: Object::Output },
+    Global { name: 6, interface: b"wl_subcompositor", version: 1, object: Object::Subcompositor },
 ];
 
 pub fn by_name(name: u32) -> Option<&'static Global> {

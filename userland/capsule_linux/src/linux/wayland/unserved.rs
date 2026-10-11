@@ -36,6 +36,8 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::Keyboard => b"wl_keyboard",
         Object::Output => b"wl_output",
         Object::Region => b"wl_region",
+        Object::Subcompositor => b"wl_subcompositor",
+        Object::Subsurface => b"wl_subsurface",
     }
 }
 
