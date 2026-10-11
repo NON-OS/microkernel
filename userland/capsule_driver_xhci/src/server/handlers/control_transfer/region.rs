@@ -19,12 +19,26 @@
 use crate::dma::{DmaPool, DmaRegion};
 use crate::error::XhciResult;
 
-/// `w_len` bytes, zeroed; none for a request without a data stage.
-pub(super) fn data_region(pool: &DmaPool, w_len: u16) -> XhciResult<Option<DmaRegion>> {
+/// Whether a request's body carries the data stage its direction calls
+/// for: an OUT request exactly wLength bytes, at most `max`; an IN request
+/// none (its wLength is clamped to `max`).
+pub fn stage_fits(bm_request_type: u8, w_length: u16, carried: usize, max: u16) -> bool {
+    if bm_request_type & 0x80 != 0 {
+        return carried == 0;
+    }
+    carried == w_length as usize && w_length <= max
+}
+
+/// `w_len` bytes, zeroed, then `out` (an OUT request's data) at its start;
+/// none for a request without a data stage.
+pub fn data_region(pool: &DmaPool, w_len: u16, out: &[u8]) -> XhciResult<Option<DmaRegion>> {
     if w_len == 0 {
         return Ok(None);
     }
     let r = pool.alloc(w_len as u64)?;
     r.zero();
+    let n = out.len().min(w_len as usize);
+    // SAFETY: the region holds `w_len` bytes and `n` is at most that.
+    unsafe { core::ptr::copy_nonoverlapping(out.as_ptr(), r.as_mut_ptr::<u8>(), n) };
     Ok(Some(r))
 }
