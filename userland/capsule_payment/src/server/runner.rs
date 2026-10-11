@@ -40,10 +40,14 @@ pub fn run() -> ! {
         // A slice of an offer's proof of work between requests (v1.4.34).
         solve_step(&mut work, &mut meter);
         // A job step's answer from settle is taken here and needs no reply.
-        if n <= 0 || on_frame(&mut work, &meter, sender, &buf[..n as usize]) {
+        // A length past the buffer is not a frame this loop received whole.
+        let Some(rx) = usize::try_from(n).ok().and_then(|n| buf.get(..n)).filter(|_| n > 0) else {
+            continue;
+        };
+        if on_frame(&mut work, &meter, sender, rx) {
             continue;
         }
-        let resp = match parse_header(&buf[..n as usize]) {
+        let resp = match parse_header(rx) {
             Some((h, body)) => {
                 let call = Call { op: h.op, flags: h.flags, id: h.request_id, body, sender };
                 dispatch(&mut meter, &mut work, &call)

@@ -47,7 +47,7 @@ pub(super) fn call(op: u16, body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
     if n <= 0 {
         return Err(EAGAIN);
     }
-    match reply_body(&rx[..n as usize], op, id) {
+    match reply_body(rx.get(..n as usize).unwrap_or(&[]), op, id) {
         Ok(b) => Ok(b.to_vec()),
         Err(ReplyError::Status(s)) => Err(s),
         Err(_) => Err(EIO),

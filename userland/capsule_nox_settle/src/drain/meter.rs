@@ -45,7 +45,7 @@ fn call(body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
     if n <= 0 {
         return Err(EAGAIN);
     }
-    match reply_body(&rx[..n as usize], OP_DRAIN, id) {
+    match reply_body(rx.get(..n as usize).unwrap_or(&[]), OP_DRAIN, id) {
         Ok(b) => Ok(b.to_vec()),
         Err(ReplyError::Status(s)) => Err(s),
         Err(_) => Err(EIO),

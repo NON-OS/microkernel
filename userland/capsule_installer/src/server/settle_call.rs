@@ -43,7 +43,7 @@ pub fn settle_now(chain_id: u64) -> Result<Settled, i32> {
     if n <= 0 {
         return Err(EAGAIN);
     }
-    match reply_body(&rx[..n as usize], OP_SETTLE, id) {
+    match reply_body(rx.get(..n as usize).unwrap_or(&[]), OP_SETTLE, id) {
         Ok(b) => Settled::parse(b).ok_or(EIO),
         Err(ReplyError::Status(s)) => Err(s),
         Err(_) => Err(EIO),

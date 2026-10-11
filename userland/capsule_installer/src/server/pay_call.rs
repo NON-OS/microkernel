@@ -47,7 +47,7 @@ pub fn request_payment(body: &[u8]) -> Result<Vec<u8>, i32> {
     if n <= 0 {
         return Err(EAGAIN);
     }
-    let voucher = match reply_body(&rx[..n as usize], OP_PAY, id) {
+    let voucher = match reply_body(rx.get(..n as usize).unwrap_or(&[]), OP_PAY, id) {
         Ok(b) => b,
         Err(ReplyError::Status(s)) => return Err(s),
         Err(_) => return Err(EIO),
