@@ -21,7 +21,7 @@ use nonos_libc::mk_service_lookup;
 
 use super::geometry::Geometry;
 use super::nvme;
-use crate::driver::Driver;
+use crate::driver::{Driver, CAPACITY_BODY_MAX};
 use crate::error::BlkError;
 use crate::wire::{call, decode_reply, HDR_LEN, STATUS_LEN};
 
@@ -63,7 +63,8 @@ impl BlockDevice {
     /// The capacity as the driver gives it, in the disk's own blocks.
     pub fn capacity_blocks(&self) -> Result<u64, BlkError> {
         let ops = self.driver.ops();
-        let mut rx = [0u8; HDR_LEN + STATUS_LEN + 8];
+        // Sized for the longest reply; decode_reply cuts it to what came.
+        let mut rx = [0u8; HDR_LEN + STATUS_LEN + CAPACITY_BODY_MAX];
         let (n, id) = call(self.port, self.driver.magic(), ops.capacity, &[], &mut rx)?;
         let body = decode_reply(&rx, n, self.driver.magic(), ops.capacity, id)?;
         if body.len() < 8 {
