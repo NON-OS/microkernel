@@ -20,6 +20,8 @@
 #[cfg(test)]
 mod ap_sim;
 #[cfg(test)]
+mod country_tests;
+#[cfg(test)]
 mod crypto_tests;
 #[cfg(test)]
 mod handshake_tests;
@@ -31,6 +33,10 @@ mod netif_tests;
 mod protect_tests;
 #[cfg(test)]
 mod receive_tests;
+#[cfg(test)]
+mod regdom_mlme_tests;
+#[cfg(test)]
+mod regdom_tests;
 #[cfg(test)]
 mod rsn_tests;
 #[cfg(test)]
