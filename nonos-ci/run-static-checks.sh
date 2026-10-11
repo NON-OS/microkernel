@@ -4198,6 +4198,15 @@ else
     bash nonos-ci/check-capsule-ports.sh src/hardware src/fs src/security src/userspace >&2 || true
 fi
 
+# The same numbers as each Capsule.mk records them, reply inboxes included,
+# and each spawn file held to its Capsule.mk.
+if python3 -I nonos-ci/check-capsule-endpoints.py . >/dev/null 2>&1; then
+    note ok "capsule endpoints unique and spawn files match their Capsule.mk"
+else
+    fail_with "capsule endpoint collision or Capsule.mk drift"
+    python3 -I nonos-ci/check-capsule-endpoints.py . >&2 || true
+fi
+
 # init_handoff must run validate_security on every BootHandoffV1
 # before the kernel consumes any bootloader-provided field.
 handoff_init=src/boot/handoff/api/init.rs
