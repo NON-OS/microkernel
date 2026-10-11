@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Filling the framebuffer, and stopping where it ends.
-//!
-//! `clear` takes a bare user virtual address and a pixel count and writes one
-//! 32-bit word per pixel with no bound of its own. On a booted machine the
-//! address is a mapped framebuffer aperture and a count one too large runs
-//! off the end of the mapping. A second window here stands in for that
-//! aperture, so a test can watch the byte after the last pixel.
+//! Filling the framebuffer, and stopping where it ends. `clear` writes one
+//! word per pixel with no bound of its own, so a count one too large runs off
+//! the mapping; a guard pixel behind the window here shows it.
 
 use nonos_devmodel::FakeBar;
 
@@ -45,7 +41,8 @@ fn every_pixel_in_the_span_takes_the_colour_it_was_given() {
      */
     let pixels = 64;
     let fb = aperture(pixels);
-    clear(fb.base(), pixels as u64, COLOR);
+    // SAFETY: the aperture holds `pixels` pixels and a guard behind them.
+    unsafe { clear(fb.base(), pixels as u64, COLOR) };
 
     for i in 0..pixels {
         assert_eq!(fb.wrote32(i * 4), COLOR, "pixel {i} was not cleared");
@@ -62,7 +59,8 @@ fn the_pixel_past_the_end_of_the_span_is_left_alone() {
      */
     let pixels = 64;
     let fb = aperture(pixels);
-    clear(fb.base(), pixels as u64, COLOR);
+    // SAFETY: the aperture holds `pixels` pixels and a guard behind them.
+    unsafe { clear(fb.base(), pixels as u64, COLOR) };
     assert_eq!(fb.wrote32(pixels * 4), GUARD, "clear wrote past the last pixel");
 }
 
@@ -73,6 +71,7 @@ fn a_span_of_no_pixels_writes_nothing_at_all() {
      * over when a BAR fails to map, and it must not touch the aperture.
      */
     let fb = aperture(0);
-    clear(fb.base(), 0, COLOR);
+    // SAFETY: no pixel is written.
+    unsafe { clear(fb.base(), 0, COLOR) };
     assert_eq!(fb.wrote32(0), GUARD, "an empty clear still wrote a pixel");
 }
