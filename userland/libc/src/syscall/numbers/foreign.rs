@@ -34,6 +34,7 @@ pub(crate) const N_MK_PEER_TLS: i64 = tag4(b"MPTL");
 pub(crate) const N_MK_FOREIGN_FORK: i64 = tag4(b"MFFK");
 pub(crate) const N_MK_PEER_UNMAP: i64 = tag4(b"MPUN");
 pub(crate) const N_MK_FOREIGN_EXEC: i64 = tag4(b"MFEX");
+pub(crate) const N_MK_LINUX_RUN_NET: i64 = tag4(b"MLRN");
 pub(crate) const N_MK_LOCAL_SIGN: i64 = tag4(b"MLSG");
 pub(crate) const N_MK_LOCAL_VERIFY: i64 = tag4(b"MLVF");
 pub(crate) const N_MK_APP_INSTALL: i64 = tag4(b"MAIN");
