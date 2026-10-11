@@ -38,4 +38,7 @@ pub(super) fn publish(boot_info: &BootInfo) {
         boot_info.pci_io_size,
     );
     crate::arch::aarch64::rtc::set_base(boot_info.rtc_base);
+    if let Some((info, map)) = boot_info.smmu {
+        crate::arch::aarch64::iommu::smmu::describe(info, map);
+    }
 }
