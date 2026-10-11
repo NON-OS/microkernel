@@ -28,6 +28,12 @@ pub mod search;
 #[path = "../../../capsule_app_store/src/store/listing.rs"]
 pub mod listing;
 
+#[path = "../../../capsule_app_store/src/store/source.rs"]
+pub mod source;
+
+#[path = "../../../capsule_app_store/src/store/price.rs"]
+pub mod price;
+
 #[path = "../../../capsule_app_store/src/store/tab.rs"]
 pub mod tab;
 
