@@ -31,6 +31,8 @@ pub mod amd_ivhd;
 pub mod amd_vi;
 pub mod arch;
 #[cfg(test)]
+mod block_wire;
+#[cfg(test)]
 pub mod bti_pad;
 pub mod bus;
 pub mod capabilities;
