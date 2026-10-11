@@ -26,6 +26,8 @@
 //! - A network controller (class 02): PCIe Device Control 2's completion
 //!   timeout value and disable, bits 0-4 at the PCIe capability + 0x28, which
 //!   rtw88 and iwlwifi set on real silicon.
+//! - The Intel SMBus host (class 0C, subclass 05): HOSTC at 0x40, its host
+//!   enable (bit 0) and I2C mode (bit 2), as i2c-i801's probe writes them.
 //!
 //! Anything else stays refused: these registers hold no address, no BAR, no
 //! routing, and change nothing about what the device may reach.
@@ -48,7 +50,9 @@ const ATI: u16 = 0x1002;
 /// register is not one of these.
 pub fn writable(id: &Ident, offset: u32) -> Option<u16> {
     let audio = id.class == 0x04 && matches!(id.subclass, 0x01 | 0x03);
+    let smbus = id.class == 0x0C && id.subclass == 0x05;
     match (id.vendor, offset) {
+        (INTEL, 0x40) if smbus => Some(0x0005),
         (INTEL, 0x44) if audio => Some(0x0007),
         (INTEL, 0x48) if audio => Some(0x0040),
         (INTEL, 0x78) if audio => Some(0x0800),
