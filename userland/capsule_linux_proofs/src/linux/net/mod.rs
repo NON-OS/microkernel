@@ -29,7 +29,7 @@ pub use crate::pick::{Route, ANYONE_DOWN};
 #[path = "../../../../capsule_linux/src/linux/net/guest_route.rs"]
 pub mod guest_route;
 
-#[path = "../../../../capsule_linux/src/linux/net/anon_answer.rs"]
+#[path = "../../../../capsule_linux/src/linux/net/anon_answer/mod.rs"]
 pub mod anon_answer;
 #[path = "../../../../capsule_linux/src/linux/net/anon_ops.rs"]
 pub mod anon_ops;

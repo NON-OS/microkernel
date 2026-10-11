@@ -20,7 +20,9 @@
 //! manager never heard it was meant to fill the display.
 
 use crate::configure::configure;
-use crate::fit::{centred, origin, Configure, Fit, Mode, STATE_FULLSCREEN, STATE_MAXIMIZED};
+use crate::fit::mode::{STATE_FULLSCREEN, STATE_MAXIMIZED};
+use crate::fit::place::centred;
+use crate::fit::{origin, Configure, Fit, Mode};
 
 /// The green button's rect on 1920x1080: below the 58 row menubar the shell
 /// draws there, down to the bottom edge (app_skeleton chrome::full_screen).

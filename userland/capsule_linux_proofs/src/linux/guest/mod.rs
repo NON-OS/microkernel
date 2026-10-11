@@ -36,7 +36,7 @@ pub mod links_room;
 pub mod mem;
 #[path = "../../../../capsule_linux/src/linux/guest/memory.rs"]
 pub mod memory;
-#[path = "../../../../capsule_linux/src/linux/guest/sigalt.rs"]
+#[path = "../../../../capsule_linux/src/linux/guest/sigalt/mod.rs"]
 pub mod sigalt;
 #[path = "../../../../capsule_linux/src/linux/guest/sigrestart.rs"]
 pub mod sigrestart;

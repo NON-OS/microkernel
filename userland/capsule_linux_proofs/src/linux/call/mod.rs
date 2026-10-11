@@ -22,7 +22,7 @@ pub mod clone_flags;
 pub mod exec_args;
 #[path = "../../../../capsule_linux/src/linux/call/futex_op/mod.rs"]
 pub mod futex_op;
-#[path = "../../../../capsule_linux/src/linux/call/ioctl_req.rs"]
+#[path = "../../../../capsule_linux/src/linux/call/ioctl_req/mod.rs"]
 pub mod ioctl_req;
 #[path = "../../../../capsule_linux/src/linux/call/iovec.rs"]
 pub mod iovec;

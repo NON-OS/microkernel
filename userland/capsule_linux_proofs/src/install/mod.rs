@@ -32,7 +32,7 @@ pub mod market_arg;
 pub mod market_check;
 #[path = "../../../capsule_linux/src/linux/install/proof_names.rs"]
 pub mod proof_names;
-#[path = "../../../capsule_linux/src/linux/install/route_read.rs"]
+#[path = "../../../capsule_linux/src/linux/install/route_read/mod.rs"]
 pub mod route_read;
 
 #[path = "../../../capsule_linux/src/linux/install/tools.rs"]

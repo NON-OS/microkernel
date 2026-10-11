@@ -22,10 +22,11 @@ use super::super::random::Regs;
 use super::fake_memory::Fake;
 use crate::linux::abi::errno::{fail, ok, EFAULT, EINTR, EINVAL, ENOMEM, EPERM};
 use crate::linux::call::signal_act::{decode, encode, signal_of, wait_mask, wait_set};
-use crate::linux::guest::sigalt::{
-    change, entered, on_stack, report, sigaltstack, stack_t, stack_t_bytes, MINSIGSTKSZ, NONE,
-    SS_AUTODISARM, SS_DISABLE, SS_ONSTACK,
+use crate::linux::guest::sigalt::call::{stack_t, stack_t_bytes};
+use crate::linux::guest::sigalt::stack::{
+    report, MINSIGSTKSZ, SS_AUTODISARM, SS_DISABLE, SS_ONSTACK,
 };
+use crate::linux::guest::sigalt::{change, entered, on_stack, sigaltstack, NONE};
 use crate::linux::guest::sigrestart::{after, After};
 use crate::linux::guest::sigstate::{SigAction, SA_RESTART};
 
