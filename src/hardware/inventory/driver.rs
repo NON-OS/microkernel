@@ -40,6 +40,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         InputPs2 => "driver_ps2_input",
         InputUsbHid => "driver_usb_hid",
         InputI2cHid => "driver_i2c_hid",
+        InputVirtio => "driver_virtio_input",
         AudioHda => "driver_hda",
         SerialI2c => "driver_i2c_pci",
         _ => return None,

@@ -49,6 +49,8 @@ pub enum HardwareFamily {
     InputPs2,
     InputUsbHid,
     InputI2cHid,
+    /// virtio-input: QEMU's virtio tablet, keyboard and mouse.
+    InputVirtio,
     AudioHda,
     SerialI2c,
     SerialSpi,

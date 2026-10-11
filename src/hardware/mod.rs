@@ -32,6 +32,7 @@ pub mod rtl8821ce_capsule;
 pub mod usb_msc_capsule;
 pub mod virtio_blk_capsule;
 pub mod virtio_gpu_capsule;
+pub mod virtio_input_capsule;
 pub mod virtio_net_capsule;
 pub mod virtio_rng_capsule;
 pub mod vmxnet3_capsule;

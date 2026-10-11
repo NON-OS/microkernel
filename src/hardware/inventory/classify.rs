@@ -43,6 +43,7 @@ pub fn classify_family(
         0x06 => HardwareFamily::BridgePci,
         0x08 if is_intel_emmc(vendor, device, class, subclass) => HardwareFamily::StorageEmmc,
         0x08 => HardwareFamily::SystemPeripheral,
+        0x09 if vendor == 0x1af4 && device == 0x1052 => HardwareFamily::InputVirtio,
         0x0c => classify_serial_bus(subclass, progif),
         _ => HardwareFamily::Unknown,
     }
