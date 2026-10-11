@@ -21,19 +21,13 @@ use super::Ident;
 const INTEL: u16 = 0x8086;
 const AMD: u16 = 0x1022;
 const ATI: u16 = 0x1002;
-pub(super) const BROADCOM: u16 = 0x14E4;
 
 /// The bits at `offset` a driver of `id` may change, or `None` when the
 /// register is not one of these.
 pub fn writable(id: &Ident, offset: u32) -> Option<u16> {
     let audio = id.class == 0x04 && matches!(id.subclass, 0x01 | 0x03);
     let smbus = id.class == 0x0C && id.subclass == 0x05;
-    let ethernet = id.class == 0x02 && id.subclass == 0x00;
-    let devsta = id.pcie_cap.map(|c| c as u32 + 0x0A);
     match (id.vendor, offset) {
-        (BROADCOM, 0x68) if ethernet => Some(0x03FF),
-        (BROADCOM, 0x70) if ethernet => Some(0x0060),
-        (BROADCOM, o) if ethernet && Some(o) == devsta => Some(0x000F),
         (INTEL, 0x40) if smbus => Some(0x0005),
         (INTEL, 0x44) if audio => Some(0x0007),
         (INTEL, 0x48) if audio => Some(0x0040),
