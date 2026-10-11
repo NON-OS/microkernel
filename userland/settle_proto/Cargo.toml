@@ -1,0 +1,15 @@
+# NONOS userland: settle_proto
+#
+# The wire of capsule_nox_settle (service "nox_settle"), shared by the
+# settle capsule and its callers so the two cannot drift.
+
+[package]
+name = "nonos_settle_proto"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "capsule_nox_settle's ops and bodies, no_std"
+
+[lib]
+crate-type = ["rlib"]

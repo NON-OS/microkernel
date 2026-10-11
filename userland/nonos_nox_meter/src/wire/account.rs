@@ -17,19 +17,22 @@
 //! ACCOUNT's reply, little-endian. The request is one byte, the first channel
 //! wanted; the reply pages through the table ACCOUNT_ROWS_MAX at a time:
 //!
-//!   ready u8 | address[20] | ed25519[32] | cap u128 | spent u128 | expiry u64
+//!   flags u8 | address[20] | ed25519[32] | cap u128 | spent u128 | expiry u64
 //!   | left u128 | total u8 | rows u8
 //!   | rows x (channel_id[32] | chain_id u64 | deposit u128 | settled u128
 //!             | cumulative u128 | expiry u64)
 //!
-//! ready is 1 once the meter's keys are open; until then address and ed25519
-//! are zero.
+//! flags: READY once the meter's keys are open (until then address and
+//! ed25519 are zero), KEPT when this boot persists data. On a boot that keeps
+//! nothing the meter changes no state, so its budget stays zero.
 
 use alloc::vec::Vec;
 
 use crate::state::MeterState;
 
 pub const ACCOUNT_ROWS_MAX: usize = 32;
+pub const READY: u8 = 1 << 0;
+pub const KEPT: u8 = 1 << 1;
 pub const ACCOUNT_ROW_LEN: usize = 32 + 8 + 16 * 3 + 8;
 
 /// The meter's public identity, once its sealed record is open.
@@ -39,10 +42,16 @@ pub struct Identity {
     pub ed25519: [u8; 32],
 }
 
-pub fn account_reply(s: &MeterState, who: Option<&Identity>, now: u64, from: usize) -> Vec<u8> {
+pub fn account_reply(
+    s: &MeterState,
+    who: Option<&Identity>,
+    kept: bool,
+    now: u64,
+    from: usize,
+) -> Vec<u8> {
     let rows = s.channels.iter().skip(from).take(ACCOUNT_ROWS_MAX);
     let mut out = Vec::with_capacity(111 + ACCOUNT_ROWS_MAX * ACCOUNT_ROW_LEN);
-    out.push(who.is_some() as u8);
+    out.push(if who.is_some() { READY } else { 0 } | if kept { KEPT } else { 0 });
     out.extend_from_slice(&who.map(|w| w.address).unwrap_or([0; 20]));
     out.extend_from_slice(&who.map(|w| w.ed25519).unwrap_or([0; 32]));
     let b = &s.budget;

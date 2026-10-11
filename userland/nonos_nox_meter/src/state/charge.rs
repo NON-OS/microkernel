@@ -21,7 +21,8 @@ impl MeterState {
     /// The state after charging `amount`, with usage root `root`, to the live
     /// channel for this payee, listing and chain, and the channel as charged.
     /// Refused unless both the channel's deposit and the owner's budget cover
-    /// it. Of two live channels the one that lasts longer is charged.
+    /// it. Of the live channels, one with room for the charge is preferred, then
+    /// the one that lasts longer.
     pub fn charged(
         &self,
         payee: &[u8; 20],
@@ -31,7 +32,7 @@ impl MeterState {
         root: [u8; 32],
         now: u64,
     ) -> Result<(MeterState, Channel), MeterError> {
-        let at = self.live(payee, listing, chain, now).ok_or(MeterError::NoChannel)?;
+        let at = self.live(payee, listing, chain, amount, now).ok_or(MeterError::NoChannel)?;
         let channel = self.channels[at].charged(amount, root, now)?;
         let budget = self.budget.spending(listing, amount, now)?;
         let mut next = MeterState { budget, channels: self.channels.clone() };
@@ -39,12 +40,23 @@ impl MeterState {
         Ok((next, channel))
     }
 
-    fn live(&self, payee: &[u8; 20], listing: &[u8; 32], chain: u64, now: u64) -> Option<usize> {
+    fn live(
+        &self,
+        payee: &[u8; 20],
+        listing: &[u8; 32],
+        chain: u64,
+        amount: u128,
+        now: u64,
+    ) -> Option<usize> {
         (0..self.channels.len())
             .filter(|&i| {
                 let c = &self.channels[i];
                 &c.payee == payee && &c.listing_id == listing && c.chain_id == chain && c.live(now)
             })
-            .max_by_key(|&i| self.channels[i].expiry)
+            .max_by_key(|&i| {
+                let c = &self.channels[i];
+                let room = c.deposit.saturating_sub(c.cumulative.max(c.settled));
+                (room >= amount, c.expiry)
+            })
     }
 }
