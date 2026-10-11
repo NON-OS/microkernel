@@ -17,19 +17,20 @@
 //! The kind of host a PCI function is.
 
 use super::ids::{PCI_CLASS_SYSTEM, PCI_SUBCLASS_SDHCI, PCI_VENDOR_INTEL};
-use super::{INTEL_EMMC, INTEL_NOT_EMMC};
+use super::{INTEL_EMMC, INTEL_SDIO};
 
 /// How discovery treats one PCI function.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Kind {
     /// A known Intel eMMC host: served first.
     IntelEmmc,
-    /// Another SDHCI host: served only if its slot is an embedded one.
+    /// Another SDHCI host: served as fixed if its slot is embedded, and as
+    /// removable on a machine with no fixed host.
     Generic,
 }
 
 /// The kind of host a PCI function is, or None when it is not an SDHCI
-/// host or is one that must not be served (an SD reader or SDIO host).
+/// host or is one that must not be served (an SDIO host).
 pub fn classify(vendor: u16, device: u16, class: u8, subclass: u8, progif: u8) -> Option<Kind> {
     if class != PCI_CLASS_SYSTEM || subclass != PCI_SUBCLASS_SDHCI || progif > 0x02 {
         return None;
@@ -38,7 +39,7 @@ pub fn classify(vendor: u16, device: u16, class: u8, subclass: u8, progif: u8) -
         if INTEL_EMMC.contains(&device) {
             return Some(Kind::IntelEmmc);
         }
-        if INTEL_NOT_EMMC.contains(&device) {
+        if INTEL_SDIO.contains(&device) {
             return None;
         }
     }
