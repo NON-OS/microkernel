@@ -16,6 +16,7 @@
 
 mod kept;
 mod kept_id;
+mod kept_secret;
 mod offer_work;
 mod request;
 mod walk;

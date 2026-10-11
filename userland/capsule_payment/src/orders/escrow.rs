@@ -44,8 +44,11 @@ pub fn bind(o: &Order, now: u64) -> Result<(), i32> {
 }
 
 pub fn escrow_of(o: &Order) -> Result<KeptOffer, i32> {
-    let plain = load_sealed(&path("escrow", &o.order_id), b"meter.escrow")?.ok_or(ENOENT)?;
-    KeptOffer::decode(&plain).ok_or(EIO)
+    let mut plain = load_sealed(&path("escrow", &o.order_id), b"meter.escrow")?.ok_or(ENOENT)?;
+    // The record holds the offer's buyer key: wiped once read, as offers.rs does.
+    let kept = KeptOffer::decode(&plain);
+    crate::wipe::wipe(&mut plain);
+    kept.ok_or(EIO)
 }
 
 pub fn keep_plain(order_id: &[u8; 32], plain: Vec<u8>) -> Result<(), i32> {
