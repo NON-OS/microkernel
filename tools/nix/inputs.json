@@ -4120,6 +4120,7 @@
    "userland/capsule_driver_rtl8821ce/src/efuse.rs",
    "userland/capsule_driver_rtl8821ce/src/fw",
    "userland/capsule_driver_rtl8821ce/src/h2c",
+   "userland/capsule_driver_rtl8821ce/src/link",
    "userland/capsule_driver_rtl8821ce/src/link.rs",
    "userland/capsule_driver_rtl8821ce/src/mac",
    "userland/capsule_driver_rtl8821ce/src/phy",
