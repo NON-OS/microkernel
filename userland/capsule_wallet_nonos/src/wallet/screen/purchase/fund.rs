@@ -14,27 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Fund a made order from the Shield (B8, the plan): the withdraw screen set
-//! to NOX, the order's standard size and its deposit address, asked for the
-//! pool's quote at once; its review shows the fees before the person
-//! confirms there.
+//! Fund a made order from the Shield (B8, the plan): the withdraw set to NOX,
+//! the order's exact price, which the Shield quoted as standard at consent,
+//! and its deposit address, asked for the pool's quote at once; its review
+//! shows the fees before the person confirms there.
 
 use nonos_app_skeleton::EventOutcome;
 
+use crate::wallet::order::fees::{exact, Fees};
 use crate::wallet::order::intake::Step;
 use crate::wallet::order::read::Named;
-use crate::wallet::screen::shield::sizes::sizes;
 use crate::wallet::shield::{actions, open};
 use crate::wallet::state::shield_ui::{ASSET_NOX, SHIELD_WITHDRAW};
 use crate::wallet::state::{State, VIEW_SHIELD};
 
 const OFF_SHIELD: &str = "The Shield is on another network: switch to Sepolia to fund the order.";
-
-/// Where the Shield's standard NOX sizes hold `amount`, if they do: the
-/// only prices a withdrawal can fund.
-pub fn standard(amount: u128) -> Option<u8> {
-    sizes(ASSET_NOX).iter().position(|(_, v)| *v == amount).map(|i| i as u8)
-}
 
 /// Whether the purchase is at its funding step.
 pub fn funding(state: &State) -> bool {
@@ -46,15 +40,15 @@ pub fn fund(state: &mut State) -> EventOutcome {
     let (Step::Fund(m), Ok(Named::Escrow(b))) = (&p.step, &p.read) else {
         return EventOutcome::Idle;
     };
-    let (Some(size), deposit) = (standard(b.amount), m.deposit) else {
-        return EventOutcome::Idle;
-    };
+    // Only a price the Shield quoted is funded, at exactly that amount.
+    let (Fees::Quoted(_), deposit) = (&p.fees, m.deposit) else { return EventOutcome::Idle };
+    let amount = exact(b.amount);
     if !open::here() {
         state.failure = Some(OFF_SHIELD);
         return EventOutcome::Repaint;
     }
     let ui = &mut state.shield_ui;
-    (ui.screen, ui.asset, ui.size) = (SHIELD_WITHDRAW, ASSET_NOX, Some(size));
+    (ui.screen, ui.asset, ui.size, ui.amount) = (SHIELD_WITHDRAW, ASSET_NOX, None, amount);
     (ui.to_meter, ui.to_deposit, ui.failure) = (false, Some(deposit), None);
     state.view = VIEW_SHIELD;
     state.scroll = 0;
