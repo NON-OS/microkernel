@@ -21,10 +21,11 @@
 
 use core::sync::atomic::{fence, Ordering};
 
-use crate::constants::queue::TX_DESC_COUNT;
+use crate::constants::queue::{TX_BUFFER_LEN, TX_DESC_COUNT};
 use crate::constants::regs::REG_TDT;
 use crate::constants::{MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME};
 use crate::protocol::{Request, E_AGAIN, E_INVAL, E_MSGSIZE, MAX_TX_PAYLOAD_BYTES};
+use crate::queue::tx_pad::fill;
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
 
@@ -51,8 +52,11 @@ pub fn handle(sender: u32, driver: &mut Driver, req: &Request, body: &[u8], tx: 
         return;
     }
     let dst = driver.tx.buffer_va(driver.tx.tail) as *mut u8;
-    unsafe { core::ptr::copy_nonoverlapping(body.as_ptr(), dst, body.len()) };
-    let idx = driver.tx.post(body.len() as u16);
+    let slot = unsafe { core::slice::from_raw_parts_mut(dst, TX_BUFFER_LEN) };
+    let Some(wire) = fill(slot, body) else {
+        return reply_with_status(sender, tx, req, E_INVAL);
+    };
+    let idx = driver.tx.post(wire as u16);
     let next_tdt = ((idx as u32) + 1) % (TX_DESC_COUNT as u32);
     // The frame and descriptor are plain stores; TDT is what lets the part read them.
     fence(Ordering::Release);

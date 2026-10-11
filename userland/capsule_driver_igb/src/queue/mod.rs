@@ -23,6 +23,7 @@ mod rx_consume;
 pub mod rx_wb;
 pub mod tx;
 pub mod tx_encode;
+pub mod tx_pad;
 mod tx_reclaim;
 
 pub use rx::RxRing;
