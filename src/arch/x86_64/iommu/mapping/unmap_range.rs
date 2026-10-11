@@ -56,5 +56,5 @@ pub fn unmap_range(domain: DomainId, iova: u64, size: usize) -> Result<(), VtdEr
             touched.note(slot.table_phys);
         }
     }
-    commit(touched)
+    commit(touched, domain, false)
 }

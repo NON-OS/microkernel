@@ -23,10 +23,13 @@
 
 #[path = "../../../../src/arch/x86_64/iommu/unit/queue/descriptor.rs"]
 pub mod descriptor;
+mod domain_tests;
 #[path = "../../../../src/arch/x86_64/iommu/regs/cap/drain.rs"]
 pub mod drain;
 #[path = "../../../../src/arch/x86_64/iommu/regs/cap/extended.rs"]
 pub mod extended;
+#[path = "../../../../src/arch/x86_64/iommu/mapping/flush_rule.rs"]
+pub mod flush_rule;
 #[path = "../../../../src/arch/x86_64/iommu/regs/offsets/queue.rs"]
 pub mod queue;
 mod ring_tests;

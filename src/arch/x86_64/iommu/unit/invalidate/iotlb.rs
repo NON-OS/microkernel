@@ -23,13 +23,27 @@ use crate::arch::x86_64::iommu::unit::access::RemapUnit;
 /// Drop every cached translation. Runs after a context invalidation: a stale
 /// translation outlives the context entry that produced it.
 pub fn invalidate_iotlb_global(unit: &RemapUnit, ecap: u64) -> Result<(), VtdError> {
+    invalidate_iotlb_with(unit, ecap, offsets::IOTLB_IIRG_GLOBAL)
+}
+
+/// Drop one domain's cached translations, after its leaf entries changed.
+pub(super) fn invalidate_iotlb_domain_reg(
+    unit: &RemapUnit,
+    ecap: u64,
+    did: u16,
+) -> Result<(), VtdError> {
+    let scope = offsets::IOTLB_IIRG_DOMAIN | ((did as u64) << offsets::IOTLB_DID_SHIFT);
+    invalidate_iotlb_with(unit, ecap, scope)
+}
+
+fn invalidate_iotlb_with(unit: &RemapUnit, ecap: u64, scope: u64) -> Result<(), VtdError> {
     compiler_fence(Ordering::SeqCst);
     super::write_buffer::flush_write_buffer(unit)?;
     let reg = offsets::iotlb_offset(ecap);
     // SAFETY: eK@nonos.systems - discarding cached translations can only
     // narrow what a device reaches.
     unsafe {
-        unit.write64(reg, offsets::IOTLB_IVT | offsets::IOTLB_IIRG_GLOBAL);
+        unit.write64(reg, offsets::IOTLB_IVT | scope);
     }
     for _ in 0..offsets::COMMAND_SPINS {
         let value = unit.read64(reg);

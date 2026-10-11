@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::context::invalidate_context_global;
-use super::iotlb::invalidate_iotlb_global;
+use super::iotlb::{invalidate_iotlb_domain_reg, invalidate_iotlb_global};
 use super::write_buffer::flush_write_buffer;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::access::RemapUnit;
@@ -31,6 +31,15 @@ pub fn invalidate_all(unit: &RemapUnit, ecap: u64) -> Result<(), VtdError> {
     }
     invalidate_context_global(unit)?;
     invalidate_iotlb_global(unit, ecap)
+}
+
+/// One domain's IOTLB entries, by whichever path the unit is on.
+pub fn invalidate_iotlb_domain(unit: &RemapUnit, ecap: u64, did: u16) -> Result<(), VtdError> {
+    if queue::is_live(unit) {
+        flush_write_buffer(unit)?;
+        return queue::flush_iotlb_domain(unit, did);
+    }
+    invalidate_iotlb_domain_reg(unit, ecap, did)
 }
 
 /// The IOTLB alone, by whichever path the unit is on.

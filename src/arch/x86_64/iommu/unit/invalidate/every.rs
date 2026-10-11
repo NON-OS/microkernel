@@ -17,7 +17,8 @@
 //! The same invalidation on every unit. The tables are shared, so a change to
 //! them is stale in each unit's caches, not only the first one's.
 
-use super::all::{invalidate_all, invalidate_iotlb};
+use super::all::{invalidate_all, invalidate_iotlb, invalidate_iotlb_domain};
+use super::write_buffer::flush_write_buffer;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::report::units;
 
@@ -39,6 +40,29 @@ pub fn invalidate_iotlb_all_units() -> Result<(), VtdError> {
     let mut outcome = Ok(());
     for info in units() {
         if let Err(e) = invalidate_iotlb(&info.unit, info.ecap) {
+            outcome = outcome.and(Err(e));
+        }
+    }
+    outcome
+}
+
+/// One domain's IOTLB entries on every unit, as `invalidate_all_units`.
+pub fn invalidate_iotlb_domain_all_units(did: u16) -> Result<(), VtdError> {
+    let mut outcome = Ok(());
+    for info in units() {
+        if let Err(e) = invalidate_iotlb_domain(&info.unit, info.ecap, did) {
+            outcome = outcome.and(Err(e));
+        }
+    }
+    outcome
+}
+
+/// Drain every unit's write buffer, where CAP.RWBF says it has one, so new
+/// entries are where the walks read them.
+pub fn flush_write_buffers_all_units() -> Result<(), VtdError> {
+    let mut outcome = Ok(());
+    for info in units() {
+        if let Err(e) = flush_write_buffer(&info.unit) {
             outcome = outcome.and(Err(e));
         }
     }
