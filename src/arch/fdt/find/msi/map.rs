@@ -26,9 +26,10 @@ use super::info::MsiController;
 /// from a requester id to the device id it is known by there. `None` when the
 /// bridge names none, or names one this kernel does not drive.
 ///
-/// `msi-map` comes first; a bare `msi-parent` means every requester id is
-/// its own device id, as Linux reads it. Entries naming two controllers are
-/// refused: one function would need both, and the broker binds through one.
+/// `msi-map` comes first; a bare `msi-parent` means every requester id is its
+/// own device id (the devicetree `pci-msi` binding). Entries naming two
+/// controllers are refused: one function would need both, and the broker
+/// binds through one.
 pub fn pci_msi_map(fdt: &Fdt) -> Result<Option<(MsiController, IommuMap)>, FdtError> {
     let Some(node) = host(fdt)? else {
         return Ok(None);

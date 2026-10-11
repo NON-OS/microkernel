@@ -45,8 +45,7 @@ impl IommuMap {
 
     /// The id `rid` is known by at `phandle`, a stream id at an SMMU or a
     /// device id at an ITS, or `None` when no entry sends it there. The first
-    /// matching entry wins, as the binding says, so an overlap is resolved the
-    /// way Linux resolves it.
+    /// matching entry wins, as the `pci-iommu` and `pci-msi` bindings say.
     pub fn output(&self, rid: u16, phandle: u32) -> Option<u32> {
         let rid = u32::from(rid) & self.mask;
         let entry = self.entries[..self.count]
