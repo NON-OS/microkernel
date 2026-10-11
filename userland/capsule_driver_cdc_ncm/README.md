@@ -65,22 +65,23 @@ when bound, and `device stopped answering` when it is given back.
 
 ## Contract
 
-Caps `0x200018` (IPC, Memory, Debug). Service `driver.cdc_ncm0` on port 4252,
+Caps `0x18` (IPC, Memory), Debug `0x100` optional. Service `driver.cdc_ncm0` on port 4252,
 reply port 4253. Proofs: `userland/cdc_ncm_proofs`. Notes:
 `docs/hardware/cdc_ncm.md`.
 
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory` and `Debug`:
+The manifest grants `IPC` and `Memory`; `Debug` only in a serial-debug build:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x200018
+CAPSULE_REQUIRED_CAPS = 0x18
+CAPSULE_OPTIONAL_CAPS = 0x100
 ```
 
 The capsule receives requests with `MkIpcRecvFrom` and answers with
-`MkIpcReply`, finds driver.xhci0 with `MkServiceLookup` and calls it with
+`MkIpcReply`, finds driver.xhci0 and its own pid with `MkServiceLookup` and calls it with
 `MkIpcCall` (bounded by a timeout), writes its `[usbnet cdc-ncm]` lines with
-`MkDebug`, and waits on the
+`MkDebug` when Debug is granted, and waits on the
 clock between bring-up steps with libc's `mk_idle_ms`. It makes no enumeration, MMIO, IRQ, DMA
 or PIO broker syscall: driver.xhci0 owns the controller.
 

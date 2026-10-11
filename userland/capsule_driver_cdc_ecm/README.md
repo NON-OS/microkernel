@@ -55,21 +55,22 @@ when it is given back.
 
 ## Contract
 
-Caps `0x200018` (IPC, Memory, Debug). Service `driver.cdc_ecm0` on port 4250,
+Caps `0x18` (IPC, Memory), Debug `0x100` optional. Service `driver.cdc_ecm0` on port 4250,
 reply port 4251. Proofs: `userland/cdc_ecm_proofs`.
 
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory` and `Debug`:
+The manifest grants `IPC` and `Memory`; `Debug` only in a serial-debug build:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x200018
+CAPSULE_REQUIRED_CAPS = 0x18
+CAPSULE_OPTIONAL_CAPS = 0x100
 ```
 
 The capsule receives requests with `MkIpcRecvFrom` and answers with
-`MkIpcReply`, finds driver.xhci0 with `MkServiceLookup` and calls it with
+`MkIpcReply`, finds driver.xhci0 and its own pid with `MkServiceLookup` and calls it with
 `MkIpcCall` (bounded by a timeout), writes its `[usbnet cdc-ecm]` lines with
-`MkDebug`. It makes no enumeration, MMIO, IRQ, DMA
+`MkDebug` when Debug is granted. It makes no enumeration, MMIO, IRQ, DMA
 or PIO broker syscall: driver.xhci0 owns the controller.
 
 ## Interface contract

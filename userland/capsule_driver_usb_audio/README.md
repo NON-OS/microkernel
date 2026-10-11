@@ -55,7 +55,8 @@ and `device stopped answering` when it is given back.
   to it.
 - `MkIpcRecvFrom` serves `service:4246:driver.usb_audio0`; `MkIpcReply`
   answers.
-- `MkGetPid` once, to drop replies it sent itself; `MkMmap` for the heap.
+- `MkServiceLookup` once for its own pid, to drop replies it sent itself;
+  `MkMmap` for the heap.
 - `MkDebug` for the log lines, when Debug is granted.
 
 ## Interface contract
@@ -77,7 +78,8 @@ Other ops, and a payload on any op but WRITE_PCM, answer -22.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0x19`: CoreExec (for `MkGetPid`), IPC, Memory.
+`CAPSULE_REQUIRED_CAPS = 0x18`: IPC, Memory. Its own pid, which drops what
+it sent itself, is read back through `MkServiceLookup`, so no CoreExec.
 `CAPSULE_OPTIONAL_CAPS = 0x100`: Debug, in a serial-debug build only, for
 the log lines. No Driver, DeviceEnum, Mmio, Irq, Dma or Pio: the controller,
 its DMA and the stream's buffers are driver.xhci0's.
