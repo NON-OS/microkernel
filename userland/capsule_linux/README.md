@@ -43,13 +43,14 @@ From `Capsule.mk`:
 ```make
 # = CoreExec 0x1 | IPC 0x8 | Memory 0x10 | Crypto 0x20 | FileSystem 0x40
 #   | Debug 0x100 | GfxQuery 0x800 | GfxCreate 0x1000 | StoreWrite 0x4000000
-#   | ForeignExec 0x100000000 | LocalSign 0x200000000 = 0x304001979
-CAPSULE_REQUIRED_CAPS    := 0x304001979
-CAPSULE_OPTIONAL_CAPS    := 0x4
+#   | ForeignExec 0x100000000 = 0x104001979
+CAPSULE_REQUIRED_CAPS    := 0x104001979
+CAPSULE_OPTIONAL_CAPS    := 0x200000004
 ```
 
-The comment says no other capsule holds ForeignExec, and that Network (0x4) is optional and
-requested only by the install role. Extra instance endpoints for install, run and terminal
+The comment says no other capsule holds ForeignExec, and that Network (0x4) and LocalSign
+(0x200000000) are optional and requested only by the install role, so no run of a guest holds
+the right to vouch. Extra instance endpoints for install, run and terminal
 roles are listed in `CAPSULE_INSTANCE_ENDPOINTS`.
 
 ## Interface
