@@ -34,6 +34,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         DisplayVirtioGpu => "driver_virtio_gpu",
         DisplayVmwareSvga => "driver_vmware_svga",
         AudioAc97 => "driver_ac97",
+        InputVmmdev => "driver_vmmdev",
         // DisplayBga stays undispatched: the BGA capsule is a broker-path
         // proof that re-modes the adapter and serves no gfx protocol, so
         // spawning it destroys the firmware scanout the compositor's GOP
