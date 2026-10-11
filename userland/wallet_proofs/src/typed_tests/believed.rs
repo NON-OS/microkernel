@@ -18,7 +18,8 @@ use nonos_marketplace_abi::Keccak;
 use nonos_nox_config::EIP712_DOMAIN_TYPEHASH;
 use sha3::{Digest, Keccak256};
 
-use crate::typed::{believed, digest, Asked};
+use crate::typed::check::digest;
+use crate::typed::{believed, Asked};
 
 struct K;
 impl Keccak for K {

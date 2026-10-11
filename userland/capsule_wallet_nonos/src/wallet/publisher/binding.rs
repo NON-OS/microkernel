@@ -27,7 +27,7 @@ use alloc::vec::Vec;
 
 use nonos_marketplace_abi::{listing_id, Keccak, MarketplaceEntry};
 
-use super::super::intent::hex;
+use super::super::hex_id::hex;
 use super::super::typed::{binding_words, Wrong};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
