@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The medium rule (`medium_rule`), with the kernel asked on every request:
-//! a cached verdict would outlive the holder's exit and follow its pid to
-//! whatever process is handed that pid next.
+//! The medium rule (`nonos_blk_wire::medium_rule`), with the kernel asked on
+//! every request: a cached verdict would outlive the holder's exit and
+//! follow its pid to whatever process is handed that pid next.
 
+use nonos_blk_wire::medium_rule::allows;
 use nonos_libc::mk_cap_check;
-
-use super::medium_rule::allows;
 
 /// StoreWrite, as abi/caps.toml numbers it.
 const CAP_STORE_WRITE: u64 = 1 << 26;
