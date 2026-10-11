@@ -49,7 +49,9 @@ pub use device::{decode_device, encode_device, DEVICE_HEAD, DEVICE_MAGIC, DEVICE
 pub use hist::{bucket, hist_commit, side, BUCKETS, HIST_WORDS, ISO_DOMAIN, SIDES};
 pub use meas::{meas_chain, meas_step, MEAS_DOMAIN};
 pub use poseidon::chain;
-pub use record::{ctx, decode_record, record_id, Record, FLAG_FINAL, FLAG_SATURATED, RECORD_BYTES};
+pub use record::{
+    ctx, decode_record, record_id, Record, FLAG_FINAL, FLAG_OVERFLOW, FLAG_SATURATED, RECORD_BYTES,
+};
 pub use scope::{day, market_scope};
 pub use syscall_root::{allows, syscall_root, POL_DOMAIN, SET_BYTES};
 pub use verify::{app_id, verify, Expected, PolicyDecode, PolicyView, Refusal, Verdict, MAX_DAYS};

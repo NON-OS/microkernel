@@ -23,6 +23,8 @@ pub(crate) const RECORD_BYTES: usize = 240;
 pub(crate) const FINAL: u16 = 1;
 /// Some count saturated: the counts are lower bounds only.
 pub(crate) const SATURATED: u16 = 2;
+/// More than MAX_MEAS distinct measurements: M stopped absorbing.
+pub(crate) const OVERFLOW: u16 = 4;
 
 pub(crate) struct Facts {
     pub(crate) flags: u16,
