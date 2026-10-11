@@ -49,6 +49,8 @@ pub(crate) struct Work {
     pub(super) next_req: u32,
     /// An offer's proof of work, walked in slices (solve.rs).
     pub(crate) solving: Option<alloc::boxed::Box<super::solving::Solving>>,
+    /// The store-to-wallet mailbox (op 19).
+    pub(crate) mailbox: nonos_nox_meter::mailbox::Mailbox,
 }
 
 impl Work {
