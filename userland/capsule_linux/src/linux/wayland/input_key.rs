@@ -39,6 +39,10 @@ const _: () = {
 pub fn key(guest: &mut Guest, code: u32, flags: u16, state: u32) {
     let Some(id) = guest.scene.keyboard else { return };
     let Some(linux) = evdev_of(code) else { return };
+    let held = &mut guest.scene.held;
+    if !(if state == 1 { held.press(linux) } else { held.release(linux) }) {
+        return;
+    }
     keyboard_enter_once(guest, id);
     let serial = guest.scene.next_serial();
     let time = time_ms();
