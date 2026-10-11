@@ -1,0 +1,46 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Each driver's request magic and opcodes, copied from its `protocol`
+//! module; the driver's own tests hold the two together.
+
+use super::table::Driver;
+
+/// Opcodes in the order capacity, read, write, flush.
+pub struct Ops {
+    pub capacity: u16,
+    pub read: u16,
+    pub write: u16,
+    pub flush: u16,
+}
+
+impl Driver {
+    pub fn magic(self) -> u32 {
+        match self {
+            Driver::VirtioBlk => 0x4E42_4C4B,
+            Driver::Nvme => 0x4E4E_564D,
+            Driver::Ahci => 0x4E41_4843,
+        }
+    }
+
+    pub fn ops(self) -> Ops {
+        match self {
+            Driver::VirtioBlk => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
+            Driver::Nvme => Ops { capacity: 6, read: 7, write: 8, flush: 9 },
+            Driver::Ahci => Ops { capacity: 4, read: 5, write: 6, flush: 7 },
+        }
+    }
+}

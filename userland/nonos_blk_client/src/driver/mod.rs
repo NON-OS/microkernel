@@ -16,6 +16,8 @@
 
 //! The three dialects, and the controllers on the bus they serve.
 
+mod bus;
+mod dialect;
 mod pci;
 mod table;
 
