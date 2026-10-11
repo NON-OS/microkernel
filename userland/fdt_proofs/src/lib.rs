@@ -14,6 +14,8 @@ mod exercise;
 #[cfg(test)]
 mod fixtures;
 #[cfg(test)]
+mod msi_tree;
+#[cfg(test)]
 mod uart_tree;
 
 #[cfg(test)]
@@ -28,6 +30,12 @@ mod intx_tests;
 mod irq_tests;
 #[cfg(test)]
 mod layout_tests;
+#[cfg(test)]
+mod msi_hostile_tests;
+#[cfg(test)]
+mod msi_refusal_tests;
+#[cfg(test)]
+mod msi_tests;
 #[cfg(test)]
 mod mutate_tests;
 #[cfg(test)]
