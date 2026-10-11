@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::arch::aarch64::boot::info::BootInfo;
-use crate::arch::fdt::find::gic::{find as find_gic, GicVersion};
 use crate::arch::fdt::find::pci::find as find_pci;
 use crate::arch::fdt::find::rtc::find as find_rtc;
 use crate::arch::fdt::find::timer::find as find_timer;
@@ -24,7 +23,7 @@ use crate::arch::fdt::Fdt;
 
 pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) {
     populate_uart(fdt, info);
-    populate_gic(fdt, info);
+    super::gic::populate(fdt, info);
     populate_timer(fdt, info);
     populate_pci(fdt, info);
     populate_rtc(fdt, info);
@@ -34,17 +33,6 @@ fn populate_uart(fdt: &Fdt, info: &mut BootInfo) {
     if let Ok(Some(u)) = find_uart(fdt) {
         if u.kind == UartKind::Pl011 {
             info.uart_base = u.base;
-        }
-    }
-}
-
-fn populate_gic(fdt: &Fdt, info: &mut BootInfo) {
-    if let Ok(Some(g)) = find_gic(fdt) {
-        info.gic_dist_base = g.dist_base;
-        if g.version == GicVersion::V3 {
-            info.gic_redist_base = g.redist_or_cpu_base;
-        } else {
-            info.gic_unsupported = true;
         }
     }
 }

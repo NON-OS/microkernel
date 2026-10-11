@@ -149,8 +149,13 @@ unsafe fn map_devices(boot_info: &BootInfo) {
     // Redistributor frames run one per CPU at 64 or 128 KiB apiece, so a large
     // machine reaches past the block holding the base.
     let redist = boot_info.gic_redist_base & !(BLOCK_2M - 1);
-    let windows =
-        [boot_info.uart_base, boot_info.gic_dist_base, redist, redist.saturating_add(BLOCK_2M)];
+    let windows = [
+        boot_info.uart_base,
+        boot_info.gic_dist_base,
+        boot_info.gic_cpu_base,
+        redist,
+        redist.saturating_add(BLOCK_2M),
+    ];
     for window in windows {
         map_device_block(window, &attrs);
     }
