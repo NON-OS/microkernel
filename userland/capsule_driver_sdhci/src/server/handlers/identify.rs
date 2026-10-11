@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! IDENTIFY: the eMMC's maker, product name and serial from its CID.
+//! IDENTIFY: the part's maker, product name and serial from its CID, and
+//! whether it is an eMMC or an SD card.
 
 use crate::emmc::Opened;
-use crate::protocol::{encode_identify, Request, E_NODEV, MEDIUM_EMMC};
+use crate::protocol::{encode_identify, Request, E_NODEV, MEDIUM_EMMC, MEDIUM_SD};
 use crate::server::error::reply_with_status;
 use crate::server::reply::body_reply;
 
 /// A part whose name cannot be sent as printable ASCII has none to give.
 pub fn serve(o: &mut Opened, req: &Request, tx: &mut [u8]) {
     let n = o.disk.names();
-    match encode_identify(n.model(), &n.serial, MEDIUM_EMMC) {
+    let medium = if o.disk.card.sd { MEDIUM_SD } else { MEDIUM_EMMC };
+    match encode_identify(n.model(), &n.serial, medium) {
         Some(body) => body_reply(tx, req, &body),
         None => reply_with_status(tx, req, E_NODEV),
     }

@@ -28,6 +28,8 @@ pub mod info;
 pub mod mmc;
 #[path = "../../../capsule_driver_sdhci/src/emmc/pci/mod.rs"]
 pub mod pci;
+#[path = "../../../capsule_driver_sdhci/src/emmc/sd/mod.rs"]
+pub mod sd;
 #[path = "../../../capsule_driver_sdhci/src/emmc/sdhci/mod.rs"]
 pub mod sdhci;
 #[path = "../../../capsule_driver_sdhci/src/emmc/text/mod.rs"]

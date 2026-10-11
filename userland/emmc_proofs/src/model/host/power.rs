@@ -38,10 +38,10 @@ impl Sim {
                 self.violations.push(format!("voltage select {sel} the host does not offer"));
             }
             self.power_ons.push(sel);
-            self.card.power(true);
+            self.dev().power(true);
         }
         if v & 1 == 0 {
-            self.card.power(false);
+            self.dev().power(false);
         }
         self.regs[0x29] = v;
     }

@@ -38,6 +38,8 @@ pub struct Card {
     pub width: u8,
     pub hs: bool,
     pub hz: u32,
+    /// An SD memory card, brought up by `sd::bring_up`; else MMC or eMMC.
+    pub sd: bool,
 }
 
 impl Card {

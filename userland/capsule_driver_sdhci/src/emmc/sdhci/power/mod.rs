@@ -24,6 +24,6 @@ mod ocr;
 mod select;
 mod vdd;
 
-pub use ocr::{host_ocr, vdd_for_bit, EMMC_DUAL_OCR};
+pub use ocr::{host_ocr, vdd_for_bit, EMMC_DUAL_OCR, OCR_32_34};
 pub use select::{first_vdd, select};
 pub use vdd::Vdd;

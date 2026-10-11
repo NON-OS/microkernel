@@ -14,23 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Command register flags each command the driver sends must carry.
+//! From a reset host to an SD memory card in transfer state.
 
-pub(super) const RESP_FLAGS: &[(u8, u16)] = &[
-    (0, 0x00),
-    (1, 0x02),
-    (2, 0x09),
-    (3, 0x1a),
-    (6, 0x1b),
-    (7, 0x1a),
-    (8, 0x3a),
-    (9, 0x09),
-    (12, 0xdb),
-    (13, 0x1a),
-    (16, 0x1a),
-    (17, 0x3a),
-    (18, 0x3a),
-    (23, 0x1a),
-    (24, 0x3a),
-    (25, 0x3a),
-];
+mod app;
+mod bring_up;
+mod finish;
+mod identify;
+mod op_cond;
+mod start;
+
+pub use bring_up::bring_up;

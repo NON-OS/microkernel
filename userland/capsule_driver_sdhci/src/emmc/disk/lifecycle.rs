@@ -18,10 +18,10 @@
 
 use super::super::env::{Clock, DmaBuf, Log, Mmio};
 use super::super::error::{EmmcError, EmmcResult};
-use super::super::mmc::bring_up;
 use super::super::mmc::ext_csd::EXT_CSD_LEN;
 use super::super::sdhci::Host;
 use super::super::text::Line;
+use super::card::card;
 use super::EmmcDisk;
 
 impl<M: Mmio, C: Clock, L: Log> EmmcDisk<M, C, L> {
@@ -32,7 +32,7 @@ impl<M: Mmio, C: Clock, L: Log> EmmcDisk<M, C, L> {
         if data.len < EXT_CSD_LEN {
             return Err(EmmcError::OutOfRange);
         }
-        let card = match bring_up(&mut host, data) {
+        let card = match card(&mut host, data) {
             Ok(c) => c,
             Err(e) => {
                 host.quiesce();

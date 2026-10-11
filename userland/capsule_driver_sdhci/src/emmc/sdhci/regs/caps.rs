@@ -28,6 +28,7 @@ pub const CAP_300: u32 = 1 << 25;
 pub const CAP_180: u32 = 1 << 26;
 pub const CAP_64BIT_V3: u32 = 1 << 28;
 pub const CAP_SLOT_TYPE_SHIFT: u32 = 30;
+pub const SLOT_TYPE_REMOVABLE: u8 = 0;
 pub const SLOT_TYPE_EMBEDDED: u8 = 1;
 
 pub const SPEC_200: u8 = 1;

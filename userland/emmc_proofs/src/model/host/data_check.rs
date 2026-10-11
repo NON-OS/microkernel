@@ -25,10 +25,10 @@ impl Sim {
     /// Hold the registers to the command; the bytes the phase moves.
     pub(super) fn check_data(&mut self, x: &Xfer, multi: bool) -> usize {
         let Xfer { index, mode, blocks, blksz, card_reads, ref bytes, .. } = *x;
-        if !matches!(index, 8 | 17 | 18 | 24 | 25) {
+        if !self.dev_ref().carries_data(index) {
             self.violate(format!("CMD{index} sent with data"));
         }
-        let had_count = self.card.count.is_some() || !multi;
+        let had_count = self.dev_ref().count().is_some() || !multi;
         let want_mode = 1
             | 2
             | if card_reads { 0x10 } else { 0 }
@@ -44,7 +44,7 @@ impl Sim {
         if !multi && n != 1 {
             self.violate(format!("CMD{index} single block with count {n}"));
         }
-        if let Some(c) = self.card.count {
+        if let Some(c) = self.dev_ref().count() {
             if c as usize != n {
                 self.violate(format!("CMD23 count {c}, block count {n}"));
             }

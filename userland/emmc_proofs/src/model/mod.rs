@@ -19,13 +19,19 @@
 //! moves one millisecond per read, and a log the tests read back.
 
 pub mod card;
+mod card_dev;
+mod card_flags;
+pub mod dev;
 pub mod host;
+pub mod sd;
+mod sd_rig;
 
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 pub use card::{CardCfg, St};
 pub use host::{CmdRec, HostCfg, Sim, SimBus, GLK_CAPS};
+pub use sd_rig::sd_slot;
 
 use crate::emmc::disk::{EmmcDisk, DATA_BUF_BYTES};
 use crate::emmc::env::{Clock, DmaBuf, Log};

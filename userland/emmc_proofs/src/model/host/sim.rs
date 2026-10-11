@@ -20,6 +20,7 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use super::super::card::{Card, CardCfg};
+use super::super::sd::SdCard;
 use super::cfg::HostCfg;
 use super::types::{CmdRec, Desc};
 
@@ -28,6 +29,7 @@ pub struct Sim {
     pub(super) regs: [u8; 256],
     pub(super) int: u32,
     pub card: Card,
+    pub sd: Option<SdCard>,
     pub(super) now: Rc<Cell<u64>>,
     /// DMA memory: (bus address, host pointer, length).
     pub mem: Vec<(u64, usize, usize)>,
@@ -54,6 +56,7 @@ impl Sim {
             regs: [0; 256],
             int: 0,
             card: Card::new(card),
+            sd: None,
             now,
             mem: Vec::new(),
             tc_at: None,
@@ -66,8 +69,7 @@ impl Sim {
         };
         s.reset_all();
         // Firmware left the host running at some setting.
-        s.regs[0x28] = 0x3e;
-        s.regs[0x29] = 0x0b;
+        (s.regs[0x28], s.regs[0x29]) = (0x3e, 0x0b);
         s
     }
 }

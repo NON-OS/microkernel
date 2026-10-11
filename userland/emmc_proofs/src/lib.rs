@@ -66,6 +66,8 @@ mod reason_tests;
 #[cfg(test)]
 mod register_tests;
 #[cfg(test)]
+mod sd_tests;
+#[cfg(test)]
 mod start_list_tests;
 #[cfg(test)]
 mod voltage_tests;
