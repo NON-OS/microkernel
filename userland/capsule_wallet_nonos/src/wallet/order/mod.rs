@@ -23,6 +23,7 @@ mod escrowed;
 pub mod fees;
 mod fees_kind;
 pub mod fresh;
+pub mod held;
 pub mod intake;
 mod market;
 pub mod opened;

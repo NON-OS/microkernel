@@ -61,6 +61,7 @@ fn a_channel_says_where_what_was_paid_and_whether_it_froze() {
     let e18 = 1_000_000_000_000_000_000u128;
     let r = AccountRow {
         channel_id: [1; 32],
+        listing_id: [2; 32],
         chain_id: 11_155_111,
         deposit: 50 * e18,
         settled: 10 * e18,

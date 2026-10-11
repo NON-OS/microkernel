@@ -18,23 +18,26 @@
 //! wanted. The reply pages the channel table ACCOUNT_ROWS_MAX at a time:
 //!
 //!   flags u8 | address[20] | cap u128 | spent u128 | expiry u64 | left u128
-//!   | total u8 | rows u8 | rows x (channel_id[32] | chain_id u64 | deposit u128
+//!   | total u8 | rows u8 | rows x (channel_id[32] | listing_id[32]
+//!   | chain_id u64 | deposit u128
 //!   | settled u128 | cumulative u128 | expiry u64 | frozen u8)
 //!
 //! READY when the meter's key is open (until then address is zero); KEPT when
 //! this boot persists. frozen: settle reported settled above what this meter
-//! signed, from rolled-back state or a lying RPC.
+//! signed, from rolled-back state or a lying RPC. listing_id (v1.4.48) lets the
+//! wallet say a listing already has an open channel.
 
 use alloc::vec::Vec;
 
 pub const ACCOUNT_ROWS_MAX: usize = 32;
-pub const ACCOUNT_ROW_LEN: usize = 32 + 8 + 16 * 3 + 8 + 1;
+pub const ACCOUNT_ROW_LEN: usize = 32 + 32 + 8 + 16 * 3 + 8 + 1;
 pub const READY: u8 = 1 << 0;
 pub const KEPT: u8 = 1 << 1;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct AccountRow {
     pub channel_id: [u8; 32],
+    pub listing_id: [u8; 32],
     pub chain_id: u64,
     pub deposit: u128,
     pub settled: u128,

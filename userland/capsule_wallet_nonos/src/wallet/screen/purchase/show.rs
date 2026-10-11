@@ -21,6 +21,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::rows::rows;
 use super::words::{closable, lead as first};
+use super::words_voucher::another;
 use crate::wallet::etna::backdrop::Backdrop;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
@@ -36,8 +37,11 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     let (sentence, action) = first(p);
     let (close, act) = (closable(p), action.is_some());
     let status = crate::wallet::screen::status::parts(state);
-    let footer =
-        [("Close", Weight::Secondary, close), (action.unwrap_or(""), Weight::Primary, act)];
+    let mut footer = alloc::vec![
+        ("Close", Weight::Secondary, close),
+        (action.unwrap_or(""), Weight::Primary, act)
+    ];
+    footer.extend(another(p).map(|a| (a, Weight::Secondary, true)));
     let spec = FrameSpec {
         number: "13",
         title: "Purchase",
@@ -59,5 +63,5 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     }
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    edges(&l, &[close, act]);
+    edges(&l, &footer.iter().map(|f| f.2).collect::<alloc::vec::Vec<_>>());
 }

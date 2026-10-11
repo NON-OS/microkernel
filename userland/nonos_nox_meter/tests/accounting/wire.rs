@@ -36,6 +36,7 @@ fn account_shows_the_address_budget_and_channel_rows() {
     let a = account(&s, Some([0xaa; 20]), true, NOW, 0);
     assert_eq!((a.flags, a.address, a.cap, a.left), (READY | KEPT, [0xaa; 20], 500, 500));
     assert_eq!((a.total, a.rows[0].channel_id, a.rows[0].frozen), (1, s.channels[0].id, false));
+    assert_eq!(a.rows[0].listing_id, s.channels[0].listing_id, "v1.4.48");
     let past = account(&s, None, true, NOW, 1);
     assert_eq!((past.flags, past.total, past.rows.len()), (KEPT, 1, 0));
 }

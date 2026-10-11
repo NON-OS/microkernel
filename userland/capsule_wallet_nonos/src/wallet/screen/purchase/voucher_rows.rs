@@ -24,12 +24,13 @@ use nonos_nox_config::UNITS;
 
 use crate::wallet::etna::groups::shortened;
 use crate::wallet::order::fees::exact;
+use crate::wallet::order::held::Held;
 use crate::wallet::order::intake::Step;
 use crate::wallet::order::voucher::Voucher;
 use crate::wallet::order::voucher_form::{Budgeted, VoucherForm};
 use crate::wallet::screen::receive_address::checksummed_text;
 
-pub fn rows(v: &Voucher, step: &Step, f: &VoucherForm) -> Vec<(&'static str, String)> {
+pub fn rows(v: &Voucher, step: &Step, f: &VoucherForm, held: Held) -> Vec<(&'static str, String)> {
     let unit = UNITS.iter().find(|(_, w)| *w == v.unit).map_or("unit", |(n, _)| n);
     let mut out = Vec::from([
         ("payee", shortened(&checksummed_text(&v.payee))),
@@ -37,9 +38,15 @@ pub fn rows(v: &Voucher, step: &Step, f: &VoucherForm) -> Vec<(&'static str, Str
         ("least charge", format!("{} NOX", exact(v.min_charge))),
         ("unspent", String::from("back to a fresh address of this wallet")),
     ]);
+    if let (Step::Consent, Held::Open(r)) = (step, held) {
+        let left = exact(r.deposit.saturating_sub(r.cumulative));
+        out.push(("open channel", format!("{}, {left} NOX unspent", short(&r.channel_id))));
+    }
+    if let Step::Kept(id) = step {
+        out.push(("channel", short(id)));
+    }
     if let Step::Opened(id) = step {
-        let id: String = id.iter().take(8).map(|b| format!("{b:02x}")).collect();
-        out.push(("channel", format!("0x{id}…")));
+        out.push(("channel", short(id)));
         out.push(match f.budgeted {
             Budgeted::Set => ("cap", format!("this listing may spend {} NOX", exact(f.cap_wei))),
             Budgeted::Failed(why) => ("cap", String::from(why)),
@@ -47,4 +54,9 @@ pub fn rows(v: &Voucher, step: &Step, f: &VoucherForm) -> Vec<(&'static str, Str
         });
     }
     out
+}
+
+fn short(id: &[u8; 32]) -> String {
+    let id: String = id.iter().take(8).map(|b| format!("{b:02x}")).collect();
+    format!("0x{id}…")
 }

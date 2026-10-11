@@ -31,7 +31,7 @@ use crate::wallet::state::{State, VIEW_PURCHASE};
 
 /// Whether the purchase is a voucher channel still to be opened.
 pub fn open_form(p: &Pending) -> bool {
-    matches!((&p.step, &p.read), (Step::Consent, Ok(Named::Voucher(_))))
+    matches!((&p.step, &p.read), (Step::Consent, Ok(Named::Voucher(_)))) && p.held.offers_form()
 }
 
 pub fn paint(p: &Pending, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {

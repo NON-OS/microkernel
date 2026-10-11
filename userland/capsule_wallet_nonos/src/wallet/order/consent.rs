@@ -17,11 +17,16 @@
 /*
  * A purchase on its consent screen, one step a tick (B8): the market read
  * one call at a time, then the shield's quote for an escrow price, so the
- * window never waits on more than one reply.
+ * window never waits on more than one reply. A voucher listing's open
+ * channel is looked for before its form (v1.4.48).
  */
 
 use super::fees::{ask, settled};
+use super::held::{after_page, Held};
+use super::intake::{Pending, Step};
+use super::read::Named;
 use super::reading::{advance, Read};
+use crate::wallet::meter::call::account;
 use crate::wallet::state::State;
 
 /// Whether the screen changed.
@@ -34,5 +39,15 @@ pub fn poll(state: &mut State) -> bool {
         }
         return true;
     }
-    settled(state) || ask(state)
+    held(p) || settled(state) || ask(state)
+}
+
+/// A voucher listing's open channel looked for, one ACCOUNT page a tick.
+fn held(p: &mut Pending) -> bool {
+    let (Step::Consent, Ok(Named::Voucher(v)), Held::Asking(from)) = (&p.step, &p.read, p.held)
+    else {
+        return false;
+    };
+    p.held = after_page(account(from).as_ref(), from, v, nonos_tls::rtc_now());
+    true
 }

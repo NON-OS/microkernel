@@ -54,10 +54,10 @@ pub(super) fn call(op: u16, body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
     }
 }
 
-/// The meter's first page of ACCOUNT, or None when it did not answer.
-pub fn account() -> Option<Account> {
+/// The meter's ACCOUNT page from channel `from`, or None when it did not answer.
+pub fn account(from: u8) -> Option<Account> {
     let max = HEAD_LEN + ACCOUNT_ROWS_MAX * ACCOUNT_ROW_LEN;
-    Account::parse(&call(OP_ACCOUNT, &[0], max).ok()?)
+    Account::parse(&call(OP_ACCOUNT, &[from], max).ok()?)
 }
 
 pub fn set_budget(body: &[u8]) -> Result<(), i32> {
