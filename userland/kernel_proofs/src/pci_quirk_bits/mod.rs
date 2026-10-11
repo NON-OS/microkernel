@@ -19,7 +19,7 @@
  * beyond Command and MSI-X. The real rule is included by path.
  */
 
-#[path = "../../../../src/hardware/broker/pci/quirk_bits.rs"]
+#[path = "../../../../src/hardware/broker/pci/quirk_bits/mod.rs"]
 pub mod quirk_bits;
 
 #[cfg(test)]

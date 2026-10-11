@@ -243,7 +243,7 @@ to its width, inside the first 256 bytes, and returns the value
 (`src/hardware/broker/pci/read.rs`). A write is one 16-bit register and may
 change only the Command register's Memory Space (bit 1), Bus Master (bit 2) and
 Interrupt Disable (bit 10) bits, the MSI-X Message Control register's Function
-Mask and Enable bits, and the vendor bits `pci/quirk_bits.rs` names for audio
+Mask and Enable bits, and the vendor bits `pci/quirk_bits/` names for audio
 and network functions (`src/hardware/broker/pci/allowlist.rs`). Anything else
 is `EINVAL`. A value too wide to be a 16-bit register is refused by the
 dispatch arm with `EINVAL` rather than written with its top half dropped.
@@ -292,7 +292,6 @@ irq/errno_map.rs, dma.rs, pci.rs, pio/errno.rs}`.
 
 - No broker call grants access without both the capability and current device
   ownership.
-- Grants are scoped to one owner process and one claim epoch, and are dropped
   when the claim is released or the process exits.
 - MMIO grants stay inside the claimed device's BARs and never map an MSI-X
   table or PBA.
