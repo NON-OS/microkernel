@@ -31,7 +31,7 @@ fn words(seed: u64) -> [[u8; 32]; 5] {
         x ^= x << 17;
         // The low bytes always, a high byte rarely: both paths are taken.
         let low = if i < 32 { 31 } else { 24 };
-        *b = if i % 32 >= low || (x >> 8) % 97 == 0 { x as u8 } else { 0 };
+        *b = if i % 32 >= low || (x >> 8).is_multiple_of(97) { x as u8 } else { 0 };
     }
     w
 }
