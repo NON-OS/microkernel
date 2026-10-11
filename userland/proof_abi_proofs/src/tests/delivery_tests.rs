@@ -14,24 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_proof_abi::{meas_chain, meas_step, req_digest, rsp_digest, Delivery};
+use nonos_proof_abi::{meas_chain, meas_step, nonce_ref, req_digest, rsp_digest, Delivery};
+
+const NONCE: [u8; 32] = [9; 32];
 
 #[test]
 fn a_delivery_body_reads_back_as_written() {
     let d = Delivery {
         record_id: [1; 32],
         service_meas: [2; 32],
-        req: req_digest(b"q"),
-        rsp: rsp_digest(b"a"),
-        order_id: [5; 32],
+        req: req_digest(&NONCE, b"q"),
+        rsp: rsp_digest(&NONCE, b"a"),
+        order_ref: nonce_ref(&NONCE, &[5; 32]),
         from: 10,
         to: u64::MAX,
-        channel_id: [6; 32],
+        channel_ref: nonce_ref(&NONCE, &[6; 32]),
     };
     let b = d.encode();
     assert_eq!(Delivery::decode(&b), Some(d));
     assert_eq!(Delivery::decode(&b[..207]), None);
-    assert_ne!(req_digest(b"x"), rsp_digest(b"x"), "a request is never a response");
+    assert_eq!(&b[128..160], &d.order_ref);
+    assert_eq!(&b[176..], &d.channel_ref);
+    assert_ne!(req_digest(&NONCE, b"x"), rsp_digest(&NONCE, b"x"), "a request is never a response");
 }
 
 #[test]
