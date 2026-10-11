@@ -14,29 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The client's object table.
 
 use alloc::vec::Vec;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Object {
-    Display,
-    Registry,
-    Callback,
-    Compositor,
-    Shm,
-    ShmPool,
-    Buffer,
-    Surface,
-    XdgBase,
-    XdgSurface,
-    XdgToplevel,
-    Seat,
-    Pointer,
-    Keyboard,
-    Output,
-}
+#[path = "object_kind.rs"]
+mod kind;
+
+pub use kind::Object;
 
 /// The most objects one client holds at once. A real client holds a few
 /// hundred; without a ceiling, a client creating objects it never destroys

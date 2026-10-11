@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Draining the client's requests and answering what is understood.
 
 use core::mem;
 
 use crate::linux::guest::Guest;
 
-use super::object::Object;
-use super::ops::req;
+use super::args::Args;
 use super::route::route;
 use super::unserved::unserved;
-use super::args::Args;
 use super::wire::{malformed, walk, Msg};
 
 /// Serve what has arrived, while the client is reading what it is told: a
@@ -66,14 +63,4 @@ fn one(guest: &mut Guest, msg: Msg<'_>) {
     if !route(guest, object, msg.object, msg.opcode, &mut args) {
         unserved(object, msg.opcode);
     }
-}
-
-/// Requests that only remove something.
-pub fn is_destructor(object: Option<Object>, opcode: u16) -> bool {
-    matches!(
-        (object, opcode),
-        (Some(Object::Buffer), req::BUFFER_DESTROY)
-            | (Some(Object::ShmPool), req::POOL_DESTROY)
-            | (Some(Object::Surface), req::SURFACE_DESTROY)
-    )
 }

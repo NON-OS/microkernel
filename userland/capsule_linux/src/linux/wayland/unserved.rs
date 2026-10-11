@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Naming a request this shim does not serve yet.
 
 use super::object::Object;
@@ -36,6 +35,7 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::Pointer => b"wl_pointer",
         Object::Keyboard => b"wl_keyboard",
         Object::Output => b"wl_output",
+        Object::Region => b"wl_region",
     }
 }
 
