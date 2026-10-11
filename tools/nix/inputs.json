@@ -3867,6 +3867,20 @@
   "md": [],
   "signed": []
  },
+ "userland/proof_abi_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "userland/nonos_proof_abi",
+   "userland/proof_abi_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/prove_proofs": {
   "exclude": [
    "nonos-attest-path/fuzz",
