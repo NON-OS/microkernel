@@ -23,11 +23,14 @@ impl Wallet {
         let amount = parse_base_units(&amount)?;
         // A deposit is public, so it is a standard size inside the pool's range, whole note units.
         let units = u64::try_from(amount.checked_div(asset.scale).unwrap_or(0)).unwrap_or(0);
-        if amount.checked_rem(asset.scale) != Some(0) || !asset.allows(units) {
+        if amount.checked_rem(asset.scale) != Some(0) {
             return Err(WalletError::NotStandard);
         }
         let (from, to) = self.with(|s| (s.evm().address(), s.address()))?;
         let tor = self.tor()?;
+        if !crate::net::policy_standard::standard_now(&tor, &ACTIVE, asset, units)? {
+            return Err(WalletError::NotStandard);
+        }
         let state = read_pool_state_checked(&tor, &RPCS, &ACTIVE, &from, asset.id)?;
         if state.scale != asset.scale {
             return Ok(refused(

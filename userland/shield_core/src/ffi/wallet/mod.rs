@@ -35,6 +35,7 @@ mod shield;
 mod shield_split;
 mod shield_view;
 mod spend;
+mod spend_gate;
 mod swap_rate;
 mod swap_view;
 mod sync_each;
