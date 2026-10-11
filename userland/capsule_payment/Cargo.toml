@@ -25,6 +25,10 @@ nonos_market_proto = { path = "../market_proto" }
 nonos_marketplace_abi = { path = "../marketplace_abi" }
 nonos_nox_config = { path = "../nonos_nox_config" }
 nonos_nox_meter = { path = "../nonos_nox_meter" }
+# ORDER_OFFER: the answer's seal, the proof of work, the buyer key.
+nonos_nox_chunks = { path = "../nonos_nox_chunks" }
+nonos_equix = { path = "../nonos_equix" }
+x25519-dalek = { version = "=2.0.1", default-features = false, features = ["static_secrets", "zeroize"] }
 nonos_payment_proto = { path = "../payment_proto" }
 nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }

@@ -21,6 +21,7 @@
 
 mod after;
 mod ask;
+mod fetch;
 mod plans;
 mod reads;
 mod status;

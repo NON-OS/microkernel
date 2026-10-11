@@ -39,3 +39,9 @@ pub const OP_JOB: u16 = 15;
 /// Wallet: claim the NOX the Shield pool credited the meter (v1.4.17).
 /// Body: chain_id u64. A job; its result is claimTx.
 pub const OP_CLAIM: u16 = 16;
+/// Wallet: fetch, open and keep an escrow offer. A job; its
+/// result is offerId | cipherRoot | keyCommit.
+pub const OP_ORDER_OFFER: u16 = 17;
+/// app.linux.install: an order's checked plaintext, orderId | offset u64,
+/// up to PLAINTEXT_PAGE bytes a reply.
+pub const OP_ORDER_PLAINTEXT: u16 = 18;

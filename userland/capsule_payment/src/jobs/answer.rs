@@ -21,11 +21,14 @@
 
 use nonos_libc::mk_service_lookup;
 use nonos_payment_proto::EIO;
-use nonos_settle_proto::{async_answer, parse_header, Gas, ReplyError, OP_GAS, OP_READ, SERVICE};
+use nonos_settle_proto::{async_answer, parse_header, Gas, Page, ReplyError, OP_FETCH, OP_GAS};
+use nonos_settle_proto::{OP_READ, SERVICE};
 
 use super::ask::{hash, words};
 use super::drive::advance;
 use super::work::Work;
+use crate::keccak::Host;
+use crate::keys::Dalek;
 use crate::meter::{now_ms, Meter};
 use crate::server::status_of;
 
@@ -61,6 +64,9 @@ pub(crate) fn on_frame(work: &mut Work, meter: &Meter, sender: u32, rx: &[u8]) -
             OP_GAS => Gas::parse(body).ok_or(EIO).and_then(|g| {
                 run.flow.on_gas(&g, &meter.state, (&run.contracts, now / 1000)).map_err(status_of)
             }),
+            OP_FETCH => Page::parse(body)
+                .ok_or(EIO)
+                .and_then(|p| run.flow.on_page(&p, (&Host, &Dalek)).map_err(status_of)),
             _ => hash(body).map(|h| run.flow.on_hash(&h)).ok_or(EIO),
         },
     };
