@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The refund's destination: the Shield seed's next fresh public
- * address, used once, never the pool and never a contract.
+ * The refund's or the reclaim's destination: a Shield
+ * address handed out once (mode 1), so no two orders or channels share
+ * one; never the pool and never a contract.
  */
 
-use shield_wire::{field, OP_FRESH_ADDRESS, STATUS_OK};
+use shield_wire::{field, FRESH_ONCE, OP_FRESH_ADDRESS, STATUS_OK};
 
 use crate::wallet::event::hex_digit::hex_digit;
 use crate::wallet::shield::client::call;
@@ -27,7 +28,7 @@ use crate::wallet::shield::client::call;
 const NO_FRESH: &str = "The shield gave no fresh address for a refund, so nothing was ordered.";
 
 pub fn fresh_address() -> Result<[u8; 20], &'static str> {
-    let a = call(OP_FRESH_ADDRESS, &[])?;
+    let a = call(OP_FRESH_ADDRESS, &[FRESH_ONCE])?;
     let text = field(&a.body, "address").filter(|_| a.status == STATUS_OK).ok_or(NO_FRESH)?;
     let hex = text.strip_prefix("0x").unwrap_or(text).as_bytes();
     if hex.len() != 40 {
