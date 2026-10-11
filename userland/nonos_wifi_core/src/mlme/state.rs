@@ -22,6 +22,7 @@ use alloc::vec::Vec;
 
 use super::failure::MlmeFailure;
 use crate::dot11::ies::Rates;
+use crate::regdom::{Domain, WORLD};
 use crate::rsn::{JoinPolicy, Selection};
 use crate::sae::SaeStation;
 use crate::wpa::akm::Akm;
@@ -99,6 +100,7 @@ pub struct Mlme {
     pub(super) sae_entropy: Option<[u8; SAE_ENTROPY]>,
     pub(super) bssid: [u8; 6],
     pub(super) channel: u8,
+    pub(super) domain: Domain,
     pub(super) seq: u16,
     pub(super) selection: Option<Selection>,
     pub(super) ap_rsne: Ie,
@@ -149,6 +151,7 @@ impl Mlme {
             sae_entropy: Some(req.entropy.sae),
             bssid: [0u8; 6],
             channel: 0,
+            domain: WORLD,
             seq: 0,
             selection: None,
             ap_rsne: Ie::NONE,

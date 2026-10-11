@@ -27,6 +27,7 @@ mod assoc;
 mod auth;
 mod beacon;
 mod failure;
+mod regulatory;
 mod state;
 mod step;
 

@@ -41,7 +41,7 @@ impl Mlme {
         let Some(info) = parse_beacon(frame) else {
             return MlmeOutput::none();
         };
-        if info.ssid != self.ssid() {
+        if info.ssid != self.ssid() || !self.channel_open(info.channel) {
             return MlmeOutput::none();
         }
         let Some(tags) = beacon_tags(frame) else {
