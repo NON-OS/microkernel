@@ -219,6 +219,7 @@ A supervising capsule that holds `ForeignExec`, such as the [Linux personality](
 | `MFFK` | `0x4B46464D` | `MkForeignFork` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Make a second process holding a guest's register state. |
 | `MPUN` | `0x4E55504D` | `MkPeerUnmap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Take pages back from a guest. |
 | `MFEX` | `0x5845464D` | `MkForeignExec` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Replace the program a parked guest is running. |
+| `MLRN` | `0x4E524C4D` | `MkLinuxRunNet` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:170` | Ask init to start this Linux run again with Network; only the run role, for its own pid. |
 
 ### Crypto
 
