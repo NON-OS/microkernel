@@ -25,6 +25,7 @@ use nonos_settle_proto::Gas;
 use sha3::{Digest, Keccak256};
 
 use super::fixture::{gas, state, CHAIN, METER, NOW};
+use super::ret::{ret, word};
 
 const POOL: [u8; 20] = [0x9c; 20];
 const AT: Contracts = Contracts { nox: [0; 20], settlement: [0; 20], pool: POOL };
@@ -34,8 +35,8 @@ fn a_claim_reads_claimable_then_signs_one_claim_to_the_meter() {
     let job = Work::Claim { chain_id: CHAIN, meter: METER };
     assert_eq!(job.needs(), [Contract::ShieldPool]);
     let (mut f, first) = Flow::begin(job.clone());
-    assert_eq!(first, Next::Ask(Ask::Claimable));
-    assert_eq!(f.on_read(5_000), Ok(Next::Ask(Ask::Gas)));
+    assert_eq!(first, Next::Ask(Ask::View { view: 60, args: vec![ret(1)[0], word(&METER)] }));
+    assert_eq!(f.on_view(ret(5_000)), Ok(Next::Ask(Ask::Gas)));
     let g = Gas { balance: u128::from(CLAIM_GAS) * 10, ..gas() };
     let Ok(Next::Sign(txs)) = f.on_gas(&g, &state(), (&AT, NOW)) else { panic!("no claim") };
     let tx = &txs[0];
@@ -44,7 +45,7 @@ fn a_claim_reads_claimable_then_signs_one_claim_to_the_meter() {
     assert_eq!(f.on_signed(vec![vec![1; 3]]), Next::Ask(Ask::Broadcast(vec![1; 3])));
     assert_eq!(f.on_hash(&[0xc1; 32]), Next::Done(vec![0xc1; 32]));
     let (mut empty, _) = Flow::begin(job);
-    assert_eq!(empty.on_read(0), Err(MeterError::NothingOwed));
+    assert_eq!(empty.on_view(ret(0)), Err(MeterError::NothingOwed));
 }
 
 #[test]
