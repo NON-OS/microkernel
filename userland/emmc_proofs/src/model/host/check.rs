@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The rules a command must keep as it is issued: no inhibited line, and
-//! the response flags its command needs.
+//! the response flags the card in the slot needs for it.
 
-use super::flags::RESP_FLAGS;
 use super::sim::Sim;
 
 impl Sim {
@@ -27,11 +26,9 @@ impl Sim {
         if ps & 1 != 0 || (ps & 2 != 0 && (word & 0x20 != 0 || word & 3 == 3) && !abort) {
             self.violate(format!("CMD{index} issued while inhibited"));
         }
-        match RESP_FLAGS.iter().find(|(i, _)| *i == index) {
-            Some((_, f)) if *f == word & 0xff => {}
-            Some((_, f)) => {
-                self.violate(format!("CMD{index} flags {:#x}, want {:#x}", word & 0xff, f))
-            }
+        match self.dev_ref().flags(index) {
+            Some(f) if f == word & 0xff => {}
+            Some(f) => self.violate(format!("CMD{index} flags {:#x}, want {:#x}", word & 0xff, f)),
             None => self.violate(format!("CMD{index} is not a command the driver should send")),
         }
     }
