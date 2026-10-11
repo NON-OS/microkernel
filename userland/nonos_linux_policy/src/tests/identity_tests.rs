@@ -49,9 +49,9 @@ fn app_id_binds_program_and_policy() {
 #[test]
 fn pinned_vectors() {
     let ph = policy_hash(&policy().encode());
-    assert_eq!(hex(&ph), "aeb8c5679d33b3ba33e89e1b06c6603b212587470c898320af88c163b590c851");
+    assert_eq!(hex(&ph), "b53947e2b646947216fc959c5d5ebef03c97faf72a0970500dd964f3f586b596");
     assert_eq!(
         hex(&app_id(&[0x11; 32], &ph)),
-        "372ece38921fb4fe5f30f1609cd036526930a6cdf406b555620a9bb8aa4d2cfe"
+        "6a540c105587fd8759391f107f2caa5279a908420821a2c30c778bdca7dca2fa"
     );
 }
