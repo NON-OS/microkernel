@@ -39,9 +39,6 @@ pub fn built_in(
         return Err(errno::fail(errno::ENOENT));
     }
     let bytes = crate::linux::built_in::built_in().bytes;
-    let app = match named {
-        Some(app) => app,
-        None => bind_built_in(&bytes).map_err(|_| errno::fail(errno::EPERM))?,
-    };
+    let app = named.unwrap_or_else(|| bind_built_in(&bytes));
     Ok(Program { path: b"/bin/busybox".to_vec(), bytes, argv, app })
 }
