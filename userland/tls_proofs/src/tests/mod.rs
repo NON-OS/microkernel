@@ -42,6 +42,8 @@ mod chain_validity;
 mod crypto_requests;
 mod der_build;
 mod fake_server;
+mod handshake_deadline;
+mod handshake_flight_cap;
 mod flight_alert;
 mod flight_complete;
 mod flight_order;
