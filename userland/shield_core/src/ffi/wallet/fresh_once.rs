@@ -25,6 +25,19 @@ impl Wallet {
         Ok(fresh_once(&self.paths().account, count, ahead)?.map(|a| checksummed(&a)))
     }
 
+    /// Mode 3, the restore scan's batch: AHEAD addresses from `from`, derived
+    /// from the seed the vault gives again, and dropped with it. None for a
+    /// wallet from a private key, which has no other address.
+    pub fn fresh_batch(&self, from: u32) -> Result<Vec<(u32, [u8; 20])>, WalletError> {
+        if self.with(|s| s.imported)? || from > crate::wallet::fresh::MAX_HANDED {
+            return Ok(Vec::new());
+        }
+        let seed = crate::custody::Vault::at(self.paths().vault.clone()).load(self.guard())?;
+        let batch = crate::wallet::fresh::derive_ahead(seed.bytes(), from);
+        drop(seed);
+        Ok(batch)
+    }
+
     /// Mode 2: every address handed out, index and lowercase hex, without the session.
     pub fn fresh_handed(&self) -> Vec<(u32, String)> {
         crate::wallet::fresh::handed_all(&self.paths().account)

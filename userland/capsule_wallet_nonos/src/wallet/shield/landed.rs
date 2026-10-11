@@ -14,43 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * Refunds and reclaims that landed at a fresh address (B7, v1.4.52): the
- * addresses the Shield handed out once, past every account, so no account
- * list shows them. Each one's NOX is read, and any that holds some gets a
- * row, so the money is never out of sight. Pure: the reads are the
- * caller's.
- */
+//! Refunds and reclaims landed at once-only addresses (B7, v1.4.56): the due
+//! list's reads and the restore scan's, one address per settle request,
+//! spaced by a random few seconds. Pure: reads and randomness are the caller's.
 
 use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-/// The newest handed addresses read each time the Shield opens.
-pub const MOST_READ: usize = 16;
+use super::due::Due;
+use super::scan::Scan;
+
+/// The spacing between two reads: SPACE_MS plus up to SPACE_MS more.
+pub const SPACE_MS: u64 = 2_000;
+/// The most addresses one batch from the Shield may carry.
+pub const BATCH_MAX: usize = 64;
 
 #[derive(Default)]
 pub struct Landed {
-    /// Index and address, newest first, once the Shield has listed them.
-    pub list: Option<Vec<(u32, [u8; 20])>>,
-    /// The next of `list` whose NOX is read.
-    pub next: usize,
-    /// Each handed index that holds NOX, and how much.
-    pub found: Vec<(u32, u128)>,
+    pub due: Due,
+    pub scan: Scan,
+    /// When the next read may go out (uptime ms).
+    pub next_ms: u64,
+    /// The address being read, and whether for the scan.
+    pub reading: Option<([u8; 20], bool)>,
+    /// The scan's batch was asked of the Shield as a job.
+    pub derive_asked: bool,
 }
 
-/// OP_FRESH_ADDRESS mode 2's `handed` values, index|0x and 40 hex; a value
-/// that does not read is skipped. Newest first, at most MOST_READ.
+/// The wait before the next read, from a random 16-bit draw.
+pub fn spacing(draw: u16) -> u64 {
+    SPACE_MS + (draw as u64 * SPACE_MS) / u16::MAX as u64
+}
+
+/// The Shield's `handed` values, index|0x and 40 hex, in index order, each
+/// index once, at most BATCH_MAX; a value that does not read is skipped.
 pub fn parse_handed<'a>(values: impl Iterator<Item = &'a str>) -> Vec<(u32, [u8; 20])> {
     let one = |v: &str| -> Option<(u32, [u8; 20])> {
         let (i, a) = v.split_once('|')?;
         let bytes = shield_wire::unhex(a).filter(|b| b.len() == 20)?;
         Some((i.parse().ok()?, bytes.try_into().ok()?))
     };
-    let mut all: Vec<(u32, [u8; 20])> = values.filter_map(one).collect();
-    all.sort_by(|a, b| b.0.cmp(&a.0));
+    let mut all: Vec<(u32, [u8; 20])> = values.filter_map(one).take(BATCH_MAX * 4).collect();
+    all.sort_by_key(|h| h.0);
     all.dedup_by_key(|h| h.0);
-    all.truncate(MOST_READ);
+    all.truncate(BATCH_MAX);
     all
 }
 
@@ -61,6 +69,7 @@ pub fn balance_of(words: &[[u8; 32]]) -> Option<u128> {
     high.iter().all(|b| *b == 0).then(|| u128::from_be_bytes(low.try_into().unwrap_or([0; 16])))
 }
 
-pub fn line(index: u32, nox: &str) -> String {
-    format!("fresh address {index}: {nox} NOX, a refund or a reclaim")
+pub fn line(address: &[u8; 20], nox: &str) -> String {
+    let short: String = address.iter().take(4).map(|b| format!("{b:02x}")).collect();
+    format!("0x{short}…: {nox} NOX, a refund or a reclaim")
 }

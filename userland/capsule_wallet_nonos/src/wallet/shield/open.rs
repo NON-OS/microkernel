@@ -80,7 +80,7 @@ fn held(
     let open = field(&a.body, "unlocked") == Some("1")
         && field(&a.body, "account").is_some_and(|x| x.eq_ignore_ascii_case(account));
     if open {
-        super::apply::state(state, &a.body);
+        super::apply_state::state(state, &a.body);
         *running = field(&a.body, "job").map(String::from);
     }
     Ok(open)

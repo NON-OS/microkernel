@@ -23,6 +23,7 @@
 use nonos_app_skeleton::EventOutcome;
 
 use crate::wallet::screen::hits::Press;
+use crate::wallet::shield::scan_job;
 use crate::wallet::state::shield_ui::{FIELD_TO, SHIELD_HOME};
 use crate::wallet::state::State;
 
@@ -54,16 +55,12 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
         Press::Dest(d) => (ui.to_meter, ui.to_deposit) = (d == 1, None),
         Press::Field(f) => ui.focus = f,
         Press::Footer(n) => return super::footer::footer(state, n),
+        Press::Row(super::landed::ROW_SCAN) if ui.screen == SHIELD_HOME => scan_job::start(state),
+        Press::Row(super::landed::ROW_FURTHER) if ui.screen == SHIELD_HOME => {
+            scan_job::further(state)
+        }
         Press::Row(super::home_receive::ROW_COPY) if ui.screen == SHIELD_HOME => {
-            if let Some(addr) = &ui.nox1 {
-                let copied =
-                    nonos_app_skeleton::clients::clipboard::clipboard_copy(addr.as_bytes());
-                state.status = if copied.is_ok() {
-                    b"private address copied"
-                } else {
-                    b"the clipboard did not take it"
-                };
-            }
+            super::home_receive::copy(state)
         }
         _ => return EventOutcome::Idle,
     }

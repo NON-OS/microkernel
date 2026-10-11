@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! SIGN_FROM_FRESH (op 17, the plan, v1.4.51): a refund or a dispute signed
-//! by a fresh address the shield handed out. Fields, one to a line:
+//! SIGN_FROM_FRESH (op 17, the plan, v1.4.51): a refund or dispute signed by
+//! a fresh address the shield handed out. Fields, one to a line:
 //! address, chain_id, nonce, gas, max_fee, max_priority, to, value, data;
 //! addresses and data as 0x hex, numbers in decimal. A job: its RESULT is
 //! `raw` and `hash`, both 0x hex, or `why` when refused.
@@ -27,9 +27,6 @@ use alloc::vec::Vec;
 use crate::hexes::{hex, unhex};
 
 pub const OP_SIGN_FROM_FRESH: u16 = 17;
-/// OP_FRESH_ADDRESS's modes: an address no order shares, and their list (v1.4.52).
-pub const FRESH_ONCE: &str = "1";
-pub const FRESH_HANDED: &str = "2";
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct FreshAsk {

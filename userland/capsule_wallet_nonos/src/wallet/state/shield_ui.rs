@@ -158,7 +158,7 @@ pub struct ShieldUi {
     pub live: bool,
     /* Result asks in a row the service did not answer, and the uptime of
      * the next one: a service that stops answering is asked less often,
-     * and after `job::MISSES` the job is said lost. */
+     * and after `job_steps::MISSES` the job is said lost. */
     pub misses: u8,
     pub poll_at_ms: i64,
 }

@@ -44,3 +44,11 @@ fn an_added_account_never_makes_a_handed_address_come_back() {
     assert_eq!(highest_handed(&dir), None, "an index past MAX_HANDED is not read");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn a_scan_batch_never_passes_max_handed() {
+    let tail: Vec<u32> = derive_ahead(&seed(), MAX_HANDED - 2).iter().map(|a| a.0).collect();
+    assert_eq!(tail, [MAX_HANDED - 2, MAX_HANDED - 1, MAX_HANDED]);
+    assert!(derive_ahead(&seed(), MAX_HANDED + 1).is_empty());
+    assert!(derive_ahead(&seed(), u32::MAX).is_empty(), "no wrap past the end");
+}
