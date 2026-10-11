@@ -31,6 +31,7 @@ pub mod budget;
 pub mod caller;
 pub mod channel;
 mod error;
+pub mod escrow;
 mod fees;
 pub mod flow;
 pub mod job;
