@@ -33,6 +33,9 @@ pub fn forget(guest: &mut Guest, what: Option<Object>, id: u32) {
     match what {
         Some(Object::Buffer) => scene.buffers.retain(|b| b.id != id),
         Some(Object::Surface) => scene.surfaces.retain(|s| s.id != id),
+        // A released pointer or keyboard is sent nothing more.
+        Some(Object::Pointer) if scene.pointer == Some(id) => scene.pointer = None,
+        Some(Object::Keyboard) if scene.keyboard == Some(id) => scene.keyboard = None,
         _ => {}
     }
     /* A pool goes once its object is gone and no buffer is made from it. */
