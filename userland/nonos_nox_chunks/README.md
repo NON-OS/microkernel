@@ -25,6 +25,10 @@ from the caller through marketplace_abi's `Keccak`.
   CREATE2 by the escrow, salt orderId, of an EIP-1167 clone of the
   DepositForwarder; `create2` meets EIP-1014's examples.
 - The seller's agent (`reveal_ok`, `may_send`, `Mine`): plan/22 step 4.
+- The buyer's terms (`buyer_terms`, `Sale`, `Buyer`): token NOX, refundTo
+  behind refundCommit, a deadline in [now + ORDER_MIN_LEAD, now +
+  MAX_DELIVERY - DELIVER_MARGIN]; a test shows the seller's `reveal_ok`
+  accepts what the buyer writes.
 - Orders (`OrderTerms`, `order_id`, `refund_commit`): the fourteen-word
   terms tuple settle_proto names for fund(T), under ORDER_TAG and REFUND_TAG
   from nonos_nox_config.

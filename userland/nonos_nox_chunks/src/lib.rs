@@ -23,6 +23,8 @@
 
 extern crate alloc;
 
+mod buyer;
+mod buyer_types;
 mod chunk;
 mod cipher;
 mod delivery;
@@ -38,6 +40,8 @@ mod seller_types;
 mod terms;
 mod tree;
 
+pub use buyer::buyer_terms;
+pub use buyer_types::{Buyer, OrderWrong, Sale};
 pub use chunk::{chunk, chunk_count, CHUNK};
 pub use cipher::{key_commit, keystream_word, xor_chunk};
 pub use delivery::{open_delivery, Delivered};
