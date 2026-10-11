@@ -18,7 +18,12 @@ use crate::arch::fdt::property::Property;
 
 #[derive(Debug)]
 pub enum Event<'a> {
-    BeginNode { name: &'a [u8] },
+    /// `body` is the structure offset just past the name, where the node's
+    /// own tokens begin; a `NodeRef` keeps it to come back to the node.
+    BeginNode {
+        name: &'a [u8],
+        body: usize,
+    },
     EndNode,
     Property(Property<'a>),
 }
