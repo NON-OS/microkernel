@@ -30,6 +30,8 @@ mod deliver_stack;
 mod deliver_wait;
 mod dispatch;
 mod family;
+mod family_answer;
+mod family_died;
 mod family_exit;
 mod family_futex;
 mod family_interrupt;
