@@ -26,10 +26,11 @@ use crate::queue::{RxRing, TxRing};
 use crate::regs::Regs;
 
 use super::driver::Driver;
-use super::{claim, dma, mmio};
+use super::{claim, dma, mmio, pci};
 
 pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let epoch = claim::claim(dev.device_id)?;
+    pci::enable(dev.device_id, epoch)?;
     let window = mmio::map(dev, epoch)?;
     let g = dma::map_all(dev.device_id, epoch, &window)?;
     let ring = |off: usize| (g.control.user_va + off as u64, g.control.device_addr + off as u64);
