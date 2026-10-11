@@ -28,6 +28,7 @@ pub fn get_pointer(guest: &mut Guest, args: &mut Args<'_>) {
         return;
     }
     guest.scene.pointer = Some(id);
+    guest.scene.pointer_on = None;
 }
 
 pub fn get_keyboard(guest: &mut Guest, args: &mut Args<'_>) {
@@ -35,8 +36,9 @@ pub fn get_keyboard(guest: &mut Guest, args: &mut Args<'_>) {
     if !guest.objects.put(id, Object::Keyboard) {
         return;
     }
+    // A new keyboard is on no surface until it is told it is, with nothing
+    // down (input_enter.rs).
     guest.scene.keyboard = Some(id);
-    // A new keyboard is told nothing is down (input_enter.rs), so nothing is.
-    guest.scene.held = super::held_keys::HeldKeys::new();
+    guest.scene.keyboard_on = None;
     super::keymap::send(guest, id);
 }

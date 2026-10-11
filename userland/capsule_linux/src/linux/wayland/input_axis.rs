@@ -19,7 +19,7 @@
 
 use crate::linux::guest::Guest;
 
-use super::input_enter::enter_once;
+use super::input_enter::pointer_on;
 use super::out::Event;
 use super::pointer_codes::wheel_step;
 
@@ -37,7 +37,9 @@ pub fn wheel(guest: &mut Guest, dx: i32, dy: i32, x: i32, y: i32) {
     if steps.iter().all(|(_, s)| s.is_none()) {
         return;
     }
-    enter_once(guest, id, x, y);
+    if !pointer_on(guest, id, x, y) {
+        return;
+    }
     let time = crate::linux::call::family_ms() as u32;
     // The source, the notches and the frame came with wl_pointer 5.
     let v5 = guest.objects.at_least(id, 5);
