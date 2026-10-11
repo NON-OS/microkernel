@@ -63,6 +63,7 @@ mod window_fit_tests;
 mod window_reshape_tests;
 mod wayland_opaque_tests;
 mod wayland_region_tests;
+mod wayland_subsurface_tests;
 mod gram_tests;
 mod family_tests;
 mod futex_tests;
