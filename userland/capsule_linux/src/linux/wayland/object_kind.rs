@@ -36,4 +36,9 @@ pub enum Object {
     Region,
     Subcompositor,
     Subsurface,
+    DataDeviceManager,
+    DataSource,
+    DataDevice,
+    DecorationManager,
+    Decoration,
 }
