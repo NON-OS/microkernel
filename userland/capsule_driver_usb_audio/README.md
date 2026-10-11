@@ -53,7 +53,7 @@ and `device stopped answering` when it is given back.
 
 - `MkServiceLookup` finds `driver.xhci0`; every USB transfer is an IPC call
   to it.
-- `MkIpcRecvFrom` serves `service:4242:driver.usb_audio0`; `MkIpcReply`
+- `MkIpcRecvFrom` serves `service:4246:driver.usb_audio0`; `MkIpcReply`
   answers.
 - `MkGetPid` once, to drop replies it sent itself; `MkMmap` for the heap.
 - `MkDebug` for the log lines, when Debug is granted.
