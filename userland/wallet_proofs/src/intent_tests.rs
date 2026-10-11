@@ -21,7 +21,7 @@ use crate::intent::{calldata, encode, to, Publisher};
 
 const AT: [u8; 20] = [0xAA; 20];
 
-fn every() -> Vec<Publisher> {
+pub(crate) fn every() -> Vec<Publisher> {
     use Publisher::*;
     vec![
         Approve { spender: Contract::PublisherBond, amount: 5 },
