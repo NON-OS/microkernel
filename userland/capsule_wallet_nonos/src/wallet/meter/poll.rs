@@ -47,6 +47,6 @@ pub fn poll(state: &mut State) -> bool {
         Outcome::Failed(why) => state.failure = Some(why),
     }
     state.meter.job = None;
-    state.meter.account = super::call::account();
+    state.meter.account = super::call::account(0);
     true
 }

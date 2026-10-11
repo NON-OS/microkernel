@@ -22,6 +22,7 @@ use nonos_payment_proto::{Names, OpenConfirm, OpenStart, OrderMade, OrderNew};
 
 use super::deliver::Delivery;
 use super::fees::Fees;
+use super::held::Held;
 use super::read::Named;
 use super::reading::Reading;
 use super::voucher_form::VoucherForm;
@@ -37,6 +38,8 @@ pub struct Pending {
     pub watch: Watch,
     pub delivery: Delivery,
     pub form: VoucherForm,
+    /// A channel the voucher listing already has (v1.4.48).
+    pub held: Held,
     pub step: Step,
     /// The fresh address a refund goes to, drawn when the person confirms.
     pub refund_to: [u8; 20],
@@ -52,5 +55,7 @@ pub enum Step {
     Opening(u32, Box<OpenStart>),
     Confirming(Box<OpenConfirm>, u64),
     Opened([u8; 32]),
+    /// The person chose the channel the listing already had.
+    Kept([u8; 32]),
     Failed(&'static str),
 }

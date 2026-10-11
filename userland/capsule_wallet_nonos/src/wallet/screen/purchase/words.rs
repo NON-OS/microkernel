@@ -19,7 +19,6 @@
 use crate::wallet::order::fees::Fees;
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::read::Named;
-use crate::wallet::order::voucher_form::Budgeted;
 
 pub const CONSENT: &str = "The store asks to buy this. What follows is the market's own record, \
      not the store's: buy only if it is what you meant.";
@@ -27,14 +26,6 @@ const QUOTING: &str = "Asking the Shield what funding this price costs. It decid
      the price is one of its standard amounts today.";
 const REFUSED: &str = "The Shield will not fund this price, so it cannot be paid privately, \
      and this wallet does not pay escrow from a plain address yet.";
-const VOUCHER: &str = "This listing is paid by voucher as it is used. Open a channel: set a \
-     deposit and how long it runs; what is not spent comes back to a fresh address of this wallet.";
-const OPENING: &str = "The meter is signing the channel's approval and opening.";
-const CONFIRMING: &str = "Waiting for the chain to mine the channel's opening.";
-const NO_BUDGET: &str = "The channel is open, but the meter has no budget in force, so it would \
-     refuse to pay. Set one: the deposit, for 30 days, with this listing's cap.";
-const OPENED: &str = "The channel is open. Install the app again from the store: it pays from \
-     this channel by voucher.";
 const OFFERING: &str = "The meter is asking the seller's agent for its sealed offer. Its proof \
      of work runs between other payments, so this can take a minute.";
 const ORDERING: &str = "The meter is making the order and checking its deposit address against \
@@ -50,17 +41,14 @@ pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
             Fees::Refused(_) => (REFUSED, None),
             Fees::Unasked | Fees::Asking => (QUOTING, None),
         },
-        (Step::Consent, Ok(Named::Voucher(_))) => (VOUCHER, Some("Open channel")),
         (Step::Consent, Err(why)) => (why, None),
         (Step::Offering(_), _) => (OFFERING, None),
         (Step::Ordering(..), _) => (ORDERING, None),
         (Step::Fund(_), _) => (FUND, Some("Fund from the Shield")),
-        (Step::Opening(..), _) => (OPENING, None),
-        (Step::Confirming(..), _) => (CONFIRMING, None),
-        (Step::Opened(_), _) if p.form.budgeted == Budgeted::NoBudget => {
-            (NO_BUDGET, Some("Set budget for 30 days"))
+        (Step::Consent, Ok(Named::Voucher(_))) => super::words_voucher::consent(p.held),
+        (Step::Opening(..) | Step::Confirming(..) | Step::Opened(_) | Step::Kept(_), _) => {
+            super::words_voucher::lead(p)
         }
-        (Step::Opened(_), _) => (OPENED, None),
         (Step::Failed(why), _) => (why, None),
     }
 }

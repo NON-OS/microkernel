@@ -24,6 +24,8 @@ pub mod delivered;
 mod escrowed;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/fees_kind.rs"]
 pub mod fees_kind;
+#[path = "../../../capsule_wallet_nonos/src/wallet/order/held.rs"]
+pub mod held;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/purchase.rs"]
 pub mod purchase;
 #[path = "../../../capsule_wallet_nonos/src/wallet/order/read.rs"]
