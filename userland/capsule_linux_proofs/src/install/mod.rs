@@ -26,6 +26,12 @@ pub mod http_reply;
 #[path = "../../../capsule_linux/src/linux/install/mirror.rs"]
 pub mod mirror;
 
+/* The escrow pin and the install role's check of a delivery against it,
+ * which the capsule reads once the meter's hand-off lands (I-C5). */
+#[path = "../../../capsule_linux/src/linux/install/escrow_check.rs"]
+pub mod escrow_check;
+#[path = "../../../capsule_linux/src/linux/install/escrow_pin.rs"]
+pub mod escrow_pin;
 #[path = "../../../capsule_linux/src/linux/install/market_arg.rs"]
 pub mod market_arg;
 #[path = "../../../capsule_linux/src/linux/install/market_check.rs"]
