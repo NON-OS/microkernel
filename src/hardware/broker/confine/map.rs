@@ -36,11 +36,11 @@ pub(in crate::hardware::broker) fn map(
         return Ok((phys, false));
     };
     let iova = iova::take(c, length).ok_or(MapFail::Freeable)?;
-    // SAFETY: eK@nonos.systems - `[phys, phys+length)` is a run the broker just
-    // allocated and zeroed for this grant, and frees only after `unmap` below
-    // returns true, or after a refused map is known to have left it unmapped. `[iova, iova+length)` was taken fresh from this domain's
-    // allocator, so nothing is mapped there. Both are page aligned: the broker
-    // refuses a length that is not, and IOVA_BASE is.
+    // SAFETY: eK@nonos.systems - `[phys, phys+length)` is a zeroed run the broker
+    // frees only after `unmap` below returns true or a refused map is known to
+    // have left it unmapped; or, with `DOORBELL`, an MSI doorbell page whose one
+    // register takes a message and reads as zero. `[iova, iova+length)` is fresh
+    // from this domain's allocator; both are page aligned.
     match unsafe { c.domain.map(iova, PhysAddr::new(phys), length as usize, access) } {
         Ok(()) => Ok((iova, true)),
         // Written but not confirmed: the device may reach the frames, so they

@@ -39,23 +39,27 @@ fn context_descriptor() {
     assert_eq!((w0 >> 45) & 0b111, 0b011, "R and A set, ASET clear");
     assert_eq!(w0 >> 48, 0x42, "ASID");
     assert_eq!(c[1], 0x8765_4000, "TTB0 bits 51:4");
-    assert_eq!(c[3], 0xff, "MAIR attribute 0 normal write-back");
+    assert_eq!(c[3], 0x04ff, "MAIR attribute 0 normal write-back, 1 device");
 }
 
 #[test]
 fn page_table_entries() {
-    let rw = pte::page(0x1234_5000, true, true).unwrap();
-    let ro = pte::page(0x1234_5000, true, false).unwrap();
+    let rw = pte::page(0x1234_5000, true, true, false).unwrap();
+    let ro = pte::page(0x1234_5000, true, false, false).unwrap();
     assert_eq!(rw & 0b11, 0b11);
     assert_eq!((rw >> 6) & 0b11, 0b01, "unprivileged read-write");
     assert_eq!((ro >> 6) & 0b11, 0b11, "unprivileged read-only");
-    assert_eq!(pte::page(0x1234_5000, false, true), Some(rw), "write-only maps read-write");
-    assert_eq!(pte::page(0x1234_5000, false, false), None);
+    assert_eq!(pte::page(0x1234_5000, false, true, false), Some(rw), "write-only maps read-write");
+    assert_eq!(pte::page(0x1234_5000, false, false, false), None);
     assert_eq!((rw >> 8) & 0b111, 0b111, "inner shareable, accessed");
     assert_eq!(rw >> 53, 0b11, "never executable");
     assert_eq!(pte::address(rw), 0x1234_5000);
     assert_eq!(pte::table(0x9000 | 0xfff), 0x9003);
     assert!(pte::is_valid(rw) && !pte::is_valid(0));
+    let bell = pte::page(0x0808_0000 | 0x10000, false, true, true).unwrap();
+    assert_eq!((bell >> 2) & 0b111, 1, "MAIR attribute 1, device");
+    assert_eq!((bell >> 8) & 0b11, 0b10, "outer shareable");
+    assert_eq!(bell, 0b11 | 0x0809_0000 | 1 << 6 | 1 << 2 | 0b10 << 8 | 1 << 10 | 0b11 << 53);
 }
 
 #[test]
