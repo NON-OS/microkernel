@@ -122,8 +122,6 @@ pub const SYS_SEAL_READ: u64 = tag4(b"MSLR");
 pub const SYS_SEAL_NOTE: u64 = tag4(b"MSNT");
 /// Ask for the headless prover, app.prove.job; the store's alone.
 pub const SYS_PROVE_JOB: u64 = tag4(b"MPJB");
-/// A caller's measurement and authority byte, for nonos.prove's DELIVER.
-pub const SYS_CALLER_MEAS: u64 = tag4(b"MCMS");
 /// Mint a trailer for something this machine is installing.
 pub const SYS_LOCAL_SIGN: u64 = tag4(b"MLSG");
 /// Ask whether an image is proved under a root this machine trusts.

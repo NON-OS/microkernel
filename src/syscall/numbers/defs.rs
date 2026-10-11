@@ -141,7 +141,6 @@ pub enum SyscallNumber {
     MkSealRead = tag4(b"MSLR"),
     MkSealNote = tag4(b"MSNT"),
     MkProveJob = tag4(b"MPJB"),
-    MkCallerMeas = tag4(b"MCMS"),
     MkLocalSign = tag4(b"MLSG"),
     MkLocalVerify = tag4(b"MLVF"),
     MkAppInstall = tag4(b"MAIN"),
