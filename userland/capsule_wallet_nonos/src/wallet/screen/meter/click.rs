@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::EventOutcome;
 
+use super::channels::{FIELD_TOPUP, ROW_CLOSE, ROW_TOPUP};
 use crate::wallet::screen::hits::Press;
 use crate::wallet::state::{State, VIEW_METER, VIEW_SETTINGS};
 
@@ -26,8 +27,8 @@ pub fn open(state: &mut State) -> EventOutcome {
     refresh(state)
 }
 
-fn refresh(state: &mut State) -> EventOutcome {
-    state.meter.account = crate::wallet::shield::meter_call::account();
+pub(super) fn refresh(state: &mut State) -> EventOutcome {
+    state.meter.account = crate::wallet::meter::call::account();
     state.meter.asked = true;
     EventOutcome::Repaint
 }
@@ -37,33 +38,16 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
         Press::Back => state.view = VIEW_SETTINGS,
         Press::Dismiss => state.failure = None,
         Press::Footer(0) => return refresh(state),
-        Press::Footer(1) => return set(state),
+        Press::Footer(1) => return super::budget::set(state),
         Press::Field(f) => state.meter.focus = f,
+        Press::Row(ROW_TOPUP) => return super::jobs::topup(state),
+        Press::Row(ROW_CLOSE) => return super::jobs::close(state),
+        Press::Row(i) => {
+            state.meter.picked = Some(i);
+            state.meter.focus = FIELD_TOPUP;
+        }
         _ => return EventOutcome::Idle,
     }
     state.scroll = 0;
     EventOutcome::Repaint
-}
-
-/// Set budget: the form as typed into SET_BUDGET, then the account again.
-pub fn set(state: &mut State) -> EventOutcome {
-    use crate::wallet::meter::budget_form::budget_request;
-    let asked = budget_request(&state.meter.cap_text, &state.meter.days_text, nonos_tls::rtc_now());
-    let body = match asked.map(|b| b.encode()) {
-        Ok(Some(body)) => body,
-        Ok(None) => return EventOutcome::Idle,
-        Err(why) => {
-            state.failure = Some(why);
-            return EventOutcome::Repaint;
-        }
-    };
-    match crate::wallet::shield::meter_call::set_budget(&body) {
-        Ok(()) => {
-            state.status = b"budget set";
-            state.meter.cap_text.clear();
-            state.meter.days_text.clear();
-        }
-        Err(s) => state.failure = Some(crate::wallet::meter::said::budget_refusal(s)),
-    }
-    refresh(state)
 }
