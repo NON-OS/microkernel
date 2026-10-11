@@ -33,10 +33,11 @@ use crate::wallet::state::State;
 pub fn show(state: &State, fb: &mut PaintBuffer) {
     hits::clear();
     let Some(p) = state.meter.purchase.as_deref() else { return };
-    let (sentence, buy) = first(p);
-    let close = closable(p);
+    let (sentence, action) = first(p);
+    let (close, act) = (closable(p), action.is_some());
     let status = crate::wallet::screen::status::parts(state);
-    let footer = [("Close", Weight::Secondary, close), ("Buy", Weight::Primary, buy)];
+    let footer =
+        [("Close", Weight::Secondary, close), (action.unwrap_or(""), Weight::Primary, act)];
     let spec = FrameSpec {
         number: "13",
         title: "Purchase",
@@ -55,5 +56,5 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     }
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    edges(&l, &[close, buy]);
+    edges(&l, &[close, act]);
 }
