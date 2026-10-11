@@ -25,7 +25,6 @@
 //! in what happens afterwards.
 
 use super::info::BootInfo;
-use crate::boot::handoff::KernelHandoff;
 use crate::sys::serial;
 
 #[no_mangle]
@@ -68,14 +67,5 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
         serial::println(b"[NONOS] no usable device tree, assuming QEMU virt");
     }
 
-    // Arm the bootstrap heap before any shared code runs. It hands out of a
-    // static region, so it needs nothing but the MMU that init brought up.
-    // x86_64 does this inside its own early setup, which this path does not
-    // share; without it the first allocation is the frame allocator's bitmap
-    // and it fails with the heap reporting no memory at all.
-    crate::memory::heap::manager::init_bootstrap();
-
-    let handoff = KernelHandoff::from_aarch64(&info);
-    crate::kernel_core::microkernel_init(&handoff);
-    crate::kernel_core::microkernel_main()
+    super::core_entry::enter(&info)
 }
