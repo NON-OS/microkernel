@@ -29,8 +29,7 @@ pub mod kernel_inventory;
 pub mod kernel_sd_host;
 pub mod kernel_wire;
 /// Who the capsule serves the medium to.
-#[path = "../../capsule_driver_sdhci/src/server/medium_rule.rs"]
-pub mod medium_rule;
+pub use nonos_blk_wire::medium_rule;
 /// The capsule's block wire, held to the kernel client's in `kernel_wire`.
 #[path = "../../capsule_driver_sdhci/src/protocol/mod.rs"]
 pub mod protocol;
