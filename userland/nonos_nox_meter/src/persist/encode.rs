@@ -34,6 +34,7 @@ pub fn encode(s: &MeterState) -> Option<Vec<u8>> {
     let (chain, nonce) = s.last_settle.unwrap_or((0, 0));
     out.extend_from_slice(&chain.to_le_bytes());
     out.extend_from_slice(&nonce.to_le_bytes());
+    out.extend_from_slice(&s.last_retry.to_le_bytes());
     out.extend_from_slice(&b.cap.to_le_bytes());
     out.extend_from_slice(&b.spent.to_le_bytes());
     out.extend_from_slice(&b.expiry.to_le_bytes());

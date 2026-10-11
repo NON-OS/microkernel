@@ -47,6 +47,6 @@ pub fn channel() -> Channel {
 /// That channel, with a budget of 500 that lasts a day.
 pub fn funded_state() -> MeterState {
     let budget = Budget { cap: 500, spent: 0, expiry: NOW + 86_400, listings: vec![] };
-    let state = MeterState { budget, channels: vec![], last_settle: None };
+    let state = MeterState { budget, channels: vec![], last_settle: None, last_retry: 0 };
     state.with_channel(channel(), NOW).expect("an empty table has room")
 }

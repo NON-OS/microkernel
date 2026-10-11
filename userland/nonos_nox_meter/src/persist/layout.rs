@@ -16,8 +16,8 @@
 //! The meter's state file, little-endian and always STATE_LEN bytes, because
 //! the vfs replaces a persisted record only with one of the same length:
 //!
-//!   "NXMT" | version u16 = 3 | reserved u16 = 0
-//!   | last settle: chain_id u64 | nonce u64 (chain 0: none)
+//!   "NXMT" | version u16 = 4 | reserved u16 = 0
+//!   | last settle: chain_id u64 | nonce u64 (chain 0: none) | last_retry u64
 //!   | budget: cap u128 | spent u128 | expiry u64
 //!   | n u16 | MAX_LISTING_CAPS slots of (listing_id[32] | cap u128 | spent u128)
 //!   | m u16 | MAX_CHANNELS slots of a channel (CHANNEL_LEN bytes)
@@ -29,15 +29,15 @@
 //! The first n and m slots are used and every byte of the rest is zero. A file
 //! that does not read back exactly is refused, and the meter charges nothing
 //! rather than trust a guess. Version 2 added `frozen` (v1.3, E13); version 3
-//! the last settle and `carried` (v1.4.7).
+//! the last settle and `carried` (v1.4.7); version 4 `last_retry` (v1.4.12).
 
 use crate::budget::MAX_LISTING_CAPS;
 use crate::channel::MAX_CHANNELS;
 
 pub const MAGIC: [u8; 4] = *b"NXMT";
-pub const VERSION: u16 = 3;
+pub const VERSION: u16 = 4;
 pub const CHANNEL_LEN: usize = 32 + 20 + 32 + 8 + 8 + 32 + 16 * 3 + 8 + 8 + 32 + 65 + 1 + 16;
 pub const LISTING_LEN: usize = 32 + 16 + 16;
-pub const HEADER_LEN: usize = 4 + 2 + 2 + 8 + 8 + 16 + 16 + 8;
+pub const HEADER_LEN: usize = 4 + 2 + 2 + 8 + 8 + 8 + 16 + 16 + 8;
 pub const STATE_LEN: usize =
     HEADER_LEN + 2 + MAX_LISTING_CAPS * LISTING_LEN + 2 + MAX_CHANNELS * CHANNEL_LEN;
