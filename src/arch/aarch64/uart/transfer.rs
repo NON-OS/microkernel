@@ -14,18 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::state;
-use super::device::Pl011;
+use super::active::Active;
 
-/// Drain the receive FIFO and acknowledge the interrupt.
-///
-/// The bytes go nowhere. Nothing in the kernel consumes serial input on any
-/// architecture yet, and this handed each one to `drivers::input`, a module
-/// that has never existed in the tree, so the handler could not build.
-/// Draining is not optional even with no consumer: a receive FIFO left full
-/// keeps the interrupt asserted and the CPU never gets out of the handler.
-pub fn handle_uart_interrupt() {
-    let uart = Pl011::new(state::uart_base());
-    while uart.getc().is_some() {}
-    uart.clear_interrupts();
+/// The byte path: the same three calls on every UART here.
+impl Active {
+    pub(crate) fn tx_ready(&self) -> bool {
+        match self {
+            Self::Pl011(u) => u.tx_ready(),
+            Self::Ns16550(u) | Self::MiniUart(u) => u.tx_ready(),
+        }
+    }
+
+    pub(crate) fn send(&self, byte: u8) {
+        match self {
+            Self::Pl011(u) => u.send(byte),
+            Self::Ns16550(u) | Self::MiniUart(u) => u.send(byte),
+        }
+    }
+
+    pub(crate) fn receive(&self) -> Option<u8> {
+        match self {
+            Self::Pl011(u) => u.receive(),
+            Self::Ns16550(u) | Self::MiniUart(u) => u.receive(),
+        }
+    }
 }

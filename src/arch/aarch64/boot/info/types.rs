@@ -18,6 +18,7 @@ use super::limits::{MAX_CPUS, MAX_MEMORY_REGIONS};
 use super::memory::MemoryRegion;
 use super::reserved::Reserved;
 use crate::arch::aarch64::gic::GicVersion;
+use crate::arch::fdt::find::uart::UartInfo;
 
 #[derive(Debug, Clone)]
 pub struct BootInfo {
@@ -27,7 +28,7 @@ pub struct BootInfo {
     pub kernel_size: u64,
     pub dtb_base: u64,
     pub dtb_size: u64,
-    pub uart_base: u64,
+    pub uart: UartInfo,
     /// The GIC the device tree names, `None` when there is no tree and the
     /// CPU's own ID registers decide.
     pub gic_version: Option<GicVersion>,
