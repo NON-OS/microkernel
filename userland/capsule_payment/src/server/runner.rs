@@ -21,7 +21,8 @@ use nonos_payment_proto::{parse_header, reply, EINVAL};
 
 use super::call::Call;
 use super::dispatch::dispatch;
-use crate::meter::Meter;
+use crate::jobs::{on_frame, Work};
+use crate::meter::{now_ms, Meter};
 
 /// Its own reply inbox: 0x1_0000_0010 was driver_hda's too, and of two
 /// holders of one reply inbox, the second registered could never answer.
@@ -31,16 +32,19 @@ const MAX_MSG: usize = 4096;
 pub fn run() -> ! {
     let mut buf = vec![0u8; MAX_MSG];
     let mut meter = Meter::start();
+    let mut work = Work::default();
     loop {
         let mut sender = 0u32;
-        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, 0, &mut sender);
-        if n <= 0 {
+        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, work.wait_ms(), &mut sender);
+        work.tick(now_ms());
+        // A job step's answer from settle is taken here and needs no reply.
+        if n <= 0 || on_frame(&mut work, &meter, sender, &buf[..n as usize]) {
             continue;
         }
         let resp = match parse_header(&buf[..n as usize]) {
             Some((h, body)) => {
                 let call = Call { op: h.op, flags: h.flags, id: h.request_id, body };
-                dispatch(&mut meter, sender, &call)
+                dispatch(&mut meter, &mut work, sender, &call)
             }
             /*
              * Not this wire's frame: answered under op and id zero. The caller

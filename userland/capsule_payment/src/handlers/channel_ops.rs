@@ -14,60 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! TOPUP (op 13) and CLOSE (op 14), from the wallet. The
-//! meter asks settle for its gas, encodes and signs with its own key, and has
-//! settle broadcast; it answers the transaction hashes. Neither changes the
-//! meter's state: the next CHANNEL_STATE reads the new deposit, or the close.
+//! TOPUP (op 13), CLOSE (op 14) and JOB (op 15), from the wallet.
+//! TOPUP and CLOSE start a job and answer its id at once; the job asks
+//! settle for GAS (and, to close, GRACE), signs with the meter's own key
+//! and has settle broadcast, each step ASYNC (v1.4.15). JOB answers EAGAIN
+//! while it runs, then the hashes once. Neither changes the meter's state:
+//! the next CHANNEL_STATE reads the new deposit, or the close.
 
 use alloc::vec::Vec;
 
-use nonos_nox_config::{address, Contract};
-use nonos_nox_meter::settle::{close_plan, topup_plan};
-use nonos_payment_proto::{Close, TopUp, EINVAL, EIO, ENOENT};
+use nonos_nox_meter::flow::Work as Job;
+use nonos_payment_proto::{job_id, parse_job_id, Close, TopUp, EINVAL};
 
-use crate::clients::{broadcast, gas, read, word_u64};
-use crate::keyring::sign_tx;
-use crate::meter::{now_ms, Meter};
-use crate::server::{status_of, Call};
+use crate::jobs::{start, Work};
+use crate::meter::Meter;
+use crate::server::Call;
 
-/// Settlement's GRACE() (settle_proto view 16).
-const VIEW_GRACE: u16 = 16;
-
-fn contract(chain_id: u64, c: Contract) -> Result<[u8; 20], i32> {
-    address(chain_id, c).map_err(|_| ENOENT)
+fn started(work: &mut Work, meter: &mut Meter, job: Option<Job>, req: &Call<'_>) -> Vec<u8> {
+    let r = job.ok_or(EINVAL).and_then(|j| start(work, meter, j));
+    req.result(r.map(|id| job_id(id).to_vec()))
 }
 
-pub fn topup(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
-    req.result(run_topup(meter, req.body))
+pub fn topup(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
+    started(work, meter, TopUp::parse(req.body).map(Job::TopUp), req)
 }
 
-pub fn close(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
-    req.result(run_close(meter, req.body))
+pub fn close(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
+    started(work, meter, Close::parse(req.body).map(Job::Close), req)
 }
 
-fn run_topup(meter: &mut Meter, body: &[u8]) -> Result<Vec<u8>, i32> {
-    let t = TopUp::parse(body).ok_or(EINVAL)?;
-    let k = meter.ready()?;
-    let nox = contract(t.chain_id, Contract::NoxToken)?;
-    let settlement = contract(t.chain_id, Contract::Settlement)?;
-    let g = gas(t.chain_id, &k.address)?;
-    let now = now_ms() / 1000;
-    let txs = topup_plan(&meter.state, &t, (&nox, &settlement), &g, now).map_err(status_of)?;
-    let mut out = Vec::with_capacity(64);
-    for tx in &txs {
-        out.extend_from_slice(&broadcast(t.chain_id, &sign_tx(k.key_id, tx)?)?);
-    }
-    Ok(out)
+pub fn open_start(meter: &mut Meter, work: &mut Work, job: Job, req: &Call<'_>) -> Vec<u8> {
+    started(work, meter, Some(job), req)
 }
 
-fn run_close(meter: &mut Meter, body: &[u8]) -> Result<Vec<u8>, i32> {
-    let c = Close::parse(body).ok_or(EINVAL)?;
-    let k = meter.ready()?;
-    let settlement = contract(c.chain_id, Contract::Settlement)?;
-    let grace = read(c.chain_id, VIEW_GRACE, &[], 1)?;
-    let grace = grace.first().and_then(word_u64).ok_or(EIO)?;
-    let g = gas(c.chain_id, &k.address)?;
-    let now = now_ms() / 1000;
-    let tx = close_plan(&meter.state, &c, &settlement, &g, (now, grace)).map_err(status_of)?;
-    Ok(broadcast(c.chain_id, &sign_tx(k.key_id, &tx)?)?.to_vec())
+pub fn job(work: &mut Work, req: &Call<'_>) -> Vec<u8> {
+    req.result(parse_job_id(req.body).ok_or(EINVAL).and_then(|id| work.jobs.take(id)))
 }

@@ -22,6 +22,7 @@ extern crate alloc;
 mod clients;
 mod disk;
 mod handlers;
+mod jobs;
 mod keccak;
 mod keyring;
 mod keys;

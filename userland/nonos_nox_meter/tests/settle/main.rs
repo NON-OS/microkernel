@@ -21,4 +21,6 @@ mod calldata;
 mod caps;
 mod channel_tx;
 mod fixture;
+mod flow;
+mod flow_open;
 mod plan;
