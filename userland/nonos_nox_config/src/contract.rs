@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The contracts the OS calls, reads or signs for. NOX is the kept token; the
-//! rest are the owner's new marketplace set, and the Shield pool a
-//! meter is funded from.
+//! rest are the owner's new marketplace set, the Shield pool a
+//! meter is funded from, and that pool's AmountPolicy (v1.4.17).
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Contract {
@@ -27,10 +27,11 @@ pub enum Contract {
     ListingRegistry,
     ProofAnchor,
     ShieldPool,
+    AmountPolicy,
 }
 
 /// Every contract, in the order settle checks them at start.
-pub const CONTRACTS: [Contract; 7] = [
+pub const CONTRACTS: [Contract; 8] = [
     Contract::NoxToken,
     Contract::Settlement,
     Contract::Escrow,
@@ -38,4 +39,5 @@ pub const CONTRACTS: [Contract; 7] = [
     Contract::ListingRegistry,
     Contract::ProofAnchor,
     Contract::ShieldPool,
+    Contract::AmountPolicy,
 ];

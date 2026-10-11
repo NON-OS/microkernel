@@ -18,7 +18,7 @@ use alloc::vec::Vec;
 
 use nonos_nox_meter::caller::Role;
 use nonos_payment_proto::{EINVAL, EPERM, OP_ACCOUNT, OP_DRAIN, OP_HEALTHCHECK, OP_LIST_TOKENS};
-use nonos_payment_proto::{OP_CLOSE, OP_JOB, OP_OPEN, OP_PAY, OP_SET_BUDGET, OP_TOPUP};
+use nonos_payment_proto::{OP_CLAIM, OP_CLOSE, OP_JOB, OP_OPEN, OP_PAY, OP_SET_BUDGET, OP_TOPUP};
 
 use super::call::Call;
 use super::gate::admits;
@@ -34,7 +34,9 @@ pub fn dispatch(meter: &mut Meter, work: &mut Work, sender: u32, req: &Call<'_>)
         OP_HEALTHCHECK | OP_LIST_TOKENS => Role::Anyone,
         OP_PAY => Role::Payer,
         OP_DRAIN => Role::Settle,
-        OP_ACCOUNT | OP_SET_BUDGET | OP_OPEN | OP_TOPUP | OP_CLOSE | OP_JOB => Role::Wallet,
+        OP_ACCOUNT | OP_SET_BUDGET | OP_OPEN | OP_TOPUP | OP_CLOSE | OP_JOB | OP_CLAIM => {
+            Role::Wallet
+        }
         _ => return req.answer(EINVAL, &[]),
     };
     if !admits(role, sender) {
@@ -50,6 +52,7 @@ pub fn dispatch(meter: &mut Meter, work: &mut Work, sender: u32, req: &Call<'_>)
         OP_TOPUP => handlers::topup(meter, work, req),
         OP_CLOSE => handlers::close(meter, work, req),
         OP_JOB => handlers::job(work, req),
+        OP_CLAIM => handlers::claim(meter, work, req),
         _ => handlers::set_budget(meter, req),
     }
 }

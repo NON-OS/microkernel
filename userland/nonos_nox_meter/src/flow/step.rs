@@ -16,46 +16,45 @@
 
 //! The flow of one job: each answer moves it on by exactly one step.
 
-use alloc::vec::Vec;
-
 use nonos_settle_proto::Gas;
 
+use super::ask::{Ask, Contracts, Next};
 use super::plans::txs;
-use super::work::{Ask, Contracts, Next, Work};
+use super::work::Work;
 use crate::error::MeterError;
 use crate::state::MeterState;
+
+/// The next step, or why the job ends here.
+pub type Step = Result<Next, MeterError>;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Flow {
     pub work: Work,
-    grace: Option<u64>,
-    raws: Vec<Vec<u8>>,
-    hashes: Vec<u8>,
+    read: Option<u128>,
+    raws: alloc::vec::Vec<alloc::vec::Vec<u8>>,
+    hashes: alloc::vec::Vec<u8>,
 }
 
 impl Flow {
     pub fn begin(work: Work) -> (Flow, Next) {
-        let first = if matches!(work, Work::Close(_)) { Ask::Grace } else { Ask::Gas };
-        (Flow { work, grace: None, raws: Vec::new(), hashes: Vec::new() }, Next::Ask(first))
+        let first = Next::Ask(work.first());
+        (Flow { work, read: None, raws: alloc::vec![], hashes: alloc::vec![] }, first)
     }
 
-    pub fn on_grace(&mut self, grace: u64) -> Next {
-        self.grace = Some(grace);
-        Next::Ask(Ask::Gas)
+    /// The job's one read: GRACE to close, what is claimable to claim.
+    pub fn on_read(&mut self, value: u128) -> Step {
+        let nothing = matches!(self.work, Work::Claim { .. }) && value == 0;
+        self.read = Some(value);
+        (!nothing).then_some(Next::Ask(Ask::Gas)).ok_or(MeterError::NothingOwed)
     }
 
     /// What to sign, from GAS: `at` is the config's contracts and the time now.
-    pub fn on_gas(
-        &mut self,
-        g: &Gas,
-        s: &MeterState,
-        at: (&Contracts, u64),
-    ) -> Result<Next, MeterError> {
-        txs(&self.work, self.grace, g, s, at.0, at.1).map(Next::Sign)
+    pub fn on_gas(&mut self, g: &Gas, s: &MeterState, at: (&Contracts, u64)) -> Step {
+        txs(&self.work, self.read, g, s, at.0, at.1).map(Next::Sign)
     }
 
-    /// The signed transactions, in the order Sign gave them.
-    pub fn on_signed(&mut self, raws: Vec<Vec<u8>>) -> Next {
+    /// The signed transactions, in Sign's order.
+    pub fn on_signed(&mut self, raws: alloc::vec::Vec<alloc::vec::Vec<u8>>) -> Next {
         self.raws = raws;
         self.raws.reverse();
         self.next_broadcast()

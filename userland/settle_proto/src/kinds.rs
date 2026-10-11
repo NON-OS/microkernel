@@ -18,11 +18,12 @@
 //! is its `to` and the calls whose selector belongs to it. Each selector is
 //! pinned by a test against its signature. 17, 18 and 19 are one call,
 //! withdrawCredit(address), on Settlement, the Escrow and the Bond (v1.4.6).
+//! 20 is the Shield pool's claim(assetId, to) (v1.4.17).
 
 use nonos_nox_config::Contract;
 
 use Contract::{Escrow as E, ListingRegistry as R, NoxToken as N, ProofAnchor as P};
-use Contract::{PublisherBond as B, Settlement as S};
+use Contract::{PublisherBond as B, Settlement as S, ShieldPool as X};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Kind {
@@ -42,7 +43,7 @@ uint64,bytes32,uint64,bytes32,bytes32,bytes32,bytes32)";
 pub const VOUCHER_TUPLE: &str =
     "(bytes32,address,address,bytes32,bytes32,uint256,uint64,uint64,bytes32)";
 
-pub const KINDS: [Kind; 19] = [
+pub const KINDS: [Kind; 20] = [
     k(1, N, &[("approve(address,uint256)", 0x095ea7b3)]),
     k(2, B, &[("bond(bytes32,uint256)", 0x51f93215)]),
     k(3, B, &[("setDeliveryAgent(bytes32,address)", 0xc6a70f23)]),
@@ -62,4 +63,5 @@ pub const KINDS: [Kind; 19] = [
     k(17, S, &[("withdrawCredit(address)", 0x6c8cc9d9)]),
     k(18, E, &[("withdrawCredit(address)", 0x6c8cc9d9)]),
     k(19, B, &[("withdrawCredit(address)", 0x6c8cc9d9)]),
+    k(20, X, &[("claim(uint64,address)", 0x881a1ce0)]),
 ];

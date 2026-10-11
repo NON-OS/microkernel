@@ -31,4 +31,5 @@ pub const MAINNET: Deployment = Deployment {
     listing_registry: None,
     proof_anchor: None,
     shield_pool: None,
+    amount_policy: None,
 };

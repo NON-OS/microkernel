@@ -72,6 +72,7 @@ status defined there.
 | 13 TOPUP | wallet | `TopUp` | a job id, or EBUSY; its result is approveTx[32] and topUpTx[32], signed by the meter's key and broadcast by settle |
 | 14 CLOSE | wallet | `Close` | a job id, or EBUSY; its result is closeTx[32], or ETIME before expiry plus the contract's GRACE. Anyone may close: the meter's key is a convenience |
 | 15 JOB | wallet | id u32 | EAGAIN while the job runs, then its result once; ENOENT for any other id. Each step is an ASYNC settle request answered into this capsule's inbox; a step with no answer in 150 s fails the job (ETIME) |
+| 16 CLAIM | wallet | chain_id u64 | a job id, or EBUSY; the job reads claimable(NOX, meter) (READ 60), ENOENT when nothing is credited, then signs ShieldedPool.claim(1, meter) itself (CLAIM_GAS 150000, the fee caps) and has settle broadcast it; its result is claimTx (v1.4.17) |
 
 Every refusal is a status named in `nonos_payment_proto::status`.
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Starting a job: OPEN START, TOPUP or CLOSE answer its id at once, or
+//! Starting a job: OPEN START, TOPUP, CLOSE or CLAIM answer its id at once, or
 //! EBUSY while another runs; JOB (op 15) answers its result later.
 
 use nonos_nox_config::{address, Contract};
@@ -28,9 +28,12 @@ use crate::meter::{now_ms, Meter};
 pub(crate) fn start(work: &mut Work, meter: &mut Meter, job: Job) -> Result<u32, i32> {
     let keys = meter.ready()?;
     let chain = job.chain_id();
-    let at = |c| address(chain, c).map_err(|_| ENOENT);
-    let contracts =
-        Contracts { nox: at(Contract::NoxToken)?, settlement: at(Contract::Settlement)? };
+    for c in job.needs() {
+        address(chain, *c).map_err(|_| ENOENT)?;
+    }
+    let at = |c| address(chain, c).unwrap_or([0; 20]);
+    let (nox, settlement) = (at(Contract::NoxToken), at(Contract::Settlement));
+    let contracts = Contracts { nox, settlement, pool: at(Contract::ShieldPool) };
     let id = work.jobs.start()?;
     let (flow, next) = Flow::begin(job);
     let (key_id, address) = (keys.key_id, keys.address);

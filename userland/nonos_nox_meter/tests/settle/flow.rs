@@ -23,7 +23,7 @@ use nonos_payment_proto::{Close, TopUp};
 
 use super::fixture::{gas, state, CHAIN, NOW, NOX, SETTLEMENT};
 
-const AT: Contracts = Contracts { nox: NOX, settlement: SETTLEMENT };
+const AT: Contracts = Contracts { nox: NOX, settlement: SETTLEMENT, pool: [0; 20] };
 
 fn signed(n: u8) -> Vec<Vec<u8>> {
     (1..=n).map(|i| vec![i; 3]).collect()
@@ -54,7 +54,7 @@ fn a_close_reads_grace_first() {
         Err(MeterError::TooEarly),
         "no grace yet"
     );
-    assert_eq!(f.on_grace(3_600), Next::Ask(Ask::Gas));
+    assert_eq!(f.on_read(3_600), Ok(Next::Ask(Ask::Gas)));
     assert_eq!(f.on_gas(&gas(), &state(), (&AT, late - 1)), Err(MeterError::TooEarly));
     let tx = close_plan(&state(), &c, &SETTLEMENT, &gas(), (late, 3_600)).unwrap();
     assert_eq!(f.on_gas(&gas(), &state(), (&AT, late)), Ok(Next::Sign(vec![tx])));

@@ -20,21 +20,15 @@ use nonos_nox_config::Contract;
 
 use crate::view::{Arg, View};
 
-use Arg::{Address as A, Word as W, U64, U8};
+use Arg::{Address as A, Bool, Word as W, U64, U8};
+use Contract::{AmountPolicy as Y, PublisherBond as B, Settlement as S, ShieldPool as X};
 use Contract::{Escrow as E, ListingRegistry as R, NoxToken as N, ProofAnchor as P};
-use Contract::{PublisherBond as B, Settlement as S, ShieldPool as X};
 
-const fn v(
-    id: u16,
-    contract: Contract,
-    signature: &'static str,
-    sel: u32,
-    args: &'static [Arg],
-) -> View {
-    View { id, contract, signature, selector: sel.to_be_bytes(), args }
+const fn v(id: u16, contract: Contract, sig: &'static str, sel: u32, args: &'static [Arg]) -> View {
+    View { id, contract, signature: sig, selector: sel.to_be_bytes(), args }
 }
 
-pub const VIEWS: [View; 33] = [
+pub const VIEWS: [View; 40] = [
     v(1, N, "balanceOf(address)", 0x70a08231, &[A]),
     v(2, N, "allowance(address,address)", 0xdd62ed3e, &[A, A]),
     v(3, N, "feeExempt(address)", 0x398daa85, &[A]),
@@ -68,4 +62,11 @@ pub const VIEWS: [View; 33] = [
     v(41, R, "eip712Domain()", 0x84b0196e, &[]),
     v(50, P, "anchoredAt(bytes32,uint8,bytes32)", 0xc4aea52d, &[W, U8, W]),
     v(60, X, "claimable(uint64,address)", 0x88d8b2a7, &[U64, A]),
+    v(61, X, "amountPolicy()", 0x922f2ee9, &[]),
+    v(70, Y, "rules(uint64)", 0x19a747fc, &[U64]),
+    v(71, Y, "isStandard(uint64,uint256)", 0x8bda9814, &[U64, W]),
+    v(72, Y, "paused()", 0x5c975abb, &[]),
+    v(73, Y, "scheduleOf(uint64)", 0x01e7d8d8, &[U64]),
+    v(74, Y, "bps()", 0x68237329, &[]),
+    v(75, Y, "settlementFee(uint64,uint256,uint256,bool)", 0x73d8e932, &[U64, W, W, Bool]),
 ];
