@@ -19,6 +19,8 @@
 //! payee both stand behind goes to the wallet by name, through the meter's
 //! mailbox; the wallet reads the terms from the market itself.
 
+use nonos_payment_proto::{Names, Ready};
+
 use super::asked::Asked;
 use super::listing::Listing;
 use super::price::{ESCROW, VOUCHER};
@@ -43,4 +45,10 @@ pub fn handed(r: Result<(), i32>) -> Asked {
         Err(nonos_payment_proto::EBUSY) => Asked::WalletWaiting,
         Err(_) => Asked::NoMeter,
     }
+}
+
+/// READY's answer, kept only when its names are the ones this store posted
+/// (v1.4.45): a READY left from another purchase never starts an install.
+pub fn ours(r: Option<Ready>, posted: Option<&Names>) -> Option<Ready> {
+    r.filter(|r| Some(&r.names) == posted)
 }

@@ -23,12 +23,18 @@ use nonos_nox_config::SEPOLIA;
 use nonos_payment_proto::{Names, EINVAL, OP_PURCHASE};
 
 use super::asked::Asked;
+use super::listing::Listing;
 use super::meter_call::call;
 use super::purchase_said::handed;
 use super::state::State;
 
+/// The names a listing's purchase goes by: the listing's default release.
+pub fn names_of(l: &Listing) -> Names {
+    Names { chain_id: SEPOLIA, listing: l.id.clone(), release: Vec::new() }
+}
+
 pub fn post(state: &State) -> Asked {
     let Some(l) = state.current() else { return Asked::NotInstallable };
-    let names = Names { chain_id: SEPOLIA, listing: l.id.clone(), release: Vec::new() };
-    handed(names.post().ok_or(EINVAL).and_then(|b| call(OP_PURCHASE, &b, 0)).map(|_| ()))
+    let body = names_of(l).post().ok_or(EINVAL);
+    handed(body.and_then(|b| call(OP_PURCHASE, &b, 0)).map(|_| ()))
 }
