@@ -50,4 +50,6 @@ pub enum MeterError {
     NothingOwed,
     /// Too soon: a close before expiry plus the contract's grace.
     TooEarly,
+    /// The AmountPolicy's paused() is true: no new order (v1.4.20).
+    Paused,
 }

@@ -19,6 +19,7 @@ use alloc::vec::Vec;
 use nonos_nox_meter::caller::Role;
 use nonos_payment_proto::{EINVAL, EPERM, OP_ACCOUNT, OP_DRAIN, OP_HEALTHCHECK, OP_LIST_TOKENS};
 use nonos_payment_proto::{OP_CLAIM, OP_CLOSE, OP_JOB, OP_OPEN, OP_PAY, OP_SET_BUDGET, OP_TOPUP};
+use nonos_payment_proto::{OP_ORDER_NEW, OP_ORDER_REFUND, OP_ORDER_STATUS};
 
 use super::call::Call;
 use super::gate::admits;
@@ -29,17 +30,17 @@ use crate::meter::Meter;
 /// Each op with the role its caller must play (plan/21). The caller is
 /// checked before the body is read. Op 7 (NXL1) is not in v1, and the
 /// ORDER_* ops arrive with escrow (B5); until then, EINVAL.
-pub fn dispatch(meter: &mut Meter, work: &mut Work, sender: u32, req: &Call<'_>) -> Vec<u8> {
+pub fn dispatch(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
     let role = match req.op {
         OP_HEALTHCHECK | OP_LIST_TOKENS => Role::Anyone,
-        OP_PAY => Role::Payer,
+        // JOB answers only the pid that started the job (Jobs::take).
+        OP_PAY | OP_ORDER_STATUS | OP_JOB => Role::Payer,
         OP_DRAIN => Role::Settle,
-        OP_ACCOUNT | OP_SET_BUDGET | OP_OPEN | OP_TOPUP | OP_CLOSE | OP_JOB | OP_CLAIM => {
-            Role::Wallet
-        }
+        OP_ACCOUNT | OP_SET_BUDGET | OP_OPEN | OP_TOPUP | OP_CLOSE | OP_CLAIM => Role::Wallet,
+        OP_ORDER_NEW | OP_ORDER_REFUND => Role::Wallet,
         _ => return req.answer(EINVAL, &[]),
     };
-    if !admits(role, sender) {
+    if !admits(role, req.sender) {
         return req.answer(EPERM, &[]);
     }
     match req.op {
@@ -53,6 +54,9 @@ pub fn dispatch(meter: &mut Meter, work: &mut Work, sender: u32, req: &Call<'_>)
         OP_CLOSE => handlers::close(meter, work, req),
         OP_JOB => handlers::job(work, req),
         OP_CLAIM => handlers::claim(meter, work, req),
+        OP_ORDER_NEW => handlers::order_new(meter, work, req),
+        OP_ORDER_STATUS => handlers::order_status(meter, work, req),
+        OP_ORDER_REFUND => handlers::order_refund(req),
         _ => handlers::set_budget(meter, req),
     }
 }

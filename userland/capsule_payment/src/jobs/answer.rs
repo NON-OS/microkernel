@@ -23,7 +23,7 @@ use nonos_libc::mk_service_lookup;
 use nonos_payment_proto::EIO;
 use nonos_settle_proto::{async_answer, parse_header, Gas, ReplyError, OP_GAS, OP_READ, SERVICE};
 
-use super::ask::{hash, uint};
+use super::ask::{hash, words};
 use super::drive::advance;
 use super::work::Work;
 use crate::meter::{now_ms, Meter};
@@ -57,7 +57,7 @@ pub(crate) fn on_frame(work: &mut Work, meter: &Meter, sender: u32, rx: &[u8]) -
         Err(ReplyError::Status(s)) => Err(s),
         Err(_) => Err(EIO),
         Ok(body) => match op {
-            OP_READ => uint(body).ok_or(EIO).and_then(|v| run.flow.on_read(v).map_err(status_of)),
+            OP_READ => words(body).ok_or(EIO).and_then(|w| run.flow.on_view(w).map_err(status_of)),
             OP_GAS => Gas::parse(body).ok_or(EIO).and_then(|g| {
                 run.flow.on_gas(&g, &meter.state, (&run.contracts, now / 1000)).map_err(status_of)
             }),
