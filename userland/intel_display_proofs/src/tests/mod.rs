@@ -15,6 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cursor_tests;
+mod dp_aux_tests;
+mod dp_caps_tests;
+mod dp_i2c_tests;
+mod dp_lane_tests;
+mod dp_train_fail_tests;
+mod dp_train_tests;
 mod flip_tests;
 mod ggtt_tests;
 mod ids_tests;

@@ -21,6 +21,10 @@ pub mod gen9;
 pub mod latch;
 pub mod mmio;
 pub mod scanout;
+pub mod sink;
+pub mod sink_aux;
+pub mod sink_link;
+pub mod sink_status;
 
 pub use expiry::Polls;
 pub use gen9::Gen9;
