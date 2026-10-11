@@ -17,7 +17,9 @@
 mod canonical_tests;
 mod committed_tests;
 mod decode_tests;
+mod guard_tests;
 mod identity_tests;
+mod ids_tests;
 mod line_tests;
 mod market_tests;
 mod mask_tests;

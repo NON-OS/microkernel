@@ -19,7 +19,7 @@
 //!
 //! Two lists feed it. policies.txt names the vendor's programs, whose files
 //! are in the Linux userland build (NONOS_LINUX_USERLAND; `/bin/<name>` is
-//! `<name>` there); without that build it is still checked line by line.
+//! `<name>` there); without it the file is checked and binds nothing.
 //! On a guest test image, the list NONOS_LINUX_GUEST_POLICIES names each
 //! test guest with its `file=` (userland/linux_guests/GuestPolicies.mk).
 //! A named file that is not there fails the build.
@@ -32,7 +32,7 @@ use super::source::{source, Row};
 use crate::policy::LinuxAppPolicy;
 use crate::unlisted::unlisted;
 
-pub fn write(policies: &Path, to: &Path) -> Result<(), String> {
+pub fn write(policies: &Path, to: &Path) -> Result<usize, String> {
     let mut rows: Vec<Row> = Vec::new();
     let userland = env::var_os("NONOS_LINUX_USERLAND");
     for l in lines(&read(policies)?)? {
@@ -49,7 +49,7 @@ pub fn write(policies: &Path, to: &Path) -> Result<(), String> {
             add(&mut rows, &l, PathBuf::from(file))?;
         }
     }
-    fs::write(to, source(&rows)).map_err(|e| format!("{}: {e}", to.display()))
+    fs::write(to, source(&rows)).map(|_| rows.len()).map_err(|e| format!("{}: {e}", to.display()))
 }
 
 fn read(list: &Path) -> Result<String, String> {
