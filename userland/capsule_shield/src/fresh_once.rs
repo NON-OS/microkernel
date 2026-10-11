@@ -23,9 +23,30 @@ use shield_wire::Values;
 
 use crate::ops::{seen_ahead, Answer};
 
+/// How far past the accounts a machine with no handed list looks.
+const SCAN: u32 = 20;
 const NOT_OPEN: &str = "Open the shield from the wallet first.";
 const USED_UP: &str =
     "The fresh addresses this unlock made are all handed out; lock and unlock the shield.";
+
+/// Mode 2: each address handed out as `handed` = index|0x address. A
+/// machine that kept none past the accounts, as after a restore, adds the
+/// SCAN addresses past them, so a refund paid there is still found.
+pub fn fresh_handed() -> Answer {
+    let (wallet, count, ahead) = seen_ahead().ok_or_else(|| String::from(NOT_OPEN))?;
+    let mut v = Values::new();
+    let handed = wallet.fresh_handed();
+    for (i, a) in &handed {
+        v.put("handed", &format!("{i}|0x{a}"));
+    }
+    if !handed.iter().any(|(i, _)| *i > count) {
+        for (i, a) in ahead.iter().filter(|(i, _)| *i < count.saturating_add(SCAN)) {
+            let hex: String = a.iter().map(|b| format!("{b:02x}")).collect();
+            v.put("handed", &format!("{i}|0x{hex}"));
+        }
+    }
+    Ok(v)
+}
 
 pub fn fresh_once() -> Answer {
     let (wallet, count, ahead) = seen_ahead().ok_or_else(|| String::from(NOT_OPEN))?;

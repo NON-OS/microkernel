@@ -24,4 +24,9 @@ impl Wallet {
     ) -> Result<Option<String>, WalletError> {
         Ok(fresh_once(&self.paths().account, count, ahead)?.map(|a| checksummed(&a)))
     }
+
+    /// Mode 2: every address handed out, index and lowercase hex, without the session.
+    pub fn fresh_handed(&self) -> Vec<(u32, String)> {
+        crate::wallet::fresh::handed_all(&self.paths().account)
+    }
 }

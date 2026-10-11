@@ -44,4 +44,6 @@ pub struct MeterUi {
     pub take_at: u64,
     /* The one ASYNC request to settle (v1.4.53), for a dispute or refund. */
     pub settle: crate::wallet::settle::SettleCall,
+    /* Refunds and reclaims landed at fresh addresses (v1.4.52). */
+    pub landed: crate::wallet::shield::landed::Landed,
 }

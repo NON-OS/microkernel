@@ -43,7 +43,7 @@ pub use frame::{
     decode_reply, decode_request, encode_reply, encode_request, Reply, Request, BODY_MAX,
     MESSAGE_MAX,
 };
-pub use fresh::{FreshAsk, FRESH_ONCE, OP_SIGN_FROM_FRESH};
+pub use fresh::{FreshAsk, FRESH_HANDED, FRESH_ONCE, OP_SIGN_FROM_FRESH};
 pub use hexes::{hex, unhex};
 pub use ops::*;
 pub use values::{field, fields, Values};

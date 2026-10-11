@@ -26,7 +26,7 @@ use super::escrowing::{Ctx, Escrowing};
 use super::order_of::window_end;
 use super::refund_call::{refunded, state_and_extra};
 use super::send_step::{SendStep, DISPUTE};
-use crate::wallet::settle::SettleCall;
+use crate::wallet::settle::{SettleCall, ESCROW};
 
 const READ_EVERY_MS: u64 = 10_000;
 const ORDER_OF: u16 = 20;
@@ -34,11 +34,11 @@ pub(super) const NO_ORDER: &str = "settle did not read the escrow's order.";
 
 /// Ask orderOf when due; take its answer. Whether the step moved.
 pub fn read(settle: &mut SettleCall, e: &mut Escrowing, c: &Ctx) -> bool {
-    let Some(r) = settle.take(OP_READ) else {
+    let Some(r) = settle.take(OP_READ, ESCROW) else {
         if c.now_ms >= e.next_ms {
             let body =
                 Read { chain_id: c.chain_id, view: ORDER_OF, args: [c.made.order_id].into() };
-            let asked = body.encode().map(|b| settle.ask(OP_READ, &b, c.now_ms));
+            let asked = body.encode().map(|b| settle.ask(OP_READ, ESCROW, &b, c.now_ms));
             e.next_ms = c.now_ms + READ_EVERY_MS;
             return matches!(asked, Some(Ok(())));
         }

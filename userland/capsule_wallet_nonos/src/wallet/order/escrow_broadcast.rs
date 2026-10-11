@@ -22,16 +22,16 @@ use nonos_settle_proto::OP_BROADCAST;
 use super::escrow_tx::GAS_EVERY_MS;
 use super::escrowing::{Ctx, Escrowing};
 use super::send_step::SendStep;
-use crate::wallet::settle::SettleCall;
+use crate::wallet::settle::{SettleCall, ESCROW};
 
 const NOT_SENT: &str = "settle did not send the transaction; try again.";
 
 /// BROADCAST the signed bytes; its hash, then orderOf until it lands.
 pub fn broadcast(settle: &mut SettleCall, e: &mut Escrowing, c: &Ctx) -> bool {
     let SendStep::Broadcasting(raw) = &e.step else { return false };
-    let Some(r) = settle.take(OP_BROADCAST) else {
+    let Some(r) = settle.take(OP_BROADCAST, ESCROW) else {
         let body = [&c.chain_id.to_le_bytes()[..], raw].concat();
-        let _ = settle.ask(OP_BROADCAST, &body, c.now_ms);
+        let _ = settle.ask(OP_BROADCAST, ESCROW, &body, c.now_ms);
         return false;
     };
     e.step = match r.ok().and_then(|b| <[u8; 32]>::try_from(b.as_slice()).ok()) {

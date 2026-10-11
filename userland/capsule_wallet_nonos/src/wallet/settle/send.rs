@@ -21,6 +21,10 @@ use nonos_libc::{mk_ipc_send, mk_service_lookup};
 use nonos_payment_proto::EAGAIN;
 use nonos_settle_proto::{request_async, SERVICE};
 
+/// Who asked: a dispute or refund's steps, or the landed rows' reads.
+pub const ESCROW: u8 = 1;
+pub const LANDED: u8 = 2;
+
 pub(super) fn send(op: u16, id: u32, body: &[u8]) -> Result<u32, i32> {
     let (mut port, mut pid) = (0u32, 0u32);
     if mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut port, &mut pid) != 0 || pid == 0 {

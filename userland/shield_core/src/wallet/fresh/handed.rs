@@ -32,6 +32,11 @@ fn read(dir: &Path) -> Vec<(u32, String)> {
     text.lines().filter_map(line).collect()
 }
 
+/// Every address handed out, by index, for the wallet's balance rows.
+pub fn handed_all(dir: &Path) -> Vec<(u32, String)> {
+    read(dir)
+}
+
 /// The highest index handed out, if any.
 pub fn highest_handed(dir: &Path) -> Option<u32> {
     read(dir).into_iter().map(|(i, _)| i).max()

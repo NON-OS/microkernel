@@ -27,8 +27,9 @@ use alloc::vec::Vec;
 use crate::hexes::{hex, unhex};
 
 pub const OP_SIGN_FROM_FRESH: u16 = 17;
-/// OP_FRESH_ADDRESS's field for mode 1: an address no order shares (v1.4.52).
+/// OP_FRESH_ADDRESS's modes: an address no order shares, and their list (v1.4.52).
 pub const FRESH_ONCE: &str = "1";
+pub const FRESH_HANDED: &str = "2";
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct FreshAsk {
