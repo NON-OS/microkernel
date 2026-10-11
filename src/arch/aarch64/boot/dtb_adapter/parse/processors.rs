@@ -22,13 +22,11 @@ use crate::arch::fdt::Fdt;
 /// is sized for the same number.
 const MAX_CPUS: usize = crate::arch::aarch64::boot::stack::MAX_CPUS;
 
-pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) {
+pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> Result<(), &'static [u8]> {
     let mut affinities = [0u64; MAX_CPUS];
-    let Ok(n) = cpus::find(fdt, &mut affinities) else {
-        return;
-    };
+    let n = cpus::find(fdt, &mut affinities).map_err(super::describe)?;
     if n == 0 {
-        return;
+        return Ok(());
     }
     info.cpu_count = n as u32;
     // Keep the affinities, not just the count. They are what PSCI and the GIC
@@ -37,4 +35,5 @@ pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) {
     let take = n.min(info.cpu_affinities.len());
     info.cpu_affinities[..take].copy_from_slice(&affinities[..take]);
     info.cpu_affinity_count = take;
+    Ok(())
 }
