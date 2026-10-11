@@ -28,15 +28,24 @@
 //!   rtw88 and iwlwifi set on real silicon.
 //! - The Intel SMBus host (class 0C, subclass 05): HOSTC at 0x40, its host
 //!   enable (bit 0) and I2C mode (bit 2), as i2c-i801's probe writes them.
+//! - A Broadcom Ethernet controller (14E4, class 02, subclass 00), as Linux
+//!   tg3 writes them around its chip reset: MISC_HOST_CTRL at 0x68 bits 0-9
+//!   (swaps, indirect access, the interrupt mask), PCISTATE at 0x70 bits 5-6
+//!   (ROM enable and retry) and the error bits 0-3 of PCI Express Device
+//!   Status, write-one-to-clear. Relaxed Ordering and No Snoop in its Device
+//!   Control it may only clear (clear.rs).
 //!
 //! Anything else stays refused: these registers hold no address, no BAR, no
 //! routing, and change nothing about what the device may reach.
 
+mod clear;
 mod ident;
 mod writable;
 
 // Public for kernel_proofs, which mounts this module at its root; the
 // kernel itself holds it crate-private.
+#[allow(unreachable_pub)]
+pub use clear::{clear_only, cleared_only};
 #[allow(unreachable_pub)]
 pub use ident::Ident;
 #[allow(unreachable_pub)]

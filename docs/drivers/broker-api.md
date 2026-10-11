@@ -102,7 +102,7 @@ Every later call on the device carries the epoch, and calls on a grant name the 
 
 - In Command, `COMMAND_WRITABLE` is Bus Master, Memory Space and Interrupt Disable (`src/hardware/broker/pci/command.rs:33`). `validate_command` ORs a value made only of those bits into the register, and otherwise requires the new value to match the register outside them (`src/hardware/broker/pci/command.rs:35-41`).
 - In MSI-X Message Control, `MSIX_CONTROL_WRITABLE` is Enable and Function Mask (`src/hardware/broker/pci/allowlist.rs:35`).
-- `writable` adds a few vendor bits: on Intel HD Audio, TCSEL at 0x44, the clock-gating bit at 0x48 and the no-snoop bit at 0x78; on AMD and ATI HD Audio, the snoop bits at 0x42; on any network function, the PCIe completion timeout bits (`src/hardware/broker/pci/quirk_bits/writable.rs:25-41`).
+- `writable` adds a few vendor bits: on Intel HD Audio, TCSEL at 0x44, the clock-gating bit at 0x48 and the no-snoop bit at 0x78; on AMD and ATI HD Audio, the snoop bits at 0x42; on any network function, the PCIe completion timeout bits; on a Broadcom Ethernet controller, MISC_HOST_CTRL bits 0-9, PCISTATE bits 5-6 and the PCIe Device Status error bits, with Relaxed Ordering and No Snoop in Device Control clear-only (`src/hardware/broker/pci/quirk_bits/writable.rs`, `src/hardware/broker/pci/quirk_bits/clear.rs`).
 
 The constants a driver passes are `MK_PCI_CFG_COMMAND` (0x04), `MK_PCI_CMD_MEMORY_SPACE` (bit 1), `MK_PCI_CMD_BUS_MASTER` (bit 2), `MK_PCI_CMD_INTX_DISABLE` (bit 10), `MK_PCI_MSIX_CTRL_FUNCTION_MASK` (bit 14) and `MK_PCI_MSIX_CTRL_ENABLE` (bit 15) (`userland/libc/src/broker/pci.rs:27-36`).
 
