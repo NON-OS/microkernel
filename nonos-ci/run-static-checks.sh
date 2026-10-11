@@ -1349,8 +1349,8 @@ fi
 if ! grep -q 'TRB_TYPE_ADDRESS_DEVICE_CMD' userland/capsule_driver_xhci/src/constants/trb_kinds.rs ||
    ! grep -q 'TRB_TYPE_TRANSFER_EVENT' userland/capsule_driver_xhci/src/constants/trb_kinds.rs ||
    ! grep -q 'context_size' userland/capsule_driver_xhci/src/regs/cap/mod.rs ||
-   ! grep -q 'reset_port' userland/capsule_driver_xhci/src/controller/mod.rs ||
-   ! grep -q 'set_dcbaa_slot' userland/capsule_driver_xhci/src/controller/mod.rs ||
+   ! grep -q 'reset_port' userland/capsule_driver_xhci/src/controller/exports.rs ||
+   ! grep -q 'set_dcbaa_slot' userland/capsule_driver_xhci/src/controller/exports.rs ||
    ! grep -q 'SlotResources' userland/capsule_driver_xhci/src/slots/resources.rs ||
    ! grep -q 'OP_ADDRESS_DEVICE' userland/capsule_driver_xhci/src/protocol/ops.rs ||
    ! grep -q 'OP_GET_DEVICE_DESCRIPTOR' userland/capsule_driver_xhci/src/protocol/ops.rs ||
