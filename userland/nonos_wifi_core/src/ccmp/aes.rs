@@ -11,7 +11,7 @@
 //! no_std, no allocation, no lookup-table timing beyond the S-box. Checked
 //! against the FIPS-197 known-answer vector in `iwlwifi_proofs`.
 
-const SBOX: [u8; 256] = [
+pub(crate) const SBOX: [u8; 256] = [
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
     0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
     0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -30,7 +30,7 @@ const SBOX: [u8; 256] = [
     0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16,
 ];
 
-const RCON: [u8; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36];
+pub(crate) const RCON: [u8; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36];
 
 /// An expanded AES-128 key: eleven 16-byte round keys.
 pub struct Aes128 {
@@ -78,19 +78,19 @@ impl Aes128 {
     }
 }
 
-fn add_round_key(s: &mut [u8; 16], k: &[u8]) {
+pub(crate) fn add_round_key(s: &mut [u8; 16], k: &[u8]) {
     for (b, kb) in s.iter_mut().zip(k.iter()) {
         *b ^= *kb;
     }
 }
 
-fn sub_bytes(s: &mut [u8; 16]) {
+pub(crate) fn sub_bytes(s: &mut [u8; 16]) {
     for b in s.iter_mut() {
         *b = SBOX[*b as usize];
     }
 }
 
-fn shift_rows(s: &mut [u8; 16]) {
+pub(crate) fn shift_rows(s: &mut [u8; 16]) {
     // state is column-major: s[r + 4c]. row r rotates left by r.
     let t = *s;
     for r in 1..4 {
@@ -104,7 +104,7 @@ fn xtime(x: u8) -> u8 {
     (x << 1) ^ (0x1b & (((x >> 7) & 1).wrapping_neg()))
 }
 
-fn mix_columns(s: &mut [u8; 16]) {
+pub(crate) fn mix_columns(s: &mut [u8; 16]) {
     for c in 0..4 {
         let col = [s[4 * c], s[4 * c + 1], s[4 * c + 2], s[4 * c + 3]];
         s[4 * c] = xtime(col[0]) ^ (xtime(col[1]) ^ col[1]) ^ col[2] ^ col[3];
