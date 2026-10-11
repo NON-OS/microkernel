@@ -31,6 +31,7 @@ pub fn tick(state: &mut State) -> bool {
         || crate::wallet::order::watch::poll(state)
         || crate::wallet::order::deliver::poll(state)
         || crate::wallet::order::escrow_drive::poll(state)
+        || crate::wallet::shield::landed_poll::poll(state)
         || crate::wallet::order::opened::poll(state)
         || crate::wallet::order::voucher_cap::poll(state)
         || crate::wallet::order::intake::take_due(state)
