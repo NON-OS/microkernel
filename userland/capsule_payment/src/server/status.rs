@@ -31,6 +31,7 @@ pub fn status_of(e: MeterError) -> i32 {
         MeterError::BelowMinimum => p::EDOM,
         MeterError::Full => p::ENFILE,
         MeterError::Frozen => p::EFROZEN,
+        MeterError::NoGas => p::EGAS,
         MeterError::OverDeposit => p::ENOSPC,
         MeterError::Expired => p::ETIME,
         MeterError::Overflow => p::EOVERFLOW,

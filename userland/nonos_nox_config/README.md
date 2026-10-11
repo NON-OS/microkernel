@@ -39,6 +39,8 @@ nothing else.
   `RELEASE_TAG`, each the keccak256 of `NONOS.nox.<x>.v1`. Each is used as the
   first word inside `abi.encode` of its id.
 - Units: install, proof, call, second and byte.
+- Gas limits for what the OS encodes itself: `APPROVE_GAS` 60000 and
+  `OPEN_GAS` 200000.
 
 ## Known copies
 
@@ -56,7 +58,7 @@ they are, and each must match this crate where they overlap:
 
 ## Tests
 
-14 host tests in `tests/`. `sha3` is a dev-dependency only, so every pinned
+15 host tests in `tests/`. `sha3` is a dev-dependency only, so every pinned
 hash is recomputed independently of the constant it checks:
 - typehashes from their type strings;
 - name hashes from their names;
