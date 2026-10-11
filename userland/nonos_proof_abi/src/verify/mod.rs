@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bind;
+mod deliver_expected;
+mod deliver_run;
+mod deliver_steps;
 mod device_step;
 mod expected;
 mod policy_step;
@@ -24,6 +27,8 @@ mod run;
 mod verdict;
 
 pub use bind::app_id;
+pub use deliver_expected::{DeliveryExpected, DeliveryVerdict};
+pub use deliver_run::verify_delivery;
 pub use expected::{Expected, PolicyDecode, PolicyView, MAX_DAYS};
 pub use refusal::Refusal;
 pub use run::verify;

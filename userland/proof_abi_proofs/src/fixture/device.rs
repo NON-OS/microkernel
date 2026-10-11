@@ -39,17 +39,18 @@ pub struct Proven {
 /// Every test that needs the proof shares the one made for its record.
 pub fn prove_bound(ctx: [u64; 4]) -> &'static Proven {
     static ONE: OnceLock<([u64; 4], Proven)> = OnceLock::new();
-    let (bound, p) = ONE.get_or_init(|| (ctx, make(ctx)));
+    let (bound, p) = ONE.get_or_init(|| (ctx, make(ctx, market_scope(&LISTING, DAY))));
     assert_eq!(*bound, ctx, "one bound record per test run");
     p
 }
 
-fn make(ctx: [u64; 4]) -> Proven {
+/// A proof for the fixture device bound to `ctx` under `scope`.
+pub(super) fn make(ctx: [u64; 4], scope: [u64; 2]) -> Proven {
     let (boot_root, boot, bd) = tree(Kind::Bootloader, b"bootloader context");
     let (kernel_root, kernel, kd) = tree(Kind::Kernel, b"kernel context");
     let s = SECRET.map(Fp::from_u64);
     let (device_root, device) = registry(commit(&s), 5);
-    let e = market_scope(&LISTING, DAY).map(Fp::from_u64);
+    let e = scope.map(Fp::from_u64);
     let st = Statement {
         boot_root,
         kernel_root,

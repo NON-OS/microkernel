@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod container;
+mod delivery;
+mod delivery_bytes;
 mod device;
 mod expected;
 mod honest;
@@ -24,9 +26,10 @@ mod run;
 mod trees;
 
 pub use container::{container, Parts};
+pub use delivery::{delivered, NONCE, REQUEST};
 pub use device::{prove_bound, DAY, LISTING};
-pub use expected::expected;
-pub use honest::honest;
+pub use expected::{delivery_expected, expected};
+pub use honest::{honest, Pinned};
 pub use isolation::isolation_proof;
 pub use policy::{decode_policy, policy};
 pub use run::{family, Family};

@@ -27,6 +27,7 @@ use super::verdict::Verdict;
 use crate::anchor::anchor;
 use crate::container::{parse, tag, Kind};
 use crate::record::{ctx, decode_record, record_id};
+use crate::scope::market_scope;
 use crate::syscall_root::allows;
 
 /// Isolation containers only: a delivery waits for A8, and authenticity is
@@ -45,7 +46,8 @@ pub fn verify(container: &[u8], ex: &Expected) -> Result<Verdict, Refusal> {
     let view = (ex.read_policy)(ex.policy).ok_or(Refusal::Policy)?;
     record(&rec, ex.pins, view.mask)?;
     let cx = ctx(c.kind, raw);
-    let device_tag = device(need(tag::DEVICE)?, &cx, &ex.listing_id, c.window, ex.pins)?;
+    let scope = market_scope(&ex.listing_id, c.window);
+    let device_tag = device(need(tag::DEVICE)?, &cx, scope, c.window, ex.pins)?;
     measurements(need(tag::MEASUREMENTS)?, &rec, &view.program_blake3)?;
     policy(need(tag::POLICY)?, &rec, ex)?;
     let words = publics(need(tag::PUBLICS)?, &rec, &view)?;

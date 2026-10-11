@@ -25,6 +25,7 @@
 use alloc::vec::Vec;
 
 const MARKET_DOMAIN: &[u8] = b"NONOS-MARKET-SCOPE-v1";
+const DELIVERY_DOMAIN: &[u8] = b"NONOS-DELIVERY-SCOPE-v1";
 
 /// The window of a unix time in seconds.
 pub fn day(unix_seconds: u64) -> u64 {
@@ -33,8 +34,18 @@ pub fn day(unix_seconds: u64) -> u64 {
 
 /// The two scope words, each reduced below p as the gates read a digest.
 pub fn market_scope(listing_id: &[u8; 32], window: u64) -> [u64; 2] {
-    let mut b = Vec::with_capacity(MARKET_DOMAIN.len() + 40);
-    b.extend_from_slice(MARKET_DOMAIN);
+    scope_in(MARKET_DOMAIN, listing_id, window)
+}
+
+/// e2, a delivery's scope: the market scope's shape in its own
+/// domain, so a device's delivery tags share nothing with its kind-1 tags.
+pub fn delivery_scope(listing_id: &[u8; 32], window: u64) -> [u64; 2] {
+    scope_in(DELIVERY_DOMAIN, listing_id, window)
+}
+
+fn scope_in(domain: &[u8], listing_id: &[u8; 32], window: u64) -> [u64; 2] {
+    let mut b = Vec::with_capacity(domain.len() + 40);
+    b.extend_from_slice(domain);
     b.extend_from_slice(listing_id);
     b.extend_from_slice(&window.to_le_bytes());
     let w = nox_verify::attest::digest_words(blake3::hash(&b).as_bytes());

@@ -28,6 +28,8 @@ pub const PROVER: i32 = -1104;
 /// The sealed run had a call outside the policy's set succeed: there is
 /// nothing true to prove.
 pub const OUTSIDE: i32 = -1105;
+/// DELIVER's live record was not sealed under the vendor root.
+pub const NOT_VENDOR: i32 = -1106;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[repr(u8)]
