@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_pcnet
+#
+# Userland AMD PCnet (Am79C970A / Am79C973, 1022:2000) driver capsule:
+# VirtualBox's default NIC and QEMU's `pcnet`. Drives the part through the
+# kernel hardware broker (MkDeviceList / MkDeviceClaim / MkMmioMap /
+# MkDmaMap) over its memory-mapped register window. Frames only; the wire
+# protocol is the one net.core speaks to every wired card.
+
+[package]
+name = "nonos_capsule_driver_pcnet"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland AMD PCnet driver capsule"
+
+[[bin]]
+name = "driver_pcnet"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_mac = { path = "../nonos_mac" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

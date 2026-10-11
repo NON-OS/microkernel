@@ -18,13 +18,14 @@
 
 use crate::boot::handoff::BootProfile;
 
-const NETWORK_DRIVERS: [&str; 6] = [
+const NETWORK_DRIVERS: [&str; 7] = [
     "driver.e1000_0",
     "driver.rtl8139_0",
     "driver.rtl8169_0",
     "driver.virtio_net0",
     "driver.iwlwifi0",
     "driver.rtl8821ce0",
+    "driver.pcnet0",
 ];
 /* Safe Mode: no audio, and no game or demo beside the tools. */
 const NOT_SAFE: [&str; 4] = ["driver.hda0", "audio.server", "app.snake", "app.hello"];

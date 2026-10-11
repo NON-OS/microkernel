@@ -24,6 +24,7 @@ pub mod i2c_pci_capsule;
 pub mod inventory;
 pub mod iwlwifi_capsule;
 pub mod nvme_capsule;
+pub mod pcnet_capsule;
 pub mod ps2_kbd_capsule;
 pub mod rtl8139_capsule;
 pub mod rtl8169_capsule;
