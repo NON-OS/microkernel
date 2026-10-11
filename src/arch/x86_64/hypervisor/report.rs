@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* The `[PLATFORM]` boot line, after the broker has its device table. */
+/*
+ * The `[PLATFORM]` boot line, after the broker has its device table: the
+ * hypervisor, its Hyper-V interface, and a balloon left off.
+ */
 
+use super::balloon::balloon_offered;
 use super::refine::refine;
 use super::state;
 use crate::sys::serial;
@@ -28,6 +32,9 @@ pub fn report() {
     serial::print(g.vendor.slug().as_bytes());
     if g.hyperv_abi {
         serial::print(b" abi=hyperv");
+    }
+    if balloon_offered(devices.iter().map(|r| (r.vendor, r.device))) {
+        serial::print(b" balloon=off");
     }
     serial::println(b"");
 }
