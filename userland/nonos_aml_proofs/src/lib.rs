@@ -13,6 +13,10 @@ pub mod block;
 pub mod error;
 #[path = "../../nonos_aml/src/grammar/mod.rs"]
 pub mod grammar;
+#[path = "../../nonos_aml/src/load/mod.rs"]
+pub mod load;
+#[path = "../../nonos_aml/src/namespace/mod.rs"]
+pub mod namespace;
 #[path = "../../nonos_aml/src/op/mod.rs"]
 pub mod op;
 #[path = "../../nonos_aml/src/parse/mod.rs"]
@@ -20,6 +24,8 @@ pub mod parse;
 #[path = "../../nonos_aml/src/shape/mod.rs"]
 pub mod shape;
 
+#[cfg(test)]
+mod consts;
 #[cfg(test)]
 mod enc;
 #[cfg(test)]

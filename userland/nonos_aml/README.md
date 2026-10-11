@@ -17,6 +17,8 @@ or asks for a region it was not granted stops the capsule, not the machine.
 | `shape` | what follows each opcode, one row per operand list | 20.2.5 |
 | `arena` | the node arena and its limits | |
 | `parse` | the term list read into the arena, nothing executed | 20.2 |
+| `namespace` | the object tree, predefined root objects, search rules | 5.3, 5.7 |
+| `load` | tables loaded in order into the namespace; field unit layout | 5.2.11, 19.6.48 |
 
 ## Reading a table
 
@@ -30,6 +32,26 @@ The parser asks the namespace through the `Scopes` trait.
 
 A name in a SuperName is never called, though the grammar allows a call
 there: `CondRefOf(\_OSI)` names a method of one argument and passes none.
+
+## Loading the namespace
+
+`Aml::load_table` takes the DSDT first and only first, then SSDTs and PSDTs
+in the order the XSDT lists them. Each table is parsed, kept with its arena,
+and walked: every named object becomes an `Entry` of its `Kind`, with its
+definition left in the arena for the interpreter. Field units are laid out
+from their FieldList as they are made. An `If` at load time is evaluated by
+the interpreter through `LoadExec` and only the branch it chooses is loaded;
+any other load-time statement is handed to `LoadExec::run`.
+
+The predefined objects (`\_GPE`, `\_PR`, `\_SB`, `\_SI`, `\_TZ`, `\_GL`,
+`\_OS`, `\_OSI`, `\_REV`) exist before any table, so a table cannot define
+its own in their place. A lone NameSeg is searched for in the current scope
+and each scope above it; every other path is followed exactly; definitions
+are never searched. A name defined twice keeps its first definition and is
+noted; a container defined again over a container still has its TermList
+loaded into the first, so nothing inside either is lost. Missing scopes,
+parents and alias targets are noted, never guessed, and the notes are
+bounded at 256.
 
 ## Limits
 

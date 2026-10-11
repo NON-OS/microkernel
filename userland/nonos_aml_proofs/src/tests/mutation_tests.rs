@@ -43,3 +43,20 @@ fn random_tables_never_panic() {
         assert_eq!(flat.depth, 0, "round {round}");
     }
 }
+
+#[test]
+fn mutated_tables_load_into_a_namespace_or_are_refused() {
+    let (aml, _) = laid_out();
+    let base = scope("\\_SB", &cat(&[&device("DEV0", &aml), &aml]));
+    let mut seed = 0x2545_F491_4F6C_DD1Du64;
+    for _ in 0..3000 {
+        let mut m = base.clone();
+        for _ in 0..1 + next(&mut seed) % 4 {
+            let at = (next(&mut seed) % m.len() as u64) as usize;
+            m[at] = next(&mut seed) as u8;
+        }
+        let mut ns = crate::load::Aml::default();
+        let mut exec = crate::consts::Consts::default();
+        let _ = ns.load_table(table(b"DSDT", 2, &m), &mut exec);
+    }
+}

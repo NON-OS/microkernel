@@ -31,6 +31,8 @@ pub mod arena;
 pub mod block;
 pub mod error;
 pub mod grammar;
+pub mod load;
+pub mod namespace;
 pub mod op;
 pub mod parse;
 pub mod shape;
