@@ -20,45 +20,9 @@
 //! found no release to pin, and refused every store install.
 
 use alloc::string::String;
-use alloc::vec;
 
-use nonos_marketplace_abi::{MarketplaceEntry, MarketplaceIndex, PriceKind, PriceModel, TokenInfo};
-
+use super::index::index;
 use crate::find_release::find_release;
-use crate::readiness_tests::release;
-
-pub(crate) fn index() -> MarketplaceIndex {
-    let (mut first, mut second) = (release("x86_64-linux", 0), release("x86_64-linux", 0));
-    first.release_id = String::from("jq@1.7.1-r0");
-    second.release_id = String::from("jq@1.6-r4");
-    let entry = MarketplaceEntry {
-        listing_id: String::from("linux.jq"),
-        capsule_id: [0; 32],
-        name: String::from("jq"),
-        publisher_name: String::from("Alpine v3.20"),
-        publisher_pubkey: [0; 32],
-        publisher_eth_address: [0; 20],
-        description: String::new(),
-        price: PriceModel { kind: PriceKind::Free, amount_atomic: 0, period_seconds: 0 },
-        token: TokenInfo {
-            symbol: String::new(),
-            decimals: 18,
-            chain_id: 1,
-            contract_address: vec![],
-        },
-        commerce: Some(crate::abi_v3::fixtures::free_commerce()),
-        releases: vec![first, second],
-    };
-    MarketplaceIndex {
-        schema_version: 3,
-        operator_id: String::from("nonos.marketplace.v1"),
-        operator_pubkey: [0; 32],
-        published_at_ms: 0,
-        serial: 1,
-        entries: vec![entry],
-        index_signature: vec![],
-    }
-}
 
 #[test]
 fn an_empty_release_id_is_the_first_release() {
