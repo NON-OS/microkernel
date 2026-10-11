@@ -17,6 +17,7 @@
 mod budget;
 mod channel;
 mod fixture;
+mod floor;
 #[path = "../host/mod.rs"]
 mod host;
 mod persist;

@@ -20,11 +20,12 @@
 //!   flags u8 | address[20] | ed25519[32] | cap u128 | spent u128 | expiry u64
 //!   | left u128 | total u8 | rows u8
 //!   | rows x (channel_id[32] | chain_id u64 | deposit u128 | settled u128
-//!             | cumulative u128 | expiry u64)
+//!             | cumulative u128 | expiry u64 | frozen u8)
 //!
 //! flags: READY once the meter's keys are open (until then address and
 //! ed25519 are zero), KEPT when this boot persists data. On a boot that keeps
-//! nothing the meter changes no state, so its budget stays zero.
+//! nothing the meter changes no state, so its budget stays zero. A frozen
+//! channel is one settle reported settled above what this meter signed.
 
 use alloc::vec::Vec;
 
@@ -33,7 +34,7 @@ use crate::state::MeterState;
 pub const ACCOUNT_ROWS_MAX: usize = 32;
 pub const READY: u8 = 1 << 0;
 pub const KEPT: u8 = 1 << 1;
-pub const ACCOUNT_ROW_LEN: usize = 32 + 8 + 16 * 3 + 8;
+pub const ACCOUNT_ROW_LEN: usize = 32 + 8 + 16 * 3 + 8 + 1;
 
 /// The meter's public identity, once its sealed record is open.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -68,6 +69,7 @@ pub fn account_reply(
         out.extend_from_slice(&c.settled.to_le_bytes());
         out.extend_from_slice(&c.cumulative.to_le_bytes());
         out.extend_from_slice(&c.expiry.to_le_bytes());
+        out.push(c.frozen as u8);
     }
     out
 }

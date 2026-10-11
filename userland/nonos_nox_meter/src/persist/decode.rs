@@ -64,5 +64,10 @@ fn channel(r: &mut Cursor<'_>) -> Option<Channel> {
         expiry: r.u64()?,
         usage_root: r.fixed()?,
         sig: r.fixed()?,
+        frozen: match r.fixed::<1>()?[0] {
+            0 => false,
+            1 => true,
+            _ => return None,
+        },
     })
 }
