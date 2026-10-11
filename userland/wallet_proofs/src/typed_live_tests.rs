@@ -17,11 +17,11 @@
 //! An entry with a contract deployed, as one will look once
 //! nonos_nox_config names it: the path that signs, end to end but the key.
 
+use super::typed_hash_tests::keccak;
 use crate::server::typed::domain::{Domain, DOMAIN_TYPE};
 use crate::server::typed::entry::Entry;
 use crate::server::typed::field::{Field, Kind};
 use crate::server::typed::hashes::hashes;
-use crate::typed_hash_tests::keccak;
 
 static D: Domain = Domain { name: "T", version: "1" };
 pub static LIVE: Entry = Entry {

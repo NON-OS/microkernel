@@ -16,9 +16,9 @@
 
 //! admit() on an entry that has a contract on one chain and not the other.
 
+use super::typed_live_tests::LIVE;
 use crate::server::typed::check::admit;
 use crate::server::typed::refusal::Refusal;
-use crate::typed_live_tests::LIVE;
 
 #[test]
 fn admits_a_deployed_chain_and_refuses_the_other() {

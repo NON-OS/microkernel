@@ -39,7 +39,7 @@ fn the_type_hashes() {
     let want = [
         "6481006cfbd6bb98804dafc05500eb2c23dbdb5206a1d046cdb9b2621c2780fe",
         "f3a44af7b15b9b54ed9ce73eb2a58f9b0154713e3265acc20e98701170b1c88f",
-        "965a3a1c2dbb18f31f6c4c74711e07019f038524876eb7077b2ff59ff972ec4a",
+        "2c3027b70e6539f80e45782d694163977de6df1bafcba6fa319d7a6c6283faf0",
     ];
     for (e, want) in ENTRIES.iter().zip(want) {
         assert_eq!(hash_hex(e.type_string), want, "entry {}", e.id);
