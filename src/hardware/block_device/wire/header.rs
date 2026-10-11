@@ -15,12 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The block wire every new block driver speaks (SD/eMMC, UFS, card
-//! readers): the 20-byte capsule header under its own magic, five ops, and
-//! a reply that repeats the header, then a status, then the payload.
+//! readers): the 20-byte capsule header under its own magic, with the unit
+//! (which disk behind the endpoint) where the shared header keeps a
+//! reserved word, five ops, and a reply that repeats the header, then a
+//! status, then the payload.
 
 /// "NBW1".
 pub(super) const MAGIC: u32 = 0x4E42_5731;
 pub(super) const VERSION: u16 = 1;
+pub(super) const HDR_LEN: usize = 20;
 
 pub(super) const OP_HEALTHCHECK: u16 = 1;
 pub(super) const OP_GEOMETRY: u16 = 2;
