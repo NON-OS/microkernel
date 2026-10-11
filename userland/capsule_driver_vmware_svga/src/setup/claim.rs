@@ -19,15 +19,13 @@
 
 use nonos_libc::{mk_device_claim, mk_device_release, mk_pio_grant, PioGrantOut};
 
-use crate::constants::pci::PORT_BAR;
-
-pub fn claim(device_id: u64) -> Result<(u64, u64), &'static str> {
+pub fn claim(device_id: u64, port_bar: u8) -> Result<(u64, u64), &'static str> {
     let epoch = mk_device_claim(device_id);
     if epoch < 0 {
         return Err("claim failed");
     }
     let mut out = PioGrantOut { port_base: 0, port_count: 0, _pad: 0, grant_id: 0 };
-    if mk_pio_grant(device_id, epoch as u64, PORT_BAR, 0, &mut out) < 0 || out.port_count < 2 {
+    if mk_pio_grant(device_id, epoch as u64, port_bar, 0, &mut out) < 0 || out.port_count < 2 {
         let _ = mk_device_release(device_id);
         return Err("port grant failed");
     }

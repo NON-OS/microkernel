@@ -19,6 +19,7 @@
 
 use nonos_libc::set_bar;
 
+use crate::constants::pci::{Layout, VMWARE_LAYOUT};
 use crate::discover::Found;
 use crate::model::{install, Svga};
 
@@ -34,15 +35,20 @@ impl Bench {
 
     /// The adapter installed, tuned by `tune`, and what discovery found.
     pub fn with(&mut self, tune: impl FnOnce(&mut Svga)) -> Found {
+        self.laid_out(VMWARE_LAYOUT, tune)
+    }
+
+    /// The same with its BARs in `layout`'s order.
+    pub fn laid_out(&mut self, layout: Layout, tune: impl FnOnce(&mut Svga)) -> Found {
         let fifo = (self.fifo.as_mut_ptr() as u64, self.fifo.len() * 4);
         let vram = (self.vram.as_mut_ptr() as u64, self.vram.len() as u64);
-        set_bar(1, vram.0, vram.1);
-        set_bar(2, fifo.0, fifo.1 as u64);
+        set_bar(layout.fb as usize, vram.0, vram.1);
+        set_bar(layout.fifo as usize, fifo.0, fifo.1 as u64);
         let mut svga = Svga::new(fifo);
         svga.vram = vram.1 as u32;
         tune(&mut svga);
         install(svga);
-        Found { device_id: 1, fb_bytes: vram.1, fifo_bytes: fifo.1 as u64 }
+        Found { device_id: 1, layout, fb_bytes: vram.1, fifo_bytes: fifo.1 as u64 }
     }
 
     pub fn standard() -> Self {

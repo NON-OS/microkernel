@@ -61,4 +61,5 @@ fn discovery_wants_ports_then_two_memory_windows() {
     set_devices(vec![wrong, rec]);
     let f = find_svga().expect("found");
     assert_eq!((f.device_id, f.fb_bytes, f.fifo_bytes), (5, 16 << 20, 2 << 20));
+    assert_eq!(f.layout, crate::constants::pci::VMWARE_LAYOUT);
 }
