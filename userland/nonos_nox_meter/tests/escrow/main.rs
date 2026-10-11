@@ -14,24 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The meter's escrow request (plan/22 step 1): a fresh buyer key, its
-//! public half in the request, and an Equi-X solution the agent's verify
-//! accepts over listing_key | buyer_pk; another key when one cannot be solved.
+//! The meter's escrow request (plan/29): a fresh buyer key, its public half
+//! in the request, and a 36-byte proof of work the agent's pow_check accepts
+//! at ESCROW_POW_EFFORT; nothing without a key or a nonce to start from.
 
-use nonos_equix::{verify, Solution, Solver};
-use nonos_nox_chunks::{equix_challenge, X25519};
-use nonos_nox_meter::escrow::{escrow_request, Want, KEY_TRIES};
-use x25519_dalek::{PublicKey, StaticSecret};
+use nonos_equix::Solver;
+use nonos_nox_chunks::{pow_check, PowField, POW_FIELD_LEN, X25519};
+use nonos_nox_config::ESCROW_POW_EFFORT;
+use nonos_nox_meter::escrow::{escrow_request, Want, NONCE_TRIES};
 
-struct D;
-impl X25519 for D {
-    fn dh(&self, sk: &[u8; 32], pk: &[u8; 32]) -> [u8; 32] {
-        StaticSecret::from(*sk).diffie_hellman(&PublicKey::from(*pk)).to_bytes()
-    }
-    fn public(&self, sk: &[u8; 32]) -> [u8; 32] {
-        PublicKey::from(&StaticSecret::from(*sk)).to_bytes()
-    }
-}
+mod x;
+use x::D;
 
 fn want() -> Want {
     Want {
@@ -57,14 +50,21 @@ fn a_request_carries_the_buyer_key_and_a_solution_the_agent_accepts() {
         (r.chain_id, &r.url[..], r.listing_key, r.release_key),
         (11_155_111, &want().url[..], [1; 32], [2; 32])
     );
-    let sol = Solution::from_bytes(&r.solution[..].try_into().unwrap());
-    assert_eq!(verify(&equix_challenge(&[1; 32], &r.buyer_pk), &sol), Ok(()));
+    assert_eq!(r.solution.len(), POW_FIELD_LEN);
+    assert!(pow_check(&[1; 32], &r.buyer_pk, &r.solution, ESCROW_POW_EFFORT), "the agent's check");
+    let f = PowField::parse(&r.solution).unwrap();
+    assert_eq!(f.effort, ESCROW_POW_EFFORT);
     assert!(r.encode().is_some(), "the request fits its wire");
 }
 
 #[test]
-fn no_key_no_request() {
+fn no_key_or_no_nonce_no_request() {
     let mut solver = Solver::new().unwrap();
     assert!(escrow_request(&D, &mut || None, &mut solver, &want()).is_none());
-    assert_eq!(KEY_TRIES, 8);
+    let mut once = Some([5u8; 32]);
+    assert!(
+        escrow_request(&D, &mut || once.take(), &mut solver, &want()).is_none(),
+        "no nonce start"
+    );
+    const { assert!(NONCE_TRIES >= 64, "room for effort 32's expected walk") };
 }

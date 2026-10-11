@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The offer inside the escrow agent's sealed answer (plan/22 step 1):
-//! cipherRoot[32] | keyCommit[32] | n u32 LE | n plain chunk hashes | the
-//! ciphertext, the rest. The buyer runs check_offer on it before funding.
+//! The offer inside the escrow agent's sealed answer (plan/29): cipherRoot[32]
+//! | keyCommit[32] | n plain chunk hashes[32] | n cipher chunks[CHUNK], with
+//! n = ceil(content_len / CHUNK) from the request, never from the seller. Any
+//! other length is refused. The buyer runs check_offer on it before ORDER_NEW.
 
 use alloc::vec::Vec;
+
+use crate::chunk::{chunk_count, CHUNK};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Offer {
@@ -28,21 +31,26 @@ pub struct Offer {
     pub ciphertext: Vec<u8>,
 }
 
+/// The inner length for `content_len`, or None for no content or past usize.
+pub fn offer_len(content_len: u64) -> Option<usize> {
+    let n = usize::try_from(chunk_count(content_len)).ok().filter(|n| *n > 0)?;
+    n.checked_mul(32 + CHUNK)?.checked_add(64)
+}
+
 impl Offer {
     pub fn encode(&self) -> Vec<u8> {
         let mut out = [self.cipher_root, self.key_commit].concat();
-        out.extend_from_slice(&(self.hashes.len() as u32).to_le_bytes());
         self.hashes.iter().for_each(|h| out.extend_from_slice(h));
         out.extend_from_slice(&self.ciphertext);
         out
     }
 
-    /// None for a body too short for its own count.
-    pub fn parse(b: &[u8]) -> Option<Self> {
-        let n = u32::from_le_bytes(b.get(64..68)?.try_into().ok()?) as usize;
-        let end = n.checked_mul(32)?.checked_add(68)?;
-        let hashes =
-            b.get(68..end)?.chunks(32).map(|h| h.try_into().ok()).collect::<Option<_>>()?;
+    /// The offer for `content_len`, or None unless exactly offer_len bytes.
+    pub fn parse(b: &[u8], content_len: u64) -> Option<Self> {
+        (Some(b.len()) == offer_len(content_len)).then_some(())?;
+        let n = chunk_count(content_len) as usize;
+        let end = 64 + 32 * n;
+        let hashes = b[64..end].chunks(32).map(|h| h.try_into().ok()).collect::<Option<_>>()?;
         Some(Offer {
             cipher_root: b[..32].try_into().ok()?,
             key_commit: b[32..64].try_into().ok()?,

@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The escrow agent's sealed answer (plan/22 step 1, v1.4.24): it opens
-//! under the buyer's key alone, to the offer the agent sealed, and that offer
-//! passes check_offer before any funding.
+//! The escrow agent's sealed answer (plan/29): it opens under the buyer's key
+//! alone, for the release asked for alone, to the offer the agent sealed, and
+//! that offer passes check_offer before ORDER_NEW.
 
+#[path = "common/answer_fixture.rs"]
+mod answer_fixture;
 #[path = "common/k.rs"]
 mod k;
 #[path = "common/seller.rs"]
@@ -25,49 +27,43 @@ mod seller;
 #[path = "common/x.rs"]
 mod x;
 
+use answer_fixture::{honest, len, AGENT, BUYER, LISTING, RELEASE};
 use k::{kec, K};
-use nonos_nox_chunks::{check_offer, chunk_root, key_commit, open_answer, seal_answer};
-use nonos_nox_chunks::{AnswerWrong, Offer, X25519};
-use seller::{content, offer, KEY};
+use nonos_nox_chunks::{check_offer, chunk_root, open_answer, seal_answer, AnswerWrong, X25519};
+use seller::{content, KEY};
 use x::D;
 
-const BUYER: [u8; 32] = [0x0b; 32];
-const AGENT: [u8; 32] = [0x0a; 32];
-
-fn honest() -> Offer {
-    let (hashes, ciphertext, cipher_root) = offer(&content(), None);
-    Offer { cipher_root, key_commit: key_commit(&K, &KEY), hashes, ciphertext }
+fn sealed() -> Vec<u8> {
+    seal_answer((&K, &D), &AGENT, &D.public(&BUYER), (&LISTING, &RELEASE), &honest()).unwrap()
 }
 
 #[test]
 fn an_answer_opens_under_the_buyers_key_to_an_offer_that_checks() {
-    let sealed = seal_answer((&K, &D), &AGENT, &D.public(&BUYER), &honest()).unwrap();
-    assert_eq!(sealed[..32], D.public(&AGENT));
-    let o = open_answer((&K, &D), &BUYER, &sealed).unwrap();
+    let s = sealed();
+    assert_eq!(s[..32], D.public(&AGENT));
+    let o = open_answer((&K, &D), &BUYER, ((&LISTING, &RELEASE), len()), &s).unwrap();
     assert_eq!((&o, o.key_commit), (&honest(), kec(&[&KEY])));
-    let c = content();
-    let root = chunk_root(&K, &c).unwrap();
-    assert_eq!(
-        check_offer(&K, &root, c.len() as u64, &o.hashes, &o.ciphertext, &o.cipher_root),
-        Ok(())
-    );
+    let root = chunk_root(&K, &content()).unwrap();
+    assert_eq!(check_offer(&K, &root, len(), &o.hashes, &o.ciphertext, &o.cipher_root), Ok(()));
 }
 
 #[test]
 fn nothing_else_opens() {
-    let sealed = seal_answer((&K, &D), &AGENT, &D.public(&BUYER), &honest()).unwrap();
-    let open = |b: &[u8]| open_answer((&K, &D), &BUYER, b);
-    assert_eq!(
-        open_answer((&K, &D), &[0x0c; 32], &sealed),
-        Err(AnswerWrong::Seal),
-        "another buyer"
-    );
-    for at in [0, 31, 32, sealed.len() - 1] {
-        let mut t = sealed.clone();
+    let s = sealed();
+    let open = |sk: &[u8; 32], rel: &[u8; 32], n: u64, b: &[u8]| {
+        open_answer((&K, &D), sk, ((&LISTING, rel), n), b)
+    };
+    assert_eq!(open(&[0x0c; 32], &RELEASE, len(), &s), Err(AnswerWrong::Seal), "another buyer");
+    assert_eq!(open(&BUYER, &[0x23; 32], len(), &s), Err(AnswerWrong::Seal), "another release");
+    assert_eq!(open(&BUYER, &RELEASE, len() + 1024, &s), Err(AnswerWrong::Body), "another length");
+    for at in [0, 31, 32, s.len() - 1] {
+        let mut t = s.clone();
         t[at] ^= 1;
-        assert!(open(&t).is_err(), "byte {at} changed");
+        assert!(open(&BUYER, &RELEASE, len(), &t).is_err(), "byte {at} changed");
     }
-    assert_eq!(open(&sealed[..47]), Err(AnswerWrong::Short));
-    assert_eq!(open(&[[0u8; 32].as_slice(), &[0; 16]].concat()), Err(AnswerWrong::LowOrder));
-    assert_eq!(seal_answer((&K, &D), &AGENT, &[0; 32], &honest()), None, "a low-order buyer key");
+    assert_eq!(open(&BUYER, &RELEASE, len(), &s[..47]), Err(AnswerWrong::Short));
+    let low = [[0u8; 32].as_slice(), &[0; 16]].concat();
+    assert_eq!(open(&BUYER, &RELEASE, len(), &low), Err(AnswerWrong::LowOrder));
+    let to_zero = seal_answer((&K, &D), &AGENT, &[0; 32], (&LISTING, &RELEASE), &honest());
+    assert_eq!(to_zero, None, "a low-order buyer key");
 }
