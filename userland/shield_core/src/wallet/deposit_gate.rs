@@ -18,6 +18,8 @@ pub struct PoolState {
     pub open_deposits: bool,
     /// Base units per note unit. One on a format 5 pool, which counts base units.
     pub scale: u128,
+    /// The pool's AmountPolicy is paused: nothing settles in or out until it resumes.
+    pub policy_paused: bool,
 }
 
 /// Why the pool would refuse, named the way a screen can say it.
@@ -26,6 +28,8 @@ pub enum Refusal {
     DepositsPaused,
     /// The pool never settles again, so money deposited could leave only by refund.
     WoundDown,
+    /// The policy is paused; its guardian may hold it for up to 14 days.
+    PolicyPaused,
     /// Zero, above one note's ceiling, or a fee that would take all of it.
     Amount,
     /// Not a whole number of pool units. The remainder would back no note.
@@ -43,6 +47,9 @@ pub fn check(state: &PoolState, amount: u128) -> Result<(), Refusal> {
     }
     if state.wound_down {
         return Err(Refusal::WoundDown);
+    }
+    if state.policy_paused {
+        return Err(Refusal::PolicyPaused);
     }
     let units = units_of(amount, state.scale)?;
     if state.beta_mode {
