@@ -3400,6 +3400,18 @@
   "md": [],
   "signed": []
  },
+ "userland/intel_display_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_intel_display/data",
+   "userland/capsule_driver_intel_display/src",
+   "userland/intel_display_proofs",
+   "userland/nonos_edid"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/ip_proofs": {
   "exclude": [],
   "include": [
