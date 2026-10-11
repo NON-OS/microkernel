@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a job is for, the contracts it uses, and what it asks settle.
+//! What a job is for: its chain, its first ask, the contracts it needs.
 
-use alloc::vec::Vec;
-
+use nonos_nox_config::Contract;
 use nonos_payment_proto::{Close, OpenStart, TopUp};
 
-use crate::open::TxRequest;
+use super::ask::Ask;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Work {
     Open(OpenStart),
     TopUp(TopUp),
     Close(Close),
+    /// The NOX the Shield pool credited `meter` (v1.4.17).
+    Claim {
+        chain_id: u64,
+        meter: [u8; 20],
+    },
 }
 
 impl Work {
@@ -35,31 +39,25 @@ impl Work {
             Work::Open(s) => s.chain_id,
             Work::TopUp(t) => t.chain_id,
             Work::Close(c) => c.chain_id,
+            Work::Claim { chain_id, .. } => *chain_id,
         }
     }
-}
 
-/// The config's NOX and Settlement on the job's chain.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Contracts {
-    pub nox: [u8; 20],
-    pub settlement: [u8; 20],
-}
+    /// The first ask: CLOSE reads GRACE, CLAIM what is claimable, the rest GAS.
+    pub fn first(&self) -> Ask {
+        match self {
+            Work::Close(_) => Ask::Grace,
+            Work::Claim { .. } => Ask::Claimable,
+            _ => Ask::Gas,
+        }
+    }
 
-/// The next request to settle: Settlement's GRACE() (READ view 16), the
-/// meter's GAS, or a BROADCAST of one signed transaction.
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum Ask {
-    Grace,
-    Gas,
-    Broadcast(Vec<u8>),
-}
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum Next {
-    Ask(Ask),
-    /// Sign these with the meter's key, then hand the raw transactions back.
-    Sign(Vec<TxRequest>),
-    /// The job's answer: each broadcast transaction's hash, in order.
-    Done(Vec<u8>),
+    /// The config contracts the job needs deployed on its chain.
+    pub fn needs(&self) -> &'static [Contract] {
+        match self {
+            Work::Open(_) | Work::TopUp(_) => &[Contract::NoxToken, Contract::Settlement],
+            Work::Close(_) => &[Contract::Settlement],
+            Work::Claim { .. } => &[Contract::ShieldPool],
+        }
+    }
 }

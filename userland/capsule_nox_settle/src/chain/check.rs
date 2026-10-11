@@ -16,7 +16,8 @@
 
 //! Whether a config contract is the one the config describes: fee
 //! exempt and not blacklisted on NOX (D11), and its eip712Domain, its time
-//! constants (times.rs) and the bond's escrow() all the config's. NOX has none.
+//! constants and the pool's amountPolicy() (times.rs) and the bond's escrow()
+//! all the config's. NOX and the policy, which holds no NOX, have none.
 
 use nonos_nox_config::{address, domain_answer_matches, Contract, Domain};
 use nonos_nox_config::{BOND, ESCROW, LISTING, SETTLEMENT};
@@ -47,7 +48,7 @@ fn no_on_revert(r: Result<bool, i32>) -> Result<bool, i32> {
 }
 
 pub fn check(rpc: &mut Rpc, chain_id: u64, c: Contract, at: &[u8; 20]) -> Result<bool, i32> {
-    if c == Contract::NoxToken {
+    if matches!(c, Contract::NoxToken | Contract::AmountPolicy) {
         return Ok(true);
     }
     if !flags(rpc, chain_id, at)? {

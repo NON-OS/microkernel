@@ -22,5 +22,6 @@ mod caps;
 mod channel_tx;
 mod fixture;
 mod flow;
+mod flow_claim;
 mod flow_open;
 mod plan;

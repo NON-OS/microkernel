@@ -36,3 +36,6 @@ pub const OP_TOPUP: u16 = 13;
 pub const OP_CLOSE: u16 = 14;
 /// Wallet: a started job's result, once (job.rs).
 pub const OP_JOB: u16 = 15;
+/// Wallet: claim the NOX the Shield pool credited the meter (v1.4.17).
+/// Body: chain_id u64. A job; its result is claimTx.
+pub const OP_CLAIM: u16 = 16;

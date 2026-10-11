@@ -46,7 +46,9 @@ pub use domain::{
 pub use domain::{EIP712_DOMAIN_TYPEHASH, ESCROW, LISTING, SETTLEMENT, VERSION_HASH};
 pub use error::ConfigError;
 pub use escrow::{DELIVER_MARGIN, DISPUTE_WINDOW, MAX_DELIVERY, ORDER_MIN_LEAD, UNBOND_DELAY_MIN};
-pub use gas::{APPROVE_GAS, CLOSE_GAS, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, OPEN_GAS};
+pub use gas::{
+    APPROVE_GAS, CLAIM_GAS, CLOSE_GAS, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, OPEN_GAS,
+};
 pub use gas::{SETTLE_GAS_MAX, TOPUP_GAS};
 pub use hex::{hex20, hex32};
 pub use lookup::{address, deployed};

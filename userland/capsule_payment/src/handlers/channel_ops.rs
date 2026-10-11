@@ -47,6 +47,14 @@ pub fn open_start(meter: &mut Meter, work: &mut Work, job: Job, req: &Call<'_>) 
     started(work, meter, Some(job), req)
 }
 
+/// CLAIM (op 16, v1.4.17): body chain_id u64; the meter claims to itself.
+pub fn claim(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
+    let chain = req.body.try_into().ok().map(u64::from_le_bytes);
+    let at = meter.ready().map(|k| k.address).ok();
+    let job = chain.zip(at).map(|(chain_id, meter)| Job::Claim { chain_id, meter });
+    started(work, meter, job, req)
+}
+
 pub fn job(work: &mut Work, req: &Call<'_>) -> Vec<u8> {
     req.result(parse_job_id(req.body).ok_or(EINVAL).and_then(|id| work.jobs.take(id)))
 }

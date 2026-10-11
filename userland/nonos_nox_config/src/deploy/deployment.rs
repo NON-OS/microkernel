@@ -41,6 +41,7 @@ pub struct Deployment {
     pub listing_registry: Option<Deployed>,
     pub proof_anchor: Option<Deployed>,
     pub shield_pool: Option<Deployed>,
+    pub amount_policy: Option<Deployed>,
 }
 
 impl Deployment {
@@ -53,6 +54,7 @@ impl Deployment {
             Contract::ListingRegistry => self.listing_registry,
             Contract::ProofAnchor => self.proof_anchor,
             Contract::ShieldPool => self.shield_pool,
+            Contract::AmountPolicy => self.amount_policy,
         }
     }
 

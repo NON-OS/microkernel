@@ -32,5 +32,6 @@ pub fn contract_name(c: Contract) -> &'static str {
         Contract::ListingRegistry => "NONOS Listing registry",
         Contract::ProofAnchor => "NONOS Proof anchor",
         Contract::ShieldPool => "the Shield pool",
+        Contract::AmountPolicy => "the Shield pool's amount policy",
     }
 }
