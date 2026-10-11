@@ -30,6 +30,8 @@ mod frame;
 #[path = "../../../../src/hardware/block_device/wire/header.rs"]
 #[allow(dead_code)]
 mod header;
+#[path = "../../../../src/hardware/block_device/wire/identity.rs"]
+mod identity;
 #[path = "../../../../src/hardware/nvme_capsule/client/lba_map.rs"]
 #[allow(dead_code)]
 mod lba_map;
@@ -40,5 +42,6 @@ mod status;
 
 mod frame_tests;
 mod geometry_tests;
+mod identity_tests;
 mod span_tests;
 mod status_tests;

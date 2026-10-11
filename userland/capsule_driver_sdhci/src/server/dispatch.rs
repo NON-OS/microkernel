@@ -18,23 +18,25 @@
 
 use crate::emmc::{wire_status, Opened};
 use crate::protocol::{
-    serves_unit, Request, E_INVAL, E_NXIO, OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_READ, OP_WRITE,
+    serves_unit, Request, E_INVAL, E_NXIO, OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_IDENTIFY,
+    OP_READ, OP_WRITE,
 };
 
 use super::error::reply_with_status;
-use super::handlers::{geometry, rw};
+use super::handlers::{geometry, identify, rw};
 
 pub fn dispatch(o: &mut Opened, req: &Request, body: &[u8], tx: &mut [u8]) {
     if !serves_unit(req.unit) {
         return reply_with_status(tx, req, E_NXIO);
     }
-    let bare = matches!(req.op, OP_HEALTHCHECK | OP_GEOMETRY | OP_FLUSH);
+    let bare = matches!(req.op, OP_HEALTHCHECK | OP_GEOMETRY | OP_FLUSH | OP_IDENTIFY);
     if bare && !body.is_empty() {
         return reply_with_status(tx, req, E_INVAL);
     }
     match req.op {
         OP_HEALTHCHECK => reply_with_status(tx, req, 0),
         OP_GEOMETRY => geometry::serve(o, req, tx),
+        OP_IDENTIFY => identify::serve(o, req, tx),
         OP_READ => rw::serve_read(o, req, body, tx),
         OP_WRITE => rw::serve_write(o, req, body, tx),
         OP_FLUSH => {

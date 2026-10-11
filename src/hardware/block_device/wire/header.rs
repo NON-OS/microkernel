@@ -30,11 +30,14 @@ pub(super) const OP_GEOMETRY: u16 = 2;
 pub(super) const OP_READ: u16 = 3;
 pub(super) const OP_WRITE: u16 = 4;
 pub(super) const OP_FLUSH: u16 = 5;
+pub(super) const OP_IDENTIFY: u16 = 6;
 
 /// lba u64, count u32: the head of a READ or WRITE request.
 pub(super) const RW_HEADER_LEN: usize = 12;
 /// lba_count u64, lba_bytes u32, max_transfer_bytes u32, flags u32.
 pub(super) const GEOMETRY_LEN: usize = 20;
+/// model_len, serial_len, medium, reserved, model[40], serial[20].
+pub(super) const IDENTIFY_LEN: usize = 64;
 
 /// The most one READ or WRITE moves, whatever the driver offers: a reply
 /// this size is still a small part of an IPC message.
