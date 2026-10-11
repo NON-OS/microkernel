@@ -14,17 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::consts::DOMAIN_SEPARATOR;
+//! The keyring's wire types, and the ops it retired, from capsule source.
 
-pub fn receipt_digest(struct_hash: &[u8; 32]) -> Option<[u8; 32]> {
-    let mut pre = [0u8; 66];
-    pre[0] = 0x19;
-    pre[1] = 0x01;
-    pre[2..34].copy_from_slice(&DOMAIN_SEPARATOR);
-    pre[34..66].copy_from_slice(struct_hash);
-    let mut out = [0u8; 32];
-    if nonos_libc::crypto_keccak256(pre.as_ptr(), 66, out.as_mut_ptr(), 32) != 32 {
-        return None;
-    }
-    Some(out)
-}
+#[path = "../../../capsule_keyring/src/protocol/encode.rs"]
+pub mod encode;
+#[path = "../../../capsule_keyring/src/protocol/errno.rs"]
+pub mod errno;
+#[path = "../../../capsule_keyring/src/protocol/retired.rs"]
+pub mod retired;
+#[path = "../../../capsule_keyring/src/protocol/types.rs"]
+pub mod types;
