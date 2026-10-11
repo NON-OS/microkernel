@@ -29,7 +29,7 @@ impl Gic {
     }
 
     pub fn init(&mut self) -> Result<(), &'static str> {
-        self.distributor.init();
+        self.distributor.init()?;
         super::cpu::init_gic_cpu()
     }
 
