@@ -16,26 +16,30 @@
 
 //! The gates schema 3 adds: whether the publisher and the payee
 //! stand behind what is sold, whether the payee attested to these bytes, and
-//! whether a Linux release carries the policy it was sold under. They apply
+//! whether a Linux release carries the policy it was sold under, and whether
+//! the price the store shows is the one the meter charges. They apply
 //! to schema 3 releases only: a schema 2 release keeps today's checks until
 //! the owner re-seals it (O5), and a free listing sells nothing to attest.
 
+use nonos_marketplace_abi::SettleMode;
 use nonos_marketplace_abi::{attest_verdict, binding_verdict, commerce_verdict, policy_verdict};
+use nonos_marketplace_abi::{price_verdict, Keccak, MarketplaceEntry, PriceVerdict, Recover};
 use nonos_marketplace_abi::{
     AttestVerdict, BindingVerdict, Blake3, CapsuleRelease, CommerceVerdict,
 };
-use nonos_marketplace_abi::{Keccak, MarketplaceEntry, Recover, SettleMode};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct MarketGates {
     pub commerce: bool,
     pub attest: bool,
     pub policy: bool,
+    /// The shown price agrees with the commerce block (B6).
+    pub price: bool,
 }
 
 impl MarketGates {
     pub fn all(&self) -> bool {
-        self.commerce && self.attest && self.policy
+        self.commerce && self.attest && self.policy && self.price
     }
 }
 
@@ -52,7 +56,8 @@ pub fn market_gates<H: Keccak + Blake3 + Recover>(
             && binding_verdict(h, h, entry) == BindingVerdict::Valid);
     let attest = !sells || attest_verdict(h, h, entry, rel) == AttestVerdict::Valid;
     let policy = rel.ext.is_none() || policy_verdict(h, entry, rel).passes();
-    MarketGates { commerce, attest, policy }
+    let price = price_verdict(entry) != PriceVerdict::Contradicts;
+    MarketGates { commerce, attest, policy, price }
 }
 
 /// Whether the entry sells by escrow, so its pin is the chunk tree.
