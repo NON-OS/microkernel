@@ -2989,9 +2989,10 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "userland/capsule_driver_ahci/src/constants/ata.rs",
-   "userland/capsule_driver_ahci/src/protocol/identify_reply.rs",
-   "userland/capsule_driver_ahci/src/protocol/ops.rs",
+   "src/hardware/block_device/wire/decode.rs",
+   "src/hardware/block_device/wire/error.rs",
+   "src/hardware/block_device/wire/header.rs",
+   "src/hardware/block_device/wire/status.rs",
    "userland/capsule_driver_sdhci/src/emmc/disk",
    "userland/capsule_driver_sdhci/src/emmc/env",
    "userland/capsule_driver_sdhci/src/emmc/error",
@@ -3000,6 +3001,9 @@
    "userland/capsule_driver_sdhci/src/emmc/pci",
    "userland/capsule_driver_sdhci/src/emmc/sdhci",
    "userland/capsule_driver_sdhci/src/emmc/text",
+   "userland/capsule_driver_sdhci/src/protocol",
+   "userland/capsule_driver_sdhci/src/server/handlers/rw_parse.rs",
+   "userland/capsule_driver_sdhci/src/server/medium_rule.rs",
    "userland/emmc_proofs"
   ],
   "md": [],
