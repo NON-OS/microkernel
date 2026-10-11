@@ -731,6 +731,7 @@
    "src/arch/aarch64/mmu/attributes/kind.rs",
    "src/arch/paging/descriptor/aarch64/bits.rs",
    "src/arch/paging/descriptor/aarch64/build.rs",
+   "src/arch/paging/descriptor/aarch64/memory_type.rs",
    "src/arch/paging/descriptor/aarch64/read.rs",
    "src/arch/paging/descriptor/flags.rs",
    "src/arch/paging/descriptor/x86_64.rs",
