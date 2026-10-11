@@ -19,7 +19,7 @@ mod reply;
 mod request;
 mod words;
 
-pub use check::{believed, struct_hash};
+pub use check::{believed, digest, struct_hash, Asked};
 pub use reply::{parse_reply, Signed, REPLY_LEN};
 pub use request::{typed_request, ENTRY_ATTEST, ENTRY_BINDING, OP_SIGN_TYPED_DATA};
 pub use words::{attest_words, binding_words, Wrong};
