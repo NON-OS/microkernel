@@ -215,6 +215,8 @@ mod route_tests;
 
 #[cfg(test)]
 mod gather_tests;
+#[cfg(test)]
+mod handshake_tests;
 
 #[cfg(test)]
 mod send_tests;
