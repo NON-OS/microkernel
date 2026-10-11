@@ -44,6 +44,9 @@ pub mod iommu_handover;
 /// A map's writes, flush and take-back (K1).
 #[cfg(test)]
 pub mod iommu_place;
+/// The domain each enumerated function starts in (K2).
+#[cfg(test)]
+pub mod iommu_start;
 pub mod pci_quirk_bits;
 #[cfg(test)]
 pub mod prove_job;
@@ -59,6 +62,9 @@ pub mod dma_pool_bitmap;
 pub mod dma_sync_lines;
 #[cfg(test)]
 pub mod dmar_scope;
+/// DMAR reserved memory regions (K2).
+#[cfg(test)]
+pub mod dmar_reserved;
 #[cfg(test)]
 pub mod boot_screen;
 pub mod driver_end;
