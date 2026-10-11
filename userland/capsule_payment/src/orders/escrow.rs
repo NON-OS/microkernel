@@ -52,6 +52,11 @@ pub fn keep_plain(order_id: &[u8; 32], plain: Vec<u8>) -> Result<(), i32> {
     save_sealed(&path("plain", order_id), b"meter.plain", plain)
 }
 
+/// ENOENT before ORDER_DELIVERED's OK.
+pub fn plain_of(order_id: &[u8; 32]) -> Result<Vec<u8>, i32> {
+    load_sealed(&path("plain", order_id), b"meter.plain")?.ok_or(ENOENT)
+}
+
 pub fn forget(order_id: &[u8; 32]) -> Result<(), i32> {
     disk::remove(&path("escrow", order_id))?;
     disk::remove(&path("plain", order_id))

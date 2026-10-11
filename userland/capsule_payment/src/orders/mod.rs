@@ -19,6 +19,6 @@ mod file;
 mod offers;
 mod sealed;
 
-pub(crate) use escrow::{bind, escrow_of, keep_plain};
+pub(crate) use escrow::{bind, escrow_of, keep_plain, plain_of};
 pub(crate) use file::{drop_order, find, keep};
 pub(crate) use offers::{keep_offer, offers};
