@@ -27,7 +27,7 @@ static DRIVERS: &[&Endpoint] = &[
 ];
 
 /// How many endpoints this kernel carries.
-pub fn count() -> u8 {
+pub(super) fn count() -> u8 {
     DRIVERS.len() as u8
 }
 
@@ -36,14 +36,14 @@ pub(super) fn endpoint(index: u8) -> Option<&'static Endpoint> {
 }
 
 /// What the log calls endpoint `index`'s disk.
-pub fn shown(index: u8) -> &'static str {
+pub(super) fn shown(index: u8) -> &'static str {
     endpoint(index).map_or("an unknown block-wire driver", |e| e.shown)
 }
 
 /// Where the block layer keeps the hash of its last line for endpoint
 /// `index`. Past the table (never asked: the order only counts to `count`)
 /// the lines share one slot.
-pub fn said(index: u8) -> &'static AtomicU64 {
+pub(super) fn said(index: u8) -> &'static AtomicU64 {
     static PAST: AtomicU64 = AtomicU64::new(0);
     endpoint(index).map_or(&PAST, |e| &e.slot.said)
 }

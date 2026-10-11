@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! What the block layer saw on a disk while choosing the NONOS disk, said
 //! on the log when it changes. A stick the layer passed over left nothing:
 //! a boot from it showed only that the store was not there, and no line
 //! said which disk was asked or why it was not taken.
 
-use alloc::format;
-use alloc::string::String;
+use alloc::{format, string::String};
 
 use super::backend::Backend;
 use super::BlockDeviceError;
@@ -59,7 +57,9 @@ fn sector(got: &Result<[u8; 8], BlockDeviceError>) -> String {
 pub(super) fn line(backend: Backend, seen: &Seen) -> String {
     let what = match seen {
         Seen::NoSize(BlockDeviceError::Dead) => String::from("no disk behind this driver"),
-        Seen::NoSize(BlockDeviceError::NotReady) => String::from("its driver is still looking for its device"),
+        Seen::NoSize(BlockDeviceError::NotReady) => {
+            String::from("its driver is still looking for its device")
+        }
         Seen::NoSize(e) => format!("no size given ({e:?})"),
         Seen::TooSmall(n) => format!("{n} sectors, too small to hold the store"),
         Seen::NotFiveTwelve(n) => format!("{n} sectors whose blocks are not 512 bytes; not used"),
@@ -71,5 +71,5 @@ pub(super) fn line(backend: Backend, seen: &Seen) -> String {
             format!("{sectors} sectors; LBA {lba} holds {}{plan}", sector(got))
         }
     };
-    format!("[BLOCK] asked {}: {what}", super::name::name(backend))
+    format!("[BLOCK] asked {}: {what}", backend.shown())
 }
