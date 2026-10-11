@@ -29,6 +29,8 @@ pub enum MeterError {
     NoChannel,
     /// Settle reported more settled on the channel than this meter signed.
     Frozen,
+    /// The meter's ETH is short of gas for what it must send.
+    NoGas,
     /// The channel table is full.
     Full,
     /// The market does not stand behind the release's commerce block.
