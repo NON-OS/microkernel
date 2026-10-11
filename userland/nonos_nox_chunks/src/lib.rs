@@ -23,6 +23,9 @@
 
 extern crate alloc;
 
+mod answer;
+mod answer_seal;
+mod answer_types;
 mod buyer;
 mod buyer_types;
 mod calls;
@@ -42,6 +45,9 @@ mod seller_types;
 mod terms;
 mod tree;
 
+pub use answer::Offer;
+pub use answer_seal::{open_answer, seal_answer};
+pub use answer_types::{equix_challenge, AnswerWrong, ANSWER_TAG, X25519};
 pub use buyer::buyer_terms;
 pub use buyer_types::{Buyer, OrderWrong, Sale};
 pub use calls::{fund, fund_from, refund, release, DISPUTE, FUND, FUND_FROM, REFUND, RELEASE};
