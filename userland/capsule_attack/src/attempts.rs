@@ -75,16 +75,10 @@ fn lookup(name: &[u8]) -> Option<(u32, u32)> {
     (found == 0 && port != 0 && pid != 0).then_some((port, pid))
 }
 
-/// The registered names of the network cards' drivers
-/// (`src/services/registry/held.rs`).
-const CARDS: [&[u8]; 6] = [
-    b"driver.virtio_net0",
-    b"driver.e1000_0",
-    b"driver.rtl8169_0",
-    b"driver.rtl8139_0",
-    b"driver.iwlwifi0",
-    b"driver.rtl8821ce0",
-];
+// The registered names of the network cards' drivers, from the kernel's own
+// table, so every card it holds (`src/services/registry/held.rs`) is tried.
+#[path = "../../../src/services/registry/nics.rs"]
+mod nics;
 
 /// Go round the gates by pid and straight to the card. Every endpoint a
 /// process serves is read from its one inbox, so a send by pid into
@@ -101,8 +95,8 @@ pub fn inbox_escape() {
         None => note(b"[ATTACK-NOTE] cap-escape: net.sockets is not running, its inbox was not tried\n"),
     }
     let mut tried = false;
-    for card in CARDS {
-        let Some((port, pid)) = lookup(card) else { continue };
+    for (card, _) in nics::NICS {
+        let Some((port, pid)) = lookup(card.as_bytes()) else { continue };
         tried = true;
         let rc = raw(MISD, [u64::from(port), junk.as_ptr() as u64, junk.len() as u64, 0, 0, 0]);
         verdict(b"cap-escape", b"a network card's driver by name, held to the stack, MkIpcSend", rc);

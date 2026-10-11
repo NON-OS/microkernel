@@ -37,12 +37,13 @@
 #[path = "held_table.rs"]
 mod table;
 
-use table::HELD;
+use table::{card_callers, HELD};
 
 /// The services that may reach `endpoint`, or None when anyone the
 /// endpoint's capabilities admit may.
 pub(crate) fn callers_of(endpoint: &str) -> Option<&'static [&'static str]> {
-    HELD.iter().find(|(name, _)| *name == endpoint).map(|(_, callers)| *callers)
+    card_callers(endpoint)
+        .or_else(|| HELD.iter().find(|(name, _)| *name == endpoint).map(|(_, callers)| *callers))
 }
 
 /// Whether a caller may send to `endpoint`, given `owns`, which says whether
