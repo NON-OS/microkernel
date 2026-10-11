@@ -16,7 +16,7 @@
 
 use super::take_lp::take_lp;
 
-pub(super) fn parse_pair(buf: &[u8]) -> Option<(&str, &str)> {
+pub(in crate::server::handlers) fn parse_pair(buf: &[u8]) -> Option<(&str, &str)> {
     let (first, rest) = take_lp(buf)?;
     let (second, _) = take_lp(rest)?;
     Some((core::str::from_utf8(first).ok()?, core::str::from_utf8(second).ok()?))

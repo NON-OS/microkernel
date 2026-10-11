@@ -26,6 +26,8 @@ extern crate alloc;
 
 pub mod app;
 pub mod body;
+pub mod commerce;
+mod commerce_parse;
 pub mod header;
 pub mod install;
 pub mod listing;
@@ -40,11 +42,14 @@ pub mod status;
 
 pub use app::{parse_app, App};
 pub use body::{listing_body, pair_body};
+pub use commerce::{Commerce, BINDING_VALID, COMMERCE_MATCHES};
+pub use commerce_parse::parse_commerce;
 pub use header::{HDR_LEN, MAGIC, STATUS_LEN, VERSION};
 pub use install::Stage;
 pub use listing::{parse_list, Entry};
 pub use ops::{
-    OP_GET_APP, OP_GET_RELEASE, OP_HEALTHCHECK, OP_INSTALL_READY, OP_LIST_APPS, OP_LOAD_INDEX,
+    OP_GET_APP, OP_GET_COMMERCE, OP_GET_RELEASE, OP_HEALTHCHECK, OP_INSTALL_READY, OP_LIST_APPS,
+    OP_LOAD_INDEX,
 };
 pub use readiness::{parse_readiness, Readiness, GATES};
 pub use reason::{installed_line, reason, removal_only, Reason};

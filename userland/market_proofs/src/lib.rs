@@ -32,6 +32,8 @@ mod protocol;
 
 #[cfg(test)]
 mod abi_v3;
+#[cfg(test)]
+use abi_v3::chain_hosts;
 
 #[cfg(test)]
 mod index_decode_tests;
