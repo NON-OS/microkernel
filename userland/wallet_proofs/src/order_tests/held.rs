@@ -35,6 +35,7 @@ pub(super) fn row(listing_id: [u8; 32], chain_id: u64, expiry: u64, frozen: bool
         cumulative,
         expiry,
         frozen,
+        reclaim_to: [0; 20],
     }
 }
 

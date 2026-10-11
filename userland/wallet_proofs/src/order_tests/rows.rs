@@ -30,9 +30,9 @@ fn nox(v: u128) -> String {
 fn the_state_and_what_waits_are_read_out() {
     assert_eq!(state_name(1), "funded: waiting for the seller to deliver");
     assert_eq!(state_name(9), "a state this wallet does not know");
-    let s = OrderStatus { state: 0, funded: 0, pending: 0, plain: false };
+    let s = OrderStatus { state: 0, funded: 0, pending: 0, extra: 0, plain: false };
     assert_eq!(status_rows(&s, nox).len(), 2, "nothing waits: no third row");
-    let s = OrderStatus { state: 0, funded: 0, pending: 5, plain: false };
+    let s = OrderStatus { state: 0, funded: 0, pending: 5, extra: 0, plain: false };
     let rows = status_rows(&s, nox);
     assert_eq!(
         rows[2],
@@ -42,7 +42,7 @@ fn the_state_and_what_waits_are_read_out() {
 
 #[test]
 fn a_sealed_plaintext_says_so() {
-    let s = OrderStatus { state: 2, funded: 9, pending: 0, plain: true };
+    let s = OrderStatus { state: 2, funded: 9, pending: 0, extra: 0, plain: true };
     let rows = status_rows(&s, nox);
     assert_eq!(rows[2], ("package", String::from("checked and sealed for the install")));
 }
@@ -57,7 +57,7 @@ fn a_delivery_says_ready_or_names_the_bad_chunk() {
 
 #[test]
 fn an_answered_delivery_is_never_asked_again() {
-    let s = |state, plain| OrderStatus { state, funded: 9, pending: 0, plain };
+    let s = |state, plain| OrderStatus { state, funded: 9, pending: 0, extra: 0, plain };
     assert!(delivery_due(Some(&s(2, false)), None), "delivered, not sealed");
     assert!(!delivery_due(Some(&s(1, false)), None), "not delivered yet");
     assert!(!delivery_due(Some(&s(2, true)), None), "already sealed");

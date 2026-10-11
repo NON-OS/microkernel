@@ -26,11 +26,26 @@ pub use crate::order_delivered_made::DeliveredMade;
 
 pub const DELIVERED_ASK_LEN: usize = 64;
 
-/// K is the content's key (rule 5): its Debug names it redacted.
-#[derive(Clone, Copy, PartialEq, Eq)]
+/// K is the content's key (rule 5): its Debug names it redacted, it is not
+/// Copy, and dropping the ask wipes it.
+#[derive(Clone, PartialEq, Eq)]
 pub struct DeliveredAsk {
     pub order_id: [u8; 32],
     pub key: [u8; 32],
+}
+
+impl DeliveredAsk {
+    /// K zeroed, as dropping the ask does.
+    pub fn wipe(&mut self) {
+        self.key.fill(0);
+        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    }
+}
+
+impl Drop for DeliveredAsk {
+    fn drop(&mut self) {
+        self.wipe();
+    }
 }
 
 impl core::fmt::Debug for DeliveredAsk {
