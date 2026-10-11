@@ -17,12 +17,12 @@
 //! The honest container every verify test starts from, and the pins a
 //! verifier of the fixture's listing would hold.
 
+use nonos_proof_abi::isolation::STATEMENT;
 use nonos_proof_abi::trust::{DeviceRoot, Trust};
 use nonos_proof_abi::{ctx, Kind};
-use nox_verify::statements::ATTEST;
 
 use super::run::SUP_MEAS;
-use super::{container, family, prove_bound, Family, Parts};
+use super::{container, family, isolation_proof, prove_bound, Family, Parts};
 
 /// The pins, owned, so a test can change one before it borrows them.
 #[derive(Clone)]
@@ -42,7 +42,7 @@ impl Pinned {
             registrars: &self.registrars,
             supervisors: &self.supervisors,
             vendor_policies: &self.vendor,
-            isolation: &ATTEST,
+            isolation: &STATEMENT,
         }
     }
 }
@@ -51,7 +51,8 @@ pub fn honest() -> (Family, Parts, Pinned) {
     let f = family();
     let rec = f.record.encode();
     let p = prove_bound(ctx(Kind::Isolation, &rec));
-    let parts = container(&rec, &p.section, &f.publics, &f.meas, &f.policy);
+    let iso = isolation_proof(&f);
+    let parts = container(&rec, &p.section, iso, &f.publics, &f.meas, &f.policy);
     let pinned = Pinned {
         boot_root: p.boot_root,
         kernel_root: p.kernel_root,
