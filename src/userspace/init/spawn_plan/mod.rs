@@ -40,6 +40,7 @@ mod device_present;
 mod drivers_bus;
 mod drivers_input;
 mod drivers_nic;
+mod drivers_nic_realtek;
 mod drivers_sdhci;
 mod drivers_storage;
 mod drivers_ufs;
