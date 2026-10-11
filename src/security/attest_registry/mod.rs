@@ -33,7 +33,7 @@ mod record;
 mod root;
 mod table;
 
-pub use authority::authority_of;
+pub use authority::{authority_of, meas_of};
 pub use complete::registry_complete;
 pub use dump::registry_entries;
 pub use entry::AttestedCapsule;

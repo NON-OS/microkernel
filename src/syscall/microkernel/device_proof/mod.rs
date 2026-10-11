@@ -18,11 +18,13 @@
 //! slots, and the TPM's half of registering it. For nonos.prove alone.
 
 mod boot_slots;
+mod caller_meas;
 mod device_secret;
 mod enroll;
 mod gate;
 
 pub(in crate::syscall::microkernel) use boot_slots::sys_boot_slots;
+pub(in crate::syscall::microkernel) use caller_meas::sys_caller_meas;
 pub(in crate::syscall::microkernel) use device_secret::sys_device_secret;
 pub(in crate::syscall::microkernel) use enroll::sys_enroll;
 pub(crate) use gate::device_secret_caller;

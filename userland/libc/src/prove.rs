@@ -16,11 +16,18 @@
 
 //! The store's ask for the headless prover (plan/14).
 
-use crate::syscall::{call_raw, N_MK_PROVE_JOB};
+use crate::syscall::{call_raw, N_MK_CALLER_MEAS, N_MK_PROVE_JOB};
 
 /// Ask init for nonos.prove on app.prove.job: 0, or EBUSY while one is asked
 /// for or a prover runs, or EPERM for any caller but app.store. The PROVE
 /// itself goes to app.prove.job in nonos_proof_abi::wire's frames.
 pub fn mk_prove_job() -> i64 {
     call_raw(N_MK_PROVE_JOB, [0; 6])
+}
+
+/// The measurement and authority byte the kernel recorded for `pid`, the
+/// sender of a message: 0 with `out` written, ESRCH once it exited, EPERM for
+/// any caller but nonos.prove.
+pub fn mk_caller_meas(pid: u32, out: &mut [u8; 33]) -> i64 {
+    call_raw(N_MK_CALLER_MEAS, [u64::from(pid), out.as_mut_ptr() as u64, 33, 0, 0, 0])
 }
