@@ -50,7 +50,7 @@ pub fn spawn_input_router_capsule() -> Result<(), SpawnError> {
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             // Consumer authority for the raw-input ring (MkInputEventDrain/Wait).
-            | Capability::InputSource.bit(),
+            | Capability::InputDrain.bit(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

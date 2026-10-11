@@ -192,8 +192,8 @@ These are the calls of the device broker. `MkDeviceClaim` returns a [claim epoch
 | `MSPR` | `0x5250534D` | `MkSurfacePresent` | GraphicsPresent | `can_present` `src/syscall/contract/cap_table/mk.rs:188` | Present a surface, whole or one damage rectangle. |
 | `MDVW` | `0x5756444D` | `MkDisplayVsyncWait` | GraphicsDisplayQuery | `can_display_query` `src/syscall/contract/cap_table/mk.rs:189` | Sleep to the next tick of the kernel's 60 Hz frame clock; not the display's own sync. |
 | `MIEP` | `0x5045494D` | `MkInputEventPost` | Admin or Irq or InputSource | `can_input_source` `src/syscall/contract/cap_table/mk.rs:190` | Post one input event to the kernel's input ring. |
-| `MIED` | `0x4445494D` | `MkInputEventDrain` | Admin or InputSource | `can_input_consumer` `src/syscall/contract/cap_table/mk.rs:199` | Drain input events from the ring. |
-| `MIEW` | `0x5745494D` | `MkInputEventWait` | Admin or InputSource | `can_input_consumer` `src/syscall/contract/cap_table/mk.rs:200` | Wait for new input events. |
+| `MIED` | `0x4445494D` | `MkInputEventDrain` | Admin or InputDrain | `can_input_consumer` `src/syscall/contract/cap_table/mk.rs:197` | Drain input events from the ring. |
+| `MIEW` | `0x5745494D` | `MkInputEventWait` | Admin or InputDrain | `can_input_consumer` `src/syscall/contract/cap_table/mk.rs:198` | Wait for new input events. |
 | `GDIM` | `0x4D494447` | `GraphicsDisplayDimensions` | GraphicsDisplayQuery | `Capability::GraphicsDisplayQuery` `src/syscall/contract/cap_table/graphics.rs:29` | The display's width and height, and its physical size when the firmware gives it. |
 
 Both display calls know display 0 only. `wait_for_vsync` sleeps to the next multiple of a period taken from `TARGET_HZ`, 60 by default, and reads no hardware sync (`src/kernel_core/surface_registry/vsync.rs:19-58`). `handle_display_dimensions` refuses any other display with `EINVAL` (`src/syscall/dispatch/router/graphics_backend.rs:47-50`).

@@ -21,7 +21,7 @@ Each process control block holds its [capability token](../overview/glossary.md#
 
 ## What each bit admits
 
-The gates below are read from the cap table: `check` for the microkernel calls (`src/syscall/contract/cap_table/mk.rs:20-224`), and the crypto, admin and graphics tables beside it. `Admin` stands in for `Driver`, `Mmio`, `Irq`, `Dma`, `Pio`, `InputSource`, `SpawnWindow` and `RegisterService`, for `DeviceEnum` in `MkDeviceList` but not in `MkInstallSource`, and for `ProcessControl` in `MkKill` but not in `MkProcStat`. `can_driver` shows the pattern (`src/capabilities/token/types/authority_broker.rs:24-26`).
+The gates below are read from the cap table: `check` for the microkernel calls (`src/syscall/contract/cap_table/mk.rs:20-224`), and the crypto, admin and graphics tables beside it. `Admin` stands in for `Driver`, `Mmio`, `Irq`, `Dma`, `Pio`, `InputSource`, `InputDrain`, `SpawnWindow` and `RegisterService`, for `DeviceEnum` in `MkDeviceList` but not in `MkInstallSource`, and for `ProcessControl` in `MkKill` but not in `MkProcStat`. `can_driver` shows the pattern (`src/capabilities/token/types/authority_broker.rs:24-26`).
 
 | Bit | Kernel name | What it admits |
 |---:|---|---|
@@ -46,7 +46,7 @@ The gates below are read from the cap table: `check` for the microkernel calls (
 | 18 | `Irq` | `MkIrqBind`, `MkIrqUnbind`, `MkIrqAck`, `MkIrqPoll`, `MkIrqWait`, and posting input with `MkInputEventPost`. |
 | 19 | `Dma` | `MkDmaMap`, `MkDmaUnmap`. |
 | 20 | `Pio` | `MkPioGrant`, `MkPioRead`, `MkPioWrite`, `MkPioRelease`. |
-| 21 | `InputSource` | `MkInputEventPost`, `MkInputEventDrain`, `MkInputEventWait`. |
+| 21 | `InputSource` | `MkInputEventPost`. |
 | 22 | `TimeSet` | `MkTimeAdjust`. `Admin` does not stand in for it. |
 | 23 | `SpawnBroker` | Naming another live pid as the parent of a capsule load. |
 | 24 | `SpawnWindow` | `MkSpawnInstance`. |
@@ -61,6 +61,7 @@ The gates below are read from the cap table: `check` for the microkernel calls (
 | 33 | `LocalSign` | `MkLocalSign`. |
 | 34 | `StreamImport` | `MkDataFeedBegin`, `MkDataFeed`, `MkDataRemove`. |
 | 35 | `DeviceSecret` | `MkDeviceSecret`, `MkBootSlots`, `MkEnroll`. |
+| 36 | `InputDrain` | `MkInputEventDrain`, `MkInputEventWait`. |
 
 Some calls need only a valid token: `MkExit`, `MkPidAlive`, `MkYield`, the futex and time reads, `MkBatteryStatus`, `MkProcStat`, `MkAttestStatus`, `MkAttestPolicy`, `MkBootAttest` and `MkCapCheck`, listed together under `is_valid` (`src/syscall/contract/cap_table/mk.rs:22-35`). A valid token is one that has not expired and grants at least one capability, as `is_valid` reads (`src/capabilities/token/types/query.rs:44-47`). `MkSetTls` needs the same, since it changes nothing outside the caller (`src/syscall/contract/cap_table/mk.rs:98-102`). `MkTtyQuery` admits every caller whose token passed the resolver (`src/syscall/contract/cap_table/mk.rs:220`). `MkProcStat` shows a caller without `AttestRead` or `ProcessControl` only the identity and state of other processes, as `sees_all` decides (`src/syscall/microkernel/procstat_redact.rs:29-34`).
 

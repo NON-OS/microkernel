@@ -35,7 +35,7 @@ Syscalls it admits lists every call whose cap table gate names the capability, a
 | 18 | `0x40000` | `Irq` | `IRQ` | Bind a claimed device's interrupt and wait on it. Also lets a driver post input events. | `MIRB`, `MIRU`, `MIRA`, `MIRP`, `MIRW`, `MIEP` |
 | 19 | `0x80000` | `Dma` | `DMA` | Receive a DMA buffer a claimed device may read or write through. | `MDMM`, `MDMU` |
 | 20 | `0x100000` | `Pio` | `PIO` | Get a port grant on a port BAR and have the kernel run `in` and `out` on its ports. | `MPGT`, `MPRD`, `MPWR`, `MPRL` |
-| 21 | `0x200000` | `InputSource` | `INPUT_SOURCE` | Post input events, and drain and wait on the input ring. | `MIEP`, `MIED`, `MIEW` |
+| 21 | `0x200000` | `InputSource` | `INPUT_SOURCE` | Post input events to the input ring. | `MIEP` |
 | 22 | `0x400000` | `TimeSet` | `TIME_SET` | Correct the wall clock. | `MTAD` |
 | 23 | `0x800000` | `SpawnBroker` | `SPAWN_BROKER` | Attribute a capsule load's parent to a live pid other than the caller. | none |
 | 24 | `0x1000000` | `SpawnWindow` | `SPAWN_WINDOW` | Open another window of an embedded, attested app capsule. | `MSPI` |
@@ -50,6 +50,7 @@ Syscalls it admits lists every call whose cap table gate names the capability, a
 | 33 | `0x200000000` | `LocalSign` | `LOCAL_SIGN` | Mint a proof that this machine agreed to run bytes it installed itself. | `MLSG` |
 | 34 | `0x400000000` | `StreamImport` | `STREAM_IMPORT` | Stream a file into the data volume, kept only if it hashes to the digest named first. Grants no read. | `MDFB`, `MDFD`, `MDRM` |
 | 35 | `0x800000000` | `DeviceSecret` | `DEVICE_SECRET` | Receive this machine's TPM-derived device secret and its boot slots, and run enrolment's TPM half. | `MDVS`, `MBSL`, `MENR` |
+| 36 | `0x1000000000` | `InputDrain` | `INPUT_DRAIN` | Drain and wait on the input ring, which carries every key typed. Held by `input_router` alone (`scripts/check_input_drain_cap.py`). | `MIED`, `MIEW` |
 
 ## Checks outside the syscall table
 
@@ -66,7 +67,7 @@ Several bits are checked somewhere other than the syscall table, or nowhere that
 
 ## Rules the predicates add
 
-- `Admin` stands in for `Driver`, `Mmio`, `Irq`, `Dma`, `Pio` and `InputSource`: each predicate, from `can_driver` to `can_input_consumer`, accepts either (`src/capabilities/token/types/authority_broker.rs:24-73`). It also stands in for `DeviceEnum` when listing devices and for `SpawnWindow`, through `can_device_enum` and `can_spawn_window` (`src/capabilities/token/types/authority_admin.rs:30-42`), and for `ProcessControl` in `sys_kill`, which reads the caller's bits itself (`src/syscall/microkernel/kill.rs:45-51`).
+- `Admin` stands in for `Driver`, `Mmio`, `Irq`, `Dma`, `Pio`, `InputSource` and `InputDrain`: each predicate, from `can_driver` to `can_input_consumer`, accepts either (`src/capabilities/token/types/authority_broker.rs:24-72`). It also stands in for `DeviceEnum` when listing devices and for `SpawnWindow`, through `can_device_enum` and `can_spawn_window` (`src/capabilities/token/types/authority_admin.rs:30-42`), and for `ProcessControl` in `sys_kill`, which reads the caller's bits itself (`src/syscall/microkernel/kill.rs:45-51`).
 - `Admin` does not imply `EnrolDevRoot`: `can_enrol_dev_root` asks for that bit alone (`src/capabilities/token/types/authority_admin.rs:43-52`). It does not stand in for `DeviceEnum` on `MISR`, since `can_install_source` asks for `DeviceEnum` alone (`src/syscall/caps/checks/hardware.rs:28-31`). It does not open the full process table, since `sees_all` asks for `AttestRead` or `ProcessControl` (`src/syscall/microkernel/procstat_redact.rs:29-33`). The PCI configuration calls pass the gate with `Admin`, but `sys_pci_config_read` and `sys_pci_config_write` then ask for `Driver` themselves (`src/syscall/microkernel/pci.rs:28-35`).
 - `Irq` lets a driver post input events but not read them: `can_input_source` accepts `Irq`, and `can_input_consumer`, which gates draining and waiting, does not (`src/capabilities/token/types/authority_broker.rs:55-73`).
 - `can_attest_doc` refuses a caller that holds `Network`, whatever else it holds, because a TPM quote names the machine for good (`src/syscall/caps/checks/system.rs:42-52`).

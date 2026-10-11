@@ -190,11 +190,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkInputEventPost => caps.can_input_source(),
         /*
          * Draining/waiting on the global raw-input ring is a privileged consumer
-         * operation: the ring carries every keystroke. `can_input_source()`
-         * accepts `Irq`, which every device driver holds, so it let any driver
-         * capsule steal the keystroke stream (cross-capsule keylogging). The
-         * consumer gate requires `InputSource` (the input_router's cap) and
-         * excludes `Irq`, keeping drivers able to POST but not DRAIN.
+         * operation: the ring carries every keystroke. The consumer gate takes
+         * `InputDrain`, the input router's own bit, and neither `Irq` nor
+         * `InputSource`, which the drivers hold to POST, so no driver can DRAIN.
          */
         SyscallNumber::MkInputEventDrain => caps.can_input_consumer(),
         SyscallNumber::MkInputEventWait => caps.can_input_consumer(),

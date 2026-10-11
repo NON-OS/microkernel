@@ -62,13 +62,12 @@ impl CapabilityToken {
             || self.grants(Capability::Admin)
     }
     // Authority to DRAIN/WAIT on the raw input ring, which carries every
-    // keystroke. This is the input router's consumer authority and must NOT
-    // include `Irq`: every device driver holds `Irq`, so accepting it here let
-    // any driver capsule read the focused app's keystrokes (cross-capsule
-    // keylogging). Only a capsule explicitly granted `InputSource` (the router)
-    // may consume the stream.
+    // keystroke. Its own bit, held by the input router alone. Neither `Irq` nor
+    // `InputSource` reaches it: every input driver holds one of them to post,
+    // and when this gate took `InputSource` every keyboard, touchpad and mouse
+    // driver could read every key typed.
     #[inline]
     pub fn can_input_consumer(&self) -> bool {
-        self.grants(Capability::InputSource) || self.grants(Capability::Admin)
+        self.grants(Capability::InputDrain) || self.grants(Capability::Admin)
     }
 }

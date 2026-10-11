@@ -11,9 +11,10 @@ CAPSULE_FEATURE          := nonos-capsule-input-router
 CAPSULE_NAMESPACE        := systems.nonos.input_router
 CAPSULE_SERVICE_ENDPOINT := service:4320:input_router
 CAPSULE_REPLY_ENDPOINT   := reply:4321:endpoint.input_router.reply
-# IPC | Memory | InputSource = 0x08 | 0x10 | 0x200000 = 0x200018
-# InputSource is the consumer authority for the raw-input ring (drain/wait).
-CAPSULE_REQUIRED_CAPS    := 0x200018
+# IPC | Memory | InputDrain = 0x08 | 0x10 | 0x1000000000 = 0x1000000018
+# InputDrain is the consumer authority for the raw-input ring (drain/wait),
+# its own bit so the drivers that post with InputSource cannot drain.
+CAPSULE_REQUIRED_CAPS    := 0x1000000018
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_input_router
 
 include nonos-mk/capsule.mk

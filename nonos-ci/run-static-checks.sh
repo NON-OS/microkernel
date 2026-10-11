@@ -4217,7 +4217,7 @@ unset handoff_init handoff_orch
 
 # NØNOS trust-anchor module ships the policy decoder and the
 # baked-policy slot the kernel embeds at build time. The slot can be
-# `Option<&[u8]> = None` during Lane B integration; once Lane B emits
+# `Option<&[u8]> = None` during run B integration; once run B emits
 # .keys/nonos_trust_anchor.policy.bin, baked.rs flips to a non-Option
 # include_bytes! and a separate gate enforces "no None" in production.
 ta_dir=src/security/nonos_trust_anchor
@@ -4868,6 +4868,16 @@ else
     fail_with "check_mirror_caps: a spawn mirror or README disagrees with its manifest"
 fi
 unset mirror_out
+
+# Draining the raw input ring reads every key typed. Its bit belongs to the
+# input router and to no driver; the seal refuses it elsewhere too.
+if drain_out="$(python3 scripts/check_input_drain_cap.py 2>&1)"; then
+    note ok "InputDrain is held by the input router alone (check_input_drain_cap)"
+else
+    tail -n 5 <<< "${drain_out}" >&2
+    fail_with "check_input_drain_cap: a capsule other than the input router asks for InputDrain"
+fi
+unset drain_out
 
 if [ "${fail}" -ne 0 ]; then
     echo
