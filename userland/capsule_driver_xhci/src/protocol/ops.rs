@@ -28,8 +28,9 @@ pub const OP_CONFIGURE_BULK: u16 = 0x0010;
 pub const OP_BULK_OUT: u16 = 0x0011;
 pub const OP_BULK_IN: u16 = 0x0012;
 pub const OP_RESET_BULK: u16 = 0x0013;
-/// 0x14 is `OP_BULK_IN_POLL` to the USB network drivers
-/// (`nonos_usbnet/src/xhci/wire.rs`) and 0x20, 0x21 the hub ops; the isoch
-/// ops keep clear of them.
+/// The USB network drivers' read (`nonos_usbnet/src/xhci/wire.rs`): one look
+/// at an armed bulk IN, answered at once. 0x20, 0x21 are the hub ops; the
+/// isoch ops keep clear of them.
+pub const OP_BULK_IN_POLL: u16 = 0x0014;
 pub const OP_CONFIGURE_ISOCH: u16 = 0x0018;
 pub const OP_ISOCH_OUT: u16 = 0x0019;
