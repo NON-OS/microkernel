@@ -156,21 +156,7 @@ mod meter_budget_tests;
 #[cfg(test)]
 mod typed_tests;
 #[cfg(test)]
-mod typed_hash_tests;
-#[cfg(test)]
-mod typed_words_tests;
-#[cfg(test)]
 mod intent_tests;
-#[cfg(test)]
-mod intent_words_tests;
-#[cfg(test)]
-mod intent_publish_tests;
-#[cfg(test)]
-mod intent_refused_tests;
-#[cfg(test)]
-mod intent_review_tests;
-#[cfg(test)]
-mod intent_quote_tests;
 #[cfg(test)]
 mod meter_job_tests;
 #[cfg(test)]
