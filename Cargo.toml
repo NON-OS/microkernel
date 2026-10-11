@@ -168,6 +168,7 @@ nonos-capsule-driver-sdhci      = []
 nonos-capsule-driver-ufs        = []
 nonos-capsule-driver-bga        = []
 nonos-capsule-driver-usb-audio  = []
+nonos-capsule-driver-smbus      = []
 nonos-capsule-driver-hda        = []
 nonos-capsule-audio             = []
 nonos-capsule-driver-nvme       = []
@@ -468,6 +469,13 @@ microkernel-driver-usb-audio = [
   "nonos-capsule-driver-xhci",
   "nonos-capsule-driver-usb-audio",
   "nonos-capsule-audio",
+]
+
+microkernel-driver-smbus = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-smbus",
 ]
 
 microkernel-driver-hda = [

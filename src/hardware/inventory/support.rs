@@ -27,6 +27,7 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         DisplayGopFramebuffer | DisplayVirtioGpu | DisplayBga => DataPath,
         UsbXhci | InputPs2 | InputUsbHid => DataPath,
         NetworkIwlwifi | AudioHda | InputI2cHid | SerialI2c => ControllerStatus,
+        SerialSmbus => DataPath,
         DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => EnumerateOnly,
         StorageVmd | NetworkRealtekWifi => EnumerateOnly,
         NetworkE1000e | NetworkIgc => EnumerateOnly,
