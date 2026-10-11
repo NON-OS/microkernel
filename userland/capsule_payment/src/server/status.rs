@@ -28,6 +28,8 @@ pub fn status_of(e: MeterError) -> i32 {
         MeterError::NotMetered => -95,
         MeterError::BelowMinimum => -33,
         MeterError::Full => -23,
+        // Settled above what this meter signed (E13); payment_proto names it.
+        MeterError::Frozen => -1002,
         MeterError::OverDeposit => -28,
         MeterError::Expired => -62,
         MeterError::Overflow => -75,
