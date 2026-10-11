@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! capsule_nox_settle's wire (plan/26, plan/42): market_proto's 20-byte
-//! header under the magic "NSTL", a reply's payload starting with a status,
-//! every body little-endian with every length explicit. Settle holds no keys:
-//! it reads the chain and broadcasts what others signed.
-//!
-//! READ names a view from a fixed table and INTENT checks calldata against a
-//! fixed kind table, so no caller chooses what settle calls (plan/28).
+//! capsule_nox_settle's wire (plan/26, plan/28, plan/42): market_proto's
+//! 20-byte header under "NSTL", every body LE with every length explicit.
+//! READ and INTENT name fixed tables, so no caller chooses what settle calls.
 
 #![no_std]
 
 extern crate alloc;
 
+mod async_frame;
 mod callers;
 mod chain;
 mod channel_state;
@@ -51,6 +48,7 @@ mod url;
 mod view;
 mod views;
 
+pub use async_frame::{admits_flags, async_answer, request_async, FLAG_ASYNC};
 pub use callers::{admits, callers, BROADCASTERS, FETCHERS, READERS, SETTLERS};
 pub use chain::{chain_hash, parse_chain_hash, ChainHash};
 pub use channel_state::{ChannelState, CHANNEL_STATE_LEN};

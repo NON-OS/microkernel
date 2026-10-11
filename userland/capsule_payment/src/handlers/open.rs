@@ -14,32 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OPEN (op 12), from the wallet, in two calls (plan/21, v1.4.1):
+//! OPEN (op 12), from the wallet, in two calls (plan/21):
 //!
-//! - START: the meter checks its gas, encodes approve(settlement, amount)
-//!   and open(payee, listingId, amount, expiry, reclaimTo) itself, signs both
-//!   with its own key and has settle broadcast them. It answers
-//!   approveTx | openTx and keeps nothing.
+//! - START is a job (channel_ops): the meter checks its gas, encodes
+//!   approve(settlement, amount) and open(payee, listingId, amount, expiry,
+//!   reclaimTo) itself, signs both with its own key and has settle broadcast
+//!   them; JOB then answers approveTx | openTx.
 //! - CONFIRM: by openTx, the meter records the channel only on a
 //!   ChannelOpened it asked for (`nonos_nox_meter::open::confirmed`). EAGAIN
 //!   while unmined; sent again, it answers the same.
 
 use alloc::vec::Vec;
 
+use nonos_nox_meter::flow::Work as Job;
 use nonos_payment_proto::{parse_open, EINVAL};
 
-use super::open_flow::{confirm, start};
+use super::channel_ops::open_start;
+use super::open_flow::confirm;
+use crate::jobs::Work;
 use crate::meter::Meter;
 use crate::server::Call;
 
-pub fn open(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
-    let run = match parse_open(req.body) {
-        Some(Ok(s)) => start(meter, &s),
-        Some(Err(c)) => confirm(meter, &c),
-        None => Err(EINVAL),
-    };
-    match run {
-        Ok(body) => req.answer(0, &body),
-        Err(code) => req.answer(code, &[]),
+pub fn open(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
+    match parse_open(req.body) {
+        Some(Ok(s)) => open_start(meter, work, Job::Open(s), req),
+        Some(Err(c)) => req.result(confirm(meter, &c)),
+        None => req.answer(EINVAL, &[]),
     }
 }
