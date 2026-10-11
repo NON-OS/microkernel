@@ -803,11 +803,13 @@
    "userland/audio_proto_proofs",
    "userland/capsule_audio/src/mixer.rs",
    "userland/capsule_audio/src/server/proto.rs",
+   "userland/capsule_audio/src/server/pump_rule.rs",
    "userland/capsule_audio/src/server/ring.rs",
    "userland/capsule_audio/src/server/streams.rs",
    "userland/capsule_audio/src/sink/choose.rs",
    "userland/capsule_audio/src/sink/wire.rs",
-   "userland/capsule_audio/src/volume.rs"
+   "userland/capsule_audio/src/volume.rs",
+   "userland/capsule_driver_usb_audio/src/serve/answer.rs"
   ],
   "md": [],
   "signed": []
