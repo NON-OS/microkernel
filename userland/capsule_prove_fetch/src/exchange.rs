@@ -45,7 +45,7 @@ pub fn exchange(
         let came = tls.read(io).map_err(|_| None)?;
         let now = mk_uptime_ms();
         if came.is_empty() {
-            if tls.is_done() || now - last > read_ms || now >= until {
+            if tls.is_done() || now.saturating_sub(last) > read_ms || now >= until {
                 return Err(None);
             }
             continue;
