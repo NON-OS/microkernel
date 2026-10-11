@@ -18,9 +18,13 @@
 
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::read::Named;
+use crate::wallet::screen::shield::sizes::sizes;
+use crate::wallet::state::shield_ui::ASSET_NOX;
 
 pub const CONSENT: &str = "The store asks to buy this. What follows is the market's own record, \
      not the store's: buy only if it is what you meant.";
+const NOT_STANDARD: &str = "This price is not one of the Shield's standard amounts, so it \
+     cannot be paid privately, and this wallet does not pay escrow from a plain address yet.";
 const VOUCHER: &str = "This listing is paid by voucher as it is used: open a channel for it \
      from the Meter screen.";
 const OFFERING: &str = "The meter is asking the seller's agent for its sealed offer. Its proof \
@@ -30,16 +34,25 @@ const ORDERING: &str = "The meter is making the order and checking its deposit a
 const FUND: &str = "The order is made. Fund it from the Shield: send exactly the price, in NOX, \
      to its deposit address. If the seller does not deliver, it comes back to you.";
 
-/// The lead sentence, and whether Buy is offered beside Close.
-pub fn lead(p: &Pending) -> (&'static str, bool) {
+/// Where the Shield's standard NOX sizes hold `amount`, if they do: the
+/// only prices a withdrawal can fund (plan/27).
+pub fn standard(amount: u128) -> Option<u8> {
+    sizes(ASSET_NOX).iter().position(|(_, v)| *v == amount).map(|i| i as u8)
+}
+
+/// The lead sentence, and the action offered beside Close, if any.
+pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
     match (&p.step, &p.read) {
-        (Step::Consent, Ok(Named::Escrow(_))) => (CONSENT, true),
-        (Step::Consent, Ok(Named::Voucher(_))) => (VOUCHER, false),
-        (Step::Consent, Err(why)) => (why, false),
-        (Step::Offering(_), _) => (OFFERING, false),
-        (Step::Ordering(..), _) => (ORDERING, false),
-        (Step::Fund(_), _) => (FUND, false),
-        (Step::Failed(why), _) => (why, false),
+        (Step::Consent, Ok(Named::Escrow(b))) if standard(b.amount).is_none() => {
+            (NOT_STANDARD, None)
+        }
+        (Step::Consent, Ok(Named::Escrow(_))) => (CONSENT, Some("Buy")),
+        (Step::Consent, Ok(Named::Voucher(_))) => (VOUCHER, None),
+        (Step::Consent, Err(why)) => (why, None),
+        (Step::Offering(_), _) => (OFFERING, None),
+        (Step::Ordering(..), _) => (ORDERING, None),
+        (Step::Fund(_), _) => (FUND, Some("Fund from the Shield")),
+        (Step::Failed(why), _) => (why, None),
     }
 }
 
