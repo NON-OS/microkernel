@@ -25,6 +25,8 @@ CAPSULE_REQUIRED_CAPS    := 0xB8038
 # Debug, granted only by a build that compiles `capsule-serial-debug`, for
 # the bring-up and link lines.
 CAPSULE_OPTIONAL_CAPS    := 0x100
-CAPSULE_KERNEL_MIRROR    := src/hardware/tg3_capsule
+# Builds and is proven on the host, but is not yet embedded or spawned:
+# scripts/hardware_support_evidence.py reports it as not in the image.
+CAPSULE_NOT_IN_IMAGE     := 1
 
 include nonos-mk/capsule.mk
