@@ -18,8 +18,7 @@ pub(super) fn spawn() {
     spawn_e1000();
     spawn_igb();
     spawn_ixgbe();
-    spawn_rtl8139();
-    spawn_rtl8169();
+    super::drivers_nic_realtek::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-e1000")]
@@ -51,29 +50,3 @@ fn spawn_ixgbe() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-ixgbe"))]
 fn spawn_ixgbe() {}
-
-#[cfg(feature = "nonos-capsule-driver-rtl8139")]
-fn spawn_rtl8139() {
-    use crate::hardware::rtl8139_capsule as c;
-    super::boot::capsule(
-        "DRIVER-RTL8139",
-        "driver_rtl8139",
-        c::spawn_driver_rtl8139_capsule,
-        c::shared_state,
-    );
-}
-#[cfg(not(feature = "nonos-capsule-driver-rtl8139"))]
-fn spawn_rtl8139() {}
-
-#[cfg(feature = "nonos-capsule-driver-rtl8169")]
-fn spawn_rtl8169() {
-    use crate::hardware::rtl8169_capsule as c;
-    super::boot::capsule(
-        "DRIVER-RTL8169",
-        "driver_rtl8169",
-        c::spawn_driver_rtl8169_capsule,
-        c::shared_state,
-    );
-}
-#[cfg(not(feature = "nonos-capsule-driver-rtl8169"))]
-fn spawn_rtl8169() {}
