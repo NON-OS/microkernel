@@ -15,20 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::device::Gic;
-use super::state::{dist_base, redist_base, set_bases};
+use super::state::{dist_base, set_bases};
 
-pub fn init_gic(dist: u64, redist: u64) {
+/// Bring up the distributor and the boot CPU's half of the GIC.
+pub fn init_gic(dist: u64, redist: u64) -> Result<(), &'static str> {
     set_bases(dist, redist);
-    let mut gic = Gic::new(dist, redist);
-    gic.init();
+    Gic::new(dist).init()
 }
 
+/// Enable `irq`. An SGI or PPI is enabled for the calling CPU only.
 pub fn enable_irq(irq: u32) {
-    Gic::new(dist_base(), redist_base()).enable_irq(irq);
+    Gic::new(dist_base()).enable_irq(irq);
 }
 
 pub fn disable_irq(irq: u32) {
-    Gic::new(dist_base(), redist_base()).disable_irq(irq);
+    Gic::new(dist_base()).disable_irq(irq);
 }
 
 pub fn send_sgi(target: u32, intid: u32) -> Result<(), ()> {
