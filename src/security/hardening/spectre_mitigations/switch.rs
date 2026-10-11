@@ -39,3 +39,13 @@ pub fn switch_barrier(next: u32) {
         rsb_fill();
     }
 }
+
+/// The switch `switch_barrier` was called for did not happen, and this CPU
+/// goes back to what it ran: forget the group just recorded, so the next
+/// switch to any group takes the barrier. Recorded, a process that ran here
+/// in between went unbarriered against the one that followed it.
+pub fn switch_aborted() {
+    if let Some(last) = LAST_GROUP.get(crate::smp::cpu_id()) {
+        last.store(0, Ordering::Relaxed);
+    }
+}
