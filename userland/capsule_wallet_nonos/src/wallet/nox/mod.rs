@@ -23,6 +23,7 @@ pub mod constants;
 mod format_apr;
 mod format_nox;
 mod live_amount;
+mod nox_text;
 mod q32_to_u128;
 mod stakeable;
 mod staking;
@@ -34,6 +35,7 @@ pub use calldata_addr::calldata_addr;
 pub use format_apr::format_apr;
 pub use format_nox::format_nox;
 pub use live_amount::live_amount;
+pub use nox_text::nox_text;
 pub use q32_to_u128::q32_to_u128;
 pub use stakeable::{held_wei, NOX_DECIMALS, WEI_PER_NOX};
 pub use staking::{
