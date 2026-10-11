@@ -51,6 +51,13 @@ pub const GLOBALS: &[Global] = &[
         object: Object::XdgOutputManager,
     },
     Global { name: 10, interface: b"wp_viewporter", version: 1, object: Object::Viewporter },
+    Global { name: 11, interface: b"xdg_activation_v1", version: 1, object: Object::Activation },
+    Global {
+        name: 12,
+        interface: b"wp_single_pixel_buffer_manager_v1",
+        version: 1,
+        object: Object::SinglePixel,
+    },
 ];
 
 pub fn by_name(name: u32) -> Option<&'static Global> {

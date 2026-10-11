@@ -66,6 +66,7 @@ mod region;
 mod registry;
 mod reshape;
 mod route;
+mod route_misc;
 mod route_output;
 mod route_rest;
 mod route_seat;
