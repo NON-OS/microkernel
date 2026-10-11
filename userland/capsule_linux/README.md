@@ -103,6 +103,25 @@ the address or the name the guest looked up, on the ports it names (`app/reach.r
 a third takes NET_ANON away. Only a vendor row carries its list today (`dests=` in
 `policies.txt`); a policy naming a list this capsule does not hold is served without NET_ANON.
 
+## Wayland
+
+`src/linux/wayland/` is the server a guest window talks to. What it does, plainly:
+- A window is shown whole and takes input everywhere, so a region (`region.rs`) and a
+  surface's opaque and input regions, transform and scale change nothing. They are still
+  objects a client can name, destroy and reuse.
+- Only a toplevel's commit reaches the screen (`commit.rs`). Subsurfaces are kept as
+  objects; their pixels are not composed onto the window yet.
+- An XRGB8888 buffer is shown opaque (`opaque.rs`); only ARGB8888 and XRGB8888 are taken.
+- NONOS carries no clipboard or drag between guests, or to the desktop, by design: a guest
+  cannot read what another program copied. `data_device.rs` gives a client its sources and
+  a device per seat, and cancels any selection or drag at once.
+- Decorations are always server-side (`decoration.rs`): the window manager frames a guest's
+  window like any other.
+- Keys are sent as the evdev keys of a US board, with the xkb modifier masks (`evdev.rs`,
+  `xkb_mods.rs`); buttons as BTN_LEFT onward, the wheel as axis events (`pointer_codes.rs`).
+  Other layouts need the scancode in the input event. No leave events are sent: the router
+  sends input only while the window has focus.
+
 ## Installing a shipped Qwen tier
 
 A name in the `qwen-` namespace is never looked up in a package index

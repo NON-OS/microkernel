@@ -14,27 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `wl_data_device_manager`: the clipboard and drag and drop, which this
-//! server does not carry between programs. A client is still given its
-//! sources and devices, so binding the manager and asking for them works,
-//! and a selection or drag it offers is cancelled at once: nothing here can
-//! take it, and a cancelled source is one the client frees.
+//! `wl_data_device_manager`, minimal and complete. NONOS carries no
+//! clipboard or drag between guests, or to the desktop, by design: a guest
+//! cannot read what another program copied. A client is given its sources,
+//! and a device per seat, and a selection or drag it offers is cancelled at
+//! once, so it frees the source and carries nothing.
 
 use crate::linux::guest::Guest;
 
 use super::args::Args;
 use super::object::Object;
+use super::ops::data::*;
 use super::out::Event;
-
-const MANAGER_CREATE_DATA_SOURCE: u16 = 0;
-const MANAGER_GET_DATA_DEVICE: u16 = 1;
-const SOURCE_OFFER: u16 = 0;
-const SOURCE_DESTROY: u16 = 1;
-const SOURCE_SET_ACTIONS: u16 = 2;
-const DEVICE_START_DRAG: u16 = 0;
-const DEVICE_SET_SELECTION: u16 = 1;
-const DEVICE_RELEASE: u16 = 2;
-const SOURCE_CANCELLED: u16 = 2;
 
 pub fn route(
     guest: &mut Guest,
@@ -60,10 +51,15 @@ pub fn route(
     true
 }
 
+/// A source; or a device, which names the seat it belongs to.
 fn make(guest: &mut Guest, args: &mut Args<'_>, what: Object) {
-    if let Some(id) = args.u32() {
-        let _ = guest.objects.put(id, what);
+    let Some(id) = args.u32() else { return };
+    if what == Object::DataDevice
+        && args.u32().and_then(|s| guest.objects.get(s)) != Some(Object::Seat)
+    {
+        return;
     }
+    let _ = guest.objects.put(id, what);
 }
 
 /// Both name the source first; null, 0, offers nothing.
