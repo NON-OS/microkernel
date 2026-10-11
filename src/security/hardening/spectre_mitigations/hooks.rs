@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::cpu_apply::entry_rewrite;
 use super::ibpb::ibpb;
-use super::ibrs::ibrs_enable;
 use super::mds::mds_clear;
 use super::rsb::rsb_fill;
 
 #[inline(always)]
 pub fn kernel_entry_mitigations() {
     rsb_fill();
-    ibrs_enable();
+    entry_rewrite();
 }
 
 #[inline(always)]

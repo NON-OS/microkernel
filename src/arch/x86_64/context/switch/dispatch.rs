@@ -26,6 +26,9 @@ pub(crate) fn switch_to_user_pcb_x86_64(pid: u32) {
         Some(p) => p,
         None => return,
     };
+    // A different process than this CPU last ran must not inherit the
+    // indirect branch predictions the previous one trained.
+    crate::security::hardening::spectre_mitigations::switch_barrier(pcb.thread_group_id());
 
     // Install this task's user fs base before any of the entry paths run.
     // Threads of one process share an address space but not TLS, and the
