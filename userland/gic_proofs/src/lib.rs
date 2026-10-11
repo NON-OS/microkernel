@@ -9,4 +9,8 @@ mod encode_tests;
 #[cfg(test)]
 mod intid_tests;
 #[cfg(test)]
+mod its_cmd_tests;
+#[cfg(test)]
+mod its_table_tests;
+#[cfg(test)]
 mod select_tests;
