@@ -222,6 +222,12 @@ LINUX_USERLAND_STORE_DEPS += $(LINUX_USERLAND_TOUR)
 LINUX_USERLAND_STORE_ENTRIES += $(foreach f,$(LINUX_USERLAND_TOUR),\
 	--entry /linux/usr/share/nonos/tour/$(notdir $(f))=$(f))
 
+# The keymap a Wayland guest is given (capsule_linux wayland/keymap_file.rs):
+# US, evdev, compiled by tools/nonos-linux-keymap and pinned by
+# scripts/check_keymap.py. Data, with its licence in keymap-us.NOTICE.
+LINUX_USERLAND_STORE_DEPS += $(LINUX_USERLAND_DIR)/keymap-us.xkb
+LINUX_USERLAND_STORE_ENTRIES += --entry /linux/usr/share/nonos/keymap.xkb=$(LINUX_USERLAND_DIR)/keymap-us.xkb
+
 # The other names the programs answer to, in the table the personality
 # follows: one `path target` pair a line, committed in nonos-links, which the
 # flake reads too. BusyBox's programs need none: the personality runs them
