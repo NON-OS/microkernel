@@ -19,6 +19,9 @@ mod dma;
 mod dma_lines;
 #[cfg(target_arch = "x86_64")]
 mod dma_sync;
+#[cfg(target_arch = "aarch64")]
+#[path = "dma_sync_aarch64.rs"]
+mod dma_sync;
 mod irq;
 mod irq_wait;
 mod mmio;
@@ -31,8 +34,8 @@ pub use dma::{
     mk_dma_map, mk_dma_unmap, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32, MK_DMA_MAP_FROM_DEVICE,
     MK_DMA_MAP_HIGH, MK_DMA_MAP_TO_DEVICE, MK_DMA_MAP_WC,
 };
-pub use dma_lines::{dma_sync_lines, DMA_SYNC_LINE};
-#[cfg(target_arch = "x86_64")]
+pub use dma_lines::{ctr_dminline_bytes, dma_sync_lines, dma_sync_lines_of, DMA_SYNC_LINE};
+#[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
 pub use dma_sync::{mk_dma_sync_for_cpu, mk_dma_sync_for_device};
 pub use irq::{
     mk_irq_ack, mk_irq_bind, mk_irq_poll, mk_irq_unbind, MK_IRQ_BIND_MSI, MK_IRQ_BIND_MSIX,
