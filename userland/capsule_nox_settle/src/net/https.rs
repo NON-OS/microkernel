@@ -31,23 +31,22 @@ use super::io::RouteIo;
 /// An RPC exchange may take this long in all.
 const RPC_TOTAL_MS: u64 = 90_000;
 /// A release fetch may take this long in all.
-const FETCH_TOTAL_MS: u64 = 300_000;
+pub(super) const FETCH_TOTAL_MS: u64 = 300_000;
 /// What an HTTP head may add to a body.
 const HEAD_MAX: usize = 16 * 1024;
 
-fn https(host: &str, request: &[u8], limit: usize, total_ms: u64) -> Result<Vec<u8>, i32> {
+pub(super) fn https(host: &str, req: &[u8], limit: usize, ms: u64) -> Result<Vec<u8>, i32> {
     let route = Route::for_wallet();
     if matches!(route, Route::Down(_)) {
         return Err(ENETDOWN);
     }
     let stream = RouteStream::connect(route, host, 443).map_err(|_| EIO)?;
-    let mut io = RouteIo::new(stream, route.patience_ms(), total_ms);
-    let plain =
-        exchange(&mut io, host, request, rtc_now(), limit + HEAD_MAX).map_err(|e| match e {
-            SessionError::TooLarge => EFBIG,
-            SessionError::Certificate => EPROTO,
-            _ => EIO,
-        })?;
+    let mut io = RouteIo::new(stream, route.patience_ms(), ms);
+    let plain = exchange(&mut io, host, req, rtc_now(), limit + HEAD_MAX).map_err(|e| match e {
+        SessionError::TooLarge => EFBIG,
+        SessionError::Certificate => EPROTO,
+        _ => EIO,
+    })?;
     match http_answer(&plain) {
         Http::Body(body) if body.len() <= limit => Ok(body),
         Http::Body(_) => Err(EFBIG),

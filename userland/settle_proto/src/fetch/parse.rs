@@ -16,7 +16,8 @@
 
 //! Reading a FETCH request.
 
-use crate::fetch::{Fetch, FETCH_ESCROW, FETCH_PAGE, FETCH_RELEASE, MAX_URL};
+use super::escrow::Escrow;
+use super::form::{Fetch, FETCH_ESCROW, FETCH_PAGE, FETCH_RELEASE, MAX_URL};
 
 impl Fetch {
     pub fn parse(b: &[u8]) -> Option<Self> {
@@ -34,7 +35,7 @@ impl Fetch {
                 release_hash: rest[..32].try_into().ok()?,
                 offset: u32::from_le_bytes(rest[32..].try_into().ok()?),
             }),
-            FETCH_ESCROW => Some(Fetch::Escrow),
+            FETCH_ESCROW => Escrow::parse(rest).map(Fetch::Escrow),
             _ => None,
         }
     }
