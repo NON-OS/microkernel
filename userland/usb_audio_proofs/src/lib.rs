@@ -41,4 +41,6 @@ mod terminal_tests;
 #[cfg(test)]
 mod timing_tests;
 #[cfg(test)]
+mod unplug_tests;
+#[cfg(test)]
 mod walk_tests;

@@ -21,10 +21,10 @@ use alloc::vec;
 
 use nonos_libc::Deadline;
 use nonos_usbnet::scan::{Bound, Scanner};
-use nonos_usbnet::xhci::disable_slot;
 use nonos_usbnet::{run::own_pid, say::say};
 
 use super::feed::feed;
+use super::gone::{give_back, unplugged};
 use super::loss::Loss;
 use super::one::serve_one;
 use super::play::{Device, Play};
@@ -43,7 +43,7 @@ pub fn run() -> ! {
     let mut tx = [0u8; REPLY_MAX];
     let (mut play, mut scanner, me) = (Play::new(), Scanner::new(), own_pid("driver.usb_audio0"));
     let (mut bound, mut loss) = (None::<Bound<Speaker>>, Loss::default());
-    let mut next_pass = Deadline::after_ms(0);
+    let (mut next_pass, mut next_look) = (Deadline::after_ms(0), Deadline::after_ms(0));
     say(TAG, &[b"started, looking for a device"]);
     loop {
         let mut wait = if play.running { 0 } else { SEARCH_POLL_MS };
@@ -58,13 +58,11 @@ pub fn run() -> ! {
             lost = loss.note(feed(&mut play, b, &mut batch).is_ok());
         }
         if lost {
-            if let Some(b) = bound.take() {
-                say(TAG, &[b"device stopped answering, given back"]);
-                disable_slot(b.xhci, b.slot);
-                scanner.lost(b.port);
-            }
+            give_back(&mut bound, &mut scanner, &mut play, b"device stopped answering, given back");
             loss.clear();
-            play.lost();
+        }
+        if unplugged(&bound, &play, &mut next_look, SEARCH_POLL_MS) {
+            give_back(&mut bound, &mut scanner, &mut play, b"device unplugged, given back");
         }
         if bound.is_none() && next_pass.expired() {
             next_pass = Deadline::after_ms(SEARCH_POLL_MS);
