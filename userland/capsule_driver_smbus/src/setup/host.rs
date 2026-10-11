@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Turning the host on, as Linux's i801_probe does: the SMBus host enabled
+//! Turning the host on through HOSTC in config space: the SMBus host enabled
 //! in HOSTC and its I2C mode off. I/O decode is firmware's to have left on;
 //! the broker writes no Command bit for ports.
 
