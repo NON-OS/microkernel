@@ -18,11 +18,10 @@
 //! list's reads and the restore scan's, one address per settle request,
 //! spaced by a random few seconds. Pure: reads and randomness are the caller's.
 
-use alloc::format;
-use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::due::Due;
+use super::landed_held::Reading;
 use super::scan::Scan;
 
 /// The spacing between two reads: SPACE_MS plus up to SPACE_MS more.
@@ -36,8 +35,7 @@ pub struct Landed {
     pub scan: Scan,
     /// When the next read may go out (uptime ms).
     pub next_ms: u64,
-    /// The address being read, and whether for the scan.
-    pub reading: Option<([u8; 20], bool)>,
+    pub reading: Option<Reading>,
     /// The scan's batch was asked of the Shield as a job.
     pub derive_asked: bool,
 }
@@ -67,9 +65,4 @@ pub fn balance_of(words: &[[u8; 32]]) -> Option<u128> {
     let [w] = words else { return None };
     let (high, low) = w.split_at(16);
     high.iter().all(|b| *b == 0).then(|| u128::from_be_bytes(low.try_into().unwrap_or([0; 16])))
-}
-
-pub fn line(address: &[u8; 20], nox: &str) -> String {
-    let short: String = address.iter().take(4).map(|b| format!("{b:02x}")).collect();
-    format!("0x{short}…: {nox} NOX, a refund or a reclaim")
 }

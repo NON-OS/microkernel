@@ -167,6 +167,8 @@ mod landed_tests;
 #[cfg(test)]
 mod due_tests;
 #[cfg(test)]
+mod held_tests;
+#[cfg(test)]
 mod scan_tests;
 #[cfg(test)]
 mod attest_tests;

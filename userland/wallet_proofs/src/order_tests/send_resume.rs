@@ -19,7 +19,7 @@
 use super::fixture::REFUND_TO;
 use crate::order::escrow_offer::Offer;
 use crate::order::escrowing::Escrowing;
-use crate::order::send_resume::{gas_offer, resume, GAS_WAIT_S};
+use crate::order::send_resume::{gas_offer, pays_gas, resume, GAS_WAIT_S};
 use crate::order::send_step::{EscrowSend, SendStep, REFUND};
 
 #[test]
@@ -56,4 +56,13 @@ fn a_second_press_while_the_gas_withdraw_is_under_way_starts_nothing() {
     assert_eq!(gas_offer(pay, Some(u64::MAX), 0), Some(Offer::GasWaiting), "no wrap");
     let again = Some(Offer::Again);
     assert_eq!(gas_offer(again, Some(50), 50), again, "only the gas is held");
+}
+
+#[test]
+fn only_eth_to_the_refund_address_marks_the_gas_paid() {
+    assert!(pays_gas(0, Some(REFUND_TO), REFUND_TO));
+    assert!(!pays_gas(1, Some(REFUND_TO), REFUND_TO), "NOX, not ETH");
+    assert!(!pays_gas(0, Some([0x55; 20]), REFUND_TO), "another address");
+    assert!(!pays_gas(0, None, REFUND_TO), "a withdraw to a typed address");
+    assert!(!pays_gas(0, Some([0; 20]), [0; 20]), "never zero");
 }

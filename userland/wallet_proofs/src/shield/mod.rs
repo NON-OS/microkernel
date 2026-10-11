@@ -22,6 +22,8 @@ pub mod due_entry;
 pub mod due_why;
 #[path = "../../../capsule_wallet_nonos/src/wallet/shield/landed.rs"]
 pub mod landed;
+#[path = "../../../capsule_wallet_nonos/src/wallet/shield/landed_held.rs"]
+pub mod landed_held;
 #[path = "../../../capsule_wallet_nonos/src/wallet/shield/scan.rs"]
 pub mod scan;
 #[path = "../../../capsule_wallet_nonos/src/wallet/shield/scan_state.rs"]

@@ -17,7 +17,12 @@
 //! The restore scan (v1.4.56): only from its button, one address at a
 //! time, stopping after GAP_LIMIT empty indices, resuming on scan further.
 
+use crate::shield::landed_held::{both, Held};
 use crate::shield::scan::{Scan, ScanState, GAP_LIMIT, MAX_HANDED};
+
+fn n(nox: u128) -> Option<Held> {
+    both(Some(nox), Some(0))
+}
 
 fn batch(from: u32) -> Vec<(u32, [u8; 20])> {
     (from..from + 64).map(|i| (i, [i as u8; 20])).collect()
@@ -27,7 +32,7 @@ fn batch(from: u32) -> Vec<(u32, [u8; 20])> {
 fn the_scan_starts_only_from_its_button() {
     let mut s = Scan::default();
     assert_eq!((s.state, s.next()), (ScanState::Idle, None), "nothing read until pressed");
-    s.read(Some(5));
+    s.read(n(5));
     assert!(s.found.is_empty());
     s.start();
     assert_eq!(s.state, ScanState::Deriving(0), "past the accounts");
@@ -38,14 +43,14 @@ fn it_stops_after_the_gap_and_resumes_on_scan_further() {
     let mut s = Scan::default();
     s.start();
     s.batch(batch(3));
-    s.read(Some(9));
-    assert_eq!(s.found, [(3, [3; 20], 9)]);
+    s.read(n(9));
+    assert_eq!(s.found, [(3, [3; 20], Held { nox: 9, eth: 0 })]);
     for _ in 0..63 {
-        s.read(Some(0));
+        s.read(n(0));
     }
     assert_eq!(s.state, ScanState::Deriving(67), "the batch ran out first");
     s.batch(batch(67));
-    s.read(Some(0));
+    s.read(n(0));
     assert_eq!((s.state, s.empty_run), (ScanState::Stopped, GAP_LIMIT));
     s.further();
     assert_eq!(s.state, ScanState::Deriving(131));
@@ -59,7 +64,7 @@ fn it_stops_after_the_gap_and_resumes_on_scan_further() {
     s.batch(vec![]);
     assert_eq!(s.state, ScanState::Stopped, "an empty batch ends it");
     s.batch(vec![(MAX_HANDED, [1; 20])]);
-    s.read(Some(0));
+    s.read(n(0));
     assert_eq!(s.state, ScanState::Stopped, "MAX_HANDED is the end");
     s.further();
     assert_eq!(s.state, ScanState::Stopped);

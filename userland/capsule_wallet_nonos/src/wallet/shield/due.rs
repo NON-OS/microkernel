@@ -16,14 +16,15 @@
 
 /*
  * Where money is known due at a once-only address (B7, v1.4.56): a refund
- * or dispute this wallet sent, or an order whose escrow owes a refund. Only these are ever read over the network, one at a
- * time, each at most once per REREAD_MS, so the RPC host never sees the
+ * or dispute this wallet sent, or an order whose escrow owes a refund.
+ * Only these are ever read over the network, one address at a time, each at most once per REREAD_MS, so the RPC host never sees the
  * handed list together. An entry goes once its money has moved on. Pure.
  */
 
 use alloc::vec::Vec;
 
 pub use super::due_entry::{Entry, Why};
+use super::landed_held::Held;
 
 pub const MAX_DUE: usize = 32;
 pub const REREAD_MS: u64 = 600_000;
@@ -42,7 +43,7 @@ impl Due {
         if self.entries.len() == MAX_DUE {
             self.entries.remove(0);
         }
-        let e = Entry { address, why, since_ms: now_ms, read_ms: None, nox: None };
+        let e = Entry { address, why, since_ms: now_ms, read_ms: None, held: None };
         self.entries.push(e);
     }
 
@@ -52,13 +53,13 @@ impl Due {
         self.entries.iter().filter(stale).min_by_key(|e| e.read_ms).map(|e| e.address)
     }
 
-    /// A read of `address`: NOX found, or None when it did not answer. An
-    /// address that held NOX and now holds none has had it moved on.
-    pub fn read(&mut self, address: [u8; 20], nox: Option<u128>, now_ms: u64) {
+    /// A read of `address`: what it holds, or None when a read did not
+    /// answer. An address that held money and now holds none has moved on.
+    pub fn read(&mut self, address: [u8; 20], held: Option<Held>, now_ms: u64) {
         let Some(e) = self.entries.iter_mut().find(|e| e.address == address) else { return };
         e.read_ms = Some(now_ms);
-        let moved = e.nox.is_some_and(|n| n > 0) && nox == Some(0);
-        e.nox = nox.or(e.nox);
+        let moved = e.held.is_some_and(|h| h.any()) && held.is_some_and(|h| !h.any());
+        e.held = held.or(e.held);
         if moved {
             self.entries.retain(|e| e.address != address);
         }
