@@ -42,10 +42,10 @@ pub fn verify(container: &[u8], ex: &Expected) -> Result<Verdict, Refusal> {
     let need = |t| c.get(t).ok_or(Refusal::Format);
     let raw: &[u8; 240] = need(tag::RECORD)?.try_into().map_err(|_| Refusal::Format)?;
     let rec = decode_record(raw).ok_or(Refusal::Record)?;
-    record(&rec, ex.pins)?;
+    let view = (ex.read_policy)(ex.policy).ok_or(Refusal::Policy)?;
+    record(&rec, ex.pins, view.mask)?;
     let cx = ctx(c.kind, raw);
     let device_tag = device(need(tag::DEVICE)?, &cx, &ex.listing_id, c.window, ex.pins)?;
-    let view = (ex.read_policy)(ex.policy).ok_or(Refusal::Policy)?;
     measurements(need(tag::MEASUREMENTS)?, &rec, &view.program_blake3)?;
     policy(need(tag::POLICY)?, &rec, ex)?;
     let words = publics(need(tag::PUBLICS)?, &rec, &view)?;

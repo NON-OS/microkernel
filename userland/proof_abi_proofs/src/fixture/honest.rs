@@ -21,7 +21,7 @@ use nonos_proof_abi::trust::{DeviceRoot, Trust};
 use nonos_proof_abi::{ctx, Kind};
 use nox_verify::statements::ATTEST;
 
-use super::run::{SUP_CAPS, SUP_MEAS};
+use super::run::SUP_MEAS;
 use super::{container, family, prove_bound, Family, Parts};
 
 /// The pins, owned, so a test can change one before it borrows them.
@@ -31,7 +31,6 @@ pub struct Pinned {
     pub kernel_root: [u64; 4],
     pub registrars: Vec<DeviceRoot>,
     pub supervisors: Vec<[u8; 32]>,
-    pub supervisor_caps: u64,
     pub vendor: Vec<[u8; 256]>,
 }
 
@@ -42,7 +41,6 @@ impl Pinned {
             kernel_root: self.kernel_root,
             registrars: &self.registrars,
             supervisors: &self.supervisors,
-            supervisor_caps: self.supervisor_caps,
             vendor_policies: &self.vendor,
             isolation: &ATTEST,
         }
@@ -59,7 +57,6 @@ pub fn honest() -> (Family, Parts, Pinned) {
         kernel_root: p.kernel_root,
         registrars: vec![p.registry],
         supervisors: vec![SUP_MEAS],
-        supervisor_caps: SUP_CAPS,
         vendor: Vec::new(),
     };
     (f, parts, pinned)
