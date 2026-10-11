@@ -23,6 +23,7 @@
 mod attach;
 mod detach;
 mod iova;
+mod iova_holes;
 mod iova_space;
 mod map;
 mod posture;
