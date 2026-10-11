@@ -16,7 +16,11 @@
 
 #[path = "../../../../src/hardware/broker/confine/virtio_rule.rs"]
 pub mod virtio_rule;
+#[path = "../../../../src/hardware/broker/confine/virtio_read.rs"]
+pub mod virtio_read;
 #[cfg(test)]
 mod build;
+#[cfg(test)]
+mod read_tests;
 #[cfg(test)]
 mod tests;
