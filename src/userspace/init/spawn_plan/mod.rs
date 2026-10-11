@@ -32,7 +32,9 @@ mod desktop_services;
     feature = "nonos-capsule-driver-virtio-net",
     feature = "nonos-capsule-driver-usb-msc",
     feature = "nonos-capsule-driver-iwlwifi",
-    feature = "nonos-capsule-driver-rtl8821ce"
+    feature = "nonos-capsule-driver-rtl8821ce",
+    feature = "nonos-capsule-driver-pcnet",
+    feature = "nonos-capsule-driver-vmxnet3"
 ))]
 mod device_present;
 mod drivers_bus;
