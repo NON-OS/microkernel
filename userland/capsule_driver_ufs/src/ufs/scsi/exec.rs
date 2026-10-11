@@ -53,7 +53,7 @@ pub fn exec<H: Hw>(
     };
     let upiu = command(lun, flags, n as u32, &cdb.0[..cdb.1]);
     let req = Req { cmd_type: c.scsi_type(), dir, upiu: &upiu, data_len: n, ms };
-    let rsp = issue(hw, &c.lists, &req)?;
+    let rsp = issue(hw, c, &req)?;
     let r = Rsp(&rsp);
     if r.tt() != RESPONSE {
         return Err(UfsError::Upiu(r.tt()));
