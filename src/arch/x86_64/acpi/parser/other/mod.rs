@@ -16,6 +16,9 @@
 
 mod dmar;
 mod dmar_flags;
+mod dmar_reserved;
+mod dmar_units;
+pub mod dmar_rmrr;
 pub mod dmar_scope;
 mod ivrs;
 pub mod ivrs_walk;
@@ -27,8 +30,10 @@ mod mcfg;
 mod srat;
 mod srat_memory;
 
-pub use dmar::{foreign_segment_units, parse_dmar, remap_unit_bases, remap_unit_scopes};
+pub use dmar::parse_dmar;
+pub use dmar_units::{foreign_segment_units, remap_unit_bases, remap_unit_scopes};
 pub use dmar_flags::dmar_platform_opt_in;
+pub use dmar_reserved::reserved_regions;
 pub use dmar_scope::{translated_by_some, UnitScope};
 pub use hpet::parse_hpet;
 pub use ivrs::{amd_iommu_bases, amd_iommu_spans, parse_ivrs};
