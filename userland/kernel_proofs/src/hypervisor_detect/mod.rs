@@ -20,6 +20,8 @@
  * documents, so a wrong table entry fails here rather than in a boot log.
  */
 
+#[path = "../../../../src/arch/x86_64/hypervisor/balloon.rs"]
+mod balloon;
 #[path = "../../../../src/arch/x86_64/hypervisor/classify.rs"]
 mod classify;
 #[path = "../../../../src/arch/x86_64/hypervisor/guest.rs"]
@@ -29,6 +31,7 @@ mod leaves;
 #[path = "../../../../src/arch/x86_64/hypervisor/refine.rs"]
 mod refine;
 mod tests;
+mod tests_balloon;
 mod tests_codes;
 mod tests_refine;
 #[path = "../../../../src/arch/x86_64/hypervisor/vendor.rs"]

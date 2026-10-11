@@ -18,6 +18,7 @@
 //! pure so the proof crate runs it against every signature; only `probe` and
 //! `report` touch the machine.
 
+mod balloon;
 mod classify;
 mod guest;
 mod leaves;
