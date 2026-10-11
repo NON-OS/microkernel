@@ -18,10 +18,14 @@
 //! and its committed refund, kept sealed under the bound root, never shown
 //! but to the wallet's ORDER_REFUND.
 
+mod delivered;
 mod plan;
 mod record;
 mod table;
+mod take;
 
+pub use delivered::{deliver, Opened};
 pub use plan::order_plan;
 pub use record::{Order, ORDER_LEN};
 pub use table::{decode_orders, encode_orders, MAX_ORDERS, ORDERS_LEN};
+pub use take::{offer_for, order_takes};

@@ -19,7 +19,9 @@ mod file;
 mod frame;
 mod ops;
 mod paths;
+mod remove;
 mod vfs;
 
 pub use file::{kept, load, save, Loaded};
+pub use remove::remove;
 pub use paths::{KEY_PATH, ORDERS_PATH, STATE_PATH};

@@ -58,11 +58,13 @@ pub fn keep(o: &Order) -> Result<(), i32> {
     write(&all)
 }
 
-/// Let the order go: ORDER_STATUS found nothing of it left to refund.
+/// Let the order go, its escrow files with it: ORDER_STATUS found nothing
+/// of it left to refund.
 pub fn drop_order(order_id: &[u8; 32]) -> Result<(), i32> {
     let mut all = orders()?;
     all.retain(|x| x.order_id != *order_id);
-    write(&all)
+    write(&all)?;
+    super::escrow::forget(order_id)
 }
 
 fn write(all: &[Order]) -> Result<(), i32> {
