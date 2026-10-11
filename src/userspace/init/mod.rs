@@ -25,7 +25,8 @@ mod supervisor;
 
 pub use entry::run_init;
 pub(crate) use linux_jobs::{
-    install_stage, request_install, request_quiet_run, request_run, request_uninstall, Stage,
+    install_stage, request_install, request_net_run, request_quiet_run, request_run,
+    request_uninstall, Stage,
 };
 pub(crate) use linux_jobs::has_pending as installs_pending;
 pub(crate) use linux_jobs::service as service_installs;
