@@ -38,6 +38,8 @@ pub const OP_INTENT: u16 = 8;
 pub const OP_FETCH: u16 = 9;
 /// One drain round now: the meter's vouchers to the chain (Settled).
 pub const OP_SETTLE: u16 = 10;
+/// A listing's current releases from the registry's logs, as hints (Listing).
+pub const OP_LISTING: u16 = 11;
 
 /// The largest raw transaction BROADCAST takes.
 pub const MAX_RAW_TX: usize = 128 * 1024;

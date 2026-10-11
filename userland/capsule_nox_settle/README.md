@@ -73,6 +73,12 @@ ASYNC (header flags bit 0) is taken from payment's registry pid only, else
 EINVAL; its answer goes back with mk_ipc_send_to_pid, echoing op, flags and
 id, into the meter's service inbox (v1.4.15).
 
+- LISTING (11): a listing's current releases from the config registry's
+  Published and Withdrawn logs (topic0 only, pages of 10000 blocks from
+  deploy_block), newest first, at most 16, a withdrawn release never. A
+  per-chain cursor keeps the rows read so far (at most 1024), so a later call
+  reads only new blocks; once full, each call rescans for its own listing.
+  Rows are hints for the market's own checks.
 - READ: a view of the table by number; the caller never names `to` or
   calldata. The raw ABI return, as words.
 - INTENT: the calldata's selector must belong to its kind, and an approve's
