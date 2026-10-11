@@ -16,6 +16,7 @@
 
 mod budget;
 mod channels;
+mod claim;
 pub mod click;
 mod jobs;
 pub mod key;

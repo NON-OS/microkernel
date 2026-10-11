@@ -45,6 +45,7 @@ pub fn channels(state: &State, a: &Account, fb: &mut PaintBuffer, c: Rect, y: u3
         hits::put(Press::Row(i as u8), Rect::new(c.x, y + h, c.w, used));
         h += used;
     }
+    h += GAP / 2 + super::claim::row(state, fb, c, y + h + GAP / 2);
     let Some(i) = m.picked.filter(|i| (*i as usize) < a.rows.len()) else {
         return h;
     };
