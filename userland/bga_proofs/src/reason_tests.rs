@@ -26,7 +26,22 @@ fn a_refusal_names_the_driver_whatever_errno_the_broker_gave() {
     assert!(w.len() <= 80, "{w:?} is too long for the give-up line");
     assert_eq!(w, reason(BgaError::BrokerCallFailed(-1)));
     // Exhaustive: a new failure fails to build here until it is given words.
-    match BgaError::BrokerCallFailed(0) {
-        BgaError::BrokerCallFailed(_) => {}
+    let all = [
+        BgaError::BrokerCallFailed(0),
+        BgaError::NotDispi,
+        BgaError::NoMode,
+        BgaError::ModeRefused,
+        BgaError::Surface(-12),
+    ];
+    for e in all {
+        match e {
+            BgaError::BrokerCallFailed(_)
+            | BgaError::NotDispi
+            | BgaError::NoMode
+            | BgaError::ModeRefused
+            | BgaError::Surface(_) => {}
+        }
+        let w = reason(e);
+        assert!(w.starts_with("bga: ") && w.len() <= 80, "{w:?}");
     }
 }

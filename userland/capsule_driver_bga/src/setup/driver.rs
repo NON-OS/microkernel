@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::handles::BrokerHandles;
+use super::surface::Shadow;
+use crate::dispi::Mode;
+use crate::gfx::Screen;
+use crate::handles::Claim;
 
+/// Everything a served adapter holds. Field order is drop order: the shadow
+/// is released before the claim that took the VRAM mapping goes. The claim
+/// is held only for that drop, which releases the adapter.
 pub struct Driver {
-    pub handles: BrokerHandles,
-    pub fb_user_va: u64,
-    pub width: u16,
-    pub height: u16,
-    pub stride: u32,
+    pub shadow: Shadow,
+    pub _claim: Claim,
+    pub fb_va: u64,
+    pub mode: Mode,
+    pub screen: Screen,
 }

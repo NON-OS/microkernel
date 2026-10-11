@@ -14,9 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod choose;
 mod clear;
 mod dispi_off;
+mod endian;
+mod mode;
+mod read;
 mod set_mode;
 
+pub use choose::choose;
 pub use clear::clear;
+pub use dispi_off::dispi_off;
+pub use endian::little_endian;
+pub use mode::{Choice, Mode};
+pub use read::{id, seen, vram};
 pub use set_mode::set_mode;

@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER};
+use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_MEMORY_SPACE};
 
 use crate::error::{BgaError, BgaResult};
 
-pub fn enable_bus_master(device_id: u64, claim_epoch: u64) -> BgaResult<()> {
-    let r = mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER);
+/// Memory decode only: the adapter never masters the bus, so it is given no
+/// bus mastering to misuse.
+pub fn enable_memory(device_id: u64, claim_epoch: u64) -> BgaResult<()> {
+    let r =
+        mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, MK_PCI_CMD_MEMORY_SPACE);
     if r < 0 {
         return Err(BgaError::BrokerCallFailed(r));
     }
