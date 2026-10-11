@@ -23,7 +23,7 @@ use nonos_settle_proto::Gas;
 
 use super::fixture::{gas, state, CHAIN, NOW, NOX, SETTLEMENT};
 
-const AT: Contracts = Contracts { nox: NOX, settlement: SETTLEMENT };
+const AT: Contracts = Contracts { nox: NOX, settlement: SETTLEMENT, pool: [0; 20] };
 
 #[test]
 fn an_open_signs_approve_and_open_unless_already_expired() {

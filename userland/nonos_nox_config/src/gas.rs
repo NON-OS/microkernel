@@ -26,6 +26,8 @@ pub const OPEN_GAS: u64 = 200_000;
 pub const TOPUP_GAS: u64 = 120_000;
 /// NoxSettlement close(channelId) (v1.4.7).
 pub const CLOSE_GAS: u64 = 120_000;
+/// ShieldedPool claim(assetId, to): one token transfer out of the pool (v1.4.17).
+pub const CLAIM_GAS: u64 = 150_000;
 /// The most gas the meter signs one settle() for, whatever settle's estimate
 /// says: twelve vouchers, each a signature recovery and a transfer.
 pub const SETTLE_GAS_MAX: u64 = 3_000_000;

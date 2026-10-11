@@ -14,16 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The escrow's and the bond's time constants against the config
-//! (plan/27): MAX_DELIVERY and DISPUTE_WINDOW exactly, and an UNBOND_DELAY
-//! long enough for every funded order to end inside it. A contract that
+//! Constants against the config: the escrow's MAX_DELIVERY and
+//! DISPUTE_WINDOW exactly, the bond's UNBOND_DELAY long enough for every
+//! funded order to end inside it (plan/27), and the Shield pool's
+//! amountPolicy() the config's AmountPolicy (v1.4.17). A contract that
 //! answers otherwise, or reverts, is treated as not deployed.
 
-use nonos_nox_config::{Contract, DISPUTE_WINDOW, MAX_DELIVERY, UNBOND_DELAY_MIN};
+use nonos_nox_config::{address, Contract, DISPUTE_WINDOW, MAX_DELIVERY, UNBOND_DELAY_MIN};
 use nonos_settle_proto::EPROTO;
 
 use super::call_one::view_call;
-use super::words::word_u64;
+use super::words::{addr_word, word_u64};
 use crate::net::Rpc;
 
 fn read(rpc: &mut Rpc, chain_id: u64, at: &[u8; 20], view: u16) -> Result<Option<u64>, i32> {
@@ -43,6 +44,17 @@ pub fn times_ok(rpc: &mut Rpc, chain_id: u64, c: Contract, at: &[u8; 20]) -> Res
         Contract::PublisherBond => {
             read(rpc, chain_id, at, 34)?.is_some_and(|d| d >= UNBOND_DELAY_MIN)
         }
+        Contract::ShieldPool => policy_is_configs(rpc, chain_id, at)?,
         _ => true,
     })
+}
+
+/// The pool's amountPolicy() (view 61) is the config's AmountPolicy.
+fn policy_is_configs(rpc: &mut Rpc, chain_id: u64, at: &[u8; 20]) -> Result<bool, i32> {
+    let Ok(policy) = address(chain_id, Contract::AmountPolicy) else { return Ok(false) };
+    match view_call(rpc, chain_id, at, 61, &[]) {
+        Ok(w) => Ok(w == addr_word(&policy)),
+        Err(EPROTO) => Ok(false),
+        Err(e) => Err(e),
+    }
 }

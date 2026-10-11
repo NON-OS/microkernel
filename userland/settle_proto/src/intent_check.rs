@@ -28,6 +28,14 @@ pub fn kind_of(id: u8, calldata: &[u8]) -> Option<&'static Kind> {
     (whole && kind.calls.iter().any(|(_, s)| *s == sel)).then_some(kind)
 }
 
+/// A ShieldClaim (kind 20) settle quotes: the asset is ETH (0) or NOX (1),
+/// and `to` is the sender, so a claim never pays anyone else.
+pub fn claim_ok(calldata: &[u8], from: &[u8; 20]) -> bool {
+    let (Some(asset), Some(to)) = (calldata.get(4..36), calldata.get(36..68)) else { return false };
+    let to_ok = to[..12].iter().all(|b| *b == 0) && to[12..] == from[..];
+    asset[..31].iter().all(|b| *b == 0) && asset[31] <= 1 && to_ok && calldata.len() == 68
+}
+
 /// An approve's spender, when its word is an address.
 pub fn approve_spender(calldata: &[u8]) -> Option<[u8; 20]> {
     let w = calldata.get(4..36)?;
