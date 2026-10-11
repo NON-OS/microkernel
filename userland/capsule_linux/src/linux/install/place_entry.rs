@@ -23,12 +23,7 @@ use nonos_libc::mk_debug;
 
 use crate::linux::file::{key, store_write, visible};
 
-use super::enrol::vouch;
 use super::tar::Entry;
-
-/// Paths a package may not write: a package dropping one of these
-/// would be installing its own proof.
-const REFUSED: &[&[u8]] = &[b".nonos_id_cert.bin", b".manifest.bin", b".zk_trailer.bin"];
 
 /// What became of one file.
 pub(super) enum Placed {
@@ -49,9 +44,7 @@ pub(super) fn one(entry: &Entry) -> Placed {
         say(b"[LINUX] a file of the package could not be written\n");
         return Placed::Failed;
     }
-    if is_elf(&entry.body) {
-        vouch_for(&at, &entry.body);
-    }
+    super::enrol::vouch_elf(&at, &entry.body);
     Placed::Landed(at)
 }
 
@@ -61,25 +54,11 @@ pub(super) fn allowed(name: &[u8]) -> bool {
     if name.starts_with(b".") {
         return false;
     }
-    if REFUSED.iter().any(|s| name.ends_with(s)) {
+    if super::proof_names::is_proof_name(name) {
         say(b"[LINUX] refused a package writing its own proof\n");
         return false;
     }
     true
-}
-
-/// Minting says this machine agreed to run these bytes. It is only reached
-/// with a `Verified` package, so it is only said about authenticated bytes.
-fn vouch_for(at: &[u8], body: &[u8]) {
-    if !vouch(at, body) {
-        say(b"[LINUX] installed but unvouched: no enrolled root, or may not mint\n");
-    }
-}
-
-/// A shared object counts: an interpreter loads it, and the gate
-/// measures whatever it loads.
-fn is_elf(body: &[u8]) -> bool {
-    body.starts_with(b"\x7fELF")
 }
 
 fn say(line: &[u8]) {

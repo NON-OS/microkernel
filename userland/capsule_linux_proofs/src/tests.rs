@@ -23,6 +23,7 @@ mod app_rules_tests;
 mod model_name_tests;
 mod pinned_published;
 mod pinned_tests;
+mod proof_names_tests;
 mod stat_size_tests;
 mod applets_tests;
 mod store_why_tests;
