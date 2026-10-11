@@ -16,6 +16,10 @@
 
 //! Request and event opcodes, transcribed from the protocol definitions.
 
+#[path = "ops_data.rs"]
+pub mod data;
+#[path = "ops_decoration.rs"]
+pub mod decoration;
 #[path = "ops_req.rs"]
 pub mod req;
 
