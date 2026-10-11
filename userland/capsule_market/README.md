@@ -50,6 +50,7 @@ the Terminal cannot disagree on them.
 | 4 | `OP_GET_RELEASE` | one release, or the first when the release id is empty |
 | 5 | `OP_INSTALL_READY` | the verdict and six gates, seven bytes |
 | 6 | `OP_HEALTHCHECK` | status |
+| 7 | `OP_GET_COMMERCE` | one release's commerce: verdicts, on-chain ids, chain, token, block |
 
 a request whose declared `payload_len` runs past the received bytes is
 refused with `E_MSGSIZE` before any handler runs; an unknown op gets
@@ -122,6 +123,17 @@ validation, arch (and `kernel_abi_min` at most 1) and attestation gates, one
 byte each. attestation passes on a `zk_trailer_hash`, or on a `linux.` listing
 whose arch includes `x86_64-linux`, whose proof the machine mints after the
 installer authenticates the bytes.
+
+`OP_GET_COMMERCE` takes the same listing and release pair and returns: the
+commerce verdict (0 matches, 1 schema 2, 2 mismatch), the binding verdict (0
+valid, 1 no commerce, 2 wrong bond, 3 no bond contract on that chain, 4 wrong
+signer), the on-chain `listing_id`, `release_id` and `release_hash` (zero for
+schema 2), the token's chain id, the token contract and the commerce block,
+each length-prefixed. A release whose publisher signature did not verify is
+reported as a mismatch: an unsigned commerce hash is nobody's word. The
+hashes and the secp256k1 recovery run in this process from pure libraries
+(`blake3`, `sha3`, `nonos_secp256k1`), so the capsule needs no Crypto
+capability for them.
 
 ## State ownership
 

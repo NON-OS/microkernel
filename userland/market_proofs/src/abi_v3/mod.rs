@@ -27,3 +27,10 @@ mod pinning;
 mod refusals;
 mod roundtrip;
 mod signing;
+mod wire;
+mod wire_cut;
+
+#[path = "../../../capsule_market/src/chain_hosts/mod.rs"]
+pub(crate) mod chain_hosts;
+#[path = "../../../capsule_market/src/server/handlers/get_commerce/encode.rs"]
+mod commerce_encode;
