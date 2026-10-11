@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The meter's wire. Every request and reply carries market_proto's 20-byte
-//! header under this service's own magic; a reply's payload starts with a
-//! status. All little-endian, every length explicit (plan/42).
+//! The meter's wire: market_proto's 20-byte header under this service's own
+//! magic, a status first in each reply, little-endian, lengths explicit.
 
 #![no_std]
 
 extern crate alloc;
-
 mod account;
 mod account_codec;
 mod budget;
@@ -47,6 +45,7 @@ mod offer_made;
 mod pay;
 mod plain_page;
 mod plaintext;
+mod purchase;
 mod pay_encode;
 mod status;
 mod voucher;
@@ -71,5 +70,6 @@ pub use offer_made::{OfferMade, OFFER_MADE_LEN};
 pub use pay::PayRequest;
 pub use plain_page::{PlainPage, PLAINTEXT_PAGE};
 pub use plaintext::{PlainAsk, PLAIN_ASK_LEN};
+pub use purchase::{parse_purchase, Names, MAX_NAME, PURCHASE_POST, PURCHASE_TAKE};
 pub use status::*;
 pub use voucher::{VoucherRecord, DRAIN_ROWS_MAX, VOUCHER_RECORD_LEN};

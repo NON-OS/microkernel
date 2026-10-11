@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* An escrow listing's order terms: the block's, and the release's package. */
+/*
+ * An escrow listing's order terms (plan/27, v1.4.40): the block's price for
+ * one "install", and the release's package.
+ */
 
 use nonos_market_proto::{Commerce, ReleaseEscrow};
 use nonos_marketplace_abi::Commerce as Block;
+use nonos_nox_config::UNIT_INSTALL;
 
 use super::buy::Buy;
 
@@ -27,6 +31,9 @@ pub(super) fn escrowed(
     block: &Block,
     e: &ReleaseEscrow,
 ) -> Result<Buy, &'static str> {
+    if block.unit != UNIT_INSTALL {
+        return Err("An escrow listing is sold by the install, and this one names another unit.");
+    }
     if e.chunk_root == [0; 32] || e.content_len == 0 {
         return Err("The release names no escrowed package.");
     }

@@ -20,7 +20,7 @@ use nonos_nox_meter::caller::Role;
 use nonos_payment_proto::{EINVAL, EPERM, OP_ACCOUNT, OP_DRAIN, OP_HEALTHCHECK, OP_LIST_TOKENS};
 use nonos_payment_proto::{OP_CLAIM, OP_CLOSE, OP_JOB, OP_OPEN, OP_PAY, OP_SET_BUDGET, OP_TOPUP};
 use nonos_payment_proto::{OP_ORDER_DELIVERED, OP_ORDER_NEW, OP_ORDER_OFFER};
-use nonos_payment_proto::{OP_ORDER_PLAINTEXT, OP_ORDER_REFUND, OP_ORDER_STATUS};
+use nonos_payment_proto::{OP_ORDER_PLAINTEXT, OP_ORDER_REFUND, OP_ORDER_STATUS, OP_PURCHASE};
 
 use super::call::Call;
 use super::gate::admits;
@@ -41,6 +41,11 @@ pub fn dispatch(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
         OP_ORDER_NEW | OP_ORDER_REFUND | OP_ORDER_OFFER => Role::Wallet,
         OP_ORDER_DELIVERED => Role::Deliverer,
         OP_ORDER_PLAINTEXT => Role::Install,
+        // 19/0 the store's POST, 19/1 the wallet's TAKE (plan/27).
+        OP_PURCHASE => match handlers::purchase_role(req.body) {
+            Some(r) => r,
+            None => return req.answer(EINVAL, &[]),
+        },
         _ => return req.answer(EINVAL, &[]),
     };
     if !admits(role, req.sender) {
@@ -63,6 +68,7 @@ pub fn dispatch(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
         OP_ORDER_OFFER => handlers::order_offer(meter, work, req),
         OP_ORDER_DELIVERED => handlers::order_delivered(work, req),
         OP_ORDER_PLAINTEXT => handlers::order_plaintext(req),
+        OP_PURCHASE => handlers::purchase(work, req),
         _ => handlers::set_budget(meter, req),
     }
 }

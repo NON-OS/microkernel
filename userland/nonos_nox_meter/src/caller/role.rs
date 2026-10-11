@@ -19,7 +19,7 @@
 //! forward, name by name, as the keyring's vault gate does. Pure: the capsule
 //! supplies `owner_of`.
 
-use super::names::{BUYERS, DELIVERERS, INSTALL, PAYERS, SETTLE, WALLET};
+use super::names::{BUYERS, DELIVERERS, INSTALL, PAYERS, SETTLE, STORE, WALLET};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Role {
@@ -31,6 +31,7 @@ pub enum Role {
     Buyer,
     Deliverer,
     Install,
+    Store,
 }
 
 impl Role {
@@ -43,6 +44,7 @@ impl Role {
             Role::Buyer => &BUYERS,
             Role::Deliverer => &DELIVERERS,
             Role::Install => &INSTALL,
+            Role::Store => &STORE,
         }
     }
 
