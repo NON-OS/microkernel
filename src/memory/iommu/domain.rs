@@ -40,12 +40,16 @@ impl IommuDomain {
     /// Bind a device to this domain so its DMA transactions translate
     /// through this domain's page tables.
     pub fn attach_device(&self, device: DeviceAddress) -> Result<(), IommuError> {
-        backend::attach_device(self.id, device)
+        backend::attach_device(self.id, device)?;
+        super::posture::report_if_identity_moved();
+        Ok(())
     }
 
     /// Reverse a previous `attach_device` for this device.
     pub fn detach_device(&self, device: DeviceAddress) -> Result<(), IommuError> {
-        backend::detach_device(self.id, device)
+        backend::detach_device(self.id, device)?;
+        super::posture::report_if_identity_moved();
+        Ok(())
     }
 }
 
