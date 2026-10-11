@@ -20,6 +20,8 @@
 //! proof. With app_id 0 it is the live form (plan/15): the family `pid`
 //! supervises, as it stands, for DELIVER; nothing is dropped.
 
+use alloc::vec::Vec;
+
 use super::sealed::Sealed;
 use super::table::SEALED;
 use crate::syscall::microkernel::device_secret_caller;
@@ -40,7 +42,7 @@ pub(crate) fn sys_seal_read(app_id_ptr: u64, out_ptr: u64, out_len: u64, pid: u6
     }
     if app_id_ptr == 0 {
         return match super::live::snapshot(pid, out_len) {
-            Ok(s) => write(out_ptr, &s.bytes()),
+            Ok(s) => write(out_ptr, s.bytes()),
             Err(e) => e,
         };
     }
@@ -52,18 +54,20 @@ pub(crate) fn sys_seal_read(app_id_ptr: u64, out_ptr: u64, out_len: u64, pid: u6
         Ok(s) => s,
         Err(e) => return e,
     };
-    let bytes = s.bytes();
-    if crate::usercopy::write_user_bytes(out_ptr, &bytes).is_err() {
+    let n = write(out_ptr, s.bytes());
+    if n == ERRNO_FAULT {
         // A bad buffer loses nothing: the record goes back for the next read.
         SEALED.lock().push_back(s);
-        return ERRNO_FAULT;
     }
-    bytes.len() as i64
+    n
 }
 
-fn write(out_ptr: u64, bytes: &[u8]) -> i64 {
-    match crate::usercopy::write_user_bytes(out_ptr, bytes) {
-        Ok(()) => bytes.len() as i64,
+/// The copy holds the witness: cleared whether or not the write went through.
+fn write(out_ptr: u64, mut bytes: Vec<u8>) -> i64 {
+    let n = match crate::usercopy::write_user_bytes(out_ptr, &bytes) {
+        Ok(()) => i64::try_from(bytes.len()).unwrap_or(ERRNO_FAULT),
         Err(_) => ERRNO_FAULT,
-    }
+    };
+    super::wipe::wipe_bytes(&mut bytes);
+    n
 }
