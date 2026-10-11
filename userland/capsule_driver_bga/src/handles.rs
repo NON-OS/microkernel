@@ -14,24 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_mmio_unmap};
+use nonos_libc::mk_device_release;
 
-pub struct BrokerHandles {
+/// The claim: dropping it releases the adapter, and with it every MMIO
+/// grant made under it, so a failed attempt leaves nothing behind.
+pub struct Claim {
     device_id: u64,
-    reg_grant_id: u64,
-    fb_grant_id: u64,
+    pub epoch: u64,
 }
 
-impl BrokerHandles {
-    pub const fn new(device_id: u64, reg_grant_id: u64, fb_grant_id: u64) -> Self {
-        Self { device_id, reg_grant_id, fb_grant_id }
+impl Claim {
+    pub const fn new(device_id: u64, epoch: u64) -> Self {
+        Self { device_id, epoch }
+    }
+
+    pub fn device_id(&self) -> u64 {
+        self.device_id
     }
 }
 
-impl Drop for BrokerHandles {
+impl Drop for Claim {
     fn drop(&mut self) {
-        let _ = mk_mmio_unmap(self.fb_grant_id);
-        let _ = mk_mmio_unmap(self.reg_grant_id);
         let _ = mk_device_release(self.device_id);
     }
 }
