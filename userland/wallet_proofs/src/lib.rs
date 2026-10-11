@@ -87,6 +87,10 @@ pub mod records_whole;
 pub mod replace_rule;
 #[path = "../../capsule_wallet_nonos/src/wallet/send/sent.rs"]
 pub mod sent;
+#[path = "../../capsule_wallet_nonos/src/wallet/meter/channel.rs"]
+pub mod meter_channel;
+#[path = "../../capsule_wallet_nonos/src/wallet/meter/rows.rs"]
+pub mod meter_rows;
 #[path = "../../capsule_wallet_nonos/src/wallet/shield/fund_meter.rs"]
 pub mod fund_meter;
 #[path = "../../capsule_wallet_nonos/src/wallet/screen/shield/typed.rs"]
@@ -133,6 +137,8 @@ mod scale_tests;
 mod sent_tests;
 #[cfg(test)]
 mod fund_meter_tests;
+#[cfg(test)]
+mod meter_rows_tests;
 #[cfg(test)]
 mod shield_typed_tests;
 #[cfg(test)]
