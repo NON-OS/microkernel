@@ -20,7 +20,8 @@
  * answer. It pays only the committed refundTo, so the checks are when:
  * a Disputed order; at or after deliveryDeadline, a Funded order or NOX
  * waiting at the deposit address of one not funded; or extra above the
- * price after Released or Refunded. Sent from refundTo and no other address.
+ * price, or NOX waiting, after Released or Refunded (v1.4.55: the refund
+ * sweeps first). Sent from refundTo and no other address.
  */
 
 use nonos_payment_proto::OrderMade;
@@ -56,7 +57,7 @@ pub fn refund(
     let deadline = deadline(m).ok_or(NOTHING_LEFT)?;
     match of {
         (3, _) => {}
-        (4 | 5, extra) if extra > 0 => {}
+        (4 | 5, extra) if extra.saturating_add(pending) > 0 => {}
         (5, _) => return Err(ALREADY),
         (2, _) => return Err(IN_WINDOW),
         (1, _) if now < deadline => return Err(NOT_YET),
