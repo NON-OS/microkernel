@@ -18,6 +18,7 @@ mod barriers;
 mod constants;
 mod cpu_apply;
 mod cpuid;
+mod cpuid_spec;
 mod detect;
 mod enable;
 mod hooks;
