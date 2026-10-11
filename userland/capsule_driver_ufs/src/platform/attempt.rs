@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One bring-up attempt on the host discovery found. A failed one resets the
-//! host before anything goes back, so no list is still running when the
-//! regions it reads are unmapped, and the next attempt claims afresh.
+//! One bring-up attempt on the host discovery found. A failed one stops the
+//! host and waits for it to stop before anything goes back, so no list is
+//! still running when the regions it reads are unmapped. A host that never
+//! stops keeps its regions: only the claim goes back, whose release stops
+//! bus mastering, and the regions are leaked rather than handed on.
 
 use super::discover::Found;
 use super::env::HostEnv;
+use super::held::Held;
 use super::hosts::INTEL;
-use super::open::{take, Held};
+use super::open::take;
 use crate::ufs::bring_up::bring_up;
 use crate::ufs::disk::Ufs;
-use crate::ufs::env::Mmio;
-use crate::ufs::hci::regs::HCE;
+use crate::ufs::hci::enable::stop;
 use crate::ufs::utp::layout::Lists;
 
 /// The host up and its units found, with what it holds from the broker.
@@ -42,7 +44,10 @@ pub fn attempt(dev: &Found) -> Result<Opened, &'static str> {
     match bring_up(&env, lists, dev.vendor == INTEL) {
         Ok(ufs) => Ok(Opened { env, ufs, _held: held }),
         Err(_) => {
-            env.w32(HCE, 0);
+            if !stop(&env) {
+                held.leak_regions();
+                return Err("bring-up failed; host would not stop, regions kept");
+            }
             Err("bring-up failed")
         }
     }
