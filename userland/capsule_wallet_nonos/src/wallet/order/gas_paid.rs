@@ -18,10 +18,9 @@
 //! for gas, and cleared when that withdraw fails, so the gas is never paid
 //! twice for one step.
 
+use super::send_resume::pays_gas;
 use super::send_step::SendStep;
 use crate::wallet::state::State;
-
-const ETH: u8 = 0;
 
 fn waiting_gas(state: &mut State) -> Option<(&mut Option<u64>, [u8; 20])> {
     let p = state.meter.purchase.as_deref_mut()?;
@@ -33,7 +32,7 @@ fn waiting_gas(state: &mut State) -> Option<(&mut Option<u64>, [u8; 20])> {
 pub fn started(state: &mut State, asset: u8, deposit: Option<[u8; 20]>) {
     let now = nonos_tls::rtc_now();
     if let Some((paid, refund_to)) = waiting_gas(state) {
-        if asset == ETH && deposit == Some(refund_to) && refund_to != [0; 20] {
+        if pays_gas(asset, deposit, refund_to) {
             *paid = Some(now);
         }
     }
