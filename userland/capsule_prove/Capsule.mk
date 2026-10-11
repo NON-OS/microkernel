@@ -30,7 +30,7 @@ CAPSULE_FEATURE          := nonos-capsule-prove
 CAPSULE_NAMESPACE        := systems.nonos.app.prove
 CAPSULE_SERVICE_ENDPOINT := service:4950:app.prove
 CAPSULE_REPLY_ENDPOINT   := reply:4951:endpoint.app.prove.reply
-CAPSULE_INSTANCE_ENDPOINTS := service:4952:app.prove.1 reply:4953:endpoint.app.prove.1.reply
+CAPSULE_INSTANCE_ENDPOINTS := service:4952:app.prove.1 reply:4953:endpoint.app.prove.1.reply service:5206:app.prove.job reply:5207:endpoint.app.prove.job.reply
 # CoreExec|IPC|Memory|Crypto|FileSystem|GraphicsDisplayQuery|GraphicsSurfaceCreate|StreamImport|DeviceSecret
 CAPSULE_REQUIRED_CAPS    := 0xC00001879
 # Debug, granted only by a build that compiles `capsule-serial-debug`: the
