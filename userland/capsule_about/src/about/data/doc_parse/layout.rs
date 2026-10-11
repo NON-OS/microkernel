@@ -33,8 +33,8 @@ pub(super) const ENFORCING_AT: usize = VENDOR_AT + 1;
 pub(super) const UNCONFINED_AT: usize = ENFORCING_AT + 1;
 pub(super) const ATTEST_LEN_AT: usize = UNCONFINED_AT + 4;
 
-/// Highest `iommu_vendor` value the kernel writes: none, VT-d, AMD-Vi.
-pub(super) const VENDOR_MAX: u8 = 2;
+/// Highest `iommu_vendor` value the kernel writes: none, VT-d, AMD-Vi, SMMUv3.
+pub(super) const VENDOR_MAX: u8 = 3;
 
 /// The attestation key closes the document: an uncompressed P-256 point, x then y.
 pub(super) const KEY_LEN: u32 = 64;
