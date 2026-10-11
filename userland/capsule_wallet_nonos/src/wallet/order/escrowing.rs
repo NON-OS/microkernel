@@ -17,9 +17,9 @@
 //! A dispute or a refund under way for a purchase (B8, v1.4.51 to v1.4.53):
 //! its kind, its step, and when settle is asked next.
 
-use nonos_payment_proto::{DeliveredMade, OrderMade};
-
 use alloc::vec::Vec;
+
+use nonos_payment_proto::{DeliveredMade, OrderMade};
 
 use super::send_step::SendStep;
 
@@ -53,6 +53,8 @@ impl Escrowing {
 /// What a step reads of the purchase.
 pub struct Ctx<'a> {
     pub chain_id: u64,
+    /// The config's Escrow on this chain, the only `to` a quote may name.
+    pub escrow: Option<[u8; 20]>,
     pub made: &'a OrderMade,
     pub delivered: Option<&'a DeliveredMade>,
     pub refund_to: [u8; 20],
