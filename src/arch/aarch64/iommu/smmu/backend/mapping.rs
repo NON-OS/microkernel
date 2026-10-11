@@ -36,8 +36,7 @@ pub unsafe fn map(
     with(|smmu| {
         let at = slot(domain).ok_or(IommuError::InvalidDomain)?;
         let d = smmu.domains[at].ok_or(IommuError::InvalidDomain)?;
-        let (read, write) = (protection.readable(), protection.writable());
-        pgtable::map(d.ttb, iova, phys.as_u64(), size as u64, read, write)
+        pgtable::map(d.ttb, iova, phys.as_u64(), size as u64, protection)
     })
 }
 

@@ -29,6 +29,10 @@ const AP_UNPRIV: u64 = 1 << 6;
 /// AP[2]: read-only.
 const AP_RDONLY: u64 = 1 << 7;
 const SH_INNER: u64 = 0b11 << 8;
+/// Device memory is outer shareable whatever the entry says; Linux says so.
+const SH_OUTER: u64 = 0b10 << 8;
+/// AttrIndx 1: MAIR attribute 1, Device-nGnRE.
+const ATTR_DEVICE: u64 = 1 << 2;
 const AF: u64 = 1 << 10;
 /// No device fetches instructions.
 const XN: u64 = 1 << 54 | 1 << 53;
@@ -37,15 +41,16 @@ pub const fn table(next_phys: u64) -> u64 {
     VALID_TABLE | (next_phys & OA_MASK)
 }
 
-/// A leaf for one 4 KiB page, attribute index 0. Stage 1 permissions are
-/// read-only or read-write, so a write-only grant maps read-write; `None`
-/// for one that allows neither, which has no encoding but "not mapped".
-pub const fn page(phys: u64, read: bool, write: bool) -> Option<u64> {
+/// A leaf for one 4 KiB page: memory, or with `device` a register. Stage 1
+/// permissions are read-only or read-write, so write-only maps read-write;
+/// `None` for neither, which has no encoding but "not mapped".
+pub const fn page(phys: u64, read: bool, write: bool, device: bool) -> Option<u64> {
     if !read && !write {
         return None;
     }
     let ap = if write { AP_UNPRIV } else { AP_UNPRIV | AP_RDONLY };
-    Some(VALID_PAGE | (phys & OA_MASK) | ap | SH_INNER | AF | XN)
+    let attrs = if device { ATTR_DEVICE | SH_OUTER } else { SH_INNER };
+    Some(VALID_PAGE | (phys & OA_MASK) | ap | attrs | AF | XN)
 }
 
 pub const fn is_valid(entry: u64) -> bool {
