@@ -54,6 +54,12 @@ pub(crate) fn dispatch(op: u16, body: &str) -> (i32, String) {
             job("review settle", move || ops::review_self_settle(&borrowed(&f)))
         }
         OP_TAKE_BACK => job("take back", ops::take_back),
+        OP_SHIELD_FROM_FRESH if fields.first() == Some(&SHIELD_FRESH_REVIEW) => {
+            job("shield fresh", move || crate::shield_fresh::review(&borrowed(&f)))
+        }
+        OP_SHIELD_FROM_FRESH if fields.first() == Some(&SHIELD_FRESH_CONFIRM) => {
+            job("shield fresh", move || crate::shield_fresh::confirm(&borrowed(&f)))
+        }
         OP_SIGN_FROM_FRESH => job("sign", move || crate::fresh::sign_from_fresh(&borrowed(&f))),
         _ => (STATUS_MALFORMED, String::new()),
     }

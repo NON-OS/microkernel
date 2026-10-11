@@ -29,9 +29,7 @@ use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::tokens::{GAP, TEXT_3};
 use crate::wallet::etna::wrap::wrapped;
 use crate::wallet::etna::Role;
-use crate::wallet::order::fees::exact;
 use crate::wallet::screen::hits::{self, Press};
-use crate::wallet::shield::landed_held::line;
 use crate::wallet::shield::scan::ScanState;
 use crate::wallet::state::State;
 
@@ -43,13 +41,7 @@ const NOTE: &str = "A restore scan asks the network about this wallet's unused a
 pub fn paint(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
     let l = &state.meter.landed;
     let mut h = 0;
-    let due =
-        l.due.entries.iter().filter_map(|e| e.held.filter(|h| h.any()).map(|h| (e.address, h)));
-    let scanned = l.scan.found.iter().map(|f| (f.1, f.2));
-    for (address, held) in due.chain(scanned) {
-        let text = line(&address, held, exact);
-        h += fact(fb, c.x, y + h, c.w, "landed", &text) + GAP / 2;
-    }
+    h += super::landed_rows::paint(state, fb, c, y);
     let (said, row) = match l.scan.state {
         ScanState::Idle => (None, Some(("Look for refunds after a restore", ROW_SCAN))),
         ScanState::Deriving(_) | ScanState::Reading => {

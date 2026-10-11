@@ -53,7 +53,7 @@ pub mod rows;
 pub mod said;
 mod send_bounds;
 mod send_gas;
-mod send_quote;
+pub mod send_quote;
 pub mod send_resume;
 pub mod send_step;
 pub mod step;

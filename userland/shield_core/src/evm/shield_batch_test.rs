@@ -29,14 +29,15 @@ fn the_deposits_go_out_in_order_on_consecutive_nonces() {
     assert!(batch.txs.iter().all(|t| t.to == POOL && t.chain_id == 11_155_111));
 }
 
-/// The amounts and the most every network fee can be are one sum, and one wei short refuses all.
+/// The amounts and the most every network fee can be are one sum; one wei short refuses all,
+/// saying the wei it lacks.
 #[test]
 fn a_balance_one_wei_short_of_the_whole_refuses_every_deposit() {
     let chain = Network::Sepolia.chain();
     let gas = [180_000, 190_000];
     let ether = 300 + 370_000 * 3_000_000_000 - 1;
     let short = build(&chain, (&POOL, &two(), &gas), (41, FEES), ether);
-    assert!(matches!(short, Ok(BatchChecked::Refused(_))));
+    assert!(matches!(short, Ok(BatchChecked::ShortOfEth(1))), "the one wei it lacks");
 }
 
 /// A nonce at the top of the range is refused as a malformed reply, never a panic.

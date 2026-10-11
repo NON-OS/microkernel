@@ -6,7 +6,7 @@ use super::super::ticket::approve_calldata;
 use super::super::{Pending, Wallet};
 use super::view::{plan, refused, ShieldSplit};
 use crate::error::{NetError, WalletError};
-use crate::evm::shield::{review_shield, ShieldChecked, ShieldOrder};
+use crate::evm::shield::{review_shield, ShieldChecked, ShieldOrder, ETH_SHORT};
 use crate::evm::{self, Network};
 use crate::ffi::evm::parse_evm_address;
 use crate::net::asset::Coin;
@@ -37,6 +37,7 @@ impl Wallet {
             ShieldChecked::Ready(review) if review.approval => review,
             ShieldChecked::Ready(_) => return Ok(refused("The allowance moved. Review it again.")),
             ShieldChecked::Refused(why) => return Ok(refused(why)),
+            ShieldChecked::ShortOfEth(_) => return Ok(refused(ETH_SHORT)),
         };
         let id = self.next_review_id();
         let view = ShieldSplit {

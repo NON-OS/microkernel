@@ -38,6 +38,7 @@ fn op_of(name: &str) -> Option<u16> {
         "take back" => OP_TAKE_BACK,
         "sign" => OP_SIGN_FROM_FRESH,
         "scan" => OP_FRESH_ADDRESS,
+        "shield fresh" => OP_SHIELD_FROM_FRESH,
         _ => return None,
     })
 }

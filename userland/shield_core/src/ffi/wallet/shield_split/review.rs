@@ -6,7 +6,7 @@
 use super::super::{PendingBatch, Wallet};
 use super::view::{plan, refused, ShieldSplit};
 use crate::error::{NetError, WalletError};
-use crate::evm::shield_batch::{review_batch, BatchChecked, Deposit};
+use crate::evm::shield_batch::{review_batch, BatchChecked, Deposit, BATCH_ETH_SHORT};
 use crate::evm::{self, Network};
 use crate::ffi::amount_read::parse_base_units;
 use crate::ffi::evm::parse_evm_address;
@@ -58,6 +58,7 @@ impl Wallet {
             BatchChecked::Ready(batch) => batch,
             BatchChecked::Approve => return self.approve_split(coin, amount, &requests),
             BatchChecked::Refused(why) => return Ok(refused(why)),
+            BatchChecked::ShortOfEth(_) => return Ok(refused(BATCH_ETH_SHORT)),
         };
         let id = self.next_review_id();
         let view = plan(id, &requests, asset.scale, batch.max_network_fee);

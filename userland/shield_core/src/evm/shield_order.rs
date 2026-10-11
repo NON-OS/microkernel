@@ -20,7 +20,13 @@ pub struct Shielding {
     pub max_network_fee: u128,
 }
 
+/// What a public review says when ETH falls short of the value and the fee.
+pub const ETH_SHORT: &str =
+    "The ETH balance does not cover this and the most the network fee can be.";
+
 pub enum ShieldChecked {
     Ready(Box<Shielding>),
+    /// The ETH it lacks for the value and the most the network fee can be.
+    ShortOfEth(u128),
     Refused(&'static str),
 }

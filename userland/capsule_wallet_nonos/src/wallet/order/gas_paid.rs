@@ -13,34 +13,46 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The mark a started Shield withdraw for a send's gas leaves (v1.4.55):
-//! set when the withdraw to the refund address starts while the send waits
-//! for gas, and cleared when that withdraw fails, so the gas is never paid
-//! twice for one step.
+//! The mark a started Shield withdraw for gas leaves (v1.4.55, v1.4.56):
+//! set when an ETH withdraw starts to the address a send waits on for gas,
+//! the refund address of a dispute or refund, or a fresh address whose NOX
+//! is being moved into the Shield; cleared when the withdraw to that
+//! address fails, so the gas is never paid twice for one step.
 
 use super::send_resume::pays_gas;
 use super::send_step::SendStep;
+use crate::wallet::meter::MeterUi;
 use crate::wallet::state::State;
 
-fn waiting_gas(state: &mut State) -> Option<(&mut Option<u64>, [u8; 20])> {
-    let p = state.meter.purchase.as_deref_mut()?;
-    let e = p.escrow.as_mut()?;
-    matches!(e.step, SendStep::Gas { .. }).then_some((&mut e.gas_paid_s, p.refund_to))
+/// Each mark a gas withdraw may set now, with the address it pays.
+fn marks(meter: &mut MeterUi) -> impl Iterator<Item = (&mut Option<u64>, [u8; 20])> {
+    let escrow = meter.purchase.as_deref_mut().and_then(|p| {
+        let e = p.escrow.as_mut()?;
+        matches!(e.step, SendStep::Gas { .. }).then_some((&mut e.gas_paid_s, p.refund_to))
+    });
+    let lacks = |m: &&mut crate::wallet::shield::fresh_move::Moving| {
+        m.review.as_ref().is_some_and(|r| r.short_eth > 0)
+    };
+    let moving = meter.landed.moving.as_mut().filter(lacks).map(|m| (&mut m.gas_paid_s, m.address));
+    escrow.into_iter().chain(moving)
 }
 
 /// A Shield withdraw of `asset` to `deposit` has started.
 pub fn started(state: &mut State, asset: u8, deposit: Option<[u8; 20]>) {
     let now = nonos_tls::rtc_now();
-    if let Some((paid, refund_to)) = waiting_gas(state) {
-        if pays_gas(asset, deposit, refund_to) {
+    for (paid, to) in marks(&mut state.meter) {
+        if pays_gas(asset, deposit, to) {
             *paid = Some(now);
         }
     }
 }
 
-/// The Shield withdraw failed: the gas may be paid again.
+/// The Shield withdraw failed: the gas to the address it paid may go again.
 pub fn failed(state: &mut State) {
-    if let Some((paid, _)) = waiting_gas(state) {
-        *paid = None;
+    let deposit = state.shield_ui.to_deposit;
+    for (paid, to) in marks(&mut state.meter) {
+        if deposit == Some(to) {
+            *paid = None;
+        }
     }
 }

@@ -37,6 +37,7 @@ mod fresh;
 mod fresh_modes;
 mod hexes;
 mod ops;
+mod shield_fresh;
 mod values;
 
 pub use callers::{from_wallet, WALLETS};
@@ -48,6 +49,7 @@ pub use fresh::{FreshAsk, OP_SIGN_FROM_FRESH};
 pub use fresh_modes::{FRESH_BATCH, FRESH_HANDED, FRESH_ONCE};
 pub use hexes::{hex, unhex};
 pub use ops::*;
+pub use shield_fresh::{OP_SHIELD_FROM_FRESH, SHIELD_FRESH_CONFIRM, SHIELD_FRESH_REVIEW};
 pub use values::{field, fields, Values};
 
 #[cfg(test)]
