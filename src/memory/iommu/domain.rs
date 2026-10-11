@@ -14,13 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::addr::PhysAddr;
-
 use super::backend;
 use super::device::DeviceAddress;
 use super::domain_id::DomainId;
 use super::error::IommuError;
-use super::protection::IommuProtection;
 
 /// Owned handle for an IOMMU translation domain. Dropping the handle
 /// destroys the domain; its page-table frames are not freed.
@@ -38,35 +35,6 @@ impl IommuDomain {
     /// Identifier of this domain, stable for its lifetime.
     pub const fn id(&self) -> DomainId {
         self.id
-    }
-
-    /// Map a host-physical region into this domain's IOVA space.
-    ///
-    /// # Safety
-    ///
-    /// ek@nonos.systems
-    ///
-    /// `[phys, phys+size)` must be valid kernel memory the device is
-    /// permitted to touch under `protection`. `[iova, iova+size)` must
-    /// not already be mapped in this domain — duplicate mappings
-    /// corrupt the IOMMU page table. Both ranges must be 4 KiB-aligned;
-    /// every supported backend uses 4 KiB as its minimum granule. The
-    /// host region must remain valid and untouched (within the
-    /// protection bounds) until the IOVA range is unmapped or the
-    /// domain is dropped.
-    pub unsafe fn map(
-        &self,
-        iova: u64,
-        phys: PhysAddr,
-        size: usize,
-        protection: IommuProtection,
-    ) -> Result<(), IommuError> {
-        backend::map(self.id, iova, phys, size, protection)
-    }
-
-    /// Remove an IOVA range previously installed in this domain.
-    pub fn unmap(&self, iova: u64, size: usize) -> Result<(), IommuError> {
-        backend::unmap(self.id, iova, size)
     }
 
     /// Bind a device to this domain so its DMA transactions translate
