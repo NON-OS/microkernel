@@ -37,7 +37,9 @@ pub use classify::{classify_device, classify_family};
 pub use driver::family_driver;
 pub use emmc::{is_intel_emmc, INTEL_EMMC_DEVICE_IDS};
 pub use family::HardwareFamily;
-pub use intel_ethernet_ids::{E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS};
+pub use intel_ethernet_ids::{
+    E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS, IXGBE_DEVICE_IDS,
+};
 pub use missing::missing_path;
 pub use present::present;
 pub use realtek_ids::{RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_ID};
