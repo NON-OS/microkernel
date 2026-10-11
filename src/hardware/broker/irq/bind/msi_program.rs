@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Programming and clearing a function's MSI capability for one broker
-//! vector, in the order Linux msi_capability_init uses: off while the message
-//! is rewritten, extra vectors masked, then on with INTx disabled.
+//! vector: off while the message is rewritten, since a message changed while
+//! MSI is enabled may be sent half old and half new; extra vectors masked;
+//! then on, with INTx disabled, as a function using MSI must not also assert
+//! INTx (PCI Local Bus 3.0, 6.8).
 
 use super::msi_layout::{disable, enable_one, layout, open_first};
 use crate::drivers::pci::config::ConfigSpace;
