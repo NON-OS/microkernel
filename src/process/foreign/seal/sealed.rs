@@ -1,0 +1,51 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! A family once sealed: its public record, and the witness only the prover
+//! may read.
+
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+
+use super::hist::HIST_WORDS;
+use super::record::RECORD_BYTES;
+
+pub(crate) struct Sealed {
+    pub(crate) seal_no: u64,
+    pub(crate) record: [u8; RECORD_BYTES],
+    pub(crate) hist: Box<[u32; HIST_WORDS]>,
+    pub(crate) salt: [u64; 4],
+    pub(crate) diag: [u8; 32],
+    pub(crate) list: Vec<[u8; 32]>,
+}
+
+/// The two parts a reader may ask for beyond the record.
+pub(crate) const WITNESS_BYTES: usize = 4 * HIST_WORDS + 64;
+
+impl Sealed {
+    /// H as 1026 little-endian u32s, the salt as four u64s, then the diag.
+    pub(crate) fn witness(&self) -> Vec<u8> {
+        let mut out = Vec::with_capacity(WITNESS_BYTES);
+        self.hist.iter().for_each(|c| out.extend_from_slice(&c.to_le_bytes()));
+        self.salt.iter().for_each(|w| out.extend_from_slice(&w.to_le_bytes()));
+        out.extend_from_slice(&self.diag);
+        out
+    }
+
+    pub(crate) fn measurements(&self) -> Vec<u8> {
+        self.list.concat()
+    }
+}

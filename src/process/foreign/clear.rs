@@ -19,7 +19,10 @@
 /// Drop `pid` from the table, whether it was a guest or a supervisor.
 /// Called from process teardown; a supervisor leaving takes its guests.
 pub fn clear(pid: u32) {
+    // A guest's unanswered call goes into its family before its frame goes.
+    super::seal::abandon(pid);
     let orphans = super::registry::guests_of(pid);
+    let whole = orphans.is_empty();
     /*
      * Each guest ends by the teardown a kill uses, so a thread running on
      * another CPU is sent off it and reaped only once no CPU is on it. Only
@@ -54,6 +57,8 @@ pub fn clear(pid: u32) {
     super::trap_frame::drop_frame(pid);
     super::notice::forget_supervisor(pid);
     super::interrupt::forget(pid);
+    // Final only if no guest of it was still running when it ended.
+    super::seal::finish(pid, whole);
 }
 
 /*
