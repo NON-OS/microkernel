@@ -109,8 +109,7 @@ pub mod meter_job;
 pub mod meter_topup;
 #[path = "../../capsule_wallet_nonos/src/wallet/meter/rows.rs"]
 pub mod meter_rows;
-#[path = "../../capsule_wallet_nonos/src/wallet/shield/landed.rs"]
-pub mod landed;
+pub mod shield;
 #[path = "../../capsule_wallet_nonos/src/wallet/settle/heard.rs"]
 pub mod settle_heard;
 #[path = "../../capsule_wallet_nonos/src/wallet/shield/fund_meter.rs"]
@@ -165,6 +164,10 @@ mod fund_meter_tests;
 mod settle_heard_tests;
 #[cfg(test)]
 mod landed_tests;
+#[cfg(test)]
+mod due_tests;
+#[cfg(test)]
+mod scan_tests;
 #[cfg(test)]
 mod attest_tests;
 #[cfg(test)]
