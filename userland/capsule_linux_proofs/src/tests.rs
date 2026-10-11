@@ -62,6 +62,8 @@ mod window_end_tests;
 mod window_fit_tests;
 mod window_reshape_tests;
 mod wayland_data_tests;
+mod escrow_check_tests;
+mod escrow_pin_tests;
 mod private_rule_tests;
 mod wayland_focus_step_tests;
 mod wayland_held_keys_tests;
