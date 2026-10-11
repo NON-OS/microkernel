@@ -19,6 +19,7 @@ mod dma;
 mod driver;
 mod grant;
 mod mmio;
+mod pci;
 mod rollback;
 mod sequence;
 

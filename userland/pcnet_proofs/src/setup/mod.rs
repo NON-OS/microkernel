@@ -21,5 +21,7 @@
 mod driver;
 #[path = "../../../capsule_driver_pcnet/src/setup/grant.rs"]
 pub mod grant;
+#[path = "../../../capsule_driver_pcnet/src/setup/pci.rs"]
+pub mod pci;
 
 pub use driver::Driver;
