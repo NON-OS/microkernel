@@ -1,13 +1,15 @@
 /* qwenwl: staying up, taking keys, and showing each frame. */
 #include "qwenwl.h"
 #include "qwenwl_ids.h"
+#include "qwenwl_keys.h"
 
 #include <sys/mman.h>
 #include <unistd.h>
 
 /*
  * xdg_wm_base.ping, xdg_toplevel.configure, xdg_surface.configure,
- * xdg_toplevel.close, key. A configure's size (F11 or the window made full
+ * xdg_toplevel.close, and the keyboard's leave, key, modifiers and
+ * repeat_info (qwenwl_keys.cpp). A configure's size (F11 or the window made full
  * screen, and back) is taken before its ack, so the next present is the
  * frame drawn at that size; 0 by 0 is the size the window opened at.
  */
@@ -29,10 +31,17 @@ bool wl_poll(Wl &w, std::vector<Key> &keys) {
             w.configured = true;
         } else if (object == TOP && op == 1) {
             w.closed = true;
-        } else if (object == KBD && op == 3 && wl_word(body, 12) == 1) {
-            keys.push_back(Key{wl_word(body, 8)});
+        } else if (object == KBD && op == 2) {
+            w.held = 0;
+        } else if (object == KBD && op == 3) {
+            wl_key(w, body, keys, wl_now_ms());
+        } else if (object == KBD && op == 4) {
+            wl_mods(w, body);
+        } else if (object == KBD && op == 5) {
+            wl_repeat_info(w, body);
         }
     }
+    wl_repeat(w, keys, wl_now_ms());
     return !w.closed;
 }
 
