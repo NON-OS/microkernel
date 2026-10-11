@@ -16,7 +16,8 @@
 
 //! When a refund is sent: Disputed; Funded, or NOX waiting at an
 //! unfunded deposit address, from deliveryDeadline on; extra after Released
-//! or Refunded; and only to the refundTo drawn at Buy.
+//! or Refunded, or NOX waiting then, swept first (v1.4.55); and only to the
+//! refundTo drawn at Buy.
 
 use super::fixture::{buy, made, offer, NOW, REFUND_TO};
 use super::refund::SALT;
@@ -40,6 +41,9 @@ fn each_state_refunds_or_says_why_not() {
     assert!(at((4, 3), 0, NOW).is_ok(), "extra after Released");
     assert_eq!(at((5, 0), 0, deadline), Err(ALREADY));
     assert!(at((5, 3), 0, NOW).is_ok(), "extra after Refunded");
+    assert!(at((4, 0), 7, NOW).is_ok(), "NOX waiting after Released");
+    assert!(at((5, 0), 7, NOW).is_ok(), "NOX waiting after Refunded");
+    assert!(at((5, u128::MAX), u128::MAX, NOW).is_ok(), "no overflow");
     let sent = at((3, 0), 0, NOW).unwrap();
     assert_eq!((sent.kind, sent.from, sent.calldata.len()), (11, REFUND_TO, 516));
 }
