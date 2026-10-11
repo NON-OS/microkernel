@@ -61,6 +61,7 @@ mod pgp;
 mod pkg;
 mod place;
 mod place_entry;
+mod proof_names;
 mod place_links;
 mod place_report;
 mod place_undo;
