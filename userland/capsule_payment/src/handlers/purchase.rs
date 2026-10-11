@@ -14,33 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! PURCHASE (op 19, plan/21, plan/27): the store-to-wallet mailbox. 19/0
-//! POST from app.store alone, names only, EBUSY while one waits; 19/1 TAKE
-//! from the wallet alone, the names once, ENOENT when none wait.
+//! PURCHASE (op 19, plan/21, plan/27, v1.4.42): the store-to-wallet mailbox.
+//! 19/0 POST from app.store, names only, EBUSY while one waits; 19/1 TAKE
+//! from the wallet, the names once, ENOENT when none wait. 19/2 READY from
+//! the wallet, the names and their orderId; 19/3 TAKE_READY from app.store.
 
 use alloc::vec::Vec;
 
 use nonos_nox_meter::caller::Role;
-use nonos_payment_proto::{parse_purchase, EINVAL, ENOENT, PURCHASE_POST, PURCHASE_TAKE};
+use nonos_payment_proto::{parse_purchase, Purchase, EINVAL, ENOENT};
+use nonos_payment_proto::{PURCHASE_POST, PURCHASE_READY, PURCHASE_TAKE, PURCHASE_TAKE_READY};
 
 use crate::jobs::Work;
 use crate::meter::now_ms;
 use crate::server::Call;
 
-/// Who may send this body: the store posts, the wallet takes.
+/// Who may send this body: the store posts names and takes the orderId;
+/// the wallet takes names and posts the orderId.
 pub fn purchase_role(body: &[u8]) -> Option<Role> {
     match *body.first()? {
-        PURCHASE_POST => Some(Role::Store),
-        PURCHASE_TAKE => Some(Role::Wallet),
+        PURCHASE_POST | PURCHASE_TAKE_READY => Some(Role::Store),
+        PURCHASE_TAKE | PURCHASE_READY => Some(Role::Wallet),
         _ => None,
     }
 }
 
 pub fn purchase(work: &mut Work, req: &Call<'_>) -> Vec<u8> {
     let now = now_ms();
+    let m = &mut work.mailbox;
     req.result(match parse_purchase(req.body) {
-        Some(Some(names)) => work.mailbox.post(names, now).map(|_| Vec::new()),
-        Some(None) => work.mailbox.take(now).ok_or(ENOENT).and_then(|n| n.encode().ok_or(EINVAL)),
+        Some(Purchase::Post(names)) => m.names.post(names, now).map(|_| Vec::new()),
+        Some(Purchase::Take) => {
+            m.names.take(now).ok_or(ENOENT).and_then(|n| n.encode().ok_or(EINVAL))
+        }
+        Some(Purchase::Ready(r)) => m.ready.post(r, now).map(|_| Vec::new()),
+        Some(Purchase::TakeReady) => {
+            m.ready.take(now).ok_or(ENOENT).and_then(|r| r.encode().ok_or(EINVAL))
+        }
         None => Err(EINVAL),
     })
 }

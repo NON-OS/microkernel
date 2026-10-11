@@ -56,9 +56,13 @@ fn the_replies_round_trip_exactly() {
     assert_eq!((b.len(), &b[32..52]), (ORDER_MADE_LEN, &[10u8; 20][..]));
     assert_eq!(OrderMade::parse(&b), Some(made));
     assert_eq!(OrderMade::parse(&b[..b.len() - 1]), None);
-    let st = OrderStatus { state: 2, funded: 7, pending: 9 };
-    assert_eq!(st.encode().len(), ORDER_STATUS_LEN);
+    let st = OrderStatus { state: 2, funded: 7, pending: 9, plain: true };
+    assert_eq!((st.encode().len(), ORDER_STATUS_LEN), (34, 34), "v1.4.42's plain byte");
     assert_eq!(OrderStatus::parse(&st.encode()), Some(st));
+    let mut odd = st.encode();
+    odd[33] = 2;
+    assert_eq!(OrderStatus::parse(&odd), None, "plain is 0 or 1");
+    assert_eq!(OrderStatus::parse(&st.encode()[..33]), None, "the 33-byte form is gone");
     let r = refund_reply(&[1; 20], &[2; 32]);
     assert_eq!(parse_refund_reply(&r), Some(([1; 20], [2; 32])));
     assert_eq!(parse_refund_reply(&r[..51]), None);

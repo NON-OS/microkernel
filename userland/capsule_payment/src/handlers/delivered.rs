@@ -22,12 +22,12 @@
 
 use alloc::vec::Vec;
 
-use nonos_nox_meter::orders::{deliver, Opened};
+use nonos_nox_meter::orders::{deliver, Opened, Order};
 use nonos_payment_proto::{job_id, DeliveredAsk, DeliveredMade, EINVAL};
 
 use crate::jobs::Work;
 use crate::keccak::Host;
-use crate::orders::{escrow_of, find, keep_plain};
+use crate::orders::{escrow_of, find, keep, keep_plain};
 use crate::server::{status_of, Call};
 
 pub fn order_delivered(work: &mut Work, req: &Call<'_>) -> Vec<u8> {
@@ -46,6 +46,7 @@ fn delivered(body: &[u8]) -> Result<Vec<u8>, i32> {
     match deliver(&Host, &order, &kept, &a.key).map_err(status_of)? {
         Opened::Plain(plain) => {
             keep_plain(&order.order_id, plain)?;
+            keep(&Order { plain: true, ..order })?;
             Ok(DeliveredMade::Ok { content_len: kept.content_len }.encode())
         }
         Opened::Bad(index, calldata) => Ok(DeliveredMade::BadChunk { index, calldata }.encode()),

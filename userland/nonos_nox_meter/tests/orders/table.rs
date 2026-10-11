@@ -26,6 +26,7 @@ fn order(i: u8) -> Order {
         refund_to: [0xaa; 20],
         refund_salt: [0xbb; 32],
         refund_taken: i.is_multiple_of(2),
+        plain: i.is_multiple_of(3),
     }
 }
 
@@ -59,6 +60,10 @@ fn nothing_else_reads_as_orders() {
     zero_chain[8..16].fill(0);
     no(&zero_chain, "a used slot with chain 0");
     let mut flag = b.clone();
-    flag[8 + ORDER_LEN - 1] = 2;
-    no(&flag, "a refund flag not 0 or 1");
+    flag[8 + ORDER_LEN - 1] = 4;
+    no(&flag, "a flag past bit 1 (refund taken, plain)");
+    let mut plain = b.clone();
+    plain[8 + ORDER_LEN - 1] = 2;
+    let read = decode_orders(&plain).unwrap();
+    assert!(read[0].plain && !read[0].refund_taken, "v1.4.42's plain bit");
 }
