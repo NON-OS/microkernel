@@ -29,6 +29,7 @@ fn an_endpoint_off_the_list_is_as_it_was() {
         "driver.ahci0",
         "driver.virtio_blk0",
         "driver.sdhci0",
+        "driver.ufs0",
     ] {
         assert!(callers_of(ep).is_none(), "{ep}");
         assert!(endpoint_admits(ep, owner(&[])), "{ep}");
