@@ -33,7 +33,7 @@ pub fn dispatch(s: &mut Settle, sender: u32, req: &Call<'_>) -> Vec<u8> {
     if !admitted(req.op, sender) {
         return req.answer(EPERM, &[]);
     }
-    if !flags_admitted(req.flags, sender) {
+    if !flags_admitted(req.flags, req.op, sender) {
         return req.answer(EINVAL, &[]);
     }
     if req.op == OP_FETCH && !fetch_admitted(req.body, sender) {

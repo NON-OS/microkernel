@@ -49,6 +49,7 @@ mod view;
 mod views;
 
 pub use async_frame::{admits_flags, async_answer, request_async, ASYNC_CALLERS, FLAG_ASYNC};
+pub use async_frame::{WALLET_ASYNC, WALLET_ASYNC_OPS};
 pub use callers::*;
 pub use chain::{chain_hash, parse_chain_hash, ChainHash};
 pub use channel_state::{ChannelState, CHANNEL_STATE_LEN};

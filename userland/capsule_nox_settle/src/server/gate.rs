@@ -30,9 +30,10 @@ pub fn admitted(op: u16, sender: u32) -> bool {
     admits(op, sender, owner_of)
 }
 
-/// ASYNC (flags bit 0) from payment's or market.index's pid alone (v1.4.23).
-pub fn flags_admitted(flags: u16, sender: u32) -> bool {
-    admits_flags(flags, sender, owner_of)
+/// ASYNC (flags bit 0) from payment's or market.index's pid, or a wallet's
+/// for BROADCAST, READ and INTENT (v1.4.23, v1.4.53).
+pub fn flags_admitted(flags: u16, op: u16, sender: u32) -> bool {
+    admits_flags(flags, op, sender, owner_of)
 }
 
 /// A FETCH form's own callers: ESCROW from payment alone (v1.4.24).
