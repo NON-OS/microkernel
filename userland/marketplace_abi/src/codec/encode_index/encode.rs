@@ -19,15 +19,21 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::encoded_index::EncodedIndex;
+use crate::codec::encode_check::check;
 use crate::codec::encode_entry;
+use crate::codec::encode_error::EncodeError;
+use crate::codec::schema::CURRENT_SCHEMA;
 use crate::codec::writer::Writer;
 use crate::types::MarketplaceIndex;
 
-pub fn encode_index(index: &MarketplaceIndex) -> EncodedIndex {
+/// Always writes the current schema, whatever `schema_version` says: there
+/// is one encoder and one shape it produces.
+pub fn encode_index(index: &MarketplaceIndex) -> Result<EncodedIndex, EncodeError> {
+    check(index)?;
     let mut signed: Vec<u8> = Vec::new();
     {
         let mut w = Writer::new(&mut signed);
-        w.u32(index.schema_version);
+        w.u32(CURRENT_SCHEMA);
         w.lp_string(&index.operator_id);
         w.fixed(&index.operator_pubkey);
         w.u64(index.published_at_ms);
@@ -42,5 +48,5 @@ pub fn encode_index(index: &MarketplaceIndex) -> EncodedIndex {
         let mut w = Writer::new(&mut blob);
         w.lp_bytes(&index.index_signature);
     }
-    EncodedIndex { signed_bytes: signed, blob }
+    Ok(EncodedIndex { signed_bytes: signed, blob })
 }

@@ -36,7 +36,7 @@ pub fn run(flags: &Flags) -> Result<(), CliError> {
     let json = read_index_json(Path::new(in_path))?;
     let pubkey = parse_pubkey(pubkey_hex)?;
     let index = to_index(&json, pubkey)?;
-    let encoded = encode_index(&index);
+    let encoded = encode_index(&index).map_err(|e| CliError::Json(format!("encode: {e:?}")))?;
     std::fs::write(out_path, &encoded.blob)?;
 
     eprintln!(

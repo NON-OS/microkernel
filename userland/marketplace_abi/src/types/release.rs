@@ -21,6 +21,7 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use super::release_ext::ReleaseExt;
 use super::validation::ValidationReport;
 
 #[derive(Clone)]
@@ -47,6 +48,9 @@ pub struct CapsuleRelease {
     /// BLAKE3-256 of the zk trailer that proves this package's own measurement
     /// is enrolled under the trust root the kernel enforces at spawn.
     pub zk_trailer_hash: [u8; 32],
+    /// The schema 3 fields; `None` only for a release read from schema 2.
+    /// Their presence also picks the signing domain, v3 or v2.
+    pub ext: Option<ReleaseExt>,
     /// Marketplace operator's validation report.
     pub validation: ValidationReport,
 }

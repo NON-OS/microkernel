@@ -17,6 +17,15 @@
 
 FREE = {"kind": "free", "amount_atomic": "0", "period_seconds": 0}
 NOX = {"symbol": "NOX", "decimals": 18, "chain_id": 1, "contract_address": ""}
+# Schema 3 sells nothing here: no payee, nothing to bind, nothing to pin.
+# The bond id is derived by the encoder, and sign-release stamps each
+# release with the hash of this block before signing it.
+FREE_COMMERCE = {
+    "payee": "0x" + "00" * 20,
+    "unit": "install",
+    "unit_price": "0",
+    "settle_mode": "free",
+}
 
 
 def validation(note: str, validator: str, when_ms: int) -> dict:
@@ -40,6 +49,7 @@ def release(rid, manifest, package, url, arches, caps, note, validator,
         "kernel_abi_min": 1,
         "required_capabilities": caps,
         "zk_trailer_hash": trailer,
+        "ext": {},
         "validation": validation(note, validator, when_ms),
     }
 
@@ -55,5 +65,6 @@ def entry(listing, capsule_id, name, publisher, pubkey, text, releases):
         "description": text,
         "price": FREE,
         "token": NOX,
+        "commerce": dict(FREE_COMMERCE),
         "releases": releases,
     }

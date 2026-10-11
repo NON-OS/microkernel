@@ -21,6 +21,10 @@ description = "NONOS marketplace ABI: shared wire-form types and codec"
 name = "nonos_marketplace_abi"
 crate-type = ["rlib"]
 
+[dependencies]
+# Tags, domains and typehashes for the ids and the binding digest.
+nonos_nox_config = { path = "../nonos_nox_config" }
+
 [features]
 default = []
 # Permits the canonical-bytes encoder to round-trip a fully-formed

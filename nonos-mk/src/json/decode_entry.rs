@@ -16,6 +16,7 @@
 
 use nonos_marketplace_abi::MarketplaceEntry;
 
+use super::decode_commerce::commerce_to_json;
 use super::decode_enums::price_kind_str;
 use super::decode_release::release_to_json;
 use super::schema::{EntryJson, PriceJson, TokenJson};
@@ -44,6 +45,7 @@ pub(super) fn entry_to_json(e: &MarketplaceEntry) -> EntryJson {
                 format!("0x{}", hex::encode(&e.token.contract_address))
             },
         },
+        commerce: e.commerce.as_ref().map(commerce_to_json),
         releases: e.releases.iter().map(release_to_json).collect(),
     }
 }

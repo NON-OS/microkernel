@@ -56,7 +56,7 @@ pub fn run(flags: &Flags) -> Result<(), CliError> {
         std::fs::write(json_out, pretty)?;
     }
 
-    let blob = sign_index(index, &key);
+    let blob = sign_index(index, &key)?;
     std::fs::write(out_path, &blob)?;
 
     eprintln!(

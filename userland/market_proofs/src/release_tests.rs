@@ -46,10 +46,11 @@ pub(crate) fn index() -> MarketplaceIndex {
             chain_id: 1,
             contract_address: vec![],
         },
+        commerce: Some(crate::abi_v3::fixtures::free_commerce()),
         releases: vec![first, second],
     };
     MarketplaceIndex {
-        schema_version: 2,
+        schema_version: 3,
         operator_id: String::from("nonos.marketplace.v1"),
         operator_pubkey: [0; 32],
         published_at_ms: 0,

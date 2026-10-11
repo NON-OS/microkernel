@@ -19,6 +19,7 @@ mod encode;
 mod inspect;
 mod keygen;
 mod load_key;
+mod print_ids;
 mod read_blob;
 mod serial_guard;
 mod sign;

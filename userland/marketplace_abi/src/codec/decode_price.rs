@@ -19,7 +19,7 @@ use super::reader::Reader;
 use crate::types::{PriceKind, PriceModel};
 
 pub(super) fn read(r: &mut Reader<'_>) -> Result<PriceModel, DecodeError> {
-    let kind = PriceKind::from_u8(r.u8()?);
+    let kind = PriceKind::from_u8(r.u8()?).ok_or(DecodeError::UnknownKind)?;
     let amount_atomic = r.u128()?;
     let period_seconds = r.u64()?;
     Ok(PriceModel { kind, amount_atomic, period_seconds })

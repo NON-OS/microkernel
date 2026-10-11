@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "nonos_marketplace_abi"
 version = "0.3.0"
+dependencies = [
+ "nonos_nox_config",
+]
+
+[[package]]
+name = "nonos_nox_config"
+version = "0.1.0"

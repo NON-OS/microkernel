@@ -73,9 +73,9 @@ NAMESPACES = ("kali.", "blackarch.", "qwen-", "nonos-")
 KALI = "https://kali.download/kali"
 KALI_SUITE = "kali-rolling"
 KALI_KEY = Path("userland/capsule_linux/keys/kali/archive-key-2025.asc")
-# 2: the release carries the hash of its zk trailer, and the publisher
-# signature covers it.
-SCHEMA = 2
+# 3: every entry carries a commerce block and every release the fields
+# that sell it, all under the publisher's v3 signature.
+SCHEMA = 3
 
 # Capsules that are not applications. A driver or a transport is part of
 # the system, cannot be installed or removed by a user, and listing one

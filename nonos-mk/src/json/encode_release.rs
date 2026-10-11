@@ -18,6 +18,7 @@ use nonos_marketplace_abi::CapsuleRelease;
 
 use crate::error::CliError;
 
+use super::encode_commerce::to_ext;
 use super::encode_validation::to_validation;
 use super::hex_helpers::hex32;
 use super::schema::ReleaseJson;
@@ -39,6 +40,7 @@ pub(crate) fn to_release(r: &ReleaseJson) -> Result<CapsuleRelease, CliError> {
         kernel_abi_min: r.kernel_abi_min,
         required_capabilities: r.required_capabilities.clone(),
         zk_trailer_hash: trailer(&r.zk_trailer_hash)?,
+        ext: r.ext.as_ref().map(to_ext).transpose()?,
         validation: to_validation(&r.validation)?,
     })
 }
