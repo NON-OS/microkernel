@@ -30,6 +30,9 @@ So an all-ones set is never market ready.
 
 It is a `no_std` library with no capsule, service or capability word.
 
+`dests` is the canonical destination list that `net_dests_hash` names, with
+its rules in `src/dests/mod.rs`, and `allows` decides a connect against it.
+
 ## The vendor table
 
 `vendor::TABLE` holds the programs the vendor ships, one `VendorRow` each: the
@@ -50,7 +53,7 @@ program in /bin every service and every call, each line with its `file=`.
 
 ## Tests
 
-30 host tests in `src/tests/`:
+46 host tests in `src/tests/`:
 - every field's offset;
 - every refusal;
 - the bit order of the syscall set, least significant first;
@@ -61,7 +64,8 @@ program in /bin every service and every call, each line with its `file=`.
 - policies.txt's lines, and the committed file's three qwenchat builds, which
   are the paths chat_pick runs;
 - every vendor row decodes canonically to its own program, with zero ids;
-- market_ready: both exits in, bucket 512 out, all ones never.
+- market_ready: both exits in, bucket 512 out, all ones never;
+- a destination list's one spelling, its hash, and what it lets a guest reach.
 
 ```sh
 cargo test --locked
