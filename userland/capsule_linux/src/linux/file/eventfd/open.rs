@@ -32,10 +32,6 @@ const EFD_SEMAPHORE: u64 = 1;
 /// The most a counter holds. A write that would pass it waits.
 pub const MOST: u64 = u64::MAX - 1;
 
-const POLLIN: u16 = 0x001;
-const POLLOUT: u16 = 0x004;
-const POLLNVAL: u16 = 0x020;
-
 pub fn eventfd2(guest: &mut Guest, initval: u64, flags: u64) -> u64 {
     if flags & !(EFD_SEMAPHORE | O_CLOEXEC | O_NONBLOCK) != 0 {
         return errno::fail(errno::EINVAL);
@@ -63,21 +59,4 @@ pub fn eventfd2(guest: &mut Guest, initval: u64, flags: u64) -> u64 {
         Some(n) => errno::ok(n),
         None => errno::fail(errno::EMFILE),
     }
-}
-
-/// The counter `fd` names, if it is an eventfd.
-pub fn slot_of(guest: &Guest, fd: u64) -> Option<usize> {
-    let entry = guest.fds.get(fd as usize).filter(|f| f.kind == Kind::Event)?;
-    let slot = entry.handle as usize;
-    (slot < guest.events.len()).then_some(slot)
-}
-
-/// Readable while the count is above zero, writable while one more fits.
-pub fn bits(guest: &Guest, fd: u64) -> u16 {
-    let Some(slot) = slot_of(guest, fd) else {
-        return POLLNVAL;
-    };
-    let count = guest.events[slot].count;
-    let readable = if count > 0 { POLLIN } else { 0 };
-    readable | if count < MOST { POLLOUT } else { 0 }
 }

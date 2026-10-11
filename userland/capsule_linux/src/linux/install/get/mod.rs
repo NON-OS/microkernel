@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What this CPU is: whether it runs the x86-64-v3 build, and whether it is QEMU's software emulation.
+//! Fetching what an install needs: the branch indexes, then each package from the branch that holds it.
 
-pub(super) mod isa;
-pub(super) mod tcg;
+pub(super) mod index;
+pub(super) mod package;

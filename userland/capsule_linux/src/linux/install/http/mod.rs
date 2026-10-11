@@ -16,6 +16,11 @@
 
 //! HTTP to a mirror, over the network the person chose.
 
+pub(super) mod anyone;
+pub(super) mod direct;
 pub(super) mod get;
+pub(super) mod reach;
 pub(super) mod route;
+pub(super) mod stream;
 pub(super) use get::*;
+pub(super) use reach::*;
