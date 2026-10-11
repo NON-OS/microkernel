@@ -41,6 +41,9 @@
    "nonos-data/trust/capsules/driver_virtio_input.manifest.bin",
    "nonos-data/trust/capsules/driver_virtio_input.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_virtio_input.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.manifest.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_vmmdev.manifest.bin",
    "nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin",
@@ -3528,6 +3531,9 @@
    "nonos-data/trust/capsules/driver_virtio_input.manifest.bin",
    "nonos-data/trust/capsules/driver_virtio_input.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_virtio_input.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.manifest.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_vmmdev.manifest.bin",
    "nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin",
@@ -5030,6 +5036,28 @@
    "userland/capsule_driver_virtio_rng/src/regs/state.rs",
    "userland/nonos_devmodel",
    "userland/virtio_rng_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/virtio_scsi_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_virtio_scsi/src/constants",
+   "userland/capsule_driver_virtio_scsi/src/discover.rs",
+   "userland/capsule_driver_virtio_scsi/src/hba.rs",
+   "userland/capsule_driver_virtio_scsi/src/queue",
+   "userland/capsule_driver_virtio_scsi/src/setup/handshake.rs",
+   "userland/capsule_driver_virtio_scsi/src/wait.rs",
+   "userland/nonos_scsi",
+   "userland/nonos_scsi_serve/src/say",
+   "userland/nonos_scsi_serve/src/server",
+   "userland/nonos_scsi_serve/src/units.rs",
+   "userland/nonos_scsi_serve/src/wire",
+   "userland/nonos_virtio",
+   "userland/virtio_scsi_proofs",
+   "userland/virtio_transport_proofs/src/tests/device.rs"
   ],
   "md": [],
   "signed": []

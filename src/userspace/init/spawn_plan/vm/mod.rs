@@ -24,7 +24,8 @@
     feature = "nonos-capsule-driver-ac97",
     feature = "nonos-capsule-driver-vmmdev",
     feature = "nonos-capsule-driver-tulip",
-    feature = "nonos-capsule-driver-piix-ide"
+    feature = "nonos-capsule-driver-piix-ide",
+    feature = "nonos-capsule-driver-virtio-scsi"
 ))]
 mod present;
 
