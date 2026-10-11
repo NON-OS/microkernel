@@ -4,9 +4,6 @@
 # absent: that authority belongs to the stack capsules above this driver
 # (net.core, net.l2). Crypto draws the per-boot station address. Wire shape
 # matches `driver-e1000` so one net-stack client drives either backend.
-#
-# Not included from mk/ yet: wiring it into the kernel and the stack is a
-# separate step, because including it makes the seal need new publisher keys.
 
 CAPSULE_SLUG             := driver-e1000e
 CAPSULE_HANDLE           := driver.e1000e_0
@@ -31,7 +28,3 @@ CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/hardware/e1000e_capsule
 
 include nonos-mk/capsule.mk
-# Builds and is proven on the host, but has no owner certificate, no kernel
-# embed and no spawn yet: scripts/hardware_support_evidence.py reports it as
-# not in the image instead of as supported hardware. Remove when it ships.
-CAPSULE_NOT_IN_IMAGE     := 1

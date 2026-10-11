@@ -22,7 +22,6 @@ pub fn missing_path(family: HardwareFamily) -> Option<&'static str> {
         // Built and proven on the host, not yet in the image (each capsule's
         // CAPSULE_NOT_IN_IMAGE); a row naming them would claim a data path
         // the machine does not have.
-        NetworkE1000e => "e1000e driver, built but not in the image",
         NetworkIgc => "igc driver, built but not in the image",
         NetworkRealtekWifi => "802.11 driver for this Realtek part",
         AudioHda => "stream DMA ring, playback path",
