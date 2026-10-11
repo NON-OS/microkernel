@@ -39,7 +39,13 @@ pub fn attach(domain: u16, id: u16) -> Result<(), AmdViError> {
     if mode_of(read_dte(id)?) != 0 {
         return Err(AmdViError::DeviceAlreadyAttached);
     }
-    replace(id, translated(root, LEVELS, domain))
+    // The broker frees the domain on this error, so no entry may still name
+    // it: back to denied, and if no unit confirms even that, its tables stay.
+    replace(id, translated(root, LEVELS, domain)).inspect_err(|_| {
+        if replace(id, blocked()).is_err() {
+            super::pinned::pin(domain);
+        }
+    })
 }
 
 /// Deny the device everything, from identity or from a capsule domain.
