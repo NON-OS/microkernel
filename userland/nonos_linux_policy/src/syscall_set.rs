@@ -15,25 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which system calls a program may complete: one bit per bucket of the
-//! kernel's seal (plan/10), so the set is the proof's A exactly. Bucket b is
-//! call number b below 512; every larger number shares bucket 512.
+//! kernel's seal (crate::bucket), so the set is the proof's A exactly.
 
+use crate::bucket::bucket;
 use crate::error::PolicyError;
 
-pub const BUCKETS: usize = 513;
 /// 513 bits, rounded up to bytes.
 pub const SET_LEN: usize = 65;
 /// The last byte carries only bucket 512, in its low bit.
 const LAST_BYTE_BITS: u8 = 0x01;
-
-/// The bucket of call number `nr`, as the kernel counts it.
-pub const fn bucket(nr: u64) -> usize {
-    if nr < 512 {
-        nr as usize
-    } else {
-        512
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SyscallSet([u8; SET_LEN]);
@@ -62,6 +52,14 @@ impl SyscallSet {
     pub fn allows(&self, nr: u64) -> bool {
         let b = bucket(nr);
         self.0[b / 8] & (1 << (b % 8)) != 0
+    }
+
+    /// The calls both sets allow: what a program exec'd from another may
+    /// complete, so an exec never widens the set.
+    pub fn meet(&self, other: &Self) -> Self {
+        let mut out = self.0;
+        out.iter_mut().zip(other.0).for_each(|(a, b)| *a &= b);
+        Self(out)
     }
 
     /// The set with call number `nr`'s bucket added.
