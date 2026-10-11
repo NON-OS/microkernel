@@ -26,6 +26,8 @@ pub mod icc;
 mod in_service;
 pub mod intid;
 pub mod irq_handlers;
+pub mod its;
+pub mod msi;
 pub mod redistributor;
 pub mod select;
 mod serve;

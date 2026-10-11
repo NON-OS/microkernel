@@ -21,6 +21,7 @@ mod device;
 mod enable;
 mod find;
 mod init;
+mod lpis;
 mod pending;
 mod priority;
 mod registers;
