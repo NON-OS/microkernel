@@ -21,7 +21,9 @@
 //! allocator is the same: one contiguous managed range, plus a below-4 GiB pool
 //! for devices whose DMA descriptors are only 32 bits wide.
 
+mod dma_place;
 mod dma_window;
+mod image;
 mod regions;
 mod reserve;
 
@@ -34,10 +36,6 @@ use regions::largest_available;
 
 const PAGE_SIZE: u64 = 0x1000;
 
-extern "C" {
-    static __kernel_image_end: u8;
-}
-
 pub(crate) fn init_boot_memory(info: &BootInfo) {
     let Some((region_start, end)) = largest_available(info) else {
         serial::println(b"[MEM] no usable region in device tree");
@@ -49,26 +47,29 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
     // not a fault the kernel survives to report: it is handed out as a fresh
     // page table, zeroed, and the next call into whatever lived there executes
     // zeros.
-    let image_end = (&raw const __kernel_image_end) as u64;
-    let start = if image_end > region_start && image_end < end {
-        (image_end + PAGE_SIZE - 1) & !(PAGE_SIZE - 1)
-    } else {
-        region_start
-    };
+    let (image_start, image_end) = image::bounds();
+    let start = if image_end > region_start && image_end < end { image_end } else { region_start };
     if start >= end {
         serial::println(b"[MEM] nothing usable above the kernel image");
         return;
     }
 
-    let (dma_base, dma_pages) = find_low_dma_region(info, start, end);
+    // The image is in no list the device tree gave, so it is named here: a
+    // pool placed over it hands kernel text to a capsule as a DMA buffer.
+    let pool = find_low_dma_region(info, (start, end), (image_start, image_end));
 
     if crate::memory::phys::init(PhysAddr::new(start), PhysAddr::new(end)).is_err() {
         serial::println(b"[MEM] phys init failed");
         return;
     }
     reserve::apply(info);
+    // A pool carved from the allocator's span is the pool's alone.
+    if let Some(p) = pool.as_ref().filter(|p| p.carved) {
+        crate::memory::phys::reserve(p.base, p.base + p.pages as u64 * PAGE_SIZE);
+    }
     serial::println(b"[MEM] phys init OK");
 
     dma::init_display_pool();
+    let (dma_base, dma_pages) = pool.map_or((0, 0), |p| (p.base, p.pages));
     dma::init_low32_pool(dma_base, dma_pages);
 }
