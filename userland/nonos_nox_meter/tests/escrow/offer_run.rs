@@ -59,7 +59,7 @@ pub fn work(chunk_root: [u8; 32]) -> OfferWork {
 pub fn run(w: OfferWork, answer: &[u8]) -> Result<Next, MeterError> {
     let pk = w.buyer_pk;
     let (mut f, first) = Flow::begin(Work::Offer(Box::new(w.clone())));
-    assert_eq!(first, Next::Ask(Ask::Fetch(w.request)), "FETCH 1 first");
+    assert_eq!(first, Next::Ask(Ask::Fetch(w.request.clone())), "FETCH 1 first");
     let mut at = 0u32;
     loop {
         let page = Page::of(answer, at).unwrap();
