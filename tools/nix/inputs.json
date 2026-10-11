@@ -26,6 +26,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -2210,6 +2213,28 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_prove_fetch": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_prove_fetch",
+   "userland/libc",
+   "userland/nonos_cap",
+   "userland/nonos_proof_abi",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/policy_client",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_qrgen": {
   "exclude": [
    "userland/toolkit/image_tests"
@@ -2828,6 +2853,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -3474,6 +3502,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
