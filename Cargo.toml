@@ -170,6 +170,11 @@ nonos-capsule-driver-sdhci      = []
 nonos-capsule-driver-ufs        = []
 nonos-capsule-driver-bga        = []
 nonos-capsule-driver-usb-audio  = []
+nonos-capsule-driver-cdc-ecm    = []
+nonos-capsule-driver-cdc-ncm    = []
+nonos-capsule-driver-rndis      = []
+nonos-capsule-driver-ax88179    = []
+nonos-capsule-driver-rtl8153    = []
 nonos-capsule-driver-smbus      = []
 nonos-capsule-driver-hda        = []
 nonos-capsule-audio             = []
@@ -476,6 +481,46 @@ microkernel-driver-bga = [
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-bga",
+]
+
+microkernel-driver-cdc-ecm = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-cdc-ecm",
+]
+
+microkernel-driver-cdc-ncm = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-cdc-ncm",
+]
+
+microkernel-driver-rndis = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-rndis",
+]
+
+microkernel-driver-ax88179 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-ax88179",
+]
+
+microkernel-driver-rtl8153 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-rtl8153",
 ]
 
 microkernel-driver-usb-audio = [
