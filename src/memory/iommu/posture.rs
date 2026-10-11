@@ -75,6 +75,7 @@ fn posture_line() {
         .str(flag(caps.enforcing))
         .str(b", unconfined grants=")
         .dec(u64::from(unconfined_grants()))
+        .str(super::dev_unconfined::posture_tail())
         .end();
 }
 
