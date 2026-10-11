@@ -22,7 +22,7 @@ use crate::namespace::{Id, Kind, MethodInfo, NoteKind, Origin};
 use crate::op::Op;
 
 impl Aml {
-    pub(super) fn define(&mut self, table: u16, node: u32, scope: Id, exec: &mut impl LoadExec) {
+    pub(crate) fn define(&mut self, table: u16, node: u32, scope: Id, exec: &mut impl LoadExec) {
         let n = self.node(table, node);
         let kids = self.kids(table, node);
         let imm = |aml: &Aml, i: usize| match aml.node(table, kids[i]).imm {

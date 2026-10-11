@@ -23,14 +23,14 @@
 //! chooses.
 
 use super::Aml;
-use crate::error::Error;
+use crate::exec::Fault;
 use crate::namespace::Id;
 
 pub trait LoadExec {
     /// Evaluates an If's predicate (the node's first operand) in `scope`.
     fn condition(&mut self, aml: &mut Aml, table: u16, scope: Id, node: u32)
-        -> Result<bool, Error>;
+        -> Result<bool, Fault>;
 
     /// Runs any other statement or expression found while loading.
-    fn run(&mut self, aml: &mut Aml, table: u16, scope: Id, node: u32) -> Result<(), Error>;
+    fn run(&mut self, aml: &mut Aml, table: u16, scope: Id, node: u32) -> Result<(), Fault>;
 }

@@ -21,8 +21,10 @@ mod code;
 mod data;
 mod expr;
 mod expr_logic;
+mod family;
 mod object;
 mod pseudo;
 mod statement;
 
 pub use code::Op;
+pub use family::Family;
