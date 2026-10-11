@@ -43,4 +43,9 @@ impl Op {
     pub const INDEX_FIELD: Op = Op::ext(0x86);
     pub const BANK_FIELD: Op = Op::ext(0x87);
     pub const DATA_REGION: Op = Op::ext(0x88);
+
+    /// CreateField and CreateBit/Byte/Word/DWord/QWordField.
+    pub const fn creates_buffer_field(self) -> bool {
+        matches!(self.0, 0x8A | 0x8B | 0x8C | 0x8D | 0x8F | 0x5B13)
+    }
 }

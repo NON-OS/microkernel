@@ -43,6 +43,8 @@ pub enum ErrorKind {
     Header,
     /// A table whose bytes do not sum to zero (section 5.2.6).
     Checksum,
+    /// A table out of order: the DSDT comes first, then SSDTs and PSDTs.
+    Signature,
 }
 
 /// A refusal and the table offset it was found at.
