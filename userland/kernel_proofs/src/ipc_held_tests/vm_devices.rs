@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The input devices a hypervisor emulates answer the kernel alone, as the
-//! physical keyboards and pointers do: their drivers post onto the input
-//! ring and serve nothing.
+//! The devices a hypervisor emulates take the clients their physical
+//! counterparts take: an input device the kernel alone (its driver posts
+//! onto the input ring and serves nothing), a display the compositor alone.
 
 use super::common::{owner, IPC};
 use super::held::{callers_of, endpoint_admits, inbox_admits};
@@ -32,5 +32,16 @@ fn a_virtual_pointer_or_keyboard_is_reached_by_no_capsule() {
         assert_eq!(callers_of(ep), Some(&[][..]), "{ep} names a caller");
         assert!(!endpoint_admits(ep, owner(everyone)), "{ep} took a capsule");
         assert!(!inbox_admits([(ep, IPC)], u64::MAX, owner(everyone)), "{ep} by pid");
+    }
+}
+
+/// A virtual display adapter takes the compositor alone, as virtio-gpu does.
+#[test]
+fn a_virtual_display_takes_the_compositor_alone() {
+    let compositor: &'static [&'static str] = &["compositor"];
+    assert!(endpoint_admits("driver.vmware_svga0", owner(compositor)));
+    for other in ["app.terminal", "wm", "input_router", "net.core", "driver.virtio_gpu0"] {
+        let one: &'static [&'static str] = Box::leak(Box::new([other]));
+        assert!(!endpoint_admits("driver.vmware_svga0", owner(one)), "took {other}");
     }
 }

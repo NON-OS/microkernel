@@ -551,6 +551,7 @@ include userland/capsule_driver_rtl8169/Capsule.mk
 include userland/capsule_driver_pcnet/Capsule.mk
 include userland/capsule_driver_vmxnet3/Capsule.mk
 include userland/capsule_driver_virtio_input/Capsule.mk
+include userland/capsule_driver_vmware_svga/Capsule.mk
 include userland/capsule_driver_ahci/Capsule.mk
 include userland/capsule_driver_hda/Capsule.mk
 include userland/capsule_audio/Capsule.mk
