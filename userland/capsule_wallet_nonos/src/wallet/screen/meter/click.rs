@@ -29,7 +29,7 @@ pub fn open(state: &mut State) -> EventOutcome {
 }
 
 pub(super) fn refresh(state: &mut State) -> EventOutcome {
-    state.meter.account = crate::wallet::meter::call::account();
+    state.meter.account = crate::wallet::meter::call::account(0);
     state.meter.asked = true;
     EventOutcome::Repaint
 }
