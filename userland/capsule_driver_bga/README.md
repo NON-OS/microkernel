@@ -1,9 +1,10 @@
 # capsule_driver_bga
 
-Status: not in the image. The capsule builds and its host proofs pass, but
-it has no owner certificate and the kernel never spawns it: the kernel
-mirror, the spawn on `DisplayBga` and the compositor's graphics list come in
-the next unit.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/bga_capsule`)
+embeds and spawns it under `nonos-capsule-driver-bga` (the
+`microkernel-driver-bga` build) when the inventory sees `DisplayBga`, and the
+compositor finds it after `driver.virtio_gpu0` in its graphics list. It has
+no owner certificate yet, so no image carries it until the owner signs it.
 
 ## Role
 
@@ -84,7 +85,7 @@ past the process.
 
 ## Runtime lifecycle
 
-Spawned once (next unit). Each request is answered in turn; between them the
+Spawned once, on `DisplayBga`. Each request is answered in turn; between them the
 driver waits in the kernel.
 
 ## Failure model
@@ -106,8 +107,7 @@ kernel's GOP blit.
 
 ## Release checklist
 
-- Kernel mirror, spawn on `DisplayBga`, compositor graphics list.
-- Signed by the owner.
+- Signed by the owner and added to the desktop image's features.
 - A QEMU stdvga boot showing the desktop through `driver.bga0`.
 
 ## Real hardware bring-up checklist
