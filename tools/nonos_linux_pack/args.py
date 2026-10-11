@@ -33,13 +33,6 @@ def parser() -> argparse.ArgumentParser:
                     help="a data file as STOREPATH=DISKPATH, or a path inside "
                          "the sysroot to install where it already sits; "
                          "repeatable. The keymap goes in this way.")
-    ap.add_argument("--sign", type=Path,
-                    help="capsule-sign binary. With it, each program is given "
-                         "a certificate, manifest and trailer beside it, over "
-                         "the closure computed here, and the personality "
-                         "refuses anything unproven.")
-    ap.add_argument("--publisher", type=Path,
-                    help="publisher seed prefix for --sign")
     ap.add_argument("--image", type=Path,
                     help="store image to write into; without it the entries are printed")
     ap.add_argument("--lba", type=int, default=256, help="store LBA in the image")
