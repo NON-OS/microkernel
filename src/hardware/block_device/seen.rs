@@ -49,6 +49,7 @@ pub(super) fn name(backend: Backend) -> &'static str {
         Backend::Nvme => "NVMe (driver.nvme0)",
         Backend::Ahci => "SATA (driver.ahci0)",
         Backend::VirtioBlk => "virtio-blk (driver.virtio_blk0)",
+        Backend::Wire(i) => super::wire::shown(i),
     }
 }
 
