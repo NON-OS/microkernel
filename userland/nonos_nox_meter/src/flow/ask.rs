@@ -44,6 +44,8 @@ pub enum Ask {
     Broadcast(Vec<u8>),
     /// A FETCH body for settle.
     Fetch(Vec<u8>),
+    /// DELIVERED (settle op 12, v1.4.46): this order's key from its log.
+    Delivered([u8; 32]),
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -60,6 +62,8 @@ pub enum Next {
     Keep(alloc::boxed::Box<Order>, Vec<u8>),
     /// Seal and keep this offer first, then answer with these bytes.
     KeepOffer(alloc::boxed::Box<KeptOffer>, Vec<u8>),
+    /// Open this order's delivery with this key, as ORDER_DELIVERED does.
+    Deliver([u8; 32], [u8; 32]),
 }
 
 /// The next step, or why the job ends here.

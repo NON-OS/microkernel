@@ -44,6 +44,7 @@ pub(super) fn advance(work: &mut Work, mut next: Result<Next, i32>, now_ms: u64)
             }
             Ok(Next::Drop(id, status)) => Act::End(drop_order(&id).map(|_| status)),
             Ok(Next::KeepOffer(o, made)) => Act::End(keep_offer(&o, now_ms / 1000).map(|_| made)),
+            Ok(Next::Deliver(id, key)) => Act::End(crate::handlers::deliver_key(&id, &key)),
             Ok(Next::Sign(txs)) => {
                 let raws: Result<Vec<Vec<u8>>, i32> =
                     txs.iter().map(|t| sign_tx(run.key_id, t)).collect();

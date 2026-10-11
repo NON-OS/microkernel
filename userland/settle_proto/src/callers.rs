@@ -21,7 +21,7 @@
 //! `owner_of`.
 
 use crate::ops::{OP_BROADCAST, OP_CHANNEL_STATE, OP_FETCH, OP_GAS, OP_HEALTHCHECK};
-use crate::ops::{OP_INTENT, OP_LISTING, OP_OPENED, OP_READ, OP_SETTLE};
+use crate::ops::{OP_DELIVERED, OP_INTENT, OP_LISTING, OP_OPENED, OP_READ, OP_SETTLE};
 
 const W0: &[u8] = b"app.nonos_wallet";
 const W1: &[u8] = b"app.nonos_wallet.1";
@@ -47,6 +47,8 @@ pub fn callers(op: u16) -> Option<&'static [&'static [u8]]> {
         OP_FETCH => Some(&ALL_FETCHERS),
         OP_LISTING => Some(&FETCHERS),
         OP_SETTLE => Some(&SETTLERS),
+        // DELIVERED (v1.4.46): the meter alone reads an order's K.
+        OP_DELIVERED => Some(&ESCROW_FETCHERS),
         _ => Some(&[]),
     }
 }
