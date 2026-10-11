@@ -20,16 +20,26 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use super::write_release_ext;
 use super::writer::Writer;
 use crate::types::CapsuleRelease;
 
 // v2 because the signed bytes gained the trailer hash below.
-const RELEASE_SIGNING_DOMAIN: &[u8] = b"NONOS.marketplace.release.v2";
+const RELEASE_SIGNING_DOMAIN_V2: &[u8] = b"NONOS.marketplace.release.v2";
+// v3 because they gained the commerce hash, guest policy, chunk tree and
+// proof anchors. A v2 signature can never verify as v3, or the reverse.
+const RELEASE_SIGNING_DOMAIN_V3: &[u8] = b"NONOS.marketplace.release.v3";
 
+/// The release's own fields pick the domain: a schema 3 release carries
+/// `ext` and signs under v3, a schema 2 one does not and signs under v2.
 pub fn release_signing_bytes(release: &CapsuleRelease) -> Vec<u8> {
     let mut out = Vec::new();
     let mut w = Writer::new(&mut out);
-    w.lp_bytes(RELEASE_SIGNING_DOMAIN);
+    let domain = match release.ext {
+        Some(_) => RELEASE_SIGNING_DOMAIN_V3,
+        None => RELEASE_SIGNING_DOMAIN_V2,
+    };
+    w.lp_bytes(domain);
     w.lp_string(&release.release_id);
     w.fixed(&release.manifest_hash);
     w.fixed(&release.package_hash);
@@ -46,5 +56,8 @@ pub fn release_signing_bytes(release: &CapsuleRelease) -> Vec<u8> {
         w.lp_string(cap);
     }
     w.fixed(&release.zk_trailer_hash);
+    if let Some(ext) = &release.ext {
+        write_release_ext::write(&mut w, ext);
+    }
     out
 }

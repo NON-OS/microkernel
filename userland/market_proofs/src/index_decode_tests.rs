@@ -44,7 +44,7 @@ fn xorshift(s: &mut u64) -> u64 {
 }
 
 fn blob_of(index: MarketplaceIndex) -> Vec<u8> {
-    encode_and_sign(index, |_| [7; 64]).0
+    encode_and_sign(index, |_| [7; 64]).expect("a well formed index encodes").0
 }
 
 /// Indexes of zero, one and three listings, encoded as the operator would.
@@ -144,10 +144,10 @@ fn boundary_blobs() {
     for n in 0..good.len() {
         assert!(decode_index(&good[..n]).is_err(), "a prefix of {n} bytes");
     }
-    // Bytes after the signature are left alone.
+    // Bytes after the signature are signed by nobody, so they are refused.
     let mut longer = good.clone();
     longer.push(0);
-    assert!(check(&longer));
+    assert_eq!(decode_index(&longer).err(), Some(DecodeError::Trailing));
     // The operator id's length one past its bytes, and at its maximum.
     let at = 4;
     for v in [u32::from_le_bytes(good[at..at + 4].try_into().unwrap_or([0; 4])) + 200, u32::MAX] {
