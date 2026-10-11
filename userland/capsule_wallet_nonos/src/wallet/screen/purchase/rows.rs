@@ -25,6 +25,7 @@ use crate::wallet::order::buy::DELIVERY_ASKED;
 use crate::wallet::order::fees::{exact, Fees};
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::read::Named;
+use crate::wallet::order::rows::status_rows;
 use crate::wallet::screen::receive_address::checksummed_text;
 
 fn text(b: &[u8]) -> String {
@@ -57,6 +58,7 @@ pub fn rows(p: &Pending) -> Vec<(&'static str, String)> {
     });
     if let Step::Fund(m) = &p.step {
         out.push(("deposit", checksummed_text(&m.deposit)));
+        p.watch.status.iter().for_each(|s| out.extend(status_rows(s, exact)));
     }
     out
 }
