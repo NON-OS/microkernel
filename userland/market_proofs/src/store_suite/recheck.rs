@@ -18,7 +18,7 @@
 //! so, and asks the gates again when the recheck is due, never sooner; a
 //! listing blocked by any other gate is Blocked, not Checking.
 
-use nonos_market_proto::Readiness;
+use nonos_market_proto::{BondCode, Readiness};
 
 use crate::store::fill_order::{next, recheck, RECHECKS, RECHECK_MS};
 use crate::store::listing::Listing;
@@ -27,7 +27,7 @@ use crate::store::verdict::{Verdict, BOND_GATE};
 fn gates(failing: &[usize]) -> Readiness {
     let mut gates = [true; 11];
     failing.iter().for_each(|i| gates[*i] = false);
-    Readiness { install_ready: failing.is_empty(), gates }
+    Readiness { install_ready: failing.is_empty(), gates, bond: BondCode::Unread }
 }
 
 #[test]
@@ -37,6 +37,8 @@ fn only_the_bond_unread_is_checking() {
     assert!(Verdict::of(&gates(&[1])) == Verdict::Installed);
     assert!(Verdict::of(&gates(&[BOND_GATE, 6])) == Verdict::Blocked, "commerce fails too");
     assert!(Verdict::of(&gates(&[1, BOND_GATE])) == Verdict::Blocked);
+    let read = Readiness { bond: BondCode::Inactive, ..gates(&[BOND_GATE]) };
+    assert!(Verdict::of(&read) == Verdict::Blocked, "a bond read and failed is final");
     assert_eq!(Verdict::Checking.sentence(), b"Checking the seller's bond on chain");
 }
 
