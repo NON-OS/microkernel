@@ -17,5 +17,6 @@
 pub mod buy;
 mod confirm;
 pub mod purchase;
+pub mod read;
 pub mod rows;
 mod said;
