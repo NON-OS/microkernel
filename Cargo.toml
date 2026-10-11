@@ -126,6 +126,8 @@ nonos-capsule-install-cli       = []
 # trust data first.
 nonos-capsule-prove             = []
 nonos-capsule-model-fetch       = []
+# nonos.prove.fetch (plan/14). In no profile yet: it needs its trust data.
+nonos-capsule-prove-fetch       = []
 nonos-capsule-app-store         = []
 nonos-capsule-audio-player      = []
 nonos-capsule-hello             = []

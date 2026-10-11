@@ -506,6 +506,7 @@ include userland/capsule_install/Capsule.mk
 include userland/capsule_prove/Capsule.mk
 include userland/tool_install/Capsule.mk
 include userland/capsule_model_fetch/Capsule.mk
+include userland/capsule_prove_fetch/Capsule.mk
 include userland/capsule_app_store/Capsule.mk
 include userland/capsule_linux/Capsule.mk
 include userland/capsule_hello/Capsule.mk
