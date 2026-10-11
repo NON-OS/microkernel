@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod defaults;
 mod memory;
 mod methods;
 mod types;
+mod virt_ram;
 
 pub use memory::{MemoryRegion, MemoryType};
 pub use types::BootInfo;
