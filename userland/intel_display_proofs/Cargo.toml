@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the Intel display capsule's engine code. Builds
+# for the host so `cargo test` runs the shipping engine source (included
+# via #[path]) against a register-level model of a Gen9 display engine:
+# transcoders, pipes, double-buffered planes and cursor latched at vertical
+# blank, the frame counter, and the GGTT translating into IOVA pages.
+[package]
+name = "intel_display_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The timing type the engine reads transcoders into.
+nonos_edid = { path = "../nonos_edid" }
