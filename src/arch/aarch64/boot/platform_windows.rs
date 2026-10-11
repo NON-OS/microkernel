@@ -41,4 +41,7 @@ pub(super) fn publish(boot_info: &BootInfo) {
     if let Some((info, map)) = boot_info.smmu {
         crate::arch::aarch64::iommu::smmu::describe(info, map);
     }
+    if let Some((ctrl, map)) = boot_info.msi {
+        crate::arch::aarch64::gic::msi::describe(ctrl, map);
+    }
 }
