@@ -19,7 +19,7 @@ use crate::hardware::broker::claim;
 use crate::hardware::broker::irq::types::{IrqBindError, IrqBindRequest, IrqBindResult};
 use crate::hardware::broker::table;
 
-use super::{pending, pending_find, trampoline};
+use super::{pending_alloc, pending_find, trampoline};
 
 // SPI range: 32..1019 inclusive. PPIs (16..31) and SGIs (0..15) are
 // kernel-owned. 1020..1023 are special IAR values, never bound.
@@ -27,22 +27,22 @@ const SPI_MIN: u32 = 32;
 const SPI_MAX: u32 = 1019;
 
 pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError> {
-    if req.flags != 0 {
-        return Err(IrqBindError::UnsupportedFlags);
-    }
-    if req.vector_count != 0 {
-        return Err(IrqBindError::BadVectorCount);
-    }
-    if req.irq_source < SPI_MIN || req.irq_source > SPI_MAX {
-        return Err(IrqBindError::NotDeviceIrq);
-    }
-
     let claim = claim::lookup(req.device_id).ok_or(IrqBindError::NotClaimed)?;
     if claim.pid != pid {
         return Err(IrqBindError::NotClaimed);
     }
     if claim.epoch != req.claim_epoch {
         return Err(IrqBindError::StaleEpoch);
+    }
+    // Any flag asks for messages; their checks refuse an unknown one.
+    if req.flags != 0 {
+        return super::message::bind(pid, req, claim.epoch);
+    }
+    if req.vector_count != 0 {
+        return Err(IrqBindError::BadVectorCount);
+    }
+    if req.irq_source < SPI_MIN || req.irq_source > SPI_MAX {
+        return Err(IrqBindError::NotDeviceIrq);
     }
 
     // Match the request against the broker-published device IRQ: the
@@ -59,7 +59,7 @@ pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError
     }
     super::trigger::configure(req.irq_source)?;
 
-    let (e, grant_id) = pending::alloc(req.irq_source, pid, req.device_id, claim.epoch)
+    let (e, grant_id) = pending_alloc::alloc(req.irq_source, pid, req.device_id, claim.epoch)
         .ok_or(IrqBindError::AlreadyBound)?;
 
     // Capsule-scoped claim on the GIC slot. Fails closed if a kernel
