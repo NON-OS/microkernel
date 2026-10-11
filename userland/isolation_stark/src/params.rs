@@ -39,6 +39,12 @@ pub const LOG_TRACE: u32 = 14;
 /// The two hiding columns the blinding fills.
 pub(crate) const MASK_COLUMNS: usize = 2;
 
+/// Copy constraints per product group. At the engine's default of 9 the
+/// products are degree 11 and the domain 2^24; at 6 they are degree 8, two
+/// more columns, and the domain 2^23 at the same rate, which is the log
+/// domain L1-Shield's format-7 adapter takes.
+pub(crate) const WIRE_CAP: usize = 6;
+
 /// Fresh subsets the rank certificate may try before the prover gives up
 /// and proves again, as the activity statement does.
 pub(crate) const RANK_ATTEMPTS: usize = 3;
