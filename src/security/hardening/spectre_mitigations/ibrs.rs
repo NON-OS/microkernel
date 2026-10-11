@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::{MSR_IA32_SPEC_CTRL, SPEC_CTRL_IBRS};
-use super::cpuid;
+use super::cpuid_spec;
 use super::msr::{rdmsr, wrmsr};
 
 #[inline(always)]
 pub fn ibrs_enable() {
-    if cpuid::has_ibrs_ibpb() {
+    if cpuid_spec::read().ibrs {
         // SAFETY: IBRS MSR access is valid when IBRS/IBPB feature is supported.
         let current = unsafe { rdmsr(MSR_IA32_SPEC_CTRL) };
         unsafe {
@@ -31,7 +31,7 @@ pub fn ibrs_enable() {
 
 #[inline(always)]
 pub fn ibrs_disable() {
-    if cpuid::has_ibrs_ibpb() {
+    if cpuid_spec::read().ibrs {
         // SAFETY: IBRS MSR access is valid when IBRS/IBPB feature is supported.
         let current = unsafe { rdmsr(MSR_IA32_SPEC_CTRL) };
         unsafe {
