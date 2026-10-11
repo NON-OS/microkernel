@@ -18,6 +18,7 @@
 
 use crate::emmc::info::*;
 use crate::emmc::mmc::Cid;
+use crate::model::{CardCfg, HostCfg, Rig};
 
 #[test]
 fn identify_names_the_maker_part_and_serial() {
@@ -26,7 +27,6 @@ fn identify_names_the_maker_part_and_serial() {
     let n = names(&cid);
     assert_eq!(n.model(), b"Samsung 8GTF4R");
     assert_eq!(&n.serial, b"DEADBEEF");
-    assert_eq!(MEDIUM_EMMC, 1);
 }
 
 #[test]
@@ -50,4 +50,18 @@ fn an_unknown_maker_is_called_emmc_and_names_stay_printable() {
         assert!(n.model_len <= MODEL_MAX);
         assert!(n.model().iter().all(|c| (0x20..0x7f).contains(c)));
     }
+}
+
+#[test]
+fn the_part_served_is_named_on_the_console() {
+    let rig = Rig::new(HostCfg::default(), CardCfg::default());
+    let disk = rig.disk(true).expect("bring-up");
+    disk.say_part();
+    assert_eq!(disk.names().model(), b"SanDisk DF4032");
+    assert_eq!(&disk.names().serial, b"12345678");
+    assert!(
+        rig.logged("serving SanDisk DF4032, serial 12345678, OCR 0xc0ff8080"),
+        "{:#?}",
+        rig.logs()
+    );
 }

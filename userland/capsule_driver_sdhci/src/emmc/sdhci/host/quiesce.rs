@@ -14,35 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the host registers read when asked, and the stop before teardown.
+//! The stop before teardown.
 
 use super::super::super::env::{Clock, Log, Mmio};
-use super::super::regs::{
-    CLOCK_CONTROL, HOST_CONTROL, INT_ENABLE, INT_STATUS, POWER_CONTROL, PRESENT_STATE, RESET_ALL,
-};
+use super::super::regs::{INT_ENABLE, INT_STATUS, RESET_ALL};
 use super::engine::Host;
 
-/// What the host registers read when asked (CONTROLLER_INFO, PORT_LIST).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Snapshot {
-    pub present: u32,
-    pub host_control: u8,
-    pub power: u8,
-    pub clock: u16,
-    pub int_status: u32,
-}
-
 impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
-    pub fn snapshot(&self) -> Snapshot {
-        Snapshot {
-            present: self.io.r32(PRESENT_STATE),
-            host_control: self.io.r8(HOST_CONTROL),
-            power: self.io.r8(POWER_CONTROL),
-            clock: self.io.r16(CLOCK_CONTROL),
-            int_status: self.io.r32(INT_STATUS),
-        }
-    }
-
     /// Stop everything the host does: a full reset ends any DMA, then bus
     /// power and clock go off. Called before the DMA regions are freed.
     pub fn quiesce(&mut self) {
