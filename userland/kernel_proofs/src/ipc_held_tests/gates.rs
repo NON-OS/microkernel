@@ -21,9 +21,15 @@ use super::held::{callers_of, endpoint_admits, inbox_admits};
 
 #[test]
 fn an_endpoint_off_the_list_is_as_it_was() {
-    for ep in
-        ["net.sockets", "app.about", "vfs", "driver.nvme0", "driver.ahci0", "driver.virtio_blk0"]
-    {
+    for ep in [
+        "net.sockets",
+        "app.about",
+        "vfs",
+        "driver.nvme0",
+        "driver.ahci0",
+        "driver.virtio_blk0",
+        "driver.sdhci0",
+    ] {
         assert!(callers_of(ep).is_none(), "{ep}");
         assert!(endpoint_admits(ep, owner(&[])), "{ep}");
     }
