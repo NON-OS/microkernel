@@ -32,6 +32,18 @@ pub const GLOBALS: &[Global] = &[
     Global { name: 4, interface: b"wl_seat", version: 5, object: Object::Seat },
     Global { name: 5, interface: b"wl_output", version: 2, object: Object::Output },
     Global { name: 6, interface: b"wl_subcompositor", version: 1, object: Object::Subcompositor },
+    Global {
+        name: 7,
+        interface: b"wl_data_device_manager",
+        version: 3,
+        object: Object::DataDeviceManager,
+    },
+    Global {
+        name: 8,
+        interface: b"zxdg_decoration_manager_v1",
+        version: 1,
+        object: Object::DecorationManager,
+    },
 ];
 
 pub fn by_name(name: u32) -> Option<&'static Global> {
