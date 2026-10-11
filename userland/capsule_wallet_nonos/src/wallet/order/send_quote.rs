@@ -41,7 +41,11 @@ pub fn quote_refusal(q: &Quote, kind: u8, escrow: Option<[u8; 20]>) -> Option<&'
 /// The ETH withdraw for the gas: 1, 2 or 5 hundredths times a power of ten,
 /// the smallest at or above gas times the fee, or None past 10 ETH.
 pub fn gas_size(q: &Quote) -> Option<u128> {
-    let cost = (q.gas_limit as u128).checked_mul(q.max_fee)?;
+    size_for((q.gas_limit as u128).checked_mul(q.max_fee)?)
+}
+
+/// The standard ETH withdraw at or above `cost` wei, or None past 10 ETH.
+pub fn size_for(cost: u128) -> Option<u128> {
     let mut ten = 1u128;
     while ten <= MOST_CENTS {
         for m in [1u128, 2, 5] {
