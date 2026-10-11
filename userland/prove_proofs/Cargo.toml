@@ -23,6 +23,11 @@ path = "src/lib.rs"
 nonos-device-attest = { path = "../../nonos-device-attest" }
 nonos-attest-path = { path = "../../nonos-attest-path", features = ["alloc"] }
 nonos-boot-measure = { path = "../../nonos-boot-measure" }
+# What the market half of capsule_prove imports. STARKs at the
+# lock's commit.
+nonos_proof_abi = { path = "../nonos_proof_abi" }
+isolation_stark = { path = "../isolation_stark" }
+nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
 
 # The prover and its hashes optimized even in a debug test run, so the one
 # real proof takes minutes rather than hours. The tests themselves stay debug.

@@ -18,11 +18,13 @@
 //! registrar and the kernel build them, and a verifier's request.
 
 mod device;
+mod market;
 mod registry;
 mod release;
 mod request;
 
 pub use device::device;
+pub use market::{hist, policy, record, sealed_bytes, LISTING, SALT};
 pub use registry::{answer, area, field_p, registry, secret_of, DEPTH, SECRET};
 pub use release::{release, Release};
 pub use request::{request, root_bytes, NONCE, VERIFIER, WINDOW};
