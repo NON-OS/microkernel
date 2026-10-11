@@ -25,7 +25,10 @@ extern crate alloc;
 
 mod chunk;
 mod cipher;
+mod delivery;
+mod dispute;
 mod leaf;
+mod offer;
 mod order;
 mod proof;
 mod roots;
@@ -34,7 +37,10 @@ mod tree;
 
 pub use chunk::{chunk, chunk_count, CHUNK};
 pub use cipher::{key_commit, keystream_word, xor_chunk};
+pub use delivery::{open_delivery, Delivered};
+pub use dispute::{dispute, Dispute};
 pub use leaf::{leaf, CIPHER_TREE, PLAIN_TREE};
+pub use offer::{check_offer, cipher_hashes, OfferWrong};
 pub use order::{order_id, refund_commit};
 pub use proof::{proof, verify};
 pub use roots::{chunk_root, cipher_root, plain_hashes, root_of_hashes};
