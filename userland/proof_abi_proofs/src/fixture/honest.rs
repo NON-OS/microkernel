@@ -17,25 +17,50 @@
 //! The honest container every verify test starts from, and the pins a
 //! verifier of the fixture's listing would hold.
 
-use nonos_proof_abi::{ctx, DeviceRoots, Pins};
+use nonos_proof_abi::trust::{DeviceRoot, Trust};
+use nonos_proof_abi::{ctx, Kind};
 use nox_verify::statements::ATTEST;
 
-use super::{container, decode_policy, family, prove_bound, Family, Parts, DAY, LISTING};
+use super::run::{SUP_CAPS, SUP_MEAS};
+use super::{container, family, prove_bound, Family, Parts};
 
-pub fn honest() -> (Family, Parts, DeviceRoots) {
-    let f = family();
-    let rec = f.record.encode();
-    let p = prove_bound(ctx(&rec));
-    let parts = container(&rec, &p.section, &f.publics, &f.meas, &f.policy);
-    (f, parts, p.roots)
+/// The pins, owned, so a test can change one before it borrows them.
+#[derive(Clone)]
+pub struct Pinned {
+    pub boot_root: [u64; 4],
+    pub kernel_root: [u64; 4],
+    pub registrars: Vec<DeviceRoot>,
+    pub supervisors: Vec<[u8; 32]>,
+    pub supervisor_caps: u64,
+    pub vendor: Vec<[u8; 256]>,
 }
 
-pub fn pins(roots: &[DeviceRoots]) -> Pins<'_> {
-    Pins {
-        roots,
-        listing_id: LISTING,
-        days: (DAY - 1, DAY + 1),
-        isolation: &ATTEST,
-        policy: decode_policy,
+impl Pinned {
+    pub fn trust(&self) -> Trust<'_> {
+        Trust {
+            boot_root: self.boot_root,
+            kernel_root: self.kernel_root,
+            registrars: &self.registrars,
+            supervisors: &self.supervisors,
+            supervisor_caps: self.supervisor_caps,
+            vendor_policies: &self.vendor,
+            isolation: &ATTEST,
+        }
     }
+}
+
+pub fn honest() -> (Family, Parts, Pinned) {
+    let f = family();
+    let rec = f.record.encode();
+    let p = prove_bound(ctx(Kind::Isolation, &rec));
+    let parts = container(&rec, &p.section, &f.publics, &f.meas, &f.policy);
+    let pinned = Pinned {
+        boot_root: p.boot_root,
+        kernel_root: p.kernel_root,
+        registrars: vec![p.registry],
+        supervisors: vec![SUP_MEAS],
+        supervisor_caps: SUP_CAPS,
+        vendor: Vec::new(),
+    };
+    (f, parts, pinned)
 }

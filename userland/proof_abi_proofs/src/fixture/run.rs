@@ -15,12 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One family's run as the kernel would seal it: a histogram, a salt, the
-//! measurements it verified, and the record over them, for an app whose set
-//! allows read, write and exit_group.
+//! measurements it verified, and the final record over them, sealed by the
+//! pinned vendor supervisor, for an app whose set allows read, write, exit
+//! and exit_group.
 
-use nonos_proof_abi::{hist_commit, meas_chain, syscall_root, Record, HIST_WORDS};
+use nonos_proof_abi::{hist_commit, meas_chain, syscall_root, Record, FLAG_FINAL, HIST_WORDS};
 
+use super::device::LISTING;
 use super::policy::{app_id, policy, PROGRAM};
+
+pub const SUP_MEAS: [u8; 32] = [0x5C; 32];
+pub const SUP_CAPS: u64 = 0x3_0400_1979;
 
 pub struct Family {
     pub hist: [u32; HIST_WORDS],
@@ -32,34 +37,30 @@ pub struct Family {
     pub publics: [u64; 10],
 }
 
-const ALLOWED: [usize; 3] = [0, 1, 231];
-
 pub fn family() -> Family {
     let mut hist = [0u32; HIST_WORDS];
-    hist[0] = 40; // read, succeeded
-    hist[2 + 1] = 3; // write, failed
+    hist[0] = 40; // read, through
+    hist[2 + 1] = 3; // write, refused
     hist[2 * 231] = 1; // exit_group
     hist[2 * 101 + 1] = 2; // ptrace, outside the set, refused
-    hist[2 * 512 + 1] = 1; // a number past 511, refused
+    hist[2 * 512 + 1] = 1; // a native number, refused by the kernel
     let salt = [11, 22, 33, 44];
     let meas = vec![[0x11; 32], PROGRAM];
-    let policy = policy(&ALLOWED);
+    let policy = policy(&LISTING, &[0, 1, 60, 231]);
     let hc = hist_commit(&hist, &salt).expect("salt below p");
-    let mut set = [0u8; 65];
-    set.copy_from_slice(&policy[128..193]);
-    let a = syscall_root(&set).expect("a set within 512");
+    let a = syscall_root(policy[152..217].try_into().unwrap()).expect("a set within 512");
     let record = Record {
-        sup_meas: [0x5C; 32],
-        sup_caps: 0x3_0400_1979,
+        flags: FLAG_FINAL,
+        sup_meas: SUP_MEAS,
+        sup_caps: SUP_CAPS,
         authority: 0,
-        seal_no: 7,
+        seal_no: 0x7A11_5EA1,
         trace: [0x7E; 32],
         rows: 47,
         hc,
         meas: meas_chain(&meas),
         n_meas: meas.len() as u32,
         app_id: app_id(&policy),
-        diag: [0; 32],
     };
     let p = [hc[0], hc[1], hc[2], hc[3], a[0], a[1], a[2], a[3], 47, 3];
     Family { hist, salt, meas, policy, record, publics: p }

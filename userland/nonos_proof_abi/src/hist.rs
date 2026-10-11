@@ -16,9 +16,9 @@
 
 //! The family histogram and its commitment Hc.
 //!
-//! The kernel counts every answered call in one of 513 buckets by number and
-//! one of two sides by the sign of its return value. That is a numeric
-//! convention and nothing more: the kernel learns no meaning from it.
+//! The kernel counts every call in one of 513 buckets by number, on side 1
+//! when it was refused and side 0 otherwise. Numbers only: the kernel learns
+//! no meaning from them.
 
 use alloc::vec::Vec;
 
@@ -40,9 +40,10 @@ pub fn bucket(nr: u64) -> usize {
     }
 }
 
-/// Side 0 for a return value that is non-negative as an i64, side 1 otherwise.
+/// Side 1 for a refusal, EPERM or ENOSYS as the guest reads it; side 0 for
+/// every other value, which counts as the call going through.
 pub fn side(ret: u64) -> usize {
-    usize::from((ret as i64) < 0)
+    usize::from(ret == -1i64 as u64 || ret == -38i64 as u64)
 }
 
 /// Hc over `h`, flattened bucket-major and side-minor, two zero words, then
