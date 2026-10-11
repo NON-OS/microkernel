@@ -25,6 +25,9 @@ use super::sealed::Sealed;
 use super::snapshot::record_of;
 use super::table::{LIVE, MAX_SEALED, SEALED};
 
+/// Draws of a seal handle before the record is given up.
+const DRAWS: usize = 4;
+
 /// End `supervisor`'s live family, if it has one. The handle of the record
 /// kept, or `None` when there was nothing to keep.
 pub(crate) fn finish(supervisor: u32) -> Option<u64> {
@@ -38,10 +41,9 @@ pub(crate) fn finish(supervisor: u32) -> Option<u64> {
     // The salt was drawn below p, so the commitment always exists.
     let hc = hist_commit(&fam.hist, &fam.salt)?;
     let mut sealed = SEALED.lock();
-    let mut no = seal_no()?;
-    while sealed.iter().any(|s| s.seal_no == no) {
-        no = seal_no()?;
-    }
+    // A handle taken DRAWS times over is a broken RNG: nothing is kept.
+    let fresh = |n: &u64| !sealed.iter().any(|s| s.seal_no == *n);
+    let no = (0..DRAWS).find_map(|_| seal_no().filter(fresh))?;
     let record = record_of(&fam, FINAL, no, app_id, hc);
     if sealed.len() >= MAX_SEALED {
         sealed.pop_front();
