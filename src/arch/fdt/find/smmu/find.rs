@@ -18,6 +18,7 @@ use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::parser::Fdt;
 
 use super::info::SmmuInfo;
+use super::irqs::named_spi;
 
 const SMMU_V3: &[&[u8]] = &[b"arm,smmu-v3"];
 
@@ -38,7 +39,9 @@ pub fn find(fdt: &Fdt) -> Result<Option<SmmuInfo>, FdtError> {
             _ => 0,
         };
         let coherent = fdt.property(&node, b"dma-coherent")?.is_some();
-        return Ok(Some(SmmuInfo { base, size, phandle, coherent }));
+        let eventq_intid = named_spi(fdt, &node, b"eventq")?;
+        let gerror_intid = named_spi(fdt, &node, b"gerror")?;
+        return Ok(Some(SmmuInfo { base, size, phandle, coherent, eventq_intid, gerror_intid }));
     }
     Ok(None)
 }
