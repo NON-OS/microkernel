@@ -3697,6 +3697,8 @@
    "userland/nonos_aml/src/block.rs",
    "userland/nonos_aml/src/error.rs",
    "userland/nonos_aml/src/grammar",
+   "userland/nonos_aml/src/load",
+   "userland/nonos_aml/src/namespace",
    "userland/nonos_aml/src/op",
    "userland/nonos_aml/src/parse",
    "userland/nonos_aml/src/shape",
