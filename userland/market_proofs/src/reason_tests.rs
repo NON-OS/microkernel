@@ -170,3 +170,12 @@ fn an_uninstall_reads_as_removing_then_not_installed() {
     let kept = reason(WHY_MODEL_KEPT);
     assert!(!kept.retry && kept.line.contains("without the model fetcher"), "{}", kept.line);
 }
+
+/* C5's install role fails a market program whose policy it cannot check or vouch (plan/30). */
+#[test]
+fn reason_36_is_the_policy_and_says_nothing_was_installed() {
+    assert_eq!(WHY_POLICY, 36);
+    let r = reason(WHY_POLICY);
+    let line = "The market's policy for this program could not be checked or vouched for; nothing was installed.";
+    assert_eq!((r.line, r.retry), (line, false));
+}
