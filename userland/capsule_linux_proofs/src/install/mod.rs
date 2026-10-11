@@ -26,6 +26,8 @@ pub mod http_reply;
 #[path = "../../../capsule_linux/src/linux/install/mirror.rs"]
 pub mod mirror;
 
+#[path = "../../../capsule_linux/src/linux/install/proof_names.rs"]
+pub mod proof_names;
 #[path = "../../../capsule_linux/src/linux/install/route_read.rs"]
 pub mod route_read;
 
