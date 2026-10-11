@@ -40,7 +40,8 @@ pub fn create_domain() -> Result<u16, AmdViError> {
     Ok(id as u16)
 }
 
-/// Free the id. Devices must already be detached; the cached translations
+/// Free the id. Devices must already be detached (a domain a failed attach
+/// may have left named is pinned and stays quarantined); the cached translations
 /// are dropped first so the next owner of the id inherits none of them, and
 /// only once that flush has completed do the tables go back, as on VT-d: no
 /// walk can be in them by then. If they cannot all go back, the id stays
@@ -55,6 +56,9 @@ pub fn destroy_domain(id: u16) -> Result<(), AmdViError> {
     // Never walked again, whatever happens next: a release that fails part
     // way has already freed some of these frames.
     let root = core::mem::replace(slot, QUARANTINED);
+    if super::pinned::pinned(id) {
+        return Err(AmdViError::TableNotFreed);
+    }
     super::teardown::release_tables(root)?;
     *slot = 0;
     Ok(())

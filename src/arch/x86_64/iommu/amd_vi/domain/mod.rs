@@ -20,6 +20,7 @@ mod attach;
 mod identity;
 mod lifetime;
 mod map;
+mod pinned;
 mod range;
 mod teardown;
 mod unmap;
