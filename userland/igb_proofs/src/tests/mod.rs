@@ -43,6 +43,7 @@ mod refused_port_tests;
 mod reset_nvm_tests;
 mod reset_order_tests;
 mod reset_tests;
+mod rx_batch_tests;
 mod rx_fuzz;
 mod rx_queue_tests;
 mod rx_wb_tests;
