@@ -41,7 +41,7 @@ pub mod request;
 pub mod status;
 
 pub use app::{parse_app, App};
-pub use body::{listing_body, pair_body};
+pub use body::{listing_body, pair_body, ready_body};
 pub use commerce::{Commerce, BINDING_VALID, COMMERCE_MATCHES};
 pub use commerce_parse::parse_commerce;
 pub use header::{HDR_LEN, MAGIC, STATUS_LEN, VERSION};
