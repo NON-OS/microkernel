@@ -2993,6 +2993,7 @@
    "src/hardware/block_device/wire/error.rs",
    "src/hardware/block_device/wire/header.rs",
    "src/hardware/block_device/wire/status.rs",
+   "src/hardware/inventory/emmc.rs",
    "userland/capsule_driver_sdhci/src/emmc/disk",
    "userland/capsule_driver_sdhci/src/emmc/env",
    "userland/capsule_driver_sdhci/src/emmc/error",

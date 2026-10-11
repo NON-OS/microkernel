@@ -55,8 +55,9 @@ pub const INTEL_VMD: [u16; 10] =
 
 /// Intel eMMC hosts, as the kernel's inventory lists them
 /// (src/hardware/inventory/emmc.rs); a proof holds the two lists together.
-pub const INTEL_EMMC: [u16; 12] = [
-    0x0F14, 0x0F50, 0x2294, 0x0ACC, 0x1AA8, 0x5ACC, 0x31CC, 0x9DC4, 0x34C4, 0x18DB, 0x4B47, 0x4DC4,
+pub const INTEL_EMMC: [u16; 13] = [
+    0x0F14, 0x0F50, 0x2294, 0x0ACC, 0x1AA8, 0x5ACC, 0x31CC, 0x9D2B, 0x9DC4, 0x34C4, 0x18DB, 0x4B47,
+    0x4DC4,
 ];
 const CLASS_SYSTEM: u8 = 0x08;
 const SUBCLASS_SDHCI: u8 = 0x05;
