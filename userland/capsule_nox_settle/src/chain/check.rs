@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a config contract is the contract the config describes (plan/28):
-//! fee exempt and not blacklisted on NOX (D11), its eip712Domain the
-//! config's, and the bond's escrow() the config's escrow. The escrow and bond
-//! constants join these when the config holds them (B5). NOX is the token
-//! itself and has nothing to check against.
+//! Whether a config contract is the one the config describes (plan/28): fee
+//! exempt and not blacklisted on NOX (D11), and its eip712Domain, its time
+//! constants (times.rs) and the bond's escrow() all the config's. NOX has none.
 
 use nonos_nox_config::{address, domain_answer_matches, Contract, Domain};
 use nonos_nox_config::{BOND, ESCROW, LISTING, SETTLEMENT};
@@ -26,6 +24,7 @@ use nonos_settle_proto::EPROTO;
 
 use super::call_one::view_call;
 use super::flags::flags;
+use super::times::times_ok;
 use super::words::addr_word;
 use crate::net::Rpc;
 
@@ -60,6 +59,9 @@ pub fn check(rpc: &mut Rpc, chain_id: u64, c: Contract, at: &[u8; 20]) -> Result
         if !no_on_revert(matched)? {
             return Ok(false);
         }
+    }
+    if !times_ok(rpc, chain_id, c, at)? {
+        return Ok(false);
     }
     if c == Contract::PublisherBond {
         let Ok(escrow) = address(chain_id, Contract::Escrow) else {

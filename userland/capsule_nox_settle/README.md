@@ -60,11 +60,12 @@ at start and again on first use when the network was not there:
 
 - it is feeExempt and not isBlacklisted on its chain's NOX (D11);
 - its eip712Domain() is exactly the config's domain;
+- the escrow's MAX_DELIVERY() and DISPUTE_WINDOW() are the config's, and
+  the bond's UNBOND_DELAY() is at least UNBOND_DELAY_MIN (plan/27);
 - the bond's escrow() is the config's escrow.
 
 One that fails is not deployed (ENOENT) until the next start. Before each
-intent the flags of `to`, and of an approve's spender, are read again. The
-escrow and bond constants join the checks when the config holds them (B5).
+intent the flags of `to`, and of an approve's spender, are read again.
 
 ## Ops
 
