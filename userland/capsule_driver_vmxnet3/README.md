@@ -20,7 +20,8 @@ driver.vmxnet3_0 -- shared area + queue DMA --> vmxnet3 (revision 1)
 
 - `MkDeviceList` finds the device: VMware, 15ad:07b0, with memory BAR0 and
   BAR1 of at least 4 KiB each.
-- `MkDeviceClaim` owns the claim.
+- `MkDeviceClaim` owns the claim; `MkPciConfigWrite` sets memory decode,
+  Bus Master and Interrupt Disable.
 - `MkMmioMap` maps BAR0 (interrupt masks, producer doorbells) and BAR1
   (revision, shared-area address, commands, MAC).
 - `MkDmaMap` takes three grants: a coherent control grant (DriverShared, the
@@ -121,6 +122,7 @@ vmxnet3 and QEMU's `vmxnet3`.
 checked byte by byte against vmxnet3_defs.h, ACTIVATE_DEV refusing a bad
 layout, both queues across many generation flips, dropped and stray
 completions, the refusal paths and their cleanup, and DMA confined to the
+grants. A boot under QEMU `-device vmxnet3` and in VMware is the owner's.
 
 ## Release checklist
 
