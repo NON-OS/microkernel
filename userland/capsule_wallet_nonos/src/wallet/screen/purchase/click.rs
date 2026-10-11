@@ -20,8 +20,9 @@ use nonos_app_skeleton::EventOutcome;
 use nonos_payment_proto::{EINVAL, OP_ORDER_OFFER};
 
 use super::fund::funding;
-use super::words::{closable, standard};
+use super::words::closable;
 use crate::wallet::meter::call::start;
+use crate::wallet::order::fees::Fees;
 use crate::wallet::order::fresh::fresh_address;
 use crate::wallet::order::intake::Step;
 use crate::wallet::order::read::Named;
@@ -49,7 +50,7 @@ fn confirm(state: &mut State) -> EventOutcome {
     let (Step::Consent, Ok(Named::Escrow(buy))) = (&p.step, &p.read) else {
         return EventOutcome::Idle;
     };
-    if standard(buy.amount).is_none() {
+    if !matches!(p.fees, Fees::Quoted(_)) {
         return EventOutcome::Idle;
     }
     p.step = match fresh_address() {
