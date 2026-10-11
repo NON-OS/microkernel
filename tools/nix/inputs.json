@@ -1855,6 +1855,7 @@
    "userland/capsule_linux/src/linux/wayland/evdev.rs",
    "userland/capsule_linux/src/linux/wayland/evdev_keys.rs",
    "userland/capsule_linux/src/linux/wayland/fit.rs",
+   "userland/capsule_linux/src/linux/wayland/focus_step.rs",
    "userland/capsule_linux/src/linux/wayland/frame_len.rs",
    "userland/capsule_linux/src/linux/wayland/held_keys.rs",
    "userland/capsule_linux/src/linux/wayland/object.rs",
