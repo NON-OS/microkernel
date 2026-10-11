@@ -20,4 +20,5 @@ mod honest_tests;
 mod image_tests;
 mod pinned_tests;
 mod tamper_tests;
+mod vector_tests;
 mod zk_tests;
