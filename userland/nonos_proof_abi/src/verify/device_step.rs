@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Step 3: the device proof walks the pinned trees, from a registry good on
-//! the proof's day, bound to this record under this listing's scope, and it
+//! the proof's day, bound to this record under the scope asked for, and it
 //! verifies.
 
 use nonos_device_attest::{verify as device_verify, Statement};
@@ -23,7 +23,6 @@ use nonos_stark::field::Fp;
 
 use super::refusal::Refusal;
 use crate::device::decode_device;
-use crate::scope::market_scope;
 use crate::trust::Trust;
 
 fn words(w: &[Fp]) -> [u64; 4] {
@@ -41,7 +40,7 @@ fn trusted(st: &Statement, pins: &Trust, window: u64) -> bool {
 pub(super) fn device(
     b: &[u8],
     ctx: &[u64; 4],
-    listing_id: &[u8; 32],
+    want_scope: [u64; 2],
     window: u64,
     pins: &Trust,
 ) -> Result<[u64; 4], Refusal> {
@@ -50,7 +49,7 @@ pub(super) fn device(
         return Err(Refusal::DeviceBinding);
     }
     let scope = [st.scope[0].to_u64(), st.scope[1].to_u64()];
-    if !trusted(&st, pins, window) || scope != market_scope(listing_id, window) {
+    if !trusted(&st, pins, window) || scope != want_scope {
         return Err(Refusal::DeviceTrust);
     }
     device_verify(&st, &proof).map_err(|_| Refusal::DeviceProof)?;

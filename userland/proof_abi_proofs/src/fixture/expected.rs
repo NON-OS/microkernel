@@ -18,8 +18,9 @@
 //! its release's policy, the days around the proof, and its pins.
 
 use nonos_proof_abi::trust::Trust;
-use nonos_proof_abi::Expected;
+use nonos_proof_abi::{DeliveryExpected, Expected};
 
+use super::delivery::{CHANNEL, NONCE, ORDER, REQUEST, RESPONSE};
 use super::{decode_policy, DAY, LISTING};
 
 pub fn expected<'a>(policy: &'a [u8; 256], pins: &'a Trust<'a>) -> Expected<'a> {
@@ -27,6 +28,25 @@ pub fn expected<'a>(policy: &'a [u8; 256], pins: &'a Trust<'a>) -> Expected<'a> 
         listing_id: LISTING,
         policy,
         days: (DAY - 1, DAY + 1),
+        pins,
+        read_policy: decode_policy,
+    }
+}
+
+/// A buyer of the fixture's listing, with its own nonce and bytes.
+pub fn delivery_expected<'a>(policy: &'a [u8; 256], pins: &'a Trust<'a>) -> DeliveryExpected<'a> {
+    let (nonce, request, response, order_id, channel_id) =
+        (NONCE, REQUEST, RESPONSE, ORDER, CHANNEL);
+    let days = (DAY - 1, DAY + 1);
+    DeliveryExpected {
+        listing_id: LISTING,
+        policy,
+        nonce,
+        request,
+        response,
+        order_id,
+        channel_id,
+        days,
         pins,
         read_policy: decode_policy,
     }
