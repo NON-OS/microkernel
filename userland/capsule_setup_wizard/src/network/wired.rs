@@ -9,12 +9,14 @@ use core::ptr;
 
 use nonos_libc::mk_service_lookup;
 
-/// The wired drivers' registered services, as net_core lists them.
-const WIRED: &[&[u8]] =
-    &[b"driver.virtio_net0", b"driver.e1000_0", b"driver.rtl8169_0", b"driver.rtl8139_0"];
+// The kernel's table of the cards it starts, which net_core reads too.
+#[path = "../../../../src/services/registry/nics.rs"]
+mod nics;
+
+use nics::{Link, NICS};
 
 pub fn wired_present() -> bool {
-    WIRED.iter().any(|name| {
+    NICS.iter().filter(|(_, link)| *link == Link::Wired).any(|(name, _)| {
         let mut port: u32 = 0;
         let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, ptr::null_mut());
         rc == 0 && port != 0

@@ -2008,6 +2008,7 @@
   ],
   "include": [
    ".cargo",
+   "src/services/registry/nics.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2057,6 +2058,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/services/registry/nics.rs",
    "userland/capsule_net_l2",
    "userland/libc"
   ],
@@ -2329,6 +2331,7 @@
   "include": [
    ".cargo",
    "VERSION",
+   "src/services/registry/nics.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -3504,12 +3507,16 @@
    "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
    "nonos-data/trust/policy/zk_capsule_policy_root.bin",
    "src",
+   "userland/capsule_attack/src/attempts.rs",
    "userland/capsule_driver_e1000/src/constants/pci.rs",
    "userland/capsule_driver_e1000e/src/constants/ids.rs",
    "userland/capsule_driver_igc/src/constants/pci.rs",
    "userland/capsule_driver_rtl8139/src/constants/pci.rs",
    "userland/capsule_driver_rtl8169/src/constants/pci.rs",
    "userland/capsule_driver_usb_msc/src/scan/report.rs",
+   "userland/capsule_net_core/src/setup/candidates.rs",
+   "userland/capsule_net_l2/src/setup/discover.rs",
+   "userland/capsule_setup_wizard/src/network/wired.rs",
    "userland/kernel_proofs",
    "userland/libc/src/bringup/policy.rs",
    "userland/libc/src/broker/dma.rs",
@@ -4215,6 +4222,7 @@
    ".cargo",
    "VERSION",
    "src/kernel_core/init/framebuffer/hidpi.rs",
+   "src/services/registry/nics.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",

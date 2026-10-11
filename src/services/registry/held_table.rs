@@ -16,14 +16,20 @@
 
 //! Which endpoints are held, and to whom (held.rs says why).
 
+use super::super::nics::{Link, NICS};
+
+/// The stack a network card is held to, when `endpoint` is one. The cards
+/// come from nics.rs, so a card the stack binds is never left unheld.
+pub(super) fn card_callers(endpoint: &str) -> Option<&'static [&'static str]> {
+    let (_, link) = NICS.iter().find(|(card, _)| *card == endpoint)?;
+    Some(match link {
+        Link::Wired => WIRED_STACK,
+        Link::Wifi => WIFI_STACK,
+    })
+}
+
 /// An endpoint held to a list, then the endpoints whose owners may send to it.
 pub(super) const HELD: &[(&str, &[&str])] = &[
-    ("driver.virtio_net0", WIRED_STACK),
-    ("driver.e1000_0", WIRED_STACK),
-    ("driver.rtl8169_0", WIRED_STACK),
-    ("driver.rtl8139_0", WIRED_STACK),
-    ("driver.iwlwifi0", WIFI_STACK),
-    ("driver.rtl8821ce0", WIFI_STACK),
     ("driver.ps2_kbd0", KERNEL_ONLY),
     ("driver.usb_hid0", KERNEL_ONLY),
     ("driver.i2c_hid0", KERNEL_ONLY),

@@ -22,7 +22,12 @@
 
 #[path = "../../../../src/services/registry/held.rs"]
 mod held;
+// held_table.rs reaches the cards as its grandparent's `nics`, as in the kernel.
+#[path = "../../../../src/services/registry/nics.rs"]
+mod nics;
 
+mod card_names;
+mod card_readers;
 mod cards;
 mod classified;
 mod common;
