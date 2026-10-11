@@ -20,7 +20,7 @@
 
 use alloc::string::String;
 
-use super::scan::Disk;
+use super::survey::Disk;
 use super::word::serial_word;
 use crate::driver::Driver;
 use crate::wire::SECTOR_SIZE;
