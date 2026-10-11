@@ -30,4 +30,5 @@ mod sup_caps_tests;
 mod verify_kind_tests;
 mod verify_refusal_tests;
 mod verify_tests;
+mod wire_tests;
 mod words_tests;
