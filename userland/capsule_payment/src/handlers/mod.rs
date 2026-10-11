@@ -31,7 +31,7 @@ mod refund;
 mod tokens;
 
 pub(crate) use account::account;
-pub(crate) use budget::set_budget;
+pub(crate) use budget::{listing_cap, set_budget};
 pub(crate) use channel_ops::{claim, close, job, topup};
 pub(crate) use delivered::order_delivered;
 pub(crate) use drain::drain;

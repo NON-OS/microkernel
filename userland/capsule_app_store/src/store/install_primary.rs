@@ -21,7 +21,7 @@ use super::install::{ask, open, remove, Asked};
 use super::next_step::{on_enter, Enter};
 use super::progress::Progress;
 use super::purchase::post;
-use super::purchase_said::by_wallet;
+use super::purchase_said::{by_wallet, ordered};
 use super::state::State;
 
 /// What Enter means for the selected listing, as far as it has got.
@@ -36,7 +36,8 @@ pub fn primary(state: &mut State) -> Option<Asked> {
         // A sold listing is bought in the wallet, which installs it after.
         Enter::Install if state.current().is_some_and(by_wallet) => {
             let asked = post(state);
-            state.orders.awaiting |= asked == Asked::InWallet;
+            let order = state.current().is_some_and(ordered);
+            state.orders.awaiting |= asked == Asked::InWallet && order;
             Some(asked)
         }
         Enter::Install => {

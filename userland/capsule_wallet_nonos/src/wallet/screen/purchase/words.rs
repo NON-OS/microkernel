@@ -19,6 +19,7 @@
 use crate::wallet::order::fees::Fees;
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::read::Named;
+use crate::wallet::order::voucher_form::Budgeted;
 
 pub const CONSENT: &str = "The store asks to buy this. What follows is the market's own record, \
      not the store's: buy only if it is what you meant.";
@@ -30,6 +31,8 @@ const VOUCHER: &str = "This listing is paid by voucher as it is used. Open a cha
      deposit and how long it runs; what is not spent comes back to a fresh address of this wallet.";
 const OPENING: &str = "The meter is signing the channel's approval and opening.";
 const CONFIRMING: &str = "Waiting for the chain to mine the channel's opening.";
+const NO_BUDGET: &str = "The channel is open, but the meter has no budget in force, so it would \
+     refuse to pay. Set one: the deposit, for 30 days, with this listing's cap.";
 const OPENED: &str = "The channel is open. Install the app again from the store: it pays from \
      this channel by voucher.";
 const OFFERING: &str = "The meter is asking the seller's agent for its sealed offer. Its proof \
@@ -54,6 +57,9 @@ pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
         (Step::Fund(_), _) => (FUND, Some("Fund from the Shield")),
         (Step::Opening(..), _) => (OPENING, None),
         (Step::Confirming(..), _) => (CONFIRMING, None),
+        (Step::Opened(_), _) if p.form.budgeted == Budgeted::NoBudget => {
+            (NO_BUDGET, Some("Set budget for 30 days"))
+        }
         (Step::Opened(_), _) => (OPENED, None),
         (Step::Failed(why), _) => (why, None),
     }
