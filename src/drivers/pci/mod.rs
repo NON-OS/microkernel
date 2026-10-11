@@ -25,7 +25,9 @@ pub mod config;
 pub mod constants;
 pub mod error;
 pub mod manager;
-#[cfg(target_arch = "x86_64")]
+// Capability and MSI-X table access is the same on every architecture; the
+// message a function is given is not. The helpers that compose an x86 LAPIC
+// message are re-exported below on x86_64 alone.
 pub mod msi;
 pub mod security;
 pub mod stats;
