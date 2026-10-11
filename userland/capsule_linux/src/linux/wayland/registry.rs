@@ -16,14 +16,8 @@
 
 //! The globals a client is told about, and what binding one means.
 
+use super::global::Global;
 use super::object::Object;
-
-pub struct Global {
-    pub name: u32,
-    pub interface: &'static [u8],
-    pub version: u32,
-    pub object: Object,
-}
 
 pub const GLOBALS: &[Global] = &[
     Global { name: 1, interface: b"wl_compositor", version: 4, object: Object::Compositor },
@@ -58,8 +52,16 @@ pub const GLOBALS: &[Global] = &[
         version: 1,
         object: Object::SinglePixel,
     },
+    Global {
+        name: 13,
+        interface: b"zwp_primary_selection_device_manager_v1",
+        version: 1,
+        object: Object::PrimaryManager,
+    },
+    Global {
+        name: 14,
+        interface: b"wp_cursor_shape_manager_v1",
+        version: 1,
+        object: Object::CursorManager,
+    },
 ];
-
-pub fn by_name(name: u32) -> Option<&'static Global> {
-    GLOBALS.iter().find(|g| g.name == name)
-}
