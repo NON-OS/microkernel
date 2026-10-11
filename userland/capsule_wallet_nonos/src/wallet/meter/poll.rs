@@ -28,6 +28,7 @@ pub fn tick(state: &mut State) -> bool {
     (state.meter.job.is_some() && poll(state))
         || crate::wallet::order::consent::poll(state)
         || crate::wallet::order::step::poll(state)
+        || crate::wallet::order::watch::poll(state)
         || crate::wallet::order::intake::take_due(state)
 }
 
