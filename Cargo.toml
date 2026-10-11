@@ -169,6 +169,7 @@ nonos-capsule-driver-vmware-svga= []
 nonos-capsule-driver-ahci       = []
 nonos-capsule-driver-hda        = []
 nonos-capsule-driver-ac97       = []
+nonos-capsule-driver-vmmdev     = []
 nonos-capsule-audio             = []
 nonos-capsule-driver-nvme       = []
 nonos-capsule-net-l2            = []
@@ -475,6 +476,13 @@ microkernel-driver-ac97 = [
   "nonos-capsule-driver-ac97",
 ]
 
+microkernel-driver-vmmdev = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmmdev",
+]
+
 microkernel-driver-nvme = [
   "microkernel-core",
   "nonos-production",
@@ -682,6 +690,7 @@ microkernel-full-gui = [
   "nonos-capsule-driver-rtl8821ce",
   "nonos-capsule-driver-hda",
   "nonos-capsule-driver-ac97",
+  "nonos-capsule-driver-vmmdev",
   "nonos-capsule-driver-usb-msc",
   "nonos-capsule-driver-i2c-pci",
   "nonos-capsule-driver-i2c-hid",

@@ -35,6 +35,9 @@
    "nonos-data/trust/capsules/driver_virtio_input.manifest.bin",
    "nonos-data/trust/capsules/driver_virtio_input.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_virtio_input.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.manifest.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.zk_trailer.bin",
@@ -3513,6 +3516,9 @@
    "nonos-data/trust/capsules/driver_virtio_input.manifest.bin",
    "nonos-data/trust/capsules/driver_virtio_input.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_virtio_input.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.manifest.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.zk_trailer.bin",
@@ -4976,6 +4982,28 @@
    "userland/nonos_virtio/src/pci",
    "userland/nonos_virtio/src/select.rs",
    "userland/virtio_transport_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/vmmdev_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_vmmdev/src/constants",
+   "userland/capsule_driver_vmmdev/src/discover.rs",
+   "userland/capsule_driver_vmmdev/src/post.rs",
+   "userland/capsule_driver_vmmdev/src/regs",
+   "userland/capsule_driver_vmmdev/src/req",
+   "userland/capsule_driver_vmmdev/src/say.rs",
+   "userland/capsule_driver_vmmdev/src/serve.rs",
+   "userland/capsule_driver_vmmdev/src/setup/claim.rs",
+   "userland/capsule_driver_vmmdev/src/setup/driver.rs",
+   "userland/capsule_driver_vmmdev/src/setup/grants.rs",
+   "userland/capsule_driver_vmmdev/src/setup/page.rs",
+   "userland/capsule_driver_vmmdev/src/setup/sequence.rs",
+   "userland/libc/src/surface_registry/abs.rs",
+   "userland/vmmdev_proofs"
   ],
   "md": [],
   "signed": []
