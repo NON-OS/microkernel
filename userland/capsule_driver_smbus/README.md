@@ -1,7 +1,11 @@
 # capsule_driver_smbus
 
-Status: not in the image. The capsule builds and its host proofs pass, but
-it has no owner certificate, no kernel embed and no spawn yet.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/smbus_capsule`)
+embeds and spawns it under `nonos-capsule-driver-smbus` (the
+`microkernel-driver-smbus` build) when the inventory sees `SerialSmbus`, an
+Intel function of class 0Ch subclass 05h. `driver.smbus0` is held to the
+kernel alone until a driver above it needs the bus. It has no owner
+certificate yet, so no image carries it until the owner signs it.
 
 ## Role
 
@@ -84,7 +88,7 @@ logs only DRAM types.
 
 ## Runtime lifecycle
 
-Spawned once. With no host it logs one line and exits `EXIT_ABSENT` (2) before
+Spawned once, where the inventory saw the host. With no host it logs one line and exits `EXIT_ABSENT` (2) before
 claiming anything; a failed bring-up is retried on the shared bounded
 schedule and ends in `EXIT_GAVE_UP` (6). Once up it waits in the kernel for
 each request.
@@ -105,8 +109,8 @@ The SMBus host on Intel machines, for SPD, sensors and SMBus touchpads.
 
 ## Release checklist
 
-- Inventory family, kernel mirror, spawn and held-table entry.
-- Signed by the owner.
+- Signed by the owner and added to the image's features.
+- The held table opened to the first driver above it.
 - A QEMU q35 boot (ICH9 SMBus, 8086:2930, with SPD EEPROMs at 0x50 to 0x57)
   logging the SPD line.
 
