@@ -20,9 +20,8 @@
 //! the request is logged.
 
 use super::super::embed::LINUX_ELF;
-use super::super::roles::RUN;
+use super::super::run_owner::run_busy;
 use super::tier;
-use crate::services::registry::lookup_service;
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOENT};
 
 /// The leading word of a window request.
@@ -61,7 +60,7 @@ fn open_window(word: &[u8]) -> Result<u32, i64> {
     if LINUX_ELF.is_empty() {
         return Err(ERRNO_NOENT);
     }
-    if lookup_service(RUN.name).is_some() {
+    if run_busy() {
         return Err(ERRNO_BUSY);
     }
     match crate::userspace::init::request_quiet_run(package) {
