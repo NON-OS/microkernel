@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// "NBW1": every driver on the block wire answers under this magic.
-pub const MAGIC: u32 = 0x4e42_5731;
-pub const VERSION: u16 = 1;
-pub const HDR_LEN: usize = 20;
-pub const RESP_HDR_LEN: usize = HDR_LEN;
+//! Who a disk driver serves. Raw sectors hold every partition on the disk,
+//! another system's unencrypted files among them, and the store the next boot
+//! trusts, so only the kernel's own client and a sender the kernel says holds
+//! StoreWrite (the installer, vfs) reach the medium. A health check stays
+//! open. Pure, so the decision is held on the host.
 
-#[derive(Debug, Clone, Copy)]
-pub struct Request {
-    pub op: u16,
-    pub flags: u16,
-    /// Which disk behind the endpoint; this capsule serves unit 0 alone.
-    pub unit: u16,
-    pub request_id: u32,
-    pub payload_len: u32,
+use crate::ops::OP_HEALTHCHECK;
+
+/// The kernel stamps every capsule's sender pid, and pid 0 is never handed to
+/// a process, so it marks the kernel-internal client and nothing else.
+pub fn allows(op: u16, sender_pid: u32, holds_store_write: bool) -> bool {
+    op == OP_HEALTHCHECK || sender_pid == 0 || holds_store_write
 }

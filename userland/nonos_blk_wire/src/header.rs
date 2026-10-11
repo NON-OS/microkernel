@@ -14,16 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The statuses this capsule answers with itself. A failed host or card
-//! command answers what `emmc::wire_status` makes of it: -110 for a
-//! timeout, a status carrying the host's or card's own detail, or -5.
+/// "NBW1": every driver on the block wire answers under this magic.
+pub const MAGIC: u32 = 0x4e42_5731;
+pub const VERSION: u16 = 1;
+pub const HDR_LEN: usize = 20;
+pub const RESP_HDR_LEN: usize = HDR_LEN;
 
-pub const E_NXIO: i32 = -6;
-/// The sender may not reach the medium (`server::medium`).
-pub const E_ACCES: i32 = -13;
-/// The part has no name to give (IDENTIFY).
-pub const E_NODEV: i32 = -19;
-pub const E_INVAL: i32 = -22;
-pub const E_MSGSIZE: i32 = -90;
-/// The card's write-protect switch is on.
-pub const E_ROFS: i32 = -30;
+#[derive(Debug, Clone, Copy)]
+pub struct Request {
+    pub op: u16,
+    pub flags: u16,
+    /// Which disk behind the endpoint, 0 first; a driver answers -6 (ENXIO)
+    /// for a unit it does not have.
+    pub unit: u16,
+    pub request_id: u32,
+    pub payload_len: u32,
+}

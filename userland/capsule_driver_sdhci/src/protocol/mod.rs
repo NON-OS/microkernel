@@ -14,26 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The block wire (PLAN.md, section 4), as this capsule serves it.
+//! The block wire (PLAN.md, section 4), as this capsule serves it: the
+//! shared capsule side (`nonos_blk_wire`), with this capsule's endpoint and
+//! units.
 
-mod decode;
-mod encode;
 mod endpoint;
-mod errno;
-mod geometry;
-mod header;
-mod identify;
-mod limits;
-mod ops;
 mod unit;
 
-pub use decode::decode_request;
-pub use encode::{encode_response_header, write_status};
 pub use endpoint::KERNEL_REPLY_ENDPOINT;
-pub use errno::{E_ACCES, E_INVAL, E_MSGSIZE, E_NODEV, E_NXIO, E_ROFS};
-pub use geometry::{encode_geometry, MEDIA_PRESENT, READ_ONLY, REMOVABLE};
-pub use header::{Request, HDR_LEN, RESP_HDR_LEN};
-pub use identify::{encode_identify, MEDIUM_EMMC, MEDIUM_SD};
-pub use limits::{GEOMETRY_LEN, RW_HEADER_LEN, STATUS_LEN};
-pub use ops::{OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_IDENTIFY, OP_READ, OP_WRITE};
+pub use nonos_blk_wire::{
+    decode_request, encode_geometry, encode_identify, encode_response_header, write_status,
+    Request, E_ACCES, E_INVAL, E_MSGSIZE, E_NODEV, E_NXIO, E_ROFS, GEOMETRY_LEN, HDR_LEN,
+    MEDIA_PRESENT, MEDIUM_EMMC, MEDIUM_SD, OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_IDENTIFY,
+    OP_READ, OP_WRITE, READ_ONLY, REMOVABLE, RESP_HDR_LEN, RW_HEADER_LEN, STATUS_LEN,
+};
 pub use unit::serves_unit;
