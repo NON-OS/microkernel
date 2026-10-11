@@ -26,6 +26,7 @@ pub mod irq_handlers;
 pub mod redistributor;
 mod serve;
 mod state;
+mod wait;
 
 pub use acked::Acked;
 pub use api::{disable_irq, enable_irq, init_gic, send_sgi, send_sgi_all_others};

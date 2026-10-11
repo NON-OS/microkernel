@@ -29,7 +29,7 @@ use super::state::redist_base;
 pub fn init_gic_cpu() -> Result<(), &'static str> {
     let redist = redistributor::for_this_cpu(redist_base())
         .ok_or("no GICv3 redistributor frame claims this CPU")?;
-    redist.init();
+    redist.init()?;
     frames::record(&redist);
     icc::init();
     Ok(())

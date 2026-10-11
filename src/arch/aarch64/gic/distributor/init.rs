@@ -21,17 +21,20 @@ use super::constants::{
 use super::device::GicDistributor;
 
 impl GicDistributor {
-    pub fn init(&self) {
+    pub fn init(&self) -> Result<(), &'static str> {
         self.write_reg(GICD_CTLR, 0);
+        self.settle()?;
         let num_irqs = self.num_irqs();
         for irq in (32..num_irqs).step_by(32) {
             self.write_reg(GICD_ICENABLER + (irq / 32) as u64 * 4, 0xFFFF_FFFF);
             self.write_reg(GICD_ICPENDR + (irq / 32) as u64 * 4, 0xFFFF_FFFF);
             self.write_reg(GICD_IGROUPR + (irq / 32) as u64 * 4, 0xFFFF_FFFF);
         }
+        self.settle()?;
         for irq in (32..num_irqs).step_by(4) {
             self.write_reg(GICD_IPRIORITYR + irq as u64, 0xA0A0_A0A0);
         }
         self.write_reg(GICD_CTLR, CTLR_ENABLE_G0 | CTLR_ENABLE_G1NS | CTLR_ARE_S | CTLR_ARE_NS);
+        self.settle()
     }
 }
