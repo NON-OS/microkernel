@@ -23,6 +23,7 @@ mod create;
 mod define;
 mod exec;
 mod fields;
+mod nodes;
 mod reopen;
 mod scope_path;
 mod scopes;

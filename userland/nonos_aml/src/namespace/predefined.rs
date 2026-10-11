@@ -16,7 +16,9 @@
 
 //! The objects that exist before any table is loaded.
 
-use super::{Kind, MethodInfo, Namespace, Origin, Predefined, Seg, ROOT};
+use super::{Entry, Kind, MethodInfo, Namespace, Origin, Predefined, Seg, ROOT};
+use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
 
 /// Section 5.3.1 names the root scopes, and section 5.7 the predefined
 /// objects the operating system supplies: the Global Lock mutex, the \_OS
@@ -36,6 +38,24 @@ const ROOT_OBJECTS: [(Seg, Kind, Predefined); 9] = [
 ];
 
 impl Namespace {
+    /// An empty namespace holding only the root, before the predefined
+    /// objects are installed.
+    pub(super) fn bare() -> Self {
+        let root = Entry {
+            seg: *b"\\___",
+            parent: ROOT,
+            kind: Kind::Scope,
+            origin: Origin::Predefined(Predefined::Root),
+            gen: 0,
+            live: true,
+            first: None,
+            last: None,
+            next: None,
+        };
+        let (free, journal) = (Vec::new(), Vec::new());
+        Self { entries: alloc::vec![root], index: BTreeMap::new(), free, journal, journaling: 0 }
+    }
+
     pub fn new() -> Self {
         let mut ns = Self::bare();
         for (seg, kind, which) in ROOT_OBJECTS {

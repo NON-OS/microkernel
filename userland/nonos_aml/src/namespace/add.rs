@@ -24,10 +24,24 @@ impl Namespace {
         if let Some(existing) = self.child(parent, seg) {
             return Err(existing);
         }
-        let id = self.entries.len() as Id;
-        let e = Entry { seg, parent, kind, origin, first: None, last: None, next: None };
-        self.entries.push(e);
+        let (first, last, next, live) = (None, None, None, true);
+        let id = match self.free.pop() {
+            Some(id) => {
+                let gen = self.entries[id as usize].gen.wrapping_add(1);
+                let e = Entry { seg, parent, kind, origin, gen, live, first, last, next };
+                self.entries[id as usize] = e;
+                id
+            }
+            None => {
+                let e = Entry { seg, parent, kind, origin, gen: 0, live, first, last, next };
+                self.entries.push(e);
+                self.entries.len() as Id - 1
+            }
+        };
         self.index.insert((parent, seg), id);
+        if self.journaling > 0 {
+            self.journal.push(id);
+        }
         match self.entries[parent as usize].last.replace(id) {
             Some(prev) => self.entries[prev as usize].next = Some(id),
             None => self.entries[parent as usize].first = Some(id),
