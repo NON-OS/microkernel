@@ -37,8 +37,33 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
         Press::Back => state.view = VIEW_SETTINGS,
         Press::Dismiss => state.failure = None,
         Press::Footer(0) => return refresh(state),
+        Press::Footer(1) => return set(state),
+        Press::Field(f) => state.meter.focus = f,
         _ => return EventOutcome::Idle,
     }
     state.scroll = 0;
     EventOutcome::Repaint
+}
+
+/// Set budget: the form as typed into SET_BUDGET, then the account again.
+pub fn set(state: &mut State) -> EventOutcome {
+    use crate::wallet::meter::budget_form::budget_request;
+    let asked = budget_request(&state.meter.cap_text, &state.meter.days_text, nonos_tls::rtc_now());
+    let body = match asked.map(|b| b.encode()) {
+        Ok(Some(body)) => body,
+        Ok(None) => return EventOutcome::Idle,
+        Err(why) => {
+            state.failure = Some(why);
+            return EventOutcome::Repaint;
+        }
+    };
+    match crate::wallet::shield::meter_call::set_budget(&body) {
+        Ok(()) => {
+            state.status = b"budget set";
+            state.meter.cap_text.clear();
+            state.meter.days_text.clear();
+        }
+        Err(s) => state.failure = Some(crate::wallet::meter::said::budget_refusal(s)),
+    }
+    refresh(state)
 }
