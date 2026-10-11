@@ -56,6 +56,7 @@ behind it.
 | `OP_INTERRUPT_IN` | poll one interrupt-IN report of at most `HID_REPORT_MAX` bytes | report bytes, or pending |
 | `OP_CONFIGURE_BULK` / `OP_RESET_BULK` | add a bulk IN and OUT pair; recover one after a STALL | DCIs / status word |
 | `OP_BULK_OUT` / `OP_BULK_IN` | one transfer of up to 4096 bytes; a STALL replies `E_PIPE` | bytes moved, IN data |
+| `OP_BULK_IN_POLL` | one look at the slot's armed bulk IN, its own page; `E_AGAIN` at once while nothing came | bytes moved, IN data |
 | `OP_CONFIGURE_ISOCH` | add one isochronous OUT endpoint (interval, bursts and Mult by speed, CErr 0) | DCI |
 | `OP_ISOCH_OUT` | queue up to 32 packets, a TD each, Start Isoch ASAP; waits for the batch before, so two are on the ring | that batch's code: success or missed service |
 
