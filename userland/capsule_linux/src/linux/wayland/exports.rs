@@ -16,7 +16,7 @@
 
 //! What the display server gives the rest of the personality, named at `crate::linux::wayland` by mod.rs.
 
-pub use super::close_window::{close_window, disconnect};
+pub use super::close::close_window::{close_window, disconnect};
 pub use super::input::pump::pump;
 pub use super::object::Objects;
 pub use super::scene::Scene;

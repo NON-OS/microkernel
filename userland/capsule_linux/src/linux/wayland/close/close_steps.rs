@@ -25,8 +25,8 @@ use nonos_app_skeleton::clients::wm::window_close;
 use nonos_app_skeleton::discover::lookup_port;
 use nonos_libc::mk_surface_release;
 
-use super::scene_pixels::Pixels;
-use super::window_life::Steps;
+use super::super::scene_pixels::Pixels;
+use super::super::window_life::Steps;
 
 pub(super) struct Calls {
     pub(super) handle: u64,

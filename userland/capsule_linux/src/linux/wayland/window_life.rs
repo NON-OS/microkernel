@@ -41,7 +41,7 @@ pub struct Shown {
 }
 
 /// Whether `end` takes down the window `shown`. A closed connection or an
-/// ended process takes down whatever window it had (close_window.rs).
+/// ended process takes down whatever window it had (close/close_window.rs).
 pub fn takes_down(end: End, shown: Option<Shown>) -> bool {
     let Some(s) = shown else { return false };
     match end {
