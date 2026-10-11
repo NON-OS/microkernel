@@ -12,10 +12,15 @@ CAPSULE_FEATURE          := nonos-capsule-driver-cdc-ecm
 CAPSULE_NAMESPACE        := systems.nonos.driver.cdc_ecm0
 CAPSULE_SERVICE_ENDPOINT := service:4250:driver.cdc_ecm0
 CAPSULE_REPLY_ENDPOINT   := reply:4251:endpoint.4294967360
-# IPC | Memory | Debug = 0x08 | 0x10 | 0x200000 = 0x200018
+# IPC | Memory = 0x08 | 0x10 = 0x18. The loop drops what it sent itself by
+# its own pid, read back through MkServiceLookup (IPC) rather than
+# MkGetPid, so no CoreExec.
 # No Driver/DeviceEnum/Mmio/Irq/Dma/Pio: this is a class capsule above
-# xHCI. Debug carries its [usbnet cdc-ecm] lines; frames never reach it.
-CAPSULE_REQUIRED_CAPS    := 0x200018
+# xHCI.
+CAPSULE_REQUIRED_CAPS    := 0x18
+# Debug, granted only by a build that compiles `capsule-serial-debug`, for
+# the [usbnet cdc-ecm] lines; frames never reach them.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 
 include nonos-mk/capsule.mk
 # Builds and is proven on the host, but has no owner certificate, no kernel
