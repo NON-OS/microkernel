@@ -45,6 +45,8 @@ pub struct Settle {
     pub escrow: Option<HeldEscrow>,
     /// LISTING's per-chain cursors over the registry's logs.
     pub cursors: Cursors,
+    /// DELIVERED's per-chain reading of the escrow's Delivered logs.
+    pub delivered: alloc::vec::Vec<nonos_settle_proto::DeliveredKeys>,
 }
 
 impl Settle {
@@ -52,7 +54,8 @@ impl Settle {
     /// could not reach is checked again when it is first used.
     pub fn start() -> Settle {
         let (rpc, live, cursors) = (Rpc::new(), Live::new(), Cursors::default());
-        let mut s = Settle { rpc, live, held: None, escrow: None, cursors };
+        let delivered = alloc::vec::Vec::new();
+        let mut s = Settle { rpc, live, held: None, escrow: None, cursors, delivered };
         s.live.check_all(&mut s.rpc);
         s
     }
