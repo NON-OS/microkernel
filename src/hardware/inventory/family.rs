@@ -42,6 +42,8 @@ pub enum HardwareFamily {
     NetworkIgc,
     /// 82599, X540 and X550: the ixgbe capsule's.
     NetworkIxgbe,
+    /// Broadcom's 57765 class: the tg3 capsule's.
+    NetworkTg3,
     NetworkRtl8139,
     NetworkRtl8169,
     NetworkRtl8821ce,
