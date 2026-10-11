@@ -27,6 +27,10 @@ impl Sim {
         if self.tc_at.is_some() {
             ps |= 1 << 1 | 1 << 2;
         }
+        // Write Protect Switch Pin Level: set when the card may be written.
+        if !self.cfg.write_protected {
+            ps |= 1 << 19;
+        }
         ps
     }
 

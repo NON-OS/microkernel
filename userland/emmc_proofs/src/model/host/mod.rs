@@ -37,6 +37,7 @@ mod present;
 mod read;
 mod regs;
 mod sim;
+mod slot_events;
 mod types;
 mod walk;
 mod walk_desc;

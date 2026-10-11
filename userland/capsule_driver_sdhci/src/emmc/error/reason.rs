@@ -46,5 +46,6 @@ pub const fn reason(e: EmmcError) -> &'static str {
         EmmcError::BusWidth => "emmc: no data bus width works",
         EmmcError::DmaAddress => "emmc: DMA region out of host reach",
         EmmcError::OutOfRange => "emmc: sectors outside the disk or buffer",
+        EmmcError::NoMedium => "emmc: no card in the slot",
     }
 }
