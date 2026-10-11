@@ -46,7 +46,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, room: u32, mut top:
             let v = Verdict::of(&r);
             let hue = match v {
                 Verdict::Ready => OK,
-                Verdict::Installed => ACCENT,
+                Verdict::Installed | Verdict::Checking => ACCENT,
                 Verdict::Blocked => DANGER,
             };
             // Once the person has asked, what happened is the headline; the
