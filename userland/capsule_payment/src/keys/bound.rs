@@ -14,27 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The meter's root: the machine key under a caller-bound label, which the
-//! kernel derives over the label and the BLAKE3 of the caller's manifest
-//! namespace, for Vendor-authority callers only (C2c). No other capsule can
-//! derive it, capsule_linux included, though it holds Crypto.
+
+//! The meter's root: the machine key under its caller-bound label
+//! (`nonos_nox_meter::root`). Only this capsule's manifest namespace can
+//! derive it; any other caller gets EPERM from the kernel.
 
 use nonos_libc::machine_key;
-
-use nonos_payment_proto::EAGAIN;
-
-/// The kernel's reserved prefix byte for bound labels. C2c's letter names
-/// it; until then there is no bound label to ask for, and every path that
-/// needs a key answers EAGAIN. An unbound label would be a key any Crypto
-/// holder could derive, so there is deliberately no fallback.
-pub const BOUND_PREFIX: Option<u8> = None;
-
-const ROOT_NAME: &[u8] = b"nonos.meter.root.v1";
+use nonos_nox_meter::root::root_label;
 
 pub fn root() -> Result<[u8; 32], i32> {
-    let prefix = BOUND_PREFIX.ok_or(EAGAIN)?;
-    let mut label = [0u8; 1 + ROOT_NAME.len()];
-    label[0] = prefix;
-    label[1..].copy_from_slice(ROOT_NAME);
-    machine_key(&label).map_err(|e| e as i32)
+    machine_key(&root_label()).map_err(|e| e as i32)
 }

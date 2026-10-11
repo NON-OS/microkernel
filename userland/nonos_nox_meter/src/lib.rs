@@ -34,6 +34,7 @@ mod error;
 pub mod merkle;
 pub mod pay;
 pub mod persist;
+pub mod root;
 pub mod state;
 pub mod typed;
 pub mod usage;

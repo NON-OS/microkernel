@@ -47,10 +47,12 @@ key that does not open is refused, never replaced: channels are bound to the
 meter's address, and each names a reclaimTo for a key that is lost anyway.
 There is no Ed25519 key and no NXL1 in v1 (plan/20, v1.3).
 
-Until C2c names the bound prefix byte, `keys::bound::BOUND_PREFIX` is `None`
-and every op that needs the key answers EAGAIN. On a boot that keeps nothing
-the meter holds no key: PAY, SET_BUDGET and DRAIN answer ENOPERSIST, while
-LIST_TOKENS and ACCOUNT still answer. So the budget stays zero.
+The label is `nonos_nox_meter::root::root_label()`: C2c's bound prefix 0x01,
+then "nonos.meter.root.v1", 20 bytes, pinned by a test. The root is private
+only on a kernel that carries C2c. A kernel without it derives a 0x01 label
+like any other, for any Crypto holder, so the meter must ship only with C2c.
+On a boot that keeps nothing the meter holds no key: PAY, SET_BUDGET and
+DRAIN answer ENOPERSIST, while LIST_TOKENS and ACCOUNT still answer. So the budget stays zero.
 
 ## Interface contract
 
