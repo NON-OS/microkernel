@@ -46,7 +46,11 @@ pub enum SendStep {
     Quoting(EscrowSend),
     /// refundTo holds less than the gas can cost: a Shield withdraw of
     /// `size` wei of ETH to it, then GAS until it arrives.
-    Gas { send: EscrowSend, quote: Quote, size: u128 },
+    Gas {
+        send: EscrowSend,
+        quote: Quote,
+        size: u128,
+    },
     Signing(FreshAsk),
     Broadcasting(Vec<u8>),
     Sent([u8; 32]),

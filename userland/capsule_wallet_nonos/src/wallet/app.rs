@@ -142,6 +142,12 @@ impl App for Wallet {
         self.stepping()
     }
 
+    /* settle's ASYNC answer for a dispute or refund (v1.4.53); any other
+     * frame not from the router is dropped, as the skeleton always did. */
+    fn peer_frame(&mut self, sender: u32, frame: &[u8]) -> bool {
+        self.state.meter.settle.frame(sender, frame)
+    }
+
     fn on_tick(&mut self) -> bool {
         if !self.ready {
             self.ready = true;

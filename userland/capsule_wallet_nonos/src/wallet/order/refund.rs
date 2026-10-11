@@ -34,6 +34,11 @@ use super::send_step::{EscrowSend, REFUND};
 /// The terms' deliveryDeadline word (plan/22's OrderTerms).
 const DEADLINE_WORD: usize = 6;
 
+/// The order's own deliveryDeadline, in unix seconds.
+pub fn deadline(m: &OrderMade) -> Option<u64> {
+    tail_u64(&m.terms[DEADLINE_WORD])
+}
+
 /// The refund to send, or why not. `answered` is ORDER_REFUND's refundTo
 /// and refundSalt; `pending` the NOX waiting at the deposit address.
 pub fn refund(
@@ -48,7 +53,7 @@ pub fn refund(
     if drawn == [0; 20] || refund_to != drawn {
         return Err(NOT_REFUND_TO);
     }
-    let deadline = tail_u64(&m.terms[DEADLINE_WORD]).ok_or(NOTHING_LEFT)?;
+    let deadline = deadline(m).ok_or(NOTHING_LEFT)?;
     match of {
         (3, _) => {}
         (4 | 5, extra) if extra > 0 => {}
