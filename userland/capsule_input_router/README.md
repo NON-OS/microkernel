@@ -62,13 +62,13 @@ named.
 
 ## Authority
 
-`Capsule.mk` declares `CAPSULE_REQUIRED_CAPS := 0x200018`:
+`Capsule.mk` declares `CAPSULE_REQUIRED_CAPS := 0x1000000018`:
 
 | Bit | Capability | Purpose |
 |---|---|---|
 | 0x08 | IPC | recv on 4320, calls to wm, policy and compositor, deliveries |
 | 0x10 | Memory | subscription, grab and routing tables |
-| 0x200000 | InputSource | drain and wait on the raw-input ring |
+| 0x1000000000 | InputDrain | drain and wait on the raw-input ring; held by this capsule alone |
 
 `Debug` is absent. No Driver, Mmio, Irq, Dma or Pio: this capsule only
 consumes the event ring the drivers post to.
@@ -122,7 +122,7 @@ i32, timestamp u64), the shape app_skeleton reads.
 
 ## Release checklist
 
-- [x] `Capsule.mk` with `CAPSULE_REQUIRED_CAPS = 0x200018`
+- [x] `Capsule.mk` with `CAPSULE_REQUIRED_CAPS = 0x1000000018`
 - [x] Capability mask audited (3 bits, no Debug)
 - [x] Kernel mirror at `src/userspace/capsule_input_router/`
 - [x] Cert + manifest baked into `nonos-data/trust/capsules/`

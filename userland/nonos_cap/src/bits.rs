@@ -67,3 +67,5 @@ pub const CAP_LOCAL_SIGN: u64 = 8589934592;
 pub const CAP_STREAM_IMPORT: u64 = 17179869184;
 /// Receive this machine's TPM-derived device secret. Held by nonos.prove alone.
 pub const CAP_DEVICE_SECRET: u64 = 34359738368;
+/// Drain the raw input ring. Held by the input router alone.
+pub const CAP_INPUT_DRAIN: u64 = 68719476736;

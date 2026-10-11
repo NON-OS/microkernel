@@ -23,7 +23,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 // A token with a given set of capabilities and no expiry.
-fn token(permissions: Vec<Capability>) -> CapabilityToken {
+pub(crate) fn token(permissions: Vec<Capability>) -> CapabilityToken {
     CapabilityToken {
         owner_module: 0,
         permissions,
