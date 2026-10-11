@@ -38,11 +38,11 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
 
     let mut info = BootInfo::default();
 
-    // Console next, on the default base, so everything after can report its own
-    // failure. The device tree may name a different UART, in which case `init`
-    // reopens the console on that one; until then the default is all there is,
-    // and a wrong guess costs less than a silent boot.
-    crate::arch::aarch64::uart::init_uart(info.uart_base);
+    // Console next, on virt's PL011, so what follows can report its failure;
+    // `init` moves it to the tree's UART. A wrong guess beats a silent boot.
+    if let Err(reason) = crate::arch::aarch64::uart::init_uart(&info.uart) {
+        super::refuse(b"console", reason.as_bytes());
+    }
     serial::print(b"[NONOS] dtb at ");
     serial::print_hex(dtb_ptr);
     serial::println(b"");
