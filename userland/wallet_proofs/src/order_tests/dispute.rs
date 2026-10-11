@@ -23,8 +23,8 @@ use nonos_payment_proto::DeliveredMade;
 use super::dispute_fixture::{order, AT};
 use super::fixture::REFUND_TO;
 use crate::order::dispute::dispute;
-use crate::order::send_step::EscrowSend;
 use crate::order::dispute_said::*;
+use crate::order::send_step::EscrowSend;
 
 #[test]
 fn the_meters_calldata_goes_through_untouched_from_refund_to() {
