@@ -22,9 +22,9 @@ use nonos_payment_proto::{EAGAIN, EBUSY, EPERM};
 
 use super::fixture::listing;
 use crate::store::asked::Asked;
-use crate::store::price::{Price, ESCROW, FREE, VOUCHER};
 use crate::store::order_line::order_line;
-use crate::store::purchase_said::{by_wallet, handed};
+use crate::store::price::{Price, ESCROW, FREE, VOUCHER};
+use crate::store::purchase_said::{by_wallet, handed, ordered};
 
 fn priced(mode: u8, trusted: bool) -> crate::store::listing::Listing {
     let mut l = listing(b"linux.qwen-small", b"Qwen");
@@ -36,7 +36,15 @@ fn priced(mode: u8, trusted: bool) -> crate::store::listing::Listing {
 fn only_a_trusted_escrow_listing_is_bought_in_the_wallet() {
     assert!(by_wallet(&priced(ESCROW, true)));
     assert!(!by_wallet(&priced(ESCROW, false)), "a price its payee has not confirmed");
-    assert!(!by_wallet(&priced(VOUCHER, true)), "vouchers pay as they install");
+    assert!(by_wallet(&priced(VOUCHER, true)), "a voucher listing not installed opens its channel");
+    let mut installed = priced(VOUCHER, true);
+    installed.progress = crate::store::progress::Progress::Installed;
+    assert!(!by_wallet(&installed), "an installed voucher listing pays as it runs");
+    assert!(!by_wallet(&priced(VOUCHER, false)), "a voucher price its payee has not confirmed");
+    assert!(
+        ordered(&priced(ESCROW, true)) && !ordered(&priced(VOUCHER, true)),
+        "only escrow is an order"
+    );
     assert!(!by_wallet(&priced(FREE, true)));
     assert!(!by_wallet(&listing(b"linux.x", b"X")), "no price read yet");
 }

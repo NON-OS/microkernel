@@ -17,6 +17,7 @@
 mod add;
 mod caps;
 mod listing;
+mod one_cap;
 mod set;
 
 pub use caps::Budget;

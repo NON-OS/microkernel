@@ -26,9 +26,10 @@ use crate::wallet::etna::groups::shortened;
 use crate::wallet::order::fees::exact;
 use crate::wallet::order::intake::Step;
 use crate::wallet::order::voucher::Voucher;
+use crate::wallet::order::voucher_form::{Budgeted, VoucherForm};
 use crate::wallet::screen::receive_address::checksummed_text;
 
-pub fn rows(v: &Voucher, step: &Step) -> Vec<(&'static str, String)> {
+pub fn rows(v: &Voucher, step: &Step, f: &VoucherForm) -> Vec<(&'static str, String)> {
     let unit = UNITS.iter().find(|(_, w)| *w == v.unit).map_or("unit", |(n, _)| n);
     let mut out = Vec::from([
         ("payee", shortened(&checksummed_text(&v.payee))),
@@ -39,6 +40,11 @@ pub fn rows(v: &Voucher, step: &Step) -> Vec<(&'static str, String)> {
     if let Step::Opened(id) = step {
         let id: String = id.iter().take(8).map(|b| format!("{b:02x}")).collect();
         out.push(("channel", format!("0x{id}…")));
+        out.push(match f.budgeted {
+            Budgeted::Set => ("cap", format!("this listing may spend {} NOX", exact(f.cap_wei))),
+            Budgeted::Failed(why) => ("cap", String::from(why)),
+            _ => ("cap", String::from("being set")),
+        });
     }
     out
 }

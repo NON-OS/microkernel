@@ -21,11 +21,19 @@
 
 use super::asked::Asked;
 use super::listing::Listing;
-use super::price::ESCROW;
+use super::price::{ESCROW, VOUCHER};
 
-/// Whether Enter on `l` hands its purchase to the wallet.
+/// Whether Enter on `l` hands its purchase to the wallet: a trusted escrow
+/// price, or a trusted voucher price not installed yet, whose channel the
+/// wallet opens (v1.4.43).
 pub fn by_wallet(l: &Listing) -> bool {
-    l.known.price.is_some_and(|p| p.mode == ESCROW && p.trusted)
+    let voucher = |mode| mode == VOUCHER && l.progress.uninstalled();
+    l.known.price.is_some_and(|p| p.trusted && (p.mode == ESCROW || voucher(p.mode)))
+}
+
+/// Whether a purchase of `l` becomes an order the store then follows.
+pub fn ordered(l: &Listing) -> bool {
+    l.known.price.is_some_and(|p| p.mode == ESCROW)
 }
 
 /// The meter's answer to 19/0 POST, as the store says it.
