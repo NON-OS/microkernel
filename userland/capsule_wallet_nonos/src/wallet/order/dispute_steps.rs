@@ -19,8 +19,8 @@
 use nonos_payment_proto::{DeliveredMade, OrderMade};
 
 use super::dispute::dispute;
-use super::send_step::SendStep;
 use super::order_of::order_of;
+use super::send_step::SendStep;
 
 pub const DISPUTED: u8 = 3;
 pub(super) const NO_ORDER: &str = "settle did not read the escrow's order.";

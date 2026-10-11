@@ -36,6 +36,7 @@ mod publish;
 mod publisher;
 mod rpc;
 mod send;
+mod settle;
 pub mod screen;
 mod shield;
 mod state;
