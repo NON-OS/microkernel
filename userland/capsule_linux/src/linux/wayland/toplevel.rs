@@ -34,7 +34,7 @@ use super::close_window::close_for;
 use super::configure::configure;
 use super::fit::{Mode, Rect};
 use super::object::Object;
-use super::present_surface::say;
+use super::present::surface::say;
 use super::window_life::End;
 
 /// set_maximized and set_fullscreen.

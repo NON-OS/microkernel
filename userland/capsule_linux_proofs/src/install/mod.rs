@@ -26,12 +26,6 @@ pub mod http_reply;
 #[path = "../../../capsule_linux/src/linux/install/mirror.rs"]
 pub mod mirror;
 
-/* The escrow pin and the install role's check of a delivery against it,
- * which the capsule reads once the meter's hand-off lands (I-C5). */
-#[path = "../../../capsule_linux/src/linux/install/escrow_check.rs"]
-pub mod escrow_check;
-#[path = "../../../capsule_linux/src/linux/install/escrow_pin.rs"]
-pub mod escrow_pin;
 #[path = "../../../capsule_linux/src/linux/install/market_arg.rs"]
 pub mod market_arg;
 #[path = "../../../capsule_linux/src/linux/install/market_check.rs"]
@@ -43,21 +37,6 @@ pub mod route_read;
 
 #[path = "../../../capsule_linux/src/linux/install/tools.rs"]
 pub mod tools;
-
-#[path = "../../../capsule_linux/src/linux/install/tar_field.rs"]
-pub mod tar_field;
-
-#[path = "../../../capsule_linux/src/linux/install/tar_kind.rs"]
-pub mod tar_kind;
-
-#[path = "../../../capsule_linux/src/linux/install/tar_pax.rs"]
-pub mod tar_pax;
-
-#[path = "../../../capsule_linux/src/linux/install/tar_path.rs"]
-pub mod tar_path;
-
-#[path = "../../../capsule_linux/src/linux/install/tar.rs"]
-pub mod tar;
 
 #[path = "../../../capsule_linux/src/linux/install/pkg.rs"]
 pub mod pkg;
@@ -80,7 +59,12 @@ pub mod manifest;
 pub mod place_links;
 #[cfg(test)]
 mod place_links_more_tests;
+#[cfg(test)]
 mod place_links_tests;
 
+mod escrow_files;
+mod tar_files;
 #[path = "../../../capsule_linux/src/linux/install/unpacked.rs"]
 pub mod unpacked;
+pub use escrow_files::*;
+pub use tar_files::*;
