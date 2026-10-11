@@ -49,7 +49,7 @@ pub(super) fn join(
         say(b"confined to its capsule's domain (shared requester id)", pid, address);
         return Ok(());
     }
-    // Out of the identity domain first. Between the two writes the device has
+    // Out of its bring-up domain first. Between the two writes the device has
     // no context entry, which denies it: the safe side to be on.
     let _ = all[pos].domain.detach_device(address);
     if all[pos].domain.attach_device(address).is_err() {

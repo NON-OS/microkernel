@@ -33,8 +33,8 @@ pub fn init() {
         return;
     }
     match bring_up() {
-        Ok(assigned) => {
-            verdict::enabled(assigned);
+        Ok((assigned, reserved)) => {
+            verdict::enabled(assigned, reserved);
             // Interrupt remapping needs each unit's queue, which bring-up
             // started; without the feature the line says it is not built.
             #[cfg(feature = "nonos-iommu-intremap")]

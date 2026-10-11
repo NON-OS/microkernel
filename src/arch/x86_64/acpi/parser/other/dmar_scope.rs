@@ -86,7 +86,14 @@ pub fn parse_drhd(bytes: &[u8]) -> Option<UnitScope> {
     let mut unit = UnitScope::EMPTY;
     unit.include_all = bytes[4] & FLAG_INCLUDE_PCI_ALL != 0;
     unit.segment = u16::from_le_bytes([bytes[6], bytes[7]]);
-    let mut at = DRHD_HEADER_LEN;
+    read_scopes(bytes, DRHD_HEADER_LEN, &mut unit);
+    Some(unit)
+}
+
+/// The device scopes from `from` to the end of a DRHD or RMRR structure,
+/// into `unit`. A malformed scope ends the walk and marks it truncated.
+pub fn read_scopes(bytes: &[u8], from: usize, unit: &mut UnitScope) {
+    let mut at = from;
     while at + 2 <= bytes.len() {
         let kind = bytes[at];
         let len = bytes[at + 1] as usize;
@@ -116,7 +123,6 @@ pub fn parse_drhd(bytes: &[u8]) -> Option<UnitScope> {
         }
         at += len;
     }
-    Some(unit)
 }
 
 /// Whether a unit covers a device.

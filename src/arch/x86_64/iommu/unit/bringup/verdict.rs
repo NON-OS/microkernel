@@ -35,11 +35,13 @@ pub(super) fn not_built_in() {
 /// buys is that anything absent from the enumeration is denied. Every segment
 /// 0 unit is programmed; units on other segments are not, and an operator has
 /// to know that before trusting the machine.
-pub(super) fn enabled(assigned: usize) {
+pub(super) fn enabled(assigned: usize, reserved: usize) {
     let mut line = Line::new();
     line.str(b"[VT-D] translation enabled, levels=").hex(page_levels().unwrap_or(0) as u64);
     line.str(b" devices=").hex(assigned as u64).end();
-    serial::println(b"[VT-D] enumerated devices identity mapped; others denied");
+    let mut line = Line::new();
+    line.str(b"[VT-D] enumerated devices blocked until claimed; with reserved memory=");
+    line.dec(reserved as u64).str(b"; others denied").end();
     Line::new().str(b"[VT-D] units programmed=").hex(unit_count() as u64).end();
     let foreign = foreign_segment_units();
     if foreign > 0 {
