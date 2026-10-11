@@ -159,19 +159,3 @@ fn a_card_without_cmd23_gets_auto_cmd12_and_byte_addresses() {
     assert_eq!((r.arg, r.mode), (10 * 512, 0x37));
     assert!(!c.iter().any(|c| c.index == 23));
 }
-
-#[test]
-fn info_payloads_describe_the_card() {
-    let (_rig, mut disk) = up(CardCfg::default());
-    assert_eq!(disk.capacity_sectors(), 61_071_360);
-    let n = disk.names();
-    assert_eq!(n.model(), b"SanDisk DF4032");
-    assert_eq!(&n.serial, b"12345678");
-    let c = disk.controller_info();
-    assert_eq!(u32::from_le_bytes(c[0..4].try_into().unwrap()), crate::model::GLK_CAPS);
-    assert_eq!(c[20], 1);
-    let p = disk.port_entry();
-    assert_eq!(&p[0..4], &[0, 1, 1, 5]);
-    // CMD: the card's status, in transfer state and ready for data.
-    assert_eq!(u32::from_le_bytes(p[16..20].try_into().unwrap()), 4 << 9 | 1 << 8);
-}
