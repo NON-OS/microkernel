@@ -22,7 +22,11 @@ use crate::arch::aarch64::boot::info::BootInfo;
 use crate::arch::fdt::Fdt;
 
 pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> bool {
-    let fdt = match Fdt::from_ptr(dtb_ptr as *const u8) {
+    // SAFETY: the MMU is still off, so x0 is read as the physical address the
+    // loader left the blob at. A loader that passes no tree passes zero, which
+    // `from_ptr` refuses before reading; one that passes a pointer to nothing
+    // takes an external abort, which the vectors already installed report.
+    let fdt = match unsafe { Fdt::from_ptr(dtb_ptr as *const u8) } {
         Ok(f) => f,
         Err(_) => return false,
     };
