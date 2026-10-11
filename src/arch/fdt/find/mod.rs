@@ -21,6 +21,7 @@ pub mod memory;
 pub mod pci;
 pub mod plic;
 pub mod rtc;
+pub mod smmu;
 pub mod timebase;
 pub mod timer;
 pub mod uart;
