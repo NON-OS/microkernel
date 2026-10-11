@@ -37,7 +37,7 @@ fn tear_down(e: &'static Entry) {
 }
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
-    let e = super::pending::find_by_grant(grant_id).ok_or(IrqError::UnknownGrant)?;
+    let e = super::pending_find::find_by_grant(grant_id).ok_or(IrqError::UnknownGrant)?;
     if e.pid.load(Ordering::Acquire) != pid {
         return Err(IrqError::NotHolder);
     }
