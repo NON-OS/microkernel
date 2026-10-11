@@ -1842,6 +1842,7 @@
    "userland/capsule_linux/src/linux/net/sock/types.rs",
    "userland/capsule_linux/src/linux/net/sock/unlisten.rs",
    "userland/capsule_linux/src/linux/run_mode.rs",
+   "userland/capsule_linux/src/linux/serve/trace_link.rs",
    "userland/capsule_linux/src/linux/store_why.rs",
    "userland/capsule_linux/src/linux/unix/cmsg.rs",
    "userland/capsule_linux/src/linux/unix/conn.rs",
