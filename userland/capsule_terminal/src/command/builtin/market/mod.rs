@@ -23,6 +23,7 @@ mod call;
 mod failure;
 mod info;
 mod install;
+mod install_said;
 mod list;
 mod ready;
 mod run;
