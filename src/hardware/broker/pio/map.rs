@@ -21,10 +21,10 @@
 //! `access`; the kernel is the only side that ever executes the
 //! `in`/`out` instructions.
 
+use super::bar_window::port_window;
 use super::grant::{self, PioGrant};
 use super::types::{PioError, PioGrantRequest, PioGrantResult};
 use crate::hardware::broker::claim;
-use crate::hardware::broker::device::BAR_KIND_PIO;
 use crate::hardware::broker::table;
 
 const FLAGS_KNOWN: u32 = 0;
@@ -48,22 +48,7 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
     if bar_idx >= device.bars.len() || bar_idx >= device.bar_count as usize {
         return Err(PioError::BadBarIndex);
     }
-    let bar = device.bars[bar_idx];
-    if bar.kind != BAR_KIND_PIO {
-        return Err(PioError::NotPioBar);
-    }
-    if bar.size == 0 {
-        return Err(PioError::ZeroSize);
-    }
-    if bar.base > u16::MAX as u64 {
-        return Err(PioError::PortOverflow);
-    }
-    let port_base = bar.base as u16;
-    let last_port = bar.base.checked_add(bar.size).ok_or(PioError::PortOverflow)?;
-    if last_port > u16::MAX as u64 + 1 {
-        return Err(PioError::PortOverflow);
-    }
-    let port_count = (bar.size & u16::MAX as u64) as u16;
+    let (port_base, port_count) = port_window(device.bars[bar_idx])?;
 
     let grant_id = grant::allocate_id();
     grant::insert(PioGrant {
