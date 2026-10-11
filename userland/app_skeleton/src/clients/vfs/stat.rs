@@ -18,7 +18,17 @@ use alloc::vec;
 
 use crate::wire::{read_u32, read_u64, HDR_LEN};
 
+/// The service's ENOENT (errmsg.rs).
+const NOT_FOUND: i32 = -2;
+
 pub fn stat(owner_pid: u32, path: &[u8]) -> Result<(u64, bool), &'static str> {
+    lookup(owner_pid, path)?.ok_or("vfs stat failed")
+}
+
+/// What `stat` asks, with the one answer that means nothing is there kept
+/// apart: Ok(None) only when the service said not found, so a caller that
+/// falls back on absence never falls back on a failure.
+pub fn lookup(owner_pid: u32, path: &[u8]) -> Result<Option<(u64, bool)>, &'static str> {
     if path.is_empty() || path.len() > 255 {
         return Err("vfs path invalid");
     }
@@ -29,10 +39,13 @@ pub fn stat(owner_pid: u32, path: &[u8]) -> Result<(u64, bool), &'static str> {
     body.extend_from_slice(path);
     let mut rx = vec![0u8; HDR_LEN + 24];
     let (status, total) = super::call::call(port, super::types::OP_STAT, 5, &body, &mut rx)?;
+    if status == NOT_FOUND {
+        return Ok(None);
+    }
     if status != 0 || total < HDR_LEN + 16 {
         return Err("vfs stat failed");
     }
     let size = read_u64(&rx, HDR_LEN + 4)?;
     let flags = read_u32(&rx, HDR_LEN + 12)?;
-    Ok((size, flags & 1 != 0))
+    Ok(Some((size, flags & 1 != 0)))
 }

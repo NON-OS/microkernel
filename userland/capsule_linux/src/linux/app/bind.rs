@@ -19,7 +19,7 @@
 use alloc::vec::Vec;
 
 use crate::linux::attest_paths::beside;
-use crate::linux::file::{key, store_read, store_stat};
+use crate::linux::file::{key, store_found, store_read};
 
 use super::choose::choose;
 use super::identity::AppIdentity;
@@ -49,7 +49,8 @@ pub fn bind_built_in(image: &[u8]) -> Result<AppIdentity, &'static str> {
 
 fn vouched(path: &[u8]) -> Result<Option<Vec<u8>>, &'static str> {
     let at = key(&beside(path, b".nonos_linux_policy.bin"));
-    if store_stat(&at).is_err() {
+    /* Only the store saying "not there" falls back to the default. */
+    if !store_found(&at).map_err(|_| "its policy could not be looked for")? {
         return Ok(None);
     }
     let policy = store_read(&at, MAX_POLICY).map_err(|_| "its policy could not be read")?;
