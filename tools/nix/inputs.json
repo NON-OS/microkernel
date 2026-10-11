@@ -4417,6 +4417,24 @@
   "md": [],
   "signed": []
  },
+ "userland/smbus_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_hda/src/protocol/decode.rs",
+   "userland/capsule_driver_hda/src/protocol/encode.rs",
+   "userland/capsule_driver_smbus/src/errno.rs",
+   "userland/capsule_driver_smbus/src/hostc.rs",
+   "userland/capsule_driver_smbus/src/ports.rs",
+   "userland/capsule_driver_smbus/src/regs.rs",
+   "userland/capsule_driver_smbus/src/server/answer.rs",
+   "userland/capsule_driver_smbus/src/wire",
+   "userland/capsule_driver_smbus/src/xfer",
+   "userland/smbus_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/smp_stress_proofs": {
   "exclude": [],
   "include": [
