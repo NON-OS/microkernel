@@ -18,14 +18,23 @@
 pub const SERVICE: &[u8] = b"nox_settle";
 
 pub const OP_HEALTHCHECK: u16 = 1;
-/// A signed raw transaction to send. Body: chain_id u64 | the bytes.
+/// A signed raw transaction to send. Body: chain_id u64 | the bytes, at most
+/// MAX_RAW_TX. Reply: its hash[32].
 pub const OP_BROADCAST: u16 = 2;
 /// openNonce(payer), the nonce the next open will use. Informational: the
 /// ChannelOpened event is authoritative.
 pub const OP_READ_NONCE: u16 = 3;
-/// deposited, settled, expiry and closed for one channel.
+/// deposited, settled, expiry and closed for one channel (ChannelState).
 pub const OP_CHANNEL_STATE: u16 = 4;
-/// An address's ETH balance, for gas.
-pub const OP_ETH_BALANCE: u16 = 5;
-/// The ChannelOpened event a transaction emitted.
+/// An address's ETH balance, next nonce and fee suggestions (Gas).
+pub const OP_GAS: u16 = 5;
+/// The ChannelOpened event a transaction emitted (Opened). EAGAIN while it
+/// is unmined, ENOENT if it emitted none.
 pub const OP_OPENED: u16 = 6;
+
+/// The largest raw transaction BROADCAST takes.
+pub const MAX_RAW_TX: usize = 128 * 1024;
+
+pub const EAGAIN: i32 = -11;
+pub const ENOENT: i32 = -2;
+pub const EINVAL: i32 = -22;
