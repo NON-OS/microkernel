@@ -211,6 +211,9 @@ fn confirmed(state: &mut State, body: &str) {
 }
 
 fn quoted(state: &mut State, body: &str) {
+    if crate::wallet::order::fees::quoted(state, body) {
+        return;
+    }
     let ui = &mut state.shield_ui;
     if let Some(why) = field(body, "refusal") {
         ui.failure = Some(String::from(why));

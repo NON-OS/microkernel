@@ -17,11 +17,15 @@
 pub mod buy;
 mod confirm;
 mod escrowed;
+pub mod fees;
+mod fees_kind;
 pub mod fresh;
 pub mod intake;
 mod market;
+pub mod consent;
 pub mod purchase;
 pub mod read;
+mod reading;
 pub mod said;
 pub mod step;
 pub mod voucher;

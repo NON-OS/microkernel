@@ -26,6 +26,7 @@ use crate::wallet::state::State;
 /// the mailbox (B8). Whether the screen changed.
 pub fn tick(state: &mut State) -> bool {
     (state.meter.job.is_some() && poll(state))
+        || crate::wallet::order::consent::poll(state)
         || crate::wallet::order::step::poll(state)
         || crate::wallet::order::intake::take_due(state)
 }

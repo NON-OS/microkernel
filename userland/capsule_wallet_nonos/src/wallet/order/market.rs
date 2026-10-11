@@ -15,37 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A named purchase's terms, read from market.index itself (B8, v1.4.36):
- * GET_COMMERCE, the release's escrow fields, and INSTALL_READY on the
- * chain the names give. The store's names choose the listing, nothing else.
+ * One call to market.index for a named purchase (B8, v1.4.36): the terms
+ * are the market's; the store's names choose the listing, nothing else.
  */
 
 use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_time_millis};
-use nonos_market_proto::{pair_body, parse_commerce, parse_readiness, parse_release_escrow};
-use nonos_market_proto::{ready_body, reply_body, request, SERVICE};
-use nonos_market_proto::{OP_GET_COMMERCE, OP_GET_RELEASE, OP_INSTALL_READY};
-use nonos_payment_proto::Names;
-
-use super::read::{read_named, Named};
+use nonos_market_proto::{reply_body, request, SERVICE};
 
 const TIMEOUT_MS: u64 = 2_000;
 const REPLY_MAX: usize = 16 << 10;
 const SILENT: &str = "The market did not answer, so nothing can be shown to confirm.";
-const UNREAD: &str = "The market's answer could not be read, so nothing can be confirmed.";
+pub(super) const UNREAD: &str =
+    "The market's answer could not be read, so nothing can be confirmed.";
 
-pub fn read(names: &Names) -> Result<Named, &'static str> {
-    let (l, r) = (&names.listing[..], &names.release[..]);
-    let c = parse_commerce(&ask(OP_GET_COMMERCE, &pair_body(l, r))?).ok_or(UNREAD)?;
-    let e = parse_release_escrow(&ask(OP_GET_RELEASE, &pair_body(l, r))?).ok_or(UNREAD)?;
-    let body = ready_body(l, r, names.chain_id);
-    let ready = parse_readiness(&ask(OP_INSTALL_READY, &body)?).ok_or(UNREAD)?;
-    read_named(names.chain_id, &c, &e, &ready)
-}
-
-fn ask(op: u16, body: &[u8]) -> Result<Vec<u8>, &'static str> {
+pub(super) fn ask(op: u16, body: &[u8]) -> Result<Vec<u8>, &'static str> {
     let (mut port, mut pid) = (0u32, 0u32);
     if mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut port, &mut pid) != 0 || pid == 0 {
         return Err(SILENT);
