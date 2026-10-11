@@ -35,9 +35,23 @@ nothing else.
   first word inside `abi.encode` of its id.
 - Units: install, proof, call, second and byte.
 
+## Known copies
+
+New code reads its chain constants from here. These older copies stay where
+they are, and each must match this crate where they overlap:
+- the keyring: `server/wallet_rail/addresses.rs` (NOX) and
+  `server/eip1559/consts.rs` (NOX, the retired receipt settlement address, the
+  approve, stake and transfer selectors, and the staking proxy);
+- the wallet: `wallet/nox/constants.rs` (NOX, the staking proxy),
+  `wallet/chain.rs` (each chain's NOX), and
+  `wallet/screen/shield/consts.rs` (Sepolia's Shield pool, verifier,
+  registry, policy and NOX). The wallet's NOX address moves here in B7;
+- shield_core: its pool and asset constants (`net/asset.rs`,
+  `evm/network.rs`), which are upstream's and kept verbatim.
+
 ## Tests
 
-13 host tests in `tests/`. `sha3` is a dev-dependency only, so every pinned
+14 host tests in `tests/`. `sha3` is a dev-dependency only, so every pinned
 hash is recomputed independently of the constant it checks:
 - typehashes from their type strings;
 - name hashes from their names;
