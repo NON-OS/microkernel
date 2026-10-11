@@ -19,6 +19,7 @@ mod driver;
 mod mmio;
 mod pci;
 mod sequence;
+mod surface;
 
 pub use driver::Driver;
 pub use sequence::run;

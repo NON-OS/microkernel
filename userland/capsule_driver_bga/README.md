@@ -1,92 +1,128 @@
 # capsule_driver_bga
 
+Status: not in the image. The capsule builds and its host proofs pass, but
+it has no owner certificate and the kernel never spawns it: the kernel
+mirror, the spawn on `DisplayBga` and the compositor's graphics list come in
+the next unit.
+
 ## Role
 
-Parked Bochs Graphics Adapter capsule source. It has no `Capsule.mk`, no
-Cargo feature and no kernel mirror, so no image carries it. The kernel's
-hardware inventory leaves `DisplayBga` undispatched on purpose: the capsule
-re-modes the adapter to 1024x768x32 and would destroy the firmware scanout the
-compositor falls back to (`src/hardware/inventory/driver.rs`).
+`capsule_driver_bga` drives the Bochs graphics adapter (QEMU's stdvga,
+1234:1111) as Linux `bochs.c` does, and serves it to the compositor on the
+gfx wire `driver.virtio_gpu0` speaks. The adapter scans out its VRAM and has
+no DMA, so the driver keeps a shadow surface in ordinary memory, shares it
+with the compositor, and copies each presented rect into VRAM.
+
+```text
+compositor --NVGP--> driver.bga0 --copy--> VRAM (BAR 0) --> scanout
+     |                    |
+     `-- draws into ------' shadow surface (shared)
+```
 
 ## Microkernel contract
 
-No production spawn contract is active. A promoted version must declare
-`CAPSULE_REQUIRED_CAPS` and use brokered `MkDeviceList`, `MkMmioMap` and IPC
-only.
+- `MkDeviceList` finds 1234:1111 with an MMIO register BAR (BAR 2, at least
+  0x608 bytes) and a framebuffer BAR (BAR 0).
+- `MkDeviceClaim` claims it; `MkPciConfigWrite` sets Memory Space only (no
+  bus mastering: the adapter never masters the bus).
+- `MkMmioMap` maps BAR 2 and as much of BAR 0 as the mode needs.
+- `MkMmap`, `MkSurfaceRegister` and `MkSurfaceShare` make the shadow.
+- `MkIpcRecvFrom` serves `service:4240:driver.bga0`; `MkIpcReply` answers.
 
 ## Interface contract
 
-No stable service endpoint is exported while parked.
+NVGP, version 1, as `driver.virtio_gpu0` frames it (its header and codec
+files are mounted, not copied):
+
+- `HEALTHCHECK` (0x01);
+- `GET_PRIMARY_SURFACE` (0x0C): the shadow's handle, resource 1, width,
+  height, stride, format 1 (B8G8R8A8). The first caller holds the screen;
+  any other gets -16;
+- `TRANSFER_TO_HOST` (0x08): copies the rect, whose rows start at the
+  request's offset in the shadow, into VRAM;
+- `SET_SCANOUT` (0x09): scanout 0, resource 1, the whole mode;
+- `FLUSH` (0x0A): checked and answered. VRAM is what the adapter scans out,
+  so the transfer already showed the rect.
+
+Other ops answer -38; a malformed body -22.
 
 ## Authority
 
-Parked status means no granted runtime authority.
-
-## Privacy and persistence
-
-No user data is read or persisted.
-
-## Runtime lifecycle
-
-Not in the production spawn set.
-
-## Failure model
-
-Promotion must fail closed when broker claims, MMIO mapping or display setup
-fails.
-
-With no BGA adapter in the device list the capsule logs one line and exits
-`EXIT_ABSENT` (2) before claiming anything. An adapter that is present but
-fails setup is retried on the shared bounded schedule
-(`nonos_libc::bring_up`: seven tries, sleeping between them, each failed try
-having released its claim); running out exits `EXIT_GAVE_UP` (6). Once the
-mode is set the capsule sleeps; it holds no core.
+`CAPSULE_REQUIRED_CAPS = 0x39018`: IPC, Memory, GraphicsSurfaceCreate,
+DeviceEnum, Driver, Mmio. No Dma, Irq, Pio, Crypto, Network, filesystem or
+admin authority.
 
 ## Current implemented surface
 
-Source inventory for a future brokered BGA display capsule.
+- DISPI id check (`(id & 0xfff0) == 0xb0c0`) and VRAM from
+  `VIDEO_MEMORY_64K`, capped at BAR 0.
+- QEMU's framebuffer byte order set little endian where the register is.
+- The firmware's mode is kept when it is enabled at 32 bpp with its linear
+  framebuffer, unpanned, and fits. Otherwise 1024x768x32 is set in
+  `bochs_hw_setmode`'s order, read back, and cleared.
+- One screen, polled by request; no interrupts.
 
 ## Wire format
 
-```text
-client -> parked bga service -> no production endpoint
-```
+As `driver.virtio_gpu0`: a 20-byte NVGP header (`NVGP`, version, op, flags,
+request id, payload length), then a 4-byte status and the op's payload.
 
 ## State ownership
 
-No production surface ownership while parked.
+The capsule owns the claim, both MMIO grants and the shadow. The compositor
+attaches the shadow and draws into it; the driver only reads it.
 
 ## Operating rules
 
-Do not add raw MMIO or framebuffer access outside broker grants.
+No MMIO or framebuffer access outside broker grants. No present from a
+process other than the screen's holder.
+
+## Privacy and persistence
+
+The shadow holds what is on screen; nothing is written anywhere else or kept
+past the process.
+
+## Runtime lifecycle
+
+Spawned once (next unit). Each request is answered in turn; between them the
+driver waits in the kernel.
+
+## Failure model
+
+With no adapter the capsule logs one line and exits `EXIT_ABSENT` (2) before
+claiming anything. A failed attempt drops its claim, which releases the
+adapter and its grants, and is retried on the shared bounded schedule; running
+out exits `EXIT_GAVE_UP` (6) with the last cause: no DISPI id, no mode fits,
+mode refused, shadow refused, or a broker refusal.
 
 ## Release target
 
-Brokered BGA display driver capsule with explicit manifest capabilities.
+The compositor's gfx backend on QEMU stdvga (and Bochs), in place of the
+kernel's GOP blit.
 
 ## Release evidence
 
-Static broker-boundary audit plus hardware or emulator display proof.
+`bga_proofs` on the host; the QEMU `vga=std` boot below.
 
 ## Release checklist
 
-- Add Capsule.mk.
-- Declare `CAPSULE_REQUIRED_CAPS`.
-- Register signed spawn path.
-- Regenerate trust artifacts.
+- Kernel mirror, spawn on `DisplayBga`, compositor graphics list.
+- Signed by the owner.
+- A QEMU stdvga boot showing the desktop through `driver.bga0`.
 
 ## Real hardware bring-up checklist
 
-What only a boot on real silicon can confirm. The host proofs cover the parsers, the bring-up sequence against a model, and the bounded retry; these do not.
+Bochs and QEMU only; there is no such silicon. Under QEMU `-vga std`:
 
-- On a machine without the device: the broker log shows no claim for it and the capsule exits at once with `EXIT_ABSENT` (2); the capsule's own `no controller present, not started` line needs the Debug capability, so without it the kernel prints `[EXIT] <service> status 2: no device present, not started` for it (`src/process/exit/end_note.rs`).
-- With the device present but failing (disabled in firmware, or a forced setup error): at most seven claim and release rounds in the broker log over about six seconds, then one `device present, bring-up failed` line naming the last cause (with the Debug capability), and exit `EXIT_GAVE_UP` (6), which the kernel names as `[EXIT] <service> status 6: device present, bring-up failed and was given up`. The capsule holds no core while it waits.
-- (Bochs or QEMU stdvga only.) The 1024x768x32 mode is set and the framebuffer cleared to the boot colour.
-- Once the mode is set the capsule is asleep: no CPU time accrues to it.
+- the firmware's mode (OVMF's) is kept, with no flicker at the switch;
+- the compositor moves from GOP to `driver.bga0` and the desktop keeps
+  drawing;
+- a machine without the adapter shows `[EXIT] <service> status 2`.
 
 ## Explicit non-goals today
 
-No production display backend is claimed from this capsule today.
+No mode change after start, no second head, no hardware cursor, no
+VirtualBox (80ee:beef) or Bochs I/O-port-only adapter.
 
 ## Verification
 
