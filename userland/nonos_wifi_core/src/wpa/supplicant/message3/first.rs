@@ -14,33 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Message 3 of the four-way handshake (IEEE Std 802.11-2020, 12.7.6.4), the
-//! first time and repeated. The first verifies, checks the RSNE (and RSNXE)
-//! against the beacon, takes the group keys, and answers with message 4. A
-//! repeat after that (the AP did not get message 4) is answered with message 4
-//! again and changes nothing else: reinstalling the pairwise key on a repeat is
-//! the key-reinstallation attack, so the keys stay as they are.
+//! The first message 3: checked, keyed, and answered with message 4.
 
-use super::keys::{parse_group_keys, rsc_pn, wipe, UNWRAPPED_MAX};
-use super::state::{Failure, State, Supplicant};
-use super::step::StepOutput;
-use crate::eapol::mic::verify_mic_kind;
-use crate::eapol::parse::{EapolKey, KEY_INFO_ENCRYPTED, KEY_INFO_INSTALL, KEY_INFO_SECURE};
-
-/// The Key Information bits every message 3 of an RSN handshake carries.
-const MESSAGE3_BITS: u16 = KEY_INFO_INSTALL | KEY_INFO_SECURE | KEY_INFO_ENCRYPTED;
+use super::super::keys::{parse_group_keys, rsc_pn, wipe, UNWRAPPED_MAX};
+use super::super::state::{Failure, State, Supplicant};
+use super::super::step::StepOutput;
+use crate::eapol::parse::EapolKey;
 
 impl Supplicant {
-    // Whether `frame` is an authentic message 3 for this handshake: the bits
-    // message 3 carries, the ANonce of message 1, and a MIC under the KCK. A
-    // frame that is not is dropped without ending the handshake.
-    fn authentic_message3(&self, frame: &[u8], key: &EapolKey<'_>) -> bool {
-        key.key_info & MESSAGE3_BITS == MESSAGE3_BITS
-            && key.nonce == self.anonce
-            && verify_mic_kind(self.akm.mic_kind(), self.kck(), frame)
-    }
-
-    pub(super) fn on_message3(&mut self, frame: &[u8], key: &EapolKey<'_>) -> StepOutput {
+    pub(in super::super) fn on_message3(&mut self, frame: &[u8], key: &EapolKey<'_>) -> StepOutput {
         if !self.authentic_message3(frame, key) {
             return StepOutput::none();
         }
@@ -78,13 +60,5 @@ impl Supplicant {
                 StepOutput::none()
             }
         }
-    }
-
-    pub(super) fn on_message3_again(&mut self, frame: &[u8], key: &EapolKey<'_>) -> StepOutput {
-        if !self.authentic_message3(frame, key) {
-            return StepOutput::none();
-        }
-        self.rx_replay = Some(key.replay_counter);
-        StepOutput::reply(self.message4(&key.replay_counter))
     }
 }
