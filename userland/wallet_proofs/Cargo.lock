@@ -103,6 +103,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_settle_proto"
+version = "0.1.0"
+dependencies = [
+ "nonos_nox_config",
+]
+
+[[package]]
 name = "sha3"
 version = "0.10.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -134,5 +141,6 @@ dependencies = [
  "nonos_payment_proto",
  "nonos_policy_proto",
  "nonos_secp256k1",
+ "nonos_settle_proto",
  "sha3",
 ]
