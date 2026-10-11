@@ -11,8 +11,8 @@ CAPSULE_DIR              := userland/capsule_driver_usb_audio
 CAPSULE_BIN_NAME         := driver_usb_audio
 CAPSULE_FEATURE          := nonos-capsule-driver-usb-audio
 CAPSULE_NAMESPACE        := systems.nonos.driver.usb_audio0
-CAPSULE_SERVICE_ENDPOINT := service:4242:driver.usb_audio0
-CAPSULE_REPLY_ENDPOINT   := reply:4243:endpoint.4294967327
+CAPSULE_SERVICE_ENDPOINT := service:4246:driver.usb_audio0
+CAPSULE_REPLY_ENDPOINT   := reply:4247:endpoint.4294967327
 # CoreExec | IPC | Memory = 0x01 | 0x08 | 0x10 = 0x19. CoreExec is for
 # MkGetPid: a reply that found no waiter comes back to the service inbox,
 # and the loop drops what it sent itself rather than answer it.
