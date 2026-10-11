@@ -24,7 +24,7 @@ use nonos_payment_proto::ETIME;
 /// A step with no answer in this long fails its job (v1.4.15).
 pub(super) const STEP_MS: u64 = 150_000;
 /// How often the loop wakes to check that, while a step waits.
-const TICK_MS: u64 = 1_000;
+pub(super) const TICK_MS: u64 = 1_000;
 
 pub(super) struct Pending {
     pub op: u16,
@@ -47,14 +47,11 @@ pub(crate) struct Work {
     pub jobs: Jobs,
     pub(super) run: Option<Running>,
     pub(super) next_req: u32,
+    /// An offer's proof of work, walked in slices (solve.rs).
+    pub(crate) solving: Option<alloc::boxed::Box<super::solving::Solving>>,
 }
 
 impl Work {
-    /// recv_from's timeout: wake each tick while a step waits, else block (0).
-    pub fn wait_ms(&self) -> u64 {
-        TICK_MS * self.run.as_ref().is_some_and(|r| r.pending.is_some()) as u64
-    }
-
     /// Fail the job whose step has waited past STEP_MS.
     pub fn tick(&mut self, now_ms: u64) {
         let sent = self.run.as_ref().and_then(|r| r.pending.as_ref()).map(|p| p.sent_ms);

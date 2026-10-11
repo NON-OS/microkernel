@@ -26,4 +26,5 @@ mod offer;
 mod offer_run;
 mod request;
 mod seller;
+mod walk;
 mod x;
