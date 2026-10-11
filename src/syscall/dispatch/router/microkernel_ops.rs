@@ -114,6 +114,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkSealRead
             | MkSealNote
             | MkProveJob
+            | MkCallerMeas
             | MkLocalSign
             | MkLocalVerify
             | MkAppInstall
