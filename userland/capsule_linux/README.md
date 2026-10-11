@@ -96,6 +96,12 @@ NET_ANON (`src/linux/run_net.rs`, `src/userspace/capsule_linux/run_net.rs`). Tha
 no requests: its inbox takes only input_router's events, checked by sender. The install role
 holds Network as well (`src/userspace/capsule_linux/roles.rs`).
 
+A policy whose `net_dests_hash` names a destination list reaches only what the list allows,
+the address or the name the guest looked up, on the ports it names (`app/reach.rs`,
+`nonos_linux_policy::dests`). After an exec it is held to every list on the way, two at most;
+a third takes NET_ANON away. Only a vendor row carries its list today (`dests=` in
+`policies.txt`); a policy naming a list this capsule does not hold is served without NET_ANON.
+
 ## Installing a shipped Qwen tier
 
 A name in the `qwen-` namespace is never looked up in a package index

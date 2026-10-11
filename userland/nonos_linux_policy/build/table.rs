@@ -28,9 +28,8 @@ use std::path::{Path, PathBuf};
 use std::{env, fs};
 
 use super::line::{parse, Line};
+use super::row_of::add;
 use super::source::{source, Row};
-use crate::policy::LinuxAppPolicy;
-use crate::unlisted::unlisted;
 
 pub fn write(policies: &Path, to: &Path) -> Result<usize, String> {
     let mut rows: Vec<Row> = Vec::new();
@@ -59,17 +58,4 @@ fn read(list: &Path) -> Result<String, String> {
 
 fn lines(text: &str) -> Result<Vec<Line<'_>>, String> {
     text.lines().filter_map(|l| parse(l).transpose()).collect()
-}
-
-fn add(rows: &mut Vec<Row>, l: &Line<'_>, at: PathBuf) -> Result<(), String> {
-    println!("cargo:rerun-if-changed={}", at.display());
-    let elf = fs::read(&at).map_err(|e| format!("{}: {e}", at.display()))?;
-    let program = *blake3::hash(&elf).as_bytes();
-    let policy = LinuxAppPolicy { mask: l.mask, syscall_set: l.calls, ..unlisted(program) };
-    let row = (l.store_path.to_string(), program, policy.encode());
-    if rows.iter().any(|r| r.0 == row.0 || (r.1 == row.1 && r.2 != row.2)) {
-        return Err(format!("{}: named twice, or one program in two boxes", row.0));
-    }
-    rows.push(row);
-    Ok(())
 }
