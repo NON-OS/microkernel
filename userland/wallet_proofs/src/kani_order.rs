@@ -19,9 +19,9 @@
 //! word, the dispute window and the gas withdraw's size, for every input.
 //! `order_tests/props.rs` checks the same claims on a million words.
 
-use crate::landed::balance_of;
 use crate::order::order_of::order_of;
 use crate::order::refund_call::state_and_extra;
+use crate::shield::landed::balance_of;
 
 /// A word read as u64 only with its 24 high bytes zero; as u128 with 16.
 fn tail_ok(w: &[u8; 32], from: usize) -> bool {

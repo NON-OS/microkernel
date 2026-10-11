@@ -18,9 +18,9 @@
 //! to hit every byte position: orderOf, state and extra, and a balance word
 //! are read only when their high bytes are zero, and then exactly.
 
-use crate::landed::balance_of;
 use crate::order::order_of::order_of;
 use crate::order::refund_call::state_and_extra;
+use crate::shield::landed::balance_of;
 
 fn words(seed: u64) -> [[u8; 32]; 5] {
     let mut x = seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1;
