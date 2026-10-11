@@ -40,3 +40,18 @@ pub fn request_logs(address: &[u8; 20], topic0: &[u8; 32], from: u64, to: u64, i
     out.push(b'}');
     out
 }
+
+/// The most blocks one eth_getLogs asks for; public nodes refuse wider.
+pub const LOG_PAGE_BLOCKS: u64 = 10_000;
+
+/// [from, to] in inclusive ranges of at most `step` blocks, oldest first;
+/// nothing when from > to or step is 0.
+pub fn block_pages(from: u64, to: u64, step: u64) -> impl Iterator<Item = (u64, u64)> {
+    let mut next = Some(from).filter(|f| *f <= to && step > 0);
+    core::iter::from_fn(move || {
+        let start = next?;
+        let end = start.saturating_add(step - 1).min(to);
+        next = end.checked_add(1).filter(|n| *n <= to);
+        Some((start, end))
+    })
+}

@@ -60,3 +60,15 @@ fn an_error_answer_or_one_bad_log_refuses_the_page() {
         format!("{{\"result\":[{},{}]}}", log(5, false, &"0a".repeat(32)), log(6, false, &short));
     assert_eq!(parse_logs(resp.as_bytes()), None);
 }
+
+#[test]
+fn block_pages_cover_the_range_once() {
+    use nonos_eth_rpc::{block_pages, LOG_PAGE_BLOCKS};
+    let p: Vec<_> = block_pages(100, 25_000, LOG_PAGE_BLOCKS).collect();
+    assert_eq!(p, [(100, 10_099), (10_100, 20_099), (20_100, 25_000)]);
+    assert_eq!(block_pages(5, 5, 10).collect::<Vec<_>>(), [(5, 5)]);
+    assert_eq!(block_pages(6, 5, 10).count(), 0);
+    assert_eq!(block_pages(0, 9, 0).count(), 0);
+    let top: Vec<_> = block_pages(u64::MAX - 3, u64::MAX, 2).collect();
+    assert_eq!(top, [(u64::MAX - 3, u64::MAX - 2), (u64::MAX - 1, u64::MAX)]);
+}
