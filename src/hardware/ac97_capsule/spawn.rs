@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::embed::{
-    DRIVER_AC97_ATTESTATION_BYTES, DRIVER_AC97_ELF,
-    DRIVER_AC97_MANIFEST_BYTES, DRIVER_AC97_NONOS_ID_CERT_BYTES,
+    DRIVER_AC97_ATTESTATION_BYTES, DRIVER_AC97_ELF, DRIVER_AC97_MANIFEST_BYTES,
+    DRIVER_AC97_NONOS_ID_CERT_BYTES,
 };
 use super::state;
 use crate::capabilities::Capability;
