@@ -47,6 +47,7 @@ fn the_table_names_every_card_the_kernel_starts() {
     let spawns = [
         include_str!("../../../../src/hardware/virtio_net_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/e1000_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/e1000e_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/rtl8169_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/rtl8139_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/igb_capsule/spawn.rs"),
