@@ -25,11 +25,7 @@ fn selector(signature: &str) -> u32 {
 
 fn params(signature: &str) -> usize {
     let inner = &signature[signature.find('(').unwrap() + 1..signature.len() - 1];
-    if inner.is_empty() {
-        0
-    } else {
-        inner.split(',').count()
-    }
+    inner.split(',').filter(|p| !p.is_empty()).count()
 }
 
 #[test]
@@ -42,13 +38,15 @@ fn every_view_selector_is_its_signatures_and_ids_are_unique() {
     }
     assert_eq!(view(60).unwrap().contract, Contract::ShieldPool);
     assert_eq!(view(14).unwrap().signature, "openNonce(address)");
-    for id in [0, 5, 19, 28, 38, 42, 51, 52, 61, 0xffff] {
+    assert_eq!(view(61).unwrap().contract, Contract::ShieldPool);
+    assert_eq!(view(75).unwrap().contract, Contract::AmountPolicy);
+    for id in [0, 5, 19, 28, 38, 42, 51, 52, 62, 69, 76, 0xffff] {
         assert_eq!(view(id), None, "{id}");
     }
 }
 
 #[test]
-fn every_kind_selector_is_its_signatures_and_kinds_run_1_to_19() {
+fn every_kind_selector_is_its_signatures_and_kinds_run_1_to_20() {
     for (i, k) in KINDS.iter().enumerate() {
         assert_eq!(k.id as usize, i + 1);
         for (sig, sel) in k.calls {
@@ -59,7 +57,8 @@ fn every_kind_selector_is_its_signatures_and_kinds_run_1_to_19() {
     }
     assert_eq!(KINDS[0].contract, Contract::NoxToken);
     assert_eq!(KINDS[12].calls[0].1, 0x631969a5, "the meter's open");
-    let credit: Vec<_> = KINDS[16..].iter().map(|k| (k.calls[0].1, k.contract)).collect();
+    assert_eq!(KINDS[19].contract, Contract::ShieldPool, "ShieldClaim");
+    let credit: Vec<_> = KINDS[16..19].iter().map(|k| (k.calls[0].1, k.contract)).collect();
     let owners = [Contract::Settlement, Contract::Escrow, Contract::PublisherBond];
     assert_eq!(credit, owners.map(|c| (0x6c8cc9d9, c)), "one call on three contracts");
 }

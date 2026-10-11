@@ -31,6 +31,8 @@ pub enum Arg {
     U8,
     /// A uint64.
     U64,
+    /// A bool: 0 or 1.
+    Bool,
 }
 
 impl Arg {
@@ -38,10 +40,10 @@ impl Arg {
         let zero = match self {
             Arg::Address => 12,
             Arg::Word => 0,
-            Arg::U8 => 31,
+            Arg::U8 | Arg::Bool => 31,
             Arg::U64 => 24,
         };
-        w[..zero].iter().all(|b| *b == 0)
+        w[..zero].iter().all(|b| *b == 0) && (self != Arg::Bool || w[31] <= 1)
     }
 }
 

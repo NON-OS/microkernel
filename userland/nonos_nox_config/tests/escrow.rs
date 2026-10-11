@@ -23,7 +23,7 @@ fn escrow_times_are_plan_27s() {
     assert_eq!(MAX_DELIVERY, 604_800, "7 days");
     assert_eq!(DISPUTE_WINDOW, 259_200, "3 days");
     assert_eq!(DELIVER_MARGIN, 3_600, "1 hour");
-    assert_eq!(ORDER_MIN_LEAD, 21_600, "6 hours");
+    assert_eq!(ORDER_MIN_LEAD, 86_400, "24 hours: a fresh note ripens in about 6 (v1.4.17)");
     assert_eq!(UNBOND_DELAY_MIN, 604_800 + 259_200 + 86_400);
-    assert!(DELIVER_MARGIN < ORDER_MIN_LEAD && ORDER_MIN_LEAD < MAX_DELIVERY);
+    const { assert!(DELIVER_MARGIN < ORDER_MIN_LEAD && ORDER_MIN_LEAD < MAX_DELIVERY) };
 }

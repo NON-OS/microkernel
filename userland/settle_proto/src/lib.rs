@@ -58,7 +58,7 @@ pub use frame::{reply, reply_body, request, ReplyError};
 pub use gas::{Gas, GAS_LEN};
 pub use header::{parse_header, Header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
 pub use intent::{Intent, MAX_CALLDATA};
-pub use intent_check::{approve_spender, kind_of};
+pub use intent_check::{approve_spender, claim_ok, kind_of};
 pub use kinds::{Kind, KINDS, ORDER_TERMS_TUPLE, VOUCHER_TUPLE};
 pub use listing::{listing_reply, parse_listing_reply};
 pub use opened::{Opened, OPENED_LEN};
