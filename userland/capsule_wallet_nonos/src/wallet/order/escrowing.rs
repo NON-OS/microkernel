@@ -19,6 +19,8 @@
 
 use nonos_payment_proto::{DeliveredMade, OrderMade};
 
+use alloc::vec::Vec;
+
 use super::send_step::SendStep;
 
 pub struct Escrowing {
@@ -30,11 +32,21 @@ pub struct Escrowing {
     pub signing: bool,
     /// A dispute's window end, deliveredAt + disputeWindow, once read.
     pub window_end: Option<u64>,
+    /// When a Shield withdraw for the gas was started, in unix seconds.
+    pub gas_paid_s: Option<u64>,
+    /// The raw the Shield signed, kept so a retry re-sends it unchanged.
+    pub raw: Option<Vec<u8>>,
 }
 
 impl Escrowing {
     pub fn new(kind: u8) -> Escrowing {
-        Escrowing { kind, step: SendStep::Reading, next_ms: 0, signing: false, window_end: None }
+        let (step, gas_paid_s, raw) = (SendStep::Reading, None, None);
+        Escrowing { kind, step, next_ms: 0, signing: false, window_end: None, gas_paid_s, raw }
+    }
+
+    /// "Try again": orderOf first, keeping the paid gas and the signed raw.
+    pub fn again(&mut self) {
+        (self.step, self.next_ms, self.signing) = (SendStep::Reading, 0, false);
     }
 }
 
