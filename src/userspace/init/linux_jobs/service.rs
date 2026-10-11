@@ -36,7 +36,7 @@ pub(crate) fn service() {
             Job::Install(..) | Job::Uninstall(_) if super::status::one_moving() => waiting.push(job),
             Job::Install(listing, release) => install(&listing, &release),
             Job::Uninstall(listing) => uninstall(&listing),
-            Job::Run(package, quiet) => super::run::run(&package, quiet),
+            Job::Run(package, how) => super::run::run(&package, how),
         }
     }
     hold(waiting);
