@@ -25,6 +25,7 @@ const NIC_CANDIDATES: &[&str] = &[
     "driver.rtl8169_0",
     "driver.rtl8139_0",
     "driver.pcnet0",
+    "driver.vmxnet3_0",
 ];
 
 #[derive(Clone, Copy)]

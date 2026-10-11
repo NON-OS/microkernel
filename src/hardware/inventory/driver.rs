@@ -28,6 +28,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         NetworkRtl8139 => "driver_rtl8139",
         NetworkRtl8169 => "driver_rtl8169",
         NetworkPcnet => "driver_pcnet",
+        NetworkVmxnet3 => "driver_vmxnet3",
         NetworkRtl8821ce => "driver_rtl8821ce",
         NetworkIwlwifi => "driver_iwlwifi",
         DisplayVirtioGpu => "driver_virtio_gpu",
