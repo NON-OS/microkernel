@@ -54,7 +54,7 @@ pub fn withheld(device: BlockDevice) -> Disk {
     }
 }
 
-pub fn failed(driver: Driver, instance: u8, e: &BlkError, emmc_only: bool) -> Disk {
+pub fn failed(driver: Driver, instance: u8, e: &BlkError) -> Disk {
     Disk {
         driver,
         instance,
@@ -63,6 +63,6 @@ pub fn failed(driver: Driver, instance: u8, e: &BlkError, emmc_only: bool) -> Di
         block: 0,
         contents: Contents::Unknown,
         identity: None,
-        fault: Some(fault(driver, instance, e, emmc_only)),
+        fault: Some(fault(driver, instance, e)),
     }
 }
