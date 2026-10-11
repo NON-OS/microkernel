@@ -16,6 +16,7 @@
 
 mod answer;
 mod feed;
+mod loss;
 mod one;
 mod play;
 mod queue;

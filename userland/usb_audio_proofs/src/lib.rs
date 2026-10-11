@@ -25,6 +25,8 @@ mod answer_tests;
 #[cfg(test)]
 mod ask;
 #[cfg(test)]
+mod loss_tests;
+#[cfg(test)]
 mod peer_tests;
 #[cfg(test)]
 mod playback_tests;
