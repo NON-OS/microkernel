@@ -17,6 +17,7 @@
 mod device;
 mod dma;
 mod dma_lines;
+mod dma_order;
 #[cfg(target_arch = "x86_64")]
 mod dma_sync;
 #[cfg(target_arch = "aarch64")]
@@ -25,6 +26,7 @@ mod dma_sync;
 mod irq;
 mod irq_wait;
 mod mmio;
+mod mmio_access;
 mod pci;
 mod pio;
 mod types;
@@ -34,6 +36,7 @@ pub use dma::{
     mk_dma_map, mk_dma_unmap, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32, MK_DMA_MAP_HIGH, MK_DMA_MAP_WC,
 };
 pub use dma_lines::{ctr_dminline_bytes, dma_sync_lines, dma_sync_lines_of, DMA_SYNC_LINE};
+pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
 #[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
 pub use dma_sync::{mk_dma_sync_for_cpu, mk_dma_sync_for_device};
 pub use irq::{
@@ -41,6 +44,10 @@ pub use irq::{
 };
 pub use irq_wait::{mk_irq_wait, MK_IRQ_WAIT_TIMED_OUT};
 pub use mmio::{mk_mmio_map, mk_mmio_unmap};
+pub use mmio_access::{
+    mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
+    mmio_write8,
+};
 pub use pci::{
     mk_pci_config_read, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
     MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE, MK_PCI_MSIX_CTRL_ENABLE,
