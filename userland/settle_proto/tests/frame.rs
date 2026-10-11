@@ -36,6 +36,7 @@ fn the_header_is_market_protos_under_nstl_and_replies_are_checked() {
 #[test]
 fn ops_and_the_service_are_pinned() {
     assert_eq!(SERVICE, b"nox_settle");
-    let ops = [OP_HEALTHCHECK, OP_BROADCAST, OP_READ_NONCE, OP_CHANNEL_STATE, OP_GAS, OP_OPENED];
-    assert_eq!(ops, [1, 2, 3, 4, 5, 6]);
+    let ops = [OP_HEALTHCHECK, OP_BROADCAST, OP_CHANNEL_STATE, OP_GAS, OP_OPENED, OP_READ];
+    assert_eq!(ops, [1, 2, 4, 5, 6, 7]);
+    assert_eq!([OP_INTENT, OP_FETCH], [8, 9]);
 }
