@@ -17,15 +17,13 @@
 //! Reading a virtio device's VIRTIO_F_ACCESS_PLATFORM before it is confined
 //! (K5): the rule is virtio_rule.rs; this reads the hardware it needs.
 
+use super::virtio_read::{access_platform, FEATURE};
 use super::virtio_rule::{admitted, common_cfg, is_modern_virtio};
 use crate::drivers::pci::config::access::{read32, read8};
 use crate::memory::addr::PhysAddr;
 use crate::memory::mmio::{map_device_memory, unmap_mmio};
 
 const PAGE: u64 = 4096;
-/// device_feature_select and device_feature in the common configuration.
-const FEATURE_SELECT: u64 = 0x00;
-const FEATURE: u64 = 0x04;
 
 /// Whether the device may be confined: true for anything not virtio.
 pub(super) fn may_confine(device_id: u64) -> bool {
@@ -34,12 +32,12 @@ pub(super) fn may_confine(device_id: u64) -> bool {
         return false;
     };
     let platform =
-        is_modern_virtio(rec.vendor, rec.device).then(|| access_platform(&rec)).flatten();
+        is_modern_virtio(rec.vendor, rec.device).then(|| platform_bit(&rec)).flatten();
     admitted(rec.vendor, rec.device, platform)
 }
 
 /// Bit 33, read as device_feature word 1, bit 1; None when it cannot be read.
-fn access_platform(rec: &crate::hardware::broker::DeviceRecord) -> Option<bool> {
+fn platform_bit(rec: &crate::hardware::broker::DeviceRecord) -> Option<bool> {
     let a = super::super::pci_index::lookup(rec.device_id)?.address;
     // Behind a VMD the segment 0 transport reaches another device: no read.
     if a.segment != 0 {
@@ -59,11 +57,10 @@ fn access_platform(rec: &crate::hardware::broker::DeviceRecord) -> Option<bool> 
     // SAFETY: eK@nonos.systems - both registers lie inside the BAR (checked
     // against its size above) and inside the one uncached page just mapped,
     // which is unmapped before return and used by nothing else.
-    let features = unsafe {
-        core::ptr::write_volatile(reg(FEATURE_SELECT), 1);
-        core::ptr::read_volatile(reg(FEATURE))
-    };
+    let read = |r: u64| unsafe { core::ptr::read_volatile(reg(r)) };
+    // SAFETY: as above.
+    let write = |r: u64, v: u32| unsafe { core::ptr::write_volatile(reg(r), v) };
+    let platform = access_platform(read, write);
     let _ = unmap_mmio(va);
-    // All ones is a device not answering (D3, or gone), not a feature word.
-    (features != u32::MAX).then_some(features & (1 << 1) != 0)
+    platform
 }
