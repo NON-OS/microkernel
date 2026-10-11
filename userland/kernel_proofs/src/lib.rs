@@ -41,6 +41,9 @@ pub mod confine_posture;
 /// When firmware's DMA protection may be let go (K1).
 #[cfg(test)]
 pub mod iommu_handover;
+/// A map's writes, flush and take-back (K1).
+#[cfg(test)]
+pub mod iommu_place;
 pub mod pci_quirk_bits;
 #[cfg(test)]
 pub mod prove_job;

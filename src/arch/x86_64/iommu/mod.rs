@@ -26,6 +26,7 @@ pub mod device;
 pub mod domain;
 pub mod globals;
 pub mod handover;
+pub mod place;
 pub mod mapping;
 pub mod regs;
 #[cfg(feature = "nonos-iommu-intremap")]

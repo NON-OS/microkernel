@@ -45,6 +45,7 @@ pub(super) const fn unconfined_allowed(e: IommuError) -> bool {
         | IommuError::DeviceAttachFailed
         | IommuError::DeviceDetachFailed
         | IommuError::PageTableExhausted
-        | IommuError::BackendFault => false,
+        | IommuError::BackendFault
+        | IommuError::Stranded => false,
     }
 }
