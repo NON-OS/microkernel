@@ -33,8 +33,11 @@ mod fixed;
 pub mod header;
 #[path = "../../../../../src/hardware/block_device/gpt/places.rs"]
 pub mod places;
+#[path = "../../../../../src/hardware/block_device/gpt/window.rs"]
+mod window;
 
 pub(crate) use boot::boot_guid;
 pub(crate) use entry::{entries, Entry};
 pub(crate) use fixed::FIXED;
 pub(crate) use places::{holds, places, Extent, Places};
+pub(crate) use window::{plan_at, store_at};
