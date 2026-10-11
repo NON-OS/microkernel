@@ -17,14 +17,18 @@
 //! What the served part is called, and the console line that says so.
 
 use super::super::env::{Clock, Log, Mmio};
-use super::super::info::{names, Names};
+use super::super::info::{names, sd_names, Names};
 use super::super::text::Line;
 use super::EmmcDisk;
 
 impl<M: Mmio, C: Clock, L: Log> EmmcDisk<M, C, L> {
     /// The part's model and serial, from its CID.
     pub fn names(&self) -> Names {
-        names(&self.card.cid)
+        if self.card.sd {
+            sd_names(&self.card.cid)
+        } else {
+            names(&self.card.cid)
+        }
     }
 
     /// One line naming the part being served and the OCR it came up with, so
