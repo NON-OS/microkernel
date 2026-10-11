@@ -19,8 +19,8 @@
 //! most what its buffer holds and MDTS allows per command; both come from
 //! the identify pages it hands through.
 
+use super::geometry::Geometry;
 use super::identity::{controller_page, MDTS_AT};
-use super::span::Geometry;
 use crate::driver::Driver;
 use crate::error::BlkError;
 use crate::wire::{call, decode_reply, HDR_LEN, STATUS_LEN};

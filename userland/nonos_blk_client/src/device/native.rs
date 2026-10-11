@@ -18,9 +18,9 @@
 //! fails is logged here, in the disk's own blocks, which is what the
 //! driver was sent and what its own log names.
 
+use super::chunks::Native;
 use super::handle::BlockDevice;
 use super::refused::refused_blocks;
-use super::span::Native;
 use crate::error::BlkError;
 
 pub struct Wire<'a>(pub &'a BlockDevice);
