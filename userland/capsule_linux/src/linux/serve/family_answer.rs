@@ -39,8 +39,18 @@ impl Family {
         let Some(i) = self.guests.iter().position(|g| g.owns(frame.pid)) else {
             return;
         };
-        let Some(frame) = frame_in(&self.ns, frame) else {
-            return;
+        /*
+         * A call outside the declared set skips its pids' translation, which
+         * would answer a pid outside the family ESRCH or ECHILD: the kernel
+         * counts that as a success, in a bucket the set leaves clear
+         * (plan/10). Untranslated, it reaches route_life and is EPERM.
+         */
+        let frame = match crate::linux::app::undeclared(&self.guests[i], frame.nr) {
+            true => *frame,
+            false => match frame_in(&self.ns, frame) {
+                Some(frame) => frame,
+                None => return,
+            },
         };
         self.lend(i);
         self.lend_view(i, &frame);

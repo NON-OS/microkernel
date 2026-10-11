@@ -29,6 +29,11 @@ use crate::linux::guest::Guest;
 /// a loop does not bury the log.
 static SAID: [AtomicU8; SET_LEN] = [const { AtomicU8::new(0) }; SET_LEN];
 
+/// Whether call `number` is outside what the guest may make, said nowhere.
+pub fn undeclared(guest: &Guest, number: u64) -> bool {
+    super::rules::call_refused(&guest.app.calls, number)
+}
+
 /// The answer for call `number` when the guest may not make it
 /// (rules::call_refused).
 pub fn outside(guest: &Guest, number: u64) -> Option<u64> {
