@@ -20,11 +20,24 @@
 
 const ENTRY: usize = 8;
 
-/// The Port Speed id of `port` (PORTSC bits 13:10, xHCI 1.2 section 5.4.8).
-pub fn speed_in(data: &[u8], port: u8) -> Option<u8> {
+/// Current Connect Status, PORTSC bit 0 (xHCI 1.2 section 5.4.8). CSC is
+/// left alone: driver.xhci0 clears it on read, for every class driver.
+const PORTSC_CCS: u32 = 1;
+
+fn portsc_of(data: &[u8], port: u8) -> Option<u32> {
     let count = *data.first()? as usize;
     let entries = data.get(4..4 + count * ENTRY)?;
     let e = entries.chunks_exact(ENTRY).find(|e| e[0] == port)?;
-    let portsc = u32::from_le_bytes([e[4], e[5], e[6], e[7]]);
-    Some(((portsc >> 10) & 0xF) as u8)
+    Some(u32::from_le_bytes([e[4], e[5], e[6], e[7]]))
+}
+
+/// The Port Speed id of `port` (PORTSC bits 13:10, xHCI 1.2 section 5.4.8).
+pub fn speed_in(data: &[u8], port: u8) -> Option<u8> {
+    Some(((portsc_of(data, port)? >> 10) & 0xF) as u8)
+}
+
+/// Whether a device is on `port`: CCS set. A port the data does not name
+/// has nothing on it.
+pub fn connected_in(data: &[u8], port: u8) -> bool {
+    portsc_of(data, port).is_some_and(|sc| sc & PORTSC_CCS != 0)
 }
