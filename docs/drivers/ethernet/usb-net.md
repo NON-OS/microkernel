@@ -1,18 +1,17 @@
 # USB networking
 
-The tree holds five USB network driver [capsules](../../overview/glossary.md#capsule) (CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179 and Realtek RTL8153) on one shared core, `nonos_usbnet`; none of them runs in 0.9.2, and this page says what each would bind and why it does not run.
+The tree holds five USB network driver [capsules](../../overview/glossary.md#capsule) (CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179 and Realtek RTL8153) on one shared core, `nonos_usbnet`; none of them runs in 0.9.2. This page says what each binds, what kept them out of 0.9.2, and where they stand now.
 
-## State in this release
+## State
 
-USB Ethernet adapters and USB tethering from a phone do not work in NONOS 0.9.2. Three facts in the code stop them, and any one would be enough:
+USB Ethernet adapters and USB tethering from a phone do not work in NONOS 0.9.2. Four facts in that release's code stopped them, and each is now addressed on this tree:
 
-1. No image builds them. The Ethernet makefiles the build includes are those of virtio-net, e1000, RTL8139 and RTL8169 (`mk/20-build.mk:532-542`, `capsule_driver_e1000`), and the kernel has no spawn entry for any USB network capsule.
-2. The USB host driver does not serve the transfer they rely on. `nonos_usbnet` reads with a polled bulk IN, operation 0x0014 (`userland/nonos_usbnet/src/xhci/wire.rs:38-40`, `OP_BULK_IN_POLL`). The xHCI driver's operations stop at 0x0013 (`userland/capsule_driver_xhci/src/protocol/ops.rs:17-30`, `OP_RESET_BULK`) and it answers any other with `E_INVAL` (`userland/capsule_driver_xhci/src/server/dispatch.rs:41-45`, `reply_with_status`).
-3. The kernel holds `driver.xhci0` to the USB keyboard and mouse driver and the USB storage driver alone (`src/services/registry/held_table.rs:32`, `driver.usb_hid0`), so a network capsule could not send to it.
+1. No image built them. Each now has a kernel mirror and a spawn wherever an xHCI controller is (`src/userspace/init/spawn_plan/drivers_usbnet.rs`, `spawn`), and none has an owner certificate yet, so no image carries one until the owner signs it.
+2. The USB host driver did not serve their polled bulk IN, operation 0x0014 (`userland/nonos_usbnet/src/xhci/wire.rs`, `OP_BULK_IN_POLL`). It now keeps one IN transfer armed per slot on its own page and answers each look at once (`userland/capsule_driver_xhci/src/controller/bulk/poll.rs`, `poll_bulk_in`).
+3. The kernel held `driver.xhci0` to the USB keyboard, storage and audio drivers alone; the five are now on its list (`src/services/registry/held_table.rs`, `XHCI_CLIENTS`), and each is held to `net.core` and `net.l2` through the card table (`src/services/registry/nics.rs`, `NICS`).
+4. The shared core answered operation 6, which `net.core` asks first as its receive batch, with its counters and status 0, so `net.core` would have taken the counters for frames ([the receive fault](README.md#the-receive-fault)). The counters are now on 7 and 6 is refused (`userland/nonos_usbnet/src/nnet/wire.rs`, `OP_STATS`).
 
-A fourth would follow once those are fixed: the shared core answers operation 6 with its counters and status 0 (`userland/nonos_usbnet/src/nnet/answer.rs:43-46`, `OP_STATS`), so `net.core` would read it as a receive batch, as it does for the PCI drivers; see [the receive fault](README.md#the-receive-fault).
-
-`net.core` already lists the five services as candidates after the PCI cards (`userland/capsule_net_core/src/setup/candidates.rs:25-38`, `WIRED_NICS`). For a machine with no supported Ethernet port, see [Wi-Fi chips with no driver](../wifi/not-supported.md#what-to-use-instead) for what does work.
+`net.core` tries the five after the PCI cards, in the kernel's card table order (`userland/capsule_net_core/src/setup/candidates.rs`, `candidate`). For a machine with no supported Ethernet port, see [Wi-Fi chips with no driver](../wifi/not-supported.md#what-to-use-instead) for what does work.
 
 ## How the pieces fit
 
