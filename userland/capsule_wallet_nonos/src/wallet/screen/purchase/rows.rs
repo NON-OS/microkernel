@@ -21,8 +21,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::wallet::etna::groups::shortened;
-use crate::wallet::nox::nox_text;
 use crate::wallet::order::buy::DELIVERY_ASKED;
+use crate::wallet::order::fees::{exact, Fees};
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::read::Named;
 use crate::wallet::screen::receive_address::checksummed_text;
@@ -42,13 +42,19 @@ pub fn rows(p: &Pending) -> Vec<(&'static str, String)> {
     let bond: String = b.bond_id.iter().take(6).map(|x| format!("{x:02x}")).collect();
     out.extend([
         ("payee", shortened(&checksummed_text(&b.payee))),
-        ("price", format!("{} NOX, once", nox_text(b.amount))),
+        ("price", format!("{} NOX, once", exact(b.amount))),
         ("bond", format!("0x{bond}…, checked by the market")),
         ("package", format!("{} bytes, checked chunk by chunk", b.content_len)),
         ("delivery", format!("within {} days of the order", DELIVERY_ASKED / 86_400)),
         ("refund", String::from("to a fresh address of this wallet")),
-        ("fees", String::from("the Shield's, about 0.5% and one rung, quoted before you fund")),
     ]);
+    out.push(match &p.fees {
+        Fees::Quoted(fee) => {
+            ("you pay", format!("{} NOX and the Shield's fee, {fee}", exact(b.amount)))
+        }
+        Fees::Refused(why) => ("shield", why.clone()),
+        _ => ("fees", String::from("asking the Shield")),
+    });
     if let Step::Fund(m) = &p.step {
         out.push(("deposit", checksummed_text(&m.deposit)));
     }

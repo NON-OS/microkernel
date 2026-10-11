@@ -16,6 +16,7 @@
 
 //! What each step of a purchase says first, and which footer it offers.
 
+use crate::wallet::order::fees::Fees;
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::read::Named;
 use crate::wallet::screen::shield::sizes::sizes;
@@ -23,8 +24,10 @@ use crate::wallet::state::shield_ui::ASSET_NOX;
 
 pub const CONSENT: &str = "The store asks to buy this. What follows is the market's own record, \
      not the store's: buy only if it is what you meant.";
-const NOT_STANDARD: &str = "This price is not one of the Shield's standard amounts, so it \
-     cannot be paid privately, and this wallet does not pay escrow from a plain address yet.";
+const QUOTING: &str = "Asking the Shield what funding this price costs. It decides whether \
+     the price is one of its standard amounts today.";
+const REFUSED: &str = "The Shield will not fund this price, so it cannot be paid privately, \
+     and this wallet does not pay escrow from a plain address yet.";
 const VOUCHER: &str = "This listing is paid by voucher as it is used: open a channel for it \
      from the Meter screen.";
 const OFFERING: &str = "The meter is asking the seller's agent for its sealed offer. Its proof \
@@ -43,10 +46,11 @@ pub fn standard(amount: u128) -> Option<u8> {
 /// The lead sentence, and the action offered beside Close, if any.
 pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
     match (&p.step, &p.read) {
-        (Step::Consent, Ok(Named::Escrow(b))) if standard(b.amount).is_none() => {
-            (NOT_STANDARD, None)
-        }
-        (Step::Consent, Ok(Named::Escrow(_))) => (CONSENT, Some("Buy")),
+        (Step::Consent, Ok(Named::Escrow(_))) => match p.fees {
+            Fees::Quoted(_) => (CONSENT, Some("Buy")),
+            Fees::Refused(_) => (REFUSED, None),
+            Fees::Unasked | Fees::Asking => (QUOTING, None),
+        },
         (Step::Consent, Ok(Named::Voucher(_))) => (VOUCHER, None),
         (Step::Consent, Err(why)) => (why, None),
         (Step::Offering(_), _) => (OFFERING, None),
