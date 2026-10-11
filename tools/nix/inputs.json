@@ -26,6 +26,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/driver_igb.manifest.bin",
+   "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
@@ -1346,6 +1349,17 @@
    "userland/capsule_driver_i2c_pci",
    "userland/libc",
    "userland/nonos_pinctrl"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_igb": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_igb",
+   "userland/libc",
+   "userland/nonos_mac"
   ],
   "md": [],
   "signed": []
@@ -3523,6 +3537,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/driver_igb.manifest.bin",
+   "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
