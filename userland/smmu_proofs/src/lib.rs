@@ -7,6 +7,8 @@ pub mod smmu;
 #[cfg(test)]
 mod encode_tests;
 #[cfg(test)]
+mod event_tests;
+#[cfg(test)]
 mod idr_tests;
 #[cfg(test)]
 mod queue_tests;
