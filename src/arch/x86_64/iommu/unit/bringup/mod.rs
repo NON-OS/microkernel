@@ -16,6 +16,7 @@
 
 mod assign;
 mod domain;
+mod firmware;
 mod init;
 mod limit;
 mod message;
