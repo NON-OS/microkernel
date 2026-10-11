@@ -188,6 +188,8 @@ mod ipc_held_tests;
 #[cfg(test)]
 mod ipc_peers_tests;
 #[cfg(test)]
+mod irq_bind_rollback_tests;
+#[cfg(test)]
 mod service_policy_tests;
 #[cfg(test)]
 mod supervisor_tests;

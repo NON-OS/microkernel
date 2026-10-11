@@ -68,5 +68,5 @@ pub(super) fn bind_intx(
     });
     slots::activate(slot, grant_id, gsi);
 
-    Ok(IrqBindResult { grant_id, vector })
+    Ok(IrqBindResult { grant_id, vector, grants: 1 })
 }

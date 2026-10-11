@@ -74,5 +74,5 @@ pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError
     }
     gic::enable_irq(req.irq_source);
 
-    Ok(IrqBindResult { grant_id, vector: 0 })
+    Ok(IrqBindResult { grant_id, vector: 0, grants: 1 })
 }
