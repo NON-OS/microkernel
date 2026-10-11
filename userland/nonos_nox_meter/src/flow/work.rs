@@ -40,6 +40,8 @@ pub enum Work {
     OrderStatus(Order),
     /// ORDER_OFFER: fetch, open and check one escrow offer (plan/29).
     Offer(alloc::boxed::Box<OfferWork>),
+    /// ORDER_DELIVERED with orderId alone: its key from settle (v1.4.46).
+    Deliver(Order),
 }
 
 impl Work {
@@ -49,7 +51,7 @@ impl Work {
             Work::TopUp(t) => t.chain_id,
             Work::Close(c) => c.chain_id,
             Work::Claim { chain_id, .. } => *chain_id,
-            Work::OrderNew(o) | Work::OrderStatus(o) => o.chain_id,
+            Work::OrderNew(o) | Work::OrderStatus(o) | Work::Deliver(o) => o.chain_id,
             Work::Offer(w) => w.want.chain_id,
         }
     }
@@ -63,6 +65,7 @@ impl Work {
             Work::OrderNew(_) => &[Contract::NoxToken, Contract::Escrow],
             Work::OrderStatus(_) => &[Contract::NoxToken, Contract::Escrow],
             Work::Offer(_) => &[],
+            Work::Deliver(_) => &[Contract::Escrow],
         }
     }
 }

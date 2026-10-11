@@ -19,13 +19,13 @@
 //! READ and INTENT name fixed tables, so no caller chooses what settle calls.
 
 #![no_std]
-
 extern crate alloc;
 
 mod async_frame;
 mod callers;
 mod chain;
 mod channel_state;
+mod delivered_log;
 mod fetch;
 mod frame;
 mod gas;
@@ -52,6 +52,7 @@ pub use async_frame::{admits_flags, async_answer, request_async, ASYNC_CALLERS, 
 pub use callers::*;
 pub use chain::{chain_hash, parse_chain_hash, ChainHash};
 pub use channel_state::{ChannelState, CHANNEL_STATE_LEN};
+pub use delivered_log::{delivered, DeliveredKeys, DELIVERED, DELIVERED_TOPIC, MAX_KEYS};
 pub use fetch::*;
 pub use frame::{reply, reply_body, request, ReplyError};
 pub use gas::{Gas, GAS_LEN};

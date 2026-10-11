@@ -49,7 +49,8 @@ pub fn take_due(state: &mut State) -> bool {
     let (read, reading, fees) = (Err(READING), Some(Reading::Commerce), Fees::Unasked);
     let (step, watch, refund_to) = (Step::Consent, Watch::default(), [0; 20]);
     let form = Default::default();
-    let p = Pending { names, read, reading, fees, watch, form, step, refund_to };
+    let delivery = Default::default();
+    let p = Pending { names, read, reading, fees, watch, delivery, form, step, refund_to };
     state.meter.purchase = Some(Box::new(p));
     state.view = VIEW_PURCHASE;
     state.scroll = 0;
