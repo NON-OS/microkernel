@@ -30,8 +30,8 @@ use crate::state::MeterState;
 pub struct Flow {
     pub work: Work,
     got: Vec<Vec<[u8; 32]>>,
-    raws: Vec<Vec<u8>>,
-    hashes: Vec<u8>,
+    pub(super) raws: Vec<Vec<u8>>,
+    pub(super) hashes: Vec<u8>,
 }
 
 impl Flow {
@@ -52,24 +52,5 @@ impl Flow {
     /// What to sign, from GAS: `at` is the config's contracts and the time now.
     pub fn on_gas(&mut self, g: &Gas, s: &MeterState, at: (&Contracts, u64)) -> Step {
         txs(&self.work, &self.got, g, s, at.0, at.1).map(Next::Sign)
-    }
-
-    /// The signed transactions, in Sign's order.
-    pub fn on_signed(&mut self, raws: Vec<Vec<u8>>) -> Next {
-        self.raws = raws;
-        self.raws.reverse();
-        self.next_broadcast()
-    }
-
-    pub fn on_hash(&mut self, h: &[u8; 32]) -> Next {
-        self.hashes.extend_from_slice(h);
-        self.next_broadcast()
-    }
-
-    fn next_broadcast(&mut self) -> Next {
-        match self.raws.pop() {
-            Some(raw) => Next::Ask(Ask::Broadcast(raw)),
-            None => Next::Done(core::mem::take(&mut self.hashes)),
-        }
     }
 }

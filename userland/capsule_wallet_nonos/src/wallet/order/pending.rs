@@ -20,6 +20,7 @@ use alloc::boxed::Box;
 
 use nonos_payment_proto::{Names, OpenConfirm, OpenStart, OrderMade, OrderNew};
 
+use super::deliver::Delivery;
 use super::fees::Fees;
 use super::read::Named;
 use super::reading::Reading;
@@ -34,6 +35,7 @@ pub struct Pending {
     pub reading: Option<Reading>,
     pub fees: Fees,
     pub watch: Watch,
+    pub delivery: Delivery,
     pub form: VoucherForm,
     pub step: Step,
     /// The fresh address a refund goes to, drawn when the person confirms.

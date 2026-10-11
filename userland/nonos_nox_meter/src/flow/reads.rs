@@ -35,7 +35,7 @@ impl Work {
         let nox = word(&NOX_ASSET.to_be_bytes());
         let mut out = Vec::new();
         match self {
-            Work::Open(_) | Work::TopUp(_) | Work::Offer(_) => {}
+            Work::Open(_) | Work::TopUp(_) | Work::Offer(_) | Work::Deliver(_) => {}
             Work::Close(_) => out.push((16, Vec::new())),
             Work::Claim { meter, .. } => out.push((60, Vec::from([nox, word(meter)]))),
             Work::OrderNew(o) => {
@@ -57,8 +57,10 @@ impl Work {
 
     /// The first ask: the first read, or GAS for a job that reads nothing.
     pub fn first(&self) -> Ask {
-        if let Work::Offer(w) = self {
-            return Ask::Fetch(w.request.clone());
+        match self {
+            Work::Offer(w) => return Ask::Fetch(w.request.clone()),
+            Work::Deliver(o) => return Ask::Delivered(o.order_id),
+            _ => {}
         }
         match self.reads().into_iter().next() {
             Some((view, args)) => Ask::View { view, args },

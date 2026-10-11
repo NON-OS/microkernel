@@ -19,7 +19,7 @@
 
 use nonos_nox_meter::flow::{Contracts, Flow};
 use nonos_nox_meter::job::Jobs;
-use nonos_payment_proto::ETIME;
+use nonos_payment_proto::{EAGAIN, ETIME};
 
 /// A step with no answer in this long fails its job (v1.4.15).
 pub(super) const STEP_MS: u64 = 150_000;
@@ -65,7 +65,9 @@ impl Work {
     /// End the running job; a late answer to its step is then dropped.
     pub(super) fn finish(&mut self, r: Result<alloc::vec::Vec<u8>, i32>) {
         if let Some(run) = self.run.take() {
-            self.jobs.finish(run.id, r);
+            // JOB's EAGAIN means "still running", so a job that ended on one
+            // (settle's DELIVERED before any log, a host gone) ends ETIME.
+            self.jobs.finish(run.id, r.map_err(|e| if e == EAGAIN { ETIME } else { e }));
         }
     }
 }

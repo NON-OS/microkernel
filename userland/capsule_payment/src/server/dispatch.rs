@@ -66,7 +66,7 @@ pub fn dispatch(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
         OP_ORDER_STATUS => handlers::order_status(meter, work, req),
         OP_ORDER_REFUND => handlers::order_refund(req),
         OP_ORDER_OFFER => handlers::order_offer(meter, work, req),
-        OP_ORDER_DELIVERED => handlers::order_delivered(work, req),
+        OP_ORDER_DELIVERED => handlers::order_delivered(meter, work, req),
         OP_ORDER_PLAINTEXT => handlers::order_plaintext(req),
         OP_PURCHASE => handlers::purchase(work, req),
         OP_LISTING_CAP => handlers::listing_cap(meter, req),

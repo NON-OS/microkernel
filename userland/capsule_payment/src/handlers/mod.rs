@@ -33,7 +33,7 @@ mod tokens;
 pub(crate) use account::account;
 pub(crate) use budget::{listing_cap, set_budget};
 pub(crate) use channel_ops::{claim, close, job, topup};
-pub(crate) use delivered::order_delivered;
+pub(crate) use delivered::{deliver_key, order_delivered};
 pub(crate) use drain::drain;
 pub(crate) use offer::order_offer;
 pub(crate) use open::open;

@@ -22,6 +22,7 @@ use alloc::vec::Vec;
 
 use crate::wallet::etna::groups::shortened;
 use crate::wallet::order::buy::DELIVERY_ASKED;
+use crate::wallet::order::delivered::delivered_line;
 use crate::wallet::order::fees::{exact, Fees};
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::read::Named;
@@ -65,6 +66,7 @@ pub fn rows(p: &Pending) -> Vec<(&'static str, String)> {
     if let Step::Fund(m) = &p.step {
         out.push(("deposit", checksummed_text(&m.deposit)));
         p.watch.status.iter().for_each(|s| out.extend(status_rows(s, exact)));
+        p.delivery.made.iter().for_each(|d| out.push(("delivery", delivered_line(d))));
     }
     out
 }

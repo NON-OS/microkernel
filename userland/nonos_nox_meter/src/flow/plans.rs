@@ -50,7 +50,7 @@ pub(super) fn txs(
                 .ok_or(MeterError::TooEarly)?;
             Vec::from([close_plan(s, cl, &c.settlement, g, (now, grace))?])
         }
-        Work::OrderNew(_) | Work::OrderStatus(_) | Work::Offer(_) => {
+        Work::OrderNew(_) | Work::OrderStatus(_) | Work::Offer(_) | Work::Deliver(_) => {
             return Err(MeterError::Mismatch)
         }
         Work::Claim { chain_id, meter } => Vec::from([claim_plan(

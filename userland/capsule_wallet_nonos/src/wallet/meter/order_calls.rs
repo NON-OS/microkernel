@@ -22,7 +22,7 @@
 
 use alloc::vec::Vec;
 
-use nonos_payment_proto::{Names, MAX_NAME, OP_JOB, OP_PURCHASE, ORDER_MADE_LEN, PURCHASE_TAKE};
+use nonos_payment_proto::{Names, MAX_NAME, OP_JOB, OP_PURCHASE, PURCHASE_TAKE};
 
 use super::call::call;
 
@@ -50,7 +50,10 @@ pub fn open_confirm(body: &[u8]) -> Result<Vec<u8>, i32> {
     call(nonos_payment_proto::OP_OPEN, body, 32)
 }
 
-/// JOB(id) for a purchase's job: EAGAIN while it runs, then its result.
+/// JOB(id) for a purchase's job: EAGAIN while it runs, then its result,
+/// at most JOB_MAX: a bad chunk's dispute calldata runs past ORDER_NEW's.
 pub fn order_job(id: u32) -> Result<Vec<u8>, i32> {
-    call(OP_JOB, &id.to_le_bytes(), ORDER_MADE_LEN)
+    call(OP_JOB, &id.to_le_bytes(), JOB_MAX)
 }
+
+const JOB_MAX: usize = 3_968;
