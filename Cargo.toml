@@ -165,6 +165,7 @@ nonos-capsule-driver-rtl8139    = []
 nonos-capsule-driver-rtl8169    = []
 nonos-capsule-driver-pcnet      = []
 nonos-capsule-driver-vmxnet3    = []
+nonos-capsule-driver-tulip      = []
 nonos-capsule-driver-vmware-svga= []
 nonos-capsule-driver-ahci       = []
 nonos-capsule-driver-hda        = []
@@ -441,6 +442,13 @@ microkernel-driver-vmxnet3 = [
   "nonos-capsule-driver-vmxnet3",
 ]
 
+microkernel-driver-tulip = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-tulip",
+]
+
 microkernel-driver-virtio-input = [
   "microkernel-core",
   "nonos-production",
@@ -684,6 +692,7 @@ microkernel-full-gui = [
   "nonos-capsule-driver-rtl8169",
   "nonos-capsule-driver-pcnet",
   "nonos-capsule-driver-vmxnet3",
+  "nonos-capsule-driver-tulip",
   "nonos-capsule-driver-virtio-input",
   "nonos-capsule-driver-vmware-svga",
   "nonos-capsule-driver-iwlwifi",

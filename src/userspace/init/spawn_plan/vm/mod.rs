@@ -22,7 +22,8 @@
     feature = "nonos-capsule-driver-virtio-input",
     feature = "nonos-capsule-driver-vmware-svga",
     feature = "nonos-capsule-driver-ac97",
-    feature = "nonos-capsule-driver-vmmdev"
+    feature = "nonos-capsule-driver-vmmdev",
+    feature = "nonos-capsule-driver-tulip"
 ))]
 mod present;
 
