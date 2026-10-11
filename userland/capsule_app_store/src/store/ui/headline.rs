@@ -26,6 +26,7 @@ use crate::store::market::Readiness;
 use crate::store::next_step::refused_uninstall;
 use crate::store::progress::Progress;
 use crate::store::progress_text::waiting_behind;
+use crate::store::reasons::reason;
 use crate::store::route_offer::progress_line;
 use crate::store::state::State;
 use crate::store::theme::{ACCENT, DANGER, MUTED, OK};
@@ -33,28 +34,28 @@ use crate::store::verdict::Verdict;
 
 pub(super) fn headline(state: &State, listing: &Listing, r: &Readiness) -> (Vec<u8>, u32) {
     let v = Verdict::of(r);
+    let checking = listing.known.recheck_at.is_some();
     let hue = match v {
         Verdict::Ready => OK,
-        Verdict::Installed | Verdict::Checking => ACCENT,
-        Verdict::Blocked => DANGER,
+        Verdict::Installed => ACCENT,
+        Verdict::Checking if checking => ACCENT,
+        Verdict::Checking | Verdict::Blocked => DANGER,
     };
-    // Once the person has asked, what happened is the headline; the
-    // verdict from before they asked would contradict it.
-    /*
-     * Installed says where it is held, which differs by kind and by
-     * boot (`installed_line`): never "kept" for what goes at restart.
-     */
+    // A blocked listing says which gate stopped it (B9).
+    let said = match v {
+        Verdict::Checking | Verdict::Blocked => reason(r, checking).unwrap_or(v.sentence()),
+        _ => v.sentence(),
+    };
+    // Once the person has asked, what happened is the headline. Installed
+    // says where it is held (`installed_line`): never "kept" for what goes.
     let (line, tone) = match listing.progress {
         Progress::Installed => (installed_line(&listing.id).as_bytes(), OK),
         p if refused_uninstall(p, listing.removing) => {
             (&b"The system would not start the uninstall; press u to ask again"[..], DANGER)
         }
-        p => p.sentence().unwrap_or((v.sentence(), hue)),
+        p => p.sentence().unwrap_or((said, hue)),
     };
-    /*
-     * While a tier's model comes, what the fetcher says of it is the
-     * headline: how far, or which exit it is waiting on.
-     */
+    // While a tier's model comes, the fetcher's line is the headline.
     let fetching = state.fetch_of(listing).map(|s| progress_line(&s));
     /* Queued behind another install: which, and how far it has got. */
     let behind = (listing.progress == Progress::Queued)
