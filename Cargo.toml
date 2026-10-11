@@ -228,6 +228,11 @@ nonos-attest-refusal-smoketest = ["microkernel-core", "nonos-capsule-proof-io"]
 # seconds. Only the dev profile turns it on, beside the loader's development
 # policy; nonos-production refuses it (src/lib.rs).
 nonos-dev-attest = ["nonos-boot-measure/dev-attest"]
+# The owner's development opt-in to unconfined DMA: a device no
+# IOMMU domain confines may still be claimed and handed its physical address.
+# Never in a release: lib.rs refuses it beside nonos-production or
+# nonos-release, and the IOMMU posture line says it is on.
+nonos-dev-unconfined-dma = []
 # Every image the seal may seal for release: tools/nix/config.nix turns it on
 # for each profile whose loader is not the development one. A kernel built
 # with it refuses to compile nonos-dev-attest (src/lib.rs).

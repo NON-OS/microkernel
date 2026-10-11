@@ -98,7 +98,7 @@ pub fn sys_dma_unmap(grant_id: u64) -> i64 {
 
 fn errno_for(e: DmaMapError) -> i64 {
     match e {
-        DmaMapError::NotClaimed => ERRNO_PERM,
+        DmaMapError::NotClaimed | DmaMapError::Unconfined => ERRNO_PERM,
         DmaMapError::StaleEpoch => ERRNO_STALE,
         DmaMapError::UnknownDevice => ERRNO_NODEV,
         DmaMapError::BadAlignment | DmaMapError::BadLength | DmaMapError::BadLengthForClass => {

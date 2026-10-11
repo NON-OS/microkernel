@@ -17,17 +17,21 @@
 //! One IOMMU domain per driver capsule. A device a capsule claims leaves the
 //! identity domain for the capsule's own, which maps nothing until `MkDmaMap`
 //! grants a buffer, so the device reaches that capsule's grants and faults on
-//! everything else. Without a unit in service these are no-ops that say so:
-//! the device then reaches all of memory, and the boot log states it.
+//! everything else. A device no unit confines is refused (decide.rs).
 
 mod attach;
+mod decide;
 mod detach;
 mod iova;
 mod iova_space;
+mod join;
 mod map;
 mod posture;
+mod refuse;
 mod table;
+mod unmap;
 
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
-pub(super) use map::{map, unmap};
+pub(super) use map::{map, NoAddress};
+pub(super) use unmap::unmap;

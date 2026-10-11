@@ -18,3 +18,6 @@
 #[path = "../../../../../src/memory/iommu/error.rs"]
 mod error;
 pub use error::IommuError;
+#[cfg(test)]
+#[path = "../../../../../src/memory/iommu/dev_unconfined.rs"]
+pub mod dev_unconfined;

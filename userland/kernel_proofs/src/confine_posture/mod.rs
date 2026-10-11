@@ -21,5 +21,9 @@
 
 #[path = "../../../../src/hardware/broker/confine/posture.rs"]
 pub mod posture;
+#[path = "../../../../src/hardware/broker/confine/decide.rs"]
+pub mod decide;
 
 mod tests;
+#[cfg(test)]
+mod decide_tests;
