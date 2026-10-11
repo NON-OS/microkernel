@@ -18,6 +18,8 @@
 //! takes it does: the kernel's tables and classification included by path,
 //! beside the capsules' own.
 
+#[path = "../../../../src/hardware/inventory/broadcom_ids.rs"]
+mod broadcom_ids;
 #[path = "../../../../src/hardware/inventory/classify_network.rs"]
 mod classify_network;
 #[path = "../../../../src/hardware/inventory/classify_serial_bus.rs"]
@@ -53,7 +55,11 @@ mod rtl8139;
 #[path = "../../../capsule_driver_rtl8169/src/constants/pci.rs"]
 #[allow(dead_code)]
 mod rtl8169;
+#[path = "../../../capsule_driver_tg3/src/constants/pci.rs"]
+#[allow(dead_code)]
+mod tg3;
 
+mod broadcom_tests;
 mod classify_tests;
 mod serial_bus_tests;
 mod table_tests;

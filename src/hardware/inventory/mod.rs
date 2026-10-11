@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod broadcom_ids;
 mod classify;
 mod classify_display;
 mod classify_network;
@@ -33,6 +34,7 @@ mod state;
 mod support;
 mod vmd;
 
+pub use broadcom_ids::TG3_DEVICE_IDS;
 pub use classify::{classify_device, classify_family};
 pub use driver::family_driver;
 pub use emmc::{is_intel_emmc, INTEL_EMMC_DEVICE_IDS};
