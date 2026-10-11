@@ -21,9 +21,13 @@
 mod booted;
 mod contents;
 mod describe;
+mod fault;
 mod probe;
+mod rows;
 mod scan;
+mod survey;
 mod word;
 
 pub use contents::Contents;
-pub use scan::{scan, survey, Disk, Survey};
+pub use scan::{scan, survey};
+pub use survey::{Disk, Survey};
