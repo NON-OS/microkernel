@@ -26,7 +26,7 @@ use super::super::unit::report::probed;
 /// slot is freed: a freed slot is reused by the next claim, and a device left
 /// pointing at it would reach whatever that claim maps. Only then do the
 /// domain's tables go back to the allocator. If that fails, the slot stays
-/// taken with its root, quarantined, and the error reaches the caller.
+/// taken, quarantined, and the error reaches the caller.
 pub fn destroy_domain(id: DomainId) -> Result<(), VtdError> {
     if !is_present() {
         return Err(VtdError::NotPresent);
@@ -46,11 +46,12 @@ pub fn destroy_domain(id: DomainId) -> Result<(), VtdError> {
         invalidate_all_units()?;
     }
     state.bindings.retain(|binding| binding.domain != id);
-    let root = state.domains[index].root;
+    // Never walked again, whatever happens next: a release that fails part
+    // way has already freed some of these frames.
+    let root = core::mem::take(&mut state.domains[index].root);
     if root != 0 {
         release_tables(root, page_levels().ok_or(VtdError::DepthUnknown)?)?;
     }
     state.domains[index].used = false;
-    state.domains[index].root = 0;
     Ok(())
 }
