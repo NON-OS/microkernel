@@ -14,28 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! BGRT read at boot, and the logo it names copied out at once: firmware
-//! leaves the image in boot services memory, which is RAM the kernel may
-//! hand out later, so it is read here, early, or not at all. Nothing is
-//! kept unless the copy is a BMP the splash can draw (`bmp_check`), the
-//! header checked before the rest is read and the whole after.
+//! BGRT read at boot, and the logo it names copied out at once
+//! (`bgrt_copy`): firmware leaves the image in boot services memory, which
+//! is RAM the kernel may hand out later, so it is read here, early, or not
+//! at all.
 
 use super::super::state::TableRegistry;
-use super::bgrt_entry::{bgrt, Bgrt, IMAGE_BMP};
-use super::bmp_check::{bmp, Bmp, FILE_HEADER};
+use super::bgrt_copy::{copy_logo, Logo, LogoError};
+use super::bgrt_entry::Bgrt;
+use super::bmp_check::Bmp;
 use crate::arch::x86_64::acpi::tables::{SdtHeader, MAX_TABLE_BYTES};
 use alloc::vec::Vec;
 use spin::RwLock;
 
 const SIG_BGRT: u32 = u32::from_le_bytes(*b"BGRT");
-const MAX_IMAGE: u32 = 16 << 20;
 
-static LOGO: RwLock<Option<(Bgrt, Bmp, Vec<u8>)>> = RwLock::new(None);
+static LOGO: RwLock<Option<Logo>> = RwLock::new(None);
 
-fn read(addr: u64, len: usize) -> Vec<u8> {
+fn read(phys: u64, len: usize) -> Option<Vec<u8>> {
+    let addr = super::super::phys::directmap(phys)?;
     // SAFETY: `addr` is the directmap view of RAM firmware named as the
-    // image; `len` is bounded by MAX_IMAGE and the BMP's own size.
-    (0..len).map(|i| unsafe { core::ptr::read_volatile((addr as *const u8).add(i)) }).collect()
+    // image; `len` is bounded by the BMP's headers and MAX_IMAGE.
+    Some(
+        (0..len).map(|i| unsafe { core::ptr::read_volatile((addr as *const u8).add(i)) }).collect(),
+    )
 }
 
 pub fn parse_bgrt(registry: &mut TableRegistry) {
@@ -51,16 +53,10 @@ pub fn parse_bgrt(registry: &mut TableRegistry) {
         let len = u64::from(header.length).min(MAX_TABLE_BYTES) as usize;
         core::slice::from_raw_parts(addr as *const u8, len)
     };
-    let Some(b) = bgrt(table).filter(|b| b.image_type == IMAGE_BMP) else { return };
-    let Some(image) = super::super::phys::directmap(b.address) else { return };
-    let head = bmp(&read(image, FILE_HEADER + 40), false);
-    let Some(h) = head.filter(|h| h.file_size <= MAX_IMAGE) else {
-        crate::log_warn!("[ACPI] BGRT image is not a BMP the splash can draw; not served");
-        return;
-    };
-    let bytes = read(image, h.file_size as usize);
-    if let Some(m) = bmp(&bytes, true).filter(|m| *m == h) {
-        *LOGO.write() = Some((b, m, bytes));
+    match copy_logo(table, read) {
+        Ok(logo) => *LOGO.write() = Some(logo),
+        Err(LogoError::NoLogo) => {}
+        Err(e) => crate::log_warn!("[ACPI] BGRT logo not served: {:?}", e),
     }
 }
 
