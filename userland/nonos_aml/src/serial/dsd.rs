@@ -35,11 +35,22 @@ pub(super) const MAX: usize = 64;
 /// The device's properties, in _DSD's order; none when it has no _DSD, it
 /// fails, or it carries no device-properties set.
 pub fn properties(aml: &mut Aml, eval: &mut Eval<'_>, dev: Id) -> Vec<Property> {
+    properties_under(aml, eval, dev, &DEVICE_PROPERTIES_UUID)
+}
+
+/// The name/value pairs in the set `uuid` names: the device-properties set,
+/// or another vendor's set laid out the same way.
+pub fn properties_under(
+    aml: &mut Aml,
+    eval: &mut Eval<'_>,
+    dev: Id,
+    uuid: &[u8; 16],
+) -> Vec<Property> {
     let Some(Ok(Object::Package(dsd))) = child(aml, eval, dev, *b"_DSD", Vec::new()) else {
         return Vec::new();
     };
     let dsd = dsd.borrow();
-    let ours = |u: &Object| matches!(u, Object::Buffer(b) if *b.borrow() == DEVICE_PROPERTIES_UUID);
+    let ours = |u: &Object| matches!(u, Object::Buffer(b) if *b.borrow() == *uuid);
     let Some(i) = dsd.iter().step_by(2).position(ours) else { return Vec::new() };
     let Some(Object::Package(set)) = dsd.get(i * 2 + 1) else { return Vec::new() };
     let set = set.borrow();
