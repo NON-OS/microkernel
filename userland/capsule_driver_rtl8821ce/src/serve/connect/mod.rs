@@ -18,7 +18,7 @@
 //! (sending a directed probe only for a network the person marked hidden), runs
 //! the whole join through the association driver under the request's policy
 //! (WPA3-SAE whenever offered, WPA2 otherwise, never WPA2 for a network saved
-//! as WPA3), then installs the negotiated keys into the hardware CAM, hands
+//! as WPA3, nor after a WPA3 join that did not finish), then installs the negotiated keys into the hardware CAM, hands
 //! the data path the supplicant for the AP's later group key handshakes, and
 //! records the association. A disconnect tells the AP, drops the association
 //! and clears the keys.
