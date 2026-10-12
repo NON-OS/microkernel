@@ -3780,6 +3780,27 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_ucsi_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_ucsi/src/capability.rs",
+   "userland/nonos_ucsi/src/command.rs",
+   "userland/nonos_ucsi/src/exchange.rs",
+   "userland/nonos_ucsi/src/layout.rs",
+   "userland/nonos_ucsi/src/poll.rs",
+   "userland/nonos_ucsi/src/ppm.rs",
+   "userland/nonos_ucsi/src/recover.rs",
+   "userland/nonos_ucsi/src/serve.rs",
+   "userland/nonos_ucsi/src/session.rs",
+   "userland/nonos_ucsi/src/start.rs",
+   "userland/nonos_ucsi/src/status.rs",
+   "userland/nonos_ucsi/src/storm.rs",
+   "userland/nonos_ucsi_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_wifi_core_proofs": {
   "exclude": [],
   "include": [
