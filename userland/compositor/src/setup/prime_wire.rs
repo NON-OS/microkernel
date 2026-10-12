@@ -18,8 +18,10 @@
 //! the legacy ops (0x0C, then 0x08/0x09/0x0A each frame); any other answer
 //! to CAPS that is not CAPS is a driver not ready. Otherwise SURFACE, which
 //! makes this compositor the owner (a restarted compositor gets its surface
-//! back), and the primary is attached, then every further output's.
+//! back), and the primary is attached, then every further output's. With
+//! HW_CURSOR the pointer goes on the device's plane (`hw_cursor`).
 
+use nonos_gfx_wire::body::caps::HW_CURSOR;
 use nonos_gfx_wire::errno::ENOSYS;
 
 use super::attach_primary::attach_primary;
@@ -42,7 +44,9 @@ pub fn prime(ep: GfxEndpoint) -> Result<Context, &'static str> {
     ctx.first_scanout_done = true;
     let (name, serial, pid, physical_mm) = (ep.name, s.serial, ep.pid, caps.physical_mm);
     let outputs = caps.outputs;
-    ctx.wire = Some(WireLink { name, serial, pid, physical_mm, outputs, stale: false });
+    let cursor_offset = if caps.flags & HW_CURSOR != 0 { s.cursor_offset } else { 0 };
+    let stale = false;
+    ctx.wire = Some(WireLink { name, serial, pid, physical_mm, outputs, stale, cursor_offset });
     ctx.heads = super::heads::prime_heads(ep.port, outputs);
     Ok(ctx)
 }
