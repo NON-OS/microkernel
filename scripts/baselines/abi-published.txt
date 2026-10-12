@@ -1,6 +1,7 @@
 caps.bits ADMIN 512
 caps.bits APP_INSTALL 1073741824
 caps.bits ATTEST_READ 2147483648
+caps.bits CAMERA_CAPTURE 137438953472
 caps.bits CORE_EXEC 1
 caps.bits CRYPTO 32
 caps.bits DEBUG 256
@@ -25,6 +26,7 @@ caps.bits IRQ 262144
 caps.bits KEYRING 268435456
 caps.bits LOCAL_SIGN 8589934592
 caps.bits MEMORY 16
+caps.bits MICROPHONE_CAPTURE 274877906944
 caps.bits MMIO 131072
 caps.bits NETWORK 4
 caps.bits PIO 1048576

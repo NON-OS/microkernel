@@ -69,3 +69,7 @@ pub const CAP_STREAM_IMPORT: u64 = 17179869184;
 pub const CAP_DEVICE_SECRET: u64 = 34359738368;
 /// Drain the raw input ring. Held by the input router alone.
 pub const CAP_INPUT_DRAIN: u64 = 68719476736;
+/// Take frames from a camera. Held by no capsule until Decision 9.
+pub const CAP_CAMERA_CAPTURE: u64 = 137438953472;
+/// Take samples from a microphone. Held by no capsule until Decision 9.
+pub const CAP_MICROPHONE_CAPTURE: u64 = 274877906944;

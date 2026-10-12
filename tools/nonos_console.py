@@ -66,7 +66,8 @@ CAPABILITIES = [
     (1 << 26, "StoreWrite"), (1 << 27, "EnrolDevRoot"), (1 << 28, "Keyring"),
     (1 << 29, "Entropy"), (1 << 30, "AppInstall"), (1 << 31, "AttestRead"),
     (1 << 32, "ForeignExec"), (1 << 33, "LocalSign"), (1 << 34, "StreamImport"),
-    (1 << 35, "DeviceSecret"), (1 << 36, "InputDrain"),
+    (1 << 35, "DeviceSecret"), (1 << 36, "InputDrain"), (1 << 37, "CameraCapture"),
+    (1 << 38, "MicrophoneCapture"),
 ]
 SCARCE = {"Admin", "RegisterService", "GfxPresent", "TimeSet",
           "SpawnBroker", "SpawnWindow", "ProcessControl"}

@@ -51,6 +51,8 @@ Syscalls it admits lists every call whose cap table gate names the capability, a
 | 34 | `0x400000000` | `StreamImport` | `STREAM_IMPORT` | Stream a file into the data volume, kept only if it hashes to the digest named first. Grants no read. | `MDFB`, `MDFD`, `MDRM` |
 | 35 | `0x800000000` | `DeviceSecret` | `DEVICE_SECRET` | Receive this machine's TPM-derived device secret and its boot slots, and run enrolment's TPM half. | `MDVS`, `MBSL`, `MENR` |
 | 36 | `0x1000000000` | `InputDrain` | `INPUT_DRAIN` | Drain and wait on the input ring, which carries every key typed. Held by `input_router` alone (`scripts/check_input_drain_cap.py`). | `MIED`, `MIEW` |
+| 37 | `0x2000000000` | `CameraCapture` | `CAMERA_CAPTURE` | Take frames from a camera. The kernel gates no call with it; the USB stack and the compositor's indicator check a peer with `MkCapCheck`. Held by no capsule until Decision 9 (`scripts/check_capture_caps.py`). | none |
+| 38 | `0x4000000000` | `MicrophoneCapture` | `MICROPHONE_CAPTURE` | Take samples from a microphone, checked as `CameraCapture` is by the audio service and the indicator. Held by no capsule until Decision 9. | none |
 
 ## Checks outside the syscall table
 

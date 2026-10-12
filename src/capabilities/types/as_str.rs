@@ -56,6 +56,8 @@ impl Capability {
             Self::StreamImport => "StreamImport",
             Self::DeviceSecret => "DeviceSecret",
             Self::InputDrain => "InputDrain",
+            Self::CameraCapture => "CameraCapture",
+            Self::MicrophoneCapture => "MicrophoneCapture",
         }
     }
 }
