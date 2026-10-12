@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One log line per error record: its severity, where it came from, and
-//! what the section says.
+//! One log line per error record: where it came from, its severity, the
+//! section's type and the error's type.
 
 use crate::sys::log::Line;
 use nonos_aml::apei::{record, Entry, Record};
@@ -29,38 +29,21 @@ pub fn severity(s: u32) -> &'static [u8] {
     }
 }
 
+/// Source, severity, section type and error type: never an address, a
+/// device's position or a record's raw bytes.
 pub fn say(prefix: &[u8], e: &Entry) {
     let l = Line::new(prefix).str(severity(e.severity)).str(b": ");
     match record(&e.section, &e.data) {
-        Record::Processor { error_type, level, processor } => {
-            let l = l
-                .str(b"processor type ")
-                .hex(u64::from(error_type))
-                .str(b" level ")
-                .dec(u64::from(level));
-            match processor {
-                Some(p) => l.str(b" cpu ").hex(p).end(),
-                None => l.end(),
-            }
+        Record::Processor { error_type, level } => {
+            let l = l.str(b"processor, type ").hex(u64::from(error_type));
+            l.str(b" level ").dec(u64::from(level)).end()
         }
-        Record::Memory { address, node, card, module, bank, kind } => {
-            let l = match address {
-                Some(a) => l.str(b"memory at ").hex(a),
-                None => l.str(b"memory"),
-            };
-            let l = l.str(b" node ").dec(u64::from(node)).str(b" card ").dec(u64::from(card));
-            let l = l.str(b" module ").dec(u64::from(module)).str(b" bank ").dec(u64::from(bank));
-            l.str(b" type ").dec(u64::from(kind)).end()
+        Record::Memory { kind: Some(k) } => l.str(b"memory, type ").dec(u64::from(k)).end(),
+        Record::Memory { kind: None } => l.str(b"memory, type not given").end(),
+        Record::Pcie { uncorrectable: Some(u) } => {
+            l.str(b"pcie, uncorrectable ").hex(u64::from(u)).end()
         }
-        Record::Pcie { segment, bus, device, function, vendor, id, uncorrectable } => {
-            let l = l.str(b"pcie ").hex(u64::from(segment)).str(b":").hex(u64::from(bus)).str(b":");
-            let l = l.hex(u64::from(device)).str(b".").dec(u64::from(function)).str(b" ");
-            let l = l.hex(u64::from(vendor)).str(b":").hex(u64::from(id));
-            match uncorrectable {
-                Some(u) => l.str(b" uncorrectable ").hex(u64::from(u)).end(),
-                None => l.end(),
-            }
-        }
+        Record::Pcie { uncorrectable: None } => l.str(b"pcie, status not given").end(),
         Record::Other => l.str(b"section of an unread type").end(),
     }
 }

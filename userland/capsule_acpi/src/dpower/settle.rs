@@ -20,15 +20,12 @@
 
 use super::hidden::Bdf;
 use crate::boot::{evaluator, path, Acpi};
-use crate::sys::acpi_holds::holds;
+use crate::sys::acpi_holds::claimed_by_anyone;
 use crate::sys::clock::now_ms;
 use crate::sys::log::Line;
 use alloc::vec::Vec;
 use nonos_aml::device_power::settle;
 use nonos_aml::namespace::Id;
-
-/// Asked for pid 0, MkAcpiHolds says whether anyone holds the function.
-const ANYONE: u32 = 0;
 
 #[derive(Default)]
 pub struct Hidden {
@@ -45,7 +42,7 @@ pub fn tick(acpi: &mut Acpi) {
     let answered = acpi.hidden.answered.clone();
     let ids: Vec<Id> = answered.iter().map(|(d, _)| *d).collect();
     let bdf = |d: Id| answered.iter().find(|(x, _)| *x == d).map(|(_, f)| *f);
-    let mut claimed = |d: Id| bdf(d).is_some_and(|f| holds(ANYONE, f) == Ok(true));
+    let mut claimed = |d: Id| bdf(d).is_some_and(|f| claimed_by_anyone(f) == Ok(true));
     let Acpi { aml, host, dpower, cooling, .. } = acpi;
     let down = settle(dpower, &mut cooling.pool, aml, &mut evaluator(host), &ids, &mut claimed);
     for d in &down {

@@ -32,7 +32,7 @@ use super::find::device_at;
 use super::moves::{current, move_to};
 use crate::boot::{path, Acpi};
 use crate::server::protocol::{EINVAL, ENOENT, EPERM};
-use crate::sys::function_of::{function_of, ANYONE};
+use crate::sys::function_of::{function_of, Asker};
 use alloc::vec::Vec;
 use nonos_aml::device_power::{power_managed, DState};
 
@@ -45,7 +45,7 @@ pub fn device_power(acpi: &mut Acpi, req: &[u8], sender: u32) -> (i32, Vec<u8>) 
     let (verb, state) = (r[0], DState::from_wire(r[1]));
     let mut id = [0u8; 8];
     id.copy_from_slice(&r[2..10]);
-    let asker = if verb == SET { sender } else { ANYONE };
+    let asker = if verb == SET { Asker::Holder(sender) } else { Asker::Capsule };
     let bdf = match function_of(asker, u64::from_le_bytes(id)) {
         Ok(f) => f,
         Err(e) => return (if e == EPERM as i64 { EPERM } else { ENOENT }, Vec::new()),
