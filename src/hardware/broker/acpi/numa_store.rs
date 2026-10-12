@@ -25,6 +25,7 @@ use super::kernel::platform::fw;
 use super::numa_node::{bus_domain, BusRange, Region};
 use super::platform_paths::named;
 use alloc::vec::Vec;
+pub use fw::parser::other::hmat_query::HmatValue;
 use fw::parser::other::srat_entry::Handle;
 use spin::Mutex;
 
@@ -58,6 +59,11 @@ pub fn device_domain(device_id: u64) -> Option<u32> {
 pub fn regions() -> Vec<Region> {
     let r = fw::numa_regions().into_iter();
     r.map(|m| Region { base: m.base, len: m.length, domain: m.proximity_domain }).collect()
+}
+
+/// HMAT's value for this hierarchy level and data type.
+pub fn hmat(level: u8, kind: u8, from: u32, to: u32) -> Option<HmatValue> {
+    fw::parser::other::hmat_value(level, kind, from, to)
 }
 
 pub fn distance(from: u32, to: u32) -> Option<u8> {

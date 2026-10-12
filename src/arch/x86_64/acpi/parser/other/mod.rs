@@ -18,6 +18,10 @@ mod dmar;
 pub mod dmar_scope;
 mod ivrs;
 pub mod ivrs_walk;
+mod hmat_decode;
+mod hmat_load;
+pub mod hmat_entry;
+pub mod hmat_query;
 mod hpet;
 mod ivhd_entry;
 mod ivhd_kind;
@@ -33,6 +37,7 @@ pub use dmar::{foreign_segment_units, parse_dmar, remap_unit_bases, remap_unit_s
 pub use dmar_scope::{translated_by_some, UnitScope};
 pub use hpet::parse_hpet;
 pub use ivrs::{amd_iommu_bases, amd_iommu_spans, parse_ivrs};
+pub use hmat_load::{hmat_attached_initiator, hmat_value, parse_hmat};
 pub use mcfg::parse_mcfg;
 pub use numa_extra::{numa_distance, numa_initiators, parse_slit};
 pub use srat::parse_srat;
