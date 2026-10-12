@@ -29,6 +29,7 @@ mod irq_wait;
 mod mmio;
 mod mmio_access;
 mod pci;
+mod pci_update;
 mod pio;
 mod types;
 
@@ -56,6 +57,7 @@ pub use pci::{
     MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE, MK_PCI_MSIX_CTRL_ENABLE,
     MK_PCI_MSIX_CTRL_FUNCTION_MASK,
 };
+pub use pci_update::{mk_pci_config_update, MK_PCI_CFG_MASK_SHIFT};
 pub use pio::{mk_pio_grant, mk_pio_read, mk_pio_release, mk_pio_write};
 pub use types::{
     Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut, PioGrantOut, BAR_FLAG_FIXED,
