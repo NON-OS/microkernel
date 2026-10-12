@@ -38,30 +38,29 @@ runs:
   cryptography](../security/randomness-and-cryptography.md#who-may-call-them)
   describes the same direct path to the entropy and crypto services.
 - `IO` and `Hardware` are marked "Enforces nothing" in the table itself
-  (`src/capabilities/types/defs.rs:23-31`).
+  (`src/capabilities/types/defs.rs:21-29`).
 
 ## Rules the predicates add
 
-- `Admin` stands in for `Driver`, `Mmio`, `Irq`, `Dma`, `Pio` and `InputSource`:
-  each predicate, from `can_driver` to `can_input_consumer`, accepts either
-  (`src/capabilities/token/types/authority_broker.rs:24-73`). It also stands in
-  for `DeviceEnum` when listing devices and for `SpawnWindow`, through
-  `can_device_enum` and `can_spawn_window`
+- `Admin` stands in for `DeviceEnum` when listing devices and for `SpawnWindow`,
+  through `can_device_enum` and `can_spawn_window`
   (`src/capabilities/token/types/authority_admin.rs:30-42`), and for
   `ProcessControl` in `sys_kill`, which reads the caller's bits itself
-  (`src/syscall/microkernel/kill.rs:45-51`).
+  (`src/syscall/microkernel/kill.rs:45-51`). It stands in for no broker or input
+  bit: each predicate from `can_driver` to `can_input_consumer` asks for its own
+  (`src/capabilities/token/types/authority_broker.rs:29-66`).
 - `Admin` does not imply `EnrolDevRoot`: `can_enrol_dev_root` asks for that bit
   alone (`src/capabilities/token/types/authority_admin.rs:43-52`). It does not
   stand in for `DeviceEnum` on `MISR`, since `can_install_source` asks for
   `DeviceEnum` alone (`src/syscall/caps/checks/hardware.rs:28-31`). It does not
   open the full process table, since `sees_all` asks for `AttestRead` or
-  `ProcessControl` (`src/syscall/microkernel/procstat_redact.rs:29-33`). The PCI
-  configuration calls pass the gate with `Admin`, but `sys_pci_config_read` and
-  `sys_pci_config_write` then ask for `Driver` themselves
-  (`src/syscall/microkernel/pci.rs:28-35`).
-- `Irq` lets a driver post input events but not read them: `can_input_source`
-  accepts `Irq`, and `can_input_consumer`, which gates draining and waiting,
-  does not (`src/capabilities/token/types/authority_broker.rs:55-73`).
+  `ProcessControl` (`src/syscall/microkernel/procstat_redact.rs:29-33`).
+  `sys_pci_config_read` and `sys_pci_config_write` ask for `Driver` once more
+  themselves (`src/syscall/microkernel/pci.rs:28-35`).
+- The input ring has two rights: `can_input_source` takes `InputSource` to post,
+  and `can_input_consumer` takes `InputConsumer` to drain and wait; `Irq`, which
+  every driver holds, opens neither
+  (`src/capabilities/token/types/authority_broker.rs:52-66`).
 - `can_attest_doc` refuses a caller that holds `Network`, whatever else it
   holds, because a TPM quote names the machine for good
   (`src/syscall/caps/checks/system.rs:42-52`).
