@@ -33,6 +33,11 @@ pub enum Delivery {
 }
 
 impl Router {
+    /// The armed pins not masked.
+    fn live(&self) -> Vec<u16> {
+        self.bindings.iter().filter(|b| !b.masked).map(|b| b.pin).collect()
+    }
+
     pub fn interrupt(&mut self, ctl: &mut impl Controller, now_ms: u64) -> Vec<Delivery> {
         let pending = ctl.take_pending(&self.live());
         let mut out = Vec::new();
