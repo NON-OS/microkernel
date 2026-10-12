@@ -18,13 +18,17 @@
 //! sits on: the same claim test for a PCI function and an ACPI-bus device.
 
 use super::super::claim;
-use super::claim_holder::Asker;
+use super::claim_holder::{tgid, Asker};
+use super::same_group::same_holder;
 
 /// Whether the asker may hear about the device: a look always may, a
-/// holder only for the device it holds. One claim test for every bus.
+/// holder only for the device its process holds. One claim test for
+/// every bus.
 pub fn answers(asker: Asker, device_id: u64) -> bool {
     match asker {
         Asker::Anyone => true,
-        Asker::Holder(pid) => claim::lookup(device_id).map(|c| c.pid) == Some(pid),
+        Asker::Holder(pid) => {
+            claim::lookup(device_id).is_some_and(|c| same_holder(c.pid, pid, tgid))
+        }
     }
 }

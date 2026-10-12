@@ -30,3 +30,5 @@ pub mod mmio;
 mod bars_tests;
 #[cfg(test)]
 mod round_trip_tests;
+#[cfg(test)]
+mod same_group_tests;

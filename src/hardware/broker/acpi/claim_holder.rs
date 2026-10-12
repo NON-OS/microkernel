@@ -20,6 +20,12 @@
 //! value with a meaning of its own.
 
 use super::super::{claim, pci_index};
+use super::same_group::same_holder;
+
+/// The process table's thread group for `pid`, for `same_holder`.
+pub fn tgid(pid: u32) -> Option<u32> {
+    crate::process::with_process(pid, |pcb| pcb.thread_group_id())
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Asker {
@@ -40,7 +46,7 @@ pub fn holds(asker: Asker, bdf: (u16, u8, u8, u8)) -> Option<bool> {
     let holder = claim::lookup(h.device_id).map(|c| c.pid);
     Some(match asker {
         Asker::Anyone => holder.is_some(),
-        Asker::Holder(pid) => holder == Some(pid),
+        Asker::Holder(pid) => holder.is_some_and(|h| same_holder(h, pid, tgid)),
     })
 }
 
@@ -60,7 +66,7 @@ pub fn function_of_device(
 ) -> Result<(u16, u8, u8, u8), FunctionError> {
     let h = pci_index::lookup(device_id).ok_or(FunctionError::NotPci)?;
     if let Asker::Holder(pid) = asker {
-        if claim::lookup(device_id).map(|c| c.pid) != Some(pid) {
+        if !claim::lookup(device_id).is_some_and(|c| same_holder(c.pid, pid, tgid)) {
             return Err(FunctionError::NotHolder);
         }
     }

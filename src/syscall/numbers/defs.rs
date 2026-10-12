@@ -40,6 +40,7 @@ pub enum SyscallNumber {
     MkIpcReply = tag4(b"MIRY"),
     MkIpcSendToPid = tag4(b"MISP"),
     MkServiceLookup = tag4(b"MSVL"),
+    MkThreadGroup = tag4(b"MTGR"),
     MkServiceRegister = tag4(b"MSVR"),
     MkMmap = tag4(b"MMAP"),
     MkMunmap = tag4(b"MUMP"),

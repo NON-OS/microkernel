@@ -17,6 +17,7 @@
 mod call;
 mod inbox_name;
 mod lookup;
+mod thread_group;
 mod pending_reply;
 mod recv;
 mod recv_from;
@@ -32,6 +33,7 @@ mod sender_pid;
 
 pub use call::sys_ipc_call;
 pub use lookup::sys_service_lookup;
+pub use thread_group::sys_thread_group;
 pub(crate) use pending_reply::clear_pid as release_pending_replies_for_pid;
 pub use recv::sys_ipc_recv;
 pub use recv_from::sys_ipc_recv_from;
