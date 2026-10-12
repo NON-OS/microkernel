@@ -29,4 +29,8 @@ pub struct Bank {
     pub router: Router,
     /// `_AEI` pins armed level-triggered: masked while their method runs.
     pub level_aei: Vec<u16>,
+    /// The controller's interrupt grant, 0 when its line is not bound.
+    pub grant: u64,
+    /// The grant's delivery count when the pins were last read.
+    pub seq: u64,
 }
