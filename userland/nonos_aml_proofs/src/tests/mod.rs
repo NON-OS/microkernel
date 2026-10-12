@@ -15,6 +15,7 @@ mod control_tests;
 mod convert_tests;
 mod cooling;
 mod corpus;
+mod cpu;
 mod coverage_tests;
 mod debug_tests;
 mod ec;
