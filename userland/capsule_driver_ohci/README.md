@@ -28,7 +28,7 @@ class driver --NXHC--> driver.ohci0 --MMIO grant, DMA region--> OHCI --> devices
 - `MkMmioMap` maps BAR0. Firmware's SMM driver, when it owns the
   controller, is asked to give it up (OwnershipChangeRequest), and legacy
   keyboard emulation is turned off through HceControl.
-- `MkDmaMap` maps one 12 KiB coherent region below 4 GiB: the HCCA, the
+- `MkDmaMap` maps one 68 KiB coherent region below 4 GiB: the HCCA, the
   EDs, the TDs and every buffer.
 
 ## Interface contract
@@ -40,7 +40,7 @@ endpoint (9) and its reads (0xE), control transfer (0xB), bulk configure
 (0x10), OUT (0x11), IN (0x12), reset (0x13) and the polled bulk IN (0x14).
 Port status is in xHCI PORTSC form: connected, enabled, speed 1 full or 2
 low, connect change. Hub and isochronous ops answer -22. A bulk IN while
-the polled IN is armed answers -16, as does another slot's poll. Errors:
+the polled IN is armed answers -16; each root port polls on its own. Errors:
 -5 bus or timeout, -11 nothing yet, -16 busy, -22 malformed, -32 STALL.
 
 ## Authority
@@ -99,7 +99,7 @@ and on AMD, SiS, NEC and Apple chipsets' USB 1.1 ports.
 
 ## Release evidence
 
-`ohci_proofs` on the host (36 tests). No boot yet.
+`ohci_proofs` on the host (37 tests). No boot yet.
 
 ## Release checklist
 
