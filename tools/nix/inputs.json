@@ -5413,6 +5413,16 @@
   "md": [],
   "signed": []
  },
+ "userland/uvc_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_uvc",
+   "userland/uvc_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/virtio_blk_proofs": {
   "exclude": [],
   "include": [
