@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! The host wire, as every USB host serves it: a 20-byte header (magic,
 //! version, op, request id, payload length), then the body; a reply's
 //! payload starts with its status.

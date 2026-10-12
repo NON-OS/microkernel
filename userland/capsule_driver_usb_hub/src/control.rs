@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! A control transfer on a slot's EP0 over the host wire: the setup and
 //! any OUT data in the request, an IN request's bytes after the reply's
 //! length.

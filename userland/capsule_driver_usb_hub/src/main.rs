@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! driver.usb_hub0: the one walker of every USB hub. It finds hubs on the
 //! root ports of every USB host and below them, addresses each other device
 //! it finds below a hub, and parks it with the host, which lists it beside

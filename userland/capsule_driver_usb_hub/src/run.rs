@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! The walker's loop: the USB hosts looked up (a host that registers later
 //! is looked up at every pass), then, on every host, its root ports looked
 //! at for hubs and every hub's ports walked; between passes the service

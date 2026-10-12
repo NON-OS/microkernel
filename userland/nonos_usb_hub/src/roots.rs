@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! driver.usb_hub0's look at a host's root ports: a hub found on one is
 //! configured and kept for the walk, any other device is given back at
 //! once for the class drivers, and a root port that empties or changes

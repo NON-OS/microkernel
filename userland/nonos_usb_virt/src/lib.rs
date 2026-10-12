@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! The devices below hubs as a host lists them. driver.usb_hub0 walks
 //! the hubs and parks each child it addresses (OP_PARK); the host lists
 //! the child beside its root ports in PORT_STATUS as a virtual port, and

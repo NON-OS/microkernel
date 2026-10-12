@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! OP_PARK (0x22), from driver.usb_hub0 only, once it has addressed a
 //! child with OP_ADDRESS_ROUTED: `slot u8, parent slot u8, parent port u8,
 //! speed u8, route u32 le, TT hub slot u8, TT port u8, EP0 size u16 le`
