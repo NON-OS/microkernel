@@ -17,6 +17,7 @@
 pub mod attach;
 pub mod attach_kernel;
 pub mod context;
+pub mod context_new;
 pub mod cursor;
 pub mod damage;
 pub mod focus;
@@ -29,6 +30,7 @@ pub mod visible;
 
 pub use attach::AttachCache;
 pub use context::Context;
+pub use context_new::Primary;
 pub use cursor::CursorTracker;
 pub use damage::DamageAccumulator;
 pub use focus::FocusTable;

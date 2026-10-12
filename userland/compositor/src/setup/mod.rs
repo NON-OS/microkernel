@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod attach_primary;
 mod canvas;
 mod canvas_floor;
 mod canvas_release;
 mod canvas_scale;
 mod discover;
+mod gop_backing;
 mod panel_mm;
 mod prime;
 mod prime_gop;
