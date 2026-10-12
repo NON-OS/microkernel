@@ -23,10 +23,14 @@ extern crate alloc;
 pub mod policy;
 #[path = "props.rs"]
 pub mod props;
+#[path = "../../capsule_acpi/src/aei/rate.rs"]
+pub mod rate;
 
 #[cfg(test)]
 mod policy_tests;
 #[cfg(test)]
 mod props_tests;
+#[cfg(test)]
+mod rate_tests;
 #[cfg(test)]
 mod thread_tests;

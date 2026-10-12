@@ -22,6 +22,7 @@
 
 extern crate alloc;
 
+mod aei;
 mod apei;
 mod backlight;
 mod boot;

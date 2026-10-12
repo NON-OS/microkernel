@@ -45,7 +45,6 @@ pub fn boot() -> Option<Acpi> {
     let serial = crate::serial::find(&devices, &mut aml, &mut host);
     let legacy = crate::legacy::find(&t.fadt, &devices, &mut aml, &mut host);
     let apei = crate::apei::start(&devices);
-    let (scis, gpe_runs) = (0, 0);
     let mut acpi = Acpi {
         aml,
         host,
@@ -65,10 +64,11 @@ pub fn boot() -> Option<Acpi> {
         apei,
         smbios,
         typec: None,
+        aei: Default::default(),
         devices,
         routes,
-        scis,
-        gpe_runs,
+        scis: 0,
+        gpe_runs: 0,
     };
     super::late::late(&mut acpi);
     Some(acpi)
