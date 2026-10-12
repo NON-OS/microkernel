@@ -18,7 +18,10 @@
 //! is shared, so a change to it is stale in every unit's caches, and a
 //! command for a device behind another unit is a harmless no-op.
 
-use super::command::{invalidate_all, invalidate_devtab_entry, invalidate_domain_pages, Command};
+use super::command::{
+    invalidate_all, invalidate_devtab_entry, invalidate_domain_pages, invalidate_interrupt_table,
+    Command,
+};
 use super::error::AmdViError;
 use super::regs;
 use super::submit::submit;
@@ -35,6 +38,11 @@ pub(super) fn submit_all(batch: &[Command]) -> Result<(), AmdViError> {
 
 pub fn flush_device(device_id: u16) -> Result<(), AmdViError> {
     submit_all(&[invalidate_devtab_entry(device_id)])
+}
+
+/// The entry, then the remapping entries it names, after either changed.
+pub(super) fn flush_interrupts(device_id: u16) -> Result<(), AmdViError> {
+    submit_all(&[invalidate_devtab_entry(device_id), invalidate_interrupt_table(device_id)])
 }
 
 pub fn flush_domain(domain: u16) -> Result<(), AmdViError> {

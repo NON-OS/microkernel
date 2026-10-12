@@ -18,6 +18,6 @@ mod entry;
 mod stray;
 mod table;
 
-pub(super) use entry::{read_dte, write_dte};
+pub(super) use entry::{read_dte, update_dte};
 pub(super) use stray::deny_stray_writers;
 pub(super) use table::device_table;

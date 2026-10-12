@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Invalidating one domain instead of every one, and only when a change
-//! owes it: the descriptor and register encodings against Linux's, and the
-//! rule a commit follows.
+//! owes it: the descriptor and register encodings against VT-d 6.5.2, and
+//! the rule a commit follows.
 
 use super::descriptor::{iotlb_domain, iotlb_global};
 use super::flush_rule::invalidates;
