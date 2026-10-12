@@ -22,6 +22,10 @@
 extern crate alloc;
 
 #[cfg(test)]
+pub mod acpi_region;
+#[cfg(test)]
+pub mod acpi_tables;
+#[cfg(test)]
 pub mod addr_align;
 #[cfg(test)]
 pub mod aer_decode;
