@@ -22,7 +22,7 @@ mod state;
 pub use collect::{
     collect_seed_entropy, collect_seed_entropy_secure, get_entropy64, get_entropy64_secure,
     get_tsc_entropy, has_adequate_entropy, init_entropy, mark_bootloader_entropy_provided,
-    mix_entropy_into_seed, verify_entropy_sources,
+    mix_entropy_into_seed, report_entropy_sources, verify_entropy_sources,
 };
 pub use error::EntropyError;
 pub use hardware::{cpu_entropy64, cpu_random64, has_cpu_entropy, has_cpu_random};
