@@ -29,6 +29,7 @@ impl Session {
         now_ms: u64,
         env: &mut E,
     ) -> Result<(), HciError> {
+        self.answered(host, now_ms, env)?;
         if let Some(step) = self.smp.as_mut().map(|smp| smp.poll(now_ms)) {
             self.smp_step(host, step, env)?;
         }

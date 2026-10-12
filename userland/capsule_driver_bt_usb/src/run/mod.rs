@@ -15,16 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bonds;
+mod desk;
 mod draw;
 mod drive;
 mod ended;
 mod env;
+mod env_desk;
 mod finder;
 mod kept;
 mod links;
 mod probe;
 mod say;
-mod wait;
+mod serve;
 
+pub use desk::Desk;
 pub use drive::run;
-pub use wait::pause;

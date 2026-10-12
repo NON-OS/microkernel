@@ -19,11 +19,13 @@
 //! when it stops. Either way they last for this boot only (Decision 27):
 //! nothing here survives a reboot.
 
+use super::desk::Desk;
 use super::draw::{draw16, fresh_irk};
 use super::env::CapsuleEnv;
 use super::kept::Kept;
 use super::say::say;
 use crate::hid::Keys;
+use crate::nbtc::Board;
 use crate::ring::connect;
 use nonos_bt_bond::{BondError, LocalIrk, MemoryKeys, Store};
 use nonos_libc::mk_exit;
@@ -35,8 +37,8 @@ pub fn environment() -> (CapsuleEnv, LocalIrk) {
         say(&[b"no bond store could be opened; stopping"]);
         mk_exit(4)
     };
-    let mut env = CapsuleEnv { keys: Keys::default(), bonds };
-    let irk = env.bonds.local_irk(draw16).unwrap_or_else(|_| fresh_irk());
+    let env = CapsuleEnv { keys: Keys::default(), desk: Desk::new(Board::new(bonds)) };
+    let irk = env.desk.board().bonds.local_irk(draw16).unwrap_or_else(|_| fresh_irk());
     (env, irk)
 }
 

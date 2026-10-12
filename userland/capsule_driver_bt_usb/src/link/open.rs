@@ -63,6 +63,7 @@ impl Session {
             end: None,
             bond: None,
             peer,
+            waiting: None,
         }
     }
 }
