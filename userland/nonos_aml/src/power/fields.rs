@@ -21,9 +21,9 @@
 use crate::object::{Object, Pkg};
 use alloc::vec::Vec;
 
-pub(super) const UNKNOWN: u64 = 0xFFFF_FFFF;
+pub(crate) const UNKNOWN: u64 = 0xFFFF_FFFF;
 
-pub(super) fn elements(o: &Object) -> Option<Vec<Object>> {
+pub(crate) fn elements(o: &Object) -> Option<Vec<Object>> {
     match o {
         Object::Package(p) => Some(Pkg::clone(p).borrow().clone()),
         _ => None,
@@ -31,7 +31,7 @@ pub(super) fn elements(o: &Object) -> Option<Vec<Object>> {
 }
 
 /// An integer element, None when it is missing, not an integer, or unknown.
-pub(super) fn known(e: &[Object], i: usize) -> Option<u32> {
+pub(crate) fn known(e: &[Object], i: usize) -> Option<u32> {
     match e.get(i)? {
         Object::Integer(v) if *v & UNKNOWN != UNKNOWN => u32::try_from(*v).ok(),
         _ => None,
@@ -39,7 +39,7 @@ pub(super) fn known(e: &[Object], i: usize) -> Option<u32> {
 }
 
 /// A string element, up to its NUL; empty when it is anything else.
-pub(super) fn text(e: &[Object], i: usize) -> Vec<u8> {
+pub(crate) fn text(e: &[Object], i: usize) -> Vec<u8> {
     match e.get(i) {
         Some(Object::String(s) | Object::Buffer(s)) => {
             s.borrow().iter().copied().take_while(|b| *b != 0).take(64).collect()

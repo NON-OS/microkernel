@@ -18,7 +18,7 @@
 //! decoded, and the charge they amount to.
 
 mod bix;
-mod fields;
+pub(crate) mod fields;
 mod info;
 mod status;
 

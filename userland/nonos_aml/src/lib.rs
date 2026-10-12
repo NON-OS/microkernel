@@ -29,10 +29,13 @@ extern crate alloc;
 
 pub mod arena;
 pub mod block;
+pub mod button;
+pub mod device_power;
 pub mod ec;
 pub mod error;
 pub mod events;
 pub mod exec;
+pub mod fan;
 pub mod grammar;
 pub mod load;
 pub mod namespace;
@@ -43,3 +46,4 @@ pub mod platform;
 pub mod power;
 pub mod region;
 pub mod shape;
+pub mod thermal;

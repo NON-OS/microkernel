@@ -9,6 +9,10 @@ extern crate alloc;
 pub mod arena;
 #[path = "../../nonos_aml/src/block.rs"]
 pub mod block;
+#[path = "../../nonos_aml/src/button/mod.rs"]
+pub mod button;
+#[path = "../../nonos_aml/src/device_power/mod.rs"]
+pub mod device_power;
 #[path = "../../nonos_aml/src/ec/mod.rs"]
 pub mod ec;
 #[path = "../../nonos_aml/src/error.rs"]
@@ -17,6 +21,8 @@ pub mod error;
 pub mod events;
 #[path = "../../nonos_aml/src/exec/mod.rs"]
 pub mod exec;
+#[path = "../../nonos_aml/src/fan/mod.rs"]
+pub mod fan;
 #[path = "../../nonos_aml/src/grammar/mod.rs"]
 pub mod grammar;
 #[path = "../../nonos_aml/src/load/mod.rs"]
@@ -37,34 +43,12 @@ pub mod power;
 pub mod region;
 #[path = "../../nonos_aml/src/shape/mod.rs"]
 pub mod shape;
+#[path = "../../nonos_aml/src/thermal/mod.rs"]
+pub mod thermal;
 
 #[cfg(test)]
-mod consts;
+mod support;
 #[cfg(test)]
-mod ec_model;
-#[cfg(test)]
-mod ec_model_io;
-#[cfg(test)]
-mod enc;
-#[cfg(test)]
-mod fadt_enc;
-#[cfg(test)]
-mod flat;
-#[cfg(test)]
-mod probe;
-#[cfg(test)]
-mod probe_host;
-#[cfg(test)]
-mod probe_lock;
-#[cfg(test)]
-mod regs;
-#[cfg(test)]
-mod regs_io;
-#[cfg(test)]
-mod regs_shared;
-#[cfg(test)]
-mod rig;
-#[cfg(test)]
-mod run;
+use support::*;
 #[cfg(test)]
 mod tests;

@@ -23,4 +23,4 @@ mod osc_tests;
 mod pci_tests;
 mod pic_tests;
 mod prt_tests;
-mod run;
+pub(crate) mod run;
