@@ -74,8 +74,29 @@ pub mod sw_blitter;
 #[path = "../../compositor/src/protocol/mod.rs"]
 pub mod protocol;
 
+// What the compositor decides about a display driver on the wire: when to
+// ask a name while on GOP, what a poll does, and who may send a size hint.
+#[path = "."]
+pub mod display {
+    #[path = "../../compositor/src/display/backoff.rs"]
+    pub mod backoff;
+    #[path = "../../compositor/src/display/hint_rule.rs"]
+    pub mod hint_rule;
+    #[path = "../../compositor/src/display/link.rs"]
+    pub mod link;
+    #[path = "../../compositor/src/display/poll_rule.rs"]
+    pub mod poll_rule;
+}
+
+/// The kernel's display list and hint sources, which the compositor mounts.
+#[allow(dead_code)]
+#[path = "../../../src/services/registry/displays.rs"]
+pub mod displays;
+
 #[cfg(test)]
 mod attach_tests;
+#[cfg(test)]
+mod backoff_tests;
 #[cfg(test)]
 mod band_tests;
 #[cfg(test)]
@@ -90,6 +111,10 @@ mod floor_tests;
 mod foreign_pixel_tests;
 #[cfg(test)]
 mod frame_model;
+#[cfg(test)]
+mod hint_tests;
+#[cfg(test)]
+mod poll_tests;
 #[cfg(test)]
 mod present_retry_tests;
 #[cfg(test)]
