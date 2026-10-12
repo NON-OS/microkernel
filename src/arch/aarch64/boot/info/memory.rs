@@ -23,7 +23,8 @@ pub struct MemoryRegion {
 
 impl MemoryRegion {
     /// A zero-length entry, for padding fixed storage before it is filled.
-    pub const EMPTY: Self = Self { base: 0, size: 0, region_type: MemoryType::Reserved };
+    pub const EMPTY: Self =
+        Self { base: 0, size: 0, region_type: MemoryType::Reserved };
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
