@@ -96,6 +96,8 @@ pub mod ioapic_line_mode;
 #[cfg(test)]
 pub mod legacy_ports;
 #[cfg(test)]
+pub mod claim_holders;
+#[cfg(test)]
 pub mod claim_holds;
 #[cfg(test)]
 pub mod boot_framebuffer;
