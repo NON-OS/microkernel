@@ -20,7 +20,7 @@
 use crate::model::{Cfg, Lu, Rig};
 use crate::ufs::disk::rw::{read, write};
 use crate::ufs::error::{wire_status, UfsError};
-use crate::ufs::time::SCSI_MS;
+use crate::ufs::facts::bounds::SCSI_MS;
 
 #[test]
 fn a_write_protected_unit_refuses_with_erofs() {

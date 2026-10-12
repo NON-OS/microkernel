@@ -14,49 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bring-up in Linux's order (ufshcd_hba_enable, ufshcd_link_startup,
-//! ufshcd_make_hba_operational, ufshcd_verify_dev_init,
-//! ufshcd_complete_dev_init), then each logical unit REPORT LUNS names.
-//! The link stays in PWM-G1, one lane, as link startup leaves it: Linux
-//! then moves to a high-speed gear, which this driver does not yet do.
+//! The bring-up, stage by stage (stage.rs). The link stays in PWM-G1 on one
+//! lane, where startup leaves it; a faster gear is not yet asked for.
 
-use super::say::{failed, unit, unit_skipped};
+use super::say::failed;
+use super::stage::Stage;
+use super::units::serve;
 use crate::ufs::ctx::Ctx;
-use crate::ufs::dev::{init, nop};
-use crate::ufs::disk::{unit::open, Ufs};
+use crate::ufs::device::ready::{answers, initialised};
+use crate::ufs::disk::Ufs;
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
-use crate::ufs::hci::{caps, enable, link, lists};
-use crate::ufs::scsi::luns::{self, MAX_UNITS};
-use crate::ufs::utp::layout::Lists;
+use crate::ufs::host::caps::{self, Caps};
+use crate::ufs::host::{hce, link, queues};
+use crate::ufs::slot::layout::Lists;
 
 pub fn bring_up<H: Hw>(hw: &H, l: Lists, intel: bool) -> Result<Ufs, UfsError> {
-    enable::restart(hw).map_err(|e| failed(hw, b"host enable", e))?;
+    let at = |s: Stage| move |e| failed(hw, s.name(), e);
+    hce::restart(hw).map_err(at(Stage::Host))?;
     let caps = caps::read(hw);
+    reachable(&caps, &l).map_err(at(Stage::Dma))?;
+    link::up(hw, intel).map_err(at(Stage::Link))?;
+    queues::run(hw, l.utrl.bus, l.utmrl.bus).map_err(at(Stage::Queues))?;
+    let ctx = Ctx::new(l, caps);
+    answers(hw, &ctx).map_err(at(Stage::Answers))?;
+    initialised(hw, &ctx).map_err(at(Stage::Initialised))?;
+    serve(hw, ctx)
+}
+
+/// Every region below 4 GiB unless the host addresses 64 bits: refused
+/// before the link, rather than DMA landing at an address cut short.
+fn reachable(caps: &Caps, l: &Lists) -> Result<(), UfsError> {
     let regions = [l.utrl, l.utmrl, l.ucd, l.data];
-    if !caps.a64 && regions.iter().any(|r| r.bus + r.len as u64 > 1 << 32) {
-        return Err(failed(hw, b"DMA", UfsError::Dma32));
+    match caps.a64 || regions.iter().all(|r| r.bus + r.len as u64 <= 1 << 32) {
+        true => Ok(()),
+        false => Err(UfsError::Dma32),
     }
-    link::startup(hw, intel).map_err(|e| failed(hw, b"link startup", e))?;
-    lists::run(hw, l.utrl.bus, l.utmrl.bus).map_err(|e| failed(hw, b"transfer lists", e))?;
-    let ctx = Ctx { lists: l, caps, wedged: core::cell::Cell::new(false) };
-    nop::verify(hw, &ctx).map_err(|e| failed(hw, b"NOP OUT", e))?;
-    init::complete(hw, &ctx).map_err(|e| failed(hw, b"fDeviceInit", e))?;
-    let (found, n) = luns::report(hw, &ctx).map_err(|e| failed(hw, b"REPORT LUNS", e))?;
-    let mut units = [None; MAX_UNITS];
-    let mut served = 0;
-    for &lun in &found[..n] {
-        match open(hw, &ctx, lun) {
-            Ok(u) => {
-                unit(hw, &u);
-                units[served] = Some(u);
-                served += 1;
-            }
-            Err(e) => unit_skipped(hw, lun, e),
-        }
-    }
-    if served == 0 {
-        return Err(failed(hw, b"logical units", UfsError::NoDevice));
-    }
-    Ok(Ufs { ctx, units })
 }

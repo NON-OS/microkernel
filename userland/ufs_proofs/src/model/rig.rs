@@ -23,7 +23,7 @@ use super::sim::Model;
 use crate::ufs::bring_up::bring_up;
 use crate::ufs::disk::Ufs;
 use crate::ufs::error::UfsError;
-use crate::ufs::utp::layout::Lists;
+use crate::ufs::slot::layout::Lists;
 
 pub struct Rig {
     pub m: Model,

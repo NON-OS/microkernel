@@ -24,7 +24,7 @@ use super::serial_log::SerialLog;
 pub fn unlisted(vendor: u16, device: u16) {
     let mut l = Line::new();
     l.s(b"UFS host ").hex(vendor as u64).s(b":").hex(device as u64);
-    l.s(b" is not in ufshcd_pci_tbl, left alone");
+    l.s(b" is not in the host list, left alone");
     SerialLog.line(l.as_bytes());
 }
 

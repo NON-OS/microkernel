@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! UIC command opcodes, the result mask, and the one DME attribute this
-//! driver touches (Linux ufshci.h and unipro.h).
+//! UIC commands and the one DME attribute the engine touches. Source:
+//! JESD223 (UIC command opcodes, result in UCMDARG2) and MIPI UniPro (the
+//! attribute id), as recalled, unverified.
 
 pub const DME_GET: u32 = 0x01;
 pub const DME_SET: u32 = 0x02;
 pub const DME_LINKSTARTUP: u32 = 0x16;
-/// MASK_UIC_COMMAND_RESULT in UCMDARG2; 0 is success.
+/// The result field of UCMDARG2; 0 is success.
 pub const RESULT_MASK: u32 = 0xFF;
 
-/// PA_LOCAL_TX_LCC_ENABLE. Intel's hosts take no Line Control Commands;
-/// ufs_intel_disable_lcc clears it before every link startup.
+/// PA_Local_TX_LCC_Enable. Intel's hosts want Line Control Commands off
+/// before link startup: observed in Linux ufshcd-pci.c, unverified against
+/// Intel's documents.
 pub const PA_LOCAL_TX_LCC_ENABLE: u16 = 0x155E;
 
-/// UIC_ARG_MIB(attr): the attribute in UCMDARG1's upper half, selector 0.
+/// A local attribute in UCMDARG1: its id in the upper half, selector 0.
 pub const fn mib(attr: u16) -> u32 {
     (attr as u32) << 16
 }
