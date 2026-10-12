@@ -11,7 +11,7 @@ toggle.
 
 ## What it proves
 
-36 `#[test]` functions:
+39 `#[test]` functions:
 
 - start: the controller runs, every frame on the first interrupt queue, a
   host reset that never clears fails within its bound (`start_tests`);
@@ -25,6 +25,13 @@ toggle.
   STALL and reset (`bulk_tests`); the polled IN, two adapters side by side
   (`poll_tests`, `poll_share_tests`), one slot per port (`lane_tests`);
 - TD words, the control plan and bulk packets (`td_tests`); the wire
-  (`wire_tests`).
+  (`wire_tests`);
+- hubs, through nonos_usb_hub's own walk over this driver's wire
+  (`hub_lane.rs` and `hub_seen.rs`, shared with ohci_proofs and
+  ehci_proofs): a low-speed keyboard below a full-speed hub reporting, and
+  reaching nothing once its TDs lose the low-speed mark; a full-speed
+  stick's bulk data, the hub's root port left up when it is given back;
+  the routed op's refusals (`hub_tests`). The model's hub (`hub.rs`) and
+  bus lookup (`bus.rs`) are shared by all three host proof crates.
 
 Run with `cargo test` from this directory.

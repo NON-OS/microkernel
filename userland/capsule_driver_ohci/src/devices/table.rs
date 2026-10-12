@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The slot table. Slot `s` is device address `s`; its bulk EDs are
-//! `2(s-1)` (IN) and the one after (OUT).
+//! `2(s-1)` (IN) and the one after (OUT). held.rs says who holds a port.
 
 use crate::sched::layout::INTR_MAX;
 use crate::xfer::bulk::BulkEp;
@@ -34,6 +34,9 @@ pub struct Dev {
     pub bulk: Option<(BulkEp, BulkEp)>,
     /// The polled bulk IN is armed: the bytes it asked for.
     pub poll: Option<usize>,
+    /// Its route below the root port (0: on it), and whether it is a hub.
+    pub route: u32,
+    pub hub: bool,
 }
 
 #[derive(Default)]
@@ -56,20 +59,5 @@ impl Table {
 
     pub fn dev(&mut self, slot: u8) -> Option<&mut Dev> {
         self.devs.get_mut((slot as usize).checked_sub(1)?)?.as_mut()
-    }
-
-    /// The slot that holds `port`, if any.
-    pub fn holder(&self, port: u8) -> Option<u8> {
-        let held = |d: &Option<Dev>| d.is_some_and(|d| d.port == port);
-        self.devs.iter().position(held).map(|i| i as u8 + 1)
-    }
-
-    /// The wire's owner byte for `port`: 0 free, 1 addressed, 2 claimed.
-    pub fn owner(&self, port: u8) -> u8 {
-        match self.holder(port).and_then(|s| self.devs[s as usize - 1]) {
-            None => 0,
-            Some(d) if d.claimed => 2,
-            Some(_) => 1,
-        }
     }
 }

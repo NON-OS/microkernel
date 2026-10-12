@@ -14,18 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Addressing a device: its port reset and enabled, its first eight
-//! descriptor bytes read at address 0 for EP0's packet size, then
-//! SET_ADDRESS to the slot's number and the time the device may take to
-//! use it (USB 2.0, as recalled).
+//! Addressing a device on a root port: the port reset and enabled, then
+//! the device given its address (assign.rs).
 
+use super::assign::assign;
 use super::table::Table;
-use crate::env::{hold, Clock, Mem, Regs};
-use crate::facts::bounds::SET_ADDRESS_MS;
+use crate::env::{Clock, Mem, Regs};
 use crate::hc::port::reset;
-use crate::sched::ed::Target;
-use crate::sched::layout::CTRL_BUF;
-use crate::xfer::control::control;
 use crate::xfer::failed::CtrlError;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -51,20 +46,5 @@ pub fn address<R: Regs, C: Clock, M: Mem>(
         return Err(AddrError::Busy);
     }
     let low = reset(r, c, port).map_err(AddrError::Port)?;
-    let zero = Target { addr: 0, ep: 0, low_speed: low };
-    let get = [0x80, 6, 0, 1, 0, 0, 8, 0];
-    control((m, r, c), &mut t.ctrl_at, zero, 8, get).map_err(AddrError::Control)?;
-    let mut d = [0u8; 8];
-    m.read_bytes(CTRL_BUF, &mut d);
-    let mps0 = match d[7] {
-        8 | 16 | 32 | 64 => d[7] as u16,
-        _ => 8,
-    };
-    let set = [0, 5, slot, 0, 0, 0, 0, 0];
-    control((m, r, c), &mut t.ctrl_at, zero, mps0, set).map_err(AddrError::Control)?;
-    hold(c, SET_ADDRESS_MS);
-    if let Some(dev) = t.dev(slot) {
-        (dev.port, dev.low_speed, dev.mps0) = (port, low, mps0);
-    }
-    Ok((low, mps0))
+    assign((m, r, c), t, (slot, port), low)
 }

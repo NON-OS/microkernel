@@ -7,7 +7,8 @@ use nonos_usb_hub::{Place, Tt};
 
 use crate::env::Clock;
 use crate::facts::port::PORT_PE;
-use crate::hub_fixture::{child, tree};
+use crate::hub_fixture::tree;
+use crate::hub_seen::child;
 use crate::model::hub::HubModel;
 use crate::model::{call, Device};
 use crate::wire::ops::*;

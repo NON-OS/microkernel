@@ -18,4 +18,6 @@
 //! slot is a USB address, given at enable and taken at address time.
 
 pub mod address;
+pub mod assign;
+mod held;
 pub mod table;

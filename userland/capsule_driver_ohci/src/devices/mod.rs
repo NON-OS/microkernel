@@ -17,4 +17,6 @@
 //! The devices: the slot table, and addressing a device on a root port.
 
 pub mod address;
+pub mod assign;
+mod held;
 pub mod table;
