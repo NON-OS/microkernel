@@ -28,6 +28,8 @@ pub mod acpi_power;
 #[cfg(test)]
 pub mod acpi_region;
 #[cfg(test)]
+pub mod acpi_sleep;
+#[cfg(test)]
 pub mod acpi_tables;
 #[cfg(test)]
 pub mod addr_align;

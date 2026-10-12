@@ -18,10 +18,12 @@
 //! dispatcher's `Args`, which stays private to it.
 
 use super::{
-    sys_acpi_event, sys_acpi_pci, sys_acpi_port, sys_acpi_power, sys_acpi_region, sys_acpi_table,
+    sys_acpi_event, sys_acpi_pci, sys_acpi_port, sys_acpi_power, sys_acpi_region, sys_acpi_sleep,
+    sys_acpi_table,
 };
 use crate::syscall::microkernel::numbers::{
-    SYS_ACPI_EVENT, SYS_ACPI_PCI, SYS_ACPI_PORT, SYS_ACPI_POWER, SYS_ACPI_REGION, SYS_ACPI_TABLE,
+    SYS_ACPI_EVENT, SYS_ACPI_PCI, SYS_ACPI_PORT, SYS_ACPI_POWER, SYS_ACPI_REGION, SYS_ACPI_SLEEP,
+    SYS_ACPI_TABLE,
 };
 
 pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
@@ -32,6 +34,7 @@ pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
         SYS_ACPI_PCI => sys_acpi_pci(a0, a1, a2, a3),
         SYS_ACPI_POWER => sys_acpi_power(a0),
         SYS_ACPI_EVENT => sys_acpi_event(a0, a1),
+        SYS_ACPI_SLEEP => sys_acpi_sleep(a0, a1, a2),
         _ => return None,
     })
 }
