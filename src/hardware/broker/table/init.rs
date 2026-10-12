@@ -53,10 +53,15 @@ pub(in crate::hardware::broker) fn register_platform_device(mut record: DeviceRe
 /// A PCI function that answered only after firmware powered it up (`_PS0`),
 /// added after the boot scan under the next free id, with its index handle.
 #[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
-pub(in crate::hardware::broker) fn add_pci_function(dev: &PciDevice) -> u64 {
+/// `disabled` marks a function no driver may claim (its BARs unassigned).
+pub(in crate::hardware::broker) fn add_pci_function(dev: &PciDevice, disabled: bool) -> u64 {
     let mut table = TABLE.write();
     let id = table.iter().map(|r| r.device_id).max().map_or(0, |m| m + 1);
-    table.push(record_from_pci(id, dev));
+    let mut record = record_from_pci(id, dev);
+    if disabled {
+        record.flags |= crate::hardware::broker::DEVICE_FLAG_DISABLED;
+    }
+    table.push(record);
     let (address, bars, msi, msix) = (dev.address, dev.bars, dev.msi, dev.msix);
     pci_index::push(PciHandle { device_id: id, address, bars, msi, msix });
     id
