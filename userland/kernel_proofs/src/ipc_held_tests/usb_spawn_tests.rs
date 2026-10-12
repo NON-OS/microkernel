@@ -35,3 +35,23 @@ fn each_host_spawns_where_its_own_controller_is() {
         }
     }
 }
+
+/// The hub walker starts after the hosts and before the class drivers,
+/// wherever a USB host is, and registers the name the hosts are held to.
+#[test]
+fn the_hub_walker_starts_between_the_hosts_and_the_class_drivers() {
+    let usb = include_str!("../../../../src/userspace/init/spawn_plan/drivers_usb.rs");
+    let at = |s: &str| usb.find(s).expect(s);
+    let hosts = at("drivers_usb_hosts::spawn();");
+    assert!(
+        hosts < at("drivers_usb_hub::spawn();")
+            && at("drivers_usb_hub::spawn();") < at("spawn_usb_hid();")
+    );
+    let hub = include_str!("../../../../src/userspace/init/spawn_plan/drivers_usb_hub.rs");
+    assert!(hub.contains("if !super::usb_host::usb_host() {"));
+    let spawn = include_str!("../../../../src/hardware/usb_hub_capsule/spawn.rs");
+    assert!(spawn.contains("const SERVICE_NAME: &str = \"driver.usb_hub0\";"));
+    for absent in ["Mmio", "Dma", "Irq", "Pio", "Driver", "DeviceEnum"] {
+        assert!(!spawn.contains(&format!("Capability::{absent}")), "it asks for {absent}");
+    }
+}
