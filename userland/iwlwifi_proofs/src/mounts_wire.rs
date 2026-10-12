@@ -12,7 +12,7 @@ pub mod control;
 #[path = "../../capsule_driver_iwlwifi/src/server/guard.rs"]
 pub mod guard;
 /// The control family's join messages as the driver reads and answers them.
-#[path = "../../capsule_driver_iwlwifi/src/server/join_wire.rs"]
+#[path = "../../capsule_driver_iwlwifi/src/server/join_wire/mod.rs"]
 pub mod join_wire;
 /// The Wi-Fi client's table of drivers, held to what this driver answers.
 #[path = "../../nonos_wifi_client/src/driver/services.rs"]
