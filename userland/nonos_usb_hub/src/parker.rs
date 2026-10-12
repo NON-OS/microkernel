@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! The classes driver.usb_hub0 brings: a hub below a hub is configured and
 //! brought up for the walk, and any other device is parked with the host
 //! for the class drivers to claim (nonos_usb_virt). Nothing is bound here.

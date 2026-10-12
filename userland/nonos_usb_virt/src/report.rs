@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! Virtual ports in PORT_STATUS. The reply's head is `ports u8, virtual
 //! u8, 0, 0`; `ports` 8-byte entries follow, root ports first, then the
 //! virtual ones, each `port u8, owner u8, kind u8 (0 root, 1 virtual), 0,
