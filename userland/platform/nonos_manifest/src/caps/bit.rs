@@ -57,6 +57,7 @@ pub fn cap_bit(name: &str) -> Option<u64> {
         "LocalSign" => 8589934592,
         "StreamImport" => 17179869184,
         "DeviceSecret" => 34359738368,
+        "InputConsumer" => 68719476736,
         _ => return None,
     };
     Some(bit)

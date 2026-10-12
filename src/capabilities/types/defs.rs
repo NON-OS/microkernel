@@ -70,4 +70,6 @@ capability_table! {
     StreamImport = 1 << 34,
     /// Receive the TPM-derived device secret, the anonymous proof's witness: nonos.prove's.
     DeviceSecret = 1 << 35,
+    /// Drain and wait on the raw input ring, every keystroke: input_router's alone.
+    InputConsumer = 1 << 36,
 }

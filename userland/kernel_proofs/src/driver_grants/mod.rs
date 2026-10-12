@@ -27,6 +27,8 @@ mod pio_window;
 mod rows_k6;
 #[cfg(test)]
 mod rows_k6_mmio;
+#[cfg(test)]
+mod rows_k8;
 pub mod table;
 #[cfg(test)]
 mod tests;

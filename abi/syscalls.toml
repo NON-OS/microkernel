@@ -461,13 +461,13 @@ ret  = {type="i64"}
 
 [desc.MIEP]
 nr   = 0x5045494D
-caps_any = ["Admin", "InputSource", "Irq"]
+caps = ["InputSource"]
 args = [{name="event_kind",type="u32",dir="in"},{name="payload",type="u8*",dir="in"},{name="len",type="usize",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MIED]
 nr   = 0x4445494D
-caps_any = ["Admin", "InputSource"]
+caps = ["InputConsumer"]
 args = [{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"},{name="count_out",type="u32*",dir="out"}]
 ret  = {type="i64"}
 
@@ -566,7 +566,7 @@ ret  = {type="i64"}
 
 [desc.MIEW]
 nr   = 0x5745494D
-caps_any = ["Admin", "InputSource"]
+caps = ["InputConsumer"]
 args = [{name="last_seq",type="u64",dir="in"},{name="timeout_ms",type="u64",dir="in"},{name="out_ptr",type="u64",dir="out"}]
 ret  = {type="i64"}
 

@@ -379,8 +379,10 @@ import Nonos
 #print axioms Nonos.FrameNoAlias.alloc_no_alias
 #print axioms Nonos.FrameNoAlias.bump_aliases
 #print axioms Nonos.FrameNoAlias.fixed_none_on_empty
-#print axioms Nonos.InputConsumer.drain_implies_post
+#print axioms Nonos.InputConsumer.post_iff_source
+#print axioms Nonos.InputConsumer.drain_iff_consumer
 #print axioms Nonos.InputConsumer.irq_only_cannot_drain
+#print axioms Nonos.InputConsumer.the_router_drains_without_posting
 -- And who can hold a token to stamp with in the first place: only the process
 -- the call was addressed to, spent once.
 #print axioms Nonos.ReplyAuthorization.a_reply_token_comes_from_a_call_to_the_replier

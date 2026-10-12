@@ -21,22 +21,24 @@ fn old_allocator_handed_out_an_aliasing_bump_frame() {
 }
 
 #[test]
-fn interrupt_only_driver_can_post_but_never_drains() {
-    let driver = input_authority::Rights { input_source: false, irq: true, admin: false };
-    assert!(input_authority::can_post(driver), "driver may post input");
-    assert!(!input_authority::can_drain(driver), "driver must not drain the input ring");
+fn interrupt_or_admin_alone_neither_posts_nor_drains() {
+    for (irq, admin) in [(true, false), (false, true), (true, true)] {
+        let r = input_authority::Rights { input_source: false, input_consumer: false, irq, admin };
+        assert!(!input_authority::can_post(r), "Irq or Admin must not post input");
+        assert!(!input_authority::can_drain(r), "Irq or Admin must not drain the input ring");
+    }
 }
 
 #[test]
-fn draining_implies_posting_for_all_rights() {
-    for &s in &[false, true] {
-        for &i in &[false, true] {
-            for &a in &[false, true] {
-                let r = input_authority::Rights { input_source: s, irq: i, admin: a };
-                if input_authority::can_drain(r) {
-                    assert!(input_authority::can_post(r));
-                }
-            }
-        }
+fn each_gate_is_its_own_right_for_all_rights() {
+    for bits in 0u8..16 {
+        let r = input_authority::Rights {
+            input_source: bits & 1 != 0,
+            input_consumer: bits & 2 != 0,
+            irq: bits & 4 != 0,
+            admin: bits & 8 != 0,
+        };
+        assert_eq!(input_authority::can_post(r), r.input_source);
+        assert_eq!(input_authority::can_drain(r), r.input_consumer);
     }
 }
