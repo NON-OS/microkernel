@@ -36,9 +36,11 @@ pub const OP_SERIAL: u8 = 9;
 pub const OP_DEVICE_POWER: u8 = 10;
 pub const OP_LEGACY: u8 = 11;
 pub const OP_PROPERTIES: u8 = 12;
+pub const OP_GPIO_EVENT: u8 = 13;
 pub const EPERM: i32 = -1;
 pub const ENOENT: i32 = -2;
 pub const EIO: i32 = -5;
+pub const EAGAIN: i32 = -11;
 pub const EINVAL: i32 = -22;
 /// Requests and replies fit one IPC message.
 pub const MAX: usize = 512;
