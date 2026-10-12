@@ -18,7 +18,7 @@
 //! are said and dropped (the services that act on them come with F 10 and
 //! F 11), and the line is acknowledged so the next one can arrive.
 
-use crate::boot::{evaluate, path, Acpi};
+use crate::boot::{evaluate, Acpi};
 use crate::events_io::PortIo;
 use crate::sys::log::Line;
 use alloc::vec::Vec;
@@ -40,7 +40,7 @@ pub fn serve(acpi: &mut Acpi) {
     if !fired(acpi) {
         return;
     }
-    let Acpi { aml, host, events, sci, ec, .. } = acpi;
+    let Acpi { aml, host, events, ec, .. } = acpi;
     if let Some(ev) = events.as_mut() {
         let mut run = |d| match d {
             Dispatch::Method(id) => evaluate(aml, host, id, Vec::new()).map(|_| ()),
@@ -60,16 +60,9 @@ pub fn serve(acpi: &mut Acpi) {
         }
     }
     acpi.scis += 1;
-    while let Some((id, value)) = acpi.aml.rt.notifications.pop_front() {
-        if !crate::power::notified(&mut acpi.power, &mut acpi.aml, &mut acpi.host, id, value) {
-            Line::new(b"notify ")
-                .str(path(&acpi.aml, id).as_bytes())
-                .str(b" ")
-                .hex(value as u64)
-                .end();
-        }
-    }
-    if let Some(s) = sci.as_ref() {
-        let _ = mk_irq_ack(s.grant);
+    let grant = acpi.sci.as_ref().map(|s| s.grant);
+    super::notify::route(acpi);
+    if let Some(g) = grant {
+        let _ = mk_irq_ack(g);
     }
 }
