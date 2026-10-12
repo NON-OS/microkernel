@@ -43,7 +43,8 @@ fn all_shaped(ctx: &Context) -> bool {
 }
 
 fn send(ctx: &mut Context) -> Option<()> {
-    let (port, now, scale) = (ctx.gfx_port, ctx.cursor.current(), ctx.scale);
+    let (port, now, q) = (ctx.gfx_port, ctx.cursor.current(), ctx.scale_q);
+    let scale = crate::display::scale_rule::whole(q);
     let new = ctx.cursor_sent.is_none();
     let moved = ctx.cursor_sent != Some(now);
     let side = shape_side(scale);
@@ -53,7 +54,7 @@ fn send(ctx: &mut Context) -> Option<()> {
         fence(Ordering::Release);
     }
     let screen = (ctx.screen.width, ctx.screen.height);
-    let p = on_screen((now.x, now.y), (ctx.width, ctx.height), screen, scale);
+    let p = on_screen((now.x, now.y), (ctx.width, ctx.height), screen, q);
     if moved {
         ops::cursor(port, 0, &message(p, now.visible, new, side)).ok()?;
         ctx.cursor_sent = Some(now);

@@ -106,6 +106,8 @@ pub mod display {
     pub mod layout_rule;
     #[path = "../../compositor/src/display/link.rs"]
     pub mod link;
+    #[path = "../../compositor/src/display/scale_rule.rs"]
+    pub mod scale_rule;
     #[path = "../../compositor/src/display/screenshot_rule.rs"]
     pub mod screenshot_rule;
     #[path = "../../compositor/src/display/poll_rule.rs"]
@@ -157,6 +159,8 @@ mod layout_tests;
 mod mirror_tests;
 #[cfg(test)]
 mod privacy_tests;
+#[cfg(test)]
+mod scale_tests;
 #[cfg(test)]
 mod screenshot_tests;
 #[cfg(test)]
