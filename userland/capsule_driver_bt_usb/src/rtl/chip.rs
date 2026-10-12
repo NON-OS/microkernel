@@ -39,7 +39,7 @@ pub struct Chip {
     pub firmware: &'static Pin,
     pub config: Option<&'static Pin>,
     /// Some chips do not start without their config; others take it when
-    /// the store has it and start without it when it does not.
+    /// it is built in and start without it when it is not.
     pub config_needed: bool,
 }
 
