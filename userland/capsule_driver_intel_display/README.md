@@ -5,34 +5,42 @@
 Intel display engine capsule. It takes over firmware's mode on Haswell
 (Gen7.5), Broadwell (Gen8), Skylake to Comet Lake (Gen9), Ice Lake (Gen11) and Tiger Lake to
 Raptor Lake (Gen12, with Alder Lake P and Raptor Lake P's display 13), and
-sets modes on Gen9. Today this directory holds the engine code and the
-device id tables only: `src/engine` (takeover, plane programming, vblank
-flips, the cursor plane, the GGTT, and Gen9's mode setting: power wells,
-DPLLs, DDIs, DisplayPort and HDMI, eDP power and backlight, watermarks),
-`src/dp` (DisplayPort over AUX), `src/family.rs` with one id file per
-generation in `data/`, and `src/dmc.rs`, the DMC firmware seal. There is
-no `Cargo.toml`, `Capsule.mk`, Cargo feature or kernel mirror yet, so no
-image carries it; `intel_display_proofs` runs the engine code against a
-register-level model of the Gen9 display engine. The capsule binary that
-claims the function, maps BAR0 and serves the display wire lands once the
-broker's display-primary rules (L18 (c)) and write-combined MMIO mappings
-reach this track.
+sets modes on Gen9. The crate's library is the engine with no kernel
+calls in it: `src/engine` (takeover, plane programming, vblank flips, the
+cursor plane, the GGTT, and Gen9's mode setting: power wells, DPLLs, DDIs,
+DisplayPort and HDMI, eDP power and backlight, watermarks), `src/dp`
+(DisplayPort over AUX), `src/family.rs` with one id file per generation in
+`data/`, `src/dmc.rs` (the DMC firmware seal) and `src/display` (the engine
+as a display-wire device). The binary (`src/main.rs`, `src/setup`) claims
+the function, maps BAR0, scans out of two DMA-granted surfaces and serves
+the display wire. There is no `Capsule.mk`, Cargo feature or kernel mirror
+yet, so no image carries it: the spawn waits on the release seal, as bga's
+does. `intel_display_proofs` runs the library against a register-level
+model of the Gen9 display engine.
 
 ## Microkernel contract
 
-The promoted capsule declares `CAPSULE_REQUIRED_CAPS` with the display
-mask of PLAN-coverage section 12 plus Dma, because the engine scans out of
-granted memory (expected 0x1B9018, virtio-gpu's, to be confirmed by the
-lead), never Irq, Network or InputSource. It uses brokered `MkDeviceList`,
-`MkDeviceClaim`, `MkMmioMap` for BAR0 (registers and GGTT) and `MkDmaMap`
-for the scanout surfaces, inside its own IOMMU domain with the graphics
-RMRR kept mapped.
+The promoted capsule declares `CAPSULE_REQUIRED_CAPS` 0xB9018: section
+12's VRAM mask 0x39018 plus Dma (0x80000), because the engine scans out of
+granted memory; no Pio, Irq, Network or InputSource. It uses brokered
+`MkDeviceList`, `MkDeviceClaim`, `MkPciConfigRead` (Command, and GGC at
+0x50), `MkPciConfigWrite` (Memory Space and Bus Master on), `MkMmioMap`
+for BAR0 uncached and for one write-combined window of the aperture
+(BAR2) while firmware's picture is read, `MkDmaMap` (high,
+write-combining) for the two scanout surfaces, and surfaces through
+`nonos_gfx_pool`, inside its own IOMMU domain with the graphics RMRR kept
+mapped. The kernel must not free a display function's scanout grants while
+its engine may still read them (`keep_at_exit`, section 12).
 
 ## Interface contract
 
-Planned: NVGP v1 (`nonos_gfx_wire`) as `driver.intel_display0`, CAPS kind 7,
-one output per lit pipe (pipe A is output 0), HW_CURSOR and DEVICE_READS.
-No endpoint is exported today.
+NVGP v1 (`nonos_gfx_wire`) as `driver.intel_display0`, CAPS kind 7, one
+output (the first lit pipe), firmware's mode only (no MODE_SET or
+MODE_RANGE until mode setting joins the wire), no HW_CURSOR yet (CURSOR
+answers ENOSYS), DEVICE_READS off because FLUSH copies. STATE reports a
+hung flip or an underrun as LOST after putting the plane back, and a
+stopped transcoder as LOST, not scanning out. The service is not exported
+until the capsule is spawned.
 
 ## Authority
 
@@ -44,10 +52,15 @@ Pixels pass through; nothing is read back or persisted.
 
 ## Runtime lifecycle
 
-Planned: claim, read what firmware lit (no writes), map two surfaces high
-in the GGTT clear of firmware's, point the primary plane at the first, then
-flip at each vertical blank. On exit, firmware's plane registers are put
-back and latched before the driver's GGTT entries are removed.
+Claim and turn on bus mastering, map BAR0, read GGC for the GGTT's size,
+switch DC5 and DC6 off (Gen9 on), read what firmware lit (no writes), map
+two DMA surfaces, copy firmware's picture into both through the aperture,
+map them high in the GGTT clear of firmware's, point the primary plane at
+the first, then serve: each FLUSH copies into the back surface, flips at
+the vertical blank, and copies the same rectangles into the new back.
+`Scanout::stop` puts firmware's plane back and latches it before the
+driver's GGTT entries are removed; the serving binary never stops, so the
+kernel's hold on the grants (above) covers its exit.
 
 ## Failure model
 
@@ -60,6 +73,9 @@ on the boot framebuffer.
 
 ## Current implemented surface
 
+`src/display`: `Intel` (the `nonos_gfx_serve::Display`), `Frames`, `copy`,
+`red_first`. The binary: `discover::find`, `setup::run`, `bar::Bar0`
+(the engine's `Mmio`), `clock::Uptime`, `frames::DmaFrames`, `serve::run`.
 `src/engine`: `takeover::read_outputs`, `plane::program`, `flip::flip`,
 `vblank::wait_vblank`, `cursor::set`, `ggtt::{map, unmap}`,
 `ggtt_range::{entries, pick}`, `Scanout::{start, present, stop}`.
@@ -73,7 +89,7 @@ off).
 ## Wire format
 
 ```text
-compositor --NVGP v1--> driver.intel_display0 (planned)
+compositor --NVGP v1--> driver.intel_display0
                            | Mmio trait over BAR0
                            v
         transcoders, pipes, planes, cursor  +  GGTT -> IOVA pages
@@ -102,7 +118,8 @@ without tearing while windows move, with a hardware cursor.
 
 ## Release checklist
 
-- Capsule crate, `Capsule.mk`, feature, mirror, inventory and spawn entries.
+- `Capsule.mk`, feature, mirror, inventory and spawn entries (the crate is in).
+- `driver.intel_display0` is in the kernel's `DISPLAYS`, before bootfb; the spawn joins it.
 - Device ids checked against Intel's published lists.
 - Boot on Skylake, Kaby Lake, Coffee Lake and Comet Lake machines, then on
   Haswell, Broadwell, Ice Lake, Tiger Lake and Alder Lake machines at firmware's mode.
