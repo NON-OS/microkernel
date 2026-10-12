@@ -18,3 +18,4 @@ pub mod grab_release;
 pub mod grab_request;
 pub mod health;
 pub mod subscribe;
+pub mod trusted_hold;

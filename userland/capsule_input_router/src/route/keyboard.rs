@@ -19,7 +19,6 @@ use nonos_libc::{InputEvent, INPUT_KIND_KEY_UP};
 use crate::clients::wm;
 use crate::state::Context;
 
-use super::deliver::deliver_one;
 use super::pointer::shell_pid;
 
 pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
@@ -54,37 +53,7 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
         let shell = shell_pid(ctx);
         super::key_target::press_target(answer, ctx.last_focus_pid, shell)
     };
-    // A held key repeats as more presses. One that now goes to another window
-    // than the press before it is first released where it went down: that
-    // window would otherwise hold the key for good, and a client that repeats
-    // held keys itself (a Linux app under the Wayland bridge) types it forever.
-    if !is_up {
-        if let Some(held) = ctx.key_targets.held_by(event.code).filter(|&p| p != pid) {
-            ctx.key_targets.take(event.code);
-            release_in(ctx, held, event);
-        }
-    }
-    if !ctx.subscriptions.allows(pid, event.kind) {
-        ctx.record(0);
-        return 0;
-    }
-    let delivered = deliver_one(pid, event);
-    if !is_up && delivered != 0 {
-        ctx.key_targets.remember(event.code, pid);
-    }
-    if delivered == 0 {
-        ctx.forget_pid(pid);
-    }
-    ctx.record(delivered);
-    delivered
-}
-
-fn release_in(ctx: &mut Context, pid: u32, press: &InputEvent) {
-    let mut release = *press;
-    release.kind = INPUT_KIND_KEY_UP;
-    if ctx.subscriptions.allows(pid, release.kind) && deliver_one(pid, &release) == 0 {
-        ctx.forget_pid(pid);
-    }
+    super::key_deliver::deliver_key(ctx, pid, event)
 }
 
 fn fallback_focus(ctx: &mut Context) -> u32 {
