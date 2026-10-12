@@ -96,6 +96,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPciProbeFunction
             | MkAcpiFunctionOf
             | MkAcpiHwError
+            | MkAcpiPlatformDevice
             | MkDebug
             | MkStdoutWrite
             | MkPrivateWrite

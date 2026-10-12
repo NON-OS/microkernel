@@ -160,4 +160,5 @@ pub enum SyscallNumber {
     MkPciProbeFunction = tag4(b"MPPF"),
     MkAcpiFunctionOf = tag4(b"MAFO"),
     MkAcpiHwError = tag4(b"MAHE"),
+    MkAcpiPlatformDevice = tag4(b"MAPD"),
 }

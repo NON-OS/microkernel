@@ -173,6 +173,7 @@ pub const SYS_ACPI_HOLDS: u64 = tag4(b"MAHO");
 pub const SYS_PCI_PROBE_FUNCTION: u64 = tag4(b"MPPF");
 pub const SYS_ACPI_FUNCTION_OF: u64 = tag4(b"MAFO");
 pub const SYS_ACPI_HW_ERROR: u64 = tag4(b"MAHE");
+pub const SYS_ACPI_PLATFORM_DEVICE: u64 = tag4(b"MAPD");
 /// Spawn another window of an embedded, attested app (terminal or browser); needs SpawnWindow.
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
 /// Run a baked, attested tool by name as the caller's child, to drive its stdio; needs IPC.
