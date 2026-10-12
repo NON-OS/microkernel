@@ -83,4 +83,12 @@ capability_table! {
     /// Drain and wait on the raw input ring, which carries every keystroke.
     /// Held by the input router alone; a driver posts with `InputSource`.
     InputDrain = 1 << 36,
+    /// Take frames from a camera. The kernel never sees a camera: the USB
+    /// stack hands a video interface, and the compositor lights its
+    /// indicator, only for a holder (`MkCapCheck`). Held by no capsule until
+    /// Decision 9; refused elsewhere by `check_capture_caps.py`.
+    CameraCapture = 1 << 37,
+    /// Take samples from a microphone, held and checked as `CameraCapture`
+    /// is: by the audio service and the compositor's indicator.
+    MicrophoneCapture = 1 << 38,
 }
