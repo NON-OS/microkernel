@@ -37,13 +37,18 @@ impl Air {
         let events = match opcode {
             op::READ_BD_ADDR => vec![complete(1, o, 0, &OURS)],
             op::LE_SET_SCAN_ENABLE if p.first() == Some(&1) => {
-                vec![complete(1, o, 0, &[]), advertised(0x00, &self.adv)]
+                vec![complete(1, o, 0, &[]), advertised(self.seen.from, 0x00, &self.adv)]
             }
             op::LE_CREATE_CONNECTION => {
+                self.new_link(p[12]);
                 for pdu in std::mem::take(&mut self.early_att) {
                     self.send_to_host(ATT, &pdu);
                 }
-                vec![status(0, 1, o), connected()]
+                vec![status(0, 1, o), connected(self.seen.from)]
+            }
+            op::LE_SET_RANDOM_ADDRESS => {
+                self.seen.random = Some(p.try_into().expect("a random address of six"));
+                respond(&self.cfg, packet)
             }
             op::LE_ENABLE_ENCRYPTION => self.encrypt(p),
             op::DISCONNECT => vec![status(0, 1, o), disconnected(HANDLE, ENDED_BY_US)],
