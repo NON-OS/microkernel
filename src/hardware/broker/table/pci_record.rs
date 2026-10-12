@@ -40,7 +40,7 @@ pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
         bar_count: bar_span,
         irq_line: dev.interrupt_line,
         irq_pin: dev.interrupt_pin,
-        _pad1: [0; 1],
+        numa_node: crate::hardware::broker::NUMA_UNKNOWN,
         irq_source: dev.interrupt_line as u32,
         bars,
     }

@@ -24,4 +24,4 @@ pub(super) use bar::{BAR_KIND_MMIO, BAR_KIND_PIO};
 pub use bus::BusKind;
 pub(super) use flags::{BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
 pub use flags::{DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED, DEVICE_FLAG_EXTERNAL};
-pub use record::DeviceRecord;
+pub use record::{DeviceRecord, NUMA_UNKNOWN};

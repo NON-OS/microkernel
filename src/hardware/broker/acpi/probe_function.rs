@@ -56,6 +56,7 @@ pub fn probe_late(bus: u8, dev: u8, func: u8) -> Result<u64, ProbeError> {
         .collect();
     let disabled = unassigned(&bars);
     let id = table::add_pci_function(&found, disabled);
+    super::numa_refresh::refresh();
     let iommu: &[u8] = if crate::memory::iommu::capabilities().enforcing {
         b"; IOMMU denies its DMA until it is claimed"
     } else {

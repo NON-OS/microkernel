@@ -59,6 +59,7 @@ syscalls.errors EPERM -1
 syscalls.errors ERANGE -34
 syscalls.errors ESRCH -3
 syscalls.errors ETXTBSY -26
+syscalls.errors EXDEV -18
 syscalls.numbers APPS 1397772353
 syscalls.numbers ARBT 1413632577
 syscalls.numbers ASDN 1313100609
@@ -150,6 +151,8 @@ syscalls.numbers MMAP 1346456909
 syscalls.numbers MMMP 1347243341
 syscalls.numbers MMON 1313819981
 syscalls.numbers MMUM 1297435981
+syscalls.numbers MNDS 1396985421
+syscalls.numbers MNNO 1330531917
 syscalls.numbers MOUT 1414877005
 syscalls.numbers MPAL 1279348813
 syscalls.numbers MPCP 1346588749
