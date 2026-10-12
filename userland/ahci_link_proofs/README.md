@@ -6,7 +6,7 @@ mirrors the driver's module paths, so `cargo test` runs the code that boots.
 
 ## What it proves
 
-93 `#[test]` functions over the driver's pure decisions:
+143 `#[test]` functions over the driver's decisions and its command path:
 
 - the SATA link-up predicates and the signature that marks an ATA disk
   (`sig_tests`, `tests`);
@@ -18,8 +18,21 @@ mirrors the driver's module paths, so `cargo test` runs the code that boots.
 - the request parser, the span check and the PRD byte count a command may
   carry (`request_tests`, `span_tests`);
 - the wait on a command against a port that answers honestly and against a
-  hostile one, and the recovery after a failed command (`completion_tests`,
-  `completion_hostile_tests`);
+  hostile one, an ERR in PxTFD judged only once slot 0 is clear, and the
+  wait before issue (`engine::completion_tests`);
+- the command path end to end, issue to recovery, on a model HBA port and
+  drive behind the host MMIO accessor (`model`, on model time): slot 0's
+  header, FIS and PRD byte by byte, a device error and the next command, a
+  drive still running a command the driver gave up on (no late data or late
+  write lands in the next request), a short PRDBC on a read or a write, a CR
+  that will not clear, an HBA error while the drive goes on, a drive slow out
+  of its reset (never issued to, never reset again inside 31 s), a pulled
+  disk, a device whose link is down (reset once a window), a drive that
+  resets itself mid-command, slots that outlive recovery, the reply each
+  failure gets (the ATA status only for the disk's own error), the time a
+  request may take against the kernel's 35 s wait, and recovery by cause
+  (`model::tests`, `engine::cause_tests`, `engine::recover_cause_tests`,
+  `engine::comreset_tests`);
 - which ports the mapped ABAR window reaches, which ports a sparse PI names,
   which hold a talking device in any link power state, the spin-up bits, and
   what the HBA reset must give back of CAP and PI (`window_tests`,
@@ -28,7 +41,7 @@ mirrors the driver's module paths, so `cargo test` runs the code that boots.
   mode, never an Intel VMD, whose list must match the kernel's) and the
   smallest ABAR taken (`discover_tests`);
 - the link bring-up after COMRESET: up, negotiating, or an empty port within
-  its debounce; the CLO and COMRESET kick of a port stuck busy, and the
+  its debounce; the COMRESET kick of a port stuck busy, never CLO, and the
   engine stop (`bring_up_tests`, `engine::recover_tests`);
 - the model and serial read from IDENTIFY, and the OP_IDENTIFY reply layout
   (`names_tests`, `identify_reply_tests`);
@@ -38,8 +51,8 @@ mirrors the driver's module paths, so `cargo test` runs the code that boots.
 
 ## What it does not prove
 
-The MMIO and DMA themselves, and the order of broker calls in setup. Those
-need a boot.
+Real silicon: the model HBA and drive follow the spec and QEMU, not any one
+part. The order of broker calls in setup. Those need a boot.
 
 ## Run
 

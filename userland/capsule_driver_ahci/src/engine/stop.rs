@@ -25,6 +25,7 @@ use crate::regs::Regs;
 /// or FIS region, and the caller must not give that memory back.
 pub(super) fn stop(regs: Regs, base: u32) -> AhciResult<()> {
     stop_engine(regs, base)?;
+    // SAFETY: the port's register block lies inside the mapped ABAR.
     unsafe {
         let cmd = regs.r32(base + PORT_CMD);
         regs.w32(base + PORT_CMD, cmd & !CMD_FRE);
@@ -33,6 +34,7 @@ pub(super) fn stop(regs: Regs, base: u32) -> AhciResult<()> {
      * FR clears once the HBA stops writing received FISes; until then the
      * FIS region must stay mapped (AHCI 1.3.1, PxCMD.FR).
      */
+    // SAFETY: as above.
     if !wait_until(ENGINE_STOP_MS, || unsafe { regs.r32(base + PORT_CMD) } & CMD_FR == 0) {
         return Err(AhciError::Timeout);
     }
@@ -43,10 +45,12 @@ pub(super) fn stop(regs: Regs, base: u32) -> AhciResult<()> {
 /// once the engine stops; FRE may be cleared only after it has (AHCI 1.3.1,
 /// 10.1.2).
 pub(super) fn stop_engine(regs: Regs, base: u32) -> AhciResult<()> {
+    // SAFETY: the port's register block lies inside the mapped ABAR.
     unsafe {
         let cmd = regs.r32(base + PORT_CMD);
         regs.w32(base + PORT_CMD, cmd & !CMD_ST);
     }
+    // SAFETY: as above.
     if !wait_until(ENGINE_STOP_MS, || unsafe { regs.r32(base + PORT_CMD) } & CMD_CR == 0) {
         return Err(AhciError::Timeout);
     }

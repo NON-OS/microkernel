@@ -25,11 +25,8 @@ const _: () = assert!(IDENTIFY_WORDS * 2 <= DATA_BUF_BYTES as usize);
 
 pub fn identify(port: &mut Port, regs: Regs) -> AhciResult<u64> {
     super::build::build_slot0(port, ATA_IDENTIFY, 0, 1, false)?;
-    if let Err(e) = super::issue::issue_slot0(regs, port.base, port.sclo) {
-        let _ = super::recover::recover(regs, port.base, port.sclo);
-        return Err(e);
-    }
-    let block = read_block(port);
+    super::issue::run(port, regs)?;
+    let block = read_block(port)?;
     let sectors = crate::identity::capacity(&block).map_err(AhciError::IdentityRefused)?;
     port.capacity_sectors = sectors;
     port.names = crate::identity::names(&block);
@@ -38,12 +35,13 @@ pub fn identify(port: &mut Port, regs: Regs) -> AhciResult<u64> {
 
 /// Copy the drive's IDENTIFY block out of the data buffer, so every rule in
 /// `identity` judges one fixed copy rather than memory the device can still
-/// write.
-fn read_block(port: &Port) -> [u16; IDENTIFY_WORDS] {
-    let src = port.data.user_va() as *const u16;
+/// write. The words are little-endian (ATA8-ACS, 3.2.6).
+fn read_block(port: &Port) -> AhciResult<[u16; IDENTIFY_WORDS]> {
+    let mut bytes = [0u8; IDENTIFY_WORDS * 2];
+    port.take(&mut bytes)?;
     let mut words = [0u16; IDENTIFY_WORDS];
-    for (i, w) in words.iter_mut().enumerate() {
-        *w = unsafe { core::ptr::read_volatile(src.add(i)) };
+    for (w, b) in words.iter_mut().zip(bytes.chunks_exact(2)) {
+        *w = u16::from_le_bytes([b[0], b[1]]);
     }
-    words
+    Ok(words)
 }

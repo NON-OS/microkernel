@@ -15,12 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::port::Port;
-use super::region::{dma_flags, DmaRegion};
-use crate::constants::ata::{DATA_BUF_BYTES, STRUCT_REGION_BYTES};
-use crate::constants::regs::{CAP_SCLO, PORT_BASE, PORT_SIG, PORT_STRIDE};
+use crate::constants::regs::{PORT_BASE, PORT_SIG, PORT_STRIDE};
 use crate::constants::timing::DEVICE_READY_MS;
 use crate::error::{AhciError, AhciResult};
-use crate::identity::Names;
 use crate::regs::Regs;
 
 /// Bring up port `index` of the HBA whose CAP reads `cap`, and keep it if it
@@ -41,26 +38,8 @@ pub fn init_port(
      * is programmed yet.
      */
     super::stop::stop(regs, base)?;
-    let flags = dma_flags(cap);
-    let mut port = Port {
-        clb: DmaRegion::map(device_id, claim_epoch, STRUCT_REGION_BYTES, flags)?,
-        ctba: DmaRegion::map(device_id, claim_epoch, STRUCT_REGION_BYTES, flags)?,
-        _fb: DmaRegion::map(device_id, claim_epoch, STRUCT_REGION_BYTES, flags)?,
-        data: DmaRegion::map(device_id, claim_epoch, DATA_BUF_BYTES, flags)?,
-        base,
-        capacity_sectors: 0,
-        sclo: cap & CAP_SCLO != 0,
-        names: Names::empty(),
-        last_tfd: 0,
-    };
-    super::program::program(
-        regs,
-        base,
-        port.clb.device_addr(),
-        port._fb.device_addr(),
-        port.ctba.device_addr(),
-        port.clb.user_va(),
-    );
+    let mut port = Port::map(device_id, claim_epoch, base, cap)?;
+    super::program::program(regs, &port);
     /*
      * program() set FRE with the FIS region's address; from here every
      * failure parks the port, which stops it before the regions go, so the
@@ -75,6 +54,8 @@ pub fn init_port(
      * PxSIG names the device. Only an ATA disk is served: an ATAPI drive
      * answers IDENTIFY PACKET DEVICE, and the other kinds no IDENTIFY at all.
      */
+    // SAFETY: the walk reaches only ports whose registers lie inside the
+    // mapped ABAR.
     if !super::link::is_ata_disk(unsafe { regs.r32(base + PORT_SIG) }) {
         super::park::park(port, regs);
         return Err(AhciError::NoDisk);
