@@ -24,11 +24,13 @@ def stale_readmes(root):
     out = []
     for mk in sorted((root / "userland").glob("*/Capsule.mk")):
         required = manifest(mk.read_text(), "CAPSULE_REQUIRED_CAPS")
-        readme = mk.parent / "README.md"
-        if required is None or not readme.exists():
+        if required is None:
             continue
-        for n, line in enumerate(readme.read_text().splitlines(), 1):
-            for quoted in re.findall(r"CAPSULE_REQUIRED_CAPS\s*:?=\s*`?(0x[0-9a-fA-F]+)", line):
-                if int(quoted, 16) != int(required, 16):
-                    out.append(f"{readme.relative_to(root)}:{n}: quotes {quoted}, the manifest says {required}")
+        # Every page beside it: a README split by topic quotes it in its parts.
+        for readme in sorted(mk.parent.glob("*.md")):
+            for n, line in enumerate(readme.read_text().splitlines(), 1):
+                for quoted in re.findall(r"CAPSULE_REQUIRED_CAPS\s*:?=\s*`?(0x[0-9a-fA-F]+)", line):
+                    if int(quoted, 16) != int(required, 16):
+                        out.append(f"{readme.relative_to(root)}:{n}: quotes {quoted}, "
+                                   f"the manifest says {required}")
     return out
