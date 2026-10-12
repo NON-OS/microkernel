@@ -15,44 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether this kernel was compiled with the branch protection the security
-//! code is about to turn on, read from its own instructions rather than
-//! assumed: a build that lost its rustflags would otherwise run with guarded
-//! text and no landing pads, and fault on its first indirect call.
-//!
-//! `-Z branch-protection=bti` starts every function that can be reached
-//! indirectly with BTI c, or with PACIASP, which is also a landing pad, when
-//! the function signs its return address. `pac-ret` starts every function
-//! that saves its link register with PACIASP. A leaf that is address-taken
-//! shows the first, a non-leaf the second.
+//! code is about to turn on. build.rs reads the rustflags the crate is built
+//! with and declares `nonos_bti` and `nonos_pac_ret` (build_branch_protection.rs):
+//! a build that lost the flags then runs unprotected, instead of with
+//! guarded text and no landing pads, faulting on its first indirect call.
 
-use super::pad::{BTI_C, BTI_JC, PACIASP};
-
-#[inline(never)]
-extern "C" fn leaf_probe() {}
-
-#[inline(never)]
-extern "C" fn calling_probe(f: extern "C" fn()) {
-    f();
-    f();
+/// `-Z branch-protection=bti`: every function an indirect branch can reach
+/// starts on a landing pad.
+pub const fn built_with_bti() -> bool {
+    cfg!(nonos_bti)
 }
 
-fn first_two(f: usize) -> [u32; 2] {
-    // SAFETY: `f` is the address of a function in this image's text, which
-    // is mapped readable, and every function is at least two instructions
-    // or ends with RET followed by the next function's first.
-    unsafe {
-        [core::ptr::read_volatile(f as *const u32), core::ptr::read_volatile((f + 4) as *const u32)]
-    }
-}
-
-/// Address-taken functions start with a landing pad.
-pub fn built_with_bti() -> bool {
-    let probe: extern "C" fn() = leaf_probe;
-    matches!(first_two(probe as usize)[0], BTI_C | BTI_JC)
-}
-
-/// Functions that save the link register sign it first.
-pub fn built_with_pac_ret() -> bool {
-    let probe: extern "C" fn(extern "C" fn()) = calling_probe;
-    first_two(probe as usize).contains(&PACIASP)
+/// `-Z branch-protection=pac-ret`: every function that saves its link
+/// register signs it with the A key and authenticates it before returning.
+pub const fn built_with_pac_ret() -> bool {
+    cfg!(nonos_pac_ret)
 }

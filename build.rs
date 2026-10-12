@@ -18,6 +18,7 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
+mod build_branch_protection;
 mod build_info;
 
 fn main() {
@@ -43,6 +44,7 @@ fn main() {
     stage_device_policy_key();
     generate_manifest_and_signature();
     build_info::embed_kernel_build_info();
+    build_branch_protection::declare_branch_protection();
 }
 
 // The image capability ceiling is baked into the kernel, but most images do not
