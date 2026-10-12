@@ -16,6 +16,7 @@
 
 //! The machine, and what it says is due.
 
+use super::rejoin::Rejoin;
 use super::{Due, Phase, NOT_YET_MS};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -24,11 +25,12 @@ pub struct Machine {
     pub(super) next_ms: i64,
     pub(super) tried: u8,
     pub(super) empty_passes: u8,
+    pub(super) link: Rejoin,
 }
 
 impl Machine {
     pub const fn new() -> Self {
-        Self { phase: Phase::Waiting, next_ms: 0, tried: 0, empty_passes: 0 }
+        Self { phase: Phase::Waiting, next_ms: 0, tried: 0, empty_passes: 0, link: Rejoin::NEW }
     }
 
     /// The saved networks already tried, one bit each.

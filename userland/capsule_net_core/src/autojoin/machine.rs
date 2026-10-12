@@ -25,12 +25,16 @@
 //! on in the driver while autojoin watches the link once a second until it is
 //! associated or `JOIN_WATCH_MS` has passed. Each saved network is tried at
 //! most once per boot, so a wrong passphrase is not replayed at the access
-//! point.
+//! point. A link that was up and goes down is joined again (`rejoin`).
 
 #[path = "machine/after.rs"]
 mod after;
+#[path = "machine/again.rs"]
+mod again;
 #[path = "machine/consts.rs"]
 mod consts;
+#[path = "machine/rejoin.rs"]
+mod rejoin;
 #[path = "machine/state.rs"]
 mod state;
 #[path = "machine/step.rs"]

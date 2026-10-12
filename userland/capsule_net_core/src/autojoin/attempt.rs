@@ -31,7 +31,8 @@ use super::machine::{Step, CALL_MS};
 use super::ready::ready;
 use super::saved::saved;
 
-pub fn attempt(tried: u8) -> Step {
+/// `only`, during a rejoin, names the one network a pass may join.
+pub fn attempt(tried: u8, only: Option<&[u8]>) -> Step {
     let driver = match ready() {
         Ok(driver) => driver,
         Err(step) => return step,
@@ -44,7 +45,8 @@ pub fn attempt(tried: u8) -> Step {
     if list.is_empty() {
         return Step::Done;
     }
-    let mut due = (0..list.len()).filter(|i| tried & (1 << i) == 0).peekable();
+    let wanted = |i: usize| only.is_none_or(|s| list.ssid(i) == s);
+    let mut due = (0..list.len()).filter(|&i| tried & (1 << i) == 0 && wanted(i)).peekable();
     if due.peek().is_none() {
         return Step::Done;
     }

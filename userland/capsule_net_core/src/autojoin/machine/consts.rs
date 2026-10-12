@@ -33,3 +33,11 @@ pub const EMPTY_PASSES_MAX: u8 = 8;
 pub const JOIN_WATCH_MS: i64 = 25_000;
 /// How often a running join's link is looked at.
 pub const WATCH_EVERY_MS: i64 = 1_000;
+/// How often the link is looked at once autojoin is done.
+pub const LINK_EVERY_MS: i64 = 2_000;
+/// Passes a rejoin makes after one loss before it gives up.
+pub const REJOIN_ATTEMPTS: u8 = 8;
+/// From the loss to a rejoin's first pass; each later wait is twice the one
+/// before, up to `REJOIN_MAX_MS`.
+pub const REJOIN_FIRST_MS: i64 = 2_000;
+pub const REJOIN_MAX_MS: i64 = 60_000;
