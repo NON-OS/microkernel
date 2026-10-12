@@ -15,32 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The link's environment in the capsule: the uptime clock, the input
-//! ring through the USB HID driver's own code, the debug channel, and the
-//! kernel's random source.
+//! ring through the USB HID driver's own code, the debug channel, the
+//! kernel's random source, and the bond store.
 
+use super::kept::Kept;
 use super::say::{digits, say};
 use crate::hid::Keys;
 use crate::link::Env;
+use nonos_bt_bond::{BondRecord, Store};
 use nonos_bt_hogp::report::Input;
 use nonos_bt_smp::pairing::Random;
-use nonos_libc::{crypto_random, mk_exit, mk_uptime_ms};
+use nonos_bt_wire::addr::{AddrType, BdAddr};
+use nonos_libc::mk_uptime_ms;
 
-const EXIT_NO_RANDOM: i32 = 3;
-
-#[derive(Default)]
 pub struct CapsuleEnv {
     pub keys: Keys,
+    pub bonds: Store<Kept>,
 }
 
 impl Random for CapsuleEnv {
-    /// Keys and nonces come from here. If the kernel's source fails there
-    /// is nothing safe to pair with, so the capsule stops rather than go on
-    /// with values an observer could guess.
     fn fill(&mut self, out: &mut [u8]) {
-        if crypto_random(out.as_mut_ptr(), out.len()) < 0 {
-            say(&[b"the kernel's random source failed; stopping"]);
-            mk_exit(EXIT_NO_RANDOM);
-        }
+        super::draw::draw(out);
     }
 }
 
@@ -60,5 +55,20 @@ impl Env for CapsuleEnv {
     fn show_passkey(&mut self, passkey: u32) {
         let n = digits(u64::from(passkey), 6);
         say(&[b"to pair, type ", &n, b" on the keyboard, then Enter"]);
+    }
+    fn bonded(&mut self, kind: AddrType, addr: &BdAddr) -> Option<BondRecord> {
+        self.bonds.find(kind, addr).cloned()
+    }
+    fn keep(&mut self, record: BondRecord) {
+        match self.bonds.keep(record) {
+            Ok(()) => say(&[b"bond kept"]),
+            Err(_) => say(&[b"bond not kept: no room, or the store refused it"]),
+        }
+    }
+    fn forget(&mut self, record: &BondRecord) {
+        let gone = self.bonds.forget(record.identity_type, &record.identity);
+        if gone.is_err() {
+            say(&[b"a bond the peer dropped could not be forgotten"]);
+        }
     }
 }

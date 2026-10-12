@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the link needs from the capsule around it: the clock, the input
-//! ring, the debug line, the user, and the random source pairing draws
-//! from. The proofs stand in for all five, so every path the link takes
-//! runs on the host.
+//! ring, the debug line, the user, the random source pairing draws from,
+//! and the bonds. The proofs stand in for all six, so every path the link
+//! takes runs on the host.
 
+use nonos_bt_bond::BondRecord;
 use nonos_bt_hogp::report::Input;
 use nonos_bt_smp::pairing::Random;
+use nonos_bt_wire::addr::{AddrType, BdAddr};
 
 pub trait Env: Random {
     /// Milliseconds since some fixed point; never goes back.
@@ -33,4 +35,11 @@ pub trait Env: Random {
     fn say(&mut self, words: &[&[u8]]);
     /// Six digits for the user to type on the keyboard being paired.
     fn show_passkey(&mut self, passkey: u32);
+    /// The bond for a peer seen at this address: by identity, or by the
+    /// IRK that resolves it (Vol 6, Part B, 1.3.2.3).
+    fn bonded(&mut self, kind: AddrType, addr: &BdAddr) -> Option<BondRecord>;
+    /// Keep a new bond, in place of any older one for the same identity.
+    fn keep(&mut self, record: BondRecord);
+    /// Drop the bond for this record's identity.
+    fn forget(&mut self, record: &BondRecord);
 }

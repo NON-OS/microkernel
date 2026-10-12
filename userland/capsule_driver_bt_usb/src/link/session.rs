@@ -22,6 +22,7 @@ use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
 use super::end::End;
+use super::find::Peer;
 use nonos_bt_hci::{HciError, Host, Transport};
 use nonos_bt_hogp::host::Host as Hid;
 use nonos_bt_smp::pairing::{Bond, Initiator};
@@ -40,8 +41,9 @@ pub struct Session {
     /// Whole PDUs waiting for the controller to free buffers.
     pub(super) outbox: VecDeque<Vec<u8>>,
     pub(super) end: Option<End>,
-    /// The keys pairing gave; the key store keeps them once it exists.
+    /// The keys pairing gave, or the kept bond the link was encrypted with.
     pub bond: Option<Bond>,
+    pub(super) peer: Peer,
 }
 
 impl Session {

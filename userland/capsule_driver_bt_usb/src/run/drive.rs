@@ -21,12 +21,15 @@ use nonos_bt_hci::usb::UsbHci;
 use nonos_bt_hci::{HciError, Host};
 use nonos_usbnet::xhci::disable_slot;
 
+use super::bonds;
 use super::env::CapsuleEnv;
 use super::finder::Finder;
 use super::links::links;
 use super::say::{reason, say};
 use super::wait::wait_ms;
+use crate::link::Private;
 use crate::usb::Bound;
+use nonos_bt_bond::LocalIrk;
 
 /// Between two looks at the ports while no controller is bound.
 const SEARCH_MS: u64 = 1_000;
@@ -35,7 +38,8 @@ const SEARCH_MS: u64 = 1_000;
 const ACL_FIRST: u16 = 27;
 
 pub fn run() -> ! {
-    let (mut env, mut finder) = (CapsuleEnv::default(), Finder::new());
+    let (mut env, irk) = bonds::environment();
+    let mut finder = Finder::new();
     say(&[b"started, looking for a controller"]);
     loop {
         let Some((bound, port)) = finder.pass() else {
@@ -43,7 +47,7 @@ pub fn run() -> ! {
             continue;
         };
         let (xhci, slot) = (bound.pipes.bus.xhci, bound.pipes.bus.slot);
-        let why = controller(bound, &mut env);
+        let why = controller(bound, &irk, &mut env);
         say(&[b"controller given back: ", reason(&why)]);
         disable_slot(xhci, slot);
         finder.lost(port);
@@ -51,7 +55,7 @@ pub fn run() -> ! {
 }
 
 /// Bring-up, then links one after another; the error that ended it.
-fn controller(b: Bound, env: &mut CapsuleEnv) -> HciError {
+fn controller(b: Bound, irk: &LocalIrk, env: &mut CapsuleEnv) -> HciError {
     let mut host = Host::new(UsbHci::new(b.pipes, &b.iface, ACL_FIRST));
     let c = match host.bring_up() {
         Ok(c) => c,
@@ -65,5 +69,5 @@ fn controller(b: Bound, env: &mut CapsuleEnv) -> HciError {
         return HciError::NotBluetooth;
     }
     say(&[b"controller up"]);
-    links(&mut host, &c.addr, env)
+    links(&mut host, Private::new(irk.clone(), c.addr), env)
 }

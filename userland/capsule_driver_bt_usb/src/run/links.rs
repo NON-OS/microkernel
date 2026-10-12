@@ -14,27 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Links one after another on a controller that is up: look for a HID
-//! device, connect, pair, serve it until the link ends, and look again.
-//! Only a failing controller ends the loop; a device that will not pair
-//! is left alone for a while, so it is not asked again and again.
+//! Links one after another on a controller that is up: renew this host's
+//! address if due (between scans, the one time it may change: Vol 4,
+//! Part E, 7.8.4), look for a HID device, connect, pair or re-encrypt,
+//! serve it until the link ends, and look again. Only a failing controller
+//! ends the loop.
 
 use nonos_bt_hci::host::{Connect, DEFAULT_LINK, DEFAULT_SCAN};
 use nonos_bt_hci::usb::UsbHci;
 use nonos_bt_hci::{HciError, Host};
-use nonos_bt_wire::addr::BdAddr;
 
+use super::ended::ended;
 use super::env::CapsuleEnv;
 use super::say::say;
-use super::wait::wait_ms;
-use crate::link::{find_hid, hang_up, serve, End, Session};
+use crate::link::{begin, find_hid, serve, End, Private};
 use crate::usb::XhciPipes;
 
-/// After a link this host gave up on, before the next look.
-const BACK_OFF_MS: u64 = 30_000;
-
-pub fn links(host: &mut Host<UsbHci<XhciPipes>>, ours: &BdAddr, env: &mut CapsuleEnv) -> HciError {
+pub fn links(
+    host: &mut Host<UsbHci<XhciPipes>>,
+    mut us: Private,
+    env: &mut CapsuleEnv,
+) -> HciError {
     loop {
+        let me = match us.refresh(host, env) {
+            Ok(me) => me,
+            Err(e) => return e,
+        };
         let peer = match find_hid(host, env) {
             Ok(Some(peer)) => peer,
             Ok(None) => continue,
@@ -49,20 +54,12 @@ pub fn links(host: &mut Host<UsbHci<XhciPipes>>, ours: &BdAddr, env: &mut Capsul
             Err(_) => continue,
         };
         say(&[b"connected"]);
-        let end = match Session::open(&link, ours, env) {
-            Ok(mut s) => serve(host, &mut s, env),
-            Err(_) => Ok(End::GaveUp("pairing could not start")),
-        };
-        match end {
-            Ok(End::Lost(_)) => say(&[b"link lost"]),
-            Ok(End::GaveUp(why)) => {
-                say(&[b"link ended: ", why.as_bytes()]);
-                if let Err(e) = hang_up(host, link.handle) {
-                    return e;
-                }
-                wait_ms(BACK_OFF_MS);
-            }
-            Err(e) => return e,
+        let end = begin(host, &link, &me, env).and_then(|s| match s {
+            Some(mut s) => serve(host, &mut s, env),
+            None => Ok(End::GaveUp("pairing could not start")),
+        });
+        if let Err(e) = ended(host, end, link.handle) {
+            return e;
         }
     }
 }

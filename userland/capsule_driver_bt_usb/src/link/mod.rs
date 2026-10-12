@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod acl;
+mod again;
 mod att;
+mod begin;
 mod encrypt;
 mod end;
 mod env;
@@ -24,17 +26,21 @@ mod find;
 mod hangup;
 mod heard;
 mod open;
+mod paired;
 pub mod pick;
 mod post;
+mod private;
 mod serve;
-mod session;
+pub mod session;
 mod smp;
 mod timers;
+pub mod us;
 mod user;
 
+pub use begin::begin;
 pub use end::End;
 pub use env::Env;
 pub use find::find_hid;
 pub use hangup::hang_up;
+pub use private::Private;
 pub use serve::serve;
-pub use session::Session;
