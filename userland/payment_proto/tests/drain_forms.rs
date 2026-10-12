@@ -32,10 +32,10 @@ fn sign(n: usize) -> DrainSign {
 #[test]
 fn list_and_sign_are_told_apart_by_their_first_byte() {
     let list = DrainRequest::List { from: 12 };
-    assert_eq!(list.encode(), vec![DRAIN_LIST, 12]);
-    assert_eq!(DrainRequest::parse(&list.encode()), Some(list));
+    assert_eq!(list.encode().unwrap(), vec![DRAIN_LIST, 12]);
+    assert_eq!(DrainRequest::parse(&list.encode().unwrap()), Some(list));
     let s = DrainRequest::Sign(sign(3));
-    let b = s.encode();
+    let b = s.encode().unwrap();
     assert_eq!((b[0], b.len()), (DRAIN_SIGN, 1 + 24 + 32 + 1 + 3 * 32));
     assert_eq!(DrainRequest::parse(&b), Some(s));
     for n in 0..b.len() {
@@ -47,13 +47,14 @@ fn list_and_sign_are_told_apart_by_their_first_byte() {
 
 #[test]
 fn sign_names_one_to_twelve_channels_none_twice() {
-    assert_eq!(DrainRequest::parse(&DrainRequest::Sign(sign(0)).encode()), None, "none");
+    assert_eq!(DrainRequest::parse(&DrainRequest::Sign(sign(0)).encode().unwrap()), None, "none");
     let most = DrainRequest::Sign(sign(DRAIN_ROWS_MAX));
-    assert!(DrainRequest::parse(&most.encode()).is_some());
-    assert_eq!(DrainRequest::parse(&DrainRequest::Sign(sign(DRAIN_ROWS_MAX + 1)).encode()), None);
+    assert!(DrainRequest::parse(&most.encode().unwrap()).is_some());
+    let past = DrainRequest::Sign(sign(DRAIN_ROWS_MAX + 1));
+    assert_eq!(past.encode(), None, "one past DRAIN_ROWS_MAX is refused, not written");
     let mut twice = sign(2);
     twice.channels[1] = twice.channels[0];
-    assert_eq!(DrainRequest::parse(&DrainRequest::Sign(twice).encode()), None, "twice");
+    assert_eq!(DrainRequest::parse(&DrainRequest::Sign(twice).encode().unwrap()), None, "twice");
 }
 
 #[test]

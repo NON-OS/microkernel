@@ -69,7 +69,7 @@ fn what_parses_encodes_back_to_the_same_bytes() {
             assert_eq!(d.encode(), b, "DeliveredMade");
         }
         if let Some(a) = Account::parse(&b) {
-            assert_eq!(a.encode(), b, "Account");
+            assert_eq!(a.encode(), Some(b.clone()), "Account");
         }
     }
 }
