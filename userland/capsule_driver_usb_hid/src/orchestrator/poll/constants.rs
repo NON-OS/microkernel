@@ -15,4 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(super) const HID_REPORT_MAX: usize = 8;
+/// A gamepad's report is its own layout, up to a full-speed packet.
+pub(super) const PAD_REPORT_MAX: usize = 64;
 pub(super) const RESCAN_INTERVAL: u32 = 64;
