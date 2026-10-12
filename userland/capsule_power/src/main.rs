@@ -25,6 +25,12 @@ mod state;
 
 use nonos_libc::{heap_init, mk_exit};
 
+/// The capsule's entry point.
+///
+/// # Safety
+///
+/// Only the loader calls it, once, on a fresh stack with nothing else
+/// running in the capsule.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
