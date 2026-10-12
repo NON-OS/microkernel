@@ -53,6 +53,7 @@ pub mod platform;
 pub mod platform_device;
 pub mod ports;
 pub mod power;
+pub mod power_meter;
 pub mod props;
 pub mod region;
 pub mod serial;

@@ -58,6 +58,8 @@ pub fn answer(acpi: &mut Acpi, req: &[u8], sender: u32) -> Vec<u8> {
         Some(OP_QUIRKS) => crate::quirks::quirks(acpi, req, sender),
         Some(OP_LPIT) => lpit_wire::lpit_wire(),
         Some(OP_TPM_PPI) => crate::tpm_ppi::tpm_ppi(acpi),
+        Some(OP_POWER_METER) => crate::power_meter::power_meter(acpi),
+        Some(OP_SET_POWER_CAP) => crate::power_meter::set_power_cap(acpi, req),
         _ => (EINVAL, Vec::new()),
     };
     let mut out = code.to_le_bytes().to_vec();

@@ -42,6 +42,7 @@ mod props;
 mod quirks;
 mod reserved;
 mod power;
+mod power_meter;
 mod serial;
 mod server;
 mod sleep;
