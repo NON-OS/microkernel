@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::arch::aarch64::boot::{refuse, security_reason};
+use crate::arch::aarch64::boot::refuse;
 use crate::arch::aarch64::cpu;
 use crate::arch::aarch64::exceptions::install_vbar_el1;
 use crate::arch::aarch64::gic::init_gic_cpu;
@@ -30,9 +30,7 @@ use super::state::CPUS_ONLINE;
 pub extern "C" fn aarch64_ap_entry() -> ! {
     install_vbar_el1();
     cpu::init_cpu();
-    if let Err(error) = security::init_all() {
-        refuse(b"secondary security", security_reason(error));
-    }
+    security::init_all();
     if let Err(reason) = init_gic_cpu() {
         refuse(b"secondary gic", reason.as_bytes());
     }

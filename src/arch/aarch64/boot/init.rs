@@ -35,9 +35,7 @@ pub fn init(boot_info: &BootInfo) {
     }
     super::platform_windows::publish(boot_info);
     exceptions::install_vbar_el1();
-    if let Err(error) = security::init_all() {
-        super::refuse(b"security", super::security_reason(error));
-    }
+    security::init_all();
     mmu::init_mmu(boot_info);
     let gic = gic::init_gic(
         boot_info.gic_version,
