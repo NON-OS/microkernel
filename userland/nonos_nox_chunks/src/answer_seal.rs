@@ -40,7 +40,7 @@ pub fn seal_answer<K: Keccak, X: X25519>(
     offer: &Offer,
 ) -> Option<Vec<u8>> {
     let (agent_pk, shared) = (x.public(agent_sk), x.dh(agent_sk, buyer_pk));
-    (shared != [0; 32]).then_some(())?;
+    (!all_zero(&shared)).then_some(())?;
     let key = answer_key(k, &shared, (&agent_pk, buyer_pk));
     let plain = offer.encode();
     let mut sealed = vec![0u8; plain.len().checked_add(TAG_LEN)?];
@@ -59,10 +59,16 @@ pub fn open_answer<K: Keccak, X: X25519>(
     let (agent_pk, body) = sealed.split_first_chunk::<32>().ok_or(AnswerWrong::Short)?;
     let plain_len = body.len().checked_sub(TAG_LEN).ok_or(AnswerWrong::Short)?;
     let (buyer_pk, shared) = (x.public(buyer_sk), x.dh(buyer_sk, agent_pk));
-    (shared != [0; 32]).then_some(()).ok_or(AnswerWrong::LowOrder)?;
+    (!all_zero(&shared)).then_some(()).ok_or(AnswerWrong::LowOrder)?;
     let key = answer_key(k, &shared, (agent_pk, &buyer_pk));
     let mut plain = vec![0u8; plain_len];
     let ad = [&listing[..], release].concat();
     open(&key, &[0; NONCE_LEN], &ad, body, &mut plain).map_err(|_| AnswerWrong::Seal)?;
     Offer::parse(&plain, content_len).ok_or(AnswerWrong::Body)
+}
+
+/// A low-order point's shared secret is all zero. Every byte is read, so
+/// how long the check takes says nothing about the secret.
+fn all_zero(shared: &[u8; 32]) -> bool {
+    shared.iter().fold(0u8, |acc, b| acc | b) == 0
 }
