@@ -13,49 +13,49 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A UAS device bound at high speed: its UAS alternate selected, command
-//! and status on the first bulk pair and its data pipes on the second
-//! (OP_CONFIGURE_BULK2). At SuperSpeed UAS moves on streams, which no host
-//! serves yet (0x24), so the device is bound by BOT there when it offers
-//! BOT, and not at all when it does not.
+//! A UAS device bound: its UAS alternate selected, command and status on
+//! the first bulk pair and its data pipes on the second
+//! (OP_CONFIGURE_BULK2). At SuperSpeed it moves on streams
+//! (OP_CONFIGURE_STREAMS) on the status and data pipes, each command on
+//! the stream its tag names; a SuperSpeed device that offers no streams is
+//! left to BOT.
 
-use nonos_uas::{uas_pipes, Pipe};
+use nonos_uas::{uas_pipes, UasPipes};
 
 use super::probe::Probe;
 use super::ready_unit::finish;
 use super::report::Stage;
-use crate::descriptors::MscBinding;
+use super::uas_setup::set_up;
 use crate::disk::Disk;
 use crate::state::State;
-use crate::xhci::{configure_bulk, configure_bulk2, control_no_data, port_speed};
+use crate::xhci::port_speed;
 
 const SPEED_HIGH: u8 = 3;
-const SET_CONFIGURATION: (u8, u8) = (0x00, 0x09);
-const SET_INTERFACE: (u8, u8) = (0x01, 0x0B);
+const SPEED_SUPER: u8 = 4;
+/// Streams asked for, as 2^n contexts: one command is in flight, so three
+/// usable streams are plenty.
+const STREAMS_LOG2: u8 = 2;
 
 /// `None` when the device is not one to bind by UAS here.
 pub(super) fn uas(xhci: u32, slot: u8, port: u8, desc: &[u8], state: &mut State) -> Option<Probe> {
     let p = uas_pipes(desc)?;
-    if port_speed(xhci, port) != Some(SPEED_HIGH) {
-        return None;
-    }
-    let pair = |i: Pipe, o: Pipe| MscBinding {
-        interface: p.interface,
-        bulk_in: i.address,
-        bulk_out: o.address,
-        max_packet_in: i.max_packet,
-        max_packet_out: o.max_packet,
-        ..MscBinding::default()
+    let log2 = match port_speed(xhci, port)? {
+        SPEED_HIGH => None,
+        s if s >= SPEED_SUPER => Some(stream_log2(&p)?),
+        _ => return None,
     };
-    let (control, data) = (pair(p.status, p.command), pair(p.data_in, p.data_out));
-    let on = configure_bulk(xhci, slot, &control)
-        .and_then(|_| configure_bulk2(xhci, slot, &data))
-        .and_then(|_| control_no_data(xhci, slot, SET_CONFIGURATION, desc[5] as u16, 0))
-        .and_then(|_| control_no_data(xhci, slot, SET_INTERFACE, p.alt as u16, p.interface as u16));
-    if let Err(e) = on {
-        return Some(Probe::Failed(Stage::Configure, e));
-    }
+    let data = match set_up(xhci, slot, desc, &p, log2) {
+        Ok(data) => data,
+        Err(e) => return Some(Probe::Failed(Stage::Configure, e)),
+    };
     let mut disk = Disk::bound(xhci, slot, &data);
-    disk.uas = true;
+    (disk.uas, disk.streams) = (true, log2.is_some());
     Some(finish(disk, state))
+}
+
+/// The streams to ask for: as many as the status and data pipes all take,
+/// up to STREAMS_LOG2; `None` when one takes none.
+fn stream_log2(p: &UasPipes) -> Option<u8> {
+    let n = [p.status, p.data_in, p.data_out].iter().map(|q| q.streams).min()?;
+    (n > 0).then(|| n.min(STREAMS_LOG2))
 }
