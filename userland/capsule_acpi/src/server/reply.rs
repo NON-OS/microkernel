@@ -16,7 +16,7 @@
 
 //! Building the replies protocol.rs describes.
 
-use super::caller::owner;
+use super::caller::{group_of, owner};
 use super::inventory::{device, status};
 use super::policy::admits;
 use super::protocol::*;
@@ -30,7 +30,7 @@ pub fn answer(acpi: &mut Acpi, req: &[u8], sender: u32) -> Vec<u8> {
     let index =
         |r: &[u8]| r.get(1..5).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]) as usize);
     let op = req.first().copied().unwrap_or(0);
-    if !admits(op, sender, owner) {
+    if !admits(op, sender, owner, group_of) {
         return EPERM.to_le_bytes().to_vec();
     }
     let (code, body) = match req.first().copied() {
