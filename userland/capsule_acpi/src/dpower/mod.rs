@@ -18,7 +18,11 @@
 //! read and moved through _PSx and the power resources (ACPI 6.5, ch. 7).
 
 mod find;
+mod hidden;
 mod moves;
+mod settle;
 mod wire;
 
+pub use hidden::reveal_hidden;
+pub use settle::{tick, Hidden};
 pub use wire::device_power;
