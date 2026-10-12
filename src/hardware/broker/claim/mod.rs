@@ -18,6 +18,7 @@ mod claim;
 mod hold;
 mod hold_rule;
 mod lookup;
+mod master_off;
 mod no_snoop;
 mod quiesce;
 mod quiesce_all;

@@ -100,6 +100,8 @@ pub mod claim_holders;
 #[cfg(test)]
 pub mod claim_holds;
 #[cfg(test)]
+pub mod boot_bus_master;
+#[cfg(test)]
 pub mod boot_framebuffer;
 #[cfg(test)]
 pub mod mmio_memory_type;
