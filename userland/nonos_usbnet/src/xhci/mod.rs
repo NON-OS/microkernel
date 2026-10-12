@@ -25,6 +25,7 @@ mod interrupt;
 mod interrupt_out;
 mod lookup;
 mod port;
+mod read_shared;
 mod slot;
 #[path = "../../../../src/services/registry/usb_hosts.rs"]
 mod usb_hosts;
@@ -35,6 +36,7 @@ pub use call::call;
 pub use claims::{claim_interface, slot_of_port};
 pub use lookup::{host, hosts};
 pub use port::connected_ports;
+pub use read_shared::read_shared;
 pub use slot::{address_device, disable_slot, enable_slot};
 pub use wire::{BULK_MAX, CONTROL_MAX, E_AGAIN, E_BUSY, E_INVAL, E_IO, E_PIPE};
 pub use wire::{PORT_CLAIMED, PORT_FREE};

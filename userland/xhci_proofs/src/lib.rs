@@ -50,8 +50,6 @@ pub mod mux_ports;
 pub mod slots;
 
 #[cfg(test)]
-mod claims_tests;
-#[cfg(test)]
 mod conformance;
 #[cfg(test)]
 mod control_out_tests;
@@ -67,6 +65,8 @@ mod isoch_in_tests;
 mod isoch_tests;
 #[cfg(test)]
 mod op_number_tests;
+#[cfg(test)]
+mod sharing;
 #[cfg(test)]
 mod xhci_tests;
 
