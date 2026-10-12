@@ -19,6 +19,7 @@ mod core_kind_record;
 pub mod detection;
 pub mod types;
 
+pub(crate) use core_kind::CoreKind;
 pub(crate) use core_kind_record::{core_kind, is_hybrid, record_core_kind};
 pub use types::{CpuInfo, CpuTopology, MAX_NUMA_NODES};
 
