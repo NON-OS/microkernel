@@ -39,6 +39,7 @@ pub const OP_PROPERTIES: u8 = 12;
 pub const OP_GPIO_EVENT: u8 = 13;
 pub const OP_TIME_ALARM: u8 = 14;
 pub const OP_TIME_SET: u8 = 15;
+pub const OP_QUIRKS: u8 = 16;
 pub const EPERM: i32 = -1;
 pub const ENOENT: i32 = -2;
 pub const EIO: i32 = -5;
