@@ -51,6 +51,8 @@ pub mod platform;
 pub mod platform_device;
 #[path = "../../nonos_aml/src/ports/mod.rs"]
 pub mod ports;
+#[path = "../../nonos_aml/src/props/mod.rs"]
+pub mod props;
 #[path = "../../nonos_aml/src/power/mod.rs"]
 pub mod power;
 #[path = "../../nonos_aml/src/region/mod.rs"]
