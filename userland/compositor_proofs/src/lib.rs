@@ -61,6 +61,8 @@ pub mod frame_pacer {
     pub mod compose;
     #[path = "../../compositor/src/frame_pacer/cursor.rs"]
     pub mod cursor;
+    #[path = "../../compositor/src/frame_pacer/cursor_shape.rs"]
+    pub mod cursor_shape;
 }
 
 #[path = "../../compositor/src/frame_pacer/drain_damage.rs"]
@@ -83,6 +85,8 @@ pub mod protocol;
 pub mod display {
     #[path = "../../compositor/src/display/backoff.rs"]
     pub mod backoff;
+    #[path = "../../compositor/src/display/cursor_rule.rs"]
+    pub mod cursor_rule;
     #[path = "../../compositor/src/display/head.rs"]
     pub mod head;
     #[path = "../../compositor/src/display/head_rule.rs"]
@@ -110,6 +114,10 @@ mod band_tests;
 mod batch_tests;
 #[cfg(test)]
 mod blitter_tests;
+#[cfg(test)]
+mod cursor_plane_tests;
+#[cfg(test)]
+mod cursor_rule_tests;
 #[cfg(test)]
 mod damage_tests;
 #[cfg(test)]

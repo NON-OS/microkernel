@@ -47,6 +47,9 @@ pub struct Context {
     pub wire: Option<crate::display::WireLink>,
     /// The wire driver's outputs past 0, each mirroring the screen.
     pub heads: alloc::vec::Vec<crate::display::Head>,
+    /// The pointer as the device's cursor plane last showed it; None owes
+    /// the primary a drawn slot and NEW_SHAPE.
+    pub cursor_sent: Option<super::cursor::CursorState>,
 }
 
 impl Context {
@@ -54,5 +57,10 @@ impl Context {
         let id = self.next_request_id;
         self.next_request_id = id.wrapping_add(1).max(1);
         id
+    }
+
+    /// The pointer is on the wire driver's cursor plane, not composited.
+    pub fn hw_cursor(&self) -> bool {
+        self.wire.is_some_and(|w| w.cursor_offset != 0)
     }
 }

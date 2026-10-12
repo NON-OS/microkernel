@@ -47,6 +47,15 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   primes the mirrored outputs again (`setup/{heads,poll_heads}.rs`). One
   canvas across outputs changes the canvas under every client and waits on
   resizing (G 6).
+  A driver whose CAPS has HW_CURSOR gets the pointer on its cursor plane:
+  the arrow is drawn into each primary's cursor slot (scaled with the
+  screen, transparent around it) and announced with NEW_SHAPE, then each
+  frame the pointer moved sends one CURSOR per output, its position mapped
+  onto the screen and into each mirrored output's fitted box; the arrow is
+  then neither composited nor damaged around. A refused CURSOR hides the
+  plane everywhere and composites the arrow again until the primary is
+  replaced (`frame_pacer/{hw_cursor,hw_cursor_back,cursor_shape}.rs`,
+  `display/cursor_rule.rs`).
 - A driver that answers CAPS with -38 is driven on the legacy path:
   `gfx_client` asks for its primary surface, attaches it, and drives
   `transfer_to_host`, `set_scanout` and `resource_flush` over IPC.
@@ -156,7 +165,7 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
 | Cursor tracker | `state/cursor.rs` |
 | Attach cache | `state/attach.rs` |
 | Context (owned by runner) | `state/context.rs` |
-| Frame loop (paint, cursor, present) | `frame_pacer/{tick,to_screen,composite,cursor,drain_batch}.rs` |
+| Frame loop (paint, cursor, present) | `frame_pacer/{tick,to_screen,composite,cursor,drain_batch,hw_cursor}.rs` |
 | gfx_client (driver.virtio_gpu0 IPC) | `gfx_client/{get_primary,transfer,set_scanout,flush}.rs`, `gfx_client/wire/*.rs` |
 | Software blitter and 2x upscale | `sw_blitter/*.rs` |
 | Wire protocol (header/ops/errno/limits) | `protocol/*.rs` |
@@ -213,7 +222,8 @@ must produce a signed ELF whose SHA matches the embedded manifest
 ## Explicit non-goals today
 
 - No GPU 3D acceleration. The compositor is a 2D blitter.
-- No hardware cursor; the cursor is drawn into each damaged rectangle.
+- A hardware cursor only on a wire driver with HW_CURSOR; otherwise the
+  cursor is drawn into each damaged rectangle.
 - No compositing effects beyond alpha-blended copy.
 - One display, number 0.
 - A client can still submit another process's surface handle as its own

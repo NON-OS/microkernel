@@ -35,6 +35,8 @@ pub fn poll(ctx: &mut Context) -> Option<&'static str> {
         Step::Keep => super::poll_heads::poll_heads(ctx, same?.port),
         Step::Repaint => {
             ctx.damage.mark_full(ctx.width, ctx.height);
+            // A lost output may have lost its cursor plane too.
+            ctx.cursor_sent = None;
             let _ = same.map(|e| super::poll_heads::poll_heads(ctx, e.port));
             Some("output lost and set again; repainting")
         }

@@ -45,7 +45,8 @@ pub fn head(port: u32, output: u16) -> Option<Head> {
         height: p.height,
         byte_len: p.byte_len,
     };
-    Some(Head { output, serial: s.serial, handle: s.handle, screen, stale: false })
+    let (serial, handle, cursor_offset) = (s.serial, s.handle, s.cursor_offset);
+    Some(Head { output, serial, handle, screen, stale: false, cursor_offset, shaped: false })
 }
 
 pub fn release_heads(heads: &mut Vec<Head>) {

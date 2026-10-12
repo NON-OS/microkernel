@@ -28,12 +28,14 @@ pub fn paint(ctx: &mut Context, rect: Rect) {
         height: ctx.height,
         byte_len: ctx.backing_len,
     };
+    // On the device's cursor plane the arrow is not in the frame.
     let cursor = ctx.cursor.current();
+    let shown = cursor.visible && !ctx.hw_cursor();
     let scene = Scene {
         scene: &mut ctx.scene,
         attach: &mut ctx.attach,
         kernel: &mut Kernel,
         damage: &mut ctx.damage,
     };
-    compose(dst, rect, scene, cursor.visible.then_some((cursor.x, cursor.y)));
+    compose(dst, rect, scene, shown.then_some((cursor.x, cursor.y)));
 }

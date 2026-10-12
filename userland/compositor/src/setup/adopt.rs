@@ -46,6 +46,7 @@ pub fn adopt(ctx: &mut Context, mut next: Context) {
     ctx.first_scanout_done = next.first_scanout_done;
     ctx.scanout_error_reported = false;
     ctx.wire = next.wire;
+    ctx.cursor_sent = None;
     ctx.damage.mark_full(ctx.width, ctx.height);
     super::canvas::fit_canvas(ctx);
     if old_handle != ctx.surface_handle {

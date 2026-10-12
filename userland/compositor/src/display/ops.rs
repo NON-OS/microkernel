@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The common ops the compositor sends (section 12): CAPS, SURFACE, STATE,
-//! FLUSH and RETIRE, each to one output (0 is the first). A driver answering
+//! FLUSH, RETIRE and CURSOR, each to one output (0 is the first). A driver answering
 //! CAPS with ENOSYS speaks only the legacy ops, and the caller drives it
 //! that way.
 
 use nonos_gfx_wire::body::flush::MAX_RECTS;
 use nonos_gfx_wire::errno::EINVAL;
-use nonos_gfx_wire::{ops, Caps, Errno, Flush, Rect, State, Surface};
+use nonos_gfx_wire::{ops, Caps, Cursor, Errno, Flush, Rect, State, Surface};
 
 use super::call::{call, PRESENT_MS, SETUP_MS};
 
@@ -60,4 +60,9 @@ pub fn flush(port: u32, output: u16, serial: u32, rects: &[Rect]) -> Result<(), 
 /// names one primary across every output, so output 0 carries it.
 pub fn retire(port: u32, serial: u32) -> Result<(), Errno> {
     call((port, 0), ops::RETIRE, &serial.to_le_bytes(), &mut [], SETUP_MS).map(|_| ())
+}
+
+/// Show, move or hide the device's cursor on `output`.
+pub fn cursor(port: u32, output: u16, c: &Cursor) -> Result<(), Errno> {
+    call((port, output), ops::CURSOR, &c.encode(), &mut [], PRESENT_MS).map(|_| ())
 }
