@@ -23,6 +23,10 @@ pub const DEVICE_FLAG_DISABLED: u32 = 1 << 1;
 pub const DEVICE_FLAG_EXTERNAL: u32 = 1 << 2;
 /// A device whose _DEP firmware could not satisfy, published flagged.
 pub const DEVICE_FLAG_DEPS_UNMET: u32 = 1 << 3;
+/// An ACPI platform device's `_CRS` interrupt: edge (set) or level.
+pub const DEVICE_FLAG_IRQ_EDGE: u32 = 1 << 4;
+/// An ACPI platform device's `_CRS` interrupt: active low (set) or high.
+pub const DEVICE_FLAG_IRQ_ACTIVE_LOW: u32 = 1 << 5;
 /// `numa_node` of a device no firmware table places, or past domain 254.
 pub const NUMA_UNKNOWN: u8 = 0xFF;
 
