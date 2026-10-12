@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
-
 /// The register window, by base address.
 ///
 /// Every accessor is unsafe under one contract: `offset` must lie inside the
@@ -35,41 +33,41 @@ impl Regs {
     ///
     /// `offset` lies inside the mapped window; see the type.
     pub unsafe fn r8(&self, offset: usize) -> u8 {
-        ptr::read_volatile((self.base as usize + offset) as *const u8)
+        nonos_libc::mmio_read8(self.base as usize + offset)
     }
 
     /// # Safety
     ///
     /// `offset` lies inside the mapped window; see the type.
     pub unsafe fn r16(&self, offset: usize) -> u16 {
-        ptr::read_volatile((self.base as usize + offset) as *const u16)
+        nonos_libc::mmio_read16(self.base as usize + offset)
     }
 
     /// # Safety
     ///
     /// `offset` lies inside the mapped window; see the type.
     pub unsafe fn r32(&self, offset: usize) -> u32 {
-        ptr::read_volatile((self.base as usize + offset) as *const u32)
+        nonos_libc::mmio_read32(self.base as usize + offset)
     }
 
     /// # Safety
     ///
     /// `offset` lies inside the mapped window; see the type.
     pub unsafe fn w8(&self, offset: usize, value: u8) {
-        ptr::write_volatile((self.base as usize + offset) as *mut u8, value);
+        nonos_libc::mmio_write8(self.base as usize + offset, value);
     }
 
     /// # Safety
     ///
     /// `offset` lies inside the mapped window; see the type.
     pub unsafe fn w16(&self, offset: usize, value: u16) {
-        ptr::write_volatile((self.base as usize + offset) as *mut u16, value);
+        nonos_libc::mmio_write16(self.base as usize + offset, value);
     }
 
     /// # Safety
     ///
     /// `offset` lies inside the mapped window; see the type.
     pub unsafe fn w32(&self, offset: usize, value: u32) {
-        ptr::write_volatile((self.base as usize + offset) as *mut u32, value);
+        nonos_libc::mmio_write32(self.base as usize + offset, value);
     }
 }

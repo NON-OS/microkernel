@@ -14,4 +14,5 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+nonos_libc = { package = "virtio_rng_proofs_libc_shim", path = "libc_shim" }
 nonos_devmodel = { path = "../nonos_devmodel" }

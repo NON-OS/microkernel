@@ -16,13 +16,12 @@
 use super::super::io::RegIo;
 use super::types::Regs;
 use crate::regs::pio;
-use core::ptr::read_volatile;
 
 impl Regs {
     #[inline]
     pub unsafe fn r16(self, offset: usize) -> u16 {
         match self.io {
-            RegIo::Mmio(base) => read_volatile(base.add(offset).cast()),
+            RegIo::Mmio(base) => nonos_libc::mmio_read16(base.add(offset) as usize),
             RegIo::Pio(grant) => pio::read(grant, offset, 2) as u16,
         }
     }
