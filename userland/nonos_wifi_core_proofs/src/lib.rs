@@ -20,6 +20,12 @@
 #[cfg(test)]
 mod ap_sim;
 #[cfg(test)]
+mod bip_gmac_frames;
+#[cfg(test)]
+mod bip_gmac_refusal_tests;
+#[cfg(test)]
+mod bip_gmac_tests;
+#[cfg(test)]
 mod bip_tests;
 #[cfg(test)]
 mod cipher_select_tests;

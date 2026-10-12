@@ -12,6 +12,8 @@ is `#[cfg(test)]`, so the library is empty outside a test build.
 | File | Tests | What it checks |
 |---|---|---|
 | `crypto_tests.rs` | 3 | AES-128-CMAC against RFC 4493, HMAC-SHA256 and HKDF against RFC 5869 A.1, and the PSK from 64 hex digits or a passphrase through PBKDF2 (IEEE 802.11-2020 J.4.2) |
+| `bip_gmac_tests.rs` | 3 | BIP-GMAC-256 (IEEE 802.11-2020 12.5.4): the MMIE laid out as 9.4.2.54, the MIC exactly the GCM tag over no plaintext, verification returning the IPN, Retry, Power Management, More Data and the sequence number left unbound |
+| `bip_gmac_refusal_tests.rs` | 3 | BIP-GMAC-256 refusals: a changed body, address or IPN, a replay, another key id or key, a frame without an MMIE, unicast, non-management, out-of-range IPN and key id |
 | `sae_tests.rs` | 9 | WPA3-SAE against IEEE 802.11-2020 Annex J.10 (bytes copied from hostapd's transcription in `common_module_tests.c`), for hunting and pecking and for hash-to-element, then the exchange end to end |
 | `handshake_tests.rs` | 9 | the supplicant against IEEE 802.11-2020 12.7.6 and 12.7.7: repeated message 1, RSNE downgrade in message 3, forged and replayed frames, repeated message 3 without a key reinstall, group key handshake, SAE AKM, larger key data |
 | `supplicant_tests.rs` | 2 | the GTK keeps the key index the access point sent |
