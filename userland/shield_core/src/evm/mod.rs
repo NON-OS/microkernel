@@ -53,3 +53,7 @@ pub use review_parts::{Arrival, Checked, Order, Review};
 pub use send::{broadcast, status, SendStatus};
 pub use used::used;
 pub use views::{view, Viewed};
+
+#[cfg(test)]
+#[path = "reply_hostile_test.rs"]
+mod reply_hostile_test;
