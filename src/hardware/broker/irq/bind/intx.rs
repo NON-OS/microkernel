@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::grant::{IrqGrant, IrqGrantKind, NO_IRTE};
+use super::super::grant::{IrqGrant, IrqGrantKind};
 use super::super::types::{IrqBindError, IrqBindRequest, IrqBindResult};
 use super::super::validate::validate_intx_request;
 use super::super::{records, slots};
 use super::intx_line::line_free;
 use super::intx_open::open_intx;
 use super::intx_say::say_route;
+use super::sentinels::NO_IRTE;
 use crate::arch::interrupt::broker::vector_of;
 use crate::arch::interrupt::ioapic;
 use crate::hardware::broker::table;

@@ -49,8 +49,10 @@ mod msix_route;
 mod quiet;
 #[cfg(feature = "nonos-iommu-intremap")]
 mod remap;
+mod sentinels;
 mod teardown;
 
 pub use bind::bind;
 pub(super) use message::release as release_irte;
+pub(super) use sentinels::NO_LINE;
 pub(super) use teardown::{disable_msi_for_device, disable_msix_for_device, teardown_msix_vector};
