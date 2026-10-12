@@ -20,6 +20,7 @@
 //! them this machine's facts and does what they allow.
 
 pub mod battery_watch;
+pub mod claim_holder;
 pub mod cpu_layout;
 pub mod cpu_record;
 pub mod cpu_store;

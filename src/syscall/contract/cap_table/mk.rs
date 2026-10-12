@@ -146,6 +146,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAcpiSleep
         | SyscallNumber::MkSmbiosTable
         | SyscallNumber::MkAcpiCpu
+        | SyscallNumber::MkAcpiHolds
         | SyscallNumber::MkAcpiPower => caps.is_valid() && caps.is_admin(),
 
         SyscallNumber::MkDebug => caps.can_debug(),
