@@ -15,15 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod call;
+#[path = "../../../nonos_usbnet/src/hosts.rs"]
+mod hosts;
 mod lookup;
-#[path = "../../../../src/services/registry/usb_hosts.rs"]
-mod usb_hosts;
 mod ops;
 mod seq;
+#[path = "../../../../src/services/registry/usb_hosts.rs"]
+mod usb_hosts;
 mod wire;
 
 pub use call::XhciClientError;
-pub use lookup::lookup;
+pub use hosts::Hosts;
+pub use lookup::{host, hosts};
 pub use ops::{
     address_device, address_routed, alloc_transfer_ring, configure_hub, control_transfer,
     disable_slot, enable_slot, get_config_descriptor, interrupt_in, port_status, PortSnapshot,

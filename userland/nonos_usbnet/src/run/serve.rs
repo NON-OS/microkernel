@@ -54,7 +54,7 @@ pub fn run<N: Nic>(tag: &'static [u8], service: &str, bind: BindFn<N>) -> ! {
             if let Some(b) = bound.take() {
                 say(tag, &[b"device stopped answering, given back"]);
                 disable_slot(b.xhci, b.slot);
-                scanner.lost(b.port);
+                scanner.lost(b.xhci, b.port);
                 (stats.losses, stats.failing) = (stats.losses.saturating_add(1), 0);
             }
         }
