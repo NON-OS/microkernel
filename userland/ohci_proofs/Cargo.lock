@@ -3,5 +3,12 @@
 version = 4
 
 [[package]]
+name = "nonos_usb_hub"
+version = "0.3.0"
+
+[[package]]
 name = "ohci_proofs"
 version = "0.1.0"
+dependencies = [
+ "nonos_usb_hub",
+]

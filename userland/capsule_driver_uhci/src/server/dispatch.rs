@@ -17,7 +17,7 @@
 //! One request to its handler; anything not served answers E_INVAL.
 
 use super::context::Ctx;
-use super::handlers::{bulk, control, descriptors, interrupt, poll, ports, slots, transfer};
+use super::handlers::{bulk, control, descriptors, hub, interrupt, poll, ports, slots, transfer};
 use super::reply::status;
 use crate::env::{Clock, Io, Mem};
 use crate::wire::ops::*;
@@ -45,6 +45,8 @@ pub fn dispatch<I: Io, C: Clock, M: Mem>(
         OP_BULK_IN => transfer::transfer(cx, req, body, tx, true),
         OP_RESET_BULK => bulk::reset(cx, req, body, tx),
         OP_BULK_IN_POLL => poll::poll(cx, req, body, tx),
+        OP_ADDRESS_ROUTED => hub::address(cx, req, body, tx),
+        OP_CONFIGURE_HUB => hub::configure(cx, req, body, tx),
         _ => status(tx, req, E_INVAL),
     }
 }
