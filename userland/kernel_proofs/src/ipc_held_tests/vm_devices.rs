@@ -23,7 +23,7 @@ use super::common::{owner, IPC};
 use super::held::{callers_of, endpoint_admits, inbox_admits};
 
 /// Every virtual input device's driver endpoint.
-const VIRTUAL_INPUT: &[&str] = &["driver.virtio_input0", "driver.vmmdev0"];
+const VIRTUAL_INPUT: &[&str] = &["driver.virtio_input0", "driver.vmmdev0", "driver.vmmouse0"];
 
 #[test]
 fn a_virtual_pointer_or_keyboard_is_reached_by_no_capsule() {
