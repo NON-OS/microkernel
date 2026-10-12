@@ -18,7 +18,9 @@
 
 use core::arch::asm;
 
-use super::backdoor_rule::{call_allowed, host_answers, BACKDOOR_MAGIC, BACKDOOR_PORT};
+use super::backdoor_rule::{
+    answered, call_allowed, host_answers, BACKDOOR_MAGIC, BACKDOOR_PORT, CMD_GETVERSION,
+};
 use super::state::current;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -57,4 +59,10 @@ pub fn backdoor(cmd: u32, arg: u32) -> Result<[u32; 4], BackdoorError> {
         );
     }
     Ok([eax, ebx as u32, ecx, edx])
+}
+
+/// Whether this host's backdoor answers: VMware's always does, QEMU's only
+/// with its vmport device, which a machine type or `vmport=off` can leave out.
+pub fn backdoor_present() -> bool {
+    matches!(backdoor(CMD_GETVERSION, 0), Ok(regs) if answered(regs))
 }
