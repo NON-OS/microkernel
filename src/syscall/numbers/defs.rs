@@ -147,4 +147,8 @@ pub enum SyscallNumber {
     MkAppLaunch = tag4(b"MAPL"),
     MkAppInstallStatus = tag4(b"MAIS"),
     MkAppUninstall = tag4(b"MAUN"),
+    MkAcpiTable = tag4(b"MTBL"),
+    MkAcpiRegion = tag4(b"MRGN"),
+    MkAcpiPort = tag4(b"MRIO"),
+    MkAcpiPci = tag4(b"MRPC"),
 }
