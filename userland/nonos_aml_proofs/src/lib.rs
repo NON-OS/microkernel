@@ -25,6 +25,8 @@ pub mod events;
 pub mod exec;
 #[path = "../../nonos_aml/src/fan/mod.rs"]
 pub mod fan;
+#[path = "../../nonos_aml/src/ged/mod.rs"]
+pub mod ged;
 #[path = "../../nonos_aml/src/grammar/mod.rs"]
 pub mod grammar;
 #[path = "../../nonos_aml/src/load/mod.rs"]
