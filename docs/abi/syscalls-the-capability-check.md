@@ -37,10 +37,10 @@ table is total: `is_allowed` refuses a number no family claims
 Read the Capability column this way:
 
 - A single name means the token must grant that capability.
-- "A or B" means either is enough. Every
-  [broker](../overview/glossary.md#broker) gate accepts `Admin` in place of the
-  call's own capability, because predicates such as `can_driver` ask for either
-  (`src/capabilities/token/types/authority_broker.rs:24-26`).
+- "A or B" means either is enough. No [broker](../overview/glossary.md#broker)
+  or input gate accepts `Admin` in place of the call's own capability:
+  predicates such as `can_driver` ask for their bit alone
+  (`src/capabilities/token/types/authority_broker.rs:29-31`).
 - "A and B" means both.
 - "valid token" means `is_valid`: the token has not expired and grants at least
   one capability (`src/capabilities/token/types/query.rs:44-47`). The tokens
