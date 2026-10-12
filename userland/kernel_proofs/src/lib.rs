@@ -22,6 +22,8 @@
 extern crate alloc;
 
 #[cfg(test)]
+pub mod acpi_event;
+#[cfg(test)]
 pub mod acpi_power;
 #[cfg(test)]
 pub mod acpi_region;
