@@ -31,6 +31,7 @@ mod usb_hosts;
 
 mod card_names;
 mod card_readers;
+mod cdc_acm_tests;
 mod cards;
 mod classified;
 mod common;
