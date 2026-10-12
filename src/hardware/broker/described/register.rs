@@ -27,6 +27,10 @@ pub struct Described {
     pub interface: Interface,
     pub windows: [(u64, u64); 4],
     pub window_count: usize,
+    /// The controller's base clock in Hz when firmware states it, else 0;
+    /// published as bar 0's `aux`, where an SDHCI with no clock in its
+    /// capabilities register finds it.
+    pub clock_hz: u32,
     /// The SPI and whether it is edge triggered.
     pub irq: Option<(u32, bool)>,
     /// `None`: no bus maps its DMA, so no grant is ever given for it.
