@@ -6,4 +6,4 @@ pub mod arch;
 pub mod sys;
 
 pub use arch::aarch64::boot::info::{BootInfo, MemoryRegion, MemoryType, Window};
-pub use arch::aarch64::mmu::probe;
+pub use arch::aarch64::mmu::{leaves, probe};
