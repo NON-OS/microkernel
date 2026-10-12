@@ -20,6 +20,7 @@
 use crate::env::TestEnv;
 use crate::link::Env;
 use nonos_bt_bond::BondRecord;
+use nonos_bt_hogp::host::Battery;
 use nonos_bt_hogp::report::Input;
 use nonos_bt_wire::addr::{AddrType, BdAddr};
 
@@ -36,6 +37,9 @@ impl Env for TestEnv {
     }
     fn say(&mut self, words: &[&[u8]]) {
         self.lines.push(String::from_utf8_lossy(&words.concat()).into_owned());
+    }
+    fn battery(&mut self, battery: Battery) {
+        self.batteries.push(battery);
     }
     fn show_passkey(&mut self, passkey: u32) {
         self.passkeys.push(passkey);

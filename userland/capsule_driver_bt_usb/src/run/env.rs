@@ -23,20 +23,14 @@ use super::say::{digits, say};
 use crate::hid::Keys;
 use crate::link::Env;
 use nonos_bt_bond::{BondRecord, Store};
+use nonos_bt_hogp::host::Battery;
 use nonos_bt_hogp::report::Input;
-use nonos_bt_smp::pairing::Random;
 use nonos_bt_wire::addr::{AddrType, BdAddr};
 use nonos_libc::mk_uptime_ms;
 
 pub struct CapsuleEnv {
     pub keys: Keys,
     pub bonds: Store<Kept>,
-}
-
-impl Random for CapsuleEnv {
-    fn fill(&mut self, out: &mut [u8]) {
-        super::draw::draw(out);
-    }
 }
 
 impl Env for CapsuleEnv {
@@ -55,6 +49,10 @@ impl Env for CapsuleEnv {
     fn show_passkey(&mut self, passkey: u32) {
         let n = digits(u64::from(passkey), 6);
         say(&[b"to pair, type ", &n, b" on the keyboard, then Enter"]);
+    }
+    fn battery(&mut self, b: Battery) {
+        let (n, p) = (digits(u64::from(b.instance) + 1, 1), digits(u64::from(b.percent), 1));
+        say(&[b"battery ", &n, b": ", &p, b"%"]);
     }
     fn bonded(&mut self, kind: AddrType, addr: &BdAddr) -> Option<BondRecord> {
         self.bonds.find(kind, addr).cloned()

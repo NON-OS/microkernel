@@ -50,6 +50,9 @@ impl Session {
         for input in step.input {
             self.post(input, env);
         }
+        if let Some(b) = step.battery {
+            env.battery(b);
+        }
         match step.outcome {
             Some(Outcome::Ready { keyboard, mouse }) => {
                 let k: &[u8] = if keyboard { b" keyboard" } else { b"" };
