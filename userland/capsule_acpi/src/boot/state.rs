@@ -45,6 +45,7 @@ pub struct Acpi {
     pub cooling: Cooling,
     pub backlight: Backlight,
     pub hotkeys: Hotkeys,
+    pub smbios: Option<nonos_smbios::identity::Identity>,
     pub devices: Vec<DeviceInfo>,
     pub routes: Vec<(Id, Vec<Route>)>,
     /// SCIs served and GPE methods run, for the status reply.

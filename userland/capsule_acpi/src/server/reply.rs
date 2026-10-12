@@ -19,7 +19,7 @@
 use super::caller::is_power;
 use super::inventory::{device, status};
 use super::protocol::*;
-use super::{brightness, power_wire, thermal_wire};
+use super::{brightness, power_wire, smbios_wire, thermal_wire};
 use crate::boot::Acpi;
 use crate::sleep::prepare_sleep;
 use alloc::vec::Vec;
@@ -40,6 +40,7 @@ pub fn answer(acpi: &mut Acpi, req: &[u8], sender: u32) -> Vec<u8> {
         Some(OP_PREPARE_SLEEP) => (prepare_sleep(acpi, req.get(1).copied()), Vec::new()),
         Some(OP_POWER) => power_wire::power(acpi),
         Some(OP_THERMAL) => thermal_wire::thermal(acpi),
+        Some(OP_SMBIOS) => smbios_wire::smbios(acpi),
         _ => (EINVAL, Vec::new()),
     };
     let mut out = code.to_le_bytes().to_vec();
