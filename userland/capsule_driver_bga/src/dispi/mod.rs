@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod clear;
+mod current;
 mod dispi_off;
 mod set_mode;
 
-pub use clear::clear;
+pub use current::{current, DispiMode};
 pub use set_mode::set_mode;

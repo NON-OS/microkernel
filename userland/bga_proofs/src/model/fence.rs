@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER};
+//! The fence the driver calls after a copy, counted per test thread so a
+//! test can see the copy was ordered before the answer.
 
-use crate::error::{BgaError, BgaResult};
+use std::cell::Cell;
 
-pub fn enable_bus_master(device_id: u64, claim_epoch: u64) -> BgaResult<()> {
-    let r = mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER);
-    if r < 0 {
-        return Err(BgaError::BrokerCallFailed(r));
-    }
-    Ok(())
+thread_local! {
+    static FENCES: Cell<usize> = const { Cell::new(0) };
+}
+
+pub fn sfence() {
+    FENCES.with(|f| f.set(f.get() + 1));
+}
+
+pub fn fences() -> usize {
+    FENCES.with(|f| f.get())
 }
