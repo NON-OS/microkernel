@@ -5,8 +5,8 @@
 //! (Arm ARM, DDI 0487, the VMSAv8-64 stage 1 access permissions and the
 //! execute-never controls).
 
-use boot_tables_proofs::leaves::leaves;
-use boot_tables_proofs::probe::{self, AP_EL0, AP_READ_ONLY, GP, PXN, TEXT, UXN};
+use boot_tables_proofs::leaves::{leaves, AP_EL0, AP_READ_ONLY, GP, PXN, UXN};
+use boot_tables_proofs::probe::{self, TEXT};
 use boot_tables_proofs::{BootInfo, MemoryRegion, MemoryType, Window};
 
 fn ram(base: u64, size: u64) -> MemoryRegion {

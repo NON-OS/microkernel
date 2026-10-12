@@ -11,6 +11,7 @@
    "VERSION",
    "abi/manifest.toml",
    "build.rs",
+   "build_branch_protection.rs",
    "build_info.rs",
    "linker.ld",
    "linker_aarch64.ld",

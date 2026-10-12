@@ -5,6 +5,11 @@
 //! thought to ask about.
 
 use super::attributes::{PTE_ADDR_MASK, PTE_TABLE, PTE_VALID};
+pub use super::attributes::{PTE_GP as GP, PTE_PXN as PXN, PTE_UXN as UXN};
+
+/// AP[1]: EL0 may reach the mapping. AP[2]: it is read only.
+pub const AP_EL0: u64 = super::attributes::PTE_AP_RW_ALL;
+pub const AP_READ_ONLY: u64 = 1 << 7;
 use super::state;
 use super::table::PageTable;
 

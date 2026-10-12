@@ -3,8 +3,8 @@
 //! GICv2 and the peripherals sharing a gigabyte with RAM. Its own test binary
 //! because the tables are built once per process.
 
-use boot_tables_proofs::leaves::leaves;
-use boot_tables_proofs::probe::{self, AP_EL0, PXN, TEXT, UXN};
+use boot_tables_proofs::leaves::{leaves, AP_EL0, PXN, UXN};
+use boot_tables_proofs::probe::{self, TEXT};
 use boot_tables_proofs::{BootInfo, MemoryRegion, MemoryType, Window};
 
 #[test]
