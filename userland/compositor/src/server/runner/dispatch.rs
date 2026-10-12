@@ -39,7 +39,7 @@ pub fn dispatch(
         OP_INPUT_SUBSCRIBE if body.is_empty() => {
             handlers::input_subscribe::handle(ctx, sender_pid, &req, tx)
         }
-        OP_DISPLAY_HINT => handlers::display_hint::handle(sender_pid, &req, body, tx),
+        OP_DISPLAY_HINT => handlers::display_hint::handle(ctx, sender_pid, &req, body, tx),
         OP_DISPLAY_INFO if body.is_empty() => {
             handlers::display_info::handle(ctx, sender_pid, &req, tx)
         }

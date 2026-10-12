@@ -48,6 +48,12 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   primes the mirrored outputs again (`setup/{heads,poll_heads}.rs`). One
   canvas across outputs changes the canvas under every client and waits on
   resizing (G 6).
+  The host is followed (G 6, `display/follow.rs`'s FOLLOW_HOST, Decision 15
+  as the lead recommends it): on a steady driver with MODE_SET the poll asks
+  the preferred mode at start, then any size the host has wanted for 250 ms
+  (STATE's hint or a DISPLAY_HINT), put through `fit`; one MODE_SET, the new
+  primary adopted at once and the canvas refitted; a size asked once is not
+  asked again (`setup/resize.rs`, `display/resize_rule.rs`).
   A driver whose CAPS has HW_CURSOR gets the pointer on its cursor plane:
   the arrow is drawn into each primary's cursor slot (scaled with the
   screen, transparent around it) and announced with NEW_SHAPE, then each
@@ -83,7 +89,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | `OP_CURSOR_UPDATE` | 0x0006 | move or hide the software cursor: x, y, visible |
 | `OP_SCENE_REMOVE` | 0x0007 | remove the sender's layer |
 | `OP_DISPLAY_INFO` | 0x0008 | canvas width, height, stride and format |
-| `OP_DISPLAY_HINT` | 0x0009 | a host size hint (output, width, height, source) -> flags; only from a service in `HINT_SOURCES` (empty until Decision 15), others get E_PERM; answered 0 (not applied) until resize lands |
+| `OP_DISPLAY_HINT` | 0x0009 | a host size hint (output, width, height, source) -> flags; only from a service in `HINT_SOURCES` (empty until the host-services decision), others get E_PERM; for output 0 of a wire driver held and followed like a STATE hint and answered 1 (resizable), else 0 |
 
 The window manager owns the stacking order, and `OP_FOCUS_SET` is how it keeps the compositor's
 order the same. The compositor looks the window manager's pid up in the service registry on every

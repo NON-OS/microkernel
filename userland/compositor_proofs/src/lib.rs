@@ -97,6 +97,8 @@ pub mod display {
     pub mod link;
     #[path = "../../compositor/src/display/poll_rule.rs"]
     pub mod poll_rule;
+    #[path = "../../compositor/src/display/resize_rule.rs"]
+    pub mod resize_rule;
 }
 
 /// The kernel's display list and hint sources, which the compositor mounts.
@@ -144,6 +146,10 @@ mod parse_tests;
 mod raise_tests;
 #[cfg(test)]
 mod repaint_tests;
+#[cfg(test)]
+mod resize_fit_tests;
+#[cfg(test)]
+mod resize_tests;
 #[cfg(test)]
 mod stacking_tests;
 #[cfg(test)]
