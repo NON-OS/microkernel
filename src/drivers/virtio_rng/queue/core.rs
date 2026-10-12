@@ -1,68 +1,62 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Affero General Public License for more details.
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{BUFFER_SIZE, VQ_REGION_SIZE};
-use super::types::{DataBuf, VirtqueueRegionBuf};
-use core::ptr;
+//! One virtqueue of the device's own size, one descriptor at a time: each
+//! request is a single device-writable buffer of up to a page.
 
-static mut VQ_REGION: VirtqueueRegionBuf = VirtqueueRegionBuf([0u8; VQ_REGION_SIZE]);
-static mut DATA_BUF: DataBuf = DataBuf([0u8; BUFFER_SIZE]);
+use super::dma::DmaRegion;
+use super::layout::{layout, Layout};
+
+/// Available-ring flag: the driver polls, so the device raises no
+/// interrupt. Its INTx line is shared on q35 and no handler is bound.
+const AVAIL_F_NO_INTERRUPT: u16 = 1;
 
 pub(crate) struct RngQueue {
-    pub(super) vq_base: usize,
-    pub(super) buf_base: usize,
+    pub(super) ring: DmaRegion,
+    pub(super) buf: DmaRegion,
+    pub(super) layout: Layout,
+    pub(super) size: u16,
     pub(super) last_used_idx: u16,
     pub(super) next_avail_idx: u16,
     pub(super) pending_len: usize,
     pub(super) notify_port: u16,
-    pub(super) notify_mmio: u64,
 }
 
-unsafe impl Send for RngQueue {}
-unsafe impl Sync for RngQueue {}
-
 impl RngQueue {
-    pub(crate) fn new() -> Result<Self, &'static str> {
-        let vq_base = ptr::addr_of!(VQ_REGION) as usize;
-        let buf_base = ptr::addr_of!(DATA_BUF) as usize;
-        if vq_base & 0xFFF != 0 {
-            return Err("virtio-rng: VQ region not page-aligned");
-        }
-        if buf_base & 0xFFF != 0 {
-            return Err("virtio-rng: data buffer not page-aligned");
-        }
-        unsafe {
-            ptr::write_bytes(vq_base as *mut u8, 0, VQ_REGION_SIZE);
-            ptr::write_bytes(buf_base as *mut u8, 0, BUFFER_SIZE);
-        }
-        Ok(Self {
-            vq_base,
-            buf_base,
+    /// A queue of `size` entries, the device's own, kicked through `notify_port`.
+    pub(crate) fn new(size: u16, notify_port: u16) -> Result<Self, &'static str> {
+        let layout = layout(size).ok_or("virtio-rng: queue size not supported")?;
+        let ring = DmaRegion::new(layout.bytes.div_ceil(4096))?;
+        let buf = DmaRegion::new(1)?;
+        let queue = Self {
+            ring,
+            buf,
+            layout,
+            size,
             last_used_idx: 0,
             next_avail_idx: 0,
             pending_len: 0,
-            notify_port: 0,
-            notify_mmio: 0,
-        })
+            notify_port,
+        };
+        queue.put16(queue.layout.avail, AVAIL_F_NO_INTERRUPT);
+        Ok(queue)
     }
 
-    pub(crate) fn desc_table_phys(&self) -> u64 {
-        self.vq_base as u64
-    }
-    pub(crate) fn set_notify_addr(&mut self, port: u16) {
-        self.notify_port = port;
-    }
-    pub(crate) fn set_notify_mmio(&mut self, addr: u64) {
-        self.notify_mmio = addr;
+    /// The ring's page frame number for QUEUE_PFN, a 32-bit register.
+    pub(crate) fn pfn(&self) -> Option<u32> {
+        u32::try_from(self.ring.phys >> 12).ok()
     }
 }
