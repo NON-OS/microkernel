@@ -148,6 +148,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAcpiCpu
         | SyscallNumber::MkAcpiHolds
         | SyscallNumber::MkPciProbeFunction
+        | SyscallNumber::MkAcpiFunctionOf
         | SyscallNumber::MkAcpiPower => caps.is_valid() && caps.is_admin(),
 
         SyscallNumber::MkDebug => caps.can_debug(),
