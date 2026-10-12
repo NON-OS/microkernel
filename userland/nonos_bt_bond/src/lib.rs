@@ -41,3 +41,4 @@ pub use local::{LocalIrk, LOCAL_LEN};
 pub use record::{BondRecord, RECORD_LEN};
 pub use rotation::{Rotation, ROTATE_MS};
 pub use store::Store;
+pub use wipe::wipe;
