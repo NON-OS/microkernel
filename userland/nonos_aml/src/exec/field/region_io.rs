@@ -59,6 +59,8 @@ impl<H: Host> Machine<'_, H> {
             address: r.base.wrapping_add(byte),
             width,
             pci: r.pci.as_ref(),
+            base: r.base,
+            len: r.len,
         };
         let done = match write {
             Some(v) => self.host.region_write(&a, v).then_some(v),

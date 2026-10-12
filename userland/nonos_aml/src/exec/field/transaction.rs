@@ -56,13 +56,9 @@ impl<H: Host> Machine<'_, H> {
                 .ok_or_else(|| self.fault(FaultKind::Type, at))?,
             None => Vec::new(),
         };
-        let a = RegionAccess {
-            space: r.space,
-            region: *rid,
-            address: r.base + (u.bit_offset / 8) as u64,
-            width: 0,
-            pci: None,
-        };
+        let (space, region, base, len) = (r.space, *rid, r.base, r.len);
+        let address = base + (u.bit_offset / 8) as u64;
+        let a = RegionAccess { space, region, address, width: 0, pci: None, base, len };
         if !self.host.transaction(&a, u.access, conn.as_deref(), &mut data) {
             return Err(self.fault(FaultKind::Region, at));
         }

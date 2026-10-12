@@ -27,6 +27,8 @@ pub mod object;
 pub mod op;
 #[path = "../../nonos_aml/src/parse/mod.rs"]
 pub mod parse;
+#[path = "../../nonos_aml/src/platform/mod.rs"]
+pub mod platform;
 #[path = "../../nonos_aml/src/region/mod.rs"]
 pub mod region;
 #[path = "../../nonos_aml/src/shape/mod.rs"]
