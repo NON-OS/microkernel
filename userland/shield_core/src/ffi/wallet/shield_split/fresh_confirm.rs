@@ -7,6 +7,7 @@ use super::super::ticket::approve_calldata;
 use super::super::Wallet;
 use super::confirm::ShieldSplitSent;
 use super::fresh_part::part_ends;
+use super::fresh_recheck::eth_refusal;
 use crate::custody::Vault;
 use crate::error::WalletError;
 use crate::evm::tx::Eip1559;
@@ -34,11 +35,16 @@ impl Wallet {
         let value = value.ok_or(WalletError::ReviewExpired)?;
         shield_checked(&txs, (pool, token), approve.as_deref(), value)
             .map_err(|_| WalletError::ReviewExpired)?;
+        let tor = self.tor()?;
+        if eth {
+            if let Some(refused) = eth_refusal(&tor, &from, &txs)? {
+                return Ok(refused);
+            }
+        }
         let seed = Vault::at(self.paths().vault.clone()).load(self.guard())?;
         let account = EvmAccount::at(seed.bytes(), index).filter(|a| a.address() == from);
         drop(seed);
         let key = account.and_then(|a| a.signing_key()).ok_or(WalletError::ReviewExpired)?;
-        let tor = self.tor()?;
         let mut sent = Vec::with_capacity(steps.len());
         for (tx, note) in steps {
             if let Some(note) = note {

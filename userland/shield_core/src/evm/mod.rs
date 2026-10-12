@@ -31,6 +31,8 @@ mod rpc;
 mod send;
 pub mod shield;
 pub mod shield_batch;
+mod shield_recheck_fit;
+pub mod shield_recheck;
 mod shield_batch_txs;
 mod shield_order;
 mod shield_tx;
