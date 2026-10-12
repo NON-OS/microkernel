@@ -70,7 +70,7 @@ and in its libc mirror (`userland/libc/src/broker/types/`).
 ```
 DeviceRecord {
     device_id:    u64       // broker-assigned
-    bus_kind:     u8        // BUS_PCI=1, BUS_ACPI=2, BUS_VIRT=3
+    bus_kind:     u8        // BUS_PCI=1, BUS_ACPI=2, BUS_VIRT=3, BUS_FDT=4
     pci_class:    u8        // PCI class code, as read
     pci_subclass: u8
     pci_progif:   u8
@@ -95,6 +95,20 @@ Bar {
     _pad:   [u8; 2]
 }
 ```
+
+A `BUS_FDT` record is a device the device tree names: an aarch64 board's
+eMMC, xHCI or AHCI controller. It has no config space. `vendor` is zero and
+`device` names the interface: `FDT_SDHCI=1`, `FDT_XHCI=2`, `FDT_AHCI=3`.
+`pci_class`, `pci_subclass` and `pci_progif` carry the class code the same
+registers have on PCI (08/05/01, 0c/03/30, 01/06/01), so a driver written for
+the PCI function matches. Its `reg` windows are memory BARs in tree order, and
+`irq_source` is its GIC SPI, zero when it has none the broker can route.
+`MkDmaMap` returns the address the device's bus sees, which the tree's
+`dma-ranges` may move from the physical one (the Pi 4's eMMC2 sees RAM's first
+GiB at 0xc000_0000). Frames are drawn from that window, or the map fails with
+`-ERANGE`; a device no bus maps DMA for gets `-ENOMEM`. On release the broker
+stops the device through its interface (SDHCI Software Reset For All, xHCI
+Run/Stop, AHCI GHC.HR), as it clears Bus Master Enable on a PCI function.
 
 An ACPI-bus I2C-HID record gives `vendor`, `device`, `pci_progif`, `irq_pin`,
 `irq_source` and bar 0 meanings of its own; they are listed in

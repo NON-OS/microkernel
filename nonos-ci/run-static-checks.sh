@@ -2013,8 +2013,10 @@ unset gsi_owners gsi_state gsi_claim ioapic_bind broker_release
 # bit, the broker grant record, and revocation. This gate keeps
 # `map_device_memory` callers in the kernel TCB only (memory/paging
 # itself, memory/mmio, memory/unified LAPIC rebind, drivers, apic,
-# virtio, IOMMU unit probe, TPM register window, aarch64 PCI windows).
-device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } )"
+# virtio, IOMMU unit probe, TPM register window, aarch64 PCI windows, and
+# the broker's stop for a device-tree device, which maps its registers for
+# the kernel alone so it can halt the device's DMA when its capsule lets go).
+device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/hardware/broker/described/register\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } )"
 if [ -n "${device_map_external}" ]; then
     fail_with "map_device_memory called from outside the kernel TCB; user-facing MMIO must go through the broker"
     printf '%s\n' "${device_map_external}" >&2
@@ -4217,7 +4219,7 @@ unset handoff_init handoff_orch
 
 # NØNOS trust-anchor module ships the policy decoder and the
 # baked-policy slot the kernel embeds at build time. The slot can be
-# `Option<&[u8]> = None` during Lane B integration; once Lane B emits
+# `Option<&[u8]> = None` during run B integration; once run B emits
 # .keys/nonos_trust_anchor.policy.bin, baked.rs flips to a non-Option
 # include_bytes! and a separate gate enforces "no None" in production.
 ta_dir=src/security/nonos_trust_anchor

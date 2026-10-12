@@ -17,3 +17,9 @@
 pub const BUS_KIND_PCI: u8 = 1;
 pub const BUS_KIND_ACPI: u8 = 2;
 pub const BUS_KIND_VIRT: u8 = 3;
+/// A device-tree device: `device` is its interface (`FDT_SDHCI` and on),
+/// the PCI class fields the class the same registers carry on PCI.
+pub const BUS_KIND_FDT: u8 = 4;
+pub const FDT_SDHCI: u16 = 1;
+pub const FDT_XHCI: u16 = 2;
+pub const FDT_AHCI: u16 = 3;

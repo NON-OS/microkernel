@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod alloc;
+mod bus_window;
 mod fail;
 mod install;
 mod placed;
