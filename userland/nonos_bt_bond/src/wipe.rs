@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Overwriting key octets in a way the compiler may not drop as dead.
+//! Overwriting key octets in a way the compiler may not drop as dead. It is
+//! public so the capsule wipes the keyring messages that carry records too.
 
-pub(crate) fn wipe(bytes: &mut [u8]) {
+pub fn wipe(bytes: &mut [u8]) {
     for b in bytes.iter_mut() {
         // SAFETY: `b` is a valid, aligned, exclusive reference.
         unsafe { core::ptr::write_volatile(b, 0) };
