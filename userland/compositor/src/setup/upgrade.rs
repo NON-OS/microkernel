@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Leave the firmware framebuffer for the virtio-gpu driver once it is up.
+//! Leave the firmware framebuffer for the gfx driver (virtio-gpu or Bochs)
+//! once it is up.
 //!
 //! The compositor falls back to GOP when the gfx driver has not announced
 //! itself after a few setup attempts. On a multi-core machine those attempts
