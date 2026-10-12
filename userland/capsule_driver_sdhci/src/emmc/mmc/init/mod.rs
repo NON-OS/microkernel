@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! From a reset host to a card in transfer state, in the order Linux's
-//! mmc_attach_mmc and mmc_init_card take: power at the host's highest
-//! voltage, query the OCR, settle on the lowest shared voltage, CMD1 until
-//! ready, CID, RCA, CSD, select, EXT_CSD, user area, speed and bus width.
+//! From a reset host to a card in transfer state, in JESD84's
+//! identification order (as recalled, unverified): power, CMD0, CMD1 until
+//! ready, CID, RCA, CSD, select; then EXT_CSD, the user area, speed and
+//! width. CMD1 goes first with no window, to learn the card's voltages
+//! (power/), and again with the shared one.
 
 mod bring_up;
 mod capacity;

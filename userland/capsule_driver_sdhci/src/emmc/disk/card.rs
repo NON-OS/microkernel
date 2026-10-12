@@ -24,7 +24,9 @@ use super::super::sdhci::regs::{CAPABILITIES, SLOT_TYPE_REMOVABLE};
 use super::super::sdhci::{Caps, Host};
 
 /// A removable slot holds whatever card a person put in it: an SD card
-/// first, then MMC, the order Linux's mmc_rescan tries them in. An embedded
+/// first, then MMC. SD cards do not answer CMD1 and MMC cards do not answer
+/// ACMD41 (as recalled), so either order finds the card; SD first, because
+/// a removable slot nearly always holds one, costs no failed probe. An embedded
 /// or shared slot is wired to the board's eMMC, and so is a known Intel eMMC
 /// host whatever its capabilities say: those are brought up as MMC alone.
 pub(super) fn card<M: Mmio, C: Clock, L: Log>(

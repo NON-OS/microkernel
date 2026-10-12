@@ -19,7 +19,8 @@
 /// The 128-bit register an R2 response carries. The host stores response
 /// bits 127:8 in its four response words' bits 119:0 (the CRC byte is
 /// dropped), so the register is those 120 bits shifted up by eight, with
-/// the CRC field reading zero (Linux sdhci_read_rsp_136).
+/// the CRC field reading zero (SDHCI Response register layout, as recalled,
+/// unverified).
 pub const fn r2(words: [u32; 4]) -> u128 {
     let v = (words[0] as u128)
         | (words[1] as u128) << 32
