@@ -853,6 +853,28 @@
   "md": [],
   "signed": []
  },
+ "userland/bt_usb_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/bt_usb_proofs",
+   "userland/capsule_driver_bt_usb/src/hid/modifier.rs",
+   "userland/capsule_driver_bt_usb/src/link",
+   "userland/capsule_driver_bt_usb/src/usb/choose.rs",
+   "userland/capsule_driver_bt_usb/src/usb/limit.rs",
+   "userland/nonos_aes",
+   "userland/nonos_bt_hci",
+   "userland/nonos_bt_hci_proofs/src/sim",
+   "userland/nonos_bt_hogp",
+   "userland/nonos_bt_hogp_proofs/src/sim",
+   "userland/nonos_bt_smp",
+   "userland/nonos_bt_smp_proofs/src/sim",
+   "userland/nonos_bt_wire",
+   "userland/nonos_p256"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_about": {
   "exclude": [
    "userland/toolkit/image_tests"

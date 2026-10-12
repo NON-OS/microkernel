@@ -1,0 +1,37 @@
+# NONOS userland: capsule_driver_bt_usb
+#
+# Bluetooth LE host over USB: finds a controller (class E0/01/01) through
+# driver.xhci0, brings it up with standard HCI commands only, finds a HID
+# keyboard or mouse with a passive scan, pairs with LE Secure Connections
+# and posts its keys and motion to the input ring. It has no controller,
+# MMIO, IRQ or DMA authority; driver.xhci0 moves every transfer.
+
+[package]
+name = "nonos_capsule_driver_bt_usb"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS userland Bluetooth LE host over USB"
+
+[[bin]]
+name = "driver_bt_usb"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usbnet = { path = "../nonos_usbnet" }
+nonos_bt_wire = { path = "../nonos_bt_wire" }
+nonos_bt_hci = { path = "../nonos_bt_hci" }
+nonos_bt_smp = { path = "../nonos_bt_smp" }
+nonos_bt_hogp = { path = "../nonos_bt_hogp" }
+nonos_keymap = { path = "../nonos_keymap" }
+nonos_policy_client = { path = "../policy_client" }
+nonos_policy_proto = { path = "../policy_proto" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
