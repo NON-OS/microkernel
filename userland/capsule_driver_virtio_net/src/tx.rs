@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Transmit: queue the frame, ring the doorbell, answer. Nothing waits on
-//! the device; buffers it has finished with come back on later sends.
+//! the device; buffers it has finished with come back, wiped, on the next
+//! send or receive poll.
 
 use crate::clock::now_ms;
 use crate::constants::Q_TX;

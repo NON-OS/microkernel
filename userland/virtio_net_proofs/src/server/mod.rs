@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Dispatch and the IPC handlers as they ship, with the reply recorded.
+//! Dispatch, the IPC handlers and the reset backoff as they ship, with the
+//! reply recorded.
 
+#[path = "../../../capsule_driver_virtio_net/src/server/backoff.rs"]
+pub mod backoff;
 #[path = "../../../capsule_driver_virtio_net/src/server/dispatch.rs"]
 pub mod dispatch;
 pub mod error;

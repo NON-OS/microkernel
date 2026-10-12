@@ -28,7 +28,8 @@ impl TxQueue {
     /// posted and not yet returned is taken back, so an id named twice or
     /// never posted frees nothing, and at most one ring's worth of entries
     /// is read per call however far the device moved its index. A buffer
-    /// that comes back is wiped: nothing of the frame stays behind.
+    /// that comes back is wiped: nothing of the frame stays behind. Called
+    /// on every send and every receive poll.
     pub fn reclaim(&mut self) {
         let mut budget = RING_SLOTS;
         while budget > 0 && self.last_used != used::idx(self.ring) {
@@ -42,6 +43,7 @@ impl TxQueue {
             };
             if self.in_flight & (1 << slot) != 0 {
                 self.in_flight &= !(1 << slot);
+                self.completed = true;
                 let len = self.buf_len as usize;
                 zero(self.bufs, usize::from(slot) * len, len);
             }

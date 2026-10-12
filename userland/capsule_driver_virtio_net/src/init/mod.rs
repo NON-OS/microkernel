@@ -17,7 +17,8 @@
 mod driver_ok;
 mod negotiate;
 mod program_queue;
+mod program_queues;
 
 pub use driver_ok::driver_ok;
 pub use negotiate::negotiate;
-pub use program_queue::program_queue;
+pub use program_queues::program_queues;

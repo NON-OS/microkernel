@@ -38,6 +38,9 @@ pub fn handle(
     kept: &mut Option<Kept>,
     tx: &mut [u8],
 ) -> bool {
+    // net.core polls every cycle, sending or not: sent frames are taken
+    // back and wiped here too, never left in DMA memory until a send (C8).
+    driver.tx.reclaim();
     /* An empty request only asks whether batches are served. */
     if body.is_empty() {
         return send(pid, req, &0u32.to_le_bytes());

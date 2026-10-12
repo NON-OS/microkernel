@@ -38,6 +38,9 @@ pub struct TxQueue {
     /// When the ring was first found full with the link up, since the last
     /// buffer came back.
     pub full_since: Option<u64>,
+    /// Whether the device has given any buffer back since the queue was
+    /// built: a stall after that is a new one, not the last one again.
+    pub completed: bool,
     /// Bytes of struct virtio_net_hdr written ahead of each frame: the
     /// legacy 10 unless the transport negotiated VERSION_1.
     pub hdr_len: usize,
@@ -56,6 +59,7 @@ impl TxQueue {
             last_used: 0,
             in_flight: 0,
             full_since: None,
+            completed: false,
             hdr_len: VIRTIO_NET_HDR_LEN,
         }
     }

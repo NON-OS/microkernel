@@ -28,6 +28,9 @@ use crate::server::error::{reply, reply_with_status};
 use crate::setup::Driver;
 
 pub fn handle(sender_pid: u32, driver: &mut Driver, req: &Request, tx: &mut [u8]) -> bool {
+    // Sent frames are taken back and wiped at every poll, not at the next
+    // send, which may never come (C8).
+    driver.tx.reclaim();
     // Room for the longest frame take_one hands on, or no frame is taken.
     let Some(frame) = tx.get_mut(RX_FRAME_AT..RX_FRAME_AT + MAX_ETHERNET_FRAME) else {
         return reply_with_status(sender_pid, tx, req, E_IO);

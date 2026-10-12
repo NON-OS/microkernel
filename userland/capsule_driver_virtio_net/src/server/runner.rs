@@ -22,6 +22,7 @@ use nonos_libc::{mk_ipc_recv_from, recv_ready};
 
 use crate::protocol::{REPLY_MAX, REQUEST_MAX};
 use crate::scrub::scrub;
+use crate::server::backoff::Backoff;
 use crate::server::dispatch::serve;
 use crate::server::recover::recover;
 use crate::setup::Driver;
@@ -30,6 +31,7 @@ pub fn run(driver: &mut Driver) -> ! {
     let mut rx = vec![0u8; REQUEST_MAX];
     let mut tx = vec![0u8; REPLY_MAX];
     let mut kept = None;
+    let mut backoff = Backoff::default();
 
     loop {
         let mut sender_pid: u32 = 0;
@@ -44,7 +46,7 @@ pub fn run(driver: &mut Driver) -> ! {
         // A frame handed in to send is delivered: none of it stays here.
         scrub(&mut rx[..len]);
         if stalled {
-            recover(driver);
+            recover(driver, &mut backoff);
         }
     }
 }
