@@ -37,6 +37,7 @@ mod cdc_acm_tests;
 mod classified;
 mod common;
 mod devices;
+mod fido_tests;
 mod gates;
 mod names;
 mod single_client;

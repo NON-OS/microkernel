@@ -50,6 +50,9 @@
    "nonos-data/trust/capsules/driver_ehci.manifest.bin",
    "nonos-data/trust/capsules/driver_ehci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ehci.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_fido.manifest.bin",
+   "nonos-data/trust/capsules/driver_fido.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_fido.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
@@ -1499,6 +1502,21 @@
    "userland/capsule_driver_uhci/src/server/many",
    "userland/libc",
    "userland/nonos_usb_virt"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_fido": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/services/registry/usb_hosts.rs",
+   "userland/capsule_driver_cdc_acm/src/acm/owner.rs",
+   "userland/capsule_driver_cdc_acm/src/frame.rs",
+   "userland/capsule_driver_fido",
+   "userland/capsule_driver_usb_hid/src/descriptors/application.rs",
+   "userland/libc",
+   "userland/nonos_usbnet"
   ],
   "md": [],
   "signed": []
@@ -3490,6 +3508,32 @@
   "md": [],
   "signed": []
  },
+ "userland/fido_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_fido/src/ctaphid",
+   "userland/capsule_net_core/src/protocol/ops.rs",
+   "userland/fido_proofs",
+   "userland/nonos_usbnet/src/bind.rs",
+   "userland/nonos_usbnet/src/bus.rs",
+   "userland/nonos_usbnet/src/desc",
+   "userland/nonos_usbnet/src/found.rs",
+   "userland/nonos_usbnet/src/halt.rs",
+   "userland/nonos_usbnet/src/hosts.rs",
+   "userland/nonos_usbnet/src/hosts_first.rs",
+   "userland/nonos_usbnet/src/nic.rs",
+   "userland/nonos_usbnet/src/nnet",
+   "userland/nonos_usbnet/src/scan/book.rs",
+   "userland/nonos_usbnet/src/scan/port.rs",
+   "userland/nonos_usbnet/src/scan/search.rs",
+   "userland/nonos_usbnet/src/setup.rs",
+   "userland/nonos_usbnet/src/xhci/wire.rs",
+   "userland/usbnet_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/fs_proofs": {
   "exclude": [],
   "include": [
@@ -4049,6 +4093,9 @@
    "nonos-data/trust/capsules/driver_ehci.manifest.bin",
    "nonos-data/trust/capsules/driver_ehci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ehci.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_fido.manifest.bin",
+   "nonos-data/trust/capsules/driver_fido.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_fido.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
