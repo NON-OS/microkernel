@@ -18,15 +18,5 @@ pub const OP_MGMT_BUILD: u16 = 0x0009;
 pub const OP_BEACON_PARSE: u16 = 0x000A;
 pub const OP_HCMD_ISSUE: u16 = 0x000B;
 pub const OP_RX_POLL: u16 = 0x000C;
-pub const OP_WPA_PTK: u16 = 0x000D;
-pub const OP_EAPOL_VERIFY: u16 = 0x000E;
-pub const OP_CCMP: u16 = 0x000F;
-pub const OP_KEY_UNWRAP: u16 = 0x0010;
-pub const OP_EAPOL_BUILD: u16 = 0x0011;
-pub const OP_SUPPLICANT_START: u16 = 0x0012;
-pub const OP_SUPPLICANT_STEP: u16 = 0x0013;
-pub const OP_CONNECT_START: u16 = 0x0014;
-pub const OP_CONNECT_MGMT: u16 = 0x0015;
-pub const OP_CONNECT_EAPOL: u16 = 0x0016;
-pub const OP_WIFI_TX: u16 = 0x0017;
-pub const OP_WIFI_RX: u16 = 0x0018;
+// 0x000D to 0x0018 were the old join helpers, which took and returned key
+// material (a PTK, a TK, a GTK, a PMK); they are gone and never reused.

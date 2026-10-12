@@ -42,7 +42,6 @@ impl Supplicant {
             own_rsnxe: Ie::from_option(c.own_rsnxe),
             ap_rsne: Ie::from_slice(c.ap_rsne),
             ap_rsnxe: Ie::from_option(c.ap_rsnxe),
-            ap_known: true,
             pmf: c.pmf,
             rx_replay: None,
             igtk: [0u8; 16],

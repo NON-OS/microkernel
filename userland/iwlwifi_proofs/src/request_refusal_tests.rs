@@ -27,8 +27,8 @@ const MAGIC: u32 = 0x4E49_5746;
 const VERSION: u16 = 1;
 /// The longest body the driver's receive buffer holds after the header.
 const BODY_MAX: usize = crate::iwlwifi_wire::IPC_PAYLOAD_MAX;
-/// The last op the driver knows.
-const LAST_OP: u16 = crate::iwlwifi_wire::OP_WIFI_RX;
+/// The last op number the driver has had; 0x000D to 0x0018 are retired.
+const LAST_OP: u16 = 0x0018;
 
 fn xorshift(s: &mut u64) -> u64 {
     let mut x = *s;

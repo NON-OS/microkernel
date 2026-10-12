@@ -5,7 +5,5 @@
 pub mod header;
 #[path = "../../../capsule_driver_iwlwifi/src/dot11/mgmt.rs"]
 pub mod mgmt;
-#[path = "../../../capsule_driver_iwlwifi/src/dot11/data.rs"]
-pub mod data;
 #[path = "../../../capsule_driver_iwlwifi/src/dot11/parse.rs"]
 pub mod parse;

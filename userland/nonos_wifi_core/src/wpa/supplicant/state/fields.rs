@@ -47,9 +47,6 @@ pub struct Supplicant {
     pub(in crate::wpa::supplicant) own_rsnxe: Ie,
     pub(in crate::wpa::supplicant) ap_rsne: Ie,
     pub(in crate::wpa::supplicant) ap_rsnxe: Ie,
-    /// Whether `ap_rsne`/`ap_rsnxe` came from the beacon. A supplicant built
-    /// with `new` has no beacon to compare message 3 with.
-    pub(in crate::wpa::supplicant) ap_known: bool,
     pub(in crate::wpa::supplicant) pmf: bool,
     /// The replay counter of the last frame whose MIC verified. Any frame not
     /// above it is dropped (12.7.2).
