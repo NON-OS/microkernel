@@ -49,6 +49,12 @@ impl Ledger {
         self.of(chain, from)
             .filter(|s| s.fate != Fate::Dropped)
             .try_fold(pending, |most, s| Some(most.max(s.nonce.checked_add(1)?)))
-            .filter(|n| *n < u64::MAX)
+            .and_then(usable)
     }
+}
+
+/// A nonce a transaction may carry, or None: none may carry u64::MAX
+/// (EIP-2681), so a node that reports it is not believed.
+pub fn usable(nonce: u64) -> Option<u64> {
+    (nonce < u64::MAX).then_some(nonce)
 }
