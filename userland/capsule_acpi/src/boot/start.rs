@@ -44,7 +44,7 @@ pub fn boot() -> Option<Acpi> {
     let hotkeys = crate::hotkeys::find(&devices, &mut aml, &mut host);
     let serial = crate::serial::find(&devices, &mut aml, &mut host);
     let (scis, gpe_runs) = (0, 0);
-    Some(Acpi {
+    let mut acpi = Acpi {
         aml,
         host,
         events,
@@ -55,6 +55,7 @@ pub fn boot() -> Option<Acpi> {
         cooling,
         cpus,
         dpower: Default::default(),
+        hidden: Default::default(),
         backlight,
         hotkeys,
         serial,
@@ -63,5 +64,7 @@ pub fn boot() -> Option<Acpi> {
         routes,
         scis,
         gpe_runs,
-    })
+    };
+    crate::dpower::reveal_hidden(&mut acpi);
+    Some(acpi)
 }
