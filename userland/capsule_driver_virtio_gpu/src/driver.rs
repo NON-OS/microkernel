@@ -13,11 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{GPU_CFG_EVENTS_READ, GPU_CFG_NUM_CAPSETS, GPU_CFG_NUM_SCANOUTS};
+use nonos_libc::mk_device_release;
+use nonos_virtio::common::{reset_until, NotifyArea};
+
+use crate::clock::expired_after;
+use crate::constants::{GPU_CFG_EVENTS_READ, GPU_CFG_NUM_CAPSETS, GPU_CFG_NUM_SCANOUTS, RESET_MS};
 use crate::device::ControlQueue;
-use crate::regs::Regs;
 use crate::setup::Primary;
-use crate::state::{FenceCounter, ResourceTable, ScanoutTable};
+use crate::state::{FenceCounter, Health, ResourceTable, ScanoutTable};
 pub struct Driver {
     pub device_id: u64,
     pub pci_device: u16,
@@ -31,24 +34,37 @@ pub struct Driver {
     // True when VirGL was negotiated and render context 1 exists on the host,
     // i.e. RESOURCE_CREATE_3D / SUBMIT_3D are usable.
     pub virgl_ready: bool,
-    pub regs: Regs,
     pub control_queue: ControlQueue,
     pub resources: ResourceTable,
     pub scanouts: ScanoutTable,
     pub fences: FenceCounter,
     pub primary: Option<Primary>,
+    /// The doorbell geometry, to program the queue again after a reset.
+    pub notify: NotifyArea,
+    pub health: Health,
+    /// Stalls recovered in place (`server::recover`).
+    pub recoveries: u32,
 }
 impl Driver {
     pub fn config(&self) -> (u32, u32, u32) {
-        unsafe {
-            (
-                self.regs.config_r32(GPU_CFG_EVENTS_READ),
-                self.regs.config_r32(GPU_CFG_NUM_SCANOUTS),
-                self.regs.config_r32(GPU_CFG_NUM_CAPSETS),
-            )
-        }
+        let regs = self.control_queue.regs;
+        (
+            regs.config_r32(GPU_CFG_EVENTS_READ),
+            regs.config_r32(GPU_CFG_NUM_SCANOUTS),
+            regs.config_r32(GPU_CFG_NUM_CAPSETS),
+        )
     }
     pub fn display_info(&self) -> (u32, u32, u32) {
         self.config()
+    }
+    /// Stop the device and give it back (plan/50 C2): the reset drops every
+    /// command and resource, then MkDeviceRelease clears bus mastering and
+    /// only after that tears down the queue, surface and register grants.
+    /// Only before the service is registered: from then on the compositor
+    /// may hold the surface, whose frames the release would free.
+    pub fn quiesce(&self) -> bool {
+        let common = self.control_queue.regs.common;
+        let stopped = reset_until(&common, expired_after(RESET_MS)).is_ok();
+        mk_device_release(self.device_id) >= 0 && stopped
     }
 }

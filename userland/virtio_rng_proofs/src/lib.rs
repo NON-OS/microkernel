@@ -14,32 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The virtio-rng bring-up handshake, proved against a register window rather
-//! than against a device.
+//! The virtio-rng driver, proved against a register window and DMA memory
+//! rather than against a device.
 //!
 //! Each `#[path]` below pulls in the shipping driver source, so these tests
-//! run the code that boots, not a copy of it. Before this crate the driver had
-//! no host coverage at all: every line of it was reachable only by booting a
-//! machine and hoping the device showed up.
+//! run the code that boots, not a copy of it. The parts that call the
+//! kernel (discovery, the broker, the IPC server) stay out; the clock is
+//! the one stand-in, counting each question a wait asks as a millisecond.
 //!
-//! The handshake is worth proving without hardware because the virtio
-//! specification, not the device, is what fixes it. The status byte must be
-//! driven reset, ACKNOWLEDGE, DRIVER, FEATURES_OK, DRIVER_OK in that order,
-//! and a device that is told DRIVER_OK before its queue is configured is
-//! entitled to do anything at all. Getting that order wrong is wrong against
-//! every conforming implementation, which is exactly the class of defect a
-//! test with no device can catch.
+//! Two things are held here. The handshake, which the virtio specification
+//! fixes, not the device: the status byte driven reset, ACKNOWLEDGE,
+//! DRIVER, FEATURES_OK, DRIVER_OK in that order, the legacy ring size taken
+//! as the device offers it or refused. And the request queue: one request
+//! in flight at most, each completion read from its own element, a request
+//! that timed out never served and never posted over, so no entropy byte
+//! goes out twice, whatever the device does late.
 
+pub mod clock;
 #[path = "../../capsule_driver_virtio_rng/src/constants/mod.rs"]
 pub mod constants;
-
-pub mod regs;
-
-#[path = "../../capsule_driver_virtio_rng/src/queue/mod.rs"]
-pub mod queue;
-
+#[path = "../../capsule_driver_virtio_rng/src/fill.rs"]
+pub mod fill;
 #[path = "../../capsule_driver_virtio_rng/src/init.rs"]
 pub mod init;
+#[path = "../../capsule_driver_virtio_rng/src/queue/mod.rs"]
+pub mod queue;
+pub mod regs;
+pub mod transport;
 
 #[cfg(test)]
 mod tests;

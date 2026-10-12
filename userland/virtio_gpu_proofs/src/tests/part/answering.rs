@@ -16,10 +16,11 @@
 
 //! Starting the part on its own thread against a ring region.
 
-use std::sync::atomic::AtomicU16;
+use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::{Arc, Mutex};
 
 use nonos_devmodel::{run, FakeBar};
+use nonos_virtio::common::{DEVICE_STATUS, STATUS_DRIVER_OK};
 
 use super::{serve, Answer, Part};
 
@@ -28,5 +29,22 @@ pub fn answering(region: &Arc<FakeBar>, answer: Answer) -> Part {
     let served = Arc::new(AtomicU16::new(0));
     let log = Arc::clone(&seen);
     let live = run(region, move |bar| serve::step(bar, &served, &log, answer));
+    Part::new(seen, live)
+}
+
+/// A part that also reads the device status in `window`, as a device does:
+/// it serves only once DRIVER_OK is set, and a reset (DRIVER_OK clear)
+/// starts its count over, so it follows the driver through a recovery.
+pub fn answering_after_reset(region: &Arc<FakeBar>, window: &Arc<FakeBar>, answer: Answer) -> Part {
+    let seen = Arc::new(Mutex::new(Vec::new()));
+    let served = Arc::new(AtomicU16::new(0));
+    let (log, window) = (Arc::clone(&seen), Arc::clone(window));
+    let live = run(region, move |bar| {
+        if window.wrote8(DEVICE_STATUS) & STATUS_DRIVER_OK == 0 {
+            served.store(0, Ordering::Release);
+        } else {
+            serve::step(bar, &served, &log, answer);
+        }
+    });
     Part::new(seen, live)
 }

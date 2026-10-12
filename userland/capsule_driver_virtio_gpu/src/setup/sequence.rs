@@ -13,29 +13,30 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::{claim, create_primary, dma, edid, mmio, pci, probe_3d, scanouts};
-use crate::device::virtqueue::QueueLayout;
-use crate::device::ControlQueue;
+
+//! One bring-up attempt. A failed one holds nothing afterwards: once the
+//! register window is mapped the device is reset first (plan/50 C2), and
+//! then the claim goes, and every grant with it.
+
+use nonos_libc::mk_device_release;
+use nonos_virtio::common::reset_until;
+
+use super::{claim, live, mmio, pci};
+use crate::clock::expired_after;
+use crate::constants::RESET_MS;
 use crate::discover::{find_virtio_gpu, Found};
 use crate::driver::Driver;
-use crate::init::bring_up;
-use crate::state::{FenceCounter, ResourceTable, ScanoutTable};
-use nonos_libc::mk_device_release;
 
-/// One bring-up attempt. A failed one holds nothing afterwards.
 pub fn run() -> Result<Driver, &'static str> {
-    let dev = find_virtio_gpu();
-    let dev = dev.ok_or("virtio-gpu: device not found")?;
+    let dev = find_virtio_gpu().ok_or("virtio-gpu: device not found")?;
     let claim_epoch = claim::claim(dev.device_id)?;
     let attempt = claimed(dev, claim_epoch);
     if attempt.is_err() {
         /*
-         * bring_up, scanouts::seed, create_primary and the queue layout
-         * returned their errors with the claim, the register grants, the
-         * queue DMA and any surface DMA still held, so every attempt after
-         * the first failed at claim. Releasing the claim takes every grant
-         * with it; the steps that roll back on their own have released it
-         * already and this answers "not claimed".
+         * Whichever step failed, the claim goes, and every register, queue
+         * and surface grant with it: the broker stops bus mastering first
+         * and only then tears the grants down, so the next attempt can
+         * claim afresh. Nothing is unmapped before that.
          */
         let _ = mk_device_release(dev.device_id);
     }
@@ -44,49 +45,16 @@ pub fn run() -> Result<Driver, &'static str> {
 
 fn claimed(dev: Found, claim_epoch: u64) -> Result<Driver, &'static str> {
     /*
-     * No interrupt is bound: the driver polls, and `pci::enable` takes the
-     * device off its legacy line so it cannot hold a shared line up.
+     * No interrupt is bound: the driver polls, and DECODE takes the device
+     * off its legacy line so it cannot hold a shared line up.
      */
-    pci::enable(dev.device_id, claim_epoch)?;
-    let registers = mmio::grant(dev, claim_epoch)?;
-    let queue = dma::map_queue(dev.device_id, claim_epoch, registers)?;
-    let init = bring_up(registers.regs(dev.pci_device), queue.device_addr, dev.pci_device)?;
-    let regs = init.regs;
-    let layout = QueueLayout::new(init.queue_size, queue.user_va, queue.device_addr)?;
-    let control_queue = ControlQueue::new(layout, regs);
-    let scanouts = ScanoutTable::new();
-    let fences = FenceCounter::new();
-    let resources = ResourceTable::new();
-    scanouts::seed(&control_queue, &scanouts, &fences)?;
-    edid::fetch(&control_queue, init.edid);
-    // 3D bring-up is best-effort: a host without a GL backend still gets the
-    // full 2D scanout path, and the boot log records which one this is.
-    let virgl_ready =
-        probe_3d::probe(&control_queue, &fences, init.virgl, dev.device_id, claim_epoch);
-    let primary = create_primary::create(
-        dev.device_id,
-        claim_epoch,
-        &control_queue,
-        &fences,
-        &resources,
-        &scanouts,
-    )?;
-    Ok(Driver {
-        device_id: dev.device_id,
-        pci_device: dev.pci_device,
-        claim_epoch,
-        mmio_grant: registers.grant_id(),
-        queue_grant: queue.grant_id,
-        queue_user_va: queue.user_va,
-        queue_device_addr: queue.device_addr,
-        queue_size: init.queue_size,
-        host_features: init.host_features,
-        virgl_ready,
-        regs,
-        control_queue,
-        resources,
-        scanouts,
-        fences,
-        primary,
-    })
+    pci::command(dev.device_id, claim_epoch, pci::DECODE)?;
+    let window = mmio::map(&dev, claim_epoch)?;
+    let attempt = live::run(dev, claim_epoch, &window);
+    if attempt.is_err() {
+        // A command may be in flight, or a resource attached to a grant:
+        // the device is stopped before the claim is given back.
+        let _ = reset_until(&window.common.region, expired_after(RESET_MS));
+    }
+    attempt
 }

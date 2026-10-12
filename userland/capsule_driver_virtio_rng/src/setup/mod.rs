@@ -17,8 +17,9 @@
 mod claim;
 mod dma;
 mod driver;
-mod irq;
+mod legacy;
 mod modern;
+mod pci;
 mod registers;
 mod sequence;
 

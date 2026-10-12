@@ -14,31 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_yield;
-
-use super::queue::Queue;
+use super::queue::{Fault, Queue};
 use super::transport::Transport;
 
-const MAX_YIELDS: u32 = 100_000;
-
-/// One request, polled to completion. No interrupt is involved: the device
-/// has Interrupt Disable set (see `setup::irq`). The used ring is the only
-/// completion signal; an interrupt sequence change is not one, since on a
-/// shared line it may belong to another device and the buffer would be
-/// read before the device wrote it.
-pub fn fill(transport: Transport, queue: &mut Queue) -> Result<u32, &'static str> {
-    queue.post_request();
+/// One request, polled to completion, its bytes copied into `out`. No
+/// interrupt is involved: the device has Interrupt Disable set (see
+/// `setup::pci`). The used ring is the only completion signal.
+///
+/// The wait ends when `expired` says so, which the caller makes a deadline
+/// by the clock (plan/50 C7), never a count of polls. A request that times
+/// out stays the device's: the queue stalls, its buffer is never read, and
+/// no request is posted over it until the device is reset (plan/50 C1).
+/// Posting over it used to let its late completion pass for the next
+/// request's, so the queue ran one completion behind and two fills could
+/// be handed the same bytes.
+pub fn fill(
+    transport: Transport,
+    queue: &mut Queue,
+    out: &mut [u8],
+    mut expired: impl FnMut() -> bool,
+) -> Result<usize, Fault> {
+    queue.post()?;
     transport.notify(0);
-
-    let mut tries = 0u32;
     loop {
         if let Some(done) = queue.completion() {
-            return done;
+            return done.map(|len| queue.take(len, out));
         }
-        if tries >= MAX_YIELDS {
-            return Err("virtio-rng: device did not respond");
+        if expired() {
+            queue.stall();
+            return Err(Fault::TimedOut);
         }
-        let _ = mk_yield();
-        tries = tries.wrapping_add(1);
     }
 }

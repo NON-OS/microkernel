@@ -32,11 +32,14 @@ CAPSULE_OPTIONAL_CAPS = 0x100
 
 The optional bit is `Debug`, which only a `capsule-serial-debug` build grants.
 `GraphicsSurfaceCreate` admits `MkSurfaceRegister` and `MkSurfaceShare`, which
-publish the primary scanout as a surface.
+publish the primary scanout as a surface. `Pio` is no longer used: it served
+only the legacy transport, which is gone; the bit can leave the manifest at
+its next signing.
 
 The capsule reaches hardware only through `MkDeviceList`, `MkDeviceClaim`,
-`MkMmioMap`/`MkPioGrant`, and `MkDmaMap`; it polls and binds no interrupt, so
-the manifest holds no `Irq`. The kernel brokers
+`MkPciConfigRead`/`MkPciConfigWrite`, `MkMmioMap` and `MkDmaMap`; it polls and
+binds no interrupt, so the manifest holds no `Irq`. It never unmaps a DMA
+grant itself: `MkDeviceRelease` takes them back once bus mastering is off. The kernel brokers
 grants, routes IPC, validates the signed manifest, and tears grants down on
 exit. It does not
 interpret GPU resources, scanout policy, composition, cursor policy, or window
@@ -44,20 +47,18 @@ ownership.
 
 Only the compositor may send to `driver.virtio_gpu0`: the kernel holds the
 endpoint to it (`src/services/registry/held.rs`), by name and by pid. Within
-the driver, each resource records the pid that created it, and attach, transfer,
-scanout and flush refuse a resource another pid owns.
+the driver, the primary resource is bound to the first pid that asks for it,
+and transfer, scanout and flush refuse a resource another pid owns.
 
 ## Interface contract
 
 | Operation | Input | Output |
 |---|---|---|
-| `OP_HEALTHCHECK` | none | status |
+| `OP_HEALTHCHECK` | none | the control queue's state (0 live, 1 down) and the stalls recovered in place |
 | `OP_CONTROLLER_INFO` | none | device id, queue size, feature bits |
 | `OP_DISPLAY_INFO` | none | events, scanout count, capset count |
 | `OP_CONTROLQ_STATE` | none | control queue DMA metadata |
 | `OP_QUERY_CAPS` | none | scanout count, capset count, events, and whether the virgl probe passed |
-| `OP_CREATE_RESOURCE` | resource parameters | 2D resource created, owned by the sender |
-| `OP_ATTACH_BACKING` | resource, backing | backing attached |
 | `OP_TRANSFER_TO_HOST` | resource, rectangle | TRANSFER_TO_HOST_2D posted |
 | `OP_SET_SCANOUT` | resource, scanout | SET_SCANOUT posted |
 | `OP_FLUSH` | resource, rectangle | RESOURCE_FLUSH posted |
@@ -65,12 +66,17 @@ scanout and flush refuse a resource another pid owns.
 | `OP_GET_PRIMARY_SURFACE` | none | the primary surface handle and geometry |
 
 Unknown operations reply `E_BAD_OP`. Malformed request bodies reply `E_INVAL`.
+Ops `0x0006` and `0x0007` once created a client resource and attached backing
+to it. No client sent them, a resource could never be destroyed, and once the
+64-entry table was full a create left behind the host resource it had just
+made; they are answered as unknown now and their numbers are not reused.
 
 ## Authority
 
-The capsule may claim the virtio GPU PCI device, map its register BAR or take a
-PIO grant, allocate broker-owned DMA for control queue 0 and for the primary
-scanout's backing, and register and share that backing as a surface. It binds
+The capsule may claim the virtio GPU PCI device, map the virtio 1.0 structures
+its capabilities place in a memory BAR, allocate broker-owned DMA for control
+queue 0 and for the primary scanout's backing, and register and share that
+backing as a surface. It binds
 no interrupt. It has no framebuffer MMIO grant, no compositor authority, no
 input authority, and no filesystem or network authority.
 
@@ -84,34 +90,59 @@ resource table, and virtio-gpu config counters.
 
 ## Runtime lifecycle
 
-Startup discovers a virtio-gpu PCI function, claims it, takes it off its
-legacy interrupt line, maps its registers, allocates queue DMA, runs
-ACK/DRIVER/FEATURES_OK/DRIVER_OK, selects control queue 0, reads the scanouts,
-asks for EDID when offered (logged only), runs a best-effort virgl render probe
-that only logs whether 3D works, and creates the primary scanout: a DMA grant
-attached to a 2D resource, set on scanout 0, then registered with
-`mk_surface_register` and shared with `mk_surface_share`
-(`src/setup/primary_surface/create.rs`). It then serves IPC. Shutdown relies on
-process teardown and broker grant revocation.
+Startup discovers a virtio-gpu PCI function (1af4:1050), claims it, turns
+memory decode on with its legacy interrupt line off, maps the common, notify
+and device structures through the shared transport (`userland/nonos_virtio`),
+resets it (status 0, read back by the clock), negotiates features (VERSION_1,
+VIRGL and EDID when offered, and ACCESS_PLATFORM whenever offered), allocates
+queue DMA, turns bus mastering on, programs control queue 0 and sets
+DRIVER_OK. It then reads the scanouts, asks for EDID when offered (logged
+only), runs a best-effort virgl render probe that only logs whether 3D works,
+and creates the primary scanout: a DMA grant attached to a 2D resource, set on
+scanout 0, then registered with `mk_surface_register` and shared with
+`mk_surface_share` (`src/setup/primary_surface/create.rs`). It then serves
+IPC. Whether the claim is confined to an IOMMU domain is the kernel's to
+enforce at claim time; the capsule does not guess.
 
 ## Failure model
 
-Every setup phase rolls back prior broker grants on failure, and a failed
-attempt releases the claim, which takes every grant with it, whichever step
-failed. Bring-up is tried a bounded number of times with a sleep between tries
+A failed attempt resets the device once its window is mapped and then
+releases the claim, which takes every grant with it, whichever step failed;
+nothing is unmapped before that. Bring-up is tried a bounded number of times with a sleep between tries
 (`nonos_libc::bring_up`); the capsule exits 2 when no virtio-gpu is present and
 6 when one is present but never comes up, and the compositor falls back to GOP.
-Missing BAR0, zero queue size, or FEATURES_OK rejection prevents the capsule
-from serving. The resource ops post controlq commands; the others read state.
+A missing common, notify or device configuration (refused by the one it
+lacks), no VERSION_1, a zero queue size, or FEATURES_OK rejection prevents the
+capsule from serving. A scanout mode under 16x16, or whose frame would not fit
+the broker's display grant (32 MiB, one 3840x2160 frame), is recorded as
+1280x720 rather than failing the bring-up; any other is taken as the device
+gives it.
+The resource ops post controlq commands; the others read state.
+
+One control command is in flight at most, counted by the driver. A command
+the device does not answer within `CTRLQ_MS` (2 s, by the uptime clock), or
+answers out of turn, ends in a device reset: its chain named the staging page
+the next command would reuse. By then the compositor draws into the primary
+surface's frames, so the server never gives the device back or exits (the
+kernel would free the frames under it, and nothing restarts a driver). It
+recovers in place (`src/server/recover.rs`): the queue restarted on the same
+grant, the primary resource made again under the same id on the same frames
+and set on scanout 0, at most three tries, each logged
+(`driver.virtio_gpu0: control queue stalled; device reset, recovering (try 1
+of 3)`). If none works it stays up and `Down`: the device left reset, the
+claim and every grant kept, device ops answering `E_DEVICE`, and
+`OP_HEALTHCHECK` naming the state. Only a failed service registration, before
+anyone holds the surface, resets the device and gives it back before exit 1.
 
 ## Current implemented surface
 
-- Virtio GPU PCI discovery for transitional and modern IDs.
+- Virtio GPU PCI discovery for the modern ID (virtio-gpu has no
+  transitional form, and nothing presents 0x1010).
 - Brokered device claim, register map, and DMA queue allocation; polled.
-- Legacy virtio control-queue initialization.
-- Modern (virtio 1.0) initialization for the modern ID, with the vendor
-  capabilities parsed by the shared `userland/nonos_virtio` (first usable of
-  each type, lengths and BARs checked, MSI-X table pages skipped).
+- Virtio 1.0 initialization on the shared `userland/nonos_virtio`: the vendor
+  capabilities parsed (first usable of each type, lengths and BARs checked,
+  MSI-X table pages skipped), the regions mapped and bounds-checked, the
+  features negotiated and the queue programmed.
 - Config reads for events, scanout count, and capset count.
 - IPC health, controller info, display info, control queue state, caps,
   mode list, and the 2D resource commands.
@@ -182,13 +213,17 @@ surfaces, input routing, cursor policy, or window management.
 
 ## Real bring-up checklist
 
-Proved on the host, without a device: the capability parse the modern path
-uses (`userland/virtio_transport_proofs`), and the legacy and modern
-handshakes, the control queue and its wire formats, the device configuration
-offsets on both transports and the doorbell bound (`userland/virtio_gpu_proofs`).
-Only a boot shows the rest. Under QEMU q35, confirm both ways:
+Proved on the host, without a device: the capability parse and the steps of
+the shared transport (`userland/virtio_transport_proofs`), and the handshake,
+the features taken, the control queue (a timed-out command reset, never run
+with the next command's bytes) and its wire formats, the device configuration
+offsets, the doorbell bound, the scanout mode, the server's answers, the
+recovery from a stall on the same surface or to `Down` with nothing released,
+and the reset-before-release orders (`userland/virtio_gpu_proofs`). Only a boot shows
+the rest. Under QEMU q35, confirm both ways:
 
-- Without an IOMMU (the default `virtio-vga,disable-modern=on`, legacy): the
+- Without an IOMMU (the default `virtio-vga`, which QEMU builds modern-only,
+  1af4:1050): the driver binds modern; the
   mode is set at QEMU_XRES x QEMU_YRES; the display query reports the real
   scanout count; the compositor's requested resolutions are set; with
   `edid=on` the EDID preferred mode is what HiDPI negotiation picks.
@@ -202,3 +237,7 @@ Only a boot shows the rest. Under QEMU q35, confirm both ways:
 - A device that cannot come up: at most seven attempts, one
   `driver.virtio_gpu0: device present, bring-up failed` line, exit 6, and
   the compositor falls back to GOP. No virtio-gpu at all: exit 2 at once.
+- A device that stalls once the desktop is up: a `recovering (try 1 of 3)`
+  line, then `recovered in place, same surface`, and the desktop presents
+  again; one that never answers again: three tries, then `down`, the last
+  frame stays, the capsule does not exit and the VT-d log shows no fault.

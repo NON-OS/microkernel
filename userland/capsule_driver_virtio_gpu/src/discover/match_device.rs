@@ -16,12 +16,12 @@
 
 use nonos_libc::{DeviceRecord, BUS_KIND_PCI};
 
-use crate::constants::{VIRTIO_GPU_MODERN, VIRTIO_GPU_TRANSITIONAL, VIRTIO_VENDOR_ID};
+use crate::constants::{VIRTIO_GPU_MODERN, VIRTIO_VENDOR_ID};
 
 /// Identity only. The driver binds no interrupt, so a device whose legacy
 /// line firmware left unrouted (irq_line 0xFF) is as usable as any other.
+/// Only the modern id: virtio-gpu has no transitional form, and the legacy
+/// path kept for 0x1010 could never be reached.
 pub fn is_match(r: &DeviceRecord) -> bool {
-    r.vendor == VIRTIO_VENDOR_ID
-        && r.bus_kind == BUS_KIND_PCI
-        && (r.device == VIRTIO_GPU_TRANSITIONAL || r.device == VIRTIO_GPU_MODERN)
+    r.vendor == VIRTIO_VENDOR_ID && r.bus_kind == BUS_KIND_PCI && r.device == VIRTIO_GPU_MODERN
 }

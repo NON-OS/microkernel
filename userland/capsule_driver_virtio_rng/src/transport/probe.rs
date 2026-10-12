@@ -17,24 +17,23 @@
 //! Legacy or modern, decided once the device is claimed (config space is
 //! only readable with the claim's epoch).
 
-use nonos_virtio::{choose, parse, wants_probe, ConfigSpace, Kind, ModernCaps, VirtioError};
+use nonos_virtio::{modern_caps, ModernCaps, Need, VirtioError};
 
 use super::broker::LibcBroker;
 use crate::discover::Found;
 
-/// The capabilities to drive the function with when it is to be driven
-/// modern; `None` keeps the legacy path. A transitional function with its
-/// legacy I/O BAR is not read at all, so a boot without an IOMMU takes the
-/// legacy path exactly as before.
+/// The structures the modern bring-up maps: common and notify. virtio-rng
+/// has no device configuration (virtio 1.2 5.4.4, so 4.1.4.6 asks no
+/// capability for it) and the driver polls, so ISR is not mapped either.
+pub const NEED: Need = Need { isr: false, device: false };
+
+/// The capabilities to drive the function with over the modern transport,
+/// or `None` for the legacy one. Modern whenever the function presents it,
+/// a transitional 1af4:1005 too: only the modern transport can take
+/// ACCESS_PLATFORM (plan/50 C3). A transitional function with its I/O BAR
+/// used to be driven legacy without its capabilities being read; a
+/// modern-only 1af4:1044 missing common or notify is refused.
 pub fn probe(dev: &Found, claim_epoch: u64) -> Result<Option<ModernCaps>, &'static str> {
-    if !wants_probe(dev.pci_device, &dev.bars) {
-        return Ok(None);
-    }
     let mut broker = LibcBroker::new(dev.device_id, claim_epoch);
-    let cfg = ConfigSpace::read(&mut broker).ok_or(VirtioError::ConfigRead.message())?;
-    let caps = parse(&cfg, &dev.bars);
-    Ok(match choose(dev.pci_device, &dev.bars, &caps) {
-        Kind::Modern => Some(caps),
-        Kind::Legacy => None,
-    })
+    modern_caps(&dev.bars, &mut broker, NEED).map_err(VirtioError::message)
 }
