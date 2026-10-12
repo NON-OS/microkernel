@@ -47,6 +47,11 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     // Before the driver can turn bus mastering on, so no request it ever
     // makes is no-snoop.
     super::no_snoop::snoop_every_request(device_id);
+    // VMMDev reads guest memory past the IOMMU and any Bus Master gate, so
+    // only a translated device starts its claim unable to master (L34).
+    if !hold::untranslated(device_id) {
+        super::master_off::bus_master_off(device_id);
+    }
     crate::hardware::broker::bootfb::claimed(device_id);
     Ok(epoch)
 }
