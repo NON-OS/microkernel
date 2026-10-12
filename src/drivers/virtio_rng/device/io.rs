@@ -14,88 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Register access for whichever transport the probe found this device on.
-//!
-//! Legacy virtio puts its registers in I/O space and the modern transport puts
-//! them in a BAR. Port access goes through `sys::io`, so this file carries no
-//! instruction of its own and works wherever that boundary does.
+//! Port access to the legacy registers. Only a device with an I/O BAR 0 is
+//! driven here; a memory BAR was once used as a pointer, unmapped.
 
 use super::core::VirtioRngDevice;
-use super::types::AccessMode;
 use crate::sys::io;
-use core::ptr;
 
 impl VirtioRngDevice {
-    #[inline]
     pub(super) fn read8(&self, offset: u16) -> u8 {
-        match &self.access {
-            // SAFETY: the probe claimed this port range for this device and
-            // `offset` is a virtio register inside it.
-            AccessMode::Io(iobase) => unsafe { io::inb(*iobase + offset) },
-            // SAFETY: the probe mapped this BAR; the offset is in range.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::read_volatile((*base + offset as u64) as *const u8)
-            },
-        }
+        // SAFETY: `offset` is a register inside the device's own I/O BAR.
+        unsafe { io::inb(self.iobase + offset) }
     }
 
-    #[inline]
     pub(super) fn write8(&self, offset: u16, val: u8) {
-        match &self.access {
-            // SAFETY: as for `read8`.
-            AccessMode::Io(iobase) => unsafe { io::outb(*iobase + offset, val) },
-            // SAFETY: as for `read8`.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::write_volatile((*base + offset as u64) as *mut u8, val);
-            },
-        }
+        // SAFETY: as for `read8`.
+        unsafe { io::outb(self.iobase + offset, val) }
     }
 
-    #[inline]
-    pub(super) fn read16(&self, offset: u16) -> u16 {
-        match &self.access {
-            // SAFETY: as for `read8`, two bytes wide.
-            AccessMode::Io(iobase) => unsafe { io::inw(*iobase + offset) },
-            // SAFETY: as for `read8`, two bytes wide.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::read_volatile((*base + offset as u64) as *const u16)
-            },
-        }
-    }
-
-    #[inline]
     pub(super) fn write16(&self, offset: u16, val: u16) {
-        match &self.access {
-            // SAFETY: as for `read8`, two bytes wide.
-            AccessMode::Io(iobase) => unsafe { io::outw(*iobase + offset, val) },
-            // SAFETY: as for `read8`, two bytes wide.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::write_volatile((*base + offset as u64) as *mut u16, val);
-            },
-        }
+        // SAFETY: as for `read8`, two bytes wide.
+        unsafe { io::outw(self.iobase + offset, val) }
     }
 
-    #[inline]
-    pub(super) fn read32(&self, offset: u16) -> u32 {
-        match &self.access {
-            // SAFETY: as for `read8`, four bytes wide.
-            AccessMode::Io(iobase) => unsafe { io::inl(*iobase + offset) },
-            // SAFETY: as for `read8`, four bytes wide.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::read_volatile((*base + offset as u64) as *const u32)
-            },
-        }
-    }
-
-    #[inline]
     pub(super) fn write32(&self, offset: u16, val: u32) {
-        match &self.access {
-            // SAFETY: as for `read8`, four bytes wide.
-            AccessMode::Io(iobase) => unsafe { io::outl(*iobase + offset, val) },
-            // SAFETY: as for `read8`, four bytes wide.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::write_volatile((*base + offset as u64) as *mut u32, val);
-            },
-        }
+        // SAFETY: as for `read8`, four bytes wide.
+        unsafe { io::outl(self.iobase + offset, val) }
     }
 }

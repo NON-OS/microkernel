@@ -32,6 +32,11 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
         claims.push(Claim { pid, device_id, epoch });
         epoch
     };
+    // The kernel reads a virtio-rng for boot entropy until its capsule
+    // claims it: reset and let go before the device changes domain (L8).
+    if let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) {
+        crate::drivers::virtio_rng::hand_over(handle.address);
+    }
     // Confined before it is powered, so the device never runs unconfined.
     // VMMDev is the exception: it reads guest-physical addresses past any
     // IOMMU, so it keeps them, and its grants are counted unconfined.

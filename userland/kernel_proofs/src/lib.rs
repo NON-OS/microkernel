@@ -196,6 +196,8 @@ pub mod sys;
 pub mod syscall;
 #[cfg(test)]
 pub mod thread_refusal;
+#[cfg(test)]
+pub mod virtio_rng_ring;
 pub mod time;
 #[cfg(test)]
 pub mod tls_return;

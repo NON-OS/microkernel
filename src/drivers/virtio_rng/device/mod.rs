@@ -18,6 +18,6 @@ mod core;
 mod init;
 mod io;
 mod random;
-mod types;
+mod regs;
 
 pub(super) use core::VirtioRngDevice;

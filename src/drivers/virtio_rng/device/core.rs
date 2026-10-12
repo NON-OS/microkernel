@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{AccessMode, LEG_STATUS};
+use crate::drivers::pci::PciAddress;
 use crate::drivers::virtio_rng::queue::RngQueue;
 
+use super::regs::STATUS;
+
 pub(in crate::drivers::virtio_rng) struct VirtioRngDevice {
-    pub(super) access: AccessMode,
+    pub(super) iobase: u16,
+    pub(super) address: PciAddress,
     pub(super) queue: RngQueue,
     /// Regions this driver handed the device with no IOMMU domain confining
     /// them: the virtqueue and the data buffer, once the device accepted them.
@@ -29,27 +32,34 @@ pub(in crate::drivers::virtio_rng) struct VirtioRngDevice {
 const DMA_REGIONS: u32 = 2;
 
 impl VirtioRngDevice {
-    pub(in crate::drivers::virtio_rng) fn from_bar0(bar0: u32) -> Result<Self, &'static str> {
-        if bar0 == 0 {
-            return Err("virtio-rng: BAR0 is zero");
-        }
-        let access = if bar0 & 1 != 0 {
-            AccessMode::Io((bar0 & 0xFFFC) as u16)
-        } else {
-            AccessMode::Mmio((bar0 & 0xFFFFFFF0) as u64)
-        };
-        let queue = RngQueue::new()?;
-        let mut dev = Self { access, queue, unconfined: 0 };
-        dev.init_legacy()?;
+    pub(in crate::drivers::virtio_rng) fn probe(
+        iobase: u16,
+        address: PciAddress,
+    ) -> Result<Self, &'static str> {
+        let size = super::init::negotiate(iobase)?;
+        let queue = RngQueue::new(size, iobase + super::regs::QUEUE_NOTIFY)?;
+        let mut dev = Self { iobase, address, queue, unconfined: 0 };
+        dev.start()?;
         dev.unconfined = DMA_REGIONS;
         crate::memory::iommu::note_unconfined(DMA_REGIONS);
         Ok(dev)
     }
+
+    pub(in crate::drivers::virtio_rng) fn at(&self, address: PciAddress) -> bool {
+        self.address == address
+    }
 }
 
 impl Drop for VirtioRngDevice {
+    /// Reset first, so the device has stopped writing before the queue's
+    /// frames, dropped after this, go back to the allocator.
     fn drop(&mut self) {
-        self.write8(LEG_STATUS, 0);
+        self.write8(STATUS, 0);
+        let mut tries = 1000;
+        while self.read8(STATUS) != 0 && tries > 0 {
+            core::hint::spin_loop();
+            tries -= 1;
+        }
         crate::memory::iommu::note_unconfined_released(self.unconfined);
     }
 }

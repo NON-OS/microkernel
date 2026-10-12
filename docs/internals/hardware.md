@@ -69,8 +69,9 @@ src/hardware/
 | Item | Where | What it does |
 |---|---|---|
 | `init_pci` | `src/drivers/pci/manager/global.rs:30` | Initialize the kernel PCI manager. |
-| `init` (virtio-rng) | `src/drivers/virtio_rng/init.rs:24` | Bring up the virtio-rng entropy source. |
-| `get_random_bytes` | `src/drivers/virtio_rng/api.rs:25` | The entropy-consumer API. |
+| `init` (virtio-rng) | `src/drivers/virtio_rng/init.rs` | Bring up a transitional virtio-rng with a legacy I/O BAR for boot entropy: rings in DMA frames sized from the device's queue (`queue/layout.rs`), counted as a source only once it has delivered bytes. |
+| `hand_over` (virtio-rng) | `src/drivers/virtio_rng/handover.rs` | When anything claims the device, reset it, free its rings and stop counting it, so its capsule is the only driver from then on. |
+| `get_random_bytes` | `src/drivers/virtio_rng/api.rs` | The entropy-consumer API. |
 | `validate_dma_buffer` | `src/drivers/security/dma.rs` (via `mod.rs:36`) | Bounds-check a DMA buffer. |
 | `struct RateLimiter` | `src/drivers/security/rate_limiter.rs:58` | Per-driver operation rate limiting. |
 

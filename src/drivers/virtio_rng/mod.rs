@@ -14,21 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The kernel's own virtio-rng (L8): read for boot entropy, through rings
+//! in real DMA frames, until `capsule_driver_virtio_rng` claims the device
+//! and the kernel hands it over.
+
 mod api;
 mod device;
+mod handover;
 mod init;
 mod queue;
-
-use core::sync::atomic::AtomicBool;
-use device::VirtioRngDevice;
-use spin::Mutex;
-
-static VIRTIO_RNG: Mutex<Option<VirtioRngDevice>> = Mutex::new(None);
-static VIRTIO_RNG_AVAILABLE: AtomicBool = AtomicBool::new(false);
-
-pub const VIRTIO_VENDOR_ID: u16 = 0x1AF4;
-pub const VIRTIO_RNG_DEVICE_ID_TRANSITIONAL: u16 = 0x1005;
-pub const VIRTIO_RNG_DEVICE_ID_MODERN: u16 = 0x1044;
+mod state;
 
 pub use api::{fill_random, get_random_bytes, is_available};
+pub use handover::hand_over;
 pub use init::init as init_virtio_rng;
