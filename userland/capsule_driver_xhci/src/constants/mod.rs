@@ -29,6 +29,7 @@ mod usbsts_bits;
 pub use cap_offsets::{CAPLENGTH, DBOFF, HCCPARAMS1, HCSPARAMS1, HCSPARAMS2, RTSOFF};
 pub use completion_codes::{
     CC_MISSED_SERVICE, CC_RING_OVERRUN, CC_RING_UNDERRUN, CC_SHORT_PACKET, CC_SUCCESS,
+    CC_USB_TRANSACTION,
 };
 pub use erdp_bits::ERDP_EHB;
 pub use interrupter_bits::{IMAN_IE, IMAN_IP};
