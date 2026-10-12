@@ -36,6 +36,9 @@ impl Upkeep {
 
     pub fn run(&mut self, ctx: &mut Context, now_ms: i64) {
         if ctx.gop_mode {
+            if core::mem::take(&mut ctx.gop_held) {
+                self.backoff.held(now_ms);
+            }
             if crate::setup::upgrade_from_gop(ctx, &mut self.backoff, now_ms) {
                 say_display(ctx, "moved from GOP to");
             }

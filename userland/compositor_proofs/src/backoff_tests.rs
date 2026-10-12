@@ -63,3 +63,13 @@ fn an_empty_list_is_never_due() {
     let mut b = Backoff::new(0);
     assert_eq!(b.due(i64::MAX, 0), None);
 }
+
+#[test]
+fn bootfb_holding_the_framebuffer_starts_the_list_again_at_once() {
+    let mut b = Backoff::new(0);
+    for t in [500, 1000, 3000, 5000, 9000] {
+        b.due(t, 5);
+    }
+    b.held(9100);
+    assert_eq!((b.due(9100, 5), b.gap_ms), (Some(0), FIRST_MS));
+}

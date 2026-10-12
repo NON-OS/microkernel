@@ -28,6 +28,8 @@ pub struct Context {
     // GOP mode presents through MkSurfacePresent (kernel blit to the UEFI
     // framebuffer) instead of the virtio-gpu transfer/scanout/flush ops.
     pub gop_mode: bool,
+    /// A GOP present was refused because a driver holds the framebuffer.
+    pub gop_held: bool,
     pub surface_handle: u64,
     pub first_scanout_done: bool,
     pub scanout_error_reported: bool,

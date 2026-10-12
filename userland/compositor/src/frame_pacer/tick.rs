@@ -19,6 +19,9 @@ use core::sync::atomic::{fence, Ordering};
 
 use super::to_screen::to_screen;
 
+/// MkSurfacePresent's EBUSY: driver.bootfb0 holds the boot framebuffer.
+const GOP_HELD: i64 = -16;
+
 pub fn tick(ctx: &mut Context) -> Result<(), &'static str> {
     // Composite every damaged rectangle this frame. Each is small and separate,
     // so the empty space between far-apart damage is never touched. A
@@ -49,6 +52,10 @@ fn show(ctx: &mut Context, rect: crate::state::damage::Rect) -> Result<(), &'sta
         fence(Ordering::Release);
         let rc =
             nonos_libc::mk_surface_present_rect(ctx.surface_handle, r.x, r.y, r.width, r.height);
+        if rc == GOP_HELD {
+            // bootfb took the framebuffer: the next upkeep finds it.
+            ctx.gop_held = true;
+        }
         if rc < 0 {
             return Err("gop present rejected");
         }
