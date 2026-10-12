@@ -18,12 +18,14 @@ use core::sync::atomic::{AtomicU8, Ordering};
 
 use super::method::PsciMethod;
 
-static PSCI_METHOD: AtomicU8 = AtomicU8::new(PsciMethod::Smc.as_u8());
+/// No conduit until the device tree names one. Guessing SMC traps at EL1
+/// with no EL3, and on a Pi 4 reaches an armstub that implements no PSCI.
+static PSCI_METHOD: AtomicU8 = AtomicU8::new(0);
 
 pub(super) fn set_method(method: PsciMethod) {
     PSCI_METHOD.store(method.as_u8(), Ordering::Release);
 }
 
-pub(super) fn method() -> PsciMethod {
+pub(super) fn method() -> Option<PsciMethod> {
     PsciMethod::from_u8(PSCI_METHOD.load(Ordering::Acquire))
 }
