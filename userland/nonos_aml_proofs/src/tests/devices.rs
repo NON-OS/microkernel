@@ -27,6 +27,8 @@ mod dpower;
 mod ged;
 #[path = "legacy/mod.rs"]
 mod legacy;
+#[path = "platform_device/mod.rs"]
+mod platform_device;
 #[path = "serial/mod.rs"]
 mod serial;
 #[path = "video/mod.rs"]

@@ -47,6 +47,7 @@ pub mod object;
 pub mod op;
 pub mod parse;
 pub mod platform;
+pub mod platform_device;
 pub mod power;
 pub mod region;
 pub mod serial;
