@@ -29,6 +29,8 @@ pub enum EventsError {
     NoPm1,
     /// GPE0 and GPE1 claim some of the same event numbers (5.2.9 forbids it).
     Overlap,
+    /// An event outside both GPE blocks.
+    NoBlock,
     /// A register access the kernel refused or that failed.
     Io,
     /// SCI_EN did not come on within the wait after ACPI_ENABLE.

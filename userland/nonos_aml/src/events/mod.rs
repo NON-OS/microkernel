@@ -21,6 +21,7 @@
 
 mod acpi_mode;
 mod bytes;
+mod dispatch;
 mod error;
 mod fadt;
 mod fadt_fields;
@@ -28,6 +29,7 @@ mod gas;
 mod gpe_block;
 mod handlers;
 mod io;
+mod native;
 mod pending;
 mod pm1;
 mod pm1_bits;
@@ -40,9 +42,10 @@ mod state;
 mod wake;
 
 pub use acpi_mode::enter_acpi_mode;
+pub use dispatch::Dispatch;
 pub use error::EventsError;
 pub use fadt::{parse as parse_fadt, Fadt, FadtError};
-pub use gas::{Block, BlockError};
+pub use gas::{Block, BlockError, SYSTEM_IO};
 pub use gpe_block::GpeBlock;
 pub use handlers::{handlers, Handler, Trigger};
 pub use io::EventIo;

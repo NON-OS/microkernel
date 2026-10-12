@@ -24,6 +24,8 @@ or asks for a region it was not granted stops the capsule, not the machine.
 | `region` | field access arithmetic: widths, units, UpdateRule, the Global Lock's steps | 5.2.10.1, 19.6.48 |
 | `exec/field` | regions, field units, IndexField, BankField, buffer fields, _REG, Load | 5.5.2.4, 6.5.4, 19.6 |
 | `events` | the SCI: FADT event blocks, fixed events, GPE blocks and methods, ACPI mode | 4.8, 5.2.9, 5.6.4 |
+| `ec` | the embedded controller: handshake, ECDT, _CRS ports, _Qxx | 5.2.16, 12 |
+| `platform` | _INI walk, \_PIC, _OSC, inventory, _PRT, PCI paths | 5.8.1, 6.1-6.5 |
 
 ## Reading a table
 
@@ -145,6 +147,17 @@ edge event's status, run its method through the caller's evaluator, clear a
 level event's status, re-enable. A level event whose method fails stays
 disabled, since its source is still asserting. Register access goes through
 `EventIo`, in the capsule MkAcpiPort.
+
+## Embedded controller
+
+`ec::read` and `ec::write` move one byte of the EC's address space through
+its data and command ports, waiting for IBF to clear before each byte in
+and for OBF before each byte out (12.3), a second at most. `pending` and
+`query` read SCI_EVT and issue QR_EC. The ports come from the ECDT
+(`parse_ecdt`, so EC fields work before the EC's _REG) or the EC device's
+_CRS (`ec_ports`); `query_methods` finds its _Qxx. The EC's GPE is armed
+with `Events::arm_native` and served by the caller (`Dispatch::Native`) as
+an edge event.
 
 ## Limits
 

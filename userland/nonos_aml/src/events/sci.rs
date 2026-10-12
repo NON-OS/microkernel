@@ -15,25 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One SCI: the fixed events first, then each pending runtime GPE through
-//! its method (ACPI 6.5, 5.6.4.1). An edge event's status is cleared before
-//! its _Exx runs, so a second edge during the method is not lost; a level
-//! event's after its _Lxx, once the method has quieted the source. Each GPE
-//! is disabled while its method runs. A level GPE whose method fails stays
-//! disabled, since its source is still asserting and would fire forever.
+//! its method or its native handler (ACPI 6.5, 5.6.4.1). An edge event's
+//! status is cleared before it is served, so a second edge during the
+//! method is not lost; a level event's after, once the method has quieted
+//! the source. Each GPE is disabled while it is served. A level GPE whose
+//! method fails stays disabled, since its source is still asserting and
+//! would fire forever.
 
+use super::dispatch::Dispatch;
 use super::error::EventsError;
 use super::handlers::Trigger;
 use super::io::EventIo;
 use super::report::SciReport;
 use super::state::Events;
 use crate::exec::Fault;
-use crate::namespace::Id;
 
 impl Events {
     pub fn on_sci(
         &mut self,
         io: &mut impl EventIo,
-        run: &mut dyn FnMut(Id) -> Result<(), Fault>,
+        run: &mut dyn FnMut(Dispatch) -> Result<(), Fault>,
     ) -> Result<SciReport, EventsError> {
         let mut report = SciReport::default();
         let fixed = self.pm1.status(io).ok_or(EventsError::Io)? & self.fixed;
@@ -42,15 +43,17 @@ impl Events {
         }
         report.fixed = fixed;
         for n in self.pending(io)? {
-            let (Some(b), Some(h)) = (self.block_of(n).copied(), self.handlers.get(&n).copied())
-            else {
-                continue;
+            let what = match (self.native.contains(&n), self.handlers.get(&n)) {
+                (true, _) => (Dispatch::Native(n), Trigger::Edge),
+                (false, Some(h)) => (Dispatch::Method(h.method), h.trigger),
+                (false, None) => continue,
             };
-            let edge = h.trigger == Trigger::Edge;
+            let Some(b) = self.block_of(n).copied() else { continue };
+            let edge = what.1 == Trigger::Edge;
             if !b.set_enabled(io, n, false) || (edge && !b.clear(io, n)) {
                 return Err(EventsError::Io);
             }
-            let result = run(h.method);
+            let result = run(what.0);
             if !edge && !b.clear(io, n) {
                 return Err(EventsError::Io);
             }

@@ -31,9 +31,10 @@ pub struct Events {
     pub pm1: Pm1,
     pub blocks: Vec<GpeBlock>,
     pub handlers: BTreeMap<u16, Handler>,
-    /// Runtime events enabled now: each has a method, is in a block, and is
-    /// no device's wake event.
+    /// Events enabled now: in a block, and no device's wake event.
     pub armed: BTreeSet<u16>,
+    /// Served by the capsule itself (the EC's, 12.6), as edge events.
+    pub native: BTreeSet<u16>,
     /// PM1 enables: the Global Lock's release always, buttons by policy. The
     /// timer and RTC alarm are never enabled; the RTC is a wake source.
     pub fixed: u16,
@@ -65,7 +66,7 @@ impl Events {
             .collect();
         let buttons = [(policy.power_button, PWRBTN), (policy.sleep_button, SLPBTN)];
         let fixed = buttons.iter().filter(|(on, _)| *on).fold(GBL, |acc, (_, bit)| acc | bit);
-        Ok(Events { pm1, blocks, handlers, armed, fixed })
+        Ok(Events { pm1, blocks, handlers, armed, native: BTreeSet::new(), fixed })
     }
 
     pub(super) fn block_of(&self, gpe: u16) -> Option<&GpeBlock> {

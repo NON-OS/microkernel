@@ -9,6 +9,8 @@ extern crate alloc;
 pub mod arena;
 #[path = "../../nonos_aml/src/block.rs"]
 pub mod block;
+#[path = "../../nonos_aml/src/ec/mod.rs"]
+pub mod ec;
 #[path = "../../nonos_aml/src/error.rs"]
 pub mod error;
 #[path = "../../nonos_aml/src/events/mod.rs"]
@@ -36,6 +38,10 @@ pub mod shape;
 
 #[cfg(test)]
 mod consts;
+#[cfg(test)]
+mod ec_model;
+#[cfg(test)]
+mod ec_model_io;
 #[cfg(test)]
 mod enc;
 #[cfg(test)]
