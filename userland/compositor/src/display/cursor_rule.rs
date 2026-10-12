@@ -24,13 +24,13 @@ use nonos_gfx_wire::Cursor;
 
 use crate::sw_blitter::resample::fit_box;
 
-/// Canvas point `at` on the screen: times the scale, or shrunk as the
-/// floor canvas is when the canvas is the larger.
-pub fn on_screen(at: (u32, u32), canvas: (u32, u32), screen: (u32, u32), scale: u32) -> (i32, i32) {
+/// Canvas point `at` on the screen: times the scale (`q` quarters), or
+/// shrunk as the floor canvas is when the canvas is the larger.
+pub fn on_screen(at: (u32, u32), canvas: (u32, u32), screen: (u32, u32), q: u32) -> (i32, i32) {
     let shrunk = canvas.0 > screen.0 || canvas.1 > screen.1;
     let f = |v: u32, c: u32, s: u32| {
         let v = v as u64;
-        let p = if shrunk { v * s as u64 / c.max(1) as u64 } else { v * scale.max(1) as u64 };
+        let p = if shrunk { v * s as u64 / c.max(1) as u64 } else { v * q.max(4) as u64 / 4 };
         p.min(i32::MAX as u64) as i32
     };
     (f(at.0, canvas.0, screen.0), f(at.1, canvas.1, screen.1))

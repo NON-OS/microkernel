@@ -27,7 +27,7 @@ use crate::display::layout_rule::{local, Slice};
 use crate::display::ops;
 use crate::state::damage::Rect;
 use crate::state::Context;
-use crate::sw_blitter::{upscale, Surface};
+use crate::sw_blitter::{scaled, Surface};
 
 /// The canvas as slice `s` of it: its own origin, the same rows.
 pub fn view(ctx: &Context, s: Slice) -> Surface {
@@ -40,7 +40,7 @@ pub fn draw_heads(ctx: &mut Context, r: Rect) {
     let Some(p) = ctx.plan else { return };
     for (i, s) in p.slices.iter().take(p.n).enumerate().skip(1) {
         let (Some(h), Some(l)) = (ctx.heads.get(i - 1).copied(), local(r, *s)) else { continue };
-        if let Some(d) = upscale(view(ctx, *s), h.screen, l, ctx.scale) {
+        if let Some(d) = scaled(view(ctx, *s), h.screen, l, s.q) {
             ctx.head_pending.push((i - 1, d));
         }
     }
