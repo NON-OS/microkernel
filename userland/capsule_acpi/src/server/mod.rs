@@ -18,7 +18,7 @@
 
 mod brightness;
 mod notify;
-mod protocol;
+pub(crate) mod protocol;
 mod reply;
 mod run;
 mod sci;

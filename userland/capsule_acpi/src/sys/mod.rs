@@ -20,5 +20,6 @@ pub mod acpi;
 pub mod acpi_event;
 pub mod acpi_pci;
 pub mod acpi_power;
+pub mod acpi_sleep;
 pub mod clock;
 pub mod log;
