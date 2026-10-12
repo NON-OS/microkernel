@@ -31,13 +31,14 @@ use crate::wallet::state::State;
 
 const MOST_SENT: usize = 32;
 
-/// Review moving `nox` wei of NOX at `address` into the Shield.
-pub fn start(state: &mut State, address: [u8; 20], nox: u128) {
-    let fields = [SHIELD_FRESH_REVIEW, &hex(&address), &format!("{nox}")];
+/// Review moving `amount` wei of NOX, or of ETH, at `address` into the Shield.
+pub fn start(state: &mut State, address: [u8; 20], amount: u128, eth: bool) {
+    let coin = if eth { "ETH" } else { "NOX" };
+    let fields = [SHIELD_FRESH_REVIEW, &hex(&address), &format!("{amount}"), coin];
     if super::job::start(state, OP_SHIELD_FROM_FRESH, &fields) {
         let l = &mut state.meter.landed;
         let kept = l.moving.take().filter(|m| m.address == address).and_then(|m| m.gas_paid_s);
-        l.moving = Some(Moving { address, nox, gas_paid_s: kept, ..Moving::default() });
+        l.moving = Some(Moving { address, amount, eth, gas_paid_s: kept, ..Moving::default() });
     }
 }
 

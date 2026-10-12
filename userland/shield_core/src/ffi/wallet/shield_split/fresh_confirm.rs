@@ -13,6 +13,7 @@ use crate::evm::tx::Eip1559;
 use crate::evm::{self, EvmAccount, Network};
 use crate::ffi::account_types::PublicSent;
 use crate::ffi::evm::to_hex;
+use crate::net::asset::Coin;
 use crate::store::Row;
 use crate::wallet::fresh::{handed_index, shield_checked};
 
@@ -21,13 +22,17 @@ impl Wallet {
     pub fn confirm_shield_from_fresh(&self, id: u64) -> Result<ShieldSplitSent, WalletError> {
         let (from, steps) = self.take_fresh(id)?;
         let index = handed_index(&self.paths().account, &from).ok_or(WalletError::ReviewExpired)?;
-        let (pool, token) = part_ends()?;
+        // Any value makes it an ETH batch, which shield_checked then holds to ETH's rules.
+        let eth = steps.iter().any(|s| s.0.value > 0);
+        let (pool, token) = part_ends(if eth { Coin::Eth } else { Coin::Nox })?;
         let approve = match steps.as_slice() {
-            [(tx, None)] if tx.to == token => approved(&tx.data)?,
+            [(tx, None)] if Some(tx.to) == token => approved(&tx.data)?,
             _ => None,
         };
         let txs: Vec<Eip1559> = steps.iter().map(|s| s.0.clone()).collect();
-        shield_checked(&txs, (pool, token), approve.as_deref())
+        let value = txs.iter().try_fold(0u128, |t, tx| t.checked_add(tx.value));
+        let value = value.ok_or(WalletError::ReviewExpired)?;
+        shield_checked(&txs, (pool, token), approve.as_deref(), value)
             .map_err(|_| WalletError::ReviewExpired)?;
         let seed = Vault::at(self.paths().vault.clone()).load(self.guard())?;
         let account = EvmAccount::at(seed.bytes(), index).filter(|a| a.address() == from);
