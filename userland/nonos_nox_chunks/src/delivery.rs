@@ -63,6 +63,6 @@ pub fn open_delivery(
         }
         out.extend_from_slice(&plain);
     }
-    out.truncate(content_len as usize);
+    out.truncate(usize::try_from(content_len).unwrap_or(usize::MAX));
     Ok(out)
 }

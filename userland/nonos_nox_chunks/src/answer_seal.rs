@@ -43,11 +43,10 @@ pub fn seal_answer<K: Keccak, X: X25519>(
     (shared != [0; 32]).then_some(())?;
     let key = answer_key(k, &shared, (&agent_pk, buyer_pk));
     let plain = offer.encode();
-    let mut out = vec![0u8; 32 + plain.len() + TAG_LEN];
-    out[..32].copy_from_slice(&agent_pk);
+    let mut sealed = vec![0u8; plain.len().checked_add(TAG_LEN)?];
     let ad = [&listing[..], release].concat();
-    seal(&key, &[0; NONCE_LEN], &ad, &plain, &mut out[32..]).ok()?;
-    Some(out)
+    seal(&key, &[0; NONCE_LEN], &ad, &plain, &mut sealed).ok()?;
+    Some([&agent_pk[..], &sealed].concat())
 }
 
 /// The offer for `content_len`, opened under buyer_sk for this release.
@@ -58,11 +57,11 @@ pub fn open_answer<K: Keccak, X: X25519>(
     sealed: &[u8],
 ) -> Result<Offer, AnswerWrong> {
     let (agent_pk, body) = sealed.split_first_chunk::<32>().ok_or(AnswerWrong::Short)?;
-    (body.len() >= TAG_LEN).then_some(()).ok_or(AnswerWrong::Short)?;
+    let plain_len = body.len().checked_sub(TAG_LEN).ok_or(AnswerWrong::Short)?;
     let (buyer_pk, shared) = (x.public(buyer_sk), x.dh(buyer_sk, agent_pk));
     (shared != [0; 32]).then_some(()).ok_or(AnswerWrong::LowOrder)?;
     let key = answer_key(k, &shared, (agent_pk, &buyer_pk));
-    let mut plain = vec![0u8; body.len() - TAG_LEN];
+    let mut plain = vec![0u8; plain_len];
     let ad = [&listing[..], release].concat();
     open(&key, &[0; NONCE_LEN], &ad, body, &mut plain).map_err(|_| AnswerWrong::Seal)?;
     Offer::parse(&plain, content_len).ok_or(AnswerWrong::Body)

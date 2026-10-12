@@ -29,8 +29,8 @@ pub fn chunk(content: &[u8], i: u64) -> Option<[u8; CHUNK]> {
     if start >= content.len() {
         return None;
     }
-    let part = &content[start..content.len().min(start + CHUNK)];
+    let part = content.get(start..content.len().min(start.checked_add(CHUNK)?))?;
     let mut out = [0u8; CHUNK];
-    out[..part.len()].copy_from_slice(part);
+    out.get_mut(..part.len())?.copy_from_slice(part);
     Some(out)
 }

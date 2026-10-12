@@ -28,30 +28,10 @@ pub struct EscrowPin {
     pub order_id: [u8; 32],
 }
 
-const HEX: &[u8; 16] = b"0123456789abcdef";
+#[path = "pin_hex.rs"]
+mod hex;
 
-fn put(out: &mut [u8], bytes: &[u8]) {
-    for (i, b) in bytes.iter().enumerate() {
-        out[2 * i] = HEX[(b >> 4) as usize];
-        out[2 * i + 1] = HEX[(b & 15) as usize];
-    }
-}
-
-fn nibble(c: u8) -> Option<u8> {
-    match c {
-        b'0'..=b'9' => Some(c - b'0'),
-        b'a'..=b'f' => Some(c - b'a' + 10),
-        _ => None,
-    }
-}
-
-fn take<const N: usize>(s: &[u8]) -> Option<[u8; N]> {
-    let mut out = [0u8; N];
-    for (i, o) in out.iter_mut().enumerate() {
-        *o = nibble(s[2 * i])? << 4 | nibble(s[2 * i + 1])?;
-    }
-    Some(out)
-}
+use hex::{put, take};
 
 impl EscrowPin {
     pub fn word(&self) -> [u8; PIN_LEN] {
