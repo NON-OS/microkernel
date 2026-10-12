@@ -22,6 +22,7 @@
 //! for devices whose DMA descriptors are only 32 bits wide.
 
 mod dma_place;
+mod dma_size;
 mod dma_window;
 mod image;
 mod regions;

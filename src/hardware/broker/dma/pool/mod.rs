@@ -33,9 +33,6 @@ pub(super) use display::alloc;
 pub(crate) use display::init_display_pool;
 pub(super) use give_back::give_back;
 pub(crate) use low32::init_low32_pool;
-#[cfg(not(target_arch = "x86_64"))]
-pub(crate) use low32::low32_default_pages;
 pub(super) use low32_alloc::low32_alloc;
 pub(super) use pressure::say_low32;
-#[cfg(target_arch = "x86_64")]
 pub(crate) use sizing::{low32_fit, low32_target_pages};
