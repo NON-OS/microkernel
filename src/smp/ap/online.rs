@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::smp::state::{AP_STARTUP_BARRIER, CPUS_ONLINE, CPU_DESCRIPTORS};
+use crate::smp::state::{CPUS_ONLINE, CPU_DESCRIPTORS};
 use crate::smp::types::CpuState;
 use core::sync::atomic::Ordering;
 
@@ -38,5 +38,4 @@ pub(super) fn publish(cpu_id: u32) {
     CPU_DESCRIPTORS[cpu_id as usize].set_state(CpuState::Online);
     CPU_DESCRIPTORS[cpu_id as usize].set_stage(crate::smp::Stage::Online);
     CPUS_ONLINE.fetch_add(1, Ordering::AcqRel);
-    AP_STARTUP_BARRIER.fetch_add(1, Ordering::Release);
 }
