@@ -13,10 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The kernel half of the wire server: a primary's memory is anonymous
-//! pages of this capsule's own (a VRAM device's shadow, never video
-//! memory), registered as an ARGB8888 surface and shared so the compositor
-//! can attach it.
+
+//! A display driver's primaries as anonymous pages of its own (never device
+//! memory), registered as ARGB8888 surfaces and shared so the compositor can
+//! attach them: `nonos_gfx_serve`'s Platform over the kernel's calls.
+
+#![no_std]
 
 mod anon;
 mod pool;
