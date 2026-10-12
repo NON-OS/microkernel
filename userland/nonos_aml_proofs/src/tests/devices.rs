@@ -29,6 +29,8 @@ mod ged;
 mod idioms;
 #[path = "legacy/mod.rs"]
 mod legacy;
+#[path = "motherboard/mod.rs"]
+mod motherboard;
 #[path = "platform_device/mod.rs"]
 mod platform_device;
 #[path = "suspend/mod.rs"]
