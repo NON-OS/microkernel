@@ -65,7 +65,8 @@ pub use claim::{
 pub use class::{classify_pci, Class};
 pub use device::{
     Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET,
-    DEVICE_FLAG_DISABLED, DEVICE_FLAG_EXTERNAL, NUMA_UNKNOWN,
+    DEVICE_FLAG_DISABLED, DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE,
+    NUMA_UNKNOWN,
 };
 pub use dma::{
     map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
