@@ -46,7 +46,8 @@ pub(super) fn bind_intx(
     let vector = vector_of(slot).ok_or(IrqBindError::NoVector)?;
     let dest_apic_id = crate::arch::interrupt_controller::local_id();
 
-    let Ok(rte) = ioapic::program_route_external(gsi, vector, dest_apic_id) else {
+    let mode = super::intx_mode::described(&device);
+    let Ok(rte) = ioapic::program_route_external(gsi, vector, dest_apic_id, mode) else {
         slots::free_slot(slot);
         return Err(IrqBindError::PlatformError);
     };
