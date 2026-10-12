@@ -3205,6 +3205,7 @@
    "userland/nonos_gfx_serve/src/handle.rs",
    "userland/nonos_gfx_serve/src/mode_check.rs",
    "userland/nonos_gfx_serve/src/mode_set.rs",
+   "userland/nonos_gfx_serve/src/panel.rs",
    "userland/nonos_gfx_serve/src/platform.rs",
    "userland/nonos_gfx_serve/src/primary.rs",
    "userland/nonos_gfx_serve/src/server.rs",

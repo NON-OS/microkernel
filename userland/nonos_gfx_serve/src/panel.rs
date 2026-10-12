@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the monitor's EDID tells this driver: its preferred mode, its size
-//! in millimetres, and the modes it lists that DISPI can show, each at
-//! most once (nonos_edid reads the blob; nothing is allocated).
+//! What a monitor's EDID tells a display driver: its preferred mode, its
+//! size in millimetres, and the modes it lists that the device can show
+//! (the driver's `fits` decides), each at most once. nonos_edid reads the
+//! blob; nothing is allocated. Shared by every driver that reads an EDID,
+//! so they offer modes alike.
 
 use nonos_edid::Edid;
 use nonos_gfx_wire::body::mode::{FROM_EDID, MAX_MODES, PREFERRED};

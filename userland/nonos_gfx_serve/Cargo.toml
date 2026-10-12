@@ -20,3 +20,5 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_gfx_wire = { path = "../nonos_gfx_wire" }
+# The EDID parser, for the panel a driver reads off its monitor.
+nonos_edid = { path = "../nonos_edid" }

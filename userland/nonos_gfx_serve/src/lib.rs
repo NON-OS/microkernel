@@ -27,6 +27,7 @@ pub mod flush;
 pub mod handle;
 pub mod mode_check;
 pub mod mode_set;
+pub mod panel;
 pub mod platform;
 pub mod primary;
 pub mod server;
@@ -36,6 +37,7 @@ pub mod surface;
 
 pub use copy::copy_rects;
 pub use display::{Display, Shadow};
+pub use panel::Panel;
 pub use platform::{Platform, Region};
 pub use server::Server;
 pub use slot::{Slot, MAX_OUTPUTS};

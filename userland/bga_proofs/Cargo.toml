@@ -16,6 +16,5 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_devmodel = { path = "../nonos_devmodel" }
-nonos_edid = { path = "../nonos_edid" }
 nonos_gfx_serve = { path = "../nonos_gfx_serve" }
 nonos_gfx_wire = { path = "../nonos_gfx_wire" }

@@ -6,6 +6,7 @@ version = 4
 name = "gfx_serve_proofs"
 version = "0.1.0"
 dependencies = [
+ "nonos_edid",
  "nonos_gfx_wire",
 ]
 

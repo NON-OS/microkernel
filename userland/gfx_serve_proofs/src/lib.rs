@@ -32,6 +32,8 @@ pub mod handle;
 pub mod mode_check;
 #[path = "../../nonos_gfx_serve/src/mode_set.rs"]
 pub mod mode_set;
+#[path = "../../nonos_gfx_serve/src/panel.rs"]
+pub mod panel;
 #[path = "../../nonos_gfx_serve/src/platform.rs"]
 pub mod platform;
 #[path = "../../nonos_gfx_serve/src/primary.rs"]
