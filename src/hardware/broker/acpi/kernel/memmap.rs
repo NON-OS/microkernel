@@ -58,6 +58,7 @@ fn kind(memory_type: u32) -> MemKind {
         t::RESERVED => MemKind::Reserved,
         t::ACPI_NVS => MemKind::AcpiNvs,
         t::ACPI_RECLAIM => MemKind::AcpiReclaim,
+        t::RUNTIME_SERVICES_CODE | t::RUNTIME_SERVICES_DATA => MemKind::EfiRuntime,
         t::MMIO | t::MMIO_PORT_SPACE => MemKind::Unmapped,
         _ => MemKind::Other,
     }
