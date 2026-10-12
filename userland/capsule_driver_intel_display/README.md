@@ -37,7 +37,11 @@ its engine may still read them (`keep_at_exit`, section 12).
 NVGP v1 (`nonos_gfx_wire`) as `driver.intel_display0`, CAPS kind 7, one
 output (the first lit pipe), firmware's mode only (no MODE_SET or
 MODE_RANGE until mode setting joins the wire), no HW_CURSOR yet (CURSOR
-answers ENOSYS), DEVICE_READS off because FLUSH copies. STATE reports a
+answers ENOSYS), DEVICE_READS off because FLUSH copies, `physical_mm`
+from the monitor's EDID (Gen9: read over the lit port's AUX channel for
+DisplayPort and eDP, over GMBUS for HDMI and DVI, the route found from the
+transcoder's DDI function), MODES the shown mode, marked FROM_EDID when the
+monitor lists it. STATE reports a
 hung flip or an underrun as LOST after putting the plane back, and a
 stopped transcoder as LOST, not scanning out. The service is not exported
 until the capsule is spawned.
@@ -74,7 +78,7 @@ on the boot framebuffer.
 ## Current implemented surface
 
 `src/display`: `Intel` (the `nonos_gfx_serve::Display`), `Frames`, `copy`,
-`red_first`. The binary: `discover::find`, `setup::run`, `bar::Bar0`
+`red_first`, `panel_of` (the monitor's EDID); `engine::route::read`. The binary: `discover::find`, `setup::run`, `bar::Bar0`
 (the engine's `Mmio`), `clock::Uptime`, `frames::DmaFrames`, `serve::run`.
 `src/engine`: `takeover::read_outputs`, `plane::program`, `flip::flip`,
 `vblank::wait_vblank`, `cursor::set`, `ggtt::{map, unmap}`,
