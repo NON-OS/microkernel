@@ -51,11 +51,14 @@ mode are refused by the server before any copy.
 
 `Fb::new` (the checked mapping), `Fb::copy_in`, `describe::{caps, mode,
 state}`, and `BootFb`, the `nonos_gfx_serve::Display` the capsule serves.
-`boot_info::decode` reads the framebuffer record as the kernel hands it over
-(the boot handoff's `FramebufferInfo`, 40 bytes): UEFI GOP on x86_64, and on
-aarch64 the same struct filled from a simple-framebuffer node or the Pi
-firmware's mailbox (C-16). Only four-byte pixels are served (BGRX blue first,
-RGBX red first).
+`bring_up::bring_up` runs the kernel's order on the boot framebuffer's record
+(lead L31: firmware bus 5, class display 0x0030, device 0x0001, one prefetchable
+MMIO bar from the first pixel's page to the last row's end, aux the first
+pixel's offset): `driver.bootfb0` announced, the claim, `mk_boot_framebuffer`'s
+24-byte mode (`geometry::decode`), bar 0 mapped; any failure releases the
+claim. Three-byte pixels are refused with one line. It runs over the
+`firmware::Firmware` trait; the binary's libc side lands once L31's libc is
+on this branch.
 
 ## Wire format
 
