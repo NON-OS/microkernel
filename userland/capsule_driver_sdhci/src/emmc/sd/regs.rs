@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The SD registers as the driver reads them (SD Physical Layer Simplified
-//! Specification 9.10, 5.1 to 5.3): OCR, CID and CSD. Pure, so the host
+//! Specification 9.10, 5.1 to 5.3, as recalled, unverified): OCR, CID and CSD. Pure, so the host
 //! proofs hold them.
 
 use super::super::mmc::regs::bits;

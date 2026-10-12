@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The card's registers as the driver reads them: OCR, CID, CSD (JEDEC eMMC
-//! 5.1, 7.1 to 7.3) and the R2 response that carries the last two.
+//! 5.1, 7.1 to 7.3, as recalled, unverified) and the R2 response that carries the last two.
 
 mod cid;
 mod csd;
