@@ -99,6 +99,7 @@ pub use foreign_signal::{
     SIGNAL_RETURN,
 };
 pub use graphics::{nonos_display_dimensions, nonos_display_physical_mm};
+pub use graphics::{mk_boot_logo, BOOT_LOGO_FILE, BOOT_LOGO_RECORD, BOOT_LOGO_RECORD_LEN};
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
 pub use install_source::{
