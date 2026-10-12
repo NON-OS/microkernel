@@ -22,7 +22,7 @@
 use std::cell::Cell;
 use std::time::Duration;
 
-use crate::init::wait::{hold, until};
+use crate::bring::wait::{hold, until};
 
 use super::model::timed;
 

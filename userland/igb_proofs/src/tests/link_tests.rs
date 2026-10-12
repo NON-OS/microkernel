@@ -13,12 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! STATUS decoded as igb_get_speed_and_duplex_copper reads it, and the one
-//! line per change link_status prints.
+//! STATUS decoded to link, speed and duplex, and the one line per change
+//! link_status prints.
 
 use nonos_libc::said;
 
-use crate::constants::ctrl::*;
+use crate::facts::mac::*;
 use crate::link::status::changed;
 use crate::link::{decode, note, LinkState};
 

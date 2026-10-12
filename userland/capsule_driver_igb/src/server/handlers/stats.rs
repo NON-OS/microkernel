@@ -19,8 +19,7 @@
 //! and TX tail, both ring sizes, and RXDCTL in the last word e1000 leaves 0,
 //! so a photo of the stats shows whether the receive queue is enabled.
 
-use crate::constants::queue::{RX_DESC_COUNT, TX_DESC_COUNT};
-use crate::constants::regs::{
+use crate::facts::regs::{
     REG_RCTL, REG_RDH, REG_RDT, REG_RXDCTL, REG_STATUS, REG_TCTL, REG_TDH, REG_TDT,
 };
 use crate::protocol::{
@@ -28,6 +27,7 @@ use crate::protocol::{
 };
 use crate::server::error::reply;
 use crate::setup::Driver;
+use crate::sizes::ring::{RX_DESC_COUNT, TX_DESC_COUNT};
 
 pub fn handle(sender: u32, driver: &Driver, req: &Request, tx: &mut [u8]) {
     let payload_len = STATUS_LEN as u32 + STATS_PAYLOAD_LEN as u32;
