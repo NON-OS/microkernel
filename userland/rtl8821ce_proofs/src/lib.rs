@@ -51,6 +51,8 @@ pub mod connect_result;
 pub mod connect_probe;
 #[cfg(test)]
 mod connect_tests;
+#[cfg(test)]
+mod sae_forged_tests;
 // The answer the serve loop sends a frame neither request family takes.
 #[path = "../../capsule_driver_rtl8821ce/src/serve/refuse.rs"]
 pub mod serve_refuse;

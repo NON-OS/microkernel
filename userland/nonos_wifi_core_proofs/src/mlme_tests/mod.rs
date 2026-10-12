@@ -27,6 +27,7 @@ mod base;
 mod frames;
 mod ignored;
 mod sae;
+mod sae_forged;
 mod unjoinable;
 mod wpa2;
 mod wpa3;

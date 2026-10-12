@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where an exchange stands, why one failed, and what a frame calls for.
+//! Where an exchange stands, why a frame was discarded, and what a frame
+//! calls for.
 
 use alloc::vec::Vec;
 
@@ -24,21 +25,22 @@ pub enum SaeState {
     Committed,
     Confirmed,
     Accepted,
-    Failed,
 }
 
-/// Why an exchange ended without a PMK.
+/// Why a frame from the access point was discarded. Nothing before its
+/// confirm verifies is authenticated, so none of these ends the exchange; the
+/// last one is kept for the panel if the exchange runs out of time.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum SaeFailure {
-    /// The AP answered with this status code (a wrong password ends here
-    /// only at the confirm: the AP cannot tell before).
+    /// A frame came with this status code (a wrong password shows only at
+    /// the confirm: the AP cannot tell before).
     Rejected(u16),
-    /// The AP does not run group 19.
+    /// A frame said the AP does not run group 19.
     GroupNotSupported,
-    /// The AP's commit was malformed, used the other PWE method, or gave an
-    /// identity shared secret.
+    /// A commit was malformed, used the other PWE method, or gave an
+    /// identity shared secret; or an anti-clogging request was malformed.
     BadCommit,
-    /// The AP's confirm did not verify: a different password.
+    /// A confirm did not verify: a different password, or a forgery.
     BadConfirm,
 }
 
@@ -49,8 +51,7 @@ pub enum SaeStep {
     Send { seq: u16, status: u16, body: Vec<u8> },
     /// The AP's confirm verified: the PMK is ready.
     Accepted,
-    /// Nothing to do (a duplicate, or a frame for another state).
+    /// Nothing to do: a duplicate, a frame for another state, or one
+    /// discarded (`SaeStation::failure` says why).
     Ignore,
-    /// The exchange failed; see `SaeStation::failure`.
-    Failed,
 }
