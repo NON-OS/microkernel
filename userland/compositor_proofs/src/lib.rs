@@ -68,6 +68,8 @@ pub mod frame_pacer {
     pub mod cursor;
     #[path = "../../compositor/src/frame_pacer/cursor_shape.rs"]
     pub mod cursor_shape;
+    #[path = "../../compositor/src/frame_pacer/night_tint.rs"]
+    pub mod night_tint;
     #[path = "../../compositor/src/frame_pacer/indicator_band.rs"]
     pub mod indicator_band;
 }
@@ -106,6 +108,8 @@ pub mod display {
     pub mod layout_rule;
     #[path = "../../compositor/src/display/link.rs"]
     pub mod link;
+    #[path = "../../compositor/src/display/night_rule.rs"]
+    pub mod night_rule;
     #[path = "../../compositor/src/display/scale_rule.rs"]
     pub mod scale_rule;
     #[path = "../../compositor/src/display/screenshot_rule.rs"]
@@ -157,6 +161,8 @@ mod indicator_tests;
 mod layout_tests;
 #[cfg(test)]
 mod mirror_tests;
+#[cfg(test)]
+mod night_tests;
 #[cfg(test)]
 mod privacy_tests;
 #[cfg(test)]
