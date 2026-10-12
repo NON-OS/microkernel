@@ -18,9 +18,11 @@ pub mod clip;
 pub mod compose;
 pub mod composite;
 pub mod cursor;
+pub mod drain_batch;
 pub mod drain_damage;
 pub mod present_virtio;
 pub mod present_wire;
 pub mod tick;
+pub mod to_screen;
 
 pub use tick::tick;

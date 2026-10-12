@@ -2723,6 +2723,7 @@
    "userland/compositor/src/display/poll_rule.rs",
    "userland/compositor/src/frame_pacer/compose.rs",
    "userland/compositor/src/frame_pacer/cursor.rs",
+   "userland/compositor/src/frame_pacer/drain_batch.rs",
    "userland/compositor/src/frame_pacer/drain_damage.rs",
    "userland/compositor/src/protocol",
    "userland/compositor/src/setup/canvas_floor.rs",
