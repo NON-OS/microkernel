@@ -50,7 +50,8 @@ pub fn dp_rig(timing: (Axis, Axis), edid: Vec<u8>, total: u32) -> (Rig, Model, S
     let next = Some(0x4000_0000);
     let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, next };
     let (panel, bases, flags, generation) = (monitor.panel(), iova, SCANNING_OUT, 1);
-    let head = Head { out, scan, frames, panel, modeset, bases, generation, flags };
+    let (window, cursor) = ((0, total), None);
+    let head = Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor };
     let heads = [Some(head), None, None, None];
     let d = Intel { m: shared, clock, gen: &GEN9, heads };
     (d, model, s)
