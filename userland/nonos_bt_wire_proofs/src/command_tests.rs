@@ -31,6 +31,7 @@ fn le_commands_are_ogf_8() {
     assert_eq!(opcode::LE_SET_SCAN_ENABLE.0, 0x200c);
     assert_eq!(opcode::LE_CREATE_CONNECTION.0, 0x200d);
     assert_eq!(opcode::LE_LTK_REQUEST_REPLY.0, 0x201a);
+    assert_eq!(opcode::LE_CONNECTION_UPDATE.0, 0x2013);
     assert_eq!(opcode::READ_BD_ADDR.0, 0x1009);
     assert_eq!(opcode::READ_BUFFER_SIZE.0, 0x1005);
     assert_eq!(opcode::DISCONNECT.0, 0x0406);
