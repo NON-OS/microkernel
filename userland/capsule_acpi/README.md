@@ -126,7 +126,8 @@ such as AMD's and Intel's LPSS parts) are published to the broker: each
 present and enabled device whose _HID, or else a _CID, is on
 `data/platform_ids.tsv` and whose evaluated _CRS names a memory window
 goes to the kernel through `MkAcpiPlatformDevice` with its windows, its
-first interrupt and its path, and becomes a claimable device the kernel
+first interrupt and its path (encoded by the kernel's own codec, mounted
+from `src/hardware/broker/acpi/`), and becomes a claimable device the kernel
 holds to its region rule. The list names where each id is documented;
 every id in it is marked unverified. One `[ACPI] platform` line per
 listed device: its broker id, the kernel's refusal, or why it was passed
@@ -190,10 +191,11 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
   of such devices. Layout in `src/serial/wire.rs`. Held to `driver.i2c_pci0`
   and `driver.i2c_hid0` besides `power` and the shell. Each device is
   logged at start on one `[ACPI] serial` line.
-- DEVICE_POWER (10, verb, state, device id): a PCI device's
-  D-state (ACPI 6.5, chapter 7). Any caller the port admits may read it;
-  only the pid holding the device's claim (asked of the kernel through
-  `MkAcpiFunctionOf`) may move it. A move turns the new state's power
+- DEVICE_POWER (10, verb, state, device id): a device's D-state (ACPI
+  6.5, chapter 7), a PCI function or an ACPI-bus device. Any caller the
+  port admits may read it; only the pid holding the device's claim (asked
+  of the kernel through `MkAcpiFunctionOf`, or `MkAcpiDeviceName` for an
+  ACPI-bus device, found by its path or its `_HID` and `_UID`) may move it. A move turns the new state's power
   resources on in ResourceOrder, runs _PSx, then gives the old state's
   back; a fault undoes the move. D1 and D2 need _PSx or _PRx; a device in
   a low-power state goes back to D0 first. The fans and the devices
