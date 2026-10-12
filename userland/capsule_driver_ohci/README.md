@@ -97,7 +97,7 @@ and on AMD, SiS, NEC and Apple chipsets' USB 1.1 ports.
 
 ## Release evidence
 
-`ohci_proofs` on the host (37 tests). No boot yet.
+`ohci_proofs` on the host (38 tests). No boot yet.
 
 ## Release checklist
 
