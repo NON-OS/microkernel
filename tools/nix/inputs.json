@@ -848,6 +848,22 @@
   "md": [],
   "signed": []
  },
+ "userland/boot_splash_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/boot_splash_proofs",
+   "userland/capsule_boot_splash/src/logo/bmp.rs",
+   "userland/capsule_boot_splash/src/logo/place.rs",
+   "userland/capsule_boot_splash/src/logo/prepare.rs",
+   "userland/capsule_boot_splash/src/logo/record.rs",
+   "userland/capsule_boot_splash/src/logo/resample.rs",
+   "userland/capsule_boot_splash/src/logo/shown.rs",
+   "userland/capsule_boot_splash/src/logo/turn.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/bootfb_proofs": {
   "exclude": [],
   "include": [
