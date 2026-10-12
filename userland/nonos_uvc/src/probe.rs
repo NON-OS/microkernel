@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! The video probe and commit controls (VS_PROBE_CONTROL 01h,
 //! VS_COMMIT_CONTROL 02h): the 34 bytes of UVC 1.1 and later, a class
 //! request to the streaming interface (wValue the selector in its high

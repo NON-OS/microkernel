@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! A payload's header: its length, then bmHeaderInfo, whose bit 0 (FID)
 //! flips at each new frame, bit 1 (EOF) ends one, bit 6 (ERR) says the
 //! payload is bad, and bit 7 (EOH) ends the header fields.

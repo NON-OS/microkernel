@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! A video streaming interface's formats and their frame sizes, from the
 //! class-specific VS descriptors (CS_INTERFACE 24h): VS_FORMAT_UNCOMPRESSED
 //! (04h), VS_FRAME_UNCOMPRESSED (05h), VS_FORMAT_MJPEG (06h) and

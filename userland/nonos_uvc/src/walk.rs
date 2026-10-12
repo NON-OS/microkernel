@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! A camera in a configuration: its video control interface (class 0Eh,
 //! subclass 01h), and its video streaming interface (subclass 02h) with
 //! the formats its class descriptors give, and each alternate setting with

@@ -14,12 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Proofs for the USB Video Class core, run on the host against the
-//! library itself.
+//! library itself, and for driver.uvc0's pure parts, mounted from the
+//! capsule at the paths it names them by: the camera wire, the capture
+//! gate, the format listing and a batch's payloads.
+
+extern crate alloc;
+
+#[path = "../../capsule_driver_uvc/src/batch.rs"]
+pub mod batch;
+#[path = "../../capsule_driver_uvc/src/gate.rs"]
+pub mod gate;
+#[path = "../../capsule_driver_uvc/src/listing.rs"]
+pub mod listing;
+#[path = "../../capsule_driver_uvc/src/wire.rs"]
+pub mod wire;
 
 #[cfg(test)]
 mod camera_tests;
 #[cfg(test)]
 mod frame_tests;
+#[cfg(test)]
+mod gate_tests;
+#[cfg(test)]
+mod listing_tests;
 #[cfg(test)]
 mod probe_tests;
 #[cfg(test)]

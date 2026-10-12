@@ -1,0 +1,34 @@
+# NONOS userland: capsule_driver_uvc
+# eK@nonos.systems
+#
+# USB Video Class camera capsule, driver.uvc0. It finds a camera on any
+# USB host's ports (root or virtual), and streams it only to a peer that
+# holds CameraCapture, asked of the kernel when the peer opens the camera
+# and again whenever it starts a stream; the compositor is told whenever
+# streaming starts and stops. No capsule holds that bit until the owner
+# decides, so today nothing streams.
+
+[package]
+name = "nonos_capsule_driver_uvc"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB Video Class camera capsule"
+
+[[bin]]
+name = "driver_uvc"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usbnet = { path = "../nonos_usbnet" }
+nonos_uvc = { path = "../nonos_uvc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
