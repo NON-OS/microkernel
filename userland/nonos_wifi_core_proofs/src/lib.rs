@@ -22,6 +22,10 @@ mod ap_sim;
 #[cfg(test)]
 mod bip_tests;
 #[cfg(test)]
+mod cipher_select_tests;
+#[cfg(test)]
+mod cipher_sim;
+#[cfg(test)]
 mod country_tests;
 #[cfg(test)]
 mod crypto_tests;
@@ -29,6 +33,8 @@ mod crypto_tests;
 mod gcm_key_tests;
 #[cfg(test)]
 mod gcm_tests;
+#[cfg(test)]
+mod gcmp_handshake_tests;
 #[cfg(test)]
 mod gcmp_frame_tests;
 #[cfg(test)]
@@ -52,6 +58,8 @@ mod pmf_sim;
 #[cfg(test)]
 mod prf_tests;
 #[cfg(test)]
+mod ptk_len_tests;
+#[cfg(test)]
 mod protect_tests;
 #[cfg(test)]
 mod receive_tests;
@@ -71,6 +79,8 @@ mod scan_list_tests;
 mod soft;
 #[cfg(test)]
 mod softmac;
+#[cfg(test)]
+mod station_gcmp_tests;
 #[cfg(test)]
 mod station_tests;
 #[cfg(test)]

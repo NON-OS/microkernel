@@ -75,8 +75,8 @@ pub fn aes_wrap(kek: &[u8; 16], plain: &[u8]) -> Vec<u8> {
 }
 
 /// A GTK KDE for key index `id`.
-pub fn gtk_kde(id: u8, gtk: &[u8; 16]) -> Vec<u8> {
-    let mut kde = vec![0xDD, 22, 0x00, 0x0f, 0xac, 0x01, id, 0x00];
+pub fn gtk_kde(id: u8, gtk: &[u8]) -> Vec<u8> {
+    let mut kde = vec![0xDD, 6 + gtk.len() as u8, 0x00, 0x0f, 0xac, 0x01, id, 0x00];
     kde.extend_from_slice(gtk);
     kde
 }
@@ -118,7 +118,7 @@ pub fn message1(akm: Akm, replay: u8, anonce: &[u8; 32]) -> Vec<u8> {
 }
 
 /// Message 3 carrying `plain_kd`, wrapped under the PTK's KEK.
-pub fn message3(akm: Akm, replay: u8, anonce: &[u8; 32], ptk: &[u8; 48], plain_kd: &[u8]) -> Vec<u8> {
+pub fn message3(akm: Akm, replay: u8, anonce: &[u8; 32], ptk: &[u8], plain_kd: &[u8]) -> Vec<u8> {
     let kek: [u8; 16] = ptk[16..32].try_into().unwrap();
     let wrapped = aes_wrap(&kek, &pad(plain_kd.to_vec()));
     let info = KEY_INFO_PAIRWISE
@@ -131,7 +131,7 @@ pub fn message3(akm: Akm, replay: u8, anonce: &[u8; 32], ptk: &[u8; 48], plain_k
 }
 
 /// Group message 1 carrying `plain_kd`.
-pub fn group1(akm: Akm, replay: u8, ptk: &[u8; 48], plain_kd: &[u8]) -> Vec<u8> {
+pub fn group1(akm: Akm, replay: u8, ptk: &[u8], plain_kd: &[u8]) -> Vec<u8> {
     let kek: [u8; 16] = ptk[16..32].try_into().unwrap();
     let wrapped = aes_wrap(&kek, &pad(plain_kd.to_vec()));
     let info = KEY_INFO_ACK | KEY_INFO_MIC | KEY_INFO_SECURE | KEY_INFO_ENCRYPTED;

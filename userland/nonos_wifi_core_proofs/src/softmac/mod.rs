@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod assoc_tests;
+mod cipher_tests;
 mod find_tests;
 mod join_tests;
 mod link_tests;

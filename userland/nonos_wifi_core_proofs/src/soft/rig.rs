@@ -39,6 +39,8 @@ pub struct SimAir {
     pub(crate) beacon_at: u64,
     /// Every association the station reported, in order.
     pub assoc: Vec<Option<Association>>,
+    /// The radio says it runs GCMP-256 as well as CCMP-128.
+    pub gcmp: bool,
 }
 
 impl SimAir {
@@ -61,6 +63,7 @@ pub fn rig(ap: SimAp) -> Station {
         inbox,
         beacon_at: 0,
         assoc: Vec::new(),
+        gcmp: false,
     };
     SoftStation::new(Some(air), SimEnv { clock, draws: 0 }, 0)
 }

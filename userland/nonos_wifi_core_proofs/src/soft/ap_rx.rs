@@ -19,7 +19,8 @@
 use crate::ap_sim::{message1, ANONCE};
 use crate::soft::ap::SimAp;
 use crate::soft::frames::{beacon, eapol_of, eapol_to, mgmt};
-use nonos_wifi_core::dot11::ccmp::decrypt;
+use nonos_wifi_core::dot11::{ccmp, gcmp};
+use nonos_wifi_core::rsn::TemporalKey;
 use nonos_wifi_core::wpa::akm::Akm;
 
 impl SimAp {
@@ -40,7 +41,12 @@ impl SimAp {
                 vec![beacon(5, sta, &self.ssid, self.channel, &self.rsne)]
             }
             (2, _) if f[1] & 0x40 != 0 => {
-                if let Some(body) = self.tk.and_then(|tk| decrypt(f, &tk)) {
+                let body = match self.tk {
+                    Some(TemporalKey::Ccmp128(tk)) => ccmp::decrypt(f, &tk),
+                    Some(TemporalKey::Gcmp256(tk)) => gcmp::decrypt(f, &tk),
+                    None => None,
+                };
+                if let Some(body) = body {
                     self.got.push(body);
                 }
                 vec![]
