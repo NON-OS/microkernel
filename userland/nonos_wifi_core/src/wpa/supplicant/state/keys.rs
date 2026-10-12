@@ -24,9 +24,10 @@ impl Supplicant {
         self.pmf
     }
 
-    /// The pairwise temporal key (CCMP encryption key), valid once Connected.
+    /// The pairwise temporal key, as long as the pairwise cipher's, valid
+    /// once Connected.
     pub fn tk(&self) -> &[u8] {
-        &self.ptk[32..48]
+        &self.ptk[32..32 + self.pairwise.tk_len()]
     }
 
     /// The group temporal key, valid once Connected.

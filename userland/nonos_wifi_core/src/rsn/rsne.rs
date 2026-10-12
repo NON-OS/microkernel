@@ -26,6 +26,8 @@ pub struct Rsne {
     pub group: u32,
     /// Whether CCMP-128 is among the pairwise cipher suites.
     pub pairwise_ccmp: bool,
+    /// Whether GCMP-256 is among them.
+    pub pairwise_gcmp256: bool,
     pub akm_psk: bool,
     pub akm_psk_sha256: bool,
     pub akm_sae: bool,

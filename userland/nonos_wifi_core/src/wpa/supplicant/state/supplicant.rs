@@ -18,6 +18,9 @@
 
 use super::*;
 
+/// KCK and KEK then the longest TK (GCMP-256's).
+pub(in crate::wpa::supplicant) const PTK_MAX: usize = 64;
+
 #[derive(Clone, Copy)]
 pub struct Supplicant {
     pub(in crate::wpa::supplicant) state: State,
@@ -31,8 +34,11 @@ pub struct Supplicant {
     pub(in crate::wpa::supplicant) snonce: [u8; 32],
     /// AP nonce, learned from message 1.
     pub(in crate::wpa::supplicant) anonce: [u8; 32],
-    /// Pairwise transient key (KCK||KEK||TK), derived on message 1.
-    pub(in crate::wpa::supplicant) ptk: [u8; 48],
+    /// Pairwise transient key (KCK||KEK||TK), derived on message 1; the
+    /// pairwise cipher says how much of it is TK.
+    pub(in crate::wpa::supplicant) ptk: [u8; PTK_MAX],
+    pub(in crate::wpa::supplicant) pairwise: Cipher,
+    pub(in crate::wpa::supplicant) group: Cipher,
     /// Group temporal key, unwrapped from message 3 or a group message 1.
     pub(in crate::wpa::supplicant) gtk: [u8; 32],
     pub(in crate::wpa::supplicant) gtk_len: usize,

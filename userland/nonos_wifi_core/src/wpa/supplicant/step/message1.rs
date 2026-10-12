@@ -26,8 +26,11 @@ impl Supplicant {
     // the earlier message 2 would be discarded.
     pub(super) fn on_message1(&mut self, key: &EapolKey<'_>) -> StepOutput {
         self.anonce = key.nonce;
-        self.ptk = self.akm.derive_ptk(&self.pmk, &self.aa, &self.spa, &self.anonce, &self.snonce);
-        match self.message2(&key.replay_counter) {
+        let len = 32 + self.pairwise.tk_len();
+        let (ids, nonces) = ((&self.aa, &self.spa), (&self.anonce, &self.snonce));
+        let derived = self.akm.derive_ptk_into(&self.pmk, ids, nonces, &mut self.ptk[..len]);
+        let frame = if derived { self.message2(&key.replay_counter) } else { None };
+        match frame {
             Some(frame) => {
                 self.state = State::PtkDerived;
                 StepOutput::reply(Some(frame))

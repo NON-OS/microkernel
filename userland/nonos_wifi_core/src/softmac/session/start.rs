@@ -22,6 +22,7 @@ use alloc::collections::VecDeque;
 
 use super::state::{Keys, Session};
 use crate::regdom::Band;
+use crate::rsn::TemporalKey;
 use crate::station::{Ccmp, LinkStation};
 
 impl Session {
@@ -35,7 +36,11 @@ impl Session {
         let (name, bssid, akm) = net;
         let pmf = keys.supplicant.pmf();
         let mut station = LinkStation::new(mac);
-        station.associate(bssid, Ccmp::Software { tk: keys.tk });
+        let mode = match keys.tk {
+            TemporalKey::Ccmp128(tk) => Ccmp::Software { tk },
+            TemporalKey::Gcmp256(tk) => Ccmp::Gcmp256 { tk },
+        };
+        station.associate(bssid, mode);
         station.set_supplicant(keys.supplicant);
         let (mut ssid, len) = ([0u8; 32], name.len().min(32));
         ssid[..len].copy_from_slice(&name[..len]);

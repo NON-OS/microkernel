@@ -19,14 +19,16 @@
 
 use alloc::vec::Vec;
 
-use super::{Ccmp, LinkStation};
+use super::{cipher, Ccmp, LinkStation};
 use crate::dot11::data::{build_data, parse_data, protect, unprotect};
+use crate::dot11::gcmp;
+use crate::rsn::TemporalKey;
 
 impl LinkStation {
     /// Frame an ethernet packet for transmission to the AP. For a hardware-CCMP
     /// chip this is the plaintext MPDU the radio will encrypt; for software CCMP
-    /// it is the fully encrypted frame. Advances the sequence number, and for
-    /// software CCMP the packet number. Returns `None` if the station is not
+    /// or GCMP-256 it is the fully encrypted frame. Advances the sequence
+    /// number, and for software protection the packet number. Returns `None` if the station is not
     /// associated or the ethernet frame is malformed.
     pub fn tx_frame(&mut self, eth: &[u8]) -> Option<Vec<u8>> {
         if !self.associated {
@@ -36,20 +38,18 @@ impl LinkStation {
         let mpdu = build_data(eth, self.our_mac, self.bssid, seq)?;
         // Only commit the counter once framing has succeeded.
         self.seq = self.seq.wrapping_add(1) & 0x0FFF;
-        match &self.ccmp {
-            Ccmp::Hardware => {
-                // Pure-hardware CCMP hands the radio a plaintext frame; the engine
-                // inserts the IV and ciphertext and sets the Protected bit itself.
-                Some(mpdu)
-            }
-            Ccmp::Software { tk } | Ccmp::SoftwareTxHwRx { tk } => {
-                // CCMP packet numbers start at 1; pre-increment from zero.
-                let pn = self.pn.wrapping_add(1);
-                let frame = protect(&mpdu, pn, tk)?;
-                self.pn = pn;
-                Some(frame)
-            }
-        }
+        // CCMP and GCMP packet numbers start at 1; pre-increment from zero,
+        // and commit the counter only once the frame is protected.
+        let pn = self.pn.wrapping_add(1);
+        let frame = match &self.ccmp {
+            // Pure-hardware CCMP hands the radio a plaintext frame; the engine
+            // inserts the IV and ciphertext and sets the Protected bit itself.
+            Ccmp::Hardware => return Some(mpdu),
+            Ccmp::Software { tk } | Ccmp::SoftwareTxHwRx { tk } => protect(&mpdu, pn, tk)?,
+            Ccmp::Gcmp256 { tk } => gcmp::encrypt(&mpdu, pn, tk)?,
+        };
+        self.pn = pn;
+        Some(frame)
     }
 
     /// Recover the ethernet frame from a received 802.11 data MPDU. For a
@@ -60,6 +60,9 @@ impl LinkStation {
         match &self.ccmp {
             Ccmp::Hardware | Ccmp::SoftwareTxHwRx { .. } => parse_data(mpdu),
             Ccmp::Software { tk } => parse_data(&unprotect(mpdu, tk)?),
+            Ccmp::Gcmp256 { tk } => {
+                parse_data(&cipher::unprotect(mpdu, &TemporalKey::Gcmp256(*tk))?)
+            }
         }
     }
 }

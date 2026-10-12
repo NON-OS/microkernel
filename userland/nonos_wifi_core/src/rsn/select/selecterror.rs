@@ -19,7 +19,8 @@
 /// Why a network cannot be joined as it advertises itself.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum SelectError {
-    /// The group or pairwise cipher is not CCMP-128.
+    /// The group cipher, or every pairwise cipher, is one the radio does not
+    /// run (TKIP, or GCMP-256 on a radio without it).
     UnsupportedCipher,
     /// No offered AKM is one this station runs (802.1X/Enterprise, FT, OWE).
     UnsupportedAkm,

@@ -22,9 +22,10 @@
 
 use alloc::vec::Vec;
 
+use super::cipher::open;
 use super::mgmt_rx::{leave_reason, MgmtDrop, MgmtRx};
 use super::LinkStation;
-use crate::dot11::ccmp::{decrypt, pn_and_key, CCMP_HDR_LEN, MIC_LEN};
+use crate::dot11::ccmp::{pn_and_key, CCMP_HDR_LEN, MIC_LEN};
 use crate::dot11::header::MAC_HEADER_LEN;
 use crate::pmf::{parse_sa_query, SaQueryAction, SUBTYPE_ACTION};
 
@@ -36,7 +37,7 @@ impl LinkStation {
             f.get(MAC_HEADER_LEN + CCMP_HDR_LEN..end).ok_or(MgmtDrop::Malformed)?.to_vec()
         } else {
             let tk = self.pairwise_key().ok_or(MgmtDrop::Undecryptable)?;
-            decrypt(f, &tk).ok_or(MgmtDrop::Undecryptable)?
+            open(f, &tk).ok_or(MgmtDrop::Undecryptable)?
         };
         if pn <= self.pmf.mgmt_pn {
             return Err(MgmtDrop::Replay);

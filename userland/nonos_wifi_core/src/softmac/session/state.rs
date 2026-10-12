@@ -21,6 +21,7 @@ use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
 use crate::regdom::Band;
+use crate::rsn::TemporalKey;
 use crate::station::LinkStation;
 use crate::wpa::supplicant::Supplicant;
 
@@ -47,7 +48,7 @@ pub struct Session {
 
 /// What a session starts from.
 pub struct Keys {
-    pub tk: [u8; 16],
+    pub tk: TemporalKey,
     pub supplicant: Supplicant,
 }
 

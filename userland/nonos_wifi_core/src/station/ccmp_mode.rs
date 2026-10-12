@@ -32,4 +32,7 @@ pub enum Ccmp {
     /// decryption to the radio. For a chip whose hardware transmit encryption
     /// does not work but whose receive decryption does.
     SoftwareTxHwRx { tk: [u8; 16] },
+    /// The station runs GCMP-256 in software both ways with the 32-octet
+    /// pairwise key; no chip here has it in hardware.
+    Gcmp256 { tk: [u8; 32] },
 }

@@ -20,6 +20,7 @@ pub mod pbkdf2;
 pub mod prf;
 pub mod psk;
 pub mod ptk;
+mod ptk_into;
 mod rsn;
 pub mod sha1;
 pub mod sha256;

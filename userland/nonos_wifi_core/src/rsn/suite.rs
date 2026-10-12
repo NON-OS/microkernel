@@ -29,6 +29,7 @@ pub const fn selector(b: [u8; 4]) -> u32 {
 // Cipher suites.
 pub const CIPHER_TKIP: u32 = selector([0x00, 0x0F, 0xAC, 2]);
 pub const CIPHER_CCMP: u32 = selector([0x00, 0x0F, 0xAC, 4]);
+pub const CIPHER_GCMP_256: u32 = selector([0x00, 0x0F, 0xAC, 9]);
 pub const CIPHER_BIP_CMAC_128: u32 = selector([0x00, 0x0F, 0xAC, 6]);
 
 // AKM suites.

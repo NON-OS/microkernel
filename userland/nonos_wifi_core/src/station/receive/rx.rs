@@ -23,7 +23,8 @@ pub enum Rx {
     /// An Ethernet frame for the stack.
     Ethernet(Vec<u8>),
     /// A key handshake message was handled: send `frame` (if any) to the AP,
-    /// and install `group_key` (index, key) if the AP delivered a new one.
+    /// and install `group_key` (index, key) if the AP delivered a new
+    /// CCMP-128 one; a GCMP-256 group key stays with the station.
     Handshake {
         frame: Option<Vec<u8>>,
         group_key: Option<(u8, [u8; 16])>,

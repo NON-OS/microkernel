@@ -28,6 +28,7 @@ use super::pmf_state::PmfState;
 use super::replay::Replay;
 use super::Ccmp;
 use crate::dot11::header::MacAddr;
+use crate::rsn::TemporalKey;
 use crate::wpa::supplicant::Supplicant;
 
 /// The per-station data path: association facts plus the transmit counters.
@@ -40,7 +41,7 @@ pub struct LinkStation {
     pub(super) associated: bool,
     pub(super) replay: Replay,
     /// Group keys by index, for frames the chip did not decrypt.
-    pub(super) group_keys: [Option<[u8; 16]>; 4],
+    pub(super) group_keys: [Option<TemporalKey>; 4],
     /// The join's supplicant, answering the AP's later key handshakes.
     pub(super) supplicant: Option<Supplicant>,
     pub(super) pmf: PmfState,

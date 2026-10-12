@@ -23,6 +23,7 @@ impl Supplicant {
     /// Begin a handshake for the negotiated AKM, with the elements message 2
     /// repeats and the beacon elements message 3 must match.
     pub fn configure(c: &Config) -> Self {
+        let (pairwise, group) = own_ciphers(c.own_rsne);
         Self {
             state: State::Start,
             pmk: c.pmk,
@@ -30,7 +31,9 @@ impl Supplicant {
             spa: c.spa,
             snonce: c.snonce,
             anonce: [0u8; 32],
-            ptk: [0u8; 48],
+            ptk: [0u8; PTK_MAX],
+            pairwise,
+            group,
             gtk: [0u8; 32],
             gtk_len: 0,
             gtk_id: 0,
