@@ -20,7 +20,7 @@
 /// (Ryzen) at 150 MHz, the Intel LPSS platform devices at 100 MHz. A clock
 /// assumed higher than the real one only slows the bus, so the AMD default
 /// for an unknown AMD id is the higher figure.
-pub(super) fn source_clock_hz(hid: &[u8; 8]) -> u32 {
+pub(in crate::hardware::broker) fn source_clock_hz(hid: &[u8; 8]) -> u32 {
     if &hid[..7] == b"AMD0010" && hid[7] == 0 {
         133_000_000
     } else if &hid[..3] == b"AMD" {
