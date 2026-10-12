@@ -21,10 +21,14 @@ lld ran. It does not prove the output is something a loader can start. This
 checks the properties the loader and the first instruction depend on:
 
   - the ELF class, byte order, type and machine match the target architecture
+  - aarch64, which relocates itself (src/arch/aarch64/boot/relocate), is a
+    static PIE: no interpreter, no libraries, and every dynamic relocation an
+    R_AARCH64_RELATIVE into a writable segment, the one kind its entry applies
   - the entry point is the `_start` symbol the linker script names in ENTRY()
   - the entry point lies inside a PT_LOAD segment that is executable
   - no PT_LOAD segment is both writable and executable
-  - the signed manifest and signature sections are present and not empty
+  - the signed manifest and signature sections are present and not empty, and
+    no relocation rewrites a byte of either: they are signed as linked
 
 Reads the ELF directly, so it runs on a host with no cross binutils.
 """
@@ -35,12 +39,18 @@ import sys
 from pathlib import Path
 
 ET_EXEC = 2
+ET_DYN = 3
 PT_LOAD = 1
+PT_DYNAMIC = 2
+PT_INTERP = 3
+DT_NEEDED, DT_RELA, DT_RELASZ, DT_RELAENT, DT_REL, DT_JMPREL = 1, 7, 8, 9, 17, 23
+R_AARCH64_RELATIVE = 1027
 PF_X = 1
 PF_W = 2
 SHT_SYMTAB = 2
 
 MACHINES = {"x86_64": 62, "aarch64": 183, "riscv64": 243}
+TYPES = {"x86_64": ET_EXEC, "aarch64": ET_DYN, "riscv64": ET_EXEC}
 ENTRY_SYMBOL = "_start"
 REQUIRED_SECTIONS = (".nonos.manifest", ".nonos.sig")
 
@@ -61,6 +71,13 @@ class Elf:
             p_type, p_flags, _, p_vaddr, _, _, p_memsz, _ = struct.unpack_from(
                 "<IIQQQQQQ", self.data, self.e_phoff + i * self.e_phentsize)
             yield p_type, p_flags, p_vaddr, p_memsz
+
+    def headers(self):
+        """(type, flags, offset, vaddr, paddr, filesz, memsz) of every program header."""
+        for i in range(self.e_phnum):
+            p_type, p_flags, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz, _ = struct.unpack_from(
+                "<IIQQQQQQ", self.data, self.e_phoff + i * self.e_phentsize)
+            yield p_type, p_flags, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz
 
     def read(self, vaddr, size):
         """The file bytes a loader places at `vaddr`, or None if no PT_LOAD holds them."""
@@ -99,11 +116,51 @@ class Elf:
         return self.data[at:end].decode("ascii", "replace")
 
 
+def static_pie(elf):
+    """What keeps an ET_DYN from being a static PIE the kernel's entry can relocate."""
+    heads = list(elf.headers())
+    if any(h[0] == PT_INTERP for h in heads):
+        return ["a PT_INTERP asks for a dynamic linker"]
+    dynamic = [h for h in heads if h[0] == PT_DYNAMIC]
+    if not dynamic:
+        return ["no PT_DYNAMIC, so its relocations cannot be found"]
+    _, _, offset, _, _, filesz, _ = dynamic[0]
+    tags = {}
+    for at in range(offset, offset + filesz, 16):
+        tag, value = struct.unpack_from("<qQ", elf.data, at)
+        tags.setdefault(tag, value)
+    failed = [f"dynamic tag {t} is a relocation or library the kernel does not apply"
+              for t in (DT_NEEDED, DT_REL, DT_JMPREL) if t in tags]
+    if tags.get(DT_RELASZ, 0) == 0:
+        return failed
+    if tags.get(DT_RELAENT) != 24:
+        return failed + [f"DT_RELAENT is {tags.get(DT_RELAENT)}, want 24"]
+    table = elf.read(tags.get(DT_RELA, 0), tags[DT_RELASZ])
+    if table is None:
+        return failed + ["the RELA table lies outside the loaded image"]
+    writable = [(v, v + f) for t, fl, _, v, _, f, _ in heads if t == PT_LOAD and fl & PF_W]
+    signed = [(name, sh[3], sh[3] + sh[5]) for name, sh in elf.sections() if name in REQUIRED_SECTIONS]
+    for at in range(0, len(table), 24):
+        place, info, _ = struct.unpack_from("<QQQ", table, at)
+        if info & 0xFFFF_FFFF != R_AARCH64_RELATIVE:
+            failed.append(f"relocation at {place:#x} has type {info & 0xFFFF_FFFF}, not RELATIVE")
+        elif place % 8 or not any(lo <= place and place + 8 <= hi for lo, hi in writable):
+            failed.append(f"relocation at {place:#x} is not 8 aligned file bytes of a writable segment")
+        for name, lo, hi in signed:
+            if place < hi and place + 8 > lo:
+                failed.append(f"relocation at {place:#x} rewrites {name}, which is signed as linked")
+        if len(failed) >= 8:
+            return failed + ["(more not listed)"]
+    return failed
+
+
 def check(elf, arch):
     """Every failed property, as one line each."""
     failed = []
-    if elf.e_type != ET_EXEC:
-        failed.append(f"e_type is {elf.e_type}, want {ET_EXEC} (a static executable)")
+    if elf.e_type != TYPES[arch]:
+        failed.append(f"e_type is {elf.e_type}, want {TYPES[arch]}")
+    elif elf.e_type == ET_DYN:
+        failed += static_pie(elf)
     if elf.e_machine != MACHINES[arch]:
         failed.append(f"e_machine is {elf.e_machine}, want {MACHINES[arch]} ({arch})")
 
@@ -157,7 +214,8 @@ def main():
         return 1
 
     loads = sum(1 for s in elf.segments() if s[0] == PT_LOAD)
-    print(f"kernel-elf: {a.elf} is an executable for {a.arch}, entry `{ENTRY_SYMBOL}` at "
+    kind = "a static PIE" if elf.e_type == ET_DYN else "an executable"
+    print(f"kernel-elf: {a.elf} is {kind} for {a.arch}, entry `{ENTRY_SYMBOL}` at "
           f"{elf.e_entry:#x}, {loads} PT_LOAD segments, none writable and executable")
     return 0
 
