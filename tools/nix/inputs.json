@@ -5309,6 +5309,7 @@
   "include": [
    ".cargo",
    "userland/nonos_usb_hub",
+   "userland/nonos_usb_virt",
    "userland/usb_hub_proofs"
   ],
   "md": [],
