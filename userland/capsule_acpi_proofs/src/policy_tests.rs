@@ -25,6 +25,11 @@ use crate::policy::{admits, allowed, Allowed};
 const SERVICES: &[&[u8]] =
     &[b"power", b"desktop_shell", b"driver.i2c_pci0", b"driver.i2c_hid0", b"driver.ps2_kbd0"];
 
+/// Every pid its own process: no threads.
+fn alone(_: u32) -> Option<u32> {
+    None
+}
+
 fn pid_of(name: &[u8]) -> Option<u32> {
     SERVICES.iter().position(|s| *s == name).map(|i| 100 + i as u32)
 }
@@ -39,10 +44,10 @@ fn each_op_answers_its_services_and_no_other() {
                 Allowed::AnyAdmitted => true,
                 Allowed::Nobody => false,
             };
-            assert_eq!(admits(op, sender, pid_of), want, "op {op} from {:?}", name);
+            assert_eq!(admits(op, sender, pid_of, alone), want, "op {op} from {:?}", name);
         }
-        assert!(!admits(op, 999, pid_of) || allowed(op) == Allowed::AnyAdmitted, "op {op}");
-        assert!(!admits(op, 0, pid_of), "pid 0 never, op {op}");
+        assert!(!admits(op, 999, pid_of, alone) || allowed(op) == Allowed::AnyAdmitted, "op {op}");
+        assert!(!admits(op, 0, pid_of, alone), "pid 0 never, op {op}");
     }
 }
 
@@ -71,7 +76,7 @@ fn a_service_no_one_runs_admits_no_one() {
     let nobody_runs = |_: &[u8]| None;
     let pid_zero = |_: &[u8]| Some(0);
     for op in [3, 5, 8, 9, 11] {
-        assert!(!admits(op, 100, nobody_runs), "op {op}");
-        assert!(!admits(op, 100, pid_zero), "op {op}: an owner of pid 0 is no owner");
+        assert!(!admits(op, 100, nobody_runs, alone), "op {op}");
+        assert!(!admits(op, 100, pid_zero, alone), "op {op}: an owner of pid 0 is no owner");
     }
 }

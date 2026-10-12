@@ -22,3 +22,5 @@ pub mod policy;
 
 #[cfg(test)]
 mod policy_tests;
+#[cfg(test)]
+mod thread_tests;
