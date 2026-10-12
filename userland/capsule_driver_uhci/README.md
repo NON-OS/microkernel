@@ -94,7 +94,7 @@ on Intel and VIA chipsets whose only USB 1.1 host it is.
 
 ## Release evidence
 
-`uhci_proofs` on the host (35 tests). No boot yet.
+`uhci_proofs` on the host (36 tests). No boot yet.
 
 ## Release checklist
 
