@@ -69,6 +69,8 @@ pub mod sleep;
 pub mod suspend;
 #[path = "../../nonos_aml/src/thermal/mod.rs"]
 pub mod thermal;
+#[path = "../../nonos_aml/src/time_alarm/mod.rs"]
+pub mod time_alarm;
 #[path = "../../nonos_aml/src/video/mod.rs"]
 pub mod video;
 #[path = "../../nonos_aml/src/wmi/mod.rs"]
