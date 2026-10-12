@@ -62,6 +62,9 @@
    "nonos-data/trust/capsules/driver_ufs.manifest.bin",
    "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_uhci.manifest.bin",
+   "nonos-data/trust/capsules/driver_uhci.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_uhci.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_usb_audio.manifest.bin",
    "nonos-data/trust/capsules/driver_usb_audio.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_usb_audio.zk_trailer.bin",
@@ -1630,6 +1633,16 @@
    "userland/capsule_driver_ufs",
    "userland/libc",
    "userland/nonos_blk_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_uhci": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_uhci",
+   "userland/libc"
   ],
   "md": [],
   "signed": []
@@ -3836,6 +3849,9 @@
    "nonos-data/trust/capsules/driver_ufs.manifest.bin",
    "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_uhci.manifest.bin",
+   "nonos-data/trust/capsules/driver_uhci.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_uhci.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_usb_audio.manifest.bin",
    "nonos-data/trust/capsules/driver_usb_audio.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_usb_audio.zk_trailer.bin",

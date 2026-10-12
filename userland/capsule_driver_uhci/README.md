@@ -1,8 +1,10 @@
 # capsule_driver_uhci
 
-Status: built and proven on the host, not yet wired. No kernel mirror
-spawns it and it has no Capsule.mk yet: its service and reply endpoint
-numbers are the maintainers' to assign. It has no owner certificate, so no image
+Status: wired, not yet signed. The kernel mirror (`src/hardware/uhci_capsule`)
+embeds and spawns it under `nonos-capsule-driver-uhci` (the
+`microkernel-driver-uhci` build) when the inventory sees `UsbUhci`, a
+function of class 0Ch, subclass 03h, interface 00h. `driver.uhci0` is held
+to the USB class drivers. It has no owner certificate yet, so no image
 carries it until the owner signs it.
 
 ## Role
@@ -44,9 +46,9 @@ nothing yet, -16 busy, -22 malformed, -32 STALL.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0x198018`, to be declared with the Capsule.mk:
-IPC, Memory, DeviceEnum, Driver, Dma and Pio. No Mmio and no Irq: the
-controller is polled.
+`CAPSULE_REQUIRED_CAPS = 0x198018`: IPC, Memory, DeviceEnum, Driver, Dma
+and Pio. `CAPSULE_OPTIONAL_CAPS = 0x100`: Debug, in a serial-debug build.
+No Mmio and no Irq: the controller is polled.
 
 ## Current implemented surface
 
@@ -98,7 +100,6 @@ on Intel and VIA chipsets whose only USB 1.1 host it is.
 
 ## Release checklist
 
-- Endpoint numbers assigned, Capsule.mk, kernel mirror and inventory.
 - Signed by the owner and added to the image's features.
 - A QEMU `-usb -device usb-tablet` boot moving the pointer.
 
