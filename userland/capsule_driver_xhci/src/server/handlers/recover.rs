@@ -46,14 +46,10 @@ pub fn recover_after(ctx: &mut Context, slot: u8, dci: u8, err: XhciError) {
     {
         p.forget();
         &p.ring
-    } else if let Some(pipes) = res.bulk.as_ref() {
-        if dci == pipes.dci_in {
-            &pipes.in_ring
-        } else if dci == pipes.dci_out {
-            &pipes.out_ring
-        } else {
-            return;
-        }
+    } else if let Some(ring) =
+        [res.bulk.as_ref(), res.bulk2.as_ref()].into_iter().flatten().find_map(|p| p.ring_of(dci))
+    {
+        ring
     } else {
         return;
     };
