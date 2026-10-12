@@ -21,12 +21,12 @@
 
 use alloc::vec::Vec;
 
-use nonos_settle_proto::EINVAL;
+use nonos_settle_proto::{EFBIG, EINVAL};
 
 use crate::drain::round;
 use crate::settle::Settle;
 
 pub fn settle_now(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
     let chain_id = u64::from_le_bytes(body.try_into().map_err(|_| EINVAL)?);
-    Ok(round(s, chain_id)?.encode())
+    round(s, chain_id)?.encode().ok_or(EFBIG)
 }

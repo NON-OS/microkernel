@@ -26,6 +26,11 @@ use super::wire::exchange;
 
 /// The default release: an empty id asks for it.
 pub fn fetch(port: u32, request_id: u32, listing: &[u8]) -> Result<Release, Failure> {
-    let body = exchange(port, OP_GET_RELEASE, request_id, &pair_body(listing, b""))?;
+    let body = exchange(
+        port,
+        OP_GET_RELEASE,
+        request_id,
+        &pair_body(listing, b"").ok_or(Failure::Malformed)?,
+    )?;
     parse_release(&body).ok_or(Failure::Malformed)
 }

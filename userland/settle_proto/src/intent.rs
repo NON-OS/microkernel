@@ -35,15 +35,21 @@ pub struct Intent {
 }
 
 impl Intent {
-    pub fn encode(&self) -> Vec<u8> {
+    /// None past MAX_CALLDATA, which parse would refuse; under it the u32
+    /// length always fits.
+    pub fn encode(&self) -> Option<Vec<u8>> {
+        if self.calldata.len() > MAX_CALLDATA {
+            return None;
+        }
+        let len = len_u32(self.calldata.len())?;
         let mut out = Vec::with_capacity(self.calldata.len().saturating_add(49));
         out.extend_from_slice(&self.chain_id.to_le_bytes());
         out.push(self.kind);
         out.extend_from_slice(&self.from);
         out.extend_from_slice(&self.value.to_le_bytes());
-        out.extend_from_slice(&len_u32(self.calldata.len()).to_le_bytes());
+        out.extend_from_slice(&len.to_le_bytes());
         out.extend_from_slice(&self.calldata);
-        out
+        Some(out)
     }
 
     pub fn parse(b: &[u8]) -> Option<Self> {

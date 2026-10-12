@@ -21,8 +21,20 @@ pub(crate) fn fixed<const N: usize>(b: &[u8], at: usize) -> Option<[u8; N]> {
     b.get(at..at.checked_add(N)?)?.try_into().ok()
 }
 
-/// `len` as a u32 length field; a length past u32 saturates, and the
-/// frame it heads then fails every exact-length check.
-pub(crate) fn len_u32(len: usize) -> u32 {
-    u32::try_from(len).unwrap_or(u32::MAX)
+/// `len` as a u32 length field, or None when it does not fit: an encoder
+/// refuses rather than write a length that says something false.
+pub(crate) fn len_u32(len: usize) -> Option<u32> {
+    u32::try_from(len).ok()
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::unwrap_used)]
+
+    #[test]
+    fn a_length_one_past_its_u32_is_refused_not_saturated() {
+        let most = usize::try_from(u32::MAX).unwrap();
+        assert_eq!(super::len_u32(most), Some(u32::MAX));
+        assert_eq!(super::len_u32(most.checked_add(1).unwrap()), None);
+    }
 }

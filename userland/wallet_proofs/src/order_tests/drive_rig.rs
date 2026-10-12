@@ -65,7 +65,7 @@ impl Rig {
     /// A frame from `pid` answering the last request, its id moved by `skew`.
     pub fn answer(&mut self, pid: u32, skew: u32, body: &[u8]) -> bool {
         let (op, id, _) = last().expect("nothing was sent");
-        self.settle.frame(pid, &reply(op, FLAG_ASYNC, id.wrapping_add(skew), 0, body))
+        self.settle.frame(pid, &reply(op, FLAG_ASYNC, id.wrapping_add(skew), 0, body).unwrap())
     }
 
     pub fn step(&self) -> SendStep {

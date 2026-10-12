@@ -22,7 +22,7 @@
 use alloc::vec::Vec;
 
 use nonos_nox_meter::wire::account as view;
-use nonos_payment_proto::EINVAL;
+use nonos_payment_proto::{EINVAL, EOVERFLOW};
 
 use crate::disk::kept;
 use crate::meter::{now_ms, Meter};
@@ -34,5 +34,8 @@ pub fn account(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
     };
     let address = meter.ready().ok().map(|k| k.address);
     let a = view(&meter.state, address, kept(), now_ms() / 1000, *from as usize);
-    req.answer(0, &a.encode())
+    match a.encode() {
+        Some(body) => req.answer(0, &body),
+        None => req.answer(EOVERFLOW, &[]),
+    }
 }

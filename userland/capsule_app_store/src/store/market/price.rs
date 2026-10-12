@@ -27,7 +27,12 @@ use super::wire::exchange;
 use crate::store::price::{Price, FREE};
 
 pub fn fetch(port: u32, request_id: u32, listing: &[u8]) -> Result<Price, Failure> {
-    let body = exchange(port, OP_GET_COMMERCE, request_id, &pair_body(listing, b""))?;
+    let body = exchange(
+        port,
+        OP_GET_COMMERCE,
+        request_id,
+        &pair_body(listing, b"").ok_or(Failure::Malformed)?,
+    )?;
     let got = parse_commerce(&body).ok_or(Failure::Malformed)?;
     if got.block.is_empty() {
         return Ok(Price { mode: FREE, unit: b"unit", unit_price: 0, trusted: true });

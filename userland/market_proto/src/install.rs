@@ -41,7 +41,9 @@ impl Stage {
     /// 0 idle, 1 queued, 2 installing, 3 installed, 4 refused, 5 removing,
     /// 6 removed, and 16 plus the installer's exit code for a failure, an
     /// install's or an uninstall's. A negative answer is an
-    /// errno for the question, not a stage, and reads as idle.
+    /// errno for the question, not a stage, and reads as idle. An exit code
+    /// is a u8, so a code past 16 + 255 names no reason the installer has:
+    /// it reads as an unknown stage does, never as reason 255.
     pub fn of(code: i64) -> Stage {
         match code {
             1 => Stage::Queued,
@@ -50,7 +52,10 @@ impl Stage {
             4 => Stage::Refused,
             5 => Stage::Removing,
             6 => Stage::Removed,
-            c if c >= 16 => Stage::Failed(u8::try_from(c.saturating_sub(16)).unwrap_or(u8::MAX)),
+            c if c >= 16 => c
+                .checked_sub(16)
+                .and_then(|w| u8::try_from(w).ok())
+                .map_or(Stage::Idle, Stage::Failed),
             _ => Stage::Idle,
         }
     }

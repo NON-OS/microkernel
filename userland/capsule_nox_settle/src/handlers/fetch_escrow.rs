@@ -36,7 +36,7 @@ const ESCROW_IDLE_MS: u64 = 300_000;
 pub fn escrow(s: &mut Settle, sender: u32, e: &Escrow) -> Result<Vec<u8>, i32> {
     Chain::from_id(e.chain_id).ok_or(EINVAL)?;
     let (host, path) = https_target(&e.url).ok_or(EINVAL)?;
-    let bytes = post_to(host, path, &e.agent_body(), MAX_RELEASE)?;
+    let bytes = post_to(host, path, &e.agent_body().ok_or(EINVAL)?, MAX_RELEASE)?;
     if bytes.len() < SEALED_MIN {
         return Err(EPROTO);
     }

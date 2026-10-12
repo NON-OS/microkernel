@@ -20,7 +20,7 @@ use nonos_settle_proto::{Settled, OP_SETTLE, SETTLED_MAX};
 fn a_round_names_its_transaction_and_what_it_carries() {
     assert_eq!(OP_SETTLE, 10);
     let s = Settled { tx_hash: [9; 32], carried: vec![([1; 32], 500), ([2; 32], 7)] };
-    let b = s.encode();
+    let b = s.encode().unwrap();
     assert_eq!(b.len(), 33 + 2 * 48);
     assert_eq!(Settled::parse(&b), Some(s.clone()));
     for n in 0..b.len() {
@@ -30,8 +30,8 @@ fn a_round_names_its_transaction_and_what_it_carries() {
     assert!(s.carries(&[1; 32], 500) && s.carries(&[1; 32], 499));
     assert!(!s.carries(&[1; 32], 501), "an older settle does not carry a newer voucher");
     assert!(!s.carries(&[3; 32], 1), "another channel");
-    let none = Settled { tx_hash: [9; 32], carried: vec![] }.encode();
+    let none = Settled { tx_hash: [9; 32], carried: vec![] }.encode().unwrap();
     assert_eq!(Settled::parse(&none), None, "a round carries something or is ENOENT");
     let many = Settled { tx_hash: [9; 32], carried: vec![([1; 32], 1); SETTLED_MAX + 1] };
-    assert_eq!(Settled::parse(&many.encode()), None);
+    assert_eq!(many.encode(), None, "one past SETTLED_MAX is refused, not written");
 }

@@ -34,9 +34,9 @@ fn row(i: u8, uri: &[u8]) -> Listed {
 fn a_uri_that_would_wrap_its_length_never_forges_rows() {
     /* 65 536 + 117 bytes: as u16 the length would read 117, and the rest
      * would parse as a forged row. */
-    let mut forged = listing_reply(&[row(9, b"https://evil/x")])[1..].to_vec();
+    let mut forged = listing_reply(&[row(9, b"https://evil/x")]).unwrap()[1..].to_vec();
     let mut uri = vec![b'u'; 65_536 + 117];
     uri.append(&mut forged);
-    let b = listing_reply(&[row(1, &uri), row(2, b"https://h/r"), row(3, b"")]);
+    let b = listing_reply(&[row(1, &uri), row(2, b"https://h/r"), row(3, b"")]).unwrap();
     assert_eq!(parse_listing_reply(&b, &[1; 32]), Some(vec![row(2, b"https://h/r")]));
 }

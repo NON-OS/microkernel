@@ -18,7 +18,7 @@
 //! only sender whose answer is believed, once it is sent.
 
 use nonos_libc::{mk_ipc_send, mk_service_lookup};
-use nonos_payment_proto::EAGAIN;
+use nonos_payment_proto::{EAGAIN, EINVAL};
 use nonos_settle_proto::{request_async, SERVICE};
 
 /// Who asked: a dispute or refund's steps, or the landed rows' reads.
@@ -30,7 +30,7 @@ pub(super) fn send(op: u16, id: u32, body: &[u8]) -> Result<u32, i32> {
     if mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut port, &mut pid) != 0 || pid == 0 {
         return Err(EAGAIN);
     }
-    let tx = request_async(op, id, body);
+    let tx = request_async(op, id, body).ok_or(EINVAL)?;
     match mk_ipc_send(port as u64, tx.as_ptr(), tx.len()) {
         n if n < 0 => Err(EAGAIN),
         _ => Ok(pid),

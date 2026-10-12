@@ -27,20 +27,20 @@ const ASKED: Asked = Asked { op: OP_READ, id: 7, settle_pid: SETTLE, at_ms: 1_00
 
 #[test]
 fn the_answer_to_the_request_outstanding_is_believed() {
-    let rx = reply(OP_READ, FLAG_ASYNC, 7, 0, &[1, 2]);
+    let rx = reply(OP_READ, FLAG_ASYNC, 7, 0, &[1, 2]).unwrap();
     assert_eq!(heard(Some(&ASKED), SETTLE, &rx), Heard::Answer(Ok(vec![1, 2])));
-    let refused = reply(OP_READ, FLAG_ASYNC, 7, -22, &[]);
+    let refused = reply(OP_READ, FLAG_ASYNC, 7, -22, &[]).unwrap();
     assert_eq!(heard(Some(&ASKED), SETTLE, &refused), Heard::Answer(Err(-22)));
 }
 
 #[test]
 fn another_pid_a_wrong_id_or_op_or_a_late_answer_is_dropped() {
-    let rx = reply(OP_READ, FLAG_ASYNC, 7, 0, &[1]);
+    let rx = reply(OP_READ, FLAG_ASYNC, 7, 0, &[1]).unwrap();
     assert_eq!(heard(Some(&ASKED), 99, &rx), Heard::Dropped, "another pid");
     assert_eq!(heard(Some(&ASKED), 0, &rx), Heard::Dropped, "no sender");
-    let other_id = reply(OP_READ, FLAG_ASYNC, 8, 0, &[1]);
+    let other_id = reply(OP_READ, FLAG_ASYNC, 8, 0, &[1]).unwrap();
     assert_eq!(heard(Some(&ASKED), SETTLE, &other_id), Heard::Dropped, "a wrong id");
-    let other_op = reply(OP_INTENT, FLAG_ASYNC, 7, 0, &[1]);
+    let other_op = reply(OP_INTENT, FLAG_ASYNC, 7, 0, &[1]).unwrap();
     assert_eq!(heard(Some(&ASKED), SETTLE, &other_op), Heard::Dropped, "a wrong op");
     assert_eq!(heard(None, SETTLE, &rx), Heard::Dropped, "late: nothing outstanding");
     let mut magic = rx.clone();
@@ -48,7 +48,7 @@ fn another_pid_a_wrong_id_or_op_or_a_late_answer_is_dropped() {
     assert_eq!(heard(Some(&ASKED), SETTLE, &magic), Heard::Dropped, "not NSTL");
     assert_eq!(heard(Some(&ASKED), SETTLE, &rx[..rx.len() - 1]), Heard::Dropped, "cut");
     assert_eq!(heard(Some(&ASKED), SETTLE, &[]), Heard::Dropped, "empty");
-    let request = request_async(OP_READ, 7, &[1]);
+    let request = request_async(OP_READ, 7, &[1]).unwrap();
     assert_eq!(heard(Some(&ASKED), SETTLE, &request), Heard::Dropped, "our own request echoed");
 }
 

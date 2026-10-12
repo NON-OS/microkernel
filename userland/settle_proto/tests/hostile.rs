@@ -64,7 +64,7 @@ fn what_parses_encodes_back_to_the_same_bytes() {
             assert_eq!(g.encode().to_vec(), b, "Gas");
         }
         if let Some(i) = Intent::parse(&b) {
-            assert_eq!(i.encode(), b, "Intent");
+            assert_eq!(i.encode(), Some(b.clone()), "Intent");
         }
         if let Some(r) = Read::parse(&b) {
             assert_eq!(r.encode(), Some(b.clone()), "Read");

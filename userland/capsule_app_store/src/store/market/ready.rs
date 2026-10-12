@@ -28,6 +28,11 @@ use super::wire::exchange;
 /// the same way `get_release` does, so the two describe one release. The
 /// bond is read on Sepolia, the one chain the contracts are on (v1.4.23).
 pub fn fetch(port: u32, request_id: u32, listing: &[u8]) -> Result<Readiness, Failure> {
-    let body = exchange(port, OP_INSTALL_READY, request_id, &ready_body(listing, b"", SEPOLIA))?;
+    let body = exchange(
+        port,
+        OP_INSTALL_READY,
+        request_id,
+        &ready_body(listing, b"", SEPOLIA).ok_or(Failure::Malformed)?,
+    )?;
     parse_readiness(&body).ok_or(Failure::Malformed)
 }

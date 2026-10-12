@@ -30,7 +30,8 @@ use super::failure::Failure;
 use crate::command::output::Output;
 
 pub(super) fn readiness(id: &[u8]) -> Result<Option<Readiness>, Failure> {
-    call(OP_INSTALL_READY, &ready_body(id, b"", SEPOLIA)).map(|b| parse_readiness(&b))
+    let body = ready_body(id, b"", SEPOLIA).ok_or(Failure::Malformed)?;
+    call(OP_INSTALL_READY, &body).map(|b| parse_readiness(&b))
 }
 
 /// The verdict, then each gate with its own mark (`market info`), and why

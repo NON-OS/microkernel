@@ -20,7 +20,7 @@ use nonos_payment_proto::*;
 
 #[test]
 fn a_request_is_market_protos_header_under_npay() {
-    let f = request(OP_PAY, 7, &[1, 2, 3]);
+    let f = request(OP_PAY, 7, &[1, 2, 3]).unwrap();
     assert_eq!(&f[..4], b"NPAY");
     assert_eq!(&f[4..20], &[1, 0, 2, 0, 0, 0, 0, 0, 7, 0, 0, 0, 3, 0, 0, 0]);
     let (h, body) = parse_header(&f).unwrap();
@@ -29,7 +29,7 @@ fn a_request_is_market_protos_header_under_npay() {
 
 #[test]
 fn a_frame_that_is_cut_long_foreign_or_reserved_is_refused() {
-    let f = request(OP_DRAIN, 1, &[9]);
+    let f = request(OP_DRAIN, 1, &[9]).unwrap();
     for n in 0..f.len() {
         assert!(parse_header(&f[..n]).is_none(), "{n} bytes");
     }
@@ -45,11 +45,11 @@ fn a_frame_that_is_cut_long_foreign_or_reserved_is_refused() {
 
 #[test]
 fn a_reply_is_believed_only_for_its_own_call_and_status() {
-    let r = reply(OP_PAY, 0, 5, OK, &[4, 4]);
+    let r = reply(OP_PAY, 0, 5, OK, &[4, 4]).unwrap();
     assert_eq!(reply_body(&r, OP_PAY, 5), Ok(&[4u8, 4][..]));
     assert_eq!(reply_body(&r, OP_PAY, 6), Err(ReplyError::Stale));
     assert_eq!(reply_body(&r, OP_DRAIN, 5), Err(ReplyError::Stale));
-    let no = reply(OP_PAY, 0, 5, ENOPERSIST, &[]);
+    let no = reply(OP_PAY, 0, 5, ENOPERSIST, &[]).unwrap();
     assert_eq!(reply_body(&no, OP_PAY, 5), Err(ReplyError::Status(-1001)));
     assert_eq!(reply_body(&r[..r.len() - 1], OP_PAY, 5), Err(ReplyError::Foreign));
 }
@@ -63,4 +63,11 @@ fn ops_and_the_meters_own_statuses_are_pinned() {
     assert_eq!(more, [7, 8, 9, 10, 11, 12]);
     assert_eq!((ENOPERSIST, EFROZEN, EGAS), (-1001, -1002, -1003));
     assert_eq!(SERVICE, b"payment");
+}
+
+#[test]
+fn a_status_reply_is_a_reply_with_no_body_and_always_frames() {
+    let s = status_reply(OP_PAY, 0, 4, EAGAIN);
+    assert_eq!(Some(s.clone()), reply(OP_PAY, 0, 4, EAGAIN, &[]));
+    assert_eq!(reply_body(&s, OP_PAY, 4), Err(ReplyError::Status(EAGAIN)));
 }

@@ -60,8 +60,8 @@ impl Bonds {
         while let Some(a) = ask {
             self.next_req = self.next_req.wrapping_add(1);
             let body = Read { chain_id: a.chain, view: a.view, args: a.args }.encode();
-            if let (Some((port, pid)), Some(body)) = (settle(), body) {
-                let tx = request_async(OP_READ, self.next_req, &body);
+            let tx = body.and_then(|b| request_async(OP_READ, self.next_req, &b));
+            if let (Some((port, pid)), Some(tx)) = (settle(), tx) {
                 if mk_ipc_send(port as u64, tx.as_ptr(), tx.len()) >= 0 {
                     self.pending = Some((self.next_req, pid));
                     return;

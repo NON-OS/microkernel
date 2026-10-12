@@ -32,12 +32,14 @@ pub struct Drain {
 }
 
 impl Drain {
-    pub fn encode(&self) -> Vec<u8> {
+    /// None past DRAIN_ROWS_MAX rows, which parse would refuse.
+    pub fn encode(&self) -> Option<Vec<u8>> {
+        (self.rows.len() <= DRAIN_ROWS_MAX).then_some(())?;
         let rows = self.rows.len().saturating_mul(VOUCHER_RECORD_LEN);
         let mut out = Vec::with_capacity(rows.saturating_add(2));
-        out.extend_from_slice(&[self.total, len_u8(self.rows.len())]);
+        out.extend_from_slice(&[self.total, len_u8(self.rows.len())?]);
         self.rows.iter().for_each(|v| v.put(&mut out));
-        out
+        Some(out)
     }
 
     pub fn parse(b: &[u8]) -> Option<Self> {

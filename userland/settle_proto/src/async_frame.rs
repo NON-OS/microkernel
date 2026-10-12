@@ -35,7 +35,7 @@ pub const WALLET_ASYNC: [&[u8]; 3] =
     [b"app.nonos_wallet", b"app.nonos_wallet.1", b"app.nonos_wallet.2"];
 pub const WALLET_ASYNC_OPS: [u16; 4] = [OP_BROADCAST, OP_GAS, OP_READ, OP_INTENT];
 
-pub fn request_async(op: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
+pub fn request_async(op: u16, request_id: u32, body: &[u8]) -> Option<Vec<u8>> {
     framed(op, FLAG_ASYNC, request_id, &[body])
 }
 

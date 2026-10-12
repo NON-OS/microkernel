@@ -33,7 +33,8 @@ const REPLY_MAX: usize = 8192;
 pub(crate) fn offer(listing: &[u8], release: &[u8]) -> Result<Offer, i32> {
     let port = port_of(SERVICE).ok_or(EAGAIN)?;
     let id = nonos_libc::mk_time_millis() as u32;
-    let tx = request(OP_GET_COMMERCE, id, &pair_body(listing, release));
+    let tx =
+        request(OP_GET_COMMERCE, id, &pair_body(listing, release).ok_or(EINVAL)?).ok_or(EINVAL)?;
     let mut rx = vec![0u8; REPLY_MAX];
     let n = mk_ipc_call_timeout(
         port as u64,

@@ -25,7 +25,7 @@ use alloc::vec::Vec;
 
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_time_millis};
 use nonos_payment_proto::{parse_job_id, reply_body, request, Account, ReplyError};
-use nonos_payment_proto::{ACCOUNT_ROWS_MAX, ACCOUNT_ROW_LEN, EAGAIN, EIO, HDR_LEN};
+use nonos_payment_proto::{ACCOUNT_ROWS_MAX, ACCOUNT_ROW_LEN, EAGAIN, EINVAL, EIO, HDR_LEN};
 use nonos_payment_proto::{OP_ACCOUNT, OP_JOB, OP_SET_BUDGET, SERVICE, STATUS_LEN};
 
 /// The meter answers from memory.
@@ -40,7 +40,7 @@ pub(super) fn call(op: u16, body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
         return Err(EAGAIN);
     }
     let id = mk_time_millis() as u32;
-    let tx = request(op, id, body);
+    let tx = request(op, id, body).ok_or(EINVAL)?;
     let mut rx = vec![0u8; HDR_LEN + STATUS_LEN + max];
     let (out, cap) = (rx.as_mut_ptr(), rx.len());
     let n = mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), out, cap, TIMEOUT_MS);

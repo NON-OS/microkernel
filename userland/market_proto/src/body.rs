@@ -19,29 +19,30 @@
 use crate::bytes::len_u32;
 use alloc::vec::Vec;
 
-/// One listing id, length-prefixed: what `OP_GET_APP` takes.
-pub fn listing_body(listing: &[u8]) -> Vec<u8> {
+/// One listing id, length-prefixed: what `OP_GET_APP` takes. None for an
+/// id whose length does not fit its u32, here and in the bodies below.
+pub fn listing_body(listing: &[u8]) -> Option<Vec<u8>> {
     let mut body = Vec::with_capacity(listing.len().saturating_add(4));
-    body.extend_from_slice(&len_u32(listing.len()).to_le_bytes());
+    body.extend_from_slice(&len_u32(listing.len())?.to_le_bytes());
     body.extend_from_slice(listing);
-    body
+    Some(body)
 }
 
 /// A listing id and a release id, each length-prefixed: what
 /// `OP_GET_RELEASE` and `OP_INSTALL_READY` take. An empty release names
 /// the listing's default, which both operations resolve the same way.
-pub fn pair_body(listing: &[u8], release: &[u8]) -> Vec<u8> {
-    let mut body = listing_body(listing);
-    body.extend_from_slice(&len_u32(release.len()).to_le_bytes());
+pub fn pair_body(listing: &[u8], release: &[u8]) -> Option<Vec<u8>> {
+    let mut body = listing_body(listing)?;
+    body.extend_from_slice(&len_u32(release.len())?.to_le_bytes());
     body.extend_from_slice(release);
-    body
+    Some(body)
 }
 
 /// OP_INSTALL_READY's body (v1.4.23): the pair, then the chain_id the
 /// market reads the listing's bond on. Without it a sold listing's bond
 /// gate is "not checked", and fails.
-pub fn ready_body(listing: &[u8], release: &[u8], chain_id: u64) -> Vec<u8> {
-    let mut body = pair_body(listing, release);
+pub fn ready_body(listing: &[u8], release: &[u8], chain_id: u64) -> Option<Vec<u8>> {
+    let mut body = pair_body(listing, release)?;
     body.extend_from_slice(&chain_id.to_le_bytes());
-    body
+    Some(body)
 }

@@ -27,6 +27,7 @@ use crate::wallet::settle::{SettleCall, ESCROW};
 
 pub(super) const GAS_EVERY_MS: u64 = 10_000;
 const NO_QUOTE: &str = "settle did not quote the transaction; try again.";
+const TOO_LONG: &str = "The transaction is too long for settle to quote.";
 
 /// INTENT for the send, then its quote held to the kind's bounds.
 pub fn quoting(settle: &mut SettleCall, e: &mut Escrowing, c: &Ctx) -> bool {
@@ -34,7 +35,11 @@ pub fn quoting(settle: &mut SettleCall, e: &mut Escrowing, c: &Ctx) -> bool {
     let Some(r) = settle.take(OP_INTENT, ESCROW) else {
         let (kind, from, calldata) = (send.kind, send.from, send.calldata.clone());
         let i = Intent { chain_id: c.chain_id, kind, from, value: 0, calldata };
-        let _ = settle.ask(OP_INTENT, ESCROW, &i.encode(), c.now_ms);
+        let Some(body) = i.encode() else {
+            e.step = SendStep::Failed(TOO_LONG);
+            return true;
+        };
+        let _ = settle.ask(OP_INTENT, ESCROW, &body, c.now_ms);
         return false;
     };
     e.step = match r.ok().and_then(|b| Quote::parse(&b)) {

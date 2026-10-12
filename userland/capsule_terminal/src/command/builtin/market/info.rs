@@ -36,7 +36,7 @@ use crate::command::output::Output;
 const WIDTH: usize = 88;
 
 pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
-    let app = match call(OP_GET_APP, &listing_body(id)) {
+    let app = match listing_body(id).ok_or(Failure::Malformed).and_then(|b| call(OP_GET_APP, &b)) {
         Ok(body) => match parse_app(&body) {
             Some(app) => app,
             None => return Failure::Malformed.say(out, ""),
@@ -46,7 +46,8 @@ pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
     let text = |b: &[u8]| String::from_utf8_lossy(b).into_owned();
     out.writeln(format!("{}  ({})", text(&app.name), text(id)).as_bytes());
     out.writeln(format!("  publisher  {}", text(&app.publisher)).as_bytes());
-    match call(OP_GET_RELEASE, &pair_body(id, b"")).ok().and_then(|b| parse_release(&b)) {
+    let release = pair_body(id, b"").and_then(|b| call(OP_GET_RELEASE, &b).ok());
+    match release.and_then(|b| parse_release(&b)) {
         Some(r) => {
             out.writeln(format!("  version    {}", text(r.short_version())).as_bytes());
             if !r.note.is_empty() {

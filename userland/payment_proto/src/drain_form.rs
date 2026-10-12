@@ -27,6 +27,7 @@
 //! vouchers of the named channels; settle supplies only what it quotes.
 
 use crate::bytes::len_u8;
+use crate::voucher::DRAIN_ROWS_MAX;
 use alloc::vec::Vec;
 
 pub const DRAIN_LIST: u8 = 0;
@@ -50,9 +51,10 @@ pub enum DrainRequest {
 }
 
 impl DrainRequest {
-    pub fn encode(&self) -> Vec<u8> {
+    /// None for a Sign past DRAIN_ROWS_MAX channels, which parse would refuse.
+    pub fn encode(&self) -> Option<Vec<u8>> {
         match self {
-            DrainRequest::List { from } => alloc::vec![DRAIN_LIST, *from],
+            DrainRequest::List { from } => Some(alloc::vec![DRAIN_LIST, *from]),
             DrainRequest::Sign(s) => {
                 let mut out = alloc::vec![DRAIN_SIGN];
                 for n in [s.chain_id, s.nonce, s.gas_limit] {
@@ -60,9 +62,10 @@ impl DrainRequest {
                 }
                 out.extend_from_slice(&s.max_fee.to_le_bytes());
                 out.extend_from_slice(&s.max_priority.to_le_bytes());
-                out.push(len_u8(s.channels.len()));
+                (s.channels.len() <= DRAIN_ROWS_MAX).then_some(())?;
+                out.push(len_u8(s.channels.len())?);
                 s.channels.iter().for_each(|c| out.extend_from_slice(c));
-                out
+                Some(out)
             }
         }
     }

@@ -28,7 +28,7 @@ use alloc::vec::Vec;
 use nonos_nox_config::{address, Contract};
 use nonos_nox_meter::settle::settle_plan;
 use nonos_nox_meter::wire::drain as view;
-use nonos_payment_proto::{DrainRequest, DrainSign, EINVAL, ENOENT};
+use nonos_payment_proto::{DrainRequest, DrainSign, EINVAL, ENOENT, EOVERFLOW};
 
 use crate::keyring::sign_tx;
 use crate::meter::{now_ms, Meter};
@@ -45,7 +45,7 @@ pub fn drain(meter: &mut Meter, req: &Call<'_>) -> Vec<u8> {
 
 fn list(meter: &mut Meter, from: u8) -> Result<Vec<u8>, i32> {
     let k = meter.ready()?;
-    Ok(view(&meter.state, &k.address, from as usize).encode())
+    view(&meter.state, &k.address, from as usize).encode().ok_or(EOVERFLOW)
 }
 
 fn sign(meter: &mut Meter, s: &DrainSign) -> Result<Vec<u8>, i32> {
