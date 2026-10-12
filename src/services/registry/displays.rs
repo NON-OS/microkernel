@@ -29,6 +29,9 @@ pub(crate) const DISPLAYS: &[&str] = &[
     "driver.vmware_svga0",
     "driver.hv_synthvid0",
     "driver.bga0",
+    // The boot framebuffer served on the wire: last, for any GPU no other
+    // driver here takes.
+    "driver.bootfb0",
 ];
 
 /// Services whose display size hints the compositor takes (NCMP 0x0009):
