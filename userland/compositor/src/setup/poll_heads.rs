@@ -41,7 +41,10 @@ pub fn poll_heads(ctx: &mut Context, port: u32) -> Option<&'static str> {
         let h = ctx.heads[i];
         match head_step(&h, ops::state(port, h.output).ok()) {
             HeadStep::Keep => continue,
-            HeadStep::Repaint => what = Some("a mirrored output lost and set again"),
+            HeadStep::Repaint => {
+                ctx.heads[i].shaped = false;
+                what = Some("a mirrored output lost and set again");
+            }
             HeadStep::Resurface => {
                 let Some(new) = head(port, h.output) else { continue };
                 let _ = mk_surface_release(h.handle);

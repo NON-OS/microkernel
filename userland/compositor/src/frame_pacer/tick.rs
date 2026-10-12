@@ -25,6 +25,7 @@ pub fn tick(ctx: &mut Context) -> Result<(), &'static str> {
     // rectangle the display refused stays damaged for the next frame. On the
     // wire a frame goes in batches, one FLUSH each.
     if ctx.wire.is_some() {
+        super::hw_cursor::sync(ctx);
         let prepare = |ctx: &mut Context, r| {
             to_screen(ctx, r).and_then(|r| super::clip::clip_to_screen(ctx, r))
         };
