@@ -25,6 +25,8 @@ mod cpu;
 mod dpower;
 #[path = "ged/mod.rs"]
 mod ged;
+#[path = "idioms/mod.rs"]
+mod idioms;
 #[path = "legacy/mod.rs"]
 mod legacy;
 #[path = "platform_device/mod.rs"]
