@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /// Source clock for a platform (ACPI-enumerated) DesignWare I2C controller,
-/// keyed off its `_HID`, as Linux acpi_apd and acpi_lpss fix them: AMD
+/// keyed off its `_HID`, since firmware does not describe it: AMD
 /// Carrizo-era AMD0010 runs the block at 133 MHz, AMDI0010 and AMDI0510
-/// (Ryzen) at 150 MHz, the Intel LPSS platform devices at 100 MHz. A clock
+/// (Ryzen) at 150 MHz, the Intel LPSS platform devices at 100 MHz (each
+/// recalled from the vendors' platform documents, unverified). A clock
 /// assumed higher than the real one only slows the bus, so the AMD default
 /// for an unknown AMD id is the higher figure.
 pub(super) fn source_clock_hz(hid: &[u8; 8]) -> u32 {

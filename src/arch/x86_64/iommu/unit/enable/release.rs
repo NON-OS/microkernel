@@ -18,7 +18,7 @@
 //! protected memory regions on, or translation on through firmware's own
 //! tables, on some machines past ExitBootServices. Either blocks the DMA the
 //! kernel's drivers issue, whether or not this kernel then programs the unit,
-//! so both are turned off first, as Linux does when it takes over a unit.
+//! so both are turned off first, before the kernel's tables go in.
 
 use crate::arch::x86_64::iommu::regs::{cap, offsets};
 use crate::arch::x86_64::iommu::types::VtdError;

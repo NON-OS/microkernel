@@ -30,8 +30,8 @@ const NONE: AtomicU64 = AtomicU64::new(0);
 /// The event log page of each unit, zero before bring-up.
 pub(super) static LOGS: [AtomicU64; MAX_AMD_IOMMUS] = [NONE; MAX_AMD_IOMMUS];
 
-/// Point the unit at a fresh event log with head and tail at zero, as Linux
-/// does in amd/init.c (iommu_enable_event_buffer) before EVENT_LOG_EN.
+/// Point the unit at a fresh event log with head and tail at zero before
+/// EVENT_LOG_EN, so the unit's first entry and the kernel's first read meet.
 ///
 /// # Safety
 /// The unit must be stopped.

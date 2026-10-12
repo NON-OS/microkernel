@@ -42,9 +42,9 @@ pub fn flush_domain(domain: u16) -> Result<(), AmdViError> {
 }
 
 /// Everything a unit may hold from firmware's tables, right after it is
-/// enabled with the kernel's, as Linux amd_iommu_flush_all_caches: one
-/// INVALIDATE_IOMMU_ALL where EFR.IASup says the unit takes it, otherwise
-/// every device table entry and every domain id the kernel hands out.
+/// enabled with the kernel's: one INVALIDATE_IOMMU_ALL where EFR.IASup says
+/// the unit takes it, otherwise every device table entry and every domain id
+/// the kernel hands out, since a cached entry outlives a rewritten table.
 pub(super) fn flush_everything(index: usize, domains: u16) -> Result<(), AmdViError> {
     let unit = units().get(index).ok_or(AmdViError::NotPresent)?;
     let efr = unit.read64(regs::EXT_FEATURE).unwrap_or(0);

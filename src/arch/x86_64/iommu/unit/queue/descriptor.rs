@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The 128-bit invalidation descriptors the queue carries (VT-d 3.4, section
-//! 6.5.2), low quadword first. Encodings match Linux include/linux/intel-iommu.h
-//! (QI_CC_*, QI_IOTLB_*, QI_IEC_*, QI_IWD_*).
+//! 6.5.2), low quadword first: context-cache, IOTLB, interrupt entry cache
+//! and invalidation wait, each encoded as its subsection draws it.
 
 pub type Descriptor = [u64; 2];
 
@@ -45,7 +45,7 @@ pub const fn iotlb_global(drain_reads: bool, drain_writes: bool) -> Descriptor {
 }
 
 /// IOTLB invalidation of one domain's translations and paging structure
-/// entries, DID in bits 31:16 (Linux QI_IOTLB_DID, DMA_TLB_DSI_FLUSH).
+/// entries, DID in bits 31:16, granularity domain-selective (VT-d 6.5.2.3).
 pub const fn iotlb_domain(did: u16, drain_reads: bool, drain_writes: bool) -> Descriptor {
     let [global, _] = iotlb_global(drain_reads, drain_writes);
     [(global & !GRANULARITY_GLOBAL) | GRANULARITY_DOMAIN | ((did as u64) << 16), 0]

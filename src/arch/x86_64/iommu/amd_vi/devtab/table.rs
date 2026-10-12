@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one device table every unit is pointed at, shared as Linux shares one
-//! per PCI segment (amd/init.c, pci_seg->dev_table): 2 MiB, an entry for every
-//! requester id, each blocked until written, so unknown devices are denied.
+//! The one device table every unit of a PCI segment is pointed at, so a
+//! device's entry is the same whichever unit sees its requests (48882,
+//! 2.2.2): 2 MiB, an entry for every requester id, each blocked until
+//! written, so unknown devices are denied.
 
 use core::sync::atomic::{AtomicU64, Ordering};
 

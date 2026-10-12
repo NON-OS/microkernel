@@ -26,9 +26,9 @@ use crate::arch::x86_64::iommu::unit::access::RemapUnit;
 use crate::sys::serial::Line;
 
 /// Clear a queue error and say what it was. On IQE the descriptor at the
-/// head is the one refused; it is overwritten with this batch's wait, as
-/// Linux does in intel/dmar.c, qi_check_fault, so the queue moves on and the
-/// wait still reports. The refused batch is then an error to the caller.
+/// head is the one refused (VT-d 6.5.2.10); it is overwritten with this
+/// batch's wait, so the queue moves on and the wait still reports. The
+/// refused batch is then an error to the caller.
 pub(super) fn take_error(
     unit: &RemapUnit,
     ring_phys: u64,

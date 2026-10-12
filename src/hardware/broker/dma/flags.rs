@@ -21,8 +21,8 @@ pub(super) const DMA_MAP_HIGH: u32 = 1 << 0;
 /// 4 GiB, or the map fails. Not with `DMA_MAP_HIGH`.
 pub(super) const DMA_MAP_DMA32: u32 = 1 << 1;
 /// A descriptor ring or anything else the device and the driver both write
-/// while it runs: mapped uncached, so neither side needs a cache flush, as
-/// Linux dma_alloc_coherent. Not with `DMA_MAP_WC`.
+/// while it runs: mapped uncached, so neither side needs a cache flush. Not
+/// with `DMA_MAP_WC`.
 pub(super) const DMA_MAP_COHERENT: u32 = 1 << 2;
 /// A buffer the driver fills whole before the doorbell: mapped
 /// write-combining where the PAT has the entry, else uncached. The driver

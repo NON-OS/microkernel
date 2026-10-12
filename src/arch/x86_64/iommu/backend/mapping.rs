@@ -37,7 +37,8 @@ pub(crate) fn map(
     // LIMIT: snoop is asserted unconditionally. The contract has no
     // per-mapping snoop control yet; revisit when a non-snooping
     // consumer (e.g., GPU scratch surfaces) needs the choice.
-    // A write-only grant keeps read on a unit without CAP.ZLR, as Linux does.
+    // A write-only grant keeps read on a unit without CAP.ZLR: such a unit
+    // faults the zero-length reads a device issues to flush its writes.
     let zlr = probed().is_some_and(|unit| zero_length_read(unit.cap));
     let flags = IommuPageFlags {
         read: protection.read || (protection.write && !zlr),
