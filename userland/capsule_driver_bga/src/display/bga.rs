@@ -35,6 +35,8 @@ pub struct Bga {
     pub vram_len: usize,
     pub panel: Panel,
     pub mode: DispiMode,
+    /// Moves when the output was lost and set again (STATE).
+    pub generation: u32,
     /// Orders the copy's stores before the answer: an sfence on x86.
     pub fence: fn(),
 }

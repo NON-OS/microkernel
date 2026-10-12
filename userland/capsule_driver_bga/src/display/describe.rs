@@ -15,12 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What bga says of itself on the wire: CAPS (kind 2, DISPI, one output,
-//! any mode in range, no hardware cursor) and its STATE, always scanning
-//! out the mode it set or firmware left.
+//! any mode in range, no hardware cursor) and its STATE: the mode it set or
+//! firmware left, with the flags `health` found.
 
 use super::bga::{Bga, MAX_SIDE, WIDTH_ALIGN};
 use nonos_gfx_wire::body::caps::{MODE_RANGE, MODE_SET};
-use nonos_gfx_wire::body::state::SCANNING_OUT;
 use nonos_gfx_wire::{kind, Caps, State};
 
 pub fn caps(b: &Bga) -> Caps {
@@ -37,12 +36,12 @@ pub fn caps(b: &Bga) -> Caps {
     }
 }
 
-pub fn state(b: &Bga) -> State {
+pub fn state(b: &Bga, flags: u32) -> State {
     State {
-        generation: 1,
+        generation: b.generation,
         width: b.mode.width,
         height: b.mode.height,
-        flags: SCANNING_OUT,
+        flags,
         ..State::default()
     }
 }
