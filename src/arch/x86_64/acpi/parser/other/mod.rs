@@ -36,6 +36,11 @@ mod srat;
 mod srat_decode;
 pub mod slit_matrix;
 pub mod srat_entry;
+pub mod wdat_action;
+pub mod wdat_decode;
+pub mod wdat_entry;
+mod wdat_load;
+pub mod wdat_run;
 
 pub use dmar::{foreign_segment_units, parse_dmar, remap_unit_bases, remap_unit_scopes};
 pub use dmar_scope::{translated_by_some, UnitScope};
@@ -47,3 +52,4 @@ pub use lpit_load::{lpit_state, parse_lpit};
 pub use mcfg::parse_mcfg;
 pub use numa_extra::{numa_distance, numa_initiators, parse_slit};
 pub use srat::parse_srat;
+pub use wdat_load::{parse_wdat, wdat_action, wdat_table};
