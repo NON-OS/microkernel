@@ -27,8 +27,13 @@ use crate::process::core::Priority;
 const INTERACTIVE: [&str; 4] =
     ["driver.ps2_kbd0", "input_router", "compositor", "driver.virtio_gpu0"];
 // The same paths in a virtual machine (its network cards: PACKET_PATH_VM).
-const INTERACTIVE_VM: [&str; 4] =
-    ["driver.virtio_input0", "driver.vmmdev0", "driver.vmmouse0", "driver.vmware_svga0"];
+const INTERACTIVE_VM: [&str; 5] = [
+    "driver.virtio_input0",
+    "driver.vmmdev0",
+    "driver.vmmouse0",
+    "driver.vmware_svga0",
+    "driver.vmbus0",
+];
 
 /*
  * Capsules that move a frame between the card and TCP: the card drivers and
