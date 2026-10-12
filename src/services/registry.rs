@@ -28,6 +28,7 @@ mod peers;
 mod peers_check;
 mod policy;
 mod reserved;
+pub(crate) mod usb_hosts;
 
 pub(crate) use adopt::adopt_endpoint;
 pub use endpoint::ServiceEndpoint;
