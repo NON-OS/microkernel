@@ -15,7 +15,8 @@ The host is a **Boot Host**:
 |---|---|
 | `host` | `Host`, the GATT client as a state machine. It is fed the peripheral's ATT PDUs and the time. Each call returns the PDUs to send on CID 0x0004, the input events, and how discovery ended. |
 | `report` | `Keyboard` and `Mouse` turn boot reports into `Input` events: key and button down and up, and relative motion. Keys are HID Keyboard page usages, so a capsule maps them with the same keymap as the USB keyboard driver. |
-| `uuids` | The UUIDs and characteristic properties it looks for. |
+| `server` | The host's own attribute database, and the answer to each request the peripheral sends (Vol 3, Part F, 3.4). |
+| `uuids` | The UUIDs and characteristic properties it looks for and serves. |
 
 Discovery and configuration run in this order:
 1. Find the HID services (UUID 0x1812) with Find By Type Value.
@@ -43,9 +44,19 @@ The host stops with an error, and never loops, on any of these:
 
 After a timeout nothing more is sent on the bearer.
 
-A request from the peripheral is answered with Request Not Supported,
-because this host keeps no attribute database. Commands are ignored.
-Indications are confirmed.
+A request from the peripheral is answered by `server`, from a small fixed
+database that GAP and GATT ask of every LE device:
+- the GAP service (0x1800, Vol 3, Part C, 12) with Device Name, "NONOS"
+  (12.1), and Appearance, Generic Computer (12.2);
+- the GATT service (0x1801, Vol 3, Part G, 7), with no characteristic,
+  because the database never changes (7.1).
+
+Every attribute can be read and none written. The server answers
+Exchange MTU (with 23), Find Information, Find By Type Value, Read By
+Type, Read By Group Type and Read. A Write Request gets Write Not
+Permitted. Any other request gets Request Not Supported. Every response
+fits the default ATT_MTU of 23. Commands are ignored. Indications are
+confirmed.
 
 When the link drops, `disconnected` releases every key and button still
 held.

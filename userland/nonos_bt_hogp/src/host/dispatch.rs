@@ -15,16 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Each PDU from the peripheral. Notifications and indications are
-//! handled in any phase; a request to this host, which keeps no
-//! attribute database of its own, is refused; a response must answer the
-//! request outstanding.
+//! handled in any phase; a request to this host is answered from its own
+//! small database (`server`); a response must answer the request
+//! outstanding.
 
 use super::phase::Phase;
 use super::state::Host;
 use super::step::Step;
 use super::timer::response_to;
 use crate::error::HogpError;
-use nonos_bt_wire::att::{self, error::REQUEST_NOT_SUPPORTED, opcode::*, response};
+use crate::server::serve;
+use nonos_bt_wire::att::{self, opcode::*, response};
 
 impl Host {
     pub fn on_pdu(&mut self, pdu: &[u8], now_ms: u64) -> Step {
@@ -49,7 +50,7 @@ impl Host {
                 }
                 Err(e) => self.fail(e.into()),
             },
-            op if is_request(op) => Step::send(att::error_rsp(op, 0, REQUEST_NOT_SUPPORTED)),
+            op if is_request(op) => Step::send(serve(op, p)),
             op if op & COMMAND_FLAG != 0 => Step::default(),
             op if Some(response_to(op)) == self.pending => {
                 self.pending = None;

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The PDUs a client sends (Vol 3, Part F, 3.4), and the Error Response a
-//! client with no attribute database gives every request it receives.
+//! The PDUs a client sends (Vol 3, Part F, 3.4), and the Error Response
+//! (3.4.1.1) a server answers a request it refuses with.
 
 use super::opcode::*;
 use crate::cursor::Writer;

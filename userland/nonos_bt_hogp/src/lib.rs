@@ -34,6 +34,7 @@ extern crate alloc;
 pub mod error;
 pub mod host;
 pub mod report;
+pub mod server;
 pub mod uuids;
 
 pub use error::HogpError;
