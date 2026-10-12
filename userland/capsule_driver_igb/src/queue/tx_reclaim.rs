@@ -15,16 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Completion side of the TX ring. A slot is reusable only once the part has
-//! written DD back into it (igb_clean_tx_irq tests E1000_TXD_STAT_DD in
-//! wb.status): with the link down the part holds descriptors and writes
-//! nothing. One slot always stays empty, or a full ring would move TDT onto
-//! TDH, which the part reads as an empty one.
+//! written DD back into its status: with the link down the part holds
+//! descriptors and writes nothing. One slot always stays empty, or a full
+//! ring would move TDT onto TDH, which the part reads as an empty one.
 
 use core::ptr::{addr_of, read_volatile};
 use core::sync::atomic::{fence, Ordering};
 
-use crate::constants::queue::TX_DESC_COUNT;
-use crate::constants::tx_bits::TXD_STAT_DD;
+use crate::facts::tx::TXD_STAT_DD;
+use crate::sizes::ring::TX_DESC_COUNT;
 
 use super::tx::TxRing;
 

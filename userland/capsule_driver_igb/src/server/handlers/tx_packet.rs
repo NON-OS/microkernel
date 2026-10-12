@@ -21,13 +21,13 @@
 
 use core::sync::atomic::{fence, Ordering};
 
-use crate::constants::queue::{TX_BUFFER_LEN, TX_DESC_COUNT};
-use crate::constants::regs::REG_TDT;
-use crate::constants::{MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME};
+use crate::facts::regs::REG_TDT;
 use crate::protocol::{Request, E_AGAIN, E_INVAL, E_MSGSIZE, MAX_TX_PAYLOAD_BYTES};
 use crate::queue::tx_pad::fill;
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
+use crate::sizes::ring::{TX_BUFFER_LEN, TX_DESC_COUNT};
+use crate::sizes::{MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME};
 
 /*
  * SAFETY for every unsafe in this file: `buffer_va(tail)` is slot `tail` of

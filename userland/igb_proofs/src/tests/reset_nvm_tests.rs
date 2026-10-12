@@ -13,19 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The 82575 with no NVM, which Linux brings up with a script of SerDes,
-//! clock and PCIe lane settings this driver does not carry.
+//! The 82575 with no NVM, which needs an init script of SerDes, clock and
+//! PCIe lane settings this driver does not carry.
 
-use crate::constants::ctrl::*;
-use crate::constants::part::Part;
-use crate::constants::regs::*;
-use crate::init::reset::global::NO_NVM_82575;
-use crate::init::reset::run;
+use crate::bring::reset::run;
+use crate::bring::reset::NO_NVM_82575;
+use crate::facts::mac::*;
+use crate::facts::parts::Part;
+use crate::facts::regs::*;
 
 use super::model::{regs, window};
 
-/// Linux runs igb_reset_init_script_82575 here; this driver carries no such
-/// script and stops, after the reset, rather than run the part without it.
+/// This driver carries no such script and stops, after the reset, rather
+/// than run the part without it.
 #[test]
 fn an_82575_with_no_nvm_is_refused_and_one_with_an_nvm_is_not() {
     let bar = window();

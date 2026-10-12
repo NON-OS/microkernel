@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! MDIC words against igb's e1000_defines.h and the BMCR edit the power-up
+//! MDIC words against the fact sheet, and the BMCR edit the PHY wake
 //! makes.
 
-use crate::constants::phy::*;
-use crate::init::phy::mdic_word::{outcome, read_cmd, write_cmd, Mdic, REG_RANGE};
-use crate::init::phy::power_up::bmcr_on;
+use crate::bring::phy::wake::bmcr_on;
+use crate::bring::phy::word::{outcome, read_cmd, write_cmd, Mdic, REG_RANGE};
+use crate::facts::phy::*;
 
 #[test]
-fn fields_are_the_e1000_defines_h_values() {
+fn fields_are_the_fact_sheet_values() {
     assert_eq!(MDIC_DATA_MASK, 0x0000_FFFF);
     assert_eq!(0x1F << MDIC_REG_SHIFT, 0x001F_0000);
     assert_eq!(0x1F << MDIC_PHY_SHIFT, 0x03E0_0000);
@@ -30,7 +30,7 @@ fn fields_are_the_e1000_defines_h_values() {
     assert_eq!(MDIC_OP_READ, 0x0800_0000);
     assert_eq!(MDIC_READY, 0x1000_0000);
     assert_eq!(MDIC_ERROR, 0x4000_0000);
-    assert_eq!(PHY_ADDR, 1, "igb_get_phy_id_82575: an internal PHY is at 1");
+    assert_eq!(PHY_ADDR, 1, "the internal PHY is at address 1");
     assert_eq!(GS40G_PAGE_SELECT, 0x16);
 }
 

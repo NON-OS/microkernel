@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Advanced descriptor layouts from e1000_82575.h. Both are 16 bytes; the fields
-//! are named for the quadwords as both the driver and the part use them.
+//! The advanced descriptor layouts (observed in Linux igb, unverified). Both
+//! are 16 bytes; the fields are named for the quadwords as the driver and
+//! the part use them.
 
-/// union e1000_adv_rx_desc. The driver writes the read format: packet buffer
+/// The receive descriptor. The driver writes the read format: packet buffer
 /// address, then a header buffer address that is zero with one buffer per
 /// descriptor. The part writes back over all sixteen bytes, and the second
 /// quadword becomes wb.upper: status_error, length, vlan. Those are the
@@ -31,7 +32,7 @@ pub struct RxDesc {
     pub vlan: u16,
 }
 
-/// union e1000_adv_tx_desc. The part writes its completion status (wb.status,
+/// The transmit descriptor. The part writes its completion status (wb.status,
 /// DD in bit 0) over olinfo_status.
 #[repr(C)]
 #[derive(Clone, Copy, Default)]

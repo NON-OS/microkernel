@@ -13,11 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Each ID's MAC as igb_set_mac_type gives it, and what differs by MAC: the
-//! receive-address count, Go Link Disconnect and the paged PHY.
+//! Each id's MAC, and what differs by MAC: the receive-address count, Go
+//! Link Disconnect and the paged PHY.
 
-use crate::constants::part::Part;
-use crate::constants::pci::{part_of, IGB_PARTS};
+use crate::facts::ids::{part_of, IGB_PARTS};
+use crate::facts::parts::Part;
 
 fn ids(of: Part) -> Vec<u16> {
     IGB_PARTS.iter().filter(|(_, p, _)| *p == of).map(|(id, ..)| *id).collect()

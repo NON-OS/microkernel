@@ -23,10 +23,10 @@
 //! part on a second thread where a handshake needs one. QEMU's igb device is
 //! an 82576, so the owner can also boot the capsule against it.
 
-#[path = "../../capsule_driver_igb/src/constants/mod.rs"]
-pub mod constants;
-#[path = "../../capsule_driver_igb/src/init/mod.rs"]
-pub mod init;
+#[path = "../../capsule_driver_igb/src/bring/mod.rs"]
+pub mod bring;
+#[path = "../../capsule_driver_igb/src/facts/mod.rs"]
+pub mod facts;
 #[path = "../../capsule_driver_igb/src/link/mod.rs"]
 pub mod link;
 #[path = "../../capsule_driver_igb/src/log/mod.rs"]
@@ -38,6 +38,8 @@ pub mod queue;
 #[path = "../../capsule_driver_igb/src/regs.rs"]
 pub mod regs;
 pub mod setup;
+#[path = "../../capsule_driver_igb/src/sizes/mod.rs"]
+pub mod sizes;
 
 #[cfg(test)]
 mod tests;

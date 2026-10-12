@@ -43,7 +43,7 @@ fn each_table_is_its_capsules() {
         e1000e::PCH_PTP,
     ];
     assert_eq!(sorted(&E1000E_DEVICE_IDS), sorted(&boards.concat()));
-    let igb: Vec<u16> = igb::pci::IGB_PARTS.iter().map(|(id, ..)| *id).collect();
+    let igb: Vec<u16> = igb::ids::IGB_PARTS.iter().map(|(id, ..)| *id).collect();
     assert_eq!(IGB_DEVICE_IDS[..], igb[..], "igb_pci_tbl, in its order");
     assert_eq!(sorted(&IGC_DEVICE_IDS), sorted(igc::IGC_DEVICE_IDS));
     let ixgbe: Vec<u16> = ixgbe::pci::IXGBE_PARTS.iter().map(|(id, _)| *id).collect();

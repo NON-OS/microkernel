@@ -17,7 +17,7 @@
 use core::ptr::{addr_of, addr_of_mut, read_volatile, write_volatile};
 use core::sync::atomic::{fence, Ordering};
 
-use crate::constants::queue::RX_DESC_COUNT;
+use crate::sizes::ring::RX_DESC_COUNT;
 
 use super::rx::RxRing;
 use super::rx_wb::{parse, Rx};

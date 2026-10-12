@@ -13,11 +13,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! An internal PHY behind MDIC, answering as igb_read_phy_reg_mdic and
-//! igb_write_phy_reg_mdic expect: a command without READY is carried out,
+//! An internal PHY behind MDIC: a command without READY is carried out,
 //! then READY is set with the data for a read. Like QEMU's igb, only PHY
 //! address 1 answers; any other ends in ERROR. BMCR is modelled, and on a
-//! paged PHY (the I210/I211 GS40G) only on page 0: elsewhere register 0 is
+//! paged PHY (the I210/I211) only on page 0: elsewhere register 0 is
 //! another register, which reads 0xFFFF and takes no write.
 
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -25,8 +24,8 @@ use std::sync::Arc;
 
 use nonos_devmodel::FakeBar;
 
-use crate::constants::phy::*;
-use crate::constants::regs::REG_MDIC;
+use crate::facts::phy::*;
+use crate::facts::regs::REG_MDIC;
 
 use super::model::stable32;
 
