@@ -89,6 +89,9 @@ pub fn pte_flags(perm: u32) -> u64 {
     if perm & (1 << 4) != 0 {
         flags |= 1 << 8; // global
     }
+    if perm & (1 << 12) != 0 {
+        flags |= 1 << 52; // device -> bit 52, ignored by x86 hardware
+    }
     if perm & (1 << 2) == 0 {
         flags |= 1u64 << 63; // no execute -> NX
     }
