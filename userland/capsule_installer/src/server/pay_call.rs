@@ -22,7 +22,9 @@ use alloc::vec::Vec;
 
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_time_millis};
 use nonos_payment_proto::{reply_body, request, ReplyError, VoucherRecord};
-use nonos_payment_proto::{EAGAIN, EIO, HDR_LEN, OP_PAY, SERVICE, STATUS_LEN, VOUCHER_RECORD_LEN};
+use nonos_payment_proto::{
+    EAGAIN, EINVAL, EIO, HDR_LEN, OP_PAY, SERVICE, STATUS_LEN, VOUCHER_RECORD_LEN,
+};
 
 /// The meter asks the market and the keyring before it answers.
 const TIMEOUT_MS: u64 = 10_000;
@@ -34,7 +36,7 @@ pub fn request_payment(body: &[u8]) -> Result<Vec<u8>, i32> {
         return Err(EAGAIN);
     }
     let id = mk_time_millis() as u32;
-    let tx = request(OP_PAY, id, body);
+    let tx = request(OP_PAY, id, body).ok_or(EINVAL)?;
     let mut rx = vec![0u8; HDR_LEN + STATUS_LEN + VOUCHER_RECORD_LEN];
     let n = mk_ipc_call_timeout(
         port as u64,

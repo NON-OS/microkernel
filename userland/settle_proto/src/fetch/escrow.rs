@@ -45,17 +45,18 @@ impl Escrow {
         }
         let mut out = Vec::from([FETCH_ESCROW]);
         out.extend_from_slice(&self.chain_id.to_le_bytes());
-        out.extend_from_slice(&len_u16(self.url.len()).to_le_bytes());
+        out.extend_from_slice(&len_u16(self.url.len())?.to_le_bytes());
         out.extend_from_slice(&self.url);
-        Some([out, self.agent_body().get(8..)?.to_vec()].concat())
+        Some([out, self.agent_body()?.get(8..)?.to_vec()].concat())
     }
 
-    /// What the agent is sent: the request without its url, chain_id first.
-    pub fn agent_body(&self) -> Vec<u8> {
+    /// What the agent is sent: the request without its url, chain_id first;
+    /// None for a solution whose length does not fit its u16.
+    pub fn agent_body(&self) -> Option<Vec<u8>> {
         let mut out = Vec::from(self.chain_id.to_le_bytes());
         [self.listing_key, self.release_key, self.buyer_pk].iter().for_each(|k| out.extend(k));
-        out.extend_from_slice(&len_u16(self.solution.len()).to_le_bytes());
+        out.extend_from_slice(&len_u16(self.solution.len())?.to_le_bytes());
         out.extend_from_slice(&self.solution);
-        out
+        Some(out)
     }
 }

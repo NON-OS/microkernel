@@ -59,7 +59,7 @@ mod voucher;
 pub use account::{Account, AccountRow, ACCOUNT_ROWS_MAX, ACCOUNT_ROW_LEN, KEPT, READY};
 pub use budget::{ListingCapAsk, SetBudget, LISTING_CAP_LEN, MAX_LISTING_CAPS};
 pub use drain_form::{DrainRequest, DrainSign, DRAIN_LIST, DRAIN_SIGN};
-pub use frame::{reply, reply_body, request, ReplyError};
+pub use frame::{reply, reply_body, request, status_reply, ReplyError};
 pub use header::{parse_header, Header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
 pub use offer::{OfferAsk, MAX_URL};
 pub use open::{OpenConfirm, OpenStart, OPEN_CONFIRM, OPEN_START};

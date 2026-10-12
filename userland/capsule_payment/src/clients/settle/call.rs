@@ -21,7 +21,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_libc::{mk_ipc_call_timeout, mk_time_millis};
-use nonos_payment_proto::{EAGAIN, EIO};
+use nonos_payment_proto::{EAGAIN, EINVAL, EIO};
 use nonos_settle_proto::{reply_body, request, ReplyError, HDR_LEN, SERVICE, STATUS_LEN};
 
 use crate::clients::port_of;
@@ -35,7 +35,7 @@ pub(super) fn settle_call(
 ) -> Result<Vec<u8>, i32> {
     let port = port_of(SERVICE).ok_or(EAGAIN)?;
     let id = mk_time_millis() as u32;
-    let tx = request(op, id, body);
+    let tx = request(op, id, body).ok_or(EINVAL)?;
     let mut rx = vec![0u8; HDR_LEN + STATUS_LEN + max];
     let n = mk_ipc_call_timeout(
         port as u64,

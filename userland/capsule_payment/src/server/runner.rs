@@ -17,7 +17,7 @@
 use alloc::vec;
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_send};
-use nonos_payment_proto::{parse_header, reply, EINVAL};
+use nonos_payment_proto::{parse_header, status_reply, EINVAL};
 
 use super::call::Call;
 use super::dispatch::dispatch;
@@ -57,7 +57,7 @@ pub fn run() -> ! {
              * is blocked in its call until a reply comes, and the kernel keeps
              * its place in this service's reply queue until then.
              */
-            None => reply(0, 0, 0, EINVAL, &[]),
+            None => status_reply(0, 0, 0, EINVAL),
         };
         let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, resp.as_ptr(), resp.len());
     }

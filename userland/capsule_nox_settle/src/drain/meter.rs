@@ -25,7 +25,7 @@ use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_time_millis};
 use nonos_payment_proto::{reply_body, request, Drain, DrainRequest, DrainSign, ReplyError};
 use nonos_payment_proto::{VoucherRecord, DRAIN_ROWS_MAX, HDR_LEN, OP_DRAIN, SERVICE};
 use nonos_payment_proto::{STATUS_LEN, VOUCHER_RECORD_LEN};
-use nonos_settle_proto::{EAGAIN, EIO};
+use nonos_settle_proto::{EAGAIN, EINVAL, EIO};
 
 /// The meter answers from memory and the keyring; it never waits on a route.
 const TIMEOUT_MS: u64 = 30_000;
@@ -38,7 +38,7 @@ fn call(body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
         return Err(EAGAIN);
     }
     let id = mk_time_millis() as u32;
-    let tx = request(OP_DRAIN, id, body);
+    let tx = request(OP_DRAIN, id, body).ok_or(EINVAL)?;
     let mut rx = vec![0u8; HDR_LEN + STATUS_LEN + max];
     let (out, cap) = (rx.as_mut_ptr(), rx.len());
     let n = mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), out, cap, TIMEOUT_MS);
@@ -56,7 +56,7 @@ fn call(body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
 pub fn vouchers() -> Result<Vec<VoucherRecord>, i32> {
     let mut all = Vec::new();
     loop {
-        let body = DrainRequest::List { from: all.len() as u8 }.encode();
+        let body = DrainRequest::List { from: all.len() as u8 }.encode().ok_or(EINVAL)?;
         let page = call(&body, 2 + DRAIN_ROWS_MAX * VOUCHER_RECORD_LEN)?;
         let page = Drain::parse(&page).ok_or(EIO)?;
         let n = page.rows.len();
@@ -69,5 +69,5 @@ pub fn vouchers() -> Result<Vec<VoucherRecord>, i32> {
 
 /// The raw settle() the meter signed for `s`.
 pub fn sign(s: &DrainSign) -> Result<Vec<u8>, i32> {
-    call(&DrainRequest::Sign(s.clone()).encode(), RAW_MAX)
+    call(&DrainRequest::Sign(s.clone()).encode().ok_or(EINVAL)?, RAW_MAX)
 }

@@ -32,8 +32,8 @@ fn owner(name: &[u8]) -> Option<u32> {
 
 #[test]
 fn an_async_request_is_a_plain_one_with_bit_0() {
-    let a = request_async(OP_GAS, 7, &[1, 2]);
-    let p = request(OP_GAS, 7, &[1, 2]);
+    let a = request_async(OP_GAS, 7, &[1, 2]).unwrap();
+    let p = request(OP_GAS, 7, &[1, 2]).unwrap();
     let (h, body) = parse_header(&a).unwrap();
     assert_eq!((h.op, h.flags, h.request_id, body), (OP_GAS, FLAG_ASYNC, 7, &[1u8, 2][..]));
     assert_eq!(a[..8], p[..8]);
@@ -52,12 +52,12 @@ fn only_payment_and_the_market_may_ask_async() {
 
 #[test]
 fn an_answer_is_believed_only_from_settle_for_its_own_id() {
-    let rx = reply(OP_GAS, FLAG_ASYNC, 7, 0, &[9]);
+    let rx = reply(OP_GAS, FLAG_ASYNC, 7, 0, &[9]).unwrap();
     assert_eq!(async_answer(&rx, SETTLE, SETTLE, OP_GAS, 7), Ok(&[9u8][..]));
     assert_eq!(async_answer(&rx, 99, SETTLE, OP_GAS, 7), Err(ReplyError::Foreign));
     assert_eq!(async_answer(&rx, 0, 0, OP_GAS, 7), Err(ReplyError::Foreign));
     assert_eq!(async_answer(&rx, SETTLE, SETTLE, OP_GAS, 8), Err(ReplyError::Stale));
-    let failed = reply(OP_GAS, FLAG_ASYNC, 7, -5, &[]);
+    let failed = reply(OP_GAS, FLAG_ASYNC, 7, -5, &[]).unwrap();
     assert_eq!(async_answer(&failed, SETTLE, SETTLE, OP_GAS, 7), Err(ReplyError::Status(-5)));
     assert_eq!(async_answer(b"NPAY....", SETTLE, SETTLE, OP_GAS, 7), Err(ReplyError::Foreign));
 }
