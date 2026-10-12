@@ -32,6 +32,7 @@ pub(super) fn board(ddi: Ddi) -> (Gen9, Sink) {
     let s = sink(vec![]);
     m.sink = Some((ddi, s.clone()));
     m.set(buf_trans(ddi as u32, 0), 0x0000_2016);
+    m.set(crate::engine::cdclk::CDCLK_CTL, 1349);
     (m, s)
 }
 
