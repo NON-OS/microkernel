@@ -32,9 +32,10 @@ pub const ERROR: u32 = 1 << 19;
 pub const SWITCH_ERROR: u32 = 1 << 7;
 pub const READY_FOR_DATA: u32 = 1 << 8;
 
-/// The errors a command's own response reports about that command: Linux's
-/// CMD_ERRORS (block.c). COM_CRC_ERROR and ILLEGAL_COMMAND are left out:
-/// they describe the previous command, which got no response.
+/// The errors a command's own response reports about that command.
+/// COM_CRC_ERROR and ILLEGAL_COMMAND are left out: the card sets them about
+/// the previous command, one it did not accept and so did not answer
+/// (JESD84 card status, as recalled, unverified).
 pub const CMD_ERRORS: u32 = OUT_OF_RANGE
     | ADDRESS_ERROR
     | BLOCK_LEN_ERROR

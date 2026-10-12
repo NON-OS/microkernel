@@ -33,7 +33,7 @@ pub struct Card {
     /// The user data area in 512-byte sectors.
     pub sectors: u64,
     /// Multi-block transfers are preceded by SET_BLOCK_COUNT. Every card of
-    /// MMC 3.1 or later has CMD23; Linux uses it on every MMC card.
+    /// MMC 3.1 or later has CMD23 (as recalled), so every MMC card is sent it.
     pub cmd23: bool,
     pub width: u8,
     pub hs: bool,

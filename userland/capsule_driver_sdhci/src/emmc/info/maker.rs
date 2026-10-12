@@ -16,8 +16,9 @@
 
 //! The manufacturer name a JEDEC id stands for.
 
-/// JEDEC manufacturer ids common on laptop eMMC, as Linux's mmc quirks
-/// name them; anything else is called by the medium alone.
+/// JEDEC manufacturer ids common on laptop eMMC, as observed in Linux's
+/// mmc quirk table, unverified against JEDEC's assignments; anything else
+/// is called by the medium alone.
 pub(super) fn maker(mid: u8) -> &'static [u8] {
     match mid {
         0x11 => b"Toshiba",

@@ -18,7 +18,7 @@
 
 use super::r2::bits;
 
-/// The CSD fields the driver uses (JEDEC eMMC 5.1, 7.3).
+/// The CSD fields the driver uses (JEDEC eMMC 5.1 7.3, as recalled, unverified).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Csd {
     pub structure: u8,

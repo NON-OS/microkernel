@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The EXT_CSD byte offsets the driver reads or writes, and the read-only
-//! ones the bus width test compares.
+//! The EXT_CSD byte offsets the driver reads or writes (JESD84 eMMC 5.1,
+//! as recalled, unverified), and the ones a new bus width must carry back
+//! unchanged.
 
 pub const EXT_CSD_LEN: usize = 512;
 
 pub const FLUSH_CACHE: u8 = 32;
 pub const CACHE_CTRL: u8 = 33;
-pub const PARTITION_SUPPORT: usize = 160;
 pub const RPMB_SIZE_MULT: usize = 168;
 pub const PARTITION_CONFIG: u8 = 179;
-pub const ERASED_MEM_CONT: usize = 181;
 pub const BUS_WIDTH: u8 = 183;
 pub const HS_TIMING: u8 = 185;
 pub const EXT_CSD_REV: usize = 192;
@@ -32,36 +31,29 @@ pub const CSD_STRUCTURE: usize = 194;
 pub const DEVICE_TYPE: usize = 196;
 pub const PARTITION_SWITCH_TIME: usize = 199;
 pub const SEC_COUNT: usize = 212;
-pub const S_A_TIMEOUT: usize = 217;
-pub const HC_WP_GRP_SIZE: usize = 221;
-pub const ERASE_TIMEOUT_MULT: usize = 223;
-pub const HC_ERASE_GRP_SIZE: usize = 224;
 pub const BOOT_SIZE_MULT: usize = 226;
-pub const SEC_TRIM_MULT: usize = 229;
-pub const SEC_ERASE_MULT: usize = 230;
-pub const SEC_FEATURE_SUPPORT: usize = 231;
-pub const TRIM_MULT: usize = 232;
 pub const GENERIC_CMD6_TIME: usize = 248;
 pub const CACHE_SIZE: usize = 249;
 
-/// The bytes Linux's mmc_compare_ext_csds holds equal across a bus width
-/// change: read-only fields a corrupted transfer would not reproduce.
-pub const BUS_TEST_BYTES: [usize; 17] = [
-    PARTITION_SUPPORT,
-    ERASED_MEM_CONT,
+/// A bus width is kept only if EXT_CSD read at it gives back, byte for
+/// byte, every field this driver goes on to use: the revision and
+/// structure, the device type (speed), the size, boot and RPMB sizes, the
+/// switch times and the cache size. All are fixed by the part, so a read
+/// that differs was garbled on the new width.
+pub const BUS_TEST_BYTES: [usize; 15] = [
     EXT_CSD_REV,
     CSD_STRUCTURE,
     DEVICE_TYPE,
-    S_A_TIMEOUT,
-    HC_WP_GRP_SIZE,
-    ERASE_TIMEOUT_MULT,
-    HC_ERASE_GRP_SIZE,
-    SEC_TRIM_MULT,
-    SEC_ERASE_MULT,
-    SEC_FEATURE_SUPPORT,
-    TRIM_MULT,
+    PARTITION_SWITCH_TIME,
     SEC_COUNT,
     SEC_COUNT + 1,
     SEC_COUNT + 2,
     SEC_COUNT + 3,
+    BOOT_SIZE_MULT,
+    RPMB_SIZE_MULT,
+    GENERIC_CMD6_TIME,
+    CACHE_SIZE,
+    CACHE_SIZE + 1,
+    CACHE_SIZE + 2,
+    CACHE_SIZE + 3,
 ];

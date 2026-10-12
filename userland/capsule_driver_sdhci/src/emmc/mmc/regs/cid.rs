@@ -18,7 +18,7 @@
 
 use super::r2::bits;
 
-/// Card Identification (JEDEC eMMC 5.1, 7.2).
+/// Card Identification (JEDEC eMMC 5.1 7.2, as recalled, unverified).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Cid {
     pub mid: u8,

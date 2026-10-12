@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! eMMC command indices and arguments (JEDEC eMMC 5.1, 6.10.4).
+//! eMMC command indices and arguments (JEDEC eMMC 5.1 6.10.4, as recalled, unverified).
 
 pub const GO_IDLE_STATE: u8 = 0;
 pub const SEND_OP_COND: u8 = 1;
@@ -33,7 +33,7 @@ pub const SET_BLOCK_COUNT: u8 = 23;
 pub const WRITE_BLOCK: u8 = 24;
 pub const WRITE_MULTIPLE_BLOCK: u8 = 25;
 
-/// The relative address the driver gives the card, as Linux does.
+/// CMD3's relative address: any but 0, which JESD84 reserves, will do.
 pub const RCA: u16 = 1;
 
 pub const fn rca_arg(rca: u16) -> u32 {
