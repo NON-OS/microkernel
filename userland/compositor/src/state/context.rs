@@ -62,4 +62,6 @@ pub struct Context {
     pub plan: Option<crate::display::layout_rule::Plan>,
     /// What this frame drew on each further output, flushed once a frame.
     pub head_pending: alloc::vec::Vec<(usize, super::damage::Rect)>,
+    /// Until when (uptime ms) the band shows that the screen was captured.
+    pub screen_notice_until: i64,
 }

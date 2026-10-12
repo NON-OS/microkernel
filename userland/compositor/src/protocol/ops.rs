@@ -28,3 +28,5 @@ pub const OP_DISPLAY_HINT: u16 = 0x0009;
 pub const OP_INDICATOR: u16 = 0x000A;
 /// The shell's choice for several outputs: mirrored or extended (unit 10).
 pub const OP_OUTPUT_LAYOUT: u16 = 0x000B;
+/// The composed screen into a capture holder's surface, with a notice.
+pub const OP_SCREENSHOT: u16 = 0x000C;

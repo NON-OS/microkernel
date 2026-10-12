@@ -60,6 +60,8 @@ pub mod state {
 // with the arrow cursor drawn last.
 #[path = "."]
 pub mod frame_pacer {
+    #[path = "../../compositor/src/frame_pacer/canvas_copy.rs"]
+    pub mod canvas_copy;
     #[path = "../../compositor/src/frame_pacer/compose.rs"]
     pub mod compose;
     #[path = "../../compositor/src/frame_pacer/cursor.rs"]
@@ -104,6 +106,8 @@ pub mod display {
     pub mod layout_rule;
     #[path = "../../compositor/src/display/link.rs"]
     pub mod link;
+    #[path = "../../compositor/src/display/screenshot_rule.rs"]
+    pub mod screenshot_rule;
     #[path = "../../compositor/src/display/poll_rule.rs"]
     pub mod poll_rule;
     #[path = "../../compositor/src/display/resize_rule.rs"]
@@ -153,6 +157,8 @@ mod layout_tests;
 mod mirror_tests;
 #[cfg(test)]
 mod privacy_tests;
+#[cfg(test)]
+mod screenshot_tests;
 #[cfg(test)]
 mod poll_tests;
 #[cfg(test)]
