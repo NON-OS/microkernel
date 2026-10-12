@@ -20,6 +20,11 @@
 //! caller, as marketplace_abi takes it.
 
 #![no_std]
+#![deny(
+    clippy::indexing_slicing,
+    clippy::arithmetic_side_effects,
+    clippy::cast_possible_truncation
+)]
 
 extern crate alloc;
 
@@ -52,7 +57,6 @@ mod tree;
 pub use answer::{offer_len, Offer};
 pub use answer_seal::{open_answer, seal_answer, Release};
 pub use answer_types::{AnswerWrong, ANSWER_TAG, X25519};
-pub use buyer::buyer_terms;
 pub use buyer_types::{Buyer, OrderWrong, Sale};
 pub use calls::{fund, fund_from, refund, release, DISPUTE, FUND, FUND_FROM, REFUND, RELEASE};
 pub use chunk::{chunk, chunk_count, CHUNK};
@@ -60,16 +64,9 @@ pub use cipher::{key_commit, keystream_word, xor_chunk};
 pub use delivery::{open_delivery, Delivered};
 pub use deposit::{clone_initcode_hash, create2, deposit_address};
 pub use dispute::{dispute, Dispute};
-pub use dispute_call::dispute_call;
 pub use leaf::{leaf, CIPHER_TREE, PLAIN_TREE};
 pub use offer::{check_offer, cipher_hashes, OfferWrong};
-pub use order::{order_id, refund_commit};
-pub use pin::{EscrowPin, PIN_LEN};
 pub use pow::{pow_challenge, pow_check, pow_ok, CHALLENGE_LEN};
-pub use pow_field::{PowField, POW_FIELD_LEN};
-pub use proof::{proof, verify};
 pub use roots::{chunk_root, cipher_root, plain_hashes, root_of_hashes};
-pub use seller::{may_send, reveal_ok};
-pub use seller_types::{Mine, TermsWrong};
-pub use terms::{OrderTerms, TERMS_WORDS};
-pub use tree::root;
+pub use {buyer::*, dispute_call::*, order::*, seller::*, terms::*, tree::*};
+pub use {pin::*, pow_field::*, proof::*, seller_types::*};
