@@ -880,6 +880,15 @@
    "nonos-data/trust/COMMIT"
   ]
  },
+ "userland/capsule_acpi_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_acpi_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_app_store": {
   "exclude": [
    "userland/toolkit/image_tests"

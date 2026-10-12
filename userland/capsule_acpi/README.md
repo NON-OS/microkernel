@@ -174,6 +174,15 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
 `MkIpcRecvFrom` and replies through `MkIpcReply`; the wire format is in
 `src/server/protocol.rs`: an op byte, then a status word and the body.
 
+Each op answers only the services named for it (`src/server/policy.rs`,
+proved in `capsule_acpi_proofs`), checked by the service the sender owns,
+asked of the registry at each request; anyone else gets EPERM. BRIGHTNESS,
+SET_BRIGHTNESS, POWER and THERMAL: `power` and `desktop_shell`.
+PREPARE_SLEEP: `power`. SMBIOS: `desktop_shell`. SERIAL: the I2C
+capsules. DEVICE_POWER: any sender the endpoint admits, moves only for
+the device's holder. LEGACY: `driver.ps2_kbd0`. STATUS, DEVICE and any
+other op: no one.
+
 - STATUS (1): devices, routes, SCIs served, GPE methods run, refused region
   accesses, armed GPEs, notifications dropped.
 - DEVICE (2, index): _STA, _ADR, _UID, _HID and the device's path.
