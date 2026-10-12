@@ -18,6 +18,7 @@
 //! processor defines it. A method that faults or answers in the wrong shape
 //! leaves its part empty; the rest stand.
 
+use super::container::{idle_levels, LpiLevel};
 use super::cpc::{parse_cpc, Cpc};
 use super::cst::{parse_cst, CState};
 use super::pct::{parse_pct, Pct};
@@ -36,6 +37,8 @@ pub struct CpuTables {
     pub ppc: Option<u64>,
     pub cstates: Vec<CState>,
     pub cpc: Option<Cpc>,
+    /// _LPI, the processor's own level first; empty when it has none.
+    pub lpi: Vec<LpiLevel>,
 }
 
 fn get(aml: &mut Aml, eval: &mut Eval<'_>, cpu: Id, seg: Seg) -> Option<Object> {
@@ -54,5 +57,6 @@ pub fn cpu_tables(aml: &mut Aml, eval: &mut Eval<'_>, cpu: Id) -> CpuTables {
         ppc: ppc(aml, eval, cpu),
         cstates: get(aml, eval, cpu, *b"_CST").map(|o| parse_cst(&o)).unwrap_or_default(),
         cpc: get(aml, eval, cpu, *b"_CPC").as_ref().and_then(parse_cpc),
+        lpi: idle_levels(aml, eval, cpu),
     }
 }
