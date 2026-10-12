@@ -42,5 +42,6 @@ pub fn run(mut acpi: Acpi) -> ! {
         crate::cooling::tick(&mut acpi.cooling, &mut acpi.aml, &mut acpi.host);
         crate::dpower::tick(&mut acpi);
         crate::apei::tick(&mut acpi.apei);
+        crate::typec::tick(&mut acpi);
     }
 }
