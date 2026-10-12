@@ -1,0 +1,44 @@
+# NONOS userland: capsule_driver_intel_display
+#
+# Intel display engine capsule. The library holds the engine (takeover,
+# planes, flips, the GGTT, Gen9's mode setting), DisplayPort over AUX, the
+# device id tables, the DMC seal and the display-wire device half, all
+# pure, so intel_display_proofs mounts the same files. The binary claims
+# the function through the broker, maps BAR0, scans out of DMA-granted
+# surfaces and serves the display wire as driver.intel_display0.
+
+[package]
+name = "nonos_capsule_driver_intel_display"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS userland Intel display engine capsule"
+
+[lib]
+name = "nonos_intel_display"
+path = "src/lib.rs"
+
+[[bin]]
+name = "driver_intel_display"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_edid = { path = "../nonos_edid" }
+nonos_hash = { path = "../nonos_hash" }
+nonos_gfx_pool = { path = "../nonos_gfx_pool" }
+nonos_gfx_serve = { path = "../nonos_gfx_serve" }
+nonos_gfx_wire = { path = "../nonos_gfx_wire" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
