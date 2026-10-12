@@ -66,6 +66,23 @@ handed to the kernel through `MkAcpiSleep`, so soft-off works on a laptop
 whose \_S5 is a method even when the shutdown does not come through
 `capsule_power`.
 
+A battery's _BTP is set to its warning capacity, so crossing into low
+notifies. A discharging battery at or under its warning capacity is told
+to the kernel once as low; one at its low capacity, or with _BST's
+critical bit, is told as critical at every reading (every 10 s while it
+lasts), and the kernel asks the desktop to shut down, then powers off 30 s
+later if it still is. Each zone gets _SCP(0), active cooling first.
+
+Display adapters above backlit outputs get _DOS(0): firmware keeps output
+switching and the AC/battery brightness change. Their _DOD IDs are logged.
+
+Hotkey sources are logged by the name firmware gives each event, never a
+guessed meaning: WMI mappers (PNP0C14) with their _WDG event GUIDs, and on
+Notify the GUID and the data _WED returns; Intel's HID event filter
+(INT33D5) with HDEM's code; Intel's virtual buttons (INT33D6) with the
+Notify value. The Intel codes are marked unverified until a laptop shows
+them.
+
 Backlit outputs are the devices defining both _BCL and _BCM (appendix B).
 Their levels come from _BCL and their level now from _BQC; brightness is
 not changed at start. The brightness keys arrive as Notify on the output,
@@ -97,22 +114,33 @@ its serial lines. No Mmio, Dma or Pio.
 ## Interface contract
 
 Service `service:4530:acpi`, reply `reply:4531:endpoint.acpi.reply`, held
-to `power` (`src/services/registry/held_table.rs`). Requests go through
+to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests go through
 `MkIpcRecvFrom` and replies through `MkIpcReply`; the wire format is in
 `src/server/protocol.rs`: an op byte, then a status word and the body.
 
 - STATUS (1): devices, routes, SCIs served, GPE methods run, refused region
   accesses, armed GPEs, notifications dropped.
 - DEVICE (2, index): _STA, _ADR, _UID, _HID and the device's path.
-- BRIGHTNESS (3): the first backlit output's level now (0xFF unknown), how
-  many outputs there are, then that output's levels: a count and the
-  percentages. ENOENT with no backlit output.
-- SET_BRIGHTNESS (4, percent): every output to its level nearest the
-  percentage; EINVAL above 100, EIO when a _BCM failed.
+- BRIGHTNESS (3), the brightness wire, which the graphics drivers' native
+  backlight is to serve too: the number of panels (at most 4), then for each
+  its identity (u32, the output's _ADR, matching the adapter's _DOD), its
+  level now (0xFF unknown), and its levels: a count and the percentages.
+  ENOENT with no backlit output.
+- SET_BRIGHTNESS (4, percent[, panel u32]): one panel, or every panel when
+  none is named, to its level nearest the percentage; EINVAL above 100,
+  ENOENT for an unknown panel, EIO when a _BCM failed.
 - PREPARE_SLEEP (5, state): a shutdown is coming. \_TTS(5) and \_PTS(5)
   run, \_S5 is evaluated again, and its SLP_TYP values go to the kernel
   through `MkAcpiSleep`. EINVAL for any state but 5; ENOENT when \_S5 is
-  unusable. `capsule_power` calls it before `AdminShutdown`.
+  unusable; EPERM from anyone but `capsule_power`, which calls it before
+  `AdminShutdown`.
+- POWER (6), the power wire: batteries and present ones; state bits (1
+  charging, 2 discharging, 4 critical); the charge (0xFF unknown); the
+  summed rate and the minutes left, to empty or full (u32, 0xFFFFFFFF
+  unknown); AC (0, 1, 0xFF unknown); the unit (1 mA, 0 mW).
+- THERMAL (7): the number of zones (at most 64), then per zone its
+  temperature and _CRT in tenths of a kelvin (0 unknown or absent) and
+  state bits (1 passive, 2 hot, 4 critical, 8 a fan it lists running).
 
 ## Privacy and persistence
 

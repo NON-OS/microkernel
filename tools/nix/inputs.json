@@ -3724,6 +3724,7 @@
    "userland/nonos_aml/src/sleep",
    "userland/nonos_aml/src/thermal",
    "userland/nonos_aml/src/video",
+   "userland/nonos_aml/src/wmi",
    "userland/nonos_aml_proofs"
   ],
   "md": [],
