@@ -17,8 +17,11 @@
 //! Building the replies protocol.rs describes.
 
 use super::brightness;
-use super::protocol::{EINVAL, ENOENT, OP_BRIGHTNESS, OP_DEVICE, OP_SET_BRIGHTNESS, OP_STATUS};
+use super::protocol::{
+    EINVAL, ENOENT, OP_BRIGHTNESS, OP_DEVICE, OP_PREPARE_SLEEP, OP_SET_BRIGHTNESS, OP_STATUS,
+};
 use crate::boot::{path, Acpi};
+use crate::sleep::prepare_sleep;
 use alloc::vec::Vec;
 
 fn status(acpi: &Acpi) -> Vec<u8> {
@@ -63,6 +66,7 @@ pub fn answer(acpi: &mut Acpi, req: &[u8]) -> Vec<u8> {
         },
         Some(OP_BRIGHTNESS) => brightness::get(acpi),
         Some(OP_SET_BRIGHTNESS) => brightness::set(acpi, req),
+        Some(OP_PREPARE_SLEEP) => (prepare_sleep(acpi, req.get(1).copied()), Vec::new()),
         _ => (EINVAL, Vec::new()),
     };
     let mut out = code.to_le_bytes().to_vec();

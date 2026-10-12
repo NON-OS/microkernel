@@ -16,6 +16,7 @@ devices up, reports what firmware describes, and serves the SCI.
    MkAcpiPort   -- in / out       -->  SystemIO fields, PM1 and GPE registers
    MkAcpiPci    -- config access  -->  PCI_Config fields
    MkAcpiPower, MkAcpiEvent  <---      batteries, buttons, lid, thermal
+   MkAcpiSleep               <---      \_S5 (start, and PREPARE_SLEEP)
    SCI record (PNP0C08)
      MkDeviceClaim, MkIrqBind  --->    SCI: fixed events, _Lxx/_Exx, Notify
                                        port 4530: STATUS, DEVICE
@@ -60,6 +61,11 @@ then asks the desktop to shut down, and powers off itself if the zone is
 still critical 30 seconds later. Passive cooling (_PSV) is reported, and
 waits on processor performance control.
 
+\_S5 is evaluated at start too, with nothing run, and its SLP_TYP values
+handed to the kernel through `MkAcpiSleep`, so soft-off works on a laptop
+whose \_S5 is a method even when the shutdown does not come through
+`capsule_power`.
+
 Backlit outputs are the devices defining both _BCL and _BCM (appendix B).
 Their levels come from _BCL and their level now from _BQC; brightness is
 not changed at start. The brightness keys arrive as Notify on the output,
@@ -84,7 +90,7 @@ function, and does no DMA.
 `CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve port 4530; Memory
 (0x10) for the heap and the interpreter's objects; DeviceEnum (0x8000) to
 find the SCI record; Driver (0x10000) to claim it; Irq (0x40000) to bind
-it; Admin (0x200) for the six ACPI calls, which the kernel gates on Admin
+it; Admin (0x200) for the seven ACPI calls, which the kernel gates on Admin
 until a Firmware bit of their own is decided. Debug (0x100) is optional, for
 its serial lines. No Mmio, Dma or Pio.
 
@@ -103,6 +109,10 @@ to `power` (`src/services/registry/held_table.rs`). Requests go through
   percentages. ENOENT with no backlit output.
 - SET_BRIGHTNESS (4, percent): every output to its level nearest the
   percentage; EINVAL above 100, EIO when a _BCM failed.
+- PREPARE_SLEEP (5, state): a shutdown is coming. \_TTS(5) and \_PTS(5)
+  run, \_S5 is evaluated again, and its SLP_TYP values go to the kernel
+  through `MkAcpiSleep`. EINVAL for any state but 5; ENOENT when \_S5 is
+  unusable. `capsule_power` calls it before `AdminShutdown`.
 
 ## Privacy and persistence
 

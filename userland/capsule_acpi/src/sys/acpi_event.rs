@@ -18,8 +18,10 @@
 //! thermal zone, to the kernel. The numbers are the kernel's
 //! (`broker::acpi::platform_event`).
 
-use super::acpi::{ok, Errno, EVENT};
+use super::acpi::{ok, tag4, Errno};
 use nonos_libc::mk_syscall_raw;
+
+const EVENT: i64 = tag4(b"MAEV");
 
 pub const POWER_BUTTON: u64 = 1;
 pub const SLEEP_BUTTON: u64 = 2;

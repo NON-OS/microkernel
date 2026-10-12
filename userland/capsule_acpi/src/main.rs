@@ -31,6 +31,7 @@ mod events_io;
 mod host;
 mod power;
 mod server;
+mod sleep;
 mod sys;
 
 use nonos_libc::{heap_init, mk_exit};
