@@ -14,10 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The two ways EL0 trains the kernel's branch prediction.
+
+use super::plan::Why;
+
+/// Spectre variant 2: branch target injection from EL0.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SpectreMitigation {
-    None,
-    Ssbs,
-    CsvEnabled,
-    BranchTargetId,
+pub enum V2 {
+    NotAffected(Why),
+    /// SMCCC_ARCH_WORKAROUND_1 on every entry from EL0.
+    Firmware,
+    Vulnerable,
+}
+
+/// Spectre-BHB: branch history injection from EL0.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Bhb {
+    NotAffected(Why),
+    /// CLRBHB then ISB on every entry from EL0.
+    Clrbhb,
+    /// SMCCC_ARCH_WORKAROUND_3 on every entry from EL0.
+    Firmware,
+    /// `k` taken branches, then DSB and ISB, on every entry from EL0.
+    Loop(u8),
+    Vulnerable,
 }

@@ -14,14 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::aarch64::cpu::features::{has_feature, CpuFeature};
+use spin::Once;
 
 use super::barrier::speculative_barrier;
-use super::ssbs::enable_ssbs;
+use super::decide::decide;
+use super::entry::publish;
+use super::entry_word::word;
+use super::plan::{Plan, Ssbd};
+use super::read::{firmware, ids};
+use super::{report, ssbs};
+use crate::arch::aarch64::psci::{conduit, PsciMethod};
+use crate::arch::aarch64::smccc::{call, version, ARCH_WORKAROUND_2};
 
+/// The boot CPU's plan, which each later CPU compares its own against.
+static BOOT_PLAN: Once<Plan> = Once::new();
+
+/// Decide for this CPU and act on it: SSBD now, once, since it is a state
+/// of the core; the entry work by folding this CPU's needs into the word
+/// the EL0 vectors read. Runs on every CPU from `security::init_all`,
+/// after the device tree has named the conduit and before EL0 runs.
 pub fn init_spectre_mitigations() {
-    if has_feature(CpuFeature::Ssbs) {
-        enable_ssbs();
+    let ids = ids();
+    let plan = decide(&ids, &firmware());
+    let via = conduit();
+    match (plan.ssbd, via) {
+        (Ssbd::Ssbs, _) => ssbs::clear(),
+        // x1 = 1 asks for the mitigation on. What it returns says nothing
+        // more than ARCH_FEATURES already did.
+        (Ssbd::Firmware, Some(via)) => {
+            let _ = call(via, ARCH_WORKAROUND_2, [1, 0, 0]);
+        }
+        _ => {}
+    }
+    publish(word(&plan, via == Some(PsciMethod::Hvc)));
+    // The boot CPU runs this alone, before any other is started, so it
+    // finds no plan, fills it, and always reports.
+    let boot = BOOT_PLAN.get().copied();
+    BOOT_PLAN.call_once(|| plan);
+    if boot != Some(plan) {
+        report::line(&plan, version(), ids.part());
     }
     speculative_barrier();
 }

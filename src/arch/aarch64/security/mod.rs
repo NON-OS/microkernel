@@ -28,4 +28,4 @@ pub use mte::{init_mte, MteMode};
 pub use pac::{active as pac_active, enter_process};
 pub use pan::init_pan;
 pub use report::report;
-pub use spectre::{init_spectre_mitigations, SpectreMitigation};
+pub use spectre::init_spectre_mitigations;
