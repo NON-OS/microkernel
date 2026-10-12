@@ -17,8 +17,8 @@
 //! What an accepted association settles, for a chip that keeps its own
 //! copy: AP, AID, capability and rates from the response, the beacon
 //! interval advertised, and the pairwise cipher negotiated (its TK length
-//! follows from it). mac80211 hands drivers the same through
-//! `bss_info_changed`, before the four-way handshake.
+//! follows from it). It is told before the four-way handshake, so the chip
+//! has its rates and timing in place when the first protected frame goes.
 
 use crate::dot11::ies::find_element;
 use crate::rsn::Cipher;

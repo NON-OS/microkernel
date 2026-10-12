@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Putting a join frame on the air. The last frame is resent after mac80211's
-//! own quiet interval: 200 ms, or 2 s for SAE, whose commit the AP computes
-//! before it answers. A resend is a new frame with the next sequence number
+//! Putting a join frame on the air. The last frame is resent after a quiet
+//! interval: 200 ms, well past an AP's answer to a management frame, or 2 s
+//! for SAE, whose commit the AP computes before it answers. A resend is a new frame with the next sequence number
 //! and the Retry bit clear (802.11-2020 10.3.2.14.3): an AP that took the
 //! first copy discards a retry carrying the same number.
 
