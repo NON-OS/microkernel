@@ -32,6 +32,7 @@ Arguments are in register order, first argument first. The Capability column is 
 | `MDLS` | `MkDeviceList` | `class`, `buf_ptr`, `count` | Records written; with `count` 0, how many devices match | Admin or DeviceEnum | `mk_device_list` |
 | `MDCL` | `MkDeviceClaim` | `device_id` | The claim epoch | Admin or Driver | `mk_device_claim` |
 | `MDRL` | `MkDeviceRelease` | `device_id` | 0 | Admin or Driver | `mk_device_release` |
+| `MBFB` | `MkBootFramebuffer` | `device_id`, `out_ptr`, `out_len` | 24, with a `BootFramebufferInfo` written; `EPERM` unless the caller holds the claim, `ENODEV` for any other device | Admin or Mmio | `mk_boot_framebuffer` |
 | `MMMP` | `MkMmioMap` | `device_id`, `claim_epoch`, `bar_and_flags`, `offset`, `length`, `out_ptr` | 0, with a `MmioMapOut` written | Admin or Mmio | `mk_mmio_map` |
 | `MMUM` | `MkMmioUnmap` | `grant_id` | 0 | Admin or Mmio | `mk_mmio_unmap` |
 | `MIRB` | `MkIrqBind` | `device_id`, `claim_epoch`, `irq_source`, `flags`, `vector_count`, `out_ptr` | 0, with an `IrqBindOut` written | Admin or Irq | `mk_irq_bind` |
@@ -158,6 +159,10 @@ An `I2C_HID` record reuses fields: `hid_record` puts the 7-bit I2C address in `v
 | `GPIO_CTRL` | `0x0080` | 16 | A platform GPIO community from ACPI |
 | `OTHER` | `0xFFFF` | 16 | Anything not classified |
 
+## The boot framebuffer
+
+The framebuffer the kernel adopted at boot (`init_framebuffer`: the loader's GOP framebuffer on x86) is one record on the firmware bus: `BUS_KIND_FIRMWARE`, device `0x0001`, class display (`src/hardware/broker/bootfb/`). Bar 0 is the window from the page the first pixel lies in to the end of the last row, `BAR_KIND_MMIO` and `BAR_FLAG_PREFETCH`, and its `aux` is the first pixel's offset into that page; `MkMmioMap` with `MK_MMIO_MAP_WC` maps it with whatever type the kernel's own mapping has. Only the process serving `driver.bootfb0` may claim it (`hold_for_firmware`, `src/hardware/broker/claim/hold_rule.rs`), since whoever holds it can read the screen. `MkBootFramebuffer` answers the holder with six little-endian u32s: width, height, row pitch in bytes, the loader's pixel format (0 RGB, 1 BGR, 2 RGBX, 3 BGRX), the first pixel's offset, and the panel's size in millimetres (width low 16 bits, height high 16, 0 when unknown). While the claim is held the kernel draws nothing on the framebuffer: `MkSurfacePresent` answers `EBUSY`, and the heartbeat and boot log are silent; the stop and panic screens still draw. Releasing the claim, or the holder's exit, gives it back to the kernel.
+
 ## Other constants
 
 `BUS_KIND_*` says which bus a record came from, and `BAR_KIND_*` and `BAR_FLAG_*` describe a `Bar`. A `BAR_FLAG_FIXED` bar is an I/O window the function decodes at a fixed address outside its BARs, put in the record by the broker: BARs 0 to 3 of an IDE function whose channel runs in compatibility mode (0x1F0/8 and 0x3F6/1 for the primary, 0x170/8 and 0x376/1 for the secondary), and VBoxVGA's DISPI ports (0x1CE/3) in its first free slot. `mk_pio_grant` grants it like any I/O BAR and answers `EBUSY` while another device's claimant holds a grant sharing a port; `MkIrqBind` takes IRQ 14 or 15 in INTx mode from the claimant of an IDE function whose primary or secondary channel runs in compatibility mode (`src/hardware/broker/legacy/`). `DEVICE_FLAG_*` are defined, but no code sets them: `flags` is 0 on every record, and no record is built with `BUS_KIND_VIRT`. `DMA_MAP_*` are the `MkDmaMap` flags, and `BIND_*` the `MkIrqBind` flags. `DMA_MAP_COHERENT` maps uncached; `DMA_MAP_WC` maps write-combining where the PAT allows, else uncached. `DMA_MAP_TO_DEVICE` gives a confined device read-only access to the grant and `DMA_MAP_FROM_DEVICE` write-only access, or read and write on a VT-d unit without CAP.ZLR; neither changes anything for a device no IOMMU confines (`src/hardware/broker/dma/flags.rs:19-38`, `src/hardware/broker/dma/direction.rs`).
@@ -167,6 +172,7 @@ An `I2C_HID` record reuses fields: `hid_record` puts the 7-bit I2C address in `v
 | `BUS_KIND_PCI` | `0x1` | `src/hardware/broker/device/bus.rs` |
 | `BUS_KIND_ACPI` | `0x2` | `src/hardware/broker/device/bus.rs` |
 | `BUS_KIND_VIRT` | `0x3` | `src/hardware/broker/device/bus.rs` |
+| `BUS_KIND_FIRMWARE` | `0x5` | `src/hardware/broker/device/bus.rs` |
 | `BAR_KIND_NONE` | `0x0` | `src/hardware/broker/device/bar.rs` |
 | `BAR_KIND_MMIO` | `0x1` | `src/hardware/broker/device/bar.rs` |
 | `BAR_KIND_PIO` | `0x2` | `src/hardware/broker/device/bar.rs` |
