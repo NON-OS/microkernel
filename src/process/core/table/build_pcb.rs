@@ -50,7 +50,6 @@ pub(super) fn build_pcb(
             code_end: VirtAddr::new(0),
             vmas: Vec::new(),
             resident_pages: AtomicU64::new(pg),
-            next_va: 0x0000_4000_0000,
         }),
         thread_group: None,
         argv: spin::Mutex::new(Vec::new()),
