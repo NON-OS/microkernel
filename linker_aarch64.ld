@@ -2,12 +2,12 @@ ENTRY(_start)
 OUTPUT_ARCH(aarch64)
 OUTPUT_FORMAT(elf64-littleaarch64)
 
-/* aarch64 kernel image. Linked at the standard QEMU virt board RAM +
- * 512 KiB to leave room for the bootloader-supplied DTB at the bottom
- * of RAM. On real hardware the loader places PT_LOAD segments at
- * matching physical addresses per board profile; the kernel runs
- * identity-mapped at this VA until mmu::init_mmu installs the
- * high-half mapping. */
+/* aarch64 kernel image, a static position-independent executable. Linked
+ * at QEMU virt's RAM + 512 KiB, and runs wherever a loader puts it at a
+ * 2 MiB aligned base + 512 KiB: the entry stub applies .rela.dyn, every
+ * entry R_AARCH64_RELATIVE, before anything reads a pointer from data
+ * (boot/relocate). It runs identity-mapped where it was loaded until
+ * mmu::init_mmu installs the high-half mapping. */
 
 PHDRS {
     text   PT_LOAD FLAGS(5);  /* r-x */
@@ -18,6 +18,9 @@ PHDRS {
 SECTIONS {
     . = 0x40080000;
     __kernel_image_start = .;
+    /* The address this image is linked at, as a constant rather than a
+       position: the entry stub subtracts it from where it finds itself. */
+    __kernel_link_base = ABSOLUTE(__kernel_image_start);
 
     .text ALIGN(0x1000) : {
         __kernel_text_start = .;
@@ -34,6 +37,16 @@ SECTIONS {
         __kernel_rodata_end = .;
     } :rodata
 
+    .rela.dyn ALIGN(8) : {
+        __rela_start = .;
+        *(.rela.dyn .rela.*)
+        __rela_end = .;
+    } :rodata
+    .dynsym : { *(.dynsym) } :rodata
+    .dynstr : { *(.dynstr) } :rodata
+    .hash : { *(.hash) } :rodata
+    .gnu.hash : { *(.gnu.hash) } :rodata
+
     /* Writable data starts on a 2MB boundary so the boot identity map, which
        uses 2MB blocks, can keep text read only and executable without also
        making .data and .bss read only. */
@@ -45,6 +58,8 @@ SECTIONS {
         *(.data .data.*)
         __kernel_data_end = .;
     } :data
+    .dynamic : { *(.dynamic) } :data
+    .got : { *(.got) *(.got.plt) } :data
 
     .nonos.manifest ALIGN(0x1000) : {
         __nonos_manifest_start = .;
@@ -86,14 +101,6 @@ SECTIONS {
         *(.note*)
         *(.debug*)
         *(.plt*)
-        *(.dynamic)
-        *(.dynsym)
-        *(.dynstr)
-        *(.hash)
-        *(.gnu.hash)
-        *(.rela.*)
-        *(.got)
-        *(.got.plt)
         *(.interp)
     }
 }
