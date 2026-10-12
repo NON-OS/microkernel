@@ -32,6 +32,8 @@ pub fn get_state() -> Result<UsbHidState, UsbHidError> {
     decode_state(&resp.body)
 }
 
+// Bytes 24 to 31 are reserved: the driver's key and mouse event queue
+// depths were there, and it keeps no queue. The reply still carries them.
 fn decode_state(body: &[u8]) -> Result<UsbHidState, UsbHidError> {
     if body.len() < STATE_REPLY_LEN {
         return Err(UsbHidError::ShortReply);
@@ -40,8 +42,6 @@ fn decode_state(body: &[u8]) -> Result<UsbHidState, UsbHidError> {
         configs_probed: read_u64(body, 0),
         key_reports: read_u64(body, 8),
         mouse_reports: read_u64(body, 16),
-        pending_keys: read_u32(body, 24),
-        pending_mouse: read_u32(body, 28),
     })
 }
 
@@ -56,8 +56,4 @@ fn read_u64(body: &[u8], off: usize) -> u64 {
         body[off + 6],
         body[off + 7],
     ])
-}
-
-fn read_u32(body: &[u8], off: usize) -> u32 {
-    u32::from_le_bytes([body[off], body[off + 1], body[off + 2], body[off + 3]])
 }

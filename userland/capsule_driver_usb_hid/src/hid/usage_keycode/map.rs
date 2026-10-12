@@ -56,8 +56,8 @@ pub fn usage_keycode(usage: u8) -> Option<u32> {
         0x63 => u32::from(b'.'),
         0x66 => KEYCODE_POWER,
         // The keyboard page's own volume keys. A keyboard that sends its
-        // media keys on a consumer control interface instead is not read: the
-        // driver binds the boot keyboard alone (descriptors/parse.rs).
+        // media keys on a consumer control interface instead has them read
+        // as these usages (descriptors/report/media.rs).
         0x7f => KEYCODE_MUTE,
         0x80 => KEYCODE_VOLUME_UP,
         0x81 => KEYCODE_VOLUME_DOWN,

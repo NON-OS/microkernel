@@ -17,7 +17,7 @@
 //! The two hub class reads: the hub descriptor and one port's status (USB
 //! 2.0 section 11.24.2.5 and 11.24.2.7).
 
-use crate::xhci::control_transfer;
+use crate::xhci::{control_transfer, Setup};
 
 use super::descriptor::{parse_hub_descriptor, HubDescriptor, DT_HUB, DT_SS_HUB, HUB_HEAD_LEN};
 use super::port_status::{decode_port_status, HubPort};
@@ -32,23 +32,14 @@ pub fn hub_descriptor(xhci_port: u32, slot: u8, superspeed: bool) -> Option<HubD
     let kind = if superspeed { DT_SS_HUB } else { DT_HUB };
     let mut buf = [0u8; HUB_HEAD_LEN as usize];
     let value = (kind as u16) << 8;
-    let n = control_transfer(
-        xhci_port,
-        slot,
-        RT_HUB_IN,
-        GET_DESCRIPTOR,
-        value,
-        0,
-        HUB_HEAD_LEN,
-        &mut buf,
-    )
-    .ok()?;
+    let setup = Setup::new(RT_HUB_IN, GET_DESCRIPTOR, value, 0, HUB_HEAD_LEN);
+    let n = control_transfer(xhci_port, slot, setup, &mut buf).ok()?;
     parse_hub_descriptor(&buf[..n], superspeed)
 }
 
 pub fn port_status(xhci_port: u32, slot: u8, port: u8, superspeed: bool) -> Option<HubPort> {
     let mut buf = [0u8; 4];
-    let n = control_transfer(xhci_port, slot, RT_PORT_IN, GET_STATUS, 0, port as u16, 4, &mut buf)
-        .ok()?;
+    let setup = Setup::new(RT_PORT_IN, GET_STATUS, 0, port as u16, 4);
+    let n = control_transfer(xhci_port, slot, setup, &mut buf).ok()?;
     (n == 4).then(|| decode_port_status(buf, superspeed))
 }

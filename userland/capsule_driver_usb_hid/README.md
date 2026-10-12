@@ -3,13 +3,14 @@
 ## Role
 
 `capsule_driver_usb_hid` is the USB HID class capsule. It asks `driver.xhci0`
-for the devices on the root ports, binds boot keyboard and boot mouse
-interfaces (and takes any other HID interface for a tablet), polls their
-interrupt-IN endpoints through the controller, and posts each decoded key,
+for the devices on the root ports and behind hubs, binds boot keyboard and
+boot mouse interfaces, and binds any other HID interface only when its report
+descriptor names keys, media keys or a pointer it reads. It polls their
+interrupt-IN endpoints through the controller and posts each decoded key,
 motion and button event to the kernel input ring with `MkInputEventPost`.
 
 ```text
-USB keyboard / mouse / tablet
+USB keyboard / mouse / tablet / touchscreen / media keys
         |
         v
 driver.xhci0 -- EP0 descriptors, control and interrupt-IN transfers
@@ -41,11 +42,14 @@ replies with `MkIpcSendToPid`. It does not call `MkDeviceList`,
 `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap`, or `MkPioGrant`.
 
 No capsule may send to `driver.usb_hid0`: the kernel holds the endpoint to an
-empty list (`src/services/registry/held.rs`), so only the kernel's own sends
-reach it. Before that, any capsule could poll keystrokes from it or feed it
-reports it would then post as typed keys. The kernel mirror
+empty list (`src/services/registry/held.rs`), and the service loop drops a
+message from sender 0, which every kernel send is. The service has no op
+that feeds a report in or reads a key back out: the ops that did (0x0003 to
+0x0006) are gone, answered `E_BAD_OP` without a body and `E_INVAL` with one,
+as any unknown op is, so the endpoint is no keystroke injection or readback
+path whoever comes to hold it. The kernel mirror
 (`src/userspace/capsule_driver_usb_hid`) embeds and spawns the capsule and
-keeps a client for the service ops.
+keeps a client for health and state readback only.
 
 ## Interface contract
 
@@ -53,16 +57,13 @@ keeps a client for the service ops.
 |---|---|---|
 | `OP_HEALTHCHECK` | none | status |
 | `OP_PROBE_CONFIG` | raw USB configuration descriptor | HID bindings |
-| `OP_FEED_KEYBOARD_REPORT` | 8-byte HID boot keyboard report | status |
-| `OP_FEED_MOUSE_REPORT` | 3- or 4-byte HID boot mouse report | status |
-| `OP_POLL_KEYS` | none | bounded key-event batch |
-| `OP_POLL_MOUSE` | none | bounded mouse-event batch |
-| `OP_GET_STATE` | none | counters and queue depths |
+| `OP_GET_STATE` | none | counters |
 
 `OP_PROBE_CONFIG` validates the descriptor header, walks variable-length USB
-descriptor records, and returns boot-protocol HID interfaces with interrupt IN
-endpoints. It does not parse vendor report descriptors or infer policy from
-manufacturer, product, or serial strings.
+descriptor records, and returns every HID interface with an interrupt IN
+endpoint: kind 1 and 2 are boot keyboards and mice, kind 3 one in report
+protocol, which the driver binds only if its report descriptor is understood.
+It does not infer policy from manufacturer, product, or serial strings.
 
 ## Authority
 
@@ -78,29 +79,45 @@ forbidden: controller ownership, input routing, focus policy, persistence
 
 ## Privacy and persistence
 
-The capsule keeps only runtime queues and counters. It does not persist
-keystrokes, mouse movement, USB topology, serial numbers, product strings, or
-descriptor snapshots. Polling drains event queues; process exit destroys the
-remaining process-local memory under normal capsule teardown.
+The capsule keeps no key or pointer event: each is posted to the kernel input
+ring and dropped. It used to keep the first 64 key events, with
+their ASCII bytes, in a queue only the removed poll op drained, so the boot
+password stayed in its heap. What it keeps per bound interface is the keys
+and buttons down now and the key repeating, and counters. It does not
+persist keystrokes, mouse movement, USB topology, serial numbers, product
+strings, or descriptor snapshots.
 
 ## Runtime lifecycle
 
 The capsule initializes its heap, looks up `driver.xhci0`, and enumerates the
 root ports through it: Enable Slot and Address Device, the configuration
-descriptor (64 bytes at most), SET_CONFIGURATION, then for each HID interface
-it binds SET_PROTOCOL (boot, for a boot interface) and a transfer ring for its
-interrupt endpoint. A device it binds nothing on has its slot given back. It then loops: answer
-one service request if one is waiting, read at most one 8-byte report from each
-bound endpoint and post its events, and rescan the ports every 64 idle polls
-while nothing is bound or a port another class driver held was let go
-(`src/orchestrator/poll/run.rs`).
+descriptor (up to 512 bytes), SET_CONFIGURATION, then for each HID interface
+it can read, SET_PROTOCOL(boot) for a boot interface, or the report
+descriptor for any other and for a boot interface that refuses it, and a
+transfer ring for its interrupt endpoint. A
+device it binds nothing on has its slot given back. It then loops
+(`src/orchestrator/poll/run.rs`): read each endpoint that is due, at most 16
+reports, into the state of its own interface; tick key repeat; look at
+every root and hub port again after 64 ms with no report, and at hub ports
+mid bring-up every 10 ms; then sleep on its inbox until the next endpoint is
+due, at most 16 ms, answering a request if one comes. An endpoint is asked
+as often as the controller serves it, and once quiet for a second every
+8 ms. A new hub's ports are looked at once their power is good, and a
+device below a hub is debounced, reset and addressed one step per look, each
+wait a deadline the loop checks, never a sleep. Each root or hub port is
+tried at most three times a minute, however often its device reconnects.
 
 ## Failure model
 
-Malformed descriptors return `E_INVAL`. Valid descriptors without boot HID
-interfaces return `E_NO_HID`. Unknown operations return `E_BAD_OP`. Oversized
-or malformed reports are rejected and do not mutate event state. On the
-interrupt path as over IPC, a keyboard report that is not exactly eight bytes
+Malformed descriptors return `E_INVAL`. Valid descriptors without HID
+interfaces return `E_NO_HID`. A report descriptor is walked under hard
+bounds (512 items, 8 nested collections, 4 pushed globals, 8 report IDs,
+report size times count and each report at most 2048 bits) and refused
+whole when it passes one, is cut inside an item or longer than one read,
+or leaves a collection open; its interface is then left unbound. An unknown
+operation is answered `E_BAD_OP` without a body and `E_INVAL` with one.
+Oversized or malformed reports are rejected and do not mutate event state.
+On the interrupt path, a boot keyboard report that is not exactly eight bytes
 changes nothing, and a rollover report (an error code in a key slot) keeps
 the held keys held and makes no key event.
 
@@ -114,15 +131,17 @@ yields and no bound, a spin for the life of a machine without xHCI.
 - USB configuration descriptor validation.
 - Boot HID keyboard and mouse interface discovery.
 - Interrupt IN endpoint extraction.
-- Boot keyboard report normalization.
-- Boot mouse report normalization.
-- Bounded key and mouse event queues.
+- Boot keyboard and boot mouse report normalization.
+- Bounded report descriptor parser (HID 1.11, 6.2.2) into a small layout:
+  keyboard modifiers and key slots, mouse buttons, X, Y and wheel, absolute
+  X and Y for tablets, pens and touchscreens (the first contact), Mute,
+  Volume and Power on consumer and system control collections, with report
+  IDs.
+- Keyboard, mouse and pointer state per bound interface, released whole
+  when the device leaves.
+- Hubs, with port bring-up stepped from the poll loop.
 - State counters for descriptor probes and report ingestion.
-- Live enumeration and interrupt-IN polling through `driver.xhci0`.
-- Tablet (absolute) positions, clamped to the logical range.
 - Key, motion and button events posted to the kernel input ring.
-- Kernel-side client for health, descriptor probe, report feed, event poll, and
-  state readback.
 
 ## Wire format
 
@@ -136,23 +155,16 @@ records:
 kind, interface_number, endpoint_address, interval, max_packet_size_le16, pad[2]
 ```
 
-Key events are 8 bytes:
-
-```text
-hid_usage, ascii, modifiers, pressed, pad[4]
-```
-
-Mouse events are 8 bytes:
-
-```text
-dx_le16, dy_le16, wheel_i8, buttons, flags, pad[1]
-```
+`OP_GET_STATE` returns 48 bytes: configurations probed, keyboard and mouse
+reports read (u64 each), 8 zero bytes where the removed queue depths were,
+then the key and pointer posts the input ring refused (u64 each).
 
 ## State ownership
 
-The capsule owns the bound endpoints, the keyboard previous-report snapshot,
-Caps Lock state, keyboard event queue, mouse button snapshot, mouse event
-queue, and diagnostic counters. `input_router` and the compositor own routing,
+The capsule owns the bound endpoints and, for each, its own interface state:
+the keys its last report held, its modifiers and Caps Lock, the key it
+repeats, and its buttons; and diagnostic counters. A report from one device
+never changes another's state. `input_router` and the compositor own routing,
 focus, cursor position, acceleration, gestures, and delivery.
 
 ## Operating rules
@@ -177,8 +189,8 @@ boot that shows them on real devices.
 ## Release evidence
 
 Release evidence requires a QEMU `qemu-xhci` boot with a USB keyboard and USB
-pointer device, descriptor classification on serial, key press/release polling,
-mouse delta polling, malformed-descriptor rejection, and no grant requests
+pointer device, descriptor classification on serial, key presses, releases and
+mouse motion reaching the input ring, malformed-descriptor rejection, and no grant requests
 outside `IPC | Memory | InputSource`.
 
 The host proofs (`userland/usb_proofs`) cover the descriptor walk, the binding
@@ -190,7 +202,8 @@ rules and the report decodes. No boot log for this driver is committed.
 - Static gates confirm README, capability boundary, and matrix row.
 - Kernel profile `microkernel-driver-usb-hid` resolves with the capsule client.
 - Descriptor parser rejects malformed lengths and oversized payloads.
-- Keyboard and mouse report feeds produce bounded event batches.
+- Hostile report descriptors are refused whole and their interfaces left
+  unbound.
 - QEMU xHCI live interrupt-report validation passes.
 
 ## Real hardware bring-up checklist
@@ -202,13 +215,21 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 - Hot-plugging a device after boot binds it on the next rescan.
 - A keyboard or mouse whose interrupt endpoint has packets larger than 8 bytes (16, 32 or 64 are common) delivers keys and motion; each read asks `driver.xhci0` for at most 8 bytes, the most it accepts.
 - Holding more keys than the keyboard can report, then letting go, leaves no key stuck and types no key twice.
+- A keyboard's volume and mute keys work; a gamepad or UPS moves and clicks nothing.
+- Pulling out a keyboard with a key held stops its repeat and releases the key.
 
 ## Explicit non-goals today
 
-Report-descriptor parsing, vendor HID layouts, multitouch, LED output
-reports, endpoint scheduling, USB hub traversal, and compositor focus policy
-do not live in this slice. A non-boot HID interface is taken for a tablet, and
-a configuration descriptor over 64 bytes is refused.
+Vendor HID layouts, bitmap (n-key rollover) keyboards, multitouch past the
+first contact, touchpads, reports over 8 bytes (the most one
+`driver.xhci0` read returns), report descriptors over 512 bytes, endpoint
+scheduling, USB suspend and compositor focus policy do not live in this
+slice. Boot interfaces stay in boot protocol. Caps, Num and Scroll Lock
+LEDs wait on D10: they need a SET_REPORT whose one-byte data stage
+`driver.xhci0`'s control transfer cannot carry yet (it takes the setup
+packet alone and sends a zeroed data stage), and D10's EP0 contract work
+adds OUT data stages. The loop still asks each endpoint over IPC; completions sent by
+`driver.xhci0` would let it sleep until one comes.
 
 ## Verification
 
@@ -219,14 +240,14 @@ a configuration descriptor over 64 bytes is refused.
 - Architecture check: no `Driver`, `DeviceEnum`, `Mmio`, `Irq`, `Dma`, or `Pio`
   capability appears in `Capsule.mk`.
 - Host proofs: `cd userland/usb_proofs && cargo test --release` runs the
-  shipping descriptor walk, binding rules, interrupt read length, and the
-  keyboard, mouse, tablet and button decodes against malformed and hostile
-  input: exhaustive edges, a 200,000-round seeded fuzz of each surface with
-  the binding rules checked against a second statement of them, and a named
-  boundary set. Breaking any of those rules in this source fails a proof.
+  shipping descriptor walks, binding rules, interrupt read length and pace,
+  the keyboard, mouse, report-descriptor and button decodes, per-interface
+  state, unplug release and hub port bring-up against malformed and hostile
+  input: exhaustive edges, seeded fuzz of each surface, and a named boundary
+  set. Breaking any of those rules in this source fails a proof.
   `userland/usb_proofs/README.md` says what each proves.
 - Runtime proof target: QEMU `qemu-xhci` keyboard and pointer device, with
-  descriptor classification and event polling confirmed on serial.
+  descriptor classification and input events confirmed on serial.
 - Handbook: [drivers](../../docs/handbook/drivers.md),
   [compositor](../../docs/handbook/desktop/compositor.md).
 
@@ -236,12 +257,15 @@ a configuration descriptor over 64 bytes is refused.
   wTotalLength bytes, up to 512), and SET_CONFIGURATION uses its own
   bConfigurationValue.
 - Boot keyboards and mice get SET_PROTOCOL(boot); keyboards also get
-  SET_IDLE(0). A device that STALLs either is still bound.
-- A device with a boot keyboard or mouse interface binds only those: its
-  media-key, system-control and vendor interfaces are not taken as a tablet.
+  SET_IDLE(0), whose STALL is fine. One that STALLs SET_PROTOCOL stays in
+  report protocol and is read through its report descriptor, so a report ID
+  is never taken for modifier keys; it binds only if that is understood.
+- A device's interfaces in report protocol (media keys, system control, a
+  report-protocol mouse or touchscreen) bind only through their report
+  descriptors; a vendor or gamepad interface binds nothing.
 - Every interrupt-IN endpoint of a composite device is polled on its own
   DCI, so a wireless keyboard and mouse receiver gives both.
-- USB hubs are not supported. A device plugged into a hub, a dock or a
-  monitor does nothing; on finding a hub the driver logs one line saying so,
-  which reaches the console only with the Debug capability.
+- Devices behind hubs, docks and monitors bind through the hub's ports;
+  what each port came to is logged, which reaches the console only with the
+  Debug capability.
 
