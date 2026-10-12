@@ -23,7 +23,8 @@ use crate::ids_parse::{parse, Table};
 
 pub const VENDOR_INTEL: u16 = 0x8086;
 
-static TABLES: [Table; 4] = [
+static TABLES: [Table; 5] = [
+    parse(include_bytes!("../data/gen7_5_ids.txt")),
     parse(include_bytes!("../data/gen8_ids.txt")),
     parse(include_bytes!("../data/gen9_ids.txt")),
     parse(include_bytes!("../data/gen11_ids.txt")),
