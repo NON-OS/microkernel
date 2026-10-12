@@ -36,7 +36,8 @@ use super::orphans::{Orphan, ORPHANS};
 static KEPT: Mutex<BTreeMap<u32, Vec<PhysAddr>>> = Mutex::new(BTreeMap::new());
 
 /*
- * `pid` is exiting, and its address space will be freed frame by frame. Two
+ * `pid`'s last thread, `last`, is exiting, and the address space will be
+ * freed frame by frame (surfaces are held by the thread group, L36). Two
  * kinds of frame in it are not its to free. Frames of its own surfaces that
  * another process (the compositor) still has attached become orphans, freed
  * by `reclaim` once the last holder releases its attach: freed with the
@@ -45,7 +46,7 @@ static KEPT: Mutex<BTreeMap<u32, Vec<PhysAddr>>> = Mutex::new(BTreeMap::new());
  * surfaces it attached from another owner are the owner's to free; freed
  * here too, they were freed twice. Runs before the exit drops the slots.
  */
-pub fn keep_at_exit(pid: u32) {
+pub fn keep_at_exit(pid: u32, last: u32) {
     let _gate = lock_responsive(&GATE);
     let mut keep = Vec::new();
     let owned: Vec<(usize, SurfaceHandle)> = SLOTS
@@ -85,7 +86,7 @@ pub fn keep_at_exit(pid: u32) {
     keep.sort_unstable_by_key(|f| f.as_u64());
     keep.dedup();
     if !keep.is_empty() {
-        KEPT.lock().insert(pid, keep);
+        KEPT.lock().insert(last, keep);
     }
 }
 

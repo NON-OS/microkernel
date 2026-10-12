@@ -77,6 +77,8 @@ pub(super) fn do_register(desc_ptr: u64) -> SyscallResult {
         Some(p) => p,
         None => return errno(ESRCH),
     };
+    // Surfaces are held by the process, not the thread that asked (L36).
+    let pid = crate::hardware::broker::holder_of(pid);
     let desc: SurfaceDescriptor = match read_user_value(desc_ptr) {
         Ok(v) => v,
         Err(_) => return errno(EFAULT),
@@ -123,6 +125,8 @@ pub(super) fn do_attach(handle: u64, out_desc_ptr: u64) -> SyscallResult {
         Some(p) => p,
         None => return errno(ESRCH),
     };
+    // Surfaces are held by the process, not the thread that asked (L36).
+    let pid = crate::hardware::broker::holder_of(pid);
     let mut desc = SurfaceDescriptor::default();
     match attach_surface(pid, handle, &mut desc) {
         Ok(va) => {
@@ -140,6 +144,8 @@ pub(super) fn do_release(handle: u64) -> SyscallResult {
         Some(p) => p,
         None => return errno(ESRCH),
     };
+    // Surfaces are held by the process, not the thread that asked (L36).
+    let pid = crate::hardware::broker::holder_of(pid);
     // Only a holder (the owner or an attacher, both of which have an attach
     // record for this handle) may drop a reference. Without this, any capsule
     // could guess a handle -- epochs are small and there are only 256 slots --
@@ -159,6 +165,8 @@ pub(super) fn do_present(handle: u64, x: u64, y: u64, w: u64, h: u64) -> Syscall
         Some(p) => p,
         None => return errno(ESRCH),
     };
+    // Surfaces are held by the process, not the thread that asked (L36).
+    let pid = crate::hardware::broker::holder_of(pid);
     let (base_va, byte_len) = match lookup_attached_va(pid, handle) {
         Some(v) => v,
         None => return errno(EINVAL),

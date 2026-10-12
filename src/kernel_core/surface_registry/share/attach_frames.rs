@@ -20,7 +20,6 @@ use crate::kernel_core::surface_registry::table::SLOTS;
 use crate::kernel_core::surface_registry::types::{
     decode_handle, RegistryError, SurfaceDescriptor, SurfaceHandle,
 };
-use crate::memory::paging::manager::api::lookup_asid_for_process;
 use crate::process::current_process;
 
 pub(super) fn attach_frames(
@@ -42,7 +41,7 @@ pub(super) fn attach_frames(
         slot.frames.clone()
     };
     let mut desc = super::descriptor::descriptor(handle)?;
-    let asid = lookup_asid_for_process(receiver_pid).ok_or(RegistryError::MapFailed)?;
+    let asid = super::super::space::space_of(receiver_pid).ok_or(RegistryError::MapFailed)?;
     let proc = current_process().ok_or(RegistryError::NoProc)?;
     let base = proc
         .reserve_vma(frames.len().saturating_mul(4096), asid)
