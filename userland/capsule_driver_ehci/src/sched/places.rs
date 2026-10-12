@@ -38,6 +38,10 @@ pub const fn ctrl_ring(slot: u8) -> usize {
 pub const fn bulk_ring(slot: u8, input: bool) -> usize {
     2 + SLOTS + 2 * (slot as usize - 1) + if input { 0 } else { 1 }
 }
+/// Second pair `place`'s QHs (IN, then OUT), after every slot's first.
+pub const fn pair2_ring(place: usize, input: bool) -> usize {
+    2 + SLOTS + BULK_QHS + 2 * place + if input { 0 } else { 1 }
+}
 /// Interrupt endpoint `i`'s QH, qTD and buffer.
 pub const fn intr_qh(i: usize) -> usize {
     qh(RING + i)

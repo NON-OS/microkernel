@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A bulk transfer: `slot, 0, len_le16`, then an OUT's data. The reply is
+//! A bulk transfer: `slot, pair, len_le16`, then an OUT's data (pair 0
+//! the first bulk pair, 1 the second, bulk2.rs). The reply is
 //! `moved_le16, 0, 0`, and an IN's bytes after it; a STALL is E_PIPE, so
 //! the class driver resets the pipe. An IN while the polled TD is armed
 //! is refused: both would take the endpoint's toggle.
 
+use super::bulk2::pair;
 use crate::env::{Clock, Mem, Regs};
 use crate::sched::layout::{BULK_BUF, BULK_MAX};
 use crate::server::context::Ctx;
@@ -34,17 +36,17 @@ pub fn transfer<R: Regs, C: Clock, M: Mem>(
     tx: &mut [u8],
     input: bool,
 ) -> usize {
-    let Some((&[slot, _, lo, hi], out)) = body.split_first_chunk::<4>() else {
+    let Some((&[slot, which, lo, hi], out)) = body.split_first_chunk::<4>() else {
         return status(tx, req, E_INVAL);
     };
     let len = u16::from_le_bytes([lo, hi]) as usize;
     let fits = (1..=BULK_MAX).contains(&len) && out.len() == if input { 0 } else { len };
     let op = cx.table.op;
     let Some(dev) = cx.table.dev(slot).filter(|_| fits) else { return status(tx, req, E_INVAL) };
-    if input && dev.poll.is_some() {
+    if input && which == 0 && dev.poll.is_some() {
         return status(tx, req, E_BUSY);
     }
-    let Some((i, o)) = dev.bulk.as_mut() else { return status(tx, req, E_INVAL) };
+    let Some((i, o)) = pair(dev, which) else { return status(tx, req, E_INVAL) };
     let ep = if input { i } else { o };
     cx.mem.write_bytes(BULK_BUF, out);
     match bulk((&cx.mem, &mut cx.io, &cx.clock), op, ep, input, len) {
