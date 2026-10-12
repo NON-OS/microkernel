@@ -35,21 +35,11 @@ pub struct Chip {
     /// The project the patch file names in its extension block; a file for
     /// another project is not sent, whatever its name.
     pub project: u8,
-    pub format: Format,
     pub firmware: &'static Pin,
     pub config: Option<&'static Pin>,
     /// Some chips do not start without their config; others take it when
     /// it is built in and start without it when it is not.
     pub config_needed: bool,
-}
-
-/// Which of Realtek's two patch file layouts the chip's file is in.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Format {
-    /// "Realtech": a patch per ROM version, chosen by a table.
-    Realtech,
-    /// "RTBTCore": sections of subsections, some signed for a key id.
-    RtbtCore,
 }
 
 /// The chip whose ROM answered `v`; none for another company's controller,
