@@ -39,6 +39,14 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   sends each frame's damaged rectangles in one FLUSH (up to 15), polls STATE every 500 ms with
   the driver's pid looked up again, and on a new primary attaches it,
   releases the old handle and sends RETIRE (`setup/{poll,adopt}.rs`).
+  Every output past 0 that CAPS counts (up to the wire server's four)
+  mirrors the screen: its primary attached, each frame's rectangles drawn
+  onto it fitted and centred (`sw_blitter/resample.rs`) and sent in one
+  FLUSH per output (`frame_pacer/mirror.rs`); the poll reads each one's
+  STATE and CAPS' output count, and a monitor plugged in or pulled out
+  primes the mirrored outputs again (`setup/{heads,poll_heads}.rs`). One
+  canvas across outputs changes the canvas under every client and waits on
+  resizing (G 6).
 - A driver that answers CAPS with -38 is driven on the legacy path:
   `gfx_client` asks for its primary surface, attaches it, and drives
   `transfer_to_host`, `set_scanout` and `resource_flush` over IPC.

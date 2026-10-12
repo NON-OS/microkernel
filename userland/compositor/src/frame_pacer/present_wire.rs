@@ -42,8 +42,11 @@ pub fn present_rects(ctx: &mut Context, rects: &[Damage]) -> Result<(), &'static
     }
     // The composed pixels reach memory before the driver copies them.
     fence(Ordering::Release);
-    match ops::flush(ctx.gfx_port, link.serial, &wire[..n]) {
-        Ok(()) => Ok(()),
+    match ops::flush(ctx.gfx_port, 0, link.serial, &wire[..n]) {
+        Ok(()) => {
+            super::mirror::mirror(ctx, &rects[..n]);
+            Ok(())
+        }
         Err(ESTALE) => {
             if let Some(w) = ctx.wire.as_mut() {
                 w.stale = true;

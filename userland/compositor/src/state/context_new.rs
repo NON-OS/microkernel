@@ -58,6 +58,7 @@ impl Context {
             scale: 1,
             screen: crate::sw_blitter::Surface::default(),
             wire: None,
+            heads: alloc::vec::Vec::new(),
         }
     }
 }
