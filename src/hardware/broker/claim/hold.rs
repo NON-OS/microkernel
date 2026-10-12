@@ -53,8 +53,6 @@ fn pci_record(device_id: u64) -> Option<DeviceRecord> {
 // A thread claims for its process, which is the one the spawn registered the
 // service to.
 fn serves(pid: u32, name: &str) -> bool {
-    let group = crate::process::with_process(pid, |p| p.thread_group_id())
-        .filter(|&g| g != 0)
-        .unwrap_or(pid);
+    let group = crate::hardware::broker::holder_of(pid);
     crate::services::registry::lookup_service(name).is_some_and(|ep| ep.pid == group)
 }

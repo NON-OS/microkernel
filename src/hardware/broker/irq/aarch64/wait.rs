@@ -44,19 +44,19 @@ fn held(e: &Entry, pid: u32) -> bool {
     e.intid.load(Ordering::Acquire) != 0 && e.pid.load(Ordering::Acquire) == pid
 }
 
-pub fn wait_arm(pid: u32, grant_id: u64) -> Result<u64, IrqError> {
+pub fn wait_arm(holder: u32, waiter: u32, grant_id: u64) -> Result<u64, IrqError> {
     let mut seq = 0u64;
-    for e in owned(pid, grant_id)? {
-        e.waiter.store(pid, Ordering::Release);
+    for e in owned(holder, grant_id)? {
+        e.waiter.store(waiter, Ordering::Release);
         seq = seq.wrapping_add(e.pending.load(Ordering::Acquire));
     }
     Ok(seq)
 }
 
-pub fn wait_disarm(pid: u32, grant_id: u64) -> Result<u64, IrqError> {
+pub fn wait_disarm(holder: u32, waiter: u32, grant_id: u64) -> Result<u64, IrqError> {
     let mut seq = 0u64;
-    for e in owned(pid, grant_id)? {
-        let _ = e.waiter.compare_exchange(pid, 0, Ordering::AcqRel, Ordering::Relaxed);
+    for e in owned(holder, grant_id)? {
+        let _ = e.waiter.compare_exchange(waiter, 0, Ordering::AcqRel, Ordering::Relaxed);
         seq = seq.wrapping_add(e.pending.load(Ordering::Acquire));
     }
     Ok(seq)

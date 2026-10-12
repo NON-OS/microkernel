@@ -44,7 +44,9 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
     // completion already posted — the lost-wakeup shape again, costing a full
     // timeout per interrupt that races the arm.
     let token = crate::sched::wake_token(pid);
-    let armed = match crate::hardware::broker::irq_wait_arm(pid, grant_id) {
+    // The grants are the process's; the sleeper, and the one woken, is this thread.
+    let holder = crate::hardware::broker::holder_of(pid);
+    let armed = match crate::hardware::broker::irq_wait_arm(holder, pid, grant_id) {
         Ok(s) => s,
         Err(e) => return super::errno_map::grant_errno(e),
     };
@@ -56,7 +58,7 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
         crate::sched::yield_now();
         deadline = Some(at);
     }
-    let current = match crate::hardware::broker::irq_wait_disarm(pid, grant_id) {
+    let current = match crate::hardware::broker::irq_wait_disarm(holder, pid, grant_id) {
         Ok(s) => s,
         Err(_) => armed,
     };

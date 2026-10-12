@@ -55,18 +55,18 @@ fn combined_seq(idxs: &[usize]) -> u64 {
     idxs.iter().fold(0u64, |acc, &i| acc.wrapping_add(slots::read_counters(i).0))
 }
 
-pub fn wait_arm(pid: u32, grant_id: u64) -> Result<u64, IrqError> {
-    let idxs = owned_slots(pid, grant_id)?;
+pub fn wait_arm(holder: u32, waiter: u32, grant_id: u64) -> Result<u64, IrqError> {
+    let idxs = owned_slots(holder, grant_id)?;
     for &i in &idxs {
-        slots::arm_waiter(i, pid);
+        slots::arm_waiter(i, waiter);
     }
     Ok(combined_seq(&idxs))
 }
 
-pub fn wait_disarm(pid: u32, grant_id: u64) -> Result<u64, IrqError> {
-    let idxs = owned_slots(pid, grant_id)?;
+pub fn wait_disarm(holder: u32, waiter: u32, grant_id: u64) -> Result<u64, IrqError> {
+    let idxs = owned_slots(holder, grant_id)?;
     for &i in &idxs {
-        slots::disarm_waiter(i, pid);
+        slots::disarm_waiter(i, waiter);
     }
     Ok(combined_seq(&idxs))
 }

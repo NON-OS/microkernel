@@ -15,11 +15,7 @@ pub(super) fn finalize_teardown(pid: Pid) {
     };
 
     crate::process::address_space::lifecycle::release(&pcb);
-    let _ = crate::hardware::broker::release_all_for_pid(pid, false);
-    let _ = crate::hardware::broker::irq_release_all_for_pid(pid);
-    let _ = crate::hardware::broker::dma_release_all_for_pid(pid, false);
-    #[cfg(target_arch = "x86_64")]
-    let _ = crate::hardware::broker::pio_release_all_for_pid(pid);
+    super::devices::release_if_last(pid, false);
     /* Done at the exit already; again here for an exit that came another way. */
     release_names(pid, &pcb);
     if !super::postmortem::is_retained(pid) {

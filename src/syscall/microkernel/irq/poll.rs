@@ -30,6 +30,7 @@ pub fn sys_irq_poll(grant_id: u64, out_ptr: u64) -> i64 {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     if out_ptr == 0 {
         return ERRNO_FAULT;
     }

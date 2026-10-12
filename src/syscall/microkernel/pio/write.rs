@@ -28,6 +28,7 @@ pub fn sys_pio_write(grant_id: u64, port_offset: u64, w: u64, value: u64) -> i64
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     let off = match u16::try_from(port_offset) {
         Ok(v) => v,
         Err(_) => return ERRNO_INVAL,

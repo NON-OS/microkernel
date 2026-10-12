@@ -25,6 +25,7 @@ pub fn sys_irq_ack(grant_id: u64) -> i64 {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     match crate::hardware::broker::irq_ack_grant(pid, grant_id) {
         Ok(()) => 0,
         Err(IrqError::NotHolder) => ERRNO_PERM,

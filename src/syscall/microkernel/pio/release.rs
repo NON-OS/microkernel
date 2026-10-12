@@ -28,6 +28,7 @@ pub fn sys_pio_release(grant_id: u64) -> i64 {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     match crate::hardware::broker::pio_release_grant(pid, grant_id) {
         Ok(()) => 0,
         Err(PioError::NotHolder) => ERRNO_PERM,
