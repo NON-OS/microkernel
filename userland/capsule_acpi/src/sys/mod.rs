@@ -28,6 +28,7 @@ pub mod device_name;
 pub mod function_of;
 pub mod hw_error;
 pub mod log;
+pub mod numa;
 pub mod pci_probe;
 pub mod platform;
 pub mod ports;
