@@ -20,6 +20,7 @@
 mod bus_range_tests;
 mod ini_tests;
 mod inventory_tests;
+mod osc_claim_tests;
 mod osc_tests;
 mod pci_tests;
 mod pic_tests;
