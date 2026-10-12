@@ -23,9 +23,10 @@ use nonos_nox_config::{ORDER_TAG, REFUND_TAG};
 
 use crate::terms::{OrderTerms, TERMS_WORDS};
 
+/// `tail` right-aligned in a word (callers pass at most 32 bytes).
 pub(crate) fn word(tail: &[u8]) -> [u8; 32] {
     let mut w = [0u8; 32];
-    w[32 - tail.len()..].copy_from_slice(tail);
+    w.iter_mut().rev().zip(tail.iter().rev()).for_each(|(o, b)| *o = *b);
     w
 }
 
@@ -34,10 +35,8 @@ pub fn order_id(k: &impl Keccak, chain_id: u64, escrow: &[u8; 20], t: &OrderTerm
     pre[..32].copy_from_slice(&ORDER_TAG);
     pre[32..64].copy_from_slice(&word(&chain_id.to_be_bytes()));
     pre[64..96].copy_from_slice(&word(escrow));
-    t.words()
-        .iter()
-        .enumerate()
-        .for_each(|(i, w)| pre[96 + 32 * i..128 + 32 * i].copy_from_slice(w));
+    let terms = pre.chunks_exact_mut(32).skip(3);
+    terms.zip(t.words().iter()).for_each(|(slot, w)| slot.copy_from_slice(w));
     k.keccak256(&pre)
 }
 

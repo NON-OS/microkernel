@@ -48,7 +48,8 @@ pub fn pow_ok(challenge: &[u8], solution: &[u8; SOLUTION_BYTES], effort: u32) ->
     hash.update(solution);
     let mut r = [0u8; 4];
     hash.finish(&mut r);
-    u64::from(u32::from_be_bytes(r)) * u64::from(effort) <= u64::from(u32::MAX)
+    let scaled = u64::from(u32::from_be_bytes(r)).checked_mul(u64::from(effort));
+    scaled.is_some_and(|s| s <= u64::from(u32::MAX))
 }
 
 /// The whole check: the field parses, its effort is at least `least`, Equi-X
