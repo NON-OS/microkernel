@@ -26,5 +26,4 @@
 
 pub mod header;
 pub mod mgmt;
-pub mod data;
 pub mod parse;

@@ -353,10 +353,6 @@ fn only_the_legacy_ops_that_write_the_card_are_refused_once_the_radio_owns_it() 
         OP_RX_POLL,
         OP_MGMT_BUILD,
         OP_BEACON_PARSE,
-        OP_WPA_PTK,
-        OP_CCMP,
-        OP_WIFI_TX,
-        OP_WIFI_RX,
     ] {
         assert!(!drives_card(op), "{op:#x}");
     }

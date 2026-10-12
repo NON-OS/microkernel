@@ -1,16 +1,12 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Hardening proofs: the driver parses attacker-controlled input, so no input,
-//! however malformed, may panic, read out of bounds, or fail to terminate. Each
-//! test drives a parser over hundreds of thousands of pseudo-random inputs; a
-//! panic or a hang fails the test. This is the adversary model: the AP controls
-//! every beacon byte, the firmware controls every DMA byte and the RX write
-//! pointer, and the IPC client controls every request byte.
+//! Hardening proofs: no input, however malformed, may make a parser panic,
+//! read out of bounds or hang; each runs over hundreds of thousands of
+//! pseudo-random inputs. The AP controls every beacon byte, the firmware every
+//! DMA byte and the RX write pointer. The CCMP and EAPOL ones now run against
+//! the core, in `nonos_wifi_core_proofs`.
 
-use crate::ccmp::ccm::ccm_decrypt;
 use crate::constants::{RB_SIZE, RX_QUEUE_SIZE, RX_RB_OFFSET};
 use crate::dot11::parse::{find_ie, parse_beacon};
-use crate::eapol::mic::verify_mic;
-use crate::eapol::parse::parse as eapol_parse;
 use crate::rx::packet::parse as rx_parse;
 use crate::rx::recv::receive;
 
@@ -55,37 +51,6 @@ fn rx_packet_parser_never_panics_on_hostile_dma() {
     for _ in 0..400_000 {
         let buf = fuzz_buf(&mut s, 64);
         let _ = rx_parse(&buf);
-    }
-}
-
-#[test]
-fn ccm_decrypt_never_panics_on_hostile_ciphertext() {
-    // A rogue peer controls the ciphertext, tag and additional data; the
-    // authenticated-decrypt path must never panic or read OOB, and must reject.
-    let key = [0x2bu8; 16];
-    let nonce = [0x11u8; 13];
-    let mut out = [0u8; 256];
-    let mut s = 0xC0DE_CAFE_1234_ABCD;
-    for _ in 0..200_000 {
-        let aad = fuzz_buf(&mut s, 32);
-        let input = fuzz_buf(&mut s, 200);
-        let _ = ccm_decrypt(&key, &nonce, &aad, &input, &mut out);
-    }
-}
-
-#[test]
-fn eapol_parse_and_mic_never_panic_on_hostile_frames() {
-    // A rogue AP controls every byte of the handshake frame and the key data
-    // length; neither the parse nor the MIC check may panic or read OOB.
-    let mut s = 0xF00D_BABE_1234_5678;
-    for _ in 0..400_000 {
-        let frame = fuzz_buf(&mut s, 160);
-        let _ = eapol_parse(&frame);
-        let kck = [
-            s as u8, (s >> 8) as u8, (s >> 16) as u8, (s >> 24) as u8, (s >> 32) as u8,
-            (s >> 40) as u8, (s >> 48) as u8, (s >> 56) as u8, 0, 0, 0, 0, 0, 0, 0, 0,
-        ];
-        let _ = verify_mic(&kck, &frame);
     }
 }
 

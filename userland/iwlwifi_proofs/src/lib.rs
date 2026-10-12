@@ -60,16 +60,6 @@ pub mod hcmd;
 // The receive path: response packet framing and the receive-ring math.
 pub mod rx;
 
-// The WPA2 key derivation: SHA-1, HMAC-SHA1, PBKDF2, the 802.11i PRF, and the
-// PMK/PTK derivation, checked against RFC and IEEE known-answer vectors.
-pub mod wpa;
-
-// The EAPOL-Key handshake message layer: frame parse and MIC verification.
-pub mod eapol;
-
-// WPA2 CCMP data protection: AES-128 in CCM mode.
-pub mod ccmp;
-
 #[cfg(test)]
 mod grants_tests;
 #[cfg(test)]
@@ -85,24 +75,7 @@ mod rx_tests;
 mod harden_tests;
 
 #[cfg(test)]
-mod wpa_tests;
-
-#[cfg(test)]
-mod eapol_tests;
-
-#[cfg(test)]
 mod dot11_tests;
-
-#[cfg(test)]
-mod ccmp_tests;
-#[cfg(test)]
-mod data_tests;
-#[path = "../../capsule_driver_iwlwifi/src/mlme/mod.rs"]
-pub mod mlme;
-#[cfg(test)]
-mod mlme_tests;
-#[cfg(test)]
-mod supplicant_tests;
 
 // The gen3 (AX210-class) firmware self-load: the context-information structure,
 // the peripheral-scratch control block, the image parser, and the boot

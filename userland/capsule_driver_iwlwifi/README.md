@@ -103,13 +103,13 @@ The driver's own `NIWF` protocol (version 1):
 | `OP_FIRMWARE_STAGE` | none | staged firmware section counts and bytes |
 | `OP_ALIVE_WAIT` | none | alive notification status and interrupt word |
 
-It also routes `OP_FIRMWARE_LOAD`, `OP_RX_POLL`, and the older join helpers
-from before the shared core ran the join (`OP_MGMT_BUILD`, `OP_BEACON_PARSE`,
-`OP_HCMD_ISSUE`, `OP_WPA_PTK`, `OP_EAPOL_VERIFY`, `OP_CCMP`,
-`OP_KEY_UNWRAP`, `OP_EAPOL_BUILD`, `OP_SUPPLICANT_START`,
-`OP_SUPPLICANT_STEP`, `OP_CONNECT_START`, `OP_CONNECT_MGMT`,
-`OP_CONNECT_EAPOL`, `OP_WIFI_TX`, `OP_WIFI_RX`; `src/server/dispatch.rs`).
-Nothing in the tree speaks NIWF to them.
+It also routes `OP_FIRMWARE_LOAD`, `OP_RX_POLL`, and the older helpers from
+before the shared core ran the join (`OP_MGMT_BUILD`, `OP_BEACON_PARSE`,
+`OP_HCMD_ISSUE`; `src/server/dispatch.rs`). Nothing in the tree speaks NIWF to
+them. The key helpers that took or returned key material (`0x000D` to
+`0x0018`: the PTK, the handshake, CCMP, key unwrap and the raw data path),
+with the private copies of the WPA2 code behind them, are gone; their numbers
+are never reused and now reply `E_INVAL` (`E_BAD_OP` with no body).
 
 Unknown operations reply `E_BAD_OP`. Non-empty bodies on fixed-width requests
 reply `E_INVAL`. Once the gen3 radio owns the card, the ops that write it
