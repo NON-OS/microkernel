@@ -28,10 +28,14 @@
 //! wants `arch::wall_clock`, which reads the RTC.
 
 mod boot;
+// Only x86 calls in: its TSC rate can be unknown at the anchor and is then
+// measured against the ACPI PM timer. aarch64 reads CNTFRQ_EL0 at the anchor.
+#[allow(dead_code)]
+pub(crate) mod late_rate;
 mod now;
 mod units;
 
-pub(crate) use boot::{anchor, counter_hz_known, set_counter_hz_if_unknown};
+pub(crate) use boot::anchor;
 pub use now::now_ns;
 pub use units::{
     current_ticks, get_kernel_time_ns, monotonic_ns, timestamp_millis, timestamp_secs,
