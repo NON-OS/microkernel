@@ -30,6 +30,7 @@ mod confine;
 mod device;
 pub mod dma;
 mod grant;
+mod holder;
 // IRQ broker is cross-arch: x86 uses IO-APIC + MSI-X; aarch64 uses
 // GICv3 SPIs; riscv64 uses PLIC external sources. Backend selection
 // happens inside `irq::mod.rs` via `target_arch` cfg.
@@ -72,6 +73,8 @@ pub use dma::{
     DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult,
 };
 pub use grant::{GrantError, MmioGrant};
+pub(crate) use holder::others_alive;
+pub use holder::holder_of;
 pub use irq::{
     ack_grant as irq_ack_grant, bind as irq_bind, poll as irq_poll,
     release_all_for_pid as irq_release_all_for_pid, release_for_device as irq_release_for_device,
