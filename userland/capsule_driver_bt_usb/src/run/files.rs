@@ -42,12 +42,6 @@ const FILES: &[(&str, &[u8])] = rtl_bt![
     "rtl8821c_config.bin",
     "rtl8761bu_config.bin",
     "rtl8822b_config.bin",
-    "rtl8822cu_fw.bin",
-    "rtl8852au_fw.bin",
-    "rtl8852bu_fw.bin",
-    "rtl8852btu_fw.bin",
-    "rtl8852cu_fw_v2.bin",
-    "rtl8851bu_fw.bin",
 ];
 
 pub struct Files;

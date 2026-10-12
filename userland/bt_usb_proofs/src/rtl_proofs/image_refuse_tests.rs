@@ -29,17 +29,13 @@ fn a_patch_file_not_its_pin_is_refused_before_the_config_is_read() {
     let mut other = f.clone();
     other[20] ^= 0x80;
     let mut m = store(&other, Some(CONFIG));
-    assert_eq!(image(&table[0], 1, 0, &mut m), Err(Refused::NotPinned(FW)));
+    assert_eq!(image(&table[0], 1, &mut m), Err(Refused::NotPinned(FW)));
     assert_eq!(m.asked, [FW]);
     let mut longer = f.clone();
     longer.push(0);
     let refused = Err(Refused::NotPinned(FW));
-    assert_eq!(
-        image(&table[0], 1, 0, &mut store(&longer, Some(CONFIG))),
-        refused,
-        "one octet more"
-    );
-    assert_eq!(image(&table[0], 1, 0, &mut Mem::default()), Err(Refused::Missing(FW)));
+    assert_eq!(image(&table[0], 1, &mut store(&longer, Some(CONFIG))), refused, "one octet more");
+    assert_eq!(image(&table[0], 1, &mut Mem::default()), Err(Refused::Missing(FW)));
 }
 
 #[test]
@@ -47,9 +43,9 @@ fn a_pinned_file_for_another_project_or_rom_is_refused() {
     let f = file(13);
     let table = chips(pin(FW, &f), None, false);
     let refused = Refused::Layout(FW, Layout::Project);
-    assert_eq!(image(&table[0], 1, 0, &mut store(&f, None)), Err(refused));
+    assert_eq!(image(&table[0], 1, &mut store(&f, None)), Err(refused));
     let ours = file(10);
     let table = chips(pin(FW, &ours), None, false);
     let refused = Refused::Layout(FW, Layout::NoPatch);
-    assert_eq!(image(&table[0], 4, 0, &mut store(&ours, None)), Err(refused));
+    assert_eq!(image(&table[0], 4, &mut store(&ours, None)), Err(refused));
 }
