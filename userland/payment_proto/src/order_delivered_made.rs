@@ -43,7 +43,7 @@ impl DeliveredMade {
         match tag {
             0 => r.end(DeliveredMade::Ok { content_len: n }),
             1 if b.len() > 9 => {
-                Some(DeliveredMade::BadChunk { index: n, calldata: b[9..].to_vec() })
+                Some(DeliveredMade::BadChunk { index: n, calldata: b.get(9..)?.to_vec() })
             }
             _ => None,
         }

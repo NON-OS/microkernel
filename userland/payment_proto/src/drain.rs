@@ -21,6 +21,7 @@
 
 use alloc::vec::Vec;
 
+use crate::bytes::len_u8;
 use crate::cursor::Cursor;
 use crate::voucher::{VoucherRecord, DRAIN_ROWS_MAX, VOUCHER_RECORD_LEN};
 
@@ -32,8 +33,9 @@ pub struct Drain {
 
 impl Drain {
     pub fn encode(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(2 + self.rows.len() * VOUCHER_RECORD_LEN);
-        out.extend_from_slice(&[self.total, self.rows.len() as u8]);
+        let rows = self.rows.len().saturating_mul(VOUCHER_RECORD_LEN);
+        let mut out = Vec::with_capacity(rows.saturating_add(2));
+        out.extend_from_slice(&[self.total, len_u8(self.rows.len())]);
         self.rows.iter().for_each(|v| v.put(&mut out));
         out
     }

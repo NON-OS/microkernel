@@ -26,6 +26,7 @@
 //! For SIGN the meter builds settle(vouchers, sigs) from its own newest
 //! vouchers of the named channels; settle supplies only what it quotes.
 
+use crate::bytes::len_u8;
 use alloc::vec::Vec;
 
 pub const DRAIN_LIST: u8 = 0;
@@ -59,7 +60,7 @@ impl DrainRequest {
                 }
                 out.extend_from_slice(&s.max_fee.to_le_bytes());
                 out.extend_from_slice(&s.max_priority.to_le_bytes());
-                out.push(s.channels.len() as u8);
+                out.push(len_u8(s.channels.len()));
                 s.channels.iter().for_each(|c| out.extend_from_slice(c));
                 out
             }

@@ -18,18 +18,19 @@
 
 use alloc::vec::Vec;
 
+use crate::bytes::{fixed, len_u32};
 use crate::header::{parse_header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
 
 fn framed(op: u16, flags: u16, request_id: u32, parts: &[&[u8]]) -> Vec<u8> {
     let len: usize = parts.iter().map(|p| p.len()).sum();
-    let mut out = Vec::with_capacity(HDR_LEN + len);
+    let mut out = Vec::with_capacity(HDR_LEN.saturating_add(len));
     out.extend_from_slice(&MAGIC.to_le_bytes());
     out.extend_from_slice(&VERSION.to_le_bytes());
     out.extend_from_slice(&op.to_le_bytes());
     out.extend_from_slice(&flags.to_le_bytes());
     out.extend_from_slice(&0u16.to_le_bytes());
     out.extend_from_slice(&request_id.to_le_bytes());
-    out.extend_from_slice(&(len as u32).to_le_bytes());
+    out.extend_from_slice(&len_u32(len).to_le_bytes());
     parts.iter().for_each(|p| out.extend_from_slice(p));
     out
 }
@@ -62,8 +63,8 @@ pub fn reply_body(rx: &[u8], op: u16, request_id: u32) -> Result<&[u8], ReplyErr
         return Err(ReplyError::Stale);
     }
     let status = payload.get(..STATUS_LEN).ok_or(ReplyError::Foreign)?;
-    match i32::from_le_bytes([status[0], status[1], status[2], status[3]]) {
-        0 => Ok(&payload[STATUS_LEN..]),
+    match i32::from_le_bytes(fixed(status, 0).ok_or(ReplyError::Foreign)?) {
+        0 => payload.get(STATUS_LEN..).ok_or(ReplyError::Foreign),
         s => Err(ReplyError::Status(s)),
     }
 }

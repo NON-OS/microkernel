@@ -19,6 +19,7 @@
 
 use alloc::vec::Vec;
 
+use crate::bytes::len_u8;
 use crate::cursor::Cursor;
 
 mod listing_cap;
@@ -52,10 +53,10 @@ impl SetBudget {
         if self.listings.len() > MAX_LISTING_CAPS {
             return None;
         }
-        let mut out = Vec::with_capacity(25 + 48 * self.listings.len());
+        let mut out = Vec::with_capacity(self.listings.len().saturating_mul(48).saturating_add(25));
         out.extend_from_slice(&self.cap.to_le_bytes());
         out.extend_from_slice(&self.expiry.to_le_bytes());
-        out.push(self.listings.len() as u8);
+        out.push(len_u8(self.listings.len()));
         for (id, cap) in &self.listings {
             out.extend_from_slice(id);
             out.extend_from_slice(&cap.to_le_bytes());

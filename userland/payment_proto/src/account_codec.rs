@@ -17,12 +17,14 @@
 use alloc::vec::Vec;
 
 use crate::account::{Account, AccountRow, ACCOUNT_ROWS_MAX, ACCOUNT_ROW_LEN};
+use crate::bytes::len_u8;
 use crate::cursor::Cursor;
 use crate::cursor_put::flag;
 
 impl Account {
     pub fn encode(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(79 + self.rows.len() * ACCOUNT_ROW_LEN);
+        let rows = self.rows.len().saturating_mul(ACCOUNT_ROW_LEN);
+        let mut out = Vec::with_capacity(rows.saturating_add(79));
         out.push(self.flags);
         out.extend_from_slice(&self.address);
         for v in [self.cap, self.spent] {
@@ -31,7 +33,7 @@ impl Account {
         out.extend_from_slice(&self.expiry.to_le_bytes());
         out.extend_from_slice(&self.left.to_le_bytes());
         out.push(self.total);
-        out.push(self.rows.len() as u8);
+        out.push(len_u8(self.rows.len()));
         for r in &self.rows {
             out.extend_from_slice(&r.channel_id);
             out.extend_from_slice(&r.listing_id);
@@ -50,22 +52,19 @@ impl Account {
         let mut r = Cursor::new(b);
         let (flags, address) = (r.u8()?, r.fixed()?);
         let (cap, spent, expiry, left) = (r.u128()?, r.u128()?, r.u64()?, r.u128()?);
-        let (total, n) = (r.u8()?, r.u8()? as usize);
+        let (total, n) = (r.u8()?, usize::from(r.u8()?));
+        // Fields are read in wire order: a struct literal evaluates in the order written.
         let row = |r: &mut Cursor| -> Option<AccountRow> {
-            let (channel_id, listing_id, chain_id) = (r.fixed()?, r.fixed()?, r.u64()?);
-            let (deposit, settled, cumulative) = (r.u128()?, r.u128()?, r.u128()?);
-            let (expiry, frozen, reclaim_to) = (r.u64()?, flag(r.u8()?)?, r.fixed()?);
-            let (channel_id, listing_id) = (channel_id, listing_id);
             Some(AccountRow {
-                channel_id,
-                listing_id,
-                chain_id,
-                deposit,
-                settled,
-                cumulative,
-                expiry,
-                frozen,
-                reclaim_to,
+                channel_id: r.fixed()?,
+                listing_id: r.fixed()?,
+                chain_id: r.u64()?,
+                deposit: r.u128()?,
+                settled: r.u128()?,
+                cumulative: r.u128()?,
+                expiry: r.u64()?,
+                frozen: flag(r.u8()?)?,
+                reclaim_to: r.fixed()?,
             })
         };
         let rows = (0..n.min(ACCOUNT_ROWS_MAX)).map(|_| row(&mut r)).collect::<Option<Vec<_>>>()?;

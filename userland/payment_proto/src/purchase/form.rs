@@ -47,9 +47,8 @@ impl Ready {
     }
 
     pub fn parse(b: &[u8]) -> Option<Self> {
-        let at = b.len().checked_sub(32)?;
-        let names = Names::parse(&b[..at])?;
-        Some(Ready { names, order_id: b[at..].try_into().ok()? })
+        let (names, order_id) = b.split_at_checked(b.len().checked_sub(32)?)?;
+        Some(Ready { names: Names::parse(names)?, order_id: order_id.try_into().ok()? })
     }
 }
 
