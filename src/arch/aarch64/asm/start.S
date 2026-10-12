@@ -29,6 +29,9 @@
  *   HSTR_EL2      no trapped system registers
  *   HFG*TR_EL2    with fine-grained traps, none set
  *   HCRX_EL2      with it present, every extra control off
+ *   MDCR_EL2      no debug, PMU or trace traps; HPMN = PMCR_EL0.N so EL1
+ *                 sees every event counter, and with SPE or TRBE their
+ *                 buffers owned by EL1 (E2PB, E2TB = 0b11), not trapped
  *   ICC_SRE_EL2   on a GICv3, SRE plus Enable, or EL1 cannot turn on its
  *                 own system-register interface
  *   SCTLR_EL1     MMU and caches off, RES1 bits 11/20/22/23/28/29 */
@@ -86,7 +89,23 @@
     cbz     x9, 8f
     msr     S3_4_C1_C2_2, xzr           /* HCRX_EL2 */
 
-8:  ubfx    x9, x10, #24, #4            /* GIC system registers */
+8:  mrs     x9, id_aa64dfr0_el1
+    mov     x12, xzr
+    ubfx    x11, x9, #8, #4             /* PMUVer */
+    cbz     x11, 12f
+    cmp     x11, #0xf                   /* an IMPLEMENTATION DEFINED PMU */
+    b.eq    12f
+    mrs     x12, pmcr_el0
+    ubfx    x12, x12, #11, #5           /* N, as HPMN: every counter EL1's */
+12: ubfx    x11, x9, #32, #4            /* PMSVer */
+    cbz     x11, 13f
+    orr     x12, x12, #(3 << 12)        /* E2PB: EL1 owns SPE's buffer */
+13: ubfx    x11, x9, #44, #4            /* TraceBuffer */
+    cbz     x11, 14f
+    orr     x12, x12, #(3 << 24)        /* E2TB: EL1 owns the trace buffer */
+14: msr     mdcr_el2, x12
+
+    ubfx    x9, x10, #24, #4            /* GIC system registers */
     cbz     x9, 10f
     mrs     x9, S3_4_C12_C9_5           /* ICC_SRE_EL2 */
     mov     x11, #0x9                   /* SRE | Enable */
