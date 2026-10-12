@@ -34,6 +34,11 @@ impl Line {
         Line(v)
     }
 
+    /// A line under another tag than `[ACPI]`, as `[SMBIOS] `.
+    pub fn tagged(tag: &[u8]) -> Self {
+        Line(tag.to_vec())
+    }
+
     pub fn str(mut self, s: &[u8]) -> Self {
         self.0.extend_from_slice(s);
         self

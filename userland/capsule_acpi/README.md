@@ -107,7 +107,7 @@ function, and does no DMA.
 `CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve port 4530; Memory
 (0x10) for the heap and the interpreter's objects; DeviceEnum (0x8000) to
 find the SCI record; Driver (0x10000) to claim it; Irq (0x40000) to bind
-it; Admin (0x200) for the seven ACPI calls, which the kernel gates on Admin
+it; Admin (0x200) for the seven ACPI calls and MkSmbiosTable, which the kernel gates on Admin
 until a Firmware bit of their own is decided. Debug (0x100) is optional, for
 its serial lines. No Mmio, Dma or Pio.
 
@@ -141,6 +141,11 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
 - THERMAL (7): the number of zones (at most 64), then per zone its
   temperature and _CRT in tenths of a kelvin (0 unknown or absent) and
   state bits (1 passive, 2 hot, 4 critical, 8 a fan it lists running).
+- SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
+  once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
+  product, version, board vendor, board, BIOS vendor, version and date, and
+  chassis, each a length byte and its text. Never a serial number or the
+  UUID. ENOENT without SMBIOS. Logged at start on one `[SMBIOS]` line.
 
 ## Privacy and persistence
 
