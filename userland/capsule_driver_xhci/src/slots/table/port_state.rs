@@ -27,7 +27,7 @@ pub const PORT_CLAIMED: u8 = 2;
 impl SlotTable {
     pub fn port_state(&self, port_id: u8) -> u8 {
         let state = |r: &super::super::SlotResources| {
-            if !r.interrupt.is_empty() || r.bulk.is_some() {
+            if !r.interrupt.is_empty() || r.has_bulk() {
                 PORT_CLAIMED
             } else {
                 PORT_ADDRESSED
