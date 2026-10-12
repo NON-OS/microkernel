@@ -18,49 +18,28 @@
 //!
 //! Nothing happens unless the policy store says this boot keeps state (it
 //! does only once it restored what setup kept, and never in amnesic mode)
-//! and the Wi-Fi switch is not off. The saved record is opened with the TPM
-//! key once, the first pass that gets this far, and kept until autojoin is
-//! done (`forget_saved`), when the list drops and wipes the passphrases:
-//! opening it is a TPM round trip, which every pass used to repeat inside the
-//! serve loop. A network is in range when the scan heard its name; a hidden
+//! and the Wi-Fi switch is not off; then the saved list is opened (`saved`).
+//! A network is in range when the scan heard its name; a hidden
 //! one, whose beacons carry no name, is tried anyway (the driver probes for it
 //! by name, the only case a saved name goes on the air). Each join carries the
 //! saved flags, so a network saved as WPA3 is never joined with WPA2.
 
-use spin::Mutex;
+use nonos_wifi_client::{ScanNetwork, ScanOutcome};
 
-use nonos_wifi_client::{join_text, load, SavedError, SavedList, ScanNetwork, ScanOutcome};
-
+use super::join::join;
 use super::machine::{Step, CALL_MS};
 use super::ready::ready;
-use super::tick::say;
-
-/// The saved networks, opened once and kept while autojoin runs.
-static SAVED: Mutex<Option<SavedList>> = Mutex::new(None);
-
-/// Drop the saved list, which wipes its passphrases.
-pub fn forget_saved() {
-    *SAVED.lock() = None;
-}
+use super::saved::saved;
 
 pub fn attempt(tried: u8) -> Step {
     let driver = match ready() {
         Ok(driver) => driver,
         Err(step) => return step,
     };
-    let mut saved = SAVED.lock();
-    if saved.is_none() {
-        match load() {
-            Ok(list) => *saved = Some(list),
-            Err(SavedError::NoStore) => return Step::NotYet,
-            Err(e) => {
-                say(b"[NET-CORE] saved Wi-Fi networks not opened: ");
-                say(e.text().as_bytes());
-                say(b"\n");
-                return Step::Done;
-            }
-        }
-    }
+    let saved = match saved() {
+        Ok(saved) => saved,
+        Err(step) => return step,
+    };
     let Some(list) = saved.as_ref() else { return Step::NotYet };
     if list.is_empty() {
         return Step::Done;
@@ -82,21 +61,5 @@ pub fn attempt(tried: u8) -> Step {
     let Some(i) = due.find(|&i| in_range(i)) else {
         return Step::NoneInRange;
     };
-    let index = i as u8;
-    match driver.connect_within(list.ssid(i), list.passphrase(i), list.join_flags(i), CALL_MS) {
-        None => {
-            say(b"[NET-CORE] joining a saved Wi-Fi network\n");
-            Step::Started(index)
-        }
-        Some(r) if r.code == 0 => {
-            say(b"[NET-CORE] joined a saved Wi-Fi network\n");
-            Step::Answered { index, joined: true }
-        }
-        Some(r) => {
-            say(b"[NET-CORE] saved Wi-Fi network not joined: ");
-            say(join_text(r.code).as_bytes());
-            say(b"\n");
-            Step::Answered { index, joined: false }
-        }
-    }
+    join(&driver, list, i)
 }
