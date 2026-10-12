@@ -22,6 +22,7 @@
 
 extern crate alloc;
 
+mod backlight;
 mod boot;
 mod buttons;
 mod cooling;

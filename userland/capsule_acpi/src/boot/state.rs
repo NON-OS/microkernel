@@ -16,6 +16,7 @@
 
 //! Everything the capsule holds once it is up.
 
+use crate::backlight::Backlight;
 use crate::buttons::Buttons;
 use crate::cooling::Cooling;
 use crate::ec::Ec;
@@ -41,6 +42,7 @@ pub struct Acpi {
     pub power: Power,
     pub buttons: Buttons,
     pub cooling: Cooling,
+    pub backlight: Backlight,
     pub devices: Vec<DeviceInfo>,
     pub routes: Vec<(Id, Vec<Route>)>,
     /// SCIs served and GPE methods run, for the status reply.
