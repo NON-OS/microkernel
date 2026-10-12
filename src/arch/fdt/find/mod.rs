@@ -23,6 +23,7 @@ pub mod msi;
 pub mod pci;
 pub mod platform;
 pub mod plic;
+pub mod psci;
 pub mod rtc;
 pub mod smmu;
 pub mod timebase;
