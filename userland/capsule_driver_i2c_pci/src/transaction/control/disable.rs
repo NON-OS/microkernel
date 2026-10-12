@@ -22,7 +22,8 @@ use crate::constants::{
 use crate::regs::Regs;
 use crate::transaction::TransferError;
 
-/// Disable the core the way Linux __i2c_dw_disable does. A master holding the
+/// Disable the core (DW_apb_i2c databook's disable procedure, as recalled,
+/// unverified). A master holding the
 /// bus (its TX FIFO ran dry before a STOP, MST_ON_HOLD) never reports itself
 /// disabled, so it is told to ABORT first, which sends the STOP. Then
 /// IC_ENABLE is written to zero again on every poll until IC_ENABLE_STATUS
