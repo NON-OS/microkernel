@@ -16,6 +16,7 @@
 
 mod access;
 mod alarm_scan;
+mod ambient;
 mod build_pcb;
 mod claim;
 mod create;
@@ -28,7 +29,7 @@ mod thread_spawn;
 mod thread_start;
 mod types;
 
-pub(crate) use inherit::AMBIENT_CAPS;
+pub(crate) use ambient::AMBIENT_CAPS;
 pub use claim::{claim_new, release_new};
 pub(crate) use create::create_process_with_parent;
 pub use create::{create_process, create_process_with_mem};
