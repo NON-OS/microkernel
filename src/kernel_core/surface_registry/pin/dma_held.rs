@@ -22,8 +22,7 @@ use crate::kernel_core::surface_registry::attach_map::snapshot::has_foreign_hold
 use crate::kernel_core::surface_registry::types::SurfaceHandle;
 use crate::smp::lock_responsive;
 
-use super::dma_plan::due;
-use super::dma_rule::DmaOrphan;
+use super::dma_rule::{due, DmaOrphan};
 use super::gate::GATE;
 
 /* DMA grants the registry holds for their surfaces' other holders (K15). */
