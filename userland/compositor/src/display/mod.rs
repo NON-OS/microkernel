@@ -19,12 +19,15 @@
 pub mod backoff;
 pub mod call;
 pub mod cursor_rule;
+pub mod follow;
 pub mod head;
 pub mod head_rule;
 pub mod hint_rule;
 pub mod link;
 pub mod ops;
+pub mod ops_mode;
 pub mod poll_rule;
+pub mod resize_rule;
 
 pub use backoff::Backoff;
 pub use head::Head;

@@ -2724,6 +2724,7 @@
    "userland/compositor/src/display/hint_rule.rs",
    "userland/compositor/src/display/link.rs",
    "userland/compositor/src/display/poll_rule.rs",
+   "userland/compositor/src/display/resize_rule.rs",
    "userland/compositor/src/frame_pacer/compose.rs",
    "userland/compositor/src/frame_pacer/cursor.rs",
    "userland/compositor/src/frame_pacer/cursor_shape.rs",

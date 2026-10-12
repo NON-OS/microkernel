@@ -50,6 +50,8 @@ pub struct Context {
     /// The pointer as the device's cursor plane last showed it; None owes
     /// the primary a drawn slot and NEW_SHAPE.
     pub cursor_sent: Option<super::cursor::CursorState>,
+    /// The host's wanted size and what was asked for (G 6).
+    pub resize: crate::display::resize_rule::Resize,
 }
 
 impl Context {
