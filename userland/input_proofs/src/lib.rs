@@ -116,6 +116,8 @@ mod router_desk;
 #[cfg(test)]
 mod router_focus_tests;
 #[cfg(test)]
+mod router_hold_end_tests;
+#[cfg(test)]
 mod router_hover_tests;
 #[cfg(test)]
 mod router_key_tests;
@@ -128,7 +130,13 @@ mod router_route_tests;
 #[cfg(test)]
 mod router_system_key_tests;
 #[cfg(test)]
+mod router_trusted_tests;
+#[cfg(test)]
+mod secure_chord_tests;
+#[cfg(test)]
 mod touchpad_tests;
+#[cfg(test)]
+mod trusted_rule_tests;
 #[cfg(test)]
 mod usb_keycode_tests;
 #[cfg(test)]

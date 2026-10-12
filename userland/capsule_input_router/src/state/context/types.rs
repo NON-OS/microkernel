@@ -37,4 +37,6 @@ pub struct Context {
     pub cursor_x: u32,
     pub cursor_y: u32,
     pub cursor_dirty: bool,
+    /// The trusted band's hold as the compositor last told it.
+    pub trusted: Option<crate::route::trusted_hold::Hold>,
 }

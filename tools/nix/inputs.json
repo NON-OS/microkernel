@@ -2772,6 +2772,7 @@
    "userland/compositor/src/state/scene_raise.rs",
    "userland/compositor/src/state/scene_remove.rs",
    "userland/compositor/src/state/scene_submit.rs",
+   "userland/compositor/src/state/trusted_rule.rs",
    "userland/compositor/src/state/visible.rs",
    "userland/compositor/src/sw_blitter",
    "userland/compositor_proofs",

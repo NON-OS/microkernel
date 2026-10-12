@@ -41,6 +41,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md), se
 | `OP_SUBSCRIBE` | 0x0002 | register the sender with a mask of the input kinds it takes |
 | `OP_GRAB_REQUEST` | 0x0003 | take every event of some kinds; only the five services in `GRABBERS` may, and only while focused (`route/grab_rule.rs`) |
 | `OP_GRAB_RELEASE` | 0x0004 | give the grab back |
+| `OP_TRUSTED_HOLD` | 0x0005 | from the compositor only, one-way and never answered: the pid holding its trusted band (0: none); a hold not heard again for 3 s lapses (`route/trusted_hold.rs`) |
 
 `GRABBERS` is the boot splash, the setup wizard, the input probe, the
 desktop shell and the installer. Each may grab only while its window has
@@ -61,6 +62,12 @@ named.
 - Keys: a key press goes to the pid `OP_QUERY_FOCUS` names; its release
   goes to the pid that got the press.
 - Every delivery needs a subscription whose kind mask allows the event.
+- Ahead of grabs and focus (`route/preempt.rs`): the press of a reserved
+  key goes to the shell (Ctrl+Alt+Esc; Ctrl+Alt+Delete, the secure
+  attention chord; the system keys), its release follows it, and while the
+  compositor's trusted band is held (a lock screen or a permission prompt
+  is up) every key, click, motion and wheel goes to its holder alone, and
+  a grab requested by anyone else is refused with E_BUSY.
 
 ## Authority
 

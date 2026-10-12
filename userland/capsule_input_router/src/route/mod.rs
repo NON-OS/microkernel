@@ -17,10 +17,16 @@
 pub mod chord;
 pub mod deliver;
 pub mod dispatch;
+mod fanout;
 pub mod grab_rule;
+mod held;
+mod key_deliver;
+mod kinds;
 pub mod key_target;
 mod keyboard;
 mod pointer;
+pub mod preempt;
 pub mod shell_keys;
+pub mod trusted_hold;
 
 pub use dispatch::route_event;
