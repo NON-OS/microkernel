@@ -41,3 +41,6 @@ pub mod watch_rule;
 /// The input ring's take clears what it hands out (K8).
 #[path = "input_take/mod.rs"]
 pub mod input_take;
+/// An exiting process's surfaces refuse attaches (K15b).
+#[path = "surface_closing/mod.rs"]
+pub mod surface_closing;
