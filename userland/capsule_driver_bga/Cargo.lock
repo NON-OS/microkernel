@@ -24,7 +24,6 @@ dependencies = [
 name = "nonos_capsule_driver_bga"
 version = "0.3.0"
 dependencies = [
- "nonos_edid",
  "nonos_gfx_pool",
  "nonos_gfx_serve",
  "nonos_gfx_wire",
@@ -48,6 +47,7 @@ dependencies = [
 name = "nonos_gfx_serve"
 version = "0.1.0"
 dependencies = [
+ "nonos_edid",
  "nonos_gfx_wire",
 ]
 

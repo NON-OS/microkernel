@@ -17,6 +17,7 @@ A driver implements two traits:
 `Server::handle(sender, frame, out)` answers every op: CAPS, MODES and
 STATE from the device (STATE carrying the current serial); SURFACE makes
 the primary on first ask at the mode the device shows and shares it, a new
+asker becoming the owner and freeing a primary still waiting for RETIRE;
 MODE_SET checks the size (range devices: 640x480 to the maximum, aligned,
 within the budget; list devices: a listed mode), makes the new primary,
 shows it, shares it and answers it while the old one waits, one at a time
@@ -28,3 +29,8 @@ device has is ENXIO; an unknown op ENOSYS. Serials are pid << 16 | counter.
 
 `copy_rects` is the copy a VRAM driver's flush makes, with an optional red
 and blue swap for framebuffers laid out red first.
+
+`Panel::read(blob, fits)` is what a driver takes from its monitor's EDID
+(through `nonos_edid`): the preferred mode, the physical size for CAPS,
+and the listed modes `fits` accepts, each once, marked FROM_EDID (and
+PREFERRED). bga and the Intel engine read their monitors through it.
