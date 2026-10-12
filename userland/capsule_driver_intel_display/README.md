@@ -34,7 +34,11 @@ its engine may still read them (`keep_at_exit`, section 12).
 ## Interface contract
 
 NVGP v1 (`nonos_gfx_wire`) as `driver.intel_display0`, CAPS kind 7, one
-output (the first lit pipe). On Gen9, an output firmware lit over
+wire output per lit pipe, pipe A's first (up to four). Each output's
+scanout surfaces live in its own window of the GGTT, stacked down from the
+top with room for two surfaces of the largest mode its monitor offers and
+all of them above firmware's surfaces; an output that does not fit, or
+fails, is left as firmware lit it. On Gen9, an output firmware lit over
 DisplayPort or HDMI through a pipe transcoder is a list device (MODE_SET,
 no MODE_RANGE): MODES are the monitor's, and a MODE_SET maps and fills two
 new surfaces from the new primary, darkens the output, relights its port at

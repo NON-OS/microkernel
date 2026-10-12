@@ -22,7 +22,7 @@ use nonos_gfx_serve::{Display, Shadow};
 use nonos_gfx_wire::errno::EINVAL;
 use nonos_gfx_wire::Rect;
 
-use super::wire_rig::{rig, shadow_bytes};
+use super::wire_rig::{h0, rig, shadow_bytes};
 use crate::engine::pipe::Pipe;
 
 fn shadow(bytes: &[u8]) -> Shadow<'_> {
@@ -39,8 +39,8 @@ fn a_flush_is_on_screen_when_it_returns() {
     assert_eq!(m.pixel(Pipe::A, 100, 200), Some(0xFF12_3456));
     assert_eq!(m.pixel(Pipe::A, 129, 239), Some(0xFF12_3456));
     assert_eq!(m.pixel(Pipe::A, 130, 200), Some(0xFF00_00BB), "only the rectangle");
-    assert_eq!(d.scan.front, 1, "flipped to the surface that was drawn");
-    assert_eq!(d.frames.fences, 1, "fenced before the flip");
+    assert_eq!(h0(&d).scan.front, 1, "flipped to the surface that was drawn");
+    assert_eq!(h0(&d).frames.fences, 1, "fenced before the flip");
 }
 
 #[test]
@@ -53,7 +53,7 @@ fn both_surfaces_keep_every_flush() {
     d.flush(0, &[Rect { x: 0, y: 0, width: 8, height: 8 }], &shadow(&one)).unwrap();
     d.flush(0, &[Rect { x: 500, y: 500, width: 8, height: 8 }], &shadow(&two)).unwrap();
     let m = model.borrow();
-    assert_eq!(d.scan.front, 0);
+    assert_eq!(h0(&d).scan.front, 0);
     assert_eq!(m.pixel(Pipe::A, 3, 3), Some(0xFF00_0011), "the first flush survives");
     assert_eq!(m.pixel(Pipe::A, 503, 503), Some(0xFF00_0022));
 }
@@ -65,7 +65,7 @@ fn a_rectangle_outside_the_output_changes_nothing() {
     let rects =
         [Rect { x: 0, y: 0, width: 4, height: 4 }, Rect { x: 1919, y: 0, width: 2, height: 1 }];
     assert_eq!(d.flush(0, &rects, &shadow(&px)), Err(EINVAL));
-    assert_eq!(d.scan.front, 0, "no flip");
+    assert_eq!(h0(&d).scan.front, 0, "no flip");
     assert_eq!(model.borrow().pixel(Pipe::A, 1, 1), Some(0xFF00_00AA));
     let short = vec![0u8; 16];
     let tiny = Shadow { bytes: &short, width: 2, height: 2, stride: 8, cursor_offset: 0 };
