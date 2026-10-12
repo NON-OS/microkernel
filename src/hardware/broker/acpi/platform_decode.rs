@@ -17,7 +17,7 @@
 //! Decoding a platform device record (`platform_wire` lays it out). Pure:
 //! `kernel_proofs` mounts this file as it is.
 
-use super::platform_wire::{Platform, GPIO, I2C, MAX_WINDOWS, SD};
+use super::platform_wire::{Platform, DEPS_UNMET, GPIO, I2C, MAX_WINDOWS, SD};
 use alloc::vec::Vec;
 
 fn u64_at(b: &[u8], i: usize) -> u64 {
@@ -26,8 +26,8 @@ fn u64_at(b: &[u8], i: usize) -> u64 {
 
 pub fn decode(b: &[u8]) -> Option<Platform> {
     let h = b.get(..32)?;
-    let (version, class, n, irq_flags) = (h[0], h[1], h[2] as usize, h[3]);
-    let zeros = h[4..8].iter().chain(&h[28..32]).all(|x| *x == 0);
+    let (version, class, n, irq_flags, flags) = (h[0], h[1], h[2] as usize, h[3], h[4]);
+    let zeros = h[5..8].iter().chain(&h[28..32]).all(|x| *x == 0) && flags & !DEPS_UNMET == 0;
     if version != 1
         || !matches!(class, I2C | SD | GPIO)
         || !(1..=MAX_WINDOWS).contains(&n)
@@ -54,5 +54,5 @@ pub fn decode(b: &[u8]) -> Option<Platform> {
         return None;
     }
     let (uid, gsiv) = (u64_at(h, 16), u32::from_le_bytes([h[24], h[25], h[26], h[27]]));
-    Some(Platform { class, irq_flags, hid, uid, gsiv, windows, path: path.to_vec() })
+    Some(Platform { class, irq_flags, flags, hid, uid, gsiv, windows, path: path.to_vec() })
 }

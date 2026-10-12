@@ -24,8 +24,8 @@
 //! `kernel_proofs` mounts it.
 
 use super::super::class::ids;
-use super::super::device::{Bar, BarKind, BusKind, DeviceRecord};
-use super::platform_wire::{Platform, GPIO, HAS_IRQ, I2C};
+use super::super::device::{Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_DEPS_UNMET};
+use super::platform_wire::{Platform, DEPS_UNMET, GPIO, HAS_IRQ, I2C};
 
 pub fn record(p: &Platform, clock_hz: u32) -> DeviceRecord {
     let mut bars = [Bar::empty(); 6];
@@ -43,6 +43,9 @@ pub fn record(p: &Platform, clock_hz: u32) -> DeviceRecord {
         bars,
         ..DeviceRecord::empty()
     };
+    if p.flags & DEPS_UNMET != 0 {
+        r.flags |= DEVICE_FLAG_DEPS_UNMET;
+    }
     match p.class {
         I2C => {
             (r.class, r.pci_class) = (ids::SERIAL, 0x0C);

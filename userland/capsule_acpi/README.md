@@ -287,6 +287,13 @@ other op: no one.
   chassis, each a length byte and its text. Never a serial number or the
   UUID. ENOENT without SMBIOS. Logged at start on one `[SMBIOS]` line.
 
+- Platform devices go to the kernel in _DEP order (ACPI 6.5, 6.5.8): each
+  after the listed devices it depends on, a dependency that is not one of
+  them counting when present by _STA (or when it is no device at all). A
+  device with a dependency missing or naming nothing, or in a cycle, is
+  still published, once, with the record's `DEPS_UNMET` flag, which the
+  table carries as `DEVICE_FLAG_DEPS_UNMET`; cycles come last. One
+  `[ACPI] platform … published flagged` line each.
 - Port facts, published once at start, not served on the port. Each USB
   host's ports (ACPI 6.5, 9.14: a container with _UPC or _PLD, three
   levels below the host) go to the kernel through `MkAcpiUsbPorts`, eight
