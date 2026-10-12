@@ -57,4 +57,8 @@ mod takeover_tests;
 mod timing_write_tests;
 mod trans_func_tests;
 mod vblank_tests;
+mod wire_flush_tests;
+mod wire_rig;
+mod wire_state_tests;
+mod wire_tests;
 mod wm_tests;
