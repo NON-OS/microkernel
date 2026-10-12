@@ -37,6 +37,7 @@ pub mod error;
 pub mod events;
 pub mod exec;
 pub mod fan;
+pub mod ged;
 pub mod grammar;
 pub mod load;
 pub mod namespace;
