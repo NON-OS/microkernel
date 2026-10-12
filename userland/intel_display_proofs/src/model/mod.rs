@@ -23,6 +23,7 @@ pub mod expiry;
 pub mod firmware;
 pub mod gen9;
 pub mod gmbus_hw;
+pub mod irq_hw;
 pub mod latch;
 pub mod mmio;
 pub mod pipe_hw;

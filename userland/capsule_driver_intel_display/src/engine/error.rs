@@ -29,4 +29,7 @@ pub enum Error {
     GgttFull,
     /// The hardware did not latch a change before the deadline.
     Timeout,
+    /// The transcoder stopped under the output: only a mode set brings
+    /// it back.
+    Stopped,
 }
