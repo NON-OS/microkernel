@@ -1,0 +1,32 @@
+# NONOS userland: capsule_driver_usb_hub
+# eK@nonos.systems
+#
+# The USB hub walker, driver.usb_hub0. One walker for every hub: it brings
+# up hubs on every host's root ports and below them, and parks each other
+# device it finds below a hub with the host, which lists it as a virtual
+# port for the class drivers. IPC and Memory only; no MMIO, DMA, IRQ or
+# PIO: the hosts touch the hardware.
+
+[package]
+name = "nonos_capsule_driver_usb_hub"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB hub walker capsule"
+
+[[bin]]
+name = "driver_usb_hub"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usb_hub = { path = "../nonos_usb_hub" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

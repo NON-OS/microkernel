@@ -40,6 +40,7 @@ mod power;
 mod read;
 mod request;
 mod reset;
+mod roots;
 mod route;
 mod scan_hub;
 mod scan_hubs;
@@ -62,6 +63,7 @@ pub use port_status::{
 pub use read::port_status;
 pub use request::{clear_port_feature, C_PORT_CONNECTION};
 pub use reset::reset_port;
+pub use roots::{roots, Root, RootHost};
 pub use route::{child_route, child_tt, Tt, MAX_HUB_DEPTH};
 pub use scan_hubs::scan_hubs;
 pub use status_endpoint::{status_endpoint, StatusEndpoint};
