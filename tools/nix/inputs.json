@@ -3998,6 +3998,16 @@
   "md": [],
   "signed": []
  },
+ "userland/relocate_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/boot/relocate",
+   "userland/relocate_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/rndis_proofs": {
   "exclude": [],
   "include": [
