@@ -22,6 +22,9 @@
 //! must give back every grant and the claim, or the next attempt finds the
 //! device still held.
 
+mod ordered;
+pub use ordered::*;
+
 use std::cell::RefCell;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, MutexGuard};
@@ -69,9 +72,8 @@ pub fn mk_pio_read(_grant: u64, offset: u16, width: u8, out: *mut u32) -> i64 {
 }
 
 pub fn mk_pio_write(_grant: u64, offset: u16, width: u8, value: u32) -> i64 {
-    let taken = PORT.with(|p| {
-        p.borrow_mut().as_mut().is_some_and(|port| port.write(offset, width, value))
-    });
+    let taken =
+        PORT.with(|p| p.borrow_mut().as_mut().is_some_and(|port| port.write(offset, width, value)));
     if taken {
         0
     } else {
