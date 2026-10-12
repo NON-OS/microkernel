@@ -4332,6 +4332,23 @@
   "md": [],
   "signed": []
  },
+ "userland/spectre_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/security/spectre/answer.rs",
+   "src/arch/aarch64/security/spectre/branch.rs",
+   "src/arch/aarch64/security/spectre/cores.rs",
+   "src/arch/aarch64/security/spectre/decide.rs",
+   "src/arch/aarch64/security/spectre/entry_word.rs",
+   "src/arch/aarch64/security/spectre/history.rs",
+   "src/arch/aarch64/security/spectre/ids.rs",
+   "src/arch/aarch64/security/spectre/plan.rs",
+   "userland/spectre_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/stark_proofs": {
   "exclude": [],
   "include": [
