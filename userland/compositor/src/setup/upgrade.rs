@@ -14,40 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Leave the firmware framebuffer for the gfx driver (virtio-gpu or Bochs)
-//! once it is up.
+//! Leave the firmware framebuffer for a display driver once one is up.
 //!
-//! The compositor falls back to GOP when the gfx driver has not announced
-//! itself after a few setup attempts. On a multi-core machine those attempts
-//! finish before init has even spawned the driver, and once the driver talks
-//! to a virtio-vga device the device stops scanning out the firmware
-//! framebuffer, so a compositor that stays in GOP mode draws to a buffer
-//! nobody shows. While in GOP mode the server loop calls this now and then;
-//! the first time the driver answers, the display moves over to it and the
-//! whole scene is repainted there. Clients, layers, focus and cursor stay.
+//! The compositor takes GOP when no driver has announced itself within its
+//! first 500 ms. On a multi-core machine that wait can end before init has
+//! even spawned the driver, and once a driver talks to its device the
+//! device may stop scanning out the firmware framebuffer, so a compositor
+//! that stays on GOP draws to a buffer nobody shows. While on GOP the
+//! server loop asks one name of the display list per tick, on Backoff's
+//! schedule; the first that answers takes the display.
 
+use crate::display::Backoff;
 use crate::state::Context;
 
-pub fn upgrade_to_virtio(ctx: &mut Context) -> bool {
+use super::discover::{displays::DISPLAYS, lookup_at};
+
+pub fn upgrade_from_gop(ctx: &mut Context, backoff: &mut Backoff, now_ms: i64) -> bool {
     if !ctx.gop_mode {
         return false;
     }
-    let Ok(next) = super::prime_once::run_virtio_once() else {
+    let Some(ep) = backoff.due(now_ms, DISPLAYS.len()).and_then(lookup_at) else {
         return false;
     };
-    super::canvas_release::release_canvas(ctx);
-    ctx.gfx_port = next.gfx_port;
-    ctx.resource_id = next.resource_id;
-    ctx.width = next.width;
-    ctx.height = next.height;
-    ctx.stride = next.stride;
-    ctx.backing_len = next.backing_len;
-    ctx.backing_va = next.backing_va;
-    ctx.gop_mode = false;
-    ctx.surface_handle = next.surface_handle;
-    ctx.first_scanout_done = false;
-    ctx.scanout_error_reported = false;
-    ctx.damage.mark_full(ctx.width, ctx.height);
-    super::canvas::fit_canvas(ctx);
+    let Ok(next) = super::prime_wire::prime(ep) else {
+        return false;
+    };
+    super::adopt::adopt(ctx, next);
     true
 }

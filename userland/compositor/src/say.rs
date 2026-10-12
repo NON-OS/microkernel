@@ -28,10 +28,25 @@ pub fn say(line: &str) {
 }
 
 /// Which output the desktop went to, the screen's size and the canvas the
-/// clients were given for it.
-pub fn say_display(ctx: &Context, path: &str) {
+/// clients were given for it: `[DISPLAY] on driver.bga0 1280x800, ...`.
+pub fn say_display(ctx: &Context, what: &str) {
     say(&format!(
-        "{} {}x{}, canvas {}x{} at scale {}",
-        path, ctx.screen.width, ctx.screen.height, ctx.width, ctx.height, ctx.scale
+        "{} {} {}x{}, canvas {}x{} at scale {}",
+        what,
+        path(ctx),
+        ctx.screen.width,
+        ctx.screen.height,
+        ctx.width,
+        ctx.height,
+        ctx.scale
     ));
+}
+
+/// The path the desktop is shown on. The legacy ops are only virtio-gpu's.
+fn path(ctx: &Context) -> &'static str {
+    match ctx.wire {
+        Some(link) => link.name,
+        None if ctx.gop_mode => "GOP framebuffer",
+        None => "driver.virtio_gpu0 (legacy ops)",
+    }
 }
