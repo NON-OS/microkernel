@@ -46,11 +46,14 @@ pub mod scene_submit;
 #[path = "../../compositor/src/state/visible.rs"]
 pub mod visible;
 
+#[path = "../../compositor/src/state/indicator.rs"]
+pub mod indicator;
+
 pub mod state {
     pub mod damage {
         pub use crate::damage::{DamageAccumulator, Rect};
     }
-    pub use crate::{attach, scene, visible};
+    pub use crate::{attach, indicator, scene, visible};
 }
 
 // A damaged rectangle composed onto real pixels, as a frame composes it,
@@ -63,6 +66,8 @@ pub mod frame_pacer {
     pub mod cursor;
     #[path = "../../compositor/src/frame_pacer/cursor_shape.rs"]
     pub mod cursor_shape;
+    #[path = "../../compositor/src/frame_pacer/indicator_band.rs"]
+    pub mod indicator_band;
 }
 
 #[path = "../../compositor/src/frame_pacer/drain_damage.rs"]
@@ -93,6 +98,8 @@ pub mod display {
     pub mod head_rule;
     #[path = "../../compositor/src/display/hint_rule.rs"]
     pub mod hint_rule;
+    #[path = "../../compositor/src/display/indicator_rule.rs"]
+    pub mod indicator_rule;
     #[path = "../../compositor/src/display/link.rs"]
     pub mod link;
     #[path = "../../compositor/src/display/poll_rule.rs"]
@@ -135,7 +142,13 @@ mod head_tests;
 #[cfg(test)]
 mod hint_tests;
 #[cfg(test)]
+mod indicator_band_tests;
+#[cfg(test)]
+mod indicator_tests;
+#[cfg(test)]
 mod mirror_tests;
+#[cfg(test)]
+mod privacy_tests;
 #[cfg(test)]
 mod poll_tests;
 #[cfg(test)]
