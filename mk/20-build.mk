@@ -855,12 +855,18 @@ nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 
 # A note on aarch64-nonos.json, which cannot carry comments of its own: the cpu
 # stays "generic" so codegen targets ARMv8.0, and the feature bits only let the
-# assembler accept the mnemonics the kernel writes by hand: pointer authentication,
-# the speculation barriers, memory tagging (gcr_el1) and the v8.5 RNG (rndr). Named
-# one by one rather than as an architecture version, because +v8.5a would also let
-# LLVM emit v8.5 instructions into ordinary code and those fault on a Cortex-A72.
-# Every one of these is reached through a runtime ID register check, so a single
-# binary runs on a Pi and still uses tagging and PAC on an Apple M-series.
+# assembler accept the mnemonics the kernel writes by hand: the speculation
+# barriers, memory tagging (gcr_el1) and the v8.5 RNG (rndr). Named one by one
+# rather than as an architecture version, because +v8.5a would also let LLVM
+# emit v8.5 instructions into ordinary code and those fault on a Cortex-A72.
+# +pauth is left out for that reason: with it, pac-ret returns through RETAA,
+# which a Cortex-A72 does not have, instead of AUTIASP and RET, which it runs
+# as hints. The key registers are written by encoding, and the one function
+# that signs by hand turns the extension on for its own block. Branch
+# protection itself is a rustflag (.cargo/config.toml), and the ELF check
+# fails an image without it or with a combined PAuth instruction. Every
+# feature is reached through a runtime ID register check, so one binary runs
+# on a Pi and still signs return addresses on an Apple M-series.
 # The relocation model is "pie" and the link a static PIE: the image carries
 # .rela.dyn and _start applies it (src/arch/aarch64/boot/relocate), so it runs
 # at any 2 MiB aligned base a loader picks, not only at the 0x4008_0000 it is
