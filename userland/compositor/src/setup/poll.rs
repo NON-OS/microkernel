@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The 500 ms look at a wire driver (section 12): its service looked up
-//! again, its STATE read, and the step `poll_rule` names taken. A FLUSH
-//! that found its primary stale is answered here too, on the next pass of
-//! the loop rather than in the middle of a frame.
+//! again, its STATE read, and the step `poll_rule` names taken, then the
+//! mirrored outputs' (`poll_heads`). A FLUSH that found its primary stale
+//! is answered here too, on the next pass of the loop, not mid-frame.
 
 use crate::display::ops;
 use crate::display::poll_rule::{step, Step};
@@ -30,11 +30,12 @@ pub fn poll(ctx: &mut Context) -> Option<&'static str> {
     let link = ctx.wire?;
     let ep = lookup(link.name);
     let same = ep.filter(|e| e.pid == link.pid);
-    let state = same.and_then(|e| ops::state(e.port).ok());
+    let state = same.and_then(|e| ops::state(e.port, 0).ok());
     match step(&link, ep.map(|e| e.pid), state) {
-        Step::Keep => None,
+        Step::Keep => super::poll_heads::poll_heads(ctx, same?.port),
         Step::Repaint => {
             ctx.damage.mark_full(ctx.width, ctx.height);
+            let _ = same.map(|e| super::poll_heads::poll_heads(ctx, e.port));
             Some("output lost and set again; repainting")
         }
         Step::Resurface => again(ctx, ep?, "primary replaced"),
