@@ -17,16 +17,17 @@
 //! Hybrid core decoding, against the CPUID.1AH values the Intel SDM lists
 //! and what Alder Lake and Raptor Lake parts answer.
 
-use super::core_kind::{CoreKind, LEAF7_EDX_HYBRID, LEAF_CORE_TYPE};
+use super::core_kind::CoreKind;
+use super::hybrid::{core_type, CoreType, LEAF7_EDX_HYBRID, LEAF_CORE_TYPE};
 
 #[test]
 fn leaf_1a_names_core_and_atom_by_the_top_byte_only() {
     // EAX[23:0] is the native model id and must not change the answer.
-    assert_eq!(CoreKind::from_leaf_1a(0x4000_0001), CoreKind::Performance);
-    assert_eq!(CoreKind::from_leaf_1a(0x2000_0001), CoreKind::Efficiency);
-    assert_eq!(CoreKind::from_leaf_1a(0x40FF_FFFF), CoreKind::Performance);
-    assert_eq!(CoreKind::from_leaf_1a(0), CoreKind::Unknown);
-    assert_eq!(CoreKind::from_leaf_1a(0x1000_0000), CoreKind::Unknown);
+    assert_eq!(core_type(0x4000_0001), CoreType::Core);
+    assert_eq!(core_type(0x2000_0001), CoreType::Atom);
+    assert_eq!(core_type(0x40FF_FFFF), CoreType::Core);
+    assert_eq!(core_type(0), CoreType::Other);
+    assert_eq!(core_type(0x1000_0000), CoreType::Other);
 }
 
 #[test]
