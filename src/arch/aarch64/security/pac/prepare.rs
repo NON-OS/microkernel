@@ -16,11 +16,8 @@
 
 //! Deciding, once and on the boot CPU, whether return addresses are signed.
 
-use super::secret::{boot_secret, Source};
-use super::slot::bind;
-use super::state::{active, kernel_key, publish, record};
-use crate::arch::aarch64::boot::multicore::roster;
-use crate::arch::aarch64::cpu::id::mpidr_affinity;
+use super::secret::boot_secret;
+use super::state::{publish, record};
 use crate::arch::aarch64::cpu::{has_feature, CpuFeature};
 use crate::arch::aarch64::security::bti::built_with_pac_ret;
 use crate::crypto::hash::blake3_derive_key;
@@ -55,35 +52,4 @@ pub fn prepare() -> Option<[u64; 2]> {
     let key = [word(0), word(8)];
     publish(key, &user, source as u8);
     Some(key)
-}
-
-/// A secondary's key, if the boot CPU turned signing on. A secondary that
-/// cannot sign cannot run a thread whose frames another CPU signed.
-pub fn secondary_key() -> Result<Option<[u64; 2]>, &'static str> {
-    if !active() {
-        return Ok(None);
-    }
-    if !has_feature(CpuFeature::Pauth) {
-        return Err("the boot CPU signs return addresses and this CPU cannot");
-    }
-    Ok(Some(kernel_key()))
-}
-
-/// Point this CPU's TPIDR_EL1 at its key slot, once the roster can name it.
-/// Changes no key, so any function may call it.
-pub fn bind_this_cpu() -> bool {
-    if !active() {
-        return false;
-    }
-    roster::index_of(mpidr_affinity()).is_some_and(|cpu| bind(cpu, kernel_key()))
-}
-
-impl Source {
-    pub(super) const fn from_status(status: u8) -> Option<Self> {
-        match status {
-            1 => Some(Source::Rndr),
-            2 => Some(Source::DeviceTreeSeed),
-            _ => None,
-        }
-    }
 }

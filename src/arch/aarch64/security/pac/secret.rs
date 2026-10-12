@@ -50,3 +50,13 @@ fn from_rndr() -> Option<[u8; 32]> {
     }
     Some(secret)
 }
+
+impl Source {
+    pub(super) const fn from_status(status: u8) -> Option<Self> {
+        match status {
+            1 => Some(Source::Rndr),
+            2 => Some(Source::DeviceTreeSeed),
+            _ => None,
+        }
+    }
+}

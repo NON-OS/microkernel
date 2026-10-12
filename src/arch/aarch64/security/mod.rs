@@ -17,9 +17,9 @@
 pub mod bti;
 pub mod init_all;
 pub mod mte;
+pub mod pac;
 pub mod pan;
 pub mod report;
-pub mod pac;
 pub mod spectre;
 
 pub use bti::{init_bti, kernel_guarded};
