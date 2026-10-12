@@ -17,9 +17,7 @@
 use crate::kernel_core::surface_registry::attach_map;
 use crate::kernel_core::surface_registry::types::SurfaceHandle;
 use crate::memory::addr::VirtAddr;
-use crate::memory::paging::manager::api::{
-    lookup_asid_for_process, translate_in_asid, unmap_page_in_asid,
-};
+use crate::memory::paging::manager::api::{translate_in_asid, unmap_page_in_asid};
 use crate::memory::paging::types::PagePermissions;
 use crate::smp::lock_responsive;
 
@@ -39,7 +37,7 @@ pub(super) fn unmap_receiver(pid: u32, handle: SurfaceHandle) {
     if owner == pid {
         return;
     }
-    let Some(asid) = lookup_asid_for_process(pid) else { return };
+    let Some(asid) = super::super::space::space_of(pid) else { return };
     let perms = PagePermissions::user_rw();
     for (i, frame) in frames.iter().enumerate() {
         let va = VirtAddr::new(base.wrapping_add((i as u64) * 4096));
