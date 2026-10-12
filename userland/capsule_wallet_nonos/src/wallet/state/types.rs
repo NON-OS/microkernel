@@ -17,43 +17,8 @@
 use crate::wallet::net::NetStatus;
 use alloc::vec::Vec;
 
-pub const MAX_RAILS: usize = 8;
-pub const VIEW_HOME: u8 = 0;
-pub const VIEW_RECEIVE: u8 = 1;
-pub const VIEW_SEND: u8 = 2;
-// New hardened-wallet + private-swap + NOX screens.
-pub const VIEW_SHIELD: u8 = 6;
-pub const VIEW_NOX: u8 = 9;
-pub const VIEW_SWAP: u8 = 10;
-pub const VIEW_SETTINGS: u8 = 11;
-pub const VIEW_IMPORT: u8 = 12;
-pub const VIEW_RECOVER: u8 = 13;
-pub const VIEW_EXPORT: u8 = 14;
-pub const VIEW_ACCOUNTS: u8 = 15;
-/* The meter's account and budget (B8). */
-pub const VIEW_METER: u8 = 16;
-/* Signing a listing as its publisher (B8, plan/31). */
-pub const VIEW_PUBLISHER: u8 = 17;
-/* A purchase the store named, to confirm (B8, plan/27). */
-pub const VIEW_PURCHASE: u8 = 18;
-/* Whether the keyring holds account 0's recovery words this session. */
-pub const WORDS_UNREAD: u8 = 0;
-pub const WORDS_HELD: u8 = 1;
-/* The wallet came from a private key: there are no words. */
-pub const WORDS_NONE: u8 = 2;
-pub const SEND_FIELD_TO: u8 = 0;
-pub const SEND_FIELD_AMOUNT: u8 = 1;
-
-#[derive(Clone, Copy)]
-pub struct Rail {
-    pub symbol: [u8; 8],
-    pub symbol_len: u8,
-    pub family: u8,
-    pub status: u16,
-    pub flags: u32,
-    pub chain_id: u64,
-    pub contract: [u8; 20],
-}
+pub use super::rail::Rail;
+pub use super::views::*;
 
 pub struct State {
     /// Which token the trade pays out of, as an index into the token list.
