@@ -15,7 +15,6 @@ How verified:
 
 - Proof crate: host tests that compile the shipping driver source against a model of the device. The number is the test count of its flake check at commit bff12b97, and the check passes unless the row says otherwise.
 - QEMU: a QEMU run in the tree attaches this device: `make boot` (`devices`, `tools/nonos_qemu/machine.py:91-100`), CI's boot smoke, or the `mk/10-qemu.mk` and `mk/40-run.mk` targets. No boot log from this commit is recorded here.
-- Real hardware: the one report this release has. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded. It covers Wi-Fi on Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic), the local Qwen model offline, the Linux programs sh, python3, sqlite3 and john, the installer writing to an internal NVMe disk and booting from it, the I2C-HID touchpad on Intel LPSS, the PS/2 keyboard with its layouts, Intel HD Audio, the power button and the volume keys. Nothing else in this matrix has been run on real hardware for this release.
 
 Every row is for x86_64 machines; [Architectures](../architectures/README.md) says what the other ports have. The rows describe the image the Standard [build profile](../overview/glossary.md#build-profile) makes. The Air-Gapped image drops every network driver (`networkFeatures`, `tools/nix/config.nix:92`), and the QEMU image leaves out the drivers only real hardware has (`microkernel-desktop-gui`, `tools/nix/config.nix:95-98`).
 
@@ -64,7 +63,7 @@ PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_H
 |---|---|---|---|---|---|
 | USB | xHCI host controller, class 0c/03 prog-if 30 | `capsule_driver_xhci` | Works | proof crate `xhci_proofs`: the check fails at this commit on clippy lints; QEMU `qemu-xhci` | 0.9.2 |
 | USB | EHCI, OHCI and UHCI host controllers, class 0c/03 | none | Not supported: no driver; the [hardware broker](../overview/glossary.md#hardware-broker) lists them as a generic USB host | none | 0.9.2 |
-| USB | Hubs, class 09 | `capsule_driver_usb_hid` | Partial: the HID driver brings a hub up and powers its ports, but a device behind a hub is not reached, because `capsule_driver_xhci` refuses the hub ops 0x20 and 0x21 ([USB hubs](../drivers/usb/hubs.md)) | proof crate `usb_proofs` (83) | 0.9.2 |
+| USB | Hubs, class 09 | `capsule_driver_usb_hid` over `nonos_usb_hub` | Partial: keyboards and mice behind a hub are reached through every host's ops 0x20 and 0x21 (xHCI; EHCI with split transactions through the TT; UHCI and OHCI behind full-speed hubs); other classes behind a hub are not yet ([USB hubs](../drivers/usb/hubs.md)) | proof crates `usb_hub_proofs` (15), hub lanes in `ehci_proofs`, `uhci_proofs`, `ohci_proofs`; not booted | unreleased |
 
 ## Input
 
@@ -126,7 +125,7 @@ Each row comes from a match table in the driver or the kernel, or from the code 
 - PS/2: `register_legacy` publishes the two i8042 records (`src/hardware/broker/platform.rs:40-74`).
 - Intel LPSS I2C: `device_info` (`userland/capsule_driver_i2c_pci/src/constants/device_info.rs:29-61`). ACPI I2C controllers: `hid_is_i2c_controller` (`src/arch/x86_64/acpi/aml/controller/hid_match.rs:21-38`). Touchpads and touchscreens: `TOUCHPAD_HIDS` (`src/arch/x86_64/acpi/devices/i2c/hids.rs:19-62`). The broker leaves touchscreens out in `register_acpi_i2c` (`src/hardware/broker/acpi_i2c/register.rs:36-45`) and warns when a touchpad asks for 10-bit addressing (`src/hardware/broker/acpi_i2c/report.rs:62-66`, `ten_bit`).
 - GPIO: the Broxton family, `is_bxt_family` (`userland/capsule_driver_i2c_pci/src/constants/device_info.rs:71-74`); Sunrise Point to Meteor Lake, `LAYOUTS` (`userland/nonos_pinctrl/src/tables/index.rs:35-48`); AMD, `AMD_IDS` (`userland/nonos_pinctrl/src/controller.rs:31`).
-- USB HID: `CLASS_HID` (`userland/capsule_driver_usb_hid/src/descriptors/types.rs:20-21`); hubs: `CLASS_HUB` (`userland/capsule_driver_usb_hid/src/descriptors/config.rs:22`).
+- USB HID: `CLASS_HID` (`userland/capsule_driver_usb_hid/src/descriptors/types.rs:20-21`); hubs: `CLASS_HUB` (`userland/capsule_driver_usb_hid/src/descriptors/config.rs`), the hub class in `userland/nonos_usb_hub`.
 - xHCI and older USB hosts: `USB_HOST_XHCI` in the broker's `classify_pci` (`src/hardware/broker/class.rs:77-81`), matched by `CLASS_USB_HOST_XHCI` (`userland/capsule_driver_xhci/src/constants/pci_class.rs:16`).
 - USB mass storage: `CLASS_MASS_STORAGE` (`userland/capsule_driver_usb_msc/src/descriptors/wire.rs:23-24`).
 - NVMe: `is_nvme` (`userland/capsule_driver_nvme/src/discover/pci_match.rs:27-33`).
