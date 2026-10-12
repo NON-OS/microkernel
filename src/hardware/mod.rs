@@ -27,6 +27,7 @@ pub mod cdc_ncm_capsule;
 pub mod e1000_capsule;
 pub mod e1000e_capsule;
 pub mod ehci_capsule;
+pub mod fido_capsule;
 pub mod hda_capsule;
 pub mod i2c_pci_capsule;
 pub mod igb_capsule;
