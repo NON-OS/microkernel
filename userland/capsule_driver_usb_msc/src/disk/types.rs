@@ -18,14 +18,18 @@
 
 use crate::descriptors::MscBinding;
 
-/// A bound BOT device: where driver.xhci0 keeps it and what it reported.
+/// A bound device, BOT or UAS: where driver.xhci0 keeps it and what it
+/// reported.
 #[derive(Clone, Copy)]
 pub struct Disk {
     pub xhci: u32,
     pub slot: u8,
     pub interface: u8,
+    /// BOT's bulk pair; UAS's data pipes (the second pair).
     pub ep_in: u8,
     pub ep_out: u8,
+    /// It speaks UAS (disk/uas.rs): command and status on the first pair.
+    pub uas: bool,
     /// The logical unit commands go to: 0 on a stick, the slot with a card
     /// in it on a multi-slot card reader.
     pub lun: u8,
@@ -40,7 +44,7 @@ impl Disk {
     /// The device on `slot` bound through `b`, before its size is asked.
     pub fn bound(xhci: u32, slot: u8, b: &MscBinding) -> Self {
         let (interface, ep_in, ep_out) = (b.interface, b.bulk_in, b.bulk_out);
-        Self { xhci, slot, interface, ep_in, ep_out, lun: 0, blocks: 0, block_len: 0 }
+        Self { xhci, slot, interface, ep_in, ep_out, uas: false, lun: 0, blocks: 0, block_len: 0 }
     }
 }
 

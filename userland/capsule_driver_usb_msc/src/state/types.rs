@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::sense::SENSE_KEPT;
 use crate::descriptors::MscBinding;
 use crate::protocol::MAX_BINDINGS;
 
@@ -32,6 +33,9 @@ pub struct State {
     /// The bound device puts residues in its CSWs that do not count what it
     /// moved (`State::residue`); only the bytes that crossed the bus count.
     pub(super) ignore_residue: bool,
+    /// The sense a UAS device sent with its last CHECK CONDITION, for the
+    /// REQUEST SENSE that asks for it next (sense.rs).
+    pub(super) sense: Option<([u8; SENSE_KEPT], usize)>,
 }
 
 impl Default for State {
@@ -55,6 +59,7 @@ impl State {
             phase_errors: 0,
             residue_bytes: 0,
             ignore_residue: false,
+            sense: None,
         }
     }
 }

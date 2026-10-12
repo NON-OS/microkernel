@@ -10,6 +10,10 @@ use std::collections::VecDeque;
 
 use crate::protocol::E_IO;
 
+#[path = "xhci_pairs.rs"]
+mod pairs;
+pub use pairs::{bulk_in_on, bulk_out_on, reset_bulk_on, DATA_PAIR};
+
 pub const BULK_MAX: usize = 4096;
 pub const E_PIPE: i32 = -32;
 
@@ -36,6 +40,9 @@ pub struct Device {
     pub controls: Vec<(u8, u8, u16, u16)>,
     /// Each pipe reset, IN or not.
     pub resets: Vec<bool>,
+    /// Each bulk OUT by pair, and the pair of each bulk IN (pairs.rs).
+    pub sent: Vec<(u8, Vec<u8>)>,
+    pub read_on: Vec<u8>,
 }
 
 thread_local! {
