@@ -39,3 +39,27 @@ mod tests_setup;
 use tests_gen3::*;
 #[cfg(test)]
 use tests_join::*;
+
+// The lint switches stay in this file, where the allow baseline lists them.
+/// The authenticator's messages, as the shared core's proofs build them.
+/// Shared whole: the join proofs use some of its helpers, not all.
+#[cfg(test)]
+#[allow(dead_code)]
+#[path = "../../nonos_wifi_core_proofs/src/ap_sim.rs"]
+mod ap_sim;
+#[cfg(test)]
+#[allow(dead_code, unused_imports)]
+#[path = "../../nonos_wifi_client/src/join_wire/mod.rs"]
+mod client_join_wire;
+/// The whole request wire the serving loop reads with: the header decode
+/// every frame passes before dispatch, and the reply encoder a refusal is
+/// answered with. Its ops file is also `protocol_ops`, loaded twice on purpose.
+#[allow(clippy::duplicate_mod)]
+#[path = "../../capsule_driver_iwlwifi/src/protocol/mod.rs"]
+pub mod iwlwifi_wire;
+/// The client's side of the same messages, to read the driver's replies
+/// with. Shared whole: the proofs use its parsers, not all of it.
+#[cfg(test)]
+#[allow(dead_code)]
+#[path = "../../nonos_wifi_client/src/network.rs"]
+mod network;
