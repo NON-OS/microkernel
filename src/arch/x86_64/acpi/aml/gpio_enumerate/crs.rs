@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::controller::parse_memory32_fixed;
+use super::super::controller::{parse_extended_interrupt, parse_memory32_fixed};
 use super::super::crs::{resource_bytes, scan_large_descriptors, walk_large_descriptors};
 use super::super::types::GpioController;
 
 const LEAD_MEMORY32_FIXED: u8 = 0x86;
+const LEAD_EXTENDED_IRQ: u8 = 0x89;
 
 /// Fill a `GpioController` from its `_CRS` ResourceTemplate, preferring the
 /// length-delimited descriptor walk and falling back to a raw byte scan when
@@ -38,6 +39,10 @@ pub(super) fn parse_gpio_crs(crs_value: &[u8], ctl: &mut GpioController) {
 /// gpio.asl writes PCRB into it), so no static window is kept from that
 /// template at all. Returns true when the walk can stop.
 fn apply_memory32(lead: u8, data: &[u8], ctl: &mut GpioController) -> bool {
+    if lead == LEAD_EXTENDED_IRQ {
+        ctl.irq = ctl.irq.or_else(|| parse_extended_interrupt(data));
+        return false;
+    }
     if lead != LEAD_MEMORY32_FIXED {
         return false;
     }

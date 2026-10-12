@@ -27,7 +27,8 @@ use alloc::vec::Vec;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Owner {
-    /// The broker device whose `_CRS` names the pin; its holder hears it.
+    /// The device whose `_CRS` names the pin, by the key its holder is
+    /// known by (the capsule uses its bus controller's PCI function).
     Device(u64),
     /// An `_AEI` pin: capsule_acpi runs the event method.
     Aei,
@@ -68,8 +69,7 @@ impl Router {
         Ok(())
     }
 
-    /// The armed pins not masked, for the controller to look at.
-    pub(crate) fn live(&self) -> Vec<u16> {
-        self.bindings.iter().filter(|b| !b.masked).map(|b| b.pin).collect()
+    pub fn owner(&self, pin: u16) -> Option<Owner> {
+        self.bindings.iter().find(|b| b.pin == pin).map(|b| b.owner)
     }
 }
