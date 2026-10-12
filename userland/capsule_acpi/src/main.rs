@@ -32,6 +32,7 @@ mod events_io;
 mod host;
 mod hotkeys;
 mod power;
+mod serial;
 mod server;
 mod sleep;
 mod smbios;

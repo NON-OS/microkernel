@@ -24,6 +24,7 @@ use crate::ec::Ec;
 use crate::host::CapsuleHost;
 use crate::hotkeys::Hotkeys;
 use crate::power::Power;
+use crate::serial::Serial;
 use alloc::vec::Vec;
 use nonos_aml::events::Events;
 use nonos_aml::load::Aml;
@@ -47,6 +48,7 @@ pub struct Acpi {
     pub cpus: Cpus,
     pub backlight: Backlight,
     pub hotkeys: Hotkeys,
+    pub serial: Serial,
     pub smbios: Option<nonos_smbios::identity::Identity>,
     pub devices: Vec<DeviceInfo>,
     pub routes: Vec<(Id, Vec<Route>)>,

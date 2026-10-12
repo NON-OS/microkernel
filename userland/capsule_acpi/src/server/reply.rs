@@ -41,6 +41,10 @@ pub fn answer(acpi: &mut Acpi, req: &[u8], sender: u32) -> Vec<u8> {
         Some(OP_POWER) => power_wire::power(acpi),
         Some(OP_THERMAL) => thermal_wire::thermal(acpi),
         Some(OP_SMBIOS) => smbios_wire::smbios(acpi),
+        Some(OP_SERIAL) => match index(req).and_then(|i| crate::serial::serial(acpi, i)) {
+            Some(b) => (0, b),
+            None => (ENOENT, Vec::new()),
+        },
         _ => (EINVAL, Vec::new()),
     };
     let mut out = code.to_le_bytes().to_vec();

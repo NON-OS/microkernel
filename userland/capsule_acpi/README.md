@@ -161,6 +161,14 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
 - THERMAL (7): the number of zones (at most 64), then per zone its
   temperature and _CRT in tenths of a kelvin (0 unknown or absent) and
   state bits (1 passive, 2 hot, 4 critical, 8 a fan it lists running).
+- SERIAL (9, index): one device on an I2C, SPI or UART bus, from the
+  evaluated tables (_STA, then _CRS, _DSM and _DSD, after _INI): bus kind,
+  address or chip select, speed, the HID-over-I2C descriptor register from
+  _DSM function 1, the GpioInt pin or GSI with its trigger, polarity and
+  wake, the bus and GPIO controllers' _ADR, _UID and paths, and the count
+  of such devices. Layout in `src/serial/wire.rs`. Held to `driver.i2c_pci0`
+  and `driver.i2c_hid0` besides `power` and the shell. Each device is
+  logged at start on one `[ACPI] serial` line.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and

@@ -42,6 +42,7 @@ pub fn boot() -> Option<Acpi> {
     let backlight = crate::backlight::find(&mut aml, &mut host);
     let cpus = crate::cpu::find(&mut aml, &mut host);
     let hotkeys = crate::hotkeys::find(&devices, &mut aml, &mut host);
+    let serial = crate::serial::find(&devices, &mut aml, &mut host);
     let (scis, gpe_runs) = (0, 0);
     Some(Acpi {
         aml,
@@ -55,6 +56,7 @@ pub fn boot() -> Option<Acpi> {
         cpus,
         backlight,
         hotkeys,
+        serial,
         smbios,
         devices,
         routes,
