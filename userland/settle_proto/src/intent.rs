@@ -20,6 +20,8 @@
 
 use alloc::vec::Vec;
 
+use crate::bytes::{fixed, len_u32};
+
 /// The largest calldata INTENT takes.
 pub const MAX_CALLDATA: usize = 32 * 1024;
 
@@ -34,28 +36,27 @@ pub struct Intent {
 
 impl Intent {
     pub fn encode(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(49 + self.calldata.len());
+        let mut out = Vec::with_capacity(self.calldata.len().saturating_add(49));
         out.extend_from_slice(&self.chain_id.to_le_bytes());
         out.push(self.kind);
         out.extend_from_slice(&self.from);
         out.extend_from_slice(&self.value.to_le_bytes());
-        out.extend_from_slice(&(self.calldata.len() as u32).to_le_bytes());
+        out.extend_from_slice(&len_u32(self.calldata.len()).to_le_bytes());
         out.extend_from_slice(&self.calldata);
         out
     }
 
     pub fn parse(b: &[u8]) -> Option<Self> {
-        let head = b.get(..49)?;
-        let len = u32::from_le_bytes(head[45..49].try_into().ok()?) as usize;
-        if len > MAX_CALLDATA || b.len() != 49 + len {
+        let len = usize::try_from(u32::from_le_bytes(fixed(b, 45)?)).ok()?;
+        if len > MAX_CALLDATA || Some(b.len()) != len.checked_add(49) {
             return None;
         }
         Some(Intent {
-            chain_id: u64::from_le_bytes(head[..8].try_into().ok()?),
-            kind: head[8],
-            from: head[9..29].try_into().ok()?,
-            value: u128::from_le_bytes(head[29..45].try_into().ok()?),
-            calldata: b[49..].to_vec(),
+            chain_id: u64::from_le_bytes(fixed(b, 0)?),
+            kind: *b.get(8)?,
+            from: fixed(b, 9)?,
+            value: u128::from_le_bytes(fixed(b, 29)?),
+            calldata: b.get(49..)?.to_vec(),
         })
     }
 }
