@@ -25,6 +25,7 @@ mod desktop_fleet;
 mod desktop_services;
 mod device_present;
 mod drivers_bus;
+mod drivers_cdc_acm;
 mod drivers_input;
 mod drivers_nic;
 mod drivers_sdhci;
