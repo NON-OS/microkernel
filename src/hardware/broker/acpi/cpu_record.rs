@@ -17,6 +17,7 @@
 //! The tables MkAcpiCpu carries, decoded; `cpu_layout` says how.
 
 use super::cpu_layout::CPC_FIELDS;
+use super::lpi_record::LpiLevel;
 use alloc::vec::Vec;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -56,4 +57,6 @@ pub struct CpuTables {
     pub pstates: Vec<PState>,
     pub cstates: Vec<CState>,
     pub cpc: Option<(u8, [Reg; CPC_FIELDS])>,
+    /// _LPI, the processor's own level first; empty when it idles by _CST.
+    pub levels: Vec<LpiLevel>,
 }

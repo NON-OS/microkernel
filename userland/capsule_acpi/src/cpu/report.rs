@@ -18,6 +18,7 @@
 //! a package's cores usually share them, and a hybrid laptop's two kinds
 //! of core then show as two lines.
 
+use super::lpi_say::lpi;
 use super::say::{cpc, cstates, pstates};
 use super::say_ids::uids;
 use super::state::Cpus;
@@ -44,5 +45,6 @@ pub fn line(ids: &[u64], t: &CpuTables) {
     let l = uids(Line::new(b"cpu "), ids).str(b": ");
     let l = pstates(l, t).str(b"; ");
     let l = cstates(l, t).str(b"; ");
-    cpc(l, t).end();
+    let l = cpc(l, t).str(b"; ");
+    lpi(l, t).end();
 }

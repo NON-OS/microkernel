@@ -18,11 +18,12 @@
 //! `broker::acpi::cpu_layout` is the other half and says the layout.
 //! Parts whose registers the kernel would refuse are left out here.
 
+use super::lpi_record::{levels, usable};
 use super::record_reg::{cpc_fits, field, fits, register};
 use alloc::vec::Vec;
 use nonos_aml::cpu::{CpuTables, MAX_CSTATES, MAX_PSTATES};
 
-const VERSION: u8 = 1;
+const VERSION: u8 = 2;
 const HAS_PCT: u8 = 1;
 const HAS_PPC: u8 = 2;
 const HAS_CPC: u8 = 4;
@@ -36,7 +37,9 @@ pub fn record(uid: u64, t: &CpuTables) -> Vec<u8> {
     let flags = [(pct.is_some(), HAS_PCT), (t.ppc.is_some(), HAS_PPC), (cpc.is_some(), HAS_CPC)]
         .iter()
         .fold(0, |f, (on, bit)| if *on { f | bit } else { f });
-    let mut out = alloc::vec![VERSION, pstates.len() as u8, cstates.len() as u8, flags, 0, 0, 0, 0];
+    let lpi = usable(&t.lpi);
+    let counts = [pstates.len() as u8, cstates.len() as u8, flags, lpi.len() as u8];
+    let mut out = alloc::vec![VERSION, counts[0], counts[1], counts[2], counts[3], 0, 0, 0];
     out.extend_from_slice(&uid.to_le_bytes());
     out.extend_from_slice(&t.ppc.unwrap_or(0).to_le_bytes());
     if let Some(p) = pct {
@@ -58,5 +61,6 @@ pub fn record(uid: u64, t: &CpuTables) -> Vec<u8> {
         out.extend_from_slice(&[c.revision, 0, 0, 0, 0, 0, 0, 0]);
         c.fields.iter().for_each(|f| field(&mut out, f));
     }
+    levels(&mut out, lpi);
     out
 }

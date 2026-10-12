@@ -20,6 +20,8 @@
 
 mod caps;
 mod find;
+mod lpi_record;
+mod lpi_say;
 mod notify;
 mod osc_report;
 mod record;

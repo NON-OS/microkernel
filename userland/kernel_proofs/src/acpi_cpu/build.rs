@@ -25,7 +25,11 @@ pub fn reg(kind: u8, space: u8, width: u8, value: u64) -> Vec<u8> {
 }
 
 pub fn header(np: u8, nc: u8, flags: u8, uid: u64, ppc: u64) -> Vec<u8> {
-    let mut b = vec![VERSION, np, nc, flags, 0, 0, 0, 0];
+    levels_header(np, nc, flags, 0, uid, ppc)
+}
+
+pub fn levels_header(np: u8, nc: u8, flags: u8, nl: u8, uid: u64, ppc: u64) -> Vec<u8> {
+    let mut b = vec![VERSION, np, nc, flags, nl, 0, 0, 0];
     b.extend_from_slice(&uid.to_le_bytes());
     b.extend_from_slice(&ppc.to_le_bytes());
     b

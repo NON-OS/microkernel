@@ -17,7 +17,7 @@ devices up, reports what firmware describes, and serves the SCI.
    MkAcpiPci    -- config access  -->  PCI_Config fields
    MkAcpiPower, MkAcpiEvent  <---      batteries, buttons, lid, thermal
    MkAcpiSleep               <---      \_S5 (start, and PREPARE_SLEEP)
-   MkAcpiCpu                 <---      _PSS _PCT _PPC _CST _CPC, per processor
+   MkAcpiCpu                 <---      _PSS _PCT _PPC _CST _CPC _LPI, per processor
    SCI record (PNP0C08)
      MkDeviceClaim, MkIrqBind  --->    SCI: fixed events, _Lxx/_Exx, Notify
                                        port 4530: STATUS, DEVICE
@@ -76,8 +76,13 @@ Every processor, a Processor object (by its ProcID) or an ACPI0007 device
 (by its _UID), has its _PSS, _PCT, _PPC, _CST and _CPC read at start and
 handed to the kernel through `MkAcpiCpu`, one record per processor, for
 the kernel's frequency and idle control; a part whose register lies
-outside memory, I/O, PCC or fixed hardware is left out. They are read
-again on the processor's Notify 0x80, 0x81, 0x83 and 0x85. One `[ACPI]
+outside memory, I/O, PCC or fixed hardware is left out. The record also
+carries the processor's _LPI and that of each processor container
+(ACPI0010) it sits in, nearest first, each container named by its _UID;
+the walk stops at a container with no _UID or no usable _LPI, since the
+level below names its states by position. They are read again on the
+processor's Notify 0x80, 0x81, 0x83 and 0x85, and on a container's 0x81
+for every processor under it. One `[ACPI]
 cpu` line is logged for each run of processors with the same tables. Each
 processor's `_OSC` (Intel's processor UUID) is evaluated first, since firmware
 often loads those tables from it, declaring only the capabilities listed in

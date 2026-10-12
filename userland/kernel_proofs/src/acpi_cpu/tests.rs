@@ -51,7 +51,7 @@ fn length_counts_and_flags_must_agree() {
     assert_eq!(decode(&header(0, 9, 0, 0, 0)), None, "too many C-states");
     assert_eq!(decode(&header(0, 0, 8, 0, 0)), None, "unknown flag");
     let mut v = b.clone();
-    v[0] = 2;
+    v[0] = 3;
     assert_eq!(decode(&v), None, "another version");
     let mut z = b;
     z[5] = 1;

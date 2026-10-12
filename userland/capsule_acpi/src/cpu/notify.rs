@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A Notify on a processor (ACPI 6.5, 5.6.6): 0x80, _PPC changed; 0x81,
-//! _CST changed; 0x83 and 0x85, CPPC's guaranteed or highest level
-//! changed. Each reads the processor's tables again and, when they moved,
+//! its idle states (_CST or _LPI) changed; 0x83 and 0x85, CPPC's
+//! guaranteed or highest level changed. On a processor container, 0x81
+//! says the container's _LPI changed, which every processor under it
+//! carries. Each reads the processors' tables again and, when they moved,
 //! hands them over and logs the line anew.
 
 use super::report::line;
@@ -25,26 +27,43 @@ use super::state::Cpus;
 use crate::boot::evaluator;
 use crate::host::CapsuleHost;
 use crate::sys::log::Line;
+use alloc::vec::Vec;
 use nonos_aml::cpu::cpu_tables;
 use nonos_aml::load::Aml;
 use nonos_aml::namespace::Id;
 
 const PPC_CHANGED: u8 = 0x80;
-const CST_CHANGED: u8 = 0x81;
+const IDLE_CHANGED: u8 = 0x81;
 const GUARANTEED_CHANGED: u8 = 0x83;
 const HIGHEST_CHANGED: u8 = 0x85;
 
-pub fn notified(cpus: &mut Cpus, aml: &mut Aml, host: &mut CapsuleHost, id: Id, value: u8) -> bool {
-    let Some(i) = cpus.list.iter().position(|c| c.id == id) else { return false };
-    if ![PPC_CHANGED, CST_CHANGED, GUARANTEED_CHANGED, HIGHEST_CHANGED].contains(&value) {
-        Line::new(b"cpu ").dec(cpus.list[i].uid).str(b" notify ").hex(u64::from(value)).end();
-        return true;
-    }
-    let tables = cpu_tables(aml, &mut evaluator(host), id);
+fn reread(cpus: &mut Cpus, aml: &mut Aml, host: &mut CapsuleHost, i: usize) {
+    let tables = cpu_tables(aml, &mut evaluator(host), cpus.list[i].id);
     if tables != cpus.list[i].tables {
         cpus.list[i].tables = tables;
         send(&cpus.list[i]);
         line(&[cpus.list[i].uid], &cpus.list[i].tables);
     }
+}
+
+pub fn notified(cpus: &mut Cpus, aml: &mut Aml, host: &mut CapsuleHost, id: Id, value: u8) -> bool {
+    let under = |c: &super::state::Cpu| {
+        c.tables.lpi.iter().any(|l| l.container.is_some_and(|(k, _)| k == id))
+    };
+    let Some(i) = cpus.list.iter().position(|c| c.id == id) else {
+        let held: Vec<usize> = (0..cpus.list.len()).filter(|i| under(&cpus.list[*i])).collect();
+        if held.is_empty() {
+            return false;
+        }
+        if value == IDLE_CHANGED {
+            held.into_iter().for_each(|i| reread(cpus, aml, host, i));
+        }
+        return true;
+    };
+    if ![PPC_CHANGED, IDLE_CHANGED, GUARANTEED_CHANGED, HIGHEST_CHANGED].contains(&value) {
+        Line::new(b"cpu ").dec(cpus.list[i].uid).str(b" notify ").hex(u64::from(value)).end();
+        return true;
+    }
+    reread(cpus, aml, host, i);
     true
 }

@@ -41,10 +41,18 @@ pub fn register(out: &mut Vec<u8>, r: &Register) {
     put(out, [REGISTER, r.space, r.width, r.offset, r.access], r.address);
 }
 
+pub fn put_absent(out: &mut Vec<u8>) {
+    put(out, [ABSENT, 0, 0, 0, 0], 0);
+}
+
+pub fn put_integer(out: &mut Vec<u8>, v: u64) {
+    put(out, [INTEGER, 0, 0, 0, 0], v);
+}
+
 pub fn field(out: &mut Vec<u8>, f: &CpcField) {
     match f {
-        CpcField::Absent => put(out, [ABSENT, 0, 0, 0, 0], 0),
-        CpcField::Integer(v) => put(out, [INTEGER, 0, 0, 0, 0], *v),
+        CpcField::Absent => put_absent(out),
+        CpcField::Integer(v) => put_integer(out, *v),
         CpcField::Register(r) => register(out, r),
     }
 }

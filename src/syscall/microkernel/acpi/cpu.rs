@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `MkAcpiCpu(record, len) -> 0`: the ACPI capsule hands over one
-//! processor's _PSS, _PCT, _PPC, _CST and _CPC, as `cpu_layout` lays them
-//! out, after its first read and again when a Notify says they changed.
+//! processor's _PSS, _PCT, _PPC, _CST, _CPC and _LPI levels (its own and
+//! its processor containers'), as `cpu_layout` lays them out, after its
+//! first read and again when a Notify says they changed.
 //! EINVAL for a record that is malformed or longer than the layout allows;
 //! ENOSPC once every processor slot is taken.
 
