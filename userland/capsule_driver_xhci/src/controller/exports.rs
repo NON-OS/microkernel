@@ -26,6 +26,7 @@ pub use super::get_device_descriptor::{
     get_device_descriptor, read_device_descriptor, DEVICE_DESCRIPTOR_LEN, DEVICE_DESCRIPTOR_PREFIX,
 };
 pub use super::halt::halt;
+pub use super::interrupt_out::interrupt_out;
 pub use super::isoch::{
     isoch_endpoint, isoch_in, isoch_out, write_isoch_input, IsochEndpoint, IsochPipe,
 };
