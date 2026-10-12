@@ -29,6 +29,9 @@ checks the properties the loader and the first instruction depend on:
   - no PT_LOAD segment is both writable and executable
   - the signed manifest and signature sections are present and not empty, and
     no relocation rewrites a byte of either: they are signed as linked
+  - aarch64 text signs return addresses and has BTI landing pads, in their
+    hint-space forms only: the combined PAuth branches and loads are
+    undefined on an ARMv8.0 core such as a Raspberry Pi 4's Cortex-A72
 
 Reads the ELF directly, so it runs on a host with no cross binutils.
 """
@@ -154,6 +157,35 @@ def static_pie(elf):
     return failed
 
 
+PACIASP, AUTIASP = 0xD503233F, 0xD50323BF
+BTI_PADS = (0xD503245F, 0xD503249F, 0xD50324DF)
+
+
+def pauth_only(word):
+    """RETAA/B, ERETAA/B, BRAA/B(Z), BLRAA/B(Z): an unconditional branch to a
+    register with op3 0b00001x; LDRAA/B: 0b11111000 M S 1 imm9 W 1. None is a
+    hint: each is undefined where FEAT_PAuth is not implemented."""
+    branch = word & 0xFE000000 == 0xD6000000 and (word >> 10) & 0x3E == 0x2
+    return branch or word & 0xFF200400 == 0xF8200400
+
+
+def branch_protection(elf):
+    """What keeps aarch64 text from being signed, padded and still ARMv8.0."""
+    text = b"".join(elf.data[o:o + f] for t, fl, o, _, _, f, _ in elf.headers()
+                    if t == PT_LOAD and fl & PF_X)
+    words = struct.unpack_from(f"<{len(text) // 4}I", text)
+    failed = []
+    if PACIASP not in words or AUTIASP not in words:
+        failed.append("no PACIASP/AUTIASP in text: not built with -Z branch-protection=pac-ret")
+    if not any(w in BTI_PADS for w in words):
+        failed.append("no BTI landing pad in text: not built with -Z branch-protection=bti")
+    combined = sum(1 for w in words if pauth_only(w))
+    if combined:
+        failed.append(f"{combined} combined PAuth instructions, undefined on ARMv8.0: "
+                      "is +pauth back in the target's features?")
+    return failed
+
+
 def check(elf, arch):
     """Every failed property, as one line each."""
     failed = []
@@ -163,6 +195,8 @@ def check(elf, arch):
         failed += static_pie(elf)
     if elf.e_machine != MACHINES[arch]:
         failed.append(f"e_machine is {elf.e_machine}, want {MACHINES[arch]} ({arch})")
+    if arch == "aarch64":
+        failed += branch_protection(elf)
 
     start = elf.symbol(ENTRY_SYMBOL)
     if start is None:
@@ -216,7 +250,8 @@ def main():
     loads = sum(1 for s in elf.segments() if s[0] == PT_LOAD)
     kind = "a static PIE" if elf.e_type == ET_DYN else "an executable"
     print(f"kernel-elf: {a.elf} is {kind} for {a.arch}, entry `{ENTRY_SYMBOL}` at "
-          f"{elf.e_entry:#x}, {loads} PT_LOAD segments, none writable and executable")
+          f"{elf.e_entry:#x}, {loads} PT_LOAD segments, none writable and executable"
+          + (", return addresses signed and branch targets padded" if a.arch == "aarch64" else ""))
     return 0
 
 
