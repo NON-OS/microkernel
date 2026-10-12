@@ -26,9 +26,11 @@ mod pci;
 mod ports;
 mod region;
 mod say;
+mod shared;
 mod state;
 mod tables;
 mod windows;
 
 pub use pci::function as pci_function;
+pub use shared::{read_shared, write_shared};
 pub use state::CapsuleHost;

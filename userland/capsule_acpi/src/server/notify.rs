@@ -24,14 +24,17 @@ use crate::sys::log::Line;
 
 pub fn route(acpi: &mut Acpi) {
     while let Some((id, value)) = acpi.aml.rt.notifications.pop_front() {
-        let Acpi { aml, host, power, buttons, cooling, cpus, backlight, hotkeys, apei, .. } = acpi;
+        let Acpi {
+            aml, host, power, buttons, cooling, cpus, backlight, hotkeys, apei, typec, ..
+        } = acpi;
         let served = crate::power::notified(power, aml, host, id, value)
             || crate::buttons::notified(buttons, aml, host, id, value)
             || crate::cooling::notified(cooling, aml, host, id, value)
             || crate::cpu::notified(cpus, aml, host, id, value)
             || crate::backlight::notified(backlight, aml, host, id, value)
             || crate::hotkeys::notified(hotkeys, aml, host, id, value)
-            || crate::apei::notified(apei, id);
+            || crate::apei::notified(apei, id)
+            || crate::typec::notified(typec, aml, host, id);
         if !served {
             Line::new(b"notify ").str(path(aml, id).as_bytes()).str(b" ").hex(value as u64).end();
         }

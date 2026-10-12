@@ -19,6 +19,7 @@
 mod bringup;
 mod eval;
 mod ged;
+mod late;
 mod load;
 mod osc;
 mod report;

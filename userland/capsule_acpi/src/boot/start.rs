@@ -44,7 +44,6 @@ pub fn boot() -> Option<Acpi> {
     let hotkeys = crate::hotkeys::find(&devices, &mut aml, &mut host);
     let serial = crate::serial::find(&devices, &mut aml, &mut host);
     let legacy = crate::legacy::find(&t.fadt, &devices, &mut aml, &mut host);
-    crate::platform::publish(&devices, &mut aml, &mut host);
     let apei = crate::apei::start(&devices);
     let (scis, gpe_runs) = (0, 0);
     let mut acpi = Acpi {
@@ -65,11 +64,12 @@ pub fn boot() -> Option<Acpi> {
         legacy,
         apei,
         smbios,
+        typec: None,
         devices,
         routes,
         scis,
         gpe_runs,
     };
-    crate::dpower::reveal_hidden(&mut acpi);
+    super::late::late(&mut acpi);
     Some(acpi)
 }

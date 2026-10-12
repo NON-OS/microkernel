@@ -41,6 +41,7 @@ mod server;
 mod sleep;
 mod smbios;
 mod sys;
+mod typec;
 
 use nonos_libc::{heap_init, mk_exit};
 

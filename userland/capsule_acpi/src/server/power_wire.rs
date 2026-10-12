@@ -18,7 +18,8 @@
 //! counted and present; state bits (1 charging, 2 discharging, 4 critical);
 //! the charge (0xFF unknown); the summed rate and minutes left, until empty
 //! or full (0xFFFFFFFF unknown); AC (0 offline, 1 online, 0xFF unknown);
-//! and the unit, 1 for mA and mAh, 0 for mW and mWh.
+//! and the unit, 1 for mA and mAh, 0 for mW and mWh. Then the Type-C
+//! ports (`typec_wire`).
 
 use crate::boot::Acpi;
 use crate::power::Power;
@@ -59,5 +60,6 @@ pub fn power(acpi: &Acpi) -> (i32, Vec<u8>) {
     v.extend_from_slice(&st.rate.unwrap_or(UNKNOWN).to_le_bytes());
     v.extend_from_slice(&minutes_left(&info, &st).unwrap_or(UNKNOWN).to_le_bytes());
     v.extend_from_slice(&[ac, u8::from(info.milliamp)]);
+    super::typec_wire::append(acpi, &mut v);
     (0, v)
 }

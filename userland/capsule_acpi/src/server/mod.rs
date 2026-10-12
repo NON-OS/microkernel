@@ -27,5 +27,6 @@ mod run;
 mod sci;
 mod smbios_wire;
 mod thermal_wire;
+mod typec_wire;
 
 pub use run::run;

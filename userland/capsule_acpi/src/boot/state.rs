@@ -57,6 +57,7 @@ pub struct Acpi {
     pub legacy: crate::legacy::Legacies,
     pub apei: crate::apei::Apei,
     pub smbios: Option<nonos_smbios::identity::Identity>,
+    pub typec: Option<crate::typec::TypeC>,
     pub devices: Vec<DeviceInfo>,
     pub routes: Vec<(Id, Vec<Route>)>,
     /// SCIs served and GPE methods run, for the status reply.
