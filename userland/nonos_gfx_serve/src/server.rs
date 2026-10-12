@@ -14,34 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The server's state: the device, the platform, the current primary, the
-//! one waiting for RETIRE after a MODE_SET, and the owner, the last pid
-//! to ask SURFACE (only the compositor can send, so a new owner is a
-//! restarted compositor).
+//! The server's state: the device, the platform, one slot per output
+//! (its current primary and the one waiting for RETIRE after a MODE_SET)
+//! and the owner, the last pid to ask SURFACE (only the compositor can
+//! send, so a new owner is a restarted compositor). Serials come from one
+//! counter, so a serial names one primary across every output.
 
 use super::display::{Display, Shadow};
 use super::platform::Platform;
 use super::primary::Primary;
+use super::slot::{Slot, MAX_OUTPUTS};
 
 pub struct Server<D: Display, P: Platform> {
     pub display: D,
     pub platform: P,
-    pub current: Option<Primary>,
-    pub retiring: Option<Primary>,
+    pub slots: [Slot; MAX_OUTPUTS],
     pub owner: Option<u32>,
     pub counter: u32,
 }
 
 impl<D: Display, P: Platform> Server<D, P> {
     pub fn new(display: D, platform: P) -> Self {
-        Server { display, platform, current: None, retiring: None, owner: None, counter: 0 }
-    }
-
-    /// Free the primary waiting for RETIRE, if any.
-    pub fn drop_retiring(&mut self) {
-        if let Some(r) = self.retiring.take() {
-            self.platform.release(Some(r.handle), r.region);
-        }
+        let slots = [Slot::default(); MAX_OUTPUTS];
+        Server { display, platform, slots, owner: None, counter: 0 }
     }
 
     /// Run `f` on the shadow of `p`.
