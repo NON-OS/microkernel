@@ -17,7 +17,10 @@
 use alloc::sync::Arc;
 use core::sync::atomic::Ordering;
 
+use crate::kernel_core::surface_registry::pin::orphans::reclaim;
 use crate::process::core::ProcessControlBlock;
+
+use super::holder::holder_after;
 
 pub fn release(pcb: &Arc<ProcessControlBlock>) {
     let mut mem = pcb.memory_state();
@@ -35,6 +38,7 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
      */
     let keep = crate::kernel_core::surface_registry::pin::exit::take_kept(pcb.pid);
     let Some(asid) = crate::memory::paging::manager::lookup_asid_for_process(pcb.pid) else {
+        reclaim();
         return;
     };
     /*
@@ -63,15 +67,9 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
     if cleaned.is_err() {
         crate::sys::serial::println(b"[EXIT] address_space_cleanup_failed");
     }
-}
-
-pub(crate) fn holder_after(pcb: &ProcessControlBlock) -> Option<Arc<ProcessControlBlock>> {
-    let tables = pcb.cr3.load(Ordering::Acquire);
-    if tables == 0 {
-        return None;
-    }
-    crate::process::core::PROCESS_TABLE
-        .get_all_processes()
-        .into_iter()
-        .find(|p| p.pid != pcb.pid && p.cr3.load(Ordering::Acquire) == tables)
+    /*
+     * Exit forgot this process's attach records after its reclaim ran: an
+     * orphan it held last is freed now its view has gone with the tables.
+     */
+    reclaim();
 }
