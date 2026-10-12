@@ -41,3 +41,5 @@ mod scan_tests;
 mod sim;
 #[cfg(test)]
 mod transport_tests;
+#[cfg(test)]
+mod update_tests;

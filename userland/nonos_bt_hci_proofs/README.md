@@ -11,7 +11,7 @@ test scripts for an opcode. It cuts each event into
 every command and bulk transfer the host makes. So each test runs the host,
 the USB transport and the joiner together.
 
-33 tests:
+36 tests:
 
 | File | Tests | What it checks |
 |---|---|---|
@@ -26,6 +26,7 @@ the USB transport and the joiner together.
 | `connect_cancel_tests.rs` | 3 | a peer not heard within the budget is cancelled and its Unknown Connection Identifier taken; a cancel after the link came up is disallowed and the link kept, its event before or after the cancel's answer; any other refused cancel is its status |
 | `encrypt_tests.rs` | 3 | LE Enable Encryption with Rand and EDIV zero and the LTK least significant octet first, a reserved handle refused; another link's Encryption Change kept; a refusal, and a change that leaves the link clear, are statuses |
 | `encrypt_end_tests.rs` | 2 | a link that drops ends the wait with its reason and its Disconnection Complete stays queued; no change within the budget is a timeout |
+| `update_tests.rs` | 3 | LE Connection Update laid out byte by byte and taken on Command Status; a refusal is its status; timing out of range or a reserved handle refused unsent |
 
 Each expected byte string is laid out by hand from the cited section of the
 Core Specification. None is taken from another project's tests.
