@@ -29,7 +29,7 @@ pub struct SinkState {
     pub dpcd: Vec<u8>,
     pub edid: Vec<u8>,
     pub i2c_offset: usize,
-    /// DEFERs to answer before the next ACK, and NACK everything when set.
+    /// DEFERs before the next ACK; NACK everything when `nack`.
     pub defers: u32,
     pub nack: bool,
     /// The fastest rate and widest link this receiver locks at.
@@ -44,6 +44,7 @@ pub struct SinkState {
     pub transfers: u32,
     pub waited_us: u64,
     pub stops: u32,
+    pub held: bool, // trained and kept: locked with training off
 }
 
 pub type Sink = Rc<RefCell<SinkState>>;
@@ -69,5 +70,6 @@ pub fn sink(edid: Vec<u8>) -> Sink {
         transfers: 0,
         waited_us: 0,
         stops: 0,
+        held: false,
     }))
 }
