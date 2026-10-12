@@ -30,6 +30,12 @@ pub struct Peripheral {
     pub refuse: Option<u8>,
     /// Answer nothing.
     pub silent: bool,
+    /// Answer requests with this opcode with this error, the rest as usual.
+    pub refuse_op: Option<(u8, u8)>,
+    /// Answer a Read of this handle with this error.
+    pub refuse_read: Option<(u16, u8)>,
+    /// Answer nothing to requests with this opcode.
+    pub mute: Option<u8>,
     /// Answer every Find By Type Value with the groups from handle 1, so
     /// the second answer goes back over the first.
     pub repeat: bool,
@@ -45,6 +51,9 @@ impl Peripheral {
             writes: Vec::new(),
             refuse: None,
             silent: false,
+            refuse_op: None,
+            refuse_read: None,
+            mute: None,
             repeat: false,
             wide: false,
             requests: 0,

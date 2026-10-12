@@ -15,6 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(test)]
+mod battery_bearer_tests;
+#[cfg(test)]
+mod battery_bounds_tests;
+#[cfg(test)]
+mod battery_pass_tests;
+#[cfg(test)]
+mod battery_refuse_tests;
+#[cfg(test)]
+mod battery_tests;
+#[cfg(test)]
 mod bearer_tests;
 #[cfg(test)]
 mod discovery_tests;

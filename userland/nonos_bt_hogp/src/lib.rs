@@ -20,7 +20,9 @@
 //! puts the HID service in Boot Protocol Mode and reads the boot keyboard
 //! and boot mouse reports, whose layout the USB HID specification fixes
 //! (HID 1.11, Appendix B). No report map is parsed, so a peripheral cannot
-//! steer the host with a crafted one.
+//! steer the host with a crafted one. Once the reports are on, it reads
+//! the device's Battery Levels too (BAS 1.0), without ever holding up or
+//! ending HID for them.
 //!
 //! The ATT bearer must already be encrypted: the HID service's
 //! characteristics need it (HOGP 1.0, 4.1), and a peripheral that answers

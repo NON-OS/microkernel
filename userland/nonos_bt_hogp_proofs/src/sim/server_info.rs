@@ -42,3 +42,13 @@ impl Peripheral {
         }
     }
 }
+
+impl Peripheral {
+    /// Read (Vol 3, Part F, 3.4.4.3): the whole value, which every value
+    /// here fits in one response.
+    pub(super) fn read(&self, handle: u16) -> Result<Vec<u8>, (u16, u8)> {
+        let a = self.db.attrs.iter().find(|a| a.handle == handle);
+        let a = a.ok_or((handle, INVALID_HANDLE))?;
+        Ok([&[READ_RSP][..], &a.value].concat())
+    }
+}

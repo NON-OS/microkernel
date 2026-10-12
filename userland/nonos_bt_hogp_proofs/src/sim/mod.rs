@@ -18,6 +18,7 @@ mod db;
 pub mod devices;
 mod run;
 mod run_io;
+mod run_new;
 mod server;
 mod server_find;
 mod server_info;

@@ -16,9 +16,8 @@
 
 //! The host under test and the simulated peripheral, PDU by PDU.
 
-use super::db::Db;
 use super::server::Peripheral;
-use nonos_bt_hogp::host::{Host, Outcome, Step};
+use nonos_bt_hogp::host::{Battery, Host, Outcome, Step};
 use nonos_bt_hogp::report::Input;
 use std::collections::VecDeque;
 
@@ -32,34 +31,17 @@ pub struct Run {
     pub sent: Vec<Vec<u8>>,
     pub input: Vec<Input>,
     pub outcomes: Vec<Outcome>,
-    to_peer: VecDeque<Vec<u8>>,
+    pub batteries: Vec<Battery>,
+    pub(super) to_peer: VecDeque<Vec<u8>>,
 }
 
 impl Run {
-    pub fn new(db: Db) -> Self {
-        Self::with(Peripheral::new(db))
-    }
-
-    pub fn with(peer: Peripheral) -> Self {
-        let (host, first) = Host::start(0);
-        let mut run = Self {
-            host,
-            peer,
-            now: 0,
-            sent: Vec::new(),
-            input: Vec::new(),
-            outcomes: Vec::new(),
-            to_peer: VecDeque::new(),
-        };
-        run.take(first);
-        run
-    }
-
     pub(super) fn take(&mut self, step: Step) {
         self.sent.extend(step.send.iter().cloned());
         self.to_peer.extend(step.send);
         self.input.extend(step.input);
         self.outcomes.extend(step.outcome);
+        self.batteries.extend(step.battery);
     }
 
     /// Runs until nothing is in flight; the last outcome.

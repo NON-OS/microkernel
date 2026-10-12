@@ -45,12 +45,17 @@ impl Host {
                 self.on_descs(source, next, p, now_ms)
             }
             (Phase::Enable { source }, WRITE_RSP) => Ok(self.enabled(source, now_ms)),
+            (Phase::Ready, _) => return self.on_charge(op, p, now_ms),
             _ => Err(HogpError::Protocol),
         };
         done.unwrap_or_else(|e| self.fail(e))
     }
 
     fn on_error(&mut self, code: u8, now_ms: u64) -> Step {
+        // Once ready, only the battery client asks; its errors are its own.
+        if self.phase == Phase::Ready {
+            return self.charge_error(code, now_ms);
+        }
         let security =
             [INSUFFICIENT_AUTHENTICATION, INSUFFICIENT_ENCRYPTION, INSUFFICIENT_KEY_SIZE];
         if security.contains(&code) {

@@ -18,6 +18,7 @@
 //! channel (CID 0x0004, Vol 3, Part A, 2.1), input events to post, and
 //! how discovery ended.
 
+use super::types::Battery;
 use crate::error::HogpError;
 use crate::report::Input;
 use alloc::vec::Vec;
@@ -37,6 +38,7 @@ pub struct Step {
     pub send: Vec<Vec<u8>>,
     pub input: Vec<Input>,
     pub outcome: Option<Outcome>,
+    pub battery: Option<Battery>,
 }
 
 impl Step {

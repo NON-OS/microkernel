@@ -52,3 +52,12 @@ pub struct Source {
     pub end: u16,
     pub cccd: Option<u16>,
 }
+
+/// A Battery Level read or notified: which Battery Service instance, in the
+/// order the peripheral's database holds them, and the charge left in
+/// percent (BAS 1.0, 3.1).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Battery {
+    pub instance: u8,
+    pub percent: u8,
+}

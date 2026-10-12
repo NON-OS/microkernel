@@ -16,6 +16,7 @@
 
 //! Starting discovery, sending a request, and stopping.
 
+use super::charge::Charge;
 use super::phase::Phase;
 use super::state::Host;
 use super::step::Step;
@@ -40,6 +41,9 @@ impl Host {
             locks: Locks::default(),
             keyboard: Keyboard::default(),
             mouse: Mouse::default(),
+            charge: Charge::Idle,
+            banks: Vec::new(),
+            cells: Vec::new(),
             pending: None,
             sent_ms: now_ms,
             requests: 0,

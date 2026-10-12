@@ -18,6 +18,7 @@
 //! the reports. It sends nothing itself; it keeps one request outstanding
 //! at a time, as a client must (Vol 3, Part F, 3.3.2).
 
+use super::charge::{Cell, Charge};
 use super::phase::Phase;
 use super::types::{Decl, Source};
 use crate::report::{Keyboard, Locks, Mouse};
@@ -37,6 +38,10 @@ pub struct Host {
     pub(super) locks: Locks,
     pub(super) keyboard: Keyboard,
     pub(super) mouse: Mouse,
+    pub(super) charge: Charge,
+    /// Battery Service handle ranges.
+    pub(super) banks: Vec<(u16, u16)>,
+    pub(super) cells: Vec<Cell>,
     /// The opcode of the request awaiting its response.
     pub(super) pending: Option<u8>,
     pub(super) sent_ms: u64,

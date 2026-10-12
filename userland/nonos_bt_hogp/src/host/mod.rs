@@ -15,11 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod answer;
+mod bank;
+mod battery;
+mod cell;
+mod charge;
+mod charged;
 mod chars;
 mod descs;
 mod dispatch;
 mod enable;
 mod leds;
+mod notify;
 mod phase;
 mod ready;
 mod services;
@@ -33,4 +39,4 @@ mod types;
 pub use phase::Phase;
 pub use state::Host;
 pub use step::{Outcome, Step};
-pub use types::{Kind, Source, MAX_DECLS, MAX_REQUESTS, MAX_SERVICES, TIMEOUT_MS};
+pub use types::{Battery, Kind, Source, MAX_DECLS, MAX_REQUESTS, MAX_SERVICES, TIMEOUT_MS};

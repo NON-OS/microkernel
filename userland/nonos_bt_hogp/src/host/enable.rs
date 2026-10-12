@@ -33,7 +33,7 @@ impl Host {
         let modes = || self.modes.iter().map(|&h| att::write(h, &[BOOT_PROTOCOL], true)).collect();
         let mut send: Vec<Vec<u8>> = if source == 0 { modes() } else { Vec::new() };
         let Some(cccd) = self.sources.get(source).and_then(|s| s.cccd) else {
-            return self.ready(send);
+            return self.ready(send, now_ms);
         };
         self.phase = Phase::Enable { source };
         let mut step = self.request(att::write(cccd, &NOTIFY_ON.to_le_bytes(), false), now_ms);
@@ -48,7 +48,7 @@ impl Host {
         self.enable(source + 1, now_ms)
     }
 
-    fn ready(&mut self, mut send: Vec<Vec<u8>>) -> Step {
+    fn ready(&mut self, mut send: Vec<Vec<u8>>, now_ms: u64) -> Step {
         self.phase = Phase::Ready;
         // A lock set before now: the peripheral's LEDs start off.
         if self.locks.bits() != 0 {
@@ -56,6 +56,8 @@ impl Host {
         }
         let has = |k| self.sources.iter().any(|s| s.kind == k);
         let outcome = Outcome::Ready { keyboard: has(Kind::Keyboard), mouse: has(Kind::Mouse) };
+        // The battery's first request goes behind the reports' set-up.
+        send.append(&mut self.find_banks(1, now_ms).send);
         Step { send, outcome: Some(outcome), ..Step::default() }
     }
 }

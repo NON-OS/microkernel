@@ -29,12 +29,16 @@ impl Peripheral {
             return None;
         }
         // A server answers requests only (Vol 3, Part F, 3.3).
-        if !is_request(op) || self.silent {
+        if !is_request(op) || self.silent || self.mute == Some(op) {
             return None;
         }
         self.requests += 1;
-        let result = match (self.refuse, op) {
+        let read = self.refuse_read.filter(|r| op == READ_REQ && r.0 == u16_at(0));
+        let refuse = self.refuse.or(self.refuse_op.filter(|r| r.0 == op).map(|r| r.1));
+        let refuse = refuse.or(read.map(|r| r.1));
+        let result = match (refuse, op) {
             (Some(code), _) => Err((0, code)),
+            (_, READ_REQ) => self.read(u16_at(0)),
             (_, WRITE_REQ) => {
                 self.writes.push((u16_at(0), p[2..].to_vec(), false));
                 Ok(vec![WRITE_RSP])
