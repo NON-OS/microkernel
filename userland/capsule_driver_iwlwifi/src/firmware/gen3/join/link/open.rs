@@ -35,6 +35,7 @@ impl Link {
             ready: VecDeque::new(),
             pmf,
             left: None,
+            silent: false,
             new_group_key: None,
             stats: LinkStats::default(),
             data_rate,

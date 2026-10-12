@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which deauthentication the link takes.
+//! The link's clock, ticked from the serving loop: the station asks after a
+//! quiet access point (its probes name the session's network) or answers an
+//! SA Query, and a link whose access point is gone ends.
 
-use nonos_wifi_core::dot11::auth::parse_leave;
+use nonos_wifi_core::station::Tick;
 
 use super::buffers::RxBuffers;
 use super::state::RtlLink;
@@ -24,19 +26,19 @@ use crate::fw::dma::DmaMem;
 use crate::regs::Mmio;
 
 impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
-    // A deauthentication or disassociation from the AP takes the link down,
-    // unless management frame protection is on: then an unprotected one may
-    // be forged, and the station does not process protected management frames,
-    // so it relies on the AP's own teardown instead.
-    pub(super) fn note_leave(&mut self, frame: &[u8]) -> bool {
-        if self.pmf {
-            return false;
+    /// Tick the station at `now_ms`: send what it calls for, or note the end.
+    pub fn tick(&mut self, now_ms: u64) {
+        match self.station.tick(now_ms) {
+            Tick::Send(frame) => {
+                self.send_raw(&frame);
+            }
+            Tick::Lost(why) => self.lost(why),
+            Tick::Quiet => {}
         }
-        let Some(reason) = parse_leave(frame, &self.station.mac(), &self.station.bssid()) else {
-            return false;
-        };
-        self.station.deassociate();
-        self.left = Some(reason);
-        true
+    }
+
+    /// The network's SSID, for the station's probes.
+    pub fn set_ssid(&mut self, ssid: &[u8]) {
+        self.station.set_ssid(ssid);
     }
 }

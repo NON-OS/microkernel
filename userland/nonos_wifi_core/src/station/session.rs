@@ -16,7 +16,7 @@
 
 //! The keys an association takes after the join, and how it ends.
 
-use super::LinkStation;
+use super::{LinkStation, Loss};
 use crate::wpa::supplicant::Supplicant;
 
 impl LinkStation {
@@ -45,5 +45,11 @@ impl LinkStation {
         self.associated = false;
         self.group_keys = [None; 4];
         self.supplicant = None;
+    }
+
+    /// End the link for `why`.
+    pub(super) fn lose(&mut self, why: Loss) -> Loss {
+        self.deassociate();
+        why
     }
 }

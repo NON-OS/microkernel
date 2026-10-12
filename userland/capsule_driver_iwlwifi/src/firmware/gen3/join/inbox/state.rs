@@ -40,6 +40,8 @@ pub struct Inbox {
     pub stray: u32,
     /// Frames the firmware answered as not sent.
     pub tx_failed: u32,
+    /// The firmware said the access point's beacons stopped; not yet read.
+    pub missed: bool,
 }
 
 impl Inbox {

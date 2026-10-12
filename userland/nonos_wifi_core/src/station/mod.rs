@@ -32,15 +32,25 @@
 //! supplicant the join finished with (`eapol`). `rx_frame` remains the bare
 //! structural decap, without those checks.
 
+mod alive;
 mod eapol;
 mod frames;
 mod keys;
 mod link;
+mod loss;
+mod mgmt;
 mod mode;
+mod query;
 mod receive;
 mod replay;
 mod session;
+mod tick;
+mod watch;
 
+pub use alive::{PROBES, PROBE_EVERY_MS, QUIET_MS};
 pub use link::LinkStation;
+pub use loss::{Loss, Tick};
 pub use mode::Ccmp;
+pub use query::{MAX_MS as SA_QUERY_MAX_MS, RETRY_MS as SA_QUERY_RETRY_MS};
 pub use receive::{Rx, RxDrop};
+pub use watch::SSID_MAX;

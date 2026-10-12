@@ -45,11 +45,14 @@ pub struct RtlLink<M: Mmio, D: DmaMem, RB: RxBuffers> {
     pub(super) rx_state: RxState,
     pub(super) station: LinkStation,
     pub(super) stats: LinkStats,
-    /// Management frame protection is on for this association: an unprotected
-    /// deauthentication is then a forgery and is ignored.
+    /// Management frame protection is on for this association, so the
+    /// station's own deauthentication goes protected.
     pub(super) pmf: bool,
     /// A group key the AP delivered on the link, for the serve loop to install.
     pub(super) new_group_key: Option<(u8, [u8; 16])>,
-    /// The reason code of a deauthentication the AP sent; the link is down.
+    /// The reason code of the access point's deauthentication, taken as it
+    /// came or after an unanswered SA Query; the link is down.
     pub(super) left: Option<u16>,
+    /// The access point went unheard and answered no probe; the link is down.
+    pub(super) silent: bool,
 }

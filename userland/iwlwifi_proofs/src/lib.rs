@@ -184,3 +184,5 @@ mod client_join_wire;
 mod link_gate_tests;
 #[cfg(test)]
 mod serve_tests;
+#[cfg(test)]
+mod watch_tests;

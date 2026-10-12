@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The link as net_core drives it, serviced between its requests.
 
+use nonos_wifi_core::station::Tick;
+
 use super::super::super::region::{Clock, Region};
 use super::super::fw::{Fw, Queue};
 use super::state::Link;
@@ -26,14 +28,30 @@ pub struct Port<'p, 'a, 'd, M: Mmio, R: Region + ?Sized, C: Clock> {
 }
 
 impl<M: Mmio, R: Region + ?Sized, C: Clock> Port<'_, '_, '_, M, R, C> {
-    /// Take what the firmware posted and answer what calls for it.
+    /// Take what the firmware posted and answer what calls for it, then tick
+    /// the station's clock: a probe or an SA Query to send, or the link's end.
     pub fn service(&mut self) {
         self.fw.pump();
         while let Some(rx) = self.fw.inbox.frames.pop_front() {
             if let Some(reply) = self.link.receive(rx) {
-                let rate = self.link.mgmt_rate;
-                let _ = self.fw.send(Queue::Data, &reply, rate);
+                self.send(&reply);
             }
         }
+        if core::mem::take(&mut self.fw.inbox.missed) {
+            self.link.station.beacons_missed();
+        }
+        match self.link.station.tick(self.fw.clock.now_ms()) {
+            Tick::Send(frame) => self.send(&frame),
+            Tick::Lost(why) => self.link.lost(why),
+            Tick::Quiet => {}
+        }
+    }
+
+    // A frame to the access point at the management rate: a management frame
+    // (an SA Query, a probe) on the management queue, data on the data queue.
+    fn send(&mut self, frame: &[u8]) {
+        let queue =
+            if frame.first().is_some_and(|b| b & 0x0C == 0) { Queue::Mgmt } else { Queue::Data };
+        let _ = self.fw.send(queue, frame, self.link.mgmt_rate);
     }
 }

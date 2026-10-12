@@ -17,7 +17,7 @@
 use super::super::clock::{now_ms, Uptime};
 use super::super::say::Line;
 use super::super::{Radio, State};
-use super::say_link::say_link;
+use super::say_link::{say_link, say_loss};
 use crate::firmware::gen3::join::fw::Fw;
 use crate::firmware::gen3::join::link::Port;
 use crate::firmware::gen3::join::run::forget;
@@ -46,9 +46,9 @@ impl Radio {
             self.state = State::Down(Failure::Lost);
             return;
         }
-        if let Some(reason) = j.link.left {
+        if j.link.left.is_some() || j.link.silent {
             forget(&mut fw, j);
-            Line::new().text(b"link: the access point ended the association, reason ").num(u32::from(reason)).send();
+            say_loss(j.link.left);
             if let Some(j) = self.join.joined.take() {
                 say_link(&j, &self.join.inbox, b"link closed");
             }

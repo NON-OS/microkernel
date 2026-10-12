@@ -21,10 +21,13 @@
 //! protection. It holds no device state and touches no register, so it is
 //! proven on the host in `nonos_wifi_core_proofs` and `rtl8821ce_proofs`.
 
+pub mod action;
 pub mod auth;
+pub mod bip;
 pub mod ccmp;
 pub mod data;
 pub mod header;
 pub mod ies;
 pub mod mgmt;
 pub mod parse;
+pub mod probe;

@@ -60,6 +60,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
             pmf: false,
             new_group_key: None,
             left: None,
+            silent: false,
         }
     }
 }

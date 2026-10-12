@@ -42,6 +42,12 @@ impl Supplicant {
             self.fail(Failure::BadKeyData);
             return StepOutput::none();
         };
+        // With management frame protection the IGTK must come too: without it
+        // no deauthentication sent to all could ever be checked.
+        if self.pmf && keys.igtk.is_none() {
+            self.fail(Failure::BadKeyData);
+            return StepOutput::none();
+        }
         // The downgrade check: the elements the AP signs into message 3 must be
         // the ones its beacon showed before any key existed.
         if self.ap_known && (!self.ap_rsne.matches(kd.rsne) || !self.ap_rsnxe.matches(kd.rsnxe)) {

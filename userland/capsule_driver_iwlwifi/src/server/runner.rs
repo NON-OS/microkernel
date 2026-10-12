@@ -22,8 +22,8 @@ use super::radio::Radio;
 use super::view::view;
 
 const SERVICE_INBOX: u64 = 0;
-/// How long the loop waits for a request while a scan runs before it pumps
-/// the receive queue again (0 waits for the next request).
+/// How long the loop waits for a request while a scan runs or a link is up
+/// before it services them again; otherwise it waits for the next request.
 const SCAN_TICK_MS: u64 = 50;
 
 pub fn run(mut driver: Driver) -> ! {
@@ -37,7 +37,7 @@ pub fn run(mut driver: Driver) -> ! {
     let mut link = vec![0u8; MAX_RESPONSE];
     loop {
         let mut sender_pid = 0u32;
-        let wait = if radio.scanning() { SCAN_TICK_MS } else { 0 };
+        let wait = if radio.scanning() || radio.joined() { SCAN_TICK_MS } else { 0 };
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait, &mut sender_pid);
         // A receive that failed at once sleeps in recv_ready, so the radio's
         // tick keeps its pace even if the inbox is gone.

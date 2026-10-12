@@ -17,6 +17,7 @@
 //! The station itself, and how an association starts.
 
 use super::replay::Replay;
+use super::watch::Watch;
 use super::Ccmp;
 use crate::dot11::header::MacAddr;
 use crate::wpa::supplicant::Supplicant;
@@ -35,6 +36,7 @@ pub struct LinkStation {
     /// The supplicant the join finished with, which answers the AP's group
     /// key handshakes and repeated message 3s.
     pub(super) supplicant: Option<Supplicant>,
+    pub(super) watch: Watch,
 }
 
 impl LinkStation {
@@ -51,6 +53,7 @@ impl LinkStation {
             replay: Replay::new(),
             group_keys: [None; 4],
             supplicant: None,
+            watch: Watch::new(),
         }
     }
 
@@ -65,5 +68,6 @@ impl LinkStation {
         self.replay = Replay::new();
         self.group_keys = [None; 4];
         self.supplicant = None;
+        self.watch = Watch::new();
     }
 }

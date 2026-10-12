@@ -18,6 +18,8 @@
 
 use alloc::vec::Vec;
 
+use crate::station::Loss;
+
 /// Why a received frame was not delivered.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum RxDrop {
@@ -39,14 +41,21 @@ pub enum RxDrop {
     NotLlc,
     /// EAPOL arrived with no supplicant to answer it.
     NoSupplicant,
+    /// A management frame with nothing for the stack: a beacon, a probe
+    /// response, another network's, or one the link does not act on.
+    Management,
 }
 
-/// What a received data frame calls for.
+/// What a received frame calls for.
 pub enum Rx {
     /// An Ethernet frame for the stack.
     Ethernet(Vec<u8>),
     /// A key handshake message was handled: send `frame` (if any) to the AP,
     /// and install `group_key` (index, key) if the AP delivered a new one.
     Handshake { frame: Option<Vec<u8>>, group_key: Option<(u8, [u8; 16])> },
+    /// Send this frame to the AP as it is (an SA Query, protected).
+    Send(Vec<u8>),
+    /// The link ended; the station is no longer associated.
+    Lost(Loss),
     Dropped(RxDrop),
 }

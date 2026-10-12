@@ -24,7 +24,7 @@ use nonos_wifi_core::wpa::akm::Akm;
 use super::base::{join, AP, SNONCE, STA};
 use super::frames::{beacon, rsne};
 use super::sae::sae_join;
-use crate::ap_sim::{gtk_kde, message1, message3, AP_RSNE_MIXED, GTK};
+use crate::ap_sim::{gtk_kde, igtk_kde, message1, message3, AP_RSNE_MIXED, GTK};
 
 #[test]
 fn a_wpa3_join_runs_sae_then_the_four_way_to_connected() {
@@ -40,6 +40,8 @@ fn a_wpa3_join_runs_sae_then_the_four_way_to_connected() {
             kd.extend_from_slice(&[244, 1, 0x20]);
         }
         kd.extend_from_slice(&gtk_kde(1, &GTK));
+        // SAE runs with management frame protection, so the IGTK comes too.
+        kd.extend_from_slice(&igtk_kde(&[0x77; 16]));
         assert!(m.on_eapol(&message3(Akm::Sae, 2, &anonce, &ptk, &kd)).tx.is_some());
         assert_eq!(m.state(), MlmeState::Connected, "h2e={h2e}");
         assert_eq!(m.akm(), Some(Akm::Sae));

@@ -22,6 +22,7 @@ use super::super::super::rx_data::parse as parse_rx;
 use super::super::super::station::ids::{SESSION_PROTECTION_NOTIF, TX_CMD};
 use super::super::super::station::session::parse_notif;
 use super::super::super::tx_resp::parse as parse_tx_resp;
+use super::missed::{quiet, MISSED_BEACONS_NOTIF};
 use super::state::{Inbox, Queues};
 use super::INBOX_FRAMES;
 
@@ -54,6 +55,10 @@ impl Inbox {
                     self.stray = self.stray.saturating_add(1);
                 }
             }
+            return false;
+        }
+        if p.group == MAC_CONF_GROUP && p.cmd == MISSED_BEACONS_NOTIF {
+            self.missed |= quiet(p.payload);
             return false;
         }
         if p.group == MAC_CONF_GROUP && p.cmd == SESSION_PROTECTION_NOTIF {

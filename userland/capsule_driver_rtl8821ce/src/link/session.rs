@@ -35,6 +35,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         self.pmf = false;
         self.new_group_key = None;
         self.left = None;
+        self.silent = false;
     }
 
     /// Hand the link the supplicant the join finished with, so it answers the
