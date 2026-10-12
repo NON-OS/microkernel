@@ -34,6 +34,7 @@ mod events_io;
 mod host;
 mod hotkeys;
 mod legacy;
+mod platform;
 mod power;
 mod serial;
 mod server;
