@@ -165,6 +165,7 @@ pub const SYS_ACPI_REGION: u64 = tag4(b"MRGN");
 pub const SYS_ACPI_PORT: u64 = tag4(b"MRIO");
 pub const SYS_ACPI_PCI: u64 = tag4(b"MRPC");
 pub const SYS_ACPI_POWER: u64 = tag4(b"MAPW");
+pub const SYS_ACPI_EVENT: u64 = tag4(b"MAEV");
 /// Spawn another window of an embedded, attested app (terminal or browser); needs SpawnWindow.
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
 /// Run a baked, attested tool by name as the caller's child, to drive its stdio; needs IPC.
