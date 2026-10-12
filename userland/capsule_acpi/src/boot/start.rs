@@ -54,6 +54,7 @@ pub fn boot() -> Option<Acpi> {
         buttons,
         cooling,
         cpus,
+        dpower: Default::default(),
         backlight,
         hotkeys,
         serial,
