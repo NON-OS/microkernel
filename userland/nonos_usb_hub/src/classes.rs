@@ -13,21 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! What the capsule running the walk does with a device below a hub: the
+//! hub class addresses it, the capsule decides what it is.
 
-//! A kept device that is gone: its endpoints are dropped, a hub takes every
-//! device below it along, and the slot is given back to the controller.
+use alloc::vec::Vec;
 
-use crate::xhci::disable_slot;
+use crate::host::Host;
+use crate::node::Hub;
+use crate::place::Place;
 
-use super::devices::Devices;
-
-pub(super) fn forget_slot(xhci_port: u32, slot: u8, devs: &mut Devices) {
-    devs.eps.retain(|e| e.slot != slot);
-    if let Some(i) = devs.hubs.iter().position(|h| h.slot == slot) {
-        let hub = devs.hubs.swap_remove(i);
-        for &child in hub.child.iter().filter(|&&c| c != 0) {
-            forget_slot(xhci_port, child, devs);
-        }
-    }
-    disable_slot(xhci_port, slot);
+pub trait Classes<H: Host> {
+    /// The device addressed in `slot` at `place`: bound to a class, or
+    /// brought up with `attach` and pushed onto `hubs`. True when
+    /// something is bound on it; a hub pushed counts as kept too.
+    fn classify(&mut self, host: &mut H, slot: u8, place: Place, hubs: &mut Vec<Hub>) -> bool;
+    /// A kept slot whose device is gone: drop what is bound on it.
+    fn forget(&mut self, slot: u8);
 }

@@ -13,36 +13,35 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Bringing up a hub that was addressed and configured: its descriptor,
 //! its depth (SuperSpeed), the controller told it is a hub, its status
-//! endpoint claimed, and its ports powered (Linux `hub_configure`).
+//! endpoint claimed, and its ports powered.
 
-use crate::xhci::{alloc_transfer_ring, configure_hub};
+use crate::error::HubError;
+use crate::host::Host;
+use crate::line::Line;
+use crate::node::Hub;
+use crate::place::{speed_name, Place};
+use crate::power::power_ports;
+use crate::read::hub_descriptor;
+use crate::request::set_hub_depth;
+use crate::status_endpoint::status_endpoint;
 
-use super::error::HubError;
-use super::node::Hub;
-use super::place::{speed_name, Place};
-use super::power::power_ports;
-use super::read::hub_descriptor;
-use super::request::set_hub_depth;
-use super::say::Line;
-use super::status_endpoint::status_endpoint;
-
-pub fn attach(xhci_port: u32, slot: u8, place: Place, raw: &[u8]) -> Result<Hub, HubError> {
+/// The hub in `slot` at `place`, whose configuration is `raw`.
+pub fn attach(h: &mut impl Host, slot: u8, place: Place, raw: &[u8]) -> Result<Hub, HubError> {
     let ss = place.superspeed();
-    let desc = hub_descriptor(xhci_port, slot, ss).ok_or(HubError::Descriptor)?;
-    if ss && !set_hub_depth(xhci_port, slot, place.depth) {
+    let desc = hub_descriptor(h, slot, ss).ok_or(HubError::Descriptor)?;
+    if ss && !set_hub_depth(h, slot, place.depth) {
         return Err(HubError::Depth);
     }
-    let start = Line::new().text(b"hub slot ").num(slot as u32).text(b": ");
-    if configure_hub(xhci_port, slot, desc.ports, desc.think_time).is_err() {
-        start.text(b"the controller driver was not told this is a hub (op 0x21 refused); low and full speed devices below it will not work").say();
+    if let Err(status) = h.configure_hub(slot, desc.ports, desc.think_time) {
+        let line = Line::new().text(b"hub slot ").num(slot as u32).text(b": ");
+        line.text(HubError::Configure(status).says()).say(h);
     }
     if let Some(ep) = status_endpoint(raw) {
-        let _ = alloc_transfer_ring(xhci_port, slot, ep.address, ep.max_packet, ep.interval);
+        let _ = h.status_endpoint(slot, ep);
     }
-    power_ports(xhci_port, slot, &desc);
+    power_ports(h, slot, &desc);
     Line::new()
         .text(b"root port ")
         .num(place.root_port as u32)
@@ -55,6 +54,6 @@ pub fn attach(xhci_port: u32, slot: u8, place: Place, raw: &[u8]) -> Result<Hub,
         .text(b", ")
         .num(desc.ports_named as u32)
         .text(b" ports, powered")
-        .say();
+        .say(h);
     Ok(Hub::new(slot, place, desc.ports))
 }
