@@ -48,6 +48,8 @@ pub enum AmdViError {
     /// The device table held a writer entry with no valid translation before a
     /// unit was enabled; the unit is refused rather than let it through.
     StrayWriter,
+    /// A device's remapping table, or the broker's handles, has no free entry.
+    InterruptTableFull,
 }
 
 impl From<OutOfFrame> for AmdViError {

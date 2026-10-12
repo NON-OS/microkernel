@@ -17,8 +17,7 @@
 /*
  * Queued invalidation: the descriptor encodings, the queue register values
  * and the ring arithmetic the kernel submits with, included by path and
- * checked against the bit positions of VT-d 3.4, section 6.5.2, and the
- * QI_* encodings in Linux include/linux/intel-iommu.h.
+ * checked against the bit positions of VT-d 3.4, section 6.5.2.
  */
 
 #[path = "../../../../src/arch/x86_64/iommu/unit/queue/descriptor.rs"]

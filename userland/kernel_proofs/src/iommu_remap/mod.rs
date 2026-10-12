@@ -17,8 +17,7 @@
 /*
  * Interrupt remapping: the table address register, the remapped-format
  * entry, the remappable MSI message and the entry allocator, included by
- * path and checked against VT-d 3.4 chapters 5 and 9.10 and Linux
- * intel/irq_remapping.c.
+ * path and checked against VT-d 3.4 chapter 5 and section 9.10.
  */
 
 #[path = "../../../../src/arch/x86_64/iommu/remap/irte.rs"]

@@ -20,15 +20,16 @@ mod attach;
 mod identity;
 mod lifetime;
 mod map;
+mod pass;
 mod pinned;
 mod range;
 mod teardown;
 mod unmap;
 mod walk;
 
-pub(super) use attach::pass;
 pub use attach::{attach, detach, device_id};
 pub use identity::identity_devices;
 pub use lifetime::{create_domain, destroy_domain, MAX_DOMAINS};
 pub use map::map_range;
+pub(super) use pass::pass;
 pub use unmap::unmap_range;

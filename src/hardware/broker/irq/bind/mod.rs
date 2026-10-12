@@ -32,6 +32,8 @@
 //!
 //! All hardware-touching steps go through the `MsixOps` indirection.
 
+#[cfg(feature = "nonos-iommu-amdvi")]
+mod amd_remap;
 mod bind;
 mod grant_run;
 mod handle_view;
