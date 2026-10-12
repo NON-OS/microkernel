@@ -27,7 +27,7 @@ pub fn hex(b: &[u8]) -> String {
 
 pub fn unhex(s: &str) -> Option<Vec<u8>> {
     let s = s.strip_prefix("0x")?.as_bytes();
-    let digit = |c: u8| (c as char).to_digit(16).map(|d| d as u8);
+    let digit = |c: u8| char::from(c).to_digit(16).and_then(|d| u8::try_from(d).ok());
     let pair = |p: &[u8]| Some(digit(*p.first()?)? << 4 | digit(*p.get(1)?)?);
     (s.len() % 2 == 0).then(|| s.chunks(2).map(pair).collect()).flatten()
 }
