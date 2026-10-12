@@ -14,46 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a universal plane holds, read back (SKL PRM Vol 2c, PLANE_CTL,
-//! PLANE_STRIDE, PLANE_SIZE, PLANE_SURF, PLANE_SURFLIVE).
+//! What a pipe's primary plane holds, read back (SKL PRM Vol 2c, PLANE_*;
+//! BDW PRM Vol 2c, DSP* at the same offsets, but no size register: the
+//! plane shows PIPESRC's picture).
 
 use super::access::{field, Mmio};
+use super::gen::PlaneKind;
 use super::pipe::Pipe;
 use super::plane_regs as r;
+use super::regs;
 
-/// PLANE_CTL fields this driver reads or changes.
+/// PIPESRC puts the width high, PLANE_SIZE the height.
+fn wh(v: u32, w: (u32, u32), h: (u32, u32)) -> (u32, u32) {
+    (field(v, w.0, w.1) + 1, field(v, h.0, h.1) + 1)
+}
+
 pub const ENABLE: u32 = 1 << 31;
-/// Source Pixel Format, 27:24; 0100b is RGB 8:8:8:8.
-pub const FORMAT_MASK: u32 = 0xF << 24;
-pub const FORMAT_RGB8888: u32 = 0x4 << 24;
-/// RGB Color Order: 0 keeps B in the lowest byte, ARGB8888's order
-/// (bit placement unverified against the PRM).
-pub const ORDER_RGBX: u32 = 1 << 20;
-/// Tiled Surface, 12:10; 000b is linear.
-pub const TILING_MASK: u32 = 0x7 << 10;
-/// Plane Rotation, 1:0; 00b is none.
-pub const ROTATION_MASK: u32 = 0x3;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PlaneState {
+    pub kind: PlaneKind,
     pub ctl: u32,
-    /// Bytes per line: PLANE_STRIDE counts 64 byte units for linear.
-    pub stride: u32,
+    pub stride: u32, // bytes
     pub width: u32,
     pub height: u32,
-    /// The armed surface address and the one being scanned out.
+    /// The armed surface address, and the one scanned out.
     pub surf: u32,
     pub live: u32,
 }
 
 impl PlaneState {
-    pub fn read(m: &mut dyn Mmio, p: Pipe) -> PlaneState {
-        let size = m.read(r::plane_size(p, 1));
+    pub fn read(m: &mut dyn Mmio, kind: PlaneKind, p: Pipe) -> PlaneState {
+        let (width, height) = match kind {
+            PlaneKind::Primary => wh(m.read(regs::pipe_src(p)), (28, 16), (11, 0)),
+            _ => wh(m.read(r::plane_size(p, 1)), (12, 0), (27, 16)),
+        };
         PlaneState {
+            kind,
             ctl: m.read(r::plane_ctl(p, 1)),
-            stride: field(m.read(r::plane_stride(p, 1)), 9, 0) * 64,
-            width: field(size, 12, 0) + 1,
-            height: field(size, 27, 16) + 1,
+            stride: kind.stride_bytes(m.read(r::plane_stride(p, 1))),
+            width,
+            height,
             surf: m.read(r::plane_surf(p, 1)) & !0xFFF,
             live: m.read(r::plane_surflive(p, 1)) & !0xFFF,
         }
@@ -63,9 +64,11 @@ impl PlaneState {
         self.ctl & ENABLE != 0
     }
 
-    /// Linear, unrotated 32-bit RGB: a layout this driver can flip.
+    /// Linear, unrotated 32-bit RGB (either order): a layout to flip.
     pub fn flippable(&self) -> bool {
-        let rgb = self.ctl & FORMAT_MASK == FORMAT_RGB8888;
-        rgb && self.ctl & (TILING_MASK | ROTATION_MASK) == 0
+        let k = self.kind;
+        let format = self.ctl & k.format_mask();
+        let rgb = format == k.format_argb() || (k == PlaneKind::Primary && format == 0xE << 26);
+        rgb && self.ctl & k.layout_mask() == 0
     }
 }
