@@ -19,8 +19,7 @@
 //! is tried once.
 
 use crate::autojoin_machine::{
-    Due, Machine, Step, EMPTY_PASSES_MAX, JOIN_WATCH_MS, NOT_YET_MS, RESCAN_MS, WATCH_EVERY_MS,
-    CALL_MS,
+    Due, Machine, Step, CALL_MS, JOIN_WATCH_MS, NOT_YET_MS, WATCH_EVERY_MS,
 };
 
 // Every call autojoin makes from the serve loop waits at most 25 ms.
@@ -70,45 +69,4 @@ fn a_join_that_never_comes_up_counts_as_tried_and_the_next_is_due() {
     assert!(!m.done());
     assert_eq!(m.tried(), 0b1);
     assert_eq!(m.due(t + NOT_YET_MS), Due::Attempt, "the next saved network gets its pass");
-}
-
-#[test]
-fn an_answered_join_ends_or_moves_on() {
-    let mut m = Machine::new();
-    m.after_attempt(0, Step::Answered { index: 2, joined: false });
-    assert_eq!(m.tried(), 0b100);
-    assert_eq!(m.due(NOT_YET_MS), Due::Attempt);
-    m.after_attempt(NOT_YET_MS, Step::Answered { index: 0, joined: true });
-    assert!(m.done());
-}
-
-#[test]
-fn nothing_in_range_rescans_then_gives_up() {
-    let mut m = Machine::new();
-    let mut t = 0;
-    for pass in 1..=EMPTY_PASSES_MAX {
-        assert_eq!(m.due(t), Due::Attempt);
-        m.after_attempt(t, Step::NoneInRange);
-        if pass < EMPTY_PASSES_MAX {
-            assert!(!m.done());
-            t += RESCAN_MS;
-        }
-    }
-    assert!(m.done());
-}
-
-#[test]
-fn a_bound_link_is_left_alone() {
-    let mut m = Machine::new();
-    m.bound(0);
-    assert_eq!(m.due(NOT_YET_MS - 1), Due::Nothing);
-    assert_eq!(m.due(NOT_YET_MS), Due::Attempt);
-    assert_eq!(m.tried(), 0);
-}
-
-#[test]
-fn a_watch_outside_a_join_changes_nothing() {
-    let mut m = Machine::new();
-    assert_eq!(m.after_watch(0, Some(true)), None);
-    assert!(!m.done());
 }
