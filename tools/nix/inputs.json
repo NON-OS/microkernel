@@ -1781,6 +1781,7 @@
    "src/services/registry/usb_hosts.rs",
    "userland/capsule_driver_usb_msc",
    "userland/libc",
+   "userland/nonos_uas",
    "userland/nonos_usbnet/src/hosts.rs",
    "userland/nonos_usbnet/src/hosts_first.rs"
   ],
@@ -5501,6 +5502,7 @@
    "userland/capsule_driver_usb_msc/src/scsi",
    "userland/capsule_driver_usb_msc/src/span",
    "userland/capsule_driver_usb_msc/src/state",
+   "userland/nonos_uas",
    "userland/usb_msc_proofs",
    "userland/xhci_proofs/libc_shim"
   ],

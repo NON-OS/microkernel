@@ -23,7 +23,11 @@ mod lun;
 mod ready;
 mod recover;
 mod scsi_io;
+mod transport;
 mod types;
+mod uas;
+mod uas_cmd;
+mod uas_data;
 
 pub use lun::max_lun;
 pub use ready::{capacity, sync_cache, unit_ready};

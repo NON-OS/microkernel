@@ -26,8 +26,12 @@ use crate::xhci::control_in;
 const GET_MAX_LUN: (u8, u8) = (0xA1, 0xFE);
 const MAX_LUN: u8 = 15;
 
-/// The highest LUN, 0 to 15.
+/// The highest LUN, 0 to 15. GET MAX LUN is BOT's; a UAS device is served
+/// on its LUN 0.
 pub fn max_lun(disk: &Disk) -> u8 {
+    if disk.uas {
+        return 0;
+    }
     let mut answer = [0u8; 1];
     match control_in(disk.xhci, disk.slot, GET_MAX_LUN, 0, disk.interface as u16, &mut answer) {
         Ok(1) if answer[0] <= MAX_LUN => answer[0],
