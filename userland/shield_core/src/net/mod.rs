@@ -18,3 +18,7 @@ mod pools;
 pub mod relay;
 pub mod rpc;
 pub mod tor;
+
+#[cfg(test)]
+#[path = "net_hostile_test.rs"]
+mod net_hostile_test;
