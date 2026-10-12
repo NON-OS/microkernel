@@ -30,14 +30,17 @@
 //! which the kernel registered for it at spawn and no other capsule may claim.
 //!
 //! Pure: the kernel's registry supplies who owns what; the table is
-//! held_table.rs. Held in kernel_proofs.
+//! held_table.rs, and the cards' held_cards.rs. Held in kernel_proofs.
 
-// The table sits beside this file and is mounted by path, so kernel_proofs,
+// The tables sit beside this file and is mounted by path, so kernel_proofs,
 // which mounts this file alone, reads the same table.
+#[path = "held_cards.rs"]
+mod cards;
 #[path = "held_table.rs"]
 mod table;
 
-use table::{card_callers, HELD};
+use cards::card_callers;
+use table::HELD;
 
 /// The services that may reach `endpoint`, or None when anyone the
 /// endpoint's capabilities admit may.
