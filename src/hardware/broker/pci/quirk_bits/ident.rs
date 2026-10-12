@@ -22,6 +22,8 @@ pub struct Ident {
     pub vendor: u16,
     pub class: u8,
     pub subclass: u8,
+    /// The programming interface: which host a USB controller is.
+    pub prog_if: u8,
     /// The PCI Express capability's offset, when the function has one.
     pub pcie_cap: Option<u16>,
 }

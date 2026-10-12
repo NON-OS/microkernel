@@ -66,5 +66,6 @@ fn ident(cfg: &ConfigSpace) -> Result<Ident, PciWriteError> {
         })
         .flatten()
         .map(|c| c.offset as u16);
-    Ok(Ident { vendor, class: (class >> 24) as u8, subclass: (class >> 16) as u8, pcie_cap })
+    let (subclass, prog_if) = ((class >> 16) as u8, (class >> 8) as u8);
+    Ok(Ident { vendor, class: (class >> 24) as u8, subclass, prog_if, pcie_cap })
 }

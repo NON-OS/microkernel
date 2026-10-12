@@ -28,6 +28,11 @@
 //!   rtw88 and iwlwifi set on real silicon.
 //! - The Intel SMBus host (class 0C, subclass 05): HOSTC at 0x40, its host
 //!   enable (bit 0) and I2C mode (bit 2), as i2c-i801's probe writes them.
+//! - A UHCI controller (class 0C, subclass 03, interface 00), any vendor:
+//!   LEGSUP at 0xC0, its firmware trap and SMI enables (7:0), their status
+//!   (11:8, 15, each cleared by a one) and PIRQD routing (13), so a polled
+//!   driver turns firmware's legacy keyboard emulation off. Bits 12 and 14
+//!   stay as read (Intel PIIX4 and ICH datasheets, as recalled, unverified).
 //!
 //! Anything else stays refused: these registers hold no address, no BAR, no
 //! routing, and change nothing about what the device may reach.
