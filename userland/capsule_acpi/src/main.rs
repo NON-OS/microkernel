@@ -40,6 +40,7 @@ mod serial;
 mod server;
 mod sleep;
 mod smbios;
+mod suspend;
 mod sys;
 mod typec;
 
