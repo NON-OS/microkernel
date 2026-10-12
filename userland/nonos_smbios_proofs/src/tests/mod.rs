@@ -16,3 +16,5 @@
 
 mod entry_tests;
 mod walk_tests;
+mod quirk_tests;
+mod quirk_table_tests;
