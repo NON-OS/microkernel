@@ -101,6 +101,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | `OP_OUTPUT_LAYOUT` | 0x000B | the shell's choice for several outputs: mode u32, 0 mirror or 1 extend; only from desktop_shell (E_PERM otherwise); kept while one output is present; answers u32 1 when extended now, else 0 |
 | `OP_SCREENSHOT` | 0x000C | the composed canvas copied into the caller's own shared ARGB surface: handle u64; only from a holder of the screen capture bit (ScreenCapture 1<<39; no capsule may hold it until Decision 9), others get E_PERM; the band's blue mark shows for 3 s, presented before the copy; answers width and height copied, u32 each |
 | `OP_OUTPUT_SCALE` | 0x000D | the shell's scale for one output: output u32, quarters u32 (0 the panel's own rule, else 4, 5, 6, 8, 12 or 16: 1, 1.25, 1.5, 2, 3, 4 times); only from desktop_shell; the canvas is laid out again; answers output 0's scale in quarters |
+| `OP_NIGHT_LIGHT` | 0x000E | the shell's colour temperature: kelvin u32 (0 or 6500 and above true colour, 1000 the warmest); only from desktop_shell; every composed pixel looked up through three ramps (`display/night_rule.rs`, `frame_pacer/night_tint.rs`), the indicator band kept true; the shell keeps the schedule |
 
 The window manager owns the stacking order, and `OP_FOCUS_SET` is how it keeps the compositor's
 order the same. The compositor looks the window manager's pid up in the service registry on every
