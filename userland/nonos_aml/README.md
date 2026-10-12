@@ -26,6 +26,7 @@ or asks for a region it was not granted stops the capsule, not the machine.
 | `events` | the SCI: FADT event blocks, fixed events, GPE blocks and methods, ACPI mode | 4.8, 5.2.9, 5.6.4 |
 | `ec` | the embedded controller: handshake, ECDT, _CRS ports, _Qxx | 5.2.16, 12 |
 | `platform` | _INI walk, \_PIC, _OSC, inventory, _PRT, PCI paths | 5.8.1, 6.1-6.5 |
+| `power` | _BIF, _BIX, _BST, _PSR decoded; the charge | 10.2, 10.3 |
 
 ## Reading a table
 
