@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::boot::info::BootInfo;
-use super::boot_map::{BLOCK_2M, DEVICE_SLOT};
+use super::geometry::{BLOCK_2M, ENTRIES, GIB};
+use super::l2_pool::l2_under;
 use super::{state, PageAttributes};
 
 /// Map what the kernel reaches before any driver exists: the console and the
@@ -36,9 +37,8 @@ pub(super) unsafe fn map_devices(boot_info: &BootInfo) {
     if let Some((msi, _)) = boot_info.msi {
         map_device_range(msi.base, msi.size, &attrs);
     }
-    // The bridge's I/O window and BAR memory. Config space is absent: virt
-    // puts it at 256 GiB, past what one level 1 table here describes, and the
-    // MMIO mapper places it once the unified address space is up.
+    // The bridge's I/O window and BAR memory. Config space is the MMIO
+    // mapper's, once the unified address space is up.
     map_device_range(boot_info.pci_io_cpu_base, boot_info.pci_io_size, &attrs);
     map_device_range(boot_info.pci_mmio_base, boot_info.pci_mmio_size, &attrs);
     map_device_range(boot_info.rtc_base, BLOCK_2M, &attrs);
@@ -56,16 +56,16 @@ unsafe fn map_device_range(base: u64, size: u64, attrs: &PageAttributes) {
     }
 }
 
-/// Identity map the 2MB block holding one MMIO window. As for RAM, the level 1
-/// entry follows the address, so the window lands where the driver looks.
+/// Identity map the 2MB block holding one MMIO window, in the level 2 table of
+/// its gigabyte, which RAM there shares. Past 512 GiB, or with no table left,
+/// it stays unmapped and the first access faults, by name.
 unsafe fn map_device_block(addr: u64, attrs: &PageAttributes) {
-    const ENTRIES: u64 = 512;
-    const GIB: u64 = ENTRIES * BLOCK_2M;
     let l1_idx = (addr / GIB) as usize;
-    if l1_idx >= ENTRIES as usize {
+    if l1_idx >= ENTRIES {
         return;
     }
-    state::l1().set_table(l1_idx, state::l2_addr(DEVICE_SLOT));
-    let l2_idx = ((addr / BLOCK_2M) % ENTRIES) as usize;
-    state::l2(DEVICE_SLOT).set_block(l2_idx, addr & !(BLOCK_2M - 1), attrs);
+    let Some(l2) = l2_under(state::l1(), l1_idx) else {
+        return;
+    };
+    l2.set_block(((addr / BLOCK_2M) % ENTRIES as u64) as usize, addr & !(BLOCK_2M - 1), attrs);
 }

@@ -41,6 +41,8 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
         serial::println(b"[MEM] no usable region in device tree");
         return;
     };
+    // A frame past the direct map faults when first zeroed: stop where it does.
+    let end = end.min(crate::arch::aarch64::mmu::direct_map_end() & !(PAGE_SIZE - 1));
 
     // The image sits inside the region firmware calls available, so the
     // allocator has to be told where it ends. A frame holding kernel text is
@@ -57,7 +59,6 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
     // The image is in no list the device tree gave, so it is named here: a
     // pool placed over it hands kernel text to a capsule as a DMA buffer.
     let pool = find_low_dma_region(info, (start, end), (image_start, image_end));
-
     if crate::memory::phys::init(PhysAddr::new(start), PhysAddr::new(end)).is_err() {
         serial::println(b"[MEM] phys init failed");
         return;
@@ -68,7 +69,6 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
         crate::memory::phys::reserve(p.base, p.base + p.pages as u64 * PAGE_SIZE);
     }
     serial::println(b"[MEM] phys init OK");
-
     dma::init_display_pool();
     let (dma_base, dma_pages) = pool.map_or((0, 0), |p| (p.base, p.pages));
     dma::init_low32_pool(dma_base, dma_pages);

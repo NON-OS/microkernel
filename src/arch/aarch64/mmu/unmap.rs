@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::l2_pool::existing_l2;
 use super::map::PageIndex;
 use super::{state, tlb};
 
@@ -27,20 +28,18 @@ pub fn unmap_page(virt: u64) {
 }
 
 unsafe fn unmap_inner(index: PageIndex) -> bool {
-    if index.l0 >= 4 || index.l1 >= 4 {
+    if index.l0 != 0 || index.l1 >= state::L3_L1_SPAN {
         return false;
     }
-    if !state::l0().is_valid(index.l0) || !state::l1().is_valid(index.l1) {
+    let Some(l2) = existing_l2(state::l1(), index.l1) else {
+        return false;
+    };
+    // Clearing a block for one page would take the 511 around it too, so a
+    // page inside a block, like one under a table this file did not install,
+    // is not this function's to unmap.
+    if l2.table_address(index.l2) != Some(state::l3_addr(index.l1, index.l2)) {
         return false;
     }
-    let l2 = state::l2(index.l1);
-    if !l2.is_valid(index.l2) {
-        return false;
-    }
-    if l2.is_block(index.l2) {
-        l2.clear_entry(index.l2);
-    } else {
-        state::l3(index.l1, index.l2).clear_entry(index.l3);
-    }
+    state::l3(index.l1, index.l2).clear_entry(index.l3);
     true
 }

@@ -851,6 +851,24 @@
   "md": [],
   "signed": []
  },
+ "userland/boot_tables_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/boot/info/memory.rs",
+   "src/arch/aarch64/mmu/attributes",
+   "src/arch/aarch64/mmu/boot_devices.rs",
+   "src/arch/aarch64/mmu/granule",
+   "src/arch/aarch64/mmu/image_map.rs",
+   "src/arch/aarch64/mmu/map.rs",
+   "src/arch/aarch64/mmu/state.rs",
+   "src/arch/aarch64/mmu/table",
+   "src/arch/aarch64/mmu/unmap.rs",
+   "userland/boot_tables_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/browser_http_proofs": {
   "exclude": [],
   "include": [
