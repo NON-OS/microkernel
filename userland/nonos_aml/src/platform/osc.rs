@@ -19,14 +19,14 @@
 //! the query flag, then committed with no more than was granted.
 
 use super::eval::Eval;
-use super::osc_status::{check, OscError, QUERY};
+use super::osc_status::{check, OscError};
 pub use super::osc_uuid::{PCI_HOST_UUID, PLATFORM_UUID};
 use crate::load::Aml;
 use crate::namespace::Id;
 use crate::object::Object;
 use alloc::vec::Vec;
 
-fn call(
+pub(super) fn call(
     aml: &mut Aml,
     eval: &mut Eval<'_>,
     osc: Id,
@@ -63,10 +63,6 @@ pub fn negotiate(
     uuid: (&[u8; 16], u64),
     words: &[u32],
 ) -> Result<Vec<u32>, OscError> {
-    let mut asked = words.to_vec();
-    asked[0] = QUERY;
-    let granted = call(aml, eval, osc, uuid, &asked)?;
-    let mut commit: Vec<u32> = words.iter().zip(&granted).map(|(w, g)| w & g).collect();
-    commit[0] = 0;
-    call(aml, eval, osc, uuid, &commit)
+    let all = alloc::vec![u32::MAX; words.len()];
+    super::osc_claim::offer_then_claim(aml, eval, osc, uuid, words, &all).map(|(_, g)| g)
 }
