@@ -16,7 +16,7 @@
 
 const BAR_KIND_NONE: u8 = 0;
 pub(in crate::hardware::broker) const BAR_KIND_MMIO: u8 = 1;
-pub(in crate::hardware::broker) const BAR_KIND_PIO: u8 = 2;
+const BAR_KIND_PIO: u8 = 2;
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
