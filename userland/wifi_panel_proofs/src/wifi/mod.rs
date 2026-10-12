@@ -3,7 +3,7 @@
 //! under one module so their `super::` references resolve as in the capsule,
 //! mounted as capsule_settings_proofs mounts them.
 
-#[path = "../../../nonos_wifi_client/src/join_wire.rs"]
+#[path = "../../../nonos_wifi_client/src/join_wire/mod.rs"]
 pub mod join_wire;
 #[path = "../../../nonos_wifi_client/src/network.rs"]
 pub mod network;
