@@ -16,11 +16,12 @@
 
 //! What NONOS asks of firmware through _OSC. Only what it does: on each PCI
 //! host bridge, extended configuration space (it reaches ECAM) and MSI (its
-//! drivers use MSI-X) are supported, and no control is requested, so native
-//! hot plug, PME, AER and the PCI Express capability stay with firmware
-//! until a driver takes them on (PCI Firmware 3.3, 4.5.1). The platform-wide
-//! _OSC is called with nothing claimed, which tells firmware an operating
-//! system that knows _OSC is present.
+//! drivers use MSI-X) are supported, and every control is asked about but
+//! only `osc_host::CLAIM` is taken, so native hot plug, PME, AER and the PCI
+//! Express capability stay with firmware until a driver takes them on (PCI
+//! Firmware 3.3, 4.5.1). The platform-wide _OSC is called with nothing
+//! claimed, which tells firmware an operating system that knows _OSC is
+//! present.
 
 use super::eval::evaluator;
 use crate::host::CapsuleHost;
@@ -28,10 +29,7 @@ use crate::sys::log::Line;
 use alloc::vec::Vec;
 use nonos_aml::load::Aml;
 use nonos_aml::namespace::{Id, Kind, ROOT};
-use nonos_aml::platform::{hardware_id, negotiate, HardwareId, PCI_HOST_UUID, PLATFORM_UUID};
-
-const SUPPORT_EXT_CONFIG: u32 = 1 << 0;
-const SUPPORT_MSI: u32 = 1 << 4;
+use nonos_aml::platform::{hardware_id, negotiate, HardwareId, PLATFORM_UUID};
 
 fn is_host_bridge(aml: &mut Aml, host: &mut CapsuleHost, dev: Id) -> bool {
     let Some(hid) = aml.ns.child(dev, *b"_HID") else { return false };
@@ -52,14 +50,6 @@ pub fn negotiate_all(aml: &mut Aml, host: &mut CapsuleHost) {
         if !is_host_bridge(aml, host, dev) {
             continue;
         }
-        let words = [0, SUPPORT_EXT_CONFIG | SUPPORT_MSI, 0];
-        let r = negotiate(aml, &mut evaluator(host), osc, (&PCI_HOST_UUID, 1), &words);
-        let line = Line::new(b"host bridge _OSC ");
-        match r {
-            Ok(w) => {
-                line.str(b"support ").hex(w[1] as u64).str(b" control ").hex(w[2] as u64).end()
-            }
-            Err(_) => line.str(b"refused").end(),
-        }
+        super::osc_host::host_bridge(aml, host, dev, osc);
     }
 }

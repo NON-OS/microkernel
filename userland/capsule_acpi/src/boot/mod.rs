@@ -22,6 +22,7 @@ mod ged;
 mod late;
 mod load;
 mod osc;
+mod osc_host;
 mod report;
 mod report_prt;
 mod say;

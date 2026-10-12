@@ -42,6 +42,8 @@ mod memory_record;
 pub mod numa_node;
 pub mod numa_refresh;
 pub mod numa_store;
+pub mod osc_grant;
+pub mod osc_store;
 mod pci_access;
 mod pci_admit;
 pub mod platform_add;
