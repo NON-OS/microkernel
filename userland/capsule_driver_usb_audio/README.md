@@ -11,7 +11,7 @@ owner signs it.
 ## Role
 
 `capsule_driver_usb_audio` plays the audio server's stream on a USB Audio
-Class 1.0 device: USB speakers, headsets and DACs. It finds the device on
+Class 1.0 or 2.0 device: USB speakers, headsets and DACs. It finds the device on
 driver.xhci0's ports, sets up its playback alternate setting, and serves
 audio.server the NHDA PCM wire `driver.hda0` serves, so the server plays
 through it with the sink client it has.
@@ -27,18 +27,26 @@ the class binding (`src/uac`, `src/bind.rs`), the isoch ops
 ## Binding
 
 1. The first configuration with an AudioStreaming interface (class 1,
-   subclass 2, protocol 0) whose alternate setting is PCM (AS_GENERAL tag 1),
-   Format Type I with 2 channels of 16 bits in 2-byte subframes at 48 kHz
-   (listed, or inside a continuous range), and an isochronous OUT endpoint.
-   Other alternates (24-bit, mono, 44.1 kHz only) and IN endpoints are passed
-   over. A USB Audio 2.0 function (protocol 0x20) is not bound.
+   subclass 2, protocol 0 for 1.0 or 0x20 for 2.0) whose alternate setting
+   is PCM, 2 channels of 16 bits in 2-byte subframes, with an isochronous
+   OUT endpoint. 1.0 says PCM by AS_GENERAL's tag 1 and lists 48 kHz (or a
+   continuous range holding it) in Format Type I; 2.0 says PCM by bit 0 of
+   AS_GENERAL's bmFormats, carries the channel count there, and leaves the
+   rate to a clock. Other alternates (24-bit, mono, 44.1 kHz only) are
+   passed over; an IN endpoint beside the OUT one is its clock feedback and
+   is not read.
 2. The port's speed from driver.xhci0's port status; a packet is the frames
    48 kHz plays in one service interval (192 bytes a 1 ms frame at full
    speed, 24 bytes a 125 us microframe at high speed with bInterval 1), and
    a device whose endpoint cannot carry that is refused.
-3. SET_CONFIGURATION, SET_INTERFACE to the alternate, SET_CUR of the
-   endpoint's sampling frequency to 48000 where its class endpoint
-   descriptor says it takes one, then OP_CONFIGURE_ISOCH on driver.xhci0.
+3. SET_CONFIGURATION, SET_INTERFACE to the alternate, then the rate:
+   - 1.0: SET_CUR of the endpoint's sampling frequency to 48000 where its
+     class endpoint descriptor says it takes one.
+   - 2.0: the clock the alternate's terminal names (bCSourceID), directly
+     a Clock Source or a Clock Selector set to its first input, which must
+     be one. SET CUR of its frequency to 48000 when the host may set it,
+     then GET CUR, which must read 48000; a clock multiplier is refused.
+   Then OP_CONFIGURE_ISOCH on driver.xhci0.
 4. The Output Terminals in the AudioControl interface name what it plays
    into: a speaker, something worn (headphones, a headset), else a line out.
 
@@ -86,7 +94,8 @@ its DMA and the stream's buffers are driver.xhci0's.
 
 ## Current implemented surface
 
-- One device, one playback stream, 48 kHz stereo 16-bit only.
+- One device, one playback stream, 48 kHz stereo 16-bit only, USB Audio
+  1.0 or 2.0.
 - Each batch is up to 8 ms of sound (at most 32 packets and 4032 bytes),
   sent with OP_ISOCH_OUT; the call returns when the batch before has played,
   which paces the loop. A stream that runs short plays silence.
@@ -142,15 +151,16 @@ No boot yet.
 
 ## Real hardware bring-up checklist
 
-- A full-speed headset (most are) and a high-speed DAC both bind and play.
+- A full-speed headset (most are) and a high-speed DAC both bind and play;
+  a USB Audio 2.0 DAC with a programmable clock and one with a fixed one.
 - An asynchronous device plays without audible drift over a few minutes:
   no feedback endpoint is read, so its clock is not followed.
 - Unplugging mid-stream gives the device back and replugging binds again.
 
 ## Explicit non-goals today
 
-No capture, no volume or mute controls (the server mixes), no USB Audio 2.0
-or 3.0, no feedback endpoint, no rates but 48 kHz, no more than two channels.
+No capture, no volume or mute controls (the server mixes), no USB Audio
+3.0, no feedback endpoint, no rates but 48 kHz, no more than two channels.
 
 ## Verification
 
