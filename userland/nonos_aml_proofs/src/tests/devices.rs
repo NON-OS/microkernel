@@ -19,6 +19,8 @@
 
 #[path = "cpu/mod.rs"]
 mod cpu;
+#[path = "dpower/mod.rs"]
+mod dpower;
 #[path = "ged/mod.rs"]
 mod ged;
 #[path = "serial/mod.rs"]
