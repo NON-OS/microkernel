@@ -32,6 +32,8 @@ mod ep0_fault_tests;
 #[cfg(test)]
 mod interrupt_tests;
 #[cfg(test)]
+mod poll_share_tests;
+#[cfg(test)]
 mod poll_tests;
 #[cfg(test)]
 mod port_tests;
