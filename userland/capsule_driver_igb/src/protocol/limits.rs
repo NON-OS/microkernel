@@ -19,7 +19,7 @@
 //! misbehaving caller cannot drive the TX DMA buffer past its
 //! grant.
 
-use crate::constants::{MAC_LEN, MAX_ETHERNET_FRAME};
+use crate::sizes::{MAC_LEN, MAX_ETHERNET_FRAME};
 
 pub const STATUS_LEN: usize = 4;
 

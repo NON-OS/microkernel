@@ -13,12 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The port's media from CTRL_EXT's link mode, as igb_get_invariants_82575
-//! reads it: copper is driven, every other mode refused by name.
+//! The port's media from CTRL_EXT's link mode: copper is driven, every other
+//! mode refused by name.
 
-use crate::constants::ctrl::CTRL_EXT_LINK_MODE_MASK;
-use crate::constants::regs::REG_CTRL_EXT;
-use crate::init::media::{copper, refusal, KX, SERDES, SGMII};
+use crate::bring::port::{copper, refusal, KX, SERDES, SGMII};
+use crate::facts::mac::CTRL_EXT_LINK_MODE_MASK;
+use crate::facts::regs::REG_CTRL_EXT;
 
 use super::model::{regs, window};
 

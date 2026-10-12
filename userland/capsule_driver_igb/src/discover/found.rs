@@ -19,7 +19,7 @@
 //! window size, and the PCI command bits the record's BARs already need
 //! decoded.
 
-use crate::constants::part::Part;
+use crate::facts::parts::Part;
 
 #[derive(Clone, Copy)]
 pub struct Found {
