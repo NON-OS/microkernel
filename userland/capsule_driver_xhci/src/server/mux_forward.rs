@@ -28,7 +28,7 @@ use crate::server::error::reply_with_status;
 impl Mux {
     /// A request, a claimant's slot standing for the parked one it claimed.
     pub fn dispatch(&mut self, req: &Request, body: &[u8], tx: &mut [u8]) {
-        if self.virtual_ops(req, body, tx) {
+        if self.claim_ops(req, body, tx) || self.virtual_ops(req, body, tx) {
             return;
         }
         match body.first().map(|&s| self.virt.real(s)) {

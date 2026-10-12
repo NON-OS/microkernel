@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod admit;
+mod claims;
 mod dci;
 mod pairs;
+mod release;
 mod resources;
 mod table;
 pub use admit::interrupt_limit;
+pub use claims::Claims;
 pub use dci::dci_from_ep_address;
 pub use pairs::{pair_of, pair_stream};
+pub use release::Release;
 pub use resources::{InterruptEndpoint, SlotResources};
 pub use table::{SlotTable, PORT_FREE};
