@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::{read_volatile, write_volatile};
-
 #[derive(Clone, Copy)]
 pub struct Regs {
     base: u64,
@@ -27,10 +25,10 @@ impl Regs {
     }
 
     pub unsafe fn r32(self, off: u32) -> u32 {
-        read_volatile((self.base + off as u64) as *const u32)
+        nonos_libc::mmio_read32((self.base + off as u64) as usize)
     }
 
     pub unsafe fn w32(self, off: u32, value: u32) {
-        write_volatile((self.base + off as u64) as *mut u32, value);
+        nonos_libc::mmio_write32((self.base + off as u64) as usize, value);
     }
 }

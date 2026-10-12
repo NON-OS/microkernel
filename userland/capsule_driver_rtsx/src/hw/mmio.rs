@@ -32,11 +32,11 @@ impl Regs {
         // SAFETY: offsets are the host register constants (0x00 to 0x18),
         // inside the BAR mapping setup checked; the mapping is uncached
         // device memory that lives as long as the driver.
-        unsafe { core::ptr::read_volatile((self.base + offset as u64) as *const u32) }
+        unsafe { nonos_libc::mmio_read32((self.base + offset as u64) as usize) }
     }
 
     pub fn w32(&self, offset: u32, value: u32) {
         // SAFETY: as r32.
-        unsafe { core::ptr::write_volatile((self.base + offset as u64) as *mut u32, value) }
+        unsafe { nonos_libc::mmio_write32((self.base + offset as u64) as usize, value) }
     }
 }

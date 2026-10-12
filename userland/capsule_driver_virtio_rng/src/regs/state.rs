@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::io::RegIo;
 use super::pio;
-use core::ptr::{read_volatile, write_volatile};
 #[derive(Debug, Clone, Copy)]
 pub struct Regs {
     io: RegIo,
@@ -33,7 +32,7 @@ impl Regs {
     /// The address the caller mapped, at an offset inside it.
     pub unsafe fn r8(self, offset: usize) -> u8 {
         match self.io {
-            RegIo::Mmio(base) => read_volatile(base.add(offset)),
+            RegIo::Mmio(base) => nonos_libc::mmio_read8(base.add(offset) as usize),
             RegIo::Pio(grant) => pio::read(grant, offset, 1) as u8,
         }
     }
@@ -43,7 +42,7 @@ impl Regs {
     /// The address the caller mapped, at an offset inside it.
     pub unsafe fn r16(self, offset: usize) -> u16 {
         match self.io {
-            RegIo::Mmio(base) => read_volatile(base.add(offset).cast()),
+            RegIo::Mmio(base) => nonos_libc::mmio_read16(base.add(offset) as usize),
             RegIo::Pio(grant) => pio::read(grant, offset, 2) as u16,
         }
     }
@@ -53,7 +52,7 @@ impl Regs {
     /// The address the caller mapped, at an offset inside it.
     pub unsafe fn r32(self, offset: usize) -> u32 {
         match self.io {
-            RegIo::Mmio(base) => read_volatile(base.add(offset).cast()),
+            RegIo::Mmio(base) => nonos_libc::mmio_read32(base.add(offset) as usize),
             RegIo::Pio(grant) => pio::read(grant, offset, 4),
         }
     }
@@ -63,7 +62,7 @@ impl Regs {
     /// The address the caller mapped, at an offset inside it.
     pub unsafe fn w8(self, offset: usize, value: u8) {
         match self.io {
-            RegIo::Mmio(base) => write_volatile(base.add(offset), value),
+            RegIo::Mmio(base) => nonos_libc::mmio_write8(base.add(offset) as usize, value),
             RegIo::Pio(grant) => pio::write(grant, offset, 1, value as u32),
         }
     }
@@ -73,7 +72,7 @@ impl Regs {
     /// The address the caller mapped, at an offset inside it.
     pub unsafe fn w16(self, offset: usize, value: u16) {
         match self.io {
-            RegIo::Mmio(base) => write_volatile(base.add(offset).cast(), value),
+            RegIo::Mmio(base) => nonos_libc::mmio_write16(base.add(offset) as usize, value),
             RegIo::Pio(grant) => pio::write(grant, offset, 2, value as u32),
         }
     }
@@ -83,7 +82,7 @@ impl Regs {
     /// The address the caller mapped, at an offset inside it.
     pub unsafe fn w32(self, offset: usize, value: u32) {
         match self.io {
-            RegIo::Mmio(base) => write_volatile(base.add(offset).cast(), value),
+            RegIo::Mmio(base) => nonos_libc::mmio_write32(base.add(offset) as usize, value),
             RegIo::Pio(grant) => pio::write(grant, offset, 4, value),
         }
     }
