@@ -24,6 +24,7 @@ mod mux_claims;
 mod mux_forward;
 mod mux_list;
 mod mux_ops;
+mod mux_police;
 mod mux_ports;
 mod mux_routed;
 mod mux_status;
