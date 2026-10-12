@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who may ask each op. The kernel's HELD line admits whole services to
-//! the endpoint; this names, op by op, which of them each op answers,
-//! checked as HELD checks: by the service a sender's process owns, sender
-//! (a thread, as MkIpcRecvFrom reports it) and owner compared by thread
-//! group, owners asked of the registry at each request. An op nobody is
+//! Who may ask each op. HELD admits whole services; this names, op by op,
+//! which of them each op answers, by the service a sender's thread group
+//! owns, owners asked of the registry at each request. An op nobody is
 //! named for answers no one. Pure: `capsule_acpi_proofs` mounts it.
 
 const POWER: &[u8] = b"power";
@@ -26,6 +24,7 @@ const SHELL: &[u8] = b"desktop_shell";
 const I2C_PCI: &[u8] = b"driver.i2c_pci0";
 const I2C_HID: &[u8] = b"driver.i2c_hid0";
 const PS2: &[u8] = b"driver.ps2_kbd0";
+const GPIO: &[u8] = b"driver.gpio0";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Allowed {
@@ -46,6 +45,7 @@ pub fn allowed(op: u8) -> Allowed {
         9 => Allowed::Services(&[I2C_PCI, I2C_HID]),
         10 | 12 | 13 | 16 => Allowed::AnyAdmitted,
         11 => Allowed::Services(&[PS2]),
+        21 => Allowed::Services(&[GPIO]),
         _ => Allowed::Nobody,
     }
 }

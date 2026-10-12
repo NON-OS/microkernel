@@ -45,13 +45,16 @@ pub struct GpioController {
     pub pid_count: usize,
     /// The eight-byte `_HID` that matched.
     pub hid: [u8; 8],
+    /// The controller's shared interrupt, from its `_CRS` Extended
+    /// Interrupt descriptor.
+    pub irq: Option<u32>,
 }
 
 impl GpioController {
     pub fn new(hid: [u8; 8]) -> Self {
         let windows = [(0, 0); GPIO_MAX_WINDOWS];
         let pids = [0; GPIO_MAX_WINDOWS];
-        Self { name: [0; 4], uid: 0, windows, window_count: 0, pids, pid_count: 0, hid }
+        Self { name: [0; 4], uid: 0, windows, window_count: 0, pids, pid_count: 0, hid, irq: None }
     }
 
     /// Keep one window; false once the record is full.
