@@ -34,7 +34,7 @@ pub use input_ring::{
     post_input, try_post_input,
 };
 pub use release::{release_owned_by_pid, release_surface};
-pub use share::{attach_surface, share_surface};
+pub use share::{attach_surface, share_surface, share_surface_to};
 pub use table::{lookup_owned, register_surface};
 pub use types::{
     InputEvent, RegistryError, SurfaceDescriptor, SurfaceFormat, SurfaceHandle, SurfaceSid,

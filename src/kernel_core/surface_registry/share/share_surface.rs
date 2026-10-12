@@ -14,23 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::kernel_core::surface_registry::table::SLOTS;
-use crate::kernel_core::surface_registry::types::{decode_handle, RegistryError, SurfaceHandle};
+use crate::kernel_core::surface_registry::types::{RegistryError, SurfaceHandle};
 
+use super::owned::with_owned;
+
+/// The older share, which names no receiver: the compositor may attach.
 pub fn share_surface(
     owner_pid: u32,
     handle: SurfaceHandle,
 ) -> Result<SurfaceHandle, RegistryError> {
-    let (idx, epoch) = decode_handle(handle);
-    let mut slots = SLOTS.lock();
-    let slot =
-        slots.get_mut(idx as usize).and_then(|s| s.as_mut()).ok_or(RegistryError::BadHandle)?;
-    if slot.epoch != epoch {
-        return Err(RegistryError::BadHandle);
-    }
-    if slot.owner_pid != owner_pid {
-        return Err(RegistryError::NotOwner);
-    }
-    slot.refcount = slot.refcount.checked_add(1).ok_or(RegistryError::InvalidArg)?;
-    Ok(handle)
+    with_owned(owner_pid, handle, |slot| {
+        slot.refcount = slot.refcount.checked_add(1).ok_or(RegistryError::InvalidArg)?;
+        slot.shares.allow_compositor();
+        Ok(handle)
+    })
 }

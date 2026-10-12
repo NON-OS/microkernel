@@ -20,10 +20,12 @@ use spin::Mutex;
 
 use crate::memory::addr::PhysAddr;
 
-use super::types::{
-    encode_handle, RegistryError, SurfaceDescriptor, SurfaceHandle, SurfaceSid, FMT_ARGB8888,
-    MAX_PAGES_PER_SURFACE, PIXEL_BYTES, SLOT_CAP,
-};
+use super::share::rule::Shares;
+use super::types::{encode_handle, RegistryError, SurfaceHandle, SurfaceSid, SLOT_CAP};
+
+mod register;
+
+pub use register::register_surface;
 
 pub(super) struct Slot {
     pub(super) owner_pid: u32,
@@ -40,6 +42,8 @@ pub(super) struct Slot {
     // remapping the frames at a fresh VA.
     pub(super) owner_base_va: u64,
     pub(super) frames: Vec<PhysAddr>,
+    /// Who may attach besides the owner (L18c).
+    pub(super) shares: Shares,
 }
 
 pub(super) static SLOTS: Mutex<[Option<Slot>; SLOT_CAP]> = Mutex::new([const { None }; SLOT_CAP]);
@@ -51,46 +55,6 @@ pub(super) fn bump_generation(idx: usize) {
     if next == 0 {
         SLOT_GENERATIONS[idx].store(1, Ordering::Release);
     }
-}
-
-pub fn register_surface(
-    owner_pid: u32,
-    desc: &SurfaceDescriptor,
-    frames: Vec<PhysAddr>,
-) -> Result<(SurfaceSid, SurfaceHandle), RegistryError> {
-    if desc.format != FMT_ARGB8888 || desc.width == 0 || desc.height == 0 {
-        return Err(RegistryError::InvalidArg);
-    }
-    let min_stride = desc.width.checked_mul(PIXEL_BYTES).ok_or(RegistryError::InvalidArg)?;
-    if desc.stride < min_stride {
-        return Err(RegistryError::InvalidArg);
-    }
-    if frames.is_empty() || frames.len() > MAX_PAGES_PER_SURFACE {
-        return Err(RegistryError::InvalidArg);
-    }
-    let mut slots = SLOTS.lock();
-    for (i, entry) in slots.iter_mut().enumerate() {
-        if entry.is_none() {
-            let epoch = SLOT_GENERATIONS[i].load(Ordering::Acquire);
-            *entry = Some(Slot {
-                owner_pid,
-                epoch,
-                refcount: 1,
-                width: desc.width,
-                height: desc.height,
-                stride: desc.stride,
-                format: desc.format,
-                flags: desc.flags,
-                byte_len: desc.byte_len,
-                owner_base_va: desc.base_va,
-                frames,
-            });
-            #[cfg(feature = "dbg-ring")]
-            crate::log::dbg_ring::dbg_emit_2u64(0x5546_0002, i as u64, epoch as u64);
-            return Ok((i as u64, encode_handle(i as u32, epoch)));
-        }
-    }
-    Err(RegistryError::OutOfSlots)
 }
 
 pub fn lookup_owned(owner_pid: u32, sid: SurfaceSid) -> Result<SurfaceHandle, RegistryError> {
