@@ -95,7 +95,9 @@ on the boot framebuffer.
 
 `src/display`: `Intel` (the `nonos_gfx_serve::Display`), `Frames`, `copy`,
 `red_first`, `Monitor` and `panel_of` (the monitor's EDID), `Modeset`,
-`pick` and `matching` (timings), `Intel::change_mode`, `Intel::show_cursor`; `engine::route`,
+`pick` and `matching` (timings), `Intel::change_mode`, `Intel::show_cursor`,
+`Brightness` (Gen9 eDP backlight PWM, a level out of firmware's period; bound to the
+wire once its brightness op is fixed); `engine::route`,
 `engine::relight::{relight, buffer}`, `Scanout::rebase`, `ggtt_run::map_run`. The binary: `discover::find`, `setup::run`, `bar::Bar0`
 (the engine's `Mmio`), `clock::Uptime`, `frames::DmaFrames`, `serve::run`.
 `src/engine`: `takeover::read_outputs`, `plane::program`, `flip::flip`,
