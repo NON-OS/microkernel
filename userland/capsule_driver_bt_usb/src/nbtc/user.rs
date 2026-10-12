@@ -18,25 +18,16 @@
 //! which only Settings can show and take.
 
 use super::board::Board;
-use super::ops::{E_INVAL, E_OK, PART_CONFIRM, PART_ENTER, PART_NONE, PART_SHOW};
+use super::ops::{E_INVAL, E_OK, PART_CONFIRM, PART_ENTER, PART_NONE};
 use super::part::Part;
 use super::wire::DATA_AT;
 use crate::link::Answer;
-
-/// The largest passkey: six decimal digits (Vol 3, Part H, 2.3.5.3).
-const PASSKEY_MAX: u32 = 999_999;
+use nonos_bt_proto::PASSKEY_MAX;
 
 /// PASSKEY: the kind of part (none, show, enter, confirm), then the six
 /// digits to show or confirm as a little-endian word, 0 otherwise.
 pub fn passkey<K>(b: &Board<K>, tx: &mut [u8]) -> usize {
-    let (kind, value) = match b.part {
-        Part::None => (PART_NONE, 0),
-        Part::Show(n) => (PART_SHOW, n),
-        Part::Enter => (PART_ENTER, 0),
-        Part::Confirm(n) => (PART_CONFIRM, n),
-    };
-    tx[DATA_AT] = kind;
-    tx[DATA_AT + 1..DATA_AT + 5].copy_from_slice(&value.to_le_bytes());
+    tx[DATA_AT..DATA_AT + 5].copy_from_slice(&b.part.write());
     5
 }
 

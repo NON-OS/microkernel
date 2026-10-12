@@ -22,20 +22,11 @@ pub type Identity = (u8, [u8; 6]);
 
 /// More levels than this are not kept: four Battery Services for each of
 /// eight devices (`nonos_bt_hogp` reads at most four on a link).
-pub const LEVELS_MAX: usize = 32;
+pub use nonos_bt_proto::LEVELS_MAX;
 
-/// What pairing asks of the user (Vol 3, Part H, 2.3.5.1).
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum Part {
-    #[default]
-    None,
-    /// Six digits to type on the keyboard being paired.
-    Show(u32),
-    /// The six digits the device shows, to be typed here.
-    Enter,
-    /// Six digits both sides show, to be confirmed the same.
-    Confirm(u32),
-}
+/// What pairing asks of the user (Vol 3, Part H, 2.3.5.1), as PASSKEY
+/// carries it to Settings.
+pub use nonos_bt_proto::Asked as Part;
 
 /// A level: whose (`None` for a link that kept no bond), which Battery
 /// Service, and the percent.

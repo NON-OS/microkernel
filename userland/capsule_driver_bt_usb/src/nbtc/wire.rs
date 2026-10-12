@@ -20,16 +20,16 @@
 //! reply, a status word and then the op's payload, both counted in the length.
 
 use nonos_bt_bond::MAX_BONDS;
+use nonos_bt_proto::{BONDS_MAX, LEVELS_MAX, LEVEL_LEN};
+pub use nonos_bt_proto::{BOND_LEN, DATA_AT, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
 
-pub const MAGIC: u32 = u32::from_le_bytes(*b"NBTC");
-pub const VERSION: u16 = 1;
-pub const HDR_LEN: usize = 20;
-pub const STATUS_LEN: usize = 4;
-/// Where a reply's payload starts.
-pub const DATA_AT: usize = HDR_LEN + STATUS_LEN;
-pub const BOND_LEN: usize = 9; // one entry of the bond list (bonds.rs)
 /// The longest reply: the bond list when every place is taken.
 pub const REPLY_MAX: usize = DATA_AT + 1 + BOND_LEN * MAX_BONDS;
+
+// A client sizes its lists by the shared crate's bounds: the store keeps
+// no more bonds than those name, and BATTERY at its fullest fits a reply.
+const _: () = assert!(MAX_BONDS <= BONDS_MAX);
+const _: () = assert!(DATA_AT + LEVEL_LEN * LEVELS_MAX < REPLY_MAX);
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Request {
