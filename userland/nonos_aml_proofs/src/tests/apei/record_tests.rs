@@ -37,21 +37,7 @@ fn entries_with_and_without_a_timestamp() {
     assert!(!got.is_empty());
     assert_eq!(got.entries.len(), 2);
     let m = record(&got.entries[0].section, &got.entries[0].data);
-    assert_eq!(
-        m,
-        Record::Memory {
-            address: Some(0x1_2345_6000),
-            node: 1,
-            card: 0,
-            module: 0,
-            bank: 7,
-            kind: 2
-        }
-    );
+    assert_eq!(m, Record::Memory { kind: Some(2) }, "the type, and nothing that locates it");
     let c = record(&got.entries[1].section, &got.entries[1].data);
-    assert_eq!(
-        c,
-        Record::Processor { error_type: 1, level: 2, processor: None },
-        "processor id not valid"
-    );
+    assert_eq!(c, Record::Processor { error_type: 1, level: 2 });
 }
