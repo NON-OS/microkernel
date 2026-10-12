@@ -15,18 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! What a HID interface is for, from its report descriptor (HID 1.11,
 //! 6.2.2, as recalled, unverified): the usage page and usage in force at
-//! its first application collection. Only a Generic Desktop pointer or
-//! mouse is fed to the tablet decoder; a security key (page F1D0h), a
-//! gamepad or a vendor channel is left to its own driver.
+//! its first application collection. usb_hid feeds only a pointer to its
+//! tablet decoder (pointer.rs); driver.fido0 takes a key (page F1D0h).
 
 const USAGE_PAGE: u8 = 0x04;
 const USAGE: u8 = 0x08;
 const COLLECTION: u8 = 0xA0;
 const APPLICATION: u32 = 0x01;
 const LONG_ITEM: u8 = 0xFE;
-const GENERIC_DESKTOP: u16 = 0x01;
-const POINTER: u16 = 0x01;
-const MOUSE: u16 = 0x02;
 
 /// The (usage page, usage) of the first application collection.
 pub fn application(report: &[u8]) -> Option<(u16, u16)> {
@@ -50,9 +46,4 @@ pub fn application(report: &[u8]) -> Option<(u16, u16)> {
         i += 1 + size;
     }
     None
-}
-
-/// Whether the tablet decoder may read this interface's reports.
-pub fn is_pointer(report: &[u8]) -> bool {
-    matches!(application(report), Some((GENERIC_DESKTOP, POINTER | MOUSE)))
 }
