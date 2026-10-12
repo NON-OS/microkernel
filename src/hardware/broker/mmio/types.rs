@@ -51,4 +51,6 @@ pub enum MmioMapError {
     MapFailed,
     WouldExposeMsixTable,
     WouldExposePba,
+    /// The pages touch RAM, the kernel image or an IOMMU (forbidden.rs).
+    Forbidden,
 }
