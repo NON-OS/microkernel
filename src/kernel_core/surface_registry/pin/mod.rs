@@ -23,6 +23,7 @@ pub mod gate;
 mod grant_detach;
 pub mod grant_run;
 pub mod held;
+pub mod kept;
 pub mod orphans;
 pub mod register_check;
 mod register_grant;

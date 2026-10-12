@@ -18,11 +18,11 @@
 //! it back. The broker programs the returned address and data into the
 //! capability or the table entry, and keeps the handle to release.
 
+use super::super::coverage::unit_covers;
 use super::super::domain::device_id;
 use super::super::error::AmdViError;
 use super::super::flush::flush_interrupts;
 use super::super::intr_format::{irte, msi_data, MSI_ADDRESS};
-use super::super::units::is_enforcing;
 use super::handles::{issue, take};
 use super::irte_write::write_irte;
 use super::slots;
@@ -35,7 +35,9 @@ pub fn route_msi(
     vector: u8,
     dest: u8,
 ) -> Result<(u16, u64, u32), AmdViError> {
-    if !is_enforcing() {
+    // A device no enforcing unit covers would send the index as a raw
+    // vector: 17 is #AC, 32 and up are the kernel's own (L46).
+    if !unit_covers(bus, device, function) {
         return Err(AmdViError::NotEnforcing);
     }
     let id = device_id(bus, device, function);
