@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The requester ids one IVHD device entry names (AMD IOMMU spec 48882,
-//! 5.2.2.2, Linux amd/init.c init_iommu_from_acpi).
+//! 5.2.2.2).
 
 use super::ivhd_scope::Span;
 
