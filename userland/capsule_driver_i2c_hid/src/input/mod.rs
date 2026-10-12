@@ -19,6 +19,7 @@ pub mod parse_report;
 mod poll;
 mod post;
 mod publish;
+mod publish_screen;
 mod publish_touch;
 pub mod sample;
 
