@@ -25,6 +25,8 @@ pub mod object;
 pub mod op;
 #[path = "../../nonos_aml/src/parse/mod.rs"]
 pub mod parse;
+#[path = "../../nonos_aml/src/region/mod.rs"]
+pub mod region;
 #[path = "../../nonos_aml/src/shape/mod.rs"]
 pub mod shape;
 
@@ -36,6 +38,12 @@ mod enc;
 mod flat;
 #[cfg(test)]
 mod probe;
+#[cfg(test)]
+mod probe_host;
+#[cfg(test)]
+mod probe_lock;
+#[cfg(test)]
+mod rig;
 #[cfg(test)]
 mod run;
 #[cfg(test)]

@@ -21,15 +21,22 @@ use super::{Id, Namespace, ROOT};
 use alloc::vec::Vec;
 
 impl Namespace {
-    /// Removes `id` and its subtree; their slots are reused later with a new
-    /// generation. Removing the root, or a slot already free, does nothing.
-    pub fn remove(&mut self, id: Id) {
+    /// Removes `id` and its subtree, and returns every id removed; their
+    /// slots are reused later with a new generation. Removing the root, or a
+    /// slot already free, does nothing.
+    pub fn remove(&mut self, id: Id) -> Vec<Id> {
+        let mut gone = Vec::new();
+        self.remove_into(id, &mut gone);
+        gone
+    }
+
+    fn remove_into(&mut self, id: Id, gone: &mut Vec<Id>) {
         if id == ROOT || self.get(id).is_none() {
             return;
         }
         let kids: Vec<Id> = self.children(id).collect();
         for k in kids {
-            self.remove(k);
+            self.remove_into(k, gone);
         }
         let (parent, seg, next) = {
             let e = &self.entries[id as usize];
@@ -47,6 +54,7 @@ impl Namespace {
         let e = &mut self.entries[id as usize];
         (e.live, e.next, e.first, e.last) = (false, None, None, None);
         self.free.push(id);
+        gone.push(id);
     }
 
     /// Starts recording what is added, and returns where the record stands.
@@ -60,9 +68,6 @@ impl Namespace {
     pub fn journal_unwind(&mut self, mark: usize) -> Vec<Id> {
         self.journaling = self.journaling.saturating_sub(1);
         let made: Vec<Id> = self.journal.drain(mark.min(self.journal.len())..).collect();
-        for id in made.iter().rev() {
-            self.remove(*id);
-        }
-        made
+        made.iter().rev().flat_map(|id| self.remove(*id)).collect()
     }
 }

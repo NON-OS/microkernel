@@ -38,7 +38,11 @@ impl<H: Host> Machine<'_, H> {
         let timed_out = if op == Op::ACQUIRE {
             let m = self.object_of(aml, t, a, Some(Kind::Mutex))?;
             let level = self.sync_level(aml, m, at)?;
-            self.acquire_mutex(aml, m, level, aml.imm(t, b), at)?
+            let timed_out = self.acquire_mutex(aml, m, level, aml.imm(t, b), at)?;
+            if !timed_out && self.is_global_lock(aml, m) {
+                self.global_lock(aml, true, at)?;
+            }
+            timed_out
         } else {
             let e = self.object_of(aml, t, a, Some(Kind::Event))?;
             let timeout = self.int(aml, t, b)?;

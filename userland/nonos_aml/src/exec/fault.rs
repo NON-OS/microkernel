@@ -49,8 +49,10 @@ pub enum FaultKind {
     Stale,
     /// A method body that does not parse.
     Parse(ErrorKind),
-    /// A region, field or table operation this build cannot perform.
-    Unsupported,
+    /// A region access before its space's handler was connected.
+    NoHandler,
+    /// A region access the host refused or that failed.
+    Region,
 }
 
 /// A fault and where in which table it happened.

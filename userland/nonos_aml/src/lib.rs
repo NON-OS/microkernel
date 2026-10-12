@@ -37,4 +37,5 @@ pub mod namespace;
 pub mod object;
 pub mod op;
 pub mod parse;
+pub mod region;
 pub mod shape;

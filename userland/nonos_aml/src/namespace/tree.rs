@@ -61,4 +61,15 @@ impl Namespace {
         let first = self.get(parent).and_then(|e| e.first);
         core::iter::successors(first, move |id| self.entries[*id as usize].next)
     }
+
+    /// Stops recording what is added, for a table Load brings in while a
+    /// method runs: what a table defines outlives the method. Returns what
+    /// `journal_resume` restores.
+    pub fn journal_pause(&mut self) -> u32 {
+        core::mem::take(&mut self.journaling)
+    }
+
+    pub fn journal_resume(&mut self, saved: u32) {
+        self.journaling = saved;
+    }
 }

@@ -40,9 +40,7 @@ impl<H: Host> Machine<'_, H> {
             Op::RELEASE | Op::RESET | Op::SIGNAL => self.sync_stmt(aml, t, node, n.op)?,
             Op::SLEEP | Op::STALL => self.wait_stmt(aml, t, node, n.op)?,
             Op::FATAL => return Err(self.fatal(aml, t, node)),
-            // Unload removes a table loaded by Load, which arrives with
-            // region access (unit F 4).
-            Op::UNLOAD => return Err(self.fault(FaultKind::Unsupported, n.at)),
+            Op::UNLOAD => self.unload_stmt(aml, t, node, n.at)?,
             op if lookup(op).is_some_and(|g| g.class == Class::Object) => {
                 self.define_here(aml, t, node)?
             }

@@ -16,12 +16,13 @@
 
 //! The interpreter's state: the namespace and the tables that define it.
 
+use super::order::in_order;
 use super::{LoadExec, ParseScopes, Table};
 use crate::arena::{Arena, Limits};
 use crate::block::Block;
 use crate::error::{Error, ErrorKind};
 use crate::exec::Runtime;
-use crate::namespace::{Namespace, Notes, ROOT};
+use crate::namespace::{Id, Namespace, Notes, ROOT};
 use crate::parse;
 use alloc::vec::Vec;
 
@@ -36,29 +37,35 @@ pub struct Aml {
 
 impl Aml {
     pub fn new(limits: Limits) -> Self {
-        let (ns, notes, rt) = (Namespace::new(), Notes::default(), Runtime::default());
-        Self { ns, tables: Vec::new(), notes, limits, rt }
+        Self { limits, ..Self::default() }
     }
 
-    /// Loads one definition block and returns its index. The DSDT must come
-    /// first and only first; SSDTs and PSDTs follow (section 5.2.11.2). A
-    /// table refused here adds nothing to the namespace.
+    /// Loads one definition block and returns its index: the DSDT first and
+    /// only first, then SSDTs and PSDTs (section 5.2.11.2). A table refused
+    /// here adds nothing to the namespace.
     pub fn load_table(&mut self, bytes: Vec<u8>, exec: &mut impl LoadExec) -> Result<u16, Error> {
+        self.load_table_at(bytes, ROOT, exec)
+    }
+
+    /// As `load_table`, into `scope` (LoadTable's RootPathString, section
+    /// 19.6.75); a table loaded at run time may also be an "OEMx" table.
+    pub fn load_table_at(
+        &mut self,
+        bytes: Vec<u8>,
+        scope: Id,
+        exec: &mut impl LoadExec,
+    ) -> Result<u16, Error> {
         let block = Block::new(&bytes, self.limits.max_table)?;
-        let first = self.tables.is_empty();
-        let in_order = match &block.signature() {
-            b"DSDT" => first,
-            b"SSDT" | b"PSDT" => !first,
-            _ => false,
-        };
-        if !in_order {
+        if !in_order(block.signature(), self.tables.is_empty()) {
             return Err(Error::new(ErrorKind::Signature, 0));
         }
         let index = u16::try_from(self.tables.len()).map_err(|_| Error::new(ErrorKind::Size, 0))?;
         let mut arena = Arena::new(self.limits);
-        let root = parse::load(&block, &mut arena, &mut ParseScopes::new(&self.ns, ROOT))?;
+        let root = parse::load(&block, &mut arena, &mut ParseScopes::new(&self.ns, scope))?;
         self.tables.push(Table { bytes, arena, root });
-        self.walk(index, root, ROOT, exec);
+        let saved = self.ns.journal_pause();
+        self.walk(index, root, scope, exec);
+        self.ns.journal_resume(saved);
         Ok(index)
     }
 }

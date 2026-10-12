@@ -42,9 +42,8 @@ impl<H: Host> Machine<'_, H> {
             Family::Match => self.match_op(aml, t, node),
             Family::Sync => self.sync_expr(aml, t, node, op),
             Family::Timer => Ok(Object::Integer(self.host.timer())),
-            // Load and LoadTable read a table from a region or the platform;
-            // they arrive with region access (unit F 4).
-            Family::Load | Family::None => Err(self.fault(FaultKind::Unsupported, at)),
+            Family::Load => self.load_op(aml, t, node, op, at),
+            Family::None => Err(self.fault(FaultKind::Type, at)),
         }
     }
 }

@@ -21,6 +21,8 @@ or asks for a region it was not granted stops the capsule, not the machine.
 | `load` | tables loaded in order into the namespace; field unit layout | 5.2.11, 19.6.48 |
 | `object` | values, references, the implicit and explicit conversions | 19.3.5, 19.6 |
 | `exec` | the interpreter: methods, control flow, operators, mutexes, events, the budget | 19 |
+| `region` | field access arithmetic: widths, units, UpdateRule, the Global Lock's steps | 5.2.10.1, 19.6.48 |
+| `exec/field` | regions, field units, IndexField, BankField, buffer fields, _REG, Load | 5.5.2.4, 6.5.4, 19.6 |
 
 ## Reading a table
 
@@ -79,8 +81,36 @@ offset, and the mutexes it held are released.
 - \_OS, \_OSI and \_REV answer from a `Personality`; the default answers no
   \_OSI string.
 
-Not yet: field units, buffer fields, Load, LoadTable and Unload, which need
-region access (unit F 4), fault with `Unsupported`.
+## Regions and fields
+
+Every register access goes through the `Host`: `region_read` and
+`region_write` for SystemMemory, SystemIO, PCI_Config, EmbeddedControl and
+SystemCMOS; `transaction` for SMBus, IPMI, GenericSerialBus and PCC fields,
+whose data buffer goes in and whose response comes back in the source
+buffer; `gpio` for pins named by a field's Connection; `table` for
+DataTableRegion (read from the platform's copy, never written) and
+LoadTable; `lock_word` and `lock_released` for the FACS Global Lock.
+
+- A field takes one access per access-width unit it touches. AnyAcc takes
+  the narrowest naturally aligned width up to eight bytes that holds the
+  field in one access; embedded controller and CMOS fields are read by
+  bytes. A partial unit is written by the field's UpdateRule; the written
+  word is cut to the access width. A field wider than an integer reads as a
+  buffer. An access past the region's end is a fault.
+- IndexField writes the byte offset to its index field, then moves the data
+  field. BankField writes its bank value before each access. A Lock field,
+  and Acquire(\_GL), hold the Global Lock (pending marked, firmware waited
+  for by polling under the time budget until the GBL_RLS SCI is wired).
+- A PCI_Config region carries the _ADRs from its device up to the host
+  bridge (PNP0A03/PNP0A08) and the bridge's _SEG and _BBN.
+- A space's accesses fault until `Machine::connect(aml, space)` marks its
+  handler ready; `connect` runs _REG(space, 1) in every scope that holds a
+  region of the space, and reports the _REGs that faulted.
+- A region or buffer field a method defines resolves then, in the method's
+  frame, so its arguments are in scope; it is gone when the method returns.
+- Load (from a region, a field or a buffer), LoadTable (by signature and
+  OEM ids, under RootPathString, with ParameterData stored) and Unload; what
+  a loaded table defines outlives the method that loaded it.
 
 ## Limits
 

@@ -34,11 +34,8 @@ impl<H: Host> Machine<'_, H> {
         let kind = aml.ns.get(id).ok_or_else(|| self.fault(FaultKind::Stale, at))?.kind;
         match kind {
             Kind::Name => {}
-            // Field units and buffer fields write through their region or
-            // buffer, which arrives with unit F 4.
-            Kind::FieldUnit(_) | Kind::BufferField => {
-                return Err(self.fault(FaultKind::Unsupported, at))
-            }
+            Kind::FieldUnit(_) => return self.field_write(aml, id, v, at),
+            Kind::BufferField => return self.buffer_field_write(aml, id, v, at),
             _ => return Err(self.fault(FaultKind::Type, at)),
         }
         let v = self.deref(aml, v, at)?;
