@@ -17,13 +17,14 @@
 //! The polled bulk IN, `slot, 0, len_le16`: the first poll arms a chain of
 //! `len` bytes, and each poll looks at it once. Data replies as a bulk IN
 //! does; nothing yet is E_AGAIN at once; a STALL is E_PIPE. The chain is
-//! armed again by the poll after the one that took its data.
+//! armed again by the poll after the one that took its data. The chain has
+//! one place, so while one slot's is armed another slot's poll is E_BUSY.
 
 use crate::env::{Clock, Io, Mem};
 use crate::sched::layout::{BULK_MAX, POLL_BUF};
 use crate::server::context::Ctx;
 use crate::server::reply::{data, status, DATA_AT};
-use crate::wire::{Request, E_AGAIN, E_INVAL, E_IO, E_PIPE};
+use crate::wire::{Request, E_AGAIN, E_BUSY, E_INVAL, E_IO, E_PIPE};
 use crate::xfer::poll::{arm, look, Polled};
 
 pub fn poll<I: Io, C: Clock, M: Mem>(
@@ -34,6 +35,11 @@ pub fn poll<I: Io, C: Clock, M: Mem>(
 ) -> usize {
     let &[slot, _, lo, hi] = body else { return status(tx, req, E_INVAL) };
     let len = u16::from_le_bytes([lo, hi]) as usize;
+    let mut armed =
+        cx.table.devs.iter().enumerate().filter(|(_, d)| d.is_some_and(|d| d.poll.is_some()));
+    if armed.any(|(i, _)| i + 1 != slot as usize) {
+        return status(tx, req, E_BUSY);
+    }
     let Some(dev) = cx.table.dev(slot).filter(|_| (1..=BULK_MAX).contains(&len)) else {
         return status(tx, req, E_INVAL);
     };
