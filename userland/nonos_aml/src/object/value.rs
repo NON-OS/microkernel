@@ -39,6 +39,8 @@ pub enum Object {
     /// A named object that holds no data of its own (a Device, a Mutex, a
     /// Method passed as an argument), with the generation of its slot.
     Named(Id, u32),
+    /// A DDBHandle: the index of a table Load or LoadTable added.
+    Table(u16),
 }
 
 /// What RefOf, Index and CondRefOf return (section 19.6.115 and 19.6.62).

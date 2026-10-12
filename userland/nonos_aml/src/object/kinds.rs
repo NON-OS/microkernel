@@ -60,12 +60,12 @@ pub fn type_of(kind: Kind) -> ObjectType {
 }
 
 impl Object {
-    /// The type of a value. References report what they would read as
-    /// "a reference" has no number of its own; section 19.6.96 asks for the
-    /// type of the object referred to, which the caller dereferences first.
+    /// The type of a value; a reference has no number of its own, so the
+    /// caller asks the object it refers to (section 19.6.96).
     pub fn object_type(&self) -> ObjectType {
         match self {
             Object::Uninit | Object::Ref(_) | Object::Named(..) => ObjectType::Uninit,
+            Object::Table(_) => ObjectType::DdbHandle,
             Object::Integer(_) => ObjectType::Integer,
             Object::String(_) => ObjectType::String,
             Object::Buffer(_) => ObjectType::Buffer,

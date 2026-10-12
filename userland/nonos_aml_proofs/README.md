@@ -32,12 +32,22 @@ so no table enters the tree as an opaque blob.
 | `sync_tests`, `event_tests`, `host_tests` | mutex nesting and sync order; events; Notify's queue; Fatal, Timer, Sleep, Stall |
 | `predefined_tests` | \_OS, \_OSI, \_REV; load-time code run by the interpreter |
 | `generated_tests` | 3000 random expressions against a model of the operators, at both widths |
+| `region_math_tests` | access widths, the units a field touches, UpdateRule merges, bit strings, Global Lock steps |
+| `field_io_tests`, `field_rule_tests` | fields through a modelled region; byte and AnyAcc widths; buffers; bounds; handlers; UpdateRule; IndexField; BankField |
+| `pci_reg_tests` | a PCI_Config region's segment, bus and _ADR path; _REG on connect, a faulting _REG reported |
+| `buffer_field_tests` | _OSC-style buffer fields on an argument, CreateField, bounds, load-time buffer fields |
+| `lock_tests` | the Global Lock around a Lock field and \_GL, waiting for firmware, GBL_RLS, release on fault |
+| `transaction_tests` | an SMBus write's response, GPIO pins through a Connection, DataTableRegion |
+| `load_op_tests`, `load_table_tests` | Load from a buffer and a region, LoadTable with its parameter, Unload, a method region from its argument |
+| `field_mutation_tests` | thousands of mutated field programs with every space connected: a value or a fault, the Global Lock given back |
 | `exec_mutation_tests` | thousands of mutated method tables loaded and every method run: a value or a fault, never a panic |
 | `mutation_tests` | thousands of mutated and random tables end in a tree or a refusal, never a panic |
 
 `src/tests/catalog*` holds one instance of every opcode; `src/flat.rs` is a
 namespace stand-in that knows methods by their last NameSeg; `src/consts.rs`
 is a load-time evaluator that understands only integer constants; `src/probe.rs`
-is a host that records what the interpreter asked of it.
+is a host that records what the interpreter asked of it and models the
+hardware a field reaches; `src/rig.rs` keeps a loaded table and its probe
+together.
 
 Run: `RUST_TEST_THREADS=1 cargo test --release --config profile.release.overflow-checks=true`.

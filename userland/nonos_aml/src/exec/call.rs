@@ -60,7 +60,7 @@ impl<H: Host> Machine<'_, H> {
         let frame = self.frames.pop().expect("the frame pushed above");
         let made = aml.ns.journal_unwind(frame.journal.unwrap_or(0));
         for gone in made {
-            *aml.rt.value(gone) = None;
+            aml.rt.forget(gone);
         }
         if let Some(m) = frame.serial {
             self.release_mutex(aml, m, at)?;

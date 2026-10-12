@@ -16,7 +16,7 @@
 
 //! What evaluations leave behind for the next one.
 
-use super::Personality;
+use super::{BufferField, Personality, Region};
 use crate::namespace::Id;
 use crate::object::Object;
 use alloc::collections::{BTreeMap, VecDeque};
@@ -42,12 +42,25 @@ pub struct Runtime {
     pub dropped_notifications: u32,
     pub evaluations: u64,
     pub personality: Personality,
+    pub regions: BTreeMap<Id, Region>,
+    pub buffer_fields: BTreeMap<Id, BufferField>,
+    /// Spaces whose handler is connected, one bit each (Space::bit).
+    pub connected: u32,
+    /// How deep this capsule holds the Global Lock.
+    pub global_lock: u32,
 }
 
 impl Runtime {
     /// Notifications beyond this are dropped and counted: a table cannot
     /// grow the queue while the capsule is not draining it.
     pub const MAX_NOTIFICATIONS: usize = 64;
+
+    /// Everything kept about an object, dropped when the object is removed.
+    pub fn forget(&mut self, id: Id) {
+        *self.value(id) = None;
+        self.regions.remove(&id);
+        self.buffer_fields.remove(&id);
+    }
 
     pub fn value(&mut self, id: Id) -> &mut Option<Object> {
         if self.values.len() <= id as usize {
