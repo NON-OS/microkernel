@@ -21,11 +21,11 @@
 use nonos_gfx_serve::Display;
 use nonos_gfx_wire::body::state::{LOST, SCANNING_OUT};
 
-use super::wire_rig::rig;
 use crate::engine::fault::{de_pipe_iir, UNDERRUN};
 use crate::engine::gen::GEN9;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::{plane_regs as r, regs};
+use crate::tests::wire_rig::rig;
 
 #[test]
 fn a_healthy_output_scans_out_and_its_generation_holds() {

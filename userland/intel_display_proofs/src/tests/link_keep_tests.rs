@@ -23,7 +23,7 @@ use nonos_gfx_wire::body::state::{LOST, SCANNING_OUT};
 
 use super::dp_rig::dp_rig;
 use super::edid_blob::edid_1080p_and_xga;
-use super::wire_modeset_tests::TOTAL;
+use super::two_rig::TOTAL;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::timing;
 use crate::model::firmware::T1080;

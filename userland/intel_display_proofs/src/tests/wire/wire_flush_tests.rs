@@ -22,8 +22,8 @@ use nonos_gfx_serve::{Display, Shadow};
 use nonos_gfx_wire::errno::EINVAL;
 use nonos_gfx_wire::Rect;
 
-use super::wire_rig::{h0, rig, shadow_bytes};
 use crate::engine::pipe::Pipe;
+use crate::tests::wire_rig::{h0, rig, shadow_bytes};
 
 fn shadow(bytes: &[u8]) -> Shadow<'_> {
     Shadow { bytes, width: 1920, height: 1080, stride: 7680, cursor_offset: 0 }
