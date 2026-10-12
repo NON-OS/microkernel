@@ -18,7 +18,7 @@ use crate::wire::E_AGAIN;
 fn a_low_speed_keyboard_behind_the_hub_reports_through_its_tt() {
     let (mut cx, w, _, seen) = tree(HubModel::new(true, 4).plug(2, Device::low(), 2));
     let tt = Some(Tt { hub_slot: 1, port: 2 });
-    let want = Place { root_port: 1, route: 0x2, depth: 1, speed: 2, tt };
+    let want = Place { root_port: 1, route: 0x2, depth: 1, speed: 2, tt, parent: (1, 2) };
     assert_eq!(seen.bound, vec![(2, want)]);
     assert_eq!(call(&mut cx, OP_ALLOC_TRANSFER_RING, &[2, 0x81, 8, 0, 10, 0]).status, 0);
     child(&w, 2).reports.push_back(vec![0, 0, 4, 0, 0, 0, 0, 0]);
