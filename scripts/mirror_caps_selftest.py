@@ -46,4 +46,7 @@ def self_test():
         assert not stale_readmes(root), "a README quoting its manifest was reported"
         readme.write_text("Mask: `CAPSULE_REQUIRED_CAPS = 0x19`.\n")
         assert stale_readmes(root), "a README quoting an old mask was missed"
+        readme.write_text("Mask: `CAPSULE_REQUIRED_CAPS = 0x18`.\n")
+        (readme.parent / "decoy-authority.md").write_text("`CAPSULE_REQUIRED_CAPS := 0x19`\n")
+        assert stale_readmes(root), "a README part quoting an old mask was missed"
     print("mirror caps: self-test passed, the decoys were reported")
