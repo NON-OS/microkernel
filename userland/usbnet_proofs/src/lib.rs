@@ -37,7 +37,7 @@ pub mod mock;
 pub mod qemu_usb_net;
 
 pub use bind::Bind;
-pub use bus::{Bus, Pipes};
+pub use bus::{Bus, Notify, Pipes};
 pub use found::Found;
 pub use nic::Nic;
 pub use setup::Setup;

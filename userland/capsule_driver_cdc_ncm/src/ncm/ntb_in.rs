@@ -23,14 +23,21 @@ use alloc::collections::VecDeque;
 
 use nonos_usbnet::nic::ETH_HEADER;
 
+use super::ntb32_in::{datagrams32, NTH32_SIGN};
 use super::ntb_out::NDP16_NOCRC_SIGN;
 use super::verify::{le16, le32, verify_ndp16, verify_nth16, NDP16_HEADER};
 
 /// cdc_ncm_rx_fixup's loopcount: the most NDPs read from one block.
 const MAX_NDPS: usize = 50;
 
-/// Queue each datagram of the NTB16 in `raw` as its (index, length).
+/// The most datagrams taken from one block (Linux's DPT_DATAGRAMS_MAX).
+pub const MAX_DATAGRAMS: usize = 40;
+
+/// Queue each datagram of an NTB16 or NTB32 in `raw` as (index, length).
 pub fn datagrams(raw: &[u8], rx_max: usize, out: &mut VecDeque<(usize, usize)>) {
+    if raw.len() >= 4 && le32(raw, 0) == NTH32_SIGN {
+        return datagrams32(raw, rx_max, MAX_DATAGRAMS, out);
+    }
     let Some(mut at) = verify_nth16(raw, rx_max) else { return };
     let mut seen = [0usize; MAX_NDPS];
     for i in 0..MAX_NDPS {
@@ -59,7 +66,8 @@ fn entries(raw: &[u8], at: usize, n: usize, rx_max: usize, out: &mut VecDeque<(u
         // NCM 1.0, 3.7: entries after the first null one are ignored; Linux
         // ignores the rest after a bad one too.
         let inside = index <= raw.len() && len <= raw.len() - index;
-        if index == 0 || len == 0 || !inside || len > rx_max || len < ETH_HEADER {
+        let full = out.len() >= MAX_DATAGRAMS;
+        if full || index == 0 || len == 0 || !inside || len > rx_max || len < ETH_HEADER {
             return;
         }
         out.push_back((index, len));
