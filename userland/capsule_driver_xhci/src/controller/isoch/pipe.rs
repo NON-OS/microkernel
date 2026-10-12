@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What one isoch OUT endpoint holds: its ring, two halves of DMA memory a
-//! batch each, and the last TD of the batch still in flight.
+//! What one isoch endpoint holds: its ring, two halves of DMA memory a
+//! batch each, and the batch still in flight (for OUT its last TD, for IN
+//! every TD, whose lengths are wanted).
 
 use super::endpoint::IsochEndpoint;
+use super::inbound::InBatch;
 use crate::constants::COMMAND_RING_TRBS;
 use crate::dma::{DmaPool, DmaRegion};
 use crate::error::XhciResult;
@@ -40,6 +42,7 @@ pub struct IsochPipe {
     /// batch waits for. Two batches at most are on the ring, 62 TRBs at
     /// most, so the 63 it holds never wrap onto one in flight.
     pub(super) pending: Option<IssuedTransfer>,
+    pub(super) inflight: Option<InBatch>,
 }
 
 impl IsochPipe {
@@ -50,11 +53,11 @@ impl IsochPipe {
     }
 
     pub fn with(ring: TransferRing, buf: DmaRegion, ep: IsochEndpoint, superspeed: bool) -> Self {
-        Self { ring, buf, ep, superspeed, half: 0, pending: None }
+        Self { ring, buf, ep, superspeed, half: 0, pending: None, inflight: None }
     }
 
     /// Forget the batch in flight: the endpoint was recovered past it.
     pub fn forget(&mut self) {
-        self.pending = None;
+        (self.pending, self.inflight) = (None, None);
     }
 }

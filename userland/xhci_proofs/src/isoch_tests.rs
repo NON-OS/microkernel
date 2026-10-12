@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The isochronous pieces that need no controller: the burst fields of a TD
-//! and the Interval, held to Linux's `xhci_get_burst_count`,
-//! `xhci_get_last_burst_packet_count` and `xhci_get_endpoint_interval`; the
-//! endpoint a descriptor becomes at each speed.
+//! (xHCI 1.2 4.11.2.3) and the Interval (6.2.3.6), both as recalled and
+//! unverified; the endpoint a descriptor becomes at each speed.
 
 use crate::contexts::{isoch_interval, SPEED_HIGH};
 
