@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! ADMA2 descriptor tables (SDHCI 3.0, 1.13.4). Pure: the table is built in
+//! ADMA2 descriptor tables (SDHCI 3.0 ADMA2, as recalled, unverified). Pure: the table is built in
 //! a byte slice the caller then copies into the descriptor page.
 //!
 //! Every descriptor is a transfer descriptor (Act = 10b, Valid). The last
-//! one carries End. No Nop descriptor is ever written, so a host with
-//! SDHCI_QUIRK_NO_ENDATTR_IN_NOPDESC (every Intel eMMC host in Linux's
-//! table) never meets the End-in-Nop it mishandles, and other hosts get the
-//! plain form the specification shows.
+//! one carries End. No Nop descriptor is ever written, so a host that
+//! mishandles End in a Nop descriptor (Intel eMMC hosts, observed in Linux
+//! sdhci-pci-core.c, unverified) never meets one, and every host gets the
+//! plain form.
 
 mod build;
 mod error;

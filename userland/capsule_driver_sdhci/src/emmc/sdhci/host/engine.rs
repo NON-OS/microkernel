@@ -28,8 +28,8 @@ pub struct Host<M: Mmio, C: Clock, L: Log> {
     /// The page the ADMA2 descriptor table is written to.
     pub table: DmaBuf,
     /// A known Intel eMMC host (`pci::Kind::IntelEmmc`): its slot is wired
-    /// eight bits wide and high speed whatever the capabilities say, as
-    /// Linux's byt_emmc_probe_slot and glk_emmc_probe_slot set.
+    /// eight bits wide and high speed whatever the capabilities say
+    /// (observed in Linux sdhci-pci-core.c, unverified against Intel's).
     pub intel_emmc: bool,
     pub caps: Caps,
     pub vdd: Option<Vdd>,

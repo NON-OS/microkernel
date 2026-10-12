@@ -23,8 +23,8 @@ use super::Caps;
 
 /// Base clock assumed when the capabilities leave the field zero ("get the
 /// information via another method"). Intel's eMMC hosts on Bay Trail through
-/// Gemini Lake clock the SDHCI from 200 MHz; Linux reads the field and has
-/// no Intel override, so this only matters for firmware that zeroes it.
+/// Gemini Lake clock the SDHCI from 200 MHz (as recalled, unverified); their
+/// capabilities say so, and this only matters for firmware that zeroes it.
 pub const FALLBACK_BASE_MHZ: u32 = 200;
 
 impl Caps {

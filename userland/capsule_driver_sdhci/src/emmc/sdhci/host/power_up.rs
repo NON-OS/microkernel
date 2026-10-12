@@ -22,28 +22,25 @@ use super::super::super::text::Line;
 use super::super::power::Vdd;
 use super::super::regs::{CLOCK_CONTROL, POWER_CONTROL, POWER_ON};
 use super::engine::Host;
-use super::limits::SETTLE_MS;
+use super::limits::{POWER_TRIES, SETTLE_MS};
 
 impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
-    /// Bus power on at `vdd`, as sdhci_set_power and then
-    /// sdhci_intel_set_power do it: power register cleared, voltage
-    /// selected, power on; then, up to twice, a millisecond later, power on
-    /// written again if it did not stick (on Intel hosts the present state
-    /// may not have propagated yet after D3 to D0). Fails if it never does.
+    /// SD Bus Power on at `vdd`: the voltage chosen while power is off,
+    /// then power set (Power Control, as recalled, unverified). Some Intel
+    /// hosts drop the first power-on just after leaving D3 (observed in
+    /// Linux sdhci-pci-core.c, unverified), so the bit is read back a
+    /// millisecond after each write and written again, POWER_TRIES in all.
     pub fn power_up(&mut self, vdd: Vdd) -> EmmcResult<()> {
-        let sel = vdd.select();
+        let on = vdd.select() | POWER_ON;
         self.io.w8(POWER_CONTROL, 0);
-        self.io.w8(POWER_CONTROL, sel);
-        self.io.w8(POWER_CONTROL, sel | POWER_ON);
-        for _ in 0..2 {
+        self.io.w8(POWER_CONTROL, vdd.select());
+        let held = (0..POWER_TRIES).any(|_| {
+            self.io.w8(POWER_CONTROL, on);
             self.pause(1);
-            if self.io.r8(POWER_CONTROL) & POWER_ON != 0 {
-                break;
-            }
-            self.io.w8(POWER_CONTROL, sel | POWER_ON);
-        }
-        let now = self.io.r8(POWER_CONTROL);
-        if now & POWER_ON == 0 {
+            self.io.r8(POWER_CONTROL) & POWER_ON != 0
+        });
+        if !held {
+            let now = self.io.r8(POWER_CONTROL);
             self.say(Line::new().s(b"bus power did not stay on (power ").hex(now as u64).s(b")"));
             return Err(EmmcError::NoPower);
         }
