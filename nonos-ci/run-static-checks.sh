@@ -1837,10 +1837,10 @@ fi
 # Capability split for the driver-broker syscalls. `MkMmioMap` and
 # `MkMmioUnmap` must route through `can_mmio()`; `MkDeviceClaim` /
 # `MkDeviceRelease` through `can_driver()`; only `MkDeviceList` may
-# share the old `can_device_enum()`. The cap_table::mk module is
-# the single source of truth, so the gate inspects that file
+# share the old `can_device_enum()`. The cap_table::mk_device module
+# holds the driver-broker rows, so the gate inspects that file
 # directly.
-mk_table='src/syscall/contract/cap_table/mk.rs'
+mk_table='src/syscall/contract/cap_table/mk_device.rs'
 if [ ! -f "${mk_table}" ]; then
     fail_with "missing ${mk_table}"
 elif ! grep -qE 'MkMmioMap[^=]*\|[^=]*MkMmioUnmap[^=]*=>[[:space:]]*caps\.can_mmio\(\)' "${mk_table}"; then
@@ -4046,7 +4046,7 @@ unset abi_registry_dir abi_registry_files syscall_defs convert_src graphics_park
 ipc_primitives='src/syscall/microkernel/ipc/recv_from.rs src/syscall/microkernel/ipc/send_to_pid.rs src/syscall/microkernel/ipc/lookup.rs'
 ipc_dispatch='src/syscall/microkernel/dispatch/ipc.rs'
 ipc_defs='src/syscall/numbers/defs.rs'
-ipc_cap='src/syscall/contract/cap_table/mk.rs'
+ipc_cap='src/syscall/contract/cap_table/mk_ipc.rs'
 ipc_libc='userland/libc/src/ipc/recv_from.rs userland/libc/src/ipc/send_to_pid.rs userland/libc/src/ipc/lookup.rs'
 ipc_missing=
 for f in ${ipc_primitives} ${ipc_libc}; do

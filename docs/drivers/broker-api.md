@@ -8,7 +8,7 @@ A driver calls the [hardware broker](../overview/glossary.md#hardware-broker) th
 
 `nonos_abi`, the bottom of the native runtime, carries no broker numbers (`userland/nonos_abi/README.md`). The crates in `userland/sdk` are for applications and `userland/platform` is a host-side packaging tool, so a driver uses neither. `nonos_devmodel` runs only on the host, where it gives a [proof crate](../overview/glossary.md#proof-crate) a register window in memory (`userland/nonos_devmodel/README.md`); [Writing a driver](writing-a-driver.md#15-the-proof-crate) shows it in use.
 
-On the kernel side every call first passes the contract table, which checks the capability before any handler runs, for example `can_driver` for `MkDeviceClaim` (`src/syscall/contract/cap_table/mk.rs:123-136`). A handler in `src/syscall/microkernel/` then turns the arguments into a request to `src/hardware/broker`. The register-level tables of numbers, arguments and return values are in the [Broker ABI](../abi/broker.md).
+On the kernel side every call first passes the contract table, which checks the capability before any handler runs, for example `can_driver` for `MkDeviceClaim` (`src/syscall/contract/cap_table/mk_device.rs:24-37`). A handler in `src/syscall/microkernel/` then turns the arguments into a request to `src/hardware/broker`. The register-level tables of numbers, arguments and return values are in the [Broker ABI](../abi/broker.md).
 
 ```mermaid
 sequenceDiagram
@@ -30,7 +30,7 @@ A typical driver makes the calls in the order above: list, claim, turn on the PC
 
 ## Capabilities
 
-Each call needs one bit of the driver's [capability word](../overview/glossary.md#capability-word), from `DeviceEnum` to `Pio` (`src/capabilities/types/defs.rs:39-50`). The contract table maps each call to its bit, starting with `MkDeviceList` (`src/syscall/contract/cap_table/mk.rs:123-136`):
+Each call needs one bit of the driver's [capability word](../overview/glossary.md#capability-word), from `DeviceEnum` to `Pio` (`src/capabilities/types/defs.rs:39-50`). The contract table maps each call to its bit, starting with `MkDeviceList` (`src/syscall/contract/cap_table/mk_device.rs:24-37`):
 
 | Bit | Name | Calls it admits |
 |---|---|---|
