@@ -220,6 +220,11 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkTtySet => caps.can_ipc(),
         SyscallNumber::MkTtyQuery => true,
 
+        /* The VMBus core's SynIC calls; each also checks the VMBus root's claim. */
+        SyscallNumber::MkHvPost
+        | SyscallNumber::MkHvRecv
+        | SyscallNumber::MkHvEvents
+        | SyscallNumber::MkHvSignal => caps.can_driver(),
         _ => return None,
     })
 }

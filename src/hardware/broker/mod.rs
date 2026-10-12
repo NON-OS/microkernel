@@ -46,6 +46,7 @@ mod pio_absent;
 mod platform;
 mod power;
 mod table;
+mod vmbus;
 mod windows;
 
 #[cfg(target_arch = "x86_64")]
@@ -61,7 +62,8 @@ pub use claim::{
 pub use class::{classify_pci, Class};
 pub use device::{Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
 pub use dma::{
-    map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
+    covers as dma_covers, map_for_caller as dma_map_for_caller,
+    release_all_for_pid as dma_release_all_for_pid,
     release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant,
     wipe_live_grants as dma_wipe_live_grants, DmaError,
     DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult,
@@ -92,4 +94,5 @@ pub use pio::{
 pub use pio_absent::{pio_release_all_for_pid, pio_release_for_device};
 pub use platform::register_legacy as register_legacy_platform_devices;
 pub use table::{contains, init_from_pci, list, list_by_class};
+pub use vmbus::{register_vmbus, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR};
 pub use windows::touches_device_window;

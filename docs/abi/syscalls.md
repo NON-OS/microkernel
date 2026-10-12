@@ -38,7 +38,7 @@ Read the Capability column this way:
 - "A or B" means either is enough. Every [broker](../overview/glossary.md#broker) gate accepts `Admin` in place of the call's own capability, because predicates such as `can_driver` ask for either (`src/capabilities/token/types/authority_broker.rs:24-26`).
 - "A and B" means both.
 - "valid token" means `is_valid`: the token has not expired and grants at least one capability (`src/capabilities/token/types/query.rs:44-47`). The tokens `new_token` mints carry no expiry (`src/process/caps.rs:38-46`).
-- "none" is `MTTQ` alone, whose arm is `true` (`src/syscall/contract/cap_table/mk.rs:220`). The five checks above still run.
+- "none" is `MTTQ` alone, whose arm is `true` (`src/syscall/contract/cap_table/mk.rs:221`). The five checks above still run.
 - `MADC` needs AttestRead and is refused to a caller holding Network, because `can_attest_doc` excludes it (`src/syscall/caps/checks/system.rs:42-47`).
 
 The Gate column is the predicate and the line in the cap table. Some handlers ask again. `sys_cap_grant` also needs every bit it grants (`src/syscall/microkernel/capability/handlers.rs:42-47`), and `sys_pci_config_read` and `sys_pci_config_write` ask for `Driver` themselves, so `Admin` alone is refused there (`src/syscall/microkernel/pci.rs:28-35`, `src/syscall/microkernel/pci.rs:43-50`).
@@ -79,8 +79,8 @@ A message goes to an [endpoint](../overview/glossary.md#endpoint), a port a serv
 | `MYLD` | `0x444C594D` | `MkYield` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:35` | Give up the CPU. |
 | `MFTW` | `0x5754464D` | `MkFutexWait` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:35` | Sleep while a 32-bit word holds an expected value. |
 | `MFTK` | `0x4B54464D` | `MkFutexWake` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:35` | Wake waiters on a word. |
-| `MSPI` | `0x4950534D` | `MkSpawnInstance` | Admin or SpawnWindow | `can_spawn_window` `src/syscall/contract/cap_table/mk.rs:206` | Ask for another window of an embedded, attested app. |
-| `MTRN` | `0x4E52544D` | `MkToolRun` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:213` | Run a baked, attested tool by name as the caller's child. |
+| `MSPI` | `0x4950534D` | `MkSpawnInstance` | Admin or SpawnWindow | `can_spawn_window` `src/syscall/contract/cap_table/mk.rs:207` | Ask for another window of an embedded, attested app. |
+| `MTRN` | `0x4E52544D` | `MkToolRun` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:214` | Run a baked, attested tool by name as the caller's child. |
 | `MTMS` | `0x534D544D` | `MkTimeMillis` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:35` | Wall-clock milliseconds; a time correction can move it. |
 | `MMON` | `0x4E4F4D4D` | `MkTimeMonotonic` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:35` | Milliseconds since boot; never moves backwards. |
 | `MTRT` | `0x5452544D` | `MkTimeRtc` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:35` | Read the real-time clock as a date and time record. |
@@ -95,11 +95,11 @@ A message goes to an [endpoint](../overview/glossary.md#endpoint), a port a serv
 | `MOUT` | `0x54554F4D` | `MkProcOutput` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:103` | Drain one line a child wrote to its `proc.<pid>` inbox. |
 | `MPIN` | `0x4E49504D` | `MkProcInput` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:104` | Feed one message to a child's `stdin.<pid>` inbox. |
 | `MSRD` | `0x4452534D` | `MkStdinRead` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:105` | Read the caller's own stdin. |
-| `MSOW` | `0x574F534D` | `MkStdoutWrite` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:139` | Program stdout, to the caller's own `proc.<pid>` inbox. |
-| `MPVW` | `0x5756504D` | `MkPrivateWrite` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:139` | Output only the caller's launcher reads, never the serial line. |
-| `MTTY` | `0x5954544D` | `MkTtySet` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:219` | Say which of a child's streams reach a terminal, and its size. |
-| `MTTQ` | `0x5154544D` | `MkTtyQuery` | none | `true` `src/syscall/contract/cap_table/mk.rs:220` | Ask whether stdin, stdout or stderr is on a terminal, and its size; else `ENOTTY`. |
-| `MDBG` | `0x4742444D` | `MkDebug` | Debug | `can_debug` `src/syscall/contract/cap_table/mk.rs:138` | Write one diagnostic line of up to 256 bytes to the boot serial. |
+| `MSOW` | `0x574F534D` | `MkStdoutWrite` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:140` | Program stdout, to the caller's own `proc.<pid>` inbox. |
+| `MPVW` | `0x5756504D` | `MkPrivateWrite` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:140` | Output only the caller's launcher reads, never the serial line. |
+| `MTTY` | `0x5954544D` | `MkTtySet` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk.rs:220` | Say which of a child's streams reach a terminal, and its size. |
+| `MTTQ` | `0x5154544D` | `MkTtyQuery` | none | `true` `src/syscall/contract/cap_table/mk.rs:221` | Ask whether stdin, stdout or stderr is on a terminal, and its size; else `ENOTTY`. |
+| `MDBG` | `0x4742444D` | `MkDebug` | Debug | `can_debug` `src/syscall/contract/cap_table/mk.rs:139` | Write one diagnostic line of up to 256 bytes to the boot serial. |
 
 ### Storage and the data volume
 
@@ -107,15 +107,15 @@ The store calls read and write the [package store](../overview/glossary.md#packa
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MSWR` | `0x5257534D` | `MkStoreWrite` | StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk.rs:140` | Write up to 8 KiB of whole 512-byte sectors of the package store, at block 256 and above and below the disk plan. |
-| `MSRR` | `0x5252534D` | `MkStoreRead` | StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk.rs:140` | Read up to 32 KiB of whole sectors from the same window of the package store. |
-| `MDIM` | `0x4D49444D` | `MkDataImport` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk.rs:141` | Import a file into the data volume, kept only if it matches its SHA-256. |
-| `MDST` | `0x5453444D` | `MkDataStat` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk.rs:143` | The size of a file on the data volume. |
-| `MDRD` | `0x4452444D` | `MkDataRead` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk.rs:143` | Read a range of a file on the data volume. |
-| `MDPW` | `0x5750444D` | `MkDataPassphrase` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk.rs:142` | Key the data volume with a passphrase, or create it. |
-| `MDFB` | `0x4246444D` | `MkDataFeedBegin` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk.rs:146` | Begin an import fed chunk by chunk, pinned to a digest. |
-| `MDFD` | `0x4446444D` | `MkDataFeed` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk.rs:146` | Feed the next chunk of that import. |
-| `MDRM` | `0x4D52444D` | `MkDataRemove` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk.rs:146` | Take an imported file off the data volume, with its record. |
+| `MSWR` | `0x5257534D` | `MkStoreWrite` | StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk.rs:141` | Write up to 8 KiB of whole 512-byte sectors of the package store, at block 256 and above and below the disk plan. |
+| `MSRR` | `0x5252534D` | `MkStoreRead` | StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk.rs:141` | Read up to 32 KiB of whole sectors from the same window of the package store. |
+| `MDIM` | `0x4D49444D` | `MkDataImport` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk.rs:142` | Import a file into the data volume, kept only if it matches its SHA-256. |
+| `MDST` | `0x5453444D` | `MkDataStat` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk.rs:144` | The size of a file on the data volume. |
+| `MDRD` | `0x4452444D` | `MkDataRead` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk.rs:144` | Read a range of a file on the data volume. |
+| `MDPW` | `0x5750444D` | `MkDataPassphrase` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk.rs:143` | Key the data volume with a passphrase, or create it. |
+| `MDFB` | `0x4246444D` | `MkDataFeedBegin` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk.rs:147` | Begin an import fed chunk by chunk, pinned to a digest. |
+| `MDFD` | `0x4446444D` | `MkDataFeed` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk.rs:147` | Feed the next chunk of that import. |
+| `MDRM` | `0x4D52444D` | `MkDataRemove` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk.rs:147` | Take an imported file off the data volume, with its record. |
 
 ### Attestation, signing roots and installs
 
@@ -136,12 +136,12 @@ The store calls read and write the [package store](../overview/glossary.md#packa
 | `MDRO` | `0x4F52444D` | `MkDevRootLocal` | EnrolDevRoot | `can_enrol_dev_root` `src/syscall/contract/cap_table/mk.rs:78` | Ask to enrol this machine's own build root. |
 | `MLCG` | `0x47434C4D` | `MkLocalConsent` | EnrolDevRoot | `can_enrol_dev_root` `src/syscall/contract/cap_table/mk.rs:78` | Grant or withdraw consent to run what this machine installs. |
 | `MLCR` | `0x52434C4D` | `MkLocalRestore` | EnrolDevRoot | `can_enrol_dev_root` `src/syscall/contract/cap_table/mk.rs:78` | Restore that consent at setup, from the token a grant returned. |
-| `MLSG` | `0x47534C4D` | `MkLocalSign` | LocalSign | `can_local_sign` `src/syscall/contract/cap_table/mk.rs:173` | Mint a trailer for something this machine is installing. |
-| `MLVF` | `0x46564C4D` | `MkLocalVerify` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:176` | Ask whether an image is proved under a root this machine trusts. |
-| `MAIN` | `0x4E49414D` | `MkAppInstall` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk.rs:182` | Ask for a marketplace listing to be installed. |
-| `MAPL` | `0x4C50414D` | `MkAppLaunch` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk.rs:182` | Start the program an installed package provides. |
-| `MAIS` | `0x5349414D` | `MkAppInstallStatus` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk.rs:182` | Where an asked-for install stands. |
-| `MAUN` | `0x4E55414D` | `MkAppUninstall` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk.rs:182` | Ask for an installed Linux package to be removed. |
+| `MLSG` | `0x47534C4D` | `MkLocalSign` | LocalSign | `can_local_sign` `src/syscall/contract/cap_table/mk.rs:174` | Mint a trailer for something this machine is installing. |
+| `MLVF` | `0x46564C4D` | `MkLocalVerify` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:177` | Ask whether an image is proved under a root this machine trusts. |
+| `MAIN` | `0x4E49414D` | `MkAppInstall` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk.rs:183` | Ask for a marketplace listing to be installed. |
+| `MAPL` | `0x4C50414D` | `MkAppLaunch` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk.rs:183` | Start the program an installed package provides. |
+| `MAIS` | `0x5349414D` | `MkAppInstallStatus` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk.rs:183` | Where an asked-for install stands. |
+| `MAUN` | `0x4E55414D` | `MkAppUninstall` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk.rs:183` | Ask for an installed Linux package to be removed. |
 
 ### Capabilities and administration
 
@@ -176,25 +176,29 @@ These are the calls of the device broker. `MkDeviceClaim` returns a [claim epoch
 | `MDMU` | `0x554D444D` | `MkDmaUnmap` | Admin or Dma | `can_dma` `src/syscall/contract/cap_table/mk.rs:131` | Free a DMA grant. |
 | `MPCR` | `0x5243504D` | `MkPciConfigRead` | Admin or Driver | `can_driver` `src/syscall/contract/cap_table/mk.rs:132` | Read an allowed PCI configuration register of a claimed device. |
 | `MPCW` | `0x5743504D` | `MkPciConfigWrite` | Admin or Driver | `can_driver` `src/syscall/contract/cap_table/mk.rs:132` | Write an allowed 16-bit PCI configuration register. |
-| `MPGT` | `0x5447504D` | `MkPioGrant` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:136` | Get a grant over a claimed device's port BAR; x86_64 only. |
-| `MPRD` | `0x4452504D` | `MkPioRead` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:136` | Read 1, 2 or 4 bytes from a granted port. |
-| `MPWR` | `0x5257504D` | `MkPioWrite` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:136` | Write 1, 2 or 4 bytes to a granted port. |
-| `MPRL` | `0x4C52504D` | `MkPioRelease` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:136` | Drop a port grant. |
+| `MPGT` | `0x5447504D` | `MkPioGrant` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:137` | Get a grant over a claimed device's port BAR; x86_64 only. |
+| `MPRD` | `0x4452504D` | `MkPioRead` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:137` | Read 1, 2 or 4 bytes from a granted port. |
+| `MPWR` | `0x5257504D` | `MkPioWrite` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:137` | Write 1, 2 or 4 bytes to a granted port. |
+| `MPRL` | `0x4C52504D` | `MkPioRelease` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:137` | Drop a port grant. |
 | `MHVB` | `0x4256484D` | `MkHvBackdoor` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:137` | One VMware backdoor call from the absolute pointer's set, where the host answers it; -19 elsewhere. |
+| `MHVP` | `0x5056484D` | `MkHvPost` | Admin or Driver | `can_driver` `src/syscall/contract/cap_table/mk.rs:227` | Post a VMBus channel message to the host; the VMBus root's holder only. |
+| `MHVR` | `0x5256484D` | `MkHvRecv` | Admin or Driver | `can_driver` `src/syscall/contract/cap_table/mk.rs:227` | Take the oldest SynIC message for VMBus. |
+| `MHVE` | `0x4556484D` | `MkHvEvents` | Admin or Driver | `can_driver` `src/syscall/contract/cap_table/mk.rs:227` | Take and clear VMBus's channel event flags. |
+| `MHVS` | `0x5356484D` | `MkHvSignal` | Admin or Driver | `can_driver` `src/syscall/contract/cap_table/mk.rs:227` | Signal the host on a channel's connection. |
 
 ### Graphics and input
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MSRG` | `0x4752534D` | `MkSurfaceRegister` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk.rs:186` | Register the caller's own memory as a surface; returns its id. |
-| `MSSH` | `0x4853534D` | `MkSurfaceShare` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk.rs:186` | Share a surface the caller owns; returns a handle. |
-| `MSAT` | `0x5441534D` | `MkSurfaceAttach` | GraphicsSurfaceMap | `can_surface_map` `src/syscall/contract/cap_table/mk.rs:187` | Map a shared surface into the caller and write its descriptor. |
-| `MSRL` | `0x4C52534D` | `MkSurfaceRelease` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk.rs:186` | Drop the caller's reference to a surface. |
-| `MSPR` | `0x5250534D` | `MkSurfacePresent` | GraphicsPresent | `can_present` `src/syscall/contract/cap_table/mk.rs:188` | Present a surface, whole or one damage rectangle. |
-| `MDVW` | `0x5756444D` | `MkDisplayVsyncWait` | GraphicsDisplayQuery | `can_display_query` `src/syscall/contract/cap_table/mk.rs:189` | Sleep to the next tick of the kernel's 60 Hz frame clock; not the display's own sync. |
-| `MIEP` | `0x5045494D` | `MkInputEventPost` | Admin or Irq or InputSource | `can_input_source` `src/syscall/contract/cap_table/mk.rs:190` | Post one input event to the kernel's input ring. |
-| `MIED` | `0x4445494D` | `MkInputEventDrain` | Admin or InputSource | `can_input_consumer` `src/syscall/contract/cap_table/mk.rs:199` | Drain input events from the ring. |
-| `MIEW` | `0x5745494D` | `MkInputEventWait` | Admin or InputSource | `can_input_consumer` `src/syscall/contract/cap_table/mk.rs:200` | Wait for new input events. |
+| `MSRG` | `0x4752534D` | `MkSurfaceRegister` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk.rs:187` | Register the caller's own memory as a surface; returns its id. |
+| `MSSH` | `0x4853534D` | `MkSurfaceShare` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk.rs:187` | Share a surface the caller owns; returns a handle. |
+| `MSAT` | `0x5441534D` | `MkSurfaceAttach` | GraphicsSurfaceMap | `can_surface_map` `src/syscall/contract/cap_table/mk.rs:188` | Map a shared surface into the caller and write its descriptor. |
+| `MSRL` | `0x4C52534D` | `MkSurfaceRelease` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk.rs:187` | Drop the caller's reference to a surface. |
+| `MSPR` | `0x5250534D` | `MkSurfacePresent` | GraphicsPresent | `can_present` `src/syscall/contract/cap_table/mk.rs:189` | Present a surface, whole or one damage rectangle. |
+| `MDVW` | `0x5756444D` | `MkDisplayVsyncWait` | GraphicsDisplayQuery | `can_display_query` `src/syscall/contract/cap_table/mk.rs:190` | Sleep to the next tick of the kernel's 60 Hz frame clock; not the display's own sync. |
+| `MIEP` | `0x5045494D` | `MkInputEventPost` | Admin or Irq or InputSource | `can_input_source` `src/syscall/contract/cap_table/mk.rs:191` | Post one input event to the kernel's input ring. |
+| `MIED` | `0x4445494D` | `MkInputEventDrain` | Admin or InputSource | `can_input_consumer` `src/syscall/contract/cap_table/mk.rs:200` | Drain input events from the ring. |
+| `MIEW` | `0x5745494D` | `MkInputEventWait` | Admin or InputSource | `can_input_consumer` `src/syscall/contract/cap_table/mk.rs:201` | Wait for new input events. |
 | `GDIM` | `0x4D494447` | `GraphicsDisplayDimensions` | GraphicsDisplayQuery | `Capability::GraphicsDisplayQuery` `src/syscall/contract/cap_table/graphics.rs:29` | The display's width and height, and its physical size when the firmware gives it. |
 
 Both display calls know display 0 only. `wait_for_vsync` sleeps to the next multiple of a period taken from `TARGET_HZ`, 60 by default, and reads no hardware sync (`src/kernel_core/surface_registry/vsync.rs:19-58`). `handle_display_dimensions` refuses any other display with `EINVAL` (`src/syscall/dispatch/router/graphics_backend.rs:47-50`).
@@ -205,21 +209,21 @@ A supervising capsule that holds `ForeignExec`, such as the [Linux personality](
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MFSP` | `0x5053464D` | `MkForeignSpawn` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Create a process with no capabilities, supervised by the caller. |
-| `MFST` | `0x5453464D` | `MkForeignStart` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Give such a process an entry point and make it runnable. |
-| `MFWT` | `0x5457464D` | `MkForeignWait` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Wait for a guest to make a refused syscall; take its registers. |
-| `MFRP` | `0x5052464D` | `MkForeignReply` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Answer one parked guest with the value its `rax` receives. |
-| `MFCX` | `0x5843464D` | `MkForeignContext` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Copy a parked guest's registers out, in `struct sigcontext` order. |
-| `MFSG` | `0x4753464D` | `MkForeignSignal` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Answer a parked guest with a context: a signal handler, or its return. |
-| `MFIN` | `0x4E49464D` | `MkForeignInterrupt` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Stop a running guest thread at its next timer tick and hand it over parked. |
-| `MPMP` | `0x504D504D` | `MkPeerMap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Back a span of a guest's address space with fresh frames. |
-| `MPCP` | `0x5043504D` | `MkPeerCopy` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Copy bytes between the caller and a guest it supervises. |
-| `MPPT` | `0x5450504D` | `MkPeerProtect` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Set the protection of pages a guest already has. |
-| `MFTH` | `0x4854464D` | `MkForeignThread` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Start a thread inside a guest, sharing its address space. |
-| `MPTL` | `0x4C54504D` | `MkPeerTls` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Set the thread pointer a guest thread wakes with. |
-| `MFFK` | `0x4B46464D` | `MkForeignFork` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Make a second process holding a guest's register state. |
-| `MPUN` | `0x4E55504D` | `MkPeerUnmap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Take pages back from a guest. |
-| `MFEX` | `0x5845464D` | `MkForeignExec` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:167` | Replace the program a parked guest is running. |
+| `MFSP` | `0x5053464D` | `MkForeignSpawn` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Create a process with no capabilities, supervised by the caller. |
+| `MFST` | `0x5453464D` | `MkForeignStart` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Give such a process an entry point and make it runnable. |
+| `MFWT` | `0x5457464D` | `MkForeignWait` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Wait for a guest to make a refused syscall; take its registers. |
+| `MFRP` | `0x5052464D` | `MkForeignReply` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Answer one parked guest with the value its `rax` receives. |
+| `MFCX` | `0x5843464D` | `MkForeignContext` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Copy a parked guest's registers out, in `struct sigcontext` order. |
+| `MFSG` | `0x4753464D` | `MkForeignSignal` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Answer a parked guest with a context: a signal handler, or its return. |
+| `MFIN` | `0x4E49464D` | `MkForeignInterrupt` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Stop a running guest thread at its next timer tick and hand it over parked. |
+| `MPMP` | `0x504D504D` | `MkPeerMap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Back a span of a guest's address space with fresh frames. |
+| `MPCP` | `0x5043504D` | `MkPeerCopy` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Copy bytes between the caller and a guest it supervises. |
+| `MPPT` | `0x5450504D` | `MkPeerProtect` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Set the protection of pages a guest already has. |
+| `MFTH` | `0x4854464D` | `MkForeignThread` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Start a thread inside a guest, sharing its address space. |
+| `MPTL` | `0x4C54504D` | `MkPeerTls` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Set the thread pointer a guest thread wakes with. |
+| `MFFK` | `0x4B46464D` | `MkForeignFork` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Make a second process holding a guest's register state. |
+| `MPUN` | `0x4E55504D` | `MkPeerUnmap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Take pages back from a guest. |
+| `MFEX` | `0x5845464D` | `MkForeignExec` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk.rs:168` | Replace the program a parked guest is running. |
 
 ### Crypto
 
