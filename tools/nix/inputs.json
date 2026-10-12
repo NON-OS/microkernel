@@ -3157,6 +3157,16 @@
   "md": [],
   "signed": []
  },
+ "userland/gpio_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/gpio_proofs",
+   "userland/nonos_gpio"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/hda_proofs": {
   "exclude": [],
   "include": [
