@@ -24,13 +24,13 @@ use crate::air::Air;
 use crate::env::TestEnv;
 use crate::hci_sim::stack::IFACE;
 use crate::hogp_sim::{keyboard_mouse, Db, Peripheral};
-use crate::link::{find_hid, serve, End, Session};
 use crate::smp_sim::Peer;
-use nonos_bt_hci::host::{Connect, DEFAULT_LINK, DEFAULT_SCAN};
 use nonos_bt_hci::usb::UsbHci;
-use nonos_bt_hci::{HciError, Host};
+use nonos_bt_hci::Host;
 use nonos_bt_smp::method::IoCap;
 use nonos_bt_wire::addr::BdAddr;
+
+pub use crate::fixture_link::{link, link_as};
 
 pub type Stack = Host<UsbHci<Air>>;
 
@@ -54,19 +54,4 @@ pub fn with(smp: Peer, db: Db, adv: &[u8]) -> (Stack, BdAddr, TestEnv) {
 
 pub fn air(host: &mut Stack) -> &mut Air {
     host.transport().pipes()
-}
-
-/// Find, connect, pair and serve; how the link ended and its session.
-pub fn link(
-    host: &mut Stack,
-    ours: &BdAddr,
-    env: &mut TestEnv,
-) -> Result<(End, Session), HciError> {
-    let peer = find_hid(host, env)?.expect("no HID device heard");
-    let c =
-        Connect { scan: DEFAULT_SCAN, peer_type: peer.kind, peer: peer.addr, link: DEFAULT_LINK };
-    let link = host.connect(&c)?;
-    let mut s = Session::open(&link, ours, env).expect("pairing did not start");
-    let end = serve(host, &mut s, env)?;
-    Ok((end, s))
 }

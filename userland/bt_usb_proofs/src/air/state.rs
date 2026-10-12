@@ -24,6 +24,7 @@ use std::collections::VecDeque;
 use std::rc::Rc;
 
 use super::act::Act;
+use super::seen::Seen;
 use crate::hci_sim::config::Config;
 use crate::hogp_sim::Peripheral;
 use crate::smp_sim::Peer;
@@ -56,6 +57,8 @@ pub struct Air {
     /// The key the host encrypted with, once it did.
     pub ltk: Option<[u8; 16]>,
     pub refuse_encryption: bool,
+    /// Addresses, identity keys and pairing, as the peer saw them.
+    pub seen: Seen,
     /// Number of Completed Packets held until the host next pauses, so it
     /// meets a controller with no buffer free.
     pub lazy_credits: bool,
