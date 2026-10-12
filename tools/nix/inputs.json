@@ -3689,6 +3689,17 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_bt_hci_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_bt_hci",
+   "userland/nonos_bt_hci_proofs",
+   "userland/nonos_bt_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_bt_wire_proofs": {
   "exclude": [],
   "include": [
