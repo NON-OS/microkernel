@@ -37,11 +37,12 @@ pub fn alloc<R: Regs, C: Clock, M: Mem>(
         return status(tx, req, E_INVAL);
     };
     dev.claimed = true;
+    let link = dev.link;
     let Some(index) = cx.table.intr.iter().position(|e| e.is_none()) else {
         return status(tx, req, E_BUSY);
     };
     let mps = u16::from_le_bytes([lo, hi]);
-    let ep = IntrEp { addr: slot, ep: ep_addr & 0x0F, mps, index, len: mps as usize };
+    let ep = IntrEp { addr: slot, ep: ep_addr & 0x0F, mps, index, len: mps as usize, link };
     open(&cx.mem, &ep);
     cx.table.intr[index] = Some((slot, ep));
     tx[DATA_AT..DATA_AT + 4].copy_from_slice(&[2 * (ep_addr & 0x0F) + 1, 0, 0, 0]);

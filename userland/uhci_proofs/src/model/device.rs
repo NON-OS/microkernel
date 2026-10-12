@@ -37,6 +37,8 @@ pub struct Device {
     pub(super) ep0: Ep0,
     /// The toggle each endpoint's next packet carries, by `2 * ep + in`.
     pub(super) toggles: [bool; 32],
+    /// A hub: its ports and what is on them (hub.rs).
+    pub hub: Option<Box<super::hub::HubModel>>,
 }
 
 impl Device {

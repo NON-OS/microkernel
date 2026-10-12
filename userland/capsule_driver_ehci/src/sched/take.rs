@@ -36,19 +36,20 @@ pub fn doorbell<R: Regs, C: Clock>(r: &mut R, c: &C, op: u32) {
 }
 
 /// Ring QH `i` taken back: emptied (the toggle kept or reset) and, when
-/// `chars` is given, set for another endpoint.
+/// characteristics and capabilities are given, set for another endpoint.
 pub fn take_back<M: Mem, R: Regs, C: Clock>(
     (m, r, c): (&M, &mut R, &C),
     op: u32,
     i: usize,
     keep_dt: bool,
-    chars: Option<u32>,
+    set: Option<(u32, u32)>,
 ) {
     let (this, prev) = (qh(i), ring_prev(i));
     m.wr(prev, m.rd(this));
     doorbell(r, c, op);
-    if let Some(ch) = chars {
+    if let Some((ch, caps)) = set {
         m.wr(this + 4, ch);
+        m.wr(this + 8, caps);
     }
     empty(m, this, keep_dt);
     m.wr(prev, qh_link(m, this));

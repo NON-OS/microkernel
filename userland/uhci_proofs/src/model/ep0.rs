@@ -5,13 +5,14 @@
 //! status stage. A request named in `stall_request` stalls past SETUP.
 
 use super::device::{Device, Reply};
+use super::ep0_setup::prepare;
 use super::pid::{PID_IN, PID_OUT, PID_SETUP};
 
 #[derive(Default)]
 pub struct Ep0 {
     setup: Option<[u8; 8]>,
-    data: Vec<u8>,
-    new_addr: Option<u8>,
+    pub(super) data: Vec<u8>,
+    pub(super) new_addr: Option<u8>,
     stalled: bool,
 }
 
@@ -56,20 +57,4 @@ pub fn packet(d: &mut Device, pid: u8, toggle: bool, out: &[u8], max: usize) -> 
         }
         _ => Reply::Stall,
     }
-}
-
-fn prepare(d: &mut Device, s: [u8; 8]) {
-    let len = u16::from_le_bytes([s[6], s[7]]) as usize;
-    let data: Vec<u8> = match (s[0], s[1], s[3]) {
-        (0x80, 6, 1) => d.desc.to_vec(),
-        (0x80, 6, 2) => d.config.clone(),
-        (0x00, 5, _) => {
-            d.ep0.new_addr = Some(s[2]);
-            vec![]
-        }
-        // A vendor IN request: its bytes count up from zero.
-        (0xC0, _, _) => (0..len).map(|i| i as u8).collect(),
-        _ => vec![],
-    };
-    d.ep0.data = data.into_iter().take(len).collect();
 }

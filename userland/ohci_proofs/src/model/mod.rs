@@ -5,14 +5,20 @@
 //! answer each packet and check its data toggle. Written from the OpenHCI
 //! specification and USB 2.0 as recalled.
 
+#[path = "../../../uhci_proofs/src/model/bus.rs"]
+pub mod bus;
 #[path = "../../../uhci_proofs/src/model/device.rs"]
 mod device;
 #[path = "../../../uhci_proofs/src/model/device_io.rs"]
 mod device_io;
 #[path = "../../../uhci_proofs/src/model/ep0.rs"]
 mod ep0;
+#[path = "../../../uhci_proofs/src/model/ep0_setup.rs"]
+mod ep0_setup;
 mod frame;
 mod handles;
+#[path = "../../../uhci_proofs/src/model/hub.rs"]
+pub mod hub;
 #[path = "../../../uhci_proofs/src/model/make.rs"]
 mod make;
 #[path = "../../../uhci_proofs/src/model/pid.rs"]

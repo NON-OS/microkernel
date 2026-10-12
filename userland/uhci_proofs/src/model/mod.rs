@@ -4,11 +4,14 @@
 //! full- and low-speed devices that answer each packet and check its data
 //! toggle. Written from the UHCI Design Guide and USB 2.0 as recalled.
 
+pub mod bus;
 mod device;
 mod device_io;
 mod ep0;
+mod ep0_setup;
 mod frame;
 mod handles;
+pub mod hub;
 mod make;
 pub mod pid;
 mod ports;

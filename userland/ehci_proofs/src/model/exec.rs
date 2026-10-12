@@ -37,7 +37,7 @@ pub fn run_qh(w: &mut World, qh: u32, pass: Pass) {
             w.wr32(qh + QH_TOKEN as u32, tok & TOK_DT | TOK_ACTIVE);
             next
         };
-        if !packets(w, qh, q) {
+        if !packets(w, qh, q, pass == Pass::Periodic) {
             return;
         }
     }

@@ -23,6 +23,7 @@ use super::failed::{failed, CtrlError};
 use crate::env::{Clock, Mem, Regs};
 use crate::facts::qtd::{PID_IN, PID_OUT};
 use crate::sched::layout::qh;
+use crate::sched::link::Link;
 use crate::sched::qh::chars;
 use crate::sched::qtd::{moved, write, Qtd};
 use crate::sched::queue::{start, Ran};
@@ -35,12 +36,13 @@ pub struct BulkEp {
     pub mps: u16,
     /// The QH's ring index.
     pub ring: usize,
+    pub link: Link,
 }
 
 /// The QH set for the endpoint, DATA0 next: taken from the ring for it.
 pub fn configure<M: Mem, R: Regs, C: Clock>(mrc: (&M, &mut R, &C), op: u32, ep: &BulkEp) {
-    let ch = chars(ep.addr, ep.ep, ep.mps, false);
-    take_back(mrc, op, ep.ring, false, Some(ch));
+    let ch = ep.link.chars(chars(ep.addr, ep.ep, ep.mps, false), false);
+    take_back(mrc, op, ep.ring, false, Some((ch, ep.link.caps(false))));
 }
 
 /// One qTD of `len` bytes at `buf`, written at `qtd` and handed over.

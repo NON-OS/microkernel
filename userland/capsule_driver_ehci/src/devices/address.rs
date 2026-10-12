@@ -13,20 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Addressing a high-speed device on a root port: its port reset again
+//! (it must stay enabled), then given its address (assign.rs).
 
-//! Addressing a high-speed device: its port reset again (it must stay
-//! enabled), its first eight descriptor bytes read at address 0 on address
-//! 0's QH, SET_ADDRESS to the slot's number, then the slot's control QH
-//! set for the address and EP0's packet size.
-
+use super::assign::assign;
 use super::table::Table;
-use crate::env::{hold, Clock, Mem, Regs};
-use crate::facts::bounds::SET_ADDRESS_MS;
+use crate::env::{Clock, Mem, Regs};
 use crate::hc::port::{hand, offset, reset};
-use crate::sched::layout::{ctrl_ring, ADDR0_RING, CTRL_BUF};
-use crate::sched::qh::chars;
-use crate::sched::take::take_back;
-use crate::xfer::control::control;
+use crate::sched::link::Link;
 use crate::xfer::failed::CtrlError;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -52,22 +46,11 @@ pub fn address<R: Regs, C: Clock, M: Mem>(
     if t.holder(port).is_some() {
         return Err(AddrError::Busy);
     }
-    let (op, off) = (t.op, offset(t.op, port));
+    let off = offset(t.op, port);
     if !t.high[port as usize - 1] || reset(r, c, off) != Ok(true) {
         hand(r, off);
         t.high[port as usize - 1] = false;
         return Err(AddrError::NotHere);
     }
-    let get = [0x80, 6, 0, 1, 0, 0, 8, 0];
-    control((m, r, c), op, ADDR0_RING, get).map_err(AddrError::Control)?;
-    let mut d = [0u8; 8];
-    m.read_bytes(CTRL_BUF, &mut d);
-    let mps0 = if d[7] == 64 { 64 } else { d[7].max(8) as u16 };
-    control((m, r, c), op, ADDR0_RING, [0, 5, slot, 0, 0, 0, 0, 0]).map_err(AddrError::Control)?;
-    hold(c, SET_ADDRESS_MS);
-    take_back((m, r, c), op, ctrl_ring(slot), false, Some(chars(slot, 0, mps0, true)));
-    if let Some(dev) = t.dev(slot) {
-        dev.port = port;
-    }
-    Ok(mps0)
+    assign((m, r, c), t, (slot, port), Link::HIGH)
 }

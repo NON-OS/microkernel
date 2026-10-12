@@ -48,7 +48,8 @@ pub fn disable<R: Regs, C: Clock, M: Mem>(
         retire((&cx.mem, &mut cx.io, &cx.clock), op, &i);
         retire((&cx.mem, &mut cx.io, &cx.clock), op, &o);
     }
-    if dev.port != 0 {
+    // A device below a hub leaves the root port, and the hub on it, alone.
+    if dev.port != 0 && dev.route == 0 {
         port_off(&mut cx.io, offset(op, dev.port));
     }
     cx.table.devs[slot as usize - 1] = None;

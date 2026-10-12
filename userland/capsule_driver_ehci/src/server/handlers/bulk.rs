@@ -37,11 +37,13 @@ pub fn configure<R: Regs, C: Clock, M: Mem>(
     let Some(dev) = cx.table.dev(slot).filter(|d| shaped && d.port != 0 && d.bulk.is_none()) else {
         return status(tx, req, E_INVAL);
     };
+    let link = dev.link;
     let ep = |n: u8, lo: u8, hi: u8, input: bool| BulkEp {
         addr: slot,
         ep: n & 0xF,
         mps: u16::from_le_bytes([lo, hi]) & 0x7FF,
         ring: bulk_ring(slot, input),
+        link,
     };
     let (i, o) = (ep(ep_in, a, b, true), ep(ep_out, c, d, false));
     (dev.bulk, dev.claimed) = (Some((i, o)), true);

@@ -30,6 +30,14 @@ mod control_tests;
 #[cfg(test)]
 mod ep0_fault_tests;
 #[cfg(test)]
+mod hub_fixture;
+#[cfg(test)]
+mod hub_lane;
+#[cfg(test)]
+mod hub_refusal_tests;
+#[cfg(test)]
+mod hub_tests;
+#[cfg(test)]
 mod interrupt_tests;
 #[cfg(test)]
 mod lane_tests;
