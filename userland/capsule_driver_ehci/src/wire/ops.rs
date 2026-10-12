@@ -33,5 +33,7 @@ pub const OP_BULK_OUT: u16 = 0x0011;
 pub const OP_BULK_IN: u16 = 0x0012;
 pub const OP_RESET_BULK: u16 = 0x0013;
 pub const OP_BULK_IN_POLL: u16 = 0x0014;
+/// A second bulk pair beside the first; bulk ops name it as pair 1.
+pub const OP_CONFIGURE_BULK2: u16 = 0x0023;
 pub const OP_ADDRESS_ROUTED: u16 = 0x0020;
 pub const OP_CONFIGURE_HUB: u16 = 0x0021;

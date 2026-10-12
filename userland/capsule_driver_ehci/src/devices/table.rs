@@ -32,6 +32,8 @@ pub struct Dev {
     /// A class driver has configured an endpoint on it.
     pub claimed: bool,
     pub bulk: Option<(BulkEp, BulkEp)>,
+    /// A second pair (OP_CONFIGURE_BULK2): UAS's data pipes.
+    pub bulk2: Option<(BulkEp, BulkEp)>,
     /// The polled bulk IN is armed: the place it holds (place.rs) and the
     /// bytes it asked for.
     pub poll: Option<(usize, usize)>,

@@ -69,7 +69,10 @@ Up to 15 root ports a controller, high-speed devices on them. Each
 port is decided once connected: K-state (low speed) goes to the companion
 unreset; after a reset, a port left disabled (full speed) goes too. The
 async ring holds a head, address 0's control QH, a control QH per slot
-and two bulk QHs per slot, all built before the controller runs; eight
+and two bulk QHs per slot, and two second pairs (OP_CONFIGURE_BULK2,
+0x23: UAS's data pipes, taken by slots as they come, named as pair 1 in
+the bulk ops' second byte, never polled), all built before the
+controller runs; eight
 interrupt QHs sit on the periodic list, each without a micro-frame until
 armed. A QH is changed or taken back only out of the ring after the async
 advance doorbell (or, periodic, after a frame with no micro-frame), so the
