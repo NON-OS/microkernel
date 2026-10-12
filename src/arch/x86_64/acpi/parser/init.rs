@@ -20,6 +20,7 @@ use super::fadt::parse_fadt;
 use super::madt::parse_madt;
 use super::other::{
     parse_dmar, parse_hmat, parse_hpet, parse_ivrs, parse_lpit, parse_mcfg, parse_slit, parse_srat,
+    parse_wdat,
 };
 use super::rsdp::find_rsdp;
 use super::state::{TableRegistry, INITIALIZED, STATS, TABLES};
@@ -71,6 +72,7 @@ pub fn init() -> AcpiResult<()> {
     parse_slit(&mut registry);
     parse_hmat(&mut registry);
     parse_lpit(&mut registry);
+    parse_wdat(&mut registry);
     parse_dmar(&mut registry);
     parse_ivrs(&mut registry);
 
