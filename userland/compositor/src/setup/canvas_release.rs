@@ -27,3 +27,11 @@ pub fn release_canvas(ctx: &mut Context) {
         }
     }
 }
+
+/// Give GOP's backing back once its surface is released: it is this
+/// capsule's own mapping, and a driver now shows the desktop.
+pub fn unmap_backing(va: u64, byte_len: u64) {
+    if let Ok(len) = usize::try_from(byte_len) {
+        let _ = mk_munmap(va as *mut u8, len);
+    }
+}
