@@ -29,8 +29,13 @@ mod acpi;
 mod aei;
 mod bank;
 mod ctl;
+mod deliver;
 mod discover;
+mod irq;
+mod irq_wait;
+mod keys;
 mod mmio;
+mod name;
 mod pin_requests;
 mod pins;
 mod queue;
@@ -48,8 +53,9 @@ pub extern "C" fn _start() -> ! {
         say_absent(b"driver.gpio0");
         mk_exit(EXIT_ABSENT);
     }
+    let paths = keys::platform_paths();
     for b in banks.iter_mut() {
-        pins::arm(b);
+        pins::arm(b, &paths);
     }
     serve::run(banks)
 }

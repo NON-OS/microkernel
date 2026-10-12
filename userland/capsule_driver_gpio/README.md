@@ -20,22 +20,25 @@ in `gpio_proofs` against controller models.
 
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory`, `DeviceEnum`, `Driver`, and `Mmio`:
+The manifest grants `IPC`, `Memory`, `DeviceEnum`, `Driver`, `Mmio`, and
+`Irq`:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x38018
+CAPSULE_REQUIRED_CAPS = 0x78018
 ```
 
-The capsule reaches hardware only through `MkDeviceList`, `MkDeviceClaim` and
-`MkMmioMap`. The controller's shared interrupt is not bound yet: the kernel
-programs a GSI below 16 edge-triggered, active high, where these controllers
-ask for level, active low, so pending status is read every 5 ms instead.
+The capsule reaches hardware only through `MkDeviceList`, `MkDeviceClaim`,
+`MkMmioMap` and `MkIrqBind`/`MkIrqPoll`/`MkIrqWait`/`MkIrqAck`, and names
+ACPI devices through `MkAcpiDeviceName` (a look: the controller's `_HID`, a
+platform bus controller's path). Each controller's own interrupt is bound,
+sensed as its `_CRS` says; a controller is read when its line fires. One
+whose line does not bind is read every 5 ms instead.
 
 ## Interface contract
 
 | Operation | Input | Output |
 |---|---|---|
-| `EVENTS` (1) | device key u64 (segment << 16, bus << 8, devfn) | count u8, then (controller `_UID` u16, pin u16) each |
+| `EVENTS` (1) | device key u64: the bus controller's PCI function (segment << 16, bus << 8, devfn), or bit 63 set and the broker device id of a platform bus controller | count u8, then (controller `_UID` u16, pin u16) each |
 | `WRITE` (2) | controller u16, pin u16, level u8 | status |
 | `REARM` (3) | controller u16, pin u16 | status |
 
@@ -46,8 +49,8 @@ device's holder re-arms it.
 
 ## Authority
 
-The capsule may enumerate devices, claim the ACPI GPIO controllers, and map
-their windows. It has no DMA, PIO, IRQ, filesystem, network, display,
+The capsule may enumerate devices, claim the ACPI GPIO controllers, map
+their windows and bind their interrupts. It has no DMA, PIO, filesystem, network, display,
 credential, or input focus authority. Its sealed trust files come from the
 `nonos-capsule-driver-gpio`, which no profile turns on yet.
 
