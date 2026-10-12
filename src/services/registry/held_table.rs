@@ -33,6 +33,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.virtio_input0", KERNEL_ONLY),
     ("driver.vmmdev0", KERNEL_ONLY),
     ("driver.vmmouse0", KERNEL_ONLY),
+    ("driver.vmbus0", KERNEL_ONLY),
     ("driver.usb_msc0", KERNEL_ONLY),
     ("driver.virtio_rng", KERNEL_ONLY),
     ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0"]),

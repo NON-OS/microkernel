@@ -33,12 +33,14 @@
 mod present;
 
 mod audio;
+mod bus;
 mod display;
 mod input;
 mod nic;
 mod storage;
 
 pub(super) use audio::spawn as spawn_audio;
+pub(super) use bus::spawn as spawn_bus;
 pub(super) use display::spawn as spawn_display;
 pub(super) use input::spawn as spawn_input;
 pub(super) use nic::spawn as spawn_nics;

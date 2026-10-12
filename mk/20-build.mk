@@ -558,6 +558,7 @@ include userland/capsule_driver_hda/Capsule.mk
 include userland/capsule_driver_ac97/Capsule.mk
 include userland/capsule_driver_vmmdev/Capsule.mk
 include userland/capsule_driver_vmmouse/Capsule.mk
+include userland/capsule_driver_vmbus/Capsule.mk
 include userland/capsule_driver_piix_ide/Capsule.mk
 include userland/capsule_driver_virtio_scsi/Capsule.mk
 include userland/capsule_driver_pvscsi/Capsule.mk
