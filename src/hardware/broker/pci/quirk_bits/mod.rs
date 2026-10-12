@@ -33,6 +33,11 @@
 //!   (11:8, 15, each cleared by a one) and PIRQD routing (13), so a polled
 //!   driver turns firmware's legacy keyboard emulation off. Bits 12 and 14
 //!   stay as read (Intel PIIX4 and ICH datasheets, as recalled, unverified).
+//! - An EHCI controller (class 0C, subclass 03, interface 20), any vendor:
+//!   in its USB legacy support capability, wherever its id byte (01h) is,
+//!   the OS-owned semaphore set, and the SMI enables and their status, so
+//!   the driver takes the controller from firmware (EHCI 1.0 section 5.1,
+//!   as recalled, unverified).
 //!
 //! Anything else stays refused: these registers hold no address, no BAR, no
 //! routing, and change nothing about what the device may reach.
