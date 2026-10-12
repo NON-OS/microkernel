@@ -34,4 +34,5 @@ pub use init::{init_timer, init_timer_cpu};
 pub use interrupt::handle_timer_interrupt;
 pub use physical::{set_physical_timer, PhysicalTimer};
 pub use preemption::{configure as configure_preemption_intid, install_on_cpu, is_preemption_tick};
+pub use state::describe_tree_frequency;
 pub use virtual_timer::{set_virtual_timer, VirtualTimer};
