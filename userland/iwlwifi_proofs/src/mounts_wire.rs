@@ -11,12 +11,6 @@ pub mod protocol {
 pub mod control;
 #[path = "../../capsule_driver_iwlwifi/src/server/guard.rs"]
 pub mod guard;
-/// The whole request wire the serving loop reads with: the header decode
-/// every frame passes before dispatch, and the reply encoder a refusal is
-/// answered with. Its ops file is also `protocol_ops`, loaded twice on purpose.
-#[allow(clippy::duplicate_mod)]
-#[path = "../../capsule_driver_iwlwifi/src/protocol/mod.rs"]
-pub mod iwlwifi_wire;
 /// The control family's join messages as the driver reads and answers them.
 #[path = "../../capsule_driver_iwlwifi/src/server/join_wire.rs"]
 pub mod join_wire;
