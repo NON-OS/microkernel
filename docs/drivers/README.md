@@ -62,7 +62,7 @@ The i8042 keyboard controller cannot be enumerated, so `register_legacy` always 
 
 A record that comes from ACPI or from `register_legacy` has no PCI address. The broker does not move such a device into an [IOMMU domain](../overview/glossary.md#iommu-domain), and `attach` lets its claim through as it is (`src/hardware/broker/confine/attach.rs:30-33`).
 
-Each entry is a 176-byte `DeviceRecord` (`src/hardware/broker/device/record.rs:21-61`). [Broker API](broker-api.md#the-device-record) lists its fields.
+Each entry is a 176-byte `DeviceRecord` (`src/hardware/broker/device/record.rs:21-61`). [Broker API](broker-api-capabilities.md#the-device-record) lists its fields.
 
 ## The hardware inventory
 
