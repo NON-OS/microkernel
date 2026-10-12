@@ -33,7 +33,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.virtio_gpu0", &["compositor"]),
     ("driver.hda0", &["audio.server"]),
-    ("acpi", &["power"]),
+    ("acpi", &["power", "desktop_shell"]),
 ];
 
 /// The kernel polls the keyboards and pointers, reads the random source and
