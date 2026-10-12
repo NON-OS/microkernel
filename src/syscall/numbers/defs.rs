@@ -173,4 +173,5 @@ pub enum SyscallNumber {
     MkDeviceNode = tag4(b"MDNN"),
     MkAcpiOscGrant = tag4(b"MAOG"),
     MkNumaHmat = tag4(b"MNHM"),
+    MkAcpiLpit = tag4(b"MALP"),
 }

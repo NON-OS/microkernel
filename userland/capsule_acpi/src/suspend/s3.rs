@@ -19,9 +19,11 @@
 //! with the policy's wake devices and undoes it when the kernel's half
 //! answers NotWired; suspend-to-idle calls the Low Power S0 Idle device's
 //! entry and exit notifications around an idle the kernel does not have
-//! yet. Each logs what it did.
+//! yet, and logs how far LPIT's residency counters advanced between them.
+//! Each logs what it did.
 
 use super::hardware::Unwired;
+use super::lpit::{note_residency, states};
 use super::switch::WAKE_DEVICES;
 use crate::boot::{evaluator, Acpi};
 use crate::server::protocol::{EIO, ENOENT};
@@ -57,8 +59,10 @@ pub fn idle(acpi: &mut Acpi) -> i32 {
     let Acpi { aml, host, devices, .. } = acpi;
     let mut eval = evaluator(host);
     let Some(l) = find_lps0(aml, &mut eval, devices) else { return ENOENT };
+    let before = states();
     let on = idle_enter(aml, &mut eval, &l).len() as u64;
     let off = idle_exit(aml, &mut eval, &l).len() as u64;
+    note_residency(&before, &states());
     let line = Line::new(b"s2idle: ").dec(on).str(b" entry and ").dec(off);
     line.str(b" exit notifications; the kernel's idle is not wired").end();
     EIO

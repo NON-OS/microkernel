@@ -19,19 +19,19 @@
 
 use super::{
     sys_acpi_cpu, sys_acpi_device_name, sys_acpi_event, sys_acpi_external_port,
-    sys_acpi_function_of, sys_acpi_holds, sys_acpi_hw_error, sys_acpi_osc_grant, sys_acpi_pci,
-    sys_acpi_platform_device, sys_acpi_port, sys_acpi_power, sys_acpi_proximity, sys_acpi_region,
-    sys_acpi_reserved, sys_acpi_sleep, sys_acpi_table, sys_acpi_usb_ports, sys_device_node,
-    sys_numa_distance, sys_numa_hmat, sys_numa_node_of, sys_pci_probe_function, sys_smbios_table,
-    sys_usb_port_facts,
+    sys_acpi_function_of, sys_acpi_holds, sys_acpi_hw_error, sys_acpi_lpit, sys_acpi_osc_grant,
+    sys_acpi_pci, sys_acpi_platform_device, sys_acpi_port, sys_acpi_power, sys_acpi_proximity,
+    sys_acpi_region, sys_acpi_reserved, sys_acpi_sleep, sys_acpi_table, sys_acpi_usb_ports,
+    sys_device_node, sys_numa_distance, sys_numa_hmat, sys_numa_node_of, sys_pci_probe_function,
+    sys_smbios_table, sys_usb_port_facts,
 };
 use crate::syscall::microkernel::numbers::{
     SYS_ACPI_CPU, SYS_ACPI_DEVICE_NAME, SYS_ACPI_EVENT, SYS_ACPI_EXTERNAL_PORT,
-    SYS_ACPI_FUNCTION_OF, SYS_ACPI_HOLDS, SYS_ACPI_HW_ERROR, SYS_ACPI_OSC_GRANT, SYS_ACPI_PCI,
-    SYS_ACPI_PLATFORM_DEVICE, SYS_ACPI_PORT, SYS_ACPI_POWER, SYS_ACPI_PROXIMITY, SYS_ACPI_REGION,
-    SYS_ACPI_RESERVED, SYS_ACPI_SLEEP, SYS_ACPI_TABLE, SYS_ACPI_USB_PORTS, SYS_DEVICE_NODE,
-    SYS_NUMA_DISTANCE, SYS_NUMA_HMAT, SYS_NUMA_NODE_OF, SYS_PCI_PROBE_FUNCTION, SYS_SMBIOS_TABLE,
-    SYS_USB_PORT_FACTS,
+    SYS_ACPI_FUNCTION_OF, SYS_ACPI_HOLDS, SYS_ACPI_HW_ERROR, SYS_ACPI_LPIT, SYS_ACPI_OSC_GRANT,
+    SYS_ACPI_PCI, SYS_ACPI_PLATFORM_DEVICE, SYS_ACPI_PORT, SYS_ACPI_POWER, SYS_ACPI_PROXIMITY,
+    SYS_ACPI_REGION, SYS_ACPI_RESERVED, SYS_ACPI_SLEEP, SYS_ACPI_TABLE, SYS_ACPI_USB_PORTS,
+    SYS_DEVICE_NODE, SYS_NUMA_DISTANCE, SYS_NUMA_HMAT, SYS_NUMA_NODE_OF, SYS_PCI_PROBE_FUNCTION,
+    SYS_SMBIOS_TABLE, SYS_USB_PORT_FACTS,
 };
 
 pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
@@ -61,6 +61,7 @@ pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
         SYS_DEVICE_NODE => sys_device_node(a0),
         SYS_ACPI_OSC_GRANT => sys_acpi_osc_grant(a0, a1, a2, a3),
         SYS_NUMA_HMAT => sys_numa_hmat(a0, a1, a2),
+        SYS_ACPI_LPIT => sys_acpi_lpit(a0, a1),
         _ => return None,
     })
 }

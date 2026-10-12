@@ -109,6 +109,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkDeviceNode
             | MkAcpiOscGrant
             | MkNumaHmat
+            | MkAcpiLpit
             | MkDebug
             | MkStdoutWrite
             | MkPrivateWrite

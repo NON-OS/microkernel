@@ -58,7 +58,7 @@ fn the_table_the_lead_set() {
         _ => Vec::new(),
     };
     let (power, shell): (&[u8], &[u8]) = (b"power", b"desktop_shell");
-    for op in [3, 4, 6, 7, 14] {
+    for op in [3, 4, 6, 7, 14, 17] {
         assert_eq!(names(op), [power, shell], "op {op}");
     }
     assert_eq!(names(5), [power], "PREPARE_SLEEP");
@@ -70,7 +70,7 @@ fn the_table_the_lead_set() {
     assert_eq!(allowed(12), Allowed::AnyAdmitted, "PROPERTIES: the kernel's holder test");
     assert_eq!(allowed(13), Allowed::AnyAdmitted, "GPIO_EVENT: the kernel's holder test");
     assert_eq!(allowed(16), Allowed::AnyAdmitted, "QUIRKS: the kernel's holder test");
-    for op in [0, 1, 2, 17, 255] {
+    for op in [0, 1, 2, 18, 255] {
         assert_eq!(allowed(op), Allowed::Nobody, "op {op}");
     }
 }

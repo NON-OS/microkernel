@@ -92,6 +92,8 @@ pub mod ioapic_line_mode;
 #[cfg(test)]
 pub mod smbios;
 #[cfg(test)]
+pub mod lpit;
+#[cfg(test)]
 pub mod acpi_cpu;
 #[cfg(test)]
 pub mod late_probe;
