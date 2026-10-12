@@ -3045,6 +3045,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/arch/aarch64/boot/dtb_adapter/parse/entropy.rs",
    "src/arch/fdt",
    "userland/fdt_proofs"
   ],
