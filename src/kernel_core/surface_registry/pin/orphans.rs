@@ -68,12 +68,3 @@ pub fn reclaim() {
     }
     super::grant_run::free_unheld();
 }
-
-/*
- * `pid` exits. Its orphans stay listed: the other holders' attach records
- * outlive the owner (`release_owned_by_pid` forgets only the owner's), so
- * `reclaim` frees each one when its last holder releases it.
- */
-pub fn abandon_owner(_pid: u32) {
-    reclaim();
-}
