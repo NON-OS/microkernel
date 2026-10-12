@@ -26,7 +26,11 @@ devices up, reports what firmware describes, and serves the SCI.
 At start it loads the tables, connects SystemMemory, SystemIO and
 PCI_Config (running each scope's _REG), calls `\_PIC(1)`, negotiates `_OSC`
 (platform-wide with nothing claimed; each PCI host bridge supporting
-extended configuration space and MSI and asking for no control), runs
+extended configuration space and MSI, querying for every PCIe control
+(native hot plug, SHPC, PME, AER, the capability structure, LTR, DPC) and
+committing only `boot/osc_host.rs::CLAIM`, which is nothing; what was
+offered and what was granted go to the kernel through `MkAcpiOscGrant`
+with the bridge's buses, for its AER and hot plug to read), runs
 `\_SB._INI` and every present device's `_INI`, reads the inventory and every
 `_PRT`, enters ACPI mode, arms the runtime GPEs and binds the SCI.
 

@@ -24,8 +24,9 @@ use crate::probe::Probe;
 use crate::run::{boot, num};
 
 /// Grants only support bit 4 and control bit 0, counts its calls in \CNT,
-/// and keeps the last status word it was passed in \LST.
-fn osc_for(uuid_byte0: u8) -> Vec<u8> {
+/// and keeps the last status and control words it was passed in \LST and
+/// \LCT.
+pub(super) fn osc_for(uuid_byte0: u8) -> Vec<u8> {
     let field = |i: u64, n: &str| e(0x8A, &[&arg(3), &int(i), &name(n)]);
     let unknown = e(0x7D, &[&name("STS0"), &int(4), &name("STS0")]);
     let body = cat(&[
@@ -34,6 +35,7 @@ fn osc_for(uuid_byte0: u8) -> Vec<u8> {
         &field(8, "CTL0"),
         &e(0x75, &[&name("\\CNT")]),
         &store(&name("STS0"), &name("\\LST")),
+        &store(&name("CTL0"), &name("\\LCT")),
         &e(0x7B, &[&name("SUP0"), &int(0x10), &name("SUP0")]),
         &e(0x7B, &[&name("CTL0"), &int(0x01), &name("CTL0")]),
         &if_(
@@ -46,6 +48,7 @@ fn osc_for(uuid_byte0: u8) -> Vec<u8> {
     cat(&[
         &name_obj("\\CNT", &int(0)),
         &name_obj("\\LST", &int(0)),
+        &name_obj("\\LCT", &int(0)),
         &device("\\_SB.PCI0", &method("_OSC", 4, &body)),
     ])
 }

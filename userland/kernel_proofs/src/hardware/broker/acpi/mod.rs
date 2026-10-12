@@ -18,11 +18,13 @@
  * The platform device record: its layout, the decoder, the encoder the
  * ACPI capsule mounts too, and the device-table record built from it;
  * the USB port facts a host's record carries beside it; the domain a
- * memory range or a PCI bus lies in.
+ * memory range or a PCI bus lies in; what each root bridge's _OSC gave up.
  */
 
 #[path = "../../../../../../src/hardware/broker/acpi/numa_node.rs"]
 pub mod numa_node;
+#[path = "../../../../../../src/hardware/broker/acpi/osc_grant.rs"]
+pub mod osc_grant;
 #[path = "../../../../../../src/hardware/broker/acpi/platform_decode.rs"]
 pub mod platform_decode;
 #[path = "../../../../../../src/hardware/broker/acpi/platform_encode.rs"]
