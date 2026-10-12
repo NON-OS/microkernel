@@ -3722,6 +3722,7 @@
    "userland/nonos_aml/src/region",
    "userland/nonos_aml/src/shape",
    "userland/nonos_aml/src/thermal",
+   "userland/nonos_aml/src/video",
    "userland/nonos_aml_proofs"
   ],
   "md": [],

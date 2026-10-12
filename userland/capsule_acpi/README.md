@@ -60,6 +60,14 @@ then asks the desktop to shut down, and powers off itself if the zone is
 still critical 30 seconds later. Passive cooling (_PSV) is reported, and
 waits on processor performance control.
 
+Backlit outputs are the devices defining both _BCL and _BCM (appendix B).
+Their levels come from _BCL and their level now from _BQC; brightness is
+not changed at start. The brightness keys arrive as Notify on the output,
+or on the graphics adapter above it: 0x86 and 0x87 step up and down
+through _BCL's levels and stop at the ends, 0x85 cycles, 0x88 goes to the
+lowest, and each is set with _BCM. `_DOS` is not called, so firmware keeps
+whatever switching and brightness policy it booted with.
+
 ## Microkernel contract
 
 Every register it touches comes through the kernel's ACPI grant rule
@@ -90,6 +98,11 @@ to `power` (`src/services/registry/held_table.rs`). Requests go through
 - STATUS (1): devices, routes, SCIs served, GPE methods run, refused region
   accesses, armed GPEs, notifications dropped.
 - DEVICE (2, index): _STA, _ADR, _UID, _HID and the device's path.
+- BRIGHTNESS (3): the first backlit output's level now (0xFF unknown), how
+  many outputs there are, then that output's levels: a count and the
+  percentages. ENOENT with no backlit output.
+- SET_BRIGHTNESS (4, percent): every output to its level nearest the
+  percentage; EINVAL above 100, EIO when a _BCM failed.
 
 ## Privacy and persistence
 
