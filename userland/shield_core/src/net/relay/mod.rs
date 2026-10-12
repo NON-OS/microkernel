@@ -45,3 +45,7 @@ pub fn state(tor: &Tor, onion: &str, id: &str) -> Result<RelayState, NetError> {
     }
     reply::state(&body)
 }
+
+#[cfg(test)]
+#[path = "reply_hostile_test.rs"]
+mod reply_hostile_test;
