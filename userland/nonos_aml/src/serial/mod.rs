@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Devices on serial buses (ACPI 6.5, 6.4.3.8): their I2C, SPI and UART
-//! connections and GPIO pins, their _DSD properties, and HID over I2C.
+//! connections and GPIO pins, their _DSD properties (read by `props`), and
+//! HID over I2C.
 
 mod bus;
 mod bus_parse;
 mod device;
-mod dsd;
-mod dsd_value;
 mod gpio;
 mod hid;
 mod le;
@@ -29,7 +28,5 @@ mod le;
 pub use bus::{Bus, Connection};
 pub use bus_parse::serial_buses;
 pub use device::{serial_device, SerialDevice};
-pub use dsd::{properties, properties_under, DEVICE_PROPERTIES_UUID};
-pub use dsd_value::{Property, Value};
 pub use gpio::{gpios, Gpio};
 pub use hid::{descriptor_register, is_hid_over_i2c, HID_I2C_DSM_UUID};

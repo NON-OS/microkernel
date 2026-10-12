@@ -24,7 +24,7 @@
 use crate::load::Aml;
 use crate::namespace::Id;
 use crate::platform::Eval;
-use crate::serial::{properties_under, Value};
+use crate::props::{properties_under, Value};
 
 /// EFCC06CC-73AC-4BC3-BFF0-76143807C389, in ToUUID's byte order.
 pub const EXTERNAL_FACING_UUID: [u8; 16] = [
