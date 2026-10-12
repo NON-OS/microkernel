@@ -10,12 +10,17 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reclaiming dead processes from the timer tick, and which ticks may.
+//! The teardowns and kernel stacks exits queue, finished at a timer tick on
+//! every architecture: a tick is the one place that runs on every CPU and can
+//! tell whether the interrupted context holds a kernel lock.
 
 /// Finish the queued teardowns and free the queued kernel stacks, when the
 /// tick interrupted a context that holds no kernel lock.
-pub(super) fn on_tick(from_user: bool) {
+pub(crate) fn reclaim_at_tick(from_user: bool) {
     /*
      * Never while the interrupted context is a dying one: after exit_and_yield
      * tears the current process down, CURRENT_PID is cleared and the CPU keeps
@@ -29,7 +34,7 @@ pub(super) fn on_tick(from_user: bool) {
      * that never ends on the CPU that holds the read.
      *
      * A tick from user mode holds no kernel lock, the rule tick.rs switches
-     * by, and neither does the halt a CPU waits in when nothing is runnable:
+     * by on x86_64 (the lower-EL vector on aarch64), and neither does the halt a CPU waits in when nothing is runnable:
      * a busy machine reclaims at its next tick in user code, an idle one at
      * its next tick at all.
      */

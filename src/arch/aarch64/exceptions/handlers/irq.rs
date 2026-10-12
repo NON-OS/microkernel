@@ -21,11 +21,12 @@ use crate::arch::aarch64::gic::{
 };
 
 use super::fatal::fatal_interrupt;
+use crate::arch::aarch64::timer::is_preemption_tick;
 
 #[no_mangle]
 pub(crate) extern "C" fn aarch64_exc_irq_current(frame: *mut ExceptionFrame) {
     let frame = unsafe { &*frame };
-    handle(frame, b"IRQ EL1")
+    handle(frame, b"IRQ EL1", false)
 }
 
 #[no_mangle]
@@ -33,10 +34,10 @@ pub(crate) extern "C" fn aarch64_exc_irq_lower(frame: *mut ExceptionFrame) {
     let frame = unsafe { &*frame };
 
     save_user_frame(frame);
-    handle(frame, b"IRQ EL0")
+    handle(frame, b"IRQ EL0", true)
 }
 
-fn handle(frame: &ExceptionFrame, tag: &[u8]) {
+fn handle(frame: &ExceptionFrame, tag: &[u8], from_user: bool) {
     let Some(acked) = acknowledge_interrupt() else {
         return;
     };
@@ -47,5 +48,10 @@ fn handle(frame: &ExceptionFrame, tag: &[u8]) {
     leave_service(outer);
     if !handled {
         fatal_interrupt(tag, Some(acked.intid), frame)
+    }
+    // After the interrupt is finished, as x86_64's tick does it: a teardown
+    // queued by an exit is finished here, or never on this architecture.
+    if is_preemption_tick(acked.intid) {
+        crate::process::exit::reclaim_at_tick(from_user);
     }
 }
