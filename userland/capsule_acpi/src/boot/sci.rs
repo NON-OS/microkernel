@@ -18,18 +18,20 @@
 //! FADT's event ports granted, ACPI mode entered, the GPE methods armed.
 
 use super::eval::evaluator;
-use super::sci_claim::{claim_and_bind, grant_ports};
+use super::sci_claim::{arm_ec, claim_and_bind, enter_mode, grant_ports};
 use super::state::Sci;
 use crate::events_io::PortIo;
 use crate::host::CapsuleHost;
 use crate::sys::log::Line;
-use nonos_aml::events::{enter_acpi_mode, handlers, parse_fadt, wake_gpes, Events, Pm1Cnt, Policy};
+use nonos_aml::events::{handlers, parse_fadt, wake_gpes, Events, Pm1Cnt, Policy};
 use nonos_aml::load::Aml;
 
-/// How long firmware gets to answer ACPI_ENABLE.
-const MODE_WAIT_MS: u64 = 3000;
-
-pub fn start(fadt: &[u8], aml: &mut Aml, host: &mut CapsuleHost) -> (Option<Events>, Option<Sci>) {
+pub fn start(
+    fadt: &[u8],
+    aml: &mut Aml,
+    host: &mut CapsuleHost,
+    ec_gpe: Option<u16>,
+) -> (Option<Events>, Option<Sci>) {
     let f = match parse_fadt(fadt) {
         Ok(f) if !f.hw_reduced => f,
         _ => {
@@ -42,20 +44,16 @@ pub fn start(fadt: &[u8], aml: &mut Aml, host: &mut CapsuleHost) -> (Option<Even
         return (None, None);
     }
     host.pm1_cnt = f.pm1a_cnt.map(|a| Pm1Cnt { a, b: f.pm1b_cnt });
-    match enter_acpi_mode(&f, &mut PortIo, MODE_WAIT_MS) {
-        Ok(switched) => {
-            Line::new(if switched { b"entered ACPI mode" } else { b"already in ACPI mode" }).end()
-        }
-        Err(e) => {
-            Line::new(b"ACPI mode not entered: ").str(alloc::format!("{e:?}").as_bytes()).end()
-        }
-    }
+    enter_mode(&f);
     let (found, both) = handlers(&aml.ns);
     let (wake, bad) =
         wake_gpes(aml, &mut |aml, id| evaluator(host)(aml, id, alloc::vec::Vec::new()));
-    let events = Events::new(&f, found, &wake, Policy::default())
+    let mut events = Events::new(&f, found, &wake, Policy::default())
         .ok()
         .filter(|e| e.start(&mut PortIo).is_ok());
+    if let (Some(ev), Some(g)) = (events.as_mut(), ec_gpe) {
+        arm_ec(ev, g, wake.contains(&g));
+    }
     let armed = events.as_ref().map_or(0, |e| e.armed.len());
     Line::new(b"GPEs armed ")
         .dec(armed as u64)

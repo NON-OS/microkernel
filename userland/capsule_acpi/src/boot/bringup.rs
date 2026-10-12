@@ -28,12 +28,14 @@ use nonos_aml::load::Aml;
 use nonos_aml::platform::{initialize, set_pic, PIC_APIC};
 use nonos_aml::region::Space;
 
-/// The spaces the capsule serves now; EmbeddedControl joins in F 9, once
-/// the EC driver is up, so its _REG runs then.
-const SPACES: [Space; 3] = [Space::SYSTEM_MEMORY, Space::SYSTEM_IO, Space::PCI_CONFIG];
+/// The spaces the capsule serves; EmbeddedControl only once the EC is
+/// found, so its _REG says the EC is there only when it is (12.11).
+const SPACES: [Space; 4] =
+    [Space::SYSTEM_MEMORY, Space::SYSTEM_IO, Space::PCI_CONFIG, Space::EMBEDDED_CONTROL];
 
 pub fn bring_up(aml: &mut Aml, host: &mut CapsuleHost) {
-    for space in SPACES {
+    let ec_found = host.ec.is_some();
+    for space in SPACES.into_iter().filter(|s| *s != Space::EMBEDDED_CONTROL || ec_found) {
         let failed = Machine::new(aml, host, ExecLimits::DEFAULT).connect(aml, space);
         if !failed.is_empty() {
             Line::new(b"_REG failed in ")

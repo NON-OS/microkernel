@@ -19,7 +19,7 @@
 //! are refused, and the field faults.
 
 use super::state::CapsuleHost;
-use super::{lock, region, say, tables};
+use super::{lock_hold, region, say, tables};
 use crate::events_io::PortIo;
 use crate::sys::clock::{now_ms, sleep_ms, stall_us};
 use alloc::vec::Vec;
@@ -65,7 +65,7 @@ impl Host for CapsuleHost {
         tables::find(sig, oem, oem_table)
     }
     fn lock_word(&mut self, old: u32, new: u32) -> Option<u32> {
-        self.facs.map(|va| lock::swap(va, old, new))
+        lock_hold::word(self, old, new)
     }
     fn lock_released(&mut self) {
         if let Some(cnt) = self.pm1_cnt {
