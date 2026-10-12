@@ -20,7 +20,6 @@
 #![cfg(test)]
 
 extern crate alloc;
-
 #[path = "../../capsule_driver_bt_usb/src/link/mod.rs"]
 mod link;
 #[path = "../../capsule_driver_bt_usb/src/hid/modifier.rs"]
@@ -70,6 +69,7 @@ mod refuse_tests;
 mod ring_refuse_tests;
 mod ring_tests;
 mod ring_wire_tests;
+mod rtl_proofs;
 mod signal_tests;
 mod trust_tests;
 mod usb_tests;

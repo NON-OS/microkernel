@@ -865,6 +865,7 @@
    "userland/capsule_driver_bt_usb/src/ring/answer.rs",
    "userland/capsule_driver_bt_usb/src/ring/keyring.rs",
    "userland/capsule_driver_bt_usb/src/ring/wire.rs",
+   "userland/capsule_driver_bt_usb/src/rtl",
    "userland/capsule_driver_bt_usb/src/usb/choose.rs",
    "userland/capsule_driver_bt_usb/src/usb/limit.rs",
    "userland/nonos_aes",

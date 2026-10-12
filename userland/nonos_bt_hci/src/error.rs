@@ -39,6 +39,9 @@ pub enum HciError {
     NoBuffers,
     /// No Bluetooth interface in the device's configuration.
     NotBluetooth,
+    /// The controller needs its vendor's setup before it is driven, and the
+    /// capsule could not do it.
+    Vendor,
 }
 
 impl From<WireError> for HciError {
