@@ -24,7 +24,7 @@ use super::exec::{exec, Data};
 use crate::ufs::ctx::Ctx;
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
-use crate::ufs::time::SCSI_MS;
+use crate::ufs::facts::bounds::SCSI_MS;
 
 const RC16_ALLOC: usize = 32;
 

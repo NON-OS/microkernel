@@ -20,13 +20,13 @@
 
 pub mod bring_up;
 pub mod ctx;
-pub mod dev;
+pub mod device;
 pub mod disk;
 pub mod env;
 pub mod error;
-pub mod hci;
+pub mod facts;
+pub mod host;
 pub mod scsi;
+pub mod slot;
 pub mod text;
-pub mod time;
 pub mod upiu;
-pub mod utp;

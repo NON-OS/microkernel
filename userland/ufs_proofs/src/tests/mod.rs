@@ -23,6 +23,7 @@ mod host_tests;
 mod link_tests;
 mod luns_tests;
 mod ocs_tests;
+mod policy_tests;
 mod rw_fail_tests;
 mod rw_tests;
 mod sense_tests;
