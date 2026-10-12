@@ -22,6 +22,7 @@ pub mod context;
 pub mod cpu;
 pub mod cpu_random;
 pub mod exceptions;
+pub mod firmware;
 pub mod fpu;
 pub mod gic;
 pub mod interrupt_controller;

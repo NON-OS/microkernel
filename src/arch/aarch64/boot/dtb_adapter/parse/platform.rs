@@ -21,5 +21,8 @@ use crate::arch::fdt::Fdt;
 /// cannot be read is left out by the finder; only a tree whose walk fails
 /// refuses here, as it would at every other step.
 pub(super) fn populate(fdt: &Fdt) -> Result<(), &'static [u8]> {
-    crate::arch::aarch64::platform_devices::describe(fdt).map_err(describe)
+    crate::arch::aarch64::platform_devices::describe(fdt).map_err(describe)?;
+    // The firmware mailbox, which the eMMC2's clock and the framebuffer
+    // are asked through; not a device a capsule is handed.
+    crate::arch::aarch64::firmware::describe(fdt).map_err(describe)
 }
