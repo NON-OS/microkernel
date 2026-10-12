@@ -51,4 +51,6 @@ pub enum MmioMapError {
     MapFailed,
     WouldExposeMsixTable,
     WouldExposePba,
+    /// The BAR runs into a range firmware keeps for itself.
+    FirmwareReserved,
 }

@@ -166,4 +166,5 @@ pub enum SyscallNumber {
     MkAcpiUsbPorts = tag4(b"MAUP"),
     MkUsbPortFacts = tag4(b"MUPF"),
     MkAcpiExternalPort = tag4(b"MAXP"),
+    MkAcpiReserved = tag4(b"MAMR"),
 }

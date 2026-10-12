@@ -273,6 +273,19 @@ other op: no one.
   included. Layout in `src/hardware/broker/acpi/usb_port_wire.rs`, mounted
   here by path. One `[ACPI] usb ports` or `[ACPI] external port` line each.
 
+- Firmware-reserved ranges, published once at start before any device is
+  woken. Every present PNP0C01 and PNP0C02 device's evaluated _CRS (I/O
+  Port, Fixed I/O, 24-bit, 32-bit and 32-bit fixed memory, and the Word,
+  DWord, QWord and Extended address space descriptors of the memory and
+  I/O types; a relocatable range keeps its whole span) goes to the kernel
+  in one list through `MkAcpiReserved`, 24 bytes a range. The broker keeps
+  them, only ever adding, and refuses from then on any MMIO, PIO or DMA
+  grant that shares a byte with one; a device's own BAR wholly inside a
+  reservation passes. It checks MCFG's ECAM windows against them and adds
+  `ECAM not reserved` to the posture line when one is not covered. Layout
+  in `src/hardware/broker/reserved/wire.rs`, mounted here by path. One
+  `[ACPI] reserved:` line.
+
 ## Privacy and persistence
 
 It keeps nothing across boots. The tables it reads are the ones AML needs;

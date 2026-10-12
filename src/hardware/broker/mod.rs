@@ -48,6 +48,7 @@ pub mod pio;
 mod pio_absent;
 mod platform;
 mod power;
+pub mod reserved;
 mod table;
 mod windows;
 
