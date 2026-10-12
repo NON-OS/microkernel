@@ -17,5 +17,7 @@ path = "src/lib.rs"
 [dependencies]
 # The timing type the engine reads transcoders into.
 nonos_edid = { path = "../nonos_edid" }
+# SHA-256 for the DMC seal.
+nonos_hash = { path = "../nonos_hash" }
 # DMT timings for the mode set tests.
 nonos_modes = { path = "../nonos_modes" }

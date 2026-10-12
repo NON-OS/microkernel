@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Turns the device id data file into a table at compile time. A line
-//! that does not parse, or an id listed twice, stops the build.
+//! Turns a device id data file into a table at compile time. A line that
+//! does not parse, an unknown family tag, or an id listed twice stops the
+//! build.
 
-use crate::ids::Family;
+use crate::family::Family;
 
 pub struct Table {
     pub ids: [(u16, Family); 128],
@@ -46,12 +47,8 @@ pub const fn parse(src: &[u8]) -> Table {
             at += 1;
         }
         assert!(id <= 0xFFFF && at + 4 <= src.len() && src[at + 4] == b'\n', "bad id line");
-        let family = match [src[at + 1], src[at + 2], src[at + 3]] {
-            [b's', b'k', b'l'] => Family::Skylake,
-            [b'k', b'b', b'l'] => Family::KabyLake,
-            [b'c', b'f', b'l'] => Family::CoffeeLake,
-            [b'c', b'm', b'l'] => Family::CometLake,
-            _ => panic!("family must be skl, kbl, cfl or cml"),
+        let Some(family) = Family::from_tag([src[at + 1], src[at + 2], src[at + 3]]) else {
+            panic!("unknown family tag")
         };
         let mut i = 0;
         while i < t.len {

@@ -14,28 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Pipes and the transcoders that feed them on Gen9 (Skylake to Comet
-//! Lake): three pipes, transcoders A to C each bound to its pipe, and the
-//! eDP transcoder, which feeds whichever pipe TRANS_DDI_FUNC_CTL_EDP
-//! selects (SKL PRM Vol 2c, TRANS_DDI_FUNC_CTL, eDP Input Select).
+//! Pipes (`Gen::pipes` of them), transcoders A to D each bound to its
+//! pipe, and, before Gen12, the eDP transcoder, feeding the pipe that
+//! eDP Input Select picks (SKL PRM Vol 2c, TRANS_DDI_FUNC_CTL).
+
+use super::gen::Gen;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Pipe {
     A,
     B,
     C,
+    D,
 }
 
 impl Pipe {
-    pub const ALL: [Pipe; 3] = [Pipe::A, Pipe::B, Pipe::C];
+    pub const ALL: [Pipe; 4] = [Pipe::A, Pipe::B, Pipe::C, Pipe::D];
 
     pub fn index(self) -> u32 {
         self as u32
     }
 
-    /// The wire's output number: pipe A is output 0.
-    pub fn from_output(output: u16) -> Option<Pipe> {
-        Pipe::ALL.get(output as usize).copied()
+    /// The wire's output number: pipe A is output 0; a pipe `g` lacks
+    /// is no output.
+    pub fn from_output(g: &Gen, output: u16) -> Option<Pipe> {
+        Pipe::ALL.get(output as usize).copied().filter(|p| p.index() < g.pipes)
     }
 }
 
@@ -44,6 +47,7 @@ pub enum Transcoder {
     A,
     B,
     C,
+    D,
     Edp,
 }
 
@@ -54,6 +58,7 @@ impl Transcoder {
             Pipe::A => Transcoder::A,
             Pipe::B => Transcoder::B,
             Pipe::C => Transcoder::C,
+            Pipe::D => Transcoder::D,
         }
     }
 

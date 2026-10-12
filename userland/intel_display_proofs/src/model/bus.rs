@@ -42,7 +42,9 @@ impl Gen9 {
         if off == GFX_FLSH_CNTL {
             self.flushes += 1;
         }
+        let old = self.get(off);
         self.regs.insert(off, v);
+        self.dc_write(off, v, old);
         self.aux_write(off, v);
         self.south_write(off, v);
         self.ddi_write(off, v);

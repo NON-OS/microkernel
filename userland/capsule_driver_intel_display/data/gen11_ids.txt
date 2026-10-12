@@ -1,0 +1,22 @@
+# PCI device ids of Intel's Gen11 graphics (Ice Lake; vendor 8086, class
+# 03) whose display engine this driver takes over at firmware's mode: one
+# id (hex) and its family per line. Jasper Lake and Elkhart Lake are Gen11
+# too and wait until their parts are checked.
+#
+# Source: the Configurations volume (Volume 4) of Intel's Ice Lake
+# graphics PRM and Intel's processor graphics device id support page.
+# Written down without a copy of either at hand and unverified line by
+# line: the owner should check it against them.
+8A50 icl
+8A51 icl
+8A52 icl
+8A53 icl
+8A56 icl
+8A57 icl
+8A58 icl
+8A59 icl
+8A5A icl
+8A5B icl
+8A5C icl
+8A5D icl
+8A71 icl

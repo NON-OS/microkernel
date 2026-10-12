@@ -16,6 +16,7 @@
 
 //! Firmware states a takeover reads but must not trust.
 
+use crate::engine::gen::GEN9;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::takeover::read_output;
 use crate::model::firmware::T1080;
@@ -26,7 +27,7 @@ fn a_timing_with_sync_outside_its_blanking_is_refused() {
     let mut m = Gen9::new(64);
     let bad = ((1920, 300, 44, 2200), (1080, 4, 5, 1125));
     m.light(Transcoder::A, Pipe::A, bad, 0);
-    assert!(read_output(&mut m, Pipe::A).is_none());
+    assert!(read_output(&mut m, &GEN9, Pipe::A).is_none());
 }
 
 #[test]
@@ -34,6 +35,6 @@ fn a_tiled_plane_is_lit_but_not_flippable() {
     let mut m = Gen9::new(64);
     m.light(Transcoder::A, Pipe::A, T1080, 0);
     m.set(crate::engine::plane_regs::plane_ctl(Pipe::A, 1), (1 << 31) | (4 << 24) | (1 << 10));
-    let o = read_output(&mut m, Pipe::A).unwrap();
+    let o = read_output(&mut m, &GEN9, Pipe::A).unwrap();
     assert!(o.plane.enabled() && !o.plane.flippable());
 }

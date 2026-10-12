@@ -17,6 +17,7 @@
 //! The takeover's whole life on the model: start on firmware's mode,
 //! present frames by flipping, hand the output back.
 
+use crate::engine::gen::GEN9;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::scanout::Scanout;
 use crate::engine::takeover::read_output;
@@ -40,7 +41,7 @@ pub(super) fn setup() -> (Gen9, Vec<u64>, Vec<u64>) {
 #[test]
 fn start_present_and_stop_on_firmwares_mode() {
     let (mut m, a, b) = setup();
-    let out = read_output(&mut m, Pipe::A).unwrap();
+    let out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
     assert_eq!(m.pixel(Pipe::A, 7, 7), Some(0xFF00_0001), "firmware's picture");
     let mut s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], &Polls::new(50)).unwrap();
     assert_eq!(m.pixel(Pipe::A, 1919, 1079), Some(0xFF00_00AA));

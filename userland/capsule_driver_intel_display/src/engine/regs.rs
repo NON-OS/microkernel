@@ -28,6 +28,7 @@ pub fn trans_base(t: Transcoder) -> u32 {
         Transcoder::A => 0x6_0000,
         Transcoder::B => 0x6_1000,
         Transcoder::C => 0x6_2000,
+        Transcoder::D => 0x6_3000, // Gen12 (TGL PRM Vol 2c; unverified)
         Transcoder::Edp => 0x6_F000,
     }
 }

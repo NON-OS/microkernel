@@ -18,6 +18,7 @@
 
 use super::plane_tests::{lit, OURS};
 use crate::engine::error::Error;
+use crate::engine::gen::PlaneKind;
 use crate::engine::pipe::Pipe;
 use crate::engine::plane::program;
 
@@ -35,7 +36,10 @@ fn a_bad_address_stride_or_size_writes_nothing() {
         (OURS, 7680, (1920, 4097)),
     ];
     for (surf, stride, size) in cases {
-        assert_eq!(program(&mut m, Pipe::A, surf, stride, size, ctl), Err(Error::Argument));
+        assert_eq!(
+            program(&mut m, PlaneKind::Universal, Pipe::A, surf, stride, size, ctl),
+            Err(Error::Argument)
+        );
     }
     assert!(m.writes.is_empty());
 }
