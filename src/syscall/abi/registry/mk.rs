@@ -132,6 +132,10 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MDFD", SyscallNumber::MkDataFeed, "MkDataFeed"),
     e(b"MDRM", SyscallNumber::MkDataRemove, "MkDataRemove"),
     e(b"MCVF", SyscallNumber::MkCapsuleVerify, "MkCapsuleVerify"),
+    e(b"MTBL", SyscallNumber::MkAcpiTable, "MkAcpiTable"),
+    e(b"MRGN", SyscallNumber::MkAcpiRegion, "MkAcpiRegion"),
+    e(b"MRIO", SyscallNumber::MkAcpiPort, "MkAcpiPort"),
+    e(b"MRPC", SyscallNumber::MkAcpiPci, "MkAcpiPci"),
 ];
 const fn e(tag: &[u8; 4], variant: SyscallNumber, name: &'static str) -> AbiEntry {
     AbiEntry { id: tag4(tag), variant, name, domain: AbiDomain::Mk, status: AbiStatus::Routed }

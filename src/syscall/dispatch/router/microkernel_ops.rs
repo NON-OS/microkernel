@@ -83,6 +83,10 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPioRead
             | MkPioWrite
             | MkPioRelease
+            | MkAcpiTable
+            | MkAcpiRegion
+            | MkAcpiPort
+            | MkAcpiPci
             | MkDebug
             | MkStdoutWrite
             | MkPrivateWrite
