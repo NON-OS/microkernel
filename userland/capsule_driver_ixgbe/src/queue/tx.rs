@@ -20,7 +20,7 @@
 
 use core::ptr::{addr_of_mut, write_volatile};
 
-use crate::constants::queue::{TX_BUFFER_LEN, TX_DESC_COUNT};
+use crate::sizes::ring::{TX_BUFFER_LEN, TX_DESC_COUNT};
 
 use super::layout::TxDesc;
 use super::tx_encode::{cmd_type_len, olinfo_status};

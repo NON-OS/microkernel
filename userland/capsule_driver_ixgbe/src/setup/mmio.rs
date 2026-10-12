@@ -19,8 +19,8 @@
 
 use nonos_libc::{mk_device_release, mk_mmio_map, MmioMapOut};
 
-use crate::constants::pci::{BAR_INDEX, BAR_OFFSET};
 use crate::discover::Found;
+use crate::facts::ids::{BAR_INDEX, BAR_OFFSET};
 
 const PAGE_MASK: u64 = 0xFFF;
 

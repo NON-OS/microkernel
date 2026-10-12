@@ -17,7 +17,7 @@
 //! The ixgbe capsule's table, which names each part's MAC from its own
 //! sibling file.
 
-#[path = "../../../capsule_driver_ixgbe/src/constants/part.rs"]
-pub mod part;
-#[path = "../../../capsule_driver_ixgbe/src/constants/pci.rs"]
-pub mod pci;
+#[path = "../../../capsule_driver_ixgbe/src/facts/ids.rs"]
+pub mod ids;
+#[path = "../../../capsule_driver_ixgbe/src/facts/parts.rs"]
+pub mod parts;
