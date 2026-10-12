@@ -17,6 +17,7 @@
 //! Return addresses signed with the IA key (FEAT_PAuth, `pac-ret`): one
 //! kernel key per boot shared by every CPU, and one per process for EL0.
 
+mod cpus;
 mod install;
 mod prepare;
 mod report;
@@ -27,8 +28,9 @@ mod slot;
 mod state;
 mod user;
 
+pub use cpus::{bind_this_cpu, secondary_key};
 pub(crate) use install::install_kernel_key;
-pub use prepare::{bind_this_cpu, prepare, secondary_key};
+pub use prepare::prepare;
 pub use report::describe;
 pub use return_address::{authenticate_return_address, sign_return_address};
 pub use secret::Source;
