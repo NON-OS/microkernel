@@ -11,6 +11,8 @@ pub mod arena;
 pub mod block;
 #[path = "../../nonos_aml/src/button/mod.rs"]
 pub mod button;
+#[path = "../../nonos_aml/src/cpu/mod.rs"]
+pub mod cpu;
 #[path = "../../nonos_aml/src/device_power/mod.rs"]
 pub mod device_power;
 #[path = "../../nonos_aml/src/ec/mod.rs"]
