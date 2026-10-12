@@ -14,6 +14,8 @@ mod exercise;
 #[cfg(test)]
 mod fixtures;
 #[cfg(test)]
+mod framebuffer_tree;
+#[cfg(test)]
 mod msi_tree;
 #[cfg(test)]
 mod uart_tree;
@@ -22,6 +24,10 @@ mod uart_tree;
 mod chosen_tests;
 #[cfg(test)]
 mod cpu_release_tests;
+#[cfg(test)]
+mod framebuffer_refusal_tests;
+#[cfg(test)]
+mod framebuffer_tests;
 #[cfg(test)]
 mod header_tests;
 #[cfg(test)]
