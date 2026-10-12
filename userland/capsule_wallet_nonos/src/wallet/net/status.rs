@@ -16,12 +16,8 @@
 
 #[derive(Clone, Copy)]
 pub struct NetStatus {
-    pub dns_ok: bool,
-    pub sockets_ok: bool,
     pub nym_ok: bool,
     pub route_ready: bool,
-    pub rpc_resolve_ok: bool,
-    pub rpc_socket_ok: bool,
     pub rpc_connect_ok: bool,
     pub rpc_tcp_ok: bool,
     pub rpc_codec_ok: bool,
