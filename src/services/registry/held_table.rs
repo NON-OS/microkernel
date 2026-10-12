@@ -28,6 +28,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.smbus0", KERNEL_ONLY),
     ("driver.virtio_rng", KERNEL_ONLY),
     ("driver.ccid0", KERNEL_ONLY),
+    ("driver.fido0", KERNEL_ONLY),
     (USB_HOSTS[0], USB_CLIENTS),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.virtio_gpu0", &["compositor"]),
@@ -46,7 +47,8 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
 /// capsule has reason to reach them. The SMBus
 /// host has no driver above it yet: a raw transfer reaches any device on the
 /// bus, so it is opened to one when one exists. A smart card signs and
-/// decrypts for whoever reaches its reader: the owner names who.
+/// decrypts for whoever reaches its reader, and a security key signs for
+/// whoever reaches it once its user touches it: the owner names who.
 const KERNEL_ONLY: &[&str] = &[];
 
 /// The hub walker and the class drivers above every USB host (usb_hosts.rs),
@@ -60,6 +62,7 @@ const USB_CLIENTS: &[&str] = &[
     "driver.cdc_acm0",
     "driver.usb_mic0",
     "driver.ccid0",
+    "driver.fido0",
     "driver.cdc_ecm0",
     "driver.cdc_ncm0",
     "driver.rndis0",

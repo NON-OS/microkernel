@@ -23,6 +23,7 @@ pub(super) fn spawn() {
     super::drivers_cdc_acm::spawn();
     super::drivers_usb_mic::spawn();
     super::drivers_ccid::spawn();
+    super::drivers_fido::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-usb-hid")]
