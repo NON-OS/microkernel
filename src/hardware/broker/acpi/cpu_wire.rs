@@ -20,25 +20,10 @@
 
 use super::cpu_layout::*;
 use super::cpu_record::{CState, CpuTables, PState, Reg};
+use super::cpu_states::{cstate, pstate};
 use super::cpu_take::Take;
+use super::lpi_wire::levels;
 use alloc::vec::Vec;
-
-fn pstate(t: &mut Take<'_>) -> Option<PState> {
-    Some(PState {
-        mhz: t.u32()?,
-        milliwatts: t.u32()?,
-        latency_us: t.u32()?,
-        bus_master_latency_us: t.u32()?,
-        control: t.u32()?,
-        status: t.u32()?,
-    })
-}
-
-fn cstate(t: &mut Take<'_>) -> Option<CState> {
-    let reg = t.register()?;
-    let kind = u8::try_from(t.u32()?).ok().filter(|k| (1..=3).contains(k))?;
-    Some(CState { reg, kind, latency_us: t.u32()?, milliwatts: t.u32()? })
-}
 
 fn cpc(t: &mut Take<'_>) -> Option<(u8, [Reg; CPC_FIELDS])> {
     let revision = t.u8()?;
@@ -52,11 +37,12 @@ fn cpc(t: &mut Take<'_>) -> Option<(u8, [Reg; CPC_FIELDS])> {
 
 pub fn decode(b: &[u8]) -> Option<CpuTables> {
     let mut t = Take { b, at: 0 };
-    let [version, np, nc, flags] = t.bytes::<4>()?;
-    t.zeros::<4>()?;
+    let [version, np, nc, flags, nl] = t.bytes::<5>()?;
+    t.zeros::<3>()?;
     let (uid, ppc) = (t.u64()?, t.u64()?);
     let (known, unset_ppc) = (HAS_PCT | HAS_PPC | HAS_CPC, flags & HAS_PPC == 0 && ppc != 0);
-    let counts = np as usize <= MAX_PSTATES && nc as usize <= MAX_CSTATES;
+    let counts = [(np, MAX_PSTATES), (nc, MAX_CSTATES), (nl, MAX_LEVELS)];
+    let counts = counts.iter().all(|(n, max)| *n as usize <= *max);
     if version != VERSION || flags & !known != 0 || unset_ppc || !counts {
         return None;
     }
@@ -70,6 +56,7 @@ pub fn decode(b: &[u8]) -> Option<CpuTables> {
         0 => None,
         _ => Some(cpc(&mut t)?),
     };
-    let ppc = (flags & HAS_PPC != 0).then_some(ppc);
-    (t.at == b.len()).then_some(CpuTables { uid, ppc, pct, pstates, cstates, cpc })
+    let (ppc, levels) = ((flags & HAS_PPC != 0).then_some(ppc), levels(&mut t, nl)?);
+    let tables = CpuTables { uid, ppc, pct, pstates, cstates, cpc, levels };
+    (t.at == b.len()).then_some(tables)
 }
