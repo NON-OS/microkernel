@@ -400,7 +400,9 @@
    "userland/capsule_driver_ahci/src/protocol",
    "userland/capsule_driver_ahci/src/regs",
    "userland/capsule_driver_ahci/src/server/handlers/rw_parse.rs",
-   "userland/capsule_driver_ahci/src/server/medium_rule.rs"
+   "userland/capsule_driver_ahci/src/server/medium_rule.rs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs"
   ],
   "md": [],
   "signed": []
