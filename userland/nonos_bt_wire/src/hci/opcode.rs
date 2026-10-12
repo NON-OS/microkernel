@@ -55,6 +55,8 @@ pub const LE_SET_EVENT_MASK: Opcode = Opcode::new(0x08, 0x0001);
 pub const LE_READ_BUFFER_SIZE: Opcode = Opcode::new(0x08, 0x0002);
 /// Vol 4, Part E, 7.8.3.
 pub const LE_READ_LOCAL_FEATURES: Opcode = Opcode::new(0x08, 0x0003);
+/// Vol 4, Part E, 7.8.4.
+pub const LE_SET_RANDOM_ADDRESS: Opcode = Opcode::new(0x08, 0x0005);
 /// Vol 4, Part E, 7.8.10.
 pub const LE_SET_SCAN_PARAMETERS: Opcode = Opcode::new(0x08, 0x000b);
 /// Vol 4, Part E, 7.8.11.

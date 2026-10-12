@@ -39,6 +39,14 @@ Complete reaches the caller as any other event.
 Scanning is passive only. The controller listens and sends no scan
 request, so looking for devices puts nothing of ours on the air.
 
+Scans and connections are made as the public address until
+`use_random_address` gives the controller a random one with LE Set Random
+Address (Vol 4, Part E, 7.8.4); from then on Own_Address_Type is random in
+both. The reserved kind and a random part Vol 6, Part B, 1.3.2.1 or
+1.3.2.2 forbids are refused unsent, and an address the controller refuses
+leaves the public one in use. The controller refuses a change while it
+scans or connects, so the caller changes it between those.
+
 Every wait is bounded. A command waits at most `POLL_BUDGET` polls with a
 `pause` between empty ones (about two seconds in a capsule). The event
 queue holds at most `QUEUE_MAX` events and drops the oldest past that,

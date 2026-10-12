@@ -22,6 +22,7 @@ use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
 use crate::transport::Transport;
+use nonos_bt_wire::addr::AddrType;
 
 /// Polls one command may wait. With the capsule's millisecond pause this
 /// is about two seconds: a controller answers a command in milliseconds,
@@ -41,6 +42,8 @@ pub struct Host<T> {
     pub(super) acl_len: u16,
     pub(super) acl_total: u16,
     pub(super) acl_free: u16,
+    /// The address type scans and connections are made as (7.8.4).
+    pub(super) own: AddrType,
 }
 
 impl<T: Transport> Host<T> {
@@ -51,7 +54,8 @@ impl<T: Transport> Host<T> {
     pub fn with_budget(t: T, budget: u32) -> Self {
         let queue = VecDeque::new();
         let (acl_len, acl_total, acl_free) = (0, 0, 0);
-        Self { t, credits: 1, budget, queue, dropped: 0, acl_len, acl_total, acl_free }
+        let own = AddrType::Public;
+        Self { t, credits: 1, budget, queue, dropped: 0, acl_len, acl_total, acl_free, own }
     }
 
     pub fn transport(&mut self) -> &mut T {

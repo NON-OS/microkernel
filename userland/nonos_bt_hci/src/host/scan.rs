@@ -48,7 +48,6 @@ impl Scan {
 pub const DEFAULT_SCAN: Scan = Scan { interval: 0x0060, window: 0x0030 };
 
 const PASSIVE: u8 = 0x00;
-const OWN_PUBLIC: u8 = 0x00;
 const ACCEPT_ALL: u8 = 0x00;
 
 impl<T: Transport> Host<T> {
@@ -60,7 +59,7 @@ impl<T: Transport> Host<T> {
         }
         let [i0, i1] = s.interval.to_le_bytes();
         let [w0, w1] = s.window.to_le_bytes();
-        let params = [PASSIVE, i0, i1, w0, w1, OWN_PUBLIC, ACCEPT_ALL];
+        let params = [PASSIVE, i0, i1, w0, w1, self.own.wire(), ACCEPT_ALL];
         self.command(op::LE_SET_SCAN_PARAMETERS, &params)?;
         self.command(op::LE_SET_SCAN_ENABLE, &[1, 1]).map(|_| ())
     }

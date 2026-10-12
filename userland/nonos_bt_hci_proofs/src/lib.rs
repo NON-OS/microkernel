@@ -20,6 +20,8 @@
 #[cfg(test)]
 mod acl_tests;
 #[cfg(test)]
+mod address_tests;
+#[cfg(test)]
 mod bringup_tests;
 #[cfg(test)]
 mod connect_cancel_tests;
