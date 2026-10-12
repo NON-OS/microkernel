@@ -1,0 +1,22 @@
+# NONOS userland: nonos_gfx_serve
+#
+# What every display driver that scans out of its own memory does on the
+# display wire, written once: who owns the primary, its serials, MODE_SET
+# making before it breaks, RETIRE, FLUSH's checks, the cursor slot, and
+# the copy from the shared shadow into the device's memory. The kernel and
+# the device sit behind traits, so the rules are proved without either.
+
+[package]
+name = "nonos_gfx_serve"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS display wire server core for VRAM drivers"
+
+[lib]
+name = "nonos_gfx_serve"
+path = "src/lib.rs"
+
+[dependencies]
+nonos_gfx_wire = { path = "../nonos_gfx_wire" }
