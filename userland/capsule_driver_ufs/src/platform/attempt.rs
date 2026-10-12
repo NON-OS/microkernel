@@ -27,8 +27,8 @@ use super::hosts::INTEL;
 use super::open::take;
 use crate::ufs::bring_up::bring_up;
 use crate::ufs::disk::Ufs;
-use crate::ufs::hci::enable::stop;
-use crate::ufs::utp::layout::Lists;
+use crate::ufs::host::hce::stop;
+use crate::ufs::slot::layout::Lists;
 
 /// The host up and its units found, with what it holds from the broker.
 pub struct Opened {

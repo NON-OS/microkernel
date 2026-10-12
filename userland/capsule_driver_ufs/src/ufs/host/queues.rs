@@ -14,20 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! ufshcd_make_hba_operational: both list bases written, the host seen ready
-//! for both lists and for UIC commands, then both lists set running. The
-//! task management list is never used, but the host runs it with the other.
+//! The two request queues: their base addresses given, the host seen ready
+//! for both and for UIC commands, then both set running. The task
+//! management queue is never used, but the host expects both to run.
 
-use super::regs::*;
+use core::sync::atomic::{fence, Ordering};
+
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
+use crate::ufs::facts::hci::*;
 
-pub fn run<H: Hw>(hw: &H, utrl_bus: u64, utmrl_bus: u64) -> Result<(), UfsError> {
-    hw.w32(UTRLBA, utrl_bus as u32);
-    hw.w32(UTRLBAU, (utrl_bus >> 32) as u32);
-    hw.w32(UTMRLBA, utmrl_bus as u32);
-    hw.w32(UTMRLBAU, (utmrl_bus >> 32) as u32);
-    core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
+pub fn run<H: Hw>(hw: &H, transfer_bus: u64, task_bus: u64) -> Result<(), UfsError> {
+    for (lo, hi, bus) in [(UTRLBA, UTRLBAU, transfer_bus), (UTMRLBA, UTMRLBAU, task_bus)] {
+        hw.w32(lo, bus as u32);
+        hw.w32(hi, (bus >> 32) as u32);
+    }
+    // The bases land before the ready check and the run bits.
+    fence(Ordering::SeqCst);
     if hw.r32(HCS) & HCS_LISTS_READY != HCS_LISTS_READY {
         return Err(UfsError::Host);
     }

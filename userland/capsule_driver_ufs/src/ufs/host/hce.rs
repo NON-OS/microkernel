@@ -14,42 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! ufshcd_hba_stop and ufshcd_hba_execute_hce: HCE to 0 and seen 0, then to
-//! 1, and the controller's own initialisation seen through by HCE reading 1
-//! again. It goes 1, 0, 1 while the host initialises, so it is not read
-//! until a millisecond has passed, as Linux does.
+//! The host enable bit. Writing HCE 0 stops the host and drops the link;
+//! writing 1 starts the host's own initialisation, which is through when
+//! HCE reads 1 again. A host is always stopped before it is started, so it
+//! starts from a known state whatever firmware left.
 
-use super::regs::{HCE, HCE_ENABLE};
 use super::wait::until;
 use crate::ufs::env::{pause, Hw};
 use crate::ufs::error::UfsError;
+use crate::ufs::facts::bounds::{HCE_FIRST_READ_MS, HCE_OFF_MS, HCE_ON_MS};
+use crate::ufs::facts::hci::{HCE, HCE_ENABLE};
 use crate::ufs::text::Line;
-use crate::ufs::time::{HCE_OFF_MS, HCE_ON_MS};
 
+/// Quote HCE_OFF_MS and HCE_ON_MS; ufs_proofs holds them equal.
 pub const HCE_STUCK_ON: &str = "host would not stop: HCE still 1 after 10 ms";
-pub const HCE_STUCK_OFF: &str = "host would not start: HCE not 1 after 56 ms";
+pub const HCE_STUCK_OFF: &str = "host would not start: HCE not 1 after 100 ms";
 
-/// HCE to 0, and true once it reads 0 within HCE_OFF_MS: the host has
-/// stopped and masters nothing more.
+/// HCE to 0; true once it reads 0, when the host masters nothing more.
 pub fn stop<H: Hw>(hw: &H) -> bool {
     hw.w32(HCE, 0);
     until(hw, HCE_OFF_MS, || hw.r32(HCE) & HCE_ENABLE == 0)
 }
 
-/// Reset the host and bring it back; the UniPro link is down afterwards.
+/// Stopped, then started and seen through its initialisation.
 pub fn restart<H: Hw>(hw: &H) -> Result<(), UfsError> {
     if !stop(hw) {
-        return Err(failed(hw, HCE_STUCK_ON));
+        return Err(said(hw, HCE_STUCK_ON));
     }
     hw.w32(HCE, HCE_ENABLE);
-    pause(hw, 1);
-    if !until(hw, HCE_ON_MS - 1, || hw.r32(HCE) & HCE_ENABLE != 0) {
-        return Err(failed(hw, HCE_STUCK_OFF));
+    pause(hw, HCE_FIRST_READ_MS);
+    let rest = HCE_ON_MS - HCE_FIRST_READ_MS;
+    if !until(hw, rest, || hw.r32(HCE) & HCE_ENABLE != 0) {
+        return Err(said(hw, HCE_STUCK_OFF));
     }
     Ok(())
 }
 
-fn failed<H: Hw>(hw: &H, what: &str) -> UfsError {
+fn said<H: Hw>(hw: &H, what: &str) -> UfsError {
     hw.line(Line::new().s(what.as_bytes()).as_bytes());
     UfsError::Host
 }

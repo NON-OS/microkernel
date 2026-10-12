@@ -20,9 +20,9 @@
 //! platform then leaks the regions and releases only the claim.
 
 use crate::model::{Cfg, Rig};
-use crate::ufs::hci::enable::stop;
-use crate::ufs::hci::regs::HCE;
-use crate::ufs::time::HCE_OFF_MS;
+use crate::ufs::facts::bounds::HCE_OFF_MS;
+use crate::ufs::facts::hci::HCE;
+use crate::ufs::host::hce::stop;
 
 #[test]
 fn a_host_that_stops_is_seen_stopped() {

@@ -1,5 +1,5 @@
-# ufs: UFS host controllers (UFSHCI 2.0 and later, and 1.x), as Linux
-# ufshcd-pci binds them, QEMU's ufs device among them. PCI MMIO + DMA,
+# ufs: UFS host controllers (UFSHCI 2.0 and later, and 1.x) on the listed
+# ids, QEMU's ufs device among them. PCI MMIO + DMA,
 # polled: four DMA grants (transfer list, task list, command descriptor,
 # 64 KiB data). Each UFS logical unit is a unit on the block wire.
 # Raw sectors only; who may reach them is the medium rule the kernel checks

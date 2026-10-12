@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DME_GET and DME_SET on a local attribute, selector 0, normal set type.
+//! A request as the protocol layers hand it to the slot.
 
-use super::uic;
-use super::uic_codes::{mib, DME_GET, DME_SET};
-use crate::ufs::env::Hw;
-use crate::ufs::error::UfsError;
+use super::descriptor::Dir;
 
-pub fn get<H: Hw>(hw: &H, attr: u16) -> Result<u32, UfsError> {
-    uic::run(hw, DME_GET, [mib(attr), 0, 0])
-}
-
-pub fn set<H: Hw>(hw: &H, attr: u16, value: u32) -> Result<(), UfsError> {
-    uic::run(hw, DME_SET, [mib(attr), 0, value]).map(|_| ())
+/// What to send: the UTRD command type, the data direction, the UPIU, how
+/// many bytes of the data region the PRDT hands the host, and the bound.
+pub struct Req<'a> {
+    pub cmd_type: u32,
+    pub dir: Dir,
+    pub upiu: &'a [u8],
+    pub data_len: usize,
+    pub ms: u64,
 }
