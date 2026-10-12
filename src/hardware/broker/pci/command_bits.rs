@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! The PCI Command bits a driver may change, and what each form of the
 //! write leaves in the register. Pure, so kernel_proofs holds it by path.
 

@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! The masked form of `MkPciConfigWrite` (L37). Pure, so kernel_proofs
 //! holds it by path.
 //!
