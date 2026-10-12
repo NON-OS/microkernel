@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Legacy or modern, decided once per bring-up.
-//!
-//! A transitional function (legacy id, legacy I/O BAR present) keeps the
-//! legacy path it has always used, without a single config-space read, so
-//! a boot without an IOMMU drives it exactly as before. A function with a
-//! modern-only id, or one with no I/O BAR to hold legacy registers, has its
-//! capabilities read, and is driven modern when a usable common
-//! configuration is among them. Without one the legacy path is left to try
-//! (and to fail and give up the way it always has).
+//! Legacy or modern, decided once per bring-up: `modern_caps` is the
+//! drivers' rule. Every function's capabilities are read, as
+//! only the modern transport takes ACCESS_PLATFORM. One presenting each
+//! structure its driver maps (`Need`) is driven modern; else a transitional
+//! function keeps its legacy registers and a modern-only one, having none,
+//! is refused by name. `wants_probe` and `choose` are virtio-blk's older rule.
 
-use crate::caps::ModernCaps;
-use crate::pci::{has_io_bar, is_modern_id, Bars};
+use crate::broker::Broker;
+use crate::caps::{parse, ModernCaps};
+use crate::error::VirtioError::{self, NoCommonCfg, NoDeviceCfg, NoIsrCfg, NoNotifyCfg};
+use crate::map::Need;
+use crate::pci::{has_io_bar, is_modern_id, Bars, ConfigSpace};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
@@ -45,4 +45,30 @@ pub fn choose(device: u16, bars: &Bars, caps: &ModernCaps) -> Kind {
     } else {
         Kind::Legacy
     }
+}
+
+/// The capabilities to drive the function with; `None` leaves it legacy.
+pub fn modern_caps(
+    bars: &Bars,
+    broker: &mut impl Broker,
+    need: Need,
+) -> Result<Option<ModernCaps>, VirtioError> {
+    let cfg = ConfigSpace::read(broker).ok_or(VirtioError::ConfigRead)?;
+    let caps = parse(&cfg, bars);
+    match lacking(&caps, need) {
+        None => Ok(Some(caps)),
+        Some(missing) if cfg.u16_at(2).is_some_and(is_modern_id) => Err(missing),
+        Some(_) => Ok(None),
+    }
+}
+
+/// The first structure the driver maps that the function does not present.
+fn lacking(caps: &ModernCaps, need: Need) -> Option<VirtioError> {
+    let presented = [
+        (caps.common.is_some(), NoCommonCfg),
+        (caps.notify.is_some(), NoNotifyCfg),
+        (caps.device.is_some() || !need.device, NoDeviceCfg),
+        (caps.isr.is_some() || !need.isr, NoIsrCfg),
+    ];
+    presented.iter().find(|(present, _)| !present).map(|&(_, missing)| missing)
 }

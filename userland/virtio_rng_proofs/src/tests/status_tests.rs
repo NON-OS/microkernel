@@ -16,21 +16,16 @@
 
 //! The status handshake, as the virtio specification requires it.
 
+use super::model::{device, handshake, regs};
 use crate::constants::{
     LEG_GUEST_FEATURES, LEG_QUEUE_PFN, LEG_STATUS, STATUS_ACKNOWLEDGE, STATUS_DRIVER,
     STATUS_DRIVER_OK, STATUS_FAILED, STATUS_FEATURES_OK,
 };
-use crate::init::bring_up;
-use crate::regs::Regs;
-
-use super::model::device;
 
 #[test]
 fn a_brought_up_device_ends_with_every_status_bit_the_spec_requires() {
-    let bar = device(64);
-    let size = bring_up(Regs::mmio(bar.base()), 0x1234_5000, 64).expect("bring-up");
-    assert_eq!(size, 64);
-
+    let bar = device(8);
+    assert_eq!(handshake(regs(&bar), 0x1234_5000), Ok(8));
     let status = bar.wrote8(LEG_STATUS);
     for (bit, name) in [
         (STATUS_ACKNOWLEDGE, "ACKNOWLEDGE"),
@@ -45,15 +40,11 @@ fn a_brought_up_device_ends_with_every_status_bit_the_spec_requires() {
 
 #[test]
 fn a_device_with_no_queue_is_refused_and_told_so() {
-    /*
-     * The failure that matters: a device that advertises no requestq cannot
-     * serve entropy. Driving on regardless would leave the system taking
-     * randomness from a queue that was never configured.
-     */
+    // A device with no requestq cannot serve entropy; driving on regardless
+    // would take randomness from a queue that was never configured.
     let bar = device(0);
-    let err = bring_up(Regs::mmio(bar.base()), 0x1000, 64).expect_err("must refuse");
+    let err = handshake(regs(&bar), 0x1000).expect_err("must refuse");
     assert!(err.contains("requestq"), "unexpected error: {err}");
-
     let status = bar.wrote8(LEG_STATUS);
     assert!(status & STATUS_FAILED != 0, "the device must be told the driver gave up");
     assert_eq!(status & STATUS_DRIVER_OK, 0, "DRIVER_OK must never follow a refusal");
@@ -62,11 +53,15 @@ fn a_device_with_no_queue_is_refused_and_told_so() {
 
 #[test]
 fn no_feature_bits_are_claimed() {
-    /*
-     * virtio-rng needs none, and claiming one the device does not offer is a
-     * protocol violation rather than a wish.
-     */
-    let bar = device(64);
-    bring_up(Regs::mmio(bar.base()), 0x1000, 64).expect("bring-up");
+    let bar = device(8);
+    bar.present32(LEG_GUEST_FEATURES, u32::MAX);
+    handshake(regs(&bar), 0x1000).expect("bring-up");
     assert_eq!(bar.wrote32(LEG_GUEST_FEATURES), 0);
+}
+
+#[test]
+fn the_queue_address_is_written_as_a_page_number_not_a_byte_address() {
+    let bar = device(8);
+    handshake(regs(&bar), 0x1234_5000).expect("bring-up");
+    assert_eq!(bar.wrote32(LEG_QUEUE_PFN), 0x0001_2345);
 }

@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the virtio specification requires of a driver bringing a device up.
-//!
-//! The window is memory, so a register reads back what was written. That is
-//! the behaviour a conforming device has for the status byte, and it is why
-//! these can assert on the state the driver leaves behind.
+//! The driver against a register window, a ring and a buffer in host
+//! memory, and a device that answers late or out of turn; and the orders
+//! in its source that only a boot runs.
 
+mod drive;
 mod model;
+mod ring;
 
+mod fill_tests;
+mod hostile_tests;
+mod late_tests;
+mod order_tests;
 mod queue_tests;
+mod reset_tests;
 mod ring_tests;
 mod status_tests;
+mod take_tests;
+mod teardown_tests;

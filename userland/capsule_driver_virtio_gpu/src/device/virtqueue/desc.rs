@@ -13,19 +13,27 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Descriptors, each written through the region's bounds checks.
+
 use super::layout::QueueLayout;
-use crate::constants::{VRING_DESC_F_NEXT, VRING_DESC_F_WRITE};
-use core::ptr::write_volatile;
+use crate::constants::{VQ_DESC_OFFSET, VRING_DESC_F_NEXT, VRING_DESC_F_WRITE};
+
 pub const DESC_LEN: usize = 16;
+
+/// Descriptor `index`: `len` bytes at device address `addr`.
 pub fn write_desc(layout: QueueLayout, index: u16, addr: u64, len: u32, flags: u16, next: u16) {
-    let base = layout.desc_va() as usize + (index as usize) * DESC_LEN;
-    unsafe {
-        write_volatile(base as *mut u64, addr);
-        write_volatile((base + 8) as *mut u32, len);
-        write_volatile((base + 12) as *mut u16, flags);
-        write_volatile((base + 14) as *mut u16, next);
-    }
+    let at = VQ_DESC_OFFSET + DESC_LEN * usize::from(index % layout.queue_size);
+    let ring = layout.ring;
+    ring.w32(at, addr as u32);
+    ring.w32(at + 4, (addr >> 32) as u32);
+    ring.w32(at + 8, len);
+    ring.w16(at + 12, flags);
+    ring.w16(at + 14, next);
 }
+
+/// A command: the request the device reads, chained to the buffer it
+/// writes its answer in.
 pub fn write_request_chain(
     layout: QueueLayout,
     head: u16,

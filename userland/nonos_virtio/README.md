@@ -19,7 +19,7 @@ and the broker refuses to map that.
 
 | Module | What it does |
 |---|---|
-| `select` | `wants_probe` and `choose`: a transitional function with its legacy I/O BAR keeps the legacy path without a config-space read; a modern id, or a function with no I/O BAR, has its capabilities read and is driven modern when a usable common configuration is among them |
+| `select` | `modern_caps(bars, broker, need)`: every function's capabilities read, a transitional one's too; modern when it presents common, notify and whatever the driver's `Need` names (device configuration for the GPU and net; nothing more for virtio-rng, which has none); otherwise `None` (legacy) for a transitional function and a refusal naming the missing structure for a modern-only id. `wants_probe` and `choose`, virtio-blk's older rule: a transitional function with its legacy I/O BAR keeps the legacy path without a config-space read |
 | `pci` | the BAR list in transport terms, modern and legacy ids, a config-space snapshot read through the broker |
 | `caps` | the vendor capability walk over that snapshot: the first usable structure of each type, lengths and BARs checked, MSI-X table pages kept out |
 | `map` | `map_window`: map the regions a driver needs (`Need` says whether ISR and device config are wanted) through the broker, checking the length the broker actually gave |

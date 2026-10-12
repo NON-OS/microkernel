@@ -13,8 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::protocol::Request;
+//! OP_HEALTHCHECK: the control queue's named state (`state::Health`) and
+//! how many stalls were recovered in place. The driver answers in every
+//! state; a `Down` one keeps its claim and surface.
+
+use crate::driver::Driver;
+use crate::protocol::{Request, HDR_LEN, HEALTH_LEN, STATUS_LEN};
 use crate::server::respond;
-pub fn handle(sender_pid: u32, req: &Request, tx: &mut [u8]) {
-    respond::status(sender_pid, req, 0, tx);
+
+pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, tx: &mut [u8]) {
+    let body = &mut tx[HDR_LEN + STATUS_LEN..];
+    body[0..4].copy_from_slice(&driver.health.code().to_le_bytes());
+    body[4..8].copy_from_slice(&driver.recoveries.to_le_bytes());
+    respond::payload(sender_pid, req, HEALTH_LEN, tx);
 }

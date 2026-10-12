@@ -28,6 +28,8 @@ pub enum Transport {
 
 #[derive(Clone, Copy)]
 pub struct Modern {
+    /// struct virtio_pci_common_cfg, for the reset at teardown.
+    pub common: Mmio,
     pub notify: Mmio,
     /// The request queue's doorbell offset in `notify`.
     pub doorbell: usize,

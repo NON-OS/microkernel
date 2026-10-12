@@ -54,6 +54,7 @@ pub fn step(bar: &FakeBar, served: &AtomicU16, log: &Mutex<Vec<Seen>>, answer: A
     put(bar, entry, &id.to_le_bytes());
     put(bar, entry + 4, &(response.len() as u32).to_le_bytes());
     fence(Ordering::Release);
-    put(bar, VQ_USED_OFFSET + 2, &done.wrapping_add(1).to_le_bytes());
+    let moved = if answer == Answer::SkippedIndex { 2 } else { 1 };
+    put(bar, VQ_USED_OFFSET + 2, &done.wrapping_add(moved).to_le_bytes());
     served.store(done.wrapping_add(1), Ordering::Release);
 }

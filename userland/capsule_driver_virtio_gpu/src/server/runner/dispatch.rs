@@ -16,15 +16,15 @@
 
 use crate::driver::Driver;
 use crate::protocol::{
-    Request, E_BAD_OP, E_INVAL, OP_ATTACH_BACKING, OP_CONTROLLER_INFO, OP_CONTROLQ_STATE,
-    OP_CREATE_RESOURCE, OP_DISPLAY_INFO, OP_FLUSH, OP_GET_PRIMARY_SURFACE, OP_HEALTHCHECK,
-    OP_MODE_LIST, OP_QUERY_CAPS, OP_SET_SCANOUT, OP_TRANSFER_TO_HOST,
+    Request, E_BAD_OP, E_INVAL, OP_CONTROLLER_INFO, OP_CONTROLQ_STATE, OP_DISPLAY_INFO, OP_FLUSH,
+    OP_GET_PRIMARY_SURFACE, OP_HEALTHCHECK, OP_MODE_LIST, OP_QUERY_CAPS, OP_SET_SCANOUT,
+    OP_TRANSFER_TO_HOST,
 };
 use crate::server::{handlers, respond};
 
 pub fn dispatch(driver: &Driver, sender_pid: u32, req: Request, body: &[u8], tx: &mut [u8]) {
     match req.op {
-        OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
+        OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(driver, sender_pid, &req, tx),
         OP_CONTROLLER_INFO if body.is_empty() => {
             handlers::controller::handle(driver, sender_pid, &req, tx)
         }
@@ -43,8 +43,6 @@ pub fn dispatch(driver: &Driver, sender_pid: u32, req: Request, body: &[u8], tx:
         OP_GET_PRIMARY_SURFACE if body.is_empty() => {
             handlers::get_primary_surface::handle(driver, sender_pid, &req, tx)
         }
-        OP_CREATE_RESOURCE => handlers::create_resource::handle(driver, sender_pid, &req, body, tx),
-        OP_ATTACH_BACKING => handlers::attach_backing::handle(driver, sender_pid, &req, body, tx),
         OP_TRANSFER_TO_HOST => {
             handlers::transfer_to_host::handle(driver, sender_pid, &req, body, tx)
         }
