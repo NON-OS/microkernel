@@ -17,6 +17,7 @@
 //! The touchpad driver from service lookup to posted pointer events.
 
 mod configure_tests;
+mod digitizers;
 mod driven;
 mod fixture;
 mod frames;
@@ -25,11 +26,13 @@ mod gesture_multi_tests;
 mod gesture_tests;
 mod layout_tests;
 mod long_report_tests;
+mod multitouch_tests;
 mod park_tests;
 mod parse_tests;
 mod poll_scroll_tests;
 mod poll_tests;
 mod real_pad_tests;
+mod screen_tests;
 mod service;
 mod setup_tests;
 mod wake_tests;
