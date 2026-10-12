@@ -5580,6 +5580,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_driver_usb_hid/src/xhci/wire/constants.rs",
    "userland/capsule_driver_usb_msc/src/xhci/wire.rs",
    "userland/capsule_driver_xhci/src/constants",
    "userland/capsule_driver_xhci/src/contexts",
