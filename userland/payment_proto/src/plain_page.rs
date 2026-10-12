@@ -35,7 +35,7 @@ impl PlainPage {
     pub fn of(plain: &[u8], offset: u64) -> Option<Self> {
         let start = usize::try_from(offset).ok()?;
         let rest = plain.get(start..).filter(|r| !r.is_empty() || plain.is_empty())?;
-        let bytes = rest[..rest.len().min(PLAINTEXT_PAGE)].to_vec();
+        let bytes = rest.get(..rest.len().min(PLAINTEXT_PAGE))?.to_vec();
         Some(PlainPage { total: plain.len() as u64, offset, bytes })
     }
 
@@ -47,7 +47,7 @@ impl PlainPage {
     pub fn parse(b: &[u8]) -> Option<Self> {
         let mut r = Cursor::new(b);
         let (total, offset) = (r.u64()?, r.u64()?);
-        let bytes = b[16..].to_vec();
+        let bytes = b.get(16..)?.to_vec();
         let end = offset.checked_add(bytes.len() as u64)?;
         (bytes.len() <= PLAINTEXT_PAGE && end <= total).then_some(PlainPage {
             total,
