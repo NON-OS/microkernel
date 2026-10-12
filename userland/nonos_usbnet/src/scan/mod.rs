@@ -22,8 +22,10 @@ mod classify;
 mod port;
 mod probe;
 mod scanner;
+mod search;
 
 pub use book::{Book, TRIES};
 pub use bound::Bound;
 pub use port::Port;
 pub use scanner::Scanner;
+pub use search::{search, Tried};

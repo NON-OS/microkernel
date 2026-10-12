@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::orchestrator::enumerate::Devices;
 use crate::protocol::{HDR_LEN, IPC_PAYLOAD_MAX};
 use crate::server::pump_once;
 use crate::state::State;
+use crate::xhci::Hosts;
 
 use super::constants::{HID_REPORT_MAX, RESCAN_INTERVAL};
 use super::drain_endpoints::drain_endpoints;
+use super::held::Held;
 use super::refresh_endpoints::refresh_endpoints;
 
-pub fn run(xhci_port: u32) -> ! {
-    let mut tries = [0u8; 256];
-    let mut devs = Devices::new();
-    refresh_endpoints(xhci_port, &mut devs, &mut tries);
+pub fn run(mut hosts: Hosts<Held>) -> ! {
+    refresh_endpoints(&mut hosts);
     let mut state = State::new();
     let mut buf = [0u8; HID_REPORT_MAX];
     let mut rx = alloc::vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
@@ -34,13 +33,16 @@ pub fn run(xhci_port: u32) -> ! {
     let mut idle_polls = 0u32;
     let mut announced = 0usize;
     loop {
-        if devs.eps.len() > announced {
+        let mut bound = 0;
+        hosts.each(|_, held| bound += held.devs.eps.len());
+        if bound > announced {
             const MSG: &[u8] = b"[USB-HID-ENUM] HID device bound\n";
             let _ = nonos_libc::mk_debug(MSG.as_ptr(), MSG.len());
         }
-        announced = devs.eps.len();
+        announced = bound;
         let _ = pump_once(&mut state, &mut rx, &mut tx);
-        let drained = drain_endpoints(&mut state, &devs.eps, &mut buf);
+        let mut drained = false;
+        hosts.each(|_, held| drained |= drain_endpoints(&mut state, &held.devs.eps, &mut buf));
         // A held key repeats from here: the keyboard reports only changes.
         state.keyboard.tick(nonos_libc::mk_uptime_ms().max(0) as u64);
         if drained {
@@ -55,7 +57,7 @@ pub fn run(xhci_port: u32) -> ! {
          * otherwise never bound.
          */
         if idle_polls >= RESCAN_INTERVAL {
-            refresh_endpoints(xhci_port, &mut devs, &mut tries);
+            refresh_endpoints(&mut hosts);
             idle_polls = 0;
         }
     }

@@ -16,11 +16,13 @@
 
 //! Finding the one mass-storage device this driver serves.
 
+mod again;
 mod medium;
 mod pass;
 mod probe;
 pub mod report;
 mod scanner;
+mod step;
 
 pub use medium::Medium;
 pub use report::Report;

@@ -15,6 +15,11 @@ pub mod desc;
 pub mod found;
 #[path = "../../nonos_usbnet/src/halt.rs"]
 pub mod halt;
+/// Every USB host and what a class driver keeps for each.
+#[path = "../../nonos_usbnet/src/hosts.rs"]
+pub mod hosts;
+#[path = "../../nonos_usbnet/src/hosts_first.rs"]
+mod hosts_first;
 #[path = "../../nonos_usbnet/src/nic.rs"]
 pub mod nic;
 #[path = "../../nonos_usbnet/src/nnet/mod.rs"]
@@ -45,6 +50,12 @@ mod book_tests;
 mod desc_tests;
 #[cfg(test)]
 mod found_tests;
+#[cfg(test)]
+mod hosts_book_tests;
+#[cfg(test)]
+mod hosts_model;
+#[cfg(test)]
+mod hosts_tests;
 #[cfg(test)]
 mod nnet_tests;
 #[cfg(test)]
