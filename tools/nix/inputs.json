@@ -863,6 +863,7 @@
    "userland/capsule_driver_bt_usb/src/usb/choose.rs",
    "userland/capsule_driver_bt_usb/src/usb/limit.rs",
    "userland/nonos_aes",
+   "userland/nonos_bt_bond",
    "userland/nonos_bt_hci",
    "userland/nonos_bt_hci_proofs/src/sim",
    "userland/nonos_bt_hogp",

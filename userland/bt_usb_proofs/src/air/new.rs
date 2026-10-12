@@ -20,7 +20,8 @@ use std::cell::Cell;
 use std::collections::VecDeque;
 use std::rc::Rc;
 
-use super::state::Air;
+use super::seen::Seen;
+use super::state::{Air, PEER};
 use crate::hci_sim::config::Config;
 use crate::hogp_sim::Peripheral;
 use crate::smp_sim::Peer;
@@ -41,6 +42,7 @@ impl Air {
             signals: Vec::new(),
             ltk: None,
             refuse_encryption: false,
+            seen: Seen { from: PEER, ..Seen::default() },
             lazy_credits: false,
             held: Vec::new(),
             pauses: 0,

@@ -17,23 +17,24 @@
 //! The responder's side of stage 2: it checks Ea itself before it
 //! answers with Eb.
 
-use super::peer::{Peer, A as A_, B as B_};
+use super::peer::Peer;
 use nonos_bt_smp::funcs::{f5, f6};
 use nonos_bt_smp::pdu::*;
 
 impl Peer {
     pub(super) fn on_check(&mut self, ea: &[u8; 16]) -> Vec<Vec<u8>> {
-        let (mac, ltk) = f5(&self.dh, &self.na, &self.nb, &A_, &B_);
+        let (a, b) = self.ab;
+        let (mac, ltk) = f5(&self.dh, &self.na, &self.nb, &a, &b);
         let mut r = [0u8; 16];
         if self.passkey_entry() {
             r[12..].copy_from_slice(&self.passkey.to_be_bytes());
         }
         let io_a = self.req.unwrap().f6_io_cap();
-        if f6(&mac, &self.na, &self.nb, &r, &io_a, &A_, &B_) != *ea {
+        if f6(&mac, &self.na, &self.nb, &r, &io_a, &a, &b) != *ea {
             return vec![vec![PAIRING_FAILED, DHKEY_CHECK_FAILED]];
         }
         self.ltk = ltk;
-        let mut eb = f6(&mac, &self.nb, &self.na, &r, &self.ours.f6_io_cap(), &B_, &A_);
+        let mut eb = f6(&mac, &self.nb, &self.na, &r, &self.ours.f6_io_cap(), &b, &a);
         eb[0] ^= self.faults.bad_check as u8;
         vec![frame(PAIRING_DHKEY_CHECK, &le(&eb)).unwrap()]
     }

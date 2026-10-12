@@ -12,6 +12,7 @@ checksum = "4c7f02d4ea65f2c1853089ffd8d2787bdbc63de2f0d29dedbcf8ccdfa0ccd4cf"
 name = "bt_usb_proofs"
 version = "0.3.0"
 dependencies = [
+ "nonos_bt_bond",
  "nonos_bt_hci",
  "nonos_bt_hogp",
  "nonos_bt_smp",
@@ -98,6 +99,14 @@ dependencies = [
 [[package]]
 name = "nonos_aes"
 version = "0.1.0"
+
+[[package]]
+name = "nonos_bt_bond"
+version = "0.1.0"
+dependencies = [
+ "nonos_bt_smp",
+ "nonos_bt_wire",
+]
 
 [[package]]
 name = "nonos_bt_hci"

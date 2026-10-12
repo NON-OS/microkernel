@@ -46,14 +46,7 @@ impl Air {
         };
         let (cid, payload) = parse_basic(&pdu).expect("a malformed L2CAP PDU");
         match cid {
-            SMP => {
-                if let Some(k) = self.shown.get() {
-                    self.smp.passkey = k;
-                }
-                for reply in self.smp.on(payload) {
-                    self.send_to_host(SMP, &reply);
-                }
-            }
+            SMP => self.smp_from_host(payload),
             ATT => self.att_from_host(payload),
             LE_SIGNALING => self.signals.push(payload.to_vec()),
             other => panic!("the host sent on channel {other:#06x}"),

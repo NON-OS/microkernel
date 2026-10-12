@@ -21,8 +21,10 @@ mod commands;
 mod encrypt;
 mod events;
 mod give;
+mod link;
 mod new;
 mod pipes;
+mod seen;
 mod state;
 
 pub use act::Act;

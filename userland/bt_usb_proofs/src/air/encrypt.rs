@@ -36,11 +36,19 @@ impl Air {
             *k = *b;
         }
         self.ltk = Some(ltk);
-        let start = status(0, 1, op::LE_ENABLE_ENCRYPTION.0);
+        let o = op::LE_ENABLE_ENCRYPTION.0;
+        // A controller that will not start encryption says so at once.
+        if let Some((_, why)) = self.cfg.fail.filter(|f| f.0 == o) {
+            return vec![status(why, 1, o)];
+        }
+        let start = status(0, 1, o);
         if self.refuse_encryption || ltk != self.smp.ltk {
             return vec![start, encryption_change(KEY_MISSING, HANDLE, 0)];
         }
-        for k in self.smp.keys() {
+        // Keys are distributed after pairing only; a link encrypted with a
+        // kept key has nothing to distribute (Vol 3, Part H, 3.6.1).
+        let keys = if self.seen.paired_here { self.smp.keys() } else { Vec::new() };
+        for k in keys {
             self.send_to_host(SMP, &k);
         }
         vec![start, encryption_change(0, HANDLE, 1)]

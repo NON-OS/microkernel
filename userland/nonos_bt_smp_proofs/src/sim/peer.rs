@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A responder written straight from Vol 3, Part H, 2.3.5.6, apart from
-//! the initiator under test, with knobs that make it misbehave.
+//! A responder from Vol 3, Part H, 2.3.5.6, apart from the initiator under
+//! test, with knobs to misbehave. `ab` are the link's two addresses: A, B.
 
 use super::faults::Faults;
 use super::rng::Rng;
@@ -23,8 +23,7 @@ use nonos_bt_smp::ecdh::KeyPair;
 use nonos_bt_smp::method::{IoCap, Method};
 use nonos_bt_smp::pdu::{auth, keys, Pairing};
 
-/// The initiator's and responder's addresses in f5's form: public and
-/// static random.
+/// The initiator's and responder's addresses in f5's form.
 pub const A: [u8; 7] = [0, 0xc0, 0xde, 0x00, 0x11, 0x22, 0x33];
 pub const B: [u8; 7] = [1, 0xd6, 0x5a, 0x44, 0x55, 0x66, 0x77];
 
@@ -44,6 +43,7 @@ pub struct Peer {
     pub ltk: [u8; 16],
     pub irk: [u8; 16],
     pub identity: [u8; 7],
+    pub ab: ([u8; 7], [u8; 7]),
     pub faults: Faults,
 }
 
@@ -68,6 +68,7 @@ impl Peer {
             ltk: [0; 16],
             irk: *b"identity-key-irk",
             identity: [1, 0x10, 0x20, 0x30, 0x40, 0x50, 0xc0],
+            ab: (A, B),
             faults: Faults::default(),
         }
     }
