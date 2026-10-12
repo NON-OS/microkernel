@@ -1527,7 +1527,11 @@
  },
  "userland/capsule_driver_ohci": {
   "exclude": [],
-  "include": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ohci",
+   "userland/libc"
+  ],
   "md": [],
   "signed": []
  },
@@ -4238,6 +4242,28 @@
    "userland/capsule_net_nym/src/topology/draw.rs",
    "userland/capsule_net_nym/src/topology/refresh.rs",
    "userland/nym_topology_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/ohci_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ohci/src/devices",
+   "userland/capsule_driver_ohci/src/env",
+   "userland/capsule_driver_ohci/src/facts",
+   "userland/capsule_driver_ohci/src/hc",
+   "userland/capsule_driver_ohci/src/sched",
+   "userland/capsule_driver_ohci/src/server",
+   "userland/capsule_driver_ohci/src/wire",
+   "userland/capsule_driver_ohci/src/xfer",
+   "userland/ohci_proofs",
+   "userland/uhci_proofs/src/model/device.rs",
+   "userland/uhci_proofs/src/model/device_io.rs",
+   "userland/uhci_proofs/src/model/ep0.rs",
+   "userland/uhci_proofs/src/model/make.rs",
+   "userland/uhci_proofs/src/model/pid.rs"
   ],
   "md": [],
   "signed": []
