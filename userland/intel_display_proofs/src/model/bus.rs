@@ -45,6 +45,7 @@ impl Gen9 {
         self.regs.insert(off, v);
         self.aux_write(off, v);
         self.south_write(off, v);
+        self.ddi_write(off, v);
         for p in Pipe::ALL {
             if off == r::plane_surf(p, 1) {
                 self.armed[p.index() as usize] = true;
