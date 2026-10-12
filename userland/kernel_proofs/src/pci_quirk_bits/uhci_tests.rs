@@ -18,8 +18,14 @@
 
 use super::quirk_bits::{only, writable, Ident};
 
-const UHCI: Ident =
-    Ident { vendor: 0x8086, class: 0x0C, subclass: 0x03, prog_if: 0, pcie_cap: None };
+const UHCI: Ident = Ident {
+    vendor: 0x8086,
+    class: 0x0C,
+    subclass: 0x03,
+    prog_if: 0,
+    pcie_cap: None,
+    before: [0xFF; 3],
+};
 
 #[test]
 fn a_uhci_controller_turns_firmware_traps_off_and_clears_their_status() {

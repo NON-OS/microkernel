@@ -24,6 +24,10 @@ pub struct Ident {
     pub subclass: u8,
     /// The programming interface: which host a USB controller is.
     pub prog_if: u8,
+    /// For an EHCI function, the config bytes 2, 4 and 6 below the written
+    /// offset (0xFF where none is read): whether the offset falls in its
+    /// legacy support capability, whose first byte is its id, 01h.
+    pub before: [u8; 3],
     /// The PCI Express capability's offset, when the function has one.
     pub pcie_cap: Option<u16>,
 }
