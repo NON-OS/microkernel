@@ -16,13 +16,12 @@
 use super::super::io::RegIo;
 use super::types::Regs;
 use crate::regs::pio;
-use core::ptr::write_volatile;
 
 impl Regs {
     #[inline]
     pub unsafe fn w32(self, offset: usize, value: u32) {
         match self.io {
-            RegIo::Mmio(base) => write_volatile(base.add(offset).cast(), value),
+            RegIo::Mmio(base) => nonos_libc::mmio_write32(base.add(offset) as usize, value),
             RegIo::Pio(grant) => pio::write(grant, offset, 4, value),
         }
     }
