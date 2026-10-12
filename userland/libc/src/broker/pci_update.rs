@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! The masked form of `MkPciConfigWrite`. The plain call ORs a Command
 //! value holding only Memory Space, Bus Master or Interrupt Disable onto the
 //! register, so it can turn those bits on but never off. This call names the
