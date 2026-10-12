@@ -68,6 +68,10 @@ named.
   compositor's trusted band is held (a lock screen or a permission prompt
   is up) every key, click, motion and wheel goes to its holder alone, and
   a grab requested by anyone else is refused with E_BUSY.
+- Gamepads (B-57: kinds 8 button down, 9 button up, 10 axis; the pad's
+  number in y) follow focus exactly as keys do (`route/pad.rs`): a press
+  and an axis go to the focused window, a release to where its press went,
+  and no other subscriber hears them.
 
 ## Authority
 
