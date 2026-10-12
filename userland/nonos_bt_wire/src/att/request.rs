@@ -35,6 +35,13 @@ pub fn read_by_type(start: u16, end: u16, kind: u16) -> Vec<u8> {
     w.into_vec()
 }
 
+/// Read Request (3.4.4.3).
+pub fn read(handle: u16) -> Vec<u8> {
+    let mut w = Writer::new();
+    w.u8(READ_REQ).u16(handle);
+    w.into_vec()
+}
+
 /// Find Information Request (3.4.3.1).
 pub fn find_information(start: u16, end: u16) -> Vec<u8> {
     let mut w = Writer::new();
