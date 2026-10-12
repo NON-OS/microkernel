@@ -16,6 +16,7 @@
 
 use super::args::Args;
 use crate::syscall::microkernel::errnos::ERRNO_INVAL;
+use crate::syscall::microkernel::hv_backdoor::sys_hv_backdoor;
 use crate::syscall::microkernel::narrow::{u32_arg, u8_arg};
 use crate::syscall::microkernel::numbers::*;
 use crate::syscall::microkernel::pio::{
@@ -31,6 +32,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_PIO_READ => sys_pio_read(a.a0, a.a1, a.a2, a.a3),
         SYS_PIO_WRITE => sys_pio_write(a.a0, a.a1, a.a2, a.a3),
         SYS_PIO_RELEASE => sys_pio_release(a.a0),
+        SYS_HV_BACKDOOR => sys_hv_backdoor(a.a0, a.a1, a.a2),
         _ => return None,
     })
 }

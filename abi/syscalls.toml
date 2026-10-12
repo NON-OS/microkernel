@@ -176,6 +176,7 @@ MPGT = 0x5447504D
 MPRD = 0x4452504D
 MPWR = 0x5257504D
 MPRL = 0x4C52504D
+MHVB = 0x4256484D
 MDBG = 0x4742444D
 MSRG = 0x4752534D
 MSSH = 0x4853534D
@@ -412,6 +413,12 @@ ret  = {type="i64"}
 nr   = 0x4C52504D
 caps_any = ["Admin", "Pio"]
 args = [{name="grant_id",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MHVB]
+nr   = 0x4256484D
+caps_any = ["Admin", "Pio"]
+args = [{name="cmd",type="u32",dir="in"},{name="arg",type="u32",dir="in"},{name="regs_out",type="u32*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MDBG]
