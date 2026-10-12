@@ -30,7 +30,7 @@ use crate::state::Context;
 
 pub fn adopt(ctx: &mut Context, next: Context) {
     super::canvas_release::release_canvas(ctx);
-    let (old_handle, old_gop) = (ctx.surface_handle, ctx.gop_mode);
+    let (old_handle, old_gop, old_screen) = (ctx.surface_handle, ctx.gop_mode, ctx.screen);
     let old = ctx.wire.map(|w| (ctx.gfx_port, w.pid, w.serial));
     ctx.gfx_port = next.gfx_port;
     ctx.resource_id = next.resource_id;
@@ -46,9 +46,13 @@ pub fn adopt(ctx: &mut Context, next: Context) {
     ctx.wire = next.wire;
     ctx.damage.mark_full(ctx.width, ctx.height);
     super::canvas::fit_canvas(ctx);
-    // GOP's surface is the compositor's own registration, kept as before.
-    if !old_gop && old_handle != ctx.surface_handle {
+    if old_handle != ctx.surface_handle {
         let _ = mk_surface_release(old_handle);
+    }
+    // GOP's backing is this capsule's own mapping: once a driver shows the
+    // desktop (bootfb included) the compositor keeps no frame of its own.
+    if old_gop {
+        super::canvas_release::unmap_backing(old_screen.base_va, old_screen.byte_len);
     }
     if let (Some((port, pid, serial)), Some(new)) = (old, ctx.wire) {
         // The current serial answers EINVAL; a restarted driver has
