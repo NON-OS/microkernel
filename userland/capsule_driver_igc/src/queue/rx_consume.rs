@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr::{addr_of, addr_of_mut, read_volatile, write_volatile};
-use core::sync::atomic::{fence, Ordering};
 
 use crate::constants::queue::RX_DESC_COUNT;
 
@@ -38,7 +37,7 @@ impl RxRing {
             return None;
         }
         // Length and the full status are the part's only once status is seen.
-        fence(Ordering::Acquire);
+        nonos_libc::dma_rmb();
         let staterr = unsafe { read_volatile(addr_of!((*desc).staterr)) };
         let length = unsafe { read_volatile(addr_of!((*desc).length)) };
         let len = match parse(staterr, length) {

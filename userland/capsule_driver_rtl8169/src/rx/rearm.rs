@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
-
 use crate::constants::queue::{BUFFER_SIZE, RX_DESC_COUNT};
 use crate::constants::regs::{DESC_EOR, DESC_OWN};
 use crate::queue::desc::{desc_mut, Descriptor};
@@ -30,7 +28,7 @@ pub(super) fn rearm(driver: &Driver, idx: usize) {
         addr_lo: addr as u32,
         addr_hi: (addr >> 32) as u32,
     };
-    compiler_fence(Ordering::Release);
+    nonos_libc::dma_wmb();
     unsafe {
         desc_mut(driver.rx.desc_va, idx, d);
     }
