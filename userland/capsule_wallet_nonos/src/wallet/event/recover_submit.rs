@@ -18,6 +18,7 @@
 //! keyring; the indices and the typed text are wiped on every path.
 
 use nonos_app_skeleton::EventOutcome;
+use zeroize::Zeroize;
 
 use super::recover::wipe;
 use crate::wallet::state::State;
@@ -58,8 +59,5 @@ pub(super) fn submit(state: &mut State) -> EventOutcome {
 }
 
 fn wipe_indices(indices: &mut [u16; 24]) {
-    for w in indices.iter_mut() {
-        // SAFETY: volatile write so the parsed phrase does not linger.
-        unsafe { core::ptr::write_volatile(w, 0) };
-    }
+    indices.zeroize();
 }
