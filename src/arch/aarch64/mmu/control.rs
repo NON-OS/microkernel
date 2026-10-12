@@ -21,6 +21,7 @@
 //! walker on. Each gets its own file because each has its own field layout to
 //! justify.
 
+mod e0pd;
 mod id;
 mod mair;
 mod sctlr;

@@ -55,6 +55,7 @@ pub fn has_feature(feature: CpuFeature) -> bool {
         CpuFeature::Rng => ((aa64isar0 >> 60) & 0xF) >= 1,
         // ID_AA64MMFR1_EL1.PAN is [23:20]; [3:0] is HAFDBS, a different feature.
         CpuFeature::Pan => ((read_aa64mmfr1() >> 20) & 0xF) >= 1,
+        CpuFeature::E0pd => (super::registers_mmfr2::read_aa64mmfr2() >> 60) >= 1,
     }
 }
 
