@@ -38,8 +38,9 @@ pub fn toggle_export(state: &mut State) -> EventOutcome {
         state.status = b"generate or import a wallet first";
         return EventOutcome::Repaint;
     }
-    match export_secret(state.keyring_port, state.owner_pid, state.wallet_id) {
-        Ok(mut secret) => {
+    let mut secret = [0u8; 32];
+    match export_secret(state.keyring_port, state.owner_pid, state.wallet_id, &mut secret) {
+        Ok(()) => {
             state.export_hex[0] = b'0';
             state.export_hex[1] = b'x';
             for i in 0..32 {
@@ -53,6 +54,7 @@ pub fn toggle_export(state: &mut State) -> EventOutcome {
             EventOutcome::Repaint
         }
         Err(_) => {
+            secret.zeroize();
             state.status = b"export failed";
             EventOutcome::Repaint
         }
