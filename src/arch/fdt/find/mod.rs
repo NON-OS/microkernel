@@ -17,6 +17,7 @@
 pub mod cpus;
 pub mod gic;
 pub mod isa;
+pub mod mailbox;
 pub mod memory;
 pub mod msi;
 pub mod pci;
