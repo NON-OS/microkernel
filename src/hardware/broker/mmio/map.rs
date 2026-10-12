@@ -34,6 +34,7 @@
 //! 0x800. A page-aligned request gets a page-aligned VA and its own length,
 //! or less when an MSI-X table cuts it short, as before.
 
+use super::bar_select::{mappable, BarRefusal};
 use super::msix_exclusion;
 use super::types::{MmioMapError, MmioMapRequest, MmioMapResult};
 use super::window::{self, Window, WindowError, PAGE_SIZE};
@@ -66,14 +67,10 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
         .into_iter()
         .find(|r| r.device_id == req.device_id)
         .ok_or(MmioMapError::UnknownDevice)?;
-    let bar_idx = req.bar_index as usize;
-    if bar_idx >= device.bars.len() || bar_idx >= device.bar_count as usize {
-        return Err(MmioMapError::BadBarIndex);
-    }
-    let bar = device.bars[bar_idx];
-    if bar.kind != BAR_KIND_MMIO {
-        return Err(MmioMapError::NotMmioBar);
-    }
+    let bar = mappable(&device.bars, device.bar_count, req.bar_index).map_err(|r| match r {
+        BarRefusal::BadIndex => MmioMapError::BadBarIndex,
+        BarRefusal::NotMmio => MmioMapError::NotMmioBar,
+    })?;
     crate::sys::serial::println(b"[MMIO] msix");
     let protected = msix_exclusion::protected_regions();
     let w = window::window(bar.base, bar.size, req.offset, req.length, &protected)
@@ -83,8 +80,7 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     let pages = w.page_bytes / PAGE_SIZE;
     let user_va = grant::reserve_user_va(pages).ok_or(MmioMapError::NoVaSpace)?;
     crate::sys::serial::println(b"[MMIO] va");
-    let user_va_end =
-        user_va.as_u64().checked_add(w.page_bytes).ok_or(MmioMapError::Overflow)?;
+    let user_va_end = user_va.as_u64().checked_add(w.page_bytes).ok_or(MmioMapError::Overflow)?;
     if user_va.as_u64() < USER_MMIO_BASE || user_va_end > USER_MMIO_END {
         return Err(MmioMapError::NoVaSpace);
     }

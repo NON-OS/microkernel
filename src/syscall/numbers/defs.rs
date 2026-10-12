@@ -161,4 +161,5 @@ pub enum SyscallNumber {
     MkAcpiFunctionOf = tag4(b"MAFO"),
     MkAcpiHwError = tag4(b"MAHE"),
     MkAcpiPlatformDevice = tag4(b"MAPD"),
+    MkAcpiDeviceName = tag4(b"MADN"),
 }
