@@ -63,6 +63,9 @@ impl Context {
             cursor_sent: None,
             resize: crate::display::resize_rule::Resize::default(),
             indicators: super::indicator::Indicators::default(),
+            want_extend: false,
+            plan: None,
+            head_pending: alloc::vec::Vec::new(),
         }
     }
 }

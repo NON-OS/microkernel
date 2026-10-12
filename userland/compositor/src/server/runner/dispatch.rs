@@ -17,7 +17,7 @@
 use crate::protocol::{
     Request, E_BAD_OP, E_INVAL, OP_CURSOR_UPDATE, OP_DAMAGE_COMMIT, OP_DISPLAY_HINT,
     OP_DISPLAY_INFO, OP_FOCUS_SET, OP_HEALTHCHECK, OP_INDICATOR, OP_INPUT_SUBSCRIBE,
-    OP_SCENE_REMOVE, OP_SCENE_SUBMIT,
+    OP_OUTPUT_LAYOUT, OP_SCENE_REMOVE, OP_SCENE_SUBMIT,
 };
 use crate::server::{handlers, respond};
 use crate::state::Context;
@@ -41,6 +41,7 @@ pub fn dispatch(
         }
         OP_DISPLAY_HINT => handlers::display_hint::handle(ctx, sender_pid, &req, body, tx),
         OP_INDICATOR => handlers::indicator::handle(ctx, sender_pid, &req, body, tx),
+        OP_OUTPUT_LAYOUT => handlers::output_layout::handle(ctx, sender_pid, &req, body, tx),
         OP_DISPLAY_INFO if body.is_empty() => {
             handlers::display_info::handle(ctx, sender_pid, &req, tx)
         }
