@@ -20,7 +20,8 @@
 use crate::consts::at;
 use crate::enc::*;
 use crate::run::boot;
-use crate::video::backlights;
+use crate::run::eval;
+use crate::video::{backlights, parse_dod};
 
 #[test]
 fn outputs_with_bcl_and_bcm() {
@@ -33,4 +34,11 @@ fn outputs_with_bcl_and_bcm() {
     let (aml, _) = boot(&cat(&[&device("\\_SB.PCI0", &gfx), &other]), 2);
     let want = ["\\_SB.PCI0.GFX0.LCD0", "\\_SB.PNL1"].map(|p| at(&aml, p).unwrap());
     assert_eq!(backlights(&aml), want, "CRT0 has no _BCM");
+}
+
+#[test]
+fn dod_lists_the_outputs() {
+    let dod = package(3, &[int(0x8000_0100), int(0x8000_0400), string("x")]);
+    assert_eq!(parse_dod(&eval(&ret(&dod), vec![]).unwrap()), [0x8000_0100, 0x8000_0400]);
+    assert!(parse_dod(&eval(&ret(&int(1)), vec![]).unwrap()).is_empty());
 }
