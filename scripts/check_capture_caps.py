@@ -14,13 +14,13 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Keep CameraCapture (bit 37) and MicrophoneCapture (bit 38) off every capsule.
+"""Keep CameraCapture (37), MicrophoneCapture (38) and ScreenCapture (39) off every capsule.
 
-The kernel never sees a camera or a microphone; the USB stack, the audio
-service and the compositor's indicator ask MkCapCheck whether a peer holds
-these bits. So signing is what keeps them scarce. No capsule holds either
-until the owner decides Decision 9 (who may capture, and with what consent),
-and a holder is then added below by name. With no arguments this checks every
+The kernel never sees a camera or a microphone, nor takes a screenshot;
+the USB stack, the audio service and the compositor ask MkCapCheck whether
+a peer holds these bits. So signing is what keeps them scarce. No capsule
+holds any of them until the owner decides Decision 9 (who may capture, and
+with what consent), and a holder is then added below by name. With no arguments this checks every
 userland/*/Capsule.mk; the seal calls it with --slug and --caps before it
 signs a certificate or a manifest.
 """
@@ -31,7 +31,7 @@ import sys
 from pathlib import Path
 
 # bit -> (name, the capsule slugs allowed to ask for it)
-CAPTURE = {37: ("CameraCapture", ()), 38: ("MicrophoneCapture", ())}
+CAPTURE = {37: ("CameraCapture", ()), 38: ("MicrophoneCapture", ()), 39: ("ScreenCapture", ())}
 KEYS = ("CAPSULE_CAPS_CEILING", "CAPSULE_REQUIRED_CAPS", "CAPSULE_OPTIONAL_CAPS")
 
 
