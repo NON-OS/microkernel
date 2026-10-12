@@ -40,6 +40,8 @@ pub mod primary;
 pub mod server;
 #[path = "../../nonos_gfx_serve/src/slot.rs"]
 pub mod slot;
+#[path = "../../nonos_gfx_serve/src/state.rs"]
+pub mod state;
 #[path = "../../nonos_gfx_serve/src/surface.rs"]
 pub mod surface;
 
