@@ -26,6 +26,7 @@ pub fn tick(ctx: &mut Context) -> Result<(), &'static str> {
     if super::first_frame::holding(ctx) {
         return Ok(());
     }
+    super::lens::refresh(ctx);
     // Composite every damaged rectangle this frame. Each is small and separate,
     // so the empty space between far-apart damage is never touched. A
     // rectangle the display refused stays damaged for the next frame. On the
