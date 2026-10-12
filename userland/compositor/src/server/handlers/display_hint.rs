@@ -16,19 +16,25 @@
 
 //! NCMP 0x0009 DISPLAY_HINT: the host's wanted size, from a guest service.
 //! Only a service named in the kernel's HINT_SOURCES may send one; that list
-//! is empty until the owner accepts display hints (Decision 15), so today
-//! every sender is refused with -1. The answer's flags say whether the size
-//! will be applied (bit 0, resizable); resizing is its own unit (G 6), so a
-//! hint taken now is logged and answered 0.
+//! is empty until the owner accepts display hints (the host-services
+//! decision), so today every sender is refused with -1. A hint taken for
+//! output 0 of a wire driver is held and followed as a STATE hint is
+//! (`setup::resize`) and answered resizable (bit 0); otherwise, or with
+//! FOLLOW_HOST off (Decision 15), it is logged and answered 0.
 
 use alloc::format;
 
+use nonos_libc::mk_uptime_ms;
+
+use crate::display::follow::FOLLOW_HOST;
 use crate::display::hint_rule::{allowed, Hint};
 use crate::protocol::{Request, E_INVAL, E_PERM};
 use crate::server::respond;
 use crate::setup::{displays::HINT_SOURCES, lookup};
+use crate::state::Context;
 
 pub fn handle(
+    ctx: &mut Context,
     sender_pid: u32,
     req: &Request,
     body: &[u8],
@@ -46,6 +52,10 @@ pub fn handle(
         let (w, h, out) = (hint.width, hint.height, hint.output);
         crate::say::say(&format!("hint {}x{} for output {} from pid {}", w, h, out, sender_pid));
     }
-    let flags: u32 = 0;
+    let follows = FOLLOW_HOST && hint.output == 0 && ctx.wire.is_some();
+    if follows {
+        ctx.resize.note((hint.width, hint.height), mk_uptime_ms());
+    }
+    let flags = follows as u32;
     respond::status_payload(sender_pid, req, 0, &flags.to_le_bytes(), tx)
 }
