@@ -48,10 +48,10 @@ pub const fn intr_qtd(i: usize) -> usize {
 pub const fn intr_buf(i: usize) -> usize {
     INTR_BUF + INTR_BUF_LEN * i
 }
-/// Root port `lane + 1`'s polled bulk IN qTD and buffer.
-pub const fn poll_qtd(lane: usize) -> usize {
-    POLL_QTD + QTD_LEN * lane
+/// Polled place `place`'s qTD and buffer.
+pub const fn poll_qtd(place: usize) -> usize {
+    POLL_QTD + QTD_LEN * place
 }
-pub const fn poll_buf(lane: usize) -> usize {
-    POLL_BUF + BULK_MAX * lane
+pub const fn poll_buf(place: usize) -> usize {
+    POLL_BUF + BULK_MAX * place
 }

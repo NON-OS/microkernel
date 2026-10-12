@@ -40,7 +40,7 @@ mod hub_tests;
 #[cfg(test)]
 mod interrupt_tests;
 #[cfg(test)]
-mod lane_tests;
+mod place_tests;
 #[cfg(test)]
 mod poll_share_tests;
 #[cfg(test)]

@@ -16,7 +16,7 @@
 
 //! The schedule every frame runs: each of the 1024 frame list entries
 //! points at the first interrupt QH; the interrupt QHs chain to control's
-//! QH, then bulk's, then each root port's polled bulk IN's, the last ending
+//! QH, then bulk's, then each polled place's, the last ending
 //! the frame. Every queue is visited every frame, so an interrupt endpoint
 //! is polled each millisecond, at or above any rate its bInterval asks for,
 //! and a NAK costs nothing but time.
@@ -24,7 +24,6 @@
 use super::layout::*;
 use super::qh::{init, qh_link};
 use crate::env::Mem;
-use crate::facts::io::ROOT_PORTS;
 
 pub fn build<M: Mem>(m: &M) {
     for i in 0..INTR_MAX {
@@ -33,9 +32,9 @@ pub fn build<M: Mem>(m: &M) {
     }
     init(m, CTRL_QH, Some(BULK_QH));
     init(m, BULK_QH, Some(poll_qh(0)));
-    for lane in 0..ROOT_PORTS as usize {
-        let next = (lane + 1 < ROOT_PORTS as usize).then(|| poll_qh(lane + 1));
-        init(m, poll_qh(lane), next);
+    for place in 0..POLL_PLACES {
+        let next = (place + 1 < POLL_PLACES).then(|| poll_qh(place + 1));
+        init(m, poll_qh(place), next);
     }
     let first = qh_link(m, INTR_QH);
     for f in 0..FRAMES {
