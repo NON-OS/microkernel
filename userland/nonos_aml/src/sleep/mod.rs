@@ -19,5 +19,6 @@
 mod prepare;
 mod sx;
 
+pub(crate) use prepare::notify_state;
 pub use prepare::{prepare, sleep_types, Prepared};
 pub use sx::{parse_sx, sx_seg, SleepTypes};

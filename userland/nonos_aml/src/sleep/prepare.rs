@@ -39,7 +39,12 @@ pub struct Prepared {
     pub types: Option<SleepTypes>,
 }
 
-fn notify_state(aml: &mut Aml, eval: &mut Eval<'_>, seg: Seg, x: u8) -> Option<Result<(), Fault>> {
+pub(crate) fn notify_state(
+    aml: &mut Aml,
+    eval: &mut Eval<'_>,
+    seg: Seg,
+    x: u8,
+) -> Option<Result<(), Fault>> {
     let id = aml.ns.child(ROOT, seg)?;
     Some(eval(aml, id, vec![Object::Integer(u64::from(x))]).map(|_| ()))
 }

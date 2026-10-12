@@ -57,6 +57,8 @@ pub mod serial;
 pub mod shape;
 #[path = "../../nonos_aml/src/sleep/mod.rs"]
 pub mod sleep;
+#[path = "../../nonos_aml/src/suspend/mod.rs"]
+pub mod suspend;
 #[path = "../../nonos_aml/src/thermal/mod.rs"]
 pub mod thermal;
 #[path = "../../nonos_aml/src/video/mod.rs"]
