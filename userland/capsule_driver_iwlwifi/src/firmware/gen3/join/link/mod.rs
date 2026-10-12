@@ -32,11 +32,12 @@
 //!
 //! The access point's group key handshakes and repeated message 3s are
 //! answered here, protected; a new group key is kept for the serving loop
-//! to install. A deauthentication or disassociation from the access point
-//! ends the link: unprotected when management frame protection is off, and
-//! only decrypted by the firmware (so its MIC held) when it is on, since an
-//! unprotected one may then be forged.
-mod leave;
+//! to install. Management frames go to the station too, which judges a
+//! deauthentication (taken in the clear only without management frame
+//! protection), asks and answers SA Queries, and, ticked at each service
+//! with the firmware's missed-beacons notice, ends a link whose access point
+//! went away.
+
 mod netif;
 mod open;
 mod port;

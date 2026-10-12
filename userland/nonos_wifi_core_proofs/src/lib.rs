@@ -43,3 +43,5 @@ mod scan_list_tests;
 mod station_tests;
 #[cfg(test)]
 mod supplicant_tests;
+#[cfg(test)]
+mod watch_tests;

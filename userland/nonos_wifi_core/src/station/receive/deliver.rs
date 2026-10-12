@@ -20,6 +20,7 @@ use alloc::vec::Vec;
 
 use super::check::ETHERTYPE_EAPOL;
 use super::{Rx, RxDrop};
+use crate::dot11::header::TYPE_MGMT;
 use crate::frame::LLC_SNAP;
 use crate::station::LinkStation;
 
@@ -35,10 +36,17 @@ pub(super) struct Checked {
 impl LinkStation {
     /// Check and convert one received MPDU (FCS already removed).
     /// `hw_decrypted` says the chip decrypted and verified a protected frame
-    /// (it leaves the CCMP header and MIC in place).
+    /// (it leaves the CCMP header and MIC in place). A management frame goes
+    /// its own way; a data frame that passes counts as hearing the AP.
     pub fn receive(&mut self, mpdu: &[u8], hw_decrypted: bool) -> Rx {
+        if mpdu.first().is_some_and(|b| (b >> 2) & 0x03 == TYPE_MGMT) {
+            return self.on_mgmt(mpdu, hw_decrypted);
+        }
         match self.check(mpdu, hw_decrypted) {
-            Ok(c) => self.deliver(&c),
+            Ok(c) => {
+                self.watch.heard();
+                self.deliver(&c)
+            }
             Err(why) => Rx::Dropped(why),
         }
     }

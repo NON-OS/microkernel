@@ -17,6 +17,7 @@
 //! How an association ends, and what it leaves for the loop.
 
 use nonos_wifi_core::dot11::auth::deauth_frame;
+use nonos_wifi_core::station::Loss;
 
 use super::buffers::RxBuffers;
 use super::state::RtlLink;
@@ -45,8 +46,21 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         self.new_group_key.take()
     }
 
-    /// The reason code of a deauthentication received since the last call.
+    /// The reason code of a deauthentication the link took since the last call.
     pub fn take_left(&mut self) -> Option<u16> {
         self.left.take()
+    }
+
+    /// Whether the access point went unheard since the last call.
+    pub fn take_silent(&mut self) -> bool {
+        core::mem::take(&mut self.silent)
+    }
+
+    /// Note why the link ended, for the serving loop to close the session.
+    pub(super) fn lost(&mut self, why: Loss) {
+        match why {
+            Loss::Left(reason) | Loss::Unanswered(reason) => self.left = Some(reason),
+            Loss::Silent => self.silent = true,
+        }
     }
 }

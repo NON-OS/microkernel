@@ -53,8 +53,10 @@ pub(super) fn recorded(
 ) -> ConnectResult {
     let mut r = ConnectResult { progress, state: progress.state, ..ConnectResult::default() };
     match out {
-        Ok(j) => {
+        Ok(mut j) => {
             r.akm = j.akm.suite_type();
+            // The link's probes after a quiet access point name its network.
+            j.link.station.set_ssid(ssid);
             join.ssid[..ssid.len()].copy_from_slice(ssid);
             join.ssid_len = ssid.len();
             join.joined = Some(j);

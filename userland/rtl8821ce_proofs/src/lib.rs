@@ -108,3 +108,5 @@ mod tables_tests;
 pub mod tx;
 #[cfg(test)]
 mod tx_tests;
+#[cfg(test)]
+mod watch_tests;
