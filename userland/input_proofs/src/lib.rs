@@ -114,6 +114,8 @@ mod ps2_tests;
 #[cfg(test)]
 mod router_desk;
 #[cfg(test)]
+mod router_focus_tests;
+#[cfg(test)]
 mod router_hover_tests;
 #[cfg(test)]
 mod router_key_tests;
