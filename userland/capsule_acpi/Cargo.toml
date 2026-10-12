@@ -1,0 +1,38 @@
+# NONOS userland: capsule_acpi
+# eK@nonos.systems
+#
+# The platform's firmware, run where it can only fail itself: loads the DSDT
+# and SSDTs into NONOS's own AML interpreter (nonos_aml), brings devices up
+# (_PIC, _OSC, _INI), reports the device inventory and PCI interrupt
+# routing, and serves the SCI. Every register it touches is granted one
+# OperationRegion at a time by the kernel's ACPI rule; it claims no PCI
+# function and does no DMA.
+
+[package]
+name = "nonos_capsule_acpi"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS ACPI capsule"
+
+[[bin]]
+name = "acpi"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_aml = { path = "../nonos_aml" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
