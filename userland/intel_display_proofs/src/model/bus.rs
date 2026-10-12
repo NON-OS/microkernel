@@ -34,7 +34,7 @@ impl Gen9 {
                 self.vblank();
             }
         }
-        self.get(off)
+        self.gmbus_read(off).unwrap_or_else(|| self.get(off))
     }
 
     pub(super) fn on_write(&mut self, off: u32, v: u32) {
@@ -47,6 +47,7 @@ impl Gen9 {
         self.south_write(off, v);
         self.ddi_write(off, v);
         self.pipe_write(off, v);
+        self.gmbus_write(off, v);
         for p in Pipe::ALL {
             if off == r::plane_surf(p, 1) {
                 self.armed[p.index() as usize] = true;
