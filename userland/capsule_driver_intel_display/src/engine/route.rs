@@ -22,6 +22,7 @@
 //! without touching the link.
 
 use super::access::{field, Mmio};
+use super::dpll::DPLL_CTRL2;
 use super::pipe::Transcoder;
 use super::regs::trans_ddi_func_ctl;
 
@@ -58,4 +59,12 @@ pub fn read(m: &mut dyn Mmio, t: Transcoder) -> Option<Route> {
         _ => return None,
     };
     (1..=4).contains(&ddi).then_some(Route { ddi, link })
+}
+
+/// The DPLL DDI `ddi` runs on, from DPLL_CTRL2's override and clock select
+/// (`dpll_ctrl::ctrl2_bits`' layout, unverified); None when firmware left
+/// the DDI on its default clock, which this driver does not name.
+pub fn dpll_of(m: &mut dyn Mmio, ddi: u32) -> Option<u32> {
+    let f = field(m.read(DPLL_CTRL2), ddi * 3 + 2, ddi * 3);
+    (f & 1 != 0).then_some(f >> 1)
 }

@@ -22,6 +22,7 @@ extern crate alloc;
 mod bar;
 mod clock;
 mod discover;
+mod dma_pair;
 mod error;
 mod frames;
 mod handles;
