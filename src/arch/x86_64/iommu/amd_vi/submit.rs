@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Running commands on a unit and waiting for them, as Linux does in
-//! amd/iommu.c (iommu_queue_command_sync, then iommu_completion_wait): the
-//! commands, a completion wait behind them, the tail, then the store polled.
+//! Running commands on a unit and waiting for them: the commands, a
+//! COMPLETION_WAIT behind them that stores to memory (48882, 2.4.1), the
+//! tail, then the store polled, since commands complete in order.
 
 use core::sync::atomic::{compiler_fence, Ordering};
 

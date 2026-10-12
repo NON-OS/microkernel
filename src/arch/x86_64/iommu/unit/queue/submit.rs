@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Handing a batch of descriptors to a unit and waiting until it is done, as
-//! Linux does in intel/dmar.c, qi_submit_sync: the batch, a wait descriptor
-//! behind it, the new tail, then the status dword polled.
+//! Handing a batch of descriptors to a unit and waiting until it is done:
+//! the batch, an invalidation wait descriptor behind it (VT-d 6.5.2.8), the
+//! new tail, then the status dword polled, since the queue runs in order.
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
