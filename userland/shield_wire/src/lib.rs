@@ -28,17 +28,24 @@
 //! network or the prover.
 
 #![no_std]
+#![deny(
+    clippy::indexing_slicing,
+    clippy::arithmetic_side_effects,
+    clippy::cast_possible_truncation
+)]
 
 extern crate alloc;
 
 mod callers;
 mod frame;
+mod frame_reply;
 mod fresh;
 mod fresh_modes;
 mod hexes;
 mod ops;
 mod shield_fresh;
 mod values;
+mod values_more;
 
 pub use callers::{from_wallet, WALLETS};
 pub use frame::{
