@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! A control transfer on a slot's EP0, and the reply that hands back what
 //! it moved: the length as a u16 in a head, then the bytes.
 

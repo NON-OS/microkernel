@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Any control transfer a class driver asks for on EP0: its OUT data taken
+
 //! The polled bulk IN, `slot, 0, len_le16`: the first poll arms a chain of
 //! `len` bytes, and each poll looks at it once. Data replies as a bulk IN
 //! does; nothing yet is E_AGAIN at once; a STALL is E_PIPE. The chain is
