@@ -39,5 +39,6 @@ pub fn paint(ctx: &mut Context, rect: Rect) {
     };
     compose(dst, rect, scene, shown.then_some((cursor.x, cursor.y)));
     // Last: nothing a client draws or places can cover the band.
-    super::indicator_band::draw(dst, rect, &ctx.indicators);
+    let captured = ctx.screen_notice_until != 0;
+    super::indicator_band::draw(dst, rect, &ctx.indicators, captured);
 }

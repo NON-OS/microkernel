@@ -96,6 +96,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | `OP_DISPLAY_HINT` | 0x0009 | a host size hint (output, width, height, source) -> flags; only from a service in `HINT_SOURCES` (empty until the host-services decision), others get E_PERM; for output 0 of a wire driver held and followed like a STATE hint and answered 1 (resizable), else 0 |
 | `OP_INDICATOR` | 0x000A | a capturing driver's camera (kind 1) or microphone (kind 2) on (1) or off (0), 8 bytes; only from a holder of that kind's capture capability bit (CameraCapture 1<<37, MicrophoneCapture 1<<38; no capsule may hold either until Decision 9), others get E_PERM, shown in the reserved band and presented before the answer (E_IO and no change if the present fails), E_BUSY past eight holders |
 | `OP_OUTPUT_LAYOUT` | 0x000B | the shell's choice for several outputs: mode u32, 0 mirror or 1 extend; only from desktop_shell (E_PERM otherwise); kept while one output is present; answers u32 1 when extended now, else 0 |
+| `OP_SCREENSHOT` | 0x000C | the composed canvas copied into the caller's own shared ARGB surface: handle u64; only from a holder of the screen capture bit (none named yet, so every sender gets E_PERM); the band's blue mark shows for 3 s, presented before the copy; answers width and height copied, u32 each |
 
 The window manager owns the stacking order, and `OP_FOCUS_SET` is how it keeps the compositor's
 order the same. The compositor looks the window manager's pid up in the service registry on every
@@ -243,8 +244,9 @@ must produce a signed ELF whose SHA matches the embedded manifest
   layer; the compositor does not check who shared it, and the kernel's
   attach names no receiver (reported to the lead; the fix is kernel-side,
   `mk_surface_share_to`).
-- No op reads back pixels, a surface or a handle: DISPLAY_INFO's 16 bytes
-  of geometry are the only payload a client gets (`privacy_tests`).
+- No op reads back pixels, a surface or a handle to a client; the screen's
+  pixels reach only a screen capture holder's own surface, with the band's
+  notice shown first (`privacy_tests`, `screenshot_tests`).
 - The capture indicator's band (top right, 44x16 canvas pixels) is drawn
   after every layer in every frame that touches it, so no surface covers it
   (`frame_pacer/indicator_band.rs`).
