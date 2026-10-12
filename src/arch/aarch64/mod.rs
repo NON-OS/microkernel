@@ -15,6 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod abi;
+// The ACPI tables, parsed but not yet read: the UEFI boot path will hand
+// them over (`acpi/mod.rs`).
+#[allow(dead_code, unreachable_pub)]
+pub mod acpi;
 pub mod asm;
 pub mod boot;
 mod constants;
