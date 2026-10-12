@@ -31,6 +31,8 @@ mod pptt_build;
 mod pptt_chain_tests;
 mod pptt_tests;
 mod slit_tests;
+mod dbg2_tests;
+mod spcr_pc_tests;
 mod spcr_tests;
 mod srat_build;
 mod srat_tests;
