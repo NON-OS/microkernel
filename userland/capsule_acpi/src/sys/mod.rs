@@ -28,4 +28,5 @@ pub mod function_of;
 pub mod hw_error;
 pub mod log;
 pub mod pci_probe;
+pub mod platform;
 pub mod smbios;

@@ -121,6 +121,17 @@ through _BCL's levels and stop at the ends, 0x85 cycles, 0x88 goes to the
 lowest, and each is set with _BCM. `_DOS` is not called, so firmware keeps
 whatever switching and brightness policy it booted with.
 
+Platform controllers with no PCI function (I2C, SD/eMMC and GPIO hosts
+such as AMD's and Intel's LPSS parts) are published to the broker: each
+present and enabled device whose _HID, or else a _CID, is on
+`data/platform_ids.tsv` and whose evaluated _CRS names a memory window
+goes to the kernel through `MkAcpiPlatformDevice` with its windows, its
+first interrupt and its path, and becomes a claimable device the kernel
+holds to its region rule. The list names where each id is documented;
+every id in it is marked unverified. One `[ACPI] platform` line per
+listed device: its broker id, the kernel's refusal, or why it was passed
+over. No IOMMU domain confines them yet (no ANDD or IVRS ACPI-HID parse).
+
 ## Microkernel contract
 
 Every register it touches comes through the kernel's ACPI grant rule
@@ -137,7 +148,7 @@ function, and does no DMA.
 `CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve port 4530; Memory
 (0x10) for the heap and the interpreter's objects; DeviceEnum (0x8000) to
 find the SCI record; Driver (0x10000) to claim it; Irq (0x40000) to bind
-it; Admin (0x200) for the eight ACPI calls and MkSmbiosTable, which the kernel gates on Admin
+it; Admin (0x200) for the ACPI calls and MkSmbiosTable, which the kernel gates on Admin
 until a Firmware bit of their own is decided. Debug (0x100) is optional, for
 its serial lines. No Mmio, Dma or Pio.
 

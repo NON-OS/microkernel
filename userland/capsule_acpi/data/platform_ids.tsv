@@ -1,0 +1,25 @@
+# Platform controller ids capsule_acpi publishes to the broker (MAPD) when a
+# present and enabled device names one as its _HID or a _CID and its _CRS
+# gives a memory window. Columns, tab-separated: the id, its class (i2c, sd,
+# gpio), and where the id is documented. "unverified" means no published
+# document was read in writing the line: the id is recalled. A wrong one
+# publishes a controller under the wrong class; the kernel's region rule
+# still holds its windows to device memory no other device sits in.
+AMDI0010	i2c	unverified: recalled as an AMD DesignWare I2C host
+AMD0010	i2c	unverified: recalled as an older AMD DesignWare I2C host id
+INT33C2	i2c	unverified: recalled as Intel Lynx Point LPSS I2C 0
+INT33C3	i2c	unverified: recalled as Intel Lynx Point LPSS I2C 1
+INT3432	i2c	unverified: recalled as Intel Braswell LPSS I2C
+INT3433	i2c	unverified: recalled as Intel Braswell LPSS I2C
+80860F41	i2c	unverified: recalled as Intel Bay Trail LPSS I2C
+808622C1	i2c	unverified: recalled as Intel Cherry Trail LPSS I2C
+80860F14	sd	unverified: recalled as Intel Bay Trail eMMC/SDIO host
+80860F16	sd	unverified: recalled as Intel Bay Trail SD card host
+AMDI0040	sd	unverified: recalled as an AMD eMMC host
+INT33FC	gpio	unverified: recalled as Intel Bay Trail GPIO
+INT33FF	gpio	unverified: recalled as Intel Cherry Trail GPIO
+AMDI0030	gpio	unverified: recalled as AMD GPIO
+AMD0030	gpio	unverified: recalled as an older AMD GPIO id
+INT344B	gpio	unverified: recalled as Intel Sunrise Point PCH GPIO
+INT34BB	gpio	unverified: recalled as Intel Cannon Lake PCH GPIO
+INT34C5	gpio	unverified: recalled as Intel Tiger Lake PCH GPIO
