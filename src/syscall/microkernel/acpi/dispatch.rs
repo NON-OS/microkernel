@@ -41,7 +41,7 @@ pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
         SYS_ACPI_CPU => sys_acpi_cpu(a0, a1),
         SYS_ACPI_HOLDS => sys_acpi_holds(a0, a1, a2, a3),
         SYS_PCI_PROBE_FUNCTION => sys_pci_probe_function(a0, a1),
-        SYS_ACPI_FUNCTION_OF => sys_acpi_function_of(a0, a1),
+        SYS_ACPI_FUNCTION_OF => sys_acpi_function_of(a0, a1, a2),
         SYS_ACPI_HW_ERROR => sys_acpi_hw_error(a0),
         _ => return None,
     })
