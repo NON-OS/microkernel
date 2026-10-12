@@ -17,10 +17,14 @@
 //! The service on port 4530, and the SCI served between requests.
 
 mod brightness;
+mod caller;
+mod inventory;
 mod notify;
+mod power_wire;
 pub(crate) mod protocol;
 mod reply;
 mod run;
 mod sci;
+mod thermal_wire;
 
 pub use run::run;
