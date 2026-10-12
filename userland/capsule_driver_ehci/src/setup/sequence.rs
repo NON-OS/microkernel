@@ -39,7 +39,7 @@ const PAGE: u64 = 0xFFF;
 pub struct Driver {
     pub cx: Ctx<Registers, Uptime, Region>,
     pub found: Found,
-    _claim: Claim,
+    pub(super) claim: Claim,
 }
 
 pub fn run(dev: Found) -> Result<Driver, &'static str> {
@@ -60,5 +60,5 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     handoff(&claim, (registers.r32(HCCPARAMS) >> HCC_EECP_SHIFT) & 0xFF)?;
     let mut cx = Ctx::new(registers, Uptime, region);
     (cx.table.op, cx.table.ports) = start(&mut cx.io, &cx.clock, &cx.mem)?;
-    Ok(Driver { cx, found: dev, _claim: claim })
+    Ok(Driver { cx, found: dev, claim })
 }

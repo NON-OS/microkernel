@@ -54,7 +54,14 @@ No Mmio and no Irq: the controller is polled.
 
 ## Current implemented surface
 
-One controller and its two root ports, full- and low-speed devices, one
+Every controller of its kind on the machine is served, as one host
+(server/many, shared by driver.uhci0 and driver.ohci0): an Intel ICH's
+up to six UHCI functions, or a chipset's several OHCI. Their root ports
+are numbered on, controller after controller, in PORT_STATUS; slots are
+the host's, each bound to the controller whose port it is addressed on,
+and every later request for it goes there. Up to eight controllers.
+
+Each controller's two root ports, full- and low-speed devices, one
 request at a time: control, interrupt and bulk transfers on one queue per
 kind, the polled bulk IN on its own queue, every wait bounded by time.
 
@@ -114,8 +121,7 @@ port, and the hub, up.
 
 ## Explicit non-goals today
 
-No isochronous transfers, no interrupts, no suspend, no second
-controller of a chipset.
+No isochronous transfers, no interrupts, no suspend.
 
 ## Verification
 

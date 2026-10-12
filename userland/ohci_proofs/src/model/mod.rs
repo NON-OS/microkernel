@@ -28,11 +28,12 @@ mod regs;
 mod retire;
 mod steps;
 mod td;
+#[path = "../../../uhci_proofs/src/model/wire.rs"]
 mod wire;
 mod world;
 
 pub use device::{Device, Reply};
 pub use handles::{rig, Cx, ModelClock, ModelMem, ModelRegs, Shared};
 pub use steps::{addressed, bulk_ready};
-pub use wire::{call, Answer};
+pub use wire::{call, call_host, Answer};
 pub use world::{World, BUS, PORTS};
