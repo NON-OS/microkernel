@@ -184,7 +184,12 @@ name = "rtl8821ce_proofs"
 version = "0.3.0"
 dependencies = [
  "nonos_wifi_core",
+ "rtl8821ce_proofs_libc_shim",
 ]
+
+[[package]]
+name = "rtl8821ce_proofs_libc_shim"
+version = "0.1.0"
 
 [[package]]
 name = "sec1"

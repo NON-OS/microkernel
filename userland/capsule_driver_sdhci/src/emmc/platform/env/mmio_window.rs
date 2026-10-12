@@ -16,8 +16,6 @@
 
 //! The slot register window the broker mapped.
 
-use core::ptr::{read_volatile, write_volatile};
-
 use super::super::super::env::Mmio;
 
 /// The slot's registers, mapped by the broker (uncached) at `base`.
@@ -37,21 +35,21 @@ impl MmioWindow {
 
 impl Mmio for MmioWindow {
     fn r8(&self, off: u32) -> u8 {
-        unsafe { read_volatile((self.base + off as u64) as *const u8) }
+        unsafe { nonos_libc::mmio_read8((self.base + off as u64) as usize) }
     }
     fn r16(&self, off: u32) -> u16 {
-        unsafe { read_volatile((self.base + off as u64) as *const u16) }
+        unsafe { nonos_libc::mmio_read16((self.base + off as u64) as usize) }
     }
     fn r32(&self, off: u32) -> u32 {
-        unsafe { read_volatile((self.base + off as u64) as *const u32) }
+        unsafe { nonos_libc::mmio_read32((self.base + off as u64) as usize) }
     }
     fn w8(&self, off: u32, v: u8) {
-        unsafe { write_volatile((self.base + off as u64) as *mut u8, v) }
+        unsafe { nonos_libc::mmio_write8((self.base + off as u64) as usize, v) }
     }
     fn w16(&self, off: u32, v: u16) {
-        unsafe { write_volatile((self.base + off as u64) as *mut u16, v) }
+        unsafe { nonos_libc::mmio_write16((self.base + off as u64) as usize, v) }
     }
     fn w32(&self, off: u32, v: u32) {
-        unsafe { write_volatile((self.base + off as u64) as *mut u32, v) }
+        unsafe { nonos_libc::mmio_write32((self.base + off as u64) as usize, v) }
     }
 }

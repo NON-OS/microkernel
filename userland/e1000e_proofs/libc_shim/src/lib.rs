@@ -30,3 +30,15 @@ pub use debug::{clear_log, logged, mk_debug};
 pub use entropy::{crypto_random, entropy, Entropy};
 pub use pci::{config_reads, mk_pci_config_read, set_ring_status};
 pub use release::{given_back, mk_device_release, mk_dma_unmap, mk_mmio_unmap};
+
+// The real libc's register accessors and DMA barriers, mounted so the driver
+// files under test reach a device through the code they ship with.
+#[path = "../../../libc/src/broker/dma_order.rs"]
+mod dma_order;
+#[path = "../../../libc/src/broker/mmio_access.rs"]
+mod mmio_access;
+pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
+pub use mmio_access::{
+    mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
+    mmio_write8,
+};
