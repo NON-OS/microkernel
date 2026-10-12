@@ -16,6 +16,7 @@
 
 pub(super) fn spawn() {
     super::drivers_usb_hosts::spawn();
+    super::drivers_usb_hub::spawn();
     spawn_usb_hid();
     spawn_usb_msc();
 }

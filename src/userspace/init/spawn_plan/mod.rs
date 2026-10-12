@@ -33,6 +33,7 @@ mod drivers_ufs;
 mod drivers_usb;
 mod drivers_usb_companions;
 mod drivers_usb_hosts;
+mod drivers_usb_hub;
 mod drivers_usbnet;
 mod drivers_virtio;
 mod drivers_virtio_display;

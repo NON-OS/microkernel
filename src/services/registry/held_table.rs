@@ -24,6 +24,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.usb_hid0", KERNEL_ONLY),
     ("driver.i2c_hid0", KERNEL_ONLY),
     ("driver.usb_msc0", KERNEL_ONLY),
+    ("driver.usb_hub0", KERNEL_ONLY),
     ("driver.smbus0", KERNEL_ONLY),
     ("driver.virtio_rng", KERNEL_ONLY),
     (USB_HOSTS[0], USB_CLIENTS),
@@ -38,14 +39,16 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
 ];
 
 /// The kernel polls the keyboards and pointers, reads the random source and
-/// serves USB storage itself; no capsule has reason to reach them. The SMBus
+/// serves USB storage itself, and the hub walker answers it alone; no
+/// capsule has reason to reach them. The SMBus
 /// host has no driver above it yet: a raw transfer reaches any device on the
 /// bus, so it is opened to one when one exists.
 const KERNEL_ONLY: &[&str] = &[];
 
-/// The class drivers above every USB host (usb_hosts.rs), each searching the
-/// ports for its own kind of device.
+/// The hub walker and the class drivers above every USB host (usb_hosts.rs),
+/// each searching the ports, root and virtual, for its own kind of device.
 const USB_CLIENTS: &[&str] = &[
+    "driver.usb_hub0",
     "driver.usb_hid0",
     "driver.usb_msc0",
     "driver.usb_audio0",
