@@ -34,6 +34,22 @@ pub fn keep(named: Named) {
     NAMES.lock().push(named);
 }
 
+/// A controller the kernel's static scan found keeps no path, only the
+/// `_HID` its driver reads beside the record.
+pub fn keep_unpathed(device_id: u64, hid: [u8; 8], uid: u64) {
+    keep(Named { device_id, hid, uid, path: Vec::new() });
+}
+
+/// A platform device's `_HID`, `_UID` and path, for the drivers (the
+/// `_HID` picks a GPIO pad layout) and for the ACPI capsule (the path is
+/// how it finds the device's object). The path is empty for a controller
+/// the kernel's own static scan found, which keeps no path.
+pub fn named(device_id: u64) -> Option<([u8; 8], u64, Vec<u8>)> {
+    let names = NAMES.lock();
+    let n = names.iter().find(|n| n.device_id == device_id)?;
+    Some((n.hid, n.uid, n.path.clone()))
+}
+
 /// The path of a platform device the capsule described.
 pub fn path_of(device_id: u64) -> Option<Vec<u8>> {
     NAMES.lock().iter().find(|n| n.device_id == device_id).map(|n| n.path.clone())
