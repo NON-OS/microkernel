@@ -35,7 +35,11 @@ pub fn bind<B: Bus>(mut bus: B, found: &Found) -> Bind<Ncm<B>> {
         Ok((mac, params, rx_max)) => {
             let zlp = sends_zlp(found.info.vendor);
             let shape = tx_shape(&params, f.pipes.max_packet_out, zlp);
-            Bind::Ours(Ncm::new(bus, mac, f.pipes, rx_max, shape))
+            // Without its notifications the link reads up, as it did before.
+            let notify = f.notify.and_then(|ep| bus.configure_interrupt(ep).ok());
+            let mut ncm = Ncm::new(bus, mac, f.pipes, rx_max, shape);
+            ncm.notify = notify;
+            Bind::Ours(ncm)
         }
         Err((what, e)) => Bind::Failed(what, e),
     }
