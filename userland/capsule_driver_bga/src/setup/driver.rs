@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
 
 use crate::display::Bga;
 use crate::handles::BrokerHandles;
-use crate::platform::Pool;
 
 /// A driver that came up: its broker handles, never read but held so their
 /// drop releases the claim and both grants only when the driver ends, and
