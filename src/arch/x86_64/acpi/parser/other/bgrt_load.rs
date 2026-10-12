@@ -54,7 +54,10 @@ pub fn parse_bgrt(registry: &mut TableRegistry) {
         core::slice::from_raw_parts(addr as *const u8, len)
     };
     match copy_logo(table, read) {
-        Ok(logo) => *LOGO.write() = Some(logo),
+        Ok(logo) => {
+            *LOGO.write() = Some(logo);
+            super::bgrt_mode::record();
+        }
         Err(LogoError::NoLogo) => {}
         Err(e) => crate::log_warn!("[ACPI] BGRT logo not served: {:?}", e),
     }
