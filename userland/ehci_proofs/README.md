@@ -14,7 +14,7 @@ doorbell answered at the next frame. The devices are `uhci_proofs`'
 
 ## What it proves
 
-39 `#[test]` functions:
+40 `#[test]` functions:
 
 - start: halted, reset, both schedules on, every port routed here and
   powered, the async ring closed on its one head, no interrupt QH running
@@ -29,8 +29,9 @@ doorbell answered at the next frame. The devices are `uhci_proofs`'
   back (`interrupt_tests`);
 - bulk OUT and IN at 512-byte packets with toggles carried, a short
   packet, a STALL and reset (`bulk_tests`); the polled IN, two adapters
-  side by side (`poll_tests`, `poll_share_tests`), one slot per port
-  (`lane_tests`);
+  side by side (`poll_tests`, `poll_share_tests`), places held by
+  devices: two adapters below one hub side by side, and a first poll
+  waiting for a free place (`place_tests`);
 - a timed-out IN taken back through the doorbell with the ring whole
   again, a full 4 KiB IN, a slot's QHs taken back and reused at DATA0
   (`recover_tests`); the wire (`wire_tests`);

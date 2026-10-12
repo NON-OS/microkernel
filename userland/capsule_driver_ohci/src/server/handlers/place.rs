@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whose a root port's polled place is. No hub is enumerated (hub ops
-//! answer E_INVAL), and a port is addressed by one slot at a time, so a
-//! second slot polling on a port cannot arise; were it to, it is refused,
-//! never given the place another slot's armed transfer holds.
+//! The polled places: a pool of buffers a device holds while its polled
+//! bulk IN is armed. Devices on one root port, below a hub, poll side by
+//! side, each in its own place; a place is free again once its data is
+//! taken or the pipe is reset or given back.
 
 use crate::devices::table::Table;
+use crate::sched::layout::POLL_PLACES;
 
-/// Whether a slot other than `slot` has its polled IN armed on `port`.
-pub fn taken(t: &Table, slot: u8, port: u8) -> bool {
-    let mut others = t.devs.iter().enumerate().filter(|(j, _)| j + 1 != slot as usize);
-    others.any(|(_, d)| d.is_some_and(|d| d.port == port && d.poll.is_some()))
+/// A place no device holds, if any.
+pub fn free(t: &Table) -> Option<usize> {
+    let held = |p: usize| t.devs.iter().flatten().any(|d| d.poll.is_some_and(|(q, _)| q == p));
+    (0..POLL_PLACES).find(|&p| !held(p))
 }
