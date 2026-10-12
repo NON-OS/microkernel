@@ -18,14 +18,17 @@ pub mod chord;
 pub mod deliver;
 pub mod dispatch;
 mod fanout;
+mod focus_now;
 pub mod grab_rule;
 mod held;
 mod key_deliver;
-mod kinds;
 pub mod key_target;
 mod keyboard;
+mod kinds;
+pub mod pad;
 mod pointer;
 pub mod preempt;
+mod press_kinds;
 pub mod shell_keys;
 pub mod trusted_hold;
 

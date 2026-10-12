@@ -16,7 +16,6 @@
 
 use nonos_libc::{InputEvent, INPUT_KIND_KEY_UP};
 
-use crate::clients::wm;
 use crate::state::Context;
 
 use super::pointer::shell_pid;
@@ -45,13 +44,7 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     } else if chord || system {
         shell_pid(ctx)
     } else {
-        let rid = ctx.issue_request_id();
-        let answer = wm::query_focus(&mut ctx.wm_port, rid);
-        if let Some(focused) = answer {
-            ctx.last_focus_pid = focused;
-        }
-        let shell = shell_pid(ctx);
-        super::key_target::press_target(answer, ctx.last_focus_pid, shell)
+        super::focus_now::focus_now(ctx)
     };
     super::key_deliver::deliver_key(ctx, pid, event)
 }
