@@ -21,6 +21,7 @@ mod bulk;
 mod call;
 mod control;
 mod interrupt;
+mod interrupt_out;
 mod lookup;
 mod port;
 mod slot;

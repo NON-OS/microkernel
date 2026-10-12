@@ -13,6 +13,7 @@ pub enum Call {
     Configure(Pipes),
     BulkOut(Vec<u8>),
     ResetBulk(bool),
+    InterruptOut(u8, Vec<u8>),
 }
 
 /// The responder sees each control call and answers it: the bytes in for

@@ -355,13 +355,13 @@ fn binterval_is_converted_by_speed() {
     }
 }
 
-fn region(bytes: u64) -> crate::dma::DmaRegion {
+pub(super) fn region(bytes: u64) -> crate::dma::DmaRegion {
     let r = DmaPool::new(1, 1).alloc(bytes).expect("region");
     r.zero();
     r
 }
 
-fn dw(r: &crate::dma::DmaRegion, byte: usize) -> u32 {
+pub(super) fn dw(r: &crate::dma::DmaRegion, byte: usize) -> u32 {
     // SAFETY: the region is a live grant and `byte` is inside it.
     unsafe { (r.as_mut_ptr::<u8>().add(byte) as *const u32).read() }
 }

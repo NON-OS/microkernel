@@ -28,7 +28,8 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let length = u16::from_le_bytes([body[2], body[3]]);
     // At most the endpoint's own limit (its packet, at most 64): a read
     // past its buffer is refused, never asked of the controller.
-    if length > limit(ctx, slot, dci) {
+    // An even DCI is an OUT endpoint: never armed for a read.
+    if length > limit(ctx, slot, dci) || dci.is_multiple_of(2) {
         reply_with_status(tx, req, E_INVAL);
         return;
     }

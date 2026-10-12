@@ -38,6 +38,8 @@ pub const OP_RESET_BULK: u16 = 0x0013;
 /// A bulk IN that is armed once and polled, never waited for: a network
 /// device NAKs until a frame comes, which may be never.
 pub const OP_BULK_IN_POLL: u16 = 0x0014;
+/// One report to an interrupt OUT endpoint: `slot, dci, len_le16, data`.
+pub const OP_INTERRUPT_OUT: u16 = 0x0025;
 
 /// A port's `owner` byte in `OP_PORT_STATUS`: free, or claimed by a class
 /// driver that configured endpoints on it.

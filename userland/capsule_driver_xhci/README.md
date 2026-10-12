@@ -51,9 +51,10 @@ behind it.
 | `OP_ENABLE_SLOT` / `OP_DISABLE_SLOT` | issue xHCI Enable / Disable Slot | slot id / status word |
 | `OP_ADDRESS_DEVICE` | reset a free root port and issue Address Device; `E_BUSY` if held | slot, port, speed, EP0 MPS |
 | `OP_GET_DEVICE_DESCRIPTOR` / `OP_GET_CONFIG_DESCRIPTOR` | run EP0 GET_DESCRIPTOR | raw descriptor bytes |
-| `OP_ALLOC_TRANSFER_RING` | give an endpoint of an addressed slot a transfer ring | status word |
+| `OP_ALLOC_TRANSFER_RING` | give an interrupt endpoint of an addressed slot a transfer ring, its context typed IN or OUT by its address | status word |
 | `OP_CONTROL_TRANSFER` | one EP0 control transfer for a class driver (for example SET_CONFIGURATION, SET_PROTOCOL) | status, IN data |
 | `OP_INTERRUPT_IN` | poll one interrupt-IN packet of at most the endpoint's wMaxPacketSize, never past `INTERRUPT_IN_MAX` (64) | report bytes, or pending |
+| `OP_INTERRUPT_OUT` (0x25) | `slot, dci, len_le16, data`: one report, 1 to the endpoint's wMaxPacketSize bytes, to an interrupt OUT endpoint (an even DCI) whose ring ALLOC_TRANSFER_RING made, waited for; a failure brings the endpoint back first | moved le16, 0, 0 |
 | `OP_CONFIGURE_BULK` / `OP_RESET_BULK` | add a bulk IN and OUT pair; recover one after a STALL | DCIs / status word |
 | `OP_CONFIGURE_BULK2` (0x23) | a second bulk pair beside the first, on endpoints it does not hold (UAS's data pipes); bulk ops name it as pair 1 in their second byte, `OP_RESET_BULK` in bit 1 | DCIs |
 | `OP_CONFIGURE_STREAMS` (0x24) | `slot, pair, dirs, log2`: SuperSpeed bulk streams on a pair's IN (dirs bit 0) and OUT (bit 1) endpoints, 2^log2 stream contexts (log2 1 to 4, within HCCPARAMS1 MaxPSASize), linear; BULK_IN and BULK_OUT then name a stream in bits 7:4 of their pair byte. A streamed endpoint is never polled or reset as one ring | usable streams le16 |
