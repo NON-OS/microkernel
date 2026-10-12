@@ -31,8 +31,9 @@ const MAX_RECORDS: usize = 512;
 /// The candidates in the order they are tried: known Intel eMMC hosts, then
 /// other SDHCI hosts (served as fixed if their slot is embedded, else as a
 /// removable slot when no host is fixed), each group in device list order.
-/// The SDIO hosts Intel names are left out. The broker files class 0x08 under OTHER, so the whole list is
-/// read (class 0) and matched on the PCI class codes.
+/// The SDIO hosts Intel names are left out. The broker files class 0x08
+/// under OTHER, so the whole list is read (class 0) and matched on the PCI
+/// class codes.
 pub fn discover() -> Vec<Found> {
     let total = mk_device_list(0, core::ptr::null_mut(), 0);
     if total <= 0 {
