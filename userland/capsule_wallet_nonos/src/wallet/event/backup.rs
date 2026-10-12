@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::EventOutcome;
+use zeroize::Zeroize;
 
 use crate::wallet::state::State;
 
@@ -28,11 +29,7 @@ pub fn confirm_backup(state: &mut State) -> EventOutcome {
 }
 
 pub fn wipe_backup(state: &mut State) {
-    for w in state.backup_words.iter_mut() {
-        // SAFETY: volatile write so the mnemonic wipe is not elided.
-        unsafe { core::ptr::write_volatile(w, 0) };
-    }
-    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    state.backup_words.zeroize();
     state.backup_count = 0;
     state.backup_active = false;
 }

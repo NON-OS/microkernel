@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::EventOutcome;
+use zeroize::Zeroize;
 
 use crate::wallet::state::{State, VIEW_RECEIVE};
 
@@ -37,10 +38,6 @@ pub fn toggle_recover(state: &mut State) -> EventOutcome {
 }
 
 pub(super) fn wipe(state: &mut State) {
-    for b in state.recover_buf.iter_mut() {
-        // SAFETY: volatile write so the typed phrase is really gone.
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
-    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    state.recover_buf.zeroize();
     state.recover_len = 0;
 }
