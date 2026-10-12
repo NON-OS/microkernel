@@ -22,8 +22,8 @@
 use super::super::acpi_i2c::clock::source_clock_hz;
 use super::super::table;
 use super::platform_paths::{keep, Named};
-use super::platform_record::record;
-use super::platform_wire::{Platform, I2C};
+use super::platform_record::{record, usable_irq};
+use super::platform_wire::{Platform, HAS_IRQ, I2C};
 use crate::sys::serial::Line;
 
 pub fn add(p: Platform) -> u64 {
@@ -35,6 +35,9 @@ pub fn add(p: Platform) -> u64 {
     l.str(b" windows=")
         .dec(p.windows.len() as u64)
         .str(b"; no ANDD/ACPI-HID entry parsed: unconfined");
+    if p.irq_flags & HAS_IRQ != 0 && !usable_irq(&p) {
+        l.str(b"; GSI ").dec(u64::from(p.gsiv)).str(b" past a byte: interrupt refused");
+    }
     l.end();
     keep(Named { device_id: id, hid: p.hid, uid: p.uid, path: p.path });
     id
