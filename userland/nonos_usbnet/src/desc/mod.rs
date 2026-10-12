@@ -23,6 +23,7 @@ mod functional;
 mod interface;
 mod kinds;
 mod mac;
+mod notify;
 mod walk;
 
 pub use device::{config_header, device_info, DeviceInfo};
@@ -31,4 +32,5 @@ pub use interface::{interfaces, Interface};
 pub use kinds::{CLASS_CDC_DATA, CLASS_COMM, CLASS_VENDOR, CONFIG, CS_INTERFACE, DEVICE};
 pub use kinds::{ENDPOINT, INTERFACE, SS_ENDPOINT_COMPANION, STRING};
 pub use mac::{mac_from_string, usable};
+pub use notify::notify_ep;
 pub use walk::{walk, Walk};

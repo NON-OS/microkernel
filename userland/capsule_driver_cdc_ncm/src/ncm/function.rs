@@ -18,10 +18,10 @@
 //! subclass 0x0D, protocol 0, with a Union, Ethernet Networking and NCM
 //! functional descriptors, and its data interface's bulk alternate.
 
-use nonos_usbnet::desc::{find_functional, interfaces, union_data, CLASS_CDC_DATA, CLASS_COMM};
+use nonos_usbnet::desc::{
+    find_functional, interfaces, notify_ep, union_data, CLASS_CDC_DATA, CLASS_COMM,
+};
 use nonos_usbnet::{Notify, Pipes};
-
-use super::notice::notify_ep;
 
 const SUBCLASS_NCM: u8 = 0x0D;
 /// USB_CDC_PROTO_NONE: the only protocol Linux cdc_devs[] matches for NCM.
