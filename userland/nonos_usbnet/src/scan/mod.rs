@@ -19,13 +19,17 @@
 mod book;
 mod bound;
 mod classify;
+mod join;
 mod port;
 mod probe;
 mod scanner;
 mod search;
+mod shared;
 
 pub use book::{Book, TRIES};
 pub use bound::Bound;
+pub use join::ShareFn;
 pub use port::Port;
 pub use scanner::Scanner;
 pub use search::{search, Tried};
+pub use shared::SharedScanner;

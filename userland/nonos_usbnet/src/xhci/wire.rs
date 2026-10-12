@@ -40,6 +40,11 @@ pub const OP_RESET_BULK: u16 = 0x0013;
 pub const OP_BULK_IN_POLL: u16 = 0x0014;
 /// One report to an interrupt OUT endpoint: `slot, dci, len_le16, data`.
 pub const OP_INTERRUPT_OUT: u16 = 0x0025;
+/// `slot, port, interface`: this driver drives that interface of a device.
+pub const OP_CLAIM_INTERFACE: u16 = 0x0026;
+/// `port`: the device another driver shares there, `slot, 0, 0, 0,
+/// claimed u32` (a bit per interface held).
+pub const OP_SLOT_OF_PORT: u16 = 0x0027;
 
 /// A port's `owner` byte in `OP_PORT_STATUS`: free, or claimed by a class
 /// driver that configured endpoints on it.

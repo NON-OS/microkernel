@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Several xHCI controllers behind the one `driver.xhci0` endpoint. A
-//! laptop's chipset controller may sit beside a Thunderbolt or USB4 one, and
-//! AMD Ryzen APUs have two, each with its own root ports; serving only the
-//! first left every port of the others dead. The class drivers keep the
-//! wire format they have: root ports are numbered across the controllers
-//! (the primary's from 1, the next one's after its last), and the slot id a
-//! class driver holds is the multiplexer's own. Enable Slot only reserves
-//! such an id; the controller's slot is enabled at Address Device, once the
-//! port, and so the controller, is known. With one controller every request
-//! goes to it unchanged.
+//! Several xHCI controllers behind the one `driver.xhci0` endpoint: a
+//! chipset controller beside a Thunderbolt or USB4 one, or an AMD APU's
+//! two, each with its own root ports. Root ports are numbered across the
+//! controllers (the primary's from 1, the next one's after its last), and a
+//! class driver's slot id is the multiplexer's own, reserved at Enable Slot
+//! and bound to a controller's slot at Address Device. With one controller
+//! every request goes to it unchanged.
 
 use alloc::vec::Vec;
 
@@ -45,6 +42,8 @@ pub struct Mux {
     pub(super) vslots: [VSlot; 256],
     /// Children below hubs, parked by driver.usb_hub0 (mux_virt.rs).
     pub(super) virt: Virt,
+    /// Shared devices' interfaces and their drivers (mux_claims.rs).
+    pub(super) claims: crate::slots::Claims,
 }
 
 impl Mux {
@@ -55,6 +54,7 @@ impl Mux {
             ctxs,
             vslots: [VSlot::Free; 256],
             virt: Virt::default(),
+            claims: Default::default(),
         }
     }
 

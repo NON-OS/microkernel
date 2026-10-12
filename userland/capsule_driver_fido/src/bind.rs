@@ -16,24 +16,24 @@
 //! Whether a device is a security key, and setting it up: configured, each
 //! HID interface that could be one asked for its report descriptor, and
 //! the one whose application is FIDO (usage page F1D0h, usage 1, as
-//! recalled, unverified) given its two interrupt rings and a channel.
+//! recalled, unverified) taken (take.rs). A composite key whose keyboard
+//! usb_hid0 bound is joined instead (`share`): never configured again, and
+//! only its interfaces no other driver holds are looked at.
 
 use nonos_usbnet::desc::config_header;
 use nonos_usbnet::xhci::XhciBus;
 use nonos_usbnet::{Bind, Bus, Found, Setup};
 
-use crate::application::application;
-use crate::ctaphid::{find_keys, Channel};
-use crate::up::up;
-
-const FIDO: (u16, u16) = (0xF1D0, 0x01);
-const REPORT_DESCRIPTOR: u8 = 0x22;
+use crate::ctaphid::{find_keys, free_keys, Channel};
+use crate::take::take;
 
 pub struct Port {
     pub ids: (u16, u16),
     /// The IN and OUT endpoints' DCIs.
     pub dci: (u8, u8),
     pub ch: Channel,
+    /// Joined beside another driver, which keeps the device configured.
+    pub shared: bool,
 }
 
 pub fn bind(mut bus: XhciBus, found: &Found) -> Bind<Port> {
@@ -45,17 +45,16 @@ pub fn bind(mut bus: XhciBus, found: &Found) -> Bind<Port> {
     if let Err(e) = bus.control_out(Setup::set_configuration(value), &[]) {
         return Bind::Failed("set configuration", e);
     }
-    let Some(key) = keys.into_iter().find(|k| is_fido(&mut bus, k.interface)) else {
-        return Bind::NotOurs;
-    };
-    match up(&mut bus, &key) {
-        Ok((dci, ch)) => Bind::Ours(Port { ids: (found.info.vendor, found.info.product), dci, ch }),
-        Err((step, e)) => Bind::Failed(step, e),
-    }
+    take(bus, found, keys, false)
 }
 
-fn is_fido(bus: &mut XhciBus, interface: u8) -> bool {
-    let mut report = [0u8; 256];
-    let get = Setup::new(0x81, 0x06, (REPORT_DESCRIPTOR as u16) << 8, interface as u16);
-    bus.control_in(get, &mut report).is_ok_and(|n| application(&report[..n]) == Some(FIDO))
+/// A device another driver configured: its first configuration, the one a
+/// HID driver sets, and of it only the interfaces `claimed` leaves free.
+pub fn share(bus: XhciBus, found: &Found, claimed: u32) -> Bind<Port> {
+    let Some(raw) = found.configs.first() else { return Bind::NotOurs };
+    let keys = free_keys(raw, claimed);
+    if keys.is_empty() {
+        return Bind::NotOurs;
+    }
+    take(bus, found, keys, true)
 }

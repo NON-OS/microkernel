@@ -58,3 +58,10 @@ pub fn find_keys(raw: &[u8]) -> Vec<Key> {
     keys.extend(at.filter(|k| k.input.address != 0 && k.output.address != 0));
     keys
 }
+
+/// The candidates another driver does not hold: `claimed` has a bit per
+/// interface held (0 to 31; one past 31 is never held).
+pub fn free_keys(raw: &[u8], claimed: u32) -> Vec<Key> {
+    let free = |k: &Key| k.interface >= 32 || claimed >> k.interface & 1 == 0;
+    find_keys(raw).into_iter().filter(free).collect()
+}

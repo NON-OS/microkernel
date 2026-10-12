@@ -25,5 +25,5 @@ mod talk;
 pub use frame::{CMD_CANCEL, CMD_CBOR, PACKET};
 pub use init::{Channel, CAP_CBOR};
 pub use job::{Fault, Job};
-pub use key::{find_keys, Key};
+pub use key::{find_keys, free_keys, Key};
 pub use talk::{allocate, send};

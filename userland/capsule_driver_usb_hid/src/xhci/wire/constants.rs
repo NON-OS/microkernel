@@ -23,6 +23,7 @@ pub const OP_ADDRESS_DEVICE: u16 = 0x0006;
 /// driver answers E_INVAL (-22) to an op it does not know.
 pub const OP_ALLOC_TRANSFER_RING: u16 = 0x0009;
 pub const OP_CONTROL_TRANSFER: u16 = 0x000B;
+pub const OP_CLAIM_INTERFACE: u16 = 0x0026;
 pub const OP_ENABLE_SLOT: u16 = 0x0004;
 pub const OP_DISABLE_SLOT: u16 = 0x0005;
 pub const OP_GET_CONFIG_DESCRIPTOR: u16 = 0x0008;

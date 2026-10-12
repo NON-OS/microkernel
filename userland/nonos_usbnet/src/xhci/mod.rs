@@ -19,6 +19,7 @@
 
 mod bulk;
 mod call;
+mod claims;
 mod control;
 mod interrupt;
 mod interrupt_out;
@@ -31,6 +32,7 @@ mod wire;
 mod xhci_bus;
 
 pub use call::call;
+pub use claims::{claim_interface, slot_of_port};
 pub use lookup::{host, hosts};
 pub use port::connected_ports;
 pub use slot::{address_device, disable_slot, enable_slot};

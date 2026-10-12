@@ -16,6 +16,7 @@
 
 mod address_device;
 mod alloc_transfer_ring;
+mod claim_interface;
 mod config_descriptor;
 mod control_transfer;
 mod disable_slot;
@@ -25,6 +26,7 @@ mod port_status;
 
 pub use address_device::address_device;
 pub use alloc_transfer_ring::alloc_transfer_ring;
+pub use claim_interface::claim_interface;
 pub use config_descriptor::{get_config_descriptor, MAX_DESCRIPTOR_LEN};
 pub use control_transfer::control_transfer;
 pub use disable_slot::disable_slot;
