@@ -48,6 +48,8 @@ mod build;
 #[cfg(test)]
 mod draw_tests;
 #[cfg(test)]
+mod mode_tests;
+#[cfg(test)]
 mod place_tests;
 #[cfg(test)]
 mod prepare_tests;
