@@ -42,6 +42,7 @@ fn reason(e: TableError) -> &'static [u8] {
     match e {
         TableError::Absent => b"absent",
         TableError::Unmapped => b"outside the direct map",
+        TableError::Memory => b"not in firmware memory",
         TableError::Length => b"length",
         TableError::Signature => b"signature",
         TableError::Checksum => b"checksum",

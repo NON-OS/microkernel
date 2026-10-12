@@ -28,6 +28,9 @@ pub enum MemKind {
     Reserved,
     AcpiNvs,
     AcpiReclaim,
+    /// UEFI runtime services code and data, where firmware puts SMBIOS:
+    /// read for a table, never granted as a window.
+    EfiRuntime,
     /// No memory map entry covers it, or the map calls it MMIO: device
     /// address space.
     Unmapped,
@@ -41,6 +44,15 @@ impl MemKind {
         matches!(
             self,
             MemKind::Reserved | MemKind::AcpiNvs | MemKind::AcpiReclaim | MemKind::Unmapped
+        )
+    }
+
+    /// Firmware's own memory, where its tables live. Unlike a window,
+    /// never device space or memory the map leaves out.
+    pub fn holds_tables(self) -> bool {
+        matches!(
+            self,
+            MemKind::Reserved | MemKind::AcpiNvs | MemKind::AcpiReclaim | MemKind::EfiRuntime
         )
     }
 }
