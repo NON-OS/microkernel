@@ -21,6 +21,7 @@
 
 mod enable;
 mod init;
+mod ioapic_rte;
 mod irte;
 mod msi;
 mod route;
@@ -30,6 +31,7 @@ mod table;
 mod write;
 
 pub use init::init;
+pub use ioapic_rte::{remappable_rte, rte_index, Line as RteLine};
 pub use irte::{destination, encode, is_present, source, vector, Irte, Route};
 pub use msi::{handle, remapped, MsiMessage};
 pub use route::{release_msi, route_msi};
