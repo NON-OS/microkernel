@@ -44,6 +44,10 @@ impl Upkeep {
             }
             return;
         }
+        if ctx.indicators.reap(|p| nonos_libc::mk_pid_alive(p)) {
+            // A capturer that died stopped capturing: show it.
+            let _ = crate::frame_pacer::show_band(ctx);
+        }
         let Some(link) = ctx.wire else { return };
         if link.stale || now_ms.saturating_sub(self.last_poll_ms) >= POLL_MS {
             self.last_poll_ms = now_ms;

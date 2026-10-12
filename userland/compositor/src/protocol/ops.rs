@@ -24,3 +24,5 @@ pub const OP_SCENE_REMOVE: u16 = 0x0007;
 pub const OP_DISPLAY_INFO: u16 = 0x0008;
 /// A guest service's host size hint (section 12, Size).
 pub const OP_DISPLAY_HINT: u16 = 0x0009;
+/// A capturing driver's camera or microphone on or off (Decision 9).
+pub const OP_INDICATOR: u16 = 0x000A;
