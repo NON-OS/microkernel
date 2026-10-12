@@ -59,6 +59,7 @@ pub fn sys_device_release(device_id: u64) -> i64 {
         Err(ClaimError::NotHolder) => ERRNO_PERM,
         Err(ClaimError::AlreadyClaimed)
         | Err(ClaimError::UnknownDevice)
-        | Err(ClaimError::Unconfined) => ERRNO_INVAL,
+        | Err(ClaimError::Unconfined)
+        | Err(ClaimError::OutOfScope) => ERRNO_INVAL,
     }
 }

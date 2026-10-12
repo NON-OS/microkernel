@@ -19,6 +19,7 @@ mod lookup;
 mod no_snoop;
 mod quiesce;
 mod release;
+mod scope_check;
 mod state;
 mod types;
 

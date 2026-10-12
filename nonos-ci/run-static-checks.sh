@@ -4217,7 +4217,7 @@ unset handoff_init handoff_orch
 
 # NØNOS trust-anchor module ships the policy decoder and the
 # baked-policy slot the kernel embeds at build time. The slot can be
-# `Option<&[u8]> = None` during Lane B integration; once Lane B emits
+# `Option<&[u8]> = None` during run B integration; once run B emits
 # .keys/nonos_trust_anchor.policy.bin, baked.rs flips to a non-Option
 # include_bytes! and a separate gate enforces "no None" in production.
 ta_dir=src/security/nonos_trust_anchor
@@ -4868,6 +4868,18 @@ else
     fail_with "check_mirror_caps: a spawn mirror or README disagrees with its manifest"
 fi
 unset mirror_out
+
+# each driver capsule's discover table stays inside its kernel scope row
+# (src/hardware/broker/scope_table.rs); the self-test first, so a parser that
+# stopped seeing ids cannot pass by finding none.
+if scope_out="$(python3 scripts/check_driver_scope.py --self-test 2>&1 \
+    && python3 scripts/check_driver_scope.py 2>&1)"; then
+    note ok "every driver's discover table is inside its scope row (check_driver_scope)"
+else
+    tail -n 5 <<< "${scope_out}" >&2
+    fail_with "check_driver_scope: a driver capsule names a device its scope row does not"
+fi
+unset scope_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

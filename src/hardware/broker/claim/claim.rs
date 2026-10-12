@@ -29,6 +29,10 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     if CLAIMS.lock().iter().any(|c| c.device_id == device_id) {
         return Err(ClaimError::AlreadyClaimed);
     }
+    // Only what the driver's row names, before the device is touched.
+    if !super::scope_check::admitted(pid, device_id) {
+        return Err(ClaimError::OutOfScope);
+    }
     // Confined before it is powered, so the device never runs unconfined.
     if crate::hardware::broker::confine::attach(pid, device_id).is_err() {
         return Err(ClaimError::Unconfined);
