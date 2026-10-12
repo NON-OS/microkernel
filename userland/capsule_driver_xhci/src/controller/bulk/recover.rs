@@ -36,9 +36,10 @@ pub fn reset_bulk_endpoint(
     evt_ring: &mut EventRing,
     res: &SlotResources,
     context_size: u8,
-    dir_in: bool,
+    (second, dir_in): (bool, bool),
 ) -> XhciResult<()> {
-    let pipes = res.bulk.as_ref().ok_or(XhciError::ControllerUnsupported)?;
+    let pair = if second { res.bulk2.as_ref() } else { res.bulk.as_ref() };
+    let pipes = pair.ok_or(XhciError::ControllerUnsupported)?;
     let (ring, dci) =
         if dir_in { (&pipes.in_ring, pipes.dci_in) } else { (&pipes.out_ring, pipes.dci_out) };
     let slot = res.slot_id;

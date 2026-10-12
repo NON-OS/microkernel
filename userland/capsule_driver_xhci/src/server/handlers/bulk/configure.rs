@@ -19,15 +19,25 @@
 //! SuperSpeed Endpoint Companion's bMaxBurst of the IN endpoint in bits 3:0
 //! and of the OUT endpoint in bits 7:4; it was a reserved zero, which still
 //! means one packet per burst, and it is ignored below SuperSpeed.
+use super::configure_run::run;
 use super::reply::send_prefix;
-use crate::contexts::{is_superspeed, SPEED_HIGH};
-use crate::controller::{issue_configure_endpoint, write_bulk_input, BulkEndpoint, BulkPipes};
-use crate::error::{XhciError, XhciResult};
+use crate::error::XhciError;
 use crate::protocol::{Request, CONFIGURE_BULK_REQUEST_LEN, E_INVAL, E_IO};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
 use crate::slots::dci_from_ep_address;
+/// OP_CONFIGURE_BULK: the first pair.
 pub fn configure(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
+    configure_pair(ctx, req, body, tx, false)
+}
+
+/// OP_CONFIGURE_BULK2 (0x23): the second pair, on endpoints the first
+/// does not hold; the same request and reply.
+pub fn configure_second(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
+    configure_pair(ctx, req, body, tx, true)
+}
+
+fn configure_pair(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8], second: bool) {
     let well_formed = body.len() == CONFIGURE_BULK_REQUEST_LEN
         && body[1] & 0x80 != 0
         && body[2] & 0x80 == 0
@@ -39,73 +49,16 @@ pub fn configure(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let (dci_in, dci_out) = (dci_from_ep_address(body[1]), dci_from_ep_address(body[2]));
     let mps = |at: usize| u16::from_le_bytes([body[at], body[at + 1]]);
     let bursts = Bursts { bulk_in: body[3] & 0x0F, bulk_out: body[3] >> 4 };
-    match run(ctx, body[0], (dci_in, mps(4)), (dci_out, mps(6)), bursts) {
+    match run(ctx, (body[0], second), (dci_in, mps(4)), (dci_out, mps(6)), bursts) {
         Ok(()) => send_prefix(tx, req, [dci_in, dci_out, 0, 0]),
         Err(XhciError::ControllerUnsupported) => reply_with_status(tx, req, E_INVAL),
         Err(_) => reply_with_status(tx, req, E_IO),
     }
 }
-#[derive(Clone, Copy)]
-struct Bursts {
-    bulk_in: u8,
-    bulk_out: u8,
-}
 
-fn run(
-    ctx: &mut Context,
-    slot: u8,
-    bulk_in: (u8, u16),
-    bulk_out: (u8, u16),
-    bursts: Bursts,
-) -> XhciResult<()> {
-    let pipes = BulkPipes::new(&ctx.driver.dma_pool, bulk_in.0, bulk_out.0)?;
-    let context_size = ctx.driver.layout.context_size;
-    let max_slots = ctx.driver.layout.max_slots;
-    let res =
-        ctx.driver.slots.resources_mut(slot, max_slots).ok_or(XhciError::ControllerUnsupported)?;
-    if !res.takes_bulk() {
-        return Err(XhciError::ControllerUnsupported);
-    }
-    let (speed, usb3) = (res.speed, res.usb3);
-    let burst = |b: u8| if is_superspeed(speed, usb3) { b } else { 0 };
-    let ep_in = BulkEndpoint {
-        dci: bulk_in.0,
-        ring_phys: pipes.in_ring.phys(),
-        max_packet: bulk_max_packet(speed, usb3, bulk_in.1),
-        max_burst: burst(bursts.bulk_in),
-    };
-    let ep_out = BulkEndpoint {
-        dci: bulk_out.0,
-        ring_phys: pipes.out_ring.phys(),
-        max_packet: bulk_max_packet(speed, usb3, bulk_out.1),
-        max_burst: burst(bursts.bulk_out),
-    };
-    write_bulk_input(&res.input_context, &res.output_context, context_size, ep_in, ep_out);
-    let input_phys = res.input_context.phys();
-    issue_configure_endpoint(
-        ctx.driver.layout.doorbell_base,
-        ctx.driver.layout.primary_intr_base,
-        &mut ctx.driver.command_ring,
-        &mut ctx.driver.event_ring,
-        input_phys,
-        slot,
-    )?;
-    if let Some(res) = ctx.driver.slots.resources_mut(slot, max_slots) {
-        res.bulk = Some(pipes);
-    }
-    Ok(())
-}
-/// The bulk max packet size the controller is given. USB 2.0 fixes it at
-/// 512 for high speed and USB 3 at 1024 for SuperSpeed, and some USB sticks
-/// report another value; Linux's `xhci_endpoint_init` overrides it the same
-/// way ("Some devices get this wrong"). Full speed keeps what the descriptor
-/// says, bits 10:0.
-fn bulk_max_packet(speed: u8, usb3: bool, descriptor: u16) -> u16 {
-    if is_superspeed(speed, usb3) {
-        1024
-    } else if speed == SPEED_HIGH {
-        512
-    } else {
-        descriptor & 0x07FF
-    }
+#[derive(Clone, Copy)]
+/// Each endpoint's SuperSpeed bMaxBurst, from the request's fourth byte.
+pub(super) struct Bursts {
+    pub bulk_in: u8,
+    pub bulk_out: u8,
 }

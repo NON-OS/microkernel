@@ -48,4 +48,13 @@ impl BulkPipes {
             dci_out,
         })
     }
+
+    /// The ring of endpoint `dci`, if it is one of the pair's.
+    pub fn ring_of(&self, dci: u8) -> Option<&TransferRing> {
+        match dci {
+            d if d == self.dci_in => Some(&self.in_ring),
+            d if d == self.dci_out => Some(&self.out_ring),
+            _ => None,
+        }
+    }
 }

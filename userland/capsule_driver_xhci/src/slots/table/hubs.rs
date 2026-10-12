@@ -27,8 +27,7 @@ impl SlotTable {
     /// The owner byte of addressed `slot_id`: 2 once a class driver
     /// configured an endpoint on it, else 1.
     pub fn held(&self, slot_id: u8) -> u8 {
-        let claimed =
-            |r: &&super::super::SlotResources| !r.interrupt.is_empty() || r.bulk.is_some();
+        let claimed = |r: &&super::super::SlotResources| !r.interrupt.is_empty() || r.has_bulk();
         let found = self.resources.iter().find(|r| r.slot_id == slot_id);
         if found.as_ref().is_some_and(claimed) {
             2

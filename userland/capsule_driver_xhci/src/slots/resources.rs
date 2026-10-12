@@ -52,6 +52,8 @@ pub struct SlotResources {
     /// scheduling it, and its device went silent.
     pub interrupt: Vec<InterruptEndpoint>,
     pub bulk: Option<crate::controller::BulkPipes>,
+    /// A second bulk pair (OP_CONFIGURE_BULK2): UAS's other two pipes.
+    pub bulk2: Option<crate::controller::BulkPipes>,
     pub isoch: Option<crate::controller::IsochPipe>,
     pub isoch_in: Option<crate::controller::IsochPipe>,
     /// Marked a hub by OP_CONFIGURE_HUB: devices below it may be addressed.
@@ -91,6 +93,7 @@ impl SlotResources {
             ep0,
             interrupt: Vec::new(),
             bulk: None,
+            bulk2: None,
             isoch: None,
             isoch_in: None,
             hub: false,

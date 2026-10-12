@@ -20,7 +20,7 @@ use crate::server::context::Context;
 /// OUT when `into` is `None`, else IN with the bytes copied into `into`.
 pub(super) fn run(
     ctx: &mut Context,
-    slot: u8,
+    (slot, second): (u8, bool),
     data: &[u8],
     len: u32,
     into: Option<&mut [u8]>,
@@ -31,7 +31,7 @@ pub(super) fn run(
         .driver
         .slots
         .resources_mut(slot, max_slots)
-        .and_then(|r| r.bulk.as_mut())
+        .and_then(|r| r.pair_mut(second))
         .ok_or(XhciError::ControllerUnsupported)?;
     let buf = pipes.buf.as_mut_ptr::<u8>();
     /*

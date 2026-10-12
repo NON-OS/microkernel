@@ -42,6 +42,8 @@ mod isoch_pipe;
 mod isoch_tests;
 mod isoch_wait_tests;
 mod match_tests;
+mod pair_admit_tests;
+mod pair_tests;
 mod recover_tests;
 mod residual_tests;
 mod toggle_tests;
