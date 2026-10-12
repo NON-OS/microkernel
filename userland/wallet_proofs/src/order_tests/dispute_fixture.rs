@@ -35,7 +35,7 @@ pub(super) fn order() -> (OrderMade, DeliveredMade) {
         cipher_proof: vec![[0x22; 32]; 7],
         leaf_proof: vec![[0x33; 32]; 7],
     };
-    (m, DeliveredMade::BadChunk { index: 3, calldata: dispute_call(&t, &d) })
+    (m, DeliveredMade::BadChunk { index: 3, calldata: dispute_call(&t, &d).unwrap() })
 }
 
 pub(super) const ESCROW: [u8; 20] = [0xE5; 20];
