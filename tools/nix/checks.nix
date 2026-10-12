@@ -272,6 +272,18 @@ let
       python3 tools/nix/catalogues.py --check
       touch $out
     '';
+    # Every capsule make builds is built for the user target asked of it
+    # (nonos-ci/check-capsule-targets.py): until C-23 the rule built x86_64
+    # whatever the aarch64 lanes asked. make -n only, so nothing is built.
+    capsule-targets = pkgs.runCommand "capsule-targets" {
+      src = root;
+      nativeBuildInputs = [ pkgs.gnumake python pkgs.findutils pkgs.coreutils pins.rust ];
+    } ''
+      cp -r $src tree && chmod -R u+w tree && cd tree
+      export HOME=$TMPDIR
+      python3 nonos-ci/check-capsule-targets.py
+      touch $out
+    '';
     # inputs.json is what each cargo build reads; a path dependency, #[path]
     # or include added without regenerating it fails here.
     # Forced: the tree tracks a few files .gitignore names, as the flake

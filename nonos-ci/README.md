@@ -23,6 +23,11 @@ comparisons, capsule endpoint collision checks, feature profile
 consistency, the pqclean pin, binary hygiene, and the microkernel
 symbol scan. `run-static-checks.sh` drives the set.
 
+`check-capsule-targets.py` asks make, without building, which target each
+capsule is built for under each user target, and fails if any NONOS capsule
+does not follow the one asked. It runs as the flake's `capsule-targets`
+check and in `make nonos-mk-static`.
+
 ## Benchmarks
 
 The `bench_*.py` suite measures boot and runtime against the pinned
