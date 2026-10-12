@@ -26,6 +26,7 @@ use nonos_bt_hogp::report::Input;
 fn a_keyboard_with_a_pointer_is_found_and_configured() {
     let db = keyboard_mouse();
     let (mode, kb, mouse) = (db.handle_of(0x2a4e), db.handle_of(0x2a22), db.handle_of(0x2a33));
+    let level = db.handle_of(0x2a19);
     let mut run = Run::new(db);
     assert_eq!(run.go(), Some(Outcome::Ready { keyboard: true, mouse: true }));
     assert_eq!(run.host.phase(), Phase::Ready);
@@ -37,7 +38,9 @@ fn a_keyboard_with_a_pointer_is_found_and_configured() {
     assert_eq!(w[0], (mode, vec![0], true));
     assert_eq!(w[1], (kb + 1, vec![1, 0], false));
     assert_eq!(w[2], (mouse + 2, vec![1, 0], false));
-    assert_eq!(w.len(), 3);
+    // Then the battery client turns on its level's notifications.
+    assert_eq!(w[3], (level + 1, vec![1, 0], false));
+    assert_eq!(w.len(), 4);
     assert_eq!(run.notify(kb, &[0, 0, 0x04, 0, 0, 0, 0, 0]), [Input::KeyDown(0x04)]);
     assert_eq!(
         run.notify(mouse, &[1, 5, 0xfb]),
