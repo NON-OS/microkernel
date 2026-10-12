@@ -19,8 +19,8 @@
 //! `spcr_console_port` names SPCR's 16550 in I/O space for the console to
 //! move to. It is off, and nothing moves the console yet.
 
-use super::shared_tables::spcr::Interface;
 use super::serial_console_load::serial_console;
+use super::shared_tables::spcr::Interface;
 
 /// The owner's switch for taking the kernel console from SPCR.
 pub const CONSOLE_FROM_SPCR: bool = false;
