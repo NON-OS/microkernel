@@ -11,7 +11,7 @@ toggle.
 
 ## What it proves
 
-34 `#[test]` functions:
+35 `#[test]` functions:
 
 - start: the controller runs, every frame on the first interrupt queue, a
   host reset that never clears fails within its bound (`start_tests`);
@@ -22,7 +22,7 @@ toggle.
 - interrupt reports in order with toggles kept, queue limits, a slot given
   back (`interrupt_tests`);
 - bulk OUT and IN with toggles carried across transfers, a short packet, a
-  STALL and reset (`bulk_tests`); the polled IN, one slot at a time
+  STALL and reset (`bulk_tests`); the polled IN, two adapters side by side
   (`poll_tests`, `poll_share_tests`);
 - TD words, the control plan and bulk packets (`td_tests`); the wire
   (`wire_tests`).

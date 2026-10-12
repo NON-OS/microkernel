@@ -20,6 +20,7 @@
 pub mod ed;
 pub mod layout;
 pub mod lists;
+mod places;
 pub mod queue;
 pub mod take;
 pub mod td;

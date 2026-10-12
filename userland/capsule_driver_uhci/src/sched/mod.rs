@@ -18,6 +18,7 @@
 //! words, and the frame list with its chain of queue heads.
 
 pub mod layout;
+mod places;
 pub mod qh;
 pub mod skeleton;
 pub mod td;

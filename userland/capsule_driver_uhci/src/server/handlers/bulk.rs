@@ -58,12 +58,15 @@ pub fn reset<I: Io, C: Clock, M: Mem>(
     tx: &mut [u8],
 ) -> usize {
     let &[slot, dir_in @ (0 | 1)] = body else { return status(tx, req, E_INVAL) };
-    let Some(dev) = cx.table.dev(slot) else { return status(tx, req, E_INVAL) };
+    let Some(dev) = cx.table.dev(slot).filter(|d| d.port != 0) else {
+        return status(tx, req, E_INVAL);
+    };
+    let lane = dev.port as usize - 1;
     let Some((i, o)) = dev.bulk.as_mut() else { return status(tx, req, E_INVAL) };
     if dir_in == 1 {
         i.toggle = false;
         if dev.poll.take().is_some() {
-            disarm(&cx.mem);
+            disarm(&cx.mem, lane);
         }
     } else {
         o.toggle = false;

@@ -22,34 +22,41 @@
 use super::bulk::{arm as arm_td, ended, BulkEp};
 use super::failed::CtrlError;
 use crate::env::{Clock, Mem, Regs};
-use crate::sched::layout::{bulk_ed, bulk_td, BULK_MAX, POLL_BUF};
+use crate::sched::layout::{bulk_ed, bulk_td, poll_buf, BULK_MAX};
 use crate::sched::queue::look as look_ed;
 use crate::sched::take::{retired, settle};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Polled {
     Pending,
-    /// The bytes now at POLL_BUF.
+    /// The bytes now in the lane's buffer.
     Done(usize),
     Stalled,
     Error(u32),
 }
 
-pub fn arm<M: Mem, R: Regs>(m: &M, r: &mut R, ep: &BulkEp, len: usize) -> Result<(), CtrlError> {
+/// Arm `len` bytes into root port `lane + 1`'s buffer.
+pub fn arm<M: Mem, R: Regs>(
+    m: &M,
+    r: &mut R,
+    lane: usize,
+    ep: &BulkEp,
+    len: usize,
+) -> Result<(), CtrlError> {
     if len == 0 || len > BULK_MAX {
         return Err(CtrlError::TooLong);
     }
-    arm_td(m, r, ep, true, POLL_BUF, len);
+    arm_td(m, r, ep, true, poll_buf(lane), len);
     Ok(())
 }
 
 /// One look at the TD armed for `len` bytes.
-pub fn look<M: Mem, R: Regs>(m: &M, r: &mut R, ep: &mut BulkEp, len: usize) -> Polled {
+pub fn look<M: Mem, R: Regs>(m: &M, r: &mut R, lane: usize, ep: &mut BulkEp, len: usize) -> Polled {
     let Some(ran) = look_ed(m, bulk_ed(ep.index), bulk_td(ep.index, 1 - ep.at)) else {
         return Polled::Pending;
     };
     retired(r);
-    match ended(m, ep, ran, POLL_BUF, len) {
+    match ended(m, ep, ran, poll_buf(lane), len) {
         Ok(n) => Polled::Done(n),
         Err(CtrlError::Stalled) => Polled::Stalled,
         Err(CtrlError::Bus(cc)) => Polled::Error(cc),

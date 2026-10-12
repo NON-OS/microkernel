@@ -12,7 +12,7 @@ answer each packet and count every wrong data toggle.
 
 ## What it proves
 
-36 `#[test]` functions:
+37 `#[test]` functions:
 
 - start: SMM hand-over, legacy emulation off, reset, every list on, the
   HCCA table, ports powered; an SMM driver that keeps the controller and
@@ -24,7 +24,7 @@ answer each packet and count every wrong data toggle.
 - interrupt reports in order with toggles kept, ED limits, a slot given
   back (`interrupt_tests`);
 - bulk OUT and IN with toggles carried across transfers, a short packet, a
-  STALL and reset (`bulk_tests`); the polled IN, one slot at a time
+  STALL and reset (`bulk_tests`); the polled IN, two adapters side by side
   (`poll_tests`, `poll_share_tests`);
 - a timed-out IN taken back, a full 4 KiB IN, a slot's EDs retired and
   reused at DATA0 (`recover_tests`); ED and TD words and the lists
