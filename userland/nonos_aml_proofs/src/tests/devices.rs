@@ -47,6 +47,8 @@ mod props;
 pub(crate) mod serial;
 #[path = "time_alarm/mod.rs"]
 mod time_alarm;
+#[path = "tpm_ppi/mod.rs"]
+mod tpm_ppi;
 #[path = "video/mod.rs"]
 mod video;
 #[path = "wmi/mod.rs"]

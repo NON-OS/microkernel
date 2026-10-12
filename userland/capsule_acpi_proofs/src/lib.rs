@@ -27,6 +27,8 @@ pub mod props;
 pub mod rate;
 
 #[cfg(test)]
+mod policy_table_tests;
+#[cfg(test)]
 mod policy_tests;
 #[cfg(test)]
 mod props_tests;

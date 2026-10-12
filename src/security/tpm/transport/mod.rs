@@ -24,5 +24,8 @@ pub(in crate::security::tpm) mod acpi;
 mod detect;
 mod dispatch;
 mod ident;
+pub mod tpm2_start;
+pub mod tpm2_table;
 
+pub use acpi::tpm2_table;
 pub use dispatch::transact;
