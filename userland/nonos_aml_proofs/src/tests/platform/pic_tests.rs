@@ -16,7 +16,7 @@
 
 //! \_PIC is called with the interrupt model, when firmware has one.
 
-use super::platform_run::evaluator;
+use super::run::evaluator;
 use crate::consts::at;
 use crate::enc::*;
 use crate::platform::set_pic;
