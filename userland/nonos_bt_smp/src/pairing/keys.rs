@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Key distribution, once the link is encrypted (Vol 3, Part H, 3.6.1).
-//! Only the responder's identity is asked for: its IRK in Identity
-//! Information, then its identity address (Vol 3, Part H, 3.6.4, 3.6.5).
+//! The responder's identity is asked for: its IRK in Identity Information,
+//! then its identity address (Vol 3, Part H, 3.6.4, 3.6.5). Ours follows
+//! (`identity.rs`).
 
 use super::fields::take;
 use super::initiator::Initiator;
 use super::state::State;
-use super::step::{Outcome, Step};
+use super::step::Step;
 use crate::error::SmpError;
 use crate::pdu::*;
 
@@ -38,15 +39,6 @@ impl Initiator {
         let ours = self.ours.resp_keys;
         let due = self.peer.map_or(0, |p| p.resp_keys) & ours & keys::ID;
         Ok(self.finish(due))
-    }
-
-    fn finish(&mut self, due: u8) -> Step {
-        if due != 0 {
-            self.state = State::AwaitKeys(due);
-            return Step::default();
-        }
-        self.state = State::Done;
-        Step::outcome(Outcome::Paired(self.bond))
     }
 
     pub(super) fn on_irk(&mut self, p: &[u8]) -> Step {

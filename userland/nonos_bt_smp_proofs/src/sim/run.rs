@@ -19,7 +19,8 @@
 
 use super::peer::{Peer, A, B};
 use super::rng::Rng;
-use nonos_bt_smp::pairing::{Initiator, Outcome, User, REQUEST};
+use nonos_bt_smp::pairing::{Identity, Initiator, Outcome, User, REQUEST};
+use nonos_bt_smp::pdu::Pairing;
 use std::collections::VecDeque;
 
 pub struct Run {
@@ -41,8 +42,13 @@ pub struct Run {
 
 impl Run {
     pub fn new(peer: Peer) -> Self {
+        Self::with(peer, REQUEST, None)
+    }
+
+    /// A run whose initiator offers `ours`, with `local` as its identity.
+    pub fn with(peer: Peer, ours: Pairing, local: Option<Identity>) -> Self {
         let mut rng = Rng(0x2545_f491_4f6c_dd1d);
-        let (init, request) = Initiator::start(REQUEST, A, B, &mut rng, 0).unwrap();
+        let (init, request) = Initiator::start_private(ours, local, A, B, &mut rng, 0).unwrap();
         let (users, outcomes, to_init) = (Vec::new(), Vec::new(), VecDeque::new());
         let to_peer = VecDeque::from([request.clone()]);
         let (agree, typed) = (None, None);
