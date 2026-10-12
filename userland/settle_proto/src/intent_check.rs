@@ -17,6 +17,7 @@
 //! INTENT's checks: the calldata's selector belongs to the kind, and an
 //! approve's spender word is an address.
 
+use crate::bytes::fixed;
 use crate::kinds::{Kind, KINDS};
 
 /// The kind numbered `id`, if `calldata` is one of its calls: a known
@@ -24,7 +25,7 @@ use crate::kinds::{Kind, KINDS};
 pub fn kind_of(id: u8, calldata: &[u8]) -> Option<&'static Kind> {
     let kind = KINDS.iter().find(|k| k.id == id)?;
     let sel = u32::from_be_bytes(calldata.get(..4)?.try_into().ok()?);
-    let whole = (calldata.len() - 4).is_multiple_of(32);
+    let whole = calldata.len().checked_sub(4)?.is_multiple_of(32);
     (whole && kind.calls.iter().any(|(_, s)| *s == sel)).then_some(kind)
 }
 
@@ -32,12 +33,13 @@ pub fn kind_of(id: u8, calldata: &[u8]) -> Option<&'static Kind> {
 /// and `to` is the sender, so a claim never pays anyone else.
 pub fn claim_ok(calldata: &[u8], from: &[u8; 20]) -> bool {
     let (Some(asset), Some(to)) = (calldata.get(4..36), calldata.get(36..68)) else { return false };
-    let to_ok = to[..12].iter().all(|b| *b == 0) && to[12..] == from[..];
-    asset[..31].iter().all(|b| *b == 0) && asset[31] <= 1 && to_ok && calldata.len() == 68
+    let zero = |w: Option<&[u8]>| w.is_some_and(|w| w.iter().all(|b| *b == 0));
+    let to_ok = zero(to.get(..12)) && to.get(12..) == Some(&from[..]);
+    zero(asset.get(..31)) && asset.get(31).is_some_and(|b| *b <= 1) && to_ok && calldata.len() == 68
 }
 
 /// An approve's spender, when its word is an address.
 pub fn approve_spender(calldata: &[u8]) -> Option<[u8; 20]> {
     let w = calldata.get(4..36)?;
-    w[..12].iter().all(|b| *b == 0).then(|| w[12..].try_into().ok())?
+    w.get(..12)?.iter().all(|b| *b == 0).then(|| fixed(w, 12))?
 }
