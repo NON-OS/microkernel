@@ -31,6 +31,7 @@ mod secondary;
 mod state;
 pub mod table;
 mod tables_build;
+mod text_guard;
 mod tlb;
 pub mod translation;
 mod ttbr;

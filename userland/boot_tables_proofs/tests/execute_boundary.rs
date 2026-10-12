@@ -6,7 +6,7 @@
 //! execute-never controls).
 
 use boot_tables_proofs::leaves::leaves;
-use boot_tables_proofs::probe::{self, AP_EL0, AP_READ_ONLY, PXN, TEXT, UXN};
+use boot_tables_proofs::probe::{self, AP_EL0, AP_READ_ONLY, GP, PXN, TEXT, UXN};
 use boot_tables_proofs::{BootInfo, MemoryRegion, MemoryType, Window};
 
 fn ram(base: u64, size: u64) -> MemoryRegion {
@@ -21,6 +21,8 @@ fn check(info: &BootInfo) {
         let (va, d) = (leaf.va, leaf.descriptor);
         assert_eq!(d & AP_EL0, 0, "{va:#x} reachable from EL0");
         assert_ne!(d & UXN, 0, "{va:#x} executable at EL0");
+        // Unguarded: the stand-in reports no BTI unless a test says otherwise.
+        assert_eq!(d & GP, 0, "{va:#x} guarded");
         if d & PXN == 0 {
             assert!((TEXT.0..TEXT.1).contains(&va), "{va:#x} executable at EL1 outside text");
             assert_eq!(leaf.level, 3, "{va:#x}: text is mapped in pages");
