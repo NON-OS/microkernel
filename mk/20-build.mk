@@ -561,6 +561,7 @@ include userland/capsule_driver_ufs/Capsule.mk
 include userland/capsule_driver_bga/Capsule.mk
 include userland/capsule_driver_usb_audio/Capsule.mk
 include userland/capsule_driver_usb_hub/Capsule.mk
+include userland/capsule_driver_uvc/Capsule.mk
 include userland/capsule_driver_cdc_ecm/Capsule.mk
 include userland/capsule_driver_cdc_ncm/Capsule.mk
 include userland/capsule_driver_rndis/Capsule.mk

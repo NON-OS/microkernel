@@ -35,6 +35,7 @@ mod drivers_usb_companions;
 mod drivers_usb_hosts;
 mod drivers_usb_hub;
 mod drivers_usbnet;
+mod drivers_uvc;
 mod drivers_virtio;
 mod drivers_virtio_display;
 mod drivers_virtio_io;

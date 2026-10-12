@@ -1,8 +1,8 @@
 # capsule_driver_uvc
 
-Status: built and proven on the host, not yet wired. The kernel mirror,
-spawn plan and service port wait on the port numbers for `driver.uvc0`,
-so today nothing streams.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/uvc_capsule`)
+embeds and spawns it under `nonos-capsule-driver-uvc` wherever the
+today nothing streams.
 
 ## Role
 
@@ -30,7 +30,8 @@ the compositor notice (`src/notify.rs`).
 
 - `MkServiceLookup` finds each USB host and the compositor; every request
   to a device is an IPC call to its host.
-- `MkIpcRecvFrom` serves the camera wire; `MkIpcReply` answers.
+- `MkIpcRecvFrom` serves `service:4518:driver.uvc0`; `MkIpcReply`
+  answers. The endpoint is not held: the bit is the gate.
 - `MkCapCheck(peer, CameraCapture)` at every OP_OPEN and OP_START.
 - `MkMmap` for the heap; `MkDebug` for the `[uvc]` lines, when granted.
 
@@ -118,7 +119,6 @@ the batch reader, the gate and the listing. No boot yet.
 
 ## Release checklist
 
-- Ports, kernel mirror and spawn plan for `driver.uvc0`.
 - Decision 9: which capsule may hold CameraCapture.
 
 ## Real hardware bring-up checklist
