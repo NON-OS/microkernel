@@ -17,24 +17,18 @@
 //! A root port whose device is gone. Its tries start again, so whatever is
 //! plugged in next is looked at, and the slot of a device bound there is
 //! given back: left addressed, the port stayed claimed in the controller
-//! driver and the next device on it was never addressed. A hub there takes
-//! every device below it along.
+//! driver and the next device on it was never addressed. A virtual port
+//! (a device below a hub) is forgotten the same way when it reads
+//! disconnected; giving its slot back lets the host drop it.
 
-use crate::hub::{forget_root, XhciHost};
 use crate::xhci::disable_slot;
 
 use super::devices::Devices;
 use super::drop_port::drop_port;
 use super::say_port::say_port;
-use super::walk::Hid;
 
 pub(super) fn forget(xhci_port: u32, port: u8, tried: &mut u8, devs: &mut Devices) {
     *tried = 0;
-    let mut h = XhciHost { port: xhci_port };
-    let mut hid = Hid { eps: &mut devs.eps };
-    if forget_root(&mut h, port, &mut devs.hubs, &mut hid) != 0 {
-        say_port(port, b"hub unplugged, it and every device below it are given back");
-    }
     let slots = drop_port(&mut devs.eps, port);
     for &slot in &slots {
         disable_slot(xhci_port, slot);

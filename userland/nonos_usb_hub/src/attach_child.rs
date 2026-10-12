@@ -48,6 +48,7 @@ pub(crate) fn attach_child<H: Host>(
         depth: hub.place.depth + 1,
         speed: st.speed,
         tt: child_tt(hub.place.speed, hub.slot, hub.place.tt, port, st.speed),
+        parent: (hub.slot, port),
     };
     let slot = h.enable_slot().map_err(|_| HubError::NoSlot)?;
     if let Err(status) = h.address_routed(slot, &place) {

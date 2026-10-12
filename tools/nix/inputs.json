@@ -1456,7 +1456,8 @@
    ".cargo",
    "userland/capsule_driver_ehci",
    "userland/capsule_driver_uhci/src/server/many",
-   "userland/libc"
+   "userland/libc",
+   "userland/nonos_usb_virt"
   ],
   "md": [],
   "signed": []
@@ -1548,7 +1549,8 @@
    ".cargo",
    "userland/capsule_driver_ohci",
    "userland/capsule_driver_uhci/src/server/many",
-   "userland/libc"
+   "userland/libc",
+   "userland/nonos_usb_virt"
   ],
   "md": [],
   "signed": []
@@ -1670,7 +1672,8 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_uhci",
-   "userland/libc"
+   "userland/libc",
+   "userland/nonos_usb_virt"
   ],
   "md": [],
   "signed": []
@@ -1701,7 +1704,6 @@
    "userland/capsule_driver_usb_hid",
    "userland/libc",
    "userland/nonos_keymap",
-   "userland/nonos_usb_hub",
    "userland/nonos_usbnet/src/hosts.rs",
    "userland/policy_client",
    "userland/policy_proto"
@@ -3282,8 +3284,10 @@
    "userland/capsule_driver_uhci/src/server/many",
    "userland/ehci_proofs",
    "userland/nonos_usb_hub",
+   "userland/nonos_usb_virt",
    "userland/uhci_proofs/src/hub_lane.rs",
    "userland/uhci_proofs/src/hub_seen.rs",
+   "userland/uhci_proofs/src/hub_wire.rs",
    "userland/uhci_proofs/src/model/bus.rs",
    "userland/uhci_proofs/src/model/device.rs",
    "userland/uhci_proofs/src/model/device_io.rs",
@@ -4315,9 +4319,11 @@
    "userland/capsule_driver_ohci/src/xfer",
    "userland/capsule_driver_uhci/src/server/many",
    "userland/nonos_usb_hub",
+   "userland/nonos_usb_virt",
    "userland/ohci_proofs",
    "userland/uhci_proofs/src/hub_lane.rs",
    "userland/uhci_proofs/src/hub_seen.rs",
+   "userland/uhci_proofs/src/hub_wire.rs",
    "userland/uhci_proofs/src/model/bus.rs",
    "userland/uhci_proofs/src/model/device.rs",
    "userland/uhci_proofs/src/model/device_io.rs",
@@ -5165,6 +5171,7 @@
    "userland/capsule_driver_uhci/src/wire",
    "userland/capsule_driver_uhci/src/xfer",
    "userland/nonos_usb_hub",
+   "userland/nonos_usb_virt",
    "userland/uhci_proofs"
   ],
   "md": [],
