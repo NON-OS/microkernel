@@ -22,4 +22,4 @@ mod one;
 mod serve;
 
 pub use bind_fn::BindFn;
-pub use serve::run;
+pub use serve::{run, LOST_AFTER};

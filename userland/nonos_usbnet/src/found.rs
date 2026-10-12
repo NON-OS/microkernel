@@ -51,8 +51,3 @@ pub fn fetch<B: Bus>(bus: &mut B, port: u8) -> Result<Found, i32> {
     }
     Ok(Found { port, info, configs })
 }
-
-/// A string descriptor's bytes, for a MAC address or a product name.
-pub fn string<B: Bus>(bus: &mut B, index: u8, out: &mut [u8]) -> Result<usize, i32> {
-    bus.control_in(Setup::get_descriptor(crate::desc::STRING, index), out)
-}

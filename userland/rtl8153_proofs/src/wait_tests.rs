@@ -16,6 +16,7 @@
 
 //! Waits that end on the clock, and a refused register naming its step.
 
+use nonos_usbnet::mock::drawn;
 use nonos_usbnet::Bind;
 
 use crate::chip::{PLA, RTL8153_IDS};
@@ -27,10 +28,10 @@ fn a_chip_that_never_gets_ready_fails_on_the_clock() {
     let (bus, chip, found) = crate::chip::found(0x5c10, RTL8153_IDS);
     chip.borrow_mut().regs.put(PLA, 0xe84f, &[0x80]);
     let start = std::time::Instant::now();
-    assert!(matches!(bind(bus, &found), Bind::Failed("link list not ready", -110)));
+    assert!(matches!(bind(bus, &found, drawn()), Bind::Failed("link list not ready", -110)));
     assert!(start.elapsed() >= std::time::Duration::from_millis(2_000));
     // A register the chip refuses stops the bring-up at that step.
     let (bus, chip, found) = crate::chip::found(0x5c10, RTL8153_IDS);
     chip.borrow_mut().refuse = Some((0x05, 0xd404, -71));
-    assert!(matches!(bind(bus, &found), Bind::Failed("RX aggregation not disabled", -71)));
+    assert!(matches!(bind(bus, &found, drawn()), Bind::Failed("RX aggregation not disabled", -71)));
 }

@@ -16,14 +16,20 @@
 
 //! A bound RTL8153 as the frame service sees it.
 
-use nonos_usbnet::{Bus, Nic};
+use nonos_usbnet::{Bus, Nic, Taken};
 
 use super::link::Rtl8153;
 use super::transfer::{recv, send};
+use super::watch::watch;
 
 impl<B: Bus> Nic for Rtl8153<B> {
     fn mac(&self) -> [u8; 6] {
         self.mac
+    }
+
+    /// Written to PLA_IDR at bind, or the bind failed by name.
+    fn taken(&self) -> Taken {
+        Taken::Programmed
     }
 
     /// The link as last read, at most a second old: answering never
@@ -38,5 +44,12 @@ impl<B: Bus> Nic for Rtl8153<B> {
 
     fn recv(&mut self, out: &mut [u8]) -> Result<Option<usize>, i32> {
         recv(self, out)
+    }
+
+    /// The link read on the run loop's clock, after each answer: net.core
+    /// asks a NIC only for its link until that reads up, so a link read
+    /// inside `recv` would never be read at all.
+    fn tick(&mut self) -> Result<(), i32> {
+        watch(self)
     }
 }

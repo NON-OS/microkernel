@@ -14,21 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A bound NCM device as the frame service sees it: one frame per call
-//! each way, while a received block's datagrams wait in `pending`.
+//! A bound NCM device: its station address, pipes and NTB sizes, and a
+//! received block's datagrams waiting in `pending`, one handed up per call.
 
 use alloc::collections::VecDeque;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_usbnet::{Bus, Nic, Pipes};
+use nonos_usbnet::{Bus, Pipes, Taken};
 
 use super::shape::TxShape;
-use super::transfer::{recv, send};
 
 pub struct Ncm<B> {
     pub(super) bus: B,
-    pub(super) mac: [u8; 6],
+    /// The drawn station address, and how the device took it.
+    pub(super) station: ([u8; 6], Taken),
     pub(super) pipes: Pipes,
     /// The NTB input size the device was given; one bulk IN is this long.
     pub rx_max: usize,
@@ -41,28 +41,14 @@ pub struct Ncm<B> {
 }
 
 impl<B: Bus> Ncm<B> {
-    pub fn new(bus: B, mac: [u8; 6], pipes: Pipes, rx_max: usize, shape: TxShape) -> Self {
+    pub fn new(
+        bus: B,
+        station: ([u8; 6], Taken),
+        pipes: Pipes,
+        rx_max: usize,
+        shape: TxShape,
+    ) -> Self {
         let (rx, tx) = (vec![0; rx_max], vec![0; shape.max]);
-        Self { bus, mac, pipes, rx_max, shape, rx, tx, seq: 0, pending: VecDeque::new() }
-    }
-}
-
-impl<B: Bus> Nic for Ncm<B> {
-    fn mac(&self) -> [u8; 6] {
-        self.mac
-    }
-
-    /// The link is the device being bound: NETWORK_CONNECTION arrives on an
-    /// interrupt endpoint driver.xhci0 does not configure beside bulk pipes.
-    fn link_up(&self) -> bool {
-        true
-    }
-
-    fn send(&mut self, frame: &[u8]) -> Result<(), i32> {
-        send(self, frame)
-    }
-
-    fn recv(&mut self, out: &mut [u8]) -> Result<Option<usize>, i32> {
-        recv(self, out)
+        Self { bus, station, pipes, rx_max, shape, rx, tx, seq: 0, pending: VecDeque::new() }
     }
 }

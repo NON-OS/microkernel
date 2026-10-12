@@ -14,27 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The station address from AX_NODE_ID, as ax88179_get_mac_addr reads it
-//! and writes it back.
+//! The station address: the one drawn for the run, written to
+//! AX_NODE_ID as ax88179_set_mac_addr writes an address, so the chip's own
+//! unicast filter (AX_RX_CTL_AP) matches it. The factory value there is
+//! never read (Linux ax88179_get_mac_addr does), so a chip without one
+//! binds all the same.
 
-use nonos_usbnet::desc::usable;
-use nonos_usbnet::xhci::E_INVAL;
-use nonos_usbnet::Bus;
+use nonos_usbnet::{Bus, Station};
 
-use super::access::{read_mac, write_mac, Step};
+use super::access::{write_mac, Step};
 use super::regs::NODE_ID;
 
-/// Linux takes a random address when AX_NODE_ID holds none; drawing one
-/// needs the Crypto capability this capsule does not hold, so the bind
-/// stops here and says why.
-pub const NO_STATION: &str = "AX_NODE_ID holds no station address; no random one without Crypto";
-
-pub(super) fn station<B: Bus>(bus: &mut B) -> Result<[u8; 6], Step> {
-    let mut mac = [0u8; 6];
-    read_mac(bus, NODE_ID, &mut mac, "AX_NODE_ID unread")?;
-    if !usable(mac) {
-        return Err((NO_STATION, E_INVAL));
-    }
+pub(super) fn station<B: Bus>(bus: &mut B, drawn: Station) -> Result<[u8; 6], Step> {
+    let mac = drawn.bytes();
     write_mac(bus, NODE_ID, &mac, "AX_NODE_ID write refused")?;
     Ok(mac)
 }

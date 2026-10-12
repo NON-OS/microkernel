@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Trying one root port: address its device, read what it offers, and ask
-//! the driver whether it is its own. The slot is given back unless it is.
+//! the driver whether it is its own, all inside one bind budget. The slot
+//! is given back unless it is, after the budget, so it always can be.
 
 use super::bound::Bound;
 use super::classify::classify;
 use crate::run::BindFn;
 use crate::say::say_port;
-use crate::xhci::{disable_slot, enable_slot, XhciBus};
+use crate::station::Station;
+use crate::xhci::{bind_budget, disable_slot, enable_slot, XhciBus, BIND_MS};
 
 pub(super) enum Probe<N> {
     Ours(Bound<N>),
@@ -31,15 +33,23 @@ pub(super) enum Probe<N> {
     Failed,
 }
 
-pub(super) fn probe<N>(xhci: u32, port: u8, tag: &[u8], bind: BindFn<N>) -> Probe<N> {
+pub(super) fn probe<N>(
+    xhci: u32,
+    port: u8,
+    tag: &[u8],
+    bind: BindFn<N>,
+    station: Station,
+) -> Probe<N> {
     let slot = match enable_slot(xhci) {
         Ok(slot) => slot,
         Err(e) => {
-            say_port(tag, port, (0, 0), b"no device slot", Some(e));
+            say_port(tag, port, None, b"no device slot", Some(e));
             return Probe::Failed;
         }
     };
-    let out = classify(XhciBus { xhci, slot }, port, tag, bind);
+    bind_budget(Some(BIND_MS));
+    let out = classify(XhciBus { xhci, slot }, port, tag, bind, station);
+    bind_budget(None);
     if !matches!(out, Probe::Ours(_)) {
         disable_slot(xhci, slot);
     }

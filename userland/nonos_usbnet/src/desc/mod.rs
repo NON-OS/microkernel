@@ -22,7 +22,6 @@ mod endpoint;
 mod functional;
 mod interface;
 mod kinds;
-mod mac;
 mod walk;
 
 pub use device::{config_header, device_info, DeviceInfo};
@@ -30,5 +29,4 @@ pub use functional::{find_functional, functional, union_data};
 pub use interface::{interfaces, Interface};
 pub use kinds::{CLASS_CDC_DATA, CLASS_COMM, CLASS_VENDOR, CONFIG, CS_INTERFACE, DEVICE};
 pub use kinds::{ENDPOINT, INTERFACE, SS_ENDPOINT_COMPANION, STRING};
-pub use mac::{mac_from_string, usable};
 pub use walk::{walk, Walk};

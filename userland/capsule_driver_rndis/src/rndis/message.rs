@@ -26,7 +26,6 @@ pub const GET_ENCAPSULATED_RESPONSE: u8 = 0x01;
 pub const MSG_PACKET: u32 = 1;
 pub const MSG_INIT: u32 = 2;
 pub const MSG_HALT: u32 = 3;
-pub const MSG_QUERY: u32 = 4;
 pub const MSG_SET: u32 = 5;
 pub const MSG_INDICATE: u32 = 7;
 /// A completion carries its request's type with the top bit set.
@@ -35,11 +34,13 @@ pub const COMPLETION: u32 = 0x8000_0000;
 pub const STATUS_SUCCESS: u32 = 0;
 pub const MEDIUM_802_3: u32 = 0;
 
-pub const OID_802_3_PERMANENT_ADDRESS: u32 = 0x0101_0101;
+pub const OID_802_3_CURRENT_ADDRESS: u32 = 0x0101_0102;
 pub const OID_GEN_CURRENT_PACKET_FILTER: u32 = 0x0001_010E;
-/// NDIS_PACKET_TYPE_DIRECTED, ALL_MULTICAST and BROADCAST. Linux
-/// RNDIS_DEFAULT_FILTER adds PROMISCUOUS; the stack needs only these.
-pub const FILTER: u32 = 0x01 | 0x04 | 0x08;
+/// NDIS_PACKET_TYPE_DIRECTED, ALL_MULTICAST, BROADCAST and PROMISCUOUS:
+/// Linux's RNDIS_DEFAULT_FILTER. Promiscuous whether or not the device
+/// took the drawn address, since one that took it may still filter on its
+/// own; net.core drops unicast meant for another station.
+pub const FILTER: u32 = 0x01 | 0x04 | 0x08 | 0x20;
 
 /// The errnos a control exchange ends with: no answer in time, and an
 /// answer whose status is not success (Linux rndis_command's -ETIMEDOUT

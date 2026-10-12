@@ -7,9 +7,9 @@ use crate::ncm::function::find_ncm;
 use crate::spec::{config_ncm, config_vendor};
 
 #[test]
-fn the_ncm_function_its_data_alternate_mac_index_and_capabilities_are_read() {
+fn the_ncm_function_its_data_alternate_and_capabilities_are_read() {
     let f = find_ncm(&config_ncm(1, 0x31)).unwrap();
-    assert_eq!((f.comm, f.data, f.data_alt, f.mac_index), (0, 1, 1, 4));
+    assert_eq!((f.comm, f.data, f.data_alt), (0, 1, 1));
     assert_eq!((f.max_segment, f.caps), (1514, 0x31));
     assert_eq!((f.pipes.bulk_in, f.pipes.bulk_out), (0x82, 0x03));
     assert_eq!((f.pipes.max_packet_in, f.pipes.max_packet_out), (512, 512));

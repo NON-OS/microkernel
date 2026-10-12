@@ -22,6 +22,8 @@ extern crate alloc;
 pub mod r8153;
 
 #[cfg(test)]
+mod address_tests;
+#[cfg(test)]
 mod bind_tests;
 #[cfg(test)]
 mod chip;
@@ -43,6 +45,8 @@ mod rtl8153b_tests;
 mod rx_fuzz_tests;
 #[cfg(test)]
 mod rx_tests;
+#[cfg(test)]
+mod tick_tests;
 #[cfg(test)]
 mod tx_tests;
 #[cfg(test)]

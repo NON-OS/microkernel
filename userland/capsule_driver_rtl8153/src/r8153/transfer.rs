@@ -25,7 +25,6 @@ use nonos_usbnet::Bus;
 use super::link::Rtl8153;
 use super::rx::frames;
 use super::tx::put_frame;
-use super::watch::watch;
 
 /// Frames kept from bulk INs not yet handed up; past it they are dropped.
 const QUEUE_MAX: usize = 32;
@@ -42,7 +41,6 @@ pub(super) fn send<B: Bus>(nic: &mut Rtl8153<B>, frame: &[u8]) -> Result<(), i32
 }
 
 pub(super) fn recv<B: Bus>(nic: &mut Rtl8153<B>, out: &mut [u8]) -> Result<Option<usize>, i32> {
-    watch(nic)?;
     if nic.queue.is_empty() {
         let n = match nic.dev.bus.bulk_in_poll(&mut nic.rx) {
             Ok(Some(n)) => n.min(nic.rx.len()),

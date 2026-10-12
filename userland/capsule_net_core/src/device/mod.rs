@@ -16,6 +16,7 @@
 
 pub mod batch_call;
 pub mod batch_frames;
+pub mod batch_served;
 pub mod budget;
 pub mod capabilities;
 pub mod link_up;

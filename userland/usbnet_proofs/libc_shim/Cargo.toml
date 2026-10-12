@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# What the USB network core takes from nonos_libc, answered on the host:
+# driver.xhci0 played by the proof, entropy that can be switched off, the
+# log kept for the proof to read, and a clock that moves only when the
+# proof moves it.
+[package]
+name = "usbnet_proofs_libc_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "nonos_libc"
+path = "src/lib.rs"

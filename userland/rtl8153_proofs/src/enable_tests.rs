@@ -28,7 +28,7 @@ fn a_link_up_starts_tx_and_rx_with_broadcast_multicast_and_own_address() {
     let (mut nic, _, chip) = bound(0x5c10);
     // LINK_STATUS, 1000 Mb/s, full duplex.
     chip.borrow_mut().regs.put(PLA, PHYSTATUS, &0x0013u16.to_le_bytes());
-    assert_eq!(nic.recv(&mut [0u8; 1514]), Ok(None));
+    assert_eq!(nic.tick(), Ok(()));
     assert!(nic.link_up());
     let r = &chip.borrow().regs;
     assert_eq!(r.byte(PLA, 0xe813) & 0x0c, 0x0c, "CR_RE and CR_TE");
@@ -45,7 +45,7 @@ fn a_half_duplex_link_gets_the_long_gap() {
     let (mut nic, _, chip) = bound(0x5c30);
     // LINK_STATUS, 100 Mb/s, half duplex.
     chip.borrow_mut().regs.put(PLA, PHYSTATUS, &0x000au16.to_le_bytes());
-    nic.recv(&mut [0u8; 1514]).unwrap();
+    nic.tick().unwrap();
     assert_eq!(chip.borrow().regs.word(PLA, 0xe612) & 0x0308, 0x0200);
 }
 
@@ -53,7 +53,7 @@ fn a_half_duplex_link_gets_the_long_gap() {
 fn rtl_ver_09_restarts_its_flow_control_task_and_updates_the_rx_dma_owner() {
     let (mut nic, _, chip) = bound(0x6010);
     chip.borrow_mut().regs.put(PLA, PHYSTATUS, &0x0013u16.to_le_bytes());
-    nic.recv(&mut [0u8; 1514]).unwrap();
+    nic.tick().unwrap();
     let r = &chip.borrow().regs;
     assert_eq!(r.word(USB, 0xd4e8) & 0x0002, 0x0002, "FC_PATCH_TASK set again");
     assert_eq!(r.byte(USB, 0xd437), 0x03, "OWN_UPDATE | OWN_CLEAR");
