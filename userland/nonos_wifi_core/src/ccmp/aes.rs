@@ -9,7 +9,7 @@
 //! AES-128 block encryption (FIPS-197). WPA2 CCMP encrypts and authenticates
 //! data frames with AES-128 in CCM mode, which uses the forward cipher only.
 //! no_std, no allocation, no lookup-table timing beyond the S-box. Checked
-//! against the FIPS-197 known-answer vector in `iwlwifi_proofs`.
+//! against the FIPS-197 known-answer vector in `nonos_wifi_core_proofs`.
 
 const SBOX: [u8; 256] = [
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
