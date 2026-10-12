@@ -23,6 +23,8 @@ pub fn all(bytes: &[u8]) {
     let _ = fdt.reservations().count();
     let _ = fdt.resolve(b"serial0/bluetooth");
     let _ = fdt.chosen_bytes(b"rng-seed");
+    let _ = fdt.acpi_rsdp();
+    let _ = fdt.tables();
     for node in fdt.nodes().take(256).flatten() {
         let _ = fdt.own_cells(&node);
         let _ = fdt.is_enabled(&node);
