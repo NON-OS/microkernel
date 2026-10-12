@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod ops;
+mod sense;
 mod snapshot;
 mod types;
 
+pub use sense::SENSE_KEPT;
 pub use types::State;

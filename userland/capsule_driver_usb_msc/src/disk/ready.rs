@@ -19,8 +19,8 @@
 
 use nonos_libc::mk_idle_ms;
 
-use super::bot::command;
 use super::scsi_io::{sense, sense_key, whole};
+use super::transport::command;
 use super::types::{Data, Disk};
 use crate::protocol::{E_IO, E_NOMEDIUM};
 use crate::scsi::{
@@ -63,7 +63,7 @@ pub fn unit_ready(disk: &Disk, state: &mut State, more_luns: bool) -> Result<(),
             asked = true;
             break;
         }
-        let _ = super::recover::reset_recovery(disk);
+        let _ = super::transport::recover(disk);
         let _ = mk_idle_ms(READY_PAUSE_MS);
     }
     if !asked {

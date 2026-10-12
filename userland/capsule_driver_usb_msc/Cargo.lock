@@ -24,8 +24,13 @@ dependencies = [
 name = "nonos_capsule_driver_usb_msc"
 version = "0.3.0"
 dependencies = [
+ "nonos_uas",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_uas"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_userland_libc"

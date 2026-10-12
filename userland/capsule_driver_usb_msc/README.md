@@ -109,6 +109,14 @@ USB mass-storage transport before issuing more commands.
 - The block surface for the kernel: capacity, read, write and flush of whole
   512-byte sectors over the bulk pipes `driver.xhci0` keeps for this driver.
 - Bounded transfer-length validation.
+- USB Attached SCSI at high speed (nonos_uas): a device with a UAS
+  alternate (protocol 62h) on a high-speed port is bound by it, command and
+  status pipes on the host's first bulk pair, data pipes on its second
+  (OP_CONFIGURE_BULK2, 0x23). One command in flight under tag 1; READ READY
+  or WRITE READY before the data, a Sense IU at the end, and a CHECK
+  CONDITION's sense kept for the REQUEST SENSE that follows. At SuperSpeed
+  a device is bound by BOT until the host serves streams (0x24); a UAS-only
+  one is not bound there, and the log names its interface (08h 06h 62h).
 - Kernel-spawnable capsule metadata and stable endpoint contract.
 
 ## Wire format
@@ -186,7 +194,8 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 
 ## Explicit non-goals today
 
-Not here: hot-plug after the start-up search, multi-LUN devices, UASP, devices
+Not here: hot-plug after the start-up search, multi-LUN devices, UAS at
+SuperSpeed (streams) or with commands queued, UAS task management, devices
 past 2 TiB (READ(10) addresses the first 2^32 blocks), filesystems, partitions,
 caching and encryption. Stall and phase-error recovery follow BOT 6.6 and 5.3.4;
 there is no retry of a failed command beyond that.

@@ -16,7 +16,7 @@
 
 //! Reading and writing whole device blocks, each run over one BOT command.
 
-use super::bot::command;
+use super::transport::command;
 use super::types::{Data, Disk};
 use crate::protocol::{E_INVAL, E_IO};
 use crate::scsi::{parse_sense, read10, read16, request_sense, write10, write16, Sense};
