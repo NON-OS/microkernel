@@ -34,8 +34,8 @@ pub(super) fn parse_gpio_crs(crs_value: &[u8], ctl: &mut GpioController) {
 }
 
 /// Keep every Memory32Fixed window in `_CRS` order: an Intel PCH lists one
-/// per community, in the order Linux's barno counts them. A window whose
-/// base is zero is one the firmware patches in at run time (coreboot
+/// per community, in `_CRS` order. A window whose
+/// base is zero is one the firmware patches in at run time (some firmware
 /// gpio.asl writes PCRB into it), so no static window is kept from that
 /// template at all. Returns true when the walk can stop.
 fn apply_memory32(lead: u8, data: &[u8], ctl: &mut GpioController) -> bool {

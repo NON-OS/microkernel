@@ -14,20 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Intel pinctrl layouts, one file per platform, and the `_HID` index.
 
-mod adln;
-mod adls;
-mod cnlh;
-mod cnllp;
-mod icllp;
-mod icln;
-mod index;
-mod jsl;
-mod mtlp;
-mod spth;
-mod sptlp;
-mod tglh;
-mod tgllp;
+//! The Intel pad layouts this crate places pins with: none. Every table it
+//! carried was transcribed from another operating system's source rather
+//! than from a published document, so all were dropped (F 46). A layout
+//! comes back only when it is derived from Intel's published PCH datasheet
+//! (the GPIO pad lists, volume 1 or 2), cited by document and section.
+//! Until then an Intel controller's pins are refused, not guessed, and its
+//! drivers poll.
 
-pub use index::LAYOUTS;
+use crate::group::Layout;
+
+/// Each Intel GPIO `_HID` and the layout it binds to.
+pub const LAYOUTS: &[(&[&[u8]], &Layout)] = &[];

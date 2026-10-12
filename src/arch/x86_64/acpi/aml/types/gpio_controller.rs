@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /// Community windows a GPIO controller record can carry: the broker record
-/// has six bars and the sixth names the `_HID`, and no Intel PCH has more
-/// than five communities (Linux pinctrl-alderlake.c adls_communities).
+/// has six bars and the sixth names the `_HID`, and no Intel PCH is known
+/// to list more than five communities (recalled: unverified).
 pub const GPIO_MAX_WINDOWS: usize = 5;
 
 /// A platform GPIO controller (Intel pinctrl or AMD FCH GPIO) enumerated
@@ -32,9 +32,8 @@ pub struct GpioController {
     /// The firmware `_UID`, the stable community index on a multi-community
     /// platform. Zero when the device declares none.
     pub uid: u32,
-    /// The community windows as (base, length), in the order Linux numbers
-    /// them (intel_community.barno), from `_CRS` when the firmware wrote
-    /// them there.
+    /// The community windows as (base, length), in `_CRS` order, when the
+    /// firmware wrote them there.
     pub windows: [(u64, u64); GPIO_MAX_WINDOWS],
     pub window_count: usize,
     /// Sideband port ids of the communities, in the same order, for a PCH

@@ -77,14 +77,14 @@ The [proof crates](../../overview/glossary.md#proof-crate) compile the shipping 
 | `i2c_hid_proofs` | touchpad bind, wake, report descriptor, input mode | 51 |
 | `i2c_pci_proofs` | LPSS reset, clocks, id tables, doorbell | 35 |
 | `i2c_transfer_proofs` | the DesignWare transfer engine against a modelled bus | 26 |
-| `pinctrl_proofs` | GPIO pad register layouts | 13 |
+| `pinctrl_proofs` | GPIO controller ids, pin resolution, pad register arithmetic | 8 |
 | `setup_layout_proofs` | the screen layouts of setup and the installer, and, in 4 of its tests, that setup writes the chosen keyboard layout when the step is confirmed | 56 |
 
 The check for `input_proofs` runs its tests without clippy, which the flake allows for that crate (`lintNone`, `tools/nix/checks.nix:54`).
 
 The QEMU run target gives the guest its keyboard and mouse through the q35 machine's i8042, and attaches xHCI on its own (`QEMU_USB`, `mk/10-qemu.mk:99-102`).
 
-For the PS/2 keyboard with its layouts, the I2C-HID touchpad on Intel LPSS, the power button and the volume keys there is one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+For the PS/2 keyboard with its layouts, the I2C-HID touchpad on Intel LPSS, the power button and the volume keys there is one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded.
 
 ## See also
 
