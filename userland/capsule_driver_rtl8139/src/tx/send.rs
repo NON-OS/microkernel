@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
-
 use crate::constants::dma::{TX_SLOT_BYTES, TX_SLOT_COUNT};
 use crate::constants::regs::{REG_TXSTATUS0, TSD_ERTXTH_256};
 use crate::constants::MIN_WIRE_FRAME;
@@ -36,7 +34,7 @@ pub fn send(driver: &mut Driver, frame: &[u8]) -> Result<(), &'static str> {
         core::ptr::copy_nonoverlapping(frame.as_ptr(), dst, frame.len());
         core::ptr::write_bytes(dst.add(frame.len()), 0, wire - frame.len());
     }
-    compiler_fence(Ordering::Release);
+    nonos_libc::dma_wmb();
     let status_reg = REG_TXSTATUS0 + (idx as u16 * 4);
     driver.pio.w32(status_reg, wire as u32 | TSD_ERTXTH_256)?;
     driver.tx_cur = driver.tx_cur.wrapping_add(1);
