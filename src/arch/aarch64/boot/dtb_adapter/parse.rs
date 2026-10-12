@@ -22,6 +22,7 @@ mod gic;
 mod memory;
 mod platform;
 mod processors;
+mod psci;
 mod reserved;
 
 use crate::arch::aarch64::boot::info::BootInfo;
@@ -57,6 +58,7 @@ pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> Outcome {
     let steps = memory::populate(&fdt, info)
         .and_then(|()| devices::populate(&fdt, info))
         .and_then(|()| platform::populate(&fdt))
+        .and_then(|()| psci::populate(&fdt))
         .and_then(|()| processors::populate(&fdt, info))
         .and_then(|()| reserved::populate(&fdt, info));
     let seed = entropy::keep(&fdt, dtb_ptr);
