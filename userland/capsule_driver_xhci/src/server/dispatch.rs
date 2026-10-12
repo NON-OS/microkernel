@@ -18,7 +18,8 @@ use crate::protocol::{
     OP_BULK_IN_POLL, OP_BULK_OUT, OP_CONFIGURE_BULK, OP_CONFIGURE_BULK2, OP_CONFIGURE_HUB,
     OP_CONFIGURE_ISOCH, OP_CONFIGURE_STREAMS, OP_CONTROLLER_STATUS, OP_CONTROL_TRANSFER,
     OP_DISABLE_SLOT, OP_ENABLE_SLOT, OP_GET_CONFIG_DESCRIPTOR, OP_GET_DEVICE_DESCRIPTOR,
-    OP_HEALTHCHECK, OP_INTERRUPT_IN, OP_ISOCH_IN, OP_ISOCH_OUT, OP_PORT_STATUS, OP_RESET_BULK,
+    OP_HEALTHCHECK, OP_INTERRUPT_IN, OP_INTERRUPT_OUT, OP_ISOCH_IN, OP_ISOCH_OUT, OP_PORT_STATUS,
+    OP_RESET_BULK,
 };
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
@@ -41,6 +42,7 @@ pub fn dispatch(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         OP_CONTROL_TRANSFER => handlers::control_transfer::handle(ctx, req, body, tx),
         OP_ALLOC_TRANSFER_RING => handlers::alloc_transfer_ring::handle(ctx, req, body, tx),
         OP_INTERRUPT_IN => handlers::interrupt_in::handle(ctx, req, body, tx),
+        OP_INTERRUPT_OUT => handlers::interrupt_out::handle(ctx, req, body, tx),
         OP_CONFIGURE_BULK => handlers::bulk::configure(ctx, req, body, tx),
         OP_CONFIGURE_BULK2 => handlers::bulk::configure_second(ctx, req, body, tx),
         OP_CONFIGURE_STREAMS => handlers::bulk::configure_streams(ctx, req, body, tx),

@@ -26,7 +26,7 @@ use crate::trb::Trb;
 /// A USB stick answers a 4 KiB transfer in milliseconds; five seconds
 /// covers a device that is still spinning up or flushing its cache.
 const BULK_TIMEOUT_MS: u64 = 5_000;
-pub(super) fn wait_bulk(
+pub(crate) fn wait_bulk(
     intr_base: u64,
     issued: IssuedTransfer,
     evt_ring: &mut EventRing,
