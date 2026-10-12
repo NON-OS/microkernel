@@ -31,12 +31,13 @@ fn reply(op: u16, status: i32) -> [u8; 32] {
 
 #[test]
 fn the_notice_names_the_camera_and_the_state() {
-    let on = notice(true);
+    let on = notice(1, true);
     assert_eq!(&on[0..4], b"PMCN", "NCMP little-endian");
     assert_eq!(&on[4..8], &[1, 0, 0x0A, 0]);
     assert_eq!(&on[16..20], &8u32.to_le_bytes());
     assert_eq!(&on[20..28], &[1, 0, 0, 0, 1, 0, 0, 0]);
-    assert_eq!(&notice(false)[24..28], &[0; 4]);
+    assert_eq!(&notice(1, false)[24..28], &[0; 4]);
+    assert_eq!(&notice(2, true)[20..24], &[2, 0, 0, 0], "the microphone");
 }
 
 #[test]
