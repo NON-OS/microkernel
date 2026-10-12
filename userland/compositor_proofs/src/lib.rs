@@ -83,6 +83,10 @@ pub mod protocol;
 pub mod display {
     #[path = "../../compositor/src/display/backoff.rs"]
     pub mod backoff;
+    #[path = "../../compositor/src/display/head.rs"]
+    pub mod head;
+    #[path = "../../compositor/src/display/head_rule.rs"]
+    pub mod head_rule;
     #[path = "../../compositor/src/display/hint_rule.rs"]
     pub mod hint_rule;
     #[path = "../../compositor/src/display/link.rs"]
@@ -117,7 +121,11 @@ mod foreign_pixel_tests;
 #[cfg(test)]
 mod frame_model;
 #[cfg(test)]
+mod head_tests;
+#[cfg(test)]
 mod hint_tests;
+#[cfg(test)]
+mod mirror_tests;
 #[cfg(test)]
 mod poll_tests;
 #[cfg(test)]

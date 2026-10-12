@@ -45,6 +45,8 @@ pub struct Context {
     /// The driver when it is driven on the display wire; None on GOP and
     /// on the legacy ops.
     pub wire: Option<crate::display::WireLink>,
+    /// The wire driver's outputs past 0, each mirroring the screen.
+    pub heads: alloc::vec::Vec<crate::display::Head>,
 }
 
 impl Context {

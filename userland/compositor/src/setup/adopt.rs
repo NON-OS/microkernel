@@ -28,8 +28,10 @@ use nonos_libc::mk_surface_release;
 use crate::display::ops;
 use crate::state::Context;
 
-pub fn adopt(ctx: &mut Context, next: Context) {
+pub fn adopt(ctx: &mut Context, mut next: Context) {
     super::canvas_release::release_canvas(ctx);
+    super::heads::release_heads(&mut ctx.heads);
+    ctx.heads = core::mem::take(&mut next.heads);
     let (old_handle, old_gop, old_screen) = (ctx.surface_handle, ctx.gop_mode, ctx.screen);
     let old = ctx.wire.map(|w| (ctx.gfx_port, w.pid, w.serial));
     ctx.gfx_port = next.gfx_port;

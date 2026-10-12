@@ -27,7 +27,7 @@ const PID: u32 = 40;
 const SERIAL: u32 = PID << 16 | 1;
 
 fn link(stale: bool) -> WireLink {
-    WireLink { name: "driver.bga0", serial: SERIAL, pid: PID, physical_mm: 0, stale }
+    WireLink { name: "driver.bga0", serial: SERIAL, pid: PID, physical_mm: 0, outputs: 1, stale }
 }
 
 fn state(serial: u32, flags: u32) -> Option<State> {

@@ -20,6 +20,7 @@ pub mod composite;
 pub mod cursor;
 pub mod drain_batch;
 pub mod drain_damage;
+pub mod mirror;
 pub mod present_virtio;
 pub mod present_wire;
 pub mod tick;

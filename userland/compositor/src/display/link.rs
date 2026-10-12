@@ -27,6 +27,8 @@ pub struct WireLink {
     pub pid: u32,
     /// CAPS' physical size, w | h << 16 mm, 0 unknown.
     pub physical_mm: u32,
+    /// CAPS' output count; a poll that reads another is a hot-plug.
+    pub outputs: u16,
     /// A FLUSH answered ESTALE: the primary must be asked for again
     /// before anything else is shown.
     pub stale: bool,

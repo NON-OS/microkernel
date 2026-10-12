@@ -18,7 +18,7 @@
 //! the legacy ops (0x0C, then 0x08/0x09/0x0A each frame); any other answer
 //! to CAPS that is not CAPS is a driver not ready. Otherwise SURFACE, which
 //! makes this compositor the owner (a restarted compositor gets its surface
-//! back), and the primary is attached.
+//! back), and the primary is attached, then every further output's.
 
 use nonos_gfx_wire::errno::ENOSYS;
 
@@ -33,7 +33,7 @@ pub fn prime(ep: GfxEndpoint) -> Result<Context, &'static str> {
         Err(_) => return Err("display: CAPS not answered"),
         Ok(c) => c,
     };
-    let s = ops::surface(ep.port).map_err(|_| "display: SURFACE refused")?;
+    let s = ops::surface(ep.port, 0).map_err(|_| "display: SURFACE refused")?;
     let p = attach_primary(s.handle)?;
     if (p.width, p.height) != (s.width, s.height) {
         return Err("display: primary is not the size SURFACE said");
@@ -41,6 +41,8 @@ pub fn prime(ep: GfxEndpoint) -> Result<Context, &'static str> {
     let mut ctx = Context::new(p, ep.port, 0, false);
     ctx.first_scanout_done = true;
     let (name, serial, pid, physical_mm) = (ep.name, s.serial, ep.pid, caps.physical_mm);
-    ctx.wire = Some(WireLink { name, serial, pid, physical_mm, stale: false });
+    let outputs = caps.outputs;
+    ctx.wire = Some(WireLink { name, serial, pid, physical_mm, outputs, stale: false });
+    ctx.heads = super::heads::prime_heads(ep.port, outputs);
     Ok(ctx)
 }
