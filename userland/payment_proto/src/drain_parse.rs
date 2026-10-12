@@ -35,7 +35,9 @@ impl DrainRequest {
                 let (chain_id, nonce, gas_limit) = (r.u64()?, r.u64()?, r.u64()?);
                 let (max_fee, max_priority, n) = (r.u128()?, r.u128()?, r.u8()? as usize);
                 let channels = (0..n).map(|_| r.fixed()).collect::<Option<Vec<[u8; 32]>>>()?;
-                let unique = (1..n).all(|i| !channels[..i].contains(&channels[i]));
+                let seen =
+                    |i: usize, c: &[u8; 32]| channels.get(..i).is_some_and(|b| b.contains(c));
+                let unique = channels.iter().enumerate().all(|(i, c)| !seen(i, c));
                 ((1..=DRAIN_ROWS_MAX).contains(&n) && unique).then_some(())?;
                 let s = DrainSign { chain_id, nonce, gas_limit, max_fee, max_priority, channels };
                 r.end(DrainRequest::Sign(s))

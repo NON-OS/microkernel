@@ -22,7 +22,8 @@ use crate::pay::PayRequest;
 impl PayRequest<'_> {
     /// The body, or None if a string is longer than a u16 can say.
     pub fn encode(&self) -> Option<Vec<u8>> {
-        let mut out = Vec::with_capacity(180 + self.listing.len() + self.release.len());
+        let urls = self.listing.len().saturating_add(self.release.len());
+        let mut out = Vec::with_capacity(urls.saturating_add(180));
         out.extend_from_slice(&self.listing_id);
         out.extend_from_slice(&self.release_hash);
         out.extend_from_slice(&self.payee);
