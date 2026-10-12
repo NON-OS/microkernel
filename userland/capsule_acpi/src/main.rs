@@ -29,6 +29,7 @@ mod cooling;
 mod ec;
 mod events_io;
 mod host;
+mod hotkeys;
 mod power;
 mod server;
 mod sleep;

@@ -21,6 +21,7 @@ use crate::buttons::Buttons;
 use crate::cooling::Cooling;
 use crate::ec::Ec;
 use crate::host::CapsuleHost;
+use crate::hotkeys::Hotkeys;
 use crate::power::Power;
 use alloc::vec::Vec;
 use nonos_aml::events::Events;
@@ -43,6 +44,7 @@ pub struct Acpi {
     pub buttons: Buttons,
     pub cooling: Cooling,
     pub backlight: Backlight,
+    pub hotkeys: Hotkeys,
     pub devices: Vec<DeviceInfo>,
     pub routes: Vec<(Id, Vec<Route>)>,
     /// SCIs served and GPE methods run, for the status reply.
