@@ -35,6 +35,8 @@ pub mod power_report;
 mod report;
 pub mod rule;
 mod sci;
+pub mod sleep_adopt;
+pub mod sleep_request;
 mod table_allow;
 mod table_check;
 mod table_report;
