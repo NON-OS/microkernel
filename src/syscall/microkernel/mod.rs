@@ -32,7 +32,9 @@ pub mod debug;
 #[cfg(feature = "nonos-user-entry-proof")]
 pub mod debug_diag;
 pub mod device;
+mod device_list;
 mod device_proof;
+mod device_release;
 pub mod dispatch;
 #[cfg(feature = "nonos-user-entry-proof")]
 pub mod dispatch_trace;
