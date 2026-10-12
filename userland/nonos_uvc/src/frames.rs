@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! The streaming interface's alternate settings: each one's number and
 //! its isochronous IN endpoint, with what one service interval carries
 //! (wMaxPacketSize bits 10:0, times one more than bits 12:11 at high
@@ -40,7 +39,14 @@ pub(crate) fn alternate(raw: &[u8], streaming: u8) -> Vec<Alt> {
                 if let Some(setting) = alt.filter(|&a| a != 0) {
                     let mps = u16::from_le_bytes([d[4], d[5]]);
                     let per = (mps & 0x7FF) as u32 * (((mps >> 11) & 0x3) as u32 + 1);
-                    out.push(Alt { setting, endpoint: d[2], max_packet: mps, per_interval: per });
+                    let (endpoint, interval) = (d[2], d[6]);
+                    out.push(Alt {
+                        setting,
+                        endpoint,
+                        max_packet: mps,
+                        per_interval: per,
+                        interval,
+                    });
                 }
             }
             _ => {}
