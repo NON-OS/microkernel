@@ -35,7 +35,7 @@ pub(super) fn release_if_last(pid: Pid, current: bool) {
 
 /// No other thread of `pid`'s group is alive. A zombie no longer counts: it
 /// runs nothing, and its own finalize finds this one gone.
-fn last_of_group(pid: Pid) -> bool {
+pub(super) fn last_of_group(pid: Pid) -> bool {
     let threads = PROCESS_TABLE.get_all_processes().into_iter().map(|p| {
         let ended =
             matches!(*p.state.lock(), ProcessState::Zombie(_) | ProcessState::Terminated(_));

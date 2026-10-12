@@ -17,6 +17,8 @@
 use alloc::sync::Arc;
 use core::sync::atomic::Ordering;
 
+use crate::kernel_core::surface_registry::attach_map::forget_pid;
+use crate::kernel_core::surface_registry::pin::kept::take_kept;
 use crate::kernel_core::surface_registry::pin::orphans::reclaim;
 use crate::process::core::ProcessControlBlock;
 
@@ -31,14 +33,9 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
     // ASID. The per-VMA unmap that used to live here walked the active page
     // table, so it freed whatever address space happened to be current; the
     // ASID-scoped teardown frees the leaf frames as well, so it is the only
-    // path that touches the right tables.
-    /*
-     * Shared surface frames another process still maps stay allocated
-     * (`surface_registry::pin::exit`): their other holder frees them.
-     */
-    let keep = crate::kernel_core::surface_registry::pin::exit::take_kept(pcb.pid);
+    // path that touches the right tables. A thread with none runs on tables
+    // another thread owns, and that thread's release frees them.
     let Some(asid) = crate::memory::paging::manager::lookup_asid_for_process(pcb.pid) else {
-        reclaim();
         return;
     };
     /*
@@ -56,6 +53,9 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
             return;
         }
     }
+    // Shared surface frames another process still maps stay allocated
+    // (`surface_registry::pin::exit`), whichever thread froze the list.
+    let keep = take_kept(pcb.cr3.load(Ordering::Acquire));
     /*
      * A Linux guest's supervisor reads and writes the guest's frames from its
      * own CPU, so no CPU being on these tables does not mean nobody is using
@@ -67,9 +67,8 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
     if cleaned.is_err() {
         crate::sys::serial::println(b"[EXIT] address_space_cleanup_failed");
     }
-    /*
-     * Exit forgot this process's attach records after its reclaim ran: an
-     * orphan it held last is freed now its view has gone with the tables.
-     */
+    // The group's views went with its tables: only now are its attach
+    // records forgotten and the orphans it held last freed (L46).
+    forget_pid(crate::hardware::broker::holder_of(pcb.pid));
     reclaim();
 }
