@@ -3749,6 +3749,7 @@
    "userland/nonos_aml/src/sleep",
    "userland/nonos_aml/src/suspend",
    "userland/nonos_aml/src/thermal",
+   "userland/nonos_aml/src/time_alarm",
    "userland/nonos_aml/src/video",
    "userland/nonos_aml/src/wmi",
    "userland/nonos_aml_proofs"
