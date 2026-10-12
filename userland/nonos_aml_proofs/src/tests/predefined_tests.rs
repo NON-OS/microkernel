@@ -12,7 +12,7 @@ fn the_predefined_objects_answer_the_default_personality() {
     assert_eq!(raw(&call(&mut aml, "\\_OS", vec![]).unwrap()), b"Microsoft Windows NT");
     assert_eq!(num(&call(&mut aml, "\\_REV", vec![]).unwrap()), 2);
     let osi = call(&mut aml, "\\_OSI", vec![Object::string(b"Windows 2015")]).unwrap();
-    assert_eq!(num(&osi), 0, "no string is answered until one is justified");
+    assert_eq!(num(&osi), u64::MAX, "Windows 10's string is answered");
 }
 
 #[test]
