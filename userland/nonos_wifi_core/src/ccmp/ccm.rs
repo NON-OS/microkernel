@@ -9,7 +9,7 @@
 //! AES-128 in CCM mode with an 8-byte tag and a 2-byte length field, exactly
 //! as WPA2 CCMP protects a data frame: CBC-MAC over the additional data and the
 //! payload for authentication, then CTR-mode encryption. Checked against the
-//! RFC 3610 test vector in `iwlwifi_proofs`. no_std, streaming, no allocation.
+//! RFC 3610 test vector in `nonos_wifi_core_proofs`. no_std, streaming, no allocation.
 
 use super::aes::Aes128;
 

@@ -44,4 +44,6 @@ mod station_tests;
 #[cfg(test)]
 mod supplicant_tests;
 #[cfg(test)]
+mod vector_tests;
+#[cfg(test)]
 mod watch_tests;

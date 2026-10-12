@@ -35,7 +35,7 @@
 //! CCMP (AES-CCM with an 802.11-specific nonce and AAD built from the MAC
 //! header) keyed by the pairwise temporal key. The AES-CCM core is proven
 //! against RFC 3610; the nonce/AAD construction is asserted byte for byte in
-//! `iwlwifi_proofs`.
+//! `nonos_wifi_core_proofs`.
 
 use alloc::vec::Vec;
 
