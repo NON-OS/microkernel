@@ -20,6 +20,6 @@ mod resources;
 mod table;
 pub use admit::interrupt_limit;
 pub use dci::dci_from_ep_address;
-pub use pairs::pair_of;
+pub use pairs::{pair_of, pair_stream};
 pub use resources::{InterruptEndpoint, SlotResources};
 pub use table::{SlotTable, PORT_FREE};

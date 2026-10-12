@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! One bulk transfer through the slot's DMA page: a single Normal TRB, the
 //! The polled bulk IN a network class driver reads with. One TRB stays armed
 //! on the IN ring into the poll page, and each look either takes its
 //! completion or answers at once, so an idle link never holds the controller
@@ -45,7 +44,8 @@ pub fn poll_bulk_in(
     slot: u8,
     len: u32,
 ) -> XhciResult<BulkPoll> {
-    if len == 0 || len as usize > BULK_MAX {
+    // A streamed IN is read on its streams, never polled.
+    if len == 0 || len as usize > BULK_MAX || pipes.in_streams.is_some() {
         return Err(XhciError::ControllerUnsupported);
     }
     let (phys, asked) = match pipes.armed {

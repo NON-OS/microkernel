@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! `OP_BULK_OUT` (`slot, pair, len_le16, data`) and `OP_BULK_IN` (`slot,
-//! pair, len_le16`), pair 0 the first bulk pair and 1 the second. Both reply `moved_le16, 0, 0`; a bulk IN follows it with the
+//! pair, len_le16`): pair 0 the first bulk pair and 1 the second in bits
+//! 3:0, a stream in bits 7:4 (0 for none). Both reply `moved_le16, 0, 0`; a bulk IN follows it with the
 //! bytes moved. A STALL replies `E_PIPE`, so the class driver can recover.
 use super::reply::{send_with_data, DATA_AT};
 use super::run::run;
@@ -23,30 +24,30 @@ use crate::error::{XhciError, XhciResult};
 use crate::protocol::{Request, BULK_HEADER_LEN, BULK_MAX, E_INVAL, E_IO, E_PIPE};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
-use crate::slots::pair_of;
+use crate::slots::pair_stream;
 const CC_STALL: u8 = 6;
 pub fn transfer_out(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let data = body.get(BULK_HEADER_LEN..).unwrap_or(&[]);
     let len =
         if body.len() >= BULK_HEADER_LEN { u16::from_le_bytes([body[2], body[3]]) } else { 0 };
-    let Some(second) = body.get(1).and_then(|&b| pair_of(b)) else {
+    let Some((second, stream)) = body.get(1).and_then(|&b| pair_stream(b)) else {
         return reply_with_status(tx, req, E_INVAL);
     };
     if data.is_empty() || data.len() != len as usize || data.len() > BULK_MAX {
         return reply_with_status(tx, req, E_INVAL);
     }
-    let moved = run(ctx, (body[0], second), data, len as u32, None);
+    let moved = run(ctx, (body[0], second, stream), data, len as u32, None);
     recover_timeout(ctx, (body[0], second), false, moved);
     finish(moved, req, tx);
 }
 pub fn transfer_in(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let len =
         if body.len() == BULK_HEADER_LEN { u16::from_le_bytes([body[2], body[3]]) } else { 0 };
-    let pair = body.get(1).and_then(|&b| pair_of(b));
-    let (Some(second), true) = (pair, len != 0 && len as usize <= BULK_MAX) else {
+    let pair = body.get(1).and_then(|&b| pair_stream(b));
+    let (Some((second, stream)), true) = (pair, len != 0 && len as usize <= BULK_MAX) else {
         return reply_with_status(tx, req, E_INVAL);
     };
-    let moved = run(ctx, (body[0], second), &[], len as u32, Some(&mut tx[DATA_AT..]));
+    let moved = run(ctx, (body[0], second, stream), &[], len as u32, Some(&mut tx[DATA_AT..]));
     recover_timeout(ctx, (body[0], second), true, moved);
     finish(moved, req, tx);
 }
