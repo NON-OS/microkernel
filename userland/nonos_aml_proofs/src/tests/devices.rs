@@ -17,6 +17,8 @@
 //! The proofs of what the interpreter reads for devices, each in its own
 //! directory beside this file.
 
+#[path = "apei/mod.rs"]
+mod apei;
 #[path = "cpu/mod.rs"]
 mod cpu;
 #[path = "dpower/mod.rs"]
