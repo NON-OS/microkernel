@@ -31,6 +31,14 @@ aarch64_resume_user:
     ldr     x9,  [x0, #272]
     mov     sp,  x9
 
+    /* The process's IA key from this CPU's slot (security::pac), before
+     * x10 and x11 are loaded; none where TPIDR_EL1 names no slot. */
+    mrs     x9, tpidr_el1
+    cbz     x9, 1f
+    ldp     x10, x11, [x9]
+    msr     S3_0_C2_C1_0, x10           /* APIAKeyLo_EL1 */
+    msr     S3_0_C2_C1_1, x11           /* APIAKeyHi_EL1 */
+1:
     /* x2..x7 from gprs[2..7]. */
     ldp     x2,  x3,  [x0, #16]
     ldp     x4,  x5,  [x0, #32]

@@ -30,14 +30,11 @@ use crate::sys::serial;
 
 #[no_mangle]
 pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
-    // start.S has already set CPACR_EL1.FPEN and VBAR_EL1, so the vector
-    // registers the compiler uses for ordinary work are usable here and an
-    // exception is reported. This finishes the per-CPU setup: the SCTLR bits,
-    // SVE where it is implemented, and the instruction cache.
+    // start.S set CPACR_EL1.FPEN and VBAR_EL1; this finishes the per-CPU
+    // setup: the SCTLR bits, SVE where implemented, the instruction cache.
     crate::arch::aarch64::cpu::init_cpu();
 
     let mut info = BootInfo::default();
-
     // Console next, on virt's PL011, so what follows can report its failure;
     // `init` moves it to the tree's UART. A wrong guess beats a silent boot.
     if let Err(reason) = crate::arch::aarch64::uart::init_uart(&info.uart) {
@@ -54,9 +51,13 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
     if let Outcome::Broken(reason) = outcome {
         super::refuse(b"device tree", reason);
     }
+    // Signing starts here: after the tree, whose rng-seed may key it, in a
+    // function that never returns, and before `init` starts the other CPUs.
+    if let Some(key) = crate::arch::aarch64::security::pac::prepare() {
+        crate::arch::aarch64::security::pac::install_kernel_key!(key);
+    }
 
-    // Brings up the console, puts the MMU and caches into a known state, then
-    // installs the vector table, the GIC and the timer.
+    // The console, the MMU and caches, the vectors, the GIC and the timer.
     super::init(&info);
 
     #[cfg(feature = "nonos-trap-proof-kernel-abort")]
@@ -65,9 +66,8 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
     if let Outcome::Parsed = outcome {
         serial::println(b"[NONOS] aarch64 boot init done");
     } else {
-        // The defaults left in place describe the QEMU virt board. Say so:
-        // on any other board they are wrong, and a silent boot that wanders
-        // into the wrong MMIO is far worse than a loud one.
+        // The defaults describe QEMU virt. Say so: on any other board they are
+        // wrong, and a silent boot into the wrong MMIO is worse than a loud one.
         serial::println(b"[NONOS] no usable device tree, assuming QEMU virt");
     }
 

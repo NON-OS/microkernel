@@ -14,37 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
+use super::prepare::{ABSENT, NOT_BUILT, NO_ENTROPY};
+use super::secret::Source;
+use super::state::status;
 
-use crate::arch::aarch64::cpu::features::{has_feature, CpuFeature};
-
-const PAC_BITS: u64 = (1 << 31) | (1 << 27);
-
-pub fn enable_pac() {
-    if has_feature(CpuFeature::Pauth) {
-        update_sctlr(PAC_BITS, 0);
+/// pac-ret's part of the hardening line.
+pub fn describe() -> &'static [u8] {
+    match Source::from_status(status()) {
+        Some(Source::Rndr) => return b"on, keys from RNDR",
+        Some(Source::DeviceTreeSeed) => return b"on, keys from the device tree rng-seed",
+        None => {}
     }
-}
-
-pub fn disable_pac() {
-    update_sctlr(0, PAC_BITS);
-}
-
-pub fn pac_enabled() -> bool {
-    has_feature(CpuFeature::Pauth) && (read_sctlr() & PAC_BITS) != 0
-}
-
-fn update_sctlr(set: u64, clear: u64) {
-    let sctlr = (read_sctlr() | set) & !clear;
-    unsafe {
-        asm!("msr sctlr_el1, {}", "isb", in(reg) sctlr);
+    match status() {
+        ABSENT => b"absent",
+        NOT_BUILT => b"off, image not built with pac-ret",
+        NO_ENTROPY => b"off, no RNDR and no rng-seed to key it",
+        _ => b"off",
     }
-}
-
-fn read_sctlr() -> u64 {
-    let sctlr: u64;
-    unsafe {
-        asm!("mrs {}, sctlr_el1", out(reg) sctlr);
-    }
-    sctlr
 }

@@ -24,6 +24,6 @@ pub mod spectre;
 pub use bti::{init_bti, kernel_guarded};
 pub use init_all::init_all;
 pub use mte::{init_mte, MteMode};
-pub use pac::{enable_pac, init_pac};
+pub use pac::{active as pac_active, enter_process};
 pub use pan::init_pan;
 pub use spectre::{init_spectre_mitigations, SpectreMitigation};

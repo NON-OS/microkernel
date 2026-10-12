@@ -55,6 +55,7 @@ impl ExceptionFrame {
             spsr: 0,
             esr: 0,
             far: 0,
+            pac_ia: [0; 2],
         }
     }
 }

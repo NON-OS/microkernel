@@ -36,6 +36,7 @@ pub fn init(boot_info: &BootInfo) {
     super::platform_windows::publish(boot_info);
     exceptions::install_vbar_el1();
     security::init_all();
+    security::pac::bind_this_cpu();
     mmu::init_mmu(boot_info);
     let gic = gic::init_gic(
         boot_info.gic_version,

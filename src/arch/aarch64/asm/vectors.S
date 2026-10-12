@@ -1,11 +1,12 @@
 /* EL1 vector table. 16 entries x 0x80, 2KB-aligned. VBAR_EL1 install
  * point lives in exceptions::install. Frame layout matches
- * exceptions::frame::ExceptionFrame (288 bytes, repr(C)). */
+ * exceptions::frame::ExceptionFrame (304 bytes, repr(C)). */
 
 .section .text.vectors, "ax", %progbits
 
-/* 31 GPRs + sp + elr + spsr + esr + far = 36*8 = 288. */
-.equ FRAME_SIZE, 288
+/* 31 GPRs + sp + elr + spsr + esr + far = 36*8 = 288, then EL0's IA key. */
+.equ FRAME_SIZE, 304
+.equ FRAME_PAC_IA, 288
 
 .macro SAVE_GPRS
     sub     sp, sp, #FRAME_SIZE
@@ -48,6 +49,34 @@
     mrs     x0, esr_el1
     mrs     x1, far_el1
     stp     x0, x1,   [sp, #272]
+.endm
+
+/* The IA key across the EL0 boundary (security::pac): EL0's is kept in the
+ * frame and the kernel's put in, and EL0's put back before the eret. Only
+ * where TPIDR_EL1 names a key slot, which is only where pointer
+ * authentication is on: elsewhere the key registers may not exist. x9-x11
+ * are saved in the frame already and reloaded from it after. */
+.macro PAC_FROM_EL0
+    mrs     x9, tpidr_el1
+    cbz     x9, 1f
+    mrs     x10, S3_0_C2_C1_0           /* APIAKeyLo_EL1 */
+    mrs     x11, S3_0_C2_C1_1           /* APIAKeyHi_EL1 */
+    stp     x10, x11, [sp, #FRAME_PAC_IA]
+    ldp     x10, x11, [x9, #16]         /* the slot's kernel key */
+    msr     S3_0_C2_C1_0, x10
+    msr     S3_0_C2_C1_1, x11
+    isb
+1:
+.endm
+
+/* No isb: the eret that follows synchronizes the write. */
+.macro PAC_TO_EL0
+    mrs     x9, tpidr_el1
+    cbz     x9, 1f
+    ldp     x10, x11, [sp, #FRAME_PAC_IA]
+    msr     S3_0_C2_C1_0, x10
+    msr     S3_0_C2_C1_1, x11
+1:
 .endm
 
 .macro RESTORE_GPRS
@@ -181,9 +210,11 @@ __aarch64_serror_current:
 __aarch64_sync_lower:
     SAVE_GPRS
     SAVE_SYSREGS_USER
+    PAC_FROM_EL0
     mov     x0, sp
     bl      aarch64_exc_sync_lower
     RESTORE_SYSREGS_USER
+    PAC_TO_EL0
     RESTORE_GPRS
     eret
 
@@ -191,9 +222,11 @@ __aarch64_sync_lower:
 __aarch64_irq_lower:
     SAVE_GPRS
     SAVE_SYSREGS_USER
+    PAC_FROM_EL0
     mov     x0, sp
     bl      aarch64_exc_irq_lower
     RESTORE_SYSREGS_USER
+    PAC_TO_EL0
     RESTORE_GPRS
     eret
 
@@ -201,9 +234,11 @@ __aarch64_irq_lower:
 __aarch64_fiq_lower:
     SAVE_GPRS
     SAVE_SYSREGS_USER
+    PAC_FROM_EL0
     mov     x0, sp
     bl      aarch64_exc_fiq_lower
     RESTORE_SYSREGS_USER
+    PAC_TO_EL0
     RESTORE_GPRS
     eret
 
@@ -211,9 +246,11 @@ __aarch64_fiq_lower:
 __aarch64_serror_lower:
     SAVE_GPRS
     SAVE_SYSREGS_USER
+    PAC_FROM_EL0
     mov     x0, sp
     bl      aarch64_exc_serror_lower
     RESTORE_SYSREGS_USER
+    PAC_TO_EL0
     RESTORE_GPRS
     eret
 

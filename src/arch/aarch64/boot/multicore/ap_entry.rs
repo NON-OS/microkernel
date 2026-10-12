@@ -28,6 +28,14 @@ use super::state::CPUS_ONLINE;
 
 #[no_mangle]
 pub extern "C" fn aarch64_ap_entry() -> ! {
+    // First, in this function that never returns: every CPU signs with the
+    // boot CPU's key or none does (security::pac).
+    match security::pac::secondary_key() {
+        Ok(Some(key)) => security::pac::install_kernel_key!(key),
+        Ok(None) => {}
+        Err(reason) => refuse(b"secondary pointer authentication", reason.as_bytes()),
+    }
+    security::pac::bind_this_cpu();
     install_vbar_el1();
     cpu::init_cpu();
     security::init_all();
