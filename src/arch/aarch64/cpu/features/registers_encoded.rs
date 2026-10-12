@@ -14,19 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! ID registers newer than ARMv8.0, read by their encodings. The assembler
+//! only knows their mnemonics for a target of the version that added them,
+//! and this kernel builds for ARMv8.0. On an older core each is a reserved
+//! ID register and reads as zero, which is the answer "nothing implemented"
+//! (Arm ARM D19.1, the ID space).
+
 use core::arch::asm;
 
-/// `ID_AA64MMFR2_EL1`, which reports E0PD among the memory-model features.
-///
-/// Named by its encoding, S3_0_C0_C7_2, because the assembler only knows the
-/// mnemonic for an ARMv8.2 target and this kernel builds for ARMv8.0. On a
-/// v8.0 core the encoding is a reserved ID register and reads as zero, which
-/// is the answer "nothing implemented" (Arm ARM D19.1, the ID space).
+/// `ID_AA64MMFR2_EL1`, S3_0_C0_C7_2, which reports E0PD.
 pub(super) fn read_aa64mmfr2() -> u64 {
     let value: u64;
     // SAFETY: an identification register, always readable at EL1, no side effects.
     unsafe {
         asm!("mrs {}, s3_0_c0_c7_2", out(reg) value, options(nomem, nostack, preserves_flags));
+    }
+    value
+}
+
+/// `ID_AA64ISAR2_EL1`, S3_0_C0_C6_2, which reports QARMA3 address
+/// authentication (APA3, bits 15:12).
+pub(super) fn read_aa64isar2() -> u64 {
+    let value: u64;
+    // SAFETY: as for `read_aa64mmfr2`.
+    unsafe {
+        asm!("mrs {}, s3_0_c0_c6_2", out(reg) value, options(nomem, nostack, preserves_flags));
     }
     value
 }
