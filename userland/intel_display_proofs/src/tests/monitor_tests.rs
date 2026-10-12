@@ -23,7 +23,7 @@ use nonos_gfx_wire::body::mode::FROM_EDID;
 use nonos_gfx_wire::Mode;
 
 use super::edid_blob::edid_1080p;
-use super::wire_rig::rig;
+use super::wire_rig::{h0, h0m, rig};
 use crate::display::{panel, panel_of};
 use crate::engine::aux_regs::Ddi;
 use crate::engine::gen::{GEN11, GEN9};
@@ -36,8 +36,9 @@ use crate::model::{Gen9, Ticks};
 fn an_edp_panel_is_read_over_aux_and_its_size_reaches_caps() {
     let (mut d, model) = rig();
     model.borrow_mut().sink = Some((Ddi::A, sink(edid_1080p((344, 194)))));
-    d.panel = panel_of(&mut d.m, &Ticks::new(), &GEN9, Transcoder::Edp);
-    assert_eq!(d.panel.physical_mm, 344 | 194 << 16);
+    let p = panel_of(&mut d.m, &Ticks::new(), &GEN9, Transcoder::Edp);
+    h0m(&mut d).panel = p;
+    assert_eq!(h0(&d).panel.physical_mm, 344 | 194 << 16);
     assert_eq!(d.caps().physical_mm, 344 | 194 << 16);
     let mut out = [Mode::default(); 2];
     d.modes(0, &mut out).unwrap();

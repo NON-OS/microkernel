@@ -18,7 +18,7 @@
 //! (whose mode setting is written), a pipe transcoder on DisplayPort or
 //! HDMI (eDP keeps its panel's mode on the boot DPLL; DVI is not driven),
 //! the DPLL its DDI runs on (never the boot one), the monitor's EDID with
-//! the timing shown among its own, pcode's latencies, the GGTT's size.
+//! the timing shown among its own, pcode's latencies, its GGTT window.
 //! Without any, the output keeps firmware's mode and no MODE_SET.
 
 use super::monitor::Monitor;
@@ -46,8 +46,8 @@ pub struct Modeset {
     /// The timing shown now, clock included.
     pub now: Detailed,
     pub latency_us: [u32; 8],
-    /// GGTT entries.
-    pub total: u32,
+    /// The GGTT entries this output's surfaces may use, first to last + 1.
+    pub window: (u32, u32),
 }
 
 impl Modeset {
@@ -57,7 +57,7 @@ impl Modeset {
         gen: &Gen,
         out: &Output,
         monitor: &Monitor,
-        total: u32,
+        window: (u32, u32),
     ) -> Option<Modeset> {
         let gen9 = *gen == GEN9 && out.transcoder != Transcoder::Edp && monitor.len > 0;
         let r = route::read(m, out.transcoder).filter(|_| gen9)?;
@@ -70,6 +70,6 @@ impl Modeset {
         let edid = Edid::parse(&monitor.blob[..monitor.len]).ok()?;
         let tmds_khz = Some(edid.max_tmds_khz()).filter(|&k| k > 0).unwrap_or(TMDS_DEFAULT_KHZ);
         let lit = Lit { t: out.transcoder, p: out.pipe, ddi: r.ddi, dpll, link: r.link };
-        Some(Modeset { lit, monitor: *monitor, tmds_khz, now, latency_us, total })
+        Some(Modeset { lit, monitor: *monitor, tmds_khz, now, latency_us, window })
     }
 }
