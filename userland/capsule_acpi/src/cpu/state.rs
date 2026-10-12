@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
-use nonos_aml::cpu::CpuTables;
+use nonos_aml::cpu::{CpuTables, ProcessorOsc};
 use nonos_aml::namespace::Id;
 
 pub struct Cpu {
     pub id: Id,
     /// The id the MADT names the processor by.
     pub uid: u64,
+    /// Firmware's answer to the processor _OSC, asked before the tables.
+    pub osc: ProcessorOsc,
     pub tables: CpuTables,
 }
 
