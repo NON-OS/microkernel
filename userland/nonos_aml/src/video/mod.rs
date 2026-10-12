@@ -16,10 +16,12 @@
 
 //! Backlight control through ACPI's video extensions (ACPI 6.5, appendix B).
 
+mod dod;
 mod levels;
 mod outputs;
 mod step;
 
+pub use dod::parse_dod;
 pub use levels::{parse_bcl, Levels};
 pub use outputs::backlights;
 pub use step::{change_of, nearest, step, Change};

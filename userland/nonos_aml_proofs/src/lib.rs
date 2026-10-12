@@ -49,6 +49,8 @@ pub mod sleep;
 pub mod thermal;
 #[path = "../../nonos_aml/src/video/mod.rs"]
 pub mod video;
+#[path = "../../nonos_aml/src/wmi/mod.rs"]
+pub mod wmi;
 
 #[cfg(test)]
 mod support;

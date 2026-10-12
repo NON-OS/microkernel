@@ -18,7 +18,9 @@
 //! _PSR, and packages refused.
 
 use crate::enc::*;
-use crate::power::{online, parse_bif, parse_bst, percent, BatteryInfo, BatteryStatus};
+use crate::power::{
+    minutes_left, online, parse_bif, parse_bst, percent, BatteryInfo, BatteryStatus,
+};
 use crate::run::eval;
 
 #[test]
@@ -48,4 +50,21 @@ fn short_or_wrong_packages_are_refused_and_psr_reads() {
     assert_eq!(parse_bst(&eval(&ret(&int(5)), vec![]).unwrap()), None);
     assert_eq!(online(&eval(&ret(&int(1)), vec![]).unwrap()), Some(true));
     assert_eq!(online(&eval(&ret(&int(0)), vec![]).unwrap()), Some(false));
+}
+
+#[test]
+fn minutes_to_empty_and_to_full() {
+    let info = BatteryInfo { last_full: Some(5000), ..Default::default() };
+    let st = |discharging, charging, rate, remaining| BatteryStatus {
+        discharging,
+        charging,
+        rate,
+        remaining,
+        ..Default::default()
+    };
+    assert_eq!(minutes_left(&info, &st(true, false, Some(1000), Some(2500))), Some(150));
+    assert_eq!(minutes_left(&info, &st(false, true, Some(2000), Some(2500))), Some(75));
+    assert_eq!(minutes_left(&info, &st(false, false, Some(1000), Some(2500))), None, "idle");
+    assert_eq!(minutes_left(&info, &st(true, false, Some(0), Some(2500))), None);
+    assert_eq!(minutes_left(&info, &st(true, false, None, Some(2500))), None);
 }
