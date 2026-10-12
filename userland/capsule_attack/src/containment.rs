@@ -55,7 +55,9 @@ fn syscalls() -> Option<u64> {
 /// did meanwhile.
 pub fn spin() {
     let Some(before) = syscalls() else {
-        note(b"[ATTACK-NOTE] fault-containment: MkProcStat gave no header, the loop was not tried\n");
+        note(
+            b"[ATTACK-NOTE] fault-containment: MkProcStat gave no header, the loop was not tried\n",
+        );
         return;
     };
     let start = mk_uptime_ms();
@@ -64,7 +66,7 @@ pub fn spin() {
     let mut n: u32 = 0;
     loop {
         n = core::hint::black_box(n.wrapping_add(1));
-        if n % CHECK_EVERY == 0 {
+        if n.is_multiple_of(CHECK_EVERY) {
             mine += 1;
             if mk_uptime_ms() - start >= SPIN_MS {
                 break;
