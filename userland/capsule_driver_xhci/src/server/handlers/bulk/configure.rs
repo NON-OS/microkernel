@@ -63,7 +63,7 @@ fn run(
     let max_slots = ctx.driver.layout.max_slots;
     let res =
         ctx.driver.slots.resources_mut(slot, max_slots).ok_or(XhciError::ControllerUnsupported)?;
-    if res.bulk.is_some() || !res.interrupt.is_empty() {
+    if !res.takes_bulk() {
         return Err(XhciError::ControllerUnsupported);
     }
     let (speed, usb3) = (res.speed, res.usb3);

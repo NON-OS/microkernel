@@ -29,6 +29,9 @@ mod fixture;
 mod producer;
 
 mod address_tests;
+mod bluetooth_limit_tests;
+mod bluetooth_poll_tests;
+mod bluetooth_tests;
 mod boundary_tests;
 mod bulk_poll_more_tests;
 mod bulk_poll_tests;
