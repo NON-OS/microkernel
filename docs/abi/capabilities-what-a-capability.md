@@ -7,7 +7,7 @@ Part of [Capabilities](capabilities.md).
 A [capability](../overview/glossary.md#capability) is one bit in a 64-bit mask,
 the process's [capability word](../overview/glossary.md#capability-word).
 `capability_table!` is the one list of them, with the bit each occupies
-(`src/capabilities/types/defs.rs:21-83`), and `count` is derived from that list
+(`src/capabilities/types/defs.rs:19-75`), and `count` is derived from that list
 rather than written down (`src/capabilities/types/table.rs:39-43`). A capsule's
 [capability token](../overview/glossary.md#capability-token) carries the
 capabilities it holds as `permissions`
@@ -42,7 +42,7 @@ checks it instead.
 | 6 | `0x40` | `FileSystem` | `FILE_SYSTEM` | Read the data volume, and reach the VFS service. | `MDIM`, `MDST`, `MDRD`, `MDPW` |
 | 7 | `0x80` | `Hardware` | `HARDWARE` | Enforces nothing. | none |
 | 8 | `0x100` | `Debug` | `DEBUG` | Write diagnostic lines to the boot serial. | `MDBG` |
-| 9 | `0x200` | `Admin` | `ADMIN` | Reboot, shut down, push policy, grant and revoke capabilities. Accepted in place of most [broker](../overview/glossary.md#broker) and window rights. | `MCGT`, `MCRV`, `MDLS`, `MDCL`, `MDRL`, `MMMP`, `MMUM`, `MIRB`, `MIRU`, `MIRA`, `MIRP`, `MIRW`, `MDMM`, `MDMU`, `MPCR`, `MPCW`, `MPGT`, `MPRD`, `MPWR`, `MPRL`, `MIEP`, `MIED`, `MIEW`, `MSPI`, `ARBT`, `ASDN`, `APPS` |
+| 9 | `0x200` | `Admin` | `ADMIN` | Reboot, shut down, push policy, grant and revoke capabilities. Accepted in place of the window right, and of `DeviceEnum` when listing devices; never of a [broker](../overview/glossary.md#broker) or input right. | `MCGT`, `MCRV`, `MDLS`, `MSPI`, `ARBT`, `ASDN`, `APPS` |
 | 10 | `0x400` | `RegisterService` | `REGISTER_SERVICE` | Register a service name at run time, from a short fixed list. | none |
 | 11 | `0x800` | `GraphicsDisplayQuery` | `GRAPHICS_DISPLAY_QUERY` | Read the display size and wait on the kernel's frame clock. | `MDVW`, `GDIM` |
 | 12 | `0x1000` | `GraphicsSurfaceCreate` | `GRAPHICS_SURFACE_CREATE` | Register, share and release surfaces. | `MSRG`, `MSSH`, `MSRL` |
@@ -51,10 +51,10 @@ checks it instead.
 | 15 | `0x8000` | `DeviceEnum` | `DEVICE_ENUM` | List broker devices, and read the booted image for an install. Claiming a device is `Driver`. | `MISR`, `MDLS` |
 | 16 | `0x10000` | `Driver` | `DRIVER` | Claim and release a device through the broker, and use its PCI configuration space. | `MDCL`, `MDRL`, `MPCR`, `MPCW` |
 | 17 | `0x20000` | `Mmio` | `MMIO` | Map a slice of a claimed device's BAR into the holder's own address space. | `MMMP`, `MMUM` |
-| 18 | `0x40000` | `Irq` | `IRQ` | Bind a claimed device's interrupt and wait on it. Also lets a driver post input events. | `MIRB`, `MIRU`, `MIRA`, `MIRP`, `MIRW`, `MIEP` |
+| 18 | `0x40000` | `Irq` | `IRQ` | Bind a claimed device's interrupt and wait on it. | `MIRB`, `MIRU`, `MIRA`, `MIRP`, `MIRW` |
 | 19 | `0x80000` | `Dma` | `DMA` | Receive a DMA buffer a claimed device may read or write through. | `MDMM`, `MDMU` |
 | 20 | `0x100000` | `Pio` | `PIO` | Get a port grant on a port BAR and have the kernel run `in` and `out` on its ports. | `MPGT`, `MPRD`, `MPWR`, `MPRL` |
-| 21 | `0x200000` | `InputSource` | `INPUT_SOURCE` | Post input events, and drain and wait on the input ring. | `MIEP`, `MIED`, `MIEW` |
+| 21 | `0x200000` | `InputSource` | `INPUT_SOURCE` | Post input events. | `MIEP` |
 | 22 | `0x400000` | `TimeSet` | `TIME_SET` | Correct the wall clock. | `MTAD` |
 | 23 | `0x800000` | `SpawnBroker` | `SPAWN_BROKER` | Attribute a capsule load's parent to a live pid other than the caller. | none |
 | 24 | `0x1000000` | `SpawnWindow` | `SPAWN_WINDOW` | Open another window of an embedded, attested app capsule. | `MSPI` |
@@ -69,3 +69,4 @@ checks it instead.
 | 33 | `0x200000000` | `LocalSign` | `LOCAL_SIGN` | Mint a proof that this machine agreed to run bytes it installed itself. | `MLSG` |
 | 34 | `0x400000000` | `StreamImport` | `STREAM_IMPORT` | Stream a file into the data volume, kept only if it hashes to the digest named first. Grants no read. | `MDFB`, `MDFD`, `MDRM` |
 | 35 | `0x800000000` | `DeviceSecret` | `DEVICE_SECRET` | Receive this machine's TPM-derived device secret and its boot slots, and run enrolment's TPM half. | `MDVS`, `MBSL`, `MENR` |
+| 36 | `0x1000000000` | `InputConsumer` | `INPUT_CONSUMER` | Drain and wait on the input ring, which carries every keystroke. Held by input_router alone. | `MIED`, `MIEW` |
