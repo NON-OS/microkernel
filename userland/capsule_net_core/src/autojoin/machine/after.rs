@@ -23,13 +23,17 @@ use super::{
 
 impl Machine {
     pub fn after_attempt(&mut self, now_ms: i64, step: Step) {
+        if self.rejoining() {
+            return self.after_rejoin(now_ms, step);
+        }
         let wait = match step {
             Step::NotYet => NOT_YET_MS,
-            Step::Answered { joined: true, .. } | Step::Done => {
+            Step::Answered { joined: true, .. } => return self.joined(),
+            Step::Done => {
                 self.phase = Phase::Done;
                 return;
             }
-            Step::Answered { index, joined: false } => {
+            Step::Answered { index, joined: false } | Step::Refused(index) => {
                 self.tried |= bit(index);
                 NOT_YET_MS
             }
