@@ -16,8 +16,9 @@
 
 //! Who may ask each op. The kernel's HELD line admits whole services to
 //! the endpoint; this names, op by op, which of them each op answers,
-//! checked as HELD checks: by the service a sender owns, its pid asked of
-//! the registry at each request so a restart is seen. An op nobody is
+//! checked as HELD checks: by the service a sender's process owns, sender
+//! (a thread, as MkIpcRecvFrom reports it) and owner compared by thread
+//! group, owners asked of the registry at each request. An op nobody is
 //! named for answers no one. Pure: `capsule_acpi_proofs` mounts it.
 
 const POWER: &[u8] = b"power";
@@ -49,13 +50,25 @@ pub fn allowed(op: u8) -> Allowed {
     }
 }
 
+/// The thread group `pid` belongs to; a pid the kernel names no group
+/// for stands for itself.
+fn group(pid: u32, group_of: &impl Fn(u32) -> Option<u32>) -> u32 {
+    group_of(pid).filter(|g| *g != 0).unwrap_or(pid)
+}
+
 /// Whether `sender` may ask `op`; `owner` is the registry's pid for a
-/// service name, None when no one runs it.
-pub fn admits(op: u8, sender: u32, owner: impl Fn(&[u8]) -> Option<u32>) -> bool {
+/// service name, None when no one runs it; `group_of` the kernel's thread
+/// group for a pid.
+pub fn admits(
+    op: u8,
+    sender: u32,
+    owner: impl Fn(&[u8]) -> Option<u32>,
+    group_of: impl Fn(u32) -> Option<u32>,
+) -> bool {
+    let me = group(sender, &group_of);
+    let runs = |n: &&[u8]| owner(n).is_some_and(|p| p != 0 && group(p, &group_of) == me);
     match allowed(op) {
-        Allowed::Services(names) => {
-            sender != 0 && names.iter().any(|n| owner(n).is_some_and(|p| p != 0 && p == sender))
-        }
+        Allowed::Services(names) => sender != 0 && names.iter().any(runs),
         Allowed::AnyAdmitted => sender != 0,
         Allowed::Nobody => false,
     }
