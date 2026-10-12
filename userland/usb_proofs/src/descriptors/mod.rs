@@ -7,6 +7,8 @@ pub mod binding;
 pub mod config;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/packet_size.rs"]
 pub mod packet_size;
+#[path = "../../../capsule_driver_usb_hid/src/descriptors/pointer.rs"]
+pub mod pointer;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/types.rs"]
 pub mod types;
 // The parser returns Result<_, ()>, its own choice.

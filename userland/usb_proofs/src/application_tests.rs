@@ -4,7 +4,8 @@
 //! or mouse. The descriptors here are written from the HID usage tables as
 //! recalled, unverified.
 
-use crate::descriptors::application::{application, is_pointer};
+use crate::descriptors::application::application;
+use crate::descriptors::pointer::is_pointer;
 
 const MOUSE: [u8; 8] = [0x05, 0x01, 0x09, 0x02, 0xA1, 0x01, 0x09, 0x01];
 const FIDO: [u8; 7] = [0x06, 0xD0, 0xF1, 0x09, 0x01, 0xA1, 0x01];
