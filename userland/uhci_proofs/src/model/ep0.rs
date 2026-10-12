@@ -5,7 +5,7 @@
 //! status stage. A request named in `stall_request` stalls past SETUP.
 
 use super::device::{Device, Reply};
-use crate::facts::td::{PID_IN, PID_OUT, PID_SETUP};
+use super::pid::{PID_IN, PID_OUT, PID_SETUP};
 
 #[derive(Default)]
 pub struct Ep0 {

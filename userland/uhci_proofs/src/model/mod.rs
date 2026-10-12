@@ -10,6 +10,7 @@ mod ep0;
 mod frame;
 mod handles;
 mod make;
+pub mod pid;
 mod ports;
 mod regs;
 mod steps;

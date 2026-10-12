@@ -1525,6 +1525,12 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_driver_ohci": {
+  "exclude": [],
+  "include": [],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_driver_ps2_input": {
   "exclude": [],
   "include": [
