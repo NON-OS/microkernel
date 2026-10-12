@@ -21,9 +21,8 @@
 //! remap write at 0x204, 0x240 and 0x244, which on such a function are its
 //! own registers. So an unlisted function has to prove itself an I2C core by
 //! reads alone first: the DesignWare signature in IC_COMP_TYPE, and an LPSS
-//! capabilities register naming I2C. Linux intel_lpss_probe likewise reads
-//! the capabilities and refuses another type before intel_lpss_init_dev
-//! writes anything, and binds listed ids only. A real LPSS I2C the firmware
+//! capabilities register naming I2C (the LPSS chapter, as recalled,
+//! unverified), read before anything is written. A real LPSS I2C the firmware
 //! left in reset reads zero here and is refused too: unlisted, it is left
 //! alone rather than risk a write into a device that is not one.
 

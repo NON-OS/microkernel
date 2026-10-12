@@ -17,8 +17,9 @@
 use crate::constants::*;
 use crate::regs::Regs;
 
-// Intel LPSS wrapper bring-up, as Linux intel_lpss_init_dev does it: put the
-// function in reset, release the function and both integrated DMA resets,
+// Intel LPSS wrapper bring-up (the PCH datasheets' LPSS chapter, as
+// recalled, unverified; the same order observed in Linux, unverified): put
+// the function in reset, release the function and both integrated DMA resets,
 // then program the remap address (the window's physical address, low dword
 // then high) so the integrated DMA sees the window where it really is, above
 // 4 GiB included. Firmware frequently leaves the resets released already;

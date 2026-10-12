@@ -21,9 +21,10 @@
 //!
 //! Broxton, Apollo Lake and Gemini Lake declare each GPIO community as its
 //! own ACPI controller (INT3452/INT3453, `_UID` 1..4) whose GpioInt pin is
-//! the pad index, eight bytes apart from PADBAR (Linux pinctrl-broxton.c,
-//! pinctrl-geminilake.c). Sunrise Point and later number pins through
-//! per-platform pad groups over several community windows, and AMD has one
+//! the pad index, eight bytes apart from PADBAR (the SoC datasheets' GPIO
+//! chapter and the firmware's ACPI tables, as recalled, unverified; the
+//! same numbering observed in Linux, unverified). Sunrise Point and later
+//! number pins through per-platform pad groups over several community windows, and AMD has one
 //! dword per pin; nonos_pinctrl carries those layouts. Anywhere else the HID
 //! driver reads on a timer, which every device supports.
 //!

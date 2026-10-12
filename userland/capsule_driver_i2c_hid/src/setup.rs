@@ -46,7 +46,7 @@ pub fn reprobe(state: &mut State) {
         state.mouse_layout = parse_mouse_layout(&report_desc);
         // Drive the pad's reporting configuration: input mode = touchpad (the
         // only collection PTP-class pads generate reports on; the vestigial
-        // mouse collection is a stub Windows and Linux never use), surface
+        // mouse collection is a compliance stub, as recalled), surface
         // and button switches on. Read-modify-write per feature report,
         // writing only when a bit differs, so a correctly-configured pad
         // sees no writes, while one left muted or mode-switched by a

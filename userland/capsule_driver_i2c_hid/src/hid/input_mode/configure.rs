@@ -22,8 +22,9 @@ use crate::hid::report_desc::TouchLayout;
 
 /// The Precision Touchpad collection. Modern PTP-only pads implement the
 /// mouse collection for compliance only, and it never generates reports;
-/// Windows and Linux both switch such pads to mode 3 on bind, so touch
-/// mode is the only mode this device class actually reports in. Read
+/// Microsoft's precision touchpad specification has the host set mode 3
+/// (as recalled, unverified), so touch mode is the only mode this device
+/// class actually reports in. Read
 /// pacing comes from the GPIO doorbell.
 const INPUT_MODE_TOUCHPAD: u32 = 3;
 const SWITCH_ON: u32 = 1;

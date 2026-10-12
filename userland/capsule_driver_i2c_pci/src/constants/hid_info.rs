@@ -24,9 +24,10 @@ pub const HID_INFO_TEN_BIT: u8 = 1 << 5;
 // record.rs) carries the controller's eight `_HID` bytes in bar 5's base.
 pub const GPIO_HID_BAR: usize = 5;
 
-// Intel pinctrl community registers (Linux pinctrl-intel.c): PADBAR at 0x00C
-// holds the offset of the pad configuration array; PADCFG0 bit 1 is the
-// pad's input level after the glitch filter, before RX inversion.
+// Intel GPIO community registers (the PCH and SoC datasheets' GPIO chapter,
+// as recalled, unverified): PADBAR at 0x00C holds the offset of the pad
+// configuration array; PADCFG0 bit 1 is the pad's input level after the
+// glitch filter, before RX inversion.
 pub const GPIO_PADBAR: u64 = 0x00C;
 pub const GPIO_RXSTATE: u32 = 1 << 1;
 // Broxton/Gemini Lake pads have two configuration dwords (no debounce

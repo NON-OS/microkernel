@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Frames put together from reports. In hybrid mode a device sends a
 //! frame's fingers over several reports: the first carries Contact Count,
-//! the rest a count of 0 (Windows precision touchpad and touchscreen
-//! protocol, as recalled, unverified). In parallel mode one report is the
+//! the rest a count of 0 (Microsoft's precision touchpad and touchscreen
+//! specifications, as recalled, unverified). In parallel mode one report is the
 //! whole frame. A report without Contact Count is a frame of its own.
 
 use super::frame::Frame;

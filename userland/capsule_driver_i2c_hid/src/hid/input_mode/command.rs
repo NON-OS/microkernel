@@ -43,7 +43,7 @@ pub(super) fn command(desc: &[u8; 30], id: u8) -> Option<Command> {
     let c = cmd.to_le_bytes();
     // Report ids of 15 and up do not fit the id nibble: the nibble reads 0xF
     // and the id follows the opcode as a third byte (HID over I2C v1.0
-    // section 7.2, Linux i2c_hid_encode_command).
+    // section 7.2, as recalled, unverified).
     let (ty_id, ext) = if id >= 0x0F {
         ((REPORT_TYPE_FEATURE << 4) | 0x0F, Some(id))
     } else {
