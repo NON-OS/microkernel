@@ -49,10 +49,8 @@ impl Session {
             self.send(SMP, pdu);
         }
         if let Some(user) = step.user {
-            return match self.ask(user, env) {
-                Some(next) => self.smp_step(host, next, env),
-                None => Ok(()),
-            };
+            self.ask(user, env);
+            return Ok(());
         }
         match step.outcome {
             Some(Outcome::Encrypt(ltk)) => self.encrypt(host, &ltk, env),

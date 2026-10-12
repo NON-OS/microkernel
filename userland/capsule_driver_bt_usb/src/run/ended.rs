@@ -21,9 +21,10 @@
 use nonos_bt_hci::usb::UsbHci;
 use nonos_bt_hci::{HciError, Host};
 
+use super::desk::Desk;
 use super::say::say;
-use super::wait::wait_ms;
-use crate::link::{hang_up, End};
+use crate::link::{hang_up, End, FORGOTTEN};
+use crate::nbtc::ops::IDLE;
 use crate::usb::XhciPipes;
 
 /// After a link this host gave up on, before the next look.
@@ -33,13 +34,19 @@ pub fn ended(
     host: &mut Host<UsbHci<XhciPipes>>,
     end: Result<End, HciError>,
     handle: u16,
+    desk: &Desk,
 ) -> Result<(), HciError> {
+    desk.board().ended();
     match end? {
         End::Lost(_) => say(&[b"link lost"]),
         End::GaveUp(why) => {
             say(&[b"link ended: ", why.as_bytes()]);
             hang_up(host, handle)?;
-            wait_ms(BACK_OFF_MS);
+            // The user ended this one; nothing about the device was wrong.
+            if why != FORGOTTEN {
+                desk.board().state = IDLE;
+                desk.wait(BACK_OFF_MS);
+            }
         }
     }
     Ok(())

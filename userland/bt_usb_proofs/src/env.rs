@@ -22,6 +22,7 @@
 use std::cell::Cell;
 use std::rc::Rc;
 
+use crate::env_desk::User;
 use crate::smp_sim::Rng;
 use nonos_bt_bond::{MemoryKeys, Store};
 use nonos_bt_hogp::host::Battery;
@@ -39,6 +40,7 @@ pub struct TestEnv {
     pub shown: Rc<Cell<Option<u32>>>,
     pub rng: Rng,
     pub bonds: Store<MemoryKeys>,
+    pub user: User,
 }
 
 impl TestEnv {
@@ -47,7 +49,8 @@ impl TestEnv {
         let (input, lines, passkeys) = (Vec::new(), Vec::new(), Vec::new());
         let bonds = Store::open(MemoryKeys::default()).unwrap();
         let batteries = Vec::new();
-        Self { now: 0, input, lines, batteries, passkeys, ticks: 0, shown, rng, bonds }
+        let user = User::new();
+        Self { now: 0, input, lines, batteries, passkeys, ticks: 0, shown, rng, bonds, user }
     }
 
     pub fn said(&self, line: &str) -> bool {

@@ -16,16 +16,17 @@
 
 //! What the link needs from the capsule around it: the clock, the input
 //! ring, the debug line, the battery, the user, the random source pairing
-//! draws from, and the bonds. The proofs stand in for all seven, so every
-//! path the link takes runs on the host.
+//! draws from, the bonds, and through `Desk` the user's part. The proofs
+//! stand in for all of it, so every path the link takes runs on the host.
 
+use super::desk::Desk;
 use nonos_bt_bond::BondRecord;
 use nonos_bt_hogp::host::Battery;
 use nonos_bt_hogp::report::Input;
 use nonos_bt_smp::pairing::Random;
 use nonos_bt_wire::addr::{AddrType, BdAddr};
 
-pub trait Env: Random {
+pub trait Env: Random + Desk {
     /// Milliseconds since some fixed point; never goes back.
     fn now_ms(&mut self) -> u64;
     /// One event for the input ring.

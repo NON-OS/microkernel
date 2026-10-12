@@ -14,23 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The link's environment in the capsule: the uptime clock, the input
-//! ring through the USB HID driver's own code, the debug channel, the
-//! kernel's random source, and the bond store.
+//! The link's environment in the capsule: the uptime clock, the input ring
+//! through the USB HID driver's code, the log, the random source, the desk.
 
-use super::kept::Kept;
+use super::desk::Desk;
 use super::say::{digits, say};
 use crate::hid::Keys;
 use crate::link::Env;
-use nonos_bt_bond::{BondRecord, Store};
-use nonos_bt_hogp::host::Battery;
-use nonos_bt_hogp::report::Input;
+use crate::nbtc::Part;
+use nonos_bt_bond::BondRecord;
+use nonos_bt_hogp::{host::Battery, report::Input};
 use nonos_bt_wire::addr::{AddrType, BdAddr};
 use nonos_libc::mk_uptime_ms;
 
 pub struct CapsuleEnv {
     pub keys: Keys,
-    pub bonds: Store<Kept>,
+    pub desk: Desk,
 }
 
 impl Env for CapsuleEnv {
@@ -47,27 +46,28 @@ impl Env for CapsuleEnv {
         say(words);
     }
     fn show_passkey(&mut self, passkey: u32) {
-        let n = digits(u64::from(passkey), 6);
-        say(&[b"to pair, type ", &n, b" on the keyboard, then Enter"]);
+        say(&[b"to pair, type ", &digits(u64::from(passkey), 6), b" on the keyboard, then Enter"]);
+        self.desk.board().ask(Part::Show(passkey));
     }
     fn battery(&mut self, b: Battery) {
         let (n, p) = (digits(u64::from(b.instance) + 1, 1), digits(u64::from(b.percent), 1));
         say(&[b"battery ", &n, b": ", &p, b"%"]);
+        self.desk.board().battery(b);
     }
     fn bonded(&mut self, kind: AddrType, addr: &BdAddr) -> Option<BondRecord> {
-        self.bonds.find(kind, addr).cloned()
+        self.desk.board().bonds.find(kind, addr).cloned()
     }
     fn any_bonds(&mut self) -> bool {
-        !self.bonds.book().bonds().is_empty()
+        !self.desk.board().bonds.book().bonds().is_empty()
     }
     fn keep(&mut self, record: BondRecord) {
-        match self.bonds.keep(record) {
+        match self.desk.board().bonds.keep(record) {
             Ok(()) => say(&[b"bond kept"]),
             Err(_) => say(&[b"bond not kept: no room, or the store refused it"]),
         }
     }
     fn forget(&mut self, record: &BondRecord) {
-        let gone = self.bonds.forget(record.identity_type, &record.identity);
+        let gone = self.desk.board().bonds.forget(record.identity_type, &record.identity);
         if gone.is_err() {
             say(&[b"a bond the peer dropped could not be forgotten"]);
         }

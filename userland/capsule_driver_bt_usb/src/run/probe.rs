@@ -21,6 +21,7 @@ use nonos_usbnet::found::fetch;
 use nonos_usbnet::xhci::{address_device, XhciBus, E_BUSY};
 use nonos_usbnet::Bind;
 
+use super::desk::Desk;
 use super::say::say;
 use crate::usb::{bind, Bound};
 
@@ -32,7 +33,7 @@ pub enum Probe {
     Failed,
 }
 
-pub fn probe(mut bus: XhciBus, port: u8) -> Probe {
+pub fn probe(mut bus: XhciBus, port: u8, desk: &Desk) -> Probe {
     match address_device(bus.xhci, bus.slot, port) {
         Ok(()) => {}
         Err(E_BUSY) => return Probe::Busy,
@@ -42,7 +43,7 @@ pub fn probe(mut bus: XhciBus, port: u8) -> Probe {
         Ok(found) => found,
         Err(_) => return failed("descriptors unread"),
     };
-    match bind(bus, &found) {
+    match bind(bus, &found, desk.clone()) {
         Bind::Ours(bound) => Probe::Ours(bound),
         Bind::NotOurs => Probe::NotOurs,
         Bind::Failed(why, _) => failed(why),

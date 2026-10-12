@@ -14,33 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The user's part in pairing. Only a passkey shown here can be answered:
-//! this capsule has no way yet to ask the user for digits or a yes, so the
-//! other two are declined at once and the peer ends pairing cleanly
-//! (Vol 3, Part H, 3.5.5) instead of waiting out its timer.
+//! The user's part in pairing. A passkey to show is logged and given to
+//! NBTC; digits to type and numbers to confirm wait for the user's answer,
+//! which comes through NBTC from Settings (`answered.rs`).
 
+use super::desk::Asked;
 use super::env::Env;
 use super::session::Session;
-use nonos_bt_smp::pairing::{Step, User};
+use nonos_bt_smp::pairing::User;
 
 impl Session {
-    /// The next step, `None` when there is none until the peer answers.
-    pub(super) fn ask<E: Env>(&mut self, user: User, env: &mut E) -> Option<Step> {
-        let now = env.now_ms();
-        let smp = self.smp.as_mut()?;
-        let step = match user {
-            User::ShowPasskey(n) => {
-                env.show_passkey(n);
-                return None;
-            }
-            User::EnterPasskey => smp.passkey(None, env, now),
-            User::ConfirmNumber(_) => smp.confirm(false, now),
-        };
-        // A refusal here is a call out of turn; ending the link is the safe
-        // answer to a state machine that no longer agrees with the peer.
-        if step.is_err() {
-            self.give_up("pairing state lost");
+    /// What pairing asks of the user, passed on. The step that follows
+    /// comes from the peer, or from the user's answer (`answered.rs`).
+    pub(super) fn ask<E: Env>(&mut self, user: User, env: &mut E) {
+        match user {
+            User::ShowPasskey(n) => env.show_passkey(n),
+            User::EnterPasskey => self.wait_on(Asked::Passkey, env),
+            User::ConfirmNumber(n) => self.wait_on(Asked::Number(n), env),
         }
-        step.ok()
+    }
+
+    /// Pairing waits on the user; the SMP timer bounds the wait (Vol 3,
+    /// Part H, 3.4), and `answered` takes the answer.
+    fn wait_on<E: Env>(&mut self, asked: Asked, env: &mut E) {
+        self.waiting = Some(asked);
+        env.asked(asked);
     }
 }

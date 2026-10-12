@@ -21,9 +21,9 @@
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
+use super::desk::Asked;
 use super::end::End;
 use super::find::Peer;
-use nonos_bt_hci::{HciError, Host, Transport};
 use nonos_bt_hogp::host::Host as Hid;
 use nonos_bt_smp::pairing::{Bond, Initiator};
 use nonos_bt_wire::l2cap::{basic, Reassembler};
@@ -44,6 +44,8 @@ pub struct Session {
     /// The keys pairing gave, or the kept bond the link was encrypted with.
     pub bond: Option<Bond>,
     pub(super) peer: Peer,
+    /// What pairing waits on the user for.
+    pub(super) waiting: Option<Asked>,
 }
 
 impl Session {
@@ -58,18 +60,5 @@ impl Session {
     /// The first reason this host gives for ending the link stands.
     pub(super) fn give_up(&mut self, why: &'static str) {
         self.end.get_or_insert(End::GaveUp(why));
-    }
-
-    /// Send what waits while the controller has buffers; a PDU that does
-    /// not fit waits whole for the next turn (`Host::send_pdu`).
-    pub(super) fn flush<T: Transport>(&mut self, host: &mut Host<T>) -> Result<(), HciError> {
-        while let Some(frame) = self.outbox.front() {
-            match host.send_pdu(self.handle, frame) {
-                Ok(()) => drop(self.outbox.pop_front()),
-                Err(HciError::NoCredit) => break,
-                Err(e) => return Err(e),
-            }
-        }
-        Ok(())
     }
 }

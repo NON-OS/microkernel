@@ -28,7 +28,10 @@ impl Session {
         (self.bond, self.smp) = (Some(bond), None);
         env.say(&[b"paired"]);
         match BondRecord::from_pairing(&bond, self.peer.kind, &self.peer.addr) {
-            Ok(record) => env.keep(record),
+            Ok(record) => {
+                env.linked(record.identity_type, record.identity, true);
+                env.keep(record);
+            }
             // It connected from a private address and sent no IRK: it could
             // never be found again, so it pairs afresh each time.
             Err(BondError::NoIdentity) => env.say(&[b"bond not kept: the peer gave no identity"]),

@@ -19,7 +19,7 @@
 //! bulk pair (Vol 4, Part B, 2.1).
 
 use super::ops::interrupt_poll;
-use crate::run::pause;
+use crate::run::Desk;
 use nonos_bt_hci::usb::{Setup, UsbPipes};
 use nonos_usbnet::xhci::XhciBus;
 use nonos_usbnet::Bus;
@@ -30,6 +30,8 @@ pub struct XhciPipes {
     pub dci: u8,
     /// The octets one look at it arms (`limit::read_limit`).
     pub event_read: usize,
+    /// Every pause answers NBTC requests (`run/desk.rs`).
+    pub desk: Desk,
 }
 
 impl UsbPipes for XhciPipes {
@@ -48,7 +50,9 @@ impl UsbPipes for XhciPipes {
     fn bulk_in_poll(&mut self, out: &mut [u8]) -> Result<Option<usize>, i32> {
         self.bus.bulk_in_poll(out)
     }
+    /// About a millisecond: what the HCI transport asks for between two
+    /// empty looks at the controller.
     fn pause(&mut self) {
-        pause();
+        self.desk.wait(1);
     }
 }

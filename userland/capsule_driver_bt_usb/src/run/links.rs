@@ -15,20 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Links one after another on a controller that is up: renew this host's
-//! address if due (between scans, the one time it may change: Vol 4,
-//! Part E, 7.8.4), look for a HID device, connect, pair or re-encrypt,
-//! serve it until the link ends, and look again. Only a failing controller
-//! ends the loop.
+//! address if due (between scans, the one time it may change: Vol 4, Part
+//! E, 7.8.4), look for a HID device while scanning is on, connect, pair or
+//! re-encrypt, serve it until it ends, and again; the board follows along.
 
 use nonos_bt_hci::host::{Connect, DEFAULT_LINK, DEFAULT_SCAN};
-use nonos_bt_hci::usb::UsbHci;
-use nonos_bt_hci::{HciError, Host};
+use nonos_bt_hci::{usb::UsbHci, HciError, Host};
 
 use super::ended::ended;
 use super::env::CapsuleEnv;
 use super::say::say;
 use crate::link::{begin, find_hid, serve, End, Private};
+use crate::nbtc::ops::{CONNECTING, IDLE, SCANNING, SECURING};
 use crate::usb::XhciPipes;
+
+/// How long a look waits while scanning is off, answering NBTC meanwhile.
+const IDLE_MS: u64 = 250;
 
 pub fn links(
     host: &mut Host<UsbHci<XhciPipes>>,
@@ -40,13 +42,20 @@ pub fn links(
             Ok(me) => me,
             Err(e) => return e,
         };
+        let scan = env.desk.board().scan;
+        env.desk.board().state = if scan { SCANNING } else { IDLE };
+        if !scan {
+            env.desk.wait(IDLE_MS);
+            continue;
+        }
         let peer = match find_hid(host, env) {
             Ok(Some(peer)) => peer,
             Ok(None) => continue,
             Err(e) => return e,
         };
-        let (peer_type, peer) = (peer.kind, peer.addr);
-        let c = Connect { scan: DEFAULT_SCAN, peer_type, peer, link: DEFAULT_LINK };
+        env.desk.board().state = CONNECTING;
+        let (peer_type, peer, scan, link) = (peer.kind, peer.addr, DEFAULT_SCAN, DEFAULT_LINK);
+        let c = Connect { scan, peer_type, peer, link };
         let link = match host.connect(&c) {
             Ok(link) => link,
             Err(HciError::Transport(e)) => return HciError::Transport(e),
@@ -54,11 +63,12 @@ pub fn links(
             Err(_) => continue,
         };
         say(&[b"connected"]);
+        env.desk.board().state = SECURING;
         let end = begin(host, &link, &me, env).and_then(|s| match s {
             Some(mut s) => serve(host, &mut s, env),
             None => Ok(End::GaveUp("pairing could not start")),
         });
-        if let Err(e) = ended(host, end, link.handle) {
+        if let Err(e) = ended(host, end, link.handle, &env.desk) {
             return e;
         }
     }

@@ -16,13 +16,16 @@
 
 mod acl;
 mod again;
+mod answered;
 mod att;
 mod begin;
+mod desk;
 mod encrypt;
 mod end;
 mod env;
 mod event;
 mod find;
+mod flush;
 mod hangup;
 mod heard;
 mod listen;
@@ -38,7 +41,9 @@ mod timers;
 pub mod us;
 mod user;
 
+pub use answered::FORGOTTEN;
 pub use begin::begin;
+pub use desk::{Answer, Asked, Desk};
 pub use end::End;
 pub use env::Env;
 pub use find::find_hid;

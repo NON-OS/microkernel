@@ -45,13 +45,15 @@ pub(super) fn heard_in<E: Env>(event: &[u8], env: &mut E) -> Result<Option<Heard
     if code != LE_ADVERTISING_REPORT {
         return Ok(None);
     }
+    // A device with no bond here pairs only while the user lets one in.
+    let may_pair = env.may_pair();
     let mut new = None;
     for r in adv_reports(sub)? {
         let peer = Peer { kind: r.addr_type, addr: r.addr };
         if connectable(&r) && env.bonded(r.addr_type, &r.addr).is_some() {
             return Ok(Some(Heard::Bonded(peer)));
         }
-        if new.is_none() && hid_advertiser(&r) {
+        if may_pair && new.is_none() && hid_advertiser(&r) {
             new = Some(Heard::New(peer));
         }
     }

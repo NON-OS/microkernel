@@ -22,6 +22,7 @@
 use super::choose::{choose, Verdict};
 use super::ops::configure_interrupt;
 use super::pipes::XhciPipes;
+use crate::run::Desk;
 use nonos_bt_hci::usb::BtInterface;
 use nonos_usbnet::xhci::{XhciBus, E_INVAL};
 use nonos_usbnet::{Bind, Bus, Found, Pipes, Setup};
@@ -31,7 +32,7 @@ pub struct Bound {
     pub iface: BtInterface,
 }
 
-pub fn bind(mut bus: XhciBus, found: &Found) -> Bind<Bound> {
+pub fn bind(mut bus: XhciBus, found: &Found, desk: Desk) -> Bind<Bound> {
     let c = match choose(&found.configs) {
         Verdict::Ours(c) => c,
         Verdict::NotOurs => return Bind::NotOurs,
@@ -54,6 +55,6 @@ pub fn bind(mut bus: XhciBus, found: &Found) -> Bind<Bound> {
     if let Err(e) = bus.control_out(Setup::set_configuration(c.value), &[]) {
         return Bind::Failed("SET_CONFIGURATION refused", e);
     }
-    let pipes = XhciPipes { bus, dci, event_read: c.event_read };
+    let pipes = XhciPipes { bus, dci, event_read: c.event_read, desk };
     Bind::Ours(Bound { pipes, iface: c.iface })
 }
