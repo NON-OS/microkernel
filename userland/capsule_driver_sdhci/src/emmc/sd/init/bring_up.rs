@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The SD bring-up sequence, in the order Linux's mmc_attach_sd and
-//! mmc_sd_init_card take: power, CMD0, CMD8, ACMD41, CID, address, CSD,
-//! select, block length, bus width and clock.
+//! The SD bring-up, in the SD Physical Layer's initialisation order (as
+//! recalled, unverified): power, CMD0, CMD8, ACMD41 until ready, CID,
+//! address, CSD, select; then block length, bus width and clock.
 
 use super::super::super::env::{Clock, Log, Mmio};
 use super::super::super::error::EmmcResult;

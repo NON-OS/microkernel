@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Extended CSD (JEDEC eMMC 5.1, 7.4): 512 bytes read with CMD8.
+//! The Extended CSD (JEDEC eMMC 5.1 7.4, as recalled, unverified): 512 bytes read with CMD8.
 
 mod bus_test;
 mod hs;
