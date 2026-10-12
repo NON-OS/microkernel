@@ -77,6 +77,15 @@ history live in capsule memory. Under Direct the RPC provider sees
 the machine's address and the accounts queried; under Nym or Anyone it sees
 the accounts.
 
+Secrets in memory are wiped through zeroize: a key or words typed, a key
+shown, the keyring's replies, and every string the screens draw from them.
+One thing is kept across a lock on purpose: the recovery words of a wallet
+just made, until the person confirms they wrote them down. They are the
+only copy, and the phrase cannot be shown again, so losing them would lose
+the wallet. While locked they stay in memory but are never drawn; unlocking
+returns straight to the backup screen. They are wiped on that confirmation,
+when a generate fails, and when the next generate writes over them.
+
 ## Tests
 
 `userland/wallet_proofs` mounts the wallet's pure helpers (amounts, scaling,
