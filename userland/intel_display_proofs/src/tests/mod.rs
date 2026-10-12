@@ -31,6 +31,7 @@ mod dpll_hdmi_tests;
 mod dpll_tests;
 mod flip_tests;
 mod gen12_tests;
+mod gen7_5_tests;
 mod gen8_tests;
 mod ggtt_tests;
 mod gmbus_tests;

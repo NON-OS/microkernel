@@ -38,7 +38,7 @@ impl Scanout {
         m.write(r::plane_surf(p, 1), fw.live);
         wait_live(m, p, fw.live, until)?;
         for s in self.surfaces {
-            ggtt::unmap(m, s / 4096, self.pages, total)?;
+            ggtt::unmap(m, self.ggtt, s / 4096, self.pages, total)?;
         }
         Ok(())
     }

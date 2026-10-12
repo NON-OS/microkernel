@@ -52,8 +52,8 @@ impl Scanout {
         let avoid = (fw_first, fw_first + fw_pages);
         let a = pick(total, pages, align, avoid).ok_or(Error::GgttFull)?;
         let b = pick(a, pages, align, avoid).ok_or(Error::GgttFull)?;
-        ggtt::map(m, a, iovas[0], total)?;
-        ggtt::map(m, b, iovas[1], total)?;
+        ggtt::map(m, out.ggtt, a, iovas[0], total)?;
+        ggtt::map(m, out.ggtt, b, iovas[1], total)?;
         let surfaces = [a * 4096, b * 4096];
         program(m, fw.kind, out.pipe, surfaces[0], stride, (out.width, out.height), fw.ctl)?;
         wait_live(m, out.pipe, surfaces[0], until)?;
@@ -65,6 +65,7 @@ impl Scanout {
             stride,
             surfaces,
             pages,
+            ggtt: out.ggtt,
             front: 0,
             firmware: fw,
         })

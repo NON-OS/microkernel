@@ -20,6 +20,7 @@
 use crate::engine::error::Error;
 use crate::engine::flip::flip;
 use crate::engine::ggtt;
+use crate::engine::ggtt_pte::Pte;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::plane_regs as r;
 use crate::model::firmware::T1080;
@@ -33,8 +34,8 @@ fn two_buffers() -> Gen9 {
     m.light(Transcoder::A, Pipe::A, T1080, 0);
     m.fill(0x100_0000, 1, 0xFFAA_0000);
     m.fill(0x200_0000, 1, 0xFF00_00BB);
-    ggtt::map(&mut m, FRONT / 4096, &[0x100_0000; 2025], 0x80000).unwrap();
-    ggtt::map(&mut m, BACK / 4096, &[0x200_0000; 2025], 0x80000).unwrap();
+    ggtt::map(&mut m, Pte::Wide, FRONT / 4096, &[0x100_0000; 2025], 0x80000).unwrap();
+    ggtt::map(&mut m, Pte::Wide, BACK / 4096, &[0x200_0000; 2025], 0x80000).unwrap();
     m.set(r::plane_surf(Pipe::A, 1), FRONT);
     m.set(r::plane_surflive(Pipe::A, 1), FRONT);
     m

@@ -32,6 +32,7 @@ pub mod error;
 pub mod flip;
 pub mod gen;
 pub mod ggtt;
+pub mod ggtt_pte;
 pub mod ggtt_range;
 pub mod gmbus;
 pub mod gmbus_regs;
