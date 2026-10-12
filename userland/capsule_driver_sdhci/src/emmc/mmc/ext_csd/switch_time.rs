@@ -19,7 +19,8 @@
 use super::offsets::{GENERIC_CMD6_TIME, PARTITION_CONFIG, PARTITION_SWITCH_TIME};
 use super::register::ExtCsd;
 
-/// A SWITCH waits at least this long (Linux's DEFAULT_CMD6_TIMEOUT_MS)...
+/// A SWITCH waits at least this long, for parts that name no time (500 ms
+/// observed in Linux, unverified); the wait ends when busy does...
 pub const CMD6_MIN_MS: u64 = 500;
 /// ...and no longer than this, inside the kernel's five-second reply wait.
 pub const CMD6_MAX_MS: u64 = 3_000;

@@ -38,7 +38,7 @@ pub(super) fn finish<M: Mmio, C: Clock, L: Log>(
         r1_ok(h, SET_BLOCKLEN, r[0])?;
     }
     // Every SD memory card drives one and four data lines (SCR
-    // SD_BUS_WIDTHS, 5.6), and every SDHCI host four.
+    // SD_BUS_WIDTHS, 5.6 as recalled), and every SDHCI host four.
     let set = Cmd::new(SET_BUS_WIDTH, BUS_WIDTH_4, Resp::R1);
     let r = app(h, card.rca, &set).inspect_err(|&e| say_failed(h, b"ACMD6 SET_BUS_WIDTH", e))?;
     r1_ok(h, SET_BUS_WIDTH, r[0])?;
