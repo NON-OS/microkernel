@@ -172,6 +172,7 @@ nonos-capsule-driver-hda        = []
 nonos-capsule-driver-ac97       = []
 nonos-capsule-driver-vmmdev     = []
 nonos-capsule-driver-vmmouse    = []
+nonos-capsule-driver-vmbus      = []
 nonos-capsule-driver-piix-ide   = []
 nonos-capsule-driver-virtio-scsi = []
 nonos-capsule-driver-pvscsi = []
@@ -504,6 +505,13 @@ microkernel-driver-vmmouse = [
   "nonos-capsule-driver-vmmouse",
 ]
 
+microkernel-driver-vmbus = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmbus",
+]
+
 microkernel-driver-piix-ide = [
   "microkernel-core",
   "nonos-production",
@@ -749,6 +757,7 @@ microkernel-full-gui = [
   "nonos-capsule-driver-ac97",
   "nonos-capsule-driver-vmmdev",
   "nonos-capsule-driver-vmmouse",
+  "nonos-capsule-driver-vmbus",
   "nonos-capsule-driver-piix-ide",
   "nonos-capsule-driver-virtio-scsi",
   "nonos-capsule-driver-pvscsi",

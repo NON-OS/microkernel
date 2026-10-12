@@ -22,8 +22,10 @@
 use super::common::{owner, IPC};
 use super::held::{callers_of, endpoint_admits, inbox_admits};
 
-/// Every virtual input device's driver endpoint.
-const VIRTUAL_INPUT: &[&str] = &["driver.virtio_input0", "driver.vmmdev0", "driver.vmmouse0"];
+/// Every virtual input device's driver endpoint, and the VMBus core's,
+/// which will carry Hyper-V's synthetic keyboard and mouse.
+const VIRTUAL_INPUT: &[&str] =
+    &["driver.virtio_input0", "driver.vmmdev0", "driver.vmmouse0", "driver.vmbus0"];
 
 #[test]
 fn a_virtual_pointer_or_keyboard_is_reached_by_no_capsule() {

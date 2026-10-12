@@ -53,6 +53,9 @@
    "nonos-data/trust/capsules/driver_virtio_scsi.manifest.bin",
    "nonos-data/trust/capsules/driver_virtio_scsi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_virtio_scsi.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmbus.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmbus.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmbus.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_vmmdev.manifest.bin",
    "nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin",
@@ -3577,6 +3580,9 @@
    "nonos-data/trust/capsules/driver_virtio_scsi.manifest.bin",
    "nonos-data/trust/capsules/driver_virtio_scsi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_virtio_scsi.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmbus.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmbus.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmbus.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_vmmdev.manifest.bin",
    "nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin",
@@ -5164,6 +5170,28 @@
    "userland/nonos_virtio/src/pci",
    "userland/nonos_virtio/src/select.rs",
    "userland/virtio_transport_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/vmbus_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/x86_64/hypervisor/hv/regs.rs",
+   "src/arch/x86_64/hypervisor/hv/vmbus_out.rs",
+   "userland/capsule_driver_vmbus/src/connect.rs",
+   "userland/capsule_driver_vmbus/src/constants.rs",
+   "userland/capsule_driver_vmbus/src/discover.rs",
+   "userland/capsule_driver_vmbus/src/guid.rs",
+   "userland/capsule_driver_vmbus/src/hv.rs",
+   "userland/capsule_driver_vmbus/src/msg.rs",
+   "userland/capsule_driver_vmbus/src/offers.rs",
+   "userland/capsule_driver_vmbus/src/say.rs",
+   "userland/capsule_driver_vmbus/src/serve.rs",
+   "userland/capsule_driver_vmbus/src/setup",
+   "userland/capsule_driver_vmbus/src/wait.rs",
+   "userland/vmbus_proofs"
   ],
   "md": [],
   "signed": []
