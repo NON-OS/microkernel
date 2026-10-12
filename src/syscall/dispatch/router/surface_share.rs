@@ -35,6 +35,7 @@ pub(super) fn do_share(sid: u64, receiver: u64) -> SyscallResult {
         Some(p) => p,
         None => return errno(ESRCH),
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     let Some(receiver) = u32_arg(receiver) else {
         return errno(EINVAL);
     };
