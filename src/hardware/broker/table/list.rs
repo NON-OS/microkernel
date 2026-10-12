@@ -40,3 +40,7 @@ pub fn contains(device_id: u64) -> bool {
 pub(in crate::hardware::broker) fn class_of(device_id: u64) -> Option<u32> {
     TABLE.read().iter().find(|r| r.device_id == device_id).map(|r| r.class)
 }
+
+pub(in crate::hardware::broker) fn flags_of(device_id: u64) -> Option<u32> {
+    TABLE.read().iter().find(|r| r.device_id == device_id).map(|r| r.flags)
+}

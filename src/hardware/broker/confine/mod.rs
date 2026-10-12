@@ -29,6 +29,7 @@ mod map;
 mod map_fail;
 mod posture;
 mod table;
+mod unconfined;
 
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
