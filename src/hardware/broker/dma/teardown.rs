@@ -16,12 +16,8 @@
 
 //! One grant's revocation, in the order `release.rs` describes.
 
-use super::pool;
 use super::types::DmaGrant;
 use crate::memory::addr::VirtAddr;
-use crate::memory::phys::free_contiguous;
-
-const PAGE_SIZE: u64 = 4096;
 
 pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool) {
     if unmap_pages {
@@ -35,12 +31,13 @@ pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool) {
         );
         return;
     }
-    super::scrub::scrub(g.physical_start, g.length);
-    let pages = (g.length / PAGE_SIZE) as usize;
-    if !pool::give_back(g.physical_start, pages) {
-        let _ = free_contiguous(g.physical_start, pages);
-    }
     if !g.confined {
         crate::memory::iommu::note_unconfined_released(1);
     }
+    // A surface another process still maps keeps the frames; the registry
+    // frees them through `free_held_run` once it is let go (L35).
+    if crate::kernel_core::surface_registry::pin::grant_run::hold(g.physical_start, g.length) {
+        return;
+    }
+    super::held_run::free_held_run(g.physical_start, g.length);
 }
