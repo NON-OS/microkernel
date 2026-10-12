@@ -20,11 +20,11 @@
 
 use crate::syscall::microkernel::errnos::ERRNO_NOSYS;
 use crate::syscall::microkernel::numbers::{
-    SYS_ACPI_PCI, SYS_ACPI_PORT, SYS_ACPI_REGION, SYS_ACPI_TABLE,
+    SYS_ACPI_PCI, SYS_ACPI_PORT, SYS_ACPI_POWER, SYS_ACPI_REGION, SYS_ACPI_TABLE,
 };
 
 pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
     let _ = (a0, a1, a2, a3);
-    matches!(nr, SYS_ACPI_TABLE | SYS_ACPI_REGION | SYS_ACPI_PORT | SYS_ACPI_PCI)
+    matches!(nr, SYS_ACPI_TABLE | SYS_ACPI_REGION | SYS_ACPI_PORT | SYS_ACPI_PCI | SYS_ACPI_POWER)
         .then_some(ERRNO_NOSYS)
 }

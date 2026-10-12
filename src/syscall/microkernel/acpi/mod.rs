@@ -21,11 +21,13 @@ mod dispatch;
 mod errno;
 mod pci;
 mod port;
+mod power;
 mod region;
 mod table;
 
 pub use dispatch::handle;
 pub use pci::sys_acpi_pci;
 pub use port::sys_acpi_port;
+pub use power::sys_acpi_power;
 pub use region::sys_acpi_region;
 pub use table::sys_acpi_table;
