@@ -23,7 +23,7 @@ use alloc::vec::Vec;
 
 use nonos_eth_rpc::{parse_u64, request_block_number};
 use nonos_nox_config::{deployed, Contract};
-use nonos_settle_proto::{current, listing_reply, parse_chain_hash, EINVAL, ENOENT, EPROTO};
+use nonos_settle_proto::{current, listing_reply, parse_chain_hash, EFBIG, EINVAL, ENOENT, EPROTO};
 
 use crate::listing::scan;
 use crate::settle::Settle;
@@ -50,5 +50,5 @@ pub fn listing(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
             current(&ask.id, &own.published, &own.withdrawn)
         }
     };
-    Ok(listing_reply(&rows))
+    listing_reply(&rows).ok_or(EFBIG)
 }

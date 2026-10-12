@@ -28,6 +28,7 @@ use nonos_market_proto::{reply_body, request, SERVICE};
 const TIMEOUT_MS: u64 = 2_000;
 const REPLY_MAX: usize = 16 << 10;
 const SILENT: &str = "The market did not answer, so nothing can be shown to confirm.";
+pub(super) const TOO_LONG: &str = "That request is too long to send.";
 pub(super) const UNREAD: &str =
     "The market's answer could not be read, so nothing can be confirmed.";
 
@@ -37,7 +38,7 @@ pub(super) fn ask(op: u16, body: &[u8]) -> Result<Vec<u8>, &'static str> {
         return Err(SILENT);
     }
     let id = mk_time_millis() as u32;
-    let tx = request(op, id, body);
+    let tx = request(op, id, body).ok_or(TOO_LONG)?;
     let mut rx = vec![0u8; REPLY_MAX];
     let (out, cap) = (rx.as_mut_ptr(), rx.len());
     let n = mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), out, cap, TIMEOUT_MS);

@@ -23,7 +23,7 @@
 use alloc::vec;
 
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_time_millis};
-use nonos_settle_proto::{reply_body, request, ReplyError, Settled, EAGAIN, EIO};
+use nonos_settle_proto::{reply_body, request, ReplyError, Settled, EAGAIN, EINVAL, EIO};
 use nonos_settle_proto::{HDR_LEN, OP_SETTLE, SERVICE, SETTLED_MAX, STATUS_LEN};
 
 /// A round reads the chain and broadcasts over Nym or Anyone.
@@ -36,7 +36,7 @@ pub fn settle_now(chain_id: u64) -> Result<Settled, i32> {
         return Err(EAGAIN);
     }
     let id = mk_time_millis() as u32;
-    let tx = request(OP_SETTLE, id, &chain_id.to_le_bytes());
+    let tx = request(OP_SETTLE, id, &chain_id.to_le_bytes()).ok_or(EINVAL)?;
     let mut rx = vec![0u8; HDR_LEN + STATUS_LEN + 33 + 48 * SETTLED_MAX];
     let (out, cap) = (rx.as_mut_ptr(), rx.len());
     let n = mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), out, cap, TIMEOUT_MS);

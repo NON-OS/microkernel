@@ -57,7 +57,7 @@ impl Fetch {
         match self {
             Fetch::Release { url, release_hash } if url.len() <= MAX_URL => {
                 out.push(FETCH_RELEASE);
-                out.extend_from_slice(&crate::bytes::len_u16(url.len()).to_le_bytes());
+                out.extend_from_slice(&crate::bytes::len_u16(url.len())?.to_le_bytes());
                 out.extend_from_slice(url);
                 out.extend_from_slice(release_hash);
             }

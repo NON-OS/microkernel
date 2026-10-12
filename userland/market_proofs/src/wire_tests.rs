@@ -50,7 +50,7 @@ fn lp(out: &mut Vec<u8>, s: &[u8]) {
 
 #[test]
 fn a_request_carries_the_markets_magic_and_its_own_id() {
-    let tx = request(OP_LIST_APPS, 7, b"xy");
+    let tx = request(OP_LIST_APPS, 7, b"xy").unwrap();
     assert_eq!(tx.len(), HDR_LEN + 2);
     assert_eq!(&tx[0..4], b"TKMN", "NMKT as a little-endian word");
     assert_eq!(u16::from_le_bytes([tx[6], tx[7]]), OP_LIST_APPS);
@@ -198,22 +198,6 @@ fn a_release_reads_back_what_the_market_encodes() {
 }
 
 #[test]
-fn the_install_stage_reads_as_the_kernel_writes_it() {
-    use nonos_market_proto::Stage;
-    assert_eq!(Stage::of(0), Stage::Idle);
-    assert_eq!(Stage::of(1), Stage::Queued);
-    assert_eq!(Stage::of(2), Stage::Installing);
-    assert_eq!(Stage::of(3), Stage::Installed);
-    assert_eq!(Stage::of(4), Stage::Refused);
-    assert_eq!(Stage::of(16 + 5), Stage::Failed(5));
-    assert_eq!(Stage::of(16 + 300), Stage::Failed(255));
-    // An errno for the question is no stage.
-    assert_eq!(Stage::of(-22), Stage::Idle);
-    assert!(Stage::Queued.pending() && Stage::Installing.pending());
-    assert!(!Stage::Installed.pending() && !Stage::Failed(2).pending());
-}
-
-#[test]
 fn a_description_is_cut_at_spaces_to_the_width() {
     use crate::terminal::wrap;
     let text = b"an interactive process viewer for the terminal";
@@ -228,6 +212,9 @@ fn a_description_is_cut_at_spaces_to_the_width() {
 
 #[test]
 fn request_bodies_are_length_prefixed_ids() {
-    assert_eq!(listing_body(b"ab"), [2, 0, 0, 0, b'a', b'b']);
-    assert_eq!(pair_body(b"ab", b""), [2, 0, 0, 0, b'a', b'b', 0, 0, 0, 0]);
+    assert_eq!(listing_body(b"ab").unwrap(), [2, 0, 0, 0, b'a', b'b']);
+    assert_eq!(pair_body(b"ab", b"").unwrap(), [2, 0, 0, 0, b'a', b'b', 0, 0, 0, 0]);
 }
+
+#[path = "stage_tests.rs"]
+mod stage_tests;
