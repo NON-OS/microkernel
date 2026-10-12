@@ -840,6 +840,20 @@
   "md": [],
   "signed": []
  },
+ "userland/bootfb_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/bootfb_proofs",
+   "userland/capsule_driver_bootfb/src",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_serve",
+   "userland/nonos_gfx_wire",
+   "userland/nonos_modes"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/browser_http_proofs": {
   "exclude": [],
   "include": [
