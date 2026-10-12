@@ -21,11 +21,10 @@ use nonos_tls::flight::ClientFlight;
 use nonos_tls::{HandshakeState, Progress, Start};
 
 use super::super::super::bounds::Bounds;
-use super::super::super::link::Link;
 use super::super::super::read_tls_flight::routed;
 use super::super::gather::Gathered;
 use super::state::Exchange;
-use super::types::DIRECT;
+use super::types::UNLINKED;
 
 impl Exchange {
     /// One slice read into the gather under way.
@@ -42,8 +41,8 @@ impl Exchange {
 
     pub(super) fn bounds(&self) -> Bounds {
         match &self.link {
-            Some(Link::Routed { patience_ms, .. }) => routed(*patience_ms),
-            _ => DIRECT,
+            Some(link) => routed(link.patience_ms),
+            None => UNLINKED,
         }
     }
 }

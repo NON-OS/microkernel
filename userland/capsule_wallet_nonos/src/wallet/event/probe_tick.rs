@@ -21,7 +21,7 @@ use crate::wallet::net::step::{Finished, Job};
 use crate::wallet::state::State;
 
 /// Refresh the account, a step per tick. The expensive network
-/// self-diagnostic (DNS, sockets, the full TLS check) runs once to confirm
+/// self-diagnostic (the Nym service, the full TLS check) runs once to confirm
 /// the link; after that every refresh is a single batched round trip that
 /// fetches balance, nonce, fee and the staking figures over one connection.
 /// The payments still on their way, on this network and account, are read
