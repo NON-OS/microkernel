@@ -19,17 +19,18 @@
 use alloc::vec::Vec;
 
 use super::header::{HDR_LEN, MAGIC, VERSION};
+use crate::bytes::len_u32;
 
 /// The header for `op` and `request_id`, then `body`.
 pub fn request(op: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
-    let mut tx = Vec::with_capacity(HDR_LEN + body.len());
+    let mut tx = Vec::with_capacity(body.len().saturating_add(HDR_LEN));
     tx.extend_from_slice(&MAGIC.to_le_bytes());
     tx.extend_from_slice(&VERSION.to_le_bytes());
     tx.extend_from_slice(&op.to_le_bytes());
     tx.extend_from_slice(&0u16.to_le_bytes());
     tx.extend_from_slice(&0u16.to_le_bytes());
     tx.extend_from_slice(&request_id.to_le_bytes());
-    tx.extend_from_slice(&(body.len() as u32).to_le_bytes());
+    tx.extend_from_slice(&len_u32(body.len()).to_le_bytes());
     tx.extend_from_slice(body);
     tx
 }
