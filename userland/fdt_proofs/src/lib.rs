@@ -67,6 +67,8 @@ mod smmu_tests;
 #[cfg(test)]
 mod structure_tests;
 #[cfg(test)]
+mod timer_rate_tests;
+#[cfg(test)]
 mod translate_tests;
 #[cfg(test)]
 mod uart_tests;
