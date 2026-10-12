@@ -22,13 +22,14 @@ mod load;
 mod osc;
 mod report;
 mod report_prt;
+mod say;
 mod sci;
 mod sci_claim;
 mod start;
 mod state;
 mod tables;
 
-pub use eval::evaluate;
+pub use eval::{evaluate, evaluator};
 pub use report::path;
 pub use start::boot;
 pub use state::Acpi;
