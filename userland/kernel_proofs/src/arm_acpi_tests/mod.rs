@@ -17,6 +17,8 @@
 mod build;
 mod gtdt_build;
 mod gtdt_tests;
+mod hmat_build;
+mod hmat_tests;
 mod hostile;
 mod hostile_tests;
 mod iort_bad_tests;

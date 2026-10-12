@@ -14,10 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! SRAT and SLIT on an Arm machine: the one SRAT decoder and SLIT reader,
+//! SRAT, SLIT and HMAT on an Arm machine: the one decoder of each,
 //! mounted from the x86 parser by path (they are byte parsers with no x86
 //! in them). GICC affinity entries are this architecture's processors.
 
+#[path = "../../x86_64/acpi/parser/other/hmat_decode.rs"]
+mod hmat_decode;
+#[path = "../../x86_64/acpi/parser/other/hmat_entry.rs"]
+pub mod hmat_entry;
+#[path = "../../x86_64/acpi/parser/other/hmat_query.rs"]
+pub mod hmat_query;
 #[path = "../../x86_64/acpi/parser/other/slit_matrix.rs"]
 pub mod slit_matrix;
 #[path = "../../x86_64/acpi/parser/other/srat_decode.rs"]

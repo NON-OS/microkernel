@@ -172,4 +172,5 @@ pub enum SyscallNumber {
     MkNumaDistance = tag4(b"MNDS"),
     MkDeviceNode = tag4(b"MDNN"),
     MkAcpiOscGrant = tag4(b"MAOG"),
+    MkNumaHmat = tag4(b"MNHM"),
 }

@@ -153,6 +153,7 @@ syscalls.numbers MMMP 1347243341
 syscalls.numbers MMON 1313819981
 syscalls.numbers MMUM 1297435981
 syscalls.numbers MNDS 1396985421
+syscalls.numbers MNHM 1296584269
 syscalls.numbers MNNO 1330531917
 syscalls.numbers MOUT 1414877005
 syscalls.numbers MPAL 1279348813
