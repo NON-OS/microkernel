@@ -29,6 +29,8 @@ mod model_facts;
 #[cfg(test)]
 mod sweep;
 #[cfg(test)]
+mod table_tests;
+#[cfg(test)]
 mod tests;
 #[cfg(test)]
 mod tests_ports;
