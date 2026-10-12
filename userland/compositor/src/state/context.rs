@@ -56,17 +56,10 @@ pub struct Context {
     pub resize: crate::display::resize_rule::Resize,
     /// Who has the camera or the microphone on (the capture indicator).
     pub indicators: super::indicator::Indicators,
-}
-
-impl Context {
-    pub fn issue_request_id(&mut self) -> u32 {
-        let id = self.next_request_id;
-        self.next_request_id = id.wrapping_add(1).max(1);
-        id
-    }
-
-    /// The pointer is on the wire driver's cursor plane, not composited.
-    pub fn hw_cursor(&self) -> bool {
-        self.wire.is_some_and(|w| w.cursor_offset != 0)
-    }
+    /// The shell's choice for several outputs, and the extended canvas's
+    /// layout when one is shown (None mirrors).
+    pub want_extend: bool,
+    pub plan: Option<crate::display::layout_rule::Plan>,
+    /// What this frame drew on each further output, flushed once a frame.
+    pub head_pending: alloc::vec::Vec<(usize, super::damage::Rect)>,
 }

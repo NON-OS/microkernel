@@ -19,16 +19,22 @@
 //! the floor one). None when nothing of it lands on the screen.
 
 use super::composite;
+use crate::display::layout_rule::local;
 use crate::state::damage::Rect;
 use crate::state::Context;
 
 pub fn to_screen(ctx: &mut Context, rect: Rect) -> Option<Rect> {
     composite::paint(ctx, rect);
-    let shrunk = ctx.width > ctx.screen.width || ctx.height > ctx.screen.height;
+    // Extended, output 0 shows its slice of the canvas, from its own memory.
+    let (view, rect) = match ctx.plan {
+        Some(p) => (super::extend::view(ctx, p.slices[0]), local(rect, p.slices[0])?),
+        None => (canvas(ctx), rect),
+    };
+    let shrunk = view.width > ctx.screen.width || view.height > ctx.screen.height;
     match ctx.scale {
-        _ if shrunk => crate::sw_blitter::downscale(canvas(ctx), ctx.screen, rect),
-        1 => Some(rect),
-        scale => crate::sw_blitter::upscale(canvas(ctx), ctx.screen, rect, scale),
+        _ if shrunk => crate::sw_blitter::downscale(view, ctx.screen, rect),
+        1 if ctx.plan.is_none() => Some(rect),
+        scale => crate::sw_blitter::upscale(view, ctx.screen, rect, scale),
     }
 }
 

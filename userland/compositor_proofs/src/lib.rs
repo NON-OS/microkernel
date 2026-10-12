@@ -100,6 +100,8 @@ pub mod display {
     pub mod hint_rule;
     #[path = "../../compositor/src/display/indicator_rule.rs"]
     pub mod indicator_rule;
+    #[path = "../../compositor/src/display/layout_rule.rs"]
+    pub mod layout_rule;
     #[path = "../../compositor/src/display/link.rs"]
     pub mod link;
     #[path = "../../compositor/src/display/poll_rule.rs"]
@@ -145,6 +147,8 @@ mod hint_tests;
 mod indicator_band_tests;
 #[cfg(test)]
 mod indicator_tests;
+#[cfg(test)]
+mod layout_tests;
 #[cfg(test)]
 mod mirror_tests;
 #[cfg(test)]
