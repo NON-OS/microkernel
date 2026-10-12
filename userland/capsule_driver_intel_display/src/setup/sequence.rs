@@ -25,7 +25,7 @@ use alloc::vec::Vec;
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
 use nonos_gfx_wire::body::state::SCANNING_OUT;
-use nonos_intel_display::display::{Frames, Intel, FLIP_US};
+use nonos_intel_display::display::{panel_of, Frames, Intel, FLIP_US};
 use nonos_intel_display::engine::access::Until;
 use nonos_intel_display::engine::error::Error;
 use nonos_intel_display::engine::{dc::dc_off, gen::PlaneKind, ggtt_range::entries};
@@ -67,7 +67,7 @@ pub fn run(dev: Found) -> IntelResult<Driver> {
     let (a, b) = (iovas(f0.device_addr), iovas(f1.device_addr));
     let until = Until::new(&clock, FLIP_US);
     let scan = Scanout::start(&mut m, &out, total, [&a, &b], &until).map_err(IntelError::Engine)?;
-    let flags = SCANNING_OUT;
-    let intel = Intel { m, frames, clock, gen, out, scan, generation: 1, flags };
+    let (panel, flags) = (panel_of(&mut m, &clock, gen, out.transcoder), SCANNING_OUT);
+    let intel = Intel { m, frames, clock, gen, out, scan, panel, generation: 1, flags };
     Ok(Driver { _handles: h, server: Server::new(intel, Pool) })
 }
