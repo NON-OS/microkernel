@@ -20,20 +20,12 @@
 //! downgrade check in message 3, and its rates for the association request.
 
 use super::failure::MlmeFailure;
-use super::state::{Mlme, MlmeOutput, MlmeState};
-use crate::dot11::auth::auth_frame;
+use super::state::{Mlme, MlmeOutput};
 use crate::dot11::ies::{ap_rates, beacon_tags, find_element, EID_RSN, EID_RSNX};
-use crate::dot11::mgmt::auth_open;
 use crate::dot11::parse::parse_beacon;
 use crate::rsn::rsnxe::advertises_h2e;
 use crate::rsn::{parse_rsne, select};
-use crate::sae::frame::AUTH_ALG_SAE;
-use crate::sae::h2e::{derive_pt, pwe_from_pt};
-use crate::sae::hnp::derive_pwe;
-use crate::sae::SaeStation;
 use crate::wpa::akm::Akm;
-use crate::wpa::psk::psk;
-use crate::wpa::sha256::hmac_sha256_parts;
 use crate::wpa::supplicant::ie::Ie;
 
 impl Mlme {
@@ -75,63 +67,6 @@ impl Mlme {
         if sel.akm == Akm::Sae {
             return self.start_sae(sel.sae_h2e);
         }
-        let Some(key) = psk(self.secret(), self.ssid()) else {
-            return self.fail(MlmeFailure::BadPassphrase);
-        };
-        self.pmk = key;
-        let seq = self.next_seq();
-        let mut out = [0u8; 64];
-        match auth_open(&mut out, self.our_mac, self.bssid, seq) {
-            Some(n) => {
-                self.state = MlmeState::Authenticating;
-                MlmeOutput::send(out[..n].to_vec())
-            }
-            None => self.fail(MlmeFailure::AuthRejected(0)),
-        }
-    }
-
-    // Derive the PWE and send the SAE commit.
-    fn start_sae(&mut self, h2e: bool) -> MlmeOutput {
-        let Some(entropy) = self.sae_entropy else {
-            return self.fail(MlmeFailure::NoEntropy);
-        };
-        let (pw, ssid) = (self.secret(), self.ssid());
-        let pwe = if h2e {
-            derive_pt(ssid, pw, None).and_then(|pt| pwe_from_pt(&pt, &self.our_mac, &self.bssid))
-        } else {
-            derive_pwe(pw, &entropy[64..64 + pw.len()], &self.our_mac, &self.bssid)
-        };
-        let Some(pwe) = pwe else {
-            return self.fail(MlmeFailure::BadPassphrase);
-        };
-        // rand and mask straight from the entropy; in the (2^-32) case that
-        // either is not a usable scalar, draw replacements from it by HMAC.
-        let mut sae = None;
-        for attempt in 0u8..4 {
-            let (rand, mask) = if attempt == 0 {
-                let mut r = [0u8; 32];
-                let mut m = [0u8; 32];
-                r.copy_from_slice(&entropy[..32]);
-                m.copy_from_slice(&entropy[32..64]);
-                (r, m)
-            } else {
-                (
-                    hmac_sha256_parts(&entropy[..64], &[b"rand", &[attempt]]),
-                    hmac_sha256_parts(&entropy[..64], &[b"mask", &[attempt]]),
-                )
-            };
-            sae = SaeStation::start(pwe, h2e, &rand, &mask);
-            if sae.is_some() {
-                break;
-            }
-        }
-        let Some(sae) = sae else {
-            return self.fail(MlmeFailure::NoEntropy);
-        };
-        let (seq, status, body) = sae.commit_frame();
-        self.sae = Some(sae);
-        self.state = MlmeState::Authenticating;
-        let sc = self.next_seq();
-        MlmeOutput::send(auth_frame(self.our_mac, self.bssid, sc, AUTH_ALG_SAE, seq, status, &body))
+        self.start_open()
     }
 }

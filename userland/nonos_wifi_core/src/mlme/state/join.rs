@@ -1,0 +1,71 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Begin an association under `req.policy`: SAE when the network offers it
+//! and the policy allows, PSK otherwise (never for a WPA3-only policy).
+
+use super::*;
+
+impl Mlme {
+    /// Begin an association under `req.policy`: SAE when the network offers it
+    /// and the policy allows, PSK otherwise (never for a WPA3-only policy).
+    pub fn join(req: &JoinRequest) -> Self {
+        let mut ssid = [0u8; 32];
+        let len = req.ssid.len().min(32);
+        ssid[..len].copy_from_slice(&req.ssid[..len]);
+        let mut secret = [0u8; SECRET_MAX];
+        let secret_len = req.passphrase.len().min(SECRET_MAX);
+        secret[..secret_len].copy_from_slice(&req.passphrase[..secret_len]);
+        Self {
+            state: MlmeState::Scanning,
+            our_mac: req.our_mac,
+            ssid,
+            ssid_len: len,
+            secret,
+            secret_len,
+            secret_too_long: req.passphrase.len() > SECRET_MAX,
+            policy: req.policy,
+            snonce: req.entropy.snonce,
+            sae_entropy: Some(req.entropy.sae),
+            bssid: [0u8; 6],
+            channel: 0,
+            domain: WORLD,
+            seq: 0,
+            selection: None,
+            ap_rsne: Ie::NONE,
+            ap_rsnxe: Ie::NONE,
+            rates: None,
+            sae: None,
+            pmk: [0u8; 32],
+            supplicant: None,
+            failure: None,
+        }
+    }
+
+    pub fn state(&self) -> MlmeState {
+        self.state
+    }
+
+    /// Why the join failed, once `Failed`.
+    pub fn failure(&self) -> Option<MlmeFailure> {
+        self.failure
+    }
+
+    /// The security chosen from the beacon, once a BSS was selected.
+    pub fn selection(&self) -> Option<Selection> {
+        self.selection
+    }
+}
