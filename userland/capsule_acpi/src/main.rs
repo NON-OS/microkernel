@@ -26,6 +26,7 @@ mod backlight;
 mod boot;
 mod buttons;
 mod cooling;
+mod cpu;
 mod ec;
 mod events_io;
 mod host;

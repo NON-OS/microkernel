@@ -19,6 +19,7 @@
 use crate::backlight::Backlight;
 use crate::buttons::Buttons;
 use crate::cooling::Cooling;
+use crate::cpu::Cpus;
 use crate::ec::Ec;
 use crate::host::CapsuleHost;
 use crate::hotkeys::Hotkeys;
@@ -43,6 +44,7 @@ pub struct Acpi {
     pub power: Power,
     pub buttons: Buttons,
     pub cooling: Cooling,
+    pub cpus: Cpus,
     pub backlight: Backlight,
     pub hotkeys: Hotkeys,
     pub smbios: Option<nonos_smbios::identity::Identity>,

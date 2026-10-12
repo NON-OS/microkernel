@@ -17,6 +17,7 @@
 //! The capsule's calls into the kernel.
 
 pub mod acpi;
+pub mod acpi_cpu;
 pub mod acpi_event;
 pub mod acpi_pci;
 pub mod acpi_power;

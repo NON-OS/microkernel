@@ -17,6 +17,7 @@ devices up, reports what firmware describes, and serves the SCI.
    MkAcpiPci    -- config access  -->  PCI_Config fields
    MkAcpiPower, MkAcpiEvent  <---      batteries, buttons, lid, thermal
    MkAcpiSleep               <---      \_S5 (start, and PREPARE_SLEEP)
+   MkAcpiCpu                 <---      _PSS _PCT _PPC _CST _CPC, per processor
    SCI record (PNP0C08)
      MkDeviceClaim, MkIrqBind  --->    SCI: fixed events, _Lxx/_Exx, Notify
                                        port 4530: STATUS, DEVICE
@@ -60,6 +61,15 @@ hottest temperature and the trip points reached go to the kernel through
 then asks the desktop to shut down, and powers off itself if the zone is
 still critical 30 seconds later. Passive cooling (_PSV) is reported, and
 waits on processor performance control.
+
+Every processor, a Processor object (by its ProcID) or an ACPI0007 device
+(by its _UID), has its _PSS, _PCT, _PPC, _CST and _CPC read at start and
+handed to the kernel through `MkAcpiCpu`, one record per processor, for
+the kernel's frequency and idle control; a part whose register lies
+outside memory, I/O, PCC or fixed hardware is left out. They are read
+again on the processor's Notify 0x80, 0x81, 0x83 and 0x85. One `[ACPI]
+cpu` line is logged for each run of processors with the same tables. No
+processor `_OSC` or `_PDC` is evaluated, and nothing is entered from here.
 
 \_S5 is evaluated at start too, with nothing run, and its SLP_TYP values
 handed to the kernel through `MkAcpiSleep`, so soft-off works on a laptop
@@ -107,7 +117,7 @@ function, and does no DMA.
 `CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve port 4530; Memory
 (0x10) for the heap and the interpreter's objects; DeviceEnum (0x8000) to
 find the SCI record; Driver (0x10000) to claim it; Irq (0x40000) to bind
-it; Admin (0x200) for the seven ACPI calls and MkSmbiosTable, which the kernel gates on Admin
+it; Admin (0x200) for the eight ACPI calls and MkSmbiosTable, which the kernel gates on Admin
 until a Firmware bit of their own is decided. Debug (0x100) is optional, for
 its serial lines. No Mmio, Dma or Pio.
 
