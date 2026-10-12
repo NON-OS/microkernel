@@ -3759,6 +3759,21 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_smbios_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_smbios/src/chassis.rs",
+   "userland/nonos_smbios/src/entry.rs",
+   "userland/nonos_smbios/src/identity.rs",
+   "userland/nonos_smbios/src/structure.rs",
+   "userland/nonos_smbios/src/text.rs",
+   "userland/nonos_smbios/src/walk.rs",
+   "userland/nonos_smbios_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_wifi_core_proofs": {
   "exclude": [],
   "include": [

@@ -29,8 +29,13 @@ name = "nonos_capsule_acpi"
 version = "0.1.0"
 dependencies = [
  "nonos_aml",
+ "nonos_smbios",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_smbios"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_userland_libc"
