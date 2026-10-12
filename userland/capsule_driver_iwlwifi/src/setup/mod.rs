@@ -10,6 +10,7 @@ mod announce;
 mod claim;
 pub mod command;
 mod dma;
+mod give_back;
 mod grants;
 mod irq;
 mod irq_plan;
@@ -17,4 +18,5 @@ mod mmio;
 mod sequence;
 
 pub use announce::announce;
+pub use give_back::give_back;
 pub use sequence::run;
