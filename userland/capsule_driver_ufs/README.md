@@ -9,8 +9,8 @@ it until the owner signs it.
 
 ## Role
 
-`capsule_driver_ufs` is the UFS host controller (UFSHCI) driver capsule
-(Linux `ufshcd-pci`). It owns the PCI function, BAR0, the UTP transfer and
+`capsule_driver_ufs` is the UFS host controller (UFSHCI) driver capsule,
+written from JESD223 and JESD220. It owns the PCI function, BAR0, the UTP transfer and
 task management lists, one command descriptor and a 64 KiB data region, and
 serves each UFS logical unit as a unit on the block wire. QEMU's `ufs`
 device (with `ufs-lu` units) drives this path.
@@ -28,7 +28,7 @@ driver.ufs0 -- broker MMIO + DMA --> UFSHCI --> UFS device (SCSI LUs)
 ## Microkernel contract
 
 - `MkDeviceList` finds the first UFS function (class 01h/09h) whose ID is
-  in Linux's `ufshcd_pci_tbl`; any other is named in the log and left.
+  in `platform/hosts.rs`; any other is named in the log and left.
 - `MkDeviceClaim` claims it; `MkPciConfigWrite` turns on Memory Space and
   Bus Master Enable and sets INTx Disable.
 - `MkMmioMap` maps BAR0; `MkDmaMap` takes the four regions.
@@ -69,9 +69,10 @@ kernel owns the grants; the filesystems above own what the sectors mean.
 
 ## Operating rules
 
-One request at a time, in slot 0. Every wait is on the uptime clock and is
-Linux's bound or longer. Every step that can fail logs one `driver.ufs:`
-line saying what the host or device answered.
+One request at a time, in slot 0. Every wait is on the uptime clock,
+bounded as `ufs/facts/bounds.rs` sets out with each bound's source. Every
+step that can fail logs one `driver.ufs:` line saying what the host or
+device answered.
 
 ## Privacy and persistence
 
@@ -80,9 +81,9 @@ served. Nothing is stored by the capsule.
 
 ## Runtime lifecycle
 
-Discover, claim, map, take the regions, then bring the host up in Linux's
-order: HCE reset and enable, DME_LINKSTARTUP (three retries, LCC cleared
-first on Intel hosts), the lists run, NOP OUT, fDeviceInit set and seen
+Discover, claim, map, take the regions, then bring the host up stage by
+stage (`ufs/bring_up/stage.rs`): HCE reset and enable, DME_LINKSTARTUP
+(three retries, LCC cleared first on Intel hosts), the lists run, NOP OUT, fDeviceInit set and seen
 cleared, REPORT LUNS, and for each unit TEST UNIT READY, READ CAPACITY and
 INQUIRY. Then serve the units until the process ends.
 

@@ -28,7 +28,7 @@ use super::env::HostEnv;
 use super::grants::{Claim, DmaRegion};
 use super::held::Held;
 use super::say::{host, refused};
-use crate::ufs::utp::layout::UCD_LEN;
+use crate::ufs::slot::layout::UCD_LEN;
 
 const PAGE: u64 = 4096;
 // The command descriptor, both UPIUs and the PRDT entry, fits its page.

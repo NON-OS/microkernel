@@ -21,8 +21,8 @@
 
 use super::mem::{le32, read, write};
 use super::sim::Model;
-use crate::ufs::hci::regs::*;
-use crate::ufs::upiu::codes::{COMMAND, NOP_OUT, QUERY_REQ};
+use crate::ufs::facts::hci::*;
+use crate::ufs::facts::upiu::{COMMAND, NOP_OUT, QUERY_REQ};
 
 impl Model {
     pub(super) fn doorbell(&self) {
