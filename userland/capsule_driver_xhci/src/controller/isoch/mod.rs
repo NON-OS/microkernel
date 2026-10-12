@@ -16,10 +16,14 @@
 
 mod batch;
 mod burst;
+mod collect;
 mod endpoint;
+mod inbound;
 mod input;
 mod pipe;
 mod queue;
+mod queue_in;
+mod received;
 mod wait;
 
 // Reached by the host proofs (userland/xhci_proofs), not by the capsule.
@@ -28,6 +32,11 @@ pub use batch::batch_fits;
 #[allow(unused_imports)]
 pub use burst::burst_fields;
 pub use endpoint::{isoch_endpoint, IsochEndpoint};
+#[allow(unused_imports)]
+pub use inbound::in_batch_fits;
 pub use input::write_isoch_input;
 pub use pipe::IsochPipe;
 pub use queue::isoch_out;
+pub use queue_in::isoch_in;
+#[allow(unused_imports)]
+pub use received::{lengths, pack, td_bytes};

@@ -26,7 +26,9 @@ pub use super::get_device_descriptor::{
     get_device_descriptor, read_device_descriptor, DEVICE_DESCRIPTOR_LEN, DEVICE_DESCRIPTOR_PREFIX,
 };
 pub use super::halt::halt;
-pub use super::isoch::{isoch_endpoint, isoch_out, write_isoch_input, IsochEndpoint, IsochPipe};
+pub use super::isoch::{
+    isoch_endpoint, isoch_in, isoch_out, write_isoch_input, IsochEndpoint, IsochPipe,
+};
 pub use super::issue_address_device::issue_address_device;
 pub use super::issue_configure_endpoint::issue_configure_endpoint;
 pub use super::issue_control_transfer::{issue_control_transfer, ControlRequest};

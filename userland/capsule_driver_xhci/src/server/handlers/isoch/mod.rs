@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Isochronous OUT endpoints: configure one on an addressed slot, then send
-//! it batches of packets, one service interval each.
+//! Isochronous endpoints: configure one on an addressed slot, then send an
+//! OUT endpoint batches of packets, or ask an IN one for them, one service
+//! interval each.
 
 mod configure;
+mod inbound;
 mod out;
+mod setup;
 
 pub use configure::configure;
+pub use inbound::inbound;
 pub use out::out;

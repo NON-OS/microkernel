@@ -34,3 +34,4 @@ pub const OP_RESET_BULK: u16 = 0x0013;
 pub const OP_BULK_IN_POLL: u16 = 0x0014;
 pub const OP_CONFIGURE_ISOCH: u16 = 0x0018;
 pub const OP_ISOCH_OUT: u16 = 0x0019;
+pub const OP_ISOCH_IN: u16 = 0x001A;

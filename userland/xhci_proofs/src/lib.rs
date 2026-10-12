@@ -58,6 +58,8 @@ mod event_ring;
 #[cfg(test)]
 mod isoch_context_tests;
 #[cfg(test)]
+mod isoch_in_tests;
+#[cfg(test)]
 mod isoch_tests;
 #[cfg(test)]
 mod op_number_tests;

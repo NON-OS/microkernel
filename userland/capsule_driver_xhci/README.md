@@ -57,8 +57,9 @@ behind it.
 | `OP_CONFIGURE_BULK` / `OP_RESET_BULK` | add a bulk IN and OUT pair; recover one after a STALL | DCIs / status word |
 | `OP_BULK_OUT` / `OP_BULK_IN` | one transfer of up to 4096 bytes; a STALL replies `E_PIPE` | bytes moved, IN data |
 | `OP_BULK_IN_POLL` | one look at the slot's armed bulk IN, its own page; `E_AGAIN` at once while nothing came | bytes moved, IN data |
-| `OP_CONFIGURE_ISOCH` | add one isochronous OUT endpoint (interval, bursts and Mult by speed, CErr 0) | DCI |
-| `OP_ISOCH_OUT` | queue up to 32 packets, a TD each, Start Isoch ASAP; waits for the batch before, so two are on the ring | that batch's code: success or missed service |
+| `OP_CONFIGURE_ISOCH` | add one isochronous endpoint, OUT or IN by its address, one of each per slot (interval, bursts and Mult by speed, CErr 0) | DCI |
+| `OP_ISOCH_OUT` | queue up to 31 packets, a TD each, Start Isoch ASAP; waits for the batch before, so two are on the ring | that batch's code: success or missed service |
+| `OP_ISOCH_IN` | queue up to 31 service intervals, a TD each asking for its event; collects the batch before | that batch's code, its packet count, 31 u16 length slots, then the packets' bytes (at most 4034) |
 
 ## Authority
 
@@ -232,8 +233,9 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
   allowlist refuses. On those machines ports the firmware left routed to
   EHCI stay there. Chipsets from the 100 series (6th generation Core) on,
   and Atom, Celeron and Pentium N parts such as Gemini Lake, have no EHCI.
-- Isochronous IN transfers (capture, a feedback endpoint), frame-scheduled
-  isoch TDs, streams, USB power management (U1/U2, suspend).
+- An isoch IN batch larger than one reply (video needs a shared-memory
+  path), audio feedback endpoints, frame-scheduled isoch TDs, streams, USB
+  power management (U1/U2, suspend).
 
 ## Explicit non-goals today
 

@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `OP_CONFIGURE_ISOCH`: add one isochronous OUT endpoint to an addressed
-//! slot. Request `slot, ep_address, bInterval, max_burst, mps_le16, mult, 0`
-//! (`mps` is wMaxPacketSize whole; `max_burst` and `mult` the SuperSpeed
-//! companion's, ignored below it). Reply `dci, 0, 0, 0`.
+//! `OP_CONFIGURE_ISOCH`: add one isochronous endpoint, OUT or IN by its
+//! address, to an addressed slot, which holds one of each. Request `slot,
+//! ep_address, bInterval, max_burst, mps_le16, mult, 0` (`mps` is
+//! wMaxPacketSize whole; `max_burst` and `mult` the SuperSpeed companion's,
+//! ignored below it). Reply `dci, 0, 0, 0`.
 
-use crate::contexts::is_superspeed;
-use crate::controller::{
-    isoch_endpoint, issue_configure_endpoint, write_isoch_input, IsochEndpoint, IsochPipe,
-};
-use crate::error::{XhciError, XhciResult};
+use super::setup::run;
+use crate::error::XhciError;
 use crate::protocol::{Request, CONFIGURE_ISOCH_REQUEST_LEN, E_INVAL, E_IO};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
@@ -32,7 +30,7 @@ use crate::slots::dci_from_ep_address;
 
 pub fn configure(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let ok = body.len() == CONFIGURE_ISOCH_REQUEST_LEN
-        && body[1] & 0x80 == 0
+        && body[1] & 0x70 == 0
         && body[1] & 0x0F != 0
         && (1..=16).contains(&body[2]);
     if !ok {
@@ -44,32 +42,4 @@ pub fn configure(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         Err(XhciError::ControllerUnsupported) => reply_with_status(tx, req, E_INVAL),
         Err(_) => reply_with_status(tx, req, E_IO),
     }
-}
-
-fn run(
-    ctx: &mut Context,
-    slot: u8,
-    dci: u8,
-    b_interval: u8,
-    ss: (u8, u8),
-    mps: u16,
-) -> XhciResult<()> {
-    let d = &mut ctx.driver;
-    let (context_size, max_slots) = (d.layout.context_size, d.layout.max_slots);
-    let res = d.slots.resources_mut(slot, max_slots).ok_or(XhciError::ControllerUnsupported)?;
-    if res.isoch.is_some() || mps & 0x07FF == 0 {
-        return Err(XhciError::ControllerUnsupported);
-    }
-    // Allocated only for a request that will be served: the pool lends once.
-    let (ring, buf) = IsochPipe::memory(&d.dma_pool)?;
-    let ep = isoch_endpoint(res.speed, res.usb3, dci, b_interval, ss, mps);
-    let ep = IsochEndpoint { ring_phys: ring.phys(), ..ep };
-    write_isoch_input(&res.input_context, &res.output_context, context_size, ep);
-    let (input_phys, superspeed) = (res.input_context.phys(), is_superspeed(res.speed, res.usb3));
-    let (db, intr) = (d.layout.doorbell_base, d.layout.primary_intr_base);
-    issue_configure_endpoint(db, intr, &mut d.command_ring, &mut d.event_ring, input_phys, slot)?;
-    if let Some(res) = d.slots.resources_mut(slot, max_slots) {
-        res.isoch = Some(IsochPipe::with(ring, buf, ep, superspeed));
-    }
-    Ok(())
 }

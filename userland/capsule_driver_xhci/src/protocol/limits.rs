@@ -49,3 +49,6 @@ pub const ISOCH_HEADER_LEN: usize = 4;
 pub const ISOCH_PACKETS_MAX: usize = 31;
 pub const ISOCH_MAX: usize = 4096;
 pub const ISOCH_REQUEST_MAX: usize = ISOCH_HEADER_LEN + 2 * ISOCH_PACKETS_MAX + ISOCH_MAX;
+/// An isoch IN reply's bytes: a u16 length slot per packet comes first, so
+/// the two together fit what a bulk IN reply carries.
+pub const ISOCH_IN_MAX: usize = ISOCH_MAX - 2 * ISOCH_PACKETS_MAX;

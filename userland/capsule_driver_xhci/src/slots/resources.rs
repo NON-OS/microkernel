@@ -51,6 +51,7 @@ pub struct SlotResources {
     pub interrupt: Vec<InterruptEndpoint>,
     pub bulk: Option<crate::controller::BulkPipes>,
     pub isoch: Option<crate::controller::IsochPipe>,
+    pub isoch_in: Option<crate::controller::IsochPipe>,
 }
 impl SlotResources {
     pub fn allocate(
@@ -87,6 +88,7 @@ impl SlotResources {
             interrupt: Vec::new(),
             bulk: None,
             isoch: None,
+            isoch_in: None,
         })
     }
 

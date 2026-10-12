@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The Configure Endpoint input an isoch OUT endpoint is added with, read
-//! back by field as the controller reads it (xHCI 1.2 section 6.2.3), the
-//! Isoch TRB's bits, and the batches an isoch OUT request is refused.
+//! back by field as the controller reads it (xHCI 1.2 6.2.3, as recalled),
+//! the Isoch TRB's bits, and the batches an isoch OUT request is refused.
 
 use crate::controller::{batch_fits, isoch_endpoint, write_isoch_input, IsochEndpoint};
 use crate::dma::{DmaPool, DmaRegion};
@@ -36,17 +36,17 @@ fn the_endpoint_context_is_an_isoch_out_one_that_never_retries() {
     let (input, output) = (pool.alloc(33 * 32).unwrap(), pool.alloc(32 * 32).unwrap());
     output.zero();
     let ep =
-        IsochEndpoint { ring_phys: 0x1_0000_2000, ..isoch_endpoint(4, true, 5, 4, (3, 1), 1024) };
+        IsochEndpoint { ring_phys: 0x1_0000_2000, ..isoch_endpoint(4, true, 4, 4, (3, 1), 1024) };
     write_isoch_input(&input, &output, CONTEXT_SIZE, ep);
-    assert_eq!(dw(&input, 0, 1), 1 | (1 << 5), "the slot and DCI 5 added");
-    assert_eq!((dw(&input, 1, 0) >> 27) & 0x1F, 5, "Context Entries reach DCI 5");
-    let (dw0, dw1) = (dw(&input, 6, 0), dw(&input, 6, 1));
+    assert_eq!(dw(&input, 0, 1), 1 | (1 << 4), "the slot and DCI 4 added");
+    assert_eq!((dw(&input, 1, 0) >> 27) & 0x1F, 4, "Context Entries reach DCI 4");
+    let (dw0, dw1) = (dw(&input, 5, 0), dw(&input, 5, 1));
     assert_eq!(((dw0 >> 8) & 0x3, (dw0 >> 16) & 0xFF, dw0 >> 24), (1, 3, 0), "Mult, Interval");
     assert_eq!((dw1 >> 1) & 0x3, 0, "CErr 0: no retries");
     assert_eq!((dw1 >> 3) & 0x7, 1, "Isoch OUT");
     assert_eq!(((dw1 >> 8) & 0xFF, dw1 >> 16), (3, 1024), "Max Burst, Max Packet Size");
-    assert_eq!((dw(&input, 6, 2), dw(&input, 6, 3)), (0x2001, 1), "the ring, DCS set");
-    assert_eq!(dw(&input, 6, 4), 8192 | (8192 << 16), "average TRB and ESIT payload");
+    assert_eq!((dw(&input, 5, 2), dw(&input, 5, 3)), (0x2001, 1), "the ring, DCS set");
+    assert_eq!(dw(&input, 5, 4), 8192 | (8192 << 16), "average TRB and ESIT payload");
 }
 
 #[test]
