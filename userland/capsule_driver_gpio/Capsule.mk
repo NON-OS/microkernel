@@ -12,8 +12,8 @@ CAPSULE_FEATURE          := nonos-capsule-driver-gpio
 CAPSULE_NAMESPACE        := systems.nonos.driver.gpio0
 CAPSULE_SERVICE_ENDPOINT := service:4236:driver.gpio0
 CAPSULE_REPLY_ENDPOINT   := reply:4237:endpoint.4294967392
-# IPC|Memory|DeviceEnum|Driver|Mmio = 0x38018
-CAPSULE_REQUIRED_CAPS    := 0x38018
+# IPC|Memory|DeviceEnum|Driver|Mmio|Irq = 0x78018
+CAPSULE_REQUIRED_CAPS    := 0x78018
 CAPSULE_KERNEL_MIRROR    := src/hardware/gpio_capsule
 
 include nonos-mk/capsule.mk
