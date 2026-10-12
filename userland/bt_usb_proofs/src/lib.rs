@@ -48,6 +48,7 @@ mod fixture_link;
 mod ring_sim;
 mod ring_sim_ops;
 
+mod battery_link_tests;
 mod bond_keep_tests;
 mod bond_tests;
 mod credit_tests;

@@ -18,8 +18,10 @@
 //! If it fails there is nothing safe to pair or hide behind, so the
 //! capsule stops rather than go on with values an observer could guess.
 
+use super::env::CapsuleEnv;
 use super::say::say;
 use nonos_bt_bond::LocalIrk;
+use nonos_bt_smp::pairing::Random;
 use nonos_libc::{crypto_random, mk_exit};
 
 const EXIT_NO_RANDOM: i32 = 3;
@@ -28,6 +30,12 @@ pub fn draw(out: &mut [u8]) {
     if crypto_random(out.as_mut_ptr(), out.len()) < 0 {
         say(&[b"the kernel's random source failed; stopping"]);
         mk_exit(EXIT_NO_RANDOM);
+    }
+}
+
+impl Random for CapsuleEnv {
+    fn fill(&mut self, out: &mut [u8]) {
+        draw(out);
     }
 }
 
