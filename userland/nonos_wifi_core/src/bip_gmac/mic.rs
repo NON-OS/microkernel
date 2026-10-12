@@ -32,8 +32,19 @@ use crate::gcmp::parts::{j0, tag};
 /// Frame control, duration, A1, A2, A3 and sequence control.
 const HEADER: usize = 24;
 
-/// Retry, Power Management and More Data in the second frame control octet.
-const FC1_MASK: u8 = !(0x08 | 0x10 | 0x20);
+/// Reading 1, the frame control bits cleared in the AAD: Retry, Power
+/// Management and More Data, as recalled from 12.5.4 (BIP AAD); the
+/// Protected bit is already zero on a BIP frame. Unverified, no printed
+/// vector here. `bip_gmac_reading_tests` pins it.
+pub const FC1_MASK: u8 = !(0x08 | 0x10 | 0x20);
+
+/// Reading 2, the IPN's octets in the nonce: most significant first, as
+/// recalled from 12.5.4 (BIP nonce). Unverified, no printed vector here.
+/// `bip_gmac_reading_tests` pins it.
+pub fn ipn_octets(ipn: u64) -> [u8; 6] {
+    let b = ipn.to_be_bytes();
+    [b[2], b[3], b[4], b[5], b[6], b[7]]
+}
 
 /// The header length of a management frame, or `None` for anything else.
 /// With Order set the header carries a 4-octet HT Control field.
@@ -49,7 +60,7 @@ pub(super) fn header_len(frame: &[u8]) -> Option<usize> {
 pub(super) fn nonce(a2: &[u8], ipn: u64) -> [u8; 12] {
     let mut n = [0u8; 12];
     n[..6].copy_from_slice(a2);
-    n[6..].copy_from_slice(&ipn.to_be_bytes()[2..]);
+    n[6..].copy_from_slice(&ipn_octets(ipn));
     n
 }
 

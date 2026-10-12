@@ -23,6 +23,7 @@ pub mod verify;
 
 pub use error::BipError;
 pub use key::BipGmacKey;
+pub use mic::{ipn_octets, FC1_MASK};
 pub use mmie::{ELEMENT_ID, IPN_MAX, MIC_LEN, MMIE_LEN};
 pub use protect::protect;
 pub use verify::verify;
