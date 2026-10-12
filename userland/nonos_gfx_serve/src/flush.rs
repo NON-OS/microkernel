@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! FLUSH and CURSOR: both work on the current primary. A flush names its
+//! FLUSH and CURSOR: both work on the output's current primary. A flush names its
 //! serial, and a stale one is ESTALE so a compositor that missed a mode
 //! change repaints; a rectangle outside the primary is EINVAL. The cursor
 //! is shown from the primary's cursor slot, on devices that have one.
@@ -30,7 +30,7 @@ use super::server::Server;
 
 impl<D: Display, P: Platform> Server<D, P> {
     pub(super) fn flush(&mut self, output: u16, f: &Flush) -> Result<(), Errno> {
-        let cur = self.current.filter(|c| c.serial == f.serial).ok_or(ESTALE)?;
+        let cur = self.slot(output)?.current.filter(|c| c.serial == f.serial).ok_or(ESTALE)?;
         if !f.as_slice().iter().all(|r| r.inside(cur.width, cur.height)) {
             return Err(EINVAL);
         }
@@ -38,7 +38,7 @@ impl<D: Display, P: Platform> Server<D, P> {
     }
 
     pub(super) fn cursor(&mut self, output: u16, c: &Cursor) -> Result<(), Errno> {
-        let cur = self.current.ok_or(EINVAL)?;
+        let cur = self.slot(output)?.current.ok_or(EINVAL)?;
         if !self.display.caps().has(HW_CURSOR) || cur.cursor_offset == 0 {
             return Err(ENOSYS);
         }

@@ -53,7 +53,7 @@ pub fn run(layout: Layout, fb_mem: &mut Vec<u32>) -> (Server<BootFb, Pool>, Surf
         Pool::default(),
     );
     let sf = Surface::decode(&ask(&mut s, ops::SURFACE, &[]).1).unwrap();
-    let base = s.current.unwrap().region.base;
+    let base = s.slots[0].current.unwrap().region.base;
     for px in s.platform.memory.get_mut(&base).unwrap().chunks_exact_mut(4) {
         px.copy_from_slice(&0xFF11_2233u32.to_le_bytes());
     }
