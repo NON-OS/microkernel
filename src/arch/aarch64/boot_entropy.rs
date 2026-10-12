@@ -60,3 +60,14 @@ pub fn take() -> Option<[u8; 32]> {
     *slot = None;
     Some(out)
 }
+
+/// A key for `context` from the kept seed, without using the seed up: the
+/// RNG still takes it. BLAKE3's derive mode keeps each context's output
+/// independent of every other's and of the seed itself.
+pub fn derive(context: &str) -> Option<[u8; 32]> {
+    let slot = SEED.lock();
+    let seed = slot.as_ref()?;
+    let mut out = [0u8; 32];
+    crate::crypto::hash::blake3_derive_key(context, &seed.bytes[..seed.len], &mut out);
+    Some(out)
+}
