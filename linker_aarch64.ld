@@ -13,6 +13,9 @@ PHDRS {
     text   PT_LOAD FLAGS(5);  /* r-x */
     rodata PT_LOAD FLAGS(4);  /* r-- */
     data   PT_LOAD FLAGS(6);  /* rw- */
+    /* The static PIE's dynamic table, inside the data segment: what a tool
+       or loader finds the relocations through (ELF gABI, PT_DYNAMIC). */
+    dynamic PT_DYNAMIC;
 }
 
 SECTIONS {
@@ -58,7 +61,7 @@ SECTIONS {
         *(.data .data.*)
         __kernel_data_end = .;
     } :data
-    .dynamic : { *(.dynamic) } :data
+    .dynamic : { *(.dynamic) } :data :dynamic
     .got : { *(.got) *(.got.plt) } :data
 
     .nonos.manifest ALIGN(0x1000) : {
