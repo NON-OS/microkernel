@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The modern transport's read of struct virtio_net_config, as it ships.
+// The modern transport's read of struct virtio_net_config, and the queue it
+// asks the device for, as they ship.
 #[path = "../../../capsule_driver_virtio_net/src/setup/modern/config.rs"]
 pub mod config;
+#[path = "../../../capsule_driver_virtio_net/src/setup/modern/spec.rs"]
+pub mod spec;

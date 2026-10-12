@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap};
+//! Wiping a frame once it has been handed on: no frame is kept after it is
+//! delivered (plan/50 C8).
 
-use super::super::registers::RegisterGrant;
+use core::sync::atomic::{compiler_fence, Ordering};
 
-pub fn after(device_id: u64, reg: &RegisterGrant, grants: &[u64]) -> bool {
-    let mut ok = true;
-    for &grant in grants.iter().rev() {
-        ok = mk_dma_unmap(grant) >= 0 && ok;
+/// Zero `bytes` with writes the compiler may not drop as dead, though
+/// nothing reads them afterwards.
+pub fn scrub(bytes: &mut [u8]) {
+    for b in bytes.iter_mut() {
+        // SAFETY: `b` is a live, exclusive, aligned reference to one byte.
+        unsafe { core::ptr::write_volatile(b, 0) };
     }
-    ok = reg.release() && ok;
-    mk_device_release(device_id) >= 0 && ok
+    compiler_fence(Ordering::SeqCst);
 }

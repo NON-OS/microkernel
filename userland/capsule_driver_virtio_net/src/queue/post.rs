@@ -14,48 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::{read_volatile, write_volatile};
-use core::sync::atomic::{fence, Ordering};
+//! Giving receive buffers to the device.
 
+use super::ring::{publish, write_desc};
 use super::RxQueue;
-use crate::constants::{RING_SLOTS, VQ_AVAIL_OFFSET, VQ_DESC_OFFSET, VRING_DESC_F_WRITE};
-
-const DESC_SIZE: usize = 16;
+use crate::constants::VRING_DESC_F_WRITE;
 
 impl RxQueue {
-    pub fn prime(&self) {
-        unsafe {
-            let desc_base = self.region_va.add(VQ_DESC_OFFSET);
-            let avail = self.region_va.add(VQ_AVAIL_OFFSET).cast::<u16>();
-            for i in 0..self.buf_count {
-                let slot = desc_base.add(DESC_SIZE * i as usize);
-                let buf_phys = self.buf_phys + (self.buf_len as u64) * (i as u64);
-                write_volatile(slot.cast::<u64>(), buf_phys);
-                write_volatile(slot.add(8).cast::<u32>(), self.buf_len);
-                write_volatile(slot.add(12).cast::<u16>(), VRING_DESC_F_WRITE);
-                write_volatile(slot.add(14).cast::<u16>(), 0u16);
-                write_volatile(avail.add(2 + i as usize), i);
-            }
-            // The device may read a slot the moment the index covers it.
-            fence(Ordering::Release);
-            write_volatile(avail.add(1), self.buf_count);
+    /// One device-writable descriptor per buffer, each offered once.
+    pub fn prime(&mut self) {
+        for slot in 0..self.buf_count {
+            // The grant was checked not to wrap (setup::grant), so neither does this.
+            let addr = self.buf_phys.wrapping_add(u64::from(self.buf_len) * u64::from(slot));
+            write_desc(self.ring, slot, addr, self.buf_len, VRING_DESC_F_WRITE);
+            publish(self.ring, &mut self.next_avail, slot);
         }
     }
 
-    pub fn refill(&self, slot: u16) {
-        unsafe {
-            let avail = self.region_va.add(VQ_AVAIL_OFFSET).cast::<u16>();
-            let idx = read_volatile(avail.add(1));
-            let pos = (idx % RING_SLOTS) as usize;
-            write_volatile(avail.add(2 + pos), slot);
-            fence(Ordering::Release);
-            write_volatile(avail.add(1), idx.wrapping_add(1));
-        }
-    }
-
-    pub fn refill_consumed(&mut self) {
-        if let Some(slot) = self.pending_refill.take() {
-            self.refill(slot);
-        }
+    /// Offer buffer `slot` again; its descriptor never changed.
+    pub fn refill(&mut self, slot: u16) {
+        publish(self.ring, &mut self.next_avail, slot);
     }
 }

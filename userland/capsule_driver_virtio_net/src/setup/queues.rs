@@ -14,32 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The receive and transmit queues on the legacy transport.
+
 use super::dma_set::DmaSet;
-use crate::constants::{Q_RX, Q_TX, VQ_REGION_SIZE};
+use crate::constants::{Q_RX, Q_TX, VIRTIO_NET_HDR_LEN};
 use crate::init::program_queue;
-use crate::queue::{clear_region, RxQueue, TxQueue};
+use crate::queue::{RxQueue, TxQueue};
 use crate::regs::Regs;
 
+/// Clear both rings, point the device at them, and build the queues over
+/// them; `program_queue` refuses any ring size the grants cannot hold.
 pub fn build(regs: Regs, dma: &DmaSet) -> Result<(RxQueue, TxQueue), &'static str> {
-    unsafe {
-        clear_region(dma.rx_queue.user_va, VQ_REGION_SIZE);
-        clear_region(dma.tx_queue.user_va, VQ_REGION_SIZE);
-    }
-    let rx_count = program_queue(regs, Q_RX, dma.rx_queue.device_addr, RxQueue::queue_size())?;
-    let tx_count = program_queue(regs, Q_TX, dma.tx_queue.device_addr, TxQueue::queue_size())?;
-    let rx = RxQueue::new(
-        dma.rx_queue.user_va,
-        dma.rx_queue.device_addr,
-        dma.rx_buffer.user_va,
-        dma.rx_buffer.device_addr,
-        rx_count,
-    );
-    let tx = TxQueue::new(
-        dma.tx_queue.user_va,
-        dma.tx_queue.device_addr,
-        dma.tx_buffer.user_va,
-        dma.tx_buffer.device_addr,
-        tx_count,
-    );
-    Ok((rx, tx))
+    dma.clear_rings();
+    let rx_count = program_queue(regs, Q_RX, dma.rx_ring.device_addr, RxQueue::queue_size())?;
+    let tx_count = program_queue(regs, Q_TX, dma.tx_ring.device_addr, TxQueue::queue_size())?;
+    Ok(dma.queues(rx_count, tx_count, VIRTIO_NET_HDR_LEN))
 }
