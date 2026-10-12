@@ -26,6 +26,7 @@ pub(super) fn record(d: &Described) -> DeviceRecord {
     for (bar, (base, size)) in bars.iter_mut().zip(&d.windows[..d.window_count]) {
         *bar = Bar { base: *base, size: *size, kind: BarKind::Mmio as u8, ..Bar::empty() };
     }
+    bars[0].aux = d.clock_hz;
     DeviceRecord {
         bus_kind: BusKind::Fdt as u8,
         pci_class,

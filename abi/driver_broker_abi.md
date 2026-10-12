@@ -89,7 +89,8 @@ DeviceRecord {
 Bar {
     base:   u64
     size:   u64
-    aux:    u32      // LPSS I2C controller: source clock in Hz; else 0
+    aux:    u32      // LPSS I2C controller: source clock in Hz; BUS_FDT SDHCI:
+                     // its base clock in Hz as firmware states it; else 0
     kind:   u8       // BAR_NONE=0, BAR_MMIO=1, BAR_PIO=2
     flags:  u8       // PREFETCH=1, MEM64=2
     _pad:   [u8; 2]
