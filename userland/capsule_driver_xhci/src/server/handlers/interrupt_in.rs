@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod reply;
 use crate::controller::{poll_interrupt_in, IntrPoll};
-use crate::protocol::{Request, E_INVAL, E_IO, HID_REPORT_MAX, INTERRUPT_IN_REQUEST_LEN};
+use crate::protocol::{Request, E_INVAL, E_IO, INTERRUPT_IN_REQUEST_LEN};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
 use crate::server::handlers::recover::recover_after;
@@ -26,7 +26,9 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     }
     let (slot, dci) = (body[0], body[1]);
     let length = u16::from_le_bytes([body[2], body[3]]);
-    if length as usize > HID_REPORT_MAX {
+    // At most the endpoint's own limit (its packet, at most 64): a read
+    // past its buffer is refused, never asked of the controller.
+    if length > limit(ctx, slot, dci) {
         reply_with_status(tx, req, E_INVAL);
         return;
     }
@@ -51,4 +53,9 @@ fn poll(ctx: &mut Context, slot: u8, dci: u8, length: u16) -> crate::error::Xhci
         .resources_mut(slot, max_slots)
         .ok_or(crate::error::XhciError::ControllerUnsupported)?;
     poll_interrupt_in(doorbell_base, intr_base, &mut ctx.driver.event_ring, res, dci, length)
+}
+fn limit(ctx: &mut Context, slot: u8, dci: u8) -> u16 {
+    let max_slots = ctx.driver.layout.max_slots;
+    let res = ctx.driver.slots.resources_mut(slot, max_slots);
+    res.and_then(|r| r.interrupt_mut(dci)).map_or(0, |ep| ep.max)
 }

@@ -13,9 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod admit;
 mod dci;
 mod resources;
 mod table;
+pub use admit::interrupt_limit;
 pub use dci::dci_from_ep_address;
-pub use resources::{InterruptEndpoint, SlotResources, MAX_INTERRUPT_ENDPOINTS};
+pub use resources::{InterruptEndpoint, SlotResources};
 pub use table::{SlotTable, PORT_FREE};

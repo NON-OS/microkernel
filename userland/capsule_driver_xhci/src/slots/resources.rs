@@ -26,11 +26,13 @@ use alloc::vec::Vec;
 pub const MAX_INTERRUPT_ENDPOINTS: usize = 4;
 
 /// One interrupt-IN endpoint: its DCI, its ring, the buffer one report
-/// lands in, and the TRB armed on it, if any.
+/// lands in (`max` bytes: the most one read may ask, slots/admit.rs), and
+/// the TRB armed on it, if any.
 pub struct InterruptEndpoint {
     pub dci: u8,
     pub ring: TransferRing,
     pub buf: DmaRegion,
+    pub max: u16,
     pub armed: Option<u64>,
 }
 
