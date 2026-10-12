@@ -34,7 +34,10 @@ pub const ALLOC_TRANSFER_RING_REQUEST_LEN: usize = 6;
 pub const ALLOC_TRANSFER_RING_REPLY_LEN: usize = 4;
 pub const INTERRUPT_IN_REQUEST_LEN: usize = 4;
 pub const INTERRUPT_IN_REPLY_PREFIX: usize = 2;
-pub const HID_REPORT_MAX: usize = 8;
+/// The largest interrupt-IN read: a Bluetooth HCI event's packet. Each
+/// endpoint reads at most its own wMaxPacketSize below this, so a HID
+/// endpoint of 8-byte packets still reads 8 (slots/admit.rs).
+pub const INTERRUPT_IN_MAX: usize = 64;
 /// One bulk transfer moves at most one page: the slot's DMA buffer.
 pub const BULK_MAX: usize = 4096;
 pub const BULK_HEADER_LEN: usize = 4;

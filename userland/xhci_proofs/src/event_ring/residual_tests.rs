@@ -21,9 +21,9 @@
 //! so never more than the buffer the request was sized to.
 
 use super::events::{transfer, CC_SHORT_PACKET, CC_SUCCESS};
-use super::fixture::{Fixture, BULK_IN_DCI, INT_DCI, SLOT};
+use super::fixture::{Fixture, BULK_IN_DCI, HID_READ, INT_DCI, SLOT};
 use crate::controller::{bulk_transfer, poll_interrupt_in, IntrPoll};
-use crate::protocol::{BULK_MAX, HID_REPORT_MAX};
+use crate::protocol::BULK_MAX;
 use crate::slots::SlotResources;
 
 /// The third dword of a successful event reporting `residual`.
@@ -41,7 +41,7 @@ fn report(fx: &mut Fixture, res: &mut SlotResources, length: u16, d2: u32) -> u1
     match poll_interrupt_in(fx.db(), fx.intr(), &mut fx.ring, res, INT_DCI, length) {
         Ok(IntrPoll::Complete(n)) => {
             assert!(n <= length, "{n} bytes handed up for a {length}-byte request");
-            assert!(n as usize <= HID_REPORT_MAX, "{n} bytes is past the report buffer");
+            assert!(n as usize <= HID_READ as usize, "{n} bytes is past the report buffer");
             n
         }
         Ok(IntrPoll::Pending) => panic!("the event naming the armed TRB did not complete it"),
@@ -53,7 +53,7 @@ fn report(fx: &mut Fixture, res: &mut SlotResources, length: u16, d2: u32) -> u1
 fn an_interrupt_report_is_the_request_less_the_residual() {
     let mut fx = Fixture::new();
     let mut res = fx.hid_slot();
-    for length in [1u16, 4, HID_REPORT_MAX as u16] {
+    for length in [1u16, 4, HID_READ] {
         let len = length as u32;
         for r in [0, 1, len - 1, len] {
             let n = report(&mut fx, &mut res, length, success(r));
@@ -66,7 +66,7 @@ fn an_interrupt_report_is_the_request_less_the_residual() {
 fn a_residual_past_the_request_hands_up_nothing() {
     let mut fx = Fixture::new();
     let mut res = fx.hid_slot();
-    for length in [1u16, 4, HID_REPORT_MAX as u16] {
+    for length in [1u16, 4, HID_READ] {
         for r in [length as u32 + 1, 0xFFFF, 0x00FF_FFFF] {
             let n = report(&mut fx, &mut res, length, success(r));
             assert_eq!(n, 0, "length {length}, residual {r:#x}: a stale buffer was handed up");

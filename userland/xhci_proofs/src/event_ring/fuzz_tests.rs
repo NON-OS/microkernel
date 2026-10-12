@@ -40,7 +40,7 @@
 use super::events::{
     command, transfer, CC_SHORT_PACKET, CC_STALL, CC_SUCCESS, CC_TRB_ERROR, PORT_STATUS_CHANGE,
 };
-use super::fixture::{Fixture, BULK_IN_DCI, EP0_DCI, INT_DCI, SLOT, TRB};
+use super::fixture::{Fixture, BULK_IN_DCI, EP0_DCI, HID_READ, INT_DCI, SLOT, TRB};
 use super::producer::{is_poison, ERDP_EHB_BIT, ERDP_FLAGS};
 use crate::constants::{
     COMMAND_RING_TRBS, TRB_TYPE_CMD_COMPLETION_EVENT, TRB_TYPE_TRANSFER_EVENT,
@@ -52,7 +52,7 @@ use crate::controller::{
 };
 use crate::dma::DmaRegion;
 use crate::error::XhciError;
-use crate::protocol::{BULK_MAX, HID_REPORT_MAX};
+use crate::protocol::BULK_MAX;
 use crate::rings::command::CommandRing;
 use crate::rings::transfer::TransferRing;
 use crate::slots::{SlotResources, SlotTable};
@@ -228,7 +228,7 @@ impl Driver {
     }
 
     fn poll(&mut self, rng: &mut Rng) {
-        let length = rng.below(HID_REPORT_MAX as u64 + 1) as u16;
+        let length = rng.below(HID_READ as u64 + 1) as u16;
         let ep = &self.hid.interrupt[0];
         let issued = ep.armed.unwrap_or(ep.ring.enqueue_phys());
         self.noise(rng, issued, INT_DCI, length as u32);
@@ -247,7 +247,7 @@ impl Driver {
         match got {
             Ok(IntrPoll::Complete(n)) => {
                 assert!(n <= length, "{n} bytes handed up for {length}");
-                assert!(n as usize <= HID_REPORT_MAX);
+                assert!(n as usize <= HID_READ as usize);
             }
             Ok(IntrPoll::Pending) => {}
             // A report that ended in an error code is reported as that error

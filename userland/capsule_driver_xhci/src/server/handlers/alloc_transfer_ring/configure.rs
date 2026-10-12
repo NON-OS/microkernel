@@ -17,10 +17,9 @@
 use crate::contexts::{interrupt_interval, write_configure_endpoint_input, EndpointConfig};
 use crate::controller::issue_configure_endpoint;
 use crate::error::{XhciError, XhciResult};
-use crate::protocol::HID_REPORT_MAX;
 use crate::rings::transfer::TransferRing;
 use crate::server::context::Context;
-use crate::slots::{InterruptEndpoint, MAX_INTERRUPT_ENDPOINTS};
+use crate::slots::{interrupt_limit, InterruptEndpoint};
 
 /// wMaxPacketSize bits 10:0; bits 12:11 are high-bandwidth transactions.
 const MAX_PACKET_MASK: u16 = 0x07FF;
@@ -45,11 +44,12 @@ pub(super) fn do_configure(
     if res.interrupt_mut(dci).is_some() {
         return Ok(());
     }
-    if res.interrupt.len() >= MAX_INTERRUPT_ENDPOINTS || res.bulk.is_some() {
+    if !res.takes_interrupt() {
         return Err(XhciError::ControllerUnsupported);
     }
     let ring = TransferRing::new(&d.dma_pool)?;
-    let buf = d.dma_pool.alloc(HID_REPORT_MAX as u64)?;
+    let max = interrupt_limit(max_packet);
+    let buf = d.dma_pool.alloc(max as u64)?;
     let cfg = EndpointConfig {
         context_size: d.layout.context_size,
         dci,
@@ -68,7 +68,7 @@ pub(super) fn do_configure(
         slot,
     )?;
     if let Some(res) = d.slots.resources_mut(slot, d.layout.max_slots) {
-        res.interrupt.push(InterruptEndpoint { dci, ring, buf, armed: None });
+        res.interrupt.push(InterruptEndpoint { dci, ring, buf, max, armed: None });
     }
     Ok(())
 }
