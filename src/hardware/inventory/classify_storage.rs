@@ -21,6 +21,7 @@ const VENDOR_INTEL: u16 = 0x8086;
 const VENDOR_VIRTIO: u16 = 0x1af4;
 const VENDOR_VMWARE: u16 = 0x15ad;
 const VENDOR_BUSLOGIC: u16 = 0x104b;
+const VENDOR_LSI: u16 = 0x1000;
 const SUBCLASS_IDE: u8 = 0x01;
 const SUBCLASS_RAID: u8 = 0x04;
 const SUBCLASS_SATA: u8 = 0x06;
@@ -39,6 +40,9 @@ pub(super) fn classify_storage(subclass: u8, vendor: u16, device: u16) -> Hardwa
     }
     if vendor == VENDOR_VMWARE && device == 0x07C0 {
         return HardwareFamily::StorageVmwarePvscsi;
+    }
+    if vendor == VENDOR_LSI && matches!(device, 0x0030 | 0x0054) {
+        return HardwareFamily::StorageMpt;
     }
     if vendor == VENDOR_BUSLOGIC && device == 0x1040 {
         return HardwareFamily::StorageBuslogic;

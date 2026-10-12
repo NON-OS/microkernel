@@ -26,6 +26,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         StorageIde => "driver_piix_ide",
         StorageVirtioScsi => "driver_virtio_scsi",
         StorageBuslogic => "driver_buslogic",
+        StorageMpt => "driver_mpt",
         StorageVmwarePvscsi => "driver_pvscsi",
         NetworkVirtio => "driver_virtio_net",
         NetworkE1000 => "driver_e1000",
