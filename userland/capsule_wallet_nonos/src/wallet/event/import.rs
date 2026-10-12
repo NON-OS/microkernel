@@ -16,7 +16,9 @@
 
 use nonos_app_skeleton::{EventOutcome, KEY_BACKSPACE, KEY_ENTER, KEY_ESC};
 
-use crate::wallet::ipc::{forget_key, import_wallet, wallet_address};
+use zeroize::Zeroize;
+
+use super::import_submit::submit;
 use crate::wallet::state::{State, VIEW_RECEIVE};
 
 // Open or close the private-key import field. Closing always wipes whatever was
@@ -63,64 +65,7 @@ pub fn import_input(state: &mut State, code: u32) -> EventOutcome {
     EventOutcome::Repaint
 }
 
-fn submit(state: &mut State) -> EventOutcome {
-    if state.import_len != 64 {
-        state.status = b"private key must be 64 hex chars";
-        return EventOutcome::Repaint;
-    }
-    let mut secret = [0u8; 32];
-    for i in 0..32 {
-        let hi = super::hex_digit::hex_digit(state.import_hex[i * 2] as u32);
-        let lo = super::hex_digit::hex_digit(state.import_hex[i * 2 + 1] as u32);
-        match (hi, lo) {
-            (Some(h), Some(l)) => secret[i] = (h << 4) | l,
-            _ => {
-                zeroize(&mut secret);
-                wipe(state);
-                state.status = b"invalid private key";
-                return EventOutcome::Repaint;
-            }
-        }
-    }
-    let outcome = match import_wallet(state.keyring_port, state.owner_pid, &secret) {
-        Ok(id) => match wallet_address(state.keyring_port, state.owner_pid, id) {
-            Ok(addr) => {
-                state.wallet_id = id;
-                state.address = addr;
-                state.address_ready = true;
-                state.import_active = false;
-                state.status = b"wallet imported";
-                super::keep::keep(state, true);
-                super::probe_tick::probe_kick(state)
-            }
-            Err(_) => {
-                let gone = forget_key(state.keyring_port, state.owner_pid, id).is_ok();
-                state.status = super::keyring_says::unnamed(gone);
-                EventOutcome::Repaint
-            }
-        },
-        Err(code) => {
-            state.status = super::keyring_says::refusal(
-                code,
-                b"the keyring rejected this key: it is not a valid secp256k1 key",
-            );
-            EventOutcome::Repaint
-        }
-    };
-    zeroize(&mut secret);
-    wipe(state);
-    outcome
-}
-
-fn wipe(state: &mut State) {
-    for b in state.import_hex.iter_mut() {
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
+pub(super) fn wipe(state: &mut State) {
+    state.import_hex.zeroize();
     state.import_len = 0;
-}
-
-fn zeroize(secret: &mut [u8; 32]) {
-    for b in secret.iter_mut() {
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
 }

@@ -19,6 +19,7 @@
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, mk_service_lookup};
 use shield_wire::*;
+use zeroize::Zeroize;
 
 use crate::dispatch::dispatch;
 
@@ -58,10 +59,6 @@ pub fn run() -> ! {
             let _ = mk_ipc_reply(sender, reply.as_ptr(), reply.len());
         }
         // A request can carry recovery words: nothing of it stays.
-        for b in buf[..used].iter_mut() {
-            // SAFETY: `b` is a valid, aligned &mut u8 into `buf`; a volatile
-            // write of 0 keeps the wipe from being elided.
-            unsafe { core::ptr::write_volatile(b, 0) };
-        }
+        buf[..used].zeroize();
     }
 }

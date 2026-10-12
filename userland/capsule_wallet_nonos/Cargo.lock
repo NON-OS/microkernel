@@ -393,6 +393,7 @@ dependencies = [
  "nonos_userland_libc",
  "shield_wire",
  "spin",
+ "zeroize",
 ]
 
 [[package]]

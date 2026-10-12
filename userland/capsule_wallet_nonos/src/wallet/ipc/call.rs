@@ -58,11 +58,8 @@ pub fn keyring_call(port: u32, op: u16, payload: &[u8], rx_len: usize) -> Result
     Ok(rx)
 }
 
-/// Zero a buffer so the write is not optimised away.
+/// Zero a buffer so the write is not optimised away: zeroize's volatile
+/// writes and fence, with no unsafe in the wallet.
 pub fn wipe(buf: &mut [u8]) {
-    for b in buf.iter_mut() {
-        // SAFETY: volatile write to a byte this function holds a borrow of.
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
-    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    zeroize::Zeroize::zeroize(buf);
 }
