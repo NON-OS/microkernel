@@ -1,0 +1,26 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The system's one door to NIST P-256: the curve's constants, the
+# conversions and checks every protocol on it needs, and ECDH. WPA3-SAE in
+# nonos_wifi_core and LE Secure Connections in nonos_bt_smp both use it, so
+# neither carries its own curve code. The arithmetic is RustCrypto's p256,
+# the crate, version and features the TLS client and capsule_crypto already
+# build for the capsule target; `expose-field` gives SAE the field
+# arithmetic its hash-to-element and hunting-and-pecking need. no_std; the
+# host proofs are in nonos_p256_proofs.
+[package]
+name = "nonos_p256"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+p256 = { version = "0.13", default-features = false, features = ["arithmetic", "expose-field"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
