@@ -18,6 +18,8 @@
 //! the scanout surfaces' memory, the clock its waits run on, the output
 //! firmware lit and the scanout flipping between the two surfaces.
 
+use nonos_gfx_serve::Panel;
+
 use super::frames::Frames;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::gen::Gen;
@@ -36,6 +38,8 @@ pub struct Intel<M: Mmio, F: Frames, C: Clock> {
     pub gen: &'static Gen,
     pub out: Output,
     pub scan: Scanout,
+    /// What the monitor's EDID said; empty when it said nothing.
+    pub panel: Panel,
     /// Bumped whenever STATE says something new.
     pub generation: u32,
     /// The flags STATE answered last.
