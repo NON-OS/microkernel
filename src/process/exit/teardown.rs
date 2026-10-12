@@ -40,7 +40,7 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     // thread whose exit frees those tables gives the group's surfaces up. A
     // worker's exit dropped what it had registered while the tables, and
     // the compositor's view of them, lived on.
-    if crate::process::address_space::lifecycle::release::holder_after(&pcb).is_none() {
+    if crate::process::address_space::lifecycle::holder::holder_after(&pcb).is_none() {
         let group = crate::hardware::broker::holder_of(pid);
         crate::kernel_core::surface_registry::pin::exit::keep_at_exit(group, pid);
         crate::kernel_core::surface_registry::pin::orphans::abandon_owner(group);
