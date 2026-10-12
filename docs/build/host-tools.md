@@ -172,7 +172,7 @@ These tools make, use or name signing keys, and none was run on this tree. [Sign
 | `tools/extraction` | `regen.py` regenerates every extraction crate listed in `verification/extraction/crates.json` and fails on any drift in the generated Lean (`run`, `tools/extraction/regen.py:17-40`); `sweep.py`, `mirror_crate.py` and `closure_crate.py` make new crates | `regen.py` in `.github/workflows/verify.yml`; the others by hand | `python3 tools/extraction/regen.py --repo-root .` |
 | `tools/arm_kernel_report.py` | reads the built aarch64 kernel ELF itself, with no binutils, and reports what it holds (`KERNEL`, `tools/arm_kernel_report.py:17-43`) | by hand | `python3 tools/arm_kernel_report.py --fast` |
 | `tools/nonos_console.py` | prints counts read from the tree and the kernel ELF, section by section; its `attack` section tampers with copies of the built artifacts and fails when one is not refused (`tools/nonos_console.py:17-29`) | by hand | `python3 tools/nonos_console.py tcb` |
-| `tools/nonos_system_map.py` | prints the authority each capsule holds, read from its `Capsule.mk` and its signed artifacts (`TRUST`, `tools/nonos_system_map.py:17-37`) | by hand | `python3 tools/nonos_system_map.py --tsv` |
+| `tools/nonos_system_map.py` | prints the authority each capsule holds, read from its `Capsule.mk` and its signed artifacts (`TRUST`, `tools/system_map_consts.py:23`) | by hand | `python3 tools/nonos_system_map.py --tsv` |
 
 The proof coverage count and `nonos-tcb` read the dep-info of a kernel build. Run on this tree without one, both print `no kernel dep-info; build the kernel first` and exit 2.
 
