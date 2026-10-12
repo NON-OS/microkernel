@@ -16,7 +16,7 @@
 
 //! _OSC: queried, then committed with no more than was granted.
 
-use super::platform_run::evaluator;
+use super::run::evaluator;
 use crate::consts::at;
 use crate::enc::*;
 use crate::platform::{negotiate, OscError, PCI_HOST_UUID, PLATFORM_UUID};
