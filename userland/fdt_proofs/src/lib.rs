@@ -57,6 +57,8 @@ mod rpi4_platform_tests;
 #[cfg(test)]
 mod rpi4_tests;
 #[cfg(test)]
+mod seed_erase_tests;
+#[cfg(test)]
 mod smmu_irq_tests;
 #[cfg(test)]
 mod smmu_tests;
