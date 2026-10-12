@@ -20,26 +20,14 @@
 //! is `serial_console_choice`'s, behind a switch.
 
 use super::super::state::TableRegistry;
-use super::serial_console::dbg2::{dbg2, Dbg2Device};
-use super::serial_console::spcr::{spcr, Spcr};
-use crate::arch::x86_64::acpi::tables::{SdtHeader, MAX_TABLE_BYTES};
+use super::raw_table::bytes;
+use super::shared_tables::dbg2::{dbg2, Dbg2Device};
+use super::shared_tables::spcr::{spcr, Spcr};
 use alloc::vec::Vec;
 use spin::RwLock;
 
 static SPCR: RwLock<Option<Spcr>> = RwLock::new(None);
 static DBG2: RwLock<Vec<Dbg2Device>> = RwLock::new(Vec::new());
-
-fn bytes(registry: &TableRegistry, sig: &[u8; 4]) -> Option<&'static [u8]> {
-    let phys = *registry.tables.get(&u32::from_le_bytes(*sig))?;
-    let addr = super::super::phys::directmap(phys)?;
-    // SAFETY: the directmap covers what firmware published; the parsers
-    // check the length against these bytes and the checksum themselves.
-    unsafe {
-        let len = core::ptr::read_volatile(addr as *const SdtHeader).length;
-        let len = u64::from(len).min(MAX_TABLE_BYTES) as usize;
-        Some(core::slice::from_raw_parts(addr as *const u8, len))
-    }
-}
 
 pub fn parse_serial_console(registry: &mut TableRegistry) {
     let s = bytes(registry, b"SPCR").and_then(|t| spcr(t).ok());
