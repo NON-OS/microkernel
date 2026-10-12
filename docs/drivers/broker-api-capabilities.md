@@ -6,7 +6,7 @@ Part of [Broker API](broker-api.md).
 
 Each call needs one bit of the driver's [capability
 word](../overview/glossary.md#capability-word), from `DeviceEnum` to `Pio`
-(`src/capabilities/types/defs.rs:39-50`). The contract table maps each call to
+(`src/capabilities/types/defs.rs:37-47`). The contract table maps each call to
 its bit, starting with `MkDeviceList`
 (`src/syscall/contract/cap_table/mk_device.rs:24-37`):
 
@@ -19,15 +19,15 @@ its bit, starting with `MkDeviceList`
 | 19 | `Dma` | `MkDmaMap`, `MkDmaUnmap` |
 | 20 | `Pio` | `MkPioGrant`, `MkPioRead`, `MkPioWrite`, `MkPioRelease` |
 
-Every one of these checks also passes for a holder of `Admin`, as `can_driver`
-and its siblings show
-(`src/capabilities/token/types/authority_broker.rs:24-55`). The two PCI
-configuration handlers then ask for `Driver` again, so `Admin` alone is refused
-there (`sys_pci_config_read` in `src/syscall/microkernel/pci.rs:28-35`). A
-driver also holds `IPC` (bit 3) to serve and `Memory` (bit 4) to allocate
-(`src/capabilities/types/defs.rs:26-27`). Holding `Irq` lets a capsule post
-input events too, because `can_input_source` accepts it
-(`src/capabilities/token/types/authority_broker.rs:59-63`).
+None of these checks passes for a holder of `Admin` alone: `can_driver` and its
+siblings ask for their own bit
+(`src/capabilities/token/types/authority_broker.rs:29-51`). The two PCI
+configuration handlers ask for `Driver` once more themselves
+(`sys_pci_config_read` in `src/syscall/microkernel/pci.rs:28-35`). A driver also
+holds `IPC` (bit 3) to serve and `Memory` (bit 4) to allocate
+(`src/capabilities/types/defs.rs:24-25`). Holding `Irq` does not let a capsule
+post input events: `can_input_source` takes `InputSource` alone
+(`src/capabilities/token/types/authority_broker.rs:59-62`).
 
 ## The device record
 

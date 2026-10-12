@@ -52,10 +52,11 @@ service can trust the sender's pid rather than a pid written in the payload. The
 keyring relies on this; see [Device secrets and
 keys](device-secrets-and-keys.md).
 
-Keystrokes have their own rule. [Driver
-capsules](../overview/glossary.md#driver-capsule) hold `Irq`, and
-`can_input_source` accepts `Irq` so drivers can post events, but draining the
-input ring, or blocking until it has events, needs `can_input_consumer`, which
-accepts only `InputSource` or `Admin`
-(`src/syscall/contract/cap_table/mk_surface.rs:30-40`). A driver capsule cannot
+Keystrokes have their own rule. Posting to the input ring needs
+`can_input_source`, which takes `InputSource` alone, held by the input drivers;
+draining it, or blocking until it has events, needs `can_input_consumer`, which
+takes `InputConsumer` alone, held by input_router. [Driver
+capsules](../overview/glossary.md#driver-capsule) hold `Irq`, and neither `Irq`
+nor `Admin` opens either gate
+(`src/syscall/contract/cap_table/mk_surface.rs:30-36`). A driver capsule cannot
 read what is typed into another program.

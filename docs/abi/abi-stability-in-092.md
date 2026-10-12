@@ -10,8 +10,8 @@ layouts or behaviour. What the code does enforce is narrower:
 published syscall number, errno or capability bit is renumbered or withdrawn,
 when two names share a value, or when an entry is published without being added
 to the baseline (`scripts/check_abi_stable.py:18-29`). Its baseline,
-`scripts/baselines/abi-published.txt`, holds 191 entries: 130 syscall numbers,
-25 errnos and 36 capability bits. The `static-abi` entry of `staticChecks` runs
+`scripts/baselines/abi-published.txt`, holds 192 entries: 130 syscall numbers,
+25 errnos and 37 capability bits. The `static-abi` entry of `staticChecks` runs
 it together with `check_syscall_abi.py`, `check_syscall_args.py`,
 `check_caps_abi.py` and other scripts, in order, and stops at the first that
 fails (`tools/nix/checks.nix:197-234`). In the flake check run on this commit,

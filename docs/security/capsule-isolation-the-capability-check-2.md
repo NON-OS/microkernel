@@ -26,16 +26,13 @@ Two limits apply to the check itself:
 - The token is bound to a pid, an address space and a boot, not to a code
   measurement. `new_token` writes 32 zero bytes into `subject_measurement`
   (`src/process/caps.rs:52`).
-- `Admin` stands in for every broker bit at the gate: `can_driver`, `can_mmio`,
-  `can_irq`, `can_dma` and `can_pio` each accept it
-  (`src/capabilities/token/types/authority_broker.rs:24-54`). A capsule holding
-  `Admin` can claim any device, map its registers, take DMA buffers and bind its
-  interrupts; only the PCI configuration calls ask for `Driver` again, in
-  `sys_pci_config_read` and `sys_pci_config_write`
-  (`src/syscall/microkernel/pci.rs:28-35`). Four `Capsule.mk` files in this tree
-  request `Admin` in `CAPSULE_REQUIRED_CAPS`: `capsule_install`, `tool_install`,
-  `capsule_policy` and `capsule_power`
-  (`userland/capsule_install/Capsule.mk:25`,
+- `Admin` stands in for no broker bit at the gate: `can_driver`, `can_mmio`,
+  `can_irq`, `can_dma` and `can_pio` each ask for their own bit alone
+  (`src/capabilities/token/types/authority_broker.rs:29-51`). A capsule holding
+  `Admin` cannot claim a device, map its registers, take DMA buffers or bind its
+  interrupts. Four `Capsule.mk` files in this tree request `Admin` in
+  `CAPSULE_REQUIRED_CAPS`: `capsule_install`, `tool_install`, `capsule_policy`
+  and `capsule_power` (`userland/capsule_install/Capsule.mk:25`,
   `userland/tool_install/Capsule.mk:23`,
   `userland/capsule_policy/Capsule.mk:19`,
   `userland/capsule_power/Capsule.mk:13`). `Admin` does not imply the right to

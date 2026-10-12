@@ -24,7 +24,7 @@ The browser, the Terminal and the wallet connect through the default network: th
 
 ### A local model and Linux programs
 
-In the Terminal, `qwen get` downloads the files of a Qwen model tier, and the kernel keeps each file on the data volume only if its SHA-256 matches the pin in the signed model catalogue (`StreamImport` in `src/capabilities/types/defs.rs:77-79`, `userland/capsule_model_fetch/Capsule.mk`). The model runs under the Linux personality, and a Linux program that holds a model gets no internet socket (`refuse_inet` in `userland/capsule_linux/src/linux/net/offline.rs:36-39`). The same personality runs other x86_64 Linux programs, each only if the proof kept beside it verifies. See [Local model](../using/local-ai.md) and [Linux programs](../using/linux-programs.md).
+In the Terminal, `qwen get` downloads the files of a Qwen model tier, and the kernel keeps each file on the data volume only if its SHA-256 matches the pin in the signed model catalogue (`StreamImport` in `src/capabilities/types/defs.rs:69-70`, `userland/capsule_model_fetch/Capsule.mk`). The model runs under the Linux personality, and a Linux program that holds a model gets no internet socket (`refuse_inet` in `userland/capsule_linux/src/linux/net/offline.rs:36-39`). The same personality runs other x86_64 Linux programs, each only if the proof kept beside it verifies. See [Local model](../using/local-ai.md) and [Linux programs](../using/linux-programs.md).
 
 ### A wallet that does not hold its key
 
