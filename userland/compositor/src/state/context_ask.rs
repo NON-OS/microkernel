@@ -29,6 +29,8 @@ impl Context {
     /// The pointer is on the wire driver's cursor plane, not composited.
     pub fn hw_cursor(&self) -> bool {
         // Extended, the pointer can be on any output: composited.
-        self.wire.is_some_and(|w| w.cursor_offset != 0) && self.plan.is_none()
+        // Magnified, the arrow is drawn into the canvas and magnified with it.
+        let lens = self.looks.access[0].magnified();
+        self.wire.is_some_and(|w| w.cursor_offset != 0) && self.plan.is_none() && !lens
     }
 }

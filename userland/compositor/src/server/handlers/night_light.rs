@@ -49,7 +49,8 @@ pub fn handle(
     let Some(k) = k.filter(|&k| k == 0 || k >= WARMEST_K) else {
         return respond::status(sender, req, E_INVAL, tx);
     };
-    ctx.night = active(k).then(|| alloc::boxed::Box::new(ramps(k)));
+    ctx.looks.night = active(k).then(|| alloc::boxed::Box::new(ramps(k)));
+    ctx.looks.rebuild();
     ctx.damage.mark_full(ctx.width, ctx.height);
     respond::status(sender, req, 0, tx)
 }
