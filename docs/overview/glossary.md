@@ -50,7 +50,7 @@ The 104-byte file `boot_root.approval` on the ESP: the bootloader tree's root an
 
 ## Capability
 
-One named right, one bit of a 64-bit word. The kernel defines 36, from `CoreExec` at bit 0 to `DeviceSecret` at bit 35, and checks the caller's bits before it runs a system call; `IO` and `Hardware` enforce nothing. Explained in [Capabilities](../kernel/capabilities.md#what-each-bit-admits), with every bit in [Capabilities ABI](../abi/capabilities.md). Code: `src/capabilities/types/defs.rs`, `abi/caps.toml`.
+One named right, one bit of a 64-bit word. The kernel defines 36, from `CoreExec` at bit 0 to `DeviceSecret` at bit 35, and checks the caller's bits before it runs a system call; `IO` and `Hardware` enforce nothing. Explained in [Capabilities](../kernel/capabilities-what-each-bit.md#what-each-bit-admits), with every bit in [Capabilities ABI](../abi/capabilities.md). Code: `src/capabilities/types/defs.rs`, `abi/caps.toml`.
 
 ## Capability ceiling
 
@@ -58,7 +58,7 @@ The most capability bits something may hold. A publisher's NONOS ID certificate 
 
 ## Capability token
 
-The kernel's record of a process's capabilities, bound to its pid, its address space, a nonce drawn for this boot and a revocation epoch, and sealed with a 64-byte MAC made of two keyed BLAKE3 hashes that only the kernel can make. Every system call the kernel knows resolves the caller's token first, and a bad MAC, a broken binding, a revoked token or a missing capability is refused with EPERM. Explained in [Capabilities](../kernel/capabilities.md#the-token). Code: `src/capabilities/token/types/defs.rs`, `src/syscall/contract/resolver/resolve.rs`.
+The kernel's record of a process's capabilities, bound to its pid, its address space, a nonce drawn for this boot and a revocation epoch, and sealed with a 64-byte MAC made of two keyed BLAKE3 hashes that only the kernel can make. Every system call the kernel knows resolves the caller's token first, and a bad MAC, a broken binding, a revoked token or a missing capability is refused with EPERM. Explained in [Capabilities](../kernel/capabilities-the-token.md#the-token). Code: `src/capabilities/token/types/defs.rs`, `src/syscall/contract/resolver/resolve.rs`.
 
 ## Capability word
 
