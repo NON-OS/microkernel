@@ -38,3 +38,6 @@ pub mod usb_msc_report_words;
 /// Which core services init restarts when they end.
 #[path = "../../../src/userspace/init/supervisor/watch_rule.rs"]
 pub mod watch_rule;
+/// The input ring's take clears what it hands out.
+#[path = "input_take/mod.rs"]
+pub mod input_take;
