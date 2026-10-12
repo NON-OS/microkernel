@@ -43,6 +43,8 @@ pub mod power;
 pub mod region;
 #[path = "../../nonos_aml/src/shape/mod.rs"]
 pub mod shape;
+#[path = "../../nonos_aml/src/sleep/mod.rs"]
+pub mod sleep;
 #[path = "../../nonos_aml/src/thermal/mod.rs"]
 pub mod thermal;
 #[path = "../../nonos_aml/src/video/mod.rs"]
