@@ -1,0 +1,28 @@
+# PCI device ids of Intel's Gen8 graphics (Broadwell; vendor 8086, class
+# 03) whose display engine this driver takes over at firmware's mode: one
+# id (hex) and its family per line. Cherry View is Gen8 too but carries
+# another display engine and waits for its own unit.
+#
+# Source: the Configurations volume (Volume 4) of Intel's Broadwell
+# graphics PRM and Intel's processor graphics device id support page.
+# Written down without a copy of either at hand and unverified line by
+# line: the owner should check it against them. An id missing here only
+# leaves that machine on the boot framebuffer.
+1602 bdw
+1606 bdw
+160A bdw
+160B bdw
+160D bdw
+160E bdw
+1612 bdw
+1616 bdw
+161A bdw
+161B bdw
+161D bdw
+161E bdw
+1622 bdw
+1626 bdw
+162A bdw
+162B bdw
+162D bdw
+162E bdw

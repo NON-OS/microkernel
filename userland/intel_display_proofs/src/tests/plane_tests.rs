@@ -17,6 +17,7 @@
 //! Programming the primary plane: nothing changes on screen until the
 //! blank after PLANE_SURF, and then everything changes at once.
 
+use crate::engine::gen::PlaneKind;
 use crate::engine::ggtt;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::plane::program;
@@ -43,7 +44,16 @@ pub(super) fn lit() -> Gen9 {
 fn the_new_surface_appears_whole_at_the_next_blank() {
     let mut m = lit();
     assert_eq!(m.pixel(Pipe::A, 5, 5), Some(0xFF11_2233));
-    program(&mut m, Pipe::A, OURS, 7680, (1920, 1080), (1 << 31) | (4 << 24) | (1 << 20)).unwrap();
+    program(
+        &mut m,
+        PlaneKind::Universal,
+        Pipe::A,
+        OURS,
+        7680,
+        (1920, 1080),
+        (1 << 31) | (4 << 24) | (1 << 20),
+    )
+    .unwrap();
     assert_eq!(m.pixel(Pipe::A, 5, 5), Some(0xFF11_2233), "armed, not latched");
     m.vblank();
     assert_eq!(m.pixel(Pipe::A, 5, 5), Some(0xFF44_5566));
@@ -56,7 +66,7 @@ fn the_new_surface_appears_whole_at_the_next_blank() {
 fn plane_surf_is_written_last() {
     let mut m = lit();
     m.writes.clear();
-    program(&mut m, Pipe::A, OURS, 7680, (1920, 1080), 1 << 31).unwrap();
+    program(&mut m, PlaneKind::Universal, Pipe::A, OURS, 7680, (1920, 1080), 1 << 31).unwrap();
     let last = m.writes.last().unwrap().0;
     assert_eq!(last, crate::engine::plane_regs::plane_surf(Pipe::A, 1));
 }

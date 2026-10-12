@@ -18,6 +18,7 @@
 
 use super::scanout_tests::{setup, TOTAL};
 use crate::engine::error::Error;
+use crate::engine::gen::GEN9;
 use crate::engine::pipe::Pipe;
 use crate::engine::scanout::Scanout;
 use crate::engine::takeover::read_output;
@@ -26,7 +27,7 @@ use crate::model::Polls;
 #[test]
 fn a_tiled_firmware_plane_or_a_short_buffer_is_refused_untouched() {
     let (mut m, a, b) = setup();
-    let mut out = read_output(&mut m, Pipe::A).unwrap();
+    let mut out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
     let short = &a[..2024];
     assert_eq!(
         Scanout::start(&mut m, &out, TOTAL, [short, &b], &Polls::new(9)).err(),
@@ -46,7 +47,7 @@ fn a_tiled_firmware_plane_or_a_short_buffer_is_refused_untouched() {
 #[test]
 fn a_table_too_small_for_two_surfaces_is_full() {
     let (mut m, a, b) = setup();
-    let out = read_output(&mut m, Pipe::A).unwrap();
+    let out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
     let r = Scanout::start(&mut m, &out, 4096, [&a, &b], &Polls::new(9));
     assert_eq!(r.err(), Some(Error::GgttFull));
 }

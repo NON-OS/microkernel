@@ -17,6 +17,7 @@
 pub mod aux_hw;
 pub mod bus;
 pub mod clock;
+pub mod dc_hw;
 pub mod ddi_hw;
 pub mod expiry;
 pub mod firmware;
