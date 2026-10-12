@@ -67,7 +67,7 @@ pub use claim::{
 pub use class::{classify_pci, Class};
 pub use device::{
     Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
-    DEVICE_FLAG_EXTERNAL,
+    DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE,
 };
 pub use dma::{
     free_held_run as dma_free_held_run, grant_run_covering as dma_grant_run_covering,

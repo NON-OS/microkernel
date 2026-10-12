@@ -39,6 +39,7 @@ mod grant_run;
 mod handle_view;
 mod intx;
 mod intx_line;
+mod intx_mode;
 mod intx_open;
 mod intx_say;
 mod message;
