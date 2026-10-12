@@ -22,6 +22,7 @@ use super::held::deliver_held;
 use super::key_deliver::deliver_key;
 use super::kinds::{is_keyboard, is_pointer, key_facts};
 use super::preempt::{preempt, Route};
+use super::press_kinds::{is_pad, is_pad_button};
 use super::{keyboard, pointer, trusted_hold};
 
 pub fn route_event(ctx: &mut Context, event: &InputEvent) -> u32 {
@@ -29,7 +30,8 @@ pub fn route_event(ctx: &mut Context, event: &InputEvent) -> u32 {
     if hold.is_none() {
         ctx.trusted = None;
     }
-    let key = is_keyboard(event.kind).then(|| key_facts(ctx, event));
+    let key_like = is_keyboard(event.kind) || is_pad_button(event.kind);
+    let key = key_like.then(|| key_facts(ctx, event));
     match preempt(key, hold, pointer::shell_pid(ctx)) {
         Route::To(pid) => return deliver_key(ctx, pid, event),
         Route::Held(h) if key.is_some() => return deliver_key(ctx, h, event),
@@ -59,6 +61,9 @@ pub fn route_event(ctx: &mut Context, event: &InputEvent) -> u32 {
     }
     if is_keyboard(event.kind) {
         return keyboard::route_keyboard(ctx, event);
+    }
+    if is_pad(event.kind) {
+        return super::pad::route_pad(ctx, event);
     }
     super::fanout::fan_out(ctx, event)
 }

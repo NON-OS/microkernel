@@ -25,15 +25,21 @@ use nonos_libc::{
 use crate::state::Context;
 
 use super::preempt::Key;
+use super::press_kinds::{is_release, slot};
 use super::{chord, shell_keys};
 
 pub(super) fn key_facts(ctx: &Context, event: &InputEvent) -> Key {
     let (kind, code, flags) = (event.kind, event.code, event.flags);
-    let reserved = chord::is_reserved_chord(kind, code, flags)
-        || chord::is_secure_attention(kind, code, flags)
-        || shell_keys::is_shell_key(code);
-    let down = kind == INPUT_KIND_KEY_DOWN;
-    Key { down, reserved, pressed_in: (!down).then(|| ctx.key_targets.held_by(code)).flatten() }
+    let reserved = is_keyboard(kind)
+        && (chord::is_reserved_chord(kind, code, flags)
+            || chord::is_secure_attention(kind, code, flags)
+            || shell_keys::is_shell_key(code));
+    let down = !is_release(kind);
+    Key {
+        down,
+        reserved,
+        pressed_in: (!down).then(|| ctx.key_targets.held_by(slot(event))).flatten(),
+    }
 }
 
 pub(super) fn is_keyboard(kind: u16) -> bool {
