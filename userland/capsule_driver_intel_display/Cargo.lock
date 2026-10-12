@@ -29,6 +29,7 @@ dependencies = [
  "nonos_gfx_serve",
  "nonos_gfx_wire",
  "nonos_hash",
+ "nonos_modes",
  "nonos_userland_libc",
 ]
 
