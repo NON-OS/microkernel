@@ -22,7 +22,8 @@ use crate::consts::at;
 use crate::platform::resolve_text;
 use crate::probe::Probe;
 use crate::run::boot;
-use crate::serial::{serial_device, Bus, Value};
+use crate::props::Value;
+use crate::serial::{serial_device, Bus};
 use crate::tests::platform::run::evaluator;
 
 #[test]
@@ -51,7 +52,7 @@ fn touchpad_from_the_evaluated_tables() {
     );
     assert_eq!(d.properties[1].value, Value::Integer(5));
     let gpo = at(&aml, "\\_SB.GPO0").unwrap();
-    let want = Value::List(vec![
+    let want = Value::Package(vec![
         Value::Reference(gpo),
         Value::Integer(0),
         Value::Integer(1),

@@ -49,7 +49,7 @@ pub fn machine() -> Vec<u8> {
         &[
             buffer(16, &[0u8; 16]),
             package(0, &[]),
-            buffer(16, &crate::serial::DEVICE_PROPERTIES_UUID),
+            buffer(16, &crate::props::DEVICE_PROPERTIES_UUID),
             props,
         ],
     );
