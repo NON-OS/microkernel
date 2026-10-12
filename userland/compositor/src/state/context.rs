@@ -42,7 +42,10 @@ pub struct Context {
     /// Screen pixels per canvas pixel, each way. `width`, `height`, `stride`
     /// and the backing above are the canvas clients draw for; `screen` is
     /// what is presented, the canvas itself when this is one.
-    pub scale: u32,
+    /// Quarters of a screen pixel per canvas pixel on output 0 (4 one to
+    /// one, 6 one and a half), and the shell's choice per output.
+    pub scale_q: u32,
+    pub output_scale: [Option<u32>; 4],
     pub screen: Surface,
     /// The driver when it is driven on the display wire; None on GOP and
     /// on the legacy ops.

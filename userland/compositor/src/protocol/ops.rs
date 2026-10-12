@@ -30,3 +30,5 @@ pub const OP_INDICATOR: u16 = 0x000A;
 pub const OP_OUTPUT_LAYOUT: u16 = 0x000B;
 /// The composed screen into a capture holder's surface, with a notice.
 pub const OP_SCREENSHOT: u16 = 0x000C;
+/// The shell's scale for one output, in quarters.
+pub const OP_OUTPUT_SCALE: u16 = 0x000D;

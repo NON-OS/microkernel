@@ -24,9 +24,10 @@ use crate::display::cursor_rule::{message, on_head, on_screen};
 
 #[test]
 fn a_canvas_point_is_scaled_or_shrunk_onto_the_screen() {
-    assert_eq!(on_screen((100, 50), (1920, 1080), (3840, 2160), 2), (200, 100));
-    assert_eq!(on_screen((100, 50), (1920, 1080), (1920, 1080), 1), (100, 50));
-    let floor = on_screen((960, 540), (1920, 1080), (1280, 720), 1);
+    assert_eq!(on_screen((100, 50), (1920, 1080), (3840, 2160), 8), (200, 100));
+    assert_eq!(on_screen((100, 50), (2560, 1440), (3840, 2160), 6), (150, 75), "1.5 times");
+    assert_eq!(on_screen((100, 50), (1920, 1080), (1920, 1080), 4), (100, 50));
+    let floor = on_screen((960, 540), (1920, 1080), (1280, 720), 4);
     assert_eq!(floor, (640, 360), "the floor canvas, shrunk");
 }
 

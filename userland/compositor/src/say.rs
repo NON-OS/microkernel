@@ -31,14 +31,15 @@ pub fn say(line: &str) {
 /// clients were given for it: `[DISPLAY] on driver.bga0 1280x800, ...`.
 pub fn say_display(ctx: &Context, what: &str) {
     say(&format!(
-        "{} {} {}x{}, canvas {}x{} at scale {}",
+        "{} {} {}x{}, canvas {}x{} at scale {}.{:02}",
         what,
         path(ctx),
         ctx.screen.width,
         ctx.screen.height,
         ctx.width,
         ctx.height,
-        ctx.scale
+        ctx.scale_q / 4,
+        ctx.scale_q % 4 * 25
     ));
 }
 

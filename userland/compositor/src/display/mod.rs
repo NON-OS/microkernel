@@ -30,6 +30,7 @@ pub mod ops;
 pub mod ops_mode;
 pub mod poll_rule;
 pub mod resize_rule;
+pub mod scale_rule;
 pub mod screenshot_rule;
 
 pub use backoff::Backoff;

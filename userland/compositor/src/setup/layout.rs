@@ -24,7 +24,9 @@
 
 use nonos_libc::mk_mmap;
 
+use super::canvas_scale::scale_for;
 use crate::display::layout_rule::plan;
+use crate::display::scale_rule::chosen;
 use crate::state::Context;
 
 const PROT_READ_WRITE: i32 = 0x3;
@@ -50,9 +52,13 @@ pub fn fit(ctx: &mut Context) {
     if !ctx.want_extend || ctx.heads.is_empty() {
         return;
     }
-    let heads: alloc::vec::Vec<_> =
-        ctx.heads.iter().map(|h| (h.screen.width, h.screen.height)).collect();
-    let Some(p) = plan((ctx.width, ctx.height), &heads, ctx.scale) else { return };
+    let scale = |i: usize, w: u32, h: u32| {
+        chosen(ctx.output_scale.get(i + 1).copied().flatten(), scale_for(w, h))
+    };
+    let heads: alloc::vec::Vec<_> = (ctx.heads.iter().enumerate())
+        .map(|(i, h)| (h.screen.width, h.screen.height, scale(i, h.screen.width, h.screen.height)))
+        .collect();
+    let Some(p) = plan((ctx.width, ctx.height), ctx.scale_q, &heads) else { return };
     let stride = p.size.0 * 4;
     let len = stride as u64 * p.size.1 as u64;
     let Ok(size) = usize::try_from(len) else { return };
