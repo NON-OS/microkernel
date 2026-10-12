@@ -33,7 +33,11 @@ impl<H: Host> Machine<'_, H> {
         let a = aml.kid(t, node, 0);
         if op == Op::RELEASE {
             let m = self.object_of(aml, t, a, Some(Kind::Mutex))?;
-            return self.release_mutex(aml, m, at);
+            self.release_mutex(aml, m, at)?;
+            if self.is_global_lock(aml, m) {
+                self.global_lock(aml, false, at)?;
+            }
+            return Ok(());
         }
         let e = self.object_of(aml, t, a, Some(Kind::Event))?;
         let n = aml.rt.events.entry(e).or_insert(0);

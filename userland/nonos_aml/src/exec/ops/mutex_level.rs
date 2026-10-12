@@ -33,4 +33,11 @@ impl<H: Host> Machine<'_, H> {
             _ => Err(self.fault(FaultKind::Type, at)),
         }
     }
+
+    /// \_GL: acquiring it takes the Global Lock as well (section 5.7.1).
+    pub(crate) fn is_global_lock(&self, aml: &Aml, m: Id) -> bool {
+        aml.ns
+            .get(m)
+            .is_some_and(|e| e.origin == Origin::Predefined(crate::namespace::Predefined::Gl))
+    }
 }

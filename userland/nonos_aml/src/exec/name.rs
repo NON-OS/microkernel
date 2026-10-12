@@ -57,9 +57,8 @@ impl<H: Host> Machine<'_, H> {
         match e.kind {
             Kind::Method(_) => self.call(aml, id, args, at),
             Kind::Name => self.name_value(aml, id, at),
-            // Field units and buffer fields read through their region or
-            // buffer, which arrives with unit F 4.
-            Kind::FieldUnit(_) | Kind::BufferField => Err(self.fault(FaultKind::Unsupported, at)),
+            Kind::FieldUnit(_) => self.field_read(aml, id, at),
+            Kind::BufferField => self.buffer_field_read(aml, id, at),
             _ => Ok(Object::Named(id, e.gen)),
         }
     }

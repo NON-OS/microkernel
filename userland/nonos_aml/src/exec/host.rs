@@ -16,7 +16,9 @@
 
 //! What the interpreter asks of the capsule around it.
 
+use super::RegionAccess;
 use crate::object::Object;
+use alloc::vec::Vec;
 
 pub trait Host {
     /// Sleep (section 19.6.128): give up the processor for `ms` milliseconds.
@@ -29,4 +31,30 @@ pub trait Host {
     fn debug(&mut self, value: &Object);
     /// Fatal's operands, reported before the evaluation stops.
     fn fatal(&mut self, kind: u8, code: u32, arg: u64);
+    /// One register read of `a.width` bytes; None if the access was refused
+    /// or failed, which faults the evaluation.
+    fn region_read(&mut self, a: &RegionAccess<'_>) -> Option<u64>;
+    /// One register write; false if refused or failed.
+    fn region_write(&mut self, a: &RegionAccess<'_>, value: u64) -> bool;
+    /// One SMBus, IPMI, GenericSerialBus or PCC transaction: `data` goes in
+    /// and the handler's response comes back in it. `access` is the field's
+    /// AccessType, AccessAttrib and AccessLength; `connection` its resource.
+    fn transaction(
+        &mut self,
+        a: &RegionAccess<'_>,
+        access: [u8; 3],
+        connection: Option<&[u8]>,
+        data: &mut Vec<u8>,
+    ) -> bool;
+    /// GPIO pins `pin` to `pin + count - 1` of the connection's pin table:
+    /// read when `write` is None, else written.
+    fn gpio(&mut self, connection: &[u8], pin: u32, count: u32, write: Option<u64>) -> Option<u64>;
+    /// A table the platform holds, by signature and OEM ids, for
+    /// DataTableRegion and LoadTable.
+    fn table(&mut self, signature: &[u8], oem_id: &[u8], oem_table_id: &[u8]) -> Option<Vec<u8>>;
+    /// Compare-and-swap on the FACS Global Lock word: returns the word found,
+    /// which equals `old` when `new` was stored; None if there is no FACS.
+    fn lock_word(&mut self, old: u32, new: u32) -> Option<u32>;
+    /// Sets GBL_RLS, telling firmware a lock it waited for is free.
+    fn lock_released(&mut self);
 }

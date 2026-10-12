@@ -24,10 +24,12 @@ mod define;
 mod exec;
 mod fields;
 mod nodes;
+mod order;
 mod reopen;
 mod scope_path;
 mod scopes;
 mod table;
+mod unload;
 mod walk;
 
 pub use aml::Aml;
