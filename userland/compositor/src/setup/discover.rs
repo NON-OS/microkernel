@@ -16,10 +16,11 @@
 
 use nonos_libc::mk_service_lookup;
 
-/// The gfx drivers, best first: a virtio GPU, then the Bochs adapter. Both
-/// serve the same NVGP ops, so whichever is up is the display; a machine has
-/// one or the other, and a GPU beats a framebuffer copy when it has both.
-pub const GFX_SERVICES: [&[u8]; 2] = [b"driver.virtio_gpu0", b"driver.bga0"];
+// The display drivers, best first, from the kernel's own table: the names
+// the compositor tries are the names the kernel holds to it.
+#[allow(dead_code)] // the kernel's helpers this capsule does not call
+#[path = "../../../../src/services/registry/displays.rs"]
+mod displays;
 
 pub struct GfxEndpoint {
     pub port: u32,
@@ -29,7 +30,8 @@ pub struct GfxEndpoint {
 // mk_ipc_call routes by port; the kernel verifies the owning pid is
 // alive before delivery, so the compositor does not need to hold it.
 pub fn lookup_gfx_endpoint() -> Result<GfxEndpoint, &'static str> {
-    GFX_SERVICES.iter().find_map(|name| lookup(name)).ok_or("gfx service not announced")
+    let found = displays::DISPLAYS.iter().find_map(|name| lookup(name.as_bytes()));
+    found.ok_or("gfx service not announced")
 }
 
 fn lookup(name: &[u8]) -> Option<GfxEndpoint> {

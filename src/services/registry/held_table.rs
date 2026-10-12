@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which endpoints are held, and to whom (held.rs says why).
+//! Which endpoints are held, and to whom (held.rs says why). The display
+//! drivers are held to the compositor from displays.rs, not listed here.
 
 /// An endpoint held to a list, then the endpoints whose owners may send to it.
 pub(super) const HELD: &[(&str, &[&str])] = &[
@@ -31,9 +32,12 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.virtio_rng", KERNEL_ONLY),
     ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0"]),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
-    ("driver.virtio_gpu0", &["compositor"]),
     ("driver.hda0", &["audio.server"]),
 ];
+
+/// A display driver shows whatever it is given over the whole screen: only
+/// the compositor drives one (every name in displays.rs).
+pub(super) const DISPLAY_CALLERS: &[&str] = &["compositor"];
 
 /// The kernel polls the keyboards and pointers, reads the random source and
 /// serves USB storage itself; no capsule has reason to reach them.

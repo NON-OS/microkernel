@@ -875,6 +875,7 @@
    ".cargo",
    "LICENSE",
    "VERSION",
+   "src/services/registry/displays.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2693,6 +2694,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/services/registry/displays.rs",
    "userland/compositor",
    "userland/libc"
   ],

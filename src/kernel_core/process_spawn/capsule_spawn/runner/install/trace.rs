@@ -15,10 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(super) fn trace(name: &str, label: &[u8]) {
-    if !matches!(
-        name,
-        "clipboard" | "login" | "toolkit" | "driver.virtio_net0" | "driver.virtio_gpu0"
-    ) {
+    let traced = matches!(name, "clipboard" | "login" | "toolkit" | "driver.virtio_net0");
+    if !traced && !crate::services::registry::displays::is_display(name) {
         return;
     }
     crate::sys::serial::print(b"[SPAWN] ");

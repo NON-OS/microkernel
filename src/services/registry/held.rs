@@ -32,16 +32,21 @@
 //! Pure: the kernel's registry supplies who owns what; the table is
 //! held_table.rs. Held in kernel_proofs.
 
-// The table sits beside this file and is mounted by path, so kernel_proofs,
-// which mounts this file alone, reads the same table.
+// The tables beside this file are mounted by path, so kernel_proofs, which
+// mounts this file alone, reads them too; the registry re-exports displays.
+#[path = "displays.rs"]
+pub(crate) mod displays;
 #[path = "held_table.rs"]
 mod table;
 
-use table::HELD;
+use table::{DISPLAY_CALLERS, HELD};
 
 /// The services that may reach `endpoint`, or None when anyone the
 /// endpoint's capabilities admit may.
 pub(crate) fn callers_of(endpoint: &str) -> Option<&'static [&'static str]> {
+    if displays::is_display(endpoint) {
+        return Some(DISPLAY_CALLERS);
+    }
     HELD.iter().find(|(name, _)| *name == endpoint).map(|(_, callers)| *callers)
 }
 

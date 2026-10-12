@@ -16,7 +16,10 @@
 
 use nonos_libc::{mk_service_lookup, nonos_display_dimensions};
 
-use super::present::GFX_SERVICE;
+// The kernel's list of display drivers, which the compositor tries in order.
+#[allow(dead_code)] // the kernel's helpers this capsule does not call
+#[path = "../../../../../src/services/registry/displays.rs"]
+mod displays;
 
 pub fn primary_dimensions() -> Option<(u32, u32)> {
     let mut width = 0u32;
@@ -28,16 +31,12 @@ pub fn primary_dimensions() -> Option<(u32, u32)> {
     Some((width, height))
 }
 
-/// Whether the virtio-gpu driver has announced itself, asked the way the
-/// compositor asks before it presents through it.
-pub fn virtio_announced() -> bool {
-    let mut port = 0u32;
-    let mut pid = 0u32;
-    let rc = mk_service_lookup(
-        GFX_SERVICE.as_ptr(),
-        GFX_SERVICE.len(),
-        &mut port as *mut u32,
-        &mut pid as *mut u32,
-    );
-    rc >= 0 && pid != 0 && port != 0
+/// The first display driver that has announced itself, asked the way the
+/// compositor asks before it presents through one.
+pub fn announced_display() -> Option<&'static str> {
+    displays::DISPLAYS.iter().copied().find(|name| {
+        let (mut port, mut pid) = (0u32, 0u32);
+        let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+        rc >= 0 && pid != 0 && port != 0
+    })
 }

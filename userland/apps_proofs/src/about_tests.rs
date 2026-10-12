@@ -72,10 +72,11 @@ fn the_capability_count_follows_the_word_it_is_given() {
 
 #[test]
 fn the_present_path_names_virtio_only_when_the_driver_announced() {
-    let virtio = path(true);
+    let virtio = path(Some("driver.virtio_gpu0"));
     assert_eq!(virtio.hops[2], b"driver.virtio_gpu");
     assert_eq!(virtio.backend, b"compositor + driver.virtio_gpu");
-    let firmware = path(false);
+    assert_eq!(path(Some("driver.bga0")).backend, b"compositor + driver.bga");
+    let firmware = path(None);
     assert_eq!(firmware.hops[2], b"kernel blit");
     assert_eq!(firmware.backend, b"compositor + firmware framebuffer");
 }
