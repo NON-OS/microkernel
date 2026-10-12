@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! Whether the machine has a USB host this image's drivers serve. The USB
 //! class drivers start only then, and each searches every host
 //! (services/registry/usb_hosts.rs) for its device.
