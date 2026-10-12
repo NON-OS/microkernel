@@ -100,7 +100,7 @@ The kernel can also key the volume with a passphrase. `sys_data_passphrase` take
 
 On a live boot, where the disk carries the NONOS store but no plan, or a plan that keeps no volume, `open_session_volume` builds the volume in RAM under a key drawn from the RNG for this boot (`src/fs/blockfs_volume/session.rs:36-64`). It needs at least `LEAST`, 256 MiB (`src/fs/blockfs_volume/session.rs:32-34`), free beyond what `reserve` keeps for the system, the larger of 1 GiB and a quarter of memory (`src/fs/cryptoblock/ram.rs:55-59`). It is gone at power off.
 
-Reading the volume takes `FileSystem`; importing into it takes `StoreWrite` and `FileSystem`; streaming a file in takes `StreamImport`, as `can_stream_import` checks (`src/syscall/contract/cap_table/mk.rs:140-146`).
+Reading the volume takes `FileSystem`; importing into it takes `StoreWrite` and `FileSystem`; streaming a file in takes `StreamImport`, as `can_stream_import` checks (`src/syscall/contract/cap_table/mk_device.rs:41-47`).
 
 ## The capsule store is not encrypted
 

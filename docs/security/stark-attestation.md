@@ -124,7 +124,7 @@ The loader's check of the kernel trailer is in its verification module, which th
 
 ### From userspace
 
-`MkAttestPolicy` returns the kernel tree's root, epoch and depth when the handoff marks them as checked, and the capsule tree's (`sys_attest_policy`, `src/syscall/microkernel/attest_policy.rs:27-46`). Any caller with a valid token may ask (`MkAttestPolicy`, `src/syscall/contract/cap_table/mk.rs:32-35`).
+`MkAttestPolicy` returns the kernel tree's root, epoch and depth when the handoff marks them as checked, and the capsule tree's (`sys_attest_policy`, `src/syscall/microkernel/attest_policy.rs:27-46`). Any caller with a valid token may ask (`MkAttestPolicy`, `src/syscall/contract/cap_table/mk.rs:35-38`).
 
 ## The anonymous device proof
 

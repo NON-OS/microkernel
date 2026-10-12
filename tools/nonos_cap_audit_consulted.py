@@ -1,0 +1,58 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""nonos-cap-audit: which declared capabilities something consults."""
+
+import re
+from pathlib import Path
+
+from nonos_cap_audit_read import called_anywhere, code_lines, read
+
+
+def consulted(root: Path, listed: set) -> set:
+    """Which of `listed` some reachable code actually asks about.
+
+    A capability named only inside a checker that nothing calls is not
+    consulted, however it looks to a grep. That distinction is the
+    point: `Capability::FileSystem` is written into manifests and read
+    by `can_read`, `can_write` and six more in `syscall/caps/checks`,
+    and at the time of writing not one of those is called from
+    anywhere. A manifest granting it says something the kernel does not
+    enforce.
+
+    Filtered against `listed` because two other enums in this kernel
+    are also called `Capability`, one for zkIDs and one for the policy
+    engine. A regex cannot tell them apart and the compiler does not
+    have to, so anything not on the list is somebody else's type.
+    """
+    seen, by_checker = set(), {}
+    for path in (root / "src").rglob("*.rs"):
+        if "capabilities/types/" in str(path):
+            continue
+        inside = "syscall/caps/checks" in str(path)
+        fn = None
+        for line in code_lines(path):
+            found = re.search(r"\bfn\s+(\w+)", line)
+            if found:
+                fn = found.group(1)
+            for name in re.findall(r"Capability::(\w+)", line):
+                if inside and fn:
+                    by_checker.setdefault(name, set()).add(fn)
+                else:
+                    seen.add(name)
+    for name, fns in by_checker.items():
+        if any(called_anywhere(root, fn) for fn in fns):
+            seen.add(name)
+    return seen & listed

@@ -71,7 +71,7 @@ Limits, checks and reports:
 - [Checking the security claims yourself](checking-the-claims.md): the tools in the tree that test these claims, how to run them and what they printed at this commit.
 - [Reporting a vulnerability](reporting-a-vulnerability.md): how to report a security bug privately.
 
-`capabilities-and-tokens.md` in this directory is an older capability page. It stays because `scripts/check_docs_caps.py` reads its bit table (`PAGE`, `scripts/check_docs_caps.py:39`), and its prose is out of date: it says `MkCapGrant` needs `IPC`, where the kernel asks for `Admin` (`MkCapGrant`, `src/syscall/contract/cap_table/mk.rs:121`), and it links pages that do not exist. Use [Capsule isolation](capsule-isolation.md) and [ABI capabilities](../abi/capabilities.md).
+`capabilities-and-tokens.md` in this directory is an older capability page. It stays because `scripts/check_docs_caps.py` reads its bit table (`PAGE`, `scripts/check_docs_caps.py:39`), and its prose is out of date: it says `MkCapGrant` needs `IPC`, where the kernel asks for `Admin` (`MkCapGrant`, `src/syscall/contract/cap_table/mk_ipc.rs:50`), and it links pages that do not exist. Use [Capsule isolation](capsule-isolation.md) and [ABI capabilities](../abi/capabilities.md).
 
 ## Where to start
 

@@ -14,7 +14,7 @@ The envelope is `IpcMessage`: sender name, destination name, payload, a millisec
 
 ## The IPC system calls
 
-All eight calls need the `IPC` capability in the caller's token; the table entry for them is `can_ipc` (`src/syscall/contract/cap_table/mk.rs:109-116`). `handle` in the microkernel dispatcher unpacks each call's registers into the handler's arguments (`src/syscall/microkernel/dispatch/ipc.rs:26-41`), and [IPC ABI](../abi/ipc.md) lists them per call.
+All eight calls need the `IPC` capability in the caller's token; the table entry for them is `can_ipc` (`src/syscall/contract/cap_table/mk_ipc.rs:38-45`). `handle` in the microkernel dispatcher unpacks each call's registers into the handler's arguments (`src/syscall/microkernel/dispatch/ipc.rs:26-41`), and [IPC ABI](../abi/ipc.md) lists them per call.
 
 | Tag | Name | What it does |
 |---|---|---|
