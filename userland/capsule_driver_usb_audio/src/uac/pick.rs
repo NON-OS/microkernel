@@ -32,14 +32,23 @@ pub(super) struct Alt {
     pub pcm: bool,
     pub format: bool,
     pub out: Option<Ep>,
+    /// Its IN data endpoint; clock feedback is left out (read.rs).
+    pub inp: Option<Ep>,
 }
 
 impl Alt {
-    /// The stream this alternate plays, whatever IN endpoint (its clock
-    /// feedback) it has.
-    pub fn chosen(&self) -> Option<Stream> {
-        let ep = self.out?;
-        let usable = self.streaming && self.pcm && self.format && self.s.channels == 2;
+    /// The stream this alternate plays (`play`) or captures. One with an
+    /// OUT endpoint plays, whatever IN endpoint beside it; one captures
+    /// with an IN endpoint and no OUT. Two channels play; one or two are
+    /// captured.
+    pub fn chosen(&self, play: bool) -> Option<Stream> {
+        let ep = match (play, self.out) {
+            (true, out) => out?,
+            (false, None) => self.inp?,
+            (false, Some(_)) => return None,
+        };
+        let channels = self.s.channels == 2 || (!play && self.s.channels == 1);
+        let usable = self.streaming && self.pcm && self.format && channels;
         let (ep_address, sync, max_packet, b_interval) =
             (ep.address, ep.sync, ep.max_packet, ep.b_interval);
         usable.then_some(Stream { ep_address, sync, max_packet, b_interval, ..self.s })
