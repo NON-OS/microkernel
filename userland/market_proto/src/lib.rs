@@ -21,12 +21,18 @@
 //! the length a field claims, and returns None rather than panicking.
 
 #![no_std]
+#![deny(
+    clippy::indexing_slicing,
+    clippy::arithmetic_side_effects,
+    clippy::cast_possible_truncation
+)]
 
 extern crate alloc;
 
 pub mod app;
 pub mod body;
 pub mod bond_code;
+mod bytes;
 pub mod commerce;
 mod commerce_parse;
 pub mod header;
@@ -43,8 +49,8 @@ pub mod request;
 pub mod status;
 
 pub use app::{parse_app, App};
-pub use bond_code::BondCode;
 pub use body::{listing_body, pair_body, ready_body};
+pub use bond_code::BondCode;
 pub use commerce::{Commerce, BINDING_VALID, COMMERCE_MATCHES};
 pub use commerce_parse::parse_commerce;
 pub use header::{HDR_LEN, MAGIC, STATUS_LEN, VERSION};

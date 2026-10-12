@@ -34,8 +34,8 @@ pub fn parse_commerce(body: &[u8]) -> Option<Commerce> {
         return None;
     }
     Some(Commerce {
-        commerce_verdict: verdicts[0],
-        binding_verdict: verdicts[1],
+        commerce_verdict: *verdicts.first()?,
+        binding_verdict: *verdicts.get(1)?,
         listing_id,
         release_id,
         release_hash,

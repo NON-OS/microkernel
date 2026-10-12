@@ -16,12 +16,13 @@
 
 //! The bodies a client sends.
 
+use crate::bytes::len_u32;
 use alloc::vec::Vec;
 
 /// One listing id, length-prefixed: what `OP_GET_APP` takes.
 pub fn listing_body(listing: &[u8]) -> Vec<u8> {
-    let mut body = Vec::with_capacity(4 + listing.len());
-    body.extend_from_slice(&(listing.len() as u32).to_le_bytes());
+    let mut body = Vec::with_capacity(listing.len().saturating_add(4));
+    body.extend_from_slice(&len_u32(listing.len()).to_le_bytes());
     body.extend_from_slice(listing);
     body
 }
@@ -31,7 +32,7 @@ pub fn listing_body(listing: &[u8]) -> Vec<u8> {
 /// the listing's default, which both operations resolve the same way.
 pub fn pair_body(listing: &[u8], release: &[u8]) -> Vec<u8> {
     let mut body = listing_body(listing);
-    body.extend_from_slice(&(release.len() as u32).to_le_bytes());
+    body.extend_from_slice(&len_u32(release.len()).to_le_bytes());
     body.extend_from_slice(release);
     body
 }

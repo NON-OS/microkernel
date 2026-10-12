@@ -45,7 +45,7 @@ pub fn parse_release_escrow(body: &[u8]) -> Option<ReleaseEscrow> {
     (tail.len() == 32 + 8).then_some(())?;
     Some(ReleaseEscrow {
         package_url: url.to_vec(),
-        chunk_root: tail[..32].try_into().ok()?,
-        content_len: u64::from_le_bytes(tail[32..].try_into().ok()?),
+        chunk_root: tail.get(..32)?.try_into().ok()?,
+        content_len: u64::from_le_bytes(tail.get(32..)?.try_into().ok()?),
     })
 }
