@@ -58,6 +58,8 @@ pub struct Acpi {
     pub apei: crate::apei::Apei,
     pub smbios: Option<nonos_smbios::identity::Identity>,
     pub typec: Option<crate::typec::TypeC>,
+    /// GPIO controllers' event pins and rates, filled as drivers ask.
+    pub aei: crate::aei::GpioEvents,
     pub devices: Vec<DeviceInfo>,
     pub routes: Vec<(Id, Vec<Route>)>,
     /// SCIs served and GPE methods run, for the status reply.

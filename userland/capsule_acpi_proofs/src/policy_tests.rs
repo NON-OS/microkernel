@@ -67,7 +67,8 @@ fn the_table_the_lead_set() {
     assert_eq!(allowed(10), Allowed::AnyAdmitted, "DEVICE_POWER: the kernel's holder test");
     assert_eq!(names(11), [&b"driver.ps2_kbd0"[..]], "LEGACY");
     assert_eq!(allowed(12), Allowed::AnyAdmitted, "PROPERTIES: the kernel's holder test");
-    for op in [0, 1, 2, 13, 255] {
+    assert_eq!(allowed(13), Allowed::AnyAdmitted, "GPIO_EVENT: the kernel's holder test");
+    for op in [0, 1, 2, 14, 255] {
         assert_eq!(allowed(op), Allowed::Nobody, "op {op}");
     }
 }

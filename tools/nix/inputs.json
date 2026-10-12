@@ -884,6 +884,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_acpi/src/aei/rate.rs",
    "userland/capsule_acpi/src/props/wire.rs",
    "userland/capsule_acpi/src/props/wire_cursor.rs",
    "userland/capsule_acpi/src/props/wire_read.rs",
@@ -3716,6 +3717,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/nonos_aml/src/aei",
    "userland/nonos_aml/src/apei",
    "userland/nonos_aml/src/arena",
    "userland/nonos_aml/src/block.rs",
