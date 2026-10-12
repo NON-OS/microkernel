@@ -21,9 +21,8 @@ use super::event::{on_accessory, on_event};
 use super::ipc::hydrate_pass::HYDRATE_RETRY_MS;
 use super::ipc::{hydrate, lookup_policy_port};
 use super::manifest::manifest;
+use super::page_tick::{page_tick, page_tick_ms};
 use super::paint::paint;
-use super::section::Section;
-use super::state::wifi_enter::refresh_wifi_status;
 use super::state::wifi_step::step_wifi;
 use super::state::{state_new, State};
 use super::ui::search_field;
@@ -103,9 +102,8 @@ impl App for Settings {
         paint(&self.state, fb);
     }
 
-    // While the Wi-Fi or Network page is open, re-poll net_core every tick so a
-    // lease that binds a few seconds after connecting shows its address without
-    // the user having to trigger another scan.
+    // While a page that shows the running system is open, each tick re-reads
+    // it (page_tick.rs).
     // A scan or join asked for is shown and run on the next two ticks, so
     // those come quickly rather than a second apart.
     // One handed to the worker is looked for every 100 ms until it answers.
@@ -116,7 +114,7 @@ impl App for Settings {
         } else if pending.is_out() {
             WIFI_OUT_TICK_MS
         } else {
-            1000
+            page_tick_ms(&self.state)
         }
     }
 
@@ -138,10 +136,6 @@ impl App for Settings {
         if step_wifi(&mut self.state) {
             return true;
         }
-        if matches!(self.state.section, Section::Wifi | Section::Network) {
-            refresh_wifi_status(&mut self.state);
-            return true;
-        }
-        false
+        page_tick(&mut self.state)
     }
 }

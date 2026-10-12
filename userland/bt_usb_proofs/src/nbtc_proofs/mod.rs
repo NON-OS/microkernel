@@ -19,6 +19,10 @@
 mod answer_fail_tests;
 mod answer_link_tests;
 mod bond_tests;
+mod client_body_tests;
+mod client_call;
+mod client_list_tests;
+mod client_tests;
 mod confirm_tests;
 mod fixture;
 mod forget_tests;
