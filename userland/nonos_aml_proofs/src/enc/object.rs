@@ -32,3 +32,11 @@ pub fn else_(body: &[u8]) -> Vec<u8> {
 pub fn external_method(path: &str, args: u8) -> Vec<u8> {
     cat(&[&op(0x15), &name(path), &[8, args]])
 }
+
+pub fn thermal_zone(path: &str, body: &[u8]) -> Vec<u8> {
+    pkg(0x5B85, &cat(&[&name(path), body]))
+}
+
+pub fn power_res(path: &str, level: u8, order: u16, body: &[u8]) -> Vec<u8> {
+    pkg(0x5B84, &cat(&[&name(path), &[level], &order.to_le_bytes(), body]))
+}
