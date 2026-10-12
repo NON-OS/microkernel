@@ -22,7 +22,7 @@ use crate::hardware::broker::device::{Bar, BarKind, BusKind, DeviceRecord};
 const HID_BAR: usize = 5;
 
 /// Build an ACPI-bus DeviceRecord for a GPIO controller: bars 0.. are its
-/// community windows in Linux barno order, so a driver claims it and maps
+/// community windows in the order they were found, so a driver claims it and maps
 /// the window a pin's pad lives in through `MkMmioMap`. Bar 5 (kind None,
 /// never mapped, past `bar_count`) carries the eight `_HID` bytes as a
 /// little-endian `base`, which picks the pad layout in nonos_pinctrl. The
