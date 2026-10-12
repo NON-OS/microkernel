@@ -19,8 +19,10 @@
 
 use super::super::grant::NO_IRTE;
 use super::message::Routed;
-use crate::arch::x86_64::iommu::remap::{release_msi, route_msi};
-use crate::arch::x86_64::iommu::types::VtdError;
+use crate::arch::x86_64::iommu::{
+    remap::{release_msi, route_msi},
+    types::VtdError,
+};
 use crate::drivers::pci::types::{MsiMessage, PciAddress};
 
 /// `None` sends the compatibility format message, which every unit still

@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! AMD-Vi. Every unit is first taken back from firmware: a unit left
-//! enabled translates every device's DMA through tables firmware built for
-//! its own drivers, so the NVMe drive, the SATA controller and USB all fail
-//! to reach the memory the kernel hands them, so such a unit is disabled
-//! before anything else. A kernel built with `nonos-iommu-amdvi` then drives
-//! the units (AMD IOMMU spec 48882): one shared device table, a command
-//! buffer and an event log per unit, and capsule domains behind the same
-//! broker calls as VT-d. Without the feature DMA on an AMD machine is
-//! unrestricted and the posture line says so.
+//! AMD-Vi. A unit firmware left enabled translates every device's DMA
+//! through firmware's tables, so storage and USB miss the kernel's memory:
+//! each unit is disabled first. With `nonos-iommu-amdvi` the kernel drives
+//! them (AMD IOMMU spec 48882): one device table, a command buffer and an
+//! event log per unit, capsule domains and remapped interrupts behind the
+//! broker's calls. Without it, DMA on AMD is unrestricted, as posture says.
 
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod bringup;
@@ -43,6 +40,9 @@ pub mod event;
 mod flush;
 pub mod identity_change;
 mod init;
+#[cfg(feature = "nonos-iommu-amdvi")]
+pub mod intr;
+pub mod intr_format;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod log_line;
 #[cfg(feature = "nonos-iommu-amdvi")]
