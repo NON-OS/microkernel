@@ -29,6 +29,7 @@ pub mod cpu_wire;
 pub mod critical_watch;
 pub mod device_holder;
 mod error;
+pub mod external_port;
 mod granting;
 pub mod hw_errors;
 mod io_grant;
@@ -65,6 +66,8 @@ mod table_check;
 mod table_report;
 mod tables;
 pub mod thermal_watch;
+pub mod usb_port_wire;
+pub mod usb_ports;
 
 pub use error::RegionError;
 pub use io_grant::grant_io;

@@ -16,7 +16,8 @@
 
 /*
  * The platform device record: its layout, the decoder, the encoder the
- * ACPI capsule mounts too, and the device-table record built from it.
+ * ACPI capsule mounts too, and the device-table record built from it;
+ * the USB port facts a host's record carries beside it.
  */
 
 #[path = "../../../../../../src/hardware/broker/acpi/platform_decode.rs"]
@@ -29,3 +30,5 @@ pub mod platform_record;
 pub mod platform_wire;
 #[path = "../../../../../../src/hardware/broker/acpi/same_group.rs"]
 pub mod same_group;
+#[path = "../../../../../../src/hardware/broker/acpi/usb_port_wire.rs"]
+pub mod usb_port_wire;
