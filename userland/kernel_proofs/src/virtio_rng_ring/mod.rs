@@ -14,20 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const VIRTIO_STATUS_ACKNOWLEDGE: u8 = 1;
-pub(super) const VIRTIO_STATUS_DRIVER: u8 = 2;
-pub(super) const VIRTIO_STATUS_DRIVER_OK: u8 = 4;
-pub(super) const VIRTIO_STATUS_FEATURES_OK: u8 = 8;
+/*
+ * The kernel virtio-rng's legacy ring layout (L8), from the size the device
+ * reports instead of one the driver chose. The kernel's pure rule is
+ * included by path.
+ */
 
-pub(super) const LEG_HOST_FEATURES: u16 = 0x00;
-pub(super) const LEG_GUEST_FEATURES: u16 = 0x04;
-pub(super) const LEG_QUEUE_PFN: u16 = 0x08;
-pub(super) const LEG_QUEUE_NUM: u16 = 0x0C;
-pub(super) const LEG_QUEUE_SEL: u16 = 0x0E;
-pub(super) const LEG_NOTIFY: u16 = 0x10;
-pub(super) const LEG_STATUS: u16 = 0x12;
-
-pub(super) enum AccessMode {
-    Io(u16),
-    Mmio(u64),
-}
+#[path = "../../../../src/drivers/virtio_rng/queue/layout.rs"]
+pub mod layout;
+mod tests;
