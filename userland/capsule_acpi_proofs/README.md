@@ -18,5 +18,8 @@ Host test crate for the pure parts of `userland/capsule_acpi`, mounted by
 - The table itself, op by op.
 - A named service that no one runs, or whose owner reads as pid 0,
   admits no one.
+- Senders are threads (as MkIpcRecvFrom reports them): a worker thread
+  of a named service is admitted for that service's ops and only those,
+  whichever of its threads registered the service (`thread_tests.rs`).
 
 Run with `cargo test --release` from this directory.
