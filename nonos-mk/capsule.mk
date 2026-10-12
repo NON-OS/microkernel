@@ -72,7 +72,9 @@ _NONOS_CAPSULE_OPTIONAL_CAPS := $(or $(CAPSULE_OPTIONAL_CAPS),0x0)
 # gate installs an optional bit only when the build grants it, so this widens
 # what may be granted, never what is.
 _NONOS_CAPSULE_CAPS_CEILING  := $(or $(CAPSULE_CAPS_CEILING),$(shell printf '0x%X' $$(( $(CAPSULE_REQUIRED_CAPS) | $(_NONOS_CAPSULE_OPTIONAL_CAPS) ))))
-_NONOS_CAPSULE_TARGET        := $(or $(CAPSULE_TARGET),x86_64-nonos-user)
+# The user target the build was asked for (NONOS_USER_TARGET, which
+# nonos-mk-arm-gui sets to aarch64-nonos-user), unless a capsule names its own.
+_NONOS_CAPSULE_TARGET        := $(or $(CAPSULE_TARGET),$(NONOS_USER_TARGET),x86_64-nonos-user)
 _NONOS_CAPSULE_VERSION       := $(or $(CAPSULE_VERSION),0.1.0)
 _NONOS_CAPSULE_SERIAL        := $(or $(CAPSULE_ID_CERT_SERIAL),1)
 # `$(or X,core,alloc)` parses as three args (X / core / alloc),
@@ -197,7 +199,7 @@ $$($(1)_BIN): $$(USERLAND_LIBC) $$($(1)_CAPSULE_MK) \
 	@cd $$($(1)_DIR) && \
 		RUSTUP_TOOLCHAIN=$$(TOOLCHAIN) \
 		$$(if $$($(1)_RUSTFLAGS),RUSTFLAGS="$$($(1)_RUSTFLAGS)",) \
-		$$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		$$(CARGO) build --release --target ../$$($(1)_TARGET).json \
 		$$(if $$($(1)_CARGO_FEATURES),--features $$($(1)_CARGO_FEATURES),) \
 		-Zbuild-std=$$($(1)_BUILD_STD) \
 		$$(if $$($(1)_BUILD_STD_FEAT),-Zbuild-std-features=$$($(1)_BUILD_STD_FEAT),)
