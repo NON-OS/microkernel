@@ -16,16 +16,15 @@
 
 //! This host's key pair for one pairing. The secret comes from the
 //! caller's random source and is used for one pairing only, as Vol 3,
-//! Part H, 2.3.5.6.1 asks; it is overwritten when the pair is dropped.
+//! Part H, 2.3.5.6.1 asks; nonos_p256 overwrites it when the pair is
+//! dropped.
 
 use super::peer::PeerKey;
 use crate::error::SmpError;
-use p256::elliptic_curve::sec1::ToEncodedPoint;
-use p256::elliptic_curve::{Field, PrimeField};
-use p256::{FieldBytes, ProjectivePoint, Scalar};
+use nonos_p256::Secret;
 
 pub struct KeyPair {
-    secret: Scalar,
+    secret: Secret,
     x: [u8; 32],
     y: [u8; 32],
 }
@@ -35,11 +34,12 @@ impl KeyPair {
     /// `BadSecret` if it is zero or not below the group order, so the
     /// caller draws again.
     pub fn from_secret(secret: [u8; 32]) -> Result<Self, SmpError> {
-        let s = Option::<Scalar>::from(Scalar::from_repr(FieldBytes::from(secret)));
-        let s = s.filter(|s| !bool::from(s.is_zero())).ok_or(SmpError::BadSecret)?;
-        let point = (ProjectivePoint::GENERATOR * s).to_affine().to_encoded_point(false);
-        let (Some(x), Some(y)) = (point.x(), point.y()) else { return Err(SmpError::BadSecret) };
-        Ok(Self { secret: s, x: (*x).into(), y: (*y).into() })
+        let secret = Secret::from_bytes(&secret).ok_or(SmpError::BadSecret)?;
+        let xy = secret.public_xy().ok_or(SmpError::BadSecret)?;
+        let (mut x, mut y) = ([0u8; 32], [0u8; 32]);
+        x.copy_from_slice(&xy[..32]);
+        y.copy_from_slice(&xy[32..]);
+        Ok(Self { secret, x, y })
     }
 
     /// The public key's coordinates, most significant octet first.
@@ -50,16 +50,6 @@ impl KeyPair {
     /// The DHKey: the x coordinate of the secret times the peer's point,
     /// most significant octet first (Vol 3, Part H, 2.3.5.6.1).
     pub fn dh_key(&self, peer: &PeerKey) -> Result<[u8; 32], SmpError> {
-        let shared = (ProjectivePoint::from(*peer.point()) * self.secret).to_affine();
-        let encoded = shared.to_encoded_point(false);
-        encoded.x().map(|x| (*x).into()).ok_or(SmpError::BadKey)
-    }
-}
-
-impl Drop for KeyPair {
-    fn drop(&mut self) {
-        // SAFETY: `secret` is a valid, aligned field of `self`.
-        unsafe { core::ptr::write_volatile(&mut self.secret, Scalar::ZERO) };
-        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+        self.secret.shared_x(peer.point()).ok_or(SmpError::BadKey)
     }
 }

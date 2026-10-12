@@ -28,6 +28,6 @@ use super::frame::{
 };
 use super::group::LEN;
 use alloc::vec::Vec;
-use p256::ProjectivePoint;
+use nonos_p256::ProjectivePoint;
 pub use saestate::*;
 pub use saestation::*;

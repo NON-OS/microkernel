@@ -1359,7 +1359,9 @@
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode",
    "userland/capsule_driver_iwlwifi",
    "userland/libc",
+   "userland/nonos_aes",
    "userland/nonos_mac",
+   "userland/nonos_p256",
    "userland/nonos_wifi_core"
   ],
   "md": [],
@@ -1418,7 +1420,9 @@
    "nonos-bootloader/firmware/realtek/rtw8821c_fw.bin",
    "userland/capsule_driver_rtl8821ce",
    "userland/libc",
+   "userland/nonos_aes",
    "userland/nonos_mac",
+   "userland/nonos_p256",
    "userland/nonos_wifi_core"
   ],
   "md": [],
@@ -3429,6 +3433,8 @@
    "userland/capsule_driver_iwlwifi/src/wpa/sha1.rs",
    "userland/capsule_driver_iwlwifi/src/wpa/supplicant",
    "userland/iwlwifi_proofs",
+   "userland/nonos_aes",
+   "userland/nonos_p256",
    "userland/nonos_wifi_client/src/driver/services.rs",
    "userland/nonos_wifi_client/src/join_wire.rs",
    "userland/nonos_wifi_client/src/network.rs",
@@ -3719,7 +3725,8 @@
    "userland/nonos_aes",
    "userland/nonos_bt_smp",
    "userland/nonos_bt_smp_proofs",
-   "userland/nonos_bt_wire"
+   "userland/nonos_bt_wire",
+   "userland/nonos_p256"
   ],
   "md": [],
   "signed": []
@@ -3753,6 +3760,16 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_p256_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_p256",
+   "userland/nonos_p256_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_secp256k1": {
   "exclude": [],
   "include": [
@@ -3767,6 +3784,8 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/nonos_aes",
+   "userland/nonos_p256",
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs"
   ],
@@ -4136,6 +4155,8 @@
    "userland/capsule_driver_rtl8821ce/src/serve/connect/result.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
    "userland/capsule_driver_rtl8821ce/src/tx",
+   "userland/nonos_aes",
+   "userland/nonos_p256",
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs/src/ap_sim",
    "userland/nonos_wifi_core_proofs/src/ap_sim.rs",
