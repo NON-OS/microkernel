@@ -61,6 +61,7 @@ impl SaeStation {
         self.state
     }
 
+    /// Why the last frame was discarded, while the exchange runs.
     pub fn failure(&self) -> Option<SaeFailure> {
         self.failure
     }

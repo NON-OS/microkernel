@@ -27,9 +27,11 @@ impl Mlme {
         self.state
     }
 
-    /// Why the join failed, once `Failed`.
+    /// Why the join failed, once `Failed`; while an SAE exchange runs, why
+    /// its last frame was discarded, for a driver whose deadline ends it.
     pub fn failure(&self) -> Option<MlmeFailure> {
-        self.failure
+        let sae = || self.sae.as_ref()?.failure().map(MlmeFailure::Sae);
+        self.failure.or_else(sae)
     }
 
     /// The security chosen from the beacon, once a BSS was selected.
