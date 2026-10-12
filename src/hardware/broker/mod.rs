@@ -30,6 +30,7 @@ mod class;
 mod confine;
 mod device;
 pub mod dma;
+pub mod external_range;
 mod grant;
 // IRQ broker is cross-arch: x86 uses IO-APIC + MSI-X; aarch64 uses
 // GICv3 SPIs; riscv64 uses PLIC external sources. Backend selection
@@ -61,7 +62,10 @@ pub use claim::{
     release as release_device, release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
 };
 pub use class::{classify_pci, Class};
-pub use device::{Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
+pub use device::{
+    Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
+    DEVICE_FLAG_EXTERNAL,
+};
 pub use dma::{
     map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
     release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant,
@@ -93,5 +97,6 @@ pub use pio::{
 #[cfg(not(target_arch = "x86_64"))]
 pub use pio_absent::{pio_release_all_for_pid, pio_release_for_device};
 pub use platform::register_legacy as register_legacy_platform_devices;
-pub use table::{contains, init_from_pci, list, list_by_class};
+pub use external_range::ExternalRange;
+pub use table::{contains, external_port_of, init_from_pci, list, list_by_class};
 pub use windows::touches_device_window;

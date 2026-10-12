@@ -258,6 +258,21 @@ other op: no one.
   chassis, each a length byte and its text. Never a serial number or the
   UUID. ENOENT without SMBIOS. Logged at start on one `[SMBIOS]` line.
 
+- Port facts, published once at start, not served on the port. Each USB
+  host's ports (ACPI 6.5, 9.14: a container with _UPC or _PLD, three
+  levels below the host) go to the kernel through `MkAcpiUsbPorts`, eight
+  bytes a port: hub port above (0 for the root hub), port number, the
+  _UPC facts (connectable, connector type), the _PLD facts (user-visible,
+  lid, dock, panel) and a verdict, internal (not connectable, proprietary,
+  hidden or in the lid), external (connectable and visible) or unknown. A
+  host driver or hub walker reads them back by device id with
+  `MkUsbPortFacts`. A PCIe port whose _DSD says ExternalFacingPort (and,
+  beside it, DmaProperty) goes through `MkAcpiExternalPort`; the kernel
+  reads the buses behind it from the port's own bridge registers and sets
+  `DEVICE_FLAG_EXTERNAL` on the port and every function there, later ones
+  included. Layout in `src/hardware/broker/acpi/usb_port_wire.rs`, mounted
+  here by path. One `[ACPI] usb ports` or `[ACPI] external port` line each.
+
 ## Privacy and persistence
 
 It keeps nothing across boots. The tables it reads are the ones AML needs;
