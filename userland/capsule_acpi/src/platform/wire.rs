@@ -18,7 +18,7 @@
 //! own encoder (`record/`): None for one the kernel would refuse as
 //! malformed, which is then not sent.
 
-use super::record::{encode, Platform, GPIO, HAS_IRQ, I2C, SD};
+use super::record::{encode, Platform, DEPS_UNMET, GPIO, HAS_IRQ, I2C, SD};
 use alloc::vec::Vec;
 use nonos_aml::platform_device::{Class, PlatformDevice};
 
@@ -38,12 +38,14 @@ fn irq_flags(d: &PlatformDevice) -> u8 {
     })
 }
 
-pub fn record(d: &PlatformDevice, path: &[u8]) -> Option<Vec<u8>> {
+/// `unmet`: a _DEP entry is missing, dangling or in a cycle.
+pub fn record(d: &PlatformDevice, path: &[u8], unmet: bool) -> Option<Vec<u8>> {
     let mut hid = [0u8; 8];
     hid.get_mut(..d.matched.len())?.copy_from_slice(&d.matched);
     encode(&Platform {
         class: class(d.class),
         irq_flags: irq_flags(d),
+        flags: if unmet { DEPS_UNMET } else { 0 },
         hid,
         uid: d.uid,
         gsiv: d.irq.map_or(0, |i| i.gsiv),

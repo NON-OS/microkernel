@@ -23,6 +23,8 @@ mod aei;
 mod apei;
 #[path = "cpu/mod.rs"]
 mod cpu;
+#[path = "deps/mod.rs"]
+mod deps;
 #[path = "dpower/mod.rs"]
 mod dpower;
 #[path = "ged/mod.rs"]

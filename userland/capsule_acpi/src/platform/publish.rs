@@ -19,12 +19,14 @@
 //! they will for the OS). A device the kernel refuses stays unpublished:
 //! its driver finds no device, which is the safe outcome.
 
+use super::deps::{deps_unmet, ordered};
 use super::say::{found, skipped, unsent};
 use super::wire::record;
 use crate::boot::{evaluator, path};
 use crate::host::CapsuleHost;
 use crate::sys::log::Line;
 use crate::sys::platform::platform_device;
+use nonos_aml::deps::Verdict;
 use nonos_aml::load::Aml;
 use nonos_aml::platform::DeviceInfo;
 use nonos_aml::platform_device::{known, platform_devices};
@@ -40,10 +42,15 @@ pub fn publish(devices: &[DeviceInfo], aml: &mut Aml, host: &mut CapsuleHost) {
     for (id, why) in &f.skipped {
         skipped(path(aml, *id).as_bytes(), *why);
     }
-    for d in &f.devices {
+    for (i, verdict) in ordered(devices, aml, host, &f.devices) {
+        let d = &f.devices[i];
         let p = path(aml, d.id);
         let source = list.iter().find(|k| k.id == d.matched).map_or(&b""[..], |k| k.source);
-        match record(d, p.as_bytes()) {
+        let unmet = verdict != Verdict::Ready;
+        if unmet {
+            deps_unmet(p.as_bytes(), verdict);
+        }
+        match record(d, p.as_bytes(), unmet) {
             Some(r) => found(p.as_bytes(), d, source, platform_device(&r)),
             None => unsent(p.as_bytes(), d),
         }

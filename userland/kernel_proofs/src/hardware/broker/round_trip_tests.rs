@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The capsule's encoder and the kernel's decoder are one module pair:
-//! every field survives the round trip, and every record the decoder
-//! refuses the encoder will not produce.
+//! The capsule's encoder and the kernel's decoder are one module pair: every
+//! field survives the round trip, and what the decoder refuses is not made.
 
 use super::acpi::platform_decode::decode;
 use super::acpi::platform_encode::encode;
@@ -26,7 +25,16 @@ pub(super) fn platform(class: u8, hid: &[u8], windows: &[(u64, u64)], path: &[u8
     let mut h = [0u8; 8];
     h[..hid.len()].copy_from_slice(hid);
     let (windows, path) = (windows.to_vec(), path.to_vec());
-    Platform { class, irq_flags: 0b1_1011, hid: h, uid: u64::MAX, gsiv: 0xFFFF_FFFF, windows, path }
+    Platform {
+        class,
+        irq_flags: 0b1_1011,
+        flags: 0,
+        hid: h,
+        uid: u64::MAX,
+        gsiv: 0xFFFF_FFFF,
+        windows,
+        path,
+    }
 }
 
 #[test]

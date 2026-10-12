@@ -21,6 +21,8 @@ pub const DEVICE_FLAG_DISABLED: u32 = 1 << 1;
 /// Behind a PCIe port firmware calls external-facing: whoever can reach the
 /// connector chose what is plugged in, so it gets no untranslated DMA.
 pub const DEVICE_FLAG_EXTERNAL: u32 = 1 << 2;
+/// A device whose _DEP firmware could not satisfy, published flagged.
+pub const DEVICE_FLAG_DEPS_UNMET: u32 = 1 << 3;
 /// `numa_node` of a device no firmware table places, or past domain 254.
 pub const NUMA_UNKNOWN: u8 = 0xFF;
 

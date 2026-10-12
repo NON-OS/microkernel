@@ -21,7 +21,7 @@
 //!
 //! Little-endian: version u8 (1), class u8 (`I2C`, `SD`, `GPIO`), window
 //! count u8 (1 to 5), interrupt flags u8 (`HAS_IRQ`, then edge, active
-//! low, shared, wake), four zero bytes; `_HID` as eight bytes (printable,
+//! low, shared, wake), record flags u8 (`DEPS_UNMET`), three zero bytes; `_HID` as eight bytes (printable,
 //! NUL-padded); `_UID` u64; the GSI u32; four zero bytes; each window's
 //! base and length u64; the namespace path's length u8 (1 to 127) and its
 //! bytes, starting with '\'.
@@ -32,6 +32,9 @@ pub const I2C: u8 = 1;
 pub const SD: u8 = 2;
 pub const GPIO: u8 = 3;
 pub const HAS_IRQ: u8 = 1;
+/// Record flag: a _DEP entry is missing, dangling or in a cycle; the device
+/// is published anyway, once, and flagged.
+pub const DEPS_UNMET: u8 = 1;
 pub const MAX_WINDOWS: usize = 5;
 pub const MAX_RECORD: usize = 32 + MAX_WINDOWS * 16 + 128;
 
@@ -39,6 +42,7 @@ pub const MAX_RECORD: usize = 32 + MAX_WINDOWS * 16 + 128;
 pub struct Platform {
     pub class: u8,
     pub irq_flags: u8,
+    pub flags: u8,
     pub hid: [u8; 8],
     pub uid: u64,
     pub gsiv: u32,
