@@ -58,6 +58,7 @@ impl Capability {
             Self::InputDrain => "InputDrain",
             Self::CameraCapture => "CameraCapture",
             Self::MicrophoneCapture => "MicrophoneCapture",
+            Self::ScreenCapture => "ScreenCapture",
         }
     }
 }
