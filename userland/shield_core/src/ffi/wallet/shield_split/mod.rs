@@ -4,6 +4,7 @@ mod fresh_approve;
 mod fresh_batch;
 mod fresh_confirm;
 mod fresh_part;
+mod fresh_recheck;
 mod fresh_requests;
 mod fresh_review;
 mod fresh_take;

@@ -17,7 +17,7 @@ use crate::net::asset::Coin;
 use crate::wallet::fresh::{handed_index, ShieldRefusal};
 
 const ETH_TRIES: usize = 3;
-const GAS_EATS: &str = "The ETH there barely covers its own gas; it stays at that address.";
+pub(super) const GAS_EATS: &str = "The ETH there barely covers its own gas; it stays at that address.";
 
 impl Wallet {
     /// Review moving `amount` wei of `coin` at `address` into the Shield.
