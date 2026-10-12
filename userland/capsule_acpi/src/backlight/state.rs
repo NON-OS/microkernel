@@ -20,6 +20,10 @@ use nonos_aml::video::Levels;
 
 pub struct Output {
     pub id: Id,
+    /// The output's _ADR, which matches its adapter's _DOD entry: the
+    /// panel's identity on the brightness wire. Else 0xFFFFFFFF less its
+    /// index, unique all the same.
+    pub panel: u32,
     pub levels: Levels,
     /// Percent, from _BQC at start and then what was last set; None when
     /// neither is known.
