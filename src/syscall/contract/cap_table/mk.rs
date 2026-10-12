@@ -123,7 +123,10 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
 
         SyscallNumber::MkDeviceList
         | SyscallNumber::MkAcpiDeviceName
-        | SyscallNumber::MkUsbPortFacts => caps.can_device_enum(),
+        | SyscallNumber::MkUsbPortFacts
+        | SyscallNumber::MkNumaNodeOf
+        | SyscallNumber::MkNumaDistance
+        | SyscallNumber::MkDeviceNode => caps.can_device_enum(),
         SyscallNumber::MkDeviceClaim | SyscallNumber::MkDeviceRelease => caps.can_driver(),
         SyscallNumber::MkMmioMap | SyscallNumber::MkMmioUnmap => caps.can_mmio(),
         SyscallNumber::MkIrqBind
@@ -157,6 +160,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAcpiUsbPorts
         | SyscallNumber::MkAcpiExternalPort
         | SyscallNumber::MkAcpiReserved
+        | SyscallNumber::MkAcpiProximity
         | SyscallNumber::MkAcpiPower => caps.is_valid() && caps.is_admin(),
 
         SyscallNumber::MkDebug => caps.can_debug(),

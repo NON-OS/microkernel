@@ -17,9 +17,12 @@
 /*
  * The platform device record: its layout, the decoder, the encoder the
  * ACPI capsule mounts too, and the device-table record built from it;
- * the USB port facts a host's record carries beside it.
+ * the USB port facts a host's record carries beside it; the domain a
+ * memory range or a PCI bus lies in.
  */
 
+#[path = "../../../../../../src/hardware/broker/acpi/numa_node.rs"]
+pub mod numa_node;
 #[path = "../../../../../../src/hardware/broker/acpi/platform_decode.rs"]
 pub mod platform_decode;
 #[path = "../../../../../../src/hardware/broker/acpi/platform_encode.rs"]
