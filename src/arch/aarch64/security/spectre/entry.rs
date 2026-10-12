@@ -14,25 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+//! The entry word itself, which `SPECTRE_FROM_EL0` in vectors.S loads by
+//! symbol on every exception from EL0.
 
-use crate::arch::aarch64::cpu::features::{has_feature, CpuFeature};
+use core::sync::atomic::{AtomicU32, Ordering};
 
-use super::{is_csv2_enabled, SpectreMitigation};
+use super::entry_word::merge;
 
-pub fn mitigations_active() -> Vec<SpectreMitigation> {
-    let mut active = Vec::new();
-    if has_feature(CpuFeature::Ssbs) {
-        active.push(SpectreMitigation::Ssbs);
-    }
-    if is_csv2_enabled() {
-        active.push(SpectreMitigation::CsvEnabled);
-    }
-    if has_feature(CpuFeature::Bti) {
-        active.push(SpectreMitigation::BranchTargetId);
-    }
-    if active.is_empty() {
-        active.push(SpectreMitigation::None);
-    }
-    active
+/// Zero until a CPU publishes, which every CPU does in `security::init_all`
+/// before it can take an exception from EL0.
+#[no_mangle]
+static NONOS_SPECTRE_EL0_ENTRY: AtomicU32 = AtomicU32::new(0);
+
+/// Fold this CPU's word into the shared one. Words only ever gain bits and
+/// counts, so a CPU that started earlier never loses a mitigation.
+pub(super) fn publish(word: u32) {
+    let _ = NONOS_SPECTRE_EL0_ENTRY
+        .fetch_update(Ordering::AcqRel, Ordering::Acquire, |now| Some(merge(now, word)));
 }

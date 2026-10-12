@@ -51,6 +51,42 @@
     stp     x0, x1,   [sp, #272]
 .endm
 
+/* Speculation work on entry from EL0, as security::spectre decided for the
+ * CPUs (entry_word.rs): bit 3 CLRBHB, bits 15:8 the history loop's branch
+ * count, bits 1:0 a firmware call (1 ARCH_WORKAROUND_1, 2 _3) by SMC, or HVC
+ * where bit 2 is set. It runs before the handler's first indirect branch,
+ * which is what EL0's branch history must not steer; the frame holds every
+ * register already, so x0-x3 and x9-x10 are free. CLRBHB is HINT #22, a NOP
+ * where not implemented. The loop, `k` taken branches then DSB and ISB, and
+ * the function ids are from Arm's Spectre-BHB guidance and SMCCC (DEN0028). */
+.macro SPECTRE_FROM_EL0
+    adrp    x9, NONOS_SPECTRE_EL0_ENTRY
+    ldr     w9, [x9, :lo12:NONOS_SPECTRE_EL0_ENTRY]
+    cbz     w9, 9f
+    tbz     w9, #3, 1f
+    hint    #22                         /* CLRBHB */
+    isb
+1:  ubfx    w10, w9, #8, #8
+    cbz     w10, 3f
+2:  b       . + 4
+    subs    w10, w10, #1
+    b.ne    2b
+    dsb     nsh
+    isb
+3:  and     w10, w9, #3
+    cbz     w10, 9f
+    mov     w0, #0x8000                 /* SMCCC_ARCH_WORKAROUND_1 */
+    cmp     w10, #2
+    b.ne    4f
+    mov     w0, #0x3fff                 /* SMCCC_ARCH_WORKAROUND_3 */
+4:  movk    w0, #0x8000, lsl #16
+    tbnz    w9, #2, 5f
+    smc     #0
+    b       9f
+5:  hvc     #0
+9:
+.endm
+
 /* The IA key across the EL0 boundary (security::pac): EL0's is kept in the
  * frame and the kernel's put in, and EL0's put back before the eret. Only
  * where TPIDR_EL1 names a key slot, which is only where pointer
@@ -210,6 +246,7 @@ __aarch64_serror_current:
 __aarch64_sync_lower:
     SAVE_GPRS
     SAVE_SYSREGS_USER
+    SPECTRE_FROM_EL0
     PAC_FROM_EL0
     mov     x0, sp
     bl      aarch64_exc_sync_lower
@@ -222,6 +259,7 @@ __aarch64_sync_lower:
 __aarch64_irq_lower:
     SAVE_GPRS
     SAVE_SYSREGS_USER
+    SPECTRE_FROM_EL0
     PAC_FROM_EL0
     mov     x0, sp
     bl      aarch64_exc_irq_lower
@@ -234,6 +272,7 @@ __aarch64_irq_lower:
 __aarch64_fiq_lower:
     SAVE_GPRS
     SAVE_SYSREGS_USER
+    SPECTRE_FROM_EL0
     PAC_FROM_EL0
     mov     x0, sp
     bl      aarch64_exc_fiq_lower
@@ -246,6 +285,7 @@ __aarch64_fiq_lower:
 __aarch64_serror_lower:
     SAVE_GPRS
     SAVE_SYSREGS_USER
+    SPECTRE_FROM_EL0
     PAC_FROM_EL0
     mov     x0, sp
     bl      aarch64_exc_serror_lower
