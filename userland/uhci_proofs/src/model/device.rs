@@ -7,7 +7,7 @@
 use std::collections::VecDeque;
 
 use super::ep0::Ep0;
-use crate::facts::td::{PID_IN, PID_OUT};
+use super::pid::{PID_IN, PID_OUT};
 
 pub enum Reply {
     Ack(Vec<u8>),
