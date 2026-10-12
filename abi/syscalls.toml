@@ -167,6 +167,7 @@ MDCL = 0x4C43444D
 MDRL = 0x4C52444D
 MNNO = 0x4F4E4E4D
 MNDS = 0x53444E4D
+MDNN = 0x4E4E444D
 MMMP = 0x504D4D4D
 MMUM = 0x4D554D4D
 MIRB = 0x4252494D
@@ -941,4 +942,10 @@ ret  = {type="i64"}
 nr   = 0x53444E4D
 caps = ["DeviceEnum"]
 args = [{name="from",type="u32",dir="in"},{name="to",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MDNN]
+nr   = 0x4E4E444D
+caps = ["DeviceEnum"]
+args = [{name="device_id",type="u64",dir="in"}]
 ret  = {type="i64"}

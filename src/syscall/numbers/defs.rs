@@ -170,4 +170,5 @@ pub enum SyscallNumber {
     MkAcpiProximity = tag4(b"MAPX"),
     MkNumaNodeOf = tag4(b"MNNO"),
     MkNumaDistance = tag4(b"MNDS"),
+    MkDeviceNode = tag4(b"MDNN"),
 }

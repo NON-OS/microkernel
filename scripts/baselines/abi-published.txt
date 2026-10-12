@@ -100,6 +100,7 @@ syscalls.numbers MDIM 1296647245
 syscalls.numbers MDLS 1397507149
 syscalls.numbers MDMM 1296909389
 syscalls.numbers MDMU 1431127117
+syscalls.numbers MDNN 1313752141
 syscalls.numbers MDPW 1464878157
 syscalls.numbers MDRC 1129464909
 syscalls.numbers MDRD 1146242125
