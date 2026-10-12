@@ -175,8 +175,7 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
 `src/server/protocol.rs`: an op byte, then a status word and the body.
 
 Each op answers only the services named for it (`src/server/policy.rs`,
-proved in `capsule_acpi_proofs`), checked by the service the sender owns,
-asked of the registry at each request; anyone else gets EPERM. BRIGHTNESS,
+registry at each request; anyone else gets EPERM. BRIGHTNESS,
 SET_BRIGHTNESS, POWER and THERMAL: `power` and `desktop_shell`.
 PREPARE_SLEEP: `power`. SMBIOS: `desktop_shell`. SERIAL: the I2C
 capsules. DEVICE_POWER: any sender the endpoint admits, moves only for

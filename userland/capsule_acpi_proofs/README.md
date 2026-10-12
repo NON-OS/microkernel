@@ -17,5 +17,8 @@ Host test crate for the pure parts of `userland/capsule_acpi`, mounted by
   EPERM), as are a sender owning no service and pid 0.
 - The table itself, op by op.
   admits no one.
+- Senders are threads (as MkIpcRecvFrom reports them): a worker thread
+  of a named service is admitted for that service's ops and only those,
+  whichever of its threads registered the service (`thread_tests.rs`).
 
 Run with `cargo test --release` from this directory.
