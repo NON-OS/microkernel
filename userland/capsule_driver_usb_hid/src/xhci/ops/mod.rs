@@ -24,6 +24,7 @@ mod disable_slot;
 mod enable_slot;
 mod interrupt_in;
 mod port_status;
+mod setup;
 
 pub use address_device::address_device;
 pub use address_routed::address_routed;
@@ -35,3 +36,4 @@ pub use disable_slot::disable_slot;
 pub use enable_slot::enable_slot;
 pub use interrupt_in::interrupt_in;
 pub use port_status::{port_status, PortSnapshot};
+pub use setup::Setup;

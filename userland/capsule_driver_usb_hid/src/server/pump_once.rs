@@ -22,17 +22,12 @@ use crate::server::respond;
 use crate::state::State;
 
 const SERVICE_INBOX: u64 = 0;
-const RECV_TIMEOUT_MS: u64 = 1;
 
-pub fn pump_once(state: &mut State, rx: &mut [u8], tx: &mut [u8]) -> bool {
+/// Wait up to `wait_ms` (1 or more: 0 waits for good) for one request, and
+/// answer it.
+pub fn pump_once(state: &mut State, rx: &mut [u8], tx: &mut [u8], wait_ms: u64) -> bool {
     let mut sender_pid = 0u32;
-    let n = mk_ipc_recv_from(
-        SERVICE_INBOX,
-        rx.as_mut_ptr(),
-        rx.len(),
-        RECV_TIMEOUT_MS,
-        &mut sender_pid,
-    );
+    let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait_ms, &mut sender_pid);
     if !nonos_libc::recv_ready(n) || sender_pid == 0 {
         return false;
     }
