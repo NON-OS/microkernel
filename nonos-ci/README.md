@@ -28,6 +28,13 @@ capsule is built for under each user target, and fails if any NONOS capsule
 does not follow the one asked. It runs as the flake's `capsule-targets`
 check and in `make nonos-mk-static`.
 
+## Lanes
+
+`build-driver-capsules.sh <user target>` builds every driver capsule for
+that target through make's own rule, and any driver make leaves out with the
+rule's cargo line, then checks each ELF's machine. ci-build-aarch64 runs it
+for `aarch64-nonos-user`.
+
 ## Benchmarks
 
 The `bench_*.py` suite measures boot and runtime against the pinned
