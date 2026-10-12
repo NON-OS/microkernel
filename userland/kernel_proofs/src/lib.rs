@@ -183,6 +183,8 @@ pub mod spec;
 #[cfg(test)]
 pub mod spectre_cpuid;
 #[cfg(test)]
+pub mod surface_grants;
+#[cfg(test)]
 pub mod surface_register;
 #[cfg(test)]
 pub mod surface_shares;
