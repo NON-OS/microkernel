@@ -43,7 +43,7 @@ pub(super) fn open(
         PAGE,
         IommuProtection::DOORBELL,
     );
-    (b.doorbell, b.confined) = mapped.ok_or(IrqBindError::PlatformError)?;
+    (b.doorbell, b.confined) = mapped.map_err(|_| IrqBindError::PlatformError)?;
     // MSI and MSI-X both on is undefined; the kind not bound goes off.
     if b.msix {
         msi_off(handle);
