@@ -16,6 +16,7 @@
 
 //! Everything the capsule holds once it is up.
 
+use crate::ec::Ec;
 use crate::host::CapsuleHost;
 use alloc::vec::Vec;
 use nonos_aml::events::Events;
@@ -33,6 +34,7 @@ pub struct Acpi {
     pub host: CapsuleHost,
     pub events: Option<Events>,
     pub sci: Option<Sci>,
+    pub ec: Option<Ec>,
     pub devices: Vec<DeviceInfo>,
     pub routes: Vec<(Id, Vec<Route>)>,
     /// SCIs served and GPE methods run, for the status reply.
