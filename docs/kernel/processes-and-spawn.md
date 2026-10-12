@@ -89,7 +89,7 @@ A process ends in one of three ways, all through `exit_and_yield` or `teardown`:
 
 `teardown` runs at once (`src/process/exit/teardown.rs:21-89`):
 
-- It releases the process's surfaces, then every MMIO, IRQ, DMA and PIO grant it holds in the [hardware broker](hardware-broker.md), in `release_all_for_pid` and its neighbours (`src/process/exit/teardown.rs:44-51`). The MMIO release also drops the process's device claims, which stops each device mastering the bus before its DMA buffers are freed; [Hardware broker](hardware-broker.md#revocation) gives the order.
+- When the thread whose exit frees the process's tables ends, it releases the surfaces the thread group holds (surfaces, like device claims, belong to the group, so a worker thread's exit leaves them); then every MMIO, IRQ, DMA and PIO grant it holds in the [hardware broker](hardware-broker.md), in `release_all_for_pid` and its neighbours (`src/process/exit/teardown.rs:44-51`). The MMIO release also drops the process's device claims, which stops each device mastering the bus before its DMA buffers are freed; [Hardware broker](hardware-broker.md#revocation) gives the order.
 - It drops the calls the process made and the replies it owed, with `release_pending_replies_for_pid` (`src/process/exit/teardown.rs:52`).
 - It marks the process `Zombie` and releases its names, its endpoints and its reply inbox, with `release_names` (`src/process/exit/teardown.rs:54-57`), so a relaunch does not collide with the dead process's names.
 - It records the exit code for the parent with `reap_log::record` and queues the process for finalization (`src/process/exit/teardown.rs:64-82`).
