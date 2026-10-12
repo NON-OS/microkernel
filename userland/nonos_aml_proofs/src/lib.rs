@@ -33,6 +33,8 @@ pub mod ged;
 pub mod grammar;
 #[path = "../../nonos_aml/src/legacy/mod.rs"]
 pub mod legacy;
+#[path = "../../nonos_aml/src/motherboard/mod.rs"]
+pub mod motherboard;
 #[path = "../../nonos_aml/src/load/mod.rs"]
 pub mod load;
 #[path = "../../nonos_aml/src/namespace/mod.rs"]
