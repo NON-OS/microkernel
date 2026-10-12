@@ -16,7 +16,7 @@
 
 //! Each Notify the AML queued, to whoever serves its object: the batteries
 //! and adapters, the buttons and lids, the thermal zones and fans, the
-//! backlit outputs, the hotkey sources. Anything
+//! processors, the backlit outputs, the hotkey sources. Anything
 //! else is logged.
 
 use crate::boot::{path, Acpi};
@@ -24,10 +24,11 @@ use crate::sys::log::Line;
 
 pub fn route(acpi: &mut Acpi) {
     while let Some((id, value)) = acpi.aml.rt.notifications.pop_front() {
-        let Acpi { aml, host, power, buttons, cooling, backlight, hotkeys, .. } = acpi;
+        let Acpi { aml, host, power, buttons, cooling, cpus, backlight, hotkeys, .. } = acpi;
         let served = crate::power::notified(power, aml, host, id, value)
             || crate::buttons::notified(buttons, aml, host, id, value)
             || crate::cooling::notified(cooling, aml, host, id, value)
+            || crate::cpu::notified(cpus, aml, host, id, value)
             || crate::backlight::notified(backlight, aml, host, id, value)
             || crate::hotkeys::notified(hotkeys, aml, host, id, value);
         if !served {
