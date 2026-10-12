@@ -27,14 +27,25 @@ use crate::xhci::{
 /// CLEAR_FEATURE(ENDPOINT_HALT) to an endpoint.
 const CLEAR_FEATURE: (u8, u8) = (0x02, 0x01);
 
-pub(super) fn move_data(disk: &Disk, data: &mut Data) -> Result<usize, i32> {
+/// The pair byte for `pair` and the command's tag: on streams the tag is
+/// the stream (bits 7:4), else none.
+pub(super) fn lane(disk: &Disk, pair: u8, tag: u16) -> u8 {
+    if disk.streams {
+        pair | (tag as u8) << 4
+    } else {
+        pair
+    }
+}
+
+pub(super) fn move_data(disk: &Disk, data: &mut Data, tag: u16) -> Result<usize, i32> {
+    let on = lane(disk, DATA_PAIR, tag);
     let (dir_in, len) = (matches!(data, Data::In(_)), data.len());
     let mut at = 0;
     while at < len {
         let n = (len - at).min(BULK_MAX);
         let moved = match data {
-            Data::In(buf) => bulk_in_on(disk.xhci, disk.slot, DATA_PAIR, &mut buf[at..at + n]),
-            Data::Out(buf) => bulk_out_on(disk.xhci, disk.slot, DATA_PAIR, &buf[at..at + n]),
+            Data::In(buf) => bulk_in_on(disk.xhci, disk.slot, on, &mut buf[at..at + n]),
+            Data::Out(buf) => bulk_out_on(disk.xhci, disk.slot, on, &buf[at..at + n]),
             Data::None => return Ok(0),
         };
         match moved {

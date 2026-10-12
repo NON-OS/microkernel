@@ -28,8 +28,9 @@ use crate::xhci::{configure_bulk, control_no_data};
 const SET_CONFIGURATION: (u8, u8) = (0x00, 0x09);
 
 pub(super) fn bot(xhci: u32, slot: u8, desc: &[u8], state: &mut State) -> Probe {
-    // A UAS-only device at SuperSpeed waits for streams (0x24): it is not
-    // ours yet, and its first interface (08h 06h 62h) says why on the log.
+    // A UAS-only device uas_bind.rs did not take (no streams at SuperSpeed,
+    // or a slower port) is not ours: its first interface (08h 06h 62h)
+    // says why on the log.
     let Ok(found) = parse_config(desc) else {
         return Probe::NotOurs(first_interface(desc));
     };

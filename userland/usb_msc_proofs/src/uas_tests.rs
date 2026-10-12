@@ -55,3 +55,16 @@ fn an_iu_out_of_turn_fails_the_command() {
     script(vec![Answer::Data(vec![0x06, 0, 0, 2])]);
     assert_eq!(read(&disk(), &mut State::new(), 0, &mut out), Err(E_IO), "another tag");
 }
+
+#[test]
+fn on_streams_the_data_moves_at_once_on_the_tags_stream() {
+    let block = vec![7u8; 512];
+    script(vec![Answer::Data(block.clone()), sense_iu(0, &[])]);
+    let mut d = disk();
+    d.streams = true;
+    let mut out = [0u8; 512];
+    assert_eq!(read(&d, &mut State::new(), 0, &mut out), Ok(()));
+    let (sent, read_on) = device(|d| (d.sent.clone(), d.read_on.clone()));
+    assert_eq!(read_on, [0x11, 0x10], "data on pair 1, then status on pair 0, both stream 1");
+    assert_eq!(sent[0].0, 0, "the command pipe has no streams");
+}
