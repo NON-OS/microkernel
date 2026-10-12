@@ -41,6 +41,7 @@ impl Radio {
         if fw.dev.error_cause() {
             let m = fw.dev.m;
             stop_device(m, &mut Uptime);
+            self.master_off();
             Line::new().text(b"radio down: ").text(Failure::Lost.text().as_bytes()).send();
             self.join.joined = None;
             self.state = State::Down(Failure::Lost);
