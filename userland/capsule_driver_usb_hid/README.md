@@ -5,7 +5,8 @@
 `capsule_driver_usb_hid` is the USB HID class capsule. It asks `driver.xhci0`
 for the devices on the root ports, binds boot keyboard and boot mouse
 interfaces (and, on a device with neither, a HID interface whose report
-descriptor names a Generic Desktop pointer or mouse, as a tablet), polls their
+descriptor names a Generic Desktop pointer or mouse, as a tablet, or a
+joystick or game pad, as a gamepad laid out by that descriptor), polls their
 interrupt-IN endpoints through the controller, and posts each decoded key,
 motion and button event to the kernel input ring with `MkInputEventPost`.
 
@@ -206,8 +207,9 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 
 ## Explicit non-goals today
 
-Report-descriptor parsing past the first application collection's usage,
-vendor HID layouts, multitouch, LED output
+Report descriptors past a pointer's application usage and a gamepad's
+buttons, axes and hat, vendor HID layouts (no vendor gamepad protocols),
+force feedback and output reports to pads, multitouch, LED output
 reports, endpoint scheduling, USB hub traversal, and compositor focus policy
 do not live in this slice. A configuration descriptor over 64 bytes is
 refused.
@@ -243,8 +245,16 @@ refused.
   media-key, system-control and vendor interfaces are not taken as a tablet.
 - A device with neither binds a HID interface as a tablet only where its
   report descriptor, read once configured, opens with a Generic Desktop
-  pointer or mouse application. A security key (usage page F1D0h), a
-  gamepad or a vendor channel is left and its slot given back.
+  pointer or mouse application, and as a gamepad where it opens with a
+  Joystick or Game Pad application. A security key (usage page F1D0h) or a
+  vendor channel is left and its slot given back.
+- A gamepad's report descriptor gives its fields (Button page 1 to 32,
+  Generic Desktop X to Wheel, the hat), with report IDs, Push and Pop,
+  usage ranges and padding; hostile counts and nesting end bounded. Each
+  change posts INPUT_KIND_PAD_BUTTON_DOWN/UP (code the button) or
+  INPUT_KIND_PAD_AXIS (code the usage, x scaled to -32767..32767, the hat
+  0 to 7 or -1), y the pad's number. A pad's read is its whole packet, up
+  to 64 bytes; boot devices still read at most 8.
 - Every interrupt-IN endpoint of a composite device is polled on its own
   DCI, so a wireless keyboard and mouse receiver gives both.
 - USB hubs are not supported. A device plugged into a hub, a dock or a
