@@ -9,6 +9,7 @@
 pub mod blob;
 pub mod family;
 pub mod alive;
+pub mod carried;
 pub mod gen3;
 pub mod generation;
 pub mod load;
