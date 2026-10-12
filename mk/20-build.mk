@@ -930,9 +930,10 @@ nonos-mk-arm-trap-kernel-abort: | $(SIGNING_KEY)
 #   virtio-rng-pci  the RNG refuses to seed from nothing, so without an entropy
 #                   source the boot stops at init_rng and says so.
 #
-# QEMU passes no device tree when it boots an ELF, so x0 arrives as zero and the
-# board facts come from the defaults in BootInfo. That path is what this target
-# exercises; nonos-mk-arm-run-image boots the Image, with QEMU's tree in x0.
+# Every run boots the arm64 Image, as real loaders do, with QEMU's device tree
+# in x0. The kernel is a static PIE that relocates itself, so its ELF is ET_DYN,
+# which not every QEMU's ELF loader takes; the Image is the boot protocol's own
+# form and the one a Pi's firmware and U-Boot load.
 ARM_QEMU_FLAGS := -M virt,gic-version=3 -cpu max -m 512 -nographic \
 		-serial mon:stdio -device virtio-rng-pci
 
@@ -954,14 +955,12 @@ nonos-mk-arm-bench: nonos-mk-ensure-signing-key
 nonos-mk-bench-micro: nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,microkernel-core + nonos-bench-micro,microkernel-core$(_boot_comma)nonos-bench-micro)
 
-nonos-mk-arm-run: nonos-mk-arm
-	@echo "Booting aarch64 kernel under QEMU (ctrl-a x to quit)..."
-	@qemu-system-aarch64 $(ARM_QEMU_FLAGS) \
-		-kernel $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel
-
-nonos-mk-arm-run-image: nonos-mk-arm-image
+nonos-mk-arm-run: nonos-mk-arm-image
 	@echo "Booting aarch64 Image under QEMU with its device tree (ctrl-a x to quit)..."
 	@qemu-system-aarch64 $(ARM_QEMU_FLAGS) -kernel $(ARM_IMAGE)
+
+# The name earlier lanes used for the Image boot, which is now every boot.
+nonos-mk-arm-run-image: nonos-mk-arm-run
 
 # The desktop needs a framebuffer, so this swaps -nographic for a virtio-gpu and
 # keeps the serial log on the terminal. virt has no VGA to fall back on: without
@@ -972,9 +971,9 @@ ARM_GUI_QEMU_FLAGS := -M virt,gic-version=3 -cpu max -m 2048 \
 		-serial mon:stdio
 
 nonos-mk-arm-gui-run: nonos-mk-arm-gui
+	@$(LLVM_OBJCOPY) -O binary $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel $(ARM_IMAGE)
 	@echo "Booting aarch64 desktop under QEMU..."
-	@qemu-system-aarch64 $(ARM_GUI_QEMU_FLAGS) \
-		-kernel $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel
+	@qemu-system-aarch64 $(ARM_GUI_QEMU_FLAGS) -kernel $(ARM_IMAGE)
 
 nonos-mk-core: nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,microkernel-core,microkernel-core)
