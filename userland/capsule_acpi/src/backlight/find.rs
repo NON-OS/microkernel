@@ -54,7 +54,13 @@ pub fn find(aml: &mut Aml, host: &mut CapsuleHost) -> Backlight {
             Some(n) => l.dec(u64::from(n)).end(),
             None => l.str(b"unknown").end(),
         }
-        b.outputs.push(Output { id, levels, current: now });
+        let adr = call(aml, host, id, *b"_ADR").and_then(|o| match o {
+            Object::Integer(v) => u32::try_from(v).ok(),
+            _ => None,
+        });
+        let panel = adr.unwrap_or(u32::MAX - b.outputs.len() as u32);
+        b.outputs.push(Output { id, panel, levels, current: now });
     }
+    super::adapter::adapters(&b, aml, host);
     b
 }
