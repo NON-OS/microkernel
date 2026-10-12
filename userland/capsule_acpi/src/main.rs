@@ -32,6 +32,7 @@ mod ec;
 mod events_io;
 mod host;
 mod hotkeys;
+mod legacy;
 mod power;
 mod serial;
 mod server;
