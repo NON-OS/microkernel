@@ -25,6 +25,7 @@ mod generate;
 pub(crate) mod hex_digit;
 pub mod idle_lock;
 mod import;
+mod import_submit;
 mod keep;
 mod keep_plan;
 mod keyring_says;
