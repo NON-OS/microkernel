@@ -95,6 +95,11 @@ pub mod smbios;
 pub mod acpi_cpu;
 #[cfg(test)]
 pub mod late_probe;
+#[path = "../../../src/arch/aarch64/acpi/mod.rs"]
+#[allow(dead_code)] // the proofs read what an Arm machine's tables give
+pub mod arm_acpi;
+#[cfg(test)]
+mod arm_acpi_tests;
 #[cfg(test)]
 pub mod smp_bringup;
 #[cfg(test)]
