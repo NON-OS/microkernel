@@ -28,6 +28,9 @@ pub enum Step {
     Started(u8),
     /// Saved network `index` was tried and the driver answered at once.
     Answered { index: u8, joined: bool },
+    /// Saved network `index` was turned down for a reason a retry cannot
+    /// change: the passphrase, or the network's security.
+    Refused(u8),
     /// Nothing left to do this boot.
     Done,
 }

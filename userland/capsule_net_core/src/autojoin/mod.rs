@@ -2,6 +2,7 @@
 
 mod attempt;
 mod join;
+mod link;
 mod machine;
 mod ready;
 mod saved;
