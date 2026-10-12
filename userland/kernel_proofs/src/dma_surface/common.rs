@@ -16,8 +16,8 @@
 
 //! A registry for the tests: attach records, and the held grants.
 
-use super::dma_plan::{due, hold_in};
-use super::dma_rule::{DmaOrphan, PageOrphan};
+use super::dma_plan::hold_in;
+use super::dma_rule::{due, DmaOrphan, PageOrphan};
 
 pub const GPU: u32 = 7;
 pub const COMPOSITOR: u32 = 3;
@@ -33,17 +33,23 @@ pub fn grant_frames() -> Vec<u64> {
 #[derive(Default)]
 pub struct Registry {
     pub attaches: Vec<(u32, u32)>,
+    /// (thread, process) for threads that are not their own process.
+    pub threads: Vec<(u32, u32)>,
     pub orphans: Vec<PageOrphan<u32, u64>>,
     pub held: Vec<DmaOrphan<u32>>,
     pub given_back: Vec<(u64, u64)>,
 }
 
 impl Registry {
-    /// dma_hold::hold_dma, `live` the owner's surfaces over the grant.
-    pub fn release(&mut self, owner: u32, live: Vec<(u32, Vec<u64>)>) -> bool {
+    /// dma_hold::hold_dma by `grant`'s pid; `live`: (handle, owner, frames)
+    /// of the process's surfaces over the grant.
+    pub fn release(&mut self, grant: u32, live: Vec<(u32, u32, Vec<u64>)>) -> bool {
         let attaches = self.attaches.clone();
+        let threads = self.threads.clone();
+        let group = |t: u32| threads.iter().find(|x| x.0 == t).map_or(t, |x| x.1);
         let foreign = |h, o| attaches.iter().any(|&(a, p): &(u32, u32)| a == h && p != o);
-        let kept = hold_in((owner, START, LEN), live, &mut self.orphans, foreign, |f| *f);
+        let rules = (foreign, |a, b| group(a) == group(b));
+        let kept = hold_in((grant, START, LEN), live, &mut self.orphans, rules, |f| *f);
         let held = kept.is_some();
         self.held.extend(kept);
         if !held {

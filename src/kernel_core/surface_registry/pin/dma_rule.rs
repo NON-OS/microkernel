@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * A DMA grant's frames under a shared surface, pure. The broker freed
- * them on release or exit while the compositor still mapped them, and the
- * next owner's data was composited. They are held until no other process
- * maps the surface. Proven in kernel_proofs::dma_surface.
- */
+/* A DMA grant's frames under a shared surface, pure: held, never
+ * freed, while another process maps the surface. kernel_proofs::dma_surface. */
 
 extern crate alloc;
 
@@ -38,8 +34,8 @@ pub(crate) struct PageOrphan<H, F> {
 /// is given back once however many surfaces it backs.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct DmaOrphan<H> {
-    pub(crate) owner: u32,
-    pub(crate) handles: Vec<H>,
+    /// Each surface over the grant, with its owner.
+    pub(crate) handles: Vec<(H, u32)>,
     pub(crate) start: u64,
     pub(crate) len: u64,
 }
@@ -55,4 +51,23 @@ pub(crate) fn overlaps(frames: impl IntoIterator<Item = u64>, start: u64, len: u
 pub(crate) fn strip<T>(free: &mut Vec<T>, page: impl Fn(&T) -> u64, start: u64, len: u64) {
     let end = start.saturating_add(len);
     free.retain(|f| !(start <= page(f) && page(f) < end));
+}
+
+/// The held grants no process but their owner maps through any of their
+/// surfaces, taken out of `held` to be given back, each exactly once.
+/// `foreign(handle, owner)`: whether another process attaches `handle`.
+pub(crate) fn due<H: Copy>(
+    held: &mut Vec<DmaOrphan<H>>,
+    foreign: impl Fn(H, u32) -> bool,
+) -> Vec<DmaOrphan<H>> {
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < held.len() {
+        if held[i].handles.iter().any(|&(h, owner)| foreign(h, owner)) {
+            i += 1;
+        } else {
+            out.push(held.swap_remove(i));
+        }
+    }
+    out
 }
