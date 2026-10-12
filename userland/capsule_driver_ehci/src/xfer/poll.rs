@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The polled bulk IN: a qTD left armed on the bulk IN QH, into its root
-//! port's own buffer (`lane`, the port less one), so a network adapter's
+//! The polled bulk IN: a qTD left armed on the bulk IN QH, into the polled
+//! place the device holds (server/handlers/place.rs), so a network adapter's
 //! frames are taken whenever they come. The toggle stays the QH's; a
 //! reset or a slot's end takes the qTD back with the QH (bulk_run.rs).
 
@@ -28,24 +28,24 @@ use crate::sched::queue::look as look_qtds;
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Polled {
     Pending,
-    /// The bytes now in the lane's buffer.
+    /// The bytes now in the place's buffer.
     Done(usize),
     Stalled,
     Error(u32),
 }
 
-pub fn arm<M: Mem>(m: &M, lane: usize, ep: &BulkEp, len: usize) -> Result<(), CtrlError> {
+pub fn arm<M: Mem>(m: &M, place: usize, ep: &BulkEp, len: usize) -> Result<(), CtrlError> {
     if len == 0 || len > BULK_MAX {
         return Err(CtrlError::TooLong);
     }
-    arm_qtd(m, ep, true, (poll_qtd(lane), poll_buf(lane), len));
+    arm_qtd(m, ep, true, (poll_qtd(place), poll_buf(place), len));
     Ok(())
 }
 
 /// One look at the qTD armed for `len` bytes.
-pub fn look<M: Mem>(m: &M, lane: usize, ep: &BulkEp, len: usize) -> Polled {
-    let Some(ran) = look_qtds(m, &[poll_qtd(lane)]) else { return Polled::Pending };
-    match ended(m, ep, ran, poll_qtd(lane), len) {
+pub fn look<M: Mem>(m: &M, place: usize, ep: &BulkEp, len: usize) -> Polled {
+    let Some(ran) = look_qtds(m, &[poll_qtd(place)]) else { return Polled::Pending };
+    match ended(m, ep, ran, poll_qtd(place), len) {
         Ok(n) => Polled::Done(n),
         Err(CtrlError::Stalled) => Polled::Stalled,
         Err(CtrlError::Bus(bits)) => Polled::Error(bits),

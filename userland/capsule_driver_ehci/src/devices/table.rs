@@ -29,8 +29,9 @@ pub struct Dev {
     /// A class driver has configured an endpoint on it.
     pub claimed: bool,
     pub bulk: Option<(BulkEp, BulkEp)>,
-    /// The polled bulk IN is armed: the bytes it asked for.
-    pub poll: Option<usize>,
+    /// The polled bulk IN is armed: the place it holds (place.rs) and the
+    /// bytes it asked for.
+    pub poll: Option<(usize, usize)>,
     /// Its speed and TT, and its route below the root port (0: on it).
     pub link: Link,
     pub route: u32,

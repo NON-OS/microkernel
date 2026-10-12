@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The polled bulk IN: a chain left armed on its root port's own queue
-//! (`lane`, the port less one), which the
-//! controller retries every frame while the device NAKs, so a network
+//! The polled bulk IN: a chain left armed on the queue of the polled place
+//! the device holds (server/handlers/place.rs), which the controller retries every frame while the device NAKs, so a network
 //! adapter's frames are taken whenever they come. A look is one read of
 //! the chain; once it ended the queue is emptied and the toggle moved on.
 
@@ -32,28 +31,28 @@ use crate::sched::qh::{start, stop};
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Polled {
     Pending,
-    /// The bytes now in the lane's buffer.
+    /// The bytes now in the place's buffer.
     Done(usize),
     Stalled,
     Error(u32),
 }
 
 /// Arm `len` bytes; returns how many TDs the chain has.
-pub fn arm<M: Mem>(m: &M, lane: usize, ep: &BulkEp, len: usize) -> Result<usize, CtrlError> {
-    let (steps, count) = packets(ep, true, poll_buf(lane), len)?;
-    let n = write(m, poll_td(lane), ep.t, &steps[..count]);
-    start(m, poll_qh(lane), poll_td(lane));
+pub fn arm<M: Mem>(m: &M, place: usize, ep: &BulkEp, len: usize) -> Result<usize, CtrlError> {
+    let (steps, count) = packets(ep, true, poll_buf(place), len)?;
+    let n = write(m, poll_td(place), ep.t, &steps[..count]);
+    start(m, poll_qh(place), poll_td(place));
     Ok(n)
 }
 
 /// One look at an armed chain of `n` TDs.
-pub fn look<M: Mem>(m: &M, lane: usize, ep: &mut BulkEp, n: usize) -> Polled {
-    let Some(ran) = look_chain(m, poll_td(lane), n) else { return Polled::Pending };
-    stop(m, poll_qh(lane));
+pub fn look<M: Mem>(m: &M, place: usize, ep: &mut BulkEp, n: usize) -> Polled {
+    let Some(ran) = look_chain(m, poll_td(place), n) else { return Polled::Pending };
+    stop(m, poll_qh(place));
     match ran {
         Ran::Ended { upto, .. } => {
             advance(ep, upto);
-            Polled::Done(moved(m, poll_td(lane), 0, upto))
+            Polled::Done(moved(m, poll_td(place), 0, upto))
         }
         Ran::Stalled => Polled::Stalled,
         Ran::Error(bits) => Polled::Error(bits),
@@ -63,6 +62,6 @@ pub fn look<M: Mem>(m: &M, lane: usize, ep: &mut BulkEp, n: usize) -> Polled {
 }
 
 /// Take the chain back unrun, as an endpoint reset or a slot's end does.
-pub fn disarm<M: Mem>(m: &M, lane: usize) {
-    stop(m, poll_qh(lane));
+pub fn disarm<M: Mem>(m: &M, place: usize) {
+    stop(m, poll_qh(place));
 }

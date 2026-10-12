@@ -31,14 +31,13 @@ pub const fn intr_buf(i: usize) -> usize {
     INTR_BUF + INTR_BUF_LEN * i
 }
 
-/// The polled bulk IN of the device on root port `lane + 1`: its queue,
-/// chain and buffer.
-pub const fn poll_qh(lane: usize) -> usize {
-    BULK_QH + QH_LEN * (1 + lane)
+/// Polled place `place`: its queue, chain and buffer.
+pub const fn poll_qh(place: usize) -> usize {
+    BULK_QH + QH_LEN * (1 + place)
 }
-pub const fn poll_td(lane: usize) -> usize {
-    POLL_TD + TD_LEN * BULK_TDS * lane
+pub const fn poll_td(place: usize) -> usize {
+    POLL_TD + TD_LEN * BULK_TDS * place
 }
-pub const fn poll_buf(lane: usize) -> usize {
-    POLL_BUF + BULK_MAX * lane
+pub const fn poll_buf(place: usize) -> usize {
+    POLL_BUF + BULK_MAX * place
 }

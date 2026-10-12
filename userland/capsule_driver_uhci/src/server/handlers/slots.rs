@@ -44,8 +44,8 @@ pub fn disable<I: Io, C: Clock, M: Mem>(
             *e = None;
         }
     }
-    if dev.poll.is_some() {
-        disarm(&cx.mem, dev.port as usize - 1);
+    if let Some((place, _)) = dev.poll {
+        disarm(&cx.mem, place);
     }
     // A device below a hub leaves the root port, and the hub on it, alone.
     if dev.port != 0 && dev.route == 0 {

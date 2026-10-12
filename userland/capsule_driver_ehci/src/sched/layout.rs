@@ -16,8 +16,8 @@
 
 //! Where each structure sits in the 76 KiB schedule region. One request is
 //! served at a time, so control and bulk transfers share their qTDs; each
-//! interrupt endpoint and each root port's polled bulk IN, left armed, has
-//! its own. Every QH has a fixed place (places.rs).
+//! interrupt endpoint has its own, and each polled bulk IN, left armed,
+//! holds one of POLL_PLACES. Every QH has a fixed place (places.rs).
 
 use crate::facts::port::PORTS_MAX;
 use crate::facts::qh::QH_LEN;
@@ -35,7 +35,7 @@ pub const INTR_MAX: usize = 8;
 /// The QHs in the async ring, in ring order.
 pub const RING: usize = 2 + SLOTS + BULK_QHS;
 /// Control's SETUP, data and STATUS qTDs, bulk's one, each interrupt
-/// endpoint's one, each root port's polled one.
+/// endpoint's one, each polled place's one.
 pub const CTRL_QTD: usize = 0x2000;
 pub const BULK_QTD: usize = 0x2080;
 pub const INTR_QTD: usize = 0x2100;
@@ -49,14 +49,16 @@ pub const INTR_BUF_LEN: usize = 64;
 pub const BULK_BUF: usize = 0x3000;
 pub const BULK_MAX: usize = 4096;
 pub const POLL_BUF: usize = 0x4000;
-pub const REGION: usize = POLL_BUF + BULK_MAX * PORTS_MAX as usize;
+/// Polled places: one a root port's worth, held by devices, not ports.
+pub const POLL_PLACES: usize = PORTS_MAX as usize;
+pub const REGION: usize = POLL_BUF + BULK_MAX * POLL_PLACES;
 
 pub use super::places::*;
 
 const _: () = assert!(QH_AREA + QH_LEN * (RING + INTR_MAX) <= CTRL_QTD);
 const _: () = assert!(CTRL_QTD + 3 * QTD_LEN <= BULK_QTD && BULK_QTD + QTD_LEN <= INTR_QTD);
 const _: () = assert!(INTR_QTD + QTD_LEN * INTR_MAX <= POLL_QTD);
-const _: () = assert!(POLL_QTD + QTD_LEN * PORTS_MAX as usize <= SETUP_BUF);
+const _: () = assert!(POLL_QTD + QTD_LEN * POLL_PLACES <= SETUP_BUF);
 const _: () = assert!(CTRL_BUF + CTRL_MAX <= INTR_BUF);
 const _: () = assert!(INTR_BUF + INTR_BUF_LEN * INTR_MAX <= BULK_BUF);
 const _: () = assert!(BULK_BUF + BULK_MAX <= POLL_BUF);

@@ -11,7 +11,7 @@ toggle.
 
 ## What it proves
 
-39 `#[test]` functions:
+40 `#[test]` functions:
 
 - start: the controller runs, every frame on the first interrupt queue, a
   host reset that never clears fails within its bound (`start_tests`);
@@ -23,7 +23,9 @@ toggle.
   back (`interrupt_tests`);
 - bulk OUT and IN with toggles carried across transfers, a short packet, a
   STALL and reset (`bulk_tests`); the polled IN, two adapters side by side
-  (`poll_tests`, `poll_share_tests`), one slot per port (`lane_tests`);
+  (`poll_tests`, `poll_share_tests`), places held by devices: two
+  adapters below one hub side by side, and a first poll waiting for a
+  free place (`place_tests`);
 - TD words, the control plan and bulk packets (`td_tests`); the wire
   (`wire_tests`);
 - hubs, through nonos_usb_hub's own walk over this driver's wire

@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where each structure sits in the 28 KiB schedule region. One request is
-//! served at a time, so each kind of transfer has one fixed place; the
-//! polled bulk IN, left armed, has one per root port (places.rs).
+//! Where each structure sits in the 40 KiB schedule region. One request is
+//! served at a time, so each kind of transfer has one fixed place; each
+//! polled bulk IN, left armed, holds one of POLL_PLACES (places.rs).
 
-use crate::facts::io::ROOT_PORTS;
 use crate::facts::qh::QH_LEN;
 use crate::facts::td::TD_LEN;
 
@@ -26,7 +25,7 @@ use crate::facts::td::TD_LEN;
 pub const FRAME_LIST: usize = 0x0000;
 pub const FRAMES: usize = 1024;
 /// A queue head per interrupt endpoint, then control's, bulk's, and one per
-/// root port for the polled bulk IN of the device on it.
+/// polled place.
 pub const INTR_QH: usize = 0x1000;
 pub const INTR_MAX: usize = 8;
 pub const CTRL_QH: usize = INTR_QH + QH_LEN * INTR_MAX;
@@ -49,18 +48,21 @@ pub const INTR_BUF: usize = 0x2400;
 pub const INTR_BUF_LEN: usize = 64;
 pub const BULK_BUF: usize = 0x3000;
 pub const BULK_MAX: usize = 4096;
-/// Each root port's polled bulk IN: a buffer, and a chain of BULK_TDS.
+/// The polled places, held by devices, not ports: two a root port's
+/// worth, so adapters below a hub poll side by side. Each a buffer and a
+/// chain of BULK_TDS.
+pub const POLL_PLACES: usize = 4;
 pub const POLL_BUF: usize = 0x4000;
-pub const POLL_TD: usize = 0x6000;
-pub const REGION: usize = 0x7000;
+pub const POLL_TD: usize = 0x8000;
+pub const REGION: usize = 0xA000;
 
 pub use super::places::*;
 
 const _: () = assert!(INTR_TD + TD_LEN * INTR_MAX <= CTRL_TD);
 const _: () = assert!(CTRL_TD + TD_LEN * CTRL_TDS <= BULK_TD);
 const _: () = assert!(BULK_TD + TD_LEN * BULK_TDS <= SETUP_BUF);
-const _: () = assert!(poll_qh(ROOT_PORTS as usize) <= INTR_TD);
+const _: () = assert!(poll_qh(POLL_PLACES) <= INTR_TD);
 const _: () = assert!(CTRL_BUF + CTRL_MAX <= INTR_BUF);
 const _: () = assert!(INTR_BUF + INTR_BUF_LEN * INTR_MAX <= BULK_BUF);
-const _: () = assert!(BULK_BUF + BULK_MAX <= POLL_BUF && poll_buf(ROOT_PORTS as usize) <= POLL_TD);
-const _: () = assert!(poll_td(ROOT_PORTS as usize) <= REGION);
+const _: () = assert!(BULK_BUF + BULK_MAX <= POLL_BUF && poll_buf(POLL_PLACES) <= POLL_TD);
+const _: () = assert!(poll_td(POLL_PLACES) <= REGION);

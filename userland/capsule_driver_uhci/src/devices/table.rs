@@ -32,8 +32,9 @@ pub struct Dev {
     /// A class driver has configured an endpoint on it.
     pub claimed: bool,
     pub bulk: Option<(BulkEp, BulkEp)>,
-    /// The polled bulk IN is armed: its chain's TDs.
-    pub poll: Option<usize>,
+    /// The polled bulk IN is armed: the place it holds (place.rs) and its
+    /// chain's TDs.
+    pub poll: Option<(usize, usize)>,
     /// Its route below the root port (0: on it), and whether it is a hub.
     pub route: u32,
     pub hub: bool,

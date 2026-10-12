@@ -45,9 +45,11 @@ pub const INTR_BUF_LEN: usize = 64;
 /// Page aligned, so a 4 KiB TD never crosses a page.
 pub const BULK_BUF: usize = 0x1000;
 pub const BULK_MAX: usize = 4096;
-/// One polled bulk IN buffer per root port (places.rs).
+/// The polled places' buffers (places.rs).
 pub const POLL_BUF: usize = 0x2000;
-pub const REGION: usize = POLL_BUF + BULK_MAX * PORTS_MAX as usize;
+/// Polled places: one a root port's worth, held by devices, not ports.
+pub const POLL_PLACES: usize = PORTS_MAX as usize;
+pub const REGION: usize = POLL_BUF + BULK_MAX * POLL_PLACES;
 
 pub use super::places::*;
 

@@ -22,7 +22,7 @@ pub mod descriptors;
 mod ep0;
 pub mod hub;
 pub mod interrupt;
-mod lane;
+mod place;
 pub mod poll;
 pub mod ports;
 pub mod reset;
