@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Any control transfer a class driver asks for on EP0: its OUT data taken
+
 //! Bulk pipes on an addressed slot: configured once, as driver.xhci0 allows,
 //! and reset after a STALL. UHCI keeps no endpoint state of its own, so
 //! both are the slot's toggles; a reset IN pipe also drops the polled chain.

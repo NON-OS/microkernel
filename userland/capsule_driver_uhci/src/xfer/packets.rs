@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! A bulk transfer cut into packets of the endpoint's size, their toggles
 //! alternating from the one the endpoint's next packet carries; and the
 //! toggle moved on by the packets that ran.

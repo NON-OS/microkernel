@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! The function's PCI side: its I/O decode must already be on (the broker
 //! flips no I/O Space bit), bus mastering on for the schedule, its INTx pin
 //! silenced since the driver polls, and firmware's legacy keyboard and SMI

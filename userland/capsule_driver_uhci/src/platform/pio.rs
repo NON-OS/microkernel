@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! The controller's registers through the PIO grant; the kernel runs every
 //! `in` and `out`, bounded to BAR4. A refused access reads as all ones,
 //! as an absent device does, so every wait on it ends at its bound.

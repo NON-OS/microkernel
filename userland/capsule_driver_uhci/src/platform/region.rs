@@ -13,9 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The schedule region: one coherent DMA map below 4 GiB, since UHCI
-//! addresses are 32 bits and the controller reads TDs while the CPU writes
-//! them. Every access is volatile and bounded to the region.
+
+//! The schedule region: one coherent DMA map below 4 GiB, as UHCI's 32-bit
+//! addresses need; every access volatile and bounded to the region.
 
 use crate::env::Mem;
 use crate::sched::layout::REGION;
