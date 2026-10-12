@@ -71,7 +71,7 @@ asks about CameraCapture; it never holds it.
 - Isochronous IN on `driver.xhci0` only (ops 0x18 and 0x1A); EHCI, OHCI
   and UHCI cameras are listed but answer -22 at START.
 - The compositor told when streaming starts and stops (NCMP op 0x000A),
-  for the indicator.
+  for the indicator; no stream starts unless it answers 0.
 
 ## State ownership
 
@@ -103,8 +103,9 @@ stream runs it reads a batch between messages.
 
 A camera that leaves ends the stream and gives its slot back; the next
 search finds it again. Three failed batches in a row end the stream; the
-peer's next READ_FRAME is refused (-1) and it may START again. A
-compositor that does not answer leaves the stream as it is.
+peer's next READ_FRAME is refused (-1) and it may START again. START is
+refused (-1) and the stream given back unless the compositor answers the
+indicator notice with status 0: no indicator, no stream (Decision 9).
 
 ## Release target
 
@@ -140,5 +141,5 @@ frames: a frame crosses the wire in 4000-byte pieces.
 
 Static gate: `nonos-ci/run-static-checks.sh`.
 Proofs: `(cd userland/uvc_proofs && cargo test --release)`, which covers
-the descriptors, the probe, frame assembly, the batch reader, the gate
-and the listing.
+the descriptors, the probe, frame assembly, the batch reader, the gate,
+the indicator notice and the listing.

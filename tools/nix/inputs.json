@@ -5419,6 +5419,7 @@
    ".cargo",
    "userland/capsule_driver_uvc/src/batch.rs",
    "userland/capsule_driver_uvc/src/gate.rs",
+   "userland/capsule_driver_uvc/src/indicator.rs",
    "userland/capsule_driver_uvc/src/listing.rs",
    "userland/capsule_driver_uvc/src/wire.rs",
    "userland/nonos_uvc",
