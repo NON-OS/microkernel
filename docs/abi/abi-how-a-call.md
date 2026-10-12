@@ -29,4 +29,4 @@ token](../overview/glossary.md#capability-token) does not admit the call
 (`src/syscall/contract/dispatch.rs:31-37`). Otherwise `handle_syscall_dispatch`
 reaches the handler, and the handler's result goes back in the return register.
 The checks `Capability::resolve` makes are listed in
-[Syscalls](syscalls.md#the-capability-check).
+[Syscalls](syscalls-the-capability-check.md#the-capability-check).

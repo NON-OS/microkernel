@@ -27,7 +27,7 @@ kernel, and it passes at this commit.
 
 Syscalls it admits lists every call whose cap table gate names the capability,
 alone, with another (`and`), or as one choice (`or`); see
-[Syscalls](syscalls.md#the-capability-check) for how each gate reads. "none"
+[Syscalls](syscalls-the-capability-check.md#the-capability-check) for how each gate reads. "none"
 means no syscall gate names the bit; the next section says where the kernel
 checks it instead.
 
