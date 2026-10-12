@@ -18,7 +18,7 @@
 //! from `src/capabilities/types/defs.rs`. `scripts/check_userland_caps.py`
 //! holds this table to the kernel's.
 
-pub(super) const NAMES: [&[u8]; 36] = [
+pub(super) const NAMES: [&[u8]; 39] = [
     b"CoreExec",
     b"IO",
     b"Network",
@@ -55,4 +55,7 @@ pub(super) const NAMES: [&[u8]; 36] = [
     b"LocalSign",
     b"StreamImport",
     b"DeviceSecret",
+    b"InputDrain",
+    b"CameraCapture",
+    b"MicrophoneCapture",
 ];
