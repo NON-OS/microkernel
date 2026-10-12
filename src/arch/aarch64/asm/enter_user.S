@@ -32,6 +32,14 @@ aarch64_enter_user:
     ldr     x9,  [x0, #16]
     msr     spsr_el1, x9
 
+    /* The process's IA key, which the switch put in this CPU's slot
+     * (security::pac); none where TPIDR_EL1 names no slot. */
+    mrs     x9, tpidr_el1
+    cbz     x9, 1f
+    ldp     x10, x11, [x9]
+    msr     S3_0_C2_C1_0, x10           /* APIAKeyLo_EL1 */
+    msr     S3_0_C2_C1_1, x11           /* APIAKeyHi_EL1 */
+1:
     /* Load args x2..x7 in pairs; x0 still holds ctx so do it last. */
     ldp     x2,  x3,  [x0, #(32 + 16)]
     ldp     x4,  x5,  [x0, #(32 + 32)]
