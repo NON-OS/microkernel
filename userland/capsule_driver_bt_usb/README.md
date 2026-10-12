@@ -116,9 +116,9 @@ The manifest grants `IPC`, `Memory`, `Crypto`, `Debug` and `Keyring`:
 CAPSULE_REQUIRED_CAPS = 0x10200038
 ```
 
-The capsule finds driver.xhci0 and the keyring with `MkServiceLookup`, learns
-its own pid with `MkGetPid` for the keyring's owner check, and calls both with
-`MkIpcCall` (bounded by a timeout). It waits with `MkIpcRecvFrom` and a
+The capsule finds driver.xhci0 and the keyring with `MkServiceLookup`, and
+its own pid for the keyring's owner check by looking up driver.bt_usb0; it
+calls both with `MkIpcCall` (bounded by a timeout). It waits with `MkIpcRecvFrom` and a
 timeout on its own inbox, which serves no requests. It posts input with
 `MkInputEventPost`, draws pairing's keys and nonces, its IRK and its
 addresses with `CryptoRandom`, reads the clock with `MkUptimeMs`, and
