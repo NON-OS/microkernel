@@ -17,7 +17,8 @@
 //! The 500 ms look at a wire driver (section 12): its service looked up
 //! again, its STATE read, and the step `poll_rule` names taken, then the
 //! mirrored outputs' (`poll_heads`). A FLUSH that found its primary stale
-//! is answered here too, on the next pass of the loop, not mid-frame.
+//! is answered here too, on the next pass of the loop, not mid-frame. A
+//! steady driver is also where the host's size is followed (`resize`).
 
 use crate::display::ops;
 use crate::display::poll_rule::{step, Step};
@@ -32,7 +33,11 @@ pub fn poll(ctx: &mut Context) -> Option<&'static str> {
     let same = ep.filter(|e| e.pid == link.pid);
     let state = same.and_then(|e| ops::state(e.port, 0).ok());
     match step(&link, ep.map(|e| e.pid), state) {
-        Step::Keep => super::poll_heads::poll_heads(ctx, same?.port),
+        Step::Keep => {
+            let e = same?;
+            let resized = super::resize::follow(ctx, e, state);
+            resized.or_else(|| super::poll_heads::poll_heads(ctx, e.port))
+        }
         Step::Repaint => {
             ctx.damage.mark_full(ctx.width, ctx.height);
             // A lost output may have lost its cursor plane too.
