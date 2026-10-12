@@ -18,7 +18,8 @@
 //! one name a tick, 500 ms apart, the gap doubling after each full round
 //! of the list that found none, up to 30 s. A machine with no display
 //! driver stops asking twice a second, and one whose driver comes up late
-//! still gets it within one round of the gap.
+//! still gets it within one round of the gap. A present the kernel refuses
+//! because bootfb holds the framebuffer starts the list again at once.
 
 pub const FIRST_MS: i64 = 500;
 pub const LAST_MS: i64 = 30_000;
@@ -48,5 +49,11 @@ impl Backoff {
         }
         self.due_ms = now_ms.saturating_add(self.gap_ms);
         Some(i)
+    }
+
+    /// The kernel says a driver holds the boot framebuffer (a present
+    /// answered EBUSY): ask again from the first name, now, at the first gap.
+    pub fn held(&mut self, now_ms: i64) {
+        *self = Backoff { next: 0, gap_ms: FIRST_MS, due_ms: now_ms };
     }
 }
