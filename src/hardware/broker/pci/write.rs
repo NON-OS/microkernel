@@ -20,6 +20,7 @@ use crate::drivers::pci::config::ConfigSpace;
 use crate::drivers::pci::constants::CFG_COMMAND;
 
 use super::allowlist::validate;
+use super::change::split;
 use super::ownership::resolve;
 use super::quirk_bits::Ident;
 use super::types::{PciWriteError, PciWriteRequest, WriteAction};
@@ -27,7 +28,8 @@ use super::types::{PciWriteError, PciWriteRequest, WriteAction};
 pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
     let handle = resolve(pid, &req)?;
     let cfg = ConfigSpace::new(handle.address);
-    let current = cfg.read16(req.offset as u16).map_err(|_| PciWriteError::PlatformError)?;
+    let (register, _) = split(req.offset).ok_or(PciWriteError::OffsetNotAllowed)?;
+    let current = cfg.read16(register).map_err(|_| PciWriteError::PlatformError)?;
     let ident = ident(&cfg)?;
     let action = validate(&req, handle.msix.as_ref(), &ident, current)?;
     apply(&cfg, action)

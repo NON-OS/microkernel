@@ -251,6 +251,13 @@ and network functions (`src/hardware/broker/pci/allowlist.rs`). Anything else
 is `EINVAL`. A value too wide to be a 16-bit register is refused by the
 dispatch arm with `EINVAL` rather than written with its top half dropped.
 
+A Command value holding only those three bits is ORed onto the register, so
+the plain call turns them on but never off. Bits 16 to 31 of `offset` carry a
+change mask instead (`mk_pci_config_update`): each named bit takes the value's
+setting, every other bit stays, and a value bit outside the mask is `EINVAL`
+(`src/hardware/broker/pci/change.rs`). Bits 12 to 15 of `offset` are `EINVAL`.
+The masked register is then judged by the same rules.
+
 ## Port I/O grants
 
 ```text
