@@ -26,7 +26,6 @@ use super::env::CapsuleEnv;
 use super::finder::Finder;
 use super::links::links;
 use super::say::{reason, say};
-use super::wait::wait_ms;
 use crate::link::Private;
 use crate::usb::Bound;
 use nonos_bt_bond::LocalIrk;
@@ -42,12 +41,13 @@ pub fn run() -> ! {
     let mut finder = Finder::new();
     say(&[b"started, looking for a controller"]);
     loop {
-        let Some((bound, port)) = finder.pass() else {
-            wait_ms(SEARCH_MS);
+        let Some((bound, port)) = finder.pass(&env.desk) else {
+            env.desk.wait(SEARCH_MS);
             continue;
         };
         let (xhci, slot) = (bound.pipes.bus.xhci, bound.pipes.bus.slot);
         let why = controller(bound, &irk, &mut env);
+        env.desk.board().controller = false;
         say(&[b"controller given back: ", reason(&why)]);
         disable_slot(xhci, slot);
         finder.lost(port);
@@ -69,5 +69,6 @@ fn controller(b: Bound, irk: &LocalIrk, env: &mut CapsuleEnv) -> HciError {
         return HciError::NotBluetooth;
     }
     say(&[b"controller up"]);
+    env.desk.board().controller = true;
     links(&mut host, Private::new(irk.clone(), c.addr), env)
 }

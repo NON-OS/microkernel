@@ -44,6 +44,7 @@ impl Session {
                 let (ltk, irk, authenticated) = (record.ltk, record.irk, record.authenticated);
                 s.bond = Some(Bond { ltk, irk, identity, authenticated });
                 env.say(&[b"encrypted with the kept bond"]);
+                env.linked(record.identity_type, record.identity, false);
                 s.start_hid(env);
             }
             Err(HciError::Transport(e)) => return Err(HciError::Transport(e)),
