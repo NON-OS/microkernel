@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for nonos_bt_hci: the USB transport and the host
+# core run against a simulated controller behind the USB pipes, with every
+# expected byte laid out by hand from the Bluetooth Core Specification.
+[package]
+name = "nonos_bt_hci_proofs"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_bt_hci = { path = "../nonos_bt_hci" }
+nonos_bt_wire = { path = "../nonos_bt_wire" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

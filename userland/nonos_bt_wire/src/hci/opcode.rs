@@ -45,6 +45,8 @@ pub const RESET: Opcode = Opcode::new(0x03, 0x0003);
 pub const READ_LOCAL_VERSION: Opcode = Opcode::new(0x04, 0x0001);
 /// Vol 4, Part E, 7.4.3.
 pub const READ_LOCAL_FEATURES: Opcode = Opcode::new(0x04, 0x0003);
+/// Vol 4, Part E, 7.4.5.
+pub const READ_BUFFER_SIZE: Opcode = Opcode::new(0x04, 0x0005);
 /// Vol 4, Part E, 7.4.6.
 pub const READ_BD_ADDR: Opcode = Opcode::new(0x04, 0x0009);
 /// Vol 4, Part E, 7.8.1.
