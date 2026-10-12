@@ -19,6 +19,7 @@
 
 extern crate alloc;
 
+mod bluetooth;
 mod settings;
 mod wifi;
 

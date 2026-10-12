@@ -21,11 +21,12 @@ use super::ops::{NO_CONTROLLER, READY};
 use super::part::Part;
 use super::wire::{DATA_AT, VERSION};
 use nonos_bt_bond::Store;
+use nonos_bt_proto::{Health, Link, NO_PLACE};
 
 /// HEALTH: the protocol's version, then 1 when a controller is up.
 pub fn health<K>(b: &Board<K>, tx: &mut [u8]) -> usize {
-    tx[DATA_AT..DATA_AT + 2].copy_from_slice(&VERSION.to_le_bytes());
-    tx[DATA_AT + 2] = u8::from(b.controller);
+    let h = Health { version: VERSION, controller: b.controller };
+    tx[DATA_AT..DATA_AT + 3].copy_from_slice(&h.write());
     3
 }
 
@@ -41,8 +42,8 @@ pub fn link<K>(b: &Board<K>, now_ms: u64, tx: &mut [u8]) -> usize {
         (true, Some(_)) => READY,
         (true, None) => b.state,
     };
-    let slot = b.current.map_or(0xFF, |who| slot_of(&b.bonds, who));
-    tx[DATA_AT..DATA_AT + 3].copy_from_slice(&[state, flags, slot]);
+    let place = b.current.map_or(NO_PLACE, |who| slot_of(&b.bonds, who));
+    tx[DATA_AT..DATA_AT + 3].copy_from_slice(&Link { state, flags, place }.write());
     3
 }
 
@@ -52,8 +53,8 @@ pub fn link<K>(b: &Board<K>, now_ms: u64, tx: &mut [u8]) -> usize {
 pub fn battery<K>(b: &Board<K>, tx: &mut [u8]) -> usize {
     let mut n = 0usize;
     for l in &b.levels {
-        let slot = l.who.map_or(0xFF, |who| slot_of(&b.bonds, who));
-        if l.who.is_some() && slot == 0xFF {
+        let slot = l.who.map_or(NO_PLACE, |who| slot_of(&b.bonds, who));
+        if l.who.is_some() && slot == NO_PLACE {
             continue;
         }
         let at = DATA_AT + 1 + 3 * n;
@@ -67,5 +68,5 @@ pub fn battery<K>(b: &Board<K>, tx: &mut [u8]) -> usize {
 /// A bond's place in the bond list, 0xFF when it has none.
 pub fn slot_of<K>(bonds: &Store<K>, who: super::part::Identity) -> u8 {
     let at = bonds.book().bonds().iter().position(|r| (r.identity_type, r.identity) == who);
-    at.map_or(0xFF, |i| i as u8)
+    at.map_or(NO_PLACE, |i| i as u8)
 }
