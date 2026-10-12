@@ -35,6 +35,12 @@ fn say(what: &[u8], r: &Option<Result<(), Fault>>) {
 }
 
 pub fn prepare_sleep(acpi: &mut Acpi, state: Option<u8>) -> i32 {
+    // S3 and suspend-to-idle answer only with the owner's switch on.
+    match state {
+        Some(3) if crate::suspend::SUSPEND => return crate::suspend::s3(acpi),
+        Some(0) if crate::suspend::SUSPEND => return crate::suspend::idle(acpi),
+        _ => {}
+    }
     if state != Some(SOFT_OFF) {
         return EINVAL;
     }
