@@ -44,9 +44,12 @@ impl Wallet {
             }
             ShieldChecked::Refused(why) => return Ok(said(why, remainder)),
         };
-        if let Err(why) =
-            shield_checked(core::slice::from_ref(&review.tx), (pool, token), Some(&approve))
-        {
+        if let Err(why) = shield_checked(
+            core::slice::from_ref(&review.tx),
+            (pool, Some(token)),
+            Some(&approve),
+            0,
+        ) {
             return Ok(said(why.why(), remainder));
         }
         let id = self.next_review_id();

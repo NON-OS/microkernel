@@ -23,7 +23,7 @@ const BODY: &str = "id=7\napproval=1\npieces=3\nshielded=36\nmax_network_fee=0.0
      remainder=500\nshort_eth=0";
 
 fn moving(review: Option<Reviewed>, gas_paid_s: Option<u64>) -> Moving {
-    Moving { address: [9; 20], nox: 37, review, gas_paid_s, ..Moving::default() }
+    Moving { address: [9; 20], amount: 37, review, gas_paid_s, ..Moving::default() }
 }
 
 #[test]
