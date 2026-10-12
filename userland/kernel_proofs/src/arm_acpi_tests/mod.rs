@@ -27,6 +27,8 @@ mod iort_loop_tests;
 mod iort_tests;
 mod madt_build;
 mod madt_tests;
+mod pcct_build;
+mod pcct_tests;
 mod pptt_build;
 mod pptt_chain_tests;
 mod pptt_tests;

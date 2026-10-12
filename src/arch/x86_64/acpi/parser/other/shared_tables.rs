@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! SPCR and DBG2 on a PC: the one parser of each, mounted from the aarch64
-//! tables by path (byte parsers with nothing Arm in them), with the header
-//! check and field readers they share.
+//! The tables a PC server shares with an Arm one (SPCR, DBG2, PCCT): the
+//! one parser of each, mounted from the aarch64 tables by path (byte
+//! parsers with nothing Arm in them), with the header check and field
+//! readers they share, mounted once.
 
 #[path = "../../../../aarch64/acpi/dbg2.rs"]
 pub mod dbg2;
@@ -25,6 +26,14 @@ pub mod dbg2;
 pub mod dbg2_device;
 #[path = "../../../../aarch64/acpi/le.rs"]
 pub mod le;
+#[path = "../../../../aarch64/acpi/pcct.rs"]
+pub mod pcct;
+#[path = "../../../../aarch64/acpi/pcct_extended.rs"]
+pub mod pcct_extended;
+#[path = "../../../../aarch64/acpi/pcct_subspace.rs"]
+pub mod pcct_subspace;
+#[path = "../../../../aarch64/acpi/pcct_types.rs"]
+pub mod pcct_types;
 #[path = "../../../../aarch64/acpi/sdt.rs"]
 pub mod sdt;
 #[path = "../../../../aarch64/acpi/spcr.rs"]

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Every table after FADT and MADT, read in one order: the platform's
 //! timers and windows, NUMA, idle, watchdog, logo and console, then the
 //! IOMMUs last, as they read what came before. Each parser keeps what it
@@ -22,7 +21,7 @@
 
 use super::super::state::TableRegistry;
 use super::{
-    parse_bgrt, parse_dmar, parse_hmat, parse_hpet, parse_ivrs, parse_lpit, parse_mcfg,
+    parse_bgrt, parse_dmar, parse_hmat, parse_hpet, parse_ivrs, parse_lpit, parse_mcfg, parse_pcct,
     parse_serial_console, parse_slit, parse_srat, parse_wdat,
 };
 
@@ -36,6 +35,7 @@ pub fn parse_other_tables(registry: &mut TableRegistry) {
     parse_wdat(registry);
     parse_bgrt(registry);
     parse_serial_console(registry);
+    parse_pcct(registry);
     parse_dmar(registry);
     parse_ivrs(registry);
 }
