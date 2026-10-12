@@ -49,11 +49,12 @@ pub const READINESS_LEN: usize = 1 + GATES.len() + 1;
 /// None when the reply is shorter than READINESS_LEN or names an unknown
 /// bond code.
 pub fn parse_readiness(body: &[u8]) -> Option<Readiness> {
-    let bytes = body.get(..READINESS_LEN)?;
-    let bond = BondCode::from_byte(bytes[READINESS_LEN - 1])?;
+    let (verdict, rest) = body.get(..READINESS_LEN)?.split_first()?;
+    let (bond, gate_bytes) = rest.split_last()?;
+    let bond = BondCode::from_byte(*bond)?;
     let mut gates = [false; 11];
-    for (g, b) in gates.iter_mut().zip(&bytes[1..READINESS_LEN - 1]) {
+    for (g, b) in gates.iter_mut().zip(gate_bytes) {
         *g = *b != 0;
     }
-    Some(Readiness { install_ready: bytes[0] != 0, gates, bond })
+    Some(Readiness { install_ready: *verdict != 0, gates, bond })
 }
