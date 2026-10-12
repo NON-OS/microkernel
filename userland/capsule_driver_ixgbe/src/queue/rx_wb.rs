@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a written-back receive descriptor says. ixgbe_clean_rx_irq waits for
-//! a non-zero status_error and ixgbe_cleanup_headers drops a frame with any
-//! bit of IXGBE_RXDADV_ERR_FRAME_ERR_MASK set. A descriptor without EOP is a frame longer than one 2 KiB buffer,
-//! which this driver never takes, and the length must fit an Ethernet frame
-//! so the copy out of the slot can never leave it.
+//! What a written-back receive descriptor says. A zero status is not yet
+//! written; any frame error bit drops the frame (facts::rx). A descriptor
+//! without EOP is a frame longer than one 2 KiB buffer, which this driver
+//! never takes, and the length must fit an Ethernet frame so the copy out
+//! of the slot can never leave it.
 
-use crate::constants::rx_bits::{RXDEXT_ERR_FRAME_ERR_MASK, RXD_STAT_DD, RXD_STAT_EOP};
-use crate::constants::MAX_ETHERNET_FRAME;
+use crate::facts::rx::{RXDEXT_ERR_FRAME_ERR_MASK, RXD_STAT_DD, RXD_STAT_EOP};
+use crate::sizes::MAX_ETHERNET_FRAME;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Rx {
