@@ -16,7 +16,9 @@
 
 mod ap_entry;
 pub mod roster;
+mod spin_table;
 mod start_cpus;
+mod start_one;
 mod state;
 
 pub use ap_entry::aarch64_ap_entry;

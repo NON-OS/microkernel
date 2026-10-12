@@ -39,10 +39,11 @@ pub struct BootInfo {
     /// GICv2's CPU interface.
     pub gic_cpu_base: u64,
     pub cpu_count: u32,
-    /// Each CPU's MPIDR affinity in tree order, which PSCI and the GIC's
-    /// redistributors name a core by. Fixed: filled before the heap exists.
+    /// Each CPU's MPIDR affinity in tree order: how PSCI and the GIC name it.
     pub cpu_affinities: [u64; MAX_CPUS],
     pub cpu_affinity_count: usize,
+    /// Per CPU, same index: the spin-table address it waits on; `None`, PSCI.
+    pub cpu_release: [Option<u64>; MAX_CPUS],
     pub timer_phys_intid: u32,
     pub timer_virt_intid: u32,
     /// The PCI host bridge's config and I/O windows; zero with no PCI at all.
@@ -64,8 +65,7 @@ pub struct BootInfo {
     pub smmu: Option<(SmmuInfo, Option<IommuMap>)>,
     /// The MSI controller the host bridge's functions write to, and its map.
     pub msi: Option<(MsiController, IommuMap)>,
-    /// Fixed storage: this is filled from the device tree in `kernel_entry`,
-    /// long before the heap exists, so it cannot be a `Vec`.
+    /// Fixed storage: filled in `kernel_entry`, before the heap, so no `Vec`.
     pub memory_regions: [MemoryRegion; MAX_MEMORY_REGIONS],
     pub memory_region_count: usize,
     /// Inside RAM but not the allocator's: see `Reserved`.

@@ -40,6 +40,7 @@ impl Default for BootInfo {
             cpu_count: 1,
             cpu_affinities: [0; MAX_CPUS],
             cpu_affinity_count: 0,
+            cpu_release: [None; MAX_CPUS],
             // Every default here describes the QEMU virt board, and the timer is
             // no exception: PPI 14 and 11 are the non-secure physical and virtual
             // timers, which are INTID 30 and 27 once the 16 SGIs are counted. A
@@ -52,8 +53,7 @@ impl Default for BootInfo {
             // older placement and reads there return nothing, which surfaces as
             // an external abort rather than a translation fault, since the page
             // tables are perfectly happy to map an address no device answers.
-            // Its I/O window sits at 0x3eff_0000 and is addressed from port 0,
-            // so a driver asking for port N reads 0x3eff_0000 + N.
+            // The I/O window at 0x3eff_0000 starts at port 0: port N is +N.
             pci_ecam_base: 0x40_1000_0000,
             pci_ecam_size: 0x1000_0000,
             pci_io_cpu_base: 0x3eff_0000,
