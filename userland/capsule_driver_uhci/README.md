@@ -39,8 +39,8 @@ endpoint (9) and its reads (0xE), control transfer (0xB), bulk configure
 (0x10), OUT (0x11), IN (0x12), reset (0x13) and the polled bulk IN (0x14).
 Port status is in xHCI PORTSC form: connected, enabled, speed 1 full or 2
 low, connect change. Hub and isochronous ops answer -22. A bulk IN while
-the polled IN is armed answers -16. Errors: -5 bus or timeout, -11
-nothing yet, -16 busy, -22 malformed, -32 STALL.
+the polled IN is armed answers -16, as does another slot's poll. Errors:
+-5 bus or timeout, -11 nothing yet, -16 busy, -22 malformed, -32 STALL.
 
 ## Authority
 
@@ -94,7 +94,7 @@ on Intel and VIA chipsets whose only USB 1.1 host it is.
 
 ## Release evidence
 
-`uhci_proofs` on the host (33 tests). No boot yet.
+`uhci_proofs` on the host (34 tests). No boot yet.
 
 ## Release checklist
 
