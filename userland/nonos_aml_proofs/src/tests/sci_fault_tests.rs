@@ -18,11 +18,11 @@
 //! and the fixed events.
 
 use super::sci_rig::{bits, gpes, SciRig};
-use crate::events::{Policy, GBL, PWRBTN, SLPBTN};
+use crate::events::{Dispatch, Policy, GBL, PWRBTN, SLPBTN};
 use crate::exec::{Fault, FaultKind};
 use crate::fadt_enc::{PM1_EN, PM1_STS};
 
-fn fail(_: u32) -> Result<(), Fault> {
+fn fail(_: Dispatch) -> Result<(), Fault> {
     Err(Fault::new(FaultKind::Steps, 0, 0))
 }
 

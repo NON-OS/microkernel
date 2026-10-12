@@ -16,6 +16,7 @@ mod convert_tests;
 mod corpus;
 mod coverage_tests;
 mod debug_tests;
+mod ec;
 mod event_tests;
 mod exec_mutation_tests;
 mod field_corpus;
