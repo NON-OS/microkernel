@@ -33,6 +33,7 @@ mod dpower;
 mod ec;
 mod events_io;
 mod host;
+mod holder;
 mod hotkeys;
 mod legacy;
 mod numa;
