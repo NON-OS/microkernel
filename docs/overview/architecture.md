@@ -37,7 +37,7 @@ Every syscall number the kernel knows goes through `dispatch`, which resolves th
 
 ## Hardware broker, IOMMU and devices
 
-No driver capsule touches a device on its own. It claims the device from the hardware broker in the kernel (`src/hardware/broker/`), then asks for grants on it: MMIO windows, DMA buffers, interrupt bindings and, on x86_64 only, port I/O. Each kind of call needs its own bit: claiming needs Driver, an MMIO window Mmio, an interrupt binding Irq, a DMA buffer Dma and port I/O Pio (`MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap` and `MkPioGrant` in `src/syscall/contract/cap_table/mk.rs:124-136`).
+No driver capsule touches a device on its own. It claims the device from the hardware broker in the kernel (`src/hardware/broker/`), then asks for grants on it: MMIO windows, DMA buffers, interrupt bindings and, on x86_64 only, port I/O. Each kind of call needs its own bit: claiming needs Driver, an MMIO window Mmio, an interrupt binding Irq, a DMA buffer Dma and port I/O Pio (`MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap` and `MkPioGrant` in `src/syscall/contract/cap_table/mk_device.rs:25-37`).
 
 The broker gives each driver capsule its own [IOMMU domain](glossary.md#iommu-domain), which every device that capsule claims shares (`attach` in `src/hardware/broker/confine/attach.rs:30-101`). This kernel drives Intel VT-d, and every image turns its translation on at boot, with `nonos-iommu-enforce` in `microkernel-core` (`Cargo.toml:240-249`). When a claim is released, the broker turns the device's bus mastering off, then detaches it from its domain (`release` in `src/hardware/broker/claim/release.rs:24-36`).
 
