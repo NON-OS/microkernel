@@ -18,6 +18,8 @@
 //! host memory. The `#[path]` includes pull in the shipping source; the
 //! requests go through the same server core every VRAM driver uses.
 
+#[path = "../../capsule_driver_bootfb/src/boot_info.rs"]
+pub mod boot_info;
 #[path = "../../capsule_driver_bootfb/src/copy_in.rs"]
 pub mod copy_in;
 #[path = "../../capsule_driver_bootfb/src/describe.rs"]
@@ -26,6 +28,17 @@ pub mod describe;
 pub mod display;
 #[path = "../../capsule_driver_bootfb/src/fb.rs"]
 pub mod fb;
+
+// The kernel's own handoff struct, so the decode is pinned to the layout
+// the kernel hands over and a change there fails here.
+#[allow(dead_code)]
+#[path = "."]
+pub mod handoff {
+    #[path = "../../../src/boot/handoff/types/constants.rs"]
+    pub mod constants;
+    #[path = "../../../src/boot/handoff/types/framebuffer.rs"]
+    pub mod framebuffer;
+}
 
 #[cfg(test)]
 mod pool;
