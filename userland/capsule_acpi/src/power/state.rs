@@ -37,4 +37,8 @@ pub struct Power {
     /// The word last reported, and when (ms since boot).
     pub reported: Option<u64>,
     pub read_ms: u64,
+    /// The kernel was told of a low battery, and it still is low.
+    pub low_told: bool,
+    /// The kernel was last told the battery is critical.
+    pub critical: bool,
 }

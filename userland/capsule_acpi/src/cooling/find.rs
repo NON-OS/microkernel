@@ -51,6 +51,7 @@ pub fn refresh(c: &mut Cooling, aml: &mut Aml, host: &mut CapsuleHost, z: usize)
 pub fn find(aml: &mut Aml, host: &mut CapsuleHost) -> Cooling {
     let mut c = Cooling::default();
     for id in zones(aml) {
+        super::policy::prefer_active(aml, host, id);
         c.zones.push(Zone {
             id,
             trips: Default::default(),
