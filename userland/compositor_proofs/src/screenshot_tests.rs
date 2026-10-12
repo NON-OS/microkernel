@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Screenshots: nobody may take one while the screen capture bit is not
-//! named; the canvas copied row by row into the holder's surface, as much
+//! Screenshots: only a holder of ScreenCapture may take one; the canvas copied row by row into the holder's surface, as much
 //! as both hold, nothing past it; and the band's blue notice while the
 //! capture is shown.
 
@@ -38,9 +37,11 @@ fn surface(px: &mut [u32], w: u32, h: u32, stride_px: u32) -> Surface {
 }
 
 #[test]
-fn nobody_may_capture_before_the_bit_is_named() {
-    assert_eq!(SCREEN_CAPTURE, None);
-    assert!(!may_capture(40, |_, _| true));
+fn only_a_screen_capture_holder_may_capture() {
+    assert_eq!(SCREEN_CAPTURE, Some(1 << 39));
+    assert!(may_capture(40, |pid, mask| pid == 40 && mask == 1 << 39));
+    assert!(!may_capture(41, |pid, mask| pid == 40 && mask == 1 << 39), "another process");
+    assert!(!may_capture(40, |_, mask| mask == 1 << 37), "the camera's bit is not it");
     assert!(!may_capture(0, |_, _| true));
 }
 
