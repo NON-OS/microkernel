@@ -17,6 +17,8 @@
 //! The proofs of what the interpreter reads for devices, each in its own
 //! directory beside this file.
 
+#[path = "aei/mod.rs"]
+mod aei;
 #[path = "apei/mod.rs"]
 mod apei;
 #[path = "cpu/mod.rs"]
@@ -40,7 +42,7 @@ mod ports;
 #[path = "props/mod.rs"]
 mod props;
 #[path = "serial/mod.rs"]
-mod serial;
+pub(crate) mod serial;
 #[path = "video/mod.rs"]
 mod video;
 #[path = "wmi/mod.rs"]
