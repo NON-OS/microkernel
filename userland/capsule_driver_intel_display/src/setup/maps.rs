@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The mappings an attempt makes: BAR0 uncached (registers must not be
-//! combined or reordered), a window of the aperture write-combining for
-//! the one read of firmware's picture, and the scanout surfaces as DMA
-//! grants, high and write-combining.
+//! The MMIO mappings an attempt makes: BAR0 uncached (registers must not
+//! be combined or reordered), and a window of the aperture write-combining
+//! for the one read of firmware's picture.
 
-use nonos_libc::{mk_dma_map, mk_mmio_map, DmaMapOut, MmioMapOut, MK_DMA_MAP_HIGH, MK_DMA_MAP_WC};
+use nonos_libc::{mk_mmio_map, MmioMapOut};
 
 use crate::error::{IntelError, IntelResult};
 use crate::handles::BrokerHandles;
@@ -44,16 +43,5 @@ fn mmio(h: &BrokerHandles, bar: u32, flags: u32, off: u64, len: u64) -> IntelRes
     if rc < 0 {
         return Err(IntelError::Broker(rc));
     }
-    Ok(out)
-}
-
-/// Scanout surface `i`, `len` bytes, zeroed by the broker.
-pub fn frame(h: &mut BrokerHandles, i: usize, len: u64) -> IntelResult<DmaMapOut> {
-    let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-    let rc = mk_dma_map(h.device_id, h.epoch, len, MK_DMA_MAP_HIGH | MK_DMA_MAP_WC, &mut out);
-    if rc < 0 {
-        return Err(IntelError::Broker(rc));
-    }
-    h.frames[i] = Some(out.grant_id);
     Ok(out)
 }

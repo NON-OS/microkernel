@@ -40,7 +40,8 @@ pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
     let model = Rc::new(RefCell::new(m));
     let shared = Shared(model.clone());
     let len = scan.pages as usize * 4096;
-    let frames = ModelFrames { model: shared.clone(), iova: [a[0], b[0]], len, fences: 0 };
+    let (iova, next) = ([a[0], b[0]], Some(0x4000_0000));
+    let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, next };
     let intel = Intel {
         m: shared,
         frames,
@@ -49,6 +50,8 @@ pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
         out,
         scan,
         panel: Panel::default(),
+        modeset: None,
+        bases: iova,
         generation: 1,
         flags: SCANNING_OUT,
     };

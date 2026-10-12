@@ -39,3 +39,13 @@ pub fn edid_1080p(mm: (u32, u32)) -> Vec<u8> {
     b[127] = sum.wrapping_neg();
     b
 }
+
+/// The same monitor listing 1024x768 at 60 Hz too (Established Timings
+/// II, byte 0x24 bit 3, E-EDID 1.4 Table 3.18).
+pub fn edid_1080p_and_xga(mm: (u32, u32)) -> Vec<u8> {
+    let mut b = edid_1080p(mm);
+    b[0x24] |= 1 << 3;
+    let sum = b[..127].iter().fold(0u8, |a, &v| a.wrapping_add(v));
+    b[127] = sum.wrapping_neg();
+    b
+}

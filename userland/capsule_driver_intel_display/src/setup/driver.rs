@@ -25,10 +25,10 @@ use crate::handles::BrokerHandles;
 
 pub type Engine = Intel<Bar0, DmaFrames, Uptime>;
 
-/// A driver that came up: its broker handles, never read but held so their
-/// drop gives the grants and the claim back only when the driver ends, and
-/// the wire server over the taken-over output.
+/// A driver that came up: the wire server over the taken-over output, and
+/// its broker handles, never read but held so their drop gives BAR0 and the
+/// claim back only when the driver ends, after the server's surfaces.
 pub struct Driver {
-    pub _handles: BrokerHandles,
     pub server: Server<Engine, Pool>,
+    pub _handles: BrokerHandles,
 }
