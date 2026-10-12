@@ -36,6 +36,7 @@ pub(super) fn seed_hardware_broker() {
         crate::hardware::broker::register_acpi_i2c();
         crate::hardware::broker::register_acpi_gpio();
         let _ = crate::hardware::broker::acpi::register_sci();
+        crate::hardware::broker::acpi::numa_refresh::refresh();
     }
     serial::println(b"[NONOS] hardware broker seeded");
 }

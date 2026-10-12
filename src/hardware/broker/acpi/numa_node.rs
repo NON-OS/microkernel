@@ -62,6 +62,12 @@ pub fn node_of(regions: &[Region], base: u64, len: u64) -> Result<u32, NodeError
     domain.filter(|_| at >= end).ok_or(NodeError::Outside)
 }
 
+/// A domain as a record's `numa_node` holds it: 0xFF for none, and for
+/// any domain past 254, which no byte can name apart from "unknown".
+pub fn node_byte(domain: Option<u32>) -> u8 {
+    domain.and_then(|d| u8::try_from(d).ok()).unwrap_or(0xFF)
+}
+
 /// The domain of the root bridge whose buses hold `bus`.
 pub fn bus_domain(ranges: &[BusRange], segment: u16, bus: u8) -> Option<u32> {
     let holds = |r: &&BusRange| r.segment == segment && (r.first..=r.last).contains(&bus);
