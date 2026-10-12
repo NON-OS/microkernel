@@ -16,8 +16,8 @@
 
 /*
  * AMD-Vi: commands, device table entries, page table entries, event log
- * entries and register values, included by path and checked against AMD
- * IOMMU spec 48882 and the encodings in Linux drivers/iommu/amd.
+ * entries, register values and remapped interrupts, included by path and
+ * checked against the layouts of AMD IOMMU spec 48882.
  */
 
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/command.rs"]
@@ -30,10 +30,16 @@ pub mod event;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/identity_change.rs"]
 pub mod identity_change;
 mod identity_tests;
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/intr_format.rs"]
+pub mod intr_format;
+mod intr_slot_tests;
+mod intr_tests;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/pte.rs"]
 pub mod pte;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/pte_child.rs"]
 pub mod pte_child;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/regs.rs"]
 pub mod regs;
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/intr/slots.rs"]
+pub mod slots;
 mod table_tests;

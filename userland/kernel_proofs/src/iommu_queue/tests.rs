@@ -18,14 +18,14 @@ use super::descriptor::{context_global, iec_global, iec_index, iotlb_global, wai
 use super::drain::{read_drain, write_drain};
 use super::extended::{extended_interrupt_mode, interrupt_remapping, queued_invalidation};
 
-/* Linux: QI_CC_TYPE 1 | QI_CC_GRAN(DMA_CCMD_GLOBAL_INVL) = 1 << 4. */
+/* VT-d 6.5.2.1: type 1, global granularity 01b in bits 5:4. */
 #[test]
 fn context_global_is_type_one_granularity_global() {
     assert_eq!(context_global(), [0x11, 0]);
 }
 
-/* Linux: QI_IOTLB_TYPE 2 | QI_IOTLB_GRAN(DMA_TLB_GLOBAL_FLUSH) = 1 << 4,
-QI_IOTLB_DR = bit 7, QI_IOTLB_DW = bit 6, domain id zero for global. */
+/* VT-d 6.5.2.3: type 2, global granularity 01b in bits 5:4, DR bit 7, DW
+bit 6, domain id zero for global. */
 #[test]
 fn iotlb_global_sets_drains_only_when_asked() {
     assert_eq!(iotlb_global(false, false), [0x12, 0]);
