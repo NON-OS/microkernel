@@ -24,6 +24,19 @@ impl SlotTable {
         self.resources.iter().any(|r| r.slot_id == slot_id && r.hub)
     }
 
+    /// The owner byte of addressed `slot_id`: 2 once a class driver
+    /// configured an endpoint on it, else 1.
+    pub fn held(&self, slot_id: u8) -> u8 {
+        let claimed =
+            |r: &&super::super::SlotResources| !r.interrupt.is_empty() || r.bulk.is_some();
+        let found = self.resources.iter().find(|r| r.slot_id == slot_id);
+        if found.as_ref().is_some_and(claimed) {
+            2
+        } else {
+            1
+        }
+    }
+
     /// Whether a hub is addressed on root port `port_id`.
     pub fn hub_on(&self, port_id: u8) -> bool {
         self.resources.iter().any(|r| r.port_id == port_id && r.hub)

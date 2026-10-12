@@ -1774,7 +1774,8 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_xhci",
-   "userland/libc"
+   "userland/libc",
+   "userland/nonos_usb_virt"
   ],
   "md": [],
   "signed": []
