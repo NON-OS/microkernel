@@ -55,7 +55,10 @@ impl Fb {
     ) -> Option<Fb> {
         let (width, height) = size;
         let line = (width as u64).checked_mul(4)?;
-        let need = (stride as u64).checked_mul(height as u64)?;
+        // The last row ends at its last pixel: the kernel's range stops
+        // there, and every copy is held to the pixels of a row.
+        let need =
+            (stride as u64).checked_mul(height.saturating_sub(1) as u64)?.checked_add(line)?;
         let ok = width > 0 && height > 0 && stride as u64 >= line && need <= len as u64;
         if !ok || !(base as usize).is_multiple_of(4) {
             return None;
