@@ -22,9 +22,8 @@ path = "src/main.rs"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
-# The display wire: its bodies and errors, the server core, and the EDID
-# parser for the blob at BAR2.
-nonos_edid = { path = "../nonos_edid" }
+# The display wire: its bodies and errors, the server core (with the EDID
+# panel reading for the blob at BAR2), and the primaries' memory.
 nonos_gfx_pool = { path = "../nonos_gfx_pool" }
 nonos_gfx_serve = { path = "../nonos_gfx_serve" }
 nonos_gfx_wire = { path = "../nonos_gfx_wire" }
