@@ -30,6 +30,7 @@ extern crate alloc;
 pub mod arena;
 pub mod block;
 pub mod error;
+pub mod events;
 pub mod exec;
 pub mod grammar;
 pub mod load;
