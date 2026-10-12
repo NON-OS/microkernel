@@ -26,6 +26,7 @@ pub mod report;
 mod scanner;
 mod step;
 mod uas_bind;
+mod uas_setup;
 
 pub use medium::Medium;
 pub use report::Report;
