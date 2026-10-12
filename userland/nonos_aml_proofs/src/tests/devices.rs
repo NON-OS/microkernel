@@ -43,6 +43,8 @@ mod ports;
 mod props;
 #[path = "serial/mod.rs"]
 pub(crate) mod serial;
+#[path = "time_alarm/mod.rs"]
+mod time_alarm;
 #[path = "video/mod.rs"]
 mod video;
 #[path = "wmi/mod.rs"]
