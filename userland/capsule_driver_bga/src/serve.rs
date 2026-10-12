@@ -17,11 +17,11 @@
 //! The receive loop: every frame from the inbox answered by the wire
 //! server, the reply sent to the pid the kernel says sent it.
 
+use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, recv_ready};
 
 use crate::display::Bga;
-use crate::platform::Pool;
 
 const SERVICE_INBOX: u64 = 0;
 
