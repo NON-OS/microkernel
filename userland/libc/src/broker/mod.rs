@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod backdoor;
 mod device;
 mod dma;
 mod dma_lines;
@@ -26,6 +27,7 @@ mod pci;
 mod pio;
 mod types;
 
+pub use backdoor::mk_hv_backdoor;
 pub use device::{mk_device_claim, mk_device_list, mk_device_release};
 pub use dma::{
     mk_dma_map, mk_dma_unmap, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32, MK_DMA_MAP_HIGH, MK_DMA_MAP_WC,

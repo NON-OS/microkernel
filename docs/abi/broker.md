@@ -47,6 +47,7 @@ Arguments are in register order, first argument first. The Capability column is 
 | `MPRD` | `MkPioRead` | `grant_id`, `port_offset`, `w`, `out_value` | 0, with the value written as a `u32` | Admin or Pio | `mk_pio_read` |
 | `MPWR` | `MkPioWrite` | `grant_id`, `port_offset`, `w`, `value` | 0 | Admin or Pio | `mk_pio_write` |
 | `MPRL` | `MkPioRelease` | `grant_id` | 0 | Admin or Pio | `mk_pio_release` |
+| `MHVB` | `MkHvBackdoor` | `cmd`, `arg`, `out_regs` | 0, with EAX, EBX, ECX and EDX written as `[u32; 4]` | Admin or Pio | `mk_hv_backdoor` |
 
 The rules behind the table:
 
@@ -59,6 +60,7 @@ The rules behind the table:
 - `MkDmaMap` takes a length in bytes, a non-zero multiple of 4096, and `validate` refuses `DMA_MAP_HIGH` with `DMA_MAP_DMA32`, and `DMA_MAP_COHERENT` with `DMA_MAP_WC` (`src/hardware/broker/dma/map/validate.rs:31-45`). A map longer than its class's ceiling, below, is refused as `BadLengthForClass` (`src/hardware/broker/dma/map/validate.rs:53-57`). A `DMA_MAP_DMA32` map that would end above 4 GiB fails with `Above4G`, returned as `ERANGE` (`src/syscall/microkernel/dma.rs:109-111`).
 - The PCI calls check a live claim and an allowlist of registers in the broker, and both `sys_pci_config_read` and `sys_pci_config_write` ask for `Driver` themselves, so `Admin` alone is refused (`src/syscall/microkernel/pci.rs:28-35`, `src/syscall/microkernel/pci.rs:43-50`). A write is one 16-bit register, and `u16_arg` refuses a wider value with `EINVAL` (`src/syscall/microkernel/dispatch/debug.rs:31-36`).
 - Port I/O exists on x86_64 only. On aarch64 and riscv64 every port call returns `ENOSYS` (`src/syscall/microkernel/pio/mod.rs:17-49`). `from_arg` reads `w`, the access width, as 1, 2 or 4 bytes and refuses anything else (`src/syscall/microkernel/pio/width.rs:23-30`).
+- `MkHvBackdoor` makes one VMware backdoor call, on a host that answers it: VMware, or QEMU's vmport under KVM or TCG; elsewhere it returns `ENODEV` (`src/arch/x86_64/hypervisor/backdoor_rule.rs`). Only the absolute pointer's calls are allowed: GETVERSION (10), ABSPOINTER_DATA (39) for 1 to 4 words, ABSPOINTER_STATUS (40), and ABSPOINTER_COMMAND (41) with enable, disable, relative or absolute. Any other command or argument returns `EINVAL`, so the backdoor's RPC channel, which carries data between guest and host, stays closed.
 
 Most failures map the same way across the calls: no claim is `EPERM`, a stale epoch `ESTALE`, an unknown device `ENODEV`, a bad index, length or range `EINVAL`, an unknown flag `EOPNOTSUPP`, no memory or address space `ENOMEM`. `errno_for` in `src/syscall/microkernel/mmio/errno_map.rs` is one example, and it also maps a window that would expose the device's MSI-X table or pending-bit array to `EPERM` (`src/syscall/microkernel/mmio/errno_map.rs:22-36`). See [Errors](errors.md).
 

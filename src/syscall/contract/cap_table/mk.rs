@@ -133,7 +133,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkPioGrant
         | SyscallNumber::MkPioRead
         | SyscallNumber::MkPioWrite
-        | SyscallNumber::MkPioRelease => caps.can_pio(),
+        | SyscallNumber::MkPioRelease
+        | SyscallNumber::MkHvBackdoor => caps.can_pio(),
 
         SyscallNumber::MkDebug => caps.can_debug(),
         SyscallNumber::MkStdoutWrite | SyscallNumber::MkPrivateWrite => caps.can_ipc(),

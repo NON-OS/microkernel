@@ -156,6 +156,8 @@ pub const SYS_PIO_GRANT: u64 = tag4(b"MPGT");
 pub const SYS_PIO_READ: u64 = tag4(b"MPRD");
 pub const SYS_PIO_WRITE: u64 = tag4(b"MPWR");
 pub const SYS_PIO_RELEASE: u64 = tag4(b"MPRL");
+/// One allowed VMware backdoor call, on a host that answers it; needs Pio.
+pub const SYS_HV_BACKDOOR: u64 = tag4(b"MHVB");
 pub const SYS_MK_DEBUG: u64 = tag4(b"MDBG");
 pub const SYS_PCI_CONFIG_READ: u64 = tag4(b"MPCR");
 pub const SYS_PCI_CONFIG_WRITE: u64 = tag4(b"MPCW");

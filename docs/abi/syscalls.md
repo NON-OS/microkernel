@@ -180,6 +180,7 @@ These are the calls of the device broker. `MkDeviceClaim` returns a [claim epoch
 | `MPRD` | `0x4452504D` | `MkPioRead` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:136` | Read 1, 2 or 4 bytes from a granted port. |
 | `MPWR` | `0x5257504D` | `MkPioWrite` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:136` | Write 1, 2 or 4 bytes to a granted port. |
 | `MPRL` | `0x4C52504D` | `MkPioRelease` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:136` | Drop a port grant. |
+| `MHVB` | `0x4256484D` | `MkHvBackdoor` | Admin or Pio | `can_pio` `src/syscall/contract/cap_table/mk.rs:137` | One VMware backdoor call from the absolute pointer's set, where the host answers it; -19 elsewhere. |
 
 ### Graphics and input
 

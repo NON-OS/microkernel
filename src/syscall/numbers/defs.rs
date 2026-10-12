@@ -112,6 +112,7 @@ pub enum SyscallNumber {
     MkPioRead = tag4(b"MPRD"),
     MkPioWrite = tag4(b"MPWR"),
     MkPioRelease = tag4(b"MPRL"),
+    MkHvBackdoor = tag4(b"MHVB"),
     MkDebug = tag4(b"MDBG"),
     MkSurfaceRegister = tag4(b"MSRG"),
     MkSurfaceShare = tag4(b"MSSH"),
