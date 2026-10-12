@@ -37,25 +37,25 @@ fn only_standard_sizes_go_and_the_rest_stays() {
 #[test]
 fn the_approval_is_exactly_the_sum_and_deposits_go_to_the_pool() {
     let sum = 37 * 10u128.pow(18);
-    let ends = (POOL, TOKEN);
+    let ends = (POOL, Some(TOKEN));
     let ok = tx(TOKEN, approve(sum), APPROVE_GAS);
-    assert_eq!(shield_checked(std::slice::from_ref(&ok), ends, Some(&approve(sum))), Ok(()));
+    assert_eq!(shield_checked(std::slice::from_ref(&ok), ends, Some(&approve(sum)), 0), Ok(()));
     let more = tx(TOKEN, approve(sum + 1), APPROVE_GAS);
-    assert_eq!(shield_checked(&[more], ends, Some(&approve(sum))), Err(ApproveNotExact));
+    assert_eq!(shield_checked(&[more], ends, Some(&approve(sum)), 0), Err(ApproveNotExact));
     assert_eq!(
-        shield_checked(std::slice::from_ref(&ok), ends, None),
+        shield_checked(std::slice::from_ref(&ok), ends, None, 0),
         Err(ApproveNotExact),
         "none due"
     );
     let deposit = tx(POOL, vec![1, 2, 3], SHIELD_DEPOSIT_GAS);
-    assert_eq!(shield_checked(&[deposit.clone(), deposit.clone()], ends, None), Ok(()));
-    assert_eq!(shield_checked(&[tx([0xAB; 20], vec![], 1)], ends, None), Err(NotPool));
-    let refused = |t: Eip1559| shield_checked(&[t], ends, None);
+    assert_eq!(shield_checked(&[deposit.clone(), deposit.clone()], ends, None, 0), Ok(()));
+    assert_eq!(shield_checked(&[tx([0xAB; 20], vec![], 1)], ends, None, 0), Err(NotPool));
+    let refused = |t: Eip1559| shield_checked(&[t], ends, None, 0);
     assert_eq!(refused(Eip1559 { value: 1, ..deposit.clone() }), Err(Value));
     assert_eq!(refused(tx(POOL, vec![], SHIELD_DEPOSIT_GAS + 1)), Err(FeesPastCaps));
     assert_eq!(refused(tx(POOL, vec![], 0)), Err(FeesPastCaps));
     let gas =
-        shield_checked(&[tx(TOKEN, approve(sum), APPROVE_GAS + 1)], ends, Some(&approve(sum)));
+        shield_checked(&[tx(TOKEN, approve(sum), APPROVE_GAS + 1)], ends, Some(&approve(sum)), 0);
     assert_eq!(gas, Err(FeesPastCaps), "an approval past APPROVE_GAS");
     assert_eq!(refused(Eip1559 { max_fee: 0, ..deposit.clone() }), Err(FeesPastCaps));
     assert_eq!(
@@ -70,3 +70,6 @@ fn the_approval_is_exactly_the_sum_and_deposits_go_to_the_pool() {
         Err(FeesPastCaps)
     );
 }
+
+#[path = "fresh_test_eth.rs"]
+mod eth;
