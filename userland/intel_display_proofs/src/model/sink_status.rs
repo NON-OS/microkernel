@@ -25,13 +25,21 @@ impl SinkState {
         self.drive.swing >= need.swing && self.drive.pre >= need.pre
     }
 
+    /// Training ends: a link equalised when the pattern goes off stays
+    /// locked (`held`) until the link changes or fails.
+    pub fn set_pattern(&mut self, p: Pattern) {
+        self.held = p == Pattern::Off && (self.held || self.status()[2] & 1 != 0);
+        self.pattern = p;
+    }
+
     /// The bytes 0x202-0x207 the receiver reports now.
     pub fn status(&self) -> [u8; 6] {
         let Some((mbps, lanes)) = self.link else { return [0; 6] };
         let can = mbps <= self.lock_mbps && lanes <= self.lock_lanes;
-        let cr = can && self.pattern != Pattern::Off && self.enough(self.cr_needs);
+        let on = self.pattern != Pattern::Off || self.held;
+        let cr = can && on && self.enough(self.cr_needs);
         let eq = cr
-            && matches!(self.pattern, Pattern::Tps2 | Pattern::Tps3)
+            && (self.held || matches!(self.pattern, Pattern::Tps2 | Pattern::Tps3))
             && self.enough(self.eq_needs);
         let nib = (cr as u8) | ((eq as u8) * 0b110);
         let lane = |l: u32| if l < lanes { nib } else { 0 };

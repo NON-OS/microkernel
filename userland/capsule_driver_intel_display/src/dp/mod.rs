@@ -20,6 +20,7 @@ pub mod dpcd;
 pub mod i2c;
 pub mod lane;
 pub mod link;
+pub mod link_check;
 pub mod native;
 pub mod reply;
 pub mod status;
