@@ -21,6 +21,7 @@ mod find;
 mod hidden;
 mod moves;
 mod settle;
+mod target;
 mod wire;
 
 pub use hidden::reveal_hidden;

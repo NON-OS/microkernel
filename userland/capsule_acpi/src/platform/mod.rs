@@ -19,6 +19,7 @@
 //! capsules to claim like any other device.
 
 mod publish;
+mod record;
 mod say;
 mod wire;
 

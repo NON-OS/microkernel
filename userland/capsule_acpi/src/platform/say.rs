@@ -17,6 +17,7 @@
 //! One line per listed device the walk saw: published with its broker id,
 //! refused with the kernel's reason, or passed over with the capsule's.
 
+use super::record::MAX_WINDOWS;
 use crate::sys::acpi::Errno;
 use crate::sys::log::Line;
 use nonos_aml::platform_device::{Class, PlatformDevice, Skip};
@@ -53,7 +54,8 @@ pub fn found(path: &[u8], d: &PlatformDevice, source: &[u8], got: Result<u64, Er
 
 pub fn unsent(path: &[u8], d: &PlatformDevice) {
     let l = Line::new(b"platform ").str(path).str(b" ").str(&d.matched);
-    l.str(b": not sent, more than 5 windows or a path past 127 bytes").end();
+    let l = l.str(b": not sent, the kernel would refuse it: more than ").dec(MAX_WINDOWS as u64);
+    l.str(b" windows, or a path past 127 bytes").end();
 }
 
 pub fn skipped(path: &[u8], why: Skip) {

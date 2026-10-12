@@ -14,49 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The record MkAcpiPlatformDevice takes, as the kernel's
-//! `broker/acpi/platform_wire.rs` lays it out: header, `_HID`, `_UID`,
-//! GSI, windows, path. The kernel checks every field again.
+//! A found controller as the kernel's `Platform`, encoded by the kernel's
+//! own encoder (`record/`): None for one the kernel would refuse as
+//! malformed, which is then not sent.
 
-use alloc::vec;
+use super::record::{encode, Platform, GPIO, HAS_IRQ, I2C, SD};
 use alloc::vec::Vec;
 use nonos_aml::platform_device::{Class, PlatformDevice};
 
-pub const MAX_WINDOWS: usize = 5;
-const MAX_PATH: usize = 127;
-const HAS_IRQ: u8 = 1;
-
 fn class(c: Class) -> u8 {
     match c {
-        Class::I2c => 1,
-        Class::Sd => 2,
-        Class::Gpio => 3,
+        Class::I2c => I2C,
+        Class::Sd => SD,
+        Class::Gpio => GPIO,
     }
 }
 
-/// None when the device does not fit the record: more windows than the
-/// kernel takes, or a path longer than it keeps.
-pub fn record(d: &PlatformDevice, path: &[u8]) -> Option<Vec<u8>> {
-    let n = d.windows.len();
-    if !(1..=MAX_WINDOWS).contains(&n) || !(1..=MAX_PATH).contains(&path.len()) {
-        return None;
-    }
-    let flags = d.irq.map_or(0, |i| {
+/// HAS_IRQ, then edge, active low, shared and wake, one bit each.
+fn irq_flags(d: &PlatformDevice) -> u8 {
+    d.irq.map_or(0, |i| {
         let bits = [i.edge, i.active_low, i.shared, i.wake];
         bits.iter().enumerate().fold(HAS_IRQ, |f, (k, on)| f | u8::from(*on) << (k + 1))
-    });
-    let mut b = vec![1, class(d.class), n as u8, flags, 0, 0, 0, 0];
+    })
+}
+
+pub fn record(d: &PlatformDevice, path: &[u8]) -> Option<Vec<u8>> {
     let mut hid = [0u8; 8];
     hid.get_mut(..d.matched.len())?.copy_from_slice(&d.matched);
-    b.extend_from_slice(&hid);
-    b.extend_from_slice(&d.uid.to_le_bytes());
-    b.extend_from_slice(&d.irq.map_or(0, |i| i.gsiv).to_le_bytes());
-    b.extend_from_slice(&[0; 4]);
-    for w in &d.windows {
-        b.extend_from_slice(&w.base.to_le_bytes());
-        b.extend_from_slice(&w.len.to_le_bytes());
-    }
-    b.push(path.len() as u8);
-    b.extend_from_slice(path);
-    Some(b)
+    encode(&Platform {
+        class: class(d.class),
+        irq_flags: irq_flags(d),
+        hid,
+        uid: d.uid,
+        gsiv: d.irq.map_or(0, |i| i.gsiv),
+        windows: d.windows.iter().map(|w| (w.base, w.len)).collect(),
+        path: path.to_vec(),
+    })
 }
