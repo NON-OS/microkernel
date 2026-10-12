@@ -19,7 +19,7 @@
 
 use super::sci_rig::{bits, gpes, SciRig};
 use crate::consts::at;
-use crate::events::{Policy, GBL, PWRBTN};
+use crate::events::{Dispatch, Policy, GBL, PWRBTN};
 use crate::fadt_enc::{PM1_EN, PM1_STS};
 
 #[test]
@@ -47,7 +47,8 @@ fn level_status_clears_after_the_method_and_edge_status_before() {
     rig.raise(0x02);
     let watch = rig.regs.clone();
     let mut seen = Vec::new();
-    let mut method = |id| {
+    let mut method = |d| {
+        let Dispatch::Method(id) = d else { panic!("no native events here") };
         let gpe = if id == l01 { 0x01 } else { 0x02 };
         seen.push((id, bits(&watch, gpe)));
         Ok(())
