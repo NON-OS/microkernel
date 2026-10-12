@@ -42,7 +42,8 @@ pub const STATUS_GROUP_NOT_SUPPORTED: u16 = 77;
 
 pub const STATUS_SAE_HASH_TO_ELEMENT: u16 = 126;
 
-/// The longest anti-clogging token kept (hostapd sends 34 octets).
+/// The longest anti-clogging token kept: the token is opaque to the station,
+/// and this bound is well above what an AP needs while capping what is held.
 pub const TOKEN_MAX: usize = 64;
 
 /// Element ids used inside SAE frames.

@@ -16,8 +16,9 @@
 
 //! WPA3-SAE against published known answers, then the exchange end to end.
 //!
-//! Vector source: IEEE Std 802.11-2020, Annex J.10 (SAE test vectors), as
-//! transcribed in hostapd's `src/common/common_module_tests.c`, function
+//! Vector source: IEEE Std 802.11-2020, Annex J.10 (SAE test vectors); the
+//! bytes were copied from hostapd's transcription in
+//! `src/common/common_module_tests.c`, function
 //! `sae_tests()`, fetched from https://w1.fi/cgit/hostap/plain/src/common/
 //! common_module_tests.c (sha256 a75c0bc7e9069a2c443cfd225e52c912493c0255448
 //! 606948483d3e9e3bcd9e3). The hunting-and-pecking part derives the PWE for

@@ -19,11 +19,12 @@
 //! management frame protection is on.
 //!
 //! The management frame vector is IEEE Std 802.11-2012 M.9.2 (CCMP with a
-//! unicast Deauthentication frame), input as in hostapd wlantest/test_vectors.c
-//! test_vector_ccmp_mgmt() (https://w1.fi/cgit/hostap/plain/wlantest/test_vectors.c,
-//! sha256 9aceafbe03d32ca537dab030de0350c5d9cc658de176bc21c76ab95b7e30a633).
-//! hostapd prints the result rather than checking it, so the expected MPDU was
-//! computed independently with the Python `cryptography` AES-CCM under the
+//! unicast Deauthentication frame); its input bytes were copied from hostapd's
+//! transcription in wlantest/test_vectors.c test_vector_ccmp_mgmt()
+//! (https://w1.fi/cgit/hostap/plain/wlantest/test_vectors.c, sha256
+//! 9aceafbe03d32ca537dab030de0350c5d9cc658de176bc21c76ab95b7e30a633). That
+//! copy carries no expected output, so the expected MPDU was computed
+//! independently with the Python `cryptography` AES-CCM under the
 //! 802.11-2020 12.5.3.3 rules for a management frame (Management flag 0x10 in
 //! the nonce; Retry, Power Management and More Data masked out of the frame
 //! control in the AAD, the subtype kept).

@@ -63,7 +63,8 @@ fn wrapped_gtk_kde(kek: &[u8; 16], key_id_byte: u8) -> Vec<u8> {
 // The Key Information every access point sets: Key Ack on messages 1 and 3,
 // and Install, Secure and Encrypted Key Data on message 3 (IEEE Std
 // 802.11-2020, 12.7.6.2 and 12.7.6.4). The supplicant drops a message without
-// them, as wpa_supplicant does.
+// them: an authenticator that leaves them out is not running the handshake
+// the standard describes.
 fn message1() -> Vec<u8> {
     let mut out = [0u8; 160];
     let info = KEY_INFO_VERSION2 | KEY_INFO_PAIRWISE | KEY_INFO_ACK;
