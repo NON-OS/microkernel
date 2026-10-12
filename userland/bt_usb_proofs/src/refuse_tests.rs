@@ -29,7 +29,7 @@ use nonos_bt_wire::hci::opcode as op;
 #[test]
 fn numeric_comparison_is_declined_and_pairing_ends() {
     // Both sides have a display and a yes or no: Numeric Comparison
-    // (Vol 3, Part H, 2.3.5.1), which this capsule cannot ask the user.
+    // (Vol 3, Part H, 2.3.5.1), which the user declines here.
     let peer = Peer::new(IoCap::DisplayYesNo, true);
     let (mut host, ours, mut env) = with(peer, keyboard_mouse(), &HID_ADV);
     let (end, s) = link(&mut host, &ours, &mut env).unwrap();

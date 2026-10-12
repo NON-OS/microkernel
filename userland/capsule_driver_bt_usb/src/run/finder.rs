@@ -23,6 +23,7 @@ use nonos_libc::Deadline;
 use nonos_usbnet::scan::Book;
 use nonos_usbnet::xhci::{connected_ports, disable_slot, enable_slot, lookup, XhciBus};
 
+use super::desk::Desk;
 use super::probe::{probe, Probe};
 use crate::usb::Bound;
 
@@ -41,7 +42,7 @@ impl Finder {
     }
 
     /// A bound controller and its port, when one is plugged in.
-    pub fn pass(&mut self) -> Option<(Bound, u8)> {
+    pub fn pass(&mut self, desk: &Desk) -> Option<(Bound, u8)> {
         let xhci = match self.xhci {
             Some(x) => x,
             None => *self.xhci.insert(lookup()?),
@@ -52,7 +53,7 @@ impl Finder {
         }
         for port in self.book.plan(&connected_ports(xhci).ok()?) {
             let Ok(slot) = enable_slot(xhci) else { continue };
-            match probe(XhciBus { xhci, slot }, port) {
+            match probe(XhciBus { xhci, slot }, port, desk) {
                 Probe::Ours(bound) => return Some((bound, port)),
                 Probe::NotOurs => self.book.not_ours(port),
                 Probe::Busy => {}

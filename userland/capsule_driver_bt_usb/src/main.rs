@@ -26,6 +26,7 @@ extern crate alloc;
 
 mod hid;
 mod link;
+mod nbtc;
 mod ring;
 mod run;
 mod usb;
