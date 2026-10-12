@@ -44,5 +44,9 @@ pub fn find(fdt: &Fdt) -> Result<Option<TimerInfo>, FdtError> {
         nonsecure_phys_intid: intids[1],
         virtual_intid: intids[2],
         hyp_phys_intid: intids[3],
+        clock_frequency: match fdt.property(&node, b"clock-frequency")? {
+            Some(rate) if rate.data.len() == 4 => Some(rate.u32()?).filter(|hz| *hz != 0),
+            _ => None,
+        },
     }))
 }
