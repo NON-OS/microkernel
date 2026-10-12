@@ -41,6 +41,7 @@ pub mod enrol_dev_root;
 pub mod enrol_local_root;
 pub mod errnos;
 pub mod futex;
+pub mod hv_backdoor;
 pub mod install_source;
 pub mod install_source_modules;
 pub mod install_source_window;
