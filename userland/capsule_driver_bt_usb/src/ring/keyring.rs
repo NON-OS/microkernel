@@ -38,7 +38,8 @@ pub trait Call {
 
 pub struct Keyring<C> {
     call: C,
-    /// This capsule's own pid, from getpid: the one the kernel stamps.
+    /// This capsule's own pid, the one the kernel stamps: read from the
+    /// pid holding driver.bt_usb0 (`connect`).
     pid: u32,
 }
 

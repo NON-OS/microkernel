@@ -20,6 +20,7 @@ nonos_bt_hogp = { path = "../nonos_bt_hogp" }
 nonos_bt_proto = { path = "../bt_proto" }
 nonos_bt_smp = { path = "../nonos_bt_smp" }
 nonos_bt_wire = { path = "../nonos_bt_wire" }
+sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
