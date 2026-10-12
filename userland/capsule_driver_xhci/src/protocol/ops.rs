@@ -31,6 +31,9 @@ pub const OP_CONFIGURE_BULK2: u16 = 0x0023;
 /// Streams on a pair's bulk endpoints (SuperSpeed UAS); bulk ops name one
 /// in bits 7:4 of their pair byte.
 pub const OP_CONFIGURE_STREAMS: u16 = 0x0024;
+/// One report to an interrupt OUT endpoint, its ring from
+/// OP_ALLOC_TRANSFER_RING: `slot, dci, len_le16, data`.
+pub const OP_INTERRUPT_OUT: u16 = 0x0025;
 pub const OP_BULK_OUT: u16 = 0x0011;
 pub const OP_BULK_IN: u16 = 0x0012;
 pub const OP_RESET_BULK: u16 = 0x0013;
