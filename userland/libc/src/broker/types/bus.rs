@@ -17,3 +17,6 @@
 pub const BUS_KIND_PCI: u8 = 1;
 pub const BUS_KIND_ACPI: u8 = 2;
 pub const BUS_KIND_VIRT: u8 = 3;
+/// What firmware hands over at boot: today only the boot framebuffer.
+/// (4 is the device tree's.)
+pub const BUS_KIND_FIRMWARE: u8 = 5;
