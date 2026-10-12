@@ -16,6 +16,8 @@
 
 use nonos_app_skeleton::EventOutcome;
 
+use zeroize::Zeroize;
+
 use crate::wallet::ipc::export_secret;
 use crate::wallet::state::{State, VIEW_RECEIVE};
 
@@ -44,9 +46,7 @@ pub fn toggle_export(state: &mut State) -> EventOutcome {
                 state.export_hex[2 + i * 2] = HEX[(secret[i] >> 4) as usize];
                 state.export_hex[2 + i * 2 + 1] = HEX[(secret[i] & 0x0F) as usize];
             }
-            for b in secret.iter_mut() {
-                unsafe { core::ptr::write_volatile(b, 0) };
-            }
+            secret.zeroize();
             state.export_active = true;
             state.view = VIEW_RECEIVE;
             state.status = b"private key shown, never share it";
@@ -60,7 +60,5 @@ pub fn toggle_export(state: &mut State) -> EventOutcome {
 }
 
 fn wipe(state: &mut State) {
-    for b in state.export_hex.iter_mut() {
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
+    state.export_hex.zeroize();
 }
