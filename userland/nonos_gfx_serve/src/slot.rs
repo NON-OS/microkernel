@@ -33,6 +33,9 @@ pub const MAX_OUTPUTS: usize = 4;
 pub struct Slot {
     pub current: Option<Primary>,
     pub retiring: Option<Primary>,
+    /// The device reported the output lost and putting the mode back has
+    /// not worked yet: every STATE tries again.
+    pub lost: bool,
 }
 
 impl<D: Display, P: Platform> Server<D, P> {

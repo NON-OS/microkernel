@@ -3187,6 +3187,7 @@
    "userland/nonos_gfx_serve/src/primary.rs",
    "userland/nonos_gfx_serve/src/server.rs",
    "userland/nonos_gfx_serve/src/slot.rs",
+   "userland/nonos_gfx_serve/src/state.rs",
    "userland/nonos_gfx_serve/src/surface.rs",
    "userland/nonos_gfx_wire",
    "userland/nonos_modes"

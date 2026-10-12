@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod copy_tests;
+mod fault_tests;
 mod flush_tests;
 mod mode_set_tests;
 mod op_tests;
