@@ -14,41 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Bochs DISPI mode set, proved against a register window rather than
+//! The BGA display capsule, proved against a register window rather than
 //! against a display adapter.
 //!
 //! Each `#[path]` below pulls in the shipping driver source, so these tests
-//! run the code that boots, not a copy of it. The BGA capsule had no host
-//! coverage before this crate: the only way to learn that a mode set was
-//! wrong was to boot a machine and look at a black screen, which says nothing
-//! about which of the five register writes was at fault.
+//! run the code that boots, not a copy of it: the DISPI mode set and its
+//! read-back, the EDID read at BAR2, the start-up mode choice, and the
+//! adapter's half of the display wire (`nonos_gfx_serve::Display`).
 //!
 //! The interface is worth proving without hardware because Bochs, QEMU and
-//! every clone of them implement the same published register set. A driver
-//! that programs the wrong bits-per-pixel, or leaves the linear framebuffer
-//! undecoded, is wrong against all of them, and a black screen is the same
-//! symptom for each. That is exactly the class of defect a test with no
-//! adapter can pin down.
+//! their clones implement the same register set. A driver that programs the
+//! wrong bits-per-pixel, or leaves the linear framebuffer undecoded, is wrong
+//! against all of them, and a black screen is the same symptom for each.
 
 #[path = "../../capsule_driver_bga/src/constants.rs"]
 pub mod constants;
-
+pub mod dispi;
+#[path = "../../capsule_driver_bga/src/display/mod.rs"]
+pub mod display;
+#[path = "../../capsule_driver_bga/src/edid/mod.rs"]
+pub mod edid;
 #[path = "../../capsule_driver_bga/src/error.rs"]
 pub mod error;
-
 #[path = "../../capsule_driver_bga/src/regs.rs"]
 pub mod regs;
+#[path = "../../capsule_driver_bga/src/setup/mode.rs"]
+pub mod start;
 
-pub mod dispi;
-
-#[cfg(test)]
-mod clear_tests;
-
-#[cfg(test)]
-mod mode_tests;
-
-#[cfg(test)]
-mod offset_tests;
+/// The kernel's display list, which the compositor walks to find bga.
+#[path = "../../../src/services/registry/displays.rs"]
+#[allow(dead_code)]
+mod displays;
 
 #[cfg(test)]
-mod reason_tests;
+mod model;
+#[cfg(test)]
+mod tests;

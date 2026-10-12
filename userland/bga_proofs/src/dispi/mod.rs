@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The DISPI mode set, from the shipping files. The capsule keeps the index
-//! arithmetic sealed in its own tree; named here as siblings, it is reachable
-//! to the tests through the same path the mode set uses.
+//! The DISPI mode set and read-back, from the shipping files. The capsule
+//! keeps the index arithmetic private to its tree; named here as siblings,
+//! it is reachable to the tests through the same path the mode set uses.
 
-#[path = "../../../capsule_driver_bga/src/dispi/clear.rs"]
-mod clear;
+#[path = "../../../capsule_driver_bga/src/dispi/current.rs"]
+mod current;
 #[path = "../../../capsule_driver_bga/src/dispi/dispi_off.rs"]
 mod dispi_off;
 #[path = "../../../capsule_driver_bga/src/dispi/set_mode.rs"]
 mod set_mode;
 
-pub use clear::clear;
+pub use current::{current, DispiMode};
 pub use dispi_off::dispi_off;
 pub use set_mode::set_mode;
