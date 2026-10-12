@@ -23,6 +23,7 @@ use crate::memory::addr::PhysAddr;
 
 use super::dma_rule::strip;
 use super::orphans::{Orphan, ORPHANS};
+use super::process_of::same_process;
 
 /*
  * For keep_at_exit, under GATE: each of `pid`'s surfaces another process
@@ -30,7 +31,11 @@ use super::orphans::{Orphan, ORPHANS};
  * address space's teardown to leave alone.
  */
 pub(super) fn orphan_owned(pid: u32) -> Vec<PhysAddr> {
-    let dma = crate::hardware::broker::dma::ranges_of(pid);
+    // Any thread of the process may have mapped them (K15b).
+    let dma: Vec<(u32, u64, u64)> = crate::hardware::broker::dma::grant_ranges()
+        .into_iter()
+        .filter(|&(owner, _, _)| same_process(owner, pid))
+        .collect();
     let mut keep = Vec::new();
     let owned: Vec<(usize, SurfaceHandle)> = SLOTS
         .lock()
@@ -56,7 +61,7 @@ pub(super) fn orphan_owned(pid: u32) -> Vec<PhysAddr> {
         keep.extend_from_slice(&frames);
         // A DMA grant's frames are the broker's, given back through it (K15).
         let mut free = frames.clone();
-        for &(start, len) in &dma {
+        for &(_, start, len) in &dma {
             strip(&mut free, |f| f.as_u64(), start, len);
         }
         ORPHANS.lock().push(Orphan { owner: pid, handle, frames, free });
