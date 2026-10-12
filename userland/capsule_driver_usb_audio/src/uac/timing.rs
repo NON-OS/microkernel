@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! How the stream is cut into packets: one per service interval, each the
-//! frames 48 kHz plays in it, and a batch of them per isoch OUT request.
+//! frames 48 kHz moves in it, and a batch of them per isoch request.
 
-use super::format::{FRAME_BYTES, RATE_HZ};
+use super::format::{RATE_HZ, SAMPLE_BYTES};
 
 /// Port speed ids (xHCI PORTSC bits 13:10).
 pub const SPEED_HIGH: u8 = 3;
@@ -44,9 +44,10 @@ impl Timing {
     }
 }
 
-/// `None` when the endpoint cannot carry 48 kHz stereo at its interval: a
-/// fraction of a frame per interval, or more than its packets hold.
-pub fn timing(speed: u8, b_interval: u8, max_packet: u16) -> Option<Timing> {
+/// `None` when the endpoint cannot carry 48 kHz of `channels` at its
+/// interval: a fraction of a frame per interval, or more than its packets
+/// hold.
+pub fn timing(speed: u8, b_interval: u8, max_packet: u16, channels: u8) -> Option<Timing> {
     let exp = b_interval.clamp(1, 16) as u32 - 1;
     // Full speed counts 1 ms frames, faster buses 125 us microframes.
     let unit_us = if speed >= SPEED_HIGH { 125 } else { 1000 };
@@ -55,7 +56,7 @@ pub fn timing(speed: u8, b_interval: u8, max_packet: u16) -> Option<Timing> {
     if !frames_e6.is_multiple_of(1_000_000) {
         return None;
     }
-    let packet = (frames_e6 / 1_000_000) as u32 * FRAME_BYTES;
+    let packet = (frames_e6 / 1_000_000) as u32 * SAMPLE_BYTES * channels as u32;
     let transactions = if speed == SPEED_HIGH { ((max_packet >> 11) & 0x3) as u32 + 1 } else { 1 };
     if packet == 0 || packet > (max_packet & 0x7FF) as u32 * transactions {
         return None;
