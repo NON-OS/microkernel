@@ -38,6 +38,7 @@ pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> Result<(), &'static [u
     let timer = timer.ok_or(&b"the device tree names no architected timer"[..])?;
     info.timer_phys_intid = timer.nonsecure_phys_intid;
     info.timer_virt_intid = timer.virtual_intid;
+    crate::arch::aarch64::timer::describe_tree_frequency(timer.clock_frequency);
     let pci = find_pci(fdt).map_err(describe)?.unwrap_or_default();
     info.pci_ecam_base = pci.ecam_base;
     // Today's accessor reads bus 0 at the window base. A window that starts
