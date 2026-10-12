@@ -15,18 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The broker's device record and BARs, each file by path as the kernel
- * builds it; the kernel's `device.rs` mounts the same four.
+ * The broker's device record, BARs and flags, each file by path as the
+ * kernel builds it; the kernel's `device.rs` mounts the same four.
  */
 
 #[path = "../../../../../../src/hardware/broker/device/bar.rs"]
 mod bar;
 #[path = "../../../../../../src/hardware/broker/device/bus.rs"]
 mod bus;
+#[path = "../../../../../../src/hardware/broker/device/flags.rs"]
+#[allow(dead_code)] // the proofs read only the flags the platform record sets
+mod flags;
 #[path = "../../../../../../src/hardware/broker/device/record.rs"]
 mod record;
 
 pub use bar::{Bar, BarKind};
 pub(super) use bar::BAR_KIND_MMIO;
 pub use bus::BusKind;
+pub use flags::DEVICE_FLAG_DEPS_UNMET;
 pub use record::DeviceRecord;

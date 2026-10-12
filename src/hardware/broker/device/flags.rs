@@ -21,3 +21,6 @@ pub const DEVICE_FLAG_DISABLED: u32 = 1 << 1;
 /// Behind a PCIe port firmware calls external-facing: whoever can reach the
 /// connector chose what is plugged in, so it gets no untranslated DMA.
 pub const DEVICE_FLAG_EXTERNAL: u32 = 1 << 2;
+/// A device firmware says depends (_DEP) on one that is missing, dangling
+/// or in a cycle: published anyway, so a driver can see it and say why.
+pub const DEVICE_FLAG_DEPS_UNMET: u32 = 1 << 3;
