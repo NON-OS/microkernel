@@ -25,6 +25,7 @@ mod discover;
 mod dma_pair;
 mod error;
 mod frames;
+mod frames_drop;
 mod handles;
 mod serve;
 mod setup;

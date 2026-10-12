@@ -32,4 +32,7 @@ pub trait Frames {
     /// Keep the new surfaces and give the old back; or, `keep` false,
     /// give the new back and write the old ones again.
     fn settle(&mut self, keep: bool);
+    /// The cursor's 64 x 64 ARGB image (16 KiB, the cursor plane's own
+    /// layout) into its own memory, made on first use; its first IOVA.
+    fn cursor_image(&mut self, img: &[u8]) -> Option<u64>;
 }

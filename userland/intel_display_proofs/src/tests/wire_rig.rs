@@ -44,7 +44,8 @@ pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
     let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, next };
     let (panel, modeset, bases, generation, flags) =
         (Panel::default(), None, iova, 1, SCANNING_OUT);
-    let head = Head { out, scan, frames, panel, modeset, bases, generation, flags };
+    let (window, cursor) = ((0, TOTAL), None);
+    let head = Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor };
     let heads = [Some(head), None, None, None];
     (Intel { m: shared, clock: Ticks::new(), gen: &GEN9, heads }, model)
 }

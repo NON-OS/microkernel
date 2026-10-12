@@ -16,10 +16,10 @@
 
 //! What the engine says of itself on the wire. CAPS: kind 7, one output a
 //! taken-over pipe, MODE_SET (a list device, no MODE_RANGE) when any output
-//! has mode setting, the largest frame any output may take, no HW_CURSOR,
-//! DEVICE_READS off (FLUSH copies), the first output's panel size.
+//! has mode setting, the largest frame any output may take, HW_CURSOR (the
+//! cursor plane), DEVICE_READS off (FLUSH copies), output 0's panel size.
 
-use nonos_gfx_wire::body::caps::MODE_SET;
+use nonos_gfx_wire::body::caps::{HW_CURSOR, MODE_SET};
 use nonos_gfx_wire::{kind, Caps};
 
 use super::frames::Frames;
@@ -47,7 +47,7 @@ pub fn caps<M: Mmio, F: Frames, C: Clock>(d: &Intel<M, F, C>) -> Caps {
     Caps {
         kind: kind::INTEL,
         outputs: d.count() as u16,
-        flags: if set { MODE_SET } else { 0 },
+        flags: HW_CURSOR | if set { MODE_SET } else { 0 },
         max_width,
         max_height,
         width_align: 1,

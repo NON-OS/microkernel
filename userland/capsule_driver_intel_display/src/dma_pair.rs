@@ -21,7 +21,6 @@
 use nonos_libc::{mk_dma_map, mk_dma_unmap, DmaMapOut, MK_DMA_MAP_HIGH, MK_DMA_MAP_WC};
 
 use crate::error::{IntelError, IntelResult};
-use crate::frames::DmaFrames;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pair {
@@ -29,6 +28,11 @@ pub struct Pair {
     pub iova: [u64; 2],
     pub grant: [u64; 2],
     pub len: usize,
+}
+
+/// One grant on its own, as the cursor image's: address, IOVA, grant id.
+pub fn map_one(device_id: u64, epoch: u64, len: u64) -> IntelResult<(u64, u64, u64)> {
+    one(device_id, epoch, len).map(|o| (o.user_va, o.device_addr, o.grant_id))
 }
 
 fn one(device_id: u64, epoch: u64, len: u64) -> IntelResult<DmaMapOut> {
@@ -55,21 +59,4 @@ pub fn map_pair(device_id: u64, epoch: u64, len: u64) -> IntelResult<Pair> {
         grant: [a.grant_id, b.grant_id],
         len: len as usize,
     })
-}
-
-/// Give both grants of `p` back.
-pub fn unmap(p: &Pair) {
-    for g in p.grant {
-        let _ = mk_dma_unmap(g);
-    }
-}
-
-/// The driver's end gives back the pair shown and any a mode set left.
-impl Drop for DmaFrames {
-    fn drop(&mut self) {
-        unmap(&self.now);
-        if let Some(w) = self.was.take() {
-            unmap(&w);
-        }
-    }
 }

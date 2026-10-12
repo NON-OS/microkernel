@@ -22,7 +22,7 @@
 //! engine is scanning out, so nothing tears.
 
 use nonos_gfx_serve::{Display, Shadow};
-use nonos_gfx_wire::errno::{ENOSYS, ENXIO, ETIMEDOUT};
+use nonos_gfx_wire::errno::{ENXIO, ETIMEDOUT};
 use nonos_gfx_wire::{Caps, Cursor, Errno, Mode, Rect, State};
 
 use super::copy::copy;
@@ -64,7 +64,7 @@ impl<M: Mmio, F: Frames, C: Clock> Display for Intel<M, F, C> {
         copy(&mut h.frames, h.scan.back(), size, stride, rects, shadow)
     }
 
-    fn cursor(&mut self, output: u16, _c: &Cursor, _slot: &[u8]) -> Result<(), Errno> {
-        self.head(output).and(Err(ENOSYS))
+    fn cursor(&mut self, output: u16, c: &Cursor, slot: &[u8]) -> Result<(), Errno> {
+        self.show_cursor(output, c, slot)
     }
 }

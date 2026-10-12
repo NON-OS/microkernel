@@ -22,6 +22,9 @@
 use super::shared::Shared;
 use crate::display::Frames;
 
+/// Where the model keeps the cursor image.
+pub const CURSOR_IOVA: u64 = 0x7000_0000;
+
 pub struct ModelFrames {
     pub model: Shared,
     /// Each surface's first IOVA; its pages follow it.
@@ -39,12 +42,7 @@ impl Frames for ModelFrames {
         if frame > 1 || offset + src.len() > self.len {
             return false;
         }
-        let mut m = self.model.0.borrow_mut();
-        for (i, b) in src.iter().enumerate() {
-            let at = offset + i;
-            let page = self.iova[frame] + (at / 4096 * 4096) as u64;
-            m.memory.entry(page).or_insert_with(|| vec![0; 4096])[at % 4096] = *b;
-        }
+        self.model.poke(self.iova[frame], offset, src);
         true
     }
 
@@ -59,6 +57,11 @@ impl Frames for ModelFrames {
         self.was = Some((self.iova, self.len));
         (self.iova, self.len) = (pair, len);
         Some(pair)
+    }
+
+    fn cursor_image(&mut self, img: &[u8]) -> Option<u64> {
+        self.model.poke(CURSOR_IOVA, 0, img);
+        Some(CURSOR_IOVA)
     }
 
     fn settle(&mut self, keep: bool) {

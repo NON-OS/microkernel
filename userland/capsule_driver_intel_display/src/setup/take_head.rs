@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One output taken over: two DMA surfaces holding firmware's picture, the
-//! plane moved onto the first inside the output's GGTT window, and mode
-//! setting found for it where it can be had.
+//! plane moved onto the first inside the output's GGTT window (whose first
+//! 64 entries the cursor keeps), and mode setting found where it can be.
 
 use alloc::vec::Vec;
 
@@ -45,16 +45,17 @@ pub fn take_head(
     let stride = (out.width * 4).next_multiple_of(64);
     let pages = (stride * out.height).div_ceil(4096);
     let now = map_pair(h.device_id, h.epoch, pages as u64 * 4096)?;
-    let mut frames = DmaFrames { device_id: h.device_id, epoch: h.epoch, now, was: None };
+    let (device_id, epoch) = (h.device_id, h.epoch);
+    let mut frames = DmaFrames { device_id, epoch, now, was: None, cursor: None };
     firmware::copy_picture(h, &out.plane, &mut frames, stride, aperture);
     frames.fence();
     let iovas = |base: u64| (0..pages as u64).map(|i| base + i * 4096).collect::<Vec<u64>>();
     let (a, b) = (iovas(now.iova[0]), iovas(now.iova[1]));
     let until = Until::new(clock, FLIP_US);
     let scan = Scanout::start(m, &out, window.1, [&a, &b], &until).map_err(IntelError::Engine)?;
-    let modeset = Modeset::find(m, clock, gen, &out, monitor, window);
+    let modeset = Modeset::find(m, clock, gen, &out, monitor, (window.0 + 64, window.1));
     let (panel, bases, flags, generation) = (monitor.panel(), now.iova, SCANNING_OUT, 1);
-    Ok(Head { out, scan, frames, panel, modeset, bases, generation, flags })
+    Ok(Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor: None })
 }
 
 /// GGTT entries a surface of `w` x `h` takes, in 64-entry steps (the

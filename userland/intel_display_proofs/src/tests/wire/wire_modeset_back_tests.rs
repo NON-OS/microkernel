@@ -21,15 +21,15 @@
 use nonos_gfx_serve::{Display, Shadow};
 use nonos_gfx_wire::errno::ENOMEM;
 
-use super::dp_rig::dp_rig;
-use super::edid_blob::edid_1080p_and_xga;
-use super::wire_rig::{h0, rig};
 use crate::display::{Modeset, Monitor};
 use crate::engine::gen::{GEN11, GEN9};
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::timing;
 use crate::model::firmware::Axis;
 use crate::model::Ticks;
+use crate::tests::dp_rig::dp_rig;
+use crate::tests::edid_blob::edid_1080p_and_xga;
+use crate::tests::wire_rig::{h0, rig};
 
 /// 1024x768 at 60 Hz, the DMT's timing.
 const T768: (Axis, Axis) = ((1024, 24, 136, 1344), (768, 3, 6, 806));
