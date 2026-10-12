@@ -36,11 +36,14 @@ impl Mux {
         match (req.op, body) {
             (OP_CLAIM_INTERFACE, &[slot, port, interface]) => {
                 let live = self.addressed(self.virt.real(slot)).is_some();
-                let s =
-                    if live { self.claims.claim(slot, port, interface, pid) } else { Err(E_INVAL) };
+                let s = if live {
+                    self.share.claims.claim(slot, port, interface, pid)
+                } else {
+                    Err(E_INVAL)
+                };
                 reply_with_status(tx, req, s.err().unwrap_or(0));
             }
-            (OP_SLOT_OF_PORT, &[port]) => match self.claims.on_port(port) {
+            (OP_SLOT_OF_PORT, &[port]) => match self.share.claims.on_port(port) {
                 Some((slot, held)) => {
                     let plen = (STATUS_LEN + 8) as u32;
                     encode_response_header(tx, req, plen);
@@ -53,13 +56,17 @@ impl Mux {
                 None => reply_with_status(tx, req, E_NODEV),
             },
             (OP_CLAIM_INTERFACE | OP_SLOT_OF_PORT, _) => reply_with_status(tx, req, E_INVAL),
-            (OP_DISABLE_SLOT, &[slot]) => match self.claims.release(slot, pid, |p| mk_pid_alive(p))
-            {
-                Release::Unclaimed | Release::Last => return false,
-                Release::Kept => reply_with_status(tx, req, 0),
-                Release::NotHolder => reply_with_status(tx, req, E_BUSY),
-            },
-            _ => return false,
+            (OP_DISABLE_SLOT, &[slot]) => {
+                match self.share.claims.release(slot, pid, |p| mk_pid_alive(p)) {
+                    Release::Unclaimed | Release::Last => {
+                        self.share.owners.forget(slot);
+                        return false;
+                    }
+                    Release::Kept => reply_with_status(tx, req, 0),
+                    Release::NotHolder => reply_with_status(tx, req, E_BUSY),
+                }
+            }
+            _ => return self.police(req, body, pid, tx),
         }
         true
     }
