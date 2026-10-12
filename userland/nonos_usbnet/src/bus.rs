@@ -44,4 +44,24 @@ pub trait Bus {
     /// the device has sent nothing.
     fn bulk_in_poll(&mut self, out: &mut [u8]) -> Result<Option<usize>, i32>;
     fn reset_bulk(&mut self, dir_in: bool) -> Result<(), i32>;
+    /// The interrupt IN endpoint a function's notifications come on, given
+    /// a transfer ring: its DCI. A bus without one refuses (-22), and the
+    /// driver then goes without notifications.
+    fn configure_interrupt(&mut self, _ep: Notify) -> Result<u8, i32> {
+        Err(E_INVAL)
+    }
+    /// One look at that endpoint: `None` while nothing came.
+    fn interrupt_in_poll(&mut self, _dci: u8, _out: &mut [u8]) -> Result<Option<usize>, i32> {
+        Err(E_INVAL)
+    }
 }
+
+/// An interrupt IN endpoint: its address, wMaxPacketSize and bInterval.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+pub struct Notify {
+    pub address: u8,
+    pub max_packet: u16,
+    pub interval: u8,
+}
+
+const E_INVAL: i32 = -22;

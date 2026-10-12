@@ -20,6 +20,7 @@
 mod bulk;
 mod call;
 mod control;
+mod interrupt;
 mod lookup;
 mod port;
 mod slot;
