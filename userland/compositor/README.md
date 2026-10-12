@@ -37,7 +37,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 - A driver found is asked CAPS first (`setup/prime_wire.rs`). On the
   wire path it then asks SURFACE, which makes it the primary's owner (a
   restarted compositor gets its surface back), attaches the primary,
-  sends each damaged rectangle with FLUSH, polls STATE every 500 ms with
+  sends each frame's damaged rectangles in one FLUSH (up to 15), polls STATE every 500 ms with
   the driver's pid looked up again, and on a new primary attaches it,
   releases the old handle and sends RETIRE (`setup/{poll,adopt}.rs`).
 - A driver that answers CAPS with -38 is driven on the legacy path:
@@ -149,7 +149,7 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
 | Cursor tracker | `state/cursor.rs` |
 | Attach cache | `state/attach.rs` |
 | Context (owned by runner) | `state/context.rs` |
-| Frame loop (paint, cursor, present) | `frame_pacer/{tick,composite,cursor}.rs` |
+| Frame loop (paint, cursor, present) | `frame_pacer/{tick,to_screen,composite,cursor,drain_batch}.rs` |
 | gfx_client (driver.virtio_gpu0 IPC) | `gfx_client/{get_primary,transfer,set_scanout,flush}.rs`, `gfx_client/wire/*.rs` |
 | Software blitter and 2x upscale | `sw_blitter/*.rs` |
 | Wire protocol (header/ops/errno/limits) | `protocol/*.rs` |
