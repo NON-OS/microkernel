@@ -16,6 +16,7 @@
 
 mod bga;
 mod describe;
+mod health;
 mod modes;
 mod show;
 mod wire;

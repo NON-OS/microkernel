@@ -31,9 +31,10 @@ const XGA: DispiMode = DispiMode { width: 1024, height: 768, stride: 4096 };
 #[test]
 fn state_is_the_mode_shown_and_cursor_is_not_offered() {
     let mut a = Adapter::new();
+    set_mode(a.regs(), 1024, 768);
     let mut b = a.bga(Panel::default(), XGA);
     let s = b.state(0).unwrap();
-    assert_eq!((s.width, s.height, s.flags), (1024, 768, SCANNING_OUT));
+    assert_eq!((s.width, s.height, s.flags, s.generation), (1024, 768, SCANNING_OUT, 1));
     assert_eq!(b.cursor(0, &Cursor::default(), &[]), Err(ENOSYS));
 }
 

@@ -53,6 +53,6 @@ impl Adapter {
 
     pub fn bga(&mut self, panel: Panel, mode: DispiMode) -> Bga {
         let (vram, vram_len) = (self.vram.as_mut_ptr() as u64, self.vram.len());
-        Bga { regs: self.regs(), vram, vram_len, panel, mode, fence: sfence }
+        Bga { regs: self.regs(), vram, vram_len, panel, mode, generation: 1, fence: sfence }
     }
 }

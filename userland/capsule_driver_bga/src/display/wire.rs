@@ -33,7 +33,8 @@ impl Display for Bga {
     }
 
     fn state(&mut self, _output: u16) -> Result<State, Errno> {
-        Ok(describe::state(self))
+        let flags = self.health();
+        Ok(describe::state(self, flags))
     }
 
     fn set_mode(&mut self, _output: u16, w: u32, h: u32, shadow: &Shadow) -> Result<(), Errno> {
