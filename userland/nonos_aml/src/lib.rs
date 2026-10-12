@@ -39,6 +39,7 @@ pub mod exec;
 pub mod fan;
 pub mod ged;
 pub mod grammar;
+pub mod legacy;
 pub mod load;
 pub mod namespace;
 pub mod object;

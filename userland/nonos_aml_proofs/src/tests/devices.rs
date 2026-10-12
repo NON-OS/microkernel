@@ -23,6 +23,8 @@ mod cpu;
 mod dpower;
 #[path = "ged/mod.rs"]
 mod ged;
+#[path = "legacy/mod.rs"]
+mod legacy;
 #[path = "serial/mod.rs"]
 mod serial;
 #[path = "video/mod.rs"]
