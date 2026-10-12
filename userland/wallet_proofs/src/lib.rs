@@ -224,3 +224,5 @@ mod handshake_tests;
 
 #[cfg(test)]
 mod send_tests;
+#[cfg(test)]
+mod rpc_hostile_tests;
