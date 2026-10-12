@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! The USB Video Class (UVC 1.1 and 1.5, every layout as recalled,
 //! unverified against the specification): what a camera's configuration
 //! says it can stream, the probe and commit controls that agree a stream,
