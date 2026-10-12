@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! The engine's three needs met in the capsule: ports through the PIO
 //! grant, the kernel's uptime, and one DMA region below 4 GiB.
 

@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! Finding a UHCI controller: class 0Ch, subclass 03h, programming
 //! interface 00h, with its registers in an I/O BAR4. The first one found is
 //! served; a chipset with several serves the two ports of the first.

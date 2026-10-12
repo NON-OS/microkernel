@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! The polled bulk IN: a chain left armed on its own queue, which the
 //! controller retries every frame while the device NAKs, so a network
 //! adapter's frames are taken whenever they come. A look is one read of

@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Any control transfer a class driver asks for on EP0: its OUT data taken
+
 //! The handlers, by what they touch.
 
 pub mod bulk;
