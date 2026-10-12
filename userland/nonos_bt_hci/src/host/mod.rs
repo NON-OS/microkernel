@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod acl;
+mod address;
 mod answer;
 mod bringup;
 mod command;
@@ -31,7 +32,7 @@ mod state;
 mod update;
 mod wait;
 
-pub use connect::{create_connection_params, Connect, DEFAULT_LINK};
+pub use connect::{create_connection_params, create_connection_params_as, Connect, DEFAULT_LINK};
 pub use controller::Controller;
 pub use events::QUEUE_MAX;
 pub use ltk::enable_encryption_params;
