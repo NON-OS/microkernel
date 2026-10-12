@@ -41,4 +41,8 @@ pub struct Dev {
     pub nops: u32,
     pub init_flag: bool,
     pub init_left: u32,
+    /// Queries answered so far, and how many of the first are refused
+    /// (INVALID_OPCODE) whatever they ask.
+    pub queries: u32,
+    pub refuse_queries: u32,
 }

@@ -24,7 +24,7 @@ use super::exec::{exec, Data};
 use crate::ufs::ctx::Ctx;
 use crate::ufs::env::{pause, Deadline, Hw};
 use crate::ufs::error::UfsError;
-use crate::ufs::time::{SCSI_MS, UNIT_READY_MS};
+use crate::ufs::facts::bounds::{SCSI_MS, UNIT_READY_MS};
 
 pub fn wait<H: Hw>(hw: &H, c: &Ctx, lun: u8) -> Result<(), UfsError> {
     let d = Deadline::after(hw, UNIT_READY_MS);
