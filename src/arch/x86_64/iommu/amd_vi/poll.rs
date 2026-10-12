@@ -44,7 +44,7 @@ pub fn drain_events() {
             let (Ok(low), Ok(high)) = (words.read(at), words.read(at + 1)) else { break };
             let raw: Event = event::from_words(low, high);
             // A zero code is an entry the unit has not finished writing;
-            // it is read again next poll (Linux iommu_print_event retries).
+            // it is read again next poll rather than logged as nothing.
             if event::code(raw) == 0 {
                 break;
             }
