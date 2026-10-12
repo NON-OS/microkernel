@@ -105,7 +105,7 @@ VMware's EHCI and on chipsets with EHCI and companion hosts.
 
 ## Release evidence
 
-`ehci_proofs` on the host (33 tests). No boot yet.
+`ehci_proofs` on the host (34 tests). No boot yet.
 
 ## Release checklist
 

@@ -21,11 +21,12 @@
 //! its own buffer, so devices poll side by side and one whose owner has
 //! gone holds back no other.
 
+use super::lane::taken;
 use crate::env::{Clock, Mem, Regs};
 use crate::sched::layout::{poll_buf, BULK_MAX};
 use crate::server::context::Ctx;
 use crate::server::reply::{data, status, DATA_AT};
-use crate::wire::{Request, E_AGAIN, E_INVAL, E_IO, E_PIPE};
+use crate::wire::{Request, E_AGAIN, E_BUSY, E_INVAL, E_IO, E_PIPE};
 use crate::xfer::poll::{arm, look, Polled};
 
 pub fn poll<R: Regs, C: Clock, M: Mem>(
@@ -36,6 +37,10 @@ pub fn poll<R: Regs, C: Clock, M: Mem>(
 ) -> usize {
     let &[slot, _, lo, hi] = body else { return status(tx, req, E_INVAL) };
     let len = u16::from_le_bytes([lo, hi]) as usize;
+    let port = cx.table.dev(slot).map_or(0, |d| d.port);
+    if port != 0 && taken(&cx.table, slot, port) {
+        return status(tx, req, E_BUSY);
+    }
     let fits = (1..=BULK_MAX).contains(&len);
     let Some(dev) = cx.table.dev(slot).filter(|d| fits && d.port != 0) else {
         return status(tx, req, E_INVAL);

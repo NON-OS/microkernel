@@ -21,6 +21,7 @@ pub mod control;
 pub mod descriptors;
 mod ep0;
 pub mod interrupt;
+mod lane;
 pub mod poll;
 pub mod ports;
 pub mod reset;
