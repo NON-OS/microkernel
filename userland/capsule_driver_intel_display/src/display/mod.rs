@@ -24,6 +24,7 @@ mod frames;
 mod head;
 mod health;
 mod intel;
+mod link_keep;
 mod mode_light;
 mod mode_set;
 mod modes;
