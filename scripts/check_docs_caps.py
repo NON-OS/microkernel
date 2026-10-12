@@ -29,29 +29,14 @@ this skips rather than fails when it is not present.
 """
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from check_caps_abi import read_kernel  # noqa: E402
+from docs_caps_table import differences, table  # noqa: E402
 
 PAGE = Path("docs/security/capabilities-and-tokens.md")
-ENTRY = re.compile(r"\b([A-Z][A-Za-z]+)\s+(\d+)\b")
-WORDS = {22: "twenty-two", 23: "twenty-three", 27: "twenty-seven",
-         28: "twenty-eight", 29: "twenty-nine", 30: "thirty",
-         31: "thirty-one", 32: "thirty-two", 33: "thirty-three",
-         34: "thirty-four", 35: "thirty-five", 36: "thirty-six"}
-
-
-def table(text: str):
-    """The fenced block holding the bit table, as name -> value."""
-    block = re.search(r"```\n(.*?CoreExec.*?)```", text, re.S)
-    if not block:
-        return {}
-    return {n: int(v) for n, v in ENTRY.findall(block.group(1))}
-
-
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", type=Path, default=Path("."), help="repository root")
@@ -73,22 +58,7 @@ def main() -> int:
         print("docs-caps: found no bit table on the page", file=sys.stderr)
         return 2
 
-    expected = {name: bit for name, bit in kernel.values()}
-    problems = []
-    for name, bit in sorted(documented.items(), key=lambda kv: kv[1]):
-        if name not in expected:
-            problems.append(f"  the page lists {name}, which the kernel does not define")
-        elif expected[name] != bit:
-            problems.append(f"  {name} DISAGREES: kernel {expected[name]}, page {bit}")
-    for name, bit in sorted(expected.items(), key=lambda kv: kv[1]):
-        if name not in documented:
-            problems.append(f"  {name} ({bit}) is enforced and the page omits it")
-
-    word = WORDS.get(len(expected))
-    if word and word not in text:
-        problems.append(f"  the page does not say the set has {word} variants")
-    for dead in re.findall(r"`src/capabilities/types\.rs[^`]*`", text):
-        problems.append(f"  cites {dead}, which no longer exists")
+    problems = differences(text, documented, kernel)
 
     if problems:
         print("docs-caps: the documented capability table is out of date",
