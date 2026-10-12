@@ -9,8 +9,9 @@ use spin::Mutex;
 
 use nonos_wifi_client::find;
 
-use super::attempt::{attempt, forget_saved};
+use super::attempt::attempt;
 use super::machine::{Due, Machine, CALL_MS};
+use super::saved::forget_saved;
 
 static MACHINE: Mutex<Machine> = Mutex::new(Machine::new());
 
