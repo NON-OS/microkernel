@@ -24,36 +24,27 @@ use crate::capabilities::types::Capability;
  * granted the bit for it.
  */
 impl CapabilityToken {
-    // Claim / release authority. A driver capsule needs this on top
-    // of `DeviceEnum` to take exclusive ownership of a device.
+    // Claim / release: with `DeviceEnum`, exclusive ownership of a device.
     #[inline]
     pub fn can_driver(&self) -> bool {
         self.grants(Capability::Driver)
     }
-    // MMIO mapping authority. Required in addition to `Driver` —
-    // claim ownership alone is not enough to receive a physical
-    // mapping into the capsule's address space.
+    // MMIO mapping, beyond `Driver`: a claim alone maps nothing.
     #[inline]
     pub fn can_mmio(&self) -> bool {
         self.grants(Capability::Mmio)
     }
-    // IRQ binding authority. Required in addition to `Driver` for
-    // a capsule to receive interrupt delivery from a device it has
-    // claimed.
+    // IRQ binding, beyond `Driver`: interrupts from a claimed device.
     #[inline]
     pub fn can_irq(&self) -> bool {
         self.grants(Capability::Irq)
     }
-    // DMA buffer authority. Required in addition to `Driver` for a
-    // capsule to receive a DMA-coherent buffer the claimed device
-    // can read or write through.
+    // DMA buffers, beyond `Driver`: memory the claimed device can reach.
     #[inline]
     pub fn can_dma(&self) -> bool {
         self.grants(Capability::Dma)
     }
-    // PIO grant authority. Required in addition to `Driver` for a
-    // capsule to mint a port-window grant on a claimed device and
-    // run kernel-mediated `in`/`out` instructions through it.
+    // PIO grants, beyond `Driver`: kernel-mediated `in`/`out` on a window.
     #[inline]
     pub fn can_pio(&self) -> bool {
         self.grants(Capability::Pio)
