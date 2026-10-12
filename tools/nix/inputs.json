@@ -26,6 +26,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/acpi.manifest.bin",
+   "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/acpi.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -2826,6 +2829,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/acpi.manifest.bin",
+   "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/acpi.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -3457,6 +3463,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/acpi.manifest.bin",
+   "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/acpi.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
