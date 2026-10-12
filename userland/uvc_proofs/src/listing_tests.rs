@@ -18,8 +18,8 @@
 
 use crate::batch::payloads;
 use crate::listing::listing;
-use crate::wire::{decode, reply, MAGIC, OP_OPEN};
 use crate::webcam::config;
+use crate::wire::{decode, reply, MAGIC, OP_OPEN};
 
 #[test]
 fn a_request_reads_and_a_reply_is_framed() {
