@@ -36,6 +36,7 @@ pub const HID_SERVICE: u16 = 0x1812;
 pub const PROTOCOL_MODE: u16 = 0x2a4e;
 pub const BOOT_KEYBOARD_INPUT: u16 = 0x2a22;
 pub const BOOT_MOUSE_INPUT: u16 = 0x2a33;
+pub const BOOT_KEYBOARD_OUTPUT: u16 = 0x2a32;
 
 /// Protocol Mode's value for boot protocol (HIDS 1.0, Protocol Mode
 /// characteristic): 0 is boot,

@@ -48,8 +48,12 @@ impl Host {
         self.enable(source + 1, now_ms)
     }
 
-    fn ready(&mut self, send: Vec<Vec<u8>>) -> Step {
+    fn ready(&mut self, mut send: Vec<Vec<u8>>) -> Step {
         self.phase = Phase::Ready;
+        // A lock set before now: the peripheral's LEDs start off.
+        if self.locks.bits() != 0 {
+            send.append(&mut self.leds());
+        }
         let has = |k| self.sources.iter().any(|s| s.kind == k);
         let outcome = Outcome::Ready { keyboard: has(Kind::Keyboard), mouse: has(Kind::Mouse) };
         Step { send, outcome: Some(outcome), ..Step::default() }

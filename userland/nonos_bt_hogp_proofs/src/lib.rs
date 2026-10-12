@@ -21,6 +21,10 @@ mod discovery_tests;
 #[cfg(test)]
 mod hostile_tests;
 #[cfg(test)]
+mod led_set_tests;
+#[cfg(test)]
+mod led_tests;
+#[cfg(test)]
 mod refuse_tests;
 #[cfg(test)]
 mod report_tests;

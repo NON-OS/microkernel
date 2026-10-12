@@ -15,24 +15,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Reports, once notifications are on. A value on any other handle is not
-//! a boot report this host asked for and is left alone.
+//! a boot report this host asked for and is left alone. A lock key that
+//! goes down also changes the keyboard's LEDs.
 
 use super::phase::Phase;
 use super::state::Host;
+use super::step::Step;
 use super::types::Kind;
 use crate::report::Input;
 use alloc::vec::Vec;
 
 impl Host {
-    pub(super) fn report(&mut self, handle: u16, value: &[u8]) -> Vec<Input> {
+    pub(super) fn report(&mut self, handle: u16, value: &[u8]) -> Step {
         if self.phase != Phase::Ready {
-            return Vec::new();
+            return Step::default();
         }
-        match self.sources.iter().find(|s| s.value == handle).map(|s| s.kind) {
+        let input = match self.sources.iter().find(|s| s.value == handle).map(|s| s.kind) {
             Some(Kind::Keyboard) => self.keyboard.report(value),
             Some(Kind::Mouse) => self.mouse.report(value),
             None => Vec::new(),
+        };
+        let mut step = Step::input(input);
+        if self.locks.on(&step.input) {
+            step.send = self.leds();
         }
+        step
     }
 
     /// The link has gone: release every key and button still held, so

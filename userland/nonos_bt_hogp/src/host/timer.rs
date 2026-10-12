@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The ATT transaction timer, and which request a response answers.
+//! The ATT transaction timer, failing, and which request a response
+//! answers.
 
+use super::phase::Phase;
 use super::state::Host;
-use super::step::Step;
+use super::step::{Outcome, Step};
 use crate::error::HogpError;
 
 impl Host {
@@ -29,6 +31,17 @@ impl Host {
         } else {
             Step::default()
         }
+    }
+
+    pub(super) fn fail(&mut self, e: HogpError) -> Step {
+        let was_ready = self.phase == Phase::Ready;
+        (self.phase, self.pending) = (Phase::Failed, None);
+        let mut step = Step::default();
+        if was_ready {
+            step.input = self.release_all();
+        }
+        step.outcome = Some(Outcome::Failed(e));
+        step
     }
 }
 

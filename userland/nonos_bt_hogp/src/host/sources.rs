@@ -15,14 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! When a service's declarations are all read: its boot input reports and
-//! Protocol Mode are kept, each report ending where the next declaration
+//! Protocol Mode and boot keyboard output reports are kept, each report ending where the next declaration
 //! starts (Vol 3, Part G, 3.3). Then the next service, or the CCCDs.
 
 use super::state::Host;
 use super::step::Step;
 use super::types::{Kind, Source};
 use crate::error::HogpError;
-use crate::uuids::{prop, BOOT_KEYBOARD_INPUT, BOOT_MOUSE_INPUT, PROTOCOL_MODE};
+use crate::uuids::{
+    prop, BOOT_KEYBOARD_INPUT, BOOT_KEYBOARD_OUTPUT, BOOT_MOUSE_INPUT, PROTOCOL_MODE,
+};
 
 impl Host {
     pub(super) fn service_done(&mut self, service: usize, now_ms: u64) -> Result<Step, HogpError> {
@@ -35,6 +37,10 @@ impl Host {
                 Some(BOOT_MOUSE_INPUT) => Kind::Mouse,
                 Some(PROTOCOL_MODE) if d.props & prop::WRITE_WITHOUT_RESPONSE != 0 => {
                     self.modes.push(d.value);
+                    continue;
+                }
+                Some(BOOT_KEYBOARD_OUTPUT) if d.props & prop::WRITE_WITHOUT_RESPONSE != 0 => {
+                    self.outputs.push(d.value);
                     continue;
                 }
                 _ => continue,

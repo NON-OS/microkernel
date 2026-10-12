@@ -19,6 +19,7 @@ mod chars;
 mod descs;
 mod dispatch;
 mod enable;
+mod leds;
 mod phase;
 mod ready;
 mod services;

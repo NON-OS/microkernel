@@ -18,10 +18,10 @@
 
 use super::phase::Phase;
 use super::state::Host;
-use super::step::{Outcome, Step};
+use super::step::Step;
 use super::types::MAX_REQUESTS;
 use crate::error::HogpError;
-use crate::report::{Keyboard, Mouse};
+use crate::report::{Keyboard, Locks, Mouse};
 use crate::uuids::{HID_SERVICE, PRIMARY_SERVICE};
 use alloc::vec::Vec;
 use nonos_bt_wire::att;
@@ -36,6 +36,8 @@ impl Host {
             decls: Vec::new(),
             sources: Vec::new(),
             modes: Vec::new(),
+            outputs: Vec::new(),
+            locks: Locks::default(),
             keyboard: Keyboard::default(),
             mouse: Mouse::default(),
             pending: None,
@@ -59,16 +61,5 @@ impl Host {
         }
         (self.pending, self.sent_ms) = (pdu.first().copied(), now_ms);
         Step::send(pdu)
-    }
-
-    pub(super) fn fail(&mut self, e: HogpError) -> Step {
-        let was_ready = self.phase == Phase::Ready;
-        (self.phase, self.pending) = (Phase::Failed, None);
-        let mut step = Step::default();
-        if was_ready {
-            step.input = self.release_all();
-        }
-        step.outcome = Some(Outcome::Failed(e));
-        step
     }
 }

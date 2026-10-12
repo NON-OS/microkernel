@@ -11,7 +11,7 @@ Host tests for `nonos_bt_hogp`. The crate depends on `nonos_bt_hogp` and
   length as fit, keeps every write, and can be told to misbehave.
 - `Run`, which passes PDUs between the host and the peripheral.
 
-20 tests:
+24 tests:
 
 | File | Tests | What it checks |
 |---|---|---|
@@ -22,10 +22,11 @@ Host tests for `nonos_bt_hogp`. The crate depends on `nonos_bt_hogp` and
 | `timeout_tests.rs` | 1 | 30 s of silence ends the bearer, and nothing is sent after |
 | `server_tests.rs` | 3 | the host's database discovered as a client would: its two services and where each ends, by type and by UUID; its characteristics, and the Device Name read by a 16-bit and by a 128-bit UUID; Find Information cut where ATT_MTU ends |
 | `server_refuse_tests.rs` | 3 | a start of 0 or past the end is Invalid Handle; only services group, and nothing is written; Exchange MTU answered with 23, malformed requests are Invalid PDU, Read Blob and Prepare Write are not supported |
+| `led_tests.rs` | 2 | Caps Lock and Num Lock toggle the LED octet, written by Write Command, and nothing is written on a release or another key; no write without an output report that takes Write Without Response, though the lock is still kept |
+| `led_set_tests.rs` | 2 | locks set before discovery ends are written when it ends; set when ready, written on a change only, padding bits cleared |
 | `report_tests.rs` | 3 | keys and modifiers down and up, releases first; rollover and wrong lengths change nothing; mouse motion, three buttons, extra bits and octets ignored |
 
-Fourteen of the tests were checked against broken code, each break on
-its own:
+Twenty-one breaks were tried, each on its own:
 - handles allowed to go back;
 - rollover not ignored;
 - indications not confirmed;
@@ -39,6 +40,13 @@ its own:
 - a secondary service taken as an unsupported group type;
 - 128-bit UUIDs in the base range not read as 16-bit ones;
 - Write Not Permitted given as Invalid Handle;
-- the list of a Read By Type cut too early.
+- the list of a Read By Type cut too early;
+- an output report kept without Write Without Response;
+- a lock set before discovery ends never written;
+- a lock key that sets its lock and does not toggle it;
+- padding bits written to the LEDs;
+- the LEDs written with a Write Request;
+- the LEDs written on every keyboard report;
+- the wrong usage for Num Lock.
 
 Each made at least one test fail.
