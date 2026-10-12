@@ -178,6 +178,12 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
   a low-power state goes back to D0 first. The fans and the devices
   share one power-resource count. A driver sets D0 after its claim, which
   powers up a device firmware left off. Layout in `src/dpower/wire.rs`.
+  At boot, a device the tables describe under a PCI root (present and
+  enabled by _STA, with _PS0 or _PR0, its _ADR reached only through real
+  PCI-to-PCI bridges) whose function reads all ones gets its D0 and one
+  `MkPciProbeFunction`: the kernel reads that function and adds it to the
+  device table if it answers. One that does not is put back to D3cold at
+  once; one no driver has claimed a minute after start is too.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and

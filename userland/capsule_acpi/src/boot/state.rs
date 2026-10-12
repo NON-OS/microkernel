@@ -49,6 +49,8 @@ pub struct Acpi {
     pub cpus: Cpus,
     /// The D-states drivers asked for; the pool they share is `cooling`'s.
     pub dpower: DevicePower,
+    /// Functions woken by _PS0 at boot, waiting on a driver's claim.
+    pub hidden: crate::dpower::Hidden,
     pub backlight: Backlight,
     pub hotkeys: Hotkeys,
     pub serial: Serial,
