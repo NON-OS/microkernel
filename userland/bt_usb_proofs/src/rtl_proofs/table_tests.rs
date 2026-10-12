@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The capsule's table: each ROM is known by one answer, only Realtek's
-//! company identifier matches, and chips that share a config share its pin.
+//! company identifier matches, and chips that share a config share its
+//! pin, which only first-layout chips have.
 
-use super::rtl::chip::{rom, REALTEK};
+use super::rtl::chip::{rom, Format, REALTEK};
 use super::rtl::chips::CHIPS;
 use super::rtl::pins_config::RTL8821C_CONFIG;
 use super::rtl::version::Version;
@@ -50,11 +51,11 @@ fn only_realteks_company_identifier_matches() {
 }
 
 #[test]
-fn every_chip_has_a_config_and_shared_configs_share_a_pin() {
+fn first_layout_chips_have_a_config_and_shared_configs_share_a_pin() {
     let shared: Vec<&str> =
         CHIPS.iter().filter(|c| c.config == Some(&RTL8821C_CONFIG)).map(|c| c.name).collect();
     assert_eq!(shared, ["RTL8723D", "RTL8821A", "RTL8821C"]);
-    assert!(CHIPS.iter().all(|c| c.config.is_some()));
+    assert!(CHIPS.iter().all(|c| c.config.is_some() == (c.format == Format::Realtech)));
     let needed: Vec<&str> = CHIPS.iter().filter(|c| c.config_needed).map(|c| c.name).collect();
     assert_eq!(needed, ["RTL8723D", "RTL8822B"]);
 }

@@ -65,19 +65,35 @@ are one of these ROMs is patched:
 | RTL8761A | 8761, 000A, 06 | rtl8761a_fw.bin | rtl8761bu_config.bin |
 | RTL8761BU | 8761, 000B, 0A | rtl8761bu_fw.bin | rtl8761bu_config.bin |
 | RTL8822B | 8822, 000B, 07 | rtl8822b_fw.bin | rtl8822b_config.bin (needed) |
+| RTL8822CU | 8822, 000C, 0A | rtl8822cu_fw.bin | none |
+| RTL8852AU | 8852, 000A, 0B | rtl8852au_fw.bin | none |
+| RTL8852BU | 8852, 000B, 0B | rtl8852bu_fw.bin | none |
+| RTL8852CU | 8852, 000C, 0C | rtl8852cu_fw_v2.bin | none |
+| RTL8851BU | 8851, 000B, 0C | rtl8851bu_fw.bin | none |
+| RTL8852BTU | 8852, 0087, 0C | rtl8852btu_fw.bin | none |
 
-1. Read ROM Version (vendor command 0xFC6D) gives one octet; the patch
-   for that ROM is the one whose chip id is that octet plus one.
-2. The patch file and the config are read from the file store under
+The first seven files are in the first layout ("Realtech"), the last six
+in the second ("RTBTCore").
+
+1. Read ROM Version (vendor command 0xFC6D) gives one octet, the ROM
+   version.
+2. For a second-layout chip, its key id: the first octet of a register
+   read with vendor command 0xFC61.
+3. The patch file and the config are read from the file store under
    `/firmware/rtl_bt/`. Each must have exactly the length and SHA-256
-   pinned in `rtl/pins.rs` and `rtl/pins_config.rs`, or it is refused and
-   nothing is sent. The patch file must also name the chip's project in
-   its extension block.
-3. The image is the patch, the file's firmware version in its last four
-   octets, then the config. It goes in Download commands (0xFC20) of 252
-   octets at most, each with an index octet that counts 0 to 7F and then
-   from 1, bit 7 set on the last.
-4. Read Local Version again: a running patch answers another LMP
+   pinned in `rtl/pins.rs`, `rtl/pins_config.rs` and `rtl/pins_rtbt.rs`,
+   or it is refused and nothing is sent. The patch file must also name
+   the chip's project in its extension block.
+4. The image. From a first-layout file: the patch whose chip id is the
+   ROM version plus one, the file's firmware version in its last four
+   octets, then the config. From a second-layout file: every subsection
+   whose eco is the ROM version plus one, ordered by priority (equal
+   priorities later first), security subsections only when the chip has
+   a key and only those signed for it.
+5. The image goes in Download commands (0xFC20) of 252 octets at most,
+   each with an index octet that counts 0 to 7F and then from 1, bit 7
+   set on the last.
+6. Read Local Version again: a running patch answers another LMP
    subversion. A controller still answering as its ROM is given back.
 
 A patch survives Reset, so the standard bring-up follows as on any
@@ -89,9 +105,7 @@ The files are not in the tree and are never built into the capsule
 (Decision 19). They are linux-firmware's `rtl_bt/` files at tag 20260916
 (commit ab23307cfe7f9366c819025ca3e4778299bc2db2), under
 `LICENSES/LICENCE.rtlwifi_firmware.txt`: redistribution in binary form,
-the eleven files into `/firmware/rtl_bt/` and has them persisted. The
-patch files' later layout ("RTBTCore": RTL8822CU, RTL8852A, B, BT and C,
-RTL8851B) is not taken yet.
+the seventeen files into `/firmware/rtl_bt/` and has them persisted.
 
 ## A link
 
@@ -336,7 +350,7 @@ Typing in an application with a Bluetooth keyboard, after pairing once.
 
 ## Release evidence
 
-Build and host-proof evidence only so far (bt_usb_proofs, 121 tests, with
+Build and host-proof evidence only so far (bt_usb_proofs, 137 tests, with
 the HCI, SMP and HOGP proofs underneath). Runtime evidence needs B-43 in
 driver.xhci0, the kernel spawn, and a real controller and keyboard: none
 is on main yet.
@@ -355,13 +369,12 @@ is on main yet.
 
 BR/EDR (Classic) devices, more than one device at a time, Report Protocol
 (media keys, wheels, absolute pointers), vendor setup other than
-Realtek's first-layout chips (Intel, MediaTek, Broadcom, Realtek's
-RTBTCore chips), and
+Realtek's (Intel, MediaTek, Broadcom), and
 bonds kept past this boot. The pairing dialog is Settings', over NBTC.
 
 ## Verification
 
 `cd userland/bt_usb_proofs && RUST_TEST_THREADS=1 cargo test --release`
-(121 pass at the time of writing); the capsule's `cargo build --release`
+(137 pass at the time of writing); the capsule's `cargo build --release`
 and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on
 hardware.

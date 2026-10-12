@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Realtek USB controllers whose patch file is the first layout
-//! ("Realtech"): what each ROM answers, its project, and its pinned files.
-//! The second layout ("RTBTCore": RTL8822CU, RTL8852A, B, BT and C,
-//! RTL8851B) has sections and keys of its own and is a later unit.
+//! The Realtek USB controllers this capsule patches: what each ROM
+//! answers, its project, its file layout and its pinned files. RTL8822CU
+//! is the 8822C row; its ROM answers HCI revision 000C where RTL8822B's
+//! answers 000B.
 
 use super::chip::Chip;
-use super::pin::Pin;
 use super::pins::*;
 use super::pins_config::*;
+use super::pins_rtbt::*;
+use super::row::{rtbt, usb};
 
 pub const CHIPS: &[Chip] = &[
     usb("RTL8723B", (0x8723, 0x000b, 0x06), 1, &RTL8723B_FW, &RTL8723BS_CONFIG, false),
@@ -32,27 +33,10 @@ pub const CHIPS: &[Chip] = &[
     usb("RTL8761A", (0x8761, 0x000a, 0x06), 3, &RTL8761A_FW, &RTL8761BU_CONFIG, false),
     usb("RTL8761BU", (0x8761, 0x000b, 0x0a), 14, &RTL8761BU_FW, &RTL8761BU_CONFIG, false),
     usb("RTL8822B", (0x8822, 0x000b, 0x07), 8, &RTL8822B_FW, &RTL8822B_CONFIG, true),
+    rtbt("RTL8822CU", (0x8822, 0x000c, 0x0a), 13, &RTL8822CU_FW),
+    rtbt("RTL8852AU", (0x8852, 0x000a, 0x0b), 18, &RTL8852AU_FW),
+    rtbt("RTL8852BU", (0x8852, 0x000b, 0x0b), 20, &RTL8852BU_FW),
+    rtbt("RTL8852CU", (0x8852, 0x000c, 0x0c), 25, &RTL8852CU_FW),
+    rtbt("RTL8851BU", (0x8851, 0x000b, 0x0c), 36, &RTL8851BU_FW),
+    rtbt("RTL8852BTU", (0x8852, 0x0087, 0x0c), 47, &RTL8852BTU_FW),
 ];
-
-/// One row: LMP subversion, HCI revision and HCI version as the ROM
-/// answers them, then the project, the patch, the config and whether the
-/// config is needed.
-const fn usb(
-    name: &'static str,
-    (lmp_subversion, hci_revision, hci_version): (u16, u16, u8),
-    project: u8,
-    firmware: &'static Pin,
-    config: &'static Pin,
-    config_needed: bool,
-) -> Chip {
-    Chip {
-        name,
-        lmp_subversion,
-        hci_revision,
-        hci_version,
-        project,
-        firmware,
-        config: Some(config),
-        config_needed,
-    }
-}
