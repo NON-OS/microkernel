@@ -2704,7 +2704,10 @@
    ".cargo",
    "src/services/registry/displays.rs",
    "userland/compositor",
-   "userland/libc"
+   "userland/libc",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_wire",
+   "userland/nonos_modes"
   ],
   "md": [],
   "signed": []
@@ -2713,6 +2716,11 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/services/registry/displays.rs",
+   "userland/compositor/src/display/backoff.rs",
+   "userland/compositor/src/display/hint_rule.rs",
+   "userland/compositor/src/display/link.rs",
+   "userland/compositor/src/display/poll_rule.rs",
    "userland/compositor/src/frame_pacer/compose.rs",
    "userland/compositor/src/frame_pacer/cursor.rs",
    "userland/compositor/src/frame_pacer/drain_damage.rs",
@@ -2727,7 +2735,10 @@
    "userland/compositor/src/state/scene_submit.rs",
    "userland/compositor/src/state/visible.rs",
    "userland/compositor/src/sw_blitter",
-   "userland/compositor_proofs"
+   "userland/compositor_proofs",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_wire",
+   "userland/nonos_modes"
   ],
   "md": [],
   "signed": []

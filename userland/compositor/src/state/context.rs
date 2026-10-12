@@ -42,6 +42,9 @@ pub struct Context {
     /// what is presented, the canvas itself when this is one.
     pub scale: u32,
     pub screen: Surface,
+    /// The driver when it is driven on the display wire; None on GOP and
+    /// on the legacy ops.
+    pub wire: Option<crate::display::WireLink>,
 }
 
 impl Context {

@@ -57,6 +57,7 @@ impl Context {
             attach: AttachCache::new(),
             scale: 1,
             screen: crate::sw_blitter::Surface::default(),
+            wire: None,
         }
     }
 }
