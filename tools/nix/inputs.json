@@ -3031,7 +3031,8 @@
    "userland/nonos_edid/src/query.rs",
    "userland/nonos_edid/src/source.rs",
    "userland/nonos_edid/src/timing.rs",
-   "userland/nonos_edid/src/walk.rs"
+   "userland/nonos_edid/src/walk.rs",
+   "userland/nonos_modes/data"
   ],
   "md": [],
   "signed": []

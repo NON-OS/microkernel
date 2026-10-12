@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod dmt_id;
+pub mod params;
+pub mod range;
 pub mod section;
+pub mod short;
 pub mod tiled;
+pub mod type1;
 pub mod type7;

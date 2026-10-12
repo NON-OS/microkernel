@@ -1,7 +1,7 @@
 # nonos_edid
 
 The identification data a monitor hands over, parsed without allocation:
-VESA E-EDID 1.4, its CTA-861 extension and DisplayID 2.0 sections carried
+VESA E-EDID 1.4, its CTA-861 extension and DisplayID 1.3 and 2.0 sections carried
 in extension blocks. `no_std`, no dependencies. The loader and every
 display capsule read a panel through this crate, and `edid_proofs` runs
 the same source on the host.
@@ -23,13 +23,18 @@ the same source on the host.
 - `for_each_timing(&mut dyn FnMut(Timing))`: every timing named anywhere,
   base block first: established I/II and III, standard (with 0xFA), CVT
   three byte codes, detailed timings, then per extension CTA detailed
-  timings and VICs, or DisplayID type VII. A `Timing` without `detail`
+  timings and VICs, or DisplayID types I-IV (1.3) and VII-IX (2.x; DMT IDs
+  looked up in `nonos_modes/data/dmt.txt`). A `Timing` without `detail`
   names a picture and a rate only; `nonos_modes` computes its timing.
 - `range_limits()`, including the 1.4 offset flags and CVT's clock trim.
 - `max_tmds_khz()`: the largest of the HDMI VSDB, HF-VSDB and HF-SCDB
   rates; 0 when none is given.
 - `for_each_audio`, `basic_audio`: CTA short audio descriptors.
 - `tile()`: DisplayID tiled display topology.
+- `displayid_native()`: the native resolution and image size from DisplayID's
+  display parameters; `displayid_refresh()`: the refresh range from its range
+  limits, past 255 Hz on 2.0. Layouts recalled from the VESA documents and
+  marked unverified in the source.
 - `vic(code) -> Option<Vic>`: the CTA-861 VIC table, built at compile time
   from `data/cta861_vics.txt`.
 

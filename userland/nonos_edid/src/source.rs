@@ -29,6 +29,6 @@ pub enum Source {
     CtaVic,
     /// A detailed timing descriptor in a CTA-861 extension.
     CtaDetailed,
-    /// A DisplayID 2.0 type VII timing.
+    /// A DisplayID timing: 1.3 types I to IV, 2.x types VII to IX.
     DisplayId,
 }

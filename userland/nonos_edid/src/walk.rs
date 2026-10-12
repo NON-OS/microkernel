@@ -32,6 +32,9 @@ impl Edid<'_> {
                 cta::timings::each(c, f);
             } else if let Some(s) = Section::new(b) {
                 displayid::type7::each(s, f);
+                displayid::type1::each(s, f);
+                displayid::short::each(s, f);
+                displayid::dmt_id::each(s, f);
             }
         }
     }
