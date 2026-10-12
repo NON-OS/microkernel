@@ -19,6 +19,7 @@
 
 mod asker;
 mod cpu;
+mod device_name;
 mod dispatch;
 mod errno;
 mod event;
@@ -37,6 +38,7 @@ mod smbios;
 mod table;
 
 pub use cpu::sys_acpi_cpu;
+pub use device_name::sys_acpi_device_name;
 pub use dispatch::handle;
 pub use event::sys_acpi_event;
 pub use function_of::sys_acpi_function_of;

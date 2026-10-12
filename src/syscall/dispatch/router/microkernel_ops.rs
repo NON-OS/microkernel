@@ -97,6 +97,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAcpiFunctionOf
             | MkAcpiHwError
             | MkAcpiPlatformDevice
+            | MkAcpiDeviceName
             | MkDebug
             | MkStdoutWrite
             | MkPrivateWrite
