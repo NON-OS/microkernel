@@ -28,9 +28,11 @@ pub fn writable(id: &Ident, offset: u32) -> Option<u16> {
     let audio = id.class == 0x04 && matches!(id.subclass, 0x01 | 0x03);
     let smbus = id.class == 0x0C && id.subclass == 0x05;
     let uhci = id.class == 0x0C && id.subclass == 0x03 && id.prog_if == 0x00;
+    let ehci = id.class == 0x0C && id.subclass == 0x03 && id.prog_if == 0x20;
     match (id.vendor, offset) {
         (INTEL, 0x40) if smbus => Some(0x0005),
         (_, 0xC0) if uhci => Some(0xAFFF),
+        _ if ehci => ehci_legsup(id.before, offset),
         (INTEL, 0x44) if audio => Some(0x0007),
         (INTEL, 0x48) if audio => Some(0x0040),
         (INTEL, 0x78) if audio => Some(0x0800),
@@ -38,6 +40,21 @@ pub fn writable(id: &Ident, offset: u32) -> Option<u16> {
         _ if id.class == 0x02 && id.pcie_cap.is_some_and(|c| offset == c as u32 + 0x28) => {
             Some(0x001F)
         }
+        _ => None,
+    }
+}
+
+/// EHCI's USBLEGSUP and USBLEGCTLSTS, at the offset the controller names:
+/// the OS-owned semaphore (bit 24) set, the SMI enables (5:0, 15:13) and
+/// their status (31:29, cleared by a one) written. The BIOS-owned bit, the
+/// capability's id and next pointer stay as they are.
+fn ehci_legsup(before: [u8; 3], offset: u32) -> Option<u16> {
+    const LEGSUP_ID: u8 = 0x01;
+    match offset % 4 {
+        _ if offset < 0x40 => None,
+        2 if before[0] == LEGSUP_ID => Some(0x0100),
+        0 if before[1] == LEGSUP_ID => Some(0xE03F),
+        2 if before[2] == LEGSUP_ID => Some(0xE000),
         _ => None,
     }
 }
