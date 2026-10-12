@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_cdc_acm
+# eK@nonos.systems
+#
+# USB CDC Abstract Control Model capsule, driver.cdc_acm0: a serial line,
+# or a modem's AT command port, on any USB host's port (root or virtual),
+# held by one client at a time.
+
+[package]
+name = "nonos_capsule_driver_cdc_acm"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB CDC ACM serial capsule"
+
+[[bin]]
+name = "driver_cdc_acm"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usbnet = { path = "../nonos_usbnet" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
