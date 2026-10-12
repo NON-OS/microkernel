@@ -48,14 +48,15 @@ impl Offer {
     /// The offer for `content_len`, or None unless exactly offer_len bytes.
     pub fn parse(b: &[u8], content_len: u64) -> Option<Self> {
         (Some(b.len()) == offer_len(content_len)).then_some(())?;
-        let n = chunk_count(content_len) as usize;
-        let end = 64 + 32 * n;
-        let hashes = b[64..end].chunks(32).map(|h| h.try_into().ok()).collect::<Option<_>>()?;
+        let n = usize::try_from(chunk_count(content_len)).ok()?;
+        let end = n.checked_mul(32)?.checked_add(64)?;
+        let hashes =
+            b.get(64..end)?.chunks(32).map(|h| h.try_into().ok()).collect::<Option<_>>()?;
         Some(Offer {
-            cipher_root: b[..32].try_into().ok()?,
-            key_commit: b[32..64].try_into().ok()?,
+            cipher_root: b.get(..32)?.try_into().ok()?,
+            key_commit: b.get(32..64)?.try_into().ok()?,
             hashes,
-            ciphertext: b[end..].to_vec(),
+            ciphertext: b.get(end..)?.to_vec(),
         })
     }
 }
