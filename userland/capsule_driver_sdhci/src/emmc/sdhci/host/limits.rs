@@ -15,19 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! How long each step of the host may take, and the block size it moves.
+//! The SD Host Controller specification sets none of these bounds as
+//! recalled; each says where its value comes from.
 
-/// A software reset bit clears within this (Linux sdhci_reset: 100 ms).
+/// A software reset bit clears within this: 100 ms observed in Linux
+/// sdhci.c, unverified.
 pub const RESET_MS: u64 = 100;
-/// The internal clock reports stable within this (Linux: 150 ms).
+/// The internal clock reports stable within this: 150 ms observed in Linux
+/// sdhci.c, unverified.
 pub const CLOCK_STABLE_MS: u64 = 150;
-/// CMD and DAT inhibit clear within this before a command is sent.
+/// CMD and DAT inhibit clear within this before a command is sent. This
+/// engine's own: a previous command's busy phase has its own bound first.
 pub const INHIBIT_MS: u64 = 100;
-/// Command Complete follows the command within this. A 136-bit response at
-/// 400 kHz takes under half a millisecond.
+/// Command Complete follows the command within this. This engine's own: a
+/// 136-bit response at 400 kHz takes under half a millisecond.
 pub const CMD_MS: u64 = 250;
-/// Supply and clock settle after each is turned on (Linux's
-/// power_delay_ms, waited after power up and again after the first clock).
+/// Supply and clock settle after each is turned on: 10 ms observed in
+/// Linux, unverified; it also covers the 74 clocks a card needs before
+/// its first command at 400 kHz many times over.
 pub const SETTLE_MS: u64 = 10;
-/// Card detect debounces within this after a full reset.
+/// Card detect debounces within this after a full reset. This engine's own.
 pub const DETECT_MS: u64 = 100;
+/// Bus power writes before the bit is taken as refused.
+pub const POWER_TRIES: usize = 3;
 pub const BLOCK: usize = 512;
