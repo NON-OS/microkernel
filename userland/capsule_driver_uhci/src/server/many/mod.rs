@@ -20,10 +20,15 @@
 //! it is addressed on, and every later request for it goes there. Shared
 //! by driver.uhci0 and driver.ohci0.
 
+mod address;
 pub mod front;
+mod give_back;
 mod hc;
+mod numbering;
+mod park;
 mod ports;
 mod serve;
+mod slots;
 
 pub use front::{Front, MAX_HC};
 pub use hc::Hc;

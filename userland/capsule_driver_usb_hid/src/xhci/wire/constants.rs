@@ -21,8 +21,6 @@ pub const MAGIC: u32 = 0x4E58_4843;
 pub const OP_ADDRESS_DEVICE: u16 = 0x0006;
 /// Address a device below a hub, and mark a slot as a hub. The controller
 /// driver answers E_INVAL (-22) to an op it does not know.
-pub const OP_ADDRESS_ROUTED: u16 = 0x0020;
-pub const OP_CONFIGURE_HUB: u16 = 0x0021;
 pub const OP_ALLOC_TRANSFER_RING: u16 = 0x0009;
 pub const OP_CONTROL_TRANSFER: u16 = 0x000B;
 pub const OP_ENABLE_SLOT: u16 = 0x0004;

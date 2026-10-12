@@ -44,7 +44,7 @@ fn a_full_speed_device_is_addressed_through_its_route_and_the_hubs_tt() {
     let mut c = Bind::default();
     scan_hubs(&mut h, &mut hubs, &mut c);
     let tt = Some(Tt { hub_slot: 1, port: 3 });
-    let want = Place { root_port: 2, route: 0x3, depth: 1, speed: SPEED_FULL, tt };
+    let want = Place { root_port: 2, route: 0x3, depth: 1, speed: SPEED_FULL, tt, parent: (1, 3) };
     assert_eq!(h.addressed, vec![(2, want)]);
     assert_eq!((c.bound.clone(), hubs[0].child[2]), (vec![2], 2));
     assert!(h.disabled.is_empty());

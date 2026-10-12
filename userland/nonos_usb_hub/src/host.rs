@@ -23,6 +23,8 @@ use crate::status_endpoint::StatusEndpoint;
 /// The host wire's "not served or not valid" and "held by another driver".
 pub const E_INVAL: i32 = -22;
 pub const E_BUSY: i32 = -16;
+/// The host wire's op for parking a child (nonos_usb_virt reads it).
+pub const OP_PARK: u16 = 0x0022;
 
 /// A control request's setup stage (USB 2.0 section 9.3).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -47,6 +49,9 @@ pub trait Host {
     /// Address the device in `slot` where `place` says it sits.
     fn address_routed(&mut self, slot: u8, place: &Place) -> Result<(), i32>;
     fn disable_slot(&mut self, slot: u8);
+    /// Hand the child in `slot` at `place` to the host to list as a
+    /// virtual port (OP_PARK, park.rs).
+    fn park(&mut self, slot: u8, place: &Place, mps0: u16) -> Result<(), i32>;
     fn idle_ms(&mut self, ms: u64);
     fn now_ms(&mut self) -> i64;
     /// One finished log line, newline included.

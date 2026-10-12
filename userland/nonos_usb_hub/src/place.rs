@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Where an addressed device sits: its root port, its route below it, how
-//! many hubs are above it, its speed, and the TT it is reached through.
+//! many hubs are above it, its speed, the TT it is reached through, and
+//! the hub port it is on.
 
 use crate::port_status::SPEED_SUPER;
 use crate::route::Tt;
@@ -28,12 +29,14 @@ pub struct Place {
     pub depth: u8,
     pub speed: u8,
     pub tt: Option<Tt>,
+    /// The hub's slot and the port the device is on; 0, 0 on a root port.
+    pub parent: (u8, u8),
 }
 
 impl Place {
     /// A device straight on root port `port`.
     pub fn root(port: u8, speed: u8) -> Self {
-        Self { root_port: port, route: 0, depth: 0, speed, tt: None }
+        Self { root_port: port, route: 0, depth: 0, speed, tt: None, parent: (0, 0) }
     }
 
     pub fn superspeed(&self) -> bool {

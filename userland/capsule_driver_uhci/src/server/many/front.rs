@@ -17,6 +17,7 @@
 
 use super::hc::Hc;
 use crate::devices::table::DEVS;
+use nonos_usb_virt::Virt;
 
 /// Controllers served at most: an ICH's six UHCI, with room.
 pub const MAX_HC: usize = 8;
@@ -33,11 +34,17 @@ pub enum Bind {
 pub struct Front<H: Hc> {
     pub hcs: [Option<H>; MAX_HC],
     pub bound: [Bind; DEVS],
+    /// The children below hubs, parked or claimed (nonos_usb_virt).
+    pub virt: Virt,
 }
 
 impl<H: Hc> Front<H> {
     pub fn new() -> Self {
-        Front { hcs: core::array::from_fn(|_| None), bound: [Bind::Free; DEVS] }
+        Front {
+            hcs: core::array::from_fn(|_| None),
+            bound: [Bind::Free; DEVS],
+            virt: Virt::default(),
+        }
     }
 
     /// The first free place for a controller, taken by `hc`.
@@ -45,24 +52,6 @@ impl<H: Hc> Front<H> {
         let Some(place) = self.hcs.iter_mut().find(|h| h.is_none()) else { return false };
         *place = Some(hc);
         true
-    }
-
-    /// Host port `port` as (controller, its own port).
-    pub fn local(&self, port: u8) -> Option<(usize, u8)> {
-        let mut base = 0u8;
-        for (k, hc) in self.hcs.iter().enumerate() {
-            let Some(hc) = hc else { continue };
-            if (base + 1..=base.saturating_add(hc.ports())).contains(&port) {
-                return Some((k, port - base));
-            }
-            base = base.saturating_add(hc.ports());
-        }
-        None
-    }
-
-    /// Controller `k`'s first host port, less one.
-    pub fn base(&self, k: usize) -> u8 {
-        self.hcs[..k].iter().flatten().fold(0u8, |b, h| b.saturating_add(h.ports()))
     }
 }
 

@@ -25,6 +25,8 @@ mod hub_port_tests;
 #[cfg(test)]
 mod hub_route_tests;
 #[cfg(test)]
+mod parker_tests;
+#[cfg(test)]
 mod virt_claim_tests;
 #[cfg(test)]
 mod virt_list_tests;

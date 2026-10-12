@@ -20,6 +20,7 @@ mod classes;
 mod control;
 mod host;
 mod model;
+mod standard;
 mod state;
 mod status;
 

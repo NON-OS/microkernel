@@ -42,6 +42,9 @@ mod hub_seen;
 #[cfg(test)]
 mod hub_tests;
 #[cfg(test)]
+#[path = "../../uhci_proofs/src/hub_wire.rs"]
+mod hub_wire;
+#[cfg(test)]
 mod interrupt_tests;
 #[cfg(test)]
 mod many_tests;

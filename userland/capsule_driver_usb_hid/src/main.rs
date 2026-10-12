@@ -21,7 +21,6 @@ extern crate alloc;
 
 mod descriptors;
 mod hid;
-mod hub;
 mod orchestrator;
 mod protocol;
 mod server;

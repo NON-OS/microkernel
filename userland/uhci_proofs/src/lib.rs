@@ -38,6 +38,8 @@ mod hub_seen;
 #[cfg(test)]
 mod hub_tests;
 #[cfg(test)]
+mod hub_wire;
+#[cfg(test)]
 mod interrupt_tests;
 #[cfg(test)]
 mod many_tests;
@@ -53,5 +55,9 @@ mod port_tests;
 mod start_tests;
 #[cfg(test)]
 mod td_tests;
+#[cfg(test)]
+mod virt_fixture;
+#[cfg(test)]
+mod virt_tests;
 #[cfg(test)]
 mod wire_tests;

@@ -36,6 +36,14 @@ impl<I: Io, C: Clock, M: Mem> Hc for Ctx<I, C, M> {
             *d = Some(Dev::default());
         }
     }
+    fn held(&self, slot: u8) -> u8 {
+        let dev = self.table.devs.get(slot as usize - 1).copied().flatten();
+        if dev.is_some_and(|d| d.claimed) {
+            2
+        } else {
+            1
+        }
+    }
     fn release(&mut self, slot: u8) {
         if let Some(d) = self.table.devs.get_mut(slot as usize - 1) {
             *d = None;

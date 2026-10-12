@@ -17,7 +17,7 @@ use crate::wire::{E_AGAIN, E_INVAL, E_IO};
 #[test]
 fn a_low_speed_keyboard_behind_the_hub_reports_and_needs_its_preamble() {
     let (mut cx, w, _, seen) = tree(HubModel::new(false, 4).plug(2, Device::low(), 2));
-    let want = Place { root_port: 1, route: 0x2, depth: 1, speed: 2, tt: None };
+    let want = Place { root_port: 1, route: 0x2, depth: 1, speed: 2, tt: None, parent: (1, 2) };
     assert_eq!(seen.bound, vec![(2, want)]);
     assert_eq!(call(&mut cx, OP_ALLOC_TRANSFER_RING, &[2, 0x81, 8, 0, 10, 0]).status, 0);
     child(&w, 2).reports.push_back(vec![0, 0, 5, 0, 0, 0, 0, 0]);

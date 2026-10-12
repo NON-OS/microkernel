@@ -21,7 +21,7 @@ use std::collections::HashMap;
 
 use nonos_usb_hub::Place;
 
-use super::model::{Device, HubModel, PortModel};
+use super::model::{Device, HubModel, Kind, PortModel};
 
 #[derive(Default)]
 pub struct Fake {
@@ -31,6 +31,7 @@ pub struct Fake {
     pub next_slot: u8,
     pub addressed: Vec<(u8, Place)>,
     pub disabled: Vec<u8>,
+    pub parked: Vec<(u8, Place, u16)>,
     pub configured: Vec<(u8, u8, u8)>,
     pub claimed: Vec<u8>,
     pub refuse_address: Option<i32>,
@@ -41,6 +42,18 @@ pub struct Fake {
 }
 
 impl Fake {
+    /// The device on the port reset last, addressed in `slot` at `place`;
+    /// a hub's model goes with it.
+    pub fn addressed_at(&mut self, slot: u8, place: &Place) {
+        let (hub, port) = self.last_reset.expect("a port was reset first");
+        let dev = self.port(hub, port).device.clone().expect("a device on the reset port");
+        if let Kind::Hub(model) = &dev.kind {
+            self.hubs.insert(slot, model.clone());
+        }
+        self.devices.insert(slot, dev);
+        self.addressed.push((slot, *place));
+    }
+
     pub fn port(&mut self, hub_slot: u8, port: usize) -> &mut PortModel {
         &mut self.hubs.get_mut(&hub_slot).expect("hub").ports[port - 1]
     }
