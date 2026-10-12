@@ -45,7 +45,7 @@ fn the_four_pinned_production_vectors_prove_byte_for_byte() {
         let limbs: [u64; LIMBS] = proof.publics.clone().try_into().expect("37 limbs");
         let whole = one_call(&shared).expect("it cuts");
         let words: Vec<String> =
-            pool_words(&limbs).iter().map(|w| format!("0x{}", hex(w))).collect();
+            pool_words(&limbs).expect("in range").iter().map(|w| format!("0x{}", hex(w))).collect();
         std::fs::write(format!("{out}/{name}.whole"), format!("0x{}", hex(&whole))).expect("out");
         std::fs::write(format!("{out}/{name}.words"), format!("[{}]", words.join(",")))
             .expect("out");
