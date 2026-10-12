@@ -70,7 +70,7 @@ and in its libc mirror (`userland/libc/src/broker/types/`).
 ```
 DeviceRecord {
     device_id:    u64       // broker-assigned
-    bus_kind:     u8        // BUS_PCI=1, BUS_ACPI=2, BUS_VIRT=3
+    bus_kind:     u8        // BUS_PCI=1, BUS_ACPI=2, BUS_VIRT=3, BUS_FIRMWARE=5
     pci_class:    u8        // PCI class code, as read
     pci_subclass: u8
     pci_progif:   u8

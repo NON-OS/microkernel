@@ -164,6 +164,7 @@ MCCK = 0x4B43434D
 MDLS = 0x534C444D
 MDCL = 0x4C43444D
 MDRL = 0x4C52444D
+MBFB = 0x4246424D
 MMMP = 0x504D4D4D
 MMUM = 0x4D554D4D
 MIRB = 0x4252494D
@@ -340,6 +341,12 @@ ret  = {type="i64"}
 nr   = 0x4C52444D
 caps_any = ["Admin", "Driver"]
 args = [{name="device_id",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MBFB]
+nr   = 0x4246424D
+caps_any = ["Admin", "Mmio"]
+args = [{name="device_id",type="u64",dir="in"},{name="out",type="u8*",dir="out"},{name="out_len",type="usize",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MMMP]
