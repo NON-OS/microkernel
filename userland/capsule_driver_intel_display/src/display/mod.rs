@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The engine as a display-wire device (`nonos_gfx_serve::Display`): one
-//! taken-over output, its two scanout surfaces filled from the shadow by
-//! FLUSH and flipped at the vertical blank.
+//! The engine as a display-wire device (`nonos_gfx_serve::Display`): every
+//! taken-over output, each with two scanout surfaces filled from the shadow
+//! by FLUSH and flipped at the vertical blank.
 
 mod copy;
 mod describe;
 mod frames;
+mod head;
 mod health;
 mod intel;
 mod mode_light;
 mod mode_set;
+mod modes;
 mod modeset;
 mod monitor;
 mod monitor_read;
@@ -36,7 +38,8 @@ mod wire;
 
 pub use copy::copy;
 pub use frames::Frames;
-pub use intel::{Intel, FLIP_US};
+pub use head::Head;
+pub use intel::{Intel, FLIP_US, MAX_HEADS};
 pub use modeset::Modeset;
 pub use monitor::Monitor;
 pub use monitor_read::read as read_edid;
