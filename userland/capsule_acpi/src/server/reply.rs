@@ -16,7 +16,8 @@
 
 //! Building the replies protocol.rs describes.
 
-use super::protocol::{EINVAL, ENOENT, OP_DEVICE, OP_STATUS};
+use super::brightness;
+use super::protocol::{EINVAL, ENOENT, OP_BRIGHTNESS, OP_DEVICE, OP_SET_BRIGHTNESS, OP_STATUS};
 use crate::boot::{path, Acpi};
 use alloc::vec::Vec;
 
@@ -51,7 +52,7 @@ fn device(acpi: &Acpi, index: usize) -> Option<Vec<u8>> {
 }
 
 /// The reply to `req`: status word, then body.
-pub fn answer(acpi: &Acpi, req: &[u8]) -> Vec<u8> {
+pub fn answer(acpi: &mut Acpi, req: &[u8]) -> Vec<u8> {
     let index =
         |r: &[u8]| r.get(1..5).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]) as usize);
     let (code, body) = match req.first().copied() {
@@ -60,6 +61,8 @@ pub fn answer(acpi: &Acpi, req: &[u8]) -> Vec<u8> {
             Some(b) => (0, b),
             None => (ENOENT, Vec::new()),
         },
+        Some(OP_BRIGHTNESS) => brightness::get(acpi),
+        Some(OP_SET_BRIGHTNESS) => brightness::set(acpi, req),
         _ => (EINVAL, Vec::new()),
     };
     let mut out = code.to_le_bytes().to_vec();
