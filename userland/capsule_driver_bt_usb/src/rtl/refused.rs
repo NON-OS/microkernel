@@ -33,9 +33,9 @@ pub enum Layout {
 pub enum Refused {
     /// The controller refused a command, or did not answer it.
     Hci(HciError),
-    /// The file is not in the store, or the store did not answer.
+    /// No file by that name is built in.
     Missing(&'static str),
-    /// The store's file is not the one pinned under that name.
+    /// The file is not the one pinned under that name.
     NotPinned(&'static str),
     /// The pinned file holds no patch for this controller.
     Layout(&'static str, Layout),
@@ -55,7 +55,7 @@ impl Refused {
     pub fn words(&self) -> (&'static str, &'static [u8]) {
         match self {
             Self::Hci(_) => ("", b"the controller refused the setup"),
-            Self::Missing(f) => (f, b" is not in /firmware/rtl_bt/, or the file store is not up"),
+            Self::Missing(f) => (f, b" is not built into this capsule"),
             Self::NotPinned(f) => (f, b" is not the pinned file: refused, nothing sent"),
             Self::Layout(f, Layout::NoPatch) => (f, b" has no patch for this ROM version"),
             Self::Layout(f, _) => (f, b" does not read as this chip's patch file"),

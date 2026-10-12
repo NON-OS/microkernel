@@ -15,19 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The vendor's setup, for a controller that needs one before bring-up:
-//! Realtek's, with its files from the store. A controller that needs none
-//! goes on as before; one whose setup fails is given back unpatched.
+//! Realtek's, with the files built into the capsule. A controller that
+//! needs none goes on as before; one whose setup fails is given back
+//! unpatched. Without the `realtek` feature no vendor's files are built
+//! in, and a Realtek controller is brought up on its ROM like any other.
 
 use nonos_bt_hci::usb::UsbHci;
 use nonos_bt_hci::{HciError, Host};
 
-use super::say::say;
-use super::store::Store;
-use crate::rtl::{setup, Done, Refused, CHIPS};
 use crate::usb::XhciPipes;
 
+#[cfg(not(feature = "realtek"))]
+pub fn vendor(_: &mut Host<UsbHci<XhciPipes>>) -> Result<(), HciError> {
+    Ok(())
+}
+
+#[cfg(feature = "realtek")]
 pub fn vendor(host: &mut Host<UsbHci<XhciPipes>>) -> Result<(), HciError> {
-    let why = match setup(host, &mut Store, CHIPS) {
+    use super::files::Files;
+    use super::say::say;
+    use crate::rtl::{setup, Done, Refused, CHIPS};
+
+    let why = match setup(host, &mut Files, CHIPS) {
         Ok(Done::NotOurs) => return Ok(()),
         Ok(Done::Patched(chip)) => {
             let fw = chip.firmware.file.as_bytes();

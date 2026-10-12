@@ -17,13 +17,16 @@
 //! A blob this capsule may send to a controller, named by its file in
 //! linux-firmware and pinned by length and SHA-256 (FIPS 180-4). A file of
 //! any other length or digest is refused before one octet of it reaches
-//! the controller, and no blob is built into the capsule (Decision 19).
+//! the controller. The blobs are built into the capsule under its seal,
+//! and checked against their pins when it is built and again before each
+//! download (Decision 19).
 
 use sha2::{Digest, Sha256};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Pin {
-    /// The file's name in linux-firmware's `rtl_bt/`, and in the store.
+    /// The file's name in linux-firmware's `rtl_bt/`, and in the tree's
+    /// `nonos-bootloader/firmware/rtl_bt/`.
     pub file: &'static str,
     pub len: usize,
     pub sha256: [u8; 32],

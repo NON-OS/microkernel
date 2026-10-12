@@ -17,8 +17,8 @@
 //! The patch files, from linux-firmware tag 20260916 (commit
 //! ab23307cfe7f9366c819025ca3e4778299bc2db2), directory `rtl_bt/`, under
 //! LICENSES/LICENCE.rtlwifi_firmware.txt: redistribution in binary form,
-//! unmodified, with the notice kept; no reverse engineering. The owner
-//! copies them into the store; the capsule only reads and checks them.
+//! unmodified, with the notice kept; no reverse engineering. The owner adds
+//! them to `nonos-bootloader/firmware/rtl_bt/`; the build checks them.
 
 use super::pin::{hex32, Pin};
 

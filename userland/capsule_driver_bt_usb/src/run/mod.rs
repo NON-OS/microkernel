@@ -27,8 +27,8 @@ mod links;
 mod probe;
 mod say;
 mod serve;
-mod store;
-mod store_call;
+#[cfg(feature = "realtek")]
+mod files;
 mod vendor;
 
 pub use desk::Desk;
