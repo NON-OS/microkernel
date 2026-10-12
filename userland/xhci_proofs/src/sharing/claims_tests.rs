@@ -3,7 +3,7 @@
 //! the shared slot is found by its port, and the slot is given back only
 //! with the last live holder. A device nobody claimed is not shared.
 
-use crate::slots::{Claims, Release};
+use crate::slots::{Release, Sharing};
 
 const HID: u32 = 10;
 const FIDO: u32 = 20;
@@ -13,7 +13,7 @@ fn alive(_: u32) -> bool {
 
 #[test]
 fn an_interface_has_one_holder_and_its_device_one_port() {
-    let mut c = Claims::default();
+    let mut c = Sharing::default().claims;
     assert_eq!(c.claim(4, 3, 0, HID), Ok(()));
     assert_eq!(c.claim(4, 3, 0, HID), Ok(()), "again by its holder");
     assert_eq!(c.claim(4, 3, 0, FIDO), Err(-16));
@@ -26,7 +26,7 @@ fn an_interface_has_one_holder_and_its_device_one_port() {
 
 #[test]
 fn the_slot_goes_with_its_last_holder() {
-    let mut c = Claims::default();
+    let mut c = Sharing::default().claims;
     c.claim(4, 3, 0, HID).unwrap();
     c.claim(4, 3, 1, FIDO).unwrap();
     assert_eq!(c.release(4, 99, alive), Release::NotHolder, "a stray give-back");
@@ -40,7 +40,7 @@ fn the_slot_goes_with_its_last_holder() {
 
 #[test]
 fn a_dead_holder_does_not_keep_the_slot() {
-    let mut c = Claims::default();
+    let mut c = Sharing::default().claims;
     c.claim(4, 3, 0, HID).unwrap();
     c.claim(4, 3, 1, FIDO).unwrap();
     assert_eq!(c.release(4, HID, |p| p != FIDO), Release::Last);
@@ -49,7 +49,7 @@ fn a_dead_holder_does_not_keep_the_slot() {
 
 #[test]
 fn the_table_is_bounded() {
-    let mut c = Claims::default();
+    let mut c = Sharing::default().claims;
     for i in 0..64u8 {
         assert_eq!(c.claim(1 + i / 32, 1 + i / 32, i % 32, HID), Ok(()));
     }
