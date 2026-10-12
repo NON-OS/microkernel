@@ -18,7 +18,10 @@ pub const Q_RX: u16 = 0;
 pub const Q_TX: u16 = 1;
 
 pub const RX_QUEUE_SIZE: u16 = 64;
-pub const TX_QUEUE_SIZE: u16 = 8;
+// Frames in flight at once. net.core drops a frame answered E_AGAIN, so this
+// holds a burst as the wired drivers' 32-entry rings do; one in-flight bit
+// each (queue::TxQueue), and the first 32 descriptors of the 256-entry ring.
+pub const TX_QUEUE_SIZE: u16 = 32;
 pub const VRING_DESC_F_WRITE: u16 = 2;
 
 pub const VQ_DESC_OFFSET: usize = 0;
@@ -39,3 +42,10 @@ pub const TX_DESC_COUNT: u16 = TX_QUEUE_SIZE;
 
 pub const RX_BUFFER_LEN: u32 = 2048;
 pub const TX_BUFFER_LEN: u32 = 2048;
+
+// The layout the grant holds, checked where it is defined: one in-flight bit
+// per transmit buffer, and both rings of a 256-entry queue (event words
+// included) inside the 12 KiB region.
+const _: () = assert!(TX_QUEUE_SIZE as u32 <= u32::BITS && TX_QUEUE_SIZE <= RING_SLOTS);
+const _: () = assert!(VQ_AVAIL_OFFSET + 6 + 2 * RING_SLOTS as usize <= VQ_USED_OFFSET);
+const _: () = assert!(VQ_USED_OFFSET + 6 + 8 * RING_SLOTS as usize <= VQ_REGION_SIZE);

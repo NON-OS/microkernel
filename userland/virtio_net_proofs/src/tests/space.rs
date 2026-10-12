@@ -37,8 +37,8 @@ unsafe impl Broker for Space {
     }
 }
 
-/// A transitional virtio-net (0x1000), with QEMU's common and notify
-/// structures in BAR4 when `modern`.
+/// A transitional virtio-net (0x1000), with QEMU's common, notify and
+/// device structures in BAR4 when `modern`.
 pub fn transitional(modern: bool) -> Space {
     let mut b = [0u8; 256];
     b[..4].copy_from_slice(&[0xF4, 0x1A, 0x00, 0x10]);
@@ -48,10 +48,22 @@ pub fn transitional(modern: bool) -> Space {
         // cap_vndr, next, cap_len, cfg_type, bar, then offset and length.
         b[0x40..0x48].copy_from_slice(&[0x09, 0x50, 16, 1, 4, 0, 0, 0]);
         b[0x48..0x50].copy_from_slice(&[0, 0, 0, 0, 0x38, 0, 0, 0]);
-        b[0x50..0x58].copy_from_slice(&[0x09, 0x00, 20, 2, 4, 0, 0, 0]);
+        b[0x50..0x58].copy_from_slice(&[0x09, 0x64, 20, 2, 4, 0, 0, 0]);
         b[0x58..0x64].copy_from_slice(&[0, 0x30, 0, 0, 0, 0x10, 0, 0, 4, 0, 0, 0]);
+        b[0x64..0x6C].copy_from_slice(&[0x09, 0x00, 16, 4, 4, 0, 0, 0]);
+        b[0x6C..0x74].copy_from_slice(&[0, 0x20, 0, 0, 0, 0x10, 0, 0]);
     }
     Space(Some(b))
+}
+
+impl Space {
+    /// The same function with its `cfg_type` structure in the unmappable I/O BAR.
+    pub fn in_io_bar(mut self, cfg_type: u8) -> Self {
+        let b = self.0.as_mut().expect("a readable config space");
+        let at = [0x40, 0x50, 0x64].into_iter().find(|&at| b[at + 3] == cfg_type);
+        b[at.expect("a structure of that type") + 4] = 0;
+        self
+    }
 }
 
 pub const BARS: Bars = {
