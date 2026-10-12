@@ -134,6 +134,14 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkPioRead
         | SyscallNumber::MkPioWrite
         | SyscallNumber::MkPioRelease => caps.can_pio(),
+        /*
+         * Firmware's AML reaches memory and ports no claim covers, so until the
+         * owner names a bit of its own the ACPI calls are Admin's alone.
+         */
+        SyscallNumber::MkAcpiTable
+        | SyscallNumber::MkAcpiRegion
+        | SyscallNumber::MkAcpiPort
+        | SyscallNumber::MkAcpiPci => caps.is_valid() && caps.is_admin(),
 
         SyscallNumber::MkDebug => caps.can_debug(),
         SyscallNumber::MkStdoutWrite | SyscallNumber::MkPrivateWrite => caps.can_ipc(),

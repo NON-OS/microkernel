@@ -159,6 +159,11 @@ pub const SYS_PIO_RELEASE: u64 = tag4(b"MPRL");
 pub const SYS_MK_DEBUG: u64 = tag4(b"MDBG");
 pub const SYS_PCI_CONFIG_READ: u64 = tag4(b"MPCR");
 pub const SYS_PCI_CONFIG_WRITE: u64 = tag4(b"MPCW");
+/// The ACPI capsule: a checked firmware table, an OperationRegion grant, a port, a config access.
+pub const SYS_ACPI_TABLE: u64 = tag4(b"MTBL");
+pub const SYS_ACPI_REGION: u64 = tag4(b"MRGN");
+pub const SYS_ACPI_PORT: u64 = tag4(b"MRIO");
+pub const SYS_ACPI_PCI: u64 = tag4(b"MRPC");
 /// Spawn another window of an embedded, attested app (terminal or browser); needs SpawnWindow.
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
 /// Run a baked, attested tool by name as the caller's child, to drive its stdio; needs IPC.
