@@ -34,7 +34,7 @@ use crate::server::context::Ctx;
 pub struct Driver {
     pub cx: Ctx<Ports, Uptime, Region>,
     pub found: Found,
-    _claim: Claim,
+    pub(super) claim: Claim,
 }
 
 pub fn run(dev: Found) -> Result<Driver, &'static str> {
@@ -52,5 +52,5 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let region = Region::new(&map).ok_or("uhci: schedule region not below 4 GiB")?;
     let mut cx = Ctx::new(Ports::new(pio.grant_id), Uptime, region);
     start(&mut cx.io, &cx.clock, &cx.mem)?;
-    Ok(Driver { cx, found: dev, _claim: claim })
+    Ok(Driver { cx, found: dev, claim })
 }

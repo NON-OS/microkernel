@@ -18,8 +18,10 @@
 
 mod claim;
 mod discover;
+mod host;
 mod pci;
 mod sequence;
 
 pub use discover::find;
-pub use sequence::{run, Driver};
+pub use host::Host;
+pub use sequence::run;

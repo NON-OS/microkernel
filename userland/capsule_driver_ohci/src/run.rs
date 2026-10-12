@@ -20,14 +20,14 @@
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, recv_ready};
 
-use crate::server::dispatch::dispatch;
+use crate::server::many::serve;
 use crate::server::reply::status;
-use crate::setup::Driver;
+use crate::setup::Host;
 use crate::wire::{decode, Request, E_INVAL, HDR_LEN, REPLY_MAX, REQUEST_MAX, STATUS_LEN};
 
 const SERVICE_INBOX: u64 = 0;
 
-pub fn run(mut d: Driver) -> ! {
+pub fn run(mut host: Host) -> ! {
     let mut rx = [0u8; HDR_LEN + REQUEST_MAX];
     let mut tx = [0u8; HDR_LEN + STATUS_LEN + REPLY_MAX];
     loop {
@@ -39,7 +39,7 @@ pub fn run(mut d: Driver) -> ! {
         let msg = &rx[..(n as usize).min(rx.len())];
         let len = match decode(msg) {
             Some(req) => match msg.get(HDR_LEN..HDR_LEN + req.payload_len as usize) {
-                Some(body) => dispatch(&mut d.cx, &req, body, &mut tx),
+                Some(body) => serve(&mut host.front, &req, body, &mut tx),
                 None => status(&mut tx, &req, E_INVAL),
             },
             None => status(&mut tx, &unknown(msg), E_INVAL),

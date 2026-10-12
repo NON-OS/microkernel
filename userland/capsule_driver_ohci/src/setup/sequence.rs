@@ -37,7 +37,7 @@ const PAGE: u64 = 0xFFF;
 pub struct Driver {
     pub cx: Ctx<Registers, Uptime, Region>,
     pub found: Found,
-    _claim: Claim,
+    pub(super) claim: Claim,
 }
 
 pub fn run(dev: Found) -> Result<Driver, &'static str> {
@@ -59,5 +59,5 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let mut cx = Ctx::new(registers, Uptime, region);
     start(&mut cx.io, &cx.clock, &cx.mem, mapped)?;
     cx.table.ports = power(&mut cx.io, &cx.clock);
-    Ok(Driver { cx, found: dev, _claim: claim })
+    Ok(Driver { cx, found: dev, claim })
 }

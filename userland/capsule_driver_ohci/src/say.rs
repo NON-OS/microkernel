@@ -18,17 +18,20 @@
 
 use nonos_libc::mk_debug;
 
-use crate::setup::Driver;
+use crate::setup::Host;
 
 const DIGITS: &[u8; 16] = b"0123456789abcdef";
 
-/// "driver.ohci: 8086:7020 started, serving driver.ohci0".
-pub fn started(d: &Driver) {
-    let mut line = *b"driver.ohci: vvvv:dddd started, serving driver.ohci0\n";
-    for (at, v) in [(13, d.found.vendor), (18, d.found.device)] {
-        for i in 0..4 {
-            line[at + i] = DIGITS[(v >> (12 - 4 * i)) as usize & 0xF];
+/// "driver.ohci: 8086:7020 started, serving driver.ohci0", a line for
+/// each controller served.
+pub fn started(host: &Host) {
+    for f in host.found.iter().flatten() {
+        let mut line = *b"driver.ohci: vvvv:dddd started, serving driver.ohci0\n";
+        for (at, v) in [(13, f.vendor), (18, f.device)] {
+            for i in 0..4 {
+                line[at + i] = DIGITS[(v >> (12 - 4 * i)) as usize & 0xF];
+            }
         }
+        let _ = mk_debug(line.as_ptr(), line.len());
     }
-    let _ = mk_debug(line.as_ptr(), line.len());
 }

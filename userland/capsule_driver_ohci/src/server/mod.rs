@@ -22,4 +22,7 @@
 pub mod context;
 pub mod dispatch;
 mod handlers;
+mod hc;
+#[path = "../../../capsule_driver_uhci/src/server/many/mod.rs"]
+pub mod many;
 pub mod reply;

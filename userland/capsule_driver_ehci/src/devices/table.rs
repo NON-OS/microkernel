@@ -20,6 +20,9 @@
 
 use crate::sched::layout::{INTR_MAX, SLOTS};
 use crate::sched::link::Link;
+
+/// Slots, so addresses, 1 to DEVS (the host front's name for SLOTS).
+pub const DEVS: usize = SLOTS;
 use crate::xfer::bulk::BulkEp;
 use crate::xfer::interrupt::IntrEp;
 

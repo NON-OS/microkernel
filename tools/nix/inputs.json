@@ -1455,6 +1455,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_ehci",
+   "userland/capsule_driver_uhci/src/server/many",
    "userland/libc"
   ],
   "md": [],
@@ -1546,6 +1547,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_ohci",
+   "userland/capsule_driver_uhci/src/server/many",
    "userland/libc"
   ],
   "md": [],
@@ -3277,6 +3279,7 @@
    "userland/capsule_driver_ehci/src/server",
    "userland/capsule_driver_ehci/src/wire",
    "userland/capsule_driver_ehci/src/xfer",
+   "userland/capsule_driver_uhci/src/server/many",
    "userland/ehci_proofs",
    "userland/nonos_usb_hub",
    "userland/uhci_proofs/src/hub_lane.rs",
@@ -3288,7 +3291,8 @@
    "userland/uhci_proofs/src/model/ep0_setup.rs",
    "userland/uhci_proofs/src/model/hub.rs",
    "userland/uhci_proofs/src/model/make.rs",
-   "userland/uhci_proofs/src/model/pid.rs"
+   "userland/uhci_proofs/src/model/pid.rs",
+   "userland/uhci_proofs/src/model/wire.rs"
   ],
   "md": [],
   "signed": []
@@ -4309,6 +4313,7 @@
    "userland/capsule_driver_ohci/src/server",
    "userland/capsule_driver_ohci/src/wire",
    "userland/capsule_driver_ohci/src/xfer",
+   "userland/capsule_driver_uhci/src/server/many",
    "userland/nonos_usb_hub",
    "userland/ohci_proofs",
    "userland/uhci_proofs/src/hub_lane.rs",
@@ -4320,7 +4325,8 @@
    "userland/uhci_proofs/src/model/ep0_setup.rs",
    "userland/uhci_proofs/src/model/hub.rs",
    "userland/uhci_proofs/src/model/make.rs",
-   "userland/uhci_proofs/src/model/pid.rs"
+   "userland/uhci_proofs/src/model/pid.rs",
+   "userland/uhci_proofs/src/model/wire.rs"
   ],
   "md": [],
   "signed": []

@@ -4,6 +4,8 @@ Status: wired, not yet signed. The kernel mirror (`src/hardware/uhci_capsule`)
 embeds and spawns it under `nonos-capsule-driver-uhci` (the
 `microkernel-driver-uhci` build) when the inventory sees `UsbUhci`, a
 function of class 0Ch, subclass 03h, interface 00h. `driver.uhci0` is held
+to the USB class drivers. It has no owner certificate yet, so no image
+carries it until the owner signs it.
 
 ## Role
 
@@ -52,7 +54,14 @@ No Mmio and no Irq: the controller is polled.
 
 ## Current implemented surface
 
-One controller and its two root ports, full- and low-speed devices, one
+Every controller of its kind on the machine is served, as one host
+(server/many, shared by driver.uhci0 and driver.ohci0): an Intel ICH's
+up to six UHCI functions, or a chipset's several OHCI. Their root ports
+are numbered on, controller after controller, in PORT_STATUS; slots are
+the host's, each bound to the controller whose port it is addressed on,
+and every later request for it goes there. Up to eight controllers.
+
+Each controller's two root ports, full- and low-speed devices, one
 request at a time: control, interrupt and bulk transfers on one queue per
 kind, the polled bulk IN on its own queue, every wait bounded by time.
 
@@ -100,6 +109,7 @@ on Intel and VIA chipsets whose only USB 1.1 host it is.
 
 ## Release checklist
 
+- Signed by the owner and added to the image's features.
 - A QEMU `-usb -device usb-tablet` boot moving the pointer.
 
 Hubs are served: OP_CONFIGURE_HUB (0x21) marks a slot a hub, and
@@ -111,8 +121,7 @@ port, and the hub, up.
 
 ## Explicit non-goals today
 
-No isochronous transfers, no interrupts, no suspend, no second
-controller of a chipset.
+No isochronous transfers, no interrupts, no suspend.
 
 ## Verification
 

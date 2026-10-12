@@ -46,9 +46,10 @@ const DRIVER: &[u8] = b"driver.ehci";
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     match start_driver(DRIVER, setup::find(), |dev| setup::run(*dev)) {
-        Ok(driver) => {
-            say::started(&driver);
-            run::run(driver)
+        Ok(first) => {
+            let host = setup::Host::new(first);
+            say::started(&host);
+            run::run(host)
         }
         Err(code) => mk_exit(code),
     }
