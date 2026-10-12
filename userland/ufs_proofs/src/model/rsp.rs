@@ -16,7 +16,7 @@
 
 //! The UPIUs the device answers with.
 
-use crate::ufs::upiu::codes::RESPONSE;
+use crate::ufs::facts::upiu::RESPONSE;
 
 pub const RSP_LEN: usize = 64;
 

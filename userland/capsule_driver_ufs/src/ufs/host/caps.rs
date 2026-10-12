@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The 12-byte UPIU header (struct utp_upiu_header): transaction type,
-//! flags, LUN, task tag, command set type (0, SCSI) and the query function
-//! for a query; EHS length, device information and a data segment of 0.
+//! What the host says it can do, read once it is enabled.
 
-/// NOP OUT, command and query request UPIUs are all 32 bytes.
-pub const UPIU_LEN: usize = 32;
+use crate::ufs::env::Mmio;
+use crate::ufs::facts::hci::{CAP, CAP_64AS, VER, VER_1X};
 
-pub fn header(tt: u8, flags: u8, lun: u8, tag: u8, func: u8) -> [u8; UPIU_LEN] {
-    let mut out = [0u8; UPIU_LEN];
-    out[0] = tt;
-    out[1] = flags;
-    out[2] = lun;
-    out[3] = tag;
-    out[5] = func;
-    out
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Caps {
+    /// DMA addresses above 4 GiB reach the host.
+    pub a64: bool,
+    /// UFSHCI 1.0 or 1.1, which takes the older command types in a UTRD.
+    pub v1x: bool,
+}
+
+pub fn read<M: Mmio>(m: &M) -> Caps {
+    Caps { a64: m.r32(CAP) & CAP_64AS != 0, v1x: m.r32(VER) & VER_1X != 0 }
 }

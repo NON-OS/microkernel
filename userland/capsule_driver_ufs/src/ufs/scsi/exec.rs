@@ -24,11 +24,11 @@ use super::sense;
 use crate::ufs::ctx::Ctx;
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
-use crate::ufs::upiu::codes::{FLAG_READ, FLAG_WRITE, RESPONSE};
+use crate::ufs::facts::upiu::{FLAG_READ, FLAG_WRITE, RESPONSE};
+use crate::ufs::slot::descriptor::Dir;
+use crate::ufs::slot::run::{run, Req};
 use crate::ufs::upiu::request::command;
 use crate::ufs::upiu::response::Rsp;
-use crate::ufs::utp::issue::{issue, Req};
-use crate::ufs::utp::utrd::Dir;
 
 /// What moves: nothing, `n` bytes in from the device, or `n` bytes out.
 #[derive(Clone, Copy)]
@@ -53,7 +53,7 @@ pub fn exec<H: Hw>(
     };
     let upiu = command(lun, flags, n as u32, &cdb.0[..cdb.1]);
     let req = Req { cmd_type: c.scsi_type(), dir, upiu: &upiu, data_len: n, ms };
-    let rsp = issue(hw, c, &req)?;
+    let rsp = run(hw, c, &req)?;
     let r = Rsp(&rsp);
     if r.tt() != RESPONSE {
         return Err(UfsError::Upiu(r.tt()));

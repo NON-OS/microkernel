@@ -23,7 +23,7 @@ use super::exec::{exec, Data};
 use crate::ufs::ctx::Ctx;
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
-use crate::ufs::time::SCSI_MS;
+use crate::ufs::facts::bounds::SCSI_MS;
 
 /// Units this driver serves, as wire units 0 up: JESD220 allows 32 LUs and
 /// devices ship with a handful.

@@ -14,24 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One request through slot 0, polled: the command descriptor, the UTRD,
-//! the doorbell, and the doorbell bit seen dropped. A request the host never
-//! finishes is cleared through UTRLCLR; a clear that does not take leaves
-//! the slot latched as the host's (Ctx::wedged).
+//! One request through the slot, polled. Its parts are written, the
+//! doorbell rung, and the doorbell bit's fall is the end. A request the
+//! host never ends is taken back through UTRLCLR; a host that will not let
+//! it go keeps the slot for good (Ctx::wedged), so no later request writes
+//! memory the old one may still use.
 
-use super::layout::{CMD_AT, PRDT_AT, RSP_AT, RSP_READ, SLOT, UTRD_LEN};
+use super::descriptor::{descriptor, ocs};
+use super::layout::{CMD_AT, PRDT_AT, RSP_AT, RSP_READ, SLOT};
 use super::prdt::entry;
 pub use super::req::Req;
-use super::utrd::{ocs, utrd};
 use crate::ufs::ctx::Ctx;
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
-use crate::ufs::hci::regs::{IS, IS_UTRCS, UTRLCLR, UTRLDBR};
-use crate::ufs::hci::wait::until;
-use crate::ufs::time::CLEAR_MS;
+use crate::ufs::facts::bounds::CLEAR_MS;
+use crate::ufs::facts::hci::{IS, IS_UTRCS, UTRLCLR, UTRLDBR};
+use crate::ufs::facts::utp::UTRD_LEN;
+use crate::ufs::host::wait::until;
 
-/// The response UPIU's first RSP_READ bytes, once the host reports success.
-pub fn issue<H: Hw>(hw: &H, c: &Ctx, r: &Req) -> Result<[u8; RSP_READ], UfsError> {
+/// The response's first RSP_READ bytes, once the host reports success.
+pub fn run<H: Hw>(hw: &H, c: &Ctx, r: &Req) -> Result<[u8; RSP_READ], UfsError> {
     if c.slot_held(hw) {
         return Err(UfsError::Host);
     }
@@ -40,18 +42,18 @@ pub fn issue<H: Hw>(hw: &H, c: &Ctx, r: &Req) -> Result<[u8; RSP_READ], UfsError
         0 => None,
         n => Some(entry(l.data.bus, n).ok_or(UfsError::Host)?),
     };
-    let slot = SLOT as usize * UTRD_LEN;
+    let at = SLOT as usize * UTRD_LEN;
     // Zeroed, so a stale response cannot pass for this request's.
     l.ucd.put(RSP_AT, &[0u8; RSP_READ]);
     l.ucd.put(CMD_AT, r.upiu);
-    if let Some(e) = prdt {
-        l.ucd.put(PRDT_AT, &e);
+    if let Some(e) = &prdt {
+        l.ucd.put(PRDT_AT, e);
     }
-    l.utrl.put(slot, &utrd(r.cmd_type, r.dir, l.ucd.bus, prdt.is_some() as u16));
+    l.utrl.put(at, &descriptor(r.cmd_type, r.dir, l.ucd.bus, prdt.is_some() as u16));
     let bit = 1 << SLOT;
     hw.w32(UTRLDBR, bit);
     if !until(hw, r.ms, || hw.r32(UTRLDBR) & bit == 0) {
-        // A 0 frees the slot; every 1 leaves its slot alone.
+        // UTRLCLR frees each slot written 0 and leaves each 1 alone.
         hw.w32(UTRLCLR, !bit);
         if !until(hw, CLEAR_MS, || hw.r32(UTRLDBR) & bit == 0) {
             c.wedged.set(true);
@@ -60,7 +62,7 @@ pub fn issue<H: Hw>(hw: &H, c: &Ctx, r: &Req) -> Result<[u8; RSP_READ], UfsError
     }
     hw.w32(IS, IS_UTRCS);
     let mut desc = [0u8; UTRD_LEN];
-    l.utrl.get(slot, &mut desc);
+    l.utrl.get(at, &mut desc);
     match ocs(&desc) {
         0 => {}
         v => return Err(UfsError::Ocs(v)),

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The hosts this driver binds: every entry of ufshcd_pci_tbl in Linux
-//! ufshcd-pci.c. Linux binds no UFS host by class alone, because each one it
-//! names comes with its own quirks; neither does this driver. The kernel
+//! The hosts this driver binds, by id. The list is as observed in Linux
+//! ufshcd-pci.c, unverified against each vendor's documents. No UFS host is
+//! bound by class alone: each listed host is one whose needs are known. The kernel
 //! starts it for any UFS function (class 01h, subclass 09h) and a host not
 //! listed here is named in the log and left alone.
 

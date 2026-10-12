@@ -20,10 +20,10 @@
 use core::cell::Cell;
 
 use crate::ufs::env::Hw;
-use crate::ufs::hci::caps::Caps;
-use crate::ufs::hci::regs::UTRLDBR;
-use crate::ufs::utp::layout::{Lists, SLOT};
-use crate::ufs::utp::utrd::{TYPE_DEV_MANAGE, TYPE_SCSI, TYPE_UFS_STORAGE};
+use crate::ufs::facts::hci::UTRLDBR;
+use crate::ufs::facts::utp::{TYPE_DEV_MANAGE, TYPE_SCSI, TYPE_UFS_STORAGE};
+use crate::ufs::host::caps::Caps;
+use crate::ufs::slot::layout::{Lists, SLOT};
 
 #[derive(Clone, Debug)]
 pub struct Ctx {
@@ -36,6 +36,10 @@ pub struct Ctx {
 }
 
 impl Ctx {
+    pub fn new(lists: Lists, caps: Caps) -> Ctx {
+        Ctx { lists, caps, wedged: Cell::new(false) }
+    }
+
     /// Whether the slot may not be used: latched, or its doorbell bit still
     /// set when no request of ours is in flight, which latches it.
     pub fn slot_held<H: Hw>(&self, hw: &H) -> bool {
@@ -45,7 +49,7 @@ impl Ctx {
         self.wedged.get()
     }
 
-    /// The UTRD command type of a SCSI command (ufshcd_prepare_req_desc_hdr).
+    /// The UTRD command type of a SCSI command, by UFSHCI version.
     pub fn scsi_type(&self) -> u32 {
         if self.caps.v1x {
             TYPE_SCSI
@@ -54,7 +58,7 @@ impl Ctx {
         }
     }
 
-    /// The UTRD command type of a NOP OUT or a query (ufshcd_compose_dev_cmd).
+    /// The UTRD command type of a NOP OUT or a query, by UFSHCI version.
     pub fn dev_type(&self) -> u32 {
         if self.caps.v1x {
             TYPE_DEV_MANAGE

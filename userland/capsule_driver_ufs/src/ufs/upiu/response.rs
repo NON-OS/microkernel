@@ -14,38 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What came back: the transaction type the device answered with, its
-//! response and status, a query's response code and flag value, and a
-//! command's sense data (struct utp_cmd_rsp).
+//! Reading a response UPIU at the offsets in facts::upiu.
 
-use crate::ufs::utp::layout::RSP_READ;
+use crate::ufs::facts::upiu::*;
+use crate::ufs::slot::layout::RSP_READ;
 
 pub struct Rsp<'a>(pub &'a [u8; RSP_READ]);
 
 impl Rsp<'_> {
     pub fn tt(&self) -> u8 {
-        self.0[0]
+        self.0[AT_TYPE]
     }
 
     /// The header's response field; for a query, its response code.
     pub fn response(&self) -> u8 {
-        self.0[6]
+        self.0[AT_RESPONSE]
     }
 
     /// The SCSI status of a command response.
     pub fn status(&self) -> u8 {
-        self.0[7]
+        self.0[AT_STATUS]
     }
 
-    /// A READ FLAG answer: bit 0 of the value field's last byte.
+    /// A read flag's value: bit 0 of the value field's last byte.
     pub fn flag(&self) -> bool {
-        self.0[23] & 1 != 0
+        self.0[AT_FLAG] & 1 != 0
     }
 
-    /// The sense data a CHECK CONDITION carries: its length big-endian at
-    /// 32, the bytes from 34, cut to what was read back.
+    /// The sense data a CHECK CONDITION carries, cut to what was read back.
     pub fn sense(&self) -> &[u8] {
-        let n = u16::from_be_bytes([self.0[32], self.0[33]]) as usize;
-        &self.0[34..core::cmp::min(34 + n, RSP_READ)]
+        let n = u16::from_be_bytes([self.0[AT_SENSE_LEN], self.0[AT_SENSE_LEN + 1]]);
+        &self.0[AT_SENSE..(AT_SENSE + n as usize).min(RSP_READ)]
     }
 }

@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A request as the protocol layers hand it to `issue`.
+//! The PRDT entry for the data region (layout in facts::utp).
 
-use super::utrd::Dir;
+use crate::ufs::facts::utp::{PRDT_ENTRY, PRDT_MAX_BYTES};
 
-/// What to send: the UTRD command type, the data direction, the UPIU, how
-/// many bytes of the data region the PRDT hands the host, and the bound.
-pub struct Req<'a> {
-    pub cmd_type: u32,
-    pub dir: Dir,
-    pub upiu: &'a [u8],
-    pub data_len: usize,
-    pub ms: u64,
+/// The entry for `len` bytes at `bus`; None for a length the field cannot
+/// carry (empty, not whole dwords, past 256 KiB) or an unaligned address,
+/// which the host would refuse.
+pub fn entry(bus: u64, len: usize) -> Option<[u8; PRDT_ENTRY]> {
+    let fits = (4..=PRDT_MAX_BYTES).contains(&len) && len.is_multiple_of(4);
+    if !fits || !bus.is_multiple_of(4) {
+        return None;
+    }
+    let mut out = [0u8; PRDT_ENTRY];
+    out[0..8].copy_from_slice(&bus.to_le_bytes());
+    out[12..16].copy_from_slice(&((len - 1) as u32).to_le_bytes());
+    Some(out)
 }

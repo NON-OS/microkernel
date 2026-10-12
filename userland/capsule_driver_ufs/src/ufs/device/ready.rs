@@ -14,27 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! ufshcd_complete_dev_init: fDeviceInit set, then read until the device
-//! clears it, which it does once its own initialisation is through. Reads
-//! are a millisecond apart, as Linux's usleep_range(500, 1000).
+//! The device's two readiness checks, in the order JESD220 sets them (as
+//! recalled, unverified): the UTP layer answers a NOP OUT, then the host
+//! sets fDeviceInit and the device clears it once its own initialisation
+//! is through.
 
-use super::query::flag;
+use super::ask::{ask, Ask};
 use crate::ufs::ctx::Ctx;
 use crate::ufs::env::{pause, Deadline, Hw};
 use crate::ufs::error::UfsError;
-use crate::ufs::time::DEVICE_INIT_MS;
-use crate::ufs::upiu::codes::*;
+use crate::ufs::facts::bounds::{DEVICE_INIT_MS, DEVICE_INIT_POLL_MS};
+use crate::ufs::facts::upiu::*;
 
-pub fn complete<H: Hw>(hw: &H, c: &Ctx) -> Result<(), UfsError> {
-    flag(hw, c, QUERY_WRITE, OP_SET_FLAG, FLAG_DEVICE_INIT)?;
+pub fn answers<H: Hw>(hw: &H, c: &Ctx) -> Result<(), UfsError> {
+    ask(hw, c, Ask::Nop).map(|_| ())
+}
+
+pub fn initialised<H: Hw>(hw: &H, c: &Ctx) -> Result<(), UfsError> {
+    let flag = |func, op| Ask::Flag { func, op, idn: FLAG_DEVICE_INIT };
+    ask(hw, c, flag(QUERY_WRITE, OP_SET_FLAG))?;
     let d = Deadline::after(hw, DEVICE_INIT_MS);
-    loop {
-        if !flag(hw, c, QUERY_READ, OP_READ_FLAG, FLAG_DEVICE_INIT)? {
-            return Ok(());
-        }
+    while ask(hw, c, flag(QUERY_READ, OP_READ_FLAG))? {
         if d.passed(hw) {
             return Err(UfsError::Timeout);
         }
-        pause(hw, 1);
+        pause(hw, DEVICE_INIT_POLL_MS);
     }
+    Ok(())
 }

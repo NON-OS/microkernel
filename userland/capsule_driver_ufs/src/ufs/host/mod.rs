@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The host controller: enable, UIC commands, link startup, the lists.
+//! The host controller: its enable, its UIC command port, the UniPro link,
+//! and the request queues.
 
 pub mod caps;
-pub mod dme;
-pub mod enable;
+pub mod hce;
 pub mod link;
-pub mod lists;
-pub mod regs;
+pub mod queues;
 pub mod uic;
-pub mod uic_codes;
 pub mod wait;

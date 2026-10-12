@@ -14,16 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device management request: no data, logical unit 0.
+//! Talking to the device before any SCSI: is it there, and is it ready.
 
-use crate::ufs::ctx::Ctx;
-use crate::ufs::env::Hw;
-use crate::ufs::error::UfsError;
-use crate::ufs::utp::issue::{issue, Req};
-use crate::ufs::utp::layout::RSP_READ;
-use crate::ufs::utp::utrd::Dir;
-
-pub fn send<H: Hw>(hw: &H, c: &Ctx, upiu: &[u8], ms: u64) -> Result<[u8; RSP_READ], UfsError> {
-    let req = Req { cmd_type: c.dev_type(), dir: Dir::None, upiu, data_len: 0, ms };
-    issue(hw, c, &req)
-}
+mod ask;
+pub mod ready;

@@ -21,9 +21,9 @@ use super::ufs::Ufs;
 use super::unit::Unit;
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
+use crate::ufs::facts::bounds::SCSI_MS;
 use crate::ufs::scsi::cdb::{rw, sync_cache};
 use crate::ufs::scsi::exec::{exec, Data};
-use crate::ufs::time::SCSI_MS;
 
 pub fn read<H: Hw>(
     hw: &H,

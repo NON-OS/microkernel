@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! UFSHCI register offsets and bits (JESD223, as Linux ufshci.h names them).
+//! UFSHCI host registers and bits. Source: JESD223 (UFSHCI), register
+//! interface chapter, as recalled, unverified.
 
 pub const CAP: u32 = 0x00;
 pub const VER: u32 = 0x08;
 pub const IS: u32 = 0x20;
 pub const HCS: u32 = 0x30;
 pub const HCE: u32 = 0x34;
-/// UIC error code, PHY adapter layer: read once after link startup to clear
-/// the LINERESET the startup itself raises (ufshcd_link_startup).
+/// UIC error code, PHY adapter layer: clears when read.
 pub const UECPA: u32 = 0x38;
 pub const UTRLBA: u32 = 0x50;
 pub const UTRLBAU: u32 = 0x54;
@@ -37,25 +37,25 @@ pub const UCMDARG1: u32 = 0x94;
 pub const UCMDARG2: u32 = 0x98;
 pub const UCMDARG3: u32 = 0x9C;
 
-/// CAP: the host reaches DMA addresses above 4 GiB.
+/// CAP.64AS: DMA addresses above 4 GiB reach the host.
 pub const CAP_64AS: u32 = 1 << 24;
 
-/// HCS: device present, both lists ready, UIC command ready.
+/// HCS: device present, each list ready, UIC command ready.
 pub const HCS_DP: u32 = 1 << 0;
 pub const HCS_UTRLRDY: u32 = 1 << 1;
 pub const HCS_UTMRLRDY: u32 = 1 << 2;
 pub const HCS_UCRDY: u32 = 1 << 3;
-/// UFSHCD_STATUS_READY: what ufshcd_make_hba_operational waits for.
 pub const HCS_LISTS_READY: u32 = HCS_UTRLRDY | HCS_UTMRLRDY | HCS_UCRDY;
 
 pub const HCE_ENABLE: u32 = 1 << 0;
-/// IS: transfer request and UIC command completion, written back to clear
-/// (RW1C).
+/// IS bits, each cleared by writing it back: transfer request completion
+/// and UIC command completion.
 pub const IS_UTRCS: u32 = 1 << 0;
 pub const IS_UCCS: u32 = 1 << 10;
+/// The run-stop registers' run bit.
 pub const RUN: u32 = 1 << 0;
 
-/// VER of a UFSHCI 1.0 or 1.1 controller, which numbers itself
-/// 0x0001_0000 / 0x0001_0100 instead of major << 8 | minor << 4, and takes
-/// the older command types (ufshcd_get_ufs_version).
+/// VER of a 1.0 or 1.1 host, which numbers itself 0x0001_0000 and
+/// 0x0001_0100 where later ones use major << 8 | minor << 4. Source: as
+/// recalled, unverified.
 pub const VER_1X: u32 = 1 << 16;

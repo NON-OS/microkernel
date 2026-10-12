@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Device management: NOP OUT, flag queries, fDeviceInit.
+//! The one transfer request slot: where its parts sit, the descriptor and
+//! PRDT written for a request, and a request run through it.
 
-pub mod init;
-pub mod nop;
-pub mod query;
-mod send;
+pub mod descriptor;
+pub mod layout;
+pub mod prdt;
+mod req;
+pub mod run;

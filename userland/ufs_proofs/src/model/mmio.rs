@@ -19,7 +19,7 @@
 
 use super::sim::Model;
 use crate::ufs::env::Mmio;
-use crate::ufs::hci::regs::*;
+use crate::ufs::facts::hci::*;
 
 impl Mmio for Model {
     fn r32(&self, off: u32) -> u32 {
