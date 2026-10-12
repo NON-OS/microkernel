@@ -17,7 +17,7 @@
 //! The source's side of training: the transmitter a GPU driver hands the
 //! trainer, the patterns it sends, and what a trained link is.
 
-use super::aux::AuxError;
+use super::aux::{Aux, AuxError};
 use super::lane::Drive;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -62,3 +62,9 @@ pub struct Trained {
     pub lanes: u32,
     pub drive: Drive,
 }
+
+/// A source a trainer drives: its AUX channel and its transmitter, which
+/// on a GPU share one register window and so come as one object.
+pub trait Source: Aux + Link {}
+
+impl<T: Aux + Link + ?Sized> Source for T {}

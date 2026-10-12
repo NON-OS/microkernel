@@ -37,7 +37,7 @@ pub struct Gen9 {
     pub writes: Vec<(u32, u32)>,
     /// A DisplayPort sink behind one DDI's AUX channel, and a channel
     /// that never finishes when set.
-    pub aux: Option<(crate::engine::aux_regs::Ddi, Box<dyn crate::dp::aux::Aux>)>,
+    pub sink: Option<(crate::engine::aux_regs::Ddi, super::sink::Sink)>,
     pub aux_stuck: bool,
     /// Changes landing a few reads later; nothing answers when `dead`.
     pub pending: Vec<(u32, u32, u32)>,
@@ -57,7 +57,7 @@ impl Gen9 {
             period: 3,
             clock: 0,
             writes: Vec::new(),
-            aux: None,
+            sink: None,
             aux_stuck: false,
             pending: Vec::new(),
             dead: false,

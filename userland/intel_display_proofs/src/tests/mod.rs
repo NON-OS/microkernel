@@ -32,6 +32,8 @@ mod ids_tests;
 mod mn_tests;
 mod plane_refusal_tests;
 mod plane_tests;
+mod port_limit_tests;
+mod port_tests;
 mod power_tests;
 mod pps_tests;
 mod scanout_refusal_tests;

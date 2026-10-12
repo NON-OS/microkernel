@@ -22,7 +22,7 @@ use crate::dp::lane::Drive;
 use crate::dp::train::{train, TrainError};
 use crate::model::sink::sink;
 use crate::model::sink_aux::AuxEnd;
-use crate::model::sink_link::LinkEnd;
+use crate::model::sink_both::Both;
 
 #[test]
 fn a_sink_that_never_locks_fails_with_the_port_down() {
@@ -47,7 +47,7 @@ fn a_dead_aux_channel_stops_training_at_once() {
     let s = sink(vec![]);
     let caps = Caps::read(&mut AuxEnd(s.clone())).unwrap().unwrap();
     s.borrow_mut().nack = true;
-    let r = train(&mut AuxEnd(s.clone()), &mut LinkEnd(s.clone()), &caps, (8100, 4));
+    let r = train(&mut Both(s.clone()), &caps, (8100, 4));
     assert!(matches!(r, Err(TrainError::Aux(_))));
     assert_eq!(s.borrow().stops, 1);
 }
