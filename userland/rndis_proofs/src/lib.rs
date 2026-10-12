@@ -23,6 +23,8 @@ mod fuzz_tests;
 #[cfg(test)]
 mod hostile_tests;
 #[cfg(test)]
+mod link_tests;
+#[cfg(test)]
 mod qemu;
 #[cfg(test)]
 mod transfer_tests;
