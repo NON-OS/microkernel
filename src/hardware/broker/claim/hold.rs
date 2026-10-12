@@ -17,15 +17,15 @@
 //! The claim-time side of `hold_rule`: who the caller is, and what the record
 //! names.
 
-use super::hold_rule::{hold_for, untranslated as untranslated_ids, Hold};
+use super::hold_rule::{hold_for, hold_for_firmware, untranslated as untranslated_ids, Hold};
 use super::types::ClaimError;
 use crate::hardware::broker::{table, BusKind, DeviceRecord};
 
 pub(super) fn admits(pid: u32, device_id: u64) -> Result<(), ClaimError> {
-    let Some(rec) = pci_record(device_id) else {
+    let Some(hold) = rule_for(device_id) else {
         return Ok(());
     };
-    match hold_for(rec.vendor, rec.device) {
+    match hold {
         Hold::Open => Ok(()),
         Hold::ForService(name) if serves(pid, name) => Ok(()),
         Hold::ForService(_) => Err(ClaimError::Held),
@@ -35,6 +35,15 @@ pub(super) fn admits(pid: u32, device_id: u64) -> Result<(), ClaimError> {
 
 pub(super) fn untranslated(device_id: u64) -> bool {
     pci_record(device_id).is_some_and(|r| untranslated_ids(r.vendor, r.device))
+}
+
+fn rule_for(device_id: u64) -> Option<Hold> {
+    let rec = table::list().into_iter().find(|r| r.device_id == device_id)?;
+    match rec.bus_kind {
+        k if k == BusKind::Pci as u8 => Some(hold_for(rec.vendor, rec.device)),
+        k if k == BusKind::Firmware as u8 => Some(hold_for_firmware(rec.device)),
+        _ => None,
+    }
 }
 
 fn pci_record(device_id: u64) -> Option<DeviceRecord> {
