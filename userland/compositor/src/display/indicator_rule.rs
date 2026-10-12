@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who may light the capture indicator: only a process holding the capture
-//! capability bit for that kind, asked of the kernel per request. The bits
-//! are the maintainers' to add to the capability table (CameraCapture when B
-//! reaches UVC); until a bit is named here every sender is refused, so no
-//! capture can be announced, and Decision 9's default keeps START refused.
+//! Who may change the capture indicator, on or off: only a process holding
+//! the capture capability bit for that kind, asked of the kernel per request
+//! (MkCapCheck), so nobody can spoof it either way. Neither bit is ambient
+//! and no capsule may hold one until the owner decides Decision 9, so until
+//! then the indicator never lights and no capture can be announced.
 
 use crate::state::indicator::{KIND_CAMERA, KIND_MICROPHONE};
 
-/// The kernel's CameraCapture bit, once the table has it.
-pub const CAMERA_CAPTURE: Option<u64> = None;
-/// The kernel's microphone capture bit, once the table has it.
-pub const MICROPHONE_CAPTURE: Option<u64> = None;
+/// The kernel's CameraCapture bit (the maintainers' 7e835e4ee; libc
+/// CAP_CAMERA_CAPTURE).
+pub const CAMERA_CAPTURE: Option<u64> = Some(1 << 37);
+/// The kernel's MicrophoneCapture bit (libc CAP_MICROPHONE_CAPTURE).
+pub const MICROPHONE_CAPTURE: Option<u64> = Some(1 << 38);
 
 /// The capability mask `kind` needs, None when it has none yet.
 pub fn needs(kind: u32) -> Option<u64> {

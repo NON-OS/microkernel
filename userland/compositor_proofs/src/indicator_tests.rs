@@ -16,8 +16,8 @@
 
 //! The capture indicator's holders and who may change them: lit while any
 //! capturer holds it, one turning off leaving another's light on, a dead
-//! holder dropped, a ninth refused rather than one dropped; and no sender
-//! at all while the kernel's capture bits are not yet named.
+//! holder dropped, a ninth refused rather than one dropped; and only a
+//! holder of that kind's capture bit may change it.
 
 use crate::display::indicator_rule::{may_indicate, needs};
 use crate::state::indicator::{Indicators, Refused, KIND_CAMERA, KIND_MICROPHONE};
@@ -47,8 +47,18 @@ fn a_ninth_capturer_is_refused_and_a_dead_one_dropped() {
 }
 
 #[test]
-fn nobody_may_light_it_before_the_capture_bits_are_named() {
-    assert_eq!((needs(KIND_CAMERA), needs(KIND_MICROPHONE), needs(3)), (None, None, None));
-    assert!(!may_indicate(40, KIND_CAMERA, |_, _| true), "even a process holding every bit");
-    assert!(!may_indicate(0, KIND_MICROPHONE, |_, _| true));
+fn only_a_holder_of_that_kinds_capture_bit_may_change_it() {
+    assert_eq!(
+        (needs(KIND_CAMERA), needs(KIND_MICROPHONE), needs(3)),
+        (Some(1 << 37), Some(1 << 38), None)
+    );
+    let holds = |want: u64| move |pid: u32, mask: u64| pid == 40 && mask == want;
+    assert!(may_indicate(40, KIND_CAMERA, holds(1 << 37)));
+    assert!(
+        !may_indicate(40, KIND_MICROPHONE, holds(1 << 37)),
+        "camera's bit is not the microphone's"
+    );
+    assert!(!may_indicate(41, KIND_CAMERA, holds(1 << 37)), "another process, on or off");
+    assert!(!may_indicate(40, 3, |_, _| true), "an unknown kind");
+    assert!(!may_indicate(0, KIND_CAMERA, |_, _| true));
 }
