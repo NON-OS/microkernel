@@ -21,6 +21,8 @@ mod msi_tree;
 mod uart_tree;
 
 #[cfg(test)]
+mod acpi_tests;
+#[cfg(test)]
 mod chosen_tests;
 #[cfg(test)]
 mod cpu_release_tests;

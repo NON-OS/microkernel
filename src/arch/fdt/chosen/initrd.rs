@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::fdt::endian::be_cells;
 use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::parser::Fdt;
-use crate::arch::fdt::property::Property;
+
+use super::address::bound;
 
 impl<'a> Fdt<'a> {
     /// The initrd the loader placed, as `(start, end)` with `end` exclusive.
@@ -50,13 +50,5 @@ impl<'a> Fdt<'a> {
             return Ok(None);
         };
         Ok(self.property(&chosen, name)?.map(|p| p.data))
-    }
-}
-
-fn bound(prop: &Property) -> Result<u64, FdtError> {
-    match prop.data.len() {
-        4 => be_cells(prop.data, 0, 1),
-        8 => be_cells(prop.data, 0, 2),
-        _ => Err(FdtError::BadCells),
     }
 }
