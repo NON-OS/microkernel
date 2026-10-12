@@ -861,6 +861,11 @@ nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 # LLVM emit v8.5 instructions into ordinary code and those fault on a Cortex-A72.
 # Every one of these is reached through a runtime ID register check, so a single
 # binary runs on a Pi and still uses tagging and PAC on an Apple M-series.
+# The relocation model is "pie" and the link a static PIE: the image carries
+# .rela.dyn and _start applies it (src/arch/aarch64/boot/relocate), so it runs
+# at any 2 MiB aligned base a loader picks, not only at the 0x4008_0000 it is
+# linked at. The ELF is therefore ET_DYN; the Image made from it is unchanged
+# in form.
 #
 # Build the aarch64 kernel.
 #
