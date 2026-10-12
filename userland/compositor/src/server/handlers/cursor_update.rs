@@ -43,6 +43,10 @@ pub fn handle(
         return Ok(());
     }
     let prev = ctx.cursor.update(x, y, visible);
+    if ctx.hw_cursor() {
+        // The next frame moves the device's plane; no pixel changed.
+        return Ok(());
+    }
     if prev.visible {
         let w = core::cmp::min(CURSOR_SIDE, ctx.width.saturating_sub(prev.x));
         let h = core::cmp::min(CURSOR_SIDE, ctx.height.saturating_sub(prev.y));

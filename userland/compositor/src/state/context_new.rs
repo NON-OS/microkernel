@@ -59,6 +59,7 @@ impl Context {
             screen: crate::sw_blitter::Surface::default(),
             wire: None,
             heads: alloc::vec::Vec::new(),
+            cursor_sent: None,
         }
     }
 }

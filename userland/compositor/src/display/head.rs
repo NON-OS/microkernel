@@ -29,4 +29,8 @@ pub struct Head {
     pub screen: Surface,
     /// A FLUSH found its primary replaced: ask SURFACE again.
     pub stale: bool,
+    /// Its primary's cursor slot (0 none), and whether the arrow drawn
+    /// there has been announced with NEW_SHAPE.
+    pub cursor_offset: u32,
+    pub shaped: bool,
 }
