@@ -52,7 +52,8 @@ mode are refused by the server before any copy.
 `Fb::new` (the checked mapping), `Fb::copy_in`, `describe::{caps, mode,
 state}`, and `BootFb`, the `nonos_gfx_serve::Display` the capsule serves.
 `bring_up::bring_up` runs the kernel's order on the boot framebuffer's record
-(lead L31: firmware bus 5, class display 0x0030, device 0x0001, one prefetchable
+(lead L31: firmware bus 5 device 0x0001, or on aarch64 C's device-tree
+simple-framebuffer node, bus 4 device 4 with aux 0; class display 0x0030, one prefetchable
 MMIO bar from the first pixel's page to the last row's end, aux the first
 pixel's offset): `driver.bootfb0` announced, the claim, `mk_boot_framebuffer`'s
 24-byte mode (`geometry::decode`), bar 0 mapped; any failure releases the
