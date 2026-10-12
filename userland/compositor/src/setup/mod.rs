@@ -23,6 +23,7 @@ mod canvas_scale;
 mod discover;
 mod gop_backing;
 mod heads;
+mod layout;
 mod panel_mm;
 mod poll;
 mod poll_heads;
@@ -34,6 +35,7 @@ mod resize;
 mod upgrade;
 
 pub use canvas::fit_canvas;
+pub use layout::relayout;
 pub use discover::{displays, lookup};
 pub use poll::poll;
 pub use prime::run_display;

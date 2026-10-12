@@ -44,9 +44,13 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   onto it fitted and centred (`sw_blitter/resample.rs`) and sent in one
   FLUSH per output (`frame_pacer/mirror.rs`); the poll reads each one's
   STATE and CAPS' output count, and a monitor plugged in or pulled out
-  primes the mirrored outputs again (`setup/{heads,poll_heads}.rs`). One
-  canvas across outputs changes the canvas under every client and waits on
-  resizing (G 6).
+  primes the mirrored outputs again (`setup/{heads,poll_heads}.rs`). The
+  shell may extend instead (OUTPUT_LAYOUT): one canvas across every output
+  side by side, output 0's canvas at the left and each further output a
+  slice its screen holds at the same scale (`display/layout_rule.rs`,
+  `setup/layout.rs`); each composed rectangle's part in a slice is drawn on
+  that output and flushed once a frame (`frame_pacer/extend.rs`); outputs
+  coming or going lay the canvas out again; the pointer is composited.
   The host is followed (G 6, `display/follow.rs`'s FOLLOW_HOST, Decision 15
   the preferred mode at start, then any size the host has wanted for 250 ms
   (STATE's hint or a DISPLAY_HINT), put through `fit`; one MODE_SET, the new
@@ -89,6 +93,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | `OP_DISPLAY_INFO` | 0x0008 | canvas width, height, stride and format |
 | `OP_DISPLAY_HINT` | 0x0009 | a host size hint (output, width, height, source) -> flags; only from a service in `HINT_SOURCES` (empty until the host-services decision), others get E_PERM; for output 0 of a wire driver held and followed like a STATE hint and answered 1 (resizable), else 0 |
 | `OP_INDICATOR` | 0x000A | a capturing driver's camera (kind 1) or microphone (kind 2) on (1) or off (0), 8 bytes; only from a holder of that kind's capture capability bit (CameraCapture 1<<37, MicrophoneCapture 1<<38; no capsule may hold either until Decision 9), others get E_PERM, shown in the reserved band and presented before the answer (E_IO and no change if the present fails), E_BUSY past eight holders |
+| `OP_OUTPUT_LAYOUT` | 0x000B | the shell's choice for several outputs: mode u32, 0 mirror or 1 extend; only from desktop_shell (E_PERM otherwise); kept while one output is present; answers u32 1 when extended now, else 0 |
 
 The window manager owns the stacking order, and `OP_FOCUS_SET` is how it keeps the compositor's
 order the same. The compositor looks the window manager's pid up in the service registry on every
