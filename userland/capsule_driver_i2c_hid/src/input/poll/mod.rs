@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cycle;
+mod multitouch;
 mod read_frame;
 mod repeat;
 mod signal_raw_report;
