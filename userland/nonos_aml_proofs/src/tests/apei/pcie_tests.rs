@@ -31,18 +31,10 @@ fn pcie_and_what_is_not_valid_or_known() {
     ];
     let pcie = data(208, 1 << 7, &fields);
     let r = record(&PCIE, &pcie);
-    let want = Record::Pcie {
-        segment: 0,
-        bus: 2,
-        device: 0x1C,
-        function: 3,
-        vendor: 0x8086,
-        id: 0x1234,
-        uncorrectable: Some(0x20),
-    };
-    assert_eq!(r, want);
+    assert_eq!(r, Record::Pcie { uncorrectable: Some(0x20) }, "no ids or bus numbers kept");
+    assert_eq!(record(&PCIE, &data(208, 0, &fields)), Record::Pcie { uncorrectable: None });
     assert_eq!(record(&PCIE, &pcie[..100]), Record::Other, "too short");
     assert_eq!(record(&[0; 16], &pcie), Record::Other);
     let mem = data(80, 0, &[(16, &[0xFF; 8])]);
-    assert!(matches!(record(&MEMORY, &mem), Record::Memory { address: None, .. }));
+    assert_eq!(record(&MEMORY, &mem), Record::Memory { kind: None }, "type not valid");
 }
