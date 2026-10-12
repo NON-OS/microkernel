@@ -24,6 +24,9 @@ The display wire as a single-output DISPI device (`kind` 2): CAPS
 (MODE_SET | MODE_RANGE, 640x480 to 4096x4096, widths a multiple of 8, no
 hardware cursor), MODES (the EDID's modes that fit, and the one shown),
 SURFACE, MODE_SET, FLUSH, STATE, RETIRE; CURSOR answers ENOSYS.
+STATE checks DISPI still shows the mode (enabled, linear, 32 bits, its size);
+if not, the mode is set again before the answer and STATE says LOST with a
+new generation, so the compositor repaints (`display/health.rs`).
 
 ## Authority
 

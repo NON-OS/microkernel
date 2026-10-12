@@ -52,7 +52,7 @@ pub fn run(dev: Found) -> BgaResult<Driver> {
         let _ = mk_device_release(dev.device_id);
         return Err(BgaError::NoMode);
     };
-    let bga = Bga { regs, vram: fb_map.user_va, vram_len, panel, mode, fence: fence };
+    let bga = Bga { regs, vram: fb_map.user_va, vram_len, panel, mode, generation: 1, fence };
     Ok(Driver { _handles: handles, server: Server::new(bga, Pool) })
 }
 
