@@ -39,11 +39,13 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md), se
 |---|---|---|
 | `OP_HEALTHCHECK` | 0x0001 | liveness ping |
 | `OP_SUBSCRIBE` | 0x0002 | register the sender with a mask of the input kinds it takes |
-| `OP_GRAB_REQUEST` | 0x0003 | take every event of some kinds; only the five services in `GRABBERS` may |
+| `OP_GRAB_REQUEST` | 0x0003 | take every event of some kinds; only the five services in `GRABBERS` may, and only while focused (`route/grab_rule.rs`) |
 | `OP_GRAB_RELEASE` | 0x0004 | give the grab back |
 
 `GRABBERS` is the boot splash, the setup wizard, the input probe, the
-desktop shell and the installer. A grab holder that cannot receive loses
+desktop shell and the installer. Each may grab only while its window has
+focus, the shell while the desktop has it; with no window manager
+answering (setup, the installer) the name alone decides. A grab holder that cannot receive loses
 its grab. A frame whose header `parse` refuses is answered with
 `E_BAD_MAGIC`, `E_BAD_VERSION` or `E_BAD_LEN` and the op and request id it
 named.
