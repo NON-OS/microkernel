@@ -176,6 +176,7 @@ nonos-capsule-driver-rndis      = []
 nonos-capsule-driver-ax88179    = []
 nonos-capsule-driver-rtl8153    = []
 nonos-capsule-driver-smbus      = []
+nonos-capsule-driver-uhci       = []
 nonos-capsule-driver-hda        = []
 nonos-capsule-audio             = []
 nonos-capsule-driver-nvme       = []
@@ -537,6 +538,14 @@ microkernel-driver-smbus = [
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-smbus",
+]
+
+microkernel-driver-uhci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-uhci",
+  "nonos-capsule-driver-usb-hid",
 ]
 
 microkernel-driver-hda = [

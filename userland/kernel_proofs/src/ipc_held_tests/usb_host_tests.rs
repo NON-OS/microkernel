@@ -21,8 +21,10 @@ use super::held::{callers_of, endpoint_admits};
 use super::usb_hosts::USB_HOSTS;
 
 /// Each spawn's file and the name it registers.
-const SPAWNS: &[(&str, &str)] =
-    &[(include_str!("../../../../src/hardware/xhci_capsule/spawn.rs"), "driver.xhci0")];
+const SPAWNS: &[(&str, &str)] = &[
+    (include_str!("../../../../src/hardware/xhci_capsule/spawn.rs"), "driver.xhci0"),
+    (include_str!("../../../../src/hardware/uhci_capsule/spawn.rs"), "driver.uhci0"),
+];
 
 const APPS: &[&str] = &["app.browser", "app.terminal", "compositor", "net.core"];
 

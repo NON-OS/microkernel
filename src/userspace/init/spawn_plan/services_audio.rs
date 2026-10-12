@@ -19,15 +19,14 @@ pub(super) fn spawn() {
     spawn_audio();
 }
 
-/// The USB audio driver, wherever an xHCI controller is: whether a headset
+/// The USB audio driver, wherever a USB host is: whether a headset
 /// is plugged in is known only once it searches the ports, so it starts
 /// before the audio server, which asks it whether it has a device.
 #[cfg(feature = "nonos-capsule-driver-usb-audio")]
 fn spawn_usb_audio() {
-    use crate::hardware::inventory::{present, HardwareFamily};
     use crate::hardware::usb_audio_capsule as c;
-    if !present(HardwareFamily::UsbXhci) {
-        crate::sys::boot_log::ok("DRIVER-USB-AUDIO", "no xHCI controller, not spawned");
+    if !super::usb_host::usb_host() {
+        crate::sys::boot_log::ok("DRIVER-USB-AUDIO", "no USB host, not spawned");
         return;
     }
     let spawn = c::spawn_driver_usb_audio_capsule;

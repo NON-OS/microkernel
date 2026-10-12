@@ -38,6 +38,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         // compositor moves from the GOP blit to it without losing the screen.
         DisplayBga => "driver_bga",
         UsbXhci => "driver_xhci",
+        UsbUhci => "driver_uhci",
         InputPs2 => "driver_ps2_input",
         InputUsbHid => "driver_usb_hid",
         InputI2cHid => "driver_i2c_hid",
