@@ -46,6 +46,7 @@ impl Context {
             backing_len: p.byte_len,
             backing_va: p.va,
             gop_mode,
+            gop_held: false,
             surface_handle: p.handle,
             first_scanout_done: gop_mode,
             scanout_error_reported: false,
