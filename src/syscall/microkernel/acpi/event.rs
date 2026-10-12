@@ -15,33 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `MkAcpiEvent(kind, value) -> 0`: the ACPI capsule reports a control-method
-//! button, the lid, or its hottest thermal zone. A power button press goes
-//! to the desktop as the Power key; a critical zone asks the desktop to shut
-//! down, then, if it stays critical, powers off through the same path as
-//! the admin shutdown. EAGAIN when the input ring would not take the key.
+//! button, the lid, its hottest thermal zone, or a battery running low or
+//! critical. A power button press goes to the desktop as the Power key. A
+//! critical zone or battery asks the desktop to shut down, then, if it
+//! stays critical, powers off through the same path as the admin shutdown.
+//! EAGAIN when the input ring would not take the key.
 
-use crate::arch::power::PowerOff;
+use super::event_act::{act, pressed, say};
+use crate::hardware::broker::acpi::battery_watch::battery_critical;
 use crate::hardware::broker::acpi::lid_state::record as record_lid;
 use crate::hardware::broker::acpi::platform_event::{decode, Event};
-use crate::hardware::broker::acpi::power_key::press;
-use crate::hardware::broker::acpi::thermal_watch::{thermal, Action};
-use crate::security::zerostate::terminate;
-use crate::syscall::microkernel::errnos::{ERRNO_AGAIN, ERRNO_INVAL};
-
-fn say(line: &[u8]) {
-    crate::sys::serial::println(line);
-}
-
-fn pressed() -> i64 {
-    if press() {
-        0
-    } else {
-        ERRNO_AGAIN
-    }
-}
+use crate::hardware::broker::acpi::thermal_watch::thermal;
+use crate::syscall::microkernel::errnos::ERRNO_INVAL;
 
 pub fn sys_acpi_event(kind: u64, value: u64) -> i64 {
     let Some(event) = decode(kind, value) else { return ERRNO_INVAL };
+    let now = crate::sys::clock::since_boot_ms();
     match event {
         Event::PowerButton => pressed(),
         Event::SleepButton => {
@@ -54,16 +43,11 @@ pub fn sys_acpi_event(kind: u64, value: u64) -> i64 {
             }
             0
         }
-        Event::Thermal(w) => match thermal(w, crate::sys::clock::since_boot_ms()) {
-            Action::Nothing => 0,
-            Action::AskShutdown => {
-                say(b"[ACPI] thermal zone critical: asking the desktop to shut down");
-                pressed()
-            }
-            Action::PowerOff => {
-                say(b"[ACPI] thermal zone still critical: powering off");
-                terminate(PowerOff::Shutdown)
-            }
-        },
+        Event::Thermal(w) => act(thermal(w, now), b"[ACPI] thermal zone at _CRT"),
+        Event::BatteryLow => {
+            say(b"[ACPI] battery low");
+            0
+        }
+        Event::BatteryCritical(c) => act(battery_critical(c, now), b"[ACPI] battery critical"),
     }
 }
