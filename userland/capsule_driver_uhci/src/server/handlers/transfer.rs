@@ -1,0 +1,60 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Any control transfer a class driver asks for on EP0: its OUT data taken
+//! A bulk transfer: `slot, 0, len_le16`, then an OUT's data. The reply is
+//! `moved_le16, 0, 0`, and an IN's bytes after it; a STALL is E_PIPE, so
+//! the class driver resets the pipe. An IN while the polled chain is armed
+//! is refused: both would take the endpoint's toggle.
+
+use crate::env::{Clock, Io, Mem};
+use crate::sched::layout::{BULK_BUF, BULK_MAX};
+use crate::server::context::Ctx;
+use crate::server::reply::{data, status, DATA_AT};
+use crate::wire::{Request, E_BUSY, E_INVAL, E_IO, E_PIPE};
+use crate::xfer::bulk::bulk;
+use crate::xfer::control::CtrlError;
+
+pub fn transfer<I: Io, C: Clock, M: Mem>(
+    cx: &mut Ctx<I, C, M>,
+    req: &Request,
+    body: &[u8],
+    tx: &mut [u8],
+    input: bool,
+) -> usize {
+    let Some((&[slot, _, lo, hi], out)) = body.split_first_chunk::<4>() else {
+        return status(tx, req, E_INVAL);
+    };
+    let len = u16::from_le_bytes([lo, hi]) as usize;
+    let fits = (1..=BULK_MAX).contains(&len) && out.len() == if input { 0 } else { len };
+    let Some(dev) = cx.table.dev(slot).filter(|_| fits) else { return status(tx, req, E_INVAL) };
+    if input && dev.poll.is_some() {
+        return status(tx, req, E_BUSY);
+    }
+    let Some((i, o)) = dev.bulk.as_mut() else { return status(tx, req, E_INVAL) };
+    let ep = if input { i } else { o };
+    cx.mem.write_bytes(BULK_BUF, out);
+    match bulk(&cx.mem, &cx.clock, ep, input, len) {
+        Ok(n) => {
+            tx[DATA_AT..DATA_AT + 4].copy_from_slice(&[n as u8, (n >> 8) as u8, 0, 0]);
+            let n = if input { n } else { 0 };
+            cx.mem.read_bytes(BULK_BUF, &mut tx[DATA_AT + 4..DATA_AT + 4 + n]);
+            data(tx, req, 4 + n)
+        }
+        Err(CtrlError::Stalled) => status(tx, req, E_PIPE),
+        Err(CtrlError::TooLong) => status(tx, req, E_INVAL),
+        Err(_) => status(tx, req, E_IO),
+    }
+}
