@@ -34,6 +34,10 @@ pub fn attach_surface(
     }
     /* Held until the mapping is recorded; see `pin::gate`. */
     let _gate = crate::smp::lock_responsive(&super::super::pin::gate::GATE);
+    // Its owner is exiting: keep_at_exit has already counted the holders.
+    if !super::super::pin::closing::attachable(handle) {
+        return Err(RegistryError::BadHandle);
+    }
     if let Some(done) = super::existing::existing(receiver_pid, handle, out_desc) {
         return done;
     }

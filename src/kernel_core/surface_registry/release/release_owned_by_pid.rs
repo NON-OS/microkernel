@@ -41,5 +41,7 @@ pub fn release_owned_by_pid(pid: u32) -> u32 {
     for handle in handles.iter().take(count) {
         super::super::attach_map::forget(pid, *handle);
     }
+    // The slots are gone: the exit's closing marks have nothing left to hold.
+    super::super::pin::closing::forget_exited(pid);
     count as u32
 }
