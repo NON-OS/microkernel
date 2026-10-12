@@ -188,7 +188,9 @@ USERLAND_LIBC := $(USERLAND_DIR)/libc/target/$(NONOS_USER_TARGET)/release/libnon
 # absolute path because capsules build from their own subdirectories and pass
 # it to the linker as -Clink-arg. cargo clean removes it; the rule below
 # rebuilds it. Override NONOS_RT_OBJ only if you have a reason to.
-NONOS_RT_OBJ  ?= $(abspath $(TARGET_DIR))/nonos_rt.o
+# One per user target: an x86_64 object linked into an aarch64 capsule would
+# fail at link at best. x86_64 keeps the path it always had.
+NONOS_RT_OBJ  ?= $(abspath $(TARGET_DIR))/$(if $(filter x86_64-nonos-user,$(NONOS_USER_TARGET)),,$(NONOS_USER_TARGET)/)nonos_rt.o
 USERLAND_LIBC_SRCS := $(shell find $(USERLAND_DIR)/libc/src -name '*.rs') \
                       $(USERLAND_DIR)/libc/Cargo.toml \
                       $(USERLAND_DIR)/$(NONOS_USER_TARGET).json
@@ -235,6 +237,7 @@ nonos-mk-libc: $(USERLAND_LIBC)
 
 $(NONOS_RT_OBJ): $(NONOS_RT_SRCS) | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building NONOS std startup object..."
+	@mkdir -p $(dir $(NONOS_RT_OBJ))
 	@cd toolchain/nonos-rt && \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) rustc --release --target ../../userland/$(NONOS_USER_TARGET).json \
