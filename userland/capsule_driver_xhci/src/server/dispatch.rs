@@ -17,7 +17,7 @@ use crate::protocol::{
     Request, E_INVAL, OP_ADDRESS_DEVICE, OP_ALLOC_TRANSFER_RING, OP_BULK_IN, OP_BULK_IN_POLL,
     OP_BULK_OUT, OP_CONFIGURE_BULK, OP_CONFIGURE_ISOCH, OP_CONTROLLER_STATUS, OP_CONTROL_TRANSFER,
     OP_DISABLE_SLOT, OP_ENABLE_SLOT, OP_GET_CONFIG_DESCRIPTOR, OP_GET_DEVICE_DESCRIPTOR,
-    OP_HEALTHCHECK, OP_INTERRUPT_IN, OP_ISOCH_OUT, OP_PORT_STATUS, OP_RESET_BULK,
+    OP_HEALTHCHECK, OP_INTERRUPT_IN, OP_ISOCH_IN, OP_ISOCH_OUT, OP_PORT_STATUS, OP_RESET_BULK,
 };
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
@@ -45,6 +45,7 @@ pub fn dispatch(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         OP_RESET_BULK => handlers::bulk::reset(ctx, req, body, tx),
         OP_CONFIGURE_ISOCH => handlers::isoch::configure(ctx, req, body, tx),
         OP_ISOCH_OUT => handlers::isoch::out(ctx, req, body, tx),
+        OP_ISOCH_IN => handlers::isoch::inbound(ctx, req, body, tx),
         _ => reply_with_status(tx, req, E_INVAL),
     }
 }
