@@ -42,8 +42,8 @@ pub struct Mux {
     pub(super) vslots: [VSlot; 256],
     /// Children below hubs, parked by driver.usb_hub0 (mux_virt.rs).
     pub(super) virt: Virt,
-    /// Shared devices' interfaces and their drivers (mux_claims.rs).
-    pub(super) claims: crate::slots::Claims,
+    /// Shared devices' interfaces and pipes (mux_claims.rs, mux_police.rs).
+    pub(super) share: crate::slots::Sharing,
 }
 
 impl Mux {
@@ -54,7 +54,7 @@ impl Mux {
             ctxs,
             vslots: [VSlot::Free; 256],
             virt: Virt::default(),
-            claims: Default::default(),
+            share: Default::default(),
         }
     }
 
