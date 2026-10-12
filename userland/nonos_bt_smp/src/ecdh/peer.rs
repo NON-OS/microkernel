@@ -17,16 +17,15 @@
 //! The peer's public key, accepted only if it is a point on P-256 other
 //! than the point at infinity. A key off the curve lets a peer learn the
 //! secret a few bits at a time (the invalid-curve attack the 2018 erratum
-//! to Vol 3, Part H, 2.3.5.6.1 closed), so it is refused before any
-//! arithmetic; so is the published debug key.
+//! to Vol 3, Part H, 2.3.5.6.1 closed), so nonos_p256 refuses it before
+//! any arithmetic; this host also refuses the published debug key.
 
 use super::debug::{DEBUG_PUBLIC_X, DEBUG_PUBLIC_Y};
 use crate::error::SmpError;
-use p256::elliptic_curve::sec1::FromEncodedPoint;
-use p256::{AffinePoint, EncodedPoint, FieldBytes};
+use nonos_p256::{point_from_xy, ProjectivePoint};
 
 pub struct PeerKey {
-    point: AffinePoint,
+    point: ProjectivePoint,
     x: [u8; 32],
 }
 
@@ -36,14 +35,11 @@ impl PeerKey {
         if *x == DEBUG_PUBLIC_X && *y == DEBUG_PUBLIC_Y {
             return Err(SmpError::DebugKey);
         }
-        let (fx, fy) = (FieldBytes::from(*x), FieldBytes::from(*y));
-        let encoded = EncodedPoint::from_affine_coordinates(&fx, &fy, false);
-        let point = Option::<AffinePoint>::from(AffinePoint::from_encoded_point(&encoded));
-        let point = point.filter(|p| !bool::from(p.is_identity())).ok_or(SmpError::BadKey)?;
+        let point = point_from_xy(x, y).ok_or(SmpError::BadKey)?;
         Ok(Self { point, x: *x })
     }
 
-    pub(super) fn point(&self) -> &AffinePoint {
+    pub(super) fn point(&self) -> &ProjectivePoint {
         &self.point
     }
 

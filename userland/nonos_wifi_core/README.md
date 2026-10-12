@@ -17,7 +17,7 @@ under `cargo test`.
 | `sae` | WPA3-Personal SAE over group 19 (NIST P-256), station side: the password element by hash-to-element (`h2e`) when the access point offers it, else hunting and pecking (`hnp`); commit, confirm, KCK, PMK and PMKID |
 | `wpa` | PSK and PTK derivation, the AKMs (WPA2-PSK, PSK-SHA256, SAE), HMAC, HKDF and SHA-256, and the supplicant that runs the four-way and group key handshakes |
 | `eapol` | the EAPOL-Key codec, KDEs and MICs |
-| `ccmp` | AES, AES-CCM, AES-CMAC and AES key unwrap, for chips without hardware CCMP |
+| `ccmp` | AES-CCM and AES key unwrap, for chips without hardware CCMP. AES and AES-CMAC are the system's, from `nonos_aes`, and are re-exported here as `ccmp::aes` and `ccmp::cmac` |
 | `mlme` | the association state machine: beacon, authentication (Open System or SAE), association, then the handshake, emitting the frames to send |
 | `station` | the data path: ethernet to 802.11 and back, CCMP in software or hardware, the transmit sequence and packet numbers, a check of every received frame against the association (BSS, protection, replay), and the management frames of a live link (deauthentication under PMF, the SA Query) |
 | `scan_list` | the networks a scan heard, deduplicated per access point, hidden ones dropped, aged by sweep, encoded for the Settings panel with WPA2 and WPA3 flags |
@@ -34,9 +34,12 @@ channel the domain closes is treated as not heard.
 
 ## Dependencies
 
-`p256` (with `expose-field` for the SAE maps), `sha2` and `hmac`, from
-RustCrypto, the same versions and features the TLS client and `capsule_crypto`
-build for the capsule target.
+- `nonos_aes`: AES-128, AES-256 and AES-128-CMAC, the system's one of each,
+  with a computed S-box and AES-NI where the CPU has it.
+- `nonos_p256`: NIST P-256, the system's one, which SAE's group 19 is. The
+  Bluetooth Security Manager uses the same two crates.
+- `sha2` and `hmac`, from RustCrypto, the same versions and features the TLS
+  client and `capsule_crypto` build for the capsule target.
 
 ## What it does not do
 

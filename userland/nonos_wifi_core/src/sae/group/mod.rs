@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod curve_b;
-mod scalar_from_bytes;
-pub use constants::*;
-pub use curve_b::*;
-use p256::elliptic_curve::bigint::Encoding;
-use p256::elliptic_curve::group::Group;
-use p256::elliptic_curve::ops::Reduce;
-use p256::elliptic_curve::sec1::{FromEncodedPoint, ToEncodedPoint};
-use p256::elliptic_curve::subtle::{Choice, ConditionallySelectable};
-use p256::elliptic_curve::{Field, PrimeField};
-use p256::{AffinePoint, EncodedPoint, FieldBytes, FieldElement, ProjectivePoint, Scalar, U256};
-pub use scalar_from_bytes::*;
+//! IEEE 802.11 group 19 is NIST P-256. The curve, its encodings and their
+//! checks are the system's one, in nonos_p256; SAE adds only the group's
+//! number.
+
+mod number;
+
+pub use nonos_p256::{
+    curve_a, curve_b, curve_rhs, fe_bytes, fe_const, fe_from_bytes_ct, fe_reduce32, fe_reduce_wide,
+    point_from_xy, point_xy, scalar_bytes, scalar_from_bytes, scalar_is_trivial, scalar_reduce,
+    CURVE_B, LEN, ORDER, PRIME, TWO_256_MOD_P,
+};
+pub use number::GROUP_19;

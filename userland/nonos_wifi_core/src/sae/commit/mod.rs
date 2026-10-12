@@ -21,5 +21,5 @@ use super::group::{point_xy, scalar_bytes, scalar_from_bytes, scalar_is_trivial,
 use crate::wpa::kdf::kdf_sha256;
 use crate::wpa::sha256::{hmac_sha256, hmac_sha256_parts};
 pub use confirm::*;
-use p256::{ProjectivePoint, Scalar};
+use nonos_p256::{ProjectivePoint, Scalar};
 pub use types::*;

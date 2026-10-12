@@ -5,12 +5,16 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cipher;
-mod inv_shift_rows;
-mod sbox;
-mod xtime;
-pub(crate) use cipher::*;
-use inv_shift_rows::*;
-pub use sbox::*;
-pub(crate) use xtime::*;
+//! AES-128 is the system's one, in nonos_aes: computed S-box, no table for
+//! a cache to leak, and AES-NI where the CPU has it.
+
+pub use nonos_aes::Aes128;

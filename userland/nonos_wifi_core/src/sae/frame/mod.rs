@@ -21,5 +21,5 @@ use super::group::{point_from_xy, scalar_from_bytes, scalar_is_trivial, GROUP_19
 use alloc::vec::Vec;
 pub use auth_alg_sae::*;
 pub use commit_body::*;
-use p256::{ProjectivePoint, Scalar};
+use nonos_p256::{ProjectivePoint, Scalar};
 pub use parse_token_request::*;

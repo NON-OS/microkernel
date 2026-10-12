@@ -5,9 +5,9 @@
 # Connections only: the PDUs, the choice of pairing method, AES-CMAC and the
 # f4, f5, f6 and g2 functions, and P-256 ECDH with the peer's key checked
 # on the curve, each from Vol 3, Part H of the Bluetooth Core
-# Specification. AES is the system's nonos_aes; P-256 is the same p256
-# the Wi-Fi core's SAE uses. no_std for the capsules; std under
-# `cargo test` for the host proofs in nonos_bt_smp_proofs.
+# Specification. AES and AES-CMAC are the system's nonos_aes and P-256 is
+# nonos_p256, the same two the Wi-Fi core uses. no_std for the capsules;
+# std under `cargo test` for the host proofs in nonos_bt_smp_proofs.
 [package]
 name = "nonos_bt_smp"
 version = "0.3.0"
@@ -21,7 +21,7 @@ path = "src/lib.rs"
 [dependencies]
 nonos_aes = { path = "../nonos_aes" }
 nonos_bt_wire = { path = "../nonos_bt_wire" }
-p256 = { version = "0.13", default-features = false, features = ["arithmetic"] }
+nonos_p256 = { path = "../nonos_p256" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

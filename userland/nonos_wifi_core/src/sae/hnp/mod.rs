@@ -21,5 +21,4 @@ use crate::wpa::kdf::kdf_sha256;
 use crate::wpa::sha256::hmac_sha256_parts;
 pub use derive_pwe::*;
 pub use min_rounds::*;
-use p256::elliptic_curve::subtle::{Choice, ConditionallySelectable};
-use p256::{FieldElement, ProjectivePoint};
+use nonos_p256::{Choice, ConditionallySelectable, FieldElement, ProjectivePoint};
