@@ -157,4 +157,5 @@ pub enum SyscallNumber {
     MkSmbiosTable = tag4(b"MSMB"),
     MkAcpiCpu = tag4(b"MACP"),
     MkAcpiHolds = tag4(b"MAHO"),
+    MkPciProbeFunction = tag4(b"MPPF"),
 }

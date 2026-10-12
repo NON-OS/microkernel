@@ -40,6 +40,7 @@ pub mod platform_event;
 mod port_access;
 pub mod power_key;
 pub mod power_report;
+pub mod probe_function;
 mod report;
 pub mod rule;
 mod sci;

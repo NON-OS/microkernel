@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `MkAcpiHolds(pid, segment, bus, devfn) -> 1 or 0`: whether `pid` holds
-//! the claim on that PCI function (devfn is device << 3 | function). The
+//! `MkAcpiHolds(pid, segment, bus, devfn) -> 1 or 0`: whether `pid` (any
+//! pid, for 0) holds the claim on that PCI function (devfn is device << 3 | function). The
 //! ACPI capsule asks it before moving a device's power state for the pid
 //! asking. ENOENT when there is no such function; EINVAL for a field
 //! wider than its range.
