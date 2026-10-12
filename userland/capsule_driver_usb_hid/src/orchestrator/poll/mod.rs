@@ -18,8 +18,10 @@ mod constants;
 mod drain_endpoint;
 mod drain_endpoints;
 mod feed_report;
+mod held;
 mod read_len;
 mod refresh_endpoints;
 mod run;
 
+pub use held::Held;
 pub use run::run;

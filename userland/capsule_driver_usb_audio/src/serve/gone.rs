@@ -39,7 +39,7 @@ pub fn give_back(
     if let Some(b) = bound.take() {
         say(TAG, &[why]);
         disable_slot(b.xhci, b.slot);
-        scanner.lost(b.port);
+        scanner.lost(b.xhci, b.port);
     }
     play.lost();
 }
