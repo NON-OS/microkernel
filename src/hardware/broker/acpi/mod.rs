@@ -40,6 +40,7 @@ mod io_grant;
 mod kernel;
 pub mod late_bars;
 pub mod lid_state;
+pub mod logo_record;
 pub mod lpi_record;
 pub mod lpi_wire;
 pub mod lpit_store;

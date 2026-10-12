@@ -17,6 +17,7 @@
 pub mod bgrt_copy;
 pub mod bgrt_entry;
 mod bgrt_load;
+mod bgrt_mode;
 pub mod bmp_check;
 mod dmar;
 pub mod dmar_scope;
@@ -54,6 +55,7 @@ mod wdat_load;
 pub mod wdat_run;
 
 pub use bgrt_load::{boot_logo, boot_logo_file, parse_bgrt};
+pub use bgrt_mode::firmware_mode;
 pub use dmar::{foreign_segment_units, parse_dmar, remap_unit_bases, remap_unit_scopes};
 pub use dmar_scope::{translated_by_some, UnitScope};
 pub use hmat_load::{hmat_attached_initiator, hmat_value, parse_hmat};
