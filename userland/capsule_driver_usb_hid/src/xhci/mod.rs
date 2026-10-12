@@ -16,6 +16,8 @@
 
 mod call;
 mod lookup;
+#[path = "../../../../src/services/registry/usb_hosts.rs"]
+mod usb_hosts;
 mod ops;
 mod seq;
 mod wire;

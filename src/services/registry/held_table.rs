@@ -16,17 +16,7 @@
 
 //! Which endpoints are held, and to whom (held.rs says why).
 
-use super::super::nics::{Link, NICS};
-
-/// The stack a network card is held to, when `endpoint` is one. The cards
-/// come from nics.rs, so a card the stack binds is never left unheld.
-pub(super) fn card_callers(endpoint: &str) -> Option<&'static [&'static str]> {
-    let (_, link) = NICS.iter().find(|(card, _)| *card == endpoint)?;
-    Some(match link {
-        Link::Wired => WIRED_STACK,
-        Link::Wifi => WIFI_STACK,
-    })
-}
+use super::super::usb_hosts::USB_HOSTS;
 
 /// An endpoint held to a list, then the endpoints whose owners may send to it.
 pub(super) const HELD: &[(&str, &[&str])] = &[
@@ -36,12 +26,15 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.usb_msc0", KERNEL_ONLY),
     ("driver.smbus0", KERNEL_ONLY),
     ("driver.virtio_rng", KERNEL_ONLY),
-    ("driver.xhci0", XHCI_CLIENTS),
+    (USB_HOSTS[0], USB_CLIENTS),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.virtio_gpu0", &["compositor"]),
     ("driver.bga0", &["compositor"]),
     ("driver.hda0", &["audio.server"]),
     ("driver.usb_audio0", &["audio.server"]),
+    (USB_HOSTS[1], USB_CLIENTS),
+    (USB_HOSTS[2], USB_CLIENTS),
+    (USB_HOSTS[3], USB_CLIENTS),
 ];
 
 /// The kernel polls the keyboards and pointers, reads the random source and
@@ -50,9 +43,9 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
 /// bus, so it is opened to one when one exists.
 const KERNEL_ONLY: &[&str] = &[];
 
-/// The class drivers above the xHCI controller, each searching the ports
-/// for its own kind of device.
-const XHCI_CLIENTS: &[&str] = &[
+/// The class drivers above every USB host (usb_hosts.rs), each searching the
+/// ports for its own kind of device.
+const USB_CLIENTS: &[&str] = &[
     "driver.usb_hid0",
     "driver.usb_msc0",
     "driver.usb_audio0",
@@ -62,13 +55,3 @@ const XHCI_CLIENTS: &[&str] = &[
     "driver.ax88179_0",
     "driver.rtl8153_0",
 ];
-
-/// net.core carries the frames and asks each card for its link; net.l2 finds
-/// the wired cards.
-const WIRED_STACK: &[&str] = &["net.core", "net.l2"];
-/// A Wi-Fi card answers net.core, which carries its frames, and the panels
-/// that scan and join: Settings, in its first window or a later one
-/// (`src/userspace/capsule_settings/spawn.rs`), and the setup wizard. net.l2
-/// binds only a wired card.
-const WIFI_STACK: &[&str] =
-    &["net.core", "app.settings", "app.settings.1", "app.settings.2", "app.setup_wizard"];
