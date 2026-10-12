@@ -14,19 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The give-up line names the last failure in words; those words replaced
-//! the per-error exit codes.
+mod bga;
+mod describe;
+mod modes;
+mod show;
+mod wire;
 
-use crate::error::{reason, BgaError};
-
-#[test]
-fn a_refusal_names_the_driver_whatever_errno_the_broker_gave() {
-    let w = reason(BgaError::BrokerCallFailed(-16));
-    assert!(w.starts_with("bga: ") && w.len() > "bga: ".len(), "{w:?}");
-    assert!(w.len() <= 80, "{w:?} is too long for the give-up line");
-    assert_eq!(w, reason(BgaError::BrokerCallFailed(-1)));
-    // Exhaustive: a new failure fails to build here until it is given words.
-    match BgaError::BrokerCallFailed(0) {
-        BgaError::BrokerCallFailed(_) => {}
-    }
-}
+pub use bga::{fits, Bga};

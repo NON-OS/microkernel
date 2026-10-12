@@ -17,7 +17,7 @@
 mod claim;
 mod driver;
 mod mmio;
-mod pci;
+mod mode;
 mod sequence;
 
 pub use driver::Driver;

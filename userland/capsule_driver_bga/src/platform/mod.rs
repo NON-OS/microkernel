@@ -13,12 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The kernel half of the wire server: a primary's memory is anonymous
+//! pages of this capsule's own (a VRAM device's shadow, never video
+//! memory), registered as an ARGB8888 surface and shared so the compositor
+//! can attach it.
 
-use core::ptr::write_volatile;
+mod anon;
+mod pool;
+mod surface;
 
-pub fn clear(fb_user_va: u64, pixels: u64, color: u32) {
-    let base = fb_user_va as *mut u32;
-    for i in 0..pixels {
-        unsafe { write_volatile(base.add(i as usize), color) };
-    }
-}
+pub use pool::Pool;

@@ -20,34 +20,32 @@
 mod constants;
 mod discover;
 mod dispi;
+mod display;
+mod edid;
 mod error;
 mod handles;
+mod platform;
 mod regs;
+mod serve;
 mod setup;
 
-use nonos_libc::{mk_exit, mk_idle_ms, start_driver};
+use nonos_libc::{mk_exit, start_driver};
 
 use crate::error::reason;
 
 const DRIVER: &[u8] = b"driver.bga";
-/// The driver serves nothing once the mode is set; it lives only to hold the
-/// claim and the framebuffer mapping. Each wakeup is wasted, so they are rare.
-const HOLD_MS: u64 = 60_000;
 
 /// Without an adapter the driver says so and leaves (`EXIT_ABSENT`) before
 /// claiming anything. An adapter that is there is set up on the shared
-/// bounded schedule and running out is `EXIT_GAVE_UP`. Once the mode is set
-/// the driver sleeps: it used to call `mk_yield` in a loop, which returns at
-/// once when nothing else is runnable and so held a core forever.
+/// bounded schedule, and running out is `EXIT_GAVE_UP`. Once up, the
+/// driver serves the display wire as `driver.bga0` until it is stopped.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     let started =
         start_driver(DRIVER, discover::find_bga(), |dev| setup::run(*dev).map_err(reason));
-    let _driver = match started {
+    let mut driver = match started {
         Ok(driver) => driver,
         Err(code) => mk_exit(code),
     };
-    loop {
-        let _ = mk_idle_ms(HOLD_MS);
-    }
+    serve::run(&mut driver.server)
 }
