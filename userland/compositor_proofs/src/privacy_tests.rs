@@ -16,8 +16,9 @@
 
 //! What a client can learn from the compositor: beyond a status, only
 //! DISPLAY_INFO's canvas geometry (16 bytes), DISPLAY_HINT's flags and
-//! OUTPUT_LAYOUT's mode (4 bytes each); no op hands back pixels, a surface
-//! or a handle, so no client reads another's screen through the compositor.
+//! OUTPUT_LAYOUT's mode (4 bytes each), and SCREENSHOT's size; no op hands
+//! back pixels, a surface or a handle, and the screen's pixels reach only
+//! the surface a screen capture holder shared (`screenshot_tests`).
 
 use crate::protocol::*;
 
@@ -35,8 +36,9 @@ fn no_op_answers_with_pixels_or_handles() {
         OP_DISPLAY_HINT,
         OP_INDICATOR,
         OP_OUTPUT_LAYOUT,
+        OP_SCREENSHOT,
     ];
-    assert_eq!(ops.to_vec(), (1u16..=11).collect::<Vec<_>>(), "every op the dispatch knows");
+    assert_eq!(ops.to_vec(), (1u16..=12).collect::<Vec<_>>(), "every op the dispatch knows");
     assert_eq!(DISPLAY_INFO_RESP_LEN, STATUS_LEN + 16, "the canvas's geometry and nothing else");
     assert_eq!((INDICATOR_REQ_LEN, OUTPUT_LAYOUT_REQ_LEN), (8, 4));
 }

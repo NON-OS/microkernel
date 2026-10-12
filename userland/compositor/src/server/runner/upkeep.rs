@@ -44,7 +44,11 @@ impl Upkeep {
             }
             return;
         }
-        if ctx.indicators.reap(|p| nonos_libc::mk_pid_alive(p)) {
+        let notice_over = ctx.screen_notice_until != 0 && now_ms >= ctx.screen_notice_until;
+        if notice_over {
+            ctx.screen_notice_until = 0;
+        }
+        if ctx.indicators.reap(|p| nonos_libc::mk_pid_alive(p)) || notice_over {
             // A capturer that died stopped capturing: show it.
             let _ = crate::frame_pacer::show_band(ctx);
         }

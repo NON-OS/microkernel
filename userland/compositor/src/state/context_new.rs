@@ -66,6 +66,7 @@ impl Context {
             want_extend: false,
             plan: None,
             head_pending: alloc::vec::Vec::new(),
+            screen_notice_until: 0,
         }
     }
 }

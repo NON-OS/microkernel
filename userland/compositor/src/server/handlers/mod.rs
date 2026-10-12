@@ -25,6 +25,7 @@ pub mod input_subscribe;
 pub mod output_layout;
 pub mod scene_remove;
 pub mod scene_submit;
+pub mod screenshot;
 
 pub(super) fn u32_at(buf: &[u8], off: usize) -> Option<u32> {
     let bytes = buf.get(off..off + 4)?;
