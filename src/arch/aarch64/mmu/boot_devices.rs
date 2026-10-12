@@ -23,18 +23,14 @@ use super::{state, PageAttributes};
 /// megabytes away, and without them no core's timer tick ever arrives.
 pub(super) unsafe fn map_devices(boot_info: &BootInfo) {
     let attrs = PageAttributes::device();
+    // Zero is "absent", the GICv2 redistributor or the GICv3 CPU interface:
+    // mapped anyway, it turns RAM at 0, the Pi 4's first 4 MiB, into Device.
+    map_device_range(boot_info.uart.base, 1, &attrs);
+    map_device_range(boot_info.gic_dist_base, 1, &attrs);
+    map_device_range(boot_info.gic_cpu_base, 1, &attrs);
     // A redistributor frame per CPU, 128 KiB apiece, runs past one block.
     let redist = boot_info.gic_redist_base & !(BLOCK_2M - 1);
-    let windows = [
-        boot_info.uart.base,
-        boot_info.gic_dist_base,
-        boot_info.gic_cpu_base,
-        redist,
-        redist.saturating_add(BLOCK_2M),
-    ];
-    for window in windows {
-        map_device_block(window, &attrs);
-    }
+    map_device_range(redist, 2 * BLOCK_2M, &attrs);
     // The MSI controller is the interrupt controller's third part: an ITS
     // is two 64 KiB frames, which can straddle a block boundary.
     if let Some((msi, _)) = boot_info.msi {
