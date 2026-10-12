@@ -23,7 +23,5 @@ use super::group::{
 use crate::wpa::hkdf;
 use crate::wpa::sha256::hmac_sha256_parts;
 pub use derive_pt::*;
-use p256::elliptic_curve::bigint::Encoding;
-use p256::elliptic_curve::subtle::ConditionallySelectable;
-use p256::{FieldElement, ProjectivePoint, U256};
+use nonos_p256::{ConditionallySelectable, Encoding, FieldElement, ProjectivePoint, U256};
 pub use pwd_value_len::*;

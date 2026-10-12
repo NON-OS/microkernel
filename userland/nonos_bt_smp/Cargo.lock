@@ -95,12 +95,19 @@ version = "0.3.0"
 dependencies = [
  "nonos_aes",
  "nonos_bt_wire",
- "p256",
+ "nonos_p256",
 ]
 
 [[package]]
 name = "nonos_bt_wire"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_p256"
+version = "0.1.0"
+dependencies = [
+ "p256",
+]
 
 [[package]]
 name = "p256"

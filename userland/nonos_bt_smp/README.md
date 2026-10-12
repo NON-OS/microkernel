@@ -9,9 +9,9 @@ rather than paired with.
 
 | Module | What it holds |
 |---|---|
-| `cmac` | AES-CMAC (RFC 4493) over the system's `nonos_aes`. |
+| `cmac` | AES-CMAC (RFC 4493): the system's one, from `nonos_aes`, re-exported. |
 | `funcs` | f4, f5, f6 and g2 (Vol 3, Part H, 2.2.6 to 2.2.9), and the 56-bit address form f5 and f6 take. |
-| `ecdh` | P-256 key pairs and the peer's public key, checked on the curve. The published debug key is refused (2.3.5.6.1). The secret is cleared on drop. |
+| `ecdh` | P-256 key pairs and the peer's public key, on `nonos_p256`, which checks the key on the curve and clears the secret on drop. The published debug key is refused here (2.3.5.6.1). |
 | `method` | IO capabilities and the choice of pairing method from both sides (2.3.5.1). |
 | `pdu` | SMP PDUs with exact lengths, Pairing Request and Response, the Pairing Failed reasons, and conversion between air order and function order. |
 | `pairing` | `Initiator`, the central's side of pairing as a state machine. It is fed the peer's PDUs, the user's answers and the time. It returns the PDUs to send, what to show or ask the user, and the outcome. |
