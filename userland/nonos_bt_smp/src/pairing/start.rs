@@ -18,13 +18,12 @@
 
 use super::draw;
 use super::fields::pdu;
+use super::fresh::Fresh;
+use super::identity::Identity;
 use super::initiator::Initiator;
 use super::io::Random;
-use super::state::State;
-use super::step::Bond;
 use crate::error::SmpError;
-use crate::method::Method;
-use crate::pdu::{auth, Pairing, PAIRING_REQUEST};
+use crate::pdu::{auth, keys, Pairing, PAIRING_REQUEST};
 use alloc::vec::Vec;
 
 impl Initiator {
@@ -39,30 +38,31 @@ impl Initiator {
         rng: &mut dyn Random,
         now_ms: u64,
     ) -> Result<(Self, Vec<u8>), SmpError> {
+        Self::start_private(ours, None, a, b, rng, now_ms)
+    }
+
+    /// As `start`, with this host's identity to send when `ours` offers it
+    /// (init_keys ID). Offering an identity without one to send, or any
+    /// other key of ours, is refused: with Secure Connections the LTK is not
+    /// sent, and this host signs no data (Vol 3, Part H, 3.6.1).
+    pub fn start_private(
+        ours: Pairing,
+        local: Option<Identity>,
+        a: [u8; 7],
+        b: [u8; 7],
+        rng: &mut dyn Random,
+        now_ms: u64,
+    ) -> Result<(Self, Vec<u8>), SmpError> {
+        let offers_id = ours.init_keys & keys::ID != 0;
         if ours.auth_req & auth::SC == 0 || ours.max_key_size != 16 || ours.oob {
             return Err(SmpError::Refused);
         }
+        if ours.init_keys & !keys::ID != 0 || offers_id != local.is_some() {
+            return Err(SmpError::Refused);
+        }
         let keys = draw::key_pair(rng)?;
-        let bond = Bond { ltk: [0; 16], irk: None, identity: None, authenticated: false };
         let request = pdu(PAIRING_REQUEST, &ours.params());
-        let me = Self {
-            state: State::AwaitResponse,
-            ours,
-            peer: None,
-            keys,
-            method: Method::JustWorks,
-            peer_x: [0; 32],
-            dh_key: [0; 32],
-            passkey: 0,
-            na: [0; 16],
-            nb: [0; 16],
-            cb: [0; 16],
-            a,
-            b,
-            mac_key: [0; 16],
-            bond,
-            last_ms: now_ms,
-        };
+        let me = Fresh { ours, local, keys, a, b, now_ms }.into();
         Ok((me, request))
     }
 }

@@ -18,6 +18,8 @@ mod dispatch;
 mod draw;
 mod fail;
 mod fields;
+mod fresh;
+mod identity;
 mod initiator;
 mod io;
 mod keys;
@@ -33,6 +35,7 @@ mod state;
 mod step;
 mod user;
 
+pub use identity::Identity;
 pub use initiator::{Initiator, ROUNDS, TIMEOUT_MS};
 pub use io::Random;
 pub use request::REQUEST;

@@ -29,6 +29,8 @@ mod method_tests;
 #[cfg(test)]
 mod pairing_fail_tests;
 #[cfg(test)]
+mod pairing_identity_tests;
+#[cfg(test)]
 mod pairing_passkey_tests;
 #[cfg(test)]
 mod pairing_refuse_tests;
@@ -40,5 +42,9 @@ mod pairing_timer_tests;
 mod pairing_user_tests;
 #[cfg(test)]
 mod pdu_tests;
+#[cfg(test)]
+mod privacy_draw_tests;
+#[cfg(test)]
+mod privacy_tests;
 #[cfg(test)]
 mod sim;
