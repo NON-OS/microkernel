@@ -34,9 +34,16 @@ its engine may still read them (`keep_at_exit`, section 12).
 ## Interface contract
 
 NVGP v1 (`nonos_gfx_wire`) as `driver.intel_display0`, CAPS kind 7, one
-output (the first lit pipe), firmware's mode only (no MODE_SET or
-MODE_RANGE until mode setting joins the wire), no HW_CURSOR yet (CURSOR
-answers ENOSYS), DEVICE_READS off because FLUSH copies, `physical_mm`
+output (the first lit pipe). On Gen9, an output firmware lit over
+DisplayPort or HDMI through a pipe transcoder is a list device (MODE_SET,
+no MODE_RANGE): MODES are the monitor's, and a MODE_SET maps and fills two
+new surfaces from the new primary, darkens the output, relights its port at
+the monitor's timing (its own detail, or the DMT's for a mode named by size
+and rate), writes the plane's buffer and watermarks, and rebases the plane;
+any failure puts the old mode back on the untouched old surfaces. eDP,
+DVI and the other generations keep firmware's mode (no MODE_SET). No
+HW_CURSOR yet (CURSOR answers ENOSYS), DEVICE_READS off because FLUSH
+copies, `physical_mm`
 from the monitor's EDID (Gen9: read over the lit port's AUX channel for
 DisplayPort and eDP, over GMBUS for HDMI and DVI, the route found from the
 transcoder's DDI function), MODES the shown mode, marked FROM_EDID when the
@@ -77,7 +84,9 @@ on the boot framebuffer.
 ## Current implemented surface
 
 `src/display`: `Intel` (the `nonos_gfx_serve::Display`), `Frames`, `copy`,
-`red_first`, `panel_of` (the monitor's EDID); `engine::route::read`. The binary: `discover::find`, `setup::run`, `bar::Bar0`
+`red_first`, `Monitor` and `panel_of` (the monitor's EDID), `Modeset`,
+`pick` and `matching` (timings), `Intel::change_mode`; `engine::route`,
+`engine::relight::{relight, buffer}`, `Scanout::rebase`, `ggtt_run::map_run`. The binary: `discover::find`, `setup::run`, `bar::Bar0`
 (the engine's `Mmio`), `clock::Uptime`, `frames::DmaFrames`, `serve::run`.
 `src/engine`: `takeover::read_outputs`, `plane::program`, `flip::flip`,
 `vblank::wait_vblank`, `cursor::set`, `ggtt::{map, unmap}`,

@@ -16,7 +16,8 @@
 
 //! The scanout surfaces as the model's IOVA pages: a write lands in the
 //! pages the GGTT points the plane at, so what a copy did is read back as
-//! what the model's scanout shows. Fences are counted.
+//! what the model's scanout shows. Fences are counted; a renewed pair
+//! takes fresh IOVAs above every one used so far.
 
 use super::shared::Shared;
 use crate::display::Frames;
@@ -27,6 +28,10 @@ pub struct ModelFrames {
     pub iova: [u64; 2],
     pub len: usize,
     pub fences: usize,
+    /// The surfaces a mode set replaced, until it settles.
+    pub was: Option<([u64; 2], usize)>,
+    /// Where the next renewed pair starts; None refuses to renew.
+    pub next: Option<u64>,
 }
 
 impl Frames for ModelFrames {
@@ -45,5 +50,20 @@ impl Frames for ModelFrames {
 
     fn fence(&mut self) {
         self.fences += 1;
+    }
+
+    fn renew(&mut self, len: usize) -> Option<[u64; 2]> {
+        let base = self.next?;
+        let pair = [base, base + len as u64];
+        self.next = Some(base + 2 * len as u64);
+        self.was = Some((self.iova, self.len));
+        (self.iova, self.len) = (pair, len);
+        Some(pair)
+    }
+
+    fn settle(&mut self, keep: bool) {
+        if let Some((iova, len)) = self.was.take().filter(|_| !keep) {
+            (self.iova, self.len) = (iova, len);
+        }
     }
 }

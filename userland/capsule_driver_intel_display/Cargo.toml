@@ -26,6 +26,7 @@ path = "src/main.rs"
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_edid = { path = "../nonos_edid" }
+nonos_modes = { path = "../nonos_modes" }
 nonos_hash = { path = "../nonos_hash" }
 nonos_gfx_pool = { path = "../nonos_gfx_pool" }
 nonos_gfx_serve = { path = "../nonos_gfx_serve" }

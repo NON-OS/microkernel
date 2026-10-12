@@ -25,4 +25,11 @@ pub trait Frames {
     /// Order every copy before the flip that shows it (an sfence over
     /// write-combining memory).
     fn fence(&mut self);
+    /// For a mode set: two new surfaces of `len` bytes become the ones
+    /// `put` writes, the old ones kept; the new ones' first IOVAs, None
+    /// when there is no room.
+    fn renew(&mut self, len: usize) -> Option<[u64; 2]>;
+    /// Keep the new surfaces and give the old back; or, `keep` false,
+    /// give the new back and write the old ones again.
+    fn settle(&mut self, keep: bool);
 }
