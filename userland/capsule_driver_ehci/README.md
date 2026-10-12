@@ -55,7 +55,14 @@ No Pio and no Irq: the controller is polled.
 
 ## Current implemented surface
 
-One controller and up to 15 root ports, high-speed devices on them. Each
+Every EHCI controller on the machine is served, as one host
+(server/many, shared with driver.uhci0 and driver.ohci0): an Intel ICH
+or PCH has two. Their root ports are numbered on in PORT_STATUS; slots
+are the host's, each bound to the controller whose port it is addressed
+on. Each controller hands its own full- and low-speed ports to its own
+companions, and the companions' drivers serve every one of those too.
+
+Up to 15 root ports a controller, high-speed devices on them. Each
 port is decided once connected: K-state (low speed) goes to the companion
 unreset; after a reset, a port left disabled (full speed) goes too. The
 async ring holds a head, address 0's control QH, a control QH per slot
@@ -117,8 +124,8 @@ VMware's EHCI and on chipsets with EHCI and companion hosts.
 
 ## Explicit non-goals today
 
-No isochronous transfers, interrupts, suspend or 64-bit addressing; one
-controller of a chipset. Hubs are served: OP_CONFIGURE_HUB (0x21) marks
+No isochronous transfers, interrupts, suspend or 64-bit addressing.
+Hubs are served: OP_CONFIGURE_HUB (0x21) marks
 a slot a hub, and OP_ADDRESS_ROUTED (0x20) addresses a device below one
 without resetting the root port. A full- or low-speed device below a
 high-speed hub (the rate-matching hub of an Intel PCH from the 5 series
