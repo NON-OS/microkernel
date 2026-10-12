@@ -12,7 +12,7 @@ answer each packet and count every wrong data toggle.
 
 ## What it proves
 
-38 `#[test]` functions:
+41 `#[test]` functions:
 
 - start: SMM hand-over, legacy emulation off, reset, every list on, the
   HCCA table, ports powered; an SMM driver that keeps the controller and
@@ -28,6 +28,11 @@ answer each packet and count every wrong data toggle.
   (`poll_tests`, `poll_share_tests`), one slot per port (`lane_tests`);
 - a timed-out IN taken back, a full 4 KiB IN, a slot's EDs retired and
   reused at DATA0 (`recover_tests`); ED and TD words and the lists
-  (`sched_tests`); the wire (`wire_tests`).
+  (`sched_tests`); the wire (`wire_tests`);
+- hubs, through nonos_usb_hub's own walk over this driver's wire (the
+  lane from uhci_proofs): a low-speed keyboard below a full-speed hub,
+  reaching nothing once its EDs lose the low-speed mark; a full-speed
+  stick's bulk data, the hub's root port left up; the routed op's
+  refusals (`hub_tests`).
 
 Run with `cargo test` from this directory.

@@ -32,9 +32,13 @@ mod ep0_fault_tests;
 #[cfg(test)]
 mod hub_fixture;
 #[cfg(test)]
+#[path = "../../uhci_proofs/src/hub_lane.rs"]
 mod hub_lane;
 #[cfg(test)]
 mod hub_refusal_tests;
+#[cfg(test)]
+#[path = "../../uhci_proofs/src/hub_seen.rs"]
+mod hub_seen;
 #[cfg(test)]
 mod hub_tests;
 #[cfg(test)]
