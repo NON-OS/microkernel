@@ -25,9 +25,13 @@
 //! configuration. A transitional function missing one, or whose one cannot
 //! be mapped, would fail every modern attempt, so it keeps its legacy
 //! registers; a modern-only function has none to keep, so it is refused.
+//! The rule is the shared transport's (`nonos_virtio::modern_caps`), which
+//! the other virtio drivers follow with their own structures.
 
-use nonos_virtio::pci::is_modern_id;
-use nonos_virtio::{parse, Bars, Broker, ConfigSpace, ModernCaps, VirtioError};
+use nonos_virtio::{Bars, Broker, ModernCaps, Need, VirtioError};
+
+/// The structures the modern bring-up maps besides common and notify.
+const NEED: Need = Need { isr: false, device: true };
 
 /// The capabilities to drive the function with when it presents a usable
 /// common, notify and device configuration; `None` leaves it to the legacy
@@ -36,11 +40,5 @@ pub fn modern_caps(
     bars: &Bars,
     broker: &mut impl Broker,
 ) -> Result<Option<ModernCaps>, &'static str> {
-    let cfg = ConfigSpace::read(broker).ok_or(VirtioError::ConfigRead.message())?;
-    let caps = parse(&cfg, bars);
-    let usable = caps.common.is_some() && caps.notify.is_some() && caps.device.is_some();
-    if !usable && cfg.u16_at(2).is_some_and(is_modern_id) {
-        return Err("virtio-net: modern-only function without its modern structures");
-    }
-    Ok(usable.then_some(caps))
+    nonos_virtio::modern_caps(bars, broker, NEED).map_err(VirtioError::message)
 }

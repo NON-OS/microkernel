@@ -14,58 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The modern sequence: PCI command, the common and notify regions, the
-//! same two DMA grants as the legacy path, then reset, ACKNOWLEDGE, DRIVER,
-//! features (VERSION_1, and ACCESS_PLATFORM when offered; virtio-rng has no
-//! device features), FEATURES_OK, the request queue, DRIVER_OK. A step that
-//! fails returns its error and `sequence::run` releases the claim, which
-//! takes every grant with it.
+//! The modern sequence: the common and notify regions, reset (waited for by
+//! the clock), ACKNOWLEDGE, DRIVER, features (VERSION_1, and ACCESS_PLATFORM
+//! whenever offered; virtio-rng has no device features), FEATURES_OK, the
+//! two DMA grants, Bus Master, the request queue, DRIVER_OK. A step that
+//! fails after the window is mapped resets the device before the caller
+//! releases the claim, which takes every grant with it.
 
-use nonos_virtio::common::{accept, driver_ok, start};
-use nonos_virtio::{map_window, ModernCaps, Need, VirtioError};
+use nonos_virtio::common::{accept, driver_ok, reset_until, start_until};
+use nonos_virtio::{map_window, ModernCaps, VirtioError, Window};
 
-use super::super::dma;
 use super::super::driver::Driver;
-use super::super::registers::RegisterGrant;
-use super::{pci, queue};
-use crate::constants::ENTROPY_BUF_LEN;
+use super::super::{dma, pci};
+use super::queue;
+use crate::clock::expired_after;
+use crate::constants::RESET_MS;
 use crate::discover::Found;
 use crate::queue::Queue;
-use crate::transport::{LibcBroker, Modern, Transport};
+use crate::transport::{LibcBroker, Modern, Transport, NEED};
 
 pub fn run(dev: Found, claim_epoch: u64, caps: &ModernCaps) -> Result<Driver, &'static str> {
-    pci::enable(dev.device_id, claim_epoch)?;
     let mut broker = LibcBroker::new(dev.device_id, claim_epoch);
-    let window = map_window(&mut broker, caps, Need { isr: false, device: false })
-        .map_err(VirtioError::message)?;
-    let register_grant = RegisterGrant::Modern(window);
-    let queue_dma = dma::map_queue(dev.device_id, claim_epoch, register_grant)?;
-    let buf_dma = dma::map_buffer(dev.device_id, claim_epoch, register_grant, &queue_dma)?;
+    let window = map_window(&mut broker, caps, NEED).map_err(VirtioError::message)?;
+    let live = live(dev, claim_epoch, &window);
+    if live.is_err() {
+        let _ = reset_until(&window.common.region, expired_after(RESET_MS));
+    }
+    live
+}
 
+fn live(dev: Found, claim_epoch: u64, window: &Window) -> Result<Driver, &'static str> {
     let common = window.common.region;
-    start(&common).map_err(VirtioError::message)?;
+    start_until(&common, expired_after(RESET_MS)).map_err(VirtioError::message)?;
     accept(&common, 0).map_err(VirtioError::message)?;
-    let ready = queue::setup(&common, window.notify_area(), queue_dma.device_addr)?;
+    let dma = dma::map_both(dev.device_id, claim_epoch)?;
+    pci::command(dev.device_id, claim_epoch, pci::MASTER)?;
+    let ready = queue::setup(&common, window.notify_area(), dma.ring.device_addr)?;
     driver_ok(&common);
-
-    let queue = Queue::new(
-        queue_dma.user_va,
-        queue_dma.device_addr,
-        buf_dma.user_va,
-        buf_dma.device_addr,
-        ENTROPY_BUF_LEN as u32,
-        ready.queue_size,
-    );
+    let notify = window.notify.region;
     Ok(Driver {
         device_id: dev.device_id,
-        claim_epoch,
-        register_grant,
-        queue_grant: queue_dma.grant_id,
-        buf_grant: buf_dma.grant_id,
-        queue,
-        transport: Transport::Modern(Modern {
-            notify: window.notify.region,
-            doorbell: ready.doorbell,
-        }),
+        queue: Queue::new(dma.ring.view, dma.buf.view, dma.buf.device_addr, ready.queue_size),
+        transport: Transport::Modern(Modern { common, notify, doorbell: ready.doorbell }),
     })
 }

@@ -23,11 +23,11 @@
 
 pub mod answers;
 mod bodies;
-mod ring;
+pub mod ring;
 mod serve;
 
 mod answering;
 mod types;
 
-pub use answering::answering;
+pub use answering::{answering, answering_after_reset};
 pub use types::{Answer, Part, Seen};

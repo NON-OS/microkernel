@@ -25,9 +25,11 @@ The capsule is a normal signed user process:
 - `MkDeviceClaim` gives this process the device claim.
 - `MkPioGrant` takes a transitional device's legacy I/O BAR, or `MkMmioMap`
   maps its register window (legacy MMIO, or the modern structures).
-- Completions are polled: `setup::irq` turns the legacy INTx line off and no
+- Completions are polled: `setup::pci` turns the legacy INTx line off and no
   interrupt is bound, so the manifest holds no `Irq`.
-- `MkDmaMap` and `MkDmaUnmap` allocate virtqueue and entropy buffers.
+- `MkDmaMap` allocates the virtqueue and entropy buffers. The driver never
+  unmaps them itself: `MkDeviceRelease` takes them back once bus mastering
+  is off.
 - `MkIpcRecv` and `MkIpcSend` serve `driver.virtio_rng` on
   `service:4200:driver.virtio_rng`.
 
@@ -65,21 +67,31 @@ forbidden: persistent storage, crypto policy, admin control, packet IO
 
 Entropy bytes are sensitive and short-lived. The capsule does not persist
 samples, write logs, expose device state to unrelated capsules, or keep a
-long-term entropy pool. DMA memory is revoked on exit.
+long-term entropy pool. The DMA buffer is emptied before each request and
+again once its bytes are copied out, and the reply buffer once the reply is
+sent, so no output stays in the capsule after it is delivered. DMA memory is
+revoked on exit.
 
 ## Runtime lifecycle
 
 The capsule claims the virtio RNG, sets Interrupt Disable, maps its registers,
-allocates queue and entropy DMA, initializes the virtqueue, performs a sanity
-fill (exit 3 if it fails, exit 4 if every byte is zero), and serves IPC.
-Teardown releases DMA, register, and claim grants.
+resets the device, allocates queue and entropy DMA, turns bus mastering on,
+initializes the virtqueue, performs a sanity fill (exit 3 if it fails, exit 4
+if every byte is zero), and serves IPC. Teardown resets the device (status 0,
+read back by the clock) and then releases the claim; the broker turns bus
+mastering off before it tears down the DMA and register grants.
 
-A transitional device that still has its legacy I/O BAR is driven over the
-legacy registers. A modern-only one (what QEMU builds once the device sits
-behind its IOMMU) is driven over the virtio 1.0 structures its vendor
-capabilities place in a memory BAR, through the shared transport in
-`userland/nonos_virtio`, with VERSION_1 and ACCESS_PLATFORM negotiated so the
-device writes entropy through the IOMMU into the DMA grant.
+The modern transport is taken whenever the function presents the virtio 1.0
+structures it maps, common and notify (virtio-rng has no device
+configuration), a transitional 0x1005 beside its legacy I/O BAR included
+(`nonos_virtio::modern_caps`): only the modern transport can take
+ACCESS_PLATFORM, which is accepted whenever it is offered. A modern-only
+0x1044 missing either is refused by name. The legacy registers are left for
+a transitional function that does not present them; there the
+device's QUEUE_NUM is taken as offered, or refused when the two-page ring
+region cannot hold it (above 227 entries). Whether the claim is confined to
+an IOMMU domain is the kernel's to enforce at claim time; the capsule does
+not guess.
 
 ## Failure model
 
@@ -87,7 +99,18 @@ Setup failure aborts the attempt and releases the claim, which takes every
 grant with it. Bring-up is tried a bounded number of times with a sleep
 between tries (`nonos_libc::bring_up`); the capsule exits 2 when no device is
 present and 6 when one is present but never comes up. Fill failure returns an
-error and never falls back to a fake software source. Request lengths are bounded by `MAX_FILL_BYTES`.
+error and never falls back to a fake software source. Request lengths are
+bounded by `MAX_FILL_BYTES`.
+
+One request is in flight at most. A request the device has not answered
+within `FILL_MS` (500 ms, by the uptime clock) is answered `E_IO`, and the
+queue stalls with it still posted: its buffer is never read and nothing is
+posted over it, so a late completion cannot pass for a later request's. The
+server then resets the device, releases the claim and brings the device up
+again on fresh grants (`server::recover`), or exits 6 if it does not come
+back. A used element naming a descriptor that was never posted, or a used
+index that moves by more than the request in flight, is handled the same
+way.
 
 ## Current implemented surface
 
@@ -144,7 +167,10 @@ entropy.
 ## Explicit non-goals today
 
 No entropy mixing, no software fallback RNG, no persistent health telemetry,
-no key generation, and no crypto API live in this capsule.
+no key generation, and no crypto API live in this capsule. Nor do continuous
+health tests: the SP 800-90B repetition-count and adaptive-proportion tests
+mixes them in and never credits the capsule alone. The capsule refuses only
+an all-zero startup fill.
 
 ## Verification
 
@@ -162,14 +188,18 @@ no key generation, and no crypto API live in this capsule.
 
 Proved on the host, without a device: the transport choice, the capability
 parse, feature negotiation, queue programming and the doorbell arithmetic
-(`userland/virtio_transport_proofs`), and the legacy handshake and the
-request ring, each completion read from its own used element
-(`userland/virtio_rng_proofs`). Only a boot shows the rest. Under QEMU q35,
+(`userland/virtio_transport_proofs`), and the legacy handshake and queue
+size, the request ring, the fill's deadline, a late completion that is never
+served, and the reset-before-release orders (`userland/virtio_rng_proofs`). Only a boot shows the rest. Under QEMU q35,
 confirm both ways:
 
 - Without an IOMMU (`-device virtio-rng-pci`, transitional 0x1005): the
-  sanity fill passes (the capsule does not exit 3 or 4) and fill requests of
-  different sizes return fresh, different bytes.
+  driver binds modern, the sanity fill passes (the capsule does not exit 3 or
+  4) and fill requests of different sizes return fresh, different bytes.
+- A slow backend (`-object rng-random,id=r,filename=/dev/urandom -device
+  virtio-rng-pci,rng=r,max-bytes=1,period=60000`): a fill times out, the
+  `driver.virtio_rng: request stalled; resetting the device` line appears,
+  and the device comes back.
 - With the IOMMU lane (`-device intel-iommu` with `QEMU_IOMMU_OPTS`, and the
   device with `QEMU_IOMMU_VIRTIO`, i.e. `iommu_platform=on,disable-legacy=on`;
   see mk/10-qemu.mk) (modern-only 0x1044): the same, with VERSION_1 and

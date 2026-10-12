@@ -1,9 +1,10 @@
 # NONOS Operating System
 # Copyright (C) 2026 NONOS Contributors
 #
-# Host-runnable proofs for the virtio-rng driver's bring-up handshake. Builds
-# for the host so `cargo test` runs the real driver source (included via
-# #[path]) against a register window in memory, without a boot and without a
+# Host-runnable proofs for the virtio-rng driver: its bring-up handshake,
+# its request queue and the fill that waits on it. Builds for the host so
+# `cargo test` runs the real driver source (included via #[path]) against a
+# register window and DMA memory in host memory, without a boot and without a
 # device.
 [package]
 name = "virtio_rng_proofs"
@@ -15,3 +16,5 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_devmodel = { path = "../nonos_devmodel" }
+# The register window, the queue's DMA views and the modern reset.
+nonos_virtio = { path = "../nonos_virtio" }

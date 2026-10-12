@@ -28,6 +28,9 @@ pub enum Answer {
     /// The published head with bit 16 set: equal to it only if the id is
     /// cut to 16 bits.
     AliasedDescriptor,
+    /// The right head, but the used index moved by two: an answer to a
+    /// command that was never published.
+    SkippedIndex,
     BadEdidMagic,
     WrongFence,
 }

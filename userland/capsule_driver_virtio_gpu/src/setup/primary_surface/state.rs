@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+/// The primary surface: what the compositor is handed, and the frames
+/// behind it, which a recovery attaches again to the resource it remakes.
 #[derive(Clone, Copy)]
 pub struct Primary {
     pub handle: u64,
@@ -20,6 +22,7 @@ pub struct Primary {
     pub width: u32,
     pub height: u32,
     pub stride: u32,
+    /// Where the device finds the surface's frames, and how many bytes.
     pub backing_addr: u64,
-    pub backing_len: u64,
+    pub backing_len: u32,
 }

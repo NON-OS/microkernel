@@ -123,9 +123,6 @@ userland/capsule_driver_virtio_blk/src/server/handlers/flush.rs:26
 userland/capsule_driver_virtio_blk/src/server/handlers/read/handle.rs:42
 userland/capsule_driver_virtio_blk/src/server/handlers/write/handle.rs:50
 userland/capsule_driver_virtio_blk/src/setup/registers.rs:58
-userland/capsule_driver_virtio_gpu/src/setup/mmio/grant.rs:30
-userland/capsule_driver_virtio_gpu/src/setup/mmio/labels.rs:22
-userland/capsule_driver_virtio_gpu/src/setup/mmio/labels.rs:33
 userland/capsule_driver_virtio_net/src/setup/registers/map.rs:30
 userland/capsule_driver_virtio_rng/src/setup/registers/grant.rs:26
 userland/capsule_driver_xhci/src/error/reason.rs:28

@@ -19,8 +19,6 @@ pub fn insert(
     resources: &ResourceTable,
     resource_id: u32,
     scanout: Scanout,
-    backing_addr: u64,
-    backing_len: u32,
 ) -> Result<(), &'static str> {
     resources
         .insert(Resource {
@@ -29,8 +27,6 @@ pub fn insert(
             width: scanout.width,
             height: scanout.height,
             format: VG_FORMAT_B8G8R8A8_UNORM,
-            backing_addr,
-            backing_len,
             in_use: true,
         })
         .map_err(|_| "virtio-gpu: primary resource insert failed")

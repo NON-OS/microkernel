@@ -19,15 +19,11 @@ use super::super::stream::{Stream, CCMD_SET_FRAMEBUFFER_STATE, OBJ_NULL};
 
 /// Binds the surfaces a later clear or draw writes into. A zero depth handle
 /// means no depth attachment, which is what a plain colour pass wants.
-pub fn set_framebuffer(
-    s: &mut Stream,
-    colour: &[u32],
-    depth: u32,
-) -> Result<(), &'static str> {
+pub fn set_framebuffer(s: &mut Stream, colour: &[u32], depth: u32) -> Result<(), &'static str> {
     if colour.is_empty() && depth == 0 {
         return Err("virgl: framebuffer with no attachments");
     }
-    if colour.iter().any(|&h| h == 0) {
+    if colour.contains(&0) {
         return Err("virgl: colour attachment handle 0");
     }
     let mut payload = Vec::with_capacity(2 + colour.len());

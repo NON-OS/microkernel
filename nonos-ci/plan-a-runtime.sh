@@ -59,7 +59,7 @@ fi
   -drive "format=raw,file=fat:rw:$ESP_DIR" \
   -drive "file=$QEMU_BLK_IMG,if=none,id=vd0,format=raw" \
   -device virtio-blk-pci,drive=vd0 \
-  -device virtio-gpu-pci,disable-modern=on,vectors=0 \
+  -device virtio-gpu-pci,vectors=0 \
   -device qemu-xhci,id=xhci \
   -device usb-tablet,bus=xhci.0 \
   -device virtio-rng-pci \

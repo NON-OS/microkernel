@@ -14,24 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_yield;
+//! Waiting for the device to use the command in flight. The wait ends when
+//! `expired` says so, which the caller makes a deadline by the clock
+//!; it used to be 8192 yields of 1024 reads each, whose length
+//! was the processor's and the scheduler's.
 
 use super::{layout::QueueLayout, used};
 
-const SPINS_PER_YIELD: u32 = 1024;
-const YIELD_LIMIT: u32 = 8192;
+/// Reads between the clock's questions: a command is often answered within
+/// them, which spares a yield.
+const READS_PER_CHECK: u32 = 1024;
 
-pub fn used_changed(layout: QueueLayout, pre_used_idx: u16) -> Result<(), &'static str> {
-    for _ in 0..YIELD_LIMIT {
-        for _ in 0..SPINS_PER_YIELD {
-            if used::read_idx(layout) != pre_used_idx {
+pub fn used_moved(
+    layout: QueueLayout,
+    from: u16,
+    mut expired: impl FnMut() -> bool,
+) -> Result<(), &'static str> {
+    loop {
+        for _ in 0..READS_PER_CHECK {
+            if used::read_idx(layout) != from {
                 return Ok(());
             }
             core::hint::spin_loop();
         }
-        if mk_yield() < 0 {
-            return Err("virtio-gpu: yield failed");
+        if expired() {
+            return Err("virtio-gpu: device timeout");
         }
     }
-    Err("virtio-gpu: device timeout")
 }

@@ -14,25 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The driver against modelled capability regions and a part that consumes
-//! the control queue.
+//! The driver against modelled capability regions, a part that consumes the
+//! control queue, and a client; and the orders in its source that only a
+//! boot runs.
 
+mod client;
+mod frames;
 mod harness;
 mod model;
 mod part;
-
+mod refusal;
+mod stall;
 mod wire;
 
+mod boundary_frame_tests;
 mod config_tests;
-mod legacy_tests;
+mod discovery_tests;
+mod dispatch_tests;
+mod late_tests;
+mod mode_tests;
 mod modern_queue_tests;
 mod modern_refusal_tests;
 mod modern_tests;
 mod notify_bound_tests;
+mod order_tests;
 mod queue_limit_tests;
 mod queue_tests;
+mod recover_order_tests;
+mod recover_tests;
 mod reply_refusal_tests;
 mod reply_tests;
 mod request_refusal_tests;
+mod teardown_tests;
 mod wire_scanout_tests;
 mod wire_tests;

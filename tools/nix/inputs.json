@@ -4857,11 +4857,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "userland/capsule_driver_virtio_gpu/src/constants",
-   "userland/capsule_driver_virtio_gpu/src/device",
-   "userland/capsule_driver_virtio_gpu/src/init",
-   "userland/capsule_driver_virtio_gpu/src/protocol",
-   "userland/capsule_driver_virtio_gpu/src/regs",
+   "userland/capsule_driver_virtio_gpu/src",
    "userland/nonos_devmodel",
    "userland/nonos_virtio",
    "userland/virtio_gpu_proofs"
@@ -4884,12 +4880,9 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "userland/capsule_driver_virtio_rng/src/constants",
-   "userland/capsule_driver_virtio_rng/src/init.rs",
-   "userland/capsule_driver_virtio_rng/src/queue",
-   "userland/capsule_driver_virtio_rng/src/regs/io.rs",
-   "userland/capsule_driver_virtio_rng/src/regs/state.rs",
+   "userland/capsule_driver_virtio_rng/src",
    "userland/nonos_devmodel",
+   "userland/nonos_virtio",
    "userland/virtio_rng_proofs"
   ],
   "md": [],

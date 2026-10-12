@@ -26,17 +26,15 @@ pub struct ResourceTable {
 
 impl ResourceTable {
     pub const fn new() -> Self {
-        const EMPTY: Cell<Resource> = Cell::new(Resource {
+        const EMPTY: Resource = Resource {
             resource_id: 0,
             owner_pid: 0,
             width: 0,
             height: 0,
             format: 0,
-            backing_addr: 0,
-            backing_len: 0,
             in_use: false,
-        });
-        Self { next_id: Cell::new(1), entries: [EMPTY; MAX_RESOURCES] }
+        };
+        Self { next_id: Cell::new(1), entries: [const { Cell::new(EMPTY) }; MAX_RESOURCES] }
     }
     pub fn alloc_id(&self) -> u32 {
         let id = self.next_id.get();

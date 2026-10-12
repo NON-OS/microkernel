@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const VIRTIO_VENDOR_ID: u16 = 0x1AF4;
-pub const VIRTIO_GPU_TRANSITIONAL: u16 = 0x1010;
+/// virtio-gpu is a virtio 1.0 device: the specification gives it no
+/// transitional id, and QEMU builds virtio-vga and virtio-gpu-pci modern
+/// whatever disable-modern says. Nothing presents 0x1010.
 pub const VIRTIO_GPU_MODERN: u16 = 0x1050;
-pub const BAR_OFFSET: u64 = 0;

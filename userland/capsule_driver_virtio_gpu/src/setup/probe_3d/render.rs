@@ -41,12 +41,7 @@ pub fn create_target(q: &ControlQueue, fences: &FenceCounter) -> Result<(), &'st
 /// not by the guest.
 pub fn clear_target(q: &ControlQueue, fences: &FenceCounter) -> Result<(), &'static str> {
     let mut s = Stream::new();
-    create_surface(
-        &mut s,
-        PROBE_SURFACE_HANDLE,
-        PROBE_RESOURCE_ID,
-        VG_FORMAT_B8G8R8A8_UNORM,
-    )?;
+    create_surface(&mut s, PROBE_SURFACE_HANDLE, PROBE_RESOURCE_ID, VG_FORMAT_B8G8R8A8_UNORM)?;
     set_framebuffer(&mut s, &[PROBE_SURFACE_HANDLE], 0)?;
     set_viewport(&mut s, PROBE_WIDTH, PROBE_HEIGHT)?;
     clear(

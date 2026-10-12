@@ -14,61 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `Queue` carries the pointers and bookkeeping the post/used
-//! paths share. The struct is `Copy` so phase modules can hand it
-//! across without taking a borrow on the outer `Driver`.
+//! The request queue: the ring and the entropy buffer, each a bounds-checked
+//! view of its DMA grant, and the driver's own count of what it posted and
+//! what it took back. The copies of those counts in shared memory are the
+//! device's to write, so none is believed until it agrees with these.
 
-use crate::constants::QUEUE_SIZE;
+use nonos_virtio::Mmio;
 
-#[derive(Debug, Clone, Copy)]
 pub struct Queue {
-    pub region_va: *mut u8,
-    pub region_phys: u64,
-    pub buf_va: *mut u8,
-    pub buf_phys: u64,
-    pub buf_len: u32,
-    pub avail_offset: usize,
-    /// Ring entries the device was told: available and used positions run
-    /// modulo this.
-    pub queue_size: u16,
-    pub last_used: u16,
+    pub(super) ring: Mmio,
+    pub(super) buf: Mmio,
+    pub(super) buf_phys: u64,
+    pub(super) avail_offset: usize,
+    /// Ring entries the device was told: positions run modulo this.
+    pub(super) queue_size: u16,
+    /// Requests published, and completions taken. One request is in flight
+    /// at most, so they differ by one while it is.
+    pub(super) posted: u16,
+    pub(super) used: u16,
+    /// A request timed out, or the device answered one it was never given:
+    /// the device may still write the buffer, so nothing is posted or read
+    /// until it is reset and the queue built afresh.
+    pub(super) stalled: bool,
 }
 
 impl Queue {
-    pub fn new(
-        region_va: u64,
-        region_phys: u64,
-        buf_va: u64,
-        buf_phys: u64,
-        buf_len: u32,
-        queue_size: u16,
-    ) -> Self {
+    /// `ring` holds VQ_REGION_SIZE bytes and `buf` the bytes the descriptor
+    /// offers, at device address `buf_phys`.
+    pub fn new(ring: Mmio, buf: Mmio, buf_phys: u64, queue_size: u16) -> Self {
         const DESC_BYTES: usize = 16;
         Self {
-            region_va: region_va as *mut u8,
-            region_phys,
-            buf_va: buf_va as *mut u8,
+            ring,
+            buf,
             buf_phys,
-            buf_len,
-            avail_offset: queue_size as usize * DESC_BYTES,
+            avail_offset: usize::from(queue_size) * DESC_BYTES,
             queue_size,
-            last_used: 0,
+            posted: 0,
+            used: 0,
+            stalled: false,
         }
     }
 
-    pub const fn queue_size() -> u16 {
-        QUEUE_SIZE
+    /// Whether the device must be reset before the queue is used again.
+    pub fn stalled(&self) -> bool {
+        self.stalled
     }
 
-    /// Physical address the device sees for the descriptor table.
-    /// The legacy queue PFN write divides this by 4 KiB.
-    pub fn region_phys(&self) -> u64 {
-        self.region_phys
+    /// The request in flight is given up on: it stays the device's.
+    pub fn stall(&mut self) {
+        self.stalled = true;
     }
 
     /// A ring position reduced to the ring. A zero size (which bring-up
     /// never hands over) is taken as one entry rather than divided by.
     pub fn ring_pos(&self, idx: u16) -> usize {
-        (idx % self.queue_size.max(1)) as usize
+        usize::from(idx % self.queue_size.max(1))
     }
 }

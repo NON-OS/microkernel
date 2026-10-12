@@ -52,7 +52,7 @@ _iv := $(_boot_comma)$(QEMU_IOMMU_VIRTIO)$(_boot_comma)
 iommu_virtio = $(foreach d,virtio-blk-pci virtio-net-pci virtio-rng-pci virtio-vga virtio-vga-gl,\
 	$(eval _iommu_args := $(patsubst $(d),$(d)$(_boot_comma)$(QEMU_IOMMU_VIRTIO),\
 	$(subst $(d)$(_boot_comma),$(d)$(_iv),$(_iommu_args)))))$(_iommu_args)
-iommu_virtio_args = $(eval _iommu_args := $(subst virtio-vga$(_boot_comma)disable-modern=on,virtio-vga,$(1)))$(call iommu_virtio)
+iommu_virtio_args = $(eval _iommu_args := $(1))$(call iommu_virtio)
 QEMU_BLK_IMG := $(TARGET_DIR)/qemu-virtio-blk.img
 QEMU_OVMF_VARS_RW := $(TARGET_DIR)/qemu-OVMF_VARS.fd
 QEMU_BLK := -drive "file=$(QEMU_BLK_IMG),if=none,id=vd0,format=raw" -device virtio-blk-pci,drive=vd0
@@ -93,7 +93,7 @@ ifeq ($(QEMU_GL),1)
 QEMU_GPU := -device virtio-vga-gl,xres=$(QEMU_XRES),yres=$(QEMU_YRES)
 QEMU_DISPLAY ?= $(QEMU_UI),gl=es,zoom-to-fit=on
 else
-QEMU_GPU := -device virtio-vga,disable-modern=on,vectors=0,edid=on,xres=$(QEMU_XRES),yres=$(QEMU_YRES)
+QEMU_GPU := -device virtio-vga,vectors=0,edid=on,xres=$(QEMU_XRES),yres=$(QEMU_YRES)
 QEMU_DISPLAY ?= $(QEMU_UI),zoom-to-fit=on
 endif
 # Keyboard/mouse via the q35 i8042 (PS/2). USB HID interrupt-IN transfers

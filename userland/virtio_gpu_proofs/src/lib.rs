@@ -17,31 +17,43 @@
 //! The virtio-gpu driver, proved without the device.
 //!
 //! The `#[path]` includes pull in the shipping driver source, so these tests
-//! run the code that boots. The register type is built from base addresses,
-//! so windows in host memory stand in for the common, notify and device
-//! capability regions, and a queue region in host memory stands in for the
-//! DMA mapping. The discovery, broker and IPC server halves talk to the
-//! kernel rather than to the part and stay out.
+//! run the code that boots. Its register and DMA regions are bounds-checked
+//! views (`nonos_virtio::Mmio`), so windows in host memory stand in for the
+//! common, notify and device capability regions and for the queue's grant,
+//! and a part on its own thread consumes the ring the way a device does.
+//! The parts that talk to the kernel (discovery's list, the broker, the
+//! receive loop) stay out; the clock counts each question a wait asks as a
+//! millisecond.
 //!
-//! Two things are held to the specification here. The bring-up: the status
-//! handshake, the features the driver accepts against what was offered, and
-//! where it tells the part its rings are. The control queue: every command
-//! goes out as a two-descriptor chain, the part's answer is read back from
-//! the descriptor it named, and the wire bytes of each 2D command match the
-//! layouts in the virtio specification, checked by a part on its own thread
-//! that consumes the ring the way a device does.
+//! Held to the specification here: the bring-up on the shared transport
+//! (the status handshake, the features taken against those offered, where
+//! the rings are, the doorbell's bound), the control queue (each command a
+//! two-descriptor chain, its answer read from the descriptor the part
+//! named, a command that times out ending in a reset, never a stale chain
+//! run with new bytes), the wire bytes of each command, the server's
+//! answers to the requests a client can send, and its recovery from a stall
+//! on the same surface, or to a named `Down` with nothing released.
 
 extern crate alloc;
 
+pub mod clock;
 #[path = "../../capsule_driver_virtio_gpu/src/constants/mod.rs"]
 pub mod constants;
 #[path = "../../capsule_driver_virtio_gpu/src/device/mod.rs"]
 pub mod device;
+pub mod discover;
+#[path = "../../capsule_driver_virtio_gpu/src/driver.rs"]
+pub mod driver;
 #[path = "../../capsule_driver_virtio_gpu/src/init/mod.rs"]
 pub mod init;
 #[path = "../../capsule_driver_virtio_gpu/src/protocol/mod.rs"]
 pub mod protocol;
+#[path = "../../capsule_driver_virtio_gpu/src/regs.rs"]
 pub mod regs;
+pub mod server;
+pub mod setup;
+#[path = "../../capsule_driver_virtio_gpu/src/state/mod.rs"]
+mod state;
 
 #[cfg(test)]
 mod tests;
