@@ -25,12 +25,12 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         NetworkE1000e | NetworkIgb | NetworkIxgbe => DataPath,
         NetworkRtl8821ce => DataPath,
         DisplayGopFramebuffer | DisplayVirtioGpu | DisplayBga => DataPath,
-        UsbXhci | UsbOhci | UsbUhci | InputPs2 | InputUsbHid => DataPath,
+        UsbXhci | UsbEhci | UsbOhci | UsbUhci | InputPs2 | InputUsbHid => DataPath,
         NetworkIwlwifi | AudioHda | InputI2cHid | SerialI2c => ControllerStatus,
         SerialSmbus => DataPath,
         DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => EnumerateOnly,
         StorageVmd | NetworkRealtekWifi => EnumerateOnly,
         NetworkIgc => EnumerateOnly,
-        UsbEhci | SerialSpi | BridgePci | SystemPeripheral | Unknown => EnumerateOnly,
+        SerialSpi | BridgePci | SystemPeripheral | Unknown => EnumerateOnly,
     }
 }
