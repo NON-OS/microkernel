@@ -26,7 +26,16 @@ use crate::display::head_rule::{head_step, heads_wanted, HeadStep};
 use crate::sw_blitter::Surface;
 
 fn head(stale: bool) -> Head {
-    Head { output: 1, serial: 0x0028_0002, handle: 9, screen: Surface::default(), stale }
+    let screen = Surface::default();
+    Head {
+        output: 1,
+        serial: 0x0028_0002,
+        handle: 9,
+        screen,
+        stale,
+        cursor_offset: 0,
+        shaped: false,
+    }
 }
 
 fn state(serial: u32, flags: u32) -> Option<State> {

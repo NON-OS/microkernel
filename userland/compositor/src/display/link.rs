@@ -32,4 +32,7 @@ pub struct WireLink {
     /// A FLUSH answered ESTALE: the primary must be asked for again
     /// before anything else is shown.
     pub stale: bool,
+    /// Where the primary's cursor slot starts, when CAPS has HW_CURSOR and
+    /// the pointer goes on the device's plane; 0 composites it.
+    pub cursor_offset: u32,
 }
