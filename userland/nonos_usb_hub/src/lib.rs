@@ -32,6 +32,8 @@ mod forget_slot;
 mod host;
 mod line;
 mod node;
+mod park;
+mod parker;
 mod place;
 mod port_status;
 mod power;
@@ -48,9 +50,11 @@ pub use classes::Classes;
 pub use descriptor::{parse_hub_descriptor, HubDescriptor, DT_HUB, DT_SS_HUB, MAX_HUB_PORTS};
 pub use error::HubError;
 pub use forget_slot::{forget_root, forget_slot};
-pub use host::{Host, Setup, E_BUSY, E_INVAL};
+pub use host::{Host, Setup, E_BUSY, E_INVAL, OP_PARK};
 pub use line::{hub_port, Line};
 pub use node::Hub;
+pub use park::{park_body, PARK_LEN};
+pub use parker::{as_hub, Parker};
 pub use place::{speed_name, Place};
 pub use port_status::{
     decode_port_status, HubPort, SPEED_FULL, SPEED_HIGH, SPEED_LOW, SPEED_SUPER,

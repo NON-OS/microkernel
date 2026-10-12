@@ -8,6 +8,7 @@ use std::cell::RefMut;
 use nonos_usb_hub::{attach, Classes, Host, Hub, Place, Setup};
 
 use crate::hub_lane::Lane;
+use crate::hub_wire::Wire;
 use crate::model::hub::HubModel;
 use crate::model::{Device, Shared};
 
@@ -20,8 +21,14 @@ pub struct Seen {
     pub bound: Vec<(u8, Place)>,
 }
 
-impl<'a> Classes<Lane<'a>> for Seen {
-    fn classify(&mut self, h: &mut Lane<'a>, slot: u8, place: Place, hubs: &mut Vec<Hub>) -> bool {
+impl<'a, W: Wire> Classes<Lane<'a, W>> for Seen {
+    fn classify(
+        &mut self,
+        h: &mut Lane<'a, W>,
+        slot: u8,
+        place: Place,
+        hubs: &mut Vec<Hub>,
+    ) -> bool {
         let mut raw = [0u8; 64];
         let get = Setup { request_type: 0x80, request: 6, value: 0x0200, index: 0, length: 64 };
         let Ok(n) = h.control(slot, get, &mut raw) else { return false };

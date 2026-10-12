@@ -15,39 +15,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Reading an addressed device's configuration and binding its HID
-//! interfaces, or bringing it up as a hub.
+//! interfaces. A hub is driver.usb_hub0's: its slot is given back, and the
+//! devices below it come back as virtual ports this driver claims as it
+//! claims root ports.
 
 use alloc::vec::Vec;
 
 use crate::descriptors::{configuration_value, hid_bindings, is_hub};
-use crate::hub::{Hub, Place, XhciHost};
 use crate::xhci::{control_transfer, MAX_DESCRIPTOR_LEN};
 
 use super::super::binding::configure_binding;
-use super::attach_hub::attach_hub;
 use super::read_configuration::read_configuration;
 use super::types::{HidEndpoint, Outcome};
 
 const SET_CONFIGURATION: u8 = 0x09;
 
-/// Bind `slot`'s HID interfaces onto `eps`, or bring it up as a hub onto
-/// `hubs`.
-pub(super) fn classify(
-    h: &mut XhciHost,
-    slot: u8,
-    place: Place,
-    eps: &mut Vec<HidEndpoint>,
-    hubs: &mut Vec<Hub>,
-) -> Outcome {
-    let xhci_port = h.port;
+/// Bind `slot`'s HID interfaces, on port `port`, onto `eps`.
+pub(super) fn classify(xhci_port: u32, slot: u8, port: u8, eps: &mut Vec<HidEndpoint>) -> Outcome {
     let mut desc = [0u8; MAX_DESCRIPTOR_LEN];
     let Some(len) = read_configuration(xhci_port, slot, &mut desc) else {
         return Outcome::Failed;
     };
     let raw = &desc[..len];
-    let hub = is_hub(raw);
     let bindings = match hid_bindings(raw) {
-        _ if hub => Vec::new(),
+        _ if is_hub(raw) => return Outcome::NotHid,
         Ok(b) if !b.is_empty() => b,
         _ => return Outcome::NotHid,
     };
@@ -57,11 +48,8 @@ pub(super) fn classify(
     {
         return Outcome::Failed;
     }
-    if hub {
-        return attach_hub(h, slot, place, raw, hubs);
-    }
     for binding in bindings {
-        configure_binding(xhci_port, slot, place.root_port, binding, eps);
+        configure_binding(xhci_port, slot, port, binding, eps);
     }
     Outcome::Bound
 }
