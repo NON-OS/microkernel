@@ -169,6 +169,7 @@ MNNO = 0x4F4E4E4D
 MNDS = 0x53444E4D
 MDNN = 0x4E4E444D
 MNHM = 0x4D484E4D
+MBGL = 0x4C47424D
 MMMP = 0x504D4D4D
 MMUM = 0x4D554D4D
 MIRB = 0x4252494D
@@ -955,4 +956,10 @@ ret  = {type="i64"}
 nr   = 0x4D484E4D
 caps = ["DeviceEnum"]
 args = [{name="which",type="u64",dir="in"},{name="initiator",type="u32",dir="in"},{name="target",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MBGL]
+nr   = 0x4C47424D
+caps = ["GraphicsSurfaceCreate"]
+args = [{name="which",type="u64",dir="in"},{name="out",type="u8*",dir="out"},{name="len",type="usize",dir="in"}]
 ret  = {type="i64"}

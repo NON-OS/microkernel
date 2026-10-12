@@ -110,6 +110,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAcpiOscGrant
             | MkNumaHmat
             | MkAcpiLpit
+            | MkBootLogo
             | MkDebug
             | MkStdoutWrite
             | MkPrivateWrite

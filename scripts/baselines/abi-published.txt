@@ -85,6 +85,7 @@ syscalls.numbers MAPY 1498431821
 syscalls.numbers MAST 1414742349
 syscalls.numbers MAUN 1314210125
 syscalls.numbers MBAT 1413562957
+syscalls.numbers MBGL 1279738445
 syscalls.numbers MBSL 1280524877
 syscalls.numbers MBTA 1096041037
 syscalls.numbers MCCK 1262699341
