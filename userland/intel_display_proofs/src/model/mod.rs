@@ -23,6 +23,7 @@ pub mod firmware;
 pub mod gen9;
 pub mod latch;
 pub mod mmio;
+pub mod pipe_hw;
 pub mod scanout;
 pub mod sink;
 pub mod sink_aux;
