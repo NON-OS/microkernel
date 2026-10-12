@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /*
  * MkPciConfigWrite's two forms (L37): the plain one ORs a Command value of
  * writable bits on, the masked one names the bits it changes so a driver
