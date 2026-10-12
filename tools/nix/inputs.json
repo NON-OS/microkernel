@@ -5559,6 +5559,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_driver_usb_hid/src/descriptors/application.rs",
    "userland/capsule_driver_usb_hid/src/descriptors/binding.rs",
    "userland/capsule_driver_usb_hid/src/descriptors/config.rs",
    "userland/capsule_driver_usb_hid/src/descriptors/packet_size.rs",
