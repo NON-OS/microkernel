@@ -45,6 +45,8 @@ pub mod region;
 pub mod shape;
 #[path = "../../nonos_aml/src/thermal/mod.rs"]
 pub mod thermal;
+#[path = "../../nonos_aml/src/video/mod.rs"]
+pub mod video;
 
 #[cfg(test)]
 mod support;

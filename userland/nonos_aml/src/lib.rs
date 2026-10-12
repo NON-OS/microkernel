@@ -47,3 +47,4 @@ pub mod power;
 pub mod region;
 pub mod shape;
 pub mod thermal;
+pub mod video;

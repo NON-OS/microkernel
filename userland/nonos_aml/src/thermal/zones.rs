@@ -18,30 +18,12 @@
 //! \_TZ by convention but legal anywhere, in definition order.
 
 use crate::load::Aml;
-use crate::namespace::{Id, Kind, ROOT};
-use crate::platform::listed;
-use crate::platform::Eval;
+use crate::namespace::{Id, Kind};
+use crate::platform::{listed, scan, Eval};
 use alloc::vec::Vec;
 
-const MAX_VISITS: usize = 1 << 20;
-
 pub fn zones(aml: &Aml) -> Vec<Id> {
-    let (mut out, mut stack, mut visits) = (Vec::new(), alloc::vec![ROOT], 0);
-    while let Some(id) = stack.pop() {
-        visits += 1;
-        if visits > MAX_VISITS {
-            break;
-        }
-        let at = stack.len();
-        for c in aml.ns.children(id) {
-            match aml.ns.get(c).map(|e| e.kind) {
-                Some(Kind::ThermalZone) => out.push(c),
-                Some(k) if k.is_container() => stack.insert(at, c),
-                _ => {}
-            }
-        }
-    }
-    out
+    scan(aml, &|aml, id| aml.ns.get(id).is_some_and(|e| e.kind == Kind::ThermalZone))
 }
 
 /// _ALx: the devices that cool the zone at active level `x` (11.4.2).

@@ -35,6 +35,7 @@ mod prt_link;
 mod refs;
 mod resource;
 mod route;
+mod scan;
 mod sta;
 mod walk;
 
@@ -51,4 +52,5 @@ pub use pic::{set_pic, PIC_8259, PIC_APIC};
 pub use prt::{routes, Route};
 pub use refs::{listed, references};
 pub use resource::interrupts;
+pub use scan::scan;
 pub use sta::{sta, BATTERY, DEFAULT, ENABLED, FUNCTIONING, PRESENT, SHOWN};
