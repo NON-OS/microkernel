@@ -18,31 +18,11 @@
 //! driver source so the tests pin production decode logic, not a copy. The
 //! module names match what the included files reach for via `super::`.
 
-// PS/2 mouse packet decoder and the event type it returns.
-#[path = "../../capsule_driver_ps2_input/src/mouse/axis.rs"]
-pub mod axis;
-#[path = "../../capsule_driver_ps2_input/src/mouse/event.rs"]
-pub mod event;
-#[path = "../../capsule_driver_ps2_input/src/mouse/packet.rs"]
-pub mod packet;
-// The PS/2 keycode table apps read for the keys that are not characters, and
-// the USB HID driver's map onto it.
-#[path = "../../capsule_driver_ps2_input/src/keymap/set1/keycodes.rs"]
-pub mod ps2_keycodes;
-#[path = "../../capsule_driver_usb_hid/src/hid/usage_keycode/mod.rs"]
-pub mod usb_usage_keycode;
-// The USB HID driver's key repeat, which a PS/2 keyboard does itself.
-#[path = "../../capsule_driver_usb_hid/src/hid/keyboard/repeat/mod.rs"]
-pub mod usb_key_repeat;
-// What the PS/2 driver posts to the input ring for one decoded packet.
-#[path = "../../capsule_driver_ps2_input/src/mouse/post.rs"]
-pub mod ps2_mouse_post;
+// The PS/2, USB HID and i2c-hid decoders, at the crate root by re-export.
+mod drivers;
+pub use drivers::{axis, event, packet, parse_report, ps2_keycodes, ps2_mouse_post, sample};
+pub use drivers::{damage, gesture, usb_key_repeat, usb_usage_keycode};
 
-// i2c-hid touchpad report decoder and its sample type.
-#[path = "../../capsule_driver_i2c_hid/src/input/parse_report.rs"]
-pub mod parse_report;
-#[path = "../../capsule_driver_i2c_hid/src/input/sample.rs"]
-pub mod sample;
 // The sample types at `crate::input::sample`, where the HID mouse decode names
 // them.
 pub mod input {
@@ -54,15 +34,6 @@ pub mod input {
  * path the driver's own files name them by, `crate::hid`.
  */
 pub mod hid;
-
-// The touchpad gesture state machine (tap, move, two-finger scroll).
-#[path = "../../capsule_driver_i2c_hid/src/input/gesture/mod.rs"]
-pub mod gesture;
-
-// The compositor's damage accumulator, whose coalescing must never drop a
-// damaged pixel or the screen tears.
-#[path = "../../compositor/src/state/damage.rs"]
-pub mod damage;
 
 // The input router's press grab: the frame a dragged window's motion arrives in.
 pub use state::press as router_press;
@@ -94,45 +65,10 @@ pub mod protocol;
 pub use route::key_target as router_key_target;
 
 #[cfg(test)]
-mod chord_tests;
-#[cfg(test)]
-mod damage_tests;
-#[cfg(test)]
-mod gesture_click_tests;
-#[cfg(test)]
-mod gesture_tests;
-#[cfg(test)]
-mod held_keys_tests;
-#[cfg(test)]
-mod hid_touchpad_tests;
-#[cfg(test)]
-mod key_target_tests;
-#[cfg(test)]
-mod press_frame_tests;
-#[cfg(test)]
-mod ps2_tests;
-#[cfg(test)]
 mod router_desk;
-#[cfg(test)]
-mod router_hover_tests;
-#[cfg(test)]
-mod router_key_tests;
-#[cfg(test)]
-mod router_parse_tests;
-#[cfg(test)]
-mod router_press_tests;
-#[cfg(test)]
-mod router_route_tests;
-#[cfg(test)]
-mod router_system_key_tests;
-#[cfg(test)]
-mod touchpad_tests;
-#[cfg(test)]
-mod usb_keycode_tests;
-#[cfg(test)]
-mod usb_repeat_tests;
 
-// Keyboard layout tables shared by the PS/2 and USB HID drivers; a normal
+// Every test module, mounted by path from tests_group.rs; the layout tests
+// read the keyboard tables the PS/2 and USB HID drivers share, a normal
 // dependency because the crate is a plain no_std library.
 #[cfg(test)]
-mod layout_tests;
+mod tests_group;
