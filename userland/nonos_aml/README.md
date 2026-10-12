@@ -23,6 +23,7 @@ or asks for a region it was not granted stops the capsule, not the machine.
 | `exec` | the interpreter: methods, control flow, operators, mutexes, events, the budget | 19 |
 | `region` | field access arithmetic: widths, units, UpdateRule, the Global Lock's steps | 5.2.10.1, 19.6.48 |
 | `exec/field` | regions, field units, IndexField, BankField, buffer fields, _REG, Load | 5.5.2.4, 6.5.4, 19.6 |
+| `events` | the SCI: FADT event blocks, fixed events, GPE blocks and methods, ACPI mode | 4.8, 5.2.9, 5.6.4 |
 
 ## Reading a table
 
@@ -99,7 +100,8 @@ LoadTable; `lock_word` and `lock_released` for the FACS Global Lock.
 - IndexField writes the byte offset to its index field, then moves the data
   field. BankField writes its bank value before each access. A Lock field,
   and Acquire(\_GL), hold the Global Lock (pending marked, firmware waited
-  for by polling under the time budget until the GBL_RLS SCI is wired).
+  for by polling under the time budget; the SCI's GBL_STS is cleared by the
+  event layer, and `Pm1Cnt::release_lock` writes GBL_RLS).
 - A PCI_Config region carries the _ADRs from its device up to the host
   bridge (PNP0A03/PNP0A08) and the bridge's _SEG and _BBN.
 - A space's accesses fault until `Machine::connect(aml, space)` marks its
@@ -123,6 +125,26 @@ answers at a release for a machine that needs it. The feature group strings
 of section 5.7.2 and vendor strings such as "Linux" are not answered: the
 first promise support NONOS does not have yet, the second select paths
 tested against another system. `_OS` is "Microsoft Windows NT"; `_REV` is 2.
+
+## Events
+
+`events::parse_fadt` reads the FADT the kernel handed over for the SCI,
+SMI_CMD and ACPI_ENABLE, and the PM1 and GPE blocks, preferring an X_ field
+that gives an address. Only System I/O blocks are reached; a block in memory
+is refused. `enter_acpi_mode` writes ACPI_ENABLE to SMI_CMD and waits,
+bounded, for SCI_EN. `handlers` finds \_GPE's _Lxx and _Exx methods and
+`wake_gpes` the events devices' _PRW name.
+
+`Events::new` arms every event that has a method, sits in a block and is no
+device's wake event; wake events are never enabled. `start` turns every GPE
+off and clears it before arming, and enables in PM1 only the Global Lock's
+release, plus the power and sleep buttons if the `Policy` says so (off by
+default: the kernel reads the power button itself). `on_sci` clears the
+fixed events it serves, then for each pending armed GPE: disable, clear an
+edge event's status, run its method through the caller's evaluator, clear a
+level event's status, re-enable. A level event whose method fails stays
+disabled, since its source is still asserting. Register access goes through
+`EventIo`, in the capsule MkAcpiPort.
 
 ## Limits
 

@@ -11,6 +11,8 @@ pub mod arena;
 pub mod block;
 #[path = "../../nonos_aml/src/error.rs"]
 pub mod error;
+#[path = "../../nonos_aml/src/events/mod.rs"]
+pub mod events;
 #[path = "../../nonos_aml/src/exec/mod.rs"]
 pub mod exec;
 #[path = "../../nonos_aml/src/grammar/mod.rs"]
@@ -35,6 +37,8 @@ mod consts;
 #[cfg(test)]
 mod enc;
 #[cfg(test)]
+mod fadt_enc;
+#[cfg(test)]
 mod flat;
 #[cfg(test)]
 mod probe;
@@ -42,6 +46,12 @@ mod probe;
 mod probe_host;
 #[cfg(test)]
 mod probe_lock;
+#[cfg(test)]
+mod regs;
+#[cfg(test)]
+mod regs_io;
+#[cfg(test)]
+mod regs_shared;
 #[cfg(test)]
 mod rig;
 #[cfg(test)]
