@@ -18,7 +18,7 @@ The `nonos_libc` wrapper of each call is named beside it
 ## Authority model
 
 Each call passes two checks. The syscall contract first asks the caller's
-capability token for the call's bit (`src/syscall/contract/cap_table/mk.rs`);
+capability token for the call's bit (`src/syscall/contract/cap_table/mk_device.rs`);
 a caller without it gets `EPERM` before any handler runs. The handler then
 checks device ownership: a call on a device must come from the pid that holds
 the device's claim and must name the claim's current epoch, and a call on a
@@ -292,7 +292,6 @@ irq/errno_map.rs, dma.rs, pci.rs, pio/errno.rs}`.
 
 - No broker call grants access without both the capability and current device
   ownership.
-- Grants are scoped to one owner process and one claim epoch, and are dropped
   when the claim is released or the process exits.
 - MMIO grants stay inside the claimed device's BARs and never map an MSI-X
   table or PBA.
