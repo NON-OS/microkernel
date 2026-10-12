@@ -32,6 +32,9 @@
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_mpt.manifest.bin",
+   "nonos-data/trust/capsules/driver_mpt.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_mpt.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_pcnet.manifest.bin",
    "nonos-data/trust/capsules/driver_pcnet.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_pcnet.zk_trailer.bin",
@@ -3550,6 +3553,9 @@
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_mpt.manifest.bin",
+   "nonos-data/trust/capsules/driver_mpt.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_mpt.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_pcnet.manifest.bin",
    "nonos-data/trust/capsules/driver_pcnet.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_pcnet.zk_trailer.bin",
@@ -3728,6 +3734,27 @@
   "signed": [
    "nonos-data/models/catalogue.bin"
   ]
+ },
+ "userland/mpt_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_mpt/src/constants",
+   "userland/capsule_driver_mpt/src/discover.rs",
+   "userland/capsule_driver_mpt/src/handshake.rs",
+   "userland/capsule_driver_mpt/src/hba.rs",
+   "userland/capsule_driver_mpt/src/ioc.rs",
+   "userland/capsule_driver_mpt/src/regs.rs",
+   "userland/capsule_driver_mpt/src/wait.rs",
+   "userland/mpt_proofs",
+   "userland/nonos_scsi",
+   "userland/nonos_scsi_serve/src/say",
+   "userland/nonos_scsi_serve/src/server",
+   "userland/nonos_scsi_serve/src/units.rs",
+   "userland/nonos_scsi_serve/src/wire"
+  ],
+  "md": [],
+  "signed": []
  },
  "userland/net_anon_proofs": {
   "exclude": [],

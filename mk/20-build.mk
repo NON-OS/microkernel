@@ -561,6 +561,7 @@ include userland/capsule_driver_piix_ide/Capsule.mk
 include userland/capsule_driver_virtio_scsi/Capsule.mk
 include userland/capsule_driver_pvscsi/Capsule.mk
 include userland/capsule_driver_buslogic/Capsule.mk
+include userland/capsule_driver_mpt/Capsule.mk
 include userland/capsule_audio/Capsule.mk
 include userland/capsule_audio_player/Capsule.mk
 include userland/capsule_driver_nvme/Capsule.mk

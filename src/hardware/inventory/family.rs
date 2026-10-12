@@ -24,6 +24,9 @@ pub enum HardwareFamily {
     StorageVirtioScsi,
     /// BusLogic MultiMaster (104b:1040): VirtualBox's and VMware's BusLogic.
     StorageBuslogic,
+    /// LSI Fusion-MPT (1000:0030, 1000:0054): VMware's and VirtualBox's
+    /// LSI Logic Parallel and SAS, QEMU's mptsas1068.
+    StorageMpt,
     /// VMware PVSCSI (15ad:07c0): VMware's paravirtual SCSI, QEMU's pvscsi.
     StorageVmwarePvscsi,
     /// An Intel VMD: a PCI domain hiding NVMe and SATA controllers behind

@@ -23,6 +23,7 @@ pub(in crate::userspace::init::spawn_plan) fn spawn() {
     spawn_virtio_scsi();
     spawn_pvscsi();
     spawn_buslogic();
+    spawn_mpt();
 }
 
 #[cfg(feature = "nonos-capsule-driver-piix-ide")]
@@ -92,3 +93,20 @@ fn spawn_buslogic() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-buslogic"))]
 fn spawn_buslogic() {}
+
+#[cfg(feature = "nonos-capsule-driver-mpt")]
+fn spawn_mpt() {
+    use crate::hardware::inventory::HardwareFamily;
+    use crate::hardware::mpt_capsule as c;
+    if !super::present::present("DRIVER-MPT", HardwareFamily::StorageMpt) {
+        return;
+    }
+    super::super::boot::capsule(
+        "DRIVER-MPT",
+        "driver_mpt",
+        c::spawn_driver_mpt_capsule,
+        c::shared_state,
+    );
+}
+#[cfg(not(feature = "nonos-capsule-driver-mpt"))]
+fn spawn_mpt() {}

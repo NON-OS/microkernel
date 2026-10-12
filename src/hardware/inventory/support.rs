@@ -20,7 +20,9 @@ use super::state::SupportState::{self, *};
 pub fn support_state(family: HardwareFamily) -> SupportState {
     match family {
         StorageVirtioBlk | StorageUsbMsc | StorageAhci | StorageNvme | StorageEmmc => DataPath,
-        StorageIde | StorageVirtioScsi | StorageVmwarePvscsi | StorageBuslogic => DataPath,
+        StorageIde | StorageVirtioScsi | StorageVmwarePvscsi | StorageBuslogic | StorageMpt => {
+            DataPath
+        }
         NetworkVirtio | NetworkE1000 | NetworkRtl8139 | NetworkRtl8169 => DataPath,
         NetworkRtl8821ce => DataPath,
         NetworkPcnet => DataPath,

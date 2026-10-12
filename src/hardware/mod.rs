@@ -25,6 +25,7 @@ pub mod hda_capsule;
 pub mod i2c_pci_capsule;
 pub mod inventory;
 pub mod iwlwifi_capsule;
+pub mod mpt_capsule;
 pub mod nvme_capsule;
 pub mod pcnet_capsule;
 pub mod piix_ide_capsule;
