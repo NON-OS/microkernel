@@ -13,6 +13,7 @@ mod catalog_exprs;
 mod catalog_objects;
 mod control_tests;
 mod convert_tests;
+mod cooling;
 mod corpus;
 mod coverage_tests;
 mod debug_tests;
