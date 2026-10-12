@@ -94,6 +94,8 @@ pub mod smbios;
 #[cfg(test)]
 pub mod acpi_cpu;
 #[cfg(test)]
+pub mod late_probe;
+#[cfg(test)]
 pub mod smp_bringup;
 #[cfg(test)]
 pub mod futex_waiters;
