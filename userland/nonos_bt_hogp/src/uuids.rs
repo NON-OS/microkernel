@@ -38,6 +38,10 @@ pub const BOOT_KEYBOARD_INPUT: u16 = 0x2a22;
 pub const BOOT_MOUSE_INPUT: u16 = 0x2a33;
 pub const BOOT_KEYBOARD_OUTPUT: u16 = 0x2a32;
 
+/// The Battery Service and its Battery Level (BAS 1.0, 3.1).
+pub const BATTERY_SERVICE: u16 = 0x180f;
+pub const BATTERY_LEVEL: u16 = 0x2a19;
+
 /// Protocol Mode's value for boot protocol (HIDS 1.0, Protocol Mode
 /// characteristic): 0 is boot,
 /// 1 is report.

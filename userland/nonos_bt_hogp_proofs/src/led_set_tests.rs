@@ -27,7 +27,8 @@ fn locks_set_before_ready_are_written_when_ready() {
     let mut run = Run::new(db);
     assert_eq!(run.host.set_locks(CAPS_LOCK), Step::default());
     run.go();
-    let last = run.peer.writes.last().cloned();
+    // The battery's CCCD write comes after; the commands are the LEDs'.
+    let last = run.peer.writes.iter().rfind(|w| w.2).cloned();
     assert_eq!(last, Some((out, vec![CAPS_LOCK], true)));
 }
 

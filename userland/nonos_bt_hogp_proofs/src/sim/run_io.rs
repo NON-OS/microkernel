@@ -17,6 +17,7 @@
 //! Driving the host from the peripheral's side.
 
 use super::run::Run;
+use nonos_bt_hogp::host::Battery;
 use nonos_bt_hogp::report::Input;
 
 impl Run {
@@ -32,5 +33,12 @@ impl Run {
         let before = self.input.len();
         self.deliver(&[&[0x1b][..], &handle.to_le_bytes(), value].concat());
         self.input[before..].to_vec()
+    }
+
+    /// A notification of a Battery Level; the level it gave, if any.
+    pub fn notify_level(&mut self, handle: u16, value: &[u8]) -> Option<Battery> {
+        let before = self.batteries.len();
+        self.notify(handle, value);
+        self.batteries.get(before).copied()
     }
 }
