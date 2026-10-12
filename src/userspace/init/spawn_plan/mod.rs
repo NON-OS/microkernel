@@ -31,6 +31,7 @@ mod drivers_sdhci;
 mod drivers_storage;
 mod drivers_ufs;
 mod drivers_usb;
+mod drivers_usb_companions;
 mod drivers_usb_hosts;
 mod drivers_usbnet;
 mod drivers_virtio;

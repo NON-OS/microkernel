@@ -31,9 +31,13 @@
 
 use crate::hardware::inventory::{present, HardwareFamily};
 
-/// The host families a driver exists for; EHCI joins with its own.
-const DRIVEN: [HardwareFamily; 3] =
-    [HardwareFamily::UsbXhci, HardwareFamily::UsbOhci, HardwareFamily::UsbUhci];
+/// The host families a driver exists for.
+const DRIVEN: [HardwareFamily; 4] = [
+    HardwareFamily::UsbXhci,
+    HardwareFamily::UsbEhci,
+    HardwareFamily::UsbOhci,
+    HardwareFamily::UsbUhci,
+];
 
 pub(super) fn usb_host() -> bool {
     DRIVEN.iter().any(|&f| present(f))
