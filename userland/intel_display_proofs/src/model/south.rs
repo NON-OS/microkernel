@@ -20,6 +20,7 @@
 //! key.
 
 use super::gen9::Gen9;
+use crate::engine::pcode::{DATA, MAILBOX, READY};
 use crate::engine::power::PWR_WELL_CTL2;
 use crate::engine::pps::{KEY, ON, PP_CONTROL, PP_STATUS, TARGET_ON};
 
@@ -44,6 +45,12 @@ impl Gen9 {
             let states = (v & 0xAAAA_AAAA) >> 1;
             let req = v & 0xAAAA_AAAA;
             self.pending.push((3, off, req | states));
+        }
+        if off == MAILBOX && v & READY != 0 {
+            // Latencies 2, 4, 8, 16 then 24, 32, 48 and none.
+            let answer = if self.get(DATA) == 0 { 0x1008_0402 } else { 0x0030_2018 };
+            self.pending.push((2, DATA, answer));
+            self.pending.push((3, MAILBOX, v & !READY));
         }
         if off == PP_CONTROL {
             if v & 0xFFFF_0000 != KEY {

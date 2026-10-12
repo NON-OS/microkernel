@@ -25,7 +25,7 @@ use super::error::Error;
 use super::pipe::{Pipe, Transcoder};
 use super::plane_regs::{plane_ctl, plane_surf};
 use super::trans_func::{disable, enable, func_ctl, Protocol};
-use super::{hdmi, power, regs, timing_write};
+use super::{cdclk, hdmi, power, regs, timing_write};
 use nonos_edid::Detailed;
 
 const STATE_US: u64 = 100_000;
@@ -39,6 +39,9 @@ pub fn enable_hdmi(
     max_tmds_khz: u32,
 ) -> Result<(), Error> {
     let (t, p, ddi, dpll) = out;
+    if !cdclk::fits(m, timing.pixel_khz) {
+        return Err(Error::Argument);
+    }
     for w in power::needed(t, ddi).into_iter().flatten() {
         power::enable(m, w, &Until::new(clock, STATE_US))?;
     }
