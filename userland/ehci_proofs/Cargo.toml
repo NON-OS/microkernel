@@ -15,6 +15,7 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_usb_hub = { path = "../nonos_usb_hub" }
+nonos_usb_virt = { path = "../nonos_usb_virt" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

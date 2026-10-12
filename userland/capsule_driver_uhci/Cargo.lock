@@ -24,8 +24,13 @@ dependencies = [
 name = "nonos_capsule_driver_uhci"
 version = "0.1.0"
 dependencies = [
+ "nonos_usb_virt",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_usb_virt"
+version = "0.3.0"
 
 [[package]]
 name = "nonos_userland_libc"
