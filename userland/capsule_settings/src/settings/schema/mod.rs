@@ -17,6 +17,7 @@
 pub mod all_fields;
 pub mod blocks;
 pub mod blocks_for;
+mod bt_live;
 pub mod coverage;
 mod coverage_listed;
 pub mod read_only;

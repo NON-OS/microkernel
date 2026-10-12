@@ -63,7 +63,7 @@ pub fn paint(
                 BODY_PX,
             );
         }
-        Row::Networks | Row::Saved | Row::Wallpapers => {}
+        Row::Networks | Row::Saved | Row::Wallpapers | Row::BtDevices => {}
     }
 }
 

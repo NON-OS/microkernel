@@ -118,7 +118,9 @@ with the reason, and `controller given back:` with the reason.
 
 ## NBTC v1
 
-driver.bt_usb0's own protocol, on port 4342 with replies on 4343. The
+driver.bt_usb0's own protocol, on port 4342 with replies on 4343. Its
+numbers, header and payload layouts are `nonos_bt_proto`
+(`userland/bt_proto`), which Settings reads too. The
 frame is NNET's: a 20-byte header (`magic_le32` "NBTC", `version_le16` 1,
 `op_le16`, `flags_le16`, `0_le16`, `request_id_le32`, `len_le32`), then the
 payload; a reply carries the same header, a signed status word and its
