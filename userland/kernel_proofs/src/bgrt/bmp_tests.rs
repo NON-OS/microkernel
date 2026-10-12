@@ -20,7 +20,7 @@
 use super::bmp_check::{bmp, Bmp, MAX_SIDE};
 
 /// A `w` × `h` BMP at `bpp`, rows padded to four bytes.
-fn file(w: i32, h: i32, bpp: u16) -> Vec<u8> {
+pub(super) fn file(w: i32, h: i32, bpp: u16) -> Vec<u8> {
     let row = (w.unsigned_abs() as usize * bpp as usize / 8).div_ceil(4) * 4;
     let size = 54 + row * h.unsigned_abs() as usize;
     let mut f = b"BM".to_vec();

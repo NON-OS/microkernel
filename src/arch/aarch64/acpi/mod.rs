@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The ACPI tables an Arm machine describes itself with, parsed from the
-//! bytes alone: MADT's GIC structures, GTDT, SPCR, PPTT, IORT, SRAT and
-//! SLIT. Pure, and proved in `kernel_proofs`; nothing calls them until the
-//! UEFI boot path hands the kernel these tables.
+//! bytes alone: MADT's GIC structures, GTDT, SPCR, PPTT, IORT, SRAT,
+//! SLIT, HMAT and BGRT. Pure, and proved in `kernel_proofs`; nothing calls
+//! them until the UEFI boot path hands the kernel these tables.
 
+pub mod bgrt;
 pub mod gtdt;
 pub mod iort;
 mod le;
