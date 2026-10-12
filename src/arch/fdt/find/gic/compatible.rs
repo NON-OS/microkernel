@@ -18,7 +18,7 @@ use super::version::GicVersion;
 
 /// Every distributor we know, GICv3 first. GIC-400 is the Pi 4's; the
 /// Cortex-A15 string is what QEMU `virt,gic-version=2` writes.
-pub(super) const NEEDLES: &[&[u8]] = &[
+pub(in crate::arch::fdt::find) const NEEDLES: &[&[u8]] = &[
     b"arm,gic-v3",
     b"arm,gic-400",
     b"arm,cortex-a15-gic",

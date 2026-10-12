@@ -34,6 +34,6 @@ mod validate;
 pub mod walker;
 
 pub use error::FdtError;
-pub use node::{Cells, NodeRef};
+pub use node::{Cells, DmaWindow, NodeRef};
 pub use parser::Fdt;
 pub use property::Property;

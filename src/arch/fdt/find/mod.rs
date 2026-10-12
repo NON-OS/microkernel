@@ -20,6 +20,7 @@ pub mod isa;
 pub mod memory;
 pub mod msi;
 pub mod pci;
+pub mod platform;
 pub mod plic;
 pub mod rtc;
 pub mod smmu;
