@@ -24,6 +24,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.rtl8139_0", WIRED_STACK),
     ("driver.iwlwifi0", WIFI_STACK),
     ("driver.rtl8821ce0", WIFI_STACK),
+    ("driver.bt_usb0", BLUETOOTH_PANELS),
     ("driver.ps2_kbd0", KERNEL_ONLY),
     ("driver.usb_hid0", KERNEL_ONLY),
     ("driver.i2c_hid0", KERNEL_ONLY),
@@ -48,3 +49,9 @@ const WIRED_STACK: &[&str] = &["net.core", "net.l2"];
 /// binds only a wired card.
 const WIFI_STACK: &[&str] =
     &["net.core", "app.settings", "app.settings.1", "app.settings.2", "app.setup_wizard"];
+
+/// The Bluetooth host answers Settings, which scans, pairs and forgets in any
+/// of its windows, and the shell, which shows the link and battery levels;
+/// the capsule checks each op again (letter E-25).
+const BLUETOOTH_PANELS: &[&str] =
+    &["app.settings", "app.settings.1", "app.settings.2", "desktop_shell"];
