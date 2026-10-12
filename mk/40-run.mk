@@ -347,6 +347,7 @@ nonos-mk-check-assumptions:
 
 nonos-mk-static: nonos-mk-check-caps nonos-mk-check-assumptions
 	@./nonos-ci/run-static-checks.sh
+	@$(NONOS_PYTHON) nonos-ci/check-capsule-targets.py
 
 # Ring 0's size against its budget, from the kernel the last build produced.
 # Run after `nonos-mk-capsules`; TCB_BUDGET picks another profile's file.
