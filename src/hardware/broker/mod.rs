@@ -18,6 +18,8 @@
 // them in AML, which is an x86 firmware interface; the same parts on an ARM
 // board come out of the device tree instead, through `arch::fdt`.
 #[cfg(target_arch = "x86_64")]
+pub mod acpi;
+#[cfg(target_arch = "x86_64")]
 mod acpi_gpio;
 #[cfg(target_arch = "x86_64")]
 mod acpi_i2c;
