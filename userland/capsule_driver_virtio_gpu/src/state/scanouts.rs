@@ -29,15 +29,9 @@ pub struct ScanoutTable {
 }
 impl ScanoutTable {
     pub const fn new() -> Self {
-        const EMPTY: Cell<Scanout> = Cell::new(Scanout {
-            x: 0,
-            y: 0,
-            width: 0,
-            height: 0,
-            current_resource_id: 0,
-            enabled: false,
-        });
-        Self { entries: [EMPTY; VG_MAX_SCANOUTS] }
+        const EMPTY: Scanout =
+            Scanout { x: 0, y: 0, width: 0, height: 0, current_resource_id: 0, enabled: false };
+        Self { entries: [const { Cell::new(EMPTY) }; VG_MAX_SCANOUTS] }
     }
     pub fn record(&self, scanout_id: u32, s: Scanout) -> bool {
         let idx = scanout_id as usize;

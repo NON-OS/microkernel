@@ -8,7 +8,7 @@ and a model device.
 
 ## What it proves
 
-70 `#[test]` functions:
+78 `#[test]` functions:
 
 - the capability walk over QEMU's modern-only layout and over hostile ones:
   duplicates, truncated capabilities, I/O and absent BARs, pointer loops,
@@ -16,6 +16,12 @@ and a model device.
   `walk_tests`);
 - the transport choice, and that the register window it maps for a
   modern-only function is never the MSI-X BAR (`select_tests`, `map_tests`);
+- the drivers' rule (`modern_caps`): modern whenever the function presents
+  every structure its driver maps, a transitional one's capabilities read
+  too; a transitional function missing one kept legacy, a modern-only one
+  refused by the structure it lacks, and a modern-only virtio-rng, which has
+  no device configuration, driven modern (`modern_caps_tests`,
+  `modern_only_tests`);
 - feature negotiation (`features_tests`);
 - the bring-up order and queue programming against a model device
   (`bringup_tests`, `queue_tests`);

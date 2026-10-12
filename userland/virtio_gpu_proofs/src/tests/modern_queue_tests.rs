@@ -14,50 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The modern bring-up: what the part is told about its rings.
+//! The bring-up: what the part is told about its rings, and the doorbell.
 
-use crate::constants::{
-    MOD_QUEUE_DESC, MOD_QUEUE_DEVICE, MOD_QUEUE_DRIVER, MOD_QUEUE_ENABLE, MOD_QUEUE_SELECT,
-    MOD_QUEUE_SIZE, VIRTIO_GPU_F_VIRGL, VIRTIO_GPU_MODERN, VQ_AVAIL_OFFSET, VQ_MAX_SIZE,
-    VQ_USED_OFFSET,
+use nonos_virtio::common::{
+    QUEUE_DESC, QUEUE_DEVICE, QUEUE_DRIVER, QUEUE_ENABLE, QUEUE_SELECT, QUEUE_SIZE as Q_SIZE,
 };
-use crate::init::bring_up;
-use crate::tests::model::{
-    modern_regs, modern_window, NOTIFY_AT, NOTIFY_MULT, NOTIFY_OFF, QUEUE_SIZE, REGION_PHYS,
-};
+
+use super::model::{bring_up, modern_window, regs, NOTIFY_AT, NOTIFY_LEN, NOTIFY_MULT};
+use super::model::{NOTIFY_OFF, QUEUE_SIZE, REGION_PHYS};
+use crate::constants::{VIRTIO_GPU_F_VIRGL, VQ_AVAIL_OFFSET, VQ_MAX_SIZE, VQ_USED_OFFSET};
+use crate::regs::Regs;
+
+fn wrote64(bar: &nonos_devmodel::FakeBar, off: usize) -> u64 {
+    bar.wrote32(off) as u64 | (bar.wrote32(off + 4) as u64) << 32
+}
 
 #[test]
 fn the_rings_are_named_at_the_layout_the_queue_code_uses_and_the_queue_is_enabled() {
     let bar = modern_window(VIRTIO_GPU_F_VIRGL, QUEUE_SIZE);
-    let out = bring_up(modern_regs(&bar), REGION_PHYS, VIRTIO_GPU_MODERN).expect("live");
-    assert_eq!(bar.wrote16(MOD_QUEUE_SELECT), 0, "the control queue");
-    assert_eq!(bar.wrote16(MOD_QUEUE_SIZE), QUEUE_SIZE);
-    assert_eq!(out.queue_size, QUEUE_SIZE);
-    let desc = bar.wrote32(MOD_QUEUE_DESC) as u64 | (bar.wrote32(MOD_QUEUE_DESC + 4) as u64) << 32;
-    let avail =
-        bar.wrote32(MOD_QUEUE_DRIVER) as u64 | (bar.wrote32(MOD_QUEUE_DRIVER + 4) as u64) << 32;
-    let used =
-        bar.wrote32(MOD_QUEUE_DEVICE) as u64 | (bar.wrote32(MOD_QUEUE_DEVICE + 4) as u64) << 32;
-    assert_eq!(desc, REGION_PHYS);
-    assert_eq!(avail, REGION_PHYS + VQ_AVAIL_OFFSET as u64);
-    assert_eq!(used, REGION_PHYS + VQ_USED_OFFSET as u64);
-    assert_eq!(bar.wrote16(MOD_QUEUE_ENABLE), 1);
+    let (_, size, _) = bring_up(&bar, NOTIFY_LEN).expect("live");
+    assert_eq!(bar.wrote16(QUEUE_SELECT), 0, "the control queue");
+    assert_eq!((bar.wrote16(Q_SIZE), size), (QUEUE_SIZE, QUEUE_SIZE));
+    assert_eq!(wrote64(&bar, QUEUE_DESC), REGION_PHYS);
+    assert_eq!(wrote64(&bar, QUEUE_DRIVER), REGION_PHYS + VQ_AVAIL_OFFSET as u64);
+    assert_eq!(wrote64(&bar, QUEUE_DEVICE), REGION_PHYS + VQ_USED_OFFSET as u64);
+    assert_eq!(bar.wrote16(QUEUE_ENABLE), 1);
 }
 
 #[test]
-fn a_queue_larger_than_the_region_holds_is_cut_to_what_fits() {
-    let bar = modern_window(VIRTIO_GPU_F_VIRGL, 1024);
-    let out = bring_up(modern_regs(&bar), REGION_PHYS, VIRTIO_GPU_MODERN).expect("live");
-    assert_eq!(out.queue_size, VQ_MAX_SIZE);
-    assert_eq!(bar.wrote16(MOD_QUEUE_SIZE), VQ_MAX_SIZE, "the part was told the cut size");
+fn a_queue_is_cut_to_the_largest_power_of_two_the_region_holds() {
+    for (offered, told) in [(1024, VQ_MAX_SIZE), (300, 256), (100, 64), (3, 2), (2, 2)] {
+        let bar = modern_window(VIRTIO_GPU_F_VIRGL, offered);
+        let (_, size, _) = bring_up(&bar, NOTIFY_LEN).expect("live");
+        assert_eq!((size, bar.wrote16(Q_SIZE)), (told, told), "offered {offered}");
+    }
 }
 
 #[test]
 fn a_notification_lands_at_the_offset_the_part_named_scaled_by_the_multiplier() {
     let bar = modern_window(VIRTIO_GPU_F_VIRGL, QUEUE_SIZE);
-    let out = bring_up(modern_regs(&bar), REGION_PHYS, VIRTIO_GPU_MODERN).expect("live");
-    let at = NOTIFY_AT + NOTIFY_OFF as usize * NOTIFY_MULT;
-    bar.present16(at, 0xFFFF);
-    unsafe { out.regs.notify(0) };
-    assert_eq!(bar.wrote16(at), 0, "queue zero, at the doorbell for queue zero");
+    let (_, _, doorbell) = bring_up(&bar, NOTIFY_LEN).expect("live");
+    let at = NOTIFY_OFF as usize * NOTIFY_MULT as usize;
+    assert_eq!(doorbell, at);
+    bar.present16(NOTIFY_AT + at, 0xFFFF);
+    Regs { doorbell, ..regs(&bar) }.notify(0);
+    assert_eq!(bar.wrote16(NOTIFY_AT + at), 0, "queue zero, at the doorbell for queue zero");
 }

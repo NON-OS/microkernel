@@ -16,6 +16,7 @@
 
 mod error;
 mod handlers;
+mod recover;
 mod runner;
 
 pub use runner::run;

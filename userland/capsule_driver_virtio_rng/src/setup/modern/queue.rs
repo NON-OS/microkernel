@@ -19,9 +19,9 @@
 //! The layout is the legacy one: descriptors at the start of the region,
 //! the available ring right after a table of `queue_size` descriptors (where
 //! `Queue::new` puts it) and the used ring at VQ_USED_OFFSET. The size is
-//! the device's maximum held to QUEUE_SIZE, as on the legacy path, and is
-//! chosen before the addresses because the available ring's place follows
-//! from it.
+//! the device's maximum held to QUEUE_SIZE (a modern driver may shrink the
+//! ring, a legacy one may not), and is chosen before the addresses because
+//! the available ring's place follows from it.
 
 use nonos_virtio::common::{choose_size, queue_max, setup_queue, NotifyArea, QueueSpec};
 use nonos_virtio::{Mmio, VirtioError};

@@ -89,7 +89,7 @@ def usb_stick(path, block_size=512):
 
 
 def devices(net, tpm_sock, qmp):
-    args = ["-device", "virtio-vga,disable-modern=on,vectors=0,edid=on,xres=1920,yres=1080",
+    args = ["-device", "virtio-vga,vectors=0,edid=on,xres=1920,yres=1080",
             "-device", "qemu-xhci,id=xhci", "-device", "virtio-rng-pci"]
     if net == "nat":
         args += ["-device", "virtio-net-pci,netdev=net0", "-netdev", "user,id=net0"]

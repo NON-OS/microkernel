@@ -34,12 +34,6 @@ pub fn map(
     if out.user_va == 0 || out.device_addr == 0 || out.length < PROBE_BYTES {
         return Err("virtio-gpu: probe dma region too small");
     }
-    attach_backing(
-        q,
-        fences.issue(),
-        PROBE_RESOURCE_ID,
-        out.device_addr,
-        PROBE_BYTES as u32,
-    )?;
+    attach_backing(q, fences.issue(), PROBE_RESOURCE_ID, out.device_addr, PROBE_BYTES as u32)?;
     Ok(out)
 }
