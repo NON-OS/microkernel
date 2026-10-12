@@ -28,6 +28,7 @@ pub use call::XhciClientError;
 pub use hosts::Hosts;
 pub use lookup::{host, hosts};
 pub use ops::{
-    address_device, alloc_transfer_ring, control_transfer, disable_slot, enable_slot,
-    get_config_descriptor, interrupt_in, port_status, PortSnapshot, MAX_DESCRIPTOR_LEN,
+    address_device, alloc_transfer_ring, claim_interface, control_transfer, disable_slot,
+    enable_slot, get_config_descriptor, interrupt_in, port_status, PortSnapshot,
+    MAX_DESCRIPTOR_LEN,
 };

@@ -22,7 +22,7 @@
 use alloc::vec::Vec;
 
 use crate::descriptors::{configuration_value, hid_bindings, is_hub};
-use crate::xhci::{control_transfer, MAX_DESCRIPTOR_LEN};
+use crate::xhci::{claim_interface, control_transfer, MAX_DESCRIPTOR_LEN};
 
 use super::super::binding::configure_binding;
 use super::read_configuration::read_configuration;
@@ -54,7 +54,11 @@ pub(super) fn classify(xhci_port: u32, slot: u8, port: u8, eps: &mut Vec<HidEndp
         return Outcome::NotHid;
     }
     for (binding, pad) in bindings {
+        let before = eps.len();
         configure_binding(xhci_port, slot, port, binding, pad, eps);
+        if eps.len() > before {
+            claim_interface(xhci_port, slot, port, binding.interface_number);
+        }
     }
     Outcome::Bound
 }

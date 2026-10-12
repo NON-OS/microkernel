@@ -37,7 +37,9 @@ mod owner;
 mod pump;
 mod request;
 mod run;
+mod search;
 mod session;
+mod take;
 mod up;
 mod wire;
 
