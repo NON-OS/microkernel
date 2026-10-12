@@ -25,4 +25,5 @@ pub mod acpi_power;
 pub mod acpi_sleep;
 pub mod clock;
 pub mod log;
+pub mod pci_probe;
 pub mod smbios;
