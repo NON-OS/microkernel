@@ -28,6 +28,7 @@ mod memory_record;
 mod pci_access;
 mod pci_admit;
 mod port_access;
+pub mod power_report;
 mod report;
 pub mod rule;
 mod sci;

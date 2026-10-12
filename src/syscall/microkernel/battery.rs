@@ -24,10 +24,11 @@
 //!
 //! A charge comes from evaluating the battery's `_BST` and `_BIX`/`_BIF`
 //! methods, which read the embedded controller through an EmbeddedControl
-//! OperationRegion. That needs an AML interpreter, and the kernel does not
-//! have one: it scans AML for device declarations and constant packages and
-//! never executes it. So no percentage is ever returned today, and none is
-//! invented: a plausible fixed number is the one answer that cannot be
+//! OperationRegion. The kernel runs no AML; capsule_acpi does, and reports
+//! what it read through MkAcpiPower. While that report is fresh it is the
+//! answer; without one the kernel falls back to its own scan of the tables,
+//! which can say a battery is absent but never what it holds. No number is
+//! ever invented: a plausible fixed one is the one answer that cannot be
 //! checked and cannot be corrected.
 
 use super::errnos::ERRNO_NOTSUP;
@@ -35,6 +36,13 @@ use super::errnos::ERRNO_NOTSUP;
 pub fn sys_battery_status() -> i64 {
     #[cfg(target_arch = "x86_64")]
     {
+        use crate::hardware::broker::acpi::power_report::{battery, Battery};
+        match battery(crate::sys::clock::since_boot_ms()) {
+            Battery::Percent(p) => return p as i64,
+            Battery::Absent => return super::errnos::ERRNO_NODEV,
+            Battery::Present => return ERRNO_NOTSUP,
+            Battery::Unreported => {}
+        }
         if crate::arch::x86_64::acpi::parser::with_data(|d| d.power_devices.battery) == Some(false)
         {
             return super::errnos::ERRNO_NODEV;
