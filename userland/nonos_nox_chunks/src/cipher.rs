@@ -35,7 +35,8 @@ pub fn keystream_word(k: &impl Keccak, key: &[u8; 32], i: u64, j: u32) -> [u8; 3
 pub fn xor_chunk(k: &impl Keccak, key: &[u8; 32], i: u64, chunk: &[u8; CHUNK]) -> [u8; CHUNK] {
     let mut out = *chunk;
     for (j, part) in out.chunks_mut(32).enumerate() {
-        let ks = keystream_word(k, key, i, j as u32);
+        // A chunk has CHUNK / 32 words, so j always fits.
+        let ks = keystream_word(k, key, i, u32::try_from(j).unwrap_or(u32::MAX));
         part.iter_mut().zip(ks).for_each(|(b, s)| *b ^= s);
     }
     out

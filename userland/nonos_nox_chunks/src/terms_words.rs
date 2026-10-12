@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The fourteen words back into OrderTerms, strictly: what the meter keeps
 //! of an order is its words, and a dispute's calldata needs the terms. A word
 //! with bits past its field's width is refused, so words() of the result is
@@ -23,8 +22,9 @@
 use crate::terms::{OrderTerms, TERMS_WORDS};
 
 fn tail<const N: usize>(w: &[u8; 32]) -> Option<[u8; N]> {
-    w[..32 - N].iter().all(|b| *b == 0).then_some(())?;
-    w[32 - N..].try_into().ok()
+    let at = 32usize.checked_sub(N)?;
+    w.get(..at)?.iter().all(|b| *b == 0).then_some(())?;
+    w.get(at..)?.try_into().ok()
 }
 
 impl OrderTerms {
