@@ -49,6 +49,7 @@ mod rx_fuzz;
 mod rx_queue_tests;
 mod rx_wb_tests;
 mod semaphore_tests;
+mod stage_tests;
 mod swfw_tests;
 mod timeout_text_tests;
 mod tx_encode_tests;

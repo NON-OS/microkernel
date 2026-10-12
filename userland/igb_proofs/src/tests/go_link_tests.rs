@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Go Link Disconnect, which igb_setup_copper_link_82575 clears on the
-//! 82580 and later: while it is set the PHY keeps the link down.
+//! Go Link Disconnect, cleared on the 82580 and later: while it is set the
+//! PHY keeps the link down.
 
-use crate::constants::ctrl::PHPM_GO_LINKD;
-use crate::constants::part::Part;
-use crate::constants::regs::REG_PHPM;
-use crate::init::link;
+use crate::bring::link;
+use crate::facts::mac::PHPM_GO_LINKD;
+use crate::facts::parts::Part;
+use crate::facts::regs::REG_PHPM;
 
 use super::model::{regs, window};
 

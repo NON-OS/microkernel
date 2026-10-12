@@ -22,8 +22,8 @@
 #[path = "../../../capsule_driver_igb/src/discover/choose.rs"]
 mod choose;
 
-use crate::constants::part::Media;
-use crate::constants::pci::{is_copper, IGB_PARTS};
+use crate::facts::ids::{is_copper, IGB_PARTS};
+use crate::facts::parts::Media;
 use choose::choose;
 
 #[test]

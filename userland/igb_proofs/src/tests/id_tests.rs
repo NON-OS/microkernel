@@ -13,12 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The device table against Linux igb_pci_tbl, entry for entry, by the
-//! E1000_DEV_ID_* names e1000_hw.h gives them.
+//! The device table against the igb table as observed in Linux igb_main.c
+//! (unverified), entry for entry, by the part names given there.
 
-use crate::constants::pci::{IGB_PARTS, INTEL_VENDOR_ID};
+use crate::facts::ids::{IGB_PARTS, INTEL_VENDOR_ID};
 
-/// igb_pci_tbl in igb_main.c, in its order.
+/// The table as observed in Linux igb_main.c, in its order (unverified).
 const IGB_PCI_TBL: [(u16, &str); 35] = [
     (0x1F40, "I354_BACKPLANE_1GBPS"),
     (0x1F41, "I354_SGMII"),
@@ -58,7 +58,7 @@ const IGB_PCI_TBL: [(u16, &str); 35] = [
 ];
 
 #[test]
-fn every_igb_pci_tbl_id_is_bound_in_order_and_nothing_else() {
+fn every_listed_id_is_bound_in_order_and_nothing_else() {
     let ids: Vec<u16> = IGB_PARTS.iter().map(|(id, ..)| *id).collect();
     let tbl: Vec<u16> = IGB_PCI_TBL.iter().map(|(id, _)| *id).collect();
     assert_eq!(ids, tbl);
