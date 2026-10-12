@@ -50,6 +50,8 @@ pub enum AmdViError {
     StrayWriter,
     /// A device's remapping table, or the broker's handles, has no free entry.
     InterruptTableFull,
+    /// The device's requests reach the unit under an IVHD alias id.
+    Aliased,
 }
 
 impl From<OutOfFrame> for AmdViError {
