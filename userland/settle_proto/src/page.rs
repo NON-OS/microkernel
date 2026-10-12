@@ -36,12 +36,12 @@ impl Page {
         if release.len() > MAX_RELEASE || (start == release.len() && start != 0) {
             return None;
         }
-        let bytes = rest[..rest.len().min(PAGE_LEN)].to_vec();
-        Some(Page { total: release.len() as u32, offset, bytes })
+        let bytes = rest.get(..rest.len().min(PAGE_LEN))?.to_vec();
+        Some(Page { total: u32::try_from(release.len()).ok()?, offset, bytes })
     }
 
     pub fn encode(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(8 + self.bytes.len());
+        let mut out = Vec::with_capacity(self.bytes.len().saturating_add(8));
         out.extend_from_slice(&self.total.to_le_bytes());
         out.extend_from_slice(&self.offset.to_le_bytes());
         out.extend_from_slice(&self.bytes);
@@ -51,7 +51,7 @@ impl Page {
     pub fn parse(b: &[u8]) -> Option<Self> {
         let total = u32::from_le_bytes(b.get(..4)?.try_into().ok()?);
         let offset = u32::from_le_bytes(b.get(4..8)?.try_into().ok()?);
-        let bytes = b[8..].to_vec();
+        let bytes = b.get(8..)?.to_vec();
         let end = (offset as usize).checked_add(bytes.len())?;
         let inside = end <= total as usize && total as usize <= MAX_RELEASE;
         (inside && bytes.len() <= PAGE_LEN).then_some(Page { total, offset, bytes })
