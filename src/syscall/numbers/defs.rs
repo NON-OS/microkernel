@@ -163,4 +163,7 @@ pub enum SyscallNumber {
     MkAcpiHwError = tag4(b"MAHE"),
     MkAcpiPlatformDevice = tag4(b"MAPD"),
     MkAcpiDeviceName = tag4(b"MADN"),
+    MkAcpiUsbPorts = tag4(b"MAUP"),
+    MkUsbPortFacts = tag4(b"MUPF"),
+    MkAcpiExternalPort = tag4(b"MAXP"),
 }

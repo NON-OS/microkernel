@@ -99,6 +99,9 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAcpiHwError
             | MkAcpiPlatformDevice
             | MkAcpiDeviceName
+            | MkAcpiUsbPorts
+            | MkUsbPortFacts
+            | MkAcpiExternalPort
             | MkDebug
             | MkStdoutWrite
             | MkPrivateWrite

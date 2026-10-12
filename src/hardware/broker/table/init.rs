@@ -55,9 +55,11 @@ pub(in crate::hardware::broker) fn register_platform_device(mut record: DeviceRe
 #[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
 /// `disabled` marks a function no driver may claim (its BARs unassigned).
 pub(in crate::hardware::broker) fn add_pci_function(dev: &PciDevice, disabled: bool) -> u64 {
+    let external = super::external::flag_for(&dev.address);
     let mut table = TABLE.write();
     let id = table.iter().map(|r| r.device_id).max().map_or(0, |m| m + 1);
     let mut record = record_from_pci(id, dev);
+    record.flags |= external;
     if disabled {
         record.flags |= crate::hardware::broker::DEVICE_FLAG_DISABLED;
     }

@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The broker's device record, its class ids, the platform device record
- * and the BAR a mapping may name, by path as the kernel builds them.
+ * The broker's device record, its class ids, the platform device record,
+ * the BAR a mapping may name and the buses behind an external-facing
+ * port, by path as the kernel builds them.
  */
 
 pub mod acpi;
@@ -24,11 +25,17 @@ pub mod acpi;
 #[allow(dead_code)] // the proofs read only the ids a platform device takes
 pub mod class;
 pub mod device;
+#[path = "../../../../../src/hardware/broker/external_range.rs"]
+pub mod external_range;
 pub mod mmio;
 
 #[cfg(test)]
 mod bars_tests;
 #[cfg(test)]
+mod external_tests;
+#[cfg(test)]
 mod round_trip_tests;
 #[cfg(test)]
 mod same_group_tests;
+#[cfg(test)]
+mod usb_port_tests;

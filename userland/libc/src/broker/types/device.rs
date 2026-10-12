@@ -18,6 +18,9 @@ use super::bar::Bar;
 
 pub const DEVICE_FLAG_CLAIMED: u32 = 1 << 0;
 pub const DEVICE_FLAG_DISABLED: u32 = 1 << 1;
+/// Behind a PCIe port firmware calls external-facing: whoever can reach the
+/// connector chose what is plugged in, so it gets no untranslated DMA.
+pub const DEVICE_FLAG_EXTERNAL: u32 = 1 << 2;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
