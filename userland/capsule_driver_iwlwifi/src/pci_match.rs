@@ -25,7 +25,7 @@
 //! interrupt is chosen at bind time instead (`setup::irq`).
 
 use crate::constants::INTEL_VENDOR_ID;
-use crate::firmware::family::family_for_device;
+use crate::firmware::carried::runs;
 
 /// PCI class "network controller", subclass "other" (802.11 adapters).
 pub const PCI_CLASS_NETWORK: u8 = 0x02;
@@ -52,10 +52,10 @@ pub fn is_intel_wifi(c: &Candidate) -> bool {
         && c.subclass == PCI_SUBCLASS_OTHER
 }
 
-/// Whether `c` is an Intel Wi-Fi function of a family this driver carries
-/// firmware for, with its registers in a memory BAR0.
+/// Whether `c` is an Intel Wi-Fi function this driver runs (`carried`), with
+/// its registers in a memory BAR0. Only such a function is claimed.
 pub fn is_supported_adapter(c: &Candidate) -> bool {
-    is_intel_wifi(c) && c.bar0_mmio && family_for_device(c.device).is_some()
+    is_intel_wifi(c) && c.bar0_mmio && runs(c.device)
 }
 
 /// Whether a legacy INTx line is usable: the function has an interrupt pin and

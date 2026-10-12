@@ -9,6 +9,7 @@
 //! Every Intel Wi-Fi id is named by its generation, as Linux's pcie/drv.c
 //! groups it, and only the ids the gen3 path boots are said to boot.
 
+use crate::firmware::carried::runs;
 use crate::firmware::generation::name;
 use crate::gen3::select::transport;
 use crate::pci_match::{is_supported_adapter, Candidate};
@@ -18,10 +19,11 @@ fn adapter(device: u16) -> Candidate {
 }
 
 #[test]
-fn only_the_gen3_platforms_are_said_to_boot() {
+fn only_the_platforms_whose_firmware_is_carried_are_said_to_boot() {
     for device in 0..=u16::MAX {
         let boots = name(device).is_some_and(|g| g.boots);
-        assert_eq!(boots, transport(device).is_some(), "{device:#06x}");
+        assert_eq!(boots, runs(device), "{device:#06x}");
+        assert!(!boots || transport(device).is_some(), "{device:#06x}");
     }
 }
 
@@ -52,9 +54,10 @@ fn the_brief_s_cards_are_named_by_their_generation() {
 }
 
 #[test]
-fn the_tiger_lake_ax201_is_found_so_its_radio_can_say_why_it_does_not_run() {
-    // 0xA0F0 was missing from the family table: on Tiger Lake laptops the
-    // card was skipped at discovery and the driver left without a word.
-    assert!(is_supported_adapter(&adapter(0xA0F0)));
+fn the_tiger_lake_ax201_is_named_and_left_unclaimed() {
+    // 0xA0F0 was missing from the family table, and the driver left without
+    // a word. Discovery names it now (`announce`), and leaves it unclaimed:
+    // there is no boot path for it here.
+    assert!(!is_supported_adapter(&adapter(0xA0F0)));
     assert!(!name(0xA0F0).unwrap().boots);
 }

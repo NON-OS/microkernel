@@ -16,7 +16,9 @@
 
 //! The radio brought up once, at start.
 
-use crate::setup::command::command;
+use crate::firmware::gen3::outcome::Failure;
+use crate::setup::{command::command, give_back};
+use nonos_libc::{mk_exit, EXIT_ABSENT};
 use nonos_wifi_core::scan_list::ScanResults;
 
 use crate::driver::Driver;
@@ -51,6 +53,11 @@ impl Radio {
                     .hex(f.detail())
                     .text(b")")
                     .send();
+                // A card this driver cannot run is given back whole: none found.
+                if matches!(f, Failure::Refused(_)) {
+                    give_back(d);
+                    mk_exit(EXIT_ABSENT);
+                }
                 State::Down(f)
             }
         };
