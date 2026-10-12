@@ -40,8 +40,8 @@ pub enum Allowed {
 
 pub fn allowed(op: u8) -> Allowed {
     match op {
-        3 | 4 | 6 | 7 => Allowed::Services(&[POWER, SHELL]),
-        5 => Allowed::Services(&[POWER]),
+        3 | 4 | 6 | 7 | 14 => Allowed::Services(&[POWER, SHELL]),
+        5 | 15 => Allowed::Services(&[POWER]),
         8 => Allowed::Services(&[SHELL]),
         9 => Allowed::Services(&[I2C_PCI, I2C_HID]),
         10 | 12 | 13 => Allowed::AnyAdmitted,
