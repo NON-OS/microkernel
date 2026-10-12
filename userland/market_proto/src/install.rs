@@ -50,7 +50,7 @@ impl Stage {
             4 => Stage::Refused,
             5 => Stage::Removing,
             6 => Stage::Removed,
-            c if c >= 16 => Stage::Failed((c - 16).clamp(0, 255) as u8),
+            c if c >= 16 => Stage::Failed(u8::try_from(c.saturating_sub(16)).unwrap_or(u8::MAX)),
             _ => Stage::Idle,
         }
     }
