@@ -34,6 +34,10 @@ pub fn respond(cfg: &Config, packet: &[u8]) -> Vec<Vec<u8>> {
         out.push(complete(1, f, s, &[]));
         return out;
     }
+    if let Some((_, events)) = cfg.script.iter().find(|(s, _)| *s == o) {
+        out.extend(events.iter().cloned());
+        return out;
+    }
     let ret: Vec<u8> = match opcode {
         op::READ_LOCAL_FEATURES => vec![0, 0, 0, 0, if cfg.le { 0x40 } else { 0 }, 0, 0, 0],
         op::READ_LOCAL_VERSION => vec![0x0d, 0x34, 0x12, 0x0d, 0x5f, 0x00, 0x78, 0x56],

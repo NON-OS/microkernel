@@ -22,7 +22,15 @@ mod acl_tests;
 #[cfg(test)]
 mod bringup_tests;
 #[cfg(test)]
+mod connect_cancel_tests;
+#[cfg(test)]
+mod connect_tests;
+#[cfg(test)]
 mod descriptor_tests;
+#[cfg(test)]
+mod encrypt_end_tests;
+#[cfg(test)]
+mod encrypt_tests;
 #[cfg(test)]
 mod flow_tests;
 #[cfg(test)]

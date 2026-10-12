@@ -17,10 +17,11 @@
 //! Event packets (Vol 4, Part E, 5.4.4) and the events every command and
 //! link uses, laid out by hand from Vol 4, Part E, 7.7.
 
+use nonos_bt_wire::hci::encryption::ENCRYPTION_ON_AES_CCM;
 use nonos_bt_wire::hci::opcode::{LE_CREATE_CONNECTION, RESET};
 use nonos_bt_wire::hci::reports::completed_packets;
 use nonos_bt_wire::hci::{event_code as ev, parse_event};
-use nonos_bt_wire::hci::{CommandComplete, CommandStatus, DisconnectionComplete};
+use nonos_bt_wire::hci::{CommandComplete, CommandStatus, DisconnectionComplete, EncryptionChange};
 use nonos_bt_wire::WireError;
 
 #[test]
@@ -38,6 +39,13 @@ fn command_status_and_disconnection_complete() {
     assert!(CommandStatus::parse(&[0, 1, 0x0d, 0x20, 0]).is_err());
     let d = DisconnectionComplete::parse(&[0x00, 0x40, 0x00, 0x13]).ok().unwrap();
     assert_eq!((d.status, d.handle, d.reason), (0, 0x0040, 0x13));
+}
+
+#[test]
+fn encryption_change_on_an_le_link() {
+    let e = EncryptionChange::parse(&[0x00, 0x40, 0x20, 0x01]).ok().unwrap();
+    assert_eq!((e.status, e.handle, e.enabled), (0, 0x0040, ENCRYPTION_ON_AES_CCM));
+    assert!(EncryptionChange::parse(&[0x06, 0x40, 0x00]).is_err());
 }
 
 #[test]
