@@ -32,21 +32,21 @@ use crate::slots::SlotResources;
 use crate::trb::commands::noop_command;
 use crate::trb::Trb;
 
-const CONTEXT_SIZE: u8 = 32;
-const RESET_ENDPOINT: u32 = 14;
+pub(super) const CONTEXT_SIZE: u8 = 32;
+pub(super) const RESET_ENDPOINT: u32 = 14;
 const STOP_ENDPOINT: u32 = 15;
-const SET_TR_DEQUEUE: u32 = 16;
+pub(super) const SET_TR_DEQUEUE: u32 = 16;
 const CONFIGURE_ENDPOINT: u32 = 12;
 const CC_STOPPED: u8 = 26;
 const CC_STOPPED_LENGTH_INVALID: u8 = 27;
 const CC_STOPPED_SHORT_PACKET: u8 = 28;
 const EP_STATE_STOPPED: u32 = 3;
 
-fn ring_base(cmd: &CommandRing) -> u64 {
+pub(super) fn ring_base(cmd: &CommandRing) -> u64 {
     cmd.crcr_value() & !0x3F
 }
 
-fn command_at(bus: u64) -> Trb {
+pub(super) fn command_at(bus: u64) -> Trb {
     let host = nonos_libc::dma_host(bus).expect("command ring mapped");
     // SAFETY: a live grant holds the whole TRB.
     unsafe { (host as *const Trb).read() }
@@ -67,7 +67,7 @@ fn set_dw(region: &DmaRegion, context: usize, dword: usize, value: u32) {
 /// An addressed SuperSpeed slot with bulk pipes, its output context holding
 /// what a controller holds after Configure Endpoint: Context Entries 5 and
 /// both bulk endpoints Stopped, with a burst of 15 and a 1024-byte packet.
-fn storage_slot(fx: &Fixture) -> SlotResources {
+pub(super) fn storage_slot(fx: &Fixture) -> SlotResources {
     let mut res =
         SlotResources::allocate(&fx.pool, CONTEXT_SIZE, SLOT, 1, 4, true).expect("slot resources");
     res.bulk = Some(fx.bulk_pipes());
@@ -92,8 +92,16 @@ fn a_halted_bulk_pipe_is_reset_and_nothing_more() {
     let base = ring_base(&cmd);
     fx.hc.post(command(base, CC_SUCCESS, SLOT));
     fx.hc.post(command(base + TRB, CC_SUCCESS, SLOT));
-    reset_bulk_endpoint(fx.db(), fx.intr(), &mut cmd, &mut fx.ring, &res, CONTEXT_SIZE, true)
-        .expect("reset");
+    reset_bulk_endpoint(
+        fx.db(),
+        fx.intr(),
+        &mut cmd,
+        &mut fx.ring,
+        &res,
+        CONTEXT_SIZE,
+        (false, true),
+    )
+    .expect("reset");
     assert_eq!(command_at(base).get_type(), RESET_ENDPOINT);
     assert_eq!(command_at(base + TRB).get_type(), SET_TR_DEQUEUE);
     assert_eq!(command_at(base + 2 * TRB).get_type(), 0, "no Configure Endpoint");
@@ -120,8 +128,16 @@ fn a_bulk_pipe_that_had_not_halted_is_dropped_and_added_again() {
         fx.hc.post(command(base + TRB, CC_SUCCESS, SLOT));
         fx.hc.post(command(base + 2 * TRB, CC_SUCCESS, SLOT));
         fx.hc.post(command(base + 3 * TRB, CC_SUCCESS, SLOT));
-        reset_bulk_endpoint(fx.db(), fx.intr(), &mut cmd, &mut fx.ring, &res, CONTEXT_SIZE, dir_in)
-            .expect("reset");
+        reset_bulk_endpoint(
+            fx.db(),
+            fx.intr(),
+            &mut cmd,
+            &mut fx.ring,
+            &res,
+            CONTEXT_SIZE,
+            (false, dir_in),
+        )
+        .expect("reset");
         assert_eq!(command_at(base + TRB).get_type(), STOP_ENDPOINT);
         assert_eq!(command_at(base + 2 * TRB).get_type(), SET_TR_DEQUEUE);
         let configure = command_at(base + 3 * TRB);
