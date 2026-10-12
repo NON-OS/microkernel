@@ -27,6 +27,8 @@ pub const POWER_BUTTON: u64 = 1;
 pub const SLEEP_BUTTON: u64 = 2;
 pub const LID: u64 = 3;
 pub const THERMAL: u64 = 4;
+pub const BATTERY_LOW: u64 = 5;
+pub const BATTERY_CRITICAL: u64 = 6;
 
 pub const TENTHS_K_MASK: u64 = 0xFFFF;
 pub const PASSIVE: u64 = 1 << 16;

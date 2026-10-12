@@ -16,46 +16,16 @@
 
 //! Building the replies protocol.rs describes.
 
-use super::brightness;
-use super::protocol::{
-    EINVAL, ENOENT, OP_BRIGHTNESS, OP_DEVICE, OP_PREPARE_SLEEP, OP_SET_BRIGHTNESS, OP_STATUS,
-};
-use crate::boot::{path, Acpi};
+use super::caller::is_power;
+use super::inventory::{device, status};
+use super::protocol::*;
+use super::{brightness, power_wire, thermal_wire};
+use crate::boot::Acpi;
 use crate::sleep::prepare_sleep;
 use alloc::vec::Vec;
 
-fn status(acpi: &Acpi) -> Vec<u8> {
-    let mut v = Vec::new();
-    let routes: usize = acpi.routes.iter().map(|(_, r)| r.len()).sum();
-    v.extend_from_slice(&(acpi.devices.len() as u32).to_le_bytes());
-    v.extend_from_slice(&(routes as u32).to_le_bytes());
-    v.extend_from_slice(&acpi.scis.to_le_bytes());
-    v.extend_from_slice(&acpi.gpe_runs.to_le_bytes());
-    v.extend_from_slice(&acpi.host.refused.to_le_bytes());
-    let armed = acpi.events.as_ref().map_or(0, |e| e.armed.len());
-    v.extend_from_slice(&(armed as u32).to_le_bytes());
-    v.extend_from_slice(&acpi.aml.rt.dropped_notifications.to_le_bytes());
-    v
-}
-
-fn device(acpi: &Acpi, index: usize) -> Option<Vec<u8>> {
-    let d = acpi.devices.get(index)?;
-    let mut v = Vec::new();
-    v.extend_from_slice(&d.sta.to_le_bytes());
-    v.extend_from_slice(&d.adr.unwrap_or(u64::MAX).to_le_bytes());
-    v.extend_from_slice(&d.uid.unwrap_or(u64::MAX).to_le_bytes());
-    let hid = d.hid.as_ref().map_or(&[][..], |h| h.bytes());
-    let p = path(&acpi.aml, d.id);
-    for s in [hid, p.as_bytes()] {
-        let s = &s[..s.len().min(200)];
-        v.push(s.len() as u8);
-        v.extend_from_slice(s);
-    }
-    Some(v)
-}
-
 /// The reply to `req`: status word, then body.
-pub fn answer(acpi: &mut Acpi, req: &[u8]) -> Vec<u8> {
+pub fn answer(acpi: &mut Acpi, req: &[u8], sender: u32) -> Vec<u8> {
     let index =
         |r: &[u8]| r.get(1..5).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]) as usize);
     let (code, body) = match req.first().copied() {
@@ -66,7 +36,10 @@ pub fn answer(acpi: &mut Acpi, req: &[u8]) -> Vec<u8> {
         },
         Some(OP_BRIGHTNESS) => brightness::get(acpi),
         Some(OP_SET_BRIGHTNESS) => brightness::set(acpi, req),
+        Some(OP_PREPARE_SLEEP) if !is_power(sender) => (EPERM, Vec::new()),
         Some(OP_PREPARE_SLEEP) => (prepare_sleep(acpi, req.get(1).copied()), Vec::new()),
+        Some(OP_POWER) => power_wire::power(acpi),
+        Some(OP_THERMAL) => thermal_wire::thermal(acpi),
         _ => (EINVAL, Vec::new()),
     };
     let mut out = code.to_le_bytes().to_vec();

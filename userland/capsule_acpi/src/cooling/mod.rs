@@ -17,6 +17,7 @@
 mod apply;
 mod drive;
 mod find;
+mod policy;
 mod read;
 mod report;
 mod run_fan;

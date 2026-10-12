@@ -34,7 +34,7 @@ pub fn run(mut acpi: Acpi) -> ! {
         let mut sender = 0u32;
         let got = mk_ipc_recv_from(SERVICE_PORT, buf.as_mut_ptr(), buf.len(), RECV_MS, &mut sender);
         if recv_ready(got) && sender != 0 {
-            let out = answer(&mut acpi, &buf[..got as usize]);
+            let out = answer(&mut acpi, &buf[..got as usize], sender);
             let _ = mk_ipc_reply(sender, out.as_ptr(), out.len());
         }
         serve(&mut acpi);

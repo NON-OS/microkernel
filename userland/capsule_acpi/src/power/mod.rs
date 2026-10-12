@@ -17,6 +17,8 @@
 //! Batteries and AC adapters: read from firmware, reported to the kernel for
 //! MkBatteryStatus.
 
+mod alarm;
+mod levels;
 mod read;
 mod refresh;
 mod report;
@@ -25,4 +27,5 @@ mod state;
 
 pub use read::find;
 pub use refresh::{all, notified, tick};
+pub use report::word;
 pub use state::Power;
