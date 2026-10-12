@@ -24,7 +24,9 @@ mod ivhd_kind;
 pub mod ivhd_scope;
 mod mcfg;
 mod srat;
-mod srat_memory;
+mod srat_decode;
+pub mod slit_matrix;
+pub mod srat_entry;
 
 pub use dmar::{foreign_segment_units, parse_dmar, remap_unit_bases, remap_unit_scopes};
 pub use dmar_scope::{translated_by_some, UnitScope};
@@ -32,4 +34,3 @@ pub use hpet::parse_hpet;
 pub use ivrs::{amd_iommu_bases, amd_iommu_spans, parse_ivrs};
 pub use mcfg::parse_mcfg;
 pub use srat::parse_srat;
-pub use srat_memory::{parse_memory_affinity, parse_x2apic_affinity};
