@@ -1,6 +1,6 @@
 use crate::hid::{
     input_len, input_register, parse_mouse_layout, parse_report_descriptor, probe_addr, probe_bus,
-    HID_DESC_LEN,
+    Multitouch, HID_DESC_LEN,
 };
 use crate::i2c_client::{query_acpi_hid, resolve, write_read};
 use crate::state::State;
@@ -42,6 +42,7 @@ pub fn reprobe(state: &mut State) {
         };
         state.descriptor_len = len;
         state.touch_layout = parse_report_descriptor(&report_desc);
+        state.mt = Multitouch::new(&report_desc, &state.touch_layout);
         state.mouse_layout = parse_mouse_layout(&report_desc);
         // Drive the pad's reporting configuration: input mode = touchpad (the
         // only collection PTP-class pads generate reports on; the vestigial

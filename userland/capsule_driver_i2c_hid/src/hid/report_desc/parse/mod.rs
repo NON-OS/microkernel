@@ -28,9 +28,13 @@ mod mouse;
 mod mouse_locals;
 mod mouse_walk;
 mod read_le;
+mod slots_walk;
+mod surface;
 mod touch_walk;
 mod usage_for;
 mod walk;
 
 pub use mouse::parse_mouse;
+pub use slots_walk::parse_slots;
+pub use surface::{surface, Surface};
 pub use walk::parse;

@@ -13,6 +13,7 @@ pub use input_register::input_register;
 pub use power::wake;
 pub use probe::{probe_addr, probe_bus};
 pub use report_desc::{
-    decode_mouse, decode_touch, parse as parse_report_descriptor, parse_mouse as parse_mouse_layout,
-    MouseLayout, TouchLayout, TouchSample,
+    decode_mouse, decode_touch, parse as parse_report_descriptor,
+    parse_mouse as parse_mouse_layout, MouseLayout, TouchLayout, TouchSample,
 };
+pub use report_desc::{primary, Multitouch, ScreenEvent, Surface};

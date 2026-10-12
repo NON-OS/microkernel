@@ -17,7 +17,7 @@
 //! A fresh state for a pad not yet found, and whether it has been.
 
 use super::{FrameRepeat, State};
-use crate::hid::{MouseLayout, TouchLayout};
+use crate::hid::{MouseLayout, Multitouch, TouchLayout};
 use crate::input::TouchGesture;
 
 impl State {
@@ -42,6 +42,7 @@ impl State {
             repeat: FrameRepeat::default(),
             frame_dumps: 0,
             touch_layout: TouchLayout::default(),
+            mt: Multitouch::default(),
             mouse_layout: MouseLayout::default(),
             gesture: TouchGesture::default(),
             doorbell_absent: false,

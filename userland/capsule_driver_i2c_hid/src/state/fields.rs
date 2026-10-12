@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::FrameRepeat;
-use crate::hid::{MouseLayout, TouchLayout};
+use crate::hid::{MouseLayout, Multitouch, TouchLayout};
 use crate::input::TouchGesture;
 
 pub struct State {
@@ -51,9 +51,9 @@ pub struct State {
     pub repeat: FrameRepeat,
     /// Raw frames already dumped to the boot console (bounded one-shot).
     pub frame_dumps: u32,
-    // The absolute field map from the report descriptor, and the gesture state
-    // that turns its reports into pointer events. Empty for a relative mouse.
+    // The absolute field map, and the gesture state below; empty for a mouse.
     pub touch_layout: TouchLayout,
+    pub mt: Multitouch, // every finger: a screen, or a pad in parallel mode
     /// The relative mouse collection, parsed from the same descriptor: what a
     /// pad reports while it stays in mouse mode (it refused input mode 3, or
     /// has no precision touchpad collection).

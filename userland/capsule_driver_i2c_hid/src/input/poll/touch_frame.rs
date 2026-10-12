@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::multitouch::multitouch_frame;
 use crate::hid::decode_touch;
 use crate::input::publish_touch::publish_touch;
 use crate::state::State;
@@ -34,6 +35,9 @@ pub(super) fn touch_frame(state: &mut State, buf: &[u8], n: usize) -> bool {
         return true;
     }
     let body = &buf[2..total];
+    if state.mt.serves() {
+        return multitouch_frame(state, body);
+    }
     if let Some(s) = decode_touch(body, &state.touch_layout) {
         state.touch_decoded = true;
         state.polls_since_touch = 0;
