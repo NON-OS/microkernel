@@ -15,13 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::cmd_header::CmdHeader;
+use super::port::Port;
 use crate::constants::regs::{
     CMD_FRE, CMD_POD, CMD_SUD, PORT_CLB, PORT_CLBU, PORT_CMD, PORT_FB, PORT_FBU, PORT_IE,
     PORT_IE_DEFAULT, PORT_IS, PORT_SCTL, PORT_SERR, SCTL_IPM_DISABLE,
 };
 use crate::regs::Regs;
 
-pub(super) fn program(regs: Regs, base: u32, clb_phys: u64, fb_phys: u64, ctba_phys: u64, clb_va: u64) {
+/// Point the port's command list and FIS area at its regions, slot 0's
+/// header at its command table, clear its latched errors, and turn FIS
+/// receive on.
+pub(super) fn program(regs: Regs, port: &Port) {
+    let (base, clb_phys, fb_phys) = (port.base, port.clb.device_addr(), port._fb.device_addr());
+    let ctba_phys = port.ctba.device_addr();
     let header = CmdHeader {
         flags: 0,
         pm: 0,
@@ -31,8 +37,11 @@ pub(super) fn program(regs: Regs, base: u32, clb_phys: u64, fb_phys: u64, ctba_p
         ctba_high: (ctba_phys >> 32) as u32,
         rsv: [0; 4],
     };
+    // SAFETY: the command list is mapped for the port's life with room for
+    // slot 0's header, and the engine is stopped, so the HBA reads none of
+    // it; the port's register block lies inside the mapped ABAR.
     unsafe {
-        core::ptr::write_volatile(clb_va as *mut CmdHeader, header);
+        core::ptr::write_volatile(port.clb.user_va() as *mut CmdHeader, header);
         regs.w32(base + PORT_CLB, clb_phys as u32);
         regs.w32(base + PORT_CLBU, (clb_phys >> 32) as u32);
         regs.w32(base + PORT_FB, fb_phys as u32);

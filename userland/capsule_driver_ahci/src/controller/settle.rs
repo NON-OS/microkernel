@@ -22,7 +22,7 @@
 //! resets every implemented port's link itself, so this wait only lets the
 //! port list and the serial log show the links as they settle.
 
-use crate::clock::{pause_ms, Deadline};
+use crate::clock::{pause_ms, Deadline, Pace};
 use crate::constants::regs::{
     PORT_BASE, PORT_SSTS, PORT_STRIDE, SSTS_DET_DETECTING, SSTS_DET_MASK,
 };
@@ -38,8 +38,9 @@ const FLOOR_MS: u64 = 20;
 pub fn settle_links(regs: Regs, pi: u32, max_ports: u8) {
     pause_ms(FLOOR_MS);
     let limit = Deadline::after_ms(SPIN_UP_SETTLE_MS);
+    let pace = Pace::start();
     while any_detecting(regs, pi, max_ports) && !limit.expired() {
-        core::hint::spin_loop();
+        pace.rest();
     }
 }
 

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod ata;
+pub mod budget;
 pub mod identify;
 pub mod pci;
 pub mod port;

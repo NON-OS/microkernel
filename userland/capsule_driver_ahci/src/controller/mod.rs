@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod enable;
+mod handoff;
 mod info;
 mod port_info;
 pub(crate) mod ports;

@@ -32,10 +32,6 @@ fn carries(port: &mut Port, regs: Regs, lba: u64, magic: &[u8; 8]) -> bool {
     if !holds(port.capacity_sectors, lba) || transfer(port, regs, lba, 1, false).is_err() {
         return false;
     }
-    let data = port.data.user_va() as *const u8;
     let mut head = [0u8; 8];
-    for (i, b) in head.iter_mut().enumerate() {
-        *b = unsafe { core::ptr::read_volatile(data.add(i)) };
-    }
-    starts_with_magic(&head, magic)
+    port.take(&mut head).is_ok() && starts_with_magic(&head, magic)
 }

@@ -20,6 +20,8 @@ use super::prdt::PrdtEntry;
 pub(super) fn prdt_write(addr: u64, data_phys: u64, dbc: u32) {
     let entry =
         PrdtEntry { dba_low: data_phys as u32, dba_high: (data_phys >> 32) as u32, rsv: 0, dbc };
+    // SAFETY: `addr` is the PRDT of slot 0's command table, mapped for the
+    // port's life with room for the one entry (`CmdTable`).
     unsafe {
         core::ptr::write_volatile(addr as *mut PrdtEntry, entry);
     }

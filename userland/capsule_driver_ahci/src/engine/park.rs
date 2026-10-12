@@ -27,6 +27,7 @@ use crate::regs::Regs;
 /// they are leaked, never handed back to be reused.
 pub fn park(port: Port, regs: Regs) {
     let stopped = super::stop::stop(regs, port.base);
+    // SAFETY: the port's register block lies inside the mapped ABAR.
     unsafe {
         regs.w32(port.base + PORT_IE, 0);
         regs.w32(port.base + PORT_IS, regs.r32(port.base + PORT_IS));

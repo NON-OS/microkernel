@@ -1,6 +1,8 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 #[path = "../../../capsule_driver_ahci/src/constants/ata.rs"]
 pub mod ata;
+#[path = "../../../capsule_driver_ahci/src/constants/budget.rs"]
+pub mod budget;
 #[path = "../../../capsule_driver_ahci/src/constants/identify.rs"]
 pub mod identify;
 #[path = "../../../capsule_driver_ahci/src/constants/port.rs"]

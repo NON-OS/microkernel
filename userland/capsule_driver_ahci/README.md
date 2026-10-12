@@ -162,20 +162,46 @@ from `engine/prd_count.rs`: nonzero, even, at most the 32 KiB data buffer the
 driver owns and within the 4 MiB a PRD entry can carry. A count it refuses
 builds nothing.
 
-A command's end is judged from the port registers alone
-(`engine/completion.rs`). Before issue the device must have cleared BSY and
-DRQ and the port must show no slot issued or queued. While waiting, each look
-reads PxCI first, then PxSACT, PxIS and PxTFD. A fatal PxIS bit, an overflow
-(PxIS.OFS), ERR in PxTFD, a PxCI bit for any slot but 0, or any PxSACT bit
-fails the command. Slot 0 clear while PxTFD still shows BSY or DRQ is waited
-on, and a status that never settles times out. Only a clear slot 0 with a
-clean status read after it counts as done, so a failed or unfinished command
-never hands its buffer to a client: the reply is `E_IO`. The port is then
-recovered: its errors cleared, its engine stopped, a device stuck in BSY or
-DRQ freed by Command List Override (with CAP.SCLO) or else a COMRESET, and the
-engine started again with FIS receive back on, so the next command's status
-reaches PxTFD. A command, with any kick before it, has 3 s in all, inside the
-kernel's 5 s wait for a reply.
+A command's end is judged from the port registers alone (`engine/verdict.rs`,
+`engine/completion.rs`). Before issue the engine must run (PxCMD.ST and CR),
+the device must have cleared BSY and DRQ, and the port must show no slot
+issued or queued (`engine/prepare.rs`). A port that reads no device or its PHY
+offline (PxSSTS.DET 0 or 4, or any value but 1 and 3: the disk pulled) is
+refused at once. A device without a link (DET 1) has its link reset, at most
+once in ATA's 31 s window after the last COMRESET; inside that window the
+request is refused at once. A drive still busy within ATA's 31 s of the last
+COMRESET a recovery sent is still in that reset: the request fails after 1 s
+and the drive is left to finish. Any other port that is not so within 1 s is
+recovered once and given 1 s more, and is otherwise given no command. While
+waiting, each look reads PxCI first, then PxSACT, PxIS and PxTFD. A fatal PxIS
+bit, an overflow (PxIS.OFS), a link change (PxIS.PRCS or PCS: the PHY dropped,
+or the drive reset itself and dropped the command), a PxCI bit for any slot
+but 0, or any PxSACT bit fails the command. ERR in PxTFD fails it only once
+slot 0 is clear: PxTFD changes only when a FIS arrives, so while the slot is
+outstanding it may still hold the previous command's status. Slot 0 clear
+while PxTFD still shows BSY or DRQ is waited on, and a status that never
+settles times out. A read or a write is done only when the HBA's byte count
+(PRDBC) equals the request. A failed or unfinished command never hands its
+buffer to a client: the reply is PxTFD in the ATA status range only when the
+drive itself failed the command (PxIS.TFES, ERR set in PxTFD), since only then
+is the status the disk's; `E_TIMEDOUT` when it never finished; `E_NODEV` once
+the port is wedged; and `E_IO` otherwise: an HBA error of its own, a link
+change, slots the driver never issued, a short transfer, no disk.
+
+The port is then recovered by how the command failed (`engine/recover.rs`,
+`engine/kick.rs`): errors cleared, engine stopped, and, for a command the
+drive never finished, one the HBA failed with an error of its own (HBFS, HBDS,
+IFS, OFS), one ended by a link change, or one that left BSY or DRQ set, a
+COMRESET, which ends whatever the drive was still doing before slot 0's buffer
+takes the next command (`engine/cause.rs`). Command List Override, which
+clears only the HBA's copy of BSY and DRQ, is never used: a command sent past
+it reaches a drive still at work or still resetting. An engine that will not
+stop is met with a COMRESET and a second stop; one that still will not leaves
+the port wedged, and every later request fails at once with `E_NODEV` without
+touching its buffers. The engine restarts with FIS receive on. A request,
+waits and recoveries all, ends inside the kernel's 35 s wait for a reply
+(`constants/budget.rs`), and every wait sleeps between looks once it has spun
+for a millisecond.
 
 ## Current implemented surface
 
@@ -263,6 +289,13 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
   a healthy disk.
 - After a command fails (a forced error, or a disk pulled and reseated), the
   next command on the port succeeds: recovery turns FIS receive back on.
+- The real HBA writes the full byte count to PRDBC after every healthy read
+  and write, so neither is refused as short. Some HBAs may not count at all
+  (FreeBSD's AHCI_Q_NOCOUNT quirk); on such a part every transfer would fail,
+  so check this on each one.
+- A command the drive holds past 30 s (a disk deep in its own error recovery)
+  answers `E_TIMEDOUT` inside the kernel's 35 s, the drive is reset with a
+  COMRESET, and the next read returns its own sectors.
 - A controller whose ABAR is shorter than a full 32-port register file is
   walked without a fault, and ports past the mapped window are not touched.
 - A disk still spinning up links within the two second link window and clears

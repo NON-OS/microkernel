@@ -30,8 +30,6 @@ pub const HBA_BOHC: u32 = 0x28;
 pub const CAP_NP_MASK: u32 = 0x1f;
 /// CAP.CPD: ports have cold presence detection, so PxCMD.POD is writable.
 pub const CAP_CPD: u32 = 1 << 20;
-/// CAP.SCLO: the HBA supports PxCMD.CLO.
-pub const CAP_SCLO: u32 = 1 << 24;
 /// CAP.S64A: the HBA takes 64-bit DMA addresses.
 pub const CAP_S64A: u32 = 1 << 31;
 /// CAP2.BOH: the HBA has BIOS/OS handoff.

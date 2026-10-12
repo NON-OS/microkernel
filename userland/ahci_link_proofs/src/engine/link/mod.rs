@@ -6,8 +6,6 @@ pub mod established;
 #[path = "../../../../capsule_driver_ahci/src/engine/link/ready.rs"]
 pub mod ready;
 // The COMRESET a stuck port's recovery falls back to.
-#[cfg(test)]
 #[path = "../../../../capsule_driver_ahci/src/engine/link/bring_up.rs"]
 mod bring_up;
-#[cfg(test)]
 pub(crate) use bring_up::link_up;

@@ -28,8 +28,11 @@ pub const fn reason(e: AhciError) -> &'static str {
         AhciError::NoDisk => "ahci: controller up, but no port holds an ATA disk",
         AhciError::BrokerCallFailed(_) => "ahci: broker refused a claim or grant",
         AhciError::CommandFailed => "ahci: device reported a command error",
+        AhciError::HbaFailed => "ahci: controller or link failed a command, not the disk",
         AhciError::Timeout => "ahci: controller or link did not answer in time",
         AhciError::IdentityRefused(_) => "ahci: disk's IDENTIFY answer cannot be served",
         AhciError::OutOfRange => "ahci: a transfer fell outside the disk or the data buffer",
+        AhciError::ShortTransfer => "ahci: device moved fewer bytes than the command asked",
+        AhciError::Wedged => "ahci: port engine would not stop; port taken out of service",
     }
 }

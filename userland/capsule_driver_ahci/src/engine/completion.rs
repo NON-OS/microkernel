@@ -19,73 +19,10 @@
 //! the port base, so the host proofs run these same loops against a model of
 //! a device.
 
-use crate::constants::regs::{
-    IS_ERR_MASK, IS_OFS, PORT_CI, PORT_IS, PORT_SACT, PORT_TFD, TFD_BSY, TFD_DRQ, TFD_ERR,
-};
+use super::verdict::{verdict, Verdict};
+use crate::clock::Pace;
+use crate::constants::regs::{PORT_CI, PORT_IS, PORT_SACT, PORT_TFD};
 use crate::error::{AhciError, AhciResult};
-
-/// The one command slot the driver issues, never as a queued command.
-pub const SLOT0: u32 = 1;
-
-/// What one look at the port says about the command in slot 0.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Verdict {
-    /// Still running, or finished with no idle status posted yet.
-    Pending,
-    /// Finished with a clean status.
-    Done,
-    /// Failed, or the port shows work the driver never issued.
-    Failed,
-}
-
-/// Judge one look at PxCI, PxSACT, PxIS and PxTFD.
-pub fn verdict(ci: u32, sact: u32, is: u32, tfd: u32) -> Verdict {
-    /*
-     * A fatal error, an overflow (the device moved more than the PRD names)
-     * or ERR in the task file fails the command whatever PxCI says: on an
-     * error the HBA leaves the slot's bit set.
-     */
-    if is & (IS_ERR_MASK | IS_OFS) != 0 || tfd & TFD_ERR != 0 {
-        return Verdict::Failed;
-    }
-    // Any bit but slot 0 names a command the driver never issued.
-    if ci & !SLOT0 != 0 || sact != 0 {
-        return Verdict::Failed;
-    }
-    if ci & SLOT0 != 0 {
-        return Verdict::Pending;
-    }
-    /*
-     * The slot is clear but the device still shows BSY or DRQ: its ending
-     * status is not posted, so the data is not taken yet. A status that
-     * never settles ends the wait in Timeout.
-     */
-    if tfd & (TFD_BSY | TFD_DRQ) != 0 {
-        return Verdict::Pending;
-    }
-    Verdict::Done
-}
-
-/// Wait, until `expired` says the time is up, for the device to clear BSY and
-/// DRQ before a command is issued. `expired` is asked once after each look
-/// that finds the device busy. A port that then shows any slot issued or
-/// queued holds work the driver did not give it, and nothing is issued into
-/// it.
-pub fn wait_ready(
-    mut read: impl FnMut(u32) -> u32,
-    mut expired: impl FnMut() -> bool,
-) -> AhciResult<()> {
-    while read(PORT_TFD) & (TFD_BSY | TFD_DRQ) != 0 {
-        if expired() {
-            return Err(AhciError::Timeout);
-        }
-        core::hint::spin_loop();
-    }
-    if read(PORT_CI) != 0 || read(PORT_SACT) != 0 {
-        return Err(AhciError::CommandFailed);
-    }
-    Ok(())
-}
 
 /// Wait, until `expired` says the time is up, for the command in slot 0 to
 /// finish. `expired` is asked once after each round that leaves it pending.
@@ -97,6 +34,7 @@ pub fn wait_done(
     mut read: impl FnMut(u32) -> u32,
     mut expired: impl FnMut() -> bool,
 ) -> AhciResult<()> {
+    let pace = Pace::start();
     loop {
         let ci = read(PORT_CI);
         let sact = read(PORT_SACT);
@@ -110,6 +48,6 @@ pub fn wait_done(
         if expired() {
             return Err(AhciError::Timeout);
         }
-        core::hint::spin_loop();
+        pace.rest();
     }
 }

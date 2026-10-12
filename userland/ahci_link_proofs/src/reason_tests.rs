@@ -28,9 +28,12 @@ fn every_failure() -> Vec<AhciError> {
         AhciError::NoDisk,
         AhciError::BrokerCallFailed(-16),
         AhciError::CommandFailed,
+        AhciError::HbaFailed,
         AhciError::Timeout,
         AhciError::IdentityRefused(Refusal::NoCapacity),
         AhciError::OutOfRange,
+        AhciError::ShortTransfer,
+        AhciError::Wedged,
     ];
     for e in all {
         match e {
@@ -38,9 +41,12 @@ fn every_failure() -> Vec<AhciError> {
             | AhciError::NoDisk
             | AhciError::BrokerCallFailed(_)
             | AhciError::CommandFailed
+            | AhciError::HbaFailed
             | AhciError::Timeout
             | AhciError::IdentityRefused(_)
-            | AhciError::OutOfRange => {}
+            | AhciError::OutOfRange
+            | AhciError::ShortTransfer
+            | AhciError::Wedged => {}
         }
     }
     all.to_vec()

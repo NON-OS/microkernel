@@ -18,20 +18,17 @@ use super::cmd_header::CmdHeader;
 use super::cmd_table::CmdTable;
 use super::fis::FisH2D;
 use super::port::Port;
-use crate::constants::regs::PORT_TFD;
-use crate::constants::ata::{
-    ATA_DEV_LBA, ATA_FLUSH_EXT, FIS_H2D_COMMAND, FIS_H2D_LEN_DWORDS, FIS_TYPE_REG_H2D,
-};
-use crate::error::AhciResult;
+use crate::constants::ata::{ATA_DEV_LBA, ATA_FLUSH_EXT, FIS_H2D_LEN_DWORDS};
+use crate::error::{AhciError, AhciResult};
 use crate::regs::Regs;
 
 pub fn flush(port: &mut Port, regs: Regs) -> AhciResult<()> {
+    // The HBA of a wedged port may still own the command table.
+    if port.wedged {
+        return Err(AhciError::Wedged);
+    }
     let table_va = port.ctba.user_va();
-    let mut fis: FisH2D = unsafe { core::mem::zeroed() };
-    fis.fis_type = FIS_TYPE_REG_H2D;
-    fis.pm = FIS_H2D_COMMAND;
-    fis.command = ATA_FLUSH_EXT;
-    fis.device = ATA_DEV_LBA;
+    let fis = FisH2D::command(ATA_FLUSH_EXT, 0, 0, ATA_DEV_LBA);
     let header = CmdHeader {
         flags: FIS_H2D_LEN_DWORDS,
         pm: 0,
@@ -41,16 +38,12 @@ pub fn flush(port: &mut Port, regs: Regs) -> AhciResult<()> {
         ctba_high: (port.ctba.device_addr() >> 32) as u32,
         rsv: [0; 4],
     };
+    // SAFETY: as in build_slot0, the table and list are mapped for the
+    // port's life and the engine reads them only once PxCI is set.
     unsafe {
         core::ptr::write_bytes(table_va as *mut u8, 0, core::mem::size_of::<CmdTable>());
         core::ptr::write_volatile(table_va as *mut FisH2D, fis);
         core::ptr::write_volatile(port.clb.user_va() as *mut CmdHeader, header);
     }
-    if let Err(e) = super::issue::issue_slot0(regs, port.base, port.sclo) {
-        // SAFETY: the port's register block lies inside the mapped ABAR.
-        port.last_tfd = unsafe { regs.r32(port.base + PORT_TFD) };
-        let _ = super::recover::recover(regs, port.base, port.sclo);
-        return Err(e);
-    }
-    Ok(())
+    super::issue::run(port, regs)
 }
