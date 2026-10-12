@@ -16,6 +16,7 @@
 
 mod count;
 mod delete;
+mod list;
 mod list_wallet_rails;
 mod lock;
 mod metadata;
@@ -44,6 +45,7 @@ mod wallet_recover;
 
 pub(super) use count::count;
 pub(super) use delete::delete;
+pub(super) use list::list;
 pub(super) use list_wallet_rails::list_wallet_rails;
 pub(super) use lock::lock;
 pub(super) use metadata::metadata;

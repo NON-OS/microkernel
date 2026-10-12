@@ -29,6 +29,9 @@ pub mod wallet;
 
 // The rule the wallet's requests leave by, as nonos_route_link ships it. At
 // the crate root, where its own `crate::pick` paths look for it.
+/// The keyring's rule for who may keep records by name: Bluetooth bonds (L33).
+#[path = "../../capsule_keyring/src/server/bond_gate/rule.rs"]
+pub mod bond_gate;
 #[allow(dead_code)]
 #[path = "../../nonos_route_link/src/describe.rs"]
 pub mod describe;
@@ -115,6 +118,8 @@ mod format_typed_tests;
 mod keep_tests;
 #[cfg(test)]
 mod kept_names_tests;
+#[cfg(test)]
+mod keyring_bond_tests;
 #[cfg(test)]
 mod keyring_owner_tests;
 #[cfg(test)]

@@ -15,7 +15,6 @@ client capsule (wallet, login, ...)
     |
     | keyring IPC, service:4098:keyring
     v
-keyring -- resolve_caller --> in-memory store, 128 keys, 16 per owner
     |                             |
     |                             `-- CryptoMachineKey -> nonos_vault seal
     `-- reply on reply:4099:endpoint.4294967298
@@ -49,17 +48,24 @@ keyring -- resolve_caller --> in-memory store, 128 keys, 16 per owner
 |---|---|
 | `OP_STORE`, `OP_RETRIEVE`, `OP_DELETE`, `OP_METADATA`, `OP_COUNT` | caller-owned key records |
 | `OP_LOCK`, `OP_UNLOCK` | lock or release one entry the caller owns |
+| `OP_LIST` (30) | `[pid u32][key type u8]` -> `[count u32][id u32 each]`: the caller's own ids of one kind |
 | `OP_WALLET_IMPORT`, `OP_WALLET_GENERATE`, `OP_WALLET_GENERATE_HD`, `OP_WALLET_RECOVER`, `OP_WALLET_DERIVE` | create or derive a wallet key: from a 32-byte secret, at random, or from a BIP39 mnemonic (m/44'/60'/0'/0/0) |
-| `OP_WALLET_ADDRESS`, `OP_WALLET_EXPORT` | the Ethereum address; the raw key, to its owner only |
 | `OP_SIGN_NOX_RECEIPT` | a recoverable EIP-712 signature |
 | `OP_SIGN_NOX_APPROVE`, `OP_SIGN_NOX_TRANSFER`, `OP_SIGN_NOX_STAKE_APPROVE`, `OP_SIGN_NOX_STAKE`, `OP_SIGN_NOX_UNSTAKE`, `OP_SIGN_NOX_STAKE_LOCKED`, `OP_SIGN_ETH_TRANSFER`, `OP_SIGN_TX` | raw signed EIP-1559 transactions |
 | `OP_LIST_WALLET_RAILS` | the wallet rails and their status |
 | `OP_VAULT_SEAL`, `OP_VAULT_OPEN`, `OP_SHIELD_MATERIAL`, `OP_SHIELD_SEAL`, `OP_SHIELD_OPEN` | seal, open and shield the wallet's account record; the wallet only |
 
-Every op that names an owner goes through `resolve_caller` (`src/server/caller.rs`):
 the pid in the request is accepted only when it equals the pid the kernel stamped
 on the message, and sender 0 is refused. A frame too short to carry a sequence
 number is answered with `EINVAL` under sequence 0.
+
+Key types 10 (`BtBond`, 48 octets) and 11 (`BtLocalIrk`, 17 octets) are kept
+for a service name, not a pid (`src/store/named.rs`). Only a process that owns a
+name in `BOND_HOLDERS` (`src/server/bond_gate/rule.rs`: `driver.bt_usb0`) may
+store them. The reaper leaves them when that pid ends. Before any request is
+answered, the records go to whichever pid owns the name now, so a restarted
+driver finds its bonds with `OP_LIST`. They last the boot only until
+Decision 27.
 
 `OP_LIST_WALLET_RAILS` returns:
 
@@ -107,7 +113,6 @@ capsules. It registers `service:4098:keyring`, looks up the wallet pids with
 with its sender pid, dispatch, `MkIpcSend` for the reply, `MkYield` between
 turns. A reaper (`src/server/reap.rs`) runs every two seconds while requests
 arrive, and before any request when the store is full, using `MkPidAlive` to
-drop the keys of owners that ended. On a fatal setup failure it calls `MkExit`.
 
 ## Failure model
 
@@ -120,7 +125,6 @@ reported to clients with an errno of its own by the kernel path.
 ## Current implemented surface
 
 The 29 ops above, served by the handlers under `src/server/handlers/`, over the
-store in `src/store/` (128 keys, 16 per owner, `MAX_KEY_SIZE` 256 bytes). EIP-712
 and EIP-1559 encoding live under `src/server/eip712/` and `src/server/eip1559/`;
 RLP under `src/server/rlp/`; the vault under `src/vault/`. Nothing else.
 
@@ -136,17 +140,14 @@ in-flight requests cannot cross-route.
 ## State ownership
 
 The capsule owns the whole key store in its own memory: up to `MAX_KEYS` (128)
-records, at most `MAX_KEYS_PER_OWNER` (16) per owner. It owns no persistent
 state. The sealed vault blob is owned and stored by the wallet, not here. No key
 is ever mirrored into kernel service state.
 
 ## Operating rules
 
-- Hold one owner to `MAX_KEYS_PER_OWNER` of `MAX_KEYS`, so no program can starve
   every other program of a slot.
-- Drop the keys of an owner that ended, each wiped as its own delete would have;
   checked every two seconds while requests arrive, and before any request when
-  the store is full (`src/server/reap.rs`, `src/store/ended.rs`).
+  the store is full (`src/server/reap.rs`, `src/store/ended.rs`). Records kept
 - `unlock` and its locking twin act only on an entry the caller owns.
 - Only the wallet pids may seal or open the vault.
 - Never mirror keys into kernel service state; wipe the receive buffer after
@@ -159,15 +160,15 @@ is ever mirrored into kernel service state.
 ## Release evidence
 
 `userland/wallet_proofs` (`keyring_owner_tests.rs`) runs the real store on the
-host: the per-owner share and the dropping of ended owners' keys, with the vault
-gate rule exercised there too. The static gate `nonos-ci/run-static-checks.sh`
+gate rule exercised there too. `keyring_bond_tests.rs` covers records kept by
+name: refused through `OP_STORE`'s plain path, kept past their pid, adopted by
+restart. The static gate `nonos-ci/run-static-checks.sh`
 runs `scripts/check_mirror_caps.py` over the spawn mirror's capability word.
 
 ## Release checklist
 
 - [ ] `CAPSULE_REQUIRED_CAPS` unchanged at `0x38`, Keyring bit absent.
 - [ ] `ALL` lists every op and `all_distinct` holds (no shared code).
-- [ ] `keyring_owner_tests.rs` passes: per-owner cap, ended-owner reaping and
       the vault gate rule.
 
 ## Explicit non-goals today

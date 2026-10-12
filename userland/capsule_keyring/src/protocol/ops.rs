@@ -28,7 +28,7 @@
 
 use super::types::*;
 
-pub const ALL: [u16; 29] = [
+pub const ALL: [u16; 30] = [
     OP_STORE,
     OP_RETRIEVE,
     OP_DELETE,
@@ -58,6 +58,7 @@ pub const ALL: [u16; 29] = [
     OP_SHIELD_SEAL,
     OP_SHIELD_OPEN,
     OP_WALLET_DERIVE,
+    OP_LIST,
 ];
 
 /// O(n^2) over 24 entries, in a const context, so it costs nothing at runtime
