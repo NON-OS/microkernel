@@ -1,0 +1,40 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Host proofs, group 4 of 4: test modules mounted by path
+//! from lib.rs, each at its own file.
+
+#[path = "syscall_tests.rs"]
+mod syscall_tests;
+#[path = "uefi_cache/mod.rs"]
+mod uefi_cache;
+#[path = "usable_span_frame_tests.rs"]
+mod usable_span_frame_tests;
+#[path = "usable_span_tests.rs"]
+mod usable_span_tests;
+#[path = "user_buffer_tests.rs"]
+mod user_buffer_tests;
+#[path = "usercopy_tests.rs"]
+mod usercopy_tests;
+/// The restart policy init holds a watched service to.
+#[path = "lifecycle_state.rs"]
+pub mod lifecycle_state;
+/// driver.usb_msc0's search report in words (usb_msc_report_tests).
+#[path = "../../../src/hardware/usb_msc_capsule/report_words.rs"]
+pub mod usb_msc_report_words;
+/// Which core services init restarts when they end.
+#[path = "../../../src/userspace/init/supervisor/watch_rule.rs"]
+pub mod watch_rule;
