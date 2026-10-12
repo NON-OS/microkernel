@@ -66,11 +66,8 @@ impl Mlme {
             },
             SaeStep::Ignore => MlmeOutput::none(),
             SaeStep::Failed => {
-                let why = sae.failure();
-                match why {
-                    Some(f) => self.fail(MlmeFailure::Sae(f)),
-                    None => self.fail(MlmeFailure::NoEntropy),
-                }
+                let why = sae.failure().map_or(MlmeFailure::NoEntropy, MlmeFailure::Sae);
+                self.fail(why)
             }
         }
     }

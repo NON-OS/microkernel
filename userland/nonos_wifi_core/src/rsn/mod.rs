@@ -21,6 +21,9 @@
 
 pub mod build;
 pub mod parse;
+mod parse_tail;
+mod reader;
+mod rsne;
 pub mod rsnxe;
 pub mod select;
 pub mod suite;
