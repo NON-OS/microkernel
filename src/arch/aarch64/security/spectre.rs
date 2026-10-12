@@ -14,18 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod active;
-mod barrier;
-mod csv;
-mod init;
-mod kind;
-mod load;
-mod ssbs;
+//! Speculation: one decision per CPU, from its identification registers,
+//! its MIDR and the firmware's SMCCC answers (`decide`), then acted on:
+//! SSBD at once, the rest on every entry from EL0 through the word the
+//! vectors read (`entry_word`).
 
-pub use active::mitigations_active;
+mod answer;
+mod barrier;
+mod branch;
+mod cores;
+mod decide;
+mod entry;
+mod entry_word;
+mod history;
+mod ids;
+mod init;
+mod load;
+mod plan;
+mod read;
+mod report;
+mod ssbs;
+mod words;
+
 pub use barrier::{clear_prediction_state, speculative_barrier};
-pub use csv::{is_csv2_enabled, is_csv3_enabled};
 pub use init::init_spectre_mitigations;
-pub use kind::SpectreMitigation;
 pub use load::speculation_safe_load;
-pub use ssbs::{enter_kernel, exit_kernel};
+pub use plan::{Bhb, Meltdown, Plan, Ssbd, Why, V2};

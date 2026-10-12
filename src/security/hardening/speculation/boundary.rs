@@ -15,15 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Crossing the privilege boundary.
+//!
+//! aarch64 has nothing to do here: its entry work runs in the EL0 vectors
+//! before any indirect branch (`SPECTRE_FROM_EL0`), and SCTLR_EL1.DSSBS
+//! makes every exception entry clear PSTATE.SSBS. A call from Rust would
+//! come too late for the first and repeat the second.
 
 /// Entering the kernel from user code.
 #[inline]
 pub fn kernel_entry() {
     #[cfg(target_arch = "x86_64")]
     super::super::spectre_mitigations::kernel_entry_mitigations();
-
-    #[cfg(target_arch = "aarch64")]
-    crate::arch::aarch64::security::spectre::enter_kernel();
 }
 
 /// Returning to user code.
@@ -31,7 +33,4 @@ pub fn kernel_entry() {
 pub fn kernel_exit() {
     #[cfg(target_arch = "x86_64")]
     super::super::spectre_mitigations::kernel_exit_mitigations();
-
-    #[cfg(target_arch = "aarch64")]
-    crate::arch::aarch64::security::spectre::exit_kernel();
 }
