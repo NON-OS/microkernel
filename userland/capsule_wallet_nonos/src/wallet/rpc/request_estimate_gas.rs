@@ -27,7 +27,9 @@ pub fn request_estimate_gas(
     id: u64,
 ) -> Vec<u8> {
     let mut out = Vec::with_capacity(200 + data.len() * 2);
-    out.extend_from_slice(b"{\"jsonrpc\":\"2.0\",\"method\":\"eth_estimateGas\",\"params\":[{\"from\":\"");
+    out.extend_from_slice(
+        b"{\"jsonrpc\":\"2.0\",\"method\":\"eth_estimateGas\",\"params\":[{\"from\":\"",
+    );
     super::append_hex20::append_hex20(&mut out, from);
     out.extend_from_slice(b"\",\"to\":\"");
     super::append_hex20::append_hex20(&mut out, to);
