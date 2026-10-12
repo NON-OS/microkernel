@@ -30,7 +30,7 @@ use super::{image_map, state, PageAttributes};
 /// Boot CPU, before these tables are live.
 pub(super) unsafe fn map_range(base: u64, size: u64, kind: BootMemoryType) -> Result<(), u64> {
     let data_attrs = region_attrs(kind);
-    let code_attrs = PageAttributes::kernel_code();
+    let code_attrs = super::text_guard::code();
     let mut phys = base & !(BLOCK_2M - 1);
     let end = base.saturating_add(size);
     while phys < end {
@@ -60,7 +60,7 @@ pub(super) unsafe fn map_range(base: u64, size: u64, kind: BootMemoryType) -> Re
 
 fn region_attrs(kind: BootMemoryType) -> PageAttributes {
     match kind {
-        BootMemoryType::Kernel => PageAttributes::kernel_code(),
+        BootMemoryType::Kernel => super::text_guard::code(),
         BootMemoryType::DeviceMemory => PageAttributes::device(),
         BootMemoryType::Available => PageAttributes::kernel_data(),
         _ => PageAttributes::kernel_rodata(),

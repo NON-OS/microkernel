@@ -51,7 +51,7 @@ pub(super) unsafe fn map_image_block(
     if l1_index >= state::L3_L1_SPAN || l2_index >= PAGES_PER_BLOCK {
         return false;
     }
-    let code = PageAttributes::kernel_code();
+    let code = super::text_guard::code();
     let rodata = PageAttributes::kernel_rodata();
     let (image_start, image_end) = image_bounds();
     let (text_start, text_end) = text_bounds();
