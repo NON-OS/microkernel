@@ -9,7 +9,9 @@
  *   264    spsr_el1
  *   272    kernel_sp
  *
- * IRQs masked on entry. eret restores SPSR.DAIF for EL0. */
+ * IRQs masked on entry, and masked again here: an exception between the
+ * ELR_EL1 write and the eret would overwrite it. eret restores SPSR.DAIF
+ * for EL0. */
 
 .section .text.resume_user, "ax", %progbits
 
@@ -17,6 +19,8 @@
 .globl aarch64_resume_user
 .type  aarch64_resume_user, %function
 aarch64_resume_user:
+    hint    #34                         /* BTI c: a landing pad (FEAT_BTI) */
+    msr     daifset, #0xf
     /* sysregs first; x9 is our scratch until we load gprs[9] near the end. */
     ldr     x9,  [x0, #248]
     msr     sp_el0, x9

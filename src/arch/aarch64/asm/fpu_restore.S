@@ -7,6 +7,7 @@
 .type  aarch64_fpu_restore, %function
 
 aarch64_fpu_restore:
+    hint    #34                         /* BTI c: a landing pad (FEAT_BTI) */
     ldr     w1, [x0, #0x200]
     msr     fpsr, x1
     ldr     w1, [x0, #0x204]

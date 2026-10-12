@@ -8,6 +8,7 @@
 .type  aarch64_fpu_save, %function
 
 aarch64_fpu_save:
+    hint    #34                         /* BTI c: a landing pad (FEAT_BTI) */
     stp     q0,  q1,  [x0, #0x000]
     stp     q2,  q3,  [x0, #0x020]
     stp     q4,  q5,  [x0, #0x040]
