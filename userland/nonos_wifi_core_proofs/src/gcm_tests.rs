@@ -32,12 +32,14 @@ pub fn case(k: &str, iv: &str, aad: &str, p: &str, c: &str, t: &str) {
     assert_eq!(open(&k, &iv, &h(aad), &sealed), Some(h(p)));
 }
 
+// Recalled, the code reproduces it; source not reachable here.
 #[test]
 fn gcm_case_13_empty_message() {
     let z = "0".repeat(64);
     case(&z, &"0".repeat(24), "", "", "", "530f8afbc74536b9a963b4f1c4cb738b");
 }
 
+// Recalled, the code reproduces it; source not reachable here.
 #[test]
 fn gcm_case_14_one_zero_block() {
     let z = "0".repeat(64);

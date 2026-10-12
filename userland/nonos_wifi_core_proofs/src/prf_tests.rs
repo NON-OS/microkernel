@@ -25,6 +25,7 @@ fn h(s: &str) -> Vec<u8> {
     (0..s.len() / 2).map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).unwrap()).collect()
 }
 
+// Recalled, the code reproduces it; source not reachable here.
 #[test]
 fn prf_case_1() {
     let mut out = [0u8; 64];
@@ -34,6 +35,7 @@ fn prf_case_1() {
     assert_eq!(out.to_vec(), h(want));
 }
 
+// Recalled, the code reproduces it; source not reachable here.
 #[test]
 fn prf_case_2() {
     let mut out = [0u8; 64];
