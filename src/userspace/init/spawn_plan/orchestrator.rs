@@ -32,6 +32,7 @@ pub(in crate::userspace::init) fn spawn_display_core() {}
 
 pub(in crate::userspace::init) fn spawn_drivers() {
     super::drivers_virtio::spawn();
+    super::platform_acpi::spawn();
     super::drivers_bus::spawn();
     super::drivers_input::spawn();
     super::drivers_nic::spawn();
