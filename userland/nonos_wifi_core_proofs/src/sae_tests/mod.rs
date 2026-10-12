@@ -28,7 +28,9 @@
 //! and from it the PWE for 00:09:5b:66:ec:1e / 00:0b:6b:d9:02:46.
 
 mod annex;
+mod discard;
 mod exchange;
 mod frames;
+mod hostile;
 mod known;
 mod malformed;

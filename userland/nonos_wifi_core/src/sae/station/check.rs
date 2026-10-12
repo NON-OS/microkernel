@@ -23,13 +23,13 @@ use super::{SaeFailure, SaeState, SaeStation, SaeStep};
 impl SaeStation {
     pub(super) fn on_confirm(&mut self, status: u16, body: &[u8]) -> SaeStep {
         if status != STATUS_SUCCESS {
-            return self.fail(SaeFailure::Rejected(status));
+            return self.discard(SaeFailure::Rejected(status));
         }
         if self.state != SaeState::Confirmed {
             return SaeStep::Ignore;
         }
         let Some((peer_sc, got)) = parse_confirm(body) else {
-            return self.fail(SaeFailure::BadConfirm);
+            return self.discard(SaeFailure::BadConfirm);
         };
         let want = confirm(
             &self.keys.kck,
@@ -44,9 +44,10 @@ impl SaeStation {
             diff |= a ^ b;
         }
         if diff != 0 {
-            return self.fail(SaeFailure::BadConfirm);
+            return self.discard(SaeFailure::BadConfirm);
         }
         self.state = SaeState::Accepted;
+        self.failure = None;
         SaeStep::Accepted
     }
 }

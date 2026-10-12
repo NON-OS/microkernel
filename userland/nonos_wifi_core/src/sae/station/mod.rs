@@ -20,8 +20,10 @@
 //! send a confirm; on the AP's confirm check it and accept. The status code of
 //! the AP's commit must say the same PWE method this station used (126 for
 //! hash-to-element, 0 for hunting and pecking), a commit that only reflects
-//! this station's own is dropped, and anything malformed or refused ends the
-//! exchange with the reason kept for the panel.
+//! this station's own is dropped. Nothing the AP sends is authenticated until
+//! its confirm verifies, so a malformed or refusing frame, or a confirm that
+//! does not verify, is discarded (12.4.8.6) with the reason kept for the
+//! panel: a forged frame cannot end the exchange, only the driver's deadline.
 
 mod accept;
 mod check;

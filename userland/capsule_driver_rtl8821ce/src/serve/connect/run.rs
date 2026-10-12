@@ -26,7 +26,7 @@ use crate::regs::Regs;
 use crate::status;
 
 use super::consts::*;
-use super::entropy::{draw_entropy, retry_with_psk};
+use super::entropy::draw_entropy;
 use super::progress::log_progress;
 use super::request::ConnectRequest;
 use super::result::{ConnectResult, CODE_NO_ENTROPY};
@@ -47,24 +47,13 @@ pub(super) fn run(
     let join = JoinRequest { our_mac, ssid: req.ssid, passphrase: req.pass, policy, entropy };
     status::debug(b"[rtl8821ce] connect: joining\n");
     let mut now_ms = || nonos_libc::mk_uptime_ms() as u64;
-    let mut report = assoc::run_join(link, &join, beacon, JOIN_BUDGET_MS, &mut now_ms);
-    log_progress(&report);
     /*
-     * A network that offers WPA3 and WPA2 side by side (transition mode, as
-     * many home routers ship) is joined with WPA3 first. When that does not
-     * finish, for any reason but the router saying the password is wrong, it
-     * is joined again with WPA2, which the router offers and which every WPA2
-     * station uses there. Never for a network saved as WPA3.
+     * A network that offers WPA3 and WPA2 side by side is joined with WPA3,
+     * and a WPA3 join that does not finish is not tried again with WPA2:
+     * anyone who can jam the SAE exchange would otherwise get a WPA2
+     * handshake to guess the passphrase from offline.
      */
-    if retry_with_psk(&report, req.wpa3_only) {
-        let Some(entropy) = draw_entropy() else {
-            return Err(ConnectResult::code(CODE_NO_ENTROPY));
-        };
-        let policy = JoinPolicy::PSK_ONLY;
-        let psk = JoinRequest { our_mac, ssid: req.ssid, passphrase: req.pass, policy, entropy };
-        status::line(b"[rtl8821ce] connect: WPA3 did not finish; joining with WPA2\n");
-        report = assoc::run_join(link, &psk, beacon, PSK_BUDGET_MS, &mut now_ms);
-        log_progress(&report);
-    }
+    let report = assoc::run_join(link, &join, beacon, JOIN_BUDGET_MS, &mut now_ms);
+    log_progress(&report);
     Ok(report)
 }

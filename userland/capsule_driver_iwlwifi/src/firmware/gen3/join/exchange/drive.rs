@@ -18,7 +18,7 @@ use super::super::super::station::session::Session;
 use super::super::bss::Bss;
 use super::super::fw::Fw;
 use super::air::Air;
-use super::end::ExchangeEnd;
+use super::end::{timed_out, ExchangeEnd};
 use super::limits::{EXCHANGE_MS, IDLE_TRIES, RETX_MS, SILENT_WAITS_MAX};
 use super::step::{take_frames, Step};
 use crate::regs::Mmio;
@@ -46,7 +46,7 @@ pub fn run<M: Mmio, R: Region + ?Sized, C: Clock>(
         }
         let now = fw.clock.now_ms();
         if now.saturating_sub(start) >= EXCHANGE_MS || silent >= SILENT_WAITS_MAX {
-            return Err(ExchangeEnd::TimedOut);
+            return Err(timed_out(mlme));
         }
         // The resend is due on the clock, however many unrelated frames
         // arrived meanwhile: a busy channel never goes quiet for `RETX_MS`.
@@ -54,7 +54,7 @@ pub fn run<M: Mmio, R: Region + ?Sized, C: Clock>(
         if since >= u64::from(RETX_MS) {
             idle += 1;
             if idle > IDLE_TRIES {
-                return Err(ExchangeEnd::TimedOut);
+                return Err(timed_out(mlme));
             }
             if !air.pending.is_empty() {
                 let again = air.pending.clone();

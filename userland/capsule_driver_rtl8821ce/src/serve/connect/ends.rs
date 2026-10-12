@@ -48,9 +48,13 @@ pub(super) fn missed(outcome: Outcome, failure: Option<MlmeFailure>, r: &mut Con
             r.ap_code = ap_code;
             code
         }
+        // An SAE exchange that ran out of time says why its last frame was
+        // discarded: a confirm that did not verify reads as a wrong password.
         Outcome::TimedOut => {
             status::debug(b"[rtl8821ce] connect: timed out\n");
-            CODE_TIMED_OUT
+            let (code, ap_code) = failure.map_or((CODE_TIMED_OUT, 0), failure_code);
+            r.ap_code = ap_code;
+            code
         }
         Outcome::Joined { .. } => 0,
     }

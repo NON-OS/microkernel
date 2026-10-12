@@ -18,7 +18,7 @@
 //! that BSS to this station counts (another station's refusal on the same
 //! channel used to fail the join). Open System needs transaction 2 with
 //! status 0; SAE frames go to the SAE exchange, which answers, accepts with a
-//! PMK, or fails with its reason.
+//! PMK, or discards the frame (only the driver's deadline ends it).
 
 use super::failure::MlmeFailure;
 use super::state::{Mlme, MlmeOutput};
@@ -65,13 +65,6 @@ impl Mlme {
                 None => self.fail(MlmeFailure::NoEntropy),
             },
             SaeStep::Ignore => MlmeOutput::none(),
-            SaeStep::Failed => {
-                let why = sae.failure();
-                match why {
-                    Some(f) => self.fail(MlmeFailure::Sae(f)),
-                    None => self.fail(MlmeFailure::NoEntropy),
-                }
-            }
         }
     }
 }
