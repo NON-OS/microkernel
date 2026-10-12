@@ -96,6 +96,8 @@ pub mod lpit;
 #[cfg(test)]
 pub mod wdat;
 #[cfg(test)]
+pub mod tpm2;
+#[cfg(test)]
 pub mod acpi_cpu;
 #[cfg(test)]
 pub mod late_probe;
