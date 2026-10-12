@@ -3794,6 +3794,7 @@
    "userland/nonos_smbios/src/chassis.rs",
    "userland/nonos_smbios/src/entry.rs",
    "userland/nonos_smbios/src/identity.rs",
+   "userland/nonos_smbios/src/quirk",
    "userland/nonos_smbios/src/structure.rs",
    "userland/nonos_smbios/src/text.rs",
    "userland/nonos_smbios/src/walk.rs",

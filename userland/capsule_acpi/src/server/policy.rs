@@ -31,8 +31,8 @@ const PS2: &[u8] = b"driver.ps2_kbd0";
 pub enum Allowed {
     /// The owners of these services.
     Services(&'static [&'static [u8]]),
-    /// Any sender the endpoint admits: DEVICE_POWER, PROPERTIES and
-    /// GPIO_EVENT, where the kernel's claim test (MkAcpiFunctionOf,
+    /// Any sender the endpoint admits: DEVICE_POWER, PROPERTIES, GPIO_EVENT
+    /// and QUIRKS, where the kernel's claim test (MkAcpiFunctionOf,
     /// MkAcpiDeviceName) limits each to the device's own holder.
     AnyAdmitted,
     Nobody,
@@ -44,7 +44,7 @@ pub fn allowed(op: u8) -> Allowed {
         5 | 15 => Allowed::Services(&[POWER]),
         8 => Allowed::Services(&[SHELL]),
         9 => Allowed::Services(&[I2C_PCI, I2C_HID]),
-        10 | 12 | 13 => Allowed::AnyAdmitted,
+        10 | 12 | 13 | 16 => Allowed::AnyAdmitted,
         11 => Allowed::Services(&[PS2]),
         _ => Allowed::Nobody,
     }

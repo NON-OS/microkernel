@@ -27,6 +27,7 @@ extern crate alloc;
 pub mod chassis;
 pub mod entry;
 pub mod identity;
+pub mod quirk;
 pub mod structure;
 pub mod text;
 pub mod walk;
