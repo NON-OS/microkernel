@@ -41,16 +41,16 @@ impl Gen9 {
         let d = ddi as u32;
         let mut s = sink.borrow_mut();
         if off == tp_ctl(d) {
-            s.pattern = match (v & TP_ENABLE != 0, v & PATTERN_MASK) {
+            s.set_pattern(match (v & TP_ENABLE != 0, v & PATTERN_MASK) {
                 (true, TPS1) => Pattern::Tps1,
                 (true, TPS2) => Pattern::Tps2,
                 (true, TPS3) => Pattern::Tps3,
                 _ => Pattern::Off,
-            };
+            });
         }
         if off == buf_ctl(d) {
             if v & BUF_ENABLE == 0 {
-                s.link = None;
+                (s.link, s.held) = (None, false);
                 self.regs.insert(off, v | BUF_IDLE);
                 return;
             }
