@@ -66,6 +66,9 @@ pub mod frame_pacer {
 #[path = "../../compositor/src/frame_pacer/drain_damage.rs"]
 pub mod drain_damage;
 
+#[path = "../../compositor/src/frame_pacer/drain_batch.rs"]
+pub mod drain_batch;
+
 #[path = "../../compositor/src/sw_blitter/mod.rs"]
 pub mod sw_blitter;
 
@@ -99,6 +102,8 @@ mod attach_tests;
 mod backoff_tests;
 #[cfg(test)]
 mod band_tests;
+#[cfg(test)]
+mod batch_tests;
 #[cfg(test)]
 mod blitter_tests;
 #[cfg(test)]
