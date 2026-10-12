@@ -17,7 +17,8 @@
 //! The Bluetooth LE host capsule over USB. `usb` binds the controller
 //! through driver.xhci0, `link` runs one link from scan to input, `hid`
 //! posts that input as the USB HID driver does, `rtl` patches a Realtek
-//! controller first, and `run` ties them to the capsule's clock, log and
+//! controller first when the `realtek` feature builds its files in, and
+//! `run` ties them to the capsule's clock, log and
 //! random source.
 
 #![no_std]
@@ -29,6 +30,7 @@ mod hid;
 mod link;
 mod nbtc;
 mod ring;
+#[cfg(feature = "realtek")]
 mod rtl;
 mod run;
 mod usb;

@@ -47,7 +47,7 @@ logs `controller not usable: ACL endpoints refused`.
 | `ring` | The bond store's `Keys` over the keyring: OP_STORE, OP_RETRIEVE, OP_DELETE and OP_LIST (L33), with the layouts `capsule_keyring` reads. Its request and answer layouts are pure, so the proofs run them. |
 | `nbtc` | NBTC v1, the protocol driver.bt_usb0 answers (below): the frame, who may ask what, and the board it reads and changes. Pure, so the proofs run all of it. |
 | `rtl` | A Realtek controller's setup: its ROM matched, its patch and config read and checked against pinned SHA-256s, the image downloaded in fragments. Pure, so the proofs run it against a model ROM. |
-| `run` | The clock, log and random source; the vendor files read from the store; the desk, whose every wait answers NBTC; the bond store opened; finding the controller on the ports, and the loop of links. |
+| `run` | The clock, log and random source; the vendor files built in (feature `realtek`); the desk, whose every wait answers NBTC; the bond store opened; finding the controller on the ports, and the loop of links. |
 
 ## Realtek controllers
 
@@ -79,8 +79,8 @@ in the second ("RTBTCore").
    version.
 2. For a second-layout chip, its key id: the first octet of a register
    read with vendor command 0xFC61.
-3. The patch file and the config are read from the file store under
-   `/firmware/rtl_bt/`. Each must have exactly the length and SHA-256
+3. The patch file and the config are the capsule's own embedded copies.
+   Each must have exactly the length and SHA-256
    pinned in `rtl/pins.rs`, `rtl/pins_config.rs` and `rtl/pins_rtbt.rs`,
    or it is refused and nothing is sent. The patch file must also name
    the chip's project in its extension block.
@@ -101,11 +101,16 @@ controller. A controller already patched (a capsule restart) answers
 another subversion, matches no ROM, and is not patched again. Any other
 company's controller is asked nothing more.
 
-The files are not in the tree and are never built into the capsule
-(Decision 19). They are linux-firmware's `rtl_bt/` files at tag 20260916
-(commit ab23307cfe7f9366c819025ca3e4778299bc2db2), under
+The files are built into the capsule with `include_bytes!`, so its seal
+covers them, and only with the cargo feature `realtek`, which is off. They
+are linux-firmware's `rtl_bt/` files at tag 20260916 (commit
+ab23307cfe7f9366c819025ca3e4778299bc2db2), under
 `LICENSES/LICENCE.rtlwifi_firmware.txt`: redistribution in binary form,
-the seventeen files into `/firmware/rtl_bt/` and has them persisted.
+the seventeen files to `nonos-bootloader/firmware/rtl_bt/` (Decision 19),
+then builds with `--features realtek`. `build.rs` refuses the build if a
+file is missing or is not its pin, or if `run/files.rs` embeds a file the
+pins do not name; the pins are checked again before each download.
+Without the feature, a Realtek controller is brought up on its ROM.
 
 ## A link
 
@@ -170,7 +175,7 @@ next look waits 30 s.
 ## Log
 
 `Realtek RTL8821C patched with rtl8821c_fw.bin`, or `Realtek setup: `
-and the file and reason when it was not (not in the store, not the pinned
+and the file and reason when it was not (not built in, not the pinned
 file, no patch for this ROM, refused, not running).
 
 `bt-usb:` lines: `bonds last for this boot only (Decision 27)`, where
@@ -219,27 +224,21 @@ sees places in the bond list, never addresses.
 
 ## Contract
 
-Caps `0x10200078` (IPC, Memory, Crypto, FileSystem, Debug, Keyring).
+Caps `0x10200038` (IPC, Memory, Crypto, Debug, Keyring).
 Crypto is what the CryptoRandom syscall is gated on; pairing draws its key
-pair and nonces there, and the capsule stops if a draw fails. FileSystem
-is what vfs_pool answers on: the Realtek files are read from it, never
-written. Keyring is for its bonds and its own IRK. Service `driver.bt_usb0` on
+pair and nonces there, and the capsule stops if a draw fails. It has no
+filesystem authority: the Realtek files are built in. Keyring is for its bonds and its own IRK. Service `driver.bt_usb0` on
 port 4342, reply port 4343 (`endpoint.4294967368`), from track E's range;
 it answers NBTC v1 (above).
 Proofs: `userland/bt_usb_proofs`.
 
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `FileSystem`, `Debug`
-and `Keyring`:
+The manifest grants `IPC`, `Memory`, `Crypto`, `Debug` and `Keyring`:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x10200078
+CAPSULE_REQUIRED_CAPS = 0x10200038
 ```
-
-For a Realtek controller it finds `vfs_pool` with `MkServiceLookup`, and
-named in a request only when the kernel stamped the same); it opens, reads
-and closes each file with `MkIpcCall` (500 ms each).
 
 The capsule finds driver.xhci0 and the keyring with `MkServiceLookup`, and
 calls both with `MkIpcCall` (bounded by a timeout). It waits with `MkIpcRecvFrom` and a
@@ -269,8 +268,8 @@ endpoint and 0x000E to read it.
 ## Authority
 
 ```text
-allowed:   HCI over USB, a Realtek patch download from pinned files read from the store, L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events, NBTC to Settings and the shell
-forbidden: xHCI ownership, USB scheduling, DMA buffers, firmware built in or not pinned, writing to the store, BR/EDR, keys anywhere but this process and its own keyring records
+allowed:   HCI over USB, a Realtek patch download from pinned files built in (feature `realtek`), L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events, NBTC to Settings and the shell
+forbidden: xHCI ownership, USB scheduling, DMA buffers, firmware not pinned, filesystem access, BR/EDR, keys anywhere but this process and its own keyring records
 ```
 
 ## Privacy and persistence
@@ -302,9 +301,8 @@ pairing and ATT by their 30 s timers. Data from the peer that does not
 parse costs that PDU only. A refused pairing, a refused key, a silent
 peripheral or a hardware error ends the link with Disconnect and a 30 s
 pause. A failed USB transfer gives the controller back. So does a Realtek
-controller whose files are missing or not their pins; its port is tried
-again, and every port is looked at afresh once a minute, so files copied
-into the store later are taken then. A failed random
+controller whose files are not their pins; its port is tried again, and
+every port is looked at afresh once a minute. A failed random
 draw stops the capsule rather than pair with guessable keys.
 
 ## Current implemented surface
