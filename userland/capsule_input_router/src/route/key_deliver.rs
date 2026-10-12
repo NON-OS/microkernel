@@ -14,25 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A key event delivered to the process chosen for it, keeping the press
-//! table: a press is remembered so its release follows it, a release takes
+//! A key or pad button event delivered to the process chosen for it,
+//! keeping the press table: a press is remembered so its release follows it, a release takes
 //! its entry, and a held key's repeat that now goes elsewhere is first let
 //! go where it went down. That window would otherwise hold the key for
 //! good, and a client that repeats held keys itself (a Linux app under the
 //! Wayland bridge) types it forever.
 
-use nonos_libc::{InputEvent, INPUT_KIND_KEY_UP};
+use nonos_libc::InputEvent;
 
 use crate::state::Context;
 
 use super::deliver::deliver_one;
+use super::press_kinds::{is_release, release_of, slot};
 
 pub fn deliver_key(ctx: &mut Context, pid: u32, event: &InputEvent) -> u32 {
-    let is_up = event.kind == INPUT_KIND_KEY_UP;
+    let (is_up, slot) = (is_release(event.kind), slot(event));
     if is_up {
-        ctx.key_targets.take(event.code);
-    } else if let Some(held) = ctx.key_targets.held_by(event.code).filter(|&p| p != pid) {
-        ctx.key_targets.take(event.code);
+        ctx.key_targets.take(slot);
+    } else if let Some(held) = ctx.key_targets.held_by(slot).filter(|&p| p != pid) {
+        ctx.key_targets.take(slot);
         release_in(ctx, held, event);
     }
     if !ctx.subscriptions.allows(pid, event.kind) {
@@ -41,7 +42,7 @@ pub fn deliver_key(ctx: &mut Context, pid: u32, event: &InputEvent) -> u32 {
     }
     let delivered = deliver_one(pid, event);
     if !is_up && delivered != 0 {
-        ctx.key_targets.remember(event.code, pid);
+        ctx.key_targets.remember(slot, pid);
     }
     if delivered == 0 {
         ctx.forget_pid(pid);
@@ -52,7 +53,7 @@ pub fn deliver_key(ctx: &mut Context, pid: u32, event: &InputEvent) -> u32 {
 
 fn release_in(ctx: &mut Context, pid: u32, press: &InputEvent) {
     let mut release = *press;
-    release.kind = INPUT_KIND_KEY_UP;
+    release.kind = release_of(press.kind);
     if ctx.subscriptions.allows(pid, release.kind) && deliver_one(pid, &release) == 0 {
         ctx.forget_pid(pid);
     }
