@@ -34,6 +34,7 @@ pub mod platform_devices;
 pub mod psci;
 pub mod rtc;
 pub mod security;
+pub mod smccc;
 pub mod timer;
 pub mod uart;
 
