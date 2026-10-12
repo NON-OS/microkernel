@@ -9,7 +9,7 @@
 //! Parse an EAPOL-Key frame, the message of the WPA2 four-way handshake. The
 //! layout is IEEE 802.1X / 802.11i: an EAPOL header, then the key descriptor
 //! with the key-information flags, replay counter, nonce, MIC and key data.
-//! Pure parsing over an attacker-controlled frame, checked by `iwlwifi_proofs`.
+//! Pure parsing over an attacker-controlled frame, checked by `nonos_wifi_core_proofs`.
 
 /// EAPOL packet type for a Key frame.
 pub const EAPOL_TYPE_KEY: u8 = 0x03;

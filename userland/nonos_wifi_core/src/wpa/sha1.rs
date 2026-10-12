@@ -8,7 +8,7 @@
 
 //! SHA-1 (RFC 3174). Deprecated as a general hash, but WPA2 is defined over it:
 //! HMAC-SHA1, PBKDF2 and the 802.11i PRF all build on this. Streaming, no_std,
-//! no allocation. Checked against RFC known-answer vectors in `iwlwifi_proofs`.
+//! no allocation. Checked against RFC known-answer vectors in `nonos_wifi_core_proofs`.
 
 pub struct Sha1 {
     h: [u32; 5],
