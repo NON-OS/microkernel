@@ -115,8 +115,11 @@ USB mass-storage transport before issuing more commands.
   (OP_CONFIGURE_BULK2, 0x23). One command in flight under tag 1; READ READY
   or WRITE READY before the data, a Sense IU at the end, and a CHECK
   CONDITION's sense kept for the REQUEST SENSE that follows. At SuperSpeed
-  a device is bound by BOT until the host serves streams (0x24); a UAS-only
-  one is not bound there, and the log names its interface (08h 06h 62h).
+  it moves on streams (OP_CONFIGURE_STREAMS, 0x24): three on the status and
+  data pipes, the command's data at once on the tag's stream, then its
+  status there. A SuperSpeed device whose pipes take no streams is left to
+  BOT; a UAS-only one of those is not bound, and the log names its
+  interface (08h 06h 62h).
 - Kernel-spawnable capsule metadata and stable endpoint contract.
 
 ## Wire format
@@ -194,8 +197,8 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 
 ## Explicit non-goals today
 
-Not here: hot-plug after the start-up search, multi-LUN devices, UAS at
-SuperSpeed (streams) or with commands queued, UAS task management, devices
+Not here: hot-plug after the start-up search, multi-LUN devices, UAS with
+commands queued, UAS task management, devices
 past 2 TiB (READ(10) addresses the first 2^32 blocks), filesystems, partitions,
 caching and encryption. Stall and phase-error recovery follow BOT 6.6 and 5.3.4;
 there is no retry of a failed command beyond that.

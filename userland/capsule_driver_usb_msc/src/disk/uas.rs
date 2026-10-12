@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! One UAS command at high speed: the Command IU out on the command pipe,
+//! One UAS command: the Command IU out on the command pipe,
 //! then the status pipe read for what comes next (READ READY or WRITE
 //! READY before the data moves on the data pipes, a Sense IU at the end),
 //! nonos_uas's Exchange keeping the order. One command is in flight, so
@@ -24,7 +24,7 @@ use nonos_uas::{command_iu, status_iu, Exchange, Step, COMMAND_IU_LEN};
 
 use super::types::{Data, Disk};
 use super::uas_cmd::{kept_sense, Cmd};
-use super::uas_data::{dir_of, move_data};
+use super::uas_data::{dir_of, lane, move_data};
 use crate::protocol::{E_INVAL, E_IO};
 use crate::state::State;
 use crate::xhci::{bulk_in_on, bulk_out_on};
@@ -49,17 +49,18 @@ pub fn command(
     if bulk_out_on(disk.xhci, disk.slot, 0, &iu) != Ok(COMMAND_IU_LEN) {
         return Err(E_IO);
     }
-    let (mut x, mut moved, mut buf) = (Exchange::new(TAG, dir, false), 0, [0u8; STATUS_MAX]);
+    let (mut x, mut moved, mut buf) = (Exchange::new(TAG, dir, disk.streams), 0, [0u8; STATUS_MAX]);
+    let status_lane = lane(disk, 0, TAG);
     let mut step = x.sent();
     loop {
         step = match step {
             Step::Status => {
-                let n = bulk_in_on(disk.xhci, disk.slot, 0, &mut buf)?;
+                let n = bulk_in_on(disk.xhci, disk.slot, status_lane, &mut buf)?;
                 let iu = status_iu(&buf[..n]).ok_or(E_IO)?;
                 x.status(iu, &mut cmd)
             }
             Step::DataIn | Step::DataOut => {
-                moved = move_data(disk, &mut data)?;
+                moved = move_data(disk, &mut data, TAG)?;
                 x.moved()
             }
             Step::Done => break,
