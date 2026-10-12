@@ -29,6 +29,7 @@ mod bind;
 mod device;
 mod gate;
 mod gone;
+mod indicator;
 mod isoch;
 mod listing;
 mod notify;

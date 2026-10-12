@@ -16,7 +16,7 @@
 //! Proofs for the USB Video Class core, run on the host against the
 //! library itself, and for driver.uvc0's pure parts, mounted from the
 //! capsule at the paths it names them by: the camera wire, the capture
-//! gate, the format listing and a batch's payloads.
+//! gate, the indicator notice, the format listing and a batch's payloads.
 
 extern crate alloc;
 
@@ -24,6 +24,8 @@ extern crate alloc;
 pub mod batch;
 #[path = "../../capsule_driver_uvc/src/gate.rs"]
 pub mod gate;
+#[path = "../../capsule_driver_uvc/src/indicator.rs"]
+pub mod indicator;
 #[path = "../../capsule_driver_uvc/src/listing.rs"]
 pub mod listing;
 #[path = "../../capsule_driver_uvc/src/wire.rs"]
@@ -35,6 +37,8 @@ mod camera_tests;
 mod frame_tests;
 #[cfg(test)]
 mod gate_tests;
+#[cfg(test)]
+mod indicator_tests;
 #[cfg(test)]
 mod listing_tests;
 #[cfg(test)]
