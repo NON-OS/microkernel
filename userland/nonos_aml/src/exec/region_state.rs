@@ -59,4 +59,8 @@ pub struct RegionAccess<'a> {
     pub address: u64,
     pub width: u32,
     pub pci: Option<&'a PciPath>,
+    /// The whole region the access falls in, so the host can ask for all of
+    /// it at once.
+    pub base: u64,
+    pub len: u64,
 }
