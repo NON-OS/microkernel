@@ -16,9 +16,11 @@
 pub mod address_device;
 pub mod address_flow;
 pub mod address_reply;
+pub mod address_routed;
 pub mod alloc_transfer_ring;
 pub mod bulk;
 pub mod config_descriptor;
+pub mod configure_hub;
 pub mod control_transfer;
 pub mod controller_status;
 pub mod device_descriptor;
