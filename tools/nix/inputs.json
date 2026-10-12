@@ -74,6 +74,9 @@
    "nonos-data/trust/capsules/driver_usb_audio.manifest.bin",
    "nonos-data/trust/capsules/driver_usb_audio.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_usb_audio.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_usb_hub.manifest.bin",
+   "nonos-data/trust/capsules/driver_usb_hub.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_usb_hub.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -3938,6 +3941,9 @@
    "nonos-data/trust/capsules/driver_usb_audio.manifest.bin",
    "nonos-data/trust/capsules/driver_usb_audio.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_usb_audio.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_usb_hub.manifest.bin",
+   "nonos-data/trust/capsules/driver_usb_hub.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_usb_hub.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
