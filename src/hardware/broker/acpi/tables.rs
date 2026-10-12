@@ -43,7 +43,7 @@ fn locate(sig: [u8; 4], instance: u32) -> Option<u64> {
 }
 
 /// Bytes of physical memory through the direct map, if all of them are in it.
-fn read(phys: u64, len: usize) -> Result<Vec<u8>, TableError> {
+pub(super) fn read(phys: u64, len: usize) -> Result<Vec<u8>, TableError> {
     let last = phys.checked_add(len as u64 - 1).ok_or(TableError::Unmapped)?;
     let virt = directmap(phys).ok_or(TableError::Unmapped)?;
     directmap(last).ok_or(TableError::Unmapped)?;

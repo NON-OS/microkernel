@@ -90,6 +90,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAcpiPower
             | MkAcpiEvent
             | MkAcpiSleep
+            | MkSmbiosTable
             | MkDebug
             | MkStdoutWrite
             | MkPrivateWrite
