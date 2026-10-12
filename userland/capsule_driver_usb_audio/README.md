@@ -156,8 +156,9 @@ No boot yet.
 
 ## Explicit non-goals today
 
-No capture, no volume or mute controls (the server mixes), no USB Audio
-3.0, no feedback endpoint, no rates but 48 kHz, no more than two channels.
+No capture here (`driver.usb_mic0` captures, mounting this driver's `uac/`,
+`rate.rs` and `xhci/` speed files), no volume or mute controls (the server
+mixes), no USB Audio 3.0, no feedback endpoint, no rates but 48 kHz, no more than two channels.
 
 ## Verification
 

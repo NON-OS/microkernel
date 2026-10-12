@@ -19,18 +19,19 @@
 use super::held::callers_of;
 
 /// Every driver the kernel spawns is either held here or gates its medium in
-/// its own driver (the disks, by StoreWrite; the camera, by CameraCapture),
-/// so a new driver cannot arrive open to every capsule; and every service a
-/// list names is one a spawn registers.
+/// its own driver (the disks, by StoreWrite; the camera and microphone, by
+/// their capture bits), so a new driver cannot arrive open to every
+/// capsule; and every service a list names is one a spawn registers.
 #[test]
 fn every_driver_the_kernel_spawns_is_classified() {
-    const GATED_IN_DRIVER: [&str; 6] = [
+    const GATED_IN_DRIVER: [&str; 7] = [
         "driver.nvme0",
         "driver.ahci0",
         "driver.virtio_blk0",
         "driver.sdhci0",
         "driver.ufs0",
         "driver.uvc0",
+        "driver.usb_mic0",
     ];
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../src");
     let mut registered = Vec::new();
