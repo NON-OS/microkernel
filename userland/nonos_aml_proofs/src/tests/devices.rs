@@ -31,6 +31,8 @@ mod idioms;
 mod legacy;
 #[path = "platform_device/mod.rs"]
 mod platform_device;
+#[path = "suspend/mod.rs"]
+mod suspend;
 #[path = "serial/mod.rs"]
 mod serial;
 #[path = "video/mod.rs"]
