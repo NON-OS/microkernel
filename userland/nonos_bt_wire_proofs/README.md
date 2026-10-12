@@ -3,7 +3,7 @@
 Host tests for `nonos_bt_wire`. The crate depends on `nonos_bt_wire` by path
 and calls its public API. Everything in `src/` is `#[cfg(test)]`.
 
-22 tests:
+26 tests:
 
 | File | Tests | What it checks |
 |---|---|---|
@@ -14,6 +14,8 @@ and calls its public API. Everything in `src/` is `#[cfg(test)]`.
 | `le_meta_tests.rs` | 3 | LE Connection Complete; LE Long Term Key Request; advertising reports, including a truncated report and data over 31 octets |
 | `acl_tests.rs` | 2 | handle and flags in one word; reserved handles, broadcast, and bad lengths refused |
 | `l2cap_tests.rs` | 2 | basic frames round-trip; LE fixed channel IDs |
+| `signal_tests.rs` | 2 | a signaling command round-trips, identifier 0 and short data refused, Command Reject laid out; connection parameters inside and just outside each range |
+| `central_tests.rs` | 2 | a parameter update in range accepted and handed on, one out of range rejected; other requests and malformed updates rejected as not understood; a reject not answered; an unparsable frame an error |
 | `reassembly_tests.rs` | 4 | fragments join; a header split across fragments; out-of-order, oversized and overlong fragments refused; a start over an unfinished PDU drops it and keeps the new one |
 
 Each expected byte string is laid out by hand from the cited section of the
