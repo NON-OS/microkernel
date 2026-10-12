@@ -67,6 +67,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MDLS", SyscallNumber::MkDeviceList, "MkDeviceList"),
     e(b"MDCL", SyscallNumber::MkDeviceClaim, "MkDeviceClaim"),
     e(b"MDRL", SyscallNumber::MkDeviceRelease, "MkDeviceRelease"),
+    e(b"MBFB", SyscallNumber::MkBootFramebuffer, "MkBootFramebuffer"),
     e(b"MMMP", SyscallNumber::MkMmioMap, "MkMmioMap"),
     e(b"MMUM", SyscallNumber::MkMmioUnmap, "MkMmioUnmap"),
     e(b"MIRB", SyscallNumber::MkIrqBind, "MkIrqBind"),

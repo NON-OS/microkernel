@@ -24,6 +24,7 @@ pub mod log_tail;
 pub mod attest_policy;
 pub mod battery;
 mod boot_attest;
+pub mod boot_framebuffer;
 pub mod capability;
 pub mod capsule_load;
 pub mod capsule_verify;
