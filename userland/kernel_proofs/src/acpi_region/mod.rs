@@ -19,6 +19,12 @@
  * included by path, the directory as the kernel builds it.
  */
 
+#[path = "../../../../src/hardware/broker/acpi/platform_decode.rs"]
+pub mod platform_decode;
+#[path = "../../../../src/hardware/broker/acpi/platform_rule.rs"]
+pub mod platform_rule;
+#[path = "../../../../src/hardware/broker/acpi/platform_wire.rs"]
+pub mod platform_wire;
 #[path = "../../../../src/hardware/broker/acpi/rule/mod.rs"]
 pub mod rule;
 
@@ -26,6 +32,10 @@ pub mod rule;
 mod machine;
 #[cfg(test)]
 mod model_facts;
+#[cfg(test)]
+mod platform_admit_tests;
+#[cfg(test)]
+mod platform_tests;
 #[cfg(test)]
 mod sweep;
 #[cfg(test)]
