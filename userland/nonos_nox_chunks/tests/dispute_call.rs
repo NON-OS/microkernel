@@ -45,5 +45,7 @@ fn dispute_word_for_word() {
     for w in [n(2), [1; 32], [1; 32], n(1), [2; 32]] {
         want.extend_from_slice(&w);
     }
-    assert_eq!(dispute_call(&t, &d), want);
+    assert_eq!(dispute_call(&t, &d), Some(want));
+    let past = Dispute { cipher_chunk: vec![0xCC; 1025], ..d };
+    assert_eq!(dispute_call(&t, &past), None, "one past CHUNK is refused, not written");
 }

@@ -54,7 +54,7 @@ pub fn deliver(
         Err(Delivered::BadChunk(i)) => {
             let terms = OrderTerms::from_words(&o.terms).ok_or(MeterError::Corrupt)?;
             let d = dispute(k, i, h, c).ok_or(MeterError::Corrupt)?;
-            Ok(Opened::Bad(i, dispute_call(&terms, &d)))
+            Ok(Opened::Bad(i, dispute_call(&terms, &d).ok_or(MeterError::Corrupt)?))
         }
     }
 }

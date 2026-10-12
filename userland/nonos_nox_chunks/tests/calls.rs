@@ -38,7 +38,7 @@ fn settle_takes_each_call_as_its_kind() {
     let calls = [
         (9, fund(&t)),
         (9, fund_from(&t, 5)),
-        (10, dispute_call(&t, &d)),
+        (10, dispute_call(&t, &d).unwrap()),
         (11, refunded),
         (12, release(&t)),
     ];
