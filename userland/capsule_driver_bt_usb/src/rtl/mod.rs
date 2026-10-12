@@ -20,12 +20,17 @@ pub mod chips;
 pub mod epatch;
 pub mod frag;
 pub mod image;
+pub mod key;
 pub mod pin;
 pub mod pins;
 pub mod pins_config;
+pub mod pins_rtbt;
 pub mod project;
 pub mod refused;
 pub mod rom;
+pub mod row;
+pub mod rtbt;
+pub mod rtbt_sub;
 pub mod setup;
 pub mod version;
 
