@@ -21,7 +21,9 @@
 
 use crate::bank::Bank;
 use crate::ctl::ctl;
+use crate::irq::bind;
 use crate::mmio::Mmio;
+use crate::name::name;
 use crate::say::line;
 use alloc::format;
 use alloc::vec::Vec;
@@ -33,8 +35,6 @@ use nonos_libc::{
 
 const CLASS_GPIO_CTRL: u32 = 0x0080;
 const MAX_DEVICES: usize = 128;
-/// The bar carrying the controller's eight `_HID` bytes.
-const HID_BAR: usize = 5;
 
 fn windows(r: &DeviceRecord, epoch: u64) -> Option<Vec<Mmio>> {
     let mut out = Vec::new();
@@ -61,14 +61,15 @@ pub fn banks() -> Vec<Bank> {
             line(&format!("controller {} held elsewhere ({}), passed over", r.device, epoch));
             continue;
         }
-        let hid = r.bars[HID_BAR].base.to_le_bytes();
+        let hid = name(r.device_id).map_or([0; 8], |n| n.hid);
         let Some(c) = windows(r, epoch as u64).and_then(|w| ctl(hid, w)) else {
             line(&format!("controller {}: windows did not map, released", r.device));
             let _ = mk_device_release(r.device_id);
             continue;
         };
-        let level_aei = Vec::new();
-        out.push(Bank { record: *r, uid: r.device, ctl: c, router: Router::default(), level_aei });
+        let (level_aei, grant) = (Vec::new(), bind(r, epoch as u64));
+        let router = Router::default();
+        out.push(Bank { record: *r, uid: r.device, ctl: c, router, level_aei, grant, seq: 0 });
     }
     out
 }
