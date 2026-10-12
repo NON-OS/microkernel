@@ -61,6 +61,8 @@ pub const LE_SET_SCAN_PARAMETERS: Opcode = Opcode::new(0x08, 0x000b);
 pub const LE_SET_SCAN_ENABLE: Opcode = Opcode::new(0x08, 0x000c);
 /// Vol 4, Part E, 7.8.12.
 pub const LE_CREATE_CONNECTION: Opcode = Opcode::new(0x08, 0x000d);
+/// Vol 4, Part E, 7.8.13.
+pub const LE_CREATE_CONNECTION_CANCEL: Opcode = Opcode::new(0x08, 0x000e);
 /// Vol 4, Part E, 7.8.24.
 pub const LE_ENABLE_ENCRYPTION: Opcode = Opcode::new(0x08, 0x0019);
 /// Vol 4, Part E, 7.8.25.

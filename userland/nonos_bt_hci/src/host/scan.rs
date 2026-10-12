@@ -33,6 +33,18 @@ pub struct Scan {
 
 /// Listening 30 ms of every 60 ms is half the radio's time, enough to hear
 /// a device that advertises every 100 ms within a few intervals.
+impl Scan {
+    /// Both from 0x0004 to 0x4000 and the window no longer than the
+    /// interval, for a scan and for connecting alike (Vol 4, Part E, 7.8.10
+    /// and 7.8.12).
+    pub fn valid(&self) -> bool {
+        let range = 0x0004..=0x4000;
+        range.contains(&self.interval)
+            && range.contains(&self.window)
+            && self.window <= self.interval
+    }
+}
+
 pub const DEFAULT_SCAN: Scan = Scan { interval: 0x0060, window: 0x0030 };
 
 const PASSIVE: u8 = 0x00;
@@ -43,8 +55,7 @@ impl<T: Transport> Host<T> {
     /// Start a passive scan with duplicate reports filtered by the
     /// controller (Vol 4, Part E, 7.8.11).
     pub fn scan_passive(&mut self, s: Scan) -> Result<(), HciError> {
-        let valid = 0x0004..=0x4000;
-        if !valid.contains(&s.interval) || !valid.contains(&s.window) || s.window > s.interval {
+        if !s.valid() {
             return Err(HciError::Wire(nonos_bt_wire::WireError::Reserved));
         }
         let [i0, i1] = s.interval.to_le_bytes();

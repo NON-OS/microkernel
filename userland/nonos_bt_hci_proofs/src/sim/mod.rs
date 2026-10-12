@@ -17,6 +17,7 @@
 pub mod config;
 pub mod controller;
 pub mod events;
+pub mod link_events;
 pub mod pipes;
 pub mod stack;
 pub mod usb;

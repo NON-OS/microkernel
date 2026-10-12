@@ -30,6 +30,9 @@ pub struct Config {
     pub fail: Option<(u16, u8)>,
     /// Events sent ahead of each answer.
     pub before: Vec<Vec<u8>>,
+    /// For these opcodes, these events instead of the usual answer: the
+    /// Command Status and whatever the command brings after it.
+    pub script: Vec<(u16, Vec<Vec<u8>>)>,
 }
 
 impl Default for Config {
@@ -41,6 +44,14 @@ impl Default for Config {
             silent: false,
             fail: None,
             before: Vec::new(),
+            script: Vec::new(),
         }
+    }
+}
+
+impl Config {
+    /// The default controller with these opcodes answered by script.
+    pub fn scripted(script: Vec<(u16, Vec<Vec<u8>>)>) -> Self {
+        Self { script, ..Self::default() }
     }
 }
