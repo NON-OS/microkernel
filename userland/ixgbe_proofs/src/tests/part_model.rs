@@ -22,8 +22,8 @@ use std::sync::Arc;
 
 use nonos_devmodel::FakeBar;
 
-use crate::constants::ctrl::*;
-use crate::constants::regs::*;
+use crate::facts::mac::*;
+use crate::facts::regs::*;
 
 use super::model::stable32;
 

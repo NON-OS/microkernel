@@ -23,10 +23,10 @@
 //! second thread where a handshake needs one. QEMU has no ixgbe device, so
 //! these are the only run the driver gets before real hardware.
 
-#[path = "../../capsule_driver_ixgbe/src/constants/mod.rs"]
-pub mod constants;
-#[path = "../../capsule_driver_ixgbe/src/init/mod.rs"]
-pub mod init;
+#[path = "../../capsule_driver_ixgbe/src/bring/mod.rs"]
+pub mod bring;
+#[path = "../../capsule_driver_ixgbe/src/facts/mod.rs"]
+pub mod facts;
 #[path = "../../capsule_driver_ixgbe/src/link/mod.rs"]
 pub mod link;
 #[path = "../../capsule_driver_ixgbe/src/log/mod.rs"]
@@ -38,6 +38,8 @@ pub mod queue;
 #[path = "../../capsule_driver_ixgbe/src/regs.rs"]
 pub mod regs;
 pub mod setup;
+#[path = "../../capsule_driver_ixgbe/src/sizes/mod.rs"]
+pub mod sizes;
 
 #[cfg(test)]
 mod tests;

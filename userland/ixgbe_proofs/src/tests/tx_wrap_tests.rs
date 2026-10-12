@@ -17,8 +17,8 @@
 //! The transmit ring across thousands of laps: bursts of posts, the part
 //! writing DD back on each, and reclaim catching up every time.
 
-use crate::constants::queue::TX_DESC_COUNT;
-use crate::constants::tx_bits::TXD_STAT_DD;
+use crate::facts::tx::TXD_STAT_DD;
+use crate::sizes::ring::TX_DESC_COUNT;
 
 use super::memory::Memory;
 

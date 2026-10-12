@@ -46,7 +46,7 @@ fn each_table_is_its_capsules() {
     let igb: Vec<u16> = igb::ids::IGB_PARTS.iter().map(|(id, ..)| *id).collect();
     assert_eq!(IGB_DEVICE_IDS[..], igb[..], "igb_pci_tbl, in its order");
     assert_eq!(sorted(&IGC_DEVICE_IDS), sorted(igc::IGC_DEVICE_IDS));
-    let ixgbe: Vec<u16> = ixgbe::pci::IXGBE_PARTS.iter().map(|(id, _)| *id).collect();
+    let ixgbe: Vec<u16> = ixgbe::ids::IXGBE_PARTS.iter().map(|(id, _)| *id).collect();
     assert_eq!(IXGBE_DEVICE_IDS[..], ixgbe[..], "ixgbe_pci_tbl's share, in its order");
     assert_eq!(sorted(&RTL8169_DEVICE_IDS), sorted(rtl8169::RTL8169_DEVICE_IDS));
     assert_eq!(RTL8139_DEVICE_ID, rtl8139::RTL8139_DEVICE_ID);

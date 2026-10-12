@@ -21,7 +21,7 @@
 
 use nonos_libc::{mk_dma_map, DmaMapOut, MmioMapOut};
 
-use crate::constants::queue::{
+use crate::sizes::ring::{
     RX_BUFFER_POOL_BYTES, RX_RING_BYTES, TX_BUFFER_POOL_BYTES, TX_RING_BYTES,
 };
 
