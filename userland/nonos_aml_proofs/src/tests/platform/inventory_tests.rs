@@ -16,7 +16,7 @@
 
 //! The inventory: EISA and string ids, _CID lists, _UID, _ADR and _STA.
 
-use super::platform_run::evaluator;
+use super::run::evaluator;
 use crate::consts::at;
 use crate::enc::*;
 use crate::platform::{eisa_id, inventory, HardwareId, DEFAULT};
