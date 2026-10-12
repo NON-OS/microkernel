@@ -20,7 +20,7 @@
 
 use super::phase::Phase;
 use super::types::{Decl, Source};
-use crate::report::{Keyboard, Mouse};
+use crate::report::{Keyboard, Locks, Mouse};
 use alloc::vec::Vec;
 
 pub struct Host {
@@ -32,6 +32,9 @@ pub struct Host {
     pub(super) sources: Vec<Source>,
     /// Protocol Mode value handles, to put in boot mode.
     pub(super) modes: Vec<u16>,
+    /// Boot keyboard output report value handles, for the lock LEDs.
+    pub(super) outputs: Vec<u16>,
+    pub(super) locks: Locks,
     pub(super) keyboard: Keyboard,
     pub(super) mouse: Mouse,
     /// The opcode of the request awaiting its response.

@@ -14,7 +14,7 @@ The host is a **Boot Host**:
 | Module | What it holds |
 |---|---|
 | `host` | `Host`, the GATT client as a state machine. It is fed the peripheral's ATT PDUs and the time. Each call returns the PDUs to send on CID 0x0004, the input events, and how discovery ended. |
-| `report` | `Keyboard` and `Mouse` turn boot reports into `Input` events: key and button down and up, and relative motion. Keys are HID Keyboard page usages, so a capsule maps them with the same keymap as the USB keyboard driver. |
+| `report` | `Keyboard` and `Mouse` turn boot reports into `Input` events: key and button down and up, and relative motion. `Locks` keeps the Num, Caps and Scroll Lock state. Keys are HID Keyboard page usages, so a capsule maps them with the same keymap as the USB keyboard driver. |
 | `server` | The host's own attribute database, and the answer to each request the peripheral sends (Vol 3, Part F, 3.4). |
 | `uuids` | The UUIDs and characteristic properties it looks for and serves. |
 
@@ -22,13 +22,21 @@ Discovery and configuration run in this order:
 1. Find the HID services (UUID 0x1812) with Find By Type Value.
 2. Read each service's characteristic declarations with Read By Type.
 3. Keep the boot keyboard input (0x2A22) and boot mouse input (0x2A33)
-   reports that can notify, and Protocol Mode (0x2A4E).
+   reports that can notify, Protocol Mode (0x2A4E), and the boot keyboard
+   output reports (0x2A32) that take Write Without Response.
 4. Find each report's CCCD with Find Information, within its own
    characteristic.
 5. Write 0 (boot) to every Protocol Mode with a Write Command.
 6. Write 0x0001 to each CCCD with a Write Request, one at a time.
 
 After that, notifications on the report handles become events.
+
+The host owns the lock state, as with a USB keyboard. A Caps Lock, Num
+Lock or Scroll Lock key going down toggles its lock. The new octet (HID
+1.11, B.1) then goes to every boot keyboard output report in a Write
+Command, so the LEDs never wait on a response. `set_locks` takes the
+state from the session instead, for a lock changed on another keyboard.
+A lock already on when discovery ends is written then.
 
 The ATT bearer must already be encrypted. A peripheral that answers with
 an authentication, encryption or key-size error ends discovery with

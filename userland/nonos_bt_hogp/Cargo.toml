@@ -4,9 +4,9 @@
 # HID over GATT for an LE-only host (Decision 21), as a Boot Host: the GATT
 # client that finds a peripheral's HID service and turns on its boot
 # keyboard and boot mouse reports, the decoding of those reports into key,
-# button and motion events, and the small GAP and GATT database the host
-# serves to the peripheral. no_std for the capsules; std under `cargo test`
-# for the host proofs in nonos_bt_hogp_proofs.
+# button and motion events, the lock LEDs, and the small GAP and GATT
+# database the host serves to the peripheral. no_std for the capsules; std
+# under `cargo test` for the host proofs in nonos_bt_hogp_proofs.
 [package]
 name = "nonos_bt_hogp"
 version = "0.3.0"

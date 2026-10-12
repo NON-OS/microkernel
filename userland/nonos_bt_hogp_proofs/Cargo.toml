@@ -3,7 +3,7 @@
 #
 # Host-runnable proofs for nonos_bt_hogp: GATT discovery and configuration
 # against a simulated HID peripheral's attribute database, every refusal on
-# its own input, and the boot report decoding.
+# its own input, the boot report decoding, and the lock LEDs.
 [package]
 name = "nonos_bt_hogp_proofs"
 version = "0.3.0"

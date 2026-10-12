@@ -16,8 +16,10 @@
 
 mod input;
 mod keyboard;
+mod locks;
 mod mouse;
 
 pub use input::Input;
 pub use keyboard::Keyboard;
+pub use locks::{Locks, CAPS_LOCK, NUM_LOCK, SCROLL_LOCK};
 pub use mouse::Mouse;

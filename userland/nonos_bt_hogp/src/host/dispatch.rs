@@ -42,7 +42,7 @@ impl Host {
         match op {
             HANDLE_VALUE_NTF | HANDLE_VALUE_IND => match response::handle_value(p) {
                 Ok(hv) => {
-                    let mut step = Step::input(self.report(hv.handle, hv.value));
+                    let mut step = self.report(hv.handle, hv.value);
                     if op == HANDLE_VALUE_IND {
                         step.send.push(att::confirmation());
                     }
