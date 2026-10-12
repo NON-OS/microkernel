@@ -19,6 +19,7 @@
 //! by FLUSH and flipped at the vertical blank.
 
 mod copy;
+mod cursor;
 mod describe;
 mod frames;
 mod head;

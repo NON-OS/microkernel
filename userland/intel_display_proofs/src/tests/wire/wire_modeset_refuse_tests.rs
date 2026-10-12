@@ -20,12 +20,12 @@
 use nonos_gfx_serve::{Display, Shadow};
 use nonos_gfx_wire::errno::{EINVAL, ENOMEM};
 
-use super::dp_rig::dp_rig;
-use super::edid_blob::edid_1080p_and_xga;
 use super::wire_modeset_tests::{shadow_of, TOTAL};
-use super::wire_rig::{h0, h0m};
 use crate::engine::pipe::Pipe;
 use crate::model::firmware::T1080;
+use crate::tests::dp_rig::dp_rig;
+use crate::tests::edid_blob::edid_1080p_and_xga;
+use crate::tests::wire_rig::{h0, h0m};
 
 #[test]
 fn a_size_the_monitor_does_not_list_or_no_room_changes_nothing() {
