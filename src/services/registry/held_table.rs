@@ -33,7 +33,10 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.virtio_gpu0", &["compositor"]),
     ("driver.hda0", &["audio.server"]),
-    ("acpi", &["power", "desktop_shell", "driver.i2c_pci0", "driver.i2c_hid0"]),
+    // The GPIO controller's pins are held by the bus controller whose
+    // device's GpioInt names them; more holders join as their drivers do.
+    ("driver.gpio0", &["driver.i2c_pci0"]),
+    ("acpi", &["power", "desktop_shell", "driver.i2c_pci0", "driver.i2c_hid0", "driver.gpio0"]),
 ];
 
 /// The kernel polls the keyboards and pointers, reads the random source and
