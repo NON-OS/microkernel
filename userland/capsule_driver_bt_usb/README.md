@@ -43,27 +43,37 @@ logs `controller not usable: ACL endpoints refused`.
 | `usb` | Chooses the configuration with the Bluetooth interface (`choose`), arms each event read with the whole packet and never more than 64 octets (`limit`), and gives driver.xhci0 the three endpoints before SET_CONFIGURATION (`bind`). The interrupt operations are 0x0009 and 0x000E (`ops`). The client call is `nonos_usbnet`'s own file, compiled here. |
 | `link` | One link, from scan to end, over `nonos_bt_hci`, `nonos_bt_smp` and `nonos_bt_hogp`. It holds no libc call, so the proofs run all of it. |
 | `hid` | Input posting. `capsule_driver_usb_hid`'s own keymap, key event, repeat and posting files are compiled here, so a Bluetooth key is posted with the same code, flags, layout and repeat as a USB one. |
-| `run` | The clock, log, random source and waiting; finding the controller on the ports, and the loop of links. |
+| `ring` | The bond store's `Keys` over the keyring: OP_STORE, OP_RETRIEVE, OP_DELETE and OP_LIST (L33), with the layouts `capsule_keyring` reads. Its request and answer layouts are pure, so the proofs run them. |
+| `run` | The clock, log, random source and waiting; the bond store opened; finding the controller on the ports, and the loop of links. |
 
 ## A link
 
-1. Passive scan, for at most 10 s. The first connectable advertiser that
+1. Between scans, a new resolvable private address if the last one has
+   served 15 minutes (Vol 3, Part C, Appendix A), given to the controller
+   with LE Set Random Address.
+2. Passive scan, for at most 10 s. The first connectable advertiser that
    names the HID service (0x1812) or a HID appearance is taken. The scan
    is stopped whatever happened.
-2. LE Create Connection, from the controller's public address.
-3. SMP pairing at once, LE Secure Connections only. A keyboard with no
+3. LE Create Connection, from the private address.
+4. A bonded peer, found by its identity or by the IRK that resolves its
+   address, is encrypted with the kept key and not paired again. If it
+   answers PIN or Key Missing it has dropped the bond: ours is forgotten
+   and the next link pairs afresh.
+5. Any other peer: SMP pairing at once, LE Secure Connections only. This
+   host offers its IRK and public identity, so the peer can resolve its
+   later addresses. A keyboard with no
    display pairs by passkey entry: the capsule logs six digits for the
    user to type. A mouse pairs by Just Works. A peer that wants a number
    compared or digits typed here is declined; the capsule has no way yet
    to ask the user.
-4. LE Enable Encryption with the derived key, then the peer's identity
-   keys.
-5. HID over GATT, Boot Protocol; input to the input ring. Keys are posted
+6. LE Enable Encryption with the derived key, then the identity keys:
+   the peer's, then this host's. The bond is kept.
+7. HID over GATT, Boot Protocol; input to the input ring. Keys are posted
    only from a bond the user's passkey protected: Just Works needs no one,
    so a device in range that pairs that way and calls itself a keyboard
    could otherwise type into the machine. Its pointer motion and buttons
    are posted, since a mouse can only pair by Just Works.
-6. Requests from the peer are answered meanwhile: its reads of this host's
+8. Requests from the peer are answered meanwhile: its reads of this host's
    GAP database, and connection timing it asks for (applied with LE
    Connection Update when it is in range).
 
@@ -74,39 +84,43 @@ next look waits 30 s.
 
 ## Not yet
 
-- Bonds are not kept, so every connection pairs again. The key store in
-  `capsule_keyring` is the next unit.
-- Our own address is the public one. LE privacy comes with the key store.
+- Bonds last for this boot only (Decision 27). They are kept in the
+  keyring when it keeps this capsule's records (L33), else in this
+  capsule's memory until it stops; the log says which.
+- No allow-list beyond the bonds: an unbonded HID advertiser is still
+  paired, and its keys post only after a typed passkey.
 - No service: the capsule answers no requests on driver.bt_usb0 yet.
 
 ## Log
 
-`bt-usb:` lines: `started`, `controller up`, `connected`, the passkey to
-type, `paired`, `HID ready: keyboard mouse`, `link lost` or `link ended:`
+`bt-usb:` lines: `bonds last for this boot only (Decision 27)`, where
+bonds are kept, `started`, `controller up`, `connected`, the passkey to
+type, `paired`, `bond kept`, `encrypted with the kept bond`, `HID ready: keyboard mouse`, `link lost` or `link ended:`
 with the reason, and `controller given back:` with the reason.
 
 ## Contract
 
-Caps `0x200038` (IPC, Memory, Crypto, Debug). Crypto is what the
-CryptoRandom syscall is gated on; pairing draws its key pair and nonces
-there, and the capsule stops if a draw fails. Service `driver.bt_usb0` on
+Caps `0x10200038` (IPC, Memory, Crypto, Debug, Keyring). Crypto is what
+the CryptoRandom syscall is gated on; pairing draws its key pair and
+nonces there, and the capsule stops if a draw fails. Keyring is for its
+bonds and its own IRK. Service `driver.bt_usb0` on
 port 4342, reply port 4343 (`endpoint.4294967368`), from track E's range.
 Proofs: `userland/bt_usb_proofs`.
 
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory`, `Crypto` and `Debug`:
+The manifest grants `IPC`, `Memory`, `Crypto`, `Debug` and `Keyring`:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x200038
+CAPSULE_REQUIRED_CAPS = 0x10200038
 ```
 
-The capsule finds driver.xhci0 with `MkServiceLookup` and calls it with
+The capsule finds driver.xhci0 and the keyring with `MkServiceLookup`, learns
 `MkIpcCall` (bounded by a timeout). It waits with `MkIpcRecvFrom` and a
 timeout on its own inbox, which serves no requests. It posts input with
-`MkInputEventPost`, draws pairing's keys and nonces with `CryptoRandom`,
-reads the clock with `MkUptimeMs`, and writes its `bt-usb:` lines with
-`MkDebug`. It makes no enumeration, MMIO, IRQ, DMA or PIO broker syscall:
+`MkInputEventPost`, draws pairing's keys and nonces, its IRK and its
+addresses with `CryptoRandom`, reads the clock with `MkUptimeMs`, and
+writes its `bt-usb:` lines with `MkDebug`. It makes no enumeration, MMIO, IRQ, DMA or PIO broker syscall:
 driver.xhci0 owns the controller.
 
 ## Interface contract
@@ -128,20 +142,22 @@ endpoint and 0x000E to read it.
 
 ```text
 allowed:   HCI over USB, L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events
-forbidden: xHCI ownership, USB scheduling, DMA buffers, vendor firmware, BR/EDR, keys outside this process
+forbidden: xHCI ownership, USB scheduling, DMA buffers, vendor firmware, BR/EDR, keys anywhere but this process and its own keyring records
 ```
 
 ## Privacy and persistence
 
 The scan is passive: nothing of this host goes on the air until it
 connects to a HID device. Pairing's private key is drawn from the kernel
-and overwritten when dropped (`nonos_p256`); the link key and the peer's
-identity key live only in the session's memory, dropped when the link
-ends. Nothing is written anywhere. The log carries no
-address, no key and no input; it does carry the passkey to type while
-pairing, which is what the user needs and is worthless once pairing ends.
-The host's own address is the controller's public one until LE privacy
-lands with the key store.
+and overwritten when dropped (`nonos_p256`). A bond (LTK, the peer's IRK
+and identity address) and this host's IRK are kept as keyring records
+of types 10 and 11, owned by driver.bt_usb0, or in this capsule's memory;
+either way only for this boot (Decision 27). Every copy read back is
+overwritten once decoded. The log carries no address, no key and no
+input; it does carry the passkey to type while pairing, which is what the
+user needs and is worthless once pairing ends. This host scans and
+connects from a resolvable private address renewed every 15 minutes;
+only bonded peers, given its IRK, can tell two of them apart.
 
 ## Runtime lifecycle
 
@@ -180,7 +196,8 @@ magic_le32, version_le16, op_le16, flags_le16, 0_le16, request_id_le32, len_le32
 
 `driver.bt_usb0` owns the bound controller's three endpoints, the HCI
 host's command and buffer state, and one link's session: its pairing state,
-its keys, its HID host and the keys held down. driver.xhci0 owns slots,
+its keys, its HID host and the keys held down, and the bonds and this
+host's IRK. driver.xhci0 owns slots,
 endpoint contexts, rings and DMA.
 
 ## Operating rules

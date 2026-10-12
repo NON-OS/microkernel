@@ -24,6 +24,7 @@ nonos_usbnet = { path = "../nonos_usbnet" }
 nonos_bt_wire = { path = "../nonos_bt_wire" }
 nonos_bt_hci = { path = "../nonos_bt_hci" }
 nonos_bt_smp = { path = "../nonos_bt_smp" }
+nonos_bt_bond = { path = "../nonos_bt_bond" }
 nonos_bt_hogp = { path = "../nonos_bt_hogp" }
 nonos_keymap = { path = "../nonos_keymap" }
 nonos_policy_client = { path = "../policy_client" }

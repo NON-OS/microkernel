@@ -57,9 +57,7 @@ impl Session {
         match step.outcome {
             Some(Outcome::Encrypt(ltk)) => self.encrypt(host, &ltk, env),
             Some(Outcome::Paired(bond)) => {
-                (self.bond, self.smp) = (Some(bond), None);
-                env.say(&[b"paired"]);
-                self.start_hid(env);
+                self.paired(bond, env);
                 Ok(())
             }
             Some(Outcome::Failed { by_peer, .. }) => {
