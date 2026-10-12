@@ -29,4 +29,6 @@ pub enum ClaimError {
     NotClaimed,
     /// A remapping unit is in service and would not take the device.
     Unconfined,
+    /// The claimant's scope row does not name the device (K6f).
+    OutOfScope,
 }
