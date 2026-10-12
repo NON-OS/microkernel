@@ -14,27 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod bgrt_entry;
+mod bgrt_load;
+pub mod bmp_check;
 mod dmar;
 pub mod dmar_scope;
-mod ivrs;
-pub mod ivrs_walk;
 mod hmat_decode;
-mod hmat_load;
 pub mod hmat_entry;
+mod hmat_load;
 pub mod hmat_query;
 mod hpet;
 mod ivhd_entry;
 mod ivhd_kind;
 pub mod ivhd_scope;
+mod ivrs;
+pub mod ivrs_walk;
 mod lpit_counter;
 mod lpit_decode;
 pub mod lpit_entry;
 mod lpit_load;
 mod mcfg;
 mod numa_extra;
+pub mod slit_matrix;
 mod srat;
 mod srat_decode;
-pub mod slit_matrix;
 pub mod srat_entry;
 pub mod wdat_action;
 pub mod wdat_decode;
@@ -42,11 +45,12 @@ pub mod wdat_entry;
 mod wdat_load;
 pub mod wdat_run;
 
+pub use bgrt_load::{boot_logo, boot_logo_file, parse_bgrt};
 pub use dmar::{foreign_segment_units, parse_dmar, remap_unit_bases, remap_unit_scopes};
 pub use dmar_scope::{translated_by_some, UnitScope};
+pub use hmat_load::{hmat_attached_initiator, hmat_value, parse_hmat};
 pub use hpet::parse_hpet;
 pub use ivrs::{amd_iommu_bases, amd_iommu_spans, parse_ivrs};
-pub use hmat_load::{hmat_attached_initiator, hmat_value, parse_hmat};
 pub use lpit_counter::{lpit_residency, CounterError};
 pub use lpit_load::{lpit_state, parse_lpit};
 pub use mcfg::parse_mcfg;

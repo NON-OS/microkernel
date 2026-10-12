@@ -187,6 +187,7 @@ pub const SYS_DEVICE_NODE: u64 = tag4(b"MDNN");
 pub const SYS_ACPI_OSC_GRANT: u64 = tag4(b"MAOG");
 pub const SYS_NUMA_HMAT: u64 = tag4(b"MNHM");
 pub const SYS_ACPI_LPIT: u64 = tag4(b"MALP");
+pub const SYS_BOOT_LOGO: u64 = tag4(b"MBGL");
 /// Spawn another window of an embedded, attested app (terminal or browser); needs SpawnWindow.
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
 /// Run a baked, attested tool by name as the caller's child, to drive its stdio; needs IPC.
