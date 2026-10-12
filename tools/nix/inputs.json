@@ -2726,6 +2726,7 @@
    "src/services/registry/displays.rs",
    "userland/compositor/src/display/backoff.rs",
    "userland/compositor/src/display/cursor_rule.rs",
+   "userland/compositor/src/display/first_frame_rule.rs",
    "userland/compositor/src/display/head.rs",
    "userland/compositor/src/display/head_rule.rs",
    "userland/compositor/src/display/hint_rule.rs",

@@ -96,6 +96,8 @@ pub mod display {
     pub mod backoff;
     #[path = "../../compositor/src/display/cursor_rule.rs"]
     pub mod cursor_rule;
+    #[path = "../../compositor/src/display/first_frame_rule.rs"]
+    pub mod first_frame_rule;
     #[path = "../../compositor/src/display/head.rs"]
     pub mod head;
     #[path = "../../compositor/src/display/head_rule.rs"]
@@ -143,6 +145,8 @@ mod cursor_rule_tests;
 mod damage_tests;
 #[cfg(test)]
 mod downscale_tests;
+#[cfg(test)]
+mod first_frame_tests;
 #[cfg(test)]
 mod floor_tests;
 #[cfg(test)]
