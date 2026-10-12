@@ -6,18 +6,18 @@
 
 pub use crate::pick::Route;
 
+#[path = "../../../../capsule_wallet_nonos/src/wallet/net/bounds.rs"]
+pub mod bounds;
 #[allow(dead_code)]
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/route_text.rs"]
 pub mod route_text;
-#[path = "../../../../capsule_wallet_nonos/src/wallet/net/bounds.rs"]
-pub mod bounds;
 /* The blocking reader, only here: the model `step::gather` is proved against. */
 #[allow(dead_code)]
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/routed_read.rs"]
 pub mod routed_read;
 
-pub mod step;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/read_snapshot.rs"]
 pub mod read_snapshot;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/send_cap.rs"]
 pub mod send_cap;
+pub mod step;

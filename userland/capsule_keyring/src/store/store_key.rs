@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{
-    KeyEntry, KeyType, Store, StoreError, MAX_KEYS, MAX_KEYS_PER_OWNER, MAX_KEY_SIZE,
-};
+use super::types::{KeyType, Store, StoreError};
 
 impl Store {
     pub fn store(
@@ -27,38 +25,11 @@ impl Store {
         now: u64,
         expires_at: u64,
     ) -> Result<u32, StoreError> {
-        if data.is_empty() || data.len() > MAX_KEY_SIZE {
-            return Err(StoreError::InvalidArgument);
+        // Only through `store_named`, or any capsule could leave records the
+        // reaper never takes.
+        if key_type.held_by_name() {
+            return Err(StoreError::AccessDenied);
         }
-        if self.entries.len() >= MAX_KEYS {
-            return Err(StoreError::Full);
-        }
-        // One owner cannot consume more than its share of the store, so a
-        // single misbehaving capsule cannot deny keys to the others.
-        let owned = self.entries.values().filter(|e| e.owner_pid == owner_pid).count();
-        if owned >= MAX_KEYS_PER_OWNER {
-            return Err(StoreError::Full);
-        }
-        // Never hand out an id that is still occupied: after u32 wraparound a
-        // reused id would alias an existing entry. The scan terminates because
-        // the store holds at most MAX_KEYS entries.
-        let mut id = self.next_id;
-        while self.entries.contains_key(&id) {
-            id = id.wrapping_add(1);
-        }
-        self.next_id = id.wrapping_add(1);
-        self.entries.insert(
-            id,
-            KeyEntry {
-                key_type,
-                data: data.to_vec(),
-                owner_pid,
-                created_at: now,
-                expires_at,
-                use_count: 0,
-                locked: false,
-            },
-        );
-        Ok(id)
+        self.insert(key_type, data, (owner_pid, None), now, expires_at)
     }
 }
