@@ -17,6 +17,7 @@
 pub mod chord;
 pub mod deliver;
 pub mod dispatch;
+pub mod grab_rule;
 pub mod key_target;
 mod keyboard;
 mod pointer;

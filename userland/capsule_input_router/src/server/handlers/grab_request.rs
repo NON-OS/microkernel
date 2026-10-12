@@ -33,7 +33,8 @@ fn is_trusted_grabber(sender_pid: u32) -> bool {
 }
 
 pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
-    if !is_trusted_grabber(sender_pid) {
+    let named = is_trusted_grabber(sender_pid);
+    if !crate::route::grab_rule::grab_allowed(ctx, sender_pid, named) {
         let _ = respond::status(sender_pid, req, E_ACCES, tx);
         return;
     }
