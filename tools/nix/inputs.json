@@ -3157,6 +3157,28 @@
   "md": [],
   "signed": []
  },
+ "userland/gfx_serve_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/gfx_serve_proofs",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_serve/src/copy.rs",
+   "userland/nonos_gfx_serve/src/display.rs",
+   "userland/nonos_gfx_serve/src/flush.rs",
+   "userland/nonos_gfx_serve/src/handle.rs",
+   "userland/nonos_gfx_serve/src/mode_check.rs",
+   "userland/nonos_gfx_serve/src/mode_set.rs",
+   "userland/nonos_gfx_serve/src/platform.rs",
+   "userland/nonos_gfx_serve/src/primary.rs",
+   "userland/nonos_gfx_serve/src/server.rs",
+   "userland/nonos_gfx_serve/src/surface.rs",
+   "userland/nonos_gfx_wire",
+   "userland/nonos_modes"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/gfx_wire_proofs": {
   "exclude": [],
   "include": [
