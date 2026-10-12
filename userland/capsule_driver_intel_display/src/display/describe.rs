@@ -17,9 +17,10 @@
 //! What the engine says of itself on the wire: CAPS (kind 7, one output,
 //! firmware's mode only: no MODE_SET or MODE_RANGE until mode setting
 //! joins the wire; no HW_CURSOR yet; DEVICE_READS off, because FLUSH
-//! copies), and MODES, the one mode it scans out.
+//! copies; the panel's size from its EDID), and MODES, the one mode it
+//! scans out.
 
-use nonos_gfx_wire::body::mode::{CURRENT, FROM_DEVICE, PREFERRED};
+use nonos_gfx_wire::body::mode::{CURRENT, FROM_DEVICE, FROM_EDID, PREFERRED};
 use nonos_gfx_wire::{kind, Caps, Mode};
 
 use super::frames::Frames;
@@ -36,15 +37,18 @@ pub fn caps<M: Mmio, F: Frames, C: Clock>(d: &Intel<M, F, C>) -> Caps {
         max_height: h,
         width_align: 1,
         surface_budget: d.scan.stride as u64 * h as u64,
-        // The panel's EDID is behind the port's AUX or DDC, which the
-        // takeover does not touch; unknown until mode setting reads it.
-        physical_mm: 0,
+        physical_mm: d.panel.physical_mm,
     }
 }
 
+/// The mode shown, the one a takeover offers, marked FROM_EDID when the
+/// monitor lists it too.
 pub fn modes<M: Mmio, F: Frames, C: Clock>(d: &Intel<M, F, C>, out: &mut [Mode]) -> usize {
     let Some(slot) = out.first_mut() else { return 0 };
-    let flags = PREFERRED | CURRENT | FROM_DEVICE;
-    *slot = Mode { width: d.scan.width, height: d.scan.height, flags };
+    let (width, height) = (d.scan.width, d.scan.height);
+    let listed =
+        d.panel.modes[..d.panel.len].iter().any(|m| (m.width, m.height) == (width, height));
+    let edid = if listed { FROM_EDID } else { 0 };
+    *slot = Mode { width, height, flags: PREFERRED | CURRENT | FROM_DEVICE | edid };
     1
 }
