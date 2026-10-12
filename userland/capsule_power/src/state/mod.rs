@@ -17,10 +17,12 @@
 pub struct PowerState {
     pub last_reboot_request_unix: u64,
     pub last_shutdown_request_unix: u64,
+    /// What capsule_acpi answered to the last PREPARE_SLEEP, 0 for ready.
+    pub last_acpi_prepare: i32,
 }
 
 impl PowerState {
     pub const fn new() -> Self {
-        Self { last_reboot_request_unix: 0, last_shutdown_request_unix: 0 }
+        Self { last_reboot_request_unix: 0, last_shutdown_request_unix: 0, last_acpi_prepare: 0 }
     }
 }

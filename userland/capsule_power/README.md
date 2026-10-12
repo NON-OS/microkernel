@@ -38,6 +38,13 @@ arch::x86_64::acpi::power_sleep::shutdown() (S5 from the \_S5 package)
 - `MkIpcRecvFrom` on port `4448` reads power requests and the sender's pid.
 - `MkIpcReply` returns each status.
 - `AdminReboot` syscall invokes the kernel reboot path.
+- `MkIpcCall` to `capsule_acpi` on port `4530`, PREPARE_SLEEP (5, state 5),
+  before every shutdown, bounded at 3 s: the firmware's `_TTS(5)` and
+  `_PTS(5)` run and `\_S5` is evaluated by the AML interpreter, and the
+  kernel takes its SLP_TYP values. On a laptop whose `\_S5` is a method,
+  which the kernel's constant reader cannot read, this is what lets it
+  power off. When `capsule_acpi` is not running the call times out and the
+  constant reader's values stand.
 - `AdminShutdown` syscall invokes the kernel shutdown path. It does not
   return: the machine powers off, or parks when S5 is unavailable.
 - `MkTimeMillis` reads the wall clock to track last-request timestamps.
@@ -48,7 +55,7 @@ arch::x86_64::acpi::power_sleep::shutdown() (S5 from the \_S5 package)
 |---|---|---|
 | `OP_HEALTHCHECK` | 0x0001 | liveness ping |
 | `OP_REBOOT` | 0x0002 | invoke `AdminReboot`; the system reboots |
-| `OP_SHUTDOWN` | 0x0003 | invoke `AdminShutdown`; the system powers off |
+| `OP_SHUTDOWN` | 0x0003 | prepare firmware through `capsule_acpi`, then invoke `AdminShutdown`; the system powers off |
 
 ## Authority
 
