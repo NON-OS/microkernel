@@ -27,6 +27,7 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let dma = dma::map_staging(dev.device_id, claim_epoch, &mmio, &irq)?;
     let grants = Grants {
         device_id: dev.device_id,
+        claim_epoch,
         mmio: mmio.grant_id,
         irq: irq.grant_id,
         dma: dma.grant_id,

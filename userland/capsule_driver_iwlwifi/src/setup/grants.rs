@@ -23,21 +23,25 @@
 
 use nonos_libc::{mk_device_release, mk_dma_unmap, mk_irq_unbind, mk_mmio_unmap};
 
+use super::command::command;
 use crate::init::{bring_up, InitState};
 use crate::regs::Regs;
 
 #[derive(Clone, Copy)]
 pub struct Grants {
     pub device_id: u64,
+    pub claim_epoch: u64,
     pub mmio: u64,
     pub irq: u64,
     pub dma: u64,
 }
 
 impl Grants {
-    /// Every grant in the reverse of the order it was taken, then the claim,
-    /// which on its own tears the rest down as well.
+    /// Bus Master off first, so nothing is in flight to the staging DMA,
+    /// then every grant in the reverse of the order it was taken, then the
+    /// claim, which on its own tears the rest down as well.
     pub fn release(&self) {
+        let _ = command(self.device_id, self.claim_epoch, false);
         let _ = mk_dma_unmap(self.dma);
         let _ = mk_irq_unbind(self.irq);
         let _ = mk_mmio_unmap(self.mmio);
@@ -45,7 +49,13 @@ impl Grants {
     }
 }
 
-/// Wake the chip on an attempt's grants, or give all of them back.
+/// Wake the chip on an attempt's grants, then let it master the bus; or give
+/// all of them back.
 pub fn init_or_release(regs: Regs, grants: &Grants) -> Result<InitState, &'static str> {
-    bring_up(regs).inspect_err(|_| grants.release())
+    let init = bring_up(regs).inspect_err(|_| grants.release())?;
+    if !command(grants.device_id, grants.claim_epoch, true) {
+        grants.release();
+        return Err("iwlwifi: bus master enable failed");
+    }
+    Ok(init)
 }

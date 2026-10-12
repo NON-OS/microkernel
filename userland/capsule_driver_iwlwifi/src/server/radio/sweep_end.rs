@@ -53,6 +53,7 @@ impl Radio {
                 if let State::Up(up) = &self.state {
                     stop_device(up.dev.m, &mut Uptime);
                 }
+                self.master_off();
                 Line::new().text(b"radio down: ").text(Failure::Lost.text().as_bytes()).send();
                 self.state = State::Down(Failure::Lost);
             }

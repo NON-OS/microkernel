@@ -16,6 +16,7 @@
 
 //! The radio brought up once, at start.
 
+use crate::setup::command::command;
 use nonos_wifi_core::scan_list::ScanResults;
 
 use crate::driver::Driver;
@@ -36,6 +37,11 @@ impl Radio {
                 State::Up(up)
             }
             Err(f) => {
+                // A card the bring-up touched is stopped; one it never touched
+                // is left as setup left it, for the driver's own protocol.
+                if seen.touched {
+                    let _ = command(d.device_id, d.claim_epoch, false);
+                }
                 Line::new()
                     .text(b"radio not up: ")
                     .text(f.text().as_bytes())
@@ -56,6 +62,7 @@ impl Radio {
             beacons: 0,
             next_ms: 0,
             join: Join::new(),
+            pci: (d.device_id, d.claim_epoch),
         }
     }
 }

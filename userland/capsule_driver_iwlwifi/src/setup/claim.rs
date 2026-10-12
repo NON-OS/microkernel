@@ -6,13 +6,20 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-use nonos_libc::mk_device_claim;
+use nonos_libc::{mk_device_claim, mk_device_release};
 
+use super::command::command;
+
+/// Claim the device and turn its register window on, with Bus Master off
+/// until the chip and its DMA are ready.
 pub fn claim(device_id: u64) -> Result<u64, &'static str> {
     let epoch = mk_device_claim(device_id);
     if epoch <= 0 {
-        Err("iwlwifi: device claim failed")
-    } else {
-        Ok(epoch as u64)
+        return Err("iwlwifi: device claim failed");
     }
+    if !command(device_id, epoch as u64, false) {
+        let _ = mk_device_release(device_id);
+        return Err("iwlwifi: memory space enable failed");
+    }
+    Ok(epoch as u64)
 }

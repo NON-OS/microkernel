@@ -16,6 +16,7 @@
 
 //! The radio's state, and the rest between sweeps.
 
+use crate::setup::command::command;
 use nonos_wifi_core::scan_list::ScanResults;
 
 use crate::firmware::gen3::outcome::Failure;
@@ -44,4 +45,13 @@ pub struct Radio {
     pub beacons: u32,
     pub(super) next_ms: u64,
     pub(super) join: Join,
+    /// The claimed function and its claim, for its command register.
+    pub(super) pci: (u64, u64),
+}
+
+impl Radio {
+    /// The card stopped: Bus Master off, so it masters nothing more.
+    pub(super) fn master_off(&self) {
+        let _ = command(self.pci.0, self.pci.1, false);
+    }
 }
