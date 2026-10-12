@@ -58,6 +58,8 @@ pub fn cap_bit(name: &str) -> Option<u64> {
         "StreamImport" => 17179869184,
         "DeviceSecret" => 34359738368,
         "InputDrain" => 68719476736,
+        "CameraCapture" => 137438953472,
+        "MicrophoneCapture" => 274877906944,
         _ => return None,
     };
     Some(bit)
