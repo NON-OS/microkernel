@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the USB microphone driver: the capture
+# alternate found in USB Audio 1.0 and 2.0 descriptors, the
+# MicrophoneCapture gate, the capture ring and the NMIC framing, run here
+# through #[path] as the driver mounts them.
+[package]
+name = "usb_mic_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_usbnet = { package = "usbnet_proofs", path = "../usbnet_proofs" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
