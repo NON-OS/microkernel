@@ -2,7 +2,7 @@
 //! Well-formed NTB16s in: several NDPs and several datagrams per block,
 //! handed up one per call from the queue the driver keeps.
 
-use nonos_usbnet::mock::Call;
+use nonos_usbnet::mock::{drawn, Call};
 use nonos_usbnet::{Bind, Nic, Setup};
 
 use crate::device::{calls, Dev};
@@ -17,7 +17,7 @@ fn two_ndps_with_two_datagrams_each_come_up_in_order() {
     assert_eq!(found(&b.0, 4096), [(40, 60), (100, 64), (240, 14), (300, 98)]);
     let dev = Dev::ncm(0);
     let bus = dev.bus();
-    let Bind::Ours(mut nic) = bind(bus.clone(), &dev.found()) else { panic!("not bound") };
+    let Bind::Ours(mut nic) = bind(bus.clone(), &dev.found(), drawn()) else { panic!("not bound") };
     bus.0.borrow_mut().bulk_in.extend([Ok(Some(b.0.clone())), Ok(None)]);
     let mut out = [0u8; 1514];
     for (len, fill) in [(60, 1), (64, 2), (14, 3), (98, 4)] {
@@ -47,7 +47,7 @@ fn a_datagram_longer_than_the_stack_takes_is_dropped_and_the_next_served() {
     b.ndp(12, NCM0, 0, &[(32, 1600), (1700, 60)]);
     let dev = Dev::ncm(0);
     let bus = dev.bus();
-    let Bind::Ours(mut nic) = bind(bus.clone(), &dev.found()) else { panic!("not bound") };
+    let Bind::Ours(mut nic) = bind(bus.clone(), &dev.found(), drawn()) else { panic!("not bound") };
     bus.0.borrow_mut().bulk_in.push_back(Ok(Some(b.0)));
     let mut out = [0u8; 1514];
     assert_eq!(nic.recv(&mut out), Ok(Some(60)));
@@ -57,7 +57,7 @@ fn a_datagram_longer_than_the_stack_takes_is_dropped_and_the_next_served() {
 fn a_stalled_in_pipe_is_cleared_on_both_sides() {
     let dev = Dev::ncm(0);
     let bus = dev.bus();
-    let Bind::Ours(mut nic) = bind(bus.clone(), &dev.found()) else { panic!("not bound") };
+    let Bind::Ours(mut nic) = bind(bus.clone(), &dev.found(), drawn()) else { panic!("not bound") };
     bus.0.borrow_mut().bulk_in.push_back(Err(-32));
     assert_eq!(nic.recv(&mut [0u8; 1514]), Err(-32));
     let c = calls(&bus);

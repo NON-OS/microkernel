@@ -14,16 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! REMOTE_NDIS_SET_MSG with a four-byte value (Remote NDIS 1.0, 2.2.6),
-//! laid out as Linux generic_rndis_bind sets the packet filter: 28 bytes
-//! of header, the value right after, its offset counted from RequestID.
+//! REMOTE_NDIS_SET_MSG (Remote NDIS 1.0, 2.2.6), laid out as Linux
+//! generic_rndis_bind sets the packet filter and rndis_set_oid sets any
+//! other: 28 bytes of header, the value right after, its offset counted
+//! from RequestID.
+
+use alloc::vec;
+use alloc::vec::Vec;
 
 use super::message::{put32, MSG_SET};
 
-pub fn set_msg(oid: u32, value: u32) -> [u8; 32] {
-    let mut m = [0u8; 32];
-    for (at, v) in [(0, MSG_SET), (4, 32), (12, oid), (16, 4), (20, 20), (28, value)] {
+/// The header's bytes, before the value.
+const SET_LEN: usize = 28;
+
+pub fn set_msg(oid: u32, value: &[u8]) -> Vec<u8> {
+    let mut m = vec![0u8; SET_LEN + value.len()];
+    let (len, size) = (m.len() as u32, value.len() as u32);
+    for (at, v) in [(0, MSG_SET), (4, len), (12, oid), (16, size), (20, 20)] {
         put32(&mut m, at, v);
     }
+    m[SET_LEN..].copy_from_slice(value);
     m
 }

@@ -7,8 +7,14 @@ extern crate alloc;
 pub mod ecm;
 
 #[cfg(test)]
+mod address_tests;
+#[cfg(test)]
 mod bind_tests;
 #[cfg(test)]
+mod config_fuzz_tests;
+#[cfg(test)]
 mod frame_tests;
+#[cfg(test)]
+mod hostile_tests;
 #[cfg(test)]
 mod qemu;

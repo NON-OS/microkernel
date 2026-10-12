@@ -18,7 +18,7 @@
 //! until the USB TX FIFO reads empty, then the bulk IN row and the medium
 //! mode set for the speed and duplex the PHY resolved.
 
-use nonos_libc::Deadline;
+use nonos_libc::{mk_idle_ms, Deadline};
 use nonos_usbnet::Bus;
 
 use super::access::{read, read_mac, read_phy, write_mac, Step};
@@ -28,14 +28,18 @@ use super::phy_regs::PHYSR;
 use super::regs::{MEDIUM_STATUS_MODE, PHYSICAL_LINK_STATUS, RX_BULKIN_QCTRL, RX_CTL};
 use super::regs::{TX_FIFO_BUSY, TX_FIFO_REQUEST, TX_FIFO_VALUE};
 
-/// Linux gives the FIFO HZ / 10.
+/// Linux gives the FIFO HZ / 10, asking again at once; here it is asked
+/// at most ten times across that tenth of a second, so a FIFO that never
+/// drains costs a bounded number of transfers, not as many as fit.
 const FIFO_WAIT_MS: u64 = 100;
+const FIFO_TRIES: u32 = 10;
+const FIFO_PAUSE_MS: u64 = FIFO_WAIT_MS / FIFO_TRIES as u64;
 
 /// The PHYSR the medium was set for, or `None` when Linux would leave the
 /// carrier off: the FIFO did not drain in time, or the link went again.
 pub(super) fn link_reset<B: Bus>(bus: &mut B) -> Result<Option<u16>, Step> {
     let deadline = Deadline::after_ms(FIFO_WAIT_MS);
-    loop {
+    for tries in 1..=FIFO_TRIES {
         let stop = RX_CTL_STOP.to_le_bytes();
         write_mac(bus, RX_CTL, &stop, "AX_RX_CTL stop refused")?;
         write_mac(bus, RX_CTL, &RX_CTL_ON.to_le_bytes(), "AX_RX_CTL start refused")?;
@@ -44,7 +48,8 @@ pub(super) fn link_reset<B: Bus>(bus: &mut B) -> Result<Option<u16>, Step> {
         if u32::from_le_bytes(fifo) & TX_FIFO_BUSY == 0 {
             break;
         }
-        if deadline.expired() {
+        mk_idle_ms(FIFO_PAUSE_MS);
+        if deadline.expired() || tries == FIFO_TRIES {
             return Ok(None);
         }
     }

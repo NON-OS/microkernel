@@ -20,6 +20,7 @@ use core::sync::atomic::{AtomicU32, Ordering};
 
 use nonos_libc::mk_ipc_call_timeout;
 
+use super::budget::may_start;
 use super::wire::{BULK_MAX, DATA_AT, E_IO, HDR_LEN, MAGIC, VERSION};
 
 /// Longer than xHCI's own wait for a transfer (5 s) plus its endpoint
@@ -30,13 +31,15 @@ static SEQ: AtomicU32 = AtomicU32::new(1);
 
 /// Send `op` with `body`, 16 + BULK_MAX bytes at most; the reply lands in
 /// `resp`. Returns the reply's data length after the status word, or the
-/// negative status, or `E_IO` when the call or its framing failed.
+/// negative status, or `E_IO` when the call or its framing failed, or
+/// `E_TIMEDOUT` when a bind's budget is spent.
 pub fn call(port: u32, op: u16, body: &[u8], resp: &mut [u8]) -> Result<usize, i32> {
     let mut req = [0u8; HDR_LEN + 16 + BULK_MAX];
     let total = HDR_LEN + body.len();
     if total > req.len() || resp.len() < DATA_AT {
         return Err(E_IO);
     }
+    may_start()?;
     let rid = SEQ.fetch_add(1, Ordering::Relaxed).max(1);
     req[0..4].copy_from_slice(&MAGIC.to_le_bytes());
     req[4..6].copy_from_slice(&VERSION.to_le_bytes());
@@ -46,12 +49,14 @@ pub fn call(port: u32, op: u16, body: &[u8], resp: &mut [u8]) -> Result<usize, i
     req[HDR_LEN..total].copy_from_slice(body);
     let (rp, rl) = (resp.as_mut_ptr(), resp.len());
     let n = mk_ipc_call_timeout(port as u64, req.as_ptr(), total, rp, rl, CALL_TIMEOUT_MS);
-    if n < DATA_AT as i64 {
+    // The reply is read only as far as it came: a length word past the
+    // bytes received would have the stale rest of `resp` read as data.
+    let Some(got) = usize::try_from(n).ok().filter(|&g| g >= DATA_AT && g <= resp.len()) else {
         return Err(E_IO);
-    }
+    };
     let word = |at: usize| u32::from_le_bytes([resp[at], resp[at + 1], resp[at + 2], resp[at + 3]]);
     let plen = word(16) as usize;
-    if word(0) != MAGIC || word(12) != rid || plen < 4 || HDR_LEN + plen > resp.len() {
+    if word(0) != MAGIC || word(12) != rid || plen < 4 || HDR_LEN + plen > got {
         return Err(E_IO);
     }
     match word(HDR_LEN) as i32 {
