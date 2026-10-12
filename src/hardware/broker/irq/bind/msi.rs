@@ -19,12 +19,13 @@
 //! Realtek parts offer MSI and no MSI-X, and without an ACPI _PRT walk their
 //! INTx line from config space may not name the pin they are wired to.
 
-use super::super::grant::{IrqGrant, IrqGrantKind, NO_LINE};
+use super::super::grant::{IrqGrant, IrqGrantKind};
 use super::super::types::{IrqBindError, IrqBindRequest, IrqBindResult};
 use super::super::validate::validate_msi_request;
 use super::super::{records, slots};
 use super::msi_route::program_slot;
 use super::quiet::msix_off;
+use super::sentinels::NO_LINE;
 use crate::hardware::broker::pci_index;
 
 pub(super) fn bind_msi(
