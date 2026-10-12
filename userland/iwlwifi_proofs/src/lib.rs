@@ -20,6 +20,10 @@ extern crate alloc;
 pub mod constants;
 // The chip wake and the release of an attempt's grants when it fails, run
 // against a register window in host memory.
+#[path = "../../capsule_driver_iwlwifi/src/setup/claim.rs"]
+pub mod claim;
+#[path = "../../capsule_driver_iwlwifi/src/setup/command.rs"]
+pub mod command;
 #[path = "../../capsule_driver_iwlwifi/src/setup/grants.rs"]
 pub mod grants;
 #[path = "../../capsule_driver_iwlwifi/src/init.rs"]
@@ -186,3 +190,5 @@ mod link_gate_tests;
 mod serve_tests;
 #[cfg(test)]
 mod watch_tests;
+#[cfg(test)]
+mod bus_master_tests;
