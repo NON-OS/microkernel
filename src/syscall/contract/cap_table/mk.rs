@@ -113,6 +113,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcSendToPid
         | SyscallNumber::MkServiceLookup
+        | SyscallNumber::MkThreadGroup
         | SyscallNumber::MkServiceRegister => caps.can_ipc(),
         /*
          * The handlers ask for Admin again and refuse a bit the caller lacks;
