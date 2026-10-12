@@ -34,3 +34,12 @@ fn an_idle_window_locks_itself_but_never_mid_payment() {
     assert!(!due(IDLE_LOCK_MS * 3, 0, true, false), "already locked");
     assert!(!due(IDLE_LOCK_MS * 3, 0, false, true), "a payment is going out");
 }
+
+/* The one bound every nonce read or signed is held to (EIP-2681). */
+#[test]
+fn a_nonce_of_u64_max_is_never_believed() {
+    use crate::sent::usable;
+    assert_eq!(usable(u64::MAX), None, "a node that says u64::MAX is not believed");
+    assert_eq!(usable(u64::MAX - 1), Some(u64::MAX - 1));
+    assert_eq!(usable(0), Some(0));
+}

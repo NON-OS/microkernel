@@ -20,5 +20,5 @@ pub(crate) fn settle_self(dir: &Path) -> Result<Vec<u8>, WalletError> {
     }
     let publics = String::from_utf8(read(dir, "spend.proof.publics.json")?).map_err(|_| shape())?;
     let limbs: [u64; LIMBS] = limbs(&publics).and_then(|l| l.try_into().ok()).ok_or_else(shape)?;
-    Ok(settle_calldata(&proof, &pool_words(&limbs), &[payee, change]))
+    Ok(settle_calldata(&proof, &pool_words(&limbs)?, &[payee, change]))
 }

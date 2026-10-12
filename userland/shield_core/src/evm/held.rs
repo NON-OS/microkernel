@@ -8,6 +8,10 @@ use super::rpc::{ask_via, Call};
 use crate::error::NetError;
 use crate::net::tor::Tor;
 
+#[path = "held_floor.rs"]
+mod held_floor;
+use held_floor::raise;
+
 /// Flashbots takes eight calls in a batch, and the chain id is one of them.
 const PER_BATCH: usize = 4;
 
@@ -26,7 +30,7 @@ pub(super) fn floor(
             let answers = ask_via(tor, chain, &[host], &calls)?;
             for ((nonce, _), answer) in chunk.iter().zip(answers) {
                 if !answer.result()?.starts_with("null") {
-                    floor = floor.max(nonce.checked_add(1).ok_or(NetError::ReplyShape)?);
+                    floor = raise(floor, *nonce)?;
                 }
             }
         }

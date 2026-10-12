@@ -44,6 +44,7 @@ mod sent_judge;
 #[path = "sent_ledger.rs"]
 mod sent_ledger;
 pub use sent_fate::{fate, Fate, Reading};
+pub use sent_ledger::usable;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Sent {

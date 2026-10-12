@@ -30,8 +30,7 @@ pub fn take_nonce_and_fee(
     nonce: Option<u64>,
     fee: Option<u64>,
 ) -> Result<(), &'static [u8]> {
-    // No transaction carries nonce u64::MAX (EIP-2681): a node that says so is not believed.
-    let nonce = nonce.filter(|n| *n < u64::MAX);
+    let nonce = nonce.and_then(crate::wallet::send::sent::usable);
     if let Some(n) = nonce {
         state.live_nonce = n;
         state.send_nonce = n;
