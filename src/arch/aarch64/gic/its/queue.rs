@@ -15,23 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The ITS command queue: one page of 32-byte commands, each batch closed
-//! by a SYNC and waited on, so the queue is empty whenever a batch starts
-//! and a batch can never overrun it.
+//! by a SYNC and waited on. Where each command goes, and when the queue
+//! stops taking them, is `ring`'s.
 
 use super::encode::attrs::{cbaser, coherent};
 use super::memory::{alloc, free, Region};
 use super::regs::{Regs, CBASER, CWRITER};
-
-pub(super) const BYTES: u64 = 0x1000;
-pub(super) const SLOT: u64 = 32;
-/// The most commands one batch may hold, its SYNC included, so the write
-/// offset never catches the read offset.
-pub(super) const MAX_BATCH: usize = (BYTES / SLOT) as usize - 1;
+use super::ring::Ring;
+use super::ring_types::BYTES;
 
 pub(super) struct Queue {
     pub(super) region: Region,
-    /// Where the next command goes, and where `GITS_CWRITER` points.
-    pub(super) write: u64,
+    /// Where the next command goes, and whether any still may.
+    pub(super) ring: Ring,
     pub(super) coherent: bool,
     /// The redistributor every SYNC names: the collection's.
     pub(super) target: u64,
@@ -52,6 +48,6 @@ impl Queue {
             return Err("the ITS took no command queue");
         }
         regs.write64(CWRITER, 0);
-        Ok(Self { region, write: 0, coherent, target })
+        Ok(Self { region, ring: Ring::default(), coherent, target })
     }
 }

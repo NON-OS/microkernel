@@ -31,8 +31,6 @@ pub(super) const TRANSLATER: u64 = 0x1_0040;
 
 pub(super) const CTLR_ENABLED: u32 = 1 << 0;
 pub(super) const CTLR_QUIESCENT: u32 = 1 << 31;
-pub(super) const CREADR_STALLED: u64 = 1 << 0;
-pub(super) const QUEUE_OFFSET: u64 = 0xf_ffe0;
 
 #[derive(Clone, Copy)]
 pub(super) struct Regs(pub(super) u64);
