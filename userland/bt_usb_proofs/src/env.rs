@@ -16,13 +16,14 @@
 
 //! The capsule's environment as the proofs play it: a clock that moves a
 //! millisecond each time it is read, the input ring and the log as lists,
-//! the user who types the passkey shown, and a fixed random stream.
+//! the user who types the passkey shown, a fixed random stream, and the
+//! bond store over memory, as the capsule keeps it without L33.
 
 use std::cell::Cell;
 use std::rc::Rc;
 
-use crate::link::Env;
 use crate::smp_sim::Rng;
+use nonos_bt_bond::{MemoryKeys, Store};
 use nonos_bt_hogp::report::Input;
 use nonos_bt_smp::pairing::Random;
 
@@ -35,38 +36,24 @@ pub struct TestEnv {
     /// Shared with the air: the peer's user types what is shown here.
     pub shown: Rc<Cell<Option<u32>>>,
     pub rng: Rng,
+    pub bonds: Store<MemoryKeys>,
 }
 
 impl TestEnv {
     pub fn new(shown: Rc<Cell<Option<u32>>>) -> Self {
         let rng = Rng(0x2545_f491_4f6c_dd1d);
         let (input, lines, passkeys) = (Vec::new(), Vec::new(), Vec::new());
-        Self { now: 0, input, lines, passkeys, ticks: 0, shown, rng }
+        let bonds = Store::open(MemoryKeys::default()).unwrap();
+        Self { now: 0, input, lines, passkeys, ticks: 0, shown, rng, bonds }
+    }
+
+    pub fn said(&self, line: &str) -> bool {
+        self.lines.iter().any(|l| l == line)
     }
 }
 
 impl Random for TestEnv {
     fn fill(&mut self, out: &mut [u8]) {
         self.rng.fill(out);
-    }
-}
-
-impl Env for TestEnv {
-    fn now_ms(&mut self) -> u64 {
-        self.now += 1;
-        self.now
-    }
-    fn input(&mut self, input: Input) {
-        self.input.push(input);
-    }
-    fn tick(&mut self, _now_ms: u64) {
-        self.ticks += 1;
-    }
-    fn say(&mut self, words: &[&[u8]]) {
-        self.lines.push(String::from_utf8_lossy(&words.concat()).into_owned());
-    }
-    fn show_passkey(&mut self, passkey: u32) {
-        self.passkeys.push(passkey);
-        self.shown.set(Some(passkey));
     }
 }

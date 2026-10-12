@@ -19,56 +19,50 @@
 //! simulators of the HCI, SMP and HOGP proofs, so each side of the air is
 //! the one already proven against the specification.
 
+#![cfg(test)]
+
 extern crate alloc;
 
-#[cfg(test)]
 #[path = "../../capsule_driver_bt_usb/src/link/mod.rs"]
 mod link;
-#[cfg(test)]
 #[path = "../../capsule_driver_bt_usb/src/hid/modifier.rs"]
 mod modifier;
-#[cfg(test)]
+mod ring;
 mod usb;
 
-#[cfg(test)]
 #[allow(unused)]
 #[path = "../../nonos_bt_hci_proofs/src/sim/mod.rs"]
 mod hci_sim;
-#[cfg(test)]
 #[allow(unused)]
 #[path = "../../nonos_bt_hogp_proofs/src/sim/mod.rs"]
 mod hogp_sim;
-#[cfg(test)]
 #[allow(unused)]
 #[path = "../../nonos_bt_smp_proofs/src/sim/mod.rs"]
 mod smp_sim;
 
-#[cfg(test)]
 mod air;
-#[cfg(test)]
 mod env;
-#[cfg(test)]
+mod env_link;
 mod fixture;
+mod fixture_link;
+mod ring_sim;
+mod ring_sim_ops;
 
-#[cfg(test)]
+mod bond_keep_tests;
+mod bond_tests;
 mod credit_tests;
-#[cfg(test)]
 mod early_tests;
-#[cfg(test)]
 mod find_tests;
-#[cfg(test)]
 mod link_tests;
-#[cfg(test)]
 mod modifier_tests;
-#[cfg(test)]
 mod mouse_tests;
-#[cfg(test)]
 mod pick_tests;
-#[cfg(test)]
+mod private_link_tests;
+mod private_tests;
 mod refuse_tests;
-#[cfg(test)]
+mod ring_refuse_tests;
+mod ring_tests;
+mod ring_wire_tests;
 mod signal_tests;
-#[cfg(test)]
 mod trust_tests;
-#[cfg(test)]
 mod usb_tests;
