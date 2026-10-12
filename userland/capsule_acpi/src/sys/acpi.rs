@@ -29,6 +29,7 @@ const TABLE: i64 = tag4(b"MTBL");
 const REGION: i64 = tag4(b"MRGN");
 const PORT: i64 = tag4(b"MRIO");
 pub(super) const PCI: i64 = tag4(b"MRPC");
+pub(super) const POWER: i64 = tag4(b"MAPW");
 
 /// What the kernel answered: a negative errno.
 pub type Errno = i64;

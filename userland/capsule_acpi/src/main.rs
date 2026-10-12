@@ -26,6 +26,7 @@ mod boot;
 mod ec;
 mod events_io;
 mod host;
+mod power;
 mod server;
 mod sys;
 
