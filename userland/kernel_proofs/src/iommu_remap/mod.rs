@@ -20,6 +20,9 @@
  * path and checked against VT-d 3.4 chapter 5 and section 9.10.
  */
 
+#[path = "../../../../src/arch/x86_64/iommu/remap/ioapic_rte.rs"]
+pub mod ioapic_rte;
+mod ioapic_rte_tests;
 #[path = "../../../../src/arch/x86_64/iommu/remap/irte.rs"]
 pub mod irte;
 #[path = "../../../../src/arch/x86_64/iommu/remap/msi.rs"]
