@@ -51,6 +51,7 @@ pub fn layout_of(format: u32) -> Option<Layout> {
     match format {
         BGRX => Some(Layout::BlueFirst),
         RGBX => Some(Layout::RedFirst),
+        RGB | BGR => None,
         _ => None,
     }
 }

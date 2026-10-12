@@ -57,8 +57,10 @@ MMIO bar from the first pixel's page to the last row's end, aux the first
 pixel's offset): `driver.bootfb0` announced, the claim, `mk_boot_framebuffer`'s
 24-byte mode (`geometry::decode`), bar 0 mapped; any failure releases the
 claim. Three-byte pixels are refused with one line. It runs over the
-`firmware::Firmware` trait; the binary's libc side lands once L31's libc is
-on this branch.
+`firmware::Firmware` trait; the binary's is `libc_firmware::Libc`
+(`mk_service_register` of `driver.bootfb0` on port 4572, `mk_device_claim`,
+`mk_boot_framebuffer`, `mk_mmio_map` of bar 0 write-combined), found by
+`discover::find` and served by `serve::run`.
 
 ## Wire format
 
@@ -90,8 +92,9 @@ Every lane where no other display driver answers shows
 
 ## Release checklist
 
-- Capsule crate, `Capsule.mk`, feature, mirror, inventory, spawn entries.
-- The kernel's boot framebuffer record and the present path handing over.
+- [x] Capsule crate (binary `driver_bootfb`).
+- [x] The kernel's boot framebuffer record and the present path handing over (L31).
+- `Capsule.mk`, feature, mirror, inventory, spawn entries (after the seal).
 
 ## Explicit non-goals today
 

@@ -1,0 +1,37 @@
+# NONOS userland: capsule_driver_bootfb
+#
+# The boot framebuffer as a display-wire driver: the framebuffer firmware
+# left (UEFI GOP, a simple-framebuffer node, the Pi firmware's), listed by
+# the kernel as one firmware-bus device (L31), claimed, mapped and served
+# as driver.bootfb0 so the compositor drives every screen the same way.
+# bootfb_proofs mounts the source files; the binary adds the libc side.
+
+[package]
+name = "nonos_capsule_driver_bootfb"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS userland boot framebuffer display capsule"
+
+[[bin]]
+name = "driver_bootfb"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_gfx_pool = { path = "../nonos_gfx_pool" }
+nonos_gfx_serve = { path = "../nonos_gfx_serve" }
+nonos_gfx_wire = { path = "../nonos_gfx_wire" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
