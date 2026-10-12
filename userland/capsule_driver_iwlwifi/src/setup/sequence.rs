@@ -9,7 +9,7 @@
 use nonos_libc::mk_irq_ack;
 
 use super::grants::{init_or_release, Grants};
-use super::{claim, dma, irq, mmio};
+use super::{bus_master, claim, dma, irq, mmio};
 use crate::discover::Found;
 use crate::driver::Driver;
 use crate::firmware::family_for_device;
@@ -31,6 +31,7 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
         irq: irq.grant_id,
         dma: dma.grant_id,
     };
+    bus_master::on(dev.device_id, claim_epoch).inspect_err(|_| grants.release())?;
     let regs = Regs::new(mmio.user_va);
     let init = init_or_release(regs, &grants)?;
     let _ = mk_irq_ack(irq.grant_id);
