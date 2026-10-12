@@ -133,6 +133,20 @@ every id in it is marked unverified. One `[ACPI] platform` line per
 listed device: its broker id, the kernel's refusal, or why it was passed
 over. No IOMMU domain confines them yet (no ANDD or IVRS ACPI-HID parse).
 
+USB Type-C connectors are read through UCSI when firmware declares the
+PPM (USBC000, or PNP0CA0 by _CID): the mailbox at its _CRS memory window,
+the _DSM's write and read functions to signal it, and `nonos_ucsi` for
+the protocol (PPM_RESET, notifications on, GET_CAPABILITY, each
+connector's capability and status). A Notify on the device reads the
+CCI; the connectors it names are read a few per pass and their changes
+acknowledged. Read-only: no role swap, no alternate mode. A PPM that
+stops answering costs at most 100 polls of 1 ms per command; it is reset
+and walked again after 0, 5 and 10 seconds, then left alone. More than
+32 notifications in a second are set aside for 2 seconds and every port
+read after. One `[ACPI] ucsi` line per port that changes, and one per
+change in the session's state. The UCSI constants are recalled, not
+read from the published specification (unreachable when written).
+
 ## Microkernel contract
 
 Every register it touches comes through the kernel's ACPI grant rule
@@ -179,7 +193,11 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
 - POWER (6), the power wire: batteries and present ones; state bits (1
   charging, 2 discharging, 4 critical); the charge (0xFF unknown); the
   summed rate and the minutes left, to empty or full (u32, 0xFFFFFFFF
-  unknown); AC (0, 1, 0xFF unknown); the unit (1 mA, 0 mW).
+  unknown); AC (0, 1, 0xFF unknown); the unit (1 mA, 0 mW). Then the
+  Type-C ports: a count (0 without UCSI, at most 8) and four bytes each,
+  flags (attached, sourcing, a charger, can source, can sink, status
+  unknown, session stopped), power operation mode, partner type and
+  battery charging status. Layout in `src/server/typec_wire.rs`.
 - THERMAL (7): the number of zones (at most 64), then per zone its
   temperature and _CRT in tenths of a kelvin (0 unknown or absent) and
   state bits (1 passive, 2 hot, 4 critical, 8 a fan it lists running).
