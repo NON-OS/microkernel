@@ -30,4 +30,5 @@ mod state;
 mod tables;
 mod windows;
 
+pub use pci::function as pci_function;
 pub use state::CapsuleHost;

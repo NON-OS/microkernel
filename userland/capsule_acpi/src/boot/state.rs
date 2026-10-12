@@ -26,6 +26,7 @@ use crate::hotkeys::Hotkeys;
 use crate::power::Power;
 use crate::serial::Serial;
 use alloc::vec::Vec;
+use nonos_aml::device_power::DevicePower;
 use nonos_aml::events::Events;
 use nonos_aml::load::Aml;
 use nonos_aml::namespace::Id;
@@ -46,6 +47,8 @@ pub struct Acpi {
     pub buttons: Buttons,
     pub cooling: Cooling,
     pub cpus: Cpus,
+    /// The D-states drivers asked for; the pool they share is `cooling`'s.
+    pub dpower: DevicePower,
     pub backlight: Backlight,
     pub hotkeys: Hotkeys,
     pub serial: Serial,
