@@ -17,6 +17,7 @@
 //! Pure.
 
 use super::fresh_move::Moving;
+use super::landed_held::Held;
 
 /// What a landed row's one button does now.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -53,5 +54,22 @@ pub fn act(m: Option<&Moving>, now_s: u64) -> Act {
         r if r.short_eth > 0 => Act::PayGas,
         r if r.refusal.is_some() => Act::Move,
         r => Act::Confirm { approval: r.approval },
+    }
+}
+
+/// What a landed row moves: its NOX first, else its ETH, as (is ETH, wei).
+pub fn moves(held: Held) -> Option<(bool, u128)> {
+    match (held.nox, held.eth) {
+        (0, 0) => None,
+        (0, eth) => Some((true, eth)),
+        (nox, _) => Some((false, nox)),
+    }
+}
+
+/// The button's words, naming ETH when that is what moves.
+pub fn label_of(a: Act, eth: bool) -> &'static str {
+    match a {
+        Act::Move if eth => "Move the ETH to the Shield",
+        a => a.label(),
     }
 }

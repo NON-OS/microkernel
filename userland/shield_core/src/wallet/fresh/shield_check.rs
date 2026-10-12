@@ -26,33 +26,35 @@ pub fn standard_part(units: u128, allows: impl Fn(u64) -> bool) -> Option<(Vec<u
     (!out.is_empty()).then_some((out, left))
 }
 
-/// Each transaction a fresh address signs to shield: the approval to the
-/// token, exactly `approve` when one is due, or a deposit to the pool, none
-/// with value.
+/// Each transaction a fresh address signs to shield: for NOX (`token`
+/// Some) the approval, exactly `approve` when one is due, or a deposit with
+/// no value; for ETH (`token` None) deposits whose values sum to
+/// `value_sum`, nothing else. All under the gas and fee caps.
 pub fn shield_checked(
     txs: &[Eip1559],
-    (pool, token): ([u8; 20], [u8; 20]),
+    (pool, token): ([u8; 20], Option<[u8; 20]>),
     approve: Option<&[u8]>,
+    value_sum: u128,
 ) -> Result<(), ShieldRefusal> {
+    let mut total = 0u128;
     for tx in txs {
         let gas_max = match tx.to {
-            t if t == token && approve == Some(&tx.data[..]) => APPROVE_GAS,
-            t if t == token => return Err(ShieldRefusal::ApproveNotExact),
+            t if Some(t) == token && approve == Some(&tx.data[..]) => APPROVE_GAS,
+            t if Some(t) == token => return Err(ShieldRefusal::ApproveNotExact),
             t if t == pool => SHIELD_DEPOSIT_GAS,
             _ => return Err(ShieldRefusal::NotPool),
         };
-        let fees =
-            tx.max_fee > 0 && tx.max_fee <= MAX_FEE_PER_GAS && tx.max_priority_fee <= tx.max_fee;
-        if tx.value != 0 {
+        let eth_deposit = token.is_none() && tx.to == pool;
+        if eth_deposit == (tx.value == 0) {
             return Err(ShieldRefusal::Value);
         }
-        if tx.gas == 0
-            || tx.gas > gas_max
-            || !fees
-            || tx.max_priority_fee > MAX_PRIORITY_FEE_PER_GAS
-        {
+        total = total.checked_add(tx.value).ok_or(ShieldRefusal::Value)?;
+        let fees = tx.max_fee > 0 && tx.max_fee <= MAX_FEE_PER_GAS;
+        let tip =
+            tx.max_priority_fee <= tx.max_fee && tx.max_priority_fee <= MAX_PRIORITY_FEE_PER_GAS;
+        if tx.gas == 0 || tx.gas > gas_max || !fees || !tip {
             return Err(ShieldRefusal::FeesPastCaps);
         }
     }
-    Ok(())
+    (total == value_sum).then_some(()).ok_or(ShieldRefusal::Value)
 }
