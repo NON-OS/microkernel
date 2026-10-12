@@ -28,6 +28,7 @@ pub const OP_STATUS: u8 = 1;
 pub const OP_DEVICE: u8 = 2;
 pub const OP_BRIGHTNESS: u8 = 3;
 pub const OP_SET_BRIGHTNESS: u8 = 4;
+pub const OP_PREPARE_SLEEP: u8 = 5;
 pub const ENOENT: i32 = -2;
 pub const EIO: i32 = -5;
 pub const EINVAL: i32 = -22;
