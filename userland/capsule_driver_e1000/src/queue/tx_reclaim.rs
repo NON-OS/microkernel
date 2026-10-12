@@ -18,7 +18,6 @@
 //! moving `clean` over them in order, and whether the ring has room.
 
 use core::ptr::{addr_of, read_volatile};
-use core::sync::atomic::{fence, Ordering};
 
 use crate::constants::queue::{TX_DESC_COUNT, TX_STATUS_DD};
 
@@ -28,7 +27,7 @@ use super::tx::TxRing;
 impl TxRing {
     pub fn done(&self, idx: u16) -> bool {
         let dd = unsafe { read_volatile(addr_of!((*self.descriptor(idx)).status)) } & TX_STATUS_DD;
-        fence(Ordering::Acquire);
+        nonos_libc::dma_rmb();
         dd != 0
     }
 

@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
-
 use super::rearm::rearm;
 use crate::constants::queue::{BUFFER_SIZE, RX_DESC_COUNT};
 use crate::constants::regs::{DESC_FS, DESC_LEN_MASK, DESC_LS, DESC_OWN, ISR_ENABLED, ISR_RER};
@@ -32,7 +30,7 @@ pub fn recv_one(driver: &mut Driver, out: &mut [u8]) -> Result<Option<usize>, &'
     if (isr & ISR_RER as u32) != 0 {
         return Err("rtl8169 rx interrupt error");
     }
-    compiler_fence(Ordering::Acquire);
+    nonos_libc::dma_rmb();
     let idx = driver.rx.cur;
     let d = unsafe { desc(driver.rx.desc_va, idx) };
     if (d.opts1 & DESC_OWN) != 0 {

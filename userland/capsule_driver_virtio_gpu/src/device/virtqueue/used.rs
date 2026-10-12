@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::layout::QueueLayout;
 use core::ptr::read_volatile;
-use core::sync::atomic::{fence, Ordering};
 #[inline]
 fn used_idx_ptr(layout: QueueLayout) -> *const u16 {
     (layout.used_va() as usize + 2) as *const u16
@@ -35,7 +34,7 @@ pub fn read_entry(layout: QueueLayout, ring_slot: u16) -> UsedEntry {
     let slot = ring_slot % layout.queue_size;
     let p = used_ring_entry(layout, slot);
     // Order these reads after the used index that proved them written.
-    fence(Ordering::Acquire);
+    nonos_libc::dma_rmb();
     unsafe {
         let id = read_volatile(p);
         let len = read_volatile(p.add(1));

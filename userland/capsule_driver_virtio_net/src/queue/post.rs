@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr::{read_volatile, write_volatile};
-use core::sync::atomic::{fence, Ordering};
 
 use super::RxQueue;
 use crate::constants::{RING_SLOTS, VQ_AVAIL_OFFSET, VQ_DESC_OFFSET, VRING_DESC_F_WRITE};
@@ -37,7 +36,7 @@ impl RxQueue {
                 write_volatile(avail.add(2 + i as usize), i);
             }
             // The device may read a slot the moment the index covers it.
-            fence(Ordering::Release);
+            nonos_libc::dma_wmb();
             write_volatile(avail.add(1), self.buf_count);
         }
     }
@@ -48,7 +47,7 @@ impl RxQueue {
             let idx = read_volatile(avail.add(1));
             let pos = (idx % RING_SLOTS) as usize;
             write_volatile(avail.add(2 + pos), slot);
-            fence(Ordering::Release);
+            nonos_libc::dma_wmb();
             write_volatile(avail.add(1), idx.wrapping_add(1));
         }
     }

@@ -19,8 +19,6 @@
 //! registers with the tail on the last slot, and enable the receiver with
 //! broadcast, 2048-byte buffers and the CRC stripped.
 
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::queue::{RX_DESC_COUNT, RX_RING_BYTES};
 use crate::constants::regs::{
     REG_RCTL, REG_RDBAH, REG_RDBAL, REG_RDH, REG_RDLEN, REG_RDT, REG_RFCTL,
@@ -41,7 +39,7 @@ pub fn program(regs: &Regs, rx: &RxRing, ring_phys: u64) {
             d.buffer_addr = rx.buffer_phys(i as u16);
         }
         // The ring was written with plain stores; the part reads it from here on.
-        fence(Ordering::Release);
+        nonos_libc::dma_wmb();
         regs.modify(REG_RFCTL, RFCTL_EXTEN, 0);
         regs.w32(REG_RDBAL, ring_phys as u32);
         regs.w32(REG_RDBAH, (ring_phys >> 32) as u32);
