@@ -30,6 +30,9 @@ pub fn to_screen(ctx: &mut Context, rect: Rect) -> Option<Rect> {
         Some(p) => (super::extend::view(ctx, p.slices[0]), local(rect, p.slices[0])?),
         None => (canvas(ctx), rect),
     };
+    if let Some(l) = ctx.looks.lens[0] {
+        return crate::sw_blitter::magnify(view, ctx.screen, rect, l);
+    }
     let shrunk = view.width > ctx.screen.width || view.height > ctx.screen.height;
     match ctx.scale_q {
         _ if shrunk => crate::sw_blitter::downscale(view, ctx.screen, rect),

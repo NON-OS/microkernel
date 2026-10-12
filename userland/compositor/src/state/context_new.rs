@@ -68,7 +68,7 @@ impl Context {
             plan: None,
             head_pending: alloc::vec::Vec::new(),
             screen_notice_until: 0,
-            night: None,
+            looks: super::looks::Looks::default(),
             first_frame_since: None,
         }
     }
