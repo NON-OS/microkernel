@@ -22,14 +22,13 @@ use alloc::vec;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, mk_pid_alive, Deadline};
 use nonos_usbnet::run::own_pid;
 use nonos_usbnet::say::say;
-use nonos_usbnet::scan::Scanner;
 
-use crate::bind::bind;
 use crate::device::Dev;
 use crate::frame::decode;
 use crate::gone::{give_back, gone};
 use crate::ops::answer;
 use crate::pump::pump;
+use crate::search::Search;
 use crate::session::close;
 use crate::wire::{CHUNK, HDR_LEN, REPLY_MAX};
 
@@ -42,7 +41,7 @@ const SERVICE_INBOX: u64 = 0;
 
 pub fn run() -> ! {
     let (mut rx, mut tx) = (vec![0u8; HDR_LEN + CHUNK], vec![0u8; REPLY_MAX]);
-    let (mut d, mut scanner, me) = (Dev::default(), Scanner::new(), own_pid("driver.fido0"));
+    let (mut d, mut search, me) = (Dev::default(), Search::new(), own_pid("driver.fido0"));
     let mut next = Deadline::after_ms(0);
     // The endpoint is held to no one until the owner names who may ask a
     // key to sign (KERNEL_ONLY); the key is still found, so the log shows it.
@@ -66,10 +65,10 @@ pub fn run() -> ! {
             close(&mut d);
         }
         if gone(&d) {
-            give_back(&mut d, &mut scanner);
+            give_back(&mut d, &mut search);
         }
         if d.bound.is_none() {
-            d.bound = scanner.pass(TAG, bind);
+            d.bound = search.find();
         }
     }
 }
