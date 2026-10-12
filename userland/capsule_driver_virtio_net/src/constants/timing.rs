@@ -21,3 +21,9 @@ pub const RESET_MS: u64 = 1_000;
 /// How long the transmit ring may stay full, with the link up and nothing
 /// completed, before the device is taken to have stopped and is reset.
 pub const TX_STALL_MS: u64 = 2_000;
+
+/// The wait before a device that stalls again, having completed nothing
+/// since its last reset, is reset again. It doubles with each repeat up to
+/// the cap, so a backend that holds frames for good costs a reset a minute.
+pub const RESET_BACKOFF_MS: u64 = 2_000;
+pub const RESET_BACKOFF_MAX_MS: u64 = 60_000;

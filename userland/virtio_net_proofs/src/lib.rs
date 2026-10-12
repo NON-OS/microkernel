@@ -17,6 +17,8 @@ pub mod modern;
 // The legacy queue programming as it ships, over the model register file.
 #[path = "../../capsule_driver_virtio_net/src/init/program_queue.rs"]
 pub mod program_queue;
+#[path = "../../capsule_driver_virtio_net/src/init/program_queues.rs"]
+pub mod program_queues;
 #[path = "../../capsule_driver_virtio_net/src/protocol/mod.rs"]
 pub mod protocol;
 #[path = "../../capsule_driver_virtio_net/src/queue/mod.rs"]

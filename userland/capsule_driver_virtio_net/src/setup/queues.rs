@@ -17,16 +17,17 @@
 //! The receive and transmit queues on the legacy transport.
 
 use super::dma_set::DmaSet;
-use crate::constants::{Q_RX, Q_TX, VIRTIO_NET_HDR_LEN};
-use crate::init::program_queue;
+use crate::constants::VIRTIO_NET_HDR_LEN;
+use crate::init::program_queues;
 use crate::queue::{RxQueue, TxQueue};
 use crate::regs::Regs;
 
 /// Clear both rings, point the device at them, and build the queues over
-/// them; `program_queue` refuses any ring size the grants cannot hold.
+/// them; `program_queues` refuses any ring size the grants cannot hold, and
+/// resets the device when it does.
 pub fn build(regs: Regs, dma: &DmaSet) -> Result<(RxQueue, TxQueue), &'static str> {
     dma.clear_rings();
-    let rx_count = program_queue(regs, Q_RX, dma.rx_ring.device_addr, RxQueue::queue_size())?;
-    let tx_count = program_queue(regs, Q_TX, dma.tx_ring.device_addr, TxQueue::queue_size())?;
+    let (rx_ring, tx_ring) = (dma.rx_ring.device_addr, dma.tx_ring.device_addr);
+    let (rx_count, tx_count) = program_queues(regs, rx_ring, tx_ring)?;
     Ok(dma.queues(rx_count, tx_count, VIRTIO_NET_HDR_LEN))
 }

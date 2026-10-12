@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The virtio 1.0 bring-up, for a function that has no legacy register
-//! window (a modern-only virtio-net, as QEMU builds behind its IOMMU).
+//! The virtio 1.0 bring-up, for any function presenting the virtio 1.0
+//! structures (`transport::choose`): a transitional virtio-net with its
+//! legacy register window too, and a modern-only one, as QEMU builds
+//! behind its IOMMU.
 
 mod config;
+mod program;
 mod queues;
 mod run;
 mod spec;

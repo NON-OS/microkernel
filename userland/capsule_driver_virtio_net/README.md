@@ -62,8 +62,9 @@ forbidden: IP stack, sockets, packet store, routing policy, kernel drivers
 
 Frames live only in RX/TX DMA buffers and IPC payloads, and only until they
 are delivered: a receive buffer is wiped before it goes back to the device, a
-transmit buffer when the device returns it, and the request, reply and batch
-buffers once the frame has gone on (plan/50 C8). The capsule does not persist
+transmit buffer at the first send or receive poll (net.core polls every
+cycle) after the device returns it, and the request, reply and batch buffers
+once the frame has gone on (plan/50 C8). The capsule does not persist
 traffic, track application identity, keep captures, or log packet payloads or
 its station address.
 
@@ -73,15 +74,15 @@ The capsule claims the virtio NIC, maps its registers, turns INTx off, resets
 the device, negotiates, draws a station address, maps the RX/TX virtqueues,
 turns Bus Master on only after the reset, enables the queues, and serves
 raw-frame IPC. Transmit never waits: a frame is queued and answered, and
-buffers come back on later sends. Teardown resets the device, then releases
+buffers come back, wiped, at the next send or receive poll. Teardown resets the device, then releases
 the claim; the broker clears Bus Master before it frees any grant, and the
 driver unmaps nothing itself.
 
 Whenever the function presents the virtio 1.0 structures (a transitional NIC
 does too), it is driven over them, through the shared transport in
 `userland/nonos_virtio`, with VERSION_1 negotiated, ACCESS_PLATFORM whenever the
-device offers it, and a 12-byte net header. The legacy registers are used only
-by a device that presents nothing else. Both transports take a 256-entry ring
+device offers it, and a 12-byte net header. A transitional function keeps its
+legacy registers when it lacks a usable structure; a modern-only one is refused. Both transports take a 256-entry ring
 and nothing else: the grant and the ring offsets are sized for it, and a legacy
 device cannot be told a smaller ring, so any other QueueNumMax is refused.
 
@@ -94,9 +95,10 @@ one is present but never comes up. A received frame longer than 1514 bytes, or
 an entry naming no buffer, is dropped and its buffer recycled. A transmit ring
 that stays full for two seconds with the link up is a stopped device: the
 capsule logs `transmit stalled`, resets and releases it, and brings it up again
-with the same station address (init restarts no driver). Every wait is by the
-uptime clock. Empty RX is non-fatal. Protocol parsing never enters this
-driver.
+with the same station address (init restarts no driver); one that stalls
+again without completing a frame is reset after a wait that doubles, up to a
+minute, and logged once per step. Every wait is by the uptime clock. Empty RX
+is non-fatal. Protocol parsing never enters this driver.
 
 ## Current implemented surface
 

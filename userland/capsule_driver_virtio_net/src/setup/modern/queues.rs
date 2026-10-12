@@ -16,12 +16,12 @@
 
 //! The receive and transmit queues on the modern transport.
 
-use nonos_virtio::common::{setup_queue, NotifyArea};
-use nonos_virtio::{Mmio, VirtioError};
+use nonos_virtio::common::NotifyArea;
+use nonos_virtio::Mmio;
 
 use super::super::dma_set::DmaSet;
-use super::spec::spec;
-use crate::constants::{Q_RX, Q_TX, VIRTIO_NET_HDR_LEN_V1};
+use super::program::program;
+use crate::constants::VIRTIO_NET_HDR_LEN_V1;
 use crate::queue::{RxQueue, TxQueue};
 
 pub struct Queues {
@@ -31,12 +31,12 @@ pub struct Queues {
     pub doorbells: [usize; 2],
 }
 
+/// Clear both rings, then program the queues over them (`program` resets
+/// the device when either is refused) and build the queues.
 pub fn build(common: &Mmio, notify: NotifyArea, dma: &DmaSet) -> Result<Queues, &'static str> {
     dma.clear_rings();
-    let rx_spec = spec(Q_RX, dma.rx_ring.device_addr).ok_or("virtio-net: rx ring address")?;
-    let tx_spec = spec(Q_TX, dma.tx_ring.device_addr).ok_or("virtio-net: tx ring address")?;
-    let rx_ready = setup_queue(common, &rx_spec, notify).map_err(VirtioError::message)?;
-    let tx_ready = setup_queue(common, &tx_spec, notify).map_err(VirtioError::message)?;
+    let (rx_ring, tx_ring) = (dma.rx_ring.device_addr, dma.tx_ring.device_addr);
+    let [rx_ready, tx_ready] = program(common, notify, rx_ring, tx_ring)?;
     let (rx, tx) = dma.queues(rx_ready.size, tx_ready.size, VIRTIO_NET_HDR_LEN_V1);
     Ok(Queues { rx, tx, doorbells: [rx_ready.notify_offset, tx_ready.notify_offset] })
 }
