@@ -27,7 +27,9 @@ use shield_wire::{field, fields};
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct Moving {
     pub address: [u8; 20],
-    pub nox: u128,
+    /// The wei being moved, and whether it is ETH (paying its own gas) or NOX.
+    pub amount: u128,
+    pub eth: bool,
     pub review: Option<Reviewed>,
     /// Each transaction the last confirm sent, and why the rest did not go.
     pub sent: Vec<String>,

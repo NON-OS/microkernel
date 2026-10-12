@@ -38,12 +38,12 @@ pub fn landed(state: &State) -> Vec<([u8; 20], Held)> {
 }
 
 pub(super) fn said(m: &Moving) -> Vec<String> {
-    let mut out = Vec::new();
+    let (mut out, coin) = (Vec::new(), if m.eth { "ETH" } else { "NOX" });
     if let Some(r) = &m.review {
         match &r.refusal {
             Some(why) => out.push(why.clone()),
             None => out.push(format!(
-                "{} standard deposits: {} NOX reaches the Shield, up to {} ETH in network fees.{}",
+                "{} standard deposits: {} {coin} reaches the Shield, up to {} ETH in network fees.{}",
                 r.pieces,
                 r.shielded,
                 r.max_network_fee,
@@ -55,7 +55,9 @@ pub(super) fn said(m: &Moving) -> Vec<String> {
         }
         if r.remainder > 0 {
             let left = exact(r.remainder);
-            out.push(format!("{left} NOX is below the smallest standard deposit and stays here."));
+            out.push(format!(
+                "{left} {coin} is below the smallest standard deposit and stays here."
+            ));
         }
     }
     if !m.sent.is_empty() {

@@ -25,13 +25,19 @@ use crate::ops::{wallet, Answer};
 
 const UNREADABLE: &str = "That request to shield is not readable.";
 
-/// "review", the address, the NOX there in wei.
+/// "review", the address, the amount there in wei, and the coin, NOX unless named.
 pub fn review(fields: &[&str]) -> Answer {
-    let [_, address, amount] = fields else { return Err(String::from(UNREADABLE)) };
+    let (address, amount, named) = match fields {
+        [_, address, amount] => (address, amount, "NOX"),
+        [_, address, amount, named] => (address, amount, *named),
+        _ => return Err(String::from(UNREADABLE)),
+    };
+    let coin = crate::ops::coin(named)?;
     let address = unhex(address).and_then(|b| <[u8; 20]>::try_from(b).ok());
     let address = address.ok_or_else(|| String::from(UNREADABLE))?;
     let amount: u128 = amount.parse().map_err(|_| String::from(UNREADABLE))?;
-    let r = wallet()?.review_shield_from_fresh(address, amount).map_err(|e| e.to_string())?;
+    let r = wallet()?.review_shield_from_fresh(address, amount, coin);
+    let r = r.map_err(|e| e.to_string())?;
     let s = &r.split;
     let mut v = Values::new();
     v.put("id", &s.id.to_string())

@@ -26,7 +26,7 @@ use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::tokens::GAP;
 use crate::wallet::order::fees::exact;
 use crate::wallet::screen::hits::{self, Press};
-use crate::wallet::shield::fresh_move_act::{act, Act};
+use crate::wallet::shield::fresh_move_act::{act, label_of, moves, Act};
 use crate::wallet::shield::fresh_move_job as job;
 use crate::wallet::shield::landed_held::line;
 use crate::wallet::state::State;
@@ -39,16 +39,11 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
         for s in m.map(said).unwrap_or_default() {
             h += fact(fb, c.x, y + h, c.w, "move", &s) + GAP / 2;
         }
-        if held.nox > 0 {
+        if let Some((eth, _)) = moves(held) {
+            let m = m.filter(|m| m.eth == eth);
             let mut at = [Rect::default(); 1];
-            h += quiet_group(
-                fb,
-                c.x,
-                y + h,
-                c.w,
-                &Vec::from([(act(m, now).label(), true)]),
-                &mut at,
-            );
+            let label = label_of(act(m, now), eth);
+            h += quiet_group(fb, c.x, y + h, c.w, &Vec::from([(label, true)]), &mut at);
             hits::put(Press::Row(ROW_MOVE + i), at[0]);
         }
     }
@@ -61,10 +56,10 @@ pub fn click(state: &mut State, row: u8) -> EventOutcome {
     else {
         return EventOutcome::Idle;
     };
-    let m = state.meter.landed.moving.as_ref().filter(|m| m.address == address);
+    let Some((eth, amount)) = moves(held) else { return EventOutcome::Idle };
+    let m = state.meter.landed.moving.as_ref().filter(|m| m.address == address && m.eth == eth);
     match act(m, nonos_tls::rtc_now()) {
-        _ if held.nox == 0 => return EventOutcome::Idle,
-        Act::Move | Act::GasWaiting => job::start(state, address, held.nox),
+        Act::Move | Act::GasWaiting => job::start(state, address, amount, eth),
         Act::Confirm { .. } => job::confirm(state),
         Act::PayGas => return job::pay_gas(state),
     }

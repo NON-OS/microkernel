@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! SHIELD_FROM_FRESH (op 18, v1.4.56): NOX found at a fresh address the
 //! shield handed out, moved into the Shield from that address as standard
-//! deposits, a job each step. Fields, one to a line:
-//! "review", the address as 0x hex, the NOX there in wei; or "confirm" and
+//! deposits, a job each step; ETH too (v1.4.60), paying its own gas. Fields,
+//! one to a line: "review", the address as 0x hex, the amount there in wei,
+//! and optionally the coin, "NOX" (the default) or "ETH"; or "confirm" and
 //! the review's id. A review answers as OP_REVIEW_SHIELD does, with
-//! `remainder` (NOX wei left at the address) and `short_eth` (ETH wei the
-//! address lacks for the gas); a confirm answers each `tx` sent, and
+//! `remainder` (wei of the coin left at the address) and `short_eth` (ETH wei
+//! a NOX move lacks for its gas); a confirm answers each `tx` sent, and
 //! `stopped` if one failed.
 
 pub const OP_SHIELD_FROM_FRESH: u16 = 18;
