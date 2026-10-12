@@ -55,3 +55,9 @@ pub fn pair_of(byte: u8) -> Option<bool> {
         _ => None,
     }
 }
+
+/// BULK_OUT's and BULK_IN's byte: the pair in bits 3:0 and the stream in
+/// bits 7:4 (0, none; OP_CONFIGURE_STREAMS gives an endpoint streams).
+pub fn pair_stream(byte: u8) -> Option<(bool, u16)> {
+    Some((pair_of(byte & 0x0F)?, (byte >> 4) as u16))
+}
