@@ -20,24 +20,33 @@ use nonos_libc::mk_service_lookup;
 // the compositor tries are the names the kernel holds to it.
 #[allow(dead_code)] // the kernel's helpers this capsule does not call
 #[path = "../../../../src/services/registry/displays.rs"]
-mod displays;
+pub mod displays;
 
+#[derive(Clone, Copy)]
 pub struct GfxEndpoint {
+    pub name: &'static str,
     pub port: u32,
+    pub pid: u32,
 }
 
-// Resolves the gfx driver's port through the kernel service registry.
-// mk_ipc_call routes by port; the kernel verifies the owning pid is
-// alive before delivery, so the compositor does not need to hold it.
+/// The first display driver on the list that is announced now.
 pub fn lookup_gfx_endpoint() -> Result<GfxEndpoint, &'static str> {
-    let found = displays::DISPLAYS.iter().find_map(|name| lookup(name.as_bytes()));
+    let found = (0..displays::DISPLAYS.len()).find_map(lookup_at);
     found.ok_or("gfx service not announced")
 }
 
-fn lookup(name: &[u8]) -> Option<GfxEndpoint> {
+/// The driver at `index` in the list, if it is announced now.
+pub fn lookup_at(index: usize) -> Option<GfxEndpoint> {
+    displays::DISPLAYS.get(index).and_then(|name| lookup(name))
+}
+
+// Resolves a driver's port through the kernel service registry. mk_ipc_call
+// routes by port; the kernel verifies the owning pid is alive before
+// delivery, so the compositor does not need to hold it. The pid tells a
+// restarted driver from the one the compositor attached.
+pub fn lookup(name: &'static str) -> Option<GfxEndpoint> {
     let mut pid: u32 = 0;
     let mut port: u32 = 0;
-    let rc =
-        mk_service_lookup(name.as_ptr(), name.len(), &mut port as *mut u32, &mut pid as *mut u32);
-    (rc >= 0 && pid != 0 && port != 0).then_some(GfxEndpoint { port })
+    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port as *mut u32, &mut pid);
+    (rc >= 0 && pid != 0 && port != 0).then_some(GfxEndpoint { name, port, pid })
 }

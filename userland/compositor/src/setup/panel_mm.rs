@@ -18,15 +18,15 @@ use nonos_libc::nonos_display_physical_mm;
 
 use crate::state::Context;
 
-/// The physical size of the panel GOP scans out to, from its EDID. Only in
-/// GOP mode: the kernel's size is the boot panel's, and a virtio-gpu scanout
-/// is a different output it says nothing about.
+/// The physical size of the panel shown on: CAPS' on the wire (the driver
+/// read its monitor's EDID), the kernel's on GOP (the boot panel's EDID).
+/// None on the legacy ops: the kernel's size is the boot panel's, and a
+/// virtio-gpu scanout is a different output it says nothing about.
 pub fn panel_mm(ctx: &Context) -> Option<(u32, u32)> {
-    if !ctx.gop_mode {
-        return None;
-    }
     let mut mm: u32 = 0;
-    if nonos_display_physical_mm(0, &mut mm as *mut u32) < 0 {
+    if let Some(link) = ctx.wire {
+        mm = link.physical_mm;
+    } else if !ctx.gop_mode || nonos_display_physical_mm(0, &mut mm as *mut u32) < 0 {
         return None;
     }
     let (w, h) = (mm & 0xFFFF, mm >> 16);

@@ -4,10 +4,12 @@
 
 `compositor` is the userland window compositor. It owns the scene
 (one layer per client process), damage tracking, the frame loop, the
-software blitter and the IPC client into `driver.virtio_gpu0`. Every
-pixel a window shows goes through this capsule. It presents either
-through the virtio-gpu driver or, on any other UEFI machine, through the
-kernel's framebuffer blit (`MkSurfacePresent`).
+software blitter and the client of the display wire (NVGP v1,
+PLAN-coverage section 12). Every pixel a window shows goes through this
+capsule. It presents through the first display driver in the kernel's
+list (`src/services/registry/displays.rs`) that answers, or, on any
+other UEFI machine, through the kernel's framebuffer blit
+(`MkSurfacePresent`).
 
 ```text
 windowing apps (terminal, calculator, desktop_shell, ...)
@@ -16,10 +18,12 @@ windowing apps (terminal, calculator, desktop_shell, ...)
     v
 compositor (this capsule) <--- focus_set (raise) from wm only
     |
-    | virtio path: gfx_client (transfer_to_host / set_scanout / flush)
+    | wire path:   display/ (CAPS, SURFACE, STATE, FLUSH, RETIRE)
+    | legacy path: gfx_client (transfer_to_host / set_scanout / flush)
     | GOP path:    MkSurfacePresent on its own registered surface
     v
-driver.virtio_gpu0 or the firmware framebuffer --> display
+a display driver (driver.bga0, ...), driver.virtio_gpu0, or the
+firmware framebuffer --> display
 ```
 
 The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
@@ -30,13 +34,19 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   requests from windowing capsules.
 - `MkSurfaceAttach` maps each window's surface into this capsule's
   address space; the attach cache keeps one mapping per handle.
-- On the virtio path `gfx_client` asks `driver.virtio_gpu0` for its
-  primary surface, attaches it, and drives `transfer_to_host`,
-  `set_scanout` and `resource_flush` over IPC.
+- A driver found is asked CAPS first (`setup/prime_wire.rs`). On the
+  restarted compositor gets its surface back), attaches the primary,
+  sends each damaged rectangle with FLUSH, polls STATE every 500 ms with
+  the driver's pid looked up again, and on a new primary attaches it,
+  releases the old handle and sends RETIRE (`setup/{poll,adopt}.rs`).
+- A driver that answers CAPS with -38 is driven on the legacy path:
+  `gfx_client` asks for its primary surface, attaches it, and drives
+  `transfer_to_host`, `set_scanout` and `resource_flush` over IPC.
 - On the GOP path the compositor maps a buffer, registers and attaches it
   with `MkSurfaceRegister`, and presents with `MkSurfacePresent`. While in
-  GOP mode it probes for the virtio driver every `VIRTIO_PROBE_FRAMES`
-  frames and moves over when it answers (`setup/upgrade.rs`).
+  GOP mode it asks one name of the display list per tick, 500 ms apart and
+  backing off to 30 s, and moves over when one answers
+  (`setup/upgrade.rs`, `display/backoff.rs`).
 - `MkServiceLookup` finds `wm` on every `OP_FOCUS_SET`, and the GPU
   driver at setup.
 - The frame loop does not call `MkDisplayVsyncWait`: the first blocking
@@ -55,6 +65,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | `OP_CURSOR_UPDATE` | 0x0006 | move or hide the software cursor: x, y, visible |
 | `OP_SCENE_REMOVE` | 0x0007 | remove the sender's layer |
 | `OP_DISPLAY_INFO` | 0x0008 | canvas width, height, stride and format |
+| `OP_DISPLAY_HINT` | 0x0009 | a host size hint (output, width, height, source) -> flags; only from a service in `HINT_SOURCES` (empty until Decision 15), others get E_PERM; answered 0 (not applied) until resize lands |
 
 The window manager owns the stacking order, and `OP_FOCUS_SET` is how it keeps the compositor's
 order the same. The compositor looks the window manager's pid up in the service registry on every
@@ -72,7 +83,7 @@ submit at `z` 2 and the desktop shell's overlay at 1.
 
 | Bit | Capability | Purpose |
 |---|---|---|
-| 0x0008 | IPC | recv on port 4310 + send to driver.virtio_gpu0 |
+| 0x0008 | IPC | recv on port 4310 + send to the display drivers |
 | 0x0010 | Memory | scene, damage and attach cache; the GOP and canvas buffers |
 | 0x0800 | GraphicsDisplayQuery | read the framebuffer size on the GOP path |
 | 0x1000 | GraphicsSurfaceCreate | register the GOP present surface |
@@ -96,9 +107,9 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
 
 ## Runtime lifecycle
 
-1. `_start` initialises the heap; `wait_for_setup` asks for the virtio
-   GPU first and, after `VIRTIO_ATTEMPTS_BEFORE_GOP` failed rounds, also
-   tries the firmware framebuffer, taking whichever answers.
+1. `_start` initialises the heap; `wait_for_setup` asks for the first
+   announced display driver and, after 500 ms with none, also tries the
+   firmware framebuffer, taking whichever answers.
 2. `fit_canvas` gives clients a half-size canvas on panels of 2560 by
    1440 or more (`setup/canvas_scale.rs`); each damaged rectangle is
    doubled onto the screen.
@@ -115,9 +126,11 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
   not registered until one answers.
 - `mk_surface_attach` on a layer's handle fails for 60 frames in a row:
   the layer is dropped and its rectangle repainted.
-- `gfx_client` calls use a 100 ms reply timeout, so a lost reply costs a
-  late frame; `scanout_error_reported` notes a failed scanout once and
-  the loop continues.
+- `gfx_client` calls and FLUSH use a 100 ms reply timeout, so a lost
+  reply costs a late frame; `scanout_error_reported` notes a failed
+  present once and the loop continues. A refused FLUSH leaves its
+  rectangle damaged for the next frame; ESTALE also has the next pass ask
+  SURFACE again.
 - A malformed request gets a typed errno (`E_BAD_MAGIC`, `E_BAD_VERSION`,
   `E_BAD_LEN`, `E_BAD_OP`, `E_INVAL`, `E_PERM`).
 
@@ -139,7 +152,8 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
 | gfx_client (driver.virtio_gpu0 IPC) | `gfx_client/{get_primary,transfer,set_scanout,flush}.rs`, `gfx_client/wire/*.rs` |
 | Software blitter and 2x upscale | `sw_blitter/*.rs` |
 | Wire protocol (header/ops/errno/limits) | `protocol/*.rs` |
-| Setup (virtio, GOP, canvas, upgrade) | `setup/*.rs`, `wait_for_setup.rs` |
+| Display wire client (calls, back-off, poll and hint rules) | `display/*.rs`, `frame_pacer/present_wire.rs`, `server/runner/upkeep.rs`, `server/handlers/display_hint.rs` |
+| Setup (wire, legacy, GOP, canvas, upgrade, poll) | `setup/*.rs`, `wait_for_setup.rs` |
 
 ## Wire format
 
@@ -153,7 +167,9 @@ match the message exactly. Payloads are at most 256 bytes.
 `Context` (`state/context.rs`) owns: gfx_port, resource_id, width,
 height, stride, backing_len, backing_va, gop_mode, surface_handle,
 first_scanout_done, scanout_error_reported, next_request_id, scene,
-damage, focus, cursor, attach, scale and screen. There is no shared
+damage, focus, cursor, attach, scale, screen and wire (the driver on
+the display wire: its name, pid, primary serial and CAPS' panel size).
+The NVGP request id is the one shared static (`display/call.rs`). There is no other shared
 static state. Per-window state is keyed by the caller's pid.
 
 ## Operating rules

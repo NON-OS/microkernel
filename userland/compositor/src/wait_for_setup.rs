@@ -21,12 +21,12 @@ use nonos_libc::{mk_uptime_ms, mk_yield};
 use crate::say::{say, say_display};
 use crate::state::Context;
 
-// How long a virtio-gpu driver gets to announce its gfx service before the
-// GOP framebuffer is taken, so a machine that has virtio-gpu uses it and
+// How long the display drivers get to announce themselves before the GOP
+// framebuffer is taken, so a machine with a display driver uses it and
 // real hardware takes the GOP route. On the uptime clock: six rounds of 64
 // yields lasted however long the yields took, and that changes with the
 // number of cores. A driver that announces later still gets the display
-// through upgrade_to_virtio.
+// through upgrade_from_gop.
 const VIRTIO_WAIT_MS: i64 = 500;
 // Between two asks, so a machine with neither display does not spin.
 const RETRY_MS: i64 = 20;
@@ -35,14 +35,14 @@ pub fn wait_for_setup() -> Context {
     let start = mk_uptime_ms();
     let mut said_none = false;
     loop {
-        if let Ok(ctx) = crate::setup::run_virtio() {
-            return fitted(ctx, "virtio-gpu");
+        if let Ok(ctx) = crate::setup::run_display() {
+            return fitted(ctx, "on");
         }
         if mk_uptime_ms().saturating_sub(start) >= VIRTIO_WAIT_MS {
             match crate::setup::run_gop() {
-                Ok(ctx) => return fitted(ctx, "GOP framebuffer"),
+                Ok(ctx) => return fitted(ctx, "on"),
                 Err(why) if !said_none => {
-                    say(&format!("no display yet ({}); waiting for a virtio-gpu driver", why));
+                    say(&format!("no display yet ({}); waiting for a display driver", why));
                     said_none = true;
                 }
                 Err(_) => {}

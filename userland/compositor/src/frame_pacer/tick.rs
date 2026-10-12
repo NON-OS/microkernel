@@ -53,6 +53,8 @@ fn show(ctx: &mut Context, rect: crate::state::damage::Rect) -> Result<(), &'sta
             return Err("gop present rejected");
         }
         Ok(())
+    } else if ctx.wire.is_some() {
+        super::present_wire::present_rect(ctx, rect)
     } else {
         super::present_virtio::present_rect(ctx, rect)
     }
