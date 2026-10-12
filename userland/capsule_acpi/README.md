@@ -306,6 +306,13 @@ other op: no one.
   in `src/hardware/broker/reserved/wire.rs`, mounted here by path. One
   `[ACPI] reserved:` line.
 
+- Proximity domains, published once at start. Each present PCI root
+  bridge (PNP0A03, PNP0A08) with a _PXM of its own or an ancestor's and a
+  bus-number range in its _CRS goes to the kernel through
+  `MkAcpiProximity` (segment, first and last bus, domain); the broker
+  answers `MkDeviceNode` for a function on those buses unless an SRAT
+  Generic Initiator names it. One `[ACPI] numa` line each.
+
 ## Privacy and persistence
 
 It keeps nothing across boots. The tables it reads are the ones AML needs;
