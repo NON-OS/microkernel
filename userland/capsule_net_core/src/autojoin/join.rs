@@ -38,7 +38,13 @@ pub(super) fn join(driver: &Driver, list: &SavedList, i: usize) -> Step {
             say(b"[NET-CORE] saved Wi-Fi network not joined: ");
             say(join_text(r.code).as_bytes());
             say(b"\n");
-            Step::Answered { index, joined: false }
+            // The passphrase or the network's security (codes -6 to -11):
+            // the same join would be turned down again.
+            if (-11..=-6).contains(&r.code) {
+                Step::Refused(index)
+            } else {
+                Step::Answered { index, joined: false }
+            }
         }
     }
 }

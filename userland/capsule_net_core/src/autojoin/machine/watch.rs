@@ -26,8 +26,12 @@ impl Machine {
     pub fn after_watch(&mut self, now_ms: i64, associated: Option<bool>) -> Option<(u8, bool)> {
         let Phase::Joining { index, until_ms } = self.phase else { return None };
         if associated == Some(true) {
-            self.phase = Phase::Done;
+            self.joined();
             return Some((index, true));
+        }
+        if now_ms >= until_ms && self.rejoining() {
+            self.give_up();
+            return Some((index, false));
         }
         if now_ms >= until_ms {
             self.phase = Phase::Waiting;
