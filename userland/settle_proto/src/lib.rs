@@ -19,9 +19,15 @@
 //! READ and INTENT name fixed tables, so no caller chooses what settle calls.
 
 #![no_std]
+#![deny(
+    clippy::indexing_slicing,
+    clippy::arithmetic_side_effects,
+    clippy::cast_possible_truncation
+)]
 extern crate alloc;
 
 mod async_frame;
+mod bytes;
 mod callers;
 mod chain;
 mod channel_state;
@@ -48,29 +54,22 @@ mod url;
 mod view;
 mod views;
 
-pub use async_frame::{admits_flags, async_answer, request_async, ASYNC_CALLERS, FLAG_ASYNC};
-pub use async_frame::{WALLET_ASYNC, WALLET_ASYNC_OPS};
 pub use callers::*;
-pub use chain::{chain_hash, parse_chain_hash, ChainHash};
-pub use channel_state::{ChannelState, CHANNEL_STATE_LEN};
 pub use delivered_log::{delivered, DeliveredKeys, DELIVERED, DELIVERED_TOPIC, MAX_KEYS};
 pub use fetch::*;
 pub use frame::{reply, reply_body, request, ReplyError};
-pub use gas::{Gas, GAS_LEN};
 pub use header::{parse_header, Header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
 pub use intent::{Intent, MAX_CALLDATA};
 pub use intent_check::{approve_spender, claim_ok, kind_of};
 pub use kinds::{Kind, KINDS, ORDER_TERMS_TUPLE, VOUCHER_TUPLE};
 pub use listing::{listing_reply, parse_listing_reply};
-pub use opened::{Opened, OPENED_LEN};
 pub use opened_log::{CHANNEL_OPENED, CHANNEL_OPENED_TOPIC};
 pub use ops::*;
 pub use page::Page;
-pub use quote::{padded, Quote, QUOTE_LEN};
-pub use read::{parse_read_reply, read_reply, Read};
 pub use registry_current::{current, LISTED_MAX};
 pub use registry_log::{withdrawn, Listed, PUBLISHED, PUBLISHED_TOPIC, WITHDRAWN, WITHDRAWN_TOPIC};
-pub use settled::{Settled, SETTLED_MAX};
 pub use url::https_target;
 pub use view::{view, view_calldata, Arg, View};
 pub use views::VIEWS;
+pub use {async_frame::*, chain::*, channel_state::*, gas::*, opened::*, quote::*};
+pub use {read::*, settled::*};

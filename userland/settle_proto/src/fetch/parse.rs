@@ -19,21 +19,24 @@
 use super::escrow::Escrow;
 use super::form::{Fetch, FETCH_ESCROW, FETCH_PAGE, FETCH_RELEASE, MAX_URL};
 
+use crate::bytes::fixed;
+
 impl Fetch {
     pub fn parse(b: &[u8]) -> Option<Self> {
         let (form, rest) = b.split_first()?;
         match *form {
             FETCH_RELEASE => {
-                let len = u16::from_le_bytes(rest.get(..2)?.try_into().ok()?) as usize;
-                if len > MAX_URL || rest.len() != 2 + len + 32 {
+                let len = usize::from(u16::from_le_bytes(fixed(rest, 0)?));
+                let end = len.checked_add(2)?;
+                if len > MAX_URL || Some(rest.len()) != end.checked_add(32) {
                     return None;
                 }
-                let url = rest[2..2 + len].to_vec();
-                Some(Fetch::Release { url, release_hash: rest[2 + len..].try_into().ok()? })
+                let url = rest.get(2..end)?.to_vec();
+                Some(Fetch::Release { url, release_hash: fixed(rest, end)? })
             }
             FETCH_PAGE if rest.len() == 36 => Some(Fetch::Page {
-                release_hash: rest[..32].try_into().ok()?,
-                offset: u32::from_le_bytes(rest[32..].try_into().ok()?),
+                release_hash: fixed(rest, 0)?,
+                offset: u32::from_le_bytes(fixed(rest, 32)?),
             }),
             FETCH_ESCROW => Escrow::parse(rest).map(Fetch::Escrow),
             _ => None,

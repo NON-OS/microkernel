@@ -19,6 +19,8 @@
 
 use alloc::vec::Vec;
 
+use crate::bytes::fixed;
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Read {
     pub chain_id: u64,
@@ -27,7 +29,7 @@ pub struct Read {
 }
 
 fn words(n: usize, b: &[u8]) -> Option<Vec<[u8; 32]>> {
-    if b.len() != 32 * n {
+    if Some(b.len()) != n.checked_mul(32) {
         return None;
     }
     b.chunks_exact(32).map(|w| w.try_into().ok()).collect()
@@ -37,7 +39,7 @@ impl Read {
     /// None past 255 words.
     pub fn encode(&self) -> Option<Vec<u8>> {
         let n = u8::try_from(self.args.len()).ok()?;
-        let mut out = Vec::with_capacity(11 + 32 * self.args.len());
+        let mut out = Vec::with_capacity(self.args.len().saturating_mul(32).saturating_add(11));
         out.extend_from_slice(&self.chain_id.to_le_bytes());
         out.extend_from_slice(&self.view.to_le_bytes());
         out.push(n);
@@ -46,11 +48,10 @@ impl Read {
     }
 
     pub fn parse(b: &[u8]) -> Option<Self> {
-        let head = b.get(..11)?;
         Some(Read {
-            chain_id: u64::from_le_bytes(head[..8].try_into().ok()?),
-            view: u16::from_le_bytes([head[8], head[9]]),
-            args: words(head[10] as usize, &b[11..])?,
+            chain_id: u64::from_le_bytes(fixed(b, 0)?),
+            view: u16::from_le_bytes(fixed(b, 8)?),
+            args: words(usize::from(*b.get(10)?), b.get(11..)?)?,
         })
     }
 }
@@ -58,7 +59,7 @@ impl Read {
 /// READ's reply body; None past 255 words.
 pub fn read_reply(ret: &[[u8; 32]]) -> Option<Vec<u8>> {
     let m = u8::try_from(ret.len()).ok()?;
-    let mut out = Vec::with_capacity(1 + 32 * ret.len());
+    let mut out = Vec::with_capacity(ret.len().saturating_mul(32).saturating_add(1));
     out.push(m);
     ret.iter().for_each(|w| out.extend_from_slice(w));
     Some(out)
@@ -66,5 +67,5 @@ pub fn read_reply(ret: &[[u8; 32]]) -> Option<Vec<u8>> {
 
 pub fn parse_read_reply(b: &[u8]) -> Option<Vec<[u8; 32]>> {
     let (m, rest) = b.split_first()?;
-    words(*m as usize, rest)
+    words(usize::from(*m), rest)
 }

@@ -57,7 +57,7 @@ impl DeliveredKeys {
 
     /// Take in the pairs read after `scanned` up to `head`.
     pub fn absorb(&mut self, more: Vec<([u8; 32], [u8; 32])>, head: u64) {
-        if self.full || self.keys.len() + more.len() > MAX_KEYS {
+        if self.full || self.keys.len().saturating_add(more.len()) > MAX_KEYS {
             (self.full, self.keys) = (true, Vec::new());
             return;
         }

@@ -22,6 +22,7 @@
 
 use alloc::vec::Vec;
 
+use crate::bytes::fixed;
 use crate::fetch::MAX_URL;
 pub use crate::registry_topics::{PUBLISHED, PUBLISHED_TOPIC, WITHDRAWN, WITHDRAWN_TOPIC};
 
@@ -37,29 +38,27 @@ pub struct Listed {
 }
 
 fn small(w: &[u8]) -> Option<usize> {
-    w[..24]
-        .iter()
-        .all(|b| *b == 0)
-        .then(|| u64::from_be_bytes(w[24..32].try_into().unwrap()))?
-        .try_into()
-        .ok()
+    let high = w.get(..24)?.iter().all(|b| *b == 0);
+    high.then_some(u64::from_be_bytes(fixed(w, 24)?))?.try_into().ok()
 }
 
 impl Listed {
     pub fn from_log(topics: &[[u8; 32]], data: &[u8], block: u64) -> Option<Listed> {
         let [t0, listing_id, release_id, bond_id] = topics else { return None };
-        if *t0 != PUBLISHED_TOPIC || data.len() < 96 || small(&data[32..64])? != 64 {
+        if *t0 != PUBLISHED_TOPIC || small(data.get(32..64)?)? != 64 {
             return None;
         }
-        let len = small(&data[64..96])?;
-        if len == 0 || len > MAX_URL || data.len() != 96 + len.div_ceil(32) * 32 {
+        let len = small(data.get(64..96)?)?;
+        let whole = len.div_ceil(32).checked_mul(32).and_then(|w| w.checked_add(96));
+        if len == 0 || len > MAX_URL || Some(data.len()) != whole {
             return None;
         }
-        let (uri, pad) = data[96..].split_at(len);
+        let (uri, pad) = data.get(96..)?.split_at_checked(len)?;
+        let release_hash = fixed(data, 0)?;
         pad.iter().all(|b| *b == 0).then(|| Listed {
             listing_id: *listing_id,
             release_id: *release_id,
-            release_hash: data[..32].try_into().unwrap(),
+            release_hash,
             bond_id: *bond_id,
             block,
             uri: uri.to_vec(),

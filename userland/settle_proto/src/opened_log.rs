@@ -19,6 +19,7 @@
 //! five data words. Every word is read strictly: an amount past u128, an
 //! expiry or nonce past u64, or an address word with high bytes is no event.
 
+use crate::bytes::fixed;
 use crate::opened::Opened;
 
 pub const CHANNEL_OPENED: &str =
@@ -30,15 +31,14 @@ pub const CHANNEL_OPENED_TOPIC: [u8; 32] = [
 ];
 
 fn addr(w: &[u8]) -> Option<[u8; 20]> {
-    w[..12].iter().all(|b| *b == 0).then(|| w[12..32].try_into().ok())?
+    w.get(..12)?.iter().all(|b| *b == 0).then(|| fixed(w, 12))?
 }
 
+/// A word holding at most `bytes` (up to 16) bytes of value: the rest zero.
 fn num(w: &[u8], bytes: usize) -> Option<u128> {
-    let high = 32 - bytes;
-    w[..high]
-        .iter()
-        .all(|b| *b == 0)
-        .then(|| w[high..32].iter().fold(0u128, |v, b| v << 8 | *b as u128))
+    let high = 32usize.checked_sub(bytes.min(16))?;
+    let low = u128::from_be_bytes(fixed(w, 16)?);
+    w.get(..high)?.iter().all(|b| *b == 0).then_some(low)
 }
 
 impl Opened {
@@ -47,16 +47,16 @@ impl Opened {
         if *t0 != CHANNEL_OPENED_TOPIC || data.len() != 5 * 32 {
             return None;
         }
-        let w = |i: usize| &data[32 * i..32 * i + 32];
+        let w = |i: usize| data.get(i.checked_mul(32)?..i.checked_add(1)?.checked_mul(32)?);
         Some(Opened {
             channel_id: *channel_id,
             payer: addr(payer)?,
             payee: addr(payee)?,
-            listing_id: w(0).try_into().ok()?,
-            amount: num(w(1), 16)?,
-            expiry: num(w(2), 8)? as u64,
-            open_nonce: num(w(3), 8)? as u64,
-            reclaim_to: addr(w(4))?,
+            listing_id: fixed(w(0)?, 0)?,
+            amount: num(w(1)?, 16)?,
+            expiry: u64::try_from(num(w(2)?, 8)?).ok()?,
+            open_nonce: u64::try_from(num(w(3)?, 8)?).ok()?,
+            reclaim_to: addr(w(4)?)?,
         })
     }
 }

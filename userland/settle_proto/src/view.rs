@@ -43,7 +43,8 @@ impl Arg {
             Arg::U8 | Arg::Bool => 31,
             Arg::U64 => 24,
         };
-        w[..zero].iter().all(|b| *b == 0) && (self != Arg::Bool || w[31] <= 1)
+        let clear = w.get(..zero).is_some_and(|z| z.iter().all(|b| *b == 0));
+        clear && (self != Arg::Bool || w.get(31).is_some_and(|b| *b <= 1))
     }
 }
 
@@ -67,7 +68,7 @@ pub fn view_calldata(v: &View, args: &[[u8; 32]]) -> Option<alloc::vec::Vec<u8>>
     if args.len() != v.args.len() || !v.args.iter().zip(args).all(|(a, w)| a.fits(w)) {
         return None;
     }
-    let mut out = alloc::vec::Vec::with_capacity(4 + 32 * args.len());
+    let mut out = alloc::vec::Vec::with_capacity(args.len().saturating_mul(32).saturating_add(4));
     out.extend_from_slice(&v.selector);
     args.iter().for_each(|w| out.extend_from_slice(w));
     Some(out)
