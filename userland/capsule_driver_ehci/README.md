@@ -115,9 +115,14 @@ VMware's EHCI and on chipsets with EHCI and companion hosts.
 
 ## Explicit non-goals today
 
-No hubs, so not the rate-matching hubs every Intel PCH from the 5 series
-on puts behind its EHCI; no split transactions, isochronous transfers,
-interrupts, suspend or 64-bit addressing; one controller of a chipset.
+No isochronous transfers, interrupts, suspend or 64-bit addressing; one
+controller of a chipset. Hubs are served: OP_CONFIGURE_HUB (0x21) marks
+a slot a hub, and OP_ADDRESS_ROUTED (0x20) addresses a device below one
+without resetting the root port. A full- or low-speed device below a
+high-speed hub (the rate-matching hub of an Intel PCH from the 5 series
+on, or any USB 2 hub) is reached by split transactions through that
+hub's TT: its QHs carry its speed, the TT's hub address and port, and an
+interrupt QH completes in micro-frames 2 to 4 (sched/link.rs).
 
 ## Verification
 
