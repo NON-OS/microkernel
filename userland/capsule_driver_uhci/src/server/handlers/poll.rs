@@ -17,14 +17,15 @@
 //! The polled bulk IN, `slot, 0, len_le16`: the first poll arms a chain of
 //! `len` bytes, and each poll looks at it once. Data replies as a bulk IN
 //! does; nothing yet is E_AGAIN at once; a STALL is E_PIPE. The chain is
-//! armed again by the poll after the one that took its data. The chain has
-//! one place, so while one slot's is armed another slot's poll is E_BUSY.
+//! armed again by the poll after the one that took its data. Each root
+//! port has its own chain and queue, so devices poll side by side and one
+//! whose owner has gone holds back no other.
 
 use crate::env::{Clock, Io, Mem};
-use crate::sched::layout::{BULK_MAX, POLL_BUF};
+use crate::sched::layout::{poll_buf, BULK_MAX};
 use crate::server::context::Ctx;
 use crate::server::reply::{data, status, DATA_AT};
-use crate::wire::{Request, E_AGAIN, E_BUSY, E_INVAL, E_IO, E_PIPE};
+use crate::wire::{Request, E_AGAIN, E_INVAL, E_IO, E_PIPE};
 use crate::xfer::poll::{arm, look, Polled};
 
 pub fn poll<I: Io, C: Clock, M: Mem>(
@@ -35,23 +36,20 @@ pub fn poll<I: Io, C: Clock, M: Mem>(
 ) -> usize {
     let &[slot, _, lo, hi] = body else { return status(tx, req, E_INVAL) };
     let len = u16::from_le_bytes([lo, hi]) as usize;
-    let mut armed =
-        cx.table.devs.iter().enumerate().filter(|(_, d)| d.is_some_and(|d| d.poll.is_some()));
-    if armed.any(|(i, _)| i + 1 != slot as usize) {
-        return status(tx, req, E_BUSY);
-    }
-    let Some(dev) = cx.table.dev(slot).filter(|_| (1..=BULK_MAX).contains(&len)) else {
+    let fits = (1..=BULK_MAX).contains(&len);
+    let Some(dev) = cx.table.dev(slot).filter(|d| fits && d.port != 0) else {
         return status(tx, req, E_INVAL);
     };
+    let lane = dev.port as usize - 1;
     let Some((ep, _)) = dev.bulk.as_mut() else { return status(tx, req, E_INVAL) };
     let n = match dev.poll {
         Some(n) => n,
-        None => match arm(&cx.mem, ep, len) {
+        None => match arm(&cx.mem, lane, ep, len) {
             Ok(n) => *dev.poll.insert(n),
             Err(_) => return status(tx, req, E_INVAL),
         },
     };
-    let polled = look(&cx.mem, ep, n);
+    let polled = look(&cx.mem, lane, ep, n);
     if polled != Polled::Pending {
         dev.poll = None;
     }
@@ -62,7 +60,7 @@ pub fn poll<I: Io, C: Clock, M: Mem>(
             // than this one asked for.
             let n = got.min(len);
             tx[DATA_AT..DATA_AT + 4].copy_from_slice(&[n as u8, (n >> 8) as u8, 0, 0]);
-            cx.mem.read_bytes(POLL_BUF, &mut tx[DATA_AT + 4..DATA_AT + 4 + n]);
+            cx.mem.read_bytes(poll_buf(lane), &mut tx[DATA_AT + 4..DATA_AT + 4 + n]);
             data(tx, req, 4 + n)
         }
         Polled::Stalled => status(tx, req, E_PIPE),

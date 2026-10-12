@@ -45,7 +45,7 @@ pub fn disable<I: Io, C: Clock, M: Mem>(
         }
     }
     if dev.poll.is_some() {
-        disarm(&cx.mem);
+        disarm(&cx.mem, dev.port as usize - 1);
     }
     if dev.port != 0 {
         port_off(&mut cx.io, dev.port);
