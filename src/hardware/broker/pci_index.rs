@@ -53,3 +53,8 @@ pub(in crate::hardware::broker) fn lookup(device_id: u64) -> Option<PciHandle> {
 pub(in crate::hardware::broker) fn all() -> Vec<PciHandle> {
     INDEX.read().clone()
 }
+
+/// One function added after the boot scan (`table::add_pci_function`).
+pub(in crate::hardware::broker) fn push(handle: PciHandle) {
+    INDEX.write().push(handle);
+}

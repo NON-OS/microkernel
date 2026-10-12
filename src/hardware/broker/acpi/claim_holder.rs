@@ -20,6 +20,9 @@
 
 use super::super::{claim, pci_index};
 
+/// Asked for pid 0: whether anyone holds it.
+pub const ANYONE: u32 = 0;
+
 /// None when segment 0 has no such function (only it is enumerated).
 pub fn holds(pid: u32, bdf: (u16, u8, u8, u8)) -> Option<bool> {
     let (seg, bus, dev, func) = bdf;
@@ -27,5 +30,5 @@ pub fn holds(pid: u32, bdf: (u16, u8, u8, u8)) -> Option<bool> {
         let a = h.address;
         seg == 0 && a.segment == 0 && (a.bus, a.device, a.function) == (bus, dev, func)
     })?;
-    Some(claim::lookup(h.device_id).is_some_and(|c| c.pid == pid))
+    Some(claim::lookup(h.device_id).is_some_and(|c| pid == ANYONE || c.pid == pid))
 }
