@@ -1,0 +1,27 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+/// A seed the firmware or loader handed over, condensed to 32 bytes, once.
+///
+/// aarch64: the device tree's `/chosen` `rng-seed`. x86_64 seeds from its
+/// loader's handoff on its own entry path, and riscv64 has none yet.
+pub(crate) fn firmware_entropy() -> Option<[u8; 32]> {
+    #[cfg(target_arch = "aarch64")]
+    return crate::arch::aarch64::boot_entropy::take();
+
+    #[cfg(not(target_arch = "aarch64"))]
+    return None;
+}

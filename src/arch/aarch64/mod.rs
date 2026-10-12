@@ -17,6 +17,7 @@
 pub mod abi;
 pub mod asm;
 pub mod boot;
+pub mod boot_entropy;
 mod constants;
 pub mod context;
 pub mod cpu;
