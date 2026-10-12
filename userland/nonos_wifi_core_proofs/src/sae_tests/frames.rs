@@ -23,7 +23,7 @@ use nonos_wifi_core::sae::{SaeFailure, SaeState, SaeStation, SaeStep};
 use super::known::{hnp_commit, ADDR1, ADDR2, PW};
 
 #[test]
-fn a_reflected_commit_is_dropped_and_a_mismatched_method_refused() {
+fn a_reflected_commit_and_a_mismatched_method_are_dropped() {
     let pwe = derive_pwe(PW, &[1u8; 14], &ADDR1, &ADDR2).unwrap();
     let mut sta = SaeStation::start(pwe, false, &[0x11; 32], &[0x22; 32]).unwrap();
     let (_, status, own) = sta.commit_frame();
@@ -32,8 +32,8 @@ fn a_reflected_commit_is_dropped_and_a_mismatched_method_refused() {
     // The AP answering a hunting-and-pecking commit with the H2E status code.
     let c = hnp_commit();
     let other = commit_body(&c.scalar(), &c.element().unwrap(), &[], false);
-    assert!(matches!(sta.on_frame(1, STATUS_SAE_HASH_TO_ELEMENT, &other), SaeStep::Failed));
-    assert_eq!(sta.failure(), Some(SaeFailure::BadCommit));
+    assert!(matches!(sta.on_frame(1, STATUS_SAE_HASH_TO_ELEMENT, &other), SaeStep::Ignore));
+    assert_eq!((sta.state(), sta.failure()), (SaeState::Committed, Some(SaeFailure::BadCommit)));
 }
 
 #[test]

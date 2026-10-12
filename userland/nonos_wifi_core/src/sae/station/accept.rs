@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The access point's commit taken, or the exchange ended.
+//! The access point's commit taken, or a frame discarded.
 
 use super::super::commit::confirm;
 use super::super::frame::{confirm_body, parse_commit, SEQ_CONFIRM, STATUS_SUCCESS};
@@ -23,14 +23,14 @@ use super::{SaeFailure, SaeState, SaeStation, SaeStep};
 impl SaeStation {
     pub(super) fn accept_commit(&mut self, body: &[u8]) -> SaeStep {
         let Some(peer) = parse_commit(body) else {
-            return self.fail(SaeFailure::BadCommit);
+            return self.discard(SaeFailure::BadCommit);
         };
         // A commit equal to this station's own is a reflection: drop it silently.
         if peer.scalar_bytes == self.own_scalar && peer.element_bytes == self.own_element {
             return SaeStep::Ignore;
         }
         let Some(keys) = self.commit.derive_keys(&peer.scalar, &peer.element) else {
-            return self.fail(SaeFailure::BadCommit);
+            return self.discard(SaeFailure::BadCommit);
         };
         self.keys = keys;
         self.peer_scalar = peer.scalar_bytes;
@@ -49,9 +49,11 @@ impl SaeStation {
         SaeStep::Send { seq: SEQ_CONFIRM, status: STATUS_SUCCESS, body: confirm_body(send_confirm, &c) }
     }
 
-    pub(super) fn fail(&mut self, why: SaeFailure) -> SaeStep {
-        self.state = SaeState::Failed;
+    /// Drop a frame that does not authenticate, as 12.4.8.6 says, and keep
+    /// why: the exchange runs on until the AP's own confirm or the driver's
+    /// deadline.
+    pub(super) fn discard(&mut self, why: SaeFailure) -> SaeStep {
         self.failure = Some(why);
-        SaeStep::Failed
+        SaeStep::Ignore
     }
 }
