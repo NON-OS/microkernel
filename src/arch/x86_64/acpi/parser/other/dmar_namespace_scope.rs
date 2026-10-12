@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The ACPI namespace device scopes (type 5) a DRHD lists. Each names an
-//! ANDD by its number and gives the requester id the device's DMA arrives
-//! under, as a start bus and (device, function) hops. Pure.
+//! The numbered device scopes a DRHD lists: ACPI namespace devices (type 5),
+//! I/O APICs (3) and HPETs (4). Each names its device by a number and gives
+//! the requester id its requests arrive under, as a start bus and (device,
+//! function) hops. Pure.
 
 use super::dmar_scope::MAX_PATH;
 
 pub const SCOPE_NAMESPACE: u8 = 5;
+/// An I/O APIC (its number is the APIC id MADT gives) and an MSI-capable
+/// HPET block (its number), in the same shape (VT-d 8.3.1).
+pub const SCOPE_IOAPIC: u8 = 3;
+pub const SCOPE_HPET: u8 = 4;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct NamespaceScope {
