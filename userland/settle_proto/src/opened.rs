@@ -19,6 +19,8 @@
 //! | payer[20] | payee[20] | listing_id[32] | amount u128 | expiry u64
 //! | open_nonce u64 | reclaim_to[20].
 
+use crate::bytes::fixed;
+
 pub const OPENED_LEN: usize = 32 + 20 + 20 + 32 + 16 + 8 + 8 + 20;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -31,12 +33,6 @@ pub struct Opened {
     pub expiry: u64,
     pub open_nonce: u64,
     pub reclaim_to: [u8; 20],
-}
-
-fn at<const N: usize>(b: &[u8], from: usize) -> [u8; N] {
-    let mut out = [0u8; N];
-    out.copy_from_slice(&b[from..from + N]);
-    out
 }
 
 impl Opened {
@@ -54,15 +50,18 @@ impl Opened {
     }
 
     pub fn parse(b: &[u8]) -> Option<Self> {
-        (b.len() == OPENED_LEN).then(|| Opened {
-            channel_id: at(b, 0),
-            payer: at(b, 32),
-            payee: at(b, 52),
-            listing_id: at(b, 72),
-            amount: u128::from_le_bytes(at(b, 104)),
-            expiry: u64::from_le_bytes(at(b, 120)),
-            open_nonce: u64::from_le_bytes(at(b, 128)),
-            reclaim_to: at(b, 136),
+        if b.len() != OPENED_LEN {
+            return None;
+        }
+        Some(Opened {
+            channel_id: fixed(b, 0)?,
+            payer: fixed(b, 32)?,
+            payee: fixed(b, 52)?,
+            listing_id: fixed(b, 72)?,
+            amount: u128::from_le_bytes(fixed(b, 104)?),
+            expiry: u64::from_le_bytes(fixed(b, 120)?),
+            open_nonce: u64::from_le_bytes(fixed(b, 128)?),
+            reclaim_to: fixed(b, 136)?,
         })
     }
 }

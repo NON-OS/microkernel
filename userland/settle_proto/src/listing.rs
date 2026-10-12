@@ -22,6 +22,7 @@
 
 use alloc::vec::Vec;
 
+use crate::bytes::{fixed, len_u16, len_u8};
 use crate::fetch::MAX_URL;
 use crate::registry_current::LISTED_MAX;
 use crate::registry_log::Listed;
@@ -34,11 +35,11 @@ const ROW_HEAD: usize = 32 * 3 + 8 + 2;
 pub fn listing_reply(rows: &[Listed]) -> Vec<u8> {
     let fits = |r: &&Listed| !r.uri.is_empty() && r.uri.len() <= MAX_URL;
     let rows: Vec<&Listed> = rows.iter().filter(fits).take(LISTED_MAX).collect();
-    let mut out = Vec::from([rows.len() as u8]);
+    let mut out = Vec::from([len_u8(rows.len())]);
     for r in rows {
         [&r.release_id, &r.release_hash, &r.bond_id].iter().for_each(|w| out.extend_from_slice(*w));
         out.extend_from_slice(&r.block.to_le_bytes());
-        out.extend_from_slice(&(r.uri.len() as u16).to_le_bytes());
+        out.extend_from_slice(&len_u16(r.uri.len()).to_le_bytes());
         out.extend_from_slice(&r.uri);
     }
     out
@@ -47,24 +48,23 @@ pub fn listing_reply(rows: &[Listed]) -> Vec<u8> {
 /// The rows of a reply to the ask for `listing_id`, or None unless whole.
 pub fn parse_listing_reply(b: &[u8], listing_id: &[u8; 32]) -> Option<Vec<Listed>> {
     let (&n, mut rest) = b.split_first()?;
-    if n as usize > LISTED_MAX {
+    if usize::from(n) > LISTED_MAX {
         return None;
     }
-    let mut out = Vec::with_capacity(n as usize);
+    let mut out = Vec::with_capacity(usize::from(n));
     for _ in 0..n {
-        let head = rest.get(..ROW_HEAD)?;
-        let len = u16::from_le_bytes(head[104..106].try_into().ok()?) as usize;
-        let uri =
-            rest.get(ROW_HEAD..ROW_HEAD + len).filter(|u| !u.is_empty() && u.len() <= MAX_URL)?;
+        let len = usize::from(u16::from_le_bytes(fixed(rest, 104)?));
+        let end = ROW_HEAD.checked_add(len)?;
+        let uri = rest.get(ROW_HEAD..end).filter(|u| !u.is_empty() && u.len() <= MAX_URL)?;
         out.push(Listed {
             listing_id: *listing_id,
-            release_id: head[..32].try_into().ok()?,
-            release_hash: head[32..64].try_into().ok()?,
-            bond_id: head[64..96].try_into().ok()?,
-            block: u64::from_le_bytes(head[96..104].try_into().ok()?),
+            release_id: fixed(rest, 0)?,
+            release_hash: fixed(rest, 32)?,
+            bond_id: fixed(rest, 64)?,
+            block: u64::from_le_bytes(fixed(rest, 96)?),
             uri: uri.to_vec(),
         });
-        rest = &rest[ROW_HEAD + len..];
+        rest = rest.get(end..)?;
     }
     rest.is_empty().then_some(out)
 }
