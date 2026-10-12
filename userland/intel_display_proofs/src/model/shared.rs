@@ -27,6 +27,17 @@ use crate::engine::access::Mmio;
 #[derive(Clone)]
 pub struct Shared(pub Rc<RefCell<Gen9>>);
 
+impl Shared {
+    /// Bytes written at `base + at` in the model's memory, page by page.
+    pub fn poke(&self, base: u64, at: usize, src: &[u8]) {
+        let mut m = self.0.borrow_mut();
+        for (i, b) in src.iter().enumerate() {
+            let a = base + (at + i) as u64;
+            m.memory.entry(a & !4095).or_insert_with(|| vec![0; 4096])[(a & 4095) as usize] = *b;
+        }
+    }
+}
+
 impl Mmio for Shared {
     fn read(&mut self, offset: u32) -> u32 {
         self.0.borrow_mut().read(offset)

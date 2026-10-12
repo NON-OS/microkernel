@@ -22,12 +22,12 @@ use nonos_gfx_wire::body::caps::{MODE_RANGE, MODE_SET};
 use nonos_gfx_wire::body::mode::{CURRENT, FROM_EDID};
 use nonos_gfx_wire::Mode;
 
-use super::dp_rig::dp_rig;
-use super::edid_blob::edid_1080p_and_xga;
-use super::wire_rig::h0;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::timing;
 use crate::model::firmware::T1080;
+use crate::tests::dp_rig::dp_rig;
+use crate::tests::edid_blob::edid_1080p_and_xga;
+use crate::tests::wire_rig::h0;
 
 pub const TOTAL: u32 = 1 << 20;
 

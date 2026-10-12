@@ -39,4 +39,9 @@ pub struct Head<F: Frames> {
     pub generation: u32,
     /// The flags STATE answered last.
     pub flags: u32,
+    /// The GGTT entries this output may use: the cursor at the first 64,
+    /// the scanout surfaces above them.
+    pub window: (u32, u32),
+    /// The cursor image's graphics address once a shape was given.
+    pub cursor: Option<u32>,
 }

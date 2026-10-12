@@ -20,19 +20,20 @@
 use nonos_gfx_serve::{Display, Shadow};
 use nonos_gfx_wire::body::caps::{HW_CURSOR, MODE_RANGE, MODE_SET};
 use nonos_gfx_wire::body::mode::{CURRENT, FROM_DEVICE, PREFERRED};
-use nonos_gfx_wire::errno::ENOSYS;
+use nonos_gfx_wire::errno::{ENOSYS, ENXIO};
 use nonos_gfx_wire::{kind, Cursor, Mode};
 
-use super::wire_rig::{h0, rig};
 use crate::display::{red_first, swap_red_blue};
 use crate::engine::gen::PlaneKind;
+use crate::tests::wire_rig::{h0, rig};
 
 #[test]
 fn caps_name_an_intel_engine_on_firmwares_mode_alone() {
     let (d, _) = rig();
     let c = d.caps();
     assert_eq!((c.kind, c.outputs), (kind::INTEL, 1));
-    assert_eq!(c.flags & (MODE_SET | MODE_RANGE | HW_CURSOR), 0, "takeover only");
+    assert_eq!(c.flags & (MODE_SET | MODE_RANGE), 0, "takeover only: no mode setting on eDP");
+    assert_eq!(c.flags & HW_CURSOR, HW_CURSOR, "the cursor plane");
     assert_eq!((c.max_width, c.max_height, c.width_align), (1920, 1080, 1));
     assert_eq!(c.surface_budget, 7680 * 1080, "one surface at its 64-byte stride");
 }
@@ -49,7 +50,7 @@ fn the_one_mode_is_firmwares_and_nothing_else_is_served() {
     let bytes = vec![0u8; 4];
     let s = Shadow { bytes: &bytes, width: 1, height: 1, stride: 4, cursor_offset: 0 };
     assert_eq!(d.set_mode(0, 1280, 720, &s), Err(ENOSYS));
-    assert_eq!(d.cursor(0, &Cursor::default(), &[]), Err(ENOSYS));
+    assert_eq!(d.cursor(1, &Cursor::default(), &[]), Err(ENXIO), "no second output");
 }
 
 #[test]
