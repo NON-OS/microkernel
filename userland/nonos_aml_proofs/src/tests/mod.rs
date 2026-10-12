@@ -71,3 +71,4 @@ mod transaction_tests;
 mod truncation_tests;
 mod unary_tests;
 mod video;
+mod wmi;

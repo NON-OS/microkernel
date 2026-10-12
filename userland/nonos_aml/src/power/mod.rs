@@ -21,7 +21,9 @@ mod bix;
 pub(crate) mod fields;
 mod info;
 mod status;
+mod time;
 
 pub use bix::parse_bix;
 pub use info::{parse_bif, BatteryInfo};
 pub use status::{online, parse_bst, percent, BatteryStatus};
+pub use time::minutes_left;
