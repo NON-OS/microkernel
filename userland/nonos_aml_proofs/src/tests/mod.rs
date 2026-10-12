@@ -27,6 +27,7 @@ mod field_mutation_tests;
 mod field_rule_tests;
 mod field_tests;
 mod field_unit_tests;
+mod ged;
 mod generated_tests;
 mod header_tests;
 mod host_tests;
