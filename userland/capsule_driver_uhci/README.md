@@ -38,7 +38,7 @@ device (6), device (7) and configuration (8) descriptors, interrupt IN
 endpoint (9) and its reads (0xE), control transfer (0xB), bulk configure
 (0x10), OUT (0x11), IN (0x12), reset (0x13) and the polled bulk IN (0x14).
 Port status is in xHCI PORTSC form: connected, enabled, speed 1 full or 2
-low, connect change. Hub and isochronous ops answer -22. A bulk IN while
+low, connect change. Isochronous ops answer -22. A bulk IN while
 the polled IN is armed answers -16; each root port polls on its own. Errors:
 -5 bus or timeout, -11 nothing yet, -16 busy, -22 malformed, -32 STALL.
 
@@ -100,9 +100,16 @@ on Intel and VIA chipsets whose only USB 1.1 host it is.
 
 - A QEMU `-usb -device usb-tablet` boot moving the pointer.
 
+Hubs are served: OP_CONFIGURE_HUB (0x21) marks a slot a hub, and
+OP_ADDRESS_ROUTED (0x20) addresses a full- or low-speed device below one
+(no TT: a full-speed hub has none) without resetting the root port. A
+low-speed device's TDs say so, which below a full-speed hub has the
+controller send the preamble. Giving such a device back leaves the root
+port, and the hub, up.
+
 ## Explicit non-goals today
 
-No hubs, no isochronous transfers, no interrupts, no suspend, no second
+No isochronous transfers, no interrupts, no suspend, no second
 controller of a chipset.
 
 ## Verification

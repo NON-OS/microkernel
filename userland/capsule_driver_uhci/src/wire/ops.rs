@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The ops served. The hub and isochronous ops are not: a VM's devices sit
-//! on the root ports, and UHCI's isochronous scheduling is not carried.
-//! They, and any op not listed, answer E_INVAL.
+//! The ops served. The isochronous ops are not: UHCI's isochronous
+//! scheduling is not carried. They, and any op not listed, answer E_INVAL.
 
 pub const OP_HEALTHCHECK: u16 = 0x0001;
 pub const OP_PORT_STATUS: u16 = 0x0003;
@@ -33,3 +32,5 @@ pub const OP_BULK_OUT: u16 = 0x0011;
 pub const OP_BULK_IN: u16 = 0x0012;
 pub const OP_RESET_BULK: u16 = 0x0013;
 pub const OP_BULK_IN_POLL: u16 = 0x0014;
+pub const OP_ADDRESS_ROUTED: u16 = 0x0020;
+pub const OP_CONFIGURE_HUB: u16 = 0x0021;
