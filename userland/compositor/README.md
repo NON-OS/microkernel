@@ -90,6 +90,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | `OP_SCENE_REMOVE` | 0x0007 | remove the sender's layer |
 | `OP_DISPLAY_INFO` | 0x0008 | canvas width, height, stride and format |
 | `OP_DISPLAY_HINT` | 0x0009 | a host size hint (output, width, height, source) -> flags; only from a service in `HINT_SOURCES` (empty until the host-services decision), others get E_PERM; for output 0 of a wire driver held and followed like a STATE hint and answered 1 (resizable), else 0 |
+| `OP_INDICATOR` | 0x000A | a capturing driver's camera (kind 1) or microphone (kind 2) on (1) or off (0), 8 bytes; only from a holder of that kind's capture capability bit (none named yet, so every sender gets E_PERM), shown in the reserved band and presented before the answer (E_IO and no change if the present fails), E_BUSY past eight holders |
 
 The window manager owns the stacking order, and `OP_FOCUS_SET` is how it keeps the compositor's
 order the same. The compositor looks the window manager's pid up in the service registry on every
@@ -234,7 +235,16 @@ must produce a signed ELF whose SHA matches the embedded manifest
 - No compositing effects beyond alpha-blended copy.
 - One display, number 0.
 - A client can still submit another process's surface handle as its own
-  layer; the compositor does not check who shared it.
+  layer; the compositor does not check who shared it, and the kernel's
+  attach names no receiver (reported to the lead; the fix is kernel-side,
+  `mk_surface_share_to`).
+- No op reads back pixels, a surface or a handle: DISPLAY_INFO's 16 bytes
+  of geometry are the only payload a client gets (`privacy_tests`).
+- The capture indicator's band (top right, 44x16 canvas pixels) is drawn
+  after every layer in every frame that touches it, so no surface covers it
+  (`frame_pacer/indicator_band.rs`).
+- INPUT_SUBSCRIBE no longer makes the sender the focused process: input is
+  the input router's to deliver, to the window the window manager focused.
 
 ## Verification
 
