@@ -86,6 +86,9 @@ pub fn pte_flags(perm: u32) -> u64 {
     if perm & (1 << 5) != 0 {
         flags |= 1 << 4; // no-cache -> cache-disable
     }
+    if perm & (1 << 12) != 0 {
+        flags |= 1 << 52; // device -> the neutral DEVICE bit
+    }
     if perm & (1 << 4) != 0 {
         flags |= 1 << 8; // global
     }
