@@ -25,6 +25,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MIRY", SyscallNumber::MkIpcReply, "MkIpcReply"),
     e(b"MISP", SyscallNumber::MkIpcSendToPid, "MkIpcSendToPid"),
     e(b"MSVL", SyscallNumber::MkServiceLookup, "MkServiceLookup"),
+    e(b"MTGR", SyscallNumber::MkThreadGroup, "MkThreadGroup"),
     e(b"MSVR", SyscallNumber::MkServiceRegister, "MkServiceRegister"),
     e(b"MMAP", SyscallNumber::MkMmap, "MkMmap"),
     e(b"MUMP", SyscallNumber::MkMunmap, "MkMunmap"),

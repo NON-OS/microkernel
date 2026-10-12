@@ -27,3 +27,5 @@ pub mod platform_encode;
 pub mod platform_record;
 #[path = "../../../../../../src/hardware/broker/acpi/platform_wire.rs"]
 pub mod platform_wire;
+#[path = "../../../../../../src/hardware/broker/acpi/same_group.rs"]
+pub mod same_group;
