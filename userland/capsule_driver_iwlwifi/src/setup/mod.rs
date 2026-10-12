@@ -8,6 +8,7 @@
 
 mod announce;
 mod claim;
+pub mod command;
 mod dma;
 mod grants;
 mod irq;

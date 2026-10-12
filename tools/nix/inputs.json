@@ -3452,6 +3452,8 @@
    "userland/capsule_driver_iwlwifi/src/server/control.rs",
    "userland/capsule_driver_iwlwifi/src/server/guard.rs",
    "userland/capsule_driver_iwlwifi/src/server/join_wire.rs",
+   "userland/capsule_driver_iwlwifi/src/setup/claim.rs",
+   "userland/capsule_driver_iwlwifi/src/setup/command.rs",
    "userland/capsule_driver_iwlwifi/src/setup/grants.rs",
    "userland/capsule_driver_iwlwifi/src/setup/irq_plan.rs",
    "userland/capsule_driver_iwlwifi/src/wpa/hmac.rs",
