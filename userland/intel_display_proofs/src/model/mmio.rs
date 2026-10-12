@@ -15,24 +15,43 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The model behind the engine's register trait: registers through the
-//! latch rules, GGTT entries straight into the table.
+//! latch rules, GGTT entries straight into the table. The table holds
+//! wide entries; Haswell's narrow ones, written 32 bits at a time from
+//! 2 MiB, are widened on the way in and narrowed on the way out, so one
+//! scanout serves both.
 
 use super::gen9::Gen9;
 use crate::engine::access::Mmio;
-use crate::engine::ggtt::GGTT_OFFSET;
+
+const NARROW: std::ops::Range<u32> = 0x20_0000..0x40_0000;
+const WIDE: u32 = 0x80_0000;
+
+fn widen(v: u32) -> u64 {
+    let addr = (v as u64 & 0xFFFF_F000) | ((v as u64 & 0xFF0) << 28);
+    addr | (v as u64 & 1)
+}
+
+fn narrow(v: u64) -> u32 {
+    ((v & 0xFFFF_F000) | ((v >> 28) & 0xFF0) | (v & 1)) as u32
+}
 
 impl Mmio for Gen9 {
     fn read(&mut self, off: u32) -> u32 {
-        self.on_read(off)
+        match NARROW.contains(&off) {
+            true => narrow(self.ggtt[((off - NARROW.start) / 4) as usize]),
+            false => self.on_read(off),
+        }
     }
     fn write(&mut self, off: u32, v: u32) {
-        self.on_write(off, v)
+        match NARROW.contains(&off) {
+            true => self.ggtt[((off - NARROW.start) / 4) as usize] = widen(v),
+            false => self.on_write(off, v),
+        }
     }
     fn write64(&mut self, off: u32, v: u64) {
-        let i = ((off - GGTT_OFFSET) / 8) as usize;
-        self.ggtt[i] = v;
+        self.ggtt[((off - WIDE) / 8) as usize] = v;
     }
     fn read64(&mut self, off: u32) -> u64 {
-        self.ggtt[((off - GGTT_OFFSET) / 8) as usize]
+        self.ggtt[((off - WIDE) / 8) as usize]
     }
 }

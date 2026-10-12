@@ -2,8 +2,8 @@
 
 ## Role
 
-Intel display engine capsule. It takes over firmware's mode on Broadwell
-(Gen8), Skylake to Comet Lake (Gen9), Ice Lake (Gen11) and Tiger Lake to
+Intel display engine capsule. It takes over firmware's mode on Haswell
+(Gen7.5), Broadwell (Gen8), Skylake to Comet Lake (Gen9), Ice Lake (Gen11) and Tiger Lake to
 Raptor Lake (Gen12, with Alder Lake P and Raptor Lake P's display 13), and
 sets modes on Gen9. Today this directory holds the engine code and the
 device id tables only: `src/engine` (takeover, plane programming, vblank
@@ -64,7 +64,7 @@ on the boot framebuffer.
 `vblank::wait_vblank`, `cursor::set`, `ggtt::{map, unmap}`,
 `ggtt_range::{entries, pick}`, `Scanout::{start, present, stop}`.
 `engine::modeset` (Gen9 DP and HDMI), `engine::dc::dc_off`,
-`engine::gen::{GEN8, GEN9, GEN11, GEN12_3, GEN12}`.
+`engine::gen::{GEN7_5, GEN8, GEN9, GEN11, GEN12_3, GEN12}`, `ggtt_pte::Pte`.
 `src/ids.rs`: `family(vendor, device)` over the id tables; `Family::gen`.
 `src/dmc.rs`: `blob(family)`, `admit(family, bytes)` against the sealed
 digests in `data/dmc_sealed.txt` (empty: no DMC loads, DC5 and DC6 stay
@@ -105,13 +105,13 @@ without tearing while windows move, with a hardware cursor.
 - Capsule crate, `Capsule.mk`, feature, mirror, inventory and spawn entries.
 - Device ids checked against Intel's published lists.
 - Boot on Skylake, Kaby Lake, Coffee Lake and Comet Lake machines, then on
-  Broadwell, Ice Lake, Tiger Lake and Alder Lake machines at firmware's mode.
+  Haswell, Broadwell, Ice Lake, Tiger Lake and Alder Lake machines at firmware's mode.
 - the choice of DMC blobs, sealed by digest.
 
 ## Explicit non-goals today
 
 Mode setting beyond Gen9 (the combo and Type-C PHYs, Haswell's WRPLLs),
-Haswell, Meteor Lake and Lunar Lake, several outputs on the wire (unit 10),
+Meteor Lake and Lunar Lake, several outputs on the wire (unit 10),
 render acceleration, loading a DMC blob into the engine.
 
 ## Verification

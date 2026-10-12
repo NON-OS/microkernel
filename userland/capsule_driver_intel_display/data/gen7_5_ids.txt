@@ -1,0 +1,55 @@
+# PCI device ids of Intel's Gen7.5 graphics (Haswell, with Crystal Well;
+# vendor 8086, class 03) whose display engine this driver takes over at
+# firmware's mode: one id (hex) and its family per line. Ivy Bridge and
+# older Gen7 parts carry no DDIs and are not listed.
+#
+# Source: the Configurations volume (Volume 4) of Intel's Haswell graphics
+# PRM and Intel's processor graphics device id support page. Written down
+# without a copy of either at hand and unverified line by line: the owner
+# should check it against them. An id missing here only leaves that
+# machine on the boot framebuffer.
+0402 hsw
+0406 hsw
+040A hsw
+040B hsw
+040E hsw
+0412 hsw
+0416 hsw
+041A hsw
+041B hsw
+041E hsw
+0422 hsw
+0426 hsw
+042A hsw
+042B hsw
+042E hsw
+0A02 hsw
+0A06 hsw
+0A0A hsw
+0A0B hsw
+0A0E hsw
+0A12 hsw
+0A16 hsw
+0A1A hsw
+0A1B hsw
+0A1E hsw
+0A22 hsw
+0A26 hsw
+0A2A hsw
+0A2B hsw
+0A2E hsw
+0D02 hsw
+0D06 hsw
+0D0A hsw
+0D0B hsw
+0D0E hsw
+0D12 hsw
+0D16 hsw
+0D1A hsw
+0D1B hsw
+0D1E hsw
+0D22 hsw
+0D26 hsw
+0D2A hsw
+0D2B hsw
+0D2E hsw

@@ -15,17 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Where in the GGTT the driver's surfaces go. The table's size is in
-//! the GMCH Graphics Control register (PCI config 0x50, GGMS in bits 7:6
-//! on Gen8 and later: 0 none, else 2^n MiB of 8 byte entries); firmware's
-//! own scanout surface sits low in it, so the driver takes runs from the
-//! top, clear of the surface it is taking over.
+//! the GMCH Graphics Control register (PCI config 0x50): GGMS in bits 7:6
+//! from Broadwell, 0 none, else 2^n MiB of 8 byte entries; on Haswell in
+//! bits 9:8, 0 none, 1 one MiB, 2 two MiB, of 4 byte entries (field
+//! positions unverified). Firmware's own scanout surface sits low in the
+//! table, so the driver takes runs from the top, clear of it.
+
+use super::ggtt_pte::Pte;
 
 /// Entries in the GGTT, each mapping 4 KiB.
-pub fn entries(ggc: u16) -> u32 {
-    match (ggc >> 6) & 3 {
-        0 => 0,
-        n => (1u32 << n) * (1024 * 1024 / 8),
-    }
+pub fn entries(t: Pte, ggc: u16) -> u32 {
+    let mib = match (t, (ggc >> 6) & 3, (ggc >> 8) & 3) {
+        (Pte::Wide, 0, _) | (Pte::Narrow, _, 0 | 3) => 0,
+        (Pte::Wide, n, _) => 1u32 << n,
+        (Pte::Narrow, _, n) => n as u32,
+    };
+    mib * (1024 * 1024 / t.size())
 }
 
 /// A run of `pages` entries, aligned to `align` entries, as high as it

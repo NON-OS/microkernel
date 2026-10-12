@@ -19,6 +19,7 @@
 
 use crate::engine::gen::PlaneKind;
 use crate::engine::ggtt;
+use crate::engine::ggtt_pte::Pte;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::plane::program;
 use crate::model::firmware::T1080;
@@ -32,11 +33,11 @@ pub(super) fn lit() -> Gen9 {
     m.fill(0x10_0000, 1, 0xFF11_2233);
     let first = [0x10_0000];
     for i in 0..2025 {
-        ggtt::map(&mut m, i, &first, 0x80000).unwrap();
+        ggtt::map(&mut m, Pte::Wide, i, &first, 0x80000).unwrap();
     }
     m.fill(0x20_0000, 1, 0xFF44_5566);
     let ours = [0x20_0000u64; 2025];
-    ggtt::map(&mut m, OURS / 4096, &ours, 0x80000).unwrap();
+    ggtt::map(&mut m, Pte::Wide, OURS / 4096, &ours, 0x80000).unwrap();
     m
 }
 

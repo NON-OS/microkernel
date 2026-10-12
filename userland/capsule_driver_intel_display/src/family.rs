@@ -17,10 +17,11 @@
 //! The Intel graphics families this driver knows, by their tag in the
 //! device id data files, and the display generation each one carries.
 
-use crate::engine::gen::{Gen, GEN11, GEN12, GEN12_3, GEN8, GEN9};
+use crate::engine::gen::{Gen, GEN11, GEN12, GEN12_3, GEN7_5, GEN8, GEN9};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Family {
+    Haswell,
     Broadwell,
     Skylake,
     KabyLake,
@@ -30,8 +31,7 @@ pub enum Family {
     TigerLake,
     RocketLake,
     AlderLakeS,
-    /// With Raptor Lake P, display version 13, taken over as Gen12's.
-    AlderLakeP,
+    AlderLakeP, // with Raptor Lake P, display 13, taken over as Gen12
     RaptorLakeS,
     RaptorLakeP,
 }
@@ -40,6 +40,7 @@ impl Family {
     /// The family a data file's three-letter tag names.
     pub const fn from_tag(t: [u8; 3]) -> Option<Family> {
         Some(match &t {
+            b"hsw" => Family::Haswell,
             b"bdw" => Family::Broadwell,
             b"skl" => Family::Skylake,
             b"kbl" => Family::KabyLake,
@@ -58,6 +59,7 @@ impl Family {
 
     pub fn gen(self) -> &'static Gen {
         match self {
+            Family::Haswell => &GEN7_5,
             Family::Broadwell => &GEN8,
             Family::Skylake | Family::KabyLake | Family::CoffeeLake | Family::CometLake => &GEN9,
             Family::IceLake => &GEN11,
@@ -66,8 +68,7 @@ impl Family {
         }
     }
 
-    /// Mode setting is written for Gen9 alone; every other family keeps
-    /// firmware's mode and is driven by takeover until its own unit.
+    /// Gen9 alone sets modes; the rest keep firmware's until their unit.
     pub fn sets_modes(self) -> bool {
         *self.gen() == GEN9
     }

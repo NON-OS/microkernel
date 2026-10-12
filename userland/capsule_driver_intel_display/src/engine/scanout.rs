@@ -22,6 +22,7 @@
 use super::access::{Expiry, Mmio};
 use super::error::Error;
 use super::flip::flip;
+use super::ggtt_pte::Pte;
 use super::pipe::Pipe;
 use super::plane_read::PlaneState;
 
@@ -33,6 +34,7 @@ pub struct Scanout {
     /// Each surface's graphics address and its run of GGTT entries.
     pub surfaces: [u32; 2],
     pub pages: u32,
+    pub ggtt: Pte,
     pub front: usize,
     /// The plane as firmware left it, put back by `stop`.
     pub firmware: PlaneState,

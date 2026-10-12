@@ -18,6 +18,7 @@
 //! present frames by flipping, hand the output back.
 
 use crate::engine::gen::GEN9;
+use crate::engine::ggtt_pte::Pte;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::scanout::Scanout;
 use crate::engine::takeover::read_output;
@@ -30,7 +31,7 @@ pub(super) fn setup() -> (Gen9, Vec<u64>, Vec<u64>) {
     let mut m = Gen9::new(TOTAL as usize);
     m.light(Transcoder::Edp, Pipe::A, T1080, 4 << 12);
     m.fill(0x9000_0000, 1, 0xFF00_0001);
-    crate::engine::ggtt::map(&mut m, 0, &[0x9000_0000; 2025], TOTAL).unwrap();
+    crate::engine::ggtt::map(&mut m, Pte::Wide, 0, &[0x9000_0000; 2025], TOTAL).unwrap();
     m.fill(0x1000_0000, 2025, 0xFF00_00AA);
     m.fill(0x2000_0000, 2025, 0xFF00_00BB);
     let a = (0..2025).map(|i| 0x1000_0000 + i * 4096).collect();
