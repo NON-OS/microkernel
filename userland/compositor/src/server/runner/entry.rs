@@ -39,6 +39,7 @@ pub fn run(mut ctx: Context) -> ! {
     let mut tx = [0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut last_heal = mk_uptime_ms();
     let mut upkeep = Upkeep::new(last_heal);
+    ctx.first_frame_since = Some(last_heal);
     loop {
         drain_ipc(&mut ctx, &mut rx, &mut tx);
         let now = mk_uptime_ms();
