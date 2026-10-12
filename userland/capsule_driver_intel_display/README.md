@@ -2,10 +2,15 @@
 
 ## Role
 
-Intel display engine capsule, Gen9 first (Skylake, Kaby Lake, Coffee Lake,
-Comet Lake). Today this directory holds the engine code and the device id
-table only: `src/engine` (takeover, plane programming, vblank flips, the
-cursor plane, the GGTT) and `src/ids.rs` with `data/gen9_ids.txt`. There is
+Intel display engine capsule. It takes over firmware's mode on Broadwell
+(Gen8), Skylake to Comet Lake (Gen9), Ice Lake (Gen11) and Tiger Lake to
+Raptor Lake (Gen12, with Alder Lake P and Raptor Lake P's display 13), and
+sets modes on Gen9. Today this directory holds the engine code and the
+device id tables only: `src/engine` (takeover, plane programming, vblank
+flips, the cursor plane, the GGTT, and Gen9's mode setting: power wells,
+DPLLs, DDIs, DisplayPort and HDMI, eDP power and backlight, watermarks),
+`src/dp` (DisplayPort over AUX), `src/family.rs` with one id file per
+generation in `data/`, and `src/dmc.rs`, the DMC firmware seal. There is
 no `Cargo.toml`, `Capsule.mk`, Cargo feature or kernel mirror yet, so no
 image carries it; `intel_display_proofs` runs the engine code against a
 register-level model of the Gen9 display engine. The capsule binary that
@@ -58,7 +63,12 @@ on the boot framebuffer.
 `src/engine`: `takeover::read_outputs`, `plane::program`, `flip::flip`,
 `vblank::wait_vblank`, `cursor::set`, `ggtt::{map, unmap}`,
 `ggtt_range::{entries, pick}`, `Scanout::{start, present, stop}`.
-`src/ids.rs`: `family(vendor, device)` over the Gen9 id table.
+`engine::modeset` (Gen9 DP and HDMI), `engine::dc::dc_off`,
+`engine::gen::{GEN8, GEN9, GEN11, GEN12_3, GEN12}`.
+`src/ids.rs`: `family(vendor, device)` over the id tables; `Family::gen`.
+`src/dmc.rs`: `blob(family)`, `admit(family, bytes)` against the sealed
+digests in `data/dmc_sealed.txt` (empty: no DMC loads, DC5 and DC6 stay
+off).
 
 ## Wire format
 
@@ -77,8 +87,9 @@ in the takeover (unit 8 does mode setting).
 
 ## Operating rules
 
-Register offsets and bits are cited to the Skylake PRM Volume 2c in each
-file, or marked unverified. No other driver's code is a source.
+Register offsets and bits are cited to the family's PRM (Skylake's Volume
+2c for most) in each file, or marked unverified. A DMC blob loads only when
+its SHA-256 is sealed for its family. No other driver's code is a source.
 
 ## Release target
 
@@ -95,12 +106,15 @@ without tearing while windows move, with a hardware cursor.
 - Capsule crate, `Capsule.mk`, feature, mirror, inventory and spawn entries.
 - Owner's keys for the slug `driver.intel_display`.
 - Device ids checked against Intel's published lists.
-- Boot on Skylake, Kaby Lake, Coffee Lake and Comet Lake machines.
+- Boot on Skylake, Kaby Lake, Coffee Lake and Comet Lake machines, then on
+  Broadwell, Ice Lake, Tiger Lake and Alder Lake machines at firmware's mode.
+- The owner's choice of DMC blobs, sealed by digest.
 
 ## Explicit non-goals today
 
-Mode setting (unit 8), other families (unit 9), several outputs on the wire
-(unit 10), render acceleration, DMC firmware.
+Mode setting beyond Gen9 (the combo and Type-C PHYs, Haswell's WRPLLs),
+Haswell, Meteor Lake and Lunar Lake, several outputs on the wire (unit 10),
+render acceleration, loading a DMC blob into the engine.
 
 ## Verification
 
