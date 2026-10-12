@@ -29,6 +29,8 @@ mod request_refusal_tests;
 mod span_tests;
 #[cfg(test)]
 mod transport_tests;
+#[cfg(test)]
+mod uas_tests;
 
 #[cfg(kani)]
 mod kani_proofs;

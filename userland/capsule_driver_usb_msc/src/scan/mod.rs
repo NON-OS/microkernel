@@ -17,12 +17,15 @@
 //! Finding the one mass-storage device this driver serves.
 
 mod again;
+mod bot_bind;
 mod medium;
 mod pass;
 mod probe;
+mod ready_unit;
 pub mod report;
 mod scanner;
 mod step;
+mod uas_bind;
 
 pub use medium::Medium;
 pub use report::Report;

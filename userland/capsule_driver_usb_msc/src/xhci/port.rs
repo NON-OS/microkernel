@@ -31,6 +31,17 @@ pub struct Port {
 
 const PORTSC_CONNECTED: u32 = 1;
 
+/// The Port Speed id of `port` (PORTSC bits 13:10): 3 high speed, 4 and
+/// up SuperSpeed; `None` when the host did not say.
+pub fn port_speed(xhci: u32, port: u8) -> Option<u8> {
+    let mut resp = [0u8; DATA_AT + 4 + 255 * 8];
+    let len = call(xhci, OP_PORT_STATUS, &[], &mut resp).ok()?;
+    let count = (resp[DATA_AT] as usize).min(len.saturating_sub(4) / 8);
+    let entries = resp[DATA_AT + 4..DATA_AT + 4 + count * 8].chunks_exact(8);
+    let e = entries.into_iter().find(|e| e[0] == port)?;
+    Some(((u32::from_le_bytes([e[4], e[5], e[6], e[7]]) >> 10) & 0xF) as u8)
+}
+
 /// Every root port with a device connected.
 pub fn connected_ports(xhci: u32) -> Result<Vec<Port>, i32> {
     let mut resp = [0u8; DATA_AT + 4 + 255 * 8];
