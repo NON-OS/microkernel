@@ -45,19 +45,22 @@ logs `controller not usable: ACL endpoints refused`.
 | `link` | One link, from scan to end, over `nonos_bt_hci`, `nonos_bt_smp` and `nonos_bt_hogp`. It holds no libc call, so the proofs run all of it. |
 | `hid` | Input posting. `capsule_driver_usb_hid`'s own keymap, key event, repeat and posting files are compiled here, so a Bluetooth key is posted with the same code, flags, layout and repeat as a USB one. |
 | `ring` | The bond store's `Keys` over the keyring: OP_STORE, OP_RETRIEVE, OP_DELETE and OP_LIST (L33), with the layouts `capsule_keyring` reads. Its request and answer layouts are pure, so the proofs run them. |
-| `run` | The clock, log, random source and waiting; the bond store opened; finding the controller on the ports, and the loop of links. |
+| `nbtc` | NBTC v1, the protocol driver.bt_usb0 answers (below): the frame, who may ask what, and the board it reads and changes. Pure, so the proofs run all of it. |
+| `run` | The clock, log and random source; the desk, whose every wait answers NBTC; the bond store opened; finding the controller on the ports, and the loop of links. |
 
 ## A link
 
 1. Between scans, a new resolvable private address if the last one has
    served 15 minutes (Vol 3, Part C, Appendix A), given to the controller
    with LE Set Random Address.
-2. Passive scan, for at most 10 s. A bonded peer is taken the moment it
-   is heard, from directed advertising too, which carries no data to name
-   the HID service by (Vol 6, Part B, 2.3.1.2). Otherwise the first
+2. Passive scan, while scanning is on (NBTC's SCAN), for at most 10 s.
+   A bonded peer is taken the moment it is heard, from directed
+   advertising too, which carries no data to name the HID service by
+   (Vol 6, Part B, 2.3.1.2). A device with no bond is taken only while
+   the pairing window Settings opens (NBTC's PAIR) is open: the first
    connectable advertiser that names the HID service (0x1812) or a HID
-   appearance is taken: at once while no bond is kept, else after waiting
-   2 s from when it was first heard, so a bonded keyboard waking beside a
+   appearance, at once while no bond is kept, else after waiting 2 s from
+   when it was first heard, so a bonded keyboard waking beside a
    stranger's is not passed over for it. The scan is stopped whatever
    happened.
 3. LE Create Connection, from the private address.
@@ -69,9 +72,10 @@ logs `controller not usable: ACL endpoints refused`.
    host offers its IRK and public identity, so the peer can resolve its
    later addresses. A keyboard with no
    display pairs by passkey entry: the capsule logs six digits for the
-   user to type. A mouse pairs by Just Works. A peer that wants a number
-   compared or digits typed here is declined; the capsule has no way yet
-   to ask the user.
+   user to type and gives them to Settings. A mouse pairs by Just Works.
+   A peer that shows digits to type here, or a number to confirm, waits
+   for the user's answer from Settings, as long as SMP's 30 s timer
+   allows. One pairing closes the window.
 6. LE Enable Encryption with the derived key, then the identity keys:
    the peer's, then this host's. The bond is kept.
 7. HID over GATT, Boot Protocol; input to the input ring. Keys are posted
@@ -97,10 +101,8 @@ next look waits 30 s.
 - Bonds last for this boot only (Decision 27). They are kept in the
   keyring when it keeps this capsule's records (L33), else in this
   capsule's memory until it stops; the log says which.
-- No allow-list beyond the bonds: an unbonded HID advertiser is still
-  paired, and its keys post only after a typed passkey.
-- No service: the capsule answers no requests on driver.bt_usb0 yet, so
-  the battery level reaches only the log.
+- Turning scanning off takes effect when the look under way ends, at
+  most 10 s later.
 - Directed advertising is heard only when the controller takes it as
   addressed to this device (Vol 4, Part E, 7.8.10, filter policy 0x00).
   A peer that directs it to an older private address of this host is not
@@ -111,8 +113,44 @@ next look waits 30 s.
 `bt-usb:` lines: `bonds last for this boot only (Decision 27)`, where
 bonds are kept, `started`, `controller up`, `connected`, the passkey to
 type, `paired`, `bond kept`, `encrypted with the kept bond`, `HID ready: keyboard mouse`,
-`battery 1: 90%` (instances count from 1), `link lost` or `link ended:`
+`battery 1: 90%` (instances count from 1), `pairing waits on the user, in
+Settings`, `link lost` or `link ended:`
 with the reason, and `controller given back:` with the reason.
+
+## NBTC v1
+
+driver.bt_usb0's own protocol, on port 4342 with replies on 4343. The
+frame is NNET's: a 20-byte header (`magic_le32` "NBTC", `version_le16` 1,
+`op_le16`, `flags_le16`, `0_le16`, `request_id_le32`, `len_le32`), then the
+payload; a reply carries the same header, a signed status word and its
+payload, both counted in `len`. Status: 0, or -2 no such bond, -5 the
+store refused, -13 refused to this caller, -16 busy (ask again), -22
+malformed.
+
+| Op | Name | Who | Request | Reply |
+|---|---|---|---|---|
+| 1 | HEALTH | Settings, shell | none | version (2), controller up (1) |
+| 2 | LINK | Settings, shell | none | state, flags, bond place (0xFF none) |
+| 3 | BATTERY | Settings, shell | none | count, then place, instance, percent each |
+| 4 | BONDS | Settings | none | count, then identity type, address (6), authenticated, linked each |
+| 5 | FORGET | Settings | identity type, address (6) | none; its link ends |
+| 6 | PAIR | Settings | none | none; one device may pair for 60 s |
+| 7 | PASSKEY | Settings | none | kind (0 none, 1 show, 2 enter, 3 confirm), digits (4) |
+| 8 | ANSWER | Settings | kind, digits (4) | none |
+| 9 | SCAN | Settings | 1 on, 0 off | none |
+
+LINK's state: 0 no controller, 1 idle, 2 scanning, 3 connecting, 4
+securing, 5 ready. Its flags, bits 0 to 5: keyboard, mouse, keys post,
+scanning on, pairing window open, pairing waiting on the user. A place is
+a bond's index in BONDS's list. ANSWER answers what PASSKEY says is
+asked: ENTER with the digits typed, CONFIRM with 1 for the same and 0
+for not, NONE to decline; a passkey shown needs no answer.
+
+The kernel holds driver.bt_usb0 to Settings (`app.settings`, `.1`, `.2`)
+and `desktop_shell`; the capsule checks each op again, by the sender's
+pid against the pid holding each name now, and refuses by default. No
+reply carries a key. Identity addresses go to Settings only: the shell
+sees places in the bond list, never addresses.
 
 ## Contract
 
@@ -120,7 +158,8 @@ Caps `0x10200038` (IPC, Memory, Crypto, Debug, Keyring). Crypto is what
 the CryptoRandom syscall is gated on; pairing draws its key pair and
 nonces there, and the capsule stops if a draw fails. Keyring is for its
 bonds and its own IRK. Service `driver.bt_usb0` on
-port 4342, reply port 4343 (`endpoint.4294967368`), from track E's range.
+port 4342, reply port 4343 (`endpoint.4294967368`), from track E's range;
+it answers NBTC v1 (above).
 Proofs: `userland/bt_usb_proofs`.
 
 ## Microkernel contract
@@ -134,7 +173,9 @@ CAPSULE_REQUIRED_CAPS = 0x10200038
 The capsule finds driver.xhci0 and the keyring with `MkServiceLookup`, and
 its own pid for the keyring's owner check by looking up driver.bt_usb0; it
 calls both with `MkIpcCall` (bounded by a timeout). It waits with `MkIpcRecvFrom` and a
-timeout on its own inbox, which serves no requests. It posts input with
+timeout on its own inbox, answers each NBTC request there with
+`MkIpcReply`, and looks up who holds `app.settings` and `desktop_shell`
+with `MkServiceLookup` for each. It posts input with
 `MkInputEventPost`, draws pairing's keys and nonces, its IRK and its
 addresses with `CryptoRandom`, reads the clock with `MkUptimeMs`, and
 writes its `bt-usb:` lines with `MkDebug`. It makes no enumeration, MMIO, IRQ, DMA or PIO broker syscall:
@@ -142,8 +183,8 @@ driver.xhci0 owns the controller.
 
 ## Interface contract
 
-No requests are served on driver.bt_usb0 yet. Its outputs are input
-events, the same kinds and codes driver.usb_hid0 posts:
+Requests are NBTC v1 (above). Its other outputs are input events, the
+same kinds and codes driver.usb_hid0 posts:
 
 | Event | From |
 |---|---|
@@ -158,7 +199,7 @@ endpoint and 0x000E to read it.
 ## Authority
 
 ```text
-allowed:   HCI over USB, L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events
+allowed:   HCI over USB, L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events, NBTC to Settings and the shell
 forbidden: xHCI ownership, USB scheduling, DMA buffers, vendor firmware, BR/EDR, keys anywhere but this process and its own keyring records
 ```
 
@@ -235,7 +276,7 @@ Typing in an application with a Bluetooth keyboard, after pairing once.
 
 ## Release evidence
 
-Build and host-proof evidence only so far (bt_usb_proofs, 52 tests, with
+Build and host-proof evidence only so far (bt_usb_proofs, 87 tests, with
 the HCI, SMP and HOGP proofs underneath). Runtime evidence needs B-43 in
 driver.xhci0, the kernel spawn, and a real controller and keyboard: none
 is on main yet.
@@ -253,12 +294,12 @@ is on main yet.
 ## Explicit non-goals today
 
 BR/EDR (Classic) devices, more than one device at a time, Report Protocol
-(media keys, wheels, absolute pointers), vendor firmware loading, a pairing
-dialog, and bonds kept past this boot.
+(media keys, wheels, absolute pointers), vendor firmware loading, and
+bonds kept past this boot. The pairing dialog is Settings', over NBTC.
 
 ## Verification
 
 `cd userland/bt_usb_proofs && RUST_TEST_THREADS=1 cargo test --release`
-(52 pass at the time of writing); the capsule's `cargo build --release`
+(87 pass at the time of writing); the capsule's `cargo build --release`
 and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on
 hardware.

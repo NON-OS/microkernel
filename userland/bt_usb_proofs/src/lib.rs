@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proofs for the Bluetooth USB capsule. Every module is test-only: the
-//! capsule's own files are compiled here unchanged, and so are the
-//! simulators of the HCI, SMP and HOGP proofs, so each side of the air is
-//! the one already proven against the specification.
+//! Proofs for the Bluetooth USB capsule: its files compiled unchanged, against
+//! the HCI, SMP and HOGP proofs' simulators, each proven against the spec.
 
 #![cfg(test)]
 
@@ -27,6 +25,9 @@ extern crate alloc;
 mod link;
 #[path = "../../capsule_driver_bt_usb/src/hid/modifier.rs"]
 mod modifier;
+#[allow(unused)]
+#[path = "../../capsule_driver_bt_usb/src/nbtc/mod.rs"]
+mod nbtc;
 mod ring;
 mod usb;
 
@@ -42,6 +43,7 @@ mod smp_sim;
 
 mod air;
 mod env;
+mod env_desk;
 mod env_link;
 mod fixture;
 mod fixture_link;
@@ -58,6 +60,7 @@ mod hold_tests;
 mod link_tests;
 mod modifier_tests;
 mod mouse_tests;
+mod nbtc_proofs;
 mod pair_tests;
 mod pick_tests;
 mod private_link_tests;
