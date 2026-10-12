@@ -38,6 +38,7 @@ pub mod dmar_scope_walk;
 mod namespace_tests;
 mod rmrr_scope_tests;
 mod rmrr_tests;
+mod source_tests;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_scope.rs"]
 pub mod scope;
 mod tests;
