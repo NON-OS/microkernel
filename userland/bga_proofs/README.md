@@ -1,17 +1,20 @@
 # bga_proofs
 
-Host proofs for the parked Bochs Graphics Adapter capsule
-(`capsule_driver_bga`). The crate includes the shipping constants, error and
-register source with `#[path]` and runs the DISPI mode set against a register
-window in memory (`nonos_devmodel`), without a boot and without an adapter.
+Host proofs for the Bochs Graphics Adapter capsule (`capsule_driver_bga`).
+The crate includes the shipping DISPI, EDID, start-up and display source with
+`#[path]` and runs it against a register window and video memory in memory
+(`nonos_devmodel`), without a boot and without an adapter.
 
 ## What it proves
 
-9 `#[test]` functions: the DISPI mode set leaves the resolution asked for, 32
-bits per pixel and the linear framebuffer decoding in the registers
-(`mode_tests`; a memory window cannot witness the write order, only the
-settled state), the register offsets (`offset_tests`), the framebuffer clear
-(`clear_tests`), and the failure reasons (`reason_tests`).
+35 `#[test]` functions: the DISPI mode set's settled registers, never
+GETCAPS (`mode_tests`, `mode_screen_tests`; a memory window cannot witness
+the write order), the register offsets (`offset_tests`), the mode read back
+(`current_tests`), the EDID read and what bga takes from it
+(`edid_read_tests`, `panel_tests`), the start-up mode (`start_tests`), the
+wire's CAPS, MODES, STATE, MODE_SET and FLUSH (`wire_tests`,
+`wire_state_tests`, `wire_flush_tests`), its place in the kernel's display
+list (`list_tests`), and the failure reasons (`reason_tests`).
 
 The capsule itself ships in no image: it has no `Capsule.mk`, Cargo feature
 or kernel mirror.

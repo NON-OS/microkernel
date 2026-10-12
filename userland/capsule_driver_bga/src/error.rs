@@ -17,6 +17,8 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BgaError {
     BrokerCallFailed(i64),
+    /// DISPI took no linear 32-bit mode, firmware's or ours.
+    NoMode,
 }
 
 pub type BgaResult<T> = Result<T, BgaError>;
@@ -28,5 +30,6 @@ pub type BgaResult<T> = Result<T, BgaError>;
 pub const fn reason(e: BgaError) -> &'static str {
     match e {
         BgaError::BrokerCallFailed(_) => "bga: broker refused a claim or grant",
+        BgaError::NoMode => "bga: the adapter took no 32-bit linear mode",
     }
 }

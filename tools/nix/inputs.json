@@ -809,14 +809,22 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/services/registry/displays.rs",
    "userland/bga_proofs",
    "userland/capsule_driver_bga/src/constants.rs",
-   "userland/capsule_driver_bga/src/dispi/clear.rs",
+   "userland/capsule_driver_bga/src/dispi/current.rs",
    "userland/capsule_driver_bga/src/dispi/dispi_off.rs",
    "userland/capsule_driver_bga/src/dispi/set_mode.rs",
+   "userland/capsule_driver_bga/src/display",
+   "userland/capsule_driver_bga/src/edid",
    "userland/capsule_driver_bga/src/error.rs",
    "userland/capsule_driver_bga/src/regs.rs",
-   "userland/nonos_devmodel"
+   "userland/capsule_driver_bga/src/setup/mode.rs",
+   "userland/nonos_devmodel",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_serve",
+   "userland/nonos_gfx_wire",
+   "userland/nonos_modes"
   ],
   "md": [],
   "signed": []
