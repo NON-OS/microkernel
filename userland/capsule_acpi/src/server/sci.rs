@@ -22,6 +22,7 @@ use crate::boot::{evaluate, path, Acpi};
 use crate::events_io::PortIo;
 use crate::sys::log::Line;
 use alloc::vec::Vec;
+use nonos_aml::events::Dispatch;
 use nonos_libc::{mk_irq_ack, mk_irq_poll, IrqPollOut};
 
 /// Whether the SCI fired since the last look.
@@ -39,9 +40,12 @@ pub fn serve(acpi: &mut Acpi) {
     if !fired(acpi) {
         return;
     }
-    let Acpi { aml, host, events, sci, .. } = acpi;
+    let Acpi { aml, host, events, sci, ec, .. } = acpi;
     if let Some(ev) = events.as_mut() {
-        let mut run = |id| evaluate(aml, host, id, Vec::new()).map(|_| ());
+        let mut run = |d| match d {
+            Dispatch::Method(id) => evaluate(aml, host, id, Vec::new()).map(|_| ()),
+            Dispatch::Native(_) => ec.as_ref().map_or(Ok(()), |e| crate::ec::serve(e, aml, host)),
+        };
         match ev.on_sci(&mut PortIo, &mut run) {
             Ok(r) => {
                 acpi.gpe_runs += r.ran.len() as u64;

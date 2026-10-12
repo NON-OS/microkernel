@@ -27,6 +27,12 @@ extended configuration space and MSI and asking for no control), runs
 `\_SB._INI` and every present device's `_INI`, reads the inventory and every
 `_PRT`, enters ACPI mode, arms the runtime GPEs and binds the SCI.
 
+The embedded controller is found first, from the ECDT or the PNP0C09
+device's _CRS, so its fields work during _REG and _INI; EmbeddedControl is
+connected only once it is. Its accesses take the Global Lock when its _GLK
+says so. Its GPE is served by the capsule: while SCI_EVT is set, QR_EC and
+the matching _Qxx, at most 32 at a time.
+
 ## Microkernel contract
 
 Every register it touches comes through the kernel's ACPI grant rule

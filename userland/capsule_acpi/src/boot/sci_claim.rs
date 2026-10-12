@@ -17,8 +17,10 @@
 //! The SCI record claimed and bound, and the event ports granted.
 
 use super::state::Sci;
+use crate::events_io::PortIo;
 use crate::sys::acpi::ports;
-use nonos_aml::events::Fadt;
+use crate::sys::log::Line;
+use nonos_aml::events::{enter_acpi_mode, Events, Fadt};
 use nonos_libc::{mk_device_claim, mk_device_list, mk_irq_bind, DeviceRecord, IrqBindOut};
 
 /// The kernel's SCI record (src/hardware/broker/acpi/sci.rs).
@@ -46,4 +48,24 @@ pub(super) fn grant_ports(f: &Fadt) -> bool {
     let blocks = [f.pm1a_evt, f.pm1b_evt, f.pm1a_cnt, f.pm1b_cnt, f.gpe0, f.gpe1];
     let ok = blocks.iter().flatten().all(|b| ports(b.port as u64, b.len as u64).is_ok());
     ok && (f.smi_cmd == 0 || ports(f.smi_cmd as u64, 1).is_ok())
+}
+
+/// The EC's GPE, served by the capsule's EC driver rather than a method.
+pub(super) fn arm_ec(ev: &mut Events, gpe: u16, wake: bool) {
+    if ev.arm_native(&mut PortIo, gpe, wake).is_err() {
+        Line::new(b"EC GPE ").hex(gpe as u64).str(b" not armed").end();
+    }
+}
+
+/// How long firmware gets to answer ACPI_ENABLE.
+const MODE_WAIT_MS: u64 = 3000;
+
+pub(super) fn enter_mode(f: &Fadt) {
+    match enter_acpi_mode(f, &mut PortIo, MODE_WAIT_MS) {
+        Ok(true) => Line::new(b"entered ACPI mode").end(),
+        Ok(false) => Line::new(b"already in ACPI mode").end(),
+        Err(e) => {
+            Line::new(b"ACPI mode not entered: ").str(alloc::format!("{e:?}").as_bytes()).end()
+        }
+    }
 }

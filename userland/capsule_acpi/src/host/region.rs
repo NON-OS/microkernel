@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A register access by space: SystemMemory through a mapped window,
-//! SystemIO and PCI_Config through the kernel. Every other space is refused.
+//! SystemIO and PCI_Config through the kernel, EmbeddedControl through the
+//! EC's handshake. Every other space is refused.
 
 use super::state::CapsuleHost;
-use super::{memory_io, pci};
+use super::{ec, memory_io, pci};
 use nonos_aml::exec::RegionAccess;
 use nonos_aml::region::Space;
 
@@ -32,6 +33,7 @@ pub(super) fn read(h: &mut CapsuleHost, a: &RegionAccess<'_>) -> Option<u64> {
             h.ports.read(a.address, a.width)
         }
         Space::PCI_CONFIG => a.pci.and_then(|p| pci::read(p, a.address, a.width)),
+        Space::EMBEDDED_CONTROL => ec::read(h, a.address, a.width),
         _ => None,
     };
     h.refused += v.is_none() as u64;
@@ -48,6 +50,7 @@ pub(super) fn write(h: &mut CapsuleHost, a: &RegionAccess<'_>, v: u64) -> bool {
                 && h.ports.write(a.address, a.width, v)
         }
         Space::PCI_CONFIG => a.pci.is_some_and(|p| pci::write(p, a.address, a.width, v)),
+        Space::EMBEDDED_CONTROL => ec::write(h, a.address, a.width, v),
         _ => false,
     };
     h.refused += !done as u64;

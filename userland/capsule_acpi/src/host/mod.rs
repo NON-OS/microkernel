@@ -17,8 +17,10 @@
 //! The interpreter's host: how the capsule reaches what firmware's AML
 //! names, each piece through a kernel grant.
 
+mod ec;
 mod host_impl;
 mod lock;
+mod lock_hold;
 mod memory_io;
 mod pci;
 mod ports;
