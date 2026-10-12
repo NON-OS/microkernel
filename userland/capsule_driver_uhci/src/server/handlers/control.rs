@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! Any control transfer a class driver asks for on EP0: its OUT data taken
 //! from the request, the data stage given back after a u16 of its length.
 

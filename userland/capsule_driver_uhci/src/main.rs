@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! driver.uhci0: a UHCI host controller served on the host wire that
 //! driver.xhci0 serves, so the USB class drivers reach full- and low-speed
 //! devices on machines and virtual machines whose only USB host is UHCI.
