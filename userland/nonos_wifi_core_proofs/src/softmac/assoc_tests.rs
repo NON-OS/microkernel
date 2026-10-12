@@ -25,6 +25,7 @@ use crate::soft::frames::{mgmt, RSNE_PSK};
 use crate::soft::join::{joined, ticks, PASS, SSID};
 use crate::soft::rig::rig;
 use crate::soft::wire::connect;
+use nonos_wifi_core::rsn::Cipher;
 use nonos_wifi_core::softmac::Association;
 
 /// SimAp's response: capability 0x0411, AID 1 (0xc001 on the air); its
@@ -37,6 +38,7 @@ fn sim_assoc() -> Association {
         beacon_int: 100,
         rates: [0; 16],
         n_rates: 0,
+        cipher: Cipher::Ccmp128,
     }
 }
 
@@ -66,7 +68,8 @@ fn the_rates_come_from_the_response_with_their_basic_bits() {
     let body = [0x11, 4, 0, 0, 2, 0xc0, 1, 2, 0x82, 0x84, 50, 1, 0x6c];
     let mut beacon = mgmt(8, [0xff; 6], &[0u8; 12]);
     beacon[32..34].copy_from_slice(&200u16.to_le_bytes());
-    let a = Association::parse(&mgmt(1, STA, &body), &beacon).unwrap();
+    let a = Association::parse(&mgmt(1, STA, &body), &beacon, Cipher::Gcmp256).unwrap();
     assert_eq!((a.aid, a.beacon_int, a.n_rates), (2, 200, 3));
+    assert_eq!(a.cipher, Cipher::Gcmp256, "the negotiated cipher rides along");
     assert_eq!(&a.rates[..3], &[0x82, 0x84, 0x6c]);
 }

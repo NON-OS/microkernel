@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A WPA2-PSK access point as the station meets it on the air: it answers
+//! A WPA2-PSK access point, CCMP-128 or GCMP-256 as its RSNE offers and the
+//! station's message 2 chooses, as the station meets it on the air: it answers
 //! Open System authentication and association, opens the four-way handshake,
 //! checks message 2's MIC (a wrong passphrase gets a deauthentication with
 //! reason 15, as hostapd sends), installs the pairwise key on message 4, and
 //! from then on reads the station's protected data.
 
 use crate::soft::frames::beacon;
+use nonos_wifi_core::rsn::{Cipher, TemporalKey};
 
 pub struct SimAp {
     pub ssid: Vec<u8>,
@@ -29,10 +31,11 @@ pub struct SimAp {
     pub hidden: bool,
     pub rsne: Vec<u8>,
     pub on: bool,
-    pub tk: Option<[u8; 16]>,
+    pub tk: Option<TemporalKey>,
     /// The plaintext bodies of the station's protected data frames.
     pub got: Vec<Vec<u8>>,
-    pub(crate) ptk: Option<[u8; 48]>,
+    /// The PTK and the pairwise cipher the station's message 2 named.
+    pub(crate) ptk: Option<(Cipher, Vec<u8>)>,
 }
 
 impl SimAp {

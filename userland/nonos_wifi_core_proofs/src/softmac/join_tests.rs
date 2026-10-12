@@ -27,6 +27,7 @@ use crate::soft::join::{joined, ticks, PASS, SSID};
 use crate::soft::rig::rig;
 use crate::soft::wire::{code, connect, control, netif, scan_names};
 use nonos_wifi_core::dot11::ccmp::encrypt;
+use nonos_wifi_core::rsn::TemporalKey;
 
 #[test]
 fn a_scan_lists_the_network_without_transmitting() {
@@ -48,7 +49,7 @@ fn a_joined_network_carries_net_cores_frames_both_ways() {
     assert_eq!(netif(&mut st, 4, &eth).0, 0);
     let ap = &st.radio().unwrap().ap;
     assert_eq!(ap.got.last().unwrap(), &vec![0xaa, 0xaa, 3, 0, 0, 0, 0x08, 0x00, 0x45, 0x00]);
-    let tk = ap.tk.unwrap();
+    let Some(TemporalKey::Ccmp128(tk)) = ap.tk else { panic!("keyed for CCMP-128") };
     let down = encrypt(&from_ds(STA, &[0xaa, 0xaa, 3, 0, 0, 0, 0x08, 0x00, 0x99]), 1, &tk).unwrap();
     st.radio_mut().unwrap().inbox.push_back(down);
     ticks(&mut st, 1);

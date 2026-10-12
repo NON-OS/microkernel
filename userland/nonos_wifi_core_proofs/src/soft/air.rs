@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The air between the station and the simulated access point, behind the
-//! `Radio` trait a chip driver implements: the AP is heard only on its own
-//! channel, beacons every 100 ms of the simulated clock, and answers what the
-//! station sends while tuned there.
+//! The air to the simulated AP behind the `Radio` trait: the AP is heard only
+//! on its channel, beacons every 100 ms of the simulated clock, and answers
+//! what the station sends while tuned there.
 
 pub use crate::soft::rig::SimAir;
 use nonos_wifi_core::regdom::Band;
+use nonos_wifi_core::rsn::Ciphers;
 use nonos_wifi_core::softmac::{Association, Radio, RxInfo};
 
 pub const STA: [u8; 6] = crate::ap_sim::SPA;
@@ -42,10 +42,8 @@ impl Radio for SimAir {
     fn send(&mut self, mpdu: &[u8]) -> bool {
         self.sent.push(mpdu.to_vec());
         self.sent_on.push(self.tuned);
-        if self.on_channel() {
-            let replies = self.ap.on_frame(mpdu);
-            self.inbox.extend(replies);
-        }
+        let replies = if self.on_channel() { self.ap.on_frame(mpdu) } else { vec![] };
+        self.inbox.extend(replies);
         true
     }
 
@@ -69,5 +67,9 @@ impl Radio for SimAir {
 
     fn associated(&mut self, a: Option<&Association>) {
         self.assoc.push(a.copied());
+    }
+
+    fn ciphers(&self) -> Ciphers {
+        Ciphers { gcmp256: self.gcmp }
     }
 }
