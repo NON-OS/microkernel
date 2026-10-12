@@ -25,8 +25,8 @@ mod pci_windows;
 mod platform_windows;
 mod refuse;
 mod relocate;
-mod start_clock;
 pub mod stack;
+mod start_clock;
 #[cfg(any(feature = "nonos-trap-proof-sp0", feature = "nonos-trap-proof-kernel-abort"))]
 mod trap_proof;
 
