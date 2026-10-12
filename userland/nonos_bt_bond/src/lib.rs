@@ -27,13 +27,17 @@ extern crate alloc;
 
 mod book;
 pub mod error;
+pub mod keys;
 pub mod local;
 pub mod record;
 pub mod rotation;
+mod store;
 mod wipe;
 
 pub use book::{Book, MAX_BONDS};
 pub use error::BondError;
+pub use keys::{Keys, KeysError, MemoryKeys, KIND_BOND, KIND_LOCAL_IRK, MEMORY_RECORDS};
 pub use local::{LocalIrk, LOCAL_LEN};
 pub use record::{BondRecord, RECORD_LEN};
 pub use rotation::{Rotation, ROTATE_MS};
+pub use store::Store;
