@@ -11,7 +11,7 @@ How NONOS drives USB: one xHCI capsule owns every USB controller, and class caps
 | EHCI, OHCI and UHCI host controllers | prog-if 20h, 10h and 00h | none | Not supported: no driver |
 | Keyboards and mice in boot protocol | interface class 03h | `driver.usb_hid0` | Works on root ports. See [USB keyboards and mice](hid.md). |
 | USB sticks and disks, Bulk-Only | interface class 08h | `driver.usb_msc0` | Works on root ports. See [USB mass storage](../storage/usb-mass-storage.md). |
-| Hubs | interface class 09h | `driver.usb_hid0`, over `nonos_usb_hub` | Partial: keyboards and mice behind a hub are reached on every host (xHCI, EHCI with TTs, UHCI and OHCI behind full-speed hubs); other classes behind a hub are not yet. Proven on models only. See [USB hubs](hubs.md). |
+| Hubs | interface class 09h | `driver.usb_hub0`, over `nonos_usb_hub` | Wired, not signed: hubs on every host (xHCI, EHCI with TTs, UHCI and OHCI behind full-speed hubs); each device behind one is listed as a virtual port every class driver claims as a root port. Proven on models only. See [USB hubs](hubs.md). |
 | USB network adapters | per adapter | none in the image | Not supported: not in the image. See [USB network adapters](../ethernet/usb-net.md). |
 | Audio devices, cameras | | none | Not supported: no isochronous transfers |
 
@@ -88,7 +88,7 @@ The USB network adapter capsules (CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179, Realtek
 ## How it was verified
 
 - `userland/xhci_proofs` is the [proof crate](../../overview/glossary.md#proof-crate) for the controller. It runs the TRB layer, the event ring and the bring-up against a register window and host DMA memory. Its flake check fails on this commit: clippy, run with warnings as errors, rejects two assertions in its tests (`userland/xhci_proofs/src/conformance/silicon_tests.rs:255`, `slept_ms`; `userland/xhci_proofs/src/event_ring/address_tests.rs:39`, `SET_ADDRESS_SETTLE_MS`). The check recorded no test count.
-- `userland/usb_proofs` covers the class side, with keyboards, mice and tablets checked against the controller's request limits: 74 tests pass on this commit. `userland/usb_hub_proofs` covers the hub class and its walk: 15 tests.
+- `userland/usb_proofs` covers the class side, with keyboards, mice and tablets checked against the controller's request limits: 74 tests pass on this commit. `userland/usb_hub_proofs` covers the hub class, its walk and the virtual ports: 24 tests.
 - Ten of the twelve QEMU command lines in `mk/40-run.mk` attach a `qemu-xhci` controller (`mk/10-qemu.mk:99-102`, `QEMU_USB`), and so does every `make boot` (`tools/nonos_qemu/machine.py:91-93`, `devices`). Those boots take the keyboard and mouse from PS/2. The comment on `QEMU_USB` gives the reason: USB HID interrupt-IN transfers were not serviced under the macOS hvf accelerator. That host behaviour is not tested in this release.
 - USB has not been tested on hardware in this release.
 

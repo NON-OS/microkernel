@@ -64,7 +64,7 @@ PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_H
 |---|---|---|---|---|---|
 | USB | xHCI host controller, class 0c/03 prog-if 30 | `capsule_driver_xhci` | Works | proof crate `xhci_proofs`: the check fails at this commit on clippy lints; QEMU `qemu-xhci` | 0.9.2 |
 | USB | EHCI, OHCI and UHCI host controllers, class 0c/03 | none | Not supported: no driver; the [hardware broker](../overview/glossary.md#hardware-broker) lists them as a generic USB host | none | 0.9.2 |
-| USB | Hubs, class 09 | `capsule_driver_usb_hid` over `nonos_usb_hub` | Partial: keyboards and mice behind a hub are reached through every host's ops 0x20 and 0x21 (xHCI; EHCI with split transactions through the TT; UHCI and OHCI behind full-speed hubs); other classes behind a hub are not yet ([USB hubs](../drivers/usb/hubs.md)) | proof crates `usb_hub_proofs` (15), hub lanes in `ehci_proofs`, `uhci_proofs`, `ohci_proofs`; not booted | unreleased |
+| USB | Hubs, class 09 | `capsule_driver_usb_hub` over `nonos_usb_hub` | Wired, not signed: hubs on every host through ops 0x20 to 0x22 (xHCI; EHCI with split transactions through the TT; UHCI and OHCI behind full-speed hubs), each child a virtual port every class driver claims ([USB hubs](../drivers/usb/hubs.md)) | proof crates `usb_hub_proofs` (24), hub lanes in `uhci_proofs`, `ohci_proofs`, `ehci_proofs`; not booted | unreleased |
 
 ## Input
 

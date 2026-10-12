@@ -11,7 +11,7 @@ toggle.
 
 ## What it proves
 
-43 `#[test]` functions:
+48 `#[test]` functions:
 
 - start: the controller runs, every frame on the first interrupt queue, a
   host reset that never clears fails within its bound (`start_tests`);
@@ -35,6 +35,11 @@ toggle.
   reaching nothing once its TDs lose the low-speed mark; a full-speed
   stick's bulk data, the hub's root port left up when it is given back;
   the routed op's refusals (`hub_tests`). The model's hub (`hub.rs`) and
-  bus lookup (`bus.rs`) are shared by all three host proof crates.
+  bus lookup (`bus.rs`) are shared by all three host proof crates;
+- virtual ports through the host front: driver.usb_hub0's walk and
+  root-port pass park a hub's children, which are listed, claimed as root
+  ports (first claim wins, bulk data reaching the child), detached and
+  given back as nonos_usb_virt's table says (`virt_tests`,
+  `virt_root_tests`).
 
 Run with `cargo test` from this directory.
