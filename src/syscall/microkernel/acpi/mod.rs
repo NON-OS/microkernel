@@ -17,6 +17,7 @@
 //! The ACPI capsule's calls: its firmware tables and the OperationRegion
 //! windows the broker's rule grants it. x86_64 only, as ACPI is here.
 
+mod cpu;
 mod dispatch;
 mod errno;
 mod event;
@@ -29,6 +30,7 @@ mod sleep;
 mod smbios;
 mod table;
 
+pub use cpu::sys_acpi_cpu;
 pub use dispatch::handle;
 pub use event::sys_acpi_event;
 pub use pci::sys_acpi_pci;
