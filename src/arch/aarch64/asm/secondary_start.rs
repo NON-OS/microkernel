@@ -16,4 +16,6 @@
 
 extern "C" {
     pub fn _aarch64_secondary_start();
+    /// Where a spin-table CPU is released to (`spin_table_start.S`).
+    pub fn _aarch64_spin_table_start();
 }
