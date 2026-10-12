@@ -25,6 +25,7 @@ pub mod acpi_power;
 pub mod acpi_sleep;
 pub mod clock;
 pub mod function_of;
+pub mod hw_error;
 pub mod log;
 pub mod pci_probe;
 pub mod smbios;

@@ -3702,6 +3702,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/nonos_aml/src/apei",
    "userland/nonos_aml/src/arena",
    "userland/nonos_aml/src/block.rs",
    "userland/nonos_aml/src/button",
