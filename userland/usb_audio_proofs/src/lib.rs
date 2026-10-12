@@ -19,6 +19,8 @@ pub mod devices;
 /// What the other side of each wire reads: driver.hda0's numbering and the
 /// audio server's sink client.
 pub mod peers;
+/// USB Audio 2.0 descriptors and a 2.0 DAC.
+pub mod uac2;
 
 #[cfg(test)]
 mod answer_tests;
@@ -40,6 +42,8 @@ mod request_tests;
 mod terminal_tests;
 #[cfg(test)]
 mod timing_tests;
+#[cfg(test)]
+mod uac2_tests;
 #[cfg(test)]
 mod unplug_tests;
 #[cfg(test)]
