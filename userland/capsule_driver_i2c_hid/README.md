@@ -3,7 +3,7 @@
 ## Role
 
 `capsule_driver_i2c_hid` is the HID-over-I2C class capsule for laptop
-touchpads. It sits above `driver.i2c_pci0`, finds the pad (at the address ACPI
+touchpads and touchscreens. It sits above `driver.i2c_pci0`, finds the pad (at the address ACPI
 named, else by a scan), reads its HID and report descriptors, wakes and resets
 it, reads its input reports, and posts pointer, wheel and button events to the
 kernel input ring with `MkInputEventPost`.
@@ -100,6 +100,17 @@ for descriptor reads until a later probe succeeds.
 - Power-on, reset and the zero-length reset report, each wait a sleep.
 - Report descriptor parse for the touch report, input report reads, and
   relative and absolute decodes posted to the kernel input ring.
+- The multitouch path (`hid/report_desc/multitouch`): every finger
+  collection of the touch report found (up to ten), the Application
+  collection's usage telling a touchscreen (04h) from a touchpad (05h), and
+  hybrid-mode frames put together from the reports that carry them (Contact
+  Count on the first, 0 on the rest). A touchscreen posts its first
+  deliberate finger as a press (`INPUT_KIND_TOUCH`), drags
+  (`INPUT_KIND_POINTER_ABS`) and a release (button 1 up), positions in the
+  router's 0 to 7FFFh range. A pad reporting fingers in parallel gives the
+  gesture engine its first finger down and how many are down, so a first
+  slot lifting while another finger stays is not read as every finger
+  lifting. A pad with one finger collection keeps the touch layout's path.
 - No persistent input history and no direct hardware access.
 
 ## Wire format
@@ -153,12 +164,15 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 - On a machine without an I2C controller the capsule looks `driver.i2c_pci0` up for about two seconds, asleep between tries, then prints `no controller present, not started` and exits `EXIT_ABSENT` (2).
 - The pad named by ACPI (or found by the scan) is bound; SET_POWER, RESET and the zero-length reset report complete inside the 320 ms reset budget.
 - Absolute touch decodes; tap, drag, two-finger scroll and palm rejection behave.
+- A touchscreen (a 2-in-1's panel) taps where touched, drags, and releases.
 - Without an I2C controller the driver gives up after about two seconds asleep.
 
 ## Explicit non-goals today
 
 This slice does not implement an I2C keyboard, keyboard layout mapping, touch
-filtering beyond the gesture decoder, focus routing, or power management
+filtering beyond the gesture decoder, multitouch gestures on a touchscreen
+(only its first finger is posted: nothing above the input ring reads more),
+pens, focus routing, or power management
 beyond the wake and reset at start.
 
 ## Verification
