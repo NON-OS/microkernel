@@ -46,5 +46,6 @@ pub mod platform;
 pub mod power;
 pub mod region;
 pub mod shape;
+pub mod sleep;
 pub mod thermal;
 pub mod video;
