@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reports, once notifications are on. A value on any other handle is not
-//! a boot report this host asked for and is left alone. A lock key that
+//! Reports, once notifications are on, and Battery Levels. A value on any
+//! other handle is not one this host asked for and is left alone. A lock key that
 //! goes down also changes the keyboard's LEDs.
 
 use super::phase::Phase;
@@ -29,6 +29,9 @@ impl Host {
     pub(super) fn report(&mut self, handle: u16, value: &[u8]) -> Step {
         if self.phase != Phase::Ready {
             return Step::default();
+        }
+        if let Some(cell) = self.cells.iter().position(|c| c.value == handle) {
+            return Step { battery: self.level(cell, value), ..Step::default() };
         }
         let input = match self.sources.iter().find(|s| s.value == handle).map(|s| s.kind) {
             Some(Kind::Keyboard) => self.keyboard.report(value),
