@@ -29,6 +29,7 @@
 const LINE: u64 = 64;
 
 /// Write `len` bytes at `va` back to memory and drop them from the cache.
+#[cfg(target_arch = "x86_64")]
 pub fn flush(va: u64, len: u64) {
     if len == 0 {
         return;
@@ -36,28 +37,19 @@ pub fn flush(va: u64, len: u64) {
     let mut p = va & !(LINE - 1);
     let end = va + len;
     while p < end {
-        line(p);
+        // SAFETY: CLFLUSH takes any mapped address and changes no memory.
+        unsafe { core::arch::x86_64::_mm_clflush(p as *const u8) };
         p += LINE;
     }
-    fence();
-}
-
-#[cfg(target_arch = "x86_64")]
-fn line(p: u64) {
-    // SAFETY: CLFLUSH takes any mapped address and changes no memory.
-    unsafe { core::arch::x86_64::_mm_clflush(p as *const u8) };
-}
-
-#[cfg(not(target_arch = "x86_64"))]
-fn line(_p: u64) {}
-
-#[cfg(target_arch = "x86_64")]
-fn fence() {
     // SAFETY: MFENCE orders memory accesses and has no other effect.
     unsafe { core::arch::x86_64::_mm_mfence() };
 }
 
+/// Elsewhere libc's clean and invalidate does the same, stepping by the line
+/// the CPU states; before, this was a no-op off x86, and a controller that
+/// does not snoop played whatever stale lines memory held.
 #[cfg(not(target_arch = "x86_64"))]
-fn fence() {
-    core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
+pub fn flush(va: u64, len: u64) {
+    // SAFETY: callers pass a range inside one of this driver's DMA grants.
+    unsafe { nonos_libc::mk_dma_sync_for_cpu(va as *const u8, len) }
 }
