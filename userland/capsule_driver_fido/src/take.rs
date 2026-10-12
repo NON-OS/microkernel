@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The key among a device's candidate interfaces taken: the one whose
-//! report descriptor is FIDO brought up (up.rs) and claimed with the host,
-//! so a driver sharing the device never takes it too.
+//! report descriptor is FIDO claimed with the host, so a driver sharing the
+//! device never takes it too, and brought up (up.rs).
 
 use alloc::vec::Vec;
 
@@ -31,14 +31,26 @@ const FIDO: (u16, u16) = (0xF1D0, 0x01);
 const REPORT_DESCRIPTOR: u8 = 0x22;
 
 pub fn take(mut bus: XhciBus, found: &Found, keys: Vec<Key>, shared: bool) -> Bind<Port> {
-    let Some(key) = keys.into_iter().find(|k| is_fido(&mut bus, k.interface)) else {
+    let port = found.port;
+    let mut key = None;
+    for k in keys {
+        // On a shared device the host serves claimants only, so a candidate
+        // is claimed before it is asked, and given back if it is not a key.
+        if shared && claim_interface(bus.xhci, bus.slot, port, k.interface).is_err() {
+            continue;
+        }
+        if is_fido(&mut bus, k.interface) {
+            key = Some(k);
+            break;
+        }
+        if shared {
+            disable_slot(bus.xhci, bus.slot);
+        }
+    }
+    let Some(key) = key else { return Bind::NotOurs };
+    // A host that keeps no claims still serves an unshared device.
+    if !shared && claim_interface(bus.xhci, bus.slot, port, key.interface) == Err(E_BUSY) {
         return Bind::NotOurs;
-    };
-    match claim_interface(bus.xhci, bus.slot, found.port, key.interface) {
-        Err(E_BUSY) => return Bind::NotOurs,
-        // A device nobody shares works unclaimed; one shared must be claimed.
-        Err(e) if shared => return Bind::Failed("claim", e),
-        _ => {}
     }
     match up(&mut bus, &key) {
         Ok((dci, ch)) => {
@@ -46,8 +58,7 @@ pub fn take(mut bus: XhciBus, found: &Found, keys: Vec<Key>, shared: bool) -> Bi
             Bind::Ours(Port { ids, dci, ch, shared })
         }
         Err((step, e)) => {
-            // Joined, our claim goes back and the device stays its driver's;
-            // alone, the search gives the whole slot back.
+            // Joined, our claim goes back; alone, the search frees the slot.
             if shared {
                 disable_slot(bus.xhci, bus.slot);
             }

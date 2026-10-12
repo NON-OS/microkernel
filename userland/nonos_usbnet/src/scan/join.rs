@@ -22,9 +22,9 @@
 use super::bound::Bound;
 use super::probe::Probe;
 use crate::bind::Bind;
-use crate::found::{fetch, Found};
+use crate::found::Found;
 use crate::say::say_port;
-use crate::xhci::{slot_of_port, XhciBus};
+use crate::xhci::{read_shared, slot_of_port, XhciBus};
 
 /// A driver's binding for a shared device: `claimed` has a bit set for
 /// each interface another driver holds. It must not set a configuration.
@@ -33,8 +33,8 @@ pub type ShareFn<N> = fn(XhciBus, &Found, u32) -> Bind<N>;
 pub(super) fn join<N>(xhci: u32, port: u8, tag: &[u8], share: ShareFn<N>) -> Probe<N> {
     // Claimed but not yet shared: its driver is still binding. Next pass.
     let Some((slot, claimed)) = slot_of_port(xhci, port) else { return Probe::Busy };
-    let mut bus = XhciBus { xhci, slot };
-    let found = match fetch(&mut bus, port) {
+    let bus = XhciBus { xhci, slot };
+    let found = match read_shared(xhci, slot, port) {
         Ok(found) => found,
         Err(e) => {
             say_port(tag, port, (0, 0), b"shared device unread", Some(e));
