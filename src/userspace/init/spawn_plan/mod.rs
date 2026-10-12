@@ -23,18 +23,6 @@ mod core;
 mod desktop_fleet;
 #[cfg(not(feature = "microkernel-input-probe"))]
 mod desktop_services;
-// Each driver whose spawn asks it first; one missing breaks its lone profile.
-#[cfg(any(
-    feature = "nonos-capsule-driver-ahci",
-    feature = "nonos-capsule-driver-nvme",
-    feature = "nonos-capsule-driver-sdhci",
-    feature = "nonos-capsule-driver-ufs",
-    feature = "nonos-capsule-driver-virtio-blk",
-    feature = "nonos-capsule-driver-virtio-net",
-    feature = "nonos-capsule-driver-usb-msc",
-    feature = "nonos-capsule-driver-iwlwifi",
-    feature = "nonos-capsule-driver-rtl8821ce"
-))]
 mod device_present;
 mod drivers_bus;
 mod drivers_input;
@@ -43,6 +31,7 @@ mod drivers_sdhci;
 mod drivers_storage;
 mod drivers_ufs;
 mod drivers_usb;
+mod drivers_usb_hosts;
 mod drivers_usbnet;
 mod drivers_virtio;
 mod drivers_virtio_display;
@@ -55,6 +44,7 @@ mod install_first;
 mod network;
 mod orchestrator;
 mod services_audio;
+mod usb_host;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod wizard_plan;
 pub(super) use app_orchestrator::spawn_apps;
