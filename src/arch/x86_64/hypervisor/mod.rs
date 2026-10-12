@@ -18,6 +18,8 @@
 //! pure so the proof crate runs it against every signature; only `probe` and
 //! `report` touch the machine.
 
+mod backdoor;
+mod backdoor_rule;
 mod balloon;
 mod classify;
 mod guest;
@@ -28,6 +30,7 @@ mod report;
 mod state;
 mod vendor;
 
+pub use backdoor::{backdoor, BackdoorError};
 pub use classify::classify;
 pub use guest::Guest;
 pub use leaves::{Leaves, LEAF_BASE};

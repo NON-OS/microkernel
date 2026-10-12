@@ -82,6 +82,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MPRD", SyscallNumber::MkPioRead, "MkPioRead"),
     e(b"MPWR", SyscallNumber::MkPioWrite, "MkPioWrite"),
     e(b"MPRL", SyscallNumber::MkPioRelease, "MkPioRelease"),
+    e(b"MHVB", SyscallNumber::MkHvBackdoor, "MkHvBackdoor"),
     e(b"MDBG", SyscallNumber::MkDebug, "MkDebug"),
     e(b"MSRG", SyscallNumber::MkSurfaceRegister, "MkSurfaceRegister"),
     e(b"MSSH", SyscallNumber::MkSurfaceShare, "MkSurfaceShare"),
