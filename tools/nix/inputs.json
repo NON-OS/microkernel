@@ -2734,6 +2734,7 @@
    "userland/compositor/src/display/link.rs",
    "userland/compositor/src/display/poll_rule.rs",
    "userland/compositor/src/display/resize_rule.rs",
+   "userland/compositor/src/display/scale_rule.rs",
    "userland/compositor/src/display/screenshot_rule.rs",
    "userland/compositor/src/frame_pacer/canvas_copy.rs",
    "userland/compositor/src/frame_pacer/compose.rs",

@@ -30,6 +30,7 @@ use nonos_libc::mk_mmap;
 use super::canvas_floor::floor_canvas;
 use super::canvas_scale::scale_for_panel;
 use super::panel_mm::panel_mm;
+use crate::display::scale_rule::{canvas_for, chosen};
 use crate::state::Context;
 use crate::sw_blitter::Surface;
 
@@ -47,12 +48,13 @@ pub fn fit_canvas(ctx: &mut Context) {
         height: ctx.height,
         byte_len: ctx.backing_len,
     };
-    ctx.scale = 1;
-    let scale = scale_for_panel(ctx.width, ctx.height, panel_mm(ctx));
-    let (width, height) = match (scale, floor_canvas(ctx.width, ctx.height)) {
-        (1, None) => return,
-        (1, Some(floor)) => floor,
-        (s, _) => (ctx.width / s, ctx.height / s),
+    ctx.scale_q = 4;
+    let panel = scale_for_panel(ctx.width, ctx.height, panel_mm(ctx));
+    let q = chosen(ctx.output_scale[0], panel);
+    let (width, height) = match (q, floor_canvas(ctx.width, ctx.height)) {
+        (4, None) => return,
+        (4, Some(floor)) => floor,
+        (q, _) => canvas_for(ctx.width, ctx.height, q),
     };
     let stride = width * 4;
     let byte_len = stride as u64 * height as u64;
@@ -61,7 +63,7 @@ pub fn fit_canvas(ctx: &mut Context) {
     if va.is_null() {
         return;
     }
-    ctx.scale = scale;
+    ctx.scale_q = q;
     ctx.width = width;
     ctx.height = height;
     ctx.stride = stride;

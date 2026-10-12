@@ -52,6 +52,11 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   `setup/layout.rs`); each composed rectangle's part in a slice is drawn on
   that output and flushed once a frame (`frame_pacer/extend.rs`); outputs
   coming or going lay the canvas out again; the pointer is composited.
+  Each output has its own scale in quarters (OUTPUT_SCALE; default the
+  panel rule, whole steps as the kernel's boot console): whole steps go
+  through `upscale`, 1.25 and 1.5 through `sw_blitter/stretch.rs` (each
+  screen pixel the canvas pixel its centre falls in), and the pointer and
+  damage are mapped through the same arithmetic (`display/scale_rule.rs`).
   The host is followed (G 6, `display/follow.rs`'s FOLLOW_HOST, Decision 15
   as the lead recommends it): on a steady driver with MODE_SET the poll asks
   the preferred mode at start, then any size the host has wanted for 250 ms
@@ -97,6 +102,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | `OP_INDICATOR` | 0x000A | a capturing driver's camera (kind 1) or microphone (kind 2) on (1) or off (0), 8 bytes; only from a holder of that kind's capture capability bit (CameraCapture 1<<37, MicrophoneCapture 1<<38; no capsule may hold either until Decision 9), others get E_PERM, shown in the reserved band and presented before the answer (E_IO and no change if the present fails), E_BUSY past eight holders |
 | `OP_OUTPUT_LAYOUT` | 0x000B | the shell's choice for several outputs: mode u32, 0 mirror or 1 extend; only from desktop_shell (E_PERM otherwise); kept while one output is present; answers u32 1 when extended now, else 0 |
 | `OP_SCREENSHOT` | 0x000C | the composed canvas copied into the caller's own shared ARGB surface: handle u64; only from a holder of the screen capture bit (ScreenCapture 1<<39; no capsule may hold it until Decision 9), others get E_PERM; the band's blue mark shows for 3 s, presented before the copy; answers width and height copied, u32 each |
+| `OP_OUTPUT_SCALE` | 0x000D | the shell's scale for one output: output u32, quarters u32 (0 the panel's own rule, else 4, 5, 6, 8, 12 or 16: 1, 1.25, 1.5, 2, 3, 4 times); only from desktop_shell; the canvas is laid out again; answers output 0's scale in quarters |
 
 The window manager owns the stacking order, and `OP_FOCUS_SET` is how it keeps the compositor's
 order the same. The compositor looks the window manager's pid up in the service registry on every
