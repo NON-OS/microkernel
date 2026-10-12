@@ -31,6 +31,7 @@ pub mod platform;
 pub mod primary;
 pub mod server;
 pub mod slot;
+pub mod state;
 pub mod surface;
 
 pub use copy::copy_rects;
