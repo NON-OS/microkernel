@@ -53,7 +53,14 @@ No Pio and no Irq: the controller is polled.
 
 ## Current implemented surface
 
-One controller and up to 15 root ports, full- and low-speed devices, one
+Every controller of its kind on the machine is served, as one host
+(server/many, shared by driver.uhci0 and driver.ohci0): an Intel ICH's
+up to six UHCI functions, or a chipset's several OHCI. Their root ports
+are numbered on, controller after controller, in PORT_STATUS; slots are
+the host's, each bound to the controller whose port it is addressed on,
+and every later request for it goes there. Up to eight controllers.
+
+Up to 15 root ports a controller, full- and low-speed devices, one
 request at a time. One control ED, eight interrupt EDs on the periodic
 list, two bulk EDs per slot; each ED's TDs run on one of two places and
 the queue rests on the other, so the driver never rewrites a HeadP the
@@ -118,8 +125,8 @@ port, and the hub, up.
 
 ## Explicit non-goals today
 
-No isochronous TDs, no interrupts, no suspend, no second
-controller of a chipset, no EHCI companion hand-off (that is EHCI's).
+No isochronous TDs, no interrupts, no suspend, no EHCI companion
+hand-off (that is EHCI's).
 
 ## Verification
 

@@ -44,6 +44,8 @@ mod hub_tests;
 #[cfg(test)]
 mod interrupt_tests;
 #[cfg(test)]
+mod many_tests;
+#[cfg(test)]
 mod place_tests;
 #[cfg(test)]
 mod poll_share_tests;
