@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::process::core::Priority;
+use crate::services::registry::displays::is_display;
 
-/// Capsules on the pointer/keyboard -> compositor -> scanout path.
+/// Capsules on the pointer/keyboard -> compositor -> scanout path; the
+/// display drivers that scan out are every name in `displays.rs`.
 ///
 /// Each one parks in the kernel when it has nothing to do (`mk_irq_wait`,
 /// `mk_input_event_wait`, `mk_ipc_recv_from` with a timeout), so the band is
@@ -24,8 +26,7 @@ use crate::process::core::Priority;
 /// running process, so a band holding a single runnable member always falls
 /// through to `Normal` on the next switch - a promoted capsule that spun
 /// would cost half the CPU, never all of it.
-const INTERACTIVE: [&str; 4] =
-    ["driver.ps2_kbd0", "input_router", "compositor", "driver.virtio_gpu0"];
+const INTERACTIVE: [&str; 3] = ["driver.ps2_kbd0", "input_router", "compositor"];
 
 /*
  * Capsules that move a frame between the card and TCP: the card drivers and
@@ -62,7 +63,8 @@ const STORAGE_PATH: [&str; 4] =
 
 /// Scheduling band a freshly installed capsule starts in.
 pub(super) fn for_capsule(name: &str) -> Priority {
-    if INTERACTIVE.contains(&name) || PACKET_PATH.contains(&name) || STORAGE_PATH.contains(&name) {
+    let interactive = INTERACTIVE.contains(&name) || is_display(name);
+    if interactive || PACKET_PATH.contains(&name) || STORAGE_PATH.contains(&name) {
         Priority::High
     } else {
         Priority::Normal
