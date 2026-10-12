@@ -19,6 +19,7 @@ pub(super) fn spawn() {
     super::drivers_usb_hub::spawn();
     spawn_usb_hid();
     spawn_usb_msc();
+    super::drivers_uvc::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-usb-hid")]
