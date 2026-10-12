@@ -19,6 +19,7 @@
 pub mod backoff;
 pub mod call;
 pub mod cursor_rule;
+pub mod first_frame_rule;
 pub mod follow;
 pub mod head;
 pub mod head_rule;

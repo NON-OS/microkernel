@@ -69,6 +69,7 @@ impl Context {
             head_pending: alloc::vec::Vec::new(),
             screen_notice_until: 0,
             night: None,
+            first_frame_since: None,
         }
     }
 }
