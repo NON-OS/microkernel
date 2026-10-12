@@ -19,17 +19,9 @@
 
 use nonos_eth_rpc::*;
 
-fn bytes(seed: u64, len: usize) -> Vec<u8> {
-    let mut x = seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1;
-    (0..len)
-        .map(|_| {
-            x ^= x << 13;
-            x ^= x >> 7;
-            x ^= x << 17;
-            x as u8
-        })
-        .collect()
-}
+#[path = "common/bytes.rs"]
+mod bytes_from_seed;
+use bytes_from_seed::bytes;
 
 fn misleading() -> Vec<Vec<u8>> {
     let (deep, hex) =
@@ -59,9 +51,10 @@ fn no_parser_panics_on_hostile_answers() {
     for b in random.chain(misleading()) {
         let _ = (parse_u64(&b), parse_hash32(&b), parse_quantity32(&b), parse_call_word(&b, 3));
         let _ = (parse_logs(&b), parse_receipt_logs(&b), parse_receipt_ok(&b));
+        let _ = (object_for_id(&b, 0), object_for_id(&b, u64::MAX));
         let _ = (parse_receipt_for(&b, &[1; 32]), parse_receipt_block(&b), parse_fee_history(&b));
         let _ = (objects(&b).len(), string_field(&b, b"result"), http_answer(&b));
-        let _ = (broadcast_error(&b), hex_bytes(&b), quantity(&b));
+        let _ = (broadcast_error(&b), hex_bytes(&b), quantity(&b), http_body(&b));
     }
 }
 

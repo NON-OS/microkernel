@@ -43,3 +43,7 @@ pub use session::book::MAX_ACCOUNTS;
 pub use session::Session;
 pub use settle::settle_calldata;
 pub use sync_chain::{fetch_history, fetch_history_until, History};
+
+#[cfg(test)]
+#[path = "wallet_hostile_test.rs"]
+mod wallet_hostile_test;
