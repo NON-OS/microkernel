@@ -3205,6 +3205,8 @@
    "userland/capsule_driver_hda/src/regs",
    "userland/capsule_driver_hda/src/setup/irq_plan.rs",
    "userland/hda_proofs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_devmodel"
   ],
   "md": [],
@@ -4142,6 +4144,8 @@
    "userland/capsule_driver_rtl8821ce/src/serve/connect/result.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
    "userland/capsule_driver_rtl8821ce/src/tx",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs/src/ap_sim.rs",
    "userland/rtl8821ce_proofs"
@@ -4899,6 +4903,8 @@
    "userland/capsule_driver_virtio_net/src/setup/modern/run.rs",
    "userland/capsule_driver_virtio_net/src/setup/sequence.rs",
    "userland/capsule_driver_virtio_net/src/setup/station.rs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_virtio",
    "userland/virtio_net_proofs"
   ],
@@ -4914,6 +4920,8 @@
    "userland/capsule_driver_virtio_rng/src/queue",
    "userland/capsule_driver_virtio_rng/src/regs/io.rs",
    "userland/capsule_driver_virtio_rng/src/regs/state.rs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_devmodel",
    "userland/virtio_rng_proofs"
   ],
