@@ -3,9 +3,13 @@
 //! by its own dispatch, or the host front over several (server/many),
 //! every controller's clock moving together.
 
+use nonos_usb_hub::RootHost;
+
 use crate::env::Clock;
+use crate::hub_lane::Lane;
 use crate::model::{call, call_host, Answer, Cx};
 use crate::server::many::Front;
+use crate::wire::ops::OP_ADDRESS_DEVICE;
 
 pub trait Wire {
     fn call(&mut self, op: u16, body: &[u8]) -> Answer;
@@ -43,5 +47,13 @@ pub fn done(status: i32) -> Result<(), i32> {
         Ok(())
     } else {
         Err(status)
+    }
+}
+
+/// The lane's root port addresses, as driver.usb_hub0 makes them.
+impl<W: Wire> RootHost for Lane<'_, W> {
+    fn address_root(&mut self, slot: u8, port: u8) -> Result<u8, i32> {
+        let r = self.cx.call(OP_ADDRESS_DEVICE, &[slot, port]);
+        done(r.status).map(|_| r.data[2])
     }
 }
