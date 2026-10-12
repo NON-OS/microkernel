@@ -5023,6 +5023,23 @@
   "md": [],
   "signed": []
  },
+ "userland/uhci_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_uhci/src/devices",
+   "userland/capsule_driver_uhci/src/env",
+   "userland/capsule_driver_uhci/src/facts",
+   "userland/capsule_driver_uhci/src/hc",
+   "userland/capsule_driver_uhci/src/sched",
+   "userland/capsule_driver_uhci/src/server",
+   "userland/capsule_driver_uhci/src/wire",
+   "userland/capsule_driver_uhci/src/xfer",
+   "userland/uhci_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/upstream-src/csview": {
   "exclude": [],
   "include": [
