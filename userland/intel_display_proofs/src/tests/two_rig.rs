@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Two outputs firmware lit, taken over as the capsule takes them: eDP on
-//! pipe A at 1920x1080 (its surfaces 0xAA, 0xBB) and DisplayPort on pipe B
-//! at 1024x768 (0xCC, 0xDD), each in its own GGTT window, A's on top.
+//! Two outputs firmware lit, taken as the capsule takes them: eDP on pipe A
+//! at 1920x1080 and DP on pipe B at 1024x768, each in its GGTT window.
 
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 use super::wire_rig::Rig;
 use crate::display::{Head, Intel};
@@ -67,7 +65,10 @@ pub fn two_rig() -> (Rig, Rc<RefCell<Gen9>>, [(u32, u32); 2]) {
         let model = Shared(model.clone());
         let frames = ModelFrames { model, iova, len, fences: 0, was: None, next: None };
         let (panel, modeset, generation, flags) = (Panel::default(), None, 1, SCANNING_OUT);
-        heads[i] = Some(Head { out, scan, frames, panel, modeset, bases: iova, generation, flags });
+        let (window, cursor, bases) = (windows[i], None, iova);
+        let h =
+            Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor };
+        heads[i] = Some(h);
     }
     let d = Intel { m: Shared(model.clone()), clock: Ticks::new(), gen: &GEN9, heads };
     (d, model, windows)

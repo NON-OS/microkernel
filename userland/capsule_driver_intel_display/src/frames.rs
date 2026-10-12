@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The two scanout surfaces as the CPU writes them: DMA grants mapped
-//! write-combining, so the engine, which reads them without snooping the
-//! CPU's caches (unverified per generation), sees every store once fenced.
-//! The surfaces own their grants: a mode set maps a new pair before the
-//! old pair is given back, and the driver's end gives back what is left.
+//! The scanout surfaces and the cursor image as the CPU writes them: DMA
+//! grants mapped write-combining, so the engine, which reads them without
+//! snooping the CPU's caches (unverified), sees every store once fenced. A
+//! mode set maps a new pair before the old pair goes (`frames_drop`).
 
-use crate::dma_pair::{map_pair, unmap, Pair};
+use crate::dma_pair::{map_one, map_pair, Pair};
+use crate::frames_drop::{sfence, unmap};
 use nonos_intel_display::display::Frames;
 
 pub struct DmaFrames {
@@ -29,6 +29,8 @@ pub struct DmaFrames {
     pub now: Pair,
     /// The pair a mode set replaced, until it settles.
     pub was: Option<Pair>,
+    /// The cursor image's grant: address, IOVA, grant id.
+    pub cursor: Option<(u64, u64, u64)>,
 }
 
 impl Frames for DmaFrames {
@@ -37,8 +39,7 @@ impl Frames for DmaFrames {
         if offset.checked_add(src.len()).is_none_or(|end| end > self.now.len) {
             return false;
         }
-        // SAFETY: the grant is `len` bytes, mapped while it is `now`, and
-        // the range was checked to lie inside it.
+        // SAFETY: inside the grant, which is mapped while it is `now`.
         unsafe {
             core::ptr::copy_nonoverlapping(src.as_ptr(), (base as *mut u8).add(offset), src.len())
         };
@@ -46,11 +47,7 @@ impl Frames for DmaFrames {
     }
 
     fn fence(&mut self) {
-        // SAFETY: sfence has no operands; it orders the WC stores before it.
-        #[cfg(target_arch = "x86_64")]
-        unsafe {
-            core::arch::x86_64::_mm_sfence()
-        };
+        sfence();
     }
 
     fn renew(&mut self, len: usize) -> Option<[u64; 2]> {
@@ -59,12 +56,19 @@ impl Frames for DmaFrames {
         Some(self.now.iova)
     }
 
+    fn cursor_image(&mut self, img: &[u8]) -> Option<u64> {
+        if self.cursor.is_none() {
+            self.cursor = Some(map_one(self.device_id, self.epoch, img.len() as u64).ok()?);
+        }
+        let (va, iova, _) = self.cursor?;
+        // SAFETY: the grant is the image's length, held mapped here.
+        unsafe { core::ptr::copy_nonoverlapping(img.as_ptr(), va as *mut u8, img.len()) };
+        Some(iova)
+    }
+
     fn settle(&mut self, keep: bool) {
-        let Some(was) = self.was.take() else { return };
-        if keep {
-            unmap(&was);
-        } else {
-            unmap(&core::mem::replace(&mut self.now, was));
+        if let Some(was) = self.was.take() {
+            unmap(&if keep { was } else { core::mem::replace(&mut self.now, was) });
         }
     }
 }

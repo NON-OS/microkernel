@@ -36,8 +36,9 @@ its engine may still read them (`keep_at_exit`, section 12).
 NVGP v1 (`nonos_gfx_wire`) as `driver.intel_display0`, CAPS kind 7, one
 wire output per lit pipe, pipe A's first (up to four). Each output's
 scanout surfaces live in its own window of the GGTT, stacked down from the
-top with room for two surfaces of the largest mode its monitor offers and
-all of them above firmware's surfaces; an output that does not fit, or
+top with room for two surfaces of the largest mode its monitor offers plus
+64 entries at the window's bottom for the cursor image, all of them above
+firmware's surfaces; an output that does not fit, or
 fails, is left as firmware lit it. On Gen9, an output firmware lit over
 DisplayPort or HDMI through a pipe transcoder is a list device (MODE_SET,
 no MODE_RANGE): MODES are the monitor's, and a MODE_SET maps and fills two
@@ -45,9 +46,12 @@ new surfaces from the new primary, darkens the output, relights its port at
 the monitor's timing (its own detail, or the DMT's for a mode named by size
 and rate), writes the plane's buffer and watermarks, and rebases the plane;
 any failure puts the old mode back on the untouched old surfaces. eDP,
-DVI and the other generations keep firmware's mode (no MODE_SET). No
-HW_CURSOR yet (CURSOR answers ENOSYS), DEVICE_READS off because FLUSH
-copies, `physical_mm`
+DVI and the other generations keep firmware's mode (no MODE_SET).
+HW_CURSOR: CURSOR with NEW_SHAPE copies the 64x64 ARGB slot after the frame
+into a page run of its own, mapped once at the bottom of the output's
+window, and every CURSOR moves the pipe's cursor plane to the position less
+the hot spot, or turns it off when VISIBLE is clear. DEVICE_READS off
+because FLUSH copies, `physical_mm`
 from the monitor's EDID (Gen9: read over the lit port's AUX channel for
 DisplayPort and eDP, over GMBUS for HDMI and DVI, the route found from the
 transcoder's DDI function), MODES the shown mode, marked FROM_EDID when the
@@ -91,7 +95,7 @@ on the boot framebuffer.
 
 `src/display`: `Intel` (the `nonos_gfx_serve::Display`), `Frames`, `copy`,
 `red_first`, `Monitor` and `panel_of` (the monitor's EDID), `Modeset`,
-`pick` and `matching` (timings), `Intel::change_mode`; `engine::route`,
+`pick` and `matching` (timings), `Intel::change_mode`, `Intel::show_cursor`; `engine::route`,
 `engine::relight::{relight, buffer}`, `Scanout::rebase`, `ggtt_run::map_run`. The binary: `discover::find`, `setup::run`, `bar::Bar0`
 (the engine's `Mmio`), `clock::Uptime`, `frames::DmaFrames`, `serve::run`.
 `src/engine`: `takeover::read_outputs`, `plane::program`, `flip::flip`,
