@@ -49,8 +49,9 @@ impl Supplicant {
             return StepOutput::none();
         }
         // The downgrade check: the elements the AP signs into message 3 must be
-        // the ones its beacon showed before any key existed.
-        if self.ap_known && (!self.ap_rsne.matches(kd.rsne) || !self.ap_rsnxe.matches(kd.rsnxe)) {
+        // the ones its beacon showed before any key existed. Every supplicant
+        // has them: none is built without the beacon's elements.
+        if !self.ap_rsne.matches(kd.rsne) || !self.ap_rsnxe.matches(kd.rsnxe) {
             self.fail(Failure::IeMismatch);
             return StepOutput::none();
         }
