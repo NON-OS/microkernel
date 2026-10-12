@@ -41,6 +41,8 @@ pub trait Env: Random {
     /// The bond for a peer seen at this address: by identity, or by the
     /// IRK that resolves it (Vol 6, Part B, 1.3.2.3).
     fn bonded(&mut self, kind: AddrType, addr: &BdAddr) -> Option<BondRecord>;
+    /// Whether any bond is kept.
+    fn any_bonds(&mut self) -> bool;
     /// Keep a new bond, in place of any older one for the same identity.
     fn keep(&mut self, record: BondRecord);
     /// Drop the bond for this record's identity.

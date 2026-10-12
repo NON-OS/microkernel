@@ -15,10 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Looking for a HID device with a passive scan: the controller only
-//! listens, so nothing of ours goes on the air while looking.
+//! listens, so nothing of ours goes on the air while looking. A bonded
+//! peer is taken the moment it is heard, directed or not; a new one waits
+//! a little while bonds are kept, so a bonded keyboard waking beside a
+//! stranger's is not passed over for it.
 
 use super::env::Env;
-use super::heard::hid_in;
+use super::listen::listen;
 use nonos_bt_hci::host::DEFAULT_SCAN;
 use nonos_bt_hci::{HciError, Host, Transport};
 use nonos_bt_wire::addr::{AddrType, BdAddr};
@@ -33,7 +36,7 @@ pub struct Peer {
     pub addr: BdAddr,
 }
 
-/// The first HID advertiser heard within SCAN_MS, if any. The scan is
+/// The peer to connect to, if one is heard within SCAN_MS. The scan is
 /// stopped whatever happened, before any error is returned, so a failed
 /// look never leaves the controller scanning.
 pub fn find_hid<T: Transport, E: Env>(
@@ -46,18 +49,4 @@ pub fn find_hid<T: Transport, E: Env>(
     let heard = heard?;
     stopped?;
     Ok(heard)
-}
-
-fn listen<T: Transport, E: Env>(host: &mut Host<T>, env: &mut E) -> Result<Option<Peer>, HciError> {
-    let until = env.now_ms().saturating_add(SCAN_MS);
-    while env.now_ms() < until {
-        let Some(event) = host.next_event()? else {
-            host.transport().pause();
-            continue;
-        };
-        if let Some(peer) = hid_in(&event)? {
-            return Ok(Some(peer));
-        }
-    }
-    Ok(None)
 }

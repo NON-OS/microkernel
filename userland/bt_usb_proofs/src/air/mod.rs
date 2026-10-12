@@ -28,4 +28,5 @@ mod seen;
 mod state;
 
 pub use act::Act;
+pub use events::advertised;
 pub use state::{Air, PEER};

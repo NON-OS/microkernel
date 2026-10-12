@@ -32,6 +32,8 @@ impl Air {
         Self {
             cfg: Config::default(),
             adv: adv.to_vec(),
+            adv_kind: 0x00,
+            others: Vec::new(),
             smp,
             hid,
             shown,

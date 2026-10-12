@@ -48,6 +48,9 @@ impl Env for TestEnv {
     fn bonded(&mut self, kind: AddrType, addr: &BdAddr) -> Option<BondRecord> {
         self.bonds.find(kind, addr).cloned()
     }
+    fn any_bonds(&mut self) -> bool {
+        !self.bonds.book().bonds().is_empty()
+    }
     fn keep(&mut self, record: BondRecord) {
         self.bonds.keep(record).unwrap();
     }

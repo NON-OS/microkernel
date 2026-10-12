@@ -41,6 +41,10 @@ pub struct Air {
     pub cfg: Config,
     /// The peer's advertising data.
     pub adv: Vec<u8>,
+    /// The peer's report type: ADV_IND unless a test makes it directed.
+    pub adv_kind: u8,
+    /// Advertising Reports from other devices, heard before the peer's.
+    pub others: Vec<Vec<u8>>,
     pub smp: Peer,
     pub hid: Peripheral,
     /// The passkey the host showed its user, typed on the peer.

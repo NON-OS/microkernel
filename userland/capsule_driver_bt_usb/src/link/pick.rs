@@ -22,6 +22,13 @@ use nonos_bt_wire::hci::reports::AdvReport;
 /// ADV_IND and ADV_DIRECT_IND: the two report types a central may connect
 /// in answer to (Vol 4, Part E, 7.7.65.2; Vol 6, Part B, 2.3.1).
 const CONNECTABLE: [u8; 2] = [0x00, 0x01];
+
+/// A report a central may connect in answer to. ADV_DIRECT_IND carries the
+/// two addresses and no advertising data (Vol 6, Part B, 2.3.1.2), so it
+/// never names the HID service; only a bond makes it worth taking.
+pub fn connectable(r: &AdvReport) -> bool {
+    CONNECTABLE.contains(&r.event_type)
+}
 /// Incomplete and Complete List of 16-bit Service UUIDs, and Appearance
 /// (Core Specification Supplement, Part A, 1.1 and 1.12).
 const UUIDS_16: [u8; 2] = [0x02, 0x03];
@@ -37,7 +44,7 @@ const HID_APPEARANCE: core::ops::RangeInclusive<u16> = 0x03c0..=0x03ff;
 /// structures (Vol 3, Part C, 11); a length of zero ends it early, and one
 /// that runs past the end ends the walk without a match.
 pub fn hid_advertiser(r: &AdvReport) -> bool {
-    if !CONNECTABLE.contains(&r.event_type) {
+    if !connectable(r) {
         return false;
     }
     let mut rest = r.data;

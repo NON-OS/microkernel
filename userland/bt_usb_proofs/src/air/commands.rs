@@ -37,7 +37,10 @@ impl Air {
         let events = match opcode {
             op::READ_BD_ADDR => vec![complete(1, o, 0, &OURS)],
             op::LE_SET_SCAN_ENABLE if p.first() == Some(&1) => {
-                vec![complete(1, o, 0, &[]), advertised(self.seen.from, 0x00, &self.adv)]
+                let mut heard = vec![complete(1, o, 0, &[])];
+                heard.extend(self.others.iter().cloned());
+                heard.push(advertised(self.seen.from, self.adv_kind, &self.adv));
+                heard
             }
             op::LE_CREATE_CONNECTION => {
                 self.new_link(p[12]);

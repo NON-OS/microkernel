@@ -57,6 +57,9 @@ impl Env for CapsuleEnv {
     fn bonded(&mut self, kind: AddrType, addr: &BdAddr) -> Option<BondRecord> {
         self.bonds.find(kind, addr).cloned()
     }
+    fn any_bonds(&mut self) -> bool {
+        !self.bonds.book().bonds().is_empty()
+    }
     fn keep(&mut self, record: BondRecord) {
         match self.bonds.keep(record) {
             Ok(()) => say(&[b"bond kept"]),
