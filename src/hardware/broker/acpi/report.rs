@@ -54,11 +54,20 @@ fn region(space: Space, base: u64, len: u64) -> Line {
     line
 }
 
-fn posture() {
+/// Hardware errors follow the region counts, so a reader that knows only
+/// the first two fields still finds them where they were.
+pub(super) fn posture() {
+    let (recoverable, fatal, corrected) = super::hw_errors::counts();
     Line::new()
         .str(b"[ACPI] posture regions granted=")
         .dec(GRANTED.load(Ordering::Relaxed))
         .str(b" refused=")
         .dec(REFUSED.load(Ordering::Relaxed))
+        .str(b" hw_errors fatal=")
+        .dec(fatal)
+        .str(b" recoverable=")
+        .dec(recoverable)
+        .str(b" corrected=")
+        .dec(corrected)
         .end();
 }

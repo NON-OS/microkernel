@@ -29,6 +29,7 @@ pub mod cpu_wire;
 pub mod critical_watch;
 mod error;
 mod granting;
+pub mod hw_errors;
 mod io_grant;
 mod kernel;
 pub mod lid_state;
