@@ -70,7 +70,7 @@ A microkernel call goes to `dispatch_microkernel_syscall`, whose `route` offers 
 
 ## Results
 
-A handler returns a non-negative value on success and a negative errno on failure. The values are on [Errors](../abi/errors.md). A few calls return a positive status that is not an error; `MkIrqWait` returns 1 when it slept out its whole timeout ([Hardware broker](hardware-broker.md#interrupts)), and `MkCapCheck` answers 1 or 0 ([Capabilities](capabilities.md#granting-and-revoking)).
+A handler returns a non-negative value on success and a negative errno on failure. The values are on [Errors](../abi/errors.md). A few calls return a positive status that is not an error; `MkIrqWait` returns 1 when it slept out its whole timeout ([Hardware broker](hardware-broker.md#interrupts)), and `MkCapCheck` answers 1 or 0 ([Capabilities](capabilities-granting-and-revoking.md#granting-and-revoking)).
 
 Every entry in the registry is marked `Routed`. The status `Unavailable` exists in `AbiStatus` but no entry uses it (`src/syscall/abi/status.rs:17-21`).
 
