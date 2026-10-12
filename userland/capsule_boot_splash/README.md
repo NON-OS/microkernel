@@ -24,8 +24,9 @@ boot_splash -> compositor -> driver.virtio_gpu
 - `MkServiceLookup` finds the compositor, the input router and the shell.
 - `MkAttestStatus` reads the boot attestation status.
 - `MkBootLogo` (F-50) gives the firmware's logo record and its BMP file, to
-  this capsule only. The firmware mode is worked out from the logo's
-  margins, so the display query is not needed.
+  this capsule only. The record carries the firmware mode (F-60); from a
+  kernel without it, the mode is worked out from the logo's margins, so the
+  display query is not needed either way.
 - `MkTimeMonotonic` (`mk_uptime_ms`), `MkYield`, and `MkExit` bound runtime and exit.
 
 ## Firmware logo
