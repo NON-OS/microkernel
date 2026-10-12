@@ -52,9 +52,14 @@ logs `controller not usable: ACL endpoints refused`.
 1. Between scans, a new resolvable private address if the last one has
    served 15 minutes (Vol 3, Part C, Appendix A), given to the controller
    with LE Set Random Address.
-2. Passive scan, for at most 10 s. The first connectable advertiser that
-   names the HID service (0x1812) or a HID appearance is taken. The scan
-   is stopped whatever happened.
+2. Passive scan, for at most 10 s. A bonded peer is taken the moment it
+   is heard, from directed advertising too, which carries no data to name
+   the HID service by (Vol 6, Part B, 2.3.1.2). Otherwise the first
+   connectable advertiser that names the HID service (0x1812) or a HID
+   appearance is taken: at once while no bond is kept, else after waiting
+   2 s from when it was first heard, so a bonded keyboard waking beside a
+   stranger's is not passed over for it. The scan is stopped whatever
+   happened.
 3. LE Create Connection, from the private address.
 4. A bonded peer, found by its identity or by the IRK that resolves its
    address, is encrypted with the kept key and not paired again. If it
@@ -96,6 +101,10 @@ next look waits 30 s.
   paired, and its keys post only after a typed passkey.
 - No service: the capsule answers no requests on driver.bt_usb0 yet, so
   the battery level reaches only the log.
+- Directed advertising is heard only when the controller takes it as
+  addressed to this device (Vol 4, Part E, 7.8.10, filter policy 0x00).
+  A peer that directs it to an older private address of this host is not
+  heard, and reconnects only once it advertises undirected.
 
 ## Log
 
@@ -226,7 +235,7 @@ Typing in an application with a Bluetooth keyboard, after pairing once.
 
 ## Release evidence
 
-Build and host-proof evidence only so far (bt_usb_proofs, 24 tests, with
+Build and host-proof evidence only so far (bt_usb_proofs, 52 tests, with
 the HCI, SMP and HOGP proofs underneath). Runtime evidence needs B-43 in
 driver.xhci0, the kernel spawn, and a real controller and keyboard: none
 is on main yet.
@@ -250,6 +259,6 @@ dialog, and bonds kept past this boot.
 ## Verification
 
 `cd userland/bt_usb_proofs && RUST_TEST_THREADS=1 cargo test --release`
-(43 pass at the time of writing); the capsule's `cargo build --release`
+(52 pass at the time of writing); the capsule's `cargo build --release`
 and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on
 hardware.
