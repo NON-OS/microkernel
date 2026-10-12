@@ -57,6 +57,7 @@ pub mod port_stop;
 pub mod power;
 pub mod pps;
 pub mod regs;
+pub mod route;
 pub mod scanout;
 pub mod scanout_recover;
 pub mod scanout_start;

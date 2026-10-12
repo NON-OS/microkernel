@@ -23,10 +23,14 @@ mod describe;
 mod frames;
 mod health;
 mod intel;
+mod monitor;
+mod panel_fits;
 mod red_first;
 mod wire;
 
 pub use copy::copy;
 pub use frames::Frames;
 pub use intel::{Intel, FLIP_US};
+pub use monitor::{panel, panel_of, read as read_edid};
+pub use panel_fits::fits;
 pub use red_first::{red_first, swap_red_blue};
