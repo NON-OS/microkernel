@@ -7,7 +7,7 @@ use crate::object::Object;
 use crate::run::{boot, call_with, num, Probe};
 
 fn limits(steps: u64, call_depth: u32, alloc: usize, time_ms: u64) -> ExecLimits {
-    ExecLimits { steps, call_depth, alloc, time_ms }
+    ExecLimits { steps, call_depth, alloc, time_ms, ..ExecLimits::DEFAULT }
 }
 
 fn run(body: &[u8], lim: ExecLimits) -> Result<Object, crate::exec::Fault> {
