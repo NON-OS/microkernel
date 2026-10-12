@@ -184,6 +184,15 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
   `MkPciProbeFunction`: the kernel reads that function and adds it to the
   device table if it answers. One that does not is put back to D3cold at
   once; one no driver has claimed a minute after start is too.
+- LEGACY (11, index): the legacy devices the namespace declares
+  (PNP0303 keyboard, PNP0F13/PNP0F03 mouse, PNP0501/PNP0500 UART, PNP0B00
+  RTC, PNP0103 HPET, PNP0100 PIT; by _HID or _CID, present by _STA) with
+  their evaluated I/O, memory and interrupt resources. Every reply starts
+  with the count, the 8042 verdict and the FADT's IAPC_BOOT_ARCH flags:
+  an 8042 is there when the namespace declares a PS/2 port or the FADT
+  says so, and otherwise the PS/2 driver leaves 0x60 and 0x64 alone.
+  Layout in `src/legacy/wire.rs`. Logged at start, one `[ACPI] legacy`
+  line each and one `[ACPI] 8042:` line.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and
