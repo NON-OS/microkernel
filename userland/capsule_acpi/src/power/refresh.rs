@@ -18,6 +18,8 @@
 //! its Notify 0x80 and its information on 0x81 (ACPI 6.5, 10.2.1), an
 //! adapter on its 0x80 (10.3).
 
+use super::alarm::set_trip;
+use super::levels::check;
 use super::read::{read_adapter, read_info, read_status};
 use super::report::send;
 use super::state::Power;
@@ -27,10 +29,14 @@ use nonos_aml::load::Aml;
 use nonos_aml::namespace::Id;
 
 const EVERY_MS: u64 = 60_000;
+/// While a battery is critical, often enough that the kernel's 30 s grace
+/// is measured, not missed.
+const CRITICAL_EVERY_MS: u64 = 10_000;
 
 pub fn all(p: &mut Power, aml: &mut Aml, host: &mut CapsuleHost) {
     for b in p.batteries.iter_mut() {
         read_info(b, aml, host);
+        set_trip(b, aml, host);
         read_status(b, aml, host);
     }
     for a in p.adapters.iter_mut() {
@@ -38,10 +44,12 @@ pub fn all(p: &mut Power, aml: &mut Aml, host: &mut CapsuleHost) {
     }
     p.read_ms = now_ms();
     send(p);
+    check(p);
 }
 
 pub fn tick(p: &mut Power, aml: &mut Aml, host: &mut CapsuleHost) {
-    if now_ms().saturating_sub(p.read_ms) >= EVERY_MS {
+    let every = if p.critical { CRITICAL_EVERY_MS } else { EVERY_MS };
+    if now_ms().saturating_sub(p.read_ms) >= every {
         all(p, aml, host);
     }
 }
@@ -51,6 +59,7 @@ pub fn notified(p: &mut Power, aml: &mut Aml, host: &mut CapsuleHost, id: Id, va
     if let Some(b) = p.batteries.iter_mut().find(|b| b.id == id) {
         if value == 0x81 || b.info.is_none() {
             read_info(b, aml, host);
+            set_trip(b, aml, host);
         }
         read_status(b, aml, host);
     } else if let Some(a) = p.adapters.iter_mut().find(|a| a.0 == id) {
@@ -59,5 +68,6 @@ pub fn notified(p: &mut Power, aml: &mut Aml, host: &mut CapsuleHost, id: Id, va
         return false;
     }
     send(p);
+    check(p);
     true
 }
