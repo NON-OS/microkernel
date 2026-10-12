@@ -21,6 +21,15 @@ use crate::load::Aml;
 use crate::object::Width;
 
 impl<H: Host> Machine<'_, H> {
+    /// One more term: past the step budget the evaluation stops.
+    pub(crate) fn tick(&mut self, at: u32) -> Result<(), Fault> {
+        self.steps += 1;
+        match self.steps > self.limits.steps {
+            true => Err(self.fault(FaultKind::Steps, at)),
+            false => Ok(()),
+        }
+    }
+
     /// Counts `bytes` against the budget before they are allocated.
     pub(crate) fn charge(&mut self, bytes: u64, at: u32) -> Result<(), Fault> {
         let total = (self.alloc as u64).saturating_add(bytes);

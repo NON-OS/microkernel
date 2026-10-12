@@ -45,6 +45,7 @@ mod predefined;
 mod region_state;
 mod result;
 mod runtime;
+mod stack;
 mod stmt;
 mod term;
 mod terms;

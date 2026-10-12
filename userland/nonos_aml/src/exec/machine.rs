@@ -31,6 +31,8 @@ pub struct Machine<'h, H: Host> {
     pub(crate) steps: u64,
     pub(crate) alloc: usize,
     pub(crate) time_us: u64,
+    /// Where the stack stood when the evaluation began (`stack.rs`).
+    pub(crate) stack_top: usize,
     pub(crate) frames: Vec<Frame>,
     /// Methods running, nested inside one another.
     pub(crate) calls: u32,
@@ -42,8 +44,9 @@ impl<'h, H: Host> Machine<'h, H> {
     pub fn new(aml: &mut Aml, host: &'h mut H, limits: ExecLimits) -> Self {
         aml.rt.evaluations += 1;
         let eval = aml.rt.evaluations;
-        let (frames, held) = (Vec::new(), Vec::new());
-        Machine { host, limits, eval, steps: 0, alloc: 0, time_us: 0, frames, calls: 0, held }
+        let (frames, held, stack_top) = (Vec::new(), Vec::new(), super::stack::here());
+        let (steps, alloc, time_us, calls) = (0, 0, 0, 0);
+        Machine { host, limits, eval, steps, alloc, time_us, stack_top, frames, calls, held }
     }
 
     /// Steps taken so far, for the capsule's log.
@@ -58,13 +61,5 @@ impl<'h, H: Host> Machine<'h, H> {
 
     pub(crate) fn fault(&self, kind: FaultKind, at: u32) -> Fault {
         Fault::new(kind, self.frames.last().map_or(0, |f| f.table), at)
-    }
-
-    pub(crate) fn tick(&mut self, at: u32) -> Result<(), Fault> {
-        self.steps += 1;
-        match self.steps > self.limits.steps {
-            true => Err(self.fault(FaultKind::Steps, at)),
-            false => Ok(()),
-        }
     }
 }

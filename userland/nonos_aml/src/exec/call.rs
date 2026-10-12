@@ -40,7 +40,8 @@ impl<H: Host> Machine<'_, H> {
             Origin::Predefined(Predefined::Osi) => return self.osi(aml, &args, at),
             Origin::Predefined(_) => return Err(self.fault(FaultKind::Type, at)),
         };
-        if self.calls >= self.limits.call_depth {
+        let deep = super::stack::used_since(self.stack_top) > self.limits.stack_bytes;
+        if self.calls >= self.limits.call_depth || deep {
             return Err(self.fault(FaultKind::CallDepth, at));
         }
         let body = self.body(aml, table, node, id)?;
