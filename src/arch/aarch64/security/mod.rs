@@ -18,6 +18,7 @@ pub mod bti;
 pub mod init_all;
 pub mod mte;
 pub mod pan;
+pub mod report;
 pub mod pac;
 pub mod spectre;
 
@@ -26,4 +27,5 @@ pub use init_all::init_all;
 pub use mte::{init_mte, MteMode};
 pub use pac::{active as pac_active, enter_process};
 pub use pan::init_pan;
+pub use report::report;
 pub use spectre::{init_spectre_mitigations, SpectreMitigation};
