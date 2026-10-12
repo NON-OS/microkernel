@@ -15,6 +15,7 @@ rather than paired with.
 | `method` | IO capabilities and the choice of pairing method from both sides (2.3.5.1). |
 | `pdu` | SMP PDUs with exact lengths, Pairing Request and Response, the Pairing Failed reasons, and conversion between air order and function order. |
 | `pairing` | `Initiator`, the central's side of pairing as a state machine. It is fed the peer's PDUs, the user's answers and the time. It returns the PDUs to send, what to show or ask the user, and the outcome. |
+| `privacy` | ah, the random address hash (Vol 3, Part H, 2.2.2); prand, a resolvable private address made from an IRK, and resolving one (Vol 6, Part B, 1.3.2.2 and 1.3.2.3). |
 
 The functions take values most significant octet first, as the
 specification prints them. PDUs carry them least significant octet first.
@@ -37,8 +38,15 @@ Pairing, step by step:
      without bias) or typed here.
 5. Stage 2 runs the DHKey checks. The caller then encrypts the link with
    the LTK and calls `encrypted`.
-6. The responder's IRK and identity address arrive, and the result is
-   `Outcome::Paired(Bond)`.
+6. The responder's IRK and identity address arrive. If this host started
+   with `start_private`, offering its own identity (init_keys ID), and the
+   response asked for it, this host's IRK and identity address follow, in
+   that order (3.6.1, 3.6.4, 3.6.5). The result is `Outcome::Paired(Bond)`.
+
+`start` offers no key of this host's own. `start_private` refuses an
+offer of the identity with no identity to send, an identity with no offer,
+and any other key: under Secure Connections the LTK is derived, not sent,
+and this host signs no data.
 
 A PDU out of place, an unknown code, or a malformed PDU ends pairing with
 Pairing Failed and the reason 3.5.5 gives. Pairing also ends when 30 s
