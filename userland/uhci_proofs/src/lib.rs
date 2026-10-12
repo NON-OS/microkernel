@@ -58,6 +58,8 @@ mod td_tests;
 #[cfg(test)]
 mod virt_fixture;
 #[cfg(test)]
+mod virt_root_tests;
+#[cfg(test)]
 mod virt_tests;
 #[cfg(test)]
 mod wire_tests;

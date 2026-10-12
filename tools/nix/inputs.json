@@ -1711,6 +1711,19 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_driver_usb_hub": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/services/registry/usb_hosts.rs",
+   "userland/capsule_driver_usb_hub",
+   "userland/libc",
+   "userland/nonos_usb_hub",
+   "userland/nonos_usbnet/src/hosts.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_driver_usb_msc": {
   "exclude": [],
   "include": [
