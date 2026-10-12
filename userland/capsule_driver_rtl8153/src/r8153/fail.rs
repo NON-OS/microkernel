@@ -26,9 +26,6 @@ pub const E_TIMEDOUT: i32 = -110;
 /// A device this driver does not bring up: another chip of the family, or
 /// no vendor configuration.
 pub const E_NODEV: i32 = -19;
-/// The chip holds no station address the stack can use; Linux
-/// __rtl8152_set_mac_address answers -EADDRNOTAVAIL for the same.
-pub const E_ADDRNOTAVAIL: i32 = -99;
 
 /// A register access's error, named after the step it stopped.
 pub fn at<T>(what: &'static str, r: Result<T, i32>) -> Result<T, Fail> {

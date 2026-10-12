@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for net.core: the request decode any client can reach, DNS
-//! lookups, autojoin, the link and lease watches, and TCP liveness. The
-//! `#[path]` includes pull in the real source by the `crate::` paths it uses.
+//! Host proofs for net.core, run on its shipped source through `#[path]`.
 
 // The wire's errnos, magics and ops, which the decode names.
 #[path = "../../capsule_net_core/src/protocol/mod.rs"]
 pub mod protocol;
 
+// The receive-batch exchange with a NIC driver, and what the probe means.
+pub mod device;
 // The header decode, the refusal and the reply; not the handlers or loop.
 pub mod server;
 

@@ -2,7 +2,7 @@
 //! Frames out and in: the padding byte, the receive limits, a stall.
 
 use nonos_usbnet::found::fetch;
-use nonos_usbnet::mock::Call;
+use nonos_usbnet::mock::{drawn, Call};
 use nonos_usbnet::{Bind, Nic, Setup};
 
 use crate::ecm::bind;
@@ -30,7 +30,7 @@ fn a_runt_is_dropped_and_a_padded_frame_cut_to_size() {
 fn frames_cross_and_a_stall_is_cleared_on_both_sides() {
     let bus = usb_net(None);
     let found = fetch(&mut bus.clone(), 2).unwrap();
-    let Bind::Ours(mut nic) = bind(bus.clone(), &found) else { panic!("not bound") };
+    let Bind::Ours(mut nic) = bind(bus.clone(), &found, drawn()) else { panic!("not bound") };
     nic.send(&[7u8; 64]).unwrap();
     let last = bus.0.borrow().calls.last().cloned();
     assert_eq!(last, Some(Call::BulkOut([&[7u8; 64][..], &[0]].concat())));

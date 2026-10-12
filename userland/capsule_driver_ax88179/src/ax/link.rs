@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A bound AX88179 as the frame service sees it.
+//! A bound AX88179: the chip, its pipes and buffers, and the link as last
+//! read.
 
 use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_libc::Deadline;
 use nonos_usbnet::xhci::BULK_MAX;
-use nonos_usbnet::{Bus, Nic, Pipes};
+use nonos_usbnet::Pipes;
 
-use super::link_poll::poll_link;
-use super::transfer::{recv, send};
 use super::tx::TX_MAX;
 
 pub struct Ax88179<B> {
@@ -41,35 +40,17 @@ pub struct Ax88179<B> {
     /// while the link is down. Linux starts with the carrier off.
     pub(super) link: Option<u16>,
     pub(super) next_look: Deadline,
+    /// PHYSR reads failed in a row, and when a failed link reset may run
+    /// again.
+    pub(super) unread: u8,
+    pub(super) next_reset: Deadline,
 }
 
-impl<B: Bus> Ax88179<B> {
+impl<B> Ax88179<B> {
     pub fn new(bus: B, mac: [u8; 6], pipes: Pipes) -> Self {
         let (rx, tx) = (vec![0; BULK_MAX], vec![0; TX_MAX]);
-        let (frames, next, link) = (Vec::new(), 0, None);
-        let next_look = Deadline::after_ms(0);
-        Self { bus, mac, pipes, rx, frames, next, tx, link, next_look }
-    }
-}
-
-impl<B: Bus> Nic for Ax88179<B> {
-    fn mac(&self) -> [u8; 6] {
-        self.mac
-    }
-
-    fn link_up(&self) -> bool {
-        self.link.is_some()
-    }
-
-    fn send(&mut self, frame: &[u8]) -> Result<(), i32> {
-        send(self, frame)
-    }
-
-    fn recv(&mut self, out: &mut [u8]) -> Result<Option<usize>, i32> {
-        recv(self, out)
-    }
-
-    fn tick(&mut self) {
-        poll_link(self)
+        let (frames, next, link, unread) = (Vec::new(), 0, None, 0);
+        let (next_look, next_reset) = (Deadline::after_ms(0), Deadline::after_ms(0));
+        Self { bus, mac, pipes, rx, frames, next, tx, link, next_look, unread, next_reset }
     }
 }

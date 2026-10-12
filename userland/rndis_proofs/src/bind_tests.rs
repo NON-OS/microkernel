@@ -3,7 +3,7 @@
 //! after INITIALIZE gets a HALT, as Linux generic_rndis_bind leaves it.
 
 use nonos_usbnet::found::fetch;
-use nonos_usbnet::mock::{Call, MockBus};
+use nonos_usbnet::mock::{drawn, Call, MockBus};
 use nonos_usbnet::Bind;
 
 use crate::control_tests::bind_with;
@@ -58,8 +58,8 @@ fn a_refused_configuration_is_named_and_an_ecm_only_device_is_not_ours() {
         Call::Out(s, _) if s.request == 0x09 => Err(-32),
         _ => Ok(vec![]),
     });
-    assert!(matches!(bind(bus, &found), Bind::Failed("SET_CONFIGURATION refused", -32)));
+    assert!(matches!(bind(bus, &found, drawn()), Bind::Failed("SET_CONFIGURATION refused", -32)));
     let mut ecm_only = fetch(&mut usb_net(honest()), 2).unwrap();
     ecm_only.configs.remove(0);
-    assert!(matches!(bind(usb_net(honest()), &ecm_only), Bind::NotOurs));
+    assert!(matches!(bind(usb_net(honest()), &ecm_only, drawn()), Bind::NotOurs));
 }

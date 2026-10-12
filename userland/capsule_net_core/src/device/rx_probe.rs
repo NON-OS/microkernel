@@ -19,6 +19,7 @@
 use core::sync::atomic::{AtomicU32, Ordering};
 
 use super::batch_call::call;
+use super::batch_served::served;
 use super::rx_batch::forget_queue;
 
 /// The port whose driver serves batches, or 0 for none.
@@ -32,8 +33,8 @@ static PROBED_PORT: AtomicU32 = AtomicU32::new(0);
 pub fn serves(port: u32) -> bool {
     if port != 0 && PROBED_PORT.swap(port, Ordering::AcqRel) != port {
         forget_queue();
-        let served = call(port, None).is_some();
-        BATCH_PORT.store(if served { port } else { 0 }, Ordering::Release);
+        let batches = served(call(port, None).as_deref());
+        BATCH_PORT.store(if batches { port } else { 0 }, Ordering::Release);
     }
     port != 0 && BATCH_PORT.load(Ordering::Acquire) == port
 }

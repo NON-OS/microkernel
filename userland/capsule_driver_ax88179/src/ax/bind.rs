@@ -18,7 +18,7 @@
 //! interface's pipes, then ax88179_reset in its order. The link is read
 //! afterwards, on the clock (link_poll.rs).
 
-use nonos_usbnet::{Bind, Bus, Found, Setup};
+use nonos_usbnet::{Bind, Bus, Found, Setup, Station};
 
 use super::access::Step;
 use super::autoneg::restart_autoneg;
@@ -30,12 +30,12 @@ use super::products::listed;
 use super::receive::receive_setup;
 use super::station::station;
 
-pub fn bind<B: Bus>(mut bus: B, found: &Found) -> Bind<Ax88179<B>> {
+pub fn bind<B: Bus>(mut bus: B, found: &Found, drawn: Station) -> Bind<Ax88179<B>> {
     if !listed(found.info.vendor, found.info.product) {
         return Bind::NotOurs;
     }
     let Some(f) = find_function(found) else { return Bind::NotOurs };
-    match start(&mut bus, &f) {
+    match start(&mut bus, &f, drawn) {
         Ok(mac) => Bind::Ours(Ax88179::new(bus, mac, f.pipes)),
         Err((what, e)) => Bind::Failed(what, e),
     }
@@ -43,22 +43,23 @@ pub fn bind<B: Bus>(mut bus: B, found: &Found) -> Bind<Ax88179<B>> {
 
 /// The controller is given the pipes before the device is told to use
 /// them (xHCI 1.2, 4.3.5), as for the other USB network drivers.
-fn start<B: Bus>(bus: &mut B, f: &AxFunction) -> Result<[u8; 6], Step> {
+fn start<B: Bus>(bus: &mut B, f: &AxFunction, drawn: Station) -> Result<[u8; 6], Step> {
     bus.configure_bulk(&f.pipes).map_err(|e| ("bulk pipes refused", e))?;
     let config = Setup::set_configuration(f.config);
     bus.control_out(config, &[]).map_err(|e| ("SET_CONFIGURATION refused", e))?;
     // usbnet_get_endpoints selects the setting; ax88179_bind does not look
     // at the answer, and a device with one setting may stall it.
     let _ = bus.control_out(Setup::set_interface(f.interface, f.alt), &[]);
-    reset(bus)
+    reset(bus, drawn)
 }
 
-/// ax88179_reset, step by step. The LED setup from the EEPROM is left
-/// out: the chip's own LED defaults stay.
-fn reset<B: Bus>(bus: &mut B) -> Result<[u8; 6], Step> {
+/// ax88179_reset, step by step, with the drawn address where Linux reads
+/// the chip's. The LED setup from the EEPROM is left out: the chip's own
+/// LED defaults stay.
+fn reset<B: Bus>(bus: &mut B, drawn: Station) -> Result<[u8; 6], Step> {
     power_up(bus)?;
     auto_detach(bus)?;
-    let mac = station(bus)?;
+    let mac = station(bus, drawn)?;
     receive_setup(bus)?;
     disable_eee(bus)?;
     restart_autoneg(bus)?;
