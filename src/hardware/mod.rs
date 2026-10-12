@@ -46,6 +46,7 @@ pub mod uhci_capsule;
 pub mod usb_audio_capsule;
 pub mod usb_hub_capsule;
 pub mod usb_msc_capsule;
+pub mod uvc_capsule;
 pub mod virtio_blk_capsule;
 pub mod virtio_gpu_capsule;
 pub mod virtio_net_capsule;
