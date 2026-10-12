@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! igb_setup_tctl, igb_setup_rctl and igb_setup_copper_link_82575 against
-//! whatever a previous owner left in the registers.
+//! The engines and link stages against whatever a previous owner left in
+//! the registers.
 
-use crate::constants::ctrl::*;
-use crate::constants::part::Part;
-use crate::constants::regs::*;
-use crate::init::{control, link};
+use crate::bring::{engines, link};
+use crate::facts::mac::*;
+use crate::facts::parts::Part;
+use crate::facts::regs::*;
 
 use super::model::{regs, window};
 
@@ -29,7 +29,7 @@ fn tctl_gets_psp_rtlc_ct15_and_en_over_any_old_collision_threshold() {
     let bar = window();
     bar.present32(REG_TCTL, 0x0003_FFF0);
     bar.present32(REG_TXDCTL, 1 << 25);
-    control::enable(&regs(&bar));
+    engines::enable(&regs(&bar));
     let tctl = bar.wrote32(REG_TCTL);
     assert_eq!(tctl & 0xFF0, 15 << 4, "CT is igb's 15");
     assert_eq!(tctl & 0x0100_000A, 0x0100_000A, "RTLC, PSP, EN");
@@ -41,7 +41,7 @@ fn tctl_gets_psp_rtlc_ct15_and_en_over_any_old_collision_threshold() {
 fn rctl_gets_en_bam_secrc_and_loses_loopback_bad_packets_and_long_frames() {
     let bar = window();
     bar.present32(REG_RCTL, 0x0003_30E4);
-    control::enable(&regs(&bar));
+    engines::enable(&regs(&bar));
     let rctl = bar.wrote32(REG_RCTL);
     assert_eq!(rctl & 0x0400_8002, 0x0400_8002, "SECRC, BAM, EN");
     assert_eq!(rctl & (0x3 << 6 | 0x3 << 12 | 1 << 2 | 0x3 << 16 | 1 << 5), 0);
@@ -49,7 +49,7 @@ fn rctl_gets_en_bam_secrc_and_loses_loopback_bad_packets_and_long_frames() {
     assert_eq!(bar.wrote32(0x5008), 0, "igb makes no RFCTL errata write");
 }
 
-/// Linux clears only the force bits; FD and the speed select stay as found
+/// Only the force bits are cleared; FD and the speed select stay as found
 /// and mean nothing once FRCSPD and FRCDPX are clear.
 #[test]
 fn the_link_is_set_up_not_forced_and_firmware_told_a_driver_is_loaded() {

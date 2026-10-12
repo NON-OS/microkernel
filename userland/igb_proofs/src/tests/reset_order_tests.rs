@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one ordering igb_reset_hw_82575 exists for: CTRL.RST is never written
+//! The one ordering the reset stage exists for: CTRL.RST is never written
 //! while STATUS still shows bus mastering. A modelled part stops mastering
 //! only once it sees GIO_MASTER_DISABLE and watches for a reset before then.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-use crate::constants::ctrl::*;
-use crate::constants::part::Part;
-use crate::constants::regs::*;
-use crate::init::reset::run;
+use crate::bring::reset::run;
+use crate::facts::mac::*;
+use crate::facts::parts::Part;
+use crate::facts::regs::*;
 
 use super::model::{live, regs, stable32, window};
 
