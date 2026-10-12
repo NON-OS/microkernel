@@ -244,7 +244,7 @@ Its `attack` section copies an attested capsule's manifest to a scratch director
 - Without `nonos-sign/target/release/capsule-sign`, `verify_manifest` returns `None` (`tools/nonos_console.py:1425-1427`). The control line still reads `ACCEPTED`, and every case that calls the signing tool reads `NOT BLOCKED`. Build the signing tool first.
 - The trailer line compares a trailer's first eight bytes with `TRAILER_MAGIC`, `NZKPATH1` (`tools/nonos_console.py:1508-1511`). A release kernel takes only a v4 [attestation trailer](../overview/glossary.md#attestation-trailer), which starts with `MAGIC_V4` (`parse_v4`, `nonos-attest-path/src/v4/parse.rs:33`); a bare `NZKPATH1` path is taken only by a [development image](../overview/glossary.md#development-image)'s kernel (`dev_path`, `src/security/capsule_attest/path.rs:41-45`). Against a sealed trailer that line reads `NOT BLOCKED`.
 
-`tools/nonos_system_map.py` prints the authority each built capsule holds: an image summary, one row per capsule with its size, port and capabilities, how many capsules hold each capability, and the holders of the twelve capabilities it calls scarce, which it describes as acting on something the holder does not own (`SCARCE`, `tools/nonos_system_map.py:62-70`).
+`tools/nonos_system_map.py` prints the authority each built capsule holds: an image summary, one row per capsule with its size, port and capabilities, how many capsules hold each capability, and the holders of the twelve capabilities it calls scarce, which it describes as acting on something the holder does not own (`SCARCE`, `tools/system_map_consts.py:52-56`).
 
 ```sh
 python3 tools/nonos_system_map.py --fast
@@ -254,7 +254,7 @@ python3 tools/nonos_system_map.py --tsv
 
 Not tested in this release.
 
-It reads each mask from `CAPSULE_REQUIRED_CAPS` in the capsule's `Capsule.mk`, and marks a capsule `[not attested]` when its certificate, manifest or trailer in the trust set is missing or empty (`Capsule`, `tools/nonos_system_map.py:163-197`). Its tables count a capsule only when its binary is built under `userland/<capsule>/target/x86_64-nonos-user/release/`; `--tsv` lists every `Capsule.mk`, built or not. It does not decode the signed manifest the spawn gate checks, so it shows the mask the build declares. It knows all 36 capabilities (`CAPABILITIES`, `tools/nonos_system_map.py:43-60`). It is a report, not a gate: it exits 0 whenever it finds a `Capsule.mk` (`main`, `tools/nonos_system_map.py:312-339`).
+It reads each mask from `CAPSULE_REQUIRED_CAPS` in the capsule's `Capsule.mk`, and marks a capsule `[not attested]` when its certificate, manifest or trailer in the trust set is missing or empty (`Capsule`, `tools/system_map_capsule.py:24-62`). Its tables count a capsule only when its binary is built under `userland/<capsule>/target/x86_64-nonos-user/release/`; `--tsv` lists every `Capsule.mk`, built or not. It does not decode the signed manifest the spawn gate checks, so it shows the mask the build declares. It knows all 36 capabilities (`CAPABILITIES`, `tools/system_map_consts.py:33-46`). It is a report, not a gate: it exits 0 whenever it finds a `Capsule.mk` (`main`, `tools/nonos_system_map.py:41-67`).
 
 ## What a running machine shows about itself
 
