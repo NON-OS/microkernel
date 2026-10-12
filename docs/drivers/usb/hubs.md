@@ -1,51 +1,65 @@
 # USB hubs
 
-What NONOS does with a USB hub in this release: the hub comes up, but the devices plugged into it are not reached yet.
+What NONOS does with a USB hub: the hub is brought up, and the keyboards and mice plugged into it are reached on every USB host the system has. Other devices behind a hub are not reached yet.
 
 ## In short
 
-Plug keyboards, mice and USB sticks straight into a port of the machine. A device behind an external USB hub does not work in NONOS 0.9.2. The hub itself is brought up and its ports are read, but the xHCI driver cannot yet address a device below a hub.
+Keyboards and mice work behind a hub: external hubs, internal hubs, and the rate-matching hub an Intel PCH from the 5 series on puts behind its EHCI. USB sticks, network adapters and other non-HID devices only work straight on a root port, because only the HID driver walks hubs (see [What is not reached yet](#what-is-not-reached-yet)). None of this has run on hardware or under QEMU yet. The proofs below drive it against models.
 
 ## What happens with a hub
 
 ```mermaid
 sequenceDiagram
     participant H as driver.usb_hid0
-    participant X as driver.xhci0
+    participant X as USB host driver
     participant B as hub
     H->>X: OP_ADDRESS_DEVICE on the root port
-    H->>B: hub descriptor, through driver.xhci0
+    H->>B: hub descriptor, through the host
     H->>X: op 0x21, configure hub
-    X-->>H: E_INVAL
     H->>B: port power, then port reset
     H->>X: op 0x20, address routed
-    X-->>H: E_INVAL
+    X-->>H: the device's slot, speed and EP0 size
 ```
 
-Hubs are handled by the USB HID [capsule](../../overview/glossary.md#capsule), `driver.usb_hid0`:
+The hub class lives in the `nonos_usb_hub` library (`userland/nonos_usb_hub/src/lib.rs`). It reaches the host driver, the clock and the log only through its `Host` trait (`host.rs`). What a device is bound to is left to the caller's `Classes` (`classes.rs`). `driver.usb_hid0` runs it over whichever host it found (`userland/capsule_driver_usb_hid/src/hub/host.rs`, `XhciHost`; `orchestrator/enumerate/walk.rs`, `Hid`):
 
-1. It addresses the hub on its root port like any device and reads its configuration. An interface of class 09h marks a hub (`userland/capsule_driver_usb_hid/src/descriptors/config.rs:40-56`, `is_hub`).
-2. It reads the hub descriptor and sets the hub depth on a SuperSpeed hub (`userland/capsule_driver_usb_hid/src/hub/attach.rs:32-37`, `attach`).
-3. It asks `driver.xhci0` with op 0x21 to mark the slot as a hub. The xHCI driver does not know that op and answers `E_INVAL` (`userland/capsule_driver_xhci/src/server/dispatch.rs:26-46`, `E_INVAL`). The HID driver carries on, sets up the hub's status endpoint and powers the hub's ports (`userland/capsule_driver_usb_hid/src/hub/attach.rs:38-45`, `power_ports`).
-4. For each hub port with a device on it, it waits 100 ms, resets the port through the hub and gives the reset up to 800 ms (`userland/capsule_driver_usb_hid/src/orchestrator/enumerate/attach_child.rs:29-62`, `attach_child`; `userland/capsule_driver_usb_hid/src/hub/reset.rs:30-31`, `RESET_TIMEOUT_MS`).
-5. It asks `driver.xhci0` with op 0x20 to address the device through its route (`userland/capsule_driver_usb_hid/src/xhci/wire/constants.rs:22-25`, `OP_ADDRESS_ROUTED`). The answer is `E_INVAL` again, and the slot is given back (`userland/capsule_driver_usb_hid/src/orchestrator/enumerate/attach_child.rs:51-55`, `disable_slot`).
-6. Each port is tried three times, then left alone until its device is unplugged (`userland/capsule_driver_usb_hid/src/orchestrator/enumerate/scan_hub.rs:42-48`, `TRIES`).
+1. The driver addresses the hub on its root port like any device and reads its configuration. An interface of class 09h marks a hub (`userland/capsule_driver_usb_hid/src/descriptors/config.rs`, `is_hub`).
+2. `attach` reads the hub descriptor, sets a SuperSpeed hub's depth, tells the host with op 0x21 that the slot is a hub, claims the hub's status endpoint and powers its ports (`userland/nonos_usb_hub/src/attach.rs`).
+3. For each hub port with a device on it, the walk waits 100 ms, resets the port through the hub and gives the reset up to 800 ms (`attach_child.rs`, `DEBOUNCE_MS`; `reset.rs`, `RESET_TIMEOUT_MS`).
+4. It asks the host with op 0x20 to address the device at its route: one 4-bit hub port per tier, at most five hubs deep (`route.rs`, `child_route`). A full or low speed device below a high-speed hub also carries that hub's transaction translator (TT) (`route.rs`, `child_tt`).
+5. The device is classified as one on a root port would be. If nothing binds, its slot is given back. Each port is tried three times, then left alone until its device is unplugged (`node.rs`, `TRIES`).
+6. An unplugged device is forgotten, and a hub takes every device below it along (`forget_slot.rs`).
 
-The driver has words for both refusals: `the controller driver was not told this is a hub (op 0x21 refused); low and full speed devices below it will not work` and `the controller driver cannot address a device behind a hub yet (op 0x20 refused)` (`userland/capsule_driver_usb_hid/src/hub/error.rs:51-53`, `E_INVAL`). It writes them as `[usb-hub]` lines with `mk_debug` (`userland/capsule_driver_usb_hid/src/hub/say.rs:57-60`, `say`). The kernel grants `driver.usb_hid0` only IPC, Memory and InputSource, no Debug (`src/userspace/capsule_driver_usb_hid/spawn.rs:51-53`, `requested_caps`), so these lines do not reach the [serial console](../../overview/glossary.md#serial-console) in this release, and a hub with a device behind it fails silently.
+## What each host does with op 0x20 and op 0x21
 
-## What is ready for the routed step
+| Host | Below which hubs | How a device below a hub is reached |
+|---|---|---|
+| xHCI (`driver.xhci0`) | any | The route string, the speed and the TT go into the Slot Context before Address Device, and the root port is not reset. Op 0x21 sets the Hub flag, port count, TT think time and MTT through Configure Endpoint (`userland/capsule_driver_xhci/src/contexts/route.rs`, `hub.rs`). |
+| EHCI (`driver.ehci0`) | high-speed | Each slot keeps its speed and TT. A full or low speed device's QHs name the TT's hub and port and use split transactions; an interrupt QH completes in micro-frames 2 to 4 (`userland/capsule_driver_ehci/src/sched/link.rs`). |
+| UHCI (`driver.uhci0`), OHCI (`driver.ohci0`) | full-speed | A full-speed hub has no TT. A low-speed device's TDs (UHCI) or EDs (OHCI) are marked low speed, so the controller sends the preamble. |
 
-The class side is written and tested on the host. The route string has one 4-bit field per tier, so a device can sit at most five hubs deep (`userland/capsule_driver_usb_hid/src/hub/route.rs:24-45`, `child_route`). A 4-bit field cannot name a hub port past 15, so those ports are left alone (`userland/capsule_driver_usb_hid/src/hub/descriptor.rs:26-29`, `MAX_HUB_PORTS`). A low or full speed device behind a high-speed hub gets that hub's transaction translator, and a multi-TT hub runs single-TT (`userland/capsule_driver_usb_hid/src/hub/route.rs:47-65`, `child_tt`; `userland/capsule_driver_usb_hid/src/xhci/ops/configure_hub.rs:26-29`, `MTT`).
+On every host, a routed request is refused with E_INVAL in these cases:
 
-What is missing is the xHCI side: writing the route string, the speed and the transaction translator into the slot context for ops 0x20 and 0x21 (`userland/capsule_driver_usb_hid/src/xhci/ops/address_routed.rs:17-25`, `OP_ADDRESS_ROUTED`).
+- no hub is on the root port;
+- the route has a gap or more than five tiers;
+- a TT is named for a device that needs none, or is missing for one that needs one.
 
-## Mass storage behind a hub
+Giving back a device below a hub leaves the root port, and the hub, up. A polled bulk IN (a network adapter's read) holds a place of the host's own, not the root port's, so devices below one hub poll side by side.
 
-`driver.usb_msc0` looks at root ports only, so a stick behind a hub is not found either (`userland/capsule_driver_usb_msc/src/xhci/port.rs:34-47`, `connected_ports`).
+## What is not reached yet
+
+- Only `driver.usb_hid0` walks hubs. A stick, webcam or Bluetooth adapter behind a hub is addressed, found not to be HID, and its slot is given back. `driver.usb_msc0` looks at root ports only (`userland/capsule_driver_usb_msc/src/xhci/port.rs`, `connected_ports`). Two capsules walking one hub would race each other's port resets. Which capsule runs the walk for every class is an open design point.
+- The hub's status endpoint is claimed but not read: the walk looks at each hub port on every rescan.
+- The `[usb-hub]` log lines go through `mk_debug`. `driver.usb_hid0` holds no Debug capability (`src/userspace/capsule_driver_usb_hid/spawn.rs`, `requested_caps`), so they do not reach the [serial console](../../overview/glossary.md#serial-console).
 
 ## How it was verified
 
-`userland/usb_proofs` is the [proof crate](../../overview/glossary.md#proof-crate) for the class side. It holds the hub descriptor parse, hub port status, and route and transaction translator tests, and its 83 tests pass on this commit. No QEMU target in `mk/` attaches a USB hub, and hubs have not been tested on hardware in this release.
+All of it on the host, none on hardware or under QEMU:
+
+- `userland/usb_hub_proofs` (15 tests) covers the descriptor, port status, route and TT rules. It also runs the walk over a modelled hub and clock.
+- In each host's proof crate, `nonos_usb_hub`'s own walk runs over that driver's own request dispatch against its model controller, with a model hub on root port 1 (`userland/uhci_proofs/src/hub_lane.rs`, shared by the three).
+  - The model halts any transaction whose speed, TT, completion mask or low-speed mark does not match where the device sits (`userland/ehci_proofs/src/model/reach.rs`, `userland/uhci_proofs/src/model/bus.rs`).
+  - Counts: `ehci_proofs` 40, `uhci_proofs` 40, `ohci_proofs` 42. `xhci_proofs` 151 holds the Slot Context fields.
 
 ## See also
 
