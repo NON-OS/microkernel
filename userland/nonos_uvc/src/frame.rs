@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! Frames put back together from payloads (header.rs reads each one's
 //! header). A frame is handed up whole and only once; one with an error,
 //! one cut short or one past its bound is dropped.
