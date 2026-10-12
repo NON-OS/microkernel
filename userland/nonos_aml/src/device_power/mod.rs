@@ -14,12 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Device power (ACPI 6.5, chapter 7): shared power resources, counted,
-//! and the D0 and D3 moves that use them.
+//! Device power (ACPI 6.5, chapter 7): shared power resources, counted
+//! and switched in ResourceOrder, and moves between every D-state.
 
 mod dstate;
 mod method;
+mod order;
 mod pool;
+mod psc;
+mod rules;
+mod state;
+mod transition;
 
 pub use dstate::{to_d0, to_d3};
+pub use order::{in_order, resource_order};
 pub use pool::PowerPool;
+pub use psc::{power_managed, psc};
+pub use rules::MoveError;
+pub use state::DState;
+pub use transition::DevicePower;
