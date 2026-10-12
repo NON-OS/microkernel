@@ -23,6 +23,9 @@
 //! and sleeps are counted per thread, so a test can tell a wait that parks
 //! from one that spins. DMA grants are host memory (see [`dma`]).
 
+mod ordered;
+pub use ordered::*;
+
 mod dma;
 
 use std::cell::Cell;
@@ -72,6 +75,11 @@ pub fn mk_yield() -> i64 {
 
 /// No interrupt path exists on the host. A negative answer is what the driver
 /// gets from a kernel that refused the grant, and it copes the same way.
-pub extern "C" fn mk_irq_wait(_grant: u64, _last_seq: u64, _timeout_ms: u64, _out: *mut u64) -> i64 {
+pub extern "C" fn mk_irq_wait(
+    _grant: u64,
+    _last_seq: u64,
+    _timeout_ms: u64,
+    _out: *mut u64,
+) -> i64 {
     -1
 }
