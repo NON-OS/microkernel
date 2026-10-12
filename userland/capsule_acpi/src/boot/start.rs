@@ -22,6 +22,7 @@ use super::{bringup, load, report, sci, tables};
 use crate::host::CapsuleHost;
 
 pub fn boot() -> Option<Acpi> {
+    let smbios = crate::smbios::read();
     let t = tables::fetch()?;
     let mut host = CapsuleHost { facs: tables::map_facs(&t.fadt), ..CapsuleHost::default() };
     let mut aml = load::load(&t, &mut host);
@@ -52,6 +53,7 @@ pub fn boot() -> Option<Acpi> {
         cooling,
         backlight,
         hotkeys,
+        smbios,
         devices,
         routes,
         scis,

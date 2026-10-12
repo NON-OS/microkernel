@@ -33,6 +33,7 @@ mod hotkeys;
 mod power;
 mod server;
 mod sleep;
+mod smbios;
 mod sys;
 
 use nonos_libc::{heap_init, mk_exit};
