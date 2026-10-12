@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Turning interrupt remapping on for one unit, in the order of Linux
-//! intel/irq_remapping.c (iommu_set_irq_remapping, then
-//! iommu_enable_irq_remapping): table address, SIRTP, a global interrupt
-//! entry cache invalidation, then IRE. CFI goes on before IRE, so there is
-//! no moment in which a compatibility format interrupt is blocked.
+//! Turning interrupt remapping on for one unit (VT-d 5.1, 10.4.4): table
+//! address, SIRTP, a global interrupt entry cache invalidation so no entry
+//! cached before the table was set survives, then IRE. CFI goes on before
+//! IRE, so there is no moment in which a compatibility format interrupt is
+//! blocked.
 
 use crate::arch::x86_64::iommu::regs::offsets;
 use crate::arch::x86_64::iommu::types::VtdError;

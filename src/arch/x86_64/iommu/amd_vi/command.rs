@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The 128-bit commands the kernel puts in a command buffer (AMD IOMMU spec
-//! 48882, section 2.4), as four dwords, laid out as Linux builds them in
-//! amd/iommu.c (build_completion_wait, build_inv_dte, build_inv_iommu_pages,
-//! build_inv_all). The opcode sits in bits 31:28 of the second dword.
+//! 48882, section 2.4: COMPLETION_WAIT, INVALIDATE_DEVTAB_ENTRY,
+//! INVALIDATE_IOMMU_PAGES, INVALIDATE_IOMMU_ALL), as the four dwords the
+//! spec draws. The opcode sits in bits 31:28 of the second dword.
 
 pub type Command = [u32; 4];
 
