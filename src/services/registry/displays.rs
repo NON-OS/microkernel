@@ -29,6 +29,8 @@ pub(crate) const DISPLAYS: &[&str] = &[
     "driver.vmware_svga0",
     "driver.hv_synthvid0",
     "driver.bga0",
+    // Intel's display engines, taken over at firmware's mode.
+    "driver.intel_display0",
     // The boot framebuffer served on the wire: last, for any GPU no other
     // driver here takes.
     "driver.bootfb0",
