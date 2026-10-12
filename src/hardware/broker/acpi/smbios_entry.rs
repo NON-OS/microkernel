@@ -35,24 +35,21 @@ fn sums_to_zero(b: &[u8]) -> bool {
     b.iter().fold(0u8, |s, x| s.wrapping_add(*x)) == 0
 }
 
-fn u32_at(b: &[u8], at: usize) -> u32 {
-    u32::from_le_bytes([b[at], b[at + 1], b[at + 2], b[at + 3]])
-}
-
 fn bits64(b: &[u8]) -> Option<Entry> {
     let len = usize::from(*b.get(6)?);
     let e = b.get(..len).filter(|e| len >= 24 && sums_to_zero(e))?;
     let table = u64::from_le_bytes(e[16..24].try_into().ok()?);
-    let max = u32_at(e, 12);
+    let max = u32::from_le_bytes(e[12..16].try_into().ok()?);
     (max > 0 && max <= TABLE_MAX).then_some(Entry { table, len: max, major: e[7], minor: e[8] })
 }
 
+/// A 2.1-era length of 0x1E is refused: DSP0134's text on it was not checked.
 fn bits32(b: &[u8]) -> Option<Entry> {
     let len = usize::from(*b.get(5)?);
     let e = b.get(..len).filter(|e| len >= 0x1F && sums_to_zero(e))?;
     let dmi = e.get(0x10..0x1F).filter(|d| d.starts_with(b"_DMI_") && sums_to_zero(d))?;
     let table_len = u32::from(u16::from_le_bytes([dmi[6], dmi[7]]));
-    let table = u64::from(u32_at(dmi, 8));
+    let table = u64::from(u32::from_le_bytes(dmi[8..12].try_into().ok()?));
     (table_len > 0).then_some(Entry { table, len: table_len, major: e[6], minor: e[7] })
 }
 

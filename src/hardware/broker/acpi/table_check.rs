@@ -30,6 +30,8 @@ pub enum TableError {
     Absent,
     /// The table's address is outside the kernel's direct map.
     Unmapped,
+    /// Some of the table's range is not firmware's memory (`rule::table`).
+    Memory,
     /// The length field is smaller than the header or larger than any table.
     Length,
     /// The bytes at the address carry another signature.

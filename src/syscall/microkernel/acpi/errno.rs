@@ -40,5 +40,6 @@ pub(super) fn table_errno(e: TableError) -> i64 {
         TableError::Absent => ERRNO_NOENT,
         TableError::Unmapped => ERRNO_FAULT,
         TableError::Length | TableError::Signature | TableError::Checksum => ERRNO_IO,
+        TableError::Memory => ERRNO_IO,
     }
 }
