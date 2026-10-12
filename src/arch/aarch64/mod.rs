@@ -28,6 +28,7 @@ pub mod interrupt_controller;
 pub mod iommu;
 pub mod mmu;
 pub mod pci_intx;
+pub mod platform_devices;
 pub mod psci;
 pub mod rtc;
 pub mod security;
