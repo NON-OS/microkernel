@@ -29,10 +29,10 @@ use crate::platform::{listed, Eval};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 
-/// Each device this has moved: its state and the resources it holds.
+/// Each device moved: its state and resources. The pool is the caller's,
+/// shared with fans, so a resource is counted once across them all.
 #[derive(Debug, Default)]
 pub struct DevicePower {
-    pub pool: PowerPool,
     held: BTreeMap<Id, (DState, Vec<Id>)>,
 }
 
@@ -46,10 +46,10 @@ impl DevicePower {
         in_order(aml, res)
     }
 
-    /// `from` is where the device is when this has not moved it before
-    /// (from _PSC, or D0); afterwards this's own record is believed.
+    /// `from` (from _PSC) counts until this moves the device; then its record.
     pub fn set(
         &mut self,
+        pool: &mut PowerPool,
         aml: &mut Aml,
         eval: &mut Eval<'_>,
         dev: Id,
@@ -64,12 +64,12 @@ impl DevicePower {
             return Err(e);
         }
         let need = Self::needs(aml, eval, dev, to);
-        self.pool.acquire(aml, eval, &need).map_err(MoveError::Fault)?;
+        pool.acquire(aml, eval, &need).map_err(MoveError::Fault)?;
         if let Err(f) = run(aml, eval, dev, to.ps()) {
-            let _ = self.pool.release(aml, eval, &need);
+            let _ = pool.release(aml, eval, &need);
             return Err(MoveError::Fault(f));
         }
         let old = self.held.insert(dev, (to, need)).map(|(_, r)| r).unwrap_or_default();
-        self.pool.release(aml, eval, &old).map_err(MoveError::Fault)
+        pool.release(aml, eval, &old).map_err(MoveError::Fault)
     }
 }
