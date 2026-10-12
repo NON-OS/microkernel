@@ -16,6 +16,8 @@
 
 //! The words, or an imported account's key, handed to the service and zeroed.
 
+use zeroize::Zeroize;
+
 use super::*;
 
 /* Not held open: the words go to the service, or an imported account's key. */
@@ -46,14 +48,15 @@ pub(super) fn from_words(state: &mut State, account: &str) {
 }
 
 fn open_key(state: &mut State, account: &str) {
-    let mut key = match export_secret(state.keyring_port, state.owner_pid, state.wallet_id) {
-        Ok(key) => key,
+    let mut key = [0u8; 32];
+    match export_secret(state.keyring_port, state.owner_pid, state.wallet_id, &mut key) {
+        Ok(()) => {}
         Err(KEYRING_SLOW) => return keyring_late(state),
         Err(_) => {
             state.shield_ui.failure = Some(String::from(NO_WORDS));
             return;
         }
-    };
+    }
     let mut text = String::with_capacity(66);
     text.push_str("0x");
     for b in key.iter() {
@@ -63,13 +66,8 @@ fn open_key(state: &mut State, account: &str) {
     if !super::super::job::start(state, OP_OPEN_KEY, &[account, &text]) {
         slow(state);
     }
-    // SAFETY: zero bytes are valid UTF-8, and the string is dropped right after.
-    for b in unsafe { text.as_bytes_mut() } {
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
-    for b in key.iter_mut() {
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
+    text.zeroize();
+    key.zeroize();
 }
 
 const HEX: &[u8; 16] = b"0123456789abcdef";
