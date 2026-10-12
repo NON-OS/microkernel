@@ -25,8 +25,8 @@ use crate::descriptors::{configuration_value, hid_bindings, is_hub};
 use crate::xhci::{control_transfer, MAX_DESCRIPTOR_LEN};
 
 use super::super::binding::configure_binding;
-use super::pointers::keep_pointers;
 use super::read_configuration::read_configuration;
+use super::reports::sort_by_report;
 use super::types::{HidEndpoint, Outcome};
 
 const SET_CONFIGURATION: u8 = 0x09;
@@ -49,12 +49,12 @@ pub(super) fn classify(xhci_port: u32, slot: u8, port: u8, eps: &mut Vec<HidEndp
     {
         return Outcome::Failed;
     }
-    let bindings = keep_pointers(xhci_port, slot, bindings);
+    let bindings = sort_by_report(xhci_port, slot, bindings);
     if bindings.is_empty() {
         return Outcome::NotHid;
     }
-    for binding in bindings {
-        configure_binding(xhci_port, slot, port, binding, eps);
+    for (binding, pad) in bindings {
+        configure_binding(xhci_port, slot, port, binding, pad, eps);
     }
     Outcome::Bound
 }

@@ -16,7 +16,8 @@
 
 use alloc::vec::Vec;
 
-use crate::descriptors::{HidBinding, HidKind};
+use crate::descriptors::{HidBinding, HidKind, PadLayout};
+use crate::hid::new_pad;
 use crate::xhci::{alloc_transfer_ring, control_transfer};
 
 use super::enumerate::HidEndpoint;
@@ -29,6 +30,7 @@ pub fn configure_binding(
     slot: u8,
     root_port: u8,
     binding: HidBinding,
+    pad: Option<PadLayout>,
     out: &mut Vec<HidEndpoint>,
 ) {
     let iface = binding.interface_number as u16;
@@ -61,5 +63,6 @@ pub fn configure_binding(
         dci,
         kind: binding.kind,
         max_packet: binding.max_packet_size,
+        pad: pad.map(new_pad),
     });
 }

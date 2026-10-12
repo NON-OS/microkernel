@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::descriptors::HidKind;
+use crate::descriptors::{HidKind, PadState};
 
 /// What trying one port came to.
 pub enum Outcome {
@@ -34,4 +34,7 @@ pub struct HidEndpoint {
     pub dci: u8,
     pub kind: HidKind,
     pub max_packet: u16,
+    /// A gamepad's number (the `y` of its events), its layout and what it
+    /// last reported.
+    pub pad: Option<(i32, PadState)>,
 }

@@ -17,16 +17,16 @@
 use crate::orchestrator::enumerate::HidEndpoint;
 use crate::state::State;
 
-use super::constants::HID_REPORT_MAX;
+use super::constants::PAD_REPORT_MAX;
 use super::drain_endpoint::drain_endpoint;
 
 pub(super) fn drain_endpoints(
     state: &mut State,
-    eps: &[HidEndpoint],
-    buf: &mut [u8; HID_REPORT_MAX],
+    eps: &mut [HidEndpoint],
+    buf: &mut [u8; PAD_REPORT_MAX],
 ) -> bool {
     let mut drained = false;
-    for ep in eps {
+    for ep in eps.iter_mut() {
         drained |= drain_endpoint(state, ep, buf);
     }
     drained

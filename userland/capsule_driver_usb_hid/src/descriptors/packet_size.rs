@@ -32,6 +32,8 @@ pub fn holds_a_report(kind: HidKind, max_packet_size: u16) -> bool {
         HidKind::Keyboard => KEY_REPORT_LEN,
         HidKind::Mouse => MOUSE_REPORT_MIN,
         HidKind::Tablet => TABLET_REPORT_MIN,
+        // Its fields say where they sit; one past the data is never read.
+        HidKind::Gamepad => 1,
     };
     (report as u16..=MAX_INTERRUPT_PACKET).contains(&max_packet_size)
 }

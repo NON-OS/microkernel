@@ -22,6 +22,7 @@ mod keymap;
 mod mouse;
 mod mouse_event;
 mod mouse_report;
+mod pad;
 mod post_key;
 mod post_mouse;
 mod post_wire;
@@ -31,4 +32,5 @@ mod usage_keycode;
 
 pub use keyboard::Keyboard;
 pub use mouse::Mouse;
+pub use pad::{feed_pad, new_pad};
 pub use tablet::Tablet;

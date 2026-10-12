@@ -23,7 +23,7 @@ use crate::enumerate::drop_port::drop_port;
 use crate::enumerate::types::HidEndpoint;
 
 fn ep(root_port: u8, slot: u8, dci: u8, kind: HidKind) -> HidEndpoint {
-    HidEndpoint { port: 7, root_port, slot, dci, kind, max_packet: 8 }
+    HidEndpoint { port: 7, root_port, slot, dci, kind, max_packet: 8, pad: None }
 }
 
 #[test]

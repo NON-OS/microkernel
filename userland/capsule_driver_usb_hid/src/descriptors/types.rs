@@ -28,6 +28,8 @@ pub enum HidKind {
     Keyboard = 1,
     Mouse = 2,
     Tablet = 3,
+    /// Laid out by its report descriptor (pad/), never by its config.
+    Gamepad = 4,
 }
 
 #[derive(Debug, Clone, Copy)]

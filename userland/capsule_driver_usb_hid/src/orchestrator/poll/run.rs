@@ -19,7 +19,7 @@ use crate::server::pump_once;
 use crate::state::State;
 use crate::xhci::Hosts;
 
-use super::constants::{HID_REPORT_MAX, RESCAN_INTERVAL};
+use super::constants::{PAD_REPORT_MAX, RESCAN_INTERVAL};
 use super::drain_endpoints::drain_endpoints;
 use super::held::Held;
 use super::refresh_endpoints::refresh_endpoints;
@@ -27,7 +27,7 @@ use super::refresh_endpoints::refresh_endpoints;
 pub fn run(mut hosts: Hosts<Held>) -> ! {
     refresh_endpoints(&mut hosts);
     let mut state = State::new();
-    let mut buf = [0u8; HID_REPORT_MAX];
+    let mut buf = [0u8; PAD_REPORT_MAX];
     let mut rx = alloc::vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = alloc::vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut idle_polls = 0u32;
@@ -42,7 +42,7 @@ pub fn run(mut hosts: Hosts<Held>) -> ! {
         announced = bound;
         let _ = pump_once(&mut state, &mut rx, &mut tx);
         let mut drained = false;
-        hosts.each(|_, held| drained |= drain_endpoints(&mut state, &held.devs.eps, &mut buf));
+        hosts.each(|_, held| drained |= drain_endpoints(&mut state, &mut held.devs.eps, &mut buf));
         // A held key repeats from here: the keyboard reports only changes.
         state.keyboard.tick(nonos_libc::mk_uptime_ms().max(0) as u64);
         if drained {

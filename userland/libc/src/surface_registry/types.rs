@@ -28,6 +28,13 @@ pub const INPUT_KIND_WHEEL: u16 = 4;
 pub const INPUT_KIND_BUTTON_DOWN: u16 = 5;
 pub const INPUT_KIND_BUTTON_UP: u16 = 6;
 pub const INPUT_KIND_TOUCH: u16 = 7;
+/// A gamepad's button: `code` its number from 1, `y` the pad.
+pub const INPUT_KIND_PAD_BUTTON_DOWN: u16 = 8;
+pub const INPUT_KIND_PAD_BUTTON_UP: u16 = 9;
+/// A gamepad's axis: `code` its Generic Desktop usage (30h X to 38h, 39h
+/// the hat), `x` its value (-32767..32767; the hat 0 to 7, -1 centred),
+/// `y` the pad.
+pub const INPUT_KIND_PAD_AXIS: u16 = 10;
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
