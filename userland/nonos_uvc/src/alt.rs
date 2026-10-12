@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! The alternate setting a stream runs on: the smallest whose endpoint
 //! carries, each service interval, at least the payload the device asked
 //! for in its probe (dwMaxPayloadTransferSize), so no bandwidth is held
@@ -26,6 +25,8 @@ pub struct Alt {
     pub max_packet: u16,
     /// Bytes one service interval carries.
     pub per_interval: u32,
+    /// The endpoint's bInterval.
+    pub interval: u8,
 }
 
 pub fn pick_alt(alts: &[Alt], payload: u32) -> Option<Alt> {
