@@ -61,3 +61,9 @@ pub(super) const fn call_allowed(cmd: u32, arg: u32) -> bool {
         _ => false,
     }
 }
+
+/// Whether GETVERSION's registers came from a backdoor: the magic back in
+/// EBX and a version in EAX. An unassigned port reads all ones instead.
+pub(super) const fn answered(regs: [u32; 4]) -> bool {
+    regs[1] == BACKDOOR_MAGIC && regs[0] != u32::MAX
+}
