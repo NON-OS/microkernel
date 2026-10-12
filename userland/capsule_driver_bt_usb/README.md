@@ -90,7 +90,8 @@ with the reason, and `controller given back:` with the reason.
 Caps `0x200038` (IPC, Memory, Crypto, Debug). Crypto is what the
 CryptoRandom syscall is gated on; pairing draws its key pair and nonces
 there, and the capsule stops if a draw fails. Service `driver.bt_usb0` on
-port 4236, reply port 4237. Proofs: `userland/bt_usb_proofs`.
+port 4342, reply port 4343 (`endpoint.4294967368`), from track E's range.
+Proofs: `userland/bt_usb_proofs`.
 
 ## Microkernel contract
 

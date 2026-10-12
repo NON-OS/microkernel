@@ -12,8 +12,8 @@ CAPSULE_DIR              := userland/capsule_driver_bt_usb
 CAPSULE_BIN_NAME         := driver_bt_usb
 CAPSULE_FEATURE          := nonos-capsule-driver-bt-usb
 CAPSULE_NAMESPACE        := systems.nonos.driver.bt_usb0
-CAPSULE_SERVICE_ENDPOINT := service:4236:driver.bt_usb0
-CAPSULE_REPLY_ENDPOINT   := reply:4237:endpoint.4294967324
+CAPSULE_SERVICE_ENDPOINT := service:4342:driver.bt_usb0
+CAPSULE_REPLY_ENDPOINT   := reply:4343:endpoint.4294967368
 # IPC | Memory | Crypto | Debug = 0x08 | 0x10 | 0x20 | 0x200000 = 0x200038
 # Crypto is what the CryptoRandom syscall is gated on: pairing's key pair
 # and nonces are drawn from it, and the capsule stops if a draw fails. No
