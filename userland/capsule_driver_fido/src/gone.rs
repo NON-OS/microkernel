@@ -17,10 +17,10 @@
 //! slot given back and its port free for the search again.
 
 use nonos_usbnet::say::say;
-use nonos_usbnet::scan::Scanner;
 use nonos_usbnet::xhci::{connected_ports, disable_slot};
 
 use crate::device::Dev;
+use crate::search::Search;
 
 pub fn gone(d: &Dev) -> bool {
     let Some(b) = d.bound.as_ref() else { return false };
@@ -28,13 +28,14 @@ pub fn gone(d: &Dev) -> bool {
 }
 
 /// Its request went with it; a key plugged in again gets a new channel.
-pub fn give_back(d: &mut Dev, scanner: &mut Scanner) {
+pub fn give_back(d: &mut Dev, search: &mut Search) {
     d.owner.close();
     d.job = crate::ctaphid::Job::Idle;
     d.spent = false;
     if let Some(b) = d.bound.take() {
         say(b"fido", &[b"key unplugged, given back"]);
+        // Shared, the host keeps the slot for the other driver.
         disable_slot(b.xhci, b.slot);
-        scanner.lost(b.xhci, b.port);
+        search.lost(&b);
     }
 }

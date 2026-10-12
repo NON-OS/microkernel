@@ -34,6 +34,11 @@ pub const OP_CONFIGURE_STREAMS: u16 = 0x0024;
 /// One report to an interrupt OUT endpoint, its ring from
 /// OP_ALLOC_TRANSFER_RING: `slot, dci, len_le16, data`.
 pub const OP_INTERRUPT_OUT: u16 = 0x0025;
+/// `slot, port, interface`: the caller drives that interface of the
+/// device; a second driver may then share the device (mux_claims.rs).
+pub const OP_CLAIM_INTERFACE: u16 = 0x0026;
+/// `port`: the shared slot there, `slot, 0, 0, 0, claimed u32`.
+pub const OP_SLOT_OF_PORT: u16 = 0x0027;
 pub const OP_BULK_OUT: u16 = 0x0011;
 pub const OP_BULK_IN: u16 = 0x0012;
 pub const OP_RESET_BULK: u16 = 0x0013;

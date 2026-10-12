@@ -66,7 +66,8 @@ answers -19 while there is no key, and every op but HEALTHCHECK and OPEN
 As above; every field little-endian. To the key, CTAPHID (as recalled,
 unverified): 64-byte reports, INIT 86h, CBOR 90h, CANCEL 91h, KEEPALIVE
 BBh, ERROR BFh. To the host, the host wire (`NXHC`): CONTROL_TRANSFER,
-ALLOC_TRANSFER_RING (0x09), INTERRUPT_IN (0x0E) and INTERRUPT_OUT (0x25).
+ALLOC_TRANSFER_RING (0x09), INTERRUPT_IN (0x0E), INTERRUPT_OUT (0x25),
+CLAIM_INTERFACE (0x26) and SLOT_OF_PORT (0x27).
 
 ## Authority
 
@@ -84,6 +85,11 @@ the owner's to decide.
 - A channel of its own from INIT at bind; CTAP2 keys only (the CBOR
   capability); a CTAP1-only key is not bound.
 - One request at a time, keep-alives passed on, CANCEL.
+- A composite key (an OTP keyboard beside the FIDO interface) is shared:
+  usb_hid0 binds and configures it and claims its keyboard; this driver
+  finds the shared slot (OP_SLOT_OF_PORT), never configures it again,
+  claims the FIDO interface and drives only that. Either may leave first;
+  the host keeps the slot until both have.
 
 ## State ownership
 
@@ -147,9 +153,8 @@ quiet and abandoned requests). The application reader is covered in
 ## Explicit non-goals today
 
 No CTAP1/U2F messages (MSG, 83h), no WINK or LOCK, no answers over 4000
-bytes, no more than one key, no NFC or BLE. A key in a composite device
-with a boot keyboard interface (an OTP key) is usb_hid0's whole device
-today; such a key is served only with that interface turned off.
+bytes, no more than one key, no NFC or BLE. A shared device is read in
+its first configuration, the one usb_hid0 sets.
 
 ## Verification
 
