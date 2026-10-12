@@ -6,8 +6,13 @@ version = 4
 name = "hda_proofs"
 version = "0.1.0"
 dependencies = [
+ "hda_proofs_libc_shim",
  "nonos_devmodel",
 ]
+
+[[package]]
+name = "hda_proofs_libc_shim"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_devmodel"

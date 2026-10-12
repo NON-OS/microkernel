@@ -44,21 +44,21 @@ pub trait Mmio {
 
 impl Mmio for Regs {
     fn read8(&self, off: usize) -> u8 {
-        unsafe { core::ptr::read_volatile((self.base + off) as *const u8) }
+        unsafe { nonos_libc::mmio_read8(self.base + off) }
     }
     fn write8(&self, off: usize, val: u8) {
-        unsafe { core::ptr::write_volatile((self.base + off) as *mut u8, val) }
+        unsafe { nonos_libc::mmio_write8(self.base + off, val) }
     }
     fn read16(&self, off: usize) -> u16 {
-        unsafe { core::ptr::read_volatile((self.base + off) as *const u16) }
+        unsafe { nonos_libc::mmio_read16(self.base + off) }
     }
     fn write16(&self, off: usize, val: u16) {
-        unsafe { core::ptr::write_volatile((self.base + off) as *mut u16, val) }
+        unsafe { nonos_libc::mmio_write16(self.base + off, val) }
     }
     fn read32(&self, off: usize) -> u32 {
-        unsafe { core::ptr::read_volatile((self.base + off) as *const u32) }
+        unsafe { nonos_libc::mmio_read32(self.base + off) }
     }
     fn write32(&self, off: usize, val: u32) {
-        unsafe { core::ptr::write_volatile((self.base + off) as *mut u32, val) }
+        unsafe { nonos_libc::mmio_write32(self.base + off, val) }
     }
 }

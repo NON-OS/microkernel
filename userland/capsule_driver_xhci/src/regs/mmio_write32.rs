@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub(crate) fn mmio_write32(addr: u64, value: u32) {
-    unsafe { core::ptr::write_volatile(addr as *mut u32, value) };
+    unsafe { nonos_libc::mmio_write32(addr as usize, value) };
 }
