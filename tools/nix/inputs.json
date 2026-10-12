@@ -32,6 +32,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_ccid.manifest.bin",
+   "nonos-data/trust/capsules/driver_ccid.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ccid.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_cdc_acm.manifest.bin",
    "nonos-data/trust/capsules/driver_cdc_acm.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_cdc_acm.zk_trailer.bin",
@@ -1412,6 +1415,20 @@
    "userland/capsule_driver_virtio_gpu/src/protocol/header.rs",
    "userland/capsule_driver_virtio_gpu/src/protocol/read.rs",
    "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_ccid": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/services/registry/usb_hosts.rs",
+   "userland/capsule_driver_ccid",
+   "userland/capsule_driver_cdc_acm/src/acm/owner.rs",
+   "userland/capsule_driver_cdc_acm/src/frame.rs",
+   "userland/libc",
+   "userland/nonos_usbnet"
   ],
   "md": [],
   "signed": []
@@ -2970,6 +2987,32 @@
   "md": [],
   "signed": []
  },
+ "userland/ccid_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ccid/src/ccid",
+   "userland/capsule_net_core/src/protocol/ops.rs",
+   "userland/ccid_proofs",
+   "userland/nonos_usbnet/src/bind.rs",
+   "userland/nonos_usbnet/src/bus.rs",
+   "userland/nonos_usbnet/src/desc",
+   "userland/nonos_usbnet/src/found.rs",
+   "userland/nonos_usbnet/src/halt.rs",
+   "userland/nonos_usbnet/src/hosts.rs",
+   "userland/nonos_usbnet/src/hosts_first.rs",
+   "userland/nonos_usbnet/src/nic.rs",
+   "userland/nonos_usbnet/src/nnet",
+   "userland/nonos_usbnet/src/scan/book.rs",
+   "userland/nonos_usbnet/src/scan/port.rs",
+   "userland/nonos_usbnet/src/scan/search.rs",
+   "userland/nonos_usbnet/src/setup.rs",
+   "userland/nonos_usbnet/src/xhci/wire.rs",
+   "userland/usbnet_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/cdc_acm_proofs": {
   "exclude": [],
   "include": [
@@ -3988,6 +4031,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_ccid.manifest.bin",
+   "nonos-data/trust/capsules/driver_ccid.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ccid.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_cdc_acm.manifest.bin",
    "nonos-data/trust/capsules/driver_cdc_acm.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_cdc_acm.zk_trailer.bin",

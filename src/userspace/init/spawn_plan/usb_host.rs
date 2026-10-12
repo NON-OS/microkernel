@@ -25,6 +25,7 @@
     feature = "nonos-capsule-driver-uvc",
     feature = "nonos-capsule-driver-cdc-acm",
     feature = "nonos-capsule-driver-usb-mic",
+    feature = "nonos-capsule-driver-ccid",
     feature = "nonos-capsule-driver-usb-audio",
     feature = "nonos-capsule-driver-cdc-ecm",
     feature = "nonos-capsule-driver-cdc-ncm",

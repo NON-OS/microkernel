@@ -174,6 +174,7 @@ nonos-capsule-driver-usb-hub    = []
 nonos-capsule-driver-uvc        = []
 nonos-capsule-driver-cdc-acm    = []
 nonos-capsule-driver-usb-mic    = []
+nonos-capsule-driver-ccid       = []
 nonos-capsule-driver-cdc-ecm    = []
 nonos-capsule-driver-cdc-ncm    = []
 nonos-capsule-driver-rndis      = []
@@ -567,6 +568,16 @@ microkernel-driver-usb-mic = [
   "nonos-capsule-driver-usb-hid",
   "nonos-capsule-driver-usb-hub",
   "nonos-capsule-driver-usb-mic",
+]
+
+microkernel-driver-ccid = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-ccid",
 ]
 
 microkernel-driver-usb-audio = [
