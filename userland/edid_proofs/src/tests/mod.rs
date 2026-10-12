@@ -17,6 +17,8 @@
 mod base_tests;
 mod cta_tests;
 mod displayid_tests;
+mod displayid_v13_tests;
+mod displayid_v2_more_tests;
 mod dtd_tests;
 mod eeodb_tests;
 mod established_tests;
