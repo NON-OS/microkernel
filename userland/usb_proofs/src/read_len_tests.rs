@@ -14,20 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The interrupt read for a bound endpoint asks for one packet, never more
-//! than the controller driver will take. That driver answers a longer read
-//! with E_INVAL, and an endpoint read that way never delivers a report.
+//! The interrupt read for a bound endpoint asks for one packet, at most a
+//! boot report, and never more than the controller driver will take. That
+//! driver answers a longer read with E_INVAL, and an endpoint read that way
+//! never delivers a report.
 
 use crate::poll::read_len::read_len;
-use crate::xhci_limits::HID_REPORT_MAX as XHCI_READ_MAX;
+use crate::xhci_limits::INTERRUPT_IN_MAX as XHCI_READ_MAX;
+
+/// A boot keyboard or mouse report: 8 bytes at most.
+const BOOT_REPORT: u16 = 8;
 
 #[test]
 fn a_read_asks_for_one_packet_and_never_past_what_the_controller_driver_takes() {
-    let most = XHCI_READ_MAX as u16;
+    assert!(BOOT_REPORT as usize <= XHCI_READ_MAX);
     for max_packet in 0..=u16::MAX {
         let len = read_len(max_packet);
-        assert!(len <= most, "{max_packet} byte packets read as {len}");
-        assert_eq!(len, max_packet.min(most), "{max_packet} byte packets");
+        assert!(len as usize <= XHCI_READ_MAX, "{max_packet} byte packets read as {len}");
+        assert_eq!(len, max_packet.min(BOOT_REPORT), "{max_packet} byte packets");
     }
 }
 
