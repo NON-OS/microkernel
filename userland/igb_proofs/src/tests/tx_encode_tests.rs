@@ -17,7 +17,7 @@
 //! The advanced transmit data descriptor against e1000_82575.h: the literal
 //! E1000_ADVTXD_* values, then whole-word vectors and the field positions.
 
-use crate::constants::tx_bits::*;
+use crate::facts::tx::*;
 use crate::queue::tx_encode::{cmd_type_len, olinfo_status};
 
 #[test]

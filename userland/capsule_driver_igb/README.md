@@ -9,7 +9,7 @@ image carries it until the owner signs it.
 ## Role
 
 `capsule_driver_igb` is the Intel 82575, 82576, 82580, I350, I210 and I211
-GbE Ethernet driver capsule (Linux `igb`), for a copper port. It owns the PCI
+GbE Ethernet driver capsule, for a copper port. It owns the PCI
 function, BAR0, one advanced RX queue, one advanced TX queue and raw
 Ethernet frame movement, and stops at the frame boundary. QEMU's `igb`
 device is an 82576 and drives this path.
@@ -27,7 +27,7 @@ driver.igb_0 -- broker MMIO + DMA rings --> 82575 .. I211 (internal PHY)
 ## Microkernel contract
 
 - `MkDeviceList` finds the first Intel Ethernet function whose ID is in
-  the igb table (every entry of Linux `igb_pci_tbl`).
+  `facts/ids.rs` (as observed in Linux's igb table, unverified).
 - `MkDeviceClaim` claims it; `MkPciConfigWrite` turns on Memory Space and
   Bus Master Enable.
 - `MkMmioMap` maps BAR0; `MkDmaMap` takes the RX ring, RX buffers, TX ring
@@ -61,7 +61,7 @@ without entropy. Nothing is stored.
 ## Runtime lifecycle
 
 Discover, claim, enable bus mastering, map, take DMA grants, then bring the
-part up in Linux's order (PCIe master stop, global reset, media check,
+part up stage by stage (`bring/stage.rs`: PCIe master stop, reset, media check,
 address and filters, link with Go Link Disconnect cleared, PHY power-up
 under this port's SW/FW semaphore, MAC enables, TX queue, RX queue) and
 serve IPC until the process ends.

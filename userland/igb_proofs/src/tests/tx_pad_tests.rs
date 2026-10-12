@@ -18,9 +18,9 @@
 //! (the the maintainers' review): the frame, then zeros, and the descriptor
 //! names the padded length. The stack's own minimum stays 14 bytes.
 
-use crate::constants::queue::TX_BUFFER_LEN;
-use crate::constants::MIN_ETHERNET_FRAME;
 use crate::queue::tx_pad::{fill, MIN_WIRE_LEN};
+use crate::sizes::ring::TX_BUFFER_LEN;
+use crate::sizes::MIN_ETHERNET_FRAME;
 
 #[test]
 fn a_bare_header_is_padded_to_seventeen_bytes() {

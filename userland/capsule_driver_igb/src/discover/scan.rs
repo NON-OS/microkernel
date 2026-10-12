@@ -20,7 +20,7 @@ use super::bar_command::command_bits;
 use super::choose::choose;
 use super::found::Found;
 use super::support::part;
-use crate::constants::pci::is_copper;
+use crate::facts::ids::is_copper;
 
 /// The device list holds ACPI and fabricated records beside PCI functions;
 /// at 32 a machine with more stopped short of the device behind a root port.
