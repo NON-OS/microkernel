@@ -45,6 +45,8 @@ pub mod platform;
 pub mod power;
 #[path = "../../nonos_aml/src/region/mod.rs"]
 pub mod region;
+#[path = "../../nonos_aml/src/serial/mod.rs"]
+pub mod serial;
 #[path = "../../nonos_aml/src/shape/mod.rs"]
 pub mod shape;
 #[path = "../../nonos_aml/src/sleep/mod.rs"]
