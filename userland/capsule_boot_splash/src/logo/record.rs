@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! MkBootLogo's which=0 answer, 28 bytes little-endian: x, y, width, height
-//! u32; flags u8; quarter turns u8; bits per pixel u16; file size u32; the
-//! pixel array's offset into the file u32 (the F-50 note).
+//! MkBootLogo's which=0 answer, little-endian: x, y, width, height u32;
+//! flags u8; quarter turns u8; bits per pixel u16; file size u32; the pixel
+//! array's offset into the file u32 (F-50); then the firmware mode's width
+//! and height u32 (F-60, 0 by 0 when there was none). A kernel before F-60
+//! answers the first 28 bytes only, and the mode is then worked out.
 
 pub const RECORD_LEN: usize = 28;
 /// The firmware had the logo on screen when it handed over.
@@ -36,12 +38,16 @@ pub struct Record {
     pub bpp: u16,
     pub file_size: u32,
     pub pixel_offset: u32,
+    /// The framebuffer's size when the firmware kept the logo, if given.
+    pub mode: Option<(u32, u32)>,
 }
 
 impl Record {
     /// None for a short buffer or a turn count past three.
-    pub fn parse(b: &[u8]) -> Option<Record> {
-        let b: &[u8; RECORD_LEN] = b.get(..RECORD_LEN)?.try_into().ok()?;
+    pub fn parse(all: &[u8]) -> Option<Record> {
+        let b: &[u8; RECORD_LEN] = all.get(..RECORD_LEN)?.try_into().ok()?;
+        let at = |o: usize| Some(u32::from_le_bytes(all.get(o..o + 4)?.try_into().ok()?));
+        let mode = (at(28), at(32));
         let u = |o: usize| u32::from_le_bytes([b[o], b[o + 1], b[o + 2], b[o + 3]]);
         let r = Record {
             x: u(0),
@@ -53,6 +59,10 @@ impl Record {
             bpp: u16::from_le_bytes([b[18], b[19]]),
             file_size: u(20),
             pixel_offset: u(24),
+            mode: match mode {
+                (Some(w), Some(h)) if w > 0 && h > 0 => Some((w, h)),
+                _ => None,
+            },
         };
         (r.turns < 4).then_some(r)
     }
