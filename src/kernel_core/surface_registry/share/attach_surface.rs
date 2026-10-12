@@ -32,6 +32,8 @@ pub fn attach_surface(
     if crate::process::foreign::is_foreign(receiver_pid) {
         return Err(RegistryError::InvalidArg);
     }
+    // Before any record is read: a handle is easy to guess (L18c).
+    super::permit::permit(receiver_pid, handle)?;
     /* Held until the mapping is recorded; see `pin::gate`. */
     let _gate = crate::smp::lock_responsive(&super::super::pin::gate::GATE);
     if let Some(done) = super::existing::existing(receiver_pid, handle, out_desc) {

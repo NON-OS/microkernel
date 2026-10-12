@@ -16,7 +16,15 @@
 
 use crate::syscall::{call_raw, N_MK_SURFACE_SHARE};
 
+// Shares with the compositor, whichever process serves it when it attaches.
 #[no_mangle]
 pub extern "C" fn mk_surface_share(sid: u64) -> i64 {
     call_raw(N_MK_SURFACE_SHARE, [sid, 0, 0, 0, 0, 0])
+}
+
+// Shares with `receiver_pid`'s process alone; call once per receiver. Nobody
+// else can attach the handle, however they come by it.
+#[no_mangle]
+pub extern "C" fn mk_surface_share_to(sid: u64, receiver_pid: u32) -> i64 {
+    call_raw(N_MK_SURFACE_SHARE, [sid, receiver_pid as u64, 0, 0, 0, 0])
 }
