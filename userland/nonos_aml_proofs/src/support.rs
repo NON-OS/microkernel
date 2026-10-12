@@ -35,6 +35,8 @@ pub mod flat;
 pub mod probe;
 #[path = "probe_host.rs"]
 pub mod probe_host;
+#[path = "probe_regs.rs"]
+pub mod probe_regs;
 #[path = "probe_lock.rs"]
 pub mod probe_lock;
 #[path = "regs.rs"]
