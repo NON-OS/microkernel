@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
+mod lifecycle;
 mod state;
 
 pub use api::{
-    clear_log_buffer, enter_panic_mode, get_log_entries, get_recent_logs, init, log, log_critical,
-    log_entry_count, try_get_logger, wipe_ram_log,
+    clear_log_buffer, enter_panic_mode, get_log_entries, get_recent_logs, log, log_critical,
+    log_entry_count, try_get_logger,
 };
+pub use lifecycle::{init, wipe_ram_log};
 pub use state::{LogManager, LOGGER, PANIC_MODE};
