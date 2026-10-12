@@ -32,6 +32,10 @@ pub const OP_RESET_BULK: u16 = 0x0013;
 /// at an armed bulk IN, answered at once. 0x20, 0x21 are the hub ops; the
 /// isoch ops keep clear of them.
 pub const OP_BULK_IN_POLL: u16 = 0x0014;
+/// A device below a hub addressed by its route (usb_hid's hub walk).
+pub const OP_ADDRESS_ROUTED: u16 = 0x0020;
+/// A slot marked a hub, with its port count and TT think time.
+pub const OP_CONFIGURE_HUB: u16 = 0x0021;
 pub const OP_CONFIGURE_ISOCH: u16 = 0x0018;
 pub const OP_ISOCH_OUT: u16 = 0x0019;
 pub const OP_ISOCH_IN: u16 = 0x001A;
