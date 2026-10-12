@@ -45,10 +45,7 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     crate::kernel_core::surface_registry::release_owned_by_pid(pid);
     crate::kernel_core::surface_registry::attach_map::forget_pid(pid);
     let current = CURRENT_PID.load(Ordering::Acquire) == pid;
-    crate::hardware::broker::release_all_for_pid(pid, current);
-    crate::hardware::broker::irq_release_all_for_pid(pid);
-    crate::hardware::broker::dma_release_all_for_pid(pid, current);
-    crate::hardware::broker::pio_release_all_for_pid(pid);
+    super::devices::release_if_last(pid, current);
     crate::syscall::microkernel::ipc::release_pending_replies_for_pid(pid);
 
     super::end_note::note(pid, exit_code, by_signal);
