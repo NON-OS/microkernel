@@ -26,8 +26,8 @@ pub fn health(port: u32, magic: u32) -> bool {
     tx[6..8].copy_from_slice(&OP_HEALTHCHECK.to_le_bytes());
     tx[12..16].copy_from_slice(&1u32.to_le_bytes());
     // Bounded so a truly dead service reads as unhealthy instead of freezing
-    // the caller, but generous: on a single contended core a live DNS or
-    // sockets capsule can take well over a second to answer a ping, and a tight
+    // the caller, but generous: on a single contended core a live network
+    // service can take well over a second to answer a ping, and a tight
     // bound would wrongly mark the whole route blocked and stop every fetch.
     let rc =
         mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len(), 3000);

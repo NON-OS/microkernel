@@ -31,16 +31,15 @@ impl Exchange {
         match opening.step() {
             Ok(None) => Ok(None),
             Ok(Some(link)) => {
-                self.tcp = TcpProbe { resolve: true, socket: true, connect: true };
+                self.tcp = TcpProbe { connect: true };
                 self.link = Some(link);
                 self.stage = Stage::Hello;
                 Ok(None)
             }
-            Err(reach) => {
-                self.tcp =
-                    TcpProbe { resolve: reach.resolve, socket: reach.socket, connect: false };
-                self.unopened = Some(reach.why);
-                Err(reach.why)
+            Err(why) => {
+                self.tcp = TcpProbe { connect: false };
+                self.unopened = Some(why);
+                Err(why)
             }
         }
     }

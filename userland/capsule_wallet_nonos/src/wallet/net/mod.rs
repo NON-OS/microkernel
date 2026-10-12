@@ -15,27 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bounds;
-mod call;
 mod constants;
 mod handshake_end;
 mod health;
 pub mod last_read;
 mod link;
 mod lookup;
+pub mod private_route;
 mod probe_rpc_tcp;
 mod probe_status;
 mod probe_tls_rpc;
 pub mod read_snapshot;
 mod read_tls_flight;
-mod resolve_eth;
 mod route_text;
 mod rtc_stamp;
-pub mod send_cap;
-mod socket_close;
-mod socket_connect;
-mod socket_open;
-mod socket_recv;
-mod socket_send;
 mod status;
 pub mod step;
 

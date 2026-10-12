@@ -22,8 +22,9 @@ use super::super::super::bounds::Bounds;
 use super::super::super::read_tls_flight::FLIGHT_MAX;
 use super::super::open::Opening;
 
-/* A direct socket says nothing of a close, so its quiet window ends it. */
-pub(super) const DIRECT: Bounds =
+/* Before a link opens there is nothing to read; these bound a gather that
+ * somehow starts without one. */
+pub(super) const UNLINKED: Bounds =
     Bounds { first_ms: 10_000, quiet_ms: 600, total_ms: 30_000, max: FLIGHT_MAX };
 
 pub(super) enum Stage {

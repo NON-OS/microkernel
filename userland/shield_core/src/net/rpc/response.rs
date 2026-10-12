@@ -40,6 +40,7 @@ pub fn call_result(reply: &str) -> Result<Vec<u8>, NetError> {
 }
 
 /// A batch of `n` results placed by id. An error, a missing id or a repeat refuses the batch.
+/// `n` is the caller's own count of the calls it sent, never a peer's number.
 pub fn call_results(reply: &str, n: usize) -> Result<Vec<Vec<u8>>, NetError> {
     refuse_error(reply)?;
     let mut out: Vec<Option<Vec<u8>>> = vec![None; n];

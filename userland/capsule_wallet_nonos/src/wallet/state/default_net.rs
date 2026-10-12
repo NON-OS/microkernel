@@ -18,12 +18,8 @@ use crate::wallet::net::NetStatus;
 
 pub fn default_net() -> NetStatus {
     NetStatus {
-        dns_ok: false,
-        sockets_ok: false,
         nym_ok: false,
         route_ready: false,
-        rpc_resolve_ok: false,
-        rpc_socket_ok: false,
         rpc_connect_ok: false,
         rpc_tcp_ok: false,
         rpc_codec_ok: false,

@@ -226,3 +226,7 @@ mod handshake_tests;
 mod send_tests;
 #[cfg(test)]
 mod rpc_hostile_tests;
+#[cfg(test)]
+mod private_route_tests;
+#[cfg(test)]
+mod private_route_gate_tests;

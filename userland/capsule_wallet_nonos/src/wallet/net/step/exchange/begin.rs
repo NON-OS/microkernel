@@ -45,7 +45,7 @@ impl Exchange {
             gather: None,
             now: None,
             handshake_end: None,
-            tcp: TcpProbe { resolve: false, socket: false, connect: false },
+            tcp: TcpProbe { connect: false },
             tls: TlsProbe::blocked(),
             unopened: None,
             answer_len: 0,
