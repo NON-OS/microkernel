@@ -53,6 +53,7 @@ pub fn register_owned(
         return Err(RegistryError::InvalidArg);
     }
     let device = crate::hardware::broker::touches_device_window(desc.base_va, desc.byte_len);
+    let grant = super::register_grant::own_grant(pid, desc, device);
     new.sort_unstable();
     {
         // Nowhere else holds both; taken in this order, nothing can wait on
@@ -61,10 +62,10 @@ pub fn register_owned(
         let orphans = ORPHANS.lock();
         let live = slots.iter().flatten().flat_map(|s| s.frames.iter());
         let orphaned = orphans.iter().flat_map(|o| o.frames.iter());
-        may_register(device, &new, live.chain(orphaned).map(|f| f.as_u64()))
+        may_register(device && grant.is_none(), &new, live.chain(orphaned).map(|f| f.as_u64()))
             .map_err(|_| RegistryError::NotOwner)?;
     }
-    let (sid, handle) = register_surface(pid, desc, frames)?;
+    let (sid, handle) = register_surface(pid, desc, frames, grant)?;
     attach_map::record(pid, handle, desc.base_va, desc.byte_len);
     Ok((sid, handle))
 }
