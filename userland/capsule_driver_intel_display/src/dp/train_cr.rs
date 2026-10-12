@@ -23,7 +23,7 @@ use super::aux::Aux;
 use super::dpcd::{LANE0_1_STATUS, TRAINING_PATTERN_SET};
 use super::lane::{Drive, LaneStatus};
 use super::native::{read, write};
-use super::train::{Link, Pattern, TrainError};
+use super::train::{Pattern, Source, TrainError};
 
 const CR_WAIT_US: u32 = 100;
 const SAME_SWING_TRIES: u32 = 5;
@@ -42,30 +42,26 @@ pub(super) fn status(aux: &mut dyn Aux) -> Result<LaneStatus, TrainError> {
     Ok(s)
 }
 
-pub fn clock_recovery(
-    aux: &mut dyn Aux,
-    tx: &mut dyn Link,
-    lanes: u32,
-) -> Result<Drive, TrainError> {
+pub fn clock_recovery(s: &mut dyn Source, lanes: u32) -> Result<Drive, TrainError> {
     let mut d = Drive::default();
-    tx.pattern(Pattern::Tps1);
-    tx.drive(d);
+    s.pattern(Pattern::Tps1);
+    s.drive(d);
     // 0x21: TPS1 with scrambling disabled.
-    set(aux, 0x21, d, lanes)?;
+    set(s, 0x21, d, lanes)?;
     let mut same = 1;
     loop {
-        tx.wait_us(CR_WAIT_US);
-        let s = status(aux)?;
-        if s.cr_done(lanes) {
+        s.wait_us(CR_WAIT_US);
+        let st = status(s)?;
+        if st.cr_done(lanes) {
             return Ok(d);
         }
-        let want = s.requested(lanes);
+        let want = st.requested(lanes);
         if d.swing == 3 || (want.swing == d.swing && same >= SAME_SWING_TRIES) {
             return Err(TrainError::Failed);
         }
         same = if want.swing == d.swing { same + 1 } else { 1 };
         d = want;
-        tx.drive(d);
-        set(aux, 0x21, d, lanes)?;
+        s.drive(d);
+        set(s, 0x21, d, lanes)?;
     }
 }

@@ -20,12 +20,14 @@
 //! timeout when the sink gives none.
 
 use super::gen9::Gen9;
+use super::sink_aux::AuxEnd;
+use crate::dp::aux::Aux;
 use crate::engine::aux_regs::TIMEOUT_ERROR;
 use crate::engine::aux_regs::{aux_ctl, aux_data, DONE, SEND_BUSY, SIZE_MASK, SIZE_SHIFT};
 
 impl Gen9 {
     pub(super) fn aux_write(&mut self, off: u32, v: u32) {
-        let Some((ddi, _)) = &self.aux else { return };
+        let Some((ddi, _)) = &self.sink else { return };
         let ddi = *ddi;
         if off != aux_ctl(ddi) {
             return;
@@ -46,8 +48,8 @@ impl Gen9 {
         }
         req.truncate(len);
         let mut reply = [0u8; 20];
-        let sink = &mut self.aux.as_mut().unwrap().1;
-        let ctl = match sink.transfer(&req, &mut reply) {
+        let mut end = AuxEnd(self.sink.as_ref().unwrap().1.clone());
+        let ctl = match end.transfer(&req, &mut reply) {
             Ok(n) => {
                 for i in 0..n.div_ceil(4) {
                     let w = u32::from_be_bytes(reply[i * 4..i * 4 + 4].try_into().unwrap());

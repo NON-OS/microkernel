@@ -19,36 +19,34 @@
 //! between tries. A lane losing clock recovery fails the phase, as do
 //! five tries without lock and alignment.
 
-use super::aux::Aux;
 use super::caps::Caps;
 use super::lane::Drive;
-use super::train::{Link, Pattern, TrainError};
+use super::train::{Pattern, Source, TrainError};
 use super::train_cr::{set, status};
 
 const EQ_TRIES: u32 = 5;
 
 pub fn equalise(
-    aux: &mut dyn Aux,
-    tx: &mut dyn Link,
+    s: &mut dyn Source,
     caps: &Caps,
     lanes: u32,
     mut d: Drive,
 ) -> Result<Drive, TrainError> {
     let (pattern, code) = if caps.tps3 { (Pattern::Tps3, 0x23) } else { (Pattern::Tps2, 0x22) };
-    tx.pattern(pattern);
-    set(aux, code, d, lanes)?;
+    s.pattern(pattern);
+    set(s, code, d, lanes)?;
     for _ in 0..EQ_TRIES {
-        tx.wait_us(caps.eq_interval_us);
-        let s = status(aux)?;
-        if !s.cr_done(lanes) {
+        s.wait_us(caps.eq_interval_us);
+        let st = status(s)?;
+        if !st.cr_done(lanes) {
             return Err(TrainError::Failed);
         }
-        if s.eq_done(lanes) {
+        if st.eq_done(lanes) {
             return Ok(d);
         }
-        d = s.requested(lanes);
-        tx.drive(d);
-        set(aux, code, d, lanes)?;
+        d = st.requested(lanes);
+        s.drive(d);
+        set(s, code, d, lanes)?;
     }
     Err(TrainError::Failed)
 }

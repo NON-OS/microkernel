@@ -22,12 +22,11 @@ use crate::dp::i2c::read_edid;
 use crate::engine::aux_ch::AuxCh;
 use crate::engine::aux_regs::{aux_data, Ddi};
 use crate::model::sink::sink;
-use crate::model::sink_aux::AuxEnd;
 use crate::model::{Gen9, Ticks};
 
 pub(super) fn with_sink(edid: Vec<u8>) -> Gen9 {
     let mut m = Gen9::new(1);
-    m.aux = Some((Ddi::B, Box::new(AuxEnd(sink(edid)))));
+    m.sink = Some((Ddi::B, sink(edid)));
     m
 }
 

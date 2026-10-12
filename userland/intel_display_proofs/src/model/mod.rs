@@ -17,6 +17,7 @@
 pub mod aux_hw;
 pub mod bus;
 pub mod clock;
+pub mod ddi_hw;
 pub mod expiry;
 pub mod firmware;
 pub mod gen9;
@@ -25,6 +26,7 @@ pub mod mmio;
 pub mod scanout;
 pub mod sink;
 pub mod sink_aux;
+pub mod sink_both;
 pub mod sink_link;
 pub mod sink_status;
 pub mod south;

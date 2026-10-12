@@ -21,11 +21,11 @@ use crate::dp::lane::Drive;
 use crate::dp::train::{train, Pattern, TrainError, Trained};
 use crate::model::sink::{sink, Sink};
 use crate::model::sink_aux::AuxEnd;
-use crate::model::sink_link::LinkEnd;
+use crate::model::sink_both::Both;
 
 pub(super) fn go(s: &Sink, max: (u32, u32)) -> Result<Trained, TrainError> {
     let caps = Caps::read(&mut AuxEnd(s.clone())).unwrap().unwrap();
-    train(&mut AuxEnd(s.clone()), &mut LinkEnd(s.clone()), &caps, max)
+    train(&mut Both(s.clone()), &caps, max)
 }
 
 #[test]
