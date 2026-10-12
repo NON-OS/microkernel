@@ -11,7 +11,7 @@ test scripts for an opcode. It cuts each event into
 every command and bulk transfer the host makes. So each test runs the host,
 the USB transport and the joiner together.
 
-36 tests:
+39 tests:
 
 | File | Tests | What it checks |
 |---|---|---|
@@ -26,6 +26,7 @@ the USB transport and the joiner together.
 | `connect_cancel_tests.rs` | 3 | a peer not heard within the budget is cancelled and its Unknown Connection Identifier taken; a cancel after the link came up is disallowed and the link kept, its event before or after the cancel's answer; any other refused cancel is its status |
 | `encrypt_tests.rs` | 3 | LE Enable Encryption with Rand and EDIV zero and the LTK least significant octet first, a reserved handle refused; another link's Encryption Change kept; a refusal, and a change that leaves the link clear, are statuses |
 | `encrypt_end_tests.rs` | 2 | a link that drops ends the wait with its reason and its Disconnection Complete stays queued; no change within the budget is a timeout |
+| `address_tests.rs` | 3 | LE Set Random Address laid out byte by byte, then scan and connection made as random; the reserved kind and forbidden random parts refused unsent; an address the controller refuses leaves scans public |
 | `update_tests.rs` | 3 | LE Connection Update laid out byte by byte and taken on Command Status; a refusal is its status; timing out of range or a reserved handle refused unsent |
 
 Each expected byte string is laid out by hand from the cited section of the
@@ -40,3 +41,7 @@ test fail:
 - not keeping the Disconnection Complete that ends an encryption wait;
 - taking a disallowed cancel as an error;
 - taking another link's Encryption Change.
+
+Three more were tried for the random address (E-21), each caught: the scan
+made as public regardless; the address taken before the controller agreed;
+an RPA's random part checked as a static one's.

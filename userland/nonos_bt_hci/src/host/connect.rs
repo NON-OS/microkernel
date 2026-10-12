@@ -42,12 +42,15 @@ pub const DEFAULT_LINK: ConnParams =
 /// Initiator_Filter_Policy 0: connect to the named peer, not to whoever
 /// is on the Filter Accept List.
 const NAMED_PEER: u8 = 0x00;
-/// Own_Address_Type 0, public, as the passive scan uses.
-const OWN_PUBLIC: u8 = 0x00;
-
-/// The 25 parameter octets, or `Reserved` for timing outside the ranges
-/// 7.8.12 allows (the connection ranges are those `ConnParams` checks).
+/// The 25 parameter octets with Own_Address_Type public, or `Reserved`
+/// for timing outside the ranges 7.8.12 allows (the connection ranges are
+/// those `ConnParams` checks).
 pub fn create_connection_params(c: &Connect) -> Result<Vec<u8>, HciError> {
+    create_connection_params_as(c, AddrType::Public)
+}
+
+/// As above, as `own`: random once a random address is set (7.8.4).
+pub fn create_connection_params_as(c: &Connect, own: AddrType) -> Result<Vec<u8>, HciError> {
     if !c.scan.valid() || !c.link.acceptable() {
         return Err(HciError::Wire(WireError::Reserved));
     }
@@ -56,7 +59,7 @@ pub fn create_connection_params(c: &Connect) -> Result<Vec<u8>, HciError> {
     p.extend_from_slice(&c.scan.window.to_le_bytes());
     p.extend_from_slice(&[NAMED_PEER, c.peer_type.wire()]);
     p.extend_from_slice(&c.peer.0);
-    p.push(OWN_PUBLIC);
+    p.push(own.wire());
     let l = c.link;
     for v in [l.interval_min, l.interval_max, l.latency, l.timeout] {
         p.extend_from_slice(&v.to_le_bytes());

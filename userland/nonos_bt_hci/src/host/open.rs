@@ -16,7 +16,7 @@
 //! Opening a link: LE Create Connection, then LE Connection Complete
 //! (Vol 4, Part E, 7.7.65.1), with a cancel when none comes in time.
 
-use super::connect::{create_connection_params, Connect};
+use super::connect::{create_connection_params_as, Connect};
 use super::state::Host;
 use crate::error::HciError;
 use crate::transport::Transport;
@@ -37,7 +37,7 @@ impl<T: Transport> Host<T> {
     /// event is taken here and the answer is `Timeout`.
     pub fn connect(&mut self, c: &Connect) -> Result<LeConnectionComplete, HciError> {
         let create = op::LE_CREATE_CONNECTION;
-        self.command_pending(create, &create_connection_params(c)?)?;
+        self.command_pending(create, &create_connection_params_as(c, self.own)?)?;
         if let Some(done) = self.wait_for(connection_complete)? {
             return match done.status {
                 0 => Ok(done),
