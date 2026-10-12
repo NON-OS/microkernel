@@ -29,10 +29,14 @@ pub const MSG_HALT: u32 = 3;
 pub const MSG_QUERY: u32 = 4;
 pub const MSG_SET: u32 = 5;
 pub const MSG_INDICATE: u32 = 7;
+pub const MSG_KEEPALIVE: u32 = 8;
 /// A completion carries its request's type with the top bit set.
 pub const COMPLETION: u32 = 0x8000_0000;
 
 pub const STATUS_SUCCESS: u32 = 0;
+/// INDICATE_STATUS's media states (as recalled, unverified).
+pub const STATUS_MEDIA_CONNECT: u32 = 0x4001_000B;
+pub const STATUS_MEDIA_DISCONNECT: u32 = 0x4001_000C;
 pub const MEDIUM_802_3: u32 = 0;
 
 pub const OID_802_3_PERMANENT_ADDRESS: u32 = 0x0101_0101;

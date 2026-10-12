@@ -19,8 +19,8 @@
 //! is_rndis, is_wireless_rndis and is_novatel_rndis name, its data
 //! interface, and the alternate setting of that one with the bulk pipes.
 
-use nonos_usbnet::desc::{find_functional, interfaces, Interface, CLASS_COMM};
-use nonos_usbnet::Pipes;
+use nonos_usbnet::desc::{find_functional, interfaces, notify_ep, Interface, CLASS_COMM};
+use nonos_usbnet::{Notify, Pipes};
 
 use super::data_iface::data_interface;
 
@@ -38,6 +38,8 @@ pub struct RndisFunction {
     pub data: u8,
     pub data_alt: u8,
     pub pipes: Pipes,
+    /// Its notification endpoint, when it has one.
+    pub notify: Option<Notify>,
 }
 
 pub fn find_rndis(raw: &[u8]) -> Option<RndisFunction> {
@@ -46,7 +48,8 @@ pub fn find_rndis(raw: &[u8]) -> Option<RndisFunction> {
     controls.filter(|c| !acm_capable(raw, c)).find_map(|c| {
         let data = data_interface(raw, &ifs, c.number)?;
         let on = ifs.iter().find(|i| i.number == data && i.has_bulk_pair())?;
-        Some(RndisFunction { comm: c.number, data, data_alt: on.alt, pipes: on.pipes })
+        let notify = notify_ep(raw, c.number);
+        Some(RndisFunction { comm: c.number, data, data_alt: on.alt, pipes: on.pipes, notify })
     })
 }
 

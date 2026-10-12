@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Binding an RNDIS device, in the order Linux generic_rndis_bind takes:
-//! the configuration with an RNDIS function, INITIALIZE, the permanent
-//! station address, then the packet filter. A failure after INITIALIZE
-//! halts the device again, as Linux does at halt_fail_and_release.
+//! Binding an RNDIS device as Linux generic_rndis_bind does (observed,
+//! unverified): INITIALIZE, the station address, the packet filter, and a
+//! HALT for a failure after INITIALIZE.
 
 use nonos_usbnet::desc::config_header;
 use nonos_usbnet::xhci::{CONTROL_MAX, E_IO};
@@ -34,7 +33,13 @@ pub fn bind<B: Bus>(mut bus: B, found: &Found) -> Bind<Rndis<B>> {
     let pick = |raw: &alloc::vec::Vec<u8>| Some((config_header(raw)?.1, find_rndis(raw)?));
     let Some((value, f)) = found.configs.iter().find_map(pick) else { return Bind::NotOurs };
     match start(&mut bus, value, &f) {
-        Ok((mac, limits)) => Bind::Ours(Rndis::new(bus, mac, f.pipes, limits)),
+        Ok((mac, limits)) => {
+            // Without its notifications the link reads up, as it did before.
+            let notify = f.notify.and_then(|ep| bus.configure_interrupt(ep).ok());
+            let mut nic = Rndis::new(bus, mac, f.pipes, limits);
+            (nic.comm, nic.notify) = (f.comm, notify);
+            Bind::Ours(nic)
+        }
         Err((what, e)) => Bind::Failed(what, e),
     }
 }

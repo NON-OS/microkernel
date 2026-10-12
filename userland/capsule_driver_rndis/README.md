@@ -54,8 +54,17 @@ bulk IN of 4096 bytes may hold several messages; each is checked against
 the transfer and its frame against the message, and the frames go up one
 per receive. A malformed message is dropped.
 
-The link reads up once bound: media state comes on the interrupt endpoint,
-which driver.xhci0 does not configure beside bulk pipes.
+The link reads up once bound, and from then on follows what the device
+sends unasked. Its control interface's interrupt IN endpoint is configured
+(Bus::configure_interrupt) and looked at once every 64 receives. When it
+says a response waits, one GET_ENCAPSULATED_RESPONSE is read:
+INDICATE_STATUS with MEDIA_CONNECT or MEDIA_DISCONNECT sets the link, and a
+KEEPALIVE is answered with KEEPALIVE_CMPLT under its RequestID (Remote
+NDIS 1.0, as recalled, unverified). Each message's length is checked
+against what came. A device without the endpoint reads up while bound.
+
+Only the OIDs a station needs are asked: OID_802_3_PERMANENT_ADDRESS
+(QUERY) and OID_GEN_CURRENT_PACKET_FILTER (SET).
 
 ## Log
 
@@ -180,7 +189,7 @@ is on main yet.
 
 ## Explicit non-goals today
 
-ActiveSync devices, KEEPALIVE answers, wireless RNDIS (rndis_wlan), media state tracking, devices whose MaxTransferSize is under one frame.
+ActiveSync devices, wireless RNDIS (rndis_wlan), keepalives sent by the host, devices whose MaxTransferSize is under one frame.
 
 ## Verification
 
