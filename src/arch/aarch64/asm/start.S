@@ -10,7 +10,8 @@
  * magic places the image text_offset past a 2 MiB aligned RAM base and
  * hands over the device tree in x0; QEMU's -kernel does that for an Image
  * and passes nothing for an ELF. The kernel is linked at 0x4008_0000, so
- * text_offset is 0x8_0000 and the base has to be virt's 0x4000_0000. */
+ * text_offset is 0x8_0000; flags bit 3 says any 2 MiB aligned base will
+ * do, which the relocation below makes true. */
 
 /* Drop to EL1 if firmware, or PSCI for a secondary, entered at EL2. Every
  * EL2 control is per CPU and resets UNKNOWN, and EL2 has no vectors here,
@@ -134,8 +135,8 @@ _start:
     .long   0                           /* code1 */
     .quad   0x80000                     /* text_offset */
     .quad   __kernel_image_size         /* image_size, BSS and stack included */
-    .quad   0x2                         /* flags: little endian, 4 KiB pages,
-                                           placed near the base of DRAM */
+    .quad   0xa                         /* flags: little endian, 4 KiB pages,
+                                           any 2 MiB aligned base in DRAM */
     .quad   0                           /* res2 */
     .quad   0                           /* res3 */
     .quad   0                           /* res4 */
@@ -161,6 +162,25 @@ _start:
     add     x0, x0, :lo12:__stack_top
     mov     sp, x0
 
+    /* Every pointer stored in data still holds nothing (boot/relocate):
+     * apply .rela.dyn before anything reads one, Rust included. */
+    adrp    x0, __rela_start
+    add     x0, x0, :lo12:__rela_start
+    adrp    x1, __rela_end
+    add     x1, x1, :lo12:__rela_end
+    movz    x2, #:abs_g3:__kernel_link_base
+    movk    x2, #:abs_g2_nc:__kernel_link_base
+    movk    x2, #:abs_g1_nc:__kernel_link_base
+    movk    x2, #:abs_g0_nc:__kernel_link_base
+    adrp    x3, __kernel_image_start
+    add     x3, x3, :lo12:__kernel_image_start
+    movz    x4, #:abs_g3:__kernel_image_size
+    movk    x4, #:abs_g2_nc:__kernel_image_size
+    movk    x4, #:abs_g1_nc:__kernel_image_size
+    movk    x4, #:abs_g0_nc:__kernel_image_size
+    bl      aarch64_relocate
+    cbnz    x0, .L_unrelocatable
+
     adrp    x1, __bss_start
     add     x1, x1, :lo12:__bss_start
     adrp    x2, __bss_end
@@ -171,6 +191,27 @@ _start:
     str     xzr, [x1], #8
     b       .L_bss
 .L_bss_done:
+
+    /* The relocations and the BSS were written with the data cache off,
+     * straight to memory. A line the loader left in the cache would
+     * shadow them once it is on, so drop every line of that range
+     * (Arm ARM, DDI 0487, DC IVAC and cache-disabled accesses). */
+    mrs     x3, ctr_el0
+    ubfx    x3, x3, #16, #4             /* DminLine, log2 words */
+    mov     x4, #4
+    lsl     x4, x4, x3
+    sub     x5, x4, #1
+    adrp    x1, __kernel_rw_start
+    add     x1, x1, :lo12:__kernel_rw_start
+    bic     x1, x1, x5
+    adrp    x2, __bss_end
+    add     x2, x2, :lo12:__bss_end
+.L_inval:
+    dc      ivac, x1
+    add     x1, x1, x4
+    cmp     x1, x2
+    b.lo    .L_inval
+    dsb     sy
 
     /* Vectors before any Rust runs, so an exception from here on is
      * reported by name instead of taken through whatever VBAR_EL1 held
@@ -194,6 +235,12 @@ _start:
 .L_secondary:
     wfe
     b       .L_secondary
+
+/* boot/relocate refused the image: loaded where its layout breaks, or a
+ * relocation it does not apply. Nothing can report it yet. */
+.L_unrelocatable:
+    wfe
+    b       .L_unrelocatable
 
 .size _start, . - _start
 
