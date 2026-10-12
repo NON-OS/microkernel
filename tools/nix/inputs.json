@@ -1447,6 +1447,16 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_driver_ehci": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ehci",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_driver_hda": {
   "exclude": [],
   "include": [
@@ -3247,6 +3257,28 @@
    "userland/capsule_text_editor/src/doc",
    "userland/capsule_text_editor/src/editor",
    "userland/editor_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/ehci_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ehci/src/devices",
+   "userland/capsule_driver_ehci/src/env",
+   "userland/capsule_driver_ehci/src/facts",
+   "userland/capsule_driver_ehci/src/hc",
+   "userland/capsule_driver_ehci/src/sched",
+   "userland/capsule_driver_ehci/src/server",
+   "userland/capsule_driver_ehci/src/wire",
+   "userland/capsule_driver_ehci/src/xfer",
+   "userland/ehci_proofs",
+   "userland/uhci_proofs/src/model/device.rs",
+   "userland/uhci_proofs/src/model/device_io.rs",
+   "userland/uhci_proofs/src/model/ep0.rs",
+   "userland/uhci_proofs/src/model/make.rs",
+   "userland/uhci_proofs/src/model/pid.rs"
   ],
   "md": [],
   "signed": []
