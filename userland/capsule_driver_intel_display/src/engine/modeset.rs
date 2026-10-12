@@ -24,7 +24,7 @@ use super::error::Error;
 use super::pipe::{Pipe, Transcoder};
 use super::port::Port;
 use super::trans_func::{enable, func_ctl, Protocol};
-use super::{mn, power, regs, timing_write};
+use super::{cdclk, mn, power, regs, timing_write};
 use crate::dp::caps::Caps;
 use crate::dp::train::{train, Trained};
 use nonos_edid::Detailed;
@@ -41,6 +41,9 @@ pub fn enable_dp(
     max: (u32, u32),
 ) -> Result<Trained, Error> {
     let clock: &dyn Clock = port.clock;
+    if !cdclk::fits(port.mmio, timing.pixel_khz) {
+        return Err(Error::Argument);
+    }
     for w in power::needed(t, port.index()).into_iter().flatten() {
         power::enable(port.mmio, w, &Until::new(clock, STATE_US))?;
     }
