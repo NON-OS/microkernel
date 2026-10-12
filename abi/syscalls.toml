@@ -430,31 +430,31 @@ ret  = {type="i64"}
 [desc.MSRG]
 nr   = 0x4752534D
 caps = ["GraphicsSurfaceCreate"]
-args = [{name="format",type="u32",dir="in"},{name="w",type="u32",dir="in"},{name="h",type="u32",dir="in"},{name="surface_id_out",type="u32*",dir="out"}]
+args = [{name="desc",type="u8*",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSSH]
 nr   = 0x4853534D
 caps = ["GraphicsSurfaceCreate"]
-args = [{name="surface_id",type="u32",dir="in"},{name="target_pid",type="u32",dir="in"}]
+args = [{name="sid",type="u64",dir="in"},{name="receiver_pid",type="u32",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSAT]
 nr   = 0x5441534D
 caps = ["GraphicsSurfaceMap"]
-args = [{name="surface_id",type="u32",dir="in"},{name="vaddr_out",type="u64*",dir="out"}]
+args = [{name="handle",type="u64",dir="in"},{name="desc_out",type="u8*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MSRL]
 nr   = 0x4C52534D
 caps = ["GraphicsSurfaceCreate"]
-args = [{name="surface_id",type="u32",dir="in"}]
+args = [{name="handle",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSPR]
 nr   = 0x5250534D
 caps = ["GraphicsPresent"]
-args = [{name="surface_id",type="u32",dir="in"},{name="region",type="u8*",dir="in"}]
+args = [{name="handle",type="u64",dir="in"},{name="x",type="u64",dir="in"},{name="y",type="u64",dir="in"},{name="w",type="u64",dir="in"},{name="h",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MDVW]
