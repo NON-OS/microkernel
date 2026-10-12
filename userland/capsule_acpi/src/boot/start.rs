@@ -40,6 +40,7 @@ pub fn boot() -> Option<Acpi> {
     let cooling = crate::cooling::find(&mut aml, &mut host);
     say_cooling(&cooling);
     let backlight = crate::backlight::find(&mut aml, &mut host);
+    let cpus = crate::cpu::find(&mut aml, &mut host);
     let hotkeys = crate::hotkeys::find(&devices, &mut aml, &mut host);
     let (scis, gpe_runs) = (0, 0);
     Some(Acpi {
@@ -51,6 +52,7 @@ pub fn boot() -> Option<Acpi> {
         power,
         buttons,
         cooling,
+        cpus,
         backlight,
         hotkeys,
         smbios,
