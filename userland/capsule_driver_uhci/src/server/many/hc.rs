@@ -25,4 +25,7 @@ pub trait Hc {
     /// Slot `slot` held here (enabled, not yet addressed), or let go.
     fn hold(&mut self, slot: u8);
     fn release(&mut self, slot: u8);
+    /// The owner byte of addressed `slot`: 2 once a class driver
+    /// configured an endpoint on it, else 1.
+    fn held(&self, slot: u8) -> u8;
 }
