@@ -25,11 +25,12 @@ pub struct LinkEnd(pub Sink);
 
 impl Link for LinkEnd {
     fn start(&mut self, mbps: u32, lanes: u32) -> Result<(), TrainError> {
-        self.0.borrow_mut().link = Some((mbps, lanes));
+        let mut s = self.0.borrow_mut();
+        (s.link, s.held) = (Some((mbps, lanes)), false);
         Ok(())
     }
     fn pattern(&mut self, p: Pattern) {
-        self.0.borrow_mut().pattern = p;
+        self.0.borrow_mut().set_pattern(p);
     }
     fn drive(&mut self, d: Drive) {
         self.0.borrow_mut().drive = d;
@@ -39,7 +40,7 @@ impl Link for LinkEnd {
     }
     fn stop(&mut self) {
         let mut s = self.0.borrow_mut();
-        s.link = None;
+        (s.link, s.held) = (None, false);
         s.pattern = Pattern::Off;
         s.drive = Drive::default();
         s.stops += 1;
