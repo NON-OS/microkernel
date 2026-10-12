@@ -28,6 +28,7 @@
 
 extern crate alloc;
 
+pub mod bip_gmac;
 pub mod ccmp;
 pub mod dot11;
 pub mod eapol;
