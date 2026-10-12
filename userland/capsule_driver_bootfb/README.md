@@ -51,6 +51,11 @@ mode are refused by the server before any copy.
 
 `Fb::new` (the checked mapping), `Fb::copy_in`, `describe::{caps, mode,
 state}`, and `BootFb`, the `nonos_gfx_serve::Display` the capsule serves.
+`boot_info::decode` reads the framebuffer record as the kernel hands it over
+(the boot handoff's `FramebufferInfo`, 40 bytes): UEFI GOP on x86_64, and on
+aarch64 the same struct filled from a simple-framebuffer node or the Pi
+firmware's mailbox (C-16). Only four-byte pixels are served (BGRX blue first,
+RGBX red first).
 
 ## Wire format
 
