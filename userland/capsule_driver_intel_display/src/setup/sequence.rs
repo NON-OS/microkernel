@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One bring-up attempt: claim, BAR0, the GGTT's size, DC states off and
-//! the first output firmware lit, then the output taken over (`take`).
+//! the outputs firmware lit, then those outputs taken over (`take`).
 //! Every engine step checks before it writes, and every grant is given back
 //! by its owner's drop when a step fails, so the next attempt starts clean.
 
@@ -46,7 +46,9 @@ pub fn run(dev: Found) -> IntelResult<Driver> {
     if gen.plane != PlaneKind::Primary {
         dc_off(&mut m, &Until::new(&clock, DC_US)).map_err(IntelError::Engine)?;
     }
-    let lit = read_outputs(&mut m, gen).into_iter().flatten().next();
-    let out = lit.ok_or(IntelError::Engine(Error::NothingLit))?;
-    take::take(h, m, gen, out, total, dev.bar2_size)
+    let lit = read_outputs(&mut m, gen);
+    if lit.iter().all(|o| o.is_none()) {
+        return Err(IntelError::Engine(Error::NothingLit));
+    }
+    take::take(h, m, gen, lit, total, dev.bar2_size)
 }

@@ -24,7 +24,7 @@ use std::rc::Rc;
 
 use super::dp_board::dp_board;
 use super::wire_rig::Rig;
-use crate::display::{Intel, Modeset, Monitor};
+use crate::display::{Head, Intel, Modeset, Monitor};
 use crate::engine::gen::GEN9;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::scanout::Scanout;
@@ -45,24 +45,13 @@ pub fn dp_rig(timing: (Axis, Axis), edid: Vec<u8>, total: u32) -> (Rig, Model, S
     let mut shared = Shared(model.clone());
     let clock = Ticks::new();
     let monitor = Monitor::of(&mut shared, &clock, &GEN9, Transcoder::B);
-    let modeset = Modeset::find(&mut shared, &clock, &GEN9, &out, &monitor, total);
+    let modeset = Modeset::find(&mut shared, &clock, &GEN9, &out, &monitor, (0, total));
     let (iova, len) = ([a[0], b[0]], pages as usize * 4096);
     let next = Some(0x4000_0000);
     let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, next };
     let (panel, bases, flags, generation) = (monitor.panel(), iova, SCANNING_OUT, 1);
-    let gen = &GEN9;
-    let d = Intel {
-        m: shared,
-        frames,
-        clock,
-        gen,
-        out,
-        scan,
-        panel,
-        modeset,
-        bases,
-        generation,
-        flags,
-    };
+    let head = Head { out, scan, frames, panel, modeset, bases, generation, flags };
+    let heads = [Some(head), None, None, None];
+    let d = Intel { m: shared, clock, gen: &GEN9, heads };
     (d, model, s)
 }

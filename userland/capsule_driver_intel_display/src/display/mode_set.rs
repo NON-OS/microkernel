@@ -19,56 +19,49 @@
 //! them. A failure puts the old mode back on the untouched old surfaces.
 
 use nonos_gfx_serve::Shadow;
-use nonos_gfx_wire::errno::{EINVAL, ENOMEM, ENOSYS, ETIMEDOUT};
+use nonos_gfx_wire::errno::{EINVAL, ENOMEM, ENOSYS, ENXIO};
 use nonos_gfx_wire::{Errno, Rect};
 
 use super::copy::copy;
 use super::frames::Frames;
 use super::intel::Intel;
+use super::mode_light::{errno, light};
 use super::modeset::Modeset;
 use super::timing_pick::pick;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::cdclk;
-use crate::engine::error::Error;
 
 impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
-    pub fn change_mode(&mut self, w: u32, h: u32, shadow: &Shadow) -> Result<(), Errno> {
-        let ms = self.modeset.ok_or(ENOSYS)?;
+    pub fn change_mode(&mut self, o: u16, w: u32, h: u32, shadow: &Shadow) -> Result<(), Errno> {
+        let Intel { m, clock, heads, .. } = self;
+        let hd = heads.get_mut(o as usize).and_then(|h| h.as_mut()).ok_or(ENXIO)?;
+        let ms = hd.modeset.ok_or(ENOSYS)?;
         let new = pick(&ms.monitor.blob[..ms.monitor.len], w, h);
-        let new = new.filter(|t| cdclk::fits(&mut self.m, t.pixel_khz)).ok_or(EINVAL)?;
+        let new = new.filter(|t| cdclk::fits(m, t.pixel_khz)).ok_or(EINVAL)?;
         let stride = (w * 4).next_multiple_of(64);
         let len = (stride * h).div_ceil(4096) as usize * 4096;
-        let bases = self.frames.renew(len).ok_or(ENOMEM)?;
+        let bases = hd.frames.renew(len).ok_or(ENOMEM)?;
         let all = [Rect { x: 0, y: 0, width: w, height: h }];
-        let filled =
-            (0..2).try_for_each(|f| copy(&mut self.frames, f, (w, h), stride, &all, shadow));
+        let filled = (0..2).try_for_each(|f| copy(&mut hd.frames, f, (w, h), stride, &all, shadow));
         if let Err(e) = filled {
-            self.frames.settle(false);
+            hd.frames.settle(false);
             return Err(e);
         }
-        self.frames.fence();
-        self.generation = self.generation.wrapping_add(1);
-        let (was, old_bases) = ((self.scan.width, self.scan.height), self.bases);
-        match self.light(&ms, &new, (w, h), bases) {
+        hd.frames.fence();
+        hd.generation = hd.generation.wrapping_add(1);
+        let (was, old_bases) = ((hd.scan.width, hd.scan.height), hd.bases);
+        match light(m, clock, &mut hd.scan, (&ms, &new), (w, h), bases) {
             Ok(()) => {
-                self.frames.settle(true);
-                self.bases = bases;
-                self.modeset = Some(Modeset { now: new, ..ms });
+                hd.frames.settle(true);
+                hd.bases = bases;
+                hd.modeset = Some(Modeset { now: new, ..ms });
                 Ok(())
             }
             Err(e) => {
-                self.frames.settle(false);
-                let _ = self.light(&ms, &ms.now, was, old_bases);
+                hd.frames.settle(false);
+                let _ = light(m, clock, &mut hd.scan, (&ms, &ms.now), was, old_bases);
                 Err(errno(e))
             }
         }
-    }
-}
-
-fn errno(e: Error) -> Errno {
-    match e {
-        Error::Timeout => ETIMEDOUT,
-        Error::GgttFull => ENOMEM,
-        _ => EINVAL,
     }
 }
