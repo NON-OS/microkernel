@@ -33,6 +33,8 @@ mod irq_tests;
 #[cfg(test)]
 mod layout_tests;
 #[cfg(test)]
+mod mailbox_tests;
+#[cfg(test)]
 mod msi_hostile_tests;
 #[cfg(test)]
 mod msi_refusal_tests;
