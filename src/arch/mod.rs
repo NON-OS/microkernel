@@ -66,6 +66,7 @@ pub(crate) use percpu_base::set as set_percpu_base;
 pub(crate) use remap_pci_windows::remap_pci_windows;
 pub(crate) use report_hypervisor::report_hypervisor;
 pub(crate) use hv_backdoor::{hv_backdoor, HvBackdoorError};
+pub use hv_backdoor::hv_backdoor_present;
 pub(crate) use run_without_interrupts::run_without_interrupts;
 pub(crate) use stack_pointer::stack_pointer;
 pub(crate) use time_counter::{read_time_counter, time_counter_hz};
