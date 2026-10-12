@@ -63,6 +63,7 @@ mod sci_notify_tests;
 mod sci_rig;
 mod sci_tests;
 mod search_tests;
+mod sleep;
 mod store_tests;
 mod sync_tests;
 mod text_tests;
