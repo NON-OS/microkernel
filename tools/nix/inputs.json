@@ -5247,6 +5247,16 @@
   "md": [],
   "signed": []
  },
+ "userland/uas_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_uas",
+   "userland/uas_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/udp_proofs": {
   "exclude": [],
   "include": [
