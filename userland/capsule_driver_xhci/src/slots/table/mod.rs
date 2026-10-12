@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod attach_addressed;
 mod count;
+mod hubs;
 mod is_addressed;
 mod is_allocated;
 mod mark_allocated;

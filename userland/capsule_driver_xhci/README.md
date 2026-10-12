@@ -59,6 +59,8 @@ behind it.
 | `OP_BULK_IN_POLL` | one look at the slot's armed bulk IN, its own page; `E_AGAIN` at once while nothing came | bytes moved, IN data |
 | `OP_CONFIGURE_ISOCH` | add one isochronous endpoint, OUT or IN by its address, one of each per slot (interval, bursts and Mult by speed, CErr 0) | DCI |
 | `OP_ISOCH_OUT` | queue up to 31 packets, a TD each, Start Isoch ASAP; waits for the batch before, so two are on the ring | that batch's code: success or missed service |
+| `OP_ADDRESS_ROUTED` (0x20) | Address Device for a device below a hub: route string, speed and TT in the Slot Context, root port not reset; `E_INVAL` unless a hub holds the root port, the route is well formed and a TT names a hub's port for a full or low speed device | as `OP_ADDRESS_DEVICE` |
+| `OP_CONFIGURE_HUB` (0x21) | Configure Endpoint with only the Slot Context: Hub flag, port count, TT think time, MTT | status |
 | `OP_ISOCH_IN` | queue up to 31 service intervals, a TD each asking for its event; collects the batch before | that batch's code, its packet count, 31 u16 length slots, then the packets' bytes (at most 4034) |
 
 ## Authority
