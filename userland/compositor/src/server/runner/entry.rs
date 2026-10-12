@@ -17,6 +17,7 @@
 use nonos_libc::mk_uptime_ms;
 
 use super::drain::drain_ipc;
+use super::upkeep::Upkeep;
 use crate::frame_pacer;
 use crate::protocol::{HDR_LEN, IPC_PAYLOAD_MAX};
 use crate::state::Context;
@@ -32,22 +33,16 @@ use crate::state::Context;
 // present (on a 4K panel, a 1920x1080 canvas doubled and 33 MB copied)
 // many times more often than that, in the middle of the scroll.
 const HEAL_INTERVAL_MS: i64 = 4000;
-/// How often a GOP-mode compositor asks whether the gfx driver is up yet.
-const VIRTIO_PROBE_MS: i64 = 500;
 
 pub fn run(mut ctx: Context) -> ! {
     let mut rx = [0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = [0u8; HDR_LEN + IPC_PAYLOAD_MAX];
-    let (mut last_heal, mut last_probe) = (mk_uptime_ms(), mk_uptime_ms());
+    let mut last_heal = mk_uptime_ms();
+    let mut upkeep = Upkeep::new(last_heal);
     loop {
         drain_ipc(&mut ctx, &mut rx, &mut tx);
         let now = mk_uptime_ms();
-        if ctx.gop_mode && now.saturating_sub(last_probe) >= VIRTIO_PROBE_MS {
-            last_probe = now;
-            if crate::setup::upgrade_to_virtio(&mut ctx) {
-                crate::say::say_display(&ctx, "moved to virtio-gpu");
-            }
-        }
+        upkeep.run(&mut ctx, now);
         if now.saturating_sub(last_heal) >= HEAL_INTERVAL_MS {
             last_heal = now;
             ctx.damage.mark_full(ctx.width, ctx.height);
