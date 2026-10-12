@@ -36,17 +36,8 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
         crate::process::foreign::note_signal_death(pid, exit_code);
     }
 
-    // Surfaces are held by the thread group, on its tables (L36): only the
-    // thread whose exit frees those tables gives the group's surfaces up. A
-    // worker's exit dropped what it had registered while the tables, and
-    // the compositor's view of them, lived on.
-    if crate::process::address_space::lifecycle::holder::holder_after(&pcb).is_none() {
-        let group = crate::hardware::broker::holder_of(pid);
-        crate::kernel_core::surface_registry::pin::exit::keep_at_exit(group, pid);
-        crate::kernel_core::surface_registry::pin::orphans::abandon_owner(group);
-        crate::kernel_core::surface_registry::release_owned_by_pid(group);
-        crate::kernel_core::surface_registry::attach_map::forget_pid(group);
-    }
+    // Surfaces are held by the thread group, on its tables (L36, L46).
+    super::surfaces::give_up_if_last(pid, &pcb);
     let current = CURRENT_PID.load(Ordering::Acquire) == pid;
     super::devices::release_if_last(pid, current);
     crate::syscall::microkernel::ipc::release_pending_replies_for_pid(pid);

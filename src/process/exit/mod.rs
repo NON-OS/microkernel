@@ -25,6 +25,7 @@ pub mod postmortem;
 mod purge;
 mod reap_log;
 mod stop_elsewhere;
+mod surfaces;
 mod teardown;
 
 pub use exit_and_yield::exit_and_yield;

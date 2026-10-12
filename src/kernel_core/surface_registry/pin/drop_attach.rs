@@ -27,7 +27,9 @@ use super::unmap_receiver::unmap_receiver;
  * any more are freed afterwards.
  */
 pub fn drop_attach(pid: u32, handle: SurfaceHandle) -> Result<u32, RegistryError> {
-    unmap_receiver(pid, handle);
+    if !unmap_receiver(pid, handle) {
+        return Err(RegistryError::MapFailed);
+    }
     attach_map::forget(pid, handle);
     /*
      * A surface whose owner has exited has no slot left; its frames are an

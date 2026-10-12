@@ -24,6 +24,7 @@ mod mapping_in_asid;
 mod protection;
 mod query;
 mod stats;
+mod tables_asid;
 mod tlb_ops;
 
 pub use address_space::{
@@ -48,6 +49,7 @@ pub use query::{
     is_mapped, translate_address,
 };
 pub use stats::{get_memory_usage, get_paging_stats};
+pub use tables_asid::lookup_asid_for_tables;
 pub use tlb_ops::{
     disable_write_protection, enable_write_protection, flush_tlb, get_current_cr3,
     invalidate_all_pages, invalidate_page, set_cr3,

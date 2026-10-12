@@ -29,15 +29,18 @@ use super::gate::GATE;
  * its view of the owner's frames goes with the record, so no PTE outlives
  * the record that `reclaim` checks before freeing them. Only pages that
  * still map the surface frame are removed, and none of them is freed.
+ * False when its tables still exist but their address space cannot be
+ * found: the record must then stay, or the frames are freed under a view.
  */
-pub(super) fn unmap_receiver(pid: u32, handle: SurfaceHandle) {
+pub(super) fn unmap_receiver(pid: u32, handle: SurfaceHandle) -> bool {
     let _gate = lock_responsive(&GATE);
-    let Some((base, _)) = attach_map::lookup(pid, handle) else { return };
-    let Some((owner, frames)) = frames_of(handle) else { return };
+    let Some((base, _)) = attach_map::lookup(pid, handle) else { return true };
+    let Some((owner, frames)) = frames_of(handle) else { return true };
     if owner == pid {
-        return;
+        return true;
     }
-    let Some(asid) = super::super::space::space_of(pid) else { return };
+    let space = super::super::space::space_of(pid);
+    let Some(asid) = space else { return super::super::space::tables_of(pid).is_none() };
     let perms = PagePermissions::user_rw();
     for (i, frame) in frames.iter().enumerate() {
         let va = VirtAddr::new(base.wrapping_add((i as u64) * 4096));
@@ -46,4 +49,5 @@ pub(super) fn unmap_receiver(pid: u32, handle: SurfaceHandle) {
             let _ = unmap_page_in_asid(asid, va, perms);
         }
     }
+    true
 }

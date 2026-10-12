@@ -37,16 +37,33 @@ pub(super) fn attach_frames(
             crate::log::dbg_ring::dbg_emit_2u64(0x5546_0001, handle, slot.epoch as u64);
             return Err(RegistryError::BadHandle);
         }
+        // Emptied at its owner's exit (`pin::exit`): nothing left to map.
+        if slot.frames.is_empty() {
+            return Err(RegistryError::BadHandle);
+        }
         slot.refcount = slot.refcount.checked_add(1).ok_or(RegistryError::InvalidArg)?;
         slot.frames.clone()
     };
+    let mapped = map_view(receiver_pid, handle, &frames, out_desc);
+    if mapped.is_err() {
+        super::give_back::give_back(idx, epoch);
+    }
+    mapped
+}
+
+fn map_view(
+    receiver_pid: u32,
+    handle: SurfaceHandle,
+    frames: &[crate::memory::addr::PhysAddr],
+    out_desc: &mut SurfaceDescriptor,
+) -> Result<u64, RegistryError> {
     let mut desc = super::descriptor::descriptor(handle)?;
     let asid = super::super::space::space_of(receiver_pid).ok_or(RegistryError::MapFailed)?;
     let proc = current_process().ok_or(RegistryError::NoProc)?;
     let base = proc
         .reserve_vma(frames.len().saturating_mul(4096), asid)
         .map_err(|_| RegistryError::MapFailed)?;
-    super::map_frames::map_frames(asid, base, &frames)?;
+    super::map_frames::map_frames(asid, base, frames)?;
     desc.base_va = base.as_u64();
     *out_desc = desc;
     super::super::attach_map::record(receiver_pid, handle, base.as_u64(), out_desc.byte_len);
