@@ -22,19 +22,20 @@ use crate::constants::{TX_BUFFER_LEN, TX_QUEUE_SIZE, VIRTIO_NET_HDR_LEN, VIRTIO_
 use crate::protocol::{BATCH_MAX_BYTES, HDR_LEN, REPLY_MAX, REQUEST_MAX, RX_FRAME_AT};
 use crate::protocol::{RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATUS_LEN};
 
+// The larger header bounds both, so these hold for every frame either way;
+// they are checked when the proofs build, before any test runs.
+const _: () = assert!(VIRTIO_NET_HDR_LEN <= VIRTIO_NET_HDR_LEN_V1);
+const _: () = assert!(VIRTIO_NET_HDR_LEN_V1 + MAX_ETHERNET_FRAME <= TX_BUFFER_LEN as usize);
+const _: () = assert!(VIRTIO_NET_HDR_LEN_V1 + MAX_ETHERNET_FRAME <= RX_BUFFER_LEN as usize);
+const _: () = assert!(ETH_HEADER_LEN <= MIN_ETHERNET_FRAME);
+const _: () = assert!(MIN_ETHERNET_FRAME <= MAX_ETHERNET_FRAME);
+const _: () = assert!(4 + RX_PAYLOAD_PREFIX_LEN + MAX_ETHERNET_FRAME <= BATCH_MAX_BYTES);
+const _: () = assert!(TX_QUEUE_SIZE as u32 <= u32::BITS, "one in-flight bit per buffer");
+
 #[test]
-#[allow(clippy::assertions_on_constants)] // guarding constant relations is the point
 fn every_frame_handed_either_way_fits_where_it_goes() {
     assert_eq!((VIRTIO_NET_HDR_LEN, VIRTIO_NET_HDR_LEN_V1), (10, 12));
-    for hdr in [VIRTIO_NET_HDR_LEN, VIRTIO_NET_HDR_LEN_V1] {
-        assert!(hdr + MAX_ETHERNET_FRAME <= TX_BUFFER_LEN as usize);
-        assert!(hdr + MIN_ETHERNET_FRAME <= TX_BUFFER_LEN as usize);
-        assert!(hdr + MAX_ETHERNET_FRAME <= RX_BUFFER_LEN as usize);
-    }
-    assert!(ETH_HEADER_LEN <= MIN_ETHERNET_FRAME && MIN_ETHERNET_FRAME <= MAX_ETHERNET_FRAME);
     assert_eq!(RX_FRAME_AT, RESP_HDR_LEN + STATUS_LEN + RX_PAYLOAD_PREFIX_LEN);
     assert_eq!(REPLY_MAX, RX_FRAME_AT + MAX_ETHERNET_FRAME);
     assert_eq!(REQUEST_MAX, HDR_LEN + MAX_ETHERNET_FRAME);
-    assert!(4 + RX_PAYLOAD_PREFIX_LEN + MAX_ETHERNET_FRAME <= BATCH_MAX_BYTES);
-    assert!(u32::from(TX_QUEUE_SIZE) <= u32::BITS, "one in-flight bit per buffer");
 }
