@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! OP_START: the peer asked of the kernel again, the stream agreed with the
-//! camera, and the compositor told.
+//! camera, and the compositor's indicator shown, or no stream.
 
 use nonos_uvc::Assembler;
 
@@ -22,7 +22,7 @@ use crate::device::Dev;
 use crate::ops::holds;
 use crate::start::start;
 use crate::stream::stop;
-use crate::wire::E_NODEV;
+use crate::wire::{E_NODEV, E_PERM};
 
 /// A stream started for `peer`: asked of the kernel again, agreed with the
 /// camera, and told to the compositor. The most bytes a frame takes.
@@ -40,7 +40,11 @@ pub fn begin(d: &mut Dev, peer: u32, args: (u8, u8, u32)) -> Result<u32, i32> {
         Ok(s) => {
             let max = s.max_frame;
             d.stream = Some((s, Assembler::new(max as usize)));
-            crate::notify::capture(true);
+            // Decision 9: no indicator, no stream.
+            if !crate::notify::capture(true) {
+                stop(d);
+                return Err(E_PERM);
+            }
             Ok(max)
         }
         Err(e) => {
