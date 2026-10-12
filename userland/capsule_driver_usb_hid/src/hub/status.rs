@@ -14,13 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The hub class's pure parts, loaded from the driver's own files.
+//! The host wire status a failed client call stands for, as the hub class
+//! reads it: E_INVAL marks an op the controller driver does not serve.
 
-#[path = "../../../capsule_driver_usb_hid/src/hub/descriptor.rs"]
-pub mod descriptor;
-#[path = "../../../capsule_driver_usb_hid/src/hub/port_status.rs"]
-pub mod port_status;
-#[path = "../../../capsule_driver_usb_hid/src/hub/route.rs"]
-pub mod route;
-#[path = "../../../capsule_driver_usb_hid/src/hub/status_endpoint.rs"]
-pub mod status_endpoint;
+use nonos_usb_hub::E_BUSY;
+
+use crate::xhci::XhciClientError;
+
+/// The host wire's I/O error, for a reply that never came.
+const E_IO: i32 = -5;
+
+pub(super) fn status(e: XhciClientError) -> i32 {
+    match e {
+        XhciClientError::Status(s) => s,
+        XhciClientError::Busy => E_BUSY,
+        _ => E_IO,
+    }
+}

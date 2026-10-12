@@ -16,12 +16,20 @@
 
 //! Log lines about hubs, tagged `[usb-hub]` so `log usb` finds them.
 
+use crate::host::Host;
+
 const LINE_MAX: usize = 192;
 
 /// One line built from text and decimal numbers, cut at `LINE_MAX`.
 pub struct Line {
     buf: [u8; LINE_MAX],
     n: usize,
+}
+
+impl Default for Line {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Line {
@@ -54,9 +62,9 @@ impl Line {
         self.text(&digits[i..])
     }
 
-    pub fn say(mut self) {
+    pub fn say(mut self, h: &mut impl Host) {
         self.buf[self.n] = b'\n';
-        let _ = nonos_libc::mk_debug(self.buf.as_ptr(), self.n + 1);
+        h.say(&self.buf[..self.n + 1]);
     }
 }
 

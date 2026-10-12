@@ -13,31 +13,40 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Looking at every port of one hub: a device that left is forgotten, a new
 //! one is brought up. The hub's own change bits say a device was swapped
-//! between two looks; only this driver reads them, so they are not lost.
+//! between two looks; only this walk reads them, so they are not lost.
 
-use crate::hub::{clear_port_feature, hub_port, port_status, speed_name, Hub, C_PORT_CONNECTION};
+use alloc::vec::Vec;
 
-use super::attach_child::attach_child;
-use super::constants::TRIES;
-use super::devices::Devices;
-use super::forget_slot::forget_slot;
+use crate::attach_child::attach_child;
+use crate::classes::Classes;
+use crate::forget_slot::forget_slot;
+use crate::host::Host;
+use crate::line::hub_port;
+use crate::node::{Hub, TRIES};
+use crate::place::speed_name;
+use crate::read::port_status;
+use crate::request::{clear_port_feature, C_PORT_CONNECTION};
 
-pub(super) fn scan_hub(xhci_port: u32, hub: &mut Hub, devs: &mut Devices) {
+pub(crate) fn scan_hub<H: Host>(
+    h: &mut H,
+    hub: &mut Hub,
+    hubs: &mut Vec<Hub>,
+    classes: &mut impl Classes<H>,
+) {
     for port in 1..=hub.ports {
         let i = port as usize - 1;
-        let Some(st) = port_status(xhci_port, hub.slot, port, hub.place.superspeed()) else {
+        let Some(st) = port_status(h, hub.slot, port, hub.place.superspeed()) else {
             continue;
         };
         if st.connect_changed {
-            let _ = clear_port_feature(xhci_port, hub.slot, port, C_PORT_CONNECTION);
+            let _ = clear_port_feature(h, hub.slot, port, C_PORT_CONNECTION);
         }
         if hub.child[i] != 0 && (!st.connected || st.connect_changed) {
-            forget_slot(xhci_port, hub.child[i], devs);
+            forget_slot(h, hub.child[i], hubs, classes);
             hub.child[i] = 0;
-            hub_port(hub.slot, port).text(b"device unplugged, its slot is given back").say();
+            hub_port(hub.slot, port).text(b"device unplugged, its slot is given back").say(h);
         }
         if !st.connected {
             hub.tries[i] = 0;
@@ -46,20 +55,20 @@ pub(super) fn scan_hub(xhci_port: u32, hub: &mut Hub, devs: &mut Devices) {
         if hub.child[i] != 0 || hub.tries[i] >= TRIES {
             continue;
         }
-        match attach_child(xhci_port, hub, port, devs) {
+        match attach_child(h, hub, port, hubs, classes) {
             Ok(kept) => {
                 hub.tries[i] = TRIES;
                 hub.child[i] = kept.unwrap_or(0);
                 let what: &[u8] = if kept.is_some() {
                     b" device bound"
                 } else {
-                    b" device, not a keyboard, mouse or hub; left alone"
+                    b" device, nothing bound; left alone"
                 };
-                hub_port(hub.slot, port).text(speed_name(st.speed)).text(what).say();
+                hub_port(hub.slot, port).text(speed_name(st.speed)).text(what).say(h);
             }
             Err(e) => {
                 hub.tries[i] += 1;
-                hub_port(hub.slot, port).text(b"stopped: ").text(e.says()).say();
+                hub_port(hub.slot, port).text(b"stopped: ").text(e.says()).say(h);
             }
         }
     }

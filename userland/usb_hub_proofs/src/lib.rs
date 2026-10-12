@@ -13,24 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Proofs for the shared USB hub class, run on the host against the
+//! library itself (a path dependency, so the code is the drivers' own).
 
-//! Looking at the ports of every hub held. Each hub is taken out of the
-//! list while its ports are looked at, so a hub found below it can be
-//! added, and put back after.
-
-use alloc::vec::Vec;
-
-use super::devices::Devices;
-use super::scan_hub::scan_hub;
-
-pub fn scan_hubs(xhci_port: u32, devs: &mut Devices) {
-    let slots: Vec<u8> = devs.hubs.iter().map(|h| h.slot).collect();
-    for slot in slots {
-        let Some(i) = devs.hubs.iter().position(|h| h.slot == slot) else {
-            continue;
-        };
-        let mut hub = devs.hubs.swap_remove(i);
-        scan_hub(xhci_port, &mut hub, devs);
-        devs.hubs.push(hub);
-    }
-}
+#[cfg(test)]
+mod fake;
+#[cfg(test)]
+mod hub_descriptor_tests;
+#[cfg(test)]
+mod hub_port_tests;
+#[cfg(test)]
+mod hub_route_tests;
+#[cfg(test)]
+mod walk_more_tests;
+#[cfg(test)]
+mod walk_tests;

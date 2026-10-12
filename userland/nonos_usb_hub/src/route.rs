@@ -16,10 +16,10 @@
 
 //! Where a device sits below the root port: the route string (xHCI 1.2
 //! section 8.9, USB 3.2 section 8.9) and the transaction translator a low or
-//! full speed device is reached through (xHCI 1.2 section 6.2.2, Linux
-//! `xhci_setup_addressable_virt_dev`). Pure, so both are proven on the host.
+//! full speed device is reached through (xHCI 1.2 section 6.2.2, as
+//! recalled, unverified). Pure, so both are proven on the host.
 
-use super::port_status::{SPEED_FULL, SPEED_HIGH, SPEED_LOW};
+use crate::port_status::{SPEED_FULL, SPEED_HIGH, SPEED_LOW};
 
 /// Five hubs at most between a root port and a device (USB 2.0 section
 /// 4.1.1); the route string has a 4-bit field for each.

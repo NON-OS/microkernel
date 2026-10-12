@@ -17,8 +17,8 @@
 //! The hub descriptor and status endpoint over real devices: QEMU's
 //! usb-hub, a common USB 2 hub chip and a SuperSpeed hub.
 
-use crate::hub::descriptor::{parse_hub_descriptor, HubDescriptor};
-use crate::hub::status_endpoint::{status_endpoint, StatusEndpoint};
+use nonos_usb_hub::{parse_hub_descriptor, HubDescriptor};
+use nonos_usb_hub::{status_endpoint, StatusEndpoint};
 
 #[test]
 fn qemu_usb_hub_has_eight_ports_and_waits_the_100_ms_floor() {

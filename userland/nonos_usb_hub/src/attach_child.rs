@@ -13,33 +13,34 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! A device newly connected to a hub port: debounced, reset by the hub,
-//! addressed through its route, and classified like one on a root port
-//! (Linux `hub_port_connect` and `hub_port_init`).
+//! addressed through its route, and handed to the caller's classes.
 
-use nonos_libc::mk_idle_ms;
+use alloc::vec::Vec;
 
-use crate::hub::{child_route, child_tt, reset_port, Hub, HubError, Place};
-use crate::xhci::{address_routed, disable_slot, enable_slot};
-
-use super::classify::classify;
-use super::devices::Devices;
+use crate::classes::Classes;
+use crate::error::HubError;
+use crate::host::Host;
+use crate::node::Hub;
+use crate::place::Place;
+use crate::reset::reset_port;
+use crate::route::{child_route, child_tt};
 
 /// TATTDB, how long a connection must hold before the port is reset (USB
-/// 2.0 section 7.1.7.3, Linux HUB_DEBOUNCE_STABLE).
+/// 2.0 section 7.1.7.3).
 const DEBOUNCE_MS: u64 = 100;
 
-/// The slot kept for the device, or None when nothing on it bound and the
-/// slot was given back.
-pub(super) fn attach_child(
-    xhci_port: u32,
+/// The slot kept for the device, or None when nothing on it was kept and
+/// the slot was given back.
+pub(crate) fn attach_child<H: Host>(
+    h: &mut H,
     hub: &Hub,
     port: u8,
-    devs: &mut Devices,
+    hubs: &mut Vec<Hub>,
+    classes: &mut impl Classes<H>,
 ) -> Result<Option<u8>, HubError> {
-    let _ = mk_idle_ms(DEBOUNCE_MS);
-    let st = reset_port(xhci_port, hub.slot, port, hub.place.superspeed())?;
+    h.idle_ms(DEBOUNCE_MS);
+    let st = reset_port(h, hub.slot, port, hub.place.superspeed())?;
     let route = child_route(hub.place.route, hub.place.depth, port).ok_or(HubError::TooDeep)?;
     let place = Place {
         root_port: hub.place.root_port,
@@ -48,15 +49,15 @@ pub(super) fn attach_child(
         speed: st.speed,
         tt: child_tt(hub.place.speed, hub.slot, hub.place.tt, port, st.speed),
     };
-    let slot = enable_slot(xhci_port).map_err(|_| HubError::NoSlot)?;
-    if let Err(e) = address_routed(xhci_port, slot, &place) {
-        disable_slot(xhci_port, slot);
-        return Err(HubError::Address(e));
+    let slot = h.enable_slot().map_err(|_| HubError::NoSlot)?;
+    if let Err(status) = h.address_routed(slot, &place) {
+        h.disable_slot(slot);
+        return Err(HubError::Address(status));
     }
-    let _ = classify(xhci_port, slot, place, devs);
-    if devs.holds(slot) {
+    let bound = classes.classify(h, slot, place, hubs);
+    if bound || hubs.iter().any(|x| x.slot == slot) {
         return Ok(Some(slot));
     }
-    disable_slot(xhci_port, slot);
+    h.disable_slot(slot);
     Ok(None)
 }

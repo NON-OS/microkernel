@@ -27,7 +27,8 @@ pub const HUB_HEAD_LEN: u16 = 7;
 /// port past 15 cannot be told apart from 15; a SuperSpeed hub has at most
 /// 15 ports. Ports past this are left alone.
 pub const MAX_HUB_PORTS: u8 = 15;
-/// Linux `hub_power_on_good_delay`: at least 100 ms, whatever the hub says.
+/// At least 100 ms, whatever the hub says (Linux waits as long; observed,
+/// unverified).
 const MIN_POWER_ON_MS: u32 = 100;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -13,14 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! The two hub class reads: the hub descriptor and one port's status (USB
 //! 2.0 section 11.24.2.5 and 11.24.2.7).
 
-use crate::xhci::control_transfer;
-
-use super::descriptor::{parse_hub_descriptor, HubDescriptor, DT_HUB, DT_SS_HUB, HUB_HEAD_LEN};
-use super::port_status::{decode_port_status, HubPort};
+use crate::descriptor::{parse_hub_descriptor, HubDescriptor, DT_HUB, DT_SS_HUB, HUB_HEAD_LEN};
+use crate::host::{Host, Setup};
+use crate::port_status::{decode_port_status, HubPort};
 
 const GET_STATUS: u8 = 0x00;
 const GET_DESCRIPTOR: u8 = 0x06;
@@ -28,27 +26,30 @@ const GET_DESCRIPTOR: u8 = 0x06;
 const RT_HUB_IN: u8 = 0xA0;
 const RT_PORT_IN: u8 = 0xA3;
 
-pub fn hub_descriptor(xhci_port: u32, slot: u8, superspeed: bool) -> Option<HubDescriptor> {
+pub fn hub_descriptor(h: &mut impl Host, slot: u8, superspeed: bool) -> Option<HubDescriptor> {
     let kind = if superspeed { DT_SS_HUB } else { DT_HUB };
     let mut buf = [0u8; HUB_HEAD_LEN as usize];
     let value = (kind as u16) << 8;
-    let n = control_transfer(
-        xhci_port,
-        slot,
-        RT_HUB_IN,
-        GET_DESCRIPTOR,
+    let setup = Setup {
+        request_type: RT_HUB_IN,
+        request: GET_DESCRIPTOR,
         value,
-        0,
-        HUB_HEAD_LEN,
-        &mut buf,
-    )
-    .ok()?;
-    parse_hub_descriptor(&buf[..n], superspeed)
+        index: 0,
+        length: HUB_HEAD_LEN,
+    };
+    let n = h.control(slot, setup, &mut buf).ok()?;
+    parse_hub_descriptor(&buf[..n.min(buf.len())], superspeed)
 }
 
-pub fn port_status(xhci_port: u32, slot: u8, port: u8, superspeed: bool) -> Option<HubPort> {
+pub fn port_status(h: &mut impl Host, slot: u8, port: u8, superspeed: bool) -> Option<HubPort> {
     let mut buf = [0u8; 4];
-    let n = control_transfer(xhci_port, slot, RT_PORT_IN, GET_STATUS, 0, port as u16, 4, &mut buf)
-        .ok()?;
+    let setup = Setup {
+        request_type: RT_PORT_IN,
+        request: GET_STATUS,
+        value: 0,
+        index: port as u16,
+        length: 4,
+    };
+    let n = h.control(slot, setup, &mut buf).ok()?;
     (n == 4).then(|| decode_port_status(buf, superspeed))
 }

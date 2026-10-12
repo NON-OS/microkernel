@@ -27,6 +27,7 @@ dependencies = [
  "nonos_keymap",
  "nonos_policy_client",
  "nonos_policy_proto",
+ "nonos_usb_hub",
  "nonos_userland_libc",
 ]
 
@@ -44,6 +45,10 @@ dependencies = [
 
 [[package]]
 name = "nonos_policy_proto"
+version = "0.3.0"
+
+[[package]]
+name = "nonos_usb_hub"
 version = "0.3.0"
 
 [[package]]

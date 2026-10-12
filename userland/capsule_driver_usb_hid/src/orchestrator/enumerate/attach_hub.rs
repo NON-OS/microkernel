@@ -17,26 +17,27 @@
 //! A hub found by its configuration: brought up and kept, or its failure
 //! said on the log.
 
-use crate::hub::{attach, Line, Place};
+use alloc::vec::Vec;
 
-use super::devices::Devices;
+use crate::hub::{attach, Hub, Line, Place, XhciHost};
+
 use super::types::Outcome;
 
 pub(super) fn attach_hub(
-    xhci_port: u32,
+    h: &mut XhciHost,
     slot: u8,
     place: Place,
     raw: &[u8],
-    devs: &mut Devices,
+    hubs: &mut Vec<Hub>,
 ) -> Outcome {
-    match attach(xhci_port, slot, place, raw) {
+    match attach(h, slot, place, raw) {
         Ok(hub) => {
-            devs.hubs.push(hub);
+            hubs.push(hub);
             Outcome::Bound
         }
         Err(e) => {
             let line = Line::new().text(b"root port ").num(place.root_port as u32);
-            line.text(b": hub in slot ").num(slot as u32).text(b" stopped: ").text(e.says()).say();
+            line.text(b": hub in slot ").num(slot as u32).text(b" stopped: ").text(e.says()).say(h);
             Outcome::Failed
         }
     }

@@ -13,12 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! The hub class writes: a port feature set or cleared (USB 2.0 section
 //! 11.24.2.2 and 11.24.2.13) and a SuperSpeed hub's depth (USB 3.2 section
 //! 10.16.2.9). Each says whether the hub took it.
 
-use crate::xhci::control_transfer;
+use crate::host::{Host, Setup};
 
 const CLEAR_FEATURE: u8 = 0x01;
 const SET_FEATURE: u8 = 0x03;
@@ -32,31 +31,21 @@ pub const PORT_POWER: u16 = 8;
 pub const C_PORT_CONNECTION: u16 = 16;
 pub const C_PORT_RESET: u16 = 20;
 
-pub fn set_port_feature(xhci_port: u32, slot: u8, port: u8, feature: u16) -> bool {
-    let mut none = [0u8; 0];
-    control_transfer(xhci_port, slot, RT_PORT_OUT, SET_FEATURE, feature, port as u16, 0, &mut none)
-        .is_ok()
+fn out(h: &mut impl Host, slot: u8, request_type: u8, request: u8, value: u16, index: u16) -> bool {
+    let setup = Setup { request_type, request, value, index, length: 0 };
+    h.control(slot, setup, &mut []).is_ok()
 }
 
-pub fn clear_port_feature(xhci_port: u32, slot: u8, port: u8, feature: u16) -> bool {
-    let mut none = [0u8; 0];
-    control_transfer(
-        xhci_port,
-        slot,
-        RT_PORT_OUT,
-        CLEAR_FEATURE,
-        feature,
-        port as u16,
-        0,
-        &mut none,
-    )
-    .is_ok()
+pub fn set_port_feature(h: &mut impl Host, slot: u8, port: u8, feature: u16) -> bool {
+    out(h, slot, RT_PORT_OUT, SET_FEATURE, feature, port as u16)
+}
+
+pub fn clear_port_feature(h: &mut impl Host, slot: u8, port: u8, feature: u16) -> bool {
+    out(h, slot, RT_PORT_OUT, CLEAR_FEATURE, feature, port as u16)
 }
 
 /// A SuperSpeed hub reads its own field of the route string by its depth:
 /// 0 on a root port, one more per hub above it.
-pub fn set_hub_depth(xhci_port: u32, slot: u8, depth: u8) -> bool {
-    let mut none = [0u8; 0];
-    control_transfer(xhci_port, slot, RT_HUB_OUT, SET_HUB_DEPTH, depth as u16, 0, 0, &mut none)
-        .is_ok()
+pub fn set_hub_depth(h: &mut impl Host, slot: u8, depth: u8) -> bool {
+    out(h, slot, RT_HUB_OUT, SET_HUB_DEPTH, depth as u16, 0)
 }

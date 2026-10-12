@@ -1699,6 +1699,7 @@
    "userland/capsule_driver_usb_hid",
    "userland/libc",
    "userland/nonos_keymap",
+   "userland/nonos_usb_hub",
    "userland/nonos_usbnet/src/hosts.rs",
    "userland/policy_client",
    "userland/policy_proto"
@@ -5284,6 +5285,16 @@
   "md": [],
   "signed": []
  },
+ "userland/usb_hub_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_usb_hub",
+   "userland/usb_hub_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/usb_msc_proofs": {
   "exclude": [],
   "include": [
@@ -5318,10 +5329,6 @@
    "userland/capsule_driver_usb_hid/src/hid/mouse_event.rs",
    "userland/capsule_driver_usb_hid/src/hid/mouse_report.rs",
    "userland/capsule_driver_usb_hid/src/hid/tablet_report.rs",
-   "userland/capsule_driver_usb_hid/src/hub/descriptor.rs",
-   "userland/capsule_driver_usb_hid/src/hub/port_status.rs",
-   "userland/capsule_driver_usb_hid/src/hub/route.rs",
-   "userland/capsule_driver_usb_hid/src/hub/status_endpoint.rs",
    "userland/capsule_driver_usb_hid/src/orchestrator/enumerate/drop_port.rs",
    "userland/capsule_driver_usb_hid/src/orchestrator/enumerate/types.rs",
    "userland/capsule_driver_usb_hid/src/orchestrator/find_within.rs",

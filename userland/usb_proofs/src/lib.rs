@@ -10,7 +10,6 @@ pub mod enumerate;
 #[path = "../../capsule_driver_usb_hid/src/orchestrator/find_within.rs"]
 pub mod find_within;
 pub mod hid;
-pub mod hub;
 pub mod poll;
 pub mod protocol;
 /// The driver's whole request wire: the header decode every frame passes
@@ -36,12 +35,6 @@ mod descriptor_walk_tests;
 mod find_within_tests;
 #[cfg(test)]
 mod fuzz_tests;
-#[cfg(test)]
-mod hub_descriptor_tests;
-#[cfg(test)]
-mod hub_port_tests;
-#[cfg(test)]
-mod hub_route_tests;
 #[cfg(test)]
 mod keyboard_tests;
 #[cfg(test)]

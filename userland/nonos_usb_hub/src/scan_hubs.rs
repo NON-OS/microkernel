@@ -13,27 +13,25 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Looking at the ports of every hub held. Each hub is taken out of the
+//! list while its ports are looked at, so a hub found below it can be
+//! added, and put back after.
 
-//! A hub this driver configured, and what it keeps for each of its ports.
+use alloc::vec::Vec;
 
-use super::descriptor::MAX_HUB_PORTS;
-use super::place::Place;
+use crate::classes::Classes;
+use crate::host::Host;
+use crate::node::Hub;
+use crate::scan_hub::scan_hub;
 
-const PORTS: usize = MAX_HUB_PORTS as usize;
-
-pub struct Hub {
-    pub slot: u8,
-    pub place: Place,
-    pub ports: u8,
-    /// Per port, from port 1: the slot kept for the device there, 0 for
-    /// none. A device that bound nothing has its slot given back.
-    pub child: [u8; PORTS],
-    /// Per port: the tries that came to nothing since it was last empty.
-    pub tries: [u8; PORTS],
-}
-
-impl Hub {
-    pub fn new(slot: u8, place: Place, ports: u8) -> Self {
-        Self { slot, place, ports: ports.min(MAX_HUB_PORTS), child: [0; PORTS], tries: [0; PORTS] }
+pub fn scan_hubs<H: Host>(h: &mut H, hubs: &mut Vec<Hub>, classes: &mut impl Classes<H>) {
+    let slots: Vec<u8> = hubs.iter().map(|x| x.slot).collect();
+    for slot in slots {
+        let Some(i) = hubs.iter().position(|x| x.slot == slot) else {
+            continue;
+        };
+        let mut hub = hubs.swap_remove(i);
+        scan_hub(h, &mut hub, hubs, classes);
+        hubs.push(hub);
     }
 }
