@@ -32,6 +32,7 @@ mod granting;
 pub mod hw_errors;
 mod io_grant;
 mod kernel;
+pub mod late_bars;
 pub mod lid_state;
 mod memory_grant;
 mod memory_record;

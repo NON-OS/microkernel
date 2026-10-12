@@ -16,12 +16,17 @@
 
 //! One PCI function looked at again after the boot scan: firmware left it
 //! powered off, so the scan saw nothing there, and the ACPI capsule has
-//! run its _PS0. Only that one function is read; if it answers it joins
-//! the device table like any other, so its driver can claim it.
+//! run its _PS0. Only that one function is read. If it answers it joins
+//! the device table through the boot scan's own record build; if its BARs
+//! were never assigned it joins marked unusable, since NONOS assigns none.
+//! An IOMMU in service gives it no context entry: its DMA is denied until
+//! a driver claims it and the claim confines it, as for any device.
 
 use super::super::{pci_index, table};
+use super::late_bars::unassigned;
 use crate::drivers::pci::manager::probe_function;
 use crate::sys::serial::Line;
+use alloc::vec::Vec;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ProbeError {
@@ -41,20 +46,26 @@ pub fn probe_late(bus: u8, dev: u8, func: u8) -> Result<u64, ProbeError> {
         return Err(ProbeError::Present);
     }
     let found = probe_function(bus, dev, func).ok_or(ProbeError::Absent)?;
-    let id = table::add_pci_function(&found);
-    Line::new()
-        .str(b"[ACPI] pci ")
-        .hex(u64::from(bus))
-        .str(b":")
-        .hex(u64::from(dev))
-        .str(b".")
-        .dec(u64::from(func))
-        .str(b" answered after _PS0: ")
-        .hex(u64::from(found.vendor_id))
-        .str(b":")
-        .hex(u64::from(found.device_id))
-        .str(b" device=")
-        .hex(id)
-        .end();
+    let bars: Vec<(u64, u64)> = found
+        .bars
+        .iter()
+        .filter(|b| b.is_present())
+        .map(|b| {
+            (b.size(), b.address().map(|a| a.as_u64()).or(b.port().map(u64::from)).unwrap_or(0))
+        })
+        .collect();
+    let disabled = unassigned(&bars);
+    let id = table::add_pci_function(&found, disabled);
+    let iommu: &[u8] = if crate::memory::iommu::capabilities().enforcing {
+        b"; IOMMU denies its DMA until it is claimed"
+    } else {
+        b"; no IOMMU in service, unconfined like every device"
+    };
+    let mut l = Line::new();
+    l.str(b"[ACPI] pci ").hex(u64::from(bus)).str(b":").hex(u64::from(dev)).str(b".");
+    l.dec(u64::from(func)).str(b" answered after _PS0: ").hex(u64::from(found.vendor_id));
+    l.str(b":").hex(u64::from(found.device_id)).str(b" device=").hex(id);
+    l.str(if disabled { b"; BARs unassigned, marked unusable" } else { iommu });
+    l.end();
     Ok(id)
 }

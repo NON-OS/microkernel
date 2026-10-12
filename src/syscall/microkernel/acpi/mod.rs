@@ -17,6 +17,7 @@
 //! The ACPI capsule's calls: its firmware tables and the OperationRegion
 //! windows the broker's rule grants it. x86_64 only, as ACPI is here.
 
+mod asker;
 mod cpu;
 mod dispatch;
 mod errno;
