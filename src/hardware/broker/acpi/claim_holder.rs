@@ -32,3 +32,23 @@ pub fn holds(pid: u32, bdf: (u16, u8, u8, u8)) -> Option<bool> {
     })?;
     Some(claim::lookup(h.device_id).is_some_and(|c| pid == ANYONE || c.pid == pid))
 }
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum FunctionError {
+    /// No PCI function has that device id.
+    NotPci,
+    /// The pid asking does not hold the device's claim.
+    NotHolder,
+}
+
+/// The PCI function behind a broker device id: drivers know their device
+/// by id, never by bus number. For a non-zero pid, only its holder may ask.
+pub fn function_of_device(pid: u32, device_id: u64) -> Result<(u16, u8, u8, u8), FunctionError> {
+    let h = pci_index::lookup(device_id).ok_or(FunctionError::NotPci)?;
+    let holder = claim::lookup(device_id).map(|c| c.pid);
+    if pid != ANYONE && holder != Some(pid) {
+        return Err(FunctionError::NotHolder);
+    }
+    let a = h.address;
+    Ok((a.segment, a.bus, a.device, a.function))
+}
