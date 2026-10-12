@@ -18,6 +18,7 @@
 //! async ring and periodic list, a QH's run, and taking a QH back.
 
 pub mod layout;
+pub mod link;
 pub mod lists;
 mod places;
 pub mod qh;

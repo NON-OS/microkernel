@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "ehci_proofs"
 version = "0.1.0"
+dependencies = [
+ "nonos_usb_hub",
+]
+
+[[package]]
+name = "nonos_usb_hub"
+version = "0.3.0"
