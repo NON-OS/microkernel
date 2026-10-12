@@ -74,8 +74,12 @@ handed to the kernel through `MkAcpiCpu`, one record per processor, for
 the kernel's frequency and idle control; a part whose register lies
 outside memory, I/O, PCC or fixed hardware is left out. They are read
 again on the processor's Notify 0x80, 0x81, 0x83 and 0x85. One `[ACPI]
-cpu` line is logged for each run of processors with the same tables. No
-processor `_OSC` or `_PDC` is evaluated, and nothing is entered from here.
+cpu` line is logged for each run of processors with the same tables. Each
+processor's `_OSC` (Intel's processor UUID) is evaluated first, since firmware
+often loads those tables from it, declaring only the capabilities listed in
+`cpu/caps.rs`, none until the kernel has the control code; firmware's answer is
+logged on one `cpu _OSC` line. `_PDC` is not evaluated. Nothing is entered from
+here.
 
 \_S5 is evaluated at start too, with nothing run, and its SLP_TYP values
 handed to the kernel through `MkAcpiSleep`, so soft-off works on a laptop

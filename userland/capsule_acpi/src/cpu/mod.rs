@@ -18,8 +18,10 @@
 //! the kernel. What runs at which frequency, and how deep a core sleeps,
 //! is the kernel's to decide.
 
+mod caps;
 mod find;
 mod notify;
+mod osc_report;
 mod record;
 mod record_reg;
 mod report;

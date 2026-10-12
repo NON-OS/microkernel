@@ -16,22 +16,27 @@
 
 //! Every processor's tables, read at start and handed to the kernel.
 
+use super::caps::word;
+use super::osc_report::say_osc;
 use super::report::report;
 use super::send::send;
 use super::state::{Cpu, Cpus};
 use crate::boot::evaluator;
 use crate::host::CapsuleHost;
-use nonos_aml::cpu::{cpu_tables, processors};
+use nonos_aml::cpu::{cpu_tables, processor_osc, processors};
 use nonos_aml::load::Aml;
 
 pub fn find(aml: &mut Aml, host: &mut CapsuleHost) -> Cpus {
     let mut cpus = Cpus::default();
     let found = processors(aml, &mut evaluator(host));
     for p in found {
+        // First: firmware may load the processor's tables from inside it.
+        let osc = processor_osc(aml, &mut evaluator(host), p.id, word());
         let tables = cpu_tables(aml, &mut evaluator(host), p.id);
-        cpus.list.push(Cpu { id: p.id, uid: p.uid, tables });
+        cpus.list.push(Cpu { id: p.id, uid: p.uid, osc, tables });
     }
     cpus.list.iter().for_each(send);
+    say_osc(&cpus);
     report(&cpus);
     cpus
 }
