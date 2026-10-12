@@ -27,13 +27,17 @@ use crate::facts::qtd::QTD_LEN;
 pub const FRAME_LIST: usize = 0x0000;
 pub const FRAMES: usize = 1024;
 /// The QHs: the async ring's head, address 0's control QH, a control QH
-/// per slot, two bulk QHs per slot (IN, then OUT), then the interrupt QHs.
+/// per slot, two bulk QHs per slot (IN, then OUT), two for each second
+/// pair, then the interrupt QHs.
 pub const QH_AREA: usize = 0x1000;
 pub const SLOTS: usize = 16;
 pub const BULK_QHS: usize = 2 * SLOTS;
 pub const INTR_MAX: usize = 8;
+/// Second bulk pairs (OP_CONFIGURE_BULK2, UAS's data pipes), taken by
+/// slots as they come: the QH area holds two and no more.
+pub const SECOND_PAIRS: usize = 2;
 /// The QHs in the async ring, in ring order.
-pub const RING: usize = 2 + SLOTS + BULK_QHS;
+pub const RING: usize = 2 + SLOTS + BULK_QHS + 2 * SECOND_PAIRS;
 /// Control's SETUP, data and STATUS qTDs, bulk's one, each interrupt
 /// endpoint's one, each polled place's one.
 pub const CTRL_QTD: usize = 0x2000;

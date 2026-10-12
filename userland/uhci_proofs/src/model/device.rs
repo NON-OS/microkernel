@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! A device: EP0 (ep0.rs), an interrupt IN endpoint 1 with reports queued,
 //! a bulk IN endpoint 2 with messages queued, and a bulk OUT endpoint 3
-//! that keeps what it is sent. Every data packet's toggle is checked
+//! that keeps what it is sent; IN 4 and OUT 5 likewise, a second pair. Every data packet's toggle is checked
 //! against the one the endpoint expects; a wrong one is counted.
 
 use std::collections::VecDeque;
@@ -27,6 +27,9 @@ pub struct Device {
     pub bulk_mps: usize,
     pub bulk_out: Vec<u8>,
     pub stall_bulk_in: bool,
+    /// The second pair's (UAS's data pipes).
+    pub bulk_in2: VecDeque<Vec<u8>>,
+    pub bulk_out2: Vec<u8>,
     /// Answers nothing but NAK.
     pub mute: bool,
     /// The bRequest EP0 stalls.
@@ -55,6 +58,13 @@ impl Device {
             (3, PID_OUT) => {
                 if self.expect(6, toggle) {
                     self.bulk_out.extend_from_slice(out);
+                }
+                Reply::Ack(vec![])
+            }
+            (4, PID_IN) => self.bulk2(toggle, max),
+            (5, PID_OUT) => {
+                if self.expect(10, toggle) {
+                    self.bulk_out2.extend_from_slice(out);
                 }
                 Reply::Ack(vec![])
             }

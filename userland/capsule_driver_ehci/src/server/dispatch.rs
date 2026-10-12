@@ -18,7 +18,7 @@
 
 use super::context::Ctx;
 use super::handlers::{
-    bulk, control, descriptors, hub, interrupt, poll, ports, reset, slots, transfer,
+    bulk, bulk2, control, descriptors, hub, interrupt, poll, ports, reset, slots, transfer,
 };
 use super::reply::status;
 use crate::env::{Clock, Mem, Regs};
@@ -43,6 +43,7 @@ pub fn dispatch<R: Regs, C: Clock, M: Mem>(
         OP_ALLOC_TRANSFER_RING => interrupt::alloc(cx, req, body, tx),
         OP_INTERRUPT_IN => interrupt::read(cx, req, body, tx),
         OP_CONFIGURE_BULK => bulk::configure(cx, req, body, tx),
+        OP_CONFIGURE_BULK2 => bulk2::configure(cx, req, body, tx),
         OP_BULK_OUT => transfer::transfer(cx, req, body, tx, false),
         OP_BULK_IN => transfer::transfer(cx, req, body, tx, true),
         OP_RESET_BULK => reset::reset(cx, req, body, tx),

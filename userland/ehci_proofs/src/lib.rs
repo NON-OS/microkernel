@@ -24,6 +24,8 @@ pub mod xfer;
 pub mod model;
 
 #[cfg(test)]
+mod bulk2_tests;
+#[cfg(test)]
 mod bulk_tests;
 #[cfg(test)]
 mod control_tests;

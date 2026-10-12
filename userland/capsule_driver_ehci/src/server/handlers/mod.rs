@@ -17,6 +17,7 @@
 //! The handlers, by what they touch.
 
 pub mod bulk;
+pub mod bulk2;
 pub mod control;
 pub mod descriptors;
 mod ep0;
