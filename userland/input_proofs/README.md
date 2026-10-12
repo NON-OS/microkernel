@@ -23,7 +23,9 @@ parse and press frames (`router_parse_tests`, `press_frame_tests`), and
 compositor damage (`damage_tests`). And the router driven whole, event by
 event as the drivers post them (`router_route_tests`): keys to focus and each
 release to where its press went, the reserved chord, a press grab that keeps a
-release off the pressed window for it, and a grab whose holder died.
+release off the pressed window for it, and a grab whose holder died; and
+focus-only input (`router_focus_tests`): a grab refused to a named capsule
+without focus, and keys after a focused window closes going to the shell.
 
 ## What it does not prove
 
