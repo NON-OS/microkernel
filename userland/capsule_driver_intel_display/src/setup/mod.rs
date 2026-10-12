@@ -19,6 +19,7 @@ mod driver;
 mod firmware;
 mod maps;
 mod sequence;
+mod take;
 
 pub use driver::{Driver, Engine};
 pub use sequence::run;

@@ -21,6 +21,7 @@
 use nonos_gfx_serve::Panel;
 
 use super::frames::Frames;
+use super::modeset::Modeset;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::gen::Gen;
 use crate::engine::scanout::Scanout;
@@ -40,6 +41,10 @@ pub struct Intel<M: Mmio, F: Frames, C: Clock> {
     pub scan: Scanout,
     /// What the monitor's EDID said; empty when it said nothing.
     pub panel: Panel,
+    /// What a MODE_SET needs; None leaves the output at firmware's mode.
+    pub modeset: Option<Modeset>,
+    /// The first IOVA of each scanout surface now shown.
+    pub bases: [u64; 2],
     /// Bumped whenever STATE says something new.
     pub generation: u32,
     /// The flags STATE answered last.

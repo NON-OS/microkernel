@@ -45,8 +45,8 @@ impl<M: Mmio, F: Frames, C: Clock> Display for Intel<M, F, C> {
         Ok(State { generation, width, height, flags, ..State::default() })
     }
 
-    fn set_mode(&mut self, _output: u16, _w: u32, _h: u32, _s: &Shadow) -> Result<(), Errno> {
-        Err(ENOSYS)
+    fn set_mode(&mut self, _output: u16, w: u32, h: u32, shadow: &Shadow) -> Result<(), Errno> {
+        self.change_mode(w, h, shadow)
     }
 
     fn flush(&mut self, _output: u16, rects: &[Rect], shadow: &Shadow) -> Result<(), Errno> {

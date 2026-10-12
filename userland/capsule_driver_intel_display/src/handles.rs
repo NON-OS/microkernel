@@ -15,28 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the broker granted, given back when an attempt fails or the
-//! driver ends: the scanout surfaces' grants, BAR0's, then the claim.
+//! driver ends: BAR0's grant, then the claim. The scanout surfaces' grants
+//! are `DmaFrames`', given back before these.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap, mk_mmio_unmap};
+use nonos_libc::{mk_device_release, mk_mmio_unmap};
 
 pub struct BrokerHandles {
     pub device_id: u64,
     pub epoch: u64,
     pub bar0: Option<u64>,
-    pub frames: [Option<u64>; 2],
 }
 
 impl BrokerHandles {
     pub const fn new(device_id: u64, epoch: u64) -> Self {
-        BrokerHandles { device_id, epoch, bar0: None, frames: [None, None] }
+        BrokerHandles { device_id, epoch, bar0: None }
     }
 }
 
 impl Drop for BrokerHandles {
     fn drop(&mut self) {
-        for g in self.frames.iter().flatten() {
-            let _ = mk_dma_unmap(*g);
-        }
         if let Some(g) = self.bar0 {
             let _ = mk_mmio_unmap(g);
         }
