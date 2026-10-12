@@ -152,4 +152,5 @@ pub enum SyscallNumber {
     MkAcpiPort = tag4(b"MRIO"),
     MkAcpiPci = tag4(b"MRPC"),
     MkAcpiPower = tag4(b"MAPW"),
+    MkAcpiEvent = tag4(b"MAEV"),
 }

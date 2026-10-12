@@ -19,6 +19,7 @@
 
 mod dispatch;
 mod errno;
+mod event;
 mod pci;
 mod port;
 mod power;
@@ -26,6 +27,7 @@ mod region;
 mod table;
 
 pub use dispatch::handle;
+pub use event::sys_acpi_event;
 pub use pci::sys_acpi_pci;
 pub use port::sys_acpi_port;
 pub use power::sys_acpi_power;
