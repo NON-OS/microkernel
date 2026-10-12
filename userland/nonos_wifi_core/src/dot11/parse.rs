@@ -18,7 +18,7 @@
 //! management-frame builders. A scan turns received beacons into a list of
 //! visible networks: BSSID, SSID, operating channel, and whether the network
 //! advertises RSN (WPA2). Pure parsing over untrusted input with a bounded
-//! walk and no panics, checked by `iwlwifi_proofs`.
+//! walk and no panics, checked by `nonos_wifi_core_proofs`.
 
 use super::header::{
     fc_subtype, fc_type, MAC_HEADER_LEN, SUBTYPE_BEACON, SUBTYPE_PROBE_RESP, TYPE_MGMT,
