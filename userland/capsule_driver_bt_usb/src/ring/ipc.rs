@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The keyring reached over IPC, from the thread that runs the capsule:
-//! the keyring lets only the pid holding driver.bt_usb0 keep its records
-//! (lead unit L33), and this capsule has no other thread.
+//! One request to the keyring and its answer, over IPC, bounded in time.
 
 use alloc::{vec, vec::Vec};
 
-use super::keyring::{Call, Keyring};
+use super::keyring::Call;
 use nonos_bt_bond::wipe;
-use nonos_libc::{mk_getpid, mk_ipc_call_timeout, mk_service_lookup, mk_uptime_ms};
+use nonos_libc::{mk_ipc_call_timeout, mk_uptime_ms};
 
-const KEYRING: &[u8] = b"keyring";
 /// Sequence, op and two spare octets out; sequence and status back.
 const HDR: usize = 8;
 /// Record operations take the keyring microseconds; a keyring that does
@@ -33,16 +30,8 @@ const TIMEOUT_MS: u64 = 1_000;
 const NO_ANSWER: i32 = -11;
 
 pub struct Ipc {
-    port: u32,
-    seq: u32,
-}
-
-/// The keyring, if it is running and this capsule knows its own pid.
-pub fn connect() -> Option<Keyring<Ipc>> {
-    let (mut port, mut owner) = (0u32, 0u32);
-    let rc = mk_service_lookup(KEYRING.as_ptr(), KEYRING.len(), &mut port, &mut owner);
-    let pid = mk_getpid();
-    (rc >= 0 && port != 0 && pid != 0).then(|| Keyring::new(Ipc { port, seq: 0 }, pid))
+    pub(super) port: u32,
+    pub(super) seq: u32,
 }
 
 impl Call for Ipc {

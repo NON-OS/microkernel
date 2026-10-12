@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod answer;
+mod connect;
 mod ipc;
 pub mod keyring;
 pub mod wire;
 
-pub use ipc::{connect, Ipc};
+pub use connect::connect;
+pub use ipc::Ipc;
 pub use keyring::Keyring;
