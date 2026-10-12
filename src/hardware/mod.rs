@@ -31,6 +31,7 @@ pub mod inventory;
 pub mod iwlwifi_capsule;
 pub mod ixgbe_capsule;
 pub mod nvme_capsule;
+pub mod ohci_capsule;
 pub mod ps2_kbd_capsule;
 pub mod rndis_capsule;
 pub mod rtl8139_capsule;
