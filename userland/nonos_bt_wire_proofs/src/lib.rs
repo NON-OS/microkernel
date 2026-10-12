@@ -21,6 +21,8 @@ mod acl_tests;
 #[cfg(test)]
 mod addr_tests;
 #[cfg(test)]
+mod central_tests;
+#[cfg(test)]
 mod command_tests;
 #[cfg(test)]
 mod cursor_tests;
@@ -32,3 +34,5 @@ mod l2cap_tests;
 mod le_meta_tests;
 #[cfg(test)]
 mod reassembly_tests;
+#[cfg(test)]
+mod signal_tests;

@@ -15,8 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod basic;
+pub mod central;
 pub mod cid;
+pub mod conn_param;
 pub mod reassembly;
+pub mod signal;
 
 pub use basic::{basic, parse_basic};
+pub use central::{answer_central, Answer};
+pub use conn_param::ConnParams;
 pub use reassembly::Reassembler;
+pub use signal::{command_reject, parse_signal, signal, Signal};
