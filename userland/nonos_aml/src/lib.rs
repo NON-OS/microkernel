@@ -27,6 +27,7 @@
 
 extern crate alloc;
 
+pub mod apei;
 pub mod arena;
 pub mod block;
 pub mod button;
