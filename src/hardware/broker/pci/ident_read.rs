@@ -19,7 +19,7 @@
 
 use crate::drivers::pci::config::ConfigSpace;
 
-use super::quirk_bits::Ident;
+use super::quirk_bits::{legsup_before, Ident};
 use super::types::PciWriteError;
 
 /// The function's vendor, class and PCI Express capability, read from its
@@ -46,10 +46,7 @@ pub(super) fn ident(cfg: &ConfigSpace, offset: u32) -> Result<Ident, PciWriteErr
         .map(|c| c.offset as u16);
     let (subclass, prog_if) = ((class >> 16) as u8, (class >> 8) as u8);
     let ehci = class >> 8 == 0x0C_0320;
-    let byte = |d: u32| match offset.checked_sub(d).filter(|&o| ehci && o >= 0x40) {
-        Some(o) => cfg.read8(o as u16).unwrap_or(0xFF),
-        None => 0xFF,
-    };
-    let before = [byte(2), byte(4), byte(6)];
+    let read = |o: u16| cfg.read8(o).unwrap_or(0xFF);
+    let before = if ehci { legsup_before(&read, offset) } else { [0xFF; 3] };
     Ok(Ident { vendor, class: (class >> 24) as u8, subclass, prog_if, pcie_cap, before })
 }
