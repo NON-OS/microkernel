@@ -22,6 +22,7 @@ mod cpc;
 mod cpc_index;
 mod cst;
 mod find;
+mod osc;
 mod pct;
 mod pss;
 mod register;
@@ -31,6 +32,7 @@ pub use cpc::{parse_cpc, Cpc, CpcField};
 pub use cpc_index::*;
 pub use cst::{parse_cst, CState, MAX_CSTATES};
 pub use find::{processors, Processor, PROCESSOR_HID};
+pub use osc::{processor_osc, ProcessorOsc, PROCESSOR_UUID};
 pub use pct::{parse_pct, Pct};
 pub use pss::{parse_pss, ppc_index, PState, MAX_PSTATES};
 pub use register::{
