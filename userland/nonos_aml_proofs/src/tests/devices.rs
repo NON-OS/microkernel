@@ -33,6 +33,8 @@ mod legacy;
 mod platform_device;
 #[path = "suspend/mod.rs"]
 mod suspend;
+#[path = "ports/mod.rs"]
+mod ports;
 #[path = "serial/mod.rs"]
 mod serial;
 #[path = "video/mod.rs"]
