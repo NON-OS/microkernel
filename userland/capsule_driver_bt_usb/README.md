@@ -73,7 +73,11 @@ logs `controller not usable: ACL endpoints refused`.
    so a device in range that pairs that way and calls itself a keyboard
    could otherwise type into the machine. Its pointer motion and buttons
    are posted, since a mouse can only pair by Just Works.
-8. Requests from the peer are answered meanwhile: its reads of this host's
+8. Then the Battery Service: each Battery Level is read, and followed by
+   notification where the device offers it. Each level is logged. A level
+   is not input, so a Just Works link gives it too. A battery the capsule
+   cannot read ends nothing.
+9. Requests from the peer are answered meanwhile: its reads of this host's
    GAP database, and connection timing it asks for (applied with LE
    Connection Update when it is in range).
 
@@ -89,13 +93,15 @@ next look waits 30 s.
   capsule's memory until it stops; the log says which.
 - No allow-list beyond the bonds: an unbonded HID advertiser is still
   paired, and its keys post only after a typed passkey.
-- No service: the capsule answers no requests on driver.bt_usb0 yet.
+- No service: the capsule answers no requests on driver.bt_usb0 yet, so
+  the battery level reaches only the log.
 
 ## Log
 
 `bt-usb:` lines: `bonds last for this boot only (Decision 27)`, where
 bonds are kept, `started`, `controller up`, `connected`, the passkey to
-type, `paired`, `bond kept`, `encrypted with the kept bond`, `HID ready: keyboard mouse`, `link lost` or `link ended:`
+type, `paired`, `bond kept`, `encrypted with the kept bond`, `HID ready: keyboard mouse`,
+`battery 1: 90%` (instances count from 1), `link lost` or `link ended:`
 with the reason, and `controller given back:` with the reason.
 
 ## Contract
@@ -237,11 +243,11 @@ is on main yet.
 
 BR/EDR (Classic) devices, more than one device at a time, Report Protocol
 (media keys, wheels, absolute pointers), vendor firmware loading, a pairing
-dialog, kept bonds and LE privacy (next unit).
+dialog, and bonds kept past this boot.
 
 ## Verification
 
 `cd userland/bt_usb_proofs && RUST_TEST_THREADS=1 cargo test --release`
-(24 pass at the time of writing); the capsule's `cargo build --release`
+(43 pass at the time of writing); the capsule's `cargo build --release`
 and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on
 hardware.

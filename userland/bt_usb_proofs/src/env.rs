@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The capsule's environment as the proofs play it: a clock that moves a
-//! millisecond each time it is read, the input ring and the log as lists,
+//! millisecond each time it is read, the input ring, the log and the battery levels as lists,
 //! the user who types the passkey shown, a fixed random stream, and the
 //! bond store over memory, as the capsule keeps it without L33.
 
@@ -24,6 +24,7 @@ use std::rc::Rc;
 
 use crate::smp_sim::Rng;
 use nonos_bt_bond::{MemoryKeys, Store};
+use nonos_bt_hogp::host::Battery;
 use nonos_bt_hogp::report::Input;
 use nonos_bt_smp::pairing::Random;
 
@@ -31,6 +32,7 @@ pub struct TestEnv {
     pub now: u64,
     pub input: Vec<Input>,
     pub lines: Vec<String>,
+    pub batteries: Vec<Battery>,
     pub passkeys: Vec<u32>,
     pub ticks: u64,
     /// Shared with the air: the peer's user types what is shown here.
@@ -44,7 +46,8 @@ impl TestEnv {
         let rng = Rng(0x2545_f491_4f6c_dd1d);
         let (input, lines, passkeys) = (Vec::new(), Vec::new(), Vec::new());
         let bonds = Store::open(MemoryKeys::default()).unwrap();
-        Self { now: 0, input, lines, passkeys, ticks: 0, shown, rng, bonds }
+        let batteries = Vec::new();
+        Self { now: 0, input, lines, batteries, passkeys, ticks: 0, shown, rng, bonds }
     }
 
     pub fn said(&self, line: &str) -> bool {

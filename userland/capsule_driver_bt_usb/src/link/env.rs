@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the link needs from the capsule around it: the clock, the input
-//! ring, the debug line, the user, the random source pairing draws from,
-//! and the bonds. The proofs stand in for all six, so every path the link
-//! takes runs on the host.
+//! ring, the debug line, the battery, the user, the random source pairing
+//! draws from, and the bonds. The proofs stand in for all seven, so every
+//! path the link takes runs on the host.
 
 use nonos_bt_bond::BondRecord;
+use nonos_bt_hogp::host::Battery;
 use nonos_bt_hogp::report::Input;
 use nonos_bt_smp::pairing::Random;
 use nonos_bt_wire::addr::{AddrType, BdAddr};
@@ -33,6 +34,8 @@ pub trait Env: Random {
     fn tick(&mut self, now_ms: u64);
     /// One line for whoever reads the capsule's log.
     fn say(&mut self, words: &[&[u8]]);
+    /// A Battery Level the HID device gave (BAS 1.0, 3.1).
+    fn battery(&mut self, battery: Battery);
     /// Six digits for the user to type on the keyboard being paired.
     fn show_passkey(&mut self, passkey: u32);
     /// The bond for a peer seen at this address: by identity, or by the
