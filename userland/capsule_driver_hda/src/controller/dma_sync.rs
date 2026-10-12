@@ -26,11 +26,11 @@
 //! nanoseconds a period; with it off they are the difference between sound
 //! and noise.
 
-const LINE: u64 = 64;
-
 /// Write `len` bytes at `va` back to memory and drop them from the cache.
 #[cfg(target_arch = "x86_64")]
 pub fn flush(va: u64, len: u64) {
+    // CLFLUSH covers at least 64 bytes on every x86 CPU (CPUID.01H:EBX[15:8]).
+    const LINE: u64 = 64;
     if len == 0 {
         return;
     }
