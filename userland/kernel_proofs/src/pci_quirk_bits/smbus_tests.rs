@@ -35,7 +35,7 @@ fn nothing_else_of_the_smbus_host_and_no_other_host_is_writable() {
         assert_eq!(writable(&SMBUS, offset), None, "{offset:#x}");
     }
     let amd = Ident { vendor: 0x1022, ..SMBUS };
-    assert_eq!(writable(&amd, 0x40), None, "an AMD FCH SMBus is not an i801");
+    assert_eq!(writable(&amd, 0x40), None, "an AMD FCH SMBus has no HOSTC");
     let lpss = Ident { subclass: 0x80, ..SMBUS };
     assert_eq!(writable(&lpss, 0x40), None, "an LPSS I2C controller");
 }
