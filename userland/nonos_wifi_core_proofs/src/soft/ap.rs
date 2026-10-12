@@ -18,8 +18,9 @@
 //! station's message 2 chooses, as the station meets it on the air: it answers
 //! Open System authentication and association, opens the four-way handshake,
 //! checks message 2's MIC (a wrong passphrase gets a deauthentication with
-//! reason 15, as hostapd sends), installs the pairwise key on message 4, and
-//! from then on reads the station's protected data.
+//! reason 15, the four-way handshake timeout an AP reports for a MIC that
+//! fails), installs the pairwise key on message 4, and from then on reads the
+//! station's protected data.
 
 use crate::soft::frames::beacon;
 use nonos_wifi_core::rsn::{Cipher, TemporalKey};

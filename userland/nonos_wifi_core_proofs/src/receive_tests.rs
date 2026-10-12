@@ -17,7 +17,8 @@
 //! The receive half of an associated link.
 //!
 //! CCMP is checked against IEEE Std 802.11-2012 M.6.4 (the CCMP test vector:
-//! input as in hostapd wlantest/test_vectors.c test_vector_ccmp(), fetched from
+//! input bytes copied from hostapd's transcription in wlantest/test_vectors.c
+//! test_vector_ccmp(), fetched from
 //! https://w1.fi/cgit/hostap/plain/wlantest/test_vectors.c, sha256
 //! 9aceafbe03d32ca537dab030de0350c5d9cc658de176bc21c76ab95b7e30a633; the
 //! expected encrypted MPDU is the published one). The QoS vector was computed

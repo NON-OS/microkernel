@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The group key handshake (IEEE Std 802.11-2020, 12.7.7). An access point
-//! replaces its group key on a timer (hostapd's default is a day; many
-//! consumer routers do it hourly) and sends every associated station group
+//! replaces its group key on a timer (commonly a day, on many consumer
+//! routers an hour) and sends every associated station group
 //! message 1 with the new GTK wrapped under the KEK. A station that never
 //! answers is deauthenticated after the retries, which on a link that ran fine
 //! for an hour reads as Wi-Fi dropping by itself. Here the message is verified

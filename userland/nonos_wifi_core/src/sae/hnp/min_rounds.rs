@@ -27,11 +27,12 @@
 //! how many it took to find the element (which depends on the password) does
 //! not show in the time it takes: once found, the remaining rounds hash a
 //! random stand-in password and every choice is a constant-time select. This
-//! is the countermeasure hostapd uses against the Dragonblood timing and cache
-//! attacks. Checked against the IEEE Std 802.11-2020 Annex J.10 vector.
+//! closes the Dragonblood timing and cache side channels. Checked against
+//! the IEEE Std 802.11-2020 Annex J.10 vector.
 
-/// Rounds run whatever the password (`dragonfly_min_pwe_loop_iter` for
-/// group 19 in hostapd).
+/// Rounds run whatever the password. Each round finds the element with
+/// probability about one half on group 19, so after 40 the chance a password
+/// still needs more is near 2^-40.
 pub(super) const MIN_ROUNDS: u8 = 40;
 
 /// A bound on the loop: the chance of no element in 200 rounds is about 2^-200.
