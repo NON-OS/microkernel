@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! SRAT read once at boot through the one pure decoder (`srat_entry`):
-//! each processor's proximity domain and the memory ranges by domain. GICC
-//! and Generic Initiator entries are decoded too, and kept for the device
-//! records once their encoding is settled.
+//! each processor's proximity domain, the memory ranges by domain, and
+//! the Generic Initiators (`numa_extra`). GICC entries are an Arm
+//! machine's processors, and nothing on x86.
 
 use super::super::state::TableRegistry;
 use super::srat_entry::{entries, SratEntry};
@@ -60,6 +60,7 @@ fn apply(registry: &mut TableRegistry, e: SratEntry) {
                 non_volatile,
             });
         }
-        SratEntry::Gicc { .. } | SratEntry::Initiator { .. } => {}
+        SratEntry::Initiator { domain, handle } => super::numa_extra::add_initiator(domain, handle),
+        SratEntry::Gicc { .. } => {}
     }
 }

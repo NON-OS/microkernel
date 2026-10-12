@@ -17,6 +17,7 @@
 //! The platform layer through the real interpreter: the _INI walk, \_PIC,
 //! _OSC, the inventory, _PRT and PCI paths.
 
+mod bus_range_tests;
 mod ini_tests;
 mod inventory_tests;
 mod osc_tests;

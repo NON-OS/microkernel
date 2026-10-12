@@ -35,6 +35,8 @@ mod bars_tests;
 #[cfg(test)]
 mod external_tests;
 #[cfg(test)]
+mod numa_tests;
+#[cfg(test)]
 mod round_trip_tests;
 #[cfg(test)]
 mod same_group_tests;

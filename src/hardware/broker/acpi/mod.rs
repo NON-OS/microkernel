@@ -39,6 +39,8 @@ pub mod late_bars;
 pub mod lid_state;
 mod memory_grant;
 mod memory_record;
+pub mod numa_node;
+pub mod numa_store;
 mod pci_access;
 mod pci_admit;
 pub mod platform_add;

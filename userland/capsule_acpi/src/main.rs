@@ -35,6 +35,7 @@ mod events_io;
 mod host;
 mod hotkeys;
 mod legacy;
+mod numa;
 mod platform;
 mod ports;
 mod props;

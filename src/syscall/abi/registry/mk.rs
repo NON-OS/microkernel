@@ -152,6 +152,10 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MUPF", SyscallNumber::MkUsbPortFacts, "MkUsbPortFacts"),
     e(b"MAXP", SyscallNumber::MkAcpiExternalPort, "MkAcpiExternalPort"),
     e(b"MAMR", SyscallNumber::MkAcpiReserved, "MkAcpiReserved"),
+    e(b"MAPX", SyscallNumber::MkAcpiProximity, "MkAcpiProximity"),
+    e(b"MNNO", SyscallNumber::MkNumaNodeOf, "MkNumaNodeOf"),
+    e(b"MNDS", SyscallNumber::MkNumaDistance, "MkNumaDistance"),
+    e(b"MDNN", SyscallNumber::MkDeviceNode, "MkDeviceNode"),
 ];
 const fn e(tag: &[u8; 4], variant: SyscallNumber, name: &'static str) -> AbiEntry {
     AbiEntry { id: tag4(tag), variant, name, domain: AbiDomain::Mk, status: AbiStatus::Routed }

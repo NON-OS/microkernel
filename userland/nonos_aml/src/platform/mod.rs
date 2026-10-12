@@ -19,6 +19,7 @@
 //! the PCI function a PCI_Config region reaches. Everything runs through
 //! the caller's evaluator.
 
+mod bus_range;
 mod device_pci;
 mod eisa;
 mod eval;
@@ -44,6 +45,7 @@ mod template;
 mod text_path;
 mod walk;
 
+pub use bus_range::bus_range;
 pub use device_pci::device_pci_path;
 pub use eisa::eisa_id;
 pub use eval::{child, integer, Eval};
