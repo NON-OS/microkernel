@@ -77,6 +77,9 @@
    "nonos-data/trust/capsules/driver_usb_hub.manifest.bin",
    "nonos-data/trust/capsules/driver_usb_hub.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_usb_hub.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_uvc.manifest.bin",
+   "nonos-data/trust/capsules/driver_uvc.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_uvc.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -1736,6 +1739,19 @@
    "userland/libc",
    "userland/nonos_usbnet/src/hosts.rs",
    "userland/nonos_usbnet/src/hosts_first.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_uvc": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/services/registry/usb_hosts.rs",
+   "userland/capsule_driver_uvc",
+   "userland/libc",
+   "userland/nonos_usbnet",
+   "userland/nonos_uvc"
   ],
   "md": [],
   "signed": []
@@ -3944,6 +3960,9 @@
    "nonos-data/trust/capsules/driver_usb_hub.manifest.bin",
    "nonos-data/trust/capsules/driver_usb_hub.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_usb_hub.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_uvc.manifest.bin",
+   "nonos-data/trust/capsules/driver_uvc.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_uvc.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"

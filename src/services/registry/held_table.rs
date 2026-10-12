@@ -52,6 +52,7 @@ const USB_CLIENTS: &[&str] = &[
     "driver.usb_hid0",
     "driver.usb_msc0",
     "driver.usb_audio0",
+    "driver.uvc0",
     "driver.cdc_ecm0",
     "driver.cdc_ncm0",
     "driver.rndis0",
