@@ -15,45 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The kernel's side of a critical thermal zone (ACPI 6.5, 11.1.5): at
-//! _CRT the machine must shut down. The first critical report asks the
-//! desktop, as a press of the Power key, so the shutdown is orderly; if
-//! the zone is still critical once the grace has passed, the kernel powers
-//! off itself rather than let the hardware cook.
+//! _CRT the machine must shut down, through the critical watch; and the
+//! last thermal word, for whoever asks how hot the machine is.
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
+use super::critical_watch::{Action, Watch};
 use super::platform_event::CRITICAL;
 
-pub const GRACE_MS: u64 = 30_000;
+pub use super::critical_watch::GRACE_MS;
+
 const FRESH_MS: u64 = 180_000;
 
-static CRITICAL_SINCE: AtomicU64 = AtomicU64::new(0);
+static WATCH: Watch = Watch::new();
 static LAST: AtomicU64 = AtomicU64::new(0);
 static LAST_MS: AtomicU64 = AtomicU64::new(0);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Action {
-    Nothing,
-    AskShutdown,
-    PowerOff,
-}
-
 pub fn thermal(word: u64, now_ms: u64) -> Action {
-    let now_ms = now_ms.max(1);
     LAST.store(word, Ordering::Release);
-    LAST_MS.store(now_ms, Ordering::Release);
-    if word & CRITICAL == 0 {
-        CRITICAL_SINCE.store(0, Ordering::Release);
-        return Action::Nothing;
-    }
-    match CRITICAL_SINCE.load(Ordering::Acquire) {
-        0 => {
-            CRITICAL_SINCE.store(now_ms, Ordering::Release);
-            Action::AskShutdown
-        }
-        since if now_ms.saturating_sub(since) >= GRACE_MS => Action::PowerOff,
-        _ => Action::Nothing,
-    }
+    LAST_MS.store(now_ms.max(1), Ordering::Release);
+    WATCH.step(word & CRITICAL != 0, now_ms)
 }
 
 /// The last thermal word, while it is under three minutes old.

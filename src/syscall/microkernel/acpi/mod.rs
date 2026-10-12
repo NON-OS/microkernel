@@ -20,6 +20,7 @@
 mod dispatch;
 mod errno;
 mod event;
+mod event_act;
 mod pci;
 mod port;
 mod power;

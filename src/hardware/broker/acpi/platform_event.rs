@@ -16,12 +16,15 @@
 
 //! What the ACPI capsule tells the kernel of the platform besides power,
 //! through MkAcpiEvent(kind, value): a control-method button pressed
-//! (ACPI 6.5, 4.8.2.2), the lid (9.4), and the hottest thermal zone (11).
+//! (ACPI 6.5, 4.8.2.2), the lid (9.4), the hottest thermal zone (11), and
+//! a battery running low or critical (10.2).
 
 pub const POWER_BUTTON: u64 = 1;
 pub const SLEEP_BUTTON: u64 = 2;
 pub const LID: u64 = 3;
 pub const THERMAL: u64 = 4;
+pub const BATTERY_LOW: u64 = 5;
+pub const BATTERY_CRITICAL: u64 = 6;
 
 /// A thermal value: the zone's temperature in tenths of a kelvin, and the
 /// trip points it has reached.
@@ -38,6 +41,10 @@ pub enum Event {
     /// True when open.
     Lid(bool),
     Thermal(u64),
+    /// The charge fell below the battery's warning level.
+    BatteryLow,
+    /// True while critical and discharging; false once it is not.
+    BatteryCritical(bool),
 }
 
 /// None for an unknown kind, or a value with bits the kind does not have.
@@ -47,6 +54,8 @@ pub fn decode(kind: u64, value: u64) -> Option<Event> {
         (SLEEP_BUTTON, 0) => Some(Event::SleepButton),
         (LID, 0 | 1) => Some(Event::Lid(value == 1)),
         (THERMAL, v) if v & !THERMAL_BITS == 0 => Some(Event::Thermal(v)),
+        (BATTERY_LOW, 0) => Some(Event::BatteryLow),
+        (BATTERY_CRITICAL, 0 | 1) => Some(Event::BatteryCritical(value == 1)),
         _ => None,
     }
 }

@@ -20,6 +20,10 @@
  * the kernel builds them.
  */
 
+#[path = "../../../../src/hardware/broker/acpi/battery_watch.rs"]
+pub mod battery_watch;
+#[path = "../../../../src/hardware/broker/acpi/critical_watch.rs"]
+pub mod critical_watch;
 #[path = "../../../../src/hardware/broker/acpi/lid_state.rs"]
 pub mod lid_state;
 #[path = "../../../../src/hardware/broker/acpi/platform_event.rs"]

@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::battery_watch::battery_critical;
+use super::critical_watch::Action;
 use super::lid_state::{lid_open, record};
 use super::platform_event::{decode, Event, CRITICAL, HOT, LID, POWER_BUTTON, THERMAL};
-use super::thermal_watch::{latest, thermal, Action, GRACE_MS};
+use super::platform_event::{BATTERY_CRITICAL, BATTERY_LOW};
+use super::thermal_watch::{latest, thermal, GRACE_MS};
 
 #[test]
 fn events_decode_and_stray_bits_are_refused() {
@@ -28,6 +31,9 @@ fn events_decode_and_stray_bits_are_refused() {
     assert_eq!(decode(THERMAL, CRITICAL | HOT | 3732), Some(Event::Thermal(CRITICAL | HOT | 3732)));
     assert_eq!(decode(THERMAL, 1 << 19), None);
     assert_eq!(decode(9, 0), None);
+    assert_eq!(decode(BATTERY_LOW, 0), Some(Event::BatteryLow));
+    assert_eq!(decode(BATTERY_CRITICAL, 1), Some(Event::BatteryCritical(true)));
+    assert_eq!(decode(BATTERY_CRITICAL, 2), None);
 }
 
 #[test]
@@ -51,4 +57,13 @@ fn the_lid_says_when_it_changes() {
     assert_eq!(lid_open(), Some(false));
     assert!(record(true));
     assert_eq!(lid_open(), Some(true));
+}
+
+#[test]
+fn the_battery_watch_is_its_own() {
+    assert_eq!(battery_critical(true, 500_000), Action::AskShutdown);
+    assert_eq!(thermal(3000, 500_001), Action::Nothing, "a cool zone does not reset it");
+    assert_eq!(battery_critical(true, 500_000 + GRACE_MS), Action::PowerOff);
+    assert_eq!(battery_critical(false, 600_000), Action::Nothing);
+    assert_eq!(battery_critical(true, 600_001), Action::AskShutdown);
 }
