@@ -16,9 +16,9 @@
 
 use crate::wifi::{NetStatus, ScanNetwork, ScanStats, WifiInterface};
 
+use super::audio_output::AudioOutput;
 use super::cache::FieldValue;
 use super::edit_buffer::EditBuffer;
-use super::audio_output::AudioOutput;
 use super::machine_key::MachineKey;
 use crate::settings::section::{Section, SECTION_COUNT};
 
@@ -59,6 +59,7 @@ pub fn new() -> State {
         wifi: WifiExtra::new(),
         machine_key: MachineKey::Unasked,
         audio_output: AudioOutput::Unasked,
+        bt: crate::bluetooth::Panel::new(),
         win_w: crate::settings::manifest::WIDTH,
         win_h: crate::settings::manifest::HEIGHT,
     }
