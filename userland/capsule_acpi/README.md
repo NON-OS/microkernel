@@ -259,6 +259,16 @@ other op: no one.
   from `offset`; a driver asks again from where the last page ended.
   Layout in `src/props/wire.rs`; a driver mounts `wire*.rs` to read it.
   EIO for a tree past 16 KiB.
+- GPIO_EVENT (13, verb, controller device id u64, pin u16): the ACPI
+  events a GPIO controller's pins signal (ACPI 6.5, 5.6.5), for the
+  driver holding the controller, through the same kernel claim test as
+  DEVICE_POWER. LIST (0) answers the pins its _AEI lists as GpioInt
+  (count u16, then pin u16, flags u8: edge, polarity, shared, wake, and
+  debounce u16); _AEI is read once per controller. SIGNAL (1, pin) runs
+  the pin's _Exx or _Lxx (pins up to 255, two upper-case hex digits),
+  else _EVT with the pin, and answers which ran. A pin _AEI does not list
+  runs nothing (ENOENT); past 64 events a second on one controller an
+  event is refused (EAGAIN). Layout in `src/aei/wire.rs`.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and
