@@ -3718,6 +3718,20 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_bt_bond_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_aes",
+   "userland/nonos_bt_bond",
+   "userland/nonos_bt_bond_proofs",
+   "userland/nonos_bt_smp",
+   "userland/nonos_bt_wire",
+   "userland/nonos_p256"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_bt_hci_proofs": {
   "exclude": [],
   "include": [
