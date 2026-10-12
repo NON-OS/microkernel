@@ -37,6 +37,7 @@ fn no_number_means_two_ops() {
     let clients = [
         include_str!("../../nonos_usbnet/src/xhci/wire.rs"),
         include_str!("../../capsule_driver_usb_msc/src/xhci/wire.rs"),
+        include_str!("../../capsule_driver_usb_hid/src/xhci/wire/constants.rs"),
     ];
     for (name, n) in &served {
         assert_eq!(served.iter().filter(|(_, m)| m == n).count(), 1, "{name} {n:#x}");
