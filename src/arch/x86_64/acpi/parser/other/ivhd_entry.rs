@@ -21,11 +21,11 @@
 use super::ivhd_kind::spans_of;
 use super::ivhd_scope::Span;
 
-fn word(bytes: &[u8], at: usize) -> u16 {
+pub(super) fn word(bytes: &[u8], at: usize) -> u16 {
     u16::from_le_bytes([bytes[at], bytes[at + 1]])
 }
 
-fn size(bytes: &[u8], at: usize) -> Option<usize> {
+pub(super) fn size(bytes: &[u8], at: usize) -> Option<usize> {
     match bytes[at] {
         0x00..=0x3F => Some(4),
         0x40..=0x7F => Some(8),
