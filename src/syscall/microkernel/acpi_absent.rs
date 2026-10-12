@@ -20,8 +20,8 @@
 
 use crate::syscall::microkernel::errnos::ERRNO_NOSYS;
 use crate::syscall::microkernel::numbers::{
-    SYS_ACPI_EVENT, SYS_ACPI_PCI, SYS_ACPI_PORT, SYS_ACPI_POWER, SYS_ACPI_REGION, SYS_ACPI_SLEEP,
-    SYS_ACPI_TABLE, SYS_SMBIOS_TABLE,
+    SYS_ACPI_CPU, SYS_ACPI_EVENT, SYS_ACPI_PCI, SYS_ACPI_PORT, SYS_ACPI_POWER, SYS_ACPI_REGION,
+    SYS_ACPI_SLEEP, SYS_ACPI_TABLE, SYS_SMBIOS_TABLE,
 };
 
 pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
@@ -36,6 +36,7 @@ pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
             | SYS_ACPI_EVENT
             | SYS_ACPI_SLEEP
             | SYS_SMBIOS_TABLE
+            | SYS_ACPI_CPU
     )
     .then_some(ERRNO_NOSYS)
 }

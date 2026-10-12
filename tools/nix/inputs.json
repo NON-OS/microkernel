@@ -3705,6 +3705,7 @@
    "userland/nonos_aml/src/arena",
    "userland/nonos_aml/src/block.rs",
    "userland/nonos_aml/src/button",
+   "userland/nonos_aml/src/cpu",
    "userland/nonos_aml/src/device_power",
    "userland/nonos_aml/src/ec",
    "userland/nonos_aml/src/error.rs",
