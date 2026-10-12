@@ -20,8 +20,6 @@
 //! late collisions, with collision threshold 15 and distance 63. TIPG is
 //! left at the value the NVM loads, as Linux leaves it.
 
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::queue::{TX_DESC_COUNT, TX_RING_BYTES};
 use crate::constants::regs::{
     REG_TCTL, REG_TDBAH, REG_TDBAL, REG_TDH, REG_TDLEN, REG_TDT, REG_TXDCTL0, REG_TXDCTL1,
@@ -42,7 +40,7 @@ pub fn program(regs: &Regs, tx: &TxRing, ring_phys: u64) {
             *descs.add(i) = TxDesc::default();
         }
         // The ring was written with plain stores; the part reads it from here on.
-        fence(Ordering::Release);
+        nonos_libc::dma_wmb();
         regs.w32(REG_TDBAL, ring_phys as u32);
         regs.w32(REG_TDBAH, (ring_phys >> 32) as u32);
         regs.w32(REG_TDLEN, TX_RING_BYTES as u32);
