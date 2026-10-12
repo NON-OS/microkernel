@@ -3700,6 +3700,17 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_bt_hogp_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_bt_hogp",
+   "userland/nonos_bt_hogp_proofs",
+   "userland/nonos_bt_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_bt_smp_proofs": {
   "exclude": [],
   "include": [
