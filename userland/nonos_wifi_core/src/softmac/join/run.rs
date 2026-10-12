@@ -56,9 +56,11 @@ pub fn join<R: Radio, E: Env>(
     bssid.copy_from_slice(&found.beacon[16..22]);
     r.set_bss(Some(bssid));
     let first = if req.wpa3_only { JoinPolicy::WPA3_ONLY } else { JoinPolicy::ANY };
-    let mut report = attempt(r, env, domain, req, first, &found.beacon)?;
+    let ciphers = r.ciphers();
+    let mut report = attempt(r, env, domain, req, first.with_ciphers(ciphers), &found.beacon)?;
     if retry_with_psk(&report, req.wpa3_only) {
-        report = attempt(r, env, domain, req, JoinPolicy::PSK_ONLY, &found.beacon)?;
+        let psk = JoinPolicy::PSK_ONLY.with_ciphers(ciphers);
+        report = attempt(r, env, domain, req, psk, &found.beacon)?;
     }
     if !matches!(report.outcome, Outcome::Joined { .. }) {
         r.associated(None);

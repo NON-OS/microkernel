@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The suite type octet after the 00-0F-AC OUI.
+//! What each AKM fixes: its suite type, the key descriptor version and the
+//! EAPOL-Key MIC.
 
 use super::*;
 
@@ -44,21 +45,6 @@ impl Akm {
         match self {
             Akm::Psk => MicKind::HmacSha1,
             Akm::PskSha256 | Akm::Sae => MicKind::AesCmac,
-        }
-    }
-
-    /// The pairwise transient key (KCK || KEK || TK, 16 bytes each).
-    pub fn derive_ptk(
-        self,
-        pmk: &[u8; 32],
-        aa: &[u8; 6],
-        spa: &[u8; 6],
-        anonce: &[u8; 32],
-        snonce: &[u8; 32],
-    ) -> [u8; 48] {
-        match self {
-            Akm::Psk => ptk(pmk, aa, spa, anonce, snonce),
-            Akm::PskSha256 | Akm::Sae => ptk_sha256(pmk, aa, spa, anonce, snonce),
         }
     }
 }

@@ -15,11 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod choose;
+mod ciphers;
 mod joinpolicy;
 mod selecterror;
+mod selection;
+use super::cipher::{Cipher, Ciphers};
 use super::parse::Rsne;
-use super::suite::{CIPHER_BIP_CMAC_128, CIPHER_CCMP};
+use super::suite::CIPHER_BIP_CMAC_128;
 use crate::wpa::akm::Akm;
 pub use choose::*;
+use ciphers::ciphers;
 pub use joinpolicy::*;
 pub use selecterror::*;
+pub use selection::*;

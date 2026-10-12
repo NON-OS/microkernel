@@ -20,9 +20,10 @@
 //! out a handshake an eavesdropper can run a dictionary against), PSK-SHA256 or
 //! PSK otherwise. A network saved as WPA3 is joined with SAE or not at all, so
 //! an access point that answers to the same name with PSK only is refused as a
-//! downgrade instead of being trusted. Only CCMP-128 is run: a TKIP group
-//! cipher would leave broadcast and multicast frames (ARP, DHCP) undecryptable,
-//! so such a network is refused with its own reason.
+//! downgrade instead of being trusted. CCMP-128 is always run and GCMP-256
+//! where the radio offers it; a TKIP group cipher would leave broadcast and
+//! multicast frames (ARP, DHCP) undecryptable, so such a network is refused
+//! with its own reason.
 
 use super::*;
 
@@ -34,34 +35,26 @@ pub struct JoinPolicy {
     pub allow_psk: bool,
     /// WPA3-Personal (SAE) may be used.
     pub allow_sae: bool,
+    /// The ciphers the radio runs beyond CCMP-128.
+    pub ciphers: Ciphers,
 }
 
 impl JoinPolicy {
     /// The default: SAE when offered, PSK otherwise.
-    pub const ANY: JoinPolicy = JoinPolicy { allow_psk: true, allow_sae: true };
+    pub const ANY: JoinPolicy = JoinPolicy::new(true, true);
     /// A network saved as WPA3: SAE only, never downgraded.
-    pub const WPA3_ONLY: JoinPolicy = JoinPolicy { allow_psk: false, allow_sae: true };
+    pub const WPA3_ONLY: JoinPolicy = JoinPolicy::new(false, true);
     /// WPA2-PSK only, for a caller that cannot supply SAE's randomness.
-    pub const PSK_ONLY: JoinPolicy = JoinPolicy { allow_psk: true, allow_sae: false };
-}
+    pub const PSK_ONLY: JoinPolicy = JoinPolicy::new(true, false);
 
-/// How the station will protect management frames.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Pmf {
-    /// Not negotiated.
-    Off,
-    /// Negotiated (MFPC set); the access point does not insist on it.
-    Capable,
-    /// Negotiated and required (MFPC and MFPR set).
-    Required,
-}
+    // CCMP-128 alone until the caller says what its radio runs, so a driver
+    // that never asks keeps joining exactly as before.
+    const fn new(allow_psk: bool, allow_sae: bool) -> Self {
+        JoinPolicy { allow_psk, allow_sae, ciphers: Ciphers::CCMP_128_ONLY }
+    }
 
-/// The security the join will run.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Selection {
-    pub akm: Akm,
-    pub pmf: Pmf,
-    /// For SAE: derive the password element by hash-to-element (the access
-    /// point's RSNXE advertises it) rather than hunting and pecking.
-    pub sae_h2e: bool,
+    /// The same policy for a radio that runs `ciphers`.
+    pub const fn with_ciphers(self, ciphers: Ciphers) -> Self {
+        JoinPolicy { ciphers, ..self }
+    }
 }

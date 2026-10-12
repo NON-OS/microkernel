@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod derive;
+mod ptk;
 mod suite;
-use super::ptk::{ptk, ptk_sha256};
+use super::ptk::{ptk_into, ptk_sha256_into};
 use crate::eapol::mic::MicKind;
 pub use suite::*;

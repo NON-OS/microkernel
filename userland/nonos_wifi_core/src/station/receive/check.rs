@@ -63,7 +63,7 @@ impl LinkStation {
             mpdu[v.hdr_len + CCMP_HDR_LEN..mpdu.len() - MIC_LEN].to_vec()
         } else {
             let key = if group { self.group_key(key_id) } else { self.pairwise_key() };
-            decrypt(mpdu, &key.ok_or(RxDrop::Undecryptable)?).ok_or(RxDrop::Undecryptable)?
+            open(mpdu, &key.ok_or(RxDrop::Undecryptable)?).ok_or(RxDrop::Undecryptable)?
         };
         if !self.replay.accept(replay_key, v.tid, pn) {
             return Err(RxDrop::Replay);

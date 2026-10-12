@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Select the AKM and protection for a join to an access point advertising
-//! `ap`, whose RSNXE says `ap_h2e` about SAE hash-to-element.
+//! Select the ciphers, AKM and protection for a join to an access point
+//! advertising `ap`, whose RSNXE says `ap_h2e` about SAE hash-to-element.
 
 use super::*;
 
-/// Select the AKM and protection for a join to an access point advertising
-/// `ap`, whose RSNXE says `ap_h2e` about SAE hash-to-element.
+/// Select the ciphers, AKM and protection for a join to `ap`.
 pub fn select(ap: &Rsne, ap_h2e: bool, policy: JoinPolicy) -> Result<Selection, SelectError> {
-    if ap.group != CIPHER_CCMP || !ap.pairwise_ccmp {
-        return Err(SelectError::UnsupportedCipher);
-    }
+    let (pairwise, group) = ciphers(ap, policy.ciphers)?;
+    let (akm, pmf, sae_h2e) = akm(ap, ap_h2e, policy)?;
+    Ok(Selection { akm, pmf, sae_h2e, pairwise, group })
+}
+
+fn akm(ap: &Rsne, ap_h2e: bool, policy: JoinPolicy) -> Result<(Akm, Pmf, bool), SelectError> {
     if ap.mfpr() && !ap.mfpc() {
         return Err(SelectError::BadProtection);
     }
@@ -38,7 +40,7 @@ pub fn select(ap: &Rsne, ap_h2e: bool, policy: JoinPolicy) -> Result<Selection, 
         if !bip_ok {
             return Err(SelectError::BadProtection);
         }
-        return Ok(Selection { akm: Akm::Sae, pmf: required, sae_h2e: ap_h2e });
+        return Ok((Akm::Sae, required, ap_h2e));
     }
     if !policy.allow_psk {
         // Reached with SAE on offer only when the access point cannot protect
@@ -55,7 +57,7 @@ pub fn select(ap: &Rsne, ap_h2e: bool, policy: JoinPolicy) -> Result<Selection, 
         if !bip_ok {
             return Err(SelectError::BadProtection);
         }
-        return Ok(Selection { akm: Akm::PskSha256, pmf: required, sae_h2e: false });
+        return Ok((Akm::PskSha256, required, false));
     }
     if ap.akm_psk {
         // Plain PSK negotiates protection only where the access point insists.
@@ -63,9 +65,9 @@ pub fn select(ap: &Rsne, ap_h2e: bool, policy: JoinPolicy) -> Result<Selection, 
             if !bip_ok {
                 return Err(SelectError::BadProtection);
             }
-            return Ok(Selection { akm: Akm::Psk, pmf: Pmf::Required, sae_h2e: false });
+            return Ok((Akm::Psk, Pmf::Required, false));
         }
-        return Ok(Selection { akm: Akm::Psk, pmf: Pmf::Off, sae_h2e: false });
+        return Ok((Akm::Psk, Pmf::Off, false));
     }
     Err(SelectError::UnsupportedAkm)
 }

@@ -22,6 +22,7 @@
 
 use super::assoc::Association;
 use crate::regdom::Band;
+use crate::rsn::Ciphers;
 
 /// One received frame: its length in the caller's buffer (FCS removed), the
 /// signal it arrived at, and whether the chip decrypted it (CCMP header and
@@ -53,6 +54,11 @@ pub trait Radio {
     /// station leaves or the join fails after it). A chip that runs rate
     /// adaptation or contention timing itself needs it; others ignore it.
     fn associated(&mut self, _assoc: Option<&Association>) {}
+    /// The ciphers this radio runs beyond CCMP-128. A radio that does not
+    /// say is held to CCMP-128, so a join with it keeps its old ciphers.
+    fn ciphers(&self) -> Ciphers {
+        Ciphers::CCMP_128_ONLY
+    }
     /// Chip-specific words the status op carries for a person diagnosing a
     /// bring-up on a machine with no serial console.
     fn diag(&self) -> [u32; 5] {

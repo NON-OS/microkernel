@@ -24,7 +24,7 @@
 use super::parse_tail::tail;
 use super::reader::Reader;
 pub use super::rsne::Rsne;
-use super::suite::CIPHER_CCMP;
+use super::suite::{CIPHER_CCMP, CIPHER_GCMP_256};
 
 /// Parse an RSN element's content (the bytes after its id and length).
 /// Returns `None` for a version other than 1 or a suite list that runs past
@@ -40,6 +40,7 @@ pub fn parse_rsne(body: &[u8]) -> Option<Rsne> {
     let mut out = Rsne {
         group: CIPHER_CCMP,
         pairwise_ccmp: true,
+        pairwise_gcmp256: false,
         akm_psk: false,
         akm_psk_sha256: false,
         akm_sae: false,
@@ -55,8 +56,10 @@ pub fn parse_rsne(body: &[u8]) -> Option<Rsne> {
     }
     out.pairwise_ccmp = false;
     for _ in 0..r.u16()? {
-        if r.suite()? == CIPHER_CCMP {
-            out.pairwise_ccmp = true;
+        match r.suite()? {
+            CIPHER_CCMP => out.pairwise_ccmp = true,
+            CIPHER_GCMP_256 => out.pairwise_gcmp256 = true,
+            _ => {}
         }
     }
     if r.done() {

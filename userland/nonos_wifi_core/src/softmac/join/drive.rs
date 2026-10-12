@@ -19,12 +19,11 @@
 
 use alloc::vec::Vec;
 
-use super::counters::Counters;
-use super::feed::feed;
-use super::report::{finish, report, Outcome, Report};
+use super::report::{report, Outcome, Report};
 use super::send::{resend_after, transmit};
+use super::{announce::announce, counters::Counters, feed::feed, finish::finish};
 use crate::mlme::{Mlme, MlmeState};
-use crate::softmac::assoc::announce;
+use crate::rsn::Cipher;
 use crate::softmac::radio::{Env, Radio};
 
 pub fn drive<R: Radio, E: Env>(
@@ -68,6 +67,7 @@ pub fn drive<R: Radio, E: Env>(
             None if m.state() != before => (pending, quiet_since) = (Vec::new(), now),
             None => {}
         }
-        announce(r, (before, m.state()), frame, beacon);
+        let cipher = m.selection().map_or(Cipher::Ccmp128, |s| s.pairwise);
+        announce(r, (before, m.state()), frame, (beacon, cipher));
     }
 }

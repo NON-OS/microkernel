@@ -30,7 +30,7 @@ impl Supplicant {
             self.fail(Failure::BadKeyData);
             return StepOutput::none();
         };
-        let Some((kd, mut keys)) = parse_group_keys(&plain[..n]) else {
+        let Some((kd, mut keys)) = parse_group_keys(&plain[..n], self.group.tk_len()) else {
             self.fail(Failure::BadKeyData);
             return StepOutput::none();
         };

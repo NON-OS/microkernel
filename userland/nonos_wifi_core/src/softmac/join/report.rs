@@ -21,6 +21,7 @@
 
 use super::counters::Counters;
 use crate::mlme::{Mlme, MlmeFailure, MlmeState};
+use crate::rsn::TemporalKey;
 use crate::wpa::akm::Akm;
 use crate::wpa::supplicant::Supplicant;
 
@@ -30,7 +31,7 @@ use crate::wpa::supplicant::Supplicant;
 pub enum Outcome {
     /// Associated: the AP, its channel, the pairwise key and the supplicant
     /// that keeps answering the AP's group key handshakes.
-    Joined { bssid: [u8; 6], channel: u8, tk: [u8; 16], akm: Akm, supplicant: Supplicant },
+    Joined { bssid: [u8; 6], channel: u8, tk: TemporalKey, akm: Akm, supplicant: Supplicant },
     /// Refused, or the handshake broke; `Report::failure` says where.
     Refused,
     /// The AP stopped answering before the join finished.
@@ -60,16 +61,4 @@ pub(super) fn state_code(s: MlmeState) -> u8 {
 pub(super) fn report(m: &Mlme, outcome: Outcome, counters: Counters) -> Report {
     let state = state_code(m.state());
     Report { outcome, counters, state, failure: m.failure(), akm: m.akm() }
-}
-
-/// The keys of a connected join, or `Refused` if the machine says connected
-/// but holds no 16-octet key (which a correct machine never does).
-pub(super) fn finish(m: &Mlme) -> Outcome {
-    let (Some(tk), Some(sup), Some(akm)) = (m.tk(), m.supplicant(), m.akm()) else {
-        return Outcome::Refused;
-    };
-    let Ok(tk) = <[u8; 16]>::try_from(tk) else {
-        return Outcome::Refused;
-    };
-    Outcome::Joined { bssid: m.bssid(), channel: m.channel(), tk, akm, supplicant: sup }
 }

@@ -16,12 +16,12 @@
 
 //! What an accepted association settles, for a chip that keeps its own
 //! copy: AP, AID, capability and rates from the response, the beacon
-//! interval advertised. mac80211 hands drivers the same through
+//! interval advertised, and the pairwise cipher negotiated (its TK length
+//! follows from it). mac80211 hands drivers the same through
 //! `bss_info_changed`, before the four-way handshake.
 
-use super::radio::Radio;
 use crate::dot11::ies::find_element;
-use crate::mlme::MlmeState;
+use crate::rsn::Cipher;
 
 const HDR: usize = 24;
 const ELEMENT_RATES: u8 = 1;
@@ -37,10 +37,12 @@ pub struct Association {
     /// basic ones; `n_rates` of them.
     pub rates: [u8; 16],
     pub n_rates: usize,
+    /// The pairwise cipher the handshake will key.
+    pub cipher: Cipher,
 }
 
 impl Association {
-    pub fn parse(resp: &[u8], beacon: &[u8]) -> Option<Self> {
+    pub fn parse(resp: &[u8], beacon: &[u8], cipher: Cipher) -> Option<Self> {
         let fixed = resp.get(HDR..HDR + 6)?;
         let le = |b: &[u8], i: usize| u16::from_le_bytes([b[i], b[i + 1]]);
         let mut a = Association {
@@ -50,6 +52,7 @@ impl Association {
             beacon_int: beacon.get(HDR + 8..HDR + 10).map_or(0, |b| le(b, 0)),
             rates: [0; 16],
             n_rates: 0,
+            cipher,
         };
         let tags = &resp[HDR + 6..];
         let each = |id| find_element(tags, id).and_then(|e| e.get(2..)).unwrap_or(&[]);
@@ -58,15 +61,5 @@ impl Association {
             (*slot, a.n_rates) = (r, a.n_rates + 1);
         }
         Some(a)
-    }
-}
-
-/// The radio told once the AP has accepted us (association to the
-/// handshake), from the response that said so.
-pub fn announce<R: Radio>(r: &mut R, step: (MlmeState, MlmeState), resp: &[u8], beacon: &[u8]) {
-    if step == (MlmeState::Associating, MlmeState::FourWay) {
-        if let Some(a) = Association::parse(resp, beacon) {
-            r.associated(Some(&a));
-        }
     }
 }

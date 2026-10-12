@@ -20,6 +20,7 @@
 //! over untrusted beacon bytes, proven in `nonos_wifi_core_proofs`.
 
 pub mod build;
+pub mod cipher;
 pub mod parse;
 mod parse_tail;
 mod reader;
@@ -27,6 +28,9 @@ mod rsne;
 pub mod rsnxe;
 pub mod select;
 pub mod suite;
+mod temporal_key;
 
+pub use cipher::{Cipher, Ciphers};
 pub use parse::{parse_rsne, Rsne};
 pub use select::{select, JoinPolicy, Pmf, SelectError, Selection};
+pub use temporal_key::TemporalKey;

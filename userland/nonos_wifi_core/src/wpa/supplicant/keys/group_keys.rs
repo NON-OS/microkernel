@@ -19,21 +19,24 @@
 use super::*;
 
 /// Pull the group keys out of parsed key data. `None` unless a GTK of the
-/// CCMP-128 length is present, and any IGTK present is BIP-CMAC-128 sized with
+/// group cipher's length `gtk_len` is present, and any IGTK present is BIP-CMAC-128 sized with
 /// an index of 4 or 5.
-pub(in crate::wpa::supplicant) fn group_keys(kd: &KeyData<'_>) -> Option<GroupKeys> {
+pub(in crate::wpa::supplicant) fn group_keys(
+    kd: &KeyData<'_>,
+    gtk_len: usize,
+) -> Option<GroupKeys> {
     let g = kd.gtk?;
-    if g.key.len() != GROUP_KEY_LEN {
+    if g.key.len() != gtk_len || gtk_len > GTK_MAX {
         return None;
     }
-    let mut gtk = [0u8; GROUP_KEY_LEN];
-    gtk.copy_from_slice(g.key);
+    let mut gtk = [0u8; GTK_MAX];
+    gtk[..gtk_len].copy_from_slice(g.key);
     let igtk = match kd.igtk {
         Some(i) => {
-            if i.key.len() != GROUP_KEY_LEN || !(4..=5).contains(&i.key_id) {
+            if i.key.len() != IGTK_LEN || !(4..=5).contains(&i.key_id) {
                 return None;
             }
-            let mut key = [0u8; GROUP_KEY_LEN];
+            let mut key = [0u8; IGTK_LEN];
             key.copy_from_slice(i.key);
             Some((key, i.key_id, i.ipn))
         }
@@ -52,9 +55,10 @@ pub(in crate::wpa::supplicant) fn rsc_pn(rsc: &[u8; 8]) -> u64 {
 /// Parse unwrapped key data and extract the group keys from it.
 pub(in crate::wpa::supplicant) fn parse_group_keys(
     plain: &[u8],
+    gtk_len: usize,
 ) -> Option<(KeyData<'_>, GroupKeys)> {
     let kd = parse_key_data(plain)?;
-    let keys = group_keys(&kd)?;
+    let keys = group_keys(&kd, gtk_len)?;
     Some((kd, keys))
 }
 

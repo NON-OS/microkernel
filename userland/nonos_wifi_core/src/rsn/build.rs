@@ -16,8 +16,8 @@
 
 //! The RSN element the station sends for a selection: in the association
 //! request, and repeated byte for byte in four-way message 2 (IEEE Std
-//! 802.11-2020, 12.7.6.3). One CCMP-128 group and pairwise cipher, the one
-//! chosen AKM, and the RSN capabilities carrying MFPC/MFPR when management
+//! 802.11-2020, 12.7.6.3). The selected group cipher, the one selected
+//! pairwise cipher, the one chosen AKM, and the RSN capabilities carrying MFPC/MFPR when management
 //! frame protection is negotiated. The group management cipher is left to its
 //! BIP-CMAC-128 default, so it is not written. For WPA2-PSK without protection
 //! this is exactly `wpa::RSN_IE`, which the proofs pin.
@@ -43,10 +43,10 @@ pub fn station_rsne(sel: &Selection) -> [u8; RSNE_LEN] {
     e[1] = (RSNE_LEN - 2) as u8;
     e[2..4].copy_from_slice(&1u16.to_le_bytes()); // version
     e[4..7].copy_from_slice(&OUI_IEEE);
-    e[7] = 4; // group cipher CCMP-128
+    e[7] = sel.group.suite_type();
     e[8..10].copy_from_slice(&1u16.to_le_bytes());
     e[10..13].copy_from_slice(&OUI_IEEE);
-    e[13] = 4; // pairwise cipher CCMP-128
+    e[13] = sel.pairwise.suite_type();
     e[14..16].copy_from_slice(&1u16.to_le_bytes());
     e[16..19].copy_from_slice(&OUI_IEEE);
     e[19] = sel.akm.suite_type();

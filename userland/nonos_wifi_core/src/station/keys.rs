@@ -19,7 +19,9 @@
 
 use alloc::vec::Vec;
 
+use super::cipher::seal;
 use super::{Ccmp, LinkStation};
+use crate::rsn::TemporalKey;
 use crate::wpa::supplicant::Supplicant;
 
 impl LinkStation {
@@ -27,9 +29,7 @@ impl LinkStation {
     /// and, with management frame protection, its integrity group key.
     pub fn set_supplicant(&mut self, sup: Supplicant) {
         self.pmf.take_igtk(&sup);
-        if sup.gtk().len() == 16 {
-            let mut key = [0u8; 16];
-            key.copy_from_slice(sup.gtk());
+        if let Some(key) = TemporalKey::new(sup.group_cipher(), sup.gtk()) {
             self.set_group_key(sup.gtk_id(), key, sup.gtk_rsc());
         }
         self.supplicant = Some(sup);
@@ -37,7 +37,7 @@ impl LinkStation {
 
     /// Take a group key for software decryption, with its Key RSC as the
     /// replay floor.
-    pub fn set_group_key(&mut self, key_id: u8, key: [u8; 16], rsc: u64) {
+    pub fn set_group_key(&mut self, key_id: u8, key: TemporalKey, rsc: u64) {
         if let Some(slot) = self.group_keys.get_mut(key_id as usize) {
             *slot = Some(key);
             self.replay.set_group(key_id, rsc);
@@ -50,19 +50,20 @@ impl LinkStation {
     pub fn protect_mgmt(&mut self, frame: &[u8]) -> Option<Vec<u8>> {
         let tk = self.pairwise_key()?;
         let pn = self.pn.wrapping_add(1);
-        let out = crate::dot11::ccmp::encrypt(frame, pn, &tk)?;
+        let out = seal(frame, pn, &tk)?;
         self.pn = pn;
         Some(out)
     }
 
-    pub(super) fn pairwise_key(&self) -> Option<[u8; 16]> {
+    pub(super) fn pairwise_key(&self) -> Option<TemporalKey> {
         match &self.ccmp {
             Ccmp::Hardware => None,
-            Ccmp::Software { tk } | Ccmp::SoftwareTxHwRx { tk } => Some(*tk),
+            Ccmp::Software { tk } | Ccmp::SoftwareTxHwRx { tk } => Some(TemporalKey::Ccmp128(*tk)),
+            Ccmp::Gcmp256 { tk } => Some(TemporalKey::Gcmp256(*tk)),
         }
     }
 
-    pub(super) fn group_key(&self, key_id: u8) -> Option<[u8; 16]> {
+    pub(super) fn group_key(&self, key_id: u8) -> Option<TemporalKey> {
         self.group_keys.get(key_id as usize).copied().flatten()
     }
 }

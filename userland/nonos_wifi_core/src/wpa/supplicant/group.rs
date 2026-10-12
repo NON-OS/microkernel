@@ -44,7 +44,7 @@ impl Supplicant {
         let mut plain = [0u8; UNWRAPPED_MAX];
         let keys = self
             .unwrap_key_data(key.key_data, &mut plain)
-            .and_then(|n| parse_group_keys(&plain[..n]).map(|(_, k)| k));
+            .and_then(|n| parse_group_keys(&plain[..n], self.group.tk_len()).map(|(_, k)| k));
         wipe(&mut plain);
         // An authentic message whose key data does not hold a usable group key
         // is not answered; the AP retries and in the end deauthenticates, which
