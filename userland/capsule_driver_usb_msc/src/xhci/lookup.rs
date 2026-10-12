@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Finding driver.xhci0.
+//! Finding a USB host: the names in usb_hosts.rs, fastest first. The
+//! first that has registered serves every device this driver finds there,
+//! so a device stays with the host that enumerated it.
 
 use nonos_libc::mk_service_lookup;
 
-const SERVICE_NAME: &str = "driver.xhci0";
+use super::usb_hosts::USB_HOSTS;
 
 pub fn lookup() -> Option<u32> {
-    let (mut port, mut pid) = (0u32, 0u32);
-    let rc = mk_service_lookup(SERVICE_NAME.as_ptr(), SERVICE_NAME.len(), &mut port, &mut pid);
-    (rc == 0).then_some(port)
+    USB_HOSTS.iter().find_map(|name| {
+        let (mut port, mut pid) = (0u32, 0u32);
+        let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+        (rc == 0).then_some(port)
+    })
 }

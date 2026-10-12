@@ -21,6 +21,8 @@ mod bulk;
 mod call;
 mod control;
 mod lookup;
+#[path = "../../../../src/services/registry/usb_hosts.rs"]
+mod usb_hosts;
 mod port;
 mod slot;
 mod wire;

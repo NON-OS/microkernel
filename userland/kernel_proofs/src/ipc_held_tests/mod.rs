@@ -25,6 +25,9 @@ mod held;
 // held_table.rs reaches the cards as its grandparent's `nics`, as in the kernel.
 #[path = "../../../../src/services/registry/nics.rs"]
 mod nics;
+// And the USB hosts as its grandparent's `usb_hosts`.
+#[path = "../../../../src/services/registry/usb_hosts.rs"]
+mod usb_hosts;
 
 mod card_names;
 mod card_readers;
@@ -35,3 +38,4 @@ mod devices;
 mod gates;
 mod names;
 mod single_client;
+mod usb_host_tests;
