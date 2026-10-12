@@ -19,15 +19,12 @@ use alloc::vec::Vec;
 
 use spin::Mutex;
 
-use crate::kernel_core::surface_registry::attach_map::snapshot::{has_foreign_holder, records_of};
-use crate::kernel_core::surface_registry::table::SLOTS;
-use crate::kernel_core::surface_registry::types::{encode_handle, SurfaceHandle};
+use crate::kernel_core::surface_registry::attach_map::snapshot::records_of;
 use crate::memory::addr::PhysAddr;
 use crate::smp::lock_responsive;
 
 use super::frames_of::frames_of;
 use super::gate::GATE;
-use super::orphans::{Orphan, ORPHANS};
 
 /*
  * The frames each exiting process's address space must not free, from its
@@ -47,31 +44,7 @@ static KEPT: Mutex<BTreeMap<u32, Vec<PhysAddr>>> = Mutex::new(BTreeMap::new());
  */
 pub fn keep_at_exit(pid: u32) {
     let _gate = lock_responsive(&GATE);
-    let mut keep = Vec::new();
-    let owned: Vec<(usize, SurfaceHandle)> = SLOTS
-        .lock()
-        .iter()
-        .enumerate()
-        .filter_map(|(idx, e)| {
-            let s = e.as_ref()?;
-            (s.owner_pid == pid && !s.frames.is_empty())
-                .then(|| (idx, encode_handle(idx as u32, s.epoch)))
-        })
-        .collect();
-    for (idx, handle) in owned {
-        if !has_foreign_holder(handle, pid) {
-            continue;
-        }
-        let mut slots = SLOTS.lock();
-        let Some(slot) = slots[idx].as_mut() else { continue };
-        if encode_handle(idx as u32, slot.epoch) != handle || slot.owner_pid != pid {
-            continue;
-        }
-        let frames = core::mem::take(&mut slot.frames);
-        drop(slots);
-        keep.extend_from_slice(&frames);
-        ORPHANS.lock().push(Orphan { owner: pid, handle, frames: frames.clone(), free: frames });
-    }
+    let mut keep = super::exit_owned::orphan_owned(pid);
     for (handle, _) in records_of(pid) {
         if let Some((owner, frames)) = frames_of(handle) {
             if owner != pid {

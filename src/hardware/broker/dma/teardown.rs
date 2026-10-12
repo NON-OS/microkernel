@@ -35,12 +35,26 @@ pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool) {
         );
         return;
     }
-    super::scrub::scrub(g.physical_start, g.length);
-    let pages = (g.length / PAGE_SIZE) as usize;
-    if !pool::give_back(g.physical_start, pages) {
-        let _ = free_contiguous(g.physical_start, pages);
-    }
     if !g.confined {
         crate::memory::iommu::note_unconfined_released(1);
+    }
+    // A surface over these frames that another process still maps:
+    // the registry keeps them and hands them to `free_frames` once nobody does.
+    if crate::kernel_core::surface_registry::pin::dma_hold::hold_dma(
+        g.pid,
+        g.physical_start,
+        g.length,
+    ) {
+        return;
+    }
+    free_frames(g.physical_start, g.length);
+}
+
+/// Scrub a grant's frames and return them to the pool they came from.
+pub(crate) fn free_frames(start: u64, len: u64) {
+    super::scrub::scrub(start, len);
+    let pages = (len / PAGE_SIZE) as usize;
+    if !pool::give_back(start, pages) {
+        let _ = free_contiguous(start, pages);
     }
 }
