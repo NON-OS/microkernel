@@ -55,6 +55,7 @@ pub mod dmar_scope;
 pub mod boot_screen;
 pub mod driver_end;
 pub mod described;
+pub mod firmware_message;
 pub mod device_windows;
 pub mod fs;
 pub mod hardware;
