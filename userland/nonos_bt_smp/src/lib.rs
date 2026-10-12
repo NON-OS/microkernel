@@ -35,5 +35,6 @@ pub mod funcs;
 pub mod method;
 pub mod pairing;
 pub mod pdu;
+pub mod privacy;
 
 pub use error::SmpError;

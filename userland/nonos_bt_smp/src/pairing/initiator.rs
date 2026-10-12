@@ -21,6 +21,7 @@
 //! (Vol 3, Part A, 2.1). Nonces, keys and confirm values are held most
 //! significant octet first, as the functions take them.
 
+use super::identity::Identity;
 use super::state::State;
 use super::step::Bond;
 use crate::ecdh::KeyPair;
@@ -54,5 +55,7 @@ pub struct Initiator {
     pub(super) b: [u8; 7],
     pub(super) mac_key: [u8; 16],
     pub(super) bond: Bond,
+    /// This host's identity, sent if the responder asks for it.
+    pub(super) local: Option<Identity>,
     pub(super) last_ms: u64,
 }
