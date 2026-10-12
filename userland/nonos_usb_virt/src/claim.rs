@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! A class driver's claim on a virtual port: ADDRESS_DEVICE naming it,
 //! with a slot the claimant enabled. First claim wins.
 
