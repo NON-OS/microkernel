@@ -16,11 +16,12 @@
 
 //! The device id tables the driver claims by.
 
-use crate::engine::gen::{GEN11, GEN12, GEN12_3, GEN8, GEN9};
+use crate::engine::gen::{GEN11, GEN12, GEN12_3, GEN7_5, GEN8, GEN9};
 use crate::ids::{all, family, Family, VENDOR_INTEL};
 
 #[test]
 fn each_family_has_its_ids_and_another_vendor_has_none() {
+    assert_eq!(family(VENDOR_INTEL, 0x0416), Some(Family::Haswell));
     assert_eq!(family(VENDOR_INTEL, 0x1616), Some(Family::Broadwell));
     assert_eq!(family(VENDOR_INTEL, 0x1916), Some(Family::Skylake));
     assert_eq!(family(VENDOR_INTEL, 0x5917), Some(Family::KabyLake));
@@ -41,8 +42,8 @@ fn each_family_has_its_ids_and_another_vendor_has_none() {
 #[test]
 fn every_file_was_read_and_no_id_is_listed_twice() {
     let count = |f| all().filter(|e| e.1 == f).count();
-    assert_eq!(all().count(), 18 + 88 + 13 + 57);
-    assert_eq!(count(Family::Broadwell), 18);
+    assert_eq!(all().count(), 45 + 18 + 88 + 13 + 57);
+    assert_eq!((count(Family::Haswell), count(Family::Broadwell)), (45, 18));
     assert_eq!((count(Family::Skylake), count(Family::KabyLake)), (25, 23));
     assert_eq!((count(Family::CoffeeLake), count(Family::CometLake)), (21, 19));
     assert_eq!((count(Family::IceLake), count(Family::TigerLake)), (13, 11));
@@ -58,6 +59,7 @@ fn every_file_was_read_and_no_id_is_listed_twice() {
 
 #[test]
 fn each_family_carries_its_generation_and_only_gen9_sets_modes() {
+    assert_eq!(*Family::Haswell.gen(), GEN7_5);
     assert_eq!(*Family::Broadwell.gen(), GEN8);
     assert_eq!(*Family::CometLake.gen(), GEN9);
     assert_eq!(*Family::IceLake.gen(), GEN11);

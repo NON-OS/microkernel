@@ -16,13 +16,17 @@
 
 //! What differs between Intel display generations for a takeover: how
 //! many pipes there are, whether the eDP transcoder exists, and which
-//! primary plane layout the pipes carry. Mode setting stays Gen9's alone.
+//! primary plane layout the pipes carry, and the GGTT's entry format.
+//! Mode setting stays Gen9's alone.
+
+pub use super::ggtt_pte::Pte;
+use PlaneKind::{Primary, Universal, Universal11};
 
 /// The register layout of each pipe's primary plane.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PlaneKind {
-    /// Gen8 (Broadwell): DSPCNTR, DSPSTRIDE in bytes, no size register;
-    /// the plane is as large as PIPESRC (BDW PRM Vol 2c, DSPCNTR).
+    /// Haswell and Broadwell: DSPCNTR, DSPSTRIDE in bytes, no size
+    /// register; the plane is as large as PIPESRC (BDW PRM Vol 2c).
     Primary,
     /// Gen9: universal plane 1 (SKL PRM Vol 2c, PLANE_CTL).
     Universal,
@@ -36,17 +40,23 @@ pub enum PlaneKind {
 pub struct Gen {
     /// Pipes A onward, each with the transcoder of its letter.
     pub pipes: u32,
-    /// The eDP transcoder at 0x6F000: Gen8, Gen9 and Gen11. Gen12 drives
-    /// eDP from a pipe's own transcoder (TGL PRM Vol 12, transcoders;
-    /// unverified).
+    /// The eDP transcoder at 0x6F000, Haswell to Gen11. Gen12 drives eDP
+    /// from a pipe's own transcoder (TGL PRM Vol 12; unverified).
     pub edp_transcoder: bool,
     pub plane: PlaneKind,
+    pub ggtt: Pte,
 }
 
-pub const GEN8: Gen = Gen { pipes: 3, edp_transcoder: true, plane: PlaneKind::Primary };
-pub const GEN9: Gen = Gen { pipes: 3, edp_transcoder: true, plane: PlaneKind::Universal };
-pub const GEN11: Gen = Gen { pipes: 3, edp_transcoder: true, plane: PlaneKind::Universal11 };
+const fn gen(pipes: u32, edp_transcoder: bool, plane: PlaneKind, ggtt: Pte) -> Gen {
+    Gen { pipes, edp_transcoder, plane, ggtt }
+}
+
+/// Haswell: Broadwell's plane, the GGTT's narrow entries.
+pub const GEN7_5: Gen = gen(3, true, Primary, Pte::Narrow);
+pub const GEN8: Gen = gen(3, true, Primary, Pte::Wide);
+pub const GEN9: Gen = gen(3, true, Universal, Pte::Wide);
+pub const GEN11: Gen = gen(3, true, Universal11, Pte::Wide);
 /// Rocket Lake: Gen12 with three pipes (RKL PRM Vol 12; unverified).
-pub const GEN12_3: Gen = Gen { pipes: 3, edp_transcoder: false, plane: PlaneKind::Universal11 };
+pub const GEN12_3: Gen = gen(3, false, Universal11, Pte::Wide);
 /// Tiger Lake, Alder Lake and Raptor Lake: four pipes, A to D.
-pub const GEN12: Gen = Gen { pipes: 4, edp_transcoder: false, plane: PlaneKind::Universal11 };
+pub const GEN12: Gen = gen(4, false, Universal11, Pte::Wide);

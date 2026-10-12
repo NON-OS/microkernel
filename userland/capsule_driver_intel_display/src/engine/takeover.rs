@@ -19,7 +19,7 @@
 //! dark transcoder or plane is no output.
 
 use super::access::{field, Mmio};
-use super::gen::Gen;
+use super::gen::{Gen, Pte};
 use super::pipe::{Pipe, Transcoder};
 use super::plane_read::PlaneState;
 use super::{regs, timing};
@@ -34,6 +34,7 @@ pub struct Output {
     pub width: u32,
     pub height: u32,
     pub plane: PlaneState,
+    pub ggtt: Pte,
 }
 
 /// TRANS_CONF bit 30, the transcoder's state, not its enable request.
@@ -57,16 +58,15 @@ fn feeding(m: &mut dyn Mmio, g: &Gen, p: Pipe) -> Transcoder {
 
 pub fn read_output(m: &mut dyn Mmio, g: &Gen, p: Pipe) -> Option<Output> {
     // A pipe `g` lacks is never read: its offsets are not registers.
-    if p.index() >= g.pipes {
-        return None;
-    }
+    (p.index() < g.pipes).then_some(())?;
     let transcoder = feeding(m, g, p);
     running(m, transcoder).then_some(())?;
     let timing = timing::read(m, transcoder)?;
     let src = m.read(regs::pipe_src(p));
     let (width, height) = (field(src, 28, 16) + 1, field(src, 11, 0) + 1);
     let plane = PlaneState::read(m, g.plane, p);
-    plane.enabled().then_some(Output { pipe: p, transcoder, timing, width, height, plane })
+    let ggtt = g.ggtt;
+    plane.enabled().then_some(Output { pipe: p, transcoder, timing, width, height, plane, ggtt })
 }
 
 /// Every lit output, pipe A first; output n of the wire is the nth.

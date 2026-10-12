@@ -27,11 +27,11 @@ use crate::family::Family;
 static SEALED: Sealed = parse(include_bytes!("../data/dmc_sealed.txt"));
 
 /// The DMC blob a family runs, by the stem Intel publishes it under,
-/// without a version: the owner chooses the version when sealing. Gen8
-/// has no DMC. Which later parts share a blob is unverified.
+/// without a version: the owner chooses the version when sealing. Haswell
+/// and Broadwell have none. Which later parts share a blob is unverified.
 pub fn blob(f: Family) -> Option<&'static str> {
     Some(match f {
-        Family::Broadwell => return None,
+        Family::Haswell | Family::Broadwell => return None,
         Family::Skylake => "skl_dmc",
         Family::KabyLake | Family::CoffeeLake | Family::CometLake => "kbl_dmc",
         Family::IceLake => "icl_dmc",
