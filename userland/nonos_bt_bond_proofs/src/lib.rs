@@ -22,9 +22,15 @@ mod book_limit_tests;
 #[cfg(test)]
 mod book_tests;
 #[cfg(test)]
+mod faulty;
+#[cfg(test)]
 mod fixture;
 #[cfg(test)]
+mod local_store_tests;
+#[cfg(test)]
 mod local_tests;
+#[cfg(test)]
+mod memory_keys_tests;
 #[cfg(test)]
 mod pairing_tests;
 #[cfg(test)]
@@ -33,3 +39,11 @@ mod record_refuse_tests;
 mod record_tests;
 #[cfg(test)]
 mod rotation_tests;
+#[cfg(test)]
+mod store_fault_tests;
+#[cfg(test)]
+mod store_open_tests;
+#[cfg(test)]
+mod store_rollback_tests;
+#[cfg(test)]
+mod store_tests;

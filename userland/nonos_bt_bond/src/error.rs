@@ -16,6 +16,8 @@
 
 //! Why a record was not made, read or kept.
 
+use crate::keys::KeysError;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BondError {
     /// Not the length the record's kind fixes.
@@ -29,4 +31,12 @@ pub enum BondError {
     NoIdentity,
     /// The book holds `MAX_BONDS` already.
     Full,
+    /// Where records are kept refused or failed.
+    Keys(KeysError),
+}
+
+impl From<KeysError> for BondError {
+    fn from(e: KeysError) -> Self {
+        Self::Keys(e)
+    }
 }
