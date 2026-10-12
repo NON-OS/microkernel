@@ -13,22 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Powering every port of a new hub and waiting, on the clock, for the
-//! power to be good (USB 2.0 section 11.11 and 11.23.2.1, Linux
-//! `hub_power_on`). A hub without power switching ignores the request; its
-//! ports are powered already.
+//! power to be good (USB 2.0 section 11.11 and 11.23.2.1). A hub without
+//! power switching ignores the request; its ports are powered already.
 
-use nonos_libc::mk_idle_ms;
+use crate::descriptor::HubDescriptor;
+use crate::host::Host;
+use crate::line::Line;
+use crate::request::{set_port_feature, PORT_POWER};
 
-use super::descriptor::HubDescriptor;
-use super::request::{set_port_feature, PORT_POWER};
-use super::say::Line;
-
-pub fn power_ports(xhci_port: u32, slot: u8, desc: &HubDescriptor) {
+pub fn power_ports(h: &mut impl Host, slot: u8, desc: &HubDescriptor) {
     let mut refused = 0u32;
     for port in 1..=desc.ports {
-        if !set_port_feature(xhci_port, slot, port, PORT_POWER) {
+        if !set_port_feature(h, slot, port, PORT_POWER) {
             refused += 1;
         }
     }
@@ -39,7 +36,7 @@ pub fn power_ports(xhci_port: u32, slot: u8, desc: &HubDescriptor) {
             .text(b": ")
             .num(refused)
             .text(b" ports refused PORT_POWER")
-            .say();
+            .say(h);
     }
-    let _ = mk_idle_ms(desc.power_on_ms as u64);
+    h.idle_ms(desc.power_on_ms as u64);
 }
