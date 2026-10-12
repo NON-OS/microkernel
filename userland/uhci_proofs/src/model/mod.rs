@@ -17,6 +17,7 @@ pub mod pid;
 mod ports;
 mod regs;
 mod steps;
+mod td_io;
 mod transact;
 mod wire;
 mod world;
