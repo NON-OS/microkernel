@@ -36,6 +36,7 @@ mod hotkeys;
 mod legacy;
 mod platform;
 mod ports;
+mod props;
 mod reserved;
 mod power;
 mod serial;
