@@ -2718,6 +2718,8 @@
    ".cargo",
    "src/services/registry/displays.rs",
    "userland/compositor/src/display/backoff.rs",
+   "userland/compositor/src/display/head.rs",
+   "userland/compositor/src/display/head_rule.rs",
    "userland/compositor/src/display/hint_rule.rs",
    "userland/compositor/src/display/link.rs",
    "userland/compositor/src/display/poll_rule.rs",

@@ -18,10 +18,13 @@
 
 pub mod backoff;
 pub mod call;
+pub mod head;
+pub mod head_rule;
 pub mod hint_rule;
 pub mod link;
 pub mod ops;
 pub mod poll_rule;
 
 pub use backoff::Backoff;
+pub use head::Head;
 pub use link::WireLink;
