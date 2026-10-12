@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The capsule's seventeen pins, read from the digests published for
+//! The capsule's eleven pins, read from the digests published for
 //! linux-firmware tag 20260916: each names its own file and digest.
 
 use super::rtl::pin::Pin;
 use super::rtl::pins::*;
 use super::rtl::pins_config::*;
-use super::rtl::pins_rtbt::*;
 
-const ALL: [&Pin; 17] = [
+const ALL: [&Pin; 11] = [
     &RTL8723B_FW,
     &RTL8723D_FW,
     &RTL8821A_FW,
@@ -34,20 +33,13 @@ const ALL: [&Pin; 17] = [
     &RTL8821C_CONFIG,
     &RTL8761BU_CONFIG,
     &RTL8822B_CONFIG,
-    &RTL8822CU_FW,
-    &RTL8852AU_FW,
-    &RTL8852BU_FW,
-    &RTL8852BTU_FW,
-    &RTL8852CU_FW,
-    &RTL8851BU_FW,
 ];
 
 #[test]
 fn each_real_pin_names_its_own_file_and_digest() {
     for (i, a) in ALL.iter().enumerate() {
         assert!(a.len > 0 && a.file.ends_with(".bin"));
-        let fw = a.file.ends_with("_fw.bin") || a.file.ends_with("_fw_v2.bin");
-        assert!(fw ^ a.file.ends_with("_config.bin"), "{}", a.file);
+        assert!(a.file.ends_with("_fw.bin") ^ a.file.ends_with("_config.bin"), "{}", a.file);
         for b in &ALL[i + 1..] {
             assert_ne!(a.file, b.file);
             assert_ne!(a.sha256, b.sha256, "{} and {}", a.file, b.file);
@@ -56,6 +48,4 @@ fn each_real_pin_names_its_own_file_and_digest() {
     assert_eq!(RTL8821C_FW.sha256[..4], [0xdf, 0xe7, 0xef, 0x77]);
     assert_eq!(RTL8821C_FW.sha256[31], 0x3c);
     assert_eq!(RTL8761BU_CONFIG.len, 6);
-    assert_eq!(RTL8852CU_FW.sha256[..2], [0xd1, 0x31]);
-    assert_eq!(RTL8852BU_FW.len, 129_733);
 }

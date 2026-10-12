@@ -29,10 +29,6 @@ impl Transport for RomSim {
             _ if self.refuse == Some(op) => complete(1, op, 0x12, &[]),
             0x1001 => complete(1, op, 0, &self.version()),
             0xfc6d => complete(1, op, 0, &[self.rom]),
-            0xfc61 => {
-                self.asked_register = Some(params.to_vec());
-                complete(1, op, 0, &self.register)
-            }
             0xfc20 => {
                 self.frags.push((params[0], params[1..].to_vec()));
                 complete(1, op, 0, if self.terse { &[] } else { &params[..1] })
@@ -52,15 +48,4 @@ impl Transport for RomSim {
         Ok(None)
     }
     fn pause(&mut self) {}
-}
-
-impl RomSim {
-    pub(super) fn version(&self) -> Vec<u8> {
-        let ended = self.frags.last().is_some_and(|(i, _)| i & 0x80 != 0);
-        let sub =
-            if ended { self.patched.unwrap_or(self.lmp_subversion) } else { self.lmp_subversion };
-        let [r0, r1] = self.hci_revision.to_le_bytes();
-        let ([c0, c1], [s0, s1]) = (self.company.to_le_bytes(), sub.to_le_bytes());
-        vec![self.hci_version, r0, r1, 8, c0, c1, s0, s1]
-    }
 }

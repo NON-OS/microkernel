@@ -19,7 +19,7 @@
 //! layout and the checks are proven on files made to it.
 
 pub use super::mem::Mem;
-use super::rtl::chip::{Chip, Format};
+use super::rtl::chip::Chip;
 use super::rtl::pin::Pin;
 use sha2::{Digest, Sha256};
 
@@ -60,7 +60,6 @@ pub fn chips(fw: &'static Pin, cfg: Option<&'static Pin>, needed: bool) -> &'sta
         hci_revision,
         hci_version,
         project,
-        format: Format::Realtech,
         firmware,
         config,
         config_needed,

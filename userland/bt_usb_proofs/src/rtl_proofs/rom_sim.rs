@@ -16,9 +16,9 @@
 
 //! A Realtek ROM as this setup meets it: it answers Read Local Version with
 //! its ROM's numbers until the last fragment is in, Read ROM Version with
-//! its ROM version, the key id register with `register`, and each Download
-//! with the index it took. It keeps every command's opcode and every
-//! fragment, so a proof can read back what reached it.
+//! its ROM version, and each Download with the index it took. It keeps
+//! every command's opcode and every fragment, so a proof can read back
+//! what reached it.
 
 use std::collections::VecDeque;
 
@@ -35,11 +35,6 @@ pub struct RomSim {
     pub refuse: Option<u16>,
     /// Download answered with no index octet after the status.
     pub terse: bool,
-    /// The two octets of the key id register, key id first; a proof may
-    /// leave one out to answer short.
-    pub register: Vec<u8>,
-    /// The parameters of the last register read.
-    pub asked_register: Option<Vec<u8>>,
     pub ops: Vec<u16>,
     pub frags: Vec<(u8, Vec<u8>)>,
     pub(super) events: VecDeque<Vec<u8>>,
@@ -57,8 +52,6 @@ impl RomSim {
             patched: Some(0x75b8),
             refuse: None,
             terse: false,
-            register: vec![0, 0],
-            asked_register: None,
             ops: Vec::new(),
             frags: Vec::new(),
             events: VecDeque::new(),
@@ -68,5 +61,14 @@ impl RomSim {
     /// The octets downloaded, in the order they came.
     pub fn image(&self) -> Vec<u8> {
         self.frags.iter().flat_map(|(_, d)| d.iter().copied()).collect()
+    }
+
+    pub(super) fn version(&self) -> Vec<u8> {
+        let ended = self.frags.last().is_some_and(|(i, _)| i & 0x80 != 0);
+        let sub =
+            if ended { self.patched.unwrap_or(self.lmp_subversion) } else { self.lmp_subversion };
+        let [r0, r1] = self.hci_revision.to_le_bytes();
+        let ([c0, c1], [s0, s1]) = (self.company.to_le_bytes(), sub.to_le_bytes());
+        vec![self.hci_version, r0, r1, 8, c0, c1, s0, s1]
     }
 }

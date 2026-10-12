@@ -27,7 +27,7 @@ use super::rtl::refused::Refused;
 fn the_patch_then_the_version_then_the_config() {
     let f = file(10);
     let table = chips(pin(FW, &f), Some(pin(CFG, CONFIG)), false);
-    let img = image(&table[0], 1, 0, &mut store(&f, Some(CONFIG))).unwrap();
+    let img = image(&table[0], 1, &mut store(&f, Some(CONFIG))).unwrap();
     let want = [&PATCH[..5], &VERSION.to_le_bytes(), CONFIG].concat();
     assert_eq!(img, want);
 }
@@ -36,10 +36,10 @@ fn the_patch_then_the_version_then_the_config() {
 fn an_optional_config_may_be_absent_but_not_wrong() {
     let f = file(10);
     let table = chips(pin(FW, &f), Some(pin(CFG, CONFIG)), false);
-    let img = image(&table[0], 1, 0, &mut store(&f, None)).unwrap();
+    let img = image(&table[0], 1, &mut store(&f, None)).unwrap();
     assert_eq!(img, [&PATCH[..5], &VERSION.to_le_bytes()[..]].concat());
-    let wrong = image(&table[0], 1, 0, &mut store(&f, Some(&CONFIG[..9])));
+    let wrong = image(&table[0], 1, &mut store(&f, Some(&CONFIG[..9])));
     assert_eq!(wrong, Err(Refused::NotPinned(CFG)));
     let needed = chips(pin(FW, &f), Some(pin(CFG, CONFIG)), true);
-    assert_eq!(image(&needed[0], 1, 0, &mut store(&f, None)), Err(Refused::Missing(CFG)));
+    assert_eq!(image(&needed[0], 1, &mut store(&f, None)), Err(Refused::Missing(CFG)));
 }

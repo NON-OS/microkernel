@@ -24,7 +24,7 @@ use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 use std::{env, fs, path::Path};
 
-const PINS: [&str; 3] = ["src/rtl/pins.rs", "src/rtl/pins_config.rs", "src/rtl/pins_rtbt.rs"];
+const PINS: [&str; 2] = ["src/rtl/pins.rs", "src/rtl/pins_config.rs"];
 const FILES: &str = "src/run/files.rs";
 const DIR: &str = "../../nonos-bootloader/firmware/rtl_bt";
 
