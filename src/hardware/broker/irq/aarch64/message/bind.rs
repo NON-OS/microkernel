@@ -64,5 +64,5 @@ pub(in super::super) fn bind(
     }
     binds[slot] = Some(b);
     crate::log::info!("[IRQ] {} {} vectors from intid {}", a, b.count, b.vectors[0].intid);
-    Ok(IrqBindResult { grant_id: b.base, vector: 0 })
+    Ok(IrqBindResult { grant_id: b.base, vector: 0, grants: b.count as u32 })
 }
