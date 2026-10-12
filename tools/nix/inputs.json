@@ -2919,6 +2919,8 @@
    "userland/capsule_driver_e1000/src/report",
    "userland/capsule_driver_e1000/src/setup/driver.rs",
    "userland/e1000_proofs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_devmodel",
    "userland/nonos_mac"
   ],
@@ -2966,6 +2968,8 @@
    "userland/capsule_driver_e1000e/src/swflag",
    "userland/capsule_driver_e1000e/src/wait.rs",
    "userland/e1000e_proofs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_devmodel",
    "userland/nonos_mac"
   ],
@@ -3237,6 +3241,8 @@
    "userland/i2c_hid_proofs",
    "userland/i2c_proofs_libc_shim",
    "userland/i2c_transfer_proofs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_i2cmodel"
   ],
   "md": [],
@@ -3254,6 +3260,8 @@
    "userland/capsule_driver_i2c_pci/src/transaction",
    "userland/i2c_pci_proofs",
    "userland/i2c_proofs_libc_shim",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_devmodel",
    "userland/nonos_pinctrl"
   ],
@@ -3273,6 +3281,8 @@
    "userland/capsule_driver_i2c_pci/src/transaction",
    "userland/i2c_proofs_libc_shim",
    "userland/i2c_transfer_proofs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_i2cmodel"
   ],
   "md": [],
@@ -3292,6 +3302,8 @@
    "userland/capsule_driver_igc/src/setup/driver.rs",
    "userland/capsule_driver_igc/src/setup/pci_command.rs",
    "userland/igc_proofs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_devmodel",
    "userland/nonos_mac"
   ],
@@ -3464,6 +3476,8 @@
    "userland/capsule_driver_iwlwifi/src/wpa/sha1.rs",
    "userland/capsule_driver_iwlwifi/src/wpa/supplicant",
    "userland/iwlwifi_proofs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_wifi_client/src/driver/services.rs",
    "userland/nonos_wifi_client/src/join_wire.rs",
    "userland/nonos_wifi_client/src/network.rs",
@@ -4094,6 +4108,8 @@
    "userland/capsule_driver_rtl8169/src/setup/command_word.rs",
    "userland/capsule_driver_rtl8169/src/setup/driver.rs",
    "userland/capsule_driver_rtl8169/src/tx",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_devmodel",
    "userland/nonos_mac",
    "userland/rtl8169_proofs"
@@ -4859,6 +4875,8 @@
    "userland/capsule_driver_virtio_gpu/src/init",
    "userland/capsule_driver_virtio_gpu/src/protocol",
    "userland/capsule_driver_virtio_gpu/src/regs",
+   "userland/libc/src/broker/dma_order.rs",
+   "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_devmodel",
    "userland/nonos_virtio",
    "userland/virtio_gpu_proofs"
