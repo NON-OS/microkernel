@@ -15,6 +15,7 @@ devices up, reports what firmware describes, and serves the SCI.
                    OperationRegion     SystemIO windows
    MkAcpiPort   -- in / out       -->  SystemIO fields, PM1 and GPE registers
    MkAcpiPci    -- config access  -->  PCI_Config fields
+   MkAcpiPower, MkAcpiEvent  <---      batteries, buttons, lid, thermal
    SCI record (PNP0C08)
      MkDeviceClaim, MkIrqBind  --->    SCI: fixed events, _Lxx/_Exx, Notify
                                        port 4530: STATUS, DEVICE
@@ -40,6 +41,25 @@ whether any is charging or discharging, and whether AC is online go to
 the kernel through `MkAcpiPower`, which MkBatteryStatus then answers from
 while the report is under three minutes old.
 
+Power buttons (PNP0C0C), sleep buttons (PNP0C0E) and lids (PNP0C0D) that
+report through AML are served on their Notify: 0x80 on a power button goes
+to the kernel through `MkAcpiEvent`, which posts the desktop's Power key as
+it does for the fixed button; a sleep button press is logged, as NONOS has
+no sleep state yet; a lid's _LID is read at start and on 0x80, and the
+kernel told when it changes. The fixed PM1 buttons stay the kernel's.
+
+Thermal zones are read at their _TZP interval (every 30 seconds when they
+give none), and on Notify 0x80, 0x81 (trip points changed) and 0x82 (device
+lists changed). Each _ACx level runs the fans its _ALx names, by _FSL when
+the fan has one, else by D0 and D3 through its _PR0 power resources,
+counted across fans that share them; a level stays on until the zone is two
+degrees below it, and a fan over a zone that cannot be read runs. The
+hottest temperature and the trip points reached go to the kernel through
+`MkAcpiEvent`. _CRT is believed on two readings a second apart; the kernel
+then asks the desktop to shut down, and powers off itself if the zone is
+still critical 30 seconds later. Passive cooling (_PSV) is reported, and
+waits on processor performance control.
+
 ## Microkernel contract
 
 Every register it touches comes through the kernel's ACPI grant rule
@@ -56,7 +76,7 @@ function, and does no DMA.
 `CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve port 4530; Memory
 (0x10) for the heap and the interpreter's objects; DeviceEnum (0x8000) to
 find the SCI record; Driver (0x10000) to claim it; Irq (0x40000) to bind
-it; Admin (0x200) for the five ACPI calls, which the kernel gates on Admin
+it; Admin (0x200) for the six ACPI calls, which the kernel gates on Admin
 until a Firmware bit of their own is decided. Debug (0x100) is optional, for
 its serial lines. No Mmio, Dma or Pio.
 

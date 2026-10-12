@@ -16,11 +16,10 @@
 
 //! The capsule's start: tables, namespace, devices, events.
 
+use super::say::{say_cooling, say_ec};
 use super::state::Acpi;
 use super::{bringup, load, report, sci, tables};
-use crate::ec::Ec;
 use crate::host::CapsuleHost;
-use crate::sys::log::Line;
 
 pub fn boot() -> Option<Acpi> {
     let t = tables::fetch()?;
@@ -34,18 +33,23 @@ pub fn boot() -> Option<Acpi> {
     let (events, sci) = sci::start(&t.fadt, &mut aml, &mut host, ec.as_ref().and_then(|e| e.gpe));
     let mut power = crate::power::find(&devices);
     crate::power::all(&mut power, &mut aml, &mut host);
-    Some(Acpi { aml, host, events, sci, ec, power, devices, routes, scis: 0, gpe_runs: 0 })
-}
-
-fn say_ec(ec: Option<&Ec>) {
-    match ec {
-        Some(e) => Line::new(b"EC data=")
-            .hex(e.ports.data as u64)
-            .str(b" command=")
-            .hex(e.ports.command as u64)
-            .str(b" queries=")
-            .dec(e.queries.len() as u64)
-            .end(),
-        None => Line::new(b"no embedded controller").end(),
-    }
+    let mut buttons = crate::buttons::find(&devices);
+    crate::buttons::read_lid(&mut buttons, &mut aml, &mut host);
+    let cooling = crate::cooling::find(&mut aml, &mut host);
+    say_cooling(&cooling);
+    let (scis, gpe_runs) = (0, 0);
+    Some(Acpi {
+        aml,
+        host,
+        events,
+        sci,
+        ec,
+        power,
+        buttons,
+        cooling,
+        devices,
+        routes,
+        scis,
+        gpe_runs,
+    })
 }
