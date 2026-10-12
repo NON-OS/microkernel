@@ -17,6 +17,7 @@ caps.bits GRAPHICS_PRESENT 16384
 caps.bits GRAPHICS_SURFACE_CREATE 4096
 caps.bits GRAPHICS_SURFACE_MAP 8192
 caps.bits HARDWARE 128
+caps.bits INPUT_DRAIN 68719476736
 caps.bits INPUT_SOURCE 2097152
 caps.bits IO 2
 caps.bits IPC 8
@@ -84,6 +85,7 @@ syscalls.numbers MAPY 1498431821
 syscalls.numbers MAST 1414742349
 syscalls.numbers MAUN 1314210125
 syscalls.numbers MBAT 1413562957
+syscalls.numbers MBFB 1111900749
 syscalls.numbers MBSL 1280524877
 syscalls.numbers MBTA 1096041037
 syscalls.numbers MCCK 1262699341

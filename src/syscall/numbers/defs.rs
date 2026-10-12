@@ -97,6 +97,7 @@ pub enum SyscallNumber {
     MkDeviceList = tag4(b"MDLS"),
     MkDeviceClaim = tag4(b"MDCL"),
     MkDeviceRelease = tag4(b"MDRL"),
+    MkBootFramebuffer = tag4(b"MBFB"),
     MkMmioMap = tag4(b"MMMP"),
     MkMmioUnmap = tag4(b"MMUM"),
     MkIrqBind = tag4(b"MIRB"),

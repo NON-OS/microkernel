@@ -75,7 +75,7 @@ DeviceRecord                       Bar
  = 176 bytes
 ```
 
-- `bus_kind`: 1 PCI, 2 ACPI, 3 virtual (`device/bus.rs`).
+- `bus_kind`: 1 PCI, 2 ACPI, 3 virtual, 5 firmware: the boot framebuffer (`device/bus.rs`).
 - `bar_count` is the span of BAR slots in use, not a compacted count; the
   hardware BAR index is kept and an empty slot is zeroed.
 - `Bar.kind`: 0 none, 1 MMIO, 2 port I/O. `Bar.flags`: 1 prefetchable,

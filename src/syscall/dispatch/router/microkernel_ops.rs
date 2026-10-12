@@ -68,6 +68,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkDeviceList
             | MkDeviceClaim
             | MkDeviceRelease
+            | MkBootFramebuffer
             | MkMmioMap
             | MkMmioUnmap
             | MkIrqBind

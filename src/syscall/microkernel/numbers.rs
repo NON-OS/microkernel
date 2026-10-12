@@ -143,6 +143,7 @@ pub const SYS_CAP_CHECK: u64 = tag4(b"MCCK");
 pub const SYS_DEVICE_LIST: u64 = tag4(b"MDLS");
 pub const SYS_DEVICE_CLAIM: u64 = tag4(b"MDCL");
 pub const SYS_DEVICE_RELEASE: u64 = tag4(b"MDRL");
+pub const SYS_BOOT_FRAMEBUFFER: u64 = tag4(b"MBFB");
 pub const SYS_MMIO_MAP: u64 = tag4(b"MMMP");
 pub const SYS_MMIO_UNMAP: u64 = tag4(b"MMUM");
 pub const SYS_IRQ_BIND: u64 = tag4(b"MIRB");

@@ -165,6 +165,7 @@ These are the calls of the device broker. `MkDeviceClaim` returns a [claim epoch
 | `MDLS` | `0x534C444D` | `MkDeviceList` | Admin or DeviceEnum | `can_device_enum` `src/syscall/contract/cap_table/mk.rs:123` | List broker devices, all or one class. |
 | `MDCL` | `0x4C43444D` | `MkDeviceClaim` | Admin or Driver | `can_driver` `src/syscall/contract/cap_table/mk.rs:124` | Claim a device; returns the claim epoch. |
 | `MDRL` | `0x4C52444D` | `MkDeviceRelease` | Admin or Driver | `can_driver` `src/syscall/contract/cap_table/mk.rs:124` | Release a claimed device and every grant on it. |
+| `MBFB` | `0x4246424D` | `MkBootFramebuffer` | Admin or Mmio | `can_mmio` `src/syscall/contract/cap_table/mk.rs:126` | The boot framebuffer's geometry, for the holder of its claim. |
 | `MMMP` | `0x504D4D4D` | `MkMmioMap` | Admin or Mmio | `can_mmio` `src/syscall/contract/cap_table/mk.rs:125` | Map part of a claimed device's MMIO BAR. |
 | `MMUM` | `0x4D554D4D` | `MkMmioUnmap` | Admin or Mmio | `can_mmio` `src/syscall/contract/cap_table/mk.rs:125` | Unmap an MMIO grant. |
 | `MIRB` | `0x4252494D` | `MkIrqBind` | Admin or Irq | `can_irq` `src/syscall/contract/cap_table/mk.rs:129` | Bind a claimed device's interrupt: INTx, MSI or MSI-X. |
