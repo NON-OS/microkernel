@@ -14,19 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! MkAcpiFunctionOf: the PCI function behind a broker device id. Asked for
-//! a pid, the kernel answers only if that pid holds the device's claim.
+//! MkAcpiFunctionOf: the PCI function behind a broker device id, asked as
+//! the capsule's own look (mode 0) or for a driver as the device's holder
+//! (mode 1), which the kernel answers only if that pid holds the claim.
 
 use super::acpi::{ok, tag4, Errno};
 use nonos_libc::mk_syscall_raw;
 
 const FUNCTION_OF: i64 = tag4(b"MAFO");
 
-/// For pid 0, any caller may look.
-pub const ANYONE: u32 = 0;
+#[derive(Clone, Copy)]
+pub enum Asker {
+    /// The capsule's own look, for reading a device's state.
+    Capsule,
+    /// A driver asking to move its device.
+    Holder(u32),
+}
 
-pub fn function_of(pid: u32, device_id: u64) -> Result<(u16, u8, u8, u8), Errno> {
-    let v = ok(mk_syscall_raw(FUNCTION_OF, [u64::from(pid), device_id, 0, 0, 0, 0]))?;
+pub fn function_of(asker: Asker, device_id: u64) -> Result<(u16, u8, u8, u8), Errno> {
+    let (mode, pid) = match asker {
+        Asker::Capsule => (0, 0),
+        Asker::Holder(pid) => (1, u64::from(pid)),
+    };
+    let v = ok(mk_syscall_raw(FUNCTION_OF, [mode, pid, device_id, 0, 0, 0]))?;
     let devfn = (v & 0xFF) as u8;
     Ok(((v >> 16) as u16, (v >> 8) as u8, devfn >> 3, devfn & 7))
 }
