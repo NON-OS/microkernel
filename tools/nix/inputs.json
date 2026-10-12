@@ -3662,6 +3662,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_net_core/src/autojoin/machine",
    "userland/capsule_net_core/src/autojoin/machine.rs",
    "userland/capsule_net_core/src/iface/lease_wait.rs",
    "userland/capsule_net_core/src/iface/link_watch.rs",
