@@ -20,6 +20,7 @@ mod brightness;
 mod caller;
 mod inventory;
 mod notify;
+mod policy;
 mod power_wire;
 pub(crate) mod protocol;
 mod reply;
