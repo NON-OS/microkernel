@@ -44,6 +44,8 @@ static KEPT: Mutex<BTreeMap<u32, Vec<PhysAddr>>> = Mutex::new(BTreeMap::new());
  */
 pub fn keep_at_exit(pid: u32) {
     let _gate = lock_responsive(&GATE);
+    // No attach from here to the slots' release.
+    super::closing::close_owned(pid);
     let mut keep = super::exit_owned::orphan_owned(pid);
     for (handle, _) in records_of(pid) {
         if let Some((owner, frames)) = frames_of(handle) {

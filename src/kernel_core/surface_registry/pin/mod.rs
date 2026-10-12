@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim_owned;
+pub mod closing;
+mod closing_rule;
 mod dma_held;
 pub mod dma_hold;
 mod dma_plan;
