@@ -45,14 +45,18 @@ fn intent_round_trips_and_its_calldata_is_bounded() {
     let mut call = 0x39c79e0cu32.to_be_bytes().to_vec();
     call.extend_from_slice(&[8; 32]);
     let i = Intent { chain_id: 1, kind: 15, from: [6; 20], value: 0, calldata: call };
-    let b = i.encode();
+    let b = i.encode().unwrap();
     assert_eq!((b[8], b.len()), (15, 49 + 36));
-    assert_eq!(Intent::parse(&b), Some(i));
+    assert_eq!(Intent::parse(&b), Some(i.clone()));
     cuts_refused(&b, Intent::parse);
     let mut big = b[..45].to_vec();
     big.extend_from_slice(&((MAX_CALLDATA + 1) as u32).to_le_bytes());
     big.resize(49 + MAX_CALLDATA + 1, 0);
     assert_eq!(Intent::parse(&big), None, "past MAX_CALLDATA");
+    let at = Intent { calldata: vec![0; MAX_CALLDATA], ..i.clone() };
+    assert_eq!(at.encode().map(|b| b.len()), Some(49 + MAX_CALLDATA));
+    let past = Intent { calldata: vec![0; MAX_CALLDATA + 1], ..i };
+    assert_eq!(past.encode(), None, "one past MAX_CALLDATA is refused, not written");
 }
 
 #[test]

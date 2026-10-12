@@ -57,7 +57,7 @@ fn the_schema_3_gates_follow_the_first_six() {
 
 #[test]
 fn the_request_ends_with_the_chain_the_bond_is_read_on() {
-    let b = nonos_market_proto::ready_body(b"linux.a", b"", 11_155_111);
-    assert_eq!(b[..b.len() - 8], nonos_market_proto::pair_body(b"linux.a", b"")[..]);
+    let b = nonos_market_proto::ready_body(b"linux.a", b"", 11_155_111).unwrap();
+    assert_eq!(b[..b.len() - 8], nonos_market_proto::pair_body(b"linux.a", b"").unwrap()[..]);
     assert_eq!(b[b.len() - 8..], 11_155_111u64.to_le_bytes());
 }

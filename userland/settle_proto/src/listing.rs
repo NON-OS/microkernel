@@ -31,18 +31,19 @@ const ROW_HEAD: usize = 32 * 3 + 8 + 2;
 
 /// The reply for `rows`, the first LISTED_MAX whose uri is 1 to MAX_URL
 /// bytes: a longer one would not fit its u16 length, and the bytes past
-/// the wrapped length would read as rows the log never had.
-pub fn listing_reply(rows: &[Listed]) -> Vec<u8> {
+/// the wrapped length would read as rows the log never had. The filter is
+/// why the None for a count or length that does not fit never comes.
+pub fn listing_reply(rows: &[Listed]) -> Option<Vec<u8>> {
     let fits = |r: &&Listed| !r.uri.is_empty() && r.uri.len() <= MAX_URL;
     let rows: Vec<&Listed> = rows.iter().filter(fits).take(LISTED_MAX).collect();
-    let mut out = Vec::from([len_u8(rows.len())]);
+    let mut out = Vec::from([len_u8(rows.len())?]);
     for r in rows {
         [&r.release_id, &r.release_hash, &r.bond_id].iter().for_each(|w| out.extend_from_slice(*w));
         out.extend_from_slice(&r.block.to_le_bytes());
-        out.extend_from_slice(&len_u16(r.uri.len()).to_le_bytes());
+        out.extend_from_slice(&len_u16(r.uri.len())?.to_le_bytes());
         out.extend_from_slice(&r.uri);
     }
-    out
+    Some(out)
 }
 
 /// The rows of a reply to the ask for `listing_id`, or None unless whole.

@@ -21,13 +21,13 @@ pub(crate) fn fixed<const N: usize>(b: &[u8], at: usize) -> Option<[u8; N]> {
     b.get(at..at.checked_add(N)?)?.try_into().ok()
 }
 
-/// `len` as a u32 length field; a length past u32 saturates, and the
-/// frame it heads then fails every exact-length check.
-pub(crate) fn len_u32(len: usize) -> u32 {
-    u32::try_from(len).unwrap_or(u32::MAX)
+/// `len` as a u32 length field, or None when it does not fit: an encoder
+/// refuses rather than write a length that says something false.
+pub(crate) fn len_u32(len: usize) -> Option<u32> {
+    u32::try_from(len).ok()
 }
 
 /// `len` as a u8 count, the same way.
-pub(crate) fn len_u8(len: usize) -> u8 {
-    u8::try_from(len).unwrap_or(u8::MAX)
+pub(crate) fn len_u8(len: usize) -> Option<u8> {
+    u8::try_from(len).ok()
 }

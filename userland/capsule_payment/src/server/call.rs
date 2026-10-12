@@ -19,7 +19,7 @@
 
 use alloc::vec::Vec;
 
-use nonos_payment_proto::reply;
+use nonos_payment_proto::{reply, status_reply, EOVERFLOW};
 
 pub(crate) struct Call<'a> {
     pub op: u16,
@@ -31,8 +31,11 @@ pub(crate) struct Call<'a> {
 }
 
 impl Call<'_> {
+    /// A body too long to frame is refused with EOVERFLOW, never sent under a
+    /// length it does not have.
     pub fn answer(&self, status: i32, body: &[u8]) -> Vec<u8> {
         reply(self.op, self.flags, self.id, status, body)
+            .unwrap_or_else(|| status_reply(self.op, self.flags, self.id, EOVERFLOW))
     }
 
     /// The body, or the status, as one reply.

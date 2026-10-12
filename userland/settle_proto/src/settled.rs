@@ -34,15 +34,19 @@ pub struct Settled {
 }
 
 impl Settled {
-    pub fn encode(&self) -> Vec<u8> {
+    /// None past SETTLED_MAX rows, which parse would refuse.
+    pub fn encode(&self) -> Option<Vec<u8>> {
+        if self.carried.len() > SETTLED_MAX {
+            return None;
+        }
         let mut out = Vec::with_capacity(ROW.saturating_mul(self.carried.len()).saturating_add(33));
         out.extend_from_slice(&self.tx_hash);
-        out.push(len_u8(self.carried.len()));
+        out.push(len_u8(self.carried.len())?);
         for (id, cumulative) in &self.carried {
             out.extend_from_slice(id);
             out.extend_from_slice(&cumulative.to_le_bytes());
         }
-        out
+        Some(out)
     }
 
     pub fn parse(b: &[u8]) -> Option<Self> {

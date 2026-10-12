@@ -52,7 +52,7 @@ fn a_wrong_pid_id_or_op_or_a_late_answer_moves_nothing() {
     assert!(!r.answer(0, 0, &order_of(3)), "no sender");
     assert!(!r.answer(SETTLE_PID, 1, &order_of(3)), "a wrong id");
     let (_, id, _) = last().unwrap();
-    let other_op = nonos_settle_proto::reply(OP_INTENT, 1, id, 0, &order_of(3));
+    let other_op = nonos_settle_proto::reply(OP_INTENT, 1, id, 0, &order_of(3)).unwrap();
     assert!(!r.settle.frame(SETTLE_PID, &other_op), "a wrong op");
     assert!(!r.tick() && r.step() == SendStep::Reading, "nothing moved");
     r.now_ms += STEP_MS;
