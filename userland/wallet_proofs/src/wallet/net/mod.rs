@@ -21,5 +21,5 @@ pub mod routed_read;
 pub mod step;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/read_snapshot.rs"]
 pub mod read_snapshot;
-#[path = "../../../../capsule_wallet_nonos/src/wallet/net/send_cap.rs"]
-pub mod send_cap;
+#[path = "../../../../capsule_wallet_nonos/src/wallet/net/private_route.rs"]
+pub mod private_route;
