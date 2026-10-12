@@ -16,6 +16,7 @@
 
 mod bring_up_tests;
 mod fb_tests;
+mod fdt_tests;
 mod firmware_model;
 mod firmware_rig;
 mod record_tests;
