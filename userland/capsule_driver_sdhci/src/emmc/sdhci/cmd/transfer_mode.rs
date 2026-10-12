@@ -19,8 +19,8 @@
 use super::super::regs::{TM_AUTO_CMD12, TM_BLOCK_COUNT, TM_DMA, TM_MULTI, TM_READ};
 
 /// The Transfer Mode register for an ADMA2 data command. Block Count Enable
-/// is set for every transfer, single block included (Linux sets it unless a
-/// host quirk forbids it). A multi-block transfer either was preceded by
+/// is set for every transfer, single block included, so one rule serves
+/// both: a single block is a count of one. A multi-block transfer either was preceded by
 /// CMD23 (the card stops on its own count) or has the host send CMD12 after
 /// it (`auto12`). Auto CMD12 on a single block is never asked for.
 pub const fn transfer_mode(read: bool, multi: bool, auto12: bool) -> u16 {
