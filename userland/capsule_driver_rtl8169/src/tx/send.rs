@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
-
 use crate::constants::queue::TX_DESC_COUNT;
 use crate::constants::regs::{DESC_EOR, DESC_FS, DESC_LS, DESC_OWN};
 use crate::constants::MIN_WIRE_FRAME;
@@ -45,7 +43,7 @@ pub fn send(driver: &mut Driver, frame: &[u8]) {
         core::ptr::copy_nonoverlapping(frame.as_ptr(), dst, frame.len());
         core::ptr::write_bytes(dst.add(frame.len()), 0, wire - frame.len());
     }
-    compiler_fence(Ordering::Release);
+    nonos_libc::dma_wmb();
     let eor = if idx == TX_DESC_COUNT - 1 { DESC_EOR } else { 0 };
     let addr = driver.tx.buffer_da(idx);
     let d = Descriptor {
