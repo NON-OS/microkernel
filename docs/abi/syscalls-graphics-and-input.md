@@ -30,7 +30,7 @@ layouts match `abi/wire.toml`.
 | Field | Offset | Type | Meaning |
 |---|---|---|---|
 | `kind` | 0 | `u16` | 0 key down, 1 key up, 2 relative pointer, 3 absolute pointer, 4 wheel, 5 button down, 6 button up, 7 touch |
-| `flags` | 2 | `u16` | Flags word |
+| `flags` | 2 | `u16` | Bits 0 to 7, the modifiers the poster set; bits 8 to 15, the source the kernel writes over the poster's, which input_router clears before an app sees the event |
 | `code` | 4 | `u32` | Key or button code |
 | `x` | 8 | `i32` | Position |
 | `y` | 12 | `i32` | Position |

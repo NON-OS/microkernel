@@ -53,6 +53,8 @@ flags      = {offset = 32, type = "u64"}
 size_bytes = 32
 align = 8
 kind         = {offset = 0,  type = "u16"}
+# flags: bits 0-7 the poster's modifiers; bits 8-15 the source index the kernel
+# writes over the poster's, which input_router clears before any app sees it.
 flags        = {offset = 2,  type = "u16"}
 code         = {offset = 4,  type = "u32"}
 x            = {offset = 8,  type = "i32"}

@@ -44,3 +44,6 @@ pub mod input_take;
 /// An exiting process's surfaces refuse attaches.
 #[path = "surface_closing/mod.rs"]
 pub mod surface_closing;
+/// Each input event's source, stamped by the kernel.
+#[path = "input_source/mod.rs"]
+pub mod input_source;
