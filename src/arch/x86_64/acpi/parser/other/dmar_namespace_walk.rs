@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The walk over a DRHD's device scopes that keeps the ACPI namespace ones,
-//! beside the PCI walk in `dmar_scope_walk`. Pure.
+//! The walk over a DRHD's device scopes that keeps the numbered ones (ACPI
+//! namespace devices, I/O APICs, HPETs) of one type, beside the PCI walk in
+//! `dmar_scope_walk`. Pure.
 
 use super::dmar_namespace_scope::{NamespaceScope, SCOPE_NAMESPACE};
 use super::dmar_scope::MAX_PATH;
@@ -24,9 +25,15 @@ use super::dmar_scope_walk::SCOPE_HEADER_LEN;
 /// Walk the scopes in `bytes[at..]`, keeping the namespace ones in `out`.
 /// Returns how many were kept and whether any was dropped (too many, an
 /// empty or long path, or a malformed entry, which also ends the walk).
-pub fn walk_namespace_scopes(
+pub fn walk_namespace_scopes(bytes: &[u8], at: usize, out: &mut [NamespaceScope]) -> (u8, bool) {
+    walk_numbered_scopes(bytes, at, SCOPE_NAMESPACE, out)
+}
+
+/// As `walk_namespace_scopes`, for the scopes of type `kind`.
+pub fn walk_numbered_scopes(
     bytes: &[u8],
     mut at: usize,
+    kind: u8,
     out: &mut [NamespaceScope],
 ) -> (u8, bool) {
     let (mut count, mut dropped) = (0usize, false);
@@ -39,7 +46,7 @@ pub fn walk_namespace_scopes(
             dropped = true;
             break;
         }
-        if bytes[at] == SCOPE_NAMESPACE {
+        if bytes[at] == kind {
             let hops = (len - SCOPE_HEADER_LEN) / 2;
             if hops == 0 || hops > MAX_PATH || count >= out.len() {
                 dropped = true;

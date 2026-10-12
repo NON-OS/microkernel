@@ -25,6 +25,7 @@ mod irte;
 mod msi;
 mod route;
 mod slots;
+mod sources;
 mod table;
 mod write;
 
