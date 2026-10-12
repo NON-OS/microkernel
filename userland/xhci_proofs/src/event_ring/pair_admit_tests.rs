@@ -20,7 +20,7 @@
 use super::fixture::Fixture;
 use super::toggle_tests::storage_slot;
 use crate::controller::BulkPipes;
-use crate::slots::pair_of;
+use crate::slots::{pair_of, pair_stream};
 
 const DATA_IN_DCI: u8 = 6;
 const DATA_OUT_DCI: u8 = 7;
@@ -46,4 +46,11 @@ fn the_pair_byte_is_0_or_1_and_older_clients_send_0() {
         (pair_of(0), pair_of(1), pair_of(2), pair_of(0xFF)),
         (Some(false), Some(true), None, None)
     );
+}
+
+#[test]
+fn bulk_ops_name_a_stream_above_the_pair_and_a_poll_never_does() {
+    assert_eq!((pair_stream(0x21), pair_stream(0x10)), (Some((true, 2)), Some((false, 1))));
+    assert_eq!((pair_stream(0x02), pair_stream(0xF2)), (None, None));
+    assert_eq!(pair_of(0x21), None, "the poll's byte takes no stream");
 }

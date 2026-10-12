@@ -46,4 +46,6 @@ mod pair_admit_tests;
 mod pair_tests;
 mod recover_tests;
 mod residual_tests;
+mod stream_tests;
+mod stream_transfer_tests;
 mod toggle_tests;

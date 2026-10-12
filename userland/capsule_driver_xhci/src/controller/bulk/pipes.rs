@@ -20,6 +20,8 @@ use crate::dma::{DmaPool, DmaRegion};
 use crate::error::XhciResult;
 use crate::protocol::BULK_MAX;
 use crate::rings::transfer::TransferRing;
+
+use super::streams::StreamPipe;
 pub struct BulkPipes {
     pub in_ring: TransferRing,
     pub out_ring: TransferRing,
@@ -32,6 +34,10 @@ pub struct BulkPipes {
     pub armed: Option<(u64, u32)>,
     pub dci_in: u8,
     pub dci_out: u8,
+    /// Streams on the IN or OUT endpoint (OP_CONFIGURE_STREAMS), whose
+    /// rings then carry its transfers in place of `in_ring` or `out_ring`.
+    pub in_streams: Option<StreamPipe>,
+    pub out_streams: Option<StreamPipe>,
 }
 impl BulkPipes {
     pub fn new(pool: &DmaPool, dci_in: u8, dci_out: u8) -> XhciResult<Self> {
@@ -46,14 +52,17 @@ impl BulkPipes {
             armed: None,
             dci_in,
             dci_out,
+            in_streams: None,
+            out_streams: None,
         })
     }
 
-    /// The ring of endpoint `dci`, if it is one of the pair's.
+    /// The ring of endpoint `dci`, if it is one of the pair's and has no
+    /// streams: a streamed endpoint's TRBs are on its streams' rings.
     pub fn ring_of(&self, dci: u8) -> Option<&TransferRing> {
         match dci {
-            d if d == self.dci_in => Some(&self.in_ring),
-            d if d == self.dci_out => Some(&self.out_ring),
+            d if d == self.dci_in && self.in_streams.is_none() => Some(&self.in_ring),
+            d if d == self.dci_out && self.out_streams.is_none() => Some(&self.out_ring),
             _ => None,
         }
     }

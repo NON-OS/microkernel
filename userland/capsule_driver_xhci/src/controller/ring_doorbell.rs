@@ -23,3 +23,11 @@ pub fn ring_doorbell(doorbell_base: u64, slot: u8, target: u8) {
     core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
     mmio_write32(addr, target as u32);
 }
+
+/// The doorbell for stream `stream` of endpoint `target`: DB Stream ID in
+/// bits 31:16 (xHCI 1.2, 5.6, as recalled, unverified).
+pub fn ring_doorbell_stream(doorbell_base: u64, slot: u8, target: u8, stream: u16) {
+    let addr = doorbell_base + (slot as u64) * 4;
+    core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
+    mmio_write32(addr, target as u32 | (stream as u32) << 16);
+}

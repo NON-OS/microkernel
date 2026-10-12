@@ -16,8 +16,8 @@
 //! What the server and the setup reach, re-exported at `crate::controller`.
 pub use super::ack_irq::ack_irq;
 pub use super::bulk::{
-    bulk_transfer, poll_bulk_in, reset_bulk_endpoint, write_bulk_input, BulkEndpoint, BulkPipes,
-    BulkPoll,
+    bulk_transfer, poll_bulk_in, reset_bulk_endpoint, stream_transfer, write_bulk_input,
+    write_stream_input, BulkEndpoint, BulkPipes, BulkPoll, StreamPipe, MAX_LOG2,
 };
 pub use super::dcbaa_slot::{clear_dcbaa_slot, set_dcbaa_slot};
 pub use super::drain_events::drain_events;

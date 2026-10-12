@@ -56,6 +56,7 @@ behind it.
 | `OP_INTERRUPT_IN` | poll one interrupt-IN packet of at most the endpoint's wMaxPacketSize, never past `INTERRUPT_IN_MAX` (64) | report bytes, or pending |
 | `OP_CONFIGURE_BULK` / `OP_RESET_BULK` | add a bulk IN and OUT pair; recover one after a STALL | DCIs / status word |
 | `OP_CONFIGURE_BULK2` (0x23) | a second bulk pair beside the first, on endpoints it does not hold (UAS's data pipes); bulk ops name it as pair 1 in their second byte, `OP_RESET_BULK` in bit 1 | DCIs |
+| `OP_CONFIGURE_STREAMS` (0x24) | `slot, pair, dirs, log2`: SuperSpeed bulk streams on a pair's IN (dirs bit 0) and OUT (bit 1) endpoints, 2^log2 stream contexts (log2 1 to 4, within HCCPARAMS1 MaxPSASize), linear; BULK_IN and BULK_OUT then name a stream in bits 7:4 of their pair byte. A streamed endpoint is never polled or reset as one ring | usable streams le16 |
 | `OP_BULK_OUT` / `OP_BULK_IN` | one transfer of up to 4096 bytes; a STALL replies `E_PIPE` | bytes moved, IN data |
 | `OP_BULK_IN_POLL` | one look at the slot's armed bulk IN, its own page; `E_AGAIN` at once while nothing came | bytes moved, IN data |
 | `OP_CONFIGURE_ISOCH` | add one isochronous endpoint, OUT or IN by its address, one of each per slot (interval, bursts and Mult by speed, CErr 0) | DCI |

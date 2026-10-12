@@ -39,6 +39,10 @@ pub fn bulk_transfer(
         return Err(XhciError::ControllerUnsupported);
     }
     let buf_phys = pipes.buf.phys();
+    // A streamed endpoint moves only on its streams (stream_transfer.rs).
+    if (dir_in && pipes.in_streams.is_some()) || (!dir_in && pipes.out_streams.is_some()) {
+        return Err(XhciError::ControllerUnsupported);
+    }
     let (ring, dci) = if dir_in {
         (&mut pipes.in_ring, pipes.dci_in)
     } else {
@@ -46,7 +50,11 @@ pub fn bulk_transfer(
     };
     let issued = ring.enqueue(normal(buf_phys, len, ring.cycle() != 0, true, false))?;
     ring_doorbell(doorbell_base, slot, dci);
-    let event = wait_bulk(intr_base, IssuedTransfer { phys: issued, slot, dci }, evt_ring)?;
+    moved(wait_bulk(intr_base, IssuedTransfer { phys: issued, slot, dci }, evt_ring)?, len)
+}
+
+/// The bytes a completed transfer of `len` moved, or its failure's code.
+pub(super) fn moved(event: crate::trb::Trb, len: u32) -> XhciResult<u32> {
     match event.completion_code() {
         CC_SUCCESS | CC_SHORT_PACKET => Ok(len - (event.d2 & 0x00FF_FFFF).min(len)),
         cc => Err(XhciError::TransferCompletionFailed(cc)),
