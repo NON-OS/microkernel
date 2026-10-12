@@ -25,3 +25,9 @@ pub const DEVICE_FLAG_DISABLED: u32 = 1 << 1;
 /// Behind a PCIe port firmware calls external-facing: whoever can reach the
 /// connector chose what is plugged in, so it gets no untranslated DMA.
 pub const DEVICE_FLAG_EXTERNAL: u32 = 1 << 2;
+/// On an ACPI record with `irq_pin` 1, its `_CRS` interrupt is edge
+/// triggered; clear, level (F 51).
+pub const DEVICE_FLAG_IRQ_EDGE: u32 = 1 << 4;
+/// On an ACPI record with `irq_pin` 1, its `_CRS` interrupt is active low;
+/// clear, active high (F 51).
+pub const DEVICE_FLAG_IRQ_ACTIVE_LOW: u32 = 1 << 5;
