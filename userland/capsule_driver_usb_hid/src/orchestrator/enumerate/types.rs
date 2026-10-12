@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::descriptors::HidKind;
+use crate::hid::Device;
+use crate::orchestrator::poll::Pace;
 
 /// What trying one port came to.
 pub enum Outcome {
     Bound,
-    /// Not a HID device; its slot was given back.
+    /// Not a HID device, or none whose reports this driver reads; its slot
+    /// was given back.
     NotHid,
     /// Another class driver is addressing the port.
     Busy,
@@ -34,4 +37,8 @@ pub struct HidEndpoint {
     pub dci: u8,
     pub kind: HidKind,
     pub max_packet: u16,
+    /// The interface's own keys, buttons and repeat.
+    pub dev: Device,
+    /// When the poll loop next asks for its report.
+    pub pace: Pace,
 }

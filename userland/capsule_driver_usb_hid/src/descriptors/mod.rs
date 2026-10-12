@@ -18,6 +18,8 @@ mod binding;
 mod config;
 mod packet_size;
 mod parse;
+mod records;
+pub mod report;
 mod types;
 mod wire;
 
