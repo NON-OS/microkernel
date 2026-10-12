@@ -27,6 +27,7 @@ mod boot;
 mod buttons;
 mod cooling;
 mod cpu;
+mod dpower;
 mod ec;
 mod events_io;
 mod host;

@@ -53,6 +53,7 @@ pub struct Zone {
 pub struct Cooling {
     pub zones: Vec<Zone>,
     pub fans: Vec<Fan>,
+    /// Every power resource's count, the fans' and the claimed devices'.
     pub pool: PowerPool,
     /// The thermal word last reported, and when.
     pub reported: Option<u64>,

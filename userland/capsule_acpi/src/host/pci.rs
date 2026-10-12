@@ -22,7 +22,7 @@ use crate::sys::acpi_pci::{pci_read, pci_write};
 use nonos_aml::exec::PciPath;
 use nonos_aml::platform::{function_of, SECONDARY_BUS};
 
-fn function(path: &PciPath) -> Option<(u16, u8, u8, u8)> {
+pub fn function(path: &PciPath) -> Option<(u16, u8, u8, u8)> {
     function_of(path, &mut |f| pci_read(f, SECONDARY_BUS, 1).ok().map(|v| v as u8))
 }
 
