@@ -19,6 +19,7 @@ mod global;
 mod probe;
 
 pub use device::PciManager;
+pub(crate) use probe::probe_device as probe_function;
 pub use global::{
     count_devices, find_device_by_class, find_device_by_id, get_device_by_address,
     get_device_by_class, get_pci_manager, get_pci_stats, init_pci, is_initialized,
