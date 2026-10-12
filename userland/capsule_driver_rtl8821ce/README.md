@@ -235,7 +235,8 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
  - WPA3-Personal, hunting-and-pecking (PWE 0): joins with AKM 8.
  - WPA3 transition mode: joins with AKM 8 (SAE preferred) and the network is saved as
  WPA3; if the AP later drops SAE the join is refused with "Saved as WPA3, but the
- network now offers only WPA2; not joined".
+ network now offers only WPA2; not joined". A WPA3 join there that does not finish is
+ not tried again with WPA2.
  - Open, TKIP-only or Enterprise: refused with "The network's security is not supported
  (open, TKIP or Enterprise)".
 - Data: after a join, net_core binds the link and obtains a DHCP lease; the status

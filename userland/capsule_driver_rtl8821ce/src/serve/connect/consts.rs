@@ -28,11 +28,5 @@ pub(super) const PAIRWISE_KEY_ID: u8 = 0;
 /// It was a count of receive passes, which shrank in wall time when every core
 /// started running and the passes came faster.
 pub(super) const JOIN_BUDGET_MS: u64 = 8_000;
-/// The WPA2 join after a WPA3 one that did not finish, on a network offering
-/// both: the hunt (two sweeps of 13 channels at 250 ms) and both joins stay
-/// inside the panel's 30 s.
-pub(super) const PSK_BUDGET_MS: u64 = 8_000;
 /// The CAM entries reserved for group keys, by key index.
 pub(super) const GROUP_KEY_SLOTS: u8 = 4;
-/// The AKM suite type of WPA3-SAE.
-pub(super) const AKM_SAE_TYPE: u8 = 8;

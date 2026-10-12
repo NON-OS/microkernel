@@ -41,7 +41,8 @@ fn exchange(h2e: bool, sta_pw: &[u8], ap_pw: &[u8]) -> (SaeStation, SaeStation) 
     let SaeStep::Send { body: ap_confirm, .. } = ap.on_frame(1, status, &sta_commit) else {
         panic!("the AP answers a commit with a confirm");
     };
-    let SaeStep::Send { seq, body: sta_confirm, .. } = sta.on_frame(1, ap_status, &ap_commit) else {
+    let SaeStep::Send { seq, body: sta_confirm, .. } = sta.on_frame(1, ap_status, &ap_commit)
+    else {
         panic!("the station answers the AP's commit with a confirm");
     };
     assert_eq!(seq, 2);
@@ -61,11 +62,11 @@ fn an_exchange_with_the_same_password_agrees_on_the_pmk() {
 }
 
 #[test]
-fn a_different_password_fails_at_the_confirm() {
+fn a_different_password_is_discarded_at_the_confirm() {
     for h2e in [false, true] {
         let (sta, _) = exchange(h2e, b"correct horse", b"wrong horse!!");
-        assert_eq!(sta.state(), SaeState::Failed, "h2e={h2e}");
+        assert_eq!(sta.state(), SaeState::Confirmed, "h2e={h2e}: left to the deadline");
         assert_eq!(sta.failure(), Some(SaeFailure::BadConfirm));
-        assert!(sta.pmk().is_none(), "no PMK from a failed exchange");
+        assert!(sta.pmk().is_none(), "no PMK from a confirm that did not verify");
     }
 }

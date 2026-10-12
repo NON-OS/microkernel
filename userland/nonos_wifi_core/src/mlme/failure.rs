@@ -41,7 +41,8 @@ pub enum MlmeFailure {
     NoEntropy,
     /// Open System authentication was refused with this status code.
     AuthRejected(u16),
-    /// The SAE exchange failed.
+    /// The SAE exchange ran out of time, and this is why the last frame
+    /// from the access point was discarded.
     Sae(SaeFailure),
     /// Association was refused with this status code.
     AssocRejected(u16),
