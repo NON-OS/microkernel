@@ -17,8 +17,10 @@ mod configure_ep;
 mod endpoint_reset;
 mod ep0;
 mod evaluate;
+mod hub;
 mod input;
 mod interval;
+pub mod route;
 mod size;
 mod slot_copy;
 pub use configure_ep::{write_configure_endpoint_input, EndpointConfig};
@@ -27,8 +29,10 @@ pub use ep0::{
     ep0_max_packet, ep0_needs_descriptor, is_superspeed, max_packet_for_speed, SPEED_HIGH,
 };
 pub use evaluate::write_evaluate_ep0_input;
+pub use hub::{write_hub_input, write_routed};
 pub use input::write_address_device_input;
 pub use interval::{interrupt_interval, isoch_interval};
+pub use route::routed_fits;
 pub use size::{device_context_bytes, input_context_bytes};
 pub use slot_copy::copy_slot_context;
 // Reached by the host proofs (userland/xhci_proofs), not by the capsule.

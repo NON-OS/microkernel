@@ -54,6 +54,8 @@ pub struct SlotResources {
     pub bulk: Option<crate::controller::BulkPipes>,
     pub isoch: Option<crate::controller::IsochPipe>,
     pub isoch_in: Option<crate::controller::IsochPipe>,
+    /// Marked a hub by OP_CONFIGURE_HUB: devices below it may be addressed.
+    pub hub: bool,
 }
 impl SlotResources {
     pub fn allocate(
@@ -91,6 +93,7 @@ impl SlotResources {
             bulk: None,
             isoch: None,
             isoch_in: None,
+            hub: false,
         })
     }
 
