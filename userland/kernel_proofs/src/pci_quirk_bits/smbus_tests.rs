@@ -18,8 +18,14 @@
 
 use super::quirk_bits::{only, writable, Ident};
 
-const SMBUS: Ident =
-    Ident { vendor: 0x8086, class: 0x0C, subclass: 0x05, prog_if: 0, pcie_cap: None };
+const SMBUS: Ident = Ident {
+    vendor: 0x8086,
+    class: 0x0C,
+    subclass: 0x05,
+    prog_if: 0,
+    pcie_cap: None,
+    before: [0xFF; 3],
+};
 
 #[test]
 fn the_intel_smbus_host_gets_host_enable_and_i2c_mode() {
