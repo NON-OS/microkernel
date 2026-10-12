@@ -1,0 +1,41 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Everything the capsule holds once it is up.
+
+use crate::host::CapsuleHost;
+use alloc::vec::Vec;
+use nonos_aml::events::Events;
+use nonos_aml::load::Aml;
+use nonos_aml::namespace::Id;
+use nonos_aml::platform::{DeviceInfo, Route};
+
+pub struct Sci {
+    pub grant: u64,
+    pub seq: u64,
+}
+
+pub struct Acpi {
+    pub aml: Aml,
+    pub host: CapsuleHost,
+    pub events: Option<Events>,
+    pub sci: Option<Sci>,
+    pub devices: Vec<DeviceInfo>,
+    pub routes: Vec<(Id, Vec<Route>)>,
+    /// SCIs served and GPE methods run, for the status reply.
+    pub scis: u64,
+    pub gpe_runs: u64,
+}

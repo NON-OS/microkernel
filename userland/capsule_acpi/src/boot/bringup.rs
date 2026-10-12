@@ -1,0 +1,63 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Bringing the platform up from the loaded namespace, in the order the
+//! specification gives: the region handlers (and with them _REG, 6.5.4),
+//! \_PIC (5.8.1) before anything reads _PRT, _OSC (6.2.11) before _INI so
+//! firmware initializes for what NONOS supports, then _INI (6.5.1).
+
+use super::eval::evaluator;
+use super::osc::negotiate_all;
+use crate::host::CapsuleHost;
+use crate::sys::log::Line;
+use nonos_aml::exec::{ExecLimits, Machine};
+use nonos_aml::load::Aml;
+use nonos_aml::platform::{initialize, set_pic, PIC_APIC};
+use nonos_aml::region::Space;
+
+/// The spaces the capsule serves now; EmbeddedControl joins in F 9, once
+/// the EC driver is up, so its _REG runs then.
+const SPACES: [Space; 3] = [Space::SYSTEM_MEMORY, Space::SYSTEM_IO, Space::PCI_CONFIG];
+
+pub fn bring_up(aml: &mut Aml, host: &mut CapsuleHost) {
+    for space in SPACES {
+        let failed = Machine::new(aml, host, ExecLimits::DEFAULT).connect(aml, space);
+        if !failed.is_empty() {
+            Line::new(b"_REG failed in ")
+                .dec(failed.len() as u64)
+                .str(b" scopes, space ")
+                .dec(space.0 as u64)
+                .end();
+        }
+    }
+    match set_pic(aml, &mut evaluator(host), PIC_APIC) {
+        Some(Err(f)) => Line::new(b"\\_PIC(1) faulted at ").hex(f.at as u64).end(),
+        Some(Ok(())) => Line::new(b"\\_PIC(1): APIC mode").end(),
+        None => Line::new(b"no \\_PIC").end(),
+    }
+    negotiate_all(aml, host);
+    let r = initialize(aml, &mut evaluator(host));
+    let failed = r.ran.iter().filter(|(_, x)| x.is_err()).count();
+    Line::new(b"_INI ran ")
+        .dec(r.ran.len() as u64)
+        .str(b", failed ")
+        .dec(failed as u64)
+        .str(b"; absent ")
+        .dec(r.absent.len() as u64)
+        .str(b"; _STA failed ")
+        .dec(r.sta_failed.len() as u64)
+        .end();
+}

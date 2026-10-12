@@ -1,0 +1,32 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The service's requests, little-endian throughout. Each request is an op
+//! byte and its argument; each reply a status word (0, or a negative errno)
+//! and the op's body.
+//!
+//! - STATUS (1): devices u32, routes u32, SCIs u64, GPE runs u64, refused
+//!   region accesses u64, armed GPEs u32, notifications dropped u32.
+//! - DEVICE (2, index u32): _STA u64, _ADR u64 (all ones if none), _UID u64
+//!   (all ones if none), then the _HID's length u8 and bytes, then the
+//!   path's length u8 and bytes.
+
+pub const OP_STATUS: u8 = 1;
+pub const OP_DEVICE: u8 = 2;
+pub const ENOENT: i32 = -2;
+pub const EINVAL: i32 = -22;
+/// Requests and replies fit one IPC message.
+pub const MAX: usize = 512;
