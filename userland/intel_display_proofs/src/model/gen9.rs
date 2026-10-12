@@ -15,32 +15,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The model's register file. `regs` is what a read returns, the last
-//! value written, as the PRM has double-buffered registers read; `live`
-//! the latched copies the scanout uses. Every `period` reads of a frame
-//! counter or live address is one vertical blank on every pipe.
+//! value written (double-buffered registers read so); `live` the latched
+//! copies the scanout uses. Every `period` reads of a frame counter or
+//! live address is one vertical blank on every pipe.
 
+use crate::engine::gen::PlaneKind;
 use std::collections::HashMap;
 
 pub struct Gen9 {
     pub regs: HashMap<u32, u32>,
     pub live: HashMap<u32, u32>,
-    /// Pipes with plane 1, and with the cursor, armed.
-    pub armed: [bool; 3],
-    pub cursor_armed: [bool; 3],
+    pub armed: [bool; 4], // plane 1 armed, per pipe; then the cursor
+    pub cursor_armed: [bool; 4],
     pub ggtt: Vec<u64>,
     pub flushes: u32,
-    /// IOVA page -> 4096 bytes, the memory the engine reads through GGTT.
-    pub memory: HashMap<u64, Vec<u8>>,
+    pub memory: HashMap<u64, Vec<u8>>, // IOVA page -> its 4096 bytes
     pub period: u32,
     pub clock: u32,
     pub writes: Vec<(u32, u32)>,
     /// A DisplayPort sink behind a DDI's AUX; a channel that never ends.
     pub sink: Option<(crate::engine::aux_regs::Ddi, super::sink::Sink)>,
     pub aux_stuck: bool,
-    /// Changes landing a few reads later; nothing answers when `dead`.
-    pub pending: Vec<(u32, u32, u32)>,
+    pub pending: Vec<(u32, u32, u32)>, // landing a few reads later
     pub dead: bool,
     pub ddc: super::gmbus_hw::Ddc,
+    pub plane: PlaneKind, // Gen9's unless a test models another
 }
 
 impl Gen9 {
@@ -48,8 +47,8 @@ impl Gen9 {
         Gen9 {
             regs: HashMap::new(),
             live: HashMap::new(),
-            armed: [false; 3],
-            cursor_armed: [false; 3],
+            armed: [false; 4],
+            cursor_armed: [false; 4],
             ggtt: vec![0; ggtt_entries],
             flushes: 0,
             memory: HashMap::new(),
@@ -61,6 +60,7 @@ impl Gen9 {
             pending: Vec::new(),
             dead: false,
             ddc: Default::default(),
+            plane: PlaneKind::Universal,
         }
     }
 

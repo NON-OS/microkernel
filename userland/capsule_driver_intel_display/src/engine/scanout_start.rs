@@ -55,7 +55,7 @@ impl Scanout {
         ggtt::map(m, a, iovas[0], total)?;
         ggtt::map(m, b, iovas[1], total)?;
         let surfaces = [a * 4096, b * 4096];
-        program(m, out.pipe, surfaces[0], stride, (out.width, out.height), fw.ctl)?;
+        program(m, fw.kind, out.pipe, surfaces[0], stride, (out.width, out.height), fw.ctl)?;
         wait_live(m, out.pipe, surfaces[0], until)?;
         let (width, height) = (out.width, out.height);
         Ok(Scanout {

@@ -14,32 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which Intel graphics functions this driver takes: the Gen9 device ids
-//! in the data file, built into a table when the crate compiles.
+//! Which Intel graphics functions this driver takes: the device ids in
+//! one data file per PRM generation, built into tables when the crate
+//! compiles. An id in two files stops nothing here; the proofs refuse it.
 
+pub use crate::family::Family;
 use crate::ids_parse::{parse, Table};
 
 pub const VENDOR_INTEL: u16 = 0x8086;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Family {
-    Skylake,
-    KabyLake,
-    CoffeeLake,
-    CometLake,
-}
-
-static TABLE: Table = parse(include_bytes!("../data/gen9_ids.txt"));
+static TABLES: [Table; 4] = [
+    parse(include_bytes!("../data/gen8_ids.txt")),
+    parse(include_bytes!("../data/gen9_ids.txt")),
+    parse(include_bytes!("../data/gen11_ids.txt")),
+    parse(include_bytes!("../data/gen12_ids.txt")),
+];
 
 /// The family of an Intel graphics device id this driver covers.
 pub fn family(vendor: u16, device: u16) -> Option<Family> {
     if vendor != VENDOR_INTEL {
         return None;
     }
-    TABLE.ids[..TABLE.len].iter().find(|e| e.0 == device).map(|e| e.1)
+    all().find(|e| e.0 == device).map(|e| e.1)
 }
 
-/// Every id in the table, in the file's order.
-pub fn all() -> &'static [(u16, Family)] {
-    &TABLE.ids[..TABLE.len]
+/// Every id, file by file in the files' order.
+pub fn all() -> impl Iterator<Item = (u16, Family)> {
+    TABLES.iter().flat_map(|t| t.ids[..t.len].iter().copied())
 }

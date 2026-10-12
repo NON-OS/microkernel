@@ -7,11 +7,16 @@ name = "intel_display_proofs"
 version = "0.1.0"
 dependencies = [
  "nonos_edid",
+ "nonos_hash",
  "nonos_modes",
 ]
 
 [[package]]
 name = "nonos_edid"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_hash"
 version = "0.1.0"
 
 [[package]]

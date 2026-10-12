@@ -3444,6 +3444,7 @@
    "userland/capsule_driver_intel_display/src",
    "userland/intel_display_proofs",
    "userland/nonos_edid",
+   "userland/nonos_hash",
    "userland/nonos_modes"
   ],
   "md": [],

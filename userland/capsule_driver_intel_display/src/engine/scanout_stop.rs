@@ -21,6 +21,7 @@
 use super::access::{Expiry, Mmio};
 use super::error::Error;
 use super::flip::wait_live;
+use super::gen::PlaneKind;
 use super::ggtt;
 use super::plane_regs as r;
 use super::scanout::Scanout;
@@ -29,8 +30,10 @@ impl Scanout {
     pub fn stop(self, m: &mut dyn Mmio, total: u32, until: &dyn Expiry) -> Result<(), Error> {
         let fw = self.firmware;
         let p = self.pipe;
-        m.write(r::plane_stride(p, 1), fw.stride / 64);
-        m.write(r::plane_size(p, 1), ((fw.height - 1) << 16) | (fw.width - 1));
+        m.write(r::plane_stride(p, 1), fw.kind.stride_reg(fw.stride));
+        if fw.kind != PlaneKind::Primary {
+            m.write(r::plane_size(p, 1), ((fw.height - 1) << 16) | (fw.width - 1));
+        }
         m.write(r::plane_ctl(p, 1), fw.ctl);
         m.write(r::plane_surf(p, 1), fw.live);
         wait_live(m, p, fw.live, until)?;

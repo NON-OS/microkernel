@@ -19,8 +19,10 @@
 
 use super::gen9::Gen9;
 use crate::engine::access::field;
+use crate::engine::gen::PlaneKind;
 use crate::engine::pipe::Pipe;
 use crate::engine::plane_regs as r;
+use crate::engine::regs;
 
 impl Gen9 {
     pub fn live_reg(&self, off: u32) -> u32 {
@@ -33,11 +35,18 @@ impl Gen9 {
         if self.live_reg(r::plane_ctl(p, 1)) & (1 << 31) == 0 {
             return None;
         }
-        let size = self.live_reg(r::plane_size(p, 1));
-        if x > field(size, 12, 0) || y > field(size, 27, 16) {
+        // Broadwell's plane shows PIPESRC and counts its stride in bytes.
+        let (size, st) = (self.live_reg(r::plane_size(p, 1)), self.live_reg(r::plane_stride(p, 1)));
+        let src = self.get(regs::pipe_src(p));
+        let (w, h, stride) = match self.plane {
+            PlaneKind::Primary => (field(src, 28, 16), field(src, 11, 0), st & 0xFFC0),
+            PlaneKind::Universal => (field(size, 12, 0), field(size, 27, 16), (st & 0x3FF) * 64),
+            PlaneKind::Universal11 => (field(size, 12, 0), field(size, 27, 16), (st & 0x7FF) * 64),
+        };
+        if x > w || y > h {
             return None;
         }
-        let stride = field(self.live_reg(r::plane_stride(p, 1)), 9, 0) as u64 * 64;
+        let stride = stride as u64;
         let gfx =
             (self.live_reg(r::plane_surf(p, 1)) & !0xFFF) as u64 + y as u64 * stride + x as u64 * 4;
         let pte = *self.ggtt.get((gfx / 4096) as usize)?;
