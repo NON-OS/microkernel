@@ -5,6 +5,8 @@
 
 extern crate alloc;
 
+#[path = "../../nonos_aml/src/apei/mod.rs"]
+pub mod apei;
 #[path = "../../nonos_aml/src/arena/mod.rs"]
 pub mod arena;
 #[path = "../../nonos_aml/src/block.rs"]
