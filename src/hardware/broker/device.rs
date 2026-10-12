@@ -19,8 +19,8 @@ mod bus;
 mod flags;
 mod record;
 
+pub(super) use bar::BAR_KIND_MMIO;
 pub use bar::{Bar, BarKind};
-pub(super) use bar::{BAR_KIND_MMIO, BAR_KIND_PIO};
 pub use bus::BusKind;
 pub(super) use flags::{BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
 pub use flags::{DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
