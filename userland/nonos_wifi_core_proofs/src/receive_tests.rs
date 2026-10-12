@@ -21,9 +21,10 @@
 //! https://w1.fi/cgit/hostap/plain/wlantest/test_vectors.c, sha256
 //! 9aceafbe03d32ca537dab030de0350c5d9cc658de176bc21c76ab95b7e30a633; the
 //! expected encrypted MPDU is the published one). The QoS vector was computed
-//! independently with the Python `cryptography` AES-CCM and hostapd's
-//! ccmp_aad_nonce() rules (TID in the nonce, QoS Control with only the TID in
-//! the AAD), since the Annex vector is non-QoS and access points send QoS data.
+//! independently with the Python `cryptography` AES-CCM and the 802.11-2020
+//! 12.5.3.3.3 and 12.5.3.3.4 rules (TID in the nonce, QoS Control with only
+//! the TID in the AAD), since the Annex vector is non-QoS and access points
+//! send QoS data.
 //!
 //! Then `LinkStation::receive`: frames from the BSS are delivered, everything
 //! else (another BSS, ToDS, another station, fragments, A-MSDUs, unprotected
@@ -32,7 +33,9 @@
 //! header and MIC, and the AP's group key handshake is answered and its key
 //! taken.
 
-use crate::ap_sim::{gtk_kde, group1, message1, message3, AA, ANONCE, AP_RSNE_MIXED, GTK, SNONCE, SPA};
+use crate::ap_sim::{
+    group1, gtk_kde, message1, message3, AA, ANONCE, AP_RSNE_MIXED, GTK, SNONCE, SPA,
+};
 use nonos_wifi_core::ccmp::ccm::ccm_encrypt;
 use nonos_wifi_core::dot11::ccmp::{aad_nonce, decrypt, view};
 use nonos_wifi_core::dot11::data::protect;
@@ -85,7 +88,14 @@ const SRC: [u8; 6] = [0x02, 0, 0, 0, 0, 0x77];
 // An AP-to-station frame: FromDS, QoS (TID 0) when `qos`, `body` from the
 // LLC/SNAP header on, encrypted under `key` at `pn` with key index `kid`
 // unless `key` is None.
-fn from_ap(dst: [u8; 6], body: &[u8], key: Option<&[u8; 16]>, pn: u64, kid: u8, qos: bool) -> Vec<u8> {
+fn from_ap(
+    dst: [u8; 6],
+    body: &[u8],
+    key: Option<&[u8; 16]>,
+    pn: u64,
+    kid: u8,
+    qos: bool,
+) -> Vec<u8> {
     let mut f = vec![if qos { 0x88 } else { 0x08 }, 0x02, 0, 0];
     f.extend_from_slice(&dst);
     f.extend_from_slice(&AP);

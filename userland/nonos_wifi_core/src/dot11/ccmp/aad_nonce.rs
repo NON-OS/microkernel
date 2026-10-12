@@ -14,45 +14,59 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The CCM nonce and AAD for a received frame (hostapd's `ccmp_aad_nonce`
-//! is the reference).
+//! The AAD (IEEE Std 802.11-2020, 12.5.3.3.3) and nonce (12.5.3.3.4) of a
+//! CCMP MPDU. GCMP's AAD is the same and its nonce drops the flags octet
+//! (12.5.5.3.2, 12.5.5.3.3), so `gcmp` takes both from here.
 
 use super::*;
 
-/// The CCM nonce and AAD for a received frame (hostapd's `ccmp_aad_nonce`
-/// is the reference). Returns the AAD length used in `aad`.
-pub fn aad_nonce(frame: &[u8], v: &FrameView, pn: u64, aad: &mut [u8; 32]) -> ([u8; 13], usize) {
-    let mut fc = v.fc;
-    let mut nonce = [0u8; 13];
+/// Bits a retry or a power-save change flips, zeroed so the MIC survives.
+const FC_MUTABLE: u16 = FC_RETRY | FC_PWR_MGT | FC_MORE_DATA;
+const FC_DATA_SUBTYPE: u16 = 0x0070;
+const NONCE_MANAGEMENT: u8 = 0x10;
+
+/// Frame Control as the AAD carries it: mutable bits zeroed, data subtype
+/// and (QoS data) Order zeroed, Protected set.
+fn aad_fc(fc: u16, qos: bool) -> u16 {
+    let mut zero = FC_MUTABLE;
     if fc_type(fc) == TYPE_DATA {
-        fc &= !0x0070; // subtype bits 4-6
-        if v.qos_at.is_some() {
-            fc &= !FC_ORDER;
-            nonce[0] = v.tid;
+        zero |= FC_DATA_SUBTYPE;
+        if qos {
+            zero |= FC_ORDER;
         }
-    } else {
-        nonce[0] = 0x10; // the Management flag
     }
-    fc &= !(FC_RETRY | FC_PWR_MGT | FC_MORE_DATA);
-    fc |= FC_PROTECTED;
+    (fc & !zero) | FC_PROTECTED
+}
+
+/// Flags (the TID for QoS data, zero for other data, Management for a
+/// management frame), A2, then PN5 down to PN0.
+fn nonce(frame: &[u8], v: &FrameView, pn: u64) -> [u8; 13] {
+    let mut n = [0u8; 13];
+    let data = fc_type(v.fc) == TYPE_DATA;
+    n[0] = if !data { NONCE_MANAGEMENT } else { v.qos_at.map_or(0, |_| v.tid) };
+    n[1..7].copy_from_slice(&frame[10..16]);
+    n[7..13].copy_from_slice(&pn.to_be_bytes()[2..8]);
+    n
+}
+
+/// The nonce, and the AAD written into `aad` with its length: Frame
+/// Control, A1 to A3, Sequence Control with only the fragment number kept,
+/// A4 when both DS bits are set, and QoS Control with only the TID kept.
+pub fn aad_nonce(frame: &[u8], v: &FrameView, pn: u64, aad: &mut [u8; 32]) -> ([u8; 13], usize) {
+    let fc = aad_fc(v.fc, v.qos_at.is_some());
     aad[0..2].copy_from_slice(&fc.to_le_bytes());
     aad[2..20].copy_from_slice(&frame[4..22]);
-    let sc = u16::from_le_bytes([frame[22], frame[23]]) & 0x000F;
-    aad[20..22].copy_from_slice(&sc.to_le_bytes());
-    let mut n = 22;
-    if fc & FC_TO_DS != 0 && fc & FC_FROM_DS != 0 {
-        aad[n..n + 6].copy_from_slice(&frame[24..30]);
-        n += 6;
+    aad[20] = frame[22] & 0x0F;
+    aad[21] = 0;
+    let mut len = 22;
+    if fc & (FC_TO_DS | FC_FROM_DS) == FC_TO_DS | FC_FROM_DS {
+        aad[len..len + 6].copy_from_slice(&frame[24..30]);
+        len += 6;
     }
     if let Some(q) = v.qos_at {
-        // TID only: EOSP, Ack Policy, A-MSDU Present and the high octet masked.
-        aad[n] = frame[q] & 0x0F;
-        aad[n + 1] = 0;
-        n += 2;
+        aad[len] = frame[q] & 0x0F;
+        aad[len + 1] = 0;
+        len += 2;
     }
-    nonce[1..7].copy_from_slice(&frame[10..16]);
-    for (i, b) in nonce[7..13].iter_mut().enumerate() {
-        *b = (pn >> (40 - 8 * i)) as u8;
-    }
-    (nonce, n)
+    (nonce(frame, v, pn), len)
 }
