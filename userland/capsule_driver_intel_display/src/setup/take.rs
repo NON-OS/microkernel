@@ -14,51 +14,58 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Taking the lit output over: two DMA surfaces holding firmware's picture,
-//! the plane moved onto the first, the monitor's EDID read, mode setting
-//! found where it can be had, and the wire server made over all of it.
-
-use alloc::vec::Vec;
+//! Taking every lit output over, pipe A's first. Each gets its own window
+//! of the GGTT, stacked down from the top, room for two surfaces of the
+//! largest mode its monitor offers, and every window lies above all of
+//! firmware's surfaces: no output's surfaces can land on another's, or on
+//! a picture firmware is still scanning out. An output that does not fit,
+//! or fails, is left as firmware lit it; none at all fails the attempt.
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
-use nonos_gfx_wire::body::state::SCANNING_OUT;
-use nonos_intel_display::display::{Frames, Intel, Modeset, Monitor, FLIP_US};
-use nonos_intel_display::engine::access::Until;
+use nonos_intel_display::display::{Intel, Monitor, MAX_HEADS};
 use nonos_intel_display::engine::gen::Gen;
-use nonos_intel_display::engine::{scanout::Scanout, takeover::Output};
+use nonos_intel_display::engine::{error::Error, takeover::Output};
 
-use super::{firmware, Driver};
+use super::take_head::{run, take_head};
+use super::Driver;
 use crate::bar::Bar0;
 use crate::clock::Uptime;
-use crate::dma_pair::map_pair;
 use crate::error::{IntelError, IntelResult};
-use crate::frames::DmaFrames;
 use crate::handles::BrokerHandles;
 
 pub fn take(
     h: BrokerHandles,
     mut m: Bar0,
     gen: &'static Gen,
-    out: Output,
+    lit: [Option<Output>; MAX_HEADS],
     total: u32,
     aperture: u64,
 ) -> IntelResult<Driver> {
     let clock = Uptime;
-    let stride = (out.width * 4).next_multiple_of(64);
-    let pages = (stride * out.height).div_ceil(4096);
-    let now = map_pair(h.device_id, h.epoch, pages as u64 * 4096)?;
-    let mut frames = DmaFrames { device_id: h.device_id, epoch: h.epoch, now, was: None };
-    firmware::copy_picture(&h, &out.plane, &mut frames, stride, aperture);
-    frames.fence();
-    let iovas = |base: u64| (0..pages as u64).map(|i| base + i * 4096).collect::<Vec<u64>>();
-    let (a, b) = (iovas(now.iova[0]), iovas(now.iova[1]));
-    let until = Until::new(&clock, FLIP_US);
-    let scan = Scanout::start(&mut m, &out, total, [&a, &b], &until).map_err(IntelError::Engine)?;
-    let monitor = Monitor::of(&mut m, &clock, gen, out.transcoder);
-    let modeset = Modeset::find(&mut m, &clock, gen, &out, &monitor, total);
-    let (panel, bases, flags) = (monitor.panel(), now.iova, SCANNING_OUT);
-    let intel =
-        Intel { m, frames, clock, gen, out, scan, panel, modeset, bases, generation: 1, flags };
+    let fw = |o: &Output| o.plane.live / 4096 + run(o.plane.stride / 4, o.plane.height);
+    let fw_top = lit.iter().flatten().map(fw).max().unwrap_or(0);
+    let (mut top, mut first_err) = (total / 64 * 64, IntelError::Engine(Error::NothingLit));
+    let mut heads = [None, None, None, None];
+    let mut n = 0;
+    for out in lit.into_iter().flatten() {
+        let monitor = Monitor::of(&mut m, &clock, gen, out.transcoder);
+        let p = monitor.panel();
+        let big = p.modes[..p.len]
+            .iter()
+            .fold((out.width, out.height), |a, m| (a.0.max(m.width), a.1.max(m.height)));
+        let Some(floor) = top.checked_sub(2 * run(big.0, big.1)).filter(|&f| f >= fw_top) else {
+            continue;
+        };
+        match take_head(&h, &mut m, (&clock, gen), out, (floor, top), &monitor, aperture) {
+            Ok(head) => (heads[n], n, top) = (Some(head), n + 1, floor),
+            Err(e) if n == 0 => first_err = e,
+            Err(_) => {}
+        }
+    }
+    if n == 0 {
+        return Err(first_err);
+    }
+    let intel = Intel { m, clock, gen, heads };
     Ok(Driver { server: Server::new(intel, Pool), _handles: h })
 }
