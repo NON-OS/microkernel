@@ -21,6 +21,7 @@
 //! while a host command waits for its reply, so they are routed the same way
 //! then, and none is lost to the wait. The frame queue is bounded: a frame
 //! arriving with it full is counted and dropped.
+mod missed;
 mod route;
 mod state;
 

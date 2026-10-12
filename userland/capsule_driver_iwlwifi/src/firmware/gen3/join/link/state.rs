@@ -42,8 +42,11 @@ pub struct Link {
     pub station: LinkStation,
     pub ready: VecDeque<Vec<u8>>,
     pub pmf: bool,
-    /// The reason code of the access point's deauthentication.
+    /// The reason code of the access point's deauthentication, taken as it
+    /// came or after an unanswered SA Query.
     pub left: Option<u16>,
+    /// The access point went unheard and answered no probe.
+    pub silent: bool,
     /// A group key the access point delivered, for the firmware.
     pub new_group_key: Option<(u8, [u8; 16])>,
     pub stats: LinkStats,
