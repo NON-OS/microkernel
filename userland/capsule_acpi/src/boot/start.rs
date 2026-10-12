@@ -30,6 +30,7 @@ pub fn boot() -> Option<Acpi> {
     say_ec(ec.as_ref());
     bringup::bring_up(&mut aml, &mut host);
     let (devices, routes) = report::read(&mut aml, &mut host);
+    crate::sleep::read_s5(&mut aml, &mut host);
     let (events, sci) = sci::start(&t.fadt, &mut aml, &mut host, ec.as_ref().and_then(|e| e.gpe));
     let mut power = crate::power::find(&devices);
     crate::power::all(&mut power, &mut aml, &mut host);

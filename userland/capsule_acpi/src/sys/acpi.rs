@@ -21,7 +21,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use nonos_libc::mk_syscall_raw;
 
-const fn tag4(t: &[u8; 4]) -> i64 {
+pub(super) const fn tag4(t: &[u8; 4]) -> i64 {
     u32::from_le_bytes(*t) as i64
 }
 
@@ -30,7 +30,6 @@ const REGION: i64 = tag4(b"MRGN");
 const PORT: i64 = tag4(b"MRIO");
 pub(super) const PCI: i64 = tag4(b"MRPC");
 pub(super) const POWER: i64 = tag4(b"MAPW");
-pub(super) const EVENT: i64 = tag4(b"MAEV");
 
 /// What the kernel answered: a negative errno.
 pub type Errno = i64;
