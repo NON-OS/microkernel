@@ -44,6 +44,7 @@ mod hdmi_refusal_tests;
 mod hdmi_tests;
 mod hotplug_tests;
 mod ids_tests;
+mod link_keep_tests;
 mod mn_tests;
 mod modeset_tests;
 mod monitor_tests;
