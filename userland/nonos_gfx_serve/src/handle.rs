@@ -55,11 +55,7 @@ impl<D: Display, P: Platform> Server<D, P> {
                 m.len = self.display.modes(h.output, &mut m.list)?;
                 m.encode(body)
             }
-            ops::STATE => {
-                let mut st = self.display.state(h.output)?;
-                st.serial = self.slot(h.output)?.current.map_or(0, |c| c.serial);
-                put(body, &st.encode())
-            }
+            ops::STATE => put(body, &self.read_state(h.output)?.encode()),
             ops::SURFACE => put(body, &self.surface(sender, h.output)?.encode()),
             ops::MODE_SET => {
                 let w = bytes::u32_at(p, 0).ok_or(EINVAL)?;
