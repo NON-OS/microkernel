@@ -16,19 +16,24 @@
 
 mod active;
 mod button_changes;
+mod device;
 mod key_event;
 mod keyboard;
 mod keymap;
 mod mouse;
 mod mouse_event;
 mod mouse_report;
+mod post_failures;
 mod post_key;
 mod post_mouse;
 mod post_wire;
+mod report;
 mod tablet;
-mod tablet_report;
 mod usage_keycode;
 
+pub use device::Device;
 pub use keyboard::Keyboard;
 pub use mouse::Mouse;
+pub use post_failures::{key_post_failures, pointer_post_failures};
+pub use report::ReportDevice;
 pub use tablet::Tablet;

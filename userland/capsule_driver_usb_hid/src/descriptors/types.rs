@@ -17,17 +17,23 @@
 pub const DT_CONFIGURATION: u8 = 0x02;
 pub const DT_INTERFACE: u8 = 0x04;
 pub const DT_ENDPOINT: u8 = 0x05;
+/// The HID class descriptor between an interface and its endpoints, which
+/// gives the length of the interface's report descriptor (HID 1.11, 6.2.1).
+pub const DT_HID: u8 = 0x21;
+pub const DT_REPORT: u8 = 0x22;
 pub const CLASS_HID: u8 = 0x03;
 pub const SUBCLASS_BOOT: u8 = 0x01;
 pub const PROTOCOL_KEYBOARD: u8 = 0x01;
 pub const PROTOCOL_MOUSE: u8 = 0x02;
 pub const EP_TRANSFER_INTERRUPT: u8 = 0x03;
 
+/// How an interface's reports are read: the boot keyboard and mouse
+/// layouts, or the layout its own report descriptor gives.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HidKind {
     Keyboard = 1,
     Mouse = 2,
-    Tablet = 3,
+    Report = 3,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -36,6 +42,9 @@ pub struct Interface {
     pub class: u8,
     pub subclass: u8,
     pub protocol: u8,
+    /// wDescriptorLength of its report descriptor, 0 until its HID class
+    /// descriptor gives one.
+    pub report_len: u16,
 }
 
 #[derive(Debug, Clone, Copy)]

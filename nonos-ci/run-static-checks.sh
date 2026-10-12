@@ -1397,21 +1397,24 @@ unset usb_hid_forbidden_hw
 
 if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x200018' userland/capsule_driver_usb_hid/Capsule.mk ||
    ! grep -q 'OP_PROBE_CONFIG' userland/capsule_driver_usb_hid/src/protocol/ops.rs ||
-   ! grep -q 'OP_FEED_KEYBOARD_REPORT' userland/capsule_driver_usb_hid/src/protocol/ops.rs ||
-   ! grep -q 'OP_FEED_MOUSE_REPORT' userland/capsule_driver_usb_hid/src/protocol/ops.rs ||
    ! grep -q 'hid_bindings' userland/capsule_driver_usb_hid/src/descriptors/parse.rs ||
-   ! grep -q 'Keyboard::new' userland/capsule_driver_usb_hid/src/state/mod.rs ||
-   ! grep -q 'Mouse::new' userland/capsule_driver_usb_hid/src/state/mod.rs ||
-   ! grep -q 'probe_config' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
-   ! grep -q 'feed_keyboard_report' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
-   ! grep -q 'feed_mouse_report' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
-   ! grep -q 'poll_keys' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
-   ! grep -q 'poll_mouse' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
+   ! grep -q 'Keyboard::new' userland/capsule_driver_usb_hid/src/orchestrator/device_for.rs ||
+   ! grep -q 'Mouse::new' userland/capsule_driver_usb_hid/src/orchestrator/device_for.rs ||
    ! grep -q 'capsule_driver_usb_hid' src/userspace/mod.rs ||
    ! grep -rq 'spawn_driver_usb_hid_capsule' src/userspace/init/; then
     fail_with "capsule_driver_usb_hid must expose HID descriptor + boot-report path"
 else
     note ok "capsule_driver_usb_hid exposes HID descriptor + boot-report path"
+fi
+
+# A report fed in over IPC was posted as typed input, and a key poll read
+# back what was typed (plan/50 C8): neither op may come back, in the driver's
+# wire, its server, or the kernel's client of it.
+if grep -rqE 'OP_FEED_|OP_POLL_' userland/capsule_driver_usb_hid/src/protocol \
+        userland/capsule_driver_usb_hid/src/server src/userspace/capsule_driver_usb_hid; then
+    fail_with "capsule_driver_usb_hid must not serve a report feed or event poll op"
+else
+    note ok "capsule_driver_usb_hid serves no report feed or event poll op"
 fi
 
 usb_hid_endpoint_marker="$( { grep -rn 'driver\.usb_hid0' userland/capsule_driver_usb_hid --include='*.rs' src/userspace/capsule_driver_usb_hid --include='*.rs' || true; } )"

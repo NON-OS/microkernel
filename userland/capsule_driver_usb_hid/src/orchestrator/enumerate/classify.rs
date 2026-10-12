@@ -15,15 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Reading an addressed device's configuration and binding its HID
-//! interfaces, or bringing it up as a hub.
+//! interfaces, or bringing it up as a hub. An interface is bound only with
+//! state that reads its reports; a device with none is no HID device here.
 
 use alloc::vec::Vec;
 
 use crate::descriptors::{configuration_value, hid_bindings, is_hub};
 use crate::hub::Place;
-use crate::xhci::{control_transfer, MAX_DESCRIPTOR_LEN};
+use crate::xhci::{control_transfer, Setup, MAX_DESCRIPTOR_LEN};
 
 use super::super::binding::configure_binding;
+use super::super::device_for::device_for;
 use super::attach_hub::attach_hub;
 use super::devices::Devices;
 use super::read_configuration::read_configuration;
@@ -45,15 +47,21 @@ pub(super) fn classify(xhci_port: u32, slot: u8, place: Place, devs: &mut Device
     };
     let value = configuration_value(raw).unwrap_or(1) as u16;
     let mut dummy = [0u8; 0];
-    if control_transfer(xhci_port, slot, 0x00, SET_CONFIGURATION, value, 0, 0, &mut dummy).is_err()
-    {
+    let setup = Setup::new(0x00, SET_CONFIGURATION, value, 0, 0);
+    if control_transfer(xhci_port, slot, setup, &mut dummy).is_err() {
         return Outcome::Failed;
     }
     if hub {
         return attach_hub(xhci_port, slot, place, raw, devs);
     }
-    for binding in bindings {
-        configure_binding(xhci_port, slot, place.root_port, binding, &mut devs.eps);
+    // The report descriptors are read once the configuration is set.
+    let found: Vec<_> =
+        bindings.into_iter().filter_map(|b| device_for(xhci_port, slot, b)).collect();
+    if found.is_empty() {
+        return Outcome::NotHid;
+    }
+    for (binding, dev) in found {
+        configure_binding(xhci_port, slot, place, binding, dev, &mut devs.eps);
     }
     Outcome::Bound
 }

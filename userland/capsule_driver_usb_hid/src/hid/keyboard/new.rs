@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::VecDeque;
-
 use super::types::Keyboard;
 
 impl Keyboard {
@@ -24,8 +22,6 @@ impl Keyboard {
             prev: [0; 6],
             modifiers: 0,
             caps_lock: false,
-            events: VecDeque::new(),
-            post_failures: 0,
             held: nonos_keymap::HeldKeys::new(),
             repeat: super::repeat::KeyRepeat::new(),
         }

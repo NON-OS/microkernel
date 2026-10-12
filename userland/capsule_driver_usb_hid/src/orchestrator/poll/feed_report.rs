@@ -20,25 +20,19 @@ use crate::state::State;
 
 use super::constants::HID_REPORT_MAX;
 
+/// One report into the state of the interface it came from, and no other.
 pub(super) fn feed_report(
     state: &mut State,
-    ep: &HidEndpoint,
+    ep: &mut HidEndpoint,
     buf: &[u8; HID_REPORT_MAX],
     n: usize,
 ) {
     // The read is bounded by the buffer; a count past it is no report.
     let Some(report) = buf.get(..n) else { return };
+    ep.dev.feed(report);
     match ep.kind {
-        HidKind::Keyboard => {
-            state.keyboard.feed(report);
-            state.key_reports = state.key_reports.wrapping_add(1);
-        }
-        HidKind::Mouse => {
-            state.mouse.feed(report);
-            state.mouse_reports = state.mouse_reports.wrapping_add(1);
-        }
-        HidKind::Tablet => {
-            state.tablet.feed(report);
-        }
+        HidKind::Keyboard => state.key_reports = state.key_reports.wrapping_add(1),
+        HidKind::Mouse => state.mouse_reports = state.mouse_reports.wrapping_add(1),
+        HidKind::Report => {}
     }
 }
