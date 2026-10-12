@@ -28,6 +28,7 @@ mod open;
 mod pending;
 mod scan;
 mod state;
+mod update;
 mod wait;
 
 pub use connect::{create_connection_params, Connect, DEFAULT_LINK};
@@ -37,3 +38,4 @@ pub use ltk::enable_encryption_params;
 pub use masks::{EVENT_MASK, LE_EVENT_MASK};
 pub use scan::{Scan, DEFAULT_SCAN};
 pub use state::{Host, POLL_BUDGET};
+pub use update::connection_update_params;
