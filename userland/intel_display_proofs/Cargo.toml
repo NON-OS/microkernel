@@ -21,3 +21,6 @@ nonos_edid = { path = "../nonos_edid" }
 nonos_hash = { path = "../nonos_hash" }
 # DMT timings for the mode set tests.
 nonos_modes = { path = "../nonos_modes" }
+# The display wire and its server core, for the engine as a wire device.
+nonos_gfx_serve = { path = "../nonos_gfx_serve" }
+nonos_gfx_wire = { path = "../nonos_gfx_wire" }

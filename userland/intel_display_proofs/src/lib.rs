@@ -24,6 +24,8 @@
 //! the GGTT into IOVA pages. It proves the code against the PRM as this
 //! driver reads it, not against silicon; the owner's boot does that.
 
+#[path = "../../capsule_driver_intel_display/src/display/mod.rs"]
+pub mod display;
 #[path = "../../capsule_driver_intel_display/src/dmc.rs"]
 pub mod dmc;
 #[path = "../../capsule_driver_intel_display/src/dmc_parse.rs"]
