@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! The service inbox: a health check answered, anything else refused.
 //! Nothing else is asked of the walker; class drivers talk to the hosts.
 

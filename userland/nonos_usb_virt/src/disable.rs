@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! What OP_DISABLE_SLOT means for a slot this table knows. Two holders
 //! give a slot back: driver.usb_hub0, when the child leaves its hub port
 //! (or its hub leaves), and a claimant, when it lets the child go.
