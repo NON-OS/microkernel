@@ -20,11 +20,13 @@
 //! filled again after. For anyone who may list devices: `MkNumaNodeOf(base,
 //! len) -> domain` (ENOENT where SRAT names no memory, EXDEV across two
 //! domains) and `MkNumaDistance(from, to) -> SLIT value` (ENOENT without a
-//! SLIT or past its localities). The allocator consumes none of this yet.
+//! SLIT or past its localities), and `MkDeviceNode(id) -> domain`, the
+//! full domain the record's byte cannot name past 254 (ENOENT when
+//! nothing names one). The allocator consumes none of this yet.
 
 use crate::hardware::broker::acpi::numa_node::{node_of, BusRange, NodeError};
 use crate::hardware::broker::acpi::numa_refresh::refresh;
-use crate::hardware::broker::acpi::numa_store::{distance, publish, regions};
+use crate::hardware::broker::acpi::numa_store::{device_domain, distance, publish, regions};
 use crate::process::current_pid;
 use crate::services::registry::lookup_service;
 use crate::syscall::microkernel::errnos::{
@@ -63,4 +65,8 @@ pub fn sys_numa_node_of(base: u64, len: u64) -> i64 {
 pub fn sys_numa_distance(from: u64, to: u64) -> i64 {
     let (Ok(from), Ok(to)) = (u32::try_from(from), u32::try_from(to)) else { return ERRNO_NOENT };
     distance(from, to).map_or(ERRNO_NOENT, i64::from)
+}
+
+pub fn sys_device_node(device_id: u64) -> i64 {
+    device_domain(device_id).map_or(ERRNO_NOENT, i64::from)
 }
