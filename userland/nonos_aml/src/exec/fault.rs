@@ -22,7 +22,8 @@ use crate::error::ErrorKind;
 pub enum FaultKind {
     /// More steps than the evaluation's budget: a loop that does not end.
     Steps,
-    /// Calls nested deeper than the budget: recursion that does not end.
+    /// Calls nested deeper than the budget, or deeper into the stack than
+    /// its share: recursion that does not end.
     CallDepth,
     /// More bytes made than the budget allows.
     Alloc,

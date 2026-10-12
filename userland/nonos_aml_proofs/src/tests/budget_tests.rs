@@ -8,7 +8,7 @@ use crate::object::Object;
 use crate::run::{boot, call_with, num, Probe};
 
 fn limits(steps: u64, call_depth: u32, alloc: usize, time_ms: u64) -> ExecLimits {
-    ExecLimits { steps, call_depth, alloc, time_ms }
+    ExecLimits { steps, call_depth, alloc, time_ms, ..ExecLimits::DEFAULT }
 }
 
 /// A loop of `n` passes, counting in Local0.
