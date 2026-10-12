@@ -44,9 +44,11 @@ const FORBIDDEN_AMBIENT: u64 = Capability::Admin.bit()
     | Capability::GraphicsSurfaceMap.bit()
     | Capability::GraphicsPresent.bit()
     | Capability::SpawnBroker.bit()
-    | Capability::DeviceSecret.bit();
+    | Capability::DeviceSecret.bit()
+    | Capability::InputConsumer.bit();
 
 const _: () = assert!(
     AMBIENT_CAPS & FORBIDDEN_AMBIENT == 0,
-    "AMBIENT_CAPS must not include Admin/Driver/DeviceEnum/Mmio/Irq/Dma/Pio/Debug/Graphics*/SpawnBroker/DeviceSecret"
+    "AMBIENT_CAPS holds a FORBIDDEN_AMBIENT bit: hardware, Admin, Debug, graphics, SpawnBroker, \
+     DeviceSecret or InputConsumer"
 );

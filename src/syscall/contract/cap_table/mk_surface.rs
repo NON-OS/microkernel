@@ -27,15 +27,12 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkSurfaceAttach => caps.can_surface_map(),
         SyscallNumber::MkSurfacePresent => caps.can_present(),
         SyscallNumber::MkDisplayVsyncWait => caps.can_display_query(),
-        SyscallNumber::MkInputEventPost => caps.can_input_source(),
         /*
-         * Draining/waiting on the global raw-input ring is a privileged consumer
-         * operation: the ring carries every keystroke. `can_input_source()`
-         * accepts `Irq`, which every device driver holds, so it let any driver
-         * capsule steal the keystroke stream (cross-capsule keylogging). The
-         * consumer gate requires `InputSource` (the input_router's cap) and
-         * excludes `Irq`, keeping drivers able to POST but not DRAIN.
+         * The raw input ring carries every keystroke: an input driver posts
+         * under InputSource, input_router alone drains and waits under
+         * InputConsumer, and neither Irq nor Admin stands in (K8).
          */
+        SyscallNumber::MkInputEventPost => caps.can_input_source(),
         SyscallNumber::MkInputEventDrain => caps.can_input_consumer(),
         SyscallNumber::MkInputEventWait => caps.can_input_consumer(),
 
