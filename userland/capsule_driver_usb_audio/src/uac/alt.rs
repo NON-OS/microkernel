@@ -13,8 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! A playback alternate setting, and the descriptor numbers that find it.
+//! A streaming alternate setting, and the descriptor numbers that find it.
 
 pub(super) const INTERFACE: u8 = 0x04;
 pub(super) const ENDPOINT: u8 = 0x05;
@@ -22,12 +21,14 @@ pub(super) const CS_INTERFACE: u8 = 0x24;
 pub(super) const CS_ENDPOINT: u8 = 0x25;
 pub(super) const CLASS_AUDIO: u8 = 0x01;
 pub(super) const SUBCLASS_STREAMING: u8 = 0x02;
-/// bInterfaceProtocol of a USB Audio 1.0 function; 2.0 says 0x20 (as recalled, unverified).
+/// bInterfaceProtocol of a USB Audio 1.0 and 2.0 function (as recalled,
+/// unverified).
 pub(super) const UAC1: u8 = 0x00;
+pub(super) const UAC2: u8 = 0x20;
 pub(super) const ISOCH: u8 = 0x01;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
-pub struct Playback {
+pub struct Stream {
     pub interface: u8,
     pub alt: u8,
     pub ep_address: u8,
@@ -35,20 +36,12 @@ pub struct Playback {
     pub sync: u8,
     pub max_packet: u16,
     pub b_interval: u8,
-    /// The endpoint takes SET_CUR of its sampling frequency.
+    /// A 1.0 endpoint that takes SET_CUR of its sampling frequency.
     pub rate_control: bool,
-}
-
-#[derive(Default)]
-pub(super) struct Alt {
-    pub p: Playback,
-    pub streaming: bool,
-    pub pcm: bool,
-    pub format: bool,
-}
-
-impl Alt {
-    pub fn usable(&self) -> bool {
-        self.streaming && self.pcm && self.format && self.p.ep_address != 0
-    }
+    /// Channels in a frame: 2 to play.
+    pub channels: u8,
+    /// 1 or 2. A 2.0 stream's rate is its terminal's clock's (clock.rs).
+    pub version: u8,
+    /// bTerminalLink: the terminal the alternate streams through.
+    pub terminal: u8,
 }

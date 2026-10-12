@@ -13,41 +13,37 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! The playback alternate setting a device offers, found in one of its
-//! configuration descriptors (USB Audio 1.0 4.5, as recalled, unverified).
+//! The playback alternate setting a device offers, found in
+//! one of its configuration descriptors (USB Audio 1.0 4.5 and 2.0 4.9, as
+//! recalled, unverified).
 
 use nonos_usbnet::desc::walk;
 
-use super::alt::{Alt, Playback, CLASS_AUDIO, CS_ENDPOINT, CS_INTERFACE, ENDPOINT, INTERFACE};
-use super::alt::{ISOCH, SUBCLASS_STREAMING, UAC1};
-use super::format::{is_pcm, plays_48k_stereo};
+use super::alt::{Stream, CLASS_AUDIO, INTERFACE, SUBCLASS_STREAMING, UAC1, UAC2};
+use super::pick::Alt;
+use super::read::read;
 
 /// The first alternate setting in `config` that plays 48 kHz stereo 16-bit
 /// PCM through an isochronous OUT endpoint.
-pub fn playback(config: &[u8]) -> Option<Playback> {
+pub fn playback(config: &[u8]) -> Option<Stream> {
     let mut cur = Alt::default();
     for d in walk(config) {
         match (d[1], d.get(2).copied()) {
             (INTERFACE, _) if d.len() >= 9 => {
-                if cur.usable() {
-                    return Some(cur.p);
+                if let Some(s) = cur.chosen() {
+                    return Some(s);
                 }
-                let streaming = d[5] == CLASS_AUDIO && d[6] == SUBCLASS_STREAMING && d[7] == UAC1;
-                let p = Playback { interface: d[2], alt: d[3], ..Playback::default() };
-                cur = Alt { p, streaming, ..Alt::default() };
+                let version = match d[7] {
+                    UAC1 => 1,
+                    UAC2 => 2,
+                    _ => 0,
+                };
+                let streaming = d[5] == CLASS_AUDIO && d[6] == SUBCLASS_STREAMING && version != 0;
+                let s = Stream { interface: d[2], alt: d[3], version, ..Stream::default() };
+                cur = Alt { s, streaming, ..Alt::default() };
             }
-            (CS_INTERFACE, Some(1)) => cur.pcm = is_pcm(d),
-            (CS_INTERFACE, Some(2)) => cur.format = plays_48k_stereo(d),
-            (ENDPOINT, Some(a)) if d.len() >= 7 && a & 0x80 == 0 && d[3] & 0x3 == ISOCH => {
-                cur.p.ep_address = a;
-                cur.p.sync = (d[3] >> 2) & 0x3;
-                cur.p.max_packet = u16::from_le_bytes([d[4], d[5]]);
-                cur.p.b_interval = d[6];
-            }
-            (CS_ENDPOINT, Some(1)) if d.len() >= 4 => cur.p.rate_control = d[3] & 1 != 0,
-            _ => {}
+            _ => read(&mut cur, d),
         }
     }
-    cur.usable().then_some(cur.p)
+    cur.chosen()
 }

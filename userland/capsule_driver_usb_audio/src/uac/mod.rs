@@ -14,19 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! USB Audio 1.0 playback, pure: what a device offers and how its stream is
+//! USB Audio 1.0 and 2.0 playback, pure: what a device offers and how its stream is
 //! timed. The proofs (`userland/usb_audio_proofs`) run it on descriptors.
 
 mod alt;
+mod clock;
+mod entities;
 mod format;
+mod pick;
 mod playback;
+mod read;
 mod request;
 mod terminal;
 mod timing;
 
-pub use alt::Playback;
+pub use alt::Stream;
+pub use clock::clock;
 pub use format::RATE_HZ;
 pub use playback::playback;
-pub use request::set_rate;
+pub use request::{get_clock, select_first, set_clock, set_rate};
 pub use terminal::{outputs, Outputs};
 pub use timing::{timing, Timing};
