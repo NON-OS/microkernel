@@ -13,31 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The hub class lives in nonos_usb_hub; this driver brings the host it
+//! runs over: driver.xhci0's client (or another USB host's), the clock and
+//! the log.
 
-//! The USB hub class (USB 2.0 chapter 11, USB 3.2 chapter 10, Linux
-//! drivers/usb/core/hub.c): a hub's descriptor and ports, resetting a port,
-//! and where a device below a hub sits.
+mod host;
+mod status;
 
-mod attach;
-mod descriptor;
-mod error;
-mod node;
-mod place;
-mod port_status;
-mod power;
-mod read;
-mod request;
-mod reset;
-mod route;
-mod say;
-mod status_endpoint;
-
-pub use attach::attach;
-pub use error::HubError;
-pub use node::Hub;
-pub use place::{speed_name, Place};
-pub use read::port_status;
-pub use request::{clear_port_feature, C_PORT_CONNECTION};
-pub use reset::reset_port;
-pub use route::{child_route, child_tt};
-pub use say::{hub_port, Line};
+pub use host::XhciHost;
+pub use nonos_usb_hub::{attach, forget_root, scan_hubs, Classes, Hub, Line, Place};

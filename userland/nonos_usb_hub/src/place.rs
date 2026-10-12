@@ -17,8 +17,8 @@
 //! Where an addressed device sits: its root port, its route below it, how
 //! many hubs are above it, its speed, and the TT it is reached through.
 
-use super::port_status::SPEED_SUPER;
-use super::route::Tt;
+use crate::port_status::SPEED_SUPER;
+use crate::route::Tt;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Place {
