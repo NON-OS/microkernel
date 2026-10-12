@@ -40,10 +40,12 @@ pub fn run(mut ctx: Context) -> ! {
     let mut last_heal = mk_uptime_ms();
     let mut upkeep = Upkeep::new(last_heal);
     ctx.first_frame_since = Some(last_heal);
+    let mut notice = crate::server::trusted_notice::Notice::new(last_heal);
     loop {
         drain_ipc(&mut ctx, &mut rx, &mut tx);
         let now = mk_uptime_ms();
         upkeep.run(&mut ctx, now);
+        notice.run(&ctx, now);
         if now.saturating_sub(last_heal) >= HEAL_INTERVAL_MS {
             last_heal = now;
             ctx.damage.mark_full(ctx.width, ctx.height);

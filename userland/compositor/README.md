@@ -89,7 +89,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | Op | Value | Purpose |
 |---|---|---|
 | `OP_HEALTHCHECK` | 0x0001 | liveness ping |
-| `OP_SCENE_SUBMIT` | 0x0002 | submit or update the sender's layer: handle, x, y, width, height, z |
+| `OP_SCENE_SUBMIT` | 0x0002 | submit or update the sender's layer: handle, x, y, width, height, z; a z at or above `TRUSTED_Z` (0x4000_0000), the trusted band where the lock screen and permission prompts are drawn, only from a trusted source (the desktop shell), E_PERM otherwise (`state/trusted_rule.rs`) |
 | `OP_DAMAGE_COMMIT` | 0x0003 | mark a rectangle dirty |
 | `OP_FOCUS_SET` | 0x0004 | raise a pid's layer to the top of its band; the window manager only, anyone else gets E_PERM |
 | `OP_INPUT_SUBSCRIBE` | 0x0005 | sets the compositor's focus record to the sender; restacks nothing |
@@ -99,7 +99,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | `OP_DISPLAY_HINT` | 0x0009 | a host size hint (output, width, height, source) -> flags; only from a service in `HINT_SOURCES` (empty until the host-services decision), others get E_PERM; for output 0 of a wire driver held and followed like a STATE hint and answered 1 (resizable), else 0 |
 | `OP_INDICATOR` | 0x000A | a capturing driver's camera (kind 1) or microphone (kind 2) on (1) or off (0), 8 bytes; only from a holder of that kind's capture capability bit (CameraCapture 1<<37, MicrophoneCapture 1<<38; no capsule may hold either until Decision 9), others get E_PERM, shown in the reserved band and presented before the answer (E_IO and no change if the present fails), E_BUSY past eight holders |
 | `OP_OUTPUT_LAYOUT` | 0x000B | the shell's choice for several outputs: mode u32, 0 mirror or 1 extend; only from desktop_shell (E_PERM otherwise); kept while one output is present; answers u32 1 when extended now, else 0 |
-| `OP_SCREENSHOT` | 0x000C | the composed canvas copied into the caller's own shared ARGB surface: handle u64; only from a holder of the screen capture bit (ScreenCapture 1<<39; no capsule may hold it until Decision 9), others get E_PERM; the band's blue mark shows for 3 s, presented before the copy; answers width and height copied, u32 each |
+| `OP_SCREENSHOT` | 0x000C | the scene composed again into the caller's own shared ARGB surface, without the trusted band, the cursor, the tint or the band: handle u64; only from a holder of the screen capture bit (ScreenCapture 1<<39; no capsule may hold it until Decision 9), others get E_PERM; the band's blue mark shows for 3 s, presented before the copy; answers width and height copied, u32 each |
 | `OP_OUTPUT_SCALE` | 0x000D | the shell's scale for one output: output u32, quarters u32 (0 the panel's own rule, else 4, 5, 6, 8, 12 or 16: 1, 1.25, 1.5, 2, 3, 4 times); only from desktop_shell; the canvas is laid out again; answers output 0's scale in quarters |
 | `OP_NIGHT_LIGHT` | 0x000E | the shell's colour temperature: kelvin u32 (0 or 6500 and above true colour, 1000 the warmest); only from desktop_shell; every composed pixel looked up through three ramps (`display/night_rule.rs`, `frame_pacer/night_tint.rs`), the indicator band kept true; the shell keeps the schedule |
 
@@ -140,6 +140,7 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
 | EPHEMERAL | Zero files. The attach cache (`state/attach.rs`) holds surface mappings for the life of each handle. |
 | NOT LINUX | NONOS Mk syscall ABI. The wire format is the NCMP header, not Wayland. |
 | PRIVACY MICROKERNEL | Six required bits, all graphics or IPC. No Network, FileSystem or Crypto path. |
+| TRUSTED PATH | The lock screen and permission prompts are drawn in the trusted band: no client layer can be placed in it or raised into it, no screenshot holds it, and the input router gives its holder every key and click while it is up (`server/trusted_notice.rs`). |
 
 ## Runtime lifecycle
 

@@ -18,6 +18,7 @@ request protocol (`../compositor/src/state/`, `sw_blitter/`, `protocol/`).
 | `hint_tests` | NCMP 0x0009's body, and only a service in the kernel's HINT_SOURCES (empty today) heard (`display/hint_rule.rs`) |
 | `raise_tests` | only the window manager's pid may raise a layer (`state/raise_rule.rs`) |
 | `stacking_tests` | layers draw in raise order inside a band and never leave their band |
+| `trusted_capture_tests` | a screenshot never holds a pixel of the trusted band, even where a prompt covers a window, nor the cursor, and stops where the canvas or the shot ends (`frame_pacer/canvas_copy.rs`) |
 | `repaint_tests` | after every move, raise, open and close, the screen kept current through the reported damage equals the scene composed from scratch |
 
 `frame_model.rs` is the small paint model the repaint tests compare
