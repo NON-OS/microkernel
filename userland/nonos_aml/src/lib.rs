@@ -30,6 +30,7 @@ extern crate alloc;
 pub mod arena;
 pub mod block;
 pub mod button;
+pub mod cpu;
 pub mod device_power;
 pub mod ec;
 pub mod error;

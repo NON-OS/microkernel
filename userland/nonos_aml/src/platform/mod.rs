@@ -40,7 +40,7 @@ mod sta;
 mod walk;
 
 pub use eisa::eisa_id;
-pub use eval::{integer, Eval};
+pub use eval::{child, integer, Eval};
 pub use ids::{compatible_ids, hardware_id, HardwareId};
 pub use ini::initialize;
 pub use ini_report::IniReport;
