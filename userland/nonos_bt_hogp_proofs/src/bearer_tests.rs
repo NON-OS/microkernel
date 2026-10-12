@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bearer's rules: requests to this host refused, indications
-//! confirmed, one transaction at a time (Vol 3, Part F, 3.3 and 3.4.1.1).
+//! The bearer's rules: requests to this host answered from its own
+//! database, indications confirmed, one transaction at a time (Vol 3,
+//! Part F, 3.3 and 3.4.1.1).
 
 use crate::sim::{keyboard_mouse, Run};
 use nonos_bt_hogp::host::{Host, Outcome, Step};
 use nonos_bt_hogp::HogpError;
 
 #[test]
-fn a_request_to_this_host_is_refused_and_discovery_goes_on() {
+fn a_request_to_this_host_is_answered_and_discovery_goes_on() {
     let (mut host, _) = Host::start(0);
-    // Read Request for handle 3: Error Response, Request Not Supported.
-    assert_eq!(host.on_pdu(&[0x0a, 0x03, 0x00], 1).send, [vec![0x01, 0x0a, 0, 0, 0x06]]);
+    // Read Request for handle 3, the Device Name: Read Response.
+    assert_eq!(host.on_pdu(&[0x0a, 0x03, 0x00], 1).send, [b"\x0bNONOS".to_vec()]);
     // A command is never answered.
     assert_eq!(host.on_pdu(&[0x52, 0x03, 0x00, 0x01], 2), Step::default());
     let mut run = Run::new(keyboard_mouse());

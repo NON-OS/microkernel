@@ -20,9 +20,17 @@
 
 /// GATT declarations (Vol 3, Part G, 3.1 and 3.3.1).
 pub const PRIMARY_SERVICE: u16 = 0x2800;
+pub const SECONDARY_SERVICE: u16 = 0x2801;
 pub const CHARACTERISTIC: u16 = 0x2803;
 /// Client Characteristic Configuration (Vol 3, Part G, 3.3.3.3).
 pub const CCCD: u16 = 0x2902;
+
+/// The services and characteristics this host serves (Vol 3, Part C, 12;
+/// Vol 3, Part G, 7).
+pub const GAP_SERVICE: u16 = 0x1800;
+pub const GATT_SERVICE: u16 = 0x1801;
+pub const DEVICE_NAME: u16 = 0x2a00;
+pub const APPEARANCE: u16 = 0x2a01;
 
 pub const HID_SERVICE: u16 = 0x1812;
 pub const PROTOCOL_MODE: u16 = 0x2a4e;
@@ -39,6 +47,7 @@ pub const NOTIFY_ON: u16 = 0x0001;
 
 /// Characteristic properties.
 pub mod prop {
+    pub const READ: u8 = 0x02;
     pub const WRITE_WITHOUT_RESPONSE: u8 = 0x04;
     pub const NOTIFY: u8 = 0x10;
     pub const INDICATE: u8 = 0x20;
