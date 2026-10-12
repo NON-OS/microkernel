@@ -16,14 +16,6 @@
 
 //! What the broker remembers about one bound interrupt vector.
 
-/// The line a message-signalled slot records: no IO-APIC pin carries it, so
-/// the dispatcher has nothing to mask and the ack nothing to unmask.
-pub(super) const NO_LINE: u32 = u32::MAX;
-
-/// The remapping entry of a grant whose message is in compatibility format.
-/// Entry 0 is never handed out by the IOMMU, so it cannot name a real one.
-pub(super) const NO_IRTE: u16 = 0;
-
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IrqGrantKind {
@@ -47,6 +39,6 @@ pub struct IrqGrant {
     // Always 0 for INTx and MSI grants.
     pub device_vector: u16,
     // The VT-d interrupt remapping entry behind an MSI or MSI-X grant,
-    // `NO_IRTE` when its message names a LAPIC directly.
+    // `bind::NO_IRTE` when its message names a LAPIC directly.
     pub irte: u16,
 }
