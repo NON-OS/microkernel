@@ -23,7 +23,19 @@ boot_splash -> compositor -> driver.virtio_gpu
   own the temporary splash surface; the compositor maps and presents it.
 - `MkServiceLookup` finds the compositor, the input router and the shell.
 - `MkAttestStatus` reads the boot attestation status.
+- `MkBootLogo` (F-50) gives the firmware's logo record and its BMP file, to
+  this capsule only. The firmware mode is worked out from the logo's
+  margins, so the display query is not needed.
 - `MkTimeMonotonic` (`mk_uptime_ms`), `MkYield`, and `MkExit` bound runtime and exit.
+
+## Firmware logo
+
+When the firmware left its logo on screen, the splash draws it where the
+firmware had it, turned as the firmware turned it and scaled from the
+firmware mode to the canvas, in place of its own title. The compositor
+holds its first frame until this surface is up, so the boot shows no flash.
+The record and the file must agree, or no logo is drawn (`src/logo/`).
+Proofs: [boot_splash_proofs](../boot_splash_proofs/README.md).
 
 ## Authority
 
