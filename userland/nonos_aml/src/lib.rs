@@ -59,5 +59,6 @@ pub mod shape;
 pub mod sleep;
 pub mod suspend;
 pub mod thermal;
+pub mod time_alarm;
 pub mod video;
 pub mod wmi;
