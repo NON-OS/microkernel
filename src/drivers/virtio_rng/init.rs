@@ -14,53 +14,57 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::device::VirtioRngDevice;
-use super::{VIRTIO_RNG, VIRTIO_RNG_AVAILABLE, VIRTIO_VENDOR_ID};
-use super::{VIRTIO_RNG_DEVICE_ID_MODERN, VIRTIO_RNG_DEVICE_ID_TRANSITIONAL};
-use crate::bus::pci;
-use crate::sys::serial;
+//! Find the device and prove it delivers before anything counts on it.
+
 use core::sync::atomic::Ordering;
+
+use super::device::VirtioRngDevice;
+use super::state::{VIRTIO_RNG, VIRTIO_RNG_AVAILABLE};
+use crate::bus::pci;
+use crate::drivers::pci::PciAddress;
+use crate::sys::serial;
+
+const VENDOR: u16 = 0x1AF4;
+/// The transitional id. A modern-only device (0x1044) has no legacy
+/// registers; its capsule drives it.
+const TRANSITIONAL: u16 = 0x1005;
 
 pub fn init() -> Result<(), &'static str> {
     if !pci::is_init() {
         return Err("virtio-rng: PCI not initialized");
     }
-
-    let count = pci::device_count();
-    for i in 0..count {
-        let dev = match pci::get_device(i) {
-            Some(d) => d,
-            None => continue,
-        };
-
-        if dev.vendor_id == VIRTIO_VENDOR_ID
-            && (dev.device_id == VIRTIO_RNG_DEVICE_ID_TRANSITIONAL
-                || dev.device_id == VIRTIO_RNG_DEVICE_ID_MODERN)
-        {
-            serial::print(b"[VIRTIO-RNG] Found at PCI ");
-            serial::print_dec(dev.bus as u64);
-            serial::print(b":");
-            serial::print_dec(dev.device as u64);
-            serial::print(b".");
-            serial::print_dec(dev.function as u64);
-            serial::println(b"");
-
-            // Enable bus mastering for DMA and memory/IO space access
-            pci::enable_bus_master(dev.bus, dev.device, dev.function);
-
-            match VirtioRngDevice::from_bar0(dev.bar0) {
-                Ok(rng_dev) => {
-                    *VIRTIO_RNG.lock() = Some(rng_dev);
-                    VIRTIO_RNG_AVAILABLE.store(true, Ordering::SeqCst);
-                    return Ok(());
-                }
-                Err(e) => {
-                    serial::print(b"[VIRTIO-RNG] Init failed: ");
-                    serial::println(e.as_bytes());
-                }
-            }
+    for i in 0..pci::device_count() {
+        let Some(dev) = pci::get_device(i) else { continue };
+        if dev.vendor_id != VENDOR || dev.device_id != TRANSITIONAL {
+            continue;
         }
+        if dev.bar0 & 1 == 0 {
+            serial::println(b"[VIRTIO-RNG] no legacy I/O BAR: left to its capsule");
+            continue;
+        }
+        let address =
+            PciAddress { segment: 0, bus: dev.bus, device: dev.device, function: dev.function };
+        pci::enable_io_space(dev.bus, dev.device, dev.function);
+        pci::enable_bus_master(dev.bus, dev.device, dev.function);
+        let mut rng = match VirtioRngDevice::probe((dev.bar0 & 0xFFFC) as u16, address) {
+            Ok(rng) => rng,
+            Err(e) => {
+                serial::print(b"[VIRTIO-RNG] init failed: ");
+                serial::println(e.as_bytes());
+                continue;
+            }
+        };
+        // Counted as a source only once it has answered with bytes.
+        let mut probe = [0u8; 16];
+        if !matches!(rng.get_random_bytes(&mut probe), Ok(n) if n > 0) {
+            serial::println(b"[VIRTIO-RNG] delivered nothing: not a source");
+            continue;
+        }
+        probe.fill(0);
+        *VIRTIO_RNG.lock() = Some(rng);
+        VIRTIO_RNG_AVAILABLE.store(true, Ordering::SeqCst);
+        serial::println(b"[VIRTIO-RNG] ready");
+        return Ok(());
     }
-
     Err("virtio-rng: no device found")
 }
