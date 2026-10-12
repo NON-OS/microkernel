@@ -23,6 +23,7 @@ pub mod cursor;
 pub mod damage;
 pub mod focus;
 pub mod indicator;
+pub mod looks;
 pub mod scene;
 pub mod raise_rule;
 pub mod scene_raise;

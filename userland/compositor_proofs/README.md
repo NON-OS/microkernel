@@ -19,6 +19,9 @@ request protocol (`../compositor/src/state/`, `sw_blitter/`, `protocol/`).
 | `raise_tests` | only the window manager's pid may raise a layer (`state/raise_rule.rs`) |
 | `stacking_tests` | layers draw in raise order inside a band and never leave their band |
 | `trusted_capture_tests` | a screenshot never holds a pixel of the trusted band, even where a prompt covers a window, nor the cursor, and stops where the canvas or the shot ends (`frame_pacer/canvas_copy.rs`) |
+| `srgb_tests`, `cvd_tests`, `cvd_gap_tests`, `colour_tests`, `access_tests` | the sRGB tables round-trip every level; the protan and deutan rows come out as published and every simulation keeps its anchors and is a projection; corrections keep the greys and pull red and green apart for the viewer; contrast rises; the settings parse (`display/srgb_rule.rs`, `cvd_rule.rs`, `cvd_filter.rs`, `colour_rule.rs`, `access_rule.rs`) |
+| `look_tests`, `look_ref_tests` | a look over real pixels: greyscale is grey, white and grey kept, and the fixed-point pass within one level of floating point on every channel (`frame_pacer/look.rs`) |
+| `lens_tests`, `magnify_tests`, `magnify_damage_tests` | the magnifier centred on what it follows and held inside the canvas; every screen pixel the canvas pixel under its centre; a damaged rectangle redraws exactly what it covers (`display/magnifier_rule.rs`, `sw_blitter/magnify.rs`) |
 | `repaint_tests` | after every move, raise, open and close, the screen kept current through the reported damage equals the scene composed from scratch |
 
 `frame_model.rs` is the small paint model the repaint tests compare

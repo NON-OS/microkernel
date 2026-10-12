@@ -28,18 +28,24 @@ use crate::state::Context;
 const BOX: u32 = 32;
 
 pub fn give_back(ctx: &mut Context) {
-    let hide = message((0, 0), false, false, (0, 0));
-    let _ = ops::cursor(ctx.gfx_port, 0, &hide);
-    for h in ctx.heads.iter().filter(|h| h.shaped) {
-        let _ = ops::cursor(ctx.gfx_port, h.output, &hide);
-    }
+    hide(ctx);
     if let Some(w) = ctx.wire.as_mut() {
         w.cursor_offset = 0;
     }
-    ctx.cursor_sent = None;
     let c = ctx.cursor.current();
     let (w, h) = (BOX.min(ctx.width.saturating_sub(c.x)), BOX.min(ctx.height.saturating_sub(c.y)));
     if c.visible && w > 0 && h > 0 {
         ctx.damage.accumulate(Rect { x: c.x, y: c.y, width: w, height: h });
     }
+}
+
+/// The plane hidden on every output, the plane kept: the magnifier draws
+/// the arrow into the canvas, and the next sync after it shows it again.
+pub fn hide(ctx: &mut Context) {
+    let off = message((0, 0), false, false, (0, 0));
+    let _ = ops::cursor(ctx.gfx_port, 0, &off);
+    for h in ctx.heads.iter().filter(|h| h.shaped) {
+        let _ = ops::cursor(ctx.gfx_port, h.output, &off);
+    }
+    ctx.cursor_sent = None;
 }

@@ -17,6 +17,7 @@
 pub mod copy_rect;
 pub mod downscale;
 pub mod fill;
+pub mod magnify;
 pub mod resample;
 pub mod row;
 pub mod scaled;
@@ -26,6 +27,7 @@ pub mod upscale;
 pub use copy_rect::composite_layer;
 pub use downscale::downscale;
 pub use fill::fill_rect;
+pub use magnify::magnify;
 pub use resample::resample;
 pub use scaled::scaled;
 pub use upscale::upscale;

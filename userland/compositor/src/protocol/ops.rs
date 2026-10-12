@@ -34,3 +34,5 @@ pub const OP_SCREENSHOT: u16 = 0x000C;
 pub const OP_OUTPUT_SCALE: u16 = 0x000D;
 /// The shell's colour temperature for the screen (night light).
 pub const OP_NIGHT_LIGHT: u16 = 0x000E;
+/// The shell's accessibility settings for one output.
+pub const OP_ACCESSIBILITY: u16 = 0x000F;

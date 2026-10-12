@@ -26,6 +26,10 @@ pub mod drain_damage;
 pub mod extend;
 pub mod first_frame;
 pub mod indicator_band;
+pub mod lens;
+pub mod look;
+pub mod look_matrix;
+pub mod look_paint;
 pub mod hw_cursor;
 pub mod hw_cursor_back;
 pub mod mirror;
@@ -33,6 +37,7 @@ pub mod night_tint;
 pub mod present_virtio;
 pub mod present_wire;
 pub mod show_band;
+pub mod slice_view;
 pub mod tick;
 pub mod to_screen;
 
