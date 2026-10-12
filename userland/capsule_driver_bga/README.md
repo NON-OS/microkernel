@@ -56,7 +56,7 @@ having released its claim); running out exits `EXIT_GAVE_UP` (6).
 Discovery, claim and maps; the EDID read at BAR2+0 (`edid/`); the DISPI
 mode set and read-back (`dispi/`); the start-up mode (firmware's, else the
 EDID's preferred, else 1024x768: `setup/mode.rs`); the wire's device half
-(`display/`) and kernel half (`platform/`), served by `serve.rs`.
+(`display/`) and kernel half (`nonos_gfx_pool`), served by `serve.rs`.
 
 ## Wire format
 

@@ -24,7 +24,6 @@ mod display;
 mod edid;
 mod error;
 mod handles;
-mod platform;
 mod regs;
 mod serve;
 mod setup;

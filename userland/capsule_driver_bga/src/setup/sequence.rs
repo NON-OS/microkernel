@@ -19,6 +19,7 @@
 //! failing step releases the claim, which takes any mapping already made
 //! with it, so the next attempt can claim the adapter again.
 
+use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
 use nonos_libc::mk_device_release;
 
@@ -29,7 +30,6 @@ use crate::display::{fits, Bga};
 use crate::edid::{self, Panel};
 use crate::error::{BgaError, BgaResult};
 use crate::handles::BrokerHandles;
-use crate::platform::Pool;
 use crate::regs::Regs;
 
 pub fn run(dev: Found) -> BgaResult<Driver> {
