@@ -27,6 +27,7 @@ use super::handles::{issue, take};
 use super::irte_write::write_irte;
 use super::slots;
 use super::table::{table_of, TABLES};
+use crate::arch::x86_64::acpi::parser::other::amd_iommu_aliased;
 
 /// A fixed, edge `vector` on the CPU with APIC id `dest`, raised by
 /// `bus:device.function` alone: (handle, MSI address, MSI data).
@@ -41,6 +42,10 @@ pub fn route_msi(
         return Err(AmdViError::NotEnforcing);
     }
     let id = device_id(bus, device, function);
+    // Its interrupts arrive on the alias's entry, which has no table (L47).
+    if amd_iommu_aliased(id) {
+        return Err(AmdViError::Aliased);
+    }
     let mut tables = TABLES.lock();
     let table = table_of(&mut tables, id)?;
     let index = slots::take(&mut table.slots).ok_or(AmdViError::InterruptTableFull)?;
