@@ -17,6 +17,7 @@
 mod announce;
 mod describe;
 mod devices;
+mod entropy;
 mod gic;
 mod memory;
 mod platform;
@@ -58,6 +59,12 @@ pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> Outcome {
         .and_then(|()| platform::populate(&fdt))
         .and_then(|()| processors::populate(&fdt, info))
         .and_then(|()| reserved::populate(&fdt, info));
+    let seed = entropy::keep(&fdt, dtb_ptr);
+    drop(fdt);
+    if let Some(at) = seed {
+        // SAFETY: MMU off, the parser dropped above, `at` from this blob.
+        unsafe { entropy::erase(dtb_ptr, at) };
+    }
     match steps {
         Ok(()) => Outcome::Parsed,
         Err(reason) => Outcome::Broken(reason),
