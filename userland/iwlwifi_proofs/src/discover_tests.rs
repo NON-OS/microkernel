@@ -23,12 +23,12 @@
 use crate::irq_plan::{after_intx, after_msix, Refusal};
 use crate::pci_match::{intx_usable, is_supported_adapter, Candidate};
 
-// An AX210 (0x2725): class network/other, BAR0 a memory BAR.
+// An AX211 on an SO platform (0x51F0): class network/other, BAR0 a memory BAR.
 fn ax210() -> Candidate {
     Candidate {
         is_pci: true,
         vendor: 0x8086,
-        device: 0x2725,
+        device: 0x51F0,
         class: 0x02,
         subclass: 0x80,
         bar0_mmio: true,
@@ -47,20 +47,21 @@ fn an_adapter_with_no_routed_intx_line_is_still_found() {
 }
 
 #[test]
-fn every_supported_family_is_found() {
-    for device in [0x095Au16, 0x24FD, 0x2526, 0x2723, 0x2725, 0x51F0] {
-        assert!(is_supported_adapter(&Candidate { device, ..ax210() }), "{device:#06x}");
+fn a_part_this_driver_cannot_run_is_not_claimed() {
+    // W4: 7265, 8265, 9260, 9560, AX200, AX201, the discrete AX210 and
+    // Meteor Lake. Each is still named at discovery (`announce`).
+    for device in [0x095Au16, 0x24FD, 0x2526, 0x9DF0, 0x2723, 0xA0F0, 0x2725, 0x7E40, 0x2729] {
+        assert!(!is_supported_adapter(&Candidate { device, ..ax210() }), "{device:#06x}");
     }
 }
 
 #[test]
 fn every_platform_the_gen3_path_has_firmware_for_is_found() {
-    // A device the gen3 selection would boot must not be skipped at
-    // discovery: every id with SO transport values is a supported adapter.
+    // A device the gen3 path boots must not be skipped at discovery, and no
+    // other is claimed: exactly the ids whose firmware is carried are found.
     for device in 0..=u16::MAX {
-        if crate::gen3::select::transport(device).is_some() {
-            assert!(is_supported_adapter(&Candidate { device, ..ax210() }), "{device:#06x}");
-        }
+        let found = is_supported_adapter(&Candidate { device, ..ax210() });
+        assert_eq!(found, crate::firmware::carried::runs(device), "{device:#06x}");
     }
     for device in [0x7A70u16, 0x7AF0, 0x7F70] {
         assert!(is_supported_adapter(&Candidate { device, ..ax210() }), "{device:#06x}");
