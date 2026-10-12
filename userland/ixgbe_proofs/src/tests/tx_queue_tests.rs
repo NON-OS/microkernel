@@ -13,17 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! ixgbe_configure_tx for queue 0 at 0x6000, IXGBE_TDBAL(0): the DMA
-//! transmit engine on before the queue, then the queue.
+//! Transmit queue 0 at 0x6000: the DMA transmit engine on before the
+//! queue, then the queue.
 //!
 //! Not proven here: a queue whose enable never reads back. The model shares
 //! memory with the driver, so the driver's own write reads back before any
 //! concurrent model can undo it; that refusal rests on `until`, whose
 //! timeout is proven in wait_tests.
 
-use crate::constants::ctrl::DMATXCTL_TE;
-use crate::constants::regs::*;
-use crate::init::tx_queue::program;
+use crate::bring::rings::tx::program;
+use crate::facts::mac::DMATXCTL_TE;
+use crate::facts::regs::*;
 use crate::queue::layout::TxDesc;
 
 use super::memory::Memory;

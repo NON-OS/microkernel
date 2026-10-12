@@ -16,12 +16,12 @@
 //! Every error line that quotes a bound quotes the bound the code waits, and
 //! every step's error fits a console line whole.
 
-use crate::constants::timeouts::*;
-use crate::init::reset::global::{AUTO_READ_LATE, RESET_STUCK};
-use crate::init::reset::master::MASTER_STUCK;
-use crate::init::rx_disable::RX_NOT_DISABLED;
-use crate::init::rx_queue::RX_NOT_ENABLED;
-use crate::init::tx_queue::TX_NOT_ENABLED;
+use crate::bring::quiet::MASTER_STUCK;
+use crate::bring::reset::{AUTO_READ_LATE, RESET_STUCK};
+use crate::bring::rings::rx::RX_NOT_ENABLED;
+use crate::bring::rings::rx_off::RX_NOT_DISABLED;
+use crate::bring::rings::tx::TX_NOT_ENABLED;
+use crate::facts::bounds::*;
 
 fn quotes(text: &str, ms: u64) -> bool {
     text.contains(&format!(" {ms} ms"))
@@ -38,12 +38,12 @@ fn quoted_bounds_match_the_waits() {
 }
 
 #[test]
-fn the_bounds_are_linux_loop_counts_times_the_longest_sleep() {
-    assert_eq!(MASTER_DISABLE_MS * 1000, 800 * 100, "IXGBE_PCI_PRIMARY_DISABLE_TIMEOUT x 100 us");
-    assert_eq!(SECRX_MS, 40, "IXGBE_MAX_SECRX_POLL x 1 ms");
-    assert_eq!(QUEUE_ENABLE_MS, 10 * 2, "IXGBE_MAX_RX_DESC_POLL x 2 ms");
-    assert_eq!(RESET_SETTLE_MS, 50, "msleep(50) after each reset");
-    const { assert!(RESET_CLEAR_MS >= 2, "usleep_range(1000, 1200) then 10 x udelay(1)") };
+fn the_bounds_are_the_fact_sheet_values() {
+    assert_eq!(MASTER_DISABLE_MS, 80, "master stop");
+    assert_eq!(SECRX_MS, 40, "security block idle");
+    assert_eq!(QUEUE_ENABLE_MS, 20, "queue enable read-back");
+    assert_eq!(RESET_SETTLE_MS, 50, "settle after each reset");
+    const { assert!(RESET_CLEAR_MS >= 2, "a reset clears in about a millisecond") };
 }
 
 #[test]

@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! ixgbe_reset_hw against the register model: the quiesce, the master stop
+//! The reset stage against the register model: the quiet, the master stop
 //! that gates the reset, and the double CTRL.RST. Its waits are in
 //! reset_wait_tests, the ordering in reset_order_tests.
 
@@ -23,11 +23,11 @@ use std::time::Duration;
 
 use nonos_libc::said;
 
-use crate::constants::ctrl::*;
-use crate::constants::regs::*;
-use crate::constants::timeouts::MASTER_DISABLE_MS;
-use crate::init::reset::master::MASTER_STUCK;
-use crate::init::reset::run;
+use crate::bring::quiet::MASTER_STUCK;
+use crate::bring::reset::run;
+use crate::facts::bounds::MASTER_DISABLE_MS;
+use crate::facts::mac::*;
+use crate::facts::regs::*;
 
 use super::model::{live, regs, timed, window};
 use super::part_model::part;

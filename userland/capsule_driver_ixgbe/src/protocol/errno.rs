@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Status codes carried in the first four payload bytes. Mirror
-//! Linux errnos so the kernel-side network client uses the same
-//! errno-to-error mapper for every NIC capsule. `E_AGAIN` is the
-//! `rx_packet` "queue empty" path; the client surfaces it as
-//! `RxQueueEmpty` rather than as a hard error.
+//! Status codes carried in the first four payload bytes. They are the
+//! negative errno values every NIC capsule uses, so the kernel-side network
+//! client maps them with one mapper. `E_AGAIN` is the `rx_packet` "queue
+//! empty" path; the client surfaces it as `RxQueueEmpty` rather than as a
+//! hard error.
 
 pub const E_INVAL: i32 = -22;
 pub const E_IO: i32 = -5;
