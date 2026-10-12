@@ -71,6 +71,8 @@ pub mod driver_end;
 /// The driver-grant surface (A10): each call's cap, hold and grant.
 pub mod driver_grants;
 #[cfg(test)]
+mod dma_surface;
+#[cfg(test)]
 mod driver_scope;
 pub mod device_windows;
 pub mod fs;

@@ -35,6 +35,8 @@ pub(crate) use pool::low32_default_pages;
 pub(crate) use pool::{init_display_pool, init_low32_pool};
 #[cfg(target_arch = "x86_64")]
 pub(crate) use pool::{low32_fit, low32_target_pages};
+pub(crate) use records::ranges_of;
 pub use release::{release_all_for_pid, release_for_device, unmap_grant};
+pub(crate) use teardown::free_frames;
 pub use types::{DmaError, DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult};
 pub use wipe::wipe_live_grants;

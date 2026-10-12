@@ -15,8 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim_owned;
+mod dma_held;
+pub mod dma_hold;
+mod dma_plan;
+mod dma_rule;
 pub mod drop_attach;
 pub mod exit;
+mod exit_owned;
 mod frames_of;
 pub mod gate;
 pub mod held;
