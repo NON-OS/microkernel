@@ -53,8 +53,10 @@ from the monitor's EDID (Gen9: read over the lit port's AUX channel for
 DisplayPort and eDP, over GMBUS for HDMI and DVI, the route found from the
 transcoder's DDI function), MODES the shown mode, marked FROM_EDID when the
 monitor lists it. STATE reports a
-hung flip or an underrun as LOST after putting the plane back, and a
-stopped transcoder as LOST, not scanning out. The service is not exported
+hung flip or an underrun as LOST after putting the plane back, a
+DisplayPort link that gave way (read over AUX on every STATE, since NONOS
+takes no interrupts) as LOST after training it again at the mode shown,
+and a stopped transcoder as LOST, not scanning out. The service is not exported
 until the capsule is spawned.
 
 ## Authority
