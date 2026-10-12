@@ -14,33 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::cause::Cause;
+use super::port::Port;
 use crate::constants::regs::{CMD_FRE, PORT_CMD, PORT_IS, PORT_SERR};
-use crate::error::AhciResult;
+use crate::error::{AhciError, AhciResult};
 use crate::regs::Regs;
 
-/// Put a port back in order after a failed command: clear its error state,
-/// free a device stuck in BSY or DRQ (`kick`), and restart the engine. `Err`
-/// when the engine would not stop or start, or the device stayed stuck; the
-/// next command on the port then fails in its own wait, never hangs.
-pub(super) fn recover(regs: Regs, base: u32, sclo: bool) -> AhciResult<()> {
+/// Put a port back in order after a failure: clear its error state, stop
+/// the engine, free the device as `cause` needs (`kick`), and restart the
+/// engine. A CR that will not clear is met with a COMRESET, as AHCI 1.3.1,
+/// 10.4.2 allows, and one more stop. `Wedged` when even that leaves CR
+/// set: the HBA may still own the command list, so the engine is left as
+/// it is. Otherwise `Err` when the device stayed stuck or the engine would
+/// not start; the next command on the port then fails in its own wait,
+/// never hangs. Every COMRESET is noted in the port (`kick::comreset`).
+pub(super) fn recover(port: &mut Port, regs: Regs, cause: Cause) -> AhciResult<()> {
+    let base = port.base;
     clear_errors(regs, base);
-    super::stop::stop_engine(regs, base)?;
+    let reset = match super::stop::stop_engine(regs, base) {
+        Ok(()) => None,
+        Err(_) => {
+            let reset = super::kick::comreset(port, regs);
+            super::stop::stop_engine(regs, base).map_err(|_| AhciError::Wedged)?;
+            Some(reset)
+        }
+    };
     /*
      * ST may be set only with FRE set (AHCI 1.3.1, 3.3.7), and without it
      * the HBA posts no D2H FIS, so PxTFD would keep the failed command's
-     * status and fail the next one.
+     * status.
      */
+    // SAFETY: the port's register block lies inside the mapped ABAR.
     unsafe {
         regs.w32(base + PORT_CMD, regs.r32(base + PORT_CMD) | CMD_FRE);
     }
-    let kicked = super::kick::kick(regs, base, sclo);
+    // The COMRESET that freed CR has reset the drive too.
+    let kicked = reset.unwrap_or_else(|| super::kick::kick(port, regs, cause));
     // A COMRESET latches link errors of its own.
     clear_errors(regs, base);
+    /*
+     * ST is set whether or not the drive's signature came in time. AHCI
+     * 1.3.1, 10.3.1 asks for BSY and DRQ clear and the link up first;
+     * Linux's ahci_do_hardreset restarts the engine whatever the reset
+     * gave, and so does this. Nothing is issued until the drive shows idle
+     * (`holdup`), and the reset window there tells a drive still resetting
+     * from a stuck port only while ST and CR read set.
+     */
     super::start::start(regs, base)?;
     kicked
 }
 
-fn clear_errors(regs: Regs, base: u32) {
+/// Clear PxSERR, then PxIS: PCS and PRCS mirror PxSERR bits and clear only
+/// with them.
+pub(super) fn clear_errors(regs: Regs, base: u32) {
+    // SAFETY: the port's register block lies inside the mapped ABAR.
     unsafe {
         regs.w32(base + PORT_SERR, regs.r32(base + PORT_SERR));
         regs.w32(base + PORT_IS, u32::MAX);

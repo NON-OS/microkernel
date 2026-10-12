@@ -26,5 +26,6 @@ use super::medium_rule::allows;
 const CAP_STORE_WRITE: u64 = 1 << 26;
 
 pub fn permits(op: u16, sender_pid: u32) -> bool {
-    allows(op, sender_pid, false) || allows(op, sender_pid, mk_cap_check(sender_pid, CAP_STORE_WRITE))
+    allows(op, sender_pid, false)
+        || allows(op, sender_pid, mk_cap_check(sender_pid, CAP_STORE_WRITE))
 }
