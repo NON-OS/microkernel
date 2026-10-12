@@ -21,5 +21,5 @@ mod state;
 
 pub use init::init_from_pci;
 pub(super) use init::register_platform_device;
-pub(super) use list::class_of;
+pub(super) use list::{class_of, flags_of};
 pub use list::{contains, list, list_by_class};

@@ -16,6 +16,7 @@
 
 use super::posture::unconfined_allowed;
 use super::table::{pci_address, say, Capsule, CAPSULES};
+use super::unconfined::unconfined;
 use crate::memory::iommu::IommuDomain;
 
 /// The unit is in service and would not take the device, so the claim is
@@ -34,12 +35,8 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
      * physical addresses, said and counted.
      */
     if !crate::memory::iommu::translates(address) {
-        say(
-            b"unconfined: no remapping unit in service covers it, reaches all memory",
-            pid,
-            address,
-        );
-        return Ok(());
+        let why = b"unconfined: no remapping unit in service covers it, reaches all memory";
+        return unconfined(pid, device_id, address, why);
     }
     let mut all = CAPSULES.lock();
     let pos = match all.iter().position(|c| c.pid == pid) {
@@ -55,8 +52,8 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
              * up yet, or the one found (AMD-Vi) has no backend here.
              */
             Err(e) if unconfined_allowed(e) => {
-                say(b"unconfined: no remapping unit in service, reaches all memory", pid, address);
-                return Ok(());
+                let why = b"unconfined: no remapping unit in service, reaches all memory";
+                return unconfined(pid, device_id, address, why);
             }
             Err(_) => {
                 say(b"refused: no domain left", pid, address);
