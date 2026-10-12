@@ -14,22 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! HDMI clock and buffer bring-up, and the HDMI mode set.
+//! HDMI bring-up and the HDMI mode set.
 
+use crate::engine::cdclk::CDCLK_CTL;
 use crate::engine::ddi::{buf_ctl, buf_trans, BUF_ENABLE};
 use crate::engine::dpll::{cfgcr1, cfgcr2, DPLL_STATUS};
-use crate::engine::dpll_cfgcr::cfgcr;
-use crate::engine::dpll_hdmi::dco;
-use crate::engine::error::Error;
 use crate::engine::hdmi::bring_up;
 use crate::engine::modeset_off::{darken, enable_hdmi};
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::regs::{trans_conf, trans_ddi_func_ctl};
+use crate::engine::{dpll_cfgcr::cfgcr, dpll_hdmi::dco};
 use crate::model::{Gen9, Ticks};
 
-fn lit_port() -> Gen9 {
+pub(super) fn lit_port() -> Gen9 {
     let mut m = Gen9::new(1);
     m.set(buf_trans(3, 0), 0x18);
+    m.set(CDCLK_CTL, 1349);
     m.set(buf_ctl(3), 9 << 24);
     m
 }
@@ -42,24 +42,6 @@ fn the_dpll_runs_the_hdmi_clock_and_the_buffer_keeps_its_entry() {
     assert_eq!((m.get(cfgcr1(2)), m.get(cfgcr2(2))), (c1, c2));
     assert_ne!(m.get(DPLL_STATUS) & (1 << 16), 0);
     assert_eq!(m.get(buf_ctl(3)), BUF_ENABLE | (9 << 24));
-}
-
-#[test]
-fn a_clock_past_the_sinks_tmds_limit_or_an_unlit_port_is_refused_untouched() {
-    let mut m = lit_port();
-    assert_eq!(
-        bring_up(&mut m, &Ticks::new(), 3, 2, 297_000, 0),
-        Err(Error::Argument),
-        "165 MHz by default"
-    );
-    assert_eq!(
-        bring_up(&mut m, &Ticks::new(), 3, 0, 148_500, 0),
-        Err(Error::Argument),
-        "never DPLL 0"
-    );
-    m.set(buf_trans(3, 0), 0);
-    assert_eq!(bring_up(&mut m, &Ticks::new(), 3, 2, 148_500, 0), Err(Error::Layout));
-    assert!(m.writes.is_empty());
 }
 
 #[test]
