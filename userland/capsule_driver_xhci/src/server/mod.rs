@@ -20,6 +20,7 @@ mod handlers;
 pub mod mux;
 mod mux_address;
 mod mux_at;
+mod mux_claims;
 mod mux_forward;
 mod mux_list;
 mod mux_ops;

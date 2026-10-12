@@ -248,6 +248,9 @@ refused.
   pointer or mouse application, and as a gamepad where it opens with a
   Joystick or Game Pad application. A security key (usage page F1D0h) or a
   vendor channel is left and its slot given back.
+- Each interface bound is claimed with the host (OP_CLAIM_INTERFACE), so a
+  composite device's other interfaces may be driven by another class
+  driver on the same slot (a key's FIDO interface by driver.fido0).
 - A gamepad's report descriptor gives its fields (Button page 1 to 32,
   Generic Desktop X to Wheel, the hat), with report IDs, Push and Pop,
   usage ranges and padding; hostile counts and nesting end bounded. Each
