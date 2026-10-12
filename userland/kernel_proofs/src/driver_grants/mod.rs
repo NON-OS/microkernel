@@ -14,15 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod table;
-#[cfg(test)]
-#[path = "../../../../src/hardware/broker/pio/window.rs"]
-mod pio_window;
 #[cfg(test)]
 #[path = "../../../../src/syscall/microkernel/irq/bound.rs"]
 mod irq_bound;
 #[cfg(test)]
+#[path = "../../../../src/hardware/broker/mmio/forbidden.rs"]
+mod mmio_forbidden;
+#[cfg(test)]
+#[path = "../../../../src/hardware/broker/pio/window.rs"]
+mod pio_window;
+#[cfg(test)]
 mod rows_k6;
+#[cfg(test)]
+mod rows_k6_mmio;
+pub mod table;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
