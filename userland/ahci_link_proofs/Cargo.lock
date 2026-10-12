@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "ahci_link_proofs"
 version = "0.3.0"
+dependencies = [
+ "ahci_link_proofs_libc_shim",
+]
+
+[[package]]
+name = "ahci_link_proofs_libc_shim"
+version = "0.1.0"

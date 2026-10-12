@@ -14,3 +14,4 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+nonos_libc = { package = "ahci_link_proofs_libc_shim", path = "libc_shim" }
