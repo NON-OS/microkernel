@@ -21,6 +21,7 @@ mod constants;
 mod devices;
 mod drop_port;
 mod forget;
+mod pointers;
 mod read_configuration;
 mod run;
 mod say_port;

@@ -1,4 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#[path = "../../../capsule_driver_usb_hid/src/descriptors/application.rs"]
+pub mod application;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/binding.rs"]
 pub mod binding;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/config.rs"]

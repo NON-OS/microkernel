@@ -4,7 +4,8 @@
 
 `capsule_driver_usb_hid` is the USB HID class capsule. It asks `driver.xhci0`
 for the devices on the root ports, binds boot keyboard and boot mouse
-interfaces (and takes any other HID interface for a tablet), polls their
+interfaces (and, on a device with neither, a HID interface whose report
+descriptor names a Generic Desktop pointer or mouse, as a tablet), polls their
 interrupt-IN endpoints through the controller, and posts each decoded key,
 motion and button event to the kernel input ring with `MkInputEventPost`.
 
@@ -205,10 +206,11 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 
 ## Explicit non-goals today
 
-Report-descriptor parsing, vendor HID layouts, multitouch, LED output
+Report-descriptor parsing past the first application collection's usage,
+vendor HID layouts, multitouch, LED output
 reports, endpoint scheduling, USB hub traversal, and compositor focus policy
-do not live in this slice. A non-boot HID interface is taken for a tablet, and
-a configuration descriptor over 64 bytes is refused.
+do not live in this slice. A configuration descriptor over 64 bytes is
+refused.
 
 ## Verification
 
@@ -239,6 +241,10 @@ a configuration descriptor over 64 bytes is refused.
   SET_IDLE(0). A device that STALLs either is still bound.
 - A device with a boot keyboard or mouse interface binds only those: its
   media-key, system-control and vendor interfaces are not taken as a tablet.
+- A device with neither binds a HID interface as a tablet only where its
+  report descriptor, read once configured, opens with a Generic Desktop
+  pointer or mouse application. A security key (usage page F1D0h), a
+  gamepad or a vendor channel is left and its slot given back.
 - Every interrupt-IN endpoint of a composite device is polled on its own
   DCI, so a wireless keyboard and mouse receiver gives both.
 - USB hubs are not supported. A device plugged into a hub, a dock or a

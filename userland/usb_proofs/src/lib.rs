@@ -24,6 +24,8 @@ pub mod usb_hid_wire;
 pub mod xhci_limits;
 
 #[cfg(test)]
+mod application_tests;
+#[cfg(test)]
 mod boundary_tests;
 #[cfg(test)]
 mod composite_tests;
