@@ -37,6 +37,17 @@ impl Device {
         self.sent(5, toggle, chunk)
     }
 
+    /// The second pair's IN, as `bulk`.
+    pub(super) fn bulk2(&mut self, toggle: bool, max: usize) -> Reply {
+        let Some(msg) = self.bulk_in2.front_mut() else { return Reply::Nak };
+        let n = msg.len().min(self.bulk_mps).min(max);
+        let chunk: Vec<u8> = msg.drain(..n).collect();
+        if msg.is_empty() {
+            self.bulk_in2.pop_front();
+        }
+        self.sent(9, toggle, chunk)
+    }
+
     /// Queue `bytes` as one bulk IN message.
     pub fn send(&mut self, bytes: &[u8]) {
         self.bulk_in.push_back(bytes.to_vec());

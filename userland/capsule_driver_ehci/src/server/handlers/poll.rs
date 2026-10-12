@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The polled bulk IN, `slot, 0, len_le16`: the first poll arms a qTD of
+//! The polled bulk IN, `slot, 0, len_le16`, on the first pair only (a UAS
+//! status pipe; its data pipes are read whole): the first poll arms a qTD of
 //! `len` bytes, and each poll looks at it once. Data replies as a bulk IN
 //! does; nothing yet is E_AGAIN at once; a STALL is E_PIPE. The qTD is armed
 //! again by the poll after the one that took its data. Each armed device
@@ -36,7 +37,7 @@ pub fn poll<R: Regs, C: Clock, M: Mem>(
     body: &[u8],
     tx: &mut [u8],
 ) -> usize {
-    let &[slot, _, lo, hi] = body else { return status(tx, req, E_INVAL) };
+    let &[slot, 0, lo, hi] = body else { return status(tx, req, E_INVAL) };
     let len = u16::from_le_bytes([lo, hi]) as usize;
     let spare = free(&cx.table);
     let fits = (1..=BULK_MAX).contains(&len);
