@@ -61,7 +61,13 @@ pub fn serve(acpi: &mut Acpi) {
     }
     acpi.scis += 1;
     while let Some((id, value)) = acpi.aml.rt.notifications.pop_front() {
-        Line::new(b"notify ").str(path(&acpi.aml, id).as_bytes()).str(b" ").hex(value as u64).end();
+        if !crate::power::notified(&mut acpi.power, &mut acpi.aml, &mut acpi.host, id, value) {
+            Line::new(b"notify ")
+                .str(path(&acpi.aml, id).as_bytes())
+                .str(b" ")
+                .hex(value as u64)
+                .end();
+        }
     }
     if let Some(s) = sci.as_ref() {
         let _ = mk_irq_ack(s.grant);
