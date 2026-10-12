@@ -17,6 +17,8 @@
 //! The recovery words or key a request carries: wiped when dropped, whether
 //! the job ran or was refused.
 
+use zeroize::Zeroize;
+
 use crate::answers::borrowed;
 use crate::ops;
 
@@ -25,15 +27,8 @@ struct Secret(Vec<String>);
 
 impl Drop for Secret {
     fn drop(&mut self) {
-        for f in self.0.iter_mut() {
-            // SAFETY: zero bytes are valid UTF-8, so the string stays valid
-            // while its bytes are rewritten, and it is dropped right after.
-            for b in unsafe { f.as_bytes_mut() } {
-                // SAFETY: `b` is a valid, aligned &mut u8 into the string; the
-                // volatile write keeps the wipe from being elided.
-                unsafe { core::ptr::write_volatile(b, 0) };
-            }
-        }
+        // Each string's bytes, spare capacity too, through zeroize's volatile writes.
+        self.0.iter_mut().for_each(Zeroize::zeroize);
     }
 }
 
