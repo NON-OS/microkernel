@@ -26,4 +26,5 @@ mod wire;
 
 pub use hidden::reveal_hidden;
 pub use settle::{tick, Hidden};
+pub use target::target;
 pub use wire::device_power;

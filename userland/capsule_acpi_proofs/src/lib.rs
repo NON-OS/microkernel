@@ -17,10 +17,16 @@
 //! Proofs for capsule_acpi's pure parts, built on the host against the
 //! capsule's own sources, included by path.
 
+extern crate alloc;
+
 #[path = "../../capsule_acpi/src/server/policy.rs"]
 pub mod policy;
+#[path = "props.rs"]
+pub mod props;
 
 #[cfg(test)]
 mod policy_tests;
+#[cfg(test)]
+mod props_tests;
 #[cfg(test)]
 mod thread_tests;
