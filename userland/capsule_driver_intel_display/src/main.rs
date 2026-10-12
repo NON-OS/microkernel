@@ -27,6 +27,7 @@ mod error;
 mod frames;
 mod frames_drop;
 mod handles;
+mod senders;
 mod serve;
 mod setup;
 
