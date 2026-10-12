@@ -26,7 +26,8 @@ use super::super::cmds::APP_CMD;
 const R1_APP_CMD: u32 = 1 << 5;
 
 /// CMD55 then `acmd`. A card that answers CMD55 without APP_CMD will not
-/// read the next command as an ACMD, as Linux's mmc_app_cmd checks.
+/// read the next command as an ACMD (APP_CMD, card status bit 5, as
+/// recalled, unverified).
 pub(super) fn app<M: Mmio, C: Clock, L: Log>(
     h: &mut Host<M, C, L>,
     rca: u16,

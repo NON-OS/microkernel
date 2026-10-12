@@ -29,7 +29,7 @@ use super::super::super::text::Line;
 use super::super::cmds::SEND_RELATIVE_ADDR;
 use super::super::regs::{sd_cid, sd_sectors};
 
-/// R6 bits 15:13: COM_CRC_ERROR, ILLEGAL_COMMAND and ERROR (4.9.5).
+/// R6 bits 15:13: COM_CRC_ERROR, ILLEGAL_COMMAND and ERROR (4.9.5, as recalled, unverified).
 const R6_ERRORS: u32 = 0xe000;
 
 /// The card's CID, the address it published and its size in sectors. A
