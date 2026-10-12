@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! A bulk transfer on the bulk queue: packets of the endpoint's size from
 //! the bulk buffer, toggles continuing from where the endpoint's last
 //! transfer left them, and a short IN packet ending the transfer (SPD).

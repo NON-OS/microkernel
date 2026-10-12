@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! A UHCI controller's LEGSUP, for any vendor, and no other USB host's.
 
 use super::quirk_bits::{only, writable, Ident};

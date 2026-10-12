@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! The driver's loop: each request waited for in the kernel, dispatched,
 //! and answered to its sender. A frame that does not decode is answered
 //! too, refused: its caller waits in its call for one.

@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! The device descriptor, 18 raw bytes, and the configuration descriptor,
 //! after a u16 of the bytes read and two zeros, as driver.xhci0 gives them.
 
