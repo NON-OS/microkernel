@@ -15,5 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(super) const EFAULT: i32 = 14;
+pub(super) const EBUSY: i32 = 16;
 pub(super) const EINVAL: i32 = 22;
 pub(super) const ENOTSUP: i32 = 95;
