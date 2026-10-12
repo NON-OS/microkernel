@@ -40,6 +40,8 @@ mod model;
 mod mutation_tests;
 mod name_tests;
 mod opcode_tests;
+mod osi_ladder_tests;
+mod osi_tests;
 mod package_tests;
 mod pci_reg_tests;
 mod pkg_length_tests;

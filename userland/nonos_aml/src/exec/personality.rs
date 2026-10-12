@@ -17,10 +17,12 @@
 //! What the predefined \_OS, \_OSI and \_REV answer.
 
 /// The answers are data, so the capsule can be built to answer as the owner
-/// decides. `DEFAULT` answers no \_OSI string at all, the safe choice until a
-/// string's answer is justified (unit F 5 sets the table), names the
-/// operating system as firmware written for ACPI expects to find it, and
-/// gives \_REV as 2, the ACPI 2.0 revision firmware gates 64-bit integers on.
+/// decides. `DEFAULT` answers the Windows version strings in `osi::WINDOWS`
+/// and nothing else; \_OS is "Microsoft Windows NT", the name firmware written
+/// for the NT family compares \_OS against (section 5.7.3 leaves the string
+/// to the operating system); \_REV is 2, what Windows answers, since firmware
+/// has been seen to take a higher \_REV for a Linux it treats differently
+/// (unverified beyond published reports).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Personality {
     pub os: &'static [u8],
@@ -29,11 +31,21 @@ pub struct Personality {
 }
 
 impl Personality {
-    pub const DEFAULT: Personality = Personality { os: b"Microsoft Windows NT", osi: &[], rev: 2 };
+    pub const DEFAULT: Personality =
+        Personality { os: b"Microsoft Windows NT", osi: super::osi::WINDOWS, rev: 2 };
+
+    /// The default, answering the Windows strings only up to and including
+    /// `newest`: for a machine whose firmware misbehaves with the newer paths.
+    pub fn windows_up_to(newest: &[u8]) -> Personality {
+        let n = super::osi::WINDOWS.iter().position(|s| *s == newest).map_or(0, |i| i + 1);
+        Personality { osi: &super::osi::WINDOWS[..n], ..Self::DEFAULT }
+    }
 
     /// \_OSI(string): whether the string is one this build answers.
     pub fn answers(&self, s: &[u8]) -> bool {
         self.osi.contains(&s)
+            || super::osi::FEATURES.contains(&s)
+            || super::osi::VENDORS.contains(&s)
     }
 }
 

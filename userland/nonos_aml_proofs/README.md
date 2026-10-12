@@ -30,6 +30,7 @@ so no table enters the tree as an opaque blob.
 | `control_tests`, `call_tests` | control flow, arguments and locals, calls, method-made objects removed, serialized recursion |
 | `budget_tests`, `budget_limit_tests` | a loop runs exactly to its step budget; recursion, allocation and waiting stopped |
 | `sync_tests`, `event_tests`, `host_tests` | mutex nesting and sync order; events; Notify's queue; Fatal, Timer, Sleep, Stall |
+| `osi_tests`, `osi_ladder_tests` | every published Windows string answered, nothing else, capping at a release, the firmware ladder |
 | `predefined_tests` | \_OS, \_OSI, \_REV; load-time code run by the interpreter |
 | `generated_tests` | 3000 random expressions against a model of the operators, at both widths |
 | `region_math_tests` | access widths, the units a field touches, UpdateRule merges, bit strings, Global Lock steps |
