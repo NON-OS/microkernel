@@ -55,6 +55,7 @@ pub struct Acpi {
     pub hotkeys: Hotkeys,
     pub serial: Serial,
     pub legacy: crate::legacy::Legacies,
+    pub apei: crate::apei::Apei,
     pub smbios: Option<nonos_smbios::identity::Identity>,
     pub devices: Vec<DeviceInfo>,
     pub routes: Vec<(Id, Vec<Route>)>,

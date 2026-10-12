@@ -96,6 +96,16 @@ later if it still is. Each zone gets _SCP(0), active cooling first.
 Display adapters above backlit outputs get _DOS(0): firmware keeps output
 switching and the AC/battery brightness change. Their _DOD IDs are logged.
 
+Hardware errors (ACPI 6.5, chapter 18): BERT is read once at start and the
+fatal error the last boot ended in, if any, logged. HEST's enabled GHES and
+GHESv2 sources are kept: polled ones are read at their interval (never
+faster than 100 ms), SCI ones when an Error Device (PNP0C33) is notified.
+Each record is logged on one `[ACPI] hw error` line by section type
+(processor, platform memory, PCI Express) and counted by severity on the
+kernel's posture line through `MkAcpiHwError`; the block is then given back
+to firmware (status cleared, GHESv2's Read Ack written). Other source types
+(machine check, AER, NMI) are listed, not served.
+
 Hotkey sources are logged by the name firmware gives each event, never a
 guessed meaning: WMI mappers (PNP0C14) with their _WDG event GUIDs, and on
 Notify the GUID and the data _WED returns; Intel's HID event filter
