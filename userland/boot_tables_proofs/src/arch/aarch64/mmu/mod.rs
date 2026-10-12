@@ -18,10 +18,7 @@ pub mod attributes {
 
     pub use kind::MemoryType;
     pub use page::PageAttributes;
-    pub use pte::{
-        PTE_ADDR_MASK, PTE_AP_RW_ALL, PTE_ATTR_INDX_MASK, PTE_GP, PTE_PAGE, PTE_PXN, PTE_TABLE,
-        PTE_UXN, PTE_VALID,
-    };
+    pub use pte::*;
 }
 #[path = "../../../../../../src/arch/aarch64/mmu/boot_devices.rs"]
 mod boot_devices;
@@ -46,9 +43,9 @@ mod image_map;
 mod l2_pool;
 #[path = "../../../../../../src/arch/aarch64/mmu/l3_tables.rs"]
 mod l3_tables;
+pub mod leaves;
 #[path = "../../../../../../src/arch/aarch64/mmu/map.rs"]
 mod map;
-pub mod leaves;
 pub mod probe;
 #[path = "../../../../../../src/arch/aarch64/mmu/ram_map.rs"]
 mod ram_map;
@@ -65,23 +62,11 @@ pub mod table {
 }
 #[path = "../../../../../../src/arch/aarch64/mmu/tables_build.rs"]
 mod tables_build;
+pub mod text_guard;
 #[path = "../../../../../../src/arch/aarch64/mmu/unmap.rs"]
 mod unmap;
 
 pub use attributes::{MemoryType, PageAttributes};
-
-/// Whether text is mapped guarded: the kernel asks FEAT_BTI and its own
-/// code; a test says.
-pub mod text_guard {
-    use super::PageAttributes;
-    use core::sync::atomic::{AtomicBool, Ordering};
-
-    pub static GUARDED: AtomicBool = AtomicBool::new(false);
-
-    pub(super) fn code() -> PageAttributes {
-        PageAttributes::kernel_code().with_guard(GUARDED.load(Ordering::Relaxed))
-    }
-}
 
 mod tlb {
     /// The host has no TLB; the tables are read back directly.

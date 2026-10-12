@@ -3,8 +3,8 @@
 //! page EL1 can run is guarded, and no page it cannot run claims to be (Arm
 //! ARM, DDI 0487, FEAT_BTI, the GP bit of a stage 1 descriptor).
 
-use boot_tables_proofs::leaves::leaves;
-use boot_tables_proofs::probe::{self, GP, GUARDED, PXN, TEXT};
+use boot_tables_proofs::leaves::{leaves, GP, PXN};
+use boot_tables_proofs::probe::{self, GUARDED, TEXT};
 use boot_tables_proofs::{BootInfo, MemoryRegion, MemoryType, Window};
 use core::sync::atomic::Ordering;
 
