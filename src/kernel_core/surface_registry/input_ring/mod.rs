@@ -23,6 +23,7 @@ mod drains;
 mod post;
 mod ring;
 mod seq;
+mod take;
 
 pub use arm_waiter::arm_input_waiter;
 pub use clear_waiter::clear_input_waiter;
