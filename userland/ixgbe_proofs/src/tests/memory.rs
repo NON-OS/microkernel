@@ -19,18 +19,18 @@
 
 use nonos_devmodel::FakeBar;
 
-use crate::constants::queue::{RX_DESC_COUNT, TX_DESC_COUNT};
-use crate::constants::MAC_LEN;
 use crate::queue::layout::{RxDesc, TxDesc};
 use crate::queue::{RxRing, TxRing};
 use crate::regs::Regs;
 use crate::setup::Driver;
+use crate::sizes::ring::{RX_DESC_COUNT, TX_DESC_COUNT};
+use crate::sizes::MAC_LEN;
 
 pub const RX_RING_PHYS: u64 = 0x1_0000_1000;
 pub const TX_RING_PHYS: u64 = 0x1_0000_2000;
 pub const RX_BUF_PHYS: u64 = 0x1_0010_0000;
 pub const TX_BUF_PHYS: u64 = 0x1_0020_0000;
-pub const PCI_DEVICE: u16 = 0x10FB; // IXGBE_DEV_ID_82599_SFP, the X520
+pub const PCI_DEVICE: u16 = 0x10FB; // 82599 SFP+, the X520
 
 pub struct Memory {
     pub rx: Box<[RxDesc; RX_DESC_COUNT]>,
@@ -57,7 +57,7 @@ impl Memory {
         Driver {
             device_id: 9,
             pci_device: PCI_DEVICE,
-            part: crate::constants::part::Part::I82599,
+            part: crate::facts::parts::Part::I82599,
             mmio_grant: 20,
             rx_ring_grant: 21,
             rx_buffer_grant: 22,

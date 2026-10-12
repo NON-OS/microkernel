@@ -22,11 +22,11 @@ use std::time::Duration;
 
 use nonos_libc::said;
 
-use crate::constants::ctrl::*;
-use crate::constants::regs::*;
-use crate::constants::timeouts::RESET_CLEAR_MS;
-use crate::init::reset::global::{AUTO_READ_LATE, RESET_STUCK};
-use crate::init::reset::run;
+use crate::bring::reset::run;
+use crate::bring::reset::{AUTO_READ_LATE, RESET_STUCK};
+use crate::facts::bounds::RESET_CLEAR_MS;
+use crate::facts::mac::*;
+use crate::facts::regs::*;
 
 use super::model::{live, regs, timed, window};
 

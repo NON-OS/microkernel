@@ -13,16 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The one ordering ixgbe_disable_pcie_primary exists for: CTRL.RST is never
-//! written while STATUS still shows a master request outstanding. A modelled
-//! part stops only once it sees GIO_DIS and watches for a reset before then.
+//! The one ordering the master stop exists for: CTRL.RST is never written
+//! while STATUS still shows a master request outstanding. A modelled part
+//! stops only once it sees GIO_DIS and watches for a reset before then.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-use crate::constants::ctrl::*;
-use crate::constants::regs::*;
-use crate::init::reset::run;
+use crate::bring::reset::run;
+use crate::facts::mac::*;
+use crate::facts::regs::*;
 
 use super::model::{live, regs, stable32, window};
 

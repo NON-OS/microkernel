@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The advanced transmit data descriptor against ixgbe_type.h: the literal
-//! IXGBE_ADVTXD_* values, then whole-word vectors and the field positions.
+//! The advanced transmit data descriptor against the fact sheet: the literal
+//! values, then whole-word vectors and the field positions.
 
-use crate::constants::tx_bits::*;
+use crate::facts::tx::*;
 use crate::queue::tx_encode::{cmd_type_len, olinfo_status};
 
 #[test]

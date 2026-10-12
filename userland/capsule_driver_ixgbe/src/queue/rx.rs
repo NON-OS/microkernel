@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::queue::RX_BUFFER_LEN;
+use crate::sizes::ring::RX_BUFFER_LEN;
 
 use super::layout::RxDesc;
 

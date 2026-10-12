@@ -13,12 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The id table against the IXGBE_DEV_ID_* names ixgbe_type.h gives them,
-//! in ixgbe_pci_tbl's order for the MACs this driver takes.
+//! The id table against the ids and part names as observed in Linux ixgbe
+//! (unverified), in that table's order, for the MACs this driver takes.
 
-use crate::constants::pci::{INTEL_VENDOR_ID, IXGBE_PARTS};
+use crate::facts::ids::{INTEL_VENDOR_ID, IXGBE_PARTS};
 
-const IXGBE_PCI_TBL: [(u16, &str); 17] = [
+const OBSERVED_TABLE: [(u16, &str); 17] = [
     (0x10F7, "82599_KX4"),
     (0x1514, "82599_KX4_MEZZ"),
     (0x1517, "82599_KR"),
@@ -41,7 +41,7 @@ const IXGBE_PCI_TBL: [(u16, &str); 17] = [
 #[test]
 fn every_listed_id_is_bound_in_order_and_nothing_else() {
     let ids: Vec<u16> = IXGBE_PARTS.iter().map(|(id, _)| *id).collect();
-    let tbl: Vec<u16> = IXGBE_PCI_TBL.iter().map(|(id, _)| *id).collect();
+    let tbl: Vec<u16> = OBSERVED_TABLE.iter().map(|(id, _)| *id).collect();
     assert_eq!(ids, tbl);
     assert_eq!(INTEL_VENDOR_ID, 0x8086);
     let mut sorted = ids.clone();

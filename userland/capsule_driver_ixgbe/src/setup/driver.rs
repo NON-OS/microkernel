@@ -21,11 +21,11 @@
 
 use nonos_libc::{mk_device_release, mk_dma_unmap, mk_mmio_unmap};
 
-use crate::constants::part::Part;
-use crate::constants::MAC_LEN;
+use crate::facts::parts::Part;
 use crate::link::LinkState;
 use crate::queue::{RxRing, TxRing};
 use crate::regs::Regs;
+use crate::sizes::MAC_LEN;
 
 pub struct Driver {
     pub device_id: u64,

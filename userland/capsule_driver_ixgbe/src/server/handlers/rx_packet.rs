@@ -21,7 +21,7 @@
 
 use core::sync::atomic::{fence, Ordering};
 
-use crate::constants::regs::REG_RDT;
+use crate::facts::regs::REG_RDT;
 use crate::protocol::{
     encode_response_header, write_status, Request, E_AGAIN, E_IO, RESP_HDR_LEN,
     RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,

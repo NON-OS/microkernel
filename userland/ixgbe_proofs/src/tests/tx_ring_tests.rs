@@ -18,9 +18,9 @@
 //! reclaim follows the part's DD write-backs in order. The wrap is in
 //! tx_wrap_tests.
 
-use crate::constants::queue::{TX_BUFFER_LEN, TX_DESC_COUNT};
-use crate::constants::tx_bits::TXD_STAT_DD;
+use crate::facts::tx::TXD_STAT_DD;
 use crate::queue::tx_encode::{cmd_type_len, olinfo_status};
+use crate::sizes::ring::{TX_BUFFER_LEN, TX_DESC_COUNT};
 
 use super::memory::{Memory, TX_BUF_PHYS};
 

@@ -18,11 +18,11 @@
 //! error and a length in 1..=1514 is a frame; anything else written back is
 //! dropped; no DD is not yet the driver's.
 
-use crate::constants::rx_bits::{RXDEXT_ERR_FRAME_ERR_MASK, RXD_STAT_DD, RXD_STAT_EOP};
+use crate::facts::rx::{RXDEXT_ERR_FRAME_ERR_MASK, RXD_STAT_DD, RXD_STAT_EOP};
 use crate::queue::rx_wb::{parse, Rx};
 
 #[test]
-fn write_back_bits_are_the_ixgbe_type_h_values() {
+fn write_back_bits_are_the_fact_sheet_values() {
     assert_eq!((RXD_STAT_DD, RXD_STAT_EOP), (0x01, 0x02));
     // CE 0x01000000, LE 0x02000000, PE 0x08000000, OSE 0x10000000, USE 0x20000000.
     assert_eq!(RXDEXT_ERR_FRAME_ERR_MASK, 0x3B00_0000);

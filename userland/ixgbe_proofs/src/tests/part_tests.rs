@@ -16,8 +16,8 @@
 //! Which MAC each id is, and what differs by MAC: AUTOC kept and the
 //! security block held on the 82599, NBASE-T on the X550.
 
-use crate::constants::part::Part;
-use crate::constants::pci::{part_of, IXGBE_PARTS};
+use crate::facts::ids::{part_of, IXGBE_PARTS};
+use crate::facts::parts::Part;
 
 fn ids(of: Part) -> Vec<u16> {
     IXGBE_PARTS.iter().filter(|(_, p)| *p == of).map(|(id, _)| *id).collect()
