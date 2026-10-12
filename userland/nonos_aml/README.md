@@ -78,8 +78,7 @@ offset, and the mutexes it held are released.
   the evaluation could end is a fault, not a hang.
 - Notify is queued (64 deep, overflow counted) for the capsule; Sleep,
   Stall, Timer, Debug and Fatal go to the `Host`.
-- \_OS, \_OSI and \_REV answer from a `Personality`; the default answers no
-  \_OSI string.
+- \_OS, \_OSI and \_REV answer from a `Personality` (below).
 
 ## Regions and fields
 
@@ -111,6 +110,19 @@ LoadTable; `lock_word` and `lock_released` for the FACS Global Lock.
 - Load (from a region, a field or a buffer), LoadTable (by signature and
   OEM ids, under RootPathString, with ParameterData stored) and Unload; what
   a loaded table defines outlives the method that loaded it.
+
+## _OSI, _OS and _REV
+
+Firmware written for Windows asks `_OSI` for the version strings Microsoft
+publishes ("How to Identify the Windows Version in ACPI by Using _OSI",
+learn.microsoft.com) and turns devices and features on by the answers. The
+default `Personality` answers each of them, "Windows 2000" to "Windows 2022"
+(`exec::WINDOWS`, each line naming its release), as Windows does for its
+own string and every earlier one; `Personality::windows_up_to` caps the
+answers at a release for a machine that needs it. The feature group strings
+of section 5.7.2 and vendor strings such as "Linux" are not answered: the
+first promise support NONOS does not have yet, the second select paths
+tested against another system. `_OS` is "Microsoft Windows NT"; `_REV` is 2.
 
 ## Limits
 
