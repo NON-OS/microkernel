@@ -71,4 +71,6 @@ pub enum PioError {
     NotHolder,
     BadOffset,
     BadWidth,
+    /// The BAR runs into ports firmware keeps for itself.
+    FirmwareReserved,
 }

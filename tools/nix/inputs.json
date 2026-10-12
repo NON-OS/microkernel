@@ -3727,6 +3727,7 @@
    "userland/nonos_aml/src/grammar",
    "userland/nonos_aml/src/legacy",
    "userland/nonos_aml/src/load",
+   "userland/nonos_aml/src/motherboard",
    "userland/nonos_aml/src/namespace",
    "userland/nonos_aml/src/object",
    "userland/nonos_aml/src/op",

@@ -156,6 +156,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAcpiPlatformDevice
         | SyscallNumber::MkAcpiUsbPorts
         | SyscallNumber::MkAcpiExternalPort
+        | SyscallNumber::MkAcpiReserved
         | SyscallNumber::MkAcpiPower => caps.is_valid() && caps.is_admin(),
 
         SyscallNumber::MkDebug => caps.can_debug(),

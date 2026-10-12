@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The one place the ACPI broker reaches into the x86 ACPI parser, for the
-//! hardware bases the rule protects and the tables the capsule reads.
+//! hardware bases the rule protects, the tables the capsule reads and the
+//! ECAM windows checked against firmware's reservations.
 
 pub(in super::super) use crate::arch::x86_64::acpi as fw;

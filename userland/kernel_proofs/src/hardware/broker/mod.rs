@@ -16,8 +16,8 @@
 
 /*
  * The broker's device record, its class ids, the platform device record,
- * the BAR a mapping may name and the buses behind an external-facing
- * port, by path as the kernel builds them.
+ * the BAR a mapping may name, the buses behind an external-facing port
+ * and the ranges firmware reserves, by path as the kernel builds them.
  */
 
 pub mod acpi;
@@ -28,6 +28,7 @@ pub mod device;
 #[path = "../../../../../src/hardware/broker/external_range.rs"]
 pub mod external_range;
 pub mod mmio;
+pub mod reserved;
 
 #[cfg(test)]
 mod bars_tests;

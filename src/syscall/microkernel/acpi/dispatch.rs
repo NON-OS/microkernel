@@ -20,15 +20,15 @@
 use super::{
     sys_acpi_cpu, sys_acpi_device_name, sys_acpi_event, sys_acpi_external_port,
     sys_acpi_function_of, sys_acpi_holds, sys_acpi_hw_error, sys_acpi_pci,
-    sys_acpi_platform_device, sys_acpi_port, sys_acpi_power, sys_acpi_region, sys_acpi_sleep,
-    sys_acpi_table, sys_acpi_usb_ports, sys_pci_probe_function, sys_smbios_table,
+    sys_acpi_platform_device, sys_acpi_port, sys_acpi_power, sys_acpi_region, sys_acpi_reserved,
+    sys_acpi_sleep, sys_acpi_table, sys_acpi_usb_ports, sys_pci_probe_function, sys_smbios_table,
     sys_usb_port_facts,
 };
 use crate::syscall::microkernel::numbers::{
     SYS_ACPI_CPU, SYS_ACPI_DEVICE_NAME, SYS_ACPI_EVENT, SYS_ACPI_EXTERNAL_PORT,
     SYS_ACPI_FUNCTION_OF, SYS_ACPI_HOLDS, SYS_ACPI_HW_ERROR, SYS_ACPI_PCI,
-    SYS_ACPI_PLATFORM_DEVICE, SYS_ACPI_PORT, SYS_ACPI_POWER, SYS_ACPI_REGION, SYS_ACPI_SLEEP,
-    SYS_ACPI_TABLE, SYS_ACPI_USB_PORTS, SYS_PCI_PROBE_FUNCTION, SYS_SMBIOS_TABLE,
+    SYS_ACPI_PLATFORM_DEVICE, SYS_ACPI_PORT, SYS_ACPI_POWER, SYS_ACPI_REGION, SYS_ACPI_RESERVED,
+    SYS_ACPI_SLEEP, SYS_ACPI_TABLE, SYS_ACPI_USB_PORTS, SYS_PCI_PROBE_FUNCTION, SYS_SMBIOS_TABLE,
     SYS_USB_PORT_FACTS,
 };
 
@@ -52,6 +52,7 @@ pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
         SYS_ACPI_USB_PORTS => sys_acpi_usb_ports(a0, a1, a2, a3),
         SYS_USB_PORT_FACTS => sys_usb_port_facts(a0, a1, a2),
         SYS_ACPI_EXTERNAL_PORT => sys_acpi_external_port(a0, a1, a2),
+        SYS_ACPI_RESERVED => sys_acpi_reserved(a0, a1),
         _ => return None,
     })
 }

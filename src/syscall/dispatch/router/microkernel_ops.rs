@@ -102,6 +102,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAcpiUsbPorts
             | MkUsbPortFacts
             | MkAcpiExternalPort
+            | MkAcpiReserved
             | MkDebug
             | MkStdoutWrite
             | MkPrivateWrite
