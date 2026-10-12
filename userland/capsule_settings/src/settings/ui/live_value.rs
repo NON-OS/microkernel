@@ -20,6 +20,7 @@ use crate::settings::state::machine_key::said;
 use crate::settings::state::State;
 
 use super::build_info::{ARCHITECTURE, GIT_SHA, TOOLCHAIN, VERSION};
+use super::live_bt::bt;
 use super::live_net::{adapter, addr, link_state};
 use super::live_wifi::{join, link, remember};
 use super::valbuf::ValBuf;
@@ -40,6 +41,7 @@ pub fn resolve(state: &State, live: Live) -> (ValBuf, Tone) {
         Live::WifiLink => link(&mut b, state),
         Live::WifiJoin => join(&mut b, state),
         Live::WifiRemember => remember(&mut b, state),
+        Live::Bt(which) => bt(&mut b, state, which),
         Live::MachineKey => {
             let (words, tone) = said(state.machine_key);
             b.push_str(words);

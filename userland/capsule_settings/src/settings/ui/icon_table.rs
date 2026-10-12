@@ -23,6 +23,7 @@ pub fn icon(section: Section) -> IconId {
         Section::General => IconId::SettingsGeneral,
         Section::Network => IconId::SettingsNetwork,
         Section::Wifi => IconId::SettingsWifi,
+        Section::Bluetooth => IconId::SettingsBluetooth,
         Section::Security => IconId::SettingsSecurity,
         Section::Appearance => IconId::SettingsAppearance,
         Section::Privacy => IconId::SettingsPrivacy,
