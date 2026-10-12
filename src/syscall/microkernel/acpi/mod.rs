@@ -26,6 +26,7 @@ mod port;
 mod power;
 mod region;
 mod sleep;
+mod smbios;
 mod table;
 
 pub use dispatch::handle;
@@ -35,4 +36,5 @@ pub use port::sys_acpi_port;
 pub use power::sys_acpi_power;
 pub use region::sys_acpi_region;
 pub use sleep::sys_acpi_sleep;
+pub use smbios::sys_smbios_table;
 pub use table::sys_acpi_table;
