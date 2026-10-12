@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Transmit-side CCMP: `dot11::ccmp::encrypt` and the station's
-//! `protect_mgmt`, which protects the deauthentication a station sends when
-//! management frame protection is on.
+//! Transmit-side CCMP: `dot11::ccmp::encrypt`. The station's `protect_mgmt`,
+//! which uses it for the deauthentication a station sends when management
+//! frame protection is on, is in `protect_mgmt_tests`.
 //!
 //! The management frame vector is IEEE Std 802.11-2012 M.9.2 (CCMP with a
 //! unicast Deauthentication frame); its input bytes were copied from hostapd's
@@ -29,23 +29,19 @@
 //! the nonce; Retry, Power Management and More Data masked out of the frame
 //! control in the AAD, the subtype kept).
 
-use nonos_wifi_core::dot11::ccmp::{decrypt, encrypt, pn_and_key};
+use crate::hex::h;
+use nonos_wifi_core::dot11::ccmp::{decrypt, encrypt};
 use nonos_wifi_core::dot11::data::{build_data, protect};
-use nonos_wifi_core::station::{Ccmp, LinkStation};
-
-fn h(s: &str) -> Vec<u8> {
-    let s: String = s.split_whitespace().collect();
-    (0..s.len()).step_by(2).map(|i| u8::from_str_radix(&s[i..i + 2], 16).unwrap()).collect()
-}
 
 const TK_M92: &str = "66ed21042f9f26d7115706e40414cf2e";
 const M92_PLAIN: &str = "c0000000020000000100020000000000020000000000600002 00";
-const M92_CIPHER: &str = "c0400000020000000100020000000000020000000000600001000020000000001d07cafd0409bb8bafef";
+const M92_CIPHER: &str =
+    "c0400000020000000100020000000000020000000000600001000020000000001d07cafd0409bb8bafef";
 
-const STA: [u8; 6] = [0x02, 0x11, 0x22, 0x33, 0x44, 0x55];
-const AP: [u8; 6] = [0x02, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE];
+pub const STA: [u8; 6] = [0x02, 0x11, 0x22, 0x33, 0x44, 0x55];
+pub const AP: [u8; 6] = [0x02, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE];
 
-fn tk() -> [u8; 16] {
+pub fn tk() -> [u8; 16] {
     h(TK_M92).try_into().unwrap()
 }
 
@@ -66,27 +62,4 @@ fn encrypt_matches_the_data_path_for_data_frames() {
 #[test]
 fn a_runt_frame_is_not_protected() {
     assert!(encrypt(&[0xC0, 0x00, 0x00], 1, &tk()).is_none());
-}
-
-#[test]
-fn protect_mgmt_shares_the_packet_number_with_data() {
-    let mut s = LinkStation::new(STA);
-    s.associate(AP, Ccmp::SoftwareTxHwRx { tk: tk() });
-    let eth = [&AP[..], &STA[..], &[0x08, 0x00], b"x"].concat();
-    let pn_of = |f: &[u8]| pn_and_key(f, 24).expect("a CCMP header").0;
-    let d1 = s.tx_frame(&eth).expect("data");
-    let deauth = [&[0xC0, 0x00, 0x00, 0x00][..], &AP[..], &STA[..], &AP[..], &[0x00, 0x00, 0x03, 0x00]].concat();
-    let m = s.protect_mgmt(&deauth).expect("protected under the pairwise key");
-    let d2 = s.tx_frame(&eth).expect("data");
-    assert_eq!((pn_of(&d1), pn_of(&m), pn_of(&d2)), (1, 2, 3), "one packet number space");
-    assert_ne!(m[1] & 0x40, 0, "the Protected bit is set");
-    assert_eq!(decrypt(&m, &tk()).expect("verifies"), vec![0x03, 0x00], "reason 3 inside");
-}
-
-#[test]
-fn protect_mgmt_needs_a_software_key() {
-    let mut s = LinkStation::new(STA);
-    s.associate(AP, Ccmp::Hardware);
-    let deauth = [&[0xC0, 0x00, 0x00, 0x00][..], &AP[..], &STA[..], &AP[..], &[0x00, 0x00, 0x03, 0x00]].concat();
-    assert!(s.protect_mgmt(&deauth).is_none(), "no key in software, nothing to protect with");
 }

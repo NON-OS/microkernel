@@ -17,79 +17,53 @@
 //! Proofs for the shared WiFi core: the net_core link protocol (netif) and the
 //! station data path, checked against the crate's public API.
 
-#[cfg(test)]
+// Every module here is a proof or the simulation a proof drives, so the
+// crate is empty outside `cargo test`.
+#![cfg(test)]
+
 mod ap_sim;
-#[cfg(test)]
 mod bip_gmac_frames;
-#[cfg(test)]
 mod bip_gmac_reading_tests;
-#[cfg(test)]
 mod bip_gmac_refusal_tests;
-#[cfg(test)]
 mod bip_gmac_tests;
-#[cfg(test)]
 mod bip_tests;
-#[cfg(test)]
 mod cipher_select_tests;
-#[cfg(test)]
 mod cipher_sim;
-#[cfg(test)]
 mod country_tests;
-#[cfg(test)]
+mod crypto_kdf_tests;
 mod crypto_tests;
-#[cfg(test)]
 mod gcm_key_tests;
-#[cfg(test)]
 mod gcm_tests;
-#[cfg(test)]
-mod gcmp_handshake_tests;
-#[cfg(test)]
 mod gcmp_frame_tests;
-#[cfg(test)]
+mod gcmp_handshake_tests;
 mod gcmp_malformed_tests;
-#[cfg(test)]
-mod handshake_tests;
-#[cfg(test)]
-mod mlme_tests;
-#[cfg(test)]
-mod netif_tests;
-#[cfg(test)]
+mod handshake;
+mod hex;
+mod mlme;
+mod netif;
 mod pmf_frames;
-#[cfg(test)]
 mod pmf_link_tests;
-#[cfg(test)]
 mod pmf_plain_tests;
-#[cfg(test)]
 mod pmf_query_tests;
-#[cfg(test)]
 mod pmf_sim;
-#[cfg(test)]
 mod prf_tests;
-#[cfg(test)]
-mod ptk_len_tests;
-#[cfg(test)]
+mod protect_mgmt_tests;
 mod protect_tests;
-#[cfg(test)]
-mod receive_tests;
-#[cfg(test)]
+mod ptk_len_tests;
+mod receive;
 mod regdom_mlme_tests;
-#[cfg(test)]
 mod regdom_tests;
-#[cfg(test)]
+mod rsn_key_data_tests;
+mod rsn_select_tests;
 mod rsn_tests;
-#[cfg(test)]
 mod sa_query_tests;
-#[cfg(test)]
-mod sae_tests;
-#[cfg(test)]
+mod sae;
+mod scan_list_bounds_tests;
 mod scan_list_tests;
-#[cfg(test)]
 mod soft;
-#[cfg(test)]
 mod softmac;
-#[cfg(test)]
+mod station_counter_tests;
 mod station_gcmp_tests;
-#[cfg(test)]
 mod station_tests;
-#[cfg(test)]
+mod supplicant_sim;
 mod supplicant_tests;
