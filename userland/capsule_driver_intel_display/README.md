@@ -96,8 +96,11 @@ on the boot framebuffer.
 `src/display`: `Intel` (the `nonos_gfx_serve::Display`), `Frames`, `copy`,
 `red_first`, `Monitor` and `panel_of` (the monitor's EDID), `Modeset`,
 `pick` and `matching` (timings), `Intel::change_mode`, `Intel::show_cursor`,
-`Brightness` (Gen9 eDP backlight PWM, a level out of firmware's period; bound to the
-wire once its brightness op is fixed); `engine::route`,
+`Brightness` (Gen9 eDP backlight PWM, a level out of firmware's period), served with
+F 12's bytes (BRIGHTNESS 3, SET_BRIGHTNESS 4, `brightness_wire`, `brightness_ops`) on
+the same port: a frame shorter than the wire's 20-byte header is a brightness
+request; panels are named by output with the top bit set, levels are 1..=100
+percent, and a set is taken only from power or desktop_shell (`senders.rs`); `engine::route`,
 `engine::relight::{relight, buffer}`, `Scanout::rebase`, `ggtt_run::map_run`. The binary: `discover::find`, `setup::run`, `bar::Bar0`
 (the engine's `Mmio`), `clock::Uptime`, `frames::DmaFrames`, `serve::run`.
 `src/engine`: `takeover::read_outputs`, `plane::program`, `flip::flip`,
