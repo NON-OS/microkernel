@@ -46,3 +46,9 @@ pub fn set_method(method: PsciMethod) {
 pub fn is_present() -> bool {
     super::state::method().is_some()
 }
+
+/// The conduit the device tree named, which every firmware call takes: SMCCC
+/// services are reached the same way PSCI is (DEN0028, conduits).
+pub fn conduit() -> Option<PsciMethod> {
+    super::state::method()
+}
