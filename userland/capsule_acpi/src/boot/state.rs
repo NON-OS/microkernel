@@ -18,6 +18,7 @@
 
 use crate::ec::Ec;
 use crate::host::CapsuleHost;
+use crate::power::Power;
 use alloc::vec::Vec;
 use nonos_aml::events::Events;
 use nonos_aml::load::Aml;
@@ -35,6 +36,7 @@ pub struct Acpi {
     pub events: Option<Events>,
     pub sci: Option<Sci>,
     pub ec: Option<Ec>,
+    pub power: Power,
     pub devices: Vec<DeviceInfo>,
     pub routes: Vec<(Id, Vec<Route>)>,
     /// SCIs served and GPE methods run, for the status reply.

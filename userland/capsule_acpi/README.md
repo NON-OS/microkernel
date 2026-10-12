@@ -33,6 +33,13 @@ connected only once it is. Its accesses take the Global Lock when its _GLK
 says so. Its GPE is served by the capsule: while SCI_EVT is set, QR_EC and
 the matching _Qxx, at most 32 at a time.
 
+Batteries (PNP0C0A) and AC adapters (ACPI0003) are read at start, every
+minute, and on their Notify (0x80 state, 0x81 information): _STA's
+battery bit, _BIX or else _BIF, _BST, _PSR. The charge over all batteries,
+whether any is charging or discharging, and whether AC is online go to
+the kernel through `MkAcpiPower`, which MkBatteryStatus then answers from
+while the report is under three minutes old.
+
 ## Microkernel contract
 
 Every register it touches comes through the kernel's ACPI grant rule
@@ -49,7 +56,7 @@ function, and does no DMA.
 `CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve port 4530; Memory
 (0x10) for the heap and the interpreter's objects; DeviceEnum (0x8000) to
 find the SCI record; Driver (0x10000) to claim it; Irq (0x40000) to bind
-it; Admin (0x200) for the four ACPI calls, which the kernel gates on Admin
+it; Admin (0x200) for the five ACPI calls, which the kernel gates on Admin
 until a Firmware bit of their own is decided. Debug (0x100) is optional, for
 its serial lines. No Mmio, Dma or Pio.
 
