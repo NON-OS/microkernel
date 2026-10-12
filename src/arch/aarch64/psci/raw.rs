@@ -16,13 +16,16 @@
 
 use core::arch::asm;
 
+use super::error::PsciError;
 use super::method::PsciMethod;
 use super::state::method;
 
 pub fn psci_call(func: u32, arg0: u64, arg1: u64, arg2: u64) -> i64 {
     match method() {
-        PsciMethod::Smc => call_smc(func, arg0, arg1, arg2),
-        PsciMethod::Hvc => call_hvc(func, arg0, arg1, arg2),
+        Some(PsciMethod::Smc) => call_smc(func, arg0, arg1, arg2),
+        Some(PsciMethod::Hvc) => call_hvc(func, arg0, arg1, arg2),
+        // No firmware to ask: answered as PSCI answers a call it lacks.
+        None => i64::from(PsciError::NotSupported.code()),
     }
 }
 
