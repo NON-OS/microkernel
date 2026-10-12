@@ -56,6 +56,9 @@
    "nonos-data/trust/capsules/driver_vmmdev.manifest.bin",
    "nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.manifest.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.zk_trailer.bin",
@@ -3577,6 +3580,9 @@
    "nonos-data/trust/capsules/driver_vmmdev.manifest.bin",
    "nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.manifest.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmware_svga.zk_trailer.bin",
@@ -5180,6 +5186,25 @@
    "userland/capsule_driver_vmmdev/src/setup/sequence.rs",
    "userland/libc/src/surface_registry/abs.rs",
    "userland/vmmdev_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/vmmouse_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/x86_64/hypervisor/backdoor_rule.rs",
+   "src/arch/x86_64/hypervisor/vendor.rs",
+   "userland/capsule_driver_vmmouse/src/backdoor.rs",
+   "userland/capsule_driver_vmmouse/src/constants.rs",
+   "userland/capsule_driver_vmmouse/src/packet.rs",
+   "userland/capsule_driver_vmmouse/src/post.rs",
+   "userland/capsule_driver_vmmouse/src/say.rs",
+   "userland/capsule_driver_vmmouse/src/serve.rs",
+   "userland/capsule_driver_vmmouse/src/setup.rs",
+   "userland/libc/src/surface_registry/abs.rs",
+   "userland/vmmouse_proofs"
   ],
   "md": [],
   "signed": []

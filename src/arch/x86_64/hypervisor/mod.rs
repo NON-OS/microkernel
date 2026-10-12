@@ -30,7 +30,7 @@ mod report;
 mod state;
 mod vendor;
 
-pub use backdoor::{backdoor, BackdoorError};
+pub use backdoor::{backdoor, backdoor_present, BackdoorError};
 pub use classify::classify;
 pub use guest::Guest;
 pub use leaves::{Leaves, LEAF_BASE};

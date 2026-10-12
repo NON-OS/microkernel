@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_vmmouse
+#
+# Userland driver capsule for the VMware absolute pointer (vmmouse):
+# VMware's, and QEMU's under its vmport device. It reaches the pointer
+# through the backdoor calls the kernel allows for it alone, and posts
+# the host pointer's position, buttons and wheel onto the kernel input
+# ring. No RPC, no clipboard, no host time, no guest info: the host
+# learns only that the guest takes absolute positions.
+
+[package]
+name = "nonos_capsule_driver_vmmouse"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland VMware absolute pointer driver capsule"
+
+[[bin]]
+name = "driver_vmmouse"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The input devices a hypervisor emulates, spawned only where the device
-//! table has one.
+//! table has one, or for the backdoor's pointer, where the backdoor answers.
 
 pub(in crate::userspace::init::spawn_plan) fn spawn() {
     spawn_virtio_input();
     spawn_vmmdev();
+    spawn_vmmouse();
 }
 
 #[cfg(feature = "nonos-capsule-driver-virtio-input")]
@@ -57,3 +58,26 @@ fn spawn_vmmdev() {
 
 #[cfg(not(feature = "nonos-capsule-driver-vmmdev"))]
 fn spawn_vmmdev() {}
+
+/*
+ * The backdoor's pointer is no PCI device: it answers on the hypervisor's
+ * port, which VMware always has and QEMU has with vmport. The kernel asks
+ * GETVERSION once here, so a host without it costs no spawn.
+ */
+#[cfg(feature = "nonos-capsule-driver-vmmouse")]
+fn spawn_vmmouse() {
+    use crate::hardware::vmmouse_capsule as c;
+    if !crate::arch::hv_backdoor_present() {
+        crate::sys::boot_log::ok("DRIVER-VMMOUSE", "no backdoor on this host, not spawned");
+        return;
+    }
+    super::super::boot::capsule(
+        "DRIVER-VMMOUSE",
+        "driver_vmmouse",
+        c::spawn_driver_vmmouse_capsule,
+        c::shared_state,
+    );
+}
+
+#[cfg(not(feature = "nonos-capsule-driver-vmmouse"))]
+fn spawn_vmmouse() {}

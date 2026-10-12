@@ -41,3 +41,14 @@ pub(crate) fn hv_backdoor(cmd: u32, arg: u32) -> Result<[u32; 4], HvBackdoorErro
 pub(crate) fn hv_backdoor(_cmd: u32, _arg: u32) -> Result<[u32; 4], HvBackdoorError> {
     Err(HvBackdoorError::NoHost)
 }
+
+/// Whether a backdoor answers here, so its drivers are worth starting.
+#[cfg(target_arch = "x86_64")]
+pub fn hv_backdoor_present() -> bool {
+    crate::arch::x86_64::hypervisor::backdoor_present()
+}
+
+#[cfg(not(target_arch = "x86_64"))]
+pub fn hv_backdoor_present() -> bool {
+    false
+}

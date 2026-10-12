@@ -79,3 +79,11 @@ fn the_port_and_magic_are_vmware_s() {
     assert_eq!(BACKDOOR_PORT, 0x5658, "'VX'");
     assert_eq!(BACKDOOR_MAGIC.to_be_bytes(), *b"VMXh");
 }
+
+#[test]
+fn only_the_magic_back_is_an_answer() {
+    assert!(answered([6, BACKDOOR_MAGIC, CMD_GETVERSION, 0x5658]));
+    assert!(!answered([u32::MAX; 4]), "an unassigned port");
+    assert!(!answered([u32::MAX, BACKDOOR_MAGIC, 0, 0]));
+    assert!(!answered([6, 0, 0, 0]));
+}
