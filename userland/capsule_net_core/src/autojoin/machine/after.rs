@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What each pass and each look at the link lead to.
+//! What each pass leads to.
 
 use super::state::bit;
 use super::{
@@ -48,24 +48,5 @@ impl Machine {
             }
         };
         self.next_ms = now_ms + wait;
-    }
-
-    /// What the link said while a join runs: `Some(true)` associated,
-    /// `Some(false)` not (yet), `None` no answer in time (the driver is busy
-    /// joining). Returns the index of a join that just ended, and whether it
-    /// joined, for the log.
-    pub fn after_watch(&mut self, now_ms: i64, associated: Option<bool>) -> Option<(u8, bool)> {
-        let Phase::Joining { index, until_ms } = self.phase else { return None };
-        if associated == Some(true) {
-            self.phase = Phase::Done;
-            return Some((index, true));
-        }
-        if now_ms >= until_ms {
-            self.phase = Phase::Waiting;
-            self.next_ms = now_ms + NOT_YET_MS;
-            return Some((index, false));
-        }
-        self.next_ms = now_ms + WATCH_EVERY_MS;
-        None
     }
 }
