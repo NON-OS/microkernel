@@ -14,40 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_virtio::Mmio;
+
 use crate::constants::{TX_BUFFER_LEN, TX_QUEUE_SIZE, VIRTIO_NET_HDR_LEN};
 
+// One bit per buffer in `in_flight`.
+const _: () = assert!(TX_QUEUE_SIZE as u32 <= u32::BITS);
+
+/// The transmit virtqueue and its buffers, reached only through their
+/// bounds-checked regions.
 #[derive(Debug, Clone, Copy)]
 pub struct TxQueue {
-    pub region_va: *mut u8,
-    pub region_phys: u64,
-    pub buf_va: *mut u8,
+    pub ring: Mmio,
+    pub bufs: Mmio,
     pub buf_phys: u64,
     pub buf_len: u32,
     pub buf_count: u16,
     pub next_avail: u16,
     pub last_used: u16,
+    /// Bit `n` set: buffer `n` was posted and the device has not given it
+    /// back. Only such a buffer is taken back, whatever id the device names.
+    pub in_flight: u32,
+    /// When the ring was first found full with the link up, since the last
+    /// buffer came back.
+    pub full_since: Option<u64>,
     /// Bytes of struct virtio_net_hdr written ahead of each frame: the
     /// legacy 10 unless the transport negotiated VERSION_1.
     pub hdr_len: usize,
 }
 
 impl TxQueue {
-    pub fn new(
-        region_va: u64,
-        region_phys: u64,
-        buf_va: u64,
-        buf_phys: u64,
-        buf_count: u16,
-    ) -> Self {
+    /// At most TX_QUEUE_SIZE buffers, whatever the count asked for.
+    pub fn new(ring: Mmio, bufs: Mmio, buf_phys: u64, buf_count: u16) -> Self {
         Self {
-            region_va: region_va as *mut u8,
-            region_phys,
-            buf_va: buf_va as *mut u8,
+            ring,
+            bufs,
             buf_phys,
             buf_len: TX_BUFFER_LEN,
-            buf_count,
+            buf_count: core::cmp::min(buf_count, TX_QUEUE_SIZE),
             next_avail: 0,
             last_used: 0,
+            in_flight: 0,
+            full_since: None,
             hdr_len: VIRTIO_NET_HDR_LEN,
         }
     }
@@ -59,9 +67,5 @@ impl TxQueue {
 
     pub const fn queue_size() -> u16 {
         TX_QUEUE_SIZE
-    }
-
-    pub fn region_phys(&self) -> u64 {
-        self.region_phys
     }
 }

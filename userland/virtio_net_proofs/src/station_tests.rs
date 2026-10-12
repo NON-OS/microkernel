@@ -37,7 +37,7 @@ fn the_driver_draws_its_address() {
     assert!(station.contains("crypto_random"));
     assert!(station.contains("apply(&mut mac)"));
     for path in [
-        include_str!("../../capsule_driver_virtio_net/src/setup/sequence.rs"),
+        include_str!("../../capsule_driver_virtio_net/src/setup/legacy.rs"),
         include_str!("../../capsule_driver_virtio_net/src/setup/modern/run.rs"),
     ] {
         assert!(path.contains("station::draw()?"), "a bring-up path takes its MAC elsewhere");

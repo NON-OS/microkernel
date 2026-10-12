@@ -26,6 +26,7 @@ mod generation;
 mod negotiate;
 mod queue;
 mod regs;
+mod reset;
 mod status;
 mod vector;
 
@@ -34,8 +35,9 @@ pub use generation::{stable_read, GENERATION_TRIES};
 pub use negotiate::{accept, device_features, write_driver_features};
 pub use queue::{choose_size, queue_max, setup_queue, NotifyArea, QueueReady, QueueSpec};
 pub use regs::*;
+pub use reset::{reset, reset_until, RESET_POLLS};
 pub use status::{
-    driver_ok, fail, reset, start, RESET_POLLS, STATUS_ACKNOWLEDGE, STATUS_DRIVER,
-    STATUS_DRIVER_OK, STATUS_FAILED, STATUS_FEATURES_OK,
+    driver_ok, fail, start, start_until, STATUS_ACKNOWLEDGE, STATUS_DRIVER, STATUS_DRIVER_OK,
+    STATUS_FAILED, STATUS_FEATURES_OK,
 };
 pub use vector::{set_config_vector, NO_VECTOR};

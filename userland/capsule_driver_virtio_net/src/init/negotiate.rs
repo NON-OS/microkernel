@@ -15,26 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::constants::{
-    LEG_GUEST_FEATURES, LEG_HOST_FEATURES, LEG_STATUS, STATUS_ACKNOWLEDGE, STATUS_DRIVER,
-    LEGACY_WANTED, STATUS_FAILED, STATUS_FEATURES_OK,
+    LEGACY_WANTED, LEG_GUEST_FEATURES, LEG_HOST_FEATURES, LEG_STATUS, STATUS_ACKNOWLEDGE,
+    STATUS_DRIVER, STATUS_FAILED, STATUS_FEATURES_OK,
 };
 use crate::regs::Regs;
 
+/// Reset the device and take the features this driver handles. The reset
+/// comes first, so a device left live by a previous instance drops its old
+/// rings before anything else is written.
 pub fn negotiate(regs: Regs) -> Result<u32, &'static str> {
-    unsafe {
-        regs.w8(LEG_STATUS, 0);
-        regs.w8(LEG_STATUS, STATUS_ACKNOWLEDGE);
-        regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER);
-        let host = regs.r32(LEG_HOST_FEATURES);
-        let want = host & LEGACY_WANTED;
-        regs.w32(LEG_GUEST_FEATURES, want);
-        let s = regs.r8(LEG_STATUS);
-        regs.w8(LEG_STATUS, s | STATUS_FEATURES_OK);
-        let s2 = regs.r8(LEG_STATUS);
-        if s2 & STATUS_FEATURES_OK == 0 {
-            regs.w8(LEG_STATUS, s2 | STATUS_FAILED);
-            return Err("virtio-net: features-ok rejected");
-        }
-        Ok(want)
+    regs.w8(LEG_STATUS, 0);
+    regs.w8(LEG_STATUS, STATUS_ACKNOWLEDGE);
+    regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER);
+    let host = regs.r32(LEG_HOST_FEATURES);
+    let want = host & LEGACY_WANTED;
+    regs.w32(LEG_GUEST_FEATURES, want);
+    let s = regs.r8(LEG_STATUS);
+    regs.w8(LEG_STATUS, s | STATUS_FEATURES_OK);
+    let s2 = regs.r8(LEG_STATUS);
+    if s2 & STATUS_FEATURES_OK == 0 {
+        regs.w8(LEG_STATUS, s2 | STATUS_FAILED);
+        return Err("virtio-net: features-ok rejected");
     }
+    Ok(want)
 }

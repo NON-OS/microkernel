@@ -14,59 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_yield;
+//! Transmit: queue the frame, ring the doorbell, answer. Nothing waits on
+//! the device; buffers it has finished with come back on later sends.
 
-use crate::constants::{MIN_ETHERNET_FRAME, Q_TX};
-use crate::queue::TxQueue;
-use crate::transport::Transport;
+use crate::clock::now_ms;
+use crate::constants::Q_TX;
+use crate::queue::TxError;
+use crate::setup::Driver;
 
-const MAX_YIELDS: u32 = 200_000;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TxError {
-    Timeout,
-}
-
-pub fn send(transport: Transport, tx: &mut TxQueue, frame: &[u8]) -> Result<(), TxError> {
-    let eth_len = if frame.len() < MIN_ETHERNET_FRAME {
-        MIN_ETHERNET_FRAME
-    } else {
-        frame.len()
-    };
-    // A zeroed header of the transport's length: no offloads, one buffer.
-    let hdr_len = tx.hdr_len;
-    let total = (hdr_len + eth_len) as u32;
-    let mut tries = 0u32;
-    while tx.next_avail.wrapping_sub(tx.used_idx()) >= tx.buf_count {
-        if tries >= MAX_YIELDS {
-            return Err(TxError::Timeout);
+/// Queue `frame`. `Full` while every buffer is still the device's;
+/// `Stalled` once the ring has stayed full, with the link up and nothing
+/// coming back, for TX_STALL_MS: the caller then resets the device.
+pub fn send(driver: &mut Driver, frame: &[u8]) -> Result<(), TxError> {
+    match driver.tx.post(frame) {
+        Ok(()) => {
+            driver.transport.notify(Q_TX);
+            Ok(())
         }
-        mk_yield();
-        tries = tries.wrapping_add(1);
+        Err(TxError::Full) if driver.tx.stalled(now_ms(), driver.link_up()) => {
+            Err(TxError::Stalled)
+        }
+        Err(e) => Err(e),
     }
-    let slot = tx.next_avail % tx.buf_count;
-    unsafe {
-        let buf = tx.buffer_mut(slot, total);
-        for b in buf.iter_mut() {
-            *b = 0;
-        }
-        buf[hdr_len..hdr_len + frame.len()].copy_from_slice(frame);
-    }
-    tx.post_packet(slot, total);
-    transport.notify(Q_TX);
-    let target = tx.next_avail.wrapping_add(1);
-    tx.next_avail = target;
-    tries = 0;
-    loop {
-        if tx.used_idx() == target {
-            break;
-        }
-        if tries >= MAX_YIELDS {
-            return Err(TxError::Timeout);
-        }
-        mk_yield();
-        tries = tries.wrapping_add(1);
-    }
-    tx.last_used = target;
-    Ok(())
 }

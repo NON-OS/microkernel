@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::{
-    encode_response_header, write_status, Request, MAC_ADDRESS_PAYLOAD_LEN, RESP_HDR_LEN, STATUS_LEN,
+    encode_response_header, write_status, Request, MAC_ADDRESS_PAYLOAD_LEN, RESP_HDR_LEN,
+    STATUS_LEN,
 };
 use crate::server::error::reply;
 use crate::setup::Driver;

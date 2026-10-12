@@ -23,7 +23,7 @@ and the broker refuses to map that.
 | `pci` | the BAR list in transport terms, modern and legacy ids, a config-space snapshot read through the broker |
 | `caps` | the vendor capability walk over that snapshot: the first usable structure of each type, lengths and BARs checked, MSI-X table pages kept out |
 | `map` | `map_window`: map the regions a driver needs (`Need` says whether ISR and device config are wanted) through the broker, checking the length the broker actually gave |
-| `common` | the common configuration: reset and status, feature negotiation (VERSION_1, ACCESS_PLATFORM when offered), queue programming with an optional MSI-X vector and its read-back |
+| `common` | the common configuration: reset and status (`reset_until` waits by the caller's clock; `reset` by a count of reads, for a caller without one), feature negotiation (VERSION_1, ACCESS_PLATFORM when offered), queue programming with an optional MSI-X vector and its read-back |
 | `notify` | the doorbell address for a queue, bounded by the mapped notify region |
 | `mmio` | bounds-checked volatile accessors over a mapped region |
 | `broker` | the `Broker` trait: the three kernel calls the transport needs, which each driver implements on `nonos_libc` |

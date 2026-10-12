@@ -14,4 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const MAX_DEVICES: usize = 32;
+// At 32 a machine with more records stopped short of a device behind a root
+// port, as the wired drivers found; they read 128.
+pub(super) const MAX_DEVICES: usize = 128;

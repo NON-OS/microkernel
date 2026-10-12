@@ -19,6 +19,7 @@
 
 use super::access::CommonCfg;
 use super::regs::DEVICE_STATUS;
+use super::reset::{reset, reset_until};
 use crate::error::VirtioError;
 
 pub const STATUS_ACKNOWLEDGE: u8 = 1;
@@ -27,28 +28,23 @@ pub const STATUS_DRIVER_OK: u8 = 4;
 pub const STATUS_FEATURES_OK: u8 = 8;
 pub const STATUS_FAILED: u8 = 0x80;
 
-/// How many times the status is read back after a reset. A modern device
-/// may finish its reset after the write returns, and the specification has
-/// the driver wait for zero before going on; QEMU is done at once.
-pub const RESET_POLLS: u32 = 1000;
-
-pub fn reset(c: &impl CommonCfg) -> Result<(), VirtioError> {
-    c.w8(DEVICE_STATUS, 0);
-    for _ in 0..RESET_POLLS {
-        if c.r8(DEVICE_STATUS) == 0 {
-            return Ok(());
-        }
-        core::hint::spin_loop();
-    }
-    Err(VirtioError::ResetTimeout)
-}
-
 /// Reset, then tell the device it was seen and that a driver is here.
 pub fn start(c: &impl CommonCfg) -> Result<(), VirtioError> {
     reset(c)?;
+    announce(c);
+    Ok(())
+}
+
+/// `start`, with the reset waited for until `expired` (see `reset_until`).
+pub fn start_until(c: &impl CommonCfg, expired: impl FnMut() -> bool) -> Result<(), VirtioError> {
+    reset_until(c, expired)?;
+    announce(c);
+    Ok(())
+}
+
+fn announce(c: &impl CommonCfg) {
     add(c, STATUS_ACKNOWLEDGE);
     add(c, STATUS_DRIVER);
-    Ok(())
 }
 
 /// Give up on the device; it may not be driven until reset.

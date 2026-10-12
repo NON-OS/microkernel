@@ -14,12 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
 pub const LEG_HOST_FEATURES: usize = 0x00;
 pub const LEG_GUEST_FEATURES: usize = 0x04;
 pub const LEG_QUEUE_PFN: usize = 0x08;
@@ -29,10 +23,8 @@ pub const LEG_QUEUE_NOTIFY: usize = 0x10;
 pub const LEG_STATUS: usize = 0x12;
 pub const LEG_MAC: usize = 0x14;
 
-
 pub const VIRTIO_NET_F_MAC: u32 = 5;
 pub const VIRTIO_NET_F_STATUS: u32 = 16;
-
 
 pub const VIRTIO_NET_S_LINK_UP: u16 = 1;
 // Offset of the status word in struct virtio_net_config, after the MAC.

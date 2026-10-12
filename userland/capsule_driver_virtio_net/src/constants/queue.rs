@@ -14,16 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
-
-
-
-
 pub const Q_RX: u16 = 0;
 pub const Q_TX: u16 = 1;
 
@@ -36,18 +26,16 @@ pub const VQ_AVAIL_OFFSET: usize = 4096;
 pub const VQ_USED_OFFSET: usize = 8192;
 pub const VQ_REGION_SIZE: usize = 12288;
 
-// Physical virtqueue slot count. Legacy virtio never shrinks the ring here,
-// so the device keeps its QueueNumMax size, and the hardcoded offsets above
-// only hold for a 256-entry ring (256 descriptors * 16 bytes = the avail
-// offset). Avail and used ring positions index modulo THIS, never the smaller
-// number of buffers the driver chooses to prime.
+// Physical virtqueue slot count. The offsets above hold only for a 256-entry
+// ring (256 descriptors * 16 bytes = the avail offset), so it is the only size
+// either transport accepts: a legacy device keeps its QueueNumMax and lays its
+// rings out for that from the page number, and at 512 or more its used ring
+// starts at or past the end of the grant. Avail and used ring positions index
+// modulo THIS, never the smaller number of buffers the driver primes.
 pub const RING_SLOTS: u16 = (VQ_AVAIL_OFFSET / 16) as u16;
 
 pub const RX_DESC_COUNT: u16 = RX_QUEUE_SIZE;
 pub const TX_DESC_COUNT: u16 = TX_QUEUE_SIZE;
-
-
-
 
 pub const RX_BUFFER_LEN: u32 = 2048;
 pub const TX_BUFFER_LEN: u32 = 2048;

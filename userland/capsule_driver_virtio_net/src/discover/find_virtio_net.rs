@@ -46,7 +46,6 @@ pub fn find_virtio_net() -> Option<Found> {
                 register_bar: idx,
                 register_kind: kind,
                 register_size: size,
-                pci_device: r.device,
                 bars: bars(r),
             });
         }

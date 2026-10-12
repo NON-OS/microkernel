@@ -14,38 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::read_volatile;
+//! The used ring, which the device writes: every value read here is the
+//! device's word and is checked by whoever uses it.
 
-use super::{RxQueue, TxQueue};
-use crate::constants::VQ_USED_OFFSET;
+use nonos_virtio::Mmio;
 
-const USED_IDX_OFFSET: usize = 2;
-const USED_RING_OFFSET: usize = 4;
+use crate::constants::{RING_SLOTS, VQ_USED_OFFSET};
+
+const USED_IDX: usize = VQ_USED_OFFSET + 2;
+const USED_RING: usize = VQ_USED_OFFSET + 4;
 const USED_ELEM_SIZE: usize = 8;
 
-impl RxQueue {
-    pub fn used_idx(&self) -> u16 {
-        unsafe { read_volatile(self.region_va.add(VQ_USED_OFFSET + USED_IDX_OFFSET).cast()) }
-    }
-
-    pub fn used_elem_at(&self, ring_pos: u16) -> (u32, u32) {
-        let off = VQ_USED_OFFSET + USED_RING_OFFSET + USED_ELEM_SIZE * (ring_pos as usize);
-        unsafe {
-            let id = read_volatile(self.region_va.add(off).cast::<u32>());
-            let len = read_volatile(self.region_va.add(off + 4).cast::<u32>());
-            (id, len)
-        }
-    }
+/// How many entries the device has used, ever (it wraps).
+pub fn idx(ring: Mmio) -> u16 {
+    ring.r16(USED_IDX)
 }
 
-impl TxQueue {
-    pub fn used_idx(&self) -> u16 {
-        unsafe { read_volatile(self.region_va.add(VQ_USED_OFFSET + USED_IDX_OFFSET).cast()) }
-    }
-
-    pub unsafe fn buffer_mut(&self, slot: u16, len: u32) -> &mut [u8] {
-        let n = core::cmp::min(len, self.buf_len) as usize;
-        let base = self.buf_va.add(self.buf_len as usize * slot as usize);
-        core::slice::from_raw_parts_mut(base, n)
-    }
+/// The descriptor id and used length of entry `n`.
+pub fn elem(ring: Mmio, n: u16) -> (u32, u32) {
+    let at = USED_RING + USED_ELEM_SIZE * usize::from(n % RING_SLOTS);
+    (ring.r32(at), ring.r32(at + 4))
 }
