@@ -22,12 +22,15 @@ pub mod cursor_shape;
 pub mod cursor_slot;
 pub mod drain_batch;
 pub mod drain_damage;
+pub mod indicator_band;
 pub mod hw_cursor;
 pub mod hw_cursor_back;
 pub mod mirror;
 pub mod present_virtio;
 pub mod present_wire;
+pub mod show_band;
 pub mod tick;
 pub mod to_screen;
 
+pub use show_band::show_band;
 pub use tick::tick;

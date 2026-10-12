@@ -23,6 +23,7 @@ pub mod follow;
 pub mod head;
 pub mod head_rule;
 pub mod hint_rule;
+pub mod indicator_rule;
 pub mod link;
 pub mod ops;
 pub mod ops_mode;

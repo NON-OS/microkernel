@@ -20,6 +20,7 @@ pub mod display_hint;
 pub mod display_info;
 pub mod focus_set;
 pub mod health;
+pub mod indicator;
 pub mod input_subscribe;
 pub mod scene_remove;
 pub mod scene_submit;

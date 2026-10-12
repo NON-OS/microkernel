@@ -21,5 +21,6 @@ pub const DAMAGE_COMMIT_REQ_LEN: usize = 16;
 pub const FOCUS_SET_REQ_LEN: usize = 8;
 pub const CURSOR_UPDATE_REQ_LEN: usize = 16;
 pub const SCENE_REMOVE_REQ_LEN: usize = 8;
+pub const INDICATOR_REQ_LEN: usize = 8;
 pub const DISPLAY_INFO_DATA_LEN: usize = 16;
 pub const DISPLAY_INFO_RESP_LEN: usize = STATUS_LEN + DISPLAY_INFO_DATA_LEN;
