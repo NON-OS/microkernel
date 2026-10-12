@@ -19,7 +19,7 @@ use super::log::log_handoff_fb;
 use super::marker::paint_mapped_marker;
 use super::report::{log_mapped, log_refused};
 use super::state::{KernelFramebuffer, FRAMEBUFFER};
-use crate::boot::handoff::BootHandoffV1;
+use crate::boot::handoff::{BootHandoffV1, FramebufferInfo};
 use crate::memory::addr::PhysAddr;
 
 pub(crate) fn init_framebuffer(handoff: &BootHandoffV1) {
@@ -27,6 +27,12 @@ pub(crate) fn init_framebuffer(handoff: &BootHandoffV1) {
         log_refused(b"the loader handed over no framebuffer");
         return;
     };
+    init_framebuffer_from(fb);
+}
+
+/// Map and adopt a framebuffer however it was found: a loader's handoff, or
+/// a Raspberry Pi's firmware asked through its mailbox.
+pub(crate) fn init_framebuffer_from(fb: &FramebufferInfo) {
     log_handoff_fb(fb.ptr, fb.stride, fb.pixel_format);
     let f = match frame(fb.ptr, fb.size, fb.width, fb.height, fb.stride) {
         Ok(f) => f,
