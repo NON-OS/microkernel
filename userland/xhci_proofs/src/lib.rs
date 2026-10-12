@@ -56,9 +56,7 @@ mod control_out_tests;
 #[cfg(test)]
 mod event_ring;
 #[cfg(test)]
-mod hub_context_tests;
-#[cfg(test)]
-mod hub_route_tests;
+mod hub;
 #[cfg(test)]
 mod isoch_context_tests;
 #[cfg(test)]
