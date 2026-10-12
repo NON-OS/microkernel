@@ -18,6 +18,7 @@ use super::tag::tag4;
 pub(crate) const N_MK_DEVICE_LIST: i64 = tag4(b"MDLS");
 pub(crate) const N_MK_DEVICE_CLAIM: i64 = tag4(b"MDCL");
 pub(crate) const N_MK_DEVICE_RELEASE: i64 = tag4(b"MDRL");
+pub(crate) const N_MK_BOOT_FRAMEBUFFER: i64 = tag4(b"MBFB");
 pub(crate) const N_MK_MMIO_MAP: i64 = tag4(b"MMMP");
 pub(crate) const N_MK_MMIO_UNMAP: i64 = tag4(b"MMUM");
 pub(crate) const N_MK_IRQ_BIND: i64 = tag4(b"MIRB");
