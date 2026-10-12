@@ -31,6 +31,35 @@ Discovery and configuration run in this order:
 
 After that, notifications on the report handles become events.
 
+## Battery
+
+A HID device carries the Battery Service (HOGP 1.0, 3). Once the reports
+are on, the same host runs a Battery Service client (BAS 1.0). It runs
+after the reports, so typing never waits on it, and it keeps to one
+request outstanding:
+1. Find the Battery Services (0x180F), at most 4. Instances past that are
+   left unread, not refused.
+2. In each, keep the first Battery Level (0x2A19) that can be read. The
+   service holds one (BAS 1.0, 3).
+3. Read each level. If it can notify, find its CCCD within its own
+   characteristic and write 0x0001.
+
+Each level read or notified comes out as `Step::battery`, a `Battery`
+naming the instance, in database order, and the percentage. Only one
+octet from 0 to 100 is a level (BAS 1.0, 3.1); anything else is passed
+over.
+
+The battery client ends without touching HID when it hits any of these:
+- a malformed answer or one out of place;
+- an ATT error, apart from Not Found. A refused read or CCCD write passes
+  on to the next level instead, since a level may need more security than
+  the reports;
+- the bearer's request budget. The battery yields it rather than end HID.
+
+The ATT timeout is the exception. It ends the bearer for every client on
+it (Vol 3, Part F, 3.3.3), so a battery request with no answer for 30 s
+ends HID too.
+
 The host owns the lock state, as with a USB keyboard. A Caps Lock, Num
 Lock or Scroll Lock key going down toggles its lock. The new octet (HID
 1.11, B.1) then goes to every boot keyboard output report in a Write
