@@ -33,8 +33,6 @@ pub(super) static SMP_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 pub(super) static BSP_INITIALIZING: AtomicBool = AtomicBool::new(false);
 
-pub(super) static AP_STARTUP_BARRIER: AtomicU32 = AtomicU32::new(0);
-
 pub(crate) fn cpu_count() -> usize {
     CPU_COUNT.load(Ordering::Acquire)
 }
