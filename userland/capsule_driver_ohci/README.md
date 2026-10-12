@@ -40,7 +40,9 @@ endpoint (9) and its reads (0xE), control transfer (0xB), bulk configure
 (0x10), OUT (0x11), IN (0x12), reset (0x13) and the polled bulk IN (0x14).
 Port status is in xHCI PORTSC form: connected, enabled, speed 1 full or 2
 low, connect change. Isochronous ops answer -22. A bulk IN while
-the polled IN is armed answers -16; each root port polls on its own. Errors:
+the polled IN is armed answers -16; each armed polled IN holds a place of
+its own, so devices poll side by side, below one hub too, and with every
+place held a further device's first poll answers -16. Errors:
 -5 bus or timeout, -11 nothing yet, -16 busy, -22 malformed, -32 STALL.
 
 ## Authority

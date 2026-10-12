@@ -39,7 +39,7 @@ pub const fn bulk_ed(i: usize) -> usize {
 pub const fn bulk_td(i: usize, half: u8) -> usize {
     BULK_TD + TD_LEN * (2 * i + half as usize)
 }
-/// The polled bulk IN buffer of the device on root port `lane + 1`.
-pub const fn poll_buf(lane: usize) -> usize {
-    POLL_BUF + BULK_MAX * lane
+/// Polled place `place`'s buffer.
+pub const fn poll_buf(place: usize) -> usize {
+    POLL_BUF + BULK_MAX * place
 }
