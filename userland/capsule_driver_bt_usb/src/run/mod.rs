@@ -27,6 +27,9 @@ mod links;
 mod probe;
 mod say;
 mod serve;
+mod store;
+mod store_call;
+mod vendor;
 
 pub use desk::Desk;
 pub use drive::run;
