@@ -19,7 +19,7 @@
 
 use super::bgrt_entry::{bgrt, Bgrt};
 
-fn table(version: u16, status: u8, address: u64) -> Vec<u8> {
+pub(super) fn table(version: u16, status: u8, address: u64) -> Vec<u8> {
     let mut t = b"BGRT".to_vec();
     t.extend_from_slice(&[0; 32]);
     t.extend_from_slice(&version.to_le_bytes());
