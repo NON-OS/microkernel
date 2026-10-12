@@ -884,6 +884,10 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_acpi/src/props/wire.rs",
+   "userland/capsule_acpi/src/props/wire_cursor.rs",
+   "userland/capsule_acpi/src/props/wire_read.rs",
+   "userland/capsule_acpi/src/props/wire_write.rs",
    "userland/capsule_acpi/src/server/policy.rs",
    "userland/capsule_acpi_proofs"
   ],
@@ -3736,6 +3740,7 @@
    "userland/nonos_aml/src/platform_device",
    "userland/nonos_aml/src/ports",
    "userland/nonos_aml/src/power",
+   "userland/nonos_aml/src/props",
    "userland/nonos_aml/src/region",
    "userland/nonos_aml/src/serial",
    "userland/nonos_aml/src/shape",

@@ -252,6 +252,16 @@ other op: no one.
   says so, and otherwise the PS/2 driver leaves 0x60 and 0x64 alone.
   Layout in `src/legacy/wire.rs`. Logged at start, one `[ACPI] legacy`
   line each and one `[ACPI] 8042:` line.
+- PROPERTIES (12, device id u64, offset u32): the device's _DSD
+  properties (device-properties UUID; integers, strings, references as
+  namespace paths, packages nested four deep) and the data-only subnodes
+  the hierarchical data extension hangs below it (four levels, 32 nodes,
+  a loop read once), read by `nonos_aml::props`. Only the pid holding the
+  device's claim may ask, through the same kernel claim test as
+  DEVICE_POWER. The reply is the whole length u32 and up to 504 bytes
+  from `offset`; a driver asks again from where the last page ended.
+  Layout in `src/props/wire.rs`; a driver mounts `wire*.rs` to read it.
+  EIO for a tree past 16 KiB.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and
