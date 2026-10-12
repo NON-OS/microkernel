@@ -29,6 +29,8 @@ pub mod bus;
 pub mod desc;
 pub mod found;
 pub mod halt;
+pub mod hosts;
+mod hosts_first;
 pub mod nic;
 pub mod nnet;
 pub mod run;
