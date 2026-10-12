@@ -38,7 +38,7 @@ pub enum Why {
     TooLarge,
 }
 
-/// `fw` is the firmware mode when the kernel gave it; `surface` the canvas.
+/// `fw` overrides the firmware mode the record gives; `surface` the canvas.
 pub fn prepare(
     rec: &[u8],
     file: &[u8],
@@ -59,7 +59,7 @@ pub fn prepare(
     if !sized || !same || (r.flags & TOP_DOWN != 0) != b.top_down {
         return Err(Why::Disagree);
     }
-    let mode = fw.unwrap_or_else(|| guess_mode(r.x, r.y, dw, dh, surface));
+    let mode = fw.or(r.mode).unwrap_or_else(|| guess_mode(r.x, r.y, dw, dh, surface));
     let spot = place(r.x, r.y, dw, dh, mode, surface).ok_or(Why::Placement)?;
     if spot.w as u64 * spot.h as u64 > MAX_SHOWN {
         return Err(Why::TooLarge);

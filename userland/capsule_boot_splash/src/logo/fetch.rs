@@ -21,12 +21,16 @@ use alloc::vec;
 
 use nonos_libc::{mk_boot_logo, BOOT_LOGO_FILE, BOOT_LOGO_RECORD, BOOT_LOGO_RECORD_LEN};
 
+use super::record::RECORD_LEN;
 use super::{prepare::MAX_FILE, Shown};
 
 /// The logo for a surface of `w` by `h`, or None.
 pub fn fetch(w: u32, h: u32) -> Option<Shown> {
+    // Asked for the record with the mode (F-60); a kernel before it answers
+    // the first 28 bytes, and the mode is then worked out.
     let mut rec = [0u8; BOOT_LOGO_RECORD_LEN];
-    if mk_boot_logo(BOOT_LOGO_RECORD, rec.as_mut_ptr(), rec.len()) != rec.len() as i64 {
+    let got = mk_boot_logo(BOOT_LOGO_RECORD, rec.as_mut_ptr(), rec.len());
+    if got != rec.len() as i64 && got != RECORD_LEN as i64 {
         return None;
     }
     let len = mk_boot_logo(BOOT_LOGO_FILE, core::ptr::null_mut(), 0);
@@ -37,7 +41,7 @@ pub fn fetch(w: u32, h: u32) -> Option<Shown> {
     if mk_boot_logo(BOOT_LOGO_FILE, file.as_mut_ptr(), file.len()) != len {
         return None;
     }
-    // The splash holds no display query, so the firmware mode is worked out
-    // from the logo's own margins (`place::guess_mode`).
-    super::prepare(&rec, &file, None, (w, h)).ok()
+    // The record's mode when it gives one, else the logo's own margins
+    // (`place::guess_mode`): the splash holds no display query.
+    super::prepare(&rec[..got as usize], &file, None, (w, h)).ok()
 }

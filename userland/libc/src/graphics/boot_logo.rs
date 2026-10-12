@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The firmware's boot logo (F-50): the BGRT image the firmware drew, so the
-//! boot splash can show it where it was. `which` 0 asks for the 28-byte
+//! boot splash can show it where it was. `which` 0 asks for the 36-byte
 //! record (x, y, width, height u32; flags u8, bit 0 on screen, bit 1 top-down;
-//! quarter turns u8; bits per pixel u16; file size u32; pixel offset u32),
+//! quarter turns u8; bits per pixel u16; file size u32; pixel offset u32;
+//! F-60's firmware mode, width and height u32, 0 by 0 for none),
 //! `which` 1 for the BMP file, already checked by the kernel. Cap requirement:
 //! GraphicsSurfaceCreate, and only the process that owns `app.boot_splash`.
 
@@ -25,7 +26,8 @@ use crate::syscall::{call_raw, N_MK_BOOT_LOGO};
 
 pub const BOOT_LOGO_RECORD: u32 = 0;
 pub const BOOT_LOGO_FILE: u32 = 1;
-pub const BOOT_LOGO_RECORD_LEN: usize = 28;
+/// The record with the mode; a buffer of 28 to 35 gets the first 28 bytes.
+pub const BOOT_LOGO_RECORD_LEN: usize = 36;
 
 /// The bytes written; with a null `out`, the length the answer needs.
 /// -ENOENT when the firmware left no logo, -ERANGE for a short buffer,
