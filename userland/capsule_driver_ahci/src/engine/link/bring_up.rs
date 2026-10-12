@@ -16,7 +16,7 @@
 
 use super::established::{link_state, LinkState};
 use super::ready::device_ready;
-use crate::clock::{pause_ms, wait_until, Deadline};
+use crate::clock::{pause_ms, wait_until, Deadline, Pace};
 use crate::constants::regs::{
     PORT_SCTL, PORT_SERR, PORT_SSTS, PORT_TFD, SCTL_DET_COMRESET, SCTL_DET_MASK,
 };
@@ -35,7 +35,9 @@ use crate::regs::Regs;
 /// `NoDisk` when the PHY stays quiet for LINK_EMPTY_MS: the port is empty, as
 /// Linux's debounce after a hard reset decides it. The engine must be stopped.
 pub(crate) fn link_up(regs: Regs, base: u32, ready_ms: u64) -> AhciResult<()> {
+    // SAFETY: the port's register block lies inside the mapped ABAR.
     let r = |off: u32| unsafe { regs.r32(base + off) };
+    // SAFETY: as above.
     unsafe {
         let sctl = regs.r32(base + PORT_SCTL);
         regs.w32(base + PORT_SCTL, (sctl & !SCTL_DET_MASK) | SCTL_DET_COMRESET);
@@ -45,6 +47,7 @@ pub(crate) fn link_up(regs: Regs, base: u32, ready_ms: u64) -> AhciResult<()> {
 
     let limit = Deadline::after_ms(LINK_TIMEOUT_MS);
     let mut quiet_until: Option<Deadline> = None;
+    let pace = Pace::start();
     loop {
         match link_state(r(PORT_SSTS)) {
             LinkState::Up => break,
@@ -58,8 +61,9 @@ pub(crate) fn link_up(regs: Regs, base: u32, ready_ms: u64) -> AhciResult<()> {
         if limit.expired() {
             return Err(AhciError::Timeout);
         }
-        core::hint::spin_loop();
+        pace.rest();
     }
+    // SAFETY: as above.
     unsafe {
         regs.w32(base + PORT_SERR, regs.r32(base + PORT_SERR));
     }

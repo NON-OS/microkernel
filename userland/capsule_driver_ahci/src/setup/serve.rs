@@ -18,6 +18,7 @@ use alloc::vec::Vec;
 
 use super::walked::Walk;
 use crate::choose::{choose, Candidate};
+use crate::constants::timing::COMMAND_MS;
 use crate::controller::scan_ports;
 use crate::engine::park;
 use crate::error::{AhciError, AhciResult};
@@ -42,7 +43,9 @@ pub(super) fn serve(mut w: Walk) -> AhciResult<Driver> {
         return Err(w.first_port_error.unwrap_or(AhciError::NoDisk));
     };
     let keep = cands[c.index].controller;
-    let block = w.probed.swap_remove(c.index).port;
+    let mut block = w.probed.swap_remove(c.index).port;
+    // Served now, so each command has the full budget, not the walk's.
+    block.command_ms = COMMAND_MS;
     for p in w.probed.drain(..) {
         park(p.port, w.opened[p.cand.controller].regs);
     }
