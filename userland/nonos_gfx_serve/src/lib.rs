@@ -30,9 +30,11 @@ pub mod mode_set;
 pub mod platform;
 pub mod primary;
 pub mod server;
+pub mod slot;
 pub mod surface;
 
 pub use copy::copy_rects;
 pub use display::{Display, Shadow};
 pub use platform::{Platform, Region};
 pub use server::Server;
+pub use slot::{Slot, MAX_OUTPUTS};
