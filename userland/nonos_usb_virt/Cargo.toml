@@ -1,0 +1,21 @@
+# NONOS userland: nonos_usb_virt
+# eK@nonos.systems
+#
+# The devices below hubs as every USB host lists them: driver.usb_hub0
+# parks each child it addresses, the host shows it as a virtual port in
+# PORT_STATUS, and a class driver claims it as it would a root port.
+# Pure, so every host shares one table and the proofs hold its rules.
+
+[package]
+name = "nonos_usb_virt"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB virtual ports for devices below hubs"
+
+[dependencies]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

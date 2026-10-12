@@ -2,7 +2,8 @@
 # Copyright (C) 2026 NONOS Contributors
 #
 # Host-runnable proofs for nonos_usb_hub: the hub descriptor, port status
-# and route rules, and the port walk over a modelled hub and clock.
+# and route rules, the port walk over a modelled hub and clock, and the
+# virtual ports every host lists for parked children.
 [package]
 name = "usb_hub_proofs"
 version = "0.3.0"
@@ -13,6 +14,7 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_usb_hub = { path = "../nonos_usb_hub" }
+nonos_usb_virt = { path = "../nonos_usb_virt" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
