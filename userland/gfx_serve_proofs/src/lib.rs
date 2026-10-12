@@ -38,6 +38,8 @@ pub mod platform;
 pub mod primary;
 #[path = "../../nonos_gfx_serve/src/server.rs"]
 pub mod server;
+#[path = "../../nonos_gfx_serve/src/slot.rs"]
+pub mod slot;
 #[path = "../../nonos_gfx_serve/src/surface.rs"]
 pub mod surface;
 

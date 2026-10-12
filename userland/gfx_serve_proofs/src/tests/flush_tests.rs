@@ -26,7 +26,7 @@ fn painted() -> (Server<Vram, Pool>, Surface) {
     let mut s = Server::new(Vram::new(true, true), Pool::new(4096));
     let (_, b) = ask(&mut s, COMPOSITOR, ops::SURFACE, 0, &[]);
     let sf = Surface::decode(&b).unwrap();
-    let base = s.current.unwrap().region.base;
+    let base = s.slots[0].current.unwrap().region.base;
     let m = s.platform.memory.get_mut(&base).unwrap();
     for (i, px) in m.chunks_exact_mut(4).enumerate().take(1024 * 768) {
         px.copy_from_slice(&(i as u32).to_le_bytes());

@@ -16,8 +16,8 @@
 
 //! MODE_SET makes before it breaks (section 12): the new primary is made,
 //! shown, shared and answered while the old one stays until RETIRE. One
-//! primary waiting for RETIRE at a time; a refused MODE_SET keeps the old
-//! mode and frees whatever it made.
+//! primary waiting for RETIRE per output; a refused MODE_SET keeps the
+//! old mode and frees whatever it made.
 
 use nonos_gfx_wire::errno::EBUSY;
 use nonos_gfx_wire::{Errno, Surface};
@@ -25,11 +25,12 @@ use nonos_gfx_wire::{Errno, Surface};
 use super::display::Display;
 use super::mode_check::check;
 use super::platform::Platform;
+use super::primary::Primary;
 use super::server::Server;
 
 impl<D: Display, P: Platform> Server<D, P> {
     pub fn mode_set(&mut self, sender: u32, output: u16, w: u32, h: u32) -> Result<Surface, Errno> {
-        if self.retiring.is_some() {
+        if self.slot(output)?.retiring.is_some() {
             return Err(EBUSY);
         }
         check(&self.display, output, w, h)?;
@@ -40,21 +41,22 @@ impl<D: Display, P: Platform> Server<D, P> {
             self.platform.release(Some(new.handle), new.region);
             return Err(e);
         }
-        self.retiring = self.current.replace(new);
+        let slot = self.slot(output)?;
+        slot.retiring = slot.current.replace(new);
         self.owner = Some(sender);
         Ok(new.surface())
     }
 
-    /// RETIRE: the compositor no longer reads the old primary.
+    /// RETIRE: the compositor no longer reads the old primary. A serial
+    /// names one primary across every output, so any output's is found.
     pub fn retire(&mut self, serial: u32) -> Result<(), Errno> {
         use nonos_gfx_wire::errno::{EINVAL, ESTALE};
-        match (self.current, self.retiring) {
-            (Some(c), _) if c.serial == serial => Err(EINVAL),
-            (_, Some(r)) if r.serial == serial => {
-                self.drop_retiring();
-                Ok(())
-            }
-            _ => Err(ESTALE),
+        let named = |p: Option<Primary>| p.is_some_and(|p| p.serial == serial);
+        if self.slots.iter().any(|s| named(s.current)) {
+            return Err(EINVAL);
         }
+        let o = self.slots.iter().position(|s| named(s.retiring)).ok_or(ESTALE)?;
+        self.drop_retiring(o);
+        Ok(())
     }
 }

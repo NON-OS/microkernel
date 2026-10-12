@@ -41,11 +41,11 @@ fn a_restarted_compositor_gets_the_primary_and_the_retiring_one_is_freed() {
     let (st, _) =
         ask(&mut s, COMPOSITOR, ops::MODE_SET, 0, &crate::model::wire::u32s(&[1280, 720, 0]));
     assert_eq!(st, 0);
-    let old = s.retiring.unwrap().handle;
+    let old = s.slots[0].retiring.unwrap().handle;
     let (st, body) = ask(&mut s, COMPOSITOR + 1, ops::SURFACE, 0, &[]);
     assert_eq!(st, 0);
     assert_eq!(Surface::decode(&body).unwrap().width, 1280);
-    assert!(s.retiring.is_none() && s.platform.released == [old]);
+    assert!(s.slots[0].retiring.is_none() && s.platform.released == [old]);
     assert_eq!(s.owner, Some(COMPOSITOR + 1));
 }
 
@@ -54,5 +54,5 @@ fn a_full_pool_is_enomem_and_nothing_leaks() {
     let mut s = Server::new(Vram::new(true, false), Pool::new(100));
     let (st, _) = ask(&mut s, COMPOSITOR, ops::SURFACE, 0, &[]);
     assert_eq!(st, nonos_gfx_wire::errno::ENOMEM);
-    assert!(s.current.is_none() && s.platform.memory.is_empty());
+    assert!(s.slots[0].current.is_none() && s.platform.memory.is_empty());
 }

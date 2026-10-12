@@ -18,7 +18,7 @@
 //! ENXIO, an op not served ENOSYS, a body that does not decode EINVAL.
 
 use nonos_gfx_wire::body::mode::MAX_MODES;
-use nonos_gfx_wire::errno::{EINVAL, ENOSYS, ENXIO};
+use nonos_gfx_wire::errno::{EINVAL, ENOSYS};
 use nonos_gfx_wire::{bytes, ops, reply, Cursor, Errno, Flush, Mode, Modes, Request};
 
 use super::display::Display;
@@ -40,8 +40,8 @@ impl<D: Display, P: Platform> Server<D, P> {
 
     fn op(&mut self, sender: u32, req: &Request, body: &mut [u8; 252]) -> Result<usize, Errno> {
         let (h, p) = (req.header, req.payload);
-        if h.op >= ops::CAPS && h.output >= self.display.caps().outputs {
-            return Err(ENXIO);
+        if h.op >= ops::CAPS && h.op != ops::RETIRE {
+            self.slot(h.output)?;
         }
         let put = |body: &mut [u8; 252], b: &[u8]| {
             body[..b.len()].copy_from_slice(b);
@@ -57,7 +57,7 @@ impl<D: Display, P: Platform> Server<D, P> {
             }
             ops::STATE => {
                 let mut st = self.display.state(h.output)?;
-                st.serial = self.current.map_or(0, |c| c.serial);
+                st.serial = self.slot(h.output)?.current.map_or(0, |c| c.serial);
                 put(body, &st.encode())
             }
             ops::SURFACE => put(body, &self.surface(sender, h.output)?.encode()),

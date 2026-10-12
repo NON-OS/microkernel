@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod heads;
+pub mod heads_display;
 pub mod pool;
 pub mod pool_platform;
 pub mod vram;
 pub mod vram_display;
 pub mod wire;
 
+pub use heads::Heads;
 pub use pool::Pool;
 pub use vram::Vram;

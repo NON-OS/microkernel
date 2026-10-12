@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! SURFACE: the current primary, made on first ask at the mode the device
-//! shows, and shared with the asker. A new asker becomes the owner, and a
-//! primary still waiting for RETIRE is freed then: the compositor that
-//! would have retired it is gone.
+//! SURFACE: an output's current primary, made on first ask at the mode
+//! the device shows there, and shared with the asker. A new asker becomes
+//! the owner, and every primary still waiting for RETIRE, on any output,
+//! is freed then: the compositor that would have retired it is gone.
 
 use nonos_gfx_wire::body::caps::HW_CURSOR;
 use nonos_gfx_wire::errno::EINVAL;
@@ -27,19 +27,21 @@ use super::display::Display;
 use super::platform::Platform;
 use super::primary::{next_serial, Primary};
 use super::server::Server;
+use super::slot::MAX_OUTPUTS;
 
 impl<D: Display, P: Platform> Server<D, P> {
     pub fn surface(&mut self, sender: u32, output: u16) -> Result<Surface, Errno> {
+        self.slot(output)?;
         if self.owner != Some(sender) {
             self.owner = Some(sender);
-            self.drop_retiring();
+            (0..MAX_OUTPUTS).for_each(|o| self.drop_retiring(o));
         }
-        let p = match self.current {
+        let p = match self.slot(output)?.current {
             Some(p) => p,
             None => {
                 let st = self.display.state(output)?;
                 let p = self.make(st.width, st.height)?;
-                self.current = Some(p);
+                self.slot(output)?.current = Some(p);
                 p
             }
         };

@@ -18,4 +18,6 @@ mod copy_tests;
 mod flush_tests;
 mod mode_set_tests;
 mod op_tests;
+mod output_retire_tests;
+mod output_tests;
 mod surface_tests;

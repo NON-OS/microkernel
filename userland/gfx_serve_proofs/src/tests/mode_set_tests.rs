@@ -35,7 +35,7 @@ fn the_new_primary_is_shown_and_answered_while_the_old_waits() {
     let new = Surface::decode(&body).unwrap();
     assert_eq!((st, new.width, new.height, new.serial), (0, 1600, 900, 0x0042_0002));
     assert_eq!(s.display.size, (1600, 900));
-    assert_eq!(s.retiring.unwrap().serial, old.serial, "the old one kept");
+    assert_eq!(s.slots[0].retiring.unwrap().serial, old.serial, "the old one kept");
     assert_eq!(set(&mut s, 1280, 720).0, EBUSY, "one waiting at a time");
     assert_eq!(ask(&mut s, COMPOSITOR, ops::RETIRE, 0, &u32s(&[new.serial])).0, EINVAL);
     assert_eq!(ask(&mut s, COMPOSITOR, ops::RETIRE, 0, &u32s(&[old.serial])).0, 0);
@@ -68,5 +68,5 @@ fn a_refused_or_failed_mode_set_keeps_the_old_mode_and_frees_its_attempt() {
     s.display.fail_set = false;
     s.platform.pages_left = 100;
     assert_eq!(set(&mut s, 2560, 1600).0, ENOMEM);
-    assert!(s.retiring.is_none() && s.current.unwrap().width == 1024);
+    assert!(s.slots[0].retiring.is_none() && s.slots[0].current.unwrap().width == 1024);
 }
