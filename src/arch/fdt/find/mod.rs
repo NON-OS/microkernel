@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod cpus;
+pub mod framebuffer;
 pub mod gic;
 pub mod isa;
 pub mod mailbox;
