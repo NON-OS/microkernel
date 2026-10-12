@@ -39,6 +39,7 @@ mod numa;
 mod platform;
 mod ports;
 mod props;
+mod quirks;
 mod reserved;
 mod power;
 mod serial;

@@ -25,6 +25,8 @@ pub mod chassis;
 pub mod entry;
 #[path = "../../nonos_smbios/src/identity.rs"]
 pub mod identity;
+#[path = "../../nonos_smbios/src/quirk/mod.rs"]
+pub mod quirk;
 #[path = "../../nonos_smbios/src/structure.rs"]
 pub mod structure;
 #[path = "../../nonos_smbios/src/text.rs"]
