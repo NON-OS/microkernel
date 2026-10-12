@@ -173,6 +173,8 @@ mod closed_due_tests;
 #[cfg(test)]
 mod move_tests;
 #[cfg(test)]
+mod eth_move_tests;
+#[cfg(test)]
 mod scan_tests;
 #[cfg(test)]
 mod attest_tests;
