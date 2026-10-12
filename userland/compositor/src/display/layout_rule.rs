@@ -17,7 +17,7 @@
 //! One canvas across several outputs (unit 10, the shell's "extend"): each
 //! output takes a slice of the canvas side by side, output 0 at the left
 //! with the canvas it would have alone, every further output as many canvas
-//! pixels as its screen holds at the same scale; the canvas is as tall as
+//! pixels as its screen holds at its own scale; the canvas is as tall as
 //! the tallest slice. Pure, so the host proofs pin it.
 
 use crate::state::damage::Rect;
@@ -31,6 +31,8 @@ pub struct Slice {
     pub x: u32,
     pub w: u32,
     pub h: u32,
+    /// The output's scale in quarters.
+    pub q: u32,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -40,21 +42,23 @@ pub struct Plan {
     pub n: usize,
 }
 
-/// The canvas for output 0's own canvas `first` and further screens
-/// `heads` at `scale`; None when a slice would be empty or too wide.
-pub fn plan(first: (u32, u32), heads: &[(u32, u32)], scale: u32) -> Option<Plan> {
+/// The canvas for output 0's own canvas `first` at `q0` quarters and
+/// further screens `heads`, each with its own quarters; None when a slice
+/// would be empty or too wide.
+pub fn plan(first: (u32, u32), q0: u32, heads: &[(u32, u32, u32)]) -> Option<Plan> {
     let mut p = Plan::default();
-    let mut add = |w: u32, h: u32| -> Option<()> {
+    let mut add = |w: u32, h: u32, q: u32| -> Option<()> {
         let slot = p.slices.get_mut(p.n)?;
         (w > 0 && h > 0).then_some(())?;
-        *slot = Slice { x: p.size.0, w, h };
+        *slot = Slice { x: p.size.0, w, h, q };
         p.size = (p.size.0.checked_add(w)?, p.size.1.max(h));
         p.n += 1;
         Some(())
     };
-    add(first.0, first.1)?;
-    for &(w, h) in heads {
-        add(w / scale.max(1), h / scale.max(1))?;
+    add(first.0, first.1, q0)?;
+    for &(w, h, q) in heads {
+        let (cw, ch) = crate::display::scale_rule::canvas_for(w, h, q);
+        add(cw, ch, q)?;
     }
     // Four outputs of 4096 at most: a wider canvas is not one anything shows.
     (p.size.0 <= 16384).then_some(p)

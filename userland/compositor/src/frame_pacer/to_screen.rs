@@ -31,10 +31,10 @@ pub fn to_screen(ctx: &mut Context, rect: Rect) -> Option<Rect> {
         None => (canvas(ctx), rect),
     };
     let shrunk = view.width > ctx.screen.width || view.height > ctx.screen.height;
-    match ctx.scale {
+    match ctx.scale_q {
         _ if shrunk => crate::sw_blitter::downscale(view, ctx.screen, rect),
-        1 if ctx.plan.is_none() => Some(rect),
-        scale => crate::sw_blitter::upscale(view, ctx.screen, rect, scale),
+        4 if ctx.plan.is_none() => Some(rect),
+        q => crate::sw_blitter::scaled(view, ctx.screen, rect, q),
     }
 }
 
