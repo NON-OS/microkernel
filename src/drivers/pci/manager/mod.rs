@@ -19,6 +19,8 @@ mod global;
 mod probe;
 
 pub use device::PciManager;
+// Only the ACPI broker, x86's, probes a function after the boot scan.
+#[cfg(target_arch = "x86_64")]
 pub(crate) use probe::probe_device as probe_function;
 pub use global::{
     count_devices, find_device_by_class, find_device_by_id, get_device_by_address,
