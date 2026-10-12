@@ -17,7 +17,8 @@
 //! SPCR's encoded fields (Microsoft's Serial Port Console Redirection
 //! table specification, which ACPI 6.5 lists but does not define; recalled,
 //! unverified): the configured baud rate byte, and the interface types an
-//! Arm machine uses.
+//! Arm machine or a PC server uses (DBG2's serial subtypes are the same
+//! numbers).
 
 /// 3, 4, 6 and 7 name 9600, 19200, 57600 and 115200; 0 means the rate the
 /// firmware left the port at; anything else is reserved.
@@ -38,6 +39,8 @@ pub enum Interface {
     Pl011,
     SbsaGeneric32,
     SbsaGeneric,
+    /// A 16550 whose registers the GAS places, at its access width.
+    Ns16550Gas,
     /// A type the parser does not name; its number as given.
     Other(u8),
 }
@@ -49,6 +52,7 @@ pub fn interface(code: u8) -> Interface {
         0x03 => Interface::Pl011,
         0x0D => Interface::SbsaGeneric32,
         0x0E => Interface::SbsaGeneric,
+        0x12 => Interface::Ns16550Gas,
         n => Interface::Other(n),
     }
 }
