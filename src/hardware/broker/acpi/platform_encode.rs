@@ -26,7 +26,7 @@ use alloc::vec::Vec;
 fn bytes(p: &Platform) -> Option<Vec<u8>> {
     let n = u8::try_from(p.windows.len()).ok()?;
     let len = u8::try_from(p.path.len()).ok()?;
-    let mut b = vec![1, p.class, n, p.irq_flags, 0, 0, 0, 0];
+    let mut b = vec![1, p.class, n, p.irq_flags, p.flags, 0, 0, 0];
     b.extend_from_slice(&p.hid);
     b.extend_from_slice(&p.uid.to_le_bytes());
     b.extend_from_slice(&p.gsiv.to_le_bytes());

@@ -18,6 +18,7 @@
 //! published to the broker from their evaluated _CRS, for the controller
 //! capsules to claim like any other device.
 
+mod deps;
 mod publish;
 mod record;
 mod say;
