@@ -67,7 +67,7 @@ Once the 30-byte HID descriptor reads, the driver (`reprobe`, `userland/capsule_
 The transfer engine polls the controller, and the touchpad's own interrupt line is routed to neither capsule. A touchpad holds that line active while a report waits, so `driver.i2c_pci0` reads the level of that GPIO pad and answers `OP_GPIO_DOORBELL` with it (`handle`, `userland/capsule_driver_i2c_pci/src/server/handlers/doorbell.rs:37-52`). It finds the pad's register:
 
 - on Broxton, Apollo Lake and Gemini Lake, from the community the firmware names, at the pin's index (`is_bxt_family`, `userland/capsule_driver_i2c_pci/src/constants/device_info.rs:71-74`);
-- on Intel chipsets from Sunrise Point to Meteor Lake and on AMD, through the tables in `nonos_pinctrl` (`locate`, `userland/nonos_pinctrl/src/locate.rs:32`).
+- on AMD, through `nonos_pinctrl` (`locate`, `userland/nonos_pinctrl/src/locate.rs`). On Intel chipsets from Sunrise Point on no pad layout is kept since the originality audit (F 46), so the driver reads on a timer there.
 
 `driver.i2c_hid0` trusts the doorbell once it has rung. It then reads only when the line is active, and falls back to timed reads after 2500 quiet turns, or for good when the controller has no doorbell to offer (`DOORBELL_TRUST_CYCLES`, `userland/capsule_driver_i2c_hid/src/server/runner/run.rs:35-37`). Its loop waits 2 ms for a request each turn (`RECV_TIMEOUT_MS`, `userland/capsule_driver_i2c_hid/src/server/runner/run.rs:26`).
 
@@ -97,8 +97,7 @@ Both a tap and a clickpad press post button 1 (`publish_touch`, `userland/capsul
 
 ## How this is checked
 
-- [Proof crates](../../overview/glossary.md#proof-crate) at commit bff12b97, all passing: `i2c_hid_proofs` runs both drivers' wire code against a modelled DesignWare core with a modelled touchpad (51 tests); `i2c_pci_proofs` holds the LPSS reset, the clocks and the id tables (35); `i2c_transfer_proofs` holds the transfer engine (26); `pinctrl_proofs` holds the GPIO layouts (13); `input_proofs` holds the gesture decoder (96).
-- The touchpad on Intel LPSS has one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+- [Proof crates](../../overview/glossary.md#proof-crate) at commit bff12b97, all passing: `i2c_hid_proofs` runs both drivers' wire code against a modelled DesignWare core with a modelled touchpad (51 tests); `i2c_pci_proofs` holds the LPSS reset, the clocks and the id tables (35); `i2c_transfer_proofs` holds the transfer engine (26); `pinctrl_proofs` holds the GPIO controller ids and pad arithmetic (8 since F 46); `input_proofs` holds the gesture decoder (96).
 - The AMD path and every other Intel family have not been run on hardware in this release.
 
 ## See also

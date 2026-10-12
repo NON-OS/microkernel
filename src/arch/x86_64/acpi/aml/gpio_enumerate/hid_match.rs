@@ -16,16 +16,16 @@
 
 use super::sideband::community_pids;
 
-// Intel pinctrl `_HID`s Linux binds a layout to without a sideband entry
-// here: Broxton and Gemini Lake declare each community as its own device
-// with a static window, and the others are kept for firmware that writes
-// static windows (pinctrl-broxton.c, pinctrl-cannonlake.c, pinctrl-icelake.c,
-// pinctrl-tigerlake.c, pinctrl-meteorlake.c).
+// Intel PCH GPIO `_HID`s with no sideband entry here: Broxton and Gemini
+// Lake declare each community as its own device with a static window, and
+// the others are kept for firmware that writes static windows. The ids are
+// recalled from what platforms' firmware publishes, not read from a
+// document: unverified.
 const STATIC_ONLY: [&[u8]; 7] =
     [b"INT3452", b"INT3453", b"INT3450", b"INT34C3", b"INT34C6", b"INTC105E", b"INTC1083"];
 
-// The AMD FCH GPIO bank (Linux pinctrl-amd.c amd_gpio_acpi_match), one
-// static window.
+// The AMD FCH GPIO bank, one static window. The ids are recalled from AMD
+// platforms' published ACPI tables: unverified.
 const AMD: [&[u8]; 4] = [b"AMD0030", b"AMDI0030", b"AMDI0031", b"AMDI0033"];
 
 /// True for every GPIO controller `_HID` the i2c driver knows a layout for.

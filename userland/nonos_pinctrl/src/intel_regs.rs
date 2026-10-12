@@ -16,18 +16,19 @@
 
 use crate::error::PadError;
 
-// Linux pinctrl-intel.c: REVID at 0x000 carries the revision in its upper
-// half, PADBAR at 0x00C the offset of the pad configuration array, and
-// PADCFG0 bit 1 (GPIORXSTATE) the pad's input level after the glitch
-// filter and before RX inversion.
+// An Intel PCH GPIO community (the PCH datasheets, volume 2, GPIO
+// registers): the revision register at 0x000 with the revision in its
+// upper half, the pad base register at 0x00C holding the offset of the pad
+// configuration array, and PAD_CFG_DW0 bit 1 the pad's RX state. Recalled,
+// not read: unverified.
 pub const INTEL_REVID: u64 = 0x000;
 pub const INTEL_PADBAR: u64 = 0x00C;
 pub const INTEL_RXSTATE: u32 = 1 << 1;
 
-/// Bytes between two pads' PADCFG0. Revision 0x092 and later add the
-/// debounce dwords, four registers per pad instead of two (Linux
-/// intel_pinctrl_probe_one sets PINCTRL_FEATURE_DEBOUNCE, intel_get_padcfg
-/// uses nregs 4).
+/// Bytes between two pads' PAD_CFG_DW0: 8 on the older communities, 16 on
+/// those whose pads carry the further configuration dwords. Which revision
+/// value marks the change (0x092 here) is recalled without a published
+/// source to cite: unverified.
 pub fn intel_pad_stride(revid: u32) -> u64 {
     if (revid >> 16) >= 0x092 {
         16
@@ -36,9 +37,10 @@ pub fn intel_pad_stride(revid: u32) -> u64 {
     }
 }
 
-/// Offset of pad `pad`'s PADCFG0 in a community window of `window` bytes
-/// whose REVID and PADBAR read `revid` and `padbar`. A REVID of all ones is
-/// a community that is not there (Linux returns -ENODEV for it).
+/// Offset of pad `pad`'s PAD_CFG_DW0 in a community window of `window`
+/// bytes whose revision and pad base read `revid` and `padbar`. A revision
+/// of all ones, or a pad base of zero or all ones, is a community that does
+/// not decode.
 pub fn intel_padcfg0(revid: u32, padbar: u32, pad: u16, window: u64) -> Result<u64, PadError> {
     if revid == u32::MAX || padbar == 0 || padbar == u32::MAX {
         return Err(PadError::Absent);
