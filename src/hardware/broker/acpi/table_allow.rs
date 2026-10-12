@@ -19,13 +19,15 @@
 //!
 //! Only what running AML needs: the definition blocks, the FADT and FACS for
 //! the fixed hardware and the global lock, and the ECDT for the embedded
-//! controller before its _REG. Tables that name the machine (MSDM carries an
+//! controller before its _REG; and BERT and HEST, which say where firmware
+//! reports hardware errors (18.3) and name nothing about the machine. Tables that name the machine (MSDM carries an
 //! operating system licence key, SLIC an OEM certificate) or the boot's
 //! measurements stay with the kernel.
 
-/// ACPI 6.5 tables 5.5 and 5.6: the definition blocks and the fixed tables
-/// AML depends on.
-const ALLOWED: [[u8; 4]; 6] = [*b"DSDT", *b"SSDT", *b"PSDT", *b"FACP", *b"FACS", *b"ECDT"];
+/// ACPI 6.5 tables 5.5 and 5.6: the definition blocks, the fixed tables
+/// AML depends on, and the error tables.
+const ALLOWED: [[u8; 4]; 8] =
+    [*b"DSDT", *b"SSDT", *b"PSDT", *b"FACP", *b"FACS", *b"ECDT", *b"BERT", *b"HEST"];
 
 /// "OEMx" tables are reserved for OEM definition blocks a LoadTable may name
 /// (table 5.6); only their first three bytes are fixed.
