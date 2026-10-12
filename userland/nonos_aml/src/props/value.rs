@@ -14,22 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One _DSD property: a name and its value, at most one list deep.
+//! One property: a name and its value. A value is an integer, a string, a
+//! reference to a named object, or a package of values, packages nesting
+//! to `MAX_DEPTH`; what lies deeper, or is of another type, is dropped.
 
-use super::dsd::MAX;
 use crate::load::Aml;
 use crate::namespace::Id;
 use crate::object::{Object, Ref};
 use alloc::vec::Vec;
 
+/// Elements kept of a package, bytes of a string or name, properties of a
+/// set: more than any device declares.
+pub const MAX: usize = 64;
+/// Packages within packages; a GPIO list (a package of a reference and
+/// its arguments, in a package) needs two.
+pub const MAX_DEPTH: u32 = 4;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Value {
     Integer(u64),
     String(Vec<u8>),
-    /// A named object (a GPIO controller, a power resource).
+    /// A named object (a GPIO controller, a power resource, a subnode).
     Reference(Id),
-    /// One level of values: a list, or a reference with its arguments.
-    List(Vec<Value>),
+    Package(Vec<Value>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -38,23 +45,28 @@ pub struct Property {
     pub value: Value,
 }
 
-fn value(aml: &Aml, o: &Object, deep: bool) -> Option<Value> {
+pub(super) fn text(s: &[u8]) -> Vec<u8> {
+    s.iter().copied().take_while(|c| *c != 0).take(MAX).collect()
+}
+
+fn value(aml: &Aml, o: &Object, depth: u32) -> Option<Value> {
     Some(match o {
         Object::Integer(v) => Value::Integer(*v),
-        Object::String(s) => Value::String(s.borrow().iter().copied().take(MAX).collect()),
+        Object::String(s) => Value::String(text(&s.borrow())),
         Object::Ref(Ref::Named(id, gen)) if aml.ns.live(*id, *gen) => Value::Reference(*id),
-        Object::Package(p) if deep => {
+        Object::Package(p) if depth < MAX_DEPTH => {
             let p = p.borrow();
-            Value::List(p.iter().take(MAX).filter_map(|e| value(aml, e, false)).collect())
+            Value::Package(p.iter().take(MAX).filter_map(|e| value(aml, e, depth + 1)).collect())
         }
         _ => return None,
     })
 }
 
+/// A two-element package: the name, then the value.
 pub(super) fn property(aml: &Aml, o: &Object) -> Option<Property> {
     let Object::Package(p) = o else { return None };
     let p = p.borrow();
     let Some(Object::String(name)) = p.first() else { return None };
-    let name = name.borrow().iter().copied().take_while(|c| *c != 0).take(MAX).collect();
-    Some(Property { name, value: value(aml, p.get(1)?, true)? })
+    let name = text(&name.borrow());
+    Some(Property { name, value: value(aml, p.get(1)?, 0)? })
 }

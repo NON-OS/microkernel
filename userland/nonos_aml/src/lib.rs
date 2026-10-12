@@ -51,6 +51,7 @@ pub mod platform;
 pub mod platform_device;
 pub mod ports;
 pub mod power;
+pub mod props;
 pub mod region;
 pub mod serial;
 pub mod shape;

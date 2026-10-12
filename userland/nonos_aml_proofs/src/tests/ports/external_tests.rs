@@ -21,7 +21,7 @@
 use crate::enc::*;
 use crate::ports::{facing, Facing, DMA_PROPERTY_UUID, EXTERNAL_FACING_UUID};
 use crate::rig::Rig;
-use crate::serial::DEVICE_PROPERTIES_UUID;
+use crate::props::DEVICE_PROPERTIES_UUID;
 use crate::tests::platform::run::evaluator;
 
 fn dsd(uuid: &[u8; 16], name: &str, v: u64) -> Vec<u8> {

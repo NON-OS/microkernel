@@ -37,6 +37,8 @@ mod platform_device;
 mod suspend;
 #[path = "ports/mod.rs"]
 mod ports;
+#[path = "props/mod.rs"]
+mod props;
 #[path = "serial/mod.rs"]
 mod serial;
 #[path = "video/mod.rs"]

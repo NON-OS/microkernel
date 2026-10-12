@@ -21,8 +21,7 @@
 
 use super::bus::Connection;
 use super::bus_parse::serial_buses;
-use super::dsd::properties;
-use super::dsd_value::Property;
+use crate::props::{properties, Property};
 use super::gpio::{gpios, Gpio};
 use super::hid::descriptor_register;
 use crate::load::Aml;
