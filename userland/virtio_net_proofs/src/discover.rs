@@ -19,15 +19,6 @@
 #[path = "../../capsule_driver_virtio_net/src/discover/constants.rs"]
 mod constants;
 
-#[cfg(test)]
-mod tests {
-    use super::constants::MAX_DEVICES;
-
-    // At 32 records a machine with more stopped short of a device behind a
-    // root port; every wired driver reads 128.
-    #[test]
-    #[allow(clippy::assertions_on_constants)] // the shipped bound is the point
-    fn discovery_reads_as_many_records_as_the_wired_drivers() {
-        assert!(MAX_DEVICES >= 128, "discovery reads {MAX_DEVICES} records");
-    }
-}
+// At 32 records a machine with more stopped short of a device behind a root
+// port; every wired driver reads 128. Held when the proofs build.
+const _: () = assert!(constants::MAX_DEVICES >= 128, "discovery reads too few records");
