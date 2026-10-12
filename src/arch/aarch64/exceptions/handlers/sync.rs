@@ -23,7 +23,7 @@ use crate::sys::serial::Line;
 use super::svc;
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_sync_current(frame: *mut ExceptionFrame) -> ! {
+pub(crate) extern "C" fn aarch64_exc_sync_current(frame: *mut ExceptionFrame) -> ! {
     let frame = unsafe { &*frame };
     deliver(frame)
 }
@@ -32,7 +32,7 @@ const EC_FP_ACCESS: u8 = 0x07;
 const EC_SVC64: u8 = 0x15;
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_sync_lower(frame: *mut ExceptionFrame) {
+pub(crate) extern "C" fn aarch64_exc_sync_lower(frame: *mut ExceptionFrame) {
     let frame = unsafe { &mut *frame };
     let ec = ((frame.esr >> 26) & 0x3F) as u8;
     if ec == EC_SVC64 {
