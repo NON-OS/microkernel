@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The isoch ops of driver.xhci0 (`capsule_driver_xhci/src/protocol`):
-//! configure the playback endpoint, then send it batches of packets.
+//! configure the streaming endpoint, then send it batches of packets.
 
 use nonos_usbnet::xhci::{call, E_IO};
 
-use crate::uac::Playback;
+use crate::uac::Stream;
 
 const OP_CONFIGURE_ISOCH: u16 = 0x0018;
 const OP_ISOCH_OUT: u16 = 0x0019;
@@ -30,7 +30,7 @@ const PACKETS_MAX: usize = 32;
 
 /// The endpoint's DCI. Full and high speed only: no SuperSpeed companion
 /// is read, so its bursts are none.
-pub fn configure_isoch(xhci: u32, slot: u8, p: &Playback) -> Result<u8, i32> {
+pub fn configure_isoch(xhci: u32, slot: u8, p: &Stream) -> Result<u8, i32> {
     let mps = p.max_packet.to_le_bytes();
     let body = [slot, p.ep_address, p.b_interval, 0, mps[0], mps[1], 0, 0];
     let mut resp = [0u8; DATA_AT + 4];
