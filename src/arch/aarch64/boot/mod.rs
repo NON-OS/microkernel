@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod acpi;
 mod core_entry;
 pub mod dtb_adapter;
 pub mod entry;
@@ -30,6 +31,7 @@ mod start_clock;
 #[cfg(any(feature = "nonos-trap-proof-sp0", feature = "nonos-trap-proof-kernel-abort"))]
 mod trap_proof;
 
+pub use acpi::acpi_rsdp;
 pub use entry::kernel_entry;
 pub use info::{BootInfo, MemoryRegion};
 pub use init::init;
