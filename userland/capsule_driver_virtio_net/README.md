@@ -41,8 +41,8 @@ the endpoint to them (`src/services/registry/held.rs`), by name and by pid.
 | `OP_HEALTHCHECK` | server liveness | status word |
 | `OP_LINK_STATUS` | link-up state | 1 byte |
 | `OP_MAC_ADDRESS` | the station address drawn this boot | 6 bytes |
-| `OP_TX_PACKET` | transmit one Ethernet frame | status word |
-| `OP_RX_PACKET` | poll one received frame | length plus frame bytes |
+| `OP_TX_PACKET` | queue one Ethernet frame, 14 to 1514 bytes; `E_AGAIN` while every transmit buffer is still the device's | status word |
+| `OP_RX_PACKET` | poll one received frame, at most 1514 bytes | length plus frame bytes |
 | `OP_RX_BATCH` | every received frame waiting, in one reply; a request carrying a u32 batch number takes frames, and the same number asks again for a lost reply | frames |
 
 ## Authority
@@ -60,30 +60,43 @@ forbidden: IP stack, sockets, packet store, routing policy, kernel drivers
 
 ## Privacy and persistence
 
-Frames live only in RX/TX DMA buffers and IPC payloads. The capsule does not
-persist traffic, track application identity, keep captures, or log packet
-payloads.
+Frames live only in RX/TX DMA buffers and IPC payloads, and only until they
+are delivered: a receive buffer is wiped before it goes back to the device, a
+transmit buffer when the device returns it, and the request, reply and batch
+buffers once the frame has gone on. The capsule does not persist
+traffic, track application identity, keep captures, or log packet payloads or
+its station address.
 
 ## Runtime lifecycle
 
-The capsule claims the virtio NIC, maps its registers, turns INTx off,
-allocates RX/TX virtqueues, draws a station address, enables queues, and serves
-raw-frame IPC. Teardown releases DMA, register, and claim grants.
+The capsule claims the virtio NIC, maps its registers, turns INTx off, resets
+the device, negotiates, draws a station address, maps the RX/TX virtqueues,
+turns Bus Master on only after the reset, enables the queues, and serves
+raw-frame IPC. Transmit never waits: a frame is queued and answered, and
+buffers come back on later sends. Teardown resets the device, then releases
+the claim; the broker clears Bus Master before it frees any grant, and the
+driver unmaps nothing itself.
 
-A transitional NIC that still has its legacy I/O BAR is driven over the legacy
-registers. A modern-only one (what QEMU builds once the device sits behind its
-IOMMU) is driven over the virtio 1.0 structures its vendor capabilities place in
-a memory BAR, through the shared transport in `userland/nonos_virtio`, with
-VERSION_1 and ACCESS_PLATFORM negotiated and a 12-byte net header.
+Whenever the function presents the virtio 1.0 structures (a transitional NIC
+does too), it is driven over them, through the shared transport in
+`userland/nonos_virtio`, with VERSION_1 negotiated, ACCESS_PLATFORM whenever the
+device offers it, and a 12-byte net header. The legacy registers are used only
+by a device that presents nothing else. Both transports take a 256-entry ring
+and nothing else: the grant and the ring offsets are sized for it, and a legacy
+device cannot be told a smaller ring, so any other QueueNumMax is refused.
 
 ## Failure model
 
-Setup failure rolls back all earlier grants: a failed attempt releases the
-claim, which takes every grant with it. Bring-up is tried a bounded number of
-times with a sleep between tries (`nonos_libc::bring_up`); the capsule exits 2
-when no NIC is present and 6 when one is present but never comes up. TX failure
-and device faults are returned as protocol errors. Empty RX is non-fatal. Protocol parsing never
-enters this driver.
+Setup failure releases the claim, which takes every grant with it. Bring-up is
+tried a bounded number of times with a sleep between tries
+(`nonos_libc::bring_up`); the capsule exits 2 when no NIC is present and 6 when
+one is present but never comes up. A received frame longer than 1514 bytes, or
+an entry naming no buffer, is dropped and its buffer recycled. A transmit ring
+that stays full for two seconds with the link up is a stopped device: the
+capsule logs `transmit stalled`, resets and releases it, and brings it up again
+with the same station address (init restarts no driver). Every wait is by the
+uptime clock. Empty RX is non-fatal. Protocol parsing never enters this
+driver.
 
 ## Current implemented surface
 
@@ -160,16 +173,23 @@ header length and the modern MAC read (`userland/virtio_net_proofs`). Only a
 boot shows the rest. Under QEMU q35, confirm both ways:
 
 - Without an IOMMU (`-device virtio-net-pci`, transitional 0x1000 with its
-  legacy I/O BAR): the log shows `[net-setup] transport` and then the legacy
-  `regmap`, `irq`, `dma`, `negotiate`, `queues`, `done`; net.core's link
-  probe answers up; DHCP completes; TX and RX hold under load.
+  legacy I/O BAR and the virtio 1.0 structures): the log shows
+  `[net-setup] transport` and then `modern pci`, `modern regmap`,
+  `negotiate`, `dma`, `queues`, `done`; net.core's link probe answers up;
+  DHCP completes; TX and RX hold under load. With `disable-modern=on` the
+  legacy path runs instead: `regmap`, `irq`, `negotiate`, `dma`, `queues`,
+  `done`.
 - With the IOMMU lane (`-device intel-iommu` with `QEMU_IOMMU_OPTS`, and the
   device with `QEMU_IOMMU_VIRTIO`, i.e. `iommu_platform=on,disable-legacy=on`;
   see mk/10-qemu.mk) (modern-only 0x1041): the log shows `modern pci`, `modern
-  regmap`, `dma`, `negotiate`, `queues`, `done`, with no MkMmioMap refusal of
+  regmap`, `negotiate`, `dma`, `queues`, `done`, with no MkMmioMap refusal of
   BAR1 and no claim and release loop; VERSION_1 and ACCESS_PLATFORM are
   negotiated; a ping round-trips and ARP replies parse (the 12-byte header is
   cut right); the VT-d log shows no DMA fault.
+- A NIC whose legacy QueueNumMax is not 256 (bhyve's 1024, or QEMU with
+  `rx_queue_size=1024` on a device without the modern structures): refused
+  with `legacy queue size is not 256`, the device marked FAILED, no ring
+  address written.
 - A NIC that cannot come up: at most seven attempts over about six seconds,
   one `driver.virtio_net0: device present, bring-up failed` line, exit 6, no
   core left pegged. No virtio-net at all: exit 2 at once.

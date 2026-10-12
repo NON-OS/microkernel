@@ -1,48 +1,60 @@
 # virtio_net_proofs
 
-Host-runnable proofs for the virtio-net driver's device-facing RX path and
-its untrusted protocol input. The real driver source is included through
-`#[path]` and run on the host.
+Host-runnable proofs for the virtio-net driver. The real driver source is
+included through `#[path]` and run on the host: the receive and transmit
+queues over fake DMA memory, the legacy queue programming over a model
+register file, the transport choice over a broker in memory, and the IPC
+dispatch and handlers end to end. What stands in: the legacy register file
+(`regs`), the uptime clock (`clock`), the reply call (`server::error`) and the
+driver struct (`setup`), whose bring-up and teardown call the broker.
 
-## The RX used ring, driven by a hostile device
+## The receive path, driven by a hostile device
 
-Every received frame arrives as a used-ring entry the device writes: a
-descriptor id and a used length, both fully attacker-chosen. The proofs build
-a real `RxQueue` over host memory with the real constructor, write used-ring
-entries the way a malicious device would, and run the real `take_one`.
+Every used-ring entry is the device's word: a descriptor id and a used
+length. For every id, length and ring position (two hundred thousand seeded
+entries per header length, plus every length from 0 to 4096 and the
+extremes), `take_one` hands on at most a 1514-byte Ethernet frame, copied
+from exactly the buffer the id names after exactly this transport's header,
+posts that buffer back wiped, and never posts back an id that names no
+buffer. A longer frame is dropped and its buffer recycled. This replaced a
+test that asserted a 2038-byte frame was handed on: such a frame overran the
+1552-byte reply and panicked the capsule.
 
-The property is isolation. For every descriptor id, used length, and ring
-position: `take_one` never panics and never touches memory outside the queue
-region and buffer area; a returned frame lies exactly in the payload area of
-the slot the id selects, after the virtio-net header, never in another slot
-or outside the buffers; a used length at or below the header yields an empty
-frame; an oversized used length is clamped to the slot payload; an entry
-whose descriptor id names no primed slot yields nothing and is never posted
-back to the device; and the drained slot is handed back through the avail
-ring on the next call.
+`OP_RX_PACKET` answers every length with a reply that fits its buffer, and
+wipes the frame from the buffer once sent. `OP_RX_BATCH` never passes
+`BATCH_MAX_BYTES`, whatever lengths the device reports, and a lost batch is
+answered again only to its caller.
 
-Stated plainly: this property is proven by the runnable test harness over two
-hundred thousand adversarial entries plus the boundary set, not by the model
-checker. A Kani harness for it does not converge in the SAT backend (CBMC
-ran for hours in both the pointer-equality and the weakened clamp-only
-form), so the crate ships without one rather than with a bound it cannot
-honestly call all-input. The wire decode below is model-checked.
+## The transmit path
 
-## The TX length gate
+A frame goes into a free buffer behind a zeroed header, padded to 60 bytes,
+and is offered; with every buffer the device's the answer is `E_AGAIN` at
+once. Only a buffer posted and not yet returned comes back, whatever ids the
+device makes up, and at most a ring's worth of entries is read per call. A
+ring full for `TX_STALL_MS` with the link up is `Stalled`, and the serve loop
+is told to reset the device; a completion that arrives late, before then,
+ends the count; a link that is down never counts. `OP_TX_PACKET` takes 14 to
+1514 bytes and a length that agrees with its header.
 
-The TX copy is kept in bounds by constant relations: the `tx_packet` handler
-rejects frames above the Ethernet maximum, `send` pads short frames to the
-Ethernet minimum, and both extremes must fit behind the virtio-net header in
-a TX slot. A test asserts those relations against the real constants, so
-widening the MTU or shrinking the buffers fails the proof before it ships.
+## Queues, transport and setup
+
+The legacy device is refused, and marked FAILED, for any QueueNumMax but
+256 before it is given a ring address; the modern device is told exactly 256
+and refused below it. A transitional function that presents the virtio 1.0
+structures is driven modern, and the modern negotiation takes
+ACCESS_PLATFORM whenever offered and never the device's MAC. The legacy reset
+is waited for by the clock; a DMA grant is used only when it covers the
+request, page aligned, non-zero and not wrapping. Orders the host cannot run
+are checked in the source text: Bus Master only after the reset, teardown
+resetting the device before releasing it, and no DMA unmapped by the driver.
+`rules_tests` holds the code rules over the whole driver: no file past 75
+lines, no blank runs, a SAFETY comment on every unsafe block.
 
 ## The station address and the modern MAC read
 
 `station_tests` holds that neither transport takes the device's MAC feature,
 that link status is still taken, and that the driver draws its own address.
-`mac_tests` runs the modern-transport MAC read: the first six bytes of the
-device region, zero without the MAC feature as on the legacy path, and a
-region shorter than the promised fields refused.
+`mac_tests` runs the modern-transport MAC read.
 
 ## Wire header
 

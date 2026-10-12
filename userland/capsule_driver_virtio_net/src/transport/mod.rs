@@ -18,7 +18,9 @@
 
 mod access;
 mod broker;
+mod choose;
 mod probe;
+mod reset;
 mod types;
 
 pub use broker::LibcBroker;

@@ -19,6 +19,7 @@
 
 extern crate alloc;
 
+mod clock;
 mod constants;
 mod discover;
 mod init;
@@ -26,6 +27,7 @@ mod protocol;
 mod queue;
 mod regs;
 mod rx;
+mod scrub;
 mod server;
 mod setup;
 mod transport;
@@ -33,6 +35,10 @@ mod tx;
 
 use nonos_libc::{bring_up, heap_init, mk_exit, EXIT_ABSENT, EXIT_GAVE_UP};
 
+/// # Safety
+///
+/// The capsule's entry point: the kernel calls it once, on a fresh stack,
+/// and nothing else may.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
@@ -60,12 +66,5 @@ pub unsafe extern "C" fn _start() -> ! {
     let Ok(mut driver) = bring_up(b"driver.virtio_net0", setup::run) else {
         mk_exit(EXIT_GAVE_UP);
     };
-
-    if driver.rx.region_phys() == 0 || driver.tx.region_phys() == 0 {
-        if !driver.release() {
-            mk_exit(4);
-        }
-        mk_exit(3);
-    }
     server::run(&mut driver);
 }

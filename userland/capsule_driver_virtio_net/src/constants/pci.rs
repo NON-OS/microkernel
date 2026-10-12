@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
-
 pub const VIRTIO_VENDOR_ID: u16 = 0x1AF4;
 pub const VIRTIO_NET_TRANSITIONAL: u16 = 0x1000;
 pub const VIRTIO_NET_MODERN: u16 = 0x1041;

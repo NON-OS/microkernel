@@ -14,52 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The serve loop: one request at a time, answered before the next.
+
 use alloc::vec;
 
-use nonos_libc::mk_ipc_recv_from;
+use nonos_libc::{mk_ipc_recv_from, recv_ready};
 
-use crate::constants::{MAX_ETHERNET_FRAME, VIRTIO_NET_HDR_LEN};
-use crate::protocol::{
-    decode_request, E_INVAL, HDR_LEN, OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS, OP_RX_BATCH,
-    OP_RX_PACKET, OP_TX_PACKET, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
-};
-use crate::server::error::{reply_decode_failed, reply_with_status};
-use crate::server::handlers;
+use crate::protocol::{REPLY_MAX, REQUEST_MAX};
+use crate::scrub::scrub;
+use crate::server::dispatch::serve;
+use crate::server::recover::recover;
 use crate::setup::Driver;
 
 pub fn run(driver: &mut Driver) -> ! {
-    let rx_len = HDR_LEN + MAX_ETHERNET_FRAME;
-    let tx_len =
-        RESP_HDR_LEN + STATUS_LEN + RX_PAYLOAD_PREFIX_LEN + VIRTIO_NET_HDR_LEN + MAX_ETHERNET_FRAME;
-    let mut rx = vec![0u8; rx_len];
-    let mut tx = vec![0u8; tx_len];
+    let mut rx = vec![0u8; REQUEST_MAX];
+    let mut tx = vec![0u8; REPLY_MAX];
     let mut kept = None;
 
     loop {
         let mut sender_pid: u32 = 0;
-        let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx_len, 0, &mut sender_pid);
-        if !nonos_libc::recv_ready(n) || sender_pid == 0 {
+        let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx.len(), 0, &mut sender_pid);
+        if !recv_ready(n) || sender_pid == 0 {
             continue;
         }
-        let len = n as usize;
-        let req = match decode_request(&rx[..len]) {
-            Some(r) => r,
-            None => {
-                reply_decode_failed(sender_pid, &mut tx, E_INVAL);
-                continue;
-            }
+        let Some(len) = usize::try_from(n).ok().filter(|&n| n <= rx.len()) else {
+            continue;
         };
-        let body = &rx[HDR_LEN..len];
-        match req.op {
-            OP_HEALTHCHECK => handlers::health::handle(sender_pid, &req, &mut tx),
-            OP_LINK_STATUS => handlers::link_status::handle(sender_pid, driver, &req, &mut tx),
-            OP_MAC_ADDRESS => handlers::mac_address::handle(sender_pid, driver, &req, &mut tx),
-            OP_TX_PACKET => handlers::tx_packet::handle(sender_pid, driver, &req, body, &mut tx),
-            OP_RX_PACKET => handlers::rx_packet::handle(sender_pid, driver, &req, &mut tx),
-            OP_RX_BATCH => {
-                handlers::rx_batch::handle(sender_pid, driver, &req, body, &mut kept, &mut tx)
-            }
-            _ => reply_with_status(sender_pid, &mut tx, &req, E_INVAL),
-        };
+        let stalled = serve(sender_pid, driver, &rx[..len], &mut kept, &mut tx);
+        // A frame handed in to send is delivered: none of it stays here.
+        scrub(&mut rx[..len]);
+        if stalled {
+            recover(driver);
+        }
     }
 }

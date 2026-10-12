@@ -14,15 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap};
+//! The uptime clock, set by the test, and a wait that counts each question
+//! as the millisecond the driver sleeps between them.
 
-use super::super::registers::RegisterGrant;
+use std::cell::Cell;
 
-pub fn after(device_id: u64, reg: &RegisterGrant, grants: &[u64]) -> bool {
-    let mut ok = true;
-    for &grant in grants.iter().rev() {
-        ok = mk_dma_unmap(grant) >= 0 && ok;
+thread_local!(static NOW: Cell<u64> = const { Cell::new(0) });
+
+pub fn set(ms: u64) {
+    NOW.with(|n| n.set(ms));
+}
+
+pub fn now_ms() -> u64 {
+    NOW.with(Cell::get)
+}
+
+pub fn expired_after(ms: u64) -> impl FnMut() -> bool {
+    let mut spent = 0u64;
+    move || {
+        spent += 1;
+        spent >= ms
     }
-    ok = reg.release() && ok;
-    mk_device_release(device_id) >= 0 && ok
 }

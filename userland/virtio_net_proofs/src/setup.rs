@@ -14,26 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_dma_map, DmaMapOut};
+//! The driver state as the handlers reach it: the shipping struct's fields
+//! and its link check. Bring-up and teardown call the broker and are not
+//! here; the grant check they make is.
 
-use super::super::registers::RegisterGrant;
-use super::rollback;
-use crate::constants::{RX_BUFFER_LEN, RX_DESC_COUNT};
+use crate::constants::MAC_LEN;
+use crate::queue::{RxQueue, TxQueue};
+use crate::transport::Transport;
 
-pub fn map_rx_buffers(
-    device_id: u64,
-    claim_epoch: u64,
-    reg: &RegisterGrant,
-    rx_queue: &DmaMapOut,
-) -> Result<DmaMapOut, &'static str> {
-    let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-    let len = (RX_BUFFER_LEN as u64) * (RX_DESC_COUNT as u64);
-    let r = mk_dma_map(device_id, claim_epoch, len, 0, &mut out);
-    if r >= 0 {
-        return Ok(out);
-    }
-    if !rollback::after(device_id, reg, &[rx_queue.grant_id]) {
-        return Err("dma rollback failed (rx buffers)");
-    }
-    Err("dma map failed (rx buffers)")
+#[path = "../../capsule_driver_virtio_net/src/setup/grant.rs"]
+pub mod grant;
+#[path = "../../capsule_driver_virtio_net/src/setup/link.rs"]
+mod link;
+
+pub struct Driver {
+    pub device_id: u64,
+    pub rx: RxQueue,
+    pub tx: TxQueue,
+    pub transport: Transport,
+    pub mac: [u8; MAC_LEN],
+    pub status_supported: bool,
+    pub net_status_offset: usize,
 }

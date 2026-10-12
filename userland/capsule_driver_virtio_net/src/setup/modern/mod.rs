@@ -18,8 +18,8 @@
 //! window (a modern-only virtio-net, as QEMU builds behind its IOMMU).
 
 mod config;
-mod pci;
 mod queues;
 mod run;
+mod spec;
 
 pub use run::run;

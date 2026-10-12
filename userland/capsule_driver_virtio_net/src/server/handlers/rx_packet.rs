@@ -14,35 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::Q_RX;
+//! OP_RX_PACKET: one received frame, as status, a u32 length and the frame.
+//! The frame is copied straight into the reply and wiped from it once sent.
+
+use crate::constants::{MAX_ETHERNET_FRAME, Q_RX};
 use crate::protocol::{
-    encode_response_header, write_status, Request, E_AGAIN, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN,
-    STATUS_LEN,
+    encode_response_header, write_status, Request, E_AGAIN, E_IO, RESP_HDR_LEN, RX_FRAME_AT,
+    RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
 };
 use crate::rx::take_one;
+use crate::scrub::scrub;
 use crate::server::error::{reply, reply_with_status};
 use crate::setup::Driver;
 
 pub fn handle(sender_pid: u32, driver: &mut Driver, req: &Request, tx: &mut [u8]) -> bool {
-    let frame = unsafe { take_one(&mut driver.rx) };
-    let frame = match frame {
-        Some(f) => f,
-        None => {
-            driver.transport.notify(Q_RX);
-            return reply_with_status(sender_pid, tx, req, E_AGAIN);
-        }
+    // Room for the longest frame take_one hands on, or no frame is taken.
+    let Some(frame) = tx.get_mut(RX_FRAME_AT..RX_FRAME_AT + MAX_ETHERNET_FRAME) else {
+        return reply_with_status(sender_pid, tx, req, E_IO);
     };
-    let len = frame.bytes.len();
-    let body_len = RX_PAYLOAD_PREFIX_LEN + len;
-    let payload_len = STATUS_LEN as u32 + body_len as u32;
-    encode_response_header(tx, req, payload_len);
-    write_status(&mut tx[RESP_HDR_LEN..], 0);
-    let prefix = (len as u32).to_le_bytes();
-    tx[RESP_HDR_LEN + STATUS_LEN..RESP_HDR_LEN + STATUS_LEN + RX_PAYLOAD_PREFIX_LEN]
-        .copy_from_slice(&prefix);
-    tx[RESP_HDR_LEN + STATUS_LEN + RX_PAYLOAD_PREFIX_LEN..RESP_HDR_LEN + STATUS_LEN + body_len]
-        .copy_from_slice(frame.bytes);
-    driver.rx.refill_consumed();
+    let taken = take_one(&mut driver.rx, frame);
     driver.transport.notify(Q_RX);
-    reply(sender_pid, tx, RESP_HDR_LEN + STATUS_LEN + body_len)
+    let Some(len) = taken else {
+        return reply_with_status(sender_pid, tx, req, E_AGAIN);
+    };
+    // The buffer is at least RX_FRAME_AT + MAX_ETHERNET_FRAME long (checked
+    // above) and take_one never returns more than it was given.
+    encode_response_header(tx, req, (STATUS_LEN + RX_PAYLOAD_PREFIX_LEN + len) as u32);
+    write_status(&mut tx[RESP_HDR_LEN..], 0);
+    tx[RESP_HDR_LEN + STATUS_LEN..RX_FRAME_AT].copy_from_slice(&(len as u32).to_le_bytes());
+    let sent = reply(sender_pid, tx, RX_FRAME_AT + len);
+    scrub(&mut tx[RX_FRAME_AT..RX_FRAME_AT + len]);
+    sent
 }
