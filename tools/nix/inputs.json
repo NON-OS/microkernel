@@ -3435,6 +3435,19 @@
   "md": [],
   "signed": []
  },
+ "userland/iort_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/iort",
+   "src/arch/fdt/find/msi/info.rs",
+   "src/arch/fdt/find/smmu/info.rs",
+   "src/arch/fdt/find/smmu/map.rs",
+   "userland/iort_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/ip_proofs": {
   "exclude": [],
   "include": [
