@@ -29,7 +29,7 @@ mod le;
 pub use bus::{Bus, Connection};
 pub use bus_parse::serial_buses;
 pub use device::{serial_device, SerialDevice};
-pub use dsd::{properties, DEVICE_PROPERTIES_UUID};
+pub use dsd::{properties, properties_under, DEVICE_PROPERTIES_UUID};
 pub use dsd_value::{Property, Value};
 pub use gpio::{gpios, Gpio};
 pub use hid::{descriptor_register, is_hid_over_i2c, HID_I2C_DSM_UUID};

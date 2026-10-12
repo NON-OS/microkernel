@@ -47,6 +47,8 @@ pub mod parse;
 pub mod platform;
 #[path = "../../nonos_aml/src/platform_device/mod.rs"]
 pub mod platform_device;
+#[path = "../../nonos_aml/src/ports/mod.rs"]
+pub mod ports;
 #[path = "../../nonos_aml/src/power/mod.rs"]
 pub mod power;
 #[path = "../../nonos_aml/src/region/mod.rs"]
