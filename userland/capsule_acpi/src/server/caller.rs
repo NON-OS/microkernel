@@ -14,18 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who is asking. The port is held to `power` and the desktop shell
-//! (`HELD`), but PREPARE_SLEEP runs _PTS, which puts firmware in the state
-//! it leaves just before power goes; only `capsule_power`, about to call
-//! AdminShutdown, may ask for that. Its pid is the registry's answer for
-//! the `power` service, looked up at each request so a restart is seen.
+//! Who is asking: the pid that owns a service now, from the registry.
 
 use nonos_libc::mk_service_lookup;
 
-const POWER: &[u8] = b"power";
-
-pub fn is_power(sender: u32) -> bool {
+pub fn owner(name: &[u8]) -> Option<u32> {
     let (mut port, mut pid) = (0u32, 0u32);
-    let rc = mk_service_lookup(POWER.as_ptr(), POWER.len(), &mut port, &mut pid);
-    rc >= 0 && pid != 0 && pid == sender
+    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+    (rc >= 0 && pid != 0).then_some(pid)
 }
