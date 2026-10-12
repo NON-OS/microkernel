@@ -158,6 +158,11 @@ pub const SYS_PIO_WRITE: u64 = tag4(b"MPWR");
 pub const SYS_PIO_RELEASE: u64 = tag4(b"MPRL");
 /// One allowed VMware backdoor call, on a host that answers it; needs Pio.
 pub const SYS_HV_BACKDOOR: u64 = tag4(b"MHVB");
+/// The VMBus core's SynIC calls; each needs Driver and the VMBus root's claim.
+pub const SYS_HV_POST: u64 = tag4(b"MHVP");
+pub const SYS_HV_RECV: u64 = tag4(b"MHVR");
+pub const SYS_HV_EVENTS: u64 = tag4(b"MHVE");
+pub const SYS_HV_SIGNAL: u64 = tag4(b"MHVS");
 pub const SYS_MK_DEBUG: u64 = tag4(b"MDBG");
 pub const SYS_PCI_CONFIG_READ: u64 = tag4(b"MPCR");
 pub const SYS_PCI_CONFIG_WRITE: u64 = tag4(b"MPCW");

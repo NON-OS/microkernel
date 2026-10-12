@@ -84,6 +84,10 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPioWrite
             | MkPioRelease
             | MkHvBackdoor
+            | MkHvPost
+            | MkHvRecv
+            | MkHvEvents
+            | MkHvSignal
             | MkDebug
             | MkStdoutWrite
             | MkPrivateWrite
