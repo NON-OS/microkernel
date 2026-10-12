@@ -13,26 +13,25 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The compositor's capture indicator, pure: the notice sent whenever the
-//! camera starts or stops (NCMP version 1, op 000Ah, body `kind u32` (1,
-//! the camera) and `on u32`), and whether its reply says the indicator is
-//! shown. Under Decision 9 no indicator means no stream, so anything but a
+//! The compositor's capture indicator, pure: the notice sent whenever a
+//! capture starts or stops (NCMP version 1, op 000Ah, body `kind u32` (1
+//! the camera, 2 the microphone) and `on u32`), and whether its reply says
+//! the indicator is shown. driver.usb_mic0 mounts it too. Under Decision 9 no indicator means no stream, so anything but a
 //! whole NCMP reply with status 0 is a refusal.
 
 const MAGIC: u32 = 0x4E43_4D50; // "NCMP"
 const VERSION: u16 = 1;
 const OP_CAPTURE: u16 = 0x000A;
-const CAMERA: u32 = 1;
 /// The reply's status word, after the 20-byte header.
 const STATUS_AT: usize = 20;
 
-pub fn notice(on: bool) -> [u8; 28] {
+pub fn notice(kind: u32, on: bool) -> [u8; 28] {
     let mut req = [0u8; 28];
     req[0..4].copy_from_slice(&MAGIC.to_le_bytes());
     req[4..6].copy_from_slice(&VERSION.to_le_bytes());
     req[6..8].copy_from_slice(&OP_CAPTURE.to_le_bytes());
     req[16..20].copy_from_slice(&8u32.to_le_bytes());
-    req[20..24].copy_from_slice(&CAMERA.to_le_bytes());
+    req[20..24].copy_from_slice(&kind.to_le_bytes());
     req[24..28].copy_from_slice(&(on as u32).to_le_bytes());
     req
 }

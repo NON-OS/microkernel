@@ -20,6 +20,7 @@
 mod alt;
 mod clock;
 mod entities;
+mod find;
 mod format;
 mod pick;
 mod playback;

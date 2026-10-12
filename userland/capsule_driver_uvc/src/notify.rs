@@ -22,6 +22,8 @@ use nonos_libc::{mk_ipc_call, mk_service_lookup};
 use crate::indicator::{notice, shown};
 
 const COMPOSITOR: &str = "compositor";
+/// The indicator's kind for a camera.
+const CAMERA: u32 = 1;
 
 /// Whether the compositor shows the indicator now; false when there is no
 /// compositor or it does not know the op yet.
@@ -30,7 +32,7 @@ pub fn capture(on: bool) -> bool {
     if mk_service_lookup(COMPOSITOR.as_ptr(), COMPOSITOR.len(), &mut port, &mut pid) != 0 {
         return false;
     }
-    let req = notice(on);
+    let req = notice(CAMERA, on);
     let mut resp = [0u8; 32];
     let rc = mk_ipc_call(port as u64, req.as_ptr(), req.len(), resp.as_mut_ptr(), resp.len());
     shown(rc, &resp)

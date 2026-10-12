@@ -1745,6 +1745,12 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_driver_usb_mic": {
+  "exclude": [],
+  "include": [],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_driver_usb_msc": {
   "exclude": [],
   "include": [

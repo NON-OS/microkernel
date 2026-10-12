@@ -20,6 +20,9 @@ use super::alt::{CS_ENDPOINT, CS_INTERFACE, ENDPOINT, ISOCH};
 use super::format::{format_i, general};
 use super::pick::{Alt, Ep};
 
+/// bmAttributes bits 5:4 of a 2.0 endpoint: 1 is explicit feedback.
+const FEEDBACK: u8 = 1;
+
 pub(super) fn read(cur: &mut Alt, d: &[u8]) {
     match (d[1], d.get(2).copied()) {
         (CS_INTERFACE, Some(1)) if d.len() >= 4 => {
@@ -40,9 +43,10 @@ pub(super) fn read(cur: &mut Alt, d: &[u8]) {
                 max_packet: u16::from_le_bytes([d[4], d[5]]),
                 b_interval: d[6],
             };
-            // An IN endpoint beside it is its clock feedback, not read.
             if a & 0x80 == 0 {
                 cur.out = Some(ep);
+            } else if (d[3] >> 4) & 0x3 != FEEDBACK {
+                cur.inp = Some(ep);
             }
         }
         (CS_ENDPOINT, Some(1)) if d.len() >= 4 => {

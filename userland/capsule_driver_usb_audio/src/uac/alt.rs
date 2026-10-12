@@ -13,7 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A streaming alternate setting, and the descriptor numbers that find it.
+//! A streaming alternate setting, either way, and the descriptor numbers
+//! that find it.
 
 pub(super) const INTERFACE: u8 = 0x04;
 pub(super) const ENDPOINT: u8 = 0x05;
@@ -38,7 +39,7 @@ pub struct Stream {
     pub b_interval: u8,
     /// A 1.0 endpoint that takes SET_CUR of its sampling frequency.
     pub rate_control: bool,
-    /// Channels in a frame: 2 to play.
+    /// Channels in a frame: 2 played; 1 or 2 captured.
     pub channels: u8,
     /// 1 or 2. A 2.0 stream's rate is its terminal's clock's (clock.rs).
     pub version: u8,
