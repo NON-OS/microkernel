@@ -40,5 +40,6 @@ mod gates;
 mod names;
 mod single_client;
 mod usb_host_tests;
+mod usb_mic_tests;
 mod usb_spawn_tests;
 mod uvc_tests;
