@@ -6,8 +6,8 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-//! This driver's own protocol: firmware, the card's commands, a join run
-//! by hand, and frames sent and taken raw (OP_WIFI_TX among them). Every op
+//! This driver's own protocol: firmware, the card's commands, and frames
+//! built, parsed and received by hand (OP_MGMT_BUILD among them). Every op
 //! reaches the card or the air below the route the person chose, so it is
 //! net.core's owner's alone, as the link is (server/net_core.rs); the panels
 //! speak the control family. The ops that write the card are refused once

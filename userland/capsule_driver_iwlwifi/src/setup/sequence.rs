@@ -44,8 +44,5 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
         firmware_stage: FirmwareStageState::empty(),
         cmd_write_ptr: 0,
         rx_read_ptr: 0,
-        supplicant: None,
-        mlme: None,
-        tx_pn: 0,
     })
 }
