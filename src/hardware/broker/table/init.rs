@@ -52,6 +52,7 @@ pub(in crate::hardware::broker) fn register_platform_device(mut record: DeviceRe
 
 /// A PCI function that answered only after firmware powered it up (`_PS0`),
 /// added after the boot scan under the next free id, with its index handle.
+#[cfg(target_arch = "x86_64")]
 pub(in crate::hardware::broker) fn add_pci_function(dev: &PciDevice) -> u64 {
     let mut table = TABLE.write();
     let id = table.iter().map(|r| r.device_id).max().map_or(0, |m| m + 1);
