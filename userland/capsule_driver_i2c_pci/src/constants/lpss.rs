@@ -13,9 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-// Intel LPSS wrapper (Skylake and later, drivers/mfd/intel-lpss.c). The
-// DesignWare core sits at 0x000..0x100; the LPSS private register block is at
-// offset 0x200 inside the same MMIO BAR. Out of reset the LPSS holds the
+// Intel LPSS wrapper (Skylake and later; the PCH datasheets' LPSS chapter,
+// as recalled, unverified). The DesignWare core sits at 0x000..0x100; the
+// LPSS private register block is at offset 0x200 inside the same MMIO BAR. Out of reset the LPSS holds the
 // DesignWare core asserted, so the RESETS register must be deasserted before
 // any core register is touched or every access returns garbage.
 pub const LPSS_PRIV: u64 = 0x200;
