@@ -38,6 +38,8 @@ mod resource;
 mod route;
 mod scan;
 mod sta;
+mod template;
+mod text_path;
 mod walk;
 
 pub use eisa::eisa_id;
@@ -56,3 +58,5 @@ pub use refs::{listed, references};
 pub use resource::interrupts;
 pub use scan::scan;
 pub use sta::{sta, BATTERY, DEFAULT, ENABLED, FUNCTIONING, PRESENT, SHOWN};
+pub use template::{items, Item};
+pub use text_path::resolve_text;
