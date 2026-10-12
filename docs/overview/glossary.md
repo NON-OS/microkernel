@@ -246,7 +246,7 @@ A proof, checked by the `nox_verify` verifier from the STARKs repository the fla
 
 ## Syscall tag
 
-Four ASCII letters packed little-endian into the 64-bit system call number by `tag4`, first letter in the lowest byte. `MkIpcSend` is `MISD`, so its number is 0x4453494D. Explained in [Syscalls](../abi/syscalls.md#numbers). Code: `src/syscall/abi/tag.rs`.
+Four ASCII letters packed little-endian into the 64-bit system call number by `tag4`, first letter in the lowest byte. `MkIpcSend` is `MISD`, so its number is 0x4453494D. Explained in [Syscalls](../abi/syscalls-numbers.md#numbers). Code: `src/syscall/abi/tag.rs`.
 
 ## TLB shootdown
 
