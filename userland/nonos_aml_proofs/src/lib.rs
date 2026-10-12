@@ -59,6 +59,8 @@ pub mod ports;
 pub mod props;
 #[path = "../../nonos_aml/src/power/mod.rs"]
 pub mod power;
+#[path = "../../nonos_aml/src/power_meter/mod.rs"]
+pub mod power_meter;
 #[path = "../../nonos_aml/src/region/mod.rs"]
 pub mod region;
 #[path = "../../nonos_aml/src/serial/mod.rs"]

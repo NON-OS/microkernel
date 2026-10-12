@@ -41,6 +41,8 @@ mod platform_device;
 mod suspend;
 #[path = "ports/mod.rs"]
 mod ports;
+#[path = "power_meter/mod.rs"]
+mod power_meter;
 #[path = "props/mod.rs"]
 mod props;
 #[path = "serial/mod.rs"]
