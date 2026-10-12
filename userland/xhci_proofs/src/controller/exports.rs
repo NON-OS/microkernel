@@ -26,8 +26,8 @@ pub use super::get_device_descriptor::{
 };
 pub use super::halt::halt;
 pub use super::isoch::{
-    batch_fits, burst_fields, isoch_endpoint, isoch_out, write_isoch_input, IsochEndpoint,
-    IsochPipe,
+    batch_fits, burst_fields, in_batch_fits, isoch_endpoint, isoch_in, isoch_out, lengths, pack,
+    td_bytes, write_isoch_input, IsochEndpoint, IsochPipe,
 };
 pub use super::issue_address_device::{issue_address_device, SET_ADDRESS_SETTLE_MS};
 pub use super::issue_enable_slot::issue_enable_slot;
