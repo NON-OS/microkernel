@@ -18,17 +18,21 @@ use crate::orchestrator::enumerate::HidEndpoint;
 use crate::state::State;
 use crate::xhci::interrupt_in;
 
-use super::constants::HID_REPORT_MAX;
+use super::constants::PAD_REPORT_MAX;
 use super::feed_report::feed_report;
-use super::read_len::read_len;
+use super::read_len::{pad_read_len, read_len};
+use crate::descriptors::HidKind;
 
 pub(super) fn drain_endpoint(
     state: &mut State,
-    ep: &HidEndpoint,
-    buf: &mut [u8; HID_REPORT_MAX],
+    ep: &mut HidEndpoint,
+    buf: &mut [u8; PAD_REPORT_MAX],
 ) -> bool {
     let mut drained = false;
-    let len = read_len(ep.max_packet);
+    let len = match ep.kind {
+        HidKind::Gamepad => pad_read_len(ep.max_packet),
+        _ => read_len(ep.max_packet),
+    };
     loop {
         match interrupt_in(ep.port, ep.slot, ep.dci, len, buf) {
             Ok(Some(n)) => {
