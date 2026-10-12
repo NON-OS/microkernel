@@ -23,7 +23,7 @@
 //! onto it as before, and each damaged rectangle is doubled onto the screen
 //! when it is presented. A screen under 1024x720 gets a canvas that covers
 //! it, shrunk when presented (canvas_floor). Otherwise the canvas is the
-//! screen.
+//! screen, unless output 0 is magnified.
 
 use nonos_libc::mk_mmap;
 
@@ -38,8 +38,7 @@ const PROT_READ_WRITE: i32 = 0x3;
 const MAP_PRIVATE_ANON: i32 = 0x22;
 
 /// Make the buffer `ctx` presents from its screen, and give clients a canvas
-/// for it. A canvas that cannot be mapped leaves the screen as the canvas:
-/// small text, never no display.
+/// for it; one that cannot be mapped leaves the screen as the canvas.
 pub fn fit_canvas(ctx: &mut Context) {
     ctx.screen = Surface {
         base_va: ctx.backing_va,
@@ -52,7 +51,8 @@ pub fn fit_canvas(ctx: &mut Context) {
     let panel = scale_for_panel(ctx.width, ctx.height, panel_mm(ctx));
     let q = chosen(ctx.output_scale[0], panel);
     let (width, height) = match (q, floor_canvas(ctx.width, ctx.height)) {
-        (4, None) => return,
+        (4, None) if !ctx.looks.access[0].magnified() => return,
+        (4, None) => (ctx.width, ctx.height), // the lens reads a canvas of its own
         (4, Some(floor)) => floor,
         (q, _) => canvas_for(ctx.width, ctx.height, q),
     };

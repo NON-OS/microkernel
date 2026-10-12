@@ -67,8 +67,8 @@ pub struct Context {
     pub head_pending: alloc::vec::Vec<(usize, super::damage::Rect)>,
     /// Until when (uptime ms) the band shows that the screen was captured.
     pub screen_notice_until: i64,
-    /// Night light's ramps while the shell has it on (None: true colour).
-    pub night: Option<alloc::boxed::Box<[[u8; 256]; 3]>>,
+    /// Night light, each output's accessibility, and the looks and lenses.
+    pub looks: super::looks::Looks,
     /// When the first frame's hold began; None once it was let go.
     pub first_frame_since: Option<i64>,
 }

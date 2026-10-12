@@ -22,6 +22,8 @@
 //! damage accumulator at the crate root, so their `super::` paths resolve
 //! to the same neighbours they have in the compositor's `state`.
 
+extern crate alloc;
+
 #[path = "../../compositor/src/state/attach.rs"]
 pub mod attach;
 
@@ -71,10 +73,14 @@ pub mod frame_pacer {
     pub mod cursor;
     #[path = "../../compositor/src/frame_pacer/cursor_shape.rs"]
     pub mod cursor_shape;
-    #[path = "../../compositor/src/frame_pacer/night_tint.rs"]
-    pub mod night_tint;
     #[path = "../../compositor/src/frame_pacer/indicator_band.rs"]
     pub mod indicator_band;
+    #[path = "../../compositor/src/frame_pacer/look.rs"]
+    pub mod look;
+    #[path = "../../compositor/src/frame_pacer/look_matrix.rs"]
+    pub mod look_matrix;
+    #[path = "../../compositor/src/frame_pacer/night_tint.rs"]
+    pub mod night_tint;
 }
 
 #[path = "../../compositor/src/frame_pacer/drain_damage.rs"]
@@ -95,10 +101,18 @@ pub mod protocol;
 // ask a name while on GOP, what a poll does, and who may send a size hint.
 #[path = "."]
 pub mod display {
+    #[path = "../../compositor/src/display/access_rule.rs"]
+    pub mod access_rule;
     #[path = "../../compositor/src/display/backoff.rs"]
     pub mod backoff;
+    #[path = "../../compositor/src/display/colour_rule.rs"]
+    pub mod colour_rule;
     #[path = "../../compositor/src/display/cursor_rule.rs"]
     pub mod cursor_rule;
+    #[path = "../../compositor/src/display/cvd_filter.rs"]
+    pub mod cvd_filter;
+    #[path = "../../compositor/src/display/cvd_rule.rs"]
+    pub mod cvd_rule;
     #[path = "../../compositor/src/display/first_frame_rule.rs"]
     pub mod first_frame_rule;
     #[path = "../../compositor/src/display/head.rs"]
@@ -113,16 +127,22 @@ pub mod display {
     pub mod layout_rule;
     #[path = "../../compositor/src/display/link.rs"]
     pub mod link;
+    #[path = "../../compositor/src/display/m3.rs"]
+    pub mod m3;
+    #[path = "../../compositor/src/display/magnifier_rule.rs"]
+    pub mod magnifier_rule;
     #[path = "../../compositor/src/display/night_rule.rs"]
     pub mod night_rule;
-    #[path = "../../compositor/src/display/scale_rule.rs"]
-    pub mod scale_rule;
-    #[path = "../../compositor/src/display/screenshot_rule.rs"]
-    pub mod screenshot_rule;
     #[path = "../../compositor/src/display/poll_rule.rs"]
     pub mod poll_rule;
     #[path = "../../compositor/src/display/resize_rule.rs"]
     pub mod resize_rule;
+    #[path = "../../compositor/src/display/scale_rule.rs"]
+    pub mod scale_rule;
+    #[path = "../../compositor/src/display/screenshot_rule.rs"]
+    pub mod screenshot_rule;
+    #[path = "../../compositor/src/display/srgb_rule.rs"]
+    pub mod srgb_rule;
 }
 
 /// The kernel's display list and hint sources, which the compositor mounts.
@@ -130,6 +150,8 @@ pub mod display {
 #[path = "../../../src/services/registry/displays.rs"]
 pub mod displays;
 
+#[cfg(test)]
+mod access_tests;
 #[cfg(test)]
 mod attach_tests;
 #[cfg(test)]
@@ -141,9 +163,15 @@ mod batch_tests;
 #[cfg(test)]
 mod blitter_tests;
 #[cfg(test)]
+mod colour_tests;
+#[cfg(test)]
 mod cursor_plane_tests;
 #[cfg(test)]
 mod cursor_rule_tests;
+#[cfg(test)]
+mod cvd_gap_tests;
+#[cfg(test)]
+mod cvd_tests;
 #[cfg(test)]
 mod damage_tests;
 #[cfg(test)]
@@ -167,21 +195,27 @@ mod indicator_tests;
 #[cfg(test)]
 mod layout_tests;
 #[cfg(test)]
+mod lens_tests;
+#[cfg(test)]
+mod look_ref_tests;
+#[cfg(test)]
+mod look_tests;
+#[cfg(test)]
+mod magnify_damage_tests;
+#[cfg(test)]
+mod magnify_tests;
+#[cfg(test)]
 mod mirror_tests;
 #[cfg(test)]
 mod night_tests;
 #[cfg(test)]
-mod privacy_tests;
-#[cfg(test)]
-mod scale_tests;
-#[cfg(test)]
-mod screenshot_tests;
+mod parse_tests;
 #[cfg(test)]
 mod poll_tests;
 #[cfg(test)]
 mod present_retry_tests;
 #[cfg(test)]
-mod parse_tests;
+mod privacy_tests;
 #[cfg(test)]
 mod raise_tests;
 #[cfg(test)]
@@ -190,6 +224,12 @@ mod repaint_tests;
 mod resize_fit_tests;
 #[cfg(test)]
 mod resize_tests;
+#[cfg(test)]
+mod scale_tests;
+#[cfg(test)]
+mod screenshot_tests;
+#[cfg(test)]
+mod srgb_tests;
 #[cfg(test)]
 mod stacking_tests;
 #[cfg(test)]

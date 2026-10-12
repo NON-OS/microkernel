@@ -18,7 +18,11 @@
 
 pub mod backoff;
 pub mod call;
+pub mod access_rule;
+pub mod colour_rule;
 pub mod cursor_rule;
+pub mod cvd_filter;
+pub mod cvd_rule;
 pub mod first_frame_rule;
 pub mod follow;
 pub mod head;
@@ -28,12 +32,15 @@ pub mod indicator_rule;
 pub mod layout_rule;
 pub mod night_rule;
 pub mod link;
+pub mod m3;
+pub mod magnifier_rule;
 pub mod ops;
 pub mod ops_mode;
 pub mod poll_rule;
 pub mod resize_rule;
 pub mod scale_rule;
 pub mod screenshot_rule;
+pub mod srgb_rule;
 
 pub use backoff::Backoff;
 pub use head::Head;
