@@ -16,8 +16,8 @@
 
 //! The route string and TT rules of xHCI 1.2 section 8.9 and 6.2.2.
 
-use crate::hub::port_status::{SPEED_FULL, SPEED_HIGH, SPEED_LOW, SPEED_SUPER};
-use crate::hub::route::{child_route, child_tt, Tt};
+use nonos_usb_hub::{child_route, child_tt, Tt};
+use nonos_usb_hub::{SPEED_FULL, SPEED_HIGH, SPEED_LOW, SPEED_SUPER};
 
 #[test]
 fn route_strings_put_one_port_per_tier_from_the_lowest_nibble() {
