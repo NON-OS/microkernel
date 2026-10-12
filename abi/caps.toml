@@ -42,6 +42,7 @@ DEVICE_SECRET           = 0x0000_0008_0000_0000
 INPUT_DRAIN             = 0x0000_0010_0000_0000
 CAMERA_CAPTURE          = 0x0000_0020_0000_0000
 MICROPHONE_CAPTURE      = 0x0000_0040_0000_0000
+SCREEN_CAPTURE          = 0x0000_0080_0000_0000
 
 # Named bundles, each the set a class of capsule is actually spawned with in
 # this tree. They named LOG, YIELD, TIME and KSTAT until now, which are not

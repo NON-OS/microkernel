@@ -4896,10 +4896,10 @@ unset drain_out
 # bits that gate them are kept scarce by signing alone: no capsule until
 # Decision 9 names one.
 if capture_out="$(python3 scripts/check_capture_caps.py 2>&1)"; then
-    note ok "CameraCapture and MicrophoneCapture are held by no capsule (check_capture_caps)"
+    note ok "CameraCapture, MicrophoneCapture and ScreenCapture are held by no capsule (check_capture_caps)"
 else
     tail -n 5 <<< "${capture_out}" >&2
-    fail_with "check_capture_caps: a capsule asks for CameraCapture or MicrophoneCapture"
+    fail_with "check_capture_caps: a capsule asks for a capture bit (camera, microphone, screen)"
 fi
 unset capture_out
 

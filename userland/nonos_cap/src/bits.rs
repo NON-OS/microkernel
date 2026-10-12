@@ -73,3 +73,5 @@ pub const CAP_INPUT_DRAIN: u64 = 68719476736;
 pub const CAP_CAMERA_CAPTURE: u64 = 137438953472;
 /// Take samples from a microphone. Held by no capsule until Decision 9.
 pub const CAP_MICROPHONE_CAPTURE: u64 = 274877906944;
+/// Copy the whole screen. Held by no capsule until Decision 9.
+pub const CAP_SCREEN_CAPTURE: u64 = 549755813888;

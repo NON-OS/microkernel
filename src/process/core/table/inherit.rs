@@ -66,7 +66,8 @@ const FORBIDDEN_AMBIENT: u64 = Capability::Admin.bit()
     | Capability::DeviceSecret.bit()
     | Capability::InputDrain.bit()
     | Capability::CameraCapture.bit()
-    | Capability::MicrophoneCapture.bit();
+    | Capability::MicrophoneCapture.bit()
+    | Capability::ScreenCapture.bit();
 
 const _: () = assert!(
     AMBIENT_CAPS & FORBIDDEN_AMBIENT == 0,

@@ -91,4 +91,8 @@ capability_table! {
     /// Take samples from a microphone, held and checked as `CameraCapture`
     /// is: by the audio service and the compositor's indicator.
     MicrophoneCapture = 1 << 38,
+    /// Copy the whole screen. The compositor checks a sender with `MkCapCheck`
+    /// before a screenshot, and shows a notice while it takes one. Held by no
+    /// capsule until Decision 9 names one.
+    ScreenCapture = 1 << 39,
 }
