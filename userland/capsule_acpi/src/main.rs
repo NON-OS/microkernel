@@ -23,6 +23,8 @@
 extern crate alloc;
 
 mod boot;
+mod buttons;
+mod cooling;
 mod ec;
 mod events_io;
 mod host;
