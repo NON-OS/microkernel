@@ -22,6 +22,8 @@ mod ap_sim;
 #[cfg(test)]
 mod bip_gmac_frames;
 #[cfg(test)]
+mod bip_gmac_reading_tests;
+#[cfg(test)]
 mod bip_gmac_refusal_tests;
 #[cfg(test)]
 mod bip_gmac_tests;
