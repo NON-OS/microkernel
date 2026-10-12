@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The boot framebuffer as the kernel lists it (lead L31): a firmware
-//! record, class display, device FIRMWARE_BOOT_FRAMEBUFFER, vendor 0, one
-//! bar: MMIO, prefetchable, from the page the first pixel lies in to the
-//! end of the last row, its aux the first pixel's offset into that page.
+//! The boot framebuffer as the kernel lists it: on x86 a firmware record
+//! (lead L31, bus 5, device FIRMWARE_BOOT_FRAMEBUFFER), on aarch64 a
+//! device-tree simple-framebuffer node (C, bus 4, device 4); class display,
+//! vendor 0, one bar: MMIO, prefetchable, from the page the first pixel lies
+//! in to the end of the last row, its aux the first pixel's offset into that
+//! page (0 for the node, whose reg starts at the first pixel).
 //! Read here from the fields the binary copies out of libc's DeviceRecord,
 //! so the match is proved without the broker.
 
@@ -26,6 +28,9 @@
 pub const BUS_KIND_FIRMWARE: u8 = 5;
 pub const CLASS_DISPLAY: u32 = 0x0030;
 pub const FIRMWARE_BOOT_FRAMEBUFFER: u16 = 0x0001;
+/// C's device-tree bus, and its interface code for a framebuffer node.
+pub const BUS_KIND_FDT: u8 = 4;
+pub const FDT_FRAMEBUFFER: u16 = 0x0004;
 /// libc's BAR_KIND_MMIO and BAR_FLAG_PREFETCH.
 pub const BAR_KIND_MMIO: u8 = 1;
 pub const BAR_FLAG_PREFETCH: u8 = 1 << 0;
@@ -47,11 +52,11 @@ pub struct Listed {
 /// other device or a bar that is not the one the kernel describes.
 pub fn boot_fb(r: &Listed) -> Option<u64> {
     let (kind, flags, base, size, aux) = r.bar0;
-    let ours = r.bus_kind == BUS_KIND_FIRMWARE
-        && r.class == CLASS_DISPLAY
-        && r.device == FIRMWARE_BOOT_FRAMEBUFFER
-        && r.vendor == 0
-        && r.bar_count >= 1;
+    let listed = matches!(
+        (r.bus_kind, r.device),
+        (BUS_KIND_FIRMWARE, FIRMWARE_BOOT_FRAMEBUFFER) | (BUS_KIND_FDT, FDT_FRAMEBUFFER)
+    );
+    let ours = listed && r.class == CLASS_DISPLAY && r.vendor == 0 && r.bar_count >= 1;
     let bar = kind == BAR_KIND_MMIO
         && flags & BAR_FLAG_PREFETCH != 0
         && base.is_multiple_of(4096)
