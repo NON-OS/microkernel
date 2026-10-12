@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub(crate) fn mmio_read32(addr: u64) -> u32 {
-    unsafe { core::ptr::read_volatile(addr as *const u32) }
+    unsafe { nonos_libc::mmio_read32(addr as usize) }
 }
