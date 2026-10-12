@@ -49,6 +49,9 @@ pub fn init(boot_info: &BootInfo) {
         super::refuse(b"gic", reason.as_bytes());
     }
     timer::init_timer();
+    // Once CNTFRQ_EL0 is latched, as x86 does in its entry. Unanchored, time
+    // scales by the 2.5 GHz guessed for a TSC: a Pi's 54 MHz runs 46x slow.
+    crate::time::anchor();
     timer::configure_preemption_intid(boot_info.timer_phys_intid);
     if let Err(reason) = timer::install_on_cpu() {
         super::refuse(b"timer tick", reason.as_bytes());
