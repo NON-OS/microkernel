@@ -25,5 +25,6 @@ pub use bus::BusKind;
 pub(super) use flags::{BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
 pub use flags::{
     DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_DISABLED, DEVICE_FLAG_EXTERNAL,
+    DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE,
 };
 pub use record::{DeviceRecord, NUMA_UNKNOWN};

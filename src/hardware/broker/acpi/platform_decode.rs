@@ -17,7 +17,7 @@
 //! Decoding a platform device record (`platform_wire` lays it out). Pure:
 //! `kernel_proofs` mounts this file as it is.
 
-use super::platform_wire::{Platform, DEPS_UNMET, GPIO, I2C, MAX_WINDOWS, SD};
+use super::platform_wire::{Platform, DEPS_UNMET, GPIO, HAS_IRQ, I2C, IRQ_KNOWN, MAX_WINDOWS, SD};
 use alloc::vec::Vec;
 
 fn u64_at(b: &[u8], i: usize) -> u64 {
@@ -28,10 +28,12 @@ pub fn decode(b: &[u8]) -> Option<Platform> {
     let h = b.get(..32)?;
     let (version, class, n, irq_flags, flags) = (h[0], h[1], h[2] as usize, h[3], h[4]);
     let zeros = h[5..8].iter().chain(&h[28..32]).all(|x| *x == 0) && flags & !DEPS_UNMET == 0;
+    let irq_ok = irq_flags & !IRQ_KNOWN == 0 && (irq_flags & HAS_IRQ != 0 || irq_flags == 0);
     if version != 1
         || !matches!(class, I2C | SD | GPIO)
         || !(1..=MAX_WINDOWS).contains(&n)
         || !zeros
+        || !irq_ok
     {
         return None;
     }

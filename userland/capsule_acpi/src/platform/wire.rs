@@ -18,7 +18,8 @@
 //! own encoder (`record/`): None for one the kernel would refuse as
 //! malformed, which is then not sent.
 
-use super::record::{encode, Platform, DEPS_UNMET, GPIO, HAS_IRQ, I2C, SD};
+use super::record::{encode, Platform, ACTIVE_LOW, DEPS_UNMET, EDGE, GPIO, HAS_IRQ, I2C, SD};
+use super::record::{SHARED, WAKE};
 use alloc::vec::Vec;
 use nonos_aml::platform_device::{Class, PlatformDevice};
 
@@ -30,11 +31,12 @@ fn class(c: Class) -> u8 {
     }
 }
 
-/// HAS_IRQ, then edge, active low, shared and wake, one bit each.
+/// HAS_IRQ, then the `_CRS` descriptor's trigger, polarity, sharing and
+/// wake; the kernel puts trigger and polarity in the device's record.
 fn irq_flags(d: &PlatformDevice) -> u8 {
     d.irq.map_or(0, |i| {
-        let bits = [i.edge, i.active_low, i.shared, i.wake];
-        bits.iter().enumerate().fold(HAS_IRQ, |f, (k, on)| f | u8::from(*on) << (k + 1))
+        let bits = [(i.edge, EDGE), (i.active_low, ACTIVE_LOW), (i.shared, SHARED), (i.wake, WAKE)];
+        bits.iter().fold(HAS_IRQ, |f, (on, bit)| if *on { f | bit } else { f })
     })
 }
 

@@ -37,6 +37,8 @@ mod deps_flag_tests;
 #[cfg(test)]
 mod external_tests;
 #[cfg(test)]
+mod irq_flag_tests;
+#[cfg(test)]
 mod numa_tests;
 #[cfg(test)]
 mod osc_grant_tests;

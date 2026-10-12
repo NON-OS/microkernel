@@ -20,8 +20,9 @@
 //! evaluated `_CRS` gave. Pure: `kernel_proofs` mounts this file as it is.
 //!
 //! Little-endian: version u8 (1), class u8 (`I2C`, `SD`, `GPIO`), window
-//! count u8 (1 to 5), interrupt flags u8 (`HAS_IRQ`, then edge, active
-//! low, shared, wake), record flags u8 (`DEPS_UNMET`), three zero bytes; `_HID` as eight bytes (printable,
+//! count u8 (1 to 5), interrupt flags u8 (`HAS_IRQ`, `EDGE`,
+//! `ACTIVE_LOW`, `SHARED`, `WAKE`; none without `HAS_IRQ`), record flags
+//! u8 (`DEPS_UNMET`), three zero bytes; `_HID` as eight bytes (printable,
 //! NUL-padded); `_UID` u64; the GSI u32; four zero bytes; each window's
 //! base and length u64; the namespace path's length u8 (1 to 127) and its
 //! bytes, starting with '\'.
@@ -32,6 +33,11 @@ pub const I2C: u8 = 1;
 pub const SD: u8 = 2;
 pub const GPIO: u8 = 3;
 pub const HAS_IRQ: u8 = 1;
+pub const EDGE: u8 = 2;
+pub const ACTIVE_LOW: u8 = 4;
+pub const SHARED: u8 = 8;
+pub const WAKE: u8 = 16;
+pub const IRQ_KNOWN: u8 = HAS_IRQ | EDGE | ACTIVE_LOW | SHARED | WAKE;
 /// Record flag: a _DEP entry is missing, dangling or in a cycle; the device
 /// is published anyway, once, and flagged.
 pub const DEPS_UNMET: u8 = 1;

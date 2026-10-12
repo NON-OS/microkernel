@@ -28,4 +28,5 @@ mod platform_encode;
 mod platform_wire;
 
 pub use platform_encode::encode;
-pub use platform_wire::{Platform, DEPS_UNMET, GPIO, HAS_IRQ, I2C, MAX_WINDOWS, SD};
+pub use platform_wire::{Platform, ACTIVE_LOW, DEPS_UNMET, EDGE, GPIO, HAS_IRQ, I2C, MAX_WINDOWS, SD};
+pub use platform_wire::{SHARED, WAKE};

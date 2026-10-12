@@ -32,5 +32,5 @@ mod record;
 pub use bar::{Bar, BarKind};
 pub(super) use bar::BAR_KIND_MMIO;
 pub use bus::BusKind;
-pub use flags::DEVICE_FLAG_DEPS_UNMET;
+pub use flags::{DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE};
 pub use record::DeviceRecord;

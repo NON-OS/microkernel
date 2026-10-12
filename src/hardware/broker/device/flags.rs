@@ -24,3 +24,9 @@ pub const DEVICE_FLAG_EXTERNAL: u32 = 1 << 2;
 /// A device firmware says depends (_DEP) on one that is missing, dangling
 /// or in a cycle: published anyway, so a driver can see it and say why.
 pub const DEVICE_FLAG_DEPS_UNMET: u32 = 1 << 3;
+/// An ACPI platform device's interrupt as its own `_CRS` describes it:
+/// set, edge triggered; clear, level. Meaningful only when the record is
+/// an ACPI one with `irq_pin` set; a PCI record never sets it.
+pub const DEVICE_FLAG_IRQ_EDGE: u32 = 1 << 4;
+/// Likewise: set, active low; clear, active high.
+pub const DEVICE_FLAG_IRQ_ACTIVE_LOW: u32 = 1 << 5;

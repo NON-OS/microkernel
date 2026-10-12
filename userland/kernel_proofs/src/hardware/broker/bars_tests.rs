@@ -49,7 +49,8 @@ fn each_class_in_the_shape_its_drivers_read() {
     let sd = record(&platform(SD, b"80860F14", &w, b"\\_SB.SDHA"), 0);
     assert_eq!((sd.class, sd.pci_class, sd.pci_subclass), (ids::BLOCK, 0x08, 0x05));
     let gpio = record(&platform(GPIO, b"INT33FC", &w, b"\\_SB.GPO0"), 0);
-    assert_eq!((gpio.class, gpio.device, gpio.irq_source), (ids::GPIO_CTRL, 0xFFFF, 0xFFFF_FFFF));
+    assert_eq!((gpio.class, gpio.device), (ids::GPIO_CTRL, 0xFFFF));
+    assert_eq!((gpio.irq_pin, gpio.irq_source), (0, 0), "GSI 0xFFFF_FFFF is refused, not cut");
 }
 
 #[test]
