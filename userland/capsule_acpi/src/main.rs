@@ -47,6 +47,7 @@ mod sleep;
 mod smbios;
 mod suspend;
 mod sys;
+mod time_alarm;
 mod typec;
 
 use nonos_libc::{heap_init, mk_exit};

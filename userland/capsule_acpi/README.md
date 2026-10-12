@@ -273,6 +273,14 @@ other op: no one.
   else _EVT with the pin, and answers which ran. A pin _AEI does not list
   runs nothing (ENOENT); past 64 events a second on one controller an
   event is refused (EAGAIN). Layout in `src/aei/wire.rs`.
+- TIME_ALARM (14): the Time and Alarm device (ACPI000E), read-only, for
+  the power service and the shell: a presence byte, _GCP, _GRT's 16-byte
+  time, and for the AC and DC timers _TIV, _TIP and _GWS. ENOENT without
+  the device. Layout in `src/time_alarm/read.rs`.
+- TIME_SET (15, verb): for the power service alone, and only while
+  `src/time_alarm/switch.rs::WRITES` is on, which it is not: ALARM (0,
+  timer, seconds) arms a wake timer through _STV, TIME (1, 16 bytes) sets
+  firmware's clock through _SRT. EPERM while the switch is off.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and
