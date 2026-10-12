@@ -15,25 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! One received frame through the station.
 use alloc::vec::Vec;
-use nonos_wifi_core::station::{Rx, RxDrop};
+use nonos_wifi_core::station::{Loss, Rx, RxDrop};
 
 use super::super::super::rx_data::RxMpdu;
-use super::leave::leave_reason;
 use super::state::{Link, MIC_LEN, RX_READY};
 
 impl Link {
-    /// Take one received frame; the frame to send back, if any.
+    /// Take one received frame; the frame to send back, if any. A frame that
+    /// ends the link leaves why in `left`.
     pub fn receive(&mut self, rx: RxMpdu) -> Option<Vec<u8>> {
         if !self.station.is_associated() {
             return None;
         }
         self.stats.rx_frames = self.stats.rx_frames.wrapping_add(1);
-        let (us, bssid) = (self.station.mac(), self.station.bssid());
-        if let Some(reason) = leave_reason(&rx, &us, &bssid, self.pmf) {
-            self.station.deassociate();
-            self.left = Some(reason);
-            return None;
-        }
         let mut frame = rx.frame;
         if rx.decrypted {
             frame.extend_from_slice(&[0u8; MIC_LEN]);
@@ -55,12 +49,25 @@ impl Link {
                 }
                 frame
             }
+            Rx::Send(frame) => Some(frame),
+            Rx::Lost(why) => {
+                self.lost(why);
+                None
+            }
             // Management frames (beacons above all) are the common case.
-            Rx::Dropped(RxDrop::Malformed) => None,
+            Rx::Dropped(RxDrop::Malformed | RxDrop::Management) => None,
             Rx::Dropped(_) => {
                 self.stats.rx_refused = self.stats.rx_refused.wrapping_add(1);
                 None
             }
+        }
+    }
+
+    /// Note why the link ended, for the serving loop to close it.
+    pub fn lost(&mut self, why: Loss) {
+        match why {
+            Loss::Left(reason) | Loss::Unanswered(reason) => self.left = Some(reason),
+            Loss::Silent => self.silent = true,
         }
     }
 }

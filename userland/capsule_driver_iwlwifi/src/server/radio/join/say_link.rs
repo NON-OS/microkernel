@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! One line of the link's counts when it closes.
+//! One line of the link's counts when it closes, and one on why it ended.
 
 use crate::firmware::gen3::join::inbox::Inbox;
 use crate::firmware::gen3::join::run::Joined;
@@ -46,4 +46,17 @@ pub(super) fn say_link(j: &Joined, inbox: &Inbox, what: &[u8]) {
         .text(b" failed ")
         .num(inbox.tx_failed)
         .send();
+}
+
+// One line on why the link ended: the access point's reason code, or none
+// when it went unheard.
+pub(super) fn say_loss(left: Option<u16>) {
+    let mut l = Line::new();
+    match left {
+        Some(r) => {
+            l.text(b"link: the access point ended the association, reason ").num(u32::from(r))
+        }
+        None => l.text(b"link: the access point went unheard and answered no probe"),
+    };
+    l.send();
 }

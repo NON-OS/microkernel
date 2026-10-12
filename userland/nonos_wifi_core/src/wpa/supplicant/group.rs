@@ -47,9 +47,9 @@ impl Supplicant {
             .and_then(|n| parse_group_keys(&plain[..n]).map(|(_, k)| k));
         wipe(&mut plain);
         // An authentic message whose key data does not hold a usable group key
-        // is not answered; the AP retries and in the end deauthenticates, which
+        // (and, with management frame protection, an IGTK) is not answered; the AP retries and in the end deauthenticates, which
         // is the right outcome for a key the station cannot use.
-        let Some(mut keys) = keys else {
+        let Some(mut keys) = keys.filter(|k| !self.pmf || k.igtk.is_some()) else {
             return StepOutput::none();
         };
         keys.rsc = rsc_pn(&key.key_rsc);

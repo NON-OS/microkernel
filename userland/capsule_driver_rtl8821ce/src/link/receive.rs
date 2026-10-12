@@ -44,9 +44,6 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
             let (n, hw_decrypted) = self.poll_frame(&mut mpdu)?;
             self.stats.rx_ring = self.stats.rx_ring.wrapping_add(1);
             let frame = &mpdu[..n];
-            if self.note_leave(frame) {
-                return None;
-            }
             match self.station.receive(frame, hw_decrypted) {
                 // A frame larger than the caller's buffer is dropped, never cut.
                 Rx::Ethernet(eth) if eth.len() <= out.len() => {
@@ -55,8 +52,15 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
                     return Some(eth.len());
                 }
                 Rx::Handshake { frame, group_key } => self.handshake(frame, group_key),
+                Rx::Send(frame) => {
+                    self.send_raw(&frame);
+                }
+                Rx::Lost(why) => {
+                    self.lost(why);
+                    return None;
+                }
                 // Non-data frames (beacons) are the common case and are not news.
-                Rx::Dropped(RxDrop::Malformed) => {}
+                Rx::Dropped(RxDrop::Malformed | RxDrop::Management) => {}
                 _ => self.stats.rx_refused = self.stats.rx_refused.wrapping_add(1),
             }
         }

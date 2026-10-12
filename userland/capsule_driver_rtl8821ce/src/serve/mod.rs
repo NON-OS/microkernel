@@ -29,6 +29,7 @@ mod after;
 mod answer;
 mod connect;
 mod control;
+mod loss;
 mod net_core;
 mod radio;
 mod refuse;

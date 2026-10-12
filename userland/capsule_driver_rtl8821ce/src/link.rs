@@ -45,8 +45,6 @@ mod frames;
 mod keys;
 #[path = "link/keystore.rs"]
 mod keystore;
-#[path = "link/leave.rs"]
-mod leave;
 #[path = "link/netif.rs"]
 mod netif;
 #[path = "link/new.rs"]
@@ -63,6 +61,8 @@ mod session;
 mod state;
 #[path = "link/transmit.rs"]
 mod transmit;
+#[path = "link/watch.rs"]
+mod watch;
 
 pub use buffers::RxBuffers;
 pub use counts::LinkStats;
