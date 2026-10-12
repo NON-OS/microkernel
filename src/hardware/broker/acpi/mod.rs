@@ -19,6 +19,8 @@
 //! `table_allow` are pure and proven in `kernel_proofs`; the rest supplies
 //! them this machine's facts and does what they allow.
 
+pub mod battery_watch;
+pub mod critical_watch;
 mod error;
 mod granting;
 mod io_grant;
