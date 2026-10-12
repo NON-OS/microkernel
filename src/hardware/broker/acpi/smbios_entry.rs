@@ -15,11 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An SMBIOS entry point, checked before the kernel reads the table it
-//! names (DMTF DSP0134 3.x, 5.2): the 64-bit "_SM3_" form, 24 bytes or
-//! more, giving the table's address and its maximum size; and the 32-bit
-//! "_SM_" form, 31 bytes, whose "_DMI_" part gives a 32-bit address and the
-//! table's length. Each sums to zero over its length, the "_DMI_" part over
-//! its own 15 bytes too.
+//! names (DMTF DSP0134 3.x, 5.2): "_SM3_", 24 bytes or more, with a 64-bit
+//! address and maximum size; or "_SM_", 31 bytes, whose "_DMI_" part gives
+//! a 32-bit address and length. Each, and "_DMI_" alone, sums to zero.
 
 pub const ENTRY_MAX: usize = 32;
 /// A table larger than this is not believed: real ones are a few KiB.
@@ -59,12 +57,10 @@ fn bits32(b: &[u8]) -> Option<Entry> {
 }
 
 pub fn parse_entry(b: &[u8]) -> Option<Entry> {
-    if b.starts_with(b"_SM3_") {
-        bits64(b)
-    } else if b.starts_with(b"_SM_") {
-        bits32(b)
-    } else {
-        None
+    match b {
+        [b'_', b'S', b'M', b'3', b'_', ..] => bits64(b),
+        [b'_', b'S', b'M', b'_', ..] => bits32(b),
+        _ => None,
     }
 }
 
