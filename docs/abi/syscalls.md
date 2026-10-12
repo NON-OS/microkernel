@@ -187,8 +187,8 @@ These are the calls of the device broker. `MkDeviceClaim` returns a [claim epoch
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
 | `MSRG` | `0x4752534D` | `MkSurfaceRegister` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk.rs:186` | Register the caller's own memory as a surface; returns its id. |
-| `MSSH` | `0x4853534D` | `MkSurfaceShare` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk.rs:186` | Share a surface the caller owns; returns a handle. |
-| `MSAT` | `0x5441534D` | `MkSurfaceAttach` | GraphicsSurfaceMap | `can_surface_map` `src/syscall/contract/cap_table/mk.rs:187` | Map a shared surface into the caller and write its descriptor. |
+| `MSSH` | `0x4853534D` | `MkSurfaceShare` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk.rs:186` | Share a surface the caller owns with one receiver, `(sid, receiver_pid)`; returns a handle. 0 shares with whichever process serves `compositor` at attach time. Only the owner's thread group, a named receiver, or (for 0) the compositor may attach (`src/kernel_core/surface_registry/share/rule.rs`). |
+| `MSAT` | `0x5441534D` | `MkSurfaceAttach` | GraphicsSurfaceMap | `can_surface_map` `src/syscall/contract/cap_table/mk.rs:187` | Map a shared surface into the caller and write its descriptor. A handle not shared with the caller fails with `EINVAL`, the same as a dead one. |
 | `MSRL` | `0x4C52534D` | `MkSurfaceRelease` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk.rs:186` | Drop the caller's reference to a surface. |
 | `MSPR` | `0x5250534D` | `MkSurfacePresent` | GraphicsPresent | `can_present` `src/syscall/contract/cap_table/mk.rs:188` | Present a surface, whole or one damage rectangle. |
 | `MDVW` | `0x5756444D` | `MkDisplayVsyncWait` | GraphicsDisplayQuery | `can_display_query` `src/syscall/contract/cap_table/mk.rs:189` | Sleep to the next tick of the kernel's 60 Hz frame clock; not the display's own sync. |
