@@ -20,7 +20,7 @@
 //! with only ECM (subclass 0x06) is the ECM driver's and is not taken.
 
 use nonos_usbnet::desc::config_header;
-use nonos_usbnet::{Bind, Bus, Found};
+use nonos_usbnet::{Bind, Bus, Found, Station};
 
 use super::function::find_ncm;
 use super::link::Ncm;
@@ -28,14 +28,14 @@ use super::quirk::sends_zlp;
 use super::shape::tx_shape;
 use super::start::start;
 
-pub fn bind<B: Bus>(mut bus: B, found: &Found) -> Bind<Ncm<B>> {
+pub fn bind<B: Bus>(mut bus: B, found: &Found, drawn: Station) -> Bind<Ncm<B>> {
     let pick = |raw: &alloc::vec::Vec<u8>| Some((config_header(raw)?.1, find_ncm(raw)?));
     let Some((value, f)) = found.configs.iter().find_map(pick) else { return Bind::NotOurs };
-    match start(&mut bus, value, &f) {
-        Ok((mac, params, rx_max)) => {
+    match start(&mut bus, value, &f, drawn) {
+        Ok((taken, params, rx_max)) => {
             let zlp = sends_zlp(found.info.vendor);
             let shape = tx_shape(&params, f.pipes.max_packet_out, zlp);
-            Bind::Ours(Ncm::new(bus, mac, f.pipes, rx_max, shape))
+            Bind::Ours(Ncm::new(bus, (drawn.bytes(), taken), f.pipes, rx_max, shape))
         }
         Err((what, e)) => Bind::Failed(what, e),
     }

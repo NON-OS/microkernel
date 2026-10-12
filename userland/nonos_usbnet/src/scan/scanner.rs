@@ -16,44 +16,49 @@
 
 //! The search for the device, one pass over the root ports at a time.
 
-use nonos_libc::Deadline;
-
+use super::backoff::Backoff;
 use super::book::Book;
 use super::bound::Bound;
 use super::probe::{probe, Probe};
 use crate::run::BindFn;
+use crate::say::say;
+use crate::station::{draw, Station};
 use crate::xhci::{connected_ports, lookup};
-
-/// How often every port decided against is tried again, for a phone whose
-/// switch to tethering the connect-change bit did not show.
-const RETRY_ALL_MS: u64 = 60_000;
 
 pub struct Scanner {
     xhci: Option<u32>,
+    /// Drawn once a run and handed to every bind: net.core asks for the
+    /// address only when its bound port changes, so a rebind keeps it.
+    station: Option<Station>,
     book: Book,
-    retry_all: Deadline,
+    backoff: Backoff,
 }
 
 impl Scanner {
-    pub(crate) fn new() -> Self {
-        let retry_all = Deadline::after_ms(RETRY_ALL_MS);
-        Self { xhci: None, book: Book::default(), retry_all }
+    pub(crate) fn new(tag: &[u8]) -> Self {
+        let station = draw();
+        if station.is_none() {
+            say(tag, &[b"no entropy for a station address, no device bound until there is"]);
+        }
+        Self { xhci: None, station, book: Book::default(), backoff: Backoff::new() }
     }
 
     /// The device, when a port this pass holds one this driver binds.
     pub fn pass<N>(&mut self, tag: &[u8], bind: BindFn<N>) -> Option<Bound<N>> {
-        let xhci = match self.xhci {
-            Some(x) => x,
-            None => *self.xhci.insert(lookup()?),
-        };
-        if self.retry_all.expired() {
+        // No port is addressed before there is an address to hand its bind.
+        self.station = self.station.or_else(draw);
+        self.xhci = self.xhci.or_else(lookup);
+        let (station, xhci) = (self.station?, self.xhci?);
+        if self.backoff.due() {
             self.book.retry_all();
-            self.retry_all = Deadline::after_ms(RETRY_ALL_MS);
         }
         let ports = connected_ports(xhci).ok()?;
         for port in self.book.plan(&ports) {
-            match probe(xhci, port, tag, bind) {
-                Probe::Ours(bound) => return Some(bound),
+            match probe(xhci, port, tag, bind, station) {
+                Probe::Ours(bound) => {
+                    self.backoff.reset();
+                    return Some(bound);
+                }
                 Probe::NotOurs => self.book.not_ours(port),
                 Probe::Busy => {}
                 Probe::Failed => self.book.failed(port),

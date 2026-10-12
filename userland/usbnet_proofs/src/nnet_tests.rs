@@ -1,36 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The NNET answers net.core and net.l2 get, bound and unbound.
 
-use crate::nic::Nic;
+use crate::fake_nic::Fake;
 use crate::nnet::{answer, decode, Request, Stats, DATA_AT, E_AGAIN, E_INVAL, E_MSGSIZE};
 use crate::nnet::{OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS, OP_RX_PACKET, OP_TX_PACKET};
-
-struct Fake {
-    sent: Vec<Vec<u8>>,
-    frames: Vec<Result<Option<Vec<u8>>, i32>>,
-}
-
-impl Nic for Fake {
-    fn mac(&self) -> [u8; 6] {
-        [2, 0, 0, 0, 0, 1]
-    }
-    fn link_up(&self) -> bool {
-        true
-    }
-    fn send(&mut self, frame: &[u8]) -> Result<(), i32> {
-        self.sent.push(frame.to_vec());
-        Ok(())
-    }
-    fn recv(&mut self, out: &mut [u8]) -> Result<Option<usize>, i32> {
-        match self.frames.remove(0)? {
-            Some(f) => Ok(Some({
-                out[..f.len()].copy_from_slice(&f);
-                f.len()
-            })),
-            None => Ok(None),
-        }
-    }
-}
 
 fn ask(nic: Option<&mut Fake>, op: u16, body: &[u8]) -> (i32, Vec<u8>) {
     let req = Request { op, flags: 0, request_id: 9, payload_len: body.len() as u32 };

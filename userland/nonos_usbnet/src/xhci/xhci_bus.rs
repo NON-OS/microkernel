@@ -16,7 +16,7 @@
 
 //! The `Bus` of a device addressed on driver.xhci0.
 
-use super::{bulk, control};
+use super::{bulk, control, pipe};
 use crate::bus::{Bus, Pipes};
 use crate::setup::Setup;
 
@@ -34,7 +34,7 @@ impl Bus for XhciBus {
         control::control_out(self.xhci, self.slot, setup, data)
     }
     fn configure_bulk(&mut self, pipes: &Pipes) -> Result<(), i32> {
-        bulk::configure_bulk(self.xhci, self.slot, pipes)
+        pipe::configure_bulk(self.xhci, self.slot, pipes)
     }
     fn bulk_out(&mut self, data: &[u8]) -> Result<usize, i32> {
         bulk::bulk_out(self.xhci, self.slot, data)
@@ -43,6 +43,6 @@ impl Bus for XhciBus {
         bulk::bulk_in_poll(self.xhci, self.slot, out)
     }
     fn reset_bulk(&mut self, dir_in: bool) -> Result<(), i32> {
-        bulk::reset_bulk(self.xhci, self.slot, dir_in)
+        pipe::reset_bulk(self.xhci, self.slot, dir_in)
     }
 }
