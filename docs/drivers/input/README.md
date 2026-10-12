@@ -77,7 +77,7 @@ The [proof crates](../../overview/glossary.md#proof-crate) compile the shipping 
 | `i2c_hid_proofs` | touchpad bind, wake, report descriptor, input mode | 51 |
 | `i2c_pci_proofs` | LPSS reset, clocks, id tables, doorbell | 35 |
 | `i2c_transfer_proofs` | the DesignWare transfer engine against a modelled bus | 26 |
-| `pinctrl_proofs` | GPIO pad register layouts | 13 |
+| `pinctrl_proofs` | GPIO controller ids, pin resolution, pad register arithmetic | 8 |
 | `setup_layout_proofs` | the screen layouts of setup and the installer, and, in 4 of its tests, that setup writes the chosen keyboard layout when the step is confirmed | 56 |
 
 The check for `input_proofs` runs its tests without clippy, which the flake allows for that crate (`lintNone`, `tools/nix/checks.nix:54`).
