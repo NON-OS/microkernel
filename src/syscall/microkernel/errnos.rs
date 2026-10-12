@@ -31,6 +31,7 @@ pub const ERRNO_ACCES: i64 = -13;
 pub const ERRNO_FAULT: i64 = -14;
 pub const ERRNO_BUSY: i64 = -16;
 pub const ERRNO_EXIST: i64 = -17;
+pub const ERRNO_XDEV: i64 = -18;
 pub const ERRNO_NODEV: i64 = -19;
 pub const ERRNO_INVAL: i64 = -22;
 pub const ERRNO_NOTTY: i64 = -25;

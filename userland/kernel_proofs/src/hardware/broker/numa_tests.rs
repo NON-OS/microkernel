@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A range is in a domain only when ranges of that one domain cover all of
-//! it: inside one range, across abutting ranges of the same domain, never
-//! across two domains or a gap; and a bus is in the domain of the root
-//! bridge whose buses hold it.
+//! A range is in a domain only when that one domain's ranges cover all of
+//! it; a bus is in its root bridge's domain; a record names domains < 255.
 
-use super::acpi::numa_node::{bus_domain, node_of, BusRange, NodeError, Region};
+use super::acpi::numa_node::{bus_domain, node_byte, node_of, BusRange, NodeError, Region};
 
 fn regions() -> Vec<Region> {
     let r = |base, len, domain| Region { base, len, domain };
@@ -65,4 +63,13 @@ fn buses_of_root_bridges() {
     assert_eq!(bus_domain(&ranges, 1, 0x05), Some(2));
     assert_eq!(bus_domain(&ranges, 2, 0x05), None);
     assert_eq!(bus_domain(&ranges[..1], 0, 0x80), None);
+}
+
+#[test]
+fn the_record_byte_names_domains_below_255() {
+    assert_eq!(node_byte(Some(0)), 0);
+    assert_eq!(node_byte(Some(254)), 254);
+    assert_eq!(node_byte(Some(255)), 0xFF, "past 254 reads as unknown");
+    assert_eq!(node_byte(Some(70_000)), 0xFF);
+    assert_eq!(node_byte(None), 0xFF);
 }
