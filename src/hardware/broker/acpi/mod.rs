@@ -58,6 +58,7 @@ pub mod platform_rule;
 pub mod platform_table;
 pub mod platform_wire;
 pub mod same_group;
+pub mod sdev_posture;
 mod port_access;
 pub mod power_key;
 pub mod power_report;

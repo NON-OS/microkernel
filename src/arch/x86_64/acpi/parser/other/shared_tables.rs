@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! The tables a PC server shares with an Arm one (SPCR, DBG2, PCCT): the
+//! The tables a PC server shares with an Arm one (SPCR, DBG2, PCCT, SDEV): the
 //! one parser of each, mounted from the aarch64 tables by path (byte
 //! parsers with nothing Arm in them), with the header check and field
 //! readers they share, mounted once.
@@ -34,6 +33,10 @@ pub mod pcct_extended;
 pub mod pcct_subspace;
 #[path = "../../../../aarch64/acpi/pcct_types.rs"]
 pub mod pcct_types;
+#[path = "../../../../aarch64/acpi/sdev.rs"]
+pub mod sdev;
+#[path = "../../../../aarch64/acpi/sdev_entry.rs"]
+pub mod sdev_entry;
 #[path = "../../../../aarch64/acpi/sdt.rs"]
 pub mod sdt;
 #[path = "../../../../aarch64/acpi/spcr.rs"]
