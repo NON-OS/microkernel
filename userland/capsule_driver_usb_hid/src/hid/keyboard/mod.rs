@@ -15,18 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod boot_report;
-mod constants;
 mod feed;
 mod is_error_code;
 mod is_real_key;
 mod key_changes;
 mod new;
-mod pending;
-mod pop;
-mod post_failures;
 mod push_key;
+mod release_all;
 pub mod repeat;
 mod tick;
 mod types;
 
+pub use boot_report::BootReport;
 pub use types::Keyboard;

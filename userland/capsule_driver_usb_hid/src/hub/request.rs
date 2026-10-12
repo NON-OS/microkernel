@@ -18,7 +18,7 @@
 //! 11.24.2.2 and 11.24.2.13) and a SuperSpeed hub's depth (USB 3.2 section
 //! 10.16.2.9). Each says whether the hub took it.
 
-use crate::xhci::control_transfer;
+use crate::xhci::{control_transfer, Setup};
 
 const CLEAR_FEATURE: u8 = 0x01;
 const SET_FEATURE: u8 = 0x03;
@@ -34,29 +34,20 @@ pub const C_PORT_RESET: u16 = 20;
 
 pub fn set_port_feature(xhci_port: u32, slot: u8, port: u8, feature: u16) -> bool {
     let mut none = [0u8; 0];
-    control_transfer(xhci_port, slot, RT_PORT_OUT, SET_FEATURE, feature, port as u16, 0, &mut none)
-        .is_ok()
+    let setup = Setup::new(RT_PORT_OUT, SET_FEATURE, feature, port as u16, 0);
+    control_transfer(xhci_port, slot, setup, &mut none).is_ok()
 }
 
 pub fn clear_port_feature(xhci_port: u32, slot: u8, port: u8, feature: u16) -> bool {
     let mut none = [0u8; 0];
-    control_transfer(
-        xhci_port,
-        slot,
-        RT_PORT_OUT,
-        CLEAR_FEATURE,
-        feature,
-        port as u16,
-        0,
-        &mut none,
-    )
-    .is_ok()
+    let setup = Setup::new(RT_PORT_OUT, CLEAR_FEATURE, feature, port as u16, 0);
+    control_transfer(xhci_port, slot, setup, &mut none).is_ok()
 }
 
 /// A SuperSpeed hub reads its own field of the route string by its depth:
 /// 0 on a root port, one more per hub above it.
 pub fn set_hub_depth(xhci_port: u32, slot: u8, depth: u8) -> bool {
     let mut none = [0u8; 0];
-    control_transfer(xhci_port, slot, RT_HUB_OUT, SET_HUB_DEPTH, depth as u16, 0, 0, &mut none)
-        .is_ok()
+    let setup = Setup::new(RT_HUB_OUT, SET_HUB_DEPTH, depth as u16, 0, 0);
+    control_transfer(xhci_port, slot, setup, &mut none).is_ok()
 }

@@ -19,7 +19,4 @@ mod header;
 mod ops;
 
 pub(super) use codec::{decode_response, encode_request};
-pub(super) use ops::{
-    OP_FEED_KEYBOARD_REPORT, OP_FEED_MOUSE_REPORT, OP_GET_STATE, OP_HEALTHCHECK, OP_POLL_KEYS,
-    OP_POLL_MOUSE, OP_PROBE_CONFIG,
-};
+pub(super) use ops::{OP_GET_STATE, OP_HEALTHCHECK};

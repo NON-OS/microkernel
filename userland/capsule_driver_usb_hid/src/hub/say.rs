@@ -24,6 +24,12 @@ pub struct Line {
     n: usize,
 }
 
+impl Default for Line {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Line {
     pub fn new() -> Self {
         Self { buf: [0; LINE_MAX], n: 0 }.text(b"[usb-hub] ")

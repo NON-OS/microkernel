@@ -14,21 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Looking at every port of one hub: a device that left is forgotten, a new
-//! one is brought up. The hub's own change bits say a device was swapped
+//! Looking at the ports of one hub: a device that left is forgotten, and a
+//! new one is brought up a step at a time (`hub::Bringup`). With
+//! `busy_only`, only the ports mid way through are looked at, which the
+//! poll loop does between its reads; but the first look once a new hub's
+//! power is good takes every port, as no rescan comes while another device
+//! streams reports. The hub's own change bits say a device was swapped
 //! between two looks; only this driver reads them, so they are not lost.
+//! Whether any port is still mid way through is returned.
 
-use crate::hub::{clear_port_feature, hub_port, port_status, speed_name, Hub, C_PORT_CONNECTION};
+use nonos_libc::mk_uptime_ms;
 
-use super::attach_child::attach_child;
-use super::constants::TRIES;
+use crate::hub::{clear_port_feature, hub_port, port_status, Hub, HubError, C_PORT_CONNECTION};
+
 use super::devices::Devices;
 use super::forget_slot::forget_slot;
+use super::step_port::step_port;
 
-pub(super) fn scan_hub(xhci_port: u32, hub: &mut Hub, devs: &mut Devices) {
+pub(super) fn scan_hub(xhci_port: u32, hub: &mut Hub, devs: &mut Devices, busy_only: bool) -> bool {
+    // Powered, but not good yet: looked at again soon.
+    if (mk_uptime_ms().max(0) as u64) < hub.ready_ms {
+        return true;
+    }
+    let every_port = !busy_only || hub.ready_ms != 0;
+    hub.ready_ms = 0;
+    let mut busy = false;
     for port in 1..=hub.ports {
         let i = port as usize - 1;
+        if !every_port && !hub.bring[i].busy() {
+            continue;
+        }
         let Some(st) = port_status(xhci_port, hub.slot, port, hub.place.superspeed()) else {
+            // A port that cannot be read ends a try under way.
+            if hub.bring[i].busy() {
+                hub.bring[i].end_try();
+                hub_port(hub.slot, port).text(HubError::PortStatus.says()).say();
+            }
             continue;
         };
         if st.connect_changed {
@@ -39,28 +60,10 @@ pub(super) fn scan_hub(xhci_port: u32, hub: &mut Hub, devs: &mut Devices) {
             hub.child[i] = 0;
             hub_port(hub.slot, port).text(b"device unplugged, its slot is given back").say();
         }
-        if !st.connected {
-            hub.tries[i] = 0;
-            continue;
+        if hub.child[i] == 0 {
+            step_port(xhci_port, hub, port, st, devs);
         }
-        if hub.child[i] != 0 || hub.tries[i] >= TRIES {
-            continue;
-        }
-        match attach_child(xhci_port, hub, port, devs) {
-            Ok(kept) => {
-                hub.tries[i] = TRIES;
-                hub.child[i] = kept.unwrap_or(0);
-                let what: &[u8] = if kept.is_some() {
-                    b" device bound"
-                } else {
-                    b" device, not a keyboard, mouse or hub; left alone"
-                };
-                hub_port(hub.slot, port).text(speed_name(st.speed)).text(what).say();
-            }
-            Err(e) => {
-                hub.tries[i] += 1;
-                hub_port(hub.slot, port).text(b"stopped: ").text(e.says()).say();
-            }
-        }
+        busy |= hub.bring[i].busy();
     }
+    busy
 }

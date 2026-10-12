@@ -15,4 +15,3 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(super) const HID_REPORT_MAX: usize = 8;
-pub(super) const RESCAN_INTERVAL: u32 = 64;

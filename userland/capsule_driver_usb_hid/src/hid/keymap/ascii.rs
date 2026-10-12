@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one ASCII byte a key puts on the event queue wire.
+//! The ASCII byte of a key press: the control code a key that is not a
+//! character posts (Enter, Escape, Backspace, Tab).
 
 use super::resolve::resolve_code;
 
-/// ASCII byte for the event queue wire format (one byte on the wire).
-/// Printable keys clamp non-ASCII resolutions (accented letters) to 0;
-/// the posted input event carries the full codepoint instead.
+/// The ASCII byte of a press. Printable keys clamp non-ASCII resolutions
+/// (accented letters) to 0; the posted input event carries the full
+/// codepoint instead.
 pub fn ascii(scancode: u8, modifiers: u8, caps: bool) -> u8 {
     match scancode {
         0x28 => return b'\n',

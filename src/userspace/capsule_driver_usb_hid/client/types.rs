@@ -15,42 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum HidKind {
-    Keyboard,
-    Mouse,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct HidBinding {
-    pub kind: HidKind,
-    pub interface_number: u8,
-    pub endpoint_address: u8,
-    pub interval: u8,
-    pub max_packet_size: u16,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct KeyEvent {
-    pub scancode: u8,
-    pub ascii: u8,
-    pub modifiers: u8,
-    pub pressed: bool,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct MouseEvent {
-    pub dx: i16,
-    pub dy: i16,
-    pub dz: i8,
-    pub buttons: u8,
-    pub flags: u8,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct UsbHidState {
     pub configs_probed: u64,
     pub key_reports: u64,
     pub mouse_reports: u64,
-    pub pending_keys: u32,
-    pub pending_mouse: u32,
 }

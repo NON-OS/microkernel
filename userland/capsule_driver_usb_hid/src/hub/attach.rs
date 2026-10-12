@@ -18,6 +18,8 @@
 //! its depth (SuperSpeed), the controller told it is a hub, its status
 //! endpoint claimed, and its ports powered (Linux `hub_configure`).
 
+use nonos_libc::mk_uptime_ms;
+
 use crate::xhci::{alloc_transfer_ring, configure_hub};
 
 use super::error::HubError;
@@ -56,5 +58,7 @@ pub fn attach(xhci_port: u32, slot: u8, place: Place, raw: &[u8]) -> Result<Hub,
         .num(desc.ports_named as u32)
         .text(b" ports, powered")
         .say();
-    Ok(Hub::new(slot, place, desc.ports))
+    let mut hub = Hub::new(slot, place, desc.ports);
+    hub.ready_ms = (mk_uptime_ms().max(0) as u64).saturating_add(u64::from(desc.power_on_ms));
+    Ok(hub)
 }

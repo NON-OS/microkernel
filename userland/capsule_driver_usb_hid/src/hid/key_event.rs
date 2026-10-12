@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// One key press, repeat or release, as it is resolved and posted.
 #[derive(Debug, Clone, Copy)]
 pub struct KeyEvent {
     pub scancode: u8,
@@ -21,16 +22,6 @@ pub struct KeyEvent {
     pub modifiers: u8,
     pub pressed: bool,
     // Caps-lock toggle state at the time of the event; feeds the layout
-    // resolution when the event is posted. Not part of the wire format.
+    // resolution when the event is posted.
     pub caps: bool,
-}
-
-impl KeyEvent {
-    pub fn write_wire(self, out: &mut [u8]) {
-        out[0] = self.scancode;
-        out[1] = self.ascii;
-        out[2] = self.modifiers;
-        out[3] = u8::from(self.pressed);
-        out[4..8].fill(0);
-    }
 }

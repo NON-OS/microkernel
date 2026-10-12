@@ -36,11 +36,8 @@ pub fn mouse_event(report: &[u8], previous_buttons: u8) -> Option<MouseEvent> {
     let dx = report[1] as i8 as i16;
     let dy = report[2] as i8 as i16;
     let dz = if report.len() > 3 { report[3] as i8 } else { 0 };
-    let moved = dx != 0 || dy != 0;
-    let changed = buttons != previous_buttons;
-    if !moved && dz == 0 && !changed {
+    if dx == 0 && dy == 0 && dz == 0 && buttons == previous_buttons {
         return None;
     }
-    let flags = u8::from(moved) | (u8::from(changed) << 1) | (u8::from(dz != 0) << 2);
-    Some(MouseEvent { dx, dy, dz, buttons, flags })
+    Some(MouseEvent { dx, dy, dz, buttons })
 }

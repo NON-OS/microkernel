@@ -17,33 +17,32 @@
 use alloc::vec::Vec;
 
 use crate::descriptors::{HidBinding, HidKind};
-use crate::xhci::{alloc_transfer_ring, control_transfer};
+use crate::hid::Device;
+use crate::hub::Place;
+use crate::xhci::{alloc_transfer_ring, control_transfer, Setup};
 
 use super::enumerate::HidEndpoint;
+use super::poll::{period_ms, Pace};
 
 const SET_IDLE: u8 = 0x0A;
-const SET_PROTOCOL: u8 = 0x0B;
 
 pub fn configure_binding(
     xhci_port: u32,
     slot: u8,
-    root_port: u8,
+    place: Place,
     binding: HidBinding,
+    dev: Device,
     out: &mut Vec<HidEndpoint>,
 ) {
     let iface = binding.interface_number as u16;
     let mut dummy = [0u8; 0];
-    if matches!(binding.kind, HidKind::Keyboard | HidKind::Mouse) {
-        // SET_PROTOCOL(boot): the reports are then the fixed boot layouts the
-        // decoders read. A device that refuses it is still bound; the
-        // controller driver recovers the stalled pipe.
-        let _ = control_transfer(xhci_port, slot, 0x21, SET_PROTOCOL, 0, iface, 0, &mut dummy);
-    }
+    // A boot interface is in boot protocol already (`device_for`).
     if binding.kind == HidKind::Keyboard {
         // SET_IDLE(0): report on change only, as Linux asks of keyboards.
         // Held keys repeat from here, so the default 500 ms resend is noise;
         // many devices STALL the request, which is fine.
-        let _ = control_transfer(xhci_port, slot, 0x21, SET_IDLE, 0, iface, 0, &mut dummy);
+        let setup = Setup::new(0x21, SET_IDLE, 0, iface, 0);
+        let _ = control_transfer(xhci_port, slot, setup, &mut dummy);
     }
     let Ok(dci) = alloc_transfer_ring(
         xhci_port,
@@ -56,10 +55,12 @@ pub fn configure_binding(
     };
     out.push(HidEndpoint {
         port: xhci_port,
-        root_port,
+        root_port: place.root_port,
         slot,
         dci,
         kind: binding.kind,
         max_packet: binding.max_packet_size,
+        dev,
+        pace: Pace::new(period_ms(place.speed, binding.interval)),
     });
 }
