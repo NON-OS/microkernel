@@ -17,7 +17,7 @@
 //! Hub port status words as USB 2.0 table 11-21 and USB 3.2 table 10-10
 //! lay them out.
 
-use crate::hub::port_status::{decode_port_status, SPEED_FULL, SPEED_HIGH, SPEED_LOW, SPEED_SUPER};
+use nonos_usb_hub::{decode_port_status, SPEED_FULL, SPEED_HIGH, SPEED_LOW, SPEED_SUPER};
 
 #[test]
 fn usb2_port_status_gives_connection_enable_and_speed() {

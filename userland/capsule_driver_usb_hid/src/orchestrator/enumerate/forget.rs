@@ -20,20 +20,19 @@
 //! driver and the next device on it was never addressed. A hub there takes
 //! every device below it along.
 
+use crate::hub::{forget_root, XhciHost};
 use crate::xhci::disable_slot;
 
 use super::devices::Devices;
 use super::drop_port::drop_port;
-use super::forget_slot::forget_slot;
 use super::say_port::say_port;
+use super::walk::Hid;
 
 pub(super) fn forget(xhci_port: u32, port: u8, tried: &mut u8, devs: &mut Devices) {
     *tried = 0;
-    let top_hub = |d: &Devices| {
-        d.hubs.iter().find(|h| h.place.root_port == port && h.place.depth == 0).map(|h| h.slot)
-    };
-    while let Some(slot) = top_hub(devs) {
-        forget_slot(xhci_port, slot, devs);
+    let mut h = XhciHost { port: xhci_port };
+    let mut hid = Hid { eps: &mut devs.eps };
+    if forget_root(&mut h, port, &mut devs.hubs, &mut hid) != 0 {
         say_port(port, b"hub unplugged, it and every device below it are given back");
     }
     let slots = drop_port(&mut devs.eps, port);

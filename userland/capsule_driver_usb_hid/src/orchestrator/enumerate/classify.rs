@@ -20,18 +20,26 @@
 use alloc::vec::Vec;
 
 use crate::descriptors::{configuration_value, hid_bindings, is_hub};
-use crate::hub::Place;
+use crate::hub::{Hub, Place, XhciHost};
 use crate::xhci::{control_transfer, MAX_DESCRIPTOR_LEN};
 
 use super::super::binding::configure_binding;
 use super::attach_hub::attach_hub;
-use super::devices::Devices;
 use super::read_configuration::read_configuration;
-use super::types::Outcome;
+use super::types::{HidEndpoint, Outcome};
 
 const SET_CONFIGURATION: u8 = 0x09;
 
-pub(super) fn classify(xhci_port: u32, slot: u8, place: Place, devs: &mut Devices) -> Outcome {
+/// Bind `slot`'s HID interfaces onto `eps`, or bring it up as a hub onto
+/// `hubs`.
+pub(super) fn classify(
+    h: &mut XhciHost,
+    slot: u8,
+    place: Place,
+    eps: &mut Vec<HidEndpoint>,
+    hubs: &mut Vec<Hub>,
+) -> Outcome {
+    let xhci_port = h.port;
     let mut desc = [0u8; MAX_DESCRIPTOR_LEN];
     let Some(len) = read_configuration(xhci_port, slot, &mut desc) else {
         return Outcome::Failed;
@@ -50,10 +58,10 @@ pub(super) fn classify(xhci_port: u32, slot: u8, place: Place, devs: &mut Device
         return Outcome::Failed;
     }
     if hub {
-        return attach_hub(xhci_port, slot, place, raw, devs);
+        return attach_hub(h, slot, place, raw, hubs);
     }
     for binding in bindings {
-        configure_binding(xhci_port, slot, place.root_port, binding, &mut devs.eps);
+        configure_binding(xhci_port, slot, place.root_port, binding, eps);
     }
     Outcome::Bound
 }
