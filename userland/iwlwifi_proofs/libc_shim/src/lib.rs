@@ -20,11 +20,15 @@
 
 use std::cell::RefCell;
 
+mod pci;
+
+pub use pci::*;
+
 thread_local! {
     static GIVEN_BACK: RefCell<Vec<(&'static str, u64)>> = const { RefCell::new(Vec::new()) };
 }
 
-fn give_back(call: &'static str, id: u64) -> i64 {
+pub(crate) fn give_back(call: &'static str, id: u64) -> i64 {
     GIVEN_BACK.with(|g| g.borrow_mut().push((call, id)));
     0
 }
