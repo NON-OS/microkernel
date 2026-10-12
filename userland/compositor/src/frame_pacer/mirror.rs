@@ -30,6 +30,10 @@ use crate::state::damage::Rect as Damage;
 use crate::state::Context;
 
 pub fn mirror(ctx: &mut Context, rects: &[Damage]) {
+    if ctx.plan.is_some() {
+        // Extended: each output was drawn from its own slice (`extend`).
+        return;
+    }
     let port = ctx.gfx_port;
     for h in ctx.heads.iter_mut() {
         let zero = Rect { x: 0, y: 0, width: 0, height: 0 };

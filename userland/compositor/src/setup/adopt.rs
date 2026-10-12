@@ -46,13 +46,14 @@ pub fn adopt(ctx: &mut Context, mut next: Context) {
     ctx.first_scanout_done = next.first_scanout_done;
     ctx.scanout_error_reported = false;
     ctx.wire = next.wire;
+    ctx.head_pending.clear();
     ctx.cursor_sent = None;
     if old.map(|o| o.1) != ctx.wire.map(|w| w.pid) {
         // Another driver, or this one restarted: its start-up size again.
         ctx.resize = next.resize;
     }
     ctx.damage.mark_full(ctx.width, ctx.height);
-    super::canvas::fit_canvas(ctx);
+    super::layout::fit(ctx);
     if old_handle != ctx.surface_handle {
         let _ = mk_surface_release(old_handle);
     }

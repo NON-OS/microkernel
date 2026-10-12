@@ -22,6 +22,7 @@ pub mod focus_set;
 pub mod health;
 pub mod indicator;
 pub mod input_subscribe;
+pub mod output_layout;
 pub mod scene_remove;
 pub mod scene_submit;
 

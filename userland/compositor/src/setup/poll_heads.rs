@@ -33,8 +33,11 @@ pub fn poll_heads(ctx: &mut Context, port: u32) -> Option<&'static str> {
         link.outputs = outputs;
         release_heads(&mut ctx.heads);
         ctx.heads = prime_heads(port, outputs);
+        if ctx.want_extend {
+            super::layout::relayout(ctx);
+        }
         ctx.damage.mark_full(ctx.width, ctx.height);
-        return plugged.then_some("outputs plugged or pulled; mirroring again");
+        return plugged.then_some("outputs plugged or pulled; laid out again");
     }
     let mut what = None;
     for i in 0..ctx.heads.len() {
@@ -49,6 +52,9 @@ pub fn poll_heads(ctx: &mut Context, port: u32) -> Option<&'static str> {
                 let Some(new) = head(port, h.output) else { continue };
                 let _ = mk_surface_release(h.handle);
                 ctx.heads[i] = new;
+                if ctx.want_extend {
+                    super::layout::relayout(ctx);
+                }
                 what = Some("a mirrored output's primary replaced");
             }
         }

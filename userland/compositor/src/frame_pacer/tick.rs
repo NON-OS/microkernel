@@ -30,10 +30,14 @@ pub fn tick(ctx: &mut Context) -> Result<(), &'static str> {
     if ctx.wire.is_some() {
         super::hw_cursor::sync(ctx);
         let prepare = |ctx: &mut Context, r| {
-            to_screen(ctx, r).and_then(|r| super::clip::clip_to_screen(ctx, r))
+            let shown = to_screen(ctx, r);
+            super::extend::draw_heads(ctx, r);
+            shown.and_then(|r| super::clip::clip_to_screen(ctx, r))
         };
         let send = super::present_wire::present_rects;
-        return super::drain_batch::drain_batched(ctx, |ctx| &mut ctx.damage, prepare, send);
+        let done = super::drain_batch::drain_batched(ctx, |ctx| &mut ctx.damage, prepare, send);
+        super::extend::flush_heads(ctx);
+        return done;
     }
     super::drain_damage::drain_damage(ctx, |ctx| &mut ctx.damage, show)
 }

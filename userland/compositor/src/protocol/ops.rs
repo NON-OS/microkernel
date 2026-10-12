@@ -26,3 +26,5 @@ pub const OP_DISPLAY_INFO: u16 = 0x0008;
 pub const OP_DISPLAY_HINT: u16 = 0x0009;
 /// A capturing driver's camera or microphone on or off (Decision 9).
 pub const OP_INDICATOR: u16 = 0x000A;
+/// The shell's choice for several outputs: mirrored or extended (unit 10).
+pub const OP_OUTPUT_LAYOUT: u16 = 0x000B;

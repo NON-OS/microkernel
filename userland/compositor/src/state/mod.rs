@@ -17,6 +17,7 @@
 pub mod attach;
 pub mod attach_kernel;
 pub mod context;
+pub mod context_ask;
 pub mod context_new;
 pub mod cursor;
 pub mod damage;

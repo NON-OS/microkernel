@@ -22,6 +22,7 @@ pub mod cursor_shape;
 pub mod cursor_slot;
 pub mod drain_batch;
 pub mod drain_damage;
+pub mod extend;
 pub mod indicator_band;
 pub mod hw_cursor;
 pub mod hw_cursor_back;
