@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the hub class needs of a USB host controller driver and of the
 //! OP_PARK's body (nonos_usb_virt's park.rs reads it): a child driver.usb_hub0
 //! addressed below a hub, handed to the host to list as a virtual port.
 
