@@ -15,15 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::descriptors::HidKind;
+use crate::hid::feed_pad;
 use crate::orchestrator::enumerate::HidEndpoint;
 use crate::state::State;
 
-use super::constants::HID_REPORT_MAX;
+use super::constants::PAD_REPORT_MAX;
 
 pub(super) fn feed_report(
     state: &mut State,
-    ep: &HidEndpoint,
-    buf: &[u8; HID_REPORT_MAX],
+    ep: &mut HidEndpoint,
+    buf: &[u8; PAD_REPORT_MAX],
     n: usize,
 ) {
     // The read is bounded by the buffer; a count past it is no report.
@@ -39,6 +40,11 @@ pub(super) fn feed_report(
         }
         HidKind::Tablet => {
             state.tablet.feed(report);
+        }
+        HidKind::Gamepad => {
+            if let Some((id, pad)) = ep.pad.as_mut() {
+                feed_pad(*id, pad, report);
+            }
         }
     }
 }
