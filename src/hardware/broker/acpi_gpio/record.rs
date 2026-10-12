@@ -41,6 +41,11 @@ pub(super) fn device_record(ctl: &GpioController) -> DeviceRecord {
         aux: 0,
         _pad: [0; 2],
     };
+    // The shared line, bindable through MkIrqBind like a function's INTx
+    // when it fits the record's byte; a GSI past it is left unbound and
+    // the GPIO capsule polls.
+    let irq_line =
+        ctl.irq.and_then(|g| u8::try_from(g).ok()).filter(|g| *g != 0xFF).unwrap_or(0xFF);
     DeviceRecord {
         bus_kind: BusKind::Acpi as u8,
         class: ids::GPIO_CTRL,
@@ -48,6 +53,8 @@ pub(super) fn device_record(ctl: &GpioController) -> DeviceRecord {
         device: (ctl.uid & 0xFFFF) as u16,
         bar_count: count as u8,
         bars,
+        irq_line,
+        irq_pin: u8::from(irq_line != 0xFF),
         ..DeviceRecord::empty()
     }
 }

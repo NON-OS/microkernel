@@ -22,8 +22,14 @@ use crate::policy::{admits, allowed, Allowed};
 
 /// Every service the kernel's HELD line admits to the endpoint, plus the
 /// ones the per-op lists name, each running under its own pid.
-const SERVICES: &[&[u8]] =
-    &[b"power", b"desktop_shell", b"driver.i2c_pci0", b"driver.i2c_hid0", b"driver.ps2_kbd0"];
+const SERVICES: &[&[u8]] = &[
+    b"power",
+    b"desktop_shell",
+    b"driver.i2c_pci0",
+    b"driver.i2c_hid0",
+    b"driver.ps2_kbd0",
+    b"driver.gpio0",
+];
 
 /// Every pid its own process: no threads.
 fn alone(_: u32) -> Option<u32> {
