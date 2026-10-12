@@ -19,6 +19,7 @@ mod describe;
 mod devices;
 mod gic;
 mod memory;
+mod platform;
 mod processors;
 mod reserved;
 
@@ -54,6 +55,7 @@ pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> Outcome {
     announce::model(&fdt);
     let steps = memory::populate(&fdt, info)
         .and_then(|()| devices::populate(&fdt, info))
+        .and_then(|()| platform::populate(&fdt))
         .and_then(|()| processors::populate(&fdt, info))
         .and_then(|()| reserved::populate(&fdt, info));
     match steps {
