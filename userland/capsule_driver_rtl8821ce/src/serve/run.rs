@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The serving loop: one request answered per pass (answer.rs), then a step
-//! of the background scan.
+//! The serving loop: one request answered per pass (answer.rs), then the
+//! link's clock and a step of the background scan (after.rs).
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 use nonos_wifi_core::netif::{wire, MAX_RESPONSE};
@@ -23,7 +23,7 @@ use nonos_wifi_core::netif::{wire, MAX_RESPONSE};
 use crate::setup::Mapped;
 use crate::status;
 
-use super::after::scan_step;
+use super::after::after_pass;
 use super::answer::answer;
 use super::connect::{self, Session};
 use super::radio::{build_radio, Radio};
@@ -70,6 +70,6 @@ pub fn run(mapped: Option<Mapped>, stage: Stage) -> ! {
             let len = answer(req, sender_pid, &mut radio, &mut session, &scanner, stage, &mut tx);
             let _ = mk_ipc_reply(sender_pid, tx.as_ptr(), len);
         }
-        scan_step(&mut radio, &session, &mut scanner);
+        after_pass(&mut radio, &mut session, &mut scanner);
     }
 }

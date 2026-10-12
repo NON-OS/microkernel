@@ -21,7 +21,7 @@ use nonos_wifi_core::dot11::header::MAC_HEADER_LEN;
 use nonos_wifi_core::eapol::parse::{parse as parse_key, KEY_INFO_PAIRWISE, KEY_INFO_SECURE};
 
 use super::*;
-use crate::ap_sim::{gtk_kde, message3, GTK};
+use crate::ap_sim::{gtk_kde, igtk_kde, message3, GTK};
 use crate::gen3_model::Out;
 
 impl Ap {
@@ -57,6 +57,10 @@ impl Ap {
             kd.extend_from_slice(x);
         }
         kd.extend_from_slice(&gtk_kde(1, &GTK));
+        // SAE runs with management frame protection, so the IGTK comes too.
+        if matches!(self.sec, Security::Sae { .. }) {
+            kd.extend_from_slice(&igtk_kde(&[0x77; 16]));
+        }
         let s = self.next_seq();
         vec![rx(&eapol_from_ap(&message3(self.akm(), 2, &ANONCE, &self.ptk, &kd), s), 0)]
     }
