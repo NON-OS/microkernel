@@ -17,8 +17,8 @@
 //! What the tests call, re-exported at `crate::controller` as in the capsule.
 
 pub use super::bulk::{
-    bulk_transfer, poll_bulk_in, reset_bulk_endpoint, write_bulk_input, BulkEndpoint, BulkPipes,
-    BulkPoll,
+    bulk_transfer, poll_bulk_in, reset_bulk_endpoint, stream_transfer, write_bulk_input,
+    write_stream_input, BulkEndpoint, BulkPipes, BulkPoll, StreamPipe, MAX_LOG2,
 };
 pub use super::drain_events::{drain_events, DRAIN_BATCH};
 pub use super::get_device_descriptor::{
