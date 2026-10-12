@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the UHCI host capsule: its schedule, transfers
+# and wire handlers run here from the shipped source through #[path],
+# against a model controller that runs the schedule frame by frame and the
+# devices on its two root ports.
+[package]
+name = "uhci_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
