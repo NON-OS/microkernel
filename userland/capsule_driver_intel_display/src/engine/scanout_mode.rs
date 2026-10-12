@@ -16,9 +16,11 @@
 
 //! A taken-over output's surfaces after a mode set, with the plane dark:
 //! the old runs taken out of the GGTT, two new surfaces (contiguous IOVAs,
-//! each already holding the picture) mapped clear of firmware's, and the
-//! plane pointed at the first, laid out as firmware's was. The same call
-//! puts the old surfaces back when the new mode could not be lit.
+//! each already holding the picture) mapped inside the output's window of
+//! the table (`window.0..window.1`, which other outputs never use) clear
+//! of firmware's, and the plane pointed at the first, laid out as
+//! firmware's was. The same call puts the old surfaces back when the new
+//! mode could not be lit.
 
 use super::access::{Expiry, Mmio};
 use super::error::Error;
@@ -34,12 +36,13 @@ impl Scanout {
         &mut self,
         m: &mut dyn Mmio,
         size: (u32, u32),
-        total: u32,
+        window: (u32, u32),
         bases: [u64; 2],
         until: &dyn Expiry,
     ) -> Result<(), Error> {
         let stride = (size.0 * 4).next_multiple_of(64);
         let pages = (stride * size.1).div_ceil(4096);
+        let total = window.1;
         for s in self.surfaces {
             ggtt::unmap(m, self.ggtt, s / 4096, self.pages, total)?;
         }
@@ -48,7 +51,8 @@ impl Scanout {
         let avoid = (fw.live / 4096, fw.live / 4096 + fw_pages);
         let align = SURF_ALIGN / 4096;
         let a = pick(total, pages, align, avoid).ok_or(Error::GgttFull)?;
-        let b = pick(a, pages, align, avoid).ok_or(Error::GgttFull)?;
+        let b = pick(a, pages, align, avoid).filter(|&b| b >= window.0);
+        let b = b.ok_or(Error::GgttFull)?;
         for (first, base) in [(a, bases[0]), (b, bases[1])] {
             map_run(m, self.ggtt, first, base, pages, total)?;
         }

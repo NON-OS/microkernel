@@ -24,6 +24,7 @@ use nonos_gfx_wire::Mode;
 
 use super::dp_rig::dp_rig;
 use super::edid_blob::edid_1080p_and_xga;
+use super::wire_rig::h0;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::timing;
 use crate::model::firmware::T1080;
@@ -37,7 +38,7 @@ pub fn shadow_of(px: u32, w: u32, h: u32) -> Vec<u8> {
 #[test]
 fn a_dp_monitor_is_offered_its_listed_modes() {
     let (d, _, _) = dp_rig(T1080, edid_1080p_and_xga((600, 340)), TOTAL);
-    assert!(d.modeset.is_some(), "mode setting found");
+    assert!(h0(&d).modeset.is_some(), "mode setting found");
     let c = d.caps();
     assert_eq!((c.flags & MODE_SET, c.flags & MODE_RANGE), (MODE_SET, 0), "a list device");
     let mut out = [Mode::default(); 4];
@@ -57,8 +58,8 @@ fn a_mode_set_lights_the_new_timing_on_the_new_primary() {
     let mut m = model.borrow_mut();
     let t = timing::read(&mut *m, Transcoder::B).unwrap();
     assert_eq!((t.h_active, t.v_active), (1024, 768));
-    assert_eq!((d.scan.width, d.scan.height), (1024, 768));
+    assert_eq!((h0(&d).scan.width, h0(&d).scan.height), (1024, 768));
     assert_eq!(m.pixel(Pipe::B, 1023, 767), Some(0xFF13_5791), "the new primary shows");
-    assert_eq!(d.frames.was, None, "the old surfaces given back");
-    assert_eq!(d.bases, d.frames.iova);
+    assert_eq!(h0(&d).frames.was, None, "the old surfaces given back");
+    assert_eq!(h0(&d).bases, h0(&d).frames.iova);
 }

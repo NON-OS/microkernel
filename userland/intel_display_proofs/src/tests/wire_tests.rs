@@ -23,7 +23,7 @@ use nonos_gfx_wire::body::mode::{CURRENT, FROM_DEVICE, PREFERRED};
 use nonos_gfx_wire::errno::ENOSYS;
 use nonos_gfx_wire::{kind, Cursor, Mode};
 
-use super::wire_rig::rig;
+use super::wire_rig::{h0, rig};
 use crate::display::{red_first, swap_red_blue};
 use crate::engine::gen::PlaneKind;
 
@@ -55,7 +55,7 @@ fn the_one_mode_is_firmwares_and_nothing_else_is_served() {
 #[test]
 fn a_red_first_plane_is_found_and_its_pixels_swapped() {
     let (d, _) = rig();
-    let mut p = d.out.plane;
+    let mut p = h0(&d).out.plane;
     assert!(!red_first(&p), "the model's firmware plane is blue first");
     p.ctl |= PlaneKind::Universal.order_bit();
     assert!(red_first(&p));

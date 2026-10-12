@@ -22,7 +22,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use super::scanout_tests::{setup, TOTAL};
-use crate::display::Intel;
+use crate::display::{Head, Intel};
 use crate::engine::gen::GEN9;
 use crate::engine::pipe::Pipe;
 use crate::engine::scanout::Scanout;
@@ -42,23 +42,23 @@ pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
     let len = scan.pages as usize * 4096;
     let (iova, next) = ([a[0], b[0]], Some(0x4000_0000));
     let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, next };
-    let intel = Intel {
-        m: shared,
-        frames,
-        clock: Ticks::new(),
-        gen: &GEN9,
-        out,
-        scan,
-        panel: Panel::default(),
-        modeset: None,
-        bases: iova,
-        generation: 1,
-        flags: SCANNING_OUT,
-    };
-    (intel, model)
+    let (panel, modeset, bases, generation, flags) =
+        (Panel::default(), None, iova, 1, SCANNING_OUT);
+    let head = Head { out, scan, frames, panel, modeset, bases, generation, flags };
+    let heads = [Some(head), None, None, None];
+    (Intel { m: shared, clock: Ticks::new(), gen: &GEN9, heads }, model)
 }
 
 /// A shadow of the output's size, every pixel `px`.
 pub fn shadow_bytes(px: u32) -> Vec<u8> {
     px.to_le_bytes().iter().copied().cycle().take(1920 * 1080 * 4).collect()
+}
+
+/// The rig's first, and only, output.
+pub fn h0(d: &Rig) -> &Head<ModelFrames> {
+    d.heads[0].as_ref().unwrap()
+}
+
+pub fn h0m(d: &mut Rig) -> &mut Head<ModelFrames> {
+    d.heads[0].as_mut().unwrap()
 }

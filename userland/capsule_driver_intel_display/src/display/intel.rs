@@ -14,39 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A taken-over output as the wire server drives it: the engine's BAR0,
-//! the scanout surfaces' memory, the clock its waits run on, the output
-//! firmware lit and the scanout flipping between the two surfaces.
+//! The engine as the wire server drives it: BAR0, the clock its waits run
+//! on, its generation, and every output it took over, pipe A's first. Wire
+//! output n is the nth head; a number past them is ENXIO.
 
-use nonos_gfx_serve::Panel;
+use nonos_gfx_wire::errno::ENXIO;
+use nonos_gfx_wire::Errno;
 
 use super::frames::Frames;
-use super::modeset::Modeset;
+use super::head::Head;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::gen::Gen;
-use crate::engine::scanout::Scanout;
-use crate::engine::takeover::Output;
 
 /// A flip waits for one vertical blank: 100 ms covers a 24 Hz panel with
 /// room to spare, and a pipe that never blanks gives up within a FLUSH's
 /// budget.
 pub const FLIP_US: u64 = 100_000;
+/// Gen12's four pipes, the most any family here has; the wire server's
+/// outputs too.
+pub const MAX_HEADS: usize = 4;
 
 pub struct Intel<M: Mmio, F: Frames, C: Clock> {
     pub m: M,
-    pub frames: F,
     pub clock: C,
     pub gen: &'static Gen,
-    pub out: Output,
-    pub scan: Scanout,
-    /// What the monitor's EDID said; empty when it said nothing.
-    pub panel: Panel,
-    /// What a MODE_SET needs; None leaves the output at firmware's mode.
-    pub modeset: Option<Modeset>,
-    /// The first IOVA of each scanout surface now shown.
-    pub bases: [u64; 2],
-    /// Bumped whenever STATE says something new.
-    pub generation: u32,
-    /// The flags STATE answered last.
-    pub flags: u32,
+    /// The taken-over outputs, packed from the first.
+    pub heads: [Option<Head<F>>; MAX_HEADS],
+}
+
+impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+    pub fn count(&self) -> usize {
+        self.heads.iter().take_while(|h| h.is_some()).count()
+    }
+
+    pub fn head(&self, output: u16) -> Result<&Head<F>, Errno> {
+        self.heads.get(output as usize).and_then(|h| h.as_ref()).ok_or(ENXIO)
+    }
 }

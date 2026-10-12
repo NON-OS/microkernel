@@ -14,29 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One lighting of a taken-over output at `timing` on the surfaces at
+//! One lighting of a taken-over output at a timing on the surfaces at
 //! `bases`: the port relit, the plane's buffer and watermarks for the new
-//! line, then the plane rebased onto the surfaces, live before it returns.
+//! line, then the plane rebased onto the surfaces inside the output's GGTT
+//! window, live before it returns.
 
-use super::frames::Frames;
-use super::intel::{Intel, FLIP_US};
+use nonos_gfx_wire::errno::{EINVAL, ENOMEM, ETIMEDOUT};
+use nonos_gfx_wire::Errno;
+
+use super::intel::FLIP_US;
 use super::modeset::Modeset;
 use crate::engine::access::{Clock, Mmio, Until};
 use crate::engine::error::Error;
 use crate::engine::relight::{buffer, relight};
+use crate::engine::scanout::Scanout;
 use nonos_edid::Detailed;
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
-    pub(super) fn light(
-        &mut self,
-        ms: &Modeset,
-        timing: &Detailed,
-        size: (u32, u32),
-        bases: [u64; 2],
-    ) -> Result<(), Error> {
-        relight(&mut self.m, &self.clock, &ms.lit, timing, ms.tmds_khz)?;
-        buffer(&mut self.m, ms.lit.p, size.0, timing, &ms.latency_us);
-        let until = Until::new(&self.clock, FLIP_US);
-        self.scan.rebase(&mut self.m, size, ms.total, bases, &until)
+pub fn light(
+    m: &mut dyn Mmio,
+    clock: &dyn Clock,
+    scan: &mut Scanout,
+    (ms, timing): (&Modeset, &Detailed),
+    size: (u32, u32),
+    bases: [u64; 2],
+) -> Result<(), Error> {
+    relight(m, clock, &ms.lit, timing, ms.tmds_khz)?;
+    buffer(m, ms.lit.p, size.0, timing, &ms.latency_us);
+    let until = Until::new(clock, FLIP_US);
+    scan.rebase(m, size, ms.window, bases, &until)
+}
+
+/// What a failed lighting answers on the wire.
+pub fn errno(e: Error) -> Errno {
+    match e {
+        Error::Timeout => ETIMEDOUT,
+        Error::GgttFull => ENOMEM,
+        _ => EINVAL,
     }
 }

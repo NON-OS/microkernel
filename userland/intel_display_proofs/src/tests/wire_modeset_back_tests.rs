@@ -23,7 +23,7 @@ use nonos_gfx_wire::errno::ENOMEM;
 
 use super::dp_rig::dp_rig;
 use super::edid_blob::edid_1080p_and_xga;
-use super::wire_rig::rig;
+use super::wire_rig::{h0, rig};
 use crate::display::{Modeset, Monitor};
 use crate::engine::gen::{GEN11, GEN9};
 use crate::engine::pipe::{Pipe, Transcoder};
@@ -48,7 +48,7 @@ fn a_new_mode_with_no_room_in_the_ggtt_goes_back_to_the_old_one() {
     let t = timing::read(&mut *m, Transcoder::B).unwrap();
     assert_eq!((t.h_active, t.v_active), (1024, 768), "the old timing back");
     assert_eq!(m.pixel(Pipe::B, 1023, 767), Some(0xFF00_00AA), "the old picture back");
-    assert_eq!((d.scan.width, d.frames.was), (1024, None));
+    assert_eq!((h0(&d).scan.width, h0(&d).frames.was), (1024, None));
 }
 
 #[test]
@@ -56,10 +56,12 @@ fn edp_another_generation_or_a_silent_monitor_has_no_mode_setting() {
     let (mut d, _) = rig();
     let clock = Ticks::new();
     let mon = Monitor::of(&mut d.m, &clock, &GEN9, Transcoder::Edp);
-    assert!(Modeset::find(&mut d.m, &clock, &GEN9, &d.out, &mon, 1 << 20).is_none(), "eDP");
+    let out = h0(&d).out;
+    assert!(Modeset::find(&mut d.m, &clock, &GEN9, &out, &mon, (0, 1 << 20)).is_none(), "eDP");
     let (mut d, _, _) = dp_rig(T768, edid_1080p_and_xga((600, 340)), 1 << 20);
     let mon = Monitor::of(&mut d.m, &clock, &GEN9, Transcoder::B);
-    assert!(Modeset::find(&mut d.m, &clock, &GEN11, &d.out, &mon, 1 << 20).is_none());
+    let out = h0(&d).out;
+    assert!(Modeset::find(&mut d.m, &clock, &GEN11, &out, &mon, (0, 1 << 20)).is_none());
     let silent = Monitor { blob: [0; 256], len: 0 };
-    assert!(Modeset::find(&mut d.m, &clock, &GEN9, &d.out, &silent, 1 << 20).is_none());
+    assert!(Modeset::find(&mut d.m, &clock, &GEN9, &out, &silent, (0, 1 << 20)).is_none());
 }
