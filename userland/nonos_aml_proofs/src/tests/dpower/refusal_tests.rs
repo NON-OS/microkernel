@@ -17,7 +17,7 @@
 //! Moves refused before anything runs, and D3hot keeping _PR3.
 
 use super::rig::{ids, src};
-use crate::device_power::{DState, DevicePower, MoveError};
+use crate::device_power::{DState, DevicePower, MoveError, PowerPool};
 use crate::probe::Probe;
 use crate::run::boot;
 use crate::tests::platform::run::evaluator;
@@ -26,21 +26,22 @@ use crate::tests::platform::run::evaluator;
 fn refusals_and_d3hot() {
     let (mut aml, _) = boot(&src(), 2);
     let [_, d2, d3, d4, pra, prb] = ids(&aml);
-    let (mut probe, mut dp) = (Probe::default(), DevicePower::default());
+    let (mut probe, mut dp, mut pool) =
+        (Probe::default(), DevicePower::default(), PowerPool::default());
     let mut ev = evaluator(&mut probe);
     assert!(matches!(
-        dp.set(&mut aml, &mut ev, d3, DState::D0, DState::D1),
+        dp.set(&mut pool, &mut aml, &mut ev, d3, DState::D0, DState::D1),
         Err(MoveError::Unsupported)
     ));
-    dp.set(&mut aml, &mut ev, d2, DState::D0, DState::D3Hot).unwrap();
+    dp.set(&mut pool, &mut aml, &mut ev, d2, DState::D0, DState::D3Hot).unwrap();
     assert!(matches!(
-        dp.set(&mut aml, &mut ev, d2, DState::D0, DState::D2),
+        dp.set(&mut pool, &mut aml, &mut ev, d2, DState::D0, DState::D2),
         Err(MoveError::NotFromD0)
     ));
-    dp.set(&mut aml, &mut ev, d2, DState::D0, DState::D0).unwrap();
-    dp.set(&mut aml, &mut ev, d2, DState::D0, DState::D2).unwrap();
-    assert_eq!(dp.pool.holders(pra), 1, "D2 holds _PR2");
-    dp.set(&mut aml, &mut ev, d4, DState::D3Cold, DState::D0).unwrap();
-    dp.set(&mut aml, &mut ev, d4, DState::D0, DState::D3Hot).unwrap();
-    assert_eq!((dp.pool.holders(pra), dp.pool.holders(prb)), (1, 1), "D3hot keeps _PR3's PRB");
+    dp.set(&mut pool, &mut aml, &mut ev, d2, DState::D0, DState::D0).unwrap();
+    dp.set(&mut pool, &mut aml, &mut ev, d2, DState::D0, DState::D2).unwrap();
+    assert_eq!(pool.holders(pra), 1, "D2 holds _PR2");
+    dp.set(&mut pool, &mut aml, &mut ev, d4, DState::D3Cold, DState::D0).unwrap();
+    dp.set(&mut pool, &mut aml, &mut ev, d4, DState::D0, DState::D3Hot).unwrap();
+    assert_eq!((pool.holders(pra), pool.holders(prb)), (1, 1), "D3hot keeps _PR3's PRB");
 }
