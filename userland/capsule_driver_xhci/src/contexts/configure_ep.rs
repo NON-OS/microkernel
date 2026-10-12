@@ -18,6 +18,7 @@ use crate::dma::DmaRegion;
 const INPUT_CONTROL_INDEX: usize = 0;
 const ADD_SLOT_FLAG: u32 = 1;
 const EP_TYPE_INTERRUPT_IN: u32 = 7;
+const EP_TYPE_INTERRUPT_OUT: u32 = 3;
 const CERR: u32 = 3;
 const DCS: u32 = 1;
 /// The parameters of the interrupt-IN endpoint being configured, bundled so the
@@ -50,16 +51,20 @@ pub fn write_configure_endpoint_input(input: &DmaRegion, output: &DmaRegion, cfg
 fn write_endpoint(
     region: &DmaRegion,
     context_size: u8,
-    dci: usize,
+    index: usize,
     ring_phys: u64,
     max_packet: u16,
     interval: u8,
 ) {
     let dw0 = (interval as u32) << 16;
-    let dw1 = (CERR << 1) | (EP_TYPE_INTERRUPT_IN << 3) | ((max_packet as u32) << 16);
-    write_dw(region, context_size, dci, 0, dw0);
-    write_dw(region, context_size, dci, 1, dw1);
-    write_dw(region, context_size, dci, 2, (ring_phys as u32) | DCS);
-    write_dw(region, context_size, dci, 3, (ring_phys >> 32) as u32);
-    write_dw(region, context_size, dci, 4, (max_packet as u32) | ((max_packet as u32) << 16));
+    // `index` is the DCI plus one, the input control context first. An odd
+    // DCI is an IN endpoint, an even one OUT (a security key's).
+    let ep_type =
+        if index.is_multiple_of(2) { EP_TYPE_INTERRUPT_IN } else { EP_TYPE_INTERRUPT_OUT };
+    let dw1 = (CERR << 1) | (ep_type << 3) | ((max_packet as u32) << 16);
+    write_dw(region, context_size, index, 0, dw0);
+    write_dw(region, context_size, index, 1, dw1);
+    write_dw(region, context_size, index, 2, (ring_phys as u32) | DCS);
+    write_dw(region, context_size, index, 3, (ring_phys >> 32) as u32);
+    write_dw(region, context_size, index, 4, (max_packet as u32) | ((max_packet as u32) << 16));
 }
