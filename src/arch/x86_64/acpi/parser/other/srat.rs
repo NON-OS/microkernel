@@ -14,62 +14,52 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::mem;
-use core::ptr;
+//! SRAT read once at boot through the one pure decoder (`srat_entry`):
+//! each processor's proximity domain and the memory ranges by domain. GICC
+//! and Generic Initiator entries are decoded too, and kept for the device
+//! records once their encoding is settled.
 
 use super::super::state::TableRegistry;
-use super::srat_memory::{parse_memory_affinity, parse_x2apic_affinity};
-use crate::arch::x86_64::acpi::tables::srat::SratProcessorAffinity;
-use crate::arch::x86_64::acpi::tables::{Srat, MAX_TABLE_BYTES, SIG_SRAT};
+use super::srat_entry::{entries, SratEntry};
+use crate::arch::x86_64::acpi::data::NumaMemoryRegion;
+use crate::arch::x86_64::acpi::tables::{SdtHeader, MAX_TABLE_BYTES, SIG_SRAT};
 
 pub fn parse_srat(registry: &mut TableRegistry) {
-    let addr = match registry.tables.get(&SIG_SRAT) {
-        Some(&a) => a,
-        None => return,
-    };
-    let addr = match super::super::phys::directmap(addr) {
-        Some(v) => v,
-        None => return,
-    };
-
-    unsafe {
-        let srat = ptr::read_volatile(addr as *const Srat);
-        let srat_end = addr + (srat.header.length as u64).min(MAX_TABLE_BYTES);
-        let mut entry_ptr = addr + srat.entries_offset() as u64;
-
-        while entry_ptr + 2 <= srat_end {
-            let entry_type = ptr::read_volatile(entry_ptr as *const u8);
-            let length = ptr::read_volatile((entry_ptr + 1) as *const u8);
-
-            if length < 2 || entry_ptr + length as u64 > srat_end {
-                break;
-            }
-
-            match entry_type {
-                0 => parse_processor_affinity(registry, entry_ptr, length),
-                1 => parse_memory_affinity(registry, entry_ptr, length),
-                2 => parse_x2apic_affinity(registry, entry_ptr, length),
-                _ => {}
-            }
-
-            entry_ptr += length as u64;
+    let Some(&phys) = registry.tables.get(&SIG_SRAT) else { return };
+    let Some(addr) = super::super::phys::directmap(phys) else { return };
+    // SAFETY: the registry holds tables firmware published and the directmap
+    // covers them; the header is read before the length it carries is
+    // trusted, and the checksum is checked over that length.
+    let table = unsafe {
+        let header = core::ptr::read_volatile(addr as *const SdtHeader);
+        if !header.validate_checksum(addr as *const u8) {
+            return;
         }
+        let len = u64::from(header.length).min(MAX_TABLE_BYTES) as usize;
+        core::slice::from_raw_parts(addr as *const u8, len)
+    };
+    for e in entries(table) {
+        apply(registry, e);
     }
 }
 
-fn parse_processor_affinity(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<SratProcessorAffinity>() as u8 {
-        return;
-    }
-    unsafe {
-        let entry = ptr::read_volatile(ptr as *const SratProcessorAffinity);
-        if entry.is_enabled() {
-            for proc in &mut registry.data.processors {
-                if proc.apic_id == entry.apic_id as u32 {
-                    proc.proximity_domain = entry.proximity_domain();
-                    break;
-                }
+fn apply(registry: &mut TableRegistry, e: SratEntry) {
+    match e {
+        SratEntry::Apic { apic_id, domain } => {
+            let found = registry.data.processors.iter_mut().find(|p| p.apic_id == apic_id);
+            if let Some(p) = found {
+                p.proximity_domain = domain;
             }
         }
+        SratEntry::Memory { domain, base, len, hot_pluggable, non_volatile } => {
+            registry.data.numa_regions.push(NumaMemoryRegion {
+                base,
+                length: len,
+                proximity_domain: domain,
+                hot_pluggable,
+                non_volatile,
+            });
+        }
+        SratEntry::Gicc { .. } | SratEntry::Initiator { .. } => {}
     }
 }
