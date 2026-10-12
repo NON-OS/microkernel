@@ -4,7 +4,7 @@ Every native syscall NONOS 0.9.2 accepts, with its number, the [capability](../o
 
 ## Numbers
 
-A syscall number is a [syscall tag](../overview/glossary.md#syscall-tag): four ASCII letters packed little-endian into a `u64` by `tag4`, first letter in the lowest byte (`src/syscall/abi/tag.rs:17-22`). `MISD` is the bytes `M`, `I`, `S`, `D`, so its number is `0x4453494D`. Any number not in `REGISTRY` is answered with `ENOSYS`, -38, except from a [foreign process](../overview/glossary.md#foreign-process) on x86_64, whose supervisor answers it; see [The NONOS ABI](README.md#calling-convention).
+A syscall number is a [syscall tag](../overview/glossary.md#syscall-tag): four ASCII letters packed little-endian into a `u64` by `tag4`, first letter in the lowest byte (`src/syscall/abi/tag.rs:17-22`). `MISD` is the bytes `M`, `I`, `S`, `D`, so its number is `0x4453494D`. Any number not in `REGISTRY` is answered with `ENOSYS`, -38, except from a [foreign process](../overview/glossary.md#foreign-process) on x86_64, whose supervisor answers it; see [The NONOS ABI](abi-calling-convention.md#calling-convention).
 
 `REGISTRY` holds one table per family, 130 calls in all (`src/syscall/abi/registry/mod.rs:27-28`):
 
@@ -272,7 +272,7 @@ A supervising capsule that holds `ForeignExec`, such as the [Linux personality](
 
 ## Limits
 
-- Arguments are not listed here. `abi/syscalls.toml` lists them, and several lists are wrong; see [The NONOS ABI](README.md#stability-in-092). The broker and IPC arguments in [Broker](broker.md) and [IPC](ipc.md) are read from the handlers.
+- Arguments are not listed here. `abi/syscalls.toml` lists them, and several lists are wrong; see [The NONOS ABI](abi-stability-in-092.md#stability-in-092). The broker and IPC arguments in [Broker](broker.md) and [IPC](ipc.md) are read from the handlers.
 - When no microkernel group handles a number, `route_tail` returns -1, which reads as `EPERM` (`src/syscall/microkernel/dispatch/route.rs:52-68`). The router's own default, `util::errno` with 38, is `ENOSYS` (`src/syscall/dispatch/router/dispatch_fn.rs:58`). Neither is reached by a number in `REGISTRY` at this commit; `scripts/check_syscall_abi.py` checks that every published call reaches a handler.
 - `AbiStatus::Unavailable` is declared and never used: every entry is routed (`src/syscall/abi/status.rs:17-21`).
 - `handle_syscall` in `src/syscall/entry.rs` is a second entry point that no architecture calls (`src/syscall/entry.rs:25-35`).
