@@ -39,7 +39,7 @@ pub(super) fn handle(
 ) -> SyscallResult {
     match nr {
         SyscallNumber::MkSurfaceRegister => h::do_register(a0),
-        SyscallNumber::MkSurfaceShare => h::do_share(a0),
+        SyscallNumber::MkSurfaceShare => super::surface_share::do_share(a0, a1),
         SyscallNumber::MkSurfaceAttach => h::do_attach(a0, a1),
         SyscallNumber::MkSurfaceRelease => h::do_release(a0),
         // a1..a4 carry an optional damage rectangle. All zero means the whole

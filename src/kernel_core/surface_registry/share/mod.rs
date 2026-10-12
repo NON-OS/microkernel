@@ -19,8 +19,13 @@ mod attach_surface;
 mod descriptor;
 mod existing;
 mod map_frames;
+mod owned;
+mod permit;
+pub(super) mod rule;
 mod self_attach;
 mod share_surface;
+mod share_to;
 
 pub use attach_surface::attach_surface;
 pub use share_surface::share_surface;
+pub use share_to::share_surface_to;

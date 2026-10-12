@@ -48,7 +48,7 @@ fn fail(sender_pid: u32, req: &Request, errno: i32, tx: &mut [u8]) { let _ = res
 
 fn finish(outputs: &mut Outputs, sender_pid: u32, req: &Request, pixels: &[u32], size: ImageSize, tx: &mut [u8]) {
     let count = size.pixel_count() as usize;
-    let (handle, stride, byte_len, (base, len)) = match register_argb_surface(&pixels[..count], size) {
+    let (handle, stride, byte_len, (base, len)) = match register_argb_surface(&pixels[..count], size, sender_pid) {
         Ok(v) => v,
         Err(e) => return fail(sender_pid, req, e, tx),
     };

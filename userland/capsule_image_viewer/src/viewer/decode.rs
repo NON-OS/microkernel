@@ -6,7 +6,7 @@ use nonos_app_skeleton::discover::lookup_service;
 use nonos_app_skeleton::wire::build_request;
 use nonos_libc::{
     mk_ipc_call, mk_mmap, mk_munmap, mk_surface_attach, mk_surface_register, mk_surface_release,
-    mk_surface_share, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
+    mk_surface_share_to, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
 };
 
 const NIMG: u32 = 0x474D_494E;
@@ -43,7 +43,7 @@ fn op_for(name: &[u8]) -> Result<u16, &'static str> {
 pub fn decode(bytes: &[u8], name: &[u8]) -> Result<Decoded, &'static str> {
     let op = op_for(name)?;
     let svc = lookup_service(b"image_codec").ok_or("no codec")?;
-    let (in_handle, in_len, in_base, in_pad) = share_input(bytes)?;
+    let (in_handle, in_len, in_base, in_pad) = share_input(bytes, svc.pid)?;
     let mut payload = [0u8; 16];
     payload[0..8].copy_from_slice(&in_handle.to_le_bytes());
     payload[8..16].copy_from_slice(&in_len.to_le_bytes());
@@ -94,7 +94,7 @@ pub fn decode(bytes: &[u8], name: &[u8]) -> Result<Decoded, &'static str> {
     Ok(Decoded { px, w: desc.width, h: desc.height })
 }
 
-fn share_input(bytes: &[u8]) -> Result<(u64, u64, *mut u8, usize), &'static str> {
+fn share_input(bytes: &[u8], codec: u32) -> Result<(u64, u64, *mut u8, usize), &'static str> {
     let byte_len = bytes.len() as u64;
     let padded = ((bytes.len() + 3) & !3).max(4);
     let base = mk_mmap(core::ptr::null_mut(), padded, 0x3, 0x22, -1, 0);
@@ -122,7 +122,8 @@ fn share_input(bytes: &[u8]) -> Result<(u64, u64, *mut u8, usize), &'static str>
         let _ = mk_munmap(base, padded);
         return Err("input register failed");
     }
-    let handle = mk_surface_share(sid as u64);
+    // The codec alone may map the input.
+    let handle = mk_surface_share_to(sid as u64, codec);
     if handle <= 0 {
         let _ = mk_munmap(base, padded);
         return Err("input share failed");

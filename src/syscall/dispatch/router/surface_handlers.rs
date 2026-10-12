@@ -19,8 +19,7 @@ use alloc::vec::Vec;
 use crate::kernel_core::surface_registry::pin::drop_attach::drop_attach;
 use crate::kernel_core::surface_registry::pin::register_check::register_owned;
 use crate::kernel_core::surface_registry::{
-    attach_map, attach_surface, lookup_attached_va, lookup_owned, share_surface, wait_for_vsync,
-    SurfaceDescriptor,
+    attach_map, attach_surface, lookup_attached_va, wait_for_vsync, SurfaceDescriptor,
 };
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::manager::api::translate_address;
@@ -115,21 +114,6 @@ pub(super) fn do_register(desc_ptr: u64) -> SyscallResult {
             log_display_mode(&desc);
             SyscallResult::success_audited(sid as i64)
         }
-        Err(e) => errno(map_err(e)),
-    }
-}
-
-pub(super) fn do_share(sid: u64) -> SyscallResult {
-    let pid = match current_pid() {
-        Some(p) => p,
-        None => return errno(ESRCH),
-    };
-    let handle = match lookup_owned(pid, sid) {
-        Ok(h) => h,
-        Err(e) => return errno(map_err(e)),
-    };
-    match share_surface(pid, handle) {
-        Ok(h) => SyscallResult::success_audited(h as i64),
         Err(e) => errno(map_err(e)),
     }
 }

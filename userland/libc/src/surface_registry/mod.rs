@@ -37,7 +37,7 @@ pub use input_wait::mk_input_event_wait;
 pub use present::{mk_surface_present, mk_surface_present_rect};
 pub use register::mk_surface_register;
 pub use release::mk_surface_release;
-pub use share::mk_surface_share;
+pub use share::{mk_surface_share, mk_surface_share_to};
 pub use types::{
     InputEvent, SurfaceDescriptor, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
     INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL,
