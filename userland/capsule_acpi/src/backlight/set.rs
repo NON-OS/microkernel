@@ -36,10 +36,17 @@ pub fn set(o: &mut Output, aml: &mut Aml, host: &mut CapsuleHost, level: u8) -> 
     Ok(())
 }
 
-/// Every output to the level nearest `percent`; false when any refused.
-pub fn set_all(b: &mut Backlight, aml: &mut Aml, host: &mut CapsuleHost, percent: u8) -> bool {
+/// The outputs `panel` names (every one when None) to the level nearest
+/// `percent`; false when any refused.
+pub fn set_all(
+    b: &mut Backlight,
+    aml: &mut Aml,
+    host: &mut CapsuleHost,
+    percent: u8,
+    panel: Option<u32>,
+) -> bool {
     let mut all = true;
-    for o in b.outputs.iter_mut() {
+    for o in b.outputs.iter_mut().filter(|o| panel.is_none_or(|p| p == o.panel)) {
         let level = nearest(&o.levels, percent);
         if set(o, aml, host, level).is_err() {
             all = false;
