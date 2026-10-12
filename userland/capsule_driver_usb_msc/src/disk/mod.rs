@@ -18,6 +18,7 @@
 //! kernel's block client needs.
 
 mod bot;
+mod data;
 mod data_phase;
 mod lun;
 mod ready;
