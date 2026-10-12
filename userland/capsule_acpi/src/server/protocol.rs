@@ -32,6 +32,7 @@ pub const OP_PREPARE_SLEEP: u8 = 5;
 pub const OP_POWER: u8 = 6;
 pub const OP_THERMAL: u8 = 7;
 pub const OP_SMBIOS: u8 = 8;
+pub const OP_SERIAL: u8 = 9;
 pub const EPERM: i32 = -1;
 pub const ENOENT: i32 = -2;
 pub const EIO: i32 = -5;
