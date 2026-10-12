@@ -17,3 +17,5 @@ path = "src/lib.rs"
 [dependencies]
 # The timing type the engine reads transcoders into.
 nonos_edid = { path = "../nonos_edid" }
+# DMT timings for the mode set tests.
+nonos_modes = { path = "../nonos_modes" }
