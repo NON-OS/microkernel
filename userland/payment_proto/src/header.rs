@@ -22,6 +22,8 @@
 //!
 //! A reply's payload starts with a four-byte status, zero for success.
 
+use crate::bytes::fixed;
+
 pub const MAGIC: u32 = 0x5941_504E;
 pub const VERSION: u16 = 1;
 pub const HDR_LEN: usize = 20;
@@ -39,17 +41,16 @@ pub struct Header {
 /// version and reserved word are right and the payload arrived whole and
 /// exactly: a frame with bytes past its payload is not this wire's.
 pub fn parse_header(buf: &[u8]) -> Option<(Header, &[u8])> {
-    let h = buf.get(..HDR_LEN)?;
-    let u16_at = |at: usize| u16::from_le_bytes([h[at], h[at + 1]]);
-    let u32_at = |at: usize| u32::from_le_bytes([h[at], h[at + 1], h[at + 2], h[at + 3]]);
-    if u32_at(0) != MAGIC || u16_at(4) != VERSION || u16_at(10) != 0 {
+    let u16_at = |i: usize| fixed::<2>(buf, i).map(u16::from_le_bytes);
+    let u32_at = |i: usize| fixed::<4>(buf, i).map(u32::from_le_bytes);
+    if u32_at(0)? != MAGIC || u16_at(4)? != VERSION || u16_at(10)? != 0 {
         return None;
     }
-    let header =
-        Header { op: u16_at(6), flags: u16_at(8), request_id: u32_at(12), payload_len: u32_at(16) };
-    let end = HDR_LEN.checked_add(header.payload_len as usize)?;
+    let (op, flags, request_id, payload_len) = (u16_at(6)?, u16_at(8)?, u32_at(12)?, u32_at(16)?);
+    let header = Header { op, flags, request_id, payload_len };
+    let end = HDR_LEN.checked_add(usize::try_from(payload_len).ok()?)?;
     if end != buf.len() {
         return None;
     }
-    Some((header, &buf[HDR_LEN..]))
+    Some((header, buf.get(HDR_LEN..)?))
 }
