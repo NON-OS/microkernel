@@ -55,6 +55,7 @@ pub(in crate::hardware::broker) fn all() -> Vec<PciHandle> {
 }
 
 /// One function added after the boot scan (`table::add_pci_function`).
+#[cfg(target_arch = "x86_64")]
 pub(in crate::hardware::broker) fn push(handle: PciHandle) {
     INDEX.write().push(handle);
 }

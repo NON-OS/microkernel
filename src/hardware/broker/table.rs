@@ -19,6 +19,7 @@ mod list;
 mod pci_record;
 mod state;
 
+#[cfg(target_arch = "x86_64")]
 pub(in crate::hardware::broker) use init::add_pci_function;
 pub use init::init_from_pci;
 pub(super) use init::register_platform_device;
