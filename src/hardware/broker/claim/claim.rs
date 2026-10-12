@@ -47,5 +47,6 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     // Before the driver can turn bus mastering on, so no request it ever
     // makes is no-snoop.
     super::no_snoop::snoop_every_request(device_id);
+    crate::hardware::broker::bootfb::claimed(device_id);
     Ok(epoch)
 }

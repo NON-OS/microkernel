@@ -20,11 +20,14 @@ mod hold_rule;
 mod lookup;
 mod no_snoop;
 mod quiesce;
+mod quiesce_all;
 mod release;
 mod state;
 mod types;
 
 pub use claim::claim;
+pub(in crate::hardware::broker) use hold_rule::FIRMWARE_BOOT_FRAMEBUFFER;
 pub use lookup::lookup;
-pub use release::{quiesce_all, quiesce_held, release, release_all_for_pid};
+pub use quiesce_all::quiesce_all;
+pub use release::{quiesce_held, release, release_all_for_pid};
 pub use types::{Claim, ClaimError};
