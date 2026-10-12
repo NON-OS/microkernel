@@ -155,4 +155,5 @@ pub enum SyscallNumber {
     MkAcpiEvent = tag4(b"MAEV"),
     MkAcpiSleep = tag4(b"MASL"),
     MkSmbiosTable = tag4(b"MSMB"),
+    MkAcpiCpu = tag4(b"MACP"),
 }
