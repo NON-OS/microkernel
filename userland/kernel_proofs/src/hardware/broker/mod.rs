@@ -37,6 +37,8 @@ mod external_tests;
 #[cfg(test)]
 mod numa_tests;
 #[cfg(test)]
+mod osc_grant_tests;
+#[cfg(test)]
 mod round_trip_tests;
 #[cfg(test)]
 mod same_group_tests;
