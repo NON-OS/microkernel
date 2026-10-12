@@ -22,4 +22,4 @@ use super::kernel::platform::fw;
 
 pub use fw::parser::other::bgrt_entry::Bgrt;
 pub use fw::parser::other::bmp_check::Bmp;
-pub use fw::parser::other::{boot_logo, boot_logo_file};
+pub use fw::parser::other::{boot_logo, boot_logo_file, firmware_mode};
