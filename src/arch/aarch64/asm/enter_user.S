@@ -9,7 +9,8 @@
  *    24    kernel_sp  (SP_EL1 to install before eret)
  *    32    args[0..8] (x0..x7 at eret)
  *
- * On entry IRQs are masked by the caller. The eret crosses to EL0t with
+ * On entry IRQs are masked by the caller, and masked again here: an
+ * exception between the ELR_EL1 write and the eret would overwrite it. The eret crosses to EL0t with
  * SPSR's DAIF (the caller writes SPIE-equivalent bits as it sees fit).
  * FP/SIMD is left in whatever state CPACR_EL1 already has — the lazy-
  * enable trap delivers EL0 FP traps to the fail-closed path until per-
@@ -21,6 +22,8 @@
 .globl aarch64_enter_user
 .type  aarch64_enter_user, %function
 aarch64_enter_user:
+    hint    #34                         /* BTI c: a landing pad (FEAT_BTI) */
+    msr     daifset, #0xf
     /* System regs first, using x9 as scratch (caller-save). */
     ldr     x9,  [x0, #0]
     msr     elr_el1, x9
@@ -39,6 +42,32 @@ aarch64_enter_user:
      * return, so abandoning it is the contract. */
     ldr     x9,  [x0, #24]
     mov     sp,  x9
+
+    /* Nothing of the kernel's goes to EL0: x8-x30 held kernel values,
+     * pointers among them, and the process starts with them clear. */
+    mov     x8,  xzr
+    mov     x9,  xzr
+    mov     x10, xzr
+    mov     x11, xzr
+    mov     x12, xzr
+    mov     x13, xzr
+    mov     x14, xzr
+    mov     x15, xzr
+    mov     x16, xzr
+    mov     x17, xzr
+    mov     x18, xzr
+    mov     x19, xzr
+    mov     x20, xzr
+    mov     x21, xzr
+    mov     x22, xzr
+    mov     x23, xzr
+    mov     x24, xzr
+    mov     x25, xzr
+    mov     x26, xzr
+    mov     x27, xzr
+    mov     x28, xzr
+    mov     x29, xzr
+    mov     x30, xzr
 
     /* x0,x1 last — x0 was the ctx pointer. */
     ldp     x0,  x1,  [x0, #(32 + 0)]
