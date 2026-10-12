@@ -21,10 +21,15 @@ use crate::build::seal;
 /// A DisplayID 2.0 extension holding one section with `blocks` (each
 /// with its three byte header already on), both checksums sealed.
 pub fn displayid(blocks: &[u8]) -> [u8; 128] {
+    displayid_v(0x20, blocks)
+}
+
+/// The same with the section's version byte `version` (0x13 for 1.3).
+pub fn displayid_v(version: u8, blocks: &[u8]) -> [u8; 128] {
     let mut b = [0u8; 128];
     b[0] = 0x70;
     let s = &mut b[1..1 + 5 + blocks.len()];
-    s[0] = 0x20;
+    s[0] = version;
     s[1] = blocks.len() as u8;
     s[4..4 + blocks.len()].copy_from_slice(blocks);
     seal(s);
