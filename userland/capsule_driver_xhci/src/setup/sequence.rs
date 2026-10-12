@@ -40,7 +40,9 @@ use crate::rings::{command::CommandRing, event::EventRing};
 /// their DMA first, so the next attempt can claim the controller again.
 pub fn run(dev: Found) -> XhciResult<Driver> {
     let claim_epoch = claim(dev.device_id)?;
-    if let Err(e) = enable_bus_master(dev.device_id, claim_epoch) {
+    // A device-tree controller has no config space; it masters from reset.
+    let enabled = if dev.on_pci { enable_bus_master(dev.device_id, claim_epoch) } else { Ok(()) };
+    if let Err(e) = enabled {
         let _ = mk_device_release(dev.device_id);
         return Err(e);
     }
