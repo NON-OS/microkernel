@@ -27,8 +27,10 @@ const ATI: u16 = 0x1002;
 pub fn writable(id: &Ident, offset: u32) -> Option<u16> {
     let audio = id.class == 0x04 && matches!(id.subclass, 0x01 | 0x03);
     let smbus = id.class == 0x0C && id.subclass == 0x05;
+    let uhci = id.class == 0x0C && id.subclass == 0x03 && id.prog_if == 0x00;
     match (id.vendor, offset) {
         (INTEL, 0x40) if smbus => Some(0x0005),
+        (_, 0xC0) if uhci => Some(0xAFFF),
         (INTEL, 0x44) if audio => Some(0x0007),
         (INTEL, 0x48) if audio => Some(0x0040),
         (INTEL, 0x78) if audio => Some(0x0800),
