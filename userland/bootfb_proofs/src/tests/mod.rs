@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod boot_info_tests;
+mod bring_up_tests;
 mod fb_tests;
+mod firmware_model;
+mod firmware_rig;
+mod record_tests;
 mod serve;
 mod serve_tests;

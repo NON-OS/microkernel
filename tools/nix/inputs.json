@@ -852,8 +852,6 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/boot/handoff/types/constants.rs",
-   "src/boot/handoff/types/framebuffer.rs",
    "userland/bootfb_proofs",
    "userland/capsule_driver_bootfb/src",
    "userland/nonos_edid",
