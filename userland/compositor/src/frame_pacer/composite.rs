@@ -36,6 +36,7 @@ pub fn paint(ctx: &mut Context, rect: Rect) {
         attach: &mut ctx.attach,
         kernel: &mut Kernel,
         damage: &mut ctx.damage,
+        ceiling: u32::MAX,
     };
     compose(dst, rect, scene, shown.then_some((cursor.x, cursor.y)));
     if let Some(ramps) = ctx.night.as_deref() {

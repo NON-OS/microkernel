@@ -163,6 +163,7 @@ impl Desk {
                 attach: &mut self.attach,
                 kernel: &mut self.kernel,
                 damage: &mut self.damage,
+                ceiling: u32::MAX,
             };
             compose(dst, r, s, Some(self.cursor));
         }
@@ -196,6 +197,7 @@ impl Desk {
             attach: &mut attach,
             kernel: &mut self.kernel,
             damage: &mut damage,
+            ceiling: u32::MAX,
         };
         compose(dst, Rect { x: 0, y: 0, width: W, height: H }, s, Some(self.cursor));
         fresh

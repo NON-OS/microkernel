@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Screenshots: only a holder of ScreenCapture may take one; the canvas copied row by row into the holder's surface, as much
-//! as both hold, nothing past it; and the band's blue notice while the
-//! capture is shown.
+//! Screenshots: only a holder of ScreenCapture may take one, and the band's
+//! blue notice shows while the capture is shown. What a capture holds is in
+//! trusted_capture_tests.
 
 use crate::damage::Rect;
 use crate::display::screenshot_rule::{may_capture, SCREEN_CAPTURE};
-use crate::frame_pacer::canvas_copy::copy_canvas;
 use crate::frame_pacer::indicator_band::{band, draw, SCREEN_ON};
 use crate::state::indicator::Indicators;
 use crate::sw_blitter::Surface;
@@ -43,17 +42,6 @@ fn only_a_screen_capture_holder_may_capture() {
     assert!(!may_capture(41, |pid, mask| pid == 40 && mask == 1 << 39), "another process");
     assert!(!may_capture(40, |_, mask| mask == 1 << 37), "the camera's bit is not it");
     assert!(!may_capture(0, |_, _| true));
-}
-
-#[test]
-fn the_canvas_is_copied_as_far_as_both_hold() {
-    let mut canvas: Vec<u32> = (0..6 * 4).collect();
-    let mut shot = vec![0xEEu32; 4 * 8];
-    let (src, dst) = (surface(&mut canvas, 6, 4, 6), surface(&mut shot, 4, 8, 4));
-    assert_eq!(copy_canvas(src, dst), (4, 4));
-    assert_eq!(&shot[..4], &[0, 1, 2, 3], "row 0, cut to the shot's width");
-    assert_eq!(&shot[12..16], &[18, 19, 20, 21], "row 3");
-    assert!(shot[16..].iter().all(|&p| p == 0xEE), "nothing past the canvas");
 }
 
 #[test]

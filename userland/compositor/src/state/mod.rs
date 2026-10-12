@@ -28,6 +28,7 @@ pub mod raise_rule;
 pub mod scene_raise;
 pub mod scene_remove;
 pub mod scene_submit;
+pub mod trusted_rule;
 pub mod visible;
 
 pub use attach::AttachCache;
