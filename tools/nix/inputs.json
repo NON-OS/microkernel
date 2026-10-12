@@ -884,6 +884,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_acpi/src/server/policy.rs",
    "userland/capsule_acpi_proofs"
   ],
   "md": [],
