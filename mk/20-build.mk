@@ -568,6 +568,7 @@ include userland/capsule_driver_rtl8153/Capsule.mk
 include userland/capsule_driver_smbus/Capsule.mk
 include userland/capsule_driver_uhci/Capsule.mk
 include userland/capsule_driver_ohci/Capsule.mk
+include userland/capsule_driver_ehci/Capsule.mk
 include userland/capsule_net_l2/Capsule.mk
 include userland/capsule_net_core/Capsule.mk
 include userland/capsule_net_ip/Capsule.mk
