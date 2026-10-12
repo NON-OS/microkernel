@@ -28,6 +28,7 @@ pub mod indicator_band;
 pub mod hw_cursor;
 pub mod hw_cursor_back;
 pub mod mirror;
+pub mod night_tint;
 pub mod present_virtio;
 pub mod present_wire;
 pub mod show_band;
