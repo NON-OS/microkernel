@@ -143,6 +143,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MACP", SyscallNumber::MkAcpiCpu, "MkAcpiCpu"),
     e(b"MAHO", SyscallNumber::MkAcpiHolds, "MkAcpiHolds"),
     e(b"MPPF", SyscallNumber::MkPciProbeFunction, "MkPciProbeFunction"),
+    e(b"MAFO", SyscallNumber::MkAcpiFunctionOf, "MkAcpiFunctionOf"),
 ];
 const fn e(tag: &[u8; 4], variant: SyscallNumber, name: &'static str) -> AbiEntry {
     AbiEntry { id: tag4(tag), variant, name, domain: AbiDomain::Mk, status: AbiStatus::Routed }
