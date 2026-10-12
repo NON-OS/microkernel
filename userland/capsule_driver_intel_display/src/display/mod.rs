@@ -18,6 +18,7 @@
 //! taken-over output, each with two scanout surfaces filled from the shadow
 //! by FLUSH and flipped at the vertical blank.
 
+mod brightness;
 mod copy;
 mod cursor;
 mod describe;
@@ -38,6 +39,7 @@ mod red_first;
 mod timing_pick;
 mod wire;
 
+pub use brightness::Brightness;
 pub use copy::copy;
 pub use frames::Frames;
 pub use head::Head;
