@@ -25,4 +25,6 @@ mod dma_rule;
 
 mod common;
 mod exit;
+mod owner_attach;
 mod release;
+mod threads;

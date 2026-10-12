@@ -57,8 +57,8 @@ pub(super) fn try_each(mut f: impl FnMut(&DmaGrant)) -> bool {
     true
 }
 
-/// The physical ranges `(start, len)` of `pid`'s live grants: frames the
-/// surface registry must never free page by page (surface_registry pin).
-pub(crate) fn ranges_of(pid: u32) -> Vec<(u64, u64)> {
-    RECORDS.lock().iter().filter(|g| g.pid == pid).map(|g| (g.physical_start, g.length)).collect()
+/// Every live grant as `(pid, start, len)`: frames the surface registry
+/// must never free page by page (surface_registry pin, K15).
+pub(crate) fn grant_ranges() -> Vec<(u32, u64, u64)> {
+    RECORDS.lock().iter().map(|g| (g.pid, g.physical_start, g.length)).collect()
 }

@@ -21,7 +21,7 @@ use super::common::{grant_frames, Registry, COMPOSITOR, FB, GPU, LEN, START};
 #[test]
 fn an_attached_surface_keeps_its_grant_until_the_last_detach() {
     let mut r = Registry { attaches: vec![(FB, GPU), (FB, COMPOSITOR)], ..Default::default() };
-    assert!(r.release(GPU, vec![(FB, grant_frames())]), "held for the compositor");
+    assert!(r.release(GPU, vec![(FB, GPU, grant_frames())]), "held for the compositor");
     assert!(r.given_back.is_empty(), "nothing freed under the compositor's mapping");
     assert_eq!(r.orphans.len(), 1, "the holder's detach still finds the frames");
     assert!(r.orphans[0].free.is_empty(), "no page of a grant is freed one by one");
@@ -34,7 +34,10 @@ fn an_attached_surface_keeps_its_grant_until_the_last_detach() {
 #[test]
 fn with_no_other_holder_the_grant_is_freed_at_once() {
     let mut r = Registry { attaches: vec![(FB, GPU)], ..Default::default() };
-    assert!(!r.release(GPU, vec![(FB, grant_frames())]), "the owner's own attach holds nothing");
+    assert!(
+        !r.release(GPU, vec![(FB, GPU, grant_frames())]),
+        "the owner's own attach holds nothing"
+    );
     assert_eq!(r.given_back, vec![(START, LEN)]);
     assert!(r.orphans.is_empty() && r.held.is_empty());
     let mut r = Registry::default();
@@ -46,7 +49,7 @@ fn a_grant_under_two_surfaces_goes_back_once_after_both() {
     let (a, b) = (0x21, 0x22);
     let mut r = Registry { attaches: vec![(a, COMPOSITOR), (b, 9)], ..Default::default() };
     let frames = grant_frames();
-    let live = vec![(a, frames[..2].to_vec()), (b, frames[2..].to_vec())];
+    let live = vec![(a, GPU, frames[..2].to_vec()), (b, GPU, frames[2..].to_vec())];
     assert!(r.release(GPU, live));
     assert_eq!(r.held.len(), 1, "one record for the grant");
     r.detach(COMPOSITOR, a);
