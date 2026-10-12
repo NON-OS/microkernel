@@ -1,0 +1,10 @@
+[package]
+name = "nonos_smbios_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
