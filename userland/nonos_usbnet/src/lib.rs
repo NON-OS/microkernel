@@ -40,7 +40,7 @@ pub mod setup;
 pub mod xhci;
 
 pub use bind::Bind;
-pub use bus::{Bus, Pipes};
+pub use bus::{Bus, Notify, Pipes};
 pub use found::Found;
 pub use nic::Nic;
 pub use run::run;

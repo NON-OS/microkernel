@@ -23,7 +23,11 @@ mod hostile_tests;
 #[cfg(test)]
 mod limits_tests;
 #[cfg(test)]
+mod link_tests;
+#[cfg(test)]
 mod ntb;
+#[cfg(test)]
+mod ntb32_tests;
 #[cfg(test)]
 mod rx_tests;
 #[cfg(test)]

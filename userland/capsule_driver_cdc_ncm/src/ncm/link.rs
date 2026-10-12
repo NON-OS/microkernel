@@ -38,12 +38,18 @@ pub struct Ncm<B> {
     pub(super) seq: u16,
     /// Each datagram of the last block, as its index and length in `rx`.
     pub(super) pending: VecDeque<(usize, usize)>,
+    /// The notification endpoint's DCI, and the link it last reported.
+    pub notify: Option<u8>,
+    pub(super) link: bool,
+    pub(super) looks: u32,
 }
 
 impl<B: Bus> Ncm<B> {
     pub fn new(bus: B, mac: [u8; 6], pipes: Pipes, rx_max: usize, shape: TxShape) -> Self {
         let (rx, tx) = (vec![0; rx_max], vec![0; shape.max]);
-        Self { bus, mac, pipes, rx_max, shape, rx, tx, seq: 0, pending: VecDeque::new() }
+        let pending = VecDeque::new();
+        let (notify, link, looks) = (None, true, 0);
+        Self { bus, mac, pipes, rx_max, shape, rx, tx, seq: 0, pending, notify, link, looks }
     }
 }
 
@@ -52,10 +58,10 @@ impl<B: Bus> Nic for Ncm<B> {
         self.mac
     }
 
-    /// The link is the device being bound: NETWORK_CONNECTION arrives on an
-    /// interrupt endpoint driver.xhci0 does not configure beside bulk pipes.
+    /// Up from bind until NETWORK_CONNECTION says down (transfer.rs reads
+    /// it), so a device that never notifies still carries traffic.
     fn link_up(&self) -> bool {
-        true
+        self.link
     }
 
     fn send(&mut self, frame: &[u8]) -> Result<(), i32> {
