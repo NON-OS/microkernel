@@ -21,6 +21,7 @@
 // Each USB class driver's spawn asks it first.
 #![cfg(any(
     feature = "nonos-capsule-driver-usb-msc",
+    feature = "nonos-capsule-driver-usb-hub",
     feature = "nonos-capsule-driver-usb-audio",
     feature = "nonos-capsule-driver-cdc-ecm",
     feature = "nonos-capsule-driver-cdc-ncm",
