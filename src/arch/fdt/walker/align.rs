@@ -17,6 +17,6 @@
 // Every caller passes an offset inside a block no larger than `MAX_BLOB`, so
 // the add cannot wrap.
 #[inline]
-pub fn align4(n: usize) -> usize {
+pub(crate) fn align4(n: usize) -> usize {
     (n + 3) & !3
 }

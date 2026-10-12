@@ -23,13 +23,13 @@ use crate::arch::aarch64::gic::{
 use super::fatal::fatal_interrupt;
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_irq_current(frame: *mut ExceptionFrame) {
+pub(crate) extern "C" fn aarch64_exc_irq_current(frame: *mut ExceptionFrame) {
     let frame = unsafe { &*frame };
     handle(frame, b"IRQ EL1")
 }
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_irq_lower(frame: *mut ExceptionFrame) {
+pub(crate) extern "C" fn aarch64_exc_irq_lower(frame: *mut ExceptionFrame) {
     let frame = unsafe { &*frame };
 
     save_user_frame(frame);

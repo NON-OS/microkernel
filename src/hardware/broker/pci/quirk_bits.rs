@@ -46,7 +46,7 @@ const ATI: u16 = 0x1002;
 
 /// The bits at `offset` a driver of `id` may change, or `None` when the
 /// register is not one of these.
-pub fn writable(id: &Ident, offset: u32) -> Option<u16> {
+pub(crate) fn writable(id: &Ident, offset: u32) -> Option<u16> {
     let audio = id.class == 0x04 && matches!(id.subclass, 0x01 | 0x03);
     match (id.vendor, offset) {
         (INTEL, 0x44) if audio => Some(0x0007),
@@ -61,6 +61,6 @@ pub fn writable(id: &Ident, offset: u32) -> Option<u16> {
 }
 
 /// Whether `new` differs from `current` only in the bits `mask` allows.
-pub fn only(mask: u16, new: u16, current: u16) -> bool {
+pub(crate) fn only(mask: u16, new: u16, current: u16) -> bool {
     (new ^ current) & !mask == 0
 }

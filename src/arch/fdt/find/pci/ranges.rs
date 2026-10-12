@@ -33,11 +33,11 @@ const PCI_SIZE_CELLS: u32 = 2;
 const SPACE_SHIFT: u32 = 24;
 const SPACE_MASK: u32 = 0b11;
 /// The space code for I/O.
-pub const SPACE_IO: u32 = 0b01;
+pub(crate) const SPACE_IO: u32 = 0b01;
 /// The space code for 32-bit memory.
 pub(super) const SPACE_MEM32: u32 = 0b10;
 
-pub struct Range {
+pub(crate) struct Range {
     pub space: u32,
     /// The PCI-side address, from `phys.mid` and `phys.lo`.
     pub child: u64,
@@ -48,7 +48,7 @@ pub struct Range {
 
 /// Walk `data` as a `ranges` property whose parent node uses
 /// `parent_address_cells` cells for an address.
-pub fn iter(data: &[u8], parent_address_cells: u32) -> impl Iterator<Item = Range> + '_ {
+pub(crate) fn iter(data: &[u8], parent_address_cells: u32) -> impl Iterator<Item = Range> + '_ {
     let entry_cells = PCI_ADDRESS_CELLS + parent_address_cells + PCI_SIZE_CELLS;
     let stride = entry_cells as usize * 4;
     (0..)
