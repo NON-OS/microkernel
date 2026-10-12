@@ -27,7 +27,7 @@ class driver --NXHC--> driver.uhci0 --PIO grant, DMA region--> UHCI --> devices
   allows a UHCI function, to turn firmware's keyboard and SMI traps off.
 - `MkPioGrant` grants BAR4; every register access is `MkPioRead` or
   `MkPioWrite`.
-- `MkDmaMap` maps one 20 KiB coherent region below 4 GiB: the frame list,
+- `MkDmaMap` maps one 28 KiB coherent region below 4 GiB: the frame list,
   the queue heads, the TDs and every buffer.
 
 ## Interface contract
@@ -39,7 +39,7 @@ endpoint (9) and its reads (0xE), control transfer (0xB), bulk configure
 (0x10), OUT (0x11), IN (0x12), reset (0x13) and the polled bulk IN (0x14).
 Port status is in xHCI PORTSC form: connected, enabled, speed 1 full or 2
 low, connect change. Hub and isochronous ops answer -22. A bulk IN while
-the polled IN is armed answers -16, as does another slot's poll. Errors:
+the polled IN is armed answers -16; each root port polls on its own. Errors:
 -5 bus or timeout, -11 nothing yet, -16 busy, -22 malformed, -32 STALL.
 
 ## Authority
@@ -94,7 +94,7 @@ on Intel and VIA chipsets whose only USB 1.1 host it is.
 
 ## Release evidence
 
-`uhci_proofs` on the host (34 tests). No boot yet.
+`uhci_proofs` on the host (35 tests). No boot yet.
 
 ## Release checklist
 
