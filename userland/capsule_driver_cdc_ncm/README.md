@@ -53,10 +53,20 @@ size (not for DisplayLink docks), as `cdc_ncm_fill_tx_frame` does.
 
 In: one bulk IN of the negotiated NTB input size; every NDP16 in the chain
 and every datagram in it is checked against the transfer, queued, and
-handed up one per call. A malformed block, NDP or entry is dropped.
+handed up one per call. A block that comes as an NTB32 (an NTH32 "ncmh",
+NDP32s "ncm0" with 32-bit indices, as recalled, unverified) is read the
+same way. At most 40 datagrams are taken from one block. A malformed block,
+NDP or entry is dropped.
 
-The link reads up once bound: NETWORK_CONNECTION arrives on an interrupt
-endpoint, and driver.xhci0 does not configure one beside bulk pipes.
+Out stays NTB16: every device takes it, the format is set to 16-bit where
+32-bit is offered too, and a block is at most one 4096-byte transfer, far
+inside 16-bit offsets.
+
+The link reads up once bound, and from then on follows NETWORK_CONNECTION
+on the communications interface's interrupt IN endpoint, which the host
+now configures beside the bulk pipes (Bus::configure_interrupt); it is
+looked at once every 64 receives. A device without one, or whose host
+refuses it, reads up while bound, as before.
 
 ## Log
 
@@ -181,7 +191,7 @@ is on main yet.
 
 ## Explicit non-goals today
 
-32-bit NTBs, more than one datagram per NTB out, blocks over 4096 bytes, MBIM, link notifications (no interrupt endpoint beside the bulk pipes).
+32-bit NTBs out, more than one datagram per NTB out, blocks over 4096 bytes, MBIM, CONNECTION_SPEED_CHANGE.
 
 ## Verification
 
