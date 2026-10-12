@@ -49,3 +49,4 @@ pub mod shape;
 pub mod sleep;
 pub mod thermal;
 pub mod video;
+pub mod wmi;
