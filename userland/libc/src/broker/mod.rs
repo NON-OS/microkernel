@@ -26,6 +26,7 @@ mod mmio;
 mod pci;
 mod pio;
 mod types;
+mod vmbus;
 
 pub use backdoor::mk_hv_backdoor;
 pub use device::{mk_device_claim, mk_device_list, mk_device_release};
@@ -50,4 +51,8 @@ pub use types::{
     Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut, PioGrantOut, BAR_FLAG_MEM64,
     BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO, BUS_KIND_ACPI, BUS_KIND_PCI,
     BUS_KIND_VIRT, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
+};
+pub use vmbus::{
+    mk_hv_events, mk_hv_post, mk_hv_recv, mk_hv_signal, MK_HV_EVENT_WORDS, MK_HV_MESSAGE_BYTES,
+    MK_VMBUS_DEVICE, MK_VMBUS_VENDOR,
 };

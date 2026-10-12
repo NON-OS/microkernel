@@ -177,6 +177,10 @@ MPRD = 0x4452504D
 MPWR = 0x5257504D
 MPRL = 0x4C52504D
 MHVB = 0x4256484D
+MHVP = 0x5056484D
+MHVR = 0x5256484D
+MHVE = 0x4556484D
+MHVS = 0x5356484D
 MDBG = 0x4742444D
 MSRG = 0x4752534D
 MSSH = 0x4853534D
@@ -419,6 +423,30 @@ ret  = {type="i64"}
 nr   = 0x4256484D
 caps_any = ["Admin", "Pio"]
 args = [{name="cmd",type="u32",dir="in"},{name="arg",type="u32",dir="in"},{name="regs_out",type="u32*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MHVP]
+nr   = 0x5056484D
+caps_any = ["Admin", "Driver"]
+args = [{name="device_id",type="u64",dir="in"},{name="connection",type="u32",dir="in"},{name="msg_type",type="u32",dir="in"},{name="payload",type="u8*",dir="in"},{name="len",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MHVR]
+nr   = 0x5256484D
+caps_any = ["Admin", "Driver"]
+args = [{name="device_id",type="u64",dir="in"},{name="message_out",type="u8*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MHVE]
+nr   = 0x4556484D
+caps_any = ["Admin", "Driver"]
+args = [{name="device_id",type="u64",dir="in"},{name="flags_out",type="u64*",dir="out"},{name="words",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MHVS]
+nr   = 0x5356484D
+caps_any = ["Admin", "Driver"]
+args = [{name="device_id",type="u64",dir="in"},{name="connection",type="u32",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MDBG]

@@ -24,6 +24,7 @@ pub mod cpu_random;
 pub mod fdt;
 pub mod halt;
 mod hv_backdoor;
+mod hv_vmbus;
 pub(crate) mod idle;
 mod init_boot_memory;
 mod init_broker_irq_routing;
@@ -67,6 +68,11 @@ pub(crate) use remap_pci_windows::remap_pci_windows;
 pub(crate) use report_hypervisor::report_hypervisor;
 pub(crate) use hv_backdoor::{hv_backdoor, HvBackdoorError};
 pub use hv_backdoor::hv_backdoor_present;
+pub use hv_vmbus::hv_vmbus_ready;
+pub(crate) use hv_vmbus::{
+    hv_vmbus_events, hv_vmbus_post, hv_vmbus_recv, hv_vmbus_signal, HvVmbusError, HV_EVENT_WORDS,
+    HV_MESSAGE_BYTES,
+};
 pub(crate) use run_without_interrupts::run_without_interrupts;
 pub(crate) use stack_pointer::stack_pointer;
 pub(crate) use time_counter::{read_time_counter, time_counter_hz};

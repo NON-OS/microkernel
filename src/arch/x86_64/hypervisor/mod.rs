@@ -23,6 +23,7 @@ mod backdoor_rule;
 mod balloon;
 mod classify;
 mod guest;
+pub mod hv;
 mod leaves;
 mod probe;
 mod refine;
