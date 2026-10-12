@@ -37,17 +37,23 @@
 //!   in its USB legacy support capability, wherever its id byte (01h) is,
 //!   the OS-owned semaphore set, and the SMI enables and their status, so
 //!   the driver takes the controller from firmware (EHCI 1.0 section 5.1,
-//!   as recalled, unverified).
+//!   as recalled, unverified). Never inside a capability on the standard
+//!   list: the Power Management capability shares the id 01h (listed.rs).
 //!
 //! Anything else stays refused: these registers hold no address, no BAR, no
 //! routing, and change nothing about what the device may reach.
 
 mod ident;
+mod legsup;
+mod listed;
+mod span;
 mod writable;
 
 // Public for kernel_proofs, which mounts this module at its root; the
 // kernel itself holds it crate-private.
 #[allow(unreachable_pub)]
 pub use ident::Ident;
+#[allow(unreachable_pub)]
+pub use legsup::legsup_before;
 #[allow(unreachable_pub)]
 pub use writable::{only, writable};
