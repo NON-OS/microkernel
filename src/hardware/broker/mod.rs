@@ -21,6 +21,7 @@
 mod acpi_gpio;
 #[cfg(target_arch = "x86_64")]
 mod acpi_i2c;
+mod bootfb;
 // on-screen device census: bring-up diagnostic, silenced
 // mod census;
 mod claim;
@@ -53,6 +54,9 @@ mod windows;
 pub use acpi_gpio::register_acpi_gpio;
 #[cfg(target_arch = "x86_64")]
 pub use acpi_i2c::register_acpi_i2c;
+pub use bootfb::{
+    info_for as boot_framebuffer_info, register_boot_framebuffer, BootFbInfoError,
+};
 // pub use census::render_and_hold as device_census; // bring-up diagnostic, silenced
 pub use claim::{
     claim as claim_device, lookup as claim_lookup, quiesce_all as quiesce_all_devices,
