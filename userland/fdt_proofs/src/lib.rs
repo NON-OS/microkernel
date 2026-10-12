@@ -21,6 +21,8 @@ mod uart_tree;
 #[cfg(test)]
 mod chosen_tests;
 #[cfg(test)]
+mod cpu_release_tests;
+#[cfg(test)]
 mod header_tests;
 #[cfg(test)]
 mod intx_hostile_tests;

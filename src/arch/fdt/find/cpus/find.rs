@@ -18,6 +18,8 @@ use crate::arch::fdt::endian::be_cells;
 use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::parser::Fdt;
 
+use super::node::is_cpu;
+
 // Walk `/cpus/cpu@*` and collect each CPU's `reg` (MPIDR Aff bits on
 // aarch64, hart id on riscv64). Returns the number of ids written; ids past
 // `out.len()` are dropped, which leaves those CPUs parked.
@@ -28,11 +30,7 @@ pub fn find(fdt: &Fdt, out: &mut [u64]) -> Result<usize, FdtError> {
     let mut filled = 0usize;
     for node in fdt.children(&cpus)? {
         let node = node?;
-        let is_cpu = match fdt.property(&node, b"device_type")? {
-            Some(kind) => kind.string() == Ok(b"cpu"),
-            None => node.base_name() == b"cpu",
-        };
-        if !is_cpu {
+        if !is_cpu(fdt, &node)? {
             continue;
         }
         let Some(reg) = fdt.property(&node, b"reg")? else {
