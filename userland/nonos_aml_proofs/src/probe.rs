@@ -31,6 +31,9 @@ pub struct Probe {
     /// Firmware asks for the lock while the capsule holds it.
     pub firmware_waits: bool,
     pub released: u32,
+    /// Registers that behave as hardware does rather than as memory
+    /// (`probe_regs.rs`), by (space, address).
+    pub regs: BTreeMap<(u8, u64), crate::probe_regs::Register>,
 }
 
 impl Probe {
@@ -43,6 +46,9 @@ impl Probe {
 
     pub fn read(&mut self, a: &RegionAccess<'_>) -> Option<u64> {
         self.note(a, None);
+        if let Some(v) = self.modelled_read(a) {
+            return (!self.refuse).then_some(v);
+        }
         let byte = |i: u64| *self.bytes.get(&(a.space.0, a.address + i)).unwrap_or(&0) as u64;
         let v = (0..a.width as u64).rev().fold(0u64, |v, i| (v << 8) | byte(i));
         (!self.refuse).then_some(v)
@@ -50,6 +56,9 @@ impl Probe {
 
     pub fn write(&mut self, a: &RegionAccess<'_>, value: u64) -> bool {
         self.note(a, Some(value));
+        if self.modelled_write(a, value) {
+            return !self.refuse;
+        }
         for i in 0..a.width as u64 {
             self.bytes.insert((a.space.0, a.address + i), (value >> (8 * i)) as u8);
         }
