@@ -14,30 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The compositor told whenever the camera starts or stops streaming, so
-//! the indicator shows it (NCMP version 1, op 000Ah, body `kind u32` (1,
-//! the camera) and `on u32`). The answer does not change the stream: a
-//! compositor that does not know the op yet answers -22.
+//! the indicator shows it (indicator.rs). Whether it answered that the
+//! indicator is shown is OP_START's to act on.
 
 use nonos_libc::{mk_ipc_call, mk_service_lookup};
 
-const MAGIC: u32 = 0x4E43_4D50; // "NCMP"
-const VERSION: u16 = 1;
-const OP_CAPTURE: u16 = 0x000A;
-const CAMERA: u32 = 1;
+use crate::indicator::{notice, shown};
+
 const COMPOSITOR: &str = "compositor";
 
-pub fn capture(on: bool) {
+/// Whether the compositor shows the indicator now; false when there is no
+/// compositor or it does not know the op yet.
+pub fn capture(on: bool) -> bool {
     let (mut port, mut pid) = (0u32, 0u32);
     if mk_service_lookup(COMPOSITOR.as_ptr(), COMPOSITOR.len(), &mut port, &mut pid) != 0 {
-        return;
+        return false;
     }
-    let mut req = [0u8; 28];
-    req[0..4].copy_from_slice(&MAGIC.to_le_bytes());
-    req[4..6].copy_from_slice(&VERSION.to_le_bytes());
-    req[6..8].copy_from_slice(&OP_CAPTURE.to_le_bytes());
-    req[16..20].copy_from_slice(&8u32.to_le_bytes());
-    req[20..24].copy_from_slice(&CAMERA.to_le_bytes());
-    req[24..28].copy_from_slice(&(on as u32).to_le_bytes());
+    let req = notice(on);
     let mut resp = [0u8; 32];
-    let _ = mk_ipc_call(port as u64, req.as_ptr(), req.len(), resp.as_mut_ptr(), resp.len());
+    let rc = mk_ipc_call(port as u64, req.as_ptr(), req.len(), resp.as_mut_ptr(), resp.len());
+    shown(rc, &resp)
 }
