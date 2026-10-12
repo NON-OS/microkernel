@@ -51,9 +51,9 @@ mod platform_hostile_tests;
 #[cfg(test)]
 mod platform_tests;
 #[cfg(test)]
-mod reserve_tests;
-#[cfg(test)]
 mod psci_tests;
+#[cfg(test)]
+mod reserve_tests;
 #[cfg(test)]
 mod rpi4_platform_tests;
 #[cfg(test)]

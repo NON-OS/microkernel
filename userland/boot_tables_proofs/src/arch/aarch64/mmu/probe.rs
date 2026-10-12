@@ -9,13 +9,8 @@ use super::PageAttributes;
 use super::{direct_map, geometry, map, state, tables_build, unmap};
 use crate::arch::aarch64::boot::info::BootInfo;
 
-pub use super::attributes::{PTE_GP as GP, PTE_PXN as PXN, PTE_UXN as UXN};
-pub use super::text_guard::GUARDED;
 pub use super::image_bounds::{IMAGE, TEXT};
-/// AP[1]: EL0 may reach the mapping.
-pub const AP_EL0: u64 = super::attributes::PTE_AP_RW_ALL;
-/// AP[2]: read-only.
-pub const AP_READ_ONLY: u64 = 1 << 7;
+pub use super::text_guard::GUARDED;
 pub const KERNEL_SPACE_START: u64 = geometry::KERNEL_SPACE_START;
 
 /// A translation: output address of the whole entry, its level, and the raw

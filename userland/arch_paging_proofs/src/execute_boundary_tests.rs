@@ -2,9 +2,8 @@
 //! Neither aarch64 encoder lets execute permission cross the privilege
 //! boundary, for every request it can be given: a kernel mapping always
 //! carries UXN and a user mapping always carries PXN (Arm ARM, DDI 0487, the
-//! stage 1 execute-never controls). The shared manager's `leaf` is checked
-//! over every combination of the flags it reads, the boot tables'
-//! `PageAttributes` over every combination of its fields.
+//! stage 1 execute-never controls). The manager's `leaf` is checked over every
+//! combination of the flags it reads, `PageAttributes` over all its fields.
 
 use crate::arch::aarch64::mmu::attributes::{
     MemoryType, PageAttributes, PTE_AP_RW_ALL as AP_EL0, PTE_GP as GP, PTE_PXN as PXN,
@@ -45,8 +44,7 @@ fn the_managers_leaf_never_lets_execute_cross_levels() {
 
 #[test]
 fn page_attributes_never_let_execute_cross_levels() {
-    let types = [MemoryType::DeviceNGnRnE, MemoryType::NormalNC, MemoryType::NormalWB];
-    for memory_type in types {
+    for memory_type in [MemoryType::DeviceNGnRnE, MemoryType::NormalNC, MemoryType::NormalWB] {
         for fields in 0..1u32 << 8 {
             let bit = |n: u32| fields >> n & 1 != 0;
             let mut a =
@@ -57,8 +55,7 @@ fn page_attributes_never_let_execute_cross_levels() {
             assert_eq!(bits & AP_EL0 != 0, a.user, "{a:?}");
             assert_eq!(bits & PXN == 0, !a.user && a.execute, "{a:?}: EL1 execute");
             assert_eq!(bits & UXN == 0, a.user && a.execute, "{a:?}: EL0 execute");
-            let el1_code = a.execute && !a.user;
-            assert_eq!(bits & GP != 0, a.guarded && el1_code, "{a:?}: guarded");
+            assert_eq!(bits & GP != 0, a.guarded && a.execute && !a.user, "{a:?}: GP");
         }
     }
 }
