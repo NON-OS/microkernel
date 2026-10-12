@@ -176,6 +176,9 @@ pub const SYS_ACPI_FUNCTION_OF: u64 = tag4(b"MAFO");
 pub const SYS_ACPI_HW_ERROR: u64 = tag4(b"MAHE");
 pub const SYS_ACPI_PLATFORM_DEVICE: u64 = tag4(b"MAPD");
 pub const SYS_ACPI_DEVICE_NAME: u64 = tag4(b"MADN");
+pub const SYS_ACPI_USB_PORTS: u64 = tag4(b"MAUP");
+pub const SYS_USB_PORT_FACTS: u64 = tag4(b"MUPF");
+pub const SYS_ACPI_EXTERNAL_PORT: u64 = tag4(b"MAXP");
 /// Spawn another window of an embedded, attested app (terminal or browser); needs SpawnWindow.
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
 /// Run a baked, attested tool by name as the caller's child, to drive its stdio; needs IPC.

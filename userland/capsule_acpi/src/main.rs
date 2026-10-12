@@ -35,6 +35,7 @@ mod host;
 mod hotkeys;
 mod legacy;
 mod platform;
+mod ports;
 mod power;
 mod serial;
 mod server;
