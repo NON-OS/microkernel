@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod boot_framebuffer;
 mod device;
 mod dma;
 mod dma_lines;
@@ -26,6 +27,7 @@ mod pci;
 mod pio;
 mod types;
 
+pub use boot_framebuffer::{mk_boot_framebuffer, BootFramebufferInfo, FIRMWARE_BOOT_FRAMEBUFFER};
 pub use device::{mk_device_claim, mk_device_list, mk_device_release};
 pub use dma::{
     mk_dma_map, mk_dma_unmap, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32, MK_DMA_MAP_HIGH, MK_DMA_MAP_WC,
@@ -46,6 +48,6 @@ pub use pci::{
 pub use pio::{mk_pio_grant, mk_pio_read, mk_pio_release, mk_pio_write};
 pub use types::{
     Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut, PioGrantOut, BAR_FLAG_MEM64,
-    BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO, BUS_KIND_ACPI, BUS_KIND_PCI,
+    BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO, BUS_KIND_ACPI, BUS_KIND_FIRMWARE, BUS_KIND_PCI,
     BUS_KIND_VIRT, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
 };
