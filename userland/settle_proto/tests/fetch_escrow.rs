@@ -48,7 +48,7 @@ fn an_escrow_request_round_trips_exactly() {
 #[test]
 fn the_agent_gets_the_request_without_its_url() {
     let e = ask();
-    let body = e.agent_body();
+    let body = e.agent_body().unwrap();
     let b = e.encode().unwrap();
     assert_eq!(body[..8], b[1..9]);
     assert_eq!(body[8..], b[1 + 8 + 2 + 28..]);

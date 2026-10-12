@@ -44,7 +44,7 @@ fn account_and_drain_round_trip() {
         total: 1,
         rows: vec![row],
     };
-    let b = a.encode();
+    let b = a.encode().unwrap();
     assert_eq!((b.len(), ACCOUNT_ROW_LEN), (79 + 149, 149), "v1.4.60's reclaim_to");
     assert_eq!(&b[b.len() - 20..], &[6u8; 20], "reclaim_to ends the row");
     assert_eq!(Account::parse(&b), Some(a));
@@ -66,7 +66,7 @@ fn account_and_drain_round_trip() {
         sig: [10; 65],
     };
     let d = Drain { total: 3, rows: vec![v, v] };
-    let b = d.encode();
+    let b = d.encode().unwrap();
     assert_eq!(b.len(), 2 + 2 * VOUCHER_RECORD_LEN);
     assert_eq!(Drain::parse(&b), Some(d));
     refused_cut_and_tail(&b, Drain::parse);

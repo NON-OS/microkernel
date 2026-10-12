@@ -22,9 +22,10 @@ use crate::cursor::Cursor;
 use crate::cursor_put::flag;
 
 impl Account {
-    pub fn encode(&self) -> Vec<u8> {
-        let rows = self.rows.len().saturating_mul(ACCOUNT_ROW_LEN);
-        let mut out = Vec::with_capacity(rows.saturating_add(79));
+    /// None past ACCOUNT_ROWS_MAX rows, which parse would refuse.
+    pub fn encode(&self) -> Option<Vec<u8>> {
+        (self.rows.len() <= ACCOUNT_ROWS_MAX).then_some(())?;
+        let mut out = Vec::with_capacity(ACCOUNT_ROW_LEN.saturating_mul(self.rows.len()));
         out.push(self.flags);
         out.extend_from_slice(&self.address);
         for v in [self.cap, self.spent] {
@@ -33,7 +34,7 @@ impl Account {
         out.extend_from_slice(&self.expiry.to_le_bytes());
         out.extend_from_slice(&self.left.to_le_bytes());
         out.push(self.total);
-        out.push(len_u8(self.rows.len()));
+        out.push(len_u8(self.rows.len())?);
         for r in &self.rows {
             out.extend_from_slice(&r.channel_id);
             out.extend_from_slice(&r.listing_id);
@@ -45,7 +46,7 @@ impl Account {
             out.push(r.frozen as u8);
             out.extend_from_slice(&r.reclaim_to);
         }
-        out
+        Some(out)
     }
 
     pub fn parse(b: &[u8]) -> Option<Self> {

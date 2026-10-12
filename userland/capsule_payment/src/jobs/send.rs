@@ -19,7 +19,7 @@
 //! hands that frame to `on_frame`.
 
 use nonos_libc::{mk_ipc_send, mk_service_lookup};
-use nonos_payment_proto::EAGAIN;
+use nonos_payment_proto::{EAGAIN, EINVAL};
 use nonos_settle_proto::{request_async, SERVICE};
 
 /// Settle's pid, the only sender whose answer is believed, once sent.
@@ -28,7 +28,7 @@ pub(super) fn send(op: u16, req: u32, body: &[u8]) -> Result<u32, i32> {
     if mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut port, &mut pid) != 0 || pid == 0 {
         return Err(EAGAIN);
     }
-    let tx = request_async(op, req, body);
+    let tx = request_async(op, req, body).ok_or(EINVAL)?;
     match mk_ipc_send(port as u64, tx.as_ptr(), tx.len()) {
         n if n < 0 => Err(EAGAIN),
         _ => Ok(pid),

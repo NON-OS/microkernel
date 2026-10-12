@@ -17,7 +17,7 @@
 use alloc::vec;
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_send, mk_ipc_send_to_pid, mk_uptime_ms};
-use nonos_settle_proto::{parse_header, reply, EINVAL, FLAG_ASYNC, HDR_LEN, MAX_RAW_TX};
+use nonos_settle_proto::{parse_header, status_reply, EINVAL, FLAG_ASYNC, HDR_LEN, MAX_RAW_TX};
 
 use super::call::Call;
 use super::dispatch::dispatch;
@@ -57,7 +57,7 @@ pub fn run() -> ! {
              * Not this wire's frame: answered under op and id zero, so the
              * caller blocked in its call is released.
              */
-            None => reply(0, 0, 0, EINVAL, &[]),
+            None => status_reply(0, 0, 0, EINVAL),
         };
         let _ = match to_pid {
             true => mk_ipc_send_to_pid(sender, resp.as_ptr(), resp.len()),

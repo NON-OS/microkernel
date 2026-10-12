@@ -57,7 +57,7 @@ mod views;
 pub use callers::*;
 pub use delivered_log::{delivered, DeliveredKeys, DELIVERED, DELIVERED_TOPIC, MAX_KEYS};
 pub use fetch::*;
-pub use frame::{reply, reply_body, request, ReplyError};
+pub use frame::{reply, reply_body, request, status_reply, ReplyError};
 pub use header::{parse_header, Header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
 pub use intent::{Intent, MAX_CALLDATA};
 pub use intent_check::{approve_spender, claim_ok, kind_of};

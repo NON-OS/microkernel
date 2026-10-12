@@ -30,16 +30,16 @@ fn row(i: u8, uri: &[u8]) -> Listed {
 #[test]
 fn a_listing_reply_round_trips_at_most_sixteen_rows() {
     let rows: Vec<Listed> = (0..3).map(|i| row(i, b"https://h/r")).collect();
-    let b = listing_reply(&rows);
+    let b = listing_reply(&rows).unwrap();
     assert_eq!(b.len(), 1 + 3 * (106 + 11));
     assert_eq!(parse_listing_reply(&b, &[1; 32]), Some(rows));
     let many: Vec<Listed> = (0..20).map(|i| row(i, b"https://h/r")).collect();
-    let b = listing_reply(&many);
+    let b = listing_reply(&many).unwrap();
     assert_eq!(b[0] as usize, LISTED_MAX);
     assert_eq!(parse_listing_reply(&b, &[1; 32]).unwrap(), many[..LISTED_MAX].to_vec());
     let longest = row(1, &[b'u'; MAX_URL]);
     assert_eq!(
-        parse_listing_reply(&listing_reply(std::slice::from_ref(&longest)), &[1; 32]),
+        parse_listing_reply(&listing_reply(std::slice::from_ref(&longest)).unwrap(), &[1; 32]),
         Some(vec![longest])
     );
     assert_eq!(parse_listing_reply(&[0], &[1; 32]), Some(vec![]));
@@ -47,7 +47,7 @@ fn a_listing_reply_round_trips_at_most_sixteen_rows() {
 
 #[test]
 fn a_listing_reply_reads_whole_or_not_at_all() {
-    let b = listing_reply(&[row(1, b"https://h/r")]);
+    let b = listing_reply(&[row(1, b"https://h/r")]).unwrap();
     let no = |b: &[u8], why: &str| assert_eq!(parse_listing_reply(b, &[1; 32]), None, "{why}");
     no(&b[..b.len() - 1], "a byte short");
     no(&[b.as_slice(), &[0]].concat(), "a trailing byte");
@@ -64,5 +64,5 @@ fn a_listing_reply_reads_whole_or_not_at_all() {
     };
     no(&raw(0), "an empty uri");
     no(&raw(MAX_URL + 1), "a uri past MAX_URL");
-    assert_eq!(listing_reply(&[row(1, b"")]), [0], "never written");
+    assert_eq!(listing_reply(&[row(1, b"")]).unwrap(), [0], "never written");
 }
