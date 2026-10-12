@@ -169,10 +169,10 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
   of such devices. Layout in `src/serial/wire.rs`. Held to `driver.i2c_pci0`
   and `driver.i2c_hid0` besides `power` and the shell. Each device is
   logged at start on one `[ACPI] serial` line.
-- DEVICE_POWER (10, verb, state, segment, bus, devfn): a PCI function's
+- DEVICE_POWER (10, verb, state, device id): a PCI device's
   D-state (ACPI 6.5, chapter 7). Any caller the port admits may read it;
-  only the pid holding the function's claim (asked of the kernel through
-  `MkAcpiHolds`) may move it. A move turns the new state's power
+  only the pid holding the device's claim (asked of the kernel through
+  `MkAcpiFunctionOf`) may move it. A move turns the new state's power
   resources on in ResourceOrder, runs _PSx, then gives the old state's
   back; a fault undoes the move. D1 and D2 need _PSx or _PRx; a device in
   a low-power state goes back to D0 first. The fans and the devices
