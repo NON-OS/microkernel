@@ -40,5 +40,6 @@ pub mod object;
 pub mod op;
 pub mod parse;
 pub mod platform;
+pub mod power;
 pub mod region;
 pub mod shape;

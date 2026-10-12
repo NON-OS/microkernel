@@ -18,7 +18,7 @@
 //! definition order; an absent device's subtree skipped, a functioning but
 //! absent one's _INI skipped and its children's run.
 
-use super::platform_run::evaluator;
+use super::run::evaluator;
 use crate::consts::at;
 use crate::enc::*;
 use crate::platform::initialize;

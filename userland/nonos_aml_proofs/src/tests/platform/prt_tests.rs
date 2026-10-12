@@ -17,7 +17,7 @@
 //! _PRT: entries straight to a GSI, and entries through a link device's
 //! current resources, small IRQ and Extended Interrupt descriptors alike.
 
-use super::platform_run::evaluator;
+use super::run::evaluator;
 use crate::consts::at;
 use crate::enc::*;
 use crate::platform::{interrupts, routes, Route};

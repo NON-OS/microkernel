@@ -3715,6 +3715,7 @@
    "userland/nonos_aml/src/op",
    "userland/nonos_aml/src/parse",
    "userland/nonos_aml/src/platform",
+   "userland/nonos_aml/src/power",
    "userland/nonos_aml/src/region",
    "userland/nonos_aml/src/shape",
    "userland/nonos_aml_proofs"
