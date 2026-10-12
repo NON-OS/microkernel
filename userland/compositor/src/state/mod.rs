@@ -21,6 +21,7 @@ pub mod context_new;
 pub mod cursor;
 pub mod damage;
 pub mod focus;
+pub mod indicator;
 pub mod scene;
 pub mod raise_rule;
 pub mod scene_raise;

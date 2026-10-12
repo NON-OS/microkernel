@@ -54,6 +54,8 @@ pub struct Context {
     pub cursor_sent: Option<super::cursor::CursorState>,
     /// The host's wanted size and what was asked for (G 6).
     pub resize: crate::display::resize_rule::Resize,
+    /// Who has the camera or the microphone on (the capture indicator).
+    pub indicators: super::indicator::Indicators,
 }
 
 impl Context {

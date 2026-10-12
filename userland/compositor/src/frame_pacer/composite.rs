@@ -38,4 +38,6 @@ pub fn paint(ctx: &mut Context, rect: Rect) {
         damage: &mut ctx.damage,
     };
     compose(dst, rect, scene, shown.then_some((cursor.x, cursor.y)));
+    // Last: nothing a client draws or places can cover the band.
+    super::indicator_band::draw(dst, rect, &ctx.indicators);
 }
