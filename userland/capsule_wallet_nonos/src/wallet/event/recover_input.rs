@@ -17,6 +17,7 @@
 //! One key into the recovery-phrase field.
 
 use nonos_app_skeleton::{EventOutcome, KEY_BACKSPACE, KEY_ENTER, KEY_ESC};
+use zeroize::Zeroize;
 
 use super::recover::wipe;
 use super::recover_submit::submit;
@@ -35,8 +36,10 @@ pub fn recover_input(state: &mut State, code: u32) -> EventOutcome {
     if code == KEY_BACKSPACE {
         if state.recover_len > 0 {
             state.recover_len -= 1;
-            // SAFETY: volatile write so removed characters do not linger.
-            unsafe { core::ptr::write_volatile(&mut state.recover_buf[state.recover_len], 0) };
+            // A removed character does not linger.
+            if let Some(b) = state.recover_buf.get_mut(state.recover_len) {
+                b.zeroize();
+            }
         }
         return EventOutcome::Repaint;
     }

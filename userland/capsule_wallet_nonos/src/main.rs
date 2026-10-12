@@ -23,7 +23,8 @@ mod wallet;
 
 use nonos_app_skeleton::run;
 
+/// The process entry the loader calls once; nothing in it needs unsafe.
 #[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
+pub extern "C" fn _start() -> ! {
     run(wallet::Wallet::new)
 }

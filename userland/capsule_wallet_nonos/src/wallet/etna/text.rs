@@ -22,16 +22,15 @@ use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::ttf::{draw_text_tracked, line_height_with, measure_tracked};
+use zeroize::Zeroizing;
 
 use super::face::font;
 use super::roles::{spec, Role, Spec};
 
-fn shaped(caps: bool, text: &str) -> String {
-    if caps {
-        text.to_uppercase()
-    } else {
-        String::from(text)
-    }
+/// The text as drawn. It can be a key or recovery words a person asked to
+/// see, so the copy is zeroed when dropped.
+fn shaped(caps: bool, text: &str) -> Zeroizing<String> {
+    Zeroizing::new(if caps { text.to_uppercase() } else { String::from(text) })
 }
 
 /// Draw in the role's own colour; returns the pen x after the run.
