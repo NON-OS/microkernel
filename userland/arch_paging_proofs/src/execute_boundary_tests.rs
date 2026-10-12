@@ -7,7 +7,8 @@
 //! `PageAttributes` over every combination of its fields.
 
 use crate::arch::aarch64::mmu::attributes::{
-    MemoryType, PageAttributes, PTE_AP_RW_ALL as AP_EL0, PTE_PXN as PXN, PTE_UXN as UXN,
+    MemoryType, PageAttributes, PTE_AP_RW_ALL as AP_EL0, PTE_GP as GP, PTE_PXN as PXN,
+    PTE_UXN as UXN,
 };
 use crate::descriptor::aarch64 as d;
 use crate::descriptor::flags;
@@ -46,15 +47,18 @@ fn the_managers_leaf_never_lets_execute_cross_levels() {
 fn page_attributes_never_let_execute_cross_levels() {
     let types = [MemoryType::DeviceNGnRnE, MemoryType::NormalNC, MemoryType::NormalWB];
     for memory_type in types {
-        for fields in 0..1u32 << 7 {
+        for fields in 0..1u32 << 8 {
             let bit = |n: u32| fields >> n & 1 != 0;
             let mut a =
                 PageAttributes::new(memory_type, bit(0), bit(1), bit(2), bit(3), bit(4), bit(5));
             a.contiguous = bit(6);
+            a.guarded = bit(7);
             let bits = a.to_descriptor_bits();
             assert_eq!(bits & AP_EL0 != 0, a.user, "{a:?}");
             assert_eq!(bits & PXN == 0, !a.user && a.execute, "{a:?}: EL1 execute");
             assert_eq!(bits & UXN == 0, a.user && a.execute, "{a:?}: EL0 execute");
+            let el1_code = a.execute && !a.user;
+            assert_eq!(bits & GP != 0, a.guarded && el1_code, "{a:?}: guarded");
         }
     }
 }

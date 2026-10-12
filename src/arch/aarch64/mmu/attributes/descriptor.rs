@@ -16,8 +16,8 @@
 
 use super::page::PageAttributes;
 use super::pte::{
-    PTE_AF, PTE_AP_RO_ALL, PTE_AP_RO_EL1, PTE_AP_RW_ALL, PTE_AP_RW_EL1, PTE_CONT, PTE_NG, PTE_PXN,
-    PTE_SH_IS, PTE_UXN,
+    PTE_AF, PTE_AP_RO_ALL, PTE_AP_RO_EL1, PTE_AP_RW_ALL, PTE_AP_RW_EL1, PTE_CONT, PTE_GP, PTE_NG,
+    PTE_PXN, PTE_SH_IS, PTE_UXN,
 };
 
 impl PageAttributes {
@@ -60,6 +60,10 @@ impl PageAttributes {
         }
         if !self.user || !self.execute {
             bits |= PTE_UXN;
+        }
+        // Only on code EL1 runs: GP on anything else checks nothing.
+        if self.guarded && self.execute && !self.user {
+            bits |= PTE_GP;
         }
 
         bits

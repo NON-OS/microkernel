@@ -21,7 +21,7 @@ pub mod pan;
 pub mod pac;
 pub mod spectre;
 
-pub use bti::{enable_bti, init_bti};
+pub use bti::{init_bti, kernel_guarded};
 pub use init_all::init_all;
 pub use mte::{init_mte, MteMode};
 pub use pac::{enable_pac, init_pac};
