@@ -21,7 +21,7 @@
 use super::sci_rig::{bits, SciRig};
 use crate::consts::at;
 use crate::enc::*;
-use crate::events::Policy;
+use crate::events::{Dispatch, Policy};
 use crate::exec::{ExecLimits, FaultKind, Machine};
 use crate::probe::Probe;
 use crate::run::boot;
@@ -45,7 +45,8 @@ fn a_gpe_method_notifies_through_the_interpreter() {
     let mut io = rig.regs.clone();
     let report = rig
         .events
-        .on_sci(&mut io, &mut |id| {
+        .on_sci(&mut io, &mut |d| {
+            let Dispatch::Method(id) = d else { panic!("no native events here") };
             Machine::new(&mut aml, &mut probe, limits).evaluate(&mut aml, id, vec![]).map(|_| ())
         })
         .unwrap();
