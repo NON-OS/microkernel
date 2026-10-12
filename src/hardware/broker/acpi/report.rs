@@ -69,5 +69,6 @@ pub(super) fn posture() {
         .dec(recoverable)
         .str(b" corrected=")
         .dec(corrected)
+        .str(super::ecam_note::suffix())
         .end();
 }

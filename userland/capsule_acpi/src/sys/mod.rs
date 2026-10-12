@@ -31,4 +31,5 @@ pub mod log;
 pub mod pci_probe;
 pub mod platform;
 pub mod ports;
+pub mod reserved;
 pub mod smbios;

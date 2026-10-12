@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What runs once everything else is up: the functions _PS0 woke, the
-//! platform controllers and port facts published to the broker, and the
-//! Type-C session, whose first walk may take a while on a slow PPM.
+//! What runs once everything else is up: the ranges firmware reserves, the
+//! functions _PS0 woke, the platform controllers and port facts published
+//! to the broker, and the Type-C session, whose first walk may take a while
+//! on a slow PPM.
 
 use super::state::Acpi;
 
 pub fn late(acpi: &mut Acpi) {
+    crate::reserved::publish(acpi);
     crate::dpower::reveal_hidden(acpi);
     let Acpi { devices, aml, host, .. } = acpi;
     crate::platform::publish(devices, aml, host);
