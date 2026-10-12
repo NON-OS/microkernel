@@ -19,7 +19,7 @@ mod configure;
 mod configure_run;
 mod max_packet;
 mod poll;
-pub(super) mod reply;
+pub(crate) mod reply;
 mod reset;
 mod run;
 mod streams;

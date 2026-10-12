@@ -16,7 +16,7 @@
 
 //! The `Bus` of a device addressed on driver.xhci0.
 
-use super::{bulk, control, interrupt};
+use super::{bulk, control, interrupt, interrupt_out};
 use crate::bus::{Bus, Notify, Pipes};
 use crate::setup::Setup;
 
@@ -50,5 +50,8 @@ impl Bus for XhciBus {
     }
     fn interrupt_in_poll(&mut self, dci: u8, out: &mut [u8]) -> Result<Option<usize>, i32> {
         interrupt::interrupt_in_poll(self.xhci, self.slot, dci, out)
+    }
+    fn interrupt_out(&mut self, dci: u8, data: &[u8]) -> Result<usize, i32> {
+        interrupt_out::interrupt_out(self.xhci, self.slot, dci, data)
     }
 }

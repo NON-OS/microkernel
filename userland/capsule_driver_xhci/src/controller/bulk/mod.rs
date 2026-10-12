@@ -22,7 +22,7 @@ mod stream_input;
 mod stream_transfer;
 mod streams;
 mod transfer;
-mod wait;
+pub(crate) mod wait;
 pub use input::{write_bulk_input, BulkEndpoint};
 pub use pipes::BulkPipes;
 pub use poll::{poll_bulk_in, BulkPoll};

@@ -61,6 +61,10 @@ impl Bus for MockBus {
     fn configure_interrupt(&mut self, ep: Notify) -> Result<u8, i32> {
         Ok(2 * (ep.address & 0x0F) + 1)
     }
+    fn interrupt_out(&mut self, dci: u8, data: &[u8]) -> Result<usize, i32> {
+        self.0.borrow_mut().calls.push(Call::InterruptOut(dci, data.to_vec()));
+        Ok(data.len())
+    }
     fn interrupt_in_poll(&mut self, _dci: u8, out: &mut [u8]) -> Result<Option<usize>, i32> {
         let Some(n) = self.0.borrow_mut().notices.pop_front() else { return Ok(None) };
         let len = n.len().min(out.len());
