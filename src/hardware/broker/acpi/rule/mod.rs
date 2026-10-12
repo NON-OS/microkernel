@@ -22,9 +22,11 @@ mod memory;
 mod ports;
 mod reason;
 mod refusal;
+mod table;
 
 pub use facts::{Facts, MemKind};
 pub use legacy::LEGACY_PORTS;
 pub use memory::memory;
 pub use ports::{io, pci_config};
 pub use refusal::{Hardware, Legacy, Refusal};
+pub use table::{table_read, LEGACY_BIOS};

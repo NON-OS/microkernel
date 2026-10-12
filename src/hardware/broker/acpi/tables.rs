@@ -24,6 +24,8 @@ use alloc::vec::Vec;
 use core::ptr;
 
 use super::kernel::platform::fw::parser::{phys::directmap, state::TABLES};
+use super::kernel::Machine;
+use super::rule::table_read;
 use super::table_allow::readable;
 use super::table_check::{declared_length, verify, TableError, FACS_HEADER, HEADER};
 
@@ -42,8 +44,9 @@ fn locate(sig: [u8; 4], instance: u32) -> Option<u64> {
     }
 }
 
-/// Bytes of physical memory through the direct map, if all of them are in it.
+/// Bytes of firmware's memory (`rule::table`) through the direct map.
 pub(super) fn read(phys: u64, len: usize) -> Result<Vec<u8>, TableError> {
+    table_read(phys, len as u64, &Machine { pid: 0 }).map_err(|_| TableError::Memory)?;
     let last = phys.checked_add(len as u64 - 1).ok_or(TableError::Unmapped)?;
     let virt = directmap(phys).ok_or(TableError::Unmapped)?;
     directmap(last).ok_or(TableError::Unmapped)?;
