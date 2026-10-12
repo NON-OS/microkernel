@@ -31,6 +31,8 @@ nonos_bt_proto = { path = "../bt_proto" }
 nonos_keymap = { path = "../nonos_keymap" }
 nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
+# Each vendor file is checked against its pinned SHA-256 before it is sent.
+sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
 
 [profile.release]
 panic = "abort"
