@@ -9,6 +9,8 @@ Host test crate for the pure parts of `userland/capsule_acpi`, mounted by
   (port 4530) answers. The kernel's HELD line admits whole services to the
   endpoint; this table narrows each op to the services named for it, and
   answers no one for an op nobody is named for.
+- `src/aei/rate.rs`: how many GPIO-signalled events (GPIO_EVENT, 13) one
+  controller may run a second.
 - `src/props/wire*.rs`: the PROPERTIES op's (12) wire, a device's _DSD
   tree as the driver holding it receives it.
 
@@ -18,6 +20,8 @@ Host test crate for the pure parts of `userland/capsule_acpi`, mounted by
   named ones are admitted, every other is refused (the capsule answers
   EPERM), as are a sender owning no service and pid 0.
 - The table itself, op by op.
+- The event rate: 64 a second admitted, the 65th refused and counted, a
+  new second (or a clock that went back) starting afresh.
 - The PROPERTIES wire: a tree with integers, strings, references,
   nested packages and nested nodes reads back as written; too many node
   levels, packages too deep, a count past 64, a name past 255 bytes or a
