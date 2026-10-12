@@ -23,6 +23,7 @@
 
 mod access;
 mod carve;
+pub(crate) mod command_rule;
 mod device;
 mod run;
 mod size;

@@ -7,6 +7,7 @@
 // (at your option) any later version.
 
 mod announce;
+mod bus_master;
 mod claim;
 mod dma;
 mod grants;

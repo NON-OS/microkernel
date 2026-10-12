@@ -15,13 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::access::{read16, read32, write16, write32};
+use super::command_rule::{after_assign, while_sizing};
 use super::size::size_bar;
 use super::window::{alloc_io, alloc_mmio};
 
 const COMMAND: u8 = 0x04;
-const COMMAND_IO_SPACE: u16 = 1 << 0;
-const COMMAND_MEMORY_SPACE: u16 = 1 << 1;
-const COMMAND_BUS_MASTER: u16 = 1 << 2;
 const FIRST_BAR: u8 = 0x10;
 const BAR_COUNT: u8 = 6;
 
@@ -32,10 +30,7 @@ const BAR_COUNT: u8 = 6;
 /// afterwards would leave that description pointing at nothing.
 pub(super) fn assign_device(bus: u8, device: u8, function: u8) -> bool {
     let command = read16(bus, device, function, COMMAND);
-    // Sizing drives the address lines to all ones. Stop the device decoding
-    // before that happens, or for the width of the probe it claims a window
-    // that is not its own.
-    write16(bus, device, function, COMMAND, command & !(COMMAND_IO_SPACE | COMMAND_MEMORY_SPACE));
+    write16(bus, device, function, COMMAND, while_sizing(command));
 
     let mut assigned = false;
     let mut index = 0;
@@ -66,14 +61,6 @@ pub(super) fn assign_device(bus: u8, device: u8, function: u8) -> bool {
         index += if bar.is_64bit { 2 } else { 1 };
     }
 
-    // Bus mastering goes on with the decoders: every virtio device moves its
-    // queues by DMA, and without it the rings stay silent.
-    write16(
-        bus,
-        device,
-        function,
-        COMMAND,
-        command | COMMAND_IO_SPACE | COMMAND_MEMORY_SPACE | COMMAND_BUS_MASTER,
-    );
+    write16(bus, device, function, COMMAND, after_assign(command));
     assigned
 }

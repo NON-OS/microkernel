@@ -32,13 +32,18 @@ use crate::queue::{RxRing, TxRing};
 use crate::regs::Regs;
 
 use super::driver::Driver;
-use super::{claim, dma, mmio};
+use super::{bus_master, claim, dma, mmio};
 
 pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let claim_epoch = claim::claim(dev.device_id)?;
     let mmio_grant = mmio::map(dev, claim_epoch)?;
     let (rx_ring, rx_buf, tx_ring, tx_buf) =
         dma::map_rings_and_buffers(dev.device_id, claim_epoch, &mmio_grant)?;
+    if let Err(e) = bus_master::on(dev.device_id, claim_epoch) {
+        let grants = [tx_buf.grant_id, tx_ring.grant_id, rx_buf.grant_id, rx_ring.grant_id];
+        super::rollback::after(dev.device_id, &mmio_grant, &grants);
+        return Err(e);
+    }
     Ok(Driver {
         device_id: dev.device_id,
         mmio_grant: mmio_grant.grant_id,
