@@ -3433,6 +3433,7 @@
    "userland/nonos_wifi_client/src/join_wire.rs",
    "userland/nonos_wifi_client/src/network.rs",
    "userland/nonos_wifi_core",
+   "userland/nonos_wifi_core_proofs/src/ap_sim",
    "userland/nonos_wifi_core_proofs/src/ap_sim.rs"
   ],
   "md": [],
@@ -4136,6 +4137,7 @@
    "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
    "userland/capsule_driver_rtl8821ce/src/tx",
    "userland/nonos_wifi_core",
+   "userland/nonos_wifi_core_proofs/src/ap_sim",
    "userland/nonos_wifi_core_proofs/src/ap_sim.rs",
    "userland/rtl8821ce_proofs"
   ],
