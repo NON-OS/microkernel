@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The USB network class drivers, wherever an xHCI controller is: whether an
+//! The USB network class drivers, wherever a USB host is: whether an
 //! adapter or a tethered phone is plugged in is known only once each driver
 //! searches the ports, and each keeps searching while it has no device.
 
@@ -29,8 +29,8 @@ pub(super) fn spawn() {
         feature = "nonos-capsule-driver-ax88179",
         feature = "nonos-capsule-driver-rtl8153"
     ))]
-    if !crate::hardware::inventory::present(crate::hardware::inventory::HardwareFamily::UsbXhci) {
-        crate::sys::boot_log::ok("DRIVER-USBNET", "no xHCI controller, not spawned");
+    if !super::usb_host::usb_host() {
+        crate::sys::boot_log::ok("DRIVER-USBNET", "no USB host, not spawned");
         return;
     }
     spawn_cdc_ecm();
