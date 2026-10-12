@@ -281,6 +281,14 @@ other op: no one.
   `src/time_alarm/switch.rs::WRITES` is on, which it is not: ALARM (0,
   timer, seconds) arms a wake timer through _STV, TIME (1, 16 bytes) sets
   firmware's clock through _SRT. EPERM while the switch is off.
+- QUIRKS (16, device id u64): the machine quirks of `nonos_smbios::quirk`
+  that apply to the device the asking driver holds (the kernel's claim
+  test, as for DEVICE_POWER), on this machine: every SMBIOS field a quirk
+  lists must match its value exactly or by prefix, and a field firmware
+  left blank matches nothing. The device is known by its PCI vendor and
+  device ids or its `_HID`. The body: a count, then each quirk's name and
+  value. The table ships empty; an entry comes with the unit that needs
+  it, its reason cited. Layout in `src/quirks.rs`.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and
