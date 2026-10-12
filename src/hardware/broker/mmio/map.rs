@@ -41,6 +41,7 @@ use super::window::{self, Window, WindowError, PAGE_SIZE};
 use crate::hardware::broker::claim;
 use crate::hardware::broker::device::BAR_KIND_MMIO;
 use crate::hardware::broker::grant::{self, MmioGrant, USER_MMIO_BASE, USER_MMIO_END};
+use crate::hardware::broker::reserved;
 use crate::hardware::broker::table;
 use crate::hardware::broker::DeviceRecord;
 use crate::memory::addr::PhysAddr;
@@ -71,6 +72,9 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
         BarRefusal::BadIndex => MmioMapError::BadBarIndex,
         BarRefusal::NotMmio => MmioMapError::NotMmioBar,
     })?;
+    if reserved::refuses(b"MMIO", reserved::MEMORY, bar.base, bar.size, true) {
+        return Err(MmioMapError::FirmwareReserved);
+    }
     crate::sys::serial::println(b"[MMIO] msix");
     let protected = msix_exclusion::protected_regions();
     let w = window::window(bar.base, bar.size, req.offset, req.length, &protected)
