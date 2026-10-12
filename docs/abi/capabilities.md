@@ -53,6 +53,7 @@ Syscalls it admits lists every call whose cap table gate names the capability, a
 | 36 | `0x1000000000` | `InputDrain` | `INPUT_DRAIN` | Drain and wait on the input ring, which carries every key typed. Held by `input_router` alone (`scripts/check_input_drain_cap.py`). | `MIED`, `MIEW` |
 | 37 | `0x2000000000` | `CameraCapture` | `CAMERA_CAPTURE` | Take frames from a camera. The kernel gates no call with it; the USB stack and the compositor's indicator check a peer with `MkCapCheck`. Held by no capsule until Decision 9 (`scripts/check_capture_caps.py`). | none |
 | 38 | `0x4000000000` | `MicrophoneCapture` | `MICROPHONE_CAPTURE` | Take samples from a microphone, checked as `CameraCapture` is by the audio service and the indicator. Held by no capsule until Decision 9. | none |
+| 39 | `0x8000000000` | `ScreenCapture` | `SCREEN_CAPTURE` | Copy the whole screen through the compositor, which shows a notice while it does. Held by no capsule until Decision 9. | none |
 
 ## Checks outside the syscall table
 
