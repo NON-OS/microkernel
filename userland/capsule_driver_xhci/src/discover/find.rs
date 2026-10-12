@@ -19,29 +19,18 @@
 //! returned, the chipset's first, so it is the primary and keeps root port
 //! numbers from 1: the ports a boot stick, keyboard and mouse sit on.
 
-use super::constants::CLASS_USB_HOST_XHCI;
+use crate::constants::CLASS_USB_HOST_XHCI;
 use alloc::vec::Vec;
-use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
+use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_FDT, BUS_KIND_PCI};
+
+use super::found::Found;
+use super::thunderbolt::is_thunderbolt;
+
 const MAX_DEVICES: usize = 64;
 const PCI_CLASS_SERIAL_BUS: u8 = 0x0c;
 const PCI_SUBCLASS_USB: u8 = 0x03;
 const PCI_PROGIF_XHCI: u8 = 0x30;
-const VENDOR_INTEL: u16 = 0x8086;
-/// Intel Thunderbolt and USB4 xHCI functions, as Linux's xhci-pci.c names
-/// them: Alpine Ridge, Titan Ridge, Maple Ridge, and the TCSS controllers of
-/// Ice Lake, Tiger Lake, Alder Lake, Raptor Lake and Meteor Lake. Their
-/// ports are the Type-C ones only.
-const INTEL_THUNDERBOLT_XHCI: [u16; 15] = [
-    0x15b5, 0x15b6, 0x15c1, 0x15d4, 0x15db, 0x15e9, 0x15ec, 0x15f0, 0x1138, 0x8a13, 0x9a13, 0x461e,
-    0x464e, 0xa71e, 0x7ec0,
-];
-#[derive(Debug, Clone, Copy)]
-pub struct Found {
-    pub device_id: u64,
-    pub bar0_size: u64,
-    pub vendor: u16,
-    pub device: u16,
-}
+
 /// Every usable xHCI controller, the chipset's ahead of any Thunderbolt one,
 /// otherwise in the order the bus lists them.
 pub fn find_all_xhci() -> Vec<Found> {
@@ -64,14 +53,22 @@ fn usable(r: &DeviceRecord) -> Option<Found> {
     if bar0.kind != BAR_KIND_MMIO || bar0.size == 0 {
         return None;
     }
-    Some(Found { device_id: r.device_id, bar0_size: bar0.size, vendor: r.vendor, device: r.device })
+    let on_pci = r.bus_kind == BUS_KIND_PCI;
+    let spi = if on_pci { 0 } else { r.irq_source };
+    Some(Found {
+        device_id: r.device_id,
+        bar0_size: bar0.size,
+        vendor: r.vendor,
+        device: r.device,
+        on_pci,
+        spi,
+    })
 }
-pub fn is_thunderbolt(vendor: u16, device: u16) -> bool {
-    vendor == VENDOR_INTEL && INTEL_THUNDERBOLT_XHCI.contains(&device)
-}
+/// A PCI function, or a device-tree controller, which the broker lists with
+/// the same class code and no config space.
 fn raw_xhci(r: &DeviceRecord) -> bool {
     r.pci_class == PCI_CLASS_SERIAL_BUS
-        && r.bus_kind == BUS_KIND_PCI
+        && (r.bus_kind == BUS_KIND_PCI || r.bus_kind == BUS_KIND_FDT)
         && r.pci_subclass == PCI_SUBCLASS_USB
         && r.pci_progif == PCI_PROGIF_XHCI
 }
