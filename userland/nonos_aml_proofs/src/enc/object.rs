@@ -40,3 +40,8 @@ pub fn thermal_zone(path: &str, body: &[u8]) -> Vec<u8> {
 pub fn power_res(path: &str, level: u8, order: u16, body: &[u8]) -> Vec<u8> {
     pkg(0x5B84, &cat(&[&name(path), &[level], &order.to_le_bytes(), body]))
 }
+
+/// Processor(path, ProcID, PblkAddr, PblkLen) { body }.
+pub fn processor(path: &str, id: u8, pblk: u32, len: u8, body: &[u8]) -> Vec<u8> {
+    pkg(0x5B83, &cat(&[&name(path), &[id], &pblk.to_le_bytes(), &[len], body]))
+}
