@@ -19,6 +19,8 @@
 //! by FLUSH and flipped at the vertical blank.
 
 mod brightness;
+mod brightness_ops;
+mod brightness_wire;
 mod copy;
 mod cursor;
 mod describe;
@@ -40,6 +42,7 @@ mod timing_pick;
 mod wire;
 
 pub use brightness::Brightness;
+pub use brightness_wire::{answer as brightness_answer, MAX_REPLY as BRIGHTNESS_REPLY};
 pub use copy::copy;
 pub use frames::Frames;
 pub use head::Head;

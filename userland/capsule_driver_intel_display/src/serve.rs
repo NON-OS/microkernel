@@ -15,26 +15,37 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The receive loop: every frame from the inbox answered by the wire
-//! server, the reply sent to the pid the kernel says sent it.
+//! server, the reply sent to the pid the kernel says sent it. A frame too
+//! short for the wire's header is F 12's brightness bytes (at most six;
+//! the wire's every request is at least twenty), answered natively.
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
+use nonos_gfx_wire::header::HDR_LEN;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, recv_ready};
 
 use crate::setup::Engine;
+use nonos_intel_display::display::{brightness_answer, BRIGHTNESS_REPLY};
 
 const SERVICE_INBOX: u64 = 0;
 
 pub fn run(server: &mut Server<Engine, Pool>) -> ! {
-    // Requests are at most 256 bytes; replies the header, status and 252.
-    let (mut rx, mut tx) = ([0u8; 256], [0u8; 280]);
+    // Requests are at most 256 bytes; replies the header, status and 252,
+    // or a brightness reply of at most 512.
+    let (mut rx, mut tx) = ([0u8; 256], [0u8; BRIGHTNESS_REPLY]);
     loop {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), 0, &mut sender);
         if !recv_ready(n) || sender == 0 {
             continue;
         }
-        let len = server.handle(sender, &rx[..n as usize], &mut tx);
+        let req = &rx[..n as usize];
+        let len = if req.len() < HDR_LEN {
+            let (d, may) = (&mut server.display, crate::senders::may_set(sender));
+            brightness_answer(d, d.count() as u16, req, may, &mut tx)
+        } else {
+            server.handle(sender, req, &mut tx[..280])
+        };
         if len > 0 {
             let _ = mk_ipc_reply(sender, tx.as_ptr(), len);
         }

@@ -18,6 +18,7 @@ mod aux_ch_fail_tests;
 mod aux_ch_tests;
 mod backlight_tests;
 mod brightness_tests;
+mod brightness_wire_tests;
 mod cdclk_tests;
 mod cursor_tests;
 mod ddb_tests;
