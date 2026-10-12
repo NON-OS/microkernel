@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Device table entries (AMD IOMMU spec 48882, section 2.2.2.1), 256 bits as
-//! four quadwords, with the bits Linux sets in amd/iommu.c (set_dte_entry)
-//! and amd/init.c (init_device_table_dma). Pure.
+//! four quadwords: V, TV, the paging mode and root, IR and IW, and the
+//! domain id, each where the spec's entry format puts it. Pure.
 
 pub type Dte = [u64; 4];
 
@@ -34,7 +34,7 @@ pub const fn blocked() -> Dte {
 }
 
 /// DMA reaches physical addresses untranslated: Mode 0 with IR and IW,
-/// what Linux programs for an identity domain.
+/// which the entry format defines as translation disabled with access.
 pub const fn passthrough() -> Dte {
     [VALID | TRANSLATION_VALID | READ | WRITE, 0, 0, 0]
 }
