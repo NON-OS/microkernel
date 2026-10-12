@@ -53,7 +53,7 @@ behind it.
 | `OP_GET_DEVICE_DESCRIPTOR` / `OP_GET_CONFIG_DESCRIPTOR` | run EP0 GET_DESCRIPTOR | raw descriptor bytes |
 | `OP_ALLOC_TRANSFER_RING` | give an endpoint of an addressed slot a transfer ring | status word |
 | `OP_CONTROL_TRANSFER` | one EP0 control transfer for a class driver (for example SET_CONFIGURATION, SET_PROTOCOL) | status, IN data |
-| `OP_INTERRUPT_IN` | poll one interrupt-IN report of at most `HID_REPORT_MAX` bytes | report bytes, or pending |
+| `OP_INTERRUPT_IN` | poll one interrupt-IN packet of at most the endpoint's wMaxPacketSize, never past `INTERRUPT_IN_MAX` (64) | report bytes, or pending |
 | `OP_CONFIGURE_BULK` / `OP_RESET_BULK` | add a bulk IN and OUT pair; recover one after a STALL | DCIs / status word |
 | `OP_BULK_OUT` / `OP_BULK_IN` | one transfer of up to 4096 bytes; a STALL replies `E_PIPE` | bytes moved, IN data |
 | `OP_BULK_IN_POLL` | one look at the slot's armed bulk IN, its own page; `E_AGAIN` at once while nothing came | bytes moved, IN data |
