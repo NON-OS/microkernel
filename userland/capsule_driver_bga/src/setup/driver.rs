@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::handles::BrokerHandles;
+use nonos_gfx_serve::Server;
 
+use crate::display::Bga;
+use crate::handles::BrokerHandles;
+use crate::platform::Pool;
+
+/// A driver that came up: its broker handles, never read but held so their
+/// drop releases the claim and both grants only when the driver ends, and
+/// the wire server over the adapter.
 pub struct Driver {
-    pub handles: BrokerHandles,
-    pub fb_user_va: u64,
-    pub width: u16,
-    pub height: u16,
-    pub stride: u32,
+    pub _handles: BrokerHandles,
+    pub server: Server<Bga, Pool>,
 }
