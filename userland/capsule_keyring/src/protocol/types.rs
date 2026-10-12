@@ -48,6 +48,8 @@ pub const OP_SHIELD_SEAL: u16 = 27;
 pub const OP_SHIELD_OPEN: u16 = 28;
 /// A further account of an HD wallet, m/44'/60'/0'/0/i from the same words.
 pub const OP_WALLET_DERIVE: u16 = 29;
+/// The caller's own ids of one key kind (L33).
+pub const OP_LIST: u16 = 30;
 
 pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_0002;
 
