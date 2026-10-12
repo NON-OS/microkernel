@@ -17,4 +17,5 @@
 mod move_tests;
 mod pci_tests;
 mod refusal_tests;
+mod reveal_tests;
 mod rig;
