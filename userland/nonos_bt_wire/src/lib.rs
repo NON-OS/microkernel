@@ -24,6 +24,7 @@
 extern crate alloc;
 
 pub mod addr;
+pub mod att;
 pub mod cursor;
 pub mod error;
 pub mod hci;
