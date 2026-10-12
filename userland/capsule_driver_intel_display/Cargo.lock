@@ -49,6 +49,7 @@ dependencies = [
 name = "nonos_gfx_serve"
 version = "0.1.0"
 dependencies = [
+ "nonos_edid",
  "nonos_gfx_wire",
 ]
 

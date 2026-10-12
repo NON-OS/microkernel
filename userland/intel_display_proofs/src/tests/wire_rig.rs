@@ -28,6 +28,7 @@ use crate::engine::pipe::Pipe;
 use crate::engine::scanout::Scanout;
 use crate::engine::takeover::read_output;
 use crate::model::{Gen9, ModelFrames, Polls, Shared, Ticks};
+use nonos_gfx_serve::Panel;
 use nonos_gfx_wire::body::state::SCANNING_OUT;
 
 pub type Rig = Intel<Shared, ModelFrames, Ticks>;
@@ -47,6 +48,7 @@ pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
         gen: &GEN9,
         out,
         scan,
+        panel: Panel::default(),
         generation: 1,
         flags: SCANNING_OUT,
     };
