@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod attach_argb;
 pub mod cursor_update;
 pub mod damage_commit;
 pub mod display_hint;
@@ -27,6 +28,7 @@ pub mod output_layout;
 pub mod output_scale;
 pub mod scene_remove;
 pub mod scene_submit;
+pub mod scene_submit_body;
 pub mod screenshot;
 
 pub(super) fn u32_at(buf: &[u8], off: usize) -> Option<u32> {

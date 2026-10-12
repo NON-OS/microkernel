@@ -49,11 +49,14 @@ pub mod visible;
 #[path = "../../compositor/src/state/indicator.rs"]
 pub mod indicator;
 
+#[path = "../../compositor/src/state/trusted_rule.rs"]
+pub mod trusted_rule;
+
 pub mod state {
     pub mod damage {
         pub use crate::damage::{DamageAccumulator, Rect};
     }
-    pub use crate::{attach, indicator, scene, visible};
+    pub use crate::{attach, indicator, scene, trusted_rule, visible};
 }
 
 // A damaged rectangle composed onto real pixels, as a frame composes it,
@@ -189,5 +192,15 @@ mod resize_fit_tests;
 mod resize_tests;
 #[cfg(test)]
 mod stacking_tests;
+#[cfg(test)]
+mod trusted_capture_tests;
+#[cfg(test)]
+mod trusted_desk;
+#[cfg(test)]
+mod trusted_mem;
+#[cfg(test)]
+mod trusted_notice_tests;
+#[cfg(test)]
+mod trusted_tests;
 #[cfg(test)]
 mod upscale_tests;
