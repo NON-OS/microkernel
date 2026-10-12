@@ -19,10 +19,8 @@
 //! is unauthenticated, so the domain the station was given stays the ceiling.
 
 use super::band::{channel_mhz, Band};
-use super::channel_set::ChannelSet;
-use super::country::Country;
-use super::permit::Permit;
 use super::rule::{Rule, RuleFlags};
+use super::{channel_set::ChannelSet, country::Country, permit::Permit};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Domain {
@@ -47,7 +45,8 @@ impl Domain {
         Self { listed: Some(set), ..self }
     }
 
-    /// The first rule a 20 MHz channel lies wholly inside, as cfg80211 picks.
+    /// The first rule a 20 MHz channel lies wholly inside: one straddling
+    /// two rules never borrows the wider one's permissions.
     fn rule(&self, band: Band, channel: u8) -> Option<&Rule> {
         let mhz = channel_mhz(band, channel)?;
         self.rules.iter().find(|r| r.covers(mhz, 20))

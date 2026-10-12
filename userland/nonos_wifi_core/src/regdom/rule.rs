@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One rule of a regulatory domain, in the shape of the wireless-regdb
-//! `db.txt` that Linux's cfg80211 reads: a frequency range, the widest
-//! channel allowed in it, the power ceiling, and what the station may not do
-//! there.
+//! One rule of a regulatory domain, with the fields of a wireless-regdb
+//! `db.txt` rule: a frequency range, the widest channel allowed in it, the
+//! power ceiling, and what the station may not do there.
 
 /// What a rule forbids.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
