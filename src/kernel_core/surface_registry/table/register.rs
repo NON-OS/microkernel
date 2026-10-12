@@ -26,10 +26,13 @@ use crate::memory::addr::PhysAddr;
 
 use super::{Slot, SLOTS, SLOT_GENERATIONS};
 
+/// `grant`: the DMA run the frames belong to, when they are the owner's own
+/// grant rather than its memory (L35).
 pub fn register_surface(
     owner_pid: u32,
     desc: &SurfaceDescriptor,
     frames: Vec<PhysAddr>,
+    grant: Option<(u64, u64)>,
 ) -> Result<(SurfaceSid, SurfaceHandle), RegistryError> {
     if desc.format != FMT_ARGB8888 || desc.width == 0 || desc.height == 0 {
         return Err(RegistryError::InvalidArg);
@@ -60,6 +63,7 @@ pub fn register_surface(
                 owner_base_va: desc.base_va,
                 frames,
                 shares: Shares::new(owner_group),
+                grant,
             });
             #[cfg(feature = "dbg-ring")]
             crate::log::dbg_ring::dbg_emit_2u64(0x5546_0002, i as u64, epoch as u64);

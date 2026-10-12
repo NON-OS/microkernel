@@ -44,6 +44,9 @@ pub(super) struct Slot {
     pub(super) frames: Vec<PhysAddr>,
     /// Who may attach besides the owner (L18c).
     pub(super) shares: Shares,
+    /// The DMA run (physical start, length) the frames belong to, for a
+    /// surface over the owner's own grant: the broker's to free (L35).
+    pub(super) grant: Option<(u64, u64)>,
 }
 
 pub(super) static SLOTS: Mutex<[Option<Slot>; SLOT_CAP]> = Mutex::new([const { None }; SLOT_CAP]);

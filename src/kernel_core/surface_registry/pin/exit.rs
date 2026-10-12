@@ -68,9 +68,12 @@ pub fn keep_at_exit(pid: u32) {
             continue;
         }
         let frames = core::mem::take(&mut slot.frames);
+        let grant = slot.grant;
         drop(slots);
         keep.extend_from_slice(&frames);
-        ORPHANS.lock().push(Orphan { owner: pid, handle, frames: frames.clone(), free: frames });
+        // A grant's frames are the broker's: it hands them over at teardown.
+        let free = if grant.is_some() { Vec::new() } else { frames.clone() };
+        ORPHANS.lock().push(Orphan { owner: pid, handle, frames, free, grant });
     }
     for (handle, _) in records_of(pid) {
         if let Some((owner, frames)) = frames_of(handle) {

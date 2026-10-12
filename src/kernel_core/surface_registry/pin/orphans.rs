@@ -31,6 +31,8 @@ pub(super) struct Orphan {
     pub frames: Vec<PhysAddr>,
     /* The frames the owner really unmapped, freed by `reclaim`. */
     pub free: Vec<PhysAddr>,
+    /* The DMA run the frames belong to, freed through the broker (L35). */
+    pub grant: Option<(u64, u64)>,
 }
 
 /*
@@ -64,6 +66,7 @@ pub fn reclaim() {
             }
         }
     }
+    super::grant_run::free_unheld();
 }
 
 /*

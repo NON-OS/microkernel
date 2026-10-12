@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cache;
+pub(crate) mod covering;
 mod direction;
 mod drain;
 mod flags;
+mod held_run;
 mod limits;
 mod map;
 mod placement;
@@ -30,6 +32,7 @@ mod types;
 mod va;
 mod wipe;
 
+pub use held_run::{free_held_run, grant_run_covering};
 pub use map::map_for_caller;
 #[cfg(not(target_arch = "x86_64"))]
 pub(crate) use pool::low32_default_pages;
