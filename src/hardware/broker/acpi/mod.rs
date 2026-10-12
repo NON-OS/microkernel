@@ -37,6 +37,7 @@ mod io_grant;
 mod kernel;
 pub mod late_bars;
 pub mod lid_state;
+pub mod lpit_store;
 mod memory_grant;
 mod memory_record;
 pub mod numa_node;

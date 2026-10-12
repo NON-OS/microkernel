@@ -17,6 +17,7 @@
 //! Suspend, the firmware's half, behind the owner's switch (`switch.rs`).
 
 mod hardware;
+pub mod lpit;
 mod s3;
 mod switch;
 
