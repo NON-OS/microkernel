@@ -18,10 +18,22 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 static TIMER_FREQ: AtomicU64 = AtomicU64::new(0);
 
+/// The timer node's `clock-frequency`, kept at device tree parse time for
+/// a CNTFRQ_EL0 that firmware left at 0.
+static TREE_FREQ: AtomicU64 = AtomicU64::new(0);
+
 pub(super) fn set_frequency(hz: u64) {
     TIMER_FREQ.store(hz, Ordering::Release);
 }
 
 pub(super) fn frequency() -> u64 {
     TIMER_FREQ.load(Ordering::Acquire)
+}
+
+pub fn describe_tree_frequency(hz: Option<u32>) {
+    TREE_FREQ.store(hz.map_or(0, u64::from), Ordering::Release);
+}
+
+pub(super) fn tree_frequency() -> u64 {
+    TREE_FREQ.load(Ordering::Acquire)
 }

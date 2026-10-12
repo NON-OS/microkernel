@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::info::BootInfo;
-use crate::arch::aarch64::{cpu, exceptions, gic, mmu, security, timer, uart};
+use crate::arch::aarch64::{cpu, exceptions, gic, mmu, security, uart};
 
 pub fn init(boot_info: &BootInfo) {
     if let Err(reason) = uart::init_uart(&boot_info.uart) {
@@ -48,14 +48,7 @@ pub fn init(boot_info: &BootInfo) {
     if let Err(reason) = gic {
         super::refuse(b"gic", reason.as_bytes());
     }
-    timer::init_timer();
-    // Once CNTFRQ_EL0 is latched, as x86 does in its entry. Unanchored, time
-    // scales by the 2.5 GHz guessed for a TSC: a Pi's 54 MHz runs 46x slow.
-    crate::time::anchor();
-    timer::configure_preemption_intid(boot_info.timer_phys_intid);
-    if let Err(reason) = timer::install_on_cpu() {
-        super::refuse(b"timer tick", reason.as_bytes());
-    }
+    super::start_clock::start_clock(boot_info);
     if super::multicore::roster::len() > 1 {
         super::multicore::start_secondary_cpus(boot_info);
     }
