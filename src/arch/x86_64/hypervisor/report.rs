@@ -16,7 +16,7 @@
 
 /*
  * The `[PLATFORM]` boot line, after the broker has its device table: the
- * hypervisor, its Hyper-V interface, and a balloon left off.
+ * hypervisor, its Hyper-V interface and SynIC, and a balloon left off.
  */
 
 use super::balloon::balloon_offered;
@@ -32,6 +32,22 @@ pub fn report() {
     serial::print(g.vendor.slug().as_bytes());
     if g.hyperv_abi {
         serial::print(b" abi=hyperv");
+    }
+    // The SynIC is set up wherever the Hyper-V interface offers it, and the
+    // VMBus root recorded for the core to claim; nothing talks to the host
+    // until the core does.
+    if g.hyperv_abi {
+        match super::hv::init() {
+            Ok(()) => {
+                crate::hardware::broker::register_vmbus();
+                serial::print(b" synic=on");
+            }
+            Err(e) => {
+                serial::print(b" synic=off (");
+                serial::print(e.as_bytes());
+                serial::print(b")");
+            }
+        }
     }
     if balloon_offered(devices.iter().map(|r| (r.vendor, r.device))) {
         serial::print(b" balloon=off");

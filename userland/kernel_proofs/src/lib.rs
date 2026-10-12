@@ -59,6 +59,8 @@ pub mod fs;
 pub mod hardware;
 #[cfg(test)]
 pub mod hypervisor_detect;
+#[cfg(test)]
+pub mod hyperv_synic;
 pub mod fb_frame;
 pub mod store_copy_span;
 pub mod store_errno;
