@@ -19,6 +19,7 @@
 
 pub(super) fn spawn() {
     spawn_xhci();
+    spawn_ohci();
     spawn_uhci();
 }
 
@@ -51,3 +52,19 @@ fn spawn_uhci() {
 
 #[cfg(not(feature = "nonos-capsule-driver-uhci"))]
 fn spawn_uhci() {}
+
+/// An OHCI controller: VirtualBox's, QEMU's, AMD, SiS, NEC and Apple chipsets'.
+#[cfg(feature = "nonos-capsule-driver-ohci")]
+fn spawn_ohci() {
+    use crate::hardware::inventory::{present, HardwareFamily};
+    use crate::hardware::ohci_capsule as c;
+    if !present(HardwareFamily::UsbUhci) {
+        crate::sys::boot_log::ok("DRIVER-OHCI", "no controller present, not spawned");
+        return;
+    }
+    let spawn = c::spawn_driver_ohci_capsule;
+    super::boot::capsule("DRIVER-OHCI", "driver_ohci", spawn, c::shared_state);
+}
+
+#[cfg(not(feature = "nonos-capsule-driver-ohci"))]
+fn spawn_ohci() {}
