@@ -34,8 +34,9 @@ pub fn start(
 ) -> (Option<Events>, Option<Sci>) {
     let f = match parse_fadt(fadt) {
         Ok(f) if !f.hw_reduced => f,
-        _ => {
-            Line::new(b"no fixed event hardware; no SCI").end();
+        Ok(_) => return super::ged::reduced(aml, host),
+        Err(_) => {
+            Line::new(b"FADT unreadable; no SCI").end();
             return (None, None);
         }
     };

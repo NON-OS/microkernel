@@ -30,6 +30,12 @@ extended configuration space and MSI and asking for no control), runs
 `\_SB._INI` and every present device's `_INI`, reads the inventory and every
 `_PRT`, enters ACPI mode, arms the runtime GPEs and binds the SCI.
 
+A hardware-reduced platform (the FADT's HW_REDUCED_ACPI flag; every Arm
+one) has no SCI, PM1 or GPE blocks. There the capsule finds its Generic
+Event Devices (ACPI0013) and logs each with its _CRS interrupts (trigger,
+polarity, sharing, wake) and whether it has _EVT. They are not served
+until the kernel can grant a GED interrupt to the capsule.
+
 The embedded controller is found first, from the ECDT or the PNP0C09
 device's _CRS, so its fields work during _REG and _INI; EmbeddedControl is
 connected only once it is. Its accesses take the Global Lock when its _GLK

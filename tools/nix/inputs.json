@@ -3712,6 +3712,7 @@
    "userland/nonos_aml/src/events",
    "userland/nonos_aml/src/exec",
    "userland/nonos_aml/src/fan",
+   "userland/nonos_aml/src/ged",
    "userland/nonos_aml/src/grammar",
    "userland/nonos_aml/src/load",
    "userland/nonos_aml/src/namespace",
