@@ -18,7 +18,9 @@ use core::sync::atomic::Ordering;
 
 use super::fadt::parse_fadt;
 use super::madt::parse_madt;
-use super::other::{parse_dmar, parse_hpet, parse_ivrs, parse_mcfg, parse_hmat, parse_slit, parse_srat};
+use super::other::{
+    parse_dmar, parse_hmat, parse_hpet, parse_ivrs, parse_lpit, parse_mcfg, parse_slit, parse_srat,
+};
 use super::rsdp::find_rsdp;
 use super::state::{TableRegistry, INITIALIZED, STATS, TABLES};
 use super::{parse_rsdt, parse_xsdt};
@@ -68,6 +70,7 @@ pub fn init() -> AcpiResult<()> {
     parse_srat(&mut registry);
     parse_slit(&mut registry);
     parse_hmat(&mut registry);
+    parse_lpit(&mut registry);
     parse_dmar(&mut registry);
     parse_ivrs(&mut registry);
 
