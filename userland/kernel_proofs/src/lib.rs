@@ -54,6 +54,7 @@ pub mod dmar_scope;
 #[cfg(test)]
 pub mod boot_screen;
 pub mod driver_end;
+pub mod described;
 pub mod device_windows;
 pub mod fs;
 pub mod hardware;

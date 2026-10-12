@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::aarch64::{gic, pci_intx};
+use crate::arch::aarch64::{gic, pci_intx, platform_devices};
 use crate::hardware::broker::irq::types::IrqBindError;
 
-/// Set the line's trigger from the device tree's interrupt-map, never from
-/// the capsule. A line the map does not name is not one a capsule may hold,
-/// and configuring it leaves it disabled until the bind enables it.
+/// Set the line's trigger from the device tree, never from the capsule: a
+/// PCI function's from the interrupt-map, a described device's from its own
+/// `interrupts`. A line neither names is not one a capsule may hold, and
+/// configuring it leaves it disabled until the bind enables it.
 pub(super) fn configure(intid: u32) -> Result<(), IrqBindError> {
-    let edge = pci_intx::trigger(intid).ok_or(IrqBindError::NotDeviceIrq)?;
+    let edge = pci_intx::trigger(intid).or_else(|| platform_devices::trigger(intid));
+    let edge = edge.ok_or(IrqBindError::NotDeviceIrq)?;
     gic::configure_spi(intid, edge).map_err(|_| IrqBindError::PlatformError)
 }
