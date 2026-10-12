@@ -21,6 +21,11 @@
 
 pub mod battery_watch;
 pub mod critical_watch;
+pub mod cpu_layout;
+pub mod cpu_record;
+pub mod cpu_store;
+pub mod cpu_take;
+pub mod cpu_wire;
 mod error;
 mod granting;
 mod io_grant;

@@ -92,6 +92,8 @@ pub mod ioapic_line_mode;
 #[cfg(test)]
 pub mod smbios;
 #[cfg(test)]
+pub mod acpi_cpu;
+#[cfg(test)]
 pub mod smp_bringup;
 #[cfg(test)]
 pub mod futex_waiters;
