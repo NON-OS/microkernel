@@ -39,8 +39,9 @@ fn no_op_answers_with_pixels_or_handles() {
         OP_OUTPUT_LAYOUT,
         OP_SCREENSHOT,
         OP_OUTPUT_SCALE,
+        OP_NIGHT_LIGHT,
     ];
-    assert_eq!(ops.to_vec(), (1u16..=13).collect::<Vec<_>>(), "every op the dispatch knows");
+    assert_eq!(ops.to_vec(), (1u16..=14).collect::<Vec<_>>(), "every op the dispatch knows");
     assert_eq!(DISPLAY_INFO_RESP_LEN, STATUS_LEN + 16, "the canvas's geometry and nothing else");
     assert_eq!((INDICATOR_REQ_LEN, OUTPUT_LAYOUT_REQ_LEN), (8, 4));
 }

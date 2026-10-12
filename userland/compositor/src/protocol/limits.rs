@@ -25,5 +25,6 @@ pub const INDICATOR_REQ_LEN: usize = 8;
 pub const OUTPUT_LAYOUT_REQ_LEN: usize = 4;
 pub const SCREENSHOT_REQ_LEN: usize = 8;
 pub const OUTPUT_SCALE_REQ_LEN: usize = 8;
+pub const NIGHT_LIGHT_REQ_LEN: usize = 4;
 pub const DISPLAY_INFO_DATA_LEN: usize = 16;
 pub const DISPLAY_INFO_RESP_LEN: usize = STATUS_LEN + DISPLAY_INFO_DATA_LEN;
