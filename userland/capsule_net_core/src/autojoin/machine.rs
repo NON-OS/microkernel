@@ -35,6 +35,8 @@ mod consts;
 mod state;
 #[path = "machine/step.rs"]
 mod step;
+#[path = "machine/watch.rs"]
+mod watch;
 
 pub use consts::*;
 pub use state::Machine;
