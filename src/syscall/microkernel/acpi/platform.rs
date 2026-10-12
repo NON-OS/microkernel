@@ -43,7 +43,11 @@ pub fn sys_acpi_platform_device(ptr: u64, len: u64) -> i64 {
     let Ok(bytes) = read_user_bytes(ptr, len) else { return ERRNO_FAULT };
     let Some(p) = decode(&bytes) else { return ERRNO_INVAL };
     match judge(&p, pid) {
-        Verdict::New => add(p) as i64,
+        Verdict::New => {
+            let id = add(p);
+            crate::hardware::broker::acpi::numa_refresh::refresh();
+            id as i64
+        }
         Verdict::Present(id) => id as i64,
         Verdict::Overlaps(_) => ERRNO_BUSY,
         Verdict::Refused(_) => ERRNO_ACCES,
