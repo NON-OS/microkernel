@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod build;
+mod container_tests;
 mod find_tests;
+mod lpi_rig;
+mod lpi_tests;
 mod osc_rig;
 mod osc_tests;
 mod parse_tests;

@@ -23,12 +23,24 @@
 pub mod cpu_layout;
 #[path = "../../../../src/hardware/broker/acpi/cpu_record.rs"]
 pub mod cpu_record;
+#[path = "../../../../src/hardware/broker/acpi/cpu_states.rs"]
+pub mod cpu_states;
 #[path = "../../../../src/hardware/broker/acpi/cpu_take.rs"]
 pub mod cpu_take;
 #[path = "../../../../src/hardware/broker/acpi/cpu_wire.rs"]
 pub mod cpu_wire;
+#[path = "../../../../src/hardware/broker/acpi/lpi_record.rs"]
+pub mod lpi_record;
+#[path = "../../../../src/hardware/broker/acpi/lpi_wire.rs"]
+pub mod lpi_wire;
 
 #[cfg(test)]
 mod build;
+#[cfg(test)]
+mod lpi_build;
+#[cfg(test)]
+mod lpi_entry_tests;
+#[cfg(test)]
+mod lpi_tests;
 #[cfg(test)]
 mod tests;
