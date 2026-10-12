@@ -62,8 +62,9 @@ impl Session {
         if index >= MAX_ACCOUNTS {
             return Err(WalletError::NoSuchAccount);
         }
+        let next = index.checked_add(1).ok_or(WalletError::NoSuchAccount)?;
         self.more.push(Slot::open(paths, seed, index)?);
-        self.next_public = super::open::next_public(seed, index.saturating_add(1));
+        self.next_public = super::open::next_public(seed, next);
         self.select(paths, index)?;
         Ok(index)
     }

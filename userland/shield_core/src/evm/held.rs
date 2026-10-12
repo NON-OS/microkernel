@@ -26,7 +26,7 @@ pub(super) fn floor(
             let answers = ask_via(tor, chain, &[host], &calls)?;
             for ((nonce, _), answer) in chunk.iter().zip(answers) {
                 if !answer.result()?.starts_with("null") {
-                    floor = floor.max(nonce.saturating_add(1));
+                    floor = floor.max(nonce.checked_add(1).ok_or(NetError::ReplyShape)?);
                 }
             }
         }
