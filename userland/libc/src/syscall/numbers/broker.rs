@@ -31,6 +31,7 @@ pub(crate) const N_MK_PIO_GRANT: i64 = tag4(b"MPGT");
 pub(crate) const N_MK_PIO_READ: i64 = tag4(b"MPRD");
 pub(crate) const N_MK_PIO_WRITE: i64 = tag4(b"MPWR");
 pub(crate) const N_MK_PIO_RELEASE: i64 = tag4(b"MPRL");
+pub(crate) const N_MK_HV_BACKDOOR: i64 = tag4(b"MHVB");
 pub(crate) const N_MK_DEBUG: i64 = tag4(b"MDBG");
 pub(crate) const N_MK_STORE_WRITE: i64 = tag4(b"MSWR");
 pub(crate) const N_MK_STORE_READ: i64 = tag4(b"MSRR");
