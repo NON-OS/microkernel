@@ -14,29 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The first supply voltage and the one the card and host share.
+//! The first supply, and the one the card and host share.
 
-use super::ocr::OCR_LOW_RESERVED;
+use super::ocr::{OCR_165_195, OCR_29_31, OCR_32_34, OCR_LOW_RESERVED};
 use super::{vdd_for_bit, Vdd};
 
-/// The voltage the bus is first powered at: the highest the host offers
-/// (mmc_power_up takes fls(ocr_avail)).
+/// The highest voltage the host offers.
 pub fn first_vdd(host: u32) -> Option<Vdd> {
-    if host == 0 {
-        return None;
-    }
-    vdd_for_bit(31 - host.leading_zeros())
+    let top = host.checked_ilog2()?;
+    vdd_for_bit(top)
 }
 
-/// mmc_select_voltage: the lowest voltage in both `card` and `host`, as the
-/// OCR window CMD1 then carries (two adjacent bits from the lowest common
-/// one, kept only where both agree) and the supply it names.
+/// The lowest voltage both `card` and `host` name, and the OCR window CMD1
+/// carries for it: the shared bits that name that supply and no other.
 pub fn select(card: u32, host: u32) -> Option<(u32, Vdd)> {
-    let common = card & !OCR_LOW_RESERVED & host;
-    if common == 0 {
+    let shared = card & host & !OCR_LOW_RESERVED;
+    if shared == 0 {
         return None;
     }
-    let bit = common.trailing_zeros();
-    let window = common & (3 << bit);
-    vdd_for_bit(bit).map(|v| (window, v))
+    let vdd = vdd_for_bit(shared.trailing_zeros())?;
+    Some((shared & bits_of(vdd), vdd))
+}
+
+const fn bits_of(v: Vdd) -> u32 {
+    match v {
+        Vdd::V18 => OCR_165_195,
+        Vdd::V30 => OCR_29_31,
+        Vdd::V33 => OCR_32_34,
+    }
 }

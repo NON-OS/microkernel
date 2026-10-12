@@ -38,8 +38,9 @@ impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
         }
     }
 
-    /// After a failed command: reset the CMD line, then the DAT line (as
-    /// sdhci_request_done does), and clear the engine's statuses.
+    /// After a failed command: the CMD line's state is what failed first,
+    /// so it is reset first, then the DAT line in case a data phase began;
+    /// then the engine's statuses are cleared.
     pub(super) fn clear_lines(&self) {
         let _ = self.reset(RESET_CMD);
         let _ = self.reset(RESET_DATA);

@@ -20,7 +20,7 @@ use super::super::regs::{
     CMD_CRC_CHECK, CMD_INDEX_CHECK, CMD_RESP_136, CMD_RESP_48, CMD_RESP_48_BUSY, CMD_RESP_NONE,
 };
 
-/// The response a command expects (JEDEC eMMC 5.1, 6.12).
+/// The response a command expects (JESD84 eMMC 5.1, as recalled, unverified).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Resp {
     /// No response (CMD0).
