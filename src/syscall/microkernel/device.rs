@@ -69,6 +69,7 @@ pub fn sys_device_claim(device_id: u64) -> i64 {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     if !broker::contains(device_id) {
         return ERRNO_NODEV;
     }
@@ -93,6 +94,7 @@ pub fn sys_device_release(device_id: u64) -> i64 {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     trace_release(b"enter", pid);
     let _ = broker::quiesce_held_device(pid, device_id);
     let _ = broker::release_for_device(pid, device_id);

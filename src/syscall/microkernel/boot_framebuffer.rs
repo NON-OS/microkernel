@@ -34,7 +34,7 @@ pub fn sys_boot_framebuffer(device_id: u64, out: u64, out_len: u64) -> i64 {
     if out == 0 || out_len < INFO_LEN {
         return ERRNO_INVAL;
     }
-    let info = match broker::boot_framebuffer_info(pid, device_id) {
+    let info = match broker::boot_framebuffer_info(broker::holder_of(pid), device_id) {
         Ok(bytes) => bytes,
         Err(BootFbInfoError::NotBootFramebuffer) => return ERRNO_NODEV,
         Err(BootFbInfoError::NotHolder) => return ERRNO_PERM,
