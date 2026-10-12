@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::RING_SLOTS;
 use crate::queue::RxQueue;
 
@@ -29,20 +21,13 @@ pub struct Frame<'a> {
     pub bytes: &'a [u8],
 }
 
-
-
-
-
-
-
-
 pub unsafe fn take_one(rx: &mut RxQueue) -> Option<Frame<'static>> {
     let used = rx.used_idx();
     if used == rx.last_used {
         return None;
     }
     // The element and the frame are only valid once the index is seen.
-    fence(Ordering::Acquire);
+    nonos_libc::dma_rmb();
     let ring_pos = rx.last_used % RING_SLOTS;
     let (desc_id, used_len) = rx.used_elem_at(ring_pos);
     rx.last_used = rx.last_used.wrapping_add(1);
@@ -55,10 +40,6 @@ pub unsafe fn take_one(rx: &mut RxQueue) -> Option<Frame<'static>> {
         rx.pending_refill = None;
         return Some(Frame { bytes: &[] });
     }
-
-
-
-
 
     // The header is 10 bytes on the legacy transport and 12 under
     // VERSION_1; a frame starts after whichever this queue was set up for,

@@ -19,8 +19,6 @@
 //! read the enable back; this driver does, on the clock, so a queue that
 //! never started is named in the log instead of showing up as lost frames.
 
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::queue::{TX_DESC_COUNT, TX_RING_BYTES};
 use crate::constants::regs::{
     REG_STATUS, REG_TDBAH, REG_TDBAL, REG_TDH, REG_TDLEN, REG_TDT, REG_TXDCTL,
@@ -47,7 +45,7 @@ pub fn program(regs: &Regs, tx: &TxRing, ring_phys: u64) -> Result<(), &'static 
             *descs.add(i) = TxDesc::default();
         }
         // The ring was written with plain stores; the part reads it from here.
-        fence(Ordering::Release);
+        nonos_libc::dma_wmb();
         regs.w32(REG_TXDCTL, 0);
         let _ = regs.r32(REG_STATUS);
         regs.w32(REG_TDLEN, TX_RING_BYTES as u32);

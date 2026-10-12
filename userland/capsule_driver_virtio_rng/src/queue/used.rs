@@ -20,7 +20,6 @@
 //! mapping.
 
 use core::ptr::read_volatile;
-use core::sync::atomic::{fence, Ordering};
 
 use super::layout::Queue;
 use crate::constants::VQ_USED_OFFSET;
@@ -66,7 +65,7 @@ impl Queue {
             return None;
         }
         // The element is valid only once the index that covers it is seen.
-        fence(Ordering::Acquire);
+        nonos_libc::dma_rmb();
         let (id, len) = self.used_elem(self.last_used);
         self.last_used = self.last_used.wrapping_add(1);
         if id != POSTED_DESC {

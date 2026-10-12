@@ -20,7 +20,6 @@
 //! used ring with the byte count.
 
 use core::ptr::{read_volatile, write_volatile};
-use core::sync::atomic::{fence, Ordering};
 
 use super::layout::Queue;
 use crate::constants::{VQ_DESC_OFFSET, VRING_DESC_F_WRITE};
@@ -55,7 +54,7 @@ impl Queue {
             write_volatile(avail.add(2 + self.ring_pos(idx)), 0u16);
             // Publish: bump idx after the slot write so the device
             // never observes a partial ring update.
-            fence(Ordering::Release);
+            nonos_libc::dma_wmb();
             write_volatile(avail.add(1), idx.wrapping_add(1));
         }
     }
