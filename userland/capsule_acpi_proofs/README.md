@@ -9,6 +9,8 @@ Host test crate for the pure parts of `userland/capsule_acpi`, mounted by
   (port 4530) answers. The kernel's HELD line admits whole services to the
   endpoint; this table narrows each op to the services named for it, and
   answers no one for an op nobody is named for.
+- `src/props/wire*.rs`: the PROPERTIES op's (12) wire, a device's _DSD
+  tree as the driver holding it receives it.
 
 ## What the tests check
 
@@ -16,6 +18,11 @@ Host test crate for the pure parts of `userland/capsule_acpi`, mounted by
   named ones are admitted, every other is refused (the capsule answers
   EPERM), as are a sender owning no service and pid 0.
 - The table itself, op by op.
+- The PROPERTIES wire: a tree with integers, strings, references,
+  nested packages and nested nodes reads back as written; too many node
+  levels, packages too deep, a count past 64, a name past 255 bytes or a
+  tree past 16 KiB are not written; every truncation, a trailing byte, an
+  unknown value kind, a count past 64 and packages too deep are not read.
 - A named service that no one runs, or whose owner reads as pid 0,
   admits no one.
 - Senders are threads (as MkIpcRecvFrom reports them): a worker thread
