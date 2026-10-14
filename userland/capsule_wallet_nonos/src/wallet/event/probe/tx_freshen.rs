@@ -32,13 +32,13 @@ pub fn take_nonce_and_fee(
 ) -> Result<(), &'static [u8]> {
     let nonce = nonce.and_then(crate::wallet::send::sent::usable);
     if let Some(n) = nonce {
-        state.live_nonce = n;
+        state.reads.live_nonce = n;
         state.send.nonce = n;
-        state.nonce_ready = true;
+        state.reads.nonce_ready = true;
     }
     if let Some(f) = fee {
-        state.fee_wei = f;
-        state.fee_ready = true;
+        state.reads.fee_wei = f;
+        state.reads.fee_ready = true;
     }
     if nonce.is_none() {
         return Err(b"cannot reach network for nonce and fee, try again");

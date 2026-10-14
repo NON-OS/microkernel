@@ -42,7 +42,7 @@ pub fn actions(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
         ACTIONS.iter().filter(|(_, _, p)| *p != Press::Swap || SWAP_OFFERED).collect();
     let cell = c.w / shown.len() as u32;
     for (i, (title, sign, press)) in shown.into_iter().enumerate() {
-        let enabled = *press != Press::Send || state.balance_ready;
+        let enabled = *press != Press::Send || state.reads.balance_ready;
         let at = Rect::new(c.x + cell * i as u32, y, cell, round_height());
         round_action(fb, at, title, *sign, enabled);
         if enabled {
