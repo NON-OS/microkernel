@@ -52,16 +52,16 @@ pub fn sign_attest(
         .map_err(|_| why(Refused::NotOurBond))?;
     let at = attest_sig_path(path, &e.releases[release].release_id)
         .ok_or("that release id cannot name a file")?;
-    let log = read_log(s.owner_pid)?;
+    let log = read_log(s.vault.owner_pid)?;
     let sig = match decide(&log, &a) {
         Ok(Decision::Again(sig)) => sig,
         Ok(Decision::Sign) => {
             let sig = sign_typed(s, ENTRY_ATTEST, &RELEASE_ATTEST, &words, chain)?;
-            write_log(s.owner_pid, &signed(&log, &a, sig).map_err(|_| "the attest log is full")?)?;
+            write_log(s.vault.owner_pid, &signed(&log, &a, sig).map_err(|_| "the attest log is full")?)?;
             sig
         }
         Err(Refusal::Conflict) => return Err("a different attest of this release was signed before; a second would let the bond be slashed"),
         Err(Refusal::Full) => return Err("the attest log is full"),
     };
-    write_sig(s.owner_pid, &at, &sig).map(|_| at)
+    write_sig(s.vault.owner_pid, &at, &sig).map(|_| at)
 }

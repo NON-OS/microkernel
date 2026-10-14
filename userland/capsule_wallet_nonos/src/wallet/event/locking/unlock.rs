@@ -29,7 +29,7 @@ pub fn unlock(state: &mut State) -> EventOutcome {
         state.locked = false;
         return EventOutcome::Repaint;
     }
-    match wallet_address(state.keyring_port, state.owner_pid, state.wallet_id) {
+    match wallet_address(state.vault.keyring_port, state.vault.owner_pid, state.vault.wallet_id) {
         Ok(addr) if addr == state.address => {
             state.locked = false;
             state.failure = None;

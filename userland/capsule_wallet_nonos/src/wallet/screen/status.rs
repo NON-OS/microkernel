@@ -40,6 +40,6 @@ pub fn parts(state: &State) -> Vec<&'static str> {
     let wallet = state.address_ready;
     let refreshing = state.net.job.is_some();
     out.extend(super::status_words::reading(wallet, refreshing, state.reads.balance_ready));
-    out.extend(super::status_words::kept(wallet, state.vault_saved));
+    out.extend(super::status_words::kept(wallet, state.vault.saved));
     out
 }

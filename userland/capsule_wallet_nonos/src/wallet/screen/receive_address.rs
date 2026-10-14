@@ -66,7 +66,7 @@ const HEX: &[u8; 16] = b"0123456789abcdef";
 
 /// What is known about the address, as facts; returns their height.
 pub fn facts(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
-    let key = if state.vault_saved { "sealed to this machine" } else { "RAM only, gone at reboot" };
+    let key = if state.vault.saved { "sealed to this machine" } else { "RAM only, gone at reboot" };
     let h = fact(fb, c.x, y, c.w, "network", crate::wallet::chain::current().name);
     h + fact(fb, c.x, y + h, c.w, "key", key)
 }

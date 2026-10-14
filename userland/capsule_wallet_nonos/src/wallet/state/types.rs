@@ -18,26 +18,8 @@ pub use super::rail::Rail;
 pub use super::views::*;
 
 pub struct State {
-    pub keyring_port: u32,
-    pub owner_pid: u32,
-    pub wallet_id: u32,
-    /// Whether this wallet is on the disk sealed to this machine. False on a
-    /// machine with no TPM, and the status line says so once.
-    pub vault_saved: bool,
-    /// One attempt per window. A vault that will not open must not be retried
-    /// on every hydrate, which would put a TPM derivation on a timer.
-    pub vault_restore_tried: bool,
-    /// The uptime the vault's store first went unanswered, while it has
-    /// not answered since: past the patience a new wallet is asked twice
-    /// rather than refused (`event::replace_rule`).
-    pub vault_silent_since: Option<i64>,
-    /// A vault is on the disk that this boot could not open or name: a new
-    /// wallet over it is asked twice (`event::may_replace`).
-    pub vault_present: bool,
-    /// What the last keep came to, when it did not keep the wallet across
-    /// reboots: drawn on the phrase screen and on home, where the person
-    /// decides whether to write the words down (`event::keep_plan`).
-    pub kept_note: Option<&'static str>,
+    /// The keyring and the vault (`vault_state`).
+    pub vault: super::vault_state::VaultState,
     /// The first press of a replace was made and said; the next goes on.
     pub custody_armed: bool,
     /// The recovery words being typed are drawn, not masked.

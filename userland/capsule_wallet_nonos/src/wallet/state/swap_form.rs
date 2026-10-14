@@ -45,10 +45,18 @@ pub struct SwapForm {
 impl SwapForm {
     pub fn new() -> Self {
         Self {
+            /*
+             * NOX out, USDC in: the asset this wallet is for is the one a
+             * reader most often pays with.
+             */
             from: 0,
             to: 2,
             amount_in: 0,
             quote: Quote::default(),
+            /*
+             * Half a percent, which is where a pool with real depth sits. A
+             * tolerance set high enough to always succeed protects nobody.
+             */
             slippage_bps: 50,
             step: 0,
             digits: 0,

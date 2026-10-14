@@ -39,7 +39,12 @@ pub fn toggle_export(state: &mut State) -> EventOutcome {
         return EventOutcome::Repaint;
     }
     let mut secret = [0u8; 32];
-    match export_secret(state.keyring_port, state.owner_pid, state.wallet_id, &mut secret) {
+    match export_secret(
+        state.vault.keyring_port,
+        state.vault.owner_pid,
+        state.vault.wallet_id,
+        &mut secret,
+    ) {
         Ok(()) => {
             state.custody.export_hex[0] = b'0';
             state.custody.export_hex[1] = b'x';

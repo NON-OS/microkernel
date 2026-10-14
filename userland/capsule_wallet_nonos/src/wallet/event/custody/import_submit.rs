@@ -43,10 +43,10 @@ pub(in crate::wallet::event) fn submit(state: &mut State) -> EventOutcome {
             }
         }
     }
-    let outcome = match import_wallet(state.keyring_port, state.owner_pid, &secret) {
-        Ok(id) => match wallet_address(state.keyring_port, state.owner_pid, id) {
+    let outcome = match import_wallet(state.vault.keyring_port, state.vault.owner_pid, &secret) {
+        Ok(id) => match wallet_address(state.vault.keyring_port, state.vault.owner_pid, id) {
             Ok(addr) => {
-                state.wallet_id = id;
+                state.vault.wallet_id = id;
                 state.address = addr;
                 state.address_ready = true;
                 state.import_active = false;
@@ -55,7 +55,7 @@ pub(in crate::wallet::event) fn submit(state: &mut State) -> EventOutcome {
                 super::super::probe::probe_tick::probe_kick(state)
             }
             Err(_) => {
-                let gone = forget_key(state.keyring_port, state.owner_pid, id).is_ok();
+                let gone = forget_key(state.vault.keyring_port, state.vault.owner_pid, id).is_ok();
                 state.status = super::keyring_says::unnamed(gone);
                 EventOutcome::Repaint
             }

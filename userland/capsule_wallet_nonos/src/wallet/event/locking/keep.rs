@@ -46,11 +46,11 @@ pub fn keep(state: &mut State, from_key: bool) {
     } else {
         Kept::Live
     };
-    state.vault_saved = kept == Kept::Kept;
+    state.vault.saved = kept == Kept::Kept;
     /* Only a vault that could not be cleared is still on the disk, and it
      * is the last wallet's, which this boot does not hold. */
-    state.vault_present = matches!(kept, Kept::LastStays(_));
-    state.kept_note = kept_status(kept, from_key).and_then(|s| core::str::from_utf8(s).ok());
+    state.vault.present = matches!(kept, Kept::LastStays(_));
+    state.vault.kept_note = kept_status(kept, from_key).and_then(|s| core::str::from_utf8(s).ok());
     if let Some(status) = kept_status(kept, from_key) {
         state.status = status;
     }

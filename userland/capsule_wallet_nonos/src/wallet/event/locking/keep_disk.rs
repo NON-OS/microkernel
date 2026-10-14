@@ -36,7 +36,11 @@ impl Records for Disk<'_> {
     }
 
     fn words(&mut self) -> Result<(), Unsealed> {
-        remember_words(self.state.keyring_port, self.state.owner_pid, self.state.wallet_id)
+        remember_words(
+            self.state.vault.keyring_port,
+            self.state.vault.owner_pid,
+            self.state.vault.wallet_id,
+        )
     }
 
     fn clear_words(&mut self) -> Result<(), Unsealed> {
@@ -50,6 +54,10 @@ impl Records for Disk<'_> {
     }
 
     fn vault(&mut self) -> Result<(), Unsealed> {
-        remember(self.state.keyring_port, self.state.owner_pid, self.state.wallet_id)
+        remember(
+            self.state.vault.keyring_port,
+            self.state.vault.owner_pid,
+            self.state.vault.wallet_id,
+        )
     }
 }

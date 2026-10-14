@@ -52,7 +52,7 @@ pub fn home(state: &State, fb: &mut PaintBuffer) {
     hits::put(Press::Settings, gear);
     let mut top = c.y + BACK + GAP;
     /* A wallet this machine does not keep says so first, in full width. */
-    if let Some(note) = state.kept_note {
+    if let Some(note) = state.vault.kept_note {
         let text = super::status_words::capital(note);
         top +=
             wrapped(fb, c.x as i32, top as i32, c.w as i32, Role::Lead, &text, TEXT_2) as u32 + GAP;

@@ -45,7 +45,7 @@ pub(super) fn facts(state: &State, fb: &mut PaintBuffer, c: Rect, mut y: u32) ->
         alloc::string::String::from("none yet")
     };
     y += fact(fb, c.x, y, c.w, "account", &shown);
-    let key = if state.vault_saved { "sealed to this machine" } else { "RAM only, gone at reboot" };
+    let key = if state.vault.saved { "sealed to this machine" } else { "RAM only, gone at reboot" };
     y += fact(fb, c.x, y, c.w, "key", key);
     y += fact(
         fb,

@@ -39,8 +39,8 @@ pub fn sign_typed(
     let bond = address(chain_id, Contract::PublisherBond)
         .map_err(|_| "no Bond contract on this network yet")?;
     let struct_hash = struct_hash(&Kec, t, words).ok_or("the words do not fit the type")?;
-    let req = typed_request(s.owner_pid, s.wallet_id, entry, chain_id, words);
-    let rx = keyring_call(s.keyring_port, OP_SIGN_TYPED_DATA, &req, REPLY_LEN)
+    let req = typed_request(s.vault.owner_pid, s.vault.wallet_id, entry, chain_id, words);
+    let rx = keyring_call(s.vault.keyring_port, OP_SIGN_TYPED_DATA, &req, REPLY_LEN)
         .map_err(|_| "the keyring did not sign")?;
     let asked = Asked { signer: s.address, struct_hash, chain_id, bond };
     believed(&Kec, rx.get(HDR_LEN..).unwrap_or(&[]), &asked)

@@ -24,10 +24,10 @@ use crate::wallet::state::State;
 
 /// Recover from `indices` (12 to 24 of them, already checked).
 pub(in crate::wallet::event) fn recovered(state: &mut State, indices: &[u16]) -> EventOutcome {
-    match recover_wallet(state.keyring_port, state.owner_pid, indices) {
-        Ok(id) => match wallet_address(state.keyring_port, state.owner_pid, id) {
+    match recover_wallet(state.vault.keyring_port, state.vault.owner_pid, indices) {
+        Ok(id) => match wallet_address(state.vault.keyring_port, state.vault.owner_pid, id) {
             Ok(addr) => {
-                state.wallet_id = id;
+                state.vault.wallet_id = id;
                 state.address = addr;
                 state.address_ready = true;
                 state.recover_active = false;
@@ -36,7 +36,7 @@ pub(in crate::wallet::event) fn recovered(state: &mut State, indices: &[u16]) ->
                 super::super::probe::probe_tick::probe_kick(state)
             }
             Err(_) => {
-                let gone = forget_key(state.keyring_port, state.owner_pid, id).is_ok();
+                let gone = forget_key(state.vault.keyring_port, state.vault.owner_pid, id).is_ok();
                 state.status = super::keyring_says::unnamed(gone);
                 EventOutcome::Repaint
             }

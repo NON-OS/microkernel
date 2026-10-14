@@ -38,6 +38,6 @@ pub fn parts(state: &State) -> Vec<&'static str> {
     if let Some(route) = route_part(state.net.link.route) {
         out.push(route);
     }
-    out.push(if state.vault_saved { "sealed" } else { "RAM only" });
+    out.push(if state.vault.saved { "sealed" } else { "RAM only" });
     out
 }
