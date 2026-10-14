@@ -21,6 +21,7 @@ use super::super::types::Rte;
 use crate::memory::proof::{self, CapTag};
 
 pub fn program_route(gsi: u32, mut rte: Rte) -> IoApicResult<()> {
+    super::compat::compat_allowed()?;
     let (chip, idx) = locate(gsi).ok_or(IoApicError::GsiNotFound)?;
     // The entry's destination is 8 bits; an id past it goes to a CPU that fits.
     rte.dest_apic_id = crate::arch::x86_64::interrupt::apic::device_irq_dest(rte.dest_apic_id)
