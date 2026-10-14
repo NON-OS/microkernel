@@ -18,27 +18,12 @@ use super::types::State;
 
 pub fn new_state() -> State {
     State {
-        /*
-         * NOX out, USDC in: the asset this wallet is for is the one a reader
-         * most often pays with.
-         */
-        /*
-         * Half a percent, which is where a pool with real depth sits. A
-         * tolerance set high enough to always succeed protects nobody.
-         */
-        keyring_port: 0,
-        owner_pid: 0,
-        wallet_id: 0,
-        vault_saved: false,
-        vault_restore_tried: false,
-        vault_silent_since: None,
+        vault: super::vault_state::VaultState::default(),
         address: [0; 20],
         address_ready: false,
         reads: super::chain_reads::ChainReads::default(),
         view: super::types::VIEW_HOME,
         scroll: 0,
-        vault_present: false,
-        kept_note: None,
         custody_armed: false,
         recover_shown: false,
         words: super::types::WORDS_UNREAD,

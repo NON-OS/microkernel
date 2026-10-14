@@ -20,7 +20,7 @@ use super::*;
 /// Work out the payment typed on the form, or say in one sentence why it
 /// cannot be made. Nothing here reaches the network.
 pub fn plan(state: &State) -> Result<Plan, &'static str> {
-    if state.wallet_id == 0 || !state.address_ready {
+    if state.vault.wallet_id == 0 || !state.address_ready {
         return Err("Make or restore a wallet first.");
     }
     let recipient = crate::wallet::event::recipient(state)
