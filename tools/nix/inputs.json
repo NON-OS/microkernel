@@ -4995,6 +4995,7 @@
    "userland/nonos_wifi_client/src/network.rs",
    "userland/nonos_wifi_client/src/saved/list.rs",
    "userland/nonos_wifi_client/src/saved/list_codec.rs",
+   "userland/nonos_wifi_client/src/saved/pin.rs",
    "userland/nonos_wifi_client/src/wipe.rs",
    "userland/nonos_wifi_client/src/wire.rs",
    "userland/wifi_panel_proofs"

@@ -15,11 +15,12 @@ mod keep;
 mod key;
 mod list;
 mod list_codec;
+mod pin;
 mod store;
 mod write;
 
 pub use error::SavedError;
-pub use keep::{forget, saved_flags};
+pub use keep::{forget, pin_wpa3, saved_flags};
 pub use list::{SavedList, PASS_MAX, SLOTS};
 pub use store::{load, remember, remember_with};
 pub use write::{forget_all, keeps_state, sealing_ready};

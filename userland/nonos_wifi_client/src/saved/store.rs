@@ -32,10 +32,11 @@ pub fn load() -> Result<SavedList, SavedError> {
 
 /// Remember `ssid` with `pass`. A record this machine cannot open any more
 /// (sealed under an earlier boot state) is replaced rather than kept. A
-/// network the radio is associated with through WPA3-SAE is saved as WPA3,
+/// network the radio is associated with through WPA3-SAE (AKM 8 or 24), or
+/// whose access point set Transition Disable in message 3, is saved as WPA3,
 /// so no later join, from a panel or at boot, accepts WPA2 for it.
 pub fn remember(ssid: &[u8], pass: &[u8]) -> Result<(), SavedError> {
-    let wpa3_only = find().and_then(|d| d.link()).is_some_and(|l| l.joined_with_sae(ssid));
+    let wpa3_only = find().and_then(|d| d.link()).is_some_and(|l| l.pins_wpa3_on(ssid));
     remember_with(ssid, pass, JoinFlags { wpa3_only, hidden: false })
 }
 
