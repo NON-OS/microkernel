@@ -16,6 +16,7 @@
 
 //! A link built over mapped DMA, and its counts.
 
+use nonos_wifi_core::link_history::LinkHistory;
 use nonos_wifi_core::station::LinkStation;
 
 use super::buffers::RxBuffers;
@@ -61,6 +62,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
             new_group_key: None,
             left: None,
             silent: false,
+            history: LinkHistory::NEW,
         }
     }
 }
