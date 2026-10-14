@@ -29,7 +29,7 @@ pub fn plan(state: &State) -> Result<Plan, &'static str> {
         return Err("That is the zero address. Nothing sent there can come back.");
     }
     /* A mixed-case address carries an EIP-55 checksum, and it must hold. */
-    let typed = &state.send_to_hex;
+    let typed = &state.send.to_hex;
     if crate::wallet::event::address_text::mixed_case(typed) {
         let hash = crate::wallet::screen::receive_address::keccak(typed)
             .ok_or("The address's checksum could not be checked. Try again in a moment.")?;
@@ -47,8 +47,8 @@ pub fn plan(state: &State) -> Result<Plan, &'static str> {
         return Err("That is the staking contract. Stake from Staking; a payment sent to it \
              is lost.");
     }
-    let asset = state.send_token;
-    let amount = state.send_amount.scaled(super::super::decimals(asset));
+    let asset = state.send.token;
+    let amount = state.send.amount.scaled(super::super::decimals(asset));
     if amount == 0 {
         return Err("Type an amount above zero.");
     }

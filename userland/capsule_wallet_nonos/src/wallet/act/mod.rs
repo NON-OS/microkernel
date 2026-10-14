@@ -26,7 +26,12 @@
 //! one runs; the refresh takes up again once it is done.
 
 mod broadcast;
+mod broadcast_finish;
+mod broadcast_record;
+mod broadcast_show;
 mod review;
+mod review_finish;
+mod review_refuse;
 
 use crate::wallet::net::step::Exchange;
 use crate::wallet::send::Plan;

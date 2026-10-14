@@ -33,7 +33,7 @@ pub fn take_nonce_and_fee(
     let nonce = nonce.and_then(crate::wallet::send::sent::usable);
     if let Some(n) = nonce {
         state.live_nonce = n;
-        state.send_nonce = n;
+        state.send.nonce = n;
         state.nonce_ready = true;
     }
     if let Some(f) = fee {
