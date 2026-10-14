@@ -30,6 +30,8 @@ pub const AKM_SAE: u8 = 8;
 
 pub(super) const FLAG_WPA3_ONLY: u8 = 1 << 0;
 pub(super) const FLAG_HIDDEN: u8 = 1 << 1;
+/// net.core's rejoin of a network it lost: refused once the person left it.
+pub(crate) const FLAG_REJOIN: u8 = 1 << 2;
 
 /// What a join may do, from how the network was saved.
 #[derive(Clone, Copy, Default, PartialEq, Eq, Debug)]

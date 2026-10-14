@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Why the link last ended, and how the last join came out, kept by a driver
-//! and sent at the end of the control family's link reply, after the AKM:
-//! `[ended u8][joins u8][code i32 LE]`. Ended is 0, not ended; 1, lost (the
-//! access point left, went unheard, or let its SA Query go unanswered); 2,
-//! left on request. Joins counts the joins finished this boot (0 before the
-//! first, then 1 to 255, wrapping past 0), so a reader can tell one ended
-//! since it last looked; code is that join's result. net.core's autojoin
-//! rejoins only a lost link, never one the person left.
+//! Why the link last ended and how the last join came out, kept by a driver
+//! and sent after the link reply's AKM: `[ended u8][joins u8][code i32 LE]`.
+//! Ended: 0 not ended, 1 lost, 2 left on request. Joins: the joins finished
+//! this boot (0 before the first, then 1 to 255, wrapping past 0); code: the
+//! last one's result. net.core rejoins only a lost link, and a driver refuses
+//! a rejoin once the person left (`CODE_LEFT`).
 
-/// The tail's length.
 pub const TAIL_LEN: usize = 6;
+/// The code a join flagged as a rejoin gets once the person left the link.
+pub const CODE_LEFT: i32 = -13;
 
-/// Why the link last ended.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Ended {
     No = 0,
@@ -44,7 +42,6 @@ pub struct LinkHistory {
 
 impl LinkHistory {
     pub const NEW: Self = Self { ended: Ended::No, joins: 0, code: 0 };
-
     /// A join finished with `code`; a joined one clears how the last ended.
     pub fn joined(&mut self, code: i32) {
         self.joins = self.joins.checked_add(1).unwrap_or(1);
@@ -54,14 +51,17 @@ impl LinkHistory {
         }
     }
 
-    /// The link was lost, not left.
     pub fn lost(&mut self) {
         self.ended = Ended::Lost;
     }
 
-    /// The person left the network.
     pub fn left(&mut self) {
         self.ended = Ended::Left;
+    }
+
+    /// A rejoin (net.core's, after a loss) must not undo the person's Leave.
+    pub fn refuses_rejoin(&self) -> bool {
+        self.ended == Ended::Left
     }
 
     /// Write the tail into `out`, returning its length.

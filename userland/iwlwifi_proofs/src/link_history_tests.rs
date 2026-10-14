@@ -19,7 +19,7 @@
 //! length) still reads as lost.
 
 use crate::client_join_wire::{parse_link, LastJoin, LinkEnded};
-use crate::join_wire::{encode_link, encode_link_with, LinkInfo};
+use crate::join_wire::{encode_link, encode_link_with, parse_connect, LinkInfo};
 use nonos_wifi_core::link_history::LinkHistory;
 
 const AP: [u8; 6] = [0x02, 0, 0, 0, 0, 0xAA];
@@ -53,5 +53,16 @@ fn the_reply_without_its_history_reads_as_lost() {
         let n = encode_link(&mut out, info.as_ref()).unwrap();
         let l = parse_link(&out[10..n]).unwrap();
         assert_eq!((l.ended, l.last_join), (LinkEnded::Lost, None));
+    }
+}
+
+#[test]
+fn a_rejoin_is_flagged_in_the_connect_body_and_nothing_else_is() {
+    for (flags, rejoin) in
+        [(Some(4u8), true), (Some(4 | 1 | 2), true), (Some(3), false), (None, false)]
+    {
+        let mut b = vec![4, b'h', b'o', b'm', b'e', 2, b'p', b'w'];
+        b.extend(flags);
+        assert_eq!(parse_connect(&b).unwrap().rejoin, rejoin, "{flags:?}");
     }
 }

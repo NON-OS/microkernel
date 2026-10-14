@@ -13,6 +13,7 @@ mod fw_step;
 mod join_text;
 mod link;
 mod scan;
+mod send;
 mod services;
 mod stage;
 

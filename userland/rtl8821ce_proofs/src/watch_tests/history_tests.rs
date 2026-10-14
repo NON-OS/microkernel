@@ -21,6 +21,7 @@ use nonos_wifi_core::link_history::{Ended, LinkHistory};
 use nonos_wifi_core::station::{PROBES, PROBE_EVERY_MS, QUIET_MS};
 
 use super::rig::link;
+use crate::connect_request::{parse_connect, FLAG_REJOIN};
 
 #[test]
 fn a_link_gone_unheard_is_lost_and_a_leave_is_left() {
@@ -43,4 +44,15 @@ fn a_link_gone_unheard_is_lost_and_a_leave_is_left() {
         (link.history().joins, link.history().code, link.history().ended),
         (2, -6, Ended::Left)
     );
+}
+
+#[test]
+fn a_rejoin_is_flagged_and_refused_once_the_person_left() {
+    let (mut link, _tx) = link();
+    let body = [4, b'h', b'o', b'm', b'e', 2, b'p', b'w', FLAG_REJOIN];
+    assert!(parse_connect(&body).unwrap().rejoin);
+    assert!(!parse_connect(&body[..8]).unwrap().rejoin, "no flags octet, no rejoin");
+    assert!(!link.history().refuses_rejoin());
+    link.note_left();
+    assert!(link.history().refuses_rejoin(), "connect answers -13 before any frame");
 }

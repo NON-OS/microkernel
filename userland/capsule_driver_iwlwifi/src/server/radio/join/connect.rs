@@ -22,6 +22,7 @@ use crate::firmware::gen3::join::fw::Fw;
 use crate::firmware::gen3::join::hunt::{hunt, HuntEnd};
 use crate::firmware::gen3::join::run::join;
 use crate::server::join_wire::{parse_connect, ConnectResult, CODE_BAD_REQUEST, CODE_NO_ENTROPY};
+use nonos_wifi_core::link_history::CODE_LEFT;
 use nonos_wifi_core::mlme::JoinRequest;
 use nonos_wifi_core::rsn::JoinPolicy;
 
@@ -36,6 +37,9 @@ impl Radio {
     /// Join the network a connect body names.
     pub fn connect(&mut self, d: &Driver, body: &[u8]) -> ConnectResult {
         let Some(req) = parse_connect(body) else { return ConnectResult::code(CODE_BAD_REQUEST) };
+        if req.rejoin && self.join.history.refuses_rejoin() {
+            return ConnectResult::code(CODE_LEFT);
+        }
         self.disconnect();
         if req.hidden {
             return hidden();

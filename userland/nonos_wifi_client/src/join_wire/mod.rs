@@ -41,6 +41,7 @@ mod link;
 mod tail;
 
 pub use connect::{parse_connect_reply, ConnectResult};
+pub(crate) use join_body::FLAG_REJOIN;
 pub use join_body::{encode_join, JoinFlags, AKM_SAE, JOIN_BODY_MAX, JOIN_PASS_MAX};
 pub use link::{parse_link, Link};
 pub use tail::{LastJoin, LinkEnded};
