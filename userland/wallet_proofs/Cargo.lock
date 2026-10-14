@@ -70,6 +70,10 @@ name = "nonos_equix"
 version = "0.1.0"
 
 [[package]]
+name = "nonos_eth_rpc"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_hash"
 version = "0.1.0"
 
@@ -161,6 +165,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "wallet_proofs"
 version = "0.3.0"
 dependencies = [
+ "nonos_eth_rpc",
  "nonos_hd",
  "nonos_market_proto",
  "nonos_marketplace_abi",

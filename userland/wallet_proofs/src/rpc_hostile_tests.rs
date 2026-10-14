@@ -24,6 +24,7 @@ use crate::fees::parse_fee_history;
 use crate::records_whole::records_whole;
 use crate::settle_heard::{heard, Asked};
 use crate::wallet::rpc::*;
+use nonos_eth_rpc::parse_receipt_ok;
 
 fn bytes(seed: u64, len: usize) -> Vec<u8> {
     let mut x = seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1;
