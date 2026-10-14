@@ -17,8 +17,9 @@
 //! Turning interrupt remapping on for one unit, in the order of Linux
 //! intel/irq_remapping.c (iommu_set_irq_remapping, then
 //! iommu_enable_irq_remapping): table address, SIRTP, a global interrupt
-//! entry cache invalidation, then IRE. CFI goes on before IRE, so there is
-//! no moment in which a compatibility format interrupt is blocked.
+//! entry cache invalidation, then IRE with CFI clear, so a compatibility
+//! format interrupt is blocked from then on. Boot runs this before the
+//! IO-APIC is routed or any device bound, so nothing armed is cut off.
 
 use crate::arch::x86_64::iommu::regs::offsets;
 use crate::arch::x86_64::iommu::types::VtdError;
@@ -39,21 +40,20 @@ pub(super) unsafe fn enable_on(unit: &RemapUnit, irta: u64) -> Result<(), VtdErr
         command(unit, offsets::GCMD_SIRTP, offsets::GSTS_IRTPS)?;
     }
     queue::flush_interrupt_entries(unit)?;
-    // SAFETY: eK@nonos.systems - CFI lets compatibility format interrupts
-    // through exactly as they arrive today, and IRE then only adds the
-    // remapped entries this table holds, none of them present yet.
-    unsafe {
-        command(unit, offsets::GCMD_CFI, offsets::GSTS_CFIS)?;
-        command(unit, offsets::GCMD_IRE, offsets::GSTS_IRES)
+    // SAFETY: eK@nonos.systems - no entry is present yet, so every interrupt
+    // through this unit is blocked until one is written for its source.
+    unsafe { command(unit, offsets::GCMD_IRE, offsets::GSTS_IRES)? };
+    if wait_ms(offsets::COMMAND_MS, || offsets::is_strict(unit.read32(offsets::GSTS))) {
+        Ok(())
+    } else {
+        Err(VtdError::Timeout)
     }
 }
 
-/// # Safety
-/// As `enable_on`: the bit changes how the unit treats interrupts.
 unsafe fn command(unit: &RemapUnit, bit: u32, done: u32) -> Result<(), VtdError> {
-    let value = offsets::gcmd_with(unit.read32(offsets::GSTS), bit);
-    // SAFETY: eK@nonos.systems - every persistent control is carried from
-    // GSTS, so this write changes `bit` and nothing else.
+    let value = offsets::gcmd_strict(offsets::gcmd_with(unit.read32(offsets::GSTS), 0), bit);
+    // SAFETY: eK@nonos.systems - every persistent control but CFI is carried
+    // from GSTS, so this write sets `bit`, clears CFI and changes nothing else.
     unsafe { unit.write32(offsets::GCMD, value) };
     if wait_ms(offsets::COMMAND_MS, || unit.read32(offsets::GSTS) & done != 0) {
         Ok(())

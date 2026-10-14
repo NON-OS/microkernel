@@ -34,6 +34,7 @@ mod msix_route;
 mod quiet;
 #[cfg(feature = "nonos-iommu-intremap")]
 mod remap;
+mod remap_rule;
 mod teardown;
 
 pub use bind::bind;

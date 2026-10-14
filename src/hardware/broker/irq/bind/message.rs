@@ -16,23 +16,22 @@
 
 //! The one place a broker MSI or MSI-X message is composed. With interrupt
 //! remapping on, the message names an IRTE the IOMMU's route_msi wrote
-//! for this function (VT-d 3.4, 5.1.5.2); otherwise it is the compatibility
-//! format message naming a LAPIC directly.
+//! for this function (VT-d 3.4, 5.1.5.2), or the bind is refused. A
+//! compatibility format message naming a LAPIC directly is made only with
+//! remapping off and under the development opt-in (remap_rule).
 
 use super::super::grant::NO_IRTE;
 use super::super::types::IrqBindError;
+use super::remap_rule::{outcome, Outcome};
 use crate::drivers::pci::types::{MsiMessage, PciAddress};
+use crate::memory::iommu::dev_unconfined::holds;
 
-/// A message to program and the remapping entry behind it, `NO_IRTE` for a
-/// compatibility format message.
 #[derive(Clone, Copy)]
 pub(super) struct Routed {
     pub(super) msg: MsiMessage,
     pub(super) irte: u16,
 }
 
-/// The LAPIC the message targets: the CPU binding it, or one that fits the
-/// 8-bit destination field when its id does not.
 pub(super) fn dest_apic_id() -> Result<u8, IrqBindError> {
     let local = crate::arch::interrupt_controller::local_id();
     crate::arch::x86_64::interrupt::apic::device_irq_dest(local)
@@ -40,16 +39,24 @@ pub(super) fn dest_apic_id() -> Result<u8, IrqBindError> {
         .ok_or(IrqBindError::PlatformError)
 }
 
-pub(super) fn route(address: &PciAddress, vector: u8, dest: u8) -> Routed {
+pub(super) fn route(address: &PciAddress, vector: u8, dest: u8) -> Result<Routed, IrqBindError> {
     #[cfg(feature = "nonos-iommu-intremap")]
-    if let Some(r) = super::remap::remapped(address, vector, dest) {
-        return r;
+    let (attempt, routed) = super::remap::attempt(address, vector, dest);
+    #[cfg(not(feature = "nonos-iommu-intremap"))]
+    let (attempt, routed) = (super::remap_rule::Attempt::Off, None::<Routed>);
+    match outcome(attempt, holds()) {
+        Outcome::Remapped => routed.ok_or(IrqBindError::PlatformError),
+        Outcome::Compat => {
+            Ok(Routed { msg: MsiMessage::for_local_apic(vector, dest), irte: NO_IRTE })
+        }
+        Outcome::Full => Err(IrqBindError::NoVector),
+        Outcome::Refused => {
+            crate::log::info!("[IRQ] {} refused: interrupt not remapped", address);
+            Err(IrqBindError::NotRemapped)
+        }
     }
-    let _ = address;
-    Routed { msg: MsiMessage::for_local_apic(vector, dest), irte: NO_IRTE }
 }
 
-/// Gives a remapping entry back once the device can no longer raise it.
 pub(in super::super) fn release(irte: u16) {
     #[cfg(feature = "nonos-iommu-intremap")]
     super::remap::release(irte);
