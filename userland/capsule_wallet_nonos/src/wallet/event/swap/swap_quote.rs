@@ -26,20 +26,20 @@ use crate::wallet::swap::{quote, token, Quote};
 /// Where the source has nothing to say the quote stays unready and the screen
 /// shows that it has no price, rather than the last one it had.
 pub fn refresh(state: &mut State) {
-    state.swap_quote = Quote::default();
-    if state.swap_in == 0 {
+    state.swap.quote = Quote::default();
+    if state.swap.amount_in == 0 {
         return;
     }
     let source = quote_source();
-    let pay = *token(state.swap_from);
-    let receive = *token(state.swap_to);
+    let pay = *token(state.swap.from);
+    let receive = *token(state.swap.to);
     let Some(reserves) = source.reserves(pay, receive).as_ready().copied() else {
         return;
     };
     let Some(gas) = source.gas(pay, receive).as_ready().copied() else {
         return;
     };
-    if let Some(read) = quote(state.swap_in, &reserves, gas) {
-        state.swap_quote = read;
+    if let Some(read) = quote(state.swap.amount_in, &reserves, gas) {
+        state.swap.quote = read;
     }
 }
