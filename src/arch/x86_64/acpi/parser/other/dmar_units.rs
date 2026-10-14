@@ -58,6 +58,7 @@ pub(super) fn record(bytes: &[u8], segment: u16, base: u64) -> bool {
         *FOREIGN_SEGMENT_UNITS.lock() += 1;
         return false;
     }
+    super::dmar_ioapic_table::record(bytes);
     let scope = parse_drhd(bytes).unwrap_or(UnitScope { truncated: true, ..UnitScope::EMPTY });
     let mut bases = REMAP_UNIT_BASES.lock();
     let mut scopes = REMAP_UNIT_SCOPES.lock();
