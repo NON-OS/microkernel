@@ -23,7 +23,7 @@ use zeroize::Zeroize;
 use super::recover::wipe;
 use crate::wallet::state::State;
 
-pub(super) fn submit(state: &mut State) -> EventOutcome {
+pub(in crate::wallet::event) fn submit(state: &mut State) -> EventOutcome {
     let mut indices = [0u16; 24];
     let mut count = 0usize;
     {

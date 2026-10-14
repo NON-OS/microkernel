@@ -26,19 +26,19 @@ use crate::wallet::state::State;
 pub fn parts(state: &State) -> Vec<&'static str> {
     let mut out = Vec::new();
     out.push(crate::wallet::chain::current().name);
-    out.push(match (state.net.tls_chain_ok, state.net.rpc_connect_ok) {
+    out.push(match (state.net.link.tls_chain_ok, state.net.link.rpc_connect_ok) {
         (true, _) => "TLS 1.3",
         (false, true) => "connecting",
         (false, false) => "offline",
     });
     /* The network the requests went over, not whether net.nym is up. */
-    if let Some(route) = route_part(state.net.route) {
+    if let Some(route) = route_part(state.net.link.route) {
         out.push(route);
     }
     /* "reading" only while a refresh runs: one that ended without the
      * balance says so, rather than reading for ever. */
     let wallet = state.address_ready;
-    let refreshing = state.net_job.is_some();
+    let refreshing = state.net.job.is_some();
     out.extend(super::status_words::reading(wallet, refreshing, state.balance_ready));
     out.extend(super::status_words::kept(wallet, state.vault_saved));
     out

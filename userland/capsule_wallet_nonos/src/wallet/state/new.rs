@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{
-    empty_rail::empty_rail,
-    types::{State, MAX_RAILS},
-};
+use super::types::State;
+
 pub fn new_state() -> State {
     State {
         /*
@@ -62,15 +60,11 @@ pub fn new_state() -> State {
         recover_shown: false,
         words: super::types::WORDS_UNREAD,
         failure: None,
-        last_read: [None, None],
         proof_count: 0,
         proof_eth_hash: [0; 32],
         proof_eth_len: 0,
         proof_nox_hash: [0; 32],
         proof_nox_len: 0,
-        net: super::default_net(),
-        rails: [empty_rail(); MAX_RAILS],
-        rail_count: 0,
         status: b"keyring pending",
         in_count: 0,
         in_kind: 0,
@@ -99,9 +93,8 @@ pub fn new_state() -> State {
         send: super::send_form::SendForm::new(),
         tx: super::signed_tx::SignedTx::new(),
         broadcast: super::broadcast::BroadcastState::new(),
+        net: super::net_view::Network::new(),
         nox: crate::wallet::nox::NoxStatus::empty(),
-        probe_step: 0,
-        net_job: None,
         action: None,
         view_w: 1280,
         view_h: 0,

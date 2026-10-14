@@ -31,9 +31,9 @@ pub fn hydrate(state: &mut State) {
         state.status = b"keyring unavailable";
         return;
     }
-    match read_rails(state.keyring_port).and_then(|rx| decode_rails(&rx, &mut state.rails)) {
+    match read_rails(state.keyring_port).and_then(|rx| decode_rails(&rx, &mut state.net.rails)) {
         Ok(n) => {
-            state.rail_count = filter_rails(&mut state.rails, n);
+            state.net.rail_count = filter_rails(&mut state.net.rails, n);
             state.status = b"wallet ready";
         }
         Err(_) => state.status = b"rail refresh failed",
