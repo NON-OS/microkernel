@@ -27,7 +27,7 @@ use crate::wallet::state::State;
 pub fn stake_input(state: &mut State, code: u32) -> Option<EventOutcome> {
     // Closing a position takes no figure, so on that tab the digits choose
     // which position rather than typing an amount that has nowhere to go.
-    if state.stake_unstake == 1 {
+    if state.stake.unstake == 1 {
         return unstake_input(state, code);
     }
     let handled = match code {
@@ -59,6 +59,6 @@ fn unstake_input(state: &mut State, code: u32) -> Option<EventOutcome> {
     if d >= 10 {
         return None;
     }
-    state.stake_position = d as u64;
+    state.stake.position = d as u64;
     Some(EventOutcome::Repaint)
 }

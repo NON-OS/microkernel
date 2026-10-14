@@ -48,9 +48,9 @@ pub fn follow(state: &mut State, hash: &[u8; 32], ok: Option<bool>) -> bool {
     };
     /* The stake is offered only once the approval it spends is in a block. */
     match (state.broadcast.purpose, ok) {
-        (Purpose::Approve, true) => state.stake_step = 1,
+        (Purpose::Approve, true) => state.stake.step = 1,
         (Purpose::Stake, true) => {
-            state.stake_step = 0;
+            state.stake.step = 0;
             crate::wallet::event::stake_clear(state);
         }
         _ => {}

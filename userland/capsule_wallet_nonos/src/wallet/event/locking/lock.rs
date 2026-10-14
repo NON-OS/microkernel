@@ -44,7 +44,7 @@ pub fn lock(state: &mut State) -> EventOutcome {
     if !crate::wallet::act::running(state) {
         state.send.draft = None;
         state.send.stage = crate::wallet::send::STAGE_FORM;
-        state.stake_draft = None;
+        state.stake.draft = None;
         state.tx.raw.clear();
         state.tx.ready = false;
     }

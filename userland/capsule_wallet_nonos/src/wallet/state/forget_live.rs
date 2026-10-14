@@ -46,9 +46,9 @@ pub fn forget_live(state: &mut State) {
     /* A quote and an allowance belong to one network's contracts. */
     state.swap.quote = crate::wallet::swap::Quote::default();
     state.swap.step = 0;
-    state.stake_step = 0;
-    state.stake_draft = None;
-    state.stake_position = 0;
+    state.stake.step = 0;
+    state.stake.draft = None;
+    state.stake.position = 0;
     state.net.link = super::default_net();
     /* The last network's link status is not this one's. */
     state.status = b"reading the network";

@@ -24,14 +24,14 @@ use crate::wallet::state::{State, VIEW_NOX, VIEW_SEND};
 pub(super) fn asked_from(state: &State, purpose: Purpose) -> bool {
     match purpose {
         Purpose::Pay => state.view == VIEW_SEND && state.send.stage == STAGE_FORM,
-        _ => state.view == VIEW_NOX && state.stake_draft.is_none(),
+        _ => state.view == VIEW_NOX && state.stake.draft.is_none(),
     }
 }
 
 /* Said on the screen it was asked from, and nowhere else. */
 pub(super) fn refuse(state: &mut State, why: &'static str) {
     let on_form = state.view == VIEW_SEND && state.send.stage == STAGE_FORM;
-    let on_stake = state.view == VIEW_NOX && state.stake_draft.is_none();
+    let on_stake = state.view == VIEW_NOX && state.stake.draft.is_none();
     if on_form || on_stake {
         state.failure = Some(why);
     }

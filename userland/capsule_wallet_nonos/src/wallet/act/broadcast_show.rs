@@ -40,7 +40,7 @@ pub(super) fn show(state: &mut State, purpose: Purpose, result: Broadcast) {
         }
         Purpose::Approve | Purpose::Stake | Purpose::Unstake => {
             /* The step moves on when the receipt says so (`send::follow`). */
-            state.stake_draft = None;
+            state.stake.draft = None;
             if state.view == VIEW_NOX {
                 state.failure = if went { None } else { core::str::from_utf8(state.status).ok() };
             }

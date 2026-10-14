@@ -73,11 +73,10 @@ pub struct State {
     pub in_x: i32,
     pub in_y: i32,
     /*
-     * UI selections driven by pointer clicks: fee tier (0..2), stake/unstake
-     * mode (0/1), proof filter (0..2), and the amount ETH/USD toggle.
+     * UI selections driven by pointer clicks: fee tier (0..2), proof filter
+     * (0..2), and the amount ETH/USD toggle. Stake or unstake is `stake.unstake`.
      */
     pub fee_tier: u8,
-    pub stake_unstake: u8,
     pub proof_filter: u8,
     pub usd_mode: bool,
     pub light_mode: bool,
@@ -88,39 +87,6 @@ pub struct State {
     pub panel: u8,
     pub locked: bool,
     pub account: u8,
-    /*
-     * NOX to stake, in wei. Held at chain precision rather than whole tokens
-     * so any amount can be typed, fractions included, with no ceiling beyond
-     * what the wallet actually holds.
-     */
-    pub stake_amount: u128,
-    /*
-     * Decimal entry for the amount above: digits typed, places after the
-     * point, and whether a point has been started.
-     */
-    pub stake_digits: u32,
-    pub stake_places: u32,
-    pub stake_point: bool,
-    /*
-     * Which staked position the Unstake tab acts on. The contract closes a
-     * position by index, not by amount.
-     */
-    pub stake_position: u64,
-    /*
-     * Chosen lock term, as an index into the contract lock table. Zero is no
-     * lock, which is what plain stake() does.
-     */
-    pub stake_lock: u8,
-    /*
-     * Two-step staking: 0 = needs the approve, 1 = ready to stake. Advances once
-     * the approve broadcasts and resets after the stake.
-     */
-    pub stake_step: u8,
-    /*
-     * The staking transaction the stake screen reviews, made from fresh
-     * reads; Confirm signs exactly this. None while the form is up.
-     */
-    pub stake_draft: Option<crate::wallet::send::Draft>,
     /*
      * Whether the import, the one-time backup, the restore and the export
      * screens are open. What they hold is in `custody`.
@@ -140,6 +106,8 @@ pub struct State {
     pub net: super::net_view::Network,
     /// The swap form (`swap_form`).
     pub swap: super::swap_form::SwapForm,
+    /// The stake form (`stake_form`).
+    pub stake: super::stake_form::StakeForm,
     /*
      * Live NOX token and staking readout from mainnet eth_call.
      */

@@ -24,8 +24,8 @@ use crate::wallet::state::State;
 /// here, so nothing rounds on the way in and the amount signed is the amount
 /// shown.
 pub fn stake_wei(state: &State) -> u128 {
-    let places = state.stake_places.min(NOX_DECIMALS);
-    let mut v = state.stake_amount;
+    let places = state.stake.places.min(NOX_DECIMALS);
+    let mut v = state.stake.amount;
     let mut shift = NOX_DECIMALS - places;
     while shift > 0 {
         v = v.saturating_mul(10);
