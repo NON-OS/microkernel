@@ -17,5 +17,6 @@
 //! W1 on the Realtek link: the link's clock and what it ends.
 
 mod card;
+mod history_tests;
 mod link_tests;
 mod rig;

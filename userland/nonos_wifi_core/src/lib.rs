@@ -33,6 +33,7 @@ pub mod dot11;
 pub mod eapol;
 pub mod frame;
 pub mod key;
+pub mod link_history;
 pub mod mlme;
 pub mod netif;
 pub mod rsn;

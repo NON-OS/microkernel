@@ -17,6 +17,7 @@
 use crate::firmware::gen3::join::inbox::{Inbox, Queues};
 use crate::firmware::gen3::join::run::Joined;
 use crate::firmware::gen3::txq::{TxQueue, TXQ_STRIDE};
+use nonos_wifi_core::link_history::LinkHistory;
 use nonos_wifi_core::netif::LinkPort;
 
 use super::super::grant::Grant;
@@ -31,6 +32,8 @@ pub struct Join {
     pub(super) joined: Option<Joined>,
     pub(super) ssid: [u8; SSID_MAX],
     pub(super) ssid_len: usize,
+    /// How the link last ended and the last join came out, for the link reply.
+    pub(super) history: LinkHistory,
 }
 
 impl Join {
@@ -42,6 +45,7 @@ impl Join {
             joined: None,
             ssid: [0; SSID_MAX],
             ssid_len: 0,
+            history: LinkHistory::NEW,
         }
     }
 }
