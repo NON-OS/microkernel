@@ -272,6 +272,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_eth_rpc"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_hash"
 version = "0.1.0"
 
@@ -377,6 +381,7 @@ name = "nonos_wallet"
 version = "0.3.0"
 dependencies = [
  "nonos_app_skeleton",
+ "nonos_eth_rpc",
  "nonos_hd",
  "nonos_market_proto",
  "nonos_marketplace_abi",

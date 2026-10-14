@@ -18,7 +18,7 @@
 
 #[test]
 fn a_pending_receipt_is_no_receipt_yet_not_a_revert() {
-    use crate::wallet::rpc::parse_receipt_ok;
+    use nonos_eth_rpc::parse_receipt_ok;
     assert_eq!(parse_receipt_ok(br#"{"jsonrpc":"2.0","id":6,"result":null}"#), None);
     assert_eq!(parse_receipt_ok(br#"{"jsonrpc":"2.0","id":6,"error":{"code":-32000}}"#), None);
     let ok = br#"{"jsonrpc":"2.0","id":6,"result":{"blockNumber":"0x10","status":"0x1"}}"#;

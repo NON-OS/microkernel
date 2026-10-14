@@ -223,7 +223,11 @@ mod gather_tests;
 mod handshake_tests;
 
 #[cfg(test)]
+mod send_refusal_tests;
+#[cfg(test)]
 mod send_tests;
+#[cfg(test)]
+mod send_broadcast_tests;
 #[cfg(test)]
 mod rpc_hostile_tests;
 #[cfg(test)]
