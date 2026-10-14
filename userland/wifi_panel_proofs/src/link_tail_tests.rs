@@ -17,13 +17,14 @@
 //! reply from a driver that predates it reads as lost, never as left, and as
 //! no join; a cut or garbled one never panics and is never read as left.
 
-use crate::wifi::join_wire::{parse_link, LastJoin, LinkEnded};
+use crate::wifi::join_wire::{
+    encode_join, parse_link, JoinFlags, LastJoin, LinkEnded, FLAG_REJOIN, JOIN_BODY_MAX,
+};
 
 fn reply(associated: bool, tail: &[u8]) -> Vec<u8> {
     let mut b = vec![u8::from(associated), 2, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE];
     let ssid: &[u8] = if associated { b"Home" } else { b"" };
-    b.push(ssid.len() as u8);
-    b.extend_from_slice(ssid);
+    b.extend_from_slice(&[&[ssid.len() as u8], ssid].concat());
     b.push(if associated { 8 } else { 0 });
     b.extend_from_slice(tail);
     b
@@ -32,8 +33,7 @@ fn reply(associated: bool, tail: &[u8]) -> Vec<u8> {
 #[test]
 fn the_history_reads_at_the_new_length() {
     let left = parse_link(&reply(false, &[2, 3, 0xF6, 0xFF, 0xFF, 0xFF])).unwrap();
-    assert!(!left.associated);
-    assert_eq!(left.ended, LinkEnded::Left);
+    assert_eq!((left.associated, left.ended), (false, LinkEnded::Left));
     assert_eq!(left.last_join, Some(LastJoin { seq: 3, code: -10 }));
     let up = parse_link(&reply(true, &[0, 1, 0, 0, 0, 0])).unwrap();
     assert_eq!((up.ssid(), up.akm, up.ended), (&b"Home"[..], 8, LinkEnded::No));
@@ -62,4 +62,14 @@ fn a_cut_or_garbled_history_is_never_read_as_left() {
         let l = parse_link(&reply(false, &[b, 0, 0, 0, 0, 0])).unwrap();
         assert_eq!(l.ended, LinkEnded::Lost, "ended byte {b}");
     }
+}
+
+#[test]
+fn only_a_rejoin_carries_the_rejoin_bit() {
+    let mut out = [0u8; JOIN_BODY_MAX];
+    for (wpa3_only, hidden) in [(false, false), (true, false), (false, true), (true, true)] {
+        let n = encode_join(b"Home", b"pw12345678", JoinFlags { wpa3_only, hidden }, &mut out);
+        assert_eq!(out[n - 1] & FLAG_REJOIN, 0, "a join from a panel");
+    }
+    assert_eq!(FLAG_REJOIN, 1 << 2, "the bit both drivers read");
 }
