@@ -31,7 +31,11 @@ use super::program_route::program_route;
 // edge/high below GSI 16 and PCI level/low above. The CAS rolls back
 // if `program_route` fails so a partial MMIO failure cannot strand an
 // owner bit.
-pub fn program_route_external(gsi: u32, vector: u8, dest_apic_id: u32) -> IoApicResult<Rte> {
+pub fn program_route_external(
+    gsi: u32,
+    vector: u8,
+    dest_apic_id: u32,
+) -> IoApicResult<(Rte, Option<u16>)> {
     if is_gsi_claimed(gsi) {
         return Err(IoApicError::GsiClaimedForMsi);
     }
@@ -42,9 +46,21 @@ pub fn program_route_external(gsi: u32, vector: u8, dest_apic_id: u32) -> IoApic
     let mode = line_mode(gsi, iso);
     rte.level_trigger = mode.level;
     rte.active_low = mode.active_low;
-    if let Err(e) = program_route(gsi, rte) {
-        let _ = gsi_owners::release_capsule(gsi);
-        return Err(e);
+    match program(gsi, rte) {
+        Ok(irte) => Ok((rte, irte)),
+        Err(e) => {
+            let _ = gsi_owners::release_capsule(gsi);
+            Err(e)
+        }
     }
-    Ok(rte)
+}
+
+/// Under remapping the entry names a remapping entry, returned to be given
+/// back; otherwise it is compatibility format.
+fn program(gsi: u32, rte: Rte) -> IoApicResult<Option<u16>> {
+    #[cfg(feature = "nonos-iommu-intremap")]
+    if crate::arch::x86_64::iommu::remap::is_remapping() {
+        return super::program_remapped::program_remapped(gsi, rte).map(Some);
+    }
+    program_route(gsi, rte).map(|()| None)
 }
