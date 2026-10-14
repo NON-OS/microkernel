@@ -30,13 +30,13 @@ use crate::wallet::state::{State, VIEW_HOME};
 pub(in crate::wallet::event) use super::unlock::unlock;
 
 pub fn lock(state: &mut State) -> EventOutcome {
-    if state.export_active {
+    if state.keys.export_active {
         let _ = super::super::toggle_export(state);
     }
-    if state.import_active {
+    if state.keys.import_active {
         let _ = super::super::toggle_import(state);
     }
-    if state.recover_active {
+    if state.keys.recover_active {
         let _ = super::super::toggle_recover(state);
     }
     /* A review is signed only by the holder who read it. A payment already
@@ -49,7 +49,7 @@ pub fn lock(state: &mut State) -> EventOutcome {
         state.tx.ready = false;
     }
     crate::wallet::shield::open::lock(state);
-    state.custody_armed = false;
+    state.keys.armed = false;
     state.locked = true;
     state.view = VIEW_HOME;
     state.scroll = 0;

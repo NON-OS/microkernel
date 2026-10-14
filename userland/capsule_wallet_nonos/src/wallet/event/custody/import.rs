@@ -24,8 +24,8 @@ use crate::wallet::state::{State, VIEW_RECEIVE};
 // Open or close the private-key import field. Closing always wipes whatever was
 // typed so a cancelled import leaves no key material behind.
 pub fn toggle_import(state: &mut State) -> EventOutcome {
-    state.import_active = !state.import_active;
-    if state.import_active {
+    state.keys.import_active = !state.keys.import_active;
+    if state.keys.import_active {
         state.view = VIEW_RECEIVE;
         state.status = b"paste a 0x private key, Enter to import";
     } else {
@@ -40,7 +40,7 @@ pub fn toggle_import(state: &mut State) -> EventOutcome {
 pub fn import_input(state: &mut State, code: u32) -> EventOutcome {
     if code == KEY_ESC {
         wipe(state);
-        state.import_active = false;
+        state.keys.import_active = false;
         state.status = b"import cancelled";
         return EventOutcome::Repaint;
     }
