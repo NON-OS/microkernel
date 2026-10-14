@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Interrupt remapping (VT-d 3.4, chapter 5). Built only with the
+//! `nonos-iommu-intremap` feature; every unit then passes compatibility
+//! format interrupts (CFI), and a driver that wants its interrupt confined to
+//! its own device asks `route_msi` for a remapped entry.
+
 //! The one interrupt remapping table every unit is pointed at, as one root
 //! table serves every unit's DMA: a handle names the same entry whichever
 //! unit the device sits behind, and the entry's source id check keeps other

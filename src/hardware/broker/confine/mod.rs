@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One IOMMU domain per driver capsule. A device a capsule claims leaves the
-//! identity domain for the capsule's own, which maps nothing until `MkDmaMap`
-//! grants a buffer, so the device reaches that capsule's grants and faults on
-//! everything else. A device no unit confines is refused (decide.rs).
-
 mod attach;
 mod decide;
 mod detach;
