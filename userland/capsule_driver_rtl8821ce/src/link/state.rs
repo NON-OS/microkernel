@@ -16,6 +16,7 @@
 
 //! The link's rings, station and counts.
 
+use nonos_wifi_core::link_history::LinkHistory;
 use nonos_wifi_core::station::LinkStation;
 
 use super::counts::LinkStats;
@@ -55,4 +56,6 @@ pub struct RtlLink<M: Mmio, D: DmaMem, RB: RxBuffers> {
     pub(super) left: Option<u16>,
     /// The access point went unheard and answered no probe; the link is down.
     pub(super) silent: bool,
+    /// How the link last ended and the last join came out, for the link op.
+    pub(super) history: LinkHistory,
 }

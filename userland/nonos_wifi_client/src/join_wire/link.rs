@@ -20,6 +20,7 @@
 
 use super::super::network::SSID_MAX;
 use super::join_body::AKM_SAE;
+use super::tail::{parse_tail, LastJoin, LinkEnded};
 
 /// The driver's association as it reports it.
 #[derive(Clone, Copy, Default, PartialEq, Eq, Debug)]
@@ -30,6 +31,9 @@ pub struct Link {
     ssid_len: usize,
     /// The AKM that ran (0 when the driver does not say).
     pub akm: u8,
+    /// Why the link last ended, and the last join the driver finished.
+    pub ended: LinkEnded,
+    pub last_join: Option<LastJoin>,
 }
 
 impl Link {
@@ -56,6 +60,7 @@ pub fn parse_link(body: &[u8]) -> Option<Link> {
     // The AKM follows a whole SSID only; a cut-short one leaves it unread.
     if len == fixed[7] as usize {
         link.akm = body.get(8 + len).copied().unwrap_or(0);
+        (link.ended, link.last_join) = parse_tail(body, 9 + len);
     }
     Some(link)
 }

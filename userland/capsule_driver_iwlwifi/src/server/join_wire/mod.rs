@@ -40,6 +40,6 @@ mod why;
 
 pub use codes::*;
 pub use connect::{encode_connect, ConnectResult};
-pub use link::{encode_code, encode_link, LinkInfo};
+pub use link::*;
 pub use request::*;
 pub use why::{end_code, failure_code};
