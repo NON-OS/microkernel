@@ -38,7 +38,11 @@ pub(super) fn program_remapped(gsi: u32, rte: Rte) -> IoApicResult<u16> {
     // SAFETY: eK@nonos.systems - the chip's registers were mapped at init and
     // `idx` lies within its redirections; the entry is written masked.
     unsafe { redtbl_write(chip.mmio, idx, low, high) };
-    proof::audit_phys_alloc(((gsi as u64) << 32) | rte.vector as u64, handle as u64, CapTag::KERNEL);
+    proof::audit_phys_alloc(
+        ((gsi as u64) << 32) | rte.vector as u64,
+        handle as u64,
+        CapTag::KERNEL,
+    );
     Ok(handle)
 }
 
