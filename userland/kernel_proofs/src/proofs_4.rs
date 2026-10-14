@@ -47,3 +47,6 @@ pub mod surface_closing;
 /// Each input event's source, stamped by the kernel.
 #[path = "input_source/mod.rs"]
 pub mod input_source;
+/// A capsule over the image ceiling is refused at spawn.
+#[path = "image_ceiling/mod.rs"]
+pub mod image_ceiling;

@@ -31,6 +31,8 @@ pub enum SpawnError {
     AttestationRejected,
     /* The boot profile chosen in the menu does not run this capsule. */
     ProfileRefused,
+    /// The installed caps go past the image ceiling.
+    ImageCeiling,
 }
 
 impl From<IdCertVerifyError> for SpawnError {
