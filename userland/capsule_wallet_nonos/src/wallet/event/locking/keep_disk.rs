@@ -49,8 +49,8 @@ impl Records for Disk<'_> {
 
     fn accounts(&mut self) -> Result<(), Unsealed> {
         let s = self.state;
-        let count = s.accounts.len().max(1) as u8;
-        crate::wallet::vault::remember_accounts(count, s.account_open.min(count - 1))
+        let count = s.acct.list.len().max(1) as u8;
+        crate::wallet::vault::remember_accounts(count, s.acct.open.min(count - 1))
     }
 
     fn vault(&mut self) -> Result<(), Unsealed> {

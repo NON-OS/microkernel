@@ -32,7 +32,7 @@ pub const HOLD_MS: i64 = 10 * 60 * 1000;
 pub fn held_back(state: &State) -> Option<&'static str> {
     let now = nonos_libc::mk_uptime_ms();
     let chain = chain::current().id;
-    if state.broadcast.sent.unknown_waiting(chain, &state.address, now, HOLD_MS) {
+    if state.broadcast.sent.unknown_waiting(chain, &state.acct.address, now, HOLD_MS) {
         return Some(
             "The last transaction may still land. A new one waits for its receipt, \
              for ten minutes at most, so nothing is paid twice.",
