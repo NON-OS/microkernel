@@ -45,7 +45,7 @@ pub fn etna_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
         }
         return EventOutcome::Idle;
     }
-    if state.backup_active {
+    if state.keys.backup_active {
         if press != Press::Footer(0) {
             return EventOutcome::Idle;
         }

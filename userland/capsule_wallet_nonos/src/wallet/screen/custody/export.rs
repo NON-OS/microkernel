@@ -35,7 +35,7 @@ pub(super) fn export(state: &State, fb: &mut PaintBuffer) {
     hits::clear();
     let status = crate::wallet::screen::status::parts(state);
     /* Asked first: the key is fetched only by the second screen's button. */
-    let shown = state.export_active;
+    let shown = state.keys.export_active;
     let footer = if shown {
         [("Hide the key", Weight::Primary, true), ("Cancel", Weight::Secondary, false)]
     } else {

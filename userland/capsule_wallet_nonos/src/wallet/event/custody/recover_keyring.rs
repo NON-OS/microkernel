@@ -30,7 +30,7 @@ pub(in crate::wallet::event) fn recovered(state: &mut State, indices: &[u16]) ->
                 state.vault.wallet_id = id;
                 state.acct.address = addr;
                 state.acct.address_ready = true;
-                state.recover_active = false;
+                state.keys.recover_active = false;
                 state.status = b"wallet recovered";
                 super::super::locking::keep::keep(state, false);
                 super::super::probe::probe_tick::probe_kick(state)

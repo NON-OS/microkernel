@@ -39,9 +39,9 @@ impl Wallet {
         // network work, while balances and fees still refresh on the screens
         // that display them.
         let live = needs_live_data(self.state.view)
-            && !self.state.import_active
-            && !self.state.recover_active
-            && !self.state.backup_active;
+            && !self.state.keys.import_active
+            && !self.state.keys.recover_active
+            && !self.state.keys.backup_active;
         if self.state.net.job.is_none() && !live {
             return false;
         }

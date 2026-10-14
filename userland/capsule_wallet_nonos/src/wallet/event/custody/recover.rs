@@ -26,10 +26,10 @@ use crate::wallet::state::{State, VIEW_RECEIVE};
 // keyring re-validates the checksum before deriving anything.
 
 pub fn toggle_recover(state: &mut State) -> EventOutcome {
-    state.recover_active = !state.recover_active;
-    if state.recover_active {
+    state.keys.recover_active = !state.keys.recover_active;
+    if state.keys.recover_active {
         state.view = VIEW_RECEIVE;
-        state.import_active = false;
+        state.keys.import_active = false;
         state.status = b"type your 12-24 word phrase, Enter to recover";
     } else {
         wipe(state);

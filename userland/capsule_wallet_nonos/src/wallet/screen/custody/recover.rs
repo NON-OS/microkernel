@@ -43,8 +43,8 @@ pub(super) fn recover(state: &State, fb: &mut PaintBuffer) {
     let ok = matches!(words, 12 | 15 | 18 | 21 | 24);
     /* Each letter a dot, the spaces kept, so the words can be counted. */
     let masked: String = typed.chars().map(|c| if c == ' ' { ' ' } else { '\u{2022}' }).collect();
-    let drawn = if state.recover_shown { typed } else { masked.as_str() };
-    let toggle = if state.recover_shown { "Hide the words" } else { "Show the words" };
+    let drawn = if state.keys.recover_shown { typed } else { masked.as_str() };
+    let toggle = if state.keys.recover_shown { "Hide the words" } else { "Show the words" };
     let footer = [
         ("Restore", Weight::Primary, ok),
         ("Cancel", Weight::Secondary, true),

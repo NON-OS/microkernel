@@ -26,7 +26,7 @@ use crate::wallet::state::State;
 pub fn recover_input(state: &mut State, code: u32) -> EventOutcome {
     if code == KEY_ESC {
         wipe(state);
-        state.recover_active = false;
+        state.keys.recover_active = false;
         state.status = b"recovery cancelled";
         return EventOutcome::Repaint;
     }

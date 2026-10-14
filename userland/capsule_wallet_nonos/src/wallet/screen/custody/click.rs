@@ -32,11 +32,11 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
             EventOutcome::Repaint
         }
         Press::Back | Press::Footer(1) => cancel(state),
-        Press::Footer(0) if state.view == VIEW_EXPORT && state.export_active => cancel(state),
+        Press::Footer(0) if state.view == VIEW_EXPORT && state.keys.export_active => cancel(state),
         Press::Footer(0) if state.view == VIEW_EXPORT => reveal(state),
         Press::Footer(0) => submit(state),
         Press::Footer(2) if state.view == VIEW_RECOVER => {
-            state.recover_shown = !state.recover_shown;
+            state.keys.recover_shown = !state.keys.recover_shown;
             EventOutcome::Repaint
         }
         _ => EventOutcome::Idle,

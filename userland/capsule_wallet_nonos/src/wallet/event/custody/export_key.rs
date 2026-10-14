@@ -28,9 +28,9 @@ const HEX: &[u8; 16] = b"0123456789abcdef";
 /// raw secret immediately. Hiding wipes the on-screen copy, so the key never
 /// outlives the moment the user is looking at it.
 pub fn toggle_export(state: &mut State) -> EventOutcome {
-    if state.export_active {
+    if state.keys.export_active {
         wipe(state);
-        state.export_active = false;
+        state.keys.export_active = false;
         state.status = b"private key hidden";
         return EventOutcome::Repaint;
     }
@@ -53,7 +53,7 @@ pub fn toggle_export(state: &mut State) -> EventOutcome {
                 state.custody.export_hex[2 + i * 2 + 1] = HEX[(secret[i] & 0x0F) as usize];
             }
             secret.zeroize();
-            state.export_active = true;
+            state.keys.export_active = true;
             state.view = VIEW_RECEIVE;
             state.status = b"private key shown, never share it";
             EventOutcome::Repaint

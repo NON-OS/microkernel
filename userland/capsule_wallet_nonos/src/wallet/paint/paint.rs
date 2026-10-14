@@ -30,7 +30,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if state.locked {
         return screen::locked::locked(state, fb);
     }
-    if state.backup_active {
+    if state.keys.backup_active {
         return screen::backup::backup(state, fb);
     }
     match (state.view, state.acct.address_ready) {

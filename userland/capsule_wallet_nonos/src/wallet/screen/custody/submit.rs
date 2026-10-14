@@ -28,13 +28,13 @@ pub(super) fn submit(state: &mut State) -> EventOutcome {
     }
     if state.view == VIEW_IMPORT {
         let _ = crate::wallet::event::import_input(state, KEY_ENTER);
-        if state.import_active {
+        if state.keys.import_active {
             state.failure = core::str::from_utf8(state.status).ok();
             return EventOutcome::Repaint;
         }
     } else {
         let _ = crate::wallet::event::recover_input(state, KEY_ENTER);
-        if state.recover_active {
+        if state.keys.recover_active {
             state.failure = core::str::from_utf8(state.status).ok();
             return EventOutcome::Repaint;
         }
@@ -51,12 +51,12 @@ pub fn key(state: &mut State, code: u32) -> Option<EventOutcome> {
         VIEW_IMPORT | VIEW_RECOVER if code == KEY_ENTER => Some(submit(state)),
         VIEW_IMPORT => {
             state.failure = None;
-            state.custody_armed = false;
+            state.keys.armed = false;
             Some(crate::wallet::event::import_input(state, code))
         }
         VIEW_RECOVER => {
             state.failure = None;
-            state.custody_armed = false;
+            state.keys.armed = false;
             Some(crate::wallet::event::recover_input(state, code))
         }
         VIEW_EXPORT => Some(EventOutcome::Idle),
