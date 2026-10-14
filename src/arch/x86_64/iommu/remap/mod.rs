@@ -16,6 +16,7 @@
 
 mod enable;
 mod init;
+mod ioapic_rte;
 mod irte;
 mod msi;
 mod route;
@@ -24,8 +25,9 @@ mod table;
 mod write;
 
 pub use init::init;
+pub use ioapic_rte::{handle_of, remappable};
 pub use irte::{destination, encode, is_present, source, vector, Irte, Route};
 pub use msi::{handle, remapped, MsiMessage};
-pub use route::{release_msi, route_msi};
+pub use route::{release_msi, route_entry, route_msi};
 pub use slots::{give, take, Slots, SLOT_WORDS};
 pub use table::is_remapping;

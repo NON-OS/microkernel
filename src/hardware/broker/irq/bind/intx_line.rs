@@ -19,6 +19,7 @@
 
 use super::super::records;
 use super::super::types::IrqBindError;
+use crate::arch::interrupt::ioapic::IoApicError;
 
 pub(super) fn line_free(gsi: u32, device_id: u64) -> Result<(), IrqBindError> {
     // Ahead of the grant records: those only describe lines other capsules
@@ -33,4 +34,12 @@ pub(super) fn line_free(gsi: u32, device_id: u64) -> Result<(), IrqBindError> {
         return Err(IrqBindError::AlreadyBound);
     }
     Ok(())
+}
+
+/// A line remapping cannot give an entry of its own is refused as such.
+pub(super) fn intx_refusal(e: IoApicError) -> IrqBindError {
+    match e {
+        IoApicError::NotRemapped => IrqBindError::NotRemapped,
+        _ => IrqBindError::PlatformError,
+    }
 }

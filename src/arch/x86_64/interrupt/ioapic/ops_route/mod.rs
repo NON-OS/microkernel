@@ -18,6 +18,8 @@ mod alloc_route;
 mod free_vector;
 mod line_mode;
 mod mask;
+#[cfg(feature = "nonos-iommu-intremap")]
+mod program_remapped;
 mod program_route;
 mod program_route_external;
 mod retarget;
