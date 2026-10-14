@@ -49,7 +49,7 @@ pub fn started(state: &mut State, asset: u8, deposit: Option<[u8; 20]>) {
 
 /// The Shield withdraw failed: the gas to the address it paid may go again.
 pub fn failed(state: &mut State) {
-    let deposit = state.shield_ui.to_deposit;
+    let deposit = state.shield_ui.payee.to_deposit;
     for (paid, to) in marks(&mut state.meter) {
         if deposit == Some(to) {
             *paid = None;

@@ -60,7 +60,7 @@ pub fn home(state: &State, fb: &mut PaintBuffer) {
         let now = super::proving::doing(job.op);
         y += crate::wallet::etna::parts::fact::fact(fb, c.x, y, c.w, "now", now) + GAP / 2;
         /* How far it has come, when the service says: the history a sync reads. */
-        if let Some(phase) = &state.shield_ui.phase {
+        if let Some(phase) = &state.shield_ui.job.phase {
             y += wrapped(fb, c.x as i32, y as i32, c.w as i32, Role::Lead, phase, TEXT_3) as u32
                 + GAP / 2;
         }
