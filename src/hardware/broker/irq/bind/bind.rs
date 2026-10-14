@@ -14,6 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! `MkIrqBind` core. Two paths share the same syscall:
+//!
+//!   * INTx (default, `flags == 0`) — programs the IO-APIC, returns
+//!     a single grant. Behaviour is bit-identical to the pre-MSI-X
+//!     version of the broker.
+//!   * MSI-X (`flags & BIND_MSIX != 0`) — kernel walks the
+//!     capability list, validates the table BAR against the
+//!     claimed device, allocates `vector_count` contiguous broker
+//!     vectors, programs that many MSI-X table entries with the
+//!     LAPIC redirect, enables MSI-X, then unmasks each entry. The
+//!     capsule never sees the table address and never writes to
+//!     it; it only receives the base grant id and base vector.
+//!
+//! All hardware-touching steps go through the `MsixOps` indirection.
+
 use super::super::types::{IrqBindError, IrqBindRequest, IrqBindResult, BIND_MSI, BIND_MSIX};
 use super::intx::bind_intx;
 use super::msi::bind_msi;
