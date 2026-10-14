@@ -30,7 +30,7 @@ pub fn refusal(state: &State) -> Option<&'static [u8]> {
     if state.wallet_id == 0 {
         return Some(b"generate or import a wallet first");
     }
-    if state.stake_unstake == 1 {
+    if state.stake.unstake == 1 {
         return unstake_refusal(state);
     }
     if stake_wei(state) == 0 {
@@ -52,7 +52,7 @@ fn unstake_refusal(state: &State) -> Option<&'static [u8]> {
     if state.nox.positions == 0 {
         return Some(b"no staked positions to close");
     }
-    if state.stake_position >= state.nox.positions {
+    if state.stake.position >= state.nox.positions {
         return Some(b"that position does not exist");
     }
     None

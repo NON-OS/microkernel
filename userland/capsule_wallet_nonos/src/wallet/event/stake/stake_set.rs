@@ -24,10 +24,10 @@ use crate::wallet::state::State;
 /// as typed, so staking the whole balance stakes all of it rather than the
 /// part that survives rounding to whole tokens.
 pub fn set_wei(state: &mut State, wei: u128) {
-    state.stake_amount = wei;
-    state.stake_digits = 0;
-    state.stake_places = NOX_DECIMALS;
-    state.stake_point = false;
+    state.stake.amount = wei;
+    state.stake.digits = 0;
+    state.stake.places = NOX_DECIMALS;
+    state.stake.point = false;
 }
 
 /// Fill in the whole balance, the one amount worth a shortcut. Does nothing
