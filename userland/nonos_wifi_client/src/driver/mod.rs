@@ -16,6 +16,7 @@ mod scan;
 mod send;
 mod services;
 mod stage;
+mod stage_kind;
 
 pub use call::{OP_STATUS, WIFI_HDR};
 pub use crate::join_wire::{ConnectResult, Link};
@@ -23,4 +24,4 @@ pub use find::{find, Driver};
 pub use join_text::join_text;
 pub use scan::{ScanOutcome, ScanStats};
 pub use fw_step::firmware_step_text;
-pub use stage::DriverStage;
+pub use stage_kind::DriverStage;
