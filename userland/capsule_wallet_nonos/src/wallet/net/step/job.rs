@@ -24,49 +24,18 @@ use alloc::vec::Vec;
 
 use nonos_route_link::Route;
 
-use super::super::read_snapshot::{parse_snapshot, snapshot_request, Snapshot};
-use super::super::status::NetStatus;
+use super::super::read_snapshot::{parse_snapshot, snapshot_request};
 use super::exchange::{Ended, Exchange};
+use super::job_follow::followed;
 use super::probe::Probe;
+
+pub use super::job_finished::{Finished, Followed};
 
 pub enum Job {
     Probe(Probe),
     Snapshot { exchange: Exchange, address: [u8; 20], chain: u64 },
     Follow { exchange: Exchange, hashes: Vec<[u8; 32]>, address: [u8; 20], chain: u64 },
 }
-
-/// What one reading of the chain said of the payments on their way.
-pub struct Followed {
-    /// Each payment's receipt: its block and whether it succeeded, or None.
-    pub receipts: Vec<([u8; 32], Option<(u64, bool)>)>,
-    pub head: u64,
-    pub latest: u64,
-    pub pending: u64,
-}
-
-/// A job's result, once it has one.
-pub enum Finished {
-    Probe(NetStatus),
-    /// None when the request did not complete, so the link is down.
-    Snapshot {
-        snap: Option<Snapshot>,
-        address: [u8; 20],
-        chain: u64,
-        /// The host that answered, or failed to.
-        host: &'static str,
-    },
-    /// None when the reading did not come whole.
-    Follow {
-        followed: Option<Followed>,
-        address: [u8; 20],
-        chain: u64,
-    },
-}
-
-const ID_HEAD: u64 = 90;
-const ID_LATEST: u64 = 91;
-const ID_PENDING: u64 = 92;
-const ID_RECEIPT: u64 = 100;
 
 impl Job {
     pub fn probe() -> Job {
@@ -78,25 +47,6 @@ impl Job {
         let exchange = Exchange::begin(Route::for_wallet(), body);
         let chain = crate::wallet::chain::current().id;
         Job::Snapshot { exchange, address: *address, chain }
-    }
-
-    /// One batch: the newest block, the account's nonce in it and counting
-    /// what waits, and the receipt of each payment in `hashes`.
-    pub fn follow(hashes: Vec<[u8; 32]>, address: &[u8; 20]) -> Job {
-        use crate::wallet::rpc::{request_block_number, request_nonce, request_nonce_latest};
-        let mut parts = alloc::vec![
-            request_block_number(ID_HEAD),
-            request_nonce_latest(address, ID_LATEST),
-            request_nonce(address, ID_PENDING),
-        ];
-        for (i, h) in hashes.iter().enumerate() {
-            parts.push(crate::wallet::rpc::request_receipt(h, ID_RECEIPT + i as u64));
-        }
-        let refs: Vec<&[u8]> = parts.iter().map(Vec::as_slice).collect();
-        let body = crate::wallet::rpc::request_batch(&refs);
-        let chain = crate::wallet::chain::current().id;
-        let exchange = Exchange::begin(Route::for_wallet(), body);
-        Job::Follow { exchange, hashes, address: *address, chain }
     }
 
     /// One step; the result once the job is finished.
@@ -120,23 +70,4 @@ impl Job {
             }
         }
     }
-}
-
-/* A reading is taken only whole: the head and both nonces, and an answer
- * for each receipt, null or not. A receipt that names another transaction
- * is no receipt of this one. */
-fn followed(resp: &[u8], hashes: &[[u8; 32]]) -> Option<Followed> {
-    use crate::wallet::rpc::{object_for_id, parse_receipt_block, parse_receipt_for, parse_u64};
-    let number = |id| object_for_id(resp, id).and_then(parse_u64);
-    let (head, latest, pending) = (number(ID_HEAD)?, number(ID_LATEST)?, number(ID_PENDING)?);
-    let mut receipts = Vec::with_capacity(hashes.len());
-    for (i, h) in hashes.iter().enumerate() {
-        let obj = object_for_id(resp, ID_RECEIPT + i as u64)?;
-        if obj.windows(7).any(|w| w == b"\"error\"") {
-            return None;
-        }
-        let found = parse_receipt_for(obj, h).zip(parse_receipt_block(obj)).map(|(ok, b)| (b, ok));
-        receipts.push((*h, found));
-    }
-    Some(Followed { receipts, head, latest, pending })
 }

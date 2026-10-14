@@ -24,11 +24,14 @@ mod lookup;
 pub mod private_route;
 mod probe_rpc_tcp;
 mod probe_status;
+mod probe_tls_blocked;
 mod probe_tls_rpc;
 pub mod read_snapshot;
 mod read_tls_flight;
 mod route_text;
 mod rtc_stamp;
+mod snapshot_fields;
+mod snapshot_parse;
 mod status;
 pub mod step;
 

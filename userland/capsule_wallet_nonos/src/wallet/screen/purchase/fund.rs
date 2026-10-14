@@ -49,7 +49,7 @@ pub fn fund(state: &mut State) -> EventOutcome {
     }
     let ui = &mut state.shield_ui;
     (ui.screen, ui.asset, ui.size, ui.amount) = (SHIELD_WITHDRAW, ASSET_NOX, None, amount);
-    (ui.to_meter, ui.to_deposit, ui.failure) = (false, Some(deposit), None);
+    (ui.payee.to_meter, ui.payee.to_deposit, ui.failure) = (false, Some(deposit), None);
     state.view = VIEW_SHIELD;
     state.scroll = 0;
     actions::review_withdraw(state);

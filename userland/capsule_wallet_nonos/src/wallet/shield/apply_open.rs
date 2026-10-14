@@ -28,13 +28,13 @@ use crate::wallet::state::State;
 
 pub(super) fn opened(state: &mut State, body: &str) {
     state.shield_ui.opened = true;
-    state.shield_ui.phase = None;
+    state.shield_ui.job.phase = None;
     /* How long each step of the open took, for whoever checks a boot. */
     if let Some(took) = field(body, "took") {
         state.shield_ui.news = Some(format!("The shield opened ({took})."));
     }
     state.shield_ui.nox1 = field(body, "address").map(String::from);
-    state.shield_ui.live = field(body, "kept") == Some("memory");
+    state.shield_ui.link.live = field(body, "kept") == Some("memory");
     super::job::start(state, OP_SYNC, &[]);
 }
 

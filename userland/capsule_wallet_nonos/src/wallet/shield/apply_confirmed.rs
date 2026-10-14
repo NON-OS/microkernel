@@ -55,7 +55,7 @@ pub(super) fn confirmed(state: &mut State, body: &str) {
                 spend.self_settle = false;
             }
             /* Followed from now on to the block, as a lander's would be. */
-            ui.last_follow_ms = 0;
+            ui.link.last_follow_ms = 0;
             format!("Sent from your own account{hash}. It links this account to the payment.")
         }
         _ => format!("Deposit sent{hash}. It is spendable once it matures in the pool."),

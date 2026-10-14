@@ -15,15 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::assoc_set_provider::AssocSetProvider;
-use super::decoded::{DecodedTx, StateDiff};
 use super::pool_provider::PoolProvider;
 use super::proof_provider::ProofProvider;
-use super::quote_provider::QuoteProvider;
-use super::revenue_provider::RevenueProvider;
 use super::seam::{Inclusion, Seam};
-use super::sim_provider::SimProvider;
 use super::types::{Commitment, Fees, Note, Proof, Root, TxRef};
-use crate::wallet::swap::{Reserves, Token};
 
 // The wiring is not connected yet. Every call returns NotWired so the UI renders
 // the honest "not yet connected" state. Replace with live impls to go live; no
@@ -60,35 +55,5 @@ impl AssocSetProvider for Stub {
     }
     fn inclusion(&self, _note: &Note) -> Inclusion {
         Inclusion::NotWired
-    }
-}
-
-impl SimProvider for Stub {
-    fn simulate(&self, _tx: &DecodedTx) -> Seam<StateDiff> {
-        Seam::NotWired
-    }
-}
-
-impl RevenueProvider for Stub {
-    fn fee_bps(&self) -> Seam<u32> {
-        Seam::NotWired
-    }
-    fn cumulative_revenue_wei(&self) -> Seam<[u8; 32]> {
-        Seam::NotWired
-    }
-    fn staking_apr_bps(&self) -> Seam<u32> {
-        Seam::NotWired
-    }
-    fn staked_wei(&self) -> Seam<[u8; 32]> {
-        Seam::NotWired
-    }
-}
-
-impl QuoteProvider for Stub {
-    fn reserves(&self, _pay: Token, _receive: Token) -> Seam<Reserves> {
-        Seam::NotWired
-    }
-    fn gas(&self, _pay: Token, _receive: Token) -> Seam<u64> {
-        Seam::NotWired
     }
 }

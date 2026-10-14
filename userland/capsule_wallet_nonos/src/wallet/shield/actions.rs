@@ -31,22 +31,18 @@ use crate::wallet::state::State;
 
 pub use super::actions_confirm::{confirm, review_self_settle, take_back};
 pub use super::actions_withdraw::review_withdraw;
+#[path = "actions_coin.rs"]
+mod coin;
+pub use coin::coin;
 
 pub const OVERRIDE: &str = "spend early";
-
-pub fn coin(asset: u8) -> &'static str {
-    if asset == ASSET_NOX {
-        "NOX"
-    } else {
-        "ETH"
-    }
-}
 
 /* The amount in the units the service reads: the chosen standard size for
  * a deposit or a withdrawal, the typed amount for a private payment. */
 pub fn amount(ui: &ShieldUi) -> String {
     // An escrow deposit is funded with the order's exact price (B8).
-    if reads_typed(ui.screen, ui.from, SHIELD_SEND, SHIELD_REVIEW) || ui.to_deposit.is_some() {
+    if reads_typed(ui.screen, ui.from, SHIELD_SEND, SHIELD_REVIEW) || ui.payee.to_deposit.is_some()
+    {
         return ui.amount.clone();
     }
     let all = sizes(ui.asset);

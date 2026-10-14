@@ -50,7 +50,7 @@ pub(super) fn body(
                 y += side + GAP;
             }
             y += value_block(fb, c.x, y, c.w, addr) + GAP;
-            if state.shield_ui.live {
+            if state.shield_ui.link.live {
                 y += wrapped(fb, c.x as i32, y as i32, c.w as i32, Role::Lead, LIVE, TEXT_3) as u32
                     + GAP;
             }

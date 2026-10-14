@@ -24,20 +24,20 @@ pub fn lock(state: &mut State) {
     let _ = call(OP_LOCK, &[]);
     let ui = &mut state.shield_ui;
     ui.waiting = None;
-    ui.misses = 0;
-    ui.poll_at_ms = 0;
-    ui.phase = None;
-    ui.permille = None;
+    ui.link.misses = 0;
+    ui.link.poll_at_ms = 0;
+    ui.job.phase = None;
+    ui.job.permille = None;
     ui.opened = false;
-    ui.retry_at_ms = None;
-    ui.tries = 0;
+    ui.link.retry_at_ms = None;
+    ui.link.tries = 0;
     ui.nox1 = None;
     ui.held = [None, None];
     ui.review = None;
     ui.quote = None;
-    ui.live = false;
+    ui.link.live = false;
     ui.wait_left = None;
-    ui.withdraw_to = None;
+    ui.payee.withdraw_to = None;
 }
 
 /* Another account is open: nothing of the last one's shield is kept, its
@@ -55,8 +55,8 @@ pub fn forget_network(state: &mut State) {
     lock(state);
     let ui = &mut state.shield_ui;
     ui.screen = crate::wallet::state::shield_ui::SHIELD_HOME;
-    ui.phase = None;
-    ui.permille = None;
+    ui.job.phase = None;
+    ui.job.permille = None;
     ui.news = None;
     ui.failure = None;
 }

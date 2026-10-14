@@ -48,7 +48,7 @@ pub fn back(state: &mut State) -> EventOutcome {
     ui.failure = None;
     // An escrow deposit is never left filled in for a later withdrawal:
     // Fund sets it again when the person comes back to it (B8).
-    if ui.to_deposit.take().is_some() {
+    if ui.payee.to_deposit.take().is_some() {
         ui.amount.clear();
     }
     match ui.screen {

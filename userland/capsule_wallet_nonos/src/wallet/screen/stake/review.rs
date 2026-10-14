@@ -17,55 +17,25 @@
 //! 07  The staking review: what the transaction does, read off the draft
 //! Confirm signs, and nothing else. Enter never confirms it.
 
-use alloc::format;
-use alloc::string::String;
-use alloc::vec::Vec;
-
 use nonos_app_skeleton::PaintBuffer;
 
 use super::super::hits;
 use super::super::page::{edges, lead};
-use crate::wallet::act::Purpose;
-use crate::wallet::chain;
 use crate::wallet::etna::backdrop::Backdrop;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::parts::action::Weight;
 use crate::wallet::etna::parts::tile::{row_height, tile, tile_row};
 use crate::wallet::etna::rect::Rect;
-use crate::wallet::send::{fee_text, Draft};
+use crate::wallet::send::Draft;
 use crate::wallet::state::State;
+
+#[path = "review_rows.rs"]
+mod rows;
+use rows::rows;
 
 const LEAD: &str = "Check it before it goes. Once the network has it, it cannot be taken \
      back, and its fee is spent whether or not it succeeds.";
-
-fn hex(bytes: &[u8]) -> String {
-    let mut s = String::from("0x");
-    for b in bytes {
-        s.push_str(&format!("{b:02x}"));
-    }
-    s
-}
-
-fn what(d: &Draft) -> String {
-    let nox = super::nox_amount(d.amount);
-    match d.purpose {
-        Purpose::Approve => format!("Let staking take {nox} NOX"),
-        Purpose::Unstake => String::from("Close a position"),
-        _ => format!("Stake {nox} NOX"),
-    }
-}
-
-fn rows(d: &Draft) -> Vec<(&'static str, String)> {
-    Vec::from([
-        ("Transaction", what(d)),
-        ("Contract", crate::wallet::etna::groups::shortened(&hex(&d.to))),
-        ("Network", String::from(chain::named(d.chain_id))),
-        ("Network fee, at most", fee_text(d.fee_cap_wei())),
-        ("Gas limit", format!("{}", d.gas)),
-        ("Nonce", format!("{}", d.nonce)),
-    ])
-}
 
 pub fn review(state: &State, fb: &mut PaintBuffer, d: &Draft) {
     hits::clear();

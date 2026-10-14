@@ -41,11 +41,11 @@ pub fn start(state: &mut State, op: u16, fields: &[&str]) -> bool {
     match call(op, fields) {
         Ok(Answer { status: STATUS_STARTED, .. }) => {
             ui.waiting = Some(Waiting { op, since_ms: mk_uptime_ms() });
-            ui.misses = 0;
-            ui.poll_at_ms = 0;
-            ui.elapsed_s = 0;
-            ui.phase = None;
-            ui.permille = None;
+            ui.link.misses = 0;
+            ui.link.poll_at_ms = 0;
+            ui.job.elapsed_s = 0;
+            ui.job.phase = None;
+            ui.job.permille = None;
             ui.failure = None;
             true
         }

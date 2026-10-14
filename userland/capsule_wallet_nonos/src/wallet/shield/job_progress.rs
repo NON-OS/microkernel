@@ -47,8 +47,8 @@ pub(super) fn progress(state: &mut State, body: &str) -> bool {
         .and_then(|f| f.parse::<f32>().ok())
         .filter(|f| f.is_finite())
         .map(|f| (f.clamp(0.0, 1.0) * 1000.0) as u16);
-    let changed = phase != ui.phase || permille != ui.permille;
-    ui.phase = phase;
-    ui.permille = permille;
+    let changed = phase != ui.job.phase || permille != ui.job.permille;
+    ui.job.phase = phase;
+    ui.job.permille = permille;
     changed
 }

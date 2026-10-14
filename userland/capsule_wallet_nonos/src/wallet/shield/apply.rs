@@ -34,7 +34,7 @@ pub fn apply(state: &mut State, op: u16, body: &str) {
         OP_OPEN_WORDS | OP_OPEN_KEY => opened(state, body),
         OP_SYNC => {
             let ui = &mut state.shield_ui;
-            ui.last_sync_ms = mk_uptime_ms();
+            ui.link.last_sync_ms = mk_uptime_ms();
             if let (Some(l), Some(m)) = (number(body, "wait_leaves"), number(body, "wait_minutes"))
             {
                 ui.wait_left = Some((l, m));

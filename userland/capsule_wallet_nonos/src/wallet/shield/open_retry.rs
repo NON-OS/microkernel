@@ -24,9 +24,9 @@ const RETRY_MAX_MS: i64 = 30_000;
 /* No answer in time: ask again later, by itself, waiting longer each time. */
 pub(super) fn later(state: &mut State) {
     let ui = &mut state.shield_ui;
-    let wait = (2_000i64 << ui.tries.min(4)).min(RETRY_MAX_MS);
-    ui.tries = ui.tries.saturating_add(1);
-    ui.retry_at_ms = Some(mk_uptime_ms() + wait);
+    let wait = (2_000i64 << ui.link.tries.min(4)).min(RETRY_MAX_MS);
+    ui.link.tries = ui.link.tries.saturating_add(1);
+    ui.link.retry_at_ms = Some(mk_uptime_ms() + wait);
     ui.failure = None;
 }
 
@@ -37,15 +37,15 @@ pub fn restarted(state: &mut State) {
 
 /* The service answered: no ask is pending. */
 pub(super) fn answered(state: &mut State) {
-    state.shield_ui.retry_at_ms = None;
-    state.shield_ui.tries = 0;
+    state.shield_ui.link.retry_at_ms = None;
+    state.shield_ui.link.tries = 0;
 }
 
 /* The pending ask, once its time has come. True when the screen should repaint. */
 pub fn retry_due(state: &mut State) -> bool {
-    match state.shield_ui.retry_at_ms {
+    match state.shield_ui.link.retry_at_ms {
         Some(at) if mk_uptime_ms() >= at && state.shield_ui.waiting.is_none() => {
-            state.shield_ui.retry_at_ms = None;
+            state.shield_ui.link.retry_at_ms = None;
             if here() && state.acct.address_ready {
                 probe_then_open(state);
             }
@@ -57,7 +57,7 @@ pub fn retry_due(state: &mut State) -> bool {
 
 /* Whether the wallet is waiting to ask a slow service again. */
 pub fn retrying(state: &State) -> bool {
-    state.shield_ui.retry_at_ms.is_some()
+    state.shield_ui.link.retry_at_ms.is_some()
 }
 
 /* A keyring too slow to answer is asked again later, not taken as a refusal. */

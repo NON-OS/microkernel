@@ -31,10 +31,10 @@ const NO_FRESH: &str = "A withdrawal goes only to a fresh account of this wallet
      recovery words to withdraw.";
 
 pub fn review_withdraw(state: &mut State) {
-    if state.shield_ui.to_meter {
+    if state.shield_ui.payee.to_meter {
         return review_to_meter(state);
     }
-    if let Some(deposit) = state.shield_ui.to_deposit {
+    if let Some(deposit) = state.shield_ui.payee.to_deposit {
         return super::fund_order::review(state, deposit);
     }
     let fresh = match call(OP_FRESH_ADDRESS, &[]) {
@@ -53,7 +53,7 @@ pub fn review_withdraw(state: &mut State) {
         state.shield_ui.failure = Some(why);
         return;
     };
-    state.shield_ui.withdraw_to = Some(String::from(to));
+    state.shield_ui.payee.withdraw_to = Some(String::from(to));
     let a = amount(&state.shield_ui);
     super::job::start(state, OP_QUOTE, &[coin(state.shield_ui.asset), &a, "1"]);
 }
@@ -66,7 +66,7 @@ fn review_to_meter(state: &mut State) {
     match super::fund_meter::meter_destination(POOL, chain, account.as_ref()) {
         Ok(a) => {
             let to = crate::wallet::screen::receive_address::checksummed_text(&a);
-            state.shield_ui.withdraw_to = Some(to);
+            state.shield_ui.payee.withdraw_to = Some(to);
             let amt = amount(&state.shield_ui);
             super::job::start(state, OP_QUOTE, &[coin(state.shield_ui.asset), &amt, "1"]);
         }

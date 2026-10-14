@@ -24,6 +24,10 @@ use nonos_libc::mk_getpid;
 use super::unsealed::Unsealed;
 use super::vfs::{call, HDR_LEN, OP_CLOSE, OP_MKDIR, OP_OPEN, OP_WRITE, O_CREATE, O_TRUNC};
 
+#[path = "save_ops_stored.rs"]
+mod save_ops_stored;
+pub(super) use save_ops_stored::stored;
+
 /// Missing is the normal case on a fresh machine and already-there is the
 /// normal case after that, so the answer is not checked.
 pub(super) fn mkdir(path: &[u8]) {
@@ -59,15 +63,6 @@ pub(super) fn write_all(fd: u32, data: &[u8]) -> Result<(), Unsealed> {
     body.extend_from_slice(data);
     let mut rx = vec![0u8; 64];
     stored(call(OP_WRITE, &body, &mut rx))
-}
-
-/// What a store answer means for a save.
-pub(super) fn stored(answer: super::answer::Answer) -> Result<(), Unsealed> {
-    match answer {
-        super::answer::Answer::Ok(_) => Ok(()),
-        super::answer::Answer::Refused(code) => Err(Unsealed::from_store(code)),
-        super::answer::Answer::Silent => Err(Unsealed::Store),
-    }
 }
 
 pub(super) fn close(fd: u32) {

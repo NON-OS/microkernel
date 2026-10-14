@@ -60,7 +60,7 @@ pub(super) fn proved(state: &mut State, op: u16, body: &str) {
         refusal: field(body, "lander_refusal").map(String::from),
         weakened: fields(body, "weakened").map(String::from).collect(),
     });
-    ui.last_follow_ms = mk_uptime_ms();
+    ui.link.last_follow_ms = mk_uptime_ms();
     ui.quote = None;
     ui.to.clear();
     ui.amount.clear();

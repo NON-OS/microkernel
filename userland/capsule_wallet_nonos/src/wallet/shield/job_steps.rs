@@ -34,17 +34,17 @@ const POLL_MAX_MS: i64 = 30_000;
  * time, and after MISSES in a row stop waiting and say so. */
 pub(super) fn missed(state: &mut State, now: i64) -> bool {
     let ui = &mut state.shield_ui;
-    ui.misses = ui.misses.saturating_add(1);
-    if ui.misses < MISSES {
-        ui.poll_at_ms = now + (1_000i64 << ui.misses.min(5)).min(POLL_MAX_MS);
+    ui.link.misses = ui.link.misses.saturating_add(1);
+    if ui.link.misses < MISSES {
+        ui.link.poll_at_ms = now + (1_000i64 << ui.link.misses.min(5)).min(POLL_MAX_MS);
         return false;
     }
     ui.waiting = None;
-    ui.misses = 0;
-    ui.poll_at_ms = 0;
+    ui.link.misses = 0;
+    ui.link.poll_at_ms = 0;
     ui.opened = false;
-    ui.phase = None;
-    ui.permille = None;
+    ui.job.phase = None;
+    ui.job.permille = None;
     if ui.screen == crate::wallet::state::shield_ui::SHIELD_PROVING && ui.spend.is_none() {
         ui.screen = ui.from;
     }

@@ -33,7 +33,7 @@ pub fn state(state: &mut State, body: &str) {
     }
     /* Read again from a service that already held the store. */
     if let Some(kept) = field(body, "kept") {
-        ui.live = kept == "memory";
+        ui.link.live = kept == "memory";
     }
     if let Some(history) = super::reply::entries(body) {
         ui.history = history;
