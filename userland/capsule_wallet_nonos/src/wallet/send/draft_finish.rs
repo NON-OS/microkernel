@@ -30,7 +30,7 @@ pub fn finish(state: &State, plan: Plan, estimate: Option<u64>) -> Result<Draft,
         return Err("The network would not estimate this payment, so it would likely fail.");
     };
     let gas = super::super::gas::gas_limit(estimate, plan.data.is_empty());
-    if let Some(why) = super::super::gas::fee_refusal(Some(state.fee_wei)) {
+    if let Some(why) = super::super::gas::fee_refusal(Some(state.reads.fee_wei)) {
         return Err(core::str::from_utf8(why).unwrap_or("The network fee could not be read."));
     }
     let (tip, max_fee) = state
@@ -54,7 +54,7 @@ pub fn finish(state: &State, plan: Plan, estimate: Option<u64>) -> Result<Draft,
         nonce: state
             .broadcast
             .sent
-            .next_nonce(plan.chain_id, &state.address, state.live_nonce)
+            .next_nonce(plan.chain_id, &state.address, state.reads.live_nonce)
             .ok_or(NO_NONCE)?,
         tip,
         max_fee,
