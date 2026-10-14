@@ -18,33 +18,34 @@
 
 use nonos_wifi_client::{join_text, Driver, SavedList};
 
-use super::machine::{Step, CALL_MS};
+use super::machine::{step_for, Step, CALL_MS};
 use super::tick::say;
 
 /// Hand the driver saved network `i`: started when it does not answer within
-/// `CALL_MS` (the join runs on in the driver), or answered.
-pub(super) fn join(driver: &Driver, list: &SavedList, i: usize) -> Step {
+/// `CALL_MS` (the join runs on in the driver), or answered. A rejoin after a
+/// loss is flagged, so the driver refuses it if the person left since.
+pub(super) fn join(driver: &Driver, list: &SavedList, i: usize, rejoin: bool) -> Step {
     let index = i as u8;
-    match driver.connect_within(list.ssid(i), list.passphrase(i), list.join_flags(i), CALL_MS) {
+    let (ssid, pass, flags) = (list.ssid(i), list.passphrase(i), list.join_flags(i));
+    let answer = if rejoin {
+        driver.rejoin_within(ssid, pass, flags, CALL_MS)
+    } else {
+        driver.connect_within(ssid, pass, flags, CALL_MS)
+    };
+    match answer {
         None => {
             say(b"[NET-CORE] joining a saved Wi-Fi network\n");
             Step::Started(index)
         }
-        Some(r) if r.code == 0 => {
-            say(b"[NET-CORE] joined a saved Wi-Fi network\n");
-            Step::Answered { index, joined: true }
-        }
         Some(r) => {
-            say(b"[NET-CORE] saved Wi-Fi network not joined: ");
-            say(join_text(r.code).as_bytes());
-            say(b"\n");
-            // The passphrase or the network's security (codes -6 to -11):
-            // the same join would be turned down again.
-            if (-11..=-6).contains(&r.code) {
-                Step::Refused(index)
+            if r.code == 0 {
+                say(b"[NET-CORE] joined a saved Wi-Fi network\n");
             } else {
-                Step::Answered { index, joined: false }
+                say(b"[NET-CORE] saved Wi-Fi network not joined: ");
+                say(join_text(r.code).as_bytes());
+                say(b"\n");
             }
+            step_for(index, r.code)
         }
     }
 }
