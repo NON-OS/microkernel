@@ -230,3 +230,5 @@ mod rpc_hostile_tests;
 mod private_route_tests;
 #[cfg(test)]
 mod private_route_gate_tests;
+#[cfg(test)]
+mod custody_gate_tests;
