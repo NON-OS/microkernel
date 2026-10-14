@@ -11,6 +11,7 @@
 
 mod error;
 mod file;
+mod keep;
 mod key;
 mod list;
 mod list_codec;
@@ -18,6 +19,7 @@ mod store;
 mod write;
 
 pub use error::SavedError;
+pub use keep::{forget, saved_flags};
 pub use list::{SavedList, PASS_MAX, SLOTS};
-pub use store::{forget, load, remember, remember_with, saved_flags};
+pub use store::{load, remember, remember_with};
 pub use write::{forget_all, keeps_state, sealing_ready};
