@@ -25,11 +25,9 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use crate::wallet::ipc::wallet_address;
 use crate::wallet::state::{State, VIEW_HOME};
 
-const NO_KEYRING: &str = "The keyring did not answer for this account, so the wallet stays \
-     locked. Try again in a moment.";
+pub(super) use super::unlock::unlock;
 
 pub fn lock(state: &mut State) -> EventOutcome {
     if state.export_active {
@@ -44,11 +42,11 @@ pub fn lock(state: &mut State) -> EventOutcome {
     /* A review is signed only by the holder who read it. A payment already
      * going out goes on, and is said when the window opens. */
     if !crate::wallet::act::running(state) {
-        state.send_draft = None;
-        state.send_stage = crate::wallet::send::STAGE_FORM;
+        state.send.draft = None;
+        state.send.stage = crate::wallet::send::STAGE_FORM;
         state.stake_draft = None;
-        state.tx_raw.clear();
-        state.tx_ready = false;
+        state.tx.raw.clear();
+        state.tx.ready = false;
     }
     crate::wallet::shield::open::lock(state);
     state.custody_armed = false;
@@ -56,22 +54,5 @@ pub fn lock(state: &mut State) -> EventOutcome {
     state.view = VIEW_HOME;
     state.scroll = 0;
     state.failure = None;
-    EventOutcome::Repaint
-}
-
-pub fn unlock(state: &mut State) -> EventOutcome {
-    if !state.address_ready {
-        state.locked = false;
-        return EventOutcome::Repaint;
-    }
-    match wallet_address(state.keyring_port, state.owner_pid, state.wallet_id) {
-        Ok(addr) if addr == state.address => {
-            state.locked = false;
-            state.failure = None;
-            state.probe_step = 1;
-            crate::wallet::shield::open::ensure(state);
-        }
-        _ => state.failure = Some(NO_KEYRING),
-    }
     EventOutcome::Repaint
 }
