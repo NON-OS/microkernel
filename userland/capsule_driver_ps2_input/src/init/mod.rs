@@ -14,17 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod disable_aux;
+mod dropped;
 mod enable_keyboard;
 mod enable_mouse;
 mod enable_scanning;
 mod flush_output;
+mod leds;
+mod pause;
 mod read_port;
 mod restore_keyboard;
 pub mod wait;
 pub use disable_aux::disable_aux;
+pub use dropped::dropped;
 pub use enable_keyboard::{enable_keyboard, keyboard_config};
-pub use enable_mouse::enable_mouse;
+pub use enable_mouse::{enable_mouse, reenable_mouse};
 pub use enable_scanning::enable_scanning;
 pub use flush_output::flush_output;
-pub use read_port::{dropped, read_port};
+pub use leds::set_leds;
+pub use read_port::read_port;
 pub use restore_keyboard::restore_keyboard;

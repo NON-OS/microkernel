@@ -1,6 +1,5 @@
 mod claim;
 pub mod gpio;
-mod irq;
 mod mmio;
 mod pci;
 mod sequence;

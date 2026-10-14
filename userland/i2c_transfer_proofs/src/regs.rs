@@ -49,11 +49,14 @@ pub fn with<R>(f: impl FnOnce(&mut Designware) -> R) -> R {
 #[derive(Clone, Copy)]
 pub struct Regs {
     _base: u64,
+    _len: u64,
 }
 
 impl Regs {
-    pub const fn new(base: u64) -> Self {
-        Self { _base: base }
+    /// Safe here, unlike the shipping one: nothing is dereferenced, every
+    /// access goes to the core attached on this thread.
+    pub const fn new(base: u64, len: u64) -> Self {
+        Self { _base: base, _len: len }
     }
 
     pub fn read32(&self, offset: u64) -> u32 {

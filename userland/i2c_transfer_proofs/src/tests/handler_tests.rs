@@ -20,7 +20,7 @@
 use nonos_i2cmodel::{descriptor, Config};
 use nonos_libc::take_reply;
 
-use super::fixture::{bench, PAD};
+use super::fixture::{bench, bench_with, pad, PAD};
 use crate::protocol::{parse, Request, E_INVAL, E_NACK, E_OK, IPC_PAYLOAD_MAX, OP_TRANSFER};
 use crate::server::handlers::transfer::handle;
 
@@ -70,6 +70,6 @@ fn a_body_whose_write_length_disagrees_with_its_size_is_invalid_before_the_bus()
 
 #[test]
 fn a_nack_reaches_the_caller_as_its_own_errno() {
-    let b = bench(Config::LPSS);
-    assert_eq!(call(&b, &body(0x2C, &[0x01, 0x00], 2, 1)).0, E_NACK);
+    let b = bench_with(Config::LPSS, pad().deaf()); // the bound pad refuses its data
+    assert_eq!(call(&b, &body(PAD, &[0x05, 0x00], 0, 0)).0, E_NACK);
 }

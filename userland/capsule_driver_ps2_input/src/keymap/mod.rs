@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub mod active;
+pub mod flags;
 pub mod keypad;
+pub mod locks;
 pub mod modifiers;
 pub mod once;
 pub mod post;
 pub mod set1;
 pub mod set1_e0;
 pub mod translate;
+pub use locks::{lock_bit, LED_CAPS, LED_NUM};
 pub use modifiers::{modifier_bit, MOD_ALT, MOD_CTRL};
 pub use once::acts_once;
 pub use post::publish;
-pub use set1::KEYCODE_CAPS as KEYCODE_CAPS_LOCK;
 pub use translate::translate;

@@ -23,7 +23,6 @@ mod keymap;
 mod mouse;
 mod poll;
 mod protocol;
-mod ring;
 mod server;
 mod setup;
 use nonos_libc::{heap_init, mk_exit, start_driver};

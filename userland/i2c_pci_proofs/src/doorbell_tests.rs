@@ -25,7 +25,8 @@ use crate::driver::Doorbell;
 use crate::regs::Regs;
 
 fn bell(level_bit: u32, active_high: bool) -> Doorbell {
-    Doorbell { regs: Regs::new(0), cfg_offset: 0, level_bit, active_high }
+    // SAFETY: an empty window: every access is refused before memory.
+    Doorbell { regs: unsafe { Regs::new(0, 0) }, cfg_offset: 0, level_bit, active_high }
 }
 
 #[test]

@@ -34,14 +34,23 @@ pub struct Keyboard {
     /// A key held down: its make code repeats into the output buffer ahead
     /// of every reply the mouse sends while the keyboard is clocked.
     pub held: Option<u8>,
+    /// A key event typed once, ahead of the next reply the mouse sends
+    /// while the keyboard is clocked.
+    pub typed: Option<u8>,
     /// An EC-emulated controller that tags its own configuration byte as aux
     /// data once the aux clock runs, so a reply filter on AUXDATA misses it.
     pub ctr_aux_tag: bool,
 }
 
 impl Keyboard {
-    pub const PROMPT: Self =
-        Self { latency: Some(0), bat: 2, wedged: false, held: None, ctr_aux_tag: false };
+    pub const PROMPT: Self = Self {
+        latency: Some(0),
+        bat: 2,
+        wedged: false,
+        held: None,
+        typed: None,
+        ctr_aux_tag: false,
+    };
     pub const SLOW: Self = Self { latency: Some(3), ..Self::PROMPT };
     pub const DEAD: Self = Self { latency: None, ..Self::PROMPT };
     /// Wedged until reset, then a self test as long as a real keyboard's.
