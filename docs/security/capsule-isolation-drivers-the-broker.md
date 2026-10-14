@@ -31,8 +31,8 @@ selects AMD-Vi, which this kernel drives only when built with the
 No [build profile](../overview/glossary.md#build-profile) in
 `tools/nix/config.nix` turns that feature on, while VT-d enforcement
 (`nonos-iommu-enforce`) is part of `microkernel-core`, which every profile
-builds on. No profile turns on interrupt remapping (`nonos-iommu-intremap`)
-either. A device found at boot that no driver claims stays in the VT-d [identity
+builds on, and so is interrupt remapping (`nonos-iommu-intremap`), with
+compatibility format interrupts blocked. A device found at boot that no driver claims stays in the VT-d [identity
 domain](../overview/glossary.md#identity-domain).
 
 Where confinement is not possible:

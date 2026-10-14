@@ -43,6 +43,10 @@ pub fn ioapic_set_irq(irq: u8, vector: u8, dest: u8, flags: u32) {
         return;
     }
     let local_pin = gsi - gsi_base;
+    if crate::arch::x86_64::interrupt::ioapic::compat_allowed().is_err() {
+        serial::println(b"[APIC] refused: compatibility format entry under remapping");
+        return;
+    }
 
     // Every route programmed through here is one the kernel is taking for
     // itself. Claim it before the entry is written, so a capsule binding INTx

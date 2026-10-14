@@ -253,6 +253,7 @@ microkernel-core = [
   "crypto-ed25519-int",
   "nonos-arch-iommu",
   "nonos-iommu-enforce",
+  "nonos-iommu-intremap",
 ]
 
 # Runtime baseline: core + the three live capsule embeds.
@@ -883,11 +884,10 @@ nonos-arch-iommu     = []   # src/arch/x86_64/iommu/*
 # without a translation.
 nonos-iommu-enforce  = ["nonos-arch-iommu"]
 
-# Interrupt remapping on every VT-d unit (VT-d chapter 5), with compatibility
-# format interrupts still passed (CFI), and the remapped-entry routing drivers
-# move their MSI and MSI-X vectors onto. Off by default until a boot log from
-# QEMU intel-iommu,intremap=on and from a real Intel machine shows the units
-# acknowledging it.
+# Interrupt remapping on every VT-d unit (VT-d chapter 5) with CFI clear, so
+# compatibility format interrupts are blocked: every MSI, MSI-X and IO-APIC
+# line names an entry for its own source. In microkernel-core (K3); a build
+# without it claims no PCI device but under the development opt-in.
 nonos-iommu-intremap = ["nonos-iommu-enforce"]
 
 # Drive AMD-Vi units (AMD IOMMU spec 48882): a shared device table with every
