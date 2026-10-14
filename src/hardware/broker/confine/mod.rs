@@ -17,6 +17,7 @@
 mod attach;
 mod decide;
 mod detach;
+mod interrupts;
 mod iova;
 mod iova_space;
 mod join;

@@ -63,6 +63,12 @@ pub(crate) const fn verdict(
 
 /// Whether a DMA grant may hand a device its physical address: never, but
 /// under the opt-in.
+/// A device a unit confines can still write 0xFEEx_xxxx: claimed only if
+/// interrupts are remapped (K3), or under the opt-in.
+pub(crate) const fn interrupts_confined(remapping: bool, opt_in: bool, production: bool) -> bool {
+    remapping || opted_in(opt_in, production)
+}
+
 pub(crate) const fn physical_dma() -> bool {
     crate::memory::iommu::dev_unconfined::holds()
 }

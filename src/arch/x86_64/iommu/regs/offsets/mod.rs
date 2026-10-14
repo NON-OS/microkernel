@@ -35,7 +35,7 @@ pub use queue::{
     GCMD_QIE, GSTS_QIES, IQA, IQH, IQT, QUEUE_ENTRIES,
 };
 pub use remap::{
-    irta_entries, irta_value, GCMD_CFI, GCMD_IRE, GCMD_SIRTP, GSTS_CFIS, GSTS_IRES, GSTS_IRTPS,
-    IRTA, IRTA_EIME, IRTE_ENTRIES,
+    gcmd_strict, irta_entries, irta_value, is_strict, GCMD_CFI, GCMD_IRE, GCMD_SIRTP, GSTS_CFIS,
+    GSTS_IRES, GSTS_IRTPS, IRTA, IRTA_EIME, IRTE_ENTRIES,
 };
 pub use timing::{COMMAND_MS, COMMAND_SPINS};

@@ -1,0 +1,41 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! On x86 a device that is not behind interrupt remapping can write a
+//! compatibility format message, any vector or NMI, INIT or SMI to any
+//! CPU, whether or not it is ever bound: its claim is refused (K3).
+
+use super::refuse::Refused;
+use super::table::say;
+use crate::memory::iommu::DeviceAddress;
+
+pub(super) fn admit(pid: u32, address: DeviceAddress) -> Result<(), Refused> {
+    use super::decide::interrupts_confined;
+    use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
+    if !cfg!(target_arch = "x86_64") {
+        return Ok(());
+    }
+    let remapping = crate::memory::iommu::capabilities().interrupt_remapping;
+    if remapping {
+        return Ok(());
+    }
+    if interrupts_confined(remapping, OPT_IN, PRODUCTION) {
+        say(b"interrupts not remapped, under the development opt-in", pid, address);
+        return Ok(());
+    }
+    say(b"refused: interrupts not remapped", pid, address);
+    Err(Refused)
+}
