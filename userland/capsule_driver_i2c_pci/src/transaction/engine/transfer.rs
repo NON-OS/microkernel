@@ -14,17 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::driver::Driver;
+use crate::transaction::recover::after;
 use crate::transaction::{control, valid_lengths, TransferError, TransferRequest, TransferResult};
 
 use super::run::run;
 
+/// One transfer from START to STOP. A request with nothing to send or
+/// receive, or past the wire's limits, is refused before the bus. Every
+/// outcome is counted into the bus's state, and a run of faults resets the
+/// controller (recover.rs).
 pub fn transfer(
     driver: &Driver,
     req: TransferRequest<'_>,
 ) -> Result<TransferResult, TransferError> {
-    if req.addr > 0x7F || !valid_lengths(req.write.len(), req.read_len) {
+    let (w, r) = (req.write.len(), req.read_len);
+    if req.addr > 0x7F || w + r == 0 || !valid_lengths(w, r) {
         return Err(TransferError::Invalid);
     }
+    let result = attempt(driver, req);
+    after(driver, &result);
+    result
+}
+
+fn attempt(driver: &Driver, req: TransferRequest<'_>) -> Result<TransferResult, TransferError> {
     let regs = driver.regs;
     control::wait_idle(regs)?;
     control::set_target(regs, req.addr)?;

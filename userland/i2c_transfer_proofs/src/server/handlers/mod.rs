@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The OP_TRANSFER handler, as shipped.
+//! The OP_CONTROLLER_INFO, OP_PROBE and OP_TRANSFER handlers, as shipped.
 
+#[path = "../../../../capsule_driver_i2c_pci/src/server/handlers/controller.rs"]
+pub mod controller;
+#[path = "../../../../capsule_driver_i2c_pci/src/server/handlers/probe.rs"]
+pub mod probe;
 #[path = "../../../../capsule_driver_i2c_pci/src/server/handlers/transfer.rs"]
 pub mod transfer;

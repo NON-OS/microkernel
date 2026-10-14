@@ -16,6 +16,7 @@
 
 //! The touchpad driver from service lookup to posted pointer events.
 
+mod bystander_tests;
 mod configure_tests;
 mod driven;
 mod fixture;

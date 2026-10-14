@@ -39,11 +39,15 @@
 
 mod bus;
 mod designware;
+mod expander;
 mod hid;
+mod sensor;
 
 pub use bus::{Bus, BusEvent, Dir, Shared, Target};
 pub use designware::{regs, Config, Designware, RegEvent, Violation};
+pub use expander::Expander;
 pub use hid::{descriptor, touchpad, Command, HidOverI2c};
+pub use sensor::Sensor;
 
 #[cfg(test)]
 mod tests;

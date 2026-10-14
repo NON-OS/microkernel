@@ -1,13 +1,17 @@
+use core::cell::Cell;
+
+use crate::init::BusSetup;
 use crate::regs::Regs;
+use crate::transaction::{BusState, Reach};
 
 pub struct Driver {
     pub device_id: u64,
     pub pci_device: u16,
     pub claim_epoch: u64,
     pub mmio_grant: u64,
-    pub irq_grant: u64,
-    pub irq_vector: u64,
-    pub clock_hz: u32,
+    /// The input clock, window and bus speed the core was brought up with,
+    /// kept so a recovery can bring it up again the same way.
+    pub setup: BusSetup,
     pub family: &'static str,
     pub comp_type: u32,
     pub comp_param: u32,
@@ -21,13 +25,20 @@ pub struct Driver {
     /// ACKed the setup probe; false for a fallback bind (named controller or
     /// first-fit) where the device never answered during setup.
     pub bound_by_probe: bool,
-    /// The candidate address the bind settled on (ACKed the probe, or the
-    /// firmware-named fallback's address). Zero when setup had no ACPI
-    /// candidates; the HID driver then scans the bus itself.
+    /// The address the bind settled on: the declared one, or for a
+    /// declaration with none, the first the sweep found. Zero when none.
     pub bound_addr: u8,
     /// The HID descriptor register the probe found the descriptor at, or the
     /// firmware's declaration when nothing answered yet.
     pub bound_desc_reg: u16,
+    /// The bound declaration's interrupt pin and HID_INFO bits.
+    pub bound_pin: u16,
+    pub bound_info: u8,
+    /// The addresses a client's transfer may reach (setup/sequence/settle.rs);
+    /// it narrows once the pad has answered (transaction/types/narrow.rs).
+    pub reach: Cell<Reach>,
+    /// Whether the bus is working, failing or stuck, between transfers.
+    pub bus: Cell<BusState>,
     /// The touchpad's interrupt line, sensed for interrupt-paced reads, when
     /// the platform's GPIO layout is one this driver knows.
     pub doorbell: Option<Doorbell>,

@@ -13,13 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::Deadline;
-
 use crate::constants::{
     ENABLE_TIMEOUT_MS, IC_ENABLE, IC_ENABLE_ABORT, IC_ENABLE_STATUS, IC_INTR_MST_ON_HOLD,
     IC_RAW_INTR_STAT,
 };
 use crate::regs::Regs;
+use crate::transaction::pace::Pace;
 use crate::transaction::TransferError;
 
 /// Disable the core the way Linux __i2c_dw_disable does. A master holding the
@@ -32,20 +31,17 @@ pub fn disable(regs: Regs) -> Result<(), TransferError> {
     if regs.read32(IC_RAW_INTR_STAT) & IC_INTR_MST_ON_HOLD != 0 {
         let enable = regs.read32(IC_ENABLE);
         regs.write32(IC_ENABLE, enable | IC_ENABLE_ABORT);
-        let abort = Deadline::after_ms(ENABLE_TIMEOUT_MS);
-        while regs.read32(IC_ENABLE) & IC_ENABLE_ABORT != 0 && !abort.expired() {
-            core::hint::spin_loop();
-        }
+        let mut abort = Pace::new(ENABLE_TIMEOUT_MS);
+        while regs.read32(IC_ENABLE) & IC_ENABLE_ABORT != 0 && abort.wait() {}
     }
-    let deadline = Deadline::after_ms(ENABLE_TIMEOUT_MS);
+    let mut pace = Pace::new(ENABLE_TIMEOUT_MS);
     loop {
         regs.write32(IC_ENABLE, 0);
         if regs.read32(IC_ENABLE_STATUS) & 1 == 0 {
             return Ok(());
         }
-        if deadline.expired() {
+        if !pace.wait() {
             return Err(TransferError::Timeout);
         }
-        core::hint::spin_loop();
     }
 }
