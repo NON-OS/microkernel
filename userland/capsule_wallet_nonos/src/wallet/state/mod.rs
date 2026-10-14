@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod broadcast;
 mod custody;
 mod default_net;
 mod empty_rail;
 mod filter_rails;
+mod forget_live;
 mod hydrate;
 mod live_view;
 mod network;
@@ -27,8 +29,10 @@ mod rail_allowed;
 mod record_tx;
 mod restore;
 mod restore_words;
+mod send_form;
 pub mod shield_log;
 pub mod shield_ui;
+mod signed_tx;
 mod types;
 mod views;
 

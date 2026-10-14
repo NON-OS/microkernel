@@ -17,13 +17,13 @@
 use crate::wallet::state::State;
 
 pub fn recipient(state: &State) -> Option<[u8; 20]> {
-    if state.send_to_len != 40 {
+    if state.send.to_len != 40 {
         return None;
     }
     let mut out = [0u8; 20];
     for i in 0..20 {
-        let hi = super::hex_digit::hex_digit(state.send_to_hex[i * 2] as u32)?;
-        let lo = super::hex_digit::hex_digit(state.send_to_hex[i * 2 + 1] as u32)?;
+        let hi = super::hex_digit::hex_digit(state.send.to_hex[i * 2] as u32)?;
+        let lo = super::hex_digit::hex_digit(state.send.to_hex[i * 2 + 1] as u32)?;
         out[i] = (hi << 4) | lo;
     }
     Some(out)

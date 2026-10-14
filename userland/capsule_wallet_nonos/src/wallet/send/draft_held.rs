@@ -38,7 +38,7 @@ pub fn held(state: &State, asset: u8) -> Option<u128> {
         ASSET_USDC if state.usdc_ready => low_u128(&state.usdc_units),
         _ => None,
     }?;
-    let (eth, token) = state.sent.held(chain::current().id, &state.address, asset);
+    let (eth, token) = state.broadcast.sent.held(chain::current().id, &state.address, asset);
     Some(read.saturating_sub(if asset == ASSET_ETH { eth } else { token }))
 }
 

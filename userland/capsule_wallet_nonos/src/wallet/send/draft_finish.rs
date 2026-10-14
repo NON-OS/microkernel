@@ -17,6 +17,9 @@
 
 use super::*;
 
+#[path = "draft_fund.rs"]
+mod draft_fund;
+
 const NO_NONCE: &str = "This account has no nonce left to sign with, so nothing was signed.";
 
 /// The draft from a plan and the gas the node estimated for it, once the
@@ -31,6 +34,7 @@ pub fn finish(state: &State, plan: Plan, estimate: Option<u64>) -> Result<Draft,
         return Err(core::str::from_utf8(why).unwrap_or("The network fee could not be read."));
     }
     let (tip, max_fee) = state
+        .tx
         .offered_fees
         .ok_or("The network's recent fees could not be read. Review the payment again.")?;
     if max_fee > u128::from(super::super::gas::FEE_CEILING_WEI) {
@@ -48,6 +52,7 @@ pub fn finish(state: &State, plan: Plan, estimate: Option<u64>) -> Result<Draft,
         /* Never a nonce this wallet already sent with: a node that has not
          * seen the last payment yet would otherwise let this one replace it. */
         nonce: state
+            .broadcast
             .sent
             .next_nonce(plan.chain_id, &state.address, state.live_nonce)
             .ok_or(NO_NONCE)?,
@@ -55,21 +60,5 @@ pub fn finish(state: &State, plan: Plan, estimate: Option<u64>) -> Result<Draft,
         max_fee,
         chain_id: plan.chain_id,
     };
-    let eth = held(state, ASSET_ETH)
-        .ok_or("The ETH balance has not been read, so the network fee cannot be checked. Try again shortly.")?;
-    let mut draft = draft;
-    /* Everything held, in ETH: the amount is what is left once this
-     * review's fee cap is set aside, so the payment and its fee fit. */
-    if state.send_all && draft.purpose == Purpose::Pay && draft.asset == ASSET_ETH {
-        let left = eth.saturating_sub(draft.fee_cap_wei());
-        if left == 0 {
-            return Err("The ETH held does not cover the network fee, so nothing is left to send.");
-        }
-        draft.amount = left;
-        draft.value = left;
-    }
-    if draft.value.saturating_add(draft.fee_cap_wei()) > eth {
-        return Err("Not enough ETH for the amount and the network fee.");
-    }
-    Ok(draft)
+    draft_fund::fund(state, draft)
 }

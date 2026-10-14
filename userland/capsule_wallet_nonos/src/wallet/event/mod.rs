@@ -34,6 +34,10 @@ mod lock;
 mod on_event;
 mod on_key;
 mod on_pointer;
+mod probe_apply;
+mod probe_finish;
+mod probe_follow;
+mod probe_kick;
 mod probe_tick;
 mod reading;
 mod recipient;
@@ -52,6 +56,7 @@ mod swap_input;
 mod swap_pair;
 pub(crate) mod swap_quote;
 mod tx_freshen;
+mod unlock;
 
 pub use custody_guard::may_replace;
 pub use export_key::toggle_export;
