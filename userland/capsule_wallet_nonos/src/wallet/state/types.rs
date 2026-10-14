@@ -20,12 +20,12 @@ pub use super::views::*;
 pub struct State {
     /// The keyring and the vault (`vault_state`).
     pub vault: super::vault_state::VaultState,
+    /// This phrase's accounts and address (`account_set`).
+    pub acct: super::account_set::AccountSet,
     /// The first press of a replace was made and said; the next goes on.
     pub custody_armed: bool,
     /// The recovery words being typed are drawn, not masked.
     pub recover_shown: bool,
-    pub address: [u8; 20],
-    pub address_ready: bool,
     /// What the chain last said of this account (`chain_reads`).
     pub reads: super::chain_reads::ChainReads,
     pub view: u8,
@@ -111,18 +111,4 @@ pub struct State {
     pub shield_ui: super::shield_ui::ShieldUi,
     pub meter: crate::wallet::meter::MeterUi,
     pub publisher: crate::wallet::publish::PublisherUi,
-    /* The accounts of this phrase in use, account 0 first, and which one is
-     * open. Empty until a wallet exists. */
-    pub accounts: alloc::vec::Vec<crate::wallet::accounts::Account>,
-    /* Receive shows the private nox1 address, else the public 0x one. */
-    pub receive_private: bool,
-    pub account_open: u8,
-    /* The account list read at boot, while some of its accounts are not
-     * derived yet: how many, and which was open. */
-    pub accounts_owed: Option<(u8, u8)>,
-    /* When the owed accounts are asked for again (uptime ms). */
-    pub accounts_retry_at: i64,
-    /* WORDS_*: the shield opens from the words, and from the key only for
-     * a wallet known to have come from one. */
-    pub words: u8,
 }

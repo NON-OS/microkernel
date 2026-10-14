@@ -42,7 +42,7 @@ pub fn sign_typed(
     let req = typed_request(s.vault.owner_pid, s.vault.wallet_id, entry, chain_id, words);
     let rx = keyring_call(s.vault.keyring_port, OP_SIGN_TYPED_DATA, &req, REPLY_LEN)
         .map_err(|_| "the keyring did not sign")?;
-    let asked = Asked { signer: s.address, struct_hash, chain_id, bond };
+    let asked = Asked { signer: s.acct.address, struct_hash, chain_id, bond };
     believed(&Kec, rx.get(HDR_LEN..).unwrap_or(&[]), &asked)
         .ok_or("the keyring signed something else; nothing was kept")
 }

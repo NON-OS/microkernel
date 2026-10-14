@@ -32,16 +32,16 @@ use crate::wallet::state::State;
 const PILL_H: u32 = 36;
 
 fn address(state: &State) -> String {
-    if !state.address_ready {
+    if !state.acct.address_ready {
         return String::from("No account yet");
     }
     let mut hex = String::from("0x");
-    for b in state.address {
+    for b in state.acct.address {
         hex.push_str(&alloc::format!("{b:02x}"));
     }
     /* With more than one account, say which is open. */
-    match state.accounts.get(state.account_open as usize) {
-        Some(a) if state.accounts.len() > 1 => alloc::format!("{}  {}", a.index, shortened(&hex)),
+    match state.acct.list.get(state.acct.open as usize) {
+        Some(a) if state.acct.list.len() > 1 => alloc::format!("{}  {}", a.index, shortened(&hex)),
         _ => shortened(&hex),
     }
 }

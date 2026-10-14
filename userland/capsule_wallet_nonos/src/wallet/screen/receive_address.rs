@@ -27,7 +27,7 @@ use crate::wallet::state::State;
 /// The address in lower case, as the services it is handed to compare it.
 pub fn address_hex(state: &State) -> String {
     let mut hex = String::from("0x");
-    for b in state.address {
+    for b in state.acct.address {
         hex.push_str(&alloc::format!("{b:02x}"));
     }
     hex
@@ -36,7 +36,7 @@ pub fn address_hex(state: &State) -> String {
 /// The address as a person reads and copies it: 0x and its EIP-55
 /// spelling, whose capitals let another wallet catch a mistyped digit.
 pub fn address_text(state: &State) -> String {
-    checksummed_text(&state.address)
+    checksummed_text(&state.acct.address)
 }
 
 /// Any 20-byte address in its EIP-55 spelling. Lower case, which is the

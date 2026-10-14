@@ -36,25 +36,25 @@ pub enum Added {
 /* Derive the next account and open it. */
 pub fn add(state: &mut State) -> Added {
     ensure_root(state);
-    if state.accounts.len() >= file::MAX_ACCOUNTS as usize {
+    if state.acct.list.len() >= file::MAX_ACCOUNTS as usize {
         return Added::Full;
     }
     /* Words not read back at boot are asked for again before a derive
      * that needs them. */
-    if state.words == crate::wallet::state::WORDS_UNREAD {
+    if state.acct.words == crate::wallet::state::WORDS_UNREAD {
         words(state);
     }
-    let index = state.accounts.len() as u8;
+    let index = state.acct.list.len() as u8;
     match derive(state, index) {
         Ok(account) => {
-            state.accounts.push(account);
-            if switch(state, state.accounts.len() - 1) && save(state) {
+            state.acct.list.push(account);
+            if switch(state, state.acct.list.len() - 1) && save(state) {
                 Added::Opened
             } else {
                 Added::OpenedUnsaved
             }
         }
-        Err(-2) if state.words == crate::wallet::state::WORDS_NONE => Added::NoWords,
+        Err(-2) if state.acct.words == crate::wallet::state::WORDS_NONE => Added::NoWords,
         Err(-2) => Added::WordsUnread,
         Err(-28) => Added::Full,
         Err(_) => Added::Failed,

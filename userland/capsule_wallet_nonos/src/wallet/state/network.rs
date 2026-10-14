@@ -52,7 +52,7 @@ pub fn switch_network(state: &mut State, sepolia: bool) -> Result<bool, &'static
     if crate::wallet::chain::current().shield {
         crate::wallet::shield::open::ensure(state);
     } else {
-        state.receive_private = false;
+        state.acct.receive_private = false;
     }
     Ok(true)
 }
