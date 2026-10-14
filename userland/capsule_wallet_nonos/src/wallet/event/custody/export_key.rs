@@ -34,7 +34,7 @@ pub fn toggle_export(state: &mut State) -> EventOutcome {
         state.status = b"private key hidden";
         return EventOutcome::Repaint;
     }
-    if !state.address_ready {
+    if !state.acct.address_ready {
         state.status = b"generate or import a wallet first";
         return EventOutcome::Repaint;
     }

@@ -40,7 +40,7 @@ pub const ROW_ATTEST: u8 = 2;
 
 pub fn entry(state: &State, e: &MarketplaceEntry, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
     let mut h = 0;
-    match binding_plan(&Kec, e, &state.address) {
+    match binding_plan(&Kec, e, &state.acct.address) {
         Ok(plan) => plan.rows.iter().for_each(|(k, v)| h += fact(fb, c.x, y + h, c.w, k, v)),
         Err(r) => h += fact(fb, c.x, y + h, c.w, "binding", why(r)),
     }
