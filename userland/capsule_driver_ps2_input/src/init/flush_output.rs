@@ -13,8 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::STATUS_OUTPUT_FULL;
-use crate::constants::{DATA_OFFSET, STATUS_OFFSET};
+use crate::constants::{DATA_OFFSET, STATUS_AUX_DATA, STATUS_OFFSET, STATUS_OUTPUT_FULL};
 use nonos_libc::mk_pio_read;
 const MAX_FLUSH_BYTES: u32 = 16;
 
@@ -26,6 +25,12 @@ const MAX_FLUSH_BYTES: u32 = 16;
 /// (Linux's i8042_controller_check makes the same call). A refused read
 /// proves nothing either way and answers true.
 pub fn flush_output(grant_id: u64) -> bool {
+    flush_keys(grant_id, &mut |_| {})
+}
+
+/// As `flush_output`, but a keyboard byte goes to `keys` instead of away:
+/// once the serve loop runs, it is a keystroke, not stale.
+pub(super) fn flush_keys(grant_id: u64, keys: &mut dyn FnMut(u8)) -> bool {
     for _ in 0..MAX_FLUSH_BYTES {
         let mut status: u32 = 0;
         if mk_pio_read(grant_id, STATUS_OFFSET, 1, &mut status) < 0 {
@@ -34,8 +39,11 @@ pub fn flush_output(grant_id: u64) -> bool {
         if (status as u8) & STATUS_OUTPUT_FULL == 0 {
             return true;
         }
-        let mut sink: u32 = 0;
-        let _ = mk_pio_read(grant_id, DATA_OFFSET, 1, &mut sink);
+        let mut byte: u32 = 0;
+        let read = mk_pio_read(grant_id, DATA_OFFSET, 1, &mut byte) >= 0;
+        if read && (status as u8) & STATUS_AUX_DATA == 0 {
+            keys(byte as u8);
+        }
     }
     false
 }

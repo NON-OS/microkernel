@@ -55,7 +55,8 @@ impl MouseRing {
         if self.head == self.tail {
             return None;
         }
-        let ev = self.buf[self.head];
+        // Taken, not copied: a delivered event is not kept (plan/50 C8).
+        let ev = core::mem::replace(&mut self.buf[self.head], EMPTY);
         self.head = (self.head + 1) % MOUSE_RING_CAPACITY;
         Some(ev)
     }

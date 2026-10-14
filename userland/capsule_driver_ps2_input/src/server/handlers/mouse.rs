@@ -24,7 +24,7 @@ pub fn handle(ctx: &mut Context, req: &Request, tx: &mut [u8]) {
     drain(
         ctx.driver.pio_grant_id,
         &mut ctx.drainer,
-        &mut ctx.ring,
+        &mut ctx.counters,
         &mut ctx.mouse,
         &mut ctx.mouse_ring,
         ctx.driver.mouse_enabled,

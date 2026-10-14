@@ -43,8 +43,7 @@ pub fn spawn_driver_i2c_pci_capsule() -> Result<(), SpawnError> {
             | Capability::Memory.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
-            | Capability::Mmio.bit()
-            | Capability::Irq.bit(),
+            | Capability::Mmio.bit(),
         debug_tag: b"[DRIVER-I2C-PCI] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

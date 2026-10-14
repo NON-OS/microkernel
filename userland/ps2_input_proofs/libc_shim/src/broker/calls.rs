@@ -18,7 +18,7 @@
 //! test can tell them apart.
 
 use super::table::{acknowledge, record_release};
-use super::types::{IrqBindOut, PioGrantOut, IRQ_GRANT_BASE, PIO_GRANT};
+use super::types::{IrqBindOut, IrqPollOut, PioGrantOut, IRQ_GRANT_BASE, PIO_GRANT};
 
 pub fn mk_device_claim(_device_id: u64) -> i64 {
     1
@@ -32,7 +32,14 @@ pub fn mk_pio_grant(_dev: u64, _epoch: u64, _bar: u8, _flags: u32, out: *mut Pio
     0
 }
 
-pub fn mk_irq_bind(_dev: u64, _epoch: u64, line: u32, _f: u32, _n: u32, out: *mut IrqBindOut) -> i64 {
+pub fn mk_irq_bind(
+    _dev: u64,
+    _epoch: u64,
+    line: u32,
+    _f: u32,
+    _n: u32,
+    out: *mut IrqBindOut,
+) -> i64 {
     /*
      * SAFETY: the driver passes a reference to a live IrqBindOut.
      */
@@ -50,6 +57,8 @@ pub fn mk_device_release(device_id: u64) -> i64 {
     0
 }
 
-pub fn mk_debug(_msg: *const u8, _len: usize) -> i64 {
+/// No line ever fires here: the serve loop's drain runs on every pass
+/// whatever the sequence says.
+pub fn mk_irq_poll(_grant_id: u64, _out: *mut IrqPollOut) -> i64 {
     0
 }

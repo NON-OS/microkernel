@@ -908,10 +908,9 @@ for phase_file in \
 done
 note ok "capsule_driver_i2c_pci setup phases roll back prior broker grants"
 
-if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x78018' userland/capsule_driver_i2c_pci/Capsule.mk ||
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x38018' userland/capsule_driver_i2c_pci/Capsule.mk ||
    ! grep -q 'mk_device_claim' userland/capsule_driver_i2c_pci/src/setup/claim.rs ||
    ! grep -q 'mk_mmio_map' userland/capsule_driver_i2c_pci/src/setup/mmio.rs ||
-   ! grep -q 'mk_irq_bind' userland/capsule_driver_i2c_pci/src/setup/irq.rs ||
    ! grep -q 'OP_REGISTER_SNAPSHOT' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
    ! grep -q 'OP_TRANSFER' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
    ! grep -q 'OP_PROBE' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
@@ -1248,10 +1247,10 @@ done
 note ok "capsule_driver_ps2_input setup phases roll back prior broker grants"
 
 if ! grep -q 'OP_CONTROLLER_STATUS' userland/capsule_driver_ps2_input/src/protocol/ops.rs ||
-   ! grep -q 'CONTROLLER_STATUS_PAYLOAD_LEN: usize = 28' userland/capsule_driver_ps2_input/src/protocol/limits.rs ||
+   ! grep -q 'CONTROLLER_STATUS_PAYLOAD_LEN: usize = 16' userland/capsule_driver_ps2_input/src/protocol/limits.rs ||
    ! grep -q 'controller_status::handle' userland/capsule_driver_ps2_input/src/server/runner/run.rs ||
    ! grep -q 'STATUS_OFFSET' userland/capsule_driver_ps2_input/src/server/handlers/controller_status.rs ||
-   ! grep -q 'ctx.ring.queued' userland/capsule_driver_ps2_input/src/server/handlers/controller_status.rs; then
+   ! grep -q 'ctx.mouse_ring.queued' userland/capsule_driver_ps2_input/src/server/handlers/controller_status.rs; then
     fail_with "capsule_driver_ps2_input must expose brokered i8042 status and ring telemetry"
 else
     note ok "capsule_driver_ps2_input exposes brokered i8042 status and ring telemetry"
@@ -2590,8 +2589,10 @@ unset compositor_ops compositor_focus compositor_input
 ps2_cap_gate='src/hardware/ps2_kbd_capsule/capability.rs'
 ps2_error='src/hardware/ps2_kbd_capsule/error.rs'
 ps2_runner='userland/capsule_driver_ps2_input/src/server/runner/run.rs'
-if [ ! -f "${ps2_cap_gate}" ] || [ ! -f "${ps2_error}" ] || [ ! -f "${ps2_runner}" ]; then
-    fail_with "Phase-5 input proof sources missing (ps2 capability/error/runner)"
+ps2_post='userland/capsule_driver_ps2_input/src/keymap/post.rs'
+if [ ! -f "${ps2_cap_gate}" ] || [ ! -f "${ps2_error}" ] || [ ! -f "${ps2_runner}" ] || \
+        [ ! -f "${ps2_post}" ]; then
+    fail_with "Phase-5 input proof sources missing (ps2 capability/error/runner/post)"
 elif ! grep -q 'CAP_DRIVER' "${ps2_cap_gate}"; then
     fail_with "${ps2_cap_gate} must gate calls on CAP_DRIVER"
 elif ! grep -q 'AccessDenied' "${ps2_cap_gate}"; then
@@ -2600,12 +2601,16 @@ elif ! grep -q 'AccessDenied' "${ps2_error}"; then
     fail_with "${ps2_error} must carry AccessDenied err-name mapping"
 elif ! grep -q 'mk_ipc_recv(0' "${ps2_runner}"; then
     fail_with "${ps2_runner} must receive requests through mk_ipc_recv"
-elif ! grep -q 'OP_POLL_EVENTS' "${ps2_runner}"; then
-    fail_with "${ps2_runner} must route OP_POLL_EVENTS in driver loop"
+elif ! grep -q 'OP_POLL_MOUSE' "${ps2_runner}"; then
+    fail_with "${ps2_runner} must route OP_POLL_MOUSE in driver loop"
+elif ! grep -q 'mk_input_event_post' "${ps2_post}"; then
+    fail_with "${ps2_post} must post each key to the kernel input ring (mk_input_event_post)"
+elif grep -rq 'OP_POLL_EVENTS' userland/capsule_driver_ps2_input/src; then
+    fail_with "capsule_driver_ps2_input must not serve OP_POLL_EVENTS: a ring of typed scan codes is retained input (plan/50 C8)"
 else
     note ok "phase5 denied-cap and ps2 input event flow source markers present"
 fi
-unset ps2_cap_gate ps2_error ps2_runner
+unset ps2_cap_gate ps2_error ps2_runner ps2_post
 
 # Phase-6 desktop shell policy ownership: wallpaper/tray/notify/
 # spotlight policy and endpoint loop live in the desktop-shell capsule.

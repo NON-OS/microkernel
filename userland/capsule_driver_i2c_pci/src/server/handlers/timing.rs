@@ -5,7 +5,7 @@ use crate::server::respond;
 
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, out: &mut [u8]) {
     let values = [
-        driver.clock_hz,
+        driver.setup.clock_hz,
         driver.regs.read32(IC_SS_SCL_HCNT),
         driver.regs.read32(IC_SS_SCL_LCNT),
         driver.regs.read32(IC_FS_SCL_HCNT),

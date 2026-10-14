@@ -13,10 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod bind;
 mod bring_up_one;
+mod order;
+mod probe_pass;
 mod run;
 mod say;
+mod say_none;
+mod settle;
+mod sweep;
 mod unlisted_gate;
 
 pub use run::run;
-pub use say::say_no_controller;
+pub use say_none::say_no_controller;

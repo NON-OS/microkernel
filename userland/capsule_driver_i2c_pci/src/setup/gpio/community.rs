@@ -52,5 +52,10 @@ pub(super) fn map(rec: &DeviceRecord, epoch: u64, bar: u8) -> Option<(Regs, u64)
         let _ = mk_device_release(rec.device_id);
         return None;
     }
-    Some((Regs::new(out.user_va), out.length))
+    /*
+     * SAFETY: the broker mapped `out.length` bytes at `out.user_va` for this
+     * capsule, dword aligned, and keeps them mapped while the claim is held;
+     * the doorbell keeps the claim for the life of the driver.
+     */
+    Some((unsafe { Regs::new(out.user_va, out.length) }, out.length))
 }

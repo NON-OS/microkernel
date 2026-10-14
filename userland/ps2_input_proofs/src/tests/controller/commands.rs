@@ -52,10 +52,9 @@ impl Controller {
         match core::mem::replace(&mut self.pending, Pending::Nothing) {
             Pending::ConfigWrite => self.config = value,
             Pending::AuxWrite if self.aux_clock => {
-                if let Some(key) =
-                    self.keyboard.held.filter(|_| self.config & CONFIG_KBD_DISABLE == 0)
-                {
-                    self.output.push_back((key, false));
+                if self.config & CONFIG_KBD_DISABLE == 0 {
+                    let key = self.keyboard.held.or_else(|| self.keyboard.typed.take());
+                    self.output.extend(key.map(|k| (k, false)));
                 }
                 for byte in self.mouse.command(value) {
                     self.output.push_back((byte, true));
