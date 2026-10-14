@@ -23,8 +23,8 @@ use crate::autojoin_machine::{REJOIN_FIRST_MS, REJOIN_MAX_MS, WATCH_EVERY_MS};
 pub(super) fn lost_at(t: i64) -> Machine {
     let mut m = Machine::new();
     m.after_attempt(0, Step::Answered { index: 1, joined: true });
-    assert!(m.link_due(0) && !m.after_link(0, Some(true)));
-    assert!(m.after_link(t, Some(false)) && m.rejoining());
+    assert!(m.link_due(0) && !m.after_link(0, Some(true), false));
+    assert!(m.after_link(t, Some(false), false) && m.rejoining());
     m
 }
 
@@ -58,7 +58,7 @@ fn an_access_point_that_returns_is_joined_again_within_the_bound() {
     let waits: i64 = (0..REJOIN_ATTEMPTS).map(|n| (REJOIN_FIRST_MS << n).min(REJOIN_MAX_MS)).sum();
     assert!(t + WATCH_EVERY_MS - 10_000 <= waits + JOIN_WATCH_MS);
     // Joined again, the link is watched again, and a second loss rejoins.
-    assert!(m.after_link(t + 2 * LINK_EVERY_MS, Some(false)));
+    assert!(m.after_link(t + 2 * LINK_EVERY_MS, Some(false), false));
 }
 
 #[test]
@@ -69,7 +69,7 @@ fn an_access_point_that_never_returns_stops_the_attempts() {
     assert!(m.done() && !m.rejoining());
     assert_eq!(m.due(i64::MAX), Due::Nothing);
     // Still down: no new rejoin until a link is seen up (from Settings).
-    assert!(m.link_due(t) && !m.after_link(t, Some(false)));
-    assert!(!m.after_link(t + LINK_EVERY_MS, Some(true)));
-    assert!(m.after_link(t + 2 * LINK_EVERY_MS, Some(false)));
+    assert!(m.link_due(t) && !m.after_link(t, Some(false), false));
+    assert!(!m.after_link(t + LINK_EVERY_MS, Some(true), false));
+    assert!(m.after_link(t + 2 * LINK_EVERY_MS, Some(false), false));
 }
