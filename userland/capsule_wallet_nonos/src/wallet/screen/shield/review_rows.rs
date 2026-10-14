@@ -21,11 +21,8 @@
 
 use alloc::format;
 use alloc::string::String;
-use alloc::vec::Vec;
 
-use super::consts::ticker;
-use super::review_text::short;
-use crate::wallet::shield::actions::amount;
+pub use super::review_list::rows;
 use crate::wallet::state::shield_ui::*;
 
 /* Said before a self-settlement is confirmed, as the apps say it. */
@@ -45,8 +42,8 @@ pub fn lead(ui: &ShieldUi) -> &'static str {
             "The proof is built on this machine. A lander puts it on chain over a private \
              circuit and cannot see who pays whom or how much."
         }
-        _ if ui.to_meter => METER,
-        _ if ui.to_deposit.is_some() => DEPOSIT,
+        _ if ui.payee.to_meter => METER,
+        _ if ui.payee.to_deposit.is_some() => DEPOSIT,
         _ => {
             "The proof is built on this machine. The amount and the receiving address \
              become public when it settles."
@@ -54,7 +51,7 @@ pub fn lead(ui: &ShieldUi) -> &'static str {
     }
 }
 
-fn with(text: &str, coin: &str) -> String {
+pub(super) fn with(text: &str, coin: &str) -> String {
     if text.is_empty() {
         String::from("not reported")
     } else if text.contains(' ') {
@@ -64,52 +61,7 @@ fn with(text: &str, coin: &str) -> String {
     }
 }
 
-pub fn rows(ui: &ShieldUi) -> Vec<(&'static str, String)> {
-    let net = ("Network", String::from(crate::wallet::chain::current().name));
-    let coin = ticker(ui.asset);
-    if let (SHIELD_DEPOSIT | SHIELD_SETTLE, Some(r)) = (ui.from, &ui.review) {
-        let mut out = Vec::from([
-            (if r.approval { "Approve" } else { "Send" }, with(&r.amount, coin)),
-            ("Pool fee", with(&r.pool_fee, coin)),
-            ("Into the shield", with(&r.shielded, coin)),
-            ("Network fee, at most", with(&r.max_network_fee, "ETH")),
-        ]);
-        if !r.valid_for.is_empty() {
-            out.push(("Valid for", format!("{} s", r.valid_for)));
-        }
-        out.push(net);
-        return out;
-    }
-    let q = ui.quote.clone().unwrap_or_default();
-    let fees = [
-        ("Lander fee", with(&q.network_fee, coin)),
-        ("Protocol fee", with(&q.protocol_fee, coin)),
-        ("Total fee", with(&q.total_fee, coin)),
-    ];
-    let mut out = match ui.from {
-        SHIELD_SEND => {
-            Vec::from([("Pay privately", format!("{} {coin}", amount(ui))), ("To", short(&ui.to))])
-        }
-        _ => Vec::from([("Withdraw", format!("{} {coin}", amount(ui))), ("To", to_text(ui))]),
-    };
-    out.extend(fees);
-    out.push(("Proof", String::from("built on this machine")));
-    out.push(net);
-    out
-}
-
 const DEPOSIT: &str = "The proof is built on this machine. The amount and the order's deposit \
      address become public when it settles; the escrow holds it until the seller delivers.";
 const METER: &str = "The proof is built on this machine. The amount and the meter's address \
      become public when it settles; nothing ties them to this wallet's own address.";
-
-fn to_text(ui: &ShieldUi) -> String {
-    let to = ui.withdraw_to.as_deref().map(short).unwrap_or_default();
-    if ui.to_meter {
-        format!("the meter, {to}")
-    } else if ui.to_deposit.is_some() {
-        format!("the order's deposit address, {to}")
-    } else {
-        to
-    }
-}
