@@ -41,11 +41,11 @@ pub fn toggle_export(state: &mut State) -> EventOutcome {
     let mut secret = [0u8; 32];
     match export_secret(state.keyring_port, state.owner_pid, state.wallet_id, &mut secret) {
         Ok(()) => {
-            state.export_hex[0] = b'0';
-            state.export_hex[1] = b'x';
+            state.custody.export_hex[0] = b'0';
+            state.custody.export_hex[1] = b'x';
             for i in 0..32 {
-                state.export_hex[2 + i * 2] = HEX[(secret[i] >> 4) as usize];
-                state.export_hex[2 + i * 2 + 1] = HEX[(secret[i] & 0x0F) as usize];
+                state.custody.export_hex[2 + i * 2] = HEX[(secret[i] >> 4) as usize];
+                state.custody.export_hex[2 + i * 2 + 1] = HEX[(secret[i] & 0x0F) as usize];
             }
             secret.zeroize();
             state.export_active = true;
@@ -62,5 +62,5 @@ pub fn toggle_export(state: &mut State) -> EventOutcome {
 }
 
 fn wipe(state: &mut State) {
-    state.export_hex.zeroize();
+    state.custody.export_hex.zeroize();
 }

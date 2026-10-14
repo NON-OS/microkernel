@@ -34,10 +34,10 @@ pub fn recover_input(state: &mut State, code: u32) -> EventOutcome {
         return submit(state);
     }
     if code == KEY_BACKSPACE {
-        if state.recover_len > 0 {
-            state.recover_len -= 1;
+        if state.custody.recover_len > 0 {
+            state.custody.recover_len -= 1;
             // A removed character does not linger.
-            if let Some(b) = state.recover_buf.get_mut(state.recover_len) {
+            if let Some(b) = state.custody.recover_buf.get_mut(state.custody.recover_len) {
                 b.zeroize();
             }
         }
@@ -47,14 +47,16 @@ pub fn recover_input(state: &mut State, code: u32) -> EventOutcome {
     let lower = ch.to_ascii_lowercase();
     let is_letter = lower.is_ascii_lowercase();
     let is_space = ch == b' ';
-    if (is_letter || is_space) && state.recover_len < state.recover_buf.len() {
+    if (is_letter || is_space) && state.custody.recover_len < state.custody.recover_buf.len() {
         // Collapse doubled separators so word splitting stays unambiguous.
-        if is_space && (state.recover_len == 0 || state.recover_buf[state.recover_len - 1] == b' ')
+        if is_space
+            && (state.custody.recover_len == 0
+                || state.custody.recover_buf[state.custody.recover_len - 1] == b' ')
         {
             return EventOutcome::Idle;
         }
-        state.recover_buf[state.recover_len] = if is_space { b' ' } else { lower };
-        state.recover_len += 1;
+        state.custody.recover_buf[state.custody.recover_len] = if is_space { b' ' } else { lower };
+        state.custody.recover_len += 1;
     }
     EventOutcome::Repaint
 }
