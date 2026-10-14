@@ -28,8 +28,8 @@ pub(in crate::wallet::event) fn recovered(state: &mut State, indices: &[u16]) ->
         Ok(id) => match wallet_address(state.vault.keyring_port, state.vault.owner_pid, id) {
             Ok(addr) => {
                 state.vault.wallet_id = id;
-                state.address = addr;
-                state.address_ready = true;
+                state.acct.address = addr;
+                state.acct.address_ready = true;
                 state.recover_active = false;
                 state.status = b"wallet recovered";
                 super::super::locking::keep::keep(state, false);

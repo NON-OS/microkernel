@@ -34,7 +34,7 @@ pub(in crate::wallet::event) fn finish(state: &mut State, finished: Finished) ->
         }
         Finished::Snapshot { snap, address, chain, host } => {
             /* Asked for an account or a network no longer open. */
-            if address != state.address || chain != crate::wallet::chain::current().id {
+            if address != state.acct.address || chain != crate::wallet::chain::current().id {
                 return false;
             }
             match snap {
@@ -62,7 +62,7 @@ pub(in crate::wallet::event) fn finish(state: &mut State, finished: Finished) ->
             }
         }
         Finished::Follow { followed, address, chain } => {
-            let here = address == state.address && chain == crate::wallet::chain::current().id;
+            let here = address == state.acct.address && chain == crate::wallet::chain::current().id;
             let changed = match followed {
                 Some(f) if here => followed_now(state, f),
                 _ => false,
