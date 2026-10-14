@@ -20,10 +20,10 @@
 //! blocked with CFI clear.
 
 use super::super::error::{IoApicError, IoApicResult};
-use super::super::mmio::redtbl_write;
+use super::super::mmio::{redtbl_read, redtbl_write};
 use super::super::ops_helpers::locate;
 use super::super::types::Rte;
-use crate::arch::x86_64::iommu::remap::{remappable, route_entry, Route};
+use crate::arch::x86_64::iommu::remap::{handle_of, release_msi, remappable, route_entry, Route};
 use crate::memory::proof::{self, CapTag};
 
 /// Returns the remapping entry; the broker's grant gives it back.
@@ -37,7 +37,15 @@ pub(super) fn program_remapped(gsi: u32, rte: Rte) -> IoApicResult<u16> {
     let (low, high) = remappable(handle, rte.vector, rte.level_trigger, rte.active_low);
     // SAFETY: eK@nonos.systems - the chip's registers were mapped at init and
     // `idx` lies within its redirections; the entry is written masked.
-    unsafe { redtbl_write(chip.mmio, idx, low, high) };
+    let (back_low, back_high) = unsafe {
+        redtbl_write(chip.mmio, idx, low, high);
+        redtbl_read(chip.mmio, idx)
+    };
+    // An IO-APIC that drops the format bit would send compatibility format.
+    if handle_of(back_low, back_high) != Some(handle) {
+        let _ = release_msi(handle);
+        return Err(IoApicError::NotRemapped);
+    }
     proof::audit_phys_alloc(
         ((gsi as u64) << 32) | rte.vector as u64,
         handle as u64,
