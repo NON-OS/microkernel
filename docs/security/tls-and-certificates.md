@@ -11,7 +11,7 @@ Nine capsules link it:
 | Capsule | What it reaches | Entry point |
 |---|---|---|
 | `app.browser` | web pages | `HandshakeState::answer`, `userland/capsule_browser/src/browser/fetch/tls/verify_and_send.rs:36` |
-| `app.nonos_wallet` | the chain's RPC host | `answer`, `userland/capsule_wallet_nonos/src/wallet/net/step/exchange.rs:303` |
+| `app.nonos_wallet` | the chain's RPC host | `answer`, `userland/capsule_wallet_nonos/src/wallet/net/step/exchange/check.rs:52` |
 | `app.terminal` | `http` with an `https://` URL, and `git clone` | `answer`, `userland/capsule_terminal/src/mixnet/exchange/tls.rs:70` |
 | `app.terminal` | `git push` | `exchange`, `userland/capsule_terminal/src/git/transport/round_trip.rs:60` |
 | `tool.model-fetch` | model files at a mirror | `connect`, `userland/capsule_model_fetch/src/http/open.rs:45` |
@@ -168,7 +168,7 @@ Not tested in this release.
 What callers do when the clock cannot be read:
 
 - The shield refuses before the handshake, with `no clock to check the certificate against` (`run` in `userland/shield_core/src/net/tor/tls.rs:45-50`).
-- The wallet refuses with a message that starts `this machine's clock could not be read` (`NO_CLOCK` in `userland/capsule_wallet_nonos/src/wallet/net/step/exchange.rs:58-59`).
+- The wallet refuses with a message that starts `this machine's clock could not be read` (`NO_CLOCK` in `userland/capsule_wallet_nonos/src/wallet/net/step/exchange/said.rs:34-35`).
 - The browser runs the walk with zero and shows the refusal with `the clock could not be read` in place of the clock reading (`clock` in `userland/capsule_browser/src/browser/fetch/tls_reason.rs:79-82`).
 - The Terminal, the model download, the audio player and `net.nym` pass zero to the walk, which refuses every chain.
 
