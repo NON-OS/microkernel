@@ -66,7 +66,7 @@ pub(super) fn finish(state: &mut State, plan: Plan, ended: Ended) {
             state.scroll = 0;
         }
         Ok(d) => {
-            state.stake_draft = Some(d);
+            state.stake.draft = Some(d);
             state.failure = None;
             state.scroll = 0;
         }

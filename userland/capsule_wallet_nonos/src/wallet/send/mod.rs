@@ -27,6 +27,7 @@ pub mod gas;
 pub mod outcome;
 pub mod sent;
 pub mod stake;
+mod stake_calls;
 pub mod text;
 
 pub use confirm::{follow, held_back, sign, sign_draft};
