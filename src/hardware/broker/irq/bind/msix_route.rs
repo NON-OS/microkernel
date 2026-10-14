@@ -36,8 +36,16 @@ pub(super) fn program_routed(
     n: usize,
 ) -> Result<Vec<u16>, IrqBindError> {
     let dest = dest_apic_id()?;
-    let routed: Vec<Routed> =
-        (0..n).map(|i| route(&handle.address, base_vector + i as u8, dest)).collect();
+    let mut routed: Vec<Routed> = Vec::with_capacity(n);
+    for i in 0..n {
+        match route(&handle.address, base_vector + i as u8, dest) {
+            Ok(r) => routed.push(r),
+            Err(e) => {
+                routed.iter().for_each(|r| release(r.irte));
+                return Err(e);
+            }
+        }
+    }
     let messages: Vec<MsiMessage> = routed.iter().map(|r| r.msg).collect();
     if let Err(e) = current_ops().program_run(&handle.address, msix, &handle.bars, &messages) {
         routed.iter().for_each(|r| release(r.irte));
