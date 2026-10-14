@@ -48,12 +48,12 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     let mut y = lead(fb, c, LEAD);
     y = facts(state, fb, c, y);
     let rows: [(&str, bool); 6] = [
-        (ROWS[0], state.address_ready),
+        (ROWS[0], state.acct.address_ready),
         (ROWS[1], true),
         (ROWS[2], true),
-        (ROWS[3], state.address_ready),
-        (ROWS[4], state.address_ready),
-        (ROWS[5], state.address_ready),
+        (ROWS[3], state.acct.address_ready),
+        (ROWS[4], state.acct.address_ready),
+        (ROWS[5], state.acct.address_ready),
     ];
     let mut at = [Rect::new(0, 0, 0, 0); 6];
     y += quiet_group(fb, c.x, y, c.w, &rows, &mut at);

@@ -29,10 +29,10 @@ pub fn words(state: &mut State) {
     /* A wallet recorded as from a key has no words, whatever a words file
      * left by an earlier wallet holds: it is never opened beside this key. */
     if crate::wallet::vault::recall_kind() == Some(true) {
-        state.words = WORDS_NONE;
+        state.acct.words = WORDS_NONE;
         return;
     }
-    state.words = match crate::wallet::vault::recall_words(
+    state.acct.words = match crate::wallet::vault::recall_words(
         state.vault.keyring_port,
         state.vault.owner_pid,
         root,

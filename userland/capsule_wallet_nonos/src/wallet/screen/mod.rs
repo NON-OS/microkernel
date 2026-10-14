@@ -36,6 +36,8 @@ pub mod publisher;
 pub mod purchase;
 pub mod receive;
 pub mod receive_address;
+mod receive_body;
+mod receive_words;
 pub mod settings;
 pub mod shield;
 pub mod stake;

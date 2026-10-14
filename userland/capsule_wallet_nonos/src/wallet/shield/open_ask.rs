@@ -26,7 +26,7 @@ pub fn open(state: &mut State) {
         state.shield_ui.failure = Some(String::from(ELSEWHERE));
         return;
     }
-    if !state.address_ready {
+    if !state.acct.address_ready {
         state.shield_ui.failure = Some(String::from(NO_ACCOUNT));
         return;
     }

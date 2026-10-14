@@ -46,7 +46,7 @@ pub fn retry_due(state: &mut State) -> bool {
     match state.shield_ui.retry_at_ms {
         Some(at) if mk_uptime_ms() >= at && state.shield_ui.waiting.is_none() => {
             state.shield_ui.retry_at_ms = None;
-            if here() && state.address_ready {
+            if here() && state.acct.address_ready {
                 probe_then_open(state);
             }
             true

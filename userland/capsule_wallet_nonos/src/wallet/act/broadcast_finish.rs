@@ -41,7 +41,7 @@ pub(super) fn finish(
     state.status = said(purpose, result);
     /* Sent from an account or a network no longer open: said, and its
      * receipt is not followed against the one open now. */
-    if address != state.address || chain != crate::wallet::chain::current().id {
+    if address != state.acct.address || chain != crate::wallet::chain::current().id {
         return;
     }
     record(state, purpose, result, chain, address);

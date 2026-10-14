@@ -38,7 +38,7 @@ pub fn keep(state: &mut State, from_key: bool) {
     crate::wallet::state::forget_live(state);
     crate::wallet::shield::open::forget_account(state);
     crate::wallet::accounts::reset_root(state);
-    state.words = if from_key { WORDS_NONE } else { WORDS_HELD };
+    state.acct.words = if from_key { WORDS_NONE } else { WORDS_HELD };
     /* A boot that keeps nothing writes nothing: a cleared vault would still
      * reach the stick there, and the new one never would. */
     let kept = if crate::wallet::vault::persistent() {

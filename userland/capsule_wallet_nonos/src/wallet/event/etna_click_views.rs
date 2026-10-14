@@ -51,7 +51,7 @@ pub(super) fn home(state: &mut State, press: Press) -> EventOutcome {
         Press::Send => screen::pay::click::open(state),
         Press::Receive => {
             /* Private by default only where the shield runs. */
-            state.receive_private = crate::wallet::chain::current().shield;
+            state.acct.receive_private = crate::wallet::chain::current().shield;
             crate::wallet::shield::open::ensure(state);
             go(state, VIEW_RECEIVE)
         }

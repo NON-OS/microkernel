@@ -36,18 +36,18 @@ pub struct Account {
 
 /* A new phrase or key became account 0: forget the old list. */
 pub fn reset_root(state: &mut State) {
-    state.accounts =
-        Vec::from([Account { index: 0, id: state.vault.wallet_id, address: state.address }]);
-    state.account_open = 0;
-    state.accounts_owed = None;
+    state.acct.list =
+        Vec::from([Account { index: 0, id: state.vault.wallet_id, address: state.acct.address }]);
+    state.acct.open = 0;
+    state.acct.owed = None;
 }
 
 pub fn root_id(state: &State) -> u32 {
-    state.accounts.first().map_or(state.vault.wallet_id, |a| a.id)
+    state.acct.list.first().map_or(state.vault.wallet_id, |a| a.id)
 }
 
 pub fn ensure_root(state: &mut State) {
-    if state.accounts.is_empty() && state.address_ready {
+    if state.acct.list.is_empty() && state.acct.address_ready {
         reset_root(state);
     }
 }

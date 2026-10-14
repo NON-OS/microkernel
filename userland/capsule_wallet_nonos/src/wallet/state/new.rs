@@ -19,14 +19,12 @@ use super::types::State;
 pub fn new_state() -> State {
     State {
         vault: super::vault_state::VaultState::default(),
-        address: [0; 20],
-        address_ready: false,
+        acct: super::account_set::AccountSet::new(),
         reads: super::chain_reads::ChainReads::default(),
         view: super::types::VIEW_HOME,
         scroll: 0,
         custody_armed: false,
         recover_shown: false,
-        words: super::types::WORDS_UNREAD,
         failure: None,
         proof_count: 0,
         proof_eth_hash: [0; 32],
@@ -68,11 +66,5 @@ pub fn new_state() -> State {
         shield_ui: super::shield_ui::ShieldUi::default(),
         meter: crate::wallet::meter::MeterUi::default(),
         publisher: crate::wallet::publish::PublisherUi::default(),
-        accounts: alloc::vec::Vec::new(),
-        /* Mainnet is picked at start, and it has no shield pool. */
-        receive_private: false,
-        account_open: 0,
-        accounts_owed: None,
-        accounts_retry_at: 0,
     }
 }

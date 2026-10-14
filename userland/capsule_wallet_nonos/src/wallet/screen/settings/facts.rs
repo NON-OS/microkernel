@@ -39,7 +39,7 @@ pub(super) fn facts(state: &State, fb: &mut PaintBuffer, c: Rect, mut y: u32) ->
     let picked = Some(chain::is_sepolia() as u8);
     y += chips(fb, c, y, &["Ethereum mainnet", "Sepolia"], picked, Press::Network) + GAP;
     let address = crate::wallet::screen::receive_address::address_text(state);
-    let shown = if state.address_ready {
+    let shown = if state.acct.address_ready {
         crate::wallet::etna::groups::shortened(&address)
     } else {
         alloc::string::String::from("none yet")

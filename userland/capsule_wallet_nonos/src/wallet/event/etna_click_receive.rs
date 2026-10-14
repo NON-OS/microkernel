@@ -27,7 +27,7 @@ use crate::wallet::state::{State, VIEW_HOME};
 pub(super) fn receive(state: &mut State, press: Press) -> EventOutcome {
     match press {
         Press::Footer(0) => {
-            let private = state.receive_private && crate::wallet::shield::open::here();
+            let private = state.acct.receive_private && crate::wallet::shield::open::here();
             let copied = match (&state.shield_ui.nox1, private) {
                 (Some(nox1), true) => clipboard_copy(nox1.as_bytes()),
                 /* The private address is shown as not ready: the public one
@@ -47,8 +47,8 @@ pub(super) fn receive(state: &mut State, press: Press) -> EventOutcome {
             EventOutcome::Repaint
         }
         Press::Footer(1) => {
-            state.receive_private = !state.receive_private;
-            if state.receive_private {
+            state.acct.receive_private = !state.acct.receive_private;
+            if state.acct.receive_private {
                 crate::wallet::shield::open::ensure(state);
             }
             state.scroll = 0;

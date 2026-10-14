@@ -55,8 +55,8 @@ pub fn etna_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
     match state.view {
         VIEW_IMPORT | VIEW_RECOVER | VIEW_EXPORT => screen::custody::click::click(state, press),
         VIEW_SETTINGS => screen::settings::click::click(state, press),
-        VIEW_ACCOUNTS if state.address_ready => screen::accounts::click::click(state, press),
-        _ if !state.address_ready => welcome(state, press),
+        VIEW_ACCOUNTS if state.acct.address_ready => screen::accounts::click::click(state, press),
+        _ if !state.acct.address_ready => welcome(state, press),
         VIEW_SHIELD => screen::shield::click::click(state, press),
         VIEW_METER => screen::meter::click::click(state, press),
         VIEW_PUBLISHER => screen::publisher::click::click(state, press),

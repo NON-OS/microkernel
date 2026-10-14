@@ -37,7 +37,7 @@ pub fn parts(state: &State) -> Vec<&'static str> {
     }
     /* "reading" only while a refresh runs: one that ended without the
      * balance says so, rather than reading for ever. */
-    let wallet = state.address_ready;
+    let wallet = state.acct.address_ready;
     let refreshing = state.net.job.is_some();
     out.extend(super::status_words::reading(wallet, refreshing, state.reads.balance_ready));
     out.extend(super::status_words::kept(wallet, state.vault.saved));

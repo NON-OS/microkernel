@@ -24,8 +24,8 @@ pub(super) fn adopt(state: &mut State, id: u32) {
     match wallet_address(state.vault.keyring_port, state.vault.owner_pid, id) {
         Ok(addr) => {
             state.vault.wallet_id = id;
-            state.address = addr;
-            state.address_ready = true;
+            state.acct.address = addr;
+            state.acct.address_ready = true;
             state.vault.saved = true;
             state.status = b"wallet restored from this machine";
             crate::wallet::accounts::restore(state);

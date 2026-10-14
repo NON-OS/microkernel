@@ -48,7 +48,7 @@ pub fn sign_attest(
         );
     }
     let a = attest_of(&Kec, e, release, chain).map_err(why)?;
-    let words = attest_words(&Kec, &s.address, &e.publisher_pubkey, &a)
+    let words = attest_words(&Kec, &s.acct.address, &e.publisher_pubkey, &a)
         .map_err(|_| why(Refused::NotOurBond))?;
     let at = attest_sig_path(path, &e.releases[release].release_id)
         .ok_or("that release id cannot name a file")?;

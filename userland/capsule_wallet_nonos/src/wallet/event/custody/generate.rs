@@ -36,8 +36,8 @@ pub fn generate(state: &mut State) -> EventOutcome {
     match wallet_address(state.vault.keyring_port, state.vault.owner_pid, id) {
         Ok(addr) => {
             state.vault.wallet_id = id;
-            state.address = addr;
-            state.address_ready = true;
+            state.acct.address = addr;
+            state.acct.address_ready = true;
             state.view = crate::wallet::state::VIEW_RECEIVE;
             /*
              * Show the one-time backup screen before anything else; the words

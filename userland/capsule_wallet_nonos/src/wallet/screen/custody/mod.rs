@@ -13,11 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod cancel;
 pub mod click;
 mod export;
 mod frame;
 mod import;
+mod open;
 mod recover;
 mod show;
+mod submit;
 
 pub use show::show;

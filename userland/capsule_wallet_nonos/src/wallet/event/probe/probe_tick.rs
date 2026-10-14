@@ -40,11 +40,11 @@ pub fn probe_tick(state: &mut State, due: bool) -> EventOutcome {
         }
         state.net.probe_step = 0;
         let chain = crate::wallet::chain::current().id;
-        let open = state.broadcast.sent.open(chain, &state.address);
+        let open = state.broadcast.sent.open(chain, &state.acct.address);
         state.net.job = Some(if open.is_empty() {
             account_job(state)
         } else {
-            Job::follow(open, &state.address)
+            Job::follow(open, &state.acct.address)
         });
     }
     let Some(finished) = state.net.job.as_mut().and_then(Job::step) else {
@@ -58,7 +58,7 @@ pub fn probe_tick(state: &mut State, due: bool) -> EventOutcome {
 pub(in crate::wallet::event) fn account_job(state: &State) -> Job {
     /* A host is read from only once it answered this network's chain id. */
     if state.net.link.rpc_chain_ok && state.net.link.rpc_host == crate::wallet::chain::rpc_host() {
-        Job::snapshot(&state.address)
+        Job::snapshot(&state.acct.address)
     } else {
         Job::probe()
     }

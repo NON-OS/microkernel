@@ -26,7 +26,7 @@ use open_words_key::open_key;
 pub(super) fn from_words(state: &mut State, account: &str) {
     state.shield_ui.opened = false;
     /* Words not read yet are read again first; the key never stands in. */
-    if state.words == WORDS_UNREAD {
+    if state.acct.words == WORDS_UNREAD {
         crate::wallet::accounts::words(state);
     }
     let (port, owner, wallet) =
@@ -40,8 +40,8 @@ pub(super) fn from_words(state: &mut State, account: &str) {
         /* Only a wallet from a key opens from it: its nox1 is the key's.
          * A wallet with words opened from its key would get an address
          * its words could not restore. */
-        Err(NO_KEYRING) if state.words == WORDS_NONE => open_key(state, account),
-        Err(NO_KEYRING) if state.words == WORDS_UNREAD => {
+        Err(NO_KEYRING) if state.acct.words == WORDS_NONE => open_key(state, account),
+        Err(NO_KEYRING) if state.acct.words == WORDS_UNREAD => {
             later(state);
             state.shield_ui.failure = Some(String::from(WORDS_UNREAD_YET));
         }

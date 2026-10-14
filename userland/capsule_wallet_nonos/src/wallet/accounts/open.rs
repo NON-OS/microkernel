@@ -21,16 +21,16 @@ use crate::wallet::state::State;
 /* Open the account at `at` in the list: every screen reads it from now on.
  * False when the store would not keep it as the open one for the next boot. */
 pub fn switch(state: &mut State, at: usize) -> bool {
-    let Some(account) = state.accounts.get(at).copied() else { return true };
-    if at as u8 == state.account_open && state.vault.wallet_id == account.id {
+    let Some(account) = state.acct.list.get(at).copied() else { return true };
+    if at as u8 == state.acct.open && state.vault.wallet_id == account.id {
         return true;
     }
     /* Nothing of the last account's shield stays: its store, its history
      * and the spend it followed belong to that account. */
     crate::wallet::shield::open::forget_account(state);
     state.vault.wallet_id = account.id;
-    state.address = account.address;
-    state.account_open = at as u8;
+    state.acct.address = account.address;
+    state.acct.open = at as u8;
     crate::wallet::state::forget_live(state);
     save(state)
 }
@@ -38,6 +38,6 @@ pub fn switch(state: &mut State, at: usize) -> bool {
 /* Keep the list across reboots, beside the vault. False when the store
  * would not take it. */
 pub fn save(state: &State) -> bool {
-    let count = state.accounts.len().max(1) as u8;
-    crate::wallet::vault::remember_accounts(count, state.account_open.min(count - 1)).is_ok()
+    let count = state.acct.list.len().max(1) as u8;
+    crate::wallet::vault::remember_accounts(count, state.acct.open.min(count - 1)).is_ok()
 }

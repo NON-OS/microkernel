@@ -20,8 +20,8 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::wallet::screen;
 use crate::wallet::state::{
-    State, VIEW_EXPORT, VIEW_IMPORT, VIEW_NOX, VIEW_RECEIVE, VIEW_RECOVER, VIEW_SEND,
-    VIEW_ACCOUNTS, VIEW_METER, VIEW_PUBLISHER, VIEW_PURCHASE, VIEW_SETTINGS, VIEW_SHIELD, VIEW_SWAP,
+    State, VIEW_ACCOUNTS, VIEW_EXPORT, VIEW_IMPORT, VIEW_METER, VIEW_NOX, VIEW_PUBLISHER,
+    VIEW_PURCHASE, VIEW_RECEIVE, VIEW_RECOVER, VIEW_SEND, VIEW_SETTINGS, VIEW_SHIELD, VIEW_SWAP,
 };
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
@@ -33,7 +33,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if state.backup_active {
         return screen::backup::backup(state, fb);
     }
-    match (state.view, state.address_ready) {
+    match (state.view, state.acct.address_ready) {
         (VIEW_IMPORT | VIEW_RECOVER | VIEW_EXPORT, _) => screen::custody::show(state, fb),
         (VIEW_SETTINGS, _) => screen::settings::show(state, fb),
         (VIEW_ACCOUNTS, true) => screen::accounts::show(state, fb),

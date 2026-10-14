@@ -25,12 +25,12 @@ const NO_KEYRING: &str = "The keyring did not answer for this account, so the wa
      locked. Try again in a moment.";
 
 pub fn unlock(state: &mut State) -> EventOutcome {
-    if !state.address_ready {
+    if !state.acct.address_ready {
         state.locked = false;
         return EventOutcome::Repaint;
     }
     match wallet_address(state.vault.keyring_port, state.vault.owner_pid, state.vault.wallet_id) {
-        Ok(addr) if addr == state.address => {
+        Ok(addr) if addr == state.acct.address => {
             state.locked = false;
             state.failure = None;
             state.net.probe_step = 1;

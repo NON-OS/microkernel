@@ -47,8 +47,8 @@ pub(in crate::wallet::event) fn submit(state: &mut State) -> EventOutcome {
         Ok(id) => match wallet_address(state.vault.keyring_port, state.vault.owner_pid, id) {
             Ok(addr) => {
                 state.vault.wallet_id = id;
-                state.address = addr;
-                state.address_ready = true;
+                state.acct.address = addr;
+                state.acct.address_ready = true;
                 state.import_active = false;
                 state.status = b"wallet imported";
                 super::super::locking::keep::keep(state, true);

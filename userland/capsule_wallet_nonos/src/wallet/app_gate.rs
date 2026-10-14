@@ -34,7 +34,7 @@ impl Wallet {
         if self.hydrate_again() {
             return Some(true);
         }
-        if !self.state.address_ready {
+        if !self.state.acct.address_ready {
             return Some(false);
         }
         /* Left alone: the window locks by itself (`event::idle_lock`). The
@@ -44,17 +44,18 @@ impl Wallet {
             self.last_active = now;
         }
         let sending = self.state.action.is_some();
-        if super::event::locking::idle_lock::due(now, self.last_active, self.state.locked, sending) {
+        if super::event::locking::idle_lock::due(now, self.last_active, self.state.locked, sending)
+        {
             let _ = super::event::lock(&mut self.state);
             self.state.status = b"locked after five minutes without a press";
             return Some(true);
         }
         /* Accounts the list on disk names that did not come back at boot
          * are asked for again every few seconds until they do. */
-        if self.state.accounts_owed.is_some() {
+        if self.state.acct.owed.is_some() {
             let now = mk_uptime_ms();
-            if now >= self.state.accounts_retry_at {
-                self.state.accounts_retry_at = now + ACCOUNTS_RETRY_MS;
+            if now >= self.state.acct.retry_at {
+                self.state.acct.retry_at = now + ACCOUNTS_RETRY_MS;
                 super::accounts::resume(&mut self.state);
                 return Some(true);
             }
