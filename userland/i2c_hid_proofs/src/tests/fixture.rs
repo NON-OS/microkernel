@@ -17,7 +17,7 @@
 //! A controller service standing behind the HID driver's IPC calls, with a
 //! touchpad on the modelled bus.
 
-use i2c_transfer_proofs::bench::{driver, GEMINI_LAKE_HZ};
+use i2c_transfer_proofs::bench::{driver, unaddressed, GEMINI_LAKE_HZ};
 use i2c_transfer_proofs::regs::{self, Attached};
 use nonos_i2cmodel::{touchpad, Bus, Config, Designware, HidOverI2c, Shared};
 use nonos_libc::{serve, Served};
@@ -44,12 +44,18 @@ pub fn rig() -> Rig {
 }
 
 /// `device` on the bus, and `hint` as what the platform's ACPI named: the
-/// device address and its descriptor register, or nothing at all.
+/// device address and its descriptor register, or None for a pad declared
+/// on this controller with its address left for the firmware to fill in at
+/// run time, which the controller finds by its sweep.
 pub fn rig_with(device: HidOverI2c, hint: Option<(u8, u16)>) -> Rig {
     let pad = Shared::new(device);
     let attached = regs::attach(Designware::new(Config::LPSS, Bus::default().with(pad.clone())));
-    let controller = driver(GEMINI_LAKE_HZ, hint.map_or(0, |h| h.0)).expect("controller bring-up");
-    let served = serve(move |req, resp| service(&controller, hint, req, resp));
+    let controller = match hint {
+        Some((addr, _)) => driver(GEMINI_LAKE_HZ, addr),
+        None => unaddressed(GEMINI_LAKE_HZ),
+    };
+    let controller = controller.expect("controller bring-up");
+    let served = serve(move |req, resp| service(&controller, req, resp));
     Rig { pad, _served: served, _attached: attached }
 }
 

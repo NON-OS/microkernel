@@ -13,22 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::Deadline;
-
 use crate::constants::{ENABLE_TIMEOUT_MS, IC_ENABLE_STATUS};
 use crate::regs::Regs;
+use crate::transaction::pace::Pace;
 use crate::transaction::TransferError;
 
 pub fn wait_enable_state(regs: Regs, enabled: bool) -> Result<(), TransferError> {
-    let want = if enabled { 1 } else { 0 };
-    let deadline = Deadline::after_ms(ENABLE_TIMEOUT_MS);
+    let want = u32::from(enabled);
+    let mut pace = Pace::new(ENABLE_TIMEOUT_MS);
     loop {
         if regs.read32(IC_ENABLE_STATUS) & 1 == want {
             return Ok(());
         }
-        if deadline.expired() {
+        if !pace.wait() {
             return Err(TransferError::Timeout);
         }
-        core::hint::spin_loop();
     }
 }

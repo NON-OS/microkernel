@@ -17,15 +17,27 @@
 //! The bring-up against a modelled controller.
 
 mod controller;
+mod serving;
 mod shared;
 
+mod aux_failure_tests;
+mod flap_tests;
+mod frame_state_tests;
+mod frame_tests;
+mod held_key_tests;
 mod keyboard_tests;
 mod keymap_tests;
 mod keypad_tests;
+mod led_tests;
+mod lock_tests;
+mod mouse_queue_tests;
+mod mouse_sync_tests;
 mod mouse_tests;
 mod packet_tests;
+mod pause_tests;
 mod presence_tests;
+mod reinit_tests;
 mod sequence_fallback_tests;
 mod sequence_tests;
-mod aux_failure_tests;
-mod held_key_tests;
+mod sync_tests;
+mod system_key_tests;

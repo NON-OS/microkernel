@@ -13,14 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod bus_state;
 mod flags;
+mod narrow;
+mod reach;
 mod result_empty;
 mod transfer_error;
 mod transfer_request;
 mod transfer_result;
 mod valid_lengths;
 
+pub use bus_state::{BusState, RECOVER_AFTER};
 pub use flags::FLAG_RESTART_ON_READ;
+pub use reach::Reach;
 pub use transfer_error::TransferError;
 pub use transfer_request::TransferRequest;
 pub use transfer_result::TransferResult;

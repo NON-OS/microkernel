@@ -5,8 +5,7 @@ use nonos_libc::mk_ipc_recv_from;
 use crate::driver::Driver;
 use crate::protocol::{
     parse, refused, E_BAD_OP, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX, OP_ACPI_HID, OP_CONTROLLER_INFO,
-    OP_GPIO_DOORBELL,
-    OP_HEALTHCHECK, OP_PROBE, OP_REGISTER_SNAPSHOT, OP_TIMING_INFO, OP_TRANSFER,
+    OP_GPIO_DOORBELL, OP_HEALTHCHECK, OP_PROBE, OP_REGISTER_SNAPSHOT, OP_TIMING_INFO, OP_TRANSFER,
 };
 use crate::server::{handlers, respond};
 

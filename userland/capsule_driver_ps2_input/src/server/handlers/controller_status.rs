@@ -41,9 +41,6 @@ pub fn handle(ctx: &mut Context, req: &Request, tx: &mut [u8]) {
     tx[o + 2] = ((status & STATUS_PARITY) != 0) as u8;
     tx[o + 3] = ((status & STATUS_TIMEOUT) != 0) as u8;
     o += 4;
-    put32(tx, &mut o, ctx.ring.queued() as u32);
-    put32(tx, &mut o, ctx.ring.head() as u32);
-    put32(tx, &mut o, ctx.ring.tail() as u32);
     put32(tx, &mut o, ((status & STATUS_AUX_DATA) != 0) as u32);
     put32(tx, &mut o, ctx.driver.mouse_enabled as u32);
     put32(tx, &mut o, ctx.mouse_ring.queued() as u32);
