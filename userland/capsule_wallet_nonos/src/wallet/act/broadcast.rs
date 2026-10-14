@@ -57,7 +57,7 @@ pub fn broadcast(state: &mut State, purpose: Purpose) -> bool {
         purpose,
         hash: state.tx.hash,
         chain,
-        address: state.address,
+        address: state.acct.address,
         exchange,
     });
     state.status = b"sending";

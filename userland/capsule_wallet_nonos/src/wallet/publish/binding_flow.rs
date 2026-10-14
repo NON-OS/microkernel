@@ -55,7 +55,7 @@ pub fn sign_binding(
     e: &MarketplaceEntry,
     chain: u64,
 ) -> Result<String, &'static str> {
-    let plan = binding_plan(&Kec, e, &s.address).map_err(why)?;
+    let plan = binding_plan(&Kec, e, &s.acct.address).map_err(why)?;
     let at = binding_sig_path(path).ok_or("that path cannot hold a signature")?;
     let sig = sign_typed(s, ENTRY_BINDING, &PUBLISHER_BINDING, &plan.words, chain)?;
     write_sig(s.vault.owner_pid, &at, &sig).map(|_| at)

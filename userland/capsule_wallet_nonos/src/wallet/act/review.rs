@@ -57,9 +57,10 @@ fn begin(state: &mut State, plan: Plan) -> Result<(), &'static str> {
     if let Some(why) = crate::wallet::send::held_back(state) {
         return Err(why);
     }
-    let gas = rpc::request_estimate_gas(&state.address, &plan.to, plan.value, &plan.data, ID_GAS);
+    let gas =
+        rpc::request_estimate_gas(&state.acct.address, &plan.to, plan.value, &plan.data, ID_GAS);
     let parts: [Vec<u8>; 4] = [
-        rpc::request_nonce(&state.address, ID_NONCE),
+        rpc::request_nonce(&state.acct.address, ID_NONCE),
         rpc::request_fee(ID_FEE),
         gas,
         rpc::request_fee_history(ID_HISTORY),
