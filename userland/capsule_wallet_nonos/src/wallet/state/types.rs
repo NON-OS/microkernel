@@ -18,25 +18,6 @@ pub use super::rail::Rail;
 pub use super::views::*;
 
 pub struct State {
-    /// Which token the trade pays out of, as an index into the token list.
-    pub swap_from: u8,
-    /// Which token the trade buys.
-    pub swap_to: u8,
-    /// Amount to pay, in the paying token's smallest unit.
-    pub swap_in: u128,
-    /// What the pool last said this trade returns.
-    pub swap_quote: crate::wallet::swap::Quote,
-    /// Slippage the reader will accept, in hundredths of a percent.
-    pub swap_slippage_bps: u32,
-    /// Zero while the router still needs an allowance, one once it has one.
-    pub swap_step: u8,
-    /// How many digits the reader has typed, so a correction knows what to
-    /// take back.
-    pub swap_digits: u32,
-    /// Digits typed after the point.
-    pub swap_places: u32,
-    /// Whether the reader has started a fraction.
-    pub swap_point: bool,
     pub keyring_port: u32,
     pub owner_pid: u32,
     pub wallet_id: u32,
@@ -157,6 +138,8 @@ pub struct State {
     pub broadcast: super::broadcast::BroadcastState,
     /// The route, its rails and the refresh under way (`net_view`).
     pub net: super::net_view::Network,
+    /// The swap form (`swap_form`).
+    pub swap: super::swap_form::SwapForm,
     /*
      * Live NOX token and staking readout from mainnet eth_call.
      */
@@ -199,6 +182,4 @@ pub struct State {
     /* WORDS_*: the shield opens from the words, and from the key only for
      * a wallet known to have come from one. */
     pub words: u8,
-    /* The Swap screen's no-price banner, dismissed until the amount changes. */
-    pub swap_note_hidden: bool,
 }

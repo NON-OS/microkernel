@@ -34,6 +34,7 @@ mod send_form;
 pub mod shield_log;
 pub mod shield_ui;
 mod signed_tx;
+mod swap_form;
 mod types;
 mod views;
 
