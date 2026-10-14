@@ -32,7 +32,7 @@ pub(in crate::wallet::event) fn draw(state: &mut State) -> Result<(u32, u8), i32
     let mut last_err = 0i32;
     for _ in 0..ATTEMPTS {
         let words = &mut state.custody.backup_words;
-        match generate_wallet_hd(state.keyring_port, state.owner_pid, words) {
+        match generate_wallet_hd(state.vault.keyring_port, state.vault.owner_pid, words) {
             Ok(drawn) => return Ok(drawn),
             Err(e) => last_err = e,
         }

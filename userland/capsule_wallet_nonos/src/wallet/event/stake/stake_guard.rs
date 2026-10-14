@@ -27,7 +27,7 @@ use super::stake_wei::stake_wei;
 /// the signature, and it has to say which condition failed or the reader is
 /// left guessing at a button that does nothing.
 pub fn refusal(state: &State) -> Option<&'static [u8]> {
-    if state.wallet_id == 0 {
+    if state.vault.wallet_id == 0 {
         return Some(b"generate or import a wallet first");
     }
     if state.stake.unstake == 1 {
