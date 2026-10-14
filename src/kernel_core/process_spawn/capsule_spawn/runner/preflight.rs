@@ -21,17 +21,7 @@ use crate::security::nonos_id_cert::{
 use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
 
 use super::super::spec::{CapsuleSpecVerified, SpawnError};
-use crate::security::capsule_attest::Proved;
-
-pub(crate) struct Preflighted {
-    /// What the spawn gate proved and who proved it, recorded once a pid
-    /// exists. `None` when nothing was proved.
-    pub proved: Option<Proved>,
-    pub install_caps: u64,
-    /// The publisher-signed identity of manifest and image, checked by
-    /// `verify_with_publisher`.
-    pub capsule_id: [u8; 32],
-}
+use super::preflighted::Preflighted;
 
 pub(crate) fn run(
     spec: &CapsuleSpecVerified,

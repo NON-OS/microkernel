@@ -18,6 +18,7 @@ mod attested_parent;
 mod from_vfs;
 mod instance;
 mod runner;
+mod spawn_error;
 mod spec;
 
 pub(crate) use attested_parent::AttestedParent;
