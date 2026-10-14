@@ -17,6 +17,7 @@ mod budget;
 mod check_abort;
 mod done;
 mod drain_rx;
+mod fill;
 mod presence;
 mod probe;
 mod probe_hid;

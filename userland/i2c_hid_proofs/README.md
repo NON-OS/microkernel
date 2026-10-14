@@ -12,10 +12,17 @@ request encoder and the pad's register file is a stand-in.
 
 ## What is proved
 
-Setup binds the pad the firmware named and reads its HID descriptor; without
-a hint the bus scan finds it; a wrong hint falls back to the scan; a pad at an
-address the scan never tries leaves the driver unbound and alive; no
-controller service is a refusal.
+Setup binds the pad the firmware named and reads its HID descriptor; a pad
+declared with no address, which firmware fills in at run time, is found at
+the address the controller's read-only sweep answered from; with a wrong
+hint the controller keeps every undeclared address out of reach and the scan
+writes to nothing; a pad at an address neither tries leaves the driver
+unbound and alive; no controller service is a refusal. The controller behind
+the HID driver answers `OP_ACPI_HID` with the address it bound, as the
+shipping handler does. A GPIO expander at 0x20 and a thermal sensor at 0x4C
+beside the pad are never addressed by the HID driver, whether the pad is found
+at 0x10 or 0x2C, stays silent, or sits where the sweep does not look
+(`bystander_tests`).
 
 Wake sends SET_POWER ON before RESET, and drains the zero-length report the
 specification says a reset device sends first, so the first poll sees a real

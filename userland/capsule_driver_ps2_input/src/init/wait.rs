@@ -24,6 +24,7 @@
 
 use nonos_libc::{mk_pio_read, Deadline};
 
+use super::pause::Pause;
 use crate::constants::{STATUS_INPUT_FULL, STATUS_OFFSET};
 
 /// The controller takes a command or data byte (input buffer empty).
@@ -46,6 +47,7 @@ pub enum WaitError {
 
 fn wait(grant_id: u64, timeout_ms: u64, done: impl Fn(u8) -> bool) -> Result<(), WaitError> {
     let deadline = Deadline::after_ms(timeout_ms);
+    let mut pause = Pause::new();
     loop {
         let mut status = 0u32;
         if mk_pio_read(grant_id, STATUS_OFFSET, 1, &mut status) < 0 {
@@ -57,7 +59,7 @@ fn wait(grant_id: u64, timeout_ms: u64, done: impl Fn(u8) -> bool) -> Result<(),
         if deadline.expired() {
             return Err(WaitError::Timeout);
         }
-        core::hint::spin_loop();
+        pause.wait();
     }
 }
 

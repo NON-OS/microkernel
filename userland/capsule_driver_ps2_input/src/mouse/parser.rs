@@ -17,21 +17,42 @@ use super::packet::parse;
 use super::ring::MouseRing;
 
 const MAX_PACKET: usize = 4;
+/// A part packet older than this is thrown away, as Linux psmouse_interrupt
+/// does. A packet's bytes come a millisecond apart, but they are stamped when
+/// read, so a capsule that waited for the processor keeps a good packet.
+const RESYNC_MS: u64 = 500;
+/// A mouse that reset (KVM switch, re-plug, EC reset) sends 0xAA, then 0x00.
+const BAT_OK: u8 = 0xAA;
+const MOUSE_ID: u8 = 0x00;
 
 pub struct MouseParser {
     buf: [u8; MAX_PACKET],
     index: usize,
     // 3 for a plain mouse, 4 once IntelliMouse scroll is negotiated.
     packet_len: usize,
+    /// When the last byte was read, in uptime milliseconds.
+    last_ms: u64,
+    /// The mouse reset and has to be brought up again.
+    reset: bool,
 }
+
 impl MouseParser {
     pub const fn new(wheel: bool) -> Self {
-        Self { buf: [0; MAX_PACKET], index: 0, packet_len: if wheel { 4 } else { 3 } }
+        let packet_len = if wheel { 4 } else { 3 };
+        Self { buf: [0; MAX_PACKET], index: 0, packet_len, last_ms: 0, reset: false }
     }
-    // Assemble one packet and queue it on the ring. Posting to the kernel input
-    // ring is done once, by the pump loop draining this ring; absorbing must not
-    // also post or every event reaches the kernel twice.
-    pub fn absorb(&mut self, byte: u8, ring: &mut MouseRing) {
+
+    // Assemble one packet and queue it. The pump loop posts what it drains
+    // from the ring; posting here as well would post every event twice.
+    pub fn absorb(&mut self, byte: u8, now_ms: u64, ring: &mut MouseRing) {
+        if self.index > 0 && now_ms.saturating_sub(self.last_ms) > RESYNC_MS {
+            (self.index, ring.sync_errors) = (0, ring.sync_errors.wrapping_add(1));
+        }
+        self.last_ms = now_ms;
+        if self.index == 1 && self.buf[0] == BAT_OK && byte == MOUSE_ID {
+            (self.index, self.reset) = (0, true);
+            return;
+        }
         if self.index == 0 && byte & 0x08 == 0 {
             ring.sync_errors = ring.sync_errors.wrapping_add(1);
             return;
@@ -45,5 +66,10 @@ impl MouseParser {
                 None => ring.sync_errors = ring.sync_errors.wrapping_add(1),
             }
         }
+    }
+
+    /// Whether the mouse has reset since the last time this was asked.
+    pub fn take_reset(&mut self) -> bool {
+        core::mem::take(&mut self.reset)
     }
 }

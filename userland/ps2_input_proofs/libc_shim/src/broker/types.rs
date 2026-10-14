@@ -51,3 +51,8 @@ pub struct IrqBindOut {
     pub grant_id: u64,
     pub vector: u64,
 }
+
+pub struct IrqPollOut {
+    pub seq: u64,
+    pub overflow: u64,
+}
