@@ -3,8 +3,8 @@
  * Copyright (C) 2026 NONOS Contributors (AGPL-3.0-or-later)
  */
 
-//! Forgetting saved networks, reading their flags, and sealing the list
-//! before vfs keeps it.
+//! Forgetting saved networks, reading and pinning their flags, and sealing
+//! the list before vfs keeps it.
 
 use nonos_libc::crypto_random;
 use nonos_seal::NONCE_LEN;
@@ -13,6 +13,7 @@ use super::error::SavedError;
 use super::file::{seal_file, FILE_LEN};
 use super::key::with_key;
 use super::list::SavedList;
+use super::pin::pin_in;
 use super::store::load;
 use super::write::put;
 use crate::join_wire::JoinFlags;
@@ -25,6 +26,16 @@ pub fn saved_flags(ssid: &[u8]) -> JoinFlags {
         return JoinFlags::default();
     };
     list.find(ssid).map(|i| list.join_flags(i)).unwrap_or_default()
+}
+
+/// Pin the saved network `ssid` to WPA3, which only `forget` undoes. True
+/// when the saved list was rewritten; a network not saved is left unsaved.
+pub fn pin_wpa3(ssid: &[u8]) -> Result<bool, SavedError> {
+    let mut list = load()?;
+    if !pin_in(&mut list, ssid) {
+        return Ok(false);
+    }
+    write(&list).map(|()| true)
 }
 
 /// Forget `ssid`. Forgetting the last one writes the withdrawn record, which

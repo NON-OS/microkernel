@@ -4,6 +4,7 @@ mod attempt;
 mod join;
 mod link;
 mod machine;
+mod pin;
 mod ready;
 mod relink;
 mod saved;
