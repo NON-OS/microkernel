@@ -17,7 +17,7 @@
 //! it: lost or left, the joins finished counted past 255 without reaching 0,
 //! and a join that came up clearing how the last link ended.
 
-use nonos_wifi_core::link_history::{Ended, LinkHistory, TAIL_LEN};
+use nonos_wifi_core::link_history::{Ended, LinkHistory, CODE_LEFT, TAIL_LEN};
 
 #[test]
 fn the_history_is_written_byte_for_byte() {
@@ -48,4 +48,19 @@ fn a_join_that_came_up_clears_the_end_and_the_count_skips_zero() {
         h.joined(0);
         assert_ne!(h.joins, 0, "0 means no join at all");
     }
+}
+
+#[test]
+fn only_a_link_the_person_left_refuses_a_rejoin_until_a_join_comes_up() {
+    let mut h = LinkHistory::NEW;
+    assert!(!h.refuses_rejoin(), "nothing yet");
+    h.lost();
+    assert!(!h.refuses_rejoin(), "a lost link is rejoined");
+    h.left();
+    assert!(h.refuses_rejoin());
+    h.joined(CODE_LEFT);
+    assert!(h.refuses_rejoin(), "the refusal itself does not clear it");
+    h.joined(0);
+    assert!(!h.refuses_rejoin(), "joined again, from Settings");
+    assert_eq!(CODE_LEFT, -13);
 }
