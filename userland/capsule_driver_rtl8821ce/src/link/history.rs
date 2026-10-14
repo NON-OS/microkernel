@@ -30,6 +30,11 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         self.history
     }
 
+    /// Message 3's Transition Disable bitmap for this association.
+    pub fn transition_disable(&self) -> u8 {
+        self.station.transition_disable()
+    }
+
     /// A join finished with `code`, 0 for joined.
     pub fn note_join(&mut self, code: i32) {
         self.history.joined(code);

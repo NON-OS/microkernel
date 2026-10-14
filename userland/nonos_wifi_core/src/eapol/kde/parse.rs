@@ -17,7 +17,9 @@
 //! The bounded walk over a Key Data field.
 
 use super::groups::{gtk_kde, igtk_kde};
-use super::kinds::{KeyData, EID_RSN, EID_RSNX, EID_VENDOR, KDE_GTK, KDE_IGTK, OUI_IEEE};
+use super::kinds::{
+    KeyData, EID_RSN, EID_RSNX, EID_VENDOR, KDE_GTK, KDE_IGTK, KDE_TRANSITION_DISABLE, OUI_IEEE,
+};
 
 /// Parse unwrapped key data. Returns `None` if an element runs past the end
 /// (other than the padding tail) or a GTK or IGTK KDE is malformed, so a
@@ -47,6 +49,9 @@ pub fn parse_key_data(data: &[u8]) -> Option<KeyData<'_>> {
                 match content[3] {
                     KDE_GTK if out.gtk.is_none() => out.gtk = Some(gtk_kde(&content[4..])?),
                     KDE_IGTK if out.igtk.is_none() => out.igtk = Some(igtk_kde(&content[4..])?),
+                    KDE_TRANSITION_DISABLE if out.transition_disable.is_none() => {
+                        out.transition_disable = content.get(4).copied();
+                    }
                     _ => {}
                 }
             }

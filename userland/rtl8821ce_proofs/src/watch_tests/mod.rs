@@ -20,3 +20,4 @@ mod card;
 mod history_tests;
 mod link_tests;
 mod rig;
+mod td_tests;

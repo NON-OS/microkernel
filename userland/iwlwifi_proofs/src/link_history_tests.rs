@@ -30,20 +30,20 @@ fn the_driver_s_history_reaches_the_client_whole() {
     let mut h = LinkHistory::NEW;
     h.joined(0);
     let info = LinkInfo { bssid: AP, ssid: b"home", akm: 8 };
-    let n = encode_link_with(&mut out, Some(&info), &h).unwrap();
+    let n = encode_link_with(&mut out, Some(&info), &h, 0).unwrap();
     let l = parse_link(&out[10..n]).unwrap();
     assert_eq!((l.ssid(), l.akm, l.ended), (&b"home"[..], 8, LinkEnded::No));
     assert_eq!(l.last_join, Some(LastJoin { seq: 1, code: 0 }));
     h.lost();
-    let n = encode_link_with(&mut out, None, &h).unwrap();
+    let n = encode_link_with(&mut out, None, &h, 0).unwrap();
     let l = parse_link(&out[10..n]).unwrap();
     assert_eq!((l.associated, l.ended), (false, LinkEnded::Lost));
     h.joined(-10);
     h.left();
-    let n = encode_link_with(&mut out, None, &h).unwrap();
+    let n = encode_link_with(&mut out, None, &h, 0).unwrap();
     let l = parse_link(&out[10..n]).unwrap();
     assert_eq!((l.ended, l.last_join), (LinkEnded::Left, Some(LastJoin { seq: 2, code: -10 })));
-    assert!(encode_link_with(&mut out[..n - 1], None, &h).is_none(), "no room, refused");
+    assert!(encode_link_with(&mut out[..n - 1], None, &h, 0).is_none(), "no room, refused");
 }
 
 #[test]
