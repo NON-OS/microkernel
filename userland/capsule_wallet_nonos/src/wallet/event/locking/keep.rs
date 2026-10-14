@@ -20,10 +20,9 @@
 //! apart, and so the status line says the same thing about a machine that
 //! cannot keep a wallet no matter how the wallet arrived.
 
-use super::keep_plan::{keep_records, kept_status, Kept, Records};
+use super::keep_disk::Disk;
+use super::keep_plan::{keep_records, kept_status, Kept};
 use crate::wallet::state::{State, WORDS_HELD, WORDS_NONE};
-use crate::wallet::vault::Unsealed;
-use crate::wallet::vault::{forget_vault, forget_words, remember, remember_kind, remember_words};
 
 /// Seal the wallet to this machine and store it, then say which happened.
 ///
@@ -56,37 +55,4 @@ pub fn keep(state: &mut State, from_key: bool) {
         state.status = status;
     }
     crate::wallet::shield::open::ensure(state);
-}
-
-/// The records of the wallet `state` holds, on this machine's disk.
-struct Disk<'a> {
-    state: &'a State,
-}
-
-impl Records for Disk<'_> {
-    fn clear_vault(&mut self) -> Result<(), Unsealed> {
-        forget_vault()
-    }
-
-    fn kind(&mut self, from_key: bool) -> Result<(), Unsealed> {
-        remember_kind(from_key)
-    }
-
-    fn words(&mut self) -> Result<(), Unsealed> {
-        remember_words(self.state.keyring_port, self.state.owner_pid, self.state.wallet_id)
-    }
-
-    fn clear_words(&mut self) -> Result<(), Unsealed> {
-        forget_words()
-    }
-
-    fn accounts(&mut self) -> Result<(), Unsealed> {
-        let s = self.state;
-        let count = s.accounts.len().max(1) as u8;
-        crate::wallet::vault::remember_accounts(count, s.account_open.min(count - 1))
-    }
-
-    fn vault(&mut self) -> Result<(), Unsealed> {
-        remember(self.state.keyring_port, self.state.owner_pid, self.state.wallet_id)
-    }
 }
