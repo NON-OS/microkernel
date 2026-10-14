@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::wallet::net::NetStatus;
-
 pub use super::rail::Rail;
 pub use super::views::*;
 
@@ -79,16 +77,11 @@ pub struct State {
     pub scroll: u32,
     /// What an Etna screen refused, in one sentence, until dismissed.
     pub failure: Option<&'static str>,
-    /// The last whole read of mainnet (0) and Sepolia (1), for the screens.
-    pub last_read: [Option<crate::wallet::net::last_read::LastRead>; 2],
     pub proof_count: u8,
     pub proof_eth_hash: [u8; 32],
     pub proof_eth_len: u32,
     pub proof_nox_hash: [u8; 32],
     pub proof_nox_len: u32,
-    pub net: NetStatus,
-    pub rails: [Rail; MAX_RAILS],
-    pub rail_count: usize,
     pub status: &'static [u8],
     /*
      * Live input readout, refreshed on each discrete key/button event so the
@@ -162,20 +155,12 @@ pub struct State {
     pub send: super::send_form::SendForm,
     pub tx: super::signed_tx::SignedTx,
     pub broadcast: super::broadcast::BroadcastState,
+    /// The route, its rails and the refresh under way (`net_view`).
+    pub net: super::net_view::Network,
     /*
      * Live NOX token and staking readout from mainnet eth_call.
      */
     pub nox: crate::wallet::nox::NoxStatus,
-    /*
-     * One when a refresh is wanted at the next idle tick rather than at the
-     * next interval: after a wallet arrives, or the network changes.
-     */
-    pub probe_step: u8,
-    /*
-     * The refresh under way, stepped a slice per tick so the window never
-     * waits on the network. None between refreshes.
-     */
-    pub net_job: Option<crate::wallet::net::step::Job>,
     /*
      * The network work a press started, stepped like the refresh, which
      * waits while it runs. None when no press is being answered.

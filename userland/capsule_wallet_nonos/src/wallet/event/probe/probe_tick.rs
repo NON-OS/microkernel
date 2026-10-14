@@ -20,7 +20,7 @@ use crate::wallet::net::step::Job;
 use crate::wallet::state::State;
 
 use super::probe_finish::finish;
-pub(super) use super::probe_kick::probe_kick;
+pub(in crate::wallet::event) use super::probe_kick::probe_kick;
 
 /// Refresh the account, a step per tick. The expensive network
 /// self-diagnostic (the Nym service, the full TLS check) runs once to confirm
@@ -34,30 +34,30 @@ pub(super) use super::probe_kick::probe_kick;
 /// failed fetch the link is marked degraded so the next refresh re-runs the
 /// diagnostic and reconnects. `due` begins a refresh when none is under way.
 pub fn probe_tick(state: &mut State, due: bool) -> EventOutcome {
-    if state.net_job.is_none() {
+    if state.net.job.is_none() {
         if !due {
             return EventOutcome::Idle;
         }
-        state.probe_step = 0;
+        state.net.probe_step = 0;
         let chain = crate::wallet::chain::current().id;
         let open = state.broadcast.sent.open(chain, &state.address);
-        state.net_job = Some(if open.is_empty() {
+        state.net.job = Some(if open.is_empty() {
             account_job(state)
         } else {
             Job::follow(open, &state.address)
         });
     }
-    let Some(finished) = state.net_job.as_mut().and_then(Job::step) else {
+    let Some(finished) = state.net.job.as_mut().and_then(Job::step) else {
         return EventOutcome::Idle;
     };
-    state.net_job = None;
+    state.net.job = None;
     outcome(finish(state, finished))
 }
 
 /// The diagnostic while the link is unconfirmed, the snapshot after.
-pub(super) fn account_job(state: &State) -> Job {
+pub(in crate::wallet::event) fn account_job(state: &State) -> Job {
     /* A host is read from only once it answered this network's chain id. */
-    if state.net.rpc_chain_ok && state.net.rpc_host == crate::wallet::chain::rpc_host() {
+    if state.net.link.rpc_chain_ok && state.net.link.rpc_host == crate::wallet::chain::rpc_host() {
         Job::snapshot(&state.address)
     } else {
         Job::probe()
