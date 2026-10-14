@@ -16,7 +16,8 @@
 
 //! The link op: whether the radio is associated and with which network, as
 //! `[associated u8][bssid 6][ssid_len u8][ssid][akm u8]` after the header,
-//! the AKM 0 when not associated, then the link's history (`LinkHistory`). The
+//! the AKM 0 when not associated, then the link's history (`LinkHistory`) and
+//! message 3's Transition Disable bitmap (0 when not associated). The
 //! panels read it to show the connection whoever made it (a panel, or net_core
 //! joining a saved network at boot), and the client reads the AKM (8 for
 //! WPA3-SAE) to remember a network as WPA3 so it is never joined with WPA2.
@@ -34,14 +35,15 @@ pub(super) fn link_reply(
     out: &mut [u8],
 ) -> Option<usize> {
     let up = matches!(radio, Radio::Up(up) if up.link.link_up());
-    let history = match radio {
-        Radio::Up(up) => up.link.history(),
-        Radio::Down => LinkHistory::NEW,
+    let (history, td) = match radio {
+        Radio::Up(up) => (up.link.history(), up.link.transition_disable()),
+        Radio::Down => (LinkHistory::NEW, 0),
     };
     let fixed = WIFI_HDR + 8;
     out.get_mut(WIFI_HDR..=fixed)?.fill(0);
     let mut end = fixed + 1;
-    if let Some(s) = session.filter(|_| up) {
+    let joined = session.filter(|_| up);
+    if let Some(s) = joined {
         let len = (s.ssid_len as usize).min(s.ssid.len());
         out[WIFI_HDR] = 1;
         out[WIFI_HDR + 1..WIFI_HDR + 7].copy_from_slice(&s.bssid);
@@ -50,5 +52,7 @@ pub(super) fn link_reply(
         *out.get_mut(fixed + len)? = s.akm;
         end = fixed + len + 1;
     }
-    Some(end + history.encode(out.get_mut(end..)?)?)
+    let end = end + history.encode(out.get_mut(end..)?)?;
+    *out.get_mut(end)? = if joined.is_some() { td } else { 0 };
+    Some(end + 1)
 }

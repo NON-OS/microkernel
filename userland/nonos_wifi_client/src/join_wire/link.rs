@@ -34,6 +34,8 @@ pub struct Link {
     /// Why the link last ended, and the last join the driver finished.
     pub ended: LinkEnded,
     pub last_join: Option<LastJoin>,
+    /// Message 3's Transition Disable bitmap for this association.
+    pub transition_disable: u8,
 }
 
 impl Link {
@@ -60,7 +62,7 @@ pub fn parse_link(body: &[u8]) -> Option<Link> {
     // The AKM follows a whole SSID only; a cut-short one leaves it unread.
     if len == fixed[7] as usize {
         link.akm = body.get(8 + len).copied().unwrap_or(0);
-        (link.ended, link.last_join) = parse_tail(body, 9 + len);
+        (link.ended, link.last_join, link.transition_disable) = parse_tail(body, 9 + len);
     }
     Some(link)
 }
