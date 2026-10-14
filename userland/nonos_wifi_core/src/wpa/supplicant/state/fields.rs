@@ -59,5 +59,7 @@ pub struct Supplicant {
     pub(in crate::wpa::supplicant) igtk_set: bool,
     /// The 802.1X version the AP spoke, mirrored in replies.
     pub(in crate::wpa::supplicant) eapol_version: u8,
+    /// Message 3's Transition Disable bitmap, 0 when it sent none.
+    pub(in crate::wpa::supplicant) transition_disable: u8,
     pub(in crate::wpa::supplicant) failure: Option<Failure>,
 }

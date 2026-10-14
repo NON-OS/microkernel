@@ -30,6 +30,9 @@ pub(super) const OUI_IEEE: [u8; 3] = [0x00, 0x0F, 0xAC];
 pub(super) const KDE_GTK: u8 = 1;
 
 pub(super) const KDE_IGTK: u8 = 9;
+pub(super) const KDE_TRANSITION_DISABLE: u8 = 0x20;
+/// Transition Disable bit 0: the network is WPA3-Personal only from now on.
+pub const TD_WPA3_PERSONAL: u8 = 1 << 0;
 
 /// A group temporal key from its KDE: the key index (bits 0-1 of the first
 /// octet) and the key bytes.
@@ -56,4 +59,6 @@ pub struct KeyData<'a> {
     pub rsnxe: Option<&'a [u8]>,
     pub gtk: Option<GtkKde<'a>>,
     pub igtk: Option<IgtkKde<'a>>,
+    /// The Transition Disable bitmap; a KDE cut before it is ignored.
+    pub transition_disable: Option<u8>,
 }

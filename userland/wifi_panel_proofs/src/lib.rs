@@ -27,3 +27,5 @@ mod join_tests;
 mod link_tail_tests;
 #[cfg(test)]
 mod panel_tests;
+#[cfg(test)]
+mod pin_tests;

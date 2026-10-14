@@ -45,6 +45,11 @@ impl Radio {
         self.join.history.left();
     }
 
+    /// The association's Transition Disable bitmap, 0 with none.
+    pub fn transition_disable(&self) -> u8 {
+        self.join.joined.as_ref().map_or(0, |j| j.link.station.transition_disable())
+    }
+
     /// The association, for the link reply.
     pub fn link_info(&self) -> Option<LinkInfo<'_>> {
         let j = self.join.joined.as_ref().filter(|j| j.link.station.is_associated())?;

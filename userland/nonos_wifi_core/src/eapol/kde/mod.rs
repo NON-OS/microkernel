@@ -26,5 +26,5 @@ mod groups;
 mod kinds;
 mod parse;
 
-pub use kinds::{GtkKde, IgtkKde, KeyData};
+pub use kinds::{GtkKde, IgtkKde, KeyData, TD_WPA3_PERSONAL};
 pub use parse::parse_key_data;

@@ -56,6 +56,7 @@ impl Supplicant {
             return StepOutput::none();
         }
         keys.rsc = rsc_pn(&key.key_rsc);
+        self.transition_disable = kd.transition_disable.unwrap_or(0);
         self.store_group_keys(&keys);
         match self.message4(&key.replay_counter) {
             Some(frame) => {

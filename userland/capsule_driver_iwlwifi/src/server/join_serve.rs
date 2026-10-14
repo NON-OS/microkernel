@@ -35,6 +35,11 @@ pub(super) fn join(
             radio.note_left();
             encode_code(reply, radio.disconnect())
         }
-        _ => encode_link_with(reply, radio.link_info().as_ref(), &radio.history()),
+        _ => encode_link_with(
+            reply,
+            radio.link_info().as_ref(),
+            &radio.history(),
+            radio.transition_disable(),
+        ),
     }
 }

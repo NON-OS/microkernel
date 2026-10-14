@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The supplicant's own helpers: its key parts and its failure.
+//! The supplicant's own helpers: its key parts and its failure; and what
+//! message 3 said of the network's future (Transition Disable).
 
 use super::kinds::{Failure, State};
 use super::Supplicant;
@@ -35,5 +36,10 @@ impl Supplicant {
     pub(in crate::wpa::supplicant) fn fail(&mut self, why: Failure) {
         self.state = State::Failed;
         self.failure = Some(why);
+    }
+
+    /// Message 3's Transition Disable bitmap (bit 0: WPA3-Personal only).
+    pub fn transition_disable(&self) -> u8 {
+        self.transition_disable
     }
 }

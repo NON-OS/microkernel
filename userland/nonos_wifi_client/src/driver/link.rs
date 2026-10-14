@@ -7,19 +7,20 @@
 //! The link op (is the radio associated, and with what) and leaving.
 //!
 //! The link reply is `[associated u8][bssid 6][ssid_len u8][ssid][akm u8]`
-//! after the header (`join_wire::parse_link`). A driver that cannot join
+//! and its tail after the header (`join_wire::parse_link`). A driver that cannot join
 //! answers with a status code instead, which is too short to read as a link
 //! and so reads as none.
 
 use super::call::{word, OP_DISCONNECT, OP_LINK, WIFI_HDR};
 use super::find::Driver;
-use crate::join_wire::{parse_link, Link};
+use crate::join_wire::{parse_link, Link, TAIL_MAX};
 use crate::network::SSID_MAX;
 
 const LINK_TIMEOUT_MS: u64 = 500;
 const DISCONNECT_TIMEOUT_MS: u64 = 2_000;
-/// The header, the fixed link fields, the SSID and the AKM.
-const RESP_LEN: usize = WIFI_HDR + 8 + SSID_MAX + 1;
+/// The header, the fixed link fields, the SSID, the AKM and the tail (the
+/// history and the Transition Disable bitmap), so a 32-octet SSID's tail fits.
+const RESP_LEN: usize = WIFI_HDR + 8 + SSID_MAX + 1 + TAIL_MAX;
 
 impl Driver {
     /// Ask the driver whether it is associated. `None` when it did not answer
