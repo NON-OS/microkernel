@@ -46,7 +46,7 @@ pub fn load(s: &State, path: &str) -> Result<MarketplaceEntry, &'static str> {
     if !doc_path_ok(path) {
         return Err("type a path under /data, with no .. and no spaces in it");
     }
-    read_doc(s.owner_pid, path)
+    read_doc(s.vault.owner_pid, path)
 }
 
 pub fn sign_binding(
@@ -58,5 +58,5 @@ pub fn sign_binding(
     let plan = binding_plan(&Kec, e, &s.address).map_err(why)?;
     let at = binding_sig_path(path).ok_or("that path cannot hold a signature")?;
     let sig = sign_typed(s, ENTRY_BINDING, &PUBLISHER_BINDING, &plan.words, chain)?;
-    write_sig(s.owner_pid, &at, &sig).map(|_| at)
+    write_sig(s.vault.owner_pid, &at, &sig).map(|_| at)
 }

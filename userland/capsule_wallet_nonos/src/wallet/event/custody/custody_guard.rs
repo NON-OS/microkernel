@@ -28,8 +28,8 @@ use crate::wallet::state::State;
 
 /// Ok when the new wallet may be written now; the reason to show if not.
 pub fn may_replace(state: &mut State) -> Result<(), &'static str> {
-    let waited = gave_up(state.vault_silent_since, nonos_libc::mk_uptime_ms());
-    match rule(state.vault_restore_tried, waited, state.address_ready, state.vault_present) {
+    let waited = gave_up(state.vault.silent_since, nonos_libc::mk_uptime_ms());
+    match rule(state.vault.restore_tried, waited, state.address_ready, state.vault.present) {
         Replace::Free => Ok(()),
         Replace::Refuse(why) => {
             state.custody_armed = false;

@@ -21,17 +21,19 @@ use super::filter_rails::filter_rails;
 use super::restore::restore;
 
 pub fn hydrate(state: &mut State) {
-    if state.keyring_port == 0 {
-        state.keyring_port = lookup_keyring().unwrap_or(0);
+    if state.vault.keyring_port == 0 {
+        state.vault.keyring_port = lookup_keyring().unwrap_or(0);
     }
-    if state.owner_pid == 0 {
-        state.owner_pid = lookup_self_pid().unwrap_or(0);
+    if state.vault.owner_pid == 0 {
+        state.vault.owner_pid = lookup_self_pid().unwrap_or(0);
     }
-    if state.keyring_port == 0 || state.owner_pid == 0 {
+    if state.vault.keyring_port == 0 || state.vault.owner_pid == 0 {
         state.status = b"keyring unavailable";
         return;
     }
-    match read_rails(state.keyring_port).and_then(|rx| decode_rails(&rx, &mut state.net.rails)) {
+    match read_rails(state.vault.keyring_port)
+        .and_then(|rx| decode_rails(&rx, &mut state.net.rails))
+    {
         Ok(n) => {
             state.net.rail_count = filter_rails(&mut state.net.rails, n);
             state.status = b"wallet ready";
@@ -40,7 +42,7 @@ pub fn hydrate(state: &mut State) {
     }
     /* The network last picked, before the wallet is restored, so its shield
      * opens on the network it runs on. Once, while no wallet is open. */
-    if state.wallet_id == 0 && !state.vault_restore_tried {
+    if state.vault.wallet_id == 0 && !state.vault.restore_tried {
         if let Some(sepolia) = crate::wallet::vault::recall_network() {
             crate::wallet::chain::pick(sepolia);
         }
