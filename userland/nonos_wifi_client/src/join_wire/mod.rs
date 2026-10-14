@@ -31,13 +31,16 @@
 //! [ap_code u16]` from a driver that runs WPA3: the AKM that ran (2 WPA2-PSK,
 //! 6 PSK-SHA256, 8 WPA3-SAE) and the access point's status or reason code.
 //! The link reply body is `[associated u8][bssid 6][ssid_len u8][ssid]`, then
-//! `[akm u8]` from such a driver. Every field is read only when the reply
-//! reaches it; a shorter reply reads as zero there.
+//! `[akm u8]` from such a driver, then the link's history (`tail`). Every
+//! field is read only when the reply reaches it; a shorter reply reads as zero
+//! there, and a reply without the history reads as lost.
 
 mod connect;
 mod join_body;
 mod link;
+mod tail;
 
 pub use connect::{parse_connect_reply, ConnectResult};
 pub use join_body::{encode_join, JoinFlags, AKM_SAE, JOIN_BODY_MAX, JOIN_PASS_MAX};
 pub use link::{parse_link, Link};
+pub use tail::{LastJoin, LinkEnded};

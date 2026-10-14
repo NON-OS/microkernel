@@ -21,6 +21,7 @@
 
 mod dispatch;
 mod join;
+mod leave;
 mod link_op;
 mod ops;
 mod scan;

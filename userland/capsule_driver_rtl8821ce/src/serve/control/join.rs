@@ -37,7 +37,11 @@ pub(super) fn connect_reply(
         disconnect(&mut up.link, &mut up.keys, &up.regs, session);
     }
     let r = match radio {
-        Radio::Up(up) => connect(body, &mut up.link, &mut up.keys, &up.regs, session),
+        Radio::Up(up) => {
+            let r = connect(body, &mut up.link, &mut up.keys, &up.regs, session);
+            up.link.note_join(r.code);
+            r
+        }
         Radio::Down => ConnectResult::code(-1),
     };
     out[10..14].copy_from_slice(&r.code.to_le_bytes());
@@ -52,21 +56,4 @@ pub(super) fn connect_reply(
     out[43] = r.akm;
     out[44..46].copy_from_slice(&r.ap_code.to_le_bytes());
     Some(46)
-}
-
-pub(super) fn disconnect_reply(
-    radio: &mut Radio,
-    session: &mut Option<Session>,
-    out: &mut [u8],
-) -> Option<usize> {
-    let status = match radio {
-        Radio::Up(up) => disconnect(&mut up.link, &mut up.keys, &up.regs, session),
-        Radio::Down => -1,
-    };
-    code_reply(status, out)
-}
-
-pub(super) fn code_reply(status: i32, out: &mut [u8]) -> Option<usize> {
-    out[10..14].copy_from_slice(&status.to_le_bytes());
-    Some(14)
 }
