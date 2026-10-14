@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::capsule_manifest::ManifestVerifyError;
-use crate::security::nonos_id_cert::IdCertVerifyError;
+pub use super::spawn_error::SpawnError;
 
 /*
  * Borrowed for the length of the spawn call, not for the life of the machine.
@@ -47,32 +46,4 @@ pub struct CapsuleSpecVerified<'a> {
     pub target_triple: &'a str,
     pub requested_caps: u64,
     pub debug_tag: &'static [u8],
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SpawnError {
-    FeatureDisabled,
-    ElfLoad,
-    ProcessCreation,
-    AddressSpace,
-    EndpointCollision,
-    /// The reply inbox name is empty or longer than a process stores.
-    InboxName,
-    NonosIdCertRejected(IdCertVerifyError),
-    ManifestRejected(ManifestVerifyError),
-    AttestationRejected,
-    /* The boot profile chosen in the menu does not run this capsule. */
-    ProfileRefused,
-}
-
-impl From<IdCertVerifyError> for SpawnError {
-    fn from(e: IdCertVerifyError) -> Self {
-        SpawnError::NonosIdCertRejected(e)
-    }
-}
-
-impl From<ManifestVerifyError> for SpawnError {
-    fn from(e: ManifestVerifyError) -> Self {
-        SpawnError::ManifestRejected(e)
-    }
 }
