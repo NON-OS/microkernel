@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::wallet::net::NetStatus;
-use alloc::vec::Vec;
 
 pub use super::rail::Rail;
 pub use super::views::*;
@@ -78,54 +77,10 @@ pub struct State {
     pub view: u8,
     /// How far an Etna screen has scrolled, reset when the view changes.
     pub scroll: u32,
-    pub send_focus: u8,
-    /// Form, review or sent (`send::STAGE_*`).
-    pub send_stage: u8,
-    /// The payment the review shows and the confirm signs.
-    pub send_draft: Option<crate::wallet::send::Draft>,
     /// What an Etna screen refused, in one sentence, until dismissed.
     pub failure: Option<&'static str>,
-    pub send_to_hex: [u8; 40],
-    pub send_to_len: usize,
-    /// What to send, typed at chain precision on the shared keypad. It replaced
-    /// a `u32` of thousandths of an ether, which could not express a figure
-    /// smaller than 0.001 and had no decimal point at all.
-    pub send_amount: crate::wallet::num::Amount,
-    pub send_nonce: u64,
-    pub tx_hash: [u8; 32],
-    /// The signed transaction's nonce, the most ETH it can take, and the
-    /// token it moves, for the ledger once it goes.
-    pub tx_nonce: u64,
-    /// The tip and the cap per gas the last review read from the network's
-    /// recent blocks (`send::fees`), or None when it did not come.
-    pub offered_fees: Option<(u128, u128)>,
-    /// The send form's amount is everything held, the fee left out of an
-    /// ETH payment at the fees the review reads.
-    pub send_all: bool,
     /// The last whole read of mainnet (0) and Sepolia (1), for the screens.
     pub last_read: [Option<crate::wallet::net::last_read::LastRead>; 2],
-    pub tx_cost: u128,
-    pub tx_token: Option<(u8, u128)>,
-    /// Every transaction sent and not yet settled, per network and account,
-    /// kept across a switch (`send::sent`).
-    pub sent: crate::wallet::send::sent::Ledger,
-    pub tx_len: u32,
-    pub tx_raw: Vec<u8>,
-    pub tx_ready: bool,
-    pub tx_kind: &'static [u8],
-    /// A signed transaction waiting for its confirming second press. Sending is
-    /// the one act in this window that cannot be undone, so it is armed rather
-    /// than fired: the same shape the process manager uses before it ends a
-    /// process, which is a far more recoverable thing to do.
-    pub broadcast_armed: bool,
-    pub broadcast_ready: bool,
-    pub broadcast_hash: [u8; 32],
-    pub receipt_ready: bool,
-    /// The broadcast broke once the transaction had begun to go, so whether
-    /// the node took it is not known; it is never sent again, and its
-    /// receipt is followed all the same.
-    pub broadcast_unknown: bool,
-    pub receipt_ok: bool,
     pub proof_count: u8,
     pub proof_eth_hash: [u8; 32],
     pub proof_eth_len: u32,
@@ -192,13 +147,6 @@ pub struct State {
      * reads; Confirm signs exactly this. None while the form is up.
      */
     pub stake_draft: Option<crate::wallet::send::Draft>,
-    /* What the receipt followed now is for, and when it went. */
-    pub follow_purpose: crate::wallet::act::Purpose,
-    pub sent_at_ms: i64,
-    /*
-     * Which asset the send screen transfers: 0 = ETH, 1 = NOX.
-     */
-    pub send_token: u8,
     /*
      * Whether the import, the one-time backup, the restore and the export
      * screens are open. What they hold is in `custody`.
@@ -209,6 +157,11 @@ pub struct State {
     pub export_active: bool,
     /// The typed and shown secrets, each in a Zeroizing buffer.
     pub custody: super::custody::Custody,
+    /// The send form, the transaction it signed, and that transaction's way
+    /// out: `send_form`, `signed_tx` and `broadcast`.
+    pub send: super::send_form::SendForm,
+    pub tx: super::signed_tx::SignedTx,
+    pub broadcast: super::broadcast::BroadcastState,
     /*
      * Live NOX token and staking readout from mainnet eth_call.
      */
