@@ -18,7 +18,7 @@
 
 use spin::Mutex;
 
-use nonos_wifi_client::{find, SSID_MAX};
+use nonos_wifi_client::{find, LinkEnded, SSID_MAX};
 
 use super::machine::{Machine, CALL_MS};
 use super::tick::say;
@@ -36,7 +36,8 @@ pub(super) fn look(m: &mut Machine, now: i64) {
         up.0[..len].copy_from_slice(&ssid[..len]);
         up.1 = len;
     }
-    if m.after_link(now, link.map(|l| l.associated)) {
+    let left = link.is_some_and(|l| l.ended == LinkEnded::Left);
+    if m.after_link(now, link.map(|l| l.associated), left) {
         say(b"[NET-CORE] Wi-Fi link lost; joining the network again\n");
     }
 }
