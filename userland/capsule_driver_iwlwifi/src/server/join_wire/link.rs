@@ -30,14 +30,18 @@ pub struct LinkInfo<'a> {
 }
 
 /// Write the link reply after the header, then how the link last ended and
-/// how the last join came out.
+/// how the last join came out, then the association's Transition Disable
+/// bitmap (`td`, 0 when not associated).
 pub fn encode_link_with(
     out: &mut [u8],
     link: Option<&LinkInfo<'_>>,
     h: &LinkHistory,
+    td: u8,
 ) -> Option<usize> {
     let end = encode_link(out, link)?;
-    Some(end + h.encode(out.get_mut(end..)?)?)
+    let end = end + h.encode(out.get_mut(end..)?)?;
+    *out.get_mut(end)? = if link.is_some() { td } else { 0 };
+    Some(end + 1)
 }
 
 /// Write the link reply after the header: not associated (with AKM 0), or

@@ -30,6 +30,12 @@ impl LinkStation {
         self.supplicant = Some(sup);
     }
 
+    /// Message 3's Transition Disable bitmap for this association, 0 when it
+    /// sent none (bit 0: the network is WPA3-Personal only from now on).
+    pub fn transition_disable(&self) -> u8 {
+        self.supplicant.as_ref().map_or(0, |s| s.transition_disable())
+    }
+
     /// Take a group key for software decryption, with its Key RSC as the
     /// replay floor.
     pub fn set_group_key(&mut self, key_id: u8, key: [u8; 16], rsc: u64) {
