@@ -42,3 +42,13 @@ pub(crate) fn within(end: i64) -> Result<(), SessionError> {
         Err(SessionError::Handshake)
     }
 }
+
+/// How long the response after the handshake may take, in milliseconds of
+/// uptime (A9f). Each read still has its quiet rule; this bounds the whole,
+/// so a peer that sends a byte inside every quiet window ends here. Five
+/// minutes carries a 64 MiB git pack over a slow relay.
+pub const REPLY_MS: i64 = 300_000;
+
+/// What a response past its budget ends as: `Io`, as a socket that stopped
+/// would, so no caller's match has to change.
+pub const REPLY_TOO_SLOW: SessionError = SessionError::Io;
