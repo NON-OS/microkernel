@@ -21,14 +21,14 @@ use super::State;
 /* Everything read from the chain for the open account and network: it is
  * read again, never carried over to another account or network. */
 pub fn forget_live(state: &mut State) {
-    state.balance_ready = false;
-    state.balance_wei = [0; 32];
-    state.usdc_ready = false;
-    state.usdc_units = [0; 32];
-    state.nonce_ready = false;
-    state.live_nonce = 0;
-    state.fee_ready = false;
-    state.fee_wei = 0;
+    state.reads.balance_ready = false;
+    state.reads.balance_wei = [0; 32];
+    state.reads.usdc_ready = false;
+    state.reads.usdc_units = [0; 32];
+    state.reads.nonce_ready = false;
+    state.reads.live_nonce = 0;
+    state.reads.fee_ready = false;
+    state.reads.fee_wei = 0;
     state.nox = crate::wallet::nox::NoxStatus::empty();
     state.tx.ready = false;
     state.tx.raw.clear();

@@ -44,15 +44,8 @@ pub struct State {
     pub recover_shown: bool,
     pub address: [u8; 20],
     pub address_ready: bool,
-    pub balance_ready: bool,
-    pub balance_wei: [u8; 32],
-    /// USDC held on the picked network, in its six-place units.
-    pub usdc_ready: bool,
-    pub usdc_units: [u8; 32],
-    pub nonce_ready: bool,
-    pub live_nonce: u64,
-    pub fee_ready: bool,
-    pub fee_wei: u64,
+    /// What the chain last said of this account (`chain_reads`).
+    pub reads: super::chain_reads::ChainReads,
     pub view: u8,
     /// How far an Etna screen has scrolled, reset when the view changes.
     pub scroll: u32,

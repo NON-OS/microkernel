@@ -33,9 +33,9 @@ fn low_u128(v: &[u8; 32]) -> Option<u128> {
  * payments still waiting for a block may take, which it does not count. */
 pub fn held(state: &State, asset: u8) -> Option<u128> {
     let read = match asset {
-        ASSET_ETH if state.balance_ready => low_u128(&state.balance_wei),
+        ASSET_ETH if state.reads.balance_ready => low_u128(&state.reads.balance_wei),
         ASSET_NOX if state.nox.balance_ready => low_u128(&state.nox.balance_wei),
-        ASSET_USDC if state.usdc_ready => low_u128(&state.usdc_units),
+        ASSET_USDC if state.reads.usdc_ready => low_u128(&state.reads.usdc_units),
         _ => None,
     }?;
     let (eth, token) = state.broadcast.sent.held(chain::current().id, &state.address, asset);

@@ -24,29 +24,17 @@ pub(in crate::wallet::event) fn apply(state: &mut State, snap: Snapshot) -> bool
     use super::reading::take;
     let staking = crate::wallet::chain::current().staking.is_some();
     let asked = if staking { 9 } else { 5 };
-    let came = [
-        snap.eth_balance.is_some(),
-        snap.nonce.is_some(),
-        snap.fee.is_some(),
-        snap.nox_balance.is_some(),
-        snap.usdc_balance.is_some(),
-        snap.claimable.is_some(),
-        snap.positions.is_some(),
-        snap.passes.is_some(),
-        snap.stats.is_some(),
-    ]
-    .iter()
-    .filter(|c| **c)
-    .count();
-    if snap.nonce.is_some() && !state.nonce_ready {
+    let came = super::probe_came::came(&snap);
+    if snap.nonce.is_some() && !state.reads.nonce_ready {
         state.send.nonce = snap.nonce.unwrap_or(0);
     }
-    let mut changed = take(snap.eth_balance, &mut state.balance_wei, &mut state.balance_ready);
-    changed |= take(snap.nonce, &mut state.live_nonce, &mut state.nonce_ready);
-    changed |= take(snap.fee, &mut state.fee_wei, &mut state.fee_ready);
+    let mut changed =
+        take(snap.eth_balance, &mut state.reads.balance_wei, &mut state.reads.balance_ready);
+    changed |= take(snap.nonce, &mut state.reads.live_nonce, &mut state.reads.nonce_ready);
+    changed |= take(snap.fee, &mut state.reads.fee_wei, &mut state.reads.fee_ready);
     let nox = &mut state.nox;
     changed |= take(snap.nox_balance, &mut nox.balance_wei, &mut nox.balance_ready);
-    changed |= take(snap.usdc_balance, &mut state.usdc_units, &mut state.usdc_ready);
+    changed |= take(snap.usdc_balance, &mut state.reads.usdc_units, &mut state.reads.usdc_ready);
     let nox = &mut state.nox;
     changed |= take(snap.claimable, &mut nox.claimable_wei, &mut nox.claimable_ready);
     changed |= take(snap.positions, &mut nox.positions, &mut nox.positions_ready);

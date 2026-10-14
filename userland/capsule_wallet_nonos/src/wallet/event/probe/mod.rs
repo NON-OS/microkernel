@@ -16,6 +16,7 @@
 //! The refresh: when it runs, and what its read does to the window.
 
 pub(in crate::wallet::event) mod probe_apply;
+pub(in crate::wallet::event) mod probe_came;
 pub(in crate::wallet::event) mod probe_finish;
 pub(in crate::wallet::event) mod probe_follow;
 pub(in crate::wallet::event) mod probe_kick;

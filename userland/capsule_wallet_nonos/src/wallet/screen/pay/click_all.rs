@@ -28,7 +28,7 @@ pub(super) fn use_all(state: &mut State) {
         return;
     };
     let shown = if asset == send::ASSET_ETH {
-        let rough = u128::from(state.fee_wei).saturating_mul(2);
+        let rough = u128::from(state.reads.fee_wei).saturating_mul(2);
         have.saturating_sub(rough.saturating_mul(u128::from(send::gas::PLAIN_GAS)))
     } else {
         have
