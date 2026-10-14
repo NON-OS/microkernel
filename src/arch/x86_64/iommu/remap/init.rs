@@ -52,8 +52,8 @@ pub fn init() {
             }
         }
     }
-    // xAPIC-format entries (EIME clear): CFI is honoured only then, and the
-    // kernel's MSI messages are compatibility format until each driver moves.
+    // xAPIC-format entries (EIME clear): every destination the kernel names
+    // is 8 bits (device_irq_dest).
     let irta = offsets::irta_value(table.phys, false);
     for info in all {
         // SAFETY: eK@nonos.systems - the table page is allocated above and
@@ -68,5 +68,5 @@ pub fn init() {
     ACTIVE.store(true, Ordering::Release);
     let mut line = Line::new();
     line.str(b"[VT-D] IOMMU interrupt remapping on, entries=").dec(offsets::IRTE_ENTRIES as u64);
-    line.str(b", compatibility format interrupts passed (CFI)").end();
+    line.str(b", compatibility format interrupts blocked").end();
 }

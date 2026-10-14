@@ -27,3 +27,5 @@ pub mod decide;
 mod tests;
 #[cfg(test)]
 mod decide_tests;
+#[cfg(test)]
+mod interrupt_tests;
