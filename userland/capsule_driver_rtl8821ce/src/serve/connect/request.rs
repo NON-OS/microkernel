@@ -24,6 +24,8 @@
 pub const FLAG_WPA3_ONLY: u8 = 1 << 0;
 /// The network does not broadcast its name: a directed probe may carry it.
 pub const FLAG_HIDDEN: u8 = 1 << 1;
+/// net.core's rejoin of a lost link, refused once the person left it.
+pub const FLAG_REJOIN: u8 = 1 << 2;
 
 /// A parsed connect request.
 pub struct ConnectRequest<'a> {
@@ -31,6 +33,7 @@ pub struct ConnectRequest<'a> {
     pub pass: &'a [u8],
     pub wpa3_only: bool,
     pub hidden: bool,
+    pub rejoin: bool,
 }
 
 /// Parse a connect request body, or `None` if a length runs past it or the
@@ -51,5 +54,6 @@ pub fn parse_connect(body: &[u8]) -> Option<ConnectRequest<'_>> {
         pass,
         wpa3_only: flags & FLAG_WPA3_ONLY != 0,
         hidden: flags & FLAG_HIDDEN != 0,
+        rejoin: flags & FLAG_REJOIN != 0,
     })
 }

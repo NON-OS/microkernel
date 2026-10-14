@@ -16,7 +16,7 @@
 
 //! The connect body, read with every length checked.
 
-use super::codes::{FLAG_HIDDEN, FLAG_WPA3_ONLY, SSID_MAX};
+use super::codes::{FLAG_HIDDEN, FLAG_REJOIN, FLAG_WPA3_ONLY, SSID_MAX};
 
 /// A parsed connect request.
 pub struct ConnectRequest<'a> {
@@ -24,6 +24,8 @@ pub struct ConnectRequest<'a> {
     pub pass: &'a [u8],
     pub wpa3_only: bool,
     pub hidden: bool,
+    /// net.core's rejoin of a lost link (`LinkHistory::refuses_rejoin`).
+    pub rejoin: bool,
 }
 
 /// Parse a connect body, or `None` if a length runs past it or the SSID is
@@ -39,5 +41,6 @@ pub fn parse_connect(body: &[u8]) -> Option<ConnectRequest<'_>> {
     let pass_end = pass_off + 1 + pass_len;
     let pass = body.get(pass_off + 1..pass_end)?;
     let flags = body.get(pass_end).copied().unwrap_or(0);
-    Some(ConnectRequest { ssid, pass, wpa3_only: flags & FLAG_WPA3_ONLY != 0, hidden: flags & FLAG_HIDDEN != 0 })
+    let (wpa3_only, hidden, rejoin) = (flags & FLAG_WPA3_ONLY != 0, flags & FLAG_HIDDEN != 0, flags & FLAG_REJOIN != 0);
+    Some(ConnectRequest { ssid, pass, wpa3_only, hidden, rejoin })
 }
