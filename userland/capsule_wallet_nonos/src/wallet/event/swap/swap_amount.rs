@@ -28,13 +28,13 @@ const MAX_DIGITS: u32 = 30;
 /// what is there and adds. Kept saturating because a reader holding the key
 /// down should reach a ceiling rather than wrap to nothing.
 pub fn digit(state: &mut State, d: u8) -> bool {
-    if state.swap_digits >= MAX_DIGITS {
+    if state.swap.digits >= MAX_DIGITS {
         return true;
     }
-    state.swap_in = state.swap_in.saturating_mul(10).saturating_add(d as u128);
-    state.swap_digits += 1;
-    if state.swap_point {
-        state.swap_places += 1;
+    state.swap.amount_in = state.swap.amount_in.saturating_mul(10).saturating_add(d as u128);
+    state.swap.digits += 1;
+    if state.swap.point {
+        state.swap.places += 1;
     }
     clear_quote(state);
     true
@@ -43,22 +43,22 @@ pub fn digit(state: &mut State, d: u8) -> bool {
 /// Start the fraction. A second point is ignored rather than refused,
 /// because a reader who types one twice meant it once.
 pub fn point(state: &mut State) -> bool {
-    state.swap_point = true;
+    state.swap.point = true;
     true
 }
 
 /// Take back the last keystroke.
 pub fn backspace(state: &mut State) -> bool {
-    if state.swap_places > 0 {
-        state.swap_places -= 1;
-    } else if state.swap_point {
-        state.swap_point = false;
+    if state.swap.places > 0 {
+        state.swap.places -= 1;
+    } else if state.swap.point {
+        state.swap.point = false;
         return true;
     }
-    state.swap_in /= 10;
-    state.swap_digits = state.swap_digits.saturating_sub(1);
-    if state.swap_digits == 0 {
-        state.swap_in = 0;
+    state.swap.amount_in /= 10;
+    state.swap.digits = state.swap.digits.saturating_sub(1);
+    if state.swap.digits == 0 {
+        state.swap.amount_in = 0;
     }
     clear_quote(state);
     true
@@ -67,6 +67,6 @@ pub fn backspace(state: &mut State) -> bool {
 /// A quote belongs to the amount it was fetched for, so a changed amount
 /// re-reads the pool rather than keeping the old figure.
 fn clear_quote(state: &mut State) {
-    state.swap_note_hidden = false;
+    state.swap.note_hidden = false;
     crate::wallet::event::swap::swap_quote::refresh(state);
 }
