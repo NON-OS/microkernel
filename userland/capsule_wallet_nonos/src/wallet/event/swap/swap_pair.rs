@@ -22,14 +22,14 @@ use crate::wallet::swap::count;
 /// Move to the next token on the paying side, stepping over the one already
 /// on the other side so a reader cannot select a pair that is not a trade.
 pub fn cycle_from(state: &mut State) -> bool {
-    state.swap_from = next(state.swap_from, state.swap_to);
+    state.swap.from = next(state.swap.from, state.swap.to);
     clear_quote(state);
     true
 }
 
 /// Move to the next token on the receiving side.
 pub fn cycle_to(state: &mut State) -> bool {
-    state.swap_to = next(state.swap_to, state.swap_from);
+    state.swap.to = next(state.swap.to, state.swap.from);
     clear_quote(state);
     true
 }
@@ -40,11 +40,11 @@ pub fn cycle_to(state: &mut State) -> bool {
 /// now on the other side, and reading it as the new one would be a figure
 /// the reader never typed.
 pub fn flip(state: &mut State) -> bool {
-    core::mem::swap(&mut state.swap_from, &mut state.swap_to);
-    state.swap_in = 0;
-    state.swap_digits = 0;
-    state.swap_places = 0;
-    state.swap_point = false;
+    core::mem::swap(&mut state.swap.from, &mut state.swap.to);
+    state.swap.amount_in = 0;
+    state.swap.digits = 0;
+    state.swap.places = 0;
+    state.swap.point = false;
     clear_quote(state);
     true
 }
@@ -63,5 +63,5 @@ fn next(from: u8, avoid: u8) -> u8 {
 /// again since it was granted against the token that just changed.
 fn clear_quote(state: &mut State) {
     crate::wallet::event::swap::swap_quote::refresh(state);
-    state.swap_step = 0;
+    state.swap.step = 0;
 }

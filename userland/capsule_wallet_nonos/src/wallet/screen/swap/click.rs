@@ -31,13 +31,14 @@ const UNPRICED: &str = "No liquidity pool is connected to this build yet, so thi
      cannot be priced or sent. Nothing leaves this machine.";
 
 pub fn failure(state: &State) -> Option<&'static str> {
-    (state.swap_in > 0 && !state.swap_quote.ready && !state.swap_note_hidden).then_some(UNPRICED)
+    (state.swap.amount_in > 0 && !state.swap.quote.ready && !state.swap.note_hidden)
+        .then_some(UNPRICED)
 }
 
 pub fn action(state: &State) -> &'static str {
-    if !state.swap_quote.ready {
+    if !state.swap.quote.ready {
         "Enter an amount"
-    } else if !token(state.swap_from).is_native() && state.swap_step == 0 {
+    } else if !token(state.swap.from).is_native() && state.swap.step == 0 {
         "Approve"
     } else {
         "Swap"
@@ -46,14 +47,14 @@ pub fn action(state: &State) -> &'static str {
 
 fn set(state: &mut State, pay: bool, i: u8) {
     let (mine, other) =
-        if pay { (state.swap_from, state.swap_to) } else { (state.swap_to, state.swap_from) };
+        if pay { (state.swap.from, state.swap.to) } else { (state.swap.to, state.swap.from) };
     let other = if other == i { mine } else { other };
     if pay {
-        (state.swap_from, state.swap_to) = (i, other);
+        (state.swap.from, state.swap.to) = (i, other);
     } else {
-        (state.swap_to, state.swap_from) = (i, other);
+        (state.swap.to, state.swap.from) = (i, other);
     }
-    state.swap_step = 0;
+    state.swap.step = 0;
     crate::wallet::event::swap::swap_quote::refresh(state);
 }
 
@@ -63,7 +64,7 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
             state.view = VIEW_HOME;
             state.scroll = 0;
         }
-        Press::Dismiss => state.swap_note_hidden = true,
+        Press::Dismiss => state.swap.note_hidden = true,
         Press::Asset(i) => set(state, true, i),
         Press::Pick(i) => set(state, false, i),
         Press::Footer(0) => state.status = b"signing a swap is not wired in this build",

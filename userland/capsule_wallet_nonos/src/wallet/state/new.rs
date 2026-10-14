@@ -22,19 +22,10 @@ pub fn new_state() -> State {
          * NOX out, USDC in: the asset this wallet is for is the one a reader
          * most often pays with.
          */
-        swap_from: 0,
-        swap_to: 2,
-        swap_in: 0,
-        swap_quote: crate::wallet::swap::Quote::default(),
         /*
          * Half a percent, which is where a pool with real depth sits. A
          * tolerance set high enough to always succeed protects nobody.
          */
-        swap_slippage_bps: 50,
-        swap_step: 0,
-        swap_digits: 0,
-        swap_places: 0,
-        swap_point: false,
         keyring_port: 0,
         owner_pid: 0,
         wallet_id: 0,
@@ -94,6 +85,7 @@ pub fn new_state() -> State {
         tx: super::signed_tx::SignedTx::new(),
         broadcast: super::broadcast::BroadcastState::new(),
         net: super::net_view::Network::new(),
+        swap: super::swap_form::SwapForm::new(),
         nox: crate::wallet::nox::NoxStatus::empty(),
         action: None,
         view_w: 1280,
@@ -112,6 +104,5 @@ pub fn new_state() -> State {
         account_open: 0,
         accounts_owed: None,
         accounts_retry_at: 0,
-        swap_note_hidden: false,
     }
 }

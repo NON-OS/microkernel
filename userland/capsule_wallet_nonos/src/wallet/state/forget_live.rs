@@ -44,8 +44,8 @@ pub fn forget_live(state: &mut State) {
         state.send.stage = crate::wallet::send::STAGE_FORM;
     }
     /* A quote and an allowance belong to one network's contracts. */
-    state.swap_quote = crate::wallet::swap::Quote::default();
-    state.swap_step = 0;
+    state.swap.quote = crate::wallet::swap::Quote::default();
+    state.swap.step = 0;
     state.stake_step = 0;
     state.stake_draft = None;
     state.stake_position = 0;
