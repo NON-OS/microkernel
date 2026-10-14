@@ -28,7 +28,7 @@ use crate::wallet::screen::receive_address::checksummed_text;
 use crate::wallet::state::State;
 
 pub fn review(state: &mut State, deposit: [u8; 20]) {
-    state.shield_ui.withdraw_to = Some(checksummed_text(&deposit));
+    state.shield_ui.payee.withdraw_to = Some(checksummed_text(&deposit));
     let a = amount(&state.shield_ui);
     super::job::start(state, OP_QUOTE, &[coin(state.shield_ui.asset), &a, "1"]);
 }

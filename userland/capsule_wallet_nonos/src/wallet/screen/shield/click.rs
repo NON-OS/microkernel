@@ -44,8 +44,8 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
             ui.focus = FIELD_TO;
             ui.news = None;
             ui.size = None;
-            ui.to_meter = false;
-            ui.to_deposit = None;
+            ui.payee.to_meter = false;
+            ui.payee.to_deposit = None;
             ui.failure = None;
             state.scroll = 0;
         }
@@ -54,7 +54,7 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
             ui.size = None;
         }
         Press::Pick(i) => ui.size = Some(i),
-        Press::Dest(d) => (ui.to_meter, ui.to_deposit) = (d == 1, None),
+        Press::Dest(d) => (ui.payee.to_meter, ui.payee.to_deposit) = (d == 1, None),
         Press::Field(f) => ui.focus = f,
         Press::Footer(n) => return super::footer::footer(state, n),
         Press::Row(super::landed::ROW_SCAN) if ui.screen == SHIELD_HOME => scan_job::start(state),

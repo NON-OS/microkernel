@@ -23,116 +23,18 @@
 //! the next read, and every signature carries the picked chain id, so a
 //! transaction reviewed on one network cannot be replayed on the other.
 
-use core::sync::atomic::{AtomicU8, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicU8, Ordering};
 
-pub struct Chain {
-    pub id: u64,
-    /// As the status line and the review say it.
-    pub name: &'static str,
-    /// The JSON-RPC hosts, reached over TLS 1.3 on port 443, in the order
-    /// they are tried. Each serves a batch of every call a refresh makes at
-    /// `/` without a key. One that fails is left for the next, and the next
-    /// is asked its chain id before anything else is read from it.
-    pub rpcs: &'static [&'static str],
-    pub nox: [u8; 20],
-    pub usdc: [u8; 20],
-    /// The NOX staking contract, on mainnet only.
-    pub staking: Option<[u8; 20]>,
-    /// Whether the NOX Shield pool runs on this network.
-    pub shield: bool,
-    pub explorer: &'static str,
-}
-
-/// A hex digit's value. Any other byte indexes one past the end of a
-/// one-element table, which stops the compiler on this line: a const fn
-/// cannot return an error, and a sentinel would decode to a plausible byte.
-const fn nibble(c: u8) -> u8 {
-    let (value, bad) = match c {
-        b'0'..=b'9' => (c - b'0', 0),
-        b'a'..=b'f' => (c - b'a' + 10, 0),
-        b'A'..=b'F' => (c - b'A' + 10, 0),
-        _ => (0, 1),
-    };
-    let refuse = [0u8; 1];
-    value | refuse[bad]
-}
-
-/// A 20-byte address from its 40 hex digits, checked when the crate builds.
-pub const fn hex20(s: &str) -> [u8; 20] {
-    let b = s.as_bytes();
-    assert!(b.len() == 40);
-    let mut out = [0u8; 20];
-    let mut i = 0;
-    while i < 20 {
-        out[i] = (nibble(b[2 * i]) << 4) | nibble(b[2 * i + 1]);
-        i += 1;
-    }
-    out
-}
-
-/// NOX on `chain_id`, from nonos_nox_config, the one place it is named (B7).
-/// A chain the wallet offers without NOX fails the build.
-const fn nox_of(chain_id: u64) -> [u8; 20] {
-    match nonos_nox_config::address(chain_id, nonos_nox_config::Contract::NoxToken) {
-        Ok(a) => a,
-        Err(_) => panic!("NOX is configured on every chain the wallet offers"),
-    }
-}
-
-pub const MAINNET: Chain = Chain {
-    id: 1,
-    name: "Ethereum mainnet",
-    rpcs: &["ethereum-rpc.publicnode.com", "mainnet.gateway.tenderly.co", "rpc.mevblocker.io"],
-    nox: nox_of(1),
-    usdc: hex20("a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
-    staking: Some(hex20("a94d6009790ba13597a1e1b7cf4e1531ea513613")),
-    shield: false,
-    explorer: "etherscan.io",
-};
-
-pub const SEPOLIA: Chain = Chain {
-    id: 11_155_111,
-    name: "Sepolia",
-    rpcs: &[
-        "ethereum-sepolia-rpc.publicnode.com",
-        "sepolia.gateway.tenderly.co",
-        "rpc.sepolia.ethpandaops.io",
-    ],
-    nox: nox_of(11_155_111),
-    usdc: hex20("1c7d4b196cb0c7b01d743fbc6116a902379c7238"),
-    staking: None,
-    shield: true,
-    explorer: "sepolia.etherscan.io",
-};
+#[path = "chain_hex.rs"]
+mod chain_hex;
+#[path = "chain_host.rs"]
+mod chain_host;
+#[path = "chain_nets.rs"]
+mod chain_nets;
+pub use chain_host::{rpc_failed, rpc_host};
+pub use chain_nets::{Chain, MAINNET, SEPOLIA};
 
 static PICKED: AtomicU8 = AtomicU8::new(0);
-
-/* Which of each network's hosts is asked now, by its place in `rpcs`. */
-static HOST: [AtomicUsize; 2] = [AtomicUsize::new(0), AtomicUsize::new(0)];
-
-fn slot() -> &'static AtomicUsize {
-    &HOST[usize::from(is_sepolia())]
-}
-
-/// The RPC host the picked network's requests go to now.
-pub fn rpc_host() -> &'static str {
-    let hosts = current().rpcs;
-    hosts.get(slot().load(Ordering::Relaxed) % hosts.len().max(1)).copied().unwrap_or("")
-}
-
-/// `host` failed a request: the next one is asked from now on. Only when it
-/// is still the one asked, so two requests that failed on it move one place.
-/// True when the host changed.
-pub fn rpc_failed(host: &str) -> bool {
-    let hosts = current().rpcs;
-    let at = slot().load(Ordering::Relaxed);
-    if hosts.len() < 2 || hosts.get(at % hosts.len()) != Some(&host) {
-        return false;
-    }
-    slot()
-        .compare_exchange(at, (at + 1) % hosts.len(), Ordering::Relaxed, Ordering::Relaxed)
-        .is_ok()
-}
 
 pub fn current() -> &'static Chain {
     if is_sepolia() {

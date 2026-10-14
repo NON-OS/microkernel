@@ -29,16 +29,16 @@ use crate::wallet::state::State;
 pub fn poll(state: &mut State) -> bool {
     let Some(w) = state.shield_ui.waiting else { return false };
     let elapsed = ((mk_uptime_ms() - w.since_ms).max(0) / 1000) as u32;
-    let ticked = elapsed != state.shield_ui.elapsed_s;
-    state.shield_ui.elapsed_s = elapsed;
+    let ticked = elapsed != state.shield_ui.job.elapsed_s;
+    state.shield_ui.job.elapsed_s = elapsed;
     let now = mk_uptime_ms();
-    if now < state.shield_ui.poll_at_ms {
+    if now < state.shield_ui.link.poll_at_ms {
         return ticked;
     }
     let a = match call(OP_RESULT, &[]) {
         Ok(a) => {
-            state.shield_ui.misses = 0;
-            state.shield_ui.poll_at_ms = 0;
+            state.shield_ui.link.misses = 0;
+            state.shield_ui.link.poll_at_ms = 0;
             a
         }
         Err(_) => return missed(state, now) | ticked,

@@ -25,6 +25,7 @@ use nonos_app_skeleton::clients::clipboard::clipboard_copy;
 use nonos_app_skeleton::EventOutcome;
 
 use super::check::{deposit_ready, send_ready, withdraw_ready};
+use super::footer_away::elsewhere;
 use crate::wallet::shield::{actions, job};
 use crate::wallet::state::shield_ui::*;
 use crate::wallet::state::State;
@@ -64,21 +65,4 @@ pub fn footer(state: &mut State, n: u8) -> EventOutcome {
         _ => return EventOutcome::Idle,
     }
     EventOutcome::Repaint
-}
-
-/* The one press off the shield's network: go to Sepolia and open it. */
-fn elsewhere(state: &mut State, n: u8) -> EventOutcome {
-    if n != 0 {
-        return EventOutcome::Idle;
-    }
-    match crate::wallet::state::switch_network(state, true) {
-        Ok(_) => {
-            state.status = b"network changed";
-            super::click::open(state)
-        }
-        Err(why) => {
-            state.failure = Some(why);
-            EventOutcome::Repaint
-        }
-    }
 }
