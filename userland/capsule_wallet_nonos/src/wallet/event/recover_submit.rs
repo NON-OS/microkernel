@@ -27,7 +27,7 @@ pub(super) fn submit(state: &mut State) -> EventOutcome {
     let mut indices = [0u16; 24];
     let mut count = 0usize;
     {
-        let typed = &state.recover_buf[..state.recover_len];
+        let typed = &state.custody.recover_buf[..state.custody.recover_len];
         for word in typed.split(|&b| b == b' ').filter(|w| !w.is_empty()) {
             if count == 24 {
                 count = usize::MAX;

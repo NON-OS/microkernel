@@ -16,44 +16,23 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use crate::wallet::ipc::{forget_key, generate_wallet_hd, wallet_address};
+use super::generate_draw::draw;
+use crate::wallet::ipc::{forget_key, wallet_address};
 use crate::wallet::state::State;
 
-// Generation asks the keyring for a fresh HD wallet: real entropy becomes a
-// BIP39 phrase, the phrase becomes the m/44'/60'/0'/0/0 account. The response
-// carries the words exactly once for the backup screen. A draw can stall
-// briefly while the entropy source reseeds, so retry a few times before
-// reporting the real failure.
-const ATTEMPTS: u32 = 3;
-
 pub fn generate(state: &mut State) -> EventOutcome {
-    let mut id = 0u32;
-    let mut count = 0u8;
-    let mut ok = false;
-    let mut last_err = 0i32;
-    for _ in 0..ATTEMPTS {
-        match generate_wallet_hd(state.keyring_port, state.owner_pid, &mut state.backup_words) {
-            Ok((new_id, word_count)) => {
-                id = new_id;
-                count = word_count;
-                ok = true;
-                break;
-            }
-            Err(e) => last_err = e,
+    let (id, count) = match draw(state) {
+        Ok(drawn) => drawn,
+        Err(last_err) => {
+            super::backup::wipe_backup(state);
+            /* The keyring's EINVAL here is a draw it could not make. */
+            state.status = super::keyring_says::refusal(
+                last_err,
+                b"the keyring could not draw entropy for a new wallet",
+            );
+            return EventOutcome::Repaint;
         }
-        for _ in 0..300 {
-            nonos_libc::mk_yield();
-        }
-    }
-    if !ok {
-        super::backup::wipe_backup(state);
-        /* The keyring's EINVAL here is a draw it could not make. */
-        state.status = super::keyring_says::refusal(
-            last_err,
-            b"the keyring could not draw entropy for a new wallet",
-        );
-        return EventOutcome::Repaint;
-    }
+    };
     match wallet_address(state.keyring_port, state.owner_pid, id) {
         Ok(addr) => {
             state.wallet_id = id;
@@ -64,7 +43,7 @@ pub fn generate(state: &mut State) -> EventOutcome {
              * Show the one-time backup screen before anything else; the words
              * are wiped the moment the user confirms they are written down.
              */
-            state.backup_count = count;
+            state.custody.backup_count = count;
             state.backup_active = true;
             state.status = b"wallet created, write down the phrase";
             super::keep::keep(state, false);
