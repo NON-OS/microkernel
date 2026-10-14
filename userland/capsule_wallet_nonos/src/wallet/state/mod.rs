@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod broadcast;
+mod chain_reads;
 mod custody;
 mod default_net;
 mod empty_rail;

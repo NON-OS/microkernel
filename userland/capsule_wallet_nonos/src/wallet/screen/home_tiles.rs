@@ -33,7 +33,7 @@ use crate::wallet::state::State;
 /// The coins the account holds, in one tile; one line in their place while
 /// none of them has been read. Its height.
 pub(super) fn coins(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
-    let none = !state.balance_ready && !state.nox.balance_ready && !state.usdc_ready;
+    let none = !state.reads.balance_ready && !state.nox.balance_ready && !state.reads.usdc_ready;
     let rows: Vec<(&str, String)> = if none {
         let refreshing = state.net.job.is_some();
         let said = unread_balances(refreshing, state.net.link.rpc_connect_ok);
