@@ -50,7 +50,7 @@ pub(super) fn record(
             state.broadcast.receipt_ready = false;
             state.broadcast.unknown = matches!(result, Broadcast::Unknown(_));
             /* The refresh reads the receipt first, and soon. */
-            state.probe_step = 1;
+            state.net.probe_step = 1;
         }
         None => {
             state.broadcast.ready = false;

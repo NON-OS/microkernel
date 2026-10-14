@@ -37,7 +37,7 @@ pub fn toggle_recover(state: &mut State) -> EventOutcome {
     EventOutcome::Repaint
 }
 
-pub(super) fn wipe(state: &mut State) {
+pub(in crate::wallet::event) fn wipe(state: &mut State) {
     state.custody.recover_buf.zeroize();
     state.custody.recover_len = 0;
 }

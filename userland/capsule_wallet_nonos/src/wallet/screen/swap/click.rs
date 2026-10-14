@@ -54,7 +54,7 @@ fn set(state: &mut State, pay: bool, i: u8) {
         (state.swap_to, state.swap_from) = (i, other);
     }
     state.swap_step = 0;
-    crate::wallet::event::swap_quote::refresh(state);
+    crate::wallet::event::swap::swap_quote::refresh(state);
 }
 
 pub fn click(state: &mut State, press: Press) -> EventOutcome {

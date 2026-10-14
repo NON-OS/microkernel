@@ -17,27 +17,29 @@
 //! The wallet's screens on the Etna frame, one file each, with the shared
 //! status line, balances and the table of what can be pressed.
 
+pub mod accounts;
 pub mod amounts;
 pub mod backup;
 pub mod backup_words;
+pub mod custody;
 pub mod hits;
 pub mod home;
-pub mod custody;
+mod home_actions;
+mod home_columns;
+mod home_pills;
+mod home_tiles;
 pub mod locked;
 pub mod meter;
-pub mod publisher;
-pub mod purchase;
 pub mod page;
 pub mod pay;
-pub mod settings;
-pub mod stake;
-mod home_actions;
-mod home_pills;
+pub mod publisher;
+pub mod purchase;
 pub mod receive;
 pub mod receive_address;
-pub mod accounts;
+pub mod settings;
 pub mod shield;
-pub mod swap;
+pub mod stake;
 pub mod status;
 mod status_words;
+pub mod swap;
 pub mod welcome;

@@ -35,7 +35,7 @@ pub fn parts(state: &State) -> Vec<&'static str> {
         Shield::Unknown => "looking",
     });
     /* The network the requests went over, not whether net.nym is up. */
-    if let Some(route) = route_part(state.net.route) {
+    if let Some(route) = route_part(state.net.link.route) {
         out.push(route);
     }
     out.push(if state.vault_saved { "sealed" } else { "RAM only" });

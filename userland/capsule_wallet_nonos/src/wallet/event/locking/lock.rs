@@ -27,17 +27,17 @@ use nonos_app_skeleton::EventOutcome;
 
 use crate::wallet::state::{State, VIEW_HOME};
 
-pub(super) use super::unlock::unlock;
+pub(in crate::wallet::event) use super::unlock::unlock;
 
 pub fn lock(state: &mut State) -> EventOutcome {
     if state.export_active {
-        let _ = super::toggle_export(state);
+        let _ = super::super::toggle_export(state);
     }
     if state.import_active {
-        let _ = super::toggle_import(state);
+        let _ = super::super::toggle_import(state);
     }
     if state.recover_active {
-        let _ = super::toggle_recover(state);
+        let _ = super::super::toggle_recover(state);
     }
     /* A review is signed only by the holder who read it. A payment already
      * going out goes on, and is said when the window opens. */

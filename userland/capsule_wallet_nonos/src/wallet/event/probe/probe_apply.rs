@@ -20,7 +20,7 @@ use crate::wallet::net::read_snapshot::Snapshot;
 use crate::wallet::state::State;
 
 /// Apply a snapshot, returning whether anything shown changed.
-pub(super) fn apply(state: &mut State, snap: Snapshot) -> bool {
+pub(in crate::wallet::event) fn apply(state: &mut State, snap: Snapshot) -> bool {
     use super::reading::take;
     let staking = crate::wallet::chain::current().staking.is_some();
     let asked = if staking { 9 } else { 5 };
@@ -63,11 +63,11 @@ pub(super) fn apply(state: &mut State, snap: Snapshot) -> bool {
     let status: &'static [u8] = match came {
         0 => {
             /* An answer with no readings in it: the link is checked again. */
-            state.net.rpc_chain_ok = false;
+            state.net.link.rpc_chain_ok = false;
             b"the network answered without any readings, checking the link again"
         }
         n if n < asked => b"some readings did not come, shown as not read",
-        _ => state.net.status,
+        _ => state.net.link.status,
     };
     changed |= status != state.status;
     state.status = status;

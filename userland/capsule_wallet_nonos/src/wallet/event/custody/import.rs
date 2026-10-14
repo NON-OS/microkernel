@@ -58,7 +58,7 @@ pub fn import_input(state: &mut State, code: u32) -> EventOutcome {
     if state.custody.import_len == 0 && (code == b'x' as u32 || code == b'X' as u32) {
         return EventOutcome::Repaint;
     }
-    if super::hex_digit::hex_digit(code).is_some()
+    if super::super::hex_digit::hex_digit(code).is_some()
         && state.custody.import_len < state.custody.import_hex.len()
     {
         state.custody.import_hex[state.custody.import_len] = code as u8;
@@ -67,7 +67,7 @@ pub fn import_input(state: &mut State, code: u32) -> EventOutcome {
     EventOutcome::Repaint
 }
 
-pub(super) fn wipe(state: &mut State) {
+pub(in crate::wallet::event) fn wipe(state: &mut State) {
     state.custody.import_hex.zeroize();
     state.custody.import_len = 0;
 }

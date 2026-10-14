@@ -24,15 +24,15 @@ use super::import::wipe;
 use crate::wallet::ipc::{forget_key, import_wallet, wallet_address};
 use crate::wallet::state::State;
 
-pub(super) fn submit(state: &mut State) -> EventOutcome {
+pub(in crate::wallet::event) fn submit(state: &mut State) -> EventOutcome {
     if state.custody.import_len != 64 {
         state.status = b"private key must be 64 hex chars";
         return EventOutcome::Repaint;
     }
     let mut secret = [0u8; 32];
     for i in 0..32 {
-        let hi = super::hex_digit::hex_digit(state.custody.import_hex[i * 2] as u32);
-        let lo = super::hex_digit::hex_digit(state.custody.import_hex[i * 2 + 1] as u32);
+        let hi = super::super::hex_digit::hex_digit(state.custody.import_hex[i * 2] as u32);
+        let lo = super::super::hex_digit::hex_digit(state.custody.import_hex[i * 2 + 1] as u32);
         match (hi, lo) {
             (Some(h), Some(l)) => secret[i] = (h << 4) | l,
             _ => {
@@ -51,8 +51,8 @@ pub(super) fn submit(state: &mut State) -> EventOutcome {
                 state.address_ready = true;
                 state.import_active = false;
                 state.status = b"wallet imported";
-                super::keep::keep(state, true);
-                super::probe_tick::probe_kick(state)
+                super::super::locking::keep::keep(state, true);
+                super::super::probe::probe_tick::probe_kick(state)
             }
             Err(_) => {
                 let gone = forget_key(state.keyring_port, state.owner_pid, id).is_ok();

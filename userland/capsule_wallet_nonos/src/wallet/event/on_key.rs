@@ -26,7 +26,7 @@ use crate::wallet::state::{State, VIEW_SWAP};
 pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
     if state.locked {
         if code == KEY_ENTER {
-            return super::lock::unlock(state);
+            return super::locking::lock::unlock(state);
         }
         return EventOutcome::Idle;
     }
@@ -34,7 +34,7 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
     // phrase is written down. Enter is the only way through.
     if state.backup_active {
         if code == KEY_ENTER {
-            return super::backup::confirm_backup(state);
+            return super::custody::backup::confirm_backup(state);
         }
         return EventOutcome::Idle;
     }
@@ -60,7 +60,7 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
         return out;
     }
     if state.view == VIEW_SWAP {
-        if let Some(out) = super::swap_input::swap_input(state, code) {
+        if let Some(out) = super::swap::swap_input::swap_input(state, code) {
             return out;
         }
     }
@@ -68,7 +68,7 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
         return super::escape::escape(state);
     }
     if code == u32::from(b'r') || code == u32::from(b'R') {
-        return super::probe_tick::probe_kick(state);
+        return super::probe::probe_tick::probe_kick(state);
     }
     EventOutcome::Idle
 }

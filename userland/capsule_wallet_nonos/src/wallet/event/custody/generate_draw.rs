@@ -28,7 +28,7 @@ use crate::wallet::state::State;
 const ATTEMPTS: u32 = 3;
 
 /// The new wallet's id and word count, or the keyring's last refusal.
-pub(super) fn draw(state: &mut State) -> Result<(u32, u8), i32> {
+pub(in crate::wallet::event) fn draw(state: &mut State) -> Result<(u32, u8), i32> {
     let mut last_err = 0i32;
     for _ in 0..ATTEMPTS {
         let words = &mut state.custody.backup_words;

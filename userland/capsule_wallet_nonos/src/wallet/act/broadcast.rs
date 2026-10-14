@@ -50,7 +50,7 @@ pub fn broadcast(state: &mut State, purpose: Purpose) -> bool {
         return false;
     }
     let body = crate::wallet::rpc::request_broadcast(&state.tx.raw, 5);
-    super::claim_network(state);
+    super::action::claim_network(state);
     let exchange = Exchange::begin(Route::for_wallet(), body);
     let chain = crate::wallet::chain::current().id;
     state.action = Some(Action::Broadcast {

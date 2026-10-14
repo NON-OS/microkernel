@@ -49,6 +49,6 @@ fn the_words_are_never_drawn_while_locked_and_unlock_returns_to_them() {
     let screen = wallet("screen/locked.rs");
     assert!(!screen.contains("custody") && !screen.contains("backup"));
     /* Neither lock nor unlock ends the backup: it stays for the person. */
-    let lock = ["event/lock.rs", "event/unlock.rs"].map(wallet).concat();
+    let lock = ["event/locking/lock.rs", "event/locking/unlock.rs"].map(wallet).concat();
     assert!(!lock.contains("backup_active") && !lock.contains("wipe_backup"));
 }

@@ -20,7 +20,10 @@ use crate::wallet::state::State;
 
 /* Each payment's fate from one reading; the one on the Sent screen also
  * says it there. True when anything shown changed. */
-pub(super) fn followed_now(state: &mut State, f: crate::wallet::net::step::Followed) -> bool {
+pub(in crate::wallet::event) fn followed_now(
+    state: &mut State,
+    f: crate::wallet::net::step::Followed,
+) -> bool {
     use crate::wallet::send::sent::{Fate, Reading};
     let now = nonos_libc::mk_uptime_ms();
     let mut changed = false;

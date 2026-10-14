@@ -68,5 +68,5 @@ pub fn backspace(state: &mut State) -> bool {
 /// re-reads the pool rather than keeping the old figure.
 fn clear_quote(state: &mut State) {
     state.swap_note_hidden = false;
-    crate::wallet::event::swap_quote::refresh(state);
+    crate::wallet::event::swap::swap_quote::refresh(state);
 }

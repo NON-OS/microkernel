@@ -22,6 +22,6 @@ use crate::wallet::state::State;
 
 /// Kick a fresh refresh from the top on the next idle tick without blocking now.
 pub fn probe_kick(state: &mut State) -> EventOutcome {
-    state.probe_step = 1;
+    state.net.probe_step = 1;
     EventOutcome::Repaint
 }
