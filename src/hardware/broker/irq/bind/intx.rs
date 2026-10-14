@@ -18,7 +18,7 @@ use super::super::grant::{IrqGrant, IrqGrantKind, NO_IRTE};
 use super::super::types::{IrqBindError, IrqBindRequest, IrqBindResult};
 use super::super::validate::validate_intx_request;
 use super::super::{records, slots};
-use super::intx_line::line_free;
+use super::intx_line::{intx_refusal, line_free};
 use super::intx_open::open_intx;
 use super::intx_say::say_route;
 use crate::arch::interrupt::broker::vector_of;
@@ -45,9 +45,12 @@ pub(super) fn bind_intx(
     let vector = vector_of(slot).ok_or(IrqBindError::NoVector)?;
     let dest_apic_id = crate::arch::interrupt_controller::local_id();
 
-    let Ok(rte) = ioapic::program_route_external(gsi, vector, dest_apic_id) else {
-        slots::free_slot(slot);
-        return Err(IrqBindError::PlatformError);
+    let (rte, irte) = match ioapic::program_route_external(gsi, vector, dest_apic_id) {
+        Ok((rte, irte)) => (rte, irte.unwrap_or(NO_IRTE)),
+        Err(e) => {
+            slots::free_slot(slot);
+            return Err(intx_refusal(e));
+        }
     };
     let _ = ioapic::mask(gsi, true);
     open_intx(req.device_id);
@@ -64,7 +67,7 @@ pub(super) fn bind_intx(
         flags: req.flags,
         kind: IrqGrantKind::Intx,
         device_vector: 0,
-        irte: NO_IRTE,
+        irte,
     });
     slots::activate(slot, grant_id, gsi);
 
