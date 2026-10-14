@@ -32,15 +32,15 @@ pub fn may_replace(state: &mut State) -> Result<(), &'static str> {
     match rule(state.vault.restore_tried, waited, state.acct.address_ready, state.vault.present) {
         Replace::Free => Ok(()),
         Replace::Refuse(why) => {
-            state.custody_armed = false;
+            state.keys.armed = false;
             Err(why)
         }
-        Replace::Ask(_) if state.custody_armed => {
-            state.custody_armed = false;
+        Replace::Ask(_) if state.keys.armed => {
+            state.keys.armed = false;
             Ok(())
         }
         Replace::Ask(why) => {
-            state.custody_armed = true;
+            state.keys.armed = true;
             Err(why)
         }
     }

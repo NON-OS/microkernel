@@ -32,7 +32,7 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
     }
     // The one-time backup screen owns input until the user confirms the
     // phrase is written down. Enter is the only way through.
-    if state.backup_active {
+    if state.keys.backup_active {
         if code == KEY_ENTER {
             return super::custody::backup::confirm_backup(state);
         }

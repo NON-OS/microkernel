@@ -21,15 +21,15 @@ use crate::wallet::state::{State, VIEW_EXPORT, VIEW_IMPORT, VIEW_RECOVER};
 
 pub fn open(state: &mut State, view: u8) -> EventOutcome {
     state.failure = None;
-    state.custody_armed = false;
-    state.recover_shown = false;
+    state.keys.armed = false;
+    state.keys.recover_shown = false;
     state.scroll = 0;
     state.view = view;
     match view {
-        VIEW_IMPORT if !state.import_active => {
+        VIEW_IMPORT if !state.keys.import_active => {
             let _ = crate::wallet::event::toggle_import(state);
         }
-        VIEW_RECOVER if !state.recover_active => {
+        VIEW_RECOVER if !state.keys.recover_active => {
             let _ = crate::wallet::event::toggle_recover(state);
         }
         _ => {}
@@ -42,10 +42,10 @@ pub fn open(state: &mut State, view: u8) -> EventOutcome {
 /// screen's own button, after its warning: Settings opens that screen with
 /// the key still hidden.
 pub fn reveal(state: &mut State) -> EventOutcome {
-    if !state.export_active {
+    if !state.keys.export_active {
         let _ = crate::wallet::event::toggle_export(state);
     }
-    if state.export_active {
+    if state.keys.export_active {
         state.failure = None;
         state.view = VIEW_EXPORT;
     } else {
