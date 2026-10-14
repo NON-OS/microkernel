@@ -25,9 +25,9 @@ use crate::wallet::swap::token;
 /// the smallest unit. Places beyond what the token divides into are dropped
 /// rather than rounded, because rounding up would spend more than was typed.
 pub fn scaled(state: &State) -> u128 {
-    let decimals = token(state.swap_from).decimals as u32;
-    let places = state.swap_places.min(decimals);
-    let mut v = state.swap_in;
+    let decimals = token(state.swap.from).decimals as u32;
+    let places = state.swap.places.min(decimals);
+    let mut v = state.swap.amount_in;
     let mut shift = decimals - places;
     while shift > 0 {
         v = v.saturating_mul(10);
