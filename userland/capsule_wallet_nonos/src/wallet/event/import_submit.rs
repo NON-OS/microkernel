@@ -25,14 +25,14 @@ use crate::wallet::ipc::{forget_key, import_wallet, wallet_address};
 use crate::wallet::state::State;
 
 pub(super) fn submit(state: &mut State) -> EventOutcome {
-    if state.import_len != 64 {
+    if state.custody.import_len != 64 {
         state.status = b"private key must be 64 hex chars";
         return EventOutcome::Repaint;
     }
     let mut secret = [0u8; 32];
     for i in 0..32 {
-        let hi = super::hex_digit::hex_digit(state.import_hex[i * 2] as u32);
-        let lo = super::hex_digit::hex_digit(state.import_hex[i * 2 + 1] as u32);
+        let hi = super::hex_digit::hex_digit(state.custody.import_hex[i * 2] as u32);
+        let lo = super::hex_digit::hex_digit(state.custody.import_hex[i * 2 + 1] as u32);
         match (hi, lo) {
             (Some(h), Some(l)) => secret[i] = (h << 4) | l,
             _ => {

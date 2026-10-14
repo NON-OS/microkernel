@@ -38,6 +38,6 @@ pub fn toggle_recover(state: &mut State) -> EventOutcome {
 }
 
 pub(super) fn wipe(state: &mut State) {
-    state.recover_buf.zeroize();
-    state.recover_len = 0;
+    state.custody.recover_buf.zeroize();
+    state.custody.recover_len = 0;
 }
