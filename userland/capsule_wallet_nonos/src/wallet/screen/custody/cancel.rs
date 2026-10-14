@@ -28,15 +28,15 @@ fn leave(state: &mut State) {
 
 /// Close whichever key screen is up, wiping what it held.
 pub fn cancel(state: &mut State) -> EventOutcome {
-    state.custody_armed = false;
-    state.recover_shown = false;
-    if state.import_active {
+    state.keys.armed = false;
+    state.keys.recover_shown = false;
+    if state.keys.import_active {
         let _ = crate::wallet::event::toggle_import(state);
     }
-    if state.recover_active {
+    if state.keys.recover_active {
         let _ = crate::wallet::event::toggle_recover(state);
     }
-    if state.export_active {
+    if state.keys.export_active {
         let _ = crate::wallet::event::toggle_export(state);
     }
     state.failure = None;
