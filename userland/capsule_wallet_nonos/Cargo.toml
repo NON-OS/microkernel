@@ -24,6 +24,8 @@ shield_wire = { path = "../shield_wire" }
 nonos_tls = { path = "../nonos_tls" }
 # Every RPC request leaves through the network the person chose.
 nonos_route_link = { path = "../nonos_route_link" }
+# The JSON-RPC requests and answer readers, shared with nox-settle.
+nonos_eth_rpc = { path = "../nonos_eth_rpc" }
 # Whether this boot keeps anything past power off, as the store itself asks.
 nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
