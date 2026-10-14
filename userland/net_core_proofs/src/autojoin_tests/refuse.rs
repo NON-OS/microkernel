@@ -46,14 +46,14 @@ fn a_join_run_on_that_never_came_up_is_not_repeated() {
 fn only_a_link_seen_up_then_down_starts_a_rejoin() {
     let mut m = Machine::new();
     assert!(!m.link_due(0), "not while boot's autojoin runs");
-    assert!(!m.after_link(0, Some(false)), "never up");
+    assert!(!m.after_link(0, Some(false), false), "never up");
     m.after_attempt(0, Step::Done);
-    assert!(m.link_due(0) && !m.after_link(0, Some(false)));
+    assert!(m.link_due(0) && !m.after_link(0, Some(false), false));
     // A driver that does not answer in time says nothing about the link.
-    assert!(!m.after_link(1, Some(true)) && !m.after_link(2, None));
+    assert!(!m.after_link(1, Some(true), false) && !m.after_link(2, None, false));
     assert!(!m.rejoining());
     // A clock that runs backwards neither overflows nor rejoins early.
-    assert!(m.after_link(i64::MIN, Some(false)));
+    assert!(m.after_link(i64::MIN, Some(false), false));
     assert_eq!(m.due(i64::MIN), Due::Nothing);
     assert_eq!(lost_at(i64::MAX).due(i64::MAX), Due::Attempt, "saturates at the end of time");
 }

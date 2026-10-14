@@ -31,10 +31,14 @@
 mod after;
 #[path = "machine/again.rs"]
 mod again;
+#[path = "machine/codes.rs"]
+mod codes;
 #[path = "machine/consts.rs"]
 mod consts;
 #[path = "machine/rejoin.rs"]
 mod rejoin;
+#[path = "machine/seen.rs"]
+mod seen;
 #[path = "machine/state.rs"]
 mod state;
 #[path = "machine/step.rs"]
@@ -42,6 +46,7 @@ mod step;
 #[path = "machine/watch.rs"]
 mod watch;
 
+pub use codes::step_for;
 pub use consts::*;
 pub use state::Machine;
 use step::Phase;

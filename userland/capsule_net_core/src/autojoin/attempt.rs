@@ -63,5 +63,5 @@ pub fn attempt(tried: u8, only: Option<&[u8]>) -> Step {
     let Some(i) = due.find(|&i| in_range(i)) else {
         return Step::NoneInRange;
     };
-    join(&driver, list, i)
+    join(&driver, list, i, only.is_some())
 }
