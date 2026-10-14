@@ -22,6 +22,7 @@ mod filter_rails;
 mod forget_live;
 mod hydrate;
 mod live_view;
+mod net_view;
 mod network;
 mod new;
 mod rail;

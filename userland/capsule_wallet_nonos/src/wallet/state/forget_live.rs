@@ -49,11 +49,11 @@ pub fn forget_live(state: &mut State) {
     state.stake_step = 0;
     state.stake_draft = None;
     state.stake_position = 0;
-    state.net = super::default_net();
+    state.net.link = super::default_net();
     /* The last network's link status is not this one's. */
     state.status = b"reading the network";
     /* A refresh begun for the last account or network is not finished. */
-    state.net_job = None;
+    state.net.job = None;
     state.broadcast.unknown = false;
     /* A review read for the last account or network is dropped. A
      * broadcast under way is not: it may have left already, and is said when it
@@ -61,5 +61,5 @@ pub fn forget_live(state: &mut State) {
     if matches!(state.action, Some(crate::wallet::act::Action::Review { .. })) {
         state.action = None;
     }
-    state.probe_step = 1;
+    state.net.probe_step = 1;
 }

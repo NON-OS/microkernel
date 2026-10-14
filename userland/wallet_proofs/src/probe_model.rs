@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The refresh loop can never freeze the UI. This models the step machine in
-//! `wallet/event/probe_tick.rs`, the idle gate in `wallet/app.rs`, and the
+//! `wallet/event/probe/probe_tick.rs`, the idle gate in `wallet/app.rs`, and the
 //! per-operation socket timeouts in `wallet/net/*.rs`, and checks the
 //! invariants that keep the wallet responsive. Change a constant in the wallet
 //! and the matching constant here should change with it.
