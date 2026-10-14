@@ -22,13 +22,19 @@ use crate::wallet::send::{STAGE_FORM, STAGE_REVIEW};
 use crate::wallet::state::State;
 
 pub mod click;
+mod click_all;
+mod click_step;
 mod done;
+mod done_said;
 mod form;
+mod form_fields;
 pub mod key;
+mod key_address;
 mod review;
+mod review_rows;
 
 pub fn show(state: &State, fb: &mut PaintBuffer) {
-    match state.send_stage {
+    match state.send.stage {
         STAGE_FORM => form::form(state, fb),
         STAGE_REVIEW => review::review(state, fb),
         _ => done::done(state, fb),
