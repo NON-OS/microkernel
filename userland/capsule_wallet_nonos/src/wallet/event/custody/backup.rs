@@ -31,5 +31,5 @@ pub fn confirm_backup(state: &mut State) -> EventOutcome {
 pub fn wipe_backup(state: &mut State) {
     state.custody.backup_words.zeroize();
     state.custody.backup_count = 0;
-    state.backup_active = false;
+    state.keys.backup_active = false;
 }

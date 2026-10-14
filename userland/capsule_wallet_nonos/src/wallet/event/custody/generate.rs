@@ -44,7 +44,7 @@ pub fn generate(state: &mut State) -> EventOutcome {
              * are wiped the moment the user confirms they are written down.
              */
             state.custody.backup_count = count;
-            state.backup_active = true;
+            state.keys.backup_active = true;
             state.status = b"wallet created, write down the phrase";
             super::super::locking::keep::keep(state, false);
             super::super::probe::probe_tick::probe_kick(state)

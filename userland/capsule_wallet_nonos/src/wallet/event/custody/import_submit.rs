@@ -49,7 +49,7 @@ pub(in crate::wallet::event) fn submit(state: &mut State) -> EventOutcome {
                 state.vault.wallet_id = id;
                 state.acct.address = addr;
                 state.acct.address_ready = true;
-                state.import_active = false;
+                state.keys.import_active = false;
                 state.status = b"wallet imported";
                 super::super::locking::keep::keep(state, true);
                 super::super::probe::probe_tick::probe_kick(state)
