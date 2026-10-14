@@ -16,7 +16,7 @@
 
 //! The machine, and what it says is due.
 
-use super::rejoin::Rejoin;
+use super::seen::Rejoin;
 use super::{Due, Phase, NOT_YET_MS};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

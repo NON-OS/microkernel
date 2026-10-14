@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! What a rejoin pass, and a join it hands the driver, lead to.
 
+use super::codes::step_for;
 use super::{Machine, Phase, Step, JOIN_WATCH_MS, REJOIN_MAX_MS, WATCH_EVERY_MS};
 
 impl Machine {
@@ -36,6 +37,21 @@ impl Machine {
                 self.next_ms = now_ms.saturating_add(self.link.backoff_ms);
             }
         }
+    }
+
+    /// A join the driver ran on came back with `code` (the link's history,
+    /// newer than the join): in a rejoin, joined, refused (the rejoin ends),
+    /// or a transient failure, which uses one attempt and backs off. Outside
+    /// a rejoin the watch runs on. Returns the join that ended, and whether
+    /// it joined.
+    pub fn join_ended(&mut self, now_ms: i64, code: i32) -> Option<(u8, bool)> {
+        let Phase::Joining { index, .. } = self.phase else { return None };
+        if !self.rejoining() {
+            return None;
+        }
+        self.phase = Phase::Waiting;
+        self.after_rejoin(now_ms, step_for(index, code));
+        Some((index, code == 0))
     }
 
     /// A join came up: autojoin is done and the link is watched from here.
