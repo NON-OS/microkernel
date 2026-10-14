@@ -21,6 +21,8 @@ pub enum SessionError {
     Init,
     /// The socket failed.
     Io,
+    /// The response outran its budget, REPLY_MS or the caller's.
+    TooSlow,
     /// The server's flight never completed.
     Handshake,
     /// The certificate chain did not verify for this host.
