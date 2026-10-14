@@ -37,7 +37,7 @@ pub fn withdraw_gas(state: &mut State, to: [u8; 20], size: u128) -> EventOutcome
     }
     let ui = &mut state.shield_ui;
     (ui.screen, ui.asset, ui.size, ui.amount) = (SHIELD_WITHDRAW, ETH, None, amount);
-    (ui.to_meter, ui.to_deposit, ui.failure) = (false, Some(to), None);
+    (ui.payee.to_meter, ui.payee.to_deposit, ui.failure) = (false, Some(to), None);
     state.view = VIEW_SHIELD;
     state.scroll = 0;
     actions::review_withdraw(state);

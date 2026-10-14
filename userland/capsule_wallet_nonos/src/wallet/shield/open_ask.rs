@@ -49,7 +49,7 @@ pub fn open(state: &mut State) {
             let resumed =
                 running.as_deref().is_some_and(|name| super::super::job::resume(state, name));
             if !resumed && super::super::follow::sync_stale(&state.shield_ui, mk_uptime_ms()) {
-                state.shield_ui.last_sync_ms = mk_uptime_ms();
+                state.shield_ui.link.last_sync_ms = mk_uptime_ms();
                 super::super::job::start(state, OP_SYNC, &[]);
             }
             return;

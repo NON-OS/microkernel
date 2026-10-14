@@ -30,7 +30,7 @@ use crate::wallet::state::shield_ui::ShieldUi;
 
 pub fn dest(fb: &mut PaintBuffer, c: Rect, y: u32, ui: &ShieldUi) -> u32 {
     let h = super::pick::label(fb, c, y, "TO");
-    let picked = Some(ui.to_meter as u8);
+    let picked = Some(ui.payee.to_meter as u8);
     h + chips(fb, c, y + h, &["a fresh address of this wallet", "the meter"], picked, Press::Dest)
         + GAP
 }

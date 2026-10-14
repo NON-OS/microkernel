@@ -48,8 +48,8 @@ pub fn resume(state: &mut State, name: &str) -> bool {
     let Some(op) = op_of(name) else { return false };
     let ui = &mut state.shield_ui;
     ui.waiting = Some(Waiting { op, since_ms: mk_uptime_ms() });
-    ui.misses = 0;
-    ui.poll_at_ms = 0;
+    ui.link.misses = 0;
+    ui.link.poll_at_ms = 0;
     if matches!(op, OP_SEND | OP_WITHDRAW) {
         ui.screen = crate::wallet::state::shield_ui::SHIELD_PROVING;
     }

@@ -54,13 +54,13 @@ pub(super) fn waiting_text(state: &State) -> (alloc::string::String, u32) {
             text.push_str(&doing[1..]);
             text.push_str(&alloc::format!(
                 " on this machine, {} min {:02} s so far.",
-                ui.elapsed_s / 60,
-                ui.elapsed_s % 60
+                ui.job.elapsed_s / 60,
+                ui.job.elapsed_s % 60
             ));
-            if let Some(phase) = &ui.phase {
+            if let Some(phase) = &ui.job.phase {
                 text.push_str(&alloc::format!(" Now: {phase}."));
             }
-            text.push_str(crate::wallet::shield::open::opening_said(w.op, ui.elapsed_s));
+            text.push_str(crate::wallet::shield::open::opening_said(w.op, ui.job.elapsed_s));
             (text, TEXT_3)
         }
         (None, None) if crate::wallet::shield::open::retrying(state) => {
