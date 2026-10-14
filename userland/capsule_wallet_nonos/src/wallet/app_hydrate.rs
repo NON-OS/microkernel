@@ -29,7 +29,9 @@ impl Wallet {
     /// or not, is never read again in this window.
     fn unsettled(&self) -> bool {
         let s = &self.state;
-        s.keyring_port == 0 || s.owner_pid == 0 || (s.wallet_id == 0 && !s.vault_restore_tried)
+        s.vault.keyring_port == 0
+            || s.vault.owner_pid == 0
+            || (s.vault.wallet_id == 0 && !s.vault.restore_tried)
     }
 
     /// Read the keyring and the vault again once the wait is over. True when

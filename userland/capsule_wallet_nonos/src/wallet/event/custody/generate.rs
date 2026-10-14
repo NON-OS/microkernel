@@ -33,9 +33,9 @@ pub fn generate(state: &mut State) -> EventOutcome {
             return EventOutcome::Repaint;
         }
     };
-    match wallet_address(state.keyring_port, state.owner_pid, id) {
+    match wallet_address(state.vault.keyring_port, state.vault.owner_pid, id) {
         Ok(addr) => {
-            state.wallet_id = id;
+            state.vault.wallet_id = id;
             state.address = addr;
             state.address_ready = true;
             state.view = crate::wallet::state::VIEW_RECEIVE;
@@ -51,7 +51,7 @@ pub fn generate(state: &mut State) -> EventOutcome {
         }
         Err(_) => {
             super::backup::wipe_backup(state);
-            let gone = forget_key(state.keyring_port, state.owner_pid, id).is_ok();
+            let gone = forget_key(state.vault.keyring_port, state.vault.owner_pid, id).is_ok();
             state.status = super::keyring_says::unnamed(gone);
             EventOutcome::Repaint
         }
