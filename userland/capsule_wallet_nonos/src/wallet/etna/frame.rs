@@ -24,12 +24,16 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::band::band;
-use super::frame_bar::{band_height, bar};
-use super::frame_foot::{foot, foot_height};
+use super::frame_bar::band_height;
+use super::frame_foot::foot_height;
 use super::frame_spec::{FrameLayout, FrameSpec};
 use super::parts::failure::failure;
 use super::rect::Rect;
 use super::tokens::{BAR_H, GAP, INK, ROOM, SIDE};
+
+#[path = "frame_end.rs"]
+mod close;
+pub use close::end;
 
 pub fn column_x(fb: &PaintBuffer) -> u32 {
     super::layout::layout(fb.width).x
@@ -65,12 +69,4 @@ pub fn begin(fb: &mut PaintBuffer, spec: &FrameSpec) -> FrameLayout {
     /* Scrolled to its end, the last line keeps `ROOM` above the foot. */
     out.content_bottom = last;
     out
-}
-
-/// Bar, footer and status line, over the content.
-pub fn end(fb: &mut PaintBuffer, spec: &FrameSpec, out: &mut FrameLayout) {
-    let x0 = column_x(fb);
-    fb.fill_rect(x0, 0, super::current::now().column, BAR_H + 1, INK);
-    out.back = bar(fb, x0, spec);
-    foot(fb, x0, spec, out);
 }

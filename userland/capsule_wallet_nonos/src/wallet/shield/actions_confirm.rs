@@ -46,8 +46,8 @@ pub fn confirm(state: &mut State) {
             }
         }
         _ => {
-            let Some(to) = ui.withdraw_to.clone() else { return };
-            let (asset, deposit) = (ui.asset, ui.to_deposit);
+            let Some(to) = ui.payee.withdraw_to.clone() else { return };
+            let (asset, deposit) = (ui.asset, ui.payee.to_deposit);
             if super::job::start(state, OP_WITHDRAW, &[c, &to, &a, e]) {
                 crate::wallet::order::gas_paid::started(state, asset, deposit);
                 state.shield_ui.proving = Some((asset, a));

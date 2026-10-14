@@ -26,29 +26,10 @@ use super::rect::Rect;
 use super::roles::Role;
 use super::tokens::{INK, ROOM, SIDE, STATUS_H, TALL, TEXT_2, TIGHT};
 
-fn buttons_height(n: u32) -> u32 {
-    if n == 0 {
-        0
-    } else {
-        ROOM * 2 + TALL * n + TIGHT * (n - 1) + 1
-    }
-}
-
-/// The notice row's height: the wallet's last word, wrapped to the column,
-/// with room above it. None without a status line or a word to say.
-fn notice_height(spec: &FrameSpec) -> u32 {
-    let text = super::notice::now();
-    if spec.status.is_empty() || text.is_empty() {
-        return 0;
-    }
-    let w = super::current::now().column.saturating_sub(2 * SIDE) as i32;
-    super::wrap::wrapped_height(w, Role::Status, text) as u32 + TIGHT
-}
-
-pub fn foot_height(spec: &FrameSpec) -> u32 {
-    let status = if spec.status.is_empty() { 0 } else { STATUS_H };
-    buttons_height(spec.footer.len() as u32) + notice_height(spec) + status
-}
+#[path = "frame_foot_height.rs"]
+mod height;
+pub use height::foot_height;
+use height::notice_height;
 
 pub fn foot(fb: &mut PaintBuffer, x0: u32, spec: &FrameSpec, out: &mut FrameLayout) {
     let column = super::current::now().column;

@@ -30,6 +30,8 @@ mod exchange;
 pub mod gather;
 mod io;
 mod job;
+mod job_finished;
+mod job_follow;
 mod open;
 mod probe;
 

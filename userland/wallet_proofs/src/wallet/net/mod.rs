@@ -6,20 +6,24 @@
 
 pub use crate::pick::Route;
 
-#[allow(dead_code)]
-#[path = "../../../../capsule_wallet_nonos/src/wallet/net/route_text.rs"]
-pub mod route_text;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/bounds.rs"]
 pub mod bounds;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/handshake_end.rs"]
 pub mod handshake_end;
+#[allow(dead_code)]
+#[path = "../../../../capsule_wallet_nonos/src/wallet/net/route_text.rs"]
+pub mod route_text;
 /* The blocking reader, only here: the model `step::gather` is proved against. */
 #[allow(dead_code)]
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/routed_read.rs"]
 pub mod routed_read;
 
-pub mod step;
-#[path = "../../../../capsule_wallet_nonos/src/wallet/net/read_snapshot.rs"]
-pub mod read_snapshot;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/private_route.rs"]
 pub mod private_route;
+#[path = "../../../../capsule_wallet_nonos/src/wallet/net/read_snapshot.rs"]
+pub mod read_snapshot;
+#[path = "../../../../capsule_wallet_nonos/src/wallet/net/snapshot_fields.rs"]
+pub mod snapshot_fields;
+#[path = "../../../../capsule_wallet_nonos/src/wallet/net/snapshot_parse.rs"]
+pub mod snapshot_parse;
+pub mod step;
