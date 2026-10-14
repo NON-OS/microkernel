@@ -22,6 +22,7 @@ blake3 = { version = "1.5", default-features = false }
 # none is on by default, which is the release posture (dev_unconfined.rs).
 [features]
 nonos-dev-unconfined-dma = []
+nonos-iommu-intremap = []
 nonos-production = []
 nonos-release = []
 

@@ -43,6 +43,7 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
     if !crate::memory::iommu::translates(address) {
         return without_domain(pid, address, verdict(true, false, Ok(()), OPT_IN, PRODUCTION));
     }
+    super::interrupts::admit(pid, address)?;
     // A virtio device without ACCESS_PLATFORM ignores the domain (K5).
     if !super::virtio::may_confine(device_id) {
         say(b"refused: virtio without ACCESS_PLATFORM under an IOMMU", pid, address);
