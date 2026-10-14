@@ -41,6 +41,8 @@ mod dead;
 mod ends;
 #[path = "link/frames.rs"]
 mod frames;
+#[path = "link/history.rs"]
+mod history;
 #[path = "link/keys.rs"]
 mod keys;
 #[path = "link/keystore.rs"]

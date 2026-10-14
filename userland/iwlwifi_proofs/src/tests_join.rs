@@ -11,6 +11,8 @@ mod join_tests;
 #[cfg(test)]
 mod link_gate_tests;
 #[cfg(test)]
+mod link_history_tests;
+#[cfg(test)]
 mod serve_tests;
 #[cfg(test)]
 mod watch_tests;

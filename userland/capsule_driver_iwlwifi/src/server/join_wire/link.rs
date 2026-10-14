@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The link reply and a status-only reply.
+//! The link reply and a status-only reply. A link reply ends with the AKM
+//! (0 when not associated) and the link's history (`LinkHistory`).
+
+use nonos_wifi_core::link_history::LinkHistory;
 
 use super::codes::{SSID_MAX, WIFI_HDR};
 
@@ -26,18 +29,33 @@ pub struct LinkInfo<'a> {
     pub akm: u8,
 }
 
-/// Write the link reply after the header: not associated, or `link`.
+/// Write the link reply after the header, then how the link last ended and
+/// how the last join came out.
+pub fn encode_link_with(
+    out: &mut [u8],
+    link: Option<&LinkInfo<'_>>,
+    h: &LinkHistory,
+) -> Option<usize> {
+    let end = encode_link(out, link)?;
+    Some(end + h.encode(out.get_mut(end..)?)?)
+}
+
+/// Write the link reply after the header: not associated (with AKM 0), or
+/// `link`.
 pub fn encode_link(out: &mut [u8], link: Option<&LinkInfo<'_>>) -> Option<usize> {
     let fixed = WIFI_HDR + 8;
-    out.get_mut(WIFI_HDR..fixed)?.fill(0);
-    let Some(l) = link else { return Some(fixed) };
-    let len = l.ssid.len().min(SSID_MAX);
-    out[WIFI_HDR] = 1;
-    out[WIFI_HDR + 1..WIFI_HDR + 7].copy_from_slice(&l.bssid);
-    out[fixed - 1] = len as u8;
-    out.get_mut(fixed..fixed + len)?.copy_from_slice(&l.ssid[..len]);
-    *out.get_mut(fixed + len)? = l.akm;
-    Some(fixed + len + 1)
+    out.get_mut(WIFI_HDR..=fixed)?.fill(0);
+    let mut end = fixed + 1;
+    if let Some(l) = link {
+        let len = l.ssid.len().min(SSID_MAX);
+        out[WIFI_HDR] = 1;
+        out[WIFI_HDR + 1..WIFI_HDR + 7].copy_from_slice(&l.bssid);
+        out[fixed - 1] = len as u8;
+        out.get_mut(fixed..fixed + len)?.copy_from_slice(&l.ssid[..len]);
+        *out.get_mut(fixed + len)? = l.akm;
+        end = fixed + len + 1;
+    }
+    Some(end)
 }
 
 /// Write a status-only reply after the header.

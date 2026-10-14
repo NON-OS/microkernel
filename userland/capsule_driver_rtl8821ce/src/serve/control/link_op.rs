@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The link op: whether the radio is associated and with which network, as
-//! `[associated u8][bssid 6][ssid_len u8][ssid][akm u8]` after the header. The
+//! `[associated u8][bssid 6][ssid_len u8][ssid][akm u8]` after the header,
+//! the AKM 0 when not associated, then the link's history (`LinkHistory`). The
 //! panels read it to show the connection whoever made it (a panel, or net_core
 //! joining a saved network at boot), and the client reads the AKM (8 for
 //! WPA3-SAE) to remember a network as WPA3 so it is never joined with WPA2.
 
+use nonos_wifi_core::link_history::LinkHistory;
 use nonos_wifi_core::netif::LinkPort;
 
 use super::super::connect::Session;
@@ -32,16 +34,21 @@ pub(super) fn link_reply(
     out: &mut [u8],
 ) -> Option<usize> {
     let up = matches!(radio, Radio::Up(up) if up.link.link_up());
-    let fixed = WIFI_HDR + 8;
-    out[WIFI_HDR..fixed].fill(0);
-    let Some(s) = session.filter(|_| up) else {
-        return Some(fixed);
+    let history = match radio {
+        Radio::Up(up) => up.link.history(),
+        Radio::Down => LinkHistory::NEW,
     };
-    let len = (s.ssid_len as usize).min(s.ssid.len());
-    out[WIFI_HDR] = 1;
-    out[WIFI_HDR + 1..WIFI_HDR + 7].copy_from_slice(&s.bssid);
-    out[fixed - 1] = len as u8;
-    out[fixed..fixed + len].copy_from_slice(&s.ssid[..len]);
-    out[fixed + len] = s.akm;
-    Some(fixed + len + 1)
+    let fixed = WIFI_HDR + 8;
+    out.get_mut(WIFI_HDR..=fixed)?.fill(0);
+    let mut end = fixed + 1;
+    if let Some(s) = session.filter(|_| up) {
+        let len = (s.ssid_len as usize).min(s.ssid.len());
+        out[WIFI_HDR] = 1;
+        out[WIFI_HDR + 1..WIFI_HDR + 7].copy_from_slice(&s.bssid);
+        out[fixed - 1] = len as u8;
+        out.get_mut(fixed..fixed + len)?.copy_from_slice(&s.ssid[..len]);
+        *out.get_mut(fixed + len)? = s.akm;
+        end = fixed + len + 1;
+    }
+    Some(end + history.encode(out.get_mut(end..)?)?)
 }

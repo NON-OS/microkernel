@@ -58,6 +58,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
 
     /// Note why the link ended, for the serving loop to close the session.
     pub(super) fn lost(&mut self, why: Loss) {
+        self.history.lost();
         match why {
             Loss::Left(reason) | Loss::Unanswered(reason) => self.left = Some(reason),
             Loss::Silent => self.silent = true,
