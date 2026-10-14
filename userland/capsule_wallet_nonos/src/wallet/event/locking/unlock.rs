@@ -33,7 +33,7 @@ pub fn unlock(state: &mut State) -> EventOutcome {
         Ok(addr) if addr == state.address => {
             state.locked = false;
             state.failure = None;
-            state.probe_step = 1;
+            state.net.probe_step = 1;
             crate::wallet::shield::open::ensure(state);
         }
         _ => state.failure = Some(NO_KEYRING),

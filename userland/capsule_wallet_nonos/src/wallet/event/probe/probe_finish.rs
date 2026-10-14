@@ -24,12 +24,12 @@ use super::probe_follow::followed_now;
 use super::probe_tick::account_job;
 
 /// Take a finished job's result, returning whether anything shown changed.
-pub(super) fn finish(state: &mut State, finished: Finished) -> bool {
+pub(in crate::wallet::event) fn finish(state: &mut State, finished: Finished) -> bool {
     match finished {
         Finished::Probe(net) => {
             let changed = net.status != state.status;
-            state.net = net;
-            state.status = state.net.status;
+            state.net.link = net;
+            state.status = state.net.link.status;
             changed
         }
         Finished::Snapshot { snap, address, chain, host } => {
@@ -42,12 +42,12 @@ pub(super) fn finish(state: &mut State, finished: Finished) -> bool {
                     /* A new block read is news on Home, whatever else moved. */
                     let mut newer = false;
                     if let Some(block) = snap.head {
-                        let route = state.net.route.map_or("", |r| r.label());
+                        let route = state.net.link.route.map_or("", |r| r.label());
                         let at_ms = nonos_libc::mk_uptime_ms();
                         let read =
                             crate::wallet::net::last_read::LastRead { block, host, route, at_ms };
-                        let slot =
-                            &mut state.last_read[usize::from(crate::wallet::chain::is_sepolia())];
+                        let slot = &mut state.net.last_read
+                            [usize::from(crate::wallet::chain::is_sepolia())];
                         newer = slot.map_or(true, |r| r.block != block || r.host != host);
                         *slot = Some(read);
                     }
@@ -55,7 +55,7 @@ pub(super) fn finish(state: &mut State, finished: Finished) -> bool {
                 }
                 None => {
                     // The link dropped; fall back to the diagnostic next refresh.
-                    state.net.rpc_chain_ok = false;
+                    state.net.link.rpc_chain_ok = false;
                     state.status = b"reconnecting to the network";
                     true
                 }
@@ -68,7 +68,7 @@ pub(super) fn finish(state: &mut State, finished: Finished) -> bool {
                 _ => false,
             };
             /* The account is read in the same refresh, as it always was. */
-            state.net_job = Some(account_job(state));
+            state.net.job = Some(account_job(state));
             changed
         }
     }
