@@ -17,7 +17,9 @@
 //! The most authority any capsule in this image may hold.
 
 mod admits;
+mod rule;
 mod value;
 
-pub use admits::{admits, excess, report, report_pid, would_refuse};
+pub use admits::{admits, excess, report, report_pid};
+pub use rule::gate;
 pub use value::{ceiling, is_restricted};
