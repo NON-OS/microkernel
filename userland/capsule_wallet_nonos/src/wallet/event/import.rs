@@ -48,24 +48,26 @@ pub fn import_input(state: &mut State, code: u32) -> EventOutcome {
         return submit(state);
     }
     if code == KEY_BACKSPACE {
-        if state.import_len > 0 {
-            state.import_len -= 1;
-            state.import_hex[state.import_len] = 0;
+        if state.custody.import_len > 0 {
+            state.custody.import_len -= 1;
+            state.custody.import_hex[state.custody.import_len] = 0;
         }
         return EventOutcome::Repaint;
     }
     // Accept a leading 0x without consuming a nibble slot.
-    if state.import_len == 0 && (code == b'x' as u32 || code == b'X' as u32) {
+    if state.custody.import_len == 0 && (code == b'x' as u32 || code == b'X' as u32) {
         return EventOutcome::Repaint;
     }
-    if super::hex_digit::hex_digit(code).is_some() && state.import_len < state.import_hex.len() {
-        state.import_hex[state.import_len] = code as u8;
-        state.import_len += 1;
+    if super::hex_digit::hex_digit(code).is_some()
+        && state.custody.import_len < state.custody.import_hex.len()
+    {
+        state.custody.import_hex[state.custody.import_len] = code as u8;
+        state.custody.import_len += 1;
     }
     EventOutcome::Repaint
 }
 
 pub(super) fn wipe(state: &mut State) {
-    state.import_hex.zeroize();
-    state.import_len = 0;
+    state.custody.import_hex.zeroize();
+    state.custody.import_len = 0;
 }
