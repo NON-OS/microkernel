@@ -31,8 +31,9 @@ use super::process_of::same_process;
 
 /*
  * `owner`'s DMA grant `[start, start + len)` is being released, its device
- * already cut off; any thread of its process may own the surfaces over it. True when a surface over its frames is attached by
- * another process: the registry keeps the frames, and `reclaim_dma` gives
+ * already cut off; any thread of its process may own the surfaces over it.
+ * True when a surface over its frames is attached by another process: the
+ * registry keeps the frames, and `reclaim_dma` gives
  * them back once the last holder lets go. A surface nobody else holds stops
  * being attachable first, so no attach reaches the frames the caller then
  * frees. Under GATE, which every attach holds until its record is made.
