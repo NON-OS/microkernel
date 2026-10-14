@@ -54,7 +54,7 @@ mod request_receipt;
 
 pub use append::append_quantity;
 pub use batch_id::object_for_id;
-pub use broadcast_error::{broadcast_error, NodeSaid};
+pub use broadcast_error::{broadcast_error, NodeSaid, UNNAMED};
 pub use fees::{fees, MIN_TIP_WEI};
 pub use hex_text::{hex_bytes, quantity};
 pub use http_answer::{http_answer, Http};
