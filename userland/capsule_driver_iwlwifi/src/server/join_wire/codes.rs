@@ -19,6 +19,8 @@
 pub(super) const FLAG_WPA3_ONLY: u8 = 1 << 0;
 
 pub(super) const FLAG_HIDDEN: u8 = 1 << 1;
+/// net.core's rejoin of a lost link, refused once the person left it.
+pub(super) const FLAG_REJOIN: u8 = 1 << 2;
 
 pub(super) const SSID_MAX: usize = 32;
 
