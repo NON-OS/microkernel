@@ -16,6 +16,7 @@
 //! What the radio says about joining: whether it can, and the association.
 
 use crate::server::join_wire::LinkInfo;
+use nonos_wifi_core::link_history::LinkHistory;
 
 use super::super::{Radio, State};
 
@@ -30,6 +31,20 @@ impl Radio {
     pub fn joined(&self) -> bool {
         self.join.joined.as_ref().is_some_and(|j| j.link.station.is_associated())
     }
+    /// How the link last ended and the last join came out.
+    pub fn history(&self) -> LinkHistory {
+        self.join.history
+    }
+
+    /// A join finished with `code`; or the person asked to leave.
+    pub fn note_join(&mut self, code: i32) {
+        self.join.history.joined(code);
+    }
+
+    pub fn note_left(&mut self) {
+        self.join.history.left();
+    }
+
     /// The association, for the link reply.
     pub fn link_info(&self) -> Option<LinkInfo<'_>> {
         let j = self.join.joined.as_ref().filter(|j| j.link.station.is_associated())?;

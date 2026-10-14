@@ -11,7 +11,7 @@
 use crate::driver::Driver;
 
 use super::control::{OP_CONNECT, OP_DISCONNECT};
-use super::join_wire::{encode_code, encode_connect, encode_link};
+use super::join_wire::{encode_code, encode_connect, encode_link_with};
 use super::radio::Radio;
 
 /// The reply's length in `reply`; `req` is the whole request, wiped once a
@@ -28,9 +28,13 @@ pub(super) fn join(
         OP_CONNECT => {
             let r = radio.connect(driver, &req[10..]);
             req.fill(0);
+            radio.note_join(r.code);
             encode_connect(reply, &r)
         }
-        OP_DISCONNECT => encode_code(reply, radio.disconnect()),
-        _ => encode_link(reply, radio.link_info().as_ref()),
+        OP_DISCONNECT => {
+            radio.note_left();
+            encode_code(reply, radio.disconnect())
+        }
+        _ => encode_link_with(reply, radio.link_info().as_ref(), &radio.history()),
     }
 }

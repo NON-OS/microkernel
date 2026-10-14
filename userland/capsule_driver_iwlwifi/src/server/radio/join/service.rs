@@ -44,12 +44,14 @@ impl Radio {
             self.master_off();
             Line::new().text(b"radio down: ").text(Failure::Lost.text().as_bytes()).send();
             self.join.joined = None;
+            self.join.history.lost();
             self.state = State::Down(Failure::Lost);
             return;
         }
         if j.link.left.is_some() || j.link.silent {
             forget(&mut fw, j);
             say_loss(j.link.left);
+            self.join.history.lost();
             if let Some(j) = self.join.joined.take() {
                 say_link(&j, &self.join.inbox, b"link closed");
             }
