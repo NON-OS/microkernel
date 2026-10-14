@@ -23,6 +23,8 @@
 
 use super::State;
 
+pub use super::forget_live::forget_live;
+
 /* Said when a switch would leave something going out on the old network. */
 pub const SWITCH_BUSY: &str = "A payment or a shield job is under way on this network. \
      Let it finish, then change the network.";
@@ -53,50 +55,4 @@ pub fn switch_network(state: &mut State, sepolia: bool) -> Result<bool, &'static
         state.receive_private = false;
     }
     Ok(true)
-}
-
-/* Everything read from the chain for the open account and network: it is
- * read again, never carried over to another account or network. */
-pub fn forget_live(state: &mut State) {
-    state.balance_ready = false;
-    state.balance_wei = [0; 32];
-    state.usdc_ready = false;
-    state.usdc_units = [0; 32];
-    state.nonce_ready = false;
-    state.live_nonce = 0;
-    state.fee_ready = false;
-    state.fee_wei = 0;
-    state.nox = crate::wallet::nox::NoxStatus::empty();
-    state.tx_ready = false;
-    state.tx_raw.clear();
-    state.broadcast_armed = false;
-    state.broadcast_ready = false;
-    state.receipt_ready = false;
-    state.receipt_ok = false;
-    state.broadcast_hash = [0; 32];
-    /* A payment reviewed or sent on the last network is not this one's: the
-     * form keeps what was typed, and is reviewed again before it signs. */
-    if !matches!(state.action, Some(crate::wallet::act::Action::Broadcast { .. })) {
-        state.send_draft = None;
-        state.send_stage = crate::wallet::send::STAGE_FORM;
-    }
-    /* A quote and an allowance belong to one network's contracts. */
-    state.swap_quote = crate::wallet::swap::Quote::default();
-    state.swap_step = 0;
-    state.stake_step = 0;
-    state.stake_draft = None;
-    state.stake_position = 0;
-    state.net = super::default_net();
-    /* The last network's link status is not this one's. */
-    state.status = b"reading the network";
-    /* A refresh begun for the last account or network is not finished. */
-    state.net_job = None;
-    state.broadcast_unknown = false;
-    /* A review read for the last account or network is dropped. A
-     * broadcast under way is not: it may have left already, and is said when it
-     * ends, without being taken as this account's. */
-    if matches!(state.action, Some(crate::wallet::act::Action::Review { .. })) {
-        state.action = None;
-    }
-    state.probe_step = 1;
 }
