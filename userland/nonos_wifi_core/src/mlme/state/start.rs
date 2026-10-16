@@ -28,15 +28,15 @@ impl Mlme {
         let mut ssid = [0u8; 32];
         let len = req.ssid.len().min(32);
         ssid[..len].copy_from_slice(&req.ssid[..len]);
-        let mut secret = [0u8; SECRET_MAX];
         let secret_len = req.passphrase.len().min(SECRET_MAX);
-        secret[..secret_len].copy_from_slice(&req.passphrase[..secret_len]);
-        Self {
+        // The passphrase is copied straight into the machine, which wipes it
+        // when it goes, never into a local that would outlive the copy.
+        let mut m = Self {
             state: MlmeState::Scanning,
             our_mac: req.our_mac,
             ssid,
             ssid_len: len,
-            secret,
+            secret: [0u8; SECRET_MAX],
             secret_len,
             secret_too_long: req.passphrase.len() > SECRET_MAX,
             policy: req.policy,
@@ -53,6 +53,8 @@ impl Mlme {
             pmk: [0u8; 32],
             supplicant: None,
             failure: None,
-        }
+        };
+        m.secret[..secret_len].copy_from_slice(&req.passphrase[..secret_len]);
+        m
     }
 }

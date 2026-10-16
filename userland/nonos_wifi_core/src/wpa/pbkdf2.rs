@@ -11,6 +11,7 @@
 //! allocation. Checked against RFC 6070 vectors.
 
 use super::hmac::{hmac_sha1, hmac_sha1_parts};
+use crate::wipe::wipe;
 
 /// Fill `out` with PBKDF2-HMAC-SHA1(password, salt, iterations).
 pub fn pbkdf2_sha1(password: &[u8], salt: &[u8], iterations: u32, out: &mut [u8]) {
@@ -28,6 +29,9 @@ pub fn pbkdf2_sha1(password: &[u8], salt: &[u8], iterations: u32, out: &mut [u8]
         }
         let n = core::cmp::min(20, out.len() - off);
         out[off..off + n].copy_from_slice(&t[..n]);
+        // Each block is the key itself, or one step from it.
+        wipe(&mut u);
+        wipe(&mut t);
         off += n;
         block_index = block_index.wrapping_add(1);
     }
