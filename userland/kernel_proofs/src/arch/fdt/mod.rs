@@ -22,5 +22,4 @@ pub mod tokens;
 pub mod walker;
 
 pub(crate) mod blob;
-mod i2c_more_tests;
-pub(crate) mod i2c_tests;
+mod i2c_describe_tests;
