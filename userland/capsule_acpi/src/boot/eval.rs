@@ -17,11 +17,19 @@
 //! One evaluation, with a fresh budget, under the capsule's host.
 
 use crate::host::CapsuleHost;
+use crate::sys::log::Line;
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU32, Ordering};
 use nonos_aml::exec::{ExecLimits, Fault, Machine};
 use nonos_aml::load::Aml;
 use nonos_aml::namespace::Id;
 use nonos_aml::object::Object;
+
+/// Evaluations whose leftover mutexes are said, each; past it they are
+/// counted only. Our bound, from no source: a method run at every SCI
+/// must not fill the log.
+const TELL: u32 = 16;
+static TOLD: AtomicU32 = AtomicU32::new(0);
 
 pub fn evaluate(
     aml: &mut Aml,
@@ -29,7 +37,17 @@ pub fn evaluate(
     id: Id,
     args: Vec<Object>,
 ) -> Result<Object, Fault> {
-    Machine::new(aml, host, ExecLimits::DEFAULT).evaluate(aml, id, args)
+    let before = aml.rt.left_held;
+    let r = Machine::new(aml, host, ExecLimits::DEFAULT).evaluate(aml, id, args);
+    let left = aml.rt.left_held.wrapping_sub(before);
+    if left > 0 && TOLD.fetch_add(1, Ordering::Relaxed) < TELL {
+        let line = Line::new(b"AML: method ").hex(u64::from(id)).str(b" ended holding ");
+        line.dec(u64::from(left))
+            .str(b" mutexes; released, in all ")
+            .dec(u64::from(aml.rt.left_held))
+            .end();
+    }
+    r
 }
 
 /// The evaluator the platform layer takes.

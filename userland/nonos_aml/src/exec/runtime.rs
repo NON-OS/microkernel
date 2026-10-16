@@ -48,6 +48,9 @@ pub struct Runtime {
     pub connected: u32,
     /// How deep this capsule holds the Global Lock.
     pub global_lock: u32,
+    /// Mutexes evaluations ended still holding, released for them: a
+    /// firmware bug, counted for the capsule to log.
+    pub left_held: u32,
 }
 
 impl Runtime {
