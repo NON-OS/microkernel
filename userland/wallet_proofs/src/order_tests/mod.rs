@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod buy_gate;
+mod consent_wait;
 mod dispute;
 mod dispute_fixture;
 mod dispute_flow;
@@ -22,16 +24,24 @@ mod drive;
 mod drive_path;
 mod drive_retry;
 mod drive_rig;
+mod end_to_end;
 mod escrow_offer;
 mod exact;
 mod fixture;
+mod fresh_reply;
+mod fund_ask;
+mod gate_fixture;
 mod held;
 mod held_pages;
+mod market_answers;
+mod market_drive;
+mod open_gate;
 mod order_of;
 mod props;
 mod purchase;
 mod read;
 mod read_fixture;
+mod reading;
 mod refund;
 mod refund_cases;
 mod requests;
