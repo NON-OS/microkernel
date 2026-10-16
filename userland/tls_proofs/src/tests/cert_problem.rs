@@ -41,13 +41,13 @@ fn an_issuer_whose_own_issuer_is_not_a_root_is_unknown() {
      * exactly that, so that is the reason given.
      */
     let body = message(&[EXAMPLE_LEAF, EXAMPLE_CA]);
-    assert!(!verify_chain(&body, b"example.com", INSIDE));
+    assert_eq!(verify_chain(&body, b"example.com", INSIDE), Ok(false));
     assert_eq!(cert_problem(&body, b"example.com", INSIDE), Some(CertProblem::UnknownIssuer));
 }
 #[test]
 fn another_name_is_named_as_a_mismatch() {
     let body = message(&[EXAMPLE_LEAF, EXAMPLE_CA]);
-    assert!(!verify_chain(&body, b"example.org", INSIDE));
+    assert_eq!(verify_chain(&body, b"example.org", INSIDE), Ok(false));
     assert_eq!(cert_problem(&body, b"example.org", INSIDE), Some(CertProblem::NameMismatch));
 }
 #[test]
@@ -55,7 +55,7 @@ fn either_side_of_the_window_is_told_apart() {
     let body = message(&[EXAMPLE_LEAF, EXAMPLE_CA]);
     let (from, until) = cert_window(EXAMPLE_LEAF).expect("window");
     for (now, want) in [(from - 1, CertProblem::NotYetValid), (until + 1, CertProblem::Expired)] {
-        assert!(!verify_chain(&body, b"example.com", now));
+        assert_eq!(verify_chain(&body, b"example.com", now), Ok(false));
         assert_eq!(cert_problem(&body, b"example.com", now), Some(want));
     }
 }

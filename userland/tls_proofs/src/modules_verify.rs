@@ -35,6 +35,8 @@ pub mod verify_p256;
 pub mod verify_p384;
 #[path = "../../nonos_tls/src/verify_rsa.rs"]
 pub mod verify_rsa;
+#[path = "../../nonos_tls/src/verify_rsa_checked.rs"]
+pub mod verify_rsa_checked;
 #[path = "../../nonos_tls/src/scan_messages.rs"]
 pub mod scan_messages;
 #[path = "../../nonos_tls/src/scan_request.rs"]

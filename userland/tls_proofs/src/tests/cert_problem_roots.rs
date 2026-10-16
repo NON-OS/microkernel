@@ -26,14 +26,14 @@ use crate::fixtures::certs::GATEWAY;
 #[test]
 fn a_chain_cut_short_of_a_known_root_names_the_issuer() {
     let body = message(&[EXAMPLE_LEAF]);
-    assert!(!verify_chain(&body, b"example.com", INSIDE));
+    assert_eq!(verify_chain(&body, b"example.com", INSIDE), Ok(false));
     assert_eq!(cert_problem(&body, b"example.com", INSIDE), Some(CertProblem::UnknownIssuer));
 }
 #[test]
 fn a_private_root_is_an_unknown_issuer() {
     let body = message(&GATEWAY);
     let now = 20261001000000;
-    assert!(!verify_chain(&body, b"nonos.software", now));
+    assert_eq!(verify_chain(&body, b"nonos.software", now), Ok(false));
     assert_eq!(cert_problem(&body, b"nonos.software", now), Some(CertProblem::UnknownIssuer));
 }
 #[test]

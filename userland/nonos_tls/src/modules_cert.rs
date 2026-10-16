@@ -46,3 +46,4 @@ mod verify_link;
 mod verify_p256;
 mod verify_p384;
 mod verify_rsa;
+mod verify_rsa_checked;
