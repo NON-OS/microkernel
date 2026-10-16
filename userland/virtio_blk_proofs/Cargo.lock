@@ -3,6 +3,10 @@
 version = 4
 
 [[package]]
+name = "nonos_devmodel"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_virtio"
 version = "0.1.0"
 
@@ -10,5 +14,11 @@ version = "0.1.0"
 name = "virtio_blk_proofs"
 version = "0.3.0"
 dependencies = [
+ "nonos_devmodel",
  "nonos_virtio",
+ "virtio_blk_proofs_libc_shim",
 ]
+
+[[package]]
+name = "virtio_blk_proofs_libc_shim"
+version = "0.1.0"

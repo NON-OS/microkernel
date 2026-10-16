@@ -233,6 +233,7 @@ let
       "nonos-ci/attack_suite_check.py --self-test" "nonos-ci/boot_attest_check.py --self-test"
       "scripts/check_capsule_ports.py --self-test" "scripts/check_capsule_ports.py"
       "scripts/check_handoff_mirror.py --self-test" "scripts/check_handoff_mirror.py"
+      "scripts/check_blk_wire.py --self-test" "scripts/check_blk_wire.py"
       "scripts/check_prebuilt.py" "scripts/check_syscall_args.py" "scripts/check_caps_abi.py"
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"

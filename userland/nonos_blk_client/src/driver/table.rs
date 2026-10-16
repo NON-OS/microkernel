@@ -16,8 +16,8 @@
 
 //! Per-driver constants, copied from each driver's `protocol` module. They
 //! are the contract those capsules publish; a change there is a change
-//! here, and the driver's own tests are what hold the two together until
-//! the protocols become one. Service names are in `names.rs`.
+//! here, and blk_client_proofs and scripts/check_blk_wire.py hold the two
+//! together until the protocols become one. Service names are in `names.rs`.
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Driver {

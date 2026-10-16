@@ -13,9 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! `Driver` is the live state the server loop holds: the claim, the queue,
+//! how the device is reached, and its size. It holds no DMA grant id: the
+//! claim's release takes every grant with it (`quiesce`).
+
 use crate::queue::Queue;
 use crate::transport::Transport;
+
 pub struct Driver {
+    pub device_id: u64,
+    pub claim_epoch: u64,
     pub irq_grant: u64,
     pub queue: Queue,
     pub transport: Transport,

@@ -534,18 +534,35 @@ else
 fi
 unset blk_dead_code
 
-# Setup-phase rollback. Every setup/* file that performs a broker
-# call past `claim` must also unwind every prior grant on a
-# failure path. The check below requires each of the three later
-# phases (mmio/irq/dma) to issue the broker release/unmap/unbind
-# calls for the prior phases — a missing rollback is caught
-# lexically.
-for needle in 'mk_device_release' 'mk_mmio_unmap|regs\.release' 'mk_irq_unbind' ; do
-    if ! grep -rqE "${needle}" userland/capsule_driver_virtio_blk/src/setup ; then
-        fail_with "capsule_driver_virtio_blk setup must roll back via ${needle} on failure"
+# Setup-phase rollback. A failed bring-up (setup/sequence.rs)
+# and a recovery (setup/quiesce.rs) each give every grant back through the
+# claim's release, which stops bus mastering before it frees any; each
+# transport's bring-up resets the device on failure and a recovery resets it
+# before the release; the driver unmaps no DMA itself, so no frame is freed
+# while the device can still reach it. (It used to unmap each phase's grants
+# in turn, the ring included, with the device still pointed at them.) Each
+# file is held on its own: one release left elsewhere does not excuse it.
+for blk_release in setup/sequence.rs setup/quiesce.rs ; do
+    if ! grep -q 'mk_device_release(' "userland/capsule_driver_virtio_blk/src/${blk_release}" ; then
+        fail_with "capsule_driver_virtio_blk ${blk_release} must give the device back via mk_device_release"
     fi
 done
-note ok "capsule_driver_virtio_blk setup phases roll back prior broker grants"
+for blk_phase in setup/legacy.rs setup/modern/run.rs setup/quiesce.rs ; do
+    if ! grep -qE '\.reset\(\)|reset_until\(' "userland/capsule_driver_virtio_blk/src/${blk_phase}" ; then
+        fail_with "capsule_driver_virtio_blk ${blk_phase} must reset the device before the claim goes"
+    fi
+done
+blk_q="userland/capsule_driver_virtio_blk/src/setup/quiesce.rs"
+blk_reset_at="$( { grep -n '\.reset()' "${blk_q}" || true; } | head -1 | cut -d: -f1)"
+blk_release_at="$( { grep -n 'mk_device_release(' "${blk_q}" || true; } | head -1 | cut -d: -f1)"
+if [ -n "${blk_reset_at}" ] && [ -n "${blk_release_at}" ] && [ "${blk_reset_at}" -gt "${blk_release_at}" ]; then
+    fail_with "capsule_driver_virtio_blk setup/quiesce.rs must reset the device before it gives it back"
+fi
+unset blk_q blk_reset_at blk_release_at
+if grep -rq 'mk_dma_unmap' userland/capsule_driver_virtio_blk/src ; then
+    fail_with "capsule_driver_virtio_blk must not unmap DMA itself; the release does, after a reset"
+fi
+note ok "capsule_driver_virtio_blk setup resets, then gives every grant back with the claim"
 
 # Endpoint string is the contract a kernel-side client opens
 # against. Marker line in `main.rs` and the comment in
@@ -678,9 +695,8 @@ else
 fi
 unset net_dead_code
 
-# Setup-phase rollback for the network driver. Same shape as the
-# virtio_blk gate: each later phase has to issue the prior
-# phase's release/unmap/unbind on failure.
+# Setup-phase rollback for the network driver: each later phase has to
+# issue the prior phase's release/unmap/unbind on failure.
 # A driver that polls binds no interrupt, so it has none to unbind; it
 # must take the device off its legacy pin instead.
 for needle in 'mk_device_release' 'mk_mmio_unmap' 'mk_irq_unbind' ; do
