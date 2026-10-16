@@ -25,7 +25,7 @@
 use nonos_libc::mk_cap_check;
 
 use crate::display::indicator_rule::may_indicate;
-use crate::protocol::{Request, E_BUSY, E_INVAL, E_IO, E_PERM, INDICATOR_REQ_LEN};
+use crate::protocol::{Request, E_BUSY, E_INVAL, E_IO, E_PERM};
 use crate::server::respond;
 use crate::state::indicator::{Refused, KIND_CAMERA};
 use crate::state::Context;
@@ -37,17 +37,14 @@ pub fn handle(
     body: &[u8],
     tx: &mut [u8],
 ) -> Result<(), &'static str> {
-    let (Some(kind), Some(on)) = (super::u32_at(body, 0), super::u32_at(body, 4)) else {
+    let Some((kind, on)) = crate::requests::toggles::indicator(body) else {
         return respond::status(sender, req, E_INVAL, tx);
     };
-    if body.len() != INDICATOR_REQ_LEN || on > 1 {
-        return respond::status(sender, req, E_INVAL, tx);
-    }
     if !may_indicate(sender, kind, mk_cap_check) {
         return respond::status(sender, req, E_PERM, tx);
     }
     let before = ctx.indicators;
-    let status = match ctx.indicators.apply(kind, on == 1, sender) {
+    let status = match ctx.indicators.apply(kind, on, sender) {
         Err(Refused::Kind) => E_INVAL,
         Err(Refused::Full) => E_BUSY,
         Ok(false) => 0,
@@ -57,7 +54,7 @@ pub fn handle(
         }
         Ok(true) => {
             let what = if kind == KIND_CAMERA { "camera" } else { "microphone" };
-            let state = if on == 1 { "on" } else { "off" };
+            let state = if on { "on" } else { "off" };
             crate::say::say(&alloc::format!("[PRIVACY] {} indicator {}", what, state));
             0
         }

@@ -29,5 +29,6 @@ pub const NIGHT_LIGHT_REQ_LEN: usize = 4;
 pub const LID_REQ_LEN: usize = 4;
 pub const BRIGHTNESS_STEP_REQ_LEN: usize = 4;
 pub const SET_VCP_REQ_LEN: usize = 12;
+pub const ACCESSIBILITY_GET_REQ_LEN: usize = 4;
 pub const DISPLAY_INFO_DATA_LEN: usize = 16;
 pub const DISPLAY_INFO_RESP_LEN: usize = STATUS_LEN + DISPLAY_INFO_DATA_LEN;

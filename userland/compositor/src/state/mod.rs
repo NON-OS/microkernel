@@ -42,4 +42,4 @@ pub use cursor::CursorTracker;
 pub use damage::DamageAccumulator;
 pub use focus::FocusTable;
 pub use primary::Primary;
-pub use scene::{Layer, SceneTable};
+pub use scene::SceneTable;
