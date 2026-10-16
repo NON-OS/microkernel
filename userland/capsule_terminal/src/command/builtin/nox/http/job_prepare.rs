@@ -31,6 +31,8 @@ const USAGE: &[u8] =
     b"usage: http <url>   e.g. http example.com  |  http https://host/path  |  http host:8080";
 const MAX_BODY: usize = 64 * 1024;
 const AGENT: &str = "nonos-terminal";
+/// What the Direct default costs, said before anything is sent.
+const DIRECT_SEES: &[u8] = b": the far end sees this machine's address";
 
 /// Parse the url and set the request up; a bad url is reported here and
 /// there is no job.
@@ -53,6 +55,10 @@ pub fn prepare(state: &mut State, args: &[&[u8]]) -> Option<HttpJob> {
         line.extend_from_slice(url.host.as_bytes());
         line.push(b' ');
         line.extend_from_slice(route.name().as_bytes());
+        // An .anyone service goes through net.anon even on Direct (mixnet/exchange/open.rs).
+        if route == Route::Direct && !nonos_route_link::is_anyone(&url.host) {
+            line.extend_from_slice(DIRECT_SEES);
+        }
         state.scrollback.push_line(&line);
     }
     let request = RequestBuilder::get(&url.host, &url.path).user_agent(AGENT).build();
