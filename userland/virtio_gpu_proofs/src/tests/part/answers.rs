@@ -61,3 +61,8 @@ pub fn build(request: &[u8], room: usize, answer: Answer) -> Vec<u8> {
     out.truncate(room);
     out
 }
+
+/// Whether the part leaves `request` published and never answers it.
+pub fn left(request: &[u8], answer: Answer) -> bool {
+    matches!(answer, Answer::StallOn(t) if request.get(..4) == Some(&t.to_le_bytes()[..]))
+}

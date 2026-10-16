@@ -23,7 +23,7 @@ use nonos_virtio::common::reset_until;
 
 use super::{layout::QueueLayout, submit};
 use crate::clock::expired_after;
-use crate::constants::{RESET_MS, VQ_STAGING_OFFSET};
+use crate::constants::RESET_MS;
 use crate::regs::Regs;
 
 pub struct ControlQueue {
@@ -50,13 +50,10 @@ impl ControlQueue {
         submit::submit_sync(self, request, resp_len)
     }
 
-    /// The answer, from the staging page after the `request_len` bytes of
-    /// the request it answers.
-    pub fn read_response(&self, request_len: usize, dst: &mut [u8]) {
-        let from = VQ_STAGING_OFFSET.saturating_add(request_len);
-        for (i, b) in dst.iter_mut().enumerate() {
-            *b = self.layout.ring.r8(from.saturating_add(i));
-        }
+    /// Commands published on this queue. While it is in service the device
+    /// answered each in turn: a timeout or an answer out of turn resets it.
+    pub fn published(&self) -> u16 {
+        self.next.get()
     }
 
     /// Whether the device was reset and the queue is out of service.

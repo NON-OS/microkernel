@@ -33,14 +33,18 @@ pub enum Answer {
     SkippedIndex,
     BadEdidMagic,
     WrongFence,
+    /// As `Spec`, but every command of this type is left unanswered.
+    StallOn(u32),
 }
 
-/// One request as the part saw it: the bytes and the flags on each side of
-/// the chain.
+/// One request as the part saw it: the bytes, the flags on each side of the
+/// chain, and the device status it was taken under (zero from a part that
+/// does not read the status).
 pub struct Seen {
     pub request: Vec<u8>,
     pub request_flags: u16,
     pub response_flags: u16,
+    pub status: u8,
 }
 
 pub struct Part {
@@ -54,11 +58,16 @@ impl Part {
     }
 
     pub fn seen(&self) -> Vec<Vec<u8>> {
-        self.seen
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
-            .iter()
-            .map(|s| s.request.clone())
-            .collect()
+        self.taken(|s| s.request.clone())
+    }
+
+    /// The device status each command was taken under, oldest first.
+    pub fn statuses(&self) -> Vec<u8> {
+        self.taken(|s| s.status)
+    }
+
+    fn taken<T>(&self, each: impl Fn(&Seen) -> T) -> Vec<T> {
+        let seen = self.seen.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        seen.iter().map(each).collect()
     }
 }

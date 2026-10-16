@@ -23,13 +23,22 @@ use crate::regs::Regs;
 use crate::transport::Transport;
 
 /// Point the receive and transmit queues at the rings at `rx_phys` and
-/// `tx_phys`; the number of buffers to prime on each. When either is
-/// refused the receive queue may already hold its page number, in a grant
-/// the failed attempt releases next: the device is reset first, so it has
-/// let go of every ring before the grants go (plan/50 C2).
-pub fn program_queues(regs: Regs, rx_phys: u64, tx_phys: u64) -> Result<(u16, u16), &'static str> {
+/// `tx_phys`, then turn bus mastering on (`master`); the number of buffers
+/// to prime on each. A device left live by a dead predecessor holds that
+/// one's rings, in frames since freed, until it is given these, so it may
+/// reach memory only after both, and after every refusal; Bus Master used
+/// to go on first. When a step fails the receive queue may already hold
+/// its page number, in a grant the failed attempt releases next: the device
+/// is reset first, so it has let go of every ring before the grants go.
+pub fn program_queues(
+    regs: Regs,
+    rx_phys: u64,
+    tx_phys: u64,
+    master: impl FnOnce() -> Result<(), &'static str>,
+) -> Result<(u16, u16), &'static str> {
     let both = program_queue(regs, Q_RX, rx_phys, RxQueue::queue_size()).and_then(|rx| {
         let tx = program_queue(regs, Q_TX, tx_phys, TxQueue::queue_size())?;
+        master()?;
         Ok((rx, tx))
     });
     if both.is_err() {

@@ -21,6 +21,8 @@ const LEGACY: &str = include_str!("../../../capsule_driver_virtio_rng/src/setup/
 const MODERN: &str = include_str!("../../../capsule_driver_virtio_rng/src/setup/modern/run.rs");
 const PCI: &str = include_str!("../../../capsule_driver_virtio_rng/src/setup/pci.rs");
 const PROBE: &str = include_str!("../../../capsule_driver_virtio_rng/src/transport/probe.rs");
+const PROGRAM: &str = include_str!("../../../capsule_driver_virtio_rng/src/init/program.rs");
+const QUEUE: &str = include_str!("../../../capsule_driver_virtio_rng/src/setup/modern/queue.rs");
 
 fn at(text: &str, needle: &str) -> usize {
     text.find(needle).unwrap_or_else(|| panic!("`{needle}` not found"))
@@ -35,15 +37,27 @@ fn a_failed_bring_up_resets_the_device_before_the_claim_goes() {
 }
 
 // A device left live by a previous instance holds its ring addresses until
-// it is reset; it may not master the bus before that, nor see a ring.
+// it is reset and given this driver's ring; it may not master the bus
+// before both. Bring-up hands its one Bus Master command to the queue step,
+// which runs it after the ring and every refusal, then sets DRIVER_OK
+// (`master_legacy_tests` and `master_modern_tests` run that step).
 #[test]
-fn a_device_is_reset_before_it_may_master_the_bus() {
+fn a_device_is_reset_and_on_this_drivers_ring_before_it_may_master_the_bus() {
     let decode = PCI.lines().find(|l| l.contains("const DECODE:")).expect("DECODE");
     assert!(!decode.contains("BUS_MASTER"), "decoding sets Bus Master");
-    assert!(at(LEGACY, "negotiate(regs)") < at(LEGACY, "pci::MASTER"));
-    assert!(at(LEGACY, "pci::MASTER") < at(LEGACY, "program(regs"));
-    assert!(at(MODERN, "start_until(&common") < at(MODERN, "pci::MASTER"));
-    assert!(at(MODERN, "pci::MASTER") < at(MODERN, "queue::setup("));
+    let master = "let master = || pci::command(dev.device_id, claim_epoch, pci::MASTER);";
+    for (src, reset) in [(LEGACY, "negotiate(regs)?"), (MODERN, "start_until(&common")] {
+        assert_eq!(src.matches("pci::MASTER").count(), 1, "Bus Master outside the queue step");
+        assert!(at(src, reset) < at(src, master), "Bus Master before the reset");
+        assert!(!src.contains("master()"), "Bus Master before the queue step");
+        assert!(at(src, master) < at(src, "dma.ring.device_addr, master)?"));
+    }
+    let steps = [(PROGRAM, "program(regs, queue_phys)?", "driver_ok(regs);")];
+    for (src, ring, ok) in steps.into_iter().chain([(QUEUE, "setup(common,", "driver_ok(common);")])
+    {
+        assert!(at(src, ring) < at(src, "master()?"), "Bus Master before the ring");
+        assert!(at(src, "master()?") < at(src, ok), "DRIVER_OK before Bus Master");
+    }
 }
 
 #[test]
