@@ -19,8 +19,8 @@
 use crate::command::*;
 use crate::model::Model;
 
-const CC: u32 = 1 << 31;
-const ERROR: u32 = 1 << 30;
+pub(crate) const CC: u32 = 1 << 31;
+pub(crate) const ERROR: u32 = 1 << 30;
 const ACK: u32 = 1 << 29;
 const RESET: u32 = 1 << 27;
 const NOT_SUPPORTED: u32 = 1 << 25;
@@ -64,6 +64,7 @@ impl Model {
                 self.ports[n - 1][0..2].copy_from_slice(&[0, 0]);
                 CC | 9 << 8
             }
+            GET_PDOS => self.pdos_reply(control),
             GET_CONNECTOR_CAPABILITY | GET_CONNECTOR_STATUS => CC | ERROR,
             _ => CC | NOT_SUPPORTED,
         };

@@ -18,6 +18,7 @@
 //! at once, then after `BACKOFF_MS`, twice that, and so on, until
 //! `MAX_RESETS` walks in a row have failed and the session stops asking.
 
+use super::offered::Offered;
 use super::ppm::Ppm;
 use super::session::{Session, State, BACKOFF_MS, MAX_RESETS};
 use super::start::start;
@@ -47,12 +48,12 @@ impl Session {
         }
     }
 
-    pub(super) fn update(&mut self, n: u8, s: Option<Status>) {
+    pub(super) fn update(&mut self, n: u8, s: Option<Status>, offered: Offered) {
         let Some(port) = self.ports.get_mut(usize::from(n) - 1) else { return };
-        if port.status.map(|s| s.state()) != s.map(|s| s.state()) {
+        if port.status.map(|s| s.state()) != s.map(|s| s.state()) || port.offered != offered {
             self.changed |= 1u128 << n;
         }
-        port.status = s;
+        (port.status, port.offered) = (s, offered);
     }
 
     /// The connectors whose status changed since the last call.

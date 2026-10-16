@@ -32,6 +32,9 @@ pub struct Model {
     pub delay: u32,
     pub stuck: bool,
     pub refuse_status: bool,
+    /// Each connector's partner source PDOs, and whether GET_PDOS fails.
+    pub offers: Vec<Vec<u32>>,
+    pub refuse_pdos: bool,
     pub commands: Vec<u8>,
     pub reads: u32,
     pub pauses: u32,
@@ -40,7 +43,7 @@ pub struct Model {
 
 impl Model {
     pub fn new(ports: usize) -> Self {
-        Model { ports: vec![[0; 16]; ports], ..Model::default() }
+        Model { ports: vec![[0; 16]; ports], offers: vec![Vec::new(); ports], ..Model::default() }
     }
 
     /// A partner plugged into (or pulled from) connector `n`.

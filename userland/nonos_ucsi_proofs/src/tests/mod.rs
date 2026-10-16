@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod decode_tests;
+mod offered_tests;
+mod pdo_tests;
 mod session_tests;
 mod storm_tests;
 mod stuck_tests;

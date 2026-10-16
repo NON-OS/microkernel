@@ -17,6 +17,7 @@
 //! The connectors notifications named, read a few per tick and their
 //! changes acknowledged; a read that sticks hands the PPM to `recover`.
 
+use super::offered::read_offered;
 use super::ppm::Ppm;
 use super::session::{Session, State, PER_TICK};
 use super::start::read_port;
@@ -36,8 +37,10 @@ impl Session {
             .collect();
         for n in due {
             self.pending &= !(1u128 << n);
-            match read_port(ppm, &mut self.pending, n, true) {
-                Ok(s) => self.update(n, s),
+            let read = read_port(ppm, &mut self.pending, n, true)
+                .and_then(|s| Ok((s, read_offered(ppm, &mut self.pending, n, s)?)));
+            match read {
+                Ok((s, offered)) => self.update(n, s, offered),
                 Err(_) => {
                     self.state = State::Recovering { failures: 0, at: now };
                     return;

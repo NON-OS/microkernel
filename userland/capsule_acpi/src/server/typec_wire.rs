@@ -20,9 +20,15 @@
 //! partner this port sinks from, 8 can source, 16 can sink, 32 status
 //! unknown, 64 the session stopped reading), the power operation mode,
 //! the partner type and the battery charging status, as UCSI gives them.
+//! Then for the same ports in order, a charger's offers and what was
+//! taken: the count of source PDOs u8 (0 when none were read) and each
+//! PDO u32 as the charger sent it, then the request's position u8 and
+//! its mV, mA and mW u32 (`nonos_ucsi::contract`; 0 where the request
+//! does not state one, all 0 with no contract).
 
 use crate::boot::Acpi;
 use alloc::vec::Vec;
+use nonos_ucsi::contract::contract;
 use nonos_ucsi::session::State;
 
 pub const MAX_PORTS: usize = 8;
@@ -41,5 +47,14 @@ pub fn append(acpi: &Acpi, v: &mut Vec<u8>) {
         };
         let now = u8::from(s.connected) | u8::from(s.provider) << 1 | u8::from(s.charger()) << 2;
         v.extend_from_slice(&[now | can | stopped, s.power_mode, s.partner_type, s.charging]);
+    }
+    for p in ports {
+        let offers = p.offered.list();
+        v.push(offers.len() as u8);
+        offers.iter().for_each(|w| v.extend_from_slice(&w.to_le_bytes()));
+        let rdo = p.status.map_or(0, |s| s.rdo);
+        let c = contract(rdo, offers).unwrap_or_default();
+        v.push(c.position);
+        [c.mv, c.ma, c.mw].iter().for_each(|x| v.extend_from_slice(&x.to_le_bytes()));
     }
 }
