@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The controls through F 12's bytes on the two-output rig, with pipe B's
-//! monitor on HDMI and DDC/CI: BRIGHTNESS lists it beside the eDP panel
-//! and SET_BRIGHTNESS reaches it, once its capabilities string is read and
-//! not before; VCP and SET_VCP answer for the allowed controls only, sets
-//! from the compositor alone, and the eDP panel and the DP monitor without
-//! DDC/CI have none.
+//! The controls through F 12's bytes on the two-output rig, pipe B's
+//! monitor on HDMI and DDC/CI: BRIGHTNESS lists it beside the eDP panel and
+//! SET_BRIGHTNESS reaches it once its capabilities are read; VCP and
+//! SET_VCP answer for the allowed controls only, a reading with the values
+//! the capabilities list, sets from the compositor alone; the eDP panel and
+//! the DP monitor without DDC/CI have none.
 
 use super::caps_rig::read_caps;
 use super::rig::{ask, ask_unread, rig, HDMI};
@@ -42,9 +42,10 @@ fn vcp_answers_the_allowed_controls_and_sets_only_from_the_compositor() {
     let (mut d, model) = rig(true);
     read_caps(&mut d);
     let at = |c: u8| [23, HDMI[0], HDMI[1], HDMI[2], HDMI[3], c];
-    assert_eq!(ask(&mut d, &at(0x12), false), (0, vec![50, 0, 80, 0]));
+    assert_eq!(ask(&mut d, &at(0x12), false), (0, vec![50, 0, 80, 0, 0]), "contrast lists none");
     assert_eq!(ask_unread(&mut d, &at(0x12)), -1, "only the compositor reads");
-    assert_eq!(ask(&mut d, &at(0x60), false), (0, vec![0x0F, 0, 0x12, 0]), "input, read");
+    let input = vec![0x0F, 0, 0x12, 0, 2, 0x0F, 0x11];
+    assert_eq!(ask(&mut d, &at(0x60), false), (0, input), "input now, and the two listed");
     let set = |c: u8, v: u16| [24, HDMI[0], HDMI[1], HDMI[2], HDMI[3], c, v as u8, (v >> 8) as u8];
     assert_eq!(ask(&mut d, &set(0x12, 60), false).0, -1, "EPERM for anyone else");
     assert_eq!(ask(&mut d, &set(0x60, 0x12), true).0, -22, "an input it does not list");
