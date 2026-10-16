@@ -50,7 +50,7 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
             return out;
         }
     }
-    if state.search_focused {
+    if state.search.focused {
         return on_search_key(state, &event);
     }
     if state.editing {
@@ -86,12 +86,12 @@ fn wheel(state: &mut State, delta_y: i32) -> EventOutcome {
 }
 
 fn wheel_results(state: &mut State, delta_y: i32, steps: u32) -> EventOutcome {
-    let n = results::count(as_str(state.search.as_slice()));
+    let n = results::count(as_str(state.search.text.as_slice()));
     let limit = results_geom::max_scroll(n, view_h(state));
-    state.search_scroll = if delta_y > 0 {
-        state.search_scroll.saturating_sub(steps)
+    state.search.scroll = if delta_y > 0 {
+        state.search.scroll.saturating_sub(steps)
     } else {
-        (state.search_scroll + steps).min(limit)
+        (state.search.scroll + steps).min(limit)
     };
     EventOutcome::Repaint
 }

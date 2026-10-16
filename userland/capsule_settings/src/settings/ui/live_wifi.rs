@@ -27,7 +27,7 @@ pub fn link(b: &mut ValBuf, state: &State) -> Tone {
         b.push_bytes(ssid);
         return Tone::Ok;
     }
-    if state.wifi_stage == Some(DriverStage::Ready) {
+    if state.wifi_diag.stage == Some(DriverStage::Ready) {
         b.push_str("Not connected");
         return Tone::Idle;
     }
@@ -35,8 +35,8 @@ pub fn link(b: &mut ValBuf, state: &State) -> Tone {
     // place of the stage line, so a machine with no serial port still says
     // which part of the load stopped. The line holds 72 bytes: the longest
     // step text is 41, so the adapter name gives way to it.
-    if state.wifi_stage == Some(DriverStage::FirmwareFailed) {
-        let why = state.wifi_datapath.and_then(|dp| Some((firmware_step_text(dp.fw_step)?, dp)));
+    if state.wifi_diag.stage == Some(DriverStage::FirmwareFailed) {
+        let why = state.wifi_diag.datapath.and_then(|dp| Some((firmware_step_text(dp.fw_step)?, dp)));
         if let Some((why, dp)) = why {
             b.push_str("Firmware stopped: ");
             b.push_str(why);
@@ -48,17 +48,17 @@ pub fn link(b: &mut ValBuf, state: &State) -> Tone {
     }
     b.push_str(driver.label());
     b.push_str(": ");
-    b.push_str(state.wifi_stage.map_or("not answering", |s| s.text()));
+    b.push_str(state.wifi_diag.stage.map_or("not answering", |s| s.text()));
     Tone::Warn
 }
 
 /// The passphrase being typed, masked; else what the last action did.
 pub fn join(b: &mut ValBuf, state: &State) -> Tone {
-    if state.wifi_pass_active {
+    if state.wifi_pass.active {
         // Typed stars stay inside the 72-byte line with the hint after them.
         b.push_str("Passphrase: ");
-        let typed = &state.wifi_pass.as_slice()[..state.wifi_pass.len.min(PASS_STARS)];
-        if state.wifi_pass_shown {
+        let typed = &state.wifi_pass.text.as_slice()[..state.wifi_pass.text.len.min(PASS_STARS)];
+        if state.wifi_pass.shown {
             b.push_bytes(typed);
         } else {
             for _ in typed {

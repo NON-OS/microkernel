@@ -63,7 +63,7 @@ pub fn scan_now(state: &mut State) {
     if !radio_on(state) || state.wifi.joined().is_some() {
         return;
     }
-    match (state.wifi_stage, state.wifi.driver) {
+    match (state.wifi_diag.stage, state.wifi.driver) {
         (Some(DriverStage::Ready), Some(driver)) => hand_off(state, Work::Scan, Ask::Scan(driver)),
         (Some(DriverStage::Ready), None) => {
             state.wifi_network_count = 0;

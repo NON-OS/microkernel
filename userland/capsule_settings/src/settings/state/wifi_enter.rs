@@ -59,11 +59,11 @@ pub fn refresh_wifi_status(state: &mut State) {
     }
     let driver = find();
     state.wifi.driver = driver;
-    state.wifi_stage = driver.and_then(|d| d.stage());
+    state.wifi_diag.stage = driver.and_then(|d| d.stage());
     state.wifi.link = driver.and_then(|d| d.link());
     state.wifi.keeps = keeps_state();
     state.wifi.remember &= state.wifi.keeps;
-    state.wifi_datapath = driver_datapath();
+    state.wifi_diag.datapath = driver_datapath();
     poll_net(state);
 }
 
@@ -72,9 +72,9 @@ pub fn refresh_wifi_status(state: &mut State) {
  * out, and the DHCP client is busy getting the address just then. */
 fn poll_net(state: &mut State) {
     let now = mk_uptime_ms();
-    if !net_poll_due(state.wifi_net_polled_ms, now) {
+    if !net_poll_due(state.wifi_diag.net_polled_ms, now) {
         return;
     }
-    state.wifi_net_polled_ms = Some(now);
-    state.wifi_net = net_status();
+    state.wifi_diag.net_polled_ms = Some(now);
+    state.wifi_diag.net = net_status();
 }
