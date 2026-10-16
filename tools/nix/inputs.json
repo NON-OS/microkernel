@@ -2885,6 +2885,7 @@
    "userland/compositor/src/frame_pacer/night_tint.rs",
    "userland/compositor/src/frame_pacer/own_look.rs",
    "userland/compositor/src/protocol",
+   "userland/compositor/src/requests",
    "userland/compositor/src/setup/canvas_floor.rs",
    "userland/compositor/src/state/attach.rs",
    "userland/compositor/src/state/cursor.rs",
