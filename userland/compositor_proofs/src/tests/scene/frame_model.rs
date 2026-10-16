@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A screen in miniature for the stacking and repaint proofs. Each pixel holds
-//! the owner of the layer on top there, composed from the real scene's draw
-//! order the way `frame_pacer::composite::paint` composes a damaged rectangle:
-//! the background first, then every layer bottom to top, clipped to the
-//! rectangle. A screen kept up to date only through the damage the real
-//! submit, raise and remove steps report must always equal one composed from
-//! scratch; any pixel that differs is one a real frame leaves stale.
+//! A screen in miniature for the stacking and repaint proofs: each pixel the
+//! owner on top there, composed from the real scene's draw order as
+//! `frame_pacer::composite::paint` composes a rectangle. Kept only through the
+//! damage the real steps report, it must equal one composed from scratch; a
+//! pixel that differs is one a real frame leaves stale (`frame_check.rs`).
 
-use crate::damage::{DamageAccumulator, Rect};
+pub use super::frame_util::{layer, Rng};
+use crate::damage::Rect;
 use crate::scene::{Layer, SceneTable};
 
 pub const W: u32 = 64;
@@ -30,7 +29,7 @@ pub const H: u32 = 48;
 pub const BACKGROUND: u32 = 0;
 
 pub struct Screen {
-    px: Vec<u32>,
+    pub(crate) px: Vec<u32>,
 }
 
 impl Screen {
@@ -72,55 +71,5 @@ impl Screen {
                 }
             }
         }
-    }
-
-    /// Drain every damaged rectangle and compose each, as one frame does.
-    pub fn repaint(&mut self, scene: &SceneTable, acc: &mut DamageAccumulator) {
-        while let Some(r) = acc.drain() {
-            self.paint(scene, r);
-        }
-    }
-
-    pub fn top_at(&self, x: u32, y: u32) -> u32 {
-        self.px[(y * W + x) as usize]
-    }
-
-    /// The first pixel where two screens differ, with both values.
-    pub fn first_difference(&self, other: &Screen) -> Option<(u32, u32, u32, u32)> {
-        (0..W * H)
-            .find(|&i| self.px[i as usize] != other.px[i as usize])
-            .map(|i| (i % W, i / W, self.px[i as usize], other.px[i as usize]))
-    }
-}
-
-/// A layer as a client submits it: the stack stamp is the scene's to assign.
-pub fn layer(owner: u32, x: u32, y: u32, w: u32, h: u32, z: u32) -> Layer {
-    Layer {
-        owner_pid: owner,
-        surface_handle: owner as u64,
-        x,
-        y,
-        width: w,
-        height: h,
-        z,
-        stack: 0,
-        in_use: true,
-        miss_count: 0,
-    }
-}
-
-/// A small deterministic generator, so a failing sequence replays exactly.
-pub struct Rng(u64);
-
-impl Rng {
-    pub fn new(seed: u64) -> Rng {
-        Rng(seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1)
-    }
-
-    pub fn below(&mut self, n: u32) -> u32 {
-        self.0 ^= self.0 << 13;
-        self.0 ^= self.0 >> 7;
-        self.0 ^= self.0 << 17;
-        (self.0 % n.max(1) as u64) as u32
     }
 }

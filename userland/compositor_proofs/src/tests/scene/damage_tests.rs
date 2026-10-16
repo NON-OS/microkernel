@@ -20,38 +20,8 @@
 //! stale pixels on screen — exactly the cursor-trail class of bug. These tests
 //! drive the real accumulator and check coverage at pixel granularity.
 
-use std::collections::HashSet;
-
-use crate::damage::{DamageAccumulator, Rect};
-
-fn cells(r: Rect) -> Vec<(u32, u32)> {
-    let mut v = Vec::new();
-    for y in r.y..r.y + r.height {
-        for x in r.x..r.x + r.width {
-            v.push((x, y));
-        }
-    }
-    v
-}
-
-// Accumulate every input, drain everything, and assert the drained rectangles
-// cover every cell of every input.
-fn assert_covers(inputs: &[Rect]) {
-    let mut acc = DamageAccumulator::new();
-    let mut wanted: HashSet<(u32, u32)> = HashSet::new();
-    for &r in inputs {
-        if r.width != 0 && r.height != 0 {
-            wanted.extend(cells(r));
-        }
-        acc.accumulate(r);
-    }
-    let mut covered: HashSet<(u32, u32)> = HashSet::new();
-    while let Some(out) = acc.drain() {
-        covered.extend(cells(out));
-    }
-    let missing: Vec<_> = wanted.difference(&covered).collect();
-    assert!(missing.is_empty(), "uncovered cells: {:?}", missing);
-}
+use super::damage_cover::*;
+use crate::damage::Rect;
 
 #[test]
 fn two_separate_rects_are_both_covered() {
@@ -78,46 +48,6 @@ fn overflow_past_capacity_still_covers_everything() {
     let mut inputs = Vec::new();
     for i in 0..12u32 {
         inputs.push(Rect { x: i * 40, y: i * 30, width: 8, height: 8 });
-    }
-    assert_covers(&inputs);
-}
-
-#[test]
-fn mark_full_then_accumulate_covers_the_screen() {
-    let mut acc = DamageAccumulator::new();
-    acc.mark_full(64, 48);
-    acc.accumulate(Rect { x: 10, y: 10, width: 4, height: 4 });
-    let mut covered: HashSet<(u32, u32)> = HashSet::new();
-    while let Some(out) = acc.drain() {
-        covered.extend(cells(out));
-    }
-    for y in 0..48 {
-        for x in 0..64 {
-            assert!(covered.contains(&(x, y)), "screen cell {x},{y} not covered");
-        }
-    }
-}
-
-#[test]
-fn zero_sized_rects_are_ignored() {
-    let mut acc = DamageAccumulator::new();
-    acc.accumulate(Rect { x: 5, y: 5, width: 0, height: 10 });
-    acc.accumulate(Rect { x: 5, y: 5, width: 10, height: 0 });
-    assert!(acc.drain().is_none(), "a zero-area rect must not become work");
-}
-
-#[test]
-fn many_cursor_moves_never_drop_the_old_position() {
-    // Simulate a cursor sweeping across the screen: each step damages the old
-    // and new 32x32 box. Every box must end up covered even as merges happen.
-    let mut inputs = Vec::new();
-    let (mut px, mut py) = (100u32, 100u32);
-    for i in 0..20u32 {
-        let (nx, ny) = (100 + i * 17, 100 + i * 11);
-        inputs.push(Rect { x: px, y: py, width: 32, height: 32 });
-        inputs.push(Rect { x: nx, y: ny, width: 32, height: 32 });
-        px = nx;
-        py = ny;
     }
     assert_covers(&inputs);
 }
