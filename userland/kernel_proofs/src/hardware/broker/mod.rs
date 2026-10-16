@@ -27,6 +27,8 @@ pub mod class;
 pub mod device;
 #[path = "../../../../../src/hardware/broker/external_range.rs"]
 pub mod external_range;
+#[path = "../../../../../src/hardware/broker/irq/gone.rs"]
+pub mod irq_gone;
 pub mod mmio;
 pub mod reserved;
 pub mod table;
@@ -38,6 +40,8 @@ pub use device::DeviceRecord;
 mod bars_tests;
 #[cfg(test)]
 mod deps_flag_tests;
+#[cfg(test)]
+mod dgon_tests;
 #[cfg(test)]
 mod external_tests;
 #[cfg(test)]

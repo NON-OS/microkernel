@@ -40,6 +40,7 @@ pub fn depart_record(id: u64, eject: bool) -> Result<Departed, DepartError> {
     let counts = holder.map(|pid| revoke(pid, id));
     let _ = table::remove(id);
     forget(id);
+    holder.map(|pid| super::gone_notice::notify_gone(pid, id));
     super::probe_say::left(None, id, holder.zip(counts));
     Ok(Departed { device_id: id, holder })
 }
