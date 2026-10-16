@@ -16,7 +16,6 @@
 
 use crate::syscall::microkernel::errnos::ERRNO_FAULT;
 
-use super::recv_from_trace::trace_dequeue;
 use super::sender_pid::from_envelope;
 
 pub(super) fn deliver(
@@ -27,7 +26,6 @@ pub(super) fn deliver(
     sender_pid_out: u64,
 ) -> i64 {
     let sender_pid = from_envelope(&msg.from);
-    trace_dequeue(pid, sender_pid);
     let copy_len = msg.data.len().min(len);
     if crate::usercopy::copy_to_user(buf, &msg.data[..copy_len]).is_err() {
         return ERRNO_FAULT;
