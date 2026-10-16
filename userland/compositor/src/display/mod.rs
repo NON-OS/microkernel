@@ -20,6 +20,8 @@ pub mod access_rule;
 pub mod access_wire;
 pub mod arrange_wire;
 pub mod backoff;
+pub mod brightness_list;
+pub mod brightness_rule;
 pub mod call;
 pub mod colour_rule;
 pub mod cursor_rule;
