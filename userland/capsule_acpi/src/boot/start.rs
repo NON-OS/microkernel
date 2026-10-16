@@ -44,7 +44,6 @@ pub fn boot() -> Option<Acpi> {
     let hotkeys = crate::hotkeys::find(&devices, &mut aml, &mut host);
     let serial = crate::serial::find(&devices, &mut aml, &mut host);
     let legacy = crate::legacy::find(&t.fadt, &devices, &mut aml, &mut host);
-    let apei = crate::apei::start(&devices);
     let mut acpi = Acpi {
         aml,
         host,
@@ -57,11 +56,12 @@ pub fn boot() -> Option<Acpi> {
         cpus,
         dpower: Default::default(),
         hidden: Default::default(),
+        hotplug: Default::default(),
         backlight,
         hotkeys,
         serial,
         legacy,
-        apei,
+        apei: crate::apei::start(&devices),
         smbios,
         typec: None,
         aei: Default::default(),

@@ -156,6 +156,25 @@ read after. One `[ACPI] ucsi` line per port that changes, and one per
 change in the session's state. The UCSI constants are recalled, not
 read from the published specification (unreachable when written).
 
+Hot-plug and docking: a bus check, device check or device check light
+(Notify 0, 1, 4) on a device with an `_ADR`, a dock (`_DCK`) or an
+ejectable device re-reads `_STA` for it (and, for 0 and 1, everything
+below it, parents first; below a device found gone nothing is asked). A
+device that is there is powered to D0 if firmware can, and each function
+that answers goes to the kernel for one probe (`MkPciProbeFunction`); one
+that is gone has every function it stood for, and everything behind a
+bridge among them, taken out with `MkPciDepart` mode 0, and the kernel
+revokes the holder's interrupt routes, DMA grants and domain, port and
+MMIO grants and claim before it answers. A dock found present is docked
+with `_DCK(1)` first. An eject request (Notify 3) waits while any
+function it takes with it (the device, all below it, and for a dock all
+that names it in `_EJD`) is held, retrying every 2 s; then each function
+leaves the table with mode 1 (refused while held), a dock is undocked
+with `_DCK(0)`, and `_EJ0(1)` runs. If `_STA` still says present 5 s
+later, the device is looked at again and probed back. One `hotplug` line
+per arrival, departure, dock, undock, wait and eject. The Notify values
+and the `_EJ0` and `_DCK` arguments are recalled, unverified.
+
 ## Microkernel contract
 
 Every register it touches comes through the kernel's ACPI grant rule
@@ -165,7 +184,9 @@ interrupt, timer and IOMMU hardware; SystemIO outside the legacy devices the
 kernel runs; PCI_Config writes never to another capsule's function. Each
 grant is one `[ACPI] region` line on serial and a count on the
 `[ACPI] posture` line. It claims one device, the SCI record, and no PCI
-function, and does no DMA.
+function, and does no DMA. It adds functions to the device table and
+takes them out (`MkPciProbeFunction`, `MkPciDepart`); both answer only
+the `acpi` service's owner.
 
 ## Authority
 

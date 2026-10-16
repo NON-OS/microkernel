@@ -30,6 +30,7 @@ mod field_unit_tests;
 mod generated_tests;
 mod header_tests;
 mod host_tests;
+mod hotplug;
 mod limit_tests;
 mod load_arity_tests;
 mod load_exec_tests;
