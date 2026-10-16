@@ -66,3 +66,6 @@ fn a_mutex_another_evaluation_left_held_times_out() {
         "for ever cannot end"
     );
 }
+
+#[path = "sync_sweep/mod.rs"]
+mod sweep;
