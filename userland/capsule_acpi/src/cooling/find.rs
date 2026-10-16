@@ -41,6 +41,7 @@ fn fan(c: &mut Cooling, aml: &mut Aml, host: &mut CapsuleHost, dev: Id) -> usize
 pub fn refresh(c: &mut Cooling, aml: &mut Aml, host: &mut CapsuleHost, z: usize) {
     let tz = c.zones[z].id;
     let t = trips(aml, &mut evaluator(host), tz);
+    super::trip_faults::tell(&mut c.zones[z], &t);
     let mut lv = Vec::new();
     for x in 0..t.active.len() {
         let devs = active_devices(aml, &mut evaluator(host), tz, x);
@@ -65,6 +66,7 @@ pub fn find(aml: &mut Aml, host: &mut CapsuleHost) -> Cooling {
             critical_at: None,
             critical: false,
             passive: None,
+            told: 0,
         });
         let z = c.zones.len() - 1;
         refresh(&mut c, aml, host, z);
