@@ -29,3 +29,12 @@ pub const EVENT_MASK: u64 = 1 << 4 | 1 << 7 | 1 << 15 | 1 << 47 | 1 << 61;
 /// (bit 2), LE Read Remote Features Complete (bit 3), LE Long Term Key
 /// Request (bit 4).
 pub const LE_EVENT_MASK: u64 = 0x1f;
+
+/// LE Directed Advertising Report (bit 10), asked for only of a controller
+/// that scans with the extended filter policies, the only one that sends
+/// it (7.7.65.11).
+pub const LE_DIRECTED_REPORT: u64 = 1 << 10;
+
+/// Extended Scanner Filter Policies, bit 7 of the LE features (Vol 6,
+/// Part B, 4.6) that LE Read Local Supported Features returns (7.8.3).
+pub const EXTENDED_SCANNER_FILTER: u64 = 1 << 7;

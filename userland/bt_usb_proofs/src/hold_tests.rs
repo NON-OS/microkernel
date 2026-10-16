@@ -20,6 +20,7 @@
 
 use crate::air::advertised;
 use crate::fixture::{air, keyboard, HID_ADV};
+use crate::fixture_link::plain;
 use crate::link::find_hid;
 use crate::reconnect_tests::STRANGER;
 use crate::ring_tests::record;
@@ -30,7 +31,7 @@ fn with_bonds_kept_the_first_new_advertiser_is_taken_after_its_wait() {
     env.bonds.keep(record(1)).unwrap();
     air(&mut host).others.push(advertised(STRANGER, 0x00, &HID_ADV));
     let start = env.now;
-    let peer = find_hid(&mut host, &mut env).unwrap().unwrap();
+    let peer = find_hid(&mut host, &mut env, &plain()).unwrap().unwrap();
     // The stranger was heard first; the peer heard after it, also new,
     // neither replaces it nor starts its wait again.
     assert_eq!(peer.addr.0, STRANGER);
@@ -42,7 +43,7 @@ fn with_bonds_kept_the_first_new_advertiser_is_taken_after_its_wait() {
 fn with_no_bond_kept_a_new_advertiser_is_taken_at_once() {
     let (mut host, _, mut env) = keyboard();
     air(&mut host).others.push(advertised(STRANGER, 0x00, &HID_ADV));
-    let peer = find_hid(&mut host, &mut env).unwrap().unwrap();
+    let peer = find_hid(&mut host, &mut env, &plain()).unwrap().unwrap();
     assert_eq!(peer.addr.0, STRANGER);
     assert!(env.now < 100, "a first pairing waited {} ms", env.now);
 }
@@ -57,7 +58,7 @@ fn a_new_advertiser_heard_late_is_taken_when_the_look_ends() {
     let noise = advertised(STRANGER, 0x00, &battery);
     air(&mut host).others.extend(std::iter::repeat_n(noise, 4_250));
     air(&mut host).others.push(advertised(STRANGER, 0x00, &HID_ADV));
-    let peer = find_hid(&mut host, &mut env).unwrap().unwrap();
+    let peer = find_hid(&mut host, &mut env, &plain()).unwrap().unwrap();
     assert_eq!(peer.addr.0, STRANGER);
     assert!((10_000..10_100).contains(&env.now), "taken at {} ms", env.now);
 }
@@ -66,6 +67,6 @@ fn a_new_advertiser_heard_late_is_taken_when_the_look_ends() {
 fn directed_advertising_from_a_peer_with_no_bond_is_passed_over() {
     let (mut host, _, mut env) = keyboard();
     (air(&mut host).adv_kind, air(&mut host).adv) = (0x01, Vec::new());
-    assert_eq!(find_hid(&mut host, &mut env), Ok(None));
+    assert_eq!(find_hid(&mut host, &mut env, &plain()), Ok(None));
     assert!(env.now >= 10_000, "the look ended early, at {} ms", env.now);
 }

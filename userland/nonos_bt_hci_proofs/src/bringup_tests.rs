@@ -28,15 +28,17 @@ fn bring_up_sends_the_standard_commands_and_reads_the_controller() {
     let mut s = stack(Config::default());
     let c = s.bring_up().unwrap();
     let want = [op::RESET, op::READ_LOCAL_FEATURES, op::READ_LOCAL_VERSION, op::READ_BD_ADDR];
-    let tail = [op::LE_READ_BUFFER_SIZE, op::SET_EVENT_MASK, op::LE_SET_EVENT_MASK];
+    let tail = [op::LE_READ_LOCAL_FEATURES, op::LE_READ_BUFFER_SIZE];
+    let tail = [&tail[..], &[op::SET_EVENT_MASK, op::LE_SET_EVENT_MASK]].concat();
     let want: Vec<u16> = want.iter().chain(&tail).map(|o| o.0).collect();
     assert_eq!(opcodes(&mut s), want);
     assert_eq!((c.hci_version, c.hci_revision, c.lmp_version), (0x0d, 0x1234, 0x0d));
     assert_eq!((c.company, c.lmp_subversion, c.addr), (0x005f, 0x5678, BdAddr(ADDR)));
     assert_eq!((c.acl_len, c.acl_total, s.acl_free()), (27, 4, 4));
     let cmds = &s.transport().pipes().commands;
-    assert_eq!(cmds[5].1, [0x01, 0x0c, 8, 0x90, 0x80, 0, 0, 0, 0x80, 0, 0x20]);
-    assert_eq!(cmds[6].1, [0x01, 0x20, 8, 0x1f, 0, 0, 0, 0, 0, 0, 0]);
+    assert_eq!(cmds[6].1, [0x01, 0x0c, 8, 0x90, 0x80, 0, 0, 0, 0x80, 0, 0x20]);
+    assert_eq!(cmds[7].1, [0x01, 0x20, 8, 0x1f, 0, 0, 0, 0, 0, 0, 0]);
+    assert_eq!(c.le_features, 0);
 }
 
 #[test]

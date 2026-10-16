@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What one event says of the advertisers in range, if the event is an LE
-//! Advertising Report (Vol 4, Part E, 7.7.65.2): a bonded peer that may be
-//! connected to, else the first new HID advertiser.
+//! What one event says of the advertisers in range: from an LE Advertising
+//! Report (Vol 4, Part E, 7.7.65.2), a bonded peer that may be connected
+//! to, else the first new HID advertiser; from an LE Directed Advertising
+//! Report (7.7.65.11), a bonded peer aimed at one of this host's private
+//! addresses.
 
+use super::aimed::directed;
 use super::env::Env;
 use super::find::Peer;
 use super::pick::{connectable, hid_advertiser};
+use super::us::Us;
 use nonos_bt_hci::HciError;
 use nonos_bt_wire::hci::event::parse_event;
-use nonos_bt_wire::hci::event_code::{LE_ADVERTISING_REPORT, LE_META};
+use nonos_bt_wire::hci::event_code::{
+    LE_ADVERTISING_REPORT, LE_DIRECTED_ADVERTISING_REPORT, LE_META,
+};
 use nonos_bt_wire::hci::le_meta::split;
 use nonos_bt_wire::hci::reports::adv_reports;
 
@@ -36,12 +42,19 @@ pub(super) enum Heard {
     New(Peer),
 }
 
-pub(super) fn heard_in<E: Env>(event: &[u8], env: &mut E) -> Result<Option<Heard>, HciError> {
+pub(super) fn heard_in<E: Env>(
+    event: &[u8],
+    env: &mut E,
+    us: &Us,
+) -> Result<Option<Heard>, HciError> {
     let e = parse_event(event)?;
     if e.code != LE_META {
         return Ok(None);
     }
     let (code, sub) = split(e.params)?;
+    if code == LE_DIRECTED_ADVERTISING_REPORT {
+        return Ok(directed(sub, env, us)?.map(Heard::Bonded));
+    }
     if code != LE_ADVERTISING_REPORT {
         return Ok(None);
     }
