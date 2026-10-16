@@ -20,7 +20,7 @@ Not tested in this release.
 It shows whether the DMA of claimed devices is confined: look for a `[VT-D]
 pid=` line for each claimed PCI device that says `confined to its capsule's
 domain`, and for `enforcing=1` and `unconfined grants=0` on the last `[IOMMU]
-<vendor> present` line (`posture_line` in `src/memory/iommu/posture.rs:69-79`).
+<vendor> present` line (`posture_line` in `src/memory/iommu/posture_line.rs`).
 A device found at boot that no driver claimed still reaches all memory through
 the identity domain, whatever these lines say.
 
