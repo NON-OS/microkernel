@@ -110,6 +110,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkDeviceNode
             | MkAcpiOscGrant
             | MkAcpiFirstPass
+            | MkAcpiSlot
             | MkNumaHmat
             | MkAcpiLpit
             | MkBootLogo

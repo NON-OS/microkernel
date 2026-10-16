@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! capsule_acpi's native hot-plug slot, its pure parts, by path.
+//! capsule_acpi's native hot-plug slot, its pure parts, by path, and the
+//! kernel's MkAcpiSlot rule it writes through.
 
 #[path = "../../capsule_acpi/src/hotplug/native/fault.rs"]
 pub mod fault;
@@ -24,6 +25,12 @@ pub mod read;
 pub mod regs;
 #[path = "../../capsule_acpi/src/hotplug/native/slot.rs"]
 pub mod slot;
+#[allow(dead_code)]
+#[path = "../../../src/hardware/broker/acpi/slot_rule.rs"]
+pub mod slot_rule;
+#[allow(dead_code)]
+#[path = "../../../src/hardware/broker/acpi/slot_wire.rs"]
+pub mod slot_wire;
 #[path = "../../capsule_acpi/src/hotplug/native/step.rs"]
 pub mod step;
 #[path = "../../capsule_acpi/src/hotplug/native/step_timed.rs"]
