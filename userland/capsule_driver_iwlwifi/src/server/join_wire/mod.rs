@@ -30,7 +30,7 @@
 //! the AKM that ran and the access point's own status or reason code. Codes
 //! -1 to -12 mean what they mean for the RTL8821CE (`join_text`); this
 //! driver answers -1 too when the firmware failed one of the join's
-//! commands. The link reply is `[associated][bssid][ssid_len][ssid][akm]`.
+//! commands. The link reply is `[associated][6 zero bytes][ssid_len][ssid][akm]`.
 
 mod codes;
 mod connect;

@@ -47,14 +47,7 @@ pub(super) fn identify(d: &Driver, ids: &mut Seen) -> Result<(Image, Transport),
     }
     start_hw(&m, &mut c).map_err(Failure::Start)?;
     ids.rf_id = m.read32(CSR_HW_RF_ID);
-    Line::new()
-        .text(b"pci ")
-        .hex(u32::from(d.pci_device))
-        .text(b" hw_rev ")
-        .hex(ids.hw_rev)
-        .text(b" rf_id ")
-        .hex(ids.rf_id)
-        .send();
+    Line::new().text(b"pci ").hex(u32::from(d.pci_device)).send();
 
     select(d.pci_device, ids.hw_rev, ids.rf_id).map_err(Failure::Refused)
 }

@@ -25,7 +25,7 @@ use super::super::grant::Grant;
 use super::super::restarts::Restarts;
 use super::rig::Rig;
 
-/// What the card said it is, for the status reply, and whether this path
+/// What the card said it is, for choosing its image, and whether this path
 /// has touched it (from then on it owns the card).
 #[derive(Clone, Copy, Default)]
 pub struct Seen {

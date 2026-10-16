@@ -47,8 +47,8 @@ fn random_frames_route_once_and_a_control_reply_stays_in_its_buffer() {
     let list = ScanResults::new();
     let heard = Heard { list: &list, sweeps: 2, stalls: 1, frames: 9, beacons: 3 };
     let views = [
-        View { stage: 0, step: 0, detail: 0, hw_rev: 0, rf_id: 0, heard: None },
-        View { stage: 9, step: 3, detail: u32::MAX, hw_rev: 1, rf_id: 2, heard: Some(heard) },
+        View { stage: 0, step: 0, detail: 0, heard: None },
+        View { stage: 9, step: 3, detail: u32::MAX, heard: Some(heard) },
     ];
     let mut s = 0x4E49_5746_0000_0001u64;
     let mut seen = [0usize; 4];

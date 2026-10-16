@@ -16,8 +16,6 @@ fn a_full_scan_list_fits_the_reply() {
         stage: 0,
         step: 0,
         detail: 0,
-        hw_rev: 0,
-        rf_id: 0,
         heard: Some(Heard { list: &list, sweeps: 1, stalls: 0, frames: 0, beacons: 0 }),
     };
     let mut out = vec![0u8; REPLY_MAX];

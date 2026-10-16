@@ -30,7 +30,7 @@ fn requests_go_to_the_link_the_radio_or_as_before() {
         assert_eq!(route(&control(op), false), Route::Control, "a radio that cannot join answers as before");
     }
     // Answered as before: -38, and nothing of the body is kept.
-    let view = View { stage: 0, step: 0, detail: 0, hw_rev: 0, rf_id: 0, heard: None };
+    let view = View { stage: 0, step: 0, detail: 0, heard: None };
     let mut out = vec![0u8; REPLY_MAX];
     let n = answer(&control(1), &view, &mut out).unwrap();
     assert_eq!((n, i32::from_le_bytes(out[10..14].try_into().unwrap())), (14, -38));

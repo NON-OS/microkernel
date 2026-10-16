@@ -21,13 +21,13 @@ pub(super) fn word(b: &[u8], at: usize) -> u32 {
 #[test]
 fn a_radio_that_is_down_reports_how_far_it_got_and_refuses_the_rest() {
     let f = Failure::Boot(BootError::NoAliveCause);
-    let view = View { stage: f.stage(), step: f.step(), detail: f.detail(), hw_rev: 0x370, rf_id: 0x10D000, heard: None };
+    let view = View { stage: f.stage(), step: f.step(), detail: f.detail(), heard: None };
     let mut out = vec![0u8; REPLY_MAX];
     let n = answer(&request(4, 77), &view, &mut out).unwrap();
     assert_eq!(n, 10 + 30);
     assert_eq!(&out[..10], &request(4, 77)[..], "the header is echoed");
     assert_eq!((out[10], out[11]), (STAGE_FIRMWARE_FAILED, STEP_BOOT));
-    assert_eq!((word(&out, 12), word(&out, 16), word(&out, 20)), (0x30, 0x370, 0x10D000));
+    assert_eq!((word(&out, 12), word(&out, 16), word(&out, 20)), (0x30, 0, 0), "no card ids");
     for op in [1u16, 2, 3, 5, 99] {
         let n = answer(&request(op, 1), &view, &mut out).unwrap();
         assert_eq!((n, word(&out, 10) as i32), (14, -38), "op {op}");
@@ -39,7 +39,7 @@ fn a_scanning_radio_reports_ready_and_answers_a_scan_from_what_it_heard() {
     let mut list = ScanResults::new();
     list.heard([2, 0, 0, 0, 0, 1], b"Home", 1 | FLAG_WPA2, 80);
     let heard = || Some(Heard { list: &list, sweeps: 3, stalls: 1, frames: 40, beacons: 25 });
-    let view = View { stage: STAGE_READY, step: 0, detail: 0, hw_rev: 0x370, rf_id: 0x10D000, heard: heard() };
+    let view = View { stage: STAGE_READY, step: 0, detail: 0, heard: heard() };
     let mut out = vec![0u8; REPLY_MAX];
     let n = answer(&request(4, 1), &view, &mut out).unwrap();
     assert_eq!(out[10], 0, "Ready");

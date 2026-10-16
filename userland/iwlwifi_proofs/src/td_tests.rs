@@ -22,7 +22,6 @@ use crate::client_join_wire::{parse_link, LinkEnded, TAIL_MAX};
 use crate::join_wire::{encode_link_with, LinkInfo};
 use nonos_wifi_core::link_history::LinkHistory;
 
-const AP: [u8; 6] = [0x02, 0, 0, 0, 0, 0xAA];
 /// The client's link buffer (nonos_wifi_client driver/link.rs `RESP_LEN`).
 const CLIENT_RESP_LEN: usize = 10 + 8 + 32 + 1 + TAIL_MAX;
 
@@ -32,7 +31,7 @@ fn the_transition_disable_bitmap_reaches_the_client_and_pins() {
     let mut h = LinkHistory::NEW;
     h.joined(0);
     for (akm, td, pins) in [(2, 1, true), (2, 0, false), (8, 0, true), (6, 0x0E, false)] {
-        let info = LinkInfo { bssid: AP, ssid: b"home", akm };
+        let info = LinkInfo { ssid: b"home", akm };
         let n = encode_link_with(&mut out, Some(&info), &h, td).unwrap();
         let l = parse_link(&out[10..n]).unwrap();
         assert_eq!((l.transition_disable, l.pins_wpa3()), (td, pins), "akm {akm} td {td}");
@@ -49,7 +48,7 @@ fn a_reply_for_a_32_octet_ssid_fits_the_client_s_buffer_whole() {
     let mut h = LinkHistory::NEW;
     h.joined(0);
     h.left();
-    let info = LinkInfo { bssid: AP, ssid: &[b's'; 32], akm: 2 };
+    let info = LinkInfo { ssid: &[b's'; 32], akm: 2 };
     let n = encode_link_with(&mut out, Some(&info), &h, 1).unwrap();
     assert_eq!(n, CLIENT_RESP_LEN, "the reply is as long as the buffer, no longer");
     let l = parse_link(&out[10..n]).unwrap();

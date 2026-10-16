@@ -26,7 +26,6 @@ use super::tail::{parse_tail, LastJoin, LinkEnded};
 #[derive(Clone, Copy, Default, PartialEq, Eq, Debug)]
 pub struct Link {
     pub associated: bool,
-    pub bssid: [u8; 6],
     ssid: [u8; SSID_MAX],
     ssid_len: usize,
     /// The AKM that ran (0 when the driver does not say).
@@ -56,7 +55,7 @@ pub fn parse_link(body: &[u8]) -> Option<Link> {
     let fixed = body.get(..8)?;
     let len = (fixed[7] as usize).min(SSID_MAX).min(body.len() - 8);
     let mut link = Link { associated: fixed[0] != 0, ..Default::default() };
-    link.bssid.copy_from_slice(&fixed[1..7]);
+    // Bytes 1 to 6 are zero: they once carried the BSSID, which is not read.
     link.ssid[..len].copy_from_slice(&body[8..8 + len]);
     link.ssid_len = len;
     // The AKM follows a whole SSID only; a cut-short one leaves it unread.

@@ -6,7 +6,7 @@
 
 //! The link op (is the radio associated, and with what) and leaving.
 //!
-//! The link reply is `[associated u8][bssid 6][ssid_len u8][ssid][akm u8]`
+//! The link reply is `[associated u8][6 zero][ssid_len u8][ssid][akm u8]`
 //! and its tail after the header (`join_wire::parse_link`). A driver that cannot join
 //! answers with a status code instead, which is too short to read as a link
 //! and so reads as none.

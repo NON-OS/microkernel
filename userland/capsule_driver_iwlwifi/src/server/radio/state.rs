@@ -22,7 +22,7 @@ use nonos_wifi_core::scan_list::ScanResults;
 use crate::firmware::gen3::outcome::Failure;
 use crate::firmware::gen3::sweep::Sweep;
 
-use super::bring::{Seen, Up};
+use super::bring::Up;
 use super::join::Join;
 use super::restart::Restart;
 
@@ -40,7 +40,6 @@ pub(super) enum State {
 }
 
 pub struct Radio {
-    pub(super) seen: Seen,
     pub(super) state: State,
     pub(super) sweep: Sweep,
     /// The networks heard, aged by sweep.

@@ -53,10 +53,6 @@ impl Radio {
     /// The association, for the link reply.
     pub fn link_info(&self) -> Option<LinkInfo<'_>> {
         let j = self.join.joined.as_ref().filter(|j| j.link.station.is_associated())?;
-        Some(LinkInfo {
-            bssid: j.bss.target.bssid,
-            ssid: &self.join.ssid[..self.join.ssid_len],
-            akm: j.akm.suite_type(),
-        })
+        Some(LinkInfo { ssid: &self.join.ssid[..self.join.ssid_len], akm: j.akm.suite_type() })
     }
 }

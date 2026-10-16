@@ -4,7 +4,6 @@
 
 use crate::client_join_wire::{parse_connect_reply, parse_link};
 use crate::gen3::join::exchange::Progress;
-use crate::join_rig::AP;
 use crate::join_wire::*;
 
 #[test]
@@ -24,11 +23,12 @@ fn the_client_reads_the_connect_and_link_replies_as_written() {
     assert_eq!((c.state, c.akm, c.ap_code), (2, 8, 17));
     assert!(encode_connect(&mut out[..45], &r).is_none(), "too small a buffer is refused");
 
-    let info = LinkInfo { bssid: AP, ssid: b"home", akm: 8 };
+    let info = LinkInfo { ssid: b"home", akm: 8 };
     let n = encode_link(&mut out, Some(&info)).unwrap();
     let l = parse_link(&out[10..n]).unwrap();
     assert!(l.associated);
-    assert_eq!((l.bssid, l.ssid(), l.akm), (AP, &b"home"[..], 8));
+    assert_eq!((l.ssid(), l.akm), (&b"home"[..], 8));
+    assert_eq!(&out[11..17], &[0; 6], "no BSSID is told");
     assert!(l.joined_with_sae(b"home"));
     let n = encode_link(&mut out, None).unwrap();
     assert!(!parse_link(&out[10..n]).unwrap().associated);
