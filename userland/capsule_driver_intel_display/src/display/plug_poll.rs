@@ -34,20 +34,23 @@ pub const POLL_US: u64 = 100_000;
 
 impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
     /// One poll once `POLL_US` have passed since the last; the serve loop
-    /// calls it every turn, after a frame or its receive's timeout.
-    pub fn tick(&mut self) {
+    /// calls it every turn, after a frame or its receive's timeout. Whether
+    /// an output went dark or came back.
+    pub fn tick(&mut self) -> bool {
         let (Some(now), Some((_, at))) = (self.clock.now_us(), self.plugs.as_mut()) else {
-            return;
+            return false;
         };
-        if now.wrapping_sub(*at) >= POLL_US {
+        let due = now.wrapping_sub(*at) >= POLL_US;
+        if due {
             *at = now;
-            self.poll_plugs();
         }
+        due && self.poll_plugs()
     }
 
-    /// One poll of the lines, unpaced.
-    pub fn poll_plugs(&mut self) {
-        let Some((p, _)) = self.plugs.as_mut() else { return };
+    /// One poll of the lines, unpaced; whether any output moved.
+    pub fn poll_plugs(&mut self) -> bool {
+        let Some((p, _)) = self.plugs.as_mut() else { return false };
+        let was = self.heads.each_ref().map(|h| h.as_ref().map(|h| h.plug));
         let (settled, known) = (p.poll(&mut self.m), p.known);
         for o in 0..MAX_HEADS {
             let h = self.heads[o].as_ref();
@@ -62,5 +65,6 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
                 _ => {}
             }
         }
+        was != self.heads.each_ref().map(|h| h.as_ref().map(|h| h.plug))
     }
 }

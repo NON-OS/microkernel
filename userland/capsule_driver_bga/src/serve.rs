@@ -37,7 +37,7 @@ pub fn run(server: &mut Server<Bga, Pool>, device_id: u64) -> ! {
             continue;
         }
         match turn(sender, &rx[..n as usize], device_id) {
-            Turn::End => crate::gone::leave(),
+            Turn::End => crate::gone::leave(server.owner),
             Turn::Drop => continue,
             Turn::Serve => {}
         }
