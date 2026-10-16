@@ -16,6 +16,8 @@
 
 use nonos_policy_proto::Field;
 
+use super::access_knob::Knob;
+
 /// A value the panel reads from the running system rather than from policy.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Live {
@@ -59,6 +61,8 @@ pub enum Row {
     Saved,
     /// Every wallpaper in the collection, a row each, switched kept or not.
     Wallpapers,
+    /// One of the Accessibility page's settings.
+    Access(Knob),
 }
 
 #[derive(Clone, Copy)]

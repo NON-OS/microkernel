@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod access_knob;
 pub mod all_fields;
 pub mod blocks;
 pub mod blocks_for;
@@ -22,8 +23,10 @@ mod coverage_listed;
 pub mod read_only;
 pub mod rows;
 pub mod section_fields;
+pub mod stops;
 
 pub use all_fields::ALL_FIELDS;
 pub use blocks_for::blocks_for;
 pub use read_only::read_only;
-pub use section_fields::{field_at, field_count, slot_at, Slot};
+pub use section_fields::{field_at, slot_at, Slot};
+pub use stops::field_count;
