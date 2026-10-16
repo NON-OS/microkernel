@@ -21,7 +21,8 @@
 
 use super::errno::table_errno;
 use crate::hardware::broker::acpi::table_for_capsule;
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_RANGE};
+use crate::hardware::broker::acpi::table_measured::{record, records};
+use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM, ERRNO_RANGE};
 use crate::usercopy::copy_to_user;
 
 pub fn sys_acpi_table(signature: u64, instance: u64, out_ptr: u64, out_len: u64) -> i64 {
@@ -40,7 +41,32 @@ pub fn sys_acpi_table(signature: u64, instance: u64, out_ptr: u64, out_len: u64)
         return ERRNO_RANGE;
     }
     match copy_to_user(out_ptr, &bytes) {
-        Ok(()) => len as i64,
+        Ok(()) => {
+            // Measured as handed over, so what is attested is what was loaded.
+            record(sig.to_le_bytes(), instance, &bytes);
+            len as i64
+        }
+        Err(_) => ERRNO_FAULT,
+    }
+}
+
+/// `MkAcpiMeasured(out_ptr, out_len)`: the firmware tables the ACPI capsule
+/// was handed, measured (broker::acpi::table_measure), 44 bytes a table in
+/// load order, for the About screen and a verifier. Their digest is the
+/// attest registry's pid 0 entry, so like `MkAttestEntries` these bytes need
+/// not be believed: changed, they no longer fold to the signed root. Gated
+/// the same way, on reading attestations; a buffer too small is refused
+/// without writing.
+pub fn sys_acpi_measured(out_ptr: u64, out_len: u64) -> i64 {
+    let all = records();
+    if all.len() as u64 > out_len {
+        return ERRNO_NOMEM;
+    }
+    if crate::usercopy::validate_user_write(out_ptr, all.len()).is_err() {
+        return ERRNO_FAULT;
+    }
+    match crate::usercopy::write_user_bytes(out_ptr, &all) {
+        Ok(()) => all.len() as i64,
         Err(_) => ERRNO_FAULT,
     }
 }

@@ -193,6 +193,8 @@ pub const SYS_BOOT_LOGO: u64 = tag4(b"MBGL");
 pub const SYS_ACPI_FIRST_PASS: u64 = tag4(b"MAFP");
 /// A native hot-plug slot's four registers and what is below it; acpi owner only.
 pub const SYS_ACPI_SLOT: u64 = tag4(b"MRSL");
+/// The firmware tables the ACPI capsule was handed, measured; reading attestations.
+pub const SYS_ACPI_MEASURED: u64 = tag4(b"MAMT");
 /// Spawn another window of an embedded, attested app (terminal or browser); needs SpawnWindow.
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
 /// Run a baked, attested tool by name as the caller's child, to drive its stdio; needs IPC.
