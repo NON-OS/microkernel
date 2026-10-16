@@ -75,10 +75,10 @@ pub mod suggest;
 // dispatch and a tool's job both read.
 #[path = "../../capsule_terminal/src/command/parse/mod.rs"]
 pub mod parse;
-#[path = "../../capsule_terminal/src/command/dispatch/statements.rs"]
-pub mod statements;
 #[path = "../../capsule_terminal/src/command/dispatch/redirect.rs"]
 pub mod redirect;
+#[path = "../../capsule_terminal/src/command/dispatch/statements.rs"]
+pub mod statements;
 #[path = "../../capsule_terminal/src/command/dispatch/tool_admit.rs"]
 pub mod tool_admit;
 
@@ -104,12 +104,12 @@ pub mod grep_paint;
 pub mod cooked;
 #[path = "../../capsule_terminal/src/event/cooked_kill.rs"]
 pub mod cooked_kill;
-#[path = "../../capsule_terminal/src/command/builtin/tool_busy.rs"]
-pub mod tool_busy;
 #[path = "../../capsule_terminal/src/command/builtin/nox/kill_target.rs"]
 pub mod kill_target;
 #[path = "../../capsule_terminal/src/term/select.rs"]
 pub mod select;
+#[path = "../../capsule_terminal/src/command/builtin/tool_busy.rs"]
+pub mod tool_busy;
 
 // What `help` prints and how its rows are laid out.
 #[path = "../../capsule_terminal/src/command/builtin/help_layout.rs"]
@@ -173,8 +173,6 @@ mod expand_tests;
 #[cfg(test)]
 mod filter_tests;
 #[cfg(test)]
-mod nl_tests;
-#[cfg(test)]
 mod goto_tests;
 #[cfg(test)]
 mod grep_paint_tests;
@@ -191,8 +189,6 @@ mod install_follow_tests;
 #[cfg(test)]
 mod kill_target_tests;
 #[cfg(test)]
-mod tool_busy_tests;
-#[cfg(test)]
 mod line_tests;
 #[cfg(test)]
 mod line_utf8_tests;
@@ -200,6 +196,8 @@ mod line_utf8_tests;
 mod long_line_tests;
 #[cfg(test)]
 mod network_job_tests;
+#[cfg(test)]
+mod nl_tests;
 #[cfg(test)]
 mod offline_gate_tests;
 #[cfg(test)]
@@ -215,10 +213,12 @@ mod redirect_tests;
 #[cfg(test)]
 mod suggest_tests;
 #[cfg(test)]
+mod tables;
+#[cfg(test)]
+mod tool_busy_tests;
+#[cfg(test)]
 mod tool_tests;
 #[cfg(test)]
 mod tree_tests;
-#[cfg(test)]
-mod usage_tests;
 #[cfg(test)]
 mod word_kill_tests;
