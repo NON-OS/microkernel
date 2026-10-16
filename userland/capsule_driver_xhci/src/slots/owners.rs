@@ -13,11 +13,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Who configured each pipe of a slot, and who may use it. On a device no
-//! driver claimed an interface of, nothing is refused, as before sharing.
-//! Once any driver claims one, only a claimant may use the slot at all, a
-//! pipe only the claimant that configured it, and a pipe another claimant
-//! configured is not configured again.
+//! Who configured each pipe of a slot, and who may use it. A device no
+//! driver claimed an interface of is served to anyone; a shared one only to
+//! claimants, each pipe only to the one that configured it, never
+//! configured again by another.
 
 use alloc::vec::Vec;
 
@@ -46,18 +45,19 @@ impl Owners {
             Use::Transfer(_) => Ok(()),
             Use::Configure(p) if other(self.owner(slot, p)) => Err(E_BUSY),
             Use::Configure(p) if self.owner(slot, p).is_some() => Ok(()),
-            Use::Configure(_) if self.list.len() >= OWNERS => {
-                if shared {
-                    Err(E_BUSY)
-                } else {
-                    Ok(())
-                }
-            }
+            Use::Configure(_) if self.list.len() >= OWNERS && shared => Err(E_BUSY),
+            Use::Configure(_) if self.list.len() >= OWNERS => Ok(()),
             Use::Configure(p) => {
                 self.list.push((slot, p, pid));
                 Ok(())
             }
         }
+    }
+
+    /// A sharer left the slot: only pipes of drivers still holding a claim
+    /// keep an owner, so a restarted driver can configure its pipes again.
+    pub fn keep_holders(&mut self, slot: u8, holds: impl Fn(u32) -> bool) {
+        self.list.retain(|o| o.0 != slot || holds(o.2));
     }
 
     /// The slot was disabled: its pipes go with it.
