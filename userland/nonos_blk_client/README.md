@@ -62,7 +62,8 @@ note.
 ## What it does not do
 
 USB mass storage is not in the table. The three protocols stay separate: a
-change in a driver's opcodes has to be made here as well.
+change in a driver's opcodes has to be made here as well, and until it is,
+`userland/blk_client_proofs` and `scripts/check_blk_wire.py` fail on it.
 
 See [storage](../../docs/handbook/storage.md) and
 [drivers](../../docs/handbook/drivers.md).

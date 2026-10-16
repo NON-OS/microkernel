@@ -17,4 +17,5 @@ pub mod capacity;
 pub mod flush;
 pub mod health;
 pub mod read;
+mod status;
 pub mod write;
