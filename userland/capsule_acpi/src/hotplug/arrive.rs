@@ -18,7 +18,8 @@
 //! turn it on, then each function that answers handed to the kernel for
 //! one probe (`MkPciProbeFunction`), and each it stood for that no longer
 //! answers taken away. A device with no function, a listed controller,
-//! is published as a platform record. Nothing else is woken.
+//! is published as a platform record. One that brought new functions is
+//! locked in with `_LCK(1)` when it has one. Nothing else is woken.
 
 use super::functions::{answering, answers, candidates};
 use super::leave::depart_all;
@@ -57,6 +58,9 @@ pub fn arrive(acpi: &mut Acpi, id: Id) {
     if new + left as u64 != 0 {
         let l = Line::new(b"hotplug ").str(path(&acpi.aml, id).as_bytes());
         l.str(b": ").dec(new).str(b" arrived, ").dec(left as u64).str(b" left").end();
+    }
+    if new != 0 {
+        super::release::lock_in(acpi, id);
     }
     remember(&mut acpi.hotplug, id, now);
 }
