@@ -16,7 +16,8 @@
 //! Discovery against a peripheral one of whose answers lies: an octet
 //! changed, cut short, run on, or a handle swapped. Whatever it says, the
 //! host ends ready or failed, never waiting for good, and every report it
-//! keeps, with its CCCD, lies inside one of the device's HID services.
+//! keeps lies inside one of the device's HID services, and its CCCD
+//! inside its own characteristic.
 
 use super::gatt_lies::{device, lie, services};
 use super::rng::each;
@@ -40,6 +41,8 @@ fn no_lying_answer_points_the_host_outside_its_services() {
         for s in run.host.sources() {
             let inside = |h: u16| ranges.iter().any(|r| (r.0..=r.1).contains(&h));
             assert!(inside(s.value) && inside(s.end) && s.cccd.is_none_or(inside), "{s:?}");
+            // Its CCCD is its own: after its value, by its last handle.
+            assert!(s.cccd.is_none_or(|c| s.value < c && c <= s.end), "{s:?}");
         }
     });
 }
