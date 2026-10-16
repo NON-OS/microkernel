@@ -5,16 +5,19 @@ Part of [IOMMU](iommu.md).
 ## What the kernel does
 
 - With an Intel VT-d unit that the firmware described and left off, the kernel
-  turns translation on at boot. Every device found by the PCI scan starts in an
-  identity mapped domain, and anything the scan did not find is denied.
+  turns translation and interrupt remapping on at boot. Every function the PCI
+  scan found starts blocked, but for one firmware reserved memory for (an
+  RMRR), which keeps those ranges alone; anything the scan did not find is
+  denied.
 - When a [driver capsule](../overview/glossary-dma-pool.md#driver-capsule) claims a
   device behind a unit in service, the device moves into that capsule's own
   [IOMMU domain](../overview/glossary-hardware-broker.md#iommu-domain), which maps only the DMA
   buffers the capsule was granted.
-- AMD-Vi units are taken back from firmware but not driven by any image profile
-  this tree defines, so DMA behind an AMD-Vi unit is unrestricted.
-- With no unit, or a unit that did not come up, DMA is unrestricted, and the
-  kernel says so on the [serial
+- AMD-Vi units are taken back from firmware and driven the same way: every
+  requester id starts blocked with its interrupts refused, and a device with
+  IVMD ranges keeps those alone.
+- With no unit, or a unit that did not come up, DMA is unrestricted, every PCI
+  claim is refused, and the kernel says so on the [serial
   console](../overview/glossary-rollback-index.md#serial-console).
 
 Everything here is read from the code. No hardware report for this release
@@ -27,8 +30,8 @@ The vendor is chosen from the ACPI tables, never from CPUID: a DMAR table with
 at least one remapping unit means VT-d, an IVRS table without one means AMD-Vi,
 and neither means none, the three values of `IommuVendor`
 (`src/memory/iommu/vendor.rs:19-31`). `detect` makes that choice once; when both
-tables exist VT-d wins, because it is the one this kernel drives, and the AMD
-units are named as unconfined (`src/arch/x86_64/iommu/backend/select.rs:37-66`).
+tables exist VT-d wins and the AMD units are named as unconfined
+(`src/arch/x86_64/iommu/backend/select.rs`).
 
 The x86_64 backend is compiled with `nonos-arch-iommu`; any other build, and any
 other architecture, uses the stand in `backend_unsupported`, which selects

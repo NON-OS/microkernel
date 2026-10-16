@@ -4,7 +4,7 @@ Part of [Checking the security claims yourself](checking-the-claims.md).
 
 ## Every capability and control is enforced, continued
 
-It printed `cap-parity: 36 capabilities, kernel and 2 mirrors agree` and exited
+It printed `cap-parity: 37 capabilities, kernel and 2 mirrors agree` and exited
 0. A difference prints `cap-parity: the capability tables disagree`, one line
 per mismatch, and exits 1.
 

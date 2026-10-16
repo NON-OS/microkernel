@@ -29,7 +29,7 @@ Part of [NONOS documentation](README.md).
   and meaning.
 - [Errors](abi/errors.md): what a failed syscall returns, and every errno the
   kernel defines.
-- [Capabilities](abi/capabilities.md): the 36 capability bits and the syscalls
+- [Capabilities](abi/capabilities.md): the 37 capability bits and the syscalls
   each one admits.
 - [Broker](abi/broker.md): the driver calls to the hardware broker, their
   records and constants.

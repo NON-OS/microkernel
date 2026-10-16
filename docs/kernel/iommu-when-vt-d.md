@@ -23,27 +23,25 @@ working (`src/arch/x86_64/iommu/unit/bringup/run.rs:26-67`):
 1. It refuses to start if firmware left any unit translating, with
    `FirmwareOwnsUnit`, rather than take over tables nobody reasons about
    (`src/arch/x86_64/iommu/unit/bringup/run.rs:38-43`).
-2. It builds one root table that every unit shares, and an [identity
-   domain](../overview/glossary-hardware-broker.md#identity-domain) with `identity_domain`
-   (`src/arch/x86_64/iommu/unit/bringup/run.rs:46-50`).
-3. The identity domain maps physical memory one to one up to the top of the
-   managed range rounded up to 1 GiB, and never less than 4 GiB, as
-   `identity_limit` computes
-   (`src/arch/x86_64/iommu/unit/bringup/limit.rs:17-35`).
-4. `assign_enumerated` gives every function the PCI scan found a context entry
-   in that domain (`src/arch/x86_64/iommu/unit/bringup/assign.rs:22-45`).
-5. Each unit is brought into service with `bring_into_service`, and only after
+2. It builds one root table that every unit shares, and a blocked domain that
+   maps nothing (`blocked_domain` in
+   `src/arch/x86_64/iommu/unit/bringup/domain.rs`).
+3. `assign_enumerated` gives every function the PCI scan found a context entry
+   in the blocked domain, or, for one firmware listed RMRRs for, in a domain
+   of its own holding those ranges alone (`reserved_domain`, `start_for` in
+   `src/arch/x86_64/iommu/unit/bringup/start.rs`). No device is [identity
+   mapped](../overview/glossary-hardware-broker.md#identity-domain).
+4. Each unit is brought into service with `bring_into_service`, and only after
    all of them does `set_enforcing` record that DMA is remapped
-   (`src/arch/x86_64/iommu/unit/bringup/run.rs:56-66`).
+   (`src/arch/x86_64/iommu/unit/bringup/run.rs`).
 
-The identity domain does not confine a device that was found; what it buys is
-that a device absent from the scan, such as a card added later, has no context
-entry and is denied. The success lines say exactly that, from `enabled`
-(`src/arch/x86_64/iommu/unit/bringup/verdict.rs:38-49`):
+A device absent from the scan, such as a card added later, has no context entry
+and is denied. The success lines say so, from `enabled`
+(`src/arch/x86_64/iommu/unit/bringup/verdict.rs`):
 
 ```
 [VT-D] translation enabled, levels=<hex> devices=<hex>
-[VT-D] enumerated devices identity mapped; others denied
+[VT-D] enumerated devices blocked until claimed; with reserved memory=<n>; others denied
 [VT-D] units programmed=<hex>
 ```
 
@@ -54,7 +52,9 @@ behind them are unrestricted
 `MAX_REMAP_UNITS`, 8, segment 0 units, and reads only the DRHD structures of the
 table (`src/arch/x86_64/acpi/parser/other/dmar.rs:26-27`).
 
-Interrupt remapping is a separate feature, `nonos-iommu-intremap`. No feature
-list in [Cargo.toml](../../Cargo.toml) turns it on, and without it bring-up
-prints that interrupt remapping is not built in, in `init`
-(`src/arch/x86_64/iommu/unit/bringup/init.rs:38-43`).
+Interrupt remapping is the `nonos-iommu-intremap` feature, in
+`microkernel-core`. Every unit gets one shared table with CFI clear, so a
+compatibility format interrupt is blocked: each MSI, MSI-X and IO-APIC line
+names an entry for its own requester id, and a claim is refused where
+remapping is not on (`src/arch/x86_64/iommu/remap/`,
+`src/hardware/broker/confine/interrupts.rs`).

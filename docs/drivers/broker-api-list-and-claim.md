@@ -35,15 +35,13 @@ things in order (`src/hardware/broker/claim/claim.rs:23-45`):
 A PCI device that no remapping unit in service covers cannot be confined, and
 the claim goes ahead without a domain. `attach` asks `translates` first, and
 when the answer is no it logs `unconfined: no remapping unit in service covers
-it, reaches all memory` and lets the claim through
-(`src/hardware/broker/confine/attach.rs:41-48`, `translates`). That is every
-device on a machine without VT-d, every device on an AMD-Vi machine, since no
-build profile drives AMD-Vi (see [Platform](platform-vt-d-and.md#vt-d-and-amd-vi)), and a
-device outside every unit's scope on a VT-d machine. If the capsule's domain
-then cannot be made, `unconfined_allowed` still lets the claim through for the
-four errors that mean no unit is in service
-(`src/hardware/broker/confine/posture.rs:32-49`). Any other attach failure
-refuses the claim.
+it, reaches all memory` and lets the claim through, but only in a kernel built
+with `nonos-dev-unconfined-dma`; otherwise the claim is refused
+(`src/hardware/broker/confine/decide.rs`, `verdict`). That is every device on a
+machine with no unit in service, and a device outside every unit's scope (see
+[Platform](platform-vt-d-and.md#vt-d-and-amd-vi)). A claim is refused as well where
+interrupts are not remapped (`src/hardware/broker/confine/interrupts.rs`). Any
+other attach failure refuses the claim.
 
 Every later call on the device carries the epoch, and calls on a grant name the
 grant id. A call with an old epoch fails with -116, `ERRNO_STALE`

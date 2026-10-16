@@ -38,8 +38,8 @@ keys](signing-and-publisher-keys.md) lists those refusals.
 
 The bits are defined once in the kernel (`src/capabilities/types/defs.rs`) and
 published in `abi/caps.toml`, which `scripts/gen_caps_abi.py` regenerates from
-that file. There are 36, from CoreExec at bit 0 to DeviceSecret at bit 35
-(`src/capabilities/types/defs.rs:22-82`, `DeviceSecret`). Two of them, IO at bit
+that file. There are 37, from CoreExec at bit 0 to InputConsumer at bit 36
+(`src/capabilities/types/defs.rs`, `InputConsumer`). Two of them, IO at bit
 1 and Hardware at bit 7, enforce nothing
 (`src/capabilities/types/defs.rs:23-31`, `Hardware`). These are the ones a
 capsule meets most:

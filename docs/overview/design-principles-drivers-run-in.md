@@ -24,12 +24,11 @@ TPM.
 
 The limits: every device a capsule claims shares its one domain, so each can
 reach the buffers granted for the others (`map` in
-`src/hardware/broker/confine/map.rs:25-50`). AMD-Vi is not driven and interrupt
-remapping is off: no [build profile](glossary-boot-root-record.md#build-profile) turns on
-`nonos-iommu-amdvi` or `nonos-iommu-intremap` (`Cargo.toml:879-891`). With
-AMD-Vi, or with no remapping unit in service at all, a claimed device can reach
-all of physical memory (`unconfined_allowed` in
-`src/hardware/broker/confine/posture.rs:17-50`). A device found at boot that no
-driver claims stays in the [identity domain](glossary-hardware-broker.md#identity-domain), and a
-device with no PCI requester id gets no domain (`pci_address` in
-`src/hardware/broker/confine/table.rs:35-43`).
+`src/hardware/broker/confine/map.rs`). With no remapping unit in service, or
+none that remaps interrupts, a claim is refused, unless the kernel is built with
+a development opt-in that a release refuses (`verdict` in
+`src/hardware/broker/confine/decide.rs`). A device found at boot that no driver
+claims is blocked, but for the memory firmware reserved for it (the [identity
+domain](glossary-hardware-broker.md#identity-domain) entry says which), and a device with no
+PCI requester id gets no domain (`pci_address` in
+`src/hardware/broker/confine/table.rs`).

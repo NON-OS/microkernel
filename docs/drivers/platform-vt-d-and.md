@@ -6,27 +6,19 @@ Part of [Platform](platform.md).
 
 The [IOMMU](../overview/glossary-hardware-broker.md#iommu) is what confines a driver's DMA to
 the buffers the [hardware broker](../overview/glossary-hardware-broker.md#hardware-broker) gave
-it. Every image is built with `nonos-arch-iommu` and `nonos-iommu-enforce` as
-part of the core feature set, so the kernel programs the Intel VT-d remapping
-units the ACPI DMAR table describes and turns translation on
-(`Cargo.toml:240-249`, `Cargo.toml:867-877`). Two parts are off in every build
-profile in `tools/nix/config.nix`:
-
-- Interrupt remapping, the `nonos-iommu-intremap` feature
-  (`Cargo.toml:879-884`).
-- The AMD-Vi backend, the `nonos-iommu-amdvi` feature (`Cargo.toml:886-891`).
+it. Every image is built with `nonos-arch-iommu`, `nonos-iommu-enforce`,
+`nonos-iommu-intremap` and `nonos-iommu-amdvi` as part of the core feature
+set, so the kernel programs the Intel VT-d units the ACPI DMAR table
+describes, or the AMD-Vi units IVRS describes, and turns translation and
+interrupt remapping on.
 
 The vendor is read from the ACPI tables, never from CPUID: `IommuVendor` is
 AMD-Vi when an IVRS table is present and DMAR describes no unit
-(`src/memory/iommu/vendor.rs:19-31`). In every build profile, such a machine
-gets every domain call refused by `route` with `AmdViNotDriven`
-(`src/arch/x86_64/iommu/backend/route.rs:38-48`,
-`src/arch/x86_64/iommu/backend/refuse.rs:22-31`). `translates` then answers no
-for every device, so the broker lets each claim through without a domain
-(`src/arch/x86_64/iommu/backend/dispatch_device.rs:39-46`, `translates`). On
-such a machine, and on any machine without VT-d, a claimed device can reach all
-of memory. The broker says so in the log on each claim ([Broker
-API](broker-api-list-and-claim.md#list-and-claim)).
+(`src/memory/iommu/vendor.rs`). A machine with neither, or whose units did not
+come into service, has every PCI claim refused, and the broker says so in the
+log on each claim ([Broker API](broker-api-list-and-claim.md#list-and-claim)).
+Only a kernel built with a development opt-in, which a release refuses, lets
+such a device through, and it can then reach all of memory.
 
 With VT-d in service, `attach` gives each [driver
 capsule](../overview/glossary-dma-pool.md#driver-capsule) an [IOMMU

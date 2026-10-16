@@ -15,7 +15,7 @@ ls userland/*/Capsule.mk | wc -l                               # 107
 ls -d userland/capsule_driver_*/ | wc -l                       # 27
 ls userland/capsule_driver_*/Capsule.mk | wc -l                # 26
 grep -c 'tag4(b"' src/syscall/numbers/defs.rs                  # 130
-grep -c ' = 1 << ' src/capabilities/types/defs.rs              # 36
+grep -c ' = 1 << ' src/capabilities/types/defs.rs              # 37
 python3 -c "import json; print(len(json.load(open('tools/nix/capsules.json'))))"   # 116
 python3 -c "import json; print(sum(e['slug'].startswith('driver-') for e in json.load(open('tools/nix/capsules.json'))))"   # 18
 python3 -c "import json; print(sum(e['dir'] == 'userland/linux_userland' for e in json.load(open('tools/nix/capsules.json'))))"   # 19
@@ -33,7 +33,7 @@ python3 -c "import json; print(sum(e['dir'] == 'userland/linux_userland' for e i
 | Driver capsules in that catalogue | 18 |
 | Linux userland programs in that catalogue | 19 |
 | Syscalls | 130 |
-| Capability bits | 36 |
+| Capability bits | 37 |
 
 ## See also
 
