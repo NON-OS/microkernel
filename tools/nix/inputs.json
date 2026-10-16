@@ -1734,6 +1734,11 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_i2c_hid/src/diag.rs",
+   "userland/capsule_driver_i2c_hid/src/hid/input_mode/configure.rs",
+   "userland/capsule_driver_i2c_hid/src/hid/input_mode/fallback.rs",
+   "userland/capsule_driver_i2c_hid/src/hid/input_mode/one_report.rs",
+   "userland/capsule_driver_i2c_hid/src/hid/input_mode/port.rs",
+   "userland/capsule_driver_i2c_hid/src/hid/input_mode/set_bits.rs",
    "userland/capsule_driver_i2c_hid/src/hid/report_desc",
    "userland/capsule_driver_i2c_hid/src/input/gesture",
    "userland/capsule_driver_i2c_hid/src/input/parse_report.rs",
