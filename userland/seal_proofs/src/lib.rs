@@ -18,10 +18,14 @@
 
 extern crate alloc;
 
+#[cfg(test)]
 mod arch;
+#[cfg(test)]
 mod errnos;
+#[cfg(test)]
 mod foreign;
 /// The path the live read takes its errnos by, as in the kernel.
+#[cfg(test)]
 mod syscall {
     pub(crate) mod microkernel {
         pub(crate) use crate::errnos;
