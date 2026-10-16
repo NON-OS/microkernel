@@ -23,7 +23,7 @@ use super::state::Host;
 use super::step::Step;
 use super::types::MAX_REQUESTS;
 use crate::error::HogpError;
-use crate::report::{Keyboard, Locks, Mouse};
+use crate::report::Locks;
 use crate::uuids::{HID_SERVICE, PRIMARY_SERVICE};
 use alloc::vec::Vec;
 use nonos_bt_wire::att;
@@ -44,8 +44,7 @@ impl Host {
             layouts: Vec::new(),
             inputs: Vec::new(),
             locks: Locks::default(),
-            keyboard: Keyboard::default(),
-            mouse: Mouse::default(),
+            boots: Vec::new(),
             charge: Charge::Idle,
             banks: Vec::new(),
             cells: Vec::new(),
