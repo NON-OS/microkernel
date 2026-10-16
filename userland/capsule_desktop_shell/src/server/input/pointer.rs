@@ -19,12 +19,13 @@
 
 use super::drag::drop_drag;
 use crate::protocol::read_i32;
+use crate::state::input_source_rule::Routed;
 use crate::state::Context;
 use nonos_libc::{
     INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_TOUCH,
 };
 
-pub(super) fn pointer(ctx: &mut Context, buf: &[u8], kind: u16) -> bool {
+pub(super) fn pointer(ctx: &mut Context, by: Routed, buf: &[u8], kind: u16) -> bool {
     let Some(x) = read_i32(buf, 16) else {
         return true;
     };
@@ -50,5 +51,5 @@ pub(super) fn pointer(ctx: &mut Context, buf: &[u8], kind: u16) -> bool {
     if !matches!(kind, INPUT_KIND_TOUCH | INPUT_KIND_BUTTON_DOWN) {
         return true;
     }
-    super::press::press(ctx, buf, kind, x, y)
+    super::press::press(ctx, by, buf, kind, x, y)
 }

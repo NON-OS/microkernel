@@ -25,6 +25,7 @@ mod frametime;
 mod input_router_client;
 mod installer_client;
 mod market_client;
+mod power_off_client;
 mod protocol;
 mod render;
 mod server;
