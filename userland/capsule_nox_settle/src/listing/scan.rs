@@ -22,10 +22,9 @@
 use alloc::vec::Vec;
 
 use nonos_eth_rpc::{parse_logs, request_logs};
-use nonos_settle_proto::{withdrawn, Listed, EPROTO, PUBLISHED_TOPIC, WITHDRAWN_TOPIC};
+use nonos_settle_proto::{log_pages, withdrawn, Listed, EPROTO, PUBLISHED_TOPIC, WITHDRAWN_TOPIC};
 
 use super::cursor::MAX_ROWS;
-use crate::chain::log_pages;
 use crate::net::Rpc;
 
 #[derive(Default)]
