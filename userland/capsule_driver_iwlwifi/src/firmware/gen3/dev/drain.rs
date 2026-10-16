@@ -19,7 +19,7 @@
 use super::super::packet::{parse as parse_packet, Packet};
 use super::super::region::Region;
 use super::super::rxq::Taken;
-use super::kinds::{Flow, PASS};
+use super::kinds::{Flow, PASS, TX_RESPONSE};
 use super::state::Dev;
 use crate::regs::Mmio;
 
@@ -35,6 +35,10 @@ impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
                 Some(Taken::Fragment) => {}
                 Some(Taken::Buffer) => {
                     if let Some(p) = parse_packet(&self.buf) {
+                        // A reply, however late, retires the command it answers.
+                        if p.is_reply() && !(p.group == 0 && p.cmd == TX_RESPONSE) {
+                            self.cmdq.retire(p.sequence);
+                        }
                         if handle(&p) == Flow::Done {
                             flow = Flow::Done;
                             break;
