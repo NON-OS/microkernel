@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which interface carries an RNDIS function's data. The Union descriptor
-//! says, as usbnet_generic_cdc_bind reads it. Some Android phones have no
-//! Union or one naming interfaces that do not exist; Linux then takes
-//! interface 1 for a control interface 0. Before that last guess, the call
+//! says (CDC 1.2, Union functional descriptor). Some phones have no Union or one naming
+//! interfaces that do not exist (observed, unverified); then the call
 //! management descriptor's bDataInterface is taken when it names an
-//! interface with bulk pipes, since it is the device's own word.
+//! interface with bulk pipes, since it is the device's own word, and last
+//! interface 1 for a control interface 0, the layout such phones use.
 
 use nonos_usbnet::desc::{find_functional, union_data, Interface, CLASS_CDC_DATA};
 
@@ -31,7 +31,7 @@ pub(super) fn data_interface(raw: &[u8], ifs: &[Interface], comm: u8) -> Option<
     let carries = |n: u8| ifs.iter().any(|i| i.number == n && i.has_bulk_pair());
     if let Some(data) = union_data(raw, comm).filter(|&d| exists(d) && d != comm) {
         // A Union that names a real interface is trusted, and that one
-        // must be CDC data (usbnet_generic_cdc_bind, "slave class").
+        // must be CDC data, as a Union's subordinate is (CDC 1.2, Union functional descriptor).
         let cdc = ifs.iter().any(|i| i.number == data && i.class == CLASS_CDC_DATA);
         return cdc.then_some(data);
     }
