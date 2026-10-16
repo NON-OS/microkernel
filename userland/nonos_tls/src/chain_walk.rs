@@ -63,25 +63,5 @@ pub fn verify_chain(body: &[u8], host: &[u8], now: u64) -> bool {
     let Some(top) = super::cert_at::cert_at(body, n - 1) else {
         return false;
     };
-    anchor(top)
-}
-
-// The top served certificate is trusted if it is itself a pinned anchor (the
-// server sent the root, or its SPKI is directly pinned), otherwise if a trusted
-// root issued it and the signature verifies against that root's key.
-fn anchor(top: &[u8]) -> bool {
-    if let Some(top_spki) = super::cert_spki::cert_spki(top) {
-        if let Some(h) = super::hash_sha256::hash_sha256(top_spki) {
-            if super::roots::is_trusted_spki_hash(&h) {
-                return true;
-            }
-        }
-    }
-    let Some(issuer) = super::cert_issuer::cert_issuer(top) else {
-        return false;
-    };
-    let Some(root_spki) = super::roots::find_spki_by_subject(issuer) else {
-        return false;
-    };
-    super::verify_link::verify_link(top, root_spki)
+    super::chain_anchor::anchor(top)
 }
