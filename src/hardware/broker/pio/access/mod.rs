@@ -19,12 +19,14 @@
 //! grant lookup with bounds + holder enforcement, and only then
 //! issues the architectural instruction.
 
+mod gate;
 mod grant_for_caller;
 mod raw;
 mod read;
 mod resolve;
 mod write;
 
+pub(crate) use gate::quiesce as quiesce_ports;
 pub use grant_for_caller::grant_for_caller;
 pub use read::read;
 pub use write::write;
