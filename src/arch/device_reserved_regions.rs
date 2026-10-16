@@ -18,20 +18,23 @@
 //! own tables (L60): the RMRRs DMAR lists on x86_64. Elsewhere none are read
 //! yet; AMD-Vi's IVMD and the IORT's reserved ranges are rows of their own.
 
-/// The requester's regions as `[base, end)`, and whether one that may name
-/// it could not be resolved, so was left out.
-pub(crate) fn device_reserved_regions(
-    segment: u16,
-    bdf: (u8, u8, u8),
-) -> (heapless::Vec<(u64, u64), 16>, bool) {
-    #[cfg(target_arch = "x86_64")]
+/// The requester's regions as `[base, end)`, and the regions left out: one
+/// that may name it could not be resolved, or one names other devices too.
+pub(crate) struct Reserved {
+    pub ranges: heapless::Vec<(u64, u64), 16>,
+    pub unresolved: bool,
+    pub shared: bool,
+}
+
+pub(crate) fn device_reserved_regions(segment: u16, bdf: (u8, u8, u8)) -> Reserved {
+    #[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
     {
         let found = crate::arch::x86_64::iommu::unit::rmrr_of::rmrr_of(segment, bdf);
-        (found.ranges, found.unresolved)
+        Reserved { ranges: found.ranges, unresolved: found.unresolved, shared: found.shared }
     }
-    #[cfg(not(target_arch = "x86_64"))]
+    #[cfg(not(all(target_arch = "x86_64", feature = "nonos-arch-iommu")))]
     {
         let _ = (segment, bdf);
-        (heapless::Vec::new(), false)
+        Reserved { ranges: heapless::Vec::new(), unresolved: false, shared: false }
     }
 }

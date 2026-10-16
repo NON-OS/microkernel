@@ -38,5 +38,5 @@ pub use allocator::{
 pub use constants::*;
 pub use error::{PhysAllocError, PhysAllocResult};
 pub use types::{AllocFlags, AllocatorState, Frame, PhysFrame, ZoneStats};
-pub use usable_kept::touches_usable;
+pub use usable_kept::{keep as keep_ram, touches_usable};
 pub use usage::free_memory;

@@ -38,10 +38,11 @@ pub(super) enum Verdict {
 }
 
 /// What becomes of region `[base, end)` in a capsule whose grants run from
-/// IOVA_BASE to `next_iova`, holding `held`; `ram` when it touches usable RAM.
-pub(super) fn verdict(base: u64, end: u64, next_iova: u64, held: &[Held], ram: bool) -> Verdict {
-    if ram {
-        return Verdict::Refuse(b"refused: an RMRR covers usable RAM");
+/// IOVA_BASE to `next`, holding `held`; `barred` when it touches RAM or
+/// another capsule's domain holds part of it (L63).
+pub(super) fn verdict(base: u64, end: u64, next: u64, held: &[Held], barred: bool) -> Verdict {
+    if barred {
+        return Verdict::Refuse(b"refused: an RMRR over RAM or another capsule's region");
     }
     if end <= base || touches_interrupt_window(base, end - base) {
         return Verdict::Refuse(b"refused: an RMRR covers the interrupt window or nothing");
@@ -52,7 +53,7 @@ pub(super) fn verdict(base: u64, end: u64, next_iova: u64, held: &[Held], ram: b
     if held.iter().any(|h| h.base < end && base < h.end) {
         return Verdict::Refuse(b"refused: an RMRR overlaps another reserved region");
     }
-    if next_iova > IOVA_BASE && base < next_iova && end > IOVA_BASE {
+    if next > IOVA_BASE && base < next && end > IOVA_BASE {
         return Verdict::Refuse(b"refused: an RMRR overlaps the capsule's grants");
     }
     Verdict::Map

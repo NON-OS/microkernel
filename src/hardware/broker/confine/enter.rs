@@ -22,7 +22,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::attach::Refused;
-use super::reserve::{map_reserved, unmap_reserved};
+use super::reserve::map_reserved;
+use super::unreserve::unmap_reserved;
 use super::table::{say, Capsule};
 use crate::memory::iommu::DeviceAddress;
 
@@ -33,7 +34,10 @@ pub(super) fn enter(
     device_id: u64,
     address: DeviceAddress,
 ) -> Result<(), Refused> {
-    map_reserved(&mut all[pos], pid, device_id, address);
+    let others: Vec<(u64, u64)> = (all.iter().enumerate().filter(|(i, _)| *i != pos))
+        .flat_map(|(_, c)| c.reserved.iter().map(|h| (h.base, h.end)))
+        .collect();
+    map_reserved(&mut all[pos], pid, device_id, address, &others);
     if all[pos].devices.iter().any(|(_, a)| *a == address) {
         all[pos].devices.push((device_id, address));
         say(b"confined to its capsule's domain (shared requester id)", pid, address);

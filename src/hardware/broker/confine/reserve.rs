@@ -21,22 +21,32 @@
 //! check is left out and said: mapping too little only denies the device,
 //! which is how every claim stood before.
 
-extern crate alloc;
 
 use super::reserved_rule::{verdict, Held, Verdict};
 use super::table::{say, Capsule};
 use crate::memory::addr::PhysAddr;
 use crate::memory::iommu::{DeviceAddress, IommuProtection};
 
-pub(super) fn map_reserved(c: &mut Capsule, pid: u32, device_id: u64, address: DeviceAddress) {
+/// `others`: every region another capsule's domain holds, never shared (L63).
+pub(super) fn map_reserved(
+    c: &mut Capsule,
+    pid: u32,
+    device_id: u64,
+    address: DeviceAddress,
+    others: &[(u64, u64)],
+) {
     let (Some(segment), Some(bdf)) = (address.segment(), address.bdf()) else { return };
     let found = crate::arch::device_reserved_regions(segment, bdf);
-    if found.1 {
+    if found.unresolved {
         say(b"an RMRR that may name it could not be resolved; not mapped", pid, address);
     }
-    for &(base, end) in found.0.iter() {
+    if found.shared {
+        say(b"an RMRR it shares with other devices; not mapped", pid, address);
+    }
+    for &(base, end) in found.ranges.iter() {
         let ram = crate::memory::phys::touches_usable(base, end);
-        match verdict(base, end, c.next_iova, &c.reserved, ram) {
+        let foreign = others.iter().any(|&(b, e)| b < end && base < e);
+        match verdict(base, end, c.next_iova, &c.reserved, ram || foreign) {
             Verdict::Refuse(why) => say(why, pid, address),
             Verdict::Held => c.reserved.push(Held { base, end, device: device_id }),
             Verdict::Map => {
@@ -56,18 +66,6 @@ pub(super) fn map_reserved(c: &mut Capsule, pid: u32, device_id: u64, address: D
                     say(b"its RMRR would not map; left out", pid, address);
                 }
             }
-        }
-    }
-}
-
-/// Forget `device_id`'s regions, unmapping each no other device holds.
-pub(super) fn unmap_reserved(c: &mut Capsule, device_id: u64) {
-    let mine: alloc::vec::Vec<Held> =
-        c.reserved.iter().copied().filter(|h| h.device == device_id).collect();
-    c.reserved.retain(|h| h.device != device_id);
-    for h in mine {
-        if !c.reserved.iter().any(|o| o.base == h.base && o.end == h.end) {
-            let _ = c.domain.unmap(h.base, (h.end - h.base) as usize);
         }
     }
 }
