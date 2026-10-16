@@ -16,8 +16,8 @@ after paging, and prints the first line again whenever the count changes
 `enforcing=1` together with `unconfined grants=0` means that every DMA buffer
 the broker has granted is confined, because `unconfined_grants` counts every
 grant made without a domain (`src/memory/iommu/posture.rs:17-28`). It does not
-mean every device is confined: a device found at boot that no capsule has
-claimed stays in the identity domain and can still reach all memory. On a
+mean every device is confined: a device firmware reserved memory for keeps
+that memory while no capsule has claimed it. On a
 machine with no remapping hardware the boot prints `[IOMMU] no DMAR remapping
 unit and no IVRS table; IOMMU domains refused; DMA is unrestricted` and selects
 `IommuVendor::Absent` (`src/arch/x86_64/iommu/backend/select.rs:62-65`).
@@ -26,12 +26,13 @@ unit and no IVRS table; IOMMU domains refused; DMA is unrestricted` and selects
 
 `init` for AMD-Vi first takes every unit back from firmware, because a unit left
 enabled would translate every device through tables built for firmware's own
-drivers (`src/arch/x86_64/amd_vi/init.rs:24-45`). A kernel built with
-`nonos-iommu-amdvi` would then drive the units through `bringup`, with one
-shared device table and per capsule domains
-(`src/arch/x86_64/amd_vi/mod.rs:17-25`). No feature list in
-[Cargo.toml](../../Cargo.toml) turns that feature on, so on such a machine the
-boot prints `[AMD-VI] IOMMU driver not built in; DMA is unrestricted`.
+drivers (`src/arch/x86_64/iommu/amd_vi/init.rs`). `microkernel-core` builds
+`nonos-iommu-amdvi`, so the kernel then drives the units through `bringup`:
+one shared device table in which every requester id starts blocked, IV set
+with no table so its interrupts are refused, a device with IVMD ranges keeping
+those, per capsule domains, and a remapping table per device that binds an
+interrupt (`src/arch/x86_64/iommu/amd_vi/intr.rs`). The boot prints
+`[AMD-VI] IOMMU translation enabled, units=<n> reserved=<n>`.
 
 ## Trying it in QEMU
 
@@ -53,8 +54,8 @@ The [proof crate](../overview/glossary-peer-list.md#proof-crate) `userland/kerne
 compiles the DMAR scope parser (`userland/kernel_proofs/src/dmar_scope/mod.rs`),
 the IVRS walk (`userland/kernel_proofs/src/firmware_iommu/mod.rs`), the
 confinement posture (`userland/kernel_proofs/src/confine_posture/mod.rs`) and
-several VT-d register and queue helpers from the kernel sources. It passed, 388
-tests, in the flake check run on this commit. `userland/mechanism_proofs` holds
+several VT-d and AMD-Vi register, table and remapping encoders from the kernel
+sources. It passed, 493 tests, on the host at this commit. `userland/mechanism_proofs` holds
 the VT-d page table entry and context entry encodings
 (`userland/mechanism_proofs/src/iommu/mod.rs`); it passed, 56 tests, in the same
 run.

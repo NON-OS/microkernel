@@ -14,26 +14,23 @@ an interrupt binding Irq, a DMA buffer Dma and port I/O Pio (`MkDeviceClaim`,
 
 The broker gives each driver capsule its own [IOMMU
 domain](glossary-hardware-broker.md#iommu-domain), which every device that capsule claims shares
-(`attach` in `src/hardware/broker/confine/attach.rs:30-101`). This kernel drives
-Intel VT-d, and every image turns its translation on at boot, with
-`nonos-iommu-enforce` in `microkernel-core` (`Cargo.toml:240-249`). When a claim
+(`attach` in `src/hardware/broker/confine/attach.rs`). This kernel drives Intel
+VT-d and AMD-Vi, and every image turns translation and interrupt remapping on at
+boot (`nonos-iommu-enforce`, `nonos-iommu-intremap` and `nonos-iommu-amdvi` in
+`microkernel-core`). When a claim
 is released, the broker turns the device's bus mastering off, then detaches it
 from its domain (`release` in `src/hardware/broker/claim/release.rs:24-36`).
 
 Confinement does not reach every device. A device found at boot that no driver
-claims stays in the [identity domain](glossary-hardware-broker.md#identity-domain), and a device
-with no PCI requester id, such as a controller found through ACPI, gets no
-domain (`pci_address` in `src/hardware/broker/confine/table.rs:35-43`). The
-AMD-Vi backend sits behind the `nonos-iommu-amdvi` feature and interrupt
-remapping behind `nonos-iommu-intremap`, and no [build
-profile](glossary-boot-root-record.md#build-profile) in `tools/nix/config.nix` turns either on
-(`Cargo.toml:879-891`). When no remapping unit is in service, because the
-firmware describes none, the one found did not come up, or it is AMD-Vi, a claim
-goes ahead with the device unconfined, and so does a claim on a device that no
-unit in service covers. The serial log names each such claim. Where a unit in
-service covers the device and cannot take it, the claim is refused
-(`unconfined_allowed` in `src/hardware/broker/confine/posture.rs:17-50`,
-`amd_vi` in `src/arch/x86_64/iommu/backend/refuse.rs:22-31`).
+claims is blocked, but for the memory firmware reserved for it (see [identity
+domain](glossary-hardware-broker.md#identity-domain)), and a device with no PCI requester id,
+such as a controller found through ACPI, gets no domain (`pci_address` in
+`src/hardware/broker/confine/table.rs`). When no remapping unit is in service,
+because the firmware describes none or the one found did not come up, or when
+interrupts are not remapped, a claim is refused, unless the kernel is built
+with a development opt-in that a release build refuses. The serial log names
+each such claim (`verdict` in `src/hardware/broker/confine/decide.rs`, `admit`
+in `src/hardware/broker/confine/interrupts.rs`).
 
 [Hardware broker](../kernel/hardware-broker.md), [IOMMU](../kernel/iommu.md),
 [PCI and ACPI](../kernel/pci-and-acpi.md) and the driver side, [Broker
