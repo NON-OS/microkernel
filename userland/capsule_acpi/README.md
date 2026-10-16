@@ -55,11 +55,23 @@ the kernel through `MkAcpiPower`, which MkBatteryStatus then answers from
 while the report is under three minutes old.
 
 Power buttons (PNP0C0C), sleep buttons (PNP0C0E) and lids (PNP0C0D) that
-report through AML are served on their Notify: 0x80 on a power button goes
-to the kernel through `MkAcpiEvent`, which posts the desktop's Power key as
-it does for the fixed button; a sleep button press is logged, as NONOS has
-no sleep state yet; a lid's _LID is read at start and on 0x80, and the
-kernel told when it changes. The fixed PM1 buttons stay the kernel's.
+report through AML are served on their Notify. A sleep button press is
+logged, as NONOS has no sleep state yet. A lid's _LID is read at start and on
+0x80, and the kernel is told when it changes; closing it does nothing more.
+
+A power-button press runs the wiped power-off: one `power off with the
+wipe` line, then AdminShutdown, which wipes on the way down, with no
+confirmation. That covers a PNP0C0C Notify 0x80, and the fixed PM1 button
+whenever the FADT does not name a control-method one.
+- Once its SCI is bound, the capsule enables the fixed button and tells the
+  kernel (`MkAcpiEvent` BUTTON_TAKEN, 7). The kernel's own poll of
+  PWRBTN_STS then stands down while this capsule lives, so the bit has one
+  reader. A capsule that dies gives the button back to the poll.
+- A press within 500 ms of the one before is a bounce.
+- A press before the first publish pass is 2 s old is ignored, with a line,
+  so a status bit stuck from before boot never powers the machine off.
+- Should the kernel refuse AdminShutdown, the press goes to the desktop as
+  its Power key, as before.
 
 Thermal zones are read at their _TZP interval (every 30 seconds when they
 give none), and on Notify 0x80, 0x81 (trip points changed) and 0x82 (device
@@ -68,9 +80,11 @@ the fan has one, else by D0 and D3 through its _PR0 power resources,
 counted across fans that share them; a level stays on until the zone is two
 degrees below it, and a fan over a zone that cannot be read runs. The
 hottest temperature and the trip points reached go to the kernel through
-`MkAcpiEvent`. _CRT is believed on two readings a second apart; the kernel
-then asks the desktop to shut down, and powers off itself if the zone is
-still critical 30 seconds later. Passive cooling (_PSV) is reported, and
+`MkAcpiEvent`. _CRT is believed on two readings a second apart. A zone
+reaching it runs the wiped power-off at once, before firmware's own thermal
+shutdown can cut power without the wipe. Should that be refused, the kernel
+asks the desktop to shut down, and powers off itself if the zone is still
+critical 30 seconds later. Passive cooling (_PSV) is reported, and
 waits on processor performance control.
 
 Every processor, a Processor object (by its ProcID) or an ACPI0007 device
@@ -105,7 +119,8 @@ A battery's _BTP is set to its warning capacity, so crossing into low
 notifies. A discharging battery at or under its warning capacity is told
 to the kernel once as low; one at its low capacity, or with _BST's
 critical bit, is told as critical at every reading (every 10 s while it
-lasts), and the kernel asks the desktop to shut down, then powers off 30 s
+lasts). Becoming critical runs the wiped power-off at once. Should that be
+refused, the kernel asks the desktop to shut down, then powers off 30 s
 later if it still is. Each zone gets _SCP(0), active cooling first.
 
 Display adapters above backlit outputs get _DOS(0): firmware keeps output
@@ -258,11 +273,11 @@ native hot-plug ports, port facts and the Type-C session.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve port 4530; Memory
+`CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve ports 4530 and 4532; Memory
 (0x10) for the heap and the interpreter's objects; DeviceEnum (0x8000) to
 find the SCI record; Driver (0x10000) to claim it; Irq (0x40000) to bind
 it; Admin (0x200) for the ACPI calls and MkSmbiosTable, which the kernel gates on Admin
-until a Firmware bit of their own is decided. Debug (0x100) is optional, for
+until a Firmware bit of their own is decided, and for AdminShutdown. Debug (0x100) is optional, for
 its serial lines. No Mmio, Dma or Pio.
 
 ## Interface contract
@@ -438,6 +453,13 @@ other op: no one.
   and one `[ACPI] pci label` line each. The UUID, revisions (3, then 2),
   function numbers and shapes are recalled, unverified. Layout in
   `src/pci_firmware/wire.rs`.
+- POWER_OFF (25, no body): the wiped power-off, for `desktop_shell` alone,
+  the same path a power-button press takes, with no boot guard or
+  debounce. It never replies when it runs, only an errno when the kernel
+  refuses. The shell asks through `power.off` (port 4532), the capsule's
+  second name, which the kernel's HELD line admits from the shell alone.
+  The kernel registers that name beside `acpi` at spawn, on the same inbox,
+  so this op is checked by sender here too.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and
