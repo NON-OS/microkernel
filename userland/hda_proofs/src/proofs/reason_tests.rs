@@ -32,6 +32,7 @@ fn every_failure() -> Vec<HdaError> {
         HdaError::DmaOutOfReach,
         HdaError::StreamResetTimeout,
         HdaError::CodecPowerTimeout,
+        HdaError::EngineStopTimeout,
     ];
     for e in all {
         match e {
@@ -42,7 +43,8 @@ fn every_failure() -> Vec<HdaError> {
             | HdaError::ControllerNotResponding
             | HdaError::DmaOutOfReach
             | HdaError::StreamResetTimeout
-            | HdaError::CodecPowerTimeout => {}
+            | HdaError::CodecPowerTimeout
+            | HdaError::EngineStopTimeout => {}
         }
     }
     all.to_vec()

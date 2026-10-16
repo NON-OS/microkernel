@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod check;
 mod clear;
 mod dispi_off;
 mod set_mode;
+mod span;
 
+pub use check::{confirm, identify};
 pub use clear::clear;
-pub use set_mode::set_mode;
+pub use set_mode::{regs_len, set_mode};
+pub use span::span;
