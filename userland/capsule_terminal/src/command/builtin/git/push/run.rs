@@ -27,8 +27,8 @@ use nonos_tls::rtc_now;
 
 use crate::command::output::Output;
 use crate::git::Https;
-use nonos_http::parse_url;
 use crate::term::state::State;
+use nonos_http::parse_url;
 
 use super::super::clone::fail_with;
 use super::super::repo::{storage, GIT_DIR};

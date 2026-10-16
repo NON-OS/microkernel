@@ -90,8 +90,12 @@ fn dispatched_names() -> Vec<String> {
 
 /// Every name Tab offers.
 fn completed_names() -> Vec<String> {
-    let src = include_str!("../../capsule_terminal/src/event/complete.rs");
-    let block = src.split("const COMMANDS").nth(1).unwrap().split("];").next().unwrap();
+    // `COMMANDS` in complete.rs is made of the groups these two files hold.
+    let block = [
+        include_str!("../../capsule_terminal/src/event/complete_words.rs"),
+        include_str!("../../capsule_terminal/src/event/complete_words_more.rs"),
+    ]
+    .concat();
     block
         .split("b\"")
         .skip(1)

@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_time_millis;
-
-use super::call::{call_installer, issue, Issued};
-use super::children::children;
+use super::call::call_installer;
 use super::emit::{emit_err, emit_ok};
-use super::follow::Follow;
-use super::job::InstallJob;
 use crate::command::output::Output;
-use crate::jobs::JobProgress;
 use crate::term::state::State;
+
+#[path = "run_args.rs"]
+mod run_args;
+#[path = "run_drain.rs"]
+mod run_drain;
+#[path = "run_prepare.rs"]
+mod run_prepare;
+
+use run_args::{argv_blob, valid_name};
+use run_drain::drain_output;
+pub use run_prepare::prepare;
 
 // install <name> [argv...]: ask the installer to verify, load, and spawn the
 // capsule held at /capsules/<name>.*. The name must be a plain ascii token
@@ -55,76 +60,6 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     }
 }
 
-// Job-submission variant of `run`: the same request and success/failure
-// reporting, but the installer is waited on only briefly, a load it is still
-// running is followed from the job's ticks, and the stdout drain is the
-// job's too, instead of either holding the window.
-pub fn prepare(state: &mut State, args: &[&[u8]]) -> Option<InstallJob> {
-    if args.is_empty() {
-        state.scrollback.push_error(b"usage: install <name> [argv...]");
-        return None;
-    }
-    let stem = args[0];
-    if !valid_name(stem) {
-        state.scrollback.push_error(b"install: name must be ascii letters, digits, _ or -");
-        return None;
-    }
-    let argv = argv_blob(stem, &args[1..]);
-    let before = children();
-    let mut out = Output::new(&mut state.scrollback);
-    match issue(stem, &argv) {
-        Issued::Loaded(new_pid) => {
-            emit_ok(&mut out, stem, new_pid);
-            debug_marker(b"[TERMINAL-INSTALL] load ok\n");
-            Some(InstallJob::new(new_pid))
-        }
-        Issued::Refused(status) => {
-            emit_err(&mut out, status);
-            debug_marker(b"[TERMINAL-INSTALL] load failed\n");
-            None
-        }
-        Issued::InFlight => {
-            let mut line = alloc::vec::Vec::from(&b"loading "[..]);
-            line.extend_from_slice(stem);
-            line.extend_from_slice(b"...");
-            out.writeln(&line);
-            Some(InstallJob::loading(stem, Follow::new(before, mk_time_millis())))
-        }
-    }
-}
-
-// Pull the loaded capsule's stdout out of its proc.<pid> inbox and into
-// the terminal window. The kernel mirrors each MkDebug line there. We
-// step the drain job on the current thread until it finishes or times
-// out, so a child that never exits cannot freeze the terminal.
-fn drain_output(state: &mut State, pid: u32) {
-    let mut out = Output::new(&mut state.scrollback);
-    let mut job = InstallJob::new(pid);
-    loop {
-        if let JobProgress::Done(_) = job.step_once(&mut out) {
-            break;
-        }
-    }
-}
-
 pub(super) fn debug_marker(msg: &[u8]) {
     let _ = nonos_libc::mk_debug(msg.as_ptr(), msg.len());
-}
-
-fn valid_name(stem: &[u8]) -> bool {
-    !stem.is_empty()
-        && stem.len() <= 64
-        && stem.iter().all(|&b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
-}
-
-// argv[0] is the program name (the capsule stem), matching the POSIX
-// convention upstream CLI parsers expect; the user args follow.
-fn argv_blob(name: &[u8], args: &[&[u8]]) -> alloc::vec::Vec<u8> {
-    let mut out = alloc::vec::Vec::new();
-    out.extend_from_slice(name);
-    for arg in args {
-        out.push(0);
-        out.extend_from_slice(arg);
-    }
-    out
 }

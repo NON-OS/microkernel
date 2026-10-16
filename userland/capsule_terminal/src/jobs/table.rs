@@ -19,29 +19,11 @@ use alloc::vec::Vec;
 use super::env::JobEnv;
 use super::work::JobWork;
 
-// Result of stepping a job's work by one bounded slice.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum JobProgress {
-    Running,
-    Done(i32),
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum JobState {
-    Running,
-    Done,
-}
-
-pub struct JobRecord {
-    pub id: u32,
-    pub cmdline: Vec<u8>,
-    pub background: bool,
-    pub cancel: bool,
-    pub status: i32,
-    pub state: JobState,
-    pub env: JobEnv,
-    pub work: JobWork,
-}
+#[path = "table_reap.rs"]
+mod table_reap;
+#[path = "table_record.rs"]
+mod table_record;
+pub use table_record::{JobProgress, JobRecord, JobState};
 
 // Every job lives on the single event-loop thread; the table is stepped
 // from `on_tick`, never shared across threads or interrupt context.
@@ -85,18 +67,5 @@ impl JobTable {
 
     pub fn iter(&self) -> impl Iterator<Item = &JobRecord> {
         self.jobs.iter()
-    }
-
-    pub fn drop_done(&mut self) -> Vec<(u32, Vec<u8>, i32, bool)> {
-        let mut done = Vec::new();
-        self.jobs.retain(|j| {
-            if j.state == JobState::Done {
-                done.push((j.id, j.cmdline.clone(), j.status, j.background));
-                false
-            } else {
-                true
-            }
-        });
-        done
     }
 }
