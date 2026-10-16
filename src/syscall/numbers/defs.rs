@@ -180,4 +180,5 @@ pub enum SyscallNumber {
     MkAcpiSlot = tag4(b"MRSL"),
     MkAcpiMeasured = tag4(b"MAMT"),
     MkAcpiLoaded = tag4(b"MALD"),
+    MkAcpiThermalLimit = tag4(b"MATL"),
 }

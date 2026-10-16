@@ -22,10 +22,10 @@
 
 /// The capsule's own calls: tables, regions, ports, configuration, events,
 /// and everything it publishes or asks about another process.
-pub(crate) const OWNER_ONLY: [[u8; 4]; 24] = [
+pub(crate) const OWNER_ONLY: [[u8; 4]; 25] = [
     *b"MTBL", *b"MRGN", *b"MRIO", *b"MRPC", *b"MAPW", *b"MAEV", *b"MASL", *b"MSMB", *b"MACP",
     *b"MAHO", *b"MPPF", *b"MPDP", *b"MAFO", *b"MAHE", *b"MAPD", *b"MAUP", *b"MAXP", *b"MAMR",
-    *b"MAPX", *b"MAOG", *b"MALP", *b"MAFP", *b"MRSL", *b"MALD",
+    *b"MAPX", *b"MAOG", *b"MALP", *b"MAFP", *b"MRSL", *b"MALD", *b"MATL",
 ];
 
 /// Read by others, each under its own gate: device names by enumerators

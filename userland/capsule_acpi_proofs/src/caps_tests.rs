@@ -55,3 +55,6 @@ fn no_row_without_a_feature_and_nothing_today() {
     bits.dedup();
     assert_eq!(bits.len(), ROWS.len(), "each bit once");
 }
+
+#[path = "ceilings_tests.rs"]
+mod ceilings;

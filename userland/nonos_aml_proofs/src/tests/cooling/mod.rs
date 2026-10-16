@@ -16,6 +16,7 @@
 
 mod button_tests;
 mod fan_tests;
+mod passive_tests;
 mod pool_rig;
 mod pool_tests;
 mod verdict_tests;

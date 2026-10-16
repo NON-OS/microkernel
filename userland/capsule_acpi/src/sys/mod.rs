@@ -25,6 +25,7 @@ pub mod acpi_pci;
 pub mod acpi_slot;
 pub mod acpi_power;
 pub mod acpi_sleep;
+pub mod acpi_thermal_limit;
 pub mod clock;
 pub mod device_name;
 pub mod function_of;

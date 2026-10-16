@@ -48,7 +48,7 @@ mod smbios;
 mod table;
 mod usb_ports;
 
-pub use cpu::sys_acpi_cpu;
+pub use cpu::{sys_acpi_cpu, sys_acpi_thermal_limit};
 pub use device_name::sys_acpi_device_name;
 pub use dispatch::handle;
 pub use event::sys_acpi_event;

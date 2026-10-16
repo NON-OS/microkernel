@@ -21,6 +21,8 @@
 
 use super::apply::apply;
 use super::find::refresh;
+use super::limits::send_limits;
+use super::passive::step_zone;
 use super::read::read_zone;
 use super::report::send;
 use super::state::Cooling;
@@ -36,12 +38,14 @@ pub fn tick(c: &mut Cooling, aml: &mut Aml, host: &mut CapsuleHost) {
     let mut read = false;
     for z in c.zones.iter_mut().filter(|z| now >= z.next_ms) {
         read_zone(z, aml, host, now);
+        step_zone(z, now);
         read = true;
     }
     if read {
         apply(c, aml, host);
     }
     send(c, now);
+    send_limits(c);
 }
 
 pub fn notified(c: &mut Cooling, aml: &mut Aml, host: &mut CapsuleHost, id: Id, value: u8) -> bool {

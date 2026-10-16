@@ -113,6 +113,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAcpiSlot
             | MkAcpiMeasured
             | MkAcpiLoaded
+            | MkAcpiThermalLimit
             | MkNumaHmat
             | MkAcpiLpit
             | MkBootLogo
