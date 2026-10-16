@@ -1207,6 +1207,7 @@
    "userland/nonos_tls/src/verify_p256.rs",
    "userland/nonos_tls/src/verify_p384.rs",
    "userland/nonos_tls/src/verify_rsa.rs",
+   "userland/nonos_tls/src/verify_rsa_checked.rs",
    "userland/policy_client",
    "userland/policy_proto",
    "userland/tls_proofs",
@@ -4602,6 +4603,7 @@
    "userland/nonos_tls/src/verify_p256.rs",
    "userland/nonos_tls/src/verify_p384.rs",
    "userland/nonos_tls/src/verify_rsa.rs",
+   "userland/nonos_tls/src/verify_rsa_checked.rs",
    "userland/tls_proofs"
   ],
   "md": [],

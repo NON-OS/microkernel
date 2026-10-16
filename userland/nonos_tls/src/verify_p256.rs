@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn verify_p256(pk: &[u8; 65], sig: &[u8; 64], digest: &[u8; 32]) -> bool {
+pub fn verify_p256(
+    pk: &[u8; 65],
+    sig: &[u8; 64],
+    digest: &[u8; 32],
+) -> super::crypto_port::Checked {
     let mut body = [0u8; 161];
     body[..65].copy_from_slice(pk);
     body[65..129].copy_from_slice(sig);
