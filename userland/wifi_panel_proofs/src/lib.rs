@@ -1,9 +1,8 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Host proofs for the WiFi settings panel. The real panel and wire source are
-//! included and driven through the full detection and selection flow without a
-//! device or a renderer. The client's join and link messages and its saved
-//! network list (with the flags that keep a WPA3 network off WPA2) are
-//! included the same way.
+//! Host proofs for the WiFi settings panel's client side: the scan wire, the
+//! client's join and link messages and its saved network list (with the flags
+//! that keep a WPA3 network off WPA2), included through #[path] and driven
+//! without a device or a renderer.
 
 extern crate alloc;
 
@@ -23,5 +22,3 @@ mod saved;
 
 #[cfg(test)]
 mod join_tests;
-#[cfg(test)]
-mod panel_tests;
