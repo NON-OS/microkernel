@@ -19,9 +19,11 @@
 //! capsules to claim like any other device.
 
 mod deps;
+mod one;
 mod publish;
 mod record;
 mod say;
 mod wire;
 
+pub use one::publish_one;
 pub use publish::publish;

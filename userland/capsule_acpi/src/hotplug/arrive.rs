@@ -17,10 +17,12 @@
 //! A device that is there: powered to D0 when it is off and firmware can
 //! turn it on, then each function that answers handed to the kernel for
 //! one probe (`MkPciProbeFunction`), and each it stood for that no longer
-//! answers taken away. Nothing else is woken.
+//! answers taken away. A device with no function, a listed controller,
+//! is published as a platform record. Nothing else is woken.
 
 use super::functions::{answering, answers, candidates};
 use super::leave::depart_all;
+use super::records::arrive_record;
 use super::remember::remember;
 use crate::boot::{evaluator, path, Acpi};
 use crate::sys::log::Line;
@@ -40,6 +42,9 @@ fn power_up(acpi: &mut Acpi, id: Id) {
 }
 
 pub fn arrive(acpi: &mut Acpi, id: Id) {
+    if candidates(acpi, id).is_empty() && acpi.hotplug.functions(id).is_empty() {
+        return arrive_record(acpi, id);
+    }
     power_up(acpi, id);
     let now = answering(acpi, id);
     let gone: Vec<_> =
