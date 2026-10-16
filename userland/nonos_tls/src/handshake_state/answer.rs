@@ -58,7 +58,7 @@ impl HandshakeState {
         if self.end.is_none() {
             return Err(Refusal::Incomplete);
         }
-        let done = self.verify(host, now, true).ok_or(Refusal::Unverified)?;
+        let done = self.verify(host, now, true).map_err(|_| Refusal::Unverified)?;
         super::reply(done, request)
     }
 }

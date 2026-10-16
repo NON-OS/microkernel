@@ -15,14 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::cert_sig_alg::{cert_sig_alg, SigAlg};
+use crate::crypto_port::Checked;
 use crate::verify_link::{verify_ecdsa, verify_rsa};
 
-pub fn verify_link(child: &[u8], parent_spki: &[u8]) -> bool {
+pub fn verify_link(child: &[u8], parent_spki: &[u8]) -> Checked {
     let Some(tbs) = super::super::cert_tbs::cert_tbs(child) else {
-        return false;
+        return Ok(false);
     };
     let Some(sig) = super::super::cert_signature::cert_signature(child) else {
-        return false;
+        return Ok(false);
     };
     match cert_sig_alg(child) {
         Some(SigAlg::EcdsaP256Sha256) => verify_ecdsa::verify_ecdsa(parent_spki, tbs, sig, 32),
@@ -30,6 +31,6 @@ pub fn verify_link(child: &[u8], parent_spki: &[u8]) -> bool {
         Some(SigAlg::RsaPkcs1Sha256) => verify_rsa::verify_rsa(0, 0, parent_spki, tbs, sig),
         Some(SigAlg::RsaPkcs1Sha384) => verify_rsa::verify_rsa(0, 1, parent_spki, tbs, sig),
         Some(SigAlg::RsaPssSha256) => verify_rsa::verify_rsa(1, 0, parent_spki, tbs, sig),
-        Some(SigAlg::RsaPkcs1Sha512) | None => false,
+        Some(SigAlg::RsaPkcs1Sha512) | None => Ok(false),
     }
 }
