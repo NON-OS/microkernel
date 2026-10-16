@@ -1,14 +1,14 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The permanent station address: a device without one, or with one the
-//! stack cannot send from, is not bound, as Linux generic_rndis_bind
-//! stops at "rndis get ethaddr".
+//! stack cannot send from, is not bound: without it there is nothing to
+//! send from.
 
 use crate::bind_tests::failed;
 use crate::device::{le, query_cmplt};
 use crate::qemu::Tamper;
 
 #[test]
-fn without_a_usable_permanent_address_the_bind_fails_as_in_linux() {
+fn without_a_usable_permanent_address_the_bind_fails() {
     let answer = |info: Option<&'static [u8]>| -> Tamper {
         Box::new(move |k, r| vec![if k == 4 { query_cmplt(le(&r, 8), info) } else { r }])
     };

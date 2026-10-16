@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The RNDIS messages, statuses and object identifiers the host side
-//! sends and reads (Remote NDIS 1.0, section 2; Linux include/linux/rndis.h
-//! and QEMU hw/usb/dev-network.c give the same numbers), and the
-//! little-endian words every message is made of.
+//! sends and reads (Remote NDIS 1.0, section 2; the NDIS status and OID
+//! values as recalled, unverified), and the little-endian words every
+//! message is made of.
 
 /// The class requests that carry them on endpoint 0 (CDC 1.2, 6.2.1, 6.2.2).
 pub const SEND_ENCAPSULATED_COMMAND: u8 = 0x00;
@@ -41,13 +41,12 @@ pub const MEDIUM_802_3: u32 = 0;
 
 pub const OID_802_3_PERMANENT_ADDRESS: u32 = 0x0101_0101;
 pub const OID_GEN_CURRENT_PACKET_FILTER: u32 = 0x0001_010E;
-/// NDIS_PACKET_TYPE_DIRECTED, ALL_MULTICAST and BROADCAST. Linux
-/// RNDIS_DEFAULT_FILTER adds PROMISCUOUS; the stack needs only these.
+/// NDIS_PACKET_TYPE_DIRECTED, ALL_MULTICAST and BROADCAST: what the stack
+/// receives. PROMISCUOUS is never asked for.
 pub const FILTER: u32 = 0x01 | 0x04 | 0x08;
 
 /// The errnos a control exchange ends with: no answer in time, and an
-/// answer whose status is not success (Linux rndis_command's -ETIMEDOUT
-/// and -EL3RST).
+/// answer whose status is not success (ETIMEDOUT and EL3RST).
 pub const E_TIMEDOUT: i32 = -110;
 pub const E_REFUSED: i32 = -47;
 

@@ -1,6 +1,6 @@
-# rndis: USB RNDIS class driver (Microsoft Remote NDIS 1.0 over USB, as
-# Linux rndis_host). Older Android phones' USB tethering and QEMU usb-net's
-# first configuration. It finds its device through driver.xhci0, owns RNDIS
+# rndis: USB RNDIS class driver (Microsoft Remote NDIS 1.0 over USB).
+# Older Android phones' USB tethering and QEMU usb-net's first
+# configuration. It finds its device through driver.xhci0, owns RNDIS
 # binding and framing only, and serves Ethernet frames to net.core over NNET.
 
 CAPSULE_SLUG             := driver-rndis

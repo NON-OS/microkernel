@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! REMOTE_NDIS_SET_MSG with a four-byte value (Remote NDIS 1.0, 2.2.6),
-//! laid out as Linux generic_rndis_bind sets the packet filter: 28 bytes
-//! of header, the value right after, its offset counted from RequestID.
+//! as the packet filter is set: 28 bytes of header, the value right
+//! after, its offset counted from RequestID.
 
 use super::message::{put32, MSG_SET};
 
