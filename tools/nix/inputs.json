@@ -4979,6 +4979,7 @@
    ".cargo",
    "userland/capsule_settings/src/wifi/panel.rs",
    "userland/nonos_wifi_client/src/driver/fw_step.rs",
+   "userland/nonos_wifi_client/src/driver/reply.rs",
    "userland/nonos_wifi_client/src/driver/stage_kind.rs",
    "userland/nonos_wifi_client/src/join_wire",
    "userland/nonos_wifi_client/src/network.rs",
