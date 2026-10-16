@@ -154,10 +154,15 @@ them.
 
 Backlit outputs are the devices defining both _BCL and _BCM (appendix B).
 Their levels come from _BCL and their level now from _BQC; brightness is
-not changed at start. The brightness keys arrive as Notify on the output,
-or on the graphics adapter above it: 0x86 and 0x87 step up and down
-through _BCL's levels and stop at the ends, 0x85 cycles, 0x88 goes to the
-lowest, and each is set with _BCM. `_DOS` is not called, so firmware keeps
+engine driving it (F-96):
+- **Keys.** The brightness keys arrive as Notify on the output, or on the
+  graphics adapter above it. 0x86 and 0x87 go to the shell as
+  KEY_BRIGHTNESS_UP (0x1307) and KEY_BRIGHTNESS_DOWN (0x1308), on the
+  lid's path through the kernel. The shell asks the engine. 0x85, 0x88
+  and 0x89 are logged and left. These codes are recalled, unverified.
+- **_BCM.** It runs only for a panel whose GPU (the output's adapter, as a
+  PCI function) the broker says nobody claims: the boot framebuffer's
+  panel with no engine yet. `_DOS` is not called, so firmware keeps
 whatever switching and brightness policy it booted with.
 
 Platform controllers with no PCI function (I2C, SD/eMMC and GPIO hosts
@@ -322,9 +327,9 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
 `src/server/protocol.rs`: an op byte, then a status word and the body.
 
 Each op answers only the services named for it (`src/server/policy.rs`,
-registry at each request; anyone else gets EPERM. BRIGHTNESS,
-SET_BRIGHTNESS, POWER and THERMAL: `power` and `desktop_shell`.
-PREPARE_SLEEP: `power`. SMBIOS and PCI_FIRMWARE: `desktop_shell`. SERIAL: the I2C
+registry at each request; anyone else gets EPERM. BRIGHTNESS, POWER and
+THERMAL: `power` and `desktop_shell`. PREPARE_SLEEP: `power`.
+SET_BRIGHTNESS, SMBIOS and PCI_FIRMWARE: `desktop_shell`. SERIAL: the I2C
 capsules, `driver.gpio0` and `driver.spi_hid0` (its HID-over-SPI facts
 to `driver.spi_hid0` alone). DEVICE_POWER: any sender the endpoint admits, moves only for
 the device's holder. LEGACY: `driver.ps2_kbd0`. STATUS, DEVICE and any
@@ -339,8 +344,10 @@ other op: no one.
   level now (0xFF unknown), and its levels: a count and the percentages.
   ENOENT with no backlit output.
 - SET_BRIGHTNESS (4, percent[, panel u32]): one panel, or every panel when
-  none is named, to its level nearest the percentage; EINVAL above 100,
-  ENOENT for an unknown panel, EIO when a _BCM failed.
+  none is named, to its level nearest the percentage. EINVAL above 100;
+  ENOENT for an unknown panel; EBUSY when a display engine holds a named
+  panel's GPU, or it cannot be told (firmware never drives a panel the
+  engine does); EIO when a _BCM failed.
 - PREPARE_SLEEP (5, state): a shutdown is coming. \_TTS(5) and \_PTS(5)
   run, \_S5 is evaluated again, and its SLP_TYP values go to the kernel
   through `MkAcpiSleep`. EINVAL for any state but 5; ENOENT when \_S5 is

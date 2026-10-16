@@ -31,7 +31,7 @@ pub fn route(acpi: &mut Acpi) {
             || crate::buttons::notified(buttons, aml, host, id, value)
             || crate::cooling::notified(cooling, aml, host, id, value)
             || crate::cpu::notified(cpus, aml, host, id, value)
-            || crate::backlight::notified(backlight, aml, host, id, value)
+            || crate::backlight::notified(backlight, aml, id, value)
             || crate::hotkeys::notified(hotkeys, aml, host, id, value)
             || crate::apei::notified(apei, id)
             || crate::typec::notified(typec, aml, host, id);
