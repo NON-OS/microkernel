@@ -15,47 +15,42 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The brightness keys, which firmware reports as Notify on the output
-//! (ACPI 6.5, B.7): 0x85 cycle, 0x86 up, 0x87 down, 0x88 zero, 0x89 the
-//! display turned off. Some firmware notifies the graphics adapter instead
-//! of the panel; then every output under it moves.
+//! (ACPI 6.5, B.7; recalled, unverified): 0x86 up and 0x87 down go to the
+//! shell as keys (F-96), which asks the display engine that owns the panel;
+//! 0x85 cycle, 0x88 zero and 0x89 display off are logged and left. Some
+//! firmware notifies the graphics adapter instead of the panel.
 
-use super::find::current;
-use super::set::set;
 use super::state::Backlight;
-use crate::host::CapsuleHost;
+use crate::sys::acpi_event::{acpi_event, AGAIN, BRIGHTNESS};
+use crate::sys::clock::sleep_ms;
 use crate::sys::log::Line;
 use nonos_aml::load::Aml;
 use nonos_aml::namespace::Id;
-use nonos_aml::video::{change_of, step};
 
-const DISPLAY_OFF: u8 = 0x89;
+const UP: u8 = 0x86;
+const DOWN: u8 = 0x87;
+const TRIES: u32 = 5;
+const RETRY_MS: u64 = 20;
 
-pub fn notified(
-    b: &mut Backlight,
-    aml: &mut Aml,
-    host: &mut CapsuleHost,
-    id: Id,
-    value: u8,
-) -> bool {
+fn key(up: bool) {
+    for _ in 0..TRIES {
+        match acpi_event(BRIGHTNESS, u64::from(up)) {
+            Err(AGAIN) => sleep_ms(RETRY_MS),
+            _ => return,
+        }
+    }
+    Line::new(b"brightness key: the desktop's input was busy; key dropped").end();
+}
+
+pub fn notified(b: &Backlight, aml: &Aml, id: Id, value: u8) -> bool {
     let parent = |o: Id| aml.ns.get(o).map(|e| e.parent);
-    let hit: alloc::vec::Vec<usize> = (0..b.outputs.len())
-        .filter(|&i| b.outputs[i].id == id || parent(b.outputs[i].id) == Some(id))
-        .collect();
-    if hit.is_empty() || !(0x85..=DISPLAY_OFF).contains(&value) {
+    let ours = b.outputs.iter().any(|o| o.id == id || parent(o.id) == Some(id));
+    if !ours || !(0x85..=0x89).contains(&value) {
         return false;
     }
-    let Some(change) = change_of(value) else {
-        Line::new(b"display off by firmware").end();
-        return true;
-    };
-    for i in hit {
-        let o = &mut b.outputs[i];
-        let from = current(aml, host, o.id).or(o.current);
-        let to = step(&o.levels, from, change);
-        match set(o, aml, host, to) {
-            Ok(()) => Line::new(b"brightness ").dec(u64::from(to)).str(b"%").end(),
-            Err(f) => Line::new(b"brightness: _BCM faulted at ").hex(u64::from(f.at)).end(),
-        }
+    match value {
+        UP | DOWN => key(value == UP),
+        v => Line::new(b"display notify ").hex(u64::from(v)).str(b", left to the engine").end(),
     }
     true
 }

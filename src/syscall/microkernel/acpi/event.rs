@@ -24,8 +24,8 @@
 use super::event_act::{act, pressed, say, taken};
 use crate::hardware::broker::acpi::battery_watch::battery_critical;
 use crate::hardware::broker::acpi::lid_state::{report as report_lid, Report};
-use crate::hardware::broker::acpi::power_key::lid as lid_key;
 use crate::hardware::broker::acpi::platform_event::{decode, Event};
+use crate::hardware::broker::acpi::power_key::{brightness as brightness_key, lid as lid_key};
 use crate::hardware::broker::acpi::thermal_watch::thermal;
 use crate::syscall::microkernel::errnos::{ERRNO_AGAIN, ERRNO_INVAL};
 
@@ -53,5 +53,9 @@ pub fn sys_acpi_event(kind: u64, value: u64) -> i64 {
         }
         Event::BatteryCritical(c) => act(battery_critical(c, now), b"[ACPI] battery critical"),
         Event::ButtonTaken => taken(),
+        Event::Brightness(up) => match brightness_key(up) {
+            true => 0,
+            false => ERRNO_AGAIN,
+        },
     }
 }

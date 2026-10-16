@@ -30,6 +30,7 @@ pub const THERMAL: u64 = 4;
 pub const BATTERY_LOW: u64 = 5;
 pub const BATTERY_CRITICAL: u64 = 6;
 pub const BUTTON_TAKEN: u64 = 7;
+pub const BRIGHTNESS: u64 = 8;
 
 pub const TENTHS_K_MASK: u64 = 0xFFFF;
 pub const PASSIVE: u64 = 1 << 16;

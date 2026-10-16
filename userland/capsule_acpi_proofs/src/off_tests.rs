@@ -26,6 +26,18 @@ mod levels;
 mod off_wire;
 #[path = "off_wire_tests.rs"]
 mod wire;
+#[path = "../../capsule_acpi/src/backlight/engine_rule.rs"]
+mod engine_rule;
+
+/// F-96: firmware's _BCM drives a panel only when the broker says nobody
+/// holds its GPU; an engine that holds it, or a GPU that cannot be told,
+/// keeps firmware off the backlight.
+#[test]
+fn bcm_only_for_a_panel_no_engine_drives() {
+    assert!(engine_rule::bcm_allowed(Some(false)));
+    assert!(!engine_rule::bcm_allowed(Some(true)));
+    assert!(!engine_rule::bcm_allowed(None));
+}
 
 #[test]
 fn a_press_powers_off_only_past_the_guard_and_the_bounce() {

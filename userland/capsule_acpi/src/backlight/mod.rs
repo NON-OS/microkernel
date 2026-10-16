@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod adapter;
+mod engine;
+pub mod engine_rule;
 mod find;
 mod notify;
 mod set;
 mod state;
 
+pub use engine::firmware_drives;
 pub use find::find;
 pub use notify::notified;
 pub use set::set_all;
