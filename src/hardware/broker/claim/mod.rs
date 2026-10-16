@@ -32,10 +32,12 @@ mod retire;
 mod retire_io;
 mod scope_check;
 mod state;
+mod still_held;
 mod types;
 
 pub use claim::claim;
 pub use lookup::lookup;
 pub use held::quiesce_all;
 pub use release::{release, release_all_for_pid};
+pub(crate) use still_held::record_while_held;
 pub use types::{Claim, ClaimError};
