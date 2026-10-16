@@ -21,9 +21,9 @@ fn requests_go_to_the_link_the_radio_or_as_before() {
         assert_eq!(route(&nnet, can), Route::Link, "net_core's link protocol");
         assert_eq!(route(&control(3), can), Route::Control, "scan");
         assert_eq!(route(&control(4), can), Route::Control, "status");
-        assert_eq!(route(&control(4)[..9], can), Route::Driver, "shorter than the header");
-        assert_eq!(route(&0x4E49_5746u32.to_le_bytes(), can), Route::Driver, "this driver's own");
-        assert_eq!(route(&[1, 2], can), Route::Driver);
+        assert_eq!(route(&control(4)[..9], can), Route::Other, "shorter than the header");
+        assert_eq!(route(&0x4E49_5746u32.to_le_bytes(), can), Route::Other, "the deleted protocol");
+        assert_eq!(route(&[1, 2], can), Route::Other);
     }
     for op in [1u16, 2, 5] {
         assert_eq!(route(&control(op), true), Route::Join(op));

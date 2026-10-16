@@ -27,13 +27,13 @@ pub enum Route {
     Join(u16),
     /// The rest of the control family, answered by `answer`.
     Control,
-    /// This driver's own protocol.
-    Driver,
+    /// Neither: answered with nothing.
+    Other,
 }
 
 /// Where `req` goes; `can_join` is whether the radio runs joins now.
 pub fn route(req: &[u8], can_join: bool) -> Route {
-    let Some(magic) = req.get(..4) else { return Route::Driver };
+    let Some(magic) = req.get(..4) else { return Route::Other };
     match u32::from_le_bytes([magic[0], magic[1], magic[2], magic[3]]) {
         NNET_MAGIC => Route::Link,
         WIFI_MAGIC if req.len() >= WIFI_HDR => {
@@ -44,6 +44,6 @@ pub fn route(req: &[u8], can_join: bool) -> Route {
                 Route::Control
             }
         }
-        _ => Route::Driver,
+        _ => Route::Other,
     }
 }
