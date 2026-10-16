@@ -58,3 +58,6 @@ fn no_row_without_a_feature_and_nothing_today() {
 
 #[path = "ceilings_tests.rs"]
 mod ceilings;
+
+#[path = "spaces_tests.rs"]
+mod spaces_tests;
