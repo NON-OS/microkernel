@@ -16,33 +16,17 @@
 
 //! `MkDmaUnmap`: the holder gives one grant back.
 
-use core::sync::atomic::{AtomicU32, Ordering};
-
 use super::super::errnos::{ERRNO_INVAL, ERRNO_PERM};
 use crate::hardware::broker::DmaError;
 use crate::process::current_pid;
-
-static DMA_UNMAP_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace_unmap(label: &[u8], pid: u32) {
-    if pid != 7 || DMA_UNMAP_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 24 {
-        return;
-    }
-    crate::sys::serial::print(b"[DMA-UNMAP] ");
-    crate::sys::serial::println(label);
-}
 
 pub fn sys_dma_unmap(grant_id: u64) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
-    trace_unmap(b"enter", pid);
     match crate::hardware::broker::dma_unmap_grant(pid, grant_id) {
-        Ok(()) => {
-            trace_unmap(b"ok", pid);
-            0
-        }
+        Ok(()) => 0,
         Err(DmaError::NotHolder) => ERRNO_PERM,
         Err(DmaError::UnknownGrant) => ERRNO_INVAL,
     }
