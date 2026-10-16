@@ -53,3 +53,6 @@ pub mod image_ceiling;
 /// A claimed function is reset at claim and at release (K10a).
 #[path = "function_reset/mod.rs"]
 pub mod function_reset;
+/// IPC payloads zeroed before they are freed (C8).
+#[path = "ipc_wipe/mod.rs"]
+pub mod ipc_wipe;

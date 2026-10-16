@@ -18,8 +18,9 @@ extern crate alloc;
 
 use crate::ipc::nonos_channel::IpcMessage;
 use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM};
+use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOMEM};
 
+use super::payload_in::copy_in;
 use super::pending_reply;
 use super::reply_deliver::deliver;
 use super::reply_inbox;
@@ -34,15 +35,13 @@ pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
         trace(current_pid().unwrap_or(0), dest_pid, b"inval", ERRNO_INVAL, "");
         return ERRNO_INVAL;
     }
-    if crate::usercopy::validate_user_read(buf, len).is_err() {
-        trace(current_pid().unwrap_or(0), dest_pid, b"validate", ERRNO_FAULT, "");
-        return ERRNO_FAULT;
-    }
-    let mut data = alloc::vec![0u8; len];
-    if crate::usercopy::copy_from_user(buf, &mut data).is_err() {
-        trace(current_pid().unwrap_or(0), dest_pid, b"copy", ERRNO_FAULT, "");
-        return ERRNO_FAULT;
-    }
+    let data = match copy_in(buf, len) {
+        Ok(data) => data,
+        Err(e) => {
+            trace(current_pid().unwrap_or(0), dest_pid, b"copy", e, "");
+            return e;
+        }
+    };
     let caller_pid = current_pid().unwrap_or(0);
     let dest = reply_inbox::for_pid(dest_pid as u32);
     // The token comes from the same pending-reply entry that authorizes this
