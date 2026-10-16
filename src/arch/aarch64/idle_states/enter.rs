@@ -19,36 +19,29 @@
 use core::arch::asm;
 use core::sync::atomic::Ordering;
 
+use super::allow::allow;
 use super::budget::budget_us;
+use super::call::{enter_state, Chosen};
 use super::format::is_standby;
-use super::powerdown;
 use super::select::pick;
 use super::table::{EXTENDED, REFUSED, TREE};
 use crate::arch::aarch64::boot::multicore::roster;
 use crate::arch::aarch64::cpu::mpidr_affinity;
-use crate::arch::aarch64::psci;
 
 /// Wait for an interrupt and take it. Called and returns with IRQs masked.
 pub fn wait() {
-    let Some((cpu, index, param, standby)) = chosen() else {
+    let Some(chosen) = chosen() else {
         // `wfi` with IRQs open: a no-op when a wake is already pending, so
         // none is lost between unmasking and waiting.
         unsafe { asm!("msr daifclr, #2", "wfi", "msr daifset, #2", options(nomem, nostack)) };
         return;
     };
     // Entered masked, as a WFI may be: an IRQ pending at the GIC still ends
-    // it (recalled, unverified), and is taken below. A standby state keeps
-    // this CPU's context, and CPU_SUSPEND returns on the wake, ignoring the
-    // entry point and context id (DEN0022). A powerdown state returns
-    // through the resume path, or not at all if the core stayed up.
-    let entered = if standby {
-        psci::cpu_suspend(u64::from(param), 0, 0).map(|()| false)
-    } else {
-        powerdown::enter(cpu, param)
-    };
-    if entered.is_err() {
-        if let Some(refused) = REFUSED.get(cpu) {
-            refused.fetch_or(1u8.checked_shl(index.into()).unwrap_or(0), Ordering::Relaxed);
+    // it (recalled, unverified), and is taken below.
+    if enter_state(&chosen).is_err() {
+        if let Some(refused) = REFUSED.get(chosen.cpu) {
+            let bit = 1u8.checked_shl(chosen.index.into()).unwrap_or(0);
+            refused.fetch_or(bit, Ordering::Relaxed);
         }
         unsafe { asm!("wfi", options(nomem, nostack)) };
     }
@@ -57,16 +50,14 @@ pub fn wait() {
     unsafe { asm!("msr daifclr, #2", "isb", "msr daifset, #2", options(nomem, nostack)) };
 }
 
-/// This CPU's roster index, the state to enter, its power_state, and
-/// whether it is a standby state.
-fn chosen() -> Option<(usize, u8, u32, bool)> {
+/// The state this CPU may enter now, if any beats a plain WFI.
+fn chosen() -> Option<Chosen> {
     let extended = *EXTENDED.get()?;
     let tree = TREE.get()?;
     let cpu = roster::index_of(mpidr_affinity())?;
     let list = tree.cpus.get(cpu)?.indices();
     let refused = REFUSED.get(cpu)?.load(Ordering::Relaxed);
-    let powerdown = powerdown::available();
-    let index = pick(tree.states(), list, extended, refused, budget_us(), powerdown)?;
-    let param = tree.states().get(usize::from(index))?.param;
-    Some((cpu, index, param, is_standby(param, extended)))
+    let index = pick(tree.states(), list, extended, refused, budget_us(), allow())?;
+    let state = *tree.states().get(usize::from(index))?;
+    Some(Chosen { cpu, index, state, standby: is_standby(state.param, extended) })
 }

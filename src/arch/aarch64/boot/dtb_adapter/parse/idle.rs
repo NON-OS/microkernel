@@ -22,6 +22,12 @@ use crate::sys::serial::Line;
 /// The tree's idle states, kept for the idle path. Nothing here refuses the
 /// tree: a damaged description costs only the states, and says so.
 pub(super) fn populate(fdt: &Fdt) -> Result<(), &'static [u8]> {
+    // The frame that keeps time for cores whose own timer stops in one.
+    if let Err(e) = crate::arch::aarch64::timer::broadcast::describe(fdt) {
+        let mut line = Line::new();
+        line.str(b"[IDLE] memory-mapped timer not read: ").str(describe(e));
+        line.str(b"; no state that stops the timer").end();
+    }
     let reason: &[u8] = match crate::arch::aarch64::idle_states::describe(fdt) {
         Ok(_) => return Ok(()),
         Err(Refusal::Tree(e)) => describe(e),
