@@ -53,3 +53,23 @@ pub fn bridge_write(
     }
     Ok(())
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Tell {
+    /// A (function, offset) not seen before: one line, remembered.
+    New,
+    /// The bound reached: one last line saying the rest go untold.
+    Last,
+    Quiet,
+}
+
+/// Whether a refused bridge write is logged: once per (function, offset)
+/// for the first `bound` of them, then once more to say so, then never, so
+/// AML looping over offsets cannot fill the log (F-95).
+pub fn tell(known: bool, remembered: usize, bound: usize) -> Tell {
+    match (known, remembered.cmp(&bound)) {
+        (true, _) | (false, core::cmp::Ordering::Greater) => Tell::Quiet,
+        (false, core::cmp::Ordering::Less) => Tell::New,
+        (false, core::cmp::Ordering::Equal) => Tell::Last,
+    }
+}

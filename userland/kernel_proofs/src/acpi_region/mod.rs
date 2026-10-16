@@ -43,4 +43,6 @@ mod tests;
 #[cfg(test)]
 mod tests_bridge;
 #[cfg(test)]
+mod tests_bridge_log;
+#[cfg(test)]
 mod tests_ports;

@@ -25,7 +25,7 @@ mod reason;
 mod refusal;
 mod table;
 
-pub use bridge::{bridge_write, ROUTING};
+pub use bridge::{bridge_write, tell, Tell, ROUTING};
 pub use facts::{Facts, MemKind};
 pub use legacy::LEGACY_PORTS;
 pub use memory::memory;
