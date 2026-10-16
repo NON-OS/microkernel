@@ -40,7 +40,7 @@ logs `controller not usable: ACL endpoints refused`.
 
 | Module | What it does |
 |---|---|
-| `usb` | Chooses the configuration with the Bluetooth interface (`choose`), arms each event read with the whole packet and never more than 64 octets (`limit`), and gives driver.xhci0 the three endpoints before SET_CONFIGURATION (`bind`). The interrupt operations are 0x0009 and 0x000E (`ops`). The client call is `nonos_usbnet`'s own file, compiled here. |
+| `usb` | Chooses the configuration with the Bluetooth interface (`choose`), arms each event read with the whole packet and never more than 64 octets, takes a reply only up to what was armed and what it holds (`limit`), and gives driver.xhci0 the three endpoints before SET_CONFIGURATION (`bind`). The interrupt operations are 0x0009 and 0x000E (`ops`). The client call is `nonos_usbnet`'s own file, compiled here. |
 | `link` | One link, from scan to end, over `nonos_bt_hci`, `nonos_bt_smp` and `nonos_bt_hogp`. It holds no libc call, so the proofs run all of it. |
 | `hid` | Input posting. `capsule_driver_usb_hid`'s own keymap, key event, repeat and posting files are compiled here, so a Bluetooth key is posted with the same code, flags, layout and repeat as a USB one. |
 | `ring` | The bond store's `Keys` over the keyring: OP_STORE, OP_RETRIEVE, OP_DELETE and OP_LIST (L33), with the layouts `capsule_keyring` reads. Its request and answer layouts are pure, so the proofs run them. |
@@ -281,7 +281,7 @@ Typing in an application with a Bluetooth keyboard, after pairing once.
 
 ## Release evidence
 
-Build and host-proof evidence only so far (bt_usb_proofs, 99 tests, with
+Build and host-proof evidence only so far (bt_usb_proofs, 103 tests, with
 the HCI, SMP and HOGP proofs underneath). Runtime evidence needs B-43 in
 driver.xhci0, the kernel spawn, and a real controller and keyboard: none
 is on main yet.
@@ -305,6 +305,6 @@ bonds kept past this boot. The pairing dialog is Settings', over NBTC.
 ## Verification
 
 `cd userland/bt_usb_proofs && RUST_TEST_THREADS=1 cargo test --release`
-(99 pass at the time of writing); the capsule's `cargo build --release`
+(103 pass at the time of writing); the capsule's `cargo build --release`
 and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on
 hardware.
