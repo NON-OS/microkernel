@@ -35,7 +35,14 @@ fn an_answer_opens_checks_and_decrypts_to_the_release() {
     };
     let s = served();
     let len = s.content.len() as u64;
-    let a = answer(&s, &mut Seen::default(), &req.agent_body(), 1, &mut draw).unwrap();
+    let a = answer(
+        &s,
+        &mut Seen::default(),
+        &req.agent_body().expect("a request whose solution fits its u16"),
+        1,
+        &mut draw,
+    )
+    .unwrap();
     let o = open_answer((&Host, &Dalek), &SK, ((&LISTING, &RELEASE), len), &a.sealed).unwrap();
     assert_eq!(
         (o.key_commit, a.key_commit, o.cipher_root),
