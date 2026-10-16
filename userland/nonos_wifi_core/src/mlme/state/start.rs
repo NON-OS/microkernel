@@ -14,31 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A join begun: from a passphrase alone, or from a driver's request.
+//! A join begun from a driver's request.
 
 use super::kinds::MlmeState;
-use super::request::{Entropy, JoinRequest, SAE_ENTROPY, SECRET_MAX};
+use super::request::{JoinRequest, SECRET_MAX};
 use super::Mlme;
-use crate::rsn::JoinPolicy;
 use crate::wpa::supplicant::ie::Ie;
 
 impl Mlme {
-    /// Begin a WPA2-PSK association to `ssid` with `passphrase`. `snonce` must
-    /// be a fresh random nonce for the eventual handshake; it is passed in so
-    /// the state machine stays pure and host-testable. Without SAE randomness
-    /// this joins WPA2 only; use [`Mlme::join`] for WPA3.
-    pub fn new(our_mac: [u8; 6], ssid: &[u8], passphrase: &[u8], snonce: [u8; 32]) -> Self {
-        let mut m = Self::join(&JoinRequest {
-            our_mac,
-            ssid,
-            passphrase,
-            policy: JoinPolicy::PSK_ONLY,
-            entropy: Entropy { snonce, sae: [0u8; SAE_ENTROPY] },
-        });
-        m.sae_entropy = None;
-        m
-    }
-
     /// Begin an association under `req.policy`: SAE when the network offers it
     /// and the policy allows, PSK otherwise (never for a WPA3-only policy).
     pub fn join(req: &JoinRequest) -> Self {

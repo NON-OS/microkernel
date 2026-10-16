@@ -1,14 +1,16 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 
-//! Through the MLME: one RSNE in the request and message 2, message 3 again.
+//! Through the MLME, as a person's join runs: one RSNE in the request and
+//! message 2, and message 3 answered again.
 
 use nonos_wifi_core::dot11::header::{frame_control, write_header, MAC_HEADER_LEN, TYPE_MGMT};
 use nonos_wifi_core::eapol::mic::{compute_mic, verify_mic};
 use nonos_wifi_core::eapol::parse::parse;
-use nonos_wifi_core::mlme::{Mlme, MlmeState};
-use nonos_wifi_core::wpa::RSN_IE;
+use nonos_wifi_core::mlme::{Entropy, JoinRequest, Mlme, MlmeState, SAE_ENTROPY};
+use nonos_wifi_core::rsn::JoinPolicy;
 
-use super::vectors::*;
+use super::protected::{beacon, M2_PROTECTED, M3_PROTECTED, OWN_RSNE_PROTECTED};
+use super::vectors::{h, AA, M1, PTK, SNONCE, SPA};
 
 // A management frame from the access point to the station.
 fn from_ap(subtype: u8, body: &[u8]) -> Vec<u8> {
@@ -32,39 +34,32 @@ fn assoc_rsne(req: &[u8]) -> Vec<u8> {
 }
 
 #[test]
-fn the_mlme_sends_the_same_rsne_in_the_association_request_and_message_2() {
-    // Beacon of the transition network on SSID "IEEE": the station is joined
-    // with PSK (a WPA2-only policy) and the passphrase "password".
-    let mut beacon = vec![0u8; MAC_HEADER_LEN];
-    write_header(&mut beacon, frame_control(TYPE_MGMT, 8), [0xFF; 6], AA, AA, 0).unwrap();
-    beacon.extend_from_slice(&[0u8; 8]);
-    beacon.extend_from_slice(&[0x64, 0, 0x11, 0x04]);
-    beacon.extend_from_slice(&[0, 4, b'I', b'E', b'E', b'E']);
-    beacon.extend_from_slice(&[1, 8, 0x82, 0x84, 0x8b, 0x96, 0x0c, 0x12, 0x18, 0x24]);
-    beacon.extend_from_slice(&[3, 1, 6]);
-    beacon.extend_from_slice(&h(AP_RSNE_TRANSITION));
-    beacon.extend_from_slice(&h(AP_RSNXE));
-
-    let mut m = Mlme::new(SPA, b"IEEE", b"password", SNONCE);
-    m.on_mgmt(&beacon).tx.expect("open authentication");
+fn the_mlme_joins_a_psk_network_with_one_rsne_in_the_request_and_message_2() {
+    // The PSK network requiring protection, joined as any network not saved
+    // as WPA3 is, with the passphrase "password".
+    let entropy = Entropy { snonce: SNONCE, sae: [0x22; SAE_ENTROPY] };
+    let (ssid, passphrase) = (&b"IEEE"[..], &b"password"[..]);
+    let req = JoinRequest { our_mac: SPA, ssid, passphrase, policy: JoinPolicy::ANY, entropy };
+    let mut m = Mlme::join(&req);
+    m.on_mgmt(&beacon()).tx.expect("open authentication");
     let req = m.on_mgmt(&from_ap(11, &[0, 0, 2, 0, 0, 0])).tx.expect("association request");
-    assert_eq!(assoc_rsne(&req), RSN_IE.to_vec(), "MFPC clear: PMF is not negotiated for PSK");
+    assert_eq!(assoc_rsne(&req), h(OWN_RSNE_PROTECTED), "MFPC and MFPR, as required");
     m.on_mgmt(&from_ap(1, &[0x11, 0x04, 0, 0, 0x01, 0xC0]));
     assert_eq!(m.state(), MlmeState::FourWay);
 
     let m2 = m.on_eapol(&h(M1)).tx.expect("message 2");
-    assert_eq!(m2, h(M2_TRANSITION));
+    assert_eq!(m2, h(M2_PROTECTED));
     assert_eq!(&m2[99..], &assoc_rsne(&req)[..], "message 2 repeats the request's RSNE");
-    let m4 = m.on_eapol(&h(M3_TRANSITION)).tx.expect("message 4");
-    assert_eq!(m4, h(M4_TRANSITION));
+    let kck = &h(PTK)[..16];
+    let m4 = m.on_eapol(&h(M3_PROTECTED)).tx.expect("message 4");
+    assert_eq!((parse(&m4).unwrap().key_info, verify_mic(kck, &m4)), (0x030a, true));
     assert_eq!(m.state(), MlmeState::Connected);
 
     // Message 4 lost: the AP repeats message 3 with the next replay counter,
     // and the supplicant the data path took over answers it again.
     let mut sup = m.supplicant().expect("connected");
-    let mut again = h(M3_TRANSITION);
+    let mut again = h(M3_PROTECTED);
     again[16] = 3;
-    let kck = &h(PTK)[..16];
     let mic = compute_mic(kck, &again);
     again[81..97].copy_from_slice(&mic);
     let m4_again = sup.step(&again).reply.expect("message 4 again");
