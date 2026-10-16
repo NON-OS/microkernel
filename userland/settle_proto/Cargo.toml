@@ -16,10 +16,10 @@ crate-type = ["rlib"]
 
 [dependencies]
 nonos_nox_config = { path = "../nonos_nox_config" }
+# log_pages pages a judged range with its block_pages.
+nonos_eth_rpc = { path = "../nonos_eth_rpc" }
 
 [dev-dependencies]
 # keccak-256 on the host only, so the tests derive every pinned selector
 # from its signature.
 sha3 = { version = "=0.10.9", default-features = false }
-# settle's chain/pages.rs, mounted by tests/log_range.rs, pages with it.
-nonos_eth_rpc = { path = "../nonos_eth_rpc" }
