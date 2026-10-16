@@ -62,7 +62,7 @@ fn a_chip_that_wakes_keeps_every_grant() {
     w.0[CSR_GP_CNTRL / 4] = GP_CNTRL_MAC_CLOCK_READY;
     let before = given_back().len();
     assert!(init_or_release(w.regs(), &GRANTS).is_ok());
-    assert_eq!(given_back()[before..], [("pci_command", 6)], "Bus Master on, nothing released");
+    assert_eq!(given_back()[before..], [], "nothing released, and Bus Master still off");
 }
 
 #[test]

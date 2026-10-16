@@ -23,8 +23,10 @@
 
 mod detail;
 mod kinds;
+pub mod master;
 mod stage;
 mod subcodes;
 mod text;
 
 pub use kinds::*;
+pub use master::master_on;

@@ -49,13 +49,9 @@ impl Grants {
     }
 }
 
-/// Wake the chip on an attempt's grants, then let it master the bus; or give
-/// all of them back.
+/// Wake the chip on an attempt's grants, or give all of them back. Bus
+/// Master stays off: it goes on only right before the firmware boots, once
+/// the device's own master read back stopped (`gen3::outcome::master_on`).
 pub fn init_or_release(regs: Regs, grants: &Grants) -> Result<InitState, &'static str> {
-    let init = bring_up(regs).inspect_err(|_| grants.release())?;
-    if !command(grants.device_id, grants.claim_epoch, true) {
-        grants.release();
-        return Err("iwlwifi: bus master enable failed");
-    }
-    Ok(init)
+    bring_up(regs).inspect_err(|_| grants.release())
 }

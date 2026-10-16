@@ -16,11 +16,10 @@
 
 //! The firmware restart once its rest ends.
 
-use crate::firmware::gen3::outcome::Failure;
-use crate::firmware::gen3::start::stop_device;
+use crate::firmware::gen3::outcome::master_on;
 use crate::setup::command::command;
 
-use super::bring::{boot_rig, finish, Rig};
+use super::bring::{boot_rig, finish};
 use super::clock::Uptime;
 use super::say::Line;
 use super::state::{Radio, State};
@@ -36,10 +35,10 @@ impl Radio {
             return;
         }
         let r = *r;
-        let up = match self.master_on(r.rig) {
-            true => boot_rig(r.rig).and_then(|dev| finish(dev, r.rig, r.addr, r.restarts)),
-            false => Err(Failure::Lost),
-        };
+        let (id, epoch) = self.pci;
+        let up = master_on(r.rig.regs, &mut Uptime, || command(id, epoch, true))
+            .and_then(|()| boot_rig(r.rig))
+            .and_then(|dev| finish(dev, r.rig, r.addr, r.restarts));
         match up {
             Ok(up) => {
                 Line::new().text(b"radio up again; passive scanning").send();
@@ -51,19 +50,5 @@ impl Radio {
                 self.wait_or_stay_down(r, f, now);
             }
         }
-    }
-
-    // Bus Master on only once the device's own master reports stopped
-    // (STOP_MASTER, MASTER_DISABLED read back, then SW_RESET).
-    fn master_on(&self, rig: &Rig) -> bool {
-        if !stop_device(rig.regs, &mut Uptime) {
-            Line::new().text(b"restart: the device's bus master did not stop").send();
-            return false;
-        }
-        let on = command(self.pci.0, self.pci.1, true);
-        if !on {
-            Line::new().text(b"restart: Bus Master was not given back").send();
-        }
-        on
     }
 }

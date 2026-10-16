@@ -23,14 +23,16 @@ use alloc::vec::Vec;
 use crate::driver::Driver;
 use crate::firmware::gen3::classify;
 use crate::firmware::gen3::layout::{firmware_region_sizes, Board, Memory};
-use crate::firmware::gen3::outcome::Failure;
+use crate::firmware::gen3::outcome::{master_on, Failure};
 use crate::firmware::gen3::plan::control_len_pnvm;
 use crate::firmware::gen3::pnvm::reserve as pnvm_reserve;
 use crate::firmware::gen3::select::{mac_type, rf_type, Refusal};
 use crate::firmware::gen3::ucode::Ucode;
 use crate::firmware::{gen3_blob, gen3_pnvm};
 use crate::regs::Regs;
+use crate::setup::command::command;
 
+use super::super::clock::Uptime;
 use super::super::grant::Grant;
 use super::super::restarts::Restarts;
 use super::super::say::Line;
@@ -66,6 +68,7 @@ pub fn bring_up(d: &Driver, ids: &mut Seen) -> Result<Up, Failure> {
     let board =
         Board { hw_rev: ids.hw_rev, imr_enabled: transport.imr_enabled, rf_id: ids.rf_id, pnvm };
     let rig: &'static Rig = Box::leak(Box::new(Rig { regs, mem, fw, ucode, board, transport }));
+    master_on(rig.regs, &mut Uptime, || command(d.device_id, d.claim_epoch, true))?;
     let dev = boot_rig(rig)?;
     finish(dev, rig, station_addr(), Restarts::NEW)
 }

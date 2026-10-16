@@ -16,11 +16,9 @@
 
 //! The phrase a failure prints on the boot console.
 
-use super::super::bringup::BootError;
-use super::super::select::Refusal;
-use super::super::start::StartError;
-use super::super::up::UpError;
+use super::super::{bringup::BootError, select::Refusal, start::StartError, up::UpError};
 use super::kinds::Failure;
+use super::master::MasterError;
 
 impl Failure {
     /// One phrase for the boot console.
@@ -70,6 +68,8 @@ impl Failure {
             Failure::Up(UpError::BadMcc) => "the regulatory reply was malformed",
             Failure::Up(UpError::Unsupported(what)) => what,
             Failure::Lost => "the firmware raised its error cause while running",
+            Failure::Master(MasterError::NotStopped) => "the device's bus master never stopped",
+            Failure::Master(MasterError::Refused) => "the broker refused Bus Master",
         }
     }
 }
