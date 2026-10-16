@@ -39,6 +39,7 @@ mod tlb;
 pub(in crate::arch::aarch64) mod trampoline;
 pub mod translation;
 mod ttbr;
+mod uncached_block;
 mod unmap;
 
 pub use attributes::{MemoryType, PageAttributes};
@@ -54,4 +55,5 @@ pub use table::PageTable;
 pub use tlb::{flush_tlb_all, flush_tlb_asid, flush_tlb_page};
 pub use translation::virt_to_phys;
 pub use ttbr::{read_ttbr0, read_ttbr1, set_ttbr0, set_ttbr1};
+pub use uncached_block::make_block_uncached;
 pub use unmap::unmap_page;

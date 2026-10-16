@@ -67,7 +67,9 @@ pub use cpu::{cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle
 pub use halt::halt_loop;
 pub use image_holes::deliberately_unmapped;
 pub(crate) use init_boot_memory::init_boot_memory;
-pub(crate) use dma_snoops_caches::{dma_snoops_caches, pci_dma_coherent};
+pub(crate) use dma_snoops_caches::{
+    dma_snoops_caches, pci_dma_coherent, uncached_grants_need_uncached_frames,
+};
 pub(crate) use early_screen::early_screen;
 pub(crate) use firmware_entropy::firmware_entropy;
 pub(crate) use own_core_kind::own_core_kind;
