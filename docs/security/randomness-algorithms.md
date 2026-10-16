@@ -10,8 +10,8 @@ Part of [Randomness and cryptography](randomness-and-cryptography.md).
 | Ed25519 | the kernel's in-tree verifier | `verify`, `src/crypto/asymmetric/alg_id/verify.rs:32-39` |
 | ML-DSA-65 | PQClean C code called through FFI; ML-DSA-44 and ML-DSA-87 ids are refused | `MlDsa44`, `src/crypto/asymmetric/alg_id/verify.rs:40-41` |
 | BLAKE3 | the capability token MAC, two keyed hashes | `mac64`, `src/capabilities/token/material.rs:41-52` |
-| SHA-256 | the kernel generator's seed hash | `sha256`, `src/crypto/util/rng/entropy/collect/pool.rs:64` |
-| ChaCha20 | both generators | `chacha20_block`, `src/security/entropy_capsule/fast.rs:80`; `ChaChaRng`, `src/crypto/util/rng/csprng.rs:26` |
+| SHA-256 | the kernel generator's seed hash | `sha256`, `src/crypto/util/rng/entropy/collect/pool.rs:65` |
+| ChaCha20 | both generators | `chacha20_block`, `src/security/entropy_capsule/fast.rs:65`; `ChaChaRng`, `src/crypto/util/rng/csprng.rs:26` |
 | ChaCha20-Poly1305 | each sector of the [data volume](../overview/glossary-claim-epoch.md#data-volume) | `aead_encrypt`, `src/fs/cryptoblock/seal.rs:41-42` |
 | Keccak-256 | `CryptoKeccak256` | `keccak256`, `src/syscall/dispatch/crypto/keccak/handler.rs:42` |
 | hashes, AEAD, X25519, HMAC, HKDF for capsules | `crypto_pool` | `dispatch`, `userland/capsule_crypto/src/server/dispatch.rs:28-50` |
