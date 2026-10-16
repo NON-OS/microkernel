@@ -42,5 +42,6 @@ pub(super) fn described_from(p: &PlatformDevice) -> Option<Described> {
         clock_hz,
         irq: p.irq.map(|irq| (irq.intid, irq.edge)),
         dma,
+        coherent: p.coherent,
     })
 }

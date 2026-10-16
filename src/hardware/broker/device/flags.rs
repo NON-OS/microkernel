@@ -18,3 +18,7 @@ pub(in crate::hardware::broker) const BAR_FLAG_PREFETCH: u8 = 1 << 0;
 pub(in crate::hardware::broker) const BAR_FLAG_MEM64: u8 = 1 << 1;
 pub const DEVICE_FLAG_CLAIMED: u32 = 1 << 0;
 pub const DEVICE_FLAG_DISABLED: u32 = 1 << 1;
+/// Its DMA does not snoop the CPU's caches (the tree gave no `dma-coherent`):
+/// its uncached grants come from the uncached pool, and its cacheable ones
+/// need `MkDmaSync` around every transfer.
+pub const DEVICE_FLAG_DMA_NONCOHERENT: u32 = 1 << 2;
