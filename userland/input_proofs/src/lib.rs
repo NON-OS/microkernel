@@ -112,6 +112,8 @@ mod press_frame_tests;
 #[cfg(test)]
 mod ps2_tests;
 #[cfg(test)]
+mod router_brightness_key_tests;
+#[cfg(test)]
 mod router_desk;
 #[cfg(test)]
 mod router_focus_tests;

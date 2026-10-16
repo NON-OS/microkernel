@@ -44,7 +44,7 @@ fn only_the_system_keys_are_the_shells() {
     for code in SYSTEM {
         assert!(is_shell_key(code), "{code:#x}");
     }
-    for code in [0x1B, u32::from(b'x'), 0x1101, 0x1201, 0x120A, 0x1300, 0x1307, 0x2000 | 0x7f] {
+    for code in [0x1B, u32::from(b'x'), 0x1101, 0x1201, 0x120A, 0x1300, 0x13FF, 0x2000 | 0x7f] {
         assert!(!is_shell_key(code), "{code:#x} is the focused window's");
     }
 }
