@@ -27,6 +27,7 @@ mod mair;
 mod sctlr;
 mod tcr;
 
+pub(super) use id::has_16_bit_asid;
 pub(super) use mair::configure_mair;
 pub(super) use sctlr::enable_mmu;
 pub(super) use tcr::configure_tcr;

@@ -29,7 +29,7 @@ mod tlb;
 mod write_protect;
 
 pub use enable_tagged::enable_tagged_invalidation;
-pub use root::{read_root, write_root};
+pub use root::{read_root, retire_root, write_root};
 pub use tagged_invalidate::invalidate_tagged;
 pub use tagged_tlb::supports_tagged_invalidation;
 pub use tlb::{invalidate_all, invalidate_page};
