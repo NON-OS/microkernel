@@ -35,7 +35,12 @@ pub(super) fn push_file(
     a: &PushArgs,
     extra: Vec<u8>,
 ) -> bool {
-    let body = match read_file(pid, &path, MAX) {
+    /* One byte past the most, so a longer file is refused, never sent cut. */
+    let body = match read_file(pid, &path, MAX + 1) {
+        Ok(b) if b.len() > MAX as usize => {
+            state.scrollback.push_error(b"larger than a push sends (64 MiB)");
+            return false;
+        }
         Ok(b) => b,
         Err(e) => {
             state.scrollback.push_error(e.as_bytes());

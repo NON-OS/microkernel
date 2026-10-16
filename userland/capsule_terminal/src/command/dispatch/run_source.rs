@@ -26,7 +26,12 @@ const MAX_INPUT: u32 = 65536;
 
 pub(super) fn read_input(state: &mut State, path_arg: &[u8]) -> Vec<Vec<u8>> {
     let path = resolve(state.cwd.as_bytes(), path_arg);
-    match read_file(state.owner_pid, &path, MAX_INPUT) {
+    /* One byte past the most, so a longer file is refused, never fed cut. */
+    match read_file(state.owner_pid, &path, MAX_INPUT + 1) {
+        Ok(data) if data.len() > MAX_INPUT as usize => {
+            state.scrollback.push_line(b"larger than a `<` file feeds (64 KiB)");
+            Vec::new()
+        }
         Ok(data) => super::super::filter::input::lines_of(&data),
         Err(e) => {
             state.scrollback.push_line(e.as_bytes());
