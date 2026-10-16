@@ -19,9 +19,25 @@ pub struct Claim {
     pub pid: u32,
     pub device_id: u64,
     pub epoch: u64,
-    /// Set by the claim's last step (L65): until then the entry only keeps
-    /// other claimants out, since the claim may still be refused.
-    pub ready: bool,
+    pub(crate) stage: Stage,
+    /// Grant paths inside the claim now, each holding it until its grant is
+    /// recorded (L66).
+    pub(crate) inflight: u32,
+}
+
+/// Where a claim is in its life. Only a ready one is granted against.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Stage {
+    /// Being made: it keeps other claimants out, and only the call making it
+    /// settles it, since it may still be refused (L65).
+    Making,
+    Ready,
+    /// Being released: nothing more is granted, and the release waits out
+    /// the grant paths already inside it before it drains (L66).
+    Leaving,
+    /// Being made when its holder exited: it still keeps other claimants out,
+    /// until the call making it takes it back (L66).
+    Orphaned,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

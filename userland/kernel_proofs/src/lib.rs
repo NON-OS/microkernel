@@ -102,6 +102,8 @@ pub mod claim_holds;
 #[cfg(test)]
 pub mod claim_restore;
 #[cfg(test)]
+pub mod claim_stage;
+#[cfg(test)]
 pub mod boot_bus_master;
 #[cfg(test)]
 pub mod pci_config_change;

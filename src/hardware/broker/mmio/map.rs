@@ -17,7 +17,7 @@
 //! The single in-kernel path that turns a PCI BAR slice into a
 //! mapping in a capsule address space. Five steps in order:
 //!
-//!   1. resolve the caller's claim and verify its epoch is fresh
+//!   1. resolve the caller's claim, its epoch fresh, held until step 5
 //!   2. resolve the device record and the requested BAR
 //!   3. validate BAR containment of the request and find the pages it
 //!      touches, kept off every MSI-X table and PBA (`window`)
@@ -50,7 +50,7 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     if req.length == 0 {
         return Err(MmioMapError::ZeroLength);
     }
-    let Claimed { epoch, device, bar } = claimed_bar(pid, &req)?;
+    let Claimed { epoch, device, bar, held: _held } = claimed_bar(pid, &req)?;
     let protected = msix_exclusion::protected_regions();
     let w = window::window(bar.base, bar.size, req.offset, req.length, &protected)
         .map_err(window_error)?;

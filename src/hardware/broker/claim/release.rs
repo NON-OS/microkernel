@@ -17,22 +17,16 @@
 extern crate alloc;
 
 use super::state::CLAIMS;
-use super::types::ClaimError;
+use super::types::{ClaimError, Stage};
 
-// Release a claim held by `pid`. Returns the released epoch on
-// success.
+// Release a claim held by `pid`, retired first if it was not already (L66).
+// Returns the released epoch on success.
 pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
+    let epoch = super::leave::retire(pid, device_id)?;
     let mut claims = CLAIMS.lock();
-    let idx = claims.iter().position(|c| c.device_id == device_id).ok_or(ClaimError::NotClaimed)?;
-    if claims[idx].pid != pid {
-        return Err(ClaimError::NotHolder);
-    }
-    // A claim still being made is the claiming call's to settle (L65).
-    if !claims[idx].ready {
-        return Err(ClaimError::NotClaimed);
-    }
-    let epoch = claims[idx].epoch;
-    claims.remove(idx);
+    // A sibling's release, racing this one, may have taken it already.
+    let at = claims.iter().position(|c| c.device_id == device_id && c.epoch == epoch);
+    claims.remove(at.ok_or(ClaimError::NotClaimed)?);
     drop(claims);
     super::quiesce::stop_bus_master(device_id);
     crate::hardware::broker::confine::detach(pid, device_id);
@@ -57,7 +51,12 @@ pub fn release_all_for_pid(pid: u32) -> usize {
     let mut claims = CLAIMS.lock();
     let held: alloc::vec::Vec<u64> =
         claims.iter().filter(|c| c.pid == pid).map(|c| c.device_id).collect();
-    claims.retain(|c| c.pid != pid);
+    // A claim its call is still making is orphaned, not removed: the device
+    // stays out of other claims until that call takes it back (L66).
+    for c in claims.iter_mut().filter(|c| c.pid == pid && c.stage == Stage::Making) {
+        c.stage = Stage::Orphaned;
+    }
+    claims.retain(|c| c.pid != pid || c.stage == Stage::Orphaned);
     drop(claims);
     for device_id in &held {
         super::quiesce::stop_bus_master(*device_id);
