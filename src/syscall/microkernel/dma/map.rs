@@ -20,25 +20,12 @@
 //! caller's buffer, and roll the grant back if that copy fails.
 
 use core::mem::size_of;
-use core::sync::atomic::{AtomicU32, Ordering};
 
-use super::errnos::{
-    ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOMEM, ERRNO_NOTSUP, ERRNO_PERM, ERRNO_RANGE,
-    ERRNO_STALE,
-};
-use crate::hardware::broker::{DmaError, DmaMapError, DmaMapRequest};
+use super::super::errnos::{ERRNO_FAULT, ERRNO_PERM};
+use super::errno::errno_for;
+use crate::hardware::broker::DmaMapRequest;
 use crate::process::current_pid;
 use crate::usercopy::{validate_user_write, write_user_value};
-
-static DMA_UNMAP_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace_unmap(label: &[u8], pid: u32) {
-    if pid != 7 || DMA_UNMAP_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 24 {
-        return;
-    }
-    crate::sys::serial::print(b"[DMA-UNMAP] ");
-    crate::sys::serial::println(label);
-}
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -78,36 +65,4 @@ pub fn sys_dma_map(device_id: u64, claim_epoch: u64, length: u64, flags: u32, ou
         return ERRNO_FAULT;
     }
     0
-}
-
-pub fn sys_dma_unmap(grant_id: u64) -> i64 {
-    let pid = match current_pid() {
-        Some(p) => p,
-        None => return ERRNO_PERM,
-    };
-    trace_unmap(b"enter", pid);
-    match crate::hardware::broker::dma_unmap_grant(pid, grant_id) {
-        Ok(()) => {
-            trace_unmap(b"ok", pid);
-            0
-        }
-        Err(DmaError::NotHolder) => ERRNO_PERM,
-        Err(DmaError::UnknownGrant) => ERRNO_INVAL,
-    }
-}
-
-fn errno_for(e: DmaMapError) -> i64 {
-    match e {
-        DmaMapError::NotClaimed | DmaMapError::Unconfined => ERRNO_PERM,
-        DmaMapError::StaleEpoch => ERRNO_STALE,
-        DmaMapError::UnknownDevice => ERRNO_NODEV,
-        DmaMapError::BadAlignment | DmaMapError::BadLength | DmaMapError::BadLengthForClass => {
-            ERRNO_INVAL
-        }
-        DmaMapError::UnsupportedFlags => ERRNO_NOTSUP,
-        DmaMapError::NoMemory | DmaMapError::NoVaSpace | DmaMapError::MapFailed => ERRNO_NOMEM,
-        // A 32-bit device would truncate the address: said apart from plain
-        // exhaustion so the driver can name it.
-        DmaMapError::Above4G => ERRNO_RANGE,
-    }
 }
