@@ -17,6 +17,7 @@
 //! The GPT a disk carries: read, checked, and searched for NONOS's own
 //! partitions and the one the machine booted from. Pure but for `read`.
 
+mod array;
 mod boot;
 mod bytes;
 mod crc32;
