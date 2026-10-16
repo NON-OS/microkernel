@@ -23,10 +23,14 @@ mod moves;
 mod ready;
 mod settle;
 mod target;
+mod wake;
+mod wake_check;
 mod wire;
 
 pub use hidden::reveal_hidden;
 pub use ready::bridge_bus;
 pub use settle::{tick, Hidden};
 pub use target::target;
+pub use wake::Wakes;
+pub use wake_check::{tick as wake_tick, woken};
 pub use wire::device_power;

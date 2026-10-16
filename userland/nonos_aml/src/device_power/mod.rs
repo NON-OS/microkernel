@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Device power (ACPI 6.5, chapter 7): shared power resources, counted
-//! and switched in ResourceOrder, and moves between every D-state.
+//! and switched in ResourceOrder, moves between every D-state, and
+//! runtime wake.
 
 mod dstate;
 mod method;
@@ -26,6 +27,10 @@ mod reveal;
 mod rules;
 mod state;
 mod transition;
+mod wake;
+mod wake_method;
+mod wake_off;
+mod wake_types;
 
 pub use dstate::{to_d0, to_d3};
 pub use order::{in_order, resource_order};
@@ -35,3 +40,5 @@ pub use reveal::{reveal, settle, Revealed};
 pub use rules::MoveError;
 pub use state::DState;
 pub use transition::DevicePower;
+pub use wake_method::{s0w, wake_enable, S0W_ABSENT};
+pub use wake_types::{Arm, GpeSwitch, RuntimeWake, WakeError};
