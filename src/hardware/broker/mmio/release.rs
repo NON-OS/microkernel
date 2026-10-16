@@ -32,6 +32,7 @@ use crate::memory::addr::VirtAddr;
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), GrantError> {
     let g = grant::remove(pid, grant_id)?;
     unmap_one(&g);
+    grant::release_user_va(pid, g.user_va, g.length);
     Ok(())
 }
 
@@ -41,7 +42,9 @@ pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
     let retired = drop_claims_for_pid(pid, unmap_pages);
     let drained = grant::drain_for_pid(pid);
     for g in &drained {
-        if !unmap_from_holder(pid, g.user_va, g.length) && unmap_pages {
+        if unmap_from_holder(pid, g.user_va, g.length) {
+            grant::release_user_va(pid, g.user_va, g.length);
+        } else if unmap_pages {
             unmap_one(g);
         }
     }

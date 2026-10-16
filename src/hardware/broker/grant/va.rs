@@ -14,35 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
+//! MMIO grant VA, from the holder's own window (K10, va_space.rs): a
+//! fresh range inside `[USER_MMIO_BASE, USER_MMIO_END)`, followed by a
+//! guard page so a runaway access cannot spill into the next grant, and
+//! given back once the grant's pages are unmapped.
 
+use crate::hardware::broker::va_space::{self, Region};
 use crate::memory::addr::VirtAddr;
 
-// Snapshot for diagnostics. The lock is dropped before the
-// caller sees the data.
-
-// User MMIO virtual-address allocator. Each grant gets a fresh
-// region inside `[USER_MMIO_BASE, USER_MMIO_END)`; the bumping
-// counter is global because each capsule has its own page tables,
-// so VA reuse across address spaces is harmless. Within one address
-// space the bump never wraps for the life of the run; if it ever
-// does, that is a real exhaustion and the request fails.
 pub(in super::super) use super::super::windows::{USER_MMIO_BASE, USER_MMIO_END};
 const PAGE_SIZE: u64 = 4096;
 
-static NEXT_USER_MMIO_VA: AtomicU64 = AtomicU64::new(USER_MMIO_BASE);
+/// `pages` of `pid`'s MMIO window, or None when it is spent.
+pub(in super::super) fn reserve_user_va(pid: u32, pages: u64) -> Option<VirtAddr> {
+    let bytes = pages.checked_mul(PAGE_SIZE)?.checked_add(PAGE_SIZE)?;
+    va_space::reserve(pid, Region::Mmio, bytes).map(VirtAddr::new)
+}
 
-// Reserve `pages * 4 KiB` of user VA in the MMIO grant region. A
-// guard page is added between adjacent grants so a runaway access
-// cannot silently spill into the next grant. Returns `None` on
-// region exhaustion.
-pub(in super::super) fn reserve_user_va(pages: u64) -> Option<VirtAddr> {
-    let bytes = pages.checked_mul(PAGE_SIZE)?;
-    let with_guard = bytes.checked_add(PAGE_SIZE)?;
-    let base = NEXT_USER_MMIO_VA.fetch_add(with_guard, Ordering::SeqCst);
-    let end = base.checked_add(bytes)?;
-    if end > USER_MMIO_END {
-        return None;
-    }
-    Some(VirtAddr::new(base))
+/// `length` bytes at `user_va` back to `pid`'s window, already unmapped.
+pub(in super::super) fn release_user_va(pid: u32, user_va: u64, length: u64) {
+    va_space::release(pid, Region::Mmio, user_va, length + PAGE_SIZE);
 }

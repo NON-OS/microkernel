@@ -63,6 +63,8 @@ mod dma_surface;
 mod driver_scope;
 #[path = "dma_wipe/mod.rs"]
 pub mod dma_wipe;
+#[path = "../../../src/hardware/broker/quota.rs"]
+pub mod quota;
 #[path = "efi_time/mod.rs"]
 pub mod efi_time;
 #[path = "emmc_hosts/mod.rs"]

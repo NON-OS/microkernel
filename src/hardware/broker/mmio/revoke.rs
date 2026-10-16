@@ -33,6 +33,8 @@ pub(crate) fn take_for_device(pid: u32, device_id: u64) -> alloc::vec::Vec<MmioG
 /// device's, never freed here.
 pub(crate) fn revoke_taken(pid: u32, taken: &[MmioGrant]) {
     for g in taken {
-        unmap_from_holder(pid, g.user_va, g.length);
+        if unmap_from_holder(pid, g.user_va, g.length) {
+            grant::release_user_va(pid, g.user_va, g.length);
+        }
     }
 }

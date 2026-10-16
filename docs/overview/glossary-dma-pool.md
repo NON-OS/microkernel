@@ -69,4 +69,4 @@ claiming process: an MMIO window, a DMA buffer, an interrupt binding or, on
 x86_64, a port range. Each has a grant id, and the broker revokes it on unmap,
 on device release and when the process exits. Explained in [The hardware
 broker](../kernel/hardware-broker.md#revocation). Code:
-`src/hardware/broker/grant.rs`, `src/process/exit/finalize.rs`.
+`src/hardware/broker/grant/`, `src/process/exit/finalize.rs`.

@@ -32,6 +32,7 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
+use super::super::quota;
 use super::types::MmioGrant;
 
 pub(super) static GRANTS: Mutex<Vec<MmioGrant>> = Mutex::new(Vec::new());
@@ -41,12 +42,17 @@ fn next_grant_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
 }
 
-// Insert a new grant. The caller (broker MMIO map handler) has
-// already validated claim ownership, BAR containment and alignment,
-// and installed the user pages. This function only persists the
-// record so revocation can find it later.
-pub(in super::super) fn insert(record: MmioGrant) {
-    GRANTS.lock().push(record);
+// Insert a new grant, within its holder's quota. The caller has
+// validated the claim, the BAR and the alignment, and mapped the pages,
+// which it unmaps again on false.
+pub(in super::super) fn insert(record: MmioGrant) -> bool {
+    let mut grants = GRANTS.lock();
+    let held = grants.iter().filter(|g| g.pid == record.pid).count();
+    if !quota::admits(held, 0, 0, quota::MAX_MMIO_GRANTS, u64::MAX) {
+        return false;
+    }
+    grants.push(record);
+    true
 }
 
 // Allocate a fresh grant id without recording yet. Lets the handler

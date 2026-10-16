@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Entering a finished map in the grant table, only while its claim holds
-//!: None when the claim is gone, and the caller undoes the map.
+//! and within its holder's quota; on a refusal the caller undoes the map.
 
 use super::super::records;
-use super::super::types::{DmaGrant, DmaMapRequest};
+use super::super::types::{DmaGrant, DmaMapError, DmaMapRequest};
 use super::placed::Placed;
 use crate::hardware::broker::claim::record_while_held;
 
@@ -29,7 +29,7 @@ pub(super) fn record(
     placed: &Placed,
     device_addr: u64,
     confined: bool,
-) -> Option<u64> {
+) -> Result<u64, DmaMapError> {
     let grant_id = records::allocate_id();
     let grant = DmaGrant {
         grant_id,
@@ -43,7 +43,12 @@ pub(super) fn record(
         device_addr,
         confined,
     };
-    record_while_held(pid, req.device_id, claim_epoch, || records::insert(grant))?;
+    match record_while_held(pid, req.device_id, claim_epoch, || records::insert(grant)) {
+        None => return Err(DmaMapError::StaleEpoch),
+        // The quota spent answers as a spent window does.
+        Some(false) => return Err(DmaMapError::NoVaSpace),
+        Some(true) => {}
+    }
 
     /*
      * A grant no remapping unit confines hands the device the host-physical
@@ -52,5 +57,5 @@ pub(super) fn record(
     if !confined {
         crate::memory::iommu::note_unconfined(1);
     }
-    Some(grant_id)
+    Ok(grant_id)
 }
