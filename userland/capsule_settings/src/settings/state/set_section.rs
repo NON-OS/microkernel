@@ -40,5 +40,9 @@ pub fn set_section(state: &mut State, section: Section) {
     if section == Section::Sound {
         state.audio_output = probe_audio_output();
     }
+    // Asked each time the page opens, so its rows say what the display does.
+    if section == Section::Accessibility {
+        crate::settings::access::page::read(state);
+    }
     track_scroll(state);
 }

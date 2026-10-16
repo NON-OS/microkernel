@@ -68,6 +68,8 @@ mod wipe;
 pub mod qwen_tier;
 
 #[cfg(test)]
+mod access_page_tests;
+#[cfg(test)]
 mod handoff_tests;
 #[cfg(test)]
 mod hydrate_tests;

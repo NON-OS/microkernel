@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::settings::schema::blocks_for;
-use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
 
 use super::control_geom::in_control;
@@ -47,7 +46,7 @@ pub fn at(state: &State, x: i32, y: i32, scroll: u32, view_w: u32) -> Hit {
         let inside = target >= ry as i32 && target < (ry + h) as i32;
         match item {
             Item::Row(bi, ri) => {
-                if !matches!(blocks[bi].rows[ri], Row::Field(_)) {
+                if !blocks[bi].rows[ri].is_stop() {
                     return;
                 }
                 if inside {

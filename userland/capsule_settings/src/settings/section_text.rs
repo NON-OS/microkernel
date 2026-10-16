@@ -43,6 +43,11 @@ fn text(section: Section) -> (&'static str, &'static str, &'static str) {
         Section::Appearance => {
             ("Appearance", "Appearance", "The wallpaper and how the pointer moves.")
         }
+        Section::Accessibility => (
+            "Accessibility",
+            "Accessibility",
+            "Colour filters, high contrast and a magnifier, for each display.",
+        ),
         Section::Privacy => {
             ("Privacy", "Privacy", "What this machine keeps once it is switched off.")
         }
