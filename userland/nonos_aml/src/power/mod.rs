@@ -17,13 +17,15 @@
 //! Batteries and AC adapters (ACPI 6.5, 10.2 and 10.3): their packages
 //! decoded, and the charge they amount to.
 
+mod adapter;
 mod bix;
 pub(crate) mod fields;
 mod info;
 mod status;
 mod time;
 
+pub use adapter::online;
 pub use bix::parse_bix;
 pub use info::{parse_bif, BatteryInfo};
-pub use status::{online, parse_bst, percent, BatteryStatus};
-pub use time::minutes_left;
+pub use status::{parse_bst, BatteryStatus};
+pub use time::{minutes_left, percent};
