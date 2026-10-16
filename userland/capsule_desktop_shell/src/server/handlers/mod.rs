@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod accessibility;
+pub mod attention;
 pub mod consent;
 pub mod delete_prompt;
 pub mod dialog_key;
