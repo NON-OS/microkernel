@@ -24,22 +24,33 @@ use crate::memory::phys::free_contiguous;
 const PAGE_SIZE: u64 = 4096;
 
 pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool) {
+    if withdraw(g, unmap_pages) {
+        release_frames(g);
+    }
+}
+
+/// The grant out of its holder's pages and its device's domain, the IOTLB
+/// invalidation waited on. False when the domain will not give it up: the
+/// frames are then leaked, never reused.
+pub(super) fn withdraw(g: &DmaGrant, unmap_pages: bool) -> bool {
     if unmap_pages {
         let _ = crate::memory::paging::unmap_user_dma(VirtAddr::new(g.user_va), g.length as usize);
     }
-    // The device loses the grant before anyone else can gain the frames. If
-    // its domain will not give it up, the frames are leaked, never reused.
     if !super::super::confine::unmap(g.pid, g.device_addr, g.length, g.confined) {
         crate::sys::serial::println(
             b"[DMA] grant still reachable by its device; frames quarantined",
         );
-        return;
+        return false;
     }
     if !g.confined {
         crate::memory::iommu::note_unconfined_released(1);
     }
-    // A surface over these frames that another process still maps:
-    // the registry keeps them and hands them to `free_frames` once nobody does.
+    true
+}
+
+/// A withdrawn grant's frames back to the allocator, or kept for a surface
+/// another process still maps, which frees them once nobody does.
+pub(super) fn release_frames(g: &DmaGrant) {
     if crate::kernel_core::surface_registry::pin::dma_hold::hold_dma(
         g.pid,
         g.physical_start,

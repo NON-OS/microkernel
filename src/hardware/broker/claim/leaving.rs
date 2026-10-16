@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which claims leave, pure: taken out of the table before their
-//! devices retire, so a teardown of the same holder that runs meanwhile,
-//! from a thread that faulted on a revoked BAR, finds none to retire again.
+//! Which claims leave, pure: taken out of the table before
+//! their devices retire, so a teardown of the same holder that runs
+//! meanwhile finds none to retire again, and marked busy until the retire
+//! is done, so no new claim takes a device still being retired.
 //! kernel_proofs::function_reset.
 
 extern crate alloc;
@@ -25,9 +26,11 @@ use alloc::vec::Vec;
 
 use super::types::{Claim, ClaimError};
 
-/// The claim on `device_id`, out of `claims` when `pid` holds it: its epoch.
+/// The claim on `device_id`, out of `claims` when `pid` holds it, and the
+/// device marked busy until its retire is done: its epoch.
 pub(crate) fn take_held(
     claims: &mut Vec<Claim>,
+    busy: &mut Vec<u64>,
     pid: u32,
     device_id: u64,
 ) -> Result<u64, ClaimError> {
@@ -35,12 +38,35 @@ pub(crate) fn take_held(
     if claims[at].pid != pid {
         return Err(ClaimError::NotHolder);
     }
+    busy.push(device_id);
     Ok(claims.remove(at).epoch)
 }
 
-/// Every claim `pid` holds, out of `claims`: their devices.
-pub(crate) fn take_all(claims: &mut Vec<Claim>, pid: u32) -> Vec<u64> {
-    let held = claims.iter().filter(|c| c.pid == pid).map(|c| c.device_id).collect();
+/// Every claim `pid` holds, out of `claims`, each device marked busy.
+pub(crate) fn take_all(claims: &mut Vec<Claim>, busy: &mut Vec<u64>, pid: u32) -> Vec<u64> {
+    let held: Vec<u64> = claims.iter().filter(|c| c.pid == pid).map(|c| c.device_id).collect();
     claims.retain(|c| c.pid != pid);
+    busy.extend_from_slice(&held);
     held
+}
+
+/// Whether a new claim may take `device_id`: not while it is held, and not
+/// while another claim or a retire is under way on it.
+pub(crate) fn claimable(claims: &[Claim], busy: &[u64], device_id: u64) -> Result<(), ClaimError> {
+    if claims.iter().any(|c| c.device_id == device_id) {
+        return Err(ClaimError::AlreadyClaimed);
+    }
+    if busy.contains(&device_id) {
+        return Err(ClaimError::Busy);
+    }
+    Ok(())
+}
+
+/// A claim or a retire on `device_id` is done, detach included. One mark
+/// goes: a release can start on a claim just published, before the claim
+/// takes its own mark off, and that release's mark stays until it is done.
+pub(crate) fn done(busy: &mut Vec<u64>, device_id: u64) {
+    if let Some(at) = busy.iter().position(|d| *d == device_id) {
+        busy.swap_remove(at);
+    }
 }

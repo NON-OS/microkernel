@@ -19,6 +19,7 @@
 //! are discarded for narrower widths.
 
 use super::super::types::{PioError, PioWidth};
+use super::gate::during;
 use super::raw::{out16, out32, out8};
 use super::resolve::resolve;
 
@@ -29,14 +30,16 @@ pub fn write(
     width: PioWidth,
     value: u32,
 ) -> Result<(), PioError> {
-    let g = resolve(pid, grant_id, port_offset, width)?;
-    let port = g.port_base + port_offset;
-    unsafe {
-        match width {
-            PioWidth::U8 => out8::raw_out8(port, value as u8),
-            PioWidth::U16 => out16::raw_out16(port, value as u16),
-            PioWidth::U32 => out32::raw_out32(port, value),
+    during(|| {
+        let g = resolve(pid, grant_id, port_offset, width)?;
+        let port = g.port_base + port_offset;
+        unsafe {
+            match width {
+                PioWidth::U8 => out8::raw_out8(port, value as u8),
+                PioWidth::U16 => out16::raw_out16(port, value as u16),
+                PioWidth::U32 => out32::raw_out32(port, value),
+            }
         }
-    }
-    Ok(())
+        Ok(())
+    })
 }
