@@ -138,6 +138,8 @@ pub struct Context {
     pub live_prompt: crate::state::live_prompt::LivePrompt,
     /// A desktop Delete waiting on its confirmation.
     pub pending_delete: crate::state::delete_prompt::DeletePrompt,
+    /// The chrome's band and the secure attention chord (`state/trusted.rs`).
+    pub trusted: crate::state::trusted::Trusted,
     /// Which of the open dialog's two buttons the keyboard is on.
     pub dialog_focus: crate::state::dialog_keys::DialogFocus,
 }
