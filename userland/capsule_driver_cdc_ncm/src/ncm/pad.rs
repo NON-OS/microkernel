@@ -14,21 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How long a sent NTB is made, as the end of Linux cdc_ncm_fill_tx_frame
-//! decides. The device learns where a block ends from a short packet; the
-//! controller cannot send a zero-length one here, so a block never ends on
-//! a packet boundary unless it is the device's own dwNtbOutMaxSize, the
-//! one length cdc_ncm_update_rxtx_max leaves without its extra byte.
+//! How long a sent NTB is made. The device learns where a block ends from
+//! a short packet, or from its length reaching dwNtbOutMaxSize (NCM 1.0,
+//! 3.8, as recalled, unverified). The controller cannot send a zero-length
+//! packet here, so a block that ends on a packet boundary below the
+//! device's size gets one zero byte more, counted in its wBlockLength.
 
 use super::limits::ends_on_packet;
 use super::shape::TxShape;
 
 pub fn padded(len: usize, s: &TxShape) -> usize {
-    if !s.zlp && len > s.min_pkt {
-        // A device with a DMA engine takes a full-size block faster than
-        // one cut short; tx_max itself does not end on a packet boundary.
-        s.max
-    } else if len < s.max && ends_on_packet(len, s.mps) {
+    if len < s.out_max && ends_on_packet(len, s.mps) {
         len + 1
     } else {
         len
