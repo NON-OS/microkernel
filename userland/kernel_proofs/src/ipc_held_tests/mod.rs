@@ -41,6 +41,7 @@ mod fido_tests;
 mod gates;
 mod names;
 mod single_client;
+mod spi_hid_tests;
 mod spi_tests;
 mod usb_host_tests;
 mod usb_mic_tests;
