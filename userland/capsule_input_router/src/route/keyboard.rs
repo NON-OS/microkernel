@@ -16,6 +16,7 @@
 
 use nonos_libc::{InputEvent, INPUT_KIND_KEY_UP};
 
+use crate::state::key_targets::key_of;
 use crate::state::Context;
 
 use super::deliver::deliver_one;
@@ -23,6 +24,7 @@ use super::keyboard_target::{release_in, target};
 
 pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     let is_up = event.kind == INPUT_KIND_KEY_UP;
+    let key = key_of(event.flags, event.code);
     // A release goes to whoever received the matching press, so a focus change
     // while a key is held cannot strand the key-down in the old window. A press
     // routes to current focus. Resolving the release from the press target also
@@ -41,8 +43,8 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     // window would otherwise hold the key for good, and a client that repeats
     // held keys itself (a Linux app under the Wayland bridge) types it forever.
     if !is_up {
-        if let Some(held) = ctx.key_targets.held_by(event.code).filter(|&p| p != pid) {
-            ctx.key_targets.take(event.code);
+        if let Some(held) = ctx.key_targets.held_by(key).filter(|&p| p != pid) {
+            ctx.key_targets.take(key);
             release_in(ctx, held, event);
         }
     }
@@ -52,7 +54,7 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     }
     let delivered = deliver_one(pid, event);
     if !is_up && delivered != 0 {
-        ctx.key_targets.remember(event.code, pid);
+        ctx.key_targets.remember(key, pid);
     }
     if delivered == 0 {
         ctx.forget_pid(pid);

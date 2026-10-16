@@ -46,6 +46,8 @@ mod router_press_tests;
 mod router_route_tests;
 #[path = "router_source_tests.rs"]
 mod router_source_tests;
+#[path = "router_per_source_tests.rs"]
+mod router_per_source_tests;
 #[path = "router_system_key_tests.rs"]
 mod router_system_key_tests;
 #[path = "touchpad_tests.rs"]
