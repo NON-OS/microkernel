@@ -3430,6 +3430,19 @@
   "md": [],
   "signed": []
  },
+ "userland/installer_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_installer/src/protocol",
+   "userland/capsule_installer/src/server/handlers",
+   "userland/installer_proofs",
+   "userland/libc/src/capsule_load.rs",
+   "userland/libc/src/syscall/numbers/tag.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/ip_proofs": {
   "exclude": [],
   "include": [
@@ -4423,13 +4436,17 @@
    "userland/capsule_model_fetch/src/need.rs",
    "userland/capsule_model_fetch/src/tiers/memory.rs",
    "userland/capsule_terminal/src/command/builtin",
+   "userland/capsule_terminal/src/command/dispatch/run_source.rs",
    "userland/capsule_terminal/src/command/flags",
+   "userland/capsule_terminal/src/command/output",
+   "userland/capsule_terminal/src/git/storage",
    "userland/capsule_terminal/src/layout",
    "userland/capsule_terminal/src/paint",
    "userland/capsule_terminal/src/palette",
    "userland/capsule_terminal/src/rail",
    "userland/capsule_terminal/src/term",
    "userland/inflate",
+   "userland/nonos_git",
    "userland/policy_proto",
    "userland/terminal_host_proofs"
   ],
@@ -5097,6 +5114,7 @@
    "userland/payment_proto",
    "userland/policy_proto",
    "userland/settle_proto",
+   "userland/shield_core/src/net/tor/shield_route.rs",
    "userland/shield_wire",
    "userland/wallet_proofs"
   ],
