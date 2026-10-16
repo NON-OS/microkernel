@@ -40,6 +40,7 @@ mod sci;
 mod start;
 mod state;
 mod wake;
+mod wake_arm;
 
 pub use acpi_mode::enter_acpi_mode;
 pub use dispatch::Dispatch;
