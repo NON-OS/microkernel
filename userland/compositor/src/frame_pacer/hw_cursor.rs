@@ -30,7 +30,9 @@ use crate::display::ops;
 use crate::state::Context;
 
 pub fn sync(ctx: &mut Context) {
-    if !ctx.hw_cursor() || (ctx.cursor_sent == Some(ctx.cursor.current()) && all_shaped(ctx)) {
+    if !ctx.hw_cursor()
+        || (ctx.cursor_sent == Some(ctx.lid.pointer(ctx.cursor.current())) && all_shaped(ctx))
+    {
         return;
     }
     if send(ctx).is_none() {
@@ -43,7 +45,7 @@ fn all_shaped(ctx: &Context) -> bool {
 }
 
 fn send(ctx: &mut Context) -> Option<()> {
-    let (port, now, q) = (ctx.gfx_port, ctx.cursor.current(), ctx.scale_q);
+    let (port, now, q) = (ctx.gfx_port, ctx.lid.pointer(ctx.cursor.current()), ctx.scale_q);
     let scale = crate::display::scale_rule::whole(q);
     let new = ctx.cursor_sent.is_none();
     let moved = ctx.cursor_sent != Some(now);

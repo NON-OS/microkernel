@@ -18,18 +18,8 @@
 //! the cursor centred. Every display path (GOP, the legacy virtio ops, the
 //! wire) builds one here, so a field added to the context is set once.
 
+use super::primary::Primary;
 use super::{AttachCache, Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
-
-/// The memory the compositor draws into, as the path attached it.
-#[derive(Clone, Copy)]
-pub struct Primary {
-    pub handle: u64,
-    pub va: u64,
-    pub width: u32,
-    pub height: u32,
-    pub stride: u32,
-    pub byte_len: u64,
-}
 
 impl Context {
     /// `gfx_port` 0 with `gop_mode` for GOP; a GOP or wire primary needs
@@ -70,6 +60,7 @@ impl Context {
             screen_notice_until: 0,
             looks: super::looks::Looks::default(),
             first_frame_since: None,
+            lid: super::lid_rule::Lid::Open,
         }
     }
 }

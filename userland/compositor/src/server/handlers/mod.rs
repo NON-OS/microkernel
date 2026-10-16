@@ -25,6 +25,7 @@ pub mod focus_set;
 pub mod health;
 pub mod indicator;
 pub mod input_subscribe;
+pub mod lid;
 pub mod night_light;
 pub mod output_arrangement;
 pub mod output_layout;

@@ -42,3 +42,5 @@ pub const OP_ACCESSIBILITY_GET: u16 = 0x0010;
 pub const OP_OUTPUT_ARRANGEMENT: u16 = 0x0011;
 /// A display driver's word, unanswered (`nonos_gfx_wire::notice`).
 pub const OP_OUTPUT_NOTICE: u16 = 0x0012;
+/// The shell's lid: closed darkens every output, open wakes them.
+pub const OP_LID: u16 = 0x0013;
