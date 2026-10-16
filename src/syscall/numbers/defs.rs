@@ -177,4 +177,5 @@ pub enum SyscallNumber {
     MkAcpiLpit = tag4(b"MALP"),
     MkBootLogo = tag4(b"MBGL"),
     MkAcpiFirstPass = tag4(b"MAFP"),
+    MkAcpiSlot = tag4(b"MRSL"),
 }

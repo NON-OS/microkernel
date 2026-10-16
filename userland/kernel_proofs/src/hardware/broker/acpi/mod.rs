@@ -18,7 +18,8 @@
  * The platform device record: its layout, the decoder, the encoder the
  * ACPI capsule mounts too, and the device-table record built from it;
  * the USB port facts a host's record carries beside it; the domain a
- * memory range or a PCI bus lies in; what each root bridge's _OSC gave up.
+ * memory range or a PCI bus lies in; what each root bridge's _OSC gave up;
+ * MkAcpiSlot's wire and masks.
  */
 
 #[path = "../../../../../../src/hardware/broker/acpi/dgon_wire.rs"]
@@ -41,5 +42,9 @@ pub mod platform_record;
 pub mod platform_wire;
 #[path = "../../../../../../src/hardware/broker/acpi/same_group.rs"]
 pub mod same_group;
+#[path = "../../../../../../src/hardware/broker/acpi/slot_rule.rs"]
+pub mod slot_rule;
+#[path = "../../../../../../src/hardware/broker/acpi/slot_wire.rs"]
+pub mod slot_wire;
 #[path = "../../../../../../src/hardware/broker/acpi/usb_port_wire.rs"]
 pub mod usb_port_wire;

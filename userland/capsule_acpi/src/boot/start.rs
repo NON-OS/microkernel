@@ -33,7 +33,7 @@ pub fn boot() -> Option<Acpi> {
     let ec = crate::ec::find(&mut aml, &mut host);
     host.ec = ec.as_ref().map(|e| (e.ports, e.glk));
     say_ec(ec.as_ref());
-    let grants = bringup::bring_up(&mut aml, &mut host);
+    bringup::bring_up(&mut aml, &mut host);
     let mut pass = FirstPass::default();
     pass.finish(Step::Namespace);
     pass.finish(Step::Osc);
@@ -44,6 +44,6 @@ pub fn boot() -> Option<Acpi> {
     let parts = assemble::Parts { aml, host, ec, devices, routes, serial, legacy, smbios };
     let mut acpi = assemble::assemble(parts);
     first::first(&mut acpi, &mut pass);
-    super::late::late(&mut acpi, &t.fadt, &grants);
+    super::late::late(&mut acpi, &t.fadt);
     Some(acpi)
 }

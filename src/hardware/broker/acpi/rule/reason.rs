@@ -38,6 +38,7 @@ impl Refusal {
             Refusal::Legacy(Legacy::PciConfig) => "PCI configuration ports",
             Refusal::Legacy(Legacy::Rtc) => "CMOS clock ports",
             Refusal::Legacy(Legacy::Serial) => "kernel serial port",
+            Refusal::Bridge => "bridge bus number, window or bus master",
         }
     }
 }

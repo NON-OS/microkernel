@@ -41,4 +41,6 @@ mod table_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
+mod tests_bridge;
+#[cfg(test)]
 mod tests_ports;

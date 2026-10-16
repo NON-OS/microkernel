@@ -36,6 +36,12 @@ mod power;
 mod read;
 pub mod regs;
 pub mod slot;
+#[allow(dead_code)]
+#[path = "../../../../../src/hardware/broker/acpi/slot_rule.rs"]
+pub mod slot_rule;
+#[allow(dead_code)]
+#[path = "../../../../../src/hardware/broker/acpi/slot_wire.rs"]
+pub mod slot_wire;
 mod step;
 mod step_timed;
 pub mod times;

@@ -37,7 +37,7 @@ fn say(f: Bdf, what: &[u8], n: usize) {
 /// `counting`: the button's countdown just ran out, so a refusal is new.
 pub fn run(acpi: &mut Acpi, i: usize, act: Act, counting: bool) {
     let p = &acpi.hotplug.native.ports[i];
-    let (f, cap, no_cc) = (p.bdf, p.cap, p.no_cc);
+    let (f, no_cc) = (p.bdf, p.no_cc);
     match act {
         Act::Nothing => {}
         Act::Probe => say(f, b": arrived, ", probe(f)),
@@ -55,13 +55,13 @@ pub fn run(acpi: &mut Acpi, i: usize, act: Act, counting: bool) {
             Err(()) if counting => line(f).str(b": eject waits, a function is held").end(),
             Err(()) => {}
         },
-        Act::PowerOn | Act::PowerOff => power(f, cap, no_cc, act == Act::PowerOn),
+        Act::PowerOn | Act::PowerOff => power(f, no_cc, act == Act::PowerOn),
         Act::Fault => {
             let ids = gone(f);
             crate::dpower::departed(acpi, &ids);
             say(f, b": power fault, left, ", ids.len());
             if acpi.hotplug.native.ports[i].slot.power {
-                power(f, cap, no_cc, false);
+                power(f, no_cc, false);
             }
         }
     }

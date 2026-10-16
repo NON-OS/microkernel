@@ -47,6 +47,10 @@ mod external_tests;
 #[cfg(test)]
 mod first_pass_tests;
 #[cfg(test)]
+mod slot_port_tests;
+#[cfg(test)]
+mod slot_tests;
+#[cfg(test)]
 mod irq_flag_tests;
 #[cfg(test)]
 mod numa_tests;
