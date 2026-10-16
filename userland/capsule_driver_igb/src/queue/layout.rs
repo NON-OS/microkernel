@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The advanced descriptor layouts (observed in Linux igb, unverified). Both
+//! The advanced descriptor layouts (as observed, unverified). Both
 //! are 16 bytes; the fields are named for the quadwords as the driver and
 //! the part use them.
 

@@ -24,7 +24,7 @@ fn ids(of: Part) -> Vec<u16> {
 }
 
 #[test]
-fn the_macs_are_linux_s() {
+fn the_macs_are_as_observed() {
     let i82599 = [
         0x10F7, 0x1514, 0x1517, 0x10F8, 0x10F9, 0x10FB, 0x1529, 0x152A, 0x1557, 0x10FC, 0x151C,
         0x154D, 0x1558,

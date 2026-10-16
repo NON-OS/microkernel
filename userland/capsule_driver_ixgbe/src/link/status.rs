@@ -16,7 +16,7 @@
 
 //! LINKS decoded: link up, and the speed field, which on the X550 with the
 //! non-standard bit set means the NBASE-T rates (2.5 Gb/s in the 10 Gb/s
-//! code, 5 Gb/s in the 100 Mb/s one; as observed in Linux ixgbe,
+//! code, 5 Gb/s in the 100 Mb/s one; as observed,
 //! unverified). Every ixgbe link is full duplex.
 
 use crate::facts::mac::{LINKS_SPEED_MASK, LINKS_SPEED_NON_STD, LINKS_SPEED_SHIFT, LINKS_UP};
