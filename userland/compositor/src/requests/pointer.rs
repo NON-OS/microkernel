@@ -20,10 +20,10 @@
 use super::read::words;
 use crate::protocol::{CURSOR_UPDATE_REQ_LEN, FOCUS_SET_REQ_LEN};
 
-/// FOCUS_SET: the pid now focused.
+/// FOCUS_SET: the pid now focused; the padding word must be zero.
 pub fn focus_set(body: &[u8]) -> Option<u32> {
-    let [pid] = words::<1, FOCUS_SET_REQ_LEN>(body)?;
-    Some(pid)
+    let [pid, pad] = words::<2, FOCUS_SET_REQ_LEN>(body)?;
+    (pad == 0).then_some(pid)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -33,10 +33,11 @@ pub struct Cursor {
     pub visible: bool,
 }
 
-/// CURSOR_UPDATE: any non-zero third word shows the pointer.
+/// CURSOR_UPDATE: any non-zero third word shows the pointer; the padding
+/// word must be zero.
 pub fn cursor_update(body: &[u8]) -> Option<Cursor> {
-    let [x, y, visible] = words::<3, CURSOR_UPDATE_REQ_LEN>(body)?;
-    Some(Cursor { x, y, visible: visible != 0 })
+    let [x, y, visible, pad] = words::<4, CURSOR_UPDATE_REQ_LEN>(body)?;
+    (pad == 0).then_some(Cursor { x, y, visible: visible != 0 })
 }
 
 impl Cursor {

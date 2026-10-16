@@ -25,7 +25,7 @@ use crate::state::scene::Layer;
 pub const BAND_ONLY: u32 = 1;
 
 /// SCENE_SUBMIT's body: the surface handle u64, then x, y, width, height
-/// and z, u32 each.
+/// and z, u32 each, and a padding word that must be zero.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Placed {
     pub handle: u64,
@@ -37,8 +37,8 @@ pub struct Placed {
 }
 
 pub fn scene_submit(body: &[u8]) -> Option<Placed> {
-    let [lo, hi, x, y, width, height, z] = words::<7, SCENE_SUBMIT_REQ_LEN>(body)?;
-    Some(Placed { handle: wide(lo, hi), x, y, width, height, z })
+    let [lo, hi, x, y, width, height, z, pad] = words::<8, SCENE_SUBMIT_REQ_LEN>(body)?;
+    (pad == 0).then_some(Placed { handle: wide(lo, hi), x, y, width, height, z })
 }
 
 impl Placed {
