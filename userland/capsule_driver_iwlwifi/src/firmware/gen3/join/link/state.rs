@@ -17,6 +17,7 @@
 
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
+use nonos_wifi_core::key::HeldKey;
 use nonos_wifi_core::station::LinkStation;
 
 /// Ethernet frames held for net_core between its polls.
@@ -47,8 +48,9 @@ pub struct Link {
     pub left: Option<u16>,
     /// The access point went unheard and answered no probe.
     pub silent: bool,
-    /// A group key the access point delivered, for the firmware.
-    pub new_group_key: Option<(u8, [u8; 16])>,
+    /// A group key the access point delivered, held until the firmware has
+    /// it; wiped where it lies when replaced or cleared.
+    pub new_group_key: Option<(u8, HeldKey)>,
     pub stats: LinkStats,
     /// The rate words for data frames and for handshake and management ones.
     pub data_rate: u32,
