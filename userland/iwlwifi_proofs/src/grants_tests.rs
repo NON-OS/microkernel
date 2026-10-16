@@ -25,8 +25,8 @@ use crate::regs::Regs;
 
 const GRANTS: Grants = Grants { device_id: 5, claim_epoch: EPOCH, mmio: 6, irq: 7, dma: 8 };
 
-/// The release order: Bus Master off (Memory Space alone, 2), then the grants
-/// in reverse of the order setup took them, then the claim.
+/// The release order: Bus Master off (Memory Space alone, 2), the grants in
+/// reverse of the order setup took them, then the claim.
 const EVERYTHING: [(&str, u64); 5] = [
     ("pci_command", 2),
     ("dma_unmap", 8),
@@ -43,7 +43,8 @@ impl Window {
         Window(vec![0u32; 0x100 / 4])
     }
     fn regs(&mut self) -> Regs {
-        Regs::new(self.0.as_mut_ptr() as u64)
+        // SAFETY: the window's own 0x100 bytes, alive while it is borrowed.
+        unsafe { Regs::new(self.0.as_mut_ptr() as u64, 0x100) }
     }
 }
 

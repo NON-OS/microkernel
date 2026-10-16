@@ -18,24 +18,38 @@ use nonos_libc::Deadline;
 
 pub use crate::mmio::Mmio;
 
+/// The register window. Every access is checked against its length: an
+/// offset past it reads all ones, as a bus with nothing behind it does, and
+/// a write there goes nowhere.
 #[derive(Clone, Copy)]
 pub struct Regs {
     base: usize,
+    len: usize,
 }
 
 impl Regs {
-    pub const fn new(base: u64) -> Self {
-        Self { base: base as usize }
+    /// # Safety
+    /// `base` must be the start of `len` bytes of register window mapped for
+    /// this process (as `setup::mmio` maps BAR0) for as long as this lives.
+    pub const unsafe fn new(base: u64, len: u64) -> Self {
+        Self { base: base as usize, len: len as usize }
+    }
+    // The register at `off`, if four bytes there lie inside the window and
+    // it is aligned.
+    fn at(&self, off: usize) -> Option<usize> {
+        let end = off.checked_add(4)?;
+        (end <= self.len && off.is_multiple_of(4)).then(|| self.base + off)
     }
     pub fn read32(&self, off: usize) -> u32 {
-        // SAFETY: `base` is the BAR0 window the broker mapped uncached for this
-        // process (`setup::mmio`), and every offset passed is a register the
-        // window holds; the gen3 path checks its length before using it.
-        unsafe { core::ptr::read_volatile((self.base + off) as *const u32) }
+        let Some(p) = self.at(off) else { return u32::MAX };
+        // SAFETY: `new`'s caller vouched for `len` bytes at `base`, and `at`
+        // put this aligned word inside them.
+        unsafe { core::ptr::read_volatile(p as *const u32) }
     }
     pub fn write32(&self, off: usize, val: u32) {
+        let Some(p) = self.at(off) else { return };
         // SAFETY: as for `read32`.
-        unsafe { core::ptr::write_volatile((self.base + off) as *mut u32, val) }
+        unsafe { core::ptr::write_volatile(p as *mut u32, val) }
     }
     pub fn set_bits(&self, off: usize, bits: u32) {
         self.write32(off, self.read32(off) | bits);

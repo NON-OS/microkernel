@@ -32,7 +32,9 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
         irq: irq.grant_id,
         dma: dma.grant_id,
     };
-    let regs = Regs::new(mmio.user_va);
+    // SAFETY: the broker mapped `mmio.length` bytes of BAR0 at `user_va`
+    // for this process, and they stay mapped while the claim is held.
+    let regs = unsafe { Regs::new(mmio.user_va, mmio.length) };
     let init = init_or_release(regs, &grants)?;
     let _ = mk_irq_ack(irq.grant_id);
     Ok(Driver {

@@ -49,6 +49,8 @@ fn setup_wakes_the_chip_and_never_turns_bus_master_on() {
     let mut window = vec![0u32; 0x100 / 4];
     window[CSR_GP_CNTRL / 4] = GP_CNTRL_MAC_CLOCK_READY;
     let before = given_back().len();
-    assert!(init_or_release(Regs::new(window.as_mut_ptr() as u64), &GRANTS).is_ok());
+    // SAFETY: the window's own 0x100 bytes, alive for the call.
+    let regs = unsafe { Regs::new(window.as_mut_ptr() as u64, 0x100) };
+    assert!(init_or_release(regs, &GRANTS).is_ok());
     assert!(since(before).is_empty(), "no command write: Bus Master waits for the stop");
 }
