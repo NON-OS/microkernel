@@ -4295,6 +4295,29 @@
   "md": [],
   "signed": []
  },
+ "userland/shield_fuzz_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/libc",
+   "userland/nonos_hash",
+   "userland/nonos_hd",
+   "userland/nonos_nox_config",
+   "userland/nonos_route_link",
+   "userland/nonos_seal",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/shield_core",
+   "userland/shield_fuzz_proofs",
+   "userland/wallet_proofs/fixtures/nox1-phone.txt",
+   "userland/wallet_proofs/fixtures/nox1-pinned.txt"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/shield_wire_proofs": {
   "exclude": [],
   "include": [
