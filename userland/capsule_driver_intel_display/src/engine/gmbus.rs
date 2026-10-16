@@ -19,10 +19,10 @@
 //! controller has them ready, then end with a stop. A NAK clears the
 //! controller and is reported; every wait has a deadline.
 
-use super::access::{Clock, Expiry, Mmio, Until};
+use super::access::{Clock, Mmio};
 use super::error::Error;
 use super::gmbus_regs::*;
-use super::gmbus_take::{take, STEP_US};
+use super::gmbus_xfer::take::take;
 
 /// Read `out.len()` bytes (at most 256) of the EDID on DDI `ddi`'s DDC
 /// pins, from byte `index`.
@@ -40,13 +40,6 @@ pub fn read_edid(
     m.write(GMBUS0, p);
     m.write(GMBUS1, read_cmd(0x50, index, out.len()));
     let r = take(m, clock, out);
-    if r.is_err() {
-        m.write(GMBUS1, SW_CLR_INT);
-        m.write(GMBUS1, 0);
-    }
-    m.write(GMBUS1, SW_RDY | CYCLE_STOP);
-    let until = Until::new(clock, STEP_US);
-    while m.read(GMBUS2) & ACTIVE != 0 && !until.expired() {}
-    m.write(GMBUS0, 0);
+    super::gmbus_xfer::end::end(m, clock, r.is_err());
     r
 }
