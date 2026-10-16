@@ -16,27 +16,24 @@
 
 //! The device made ready for input: its device descriptor asked for and
 //! read, then its report descriptor, and the HID driver's state filled from
-//! them as a touchpad's on I2C is. The input mode is not switched: a pad
-//! stays in its mouse collection until the feature report is written here.
+//! them as a touchpad's on I2C is; then its input mode and switches set by
+//! the same feature report logic as on I2C.
 
 use alloc::vec::Vec;
 
-use nonos_libc::mk_idle_ms;
 use nonos_spi_hid::{descriptor, DEVICE_DESCRIPTOR_LEN, IN_DEVICE_DESCRIPTOR};
 use nonos_spi_hid::{IN_REPORT_DESCRIPTOR, OUT_DEVICE_DESCRIPTOR, OUT_REPORT_DESCRIPTOR};
 
+use crate::feature::{configure_reporting, SpiFeatures};
 use crate::hid::{parse_mouse_layout, parse_report_descriptor, Multitouch};
 use crate::link::Link;
-use crate::report::{ask, read};
+use crate::report::{ask, await_kind};
 use crate::state::State;
 
 /// The shared poll reads only a device with an input register. An SPI
 /// device's reports come at the firmware's address instead, so any value
 /// but zero lets the poll read.
 const INPUT_REGISTER: u16 = 1;
-/// Reads after a request before its answer is given up on.
-const ANSWER_READS: u32 = 50;
-const ANSWER_MS: u64 = 10;
 
 pub fn bring_up(l: &Link, state: &mut State) -> Result<(), &'static str> {
     let d = answer(l, OUT_DEVICE_DESCRIPTOR, IN_DEVICE_DESCRIPTOR)
@@ -52,23 +49,12 @@ pub fn bring_up(l: &Link, state: &mut State) -> Result<(), &'static str> {
     state.touch_layout = parse_report_descriptor(&rd);
     state.mt = Multitouch::new(&rd, &state.touch_layout);
     state.mouse_layout = parse_mouse_layout(&rd);
+    // Best effort, as on I2C: a pad without the features is unaffected.
+    let _ = configure_reporting(&SpiFeatures { link: l }, &state.touch_layout);
     Ok(())
 }
 
-/// The request written, then reports read until one of `kind` answers it;
-/// any other met meanwhile (a reset announced, stale input) is let go.
+/// The request written, and the answer of `kind` to it.
 fn answer(l: &Link, request: u8, kind: u8) -> Option<Vec<u8>> {
-    if !ask(l, request) {
-        return None;
-    }
-    for _ in 0..ANSWER_READS {
-        match read(l) {
-            Some(r) if r.kind == kind => return Some(r.content),
-            Some(_) => {}
-            None => {
-                let _ = mk_idle_ms(ANSWER_MS);
-            }
-        }
-    }
-    None
+    ask(l, request, 0, &[]).then(|| await_kind(l, kind)).flatten().map(|r| r.content)
 }

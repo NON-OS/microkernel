@@ -26,6 +26,7 @@ extern crate alloc;
 
 mod acpi;
 mod bring_up;
+mod feature;
 // Shared with HID over I2C, whose frame dump this driver does not make.
 #[allow(dead_code)]
 #[path = "../../capsule_driver_i2c_hid/src/diag.rs"]
