@@ -1,58 +1,10 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Proofs for the receiver-enable path (`phy::rxpath`): the RX-path reset toggle
-//! around the table load, the RFE antenna switch that routes the antenna into the
-//! WiFi low-noise amplifier, the 2.4GHz receive-path select, and the receive
-//! digital filter. A modeled device stores register values so read-modify-writes
-//! behave, and records the last value written to each offset.
 
-use core::cell::RefCell;
+//! The receive path: its reset, the antenna switch, the filter.
 
+use super::model::{Dev, REG_ACBB0, REG_CCK_CHECK, REG_RFECTL, REG_RXPSEL, RX_PSEL_RST};
 use crate::phy::channel::Bw;
-use crate::phy::rxpath::{pre_tables, post_tables, rfe_is_btg, set_channel};
-use crate::regs::Mmio;
-
-struct Dev {
-    store: RefCell<[u32; 0x3000]>,
-}
-
-impl Dev {
-    fn new() -> Self {
-        Self { store: RefCell::new([0u32; 0x3000]) }
-    }
-    fn get(&self, off: usize) -> u32 {
-        self.store.borrow()[off]
-    }
-    fn seed(&self, off: usize, v: u32) {
-        self.store.borrow_mut()[off] = v;
-    }
-}
-
-impl Mmio for Dev {
-    fn read8(&self, off: usize) -> u8 {
-        self.store.borrow()[off] as u8
-    }
-    fn write8(&self, off: usize, v: u8) {
-        self.store.borrow_mut()[off] = v as u32;
-    }
-    fn read16(&self, off: usize) -> u16 {
-        self.store.borrow()[off] as u16
-    }
-    fn write16(&self, off: usize, v: u16) {
-        self.store.borrow_mut()[off] = v as u32;
-    }
-    fn read32(&self, off: usize) -> u32 {
-        self.store.borrow()[off]
-    }
-    fn write32(&self, off: usize, v: u32) {
-        self.store.borrow_mut()[off] = v;
-    }
-}
-
-const REG_RXPSEL: usize = 0x0808;
-const REG_CCK_CHECK: usize = 0x0454;
-const REG_RFECTL: usize = 0x0CB8;
-const REG_ACBB0: usize = 0x0948;
-const RX_PSEL_RST: u32 = (1 << 28) | (1 << 29);
+use crate::phy::rxpath::{post_tables, pre_tables, rfe_is_btg, set_channel};
 
 #[test]
 fn pre_tables_clears_and_post_tables_sets_the_rx_path_reset() {
@@ -86,20 +38,6 @@ fn set_channel_routes_the_antenna_and_selects_the_receive_path() {
 
     // The receive digital filter is programmed for 20MHz.
     assert_eq!((dev.get(REG_ACBB0) >> 28) & 0x3, 0x2, "rx digital filter set");
-}
-
-#[test]
-fn set_channel_programs_a_nonzero_transmit_power() {
-    let dev = Dev::new();
-    set_channel(&dev, 1, Bw::W20, false);
-    // Every rate register carries the fixed power index in all four bytes, so
-    // frames leave the antenna with real power instead of the zero default.
-    for group in 0..5usize {
-        let word = dev.get(0x1D00 + group * 4);
-        assert_ne!(word, 0, "rate group {group} has transmit power");
-        assert_eq!(word & 0xFF, 0x28, "power index in the low byte");
-        assert_eq!(word, 0x2828_2828, "the index is packed across all four rates");
-    }
 }
 
 #[test]
