@@ -17,6 +17,9 @@ license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
 description = "Fixed LBAs and the package store format of a NONOS disk"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 
 [dependencies]
