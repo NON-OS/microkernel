@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What follows INITIALIZE in Linux generic_rndis_bind: the permanent
-//! station address, which the bind cannot go on without, then the packet
-//! filter, without which an RNDIS device passes no data.
+//! What follows INITIALIZE (Remote NDIS 1.0, 3.1): the permanent station
+//! address, which the bind cannot go on without, then the packet filter,
+//! without which an RNDIS device passes no data.
 
 use nonos_usbnet::xhci::E_IO;
 use nonos_usbnet::Bus;
