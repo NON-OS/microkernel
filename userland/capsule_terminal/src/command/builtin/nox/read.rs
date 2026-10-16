@@ -29,7 +29,12 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     }
     let pid = ensure_pid(state);
     let path = resolve(state.cwd.as_bytes(), args[0]);
-    match read_file(pid, &path, MAX) {
+    /* One byte past the most, so a longer file is refused, never shown cut. */
+    match read_file(pid, &path, MAX + 1) {
+        Ok(data) if data.len() > MAX as usize => {
+            state.scrollback.push_error(b"nox read: larger than it shows (64 KiB)");
+            false
+        }
         Ok(data) => {
             for line in data.split(|&c| c == b'\n') {
                 state.scrollback.push_line(line);

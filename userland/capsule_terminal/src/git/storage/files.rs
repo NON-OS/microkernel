@@ -31,7 +31,13 @@ const MAX_READ: u32 = 8 * 1024 * 1024;
 
 pub(super) fn read(s: &VfsStorage, path: &str) -> Result<Vec<u8>, StorageError> {
     let full = s.full(path);
-    vfs::read_file(s.owner, full.as_bytes(), MAX_READ).map_err(|_| StorageError::NotFound)
+    // One byte past the bound, so a longer file is refused, never handed on cut.
+    let bytes = vfs::read_file(s.owner, full.as_bytes(), MAX_READ + 1)
+        .map_err(|_| StorageError::NotFound)?;
+    match bytes.len() > MAX_READ as usize {
+        true => Err(StorageError::Io),
+        false => Ok(bytes),
+    }
 }
 
 pub(super) fn write(s: &VfsStorage, path: &str, data: &[u8]) -> Result<(), StorageError> {
