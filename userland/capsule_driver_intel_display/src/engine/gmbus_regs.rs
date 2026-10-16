@@ -59,3 +59,13 @@ pub fn read_cmd(addr: u32, index: u8, len: usize) -> u32 {
         | (addr << 1)
         | 1
 }
+
+/// A write command: `len` bytes to 7-bit `addr`, no index cycle.
+pub fn write_cmd(addr: u32, len: usize) -> u32 {
+    SW_RDY | CYCLE_WAIT | ((len as u32 & 0x1FF) << 16) | (addr << 1)
+}
+
+/// A read with no index cycle: `len` bytes from 7-bit `addr`.
+pub fn plain_read_cmd(addr: u32, len: usize) -> u32 {
+    write_cmd(addr, len) | 1
+}

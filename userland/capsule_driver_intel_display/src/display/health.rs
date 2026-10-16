@@ -33,7 +33,7 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
     /// Output `o`'s STATE flags now, its generation bumped when they say
     /// something new: a change, or a loss the compositor must repaint.
     pub fn health(&mut self, o: u16) -> Result<u32, Errno> {
-        let Intel { m, clock, gen, heads } = self;
+        let Intel { m, clock, gen, heads, .. } = self;
         let h = heads.get_mut(o as usize).and_then(|h| h.as_mut()).ok_or(ENXIO)?;
         let (p, t) = (h.out.pipe, h.out.transcoder);
         let flags = match check(m, gen, p, t, h.scan.surfaces[h.scan.front]) {

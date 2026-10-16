@@ -18,19 +18,19 @@
 //! backlight's PWM in Gen9's south display (`engine::backlight`, SKL PRM
 //! Vol 2c BLC_PWM_PCH_CTL1/2), a level out of the period firmware set for
 //! the panel, so every step the PWM has is a level and none is invented.
-//! Behind a trait so the wire's brightness op binds to it once its bytes
-//! are fixed (F 12), and so a panel driven over DPCD can stand beside it.
-//! Other generations' backlight registers are not cited here: ENOSYS.
+//! Behind a trait so the wire's brightness op binds to it (F 12). Any
+//! other output is an external monitor, whose own brightness control is
+//! asked over DDC/CI (VCP 0x10); one without it, or another generation's
+//! panel, whose backlight registers are not cited here, is ENOSYS.
 
 use nonos_gfx_wire::errno::{EINVAL, ENOSYS};
 use nonos_gfx_wire::Errno;
 
 use super::frames::Frames;
 use super::intel::Intel;
+use crate::ddc::vcp::BRIGHTNESS;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::backlight;
-use crate::engine::gen::GEN9;
-use crate::engine::pipe::Transcoder;
 
 pub trait Brightness {
     /// The level now and the most it can be, on `output`.
@@ -41,27 +41,21 @@ pub trait Brightness {
 
 impl<M: Mmio, F: Frames, C: Clock> Brightness for Intel<M, F, C> {
     fn brightness(&mut self, output: u16) -> Result<(u32, u32), Errno> {
-        let max = self.pwm_period(output)?;
-        Ok((backlight::get(&mut self.m, max), max))
+        match self.pwm_period(output) {
+            Ok(max) => Ok((backlight::get(&mut self.m, max), max)),
+            Err(ENOSYS) => self.monitor_brightness(output),
+            Err(e) => Err(e),
+        }
     }
 
     fn set_brightness(&mut self, output: u16, level: u32) -> Result<(), Errno> {
-        let max = self.pwm_period(output)?;
-        backlight::set(&mut self.m, level, max).map_err(|_| EINVAL)
-    }
-}
-
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
-    /// The PWM's period when `output` is a Gen9 eDP panel whose PWM
-    /// firmware set up; an output that is not one has no backlight here.
-    fn pwm_period(&mut self, output: u16) -> Result<u32, Errno> {
-        let edp = self.head(output)?.out.transcoder == Transcoder::Edp;
-        if !edp || *self.gen != GEN9 {
-            return Err(ENOSYS);
-        }
-        match backlight::period(&mut self.m) {
-            0 => Err(ENOSYS),
-            p => Ok(p),
+        match self.pwm_period(output) {
+            Ok(max) => backlight::set(&mut self.m, level, max).map_err(|_| EINVAL),
+            Err(ENOSYS) => {
+                let level = u16::try_from(level).map_err(|_| EINVAL)?;
+                self.vcp_write(output, BRIGHTNESS, level)
+            }
+            Err(e) => Err(e),
         }
     }
 }

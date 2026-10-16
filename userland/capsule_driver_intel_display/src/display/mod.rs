@@ -20,9 +20,12 @@
 
 mod brightness;
 mod brightness_ops;
+mod brightness_source;
 mod brightness_wire;
 mod copy;
 mod cursor;
+mod ddc_bus;
+mod ddc_of;
 mod describe;
 mod frames;
 mod head;
@@ -39,6 +42,7 @@ mod panel_fits;
 mod panel_of;
 mod red_first;
 mod timing_pick;
+mod vcp_wire;
 mod wire;
 
 pub use brightness::Brightness;

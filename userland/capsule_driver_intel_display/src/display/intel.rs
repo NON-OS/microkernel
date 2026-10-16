@@ -23,6 +23,7 @@ use nonos_gfx_wire::Errno;
 
 use super::frames::Frames;
 use super::head::Head;
+use crate::ddc::pace::Pacer;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::gen::Gen;
 
@@ -40,9 +41,15 @@ pub struct Intel<M: Mmio, F: Frames, C: Clock> {
     pub gen: &'static Gen,
     /// The taken-over outputs, packed from the first.
     pub heads: [Option<Head<F>>; MAX_HEADS],
+    /// Each output's DDC/CI timing and what its monitor last said.
+    pub ddc: [Pacer; MAX_HEADS],
 }
 
 impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+    pub fn new(m: M, clock: C, gen: &'static Gen, heads: [Option<Head<F>>; MAX_HEADS]) -> Self {
+        Intel { m, clock, gen, heads, ddc: Default::default() }
+    }
+
     pub fn count(&self) -> usize {
         self.heads.iter().take_while(|h| h.is_some()).count()
     }

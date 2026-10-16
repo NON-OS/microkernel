@@ -68,6 +68,6 @@ pub fn take(
     if n == 0 {
         return Err(first_err);
     }
-    let intel = Intel { m, clock, gen, heads };
+    let intel = Intel::new(m, clock, gen, heads);
     Ok(Driver { server: Server::new(intel, Pool), _handles: h })
 }

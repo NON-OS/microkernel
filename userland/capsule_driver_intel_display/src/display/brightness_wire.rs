@@ -21,9 +21,11 @@
 //! identity u32, the level now in percent (0xFF unknown), n u8 and n
 //! ascending percent levels. SET_BRIGHTNESS (4) takes a percent and maybe
 //! a panel; each panel goes to its level nearest it, a tie to the lower.
+//! VCP (5) and SET_VCP (6) are a monitor's own controls (`vcp_wire.rs`).
 //! An unknown op is EINVAL with no body.
 
 use super::brightness::Brightness;
+use super::vcp_wire::{Controls, OP_SET_VCP, OP_VCP};
 
 pub const OP_BRIGHTNESS: u8 = 3;
 pub const OP_SET_BRIGHTNESS: u8 = 4;
@@ -41,7 +43,7 @@ pub fn identity(output: u16) -> u32 {
 
 /// Answer `req` into `out`; `may_set` is whether the sender is one that
 /// may change brightness (power, desktop_shell). The bytes written.
-pub fn answer<B: Brightness>(
+pub fn answer<B: Brightness + Controls>(
     b: &mut B,
     outputs: u16,
     req: &[u8],
@@ -61,6 +63,9 @@ pub fn answer<B: Brightness>(
                 Some(_) if !may_set => (EPERM, 0),
                 Some(p) => (super::brightness_ops::set(b, outputs, *pct, p), 0),
             }
+        }
+        [OP_VCP | OP_SET_VCP, ..] => {
+            super::vcp_wire::answer(b, outputs, req, may_set, &mut out[4..])
         }
         _ => (EINVAL, 0),
     };

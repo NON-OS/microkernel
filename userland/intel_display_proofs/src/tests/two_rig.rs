@@ -70,6 +70,6 @@ pub fn two_rig() -> (Rig, Rc<RefCell<Gen9>>, [(u32, u32); 2]) {
             Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor };
         heads[i] = Some(h);
     }
-    let d = Intel { m: Shared(model.clone()), clock: Ticks::new(), gen: &GEN9, heads };
+    let d = Intel::new(Shared(model.clone()), Ticks::new(), &GEN9, heads);
     (d, model, windows)
 }
