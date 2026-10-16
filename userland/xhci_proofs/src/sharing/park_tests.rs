@@ -1,8 +1,8 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! OP_PARK takes an addressed child out from under whoever drives it, so
 //! only a driver admitted on both the child's slot and its hub's parks it:
-//! the hub driver that enabled both, or a claimant of each. Anyone else,
-//! or a driver holding only one of the two, gets -1.
+//! a claimant of each, or its holder while it has none. Anyone else, or a
+//! driver on only one of the two, gets -1.
 
 use crate::slots::{gate_park, Sharing};
 
@@ -30,6 +30,9 @@ fn only_the_driver_on_both_slots_parks() {
     assert_eq!(gate_park(&mut s, 5, 2, HUB, alive), Err(-1), "the hub alone");
     s.claims.claim(2, 1, 0, MSC).unwrap();
     assert_eq!(gate_park(&mut s, 5, 2, MSC, alive), Ok(()), "a claimant of the hub");
+    let mut s = hub_and_child();
+    s.claims.claim(2, 1, 0, MSC).unwrap();
+    assert_eq!(gate_park(&mut s, 5, 2, HUB, alive), Err(-1), "the holder once it is shared");
 }
 
 #[test]
