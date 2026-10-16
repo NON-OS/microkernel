@@ -16,23 +16,24 @@
 
 //! The bytes of a GMBUS write as the controller takes them: the first four
 //! in GMBUS3 before the command goes, each next four once it shows ready,
-//! then the wait phase after the last; a NAK on the way ends it.
+//! then the wait phase after the last; a NAK on the way ends it. Left in
+//! that phase, the next command follows with a repeated start.
 
-use super::super::access::{Clock, Mmio};
+use super::super::access::{Expiry, Mmio};
 use super::super::error::Error;
 use super::super::gmbus_regs::{write_cmd, GMBUS1, GMBUS3, HW_RDY, HW_WAIT_PHASE, NAK};
 use super::take::wait_any;
 
 /// Write `bytes` (at most 0x1FF) to 7-bit `addr` on the selected pins.
-pub fn put(m: &mut dyn Mmio, clock: &dyn Clock, addr: u32, bytes: &[u8]) -> Result<(), Error> {
+pub fn put(m: &mut dyn Mmio, until: &dyn Expiry, addr: u32, bytes: &[u8]) -> Result<(), Error> {
     let mut words = bytes.chunks(4).map(word);
     m.write(GMBUS3, words.next().unwrap_or(0));
     m.write(GMBUS1, write_cmd(addr, bytes.len()));
     for w in words {
-        acked(wait_any(m, HW_RDY, clock)?)?;
+        acked(wait_any(m, HW_RDY, until)?)?;
         m.write(GMBUS3, w);
     }
-    acked(wait_any(m, HW_WAIT_PHASE, clock)?)
+    acked(wait_any(m, HW_WAIT_PHASE, until)?)
 }
 
 fn word(c: &[u8]) -> u32 {
