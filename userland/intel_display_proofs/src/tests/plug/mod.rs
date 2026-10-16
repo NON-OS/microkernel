@@ -18,6 +18,6 @@ mod back_tests;
 mod line_tests;
 mod midset_tests;
 mod pace_tests;
-mod plug_rig;
+pub mod plug_rig;
 mod pull_tests;
 mod still_tests;

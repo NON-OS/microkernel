@@ -15,20 +15,43 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A lit pipe's share of the display buffer and its plane's watermarks,
-//! for a new line after a mode set: the pipe alone on the engine gets the
-//! whole buffer (`ddb::allocate`), and the levels follow the new width,
-//! line total and clock (`wm::levels`) from the latencies pcode reported.
-//! Double-buffered with the plane, they latch with its next surface write.
+//! for a new line after a mode set. Alone on the engine the pipe gets the
+//! whole buffer (`ddb::allocate`). Beside another lit pipe it keeps the
+//! runs it has: those cannot overlap the other's, and moving the other
+//! would mean rewriting its watermarks to latch at its own blank. The
+//! levels follow the new width, line total and clock (`wm::levels`) from
+//! the latencies pcode reported, and latch with the plane's next surface.
 
 use super::super::access::Mmio;
+use super::super::error::Error;
 use super::super::pipe::Pipe;
+use super::super::plane_read::ENABLE;
+use super::super::plane_regs::plane_ctl;
+use super::super::wm_write::{cur_buf_cfg, plane_buf_cfg};
 use super::super::{ddb, wm, wm_write};
 use nonos_edid::Detailed;
 
-pub fn buffer(m: &mut dyn Mmio, p: Pipe, width: u32, timing: &Detailed, latency_us: &[u32; 8]) {
-    let mut lit = [false; 3];
-    lit[p.index() as usize] = true;
-    let runs = ddb::allocate(lit)[p.index() as usize];
+pub fn buffer(
+    m: &mut dyn Mmio,
+    p: Pipe,
+    width: u32,
+    timing: &Detailed,
+    latency_us: &[u32; 8],
+) -> Result<(), Error> {
+    let others = Pipe::ALL[..3].iter().filter(|&&q| q != p);
+    let alone = others.into_iter().all(|&q| m.read(plane_ctl(q, 1)) & ENABLE == 0);
+    let runs = if alone {
+        let mut lit = [false; 3];
+        lit[p.index() as usize] = true;
+        ddb::allocate(lit)[p.index() as usize]
+    } else {
+        (ddb::Run::of(m.read(plane_buf_cfg(p))), ddb::Run::of(m.read(cur_buf_cfg(p))))
+    };
+    if runs.0.is_empty() {
+        // Firmware gave a lit pipe no buffer: none is ours to take.
+        return Err(Error::Layout);
+    }
     let levels = wm::levels(latency_us, width, timing.h_total(), timing.pixel_khz, runs.0.len());
     wm_write::write(m, p, runs, &levels);
+    Ok(())
 }

@@ -39,7 +39,7 @@ pub fn light(
     bases: [u64; 2],
 ) -> Result<(), Error> {
     relight(m, clock, &ms.lit, timing, ms.tmds_khz)?;
-    buffer(m, ms.lit.p, size.0, timing, &ms.latency_us);
+    buffer(m, ms.lit.p, size.0, timing, &ms.latency_us)?;
     let until = Until::new(clock, FLIP_US);
     scan.rebase(m, size, ms.window, bases, &until)
 }

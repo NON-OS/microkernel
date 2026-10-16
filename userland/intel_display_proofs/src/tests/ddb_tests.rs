@@ -41,3 +41,11 @@ fn buffer_config_words_hold_the_inclusive_end() {
     assert_eq!(Run::default().cfg(), 0);
     assert!(allocate([false; 3]).iter().all(|r| r.0.is_empty() && r.1.is_empty()));
 }
+
+#[test]
+fn a_run_reads_back_from_its_register_value() {
+    for run in [Run { start: 0, end: 448 }, Run { start: 448, end: 888 }, Run::default()] {
+        assert_eq!(Run::of(run.cfg()), run);
+    }
+    assert_eq!(Run::of((863 << 16) | 400), Run { start: 400, end: 864 });
+}
