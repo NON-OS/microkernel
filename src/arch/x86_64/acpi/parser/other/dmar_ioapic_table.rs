@@ -30,6 +30,11 @@ pub(super) fn record(drhd: &[u8]) {
     ioapic_scopes(drhd, DRHD_HEADER_LEN, &mut SCOPES.lock()[..]);
 }
 
+/// Whether a DRHD names the IO-APIC whose MADT id is `id`.
+pub fn ioapic_named(id: u8) -> bool {
+    SCOPES.lock().iter().flatten().any(|s| s.id == id)
+}
+
 /// The requester id of the IO-APIC whose MADT id is `id`, each bridge on
 /// its path read for its secondary bus by `secondary`; None when no DRHD
 /// names it.

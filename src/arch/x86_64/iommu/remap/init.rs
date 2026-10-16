@@ -66,6 +66,7 @@ pub fn init() {
         }
     }
     ACTIVE.store(true, Ordering::Release);
+    super::unnamed::say_unnamed_ioapics();
     let mut line = Line::new();
     line.str(b"[VT-D] IOMMU interrupt remapping on, entries=").dec(offsets::IRTE_ENTRIES as u64);
     line.str(b", compatibility format interrupts blocked").end();

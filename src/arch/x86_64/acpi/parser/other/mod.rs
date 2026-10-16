@@ -39,7 +39,7 @@ mod srat_memory;
 pub use dmar::parse_dmar;
 pub use dmar_units::{foreign_segment_units, remap_unit_bases, remap_unit_scopes};
 pub use dmar_flags::dmar_platform_opt_in;
-pub use dmar_ioapic_table::ioapic_source;
+pub use dmar_ioapic_table::{ioapic_named, ioapic_source};
 pub use dmar_reserved::reserved_regions;
 pub use dmar_scope::{translated_by_some, UnitScope};
 pub use hpet::parse_hpet;
