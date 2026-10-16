@@ -45,6 +45,8 @@ mod ports;
 mod power_meter;
 #[path = "props/mod.rs"]
 mod props;
+#[path = "shapes/mod.rs"]
+mod shapes;
 #[path = "serial/mod.rs"]
 pub(crate) mod serial;
 #[path = "time_alarm/mod.rs"]

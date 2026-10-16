@@ -19,13 +19,13 @@
 //! device's current resources. Read after \_PIC, since the answer often
 //! depends on the interrupt model.
 
-use super::eval::{child, integer, Eval};
+use super::eval::{child, Eval};
 use super::prt_link::link_gsi;
-pub use super::route::Route;
+pub use super::route::{entry, Route, Source};
 use crate::exec::{Fault, FaultKind};
 use crate::load::Aml;
 use crate::namespace::Id;
-use crate::object::{Object, Ref};
+use crate::object::Object;
 use alloc::vec::Vec;
 
 fn bad() -> Fault {
@@ -41,21 +41,14 @@ pub fn routes(aml: &mut Aml, eval: &mut Eval<'_>, bridge: Id) -> Option<Result<V
         let mut out = Vec::new();
         for e in entries {
             let Object::Package(e) = e else { return Err(bad()) };
-            let e = e.borrow().clone();
-            let field = |i: usize| e.get(i).and_then(integer).ok_or_else(bad);
-            let (address, pin, index) = (field(0)?, field(1)?, field(3)?);
-            let (slot, pin) = ((address >> 16) as u16, (pin & 3) as u8);
-            let route = match e.get(2) {
-                Some(Object::Integer(0)) => {
-                    Route { slot, pin, link: None, gsi: u32::try_from(index).ok() }
+            let (slot, pin, source) = entry(&e.borrow()).ok_or_else(bad)?;
+            out.push(match source {
+                Source::Gsi(gsi) => Route { slot, pin, link: None, gsi },
+                Source::Link(link, index) => {
+                    let gsi = link_gsi(aml, eval, link, index)?;
+                    Route { slot, pin, link: Some(link), gsi }
                 }
-                Some(Object::Ref(Ref::Named(link, _))) | Some(Object::Named(link, _)) => {
-                    let gsi = link_gsi(aml, eval, *link, index)?;
-                    Route { slot, pin, link: Some(*link), gsi }
-                }
-                _ => return Err(bad()),
-            };
-            out.push(route);
+            });
         }
         Ok(out)
     }))

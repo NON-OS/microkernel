@@ -32,9 +32,14 @@ pub struct BatteryStatus {
     pub voltage: Option<u32>,
 }
 
+/// State bits past charge limiting (bit 3), or charging and discharging at
+/// once, are a lie: the status is refused, so a lying critical bit cannot
+/// run the power-off (bit 3 is recalled, unverified).
+const STATE_BITS: u32 = 0xF;
+
 pub fn parse_bst(o: &Object) -> Option<BatteryStatus> {
     let e = elements(o)?;
-    let state = known(&e, 0)?;
+    let state = known(&e, 0).filter(|s| s & !STATE_BITS == 0 && s & 3 != 3)?;
     (e.len() >= 4).then(|| BatteryStatus {
         discharging: state & 1 != 0,
         charging: state & 2 != 0,

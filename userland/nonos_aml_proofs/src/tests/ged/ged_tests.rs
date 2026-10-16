@@ -67,7 +67,7 @@ fn small_irq_and_cut_templates() {
     );
     let mut lying = extended(0x02, &[7]);
     lying[4] = 5;
-    assert_eq!(interrupt_entries(&lying).len(), 1, "a count past the body");
+    assert!(interrupt_entries(&lying).is_empty(), "a count past the body: none believed");
     let cut = extended(0x02, &[7, 8]);
     assert!(interrupt_entries(&cut[..cut.len() - 1]).is_empty(), "the descriptor runs past");
     let end = [vec![0x79, 0x00], extended(0x02, &[7])].concat();

@@ -25,7 +25,7 @@ mod tree;
 mod uuid;
 mod value;
 
-pub use set::{properties, properties_under};
+pub use set::{properties, properties_in, properties_under};
 pub use tree::{tree, Node, MAX_NODES};
 pub use uuid::{DEVICE_PROPERTIES_UUID, HIERARCHICAL_DATA_UUID};
 pub use value::{Property, Value, MAX, MAX_DEPTH};
