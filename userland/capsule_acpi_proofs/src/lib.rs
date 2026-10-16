@@ -19,6 +19,10 @@
 
 extern crate alloc;
 
+#[path = "../../capsule_acpi/src/cpu/caps.rs"]
+pub mod caps;
+#[path = "../../capsule_acpi/src/cpu/caps_kernel.rs"]
+pub mod caps_kernel;
 #[path = "../../capsule_acpi/src/serial/bus_key.rs"]
 pub mod bus_key;
 pub mod native;
@@ -35,6 +39,8 @@ pub mod wake_sweep;
 
 #[cfg(test)]
 mod bus_key_tests;
+#[cfg(test)]
+mod caps_tests;
 #[cfg(test)]
 mod native_button_tests;
 #[cfg(test)]

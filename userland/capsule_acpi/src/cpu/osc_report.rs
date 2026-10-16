@@ -17,7 +17,7 @@
 //! One line on what the processors' _OSC answered, for every processor at
 //! once: what was asked, how many granted and what, how many refused.
 
-use super::caps::{word, DECLARED};
+use super::caps::{word, KERNEL, ROWS};
 use super::state::Cpus;
 use crate::sys::log::Line;
 use nonos_aml::cpu::ProcessorOsc;
@@ -32,7 +32,8 @@ pub fn say_osc(cpus: &Cpus) {
         }
     }
     let asked = Line::new(b"cpu _OSC asked ").hex(u64::from(word()));
-    let asked = DECLARED.iter().fold(asked, |l, c| l.str(b" ").str(c.what.as_bytes()));
+    let honoured = ROWS.iter().filter(|r| (r.honoured)(&KERNEL));
+    let asked = honoured.fold(asked, |l, r| l.str(b" ").str(r.what.as_bytes()));
     asked
         .str(b": granted ")
         .dec(granted)
