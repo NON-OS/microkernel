@@ -21,3 +21,4 @@ mod dmt_tests;
 mod fit_tests;
 mod link_tests;
 mod resolve_tests;
+mod sizes;

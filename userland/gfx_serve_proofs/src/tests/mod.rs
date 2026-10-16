@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod copy_size_tests;
 mod copy_tests;
 mod dark_tests;
 mod fault_tests;
@@ -22,5 +23,6 @@ mod mode_set_tests;
 mod op_tests;
 mod output_retire_tests;
 mod output_tests;
+mod size_tests;
 mod surface_tests;
 mod sweep_tests;
