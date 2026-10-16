@@ -16,7 +16,11 @@ pub fn keep(ctx: &mut Context) {
     let n = &mut ctx.net;
     if let (Some(net), true, true, true) = (n.joined, n.remember, keeps, n.pass_len > 0) {
         match remember(net.ssid(), &n.pass[..n.pass_len]) {
-            Ok(()) => say(b"[SETUP] Wi-Fi network remembered, sealed with the TPM key\n"),
+            Ok(gone) => {
+                // The log never names the dropped network; review does.
+                say(b"[SETUP] Wi-Fi network remembered, sealed with the TPM key\n");
+                n.dropped = gone;
+            }
             Err(e) => {
                 say(b"[SETUP] Wi-Fi network not remembered: ");
                 say(e.text().as_bytes());

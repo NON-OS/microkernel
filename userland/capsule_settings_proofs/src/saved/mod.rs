@@ -5,6 +5,9 @@
 //! The saved-network modules of `nonos_wifi_client`, grouped so their
 //! `super::` references resolve as they do in the crate.
 
+#[path = "../../../nonos_wifi_client/src/saved/dropped.rs"]
+mod dropped;
+mod dropped_tests;
 #[path = "../../../nonos_wifi_client/src/saved/error.rs"]
 mod error;
 #[path = "../../../nonos_wifi_client/src/saved/file.rs"]
