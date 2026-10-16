@@ -28,6 +28,7 @@ mod registry_addressed;
 mod addressed;
 mod cards;
 mod classified;
+mod clients;
 mod common;
 mod devices;
 mod gates;
