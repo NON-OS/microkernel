@@ -16,6 +16,7 @@
 
 //! What the compositor decides about displays: polls, sizes, scales and the cursor plane.
 
+mod arrange_tests;
 mod backoff_tests;
 mod cursor_plane_tests;
 mod cursor_rule_tests;
