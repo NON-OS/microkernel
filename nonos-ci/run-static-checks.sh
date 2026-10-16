@@ -204,6 +204,9 @@ for capsule_dir in userland/capsule_driver_*; do
         driver_doc_fail=1
         continue
     fi
+    # A README over 75 lines is split into parts under the crate's docs/,
+    # linked from it; the contract is read across the README and its parts.
+    doc_text="$(cat "${readme}" "${capsule_dir}"/docs/*.md 2>/dev/null || true)"
     for section in \
         '## Role' \
         '## Microkernel contract' \
@@ -221,20 +224,20 @@ for capsule_dir in userland/capsule_driver_*; do
         '## Release checklist' \
         '## Explicit non-goals today' \
         '## Verification'; do
-        if ! grep -Fq "${section}" "${readme}"; then
+        if ! grep -Fq -- "${section}" <<<"${doc_text}"; then
             fail_with "${readme} missing required section: ${section}"
             driver_doc_fail=1
         fi
     done
-    if ! grep -Fq '```text' "${readme}"; then
+    if ! grep -Fq '```text' <<<"${doc_text}"; then
         fail_with "${readme} must include an ASCII architecture diagram"
         driver_doc_fail=1
     fi
-    if ! grep -Fq 'CAPSULE_REQUIRED_CAPS' "${readme}"; then
+    if ! grep -Fq 'CAPSULE_REQUIRED_CAPS' <<<"${doc_text}"; then
         fail_with "${readme} must name the manifest capability mask"
         driver_doc_fail=1
     fi
-    if ! grep -Eq 'Mk(DeviceList|DeviceClaim|MmioMap|PioGrant|DmaMap|IrqBind|IpcRecv)' "${readme}"; then
+    if ! grep -Eq 'Mk(DeviceList|DeviceClaim|MmioMap|PioGrant|DmaMap|IrqBind|IpcRecv)' <<<"${doc_text}"; then
         fail_with "${readme} must name the Mk/broker syscall contract"
         driver_doc_fail=1
     fi
