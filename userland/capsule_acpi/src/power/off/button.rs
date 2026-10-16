@@ -19,10 +19,14 @@
 //! SCI, so that one reader alone clears its status bit.
 
 use super::power_off;
-use super::rule::{fixed_button, press as verdict, Press};
-use crate::sys::acpi_event::{acpi_event, BUTTON_TAKEN, POWER_BUTTON};
+use super::rule::{fixed_button, on_restart, press as verdict, Press};
+use core::sync::atomic::{AtomicBool, Ordering};
+use crate::sys::acpi_event::{acpi_event, button_taken, POWER_BUTTON};
 use crate::sys::log::Line;
 use nonos_aml::events::Policy;
+
+/// The kernel said a capsule served the button before this one.
+static RESTARTED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Presses {
@@ -32,7 +36,7 @@ pub struct Presses {
 }
 
 pub fn press(p: &mut Presses, now: u64) {
-    let v = verdict(p.last, p.pass_at, now);
+    let v = on_restart(verdict(p.last, p.pass_at, now), RESTARTED.load(Ordering::Relaxed));
     p.last = Some(now);
     match v {
         Press::PowerOff => {
@@ -56,8 +60,12 @@ pub fn take_button(fadt: &[u8]) {
     if !fixed_button(fadt) {
         return;
     }
-    match acpi_event(BUTTON_TAKEN, 0) {
-        Ok(()) => Line::new(b"power button: served here; the kernel's poll stands down").end(),
+    match button_taken() {
+        Ok(restarted) => {
+            RESTARTED.store(restarted, Ordering::Relaxed);
+            let again: &[u8] = if restarted { b" again, after a restart" } else { b"" };
+            Line::new(b"power button: served here").str(again).end();
+        }
         Err(e) => {
             Line::new(b"power button: the kernel kept it, errno ").dec(e.unsigned_abs()).end()
         }
