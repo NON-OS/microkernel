@@ -20,7 +20,13 @@
 use crate::drivers::pci::types::PciDevice;
 use crate::sys::serial::Line;
 
-pub(super) fn say(at: (u8, u8, u8), found: &PciDevice, id: u64, disabled: bool, fenced: Option<u32>) {
+pub(super) fn say(
+    at: (u8, u8, u8),
+    found: &PciDevice,
+    id: u64,
+    disabled: bool,
+    fenced: Option<u32>,
+) {
     let (bus, dev, func) = at;
     let iommu: &[u8] = if crate::memory::iommu::capabilities().enforcing {
         b"; IOMMU denies its DMA until it is claimed"
@@ -40,11 +46,19 @@ pub(super) fn say(at: (u8, u8, u8), found: &PciDevice, id: u64, disabled: bool, 
 }
 
 /// `revoked`: the holder and how many irq, dma, pio and mmio grants it lost.
-pub(super) fn left(at: (u8, u8, u8), id: u64, revoked: Option<(u32, [usize; 4])>) {
-    let (bus, dev, func) = at;
+/// `at`: a PCI function's address, or None for an ACPI platform record.
+pub(super) fn left(at: Option<(u8, u8, u8)>, id: u64, revoked: Option<(u32, [usize; 4])>) {
     let mut l = Line::new();
-    l.str(b"[ACPI] pci ").hex(u64::from(bus)).str(b":").hex(u64::from(dev)).str(b".");
-    l.dec(u64::from(func)).str(b" left: device=").hex(id);
+    match at {
+        Some((bus, dev, func)) => {
+            l.str(b"[ACPI] pci ").hex(u64::from(bus)).str(b":").hex(u64::from(dev)).str(b".");
+            l.dec(u64::from(func));
+        }
+        None => {
+            l.str(b"[ACPI] platform record");
+        }
+    }
+    l.str(b" left: device=").hex(id);
     let Some((pid, [i, d, p, m])) = revoked else {
         l.str(b" unheld").end();
         return;
