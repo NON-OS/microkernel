@@ -5,72 +5,15 @@
 //! entry yet", among them five it advertised as text commands (`sort`, `uniq`,
 //! `cut`, `nl`, `tac`, `rev`) that ran only after a `|` and said "not found"
 //! on their own. `whoami` and `version` printed a fixed signing claim and a
-//! namespace no manifest carries. These read the sources and the real
-//! registry parser, so neither side can drift.
+//! namespace no manifest carries. The pages and the dispatch are held in
+//! tables/help_pages_tests.rs; these hold who the terminal says it is to the
+//! real registry parser, and its identity lines to what they may claim.
 
-use crate::help_layout::GROUPS;
 use crate::receipt_own::{describe, entry_for, own_signer, signer, ENTRY_LEN};
 
-const HELP_ONE: &str = include_str!("../../capsule_terminal/src/command/builtin/help_one.rs");
-const EXEC: &str = include_str!("../../capsule_terminal/src/command/dispatch/exec.rs");
-const NOX: &str = include_str!("../../capsule_terminal/src/command/builtin/nox/dispatch.rs");
 const WHOAMI: &str = include_str!("../../capsule_terminal/src/command/builtin/whoami.rs");
 const VERSION: &str = include_str!("../../capsule_terminal/src/command/builtin/version.rs");
 const SPLASH: &str = include_str!("../../capsule_terminal/src/paint/fetch.rs");
-
-/// Every `b"..."` in the usage table, in order; the table is triples.
-fn usage_names() -> Vec<String> {
-    let from = HELP_ONE.find("const USAGE").unwrap();
-    let to = from + HELP_ONE[from..].find("\n];").unwrap();
-    let strings: Vec<String> = HELP_ONE[from..to]
-        .split("b\"")
-        .skip(1)
-        .filter_map(|p| p.split_once('"').map(|(s, _)| s.to_string()))
-        .collect();
-    assert_eq!(strings.len() % 3, 0, "the usage table is not triples");
-    strings.chunks(3).map(|t| t[0].clone()).collect()
-}
-
-fn grouped() -> Vec<String> {
-    GROUPS
-        .iter()
-        .flat_map(|(_, list)| std::str::from_utf8(list).unwrap().split_whitespace())
-        .map(str::to_string)
-        .collect()
-}
-
-#[test]
-fn every_command_help_lists_has_a_usage_page() {
-    let names = usage_names();
-    assert!(names.len() >= 60, "parsed {} entries", names.len());
-    for name in grouped() {
-        assert!(names.contains(&name), "help lists {name} and help {name} has no page");
-    }
-}
-
-/// Answered by the shell's own table or the nox table, by name.
-fn dispatched(name: &str) -> bool {
-    let arm = format!("b\"{name}\"");
-    EXEC.lines().chain(NOX.lines()).any(|l| l.contains(&arm) && l.contains("=>"))
-        || EXEC.contains(&format!("{arm} |"))
-        || NOX.contains(&format!("{arm} |"))
-}
-
-#[test]
-fn every_command_help_lists_runs_on_its_own() {
-    for name in grouped() {
-        assert!(dispatched(&name), "help lists {name} and nothing dispatches it");
-    }
-}
-
-#[test]
-fn no_page_promises_what_the_command_does_not_do() {
-    assert!(!HELP_ONE.contains("or update their time"), "touch updates no time");
-    assert!(!HELP_ONE.contains("let a stopped job carry on"), "nothing is ever stopped");
-    assert!(!HELP_ONE.contains("the registered services and the pids"), "service takes one name");
-    assert!(!HELP_ONE.contains("no argument goes home\""), "cd's home is $HOME");
-    assert!(!HELP_ONE.contains("yet"));
-}
 
 fn registry(entries: &[(u32, u8, u8)]) -> Vec<u8> {
     let mut out = Vec::new();
