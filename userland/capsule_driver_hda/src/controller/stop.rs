@@ -58,6 +58,7 @@ pub fn stop_engines(regs: Regs) -> HdaResult<()> {
     }
     // SAFETY: as above.
     stopped &= until(RESET_MS, || unsafe { regs.r8(RIRBCTL) } & RIRBCTL_DMAEN == 0);
+    // SAFETY: as above.
     stopped &= until(RESET_MS, || unsafe { regs.r8(CORBCTL) } & CORBCTL_RUN == 0);
     // The position buffer goes last, once no engine is seen running to write
     // it. SAFETY: as above.

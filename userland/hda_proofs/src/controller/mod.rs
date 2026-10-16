@@ -53,7 +53,7 @@ pub mod sst;
 pub mod stop;
 #[path = "../../../capsule_driver_hda/src/controller/stream_layout.rs"]
 pub mod stream_layout;
-#[path = "../../../capsule_driver_hda/src/controller/stream_run.rs"]
+#[path = "../../../capsule_driver_hda/src/controller/stream_run/mod.rs"]
 pub mod stream_run;
 #[path = "../../../capsule_driver_hda/src/controller/streams.rs"]
 pub mod streams;

@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::stream::{open, restart};
+use super::restart::restart;
+use super::stream::open;
 use crate::audio;
 use crate::controller::dma_sync::flush;
 use crate::protocol::{Request, E_INVAL, E_OK};
@@ -32,8 +33,11 @@ pub fn handle(
     played: &mut bool,
     running: &mut bool,
 ) {
-    audio::fill(driver.sample.user_va, driver.sample.length as usize);
-    flush(driver.sample.user_va, driver.sample.length);
+    let (va, len) = (driver.sample.user_va, driver.sample.length);
+    // SAFETY: the sample grant is `len` bytes the broker mapped at `va` for
+    // this capsule alone, and no other reference into it is alive here.
+    audio::fill(unsafe { core::slice::from_raw_parts_mut(va as *mut u8, len as usize) });
+    flush(va, len);
     let ok = restart(driver) && open(driver, true);
     if !ok {
         crate::controller::stream_run::stop(driver.regs, driver.stream_off);

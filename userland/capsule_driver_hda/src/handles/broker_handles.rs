@@ -23,6 +23,7 @@ pub struct BrokerHandles {
     pub(super) claim_epoch: u64,
     pub(super) mmio_grant_id: u64,
     pub(super) mmio_user_va: u64,
+    pub(super) mmio_len: u64,
     pub(super) irq_grant_id: u64,
 }
 
@@ -33,7 +34,7 @@ impl BrokerHandles {
         mmio: &MmioMapOut,
         irq_grant_id: u64,
     ) -> Self {
-        let (mmio_grant_id, mmio_user_va) = (mmio.grant_id, mmio.user_va);
-        Self { device_id, claim_epoch, mmio_grant_id, mmio_user_va, irq_grant_id }
+        let (mmio_grant_id, mmio_user_va, mmio_len) = (mmio.grant_id, mmio.user_va, mmio.length);
+        Self { device_id, claim_epoch, mmio_grant_id, mmio_user_va, mmio_len, irq_grant_id }
     }
 }

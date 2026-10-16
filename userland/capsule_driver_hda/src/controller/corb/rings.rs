@@ -34,8 +34,9 @@ pub struct Rings {
 }
 
 pub fn init(regs: Regs, corb_pa: u64, rirb_pa: u64) -> Rings {
-    let (corb_code, corb_n) = ring_size(unsafe { regs.r8(CORBSIZE) });
-    let (rirb_code, rirb_n) = ring_size(unsafe { regs.r8(RIRBSIZE) });
+    // SAFETY: the ring registers are global ones, inside the window (`crate::regs`).
+    let (corb_reg, rirb_reg) = unsafe { (regs.r8(CORBSIZE), regs.r8(RIRBSIZE)) };
+    let ((corb_code, corb_n), (rirb_code, rirb_n)) = (ring_size(corb_reg), ring_size(rirb_reg));
     // One length for both, so one mask indexes either ring.
     let (corb_code, rirb_code, entries) = if corb_n == rirb_n {
         (corb_code, rirb_code, corb_n)
@@ -50,6 +51,7 @@ pub fn init(regs: Regs, corb_pa: u64, rirb_pa: u64) -> Rings {
         };
         (code, code, n)
     };
+    // SAFETY: as above.
     unsafe {
         regs.w8(CORBCTL, 0);
         regs.w8(RIRBCTL, 0);
@@ -62,6 +64,7 @@ pub fn init(regs: Regs, corb_pa: u64, rirb_pa: u64) -> Rings {
         regs.w16(CORBWP, 0);
     }
     let rp_handshake = reset_read_pointer(regs);
+    // SAFETY: as above.
     unsafe {
         regs.w16(RIRBWP, RIRBWP_RST);
         regs.w16(RINTCNT, RINTCNT_ONE);

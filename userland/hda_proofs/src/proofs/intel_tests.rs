@@ -18,7 +18,7 @@
 use nonos_devmodel::FakeBar;
 
 use crate::constants::VS_EM4L;
-use crate::controller::intel::{position_buffer, reduce_dma_latency};
+use crate::controller::intel::{multilink, position_buffer, reduce_dma_latency};
 use crate::regs::Regs;
 
 pub const BAR: u64 = 0x4000;
@@ -37,6 +37,34 @@ fn only_apollo_lake_has_its_dma_fifo_threshold_lowered() {
 fn a_register_beyond_a_small_bar_is_not_touched() {
     let bar = FakeBar::new(0x1000);
     reduce_dma_latency(Regs::new(bar.base()), 0x8086, 0x5a98, 0x1000);
+}
+
+/// The multi-link capability header the walk looks for.
+const ML_HEADER: u32 = 0x2 << 16;
+
+#[test]
+fn a_multi_link_pointer_not_4_byte_aligned_ends_the_walk() {
+    for llch in [0x801u16, 0x802, 0x803] {
+        let bar = FakeBar::new(BAR as usize);
+        bar.present16(0x14, llch);
+        bar.present32(llch as usize, ML_HEADER);
+        assert_eq!(multilink(Regs::new(bar.base()), BAR), None, "{llch:#x}");
+    }
+}
+
+#[test]
+fn a_multi_link_walk_ends_past_the_window_and_on_a_loop() {
+    let bar = FakeBar::new(BAR as usize);
+    let regs = Regs::new(bar.base());
+    // Its link control register would end four bytes past the window.
+    let last = BAR as usize - 0x44;
+    bar.present16(0x14, last as u16);
+    bar.present32(last, ML_HEADER);
+    assert_eq!(multilink(regs, BAR), None);
+    // A capability that names itself as the next.
+    bar.present16(0x14, 0x800);
+    bar.present32(0x800, 0x800);
+    assert_eq!(multilink(regs, BAR), None);
 }
 
 #[test]

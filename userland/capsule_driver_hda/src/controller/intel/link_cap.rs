@@ -25,11 +25,18 @@ pub(super) const ML_LCTL: u32 = 0x44;
 const MAX_CAPS: u32 = 10;
 
 /// The multi-link capability's offset, walking the linked capability list
-/// from LLCH as `snd_hdac_bus_parse_capabilities` does.
-pub fn multilink(regs: Regs, bar_size: u64) -> Option<u32> {
+/// from LLCH as `snd_hdac_bus_parse_capabilities` does. The pointers are the
+/// controller's, so the walk ends at one not 4-byte aligned, or whose
+/// capability does not lie, through its link control register, inside the
+/// `window` the broker mapped.
+pub fn multilink(regs: Regs, window: u64) -> Option<u32> {
+    // SAFETY: LLCH is a global register, inside the window (`crate::regs`).
     let mut off = unsafe { regs.r16(LLCH) } as u32;
     let mut n = 0u32;
-    while off != 0 && n < MAX_CAPS && (off + ML_LCTL + 4) as u64 <= bar_size {
+    while off != 0 && off.is_multiple_of(4) && n < MAX_CAPS && (off + ML_LCTL + 4) as u64 <= window
+    {
+        // SAFETY: the loop holds `off` 4-byte aligned, with the capability
+        // through its LCTL inside the mapped window.
         let hdr = unsafe { regs.r32(off) };
         if hdr == u32::MAX {
             return None;

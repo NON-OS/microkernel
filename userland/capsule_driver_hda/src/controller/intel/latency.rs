@@ -21,11 +21,14 @@ use crate::regs::Regs;
 
 const APL: u16 = 0x5a98;
 
-/// `bxt_reduce_dma_latency`: keep only VS_EM4L bits 21:20.
-pub fn reduce_dma_latency(regs: Regs, vendor: u16, device: u16, bar_size: u64) {
-    if vendor != PCI_VENDOR_INTEL || device != APL || bar_size < (VS_EM4L as u64 + 4) {
+/// `bxt_reduce_dma_latency`: keep only VS_EM4L bits 21:20, when the register
+/// lies inside the `window` the broker mapped.
+pub fn reduce_dma_latency(regs: Regs, vendor: u16, device: u16, window: u64) {
+    if vendor != PCI_VENDOR_INTEL || device != APL || window < (VS_EM4L as u64 + 4) {
         return;
     }
+    // SAFETY: VS_EM4L is 4-byte aligned and, as checked above, inside the
+    // mapped window.
     unsafe {
         let v = regs.r32(VS_EM4L);
         regs.w32(VS_EM4L, v & (0x3 << 20));

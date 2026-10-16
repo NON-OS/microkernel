@@ -56,4 +56,4 @@ pub use error::VirtioError;
 pub use map::{map_window, Need, Window};
 pub use mmio::Mmio;
 pub use pci::{BarInfo, BarKind, Bars, ConfigSpace};
-pub use select::{choose, modern_caps, wants_probe, Kind};
+pub use select::modern_caps;

@@ -37,24 +37,31 @@ pub fn preferred_scf(lcap: u32) -> u32 {
 
 /// `intel_init_lctl`: a link left on the 6 MHz clock is stopped, moved to
 /// a faster one, and started again.
-pub fn init_link_clock(regs: Regs, vendor: u16, device: u16, bar_size: u64) {
+pub fn init_link_clock(regs: Regs, vendor: u16, device: u16, window: u64) {
     if !skl_family(vendor, device) {
         return;
     }
-    let Some(ml) = multilink(regs, bar_size) else { return };
+    let Some(ml) = multilink(regs, window) else { return };
     let lctl = ml + ML_LCTL;
+    // SAFETY: `multilink` gives a 4-byte aligned capability whose LCAP and
+    // LCTL lie inside the mapped window; so for every access here.
     let val = unsafe { regs.r32(lctl) };
     if val & LCTL_SCF != 0 || ((val & LCTL_SPA) != 0) != ((val & LCTL_CPA) != 0) {
         return;
     }
     let set_power = |on: bool| {
+        // SAFETY: as above.
         let v = unsafe { regs.r32(lctl) } & !LCTL_SPA;
+        // SAFETY: as above.
         unsafe { regs.w32(lctl, v | if on { LCTL_SPA } else { 0 }) };
+        // SAFETY: as above.
         until(1, || (unsafe { regs.r32(lctl) } & LCTL_CPA != 0) == on)
     };
     if set_power(false) {
         pause_ms(1);
+        // SAFETY: as above.
         let scf = preferred_scf(unsafe { regs.r32(ml + ML_LCAP) });
+        // SAFETY: as above.
         unsafe { regs.w32(lctl, (val & !LCTL_SCF & !LCTL_SPA) | scf) };
     }
     set_power(true);
