@@ -36,20 +36,27 @@ fn the_hdmi_monitor_is_listed_and_set_through_brightness() {
 #[test]
 fn vcp_answers_the_allowed_controls_and_sets_only_from_power_or_the_shell() {
     let (mut d, model) = rig(true);
-    let at = |c: u8| [5, HDMI[0], HDMI[1], HDMI[2], HDMI[3], c];
+    let at = |c: u8| [23, HDMI[0], HDMI[1], HDMI[2], HDMI[3], c];
     assert_eq!(ask(&mut d, &at(0x12), false), (0, vec![50, 0, 80, 0]));
     assert_eq!(ask_unread(&mut d, &at(0x12)), -1, "only power, the shell and Settings read");
     assert_eq!(ask(&mut d, &at(0x60), false), (0, vec![0x0F, 0, 0x12, 0]), "input, read");
-    let set = |c: u8, v: u16| [6, HDMI[0], HDMI[1], HDMI[2], HDMI[3], c, v as u8, (v >> 8) as u8];
+    let set = |c: u8, v: u16| [24, HDMI[0], HDMI[1], HDMI[2], HDMI[3], c, v as u8, (v >> 8) as u8];
     assert_eq!(ask(&mut d, &set(0x12, 60), false).0, -1, "EPERM for anyone else");
     assert_eq!(ask(&mut d, &set(0x60, 0x11), true).0, -1, "the input source is not set");
     assert_eq!(ask(&mut d, &set(0x04, 1), true).0, -1, "a factory reset is not allowed");
     assert_eq!(ask(&mut d, &set(0x12, 81), true).0, -22, "past the maximum");
     assert_eq!(ask(&mut d, &set(0x12, 60), true).0, 0);
+    let (mut old, mut asked) = (set(0x12, 70), at(0x12));
+    (old[0], asked[0]) = (6, 5);
+    assert_eq!(
+        (ask(&mut d, &old, true).0, ask(&mut d, &asked, true).0),
+        (-22, -22),
+        "5, 6 unknown"
+    );
     assert_eq!(model.borrow().ddc.mccs.as_ref().unwrap().1.value(0x12), Some(60));
-    let edp = [5, 0, 0, 0, 0x80, 0x12];
+    let edp = [23, 0, 0, 0, 0x80, 0x12];
     assert_eq!(ask(&mut d, &edp, false).0, -38, "the eDP panel has no DDC/CI here");
-    assert_eq!(ask(&mut d, &[5, 9, 0, 0, 0x80, 0x12], false).0, -2, "no such panel");
+    assert_eq!(ask(&mut d, &[23, 9, 0, 0, 0x80, 0x12], false).0, -2, "no such panel");
 }
 
 #[test]
@@ -57,5 +64,5 @@ fn a_dp_monitor_without_ddc_ci_is_not_listed() {
     let (mut d, _) = rig(false);
     let (status, body) = ask(&mut d, &[3], false);
     assert_eq!((status, body[0]), (0, 1), "the eDP panel alone");
-    assert_eq!(ask(&mut d, &[5, HDMI[0], HDMI[1], HDMI[2], HDMI[3], 0x10], false).0, -38);
+    assert_eq!(ask(&mut d, &[23, HDMI[0], HDMI[1], HDMI[2], HDMI[3], 0x10], false).0, -38);
 }
