@@ -9,7 +9,6 @@ use crate::gen3::cmds::*;
 use crate::gen3::dev::Dev;
 use crate::gen3::dram_map::classify;
 use crate::gen3::layout::Memory;
-use crate::gen3::region::Region;
 use crate::gen3::sweep::{Sweep, Tick};
 use crate::gen3::ucode::Ucode;
 use crate::gen3::up::{up, SCAN_IF_ADDR};
