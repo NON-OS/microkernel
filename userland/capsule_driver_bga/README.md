@@ -39,8 +39,19 @@ With no BGA adapter in the device list the capsule logs one line and exits
 `EXIT_ABSENT` (2) before claiming anything. An adapter that is present but
 fails setup is retried on the shared bounded schedule
 (`nonos_libc::bring_up`: seven tries, sleeping between them, each failed try
-having released its claim); running out exits `EXIT_GAVE_UP` (6). Once the
-mode is set the capsule sleeps; it holds no core.
+having released its claim); running out exits `EXIT_GAVE_UP` (6).
+
+At claim the capsule turns Memory Space decoding on and Bus Master off: the
+adapter does no DMA (`src/setup/pci.rs`; the broker ORs a command write
+naming only writable bits today, so a Bus Master bit firmware left on is
+cleared once the kernel's K6 change stores the write as made). Each of these
+fails the attempt by name before the mode is set: a register mapping that
+ends before DISPI ENABLE, a DISPI ID register outside 0xB0C0 to 0xB0C5
+(`src/dispi/check.rs`), and a mode whose pixels do not fit the framebuffer
+mapping the broker made, which is as long as BAR0 (`src/dispi/span.rs`). The
+clear writes only through that checked span, and only after XRES, YRES, BPP
+and ENABLE read back as set. Once the mode is set the capsule sleeps; it
+holds no core.
 
 ## Current implemented surface
 

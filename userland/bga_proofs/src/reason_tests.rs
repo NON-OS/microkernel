@@ -26,7 +26,24 @@ fn a_refusal_names_the_driver_whatever_errno_the_broker_gave() {
     assert!(w.len() <= 80, "{w:?} is too long for the give-up line");
     assert_eq!(w, reason(BgaError::BrokerCallFailed(-1)));
     // Exhaustive: a new failure fails to build here until it is given words.
-    match BgaError::BrokerCallFailed(0) {
-        BgaError::BrokerCallFailed(_) => {}
+    let all = [
+        BgaError::BrokerCallFailed(0),
+        BgaError::ModeTooLarge,
+        BgaError::RegisterWindowTooSmall,
+        BgaError::NotDispi,
+        BgaError::ModeNotTaken,
+    ];
+    let words: Vec<&str> = all.map(reason).to_vec();
+    for (i, e) in all.into_iter().enumerate() {
+        match e {
+            BgaError::BrokerCallFailed(_)
+            | BgaError::ModeTooLarge
+            | BgaError::RegisterWindowTooSmall
+            | BgaError::NotDispi
+            | BgaError::ModeNotTaken => {}
+        }
+        let w = words[i];
+        assert!(w.starts_with("bga: ") && w.len() <= 80, "{w:?}");
+        assert!(!words[i + 1..].contains(&w), "{w:?} names two failures");
     }
 }
