@@ -4984,6 +4984,16 @@
   "md": [],
   "signed": []
  },
+ "userland/spi_hid_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_spi_hid",
+   "userland/spi_hid_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/spi_proofs": {
   "exclude": [],
   "include": [
