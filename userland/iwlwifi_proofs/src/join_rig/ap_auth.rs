@@ -46,7 +46,7 @@ impl Ap {
             },
             (3, 2) => {
                 let Some(ap) = self.sae.as_mut() else { return vec![] };
-                if matches!(ap.on_frame(2, status, &b[6..]), SaeStep::Accepted) {
+                if matches!(ap.on_frame(2, status, &b[6..]), SaeStep::Accepted { .. }) {
                     self.pmk = ap.pmk().unwrap().0;
                 }
                 vec![]

@@ -49,8 +49,8 @@ pub enum SaeStep {
     /// Send an Authentication frame with this transaction sequence, status
     /// code and SAE body.
     Send { seq: u16, status: u16, body: Vec<u8> },
-    /// The AP's confirm verified: the PMK is ready.
-    Accepted,
+    /// The AP's confirm verified: the PMK, which exists only from here.
+    Accepted { pmk: [u8; 32] },
     /// Nothing to do: a duplicate, a frame for another state, or one
     /// discarded (`SaeStation::failure` says why).
     Ignore,

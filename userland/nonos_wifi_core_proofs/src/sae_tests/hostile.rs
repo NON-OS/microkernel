@@ -49,7 +49,7 @@ fn random_and_cut_sae_frames_never_accept() {
             }
             let seq = 1 + (next() % 3) as u16;
             let status = [0, 1, 76, 77, 126, next() as u16][(next() % 6) as usize];
-            assert!(!matches!(sta.on_frame(seq, status, &body), SaeStep::Accepted));
+            assert!(!matches!(sta.on_frame(seq, status, &body), SaeStep::Accepted { .. }));
             assert_ne!(sta.state(), SaeState::Accepted);
         }
         if finish(&mut sta, &mut ap) {

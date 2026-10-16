@@ -25,7 +25,6 @@ use super::state::{Mlme, MlmeOutput};
 use crate::dot11::auth::{auth_frame, parse_auth};
 use crate::sae::frame::AUTH_ALG_SAE;
 use crate::sae::SaeStep;
-use crate::wpa::akm::Akm;
 
 /// Open System: algorithm 0, the response is transaction 2.
 const AUTH_ALG_OPEN: u16 = 0;
@@ -37,7 +36,9 @@ impl Mlme {
         let Some(auth) = parse_auth(frame, &us, &bssid) else {
             return MlmeOutput::none();
         };
-        if self.akm() != Some(Akm::Sae) {
+        // An SAE exchange runs exactly when SAE was chosen (`start_sae`), so
+        // which one runs, not the choice, says what a frame is for.
+        let Some(sae) = self.sae.as_mut() else {
             if auth.algorithm != AUTH_ALG_OPEN || auth.seq != OPEN_RESPONSE_SEQ {
                 return MlmeOutput::none();
             }
@@ -45,25 +46,19 @@ impl Mlme {
                 return self.fail(MlmeFailure::AuthRejected(auth.status));
             }
             return self.assoc_request();
-        }
+        };
         if auth.algorithm != AUTH_ALG_SAE {
             return MlmeOutput::none();
         }
-        let Some(sae) = self.sae.as_mut() else {
-            return self.fail(MlmeFailure::NoEntropy);
-        };
         match sae.on_frame(auth.seq, auth.status, auth.body) {
             SaeStep::Send { seq, status, body } => {
                 let sc = self.next_seq();
                 MlmeOutput::send(auth_frame(us, bssid, sc, AUTH_ALG_SAE, seq, status, &body))
             }
-            SaeStep::Accepted => match sae.pmk() {
-                Some((pmk, _pmkid)) => {
-                    self.pmk = pmk;
-                    self.assoc_request()
-                }
-                None => self.fail(MlmeFailure::NoEntropy),
-            },
+            SaeStep::Accepted { pmk } => {
+                self.pmk = pmk;
+                self.assoc_request()
+            }
             SaeStep::Ignore => MlmeOutput::none(),
         }
     }
