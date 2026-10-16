@@ -39,6 +39,11 @@ pub fn init(boot_info: &BootInfo) {
     security::pac::bind_this_cpu();
     security::report();
     mmu::init_mmu(boot_info);
+}
+
+/// The rest of bring-up, wherever the kernel runs after the MMU is on: the
+/// GIC, the timer, the other CPUs, then interrupts.
+pub(super) fn bring_up(boot_info: &BootInfo) {
     let gic = gic::init_gic(
         boot_info.gic_version,
         boot_info.gic_dist_base,
