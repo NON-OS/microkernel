@@ -4,7 +4,7 @@ Part of [Broker API](broker-api.md).
 
 ## Where the calls live
 
-A driver calls the [hardware broker](../overview/glossary.md#hardware-broker)
+A driver calls the [hardware broker](../overview/glossary-hardware-broker.md#hardware-broker)
 through `nonos_libc`, the crate in `userland/libc` that every driver depends on
 (`userland/capsule_driver_virtio_rng/Cargo.toml:22`). The wrappers are in
 `userland/libc/src/broker/`, re-exported as `mk_device_list`, `mk_mmio_map` and
@@ -18,7 +18,7 @@ such as `N_MK_DEVICE_LIST` for `MDLS`
 (`userland/nonos_abi/README.md`). The crates in `userland/sdk` are for
 applications and `userland/platform` is a host-side packaging tool, so a driver
 uses neither. `nonos_devmodel` runs only on the host, where it gives a [proof
-crate](../overview/glossary.md#proof-crate) a register window in memory
+crate](../overview/glossary-peer-list.md#proof-crate) a register window in memory
 (`userland/nonos_devmodel/README.md`); [Writing a
 driver](writing-a-driver.md#15-the-proof-crate) shows it in use.
 

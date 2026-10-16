@@ -13,11 +13,11 @@ flowchart TD
     E --> F[init_broker_irq_routing]
 ```
 
-`init_core_systems` reads the ACPI tables with `init_acpi_tables`, scans PCI with `bus::pci::init`, then runs the platform baseline (`src/boot/main/core_init/init_core_systems.rs:35-68`). The baseline maps the PCI windows again, assigns any BAR firmware left empty with `assign_unassigned`, and fills the [hardware broker](hardware-broker.md)'s table with `seed_hardware_broker` (`src/kernel_core/init/platform/baseline.rs:39-57`). Later `microkernel_init` brings the IOMMU up with `init_dma_protection` once paging exists (`src/kernel_core/init/entry/microkernel_init.rs:49-52`), and `init_device_routing` programs the interrupt routes with `init_broker_irq_routing` before any [capsule](../overview/glossary.md#capsule) starts (`src/kernel_core/init/entry/init_runtime.rs:23-41`).
+`init_core_systems` reads the ACPI tables with `init_acpi_tables`, scans PCI with `bus::pci::init`, then runs the platform baseline (`src/boot/main/core_init/init_core_systems.rs:35-68`). The baseline maps the PCI windows again, assigns any BAR firmware left empty with `assign_unassigned`, and fills the [hardware broker](hardware-broker.md)'s table with `seed_hardware_broker` (`src/kernel_core/init/platform/baseline.rs:39-57`). Later `microkernel_init` brings the IOMMU up with `init_dma_protection` once paging exists (`src/kernel_core/init/entry/microkernel_init.rs:49-52`), and `init_device_routing` programs the interrupt routes with `init_broker_irq_routing` before any [capsule](../overview/glossary-boot-root-record.md#capsule) starts (`src/kernel_core/init/entry/init_runtime.rs:23-41`).
 
 ## Finding the tables
 
-`init_acpi_tables` takes the RSDP address from the [boot handoff](../overview/glossary.md#boot-handoff) when there is one and prints `[NONOS] ACPI tables parsed` or `[NONOS] ACPI init failed; legacy fallbacks engaged` (`src/boot/main/core_init/acpi_tables.rs:19-33`). Without a handoff address, or when nothing valid sits at it, `find_rsdp` searches the EBDA and then the BIOS ROM range (`src/arch/x86_64/acpi/parser/rsdp.rs:29-55`).
+`init_acpi_tables` takes the RSDP address from the [boot handoff](../overview/glossary-amnesic-boot.md#boot-handoff) when there is one and prints `[NONOS] ACPI tables parsed` or `[NONOS] ACPI init failed; legacy fallbacks engaged` (`src/boot/main/core_init/acpi_tables.rs:19-33`). Without a handoff address, or when nothing valid sits at it, `find_rsdp` searches the EBDA and then the BIOS ROM range (`src/arch/x86_64/acpi/parser/rsdp.rs:29-55`).
 
 `init` reads the XSDT with `parse_xsdt` when the RSDP has one and falls back to `parse_rsdt` only when there is no XSDT or it cannot be read (`src/arch/x86_64/acpi/parser/init.rs:41-55`). A missing or unreadable FADT fails the whole parse in `parse_fadt`; the other tables are optional (`src/arch/x86_64/acpi/parser/init.rs:61-70`).
 
@@ -43,7 +43,7 @@ The sources, one per table:
 - `parse_dmar` checks the table's checksum, keeps at most 8 segment 0 units with their scopes and counts the units on other segments (`src/arch/x86_64/acpi/parser/other/dmar.rs:56-114`). Only DRHD structures are read; the other DMAR structure types are skipped.
 - `parse_ivrs` checks the checksum and reads at most `MAX_IVRS_BYTES`, 64 KiB, of the table (`src/arch/x86_64/acpi/parser/other/ivrs.rs:28-69`).
 - `parse_hpet` records the HPET base when the table is valid (`src/arch/x86_64/acpi/parser/other/hpet.rs:22-35`).
-- The [TPM](../overview/glossary.md#tpm) driver looks the TPM2 table up by signature with `table_address` (`src/security/tpm/transport/acpi.rs:57-62`).
+- The [TPM](../overview/glossary-stark-proof.md#tpm) driver looks the TPM2 table up by signature with `table_address` (`src/security/tpm/transport/acpi.rs:57-62`).
 - `aml_blocks` returns the DSDT and every SSDT the root table listed (`src/arch/x86_64/acpi/aml/tables.rs:100-118`). `init` reads `\_S5` from them once with `find_in_blocks`, while the heap and the tables are known to be intact, and warns when there is none, in which case soft off is not available (`src/arch/x86_64/acpi/parser/init.rs:89-105`).
 
 The kernel ignores every table not named above. The SLIT has a signature constant, `SIG_SLIT`, and types, but `init` never parses it (`src/arch/x86_64/acpi/tables/mod.rs:65`). MADT entry types other than the seven listed are skipped. The kernel has no AML interpreter: the scanner in `scan` reads the bytes for the objects above and never executes AML (`src/arch/x86_64/acpi/aml/mod.rs:17-30`).
@@ -64,7 +64,7 @@ Config accesses go through one accessor that picks the mechanism: ECAM when a wi
 
 Functions behind an Intel VMD are the exception: the VMD module gives them a segment of their own and reaches their config space through the VMD's CFGBAR. Those functions never interrupt and their drivers poll, and their DMA reaches the IOMMU under the VMD's own requester id, which `dma_requester` reports (`src/drivers/pci/vmd/mod.rs:17-25`). [VMD](../drivers/storage/vmd.md) has the details.
 
-A [driver capsule](../overview/glossary.md#driver-capsule) never reaches config space directly. It reads and writes it through `MkPciConfigRead` and `MkPciConfigWrite`, which the hardware broker limits to the first 256 bytes and to a short list of writable bits; [Hardware broker](hardware-broker.md#pci-configuration) lists them.
+A [driver capsule](../overview/glossary-dma-pool.md#driver-capsule) never reaches config space directly. It reads and writes it through `MkPciConfigRead` and `MkPciConfigWrite`, which the hardware broker limits to the first 256 bytes and to a short list of writable bits; [Hardware broker](hardware-broker.md#pci-configuration) lists them.
 
 ## On other architectures
 
@@ -72,7 +72,7 @@ On aarch64 the same PCI code reaches config space through ECAM, from the window 
 
 ## Tests
 
-The [proof crate](../overview/glossary.md#proof-crate) `userland/acpi_aml_proofs` compiles the AML scanner, the FADT decoder, the MADT CPU entries and the I2C and GPIO controller walks from the kernel sources (`userland/acpi_aml_proofs/src/arch/x86_64/acpi/aml/mod.rs`) and feeds them table bytes shaped as firmware writes them (`userland/acpi_aml_proofs/src/fixtures.rs`). It passed, 82 tests, in the flake check run on this commit. `userland/kernel_proofs` compiles the AER decoder (`userland/kernel_proofs/src/aer_decode/mod.rs`) and the window arithmetic `assign_unassigned` places BARs with (`userland/kernel_proofs/src/bus/mod.rs`); it passed, 388 tests, in the same run.
+The [proof crate](../overview/glossary-peer-list.md#proof-crate) `userland/acpi_aml_proofs` compiles the AML scanner, the FADT decoder, the MADT CPU entries and the I2C and GPIO controller walks from the kernel sources (`userland/acpi_aml_proofs/src/arch/x86_64/acpi/aml/mod.rs`) and feeds them table bytes shaped as firmware writes them (`userland/acpi_aml_proofs/src/fixtures.rs`). It passed, 82 tests, in the flake check run on this commit. `userland/kernel_proofs` compiles the AER decoder (`userland/kernel_proofs/src/aer_decode/mod.rs`) and the window arithmetic `assign_unassigned` places BARs with (`userland/kernel_proofs/src/bus/mod.rs`); it passed, 388 tests, in the same run.
 
 ## See also
 

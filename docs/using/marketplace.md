@@ -6,7 +6,7 @@ What the Marketplace and the Terminal's `market` command can install on NONOS, h
 
 | Tab | What it lists | In 0.9.2 |
 |---|---|---|
-| `Models` | The Qwen tiers | 17 tiers. Installing one puts its model files on the [data volume](../overview/glossary.md#data-volume); the chat program is part of the image. See [Local AI](local-ai.md). |
+| `Models` | The Qwen tiers | 17 tiers. Installing one puts its model files on the [data volume](../overview/glossary-claim-epoch.md#data-volume); the chat program is part of the image. See [Local AI](local-ai.md). |
 | `Linux` | Alpine packages a build lists | None. The shipped list is empty, so the tab says `this build lists no Linux packages`. |
 | `NONOS` | NONOS apps | None. NONOS apps ship in the image, so the catalogue lists none and the tab says `this catalogue lists no NONOS apps`. A NONOS app from elsewhere comes as a package file; see [Install a package file](#install-a-package-file). |
 | `Community` | Apps from other publishers | None yet: `this catalogue lists no community apps yet`. |
@@ -16,7 +16,7 @@ Only listings whose id starts with `linux.` can be installed; selecting anything
 
 The catalogue is signed with the marketplace operator key. The flake build behind `make` embeds the signed index and model catalogue committed under `nonos-data/market/` and `nonos-data/models/`, and both are in the tree at this release; the index lists the Qwen tiers. A seal without the operator key leaves those files as they are. Only a build with no such file embeds an empty catalogue, which the market reads as no catalogue at all, and then every tab is empty.
 
-Nothing costs money. A payment [capsule](../overview/glossary.md#capsule) is in the tree and has build rules, but no kernel profile embeds it, so no 0.9.2 image carries it.
+Nothing costs money. A payment [capsule](../overview/glossary-boot-root-record.md#capsule) is in the tree and has build rules, but no kernel profile embeds it, so no 0.9.2 image carries it.
 
 ## Use the Marketplace window
 
@@ -61,7 +61,7 @@ flowchart LR
     fetch --> volume["data volume"]
 ```
 
-The catalogue is signed. The market service, `market.index`, loads the catalogue built into the image, then a newer one at `/nonos/marketplace/index.bin` if there is one. It accepts a catalogue only from an operator key in its trusted list, which holds one key in this release. The market holds no Network [capability](../overview/glossary.md#capability), so it never fetches a catalogue itself.
+The catalogue is signed. The market service, `market.index`, loads the catalogue built into the image, then a newer one at `/nonos/marketplace/index.bin` if there is one. It accepts a catalogue only from an operator key in its trusted list, which holds one key in this release. The market holds no Network [capability](../overview/glossary-boot-root-record.md#capability), so it never fetches a catalogue itself.
 
 Each release must then pass six gates:
 
@@ -117,7 +117,7 @@ The host tests of the market pass on this commit.
 
 ## Install a package file
 
-A NONOS program from outside the catalogue comes as one signed file whose name ends in `.nonos`. Its publisher builds it with `tools/nonos-pack`; [Signing and publisher keys](../userland/signing-and-publisher-keys.md#publishers-outside-the-project) says how a publisher's program is signed and proved. The `installer` service checks the file with the kernel and writes its four parts into the [file store](../overview/glossary.md#file-store), and on a machine that keeps data into the [package store](../overview/glossary.md#package-store) on the disk too. The standard, hardened, qemu and dev images carry the installer. The air-gapped image does not: its profile drops the installer with the network programs.
+A NONOS program from outside the catalogue comes as one signed file whose name ends in `.nonos`. Its publisher builds it with `tools/nonos-pack`; [Signing and publisher keys](../userland/signing-and-publisher-keys.md#publishers-outside-the-project) says how a publisher's program is signed and proved. The `installer` service checks the file with the kernel and writes its four parts into the [file store](../overview/glossary-dma-pool.md#file-store), and on a machine that keeps data into the [package store](../overview/glossary-linux-personality.md#package-store) on the disk too. The standard, hardened, qemu and dev images carry the installer. The air-gapped image does not: its profile drops the installer with the network programs.
 
 ### Put the file in /pkgs
 
@@ -137,7 +137,7 @@ Open the Launchpad and click the package's tile. The desktop asks the installer 
 - the name it installs under, which is the last part of its namespace, never the file name;
 - the namespace, for example `com.example.gui_demo`;
 - its tier, `NONOS-enrolled` for a namespace under `systems.nonos`, otherwise `Publisher-signed`;
-- every [capability](../overview/glossary.md#capability) it would hold. When the list does not fit, the last line reads `! caps hidden - do not approve`.
+- every [capability](../overview/glossary-boot-root-record.md#capability) it would hold. When the list does not fit, the last line reads `! caps hidden - do not approve`.
 
 `Approve` installs it, and the notices say `installing <name>`, then `installed <name>`. `Cancel`, `Esc` or a click outside the panel installs nothing. The file stays in `/pkgs` afterwards; delete it when you no longer need it.
 
@@ -166,9 +166,9 @@ The usage is `pkg install <path> [--yes] | remove <name> | status`.
 The installer reads at most 16 MiB of the file and hands its four parts to the kernel, which runs the checks it runs before any program starts, and starts nothing:
 
 - the manifest names a service and a reply endpoint;
-- the [NONOS ID certificate](../overview/glossary.md#nonos-id-certificate) verifies under the [trust anchor](../overview/glossary.md#trust-anchor) built into the kernel;
-- the [manifest](../overview/glossary.md#manifest) is bound to that certificate, stays within the namespaces and capabilities it allows, carries signatures that verify, and names this exact program;
-- the [attestation trailer](../overview/glossary.md#attestation-trailer) verifies, under the root built into the kernel or under a root enrolled on this machine.
+- the [NONOS ID certificate](../overview/glossary-linux-personality.md#nonos-id-certificate) verifies under the [trust anchor](../overview/glossary-stark-proof.md#trust-anchor) built into the kernel;
+- the [manifest](../overview/glossary-linux-personality.md#manifest) is bound to that certificate, stays within the namespaces and capabilities it allows, carries signatures that verify, and names this exact program;
+- the [attestation trailer](../overview/glossary-amnesic-boot.md#attestation-trailer) verifies, under the root built into the kernel or under a root enrolled on this machine.
 
 The installer then takes the BLAKE3 digest of the whole file. When you approve, or add `--yes`, it reads the file again, checks it again, and installs it only if the digest is the one you were shown, so a file swapped after the prompt is refused. A name that already has any of its four parts in the store, or that a running service answers to, is refused.
 
@@ -179,7 +179,7 @@ Which roots are enrolled decides which packages pass the trailer check. Setup's 
 The four parts go to `/capsules/<name>.elf`, `<name>.manifest.bin`, `<name>.nonos_id_cert.bin` and `<name>.zk_trailer.bin`. `/capsules` is read only to every other program.
 
 - On a boot where `Keep data across reboots` is on, each part is also written to the disk store, so the package is still there after a restart. The disk store's limits apply, 512 entries and 96 MiB in all; see [Files](files.md#what-is-kept-after-power-off).
-- On an [amnesic boot](../overview/glossary.md#amnesic-boot) it is held in memory and works until restart.
+- On an [amnesic boot](../overview/glossary-amnesic-boot.md#amnesic-boot) it is held in memory and works until restart.
 
 ### Running it
 

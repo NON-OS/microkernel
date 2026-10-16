@@ -4,7 +4,7 @@ Part of [Platform](platform.md).
 
 ## TPM 2.0
 
-The kernel has a runtime [TPM](../overview/glossary.md#tpm) 2.0 driver in
+The kernel has a runtime [TPM](../overview/glossary-stark-proof.md#tpm) 2.0 driver in
 `src/security/tpm`, for quotes against a fresh nonce, attestation keys,
 enrolment, the machine key and the device secret. The bootloader has a separate
 one for measuring the boot chain, as the module comment says above `transact`

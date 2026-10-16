@@ -9,7 +9,7 @@ Find your machine's ids first: [Reporting a machine](report.md#read-the-ids-on-a
 - Works: the 0.9.2 image carries the whole path for this device.
 - Partial: part of the path is there; the row says what is missing.
 - Refused: the kernel or the driver finds the device and declines it, for the reason the row gives. Where the refusal reaches the boot log or Settings, the row says so.
-- Not supported: no driver for it in the 0.9.2 image. Some of these have driver source and passing [proof crates](../overview/glossary.md#proof-crate) in the tree, but no image builds them: they have no kernel feature and no place in the boot's spawn plan. The USB Ethernet drivers among them could not reach an adapter either, since the [held endpoint](../overview/glossary.md#held-endpoint) `driver.xhci0` takes requests only from the USB HID and storage drivers (`HELD`, `src/services/registry/held_table.rs:20-32`).
+- Not supported: no driver for it in the 0.9.2 image. Some of these have driver source and passing [proof crates](../overview/glossary-peer-list.md#proof-crate) in the tree, but no image builds them: they have no kernel feature and no place in the boot's spawn plan. The USB Ethernet drivers among them could not reach an adapter either, since the [held endpoint](../overview/glossary-hardware-broker.md#held-endpoint) `driver.xhci0` takes requests only from the USB HID and storage drivers (`HELD`, `src/services/registry/held_table.rs:20-32`).
 
 How verified:
 
@@ -17,19 +17,19 @@ How verified:
 - QEMU: a QEMU run in the tree attaches this device: `make boot` (`devices`, `tools/nonos_qemu/machine.py:91-100`), CI's boot smoke, or the `mk/10-qemu.mk` and `mk/40-run.mk` targets. No boot log from this commit is recorded here.
 - Real hardware: the one report this release has. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded. It covers Wi-Fi on Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic), the local Qwen model offline, the Linux programs sh, python3, sqlite3 and john, the installer writing to an internal NVMe disk and booting from it, the I2C-HID touchpad on Intel LPSS, the PS/2 keyboard with its layouts, Intel HD Audio, the power button and the volume keys. Nothing else in this matrix has been run on real hardware for this release.
 
-Every row is for x86_64 machines; [Architectures](../architectures/README.md) says what the other ports have. The rows describe the image the Standard [build profile](../overview/glossary.md#build-profile) makes. The Air-Gapped image drops every network driver (`networkFeatures`, `tools/nix/config.nix:92`), and the QEMU image leaves out the drivers only real hardware has (`microkernel-desktop-gui`, `tools/nix/config.nix:95-98`).
+Every row is for x86_64 machines; [Architectures](../architectures/README.md) says what the other ports have. The rows describe the image the Standard [build profile](../overview/glossary-boot-root-record.md#build-profile) makes. The Air-Gapped image drops every network driver (`networkFeatures`, `tools/nix/config.nix:92`), and the QEMU image leaves out the drivers only real hardware has (`microkernel-desktop-gui`, `tools/nix/config.nix:95-98`).
 
-PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_HID` strings. Every driver named here is a [capsule](../overview/glossary.md#capsule) unless the row says kernel.
+PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_HID` strings. Every driver named here is a [capsule](../overview/glossary-boot-root-record.md#capsule) unless the row says kernel.
 
 ## Platform
 
 | Class | Chip and id | Driver capsule | State | How verified | Release |
 |---|---|---|---|---|---|
-| CPU | x86_64 cores, [SMP](../overview/glossary.md#smp): every core the firmware enables, up to 256 | kernel | Works | QEMU with 8 CPUs, or the host's cores when fewer, under `make boot` and CI's boot smoke; 4 under `nonos-mk-run-smp-serial-log`; 1 to 8 across the boot matrix | 0.9.2 |
-| [IOMMU](../overview/glossary.md#iommu) | Intel VT-d DMA remapping | kernel | Works | proof crates `kernel_proofs` (388), `mechanism_proofs` (56); QEMU `intel-iommu` | 0.9.2 |
+| CPU | x86_64 cores, [SMP](../overview/glossary-rollback-index.md#smp): every core the firmware enables, up to 256 | kernel | Works | QEMU with 8 CPUs, or the host's cores when fewer, under `make boot` and CI's boot smoke; 4 under `nonos-mk-run-smp-serial-log`; 1 to 8 across the boot matrix | 0.9.2 |
+| [IOMMU](../overview/glossary-hardware-broker.md#iommu) | Intel VT-d DMA remapping | kernel | Works | proof crates `kernel_proofs` (388), `mechanism_proofs` (56); QEMU `intel-iommu` | 0.9.2 |
 | IOMMU | Intel VT-d interrupt remapping | kernel | Not supported: the `nonos-iommu-intremap` feature is off until a boot log shows the units acknowledging it | none | 0.9.2 |
 | IOMMU | AMD-Vi | kernel | Not supported: the `nonos-iommu-amdvi` feature is off until QEMU `amd-iommu` and an AMD machine show the units in service | none | 0.9.2 |
-| [TPM](../overview/glossary.md#tpm) | TPM 2.0, FIFO and CRB interfaces | kernel | Works | proof crates `tpm_key_proofs` (42), `tpm_enroll_proofs` (37); QEMU `tpm-crb` with swtpm | 0.9.2 |
+| [TPM](../overview/glossary-stark-proof.md#tpm) | TPM 2.0, FIFO and CRB interfaces | kernel | Works | proof crates `tpm_key_proofs` (42), `tpm_enroll_proofs` (37); QEMU `tpm-crb` with swtpm | 0.9.2 |
 | ACPI | Fixed-feature power button | kernel | Partial: a press reaches the desktop as the Power key, which shows `Power off is not available from the desktop`; the desktop cannot shut down in 0.9.2 | real hardware | 0.9.2 |
 | ACPI | Power button through AML (PNP0C0C) or on a hardware-reduced platform | kernel | Refused: NONOS has no AML interpreter to run it, and the desktop has no power-off either | none | 0.9.2 |
 | ACPI | Battery charge, PNP0C0A | kernel | Refused: reading the charge runs AML, which NONOS cannot; the top bar shows `Battery status unavailable`, or `No battery` when the firmware declares none | none | 0.9.2 |
@@ -63,7 +63,7 @@ PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_H
 | Class | Chip and id | Driver capsule | State | How verified | Release |
 |---|---|---|---|---|---|
 | USB | xHCI host controller, class 0c/03 prog-if 30 | `capsule_driver_xhci` | Works | proof crate `xhci_proofs`: the check fails at this commit on clippy lints; QEMU `qemu-xhci` | 0.9.2 |
-| USB | EHCI, OHCI and UHCI host controllers, class 0c/03 | none | Not supported: no driver; the [hardware broker](../overview/glossary.md#hardware-broker) lists them as a generic USB host | none | 0.9.2 |
+| USB | EHCI, OHCI and UHCI host controllers, class 0c/03 | none | Not supported: no driver; the [hardware broker](../overview/glossary-hardware-broker.md#hardware-broker) lists them as a generic USB host | none | 0.9.2 |
 | USB | Hubs, class 09 | `capsule_driver_usb_hid` | Partial: the HID driver brings a hub up and powers its ports, but a device behind a hub is not reached, because `capsule_driver_xhci` refuses the hub ops 0x20 and 0x21 ([USB hubs](../drivers/usb/hubs.md)) | proof crate `usb_proofs` (83) | 0.9.2 |
 
 ## Input

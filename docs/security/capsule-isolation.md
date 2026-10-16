@@ -1,7 +1,7 @@
 # Capsule isolation
 
 How the NONOS kernel keeps one capsule from reaching another: separate address
-spaces, a [capability](../overview/glossary.md#capability) check on every NONOS
+spaces, a [capability](../overview/glossary-boot-root-record.md#capability) check on every NONOS
 system call, rules on who may send to whom, confined drivers and a sandbox for
 Linux programs.
 
