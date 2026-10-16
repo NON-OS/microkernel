@@ -40,4 +40,5 @@ pub mod rsn;
 pub mod sae;
 pub mod scan_list;
 pub mod station;
+pub mod wipe;
 pub mod wpa;
