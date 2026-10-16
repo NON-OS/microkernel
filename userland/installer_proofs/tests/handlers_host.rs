@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The installer's load_store and load_by_name handlers, driven through their frames.
+//! The installer's load and pkg handlers, driven through their frames.
 //
-// The handlers (with their layout and artifacts parts) and the request wire
-// are the real installer sources. They name `nonos_libc` and
-// `nonos_app_skeleton`, which this crate answers as itself: the real
-// CapsuleLoadRequest and mk_capsule_load are mounted from libc, and only the
-// syscall under them, the installer's own pid and the vfs read are host
-// stand-ins (support/). A swap of the handlers path runs these on other files.
+// The handlers, discover.rs and the request wire are the real installer
+// sources; pkg_verify parses with the real nonos-pack-core and digests with
+// blake3. They name `nonos_libc` and `nonos_app_skeleton`, which this crate
+// answers as itself with libc's real capsule_load, capsule_verify and lookup.
+// Host stand-ins (mounts.rs, support/) are only the syscalls under those, the
+// installer's own pid and the vfs client. A swap of the mount paths runs these
+// on other files.
 
 extern crate alloc;
 extern crate self as nonos_app_skeleton;
@@ -31,26 +32,20 @@ extern crate self as nonos_libc;
 mod handlers {
     pub mod load_by_name;
     pub mod load_store;
+    pub mod pkg_body;
+    pub mod pkg_commit;
+    pub mod pkg_paths;
+    pub mod pkg_query;
+    pub mod pkg_remove;
+    pub mod pkg_verify;
 }
+#[path = "../../capsule_installer/src/server/discover.rs"]
+mod discover;
 #[path = "../../capsule_installer/src/protocol/mod.rs"]
 mod protocol;
 
-#[path = "support/alloc_watch.rs"]
-mod alloc_watch;
-#[path = "../../libc/src/capsule_load.rs"]
-mod capsule_load;
-#[path = "support/clients.rs"]
-pub mod clients;
-#[path = "support/fixtures.rs"]
-mod fixtures;
-#[path = "handlers_host/frame.rs"]
-mod frame;
-#[path = "support/payloads.rs"]
-mod payloads;
-#[path = "support/process.rs"]
-mod process;
-#[path = "support/syscall.rs"]
-mod syscall;
+#[path = "handlers_host/mounts.rs"]
+mod mounts;
 
 #[path = "handlers_host/load_by_name_read_tests.rs"]
 mod load_by_name_read_tests;
@@ -60,8 +55,16 @@ mod load_by_name_tests;
 mod load_store_accept_tests;
 #[path = "handlers_host/load_store_tests.rs"]
 mod load_store_tests;
+#[path = "handlers_host/pkg_commit_tests.rs"]
+mod pkg_commit_tests;
+#[path = "handlers_host/pkg_installed_tests.rs"]
+mod pkg_installed_tests;
+#[path = "handlers_host/pkg_query_tests.rs"]
+mod pkg_query_tests;
 #[path = "handlers_host/protocol_tests.rs"]
 mod protocol_tests;
 
-pub use capsule_load::{mk_capsule_load, CapsuleLoadRequest};
-pub use process::mk_getpid;
+use mounts::{alloc_watch, clients, fixtures, frame, packages, payloads, pkg_frame};
+pub use mounts::{mk_capsule_load, mk_capsule_verify, mk_getpid, mk_service_lookup};
+use mounts::{process, services, syscall, verify};
+pub use mounts::{CapsuleLoadRequest, CapsuleVerifyRequest, CapsuleVerifySummary};
