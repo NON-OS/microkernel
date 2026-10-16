@@ -26,6 +26,16 @@ pub const OP_EVENTS: u8 = 1;
 pub const EVENTS_MAX: usize = 100;
 pub const REPLY_MAX: usize = 4 + 1 + EVENTS_MAX * 4;
 
+/// A device's GpioInt line as driver.gpio0 knows it: the device key of the
+/// controller its driver claimed, and the line's GPIO controller `_UID`
+/// and pin.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Doorbell {
+    pub key: u64,
+    pub uid: u16,
+    pub pin: u16,
+}
+
 pub fn request(key: u64) -> [u8; 9] {
     let mut r = [0u8; 9];
     r[0] = OP_EVENTS;
