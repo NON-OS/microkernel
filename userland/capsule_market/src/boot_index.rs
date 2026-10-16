@@ -40,8 +40,12 @@ pub fn load<V: Verifier>(store: &mut Store, verifier: &V) {
         false => take(store, verifier, BASELINE, b"built-in"),
         true => say(b"[MARKET] this image was built with no catalogue; nothing to list\n"),
     }
-    if let Ok(blob) = read_file(mk_getpid(), PATH, MAX) {
-        take(store, verifier, &blob, b"operator's");
+    // One byte past the cap, so a longer catalogue is refused, never cut.
+    if let Ok(blob) = read_file(mk_getpid(), PATH, MAX + 1) {
+        match blob.len() > MAX as usize {
+            true => say(b"[MARKET] the operator's catalogue was refused: it is past 8 MiB\n"),
+            false => take(store, verifier, &blob, b"operator's"),
+        }
     }
 }
 

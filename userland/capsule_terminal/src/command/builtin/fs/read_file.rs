@@ -29,7 +29,12 @@ const MAX_READ: u32 = 256 * 1024;
 pub(super) fn slurp(state: &mut State, arg: &[u8]) -> Option<Vec<u8>> {
     let path = abspath(state, arg);
     let owner = pid(state);
-    match vfs::read_file(owner, &path, MAX_READ) {
+    /* One byte past the most, so a longer file is refused, never read cut. */
+    match vfs::read_file(owner, &path, MAX_READ + 1) {
+        Ok(b) if b.len() > MAX_READ as usize => {
+            Output::new(&mut state.scrollback).writeln(b"file larger than 256 KiB");
+            None
+        }
         Ok(b) => Some(b),
         Err(e) => {
             Output::new(&mut state.scrollback).writeln(e.as_bytes());
