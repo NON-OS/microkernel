@@ -56,3 +56,19 @@ fn a_chips_word_on_a_protected_deauthentication_is_checked() {
     assert!(matches!(s.receive_mgmt(&q, true), MgmtRx::Reply(_)), "no counter moved");
     assert_eq!(s.receive_mgmt(&honest, true), MgmtRx::Left(3));
 }
+
+/// The key index is outside the MIC, so a frame whole in every other octet
+/// can name another: a unicast management frame names index 0, or it is
+/// refused, whoever decrypted it.
+#[test]
+fn a_protected_deauthentication_naming_another_key_index_is_refused() {
+    use crate::pmf_frames::sealed;
+    use crate::pmf_sim::joined_pmf;
+    let (mut s, ptk) = joined_pmf();
+    for hw in [true, false] {
+        let mut f = sealed(&mgmt(DEAUTH, SPA, &[3, 0]), 9, &ptk, hw);
+        f[27] |= 1 << 6;
+        assert_eq!(s.receive_mgmt(&f, hw), MgmtRx::Dropped(MgmtDrop::Undecryptable));
+        assert!(s.is_associated());
+    }
+}

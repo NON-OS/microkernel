@@ -32,7 +32,11 @@ use crate::pmf::{parse_sa_query, SaQueryAction, SUBTYPE_ACTION};
 
 impl LinkStation {
     pub(super) fn open_mgmt(&mut self, f: &[u8], hw: bool) -> Result<Vec<u8>, MgmtDrop> {
-        let (pn, _) = pn_and_key(f, MAC_HEADER_LEN).ok_or(MgmtDrop::Malformed)?;
+        let (pn, key_id) = pn_and_key(f, MAC_HEADER_LEN).ok_or(MgmtDrop::Malformed)?;
+        // A unicast management frame is under the pairwise key, index 0.
+        if key_id != 0 {
+            return Err(MgmtDrop::Undecryptable);
+        }
         let body = if hw {
             let key = self.pairwise_key().filter(|_| self.checks_rx());
             chip_body(f, MAC_HEADER_LEN, pn, key.as_ref()).ok_or(MgmtDrop::Undecryptable)?

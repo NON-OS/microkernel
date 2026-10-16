@@ -29,7 +29,7 @@ mod kde_tests;
 mod keyed_lies;
 mod keyed_tests;
 mod model;
-mod rng;
+pub mod rng;
 mod rsn_lie_tests;
 mod rsn_tests;
 mod rsne;
