@@ -25,7 +25,7 @@
 
 use crate::display::brightness_list::{panels, set_request, MAX_PANELS};
 use crate::display::brightness_rule::{next, target, OP_BRIGHTNESS};
-use crate::protocol::{Request, BRIGHTNESS_STEP_REQ_LEN, E_INVAL, E_IO, E_NOENT, E_PERM};
+use crate::protocol::{Request, E_INVAL, E_IO, E_NOENT, E_PERM};
 use crate::server::respond;
 use crate::state::Context;
 
@@ -39,8 +39,9 @@ pub fn handle(
     if !super::shell_only::from_shell(sender) {
         return answer(sender, req, E_PERM, 0, tx);
     }
-    let up = super::u32_at(body, 0).filter(|u| *u <= 1 && body.len() == BRIGHTNESS_STEP_REQ_LEN);
-    let Some(up) = up else { return answer(sender, req, E_INVAL, 0, tx) };
+    let Some(up) = crate::requests::toggles::brightness_step(body) else {
+        return answer(sender, req, E_INVAL, 0, tx);
+    };
     let Some(port) = super::driver_call::brightness_port(ctx) else {
         return answer(sender, req, E_NOENT, 0, tx);
     };
@@ -53,7 +54,7 @@ pub fn handle(
     let found: alloc::vec::Vec<_> = list.iter().take(k).flatten().copied().collect();
     let out = super::driver_call::focused_output(ctx);
     let Some(p) = target(&found, out) else { return answer(sender, req, E_NOENT, 0, tx) };
-    let level = match next(&p, up == 1) {
+    let level = match next(&p, up) {
         None => p.now,
         Some(l) if super::driver_call::status(port, &set_request(l, p.identity)) == Some(0) => l,
         Some(_) => return answer(sender, req, E_IO, 0, tx),
