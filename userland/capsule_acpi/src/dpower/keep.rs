@@ -15,24 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The moves DEVICE_POWER refuses a PCI function because its configuration
-//! would not survive them (`nonos_aml::device_power::loses_config`): the
-//! kernel cannot yet put a function's state back, so D3cold, and D3hot
-//! without No_Soft_Reset, are refused before anything runs (ELOSES). The
-//! power management status is read from the function's own capability
-//! (PCI Power Management: id 1, the register at +4; recalled).
+//! would not survive them (`nonos_aml::device_power::loses_config_claimed`).
+//! A move is made only for the function's claim holder (`target`, asked as
+//! `Asker::Holder`), so the function is claimed, and the broker puts its
+//! BARs back once it is in D0 again (L62): D3hot is allowed with or without
+//! No_Soft_Reset. D3cold is refused before anything runs (ELOSES) until
+//! the bridge and the link are handled too. Decoding and bus mastering are
+//! the driver's to turn back on after a reset, as after its claim.
 
 use super::ready::pci_function;
 use crate::boot::Acpi;
-use crate::hotplug::native::{config_read, find_cap};
-use nonos_aml::device_power::{loses_config, DState};
+use nonos_aml::device_power::{loses_config_claimed, DState};
 use nonos_aml::namespace::Id;
-
-const PM_CAP: u8 = 0x01;
-const PMCSR: u16 = 4;
 
 /// Whether `dev` may move `from` -> `to` without losing what it holds.
 pub fn keeps(acpi: &mut Acpi, dev: Id, from: DState, to: DState) -> bool {
-    let Some(f) = pci_function(acpi, dev) else { return true };
-    let pmcsr = find_cap(f, PM_CAP).map(|c| config_read(f, c + PMCSR, 2) as u16);
-    !loses_config(from, to, pmcsr)
+    pci_function(acpi, dev).is_none() || !loses_config_claimed(from, to)
 }
