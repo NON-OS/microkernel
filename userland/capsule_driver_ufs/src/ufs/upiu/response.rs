@@ -17,13 +17,25 @@
 //! Reading a response UPIU at the offsets in facts::upiu.
 
 use crate::ufs::facts::upiu::*;
-use crate::ufs::slot::layout::RSP_READ;
+use crate::ufs::slot::layout::{RSP_READ, SLOT};
 
 pub struct Rsp<'a>(pub &'a [u8; RSP_READ]);
 
 impl Rsp<'_> {
     pub fn tt(&self) -> u8 {
         self.0[AT_TYPE]
+    }
+
+    /// Whether this is the answer to the request of type `tt` (its response
+    /// code) for `lun` in this engine's slot: a response another request's,
+    /// or another unit's, is not this one's however it reads.
+    pub fn answers(&self, tt: u8, lun: u8) -> bool {
+        self.tt() == tt && self.0[AT_LUN] == lun && self.0[AT_TAG] == SLOT as u8
+    }
+
+    /// A query response that names the opcode and IDN it was asked.
+    pub fn echoes(&self, op: u8, idn: u8) -> bool {
+        self.0[AT_OPCODE] == op && self.0[AT_IDN] == idn
     }
 
     /// The header's response field; for a query, its response code.
