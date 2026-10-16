@@ -1,13 +1,12 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used)]
-
 //! A wallet restored from a private key: its public account is that key, it has one account and
 //! no words, its key comes back on export, and its shield is its own. The key is the public one of
 //! the test phrase at index 0.
 
-mod keystore;
+/// The stand ins this test runs against (tests/keystore/).
+mod keystore {
+    mod guard;
+    pub use guard::TestGuard;
+}
 mod restored;
 
 use keystore::TestGuard;

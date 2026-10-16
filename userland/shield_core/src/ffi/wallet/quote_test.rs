@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::expect_used)]
-
 use super::{Quoted, Wallet};
 use crate::custody::HardwareGuard;
 use crate::error::{CustodyError, WalletError};

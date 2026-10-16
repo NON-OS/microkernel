@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::arithmetic_side_effects)]
-
 //! The vectors of accounts 0, 1 and 2 for the phrase "abandon" eleven times then "about", for an
 //! independent implementation to reproduce. A change here is a change to every wallet.
 

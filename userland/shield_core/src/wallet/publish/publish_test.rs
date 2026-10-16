@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::expect_used, clippy::indexing_slicing, clippy::arithmetic_side_effects)]
-
 use super::*;
 use crate::net::rpc::RawLog;
 use crate::prover::launch::publics::LIMBS;

@@ -59,7 +59,6 @@ mod gas_kani;
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::unwrap_used)]
     use super::super::reply::one;
     use super::*;
 

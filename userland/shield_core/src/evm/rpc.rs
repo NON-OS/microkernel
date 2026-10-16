@@ -98,7 +98,6 @@ fn body(calls: &[Call]) -> String {
 
 #[cfg(test)]
 mod live {
-    #![allow(clippy::expect_used)]
     use super::*;
     use crate::evm::Network;
 

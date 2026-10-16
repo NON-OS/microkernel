@@ -1,11 +1,3 @@
-// Tests assert by panicking and print measurements, so those lints are off here only.
-#![allow(
-    clippy::expect_used,
-    clippy::panic,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects
-)]
-
 //! The four pinned 37-limb wallet vectors, proved again by the prover this core carries.
 //! `PROD_VECTORS` is their folder. Each proof and its shared form must come out byte for byte,
 //! and the shared form must cut to the single-call layout. That layout and the 13 words are

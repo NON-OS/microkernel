@@ -1,14 +1,3 @@
-/*
- * A test asserts by panicking, and a measurement prints what it read, so the
- * lints that forbid panicking and indexing are off here and nowhere else.
- */
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
-
 //! Amounts on the launch pool, which counts NOX in note units of 10^9 base
 //! units and ETH in wei: one NOX is 10^9 units, one ETH is 10^18, and a note
 //! of either holds at most p - 2 of them.
