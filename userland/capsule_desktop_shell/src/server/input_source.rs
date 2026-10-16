@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The router the shell believes (state/input_source_rule.rs): pinned at
-//! the first lookup, and the registry asked again only when a frame comes
-//! from another pid, to learn whether the pinned one is gone.
+//! The router the shell believes (state/input_source_rule.rs): the pid the
+//! registry named, asked again only when a frame comes from another pid,
+//! so a restarted router is believed at once.
 
 use core::sync::atomic::{AtomicU32, Ordering};
 
@@ -28,8 +28,8 @@ static BELIEVED: AtomicU32 = AtomicU32::new(0);
 
 pub fn is_router(sender: u32) -> bool {
     let now = Router::from_word(BELIEVED.load(Ordering::Relaxed));
-    if now.believes(sender) || now == Router::Lost {
-        return now.believes(sender);
+    if now.believes(sender) {
+        return true;
     }
     let next = now.after_lookup(lookup_pid(ROUTER));
     BELIEVED.store(next.word(), Ordering::Relaxed);

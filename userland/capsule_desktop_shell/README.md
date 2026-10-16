@@ -202,10 +202,10 @@ must compile clean.
   the system's prompt or the hidden screen is up, the chrome is placed in
   the compositor's trusted band (z 0x4000_0000) and taken from its own; no
   window can cover it, no screenshot holds it, and the router gives the
-  shell every key and click. Input frames are believed from the first
-  input router the shell finds, by its pid, and from no later holder of
-  the name; once that router is gone, input is refused until the shell
-  starts again (`state/input_source_rule.rs`, `server/input_source.rs`).
+  shell every key and click. Input frames are believed from the input
+  router the registry names, by its pid; only the image's own router can
+  hold that name (the publisher gate, L52), so a restarted router is
+  believed at once (`state/input_source_rule.rs`, `server/input_source.rs`).
 
 ## Verification
 

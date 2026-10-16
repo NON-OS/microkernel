@@ -3520,6 +3520,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_intel_display/data",
+   "userland/capsule_driver_intel_display/src/ddc",
    "userland/capsule_driver_intel_display/src/display",
    "userland/capsule_driver_intel_display/src/dmc.rs",
    "userland/capsule_driver_intel_display/src/dmc_parse.rs",
