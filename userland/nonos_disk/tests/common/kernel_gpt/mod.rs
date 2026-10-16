@@ -19,6 +19,8 @@
 //! wrote with the code that reads it at boot. `read.rs`, the only part that
 //! asks a driver, is left out.
 
+#[path = "../../../../../src/hardware/block_device/gpt/array.rs"]
+mod array;
 #[path = "../../../../../src/hardware/block_device/gpt/boot.rs"]
 mod boot;
 #[path = "../../../../../src/hardware/block_device/gpt/bytes.rs"]
