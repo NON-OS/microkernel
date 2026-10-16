@@ -22,7 +22,8 @@ use super::super::dev::Dev;
 use super::super::region::Region;
 use super::super::rx_frame::RxFrame;
 use super::kinds::Tick;
-use super::state::{route, Sweep};
+use super::route::route;
+use super::state::Sweep;
 use crate::regs::Mmio;
 
 impl Sweep {
@@ -36,7 +37,8 @@ impl Sweep {
     ) -> Tick {
         let status = Cell::new(None);
         let frames = &mut self.frames;
-        dev.drain(&mut |p| route(p, on_frame, frames, &status));
+        let uid = self.uid;
+        dev.drain(&mut |p| route(p, on_frame, frames, &status, uid));
         let Some(started) = self.started_ms else {
             return if dev.error_cause() { Tick::Failed } else { Tick::Idle };
         };
@@ -52,6 +54,7 @@ impl Sweep {
         if now_ms.saturating_sub(started) > self.budget_ms {
             self.started_ms = None;
             self.stalled = self.stalled.saturating_add(1);
+            self.stalled_uid = Some(self.uid);
             return Tick::Stalled;
         }
         Tick::Running

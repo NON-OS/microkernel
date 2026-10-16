@@ -22,9 +22,10 @@ use super::super::cmds::{LONG_GROUP, SCAN_REQ_UMAC};
 use super::super::dev::Dev;
 use super::super::region::{Clock, Region};
 use super::super::rx_frame::RxFrame;
-use super::super::scan::request;
+use super::super::scan::{request, SCAN_UIDS};
 use super::kinds::{budget_ms, ScanError, Tick};
-use super::state::{route, Sweep};
+use super::route::route;
+use super::state::Sweep;
 use crate::regs::Mmio;
 
 impl Sweep {
@@ -39,11 +40,13 @@ impl Sweep {
         now_ms: u64,
         on_frame: &mut dyn FnMut(RxFrame),
     ) -> Result<Tick, ScanError> {
-        let req = request(channels).ok_or(ScanError::NoChannels)?;
+        let uid = self.next_uid;
+        let req = request(channels, uid).ok_or(ScanError::NoChannels)?;
+        (self.uid, self.next_uid) = (uid, (uid + 1) % SCAN_UIDS);
         let status = Cell::new(None);
         let frames = &mut self.frames;
         dev.command(c, (LONG_GROUP, SCAN_REQ_UMAC), &req, &mut |_| {}, &mut |p| {
-            let _ = route(p, on_frame, frames, &status);
+            let _ = route(p, on_frame, frames, &status, uid);
         })
         .map_err(ScanError::Request)?;
         if let Some(s) = status.get() {

@@ -20,14 +20,14 @@ use alloc::vec::Vec;
 
 use super::consts::*;
 
-/// Build the request for `channels` (2.4 and 5 GHz numbers). `None` for no
-/// channels or more than the request holds.
-pub fn request(channels: &[u8]) -> Option<Vec<u8>> {
+/// Build the request with `uid` for `channels` (2.4 and 5 GHz numbers).
+/// `None` for no channels or more than the request holds.
+pub fn request(channels: &[u8], uid: u32) -> Option<Vec<u8>> {
     if channels.is_empty() || channels.len() > MAX_CHANNELS {
         return None;
     }
     let mut c = alloc::vec![0u8; SCAN_REQ_V17_LEN];
-    c[0..4].copy_from_slice(&SCAN_UID.to_le_bytes());
+    c[0..4].copy_from_slice(&uid.to_le_bytes());
     c[4..8].copy_from_slice(&SCAN_PRIORITY_EXT_6.to_le_bytes());
 
     let g = GENERAL;

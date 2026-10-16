@@ -16,15 +16,10 @@
 
 //! Stopping the sweep in flight early.
 
-use core::cell::Cell;
-
-use super::super::cmds::LONG_GROUP;
 use super::super::dev::{Dev, WaitError};
 use super::super::region::{Clock, Region};
 use super::super::rx_frame::RxFrame;
-use super::super::station::abort::scan_abort;
-use super::super::station::ids::SCAN_ABORT_UMAC;
-use super::state::{route, Sweep};
+use super::state::Sweep;
 use crate::regs::Mmio;
 
 impl Sweep {
@@ -40,12 +35,7 @@ impl Sweep {
         if !self.running() {
             return Ok(());
         }
-        let status = Cell::new(None);
-        let frames = &mut self.frames;
-        dev.command(c, (LONG_GROUP, SCAN_ABORT_UMAC), &scan_abort(), &mut |_| {}, &mut |p| {
-            let _ = route(p, on_frame, frames, &status);
-        })?;
-        if status.get().is_some() {
+        if self.send_abort(dev, c, on_frame, self.uid)? {
             self.started_ms = None;
             self.completed = self.completed.saturating_add(1);
         }

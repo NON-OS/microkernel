@@ -39,5 +39,6 @@ fn the_access_point_station_entry() {
 
 #[test]
 fn a_scan_is_aborted_by_its_uid() {
-    assert_eq!(scan_abort(), [0u8; 8]);
+    assert_eq!(scan_abort(0), [0u8; 8]);
+    assert_eq!(scan_abort(2), [2, 0, 0, 0, 0, 0, 0, 0]);
 }

@@ -14,16 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A sweep's state and counts, and where each received packet goes.
-
-use core::cell::Cell;
-
-use super::super::bringup::is_legacy;
-use super::super::cmds::{REPLY_RX_MPDU_CMD, SCAN_COMPLETE_UMAC};
-use super::super::dev::Flow;
-use super::super::packet::Packet;
-use super::super::rx_frame::{parse as parse_frame, RxFrame};
-use super::super::scan::{complete, SCAN_UID};
+//! A sweep's state and counts.
 
 /// One background sweep and its running counts.
 #[derive(Default)]
@@ -36,24 +27,11 @@ pub struct Sweep {
     pub completed: u32,
     /// Sweeps given up with no completion.
     pub stalled: u32,
-}
-
-// Send each received management frame up and note this scan's completion.
-pub(super) fn route(p: &Packet<'_>, on_frame: &mut dyn FnMut(RxFrame), frames: &mut u32, status: &Cell<Option<u8>>) -> Flow {
-    if is_legacy(p, REPLY_RX_MPDU_CMD) {
-        if let Some(f) = parse_frame(p.payload) {
-            *frames = frames.saturating_add(1);
-            on_frame(f);
-        }
-    } else if is_legacy(p, SCAN_COMPLETE_UMAC) {
-        if let Some((uid, s)) = complete(p.payload) {
-            if uid == SCAN_UID {
-                status.set(Some(s));
-                return Flow::Done;
-            }
-        }
-    }
-    Flow::Continue
+    /// The uid of the sweep in flight (or the last one), and the next one's.
+    pub(super) uid: u32,
+    pub(super) next_uid: u32,
+    /// A sweep given up as stalled and not yet aborted: its uid.
+    pub(super) stalled_uid: Option<u32>,
 }
 
 impl Sweep {
