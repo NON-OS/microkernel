@@ -1,12 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The driver's request wire, its control family and its join messages.
 
-#[path = "../../capsule_driver_iwlwifi/src/protocol/ops.rs"]
-mod protocol_ops;
-/// The protocol op numbers.
-pub mod protocol {
-    pub use super::protocol_ops::*;
-}
 #[path = "../../capsule_driver_iwlwifi/src/server/control/mod.rs"]
 pub mod control;
 /// The control family's join messages as the driver reads and answers them.

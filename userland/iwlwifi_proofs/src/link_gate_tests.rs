@@ -17,8 +17,7 @@
 //! Which requests the driver hands to the link gate (server/link_serve.rs,
 //! nonos_wifi_core::netif::gate): every link frame, whatever its op, and no
 //! request of the Wi-Fi control family, so settings and the setup wizard keep
-//! scan, join and status while the link, and the driver's own protocol, are
-//! net.core's alone (server/own.rs).
+//! scan, join and status while the link is net.core's alone.
 
 use crate::control::{route, Route};
 use nonos_wifi_core::netif::gate::is_link;

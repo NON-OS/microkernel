@@ -44,12 +44,6 @@ mod ap_sim;
 #[allow(dead_code, unused_imports)]
 #[path = "../../nonos_wifi_client/src/join_wire/mod.rs"]
 mod client_join_wire;
-/// The whole request wire the serving loop reads with: the header decode
-/// every frame passes before dispatch, and the reply encoder a refusal is
-/// answered with. Its ops file is also `protocol_ops`, loaded twice on purpose.
-#[allow(clippy::duplicate_mod)]
-#[path = "../../capsule_driver_iwlwifi/src/protocol/mod.rs"]
-pub mod iwlwifi_wire;
 /// The client's side of the same messages, to read the driver's replies
 /// with. Shared whole: the proofs use its parsers, not all of it.
 #[cfg(test)]

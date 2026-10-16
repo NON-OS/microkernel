@@ -821,7 +821,7 @@ unset iwl_dead_code
 for phase_file in \
     userland/capsule_driver_iwlwifi/src/setup/mmio.rs:mk_device_release \
     userland/capsule_driver_iwlwifi/src/setup/irq.rs:mk_mmio_unmap \
-    userland/capsule_driver_iwlwifi/src/setup/dma.rs:mk_irq_unbind ; do
+    userland/capsule_driver_iwlwifi/src/setup/grants.rs:mk_irq_unbind ; do
     file="${phase_file%%:*}"
     needle="${phase_file##*:}"
     if [ ! -f "${file}" ]; then
@@ -836,10 +836,10 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8038' userland/capsule_driver_iwlwi
    ! grep -q 'mk_device_claim' userland/capsule_driver_iwlwifi/src/setup/claim.rs ||
    ! grep -q 'mk_mmio_map' userland/capsule_driver_iwlwifi/src/setup/mmio.rs ||
    ! grep -q 'mk_irq_bind' userland/capsule_driver_iwlwifi/src/setup/irq.rs ||
-   ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/setup/dma.rs ||
+   ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/server/radio/grant.rs ||
    ! grep -q 'include_bytes!' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
    ! grep -q 'pub fn gen3_blob' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
-   ! grep -q 'OP_RF_STATE' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
+   ! grep -q 'OP_STATUS' userland/capsule_driver_iwlwifi/src/server/control/kinds.rs ||
    ! grep -rq 'spawn_driver_iwlwifi_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod iwlwifi_capsule' src/hardware/mod.rs; then
     fail_with "capsule_driver_iwlwifi must expose brokered setup + firmware/RF IPC"
