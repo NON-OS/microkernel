@@ -56,7 +56,7 @@ pub(super) fn bind_intx(
     say_route(req.device_id, gsi, &rte);
 
     let grant_id = records::allocate_id();
-    records::insert(IrqGrant {
+    super::enter::enter(&[IrqGrant {
         grant_id,
         pid,
         device_id: req.device_id,
@@ -67,7 +67,7 @@ pub(super) fn bind_intx(
         kind: IrqGrantKind::Intx,
         device_vector: 0,
         irte: NO_IRTE,
-    });
+    }])?;
     slots::activate(slot, grant_id, gsi);
 
     Ok(IrqBindResult { grant_id, vector, grants: 1 })
