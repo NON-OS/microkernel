@@ -5936,6 +5936,7 @@
    "userland/capsule_driver_xhci/src/server/mux_claims.rs",
    "userland/capsule_driver_xhci/src/server/mux_enable.rs",
    "userland/capsule_driver_xhci/src/server/mux_forward.rs",
+   "userland/capsule_driver_xhci/src/server/mux_park.rs",
    "userland/capsule_driver_xhci/src/server/mux_police.rs",
    "userland/capsule_driver_xhci/src/server/mux_ports.rs",
    "userland/capsule_driver_xhci/src/slots",

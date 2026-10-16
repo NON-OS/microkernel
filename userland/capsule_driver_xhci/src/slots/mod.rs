@@ -29,7 +29,7 @@ mod table;
 pub mod uses;
 pub use admit::interrupt_limit;
 pub use dci::dci_from_ep_address;
-pub use gate::gate;
+pub use gate::{gate, gate_park};
 pub use pairs::{pair_of, pair_stream};
 pub use release::Release;
 pub use resources::{InterruptEndpoint, SlotResources};
