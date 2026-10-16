@@ -16,8 +16,10 @@
 
 //! The kernel's errno values, mounted unchanged.
 
-#[allow(dead_code)]
 #[path = "../../../src/syscall/microkernel/errnos.rs"]
 mod kernel;
 
 pub use kernel::{ERRNO_IO, ERRNO_NOENT, ERRNO_NOMEM, ERRNO_SRCH};
+#[cfg(test)]
+#[path = "errno_tests.rs"]
+mod tests;
