@@ -11,6 +11,6 @@ pub(super) const NONCE: [u8; 12] = [9; 12];
 pub(super) fn two() -> SavedList {
     let mut l = SavedList::new();
     assert!(l.put(b"home", b"correct horse"));
-    assert!(l.put(b"cafe", b""));
+    assert!(l.put(b"cafe", b"espresso-1"));
     l
 }
