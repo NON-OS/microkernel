@@ -24,9 +24,13 @@ use crate::regs::Regs;
 const CORBRP_MS: u64 = 2;
 
 pub(super) fn reset_read_pointer(regs: Regs) -> bool {
+    // SAFETY: CORBRP is a global register, inside the window (`crate::regs`).
     unsafe { regs.w16(CORBRP, CORBRP_RST) };
+    // SAFETY: as above.
     let seen = until(CORBRP_MS, || unsafe { regs.r16(CORBRP) } & CORBRP_RST != 0);
+    // SAFETY: as above.
     unsafe { regs.w16(CORBRP, 0) };
+    // SAFETY: as above.
     let cleared = until(CORBRP_MS, || unsafe { regs.r16(CORBRP) } & CORBRP_RST == 0);
     seen && cleared
 }

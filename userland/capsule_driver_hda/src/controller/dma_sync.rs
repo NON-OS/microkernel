@@ -29,6 +29,7 @@
 const LINE: u64 = 64;
 
 /// Write `len` bytes at `va` back to memory and drop them from the cache.
+/// Every caller names part of one of this capsule's DMA grants.
 pub fn flush(va: u64, len: u64) {
     if len == 0 {
         return;
@@ -44,7 +45,8 @@ pub fn flush(va: u64, len: u64) {
 
 #[cfg(target_arch = "x86_64")]
 fn line(p: u64) {
-    // SAFETY: CLFLUSH takes any mapped address and changes no memory.
+    // SAFETY: CLFLUSH changes no memory, and `p` is mapped: its line holds a
+    // byte of the DMA grant the caller named (`flush`).
     unsafe { core::arch::x86_64::_mm_clflush(p as *const u8) };
 }
 

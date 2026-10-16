@@ -50,7 +50,7 @@ pub(super) fn one(dev: Found) -> HdaResult<Attempt> {
     let (handles, epoch) = take(dev)?;
     let (corb, rirb) = dma::map_verb_rings(dev.device_id, epoch)?;
     let regs = Regs::new(handles.mmio_user_va());
-    let (info, codec_mask) = link_up(dev, epoch, regs)?;
+    let (info, codec_mask) = link_up(dev, epoch, regs, handles.mmio_len())?;
     reachable(info.addr64, &[&corb, &rirb])?;
     enable_bus_master(dev.device_id, epoch)?;
     let rings = corb::init(regs, corb.device_addr, rirb.device_addr);
