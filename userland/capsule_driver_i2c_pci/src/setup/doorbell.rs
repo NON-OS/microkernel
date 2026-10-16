@@ -23,7 +23,7 @@
 
 use crate::constants::HID_INFO_GPIO;
 use crate::discover::AcpiTouchpad;
-use crate::driver::Doorbell;
+use crate::gpio0::Doorbell;
 
 /// A key naming a broker device id rather than a PCI function.
 pub const KEY_DEVICE_ID: u64 = 1 << 63;

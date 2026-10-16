@@ -1,3 +1,4 @@
+use crate::gpio0::Doorbell;
 use crate::regs::Regs;
 
 pub struct Driver {
@@ -32,13 +33,4 @@ pub struct Driver {
     /// interrupt-paced reads, when the firmware declared one.
     pub doorbell: Option<Doorbell>,
     pub regs: Regs,
-}
-
-/// The touchpad's GpioInt line as driver.gpio0 knows it: this driver's
-/// device key, and the line's GPIO controller `_UID` and pin.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Doorbell {
-    pub key: u64,
-    pub uid: u16,
-    pub pin: u16,
 }

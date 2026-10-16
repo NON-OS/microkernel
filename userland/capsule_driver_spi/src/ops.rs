@@ -19,7 +19,7 @@
 
 use nonos_libc::mk_pid_alive;
 
-use crate::facts::INPUT_CLOCK_HZ;
+use crate::doorbell::{doorbell, opened};
 use crate::frame::{reply, Request};
 use crate::owner::Owner;
 use crate::setup::Host;
@@ -38,10 +38,7 @@ pub fn answer(
     match (req.op, body.len()) {
         (OP_HEALTHCHECK, 0) => status(tx, Ok(())),
         (OP_OPEN, 0) => match o.open(peer, |p| mk_pid_alive(p)) {
-            Ok(()) => {
-                let (d, c) = (h.device.to_le_bytes(), INPUT_CLOCK_HZ.to_le_bytes());
-                reply(tx, req, 0, &[d[0], d[1], 0, 0, c[0], c[1], c[2], c[3]])
-            }
+            Ok(()) => reply(tx, req, 0, &opened(h)),
             Err(e) => reply(tx, req, e, &[]),
         },
         _ if o.own(peer).is_err() => reply(tx, req, -1, &[]),
@@ -55,6 +52,10 @@ pub fn answer(
                 Ok(rx) => reply(tx, req, 0, &rx),
                 Err(e) => reply(tx, req, e, &[]),
             }
+        }
+        (OP_DOORBELL, 4) => {
+            let word = |i: usize| u16::from_le_bytes([body[i], body[i + 1]]);
+            reply(tx, req, 0, &doorbell(h.key, word(0), word(2)))
         }
         _ => reply(tx, req, E_INVAL, &[]),
     }
