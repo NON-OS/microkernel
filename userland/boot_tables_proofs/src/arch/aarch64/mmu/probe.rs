@@ -41,7 +41,9 @@ pub fn build(info: &BootInfo) {
 pub fn walk(virt: u64) -> Option<Leaf> {
     // SAFETY: the tables are only read here, between calls that write them.
     let root = unsafe { &*state::l0() };
-    let (output, level) = walk_page_tables(root, virt, Granule::G4K)?;
+    // SAFETY: a table address the builder wrote, a host pointer here.
+    let host = |pa: u64| Some(unsafe { &*(pa as *const _) });
+    let (output, level) = walk_page_tables(root, virt, Granule::G4K, host)?;
     let mut table = root;
     for depth in 0..level {
         let entry = table.entry(Granule::G4K.index_at_level(virt, depth));

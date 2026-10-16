@@ -16,6 +16,8 @@
 
 use core::ptr::{read_volatile, write_volatile};
 
+use crate::arch::aarch64::mmu::pointer::mapped;
+
 /// The mapped register window. Copyable because it is only an address: the
 /// state lock, not this, decides who programs the unit.
 #[derive(Debug, Clone, Copy)]
@@ -34,16 +36,16 @@ impl Regs {
 
     pub(super) fn read32(&self, offset: u64) -> u32 {
         // SAFETY: `new`'s contract; every offset in `regs` is inside the window.
-        unsafe { read_volatile((self.va + offset) as *const u32) }
+        unsafe { read_volatile(mapped::<u32>(self.va, offset)) }
     }
 
     pub(super) fn write32(&self, offset: u64, value: u32) {
         // SAFETY: as for `read32`.
-        unsafe { write_volatile((self.va + offset) as *mut u32, value) }
+        unsafe { write_volatile(mapped::<u32>(self.va, offset), value) }
     }
 
     pub(super) fn write64(&self, offset: u64, value: u64) {
         // SAFETY: as for `read32`; the 64-bit registers are 8-byte aligned.
-        unsafe { write_volatile((self.va + offset) as *mut u64, value) }
+        unsafe { write_volatile(mapped::<u64>(self.va, offset), value) }
     }
 }

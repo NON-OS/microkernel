@@ -28,6 +28,7 @@ mod kernel_va;
 mod l2_pool;
 mod l3_tables;
 mod map;
+pub mod pointer;
 mod ram_map;
 mod secondary;
 mod state;

@@ -29,13 +29,13 @@ pub(crate) fn keep(fdt: &Fdt, blob: u64) -> Option<(u64, usize)> {
 ///
 /// # Safety
 ///
-/// `blob` is the tree's physical address with the MMU off, `at` came from
-/// `keep` on that tree, and no reference into the blob is live.
-pub(crate) unsafe fn erase(blob: u64, at: (u64, usize)) {
+/// `blob` points at the tree `keep` read, `at` came from `keep` on it, and
+/// no reference into the blob is live.
+pub(crate) unsafe fn erase(blob: *mut u8, at: (u64, usize)) {
     let (offset, len) = at;
-    for i in 0..len as u64 {
+    for i in 0..len {
         // SAFETY: inside the property's value, within the blob the loader
         // left in RAM, which boot reserves and nothing else is reading.
-        unsafe { core::ptr::write_volatile((blob + offset + i) as *mut u8, 0) };
+        unsafe { blob.add(offset as usize + i).write_volatile(0) };
     }
 }

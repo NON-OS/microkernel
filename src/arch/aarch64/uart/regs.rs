@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::aarch64::mmu::io;
+use crate::arch::aarch64::mmu::pointer::device;
 use core::ptr::{read_volatile, write_volatile};
 
 /// A 16550-style register file: register `n` sits at `base + (n << shift)`
@@ -28,29 +28,27 @@ pub(super) struct Regs {
 }
 
 impl Regs {
-    fn at(&self, reg: u64) -> u64 {
-        io(self.base) + (reg << self.shift)
+    fn at<T>(&self, reg: u64) -> *mut T {
+        device(self.base, reg << self.shift)
     }
 
     pub(crate) fn read(&self, reg: u64) -> u32 {
-        let addr = self.at(reg);
         // SAFETY: `base` is the console window the boot path mapped as device
         // memory, and every register index used here lies inside it.
         unsafe {
             match self.width {
-                4 => read_volatile(addr as *const u32),
-                _ => read_volatile(addr as *const u8) as u32,
+                4 => read_volatile(self.at::<u32>(reg)),
+                _ => read_volatile(self.at::<u8>(reg)) as u32,
             }
         }
     }
 
     pub(crate) fn write(&self, reg: u64, value: u32) {
-        let addr = self.at(reg);
         // SAFETY: as for `read`.
         unsafe {
             match self.width {
-                4 => write_volatile(addr as *mut u32, value),
-                _ => write_volatile(addr as *mut u8, value as u8),
+                4 => write_volatile(self.at::<u32>(reg), value),
+                _ => write_volatile(self.at::<u8>(reg), value as u8),
             }
         }
     }

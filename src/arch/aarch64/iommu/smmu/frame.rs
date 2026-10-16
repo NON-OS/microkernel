@@ -18,10 +18,10 @@
 //! can see them: a zero STE level 1 descriptor aborts, a zero page table
 //! entry is not mapped, so zero is the safe initial state everywhere.
 
+use crate::arch::aarch64::mmu::pointer::ram;
 use crate::memory::addr::PhysAddr;
 use crate::memory::frame_alloc::manager::{allocate_frame, deallocate_frame};
 use crate::memory::iommu::IommuError;
-use crate::memory::unified::phys_to_virt;
 
 pub(super) const WORDS: usize = 512;
 
@@ -41,11 +41,11 @@ pub(super) fn alloc() -> Result<u64, IommuError> {
 
 /// The kernel's view of a frame this module allocated.
 pub(super) fn words(phys: u64) -> Result<&'static mut [u64; WORDS], IommuError> {
-    let virt = phys_to_virt(PhysAddr::new(phys)).ok_or(IommuError::BackendFault)?;
+    let at = ram::<[u64; WORDS]>(phys).ok_or(IommuError::BackendFault)?;
     // SAFETY: `phys` is a 4 KiB frame `alloc` handed out and only this
-    // driver writes it, under the state lock. The directmap entry
-    // `phys_to_virt` resolved lives as long as the kernel.
-    Ok(unsafe { &mut *(virt.as_u64() as *mut [u64; WORDS]) })
+    // driver writes it, under the state lock. The direct map that reaches it
+    // lives as long as the kernel.
+    Ok(unsafe { &mut *at })
 }
 
 /// Return a frame once nothing the unit can still walk points at it,
