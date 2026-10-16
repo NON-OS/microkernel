@@ -48,6 +48,16 @@ impl Ring {
         self.q.extend(b);
     }
 
+    /// One isochronous packet's bytes. A packet carries whole audio frames
+    /// (USB Audio 2.0 2.3.1.1, as recalled, unverified); bytes past the last
+    /// whole one are the device's error, dropped and counted as lost, so no
+    /// later frame is read a channel out of step.
+    pub fn put_packet(&mut self, p: &[u8]) {
+        let tail = p.len() % self.frame;
+        self.overrun = self.overrun.saturating_add(tail as u32);
+        self.put(&p[..p.len() - tail]);
+    }
+
     /// Up to `most` bytes of whole frames, and the overrun since the last.
     pub fn take(&mut self, most: usize) -> (u32, Vec<u8>) {
         let n = most.min(self.q.len());

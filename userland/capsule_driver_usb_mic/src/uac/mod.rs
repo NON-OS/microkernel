@@ -23,6 +23,8 @@ mod entities;
 mod find;
 #[path = "../../../capsule_driver_usb_audio/src/uac/format.rs"]
 mod format;
+#[path = "../../../capsule_driver_usb_audio/src/uac/packet.rs"]
+mod packet;
 #[path = "../../../capsule_driver_usb_audio/src/uac/pick.rs"]
 mod pick;
 #[path = "../../../capsule_driver_usb_audio/src/uac/read.rs"]
