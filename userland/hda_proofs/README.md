@@ -9,7 +9,7 @@ rings and `libc_shim` standing in for the broker, recording every call.
 
 ## What it proves
 
-179 `#[test]` functions over what the HD Audio specification and Linux's
+185 `#[test]` functions over what the HD Audio specification and Linux's
 driver fix in writing. `src/sim.rs` puts codecs on the link: a device thread
 reads each command off the CORB and answers it from a description of a real
 codec (`proofs/fixtures.rs`: the HP 15s-fq0xxx's Realtek ALC236, an Intel
@@ -34,8 +34,9 @@ into the RIRB with the codec's address as a controller does.
   streams, then rings, then DPLBASE, then CRST, witnessed by a model holding
   one part while the driver waits (`quiesce_order_tests`); a stuck engine, a
   controller held out of reset and a dead one (`teardown_tests`,
-  `teardown_fault_tests`, `reset_hold_tests`); the survey of the device list
-  (`discover_tests`) and the console lines (`mark_tests`);
+  `teardown_fault_tests`, `reset_hold_tests`); nothing touched past the
+  window the broker mapped, short of the BAR (`window_tests`); the survey
+  of the device list (`discover_tests`) and the console lines (`mark_tests`);
 - the serving half (`server/runner/`): every query handler answering whole
   from the loop's reply buffer, PCM writes at and past every bound, stream
   start and stop opening and closing the outputs, the tone, the refill under
@@ -63,8 +64,8 @@ into the RIRB with the codec's address as a controller does.
   `path_loop_tests`), and no route or amp verb through an input amp past the
   sixteenth (`amp_index_tests`, `amp_route_tests`, `route_sel_tests`);
 - the verdict that names a machine that cannot play, Gemini Lake with a
-  codec playing, and the vendor tables (`verdict_tests`, `intel_tests`,
-  `output_status_tests`);
+  codec playing, the vendor tables and the multi-link walk over hostile
+  pointers (`verdict_tests`, `intel_tests`, `output_status_tests`);
 - the stream descriptor layout, its reset, the BDL and interrupt enable, and
   the position source (`layout_tests`, `bdl_tests`, `stream_tests`,
   `stream_dma_tests`, `stream_irq_tests`, `position_tests`,

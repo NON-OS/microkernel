@@ -29,6 +29,7 @@ mod map_tests;
 mod mmio_tests;
 mod modern_caps_tests;
 mod modern_only_tests;
+mod msix_bar_tests;
 mod notify_tests;
 mod queue_tests;
 mod reset_tests;

@@ -37,4 +37,5 @@ pub mod teardown;
 mod teardown_fault_tests;
 pub mod teardown_log;
 mod teardown_tests;
+mod window_tests;
 pub mod witness;

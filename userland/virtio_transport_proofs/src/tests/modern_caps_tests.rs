@@ -24,7 +24,7 @@ use super::broker::FakeBroker;
 use super::space::{qemu_modern, qemu_transitional_bars, Space, QEMU_MODERN_BAR, TRANSITIONAL_NET};
 use crate::error::VirtioError;
 use crate::map::Need;
-use crate::select::{modern_caps, wants_probe};
+use crate::select::modern_caps;
 
 /// QEMU's default virtio-rng-pci on q35: 1af4:1005, transitional.
 const TRANSITIONAL_RNG: u16 = 0x1005;
@@ -34,8 +34,6 @@ const NET: Need = Need { isr: false, device: true };
 #[test]
 fn a_transitional_rng_with_its_io_bar_is_read_and_driven_modern() {
     let bars = qemu_transitional_bars();
-    // The older rule skipped the read for exactly this function.
-    assert!(!wants_probe(TRANSITIONAL_RNG, &bars));
     let space = qemu_modern(TRANSITIONAL_RNG);
     let mut broker = FakeBroker::new(&space, &bars);
     let caps = modern_caps(&bars, &mut broker, RNG).expect("read").expect("modern");
