@@ -27,8 +27,9 @@ use crate::ports::Ports;
 use crate::regs::{AUXCTL, AUX_CRC, AUX_E32B, BLKDAT, HSTCNT, HSTDAT0};
 
 /// The buffer is on only for the transfer and off after it, however the
-/// transfer ends, and the appended CRC with it. A host where E32B does not
-/// stay set has no buffer.
+/// transfer ends. The appended CRC (PEC) is off throughout, whatever
+/// firmware left: this driver asks for no PEC, so none is sent or checked.
+/// A host where E32B does not stay set has no buffer.
 pub fn exchange<P: Ports>(
     p: &mut P,
     plan: &Plan,
@@ -36,7 +37,7 @@ pub fn exchange<P: Ports>(
     out: &mut [u8; BLOCK_MAX],
 ) -> Result<usize, i32> {
     let aux = p.r8(AUXCTL)?;
-    p.w8(AUXCTL, aux | AUX_E32B)?;
+    p.w8(AUXCTL, (aux | AUX_E32B) & !AUX_CRC)?;
     if p.r8(AUXCTL)? & AUX_E32B == 0 {
         return Err(E_NOTSUP);
     }

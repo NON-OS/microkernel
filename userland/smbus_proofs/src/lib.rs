@@ -23,6 +23,8 @@ pub mod model;
 #[cfg(test)]
 mod answer_tests;
 #[cfg(test)]
+mod block_fault_tests;
+#[cfg(test)]
 mod block_tests;
 #[cfg(test)]
 mod error_tests;
