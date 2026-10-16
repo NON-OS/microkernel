@@ -96,7 +96,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | `OP_FOCUS_SET` | 0x0004 | raise a pid's layer to the top of its band; the window manager only, anyone else gets E_PERM |
 | `OP_INPUT_SUBSCRIBE` | 0x0005 | sets the compositor's focus record to the sender; restacks nothing |
 | `OP_CURSOR_UPDATE` | 0x0006 | move or hide the software cursor: x, y, visible |
-| `OP_SCENE_REMOVE` | 0x0007 | remove the sender's layer |
+| `OP_SCENE_REMOVE` | 0x0007 | remove the sender's layers; body z u32, flags u32, and flag 1 (BAND_ONLY) removes only its layer in band z, its surface's mapping kept while another layer shows it (`server/handlers/scene_remove_band.rs`) |
 | `OP_DISPLAY_INFO` | 0x0008 | canvas width, height, stride and format |
 | `OP_DISPLAY_HINT` | 0x0009 | a host size hint (output, width, height, source) -> flags; only from a service in `HINT_SOURCES` (empty until the host-services decision), others get E_PERM; for output 0 of a wire driver held and followed like a STATE hint and answered 1 (resizable), else 0 |
 | `OP_INDICATOR` | 0x000A | a capturing driver's camera (kind 1) or microphone (kind 2) on (1) or off (0), 8 bytes; only from a holder of that kind's capture capability bit (CameraCapture 1<<37, MicrophoneCapture 1<<38; no capsule may hold either until Decision 9), others get E_PERM, shown in the reserved band and presented before the answer (E_IO and no change if the present fails), E_BUSY past eight holders |
@@ -144,7 +144,7 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
 | EPHEMERAL | Zero files. The attach cache (`state/attach.rs`) holds surface mappings for the life of each handle. |
 | NOT LINUX | NONOS Mk syscall ABI. The wire format is the NCMP header, not Wayland. |
 | PRIVACY MICROKERNEL | Six required bits, all graphics or IPC. No Network, FileSystem or Crypto path. |
-| TRUSTED PATH | The lock screen and permission prompts are drawn in the trusted band: no client layer can be placed in it or raised into it, no screenshot holds it, and the input router gives its holder every key and click while it is up (`server/trusted_notice.rs`). |
+| TRUSTED PATH | The band's fourth mark is white while the trusted band is held, so a prompt or the lock with it is the system's and a lookalike drawn by a window is not. The lock screen and permission prompts are drawn in the trusted band: no client layer can be placed in it or raised into it, no screenshot holds it, and the input router gives its holder every key and click while it is up (`server/trusted_notice.rs`). |
 
 ## Runtime lifecycle
 
