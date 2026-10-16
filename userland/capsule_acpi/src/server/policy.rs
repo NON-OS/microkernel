@@ -25,14 +25,14 @@ const I2C_PCI: &[u8] = b"driver.i2c_pci0";
 const I2C_HID: &[u8] = b"driver.i2c_hid0";
 const PS2: &[u8] = b"driver.ps2_kbd0";
 const GPIO: &[u8] = b"driver.gpio0";
+pub const SPI_HID: &[u8] = b"driver.spi_hid0";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Allowed {
     /// The owners of these services.
     Services(&'static [&'static [u8]]),
-    /// Any sender the endpoint admits: DEVICE_POWER, PROPERTIES, GPIO_EVENT
-    /// and QUIRKS, where the kernel's claim test (MkAcpiFunctionOf,
-    /// MkAcpiDeviceName) limits each to the device's own holder.
+    /// Any sender the endpoint admits, where the kernel's claim test limits
+    /// each to the device's own holder: DEVICE_POWER, PROPERTIES and so on.
     AnyAdmitted,
     Nobody,
 }
@@ -42,7 +42,7 @@ pub fn allowed(op: u8) -> Allowed {
         3 | 4 | 6 | 7 | 14 | 17 | 19 => Allowed::Services(&[POWER, SHELL]),
         5 | 15 | 20 => Allowed::Services(&[POWER]),
         8 | 18 => Allowed::Services(&[SHELL]),
-        9 => Allowed::Services(&[I2C_PCI, I2C_HID]),
+        9 => Allowed::Services(&[I2C_PCI, I2C_HID, GPIO, SPI_HID]),
         10 | 12 | 13 | 16 => Allowed::AnyAdmitted,
         11 => Allowed::Services(&[PS2]),
         21 => Allowed::Services(&[GPIO]),
