@@ -48,6 +48,7 @@ pub use client_flight::client_flight;
 pub use handshake_alert::handshake_alert;
 pub use handshake_state::{Answer, HandshakeState, Progress, Refusal, Start};
 pub use traffic_keys::TrafficKeys;
+pub use session::{Io, SessionError};
 
 /* The stand-in C library, so a caller's proof can read the call counts. */
 pub use nonos_libc as shim;
