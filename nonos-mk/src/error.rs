@@ -19,7 +19,8 @@
 //! tell a malformed input from a key-handling failure from a
 //! signature verdict.
 
-use std::fmt;
+mod display;
+mod exit_code;
 
 #[derive(Debug)]
 pub enum CliError {
@@ -28,11 +29,7 @@ pub enum CliError {
     /// JSON input failed to parse or did not match the schema.
     Json(String),
     /// Hex-decoded field had the wrong length.
-    BadHexLen {
-        field: &'static str,
-        expected: usize,
-        got: usize,
-    },
+    BadHexLen { field: &'static str, expected: usize, got: usize },
     /// Unknown enum string in JSON input.
     UnknownEnum { field: &'static str, value: String },
     /// Operator key file or env var missing or malformed.
@@ -50,53 +47,8 @@ pub enum CliError {
     SerialRollback { previous: u64, current: u64 },
 }
 
-impl fmt::Display for CliError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            CliError::Io(e) => write!(f, "io: {e}"),
-            CliError::Json(s) => write!(f, "json: {s}"),
-            CliError::BadHexLen {
-                field,
-                expected,
-                got,
-            } => {
-                write!(f, "{field}: expected {expected} hex bytes, got {got}")
-            }
-            CliError::UnknownEnum { field, value } => {
-                write!(f, "{field}: unknown value {value:?}")
-            }
-            CliError::KeyError(s) => write!(f, "key: {s}"),
-            CliError::DecodeFailed(s) => write!(f, "decode: {s}"),
-            CliError::SignatureRefused => write!(f, "signature did not verify against pubkey"),
-            CliError::OperatorPubkeyMismatch => {
-                write!(f, "embedded operator_pubkey does not match supplied pubkey")
-            }
-            CliError::PublisherPubkeyMismatch => {
-                write!(f, "listing publisher_pubkey does not match signing key")
-            }
-            CliError::SerialRollback { previous, current } => {
-                write!(f, "serial rollback: previous={previous} current={current}")
-            }
-        }
-    }
-}
-
 impl From<std::io::Error> for CliError {
     fn from(e: std::io::Error) -> Self {
         CliError::Io(e)
-    }
-}
-
-impl CliError {
-    pub fn exit_code(&self) -> i32 {
-        match self {
-            CliError::Io(_) => 2,
-            CliError::Json(_) | CliError::UnknownEnum { .. } | CliError::BadHexLen { .. } => 3,
-            CliError::KeyError(_) => 4,
-            CliError::DecodeFailed(_) => 5,
-            CliError::SignatureRefused => 6,
-            CliError::OperatorPubkeyMismatch | CliError::PublisherPubkeyMismatch => 7,
-            CliError::SerialRollback { .. } => 8,
-        }
     }
 }
