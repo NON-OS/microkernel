@@ -25,15 +25,15 @@ pub(super) fn on_passphrase_key(state: &mut State, code: u32) -> EventOutcome {
         // Show what was typed, or hide it again, so a capital or a symbol the
         // keyboard layout moved can be seen before joining.
         KEY_TAB => {
-            state.wifi_pass_shown = !state.wifi_pass_shown;
+            state.wifi_pass.shown = !state.wifi_pass.shown;
             EventOutcome::Repaint
         }
         KEY_BACKSPACE | KEY_DELETE => {
-            state.wifi_pass.pop();
+            state.wifi_pass.text.pop();
             EventOutcome::Repaint
         }
         c @ 0x20..=0x7E => {
-            state.wifi_pass.push(c as u8);
+            state.wifi_pass.text.push(c as u8);
             EventOutcome::Repaint
         }
         _ => EventOutcome::Idle,

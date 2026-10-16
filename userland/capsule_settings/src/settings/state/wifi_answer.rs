@@ -69,7 +69,7 @@ pub(super) fn apply(state: &mut State, answer: Answer) {
             state.wifi_networks[..count].sort_unstable_by(|a, b| b.signal.cmp(&a.signal));
             state.wifi_network_count = count;
             state.wifi_scan = WifiScan::Done(outcome);
-            state.wifi_stats = stats;
+            state.wifi_diag.stats = stats;
             if state.wifi_cursor >= count {
                 state.wifi_cursor = count.saturating_sub(1);
             }
