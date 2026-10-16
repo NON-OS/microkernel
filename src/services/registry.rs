@@ -28,6 +28,7 @@ mod peers;
 mod peers_check;
 mod policy;
 mod reserved;
+mod system_names;
 
 pub(crate) use adopt::adopt_endpoint;
 pub use endpoint::ServiceEndpoint;
@@ -35,6 +36,7 @@ pub use error::RegError;
 pub use peers_check::{caller_may_reach, caller_may_reach_pid, caller_may_write_inbox};
 pub use policy::required_caps;
 pub(crate) use reserved::{is_reserved_service, is_runtime_registrable};
+pub(crate) use system_names::is_system_name;
 
 pub const MAX_SERVICES: usize = 256;
 pub(self) static ENDPOINTS: Mutex<Vec<ServiceEndpoint>> = Mutex::new(Vec::new());
