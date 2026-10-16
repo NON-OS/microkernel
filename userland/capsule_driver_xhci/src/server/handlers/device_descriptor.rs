@@ -35,10 +35,14 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         }
     };
     out.zero();
-    if let Err(e) = transfer(ctx, slot, &out) {
-        recover_after(ctx, slot, DCI_EP0, e);
-        reply_with_status(tx, req, E_IO);
-        return;
+    match transfer(ctx, slot, &out) {
+        Err(e) => {
+            recover_after(ctx, slot, DCI_EP0, e);
+            return reply_with_status(tx, req, E_IO);
+        }
+        // A device descriptor cut short is not one: its tail is not zeros.
+        Ok(n) if n < DEVICE_DESCRIPTOR_LEN as usize => return reply_with_status(tx, req, E_IO),
+        Ok(_) => {}
     }
     reply_descriptor(tx, req, &out);
 }

@@ -49,6 +49,8 @@ mod book_tests;
 #[cfg(test)]
 mod desc_tests;
 #[cfg(test)]
+mod changing_tests;
+#[cfg(test)]
 mod found_tests;
 #[cfg(test)]
 mod hosts_book_tests;
