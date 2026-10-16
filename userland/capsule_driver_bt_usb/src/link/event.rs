@@ -15,20 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Events from the controller while a link is up. Disconnection Complete
-//! for the link ends it (Vol 4, Part E, 7.7.5), and Hardware Error ends it
-//! too: the controller has lost its state and must be brought up again
-//! (Vol 4, Part E, 7.7.16). Everything else needs nothing from this host.
+//! for the link ends it (Vol 4, Part E, 7.7.5), and a link this host never
+//! asked for is dealt with in `stray`. Hardware Error never comes here:
+//! the host stops on it, since the controller must be brought up again
+//! (7.7.16). Everything else needs nothing from this host.
 
 use super::end::End;
 use super::env::Env;
 use super::session::Session;
-use nonos_bt_hci::HciError;
+use nonos_bt_hci::{HciError, Host, Transport};
 use nonos_bt_wire::hci::event::parse_event;
-use nonos_bt_wire::hci::event_code::{DISCONNECTION_COMPLETE, HARDWARE_ERROR};
+use nonos_bt_wire::hci::event_code::{DISCONNECTION_COMPLETE, LE_META};
 use nonos_bt_wire::hci::DisconnectionComplete;
 
 impl Session {
-    pub(super) fn on_event(&mut self, event: &[u8]) -> Result<(), HciError> {
+    pub(super) fn on_event<T: Transport>(
+        &mut self,
+        host: &mut Host<T>,
+        event: &[u8],
+    ) -> Result<(), HciError> {
         let e = parse_event(event)?;
         match e.code {
             DISCONNECTION_COMPLETE => {
@@ -37,7 +42,7 @@ impl Session {
                     self.end = Some(End::Lost(d.reason));
                 }
             }
-            HARDWARE_ERROR => self.give_up("controller hardware error"),
+            LE_META => self.on_le(host, e.params)?,
             _ => {}
         }
         Ok(())

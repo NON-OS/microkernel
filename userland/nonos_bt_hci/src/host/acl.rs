@@ -17,8 +17,8 @@
 //! Sending one L2CAP PDU as ACL packets no longer than the controller
 //! takes. On LE the host marks the first packet "first non-automatically-
 //! flushable" and the rest "continuing" (Vol 4, Part E, 5.4.2). Each packet
-//! takes one controller buffer until Number of Completed Packets gives it
-//! back (Vol 4, Part E, 4.1.1).
+//! takes one controller buffer, held for its link (`held`), until Number
+//! of Completed Packets gives it back (Vol 4, Part E, 4.1.1).
 
 use super::state::Host;
 use crate::error::HciError;
@@ -45,7 +45,7 @@ impl<T: Transport> Host<T> {
         let mut boundary = Boundary::FirstNonFlushable;
         for part in parts {
             self.t.send_acl(&acl(handle, boundary, part)?)?;
-            self.acl_free -= 1;
+            self.hold(handle);
             boundary = Boundary::Continuing;
         }
         Ok(())
