@@ -10,12 +10,12 @@ pub mod constants;
 pub mod claim;
 #[path = "../../capsule_driver_iwlwifi/src/setup/command.rs"]
 pub mod command;
-#[path = "../../capsule_driver_iwlwifi/src/setup/grants.rs"]
-pub mod grants;
 #[path = "../../capsule_driver_iwlwifi/src/driver/mod.rs"]
 pub mod driver;
 #[path = "../../capsule_driver_iwlwifi/src/setup/give_back.rs"]
 pub mod give_back;
+#[path = "../../capsule_driver_iwlwifi/src/setup/grants.rs"]
+pub mod grants;
 #[path = "../../capsule_driver_iwlwifi/src/init.rs"]
 pub mod init;
 #[path = "../../capsule_driver_iwlwifi/src/mmio.rs"]

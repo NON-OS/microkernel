@@ -28,5 +28,5 @@ fn a_finished_bring_up_is_given_back_in_reverse_order_with_bus_master_off_first(
     let order = [("pci_command", 2), ("irq_unbind", 7), ("mmio_unmap", 6), ("device_release", 5)];
     assert_eq!(given_back()[before..], order, "Memory Space alone (2) before any grant goes");
     give_back(&d);
-    assert_eq!(given_back()[before + 4..], order, "a second give-back sends the same four and nothing else");
+    assert_eq!(given_back()[before + 4..], order, "the same four again");
 }
