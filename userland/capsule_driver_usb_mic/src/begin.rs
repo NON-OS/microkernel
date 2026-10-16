@@ -40,7 +40,9 @@ pub fn begin(d: &mut Dev, peer: u32) -> Result<[u8; 8], i32> {
         d.session.stop();
         return Err(e);
     }
-    (d.streaming, d.ring) = (true, Ring::new(SAMPLE_BYTES as usize * channels as usize));
+    let frame = SAMPLE_BYTES as usize * channels as usize;
+    let share = b.nic.timing.packet_bytes as usize + frame;
+    (d.streaming, d.ring) = (true, Ring::new(frame).sharing(share));
     // Decision 9: no indicator, no stream.
     if !crate::notify::capture(true) {
         stop(d);
