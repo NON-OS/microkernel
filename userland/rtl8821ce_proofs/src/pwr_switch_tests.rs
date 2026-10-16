@@ -9,6 +9,7 @@ use crate::pwr::{power_on, run_pwr_seq, PowerOn};
 use crate::pwr_mock::Chip;
 
 mod armed; // the Bus Master gate built on this power-on (W4)
+mod fetch_tests;
 mod master_tests;
 
 #[test]
