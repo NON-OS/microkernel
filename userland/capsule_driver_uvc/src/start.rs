@@ -20,7 +20,8 @@
 use nonos_usbnet::bus::Bus;
 use nonos_usbnet::setup::Setup;
 use nonos_usbnet::xhci::{XhciBus, E_INVAL};
-use nonos_uvc::{pick_alt, Alt, Probe, CONTROL_LEN_11, GET_CUR, SET_CUR, VS_COMMIT, VS_PROBE};
+use nonos_uvc::{frame_bound, pick_alt, Alt, Probe, CONTROL_LEN_11};
+use nonos_uvc::{GET_CUR, SET_CUR, VS_COMMIT, VS_PROBE};
 
 use crate::bind::Cam;
 use crate::isoch::configure;
@@ -47,11 +48,12 @@ pub fn start(
     let mut got = [0u8; CONTROL_LEN_11];
     let n = bus.control_in(Setup::class(true, GET_CUR, (VS_PROBE as u16) << 8, vs), &mut got)?;
     let agreed = Probe::read(&got[..n]).ok_or(E_INVAL)?;
+    // A frame bound the described frame cannot need is refused uncommitted.
+    let max_frame = frame_bound(&c.cam, &agreed).ok_or(E_INVAL)?;
     bus.control_out(probe(VS_COMMIT), &agreed.bytes())?;
     let alt = pick_alt(&c.cam.alts, agreed.max_payload).ok_or(E_INVAL)?;
     bus.control_out(Setup::set_interface(vs, alt.setting), &[])?;
     configure(bus.xhci, bus.slot, &alt, alt.interval)?;
-    let max_frame = if agreed.max_frame == 0 { fr.max_bytes } else { agreed.max_frame };
     Ok(Stream { alt, max_frame })
 }
 

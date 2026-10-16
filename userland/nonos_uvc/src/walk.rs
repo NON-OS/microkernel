@@ -20,7 +20,7 @@
 
 use crate::desc::Camera;
 use crate::frames::alternate;
-use crate::vs::{format, frame};
+use crate::vs::{format, frame, is_format};
 
 const DT_INTERFACE: u8 = 0x04;
 const CS_INTERFACE: u8 = 0x24;
@@ -33,7 +33,7 @@ const VIDEO_STREAMING: u8 = 0x02;
 pub fn camera(raw: &[u8]) -> Option<Camera> {
     let (mut cam, mut have) = (Camera::default(), (false, false));
     let mut i = raw.first().map_or(0, |&l| l as usize).max(2);
-    let mut current: Option<(u8, u8)> = None;
+    let (mut current, mut open): (Option<(u8, u8)>, bool) = (None, false);
     while i + 2 <= raw.len() {
         let len = raw[i] as usize;
         let d = raw.get(i..i + len).filter(|_| len >= 2)?;
@@ -48,10 +48,13 @@ pub fn camera(raw: &[u8]) -> Option<Camera> {
             }
             DT_INTERFACE => current = None,
             CS_INTERFACE if current == Some((VIDEO_STREAMING, cam.streaming)) => {
-                if let Some(f) = format(d) {
-                    cam.formats.push(f);
-                } else if let (Some(fr), Some(f)) = (frame(d), cam.formats.last_mut()) {
-                    f.frames.push(fr);
+                // A refused format's frames belong to no format read here.
+                if is_format(d) {
+                    open = format(d).map(|f| cam.formats.push(f)).is_some();
+                } else if let (Some(fr), Some(f), true) = (frame(d), cam.formats.last_mut(), open) {
+                    if f.kind.frame_subtype() == d[2] {
+                        f.frames.push(fr);
+                    }
                 }
             }
             _ => {}
