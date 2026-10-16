@@ -24,6 +24,7 @@
 extern crate alloc;
 
 mod alt;
+mod bound;
 mod desc;
 mod frame;
 mod frames;
@@ -34,6 +35,7 @@ mod vs;
 mod walk;
 
 pub use alt::{pick_alt, Alt};
+pub use bound::{frame_bound, MAX_FRAME_BYTES};
 pub use desc::{Camera, Format, FormatKind, FrameSize};
 pub use frame::{Assembler, Payload};
 pub use probe::{Probe, CONTROL_LEN_11, GET_CUR, SET_CUR, VS_COMMIT, VS_PROBE};
