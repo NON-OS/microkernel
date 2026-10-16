@@ -41,7 +41,7 @@ impl Mlme {
             secret_too_long: req.passphrase.len() > SECRET_MAX,
             policy: req.policy,
             snonce: req.entropy.snonce,
-            sae_entropy: Some(req.entropy.sae),
+            sae_entropy: req.entropy.sae,
             bssid: [0u8; 6],
             channel: 0,
             seq: 0,
