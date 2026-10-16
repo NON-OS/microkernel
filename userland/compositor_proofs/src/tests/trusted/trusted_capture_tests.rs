@@ -19,7 +19,7 @@
 //! never a pixel of the trusted band, even where a prompt covers a window;
 //! never the cursor; and no more than both the canvas and the shot hold.
 
-use crate::trusted_desk::{shoot, APP, H, PROMPT, W};
+use crate::tests::trusted::trusted_desk::{shoot, APP, H, PROMPT, W};
 use crate::trusted_rule::TRUSTED_Z;
 
 #[test]

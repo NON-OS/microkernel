@@ -22,7 +22,7 @@
 //! behind, or part of a raised window still under the one it came up over.
 
 use crate::damage::{DamageAccumulator, Rect};
-use crate::frame_model::{layer, Rng, Screen, BACKGROUND, H, W};
+use crate::tests::scene::frame_model::{layer, Rng, Screen, BACKGROUND, H, W};
 use crate::scene::{Layer, SceneTable};
 use crate::scene_raise::raise_by_pid;
 use crate::scene_remove::remove_by_pid;

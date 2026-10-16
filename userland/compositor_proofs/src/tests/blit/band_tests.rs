@@ -18,7 +18,7 @@
 //! in the band under the windows and its menubar, dock, menus and dialogs in
 //! one over them; each window is one layer in the band between.
 
-use crate::frame_model::layer;
+use crate::tests::scene::frame_model::layer;
 use crate::scene::SceneTable;
 use crate::scene_raise::raise_by_pid;
 use crate::scene_submit::submit_layer;
