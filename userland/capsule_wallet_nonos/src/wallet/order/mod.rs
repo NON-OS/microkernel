@@ -20,6 +20,7 @@ mod confirm;
 pub mod consent;
 pub mod deliver;
 pub mod delivered;
+mod deposit_check;
 mod dispute;
 pub mod dispute_said;
 mod dispute_steps;

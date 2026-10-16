@@ -21,10 +21,12 @@
 
 use alloc::boxed::Box;
 
+use nonos_marketplace_abi::Keccak;
 use nonos_payment_proto::{OfferMade, OrderMade, OrderNew, EAGAIN};
 
 use super::buy::Buy;
 use super::confirm::confirms;
+use super::deposit_check::{deposit_check, Pinned};
 use super::said::{failed, Stage};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -52,15 +54,21 @@ pub fn after_offer(buy: &Buy, r: Result<&[u8], i32>, refund_to: [u8; 20], now: u
     }
 }
 
-/// ORDER_NEW's job result, for the order `sent`: funded only when the
-/// terms the meter built are the ones the person confirmed.
-pub fn after_order(sent: &OrderNew, r: Result<&[u8], i32>) -> After {
+/// ORDER_NEW's job result for `sent`: funded only on the terms confirmed, with
+/// the id and deposit address the wallet itself makes of them on `at`.
+pub fn after_order(
+    k: &impl Keccak,
+    sent: &OrderNew,
+    at: Option<Pinned>,
+    r: Result<&[u8], i32>,
+) -> After {
     match r {
         Err(EAGAIN) => After::Wait,
         Err(s) => After::Failed(failed(Stage::Order, s)),
         Ok(b) => match OrderMade::parse(b) {
-            Some(m) if confirms(sent, &m.terms) => After::Fund(Box::new(m)),
-            Some(_) => After::Failed(NOT_CONFIRMED),
+            Some(m) if !confirms(sent, &m.terms) => After::Failed(NOT_CONFIRMED),
+            Some(m) => deposit_check(k, sent, &m, at)
+                .map_or_else(After::Failed, |()| After::Fund(Box::new(m))),
             None => After::Failed(UNREADABLE),
         },
     }

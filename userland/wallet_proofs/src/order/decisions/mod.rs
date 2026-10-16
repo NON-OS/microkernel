@@ -15,13 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The purchase path's decisions, split from its screens and calls: the
-//! reading's order, Buy's, Open's and Fund's gates, the fresh address. They
-//! name their siblings through `super`, which these uses stand in for.
+//! reading's order, Buy's, Open's and Fund's gates, the fresh address, the
+//! meter's order id and deposit recomputed. They name their siblings
+//! through `super`, which these uses stand in for.
 
 use super::{buy, fees_kind, held, read, voucher};
 
 #[path = "../../../../capsule_wallet_nonos/src/wallet/order/buy_gate.rs"]
 pub mod buy_gate;
+#[path = "../../../../capsule_wallet_nonos/src/wallet/order/deposit_check.rs"]
+pub mod deposit_check;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/order/fresh_reply.rs"]
 pub mod fresh_reply;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/order/fund_ask.rs"]

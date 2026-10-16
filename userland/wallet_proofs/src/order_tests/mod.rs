@@ -16,6 +16,10 @@
 
 mod buy_gate;
 mod consent_wait;
+mod deposit_check;
+mod deposit_fixture;
+mod deposit_refused;
+mod deposit_terms;
 mod dispute;
 mod dispute_fixture;
 mod dispute_flow;
