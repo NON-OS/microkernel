@@ -144,6 +144,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MACP", SyscallNumber::MkAcpiCpu, "MkAcpiCpu"),
     e(b"MAHO", SyscallNumber::MkAcpiHolds, "MkAcpiHolds"),
     e(b"MPPF", SyscallNumber::MkPciProbeFunction, "MkPciProbeFunction"),
+    e(b"MPDP", SyscallNumber::MkPciDepart, "MkPciDepart"),
     e(b"MAFO", SyscallNumber::MkAcpiFunctionOf, "MkAcpiFunctionOf"),
     e(b"MAHE", SyscallNumber::MkAcpiHwError, "MkAcpiHwError"),
     e(b"MAPD", SyscallNumber::MkAcpiPlatformDevice, "MkAcpiPlatformDevice"),
