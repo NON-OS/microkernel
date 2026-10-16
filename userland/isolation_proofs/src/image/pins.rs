@@ -17,7 +17,7 @@
 //! A nox_verify Statement over the image: the numbers the image does not
 //! carry, read from the circuit, and the pins a gate holds.
 
-use isolation_stark::{EXTRA_BLOWUP_BITS, GRIND_BITS, QUERIES, WORDS};
+use isolation_stark::{QUERIES, STATEMENT_BLOWUP_BITS, STATEMENT_GRIND_BITS, WORDS};
 use nonos_stark::air::{periodic_root, Air, AirExt, Permuted, WiredMultiGen};
 use nonos_stark::hash::keccak256;
 use nox_verify::{Point, Shape, Statement};
@@ -41,8 +41,8 @@ pub fn pins(air: &WiredMultiGen, program: &[u8]) -> Pins {
     };
     Pins {
         program_hash: keccak256(program),
-        periodic_root: periodic_root(air, EXTRA_BLOWUP_BITS),
-        params: ParamSet::of(air, QUERIES, GRIND_BITS, EXTRA_BLOWUP_BITS).id(),
+        periodic_root: periodic_root(air, STATEMENT_BLOWUP_BITS),
+        params: ParamSet::of(air, QUERIES, STATEMENT_GRIND_BITS, STATEMENT_BLOWUP_BITS).id(),
         shape,
     }
 }
@@ -50,13 +50,13 @@ pub fn pins(air: &WiredMultiGen, program: &[u8]) -> Pins {
 /// The statement a gate pins, the image leaked to 'static as a pin is.
 pub fn statement(air: &WiredMultiGen, program: Vec<u8>) -> Statement {
     let p = pins(air, &program);
-    let point = Point { params: p.params, queries: QUERIES, grind_bits: GRIND_BITS };
+    let point = Point { params: p.params, queries: QUERIES, grind_bits: STATEMENT_GRIND_BITS };
     Statement {
         program: Box::leak(program.into_boxed_slice()),
         program_hash: p.program_hash,
         periodic_root: p.periodic_root,
         shape: p.shape,
-        extra_blowup_bits: EXTRA_BLOWUP_BITS,
+        extra_blowup_bits: STATEMENT_BLOWUP_BITS,
         points: Box::leak(Box::new([point])),
         words: WORDS,
         max_proof_bytes: 128 * 1024,
