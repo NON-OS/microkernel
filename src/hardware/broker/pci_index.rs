@@ -59,3 +59,12 @@ pub(in crate::hardware::broker) fn all() -> Vec<PciHandle> {
 pub(in crate::hardware::broker) fn push(handle: PciHandle) {
     INDEX.write().push(handle);
 }
+
+/// A function that left (`acpi::depart`): its handle goes with it, so a
+/// later arrival at the same address is read afresh.
+#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
+pub(in crate::hardware::broker) fn take(device_id: u64) -> Option<PciHandle> {
+    let mut index = INDEX.write();
+    let at = index.iter().position(|h| h.device_id == device_id)?;
+    Some(index.remove(at))
+}
