@@ -109,6 +109,8 @@ pub mod arm_acpi;
 #[cfg(test)]
 mod arm_acpi_tests;
 #[cfg(test)]
+mod seeded_tables;
+#[cfg(test)]
 pub mod smp_bringup;
 #[cfg(test)]
 pub mod futex_waiters;

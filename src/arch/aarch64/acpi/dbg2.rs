@@ -22,7 +22,7 @@
 //! structure that does not fit, and keeps at most `MAX_DEVICES`.
 
 use super::dbg2_device::device;
-pub use super::dbg2_device::Dbg2Device;
+pub use super::dbg2_device::{Dbg2Device, MAX_REGISTERS};
 use super::le::u32_at;
 use super::sdt::{table, TableError};
 use alloc::vec::Vec;

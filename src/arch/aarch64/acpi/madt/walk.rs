@@ -17,7 +17,8 @@
 //! The MADT's structures one by one after its fixed 44 bytes: each one's
 //! length at least two and inside the table, and at least what its type
 //! needs; any that fails stops the walk with its offset. Types other than
-//! the four GIC ones read here are passed over by their length.
+//! the four GIC ones read here are passed over by their length, and past
+//! `MAX_STRUCTURES` the rest are not read.
 
 use super::super::sdt::{table, TableError, HEADER};
 use super::gicc::{Gicc, MIN as GICC_MIN};
@@ -25,6 +26,8 @@ use super::parts::{gicd, gicr, its, Gicd, Gicr, Its, GICD_LEN, GICR_LEN, ITS_LEN
 use alloc::vec::Vec;
 
 const STRUCTURES: usize = HEADER + 8;
+/// Two per processor on the largest Arm servers, with room over.
+pub const MAX_STRUCTURES: usize = 8192;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Gic {
@@ -40,7 +43,10 @@ pub fn madt_gic(t: &[u8]) -> Result<Gic, TableError> {
         return Err(TableError::Short);
     }
     let (mut gic, mut at) = (Gic::default(), STRUCTURES);
-    while at < t.len() {
+    for _ in 0..MAX_STRUCTURES {
+        if at >= t.len() {
+            break;
+        }
         let bad = TableError::Structure(at);
         let len = *t.get(at + 1).ok_or(bad)? as usize;
         let s = t.get(at..at + len).filter(|_| len >= 2).ok_or(bad)?;
