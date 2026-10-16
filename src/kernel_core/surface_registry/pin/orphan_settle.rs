@@ -43,7 +43,7 @@ pub(super) fn settle(windows: Vec<Window>, own: OwnOrphans) {
         let _gate = crate::smp::lock_responsive(&GATE);
         for w in windows {
             if let Some((owner, handle)) = w.orphan {
-                settle_one(owner, handle, w.frames, w.unmapped);
+                settle_one(owner, handle, w.unmapped);
             }
         }
         own.settle();
@@ -52,14 +52,12 @@ pub(super) fn settle(windows: Vec<Window>, own: OwnOrphans) {
 }
 
 /// When the orphan was already freed (its last holder let go meanwhile), it
-/// is listed again to free just what was unmapped. A frame already listed to
-/// free is not listed twice, or `reclaim` would free it twice.
-pub(super) fn settle_one(
-    owner: u32,
-    handle: SurfaceHandle,
-    frames: Vec<PhysAddr>,
-    unmapped: Vec<PhysAddr>,
-) {
+/// is listed again to free just what was unmapped, with no frame list: the
+/// slot is gone and nothing can map it, and a stale list would let a sibling
+/// credit a frame since reused for another surface to it (L61). A frame
+/// already listed to free is not listed twice, or `reclaim` would free it
+/// twice.
+pub(super) fn settle_one(owner: u32, handle: SurfaceHandle, unmapped: Vec<PhysAddr>) {
     let mut list = ORPHANS.lock();
     match list.iter_mut().find(|o| o.handle == handle && o.owner == owner) {
         Some(o) => {
@@ -67,6 +65,9 @@ pub(super) fn settle_one(
             o.free.sort_unstable_by_key(|f| f.as_u64());
             o.free.dedup();
         }
-        None => list.push(Orphan { owner, handle, frames, free: unmapped, grant: None, tables: 0 }),
+        None => {
+            let frames = Vec::new();
+            list.push(Orphan { owner, handle, frames, free: unmapped, grant: None, tables: 0 });
+        }
     }
 }

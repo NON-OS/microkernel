@@ -31,6 +31,8 @@ pub(crate) struct Preflighted {
     /// The publisher-signed identity of manifest and image, checked by
     /// `verify_with_publisher`.
     pub capsule_id: [u8; 32],
+    /// Spawned from the system's own namespace (L61).
+    pub system: bool,
 }
 
 pub(crate) fn run(
@@ -69,6 +71,7 @@ pub(crate) fn run(
     let capsule_id = verification.0.capsule_id;
     let required_caps = verification.0.manifest.required_caps;
     let namespace = verification.0.manifest.namespace_str();
+    let system = matches!(super::tier::classify(namespace), super::tier::Tier::Enrolled);
     let proved = match super::tier::classify(namespace) {
         super::tier::Tier::Enrolled => super::attest_gate::attest_gate(spec, required_caps)?,
         super::tier::Tier::Publisher => {
@@ -76,5 +79,5 @@ pub(crate) fn run(
         }
     };
 
-    Ok(Preflighted { install_caps, proved, capsule_id })
+    Ok(Preflighted { install_caps, proved, capsule_id, system })
 }

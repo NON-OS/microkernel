@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::super::attested_parent::AttestedParent;
+use crate::security::dev_roots::Authority;
 
 pub(crate) struct InstallParams<'a> {
     pub name: &'a str,
@@ -29,4 +30,8 @@ pub(crate) struct InstallParams<'a> {
      * caller. `None` preserves the default (caller-as-parent) behavior.
      */
     pub on_behalf_of: Option<AttestedParent>,
+    /// What the gate proved (measurement, caps, authority), and whether the
+    /// capsule is the system's own, both set before the pid can run (L61).
+    pub attest: ([u8; 32], u64, Authority),
+    pub system: bool,
 }

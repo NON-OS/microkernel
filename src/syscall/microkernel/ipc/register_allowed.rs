@@ -16,7 +16,6 @@
 
 //! Whether a capsule may claim this name on this port.
 
-use crate::security::dev_roots::Authority;
 use crate::services::registry::{
     caller_has_register_right, is_reserved_service, is_runtime_registrable, lookup_service,
 };
@@ -34,11 +33,9 @@ pub(super) fn allowed(name: &str, port: u32, pid: u32) -> Result<(), i64> {
         return Ok(());
     }
     // The right alone was not enough, and a publisher's capsule never takes
-    // a system name at run time either (L57).
-    let own = matches!(
-        crate::security::attest_registry::authority_of(crate::hardware::broker::holder_of(pid)),
-        Some(Authority::Vendor | Authority::Developer(_))
-    );
+    // a system name at run time either (L57): only one spawned from the
+    // system's own namespace, a mark set before it first ran (L61).
+    let own = crate::process::core::spawn_tier::is_system(crate::hardware::broker::holder_of(pid));
     match own && caller_has_register_right() && is_runtime_registrable(name) {
         true => Ok(()),
         false => Err(ERRNO_PERM),

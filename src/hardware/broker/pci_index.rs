@@ -36,7 +36,8 @@ pub(in crate::hardware::broker) struct PciHandle {
     pub(in crate::hardware::broker) bars: [PciBar; 6],
     pub(in crate::hardware::broker) msi: Option<MsiInfo>,
     pub(in crate::hardware::broker) msix: Option<MsixInfo>,
-    /// A type 0 header: not a bridge, whose claim the broker refuses (L58).
+    /// A type 0 header and no Intel VMD: no function whose Bus Master Enable
+    /// or BARs gate others', whose claim the broker refuses (L58, L61).
     pub(in crate::hardware::broker) standard: bool,
 }
 

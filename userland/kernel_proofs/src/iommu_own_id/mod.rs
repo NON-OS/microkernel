@@ -23,4 +23,5 @@
 
 #[path = "../../../../src/arch/x86_64/iommu/own_id.rs"]
 mod own_id;
+mod root_bus_tests;
 mod tests;

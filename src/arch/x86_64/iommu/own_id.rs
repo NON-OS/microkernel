@@ -39,16 +39,18 @@ pub(super) enum Hop {
     Other,
 }
 
-/// The bridges from `bus` up to the root bus, nearest first. `parent_of(b)`
-/// names the bridge whose secondary bus is `b`, as (its own bus, its kind).
-/// None when a bus has no bridge above it or a parent's bus is not below its
-/// child's, which a sane numbering never gives and a loop always would.
+/// The bridges from `bus` up to a root bus, nearest first. `is_root(b)`: bus
+/// 0, or one no bridge's range holds, as a second host bridge's is (L61).
+/// `parent_of(b)` names the bridge whose secondary bus is `b`, as (its own
+/// bus, its kind). None when a bus has no bridge above it or a parent's bus
+/// is not below its child's, which a sane numbering never gives.
 pub(super) fn path_to_root(
     mut bus: u8,
+    is_root: impl Fn(u8) -> bool,
     parent_of: impl Fn(u8) -> Option<(u8, Hop)>,
 ) -> Option<Vec<Hop>> {
     let mut path = Vec::new();
-    while bus != ROOT_BUS {
+    while !is_root(bus) {
         let (up, hop) = parent_of(bus)?;
         if up >= bus {
             return None;
@@ -59,17 +61,12 @@ pub(super) fn path_to_root(
     Some(path)
 }
 
-/// Whether a device on `bus` sends under its own id: on the root bus, or a
-/// PCIe function every one of whose bridges is a PCIe port. Anything else,
+/// Whether a device sends under its own id: on a root bus (an empty path), or
+/// a PCIe function every one of whose bridges is a PCIe port. Anything else,
 /// an unknown path included, is not counted as its own. Nor is a bridge that
 /// may stand in for its subordinates (`stands_in`): its id is theirs too, so
 /// confining it would move their DMA into its holder's domain (L54).
-pub(super) fn own_requester_id(
-    bus: u8,
-    is_pcie: bool,
-    stands_in: bool,
-    path: Option<&[Hop]>,
-) -> bool {
-    let up = |p: &[Hop]| p.iter().all(|h| *h == Hop::PciePort);
-    !stands_in && (bus == ROOT_BUS || (is_pcie && path.is_some_and(up)))
+pub(super) fn own_requester_id(is_pcie: bool, stands_in: bool, path: Option<&[Hop]>) -> bool {
+    let up = |p: &[Hop]| p.is_empty() || (is_pcie && p.iter().all(|h| *h == Hop::PciePort));
+    !stands_in && path.is_some_and(up)
 }

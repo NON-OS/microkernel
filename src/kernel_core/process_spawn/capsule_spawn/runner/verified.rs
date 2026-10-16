@@ -51,7 +51,20 @@ pub(crate) fn spawn_verified_as(
         }
     };
     crate::sys::bench::mark_named(b"capsule_preflight_ok", spec.name.as_bytes());
-    let pid = install(&InstallParams {
+    /*
+     * What goes in the registry is the measurement the gate checked, never
+     * one recomputed from the image. A capsule that ran on a publisher
+     * signature alone is recorded under that authority rather than left out:
+     * the registry claims to be complete, and a receipt that omits a running
+     * program is the one lie a verifier cannot catch. It is recorded before
+     * the pid can run, so its first call already finds it (L61).
+     */
+    let (measurement, authority) = match preflighted.proved {
+        Some(proved) => (proved.measurement, proved.authority),
+        None => (preflighted.capsule_id, Authority::Publisher),
+    };
+    let caps = super::profile_gate::caps(preflighted.install_caps);
+    install(&InstallParams {
         name: spec.name,
         service_port: spec.service_port,
         reply_inbox: spec.reply_inbox,
@@ -60,23 +73,7 @@ pub(crate) fn spawn_verified_as(
         caps_bits: preflighted.install_caps,
         debug_tag: spec.debug_tag,
         on_behalf_of,
-    })?;
-    /*
-     * First point at which a pid exists. What goes in is the measurement the
-     * gate checked, never one recomputed from the image. A capsule that ran
-     * on a publisher signature alone is recorded under that authority rather
-     * than left out: the registry claims to be complete, and a receipt that
-     * omits a running program is the one lie a verifier cannot catch.
-     */
-    let (measurement, authority) = match preflighted.proved {
-        Some(proved) => (proved.measurement, proved.authority),
-        None => (preflighted.capsule_id, Authority::Publisher),
-    };
-    crate::security::attest_registry::record_attested(
-        pid,
-        measurement,
-        super::profile_gate::caps(preflighted.install_caps),
-        authority,
-    );
-    Ok(pid)
+        attest: (measurement, caps, authority),
+        system: preflighted.system,
+    })
 }

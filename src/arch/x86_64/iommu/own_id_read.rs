@@ -20,7 +20,7 @@ use crate::bus::pci::find_devices;
 use crate::drivers::pci::capabilities::find_capability;
 use crate::drivers::pci::config::access::{read16, read8};
 
-use super::own_id::{own_requester_id, path_to_root, Hop};
+use super::own_id::{own_requester_id, path_to_root, Hop, ROOT_BUS};
 
 /// PCI Express capability ID (PCI Local Bus 3.0, appendix H, recalled).
 const CAP_PCIE: u8 = 0x10;
@@ -31,8 +31,22 @@ pub(crate) fn own_id(bus: u8, device: u8, function: u8) -> bool {
     let is_pcie = find_capability(bus, device, function, CAP_PCIE).is_some();
     let bridge = read8(bus, device, function, 0x0E).is_ok_and(|h| h & 0x7F == 0x01);
     let stands_in = bridge && kind(bus, device, function) == Hop::Other;
-    let path = path_to_root(bus, parent_of);
-    own_requester_id(bus, is_pcie, stands_in, path.as_deref())
+    let path = path_to_root(bus, is_root, parent_of);
+    own_requester_id(is_pcie, stands_in, path.as_deref())
+}
+
+// A root bus: bus 0, or one no bridge's secondary-to-subordinate range holds,
+// as a second host bridge's (EPYC's 0x20, 0x40; Xeon's stacks). Only bus 0 was,
+// so a whole root complex read as behind no bridge, unconfined (L61).
+fn is_root(bus: u8) -> bool {
+    // A bridge whose range cannot be read is taken to hold it.
+    let holds = |(b, d, f): (u8, u8, u8)| {
+        let range = (read8(b, d, f, 0x19), read8(b, d, f, 0x1A));
+        !matches!(range, (Ok(sec), Ok(sub)) if bus < sec || bus > sub)
+    };
+    let bridges = find_devices(0x06, 0x04).chain(find_devices(0x06, 0x09));
+    let mut all = bridges.chain(find_devices(0x06, 0x07)).map(|b| (b.bus, b.device, b.function));
+    bus == ROOT_BUS || !all.any(holds)
 }
 
 // The PCI-to-PCI bridge (class 06, subclass 04 or 09) whose secondary bus is
