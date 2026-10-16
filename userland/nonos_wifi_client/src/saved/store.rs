@@ -58,7 +58,7 @@ pub fn remember_with(
         Err(e) => return Err(e),
     };
     let Some(dropped) = list.put_dropping(ssid, pass, flags) else {
-        return Err(SavedError::Damaged);
+        return Err(SavedError::NotSavable);
     };
     write(&list).map(|()| dropped)
 }

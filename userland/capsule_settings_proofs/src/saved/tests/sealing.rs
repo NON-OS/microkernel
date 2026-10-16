@@ -30,7 +30,8 @@ fn a_sealed_record_opens_under_its_key_only() {
 #[test]
 fn every_refusal_names_itself_and_the_record_lives_in_its_directory() {
     use SavedError::*;
-    let all = [NoStore, NotKept, NoTpm, BootChanged, KeyFailed, Unreadable, Damaged, Vfs("vfs")];
+    let all = [NoStore, NotKept, NoTpm, BootChanged, KeyFailed, Unreadable, Damaged, NotSavable];
+    let all = [all.as_slice(), &[Vfs("vfs")]].concat();
     for (i, a) in all.iter().enumerate() {
         assert!(all[i + 1..].iter().all(|b| a.text() != b.text()));
     }
