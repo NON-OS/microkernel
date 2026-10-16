@@ -30,6 +30,7 @@ pub mod hw_error;
 pub mod log;
 pub mod lpit;
 pub mod numa;
+pub mod first_pass;
 pub mod osc;
 pub mod pci_depart;
 pub mod pci_probe;
