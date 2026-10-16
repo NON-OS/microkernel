@@ -30,7 +30,7 @@ const QUIET_MS: i64 = 8_000;
 
 pub(super) fn gather<S: Io>(io: &mut S, buf: &mut Vec<u8>, end: i64) -> Result<(), SessionError> {
     let mut chunk = [0u8; 4096];
-    let deadline = mk_uptime_ms().saturating_add(QUIET_MS);
+    let deadline = mk_uptime_ms().saturating_add(QUIET_MS.max(io.patience_ms()));
     loop {
         within(end)?;
         let n = io.read(&mut chunk)?;

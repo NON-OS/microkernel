@@ -16,8 +16,6 @@
 
 //! Collecting the server's handshake flight until it has finished.
 
-extern crate alloc;
-
 use alloc::vec::Vec;
 use nonos_libc::{mk_uptime_ms, mk_yield};
 
@@ -25,8 +23,8 @@ use super::traits::{Io, SessionError};
 use crate::flight::ClientFlight;
 use crate::handshake_state::{HandshakeState, Progress};
 
-/// How long a server may stay quiet in the middle of its flight. A duration
-/// rather than a count of reads: an empty read costs microseconds.
+/// How long a server may stay quiet mid-flight, or the Io's patience if
+/// longer. A duration, not a count of reads: an empty read costs microseconds.
 const QUIET_MS: i64 = 4_000;
 
 /*
@@ -43,7 +41,8 @@ pub(super) fn read_flight<S: Io>(
     let mut flight = Vec::new();
     let mut state: Option<HandshakeState> = None;
     let mut chunk = [0u8; 4096];
-    let mut quiet_until = mk_uptime_ms().saturating_add(QUIET_MS);
+    let quiet = QUIET_MS.max(io.patience_ms());
+    let mut quiet_until = mk_uptime_ms().saturating_add(quiet);
     loop {
         super::deadline::within(until)?;
         let n = io.read(&mut chunk)?;
@@ -54,7 +53,7 @@ pub(super) fn read_flight<S: Io>(
             mk_yield();
             continue;
         }
-        quiet_until = mk_uptime_ms().saturating_add(QUIET_MS);
+        quiet_until = mk_uptime_ms().saturating_add(quiet);
         if flight.len().saturating_add(n) > limit {
             return Err(SessionError::TooLarge);
         }

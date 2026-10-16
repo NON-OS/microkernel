@@ -50,7 +50,7 @@ pub(super) fn open<S: Io>(
     until: Option<i64>,
 ) -> Result<Stream, SessionError> {
     let client = crate::client_flight(sni).ok_or(SessionError::Init)?;
-    let stop = handshake_end(until);
+    let stop = handshake_end(until, io.patience_ms());
     io.write_all(&client.record)?;
 
     let mut buf: Vec<u8> = Vec::new();

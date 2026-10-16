@@ -27,10 +27,11 @@ use super::traits::SessionError;
 /// How long a handshake may take, in milliseconds of uptime.
 pub const HANDSHAKE_MS: i64 = 30_000;
 
-/// The end of a handshake whose first byte goes now: HANDSHAKE_MS on, or
-/// `until` when the caller's own end is sooner.
-pub(crate) fn handshake_end(until: Option<i64>) -> i64 {
-    let own = mk_uptime_ms().saturating_add(HANDSHAKE_MS);
+/// The end of a handshake whose first byte goes now over a transport whose
+/// reads may each wait `patience_ms`: HANDSHAKE_MS past that wait, or `until`
+/// when the caller's own end is sooner.
+pub(crate) fn handshake_end(until: Option<i64>, patience_ms: i64) -> i64 {
+    let own = mk_uptime_ms().saturating_add(patience_ms.max(0)).saturating_add(HANDSHAKE_MS);
     until.map_or(own, |u| u.min(own))
 }
 

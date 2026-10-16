@@ -51,3 +51,6 @@ fn padding_alone_decides_nothing() {
     assert_eq!(decided(&[]), (None, None));
     assert_eq!(decided(&[0, 0, 0, 0]), (None, None));
 }
+
+#[path = "handshake_patience.rs"]
+mod patience;
