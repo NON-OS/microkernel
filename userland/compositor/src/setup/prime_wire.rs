@@ -45,8 +45,10 @@ pub fn prime(ep: GfxEndpoint) -> Result<Context, &'static str> {
     let (name, serial, pid, physical_mm) = (ep.name, s.serial, ep.pid, caps.physical_mm);
     let outputs = caps.outputs;
     let cursor_offset = if caps.flags & HW_CURSOR != 0 { s.cursor_offset } else { 0 };
-    let stale = false;
-    ctx.wire = Some(WireLink { name, serial, pid, physical_mm, outputs, stale, cursor_offset });
+    let (stale, leaving, nudged) = (false, false, false);
+    let link =
+        WireLink { name, serial, pid, physical_mm, outputs, stale, cursor_offset, leaving, nudged };
+    ctx.wire = Some(link);
     ctx.heads = super::heads::prime_heads(ep.port, outputs);
     Ok(ctx)
 }
