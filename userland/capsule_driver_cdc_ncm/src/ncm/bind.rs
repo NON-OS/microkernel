@@ -20,11 +20,11 @@
 //! with only ECM (subclass 0x06) is the ECM driver's and is not taken.
 
 use nonos_usbnet::desc::config_header;
+use nonos_usbnet::xhci::E_IO;
 use nonos_usbnet::{Bind, Bus, Found};
 
 use super::function::find_ncm;
 use super::link::Ncm;
-use super::quirk::sends_zlp;
 use super::shape::tx_shape;
 use super::start::start;
 
@@ -33,8 +33,9 @@ pub fn bind<B: Bus>(mut bus: B, found: &Found) -> Bind<Ncm<B>> {
     let Some((value, f)) = found.configs.iter().find_map(pick) else { return Bind::NotOurs };
     match start(&mut bus, value, &f) {
         Ok((mac, params, rx_max)) => {
-            let zlp = sends_zlp(found.info.vendor);
-            let shape = tx_shape(&params, f.pipes.max_packet_out, zlp);
+            let Some(shape) = tx_shape(&params, f.pipes.max_packet_out) else {
+                return Bind::Failed("NTB out size under one frame", E_IO);
+            };
             // Without its notifications the link reads up, as it did before.
             let notify = f.notify.and_then(|ep| bus.configure_interrupt(ep).ok());
             let mut ncm = Ncm::new(bus, mac, f.pipes, rx_max, shape);
