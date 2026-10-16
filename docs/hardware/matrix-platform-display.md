@@ -8,8 +8,8 @@ Part of [Hardware support matrix](MATRIX.md).
 |---|---|---|---|---|---|
 | CPU | x86_64 cores, [SMP](../overview/glossary-rollback-index.md#smp): every core the firmware enables, up to 256 | kernel | Works | QEMU with 8 CPUs, or the host's cores when fewer, under `make boot` and CI's boot smoke; 4 under `nonos-mk-run-smp-serial-log`; 1 to 8 across the boot matrix | 0.9.2 |
 | [IOMMU](../overview/glossary-hardware-broker.md#iommu) | Intel VT-d DMA remapping | kernel | Works | proof crates `kernel_proofs` (388), `mechanism_proofs` (56); QEMU `intel-iommu` | 0.9.2 |
-| IOMMU | Intel VT-d interrupt remapping | kernel | Not supported: the `nonos-iommu-intremap` feature is off until a boot log shows the units acknowledging it | none | 0.9.2 |
-| IOMMU | AMD-Vi | kernel | Not supported: the `nonos-iommu-amdvi` feature is off until QEMU `amd-iommu` and an AMD machine show the units in service | none | 0.9.2 |
+| IOMMU | Intel VT-d interrupt remapping | kernel | Works: on in every image, and a claim on a device no unit in service remaps is refused | proof crate `kernel_proofs`; no QEMU `intel-iommu,intremap=on` boot log is recorded yet | 0.9.2 |
+| IOMMU | AMD-Vi DMA and interrupt remapping | kernel | Works: on in every image, from the firmware's IVRS table, and a claim on a device no unit in service confines and remaps is refused | proof crate `kernel_proofs`; no QEMU `amd-iommu` boot log or AMD machine is recorded yet | 0.9.2 |
 | [TPM](../overview/glossary-stark-proof.md#tpm) | TPM 2.0, FIFO and CRB interfaces | kernel | Works | proof crates `tpm_key_proofs` (42), `tpm_enroll_proofs` (37); QEMU `tpm-crb` with swtpm | 0.9.2 |
 | ACPI | Fixed-feature power button | kernel | Partial: a press reaches the desktop as the Power key, which shows `Power off is not available from the desktop`; the desktop cannot shut down in 0.9.2 | real hardware | 0.9.2 |
 | ACPI | Power button through AML (PNP0C0C) or on a hardware-reduced platform | kernel | Refused: NONOS has no AML interpreter to run it, and the desktop has no power-off either | none | 0.9.2 |
