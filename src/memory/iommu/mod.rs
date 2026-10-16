@@ -17,6 +17,7 @@
 mod backend;
 mod capabilities;
 pub(crate) mod dev_unconfined;
+pub(crate) mod dev_unremapped;
 mod device;
 mod domain;
 mod domain_id;
