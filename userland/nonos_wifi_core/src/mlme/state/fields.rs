@@ -37,7 +37,7 @@ pub struct Mlme {
     pub(in crate::mlme) secret_too_long: bool,
     pub(in crate::mlme) policy: JoinPolicy,
     pub(in crate::mlme) snonce: [u8; 32],
-    pub(in crate::mlme) sae_entropy: Option<[u8; SAE_ENTROPY]>,
+    pub(in crate::mlme) sae_entropy: [u8; SAE_ENTROPY],
     pub(in crate::mlme) bssid: [u8; 6],
     pub(in crate::mlme) channel: u8,
     pub(in crate::mlme) seq: u16,

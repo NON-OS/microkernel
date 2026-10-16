@@ -14,9 +14,9 @@ use crate::wpa::sha256::hmac_sha256_parts;
 impl Mlme {
     // Derive the PWE and send the SAE commit.
     pub(super) fn start_sae(&mut self, h2e: bool) -> MlmeOutput {
-        let Some(entropy) = self.sae_entropy else {
-            return self.fail(MlmeFailure::NoEntropy);
-        };
+        // Drawn by the driver before the join began; a driver that could not
+        // draw it refused the join there (its `draw_entropy`).
+        let entropy = self.sae_entropy;
         let (pw, ssid) = (self.secret(), self.ssid());
         let pwe = if h2e {
             derive_pt(ssid, pw, None).and_then(|pt| pwe_from_pt(&pt, &self.our_mac, &self.bssid))
