@@ -37,5 +37,9 @@ pub mod verify_p384;
 pub mod verify_rsa;
 #[path = "../../nonos_tls/src/scan_messages.rs"]
 pub mod scan_messages;
+#[path = "../../nonos_tls/src/scan_request.rs"]
+pub mod scan_request;
 #[path = "../../nonos_tls/src/scan_server_finished.rs"]
 pub mod scan_server_finished;
+#[path = "../../nonos_tls/src/scan_state.rs"]
+pub mod scan_state;

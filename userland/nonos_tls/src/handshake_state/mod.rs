@@ -21,6 +21,7 @@ mod answer;
 mod begin;
 mod cert_problem;
 mod drive;
+mod empty_certificate;
 mod finished;
 mod reply;
 mod types;
