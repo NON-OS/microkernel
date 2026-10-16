@@ -15,57 +15,13 @@
 //! lander answers. An Anyone onion service, `.anyone`, is reached: the route
 //! link sends it through net.anon whatever the default network is.
 
+mod network;
+mod purpose;
+mod route;
 mod stream;
 mod tls;
 
+pub use network::{as_account, Tor};
+pub use purpose::Purpose;
 pub use stream::TorStream;
 pub use tls::{tls, TlsStream};
-
-use crate::error::NetError;
-use std::path::Path;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Purpose {
-    Scan,
-    Relay,
-    Deposit,
-    Mainnet,
-    Sepolia,
-}
-
-/// The chosen network. Nothing is held open between streams.
-pub struct Tor {
-    _private: (),
-}
-
-impl Tor {
-    /// Ready when the chosen network is anonymous and running.
-    pub fn start(_dir: &Path) -> Result<Tor, NetError> {
-        stream::anonymous_route()?;
-        Ok(Tor { _private: () })
-    }
-
-    pub fn connect(&self, purpose: Purpose, host: &str, port: u16) -> Result<TorStream, NetError> {
-        self.connect_within(purpose, (host, port), stream::STALL)
-    }
-
-    pub fn connect_within(
-        &self,
-        _purpose: Purpose,
-        (host, port): (&str, u16),
-        limit: std::time::Duration,
-    ) -> Result<TorStream, NetError> {
-        if host.ends_with(".onion") {
-            return Err(NetError::ProxyRefused);
-        }
-        TorStream::open(host, port, limit)
-    }
-
-    /// Accounts share the one machine-wide network here; a stream is its own
-    /// session either way.
-    pub fn use_account(&self, _index: u32) {}
-}
-
-pub fn as_account<T>(_index: u32, work: impl FnOnce() -> T) -> T {
-    work()
-}
