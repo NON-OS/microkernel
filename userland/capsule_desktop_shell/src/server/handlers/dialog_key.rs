@@ -16,7 +16,7 @@
 
 //! A key while a dialog or a menu is up belongs to it, in the order a press
 //! is offered to them (`server/input/`): the dialog drawn on top answers
-//! first. Tab moves between a dialog's buttons, Enter presses the one with
+//! first, and the display input menu, a list, takes its own keys. Tab moves between a dialog's buttons, Enter presses the one with
 //! the ring, Esc leaves things as they are; Esc closes an open menu.
 
 use super::menu_key::menu_key;
@@ -37,6 +37,10 @@ enum Dialog {
 
 /// Whether the key went to a dialog or a menu.
 pub fn key(ctx: &mut Context, by: Routed, code: u32) -> bool {
+    // The input menu is a list, not two buttons: it takes its own keys.
+    if !ctx.trusted.attention.prompt() && super::input_menu::key(ctx, by, code) {
+        return true;
+    }
     let which = if ctx.trusted.attention.prompt() {
         Dialog::Attention
     } else if ctx.trusted.power_off.showing() {

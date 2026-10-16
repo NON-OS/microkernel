@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What Settings may send on through the shell: exactly its five display
+//! What Settings may send on through the shell: exactly its six display
 //! ops, each to the compositor op of the same meaning with the answer's
 //! length the compositor writes; none of the shell's own ops goes through.
 
@@ -31,6 +31,9 @@ fn each_settings_op_becomes_the_compositor_op_of_its_meaning() {
     assert_eq!(relayed(OP_DISPLAY_SCALE), Some((ncmp::OP_OUTPUT_SCALE, 0)));
     let arrangement = (ncmp::OP_OUTPUT_ARRANGEMENT, ARRANGEMENT_LEN);
     assert_eq!(relayed(OP_DISPLAY_ARRANGEMENT), Some(arrangement));
+    let levels = (ncmp::OP_BRIGHTNESS_GET, 28);
+    assert_eq!(relayed(OP_DISPLAY_BRIGHTNESS), Some(levels), "read only");
+    assert!(RELAY.iter().all(|r| r.1 != ncmp::OP_BRIGHTNESS_STEP && r.1 != ncmp::OP_SET_VCP));
 }
 
 #[test]
@@ -48,6 +51,6 @@ fn none_of_the_shells_own_ops_is_sent_on() {
     for op in own {
         assert_eq!(relayed(op), None, "op {op:#x}");
     }
-    assert_eq!(RELAY.len(), 5);
-    assert_eq!(relayed(0x000E), None, "nothing past the last");
+    assert_eq!(RELAY.len(), 6);
+    assert_eq!(relayed(0x000F), None, "nothing past the last");
 }

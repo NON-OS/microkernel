@@ -23,6 +23,8 @@ pub mod dialog_key;
 pub mod escape_chord;
 pub mod hand_over;
 pub mod health;
+pub mod input_menu;
+pub mod input_menu_geometry;
 pub mod installed_launch;
 pub mod installed_launch_poll;
 pub mod instances;

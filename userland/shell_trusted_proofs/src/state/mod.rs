@@ -19,6 +19,16 @@
 
 #[path = "../../../capsule_desktop_shell/src/state/attention.rs"]
 pub mod attention;
+#[path = "../../../capsule_desktop_shell/src/state/dialog_keys.rs"]
+pub mod dialog_keys;
+#[path = "../../../capsule_desktop_shell/src/state/input_menu.rs"]
+pub mod input_menu;
+#[path = "../../../capsule_desktop_shell/src/state/input_menu_rule.rs"]
+pub mod input_menu_rule;
+#[path = "../../../capsule_desktop_shell/src/state/input_names.rs"]
+pub mod input_names;
+#[path = "../../../capsule_desktop_shell/src/state/input_offers.rs"]
+pub mod input_offers;
 #[path = "../../../capsule_desktop_shell/src/state/input_source_rule.rs"]
 pub mod input_source_rule;
 #[path = "../../../capsule_desktop_shell/src/state/notify.rs"]

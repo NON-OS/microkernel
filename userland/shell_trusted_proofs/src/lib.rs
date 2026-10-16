@@ -23,6 +23,11 @@ pub mod state;
 #[path = "../../compositor/src/display/arrange_wire.rs"]
 #[allow(dead_code)]
 mod arrange_wire;
+/// What the compositor writes for INPUT_SOURCES, which the shell reads.
+#[cfg(test)]
+#[path = "../../compositor/src/display/input_list.rs"]
+#[allow(dead_code)]
+mod input_list;
 /// The compositor's ops and the arrangement's answer, which the table names.
 #[cfg(test)]
 #[path = "../../compositor/src/protocol/ops.rs"]
@@ -42,6 +47,12 @@ pub mod sealed;
 mod attention_tests;
 #[cfg(test)]
 mod band_tests;
+#[cfg(test)]
+mod input_menu_rig;
+#[cfg(test)]
+mod input_menu_tests;
+#[cfg(test)]
+mod input_offer_tests;
 #[cfg(test)]
 mod power_off_frame_tests;
 #[cfg(test)]

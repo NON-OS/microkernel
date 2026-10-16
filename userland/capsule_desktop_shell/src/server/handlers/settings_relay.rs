@@ -22,7 +22,7 @@
 //! Which ops, and what each answers, is `relay_table`.
 
 use super::relay_table::relayed;
-use crate::compositor_client::wire::{call_boot, call_payload_boot};
+use crate::compositor_client::wire::{call_boot, call_payload_within, CONTROL_REPLY_TIMEOUT_MS};
 use crate::protocol::{Request, E_PERM};
 use crate::server::handlers::instances::each_live_pid;
 use crate::server::respond;
@@ -50,7 +50,9 @@ pub fn relay(ctx: &mut Context, sender: u32, req: &Request, body: &[u8], tx: &mu
         return true;
     }
     let mut out = [0u8; 32];
-    match call_payload_boot(port, op, rid, body, &mut out[..len]) {
+    // A display control may wait on a monitor's own reading.
+    let wait = CONTROL_REPLY_TIMEOUT_MS;
+    match call_payload_within(port, op, rid, body, &mut out[..len], wait) {
         Ok(0) => respond::payload(sender, req, &out[..len], tx),
         Ok(rc) => respond::status(sender, req, rc, tx),
         Err(_) => respond::status(sender, req, E_IO, tx),

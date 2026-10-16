@@ -31,6 +31,7 @@ mod dialog_text;
 mod dock_marks;
 pub mod fill;
 mod icons;
+mod input_menu;
 pub mod launchpad;
 pub mod layout;
 pub mod live_prompt;
