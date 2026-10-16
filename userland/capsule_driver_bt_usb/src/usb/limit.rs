@@ -32,3 +32,11 @@ pub fn read_limit(max_packet: u16) -> Option<usize> {
     let packet = usize::from(max_packet & 0x07ff);
     (1..=INTERRUPT_MAX).contains(&packet).then_some(packet)
 }
+
+/// The octets an interrupt reply carries, or `None` when its count is more
+/// than was armed or than the reply holds after its two-octet count. A
+/// reply longer than its read is not a short packet but a broken one, and
+/// taking it would hand the joiner octets no transfer delivered.
+pub fn reply_len(armed: usize, claimed: usize, held: usize) -> Option<usize> {
+    (claimed <= armed && claimed.checked_add(2)? <= held).then_some(claimed)
+}
