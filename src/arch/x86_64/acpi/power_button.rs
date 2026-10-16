@@ -84,9 +84,9 @@ pub fn init() {
             STS_A.store(sts_a, Ordering::Release);
             say(b"[ACPI] power button: fixed feature, polled; a press goes to the desktop as the Power key");
         }
-        Button::ControlMethod => say(b"[ACPI] power button: reported through AML (PNP0C0C), which NONOS cannot run; use the Shut Down menu, or hold the button to force power off"),
-        Button::HwReduced => say(b"[ACPI] power button: hardware-reduced platform, reported through AML, which NONOS cannot run; use the Shut Down menu"),
-        Button::Unreachable => say(b"[ACPI] power button: its status register is not an I/O port NONOS reads; use the Shut Down menu"),
+        Button::ControlMethod => say(b"[ACPI] power button: reported through AML (PNP0C0C), which NONOS cannot run; use Power Off in the menu, or hold the button to force power off"),
+        Button::HwReduced => say(b"[ACPI] power button: hardware-reduced platform, reported through AML, which NONOS cannot run; use Power Off in the menu"),
+        Button::Unreachable => say(b"[ACPI] power button: its status register is not an I/O port NONOS reads; use Power Off in the menu"),
     }
 }
 
