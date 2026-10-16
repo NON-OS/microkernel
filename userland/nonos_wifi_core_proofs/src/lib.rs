@@ -17,7 +17,6 @@
 //! Proofs for the shared WiFi core against its public API; all test-only.
 
 #![cfg(test)]
-
 mod address;
 mod ap_sim;
 mod beacons;
@@ -73,3 +72,4 @@ mod supplicant_sim;
 mod supplicant_tests;
 mod sweep;
 mod transition;
+mod twin;

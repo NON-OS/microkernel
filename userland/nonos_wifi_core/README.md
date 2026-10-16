@@ -84,3 +84,25 @@ Every orderly end wipes the station's keys: the pairwise key, the group
 keys, the IGTK, the BIGTK, and the supplicant that holds them.
 `holds_keys` says whether any remain. A PMKSA comes only of a handshake
 that finished.
+
+## Known attack classes
+
+- **Key reinstallation.**
+  - A message 3 sent again is answered with message 4 and installs
+    nothing.
+  - A group key already in its slot keeps its replay counter, even when
+    the AP hands it back after rotating away from it.
+  - A repeated group key is never handed to the driver to install again.
+  - No GTK, IGTK or BIGTK of all zeros is installed.
+- **Fragments.** None is joined. Every frame with More Fragments set or
+  a fragment number other than zero is refused, sealed or in the clear,
+  so there is no fragment cache.
+- **A-MSDU.** None is taken. The station negotiates no SPP A-MSDU, so the
+  A-MSDU Present bit is not under the MIC, and every QoS frame with it
+  set is refused.
+- **EAPOL.** EAPOL goes to the supplicant, never to the stack. EAPOL to a
+  group address is refused.
+- **Channel switch.** No Channel Switch Announcement is acted on, in a
+  beacon or an action frame, protected or not. When the AP really
+  switches, the link ends on missed beacons and the station joins again
+  by scanning.

@@ -21,13 +21,15 @@ use super::*;
 /// Pull the group keys out of parsed key data. `None` unless a GTK of the
 /// group cipher's length `gtk_len` is present, any IGTK present is
 /// BIP-CMAC-128 sized with an index of 4 or 5, and any BIGTK present is the
-/// same size with an index of 6 or 7.
+/// same size with an index of 6 or 7. No key of them may be all zero: that
+/// is the key a reinstallation attack leaves a station holding, and every
+/// frame under it is anyone's to forge and read.
 pub(in crate::wpa::supplicant) fn group_keys(
     kd: &KeyData<'_>,
     gtk_len: usize,
 ) -> Option<GroupKeys> {
     let g = kd.gtk?;
-    if g.key.len() != gtk_len || gtk_len > GTK_MAX {
+    if g.key.len() != gtk_len || gtk_len > GTK_MAX || g.key.iter().all(|&b| b == 0) {
         return None;
     }
     let mut gtk = [0u8; GTK_MAX];
