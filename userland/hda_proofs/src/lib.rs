@@ -17,15 +17,11 @@
 //! Intel HD Audio controller bring-up, proved without a controller.
 //!
 //! The `#[path]` includes below pull in the shipping driver source, so these
-//! tests run the code that boots. Most of this capsule only answers when
-//! something is driving the other end of the ring, which is why it had no host
-//! coverage at all. `nonos_devmodel::run` puts that something on a thread.
-//!
-//! What is provable here is what the HD Audio specification fixes in writing:
-//! which registers a conforming controller requires, holding what, and that
-//! every wait on a codec gives up rather than wedging boot. Timing is not
-//! modelled, and neither are the halves of the capsule that talk to the broker
-//! rather than to registers (`discover`, `setup`, `server`, `handles`).
+//! tests run the code that boots. `nonos_devmodel::run` puts a device on a
+//! thread to drive the other end of the rings, and `libc_shim` stands in for
+//! the broker, recording every call. What is proved is what the HD Audio
+//! specification fixes in writing, and the order the teardown keeps; timing
+//! is not modelled, and the serving loop that waits on IPC is not mounted.
 
 extern crate alloc;
 
@@ -51,17 +47,25 @@ pub mod protocol;
 pub mod controller;
 
 #[cfg(test)]
-mod model;
+#[path = "../../capsule_driver_hda/src/audio/mod.rs"]
+mod audio;
+#[cfg(test)]
+#[path = "../../capsule_driver_hda/src/discover/mod.rs"]
+mod discover;
+#[cfg(test)]
+#[path = "../../capsule_driver_hda/src/handles/mod.rs"]
+mod handles;
+#[cfg(test)]
+mod server;
+#[cfg(test)]
+#[path = "../../capsule_driver_hda/src/setup/mod.rs"]
+mod setup;
 
 #[cfg(test)]
-mod sim;
-
+mod model;
 #[cfg(test)]
 mod proofs;
-
 #[cfg(test)]
 mod request_refusal_tests;
-
-/// How refilled periods are counted: played, idle silence, or an underrun.
-#[path = "../../capsule_driver_hda/src/audio/periods.rs"]
-pub mod periods;
+#[cfg(test)]
+mod sim;

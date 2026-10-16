@@ -16,3 +16,9 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_devmodel = { path = "../nonos_devmodel" }
+nonos_libc = { package = "hda_proofs_libc_shim", path = "libc_shim" }
+
+[features]
+# The included PCM queue keeps a length accessor for the capsule's smoke-test
+# build only. Named here so the cfg on it is a known one; never turned on.
+nonos-driver-hda-smoketest = []
