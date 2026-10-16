@@ -14,31 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The tabs over an index that holds the seventeen Qwen tiers and no Linux
-//! package, as a build with an empty linux-packages.txt ships it. On a boot
-//! the Linux tab showed the seventeen tiers as Linux packages.
+//! Which tab holds a tier or a Linux package, and what an empty tab says.
 
 use crate::store::listing::{Listing, Source};
 use crate::store::tab::{Tab, TABS};
 
-const TIERS: [&str; 17] = [
-    "0.6b", "1.7b", "4b", "8b", "14b", "32b", "30b-a3b", "coder-0.5b", "coder-1.5b", "coder-3b",
-    "coder-7b", "coder-14b", "coder-32b", "2.5-0.5b", "2.5-1.5b", "2.5-3b", "2.5-7b",
-];
-
-fn index() -> Vec<Listing> {
-    TIERS
-        .iter()
-        .map(|t| {
-            let id = format!("linux.qwen-{t}").into_bytes();
-            Listing::new(id, [0; 32], format!("Qwen {t}").into_bytes(), true)
-        })
-        .collect()
-}
-
-fn shown(tab: Tab, all: &[Listing]) -> usize {
-    all.iter().filter(|l| tab.accepts(l.source)).count()
-}
+use super::tiers::{index, shown};
 
 #[test]
 fn qwen_tiers_are_models_not_linux_packages() {
