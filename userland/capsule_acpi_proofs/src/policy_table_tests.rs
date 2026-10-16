@@ -25,7 +25,7 @@ fn the_table_the_lead_set() {
         _ => Vec::new(),
     };
     let (power, shell): (&[u8], &[u8]) = (b"power", b"desktop_shell");
-    for op in [3, 4, 6, 7, 14, 17, 19] {
+    for op in [3, 6, 7, 14, 17, 19] {
         assert_eq!(names(op), [power, shell], "op {op}");
     }
     assert_eq!(names(5), [power], "PREPARE_SLEEP");
@@ -34,6 +34,7 @@ fn the_table_the_lead_set() {
     assert_eq!(names(8), [shell], "SMBIOS");
     assert_eq!(names(18), [shell], "TPM_PPI");
     assert_eq!(names(22), [shell], "PCI_FIRMWARE");
+    assert_eq!(names(4), [shell], "SET_BRIGHTNESS: the shell alone (F-96)");
     let serial = [&b"driver.i2c_pci0"[..], b"driver.i2c_hid0", b"driver.gpio0", b"driver.spi_hid0"];
     assert_eq!(names(9), serial, "SERIAL");
     assert_eq!(allowed(10), Allowed::AnyAdmitted, "DEVICE_POWER: the kernel's holder test");

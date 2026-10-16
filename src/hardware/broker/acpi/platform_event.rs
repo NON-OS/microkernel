@@ -27,6 +27,9 @@ pub const BATTERY_LOW: u64 = 5;
 pub const BATTERY_CRITICAL: u64 = 6;
 /// The ACPI capsule now serves the fixed power button itself (F-88).
 pub const BUTTON_TAKEN: u64 = 7;
+/// A brightness key on the output (Notify 0x86 up, 0x87 down), told to the
+/// shell, which asks the display engine (F-96). Value 1 up, 0 down.
+pub const BRIGHTNESS: u64 = 8;
 
 /// A thermal value: the zone's temperature in tenths of a kelvin, and the
 /// trip points it has reached.
@@ -49,6 +52,8 @@ pub enum Event {
     BatteryCritical(bool),
     /// The capsule's SCI serves the fixed power button from now on.
     ButtonTaken,
+    /// True for up.
+    Brightness(bool),
 }
 
 /// None for an unknown kind, or a value with bits the kind does not have.
@@ -61,6 +66,7 @@ pub fn decode(kind: u64, value: u64) -> Option<Event> {
         (BATTERY_LOW, 0) => Some(Event::BatteryLow),
         (BATTERY_CRITICAL, 0 | 1) => Some(Event::BatteryCritical(value == 1)),
         (BUTTON_TAKEN, 0) => Some(Event::ButtonTaken),
+        (BRIGHTNESS, 0 | 1) => Some(Event::Brightness(value == 1)),
         _ => None,
     }
 }

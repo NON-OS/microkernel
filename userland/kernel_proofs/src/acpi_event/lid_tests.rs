@@ -33,3 +33,12 @@ fn the_lid_is_told_once_and_again_after_a_busy_shell() {
     assert_eq!((r, kept), (Report::Busy, open), "busy: nothing recorded");
     assert_eq!(decide(kept, false, |_| true), (Report::Told, closed), "told next time");
 }
+
+/// F-96: the output's brightness keys decode with value 1 up and 0 down.
+#[test]
+fn brightness_keys_decode() {
+    use super::platform_event::{decode, Event, BRIGHTNESS};
+    assert_eq!(decode(BRIGHTNESS, 1), Some(Event::Brightness(true)));
+    assert_eq!(decode(BRIGHTNESS, 0), Some(Event::Brightness(false)));
+    assert_eq!(decode(BRIGHTNESS, 2), None);
+}

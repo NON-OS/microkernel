@@ -18,13 +18,16 @@
 //! button's is, for a power button that reports through AML (PNP0C0C) and
 //! for a thermal zone at its critical trip point; and the lid's two keys
 //! (F-91), one press when it closes and another when it opens, for the
-//! shell's lock. The input router hands these system keys to the shell.
+//! shell's lock; and the output's brightness keys (F-96), for the shell to
+//! ask the display engine. The input router hands these keys to the shell.
 
 use crate::kernel_core::surface_registry::{try_post_input, InputEvent};
 
 const KEYCODE_POWER: u32 = 0x1304;
 pub const KEY_LID_CLOSED: u32 = 0x1305;
 pub const KEY_LID_OPENED: u32 = 0x1306;
+pub const KEY_BRIGHTNESS_UP: u32 = 0x1307;
+pub const KEY_BRIGHTNESS_DOWN: u32 = 0x1308;
 const KEY_DOWN: u16 = 0;
 const KEY_UP: u16 = 1;
 const TRIES: usize = 8;
@@ -44,6 +47,11 @@ pub fn press() -> bool {
 /// The lid's key for `open`; false as `press` is.
 pub fn lid(open: bool) -> bool {
     tap(if open { KEY_LID_OPENED } else { KEY_LID_CLOSED })
+}
+
+/// A brightness key from the output's Notify; false as `press` is.
+pub fn brightness(up: bool) -> bool {
+    tap(if up { KEY_BRIGHTNESS_UP } else { KEY_BRIGHTNESS_DOWN })
 }
 
 fn tap(code: u32) -> bool {
