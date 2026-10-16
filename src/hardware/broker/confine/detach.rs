@@ -16,6 +16,7 @@
 
 extern crate alloc;
 
+use super::reserve::unmap_reserved;
 use super::table::{say, CAPSULES};
 
 /// Back to denied, not to the identity domain: nothing drives the device now,
@@ -32,6 +33,7 @@ pub(in crate::hardware::broker) fn detach(pid: u32, device_id: u64) {
     let (_, address) = all[pos].devices.remove(i);
     // Another device behind the same VMD still needs the shared id.
     if all[pos].devices.iter().any(|(_, a)| *a == address) {
+        unmap_reserved(&mut all[pos], device_id);
         say(b"released; requester id still shared", pid, address);
         return;
     }
@@ -39,6 +41,8 @@ pub(in crate::hardware::broker) fn detach(pid: u32, device_id: u64) {
         say(b"detach failed; the domain is kept", pid, address);
         return;
     }
+    // Denied first, so its reserved regions leave the domain unused (L60).
+    unmap_reserved(&mut all[pos], device_id);
     say(b"released and denied", pid, address);
     if all[pos].devices.is_empty() {
         all.remove(pos);
