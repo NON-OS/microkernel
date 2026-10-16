@@ -22,6 +22,7 @@ mod gas;
 mod intent;
 mod delivered;
 mod delivered_scan;
+mod full_note;
 mod listing;
 mod opened;
 mod read;

@@ -41,6 +41,9 @@ pub fn listing(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
         let from = cursor.scanned.saturating_add(1).max(first);
         let more = scan(&mut s.rpc, chain, &registry, (from, head), None)?;
         cursor.absorb(more, head);
+        if cursor.full {
+            super::full_note::said_full("listing", chain);
+        }
     }
     let rows = match cursor.full {
         false => current(&ask.id, &cursor.found.published, &cursor.found.withdrawn),
