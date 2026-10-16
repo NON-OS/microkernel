@@ -46,4 +46,6 @@ mod sim;
 #[cfg(test)]
 mod transport_tests;
 #[cfg(test)]
+mod uart;
+#[cfg(test)]
 mod update_tests;
