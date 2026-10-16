@@ -17,9 +17,10 @@
 //! The moves a PCI function's configuration does not survive, over every
 //! pair of states and every power management status: D3cold always, D3hot
 //! unless No_Soft_Reset is set (and never without a capability to say
-//! so), D0, D1 and D2 never, and staying put never.
+//! so), D0, D1 and D2 never, and staying put never; for a claimed one,
+//! D3cold alone.
 
-use crate::device_power::{loses_config, DState, NO_SOFT_RESET};
+use crate::device_power::{loses_config, loses_config_claimed, DState, NO_SOFT_RESET};
 
 #[test]
 fn every_move_and_every_status() {
@@ -31,6 +32,25 @@ fn every_move_and_every_status() {
             let nsr = pm.is_some_and(|p| p & NO_SOFT_RESET != 0);
             let want = from != to && (to == D3Cold || (to == D3Hot && !nsr));
             assert_eq!(loses_config(from, to, pm), want, "{from:?} -> {to:?}, {pm:?}");
+        }
+    }
+}
+
+/// A claimed function, whose BARs the broker puts back (L62), loses its
+/// configuration only to D3cold, and is never refused a move the plain
+/// rule allows.
+#[test]
+fn a_claimed_function_loses_it_only_to_d3cold() {
+    use DState::*;
+    let all = [D0, D1, D2, D3Hot, D3Cold];
+    for (from, to) in all.into_iter().flat_map(|f| all.map(|t| (f, t))) {
+        assert_eq!(
+            loses_config_claimed(from, to),
+            from != to && to == D3Cold,
+            "{from:?} -> {to:?}"
+        );
+        for pm in [None, Some(0), Some(NO_SOFT_RESET)] {
+            assert!(!loses_config_claimed(from, to) || loses_config(from, to, pm));
         }
     }
 }
