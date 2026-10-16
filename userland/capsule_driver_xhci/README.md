@@ -12,7 +12,7 @@ driver.usb_hid0, driver.usb_msc0 (the only senders the kernel admits)
     |
     | controller service IPC
     v
-driver.xhci0 -- MMIO / MSI-X / DMA broker grants --> xHCI controller
+driver.xhci0 -- MMIO / MSI-X or MSI / DMA broker grants --> xHCI controller
     |
     +-- command ring
     `-- event ring / ERST
@@ -25,9 +25,11 @@ The capsule interacts with hardware only through broker grants:
 - `MkDeviceList` locates the xHCI controller.
 - `MkDeviceClaim` owns the controller claim.
 - `MkMmioMap` maps the controller register window.
-- `MkIrqBind` asks for one MSI-X vector. A refused bind leaves a zero grant
-  and the driver polls the event ring; with a vector, the interrupt only parks
-  it between polls (`src/setup/irq_bind.rs`).
+- `MkIrqBind` asks for one MSI-X vector, then for MSI on a controller without
+  MSI-X (Intel PCH controllers). Each controller's event ring waits on its
+  own grant. A refused bind leaves a zero grant and the driver polls the
+  event ring; with a vector, the interrupt only parks it between polls
+  (`src/setup/irq_bind.rs`).
 - `MkDmaMap` and `MkDmaUnmap` allocate DCBAA, scratchpads, command ring,
   event ring, and ERST storage.
 - `MkIpcRecv` and `MkIpcSend` serve `driver.xhci0` on
@@ -46,14 +48,16 @@ behind it.
 | Operation | Meaning | Reply payload |
 |---|---|---|
 | `OP_HEALTHCHECK` | server liveness | status word |
-| `OP_CONTROLLER_STATUS` | controller register/ring/slot state | 56-byte status |
-| `OP_PORT_STATUS` | port state list; byte 1 says 0 free, 1 addressed, 2 claimed | count plus 8-byte entries |
+| `OP_CONTROLLER_STATUS` | controller register/ring/slot state; the DCBAA and scratchpad fields say only whether each exists, never where | 56-byte status |
+| `OP_PORT_STATUS` | port state list; byte 1 says 0 free, 1 addressed, 2 claimed; a failed controller's ports show nothing attached | count plus 8-byte entries |
 | `OP_ENABLE_SLOT` / `OP_DISABLE_SLOT` | issue xHCI Enable / Disable Slot | slot id / status word |
 | `OP_ADDRESS_DEVICE` | reset a free root port and issue Address Device; `E_BUSY` if held | slot, port, speed, EP0 MPS |
-| `OP_GET_DEVICE_DESCRIPTOR` / `OP_GET_CONFIG_DESCRIPTOR` | run EP0 GET_DESCRIPTOR | raw descriptor bytes |
-| `OP_ALLOC_TRANSFER_RING` | give an endpoint of an addressed slot a transfer ring | status word |
-| `OP_CONTROL_TRANSFER` | one EP0 control transfer for a class driver (for example SET_CONFIGURATION, SET_PROTOCOL) | status, IN data |
-| `OP_INTERRUPT_IN` | poll one interrupt-IN report of at most `HID_REPORT_MAX` bytes | report bytes, or pending |
+| `OP_ADDRESS_ROUTED` (0x0020) | Address Device for a device below a hub: route string, root port, speed and TT, each held against the hubs set up | as `OP_ADDRESS_DEVICE` |
+| `OP_CONFIGURE_HUB` (0x0021) | tell the controller an addressed slot is a hub: ports, TT think time, MTT | status word |
+| `OP_GET_DEVICE_DESCRIPTOR` / `OP_GET_CONFIG_DESCRIPTOR` | run EP0 GET_DESCRIPTOR | the bytes the device sent |
+| `OP_ALLOC_TRANSFER_RING` | give an interrupt-IN endpoint of an addressed slot a transfer ring and a buffer for its whole payload per interval | status word |
+| `OP_CONTROL_TRANSFER` | one EP0 control transfer with no data stage or an IN one of up to 4096 bytes (for example SET_CONFIGURATION, SET_PROTOCOL); a host-to-device data stage is refused | status, the IN bytes the device sent |
+| `OP_INTERRUPT_IN` | poll one interrupt-IN report, armed at the endpoint's payload (up to 3072 bytes) and handed up to the length asked | report bytes, or pending |
 | `OP_CONFIGURE_BULK` / `OP_RESET_BULK` | add a bulk IN and OUT pair; recover one after a STALL | DCIs / status word |
 | `OP_BULK_OUT` / `OP_BULK_IN` | one transfer of up to 4096 bytes; a STALL replies `E_PIPE` | bytes moved, IN data |
 
@@ -64,7 +68,7 @@ and `Dma` (`CAPSULE_REQUIRED_CAPS = 0xF8018`). It has no filesystem, input
 routing, audio, network, graphics, admin, or debug authority.
 
 ```text
-allowed:   xHCI claim, MMIO, MSI-X, controller DMA rings, controller IPC
+allowed:   xHCI claim, MMIO, MSI-X or MSI, controller DMA rings, controller IPC
 forbidden: HID policy, mass-storage policy, CDC network policy, kernel USB
 ```
 
@@ -77,11 +81,19 @@ authorized to consume.
 
 ## Runtime lifecycle
 
-The capsule claims xHCI, maps MMIO, asks for MSI-X, allocates controller DMA state,
-halts and resets the controller, starts command/event rings, runs a No-op
-command, and serves controller status IPC. Runtime enumeration callers may then
-enable a controller slot and must disable that slot if enumeration fails or a
-device is removed. Teardown releases DMA, IRQ, MMIO, and claim grants.
+The capsule claims xHCI, maps MMIO, asks for MSI-X or MSI, halts and resets the
+controller, allocates controller DMA state, only then turns bus mastering on,
+hands the controller its DCBAA and rings, starts it, runs a No-op command, and
+serves controller status IPC. Callers may then enable a controller slot and must
+disable it if enumeration fails or a device is removed. Each slot is its
+enabling client's: no other may name it, and once that pid has exited, its slots
+are disabled within a second and their ports come back. Teardown, and a bring-up
+that fails once the controller was started, gives the controller up in one
+order: halted (RUN cleared, HCH within a deadline), reset, bus mastering off,
+the device released, and only then any DMA frame freed
+(`src/setup/teardown.rs`). The kernel's `MkPciConfigWrite` ORs a Command write
+into the register until its K6 change lands, so today the release clears Bus
+Master Enable.
 
 ## Failure model
 
@@ -90,14 +102,25 @@ timeout paths abort promotion. With no xHCI controller in the device list the
 capsule logs one line and exits `EXIT_ABSENT` (2) before claiming anything; a
 controller that is present but fails setup is retried on the shared bounded
 schedule (`nonos_libc::bring_up`: seven tries, sleeping between them), and
-running out logs the last cause and exits `EXIT_GAVE_UP` (6). A completion
-wait with no interrupt bound spins, then yields a bounded number of times,
-then sleeps between polls, so a controller that stops answering costs
-wakeups, not a core. Slot enable failures return deterministic
-protocol errors and do not mark the slot table. Address Device owns its output
-device context, input context, and EP0 ring through the slot table; Disable Slot
-clears the matching DCBAA entry and drops those DMA grants. Device class
-requests remain outside this capsule.
+running out logs the last cause and exits `EXIT_GAVE_UP` (6). A completion wait
+with no interrupt bound spins, then yields a bounded number of times, then
+sleeps between polls, so a controller that stops answering costs wakeups, not a
+core. Slot enable failures return deterministic protocol errors and do not mark
+the slot table. Address Device owns its output device context, input context,
+and EP0 ring through the slot table; Disable Slot clears the matching DCBAA
+entry and drops those DMA grants. An Address Device that fails keeps them, and
+the DCBAA entry, until Disable Slot, as it keeps what a failed controller may
+still reach; a request buffer whose endpoint could not be brought back stays
+until the controller has passed its TRBs. A command that times out is aborted,
+the events that leaves are consumed, never taken for the next command's answer,
+and one the controller never took up is made a No Op; Address Device is given up
+after 500 ms, other commands after 5 s. A ring never holds more than 62 TRBs the
+controller has not run. A controller whose USBSTS reads all ones or shows a Host
+System or Host Controller Error, or whose command ring an abort cannot stop, is
+refused (`E_NODEV`) and brought back by halt, reset, CNR clear and fresh rings,
+at most three times (`src/setup/revive.rs`). After a revival every slot id a
+client held is void: the client must enable a slot again before it uses one.
+Device class requests remain outside this capsule.
 
 ## Current implemented surface
 
@@ -109,8 +132,9 @@ requests remain outside this capsule.
   goes to it unchanged. Controllers after the first are best effort.
 - Maps BAR0 up to 512 KiB, enough for the doorbells and the extended
   capability list (Intel puts DBOFF at 0x3000 and xECP near 0x8000), and
-  binds one MSI-X vector when it can. Intel PCH controllers have MSI only,
-  so they poll; INTx is disabled in the PCI command register either way.
+  binds one MSI-X vector when it can, or MSI on Intel PCH controllers, which
+  have MSI only; INTx is disabled in the PCI command register either way. A
+  controller whose port registers would lie past the mapping is refused.
 - Takes the controller from firmware through USBLEGSUP inside the mapped
   window, waits for CNR, waits 1 ms after HCRST (Linux XHCI_INTEL_HOST).
 - Reads the Supported Protocol capabilities, so each root port is known as
@@ -124,7 +148,7 @@ requests remain outside this capsule.
 - Serves controller and port status over IPC.
 - Issues Enable Slot and returns the controller-assigned slot id.
 - Tracks enabled slots in capsule-local bounded state.
-- Issues Disable Slot and clears the local slot table on success.
+- Issues Disable Slot and frees the slot on success or Slot Not Enabled.
 - Debounces a connect for 100 ms, resets USB 2 ports (with 50 ms
   recovery), uses an already enabled USB 3 port as it is, warm-resets a USB
   3 link in Inactive or Compliance, and never writes PED back as one.
@@ -135,7 +159,15 @@ requests remain outside this capsule.
   and copies the output Slot Context into every Configure Endpoint.
 - Recovers an endpoint after a STALL, other error or timeout (Reset or Stop
   Endpoint, then Set TR Dequeue Pointer), and aborts a command that does not
-  complete in 5 s.
+  complete in 5 s (Address Device: 500 ms).
+- Addresses devices below hubs (route string, TT hub slot and port for low
+  and full speed devices behind a high-speed hub) and sets a hub's Hub flag,
+  Number of Ports, TT Think Time and MTT through Configure Endpoint; every
+  value the hub class driver sends is bounded first (five tiers, the hub's
+  port count, speeds the hub's ports carry).
+- Gives interrupt-IN endpoints their whole payload per service interval:
+  high-bandwidth high-speed and bursting SuperSpeed endpoints (Max Burst
+  Size, Max ESIT Payload).
 - Builds 32-byte or 64-byte xHCI input contexts from HCCPARAMS1.CSZ.
 - Installs per-slot output contexts in DCBAA.
 - Allocates a per-slot EP0 transfer ring.
@@ -146,7 +178,10 @@ requests remain outside this capsule.
 - Runs class control transfers, interrupt-IN polls, and bulk IN and OUT
   transfers for the HID and mass-storage drivers. A transfer event must name
   the slot and endpoint its TRB is on, and an interrupt-IN residual past the
-  request hands up no bytes.
+  endpoint's payload hands up no bytes. A report that lands while another
+  wait reads the ring is kept for its own poll, every one of them, and a
+  disabled slot's are dropped; an IN data stage sets ISP, so a short answer
+  is reported as the bytes the device sent.
 
 ## Wire format
 
@@ -157,10 +192,15 @@ Enable Slot returns a 4-byte payload whose first byte is the slot id. Disable
 Slot takes a 1-byte request payload containing the slot id and returns only the
 status word. Address Device takes `[slot_id, root_port]` and returns eight
 bytes: slot, port, xHCI speed id, reserved, little-endian EP0 max packet size,
-and reserved padding. Device Descriptor takes `[slot_id]` and returns the USB
-device descriptor bytes exactly as read from EP0. Configuration Descriptor takes
-`[slot_id, index, len_lo, len_hi]`, currently accepts index `0`, caps length at
-512 bytes, and prefixes the reply body with the returned byte count.
+and reserved padding. Address Routed takes `[slot_id, root_port, speed,
+route_le32, tt_hub_slot, tt_port]` and replies the same; Configure Hub takes
+`[slot_id, ports, think_time, mtt]`. Device Descriptor takes `[slot_id]` and
+returns the USB device descriptor bytes exactly as read from EP0, no more than
+the device sent. Configuration Descriptor takes `[slot_id, index, len_lo,
+len_hi]`, accepts any index, caps length at 4096 bytes, and prefixes the reply
+body with the byte count the device sent. Alloc Transfer Ring takes `[slot_id,
+ep_address, wMaxPacketSize_le16, bInterval, ss_burst]`, `ss_burst` being the
+SuperSpeed Endpoint Companion's bMaxBurst (0 below SuperSpeed).
 
 ## State ownership
 
@@ -207,6 +247,8 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 - With the device present but failing (disabled in firmware, or a forced setup error): at most seven claim and release rounds in the broker log over about six seconds, then one `device present, bring-up failed` line naming the last cause (with the Debug capability), and exit `EXIT_GAVE_UP` (6), which the kernel names as `[EXIT] <service> status 6: device present, bring-up failed and was given up`. The capsule holds no core while it waits.
 - The USBLEGSUP handoff completes on firmware that owns the controller.
 - On a machine with a Thunderbolt or second xHCI, ports on both controllers enumerate.
+- A keyboard behind a high-speed hub, and a full-speed mouse behind it (TT), enumerate and deliver input.
+- An Intel PCH controller binds MSI; its completion waits park on the interrupt.
 - A full-speed device with a 64-byte EP0 reads its configuration (Evaluate Context ran).
 - A device that STALLs SET_IDLE keeps working: its next control request succeeds.
 - Halt, reset, CNR clear and run each finish within their one second bound; the NOOP command completes.
@@ -216,13 +258,12 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 
 ## Not supported
 
-- USB hubs. Nothing configures a hub or addresses the devices behind it, so
-  a keyboard, mouse or USB stick plugged into a hub, a dock or a monitor's
-  USB ports does nothing. Internal devices a laptop wires behind an internal
-  hub are not seen either. The HID driver says so in one line when it finds
-  a hub on a root port (`[usb] port N: USB hub found ...`); that line reaches
-  the serial console only when the capsule holds the Debug capability, and
-  nothing yet shows it on screen.
+- Configuration descriptors and control data stages past 4096 bytes, and
+  host-to-device data stages (no client sends one yet).
+- Bulk transfers past 4096 bytes in one request: the mass-storage client's
+  wire contract is one page per request.
+- EP0 request filtering: a class driver may send any request to the slots
+  it enabled.
 - The Intel xHCI/EHCI port switchover of 7, 8 and 9 series chipsets
   (Panther, Lynx and Wildcat Point; Linux `usb_enable_intel_xhci_ports`):
   it writes PCI config 0xD0 and 0xD8, which the kernel's config-write
@@ -233,9 +274,10 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 
 ## Explicit non-goals today
 
-Hub traversal, HID reports, USB mass storage, USB audio, CDC Ethernet,
-isochronous scheduling, and persistent USB inventory do not live here. They are
-separate class-capsule responsibilities above `driver.xhci0`.
+Hub descriptor parsing and port handling, HID reports, USB mass storage, USB
+audio, CDC Ethernet, isochronous scheduling, and persistent USB inventory do not
+live here. They are separate class-capsule responsibilities above
+`driver.xhci0`.
 
 ## Verification
 

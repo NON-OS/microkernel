@@ -52,11 +52,9 @@ pub fn with_entries(dw0: u32, last_dci: u8) -> u32 {
 
 pub(super) fn read_dw(region: &DmaRegion, context_size: u8, context: usize, dword: usize) -> u32 {
     let byte = context * context_size as usize + dword * core::mem::size_of::<u32>();
-    /*
-     * SAFETY: every context region holds at least 32 contexts of
-     * `context_size` bytes and `context` is at most 32.
-     */
-    unsafe { core::ptr::read_volatile(region.as_mut_ptr::<u8>().add(byte) as *const u32) }
+    // Every context region holds 33 contexts and `context` is at most 32,
+    // so the read is always in the region; 0 stands for one that is not.
+    region.read_u32(byte).unwrap_or(0)
 }
 
 pub(super) fn write_dw(
@@ -67,10 +65,6 @@ pub(super) fn write_dw(
     value: u32,
 ) {
     let byte = context * context_size as usize + dword * core::mem::size_of::<u32>();
-    /*
-     * SAFETY: as for `read_dw`.
-     */
-    unsafe {
-        core::ptr::write_volatile(region.as_mut_ptr::<u8>().add(byte) as *mut u32, value);
-    }
+    // In the region, as for `read_dw`; a write past it would be dropped.
+    let _ = region.write_u32(byte, value);
 }

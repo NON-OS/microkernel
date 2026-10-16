@@ -16,5 +16,7 @@
 use crate::constants::IMAN;
 use crate::regs::mmio_read32;
 pub fn iman_read(intr_base: u64) -> u32 {
-    mmio_read32(intr_base + IMAN)
+    // SAFETY: `intr_base` is interrupter 0's register set, 32 bytes into the runtime page
+    // `read_layout` checked lies inside the mapped window.
+    unsafe { mmio_read32(intr_base + IMAN) }
 }

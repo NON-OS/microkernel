@@ -21,5 +21,7 @@ pub fn erdp_program(intr_base: u64, dequeue_phys: u64, ehb_clear: bool, desi: u8
     if ehb_clear {
         value |= ERDP_EHB;
     }
-    mmio_write64(intr_base + ERDP_LO, value);
+    // SAFETY: `intr_base` is interrupter 0's register set, 32 bytes into the runtime page
+    // `read_layout` checked lies inside the mapped window.
+    unsafe { mmio_write64(intr_base + ERDP_LO, value) };
 }

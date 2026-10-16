@@ -1,4 +1,4 @@
-# xhci: USB 3 host controller. PCI MMIO + DMA, with one MSI-X vector
+# xhci: USB 3 host controller. PCI MMIO + DMA, with one MSI-X or MSI vector
 # when the bind succeeds and polling otherwise. xHCI is MMIO-only (no
 # PIO). The capsule owns DCBAA, scratchpad, command ring, event ring +
 # ERST; every completion is decided from the event ring, and the
@@ -13,7 +13,7 @@ CAPSULE_FEATURE          := nonos-capsule-driver-xhci
 CAPSULE_NAMESPACE        := systems.nonos.driver.xhci0
 CAPSULE_SERVICE_ENDPOINT := service:4206:driver.xhci0
 CAPSULE_REPLY_ENDPOINT   := reply:4207:endpoint.4294967307
-# IPC|Memory|Driver|DeviceEnum|Mmio|Irq|Dma = 0xF8019
+# IPC|Memory|Driver|DeviceEnum|Mmio|Irq|Dma = 0xF8018
 CAPSULE_REQUIRED_CAPS    := 0xF8018
 CAPSULE_KERNEL_MIRROR    := src/hardware/xhci_capsule
 

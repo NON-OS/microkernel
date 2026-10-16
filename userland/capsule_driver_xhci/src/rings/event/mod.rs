@@ -18,6 +18,8 @@ mod current_dequeue_phys;
 mod current_trb;
 mod drained_total;
 mod erst_base_phys;
+mod expect;
+mod failed;
 mod has_event;
 mod issued_transfer;
 mod park;

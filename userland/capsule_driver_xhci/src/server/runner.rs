@@ -24,22 +24,31 @@ use crate::server::service_interrupts::service_interrupts;
 use crate::setup::Driver;
 use alloc::vec;
 use alloc::vec::Vec;
-use nonos_libc::mk_ipc_recv_from;
+use nonos_libc::{mk_ipc_recv_from, Deadline};
 const PORTS_REPLY: usize =
     RESP_HDR_LEN + STATUS_LEN + PORT_STATUS_HEADER_BYTES + MAX_PORTS_REPORTED * PORT_ENTRY_BYTES;
 const BULK_REPLY: usize = RESP_HDR_LEN + STATUS_LEN + BULK_HEADER_LEN + BULK_MAX;
-const TX_LEN: usize = if PORTS_REPLY > BULK_REPLY { PORTS_REPLY } else { BULK_REPLY };
+/// The reply buffer: the longest reply the server builds.
+pub(crate) const TX_LEN: usize = if PORTS_REPLY > BULK_REPLY { PORTS_REPLY } else { BULK_REPLY };
+/// How often the slots of clients that exited are looked for. A receive
+/// waits at most this long, so the sweep runs while no request comes too.
+const SWEEP_MS: u64 = 1_000;
 /// Serve `drivers`, the primary controller first.
 pub fn run(drivers: Vec<Driver>) -> ! {
     let mut rx = vec![0u8; HDR_LEN + MAX_REQUEST_PAYLOAD_LEN];
     let mut tx = vec![0u8; TX_LEN];
     let mut mux = Mux::new(drivers.into_iter().map(Context::new).collect());
+    let mut sweep_due = Deadline::after_ms(SWEEP_MS);
     loop {
+        if sweep_due.expired() {
+            mux.sweep();
+            sweep_due = Deadline::after_ms(SWEEP_MS);
+        }
         for ctx in mux.ctxs.iter_mut() {
             service_interrupts(ctx);
         }
         let mut sender_pid: u32 = 0;
-        let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx.len(), 0, &mut sender_pid);
+        let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx.len(), SWEEP_MS, &mut sender_pid);
         crate::server::reply::set_sender(sender_pid);
         if !nonos_libc::recv_ready(n) {
             continue;

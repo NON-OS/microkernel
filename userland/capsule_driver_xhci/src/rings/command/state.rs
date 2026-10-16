@@ -22,9 +22,14 @@ pub struct CommandRing {
     pub(super) region: DmaRegion,
     pub(super) cycle: u8,
     pub(super) enqueue_index: usize,
+    /// Commands queued that the controller is not known to have consumed
+    /// (`retire`).
+    pub(super) pending: usize,
     /// The operational registers the ring was programmed into, 0 before
     /// `program_command_ring`; an abort needs CRCR.
     pub(super) op_base: u64,
+    /// An abort never stopped the ring: the controller is wedged.
+    pub(super) wedged: bool,
 }
 impl CommandRing {
     pub fn new(pool: &DmaPool) -> XhciResult<Self> {
@@ -34,7 +39,8 @@ impl CommandRing {
         let last_slot_va = region.user_va() + ((COMMAND_RING_TRBS as u64) - 1) * (TRB_BYTES as u64);
         let link =
             LinkTrbBuilder::new().target(region.phys()).toggle_cycle(true).cycle(true).build();
-        write_volatile_at(last_slot_va, link);
-        Ok(Self { region, cycle: 1, enqueue_index: 0, op_base: 0 })
+        // SAFETY: the last TRB slot of the ring's own grant, just mapped.
+        unsafe { write_volatile_at(last_slot_va, link) };
+        Ok(Self { region, cycle: 1, enqueue_index: 0, pending: 0, op_base: 0, wedged: false })
     }
 }
