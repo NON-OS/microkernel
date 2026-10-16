@@ -18,4 +18,5 @@
 mod answering;
 mod hellos;
 mod only;
+#[cfg(feature = "record-fixtures")]
 mod record;
