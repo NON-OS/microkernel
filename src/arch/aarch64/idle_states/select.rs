@@ -21,7 +21,8 @@ use crate::arch::fdt::find::idle::IdleState;
 
 /// The deepest state, by `min-residency-us`, that this CPU may enter now:
 /// - one of its own (`list`, indices into `states`);
-/// - standby, so CPU_SUSPEND returns here on a wake;
+/// - standby, so CPU_SUSPEND returns here on a wake, unless `powerdown`
+///   says the resume path may be used (powerdown.rs);
 /// - one that keeps the local timer counting, since no broadcast source
 ///   would wake this CPU for its deadline otherwise;
 /// - not refused by the firmware before (`refused`, a bit per index);
@@ -35,6 +36,7 @@ pub fn pick(
     extended: bool,
     refused: u8,
     budget_us: u64,
+    powerdown: bool,
 ) -> Option<u8> {
     let mut best: Option<(u8, u32)> = None;
     for &index in list {
@@ -47,7 +49,7 @@ pub fn pick(
         };
         let cost = u64::from(state.residency_us) + u64::from(state.exit_us);
         if state.timer_stops
-            || !is_standby(state.param, extended)
+            || !(powerdown || is_standby(state.param, extended))
             || refused & bit != 0
             || cost > budget_us
         {

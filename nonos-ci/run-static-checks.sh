@@ -501,13 +501,16 @@ unset a64_ptr_file a64_ptr_inner a64_ptr_apis a64_ptr_count
 # aarch64: TPIDR_EL1 has one meaning, the address of this CPU's per-CPU block
 # (smp::percpu), which the vectors read the PAC keys out of at fixed offsets
 # (asm/percpu.h). It was once also a key-slot pointer, and the two writers
-# took turns. Only the per-CPU base setter may write it.
-tpidr_writers="$( { grep -rniE 'msr[[:space:]]+tpidr_el1' src --include='*.rs' --include='*.S' --include='*.h' || true; } | { grep -v '^src/arch/percpu_base.rs:' || true; } )"
+# took turns. Only the per-CPU base setter may write it, and the powerdown
+# resume (asm/suspend.S) may put back the value it wrote, from this CPU's
+# own context slot and nothing else (userland/suspend_proofs). LOAD is that
+# file's restore macro, so it is looked for as well as a bare MSR.
+tpidr_writers="$( { grep -rniE '(msr|LOAD)[[:space:]]+tpidr_el1' src --include='*.rs' --include='*.S' --include='*.h' || true; } | { grep -v '^src/arch/percpu_base.rs:' || true; } | { grep -vE '^src/arch/aarch64/asm/suspend\.S:[0-9]+:[[:space:]]+LOAD[[:space:]]+tpidr_el1, CTX_TPIDR_EL1$' || true; } )"
 if [ -n "${tpidr_writers}" ]; then
-    fail_with "TPIDR_EL1 written outside src/arch/percpu_base.rs"
+    fail_with "TPIDR_EL1 written outside src/arch/percpu_base.rs and the resume's one restore"
     printf '%s\n' "${tpidr_writers}" >&2
 else
-    note ok "TPIDR_EL1 written only by the per-CPU base setter"
+    note ok "TPIDR_EL1 written only by the per-CPU base setter, and put back by the resume"
 fi
 unset tpidr_writers
 

@@ -19,27 +19,34 @@
 use core::arch::asm;
 use core::sync::atomic::Ordering;
 
+use super::budget::budget_us;
+use super::format::is_standby;
+use super::powerdown;
 use super::select::pick;
 use super::table::{EXTENDED, REFUSED, TREE};
 use crate::arch::aarch64::boot::multicore::roster;
 use crate::arch::aarch64::cpu::mpidr_affinity;
 use crate::arch::aarch64::psci;
-use crate::arch::aarch64::timer::generic::{current_count, ticks_to_microseconds};
-use crate::arch::aarch64::timer::PhysicalTimer;
 
 /// Wait for an interrupt and take it. Called and returns with IRQs masked.
 pub fn wait() {
-    let Some((cpu, index, param)) = chosen() else {
+    let Some((cpu, index, param, standby)) = chosen() else {
         // `wfi` with IRQs open: a no-op when a wake is already pending, so
         // none is lost between unmasking and waiting.
         unsafe { asm!("msr daifclr, #2", "wfi", "msr daifset, #2", options(nomem, nostack)) };
         return;
     };
-    // A standby state keeps this CPU's context, and CPU_SUSPEND returns on
-    // the wake, ignoring the entry point and context id (DEN0022). Entered
-    // masked, as a WFI may be: an IRQ pending at the GIC still ends it
-    // (recalled, unverified), and is taken below.
-    if psci::cpu_suspend(u64::from(param), 0, 0).is_err() {
+    // Entered masked, as a WFI may be: an IRQ pending at the GIC still ends
+    // it (recalled, unverified), and is taken below. A standby state keeps
+    // this CPU's context, and CPU_SUSPEND returns on the wake, ignoring the
+    // entry point and context id (DEN0022). A powerdown state returns
+    // through the resume path, or not at all if the core stayed up.
+    let entered = if standby {
+        psci::cpu_suspend(u64::from(param), 0, 0).map(|()| false)
+    } else {
+        powerdown::enter(cpu, param)
+    };
+    if entered.is_err() {
         if let Some(refused) = REFUSED.get(cpu) {
             refused.fetch_or(1u8.checked_shl(index.into()).unwrap_or(0), Ordering::Relaxed);
         }
@@ -50,21 +57,16 @@ pub fn wait() {
     unsafe { asm!("msr daifclr, #2", "isb", "msr daifset, #2", options(nomem, nostack)) };
 }
 
-/// This CPU's roster index, the state to enter, and its power_state.
-fn chosen() -> Option<(usize, u8, u32)> {
+/// This CPU's roster index, the state to enter, its power_state, and
+/// whether it is a standby state.
+fn chosen() -> Option<(usize, u8, u32, bool)> {
     let extended = *EXTENDED.get()?;
     let tree = TREE.get()?;
     let cpu = roster::index_of(mpidr_affinity())?;
     let list = tree.cpus.get(cpu)?.indices();
     let refused = REFUSED.get(cpu)?.load(Ordering::Relaxed);
-    let index = pick(tree.states(), list, extended, refused, budget_us())?;
-    Some((cpu, index, tree.states().get(usize::from(index))?.param))
-}
-
-/// Microseconds until this CPU's timer fires; unbounded when it is not set.
-fn budget_us() -> u64 {
-    if !PhysicalTimer::is_armed() {
-        return u64::MAX;
-    }
-    ticks_to_microseconds(PhysicalTimer::get_compare_value().saturating_sub(current_count()))
+    let powerdown = powerdown::available();
+    let index = pick(tree.states(), list, extended, refused, budget_us(), powerdown)?;
+    let param = tree.states().get(usize::from(index))?.param;
+    Some((cpu, index, param, is_standby(param, extended)))
 }
