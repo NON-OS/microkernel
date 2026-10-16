@@ -36,6 +36,8 @@ mod protect_tests;
 #[cfg(test)]
 mod receive_tests;
 #[cfg(test)]
+mod regdom_tests;
+#[cfg(test)]
 mod rsn_tests;
 #[cfg(test)]
 mod sae_tests;
