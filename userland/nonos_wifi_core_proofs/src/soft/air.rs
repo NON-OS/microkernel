@@ -27,7 +27,14 @@ pub const STA: [u8; 6] = crate::ap_sim::SPA;
 
 impl Radio for SimAir {
     fn mac(&self) -> [u8; 6] {
-        STA
+        self.addr.0
+    }
+
+    fn set_mac(&mut self, mac: [u8; 6]) -> bool {
+        if !self.addr.1 {
+            self.addr.0 = mac;
+        }
+        !self.addr.1
     }
 
     fn bands(&self) -> (bool, bool) {

@@ -47,7 +47,7 @@ impl SimAir {
             let from_second = second.is_some_and(|b| f.get(10..16) == Some(&b[..]));
             return Some((f, self.rssi[usize::from(from_second)]));
         }
-        let sta = crate::soft::air::STA;
+        let sta = self.addr.0;
         if on(&self.ap, self.tuned) && now >= self.beacon_at {
             self.beacon_at = now + 100;
             self.inbox.extend(self.ap.chat(sta));

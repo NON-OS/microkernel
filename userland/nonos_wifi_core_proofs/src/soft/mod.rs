@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub mod air;
 mod air_aps;
+pub mod air_new;
 pub mod ap;
 mod ap_eapol;
 mod ap_rx;
