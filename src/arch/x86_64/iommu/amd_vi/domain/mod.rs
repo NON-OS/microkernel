@@ -24,7 +24,6 @@ mod unmap;
 mod walk;
 
 pub use attach::{attach, detach, device_id};
-pub(super) use attach::pass;
 pub use lifetime::{create_domain, destroy_domain, MAX_DOMAINS};
 pub use map::map_range;
 pub use unmap::unmap_range;

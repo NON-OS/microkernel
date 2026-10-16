@@ -26,6 +26,11 @@ pub mod ivhd_entry;
 pub mod ivhd_kind;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/ivhd_scope.rs"]
 pub mod ivhd_scope;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/ivmd.rs"]
+pub mod ivmd;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/ivmd_block.rs"]
+pub mod ivmd_block;
 mod fixture;
 mod hostile_tests;
+mod ivmd_tests;
 mod tests;
