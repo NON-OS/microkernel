@@ -16,9 +16,10 @@
 
 //! Bringing the radio up at start, as far as it goes.
 
-use nonos_libc::{mk_exit, start_driver, EXIT_ABSENT};
+use nonos_libc::{mk_exit, start_driver, EXIT_ABSENT, EXIT_GAVE_UP};
 
-use crate::bringup::{probe, BringUp};
+use crate::bringup::probe;
+use crate::pwr::NoMaster;
 use crate::serve::Stage;
 use crate::setup::Mapped;
 use crate::start_board::link_and_board;
@@ -36,7 +37,9 @@ const DRIVER: &[u8] = b"driver.rtl8821ce";
 /// says so and leaves (`EXIT_ABSENT`) before claiming anything, since there is
 /// no stage to report. The claim and register map are retried on the shared
 /// bounded schedule, each failed try giving the claim back; running out serves
-/// `NotClaimed`, so the panel can still say why.
+/// `NotClaimed`, so the panel can still say why. A chip whose power cycle or
+/// registers fail, or that is refused Bus Master, is given back and the
+/// driver leaves (`EXIT_GAVE_UP`): it is never served in an unknown state.
 pub fn bring_up() -> (Option<Mapped>, Stage) {
     let mut mapped = match start_driver(DRIVER, discover::find(), |dev| setup::run(*dev)) {
         Ok(m) => m,
@@ -46,17 +49,23 @@ pub fn bring_up() -> (Option<Mapped>, Stage) {
             return (None, Stage::NotClaimed);
         }
     };
-    match probe(&mapped.regs) {
-        Ok(_id) => status::line(b"[rtl8821ce] chip powered and answering\n"),
-        Err(BringUp::PowerFailed) => {
-            status::line(b"[rtl8821ce] power-on sequence failed\n");
-            return (Some(mapped), Stage::PowerFailed);
-        }
-        Err(BringUp::DeadMmio) => {
-            status::line(b"[rtl8821ce] no response after power-on\n");
-            return (Some(mapped), Stage::DeadMmio);
-        }
+    let (id, epoch) = (mapped.device_id, mapped.claim_epoch);
+    if let Err(why) = probe(&mapped.regs, || setup::command(id, epoch, true)) {
+        status::line(refusal(why));
+        setup::release(&mapped);
+        mk_exit(EXIT_GAVE_UP);
     }
+    status::line(b"[rtl8821ce] chip powered and answering; bus master on\n");
     link_and_board(&mut mapped);
     up_to_ready(mapped)
+}
+
+/// The console line for a chip that is given back.
+fn refusal(why: NoMaster) -> &'static [u8] {
+    match why {
+        NoMaster::PowerFailed => b"[rtl8821ce] power-on sequence failed; chip given back\n",
+        NoMaster::LeftOn { .. } => b"[rtl8821ce] power-off did not take; chip given back\n",
+        NoMaster::DeadMmio => b"[rtl8821ce] no response after power-on; chip given back\n",
+        NoMaster::Refused => b"[rtl8821ce] bus master refused; chip given back\n",
+    }
 }

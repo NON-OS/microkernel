@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod mapped;
+mod master;
 mod run;
 mod window;
 
 pub use mapped::Mapped;
+pub use master::{command, release};
 pub use run::run;
 pub use window::window;

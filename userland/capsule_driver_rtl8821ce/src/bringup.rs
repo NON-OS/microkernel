@@ -14,40 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Cold-start stage one: power the MAC on and confirm it answers. This needs no
-//! DMA, so it is the first thing a boot on real silicon can report. The
-//! firmware download (proven in `rtl8821ce_proofs`) builds on this once the TX
-//! ring exists.
+//! Cold-start stage one: power the MAC on, confirm it answers, and only then
+//! let it master the bus (`pwr::power_on_then_master`). This needs no DMA,
+//! so it is the first thing a boot on real silicon can report.
 
-use crate::constants::regs::{mmio_dead, REG_SYS_CFG1};
-use crate::pwr::{power_on, PowerOn};
+use crate::pwr::{power_on_then_master, NoMaster, PowerOn};
 use crate::regs::Mmio;
 
-/// How far cold-start got, reported on screen so a first boot is legible.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum BringUp {
-    /// The register window read back all-ones or all-zero after power-on: the
-    /// BAR is not decoding or the card has no power.
-    DeadMmio,
-    /// The power-on sequence never reached readiness.
-    PowerFailed,
-}
-
-/// Power the MAC on and read a register back. Returns the chip-id readback, or
-/// the stage that failed.
-pub fn probe<M: Mmio>(mmio: &M) -> Result<u32, BringUp> {
-    match power_on(mmio) {
-        PowerOn::Failed => return Err(BringUp::PowerFailed),
-        PowerOn::WasLeftPowered { cr_after_off } => {
-            crate::status::line(b"[rtl8821ce] chip was left powered; powered off first, cr=");
-            crate::status::hex16(cr_after_off as u16);
-            crate::status::line(b"\n");
-        }
-        PowerOn::FromCold => {}
-    }
-    let id = mmio.read32(REG_SYS_CFG1);
-    if mmio_dead(id) {
-        return Err(BringUp::DeadMmio);
+/// Power the MAC on, read a register back, then `master_on`. Returns the
+/// chip-id readback, or why the chip may not master the bus.
+pub fn probe<M: Mmio>(mmio: &M, master_on: impl FnOnce() -> bool) -> Result<u32, NoMaster> {
+    let (id, how) = power_on_then_master(mmio, master_on)?;
+    if let PowerOn::WasLeftPowered { cr_after_off } = how {
+        crate::status::line(b"[rtl8821ce] chip was left powered; powered off first, cr=");
+        crate::status::hex16(cr_after_off as u16);
+        crate::status::line(b"\n");
     }
     Ok(id)
 }
