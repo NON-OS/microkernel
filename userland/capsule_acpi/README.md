@@ -246,6 +246,21 @@ recalled, unverified; the 100 ms debounce, 1 s link grace, 2 s retry and
 
 ## Microkernel contract
 
+Every table it is handed is measured by the kernel. At the first hand-out,
+before any `_INI` can run, the kernel reads every table it knows, in a
+fixed order:
+1. the FADT, then the DSDT, then each SSDT as the root table lists them,
+   which is the capsule's load order;
+2. then the rest by signature value, so MADT, DMAR or IVRS and the other
+   tables the kernel parses itself are covered too.
+
+The FACS is left out, since firmware writes it. Each table becomes a
+44-byte record: signature, instance, length and BLAKE3 digest. A later
+hand-out adds a record only if the bytes changed. One digest over the
+list is the attest registry's pid 0 entry, so the root an attestation
+signs moves when the machine's AML does; `MkAcpiMeasured` returns the
+list for the About screen and a verifier. Nothing is refused on it.
+
 Every register it touches comes through the kernel's ACPI grant rule
 (`src/hardware/broker/acpi/rule/`): SystemMemory only over firmware's own
 memory or unclaimed device space, never the allocator's RAM or the
