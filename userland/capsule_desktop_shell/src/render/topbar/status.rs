@@ -37,13 +37,13 @@ pub(super) fn status(ctx: &Context) {
     // Read once a second by the tick (refresh_clock), not here: the chrome is
     // painted on every menu hover and press, and each paint asked the DHCP
     // client, on the shell's only thread, which waits while it gets an address.
-    let online = ctx.net_was_online;
+    let online = ctx.readings.net_was_online;
     let batt = battery::percent();
     let pct = batt.percent();
     let mut bbuf = [0u8; battery_text::LABEL_MAX];
     let blen = battery_text::label(batt, &mut bbuf);
     let mut sbuf = [b'-'; STAMP_LEN];
-    let when: &[u8] = match stamp(&mut sbuf, ctx.clock_24h, ctx.tz_hours) {
+    let when: &[u8] = match stamp(&mut sbuf, ctx.readings.clock_24h, ctx.readings.tz_hours) {
         Some(n) => &sbuf[..n],
         None => b"--:--",
     };

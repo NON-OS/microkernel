@@ -50,12 +50,12 @@ pub fn run(mut ctx: Context) -> ! {
         let tick_ms = mk_uptime_ms();
         if tick_due(tick_ms, last_tick_ms) {
             refresh_clock(&mut ctx);
-            if !ctx.input_ready {
-                let port = ctx.input_router_port;
+            if !ctx.links.input_ready {
+                let port = ctx.ports.input_router_port;
                 crate::setup::subscribe_input(&mut ctx, port);
             }
-            if !ctx.wm_notify_ready {
-                let port = ctx.wm_port;
+            if !ctx.links.wm_notify_ready {
+                let port = ctx.ports.wm_port;
                 crate::setup::subscribe_wm(&mut ctx, port);
             }
             /*
@@ -74,7 +74,7 @@ pub fn run(mut ctx: Context) -> ! {
             crate::server::installed_apps::load_once(&mut ctx);
             crate::server::store_health::check(&mut ctx);
             // Asks the policy store, so not while it is quiet (refresh_clock).
-            if ctx.policy_gap.due(tick_ms.max(0) as u64) {
+            if ctx.readings.policy_gap.due(tick_ms.max(0) as u64) {
                 crate::server::handlers::live_prompt::check(&mut ctx);
             }
             // A window whose process ended without its close reaching the
@@ -104,7 +104,7 @@ pub fn run(mut ctx: Context) -> ! {
          * queue moved, so a pass with nothing new costs one comparison.
          */
         ctx.toasts.expire(crate::server::toast_clock::now());
-        if ctx.toasts_synced != ctx.toasts.generation() {
+        if ctx.toast_view.toasts_synced != ctx.toasts.generation() {
             sync_toast_layer(&mut ctx);
         }
         /*

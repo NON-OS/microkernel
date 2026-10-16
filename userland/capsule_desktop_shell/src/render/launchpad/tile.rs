@@ -42,12 +42,12 @@ pub(super) fn paint(ctx: &Context, cell: usize, t: Target) {
             tool.label
         }
         Target::Installed(i) => {
-            let Some(name) = ctx.installed_apps.get(i) else { return };
+            let Some(name) = ctx.store_apps.installed_apps.get(i) else { return };
             gen_icon::draw(ctx, icon_x, cy, tile(), name);
             name.as_slice()
         }
         Target::Package(i) => {
-            let Some(name) = ctx.pkg_files.get(i) else { return };
+            let Some(name) = ctx.store_apps.pkg_files.get(i) else { return };
             let stem = name.strip_suffix(".nonos").unwrap_or(name.as_str());
             gen_icon::draw(ctx, icon_x, cy, tile(), stem.as_bytes());
             stem.as_bytes()
