@@ -35,6 +35,9 @@
 mod address;
 mod alive;
 mod eapol;
+mod forget;
+#[cfg(test)]
+mod forget_tests;
 mod frames;
 mod keys;
 mod link;

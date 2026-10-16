@@ -26,6 +26,8 @@ mod crypto_tests;
 #[cfg(test)]
 mod handshake_tests;
 #[cfg(test)]
+mod key_tests;
+#[cfg(test)]
 mod link_gate_tests;
 #[cfg(test)]
 mod link_history_tests;
