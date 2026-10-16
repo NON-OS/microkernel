@@ -4,13 +4,13 @@
 //! the system config runs first, running firmware is woken, and a stalled
 //! poll is retried once after the BIT_PFM_WOWL pulse.
 
-use crate::pwr::command::PwrCmd;
-use crate::pwr::{power_on, run_pwr_seq, PowerOn};
+use crate::pwr::{power_on, PowerOn};
 use crate::pwr_mock::Chip;
 
 mod armed; // the Bus Master gate built on this power-on (W4)
 mod fetch_tests;
 mod master_tests;
+mod wowl;
 
 #[test]
 fn a_cold_card_is_powered_on_without_a_power_off() {
@@ -64,13 +64,4 @@ fn running_firmware_is_woken_before_the_switch() {
     let cold = Chip::new(0xEA);
     power_on(&cold);
     assert!(!cold.wrote(0x03D9), "no firmware, no RPWM write");
-}
-
-#[test]
-fn a_stalled_poll_is_retried_after_the_wowl_pulse() {
-    let mut c = Chip::new(0xEA);
-    c.on_wowl = Some((0x0010, 0x01));
-    assert!(run_pwr_seq(&c, &[PwrCmd::poll(0x0010, 0x01, 0x01), PwrCmd::end()]));
-    let w = c.writes.borrow();
-    assert_eq!(&w[..], &[(0x04, 0x08), (0x04, 0x00)], "value|BIT3 then value&~BIT3");
 }
