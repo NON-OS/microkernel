@@ -22,10 +22,11 @@
 
 use alloc::vec::Vec;
 
+use super::chip_rx::chip_body;
 use super::cipher::open;
 use super::mgmt_rx::{leave_reason, MgmtDrop, MgmtRx};
 use super::LinkStation;
-use crate::dot11::ccmp::{pn_and_key, CCMP_HDR_LEN, MIC_LEN};
+use crate::dot11::ccmp::pn_and_key;
 use crate::dot11::header::MAC_HEADER_LEN;
 use crate::pmf::{parse_sa_query, SaQueryAction, SUBTYPE_ACTION};
 
@@ -33,8 +34,8 @@ impl LinkStation {
     pub(super) fn open_mgmt(&mut self, f: &[u8], hw: bool) -> Result<Vec<u8>, MgmtDrop> {
         let (pn, _) = pn_and_key(f, MAC_HEADER_LEN).ok_or(MgmtDrop::Malformed)?;
         let body = if hw {
-            let end = f.len().checked_sub(MIC_LEN).ok_or(MgmtDrop::Malformed)?;
-            f.get(MAC_HEADER_LEN + CCMP_HDR_LEN..end).ok_or(MgmtDrop::Malformed)?.to_vec()
+            let key = self.pairwise_key().filter(|_| self.checks_rx());
+            chip_body(f, MAC_HEADER_LEN, pn, key.as_ref()).ok_or(MgmtDrop::Undecryptable)?
         } else {
             let tk = self.pairwise_key().ok_or(MgmtDrop::Undecryptable)?;
             open(f, &tk).ok_or(MgmtDrop::Undecryptable)?

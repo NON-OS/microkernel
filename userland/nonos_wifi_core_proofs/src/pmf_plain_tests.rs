@@ -38,3 +38,21 @@ fn without_protection_a_plain_deauthentication_ends_the_link() {
     assert_eq!(s.receive_mgmt(&mgmt(DEAUTH, SPA, &[2, 0]), false), MgmtRx::Left(2));
     assert!(!s.is_associated());
 }
+
+/// With protection, a deauthentication the chip says it decrypted ends the
+/// link only if its plaintext seals again to the MIC that came; a forged one
+/// is refused, leaves the link, and moves no counter.
+#[test]
+fn a_chips_word_on_a_protected_deauthentication_is_checked() {
+    use crate::pmf_frames::sealed;
+    use crate::pmf_sim::joined_pmf;
+    let (mut s, ptk) = joined_pmf();
+    let honest = sealed(&mgmt(DEAUTH, SPA, &[3, 0]), 9, &ptk, true);
+    let mut lie = honest.clone();
+    lie[32] = 1;
+    assert_eq!(s.receive_mgmt(&lie, true), MgmtRx::Dropped(MgmtDrop::Undecryptable));
+    assert!(s.is_associated(), "the link stays");
+    let q = sealed(&mgmt(13, SPA, &[8, 0, 5, 6]), 2, &ptk, true);
+    assert!(matches!(s.receive_mgmt(&q, true), MgmtRx::Reply(_)), "no counter moved");
+    assert_eq!(s.receive_mgmt(&honest, true), MgmtRx::Left(3));
+}
