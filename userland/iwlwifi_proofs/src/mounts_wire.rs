@@ -7,7 +7,7 @@ mod protocol_ops;
 pub mod protocol {
     pub use super::protocol_ops::*;
 }
-#[path = "../../capsule_driver_iwlwifi/src/server/control.rs"]
+#[path = "../../capsule_driver_iwlwifi/src/server/control/mod.rs"]
 pub mod control;
 /// The control family's join messages as the driver reads and answers them.
 #[path = "../../capsule_driver_iwlwifi/src/server/join_wire/mod.rs"]
