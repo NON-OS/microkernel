@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::drivers::pci::constants::*;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct MsiInfo {
     pub offset: u8,
@@ -49,5 +51,35 @@ pub struct MsixInfo {
 impl MsixInfo {
     pub fn vector_count(&self) -> u16 {
         self.table_size + 1
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MsiMessage {
+    pub address: u64,
+    pub data: u32,
+}
+
+impl MsiMessage {
+    pub fn new(vector: u8, dest_id: u8, edge_trigger: bool, level_assert: bool) -> Self {
+        let address = (MSI_ADDRESS_BASE as u64) | ((dest_id as u64) << MSI_ADDRESS_DEST_ID_SHIFT);
+        let mut data = (vector as u32) & MSI_DATA_VECTOR_MASK;
+        data |= MSI_DATA_DELIVERY_FIXED;
+        if !edge_trigger {
+            data |= MSI_DATA_TRIGGER_LEVEL;
+            if level_assert {
+                data |= MSI_DATA_LEVEL_ASSERT;
+            }
+        }
+        Self { address, data }
+    }
+
+    /// Build an MSI/MSI-X message targeting a specific LAPIC. The
+    /// caller is responsible for choosing `dest_apic_id` from the
+    /// runtime APIC state (typically the BSP at bind time); a
+    /// hardcoded 0 would silently pin every device interrupt to
+    /// CPU 0 once SMP starts steering capsules across cores.
+    pub fn for_local_apic(vector: u8, dest_apic_id: u8) -> Self {
+        Self::new(vector, dest_apic_id, true, false)
     }
 }
