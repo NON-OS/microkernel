@@ -32,6 +32,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0"]),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.virtio_gpu0", &["compositor"]),
+    ("driver.bga0", &["compositor"]),
     ("driver.hda0", &["audio.server"]),
 ];
 
