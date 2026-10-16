@@ -35,12 +35,12 @@ fn size(bytes: &[u8], at: usize) -> Option<usize> {
     }
 }
 
-/// Append the spans `bytes` describes to `out[n..]`, returning the new count.
 /// The length of the entry at `at`, when it is whole inside `bytes`.
 pub(super) fn size_at(bytes: &[u8], at: usize) -> Option<usize> {
     (at + 4 <= bytes.len()).then(|| size(bytes, at)).flatten().filter(|len| at + len <= bytes.len())
 }
 
+/// Append the spans `bytes` describes to `out[n..]`, returning the new count.
 pub(super) fn entries(bytes: &[u8], out: &mut [Span], mut n: usize) -> usize {
     let (mut at, mut start) = (0, None);
     while let Some(len) = size_at(bytes, at) {

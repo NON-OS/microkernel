@@ -36,6 +36,11 @@ pub(super) fn map_view(
     let proc = current_process().ok_or(RegistryError::NoProc)?;
     let len = frames.len().saturating_mul(4096);
     let base = proc.reserve_vma(len, asid).map_err(|_| RegistryError::MapFailed)?;
+    // An munmap there read its held frames before this view existed (L50).
+    if super::super::pin::busy::busy_over(base.as_u64(), len as u64) {
+        proc.unreserve_vma(base, len);
+        return Err(RegistryError::MapFailed);
+    }
     if let Err(stuck) = map_frames(asid, base, frames) {
         // A page that would not come down still maps the frames: recorded,
         // it holds them until the receiver detaches or exits.
