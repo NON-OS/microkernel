@@ -8,6 +8,9 @@ use crate::pwr::command::PwrCmd;
 use crate::pwr::{power_on, run_pwr_seq, PowerOn};
 use crate::pwr_mock::Chip;
 
+mod armed; // the Bus Master gate built on this power-on (W4)
+mod master_tests;
+
 #[test]
 fn a_cold_card_is_powered_on_without_a_power_off() {
     let c = Chip::new(0xEA);
