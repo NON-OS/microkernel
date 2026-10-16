@@ -16,6 +16,7 @@
 
 mod calls_tests;
 mod commit_tests;
+mod family_tests;
 mod fixture;
 mod live_tests;
 mod meas_tests;
@@ -24,5 +25,6 @@ mod overflow_tests;
 mod record_tests;
 mod rows_tests;
 mod seal_tests;
+mod table_tests;
 mod trace_tests;
 mod wipe_tests;
