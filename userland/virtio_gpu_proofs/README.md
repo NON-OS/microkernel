@@ -6,21 +6,25 @@ registers and its queue through bounds-checked views (`nonos_virtio::Mmio`),
 so windows in host memory (`nonos_devmodel`) stand in for the common, notify
 and device capability regions and for the queue's DMA grant, and a part on its
 own thread consumes the ring the way a device does. A `nonos_libc` shim keeps
-the server's replies and debug lines for the tests to read and counts each
-release, showing the test the device at that moment; it has no `MkDmaUnmap`
-and no `MkExit`, so no included file can free the surface's frames. A clock
-counts each question a wait asks as a millisecond.
+the server's replies and debug lines for the tests to read, keeps each
+release and PCI command write, showing the test the device at that moment,
+and makes DMA grants in host memory; it has no `MkDmaUnmap` and no `MkExit`,
+so no included file can free the surface's frames. A clock counts each
+question a wait asks as a millisecond.
 
 ## What it proves
 
-52 `#[test]` functions, and one check held when the crate builds:
+63 `#[test]` functions, and one check held when the crate builds:
 
 - the bring-up on the shared transport: the status handshake, the features
   taken against those offered (ACCESS_PLATFORM whenever offered, never
   assumed), where the part is told its rings are, the ring cut to a power of
   two the region holds, refusals left FAILED, the doorbell bound
   (`modern_tests`, `modern_refusal_tests`, `modern_queue_tests`,
-  `notify_bound_tests`), the device configuration offsets (`config_tests`),
+  `notify_bound_tests`), Bus Master only once a device a predecessor left
+  live is read back reset with its queue on this grant, DRIVER_OK after it,
+  and never for a device refused at any step (`master_tests`), the device
+  configuration offsets (`config_tests`),
   only the modern id matched (`discovery_tests`), and discovery reading at
   least 128 device records (`discover.rs`, at build);
 - the control queue: every command a two-descriptor chain, the answer read
@@ -36,7 +40,16 @@ counts each question a wait asks as a millisecond.
   recovered in place, the same resource on the same frames under the same
   surface handle, presenting again; a dead one leaving the driver up and
   `Down`, answering `E_DEVICE`, with nothing released (`recover_tests`);
+  each try a whole status handshake, a refused try ending in a reset, the
+  render context gone after it (`recover_try_tests`, `recover_reset_tests`);
+  `Down` after three recoveries in a row without 30 s served after one,
+  even for a device that answers a present after each, and nothing
+  published or waited on once down; a device that serves that long
+  recovered every time (`recover_limit_tests`, `recover_span_tests`);
   `quiesce` resetting the device before it is given back (`teardown_tests`);
+- a stall on the EDID or 3D probe at bring-up: the queue restarted on the
+  same grant and the primary shown on the 2D path, without virgl
+  (`probe_stall_tests`);
 - the server: the retired resource ops answered as unknown and a flush held
   to its owner and bounds (`dispatch_tests`), every frame a client can send
   decoded or answered (`request_refusal_tests`, `boundary_frame_tests`);
@@ -48,7 +61,8 @@ counts each question a wait asks as a millisecond.
 
 ## What it does not prove
 
-The broker calls, the receive loop, the virgl probe, and pixels on a screen.
+The broker calls, the receive loop, the virgl probe's pixels (its readback
+grant stays zeroed, so it never reports 3D), and pixels on a screen.
 
 ## Run
 

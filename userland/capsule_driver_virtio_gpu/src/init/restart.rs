@@ -16,12 +16,13 @@
 
 //! The control queue brought back after a reset, on the same grant
 //! (plan/50 C1). The device is reset and its features settled again, the
-//! ring region wiped, and the queue programmed and DRIVER_OK set. A reset
-//! device counts from zero, so a stale index left in the rings would read
-//! as commands published, or answered, that never were; the driver's own
-//! count starts over with the new queue.
+//! ring region wiped, the queue programmed and laid out, and DRIVER_OK set
+//! once nothing is left to refuse it; bus mastering stayed on from the
+//! bring-up. A reset device counts from zero, so a stale index left in the
+//! rings would read as commands published, or answered, that never were;
+//! the driver's own count starts over with the new queue.
 
-use nonos_virtio::common::NotifyArea;
+use nonos_virtio::common::{driver_ok, NotifyArea};
 
 use super::{negotiate, program};
 use crate::constants::VQ_REGION_SIZE;
@@ -39,6 +40,7 @@ pub fn restart(q: &ControlQueue, notify: NotifyArea) -> Result<(ControlQueue, u6
     }
     let started = program(&common, notify, at)?;
     let layout = QueueLayout::new(started.queue_size, ring, at)?;
+    driver_ok(&common);
     let regs = Regs { doorbell: started.doorbell, ..q.regs };
     Ok((ControlQueue::new(layout, regs), features))
 }

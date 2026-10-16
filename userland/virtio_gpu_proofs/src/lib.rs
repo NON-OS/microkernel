@@ -22,17 +22,20 @@
 //! common, notify and device capability regions and for the queue's grant,
 //! and a part on its own thread consumes the ring the way a device does.
 //! The parts that talk to the kernel (discovery's list, the broker, the
-//! receive loop) stay out; the clock counts each question a wait asks as a
-//! millisecond.
+//! receive loop) stay out, but for the queue's grant and the PCI command,
+//! which the shim makes and keeps; the clock counts each question a wait
+//! asks as a millisecond, and a test may let more pass.
 //!
 //! Held to the specification here: the bring-up on the shared transport
 //! (the status handshake, the features taken against those offered, where
-//! the rings are, the doorbell's bound), the control queue (each command a
+//! the rings are, the doorbell's bound, Bus Master only once the device is
+//! seen reset and never on a refusal), the control queue (each command a
 //! two-descriptor chain, its answer read from the descriptor the part
 //! named, a command that times out ending in a reset, never a stale chain
 //! run with new bytes), the wire bytes of each command, the server's
 //! answers to the requests a client can send, and its recovery from a stall
-//! on the same surface, or to a named `Down` with nothing released.
+//! on the same surface, or to a named `Down` with nothing released; and a
+//! stall on a best-effort probe at bring-up still ending on the 2D path.
 
 extern crate alloc;
 
@@ -46,6 +49,7 @@ pub mod discover;
 pub mod driver;
 #[path = "../../capsule_driver_virtio_gpu/src/init/mod.rs"]
 pub mod init;
+pub mod parts;
 #[path = "../../capsule_driver_virtio_gpu/src/protocol/mod.rs"]
 pub mod protocol;
 #[path = "../../capsule_driver_virtio_gpu/src/regs.rs"]
@@ -54,6 +58,8 @@ pub mod server;
 pub mod setup;
 #[path = "../../capsule_driver_virtio_gpu/src/state/mod.rs"]
 mod state;
+#[path = "../../capsule_driver_virtio_gpu/src/virgl/mod.rs"]
+mod virgl;
 
 #[cfg(test)]
 mod tests;

@@ -37,7 +37,7 @@ use crate::state::Health;
 #[test]
 fn a_stall_then_a_working_device_is_recovered_on_the_same_surface() {
     let (mut d, region, regs) = stalled();
-    let part = answering_after_reset(&region, &regs, Answer::Spec);
+    let part = answering_after_reset(&region, &regs, Answer::Spec, u16::MAX);
     settle(&mut d);
     assert_eq!((d.health, d.recoveries), (Health::Live, 1));
     let seen = part.seen();

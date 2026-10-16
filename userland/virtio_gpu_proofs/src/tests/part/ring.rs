@@ -40,13 +40,14 @@ pub fn put(bar: &FakeBar, off: usize, data: &[u8]) {
     }
 }
 
-/// A device address back to an offset in the region. The harness makes the
-/// two address spaces the same, so anything outside the region is a driver
-/// error and the test should see it as one.
-pub fn offset_of(bar: &FakeBar, addr: u64) -> usize {
-    let off = addr.wrapping_sub(bar.base()) as usize;
-    assert!(off < bar.len(), "descriptor address outside the ring region");
-    off
+/// Where the `len` bytes at device address `addr` are in the region. The
+/// harness makes the two address spaces the same, so bytes outside it are a
+/// driver error, or a descriptor read while the driver wiped the ring to
+/// restart it. The part serves neither, so a driver error shows as a
+/// command never answered.
+pub fn region_at(bar: &FakeBar, addr: u64, len: usize) -> Option<usize> {
+    let off = usize::try_from(addr.checked_sub(bar.base())?).ok()?;
+    (off.checked_add(len)? <= bar.len()).then_some(off)
 }
 
 /// One descriptor: address, length, flags, next.

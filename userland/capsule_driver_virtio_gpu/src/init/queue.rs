@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The control queue, then DRIVER_OK. The ring region is laid out for 256
-//! entries at fixed offsets (descriptors, available ring, used ring, a page
-//! each), which hold any smaller ring too, so the device is told the
-//! largest power of two it offers up to 256. A command takes two
-//! descriptors, so a ring of one is refused. Any refusal leaves the device
-//! FAILED, and its doorbell must fall inside the mapped notify region.
+//! The control queue. The ring region is laid out for 256 entries at fixed
+//! offsets (descriptors, available ring, used ring, a page each), which hold
+//! any smaller ring too, so the device is told the largest power of two it
+//! offers up to 256. A command takes two descriptors, so a ring of one is
+//! refused. Any refusal leaves the device FAILED, and its doorbell must fall
+//! inside the mapped notify region. DRIVER_OK is the caller's to set, once
+//! the device may master the bus: these are refusals too.
 
-use nonos_virtio::common::{driver_ok, queue_max, setup_queue, NotifyArea, QueueSpec};
+use nonos_virtio::common::{queue_max, setup_queue, NotifyArea, QueueSpec};
 use nonos_virtio::{Mmio, VirtioError};
 
 use crate::constants::{CTRLQ_INDEX, VQ_AVAIL_OFFSET, VQ_DESC_OFFSET, VQ_MAX_SIZE, VQ_USED_OFFSET};
@@ -53,6 +54,5 @@ pub fn program(
         vector: None,
     };
     let ready = setup_queue(common, &spec, notify).map_err(VirtioError::message)?;
-    driver_ok(common);
     Ok(Started { queue_size: ready.size, doorbell: ready.notify_offset })
 }

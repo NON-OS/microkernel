@@ -14,6 +14,8 @@ pub mod constants;
 #[cfg(test)]
 mod discover;
 pub mod modern;
+#[path = "../../capsule_driver_virtio_net/src/init/negotiate.rs"]
+pub mod negotiate;
 // The legacy queue programming as it ships, over the model register file.
 #[path = "../../capsule_driver_virtio_net/src/init/program_queue.rs"]
 pub mod program_queue;

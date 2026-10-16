@@ -41,7 +41,7 @@ fn common(max: u16) -> Mem {
 #[test]
 fn a_refused_transmit_queue_resets_the_device_after_the_receive_queue_was_enabled() {
     let c = common(256);
-    assert!(program(&c.view(), AREA, RX_AT, TX_AT + 8).is_err(), "an unaligned ring");
+    assert!(program(&c.view(), AREA, (RX_AT, TX_AT + 8), || Ok(())).is_err(), "an unaligned ring");
     assert_eq!(c.u16_at(QUEUE_ENABLE), 1, "the receive queue was enabled first");
     assert_eq!(c.get(DEVICE_STATUS), 0, "not reset before the release");
 }
@@ -51,7 +51,10 @@ fn every_refusal_resets_the_device() {
     let cases = [(256, u64::MAX - 0x1000), (256, !0xFFF), (64, TX_AT), (0, TX_AT), (255, TX_AT)];
     for (max, tx_at) in cases {
         let c = common(max);
-        assert!(program(&c.view(), AREA, RX_AT, tx_at).is_err(), "max {max} tx {tx_at:#x}");
+        assert!(
+            program(&c.view(), AREA, (RX_AT, tx_at), || Ok(())).is_err(),
+            "max {max} tx {tx_at:#x}"
+        );
         assert_eq!(c.get(DEVICE_STATUS), 0, "max {max} tx {tx_at:#x}: not reset");
     }
 }
@@ -59,7 +62,8 @@ fn every_refusal_resets_the_device() {
 #[test]
 fn queues_both_taken_leave_the_device_as_it_was() {
     let c = common(1024);
-    let sizes = program(&c.view(), AREA, RX_AT, TX_AT).map(|[rx, tx]| (rx.size, tx.size));
+    let sizes =
+        program(&c.view(), AREA, (RX_AT, TX_AT), || Ok(())).map(|[rx, tx]| (rx.size, tx.size));
     assert_eq!(sizes, Ok((256, 256)), "told the 256 entries the layout holds");
     assert_eq!(c.get(DEVICE_STATUS), LIVE);
 }

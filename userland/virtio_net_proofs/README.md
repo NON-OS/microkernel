@@ -43,10 +43,15 @@ The legacy device is refused, and marked FAILED, for any QueueNumMax but
 and refused below it. A transitional function that presents the virtio 1.0
 structures is driven modern, and the modern negotiation takes
 ACCESS_PLATFORM whenever offered and never the device's MAC. The legacy reset
-is waited for by the clock; a DMA grant is used only when it covers the
-request, page aligned, non-zero and not wrapping. Orders the host cannot run
-are checked in the source text: Bus Master only after the reset, teardown
-resetting the device before releasing it, and no DMA unmapped by the driver.
+is waited for by the clock, at teardown and in the bring-up's handshake,
+which writes nothing past it until the status reads back zero and refuses a
+device that never does (`legacy_reset_tests`); Bus Master goes on only once a
+device a dead predecessor left live is reset and on this driver's rings, never
+on a refusal (`master_legacy_tests`, `master_modern_tests`); a DMA grant is
+used only when it covers the request, page aligned, non-zero and not wrapping.
+Orders the host cannot run are checked in the source text: Bus Master only
+after the reset and in the queue step, teardown resetting the device before
+releasing it, and no DMA unmapped by the driver.
 `rules_tests` holds the code rules over the whole driver: no file past 75
 lines, no blank runs, a SAFETY comment on every unsafe block.
 

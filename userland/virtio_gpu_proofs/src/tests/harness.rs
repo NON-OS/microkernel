@@ -14,23 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A ring region, a register window, and the driver the server is given.
+//! A ring region and a register window, with the control queue over them.
 
 use std::sync::Arc;
 
 use nonos_devmodel::FakeBar;
-use nonos_virtio::common::NotifyArea;
+use nonos_virtio::common::{
+    STATUS_ACKNOWLEDGE, STATUS_DRIVER, STATUS_DRIVER_OK, STATUS_FEATURES_OK,
+};
 
-use super::model::{modern_window, regs, view, NOTIFY_LEN, NOTIFY_MULT, QUEUE_SIZE};
+use super::model::{modern_window, regs, view, QUEUE_SIZE};
 use crate::constants::VQ_REGION_SIZE;
 use crate::device::virtqueue::{ControlQueue, QueueLayout};
-use crate::driver::Driver;
 use crate::regs::Regs;
-use crate::setup::Primary;
-use crate::state::{FenceCounter, Health, ResourceTable, ScanoutTable};
 
 /// Where in the notify region the control queue's doorbell is.
 pub const DOORBELL: usize = 12;
+
+/// The status a device is driven under once the handshake is done.
+pub const HANDSHAKE: u8 =
+    STATUS_ACKNOWLEDGE | STATUS_DRIVER | STATUS_FEATURES_OK | STATUS_DRIVER_OK;
 
 /// A ring region and the modern window (offering VERSION_1, for a recovery
 /// to negotiate). The region's device address is its host address.
@@ -47,29 +50,4 @@ pub fn harness() -> Harness {
     let layout = QueueLayout::new(QUEUE_SIZE, ring, region.base()).expect("a valid layout");
     let r = Regs { doorbell: DOORBELL, ..regs(&window) };
     Harness { region, regs: window, queue: ControlQueue::new(layout, r) }
-}
-
-/// The driver as bring-up leaves it, over `h`'s queue, with `primary`.
-pub fn driver(h: Harness, primary: Option<Primary>) -> (Driver, Arc<FakeBar>, Arc<FakeBar>) {
-    let d = Driver {
-        device_id: 1,
-        pci_device: 0x1050,
-        claim_epoch: 1,
-        mmio_grant: 0,
-        queue_grant: 0,
-        queue_user_va: 0,
-        queue_device_addr: 0,
-        queue_size: QUEUE_SIZE,
-        host_features: 0,
-        virgl_ready: false,
-        control_queue: h.queue,
-        resources: ResourceTable::new(),
-        scanouts: ScanoutTable::new(),
-        fences: FenceCounter::new(),
-        primary,
-        notify: NotifyArea { multiplier: NOTIFY_MULT, len: NOTIFY_LEN },
-        health: Health::Live,
-        recoveries: 0,
-    };
-    (d, h.region, h.regs)
 }

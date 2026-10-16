@@ -34,7 +34,7 @@ fn a_refused_transmit_queue_resets_the_device_after_the_receive_queue_had_its_ri
     for (tx_max, tx_at) in cases.into_iter().chain([(256, 1 << 44)]) {
         fresh(RING_SLOTS);
         with(|m| (m.qmax[1], m.status) = (tx_max, LIVE));
-        assert!(program_queues(Regs, PAGE, tx_at).is_err(), "tx {tx_max} at {tx_at:#x}");
+        assert!(program_queues(Regs, PAGE, tx_at, || Ok(())).is_err(), "tx {tx_max} at {tx_at:#x}");
         let after = with(|m| (m.pfn[0], m.status));
         assert_eq!(after, (Some(0x200), 0), "tx {tx_max} at {tx_at:#x}: not reset");
     }
@@ -44,7 +44,7 @@ fn a_refused_transmit_queue_resets_the_device_after_the_receive_queue_had_its_ri
 fn a_refused_receive_queue_resets_the_device_too() {
     fresh(1024);
     with(|m| m.status = LIVE);
-    assert!(program_queues(Regs, PAGE, TX_PAGE).is_err());
+    assert!(program_queues(Regs, PAGE, TX_PAGE, || Ok(())).is_err());
     with(|m| assert_eq!((m.pfn, m.status), ([None, None], 0)));
 }
 
@@ -52,7 +52,7 @@ fn a_refused_receive_queue_resets_the_device_too() {
 fn a_reset_that_never_completes_still_ends_the_attempt_by_the_clock() {
     fresh(RING_SLOTS);
     with(|m| (m.qmax[1], m.reset_lag) = (0, u32::MAX));
-    assert!(program_queues(Regs, PAGE, TX_PAGE).is_err());
+    assert!(program_queues(Regs, PAGE, TX_PAGE, || Ok(())).is_err());
     // The refusal reads the status once to mark it FAILED; the reset then
     // reads it once per millisecond, and gives up when the time is spent.
     with(|m| assert_eq!(m.reset_lag, u32::MAX - 1 - RESET_MS as u32));
@@ -62,6 +62,6 @@ fn a_reset_that_never_completes_still_ends_the_attempt_by_the_clock() {
 fn queues_both_taken_leave_the_device_as_it_was() {
     fresh(RING_SLOTS);
     with(|m| m.status = LIVE);
-    assert_eq!(program_queues(Regs, PAGE, TX_PAGE), Ok((RX_QUEUE_SIZE, TX_QUEUE_SIZE)));
+    assert_eq!(program_queues(Regs, PAGE, TX_PAGE, || Ok(())), Ok((RX_QUEUE_SIZE, TX_QUEUE_SIZE)));
     with(|m| assert_eq!((m.pfn, m.status), ([Some(0x200), Some(0x203)], LIVE)));
 }
