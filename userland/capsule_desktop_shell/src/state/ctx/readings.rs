@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the shell last read of the system: whether the network was up, the
-//! clock's format and zone, and when the policy store may next be asked.
+//! clock's format and zone, when the policy store may next be asked, and
+//! what the compositor was told of the displays it keeps.
 
 pub struct Readings {
     /// Whether the DHCP client held an address at the last tick: the menu
@@ -27,6 +28,8 @@ pub struct Readings {
     /// When the tick may next read the policy store, after one went
     /// unanswered (state/quiet_gap.rs).
     pub policy_gap: crate::state::quiet_gap::QuietGap,
+    /// What the compositor was told of the displays the store keeps.
+    pub displays: crate::state::display_told::Replay,
 }
 
 impl Readings {
@@ -36,6 +39,7 @@ impl Readings {
             clock_24h: true,
             tz_hours: 0,
             policy_gap: crate::state::quiet_gap::QuietGap::new(),
+            displays: crate::state::display_told::Replay::default(),
         }
     }
 }
