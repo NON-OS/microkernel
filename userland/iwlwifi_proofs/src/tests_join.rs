@@ -13,6 +13,8 @@ mod link_gate_tests;
 #[cfg(test)]
 mod link_history_tests;
 #[cfg(test)]
+mod link_tests;
+#[cfg(test)]
 mod serve_tests;
 #[cfg(test)]
 mod td_tests;
