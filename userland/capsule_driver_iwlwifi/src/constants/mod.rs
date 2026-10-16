@@ -18,13 +18,7 @@
 //! concern.
 
 mod csr;
-mod fh_load;
-mod fw_api;
 mod pci;
-mod prph;
 
 pub use csr::*;
-pub use fh_load::*;
-pub use fw_api::*;
 pub use pci::*;
-pub use prph::*;
