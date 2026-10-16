@@ -31,7 +31,7 @@ use nonos_aml::load::Aml;
 use nonos_aml::platform::DeviceInfo;
 use nonos_aml::platform_device::{known, platform_devices};
 
-static IDS: &[u8] = include_bytes!("../../data/platform_ids.tsv");
+pub(super) static IDS: &[u8] = include_bytes!("../../data/platform_ids.tsv");
 
 pub fn publish(devices: &[DeviceInfo], aml: &mut Aml, host: &mut CapsuleHost) {
     let (list, dropped) = known(IDS);
