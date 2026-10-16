@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod args;
 mod endpoint;
 mod spawn;
+mod trust;
 
 pub(crate) use spawn::load_capsule_from_vfs;

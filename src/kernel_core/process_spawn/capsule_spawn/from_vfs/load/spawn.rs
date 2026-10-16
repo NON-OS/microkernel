@@ -21,7 +21,6 @@ use crate::kernel_core::process_spawn::capsule_spawn::{
     spawn_verified_as, AttestedParent, CapsuleSpecVerified,
 };
 use crate::security::capsule_manifest::{decode as decode_manifest, EndpointKind};
-use crate::security::nonos_trust_anchor::{decode as decode_trust, BAKED_TRUST_ANCHOR_POLICY};
 
 // Spawn a capsule whose four artifacts were read from the store by the
 // installer. The service name, endpoints, and target triple are taken from the
@@ -66,23 +65,8 @@ pub(crate) fn load_capsule_from_vfs(
         requested_caps: requested_caps & (manifest.required_caps | manifest.optional_caps),
         debug_tag: b"[RUNTIME-LOAD] elf error:",
     };
-    let trust = decode_trust(BAKED_TRUST_ANCHOR_POLICY).map_err(|_| LoadError::TrustAnchor)?;
-    /*
-     * Enforce the certificate validity window against the wall clock, not
-     * uptime-since-boot: a real `valid_from_ms` is a wall-clock epoch, so
-     * comparing it to uptime rejected every runtime-loaded capsule as
-     * NotYetValid. Before the clock is set the gate returns None and the
-     * signature and trust anchor still gate the load.
-     */
-    let now_ms = super::super::validity_clock::validity_now_ms(crate::sys::unix_ms());
+    let (trust, now_ms) = super::trust::trust_and_now()?;
     let pid = spawn_verified_as(&spec, &trust, now_ms, on_behalf_of).map_err(LoadError::Spawn)?;
-    if !args.is_empty() {
-        let argv: alloc::vec::Vec<alloc::string::String> = args
-            .split(|&b| b == 0)
-            .filter(|s| !s.is_empty())
-            .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
-            .collect();
-        crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);
-    }
+    super::args::set_argv(pid, args);
     Ok(pid)
 }
