@@ -47,7 +47,7 @@ pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
     let (window, cursor) = ((0, TOTAL), None);
     let head = Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor };
     let heads = [Some(head), None, None, None];
-    (Intel { m: shared, clock: Ticks::new(), gen: &GEN9, heads }, model)
+    (Intel::new(shared, Ticks::new(), &GEN9, heads), model)
 }
 
 /// A shadow of the output's size, every pixel `px`.

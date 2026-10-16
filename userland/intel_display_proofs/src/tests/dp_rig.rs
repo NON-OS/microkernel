@@ -53,6 +53,6 @@ pub fn dp_rig(timing: (Axis, Axis), edid: Vec<u8>, total: u32) -> (Rig, Model, S
     let (window, cursor) = ((0, total), None);
     let head = Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor };
     let heads = [Some(head), None, None, None];
-    let d = Intel { m: shared, clock, gen: &GEN9, heads };
+    let d = Intel::new(shared, clock, &GEN9, heads);
     (d, model, s)
 }

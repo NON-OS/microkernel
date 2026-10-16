@@ -25,6 +25,16 @@ placed clear of firmware's surface; the cursor's sign-magnitude position
 and its arming; and a whole takeover from start through two presents to
 the hand-back, which restores firmware's picture and removes the driver's
 entries. It proves the code against the PRM as this driver reads it, not
+against silicon: booting a Gen9 machine is the owner's step.
+
+DDC/CI (`tests/ddc/`) is proved against `model/mccs.rs`, a monitor's end
+written from the message layout and not from the driver: requests byte for
+byte against hand-worked checksums, every one-byte change to a reply
+refused, the allowlist over all 256 codes, the 40 ms and 50 ms waits and the
+second's memory on the model clock, both carriers at 0x37 and nothing else
+(GMBUS through the register model, I2C over AUX through `model/mccs_aux.rs`),
+and the controls through F 12's bytes on the two-output rig with pipe B on
+HDMI.
 
 ```sh
 RUST_TEST_THREADS=1 cargo test --release --config profile.release.overflow-checks=true

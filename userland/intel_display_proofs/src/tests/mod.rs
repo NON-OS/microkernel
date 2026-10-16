@@ -22,6 +22,7 @@ mod brightness_wire_tests;
 mod cdclk_tests;
 mod cursor_tests;
 mod ddb_tests;
+mod ddc;
 mod dmc_tests;
 mod dp_aux_tests;
 mod dp_board;
