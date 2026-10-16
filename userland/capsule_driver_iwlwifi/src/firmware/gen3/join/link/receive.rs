@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! One received frame through the station.
 use alloc::vec::Vec;
+use nonos_wifi_core::key::HeldKey;
 use nonos_wifi_core::station::{Loss, Rx, RxDrop};
 
 use super::super::super::rx_data::RxMpdu;
@@ -43,8 +44,8 @@ impl Link {
                 None
             }
             Rx::Handshake { frame, group_key } => {
-                if group_key.is_some() {
-                    self.new_group_key = group_key;
+                if let Some((id, key)) = group_key {
+                    self.new_group_key = Some((id, HeldKey(key)));
                     self.stats.rekeys = self.stats.rekeys.wrapping_add(1);
                 }
                 frame

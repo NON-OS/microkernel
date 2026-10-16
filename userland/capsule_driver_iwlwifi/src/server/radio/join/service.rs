@@ -32,10 +32,8 @@ impl Radio {
         let mut clock = Uptime;
         let mut fw = Fw { dev: &mut up.dev, tx, clock: &mut clock, q: &mut self.join.q, inbox: &mut self.join.inbox };
         Port { fw: &mut fw, link: &mut j.link }.service();
-        if let Some((id, key)) = j.link.new_group_key.take() {
-            if j.keys.rekey(&mut fw, &key, id).is_err() {
-                Line::new().text(b"link: the new group key did not go in").send();
-            }
+        if let Some(Err(_)) = j.rekey(&mut fw) {
+            Line::new().text(b"link: the new group key did not go in").send();
         }
         if fw.dev.error_cause() {
             self.firmware_failed(now_ms(), Failure::Lost);

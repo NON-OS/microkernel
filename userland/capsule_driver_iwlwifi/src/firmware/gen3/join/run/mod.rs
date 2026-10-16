@@ -29,6 +29,7 @@ mod ends;
 mod join;
 mod leave;
 mod open;
+mod rekey;
 
 pub use ends::{JoinEnd, Joined, LEAVE_MS};
 pub use join::join;

@@ -28,13 +28,13 @@ fn a_group_rekey_is_answered_protected_and_moves_the_key_in_the_firmware() {
             let mut port = Port { fw, link: &mut j.link };
             port.service();
         }
-        assert_eq!(j.link.new_group_key, Some((2, new_gtk)));
+        assert_eq!(j.link.new_group_key.as_ref().map(|(id, k)| (*id, k.0)), Some((2, new_gtk)));
         let replies = r.ap.borrow().eapol_replies.len();
         assert_eq!(replies, 3, "messages 2 and 4, then group message 2");
         let last = r.sent().last().unwrap().clone();
         assert!(decrypts(&last.frame, &r.ap.borrow().tk()), "answered protected");
-        let (id, key) = j.link.new_group_key.take().unwrap();
-        j.keys.rekey(fw, &key, id).expect("installed");
+        assert!(matches!(j.rekey(fw), Some(Ok(()))), "installed");
+        assert!(j.link.new_group_key.is_none(), "and no longer held");
         assert_eq!(j.keys.group, Some(2));
     });
     let keys = r.command_payloads(0x5, 0x18);
