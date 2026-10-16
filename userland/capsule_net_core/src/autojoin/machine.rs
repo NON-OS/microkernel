@@ -23,9 +23,11 @@
 //! and DNS client, so autojoin never waits for one: it hands the driver the
 //! request with a short wait, and if no answer came in that time the join runs
 //! on in the driver while autojoin watches the link once a second until it is
-//! associated or `JOIN_WATCH_MS` has passed. Each saved network is tried at
-//! most once per boot, so a wrong passphrase is not replayed at the access
-//! point. A link that was up and goes down is joined again (`rejoin`).
+//! associated or `JOIN_WATCH_MS` has passed. A round tries each saved network
+//! in range once; one refused for a reason anyone on the air could cause is
+//! tried in a later round, at most `REJOIN_ATTEMPTS` rounds, each after twice
+//! the wait before, so a forged refusal costs time, never the network
+//! (`codes`). A link that was up and goes down is joined again (`rejoin`).
 
 #[path = "machine/after.rs"]
 mod after;

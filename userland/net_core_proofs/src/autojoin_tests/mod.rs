@@ -19,4 +19,5 @@ mod leave;
 mod outcome;
 mod refuse;
 mod rejoin;
+mod spoof;
 mod watch;

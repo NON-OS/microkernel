@@ -24,13 +24,25 @@ pub struct Machine {
     pub(super) phase: Phase,
     pub(super) next_ms: i64,
     pub(super) tried: u8,
+    /// Saved networks whose join was refused for good this boot.
+    pub(super) refused: u8,
+    /// Rounds of the saved networks begun after the first.
+    pub(super) rounds: u8,
     pub(super) empty_passes: u8,
     pub(super) link: Rejoin,
 }
 
 impl Machine {
     pub const fn new() -> Self {
-        Self { phase: Phase::Waiting, next_ms: 0, tried: 0, empty_passes: 0, link: Rejoin::NEW }
+        Self {
+            phase: Phase::Waiting,
+            next_ms: 0,
+            tried: 0,
+            refused: 0,
+            rounds: 0,
+            empty_passes: 0,
+            link: Rejoin::NEW,
+        }
     }
 
     /// The saved networks already tried, one bit each.

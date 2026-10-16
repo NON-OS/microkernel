@@ -26,14 +26,17 @@ fn every_join_code_maps_to_its_step() {
     for code in (-64..=64).chain(named) {
         let want = match code {
             0 => Step::Answered { index: 3, joined: true },
-            -11..=-6 | -13 => Step::Refused(3),
+            -9 | -11 | -13 => Step::Refused(3),
             _ => Step::Answered { index: 3, joined: false },
         };
         assert_eq!(step_for(3, code), want, "code {code}");
     }
     // The ones the drivers name, said once more in words.
     assert_eq!(step_for(0, -2), Step::Answered { index: 0, joined: false }, "not heard");
-    assert_eq!(step_for(0, -6), Step::Refused(0), "the handshake did not finish");
+    let again = |c| step_for(0, c) == Step::Answered { index: 0, joined: false };
+    assert!(again(-6), "a handshake that did not finish, or a forged deauth");
+    assert!(again(-7) && again(-8) && again(-10), "beacons and frames anyone can send");
+    assert_eq!(step_for(0, -9), Step::Refused(0), "a passphrase of the wrong length");
     assert_eq!(step_for(0, -12), Step::Answered { index: 0, joined: false }, "no randomness");
     assert_eq!(step_for(0, -13), Step::Refused(0), "the person left");
 }
