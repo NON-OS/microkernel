@@ -31,4 +31,6 @@ pub enum Input {
         dx: i16,
         dy: i16,
     },
+    /// Wheel detents, with the HID sign: positive is away from the user.
+    Wheel(i16),
 }

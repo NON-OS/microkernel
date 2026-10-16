@@ -33,6 +33,9 @@ pub struct Field {
     /// An array field's elements hold usage indexes; a variable field's
     /// elements are each one usage's value.
     pub array: bool,
+    /// A relative value, a change since the last report (HID 1.11,
+    /// 6.2.2.5, bit 2).
+    pub relative: bool,
     pub lmin: i32,
     pub lmax: i64,
     pub spans: Vec<Span>,
@@ -43,7 +46,8 @@ impl Field {
     /// the globals it was laid out with.
     pub(super) fn new(dir: Dir, g: &Globals, bit: u32, flags: u32, spans: Vec<Span>) -> Self {
         let (id, size, count, lmin, lmax) = (g.id, g.size, g.count, g.lmin, g.max());
-        Self { dir, id, bit, size, count, array: flags & 2 == 0, lmin, lmax, spans }
+        let (array, relative) = (flags & 2 == 0, flags & 4 != 0);
+        Self { dir, id, bit, size, count, array, relative, lmin, lmax, spans }
     }
 
     /// The usage at `index` in the field's list, as (page, usage).

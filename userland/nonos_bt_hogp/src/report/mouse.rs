@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 
 const BUTTONS: u8 = 0x07;
 
-#[derive(Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Mouse {
     buttons: u8,
 }
@@ -32,12 +32,20 @@ impl Mouse {
     /// nothing.
     pub fn report(&mut self, raw: &[u8]) -> Vec<Input> {
         let &[b, x, y, ..] = raw else { return Vec::new() };
-        let (dx, dy) = (i16::from(x as i8), i16::from(y as i8));
+        self.moved(b, i16::from(x as i8), i16::from(y as i8), 0)
+    }
+
+    /// Motion, then the wheel, then each of buttons 1 to 3 that changed;
+    /// a report-mode pointer comes here too, once its map is read.
+    pub fn moved(&mut self, buttons: u8, dx: i16, dy: i16, wheel: i16) -> Vec<Input> {
         let mut out = Vec::new();
         if dx != 0 || dy != 0 {
             out.push(Input::Motion { dx, dy });
         }
-        out.extend(self.buttons_to(b & BUTTONS));
+        if wheel != 0 {
+            out.push(Input::Wheel(wheel));
+        }
+        out.extend(self.buttons_to(buttons & BUTTONS));
         out
     }
 

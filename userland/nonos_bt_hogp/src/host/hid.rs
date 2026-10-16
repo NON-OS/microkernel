@@ -17,7 +17,7 @@
 //! What one HID service offers for report mode (HIDS 1.0, 3), kept while
 //! its declarations are read, and the report state once it is upgraded.
 
-use crate::report::Held;
+use crate::report::{Held, Mouse};
 use crate::uuids::prop;
 use alloc::vec::Vec;
 
@@ -43,33 +43,33 @@ pub(super) struct Hid {
     pub map: Option<u16>,
     /// The boot keyboard input report's value handle.
     pub keyboard: Option<u16>,
-    pub mouse: bool,
+    /// The boot mouse input report's value handle.
+    pub mouse: Option<u16>,
     /// Boot keyboard output reports, which report mode leaves unread.
     pub outputs: Vec<u16>,
     pub reports: Vec<Rep>,
 }
 
 impl Hid {
-    /// Only a keyboard is upgraded: Protocol Mode is one per service, and
-    /// report mode would silence a boot mouse there that has no map
-    /// decoding. A service with no mode, map or notifying report keeps
-    /// boot mode.
+    /// A service with a boot report to replace, a mode, a map and a
+    /// notifying Report; any other keeps boot mode.
     pub fn worth(&self) -> bool {
         let notifies = self.reports.iter().any(|r| r.props & prop::NOTIFY != 0);
-        self.mode.is_some()
-            && self.map.is_some()
-            && self.keyboard.is_some()
-            && !self.mouse
-            && notifies
+        let boot = self.keyboard.is_some() || self.mouse.is_some();
+        self.mode.is_some() && self.map.is_some() && boot && notifies
     }
 }
 
 /// An input report in report mode: its value handle, its service's layout
-/// and its Report ID, and the keys it last said were held.
+/// and its Report ID, whether it holds keys or a pointer, and what it
+/// last said was held.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct ReportIn {
     pub value: u16,
     pub layout: usize,
     pub id: u8,
+    pub keys: bool,
+    pub points: bool,
     pub held: Held,
+    pub mouse: Mouse,
 }

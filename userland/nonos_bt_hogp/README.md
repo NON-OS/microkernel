@@ -4,18 +4,21 @@ HID over GATT for an LE-only host (Decision 21). It follows HOGP 1.0 and
 HIDS 1.0, over the ATT protocol and GATT of the Bluetooth Core
 Specification 5.4 (Vol 3, Parts F and G).
 
-The host starts as a **Boot Host** and upgrades keyboards to report mode
-where it can:
+The host starts as a **Boot Host** and upgrades keyboards and mice to
+report mode where it can:
 - It reads the boot keyboard and boot mouse input reports, whose layout
   the USB HID specification fixes (HID 1.11, Appendix B).
 - A keyboard service with a Report Map is taken to Report Protocol Mode
   when its map parses within fixed bounds and lays out a report of
   Keyboard page keys. That brings the keys a boot report cannot carry:
   more than six at once, and Mute, Volume Up and Volume Down.
+- A service with a boot mouse is upgraded the same way when its map lays
+  out a relative pointer. That brings the wheel. Each axis is clamped to
+  what a boot mouse report carries, one signed octet.
 - Every other service stays in Boot Protocol Mode, and so does a keyboard
   whose map is malformed, too long, unreadable or of no use. Boot mode
   needs no map, so a crafted map can at worst cost a peripheral its
-  volume keys.
+  volume keys and its wheel.
 
 | Module | What it holds |
 |---|---|
@@ -45,9 +48,11 @@ After that, notifications on the report handles become events.
 ## Report mode
 
 A service is worth upgrading only if it has a Protocol Mode, a readable
-Report Map, a boot keyboard input report, a Report that can notify, and
-no boot mouse. Protocol Mode is one per service, and report mode would
-silence a boot mouse whose reports this host does not decode from a map.
+Report Map, a boot keyboard or boot mouse input report, and a Report
+that can notify. Protocol Mode is one per service, so report mode
+silences every boot report in it. The service is upgraded only if its
+map replaces each one: a boot keyboard by a Report with Keyboard page
+keys, a boot mouse by a Report with relative X and Y.
 
 For such a service the host:
 1. Reads the Report Map with a Read, then Read Blobs from the length so
@@ -62,10 +67,11 @@ For such a service the host:
    64 fields, 16 reports, 512 bits per report, 32 bits per element. It
    refuses long items, reserved items, unpaired collections, pushes and
    usage ranges, Report ID 0, and numbered and unnumbered reports mixed.
-4. Upgrades the service if some input Report that notifies and has a CCCD
-   holds Keyboard page keys by the map. Those input Reports, and any that
-   hold Consumer keys, replace the boot keyboard report. The output
-   Reports whose fields carry LED usages replace the boot output report.
+4. Upgrades the service if its input Reports that notify and have a
+   CCCD replace each of its boot reports, as above. Those Reports, and
+   any that hold Consumer keys, replace the boot input reports. The
+   output Reports whose fields carry LED usages replace the boot output
+   report.
 
 An input report then becomes the keys it holds: modifier and key bits,
 key arrays counted from their Logical Minimum, and Mute, Volume Increment
@@ -73,6 +79,15 @@ and Volume Decrement as the Keyboard page's Mute, Volume Up and Volume
 Down. A report shorter than its layout, a report with ErrorRollOver,
 POSTFail or ErrorUndefined, or one holding more than 32 keys changes
 nothing, as a phantom boot report does not.
+
+A pointer report becomes buttons 1 to 3 from the Button page, then
+relative X, Y and Wheel from the Generic Desktop page. Absolute axes, as
+a tablet has, are not read, so a tablet keeps boot mode. A value outside
+its field's logical extent counts as none. Each axis is clamped to −128
+to 127, the boot report's range, so a report-mode pointer cannot move
+further in one report than a boot one. Motion comes first, then the
+wheel as `Input::Wheel` with HID's sign (positive away from the user),
+then the buttons that changed.
 
 Anything the peripheral gets wrong while report mode is looked at leaves
 the service in boot mode, not failed: a refused read, a descriptor out of

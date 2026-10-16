@@ -18,10 +18,11 @@
 //! HIDS 1.0) on the Attribute Protocol and GATT of the Bluetooth Core
 //! Specification 5.4, Vol 3, Parts F and G. This host reads the boot
 //! keyboard and boot mouse reports, whose layout the USB HID specification
-//! fixes (HID 1.11, Appendix B), and takes a keyboard to report mode only
-//! when its Report Map parses within fixed bounds and lays out its keys.
-//! Anything less keeps boot mode, which needs no map, so a crafted map can
-//! cost a peripheral its extra keys but never its typing. Once the reports
+//! fixes (HID 1.11, Appendix B), and takes a keyboard or mouse to report
+//! mode only when its Report Map parses within fixed bounds and lays out
+//! its keys and relative pointer. Anything less keeps boot mode, which
+//! needs no map, so a crafted map can cost a peripheral its extra keys and
+//! wheel but never its typing or pointing. Once the reports
 //! are on, it reads the device's Battery Levels too (BAS 1.0), without
 //! ever holding up or ending HID for them.
 //!

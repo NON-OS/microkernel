@@ -16,6 +16,7 @@
 
 mod db;
 pub mod devices;
+pub mod pointer_devices;
 pub mod report_devices;
 mod run;
 mod run_io;

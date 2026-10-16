@@ -15,20 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether a service goes to report mode, once its map and Reports are
-//! read. It does only if the map parses, and some input Report that can
-//! notify, has its CCCD, and holds Keyboard page keys by the map. Then
-//! those input Reports, and any holding Consumer keys, take the boot
-//! keyboard's place; the output Reports the map gives LEDs take the boot
-//! output's; and its Protocol Mode is written to report mode. Anything
-//! less keeps boot mode, which needs no map.
+//! read. The input Reports that count notify, have their CCCD, and hold
+//! keys or a relative pointer by the map. The service is upgraded only if
+//! they replace every boot report it has: a boot keyboard needs a Report
+//! with Keyboard page keys, a boot mouse one with relative X and Y. Then
+//! they take the boot reports' place, and Protocol Mode is written to
+//! report mode. Anything less keeps boot mode, which needs no map.
 
 use super::hid::{Rep, ReportIn};
 use super::state::Host;
 use super::step::Step;
-use super::types::{Kind, Output, Source};
+use super::types::{Kind, Source};
 use crate::error::HogpError;
-use crate::report::map::{self, has_keys, types, Layout};
-use crate::report::Held;
+use crate::report::map::{self, has_keys, points, types, Layout};
+use crate::report::{Held, Mouse};
 use crate::uuids::{prop, REPORT_PROTOCOL};
 use alloc::vec::Vec;
 
@@ -44,30 +44,32 @@ impl Host {
         let hid = &self.hids[service];
         let input = |r: &&Rep| match r.reference {
             Some((id, 1)) => {
-                r.props & prop::NOTIFY != 0 && r.cccd.is_some() && has_keys(&layout, id)
+                let used = has_keys(&layout, id) || points(&layout, id);
+                r.props & prop::NOTIFY != 0 && r.cccd.is_some() && used
             }
             _ => false,
         };
         let inputs: Vec<Rep> = hid.reports.iter().filter(input).copied().collect();
-        if !inputs.iter().any(|r| r.reference.is_some_and(|(id, _)| types(&layout, id))) {
+        let any = |f: fn(&Layout, u8) -> bool| {
+            inputs.iter().any(|r| r.reference.is_some_and(|(id, _)| f(&layout, id)))
+        };
+        if (hid.keyboard.is_some() && !any(types)) || (hid.mouse.is_some() && !any(points)) {
             return;
         }
         let at = self.layouts.len();
-        self.sources.retain(|s| Some(s.value) != hid.keyboard);
+        let boot = [hid.keyboard, hid.mouse];
+        self.sources.retain(|s| !boot.contains(&Some(s.value)));
         for r in &inputs {
             let (value, id) = (r.value, r.reference.map_or(0, |x| x.0));
+            let (keys, points) = (has_keys(&layout, id), points(&layout, id));
             self.sources.push(Source { kind: Kind::Report, value, end: r.end, cccd: r.cccd });
-            self.inputs.push(ReportIn { value, layout: at, id, held: Held::default() });
+            let (held, mouse) = (Held::default(), Mouse::default());
+            self.inputs.push(ReportIn { value, layout: at, id, keys, points, held, mouse });
         }
         for m in self.modes.iter_mut().filter(|m| Some(m.0) == hid.mode) {
             m.1 = REPORT_PROTOCOL;
         }
-        self.outputs.retain(|o| !hid.outputs.contains(&o.handle));
-        for r in hid.reports.iter().filter(|r| r.props & prop::WRITE_WITHOUT_RESPONSE != 0) {
-            if let Some((id, 2)) = r.reference.filter(|x| map::leds(&layout, x.0, 0).is_some()) {
-                self.outputs.push(Output { handle: r.value, report: Some((at, id)) });
-            }
-        }
+        self.take_leds(service, at, &layout);
         self.layouts.push(layout);
     }
 }

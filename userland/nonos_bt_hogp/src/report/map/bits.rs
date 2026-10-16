@@ -17,6 +17,8 @@
 //! Report bits: fields are packed least significant bit first, from the
 //! first octet on (HID 1.11, 5.8 and 6.2.2.7).
 
+use super::field::Field;
+
 /// `size` bits from bit `at`, or `None` past the end of `data`.
 pub fn read(data: &[u8], at: u32, size: u32) -> Option<u32> {
     let mut v = 0u32;
@@ -43,4 +45,13 @@ pub fn set(data: &mut [u8], at: u32) {
     if let Some(octet) = usize::try_from(at / 8).ok().and_then(|i| data.get_mut(i)) {
         *octet |= 1 << (at % 8);
     }
+}
+
+/// Element `i` of `f` in `data`, signed if the field's minimum is: `None`
+/// past the end of `data`, and an inner `None` outside the field's logical
+/// extent, where an element holds no value (HID 1.11, 6.2.2.7).
+pub fn element(f: &Field, i: u32, data: &[u8]) -> Option<Option<i64>> {
+    let raw = read(data, f.bit + i * f.size, f.size)?;
+    let v = if f.lmin < 0 { signed(raw, f.size) } else { i64::from(raw) };
+    Some((i64::from(f.lmin)..=f.lmax).contains(&v).then_some(v))
 }

@@ -58,6 +58,7 @@ impl Host {
         out.extend(self.mouse.release_all());
         for r in &mut self.inputs {
             out.extend(r.held.release_all());
+            out.extend(r.mouse.release_all());
         }
         out
     }

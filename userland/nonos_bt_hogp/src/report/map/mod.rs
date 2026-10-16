@@ -27,6 +27,7 @@ mod local;
 mod main_item;
 mod parse;
 mod parser;
+mod pointer;
 mod span;
 
 pub use decode::{held, HELD_MAX};
@@ -38,4 +39,5 @@ pub use leds::leds;
 pub use local::SPANS_MAX;
 pub use parse::{parse, MAP_MAX};
 pub use parser::{DEPTH_MAX, FIELDS_MAX, STACK_MAX};
+pub use pointer::{pointer, points, Pointer, BUTTONS, DESKTOP};
 pub use span::{Dir, Span};
