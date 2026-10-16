@@ -51,7 +51,7 @@ A [development image](glossary.md#development-image) is sealed with throwaway ke
 
 In 0.9.2 the desktop cannot shut down or restart the machine: the Power key shows `Power off is not available from the desktop`. To turn the machine off, force it off with its power button, as the [release notes](../release/0.9.2.md) describe. A forced power-off skips the wipe below, as a power cut or a kernel panic does.
 
-The one orderly path is the installer's restart, and it runs the [ZeroState](glossary.md#zerostate) wipe first. The kernel stops the other CPUs and every claimed device, then wipes device buffers, process memory, kernel stacks, filesystem caches, its key vault, its RAM log and its heap, and only then hands the machine to the firmware. Kernel statics outside the heap, the data volume key among them, are not wiped, and neither is a live stick's in-memory volume. See [Design principles](design-principles.md#amnesic-by-default).
+The one orderly path is the installer's restart, and it runs the [ZeroState](glossary.md#zerostate) wipe first. The kernel stops the other CPUs and every claimed device, then wipes device buffers, process memory, kernel stacks, filesystem caches, its key vault, its RAM log and its heap, and only then hands the machine to the firmware. Kernel statics outside the heap, the data volume key among them, are not wiped, and neither is a live stick's in-memory volume. See [Design principles](design-principles-amnesic-by-default.md#amnesic-by-default).
 
 ## Without a TPM
 
@@ -59,7 +59,7 @@ The boot menu describes its Hardened entry as "Standard, and refuses to boot wit
 
 ## Audits and proofs
 
-This release claims no independent security audit. What it has is [proof crates](glossary.md#proof-crate) that test the shipped kernel and capsule source on the host, run by `nix flake check`; Lean 4 models in `verification/lean/`; and a list of everything NONOS trusts without proof, [verification/ASSUMPTIONS.md](../../verification/ASSUMPTIONS.md). [Design principles](design-principles.md#proofs-live-next-to-the-code) gives the results on this commit, failures included, and [Tests and proofs](../contributing/tests-and-proofs.md) says how to run them.
+This release claims no independent security audit. What it has is [proof crates](glossary.md#proof-crate) that test the shipped kernel and capsule source on the host, run by `nix flake check`; Lean 4 models in `verification/lean/`; and a list of everything NONOS trusts without proof, [verification/ASSUMPTIONS.md](../../verification/ASSUMPTIONS.md). [Design principles](design-principles-proofs-live-next.md#proofs-live-next-to-the-code) gives the results on this commit, failures included, and [Tests and proofs](../contributing/tests-and-proofs.md) says how to run them.
 
 ## The licence
 
