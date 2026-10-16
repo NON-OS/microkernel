@@ -51,12 +51,25 @@ pub fn status_iu(b: &[u8]) -> Option<StatusIu<'_>> {
     match b[0] {
         READ_READY => Some(StatusIu::ReadReady { tag }),
         WRITE_READY => Some(StatusIu::WriteReady { tag }),
+        // Byte 6 status, 14-15 the sense length (as recalled, unverified);
+        // the sense must lie within the IU as read, which its buffer bounds.
         SENSE if b.len() >= 16 => {
-            let len = u16::from_be_bytes([b[12], b[13]]) as usize;
+            let len = u16::from_be_bytes([b[14], b[15]]) as usize;
             let sense = b.get(16..16 + len)?;
             Some(StatusIu::Sense { tag, status: b[6], sense })
         }
         RESPONSE if b.len() >= 8 => Some(StatusIu::Response { tag, code: b[7] }),
         _ => None,
+    }
+}
+
+impl StatusIu<'_> {
+    pub fn tag(&self) -> u16 {
+        match *self {
+            StatusIu::ReadReady { tag }
+            | StatusIu::WriteReady { tag }
+            | StatusIu::Sense { tag, .. }
+            | StatusIu::Response { tag, .. } => tag,
+        }
     }
 }

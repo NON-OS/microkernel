@@ -18,6 +18,7 @@ mod ops;
 mod sense;
 mod snapshot;
 mod types;
+mod uas_tag;
 
 pub use sense::SENSE_KEPT;
 pub use types::State;
