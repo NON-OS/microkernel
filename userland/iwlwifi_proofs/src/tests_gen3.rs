@@ -11,6 +11,8 @@ mod gen3_armed;
 #[cfg(test)]
 mod gen3_boot_tests;
 #[cfg(test)]
+mod gen3_cmdq_tests;
+#[cfg(test)]
 mod gen3_image_tests;
 #[cfg(test)]
 mod gen3_layout_tests;

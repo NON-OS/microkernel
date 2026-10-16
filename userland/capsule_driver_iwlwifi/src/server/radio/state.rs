@@ -33,7 +33,8 @@ pub(super) const STALLS_SAID: u32 = 3;
 
 pub(super) enum State {
     Up(Up),
-    /// The firmware raised its error cause; it boots again at `at_ms`.
+    /// The firmware failed (an error cause, or commands left unanswered); it
+    /// boots again at `at_ms`.
     Restarting(Restart),
     Down(Failure),
 }

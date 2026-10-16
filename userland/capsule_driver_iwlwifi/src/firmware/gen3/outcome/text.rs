@@ -18,7 +18,6 @@
 
 use super::super::{bringup::BootError, select::Refusal, start::StartError, up::UpError};
 use super::kinds::Failure;
-use super::master::MasterError;
 
 impl Failure {
     /// One phrase for the boot console.
@@ -68,8 +67,8 @@ impl Failure {
             Failure::Up(UpError::BadMcc) => "the regulatory reply was malformed",
             Failure::Up(UpError::Unsupported(what)) => what,
             Failure::Lost => "the firmware raised its error cause while running",
-            Failure::Master(MasterError::NotStopped) => "the device's bus master never stopped",
-            Failure::Master(MasterError::Refused) => "the broker refused Bus Master",
+            Failure::Master(e) => e.text(),
+            Failure::Unanswered => "a firmware command went unanswered",
         }
     }
 }

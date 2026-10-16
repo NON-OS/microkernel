@@ -35,6 +35,9 @@ pub enum WaitError {
     FirmwareError,
     /// The command did not fit the command buffer.
     TooLarge,
+    /// An earlier command is still unanswered, and its buffer may still be
+    /// read: nothing more is sent until it is retired.
+    Busy,
 }
 
 /// What a packet handler wants next.

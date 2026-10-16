@@ -43,7 +43,9 @@ impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
     }
 
     /// Send a command and wait for its reply; `reply` gets the reply payload.
-    /// Notifications arriving meanwhile go to `other`.
+    /// Notifications arriving meanwhile go to `other`. A command left
+    /// unanswered stays in flight, and the next is refused (`Busy`) until
+    /// its reply drains.
     pub fn command<C: Clock>(
         &mut self,
         c: &mut C,
@@ -52,8 +54,12 @@ impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
         reply: &mut dyn FnMut(&[u8]),
         other: &mut dyn FnMut(&Packet<'_>),
     ) -> Result<(), WaitError> {
+        if self.cmdq.busy() {
+            return Err(WaitError::Busy);
+        }
         let seq =
             self.cmdq.send(self.m, self.ctrl, group, cmd, 0, payload).ok_or(WaitError::TooLarge)?;
+        self.cmdq.mark(seq);
         self.wait(c, COMMAND_MS, &mut |p| {
             if p.is_reply() && p.sequence == seq && !(p.group == 0 && p.cmd == TX_RESPONSE) {
                 reply(p.payload);

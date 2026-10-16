@@ -9,7 +9,7 @@ use crate::gen3::join::run::JoinEnd;
 use crate::gen3_model::{reply, Out, Seen};
 use crate::join_rig::*;
 use super::drive::run_join;
-use super::rig::{FLUSH, KEY, LINK, MAC, PHY, QUEUE, SESSION, STA_RM};
+use super::rig::KEY;
 
 #[test]
 fn a_key_the_firmware_does_not_take_ends_the_join_and_removes_nothing_it_did_not_install() {
@@ -24,8 +24,9 @@ fn a_key_the_firmware_does_not_take_ends_the_join_and_removes_nothing_it_did_not
     assert!(matches!(end, Some(JoinEnd::Keys(KeyError::Pairwise(_)))), "{end:?}");
     let cmds = r.commands();
     assert_eq!(cmds.iter().filter(|c| **c == KEY).count(), 1, "only the add that went unanswered");
-    let tail = vec![KEY, SESSION, MAC, FLUSH, QUEUE, QUEUE, STA_RM, LINK, PHY];
-    assert_eq!(cmds[cmds.len() - tail.len()..].to_vec(), tail, "no key removal, then the teardown");
+    // Its buffer may still be read, so the teardown sends nothing after it:
+    // the serving loop restarts the firmware instead, which drops it all.
+    assert_eq!(cmds.last(), Some(&KEY), "nothing sent into a firmware that stopped answering");
 }
 
 #[test]

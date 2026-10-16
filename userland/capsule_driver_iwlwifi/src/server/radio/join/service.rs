@@ -21,6 +21,7 @@ use super::say_link::{say_link, say_loss};
 use crate::firmware::gen3::join::fw::Fw;
 use crate::firmware::gen3::join::link::Port;
 use crate::firmware::gen3::join::run::forget;
+use crate::firmware::gen3::outcome::Failure;
 
 impl Radio {
     /// Service the open port between requests.
@@ -37,7 +38,7 @@ impl Radio {
             }
         }
         if fw.dev.error_cause() {
-            self.firmware_failed(now_ms());
+            self.firmware_failed(now_ms(), Failure::Lost);
             return;
         }
         if j.link.left.is_some() || j.link.silent {

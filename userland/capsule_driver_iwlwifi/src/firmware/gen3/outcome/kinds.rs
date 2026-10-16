@@ -53,6 +53,9 @@ pub enum Failure {
     Lost,
     /// Bus Master did not go on before the boot.
     Master(MasterError),
+    /// A command went unanswered within `COMMAND_MS`: the firmware stopped
+    /// taking commands, though it raised no error cause.
+    Unanswered,
 }
 
 /// The step numbers the status reply carries, in bring-up order.
@@ -66,3 +69,4 @@ pub const STEP_BOOT: u8 = 7;
 pub const STEP_UP: u8 = 8;
 pub const STEP_LOST: u8 = 9;
 pub const STEP_MASTER: u8 = 10;
+pub const STEP_UNANSWERED: u8 = 11;

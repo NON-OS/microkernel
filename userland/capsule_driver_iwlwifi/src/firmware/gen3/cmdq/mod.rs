@@ -28,6 +28,7 @@
 //! index`) is what the firmware's reply carries back. Queue 0 is the command
 //! queue (`IWL_MVM_DQA_CMD_QUEUE`).
 
+mod flight;
 mod queue;
 mod sizes;
 mod write;
