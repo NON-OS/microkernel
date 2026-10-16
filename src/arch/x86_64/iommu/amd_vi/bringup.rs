@@ -20,10 +20,11 @@
 //! alone (K4). All or nothing: a unit that cannot be reached leaves
 //! enforcement unclaimed.
 
-use super::devtab::device_table;
+use super::devtab::{device_table, read_dte};
 use super::domain::device_id;
 use super::enable::enable_unit;
 use super::error::AmdViError;
+use super::intr_rule::passes_any;
 use super::mmio::Unit;
 use super::units::{record, set_enforcing, Units};
 use crate::arch::x86_64::acpi::parser::other::{amd_iommu_bases, amd_iommu_spans};
@@ -41,6 +42,10 @@ pub(super) fn bring_up() -> Result<usize, AmdViError> {
     }
     let units = record(mapped);
     let table = device_table()?;
+    // Every entry refuses interrupts before any unit reads it (K4).
+    if (0..=u16::MAX).any(|id| read_dte(id).map_or(true, |e| passes_any(e[2]))) {
+        return Err(AmdViError::StrayWriter);
+    }
 
     for (index, unit) in units.iter().enumerate() {
         // SAFETY: eK@nonos.systems - `table` is allocated once and never
