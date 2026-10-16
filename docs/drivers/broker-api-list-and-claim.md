@@ -38,7 +38,7 @@ when the answer is no it logs `unconfined: no remapping unit in service covers
 it, reaches all memory` and lets the claim through
 (`src/hardware/broker/confine/attach.rs:41-48`, `translates`). That is every
 device on a machine without VT-d, every device on an AMD-Vi machine, since no
-build profile drives AMD-Vi (see [Platform](platform.md#vt-d-and-amd-vi)), and a
+build profile drives AMD-Vi (see [Platform](platform-vt-d-and.md#vt-d-and-amd-vi)), and a
 device outside every unit's scope on a VT-d machine. If the capsule's domain
 then cannot be made, `unconfined_allowed` still lets the claim through for the
 four errors that mean no unit is in service
