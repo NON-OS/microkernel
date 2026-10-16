@@ -163,9 +163,7 @@ userland/nonos_disk/tests/fat32_names_and_geometry_hold_at_their_edges.rs:37
 userland/nonos_git/tests/common/mod.rs:22
 userland/nonos_nox_broker/src/issue.rs:53
 userland/nonos_seal/src/poly1305.rs:129
-userland/nvme_proofs/src/lib.rs:62
-userland/nvme_proofs/src/nvm/mod.rs:5
-userland/nvme_proofs/src/nvm/mod.rs:9
+userland/nvme_proofs/src/lib.rs:66
 userland/nym_reply_proofs/src/protocol.rs:24
 userland/nym_reply_proofs/src/protocol.rs:29
 userland/nym_reply_proofs/src/protocol.rs:32
