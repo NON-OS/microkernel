@@ -21,5 +21,5 @@ mod serve;
 mod state;
 
 pub use find::find;
-pub use serve::serve;
+pub use serve::{say_off, serve};
 pub use state::Ec;

@@ -25,7 +25,12 @@ use super::io::EventIo;
 use super::state::Events;
 
 impl Events {
-    pub fn arm_wake(&mut self, io: &mut impl EventIo, gpe: u16, on: bool) -> Result<(), EventsError> {
+    pub fn arm_wake(
+        &mut self,
+        io: &mut impl EventIo,
+        gpe: u16,
+        on: bool,
+    ) -> Result<(), EventsError> {
         let b = *self.block_of(gpe).ok_or(EventsError::NoBlock)?;
         if on && !self.handlers.contains_key(&gpe) {
             return Err(EventsError::NoMethod);
