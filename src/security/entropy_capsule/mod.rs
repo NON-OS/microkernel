@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capability;
 pub mod client;
 mod embed;
 pub mod fast;
-mod error;
 mod protocol;
 mod spawn;
 mod state;
 
-pub use error::EntropyCapsuleError;
 pub use spawn::{spawn_entropy_capsule, SpawnError};
 pub use state::shared_state;
