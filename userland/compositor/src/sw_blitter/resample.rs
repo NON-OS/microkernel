@@ -33,7 +33,7 @@ pub fn resample(src: Surface, dst: Surface, rect: Rect) -> Option<Rect> {
     let (sw, sh, bw, bh) = (src.width as u64, src.height as u64, bw as u64, bh as u64);
     let (dx0, dy0, n) = ((d.x - ox) as u64, (d.y - oy) as u64, d.width as usize);
     for dy in dy0..dy0 + d.height as u64 {
-        let sy = ((dy * 2 + 1) * sh / (bh * 2)) as u32;
+        let sy = centre(dy, sh, bh) as u32;
         let src_va = src.row_start(sy, 0, src.width)?;
         let dst_va = dst.row_start(oy + dy as u32, ox + dx0 as u32, n as u32)?;
         // SAFETY: `row_start` bounds checked both rows; a mirror's output is
@@ -43,8 +43,15 @@ pub fn resample(src: Surface, dst: Surface, rect: Rect) -> Option<Rect> {
             (s, core::slice::from_raw_parts_mut(dst_va as *mut u32, n))
         };
         for (i, px) in d.iter_mut().enumerate() {
-            *px = s[(((dx0 + i as u64) * 2 + 1) * sw / (bw * 2)) as usize];
+            *px = s[centre(dx0 + i as u64, sw, bw) as usize];
         }
     }
     Some(d)
+}
+
+/// The source pixel whose span holds the centre of box pixel `d`, `src`
+/// pixels shown in `len`. In u128: both sides may be near u32's top, and
+/// `(2d + 1) * src` then runs past u64.
+pub fn centre(d: u64, src: u64, len: u64) -> u64 {
+    ((2 * d as u128 + 1) * src as u128 / (2 * len.max(1) as u128)) as u64
 }

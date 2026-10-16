@@ -27,7 +27,7 @@
 
 use nonos_libc::mk_mmap;
 
-use super::canvas_floor::floor_canvas;
+use super::canvas_floor::{backing, floor_canvas};
 use super::canvas_scale::scale_for_panel;
 use super::panel_mm::panel_mm;
 use crate::display::scale_rule::{canvas_for, chosen};
@@ -57,8 +57,7 @@ pub fn fit_canvas(ctx: &mut Context) {
         (4, Some(floor)) => floor,
         (q, _) => canvas_for(ctx.width, ctx.height, q),
     };
-    let stride = width * 4;
-    let byte_len = stride as u64 * height as u64;
+    let Some((stride, byte_len)) = backing(width, height) else { return };
     let Ok(size) = usize::try_from(byte_len) else { return };
     let va = mk_mmap(core::ptr::null_mut(), size, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
     if va.is_null() {

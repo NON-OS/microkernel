@@ -45,7 +45,10 @@ pub unsafe fn copy_rects(
         let (x, w) = (r.x as usize * 4, r.width as usize * 4);
         let rows = r.y as usize..r.y as usize + r.height as usize;
         let last = rows.end.saturating_sub(1);
-        if last * src_stride + x + w > src.len() || last * dst_stride + x + w > dst_len {
+        // Checked, not trusted to the caller: a wrapped end would pass.
+        let end = |stride: usize| last.checked_mul(stride)?.checked_add(x)?.checked_add(w);
+        let fit = |stride: usize, len: usize| end(stride).is_some_and(|e| e <= len);
+        if !fit(src_stride, src.len()) || !fit(dst_stride, dst_len) {
             continue;
         }
         for y in rows {
