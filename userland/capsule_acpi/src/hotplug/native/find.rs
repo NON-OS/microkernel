@@ -14,47 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! At start, with the switch on: every bridge firmware describes, and the
-//! bridges found on the buses below them (switch ports), is looked at;
-//! a root or downstream port with a hot-plug slot, below a root bridge
-//! whose _OSC gave NONOS native hot plug, is kept and its slot read once.
+//! The ports this capsule drives as native hot-plug slots: exactly the
+//! ones the kernel answers to MkAcpiSlot's PORT_AT, which already checked
+//! the port type, Slot Implemented, Hot-Plug Capable and `_OSC`'s grant.
 
-use super::osc_grant::{grant_for, OscGrant, NATIVE_HOT_PLUG};
 use super::regs::*;
 use super::slot::Slot;
-use super::walk::{bridges_below, pcie_cap, read};
+use super::slot_wire::SLOT_CAPS;
 use crate::boot::Acpi;
-use alloc::vec::Vec;
+use crate::sys::acpi_slot::{port_at, slot_read};
 
-pub type Bdf = (u16, u8, u8, u8);
+pub use super::slot_wire::Bdf;
+
+/// The kernel keeps no more than this many ports.
+const MOST_PORTS: u64 = 64;
 
 pub struct Port {
     pub bdf: Bdf,
-    pub cap: u16,
     pub slot: Slot,
     pub dll: bool,
     pub no_cc: bool,
     pub slot_cap: u32,
 }
 
-pub fn find(acpi: &mut Acpi, granted: &[OscGrant]) {
+pub fn find(acpi: &mut Acpi) {
     if !crate::boot::NATIVE_HOT_PLUG_ON {
         return;
     }
-    let mut seen: Vec<Bdf> = acpi.hotplug.bridges.iter().map(|b| b.bdf).collect();
-    bridges_below(&mut seen);
-    let owned = |f: Bdf| grant_for(granted, f.0, f.1).is_some_and(|g| g.os_owns(NATIVE_HOT_PLUG));
-    for f in seen.into_iter().filter(|f| f.0 == 0 && owned(*f)) {
-        let Some(cap) = pcie_cap(f) else { continue };
-        let slot_cap = read(f, cap + SLOT_CAP, 4);
-        if !hot_plug_port(read(f, cap + FLAGS, 2) as u16, slot_cap) {
-            continue;
-        }
-        let dll = read(f, cap + LINK_CAP, 4) & DLL_REPORTING != 0;
+    for (f, dll) in (0..MOST_PORTS).map_while(port_at) {
+        let Ok(slot_cap) = slot_read(f, SLOT_CAPS) else { continue };
         let (button, power) = (slot_cap & ATTENTION_BUTTON != 0, slot_cap & POWER_CONTROLLER != 0);
         let no_cc = slot_cap & NO_COMMAND_COMPLETED != 0;
         let slot = Slot::new(button, power, Default::default());
-        let mut p = Port { bdf: f, cap, slot, dll, no_cc, slot_cap };
+        let mut p = Port { bdf: f, slot, dll, no_cc, slot_cap };
         p.slot = Slot::new(button, power, super::poll::read(&p).unwrap_or_default());
         super::act::line(f).str(b": slot ").dec(u64::from(slot_cap >> 19)).str(b", taken").end();
         acpi.hotplug.native.ports.push(p);

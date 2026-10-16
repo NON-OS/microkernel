@@ -14,21 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which ports take hot plug, and the power word: it changes only the
-//! power controller and its indicator, for every slot control value.
+//! The power word changes only the power controller and its indicator, for
+//! every slot control value; sent masked through MkAcpiSlot, the kernel
+//! writes exactly the word the capsule meant; and every status bit it
+//! clears is one the kernel lets it clear.
 
 use crate::native::regs::*;
-
-#[test]
-fn only_root_and_downstream_ports_with_a_capable_slot() {
-    let flags = |kind: u16, slot: bool| kind << 4 | if slot { 1 << 8 } else { 0 };
-    for kind in 0..16u16 {
-        let port = kind == 4 || kind == 6;
-        assert_eq!(hot_plug_port(flags(kind, true), HOT_PLUG_CAPABLE), port, "kind {kind}");
-        assert!(!hot_plug_port(flags(kind, false), HOT_PLUG_CAPABLE), "no slot, kind {kind}");
-        assert!(!hot_plug_port(flags(kind, true), !HOT_PLUG_CAPABLE), "not capable, {kind}");
-    }
-}
+use crate::native::slot_rule::{write_word, CONTROL_BITS, STATUS_EVENTS};
+use crate::native::slot_wire::{SLOT_CONTROL, SLOT_STATUS};
 
 #[test]
 fn the_power_word_touches_power_and_its_indicator_alone() {
@@ -48,5 +41,19 @@ fn the_change_bits_are_the_latched_events_only() {
     assert_eq!(CHANGES & (PRESENT | COMMAND_COMPLETED), 0, "states are never cleared");
     for bit in [BUTTON_PRESSED, POWER_FAULT, MRL_CHANGED, PRESENCE_CHANGED, DLL_CHANGED] {
         assert_ne!(CHANGES & bit, 0);
+    }
+}
+
+#[test]
+fn the_kernel_writes_the_word_the_capsule_meant() {
+    for ctrl in 0..=u16::MAX {
+        for on in [true, false] {
+            let meant = power_word(ctrl, on);
+            assert_eq!(write_word(SLOT_CONTROL, u32::from(meant & CONTROL_BITS), ctrl), Ok(meant));
+        }
+    }
+    for clear in [CHANGES, COMMAND_COMPLETED] {
+        assert_eq!(clear & !STATUS_EVENTS, 0);
+        assert_eq!(write_word(SLOT_STATUS, u32::from(clear), 0xFFFF), Ok(clear));
     }
 }
