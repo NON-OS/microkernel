@@ -18,4 +18,6 @@ mod list;
 mod list_codec;
 #[path = "../../../nonos_wifi_client/src/saved/list_put.rs"]
 mod list_put;
+#[path = "../../../nonos_wifi_client/src/saved/pass.rs"]
+mod pass;
 mod tests;

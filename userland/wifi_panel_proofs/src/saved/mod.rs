@@ -26,11 +26,15 @@ pub mod list;
 mod list_codec;
 #[path = "../../../nonos_wifi_client/src/saved/list_put.rs"]
 mod list_put;
+#[path = "../../../nonos_wifi_client/src/saved/pass.rs"]
+mod pass;
 #[path = "../../../nonos_wifi_client/src/saved/pin.rs"]
 mod pin;
 
 #[cfg(test)]
 mod evict_tests;
+#[cfg(test)]
+mod pass_tests;
 #[cfg(test)]
 mod pin_tests;
 #[cfg(test)]
