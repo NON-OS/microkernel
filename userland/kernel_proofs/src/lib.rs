@@ -179,6 +179,8 @@ pub mod service_policy;
 /// The restart policy init holds a watched service to.
 #[cfg(test)]
 pub mod lifecycle_state;
+#[cfg(test)]
+pub mod usable_runs;
 /// driver.usb_msc0's search report in words (usb_msc_report_tests).
 #[cfg(test)]
 #[path = "../../../src/hardware/usb_msc_capsule/report_words.rs"]

@@ -22,12 +22,15 @@
 
 mod attach;
 mod detach;
+mod enter;
 mod iova;
 mod iova_holes;
 mod iova_space;
 mod map;
 mod map_fail;
 mod posture;
+mod reserve;
+mod reserved_rule;
 mod table;
 mod unconfined;
 
