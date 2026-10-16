@@ -38,5 +38,6 @@ mod words;
 
 pub use barrier::{clear_prediction_state, speculative_barrier};
 pub use init::init_spectre_mitigations;
+pub(crate) use init::boot_exposed;
 pub use load::speculation_safe_load;
 pub use plan::{Bhb, Meltdown, Plan, Ssbd, Why, V2};

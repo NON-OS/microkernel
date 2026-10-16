@@ -35,6 +35,7 @@ pub mod table;
 mod tables_build;
 mod text_guard;
 mod tlb;
+pub(in crate::arch::aarch64) mod trampoline;
 pub mod translation;
 mod ttbr;
 mod unmap;

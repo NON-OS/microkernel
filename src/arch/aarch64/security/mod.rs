@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod bti;
+pub mod epd1;
 pub mod init_all;
 pub mod mte;
 pub mod pac;

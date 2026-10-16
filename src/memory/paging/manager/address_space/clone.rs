@@ -41,6 +41,7 @@ impl PagingManager {
         for entry in page_table.iter_mut() {
             *entry = 0;
         }
+        crate::arch::paging::seed_user_root(page_table);
         if !crate::arch::paging::USER_ROOT_HOLDS_KERNEL {
             return Ok(());
         }

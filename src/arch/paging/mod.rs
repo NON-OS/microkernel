@@ -37,6 +37,6 @@ pub use root::{read_root, write_root};
 pub use tagged_invalidate::invalidate_tagged;
 pub use tagged_tlb::supports_tagged_invalidation;
 pub use tlb::{invalidate_all, invalidate_page};
-pub use user_root::{retire_root, USER_ROOT_HOLDS_KERNEL};
+pub use user_root::{retire_root, seed_user_root, USER_ROOT_HOLDS_KERNEL};
 pub use walk_root::{root_for, root_in};
 pub use write_protect::{disable_write_protection, enable_write_protection};

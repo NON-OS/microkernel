@@ -19,6 +19,7 @@
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use super::info::BootInfo;
+use crate::arch::aarch64::security::{epd1, spectre};
 use crate::sys::serial;
 
 /// Whether the device tree was read, for the line `finish` prints: a value,
@@ -30,7 +31,11 @@ pub(super) fn set_parsed(parsed: bool) {
 }
 
 pub(super) fn finish(info: &BootInfo) -> ! {
+    // Before any other CPU starts, so each exposed one finds the trampoline
+    // built when it decides, and before any user root exists.
+    epd1::activate(spectre::boot_exposed());
     super::init::bring_up(info);
+    epd1::report();
 
     #[cfg(feature = "nonos-trap-proof-kernel-abort")]
     super::trap_proof::kernel_data_abort();
