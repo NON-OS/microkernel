@@ -23,7 +23,9 @@ mod recv_from;
 mod register;
 mod register_allowed;
 mod reply;
+mod reply_deliver;
 mod reply_inbox;
+mod reply_trace;
 mod send;
 mod send_address;
 mod send_redirect;
@@ -31,6 +33,7 @@ mod send_reply;
 mod send_reply_inbox;
 mod send_caps;
 mod send_to_pid;
+mod send_to_pid_trace;
 mod send_trace;
 mod sender_pid;
 
