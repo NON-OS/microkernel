@@ -20,9 +20,15 @@ import re
 from mirror_caps_bits import capability_bits, manifest, value
 
 
+def code(src):
+    """The source without its comments: a comma in one once ended a grant's
+    expression early, and the grant was skipped, not checked."""
+    return re.sub(r"//[^\n]*", "", re.sub(r"/\*.*?\*/", "", src, flags=re.S))
+
+
 def wider(root):
     bits = capability_bits(root)
-    spawns = {p: p.read_text() for p in (root / "src").rglob("spawn.rs")}
+    spawns = {p: code(p.read_text()) for p in (root / "src").rglob("spawn.rs")}
     out, checked = [], 0
     for mk in sorted((root / "userland").glob("*/Capsule.mk")):
         text = mk.read_text()

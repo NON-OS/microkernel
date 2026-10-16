@@ -41,6 +41,9 @@ def self_test():
         assert wider(root)[0], "a grant past the manifest was missed"
         spawn.write_text('const SERVICE_NAME: &str = "decoy";\nconst CAPS: u64 = 0x19;\n    requested_caps: CAPS,\n')
         assert wider(root)[0], "a constant past the manifest was missed"
+        spawn.write_text('const SERVICE_NAME: &str = "decoy";\n    requested_caps: Capability::IPC.bit()\n'
+                         '        | Capability::Crypto.bit() // signing, for the decoy\n        | 0,\n')
+        assert wider(root)[0], "a grant whose comment holds a comma was skipped"
         readme = root / "userland/capsule_decoy/README.md"
         readme.write_text("Mask: `CAPSULE_REQUIRED_CAPS = 0x18`.\n")
         assert not stale_readmes(root), "a README quoting its manifest was reported"
