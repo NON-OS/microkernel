@@ -45,12 +45,12 @@ impl Model {
             }
             TEST_UNIT_READY | SYNCHRONIZE_CACHE_10 => Ok(()),
             READ_CAPACITY_10 => {
-                let last = u32::try_from(lu.blocks - 1).unwrap_or(u32::MAX);
+                let last = u32::try_from(lu.blocks.wrapping_sub(1)).unwrap_or(u32::MAX);
                 put(data, &[last.to_be_bytes(), lu.block_len.to_be_bytes()].concat());
                 Ok(())
             }
             SERVICE_ACTION_IN_16 if cdb[1] == SA_READ_CAPACITY_16 => {
-                let mut b = (lu.blocks - 1).to_be_bytes().to_vec();
+                let mut b = lu.blocks.wrapping_sub(1).to_be_bytes().to_vec();
                 b.extend(lu.block_len.to_be_bytes());
                 b.resize(32, 0);
                 put(data, &b);
