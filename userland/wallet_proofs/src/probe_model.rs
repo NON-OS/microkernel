@@ -13,61 +13,43 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! A refresh begins only once the user has paused, so no network step starts
+//! under the hand, and it still keeps its interval once they have. This
+//! checks the wallet's own gate (app_refresh_due.rs) with its own constants.
 
-//! The refresh loop can never freeze the UI. This models the step machine in
-//! `wallet/event/probe/probe_tick.rs` and the idle gate in `wallet/app.rs`,
-//! and checks the invariants that keep the wallet responsive. Change a
-//! constant in the wallet and the matching constant here should change with
-//! it. The time bounds on what a refresh waits for are in probe_bounds_tests.
+use crate::refresh_due::{due, IDLE_MS, REFRESH_MS};
 
-// One batched refresh fetches this many fields over a single connection
-// (read_snapshot.rs: eth balance, nonce, fee, nox balance, claimable,
-// positions, stats).
-const BATCH_FIELDS: u8 = 7;
-// The whole account refreshes in one batched request rather than one
-// connection per field, so a refresh costs one handshake however many fields
-// it carries: the property that made the refresh fast enough to feel live.
-const _: () = assert!(BATCH_FIELDS >= 2, "batching only helps with several fields");
-const IDLE_GATE: u32 = 2; // app.rs: probe once the user has paused this many ticks
+const NOW: i64 = 1_000_000;
 
-/// app.rs: once the user has paused for IDLE_GATE ticks, probe every idle tick
-/// so the field cycle fills in a few seconds. Mouse movement does not count as
-/// activity (see app.rs on_event), so it never defers the probe; a real click
-/// or keypress does, pausing it immediately so a blocking read never lands
-/// under the hand.
-fn probes(address_ready: bool, ticks: u32, last_active: u32) -> bool {
-    if !address_ready {
-        return false;
-    }
-    ticks.wrapping_sub(last_active) >= IDLE_GATE
-}
+// The pause is shorter than the interval: a user who stops gets a refresh
+// within one interval.
+const _: () = assert!(IDLE_MS > 0 && IDLE_MS < REFRESH_MS);
 
 #[test]
-fn active_interaction_never_freezes_the_ui() {
-    // A click or keypress every tick (last_active == ticks) defers the probe
-    // every time, so a blocking read never runs under the user's hand. Movement
-    // is handled separately (app.rs does not treat it as activity), so it never
-    // reaches this gate: the fee and staking reads still land once the user
-    // pauses, which probing_resumes_once_idle covers.
-    for t in 0..64u32 {
-        assert!(!probes(true, t, t), "no blocking probe while actively interacting");
+fn no_refresh_begins_while_the_user_is_active() {
+    // A click or keypress within IDLE_MS defers it, owed or not.
+    for since in [0, 1, IDLE_MS / 2, IDLE_MS - 1] {
+        assert!(!due(true, true, NOW, NOW - since, 0), "active {since} ms ago");
     }
 }
 
 #[test]
-fn no_probe_right_after_a_click() {
-    // The tick right after an odd-tick click (not a forced tick) does not probe,
-    // so a click is serviced without waiting on the network.
-    assert!(!probes(true, 5, 5), "no probe on the tick of a click");
-    assert!(!probes(true, 7, 7), "no probe immediately after a click");
+fn an_owed_refresh_begins_once_the_user_pauses() {
+    // The first refresh, or one the status step asks for, does not wait the
+    // interval.
+    assert!(due(true, true, NOW, NOW - IDLE_MS, NOW));
 }
 
 #[test]
-fn probing_resumes_once_idle() {
-    assert!((IDLE_GATE..IDLE_GATE + 8).any(|t| probes(true, t, 0)), "auto-refresh still runs");
+fn refreshes_keep_their_interval() {
+    let paused = NOW - IDLE_MS;
+    assert!(!due(true, false, NOW, paused, NOW - (REFRESH_MS - 1)), "not before it");
+    assert!(due(true, false, NOW, paused, NOW - REFRESH_MS), "once it has passed");
 }
 
 #[test]
-fn no_probe_before_an_account_exists() {
-    assert!(!(0..64u32).any(|t| probes(false, t, 0)));
+fn no_refresh_begins_where_nothing_live_is_shown() {
+    for last_probe in [0, NOW - REFRESH_MS, NOW] {
+        assert!(!due(false, true, NOW, 0, last_probe));
+    }
 }

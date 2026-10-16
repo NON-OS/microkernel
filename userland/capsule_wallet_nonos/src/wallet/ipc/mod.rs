@@ -23,6 +23,7 @@ mod export;
 mod forget;
 mod generate_hd;
 mod import;
+mod keyring_wait;
 mod lookup_keyring;
 mod lookup_self;
 mod ops;

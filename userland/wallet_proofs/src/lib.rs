@@ -83,6 +83,13 @@ pub mod last_read;
 pub mod layout;
 #[path = "../../capsule_wallet_nonos/src/wallet/event/probe/reading.rs"]
 pub mod reading;
+#[path = "../../capsule_wallet_nonos/src/wallet/app_refresh_due.rs"]
+pub mod refresh_due;
+#[path = "../../capsule_wallet_nonos/src/wallet/ipc/keyring_wait.rs"]
+pub mod keyring_wait;
+/// The route link's waits, which a refresh's steps keep to.
+#[path = "../../nonos_route_link/src/bounds.rs"]
+pub mod route_bounds;
 #[path = "../../capsule_wallet_nonos/src/wallet/tls13/records_whole.rs"]
 pub mod records_whole;
 #[path = "../../capsule_wallet_nonos/src/wallet/event/custody/replace_rule.rs"]
@@ -215,8 +222,6 @@ mod tests;
 
 #[cfg(test)]
 mod probe_model;
-#[cfg(test)]
-mod probe_bounds_tests;
 #[cfg(test)]
 mod probe_gate_tests;
 
