@@ -85,9 +85,11 @@ processor's Notify 0x80, 0x81, 0x82, 0x83 and 0x85, and on a container's 0x81
 for every processor under it. One `[ACPI]
 cpu` line is logged for each run of processors with the same tables. Each
 processor's `_OSC` (Intel's processor UUID) is evaluated first, since firmware
-often loads those tables from it, declaring only the capabilities listed in
-`cpu/caps.rs`, none until the kernel has the control code; firmware's answer is
-logged on one `cpu _OSC` line. `_PDC` is not evaluated. Nothing is entered from
+often loads those tables from it. It is committed once, with no query first,
+and declares only the bits `cpu/caps.rs` ties to a kernel feature that is
+present; every feature reads false today, so the word is 0, and a bit turns on
+only with the kernel code that honours it. Firmware's answer is logged on one
+`cpu _OSC` line. `_PDC` is not evaluated. Nothing is entered from
 here.
 Throttling (_TSS, _PTC, _TPC and _TSD) is read too, read-only, and shown
 on the `[ACPI] cpu` line when firmware lists states; it is not in the
