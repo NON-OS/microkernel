@@ -12,13 +12,15 @@ mod find;
 mod fw_step;
 mod join_text;
 mod link;
+mod reply;
 mod scan;
 mod send;
 mod services;
 mod stage;
 mod stage_kind;
 
-pub use call::{OP_STATUS, WIFI_HDR};
+pub use call::OP_STATUS;
+pub use reply::WIFI_HDR;
 pub use crate::join_wire::{ConnectResult, Link};
 pub use find::{find, Driver};
 pub use join_text::join_text;
