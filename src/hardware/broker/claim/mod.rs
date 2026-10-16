@@ -25,6 +25,8 @@ mod no_snoop;
 mod quiesce;
 mod quiesce_all;
 mod release;
+mod restore;
+mod restore_rule;
 mod state;
 mod types;
 
