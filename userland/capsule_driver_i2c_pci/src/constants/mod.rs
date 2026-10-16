@@ -23,6 +23,6 @@ mod lpss;
 pub use bits::*;
 pub use controller_index::controller_index;
 pub use defs::*;
-pub use device_info::{device_info, UNKNOWN_LPSS_CLOCK_HZ};
+pub use device_info::device_info;
 pub use hid_info::*;
 pub use lpss::*;
