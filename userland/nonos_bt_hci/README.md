@@ -76,5 +76,19 @@ Every wait is bounded. A command waits at most `POLL_BUDGET` polls with a
 queue holds at most `QUEUE_MAX` events and drops the oldest past that,
 counted in `dropped()`. An incoming packet over its bound is refused.
 
+A controller is not taken at its word:
+- **ACL buffers are held per link.** Number of Completed Packets gives
+  back no more than the link it names holds, so a count for packets never
+  sent frees nothing. A link that ends gives back everything it held,
+  with Disconnection Complete or with `link_gone`, when Disconnect finds
+  the link already gone.
+- **A lost controller stops the host.** A Hardware Error (7.7.16), or a
+  completed Reset (7.3.2) this host did not send, stops it with
+  `HciError::Reset` wherever it is met; the caller brings the controller
+  up again. While its own Reset is waited for, both pass. Events from
+  before that Reset are cleared.
+- **`link_known` asks whether the controller still has a link,** with
+  Read RSSI (7.5.4). Unknown Connection Identifier means it does not.
+
 The proofs live in `nonos_bt_hci_proofs`. They drive the whole stack (host,
 USB transport, joiner) against a simulated controller behind `UsbPipes`.

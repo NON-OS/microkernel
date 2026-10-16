@@ -16,16 +16,14 @@
 
 //! Events for the caller. Number of Completed Packets is the host's own
 //! business (it frees ACL buffers) and never reaches the caller; the rest
-//! are kept in order while a command is waited for.
+//! are kept in order while a command is waited for. Each is noted first
+//! (`note`), so a controller that lost its state stops the host.
 
 use alloc::vec::Vec;
 
 use super::state::Host;
 use crate::error::HciError;
 use crate::transport::Transport;
-use nonos_bt_wire::hci::event::parse_event;
-use nonos_bt_wire::hci::event_code::NUMBER_OF_COMPLETED_PACKETS;
-use nonos_bt_wire::hci::reports::completed_packets;
 
 /// Events kept while a command is waited for; past this the oldest goes,
 /// so a flood of advertising reports cannot grow the queue without bound.
@@ -38,7 +36,7 @@ impl<T: Transport> Host<T> {
     }
 
     pub(super) fn keep(&mut self, event: Vec<u8>) -> Result<(), HciError> {
-        if self.refund(&event)? {
+        if self.note(&event)? {
             return Ok(());
         }
         if self.queue.len() == QUEUE_MAX {
@@ -56,20 +54,8 @@ impl<T: Transport> Host<T> {
             return Ok(Some(e));
         }
         match self.t.poll_event()? {
-            Some(e) if !self.refund(&e)? => Ok(Some(e)),
+            Some(e) if !self.note(&e)? => Ok(Some(e)),
             _ => Ok(None),
         }
-    }
-
-    /// Number of Completed Packets (Vol 4, Part E, 7.7.19) frees the buffers
-    /// it counts, never past the total; `false` for any other event.
-    fn refund(&mut self, event: &[u8]) -> Result<bool, HciError> {
-        let ev = parse_event(event)?;
-        if ev.code != NUMBER_OF_COMPLETED_PACKETS {
-            return Ok(false);
-        }
-        let done: u32 = completed_packets(ev.params)?.iter().map(|&(_, n)| u32::from(n)).sum();
-        self.acl_free = (u32::from(self.acl_free) + done).min(u32::from(self.acl_total)) as u16;
-        Ok(true)
     }
 }

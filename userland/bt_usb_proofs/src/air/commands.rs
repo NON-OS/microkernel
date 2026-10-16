@@ -18,10 +18,11 @@
 //! says, with bring-up left to the HCI proofs' controller.
 
 use super::events::connected;
-use super::state::{Air, HANDLE, OURS};
+use super::state::{Air, OURS};
 use crate::hci_sim::controller::respond;
 use crate::hci_sim::events::{complete, status};
 use crate::hci_sim::link_events::disconnected;
+use nonos_bt_hci::host::READ_RSSI;
 use nonos_bt_wire::hci::opcode as op;
 use nonos_bt_wire::hci::parse_command;
 use nonos_bt_wire::l2cap::cid::ATT;
@@ -35,6 +36,7 @@ impl Air {
         let (opcode, p) = parse_command(packet).expect("a malformed command");
         let o = opcode.0;
         let events = match opcode {
+            _ if self.lies.mute => Vec::new(),
             op::READ_BD_ADDR => vec![complete(1, o, 0, &OURS)],
             op::LE_SET_SCAN_ENABLE if p.first() == Some(&1) => {
                 let mut heard = vec![complete(1, o, 0, &[])];
@@ -58,7 +60,11 @@ impl Air {
                 respond(&self.cfg, packet)
             }
             op::LE_ENABLE_ENCRYPTION => self.encrypt(p),
-            op::DISCONNECT => vec![status(0, 1, o), disconnected(HANDLE, ENDED_BY_US)],
+            op::DISCONNECT if self.lies.forgot => vec![status(0x02, 1, o)],
+            op::DISCONNECT => {
+                vec![status(0, 1, o), disconnected(u16::from_le_bytes([p[0], p[1]]), ENDED_BY_US)]
+            }
+            READ_RSSI => self.rssi(),
             op::LE_CONNECTION_UPDATE => vec![status(0, 1, o)],
             _ => respond(&self.cfg, packet),
         };

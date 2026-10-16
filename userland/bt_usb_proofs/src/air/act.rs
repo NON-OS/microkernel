@@ -24,10 +24,13 @@ pub enum Act {
     Signal(Vec<u8>),
     /// The link goes down with this reason.
     Drop(u8),
-    /// Any other event from the controller.
+    /// Any other event from the controller; or many at once, a flood.
     Event(Vec<u8>),
+    Events(Vec<Vec<u8>>),
     /// ACL packets exactly as given, on any handle.
     Acl(Vec<Vec<u8>>),
+    /// The controller starts lying from here on.
+    Lie(fn(&mut super::Lies)),
 }
 
 /// A Handle Value Notification (Vol 3, Part F, 3.4.7.1).

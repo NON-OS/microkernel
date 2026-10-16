@@ -32,6 +32,8 @@ use nonos_bt_wire::hci::opcode as op;
 impl<T: Transport> Host<T> {
     pub fn bring_up(&mut self) -> Result<Controller, HciError> {
         self.command(op::RESET, &[])?;
+        // What came before the Reset speaks of a controller that is gone.
+        self.queue.clear();
         if !le_supported(&self.command(op::READ_LOCAL_FEATURES, &[])?)? {
             return Err(HciError::NoLe);
         }
@@ -55,6 +57,7 @@ impl<T: Transport> Host<T> {
         self.scan_filter = if extended { ACCEPT_UNRESOLVED } else { ACCEPT_ALL };
         self.data_length = self.data_length_to_ask(le_features)?;
         (self.acl_len, self.acl_total, self.acl_free) = (acl_len, acl_total, acl_total);
+        self.held.clear();
         Ok(Controller {
             hci_version: v.0,
             hci_revision: v.1,

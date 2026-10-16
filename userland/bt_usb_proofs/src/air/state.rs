@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The air between the capsule and one HID device: a controller that
-//! answers bring-up, scan, connect and encryption as the cited sections
-//! of Vol 4, Part E describe; the SMP proofs' responder; and the HOGP
-//! proofs' peripheral. Once the host goes quiet, scripted acts run.
+//! The air between the capsule and one HID device: a controller as Vol 4,
+//! Part E describes it (or lying, `lies`), SMP's responder, HOGP's peripheral.
 
 use std::cell::Cell;
 use std::collections::VecDeque;
 use std::rc::Rc;
 
 use super::act::Act;
+use super::lies::Lies;
 use super::seen::Seen;
 use crate::hci_sim::config::Config;
 use crate::hogp_sim::Peripheral;
@@ -72,4 +71,5 @@ pub struct Air {
     pub(super) bulk_in: VecDeque<Vec<u8>>,
     pub(super) joiner: Reassembler,
     pub(super) idle: u32,
+    pub lies: Lies,
 }

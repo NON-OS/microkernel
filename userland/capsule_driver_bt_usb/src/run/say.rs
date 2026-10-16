@@ -45,6 +45,7 @@ pub fn reason(e: &HciError) -> &'static [u8] {
     match e {
         HciError::Transport(_) => b"USB transfer failed",
         HciError::Timeout(_) => b"controller stopped answering",
+        HciError::Reset => b"controller reset itself",
         HciError::Status(..) => b"controller refused a command",
         HciError::NoLe | HciError::NotBluetooth => b"not an LE controller this host can drive",
         _ => b"controller sent something malformed",

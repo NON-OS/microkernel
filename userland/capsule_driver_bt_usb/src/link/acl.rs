@@ -37,6 +37,7 @@ impl Session {
         if head.handle != self.handle {
             return Ok(());
         }
+        self.quiet_since = None;
         let Ok(Some(pdu)) = self.joiner.push(head.boundary, data) else { return Ok(()) };
         let Ok((cid, payload)) = parse_basic(&pdu) else { return Ok(()) };
         match cid {
@@ -65,10 +66,10 @@ impl Session {
         // The answer goes out ahead of the new timing it agrees to.
         self.flush(host)?;
         match answer.update.map(|p| host.update_link(self.handle, &p)) {
-            Some(Err(HciError::Transport(e))) => Err(HciError::Transport(e)),
-            // A controller that will not take the timing keeps the link as
-            // it was; the peripheral may ask again.
-            _ => Ok(()),
+            // A refusal keeps the link as it was, and the peripheral may ask
+            // again; no answer at all, or a controller reset, is no refusal.
+            Some(Err(HciError::Status(..))) | Some(Ok(_)) | None => Ok(()),
+            Some(Err(e)) => Err(e),
         }
     }
 }

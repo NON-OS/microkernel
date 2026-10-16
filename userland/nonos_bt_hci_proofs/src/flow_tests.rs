@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Command flow control (Vol 4, Part E, 4.4) and the events that come
-//! while a command is waited for.
+//! Command flow control (Vol 4, Part E, 4.4) and the events met meanwhile.
 
 use crate::sim::config::{Config, ADDR};
 use crate::sim::events::{adv_report, complete, status};
@@ -54,7 +53,8 @@ fn events_met_while_waiting_are_kept_in_order() {
     let before = vec![adv_report(1, &[2, 1, 6]), adv_report(2, &[])];
     let mut s = stack(Config { before: before.clone(), ..Config::default() });
     s.bring_up().unwrap();
-    for _ in 0..8 {
+    for _ in 0..7 {
+        // Eight commands, but the pair met before Reset's answer is cleared.
         assert_eq!(s.next_event().unwrap().as_ref(), Some(&before[0]));
         assert_eq!(s.next_event().unwrap().as_ref(), Some(&before[1]));
     }

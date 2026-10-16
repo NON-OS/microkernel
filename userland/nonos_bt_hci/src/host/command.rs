@@ -27,7 +27,7 @@ use super::state::Host;
 use crate::error::HciError;
 use crate::transport::Transport;
 use nonos_bt_wire::hci::command::command;
-use nonos_bt_wire::hci::opcode::Opcode;
+use nonos_bt_wire::hci::opcode::{Opcode, RESET};
 
 impl<T: Transport> Host<T> {
     /// A command answered by Command Complete: its return parameters after
@@ -47,6 +47,7 @@ impl<T: Transport> Host<T> {
     pub(super) fn exchange(&mut self, op: Opcode, params: &[u8]) -> Result<Answer, HciError> {
         let packet = command(op, params)?;
         let mut sent = false;
+        self.resetting = op == RESET;
         for _ in 0..self.budget {
             if !sent && self.credits > 0 {
                 self.t.send_command(&packet)?;
@@ -56,6 +57,7 @@ impl<T: Transport> Host<T> {
                 self.t.pause();
                 continue;
             };
+            self.lost(&event)?;
             match answer(&event, sent.then_some(op))? {
                 None => self.keep(event)?,
                 Some((credits, a)) => {

@@ -39,6 +39,11 @@ pub enum HciError {
     NoBuffers,
     /// No Bluetooth interface in the device's configuration.
     NotBluetooth,
+    /// The controller lost its state and must be brought up again: it
+    /// reported a Hardware Error (Vol 4, Part E, 7.7.16), completed a Reset
+    /// (7.3.2) this host did not send, or no longer knows a link it never
+    /// reported down.
+    Reset,
     /// A Three-wire UART link never became active, or its peer stopped
     /// acknowledging what was sent (Vol 4, Part D).
     NoLink,

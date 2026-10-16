@@ -44,6 +44,8 @@ mod joiner_tests;
 #[cfg(test)]
 mod length_tests;
 #[cfg(test)]
+mod liar;
+#[cfg(test)]
 mod scan_tests;
 #[cfg(test)]
 mod sim;

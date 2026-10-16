@@ -64,6 +64,10 @@ impl Session {
             bond: None,
             peer,
             waiting: None,
+            quiet_since: None,
+            probe: true,
+            stuck_since: None,
+            short: false,
         }
     }
 }

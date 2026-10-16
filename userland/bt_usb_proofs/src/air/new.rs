@@ -20,6 +20,7 @@ use std::cell::Cell;
 use std::collections::VecDeque;
 use std::rc::Rc;
 
+use super::lies::Lies;
 use super::seen::Seen;
 use super::state::{Air, PEER};
 use crate::hci_sim::config::Config;
@@ -52,6 +53,7 @@ impl Air {
             bulk_in: VecDeque::new(),
             joiner: Reassembler::new(512),
             idle: 0,
+            lies: Lies::default(),
         }
     }
 }

@@ -34,7 +34,10 @@ pub fn hang_up<T: Transport>(host: &mut Host<T>, handle: u16) -> Result<(), HciE
     let [h0, h1] = handle.to_le_bytes();
     match host.command_pending(op::DISCONNECT, &[h0, h1, USER_ENDED]) {
         Ok(()) => {}
-        Err(HciError::Status(_, NO_SUCH_LINK)) => return Ok(()),
+        Err(HciError::Status(_, NO_SUCH_LINK)) => {
+            host.link_gone(handle);
+            return Ok(());
+        }
         Err(e) => return Err(e),
     }
     for _ in 0..POLL_BUDGET {
