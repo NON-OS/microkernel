@@ -23,6 +23,7 @@ mod cdclk_tests;
 mod cursor_tests;
 mod ddb_tests;
 mod ddc;
+mod ddc_sink;
 mod dmc_tests;
 mod dp;
 mod dp_board;
