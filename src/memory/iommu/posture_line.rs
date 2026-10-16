@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::query::capabilities;
 use super::unconfined::unconfined_grants;
 use crate::sys::serial::Line;
@@ -33,6 +32,7 @@ pub(super) fn posture_line() {
         .str(b", unconfined grants=")
         .dec(u64::from(unconfined_grants()))
         .str(super::dev_unconfined::posture_tail())
+        .str(super::dev_unremapped::posture_tail())
         .end();
 }
 
