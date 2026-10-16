@@ -34,6 +34,7 @@ pub struct Port {
     pub slot: Slot,
     pub dll: bool,
     pub no_cc: bool,
+    pub slot_cap: u32,
 }
 
 pub fn find(acpi: &mut Acpi, granted: &[OscGrant]) {
@@ -52,8 +53,8 @@ pub fn find(acpi: &mut Acpi, granted: &[OscGrant]) {
         let dll = read(f, cap + LINK_CAP, 4) & DLL_REPORTING != 0;
         let (button, power) = (slot_cap & ATTENTION_BUTTON != 0, slot_cap & POWER_CONTROLLER != 0);
         let no_cc = slot_cap & NO_COMMAND_COMPLETED != 0;
-        let mut p =
-            Port { bdf: f, cap, slot: Slot::new(button, power, Default::default()), dll, no_cc };
+        let slot = Slot::new(button, power, Default::default());
+        let mut p = Port { bdf: f, cap, slot, dll, no_cc, slot_cap };
         p.slot = Slot::new(button, power, super::poll::read(&p).unwrap_or_default());
         super::act::line(f).str(b": slot ").dec(u64::from(slot_cap >> 19)).str(b", taken").end();
         acpi.hotplug.native.ports.push(p);
