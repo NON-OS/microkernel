@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim;
+mod firmware;
 mod lookup;
 mod no_snoop;
 mod quiesce;
