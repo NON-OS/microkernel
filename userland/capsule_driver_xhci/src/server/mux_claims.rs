@@ -16,7 +16,7 @@
 //! Sharing a device between class drivers (slots/claims.rs): an interface
 //! claimed, the shared slot on a port asked for, and a slot given back by
 //! one sharer while another keeps it. A slot no interface of was claimed is
-//! given back as before.
+//! given back only by the driver that enabled it (slots/gate.rs).
 
 use nonos_libc::mk_pid_alive;
 
@@ -35,12 +35,12 @@ impl Mux {
         match (req.op, body) {
             (OP_CLAIM_INTERFACE, &[slot, port, interface]) => {
                 let live = self.addressed(self.virt.real(slot)).is_some();
-                let s = if live {
-                    self.share.claims.claim(slot, port, interface, pid)
-                } else {
-                    Err(E_INVAL)
-                };
-                reply_with_status(tx, req, s.err().unwrap_or(0));
+                if !live {
+                    reply_with_status(tx, req, E_INVAL);
+                } else if !self.police(req, body, pid, tx) {
+                    let s = self.share.claims.claim(slot, port, interface, pid);
+                    reply_with_status(tx, req, s.err().unwrap_or(0));
+                }
             }
             (OP_SLOT_OF_PORT, &[port]) => match self.share.claims.on_port(port) {
                 Some((slot, held)) => super::mux_shared_reply::slot_of_port(tx, req, slot, held),
@@ -48,9 +48,14 @@ impl Mux {
             },
             (OP_CLAIM_INTERFACE | OP_SLOT_OF_PORT, _) => reply_with_status(tx, req, E_INVAL),
             (OP_DISABLE_SLOT, &[slot]) => {
+                // A slot nobody claimed is its holder's alone to give back.
+                if self.police(req, body, pid, tx) {
+                    return true;
+                }
                 match self.share.claims.release(slot, pid, |p| mk_pid_alive(p)) {
                     Release::Unclaimed | Release::Last => {
                         self.share.owners.forget(slot);
+                        self.share.holders.forget(slot);
                         return false;
                     }
                     Release::Kept => {
