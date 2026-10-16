@@ -44,7 +44,11 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
         if due {
             *at = now;
         }
-        due && self.poll_plugs()
+        let moved = due && self.poll_plugs();
+        if due {
+            self.poll_caps();
+        }
+        moved
     }
 
     /// One poll of the lines, unpaced; whether any output moved.

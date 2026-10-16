@@ -22,6 +22,7 @@ mod brightness;
 mod brightness_ops;
 mod brightness_source;
 mod brightness_wire;
+mod caps_poll;
 mod copy;
 mod cursor;
 mod ddc_bus;

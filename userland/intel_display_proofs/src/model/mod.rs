@@ -32,6 +32,7 @@ pub mod irq_hw;
 pub mod latch;
 pub mod mccs;
 pub mod mccs_aux;
+pub mod mccs_caps;
 pub mod mccs_reply;
 pub mod mmio;
 pub mod pipe_hw;

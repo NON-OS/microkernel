@@ -27,7 +27,7 @@ use super::vcp_wire::Controls;
 use crate::ddc::error::DdcError;
 use crate::ddc::pace::Pacer;
 use crate::ddc::reply::Reading;
-use crate::ddc::transact;
+use crate::ddc::{transact, transact_write};
 use crate::engine::access::{Clock, Mmio};
 
 impl<M: Mmio, F: Frames, C: Clock> Controls for Intel<M, F, C> {
@@ -48,7 +48,7 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
 
     pub fn vcp_write(&mut self, output: u16, code: u8, value: u16) -> Result<(), Errno> {
         let o = output as usize;
-        self.on_bus(output, |b, c, p| transact::write(b, c, slot(p, o)?, code, value))
+        self.on_bus(output, |b, c, p| transact_write::write(b, c, slot(p, o)?, code, value))
     }
 }
 
@@ -59,9 +59,9 @@ fn slot(p: &mut [Pacer], o: usize) -> Result<&mut Pacer, DdcError> {
 
 pub(super) fn errno(e: DdcError) -> Errno {
     match e {
-        DdcError::NotAllowed | DdcError::ReadOnly => EPERM,
+        DdcError::NotAllowed => EPERM,
         DdcError::Value => EINVAL,
-        DdcError::Unsupported | DdcError::Absent => ENOSYS,
+        DdcError::Unsupported | DdcError::Absent | DdcError::NoCapabilities => ENOSYS,
         DdcError::NoClock => ETIMEDOUT,
         DdcError::Bus | DdcError::Length | DdcError::Checksum | DdcError::Reply => EIO,
     }
