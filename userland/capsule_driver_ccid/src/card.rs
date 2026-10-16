@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 
 use nonos_libc::{mk_idle_ms, Deadline};
 
-use crate::ccid::{answers, command, exchange, reply, Outcome, HEADER};
+use crate::ccid::{answers, command, exchange, reply, served, Outcome, HEADER};
 use crate::device::Dev;
 use crate::wire::{E_INVAL, E_IO, E_NODEV};
 
@@ -36,7 +36,7 @@ pub type Fault = (i32, Option<[u8; 2]>);
 
 pub fn ask(d: &mut Dev, kind: u8, slot: u8, data: &[u8]) -> Result<(Vec<u8>, u8), Fault> {
     let Some(r) = d.port().map(|p| p.r) else { return Err((E_NODEV, None)) };
-    if slot > r.max_slot || HEADER + data.len() > r.max_message {
+    if !served(slot, r.max_slot) || HEADER + data.len() > r.max_message {
         return Err((E_INVAL, None));
     }
     let Some(mut bus) = d.bus() else { return Err((E_NODEV, None)) };

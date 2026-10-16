@@ -21,7 +21,7 @@
 
 use super::notice::changed;
 
-/// Slots past this are served but not remembered; readers have one or two.
+/// The slots remembered; readers have one or two.
 pub const SLOTS: u8 = 64;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
