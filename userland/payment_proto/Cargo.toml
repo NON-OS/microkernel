@@ -12,5 +12,8 @@ publish = false
 license = "AGPL-3.0"
 description = "The meter's ops, bodies and statuses, no_std"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 crate-type = ["rlib"]

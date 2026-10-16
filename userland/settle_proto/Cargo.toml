@@ -11,6 +11,9 @@ publish = false
 license = "AGPL-3.0"
 description = "capsule_nox_settle's ops and bodies, no_std"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 crate-type = ["rlib"]
 
