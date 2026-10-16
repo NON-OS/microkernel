@@ -27,9 +27,6 @@ mod links;
 mod probe;
 mod say;
 mod serve;
-#[cfg(feature = "realtek")]
-mod files;
-mod vendor;
 
 pub use desk::Desk;
 pub use drive::run;

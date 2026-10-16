@@ -26,7 +26,6 @@ use super::env::CapsuleEnv;
 use super::finder::Finder;
 use super::links::links;
 use super::say::{reason, say};
-use super::vendor::vendor;
 use crate::link::Private;
 use crate::usb::Bound;
 use nonos_bt_bond::LocalIrk;
@@ -58,14 +57,14 @@ pub fn run() -> ! {
 /// Bring-up, then links one after another; the error that ended it.
 fn controller(b: Bound, irk: &LocalIrk, env: &mut CapsuleEnv) -> HciError {
     let mut host = Host::new(UsbHci::new(b.pipes, &b.iface, ACL_FIRST));
-    let c = match vendor(&mut host).and_then(|()| host.bring_up()) {
+    let c = match host.bring_up() {
         Ok(c) => c,
         Err(e) => return e,
     };
     host.transport().set_acl_max(c.acl_len);
-    // An all-zero address is a controller still waiting for a vendor's
-    // setup this host does not have; it also could not stand for this
-    // host in pairing (Vol 3, Part H, 2.2.7).
+    // An all-zero address is a controller still waiting for its vendor's
+    // setup, which this host does not do (letter E-12); it also could not
+    // stand for this host in pairing (Vol 3, Part H, 2.2.7).
     if c.addr.0 == [0; 6] {
         return HciError::NotBluetooth;
     }

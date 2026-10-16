@@ -47,7 +47,6 @@ pub fn reason(e: &HciError) -> &'static [u8] {
         HciError::Timeout(_) => b"controller stopped answering",
         HciError::Status(..) => b"controller refused a command",
         HciError::NoLe | HciError::NotBluetooth => b"not an LE controller this host can drive",
-        HciError::Vendor => b"its vendor's setup was not done",
         _ => b"controller sent something malformed",
     }
 }

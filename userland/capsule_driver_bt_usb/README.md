@@ -6,9 +6,8 @@ needs B-43 applied to `capsule_driver_xhci` first (below).
 ## Role
 
 `capsule_driver_bt_usb` is a Bluetooth LE host for USB controllers. It
-finds a controller on driver.xhci0's ports, patches it first if it is a
-Realtek chip that needs it (below), brings it up with standard HCI
-commands, finds a HID keyboard or mouse with a passive scan, pairs
+finds a controller on driver.xhci0's ports, brings it up with standard HCI
+commands only, finds a HID keyboard or mouse with a passive scan, pairs
 with LE Secure Connections, and posts the device's input exactly as
 driver.usb_hid0 posts a USB keyboard's and mouse's.
 
@@ -46,59 +45,7 @@ logs `controller not usable: ACL endpoints refused`.
 | `hid` | Input posting. `capsule_driver_usb_hid`'s own keymap, key event, repeat and posting files are compiled here, so a Bluetooth key is posted with the same code, flags, layout and repeat as a USB one. |
 | `ring` | The bond store's `Keys` over the keyring: OP_STORE, OP_RETRIEVE, OP_DELETE and OP_LIST (L33), with the layouts `capsule_keyring` reads. Its request and answer layouts are pure, so the proofs run them. |
 | `nbtc` | NBTC v1, the protocol driver.bt_usb0 answers (below): the frame, who may ask what, and the board it reads and changes. Pure, so the proofs run all of it. |
-| `rtl` | A Realtek controller's setup: its ROM matched, its patch and config read and checked against pinned SHA-256s, the image downloaded in fragments. Pure, so the proofs run it against a model ROM. |
-| `run` | The clock, log and random source; the vendor files built in (feature `realtek`); the desk, whose every wait answers NBTC; the bond store opened; finding the controller on the ports, and the loop of links. |
-
-## Realtek controllers
-
-Before bring-up resets anything, the capsule asks Read Local Version
-Information (Vol 4, Part E, 7.4.1). A controller whose company is
-Realtek's (0x005D) and whose HCI version, HCI revision and LMP subversion
-are one of these ROMs is patched:
-
-| Chip | ROM answer (LMP subversion, HCI revision, HCI version) | Patch | Config |
-|---|---|---|---|
-| RTL8723B | 8723, 000B, 06 | rtl8723b_fw.bin | rtl8723bs_config.bin |
-| RTL8723D | 8723, 000D, 08 | rtl8723d_fw.bin | rtl8821c_config.bin (needed) |
-| RTL8821A | 8821, 000A, 06 | rtl8821a_fw.bin | rtl8821c_config.bin |
-| RTL8821C | 8821, 000C, 08 | rtl8821c_fw.bin | rtl8821c_config.bin |
-| RTL8761A | 8761, 000A, 06 | rtl8761a_fw.bin | rtl8761bu_config.bin |
-| RTL8761BU | 8761, 000B, 0A | rtl8761bu_fw.bin | rtl8761bu_config.bin |
-| RTL8822B | 8822, 000B, 07 | rtl8822b_fw.bin | rtl8822b_config.bin (needed) |
-
-All seven are in the first patch file layout ("Realtech"). The second
-("RTBTCore": RTL8822CU, RTL8852A, B, BT and C, RTL8851B) is not taken;
-such a controller matches no row and is brought up on its ROM.
-
-1. Read ROM Version (vendor command 0xFC6D) gives one octet, the ROM
-   version.
-2. The patch file and the config are the capsule's own embedded copies.
-   Each must have exactly the length and SHA-256 pinned in `rtl/pins.rs`
-   and `rtl/pins_config.rs`, or it is refused and nothing is sent. The
-   patch file must also name the chip's project in its extension block.
-3. The image: the patch whose chip id is the ROM version plus one, the
-   file's firmware version in its last four octets, then the config.
-4. The image goes in Download commands (0xFC20) of 252 octets at most,
-   each with an index octet that counts 0 to 7F and then from 1, bit 7
-   set on the last.
-5. Read Local Version again: a running patch answers another LMP
-   subversion. A controller still answering as its ROM is given back.
-
-A patch survives Reset, so the standard bring-up follows as on any
-controller. A controller already patched (a capsule restart) answers
-another subversion, matches no ROM, and is not patched again. Any other
-company's controller is asked nothing more.
-
-The files are built into the capsule with `include_bytes!`, so its seal
-covers them, and only with the cargo feature `realtek`, which is off. They
-are linux-firmware's `rtl_bt/` files at tag 20260916 (commit
-ab23307cfe7f9366c819025ca3e4778299bc2db2), under
-`LICENSES/LICENCE.rtlwifi_firmware.txt`: redistribution in binary form,
-the eleven files to `nonos-bootloader/firmware/rtl_bt/` (Decision 19),
-then builds with `--features realtek`. `build.rs` refuses the build if a
-file is missing or is not its pin, or if `run/files.rs` embeds a file the
-pins do not name; the pins are checked again before each download.
-Without the feature, a Realtek controller is brought up on its ROM.
+| `run` | The clock, log and random source; the desk, whose every wait answers NBTC; the bond store opened; finding the controller on the ports, and the loop of links. |
 
 ## A link
 
@@ -162,10 +109,6 @@ next look waits 30 s.
 
 ## Log
 
-`Realtek RTL8821C patched with rtl8821c_fw.bin`, or `Realtek setup: `
-and the file and reason when it was not (not built in, not the pinned
-file, no patch for this ROM, refused, not running).
-
 `bt-usb:` lines: `bonds last for this boot only (Decision 27)`, where
 bonds are kept, `started`, `controller up`, `connected`, the passkey to
 type, `paired`, `bond kept`, `encrypted with the kept bond`, `HID ready: keyboard mouse`,
@@ -212,10 +155,10 @@ sees places in the bond list, never addresses.
 
 ## Contract
 
-Caps `0x10200038` (IPC, Memory, Crypto, Debug, Keyring).
-Crypto is what the CryptoRandom syscall is gated on; pairing draws its key
-pair and nonces there, and the capsule stops if a draw fails. It has no
-filesystem authority: the Realtek files are built in. Keyring is for its bonds and its own IRK. Service `driver.bt_usb0` on
+Caps `0x10200038` (IPC, Memory, Crypto, Debug, Keyring). Crypto is what
+the CryptoRandom syscall is gated on; pairing draws its key pair and
+nonces there, and the capsule stops if a draw fails. Keyring is for its
+bonds and its own IRK. Service `driver.bt_usb0` on
 port 4342, reply port 4343 (`endpoint.4294967368`), from track E's range;
 it answers NBTC v1 (above).
 Proofs: `userland/bt_usb_proofs`.
@@ -256,8 +199,8 @@ endpoint and 0x000E to read it.
 ## Authority
 
 ```text
-allowed:   HCI over USB, a Realtek patch download from pinned files built in (feature `realtek`), L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events, NBTC to Settings and the shell
-forbidden: xHCI ownership, USB scheduling, DMA buffers, firmware not pinned, filesystem access, BR/EDR, keys anywhere but this process and its own keyring records
+allowed:   HCI over USB, L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events, NBTC to Settings and the shell
+forbidden: xHCI ownership, USB scheduling, DMA buffers, vendor firmware, BR/EDR, keys anywhere but this process and its own keyring records
 ```
 
 ## Privacy and persistence
@@ -288,9 +231,7 @@ Every wait is bounded: a command by the HCI poll budget, a scan by 10 s,
 pairing and ATT by their 30 s timers. Data from the peer that does not
 parse costs that PDU only. A refused pairing, a refused key, a silent
 peripheral or a hardware error ends the link with Disconnect and a 30 s
-pause. A failed USB transfer gives the controller back. So does a Realtek
-controller whose files are not their pins; its port is tried again, and
-every port is looked at afresh once a minute. A failed random
+pause. A failed USB transfer gives the controller back. A failed random
 draw stops the capsule rather than pair with guessable keys.
 
 ## Current implemented surface
@@ -320,8 +261,7 @@ endpoint contexts, rings and DMA.
 ## Operating rules
 
 - Keep USB transfer mechanics in driver.xhci0.
-- Send no vendor command but Realtek's setup, and send no file that is
-  not exactly its pin.
+- Send no vendor command; a controller that needs one is refused.
 - Pair with LE Secure Connections only; never fall back to legacy pairing.
 - Read the HID service only on an encrypted link.
 - Bound every length the controller or the peer sends before using it.
@@ -336,7 +276,7 @@ Typing in an application with a Bluetooth keyboard, after pairing once.
 
 ## Release evidence
 
-Build and host-proof evidence only so far (bt_usb_proofs, 123 tests, with
+Build and host-proof evidence only so far (bt_usb_proofs, 91 tests, with
 the HCI, SMP and HOGP proofs underneath). Runtime evidence needs B-43 in
 driver.xhci0, the kernel spawn, and a real controller and keyboard: none
 is on main yet.
@@ -354,14 +294,12 @@ is on main yet.
 ## Explicit non-goals today
 
 BR/EDR (Classic) devices, more than one device at a time, Report Protocol
-(media keys, wheels, absolute pointers), vendor setup other than
-Realtek's first-layout chips (Intel, MediaTek, Broadcom, Realtek's
-RTBTCore chips), and
+(media keys, wheels, absolute pointers), vendor firmware loading, and
 bonds kept past this boot. The pairing dialog is Settings', over NBTC.
 
 ## Verification
 
 `cd userland/bt_usb_proofs && RUST_TEST_THREADS=1 cargo test --release`
-(123 pass at the time of writing); the capsule's `cargo build --release`
+(91 pass at the time of writing); the capsule's `cargo build --release`
 and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on
 hardware.
