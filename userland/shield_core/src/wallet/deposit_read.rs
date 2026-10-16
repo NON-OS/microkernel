@@ -7,6 +7,9 @@
 mod abi;
 #[path = "deposit_read_checked.rs"]
 mod checked;
+#[cfg(feature = "fuzzing")]
+#[path = "deposit_read_fuzz.rs"]
+pub mod fuzz;
 #[path = "deposit_read_selectors.rs"]
 mod selectors;
 #[path = "deposit_read_shape.rs"]
