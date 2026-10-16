@@ -1,7 +1,7 @@
 # NONOS Operating System
 # Copyright (C) 2026 NONOS Contributors
 #
-# Extraction root mirroring src/drivers/pci/types/msi.rs and msi_message.rs. The kernel source is included with
+# Extraction root mirroring src/drivers/pci/types/msi.rs. The kernel source is included with
 # #[path], never copied, so Charon reads the MIR rustc compiles.
 [package]
 name = "nonos_x_drivers_pci_types_msi"
