@@ -54,6 +54,8 @@ pub trait Link {
     fn wait_us(&mut self, us: u32);
     /// Take the port down after a failed attempt.
     fn stop(&mut self);
+    /// Microseconds on the source's clock, None when it has none.
+    fn now_us(&self) -> Option<u64>;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

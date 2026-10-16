@@ -24,12 +24,15 @@ use super::dpcd::{rate_code, LINK_BW_SET, MAIN_LINK_CHANNEL_CODING_SET, TRAINING
 use super::lane::Drive;
 pub use super::link::{Link, Pattern, Source, TrainError, Trained};
 use super::native::write;
+use super::train_budget::Budget;
 use super::{train_cr, train_eq};
 
 const RATES: [u32; 4] = [8100, 5400, 2700, 1620];
 
 /// Train at the best rate and width both ends allow (`max` the source's).
 pub fn train(s: &mut dyn Source, caps: &Caps, max: (u32, u32)) -> Result<Trained, TrainError> {
+    let start = s.now_us();
+    let s = &mut Budget { s, start };
     let lanes_top = caps.max_lanes.min(max.1);
     for lanes in [4, 2, 1].into_iter().filter(|&l| l <= lanes_top) {
         for mbps in RATES.into_iter().filter(|&r| r <= caps.max_rate_mbps.min(max.0)) {
