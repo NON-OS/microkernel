@@ -16,6 +16,7 @@
 
 mod constants;
 mod drain;
+mod on_tick;
 mod refresh_clock;
 mod run;
 pub(crate) mod tick;
