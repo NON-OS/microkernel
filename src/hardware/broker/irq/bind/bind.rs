@@ -44,11 +44,18 @@ pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError
         return Err(IrqBindError::StaleEpoch);
     }
 
-    if req.flags & BIND_MSIX != 0 {
+    let bound = if req.flags & BIND_MSIX != 0 {
         bind_msix(pid, req, claim.epoch)
     } else if req.flags & BIND_MSI != 0 {
         bind_msi(pid, req, claim.epoch)
     } else {
         bind_intx(pid, req, claim.epoch)
+    }?;
+    // Entered before the claim's release took its grants, or undone here
+    // (K10): a release since the check above leaves no binding behind.
+    if claim::record_while_held(pid, req.device_id, claim.epoch, || ()).is_none() {
+        crate::hardware::broker::irq::release_for_device(pid, req.device_id);
+        return Err(IrqBindError::StaleEpoch);
     }
+    Ok(bound)
 }
