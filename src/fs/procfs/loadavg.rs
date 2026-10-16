@@ -22,6 +22,11 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::loadavg_math::{fold, ONE, WEIGHTS};
 
+/// Bits kept below the published scale (L63): each sample moves the 15-minute
+/// average by about 1/186 of a unit there, so rounded at that scale a periodic
+/// load settled up to a quarter short of its mean.
+const EXTRA_BITS: u32 = 16;
+
 static LOAD_1: AtomicU64 = AtomicU64::new(0);
 static LOAD_5: AtomicU64 = AtomicU64::new(0);
 static LOAD_15: AtomicU64 = AtomicU64::new(0);
@@ -40,11 +45,9 @@ pub fn get_load_averages() -> (f64, f64, f64) {
 }
 
 pub fn load_averages_fixed() -> [u64; 3] {
-    [
-        LOAD_1.load(Ordering::Relaxed),
-        LOAD_5.load(Ordering::Relaxed),
-        LOAD_15.load(Ordering::Relaxed),
-    ]
+    let half = 1 << (EXTRA_BITS - 1);
+    let publish = |a: &AtomicU64| (a.load(Ordering::Relaxed) + half) >> EXTRA_BITS;
+    [publish(&LOAD_1), publish(&LOAD_5), publish(&LOAD_15)]
 }
 
 fn get_process_counts() -> (usize, usize) {
@@ -54,7 +57,7 @@ fn get_process_counts() -> (usize, usize) {
 
 /// Fold one sample of the runnable count into each window's average.
 pub fn update_load_averages() {
-    let now = crate::sched::get_runnable_count() as u64 * ONE;
+    let now = (crate::sched::get_runnable_count() as u64 * ONE) << EXTRA_BITS;
     for (avg, w) in [&LOAD_1, &LOAD_5, &LOAD_15].into_iter().zip(WEIGHTS) {
         avg.store(fold(avg.load(Ordering::Relaxed), w, now), Ordering::Relaxed);
     }

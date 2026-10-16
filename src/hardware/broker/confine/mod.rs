@@ -31,6 +31,7 @@ mod map_fail;
 mod posture;
 mod reserve;
 mod reserved_rule;
+mod unreserve;
 mod table;
 mod unconfined;
 
