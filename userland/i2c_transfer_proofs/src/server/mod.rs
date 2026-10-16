@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The shipping IPC handler for transfers and the reply path it uses. The
-//! runner that receives requests is not included: it is the loop around
-//! these, and the tests call them directly.
+//! The shipping IPC handlers and the reply path they use. The runner that
+//! receives requests is not included: it is the loop around these, and the
+//! tests call them directly.
 
 pub mod handlers;
 #[path = "../../../capsule_driver_i2c_pci/src/server/respond.rs"]

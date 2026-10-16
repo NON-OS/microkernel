@@ -25,18 +25,21 @@ use super::drain_rx::drain_rx;
 use super::fill::fill;
 
 /// Run one transfer on an enabled core addressed to its target: feed the
-/// FIFO, drain what comes back, and end on completion, an abort or the
-/// transfer's time budget, whichever comes first.
-pub fn run(driver: &Driver, req: TransferRequest<'_>) -> Result<TransferResult, TransferError> {
+/// FIFO, drain what comes back into `out`, and end on completion, an abort
+/// or the transfer's time budget, whichever comes first.
+pub fn run(
+    driver: &Driver,
+    req: TransferRequest<'_>,
+    out: &mut TransferResult,
+) -> Result<(), TransferError> {
     let regs = driver.regs;
-    let mut out = TransferResult::empty();
     let total = req.write.len() + req.read_len;
     let (mut wi, mut ri, mut ci) = (0usize, 0usize, 0usize);
     let mut pace = Pace::new(budget_ms(total));
     loop {
-        check_abort(regs, &mut out)?;
+        check_abort(regs, out)?;
         let before = (ri, ci);
-        drain_rx(regs, &mut out, &mut ri, req.read_len);
+        drain_rx(regs, out, &mut ri, req.read_len);
         fill(driver, &req, &mut wi, &mut ci, ri);
         if ci >= total && ri >= req.read_len && done(regs) {
             /*
@@ -45,9 +48,9 @@ pub fn run(driver: &Driver, req: TransferRequest<'_>) -> Result<TransferResult, 
              * and it can land between the check at the top of this loop and
              * here, so it is checked again before the result is trusted.
              */
-            check_abort(regs, &mut out)?;
+            check_abort(regs, out)?;
             out.read_len = ri;
-            return Ok(out);
+            return Ok(());
         }
         if (ri, ci) != before {
             pace.moved();

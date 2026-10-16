@@ -22,7 +22,7 @@ use alloc::vec;
 
 use nonos_libc::{mk_ipc_recv_from, recv_ready, Deadline};
 
-use crate::protocol::{parse, refused, E_BUSY, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX};
+use crate::protocol::{parse, refused, wipe, E_BUSY, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX};
 use crate::server::respond;
 
 const SERVICE_INBOX: u64 = 0;
@@ -43,13 +43,19 @@ pub(super) fn answer_busy_for(ms: u64) {
             RECV_SLICE_MS.min(ms),
             &mut sender_pid,
         );
-        if !recv_ready(n) || sender_pid == 0 {
+        if !recv_ready(n) {
             continue;
         }
-        let msg = &rx[..n as usize];
-        let _ = match parse(msg) {
-            Some((req, _)) => respond::send(sender_pid, &req, E_BUSY, &[], &mut tx),
-            None => respond::send(sender_pid, &refused(msg), E_INVAL, &[], &mut tx),
-        };
+        // Clamped, so the wipe below covers the request whatever n says.
+        let got = (n as usize).min(rx.len());
+        let msg = &mut rx[..got];
+        if sender_pid != 0 {
+            let _ = match parse(msg) {
+                Some((req, _)) => respond::send(sender_pid, &req, E_BUSY, &[], &mut tx),
+                None => respond::send(sender_pid, &refused(msg), E_INVAL, &[], &mut tx),
+            };
+        }
+        // Nothing of the request stays once it is handled (plan/50 C8).
+        wipe(msg);
     }
 }
