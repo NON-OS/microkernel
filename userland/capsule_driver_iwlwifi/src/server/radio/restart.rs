@@ -39,16 +39,16 @@ pub(super) struct Restart {
 }
 
 impl Radio {
-    /// The firmware raised its error cause at `now`: stop it and note the
-    /// link lost, then wait to restart it, or stay down once the tries are
-    /// spent.
-    pub(super) fn firmware_failed(&mut self, now: u64) {
+    /// The firmware failed at `now` (`why`: it raised its error cause, or
+    /// stopped answering commands): stop it and note the link lost, then
+    /// wait to restart it, or stay down once the tries are spent.
+    pub(super) fn firmware_failed(&mut self, now: u64, why: Failure) {
         let State::Up(up) = &self.state else { return };
         stop_device(up.dev.m, &mut Uptime);
         let (rig, addr, restarts) = (up.rig, up.addr, up.restarts);
         self.master_off();
         self.after_firmware_stopped();
-        self.wait_or_stay_down(Restart { rig, addr, at_ms: now, restarts }, Failure::Lost, now);
+        self.wait_or_stay_down(Restart { rig, addr, at_ms: now, restarts }, why, now);
     }
 
     /// The joined link ends, its queues and inbox start afresh, and the

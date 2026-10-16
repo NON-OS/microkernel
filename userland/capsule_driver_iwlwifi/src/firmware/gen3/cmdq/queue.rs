@@ -16,15 +16,17 @@
 
 //! The command queue's write pointer, and a command sent on it.
 
-use super::super::plan::{CMD_BUF, CMD_RING, CMD_TFDS, FIRST_TBS, FIRST_TB_SLOT, TFD_SIZE};
-use super::super::region::{zero, Region};
+use super::super::plan::{CMD_BUF, CMD_RING};
+use super::super::region::Region;
 use super::super::regs::HBUS_TARG_WRPTR;
 use super::sizes::{QUEUE, WIDE_HDR};
 use super::write::{header, write_command};
 use crate::regs::Mmio;
 
 pub struct CmdQueue {
-    write_ptr: u16,
+    pub(super) write_ptr: u16,
+    /// The sequence of the command sent and not yet answered.
+    pub(super) in_flight: Option<u16>,
 }
 
 impl Default for CmdQueue {
@@ -35,18 +37,15 @@ impl Default for CmdQueue {
 
 impl CmdQueue {
     pub const fn new() -> Self {
-        Self { write_ptr: 0 }
-    }
-
-    /// Clear the descriptor ring and the first-buffer slots.
-    pub fn init<R: Region + ?Sized>(&mut self, ctrl: &R) -> bool {
-        self.write_ptr = 0;
-        zero(ctrl, CMD_TFDS, CMD_RING * TFD_SIZE) && zero(ctrl, FIRST_TBS, CMD_RING * FIRST_TB_SLOT)
+        Self { write_ptr: 0, in_flight: None }
     }
 
     /// Queue command `cmd` of `group` (version `version`, usually 0) with
     /// `payload`, ring the doorbell, and return the sequence its reply will
-    /// carry. `None` if the command does not fit the command buffer.
+    /// carry. `None` if the command does not fit the command buffer. The
+    /// caller sends only while nothing is in flight (`busy`) and marks what
+    /// it sent (`mark`): the command buffer is one, and the device may still
+    /// read it for a command that was never answered.
     pub fn send<M: Mmio, R: Region + ?Sized>(
         &mut self,
         m: &M,
