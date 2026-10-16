@@ -46,4 +46,13 @@ impl ProcessControlBlock {
         mem.resident_pages.fetch_add(pages as u64, Ordering::Relaxed);
         Ok(va)
     }
+
+    /* Give back a window from `reserve_vma` whose mapping failed. */
+    pub fn unreserve_vma(&self, start: VirtAddr, length: usize) {
+        let mut mem = self.memory_state();
+        if let Some(at) = mem.vmas.iter().position(|v| v.start == start) {
+            mem.vmas.remove(at);
+            mem.resident_pages.fetch_sub(length.div_ceil(4096) as u64, Ordering::Relaxed);
+        }
+    }
 }
