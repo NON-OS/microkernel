@@ -39,9 +39,25 @@ pub fn loses_config(from: DState, to: DState, pmcsr: Option<u16>) -> bool {
     }
 }
 
-/// The same for a claimed function, whose configuration the broker puts
-/// back once it is in D0 again (L62): only D3cold still loses it, since
-/// that takes the link and what the bridge above holds for it too.
+/// The same for a claimed function the kernel puts back once it is in D0
+/// again (MkAcpiRestoreFunction over L62's restore): only D3cold still
+/// loses it, since that takes the link and the bridge's part too.
 pub fn loses_config_claimed(from: DState, to: DState) -> bool {
     from != to && to == DState::D3Cold
+}
+
+/// What DEVICE_POWER refuses a claimed function: the claimed rule while the
+/// kernel offers its restore call, the plain rule while it does not.
+pub fn refused(from: DState, to: DState, pmcsr: Option<u16>, restorable: bool) -> bool {
+    if restorable {
+        loses_config_claimed(from, to)
+    } else {
+        loses_config(from, to, pmcsr)
+    }
+}
+
+/// A move after which the kernel must put the BARs back before the holder
+/// touches the function: into D0 from D3hot or D3cold.
+pub fn needs_restore(from: DState, to: DState) -> bool {
+    to == DState::D0 && matches!(from, DState::D3Hot | DState::D3Cold)
 }

@@ -35,6 +35,7 @@ pub mod first_pass;
 pub mod osc;
 pub mod pci_depart;
 pub mod pci_probe;
+pub mod pci_restore;
 pub mod platform;
 pub mod ports;
 pub mod reserved;
