@@ -29,7 +29,8 @@ pub fn flags(rpc: &mut Rpc, chain_id: u64, addr: &[u8; 20]) -> Result<bool, i32>
     let nox = address(chain_id, Contract::NoxToken).map_err(|_| ENOENT)?;
     let data = |id| view(id).and_then(|v| view_calldata(v, &[addr_word(addr)])).ok_or(EINVAL);
     match eth_calls(rpc, chain_id, &[(nox, data(3)?), (nox, data(4)?)]) {
-        Ok(r) => Ok(word_bool(&r[0]) == Some(true) && word_bool(&r[1]) == Some(false)),
+        Ok(r) => Ok(matches!(r.as_slice(), [exempt, listed]
+            if word_bool(exempt) == Some(true) && word_bool(listed) == Some(false))),
         Err(EPROTO) => Ok(false),
         Err(e) => Err(e),
     }

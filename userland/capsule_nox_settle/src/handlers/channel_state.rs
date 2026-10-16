@@ -36,15 +36,17 @@ pub fn channel_state(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
     let data = |v| view(v).and_then(|x| view_calldata(x, &[ch.id])).ok_or(EINVAL);
     let calls = [(at, data(10)?), (at, data(11)?), (at, data(12)?), (at, data(13)?)];
     let r = eth_calls(&mut s.rpc, ch.chain_id, &calls)?;
+    let [deposited, settled, expiry, closed] = r.as_slice() else { return Err(EPROTO) };
     let again = eth_calls_at(&mut s.rpc, ch.chain_id, &calls[1..2], true)?;
-    if again[0] != r[1] {
+    let [again] = again.as_slice() else { return Err(EPROTO) };
+    if again != settled {
         return Err(EIO);
     }
     let state = ChannelState {
-        deposited: word_u128(&r[0]).ok_or(EPROTO)?,
-        settled: word_u128(&r[1]).ok_or(EPROTO)?,
-        expiry: word_u64(&r[2]).ok_or(EPROTO)?,
-        closed: word_bool(&r[3]).ok_or(EPROTO)?,
+        deposited: word_u128(deposited).ok_or(EPROTO)?,
+        settled: word_u128(settled).ok_or(EPROTO)?,
+        expiry: word_u64(expiry).ok_or(EPROTO)?,
+        closed: word_bool(closed).ok_or(EPROTO)?,
     };
     Ok(state.encode().to_vec())
 }
