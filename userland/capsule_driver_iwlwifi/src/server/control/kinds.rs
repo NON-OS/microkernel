@@ -51,8 +51,6 @@ pub struct View<'a> {
     pub stage: u8,
     pub step: u8,
     pub detail: u32,
-    pub hw_rev: u32,
-    pub rf_id: u32,
     /// `Some` while the firmware is up and scanning.
     pub heard: Option<Heard<'a>>,
 }
