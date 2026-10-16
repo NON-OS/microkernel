@@ -2,6 +2,8 @@
 //! One HBA port as the driver sees it through its registers.
 
 use super::drive::Drive;
+use super::hba_addr::Pointers;
+use super::hba_global::Global;
 use super::quirks::Quirks;
 use super::script::Step;
 use super::state::{Count, PortRegs, Times};
@@ -20,6 +22,12 @@ pub struct Hba {
     /// Slot 0's command FIS went to the drive.
     pub(super) sent: bool,
     pub(super) at: Times,
+    /// The HBA around the port (`hba_global`); none for a bare port at 0.
+    pub global: Option<Global>,
+    /// PxFB, and where PxCLB and PxFB pointed as each engine went on.
+    pub ptr: Pointers,
+    /// The HBA's CAP.S64A, as `hba_ports` passes it on (`fetch::reach`).
+    pub(super) wide: bool,
 }
 
 impl Hba {
@@ -27,10 +35,11 @@ impl Hba {
     pub fn new(clb: u64, script: Vec<Step>) -> Self {
         let (reg, drive) = (PortRegs::idle(), Drive::new(script));
         let (quirks, count, at) = (Quirks::default(), Count::default(), Times::default());
-        Self { reg, clb, drive, quirks, count, sent: false, at }
+        let ptr = Pointers::default();
+        Self { reg, clb, drive, quirks, count, sent: false, at, global: None, ptr, wide: true }
     }
 
-    pub fn read(&mut self, off: u32) -> u32 {
+    pub(super) fn read_port(&mut self, off: u32) -> u32 {
         self.advance();
         let r = &self.reg;
         match off {
@@ -43,11 +52,11 @@ impl Hba {
             PORT_SSTS => r.ssts,
             PORT_SERR => r.serr,
             PORT_SIG => SIG_SATA,
-            _ => 0,
+            _ => self.read_addr(off),
         }
     }
 
-    pub fn write(&mut self, off: u32, v: u32) {
+    pub(super) fn write_port(&mut self, off: u32, v: u32) {
         self.advance();
         match off {
             // Write one to clear (AHCI 1.3.1, 3.3.5 and 3.3.12).
@@ -56,17 +65,8 @@ impl Hba {
             PORT_CI => self.issue(v),
             PORT_CMD => self.write_cmd(v),
             PORT_SCTL => self.write_sctl(v),
-            _ => {}
+            _ => self.write_addr(off, v),
         }
         self.advance();
-    }
-
-    fn issue(&mut self, v: u32) {
-        self.count.issued += 1;
-        if !self.running() {
-            self.count.issued_stopped += 1;
-        }
-        self.reg.ci |= v;
-        self.at.ci = Some(crate::clock::now());
     }
 }

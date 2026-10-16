@@ -1,9 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Host memory standing in for one DMA region, or for a port's registers.
+//! Host memory standing in for a port's registers, or a dead driver's frame.
 
 use std::alloc::{alloc_zeroed, dealloc, Layout};
-
-use crate::engine::region::DmaRegion;
 
 pub struct Block {
     ptr: *mut u8,
@@ -21,17 +19,6 @@ impl Block {
 
     pub fn addr(&self) -> u64 {
         self.ptr as u64
-    }
-
-    pub fn region(&self) -> DmaRegion {
-        DmaRegion::at(self.addr(), self.layout.size() as u64)
-    }
-
-    /// The first `n` bytes.
-    pub fn bytes(&self, n: usize) -> Vec<u8> {
-        assert!(n <= self.layout.size());
-        // SAFETY: the block is live and at least `n` long.
-        unsafe { std::slice::from_raw_parts(self.ptr, n) }.to_vec()
     }
 }
 

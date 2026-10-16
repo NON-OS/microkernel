@@ -22,8 +22,8 @@ impl Hba {
             return;
         }
         if self.running() && self.sent {
-            let moved = self.drive.move_data(&done, &fetch::slot(self.clb));
-            fetch::set_prdbc(self.clb, self.quirks.prdbc.unwrap_or(moved));
+            let moved = self.drive.move_data(&done, &fetch::slot(self.clb, self.wide));
+            fetch::set_prdbc(self.clb, self.wide, self.quirks.prdbc.unwrap_or(moved));
             (self.reg.ci, self.sent) = (self.reg.ci & !1, false);
         }
         self.reg.tfd = 0x50;
