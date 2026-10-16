@@ -16,6 +16,8 @@
  * enable trap delivers EL0 FP traps to the fail-closed path until per-
  * PCB FP slot ownership lands. */
 
+#include "epd1.h"
+
 .section .text.enter_user, "ax", %progbits
 
 .balign 16
@@ -81,6 +83,6 @@ aarch64_enter_user:
     ldp     x0,  x1,  [x0, #(32 + 0)]
 
     isb
-    eret
+    EXIT_TO_EL0
 
 .size aarch64_enter_user, . - aarch64_enter_user

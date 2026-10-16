@@ -13,6 +13,8 @@
  * ELR_EL1 write and the eret would overwrite it. eret restores SPSR.DAIF
  * for EL0. */
 
+#include "epd1.h"
+
 .section .text.resume_user, "ax", %progbits
 
 .balign 16
@@ -69,6 +71,6 @@ aarch64_resume_user:
     ldp     x0,  x1,  [x0, #0]
 
     isb
-    eret
+    EXIT_TO_EL0
 
 .size aarch64_resume_user, . - aarch64_resume_user
