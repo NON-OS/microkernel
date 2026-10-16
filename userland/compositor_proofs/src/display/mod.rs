@@ -22,6 +22,8 @@
 pub mod access_rule;
 #[path = "../../../compositor/src/display/access_wire.rs"]
 pub mod access_wire;
+#[path = "../../../compositor/src/display/arrange_wire.rs"]
+pub mod arrange_wire;
 #[path = "../../../compositor/src/display/backoff.rs"]
 pub mod backoff;
 #[path = "../../../compositor/src/display/colour_rule.rs"]

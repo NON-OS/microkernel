@@ -16,10 +16,11 @@
 
 //! The display wire as the compositor drives it (section 12).
 
-pub mod backoff;
-pub mod call;
 pub mod access_rule;
 pub mod access_wire;
+pub mod arrange_wire;
+pub mod backoff;
+pub mod call;
 pub mod colour_rule;
 pub mod cursor_rule;
 pub mod cvd_filter;
@@ -31,10 +32,10 @@ pub mod head_rule;
 pub mod hint_rule;
 pub mod indicator_rule;
 pub mod layout_rule;
-pub mod night_rule;
 pub mod link;
 pub mod m3;
 pub mod magnifier_rule;
+pub mod night_rule;
 pub mod ops;
 pub mod ops_mode;
 pub mod poll_rule;

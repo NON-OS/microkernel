@@ -38,3 +38,5 @@ pub const OP_NIGHT_LIGHT: u16 = 0x000E;
 pub const OP_ACCESSIBILITY: u16 = 0x000F;
 /// One output's accessibility settings as they are now.
 pub const OP_ACCESSIBILITY_GET: u16 = 0x0010;
+/// The displays as laid out now, for Settings through the shell.
+pub const OP_OUTPUT_ARRANGEMENT: u16 = 0x0011;
