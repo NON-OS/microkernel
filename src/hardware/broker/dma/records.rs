@@ -52,11 +52,18 @@ pub(super) fn remove(pid: u32, grant_id: u64) -> Result<DmaGrant, DmaError> {
     Ok(all.remove(idx))
 }
 
-/// Visit every live grant without waiting for the table: false, and nothing
-/// visited, when another CPU holds it. For the shutdown wipe only.
-pub(super) fn try_each(mut f: impl FnMut(&DmaGrant)) -> bool {
-    let Some(all) = RECORDS.try_lock() else {
-        return false;
+/// Visit every live grant, trying for the table while `again` says to: false,
+/// and nothing visited, when another CPU still holds it. For the shutdown
+/// wipe only.
+pub(super) fn try_each(mut f: impl FnMut(&DmaGrant), mut again: impl FnMut() -> bool) -> bool {
+    let all = loop {
+        if let Some(all) = RECORDS.try_lock() {
+            break all;
+        }
+        if !again() {
+            return false;
+        }
+        core::hint::spin_loop();
     };
     for g in all.iter() {
         f(g);
