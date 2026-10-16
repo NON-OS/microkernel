@@ -18,12 +18,14 @@
 //! the reports. It sends nothing itself; it keeps one request outstanding
 //! at a time, as a client must (Vol 3, Part F, 3.3.2).
 
+use super::boot::Boot;
 use super::charge::{Cell, Charge};
-use super::hid::{Hid, ReportIn};
+use super::hid::Hid;
 use super::phase::Phase;
+use super::report_in::ReportIn;
 use super::types::{Decl, Output, Source};
 use crate::report::map::Layout;
-use crate::report::{Keyboard, Locks, Mouse};
+use crate::report::Locks;
 use alloc::vec::Vec;
 
 pub struct Host {
@@ -44,8 +46,8 @@ pub struct Host {
     pub(super) layouts: Vec<Layout>,
     pub(super) inputs: Vec<ReportIn>,
     pub(super) locks: Locks,
-    pub(super) keyboard: Keyboard,
-    pub(super) mouse: Mouse,
+    /// Each boot report's own keys and buttons.
+    pub(super) boots: Vec<Boot>,
     pub(super) charge: Charge,
     /// Battery Service handle ranges.
     pub(super) banks: Vec<(u16, u16)>,
