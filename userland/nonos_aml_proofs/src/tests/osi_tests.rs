@@ -13,6 +13,9 @@ use crate::run::num;
 #[path = "osi_table_tests.rs"]
 mod table;
 
+#[path = "osi_sweep_tests.rs"]
+mod sweep;
+
 #[path = "opcode_table_tests.rs"]
 mod opcodes;
 
