@@ -233,8 +233,10 @@ fn a_packet_size_binds_only_when_it_holds_one_report_and_fits_an_interrupt_endpo
         for wmax in 0..=u16::MAX {
             let raw =
                 config().iface(0, HID, subclass, protocol).ep(0x81, INTERRUPT, wmax, 10).build();
+            // Bits 12:11 count transactions and are read past; 15:13 are
+            // reserved and refuse the endpoint (the lead's ruling, B 75).
             let size = wmax & 0x07ff;
-            let want = usize::from((least..=1024).contains(&size));
+            let want = usize::from(wmax >> 13 == 0 && (least..=1024).contains(&size));
             let got = hid_bindings(&raw).expect("well formed").len();
             assert_eq!(got, want, "protocol {protocol} wMaxPacketSize {wmax:#x}");
         }
@@ -270,4 +272,14 @@ fn an_endpoint_polled_at_no_interval_is_never_bound() {
         let raw = config().iface(0, HID, sub, proto).ep(0x81, INTERRUPT, 64, 0).build();
         assert_eq!(hid_bindings(&raw).map(|b| b.len()), Ok(0), "{sub}:{proto}");
     }
+}
+
+#[test]
+fn reserved_size_bits_bind_nothing_though_transaction_bits_are_read_past() {
+    for bit in 13..16 {
+        let raw = config().iface(0, HID, 1, 1).ep(0x81, INTERRUPT, 1 << bit | 8, 10).build();
+        assert_eq!(hid_bindings(&raw).map(|b| b.len()), Ok(0), "bit {bit}");
+    }
+    let raw = config().iface(0, HID, 1, 1).ep(0x81, INTERRUPT, 0x1808, 10).build();
+    assert_eq!(hid_bindings(&raw).map(|b| b.len()), Ok(1));
 }
