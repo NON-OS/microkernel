@@ -45,13 +45,16 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     forbidden_ranges::admit(w.page_start, w.page_bytes)?;
     note_shared_page(&device, &w);
     let pages = w.page_bytes / PAGE_SIZE;
-    let user_va = grant::reserve_user_va(pages).ok_or(MmioMapError::NoVaSpace)?;
-    let user_va_end = user_va.as_u64().checked_add(w.page_bytes).ok_or(MmioMapError::Overflow)?;
-    if user_va.as_u64() < USER_MMIO_BASE || user_va_end > USER_MMIO_END {
+    let user_va = grant::reserve_user_va(pid, pages).ok_or(MmioMapError::NoVaSpace)?;
+    let (va, bytes) = (user_va.as_u64(), w.page_bytes);
+    if va < USER_MMIO_BASE || va.checked_add(bytes).is_none_or(|end| end > USER_MMIO_END) {
+        grant::release_user_va(pid, va, bytes);
         return Err(MmioMapError::NoVaSpace);
     }
     let phys = PhysAddr::new(w.page_start);
-    if crate::memory::paging::map_user_mmio(user_va, phys, w.page_bytes as usize).is_err() {
+    if crate::memory::paging::map_user_mmio(user_va, phys, bytes as usize).is_err() {
+        let _ = crate::memory::paging::unmap_user_mmio(user_va, bytes as usize);
+        grant::release_user_va(pid, va, bytes);
         return Err(MmioMapError::MapFailed);
     }
     let grant_id = super::map_record::record(pid, &req, claim.epoch, &w, user_va)?;
