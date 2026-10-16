@@ -24,7 +24,8 @@ use crate::memory::iommu::DeviceAddress;
 
 pub(super) fn admit(pid: u32, address: DeviceAddress) -> Result<(), Refused> {
     use super::decide::interrupts_confined;
-    use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
+    use crate::memory::iommu::dev_unconfined::PRODUCTION;
+    use crate::memory::iommu::dev_unremapped::OPT_IN;
     if !cfg!(target_arch = "x86_64") {
         return Ok(());
     }
@@ -33,7 +34,7 @@ pub(super) fn admit(pid: u32, address: DeviceAddress) -> Result<(), Refused> {
         return Ok(());
     }
     if interrupts_confined(remapping, OPT_IN, PRODUCTION) {
-        say(b"interrupts not remapped, under the development opt-in", pid, address);
+        say(b"interrupts not remapped, under nonos-dev-unremapped-interrupts", pid, address);
         return Ok(());
     }
     say(b"refused: interrupts not remapped", pid, address);
