@@ -22,7 +22,7 @@
 use core::mem::size_of;
 use core::sync::atomic::{AtomicU32, Ordering};
 
-use super::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_IO, ERRNO_NODEV, ERRNO_PERM};
+use super::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
 use crate::hardware::broker::{self, ClaimError, DeviceRecord};
 use crate::process::current_pid;
 use crate::usercopy::{validate_user_write, write_user_value};
@@ -78,7 +78,6 @@ pub fn sys_device_claim(device_id: u64) -> i64 {
         Err(ClaimError::UnknownDevice) | Err(ClaimError::Disabled) => ERRNO_NODEV,
         Err(ClaimError::NotHolder) | Err(ClaimError::NotClaimed) => ERRNO_INVAL,
         Err(ClaimError::Unconfined) => ERRNO_PERM,
-        Err(ClaimError::Refused) => ERRNO_IO,
     }
 }
 
@@ -110,7 +109,6 @@ pub fn sys_device_release(device_id: u64) -> i64 {
         Err(ClaimError::AlreadyClaimed)
         | Err(ClaimError::UnknownDevice)
         | Err(ClaimError::Unconfined)
-        | Err(ClaimError::Disabled)
-        | Err(ClaimError::Refused) => ERRNO_INVAL,
+        | Err(ClaimError::Disabled) => ERRNO_INVAL,
     }
 }
