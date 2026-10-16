@@ -38,6 +38,11 @@ pub fn route_msi(
     if !is_remapping() {
         return Err(VtdError::InterruptRemappingOff);
     }
+    // Its messages may carry a bridge's id, which an entry checked against
+    // its own would block: it stays on the compatibility format (L54).
+    if !super::super::own_id_read::own_id(bus, device, function) {
+        return Err(VtdError::SharedRequesterId);
+    }
     let source = bdf_to_source_id(bus, device, function).as_u16();
     let route = Route { vector, destination, source, level: false };
     let entry = encode(route, false).ok_or(VtdError::DestinationTooWide)?;

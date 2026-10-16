@@ -17,6 +17,8 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VtdError {
     NotPresent,
+    /// The device's requests may carry another id (L51, L54).
+    SharedRequesterId,
     /// Hardware exists but is not translating, so nothing here confines a
     /// device. Returned instead of success.
     NotEnforcing,

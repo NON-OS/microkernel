@@ -21,6 +21,6 @@
  * PCI bridge, a conventional bridge, a missing parent and a numbering loop.
  */
 
-#[path = "../../../../src/arch/x86_64/iommu/backend/own_id.rs"]
+#[path = "../../../../src/arch/x86_64/iommu/own_id.rs"]
 mod own_id;
 mod tests;

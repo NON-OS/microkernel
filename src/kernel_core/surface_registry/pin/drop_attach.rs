@@ -30,7 +30,9 @@ pub fn drop_attach(pid: u32, handle: SurfaceHandle) -> Result<u32, RegistryError
     if !unmap_receiver(pid, handle) {
         return Err(RegistryError::MapFailed);
     }
-    attach_map::forget(pid, handle);
+    if !attach_map::forget(pid, handle) {
+        return Err(RegistryError::NotFound);
+    }
     /*
      * A surface whose owner has exited has no slot left; its frames are an
      * orphan, and this holder letting go is the release. Refused, the holder

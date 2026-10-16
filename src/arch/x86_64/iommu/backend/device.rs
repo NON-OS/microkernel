@@ -48,5 +48,5 @@ pub(crate) fn translates(device: DeviceAddress) -> bool {
     };
     enforced::require().is_ok()
         && crate::arch::x86_64::iommu::unit::coverage::unit_covers(bus, dev, function)
-        && super::own_id_read::own_id(bus, dev, function)
+        && crate::arch::x86_64::iommu::own_id_read::own_id(bus, dev, function)
 }

@@ -31,7 +31,7 @@ fn parent(bus: u8) -> Option<(u8, Hop)> {
 }
 
 fn own(bus: u8, is_pcie: bool) -> bool {
-    own_requester_id(bus, is_pcie, path_to_root(bus, parent).as_deref())
+    own_requester_id(bus, is_pcie, false, path_to_root(bus, parent).as_deref())
 }
 
 #[test]
@@ -56,7 +56,13 @@ fn an_unknown_path_or_a_loop_is_never_its_own() {
     assert!(path_to_root(7, looped).is_none());
     let upward = |bus: u8| Some((bus.wrapping_add(1), Hop::PciePort));
     assert!(path_to_root(7, upward).is_none());
-    assert!(!own_requester_id(7, true, None));
+    assert!(!own_requester_id(7, true, false, None));
+}
+
+#[test]
+fn a_bridge_that_stands_in_for_its_subordinates_is_never_its_own() {
+    assert!(!own_requester_id(ROOT_BUS, false, true, Some(&[])));
+    assert!(!own_requester_id(3, true, true, path_to_root(3, parent).as_deref()));
 }
 
 #[test]

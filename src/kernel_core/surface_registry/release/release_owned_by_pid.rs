@@ -39,7 +39,7 @@ pub fn release_owned_by_pid(pid: u32) -> u32 {
     // releases the surface, so its release is still allowed and still
     // unmaps its view before the orphaned frames are freed.
     for handle in handles.iter().take(count) {
-        super::super::attach_map::forget(pid, *handle);
+        let _ = super::super::attach_map::forget(pid, *handle);
     }
     count as u32
 }

@@ -29,10 +29,13 @@ pub(super) const ROOT_BUS: u8 = 0;
 /// One bridge on the way up from a device's bus to the root bus.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(super) enum Hop {
-    /// A PCIe root port or switch port: it forwards the requester id unchanged.
+    /// A PCIe root port or a switch's upstream port: it forwards the requester
+    /// id unchanged, and a peer's request below it still reaches the IOMMU.
     PciePort,
     /// Anything else: a PCIe-to-PCI bridge, a reverse bridge, a bridge with no
-    /// PCIe capability, which may substitute an id of its own.
+    /// PCIe capability, which may substitute an id of its own; and a switch's
+    /// downstream port, which may route a request to a peer below the same
+    /// switch without it ever reaching the IOMMU unless ACS says otherwise.
     Other,
 }
 
@@ -58,7 +61,15 @@ pub(super) fn path_to_root(
 
 /// Whether a device on `bus` sends under its own id: on the root bus, or a
 /// PCIe function every one of whose bridges is a PCIe port. Anything else,
-/// an unknown path included, is not counted as its own.
-pub(super) fn own_requester_id(bus: u8, is_pcie: bool, path: Option<&[Hop]>) -> bool {
-    bus == ROOT_BUS || (is_pcie && path.is_some_and(|p| p.iter().all(|h| *h == Hop::PciePort)))
+/// an unknown path included, is not counted as its own. Nor is a bridge that
+/// may stand in for its subordinates (`stands_in`): its id is theirs too, so
+/// confining it would move their DMA into its holder's domain (L54).
+pub(super) fn own_requester_id(
+    bus: u8,
+    is_pcie: bool,
+    stands_in: bool,
+    path: Option<&[Hop]>,
+) -> bool {
+    let up = |p: &[Hop]| p.iter().all(|h| *h == Hop::PciePort);
+    !stands_in && (bus == ROOT_BUS || (is_pcie && path.is_some_and(up)))
 }

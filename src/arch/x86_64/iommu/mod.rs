@@ -26,6 +26,8 @@ pub mod device;
 pub mod domain;
 pub mod globals;
 pub mod mapping;
+mod own_id;
+pub(crate) mod own_id_read;
 pub mod regs;
 #[cfg(feature = "nonos-iommu-intremap")]
 pub mod remap;
