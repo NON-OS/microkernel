@@ -18,6 +18,7 @@
 //! chain.rs). One is asked at a time; a failure moves to the next.
 
 use nonos_nox_config::{MAINNET, SEPOLIA};
+use nonos_settle_proto::EINVAL;
 
 const MAINNET_HOSTS: [&str; 3] =
     ["ethereum-rpc.publicnode.com", "mainnet.gateway.tenderly.co", "rpc.mevblocker.io"];
@@ -27,11 +28,29 @@ const SEPOLIA_HOSTS: [&str; 3] = [
     "rpc.sepolia.ethpandaops.io",
 ];
 
-/// The chain's slot in settle's tables, and its hosts.
-pub fn hosts(chain_id: u64) -> Option<(usize, &'static [&'static str])> {
-    match chain_id {
-        MAINNET => Some((0, &MAINNET_HOSTS)),
-        SEPOLIA => Some((1, &SEPOLIA_HOSTS)),
-        _ => None,
+/// One chain's hosts, the current one first, and whether it said its chain.
+pub struct Slot {
+    pub hosts: [&'static str; 3],
+    pub checked: bool,
+}
+
+pub struct Slots {
+    mainnet: Slot,
+    sepolia: Slot,
+}
+
+impl Slots {
+    pub fn new() -> Slots {
+        let slot = |hosts| Slot { hosts, checked: false };
+        Slots { mainnet: slot(MAINNET_HOSTS), sepolia: slot(SEPOLIA_HOSTS) }
+    }
+
+    /// The chain's slot; EINVAL for a chain settle does not read.
+    pub fn of(&mut self, chain_id: u64) -> Result<&mut Slot, i32> {
+        match chain_id {
+            MAINNET => Ok(&mut self.mainnet),
+            SEPOLIA => Ok(&mut self.sepolia),
+            _ => Err(EINVAL),
+        }
     }
 }

@@ -16,6 +16,13 @@
 
 #![no_std]
 #![no_main]
+/* No outside input may index, overflow or truncate (plan/41): settle is
+ * held to the lints its proto crate is. */
+#![deny(
+    clippy::indexing_slicing,
+    clippy::arithmetic_side_effects,
+    clippy::cast_possible_truncation
+)]
 
 extern crate alloc;
 

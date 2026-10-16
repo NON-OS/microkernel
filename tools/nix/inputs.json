@@ -2128,6 +2128,31 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_nox_settle": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_nox_settle",
+   "userland/libc",
+   "userland/marketplace_abi",
+   "userland/nonos_equix",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_nox_chunks",
+   "userland/nonos_nox_config",
+   "userland/nonos_nox_meter",
+   "userland/nonos_route_link",
+   "userland/nonos_seal",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/payment_proto",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/settle_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_payment": {
   "exclude": [],
   "include": [
