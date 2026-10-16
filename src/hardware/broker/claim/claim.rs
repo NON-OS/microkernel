@@ -42,6 +42,8 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     // Bring the device to power state D0 before its driver maps MMIO. Done
     // outside the claims lock: it touches config space and settles for a moment.
     crate::hardware::broker::power::power_on_device(device_id);
+    // Powered, so its reset takes: armed engines stop before the driver.
+    super::reset::at_claim(device_id);
     // Before the driver can turn bus mastering on, so no request it ever
     // makes is no-snoop.
     super::no_snoop::snoop_every_request(device_id);
