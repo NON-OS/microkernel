@@ -17,37 +17,46 @@
 //! The EDID of the monitor on a lit output, read the way its port speaks:
 //! I2C over the DisplayPort AUX channel (VESA DisplayPort 1.4, section
 //! 2.7.7) for DisplayPort and eDP, DDC through GMBUS for HDMI and DVI.
-//! The base block, then the one extension a single 256-byte segment holds;
-//! a monitor that does not answer gives an empty blob, never an error.
+//! Blocks are taken whole or not at all (`monitor_block`): the base, then
+//! as many extensions as it, or its HF-EEODB, declares, up to BLOCKS. A
+//! block the monitor cannot give ends the read with the blocks before it,
+//! and one that does not answer gives an empty blob, never an error.
 
-use crate::dp::i2c::read_edid as aux_edid;
+use super::monitor_block::block;
 use crate::engine::access::{Clock, Mmio};
-use crate::engine::aux_regs::Ddi;
-use crate::engine::gmbus::read_edid as ddc_edid;
-use crate::engine::port::Port;
-use crate::engine::route::{Link, Route};
+use crate::engine::gmbus::BLOCK;
+use crate::engine::gmbus_xfer::deadline::Deadline;
+use crate::engine::route::Route;
+use nonos_edid::cta::eeodb;
 
-const HEADER: [u8; 8] = [0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0];
+/// The most blocks read: segments 0 and 1, room for the base and the
+/// three extensions an HDMI 2.1 sink's HF-EEODB most often names.
+pub const BLOCKS: usize = 4;
+pub const EDID_MAX: usize = BLOCKS * BLOCK;
+/// The whole read, every block and every try. An honest sink gives four
+/// blocks in about 50 ms; a stalling one is cut off here.
+pub const EDID_US: u64 = 400_000;
 
-/// The bytes read into `out`: 0, 128 or 256.
-pub fn read(m: &mut dyn Mmio, clock: &dyn Clock, r: &Route, out: &mut [u8; 256]) -> usize {
-    let (base, ext) = out.split_at_mut(128);
-    if block(m, clock, r, 0, base).is_none() || base[..8] != HEADER {
-        return 0;
+/// The bytes read into `out`: a whole number of blocks, at most EDID_MAX.
+/// Nothing past them is written.
+pub fn read(m: &mut dyn Mmio, clock: &dyn Clock, r: &Route, out: &mut [u8; EDID_MAX]) -> usize {
+    let whole = Deadline::new(clock, EDID_US);
+    let mut n = 0;
+    while n < BLOCKS && n <= declared(&out[..n * BLOCK]) {
+        let (before, rest) = out.split_at_mut(n * BLOCK);
+        let Some(b) = block(m, clock, r, n as u8, before, &whole) else { break };
+        rest[..BLOCK].copy_from_slice(&b);
+        n += 1;
     }
-    if base[126] == 0 || block(m, clock, r, 128, ext).is_none() {
-        return 128;
-    }
-    256
+    n * BLOCK
 }
 
-fn block(m: &mut dyn Mmio, clock: &dyn Clock, r: &Route, at: u8, out: &mut [u8]) -> Option<()> {
-    match r.link {
-        Link::Dp { .. } => {
-            let ddi = [Ddi::A, Ddi::B, Ddi::C, Ddi::D].get(r.ddi as usize).copied()?;
-            let mut p = Port { mmio: m, ddi, dpll: 0, enhanced: false, clock };
-            aux_edid(&mut p, at, out).ok()
-        }
-        Link::Hdmi | Link::Dvi => ddc_edid(m, clock, r.ddi, at, out).ok(),
+/// The extensions the blocks in hand declare: none before the base, its
+/// byte 126 alone, then block 1's HF-EEODB count when it carries one.
+fn declared(have: &[u8]) -> usize {
+    match have.len() / BLOCK {
+        0 => 0,
+        1 => have[126] as usize,
+        _ => eeodb::count(have).unwrap_or(have[126] as usize),
     }
 }

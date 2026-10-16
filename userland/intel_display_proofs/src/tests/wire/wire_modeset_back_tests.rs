@@ -21,7 +21,7 @@
 use nonos_gfx_serve::{Display, Shadow};
 use nonos_gfx_wire::errno::ENOMEM;
 
-use crate::display::{Modeset, Monitor};
+use crate::display::{Modeset, Monitor, EDID_MAX};
 use crate::engine::gen::{GEN11, GEN9};
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::timing;
@@ -62,6 +62,6 @@ fn edp_another_generation_or_a_silent_monitor_has_no_mode_setting() {
     let mon = Monitor::of(&mut d.m, &clock, &GEN9, Transcoder::B);
     let out = h0(&d).out;
     assert!(Modeset::find(&mut d.m, &clock, &GEN11, &out, &mon, (0, 1 << 20)).is_none());
-    let silent = Monitor { blob: [0; 256], len: 0 };
+    let silent = Monitor { blob: [0; EDID_MAX], len: 0 };
     assert!(Modeset::find(&mut d.m, &clock, &GEN9, &out, &silent, (0, 1 << 20)).is_none());
 }

@@ -20,7 +20,9 @@
 
 use super::super::access::{Clock, Expiry, Mmio, Until};
 use super::super::gmbus_regs::*;
-use super::take::STEP_US;
+
+/// The bus going idle after the stop.
+const IDLE_US: u64 = 50_000;
 
 pub fn end(m: &mut dyn Mmio, clock: &dyn Clock, failed: bool) {
     if failed {
@@ -28,7 +30,7 @@ pub fn end(m: &mut dyn Mmio, clock: &dyn Clock, failed: bool) {
         m.write(GMBUS1, 0);
     }
     m.write(GMBUS1, SW_RDY | CYCLE_STOP);
-    let until = Until::new(clock, STEP_US);
+    let until = Until::new(clock, IDLE_US);
     while m.read(GMBUS2) & ACTIVE != 0 && !until.expired() {}
     m.write(GMBUS0, 0);
 }
