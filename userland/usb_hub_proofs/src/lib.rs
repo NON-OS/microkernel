@@ -29,7 +29,15 @@ mod hub_removable_tests;
 #[cfg(test)]
 mod hub_route_tests;
 #[cfg(test)]
+mod hub_sweep_tests;
+#[cfg(test)]
 mod parker_tests;
+#[cfg(test)]
+mod port_sweep_tests;
+#[cfg(test)]
+mod sweep_answer;
+#[cfg(test)]
+mod sweep_rng;
 #[cfg(test)]
 mod virt_claim_tests;
 #[cfg(test)]
