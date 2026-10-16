@@ -20,6 +20,7 @@ mod msg;
 mod notice;
 mod reader;
 mod reply;
+mod served;
 mod slots;
 
 pub use atr::atr_fits;
@@ -27,4 +28,5 @@ pub use exchange::exchange;
 pub use msg::{answers, command, GET_SLOT_STATUS, HEADER, ICC_POWER_OFF, ICC_POWER_ON, XFR_BLOCK};
 pub use reader::{find_reader, Reader};
 pub use reply::{reply, Outcome};
+pub use served::served;
 pub use slots::Slots;
