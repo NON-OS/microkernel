@@ -20,7 +20,7 @@
 //! so the host proofs hold it.
 
 use super::dmar_scope::Scope;
-use super::dmar_scope_walk::walk_scopes;
+use super::dmar_scope_walk::{names_off_pci, walk_scopes};
 
 pub const RMRR_TYPE: u16 = 1;
 const RMRR_HEADER_LEN: usize = 24;
@@ -36,6 +36,9 @@ pub struct Rmrr {
     pub scopes: [Scope; MAX_RMRR_SCOPES],
     pub count: u8,
     pub truncated: bool,
+    /// It also names a device that is not on PCI, an ACPI namespace device
+    /// say, which no capsule's domain ever holds (L65).
+    pub foreign: bool,
 }
 
 /// Parse one RMRR (`bytes` is exactly its `length` bytes, type 1). `None` for
@@ -54,5 +57,6 @@ pub fn parse_rmrr(bytes: &[u8]) -> Option<Rmrr> {
     let mut scopes = [Scope::EMPTY; MAX_RMRR_SCOPES];
     let (count, truncated) = walk_scopes(bytes, RMRR_HEADER_LEN, &mut scopes);
     let segment = u16::from_le_bytes([bytes[6], bytes[7]]);
-    Some(Rmrr { segment, base, limit, scopes, count, truncated })
+    let foreign = names_off_pci(bytes, RMRR_HEADER_LEN);
+    Some(Rmrr { segment, base, limit, scopes, count, truncated, foreign })
 }
