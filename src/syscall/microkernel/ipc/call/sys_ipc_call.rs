@@ -24,7 +24,6 @@ use super::super::send::send_with_correlation;
 use super::answer::answer;
 use super::gpu_bench::mark_first;
 use super::token::next_call_token;
-use super::trace::trace;
 
 pub fn sys_ipc_call(
     ep: u64,
@@ -51,7 +50,6 @@ pub fn sys_ipc_call(
         }
     }
     let send_result = send_with_correlation(ep, req, req_len, token);
-    trace(pid, b"send", send_result);
     if send_result < 0 {
         if let Some(server_pid) = endpoint_pid {
             // Strip exactly the entry this call pushed: the newest match. An
@@ -67,6 +65,5 @@ pub fn sys_ipc_call(
     if let Some(endpoint) = endpoint.as_ref() {
         mark_first(&endpoint.name, req, req_len, resp, recv_result);
     }
-    trace(pid, b"recv", recv_result);
     recv_result
 }
