@@ -18,6 +18,7 @@
 
 mod brightness;
 mod caller;
+mod holder;
 mod inventory;
 mod lpit_wire;
 mod notify;

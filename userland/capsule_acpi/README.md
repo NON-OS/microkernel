@@ -209,7 +209,7 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
 Each op answers only the services named for it (`src/server/policy.rs`,
 registry at each request; anyone else gets EPERM. BRIGHTNESS,
 SET_BRIGHTNESS, POWER and THERMAL: `power` and `desktop_shell`.
-PREPARE_SLEEP: `power`. SMBIOS: `desktop_shell`. SERIAL: the I2C
+PREPARE_SLEEP: `power`. SMBIOS and PCI_FIRMWARE: `desktop_shell`. SERIAL: the I2C
 capsules, `driver.gpio0` and `driver.spi_hid0` (its HID-over-SPI facts
 to `driver.spi_hid0` alone). DEVICE_POWER: any sender the endpoint admits, moves only for
 the device's holder. LEGACY: `driver.ps2_kbd0`. STATUS, DEVICE and any
@@ -331,7 +331,16 @@ other op: no one.
   controller the key names, for `driver.gpio0` alone. The key is SERIAL's
   form, 1 << 63 | broker device id; the kernel's claim test is asked for
   an ACPI-bus device and for a PCI function alike. A key without the bit
-  is refused (EINVAL). The body is 1 or 0. Layout in `src/holder.rs`.
+  is refused (EINVAL). The body is 1 or 0. Layout in `src/server/holder.rs`.
+- PCI_FIRMWARE (22, device id u64): what the PCI `_DSM` says of one PCI
+  function, for the inventory, to `desktop_shell`: its host bridge's
+  boot-configuration rule (function 5) and device readiness durations
+  (function 9), and its own firmware label (function 7). Only those three
+  documented functions are evaluated, and only when function 0 offers
+  them; no other is ever run. Read once at start, one `[ACPI] pci host`
+  and one `[ACPI] pci label` line each. The UUID, revisions (3, then 2),
+  function numbers and shapes are recalled, unverified. Layout in
+  `src/pci_firmware/wire.rs`.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and
