@@ -7,15 +7,11 @@
 // (at your option) any later version.
 
 mod control;
-mod dispatch;
 mod join_serve;
 mod join_wire;
 mod link_serve;
 mod net_core;
-mod own;
 mod radio;
-pub mod handlers;
-pub mod respond;
 mod runner;
 mod view;
 
