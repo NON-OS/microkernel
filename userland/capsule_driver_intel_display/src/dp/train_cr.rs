@@ -27,6 +27,10 @@ use super::train::{Pattern, Source, TrainError};
 
 const CR_WAIT_US: u32 = 100;
 const SAME_SWING_TRIES: u32 = 5;
+/// Every pass at most, whatever the sink asks: a sink that flips between
+/// two swings resets the count above and would otherwise never end. Our
+/// bound, not a figure from the standard.
+pub const CR_TRIES: u32 = 10;
 
 /// TRAINING_PATTERN_SET and every lane's TRAINING_LANEx_SET in one write.
 pub(super) fn set(aux: &mut dyn Aux, pattern: u8, d: Drive, lanes: u32) -> Result<(), TrainError> {
@@ -49,7 +53,7 @@ pub fn clock_recovery(s: &mut dyn Source, lanes: u32) -> Result<Drive, TrainErro
     // 0x21: TPS1 with scrambling disabled.
     set(s, 0x21, d, lanes)?;
     let mut same = 1;
-    loop {
+    for _ in 0..CR_TRIES {
         s.wait_us(CR_WAIT_US);
         let st = status(s)?;
         if st.cr_done(lanes) {
@@ -64,4 +68,5 @@ pub fn clock_recovery(s: &mut dyn Source, lanes: u32) -> Result<Drive, TrainErro
         s.drive(d);
         set(s, 0x21, d, lanes)?;
     }
+    Err(TrainError::Failed)
 }

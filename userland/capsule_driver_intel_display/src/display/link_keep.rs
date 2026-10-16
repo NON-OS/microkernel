@@ -42,7 +42,9 @@ pub fn keep_link<F: Frames>(
     let Link::Dp { lanes } = route::read(m, ms.lit.t)?.link else { return None };
     let ddi = [Ddi::A, Ddi::B, Ddi::C, Ddi::D].get(ms.lit.ddi as usize).copied()?;
     let mut port = Port { mmio: m, ddi, dpll: ms.lit.dpll, enhanced: false, clock };
-    if !link_lost(&mut port, lanes).ok()? {
+    // A status the sink will not give is a link that cannot be vouched
+    // for: trained again, and LOST if that fails, never left as fine.
+    if !link_lost(&mut port, lanes).unwrap_or(true) {
         return None;
     }
     let size = (h.scan.width, h.scan.height);
