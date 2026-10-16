@@ -25,6 +25,8 @@ pub mod consts;
 pub mod ec_model;
 #[path = "ec_model_io.rs"]
 pub mod ec_model_io;
+#[path = "ec_tricks.rs"]
+pub mod ec_tricks;
 #[path = "enc/mod.rs"]
 pub mod enc;
 #[path = "fadt_enc.rs"]

@@ -36,4 +36,8 @@ impl EventIo for Shared {
     fn sleep(&mut self, ms: u64) {
         self.0.borrow_mut().sleep(ms)
     }
+
+    fn now_ms(&mut self) -> u64 {
+        self.0.borrow().now
+    }
 }

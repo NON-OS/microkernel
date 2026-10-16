@@ -19,14 +19,19 @@
 //! space; and the queries it raises through its GPE.
 
 mod crs;
+mod drain;
 mod ecdt;
+mod health;
 mod protocol;
 mod queries;
 mod query;
 mod regs;
+mod stale;
 
 pub use crs::ec_ports;
+pub use drain::{drain, Drained, MAX_QUERIES};
 pub use ecdt::{parse_ecdt, Ecdt};
+pub use health::{Health, Off, STRIKES};
 pub use protocol::{read, write};
 pub use queries::query_methods;
 pub use query::{pending, query};

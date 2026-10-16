@@ -35,10 +35,12 @@ mod pm1;
 mod pm1_bits;
 mod pm1_cnt;
 mod policy;
+mod quiet;
 mod report;
 mod sci;
 mod start;
 mod state;
+mod storm;
 mod wake;
 mod wake_arm;
 
@@ -55,4 +57,5 @@ pub use pm1_cnt::{Pm1Cnt, GBL_RLS, SCI_EN, SLP_EN};
 pub use policy::Policy;
 pub use report::SciReport;
 pub use state::Events;
+pub use storm::{Storms, RUNS, WINDOW_MS};
 pub use wake::wake_gpes;

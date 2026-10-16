@@ -14,34 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One SCI: the event layer serves it, the notifications the methods queued
-//! are said and dropped (the services that act on them come with F 10 and
-//! F 11), and the line is acknowledged so the next one can arrive.
+//! One SCI: the fixed events first, then the event layer serves the GPEs;
+//! the notifications the methods queued are routed, and the line is
+//! acknowledged so the next one can arrive. A GPE past the storm bound, or
+//! the GPE of an EC that has stalled or flooded, is turned off.
 
+use super::sci_parts::{fired, press};
 use crate::boot::{evaluate, Acpi};
 use crate::events_io::PortIo;
-use crate::sys::clock::now_ms;
 use crate::sys::log::Line;
 use alloc::vec::Vec;
-use nonos_aml::events::{Dispatch, PWRBTN};
-use nonos_libc::{mk_irq_ack, mk_irq_poll, IrqPollOut};
-
-/// Whether the SCI fired since the last look.
-fn fired(acpi: &mut Acpi) -> bool {
-    let Some(sci) = acpi.sci.as_mut() else { return false };
-    let mut out = IrqPollOut { seq: 0, overflow: 0 };
-    if mk_irq_poll(sci.grant, &mut out) < 0 || out.seq == sci.seq {
-        return false;
-    }
-    sci.seq = out.seq;
-    true
-}
+use nonos_aml::events::Dispatch;
+use nonos_libc::mk_irq_ack;
 
 pub fn serve(acpi: &mut Acpi) {
     if !fired(acpi) {
         return;
     }
-    let mut fixed = 0;
+    // The fixed events first: a pressed power button is acted on before
+    // any GPE method or EC query can take time.
+    let first = acpi.events.as_mut().map_or(Ok(0), |ev| ev.take_fixed(&mut PortIo));
+    press(acpi, first.unwrap_or(0));
+    let mut later = 0;
     let Acpi { aml, host, events, ec, .. } = acpi;
     if let Some(ev) = events.as_mut() {
         let mut run = |d| match d {
@@ -50,22 +44,19 @@ pub fn serve(acpi: &mut Acpi) {
         };
         match ev.on_sci(&mut PortIo, &mut run) {
             Ok(r) => {
-                fixed = r.fixed;
+                later = r.fixed;
                 acpi.gpe_runs += r.ran.len() as u64;
-                for n in r.disabled {
-                    Line::new(b"GPE ")
-                        .hex(n as u64)
-                        .str(b" left disabled: its method failed")
-                        .end();
-                }
+                super::sci_parts::said(&r);
             }
             Err(_) => Line::new(b"SCI: event registers unreachable").end(),
         }
+        let ec_gpe = ec.as_ref().and_then(|e| e.gpe).filter(|g| ev.armed.contains(g));
+        if let Some(g) = ec_gpe.filter(|_| !host.ec_health.usable()) {
+            let _ = ev.quiet(&mut PortIo, g);
+        }
     }
     acpi.scis += 1;
-    if fixed & PWRBTN != 0 {
-        crate::power::off::press(&mut acpi.buttons.presses, now_ms());
-    }
+    press(acpi, later);
     let grant = acpi.sci.as_ref().map(|s| s.grant);
     super::notify::route(acpi);
     if let Some(g) = grant {

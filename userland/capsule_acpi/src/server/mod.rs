@@ -28,6 +28,7 @@ pub(crate) mod protocol;
 mod reply;
 mod run;
 mod sci;
+mod sci_parts;
 mod smbios_wire;
 mod thermal_wire;
 mod typec_wire;

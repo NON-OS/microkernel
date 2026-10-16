@@ -24,4 +24,10 @@ pub trait EventIo {
     fn write(&mut self, port: u16, width: u8, value: u16) -> bool;
     /// Wait `ms` milliseconds, for the ACPI mode switch.
     fn sleep(&mut self, ms: u64);
+    /// Milliseconds on a clock that only moves forward, for the storm
+    /// bounds. An io with no clock reads as one instant, so every run it
+    /// makes counts in one window: storms are caught sooner, never later.
+    fn now_ms(&mut self) -> u64 {
+        0
+    }
 }

@@ -32,6 +32,8 @@ pub struct Regs {
     /// (SMI_CMD port, ACPI_ENABLE value, PM1 control port, sleeps to answer).
     pub smi: Option<(u16, u16, u16, u32)>,
     pub armed_smi: Option<u32>,
+    /// The clock the storm bounds read, in milliseconds.
+    pub now: u64,
 }
 
 impl Regs {

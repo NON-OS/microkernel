@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The EC's event (ACPI 6.5, 12.6): while SCI_EVT is set, ask the EC which
-//! event with QR_EC and run that _Qxx. Bounded, so an EC that keeps
-//! answering cannot hold the capsule.
+//! The EC's event (ACPI 6.5, 12.6): its queries drained (`nonos_aml::ec::
+//! drain`, at most 32 a call), then each _Qxx run. An EC that floods past
+//! the storm bound, or has stalled, is turned off with one line: its space
+//! is refused and the SCI path quiets its GPE.
 
 use super::state::Ec;
 use crate::boot::evaluate;
@@ -24,20 +25,23 @@ use crate::events_io::PortIo;
 use crate::host::CapsuleHost;
 use crate::sys::log::Line;
 use alloc::vec::Vec;
-use nonos_aml::ec::{pending, query};
+use nonos_aml::ec::{drain, Off};
 use nonos_aml::exec::{Fault, FaultKind};
 use nonos_aml::load::Aml;
 
-/// More events at once than any EC queues.
-const MAX_QUERIES: u32 = 32;
-
 pub fn serve(ec: &Ec, aml: &mut Aml, host: &mut CapsuleHost) -> Result<(), Fault> {
-    let io_fault = Fault::new(FaultKind::Region, 0, 0);
-    for _ in 0..MAX_QUERIES {
-        if !pending(&ec.ports, &mut PortIo).map_err(|_| io_fault)? {
-            return Ok(());
-        }
-        let Some(q) = query(&ec.ports, &mut PortIo).map_err(|_| io_fault)? else { return Ok(()) };
+    if !host.ec_health.usable() {
+        return Ok(());
+    }
+    let r = drain(&ec.ports, &mut PortIo, &mut host.ec_floods);
+    if host.ec_health.note(&r) {
+        say_off(host.ec_health.off);
+    }
+    let d = r.map_err(|_| Fault::new(FaultKind::Region, 0, 0))?;
+    if d.flooded && host.ec_health.flooded() {
+        say_off(host.ec_health.off);
+    }
+    for q in d.queries {
         match ec.queries.get(&q) {
             Some(&m) => {
                 if let Err(f) = evaluate(aml, host, m, Vec::new()) {
@@ -48,4 +52,13 @@ pub fn serve(ec: &Ec, aml: &mut Aml, host: &mut CapsuleHost) -> Result<(), Fault
         }
     }
     Ok(())
+}
+
+pub fn say_off(why: Option<Off>) {
+    let why: &[u8] = match why {
+        Some(Off::Stalled) => b"three waits in a row timed out",
+        Some(Off::Flooded) => b"it raised more events than the storm bound allows",
+        None => return,
+    };
+    Line::new(b"EC turned off: ").str(why).str(b"; its space is refused, its GPE quieted").end();
 }

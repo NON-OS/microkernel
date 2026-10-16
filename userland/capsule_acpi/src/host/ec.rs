@@ -16,7 +16,7 @@
 
 //! EmbeddedControl fields: one byte per access (the interpreter reads EC
 //! fields by bytes), through the EC's ports, inside the Global Lock when
-//! the EC's _GLK asks for it.
+//! the EC's _GLK asks for it; none once the EC has stalled or flooded.
 
 use super::lock_hold::{give, take};
 use super::spaces::ec_ok;
@@ -37,13 +37,26 @@ fn locked<T>(h: &mut CapsuleHost, glk: bool, f: impl FnOnce() -> Option<T>) -> O
 }
 
 pub(super) fn read(h: &mut CapsuleHost, addr: u64, width: u32) -> Option<u64> {
-    let (ports, glk) = h.ec?;
+    let (ports, glk) = h.ec.filter(|_| h.ec_health.usable())?;
     let addr = u8::try_from(addr).ok().filter(|_| ec_ok(addr, width))?;
-    locked(h, glk, || ec::read(&ports, &mut PortIo, addr).ok().map(u64::from))
+    let r = locked(h, glk, || Some(ec::read(&ports, &mut PortIo, addr)))?;
+    heed(h, &r);
+    r.ok().map(u64::from)
 }
 
 pub(super) fn write(h: &mut CapsuleHost, addr: u64, width: u32, v: u64) -> bool {
-    let Some((ports, glk)) = h.ec else { return false };
+    let Some((ports, glk)) = h.ec.filter(|_| h.ec_health.usable()) else { return false };
     let Some(addr) = u8::try_from(addr).ok().filter(|_| ec_ok(addr, width)) else { return false };
-    locked(h, glk, || ec::write(&ports, &mut PortIo, addr, v as u8).ok()).is_some()
+    let Some(r) = locked(h, glk, || Some(ec::write(&ports, &mut PortIo, addr, v as u8))) else {
+        return false;
+    };
+    heed(h, &r);
+    r.is_ok()
+}
+
+/// One access's answer counted; the line said once if it turned the EC off.
+fn heed<T>(h: &mut CapsuleHost, r: &Result<T, ec::EcError>) {
+    if h.ec_health.note(r) {
+        crate::ec::say_off(h.ec_health.off);
+    }
 }

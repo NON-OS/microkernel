@@ -58,4 +58,8 @@ impl EventIo for Regs {
             }
         }
     }
+
+    fn now_ms(&mut self) -> u64 {
+        self.now
+    }
 }

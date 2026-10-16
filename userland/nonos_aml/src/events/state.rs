@@ -23,6 +23,7 @@ use super::gpe_block::GpeBlock;
 use super::handlers::Handler;
 use super::pm1::{Pm1, GBL, PWRBTN, SLPBTN};
 use super::policy::Policy;
+use super::storm::Storms;
 use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::vec::Vec;
 
@@ -38,6 +39,7 @@ pub struct Events {
     /// PM1 enables: the Global Lock's release always, buttons by policy. The
     /// timer and RTC alarm are never enabled; the RTC is a wake source.
     pub fixed: u16,
+    pub storms: Storms,
 }
 
 impl Events {
@@ -66,10 +68,7 @@ impl Events {
             .collect();
         let buttons = [(policy.power_button, PWRBTN), (policy.sleep_button, SLPBTN)];
         let fixed = buttons.iter().filter(|(on, _)| *on).fold(GBL, |acc, (_, bit)| acc | bit);
-        Ok(Events { pm1, blocks, handlers, armed, native: BTreeSet::new(), fixed })
-    }
-
-    pub(super) fn block_of(&self, gpe: u16) -> Option<&GpeBlock> {
-        self.blocks.iter().find(|b| b.holds(gpe))
+        let (native, storms) = (BTreeSet::new(), Storms::default());
+        Ok(Events { pm1, blocks, handlers, armed, native, fixed, storms })
     }
 }
