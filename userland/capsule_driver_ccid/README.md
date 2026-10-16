@@ -3,6 +3,9 @@
 Status: wired, not yet signed, and held to no one. The kernel mirror
 (`src/hardware/ccid_capsule`) embeds and spawns it under
 `nonos-capsule-driver-ccid` wherever the inventory sees a USB host, after
+the hub walker. It has no owner certificate yet, so no image carries it
+until the owner signs it. Its endpoint is held `KERNEL_ONLY`: it finds a
+reader and says so, and serves nobody until the owner names the client.
 
 ## Role
 
@@ -20,6 +23,7 @@ client --NCCD--> driver.ccid0 --PC_to_RDR (bulk OUT)--> host --> reader --> card
 
 The reader finding, the bulk messages, the exchange and the slot memory
 are pure (`src/ccid`); the host wire client is `nonos_usbnet`'s, and the
+holder and the framing are `driver.cdc_acm0`'s (`owner.rs`, `frame.rs`),
 mounted by path. This capsule adds the binding (`src/bind.rs`), the card
 requests (`src/card.rs`, `src/ops.rs`, `src/session.rs`) and the loop
 (`src/run.rs`, `src/pump.rs`, `src/gone.rs`).
@@ -72,13 +76,16 @@ RESET_BULK, ALLOC_TRANSFER_RING (0x09) and INTERRUPT_IN (0x0E).
 0x100`: Debug, in a serial-debug build only. No Driver, DeviceEnum, Mmio,
 Irq, Dma or Pio: it reaches the reader only through a host. Its endpoint
 is held to no one: a card signs, decrypts and opens doors for whoever
+reaches its reader, so who may is the owner's to decide.
 
 ## Current implemented surface
 
 - One reader: an interface of class 0Bh with a bulk pair and its CCID
   class descriptor, whose dwFeatures say short or extended APDU exchange.
-- Every slot it has, one command at a time, each under its own sequence
-  number; an answer to another is let go.
+- Every slot it has up to 63, one command at a time, each under its own
+  sequence number; an answer to another is let go. A slot past 63 is
+  refused (-22): the driver could not remember it was powered, and CLOSE
+  would leave its card live.
 - Each bulk IN transfer one message: an answer whose dwLength runs past
   the transfer that brought it was cut short and is passed over, never
   joined to the next.
@@ -122,6 +129,7 @@ leaves its port is given back and its holder let go.
 
 ## Release target
 
+Desk readers and readers built into tokens, for one client the owner
 names: an OpenPGP or PIV card agent, or a national ID client.
 
 ## Release evidence
@@ -134,6 +142,8 @@ in `kernel_proofs`. No boot yet.
 
 ## Release checklist
 
+- The owner names the client the endpoint is held to.
+- Signed by the owner and added to an image's features.
 - A boot with a reader. QEMU's `usb-ccid` (as recalled, unverified) is one
   to try first.
 
