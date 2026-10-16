@@ -66,4 +66,5 @@ mod two_rig;
 mod vblank_tests;
 mod wire;
 mod wire_rig;
+mod wire_sweep;
 mod wm_tests;
