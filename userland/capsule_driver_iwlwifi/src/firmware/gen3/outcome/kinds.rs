@@ -20,6 +20,7 @@ use super::super::bringup::BootError;
 use super::super::select::Refusal;
 use super::super::start::StartError;
 use super::super::up::UpError;
+use super::master::MasterError;
 
 /// The client's stage codes this path reports.
 pub const STAGE_READY: u8 = 0;
@@ -50,6 +51,8 @@ pub enum Failure {
     Up(UpError),
     /// The firmware came up, then raised its error cause while running.
     Lost,
+    /// Bus Master did not go on before the boot.
+    Master(MasterError),
 }
 
 /// The step numbers the status reply carries, in bring-up order.
@@ -62,3 +65,4 @@ pub const STEP_NO_DMA: u8 = 6;
 pub const STEP_BOOT: u8 = 7;
 pub const STEP_UP: u8 = 8;
 pub const STEP_LOST: u8 = 9;
+pub const STEP_MASTER: u8 = 10;
