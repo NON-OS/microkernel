@@ -17,8 +17,11 @@
 //! Idle states entered through PSCI CPU_SUSPEND, as the device tree lists
 //! them, in place of a plain WFI where one saves more.
 
+mod allow;
 mod budget;
+mod call;
 mod context;
+mod describe;
 mod enter;
 mod flags;
 pub mod format;
@@ -29,5 +32,6 @@ mod psci_format;
 pub mod select;
 mod table;
 
+pub use describe::describe;
 pub use enter::wait;
-pub use prepare::{describe, prepare};
+pub use prepare::prepare;
