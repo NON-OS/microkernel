@@ -48,10 +48,14 @@ pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
     Ok(())
 }
 
-pub fn release_for_device(pid: u32, device_id: u64) -> usize {
+pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
+    // A message bind carries no epoch yet, so it goes by pid and device (L71).
     let messages = super::message::release_where(|b| b.pid == pid && b.device_id == device_id);
     let lines = release_lines(|e| {
-        e.pid.load(Ordering::Acquire) == pid && e.device_id.load(Ordering::Acquire) == device_id
+        let at = |a: &core::sync::atomic::AtomicU64| a.load(Ordering::Acquire);
+        e.pid.load(Ordering::Acquire) == pid
+            && at(&e.device_id) == device_id
+            && at(&e.claim_epoch) == epoch
     });
     messages + lines
 }

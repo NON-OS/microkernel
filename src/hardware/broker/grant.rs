@@ -97,15 +97,14 @@ pub(super) fn drain_for_pid(pid: u32) -> Vec<MmioGrant> {
     taken
 }
 
-// Revoke every grant tied to `device_id`. Used by `MkDeviceRelease`
-// when the holder voluntarily gives the device back. Caller passes
-// the holder pid for the cross-check; mismatch indicates a bug, not
-// a userland error.
-pub(super) fn drain_for_device(pid: u32, device_id: u64) -> Vec<MmioGrant> {
+// Revoke every grant made under `pid`'s claim of `device_id` at `epoch`,
+// when the holder gives it back: a newer claim's are not this release's
+// to take (L71).
+pub(super) fn drain_for_device(pid: u32, device_id: u64, epoch: u64) -> Vec<MmioGrant> {
     let mut grants = GRANTS.lock();
     let mut taken = Vec::new();
     grants.retain(|g| {
-        if g.pid == pid && g.device_id == device_id {
+        if (g.pid, g.device_id, g.claim_epoch) == (pid, device_id, epoch) {
             taken.push(*g);
             false
         } else {
