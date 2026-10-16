@@ -42,16 +42,11 @@ userland/capsule_text_editor/layout_tests a C passes on the host (81 passed, 13s
 userland/iwlwifi_proofs/src/link_tests.rs orphan C no mod line reaches it; re-added it fails on its import of crate::station, and passes (2 tests) once that is fixed
 userland/nonos_avi a C passes on the host (14 passed, 3s)
 userland/nonos_brotli a C passes on the host (7 passed, 33s)
-userland/nonos_devmodel a D passes on the host (3 passed, 2s)
-userland/nonos_disk a D passes on the host (42 passed, 54s)
-userland/nonos_disk_map a D passes on the host (11 passed, 2s)
 userland/nonos_gguf a C passes on the host (12 passed, 3s)
 userland/nonos_git a B passes on the host (73 passed, 23s)
 userland/nonos_hash a A passes on the host (2 passed, 3s)
 userland/nonos_hd c B the host run lacked the crate serde_json
 userland/nonos_http a A passes on the host (22 passed, 4s)
-userland/nonos_keymap a D passes on the host (11 passed, 1s)
-userland/nonos_mac a D passes on the host (7 passed, 0s)
 userland/nonos_nox_broker a B passes on the host (9 passed, 2s)
 userland/nonos_nox_license c B the host run could not fetch libc v0.2.189
 userland/nonos_nox_receipt a B passes on the host (10 passed, 2s)
