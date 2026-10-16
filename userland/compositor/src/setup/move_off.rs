@@ -17,7 +17,8 @@
 //! Off a driver whose device left (OUTPUT_NOTICE, LEAVING): the best other
 //! driver announced now, in the kernel's list order, primed and adopted, the
 //! first that primes. With none, the desktop stays where it is, waiting as
-//! for a driver that vanished, and each poll looks again.
+//! for a driver that vanished, and each poll looks again. A move is
+//! remembered, to go back once the device returns (`move_back`).
 
 use crate::state::Context;
 
@@ -26,6 +27,8 @@ use super::discover::{displays::DISPLAYS, lookup_at};
 pub fn move_off(ctx: &mut Context, gone: u32) -> Option<&'static str> {
     let others = (0..DISPLAYS.len()).filter_map(lookup_at).filter(|e| e.pid != gone);
     let next = others.into_iter().find_map(|e| super::prime_wire::prime(e).ok())?;
+    let left = ctx.wire.map(|w| w.name);
     super::adopt::adopt(ctx, next);
+    let _ = left.map(|name| super::move_back::note_left(name, gone));
     Some("its device left; moved to the next display")
 }

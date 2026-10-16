@@ -16,6 +16,7 @@ request protocol (`../compositor/src/state/`, `sw_blitter/`, `protocol/`).
 | `batch_tests` | a frame reaches a wire driver in one FLUSH of up to 15 rectangles, and a refused FLUSH's rectangles are all damaged again (`frame_pacer/drain_batch.rs`) |
 | `backoff_tests` | on GOP, one display name asked a tick, 500 ms apart, the gap doubling each fruitless round up to 30 s (`display/backoff.rs`) |
 | `poll_tests` | a wire driver's poll: a new pid re-primes, a new serial or a stale FLUSH asks SURFACE again, LOST repaints, nothing else acts (`display/poll_rule.rs`) |
+| `return_tests`, `return_poll_tests` | back to a display whose device came back only when it ranks above the one driven and its driver is announced under another pid, the better-ranked display left is kept, and after any poll nothing kept ranks at or below the display driven (`display/return_rule.rs`) |
 | `head_tests` | a mirrored output's poll: a new serial or a stale FLUSH asks SURFACE again, LOST repaints, silence waits; up to three heads past output 0 (`display/head_rule.rs`) |
 | `mirror_tests` | the screen fitted whole and centred onto another output, nearest pixel, the bars and everything outside the damage untouched (`sw_blitter/resample.rs`) |
 | `hint_tests` | NCMP 0x0009's body, and only a service in the kernel's HINT_SOURCES (empty today) heard (`display/hint_rule.rs`) |

@@ -62,6 +62,8 @@ pub mod notice_rule;
 pub mod poll_rule;
 #[path = "../../../compositor/src/display/resize_rule.rs"]
 pub mod resize_rule;
+#[path = "../../../compositor/src/display/return_rule.rs"]
+pub mod return_rule;
 #[path = "../../../compositor/src/display/scale_rule.rs"]
 pub mod scale_rule;
 #[path = "../../../compositor/src/display/screenshot_rule.rs"]

@@ -2860,6 +2860,7 @@
    "userland/compositor/src/display/notice_rule.rs",
    "userland/compositor/src/display/poll_rule.rs",
    "userland/compositor/src/display/resize_rule.rs",
+   "userland/compositor/src/display/return_rule.rs",
    "userland/compositor/src/display/scale_rule.rs",
    "userland/compositor/src/display/screenshot_rule.rs",
    "userland/compositor/src/display/srgb_rule.rs",
