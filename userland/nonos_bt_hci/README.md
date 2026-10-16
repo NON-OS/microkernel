@@ -16,9 +16,12 @@ Bring-up uses standard commands only, in this order:
 2. Read Local Supported Features. A controller without LE stops here.
 3. Read Local Version Information.
 4. Read BD_ADDR.
-5. LE Read Buffer Size, or Read Buffer Size when the LE buffers are shared.
-6. Set Event Mask.
-7. LE Set Event Mask.
+5. LE Read Local Supported Features (Vol 4, Part E, 7.8.3).
+6. LE Read Buffer Size, or Read Buffer Size when the LE buffers are shared.
+7. Set Event Mask.
+8. LE Set Event Mask. The LE Directed Advertising Report (bit 10) is
+   asked for only when the LE features have Extended Scanner Filter
+   Policies (Vol 6, Part B, 4.6, bit 7).
 
 No vendor command is sent. A controller that needs vendor setup or
 firmware before it answers these stops at the first one it fails, with
@@ -37,7 +40,13 @@ host accepted; it waits only for Command Status, and LE Connection Update
 Complete reaches the caller as any other event.
 
 Scanning is passive only. The controller listens and sends no scan
-request, so looking for devices puts nothing of ours on the air.
+request, so looking for devices puts nothing of ours on the air. The
+filter policy (Vol 4, Part E, 7.8.10; Vol 6, Part B, 4.3.3) is 0x02 on a
+controller with Extended Scanner Filter Policies and 0x00 on any other.
+Under 0x02, directed advertising to a resolvable private address the
+controller cannot resolve reaches the caller as an LE Directed
+Advertising Report, and the caller decides whether that address is its
+own.
 
 Scans and connections are made as the public address until
 `use_random_address` gives the controller a random one with LE Set Random

@@ -21,6 +21,7 @@
 use crate::air::PEER;
 use crate::bond_tests::{press, static_identity};
 use crate::fixture::{air, keyboard, link, HID_ADV};
+use crate::fixture_link::plain;
 use crate::link::find_hid;
 use crate::reconnect_tests::STRANGER;
 
@@ -44,7 +45,7 @@ fn together(from: &[[u8; 6]], data: &[u8]) -> Vec<u8> {
 fn of_two_new_advertisers_in_one_event_the_first_is_taken() {
     let (mut host, _, mut env) = keyboard();
     air(&mut host).others.push(together(&[STRANGER, OTHER], &HID_ADV));
-    let peer = find_hid(&mut host, &mut env).unwrap().unwrap();
+    let peer = find_hid(&mut host, &mut env, &plain()).unwrap().unwrap();
     assert_eq!(peer.addr.0, STRANGER);
 }
 
@@ -58,7 +59,7 @@ fn a_bonded_peer_after_a_new_one_in_the_same_event_is_taken() {
     // The peer's own report comes later: make it one the look ignores.
     air(&mut host).adv_kind = 0x03;
     let start = env.now;
-    let peer = find_hid(&mut host, &mut env).unwrap().unwrap();
+    let peer = find_hid(&mut host, &mut env, &plain()).unwrap().unwrap();
     assert_eq!(peer.addr.0, PEER);
     assert!(env.now - start < 2_000, "the bonded peer waited");
 }

@@ -34,6 +34,8 @@ mod encrypt_end_tests;
 #[cfg(test)]
 mod encrypt_tests;
 #[cfg(test)]
+mod filter_tests;
+#[cfg(test)]
 mod flow_tests;
 #[cfg(test)]
 mod joiner_tests;
