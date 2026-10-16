@@ -18,16 +18,15 @@
 
 use alloc::vec::Vec;
 
-use nonos_route_link::Route;
-
 use super::super::super::probe_rpc_tcp::TcpProbe;
 use super::super::super::probe_tls_rpc::TlsProbe;
+use super::super::super::WalletRoute;
 use super::super::open::Opening;
 use super::state::Exchange;
 use super::types::Stage;
 
 impl Exchange {
-    pub fn begin(route: Route, body: Vec<u8>) -> Exchange {
+    pub fn begin(route: WalletRoute, body: Vec<u8>) -> Exchange {
         let host = crate::wallet::chain::rpc_host();
         Exchange {
             host,

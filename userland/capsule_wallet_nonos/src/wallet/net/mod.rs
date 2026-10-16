@@ -31,6 +31,8 @@ mod snapshot_fields;
 mod snapshot_parse;
 mod status;
 pub mod step;
+pub mod wallet_route;
+mod wallet_route_now;
 
 /* The route type, named once here so the pure files below reach it as
  * `super::Route`, the way wallet_proofs compiles them. */
@@ -38,3 +40,4 @@ use nonos_route_link::Route;
 
 pub use route_text::{route_part, route_value};
 pub use status::NetStatus;
+pub use wallet_route::WalletRoute;

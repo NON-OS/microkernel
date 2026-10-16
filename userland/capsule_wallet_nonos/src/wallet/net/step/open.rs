@@ -18,10 +18,11 @@
 //! and only over Nym or Anyone (`private_route`): each step asks the proxy
 //! once, for a slice. The wallet never opens a socket of its own.
 
-use nonos_route_link::{Route, RouteOpening, Slice};
+use nonos_route_link::{RouteOpening, Slice};
 
 use super::super::link::Link;
-use super::super::private_route::refused;
+use super::super::private_route::{refused, WAITING};
+use super::super::WalletRoute;
 use super::SLICE_MS;
 
 const NO_ANSWER: &str = "the RPC host did not answer";
@@ -36,11 +37,12 @@ pub enum Opening {
 }
 
 impl Opening {
-    pub fn begin(route: Route, host: &'static str) -> Opening {
+    pub fn begin(route: WalletRoute, host: &'static str) -> Opening {
         if let Some(why) = refused(route) {
             return Opening::Down(why);
         }
-        match RouteOpening::begin(route, host, 443, SLICE_MS) {
+        let Some(link) = route.link() else { return Opening::Down(WAITING) };
+        match RouteOpening::begin(link, host, 443, SLICE_MS) {
             Ok(opening) => Opening::Routed { opening, patience_ms: route.patience_ms() },
             Err(why) => Opening::Down(why),
         }
