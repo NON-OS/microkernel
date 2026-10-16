@@ -30,6 +30,8 @@ pub mod direct_only;
 pub mod frame;
 #[path = "../../nonos_route_link/src/opening.rs"]
 pub mod opening;
+#[path = "../../nonos_route_link/src/patience.rs"]
+pub mod patience;
 #[path = "../../nonos_route_link/src/pick.rs"]
 pub mod pick;
 #[path = "../../nonos_route_link/src/refusal.rs"]

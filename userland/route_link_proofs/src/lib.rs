@@ -42,6 +42,8 @@ mod frame_tests;
 #[cfg(test)]
 mod ntp_tests;
 #[cfg(test)]
+mod patience_tests;
+#[cfg(test)]
 mod pick_tests;
 #[cfg(test)]
 mod sdk_way_tests;

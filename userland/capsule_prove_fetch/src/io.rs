@@ -54,4 +54,13 @@ impl Io for RouteIo<'_> {
         self.open()?;
         self.stream.read_wait(into, SLICE_MS).map_err(|_| SessionError::Io)
     }
+
+    /// The route's patience: a proxied stream waits as its network asks
+    /// (Proxy::patience_ms), a direct socket as the wire does.
+    fn patience_ms(&self) -> i64 {
+        match &self.stream {
+            RouteStream::Proxied(t) => t.proxy().patience_ms() as i64,
+            RouteStream::Direct(_) => 0,
+        }
+    }
 }
