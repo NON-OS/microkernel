@@ -33,8 +33,10 @@
 
 mod classify;
 mod ids;
+mod record;
 mod slot_info;
 
 pub use classify::{classify, Kind};
 pub use ids::{INTEL_EMMC, INTEL_SDIO};
+pub use record::host;
 pub use slot_info::{first_bar, PCI_SLOT_INFO};

@@ -19,16 +19,17 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_libc::{mk_device_list, DeviceRecord, BUS_KIND_PCI};
+use nonos_libc::{mk_device_list, DeviceRecord};
 
-use super::super::super::pci::classify;
+use super::super::super::pci::host;
 use super::Found;
 
 /// Ask for at most this many device records. The broker lists every PCI
 /// function and ACPI device; a laptop has well under a hundred.
 const MAX_RECORDS: usize = 512;
 
-/// The candidates in the order they are tried: known Intel eMMC hosts, then
+/// The candidates, PCI functions and ACPI platform devices alike
+/// (pci/record.rs), in the order they are tried: known Intel eMMC hosts, then
 /// other SDHCI hosts (served as fixed if their slot is embedded, else as a
 /// removable slot when no host is fixed), each group in device list order.
 /// The SDIO hosts Intel names are left out. The broker files class 0x08
@@ -47,17 +48,16 @@ pub fn discover() -> Vec<Found> {
     }
     let mut found: Vec<Found> = buf[..core::cmp::min(n as usize, room)]
         .iter()
-        .filter(|r| r.bus_kind == BUS_KIND_PCI)
         .filter_map(|r| {
-            classify(r.vendor, r.device, r.pci_class, r.pci_subclass, r.pci_progif).map(|kind| {
-                Found {
-                    device_id: r.device_id,
-                    vendor: r.vendor,
-                    device: r.device,
-                    kind,
-                    bars: r.bars,
-                    bar_count: r.bar_count,
-                }
+            let class = (r.pci_class, r.pci_subclass, r.pci_progif);
+            host((r.bus_kind, r.flags), r.vendor, r.device, class).map(|(kind, acpi)| Found {
+                device_id: r.device_id,
+                vendor: r.vendor,
+                device: r.device,
+                kind,
+                bars: r.bars,
+                bar_count: r.bar_count,
+                acpi,
             })
         })
         .collect();

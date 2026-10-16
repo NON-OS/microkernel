@@ -63,6 +63,8 @@ mod names_tests;
 #[cfg(test)]
 mod pci_tests;
 #[cfg(test)]
+mod acpi_host_tests;
+#[cfg(test)]
 mod reason_tests;
 #[cfg(test)]
 mod register_tests;
