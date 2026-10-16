@@ -14,24 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device's state as the capsule knows it, and a move made for its
-//! driver, through the power-resource pool the fans share.
+//! A move made for a device's driver, through the power-resource pool the
+//! fans share.
 
+use super::current::current;
 use crate::boot::{evaluator, path, Acpi};
 use crate::server::protocol::{EINVAL, EIO, ELOSES};
 use crate::sys::log::Line;
-use nonos_aml::device_power::{power_managed, psc, DState, MoveError};
+use nonos_aml::device_power::{DState, MoveError};
 use nonos_aml::namespace::Id;
-
-/// What this capsule last set; else _PSC; else D0 for a device with no
-/// power control, which is always on; else unknown.
-pub fn current(acpi: &mut Acpi, dev: Id) -> Option<DState> {
-    if let Some(s) = acpi.dpower.state(dev) {
-        return Some(s);
-    }
-    let Acpi { aml, host, .. } = acpi;
-    psc(aml, &mut evaluator(host), dev).or((!power_managed(aml, dev)).then_some(DState::D0))
-}
 
 pub fn move_to(acpi: &mut Acpi, dev: Id, to: DState, (pid, id): (u32, u64)) -> i32 {
     // A device firmware left in an unknown state is taken to be off, so
@@ -59,7 +50,12 @@ pub fn move_to(acpi: &mut Acpi, dev: Id, to: DState, (pid, id): (u32, u64)) -> i
             }
             Err(e) => {
                 l.str(b": BARs not put back, errno ").dec(e.unsigned_abs()).end();
-                EIO
+                // The kernel's EIO: a BAR would not stick and the claim went.
+                if e == i64::from(EIO) {
+                    ELOSES
+                } else {
+                    EIO
+                }
             }
         },
         Err(MoveError::Fault(f)) => {

@@ -25,8 +25,8 @@
 //! state it lacks, a move between low-power states, or a wake target past
 //! _S0W; ELOSES (-95) for a PCI function's move its configuration would
 //! not survive, D3cold, or D3hot without No_Soft_Reset while the kernel
-//! cannot put it back (`keep`); EIO when the AML failed or the BARs could
-//! not be put back.
+//! cannot put it back (`keep`), or once the kernel could not put the BARs
+//! back after D3 and released the claim; EIO when the AML failed.
 
 use super::moves::move_to;
 use super::reply::reply;

@@ -21,7 +21,7 @@
 //! read and never armed; then, only to the holder that armed its wake, 1
 //! u8 and the wakes counted since, u32.
 
-use super::moves::current;
+use super::current::current;
 use super::wake_sweep::owns;
 use crate::boot::{evaluator, path, Acpi};
 use alloc::vec::Vec;
