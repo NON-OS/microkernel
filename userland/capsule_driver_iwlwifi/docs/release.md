@@ -2,7 +2,7 @@
 
 Control family requests: `[magic u32][op u16][request id u32][body]`, replies
 echo the header. Status reply after the header: `[stage u8][step u8]` then
-seven little-endian u32 words: detail, CSR_HW_REV, CSR_HW_RF_ID, sweeps
+seven little-endian u32 words: detail, two zero words, sweeps
 completed, sweeps stalled, frames received, beacons parsed. Scan reply after
 the header: sweeps, frames, beacons (u32 each), then `[count]` and per network
 `[signal 0..100][flags][ssid_len][ssid]` (flags: bit 0 secured, bit 1 WPA2,
