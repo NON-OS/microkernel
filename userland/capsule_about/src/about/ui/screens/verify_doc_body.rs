@@ -19,6 +19,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::about::data::doc_parse::Doc;
+use crate::about::data::proofs::firmware;
 use crate::about::format::u64_decimal;
 use crate::about::format_hex::hex_bytes;
 use crate::about::theme::MUTED;
@@ -28,7 +29,8 @@ use super::super::metrics::{BODY_PX, CARD_PAD, PAIR_H};
 use super::super::text::{line, top_of};
 use super::verify_doc_cover::counted;
 
-pub(super) fn body(fb: &mut PaintBuffer, top: i32, inner: u32, doc: &Doc) {
+/// `listed` is whether the registry read now holds the firmware entry.
+pub(super) fn body(fb: &mut PaintBuffer, top: i32, inner: u32, doc: &Doc, listed: Option<bool>) {
     let sub = b"A TPM signed this root together with the challenge it was given.";
     line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), sub, MUTED, BODY_PX);
 
@@ -52,9 +54,11 @@ pub(super) fn body(fb: &mut PaintBuffer, top: i32, inner: u32, doc: &Doc) {
     let mut signed = [0u8; 20];
     let mut sig = [0u8; 20];
     let mut cell = [0u8; 64];
+    let (shown, what) = firmware::counted(doc.capsule_count, listed);
     let n = counted(
         &mut cell,
-        u64_decimal(doc.capsule_count as u64, &mut count),
+        u64_decimal(u64::from(shown), &mut count),
+        what,
         u64_decimal(doc.attest_len as u64, &mut signed),
         u64_decimal(doc.signature_len as u64, &mut sig),
     );
