@@ -388,8 +388,8 @@ other op: no one.
   and the link above it are handled too. D3hot without No_Soft_Reset is
   allowed only while the kernel offers `MkAcpiRestoreFunction` (asked once
   at the first move), which puts a claimed function's BARs back (L62)
-  after any move into D0 from D3, before the holder is answered; EIO if it
-  would not. Without the call such a D3hot is refused too. Decoding and bus
+  after any move into D0 from D3, before the holder is answered; ELOSES if
+  a BAR would not stick and the kernel released the claim. Without the call such a D3hot is refused too. Decoding and bus
   mastering are the driver's to turn back on after the reset
   (`src/dpower/keep.rs`). Layout in `src/dpower/wire.rs`.
   Its holder may also arm the device to wake while the system runs
