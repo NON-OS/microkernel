@@ -41,7 +41,7 @@ pub(super) fn finish(sta: &mut SaeStation, ap: &mut SaeStation) -> bool {
         return false;
     };
     let _ = sta.on_frame(1, STATUS_SUCCESS, &ap_commit);
-    matches!(sta.on_frame(2, STATUS_SUCCESS, &ap_confirm), SaeStep::Accepted)
+    matches!(sta.on_frame(2, STATUS_SUCCESS, &ap_confirm), SaeStep::Accepted { .. })
 }
 
 #[test]
@@ -69,6 +69,6 @@ fn a_forged_confirm_is_discarded_and_the_real_one_still_verifies() {
     forged[5] ^= 1;
     assert!(matches!(sta.on_frame(2, STATUS_SUCCESS, &forged), SaeStep::Ignore));
     assert_eq!((sta.state(), sta.failure()), (SaeState::Confirmed, Some(SaeFailure::BadConfirm)));
-    assert!(matches!(sta.on_frame(2, STATUS_SUCCESS, &real), SaeStep::Accepted));
+    assert!(matches!(sta.on_frame(2, STATUS_SUCCESS, &real), SaeStep::Accepted { .. }));
     assert!(sta.pmk().is_some());
 }
