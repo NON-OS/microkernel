@@ -3434,10 +3434,14 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "tools/nonos-pack/core",
    "userland/capsule_installer/src/protocol",
+   "userland/capsule_installer/src/server/discover.rs",
    "userland/capsule_installer/src/server/handlers",
    "userland/installer_proofs",
    "userland/libc/src/capsule_load.rs",
+   "userland/libc/src/capsule_verify.rs",
+   "userland/libc/src/ipc/lookup.rs",
    "userland/libc/src/syscall/numbers/tag.rs"
   ],
   "md": [],

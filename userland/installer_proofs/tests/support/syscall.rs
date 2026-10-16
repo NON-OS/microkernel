@@ -22,7 +22,7 @@
 // (load_by_name frees its blobs on return), and answers with a test's rc.
 
 #[path = "../../../libc/src/syscall/numbers/tag.rs"]
-mod tag;
+pub mod tag;
 
 use std::cell::{Cell, RefCell};
 

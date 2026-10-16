@@ -1,12 +1,14 @@
 # NONOS Operating System
 # Copyright (C) 2026 NONOS Contributors
 #
-# Host proofs for the capsule installer's two load handlers: the load_store
+# Host proofs for the capsule installer's load and pkg handlers: the load_store
 # payload's head and the offsets it gives, the load request built over the
 # payload, the four store artifacts a load by name reads (and the size cap it
-# reads them under), and the attribution of a spawned capsule to the sender.
-# The test target mounts the real handler sources by `#[path]`, with host
-# stand-ins only for the syscall, the installer's own pid and the vfs read.
+# reads them under), the attribution of a spawned capsule to the sender, and
+# the package pkg_query and pkg_commit read (refused past MAX_PACKAGE, never
+# verified or installed cut). The test targets mount the real handler sources
+# by `#[path]`, with host stand-ins only for the syscalls, the installer's own
+# pid and the vfs client.
 [package]
 name = "installer_proofs"
 version = "0.1.0"
@@ -16,3 +18,7 @@ license = "AGPL-3.0-or-later"
 
 [lib]
 path = "src/lib.rs"
+
+[dev-dependencies]
+blake3 = { version = "=1.8.6", default-features = false, features = ["pure"] }
+nonos_pack_core = { package = "nonos-pack-core", path = "../../tools/nonos-pack/core" }
