@@ -32,8 +32,12 @@ const DOC_MAX: u32 = 256 * 1024;
 const LOG_PATH: &[u8] = b"/data/wallet.attests";
 
 pub fn read_doc(pid: u32, path: &str) -> Result<MarketplaceEntry, &'static str> {
+    // One byte past the cap, so a longer file is refused, never decoded cut.
     let bytes =
-        read_file(pid, path.as_bytes(), DOC_MAX).map_err(|_| "that file could not be read")?;
+        read_file(pid, path.as_bytes(), DOC_MAX + 1).map_err(|_| "that file could not be read")?;
+    if bytes.len() > DOC_MAX as usize {
+        return Err("that file is not one listing's entry document");
+    }
     decode_entry_document(&bytes).map_err(|_| "that file is not one listing's entry document")
 }
 
@@ -43,7 +47,8 @@ pub fn read_log(pid: u32) -> Result<Vec<Record>, &'static str> {
     if stat(pid, LOG_PATH).is_err() {
         return Ok(Vec::new());
     }
-    let bytes = read_file(pid, LOG_PATH, FILE_LEN as u32)
+    // One byte past FILE_LEN, so a longer log fails decode's length check.
+    let bytes = read_file(pid, LOG_PATH, FILE_LEN as u32 + 1)
         .map_err(|_| "the attest log could not be read")?;
     decode(&bytes).ok_or("the attest log is damaged; nothing is signed until it is restored")
 }
