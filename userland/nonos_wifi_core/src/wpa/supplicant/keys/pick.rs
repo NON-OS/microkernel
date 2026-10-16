@@ -13,18 +13,16 @@ pub(in super::super) fn group_keys(kd: &KeyData<'_>) -> Option<GroupKeys> {
     if g.key.len() != GROUP_KEY_LEN {
         return None;
     }
-    let mut gtk = [0u8; GROUP_KEY_LEN];
-    gtk.copy_from_slice(g.key);
-    let igtk = match kd.igtk {
-        Some(i) => {
-            if i.key.len() != GROUP_KEY_LEN || !(4..=5).contains(&i.key_id) {
-                return None;
-            }
-            let mut key = [0u8; GROUP_KEY_LEN];
-            key.copy_from_slice(i.key);
-            Some((key, i.key_id, i.ipn))
+    // Built in place: the keys are copied once, into the holder that wipes
+    // them when it goes.
+    let mut keys = GroupKeys { gtk: [0; GROUP_KEY_LEN], gtk_id: g.key_id, igtk: None, rsc: 0 };
+    keys.gtk.copy_from_slice(g.key);
+    if let Some(i) = kd.igtk {
+        if i.key.len() != GROUP_KEY_LEN || !(4..=5).contains(&i.key_id) {
+            return None;
         }
-        None => None,
-    };
-    Some(GroupKeys { gtk, gtk_id: g.key_id, igtk, rsc: 0 })
+        let (key, _, _) = keys.igtk.insert(([0; GROUP_KEY_LEN], i.key_id, i.ipn));
+        key.copy_from_slice(i.key);
+    }
+    Some(keys)
 }

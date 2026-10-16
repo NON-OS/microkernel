@@ -60,13 +60,13 @@ impl LinkStation {
     /// Record association to `bssid` with the given CCMP mode, resetting the
     /// sequence and packet-number counters for the new session.
     pub fn associate(&mut self, bssid: MacAddr, ccmp: Ccmp) {
+        self.forget_keys();
         self.bssid = bssid;
         self.ccmp = ccmp;
         self.pn = 0;
         self.seq = 0;
         self.associated = true;
         self.replay = Replay::new();
-        self.group_keys = [None; 4];
         self.supplicant = None;
         self.watch = Watch::new();
     }

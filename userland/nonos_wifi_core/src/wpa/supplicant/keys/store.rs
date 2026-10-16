@@ -4,6 +4,7 @@
 
 use super::super::state::Supplicant;
 use crate::ccmp::keywrap::{aes_unwrap, MAX_BLOCKS};
+use crate::wipe::wipe;
 
 /// Bytes of key data the unwrap can hold.
 pub(in super::super) const UNWRAPPED_MAX: usize = MAX_BLOCKS * 8;
@@ -40,12 +41,21 @@ impl Supplicant {
         self.gtk_len = GROUP_KEY_LEN;
         self.gtk_id = k.gtk_id;
         self.gtk_rsc = k.rsc;
-        if let Some((key, id, ipn)) = k.igtk {
-            self.igtk = key;
-            self.igtk_id = id;
-            self.igtk_ipn = ipn;
+        if let Some((key, id, ipn)) = &k.igtk {
+            self.igtk = *key;
+            self.igtk_id = *id;
+            self.igtk_ipn = *ipn;
             self.igtk_set = true;
         }
         changed
+    }
+}
+
+impl Drop for GroupKeys {
+    fn drop(&mut self) {
+        wipe(&mut self.gtk);
+        if let Some((key, _, _)) = &mut self.igtk {
+            wipe(key);
+        }
     }
 }

@@ -49,7 +49,7 @@ impl LinkStation {
     /// again, and forgets the keys and the supplicant.
     pub fn deassociate(&mut self) {
         self.associated = false;
-        self.group_keys = [None; 4];
+        self.forget_keys();
         self.supplicant = None;
     }
 
