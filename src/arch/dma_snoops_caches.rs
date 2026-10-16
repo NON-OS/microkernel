@@ -36,3 +36,11 @@ pub(crate) fn pci_dma_coherent() -> bool {
     #[cfg(not(target_arch = "aarch64"))]
     return true;
 }
+
+/// Whether an uncached grant needs frames the kernel maps uncached too,
+/// from the broker's uncached pool. On aarch64 a cacheable alias beside a
+/// Non-cacheable one is a mismatch of attributes the architecture does not
+/// keep coherent (Arm ARM, DDI 0487, B2); x86_64's PAT handles its own.
+pub(crate) const fn uncached_grants_need_uncached_frames() -> bool {
+    cfg!(target_arch = "aarch64")
+}

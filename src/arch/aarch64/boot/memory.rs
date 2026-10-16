@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Handing the device tree's memory map to the physical allocator.
-//!
-//! The x86_64 path walks EFI descriptors; here the regions came out of the FDT
-//! and are already normalised into [`MemoryRegion`]. What both paths owe the
-//! allocator is the same: one contiguous managed range, plus a below-4 GiB pool
-//! for devices whose DMA descriptors are only 32 bits wide.
+//! Handing the device tree's memory map, already in [`MemoryRegion`]s, to the
+//! physical allocator: one contiguous managed range, a below-4 GiB pool for
+//! 32-bit DMA, and the uncached block cut from that pool.
 
 mod dma_place;
 mod dma_size;
@@ -27,6 +24,7 @@ mod dma_window;
 mod image;
 mod regions;
 mod reserve;
+mod uncached;
 
 use super::info::BootInfo;
 use crate::hardware::broker::dma;
@@ -70,6 +68,7 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
         crate::memory::phys::reserve(p.base, p.base + p.pages as u64 * PAGE_SIZE);
     }
     serial::println(b"[MEM] phys init OK");
+    let pool = pool.map(uncached::cut);
     dma::init_display_pool();
     let (dma_base, dma_pages) = pool.map_or((0, 0), |p| (p.base, p.pages));
     dma::init_low32_pool(dma_base, dma_pages);
