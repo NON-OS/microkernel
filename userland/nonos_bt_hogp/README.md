@@ -15,6 +15,10 @@ report mode where it can:
 - A service with a boot mouse is upgraded the same way when its map lays
   out a relative pointer. That brings the wheel. Each axis is clamped to
   what a boot mouse report carries, one signed octet.
+- A service with no boot reports, as a second HID service often is (HOGP
+  1.0 lets a device hold several), has only report mode. It is read by
+  its map when that lays out keys or a relative pointer, beside a boot
+  service or alone.
 - Every other service stays in Boot Protocol Mode, and so does a keyboard
   whose map is malformed, too long, unreadable or of no use. Boot mode
   needs no map, so a crafted map can at worst cost a peripheral its
@@ -72,12 +76,18 @@ which any ATT_MTU allows.
 
 ## Report mode
 
-A service is worth upgrading only if it has a Protocol Mode, a readable
-Report Map, a boot keyboard or boot mouse input report, and a Report
-that can notify. Protocol Mode is one per service, so report mode
-silences every boot report in it. The service is upgraded only if its
-map replaces each one: a boot keyboard by a Report with Keyboard page
-keys, a boot mouse by a Report with relative X and Y.
+A service is worth upgrading only if it has a readable Report Map and a
+Report that can notify, and, if it has a boot keyboard or boot mouse
+input report, a Protocol Mode to switch it with. Protocol Mode is one per
+service, so report mode silences every boot report in it. The service is
+upgraded only if its map gives at least one input Report, and replaces
+each boot report it has: a boot keyboard by a Report with Keyboard page
+keys, a boot mouse by a Report with relative X and Y. A service with no
+boot reports needs no write, since it is in report mode from the start;
+if it has a Protocol Mode anyway, that is written to report mode.
+
+Each boot report keeps its own keys and buttons, so two boot keyboards,
+or two boot mice, in separate services never release each other's.
 
 For such a service the host:
 1. Reads the Report Map with a Read, then Read Blobs from the length so
