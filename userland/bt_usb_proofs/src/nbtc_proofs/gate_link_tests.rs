@@ -21,13 +21,14 @@
 use crate::air::PEER;
 use crate::bond_tests::{press, static_identity};
 use crate::fixture::{air, keyboard, link};
+use crate::fixture_link::plain;
 use crate::link::{find_hid, End, FORGOTTEN};
 
 #[test]
 fn a_new_device_is_passed_over_while_pairing_is_shut() {
     let (mut host, _, mut env) = keyboard();
     env.user.may_pair = false;
-    assert_eq!(find_hid(&mut host, &mut env), Ok(None));
+    assert_eq!(find_hid(&mut host, &mut env, &plain()), Ok(None));
     assert!(env.now >= 10_000, "the look ran its whole time");
     assert_eq!(air(&mut host).seen.requests, 0);
 }
