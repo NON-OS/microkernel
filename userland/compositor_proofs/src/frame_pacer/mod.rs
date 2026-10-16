@@ -18,6 +18,8 @@
 //! pixels with the arrow cursor drawn last, a screenshot's capture, the band,
 //! the looks, and how damage is drained in batches.
 
+#[path = "../../../compositor/src/frame_pacer/band_rule.rs"]
+pub mod band_rule;
 #[path = "../../../compositor/src/frame_pacer/canvas_copy.rs"]
 pub mod canvas_copy;
 #[path = "../../../compositor/src/frame_pacer/compose.rs"]
