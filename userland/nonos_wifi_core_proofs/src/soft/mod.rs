@@ -20,7 +20,7 @@ pub mod ap;
 mod ap_eapol;
 mod ap_rx;
 mod chatter;
-mod data_frames;
+pub mod data_frames;
 pub mod env;
 pub mod frames;
 pub mod join;
