@@ -27,8 +27,8 @@ use crate::dot11::header::{fc_subtype, fc_type, FC_PROTECTED, MAC_HEADER_LEN, TY
 
 impl LinkStation {
     /// Check and act on one received management frame (FCS removed).
-    /// `hw_decrypted` says the chip decrypted and verified a protected frame,
-    /// leaving the CCMP header and MIC in place, as for data frames.
+    /// `hw_decrypted` says the chip decrypted a protected frame, leaving the
+    /// CCMP header and MIC as received, as for data frames.
     pub fn receive_mgmt(&mut self, mpdu: &[u8], hw_decrypted: bool) -> MgmtRx {
         self.mgmt_checked(mpdu, hw_decrypted).unwrap_or_else(MgmtRx::Dropped)
     }
