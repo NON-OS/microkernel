@@ -46,6 +46,7 @@ impl Gen9 {
         self.regs.insert(off, v);
         self.dc_write(off, v, old);
         self.iir_write(off, v, old);
+        self.cable_write(off, v);
         self.aux_write(off, v);
         self.south_write(off, v);
         self.ddi_write(off, v);
