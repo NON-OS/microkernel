@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The server's discovery answers: as many entries as fit the MTU, all of
+//! The server's discovery answers: as many entries as fit the ATT_MTU, all of
 //! one length, or Attribute Not Found when nothing in range matches.
 
-use super::server::{Peripheral, MTU};
+use super::server::Peripheral;
 use nonos_bt_wire::att::{error::*, opcode::*};
 
 type Answer = Result<Vec<u8>, (u16, u8)>;
@@ -30,7 +30,7 @@ impl Peripheral {
         for (i, a) in attrs.iter().enumerate() {
             let in_range = self.repeat || (start..=end).contains(&a.handle);
             let hit = in_range && a.kind == kind && a.value == value;
-            if !hit || out.len() + 4 > MTU {
+            if !hit || out.len() + 4 > self.mtu {
                 continue;
             }
             let group_end = attrs[i + 1..]
@@ -53,7 +53,7 @@ impl Peripheral {
             self.db.attrs.iter().filter(|a| (start..=end).contains(&a.handle) && a.kind == kind)
         {
             let len = 2 + a.value.len();
-            if (each != 0 && len != each) || out.len() + len > MTU {
+            if (each != 0 && len != each) || out.len() + len > self.mtu {
                 break;
             }
             each = len;

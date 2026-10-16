@@ -29,6 +29,7 @@ report mode where it can:
 | `uuids` | The UUIDs and characteristic properties it looks for and serves. |
 
 Discovery and configuration run in this order:
+0. Ask for a larger ATT_MTU (below).
 1. Find the HID services (UUID 0x1812) with Find By Type Value.
 2. Read each service's characteristic declarations with Read By Type.
 3. Keep the boot keyboard input (0x2A22) and boot mouse input (0x2A33)
@@ -45,6 +46,30 @@ Discovery and configuration run in this order:
 
 After that, notifications on the report handles become events.
 
+## The ATT_MTU
+
+Before discovery the host sends an Exchange MTU Request (Vol 3, Part F,
+3.4.2), offering 247: a 251-octet LE data PDU less the 4-octet L2CAP
+header, well within the 512 octets the capsule reassembles. It asks once.
+
+A server's answer from 23 up to 247 becomes the bearer's ATT_MTU. Every
+other answer is ignored, never trusted, and the default 23 holds:
+- under 23;
+- over the offer;
+- malformed;
+- an error.
+
+The standard would take the smaller of the two for an answer over the
+offer. Ignoring it instead costs nothing: every read the host makes goes
+on while answers come full, so a server that sends longer answers than
+the MTU the host keeps is still read whole. Discovery then goes on as
+before. An exchange with no answer ends the bearer at the ATT timeout,
+like any other request.
+
+The server's own Exchange MTU Response gives the same 247, so a peer's
+exchange and the host's agree. The server's responses stay within 23,
+which any ATT_MTU allows.
+
 ## Report mode
 
 A service is worth upgrading only if it has a Protocol Mode, a readable
@@ -56,7 +81,7 @@ keys, a boot mouse by a Report with relative X and Y.
 
 For such a service the host:
 1. Reads the Report Map with a Read, then Read Blobs from the length so
-   far, while each answer fills the 22 octets a response holds. An empty
+   far, while each answer fills a response at the bearer's ATT_MTU. An empty
    answer, Attribute Not Long or Invalid Offset ends the map. A map past
    512 octets, the most HIDS 1.0 allows, is not read further.
 2. Finds each Report's Report Reference (0x2908) and CCCD with Find
@@ -154,9 +179,8 @@ database that GAP and GATT ask of every LE device:
   because the database never changes (7.1).
 
 Every attribute can be read and none written. The server answers
-Exchange MTU (with 23), Find Information, Find By Type Value, Read By
-Type, Read By Group Type and Read. The ATT_MTU therefore stays 23, which
-is what the map read counts on. A Write Request gets Write Not
+Exchange MTU (with 247), Find Information, Find By Type Value, Read By
+Type, Read By Group Type and Read. A Write Request gets Write Not
 Permitted. Any other request gets Request Not Supported. Every response
 fits the default ATT_MTU of 23. Commands are ignored. Indications are
 confirmed.

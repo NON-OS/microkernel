@@ -16,12 +16,14 @@
 
 mod blob;
 pub mod error;
+mod mtu;
 pub mod opcode;
 pub mod request;
 pub mod response;
 pub mod uuid;
 
 pub use blob::read_blob;
+pub use mtu::exchange_mtu;
 pub use request::*;
 pub use response::{ErrorRsp, HandleValue};
 pub use uuid::{uuid16, BASE_UUID};

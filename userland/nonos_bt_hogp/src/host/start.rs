@@ -17,6 +17,7 @@
 //! Starting discovery, sending a request, and stopping.
 
 use super::charge::Charge;
+use super::mtu::MTU_DEFAULT;
 use super::phase::Phase;
 use super::state::Host;
 use super::step::Step;
@@ -29,7 +30,7 @@ use nonos_bt_wire::att;
 
 impl Host {
     /// A host on a bearer that is already encrypted; the step holds the
-    /// first request.
+    /// first request, the MTU exchange.
     pub fn start(now_ms: u64) -> (Self, Step) {
         let mut host = Self {
             phase: Phase::Services { next: 1 },
@@ -51,8 +52,9 @@ impl Host {
             pending: None,
             sent_ms: now_ms,
             requests: 0,
+            mtu: MTU_DEFAULT,
         };
-        let step = host.find_services(1, now_ms);
+        let step = host.exchange(now_ms);
         (host, step)
     }
 
