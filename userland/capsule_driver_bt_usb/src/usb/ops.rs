@@ -22,7 +22,7 @@
 //! endpoint configured is refused.
 
 use super::call::call;
-use super::limit::INTERRUPT_MAX;
+use super::limit::{reply_len, INTERRUPT_MAX};
 use super::wire::{DATA_AT, E_AGAIN, E_IO};
 use nonos_bt_hci::usb::Endpoint;
 
@@ -49,17 +49,16 @@ pub fn configure_interrupt(xhci: u32, slot: u8, ep: &Endpoint) -> Result<u8, i32
 /// INTERRUPT_MAX; `None` while the device has sent nothing. driver.xhci0
 /// keeps the transfer armed between looks, so nothing sent is lost.
 pub fn interrupt_poll(xhci: u32, slot: u8, dci: u8, out: &mut [u8]) -> Result<Option<usize>, i32> {
-    let want = (out.len().min(INTERRUPT_MAX) as u16).to_le_bytes();
+    let armed = out.len().min(INTERRUPT_MAX);
+    let want = (armed as u16).to_le_bytes();
     let mut resp = [0u8; DATA_AT + 2 + INTERRUPT_MAX];
     let len = match call(xhci, OP_INTERRUPT_IN, &[slot, dci, want[0], want[1]], &mut resp) {
         Ok(len) => len,
         Err(E_AGAIN) => return Ok(None),
         Err(e) => return Err(e),
     };
-    let n = usize::from(u16::from_le_bytes([resp[DATA_AT], resp[DATA_AT + 1]]));
-    if len < 2 + n || n > out.len() {
-        return Err(E_IO);
-    }
+    let claimed = usize::from(u16::from_le_bytes([resp[DATA_AT], resp[DATA_AT + 1]]));
+    let n = reply_len(armed, claimed, len).ok_or(E_IO)?;
     out[..n].copy_from_slice(&resp[DATA_AT + 2..DATA_AT + 2 + n]);
     Ok(Some(n))
 }
