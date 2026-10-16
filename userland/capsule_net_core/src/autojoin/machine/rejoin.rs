@@ -19,9 +19,9 @@
 //! link seen up and then down starts a rejoin of that network alone, unless
 //! the person left it (a Leave from Settings or the setup wizard): at most
 //! `REJOIN_ATTEMPTS` passes, the first `REJOIN_FIRST_MS` after the loss, each
-//! later wait twice the one before, up to `REJOIN_MAX_MS`. A join turned down
-//! for the passphrase or the network's security ends it (`codes`), and so
-//! does one the driver ran on whose result never came back.
+//! later wait twice the one before, up to `REJOIN_MAX_MS`. A join refused for
+//! good ends it (`codes`: what no one on the air can forge), and so does one
+//! the driver ran on whose result never came back.
 
 use super::seen::Rejoin;
 use super::{Machine, Phase, LINK_EVERY_MS, REJOIN_ATTEMPTS, REJOIN_FIRST_MS};
