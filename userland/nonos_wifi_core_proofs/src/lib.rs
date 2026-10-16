@@ -22,6 +22,7 @@
 #![cfg(test)]
 
 mod ap_sim;
+mod beacons;
 mod bip_gmac_frames;
 mod bip_gmac_reading_tests;
 mod bip_gmac_refusal_tests;
@@ -48,7 +49,7 @@ mod pmf_query_tests;
 mod pmf_sim;
 mod pmksa;
 mod prf_tests;
-mod privacy;
+pub mod privacy;
 mod protect_mgmt_tests;
 mod protect_tests;
 mod ptk_len_tests;

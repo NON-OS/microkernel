@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod ciphers;
+mod integrity;
 mod keys;
 mod kinds;
 mod new;
