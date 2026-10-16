@@ -18,15 +18,15 @@
 //! and its epoch, the BAR (map_resolve.rs); the pages the request touches,
 //! kept off every MSI-X table and PBA (window.rs) and off RAM, the kernel
 //! image and the IOMMUs' registers (forbidden.rs); a user VA in the MMIO
-//! region, mapped user, read+write, uncached, NX; then the grant's record.
-//! A rejection maps nothing. `user_va` is the VA of the first byte asked for
+//! region, mapped user, read+write, uncached, NX; then the grant's record,
+//! while the claim still holds (map_record.rs). A rejection maps nothing. `user_va` is the VA of the first byte asked for
 //! (a 2 KiB ABAR at ...800 gets a VA ending 0x800), `length` the bytes usable.
 
 use super::map_shared::{note_shared_page, window_error};
 use super::types::{MmioMapError, MmioMapRequest, MmioMapResult};
 use super::window::{self, PAGE_SIZE};
 use super::{forbidden_ranges, msix_exclusion};
-use crate::hardware::broker::grant::{self, MmioGrant, USER_MMIO_BASE, USER_MMIO_END};
+use crate::hardware::broker::grant::{self, USER_MMIO_BASE, USER_MMIO_END};
 use crate::memory::addr::PhysAddr;
 
 const FLAGS_KNOWN: u32 = 0;
@@ -54,19 +54,7 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     if crate::memory::paging::map_user_mmio(user_va, phys, w.page_bytes as usize).is_err() {
         return Err(MmioMapError::MapFailed);
     }
-    let grant_id = grant::allocate_id();
-    grant::insert(MmioGrant {
-        grant_id,
-        pid,
-        device_id: req.device_id,
-        claim_epoch: claim.epoch,
-        bar_index: req.bar_index,
-        // The record holds the whole pages, which is what unmap gives back.
-        physical_start: w.page_start,
-        user_va: user_va.as_u64(),
-        length: w.page_bytes,
-        flags: req.flags,
-    });
+    let grant_id = super::map_record::record(pid, &req, claim.epoch, &w, user_va)?;
     let first = user_va.as_u64() + w.in_page;
     Ok(MmioMapResult { user_va: first, length: w.usable, grant_id })
 }

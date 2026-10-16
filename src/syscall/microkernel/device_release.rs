@@ -48,6 +48,10 @@ pub fn sys_device_release(device_id: u64) -> i64 {
     let _ = broker::pio_release_for_device(pid, device_id);
     match broker::release_device(pid, device_id) {
         Ok(_epoch) => {
+            // A bind or grant that passed its claim check before the claim
+            // went, and was entered after the drops above.
+            let _ = broker::irq_release_for_device(pid, device_id);
+            let _ = broker::pio_release_for_device(pid, device_id);
             trace_release(b"ok", pid);
             0
         }

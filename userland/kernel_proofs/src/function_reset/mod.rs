@@ -30,6 +30,8 @@ pub mod reset_rule;
 pub mod reset_run;
 #[path = "../../../../src/hardware/broker/claim/reset_wait.rs"]
 pub mod reset_wait;
+#[cfg(test)]
+mod record_tests;
 #[path = "../../../../src/hardware/broker/claim/retire.rs"]
 pub mod retire;
 #[cfg(test)]
@@ -40,6 +42,10 @@ mod retire_holder;
 mod retire_tests;
 #[cfg(test)]
 mod tests;
+#[path = "../../../../src/hardware/broker/claim/state.rs"]
+pub mod state;
+#[path = "../../../../src/hardware/broker/claim/still_held.rs"]
+pub mod still_held;
 #[path = "../../../../src/hardware/broker/claim/types.rs"]
 pub mod types;
 #[cfg(test)]
