@@ -25,8 +25,6 @@ use crate::services::registry::{addressed_admits, caller_may_write_inbox, caller
 use crate::syscall::caps::current_caps_or_default;
 use crate::syscall::microkernel::errnos::ERRNO_PERM;
 
-use super::send_trace::trace;
-
 pub(super) fn caller_may_address(target: &str) -> bool {
     // An unknown name was already refused by its own gate.
     let Some(ep) = lookup_service(target) else {
@@ -58,7 +56,6 @@ pub(super) fn as_addressed(
     {
         return ERRNO_PERM;
     }
-    trace(pid, endpoint, target, data.len());
     match kernel_route_ipc_corr(pid, target, data, correlation) {
         Ok(()) => 0,
         Err(e) => e as i64,

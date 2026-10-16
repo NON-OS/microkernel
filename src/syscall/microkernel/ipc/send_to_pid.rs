@@ -22,7 +22,6 @@ use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOENT, ERRNO_NOMEM};
 
 use super::payload_in::copy_in;
-use super::send_to_pid_trace::trace;
 
 // `MkIpcSendToPid` delivers `buf` to the destination pid's default
 // per-process inbox `proc.<pid>`. Used by servers replying to a
@@ -49,7 +48,6 @@ pub fn sys_ipc_send_to_pid(dest_pid: u64, buf: u64, len: usize) -> i64 {
     if !super::send_caps::caller_satisfies_inbox(dest_pid as u32) {
         return crate::syscall::microkernel::errnos::ERRNO_PERM;
     }
-    trace(caller_pid, dest_pid, len);
     let dest = alloc::format!("proc.{}", dest_pid as u32);
     let from = alloc::format!("proc.{}", caller_pid);
     let Ok(msg) = IpcMessage::new(&from, &dest, &data) else {

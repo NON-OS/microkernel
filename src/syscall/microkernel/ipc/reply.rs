@@ -24,7 +24,6 @@ use super::payload_in::copy_in;
 use super::pending_reply;
 use super::reply_deliver::deliver;
 use super::reply_inbox;
-use super::reply_trace::trace;
 
 pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
     if len == 0
@@ -32,15 +31,11 @@ pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
         || dest_pid == 0
         || dest_pid > u32::MAX as u64
     {
-        trace(current_pid().unwrap_or(0), dest_pid, b"inval", ERRNO_INVAL, "");
         return ERRNO_INVAL;
     }
     let data = match copy_in(buf, len) {
         Ok(data) => data,
-        Err(e) => {
-            trace(current_pid().unwrap_or(0), dest_pid, b"copy", e, "");
-            return e;
-        }
+        Err(e) => return e,
     };
     let caller_pid = current_pid().unwrap_or(0);
     let dest = reply_inbox::for_pid(dest_pid as u32);
@@ -49,16 +44,12 @@ pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
     // than a separate per-client FIFO) keeps the stamp correct when several
     // callers have replies outstanding on this server at once.
     let Some(token) = pending_reply::remove(caller_pid, &dest) else {
-        trace(caller_pid, dest_pid, b"drop no-call", 0, &dest);
         return 0;
     };
     let from = alloc::format!("proc.{}", caller_pid);
     let mut msg = match IpcMessage::new(&from, &dest, &data) {
         Ok(msg) => msg,
-        Err(_) => {
-            trace(caller_pid, dest_pid, b"message", ERRNO_NOMEM, &dest);
-            return ERRNO_NOMEM;
-        }
+        Err(_) => return ERRNO_NOMEM,
     };
     msg.correlation = token;
     deliver(caller_pid, dest_pid, &dest, msg)

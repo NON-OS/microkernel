@@ -24,7 +24,6 @@ use core::sync::atomic::AtomicBool;
 use super::super::surface_ops::{map_err, EFAULT, ESRCH};
 use super::display_mode::log_display_mode;
 use super::frames::user_frames;
-use super::trace::trace_surface;
 
 static FIRST_SURFACE_REGISTER: AtomicBool = AtomicBool::new(false);
 
@@ -33,7 +32,6 @@ pub(in super::super) fn do_register(desc_ptr: u64) -> SyscallResult {
         Some(p) => p,
         None => return errno(ESRCH),
     };
-    trace_surface(b"register", b"enter", pid);
     let desc: SurfaceDescriptor = match read_user_value(desc_ptr) {
         Ok(v) => v,
         Err(_) => return errno(EFAULT),
@@ -45,7 +43,6 @@ pub(in super::super) fn do_register(desc_ptr: u64) -> SyscallResult {
     match register_surface(pid, &desc, frames) {
         Ok((sid, h)) => {
             attach_map::record(pid, h, desc.base_va, desc.byte_len);
-            trace_surface(b"register", b"ok", pid);
             crate::sys::bench::mark_once(&FIRST_SURFACE_REGISTER, b"surface_register_first");
             log_display_mode(&desc);
             SyscallResult::success_audited(sid as i64)

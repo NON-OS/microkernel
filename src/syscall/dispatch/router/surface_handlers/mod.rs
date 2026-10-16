@@ -20,7 +20,6 @@ mod present;
 mod register;
 mod release;
 mod share;
-mod trace;
 
 pub(super) use present::{do_present, do_vsync_wait};
 pub(super) use register::do_register;

@@ -21,7 +21,6 @@ use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL};
 
 use super::inbox_name::resolve_for_recv;
 use super::recv_inbox::recv_from_inbox;
-use super::recv_trace::trace;
 
 pub fn sys_ipc_recv(endpoint: u64, buf: u64, len: usize, timeout_ms: u64) -> i64 {
     if len == 0 {
@@ -31,7 +30,6 @@ pub fn sys_ipc_recv(endpoint: u64, buf: u64, len: usize, timeout_ms: u64) -> i64
         return ERRNO_FAULT;
     }
     let pid = current_pid().unwrap_or(0);
-    trace(b"enter", pid);
     let inbox_name = match resolve_for_recv(endpoint, pid) {
         Ok(name) => name,
         Err(e) => return e,
