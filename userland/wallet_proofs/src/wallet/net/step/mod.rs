@@ -5,3 +5,5 @@
 
 #[path = "../../../../../capsule_wallet_nonos/src/wallet/net/step/gather.rs"]
 pub mod gather;
+#[path = "../../../../../capsule_wallet_nonos/src/wallet/net/step/slice.rs"]
+pub mod slice;

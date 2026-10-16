@@ -4967,6 +4967,7 @@
    "userland/nonos_hd",
    "userland/nonos_nox_chunks",
    "userland/nonos_nox_config",
+   "userland/nonos_route_link/src/bounds.rs",
    "userland/nonos_route_link/src/describe.rs",
    "userland/nonos_route_link/src/pick.rs",
    "userland/nonos_seal",
