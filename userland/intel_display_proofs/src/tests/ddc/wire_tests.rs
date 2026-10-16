@@ -20,7 +20,7 @@
 //! controls only, sets from power or the shell alone, and the eDP panel
 //! and the DP monitor without DDC/CI have none.
 
-use super::rig::{ask, rig, HDMI};
+use super::rig::{ask, ask_unread, rig, HDMI};
 
 #[test]
 fn the_hdmi_monitor_is_listed_and_set_through_brightness() {
@@ -38,6 +38,7 @@ fn vcp_answers_the_allowed_controls_and_sets_only_from_power_or_the_shell() {
     let (mut d, model) = rig(true);
     let at = |c: u8| [5, HDMI[0], HDMI[1], HDMI[2], HDMI[3], c];
     assert_eq!(ask(&mut d, &at(0x12), false), (0, vec![50, 0, 80, 0]));
+    assert_eq!(ask_unread(&mut d, &at(0x12)), -1, "only power, the shell and Settings read");
     assert_eq!(ask(&mut d, &at(0x60), false), (0, vec![0x0F, 0, 0x12, 0]), "input, read");
     let set = |c: u8, v: u16| [6, HDMI[0], HDMI[1], HDMI[2], HDMI[3], c, v as u8, (v >> 8) as u8];
     assert_eq!(ask(&mut d, &set(0x12, 60), false).0, -1, "EPERM for anyone else");

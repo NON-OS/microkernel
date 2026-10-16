@@ -20,12 +20,12 @@
 //! and each refusal F's framing names.
 
 use super::two_rig::two_rig;
-use crate::display::brightness_answer;
+use crate::display::{brightness_answer, Rights};
 use crate::engine::backlight::BLC_PWM_PCH_CTL2;
 
 fn ask(d: &mut super::wire_rig::Rig, req: &[u8], may: bool) -> (i32, Vec<u8>) {
     let mut out = [0u8; 512];
-    let n = brightness_answer(d, 2, req, may, &mut out);
+    let n = brightness_answer(d, 2, req, Rights { set: may, read_controls: may }, &mut out);
     (i32::from_le_bytes(out[..4].try_into().unwrap()), out[4..n].to_vec())
 }
 

@@ -17,14 +17,15 @@
 //! Two ops beside F 12's brightness bytes, for an external monitor's own
 //! controls over DDC/CI, in the same framing (an i32 status, then the
 //! body). VCP (5): panel u32 and a control code u8; the body is the value
-//! now and the most it takes, u16 each. SET_VCP (6): panel u32, code u8,
-//! value u16, from power or desktop_shell alone. Only the controls
+//! now and the most it takes, u16 each; from power, desktop_shell and
+//! Settings alone, since a monitor's values are a small fingerprint.
+//! SET_VCP (6): panel u32, code u8, value u16, from power or desktop_shell. Only the controls
 //! `ddc::vcp` allows answer; the panel is an output's identity, as BRIGHTNESS
 //! lists it.
 
 use nonos_gfx_wire::Errno;
 
-use super::brightness_wire::{identity, EINVAL, ENOENT, EPERM};
+use super::brightness_wire::{identity, Rights, EINVAL, ENOENT, EPERM};
 
 pub const OP_VCP: u8 = 5;
 pub const OP_SET_VCP: u8 = 6;
@@ -39,7 +40,7 @@ pub fn answer<B: Controls>(
     b: &mut B,
     outputs: u16,
     req: &[u8],
-    may_set: bool,
+    may: Rights,
     out: &mut [u8],
 ) -> (i32, usize) {
     let output = |p: &[u8]| {
@@ -47,6 +48,7 @@ pub fn answer<B: Controls>(
         (0..outputs).find(|o| identity(*o) == id).ok_or(ENOENT)
     };
     match req {
+        [OP_VCP, ..] if !may.read_controls => (EPERM, 0),
         [OP_VCP, p @ .., code] if p.len() == 4 => {
             let got = output(p).and_then(|o| b.vcp(o, *code));
             match (got, out.get_mut(..4)) {
@@ -61,7 +63,7 @@ pub fn answer<B: Controls>(
         }
         [OP_SET_VCP, p @ .., code, lo, hi] if p.len() == 4 => match output(p) {
             Err(e) => (e, 0),
-            Ok(_) if !may_set => (EPERM, 0),
+            Ok(_) if !may.set => (EPERM, 0),
             Ok(o) => (b.set_vcp(o, *code, u16::from_le_bytes([*lo, *hi])).err().unwrap_or(0), 0),
         },
         _ => (EINVAL, 0),

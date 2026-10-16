@@ -106,8 +106,8 @@ monitor's brightness is its own, over DDC/CI (`src/ddc`, `display/ddc_bus.rs`): 
 output's own bus (GMBUS for HDMI and DVI, I2C over AUX for DisplayPort), only at address 0x37,
 only for brightness, contrast, the input source (read only) and the power mode (on or off), each
 reply checked for its length, checksum and echoed control, paced 40 ms to a reply and 50 ms
-between messages, and a reading kept a second. VCP 5 and SET_VCP 6 beside F 12's ops reach those
-controls (`vcp_wire.rs`); `engine::route`,
+between messages, and a reading kept a second. VCP 5 (read by power, desktop_shell and Settings
+alone) and SET_VCP 6 beside F 12's ops reach those controls (`vcp_wire.rs`); `engine::route`,
 `engine::relight::{relight, buffer}`, `Scanout::rebase`, `ggtt_run::map_run`. The binary: `discover::find`, `setup::run`, `bar::Bar0`
 (the engine's `Mmio`), `clock::Uptime`, `frames::DmaFrames`, `serve::run`.
 `src/engine`: `takeover::read_outputs`, `plane::program`, `flip::flip`,
