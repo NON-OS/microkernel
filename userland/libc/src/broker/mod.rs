@@ -16,6 +16,9 @@
 
 mod boot_framebuffer;
 mod device;
+// The kernel's one definition of DGON, the device-gone notice, by path.
+#[path = "../../../../src/hardware/broker/acpi/dgon_wire.rs"]
+mod dgon;
 mod dma;
 mod dma_lines;
 #[cfg(target_arch = "x86_64")]
@@ -51,3 +54,4 @@ pub use types::{
     BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO, BUS_KIND_ACPI, BUS_KIND_FIRMWARE, BUS_KIND_PCI,
     BUS_KIND_VIRT, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
 };
+pub use dgon::{dgon_encode, dgon_parse, Dgon, DGON_LEN, DGON_TAG, DGON_VERSION, WHY_GONE};
