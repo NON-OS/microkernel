@@ -30,6 +30,7 @@ use super::describe;
 use super::frames::Frames;
 use super::intel::{Intel, FLIP_US};
 use super::modes::modes;
+use super::plug::Plug;
 use crate::engine::access::{Clock, Mmio, Until};
 
 impl<M: Mmio, F: Frames, C: Clock> Display for Intel<M, F, C> {
@@ -55,6 +56,10 @@ impl<M: Mmio, F: Frames, C: Clock> Display for Intel<M, F, C> {
     fn flush(&mut self, output: u16, rects: &[Rect], shadow: &Shadow) -> Result<(), Errno> {
         let Intel { m, clock, heads, .. } = self;
         let h = heads.get_mut(output as usize).and_then(|h| h.as_mut()).ok_or(ENXIO)?;
+        if h.plug != Plug::In {
+            // Nothing is lit; the mode set that lights it copies it whole.
+            return Ok(());
+        }
         let (size, stride) = ((h.scan.width, h.scan.height), h.scan.stride);
         copy(&mut h.frames, h.scan.back(), size, stride, rects, shadow)?;
         h.frames.fence();

@@ -22,8 +22,12 @@ use super::panel_fits::fits;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::gen::{Gen, GEN9};
 use crate::engine::pipe::Transcoder;
-use crate::engine::route;
+use crate::engine::route::{self, Route};
+use nonos_edid::Edid;
 use nonos_gfx_serve::Panel;
+
+/// DVI's and HDMI 1.0's TMDS ceiling, for a sink that names none.
+const TMDS_DEFAULT_KHZ: u32 = 165_000;
 
 #[derive(Clone, Copy)]
 pub struct Monitor {
@@ -36,14 +40,28 @@ impl Monitor {
     /// Transcoder `t`'s monitor; read on Gen9 only, whose AUX and GMBUS
     /// registers these are, and empty elsewhere.
     pub fn of(m: &mut dyn Mmio, clock: &dyn Clock, gen: &Gen, t: Transcoder) -> Monitor {
-        let mut mon = Monitor { blob: [0; 256], len: 0 };
-        if let Some(r) = route::read(m, t).filter(|_| *gen == GEN9) {
-            mon.len = read(m, clock, &r, &mut mon.blob);
+        match route::read(m, t).filter(|_| *gen == GEN9) {
+            Some(r) => Monitor::on(m, clock, &r),
+            None => Monitor { blob: [0; 256], len: 0 },
         }
+    }
+
+    /// The monitor at the end of route `r`, lit or dark: a replugged
+    /// port's transcoder is off, so its route is the one it was lit on.
+    pub fn on(m: &mut dyn Mmio, clock: &dyn Clock, r: &Route) -> Monitor {
+        let mut mon = Monitor { blob: [0; 256], len: 0 };
+        mon.len = read(m, clock, r, &mut mon.blob);
         mon
     }
 
     pub fn panel(&self) -> Panel {
         Panel::read(&self.blob[..self.len], fits)
+    }
+
+    /// The fastest TMDS clock the monitor takes; None when its EDID does
+    /// not parse.
+    pub fn tmds_khz(&self) -> Option<u32> {
+        let edid = Edid::parse(&self.blob[..self.len]).ok()?;
+        Some(Some(edid.max_tmds_khz()).filter(|&k| k > 0).unwrap_or(TMDS_DEFAULT_KHZ))
     }
 }

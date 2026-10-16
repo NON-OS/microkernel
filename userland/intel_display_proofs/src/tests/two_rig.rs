@@ -19,8 +19,8 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use super::wire_rig::Rig;
-use crate::display::{Head, Intel};
+use super::wire_rig::{taken, Rig};
+use crate::display::Intel;
 use crate::engine::gen::GEN9;
 use crate::engine::ggtt_pte::Pte;
 use crate::engine::pipe::{Pipe, Transcoder};
@@ -29,7 +29,6 @@ use crate::engine::takeover::read_output;
 use crate::model::firmware::{Axis, T1080};
 use crate::model::{Gen9, ModelFrames, Polls, Shared, Ticks};
 use nonos_gfx_serve::Panel;
-use nonos_gfx_wire::body::state::SCANNING_OUT;
 
 pub const TOTAL: u32 = 1 << 20;
 const T768: (Axis, Axis) = ((1024, 24, 136, 1344), (768, 3, 6, 806));
@@ -64,11 +63,7 @@ pub fn two_rig() -> (Rig, Rc<RefCell<Gen9>>, [(u32, u32); 2]) {
         let (iova, len) = ([a[0], b[0]], n as usize * 4096);
         let model = Shared(model.clone());
         let frames = ModelFrames { model, iova, len, fences: 0, was: None, next: None };
-        let (panel, modeset, generation, flags) = (Panel::default(), None, 1, SCANNING_OUT);
-        let (window, cursor, bases) = (windows[i], None, iova);
-        let h =
-            Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor };
-        heads[i] = Some(h);
+        heads[i] = Some(taken(out, scan, frames, (Panel::default(), None), windows[i]));
     }
     let d = Intel::new(Shared(model.clone()), Ticks::new(), &GEN9, heads);
     (d, model, windows)

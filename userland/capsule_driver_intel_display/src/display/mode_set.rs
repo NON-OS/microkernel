@@ -17,9 +17,11 @@
 //! MODE_SET on a taken-over output: the new surfaces mapped and filled
 //! from the new primary before anything goes dark, then the output lit on
 //! them. A failure puts the old mode back on the untouched old surfaces.
+//! A pulled output is refused until its monitor is back (EAGAIN); one
+//! lit, or back on the old mode after a failure, is In.
 
 use nonos_gfx_serve::Shadow;
-use nonos_gfx_wire::errno::{EINVAL, ENOMEM, ENOSYS, ENXIO};
+use nonos_gfx_wire::errno::{EAGAIN, EINVAL, ENOMEM, ENOSYS, ENXIO};
 use nonos_gfx_wire::{Errno, Rect};
 
 use super::copy::copy;
@@ -27,6 +29,7 @@ use super::frames::Frames;
 use super::intel::Intel;
 use super::mode_light::{errno, light};
 use super::modeset::Modeset;
+use super::plug::Plug;
 use super::timing_pick::pick;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::cdclk;
@@ -36,6 +39,9 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
         let Intel { m, clock, heads, .. } = self;
         let hd = heads.get_mut(o as usize).and_then(|h| h.as_mut()).ok_or(ENXIO)?;
         let ms = hd.modeset.ok_or(ENOSYS)?;
+        if hd.plug == Plug::Out {
+            return Err(EAGAIN);
+        }
         let new = pick(&ms.monitor.blob[..ms.monitor.len], w, h);
         let new = new.filter(|t| cdclk::fits(m, t.pixel_khz)).ok_or(EINVAL)?;
         let stride = (w * 4).next_multiple_of(64);
@@ -54,12 +60,14 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
             Ok(()) => {
                 hd.frames.settle(true);
                 hd.bases = bases;
-                hd.modeset = Some(Modeset { now: new, ..ms });
+                (hd.modeset, hd.plug) = (Some(Modeset { now: new, ..ms }), Plug::In);
                 Ok(())
             }
             Err(e) => {
                 hd.frames.settle(false);
-                let _ = light(m, clock, &mut hd.scan, (&ms, &ms.now), was, old_bases);
+                if light(m, clock, &mut hd.scan, (&ms, &ms.now), was, old_bases).is_ok() {
+                    hd.plug = Plug::In;
+                }
                 Err(errno(e))
             }
         }

@@ -31,12 +31,10 @@ use crate::engine::relight::Lit;
 use crate::engine::route::{self, Link};
 use crate::engine::takeover::Output;
 use crate::engine::timing;
-use nonos_edid::{Detailed, Edid};
+use nonos_edid::Detailed;
 
 /// pcode answers its mailbox in a few milliseconds (unverified).
 const PCODE_US: u64 = 50_000;
-/// DVI's and HDMI 1.0's TMDS ceiling, for a sink that names none.
-const TMDS_DEFAULT_KHZ: u32 = 165_000;
 
 #[derive(Clone, Copy)]
 pub struct Modeset {
@@ -67,8 +65,7 @@ impl Modeset {
         let dpll = route::dpll_of(m, r.ddi).filter(|&d| d != 0)?;
         let now = matching(&monitor.blob[..monitor.len], &timing::read(m, out.transcoder)?)?;
         let latency_us = latencies(m, &Until::new(clock, PCODE_US)).ok()?;
-        let edid = Edid::parse(&monitor.blob[..monitor.len]).ok()?;
-        let tmds_khz = Some(edid.max_tmds_khz()).filter(|&k| k > 0).unwrap_or(TMDS_DEFAULT_KHZ);
+        let tmds_khz = monitor.tmds_khz()?;
         let lit = Lit { t: out.transcoder, p: out.pipe, ddi: r.ddi, dpll, link: r.link };
         Some(Modeset { lit, monitor: *monitor, tmds_khz, now, latency_us, window })
     }

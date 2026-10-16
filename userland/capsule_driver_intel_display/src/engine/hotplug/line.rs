@@ -20,7 +20,7 @@
 //! reported only once two polls agree, so a plug's bounce is not two
 //! events. DDI A is usually the eDP panel, which is always there.
 
-use super::access::Mmio;
+use super::super::access::Mmio;
 
 pub const SDEISR: u32 = 0xC_4000;
 pub const DE_PORT_ISR: u32 = 0x4_4440;

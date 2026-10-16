@@ -27,6 +27,7 @@ use nonos_gfx_wire::{Cursor, Errno};
 
 use super::frames::Frames;
 use super::intel::Intel;
+use super::plug::Plug;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::cursor::set;
 use crate::engine::ggtt_run::map_run;
@@ -38,6 +39,10 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
     pub fn show_cursor(&mut self, o: u16, c: &Cursor, slot: &[u8]) -> Result<(), Errno> {
         let Intel { m, heads, .. } = self;
         let h = heads.get_mut(o as usize).and_then(|h| h.as_mut()).ok_or(ENXIO)?;
+        if h.plug != Plug::In {
+            // A dark pipe shows no cursor; the repaint on LOST sends it again.
+            return Ok(());
+        }
         if c.flags & NEW_SHAPE != 0 {
             let img = slot.get(..IMAGE).ok_or(EINVAL)?;
             let iova = h.frames.cursor_image(img).ok_or(ENOMEM)?;

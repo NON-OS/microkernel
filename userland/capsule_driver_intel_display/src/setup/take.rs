@@ -68,6 +68,7 @@ pub fn take(
     if n == 0 {
         return Err(first_err);
     }
-    let intel = Intel::new(m, clock, gen, heads);
+    let mut intel = Intel::new(m, clock, gen, heads);
+    intel.watch();
     Ok(Driver { server: Server::new(intel, Pool), handles: h })
 }
