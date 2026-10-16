@@ -21,11 +21,15 @@
 //! EINVAL for a record that is malformed or longer than the layout allows;
 //! ENOSPC once every processor slot is taken.
 
+#[path = "thermal_limit.rs"]
+mod thermal_limit;
+
 use crate::hardware::broker::acpi::cpu_layout::MAX_RECORD;
 use crate::hardware::broker::acpi::cpu_store::{adopt, Adopted};
 use crate::hardware::broker::acpi::cpu_wire::decode;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOSPC};
 use crate::usercopy::read_user_bytes;
+pub use thermal_limit::sys_acpi_thermal_limit;
 
 pub fn sys_acpi_cpu(ptr: u64, len: u64) -> i64 {
     let Some(len) = usize::try_from(len).ok().filter(|l| *l <= MAX_RECORD) else {
