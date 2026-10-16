@@ -26,6 +26,10 @@ pub mod access_wire;
 pub mod arrange_wire;
 #[path = "../../../compositor/src/display/backoff.rs"]
 pub mod backoff;
+#[path = "../../../compositor/src/display/brightness_list.rs"]
+pub mod brightness_list;
+#[path = "../../../compositor/src/display/brightness_rule.rs"]
+pub mod brightness_rule;
 #[path = "../../../compositor/src/display/colour_rule.rs"]
 pub mod colour_rule;
 #[path = "../../../compositor/src/display/cursor_rule.rs"]
