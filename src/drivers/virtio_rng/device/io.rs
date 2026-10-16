@@ -25,6 +25,12 @@ use super::types::AccessMode;
 use crate::sys::io;
 use core::ptr;
 
+/// The register `offset` into the BAR at `base`, as the kernel reaches it:
+/// the BAR holds a physical address.
+pub(super) fn at(base: u64, offset: u16) -> u64 {
+    crate::arch::paging::kernel_io(base + offset as u64)
+}
+
 impl VirtioRngDevice {
     #[inline]
     pub(super) fn read8(&self, offset: u16) -> u8 {
@@ -33,9 +39,7 @@ impl VirtioRngDevice {
             // `offset` is a virtio register inside it.
             AccessMode::Io(iobase) => unsafe { io::inb(*iobase + offset) },
             // SAFETY: the probe mapped this BAR; the offset is in range.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::read_volatile((*base + offset as u64) as *const u8)
-            },
+            AccessMode::Mmio(base) => unsafe { ptr::read_volatile(at(*base, offset) as *const u8) },
         }
     }
 
@@ -46,55 +50,7 @@ impl VirtioRngDevice {
             AccessMode::Io(iobase) => unsafe { io::outb(*iobase + offset, val) },
             // SAFETY: as for `read8`.
             AccessMode::Mmio(base) => unsafe {
-                ptr::write_volatile((*base + offset as u64) as *mut u8, val);
-            },
-        }
-    }
-
-    #[inline]
-    pub(super) fn read16(&self, offset: u16) -> u16 {
-        match &self.access {
-            // SAFETY: as for `read8`, two bytes wide.
-            AccessMode::Io(iobase) => unsafe { io::inw(*iobase + offset) },
-            // SAFETY: as for `read8`, two bytes wide.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::read_volatile((*base + offset as u64) as *const u16)
-            },
-        }
-    }
-
-    #[inline]
-    pub(super) fn write16(&self, offset: u16, val: u16) {
-        match &self.access {
-            // SAFETY: as for `read8`, two bytes wide.
-            AccessMode::Io(iobase) => unsafe { io::outw(*iobase + offset, val) },
-            // SAFETY: as for `read8`, two bytes wide.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::write_volatile((*base + offset as u64) as *mut u16, val);
-            },
-        }
-    }
-
-    #[inline]
-    pub(super) fn read32(&self, offset: u16) -> u32 {
-        match &self.access {
-            // SAFETY: as for `read8`, four bytes wide.
-            AccessMode::Io(iobase) => unsafe { io::inl(*iobase + offset) },
-            // SAFETY: as for `read8`, four bytes wide.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::read_volatile((*base + offset as u64) as *const u32)
-            },
-        }
-    }
-
-    #[inline]
-    pub(super) fn write32(&self, offset: u16, val: u32) {
-        match &self.access {
-            // SAFETY: as for `read8`, four bytes wide.
-            AccessMode::Io(iobase) => unsafe { io::outl(*iobase + offset, val) },
-            // SAFETY: as for `read8`, four bytes wide.
-            AccessMode::Mmio(base) => unsafe {
-                ptr::write_volatile((*base + offset as u64) as *mut u32, val);
+                ptr::write_volatile(at(*base, offset) as *mut u8, val);
             },
         }
     }
