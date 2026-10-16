@@ -27,6 +27,7 @@
 //! classification and the EAPOL wrapping are pure and checked on the host;
 //! only the transmit and receive calls touch a radio.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use nonos_wifi_core::dot11::data::build_data;
@@ -72,10 +73,8 @@ pub trait Radio {
     fn recv(&mut self, out: &mut [u8]) -> Option<usize>;
 }
 
-/// How a join attempt ended.
-// Built once per join and moved straight into the data path, so the size gap
-// between Joined and the bare endings costs nothing worth a heap box.
-#[allow(clippy::large_enum_variant)]
+/// How a join attempt ended. The supplicant is boxed so the bare endings stay
+/// small.
 pub enum Outcome {
     /// Associated: the pairwise and group keys and the AP to install them for,
     /// the AKM that ran, and the supplicant the data path keeps answering the
@@ -87,7 +86,7 @@ pub enum Outcome {
         gtk: [u8; 16],
         gtk_id: u8,
         akm: Akm,
-        supplicant: Supplicant,
+        supplicant: Box<Supplicant>,
     },
     /// The association was refused or the handshake broke; the report's
     /// `failure` says where.
@@ -485,6 +484,6 @@ fn finish(mlme: &Mlme) -> Outcome {
         gtk: group,
         gtk_id,
         akm,
-        supplicant,
+        supplicant: Box::new(supplicant),
     }
 }

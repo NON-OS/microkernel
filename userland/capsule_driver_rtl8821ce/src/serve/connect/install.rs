@@ -58,7 +58,7 @@ pub(super) fn answer(
                 // but unencrypted and the access point dropped them.
                 crate::sec::enable_sec_engine(regs);
                 link.associate(bssid, ptk);
-                link.set_supplicant(supplicant);
+                link.set_supplicant(*supplicant);
                 *session = Some(Session::new(bssid, gtk_id, ssid, akm.suite_type()));
                 status::debug(b"[rtl8821ce] connect: associated\n");
                 0
