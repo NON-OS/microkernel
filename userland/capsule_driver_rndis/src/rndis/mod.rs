@@ -34,6 +34,8 @@ pub mod packet;
 pub mod query;
 pub mod reply;
 pub mod set;
+mod start;
 mod transfer;
+mod wait;
 
 pub use bind::bind;
