@@ -44,8 +44,8 @@ fn the_tag_depends_on_the_drawn_key_not_only_the_name_and_passphrase() {
     let (mut a, b) = (PmksaCache::new(Vault::new(&[1; 32])), PmksaCache::new(Vault::new(&[2; 32])));
     let (ta, tb) = (a.tag(SSID, PASS).unwrap(), b.tag(SSID, PASS).unwrap());
     a.keep(STA, SSID, &tb, sa(1), 0);
-    assert_eq!(a.find((sa(1).bssid, STA), SSID, &ta, 1), None, "another key, another tag");
-    assert_eq!(a.find((sa(1).bssid, STA), SSID, &tb, 1), Some(sa(1)));
+    assert!(a.find((sa(1).bssid, STA), SSID, &ta, 1).is_none(), "another key, another tag");
+    assert!(a.find((sa(1).bssid, STA), SSID, &tb, 1) == Some(sa(1)));
 }
 
 #[test]
