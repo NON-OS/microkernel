@@ -40,10 +40,7 @@ pub(super) fn dest_apic_id() -> Result<u8, IrqBindError> {
 }
 
 pub(super) fn route(address: &PciAddress, vector: u8, dest: u8) -> Result<Routed, IrqBindError> {
-    #[cfg(feature = "nonos-iommu-intremap")]
-    let (attempt, routed) = super::remap::attempt(address, vector, dest);
-    #[cfg(not(feature = "nonos-iommu-intremap"))]
-    let (attempt, routed) = (super::remap_rule::Attempt::Off, None::<Routed>);
+    let (attempt, routed) = super::remap_vendor::attempt(address, vector, dest);
     match outcome(attempt, holds()) {
         Outcome::Remapped => routed.ok_or(IrqBindError::PlatformError),
         Outcome::Compat => {
@@ -57,8 +54,13 @@ pub(super) fn route(address: &PciAddress, vector: u8, dest: u8) -> Result<Routed
     }
 }
 
-pub(in super::super) fn release(irte: u16) {
-    #[cfg(feature = "nonos-iommu-intremap")]
-    super::remap::release(irte);
-    let _ = irte;
+pub(super) fn release(address: &PciAddress, irte: u16) {
+    super::remap_vendor::release(address, irte);
+}
+
+/// For the teardown, which knows the grant's device by its broker id.
+pub(in super::super) fn release_for(device_id: u64, irte: u16) {
+    if let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) {
+        release(&handle.address, irte);
+    }
 }

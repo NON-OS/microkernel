@@ -48,7 +48,8 @@ pub fn init() {
             line.str(b"[AMD-VI] IOMMU translation enabled, units=");
             line.dec(super::units::units().len() as u64);
             line.str(b" reserved=").dec(assigned as u64).end();
-            serial::println(b"[AMD-VI] every other requester id blocked until claimed");
+            serial::println(b"[AMD-VI] every other requester id blocked, its interrupts refused");
+            super::unnamed::say_unnamed_ioapics();
         }
         Err(e) => {
             let mut line = Line::new();

@@ -27,10 +27,16 @@ const WRITE: u64 = 1 << 62;
 const ROOT_MASK: u64 = 0x000F_FFFF_FFFF_F000;
 
 /// No DMA at all. V and TV set with Mode 0 and neither IR nor IW: the unit
-/// translates nothing and permits nothing. Interrupt fields stay zero (IV
-/// clear), so the device's interrupts pass as they do today.
+/// translates nothing and permits nothing. Its interrupts are refused too
+/// (IV set, no table, K4) until a bind gives it a table.
 pub const fn blocked() -> Dte {
-    [VALID | TRANSLATION_VALID, 0, 0, 0]
+    [VALID | TRANSLATION_VALID, 0, super::intr_rule::ABORT_ALL, 0]
+}
+
+/// `entry`'s DMA half with `from`'s interrupt quadword: moving a device
+/// between domains never touches how its interrupts are remapped.
+pub const fn keep_interrupts(entry: Dte, from: Dte) -> Dte {
+    [entry[0], entry[1], from[2], entry[3]]
 }
 
 /// DMA translated through `levels` of page table from `root`, tagged with

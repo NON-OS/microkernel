@@ -30,6 +30,9 @@ mod enable;
 pub mod error;
 pub mod event;
 #[cfg(feature = "nonos-iommu-amdvi")]
+pub mod intr;
+pub mod intr_rule;
+#[cfg(feature = "nonos-iommu-amdvi")]
 mod flush;
 mod init;
 #[cfg(feature = "nonos-iommu-amdvi")]
@@ -42,6 +45,8 @@ mod mmio;
 mod poll;
 pub mod pte;
 pub mod regs;
+#[cfg(feature = "nonos-iommu-amdvi")]
+mod unnamed;
 mod release;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod reserved;

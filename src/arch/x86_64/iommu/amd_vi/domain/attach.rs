@@ -19,7 +19,7 @@
 //! on every unit before returning.
 
 use super::super::devtab::{read_dte, write_dte};
-use super::super::dte::{blocked, domain_of, mode_of, translated, Dte};
+use super::super::dte::{blocked, domain_of, keep_interrupts, mode_of, translated, Dte};
 use super::super::error::AmdViError;
 use super::super::flush::flush_device;
 use super::super::pte::LEVELS;
@@ -35,21 +35,22 @@ pub fn device_id(bus: u8, device: u8, function: u8) -> u16 {
 pub fn attach(domain: u16, id: u16) -> Result<(), AmdViError> {
     let roots = ROOTS.lock();
     let root = root_of(&roots, domain)?;
-    if mode_of(read_dte(id)?) != 0 {
+    let current = read_dte(id)?;
+    if mode_of(current) != 0 {
         return Err(AmdViError::DeviceAlreadyAttached);
     }
-    replace(id, translated(root, LEVELS, domain))
+    replace(id, keep_interrupts(translated(root, LEVELS, domain), current))
 }
 
 /// Deny the device everything, from identity or from a capsule domain.
 pub fn detach(id: u16) -> Result<(), AmdViError> {
     let _roots = ROOTS.lock();
     let current = read_dte(id)?;
-    if current == blocked() {
+    if keep_interrupts(current, blocked()) == blocked() {
         return Err(AmdViError::DeviceNotAttached);
     }
     crate::log::info!("[amd-vi] detaching device {} from domain {}", id, domain_of(current));
-    replace(id, blocked())
+    replace(id, keep_interrupts(blocked(), current))
 }
 
 fn replace(id: u16, entry: Dte) -> Result<(), AmdViError> {

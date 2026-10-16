@@ -62,5 +62,9 @@ fn program(gsi: u32, rte: Rte) -> IoApicResult<Option<u16>> {
     if crate::arch::x86_64::iommu::remap::is_remapping() {
         return super::program_remapped::program_remapped(gsi, rte).map(Some);
     }
+    #[cfg(feature = "nonos-iommu-amdvi")]
+    if crate::arch::x86_64::iommu::amd_vi::intr::is_remapping() {
+        return super::program_amd::program_amd(gsi, rte);
+    }
     program_route(gsi, rte).map(|()| None)
 }

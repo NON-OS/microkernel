@@ -33,7 +33,7 @@ pub(super) fn program_slot(
     let vector = vector_of(slot).ok_or(IrqBindError::NoVector)?;
     let Routed { msg, irte } = route(address, vector, dest_apic_id()?)?;
     if program(address, msi, msg).is_err() {
-        release(irte);
+        release(address, irte);
         return Err(IrqBindError::MsiProgramFailed);
     }
     Ok((vector, irte))

@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Under remapping (CFI clear) the units drop a compatibility format
-//! IO-APIC entry (fault 0x25). The kernel's own writers of one refuse
-//! rather than arm a line that never fires; a capsule's line goes
-//! through program_remapped instead.
+//! Under remapping (VT-d with CFI clear, or AMD-Vi with IV set) the units
+//! drop a compatibility format IO-APIC entry no remapping entry backs. The
+//! kernel's own writers of one refuse rather than arm a line that never
+//! fires; a capsule's line goes through program_remapped or
+//! program_amd instead.
 
 use super::super::error::IoApicResult;
 
 pub fn compat_allowed() -> IoApicResult<()> {
     #[cfg(feature = "nonos-iommu-intremap")]
     if crate::arch::x86_64::iommu::remap::is_remapping() {
+        return Err(super::super::error::IoApicError::NotRemapped);
+    }
+    #[cfg(feature = "nonos-iommu-amdvi")]
+    if crate::arch::x86_64::iommu::amd_vi::intr::is_remapping() {
         return Err(super::super::error::IoApicError::NotRemapped);
     }
     Ok(())
