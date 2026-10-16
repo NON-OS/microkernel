@@ -39,7 +39,7 @@ manager. Those layers stay above the hardware driver.
 This slice does not implement open networks, hidden networks, HT, VHT or HE
 rates, rate scaling (data goes at the highest basic rate), QoS (WMM),
 aggregation, power save, beacon-loss detection, active scanning, 6 GHz
-channels, regulatory updates beyond the world domain, firmware restart,
+channels, regulatory updates beyond the world domain,
 interrupt-driven operation, monitor mode, AP mode, or roaming. The 7265, 8265,
 9260/9560 and AX200 parts, and AX201 outside the SO platforms, do not get a
 radio from this driver yet; the discrete AX210 and Meteor Lake lack only their

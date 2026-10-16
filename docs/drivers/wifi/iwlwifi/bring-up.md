@@ -16,7 +16,7 @@ Only the two SO images are bundled (`userland/capsule_driver_iwlwifi/src/firmwar
 
 ```mermaid
 flowchart TD
-  Setup["setup: claim, BAR0, staging grant"] --> Check{"transport values"}
+  Setup["setup: claim, BAR0, line"] --> Check{"transport values"}
   Check -- no --> NoAir["NoAirPath"]
   Check -- yes --> Take["take the NIC, read CSR_HW_REV"]
   Take --> Pick["select firmware"]
@@ -27,7 +27,7 @@ flowchart TD
   Up --> Join["joins, when can_join"]
 ```
 
-1. Setup claims the function and maps BAR0. It binds INTx when firmware routed a line, else one MSI-X vector, else runs polled (`userland/capsule_driver_iwlwifi/src/setup/irq_plan.rs:17-25`, `ERRNO_STALE`). It maps a 64-page staging grant (`userland/capsule_driver_iwlwifi/src/constants/pci.rs:16-20`, `FW_STAGING_SIZE`). That is the most the [hardware broker](../../../overview/glossary.md#hardware-broker) gives a network-class device in one DMA grant (`src/hardware/broker/dma/limits.rs:31-37`, `dma_page_limit_for_class`), so the driver spreads its memory over several grants.
+1. Setup claims the function and maps BAR0. It binds INTx when firmware routed a line, else one MSI-X vector, else runs polled (`userland/capsule_driver_iwlwifi/src/setup/irq_plan.rs:17-25`, `ERRNO_STALE`). It maps no memory for the device. The [hardware broker](../../../overview/glossary.md#hardware-broker) gives a network-class device at most 64 pages in one DMA grant (`src/hardware/broker/dma/limits.rs:31-37`, `dma_page_limit_for_class`), so the driver spreads its memory over several grants.
 2. `bring_up` takes the NIC, reads CSR_HW_REV and CSR_HW_RF_ID, selects the image and maps the control, receive and firmware regions (`userland/capsule_driver_iwlwifi/src/server/radio/bring.rs:102-135`, `map_all`).
 3. It boots the firmware to ALIVE, then runs the post-ALIVE commands (`userland/capsule_driver_iwlwifi/src/server/radio/bring.rs:149-196`, `boot`, `up`).
 4. After ALIVE every device interrupt is masked and the driver polls; the cause registers still latch for the error checks (`userland/capsule_driver_iwlwifi/src/firmware/gen3/start.rs:138-146`, `mask_interrupts`). The interrupt bound at setup is acknowledged once there and never waited on.
