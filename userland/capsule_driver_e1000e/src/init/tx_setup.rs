@@ -16,9 +16,10 @@
 
 //! TX bring-up, after Linux e1000_configure_tx: zero the ring, program the
 //! ring registers, copy TXDCTL0 into TXDCTL1 (an erratum wants both queues
-//! alike), and enable the transmitter padding short frames, retrying on
-//! late collisions, with collision threshold 15 and distance 63. TIPG is
-//! left at the value the NVM loads, as Linux leaves it.
+//! alike), and set the transmitter to pad short frames, retry on late
+//! collisions, with collision threshold 15 and distance 63, still off:
+//! `start` enables it once Bus Master is on. TIPG is left at the value the
+//! NVM loads, as Linux leaves it.
 
 use core::sync::atomic::{fence, Ordering};
 
@@ -49,7 +50,7 @@ pub fn program(regs: &Regs, tx: &TxRing, ring_phys: u64) {
         regs.w32(REG_TDH, 0);
         regs.w32(REG_TDT, 0);
         regs.w32(REG_TXDCTL1, regs.r32(REG_TXDCTL0));
-        let on = TCTL_EN | TCTL_PSP | TCTL_RTLC | TCTL_CT_DEFAULT | TCTL_COLD_DEFAULT;
-        regs.modify(REG_TCTL, TCTL_CT_MASK | TCTL_COLD_MASK, on);
+        let set = TCTL_PSP | TCTL_RTLC | TCTL_CT_DEFAULT | TCTL_COLD_DEFAULT;
+        regs.modify(REG_TCTL, TCTL_EN | TCTL_CT_MASK | TCTL_COLD_MASK, set);
     }
 }

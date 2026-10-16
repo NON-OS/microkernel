@@ -14,12 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Software reset, against a part that completes it and one that does not.
+//! Software reset, against a part that completes it, one that does not, and
+//! one that leaves its receiver on, which is named and never given Bus
+//! Master.
 
-use super::memory::CHIP;
+use std::sync::{atomic::AtomicU32, Arc};
+
+use nonos_devmodel::FakeBar;
+use nonos_libc::{entropy, seen, set_command, watch};
+
+use super::memory::{Memory, CHIP};
 use super::model::{live, resetting_part, window};
-use crate::constants::regs::{CMD_RESET, REG_CMD};
-use crate::init::reset_run;
+use super::probe::probe;
+use crate::constants::regs::{CMD_RESET, CMD_RX_ENABLE, REG_CMD};
+use crate::init::{finish, reset_run};
 use crate::regs::Regs;
 
 #[test]
@@ -35,4 +43,24 @@ fn a_part_that_never_completes_reset_is_given_up_on() {
     let bar = window();
     assert!(reset_run(&Regs::new(bar.base()), CHIP.ver).is_err());
     assert_ne!(bar.wrote8(REG_CMD) & CMD_RESET, 0, "the request was made");
+}
+
+/// A part that completes its reset with the receiver reading on.
+fn sticky(b: &FakeBar) {
+    let cmd = b.wrote8(REG_CMD);
+    if cmd & CMD_RESET != 0 {
+        b.present8(REG_CMD, (cmd & !CMD_RESET) | CMD_RX_ENABLE);
+    }
+}
+
+#[test]
+fn a_receiver_the_reset_leaves_on_is_named_and_never_mastered() {
+    let _turn = entropy(true);
+    let bar = window();
+    let _part = live(&bar, sticky);
+    set_command(0);
+    watch(probe(&bar, &Arc::new(AtomicU32::new(0))));
+    let err = finish(Memory::new().driver(&bar)).err();
+    assert_eq!(err, Some("rtl8169 engines still on after reset"));
+    assert!(seen().iter().all(|s| !s.bus_master), "{:?}", seen());
 }

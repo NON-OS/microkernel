@@ -761,21 +761,78 @@ else
 fi
 unset e1000_dead_code
 
-# Polled driver, no IRQ phase; setup/rollback.rs tears down grants.
+# A Rust file's code with every comment taken out, `//` to the end of the
+# line and `/* */` (nested, across lines) alike, so a call commented out
+# either way is not counted as made. String literals are not parsed; the
+# files it reads hold no comment marker inside one.
+rust_code() {
+    awk '
+        {
+            line = $0; code = ""
+            while (line != "") {
+                if (depth > 0) {
+                    o = index(line, "/*"); c = index(line, "*/")
+                    if (c == 0 && o == 0) { line = ""; break }
+                    if (o > 0 && (c == 0 || o < c)) { depth++; line = substr(line, o + 2) }
+                    else { depth--; line = substr(line, c + 2) }
+                    continue
+                }
+                l = index(line, "//"); b = index(line, "/*")
+                if (l > 0 && (b == 0 || l < b)) { code = code substr(line, 1, l - 1); line = ""; break }
+                if (b > 0) { code = code substr(line, 1, b - 1); depth = 1; line = substr(line, b + 2); continue }
+                code = code line; line = ""
+            }
+            print code
+        }
+    ' "$1"
+}
+
+# Polled driver, no IRQ phase; setup/rollback.rs releases the device, and
+# the kernel's release clears Bus Master, then frees every grant. Each needle
+# is a call, matched in the file's code (rust_code), not in a comment.
 for phase_file in \
-    userland/capsule_driver_e1000/src/setup/mmio.rs:mk_device_release \
-    'userland/capsule_driver_e1000/src/setup/rollback.rs:mk_dma_unmap(' \
-    'userland/capsule_driver_e1000/src/setup/rollback.rs:mk_mmio_unmap(' \
-    userland/capsule_driver_e1000/src/setup/dma.rs:rollback ; do
+    'userland/capsule_driver_e1000/src/setup/mmio.rs:mk_device_release(dev.device_id)' \
+    'userland/capsule_driver_e1000/src/setup/rollback.rs:mk_device_release(device_id)' \
+    'userland/capsule_driver_e1000/src/setup/dma.rs:rollback::after(' ; do
     file="${phase_file%%:*}"
     needle="${phase_file##*:}"
     if [ ! -f "${file}" ]; then
         fail_with "missing ${file}"
-    elif ! grep -q "${needle}" "${file}"; then
+    elif ! { rust_code "${file}" || true; } | grep -qF "${needle}"; then
         fail_with "${file} must roll back via ${needle} on failure"
     fi
 done
 note ok "capsule_driver_e1000 setup phases roll back prior broker grants"
+
+# The same rollback gate for capsule_driver_e1000e.
+for phase_file in \
+    'userland/capsule_driver_e1000e/src/setup/mmio.rs:mk_device_release(dev.device_id)' \
+    'userland/capsule_driver_e1000e/src/setup/rollback.rs:mk_device_release(device_id)' \
+    'userland/capsule_driver_e1000e/src/setup/dma.rs:rollback::after(' ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! { rust_code "${file}" || true; } | grep -qF "${needle}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_e1000e setup phases roll back prior broker grants"
+
+# The same rollback gate for capsule_driver_igc.
+for phase_file in \
+    'userland/capsule_driver_igc/src/setup/mmio.rs:mk_device_release(dev.device_id)' \
+    'userland/capsule_driver_igc/src/setup/rollback.rs:mk_device_release(device_id)' \
+    'userland/capsule_driver_igc/src/setup/dma.rs:rollback::after(' ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! { rust_code "${file}" || true; } | grep -qF "${needle}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_igc setup phases roll back prior broker grants"
 
 if ! grep -q 'OP_STATS' userland/capsule_driver_e1000/src/protocol/ops.rs ||
    ! grep -q 'STATS_PAYLOAD_LEN: usize = 48' userland/capsule_driver_e1000/src/protocol/limits.rs ||
@@ -1026,17 +1083,18 @@ else
 fi
 unset rtl8139_mmio
 
-# Polled driver, no IRQ phase; setup/rollback.rs tears down grants.
+# Polled driver, no IRQ phase; setup/rollback.rs releases the device, and
+# the kernel's release clears Bus Master, then frees every grant. Each needle
+# is a call, matched in the file's code (rust_code), not in a comment.
 for phase_file in \
-    userland/capsule_driver_rtl8139/src/setup/pio_grant.rs:mk_device_release \
-    'userland/capsule_driver_rtl8139/src/setup/rollback.rs:mk_dma_unmap(' \
-    'userland/capsule_driver_rtl8139/src/setup/rollback.rs:mk_pio_release(' \
-    userland/capsule_driver_rtl8139/src/setup/dma.rs:after_pio ; do
+    'userland/capsule_driver_rtl8139/src/setup/pio_grant.rs:mk_device_release(dev.device_id)' \
+    'userland/capsule_driver_rtl8139/src/setup/rollback.rs:mk_device_release(device_id)' \
+    'userland/capsule_driver_rtl8139/src/setup/dma.rs:rollback::after_pio(' ; do
     file="${phase_file%%:*}"
     needle="${phase_file##*:}"
     if [ ! -f "${file}" ]; then
         fail_with "missing ${file}"
-    elif ! grep -q "${needle}" "${file}"; then
+    elif ! { rust_code "${file}" || true; } | grep -qF "${needle}"; then
         fail_with "${file} must roll back via ${needle} on failure"
     fi
 done
@@ -1118,17 +1176,18 @@ else
 fi
 unset rtl8169_dead_code
 
-# Polled driver, no IRQ phase; setup/rollback.rs tears down grants.
+# Polled driver, no IRQ phase; setup/rollback.rs releases the device, and
+# the kernel's release clears Bus Master, then frees every grant. Each needle
+# is a call, matched in the file's code (rust_code), not in a comment.
 for phase_file in \
-    userland/capsule_driver_rtl8169/src/setup/mmio.rs:mk_device_release \
-    'userland/capsule_driver_rtl8169/src/setup/rollback.rs:mk_dma_unmap(' \
-    'userland/capsule_driver_rtl8169/src/setup/rollback.rs:mk_mmio_unmap(' \
-    userland/capsule_driver_rtl8169/src/setup/dma.rs:rollback ; do
+    'userland/capsule_driver_rtl8169/src/setup/mmio.rs:mk_device_release(dev.device_id)' \
+    'userland/capsule_driver_rtl8169/src/setup/rollback.rs:mk_device_release(device_id)' \
+    'userland/capsule_driver_rtl8169/src/setup/dma.rs:rollback::after(' ; do
     file="${phase_file%%:*}"
     needle="${phase_file##*:}"
     if [ ! -f "${file}" ]; then
         fail_with "missing ${file}"
-    elif ! grep -q "${needle}" "${file}"; then
+    elif ! { rust_code "${file}" || true; } | grep -qF "${needle}"; then
         fail_with "${file} must roll back via ${needle} on failure"
     fi
 done

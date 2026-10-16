@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A bring-up that stops: the step is logged as "igc: <step>", the part is
-//! stood down so no queue can DMA into ring memory, and every grant and the
-//! claim go back in reverse order.
+//! stood down so no queue can DMA into ring memory, and the claim goes back,
+//! which frees every grant once the broker has turned Bus Master off.
 
 use nonos_libc::{entropy, given_back, said};
 
@@ -25,16 +25,10 @@ use crate::init::finish;
 use crate::init::reset::master::MASTER_STUCK;
 
 use super::memory::Memory;
-use super::model::window;
+use super::model::{live, window};
+use super::reset_wait_tests::resets;
 
-const EVERYTHING: [(&str, u64); 6] = [
-    ("dma_unmap", 24),
-    ("dma_unmap", 23),
-    ("dma_unmap", 22),
-    ("dma_unmap", 21),
-    ("mmio_unmap", 20),
-    ("device_release", 9),
-];
+const EVERYTHING: [(&str, u64); 1] = [("device_release", 9)];
 
 #[test]
 fn a_stuck_master_is_logged_and_everything_given_back() {
@@ -58,7 +52,7 @@ fn a_stuck_master_is_logged_and_everything_given_back() {
 fn no_entropy_means_no_address_and_no_enable_ever_written() {
     let _off = entropy(false);
     let bar = window();
-    bar.present32(REG_EECD, 1 << 9);
+    let _part = live(&bar, resets(true));
     let before = given_back().len();
     let mut mem = Memory::new();
     assert_eq!(finish(mem.driver(&bar)).err(), Some("no entropy for station address"));

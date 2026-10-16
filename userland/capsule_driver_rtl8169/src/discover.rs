@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bar_command;
 mod bar_mmio;
 mod support;
 
-use self::bar_command::command_bits;
 use self::bar_mmio::first_mmio_bar;
 use self::support::is_supported;
 use nonos_libc::{mk_device_list, DeviceRecord};
@@ -34,7 +32,6 @@ pub struct Found {
     pub pci_device: u16,
     pub bar_index: u8,
     pub bar_size: u64,
-    pub command_bits: u16,
 }
 
 pub fn find_rtl8169() -> Option<Found> {
@@ -56,7 +53,6 @@ pub fn find_rtl8169() -> Option<Found> {
                 pci_device: r.device,
                 bar_index,
                 bar_size,
-                command_bits: command_bits(r),
             });
         }
     }

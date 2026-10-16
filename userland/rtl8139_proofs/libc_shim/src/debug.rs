@@ -14,17 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
+//! The console: every line the driver logs, kept per thread so a test can
+//! read back exactly what the owner would see in `log`.
 
-pub fn command_bits(r: &DeviceRecord) -> u16 {
-    let mut bits = 0u16;
-    for i in 0..core::cmp::min(r.bar_count as usize, r.bars.len()) {
-        if r.bars[i].kind == BAR_KIND_PIO {
-            bits |= 1;
-        }
-        if r.bars[i].kind == BAR_KIND_MMIO {
-            bits |= 2;
-        }
-    }
-    bits
+use std::cell::RefCell;
+
+thread_local! {
+    static LOGGED: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
+}
+
+pub fn mk_debug(buf: *const u8, len: usize) -> i64 {
+    /*
+     * SAFETY: the caller hands `len` readable bytes, as the real call
+     * requires.
+     */
+    let bytes = unsafe { std::slice::from_raw_parts(buf, len) };
+    LOGGED.with(|l| l.borrow_mut().push(String::from_utf8_lossy(bytes).into_owned()));
+    len as i64
+}
+
+/// Every line logged on this thread, in order, newline included.
+pub fn logged() -> Vec<String> {
+    LOGGED.with(|l| l.borrow().clone())
 }

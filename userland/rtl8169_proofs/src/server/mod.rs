@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
+//! The server: the loop, the handlers, the one reply path, and the transmit
+//! watchdog, against the IPC calls the shim scripts.
 
-pub fn command_bits(r: &DeviceRecord) -> u16 {
-    let mut bits = 0u16;
-    for i in 0..core::cmp::min(r.bar_count as usize, r.bars.len()) {
-        if r.bars[i].kind == BAR_KIND_PIO {
-            bits |= 1;
-        } else if r.bars[i].kind == BAR_KIND_MMIO {
-            bits |= 2;
-        }
-    }
-    bits
-}
+#[path = "../../../capsule_driver_rtl8169/src/server/error.rs"]
+pub mod error;
+#[path = "../../../capsule_driver_rtl8169/src/server/handlers/mod.rs"]
+pub mod handlers;
+#[path = "../../../capsule_driver_rtl8169/src/server/runner.rs"]
+pub mod runner;
+#[path = "../../../capsule_driver_rtl8169/src/server/tx_watch.rs"]
+pub mod tx_watch;

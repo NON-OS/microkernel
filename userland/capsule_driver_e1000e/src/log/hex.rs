@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Numbers in a line: device IDs and MAC addresses, in lowercase hex.
+//! Numbers in a line: device IDs, in lowercase hex. Station addresses are
+//! never written to the log, so there is no way here to write one.
 
 use super::line::Line;
 
@@ -25,13 +26,6 @@ impl Line {
     pub fn hex16(&mut self, v: u16) -> &mut Self {
         self.hex8((v >> 8) as u8);
         self.hex8(v as u8)
-    }
-
-    pub fn mac(&mut self, mac: &[u8; 6]) -> &mut Self {
-        for (i, b) in mac.iter().enumerate() {
-            self.text(if i > 0 { ":" } else { "" }).hex8(*b);
-        }
-        self
     }
 
     fn hex8(&mut self, b: u8) -> &mut Self {

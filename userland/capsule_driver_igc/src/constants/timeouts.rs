@@ -29,6 +29,9 @@ pub const QUIESCE_SETTLE_MS: u64 = 10;
 /// igc_get_auto_rd_done: AUTO_READ_DONE_TIMEOUT (10) passes of
 /// usleep_range(1000, 2000).
 pub const AUTO_READ_MS: u64 = 20;
+/// CTRL.RST self-clears in microseconds; Linux does not wait for it. The
+/// 100 ms this driver gives MDIC and the queue enables.
+pub const RESET_MS: u64 = 100;
 /// igc_get_hw_semaphore_i225: nvm.word_size + 1 passes of
 /// usleep_range(500, 600) per bit. The word size depends on the NVM
 /// fitted; one second is taken here for each of SMBI and SWESMBI.
@@ -38,7 +41,11 @@ pub const SWFW_SYNC_MS: u64 = 1000;
 pub const SWFW_RETRY_MS: u64 = 5;
 /// igc_read_phy_reg_mdic: IGC_GEN_POLL_TIMEOUT (1920) passes of udelay(50).
 pub const MDIC_MS: u64 = 100;
-/// Queue enable read-back. Linux writes RXDCTL/TXDCTL and does not read them
-/// back; igc_rx_fifo_flush_base gives a queue disable 10 ms. Ten times that
-/// is allowed here for the enable to show.
+/// Queue enable read-back, and the disable of a queue the reset left on.
+/// Linux writes RXDCTL/TXDCTL and does not read them back;
+/// igc_rx_fifo_flush_base gives a queue disable 10 ms. Ten times that is
+/// allowed here for either to show.
 pub const QUEUE_ENABLE_MS: u64 = 100;
+/// A frame in flight this long with the link up and no completion is a hung
+/// transmitter: Linux igc's watchdog_timeo, 5 seconds.
+pub const TX_HANG_MS: u64 = 5000;

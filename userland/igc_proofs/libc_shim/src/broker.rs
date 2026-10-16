@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The broker releases, recorded per test thread. A failed bring-up attempt
-//! must hand back each grant and the claim, or the next attempt finds the
-//! device still held.
+//! The broker releases, recorded per test thread and logged with what the
+//! part was doing (`steps`). A failed bring-up attempt must hand back each
+//! grant and the claim, or the next attempt finds the device still held.
 
 use std::cell::RefCell;
+
+use crate::pci::stop_bus_master;
+use crate::steps::{note, Step};
 
 thread_local! {
     static GIVEN_BACK: RefCell<Vec<(&'static str, u64)>> = const { RefCell::new(Vec::new()) };
 }
 
 fn give_back(call: &'static str, id: u64) -> i64 {
+    note(Step::Freed(call, id));
     GIVEN_BACK.with(|g| g.borrow_mut().push((call, id)));
     0
 }
@@ -34,8 +38,12 @@ pub fn given_back() -> Vec<(&'static str, u64)> {
     GIVEN_BACK.with(|g| g.borrow().clone())
 }
 
+/// Logged with Bus Master as the driver left it; the release then clears it
+/// before any grant goes, as `MkDeviceRelease` does.
 pub fn mk_device_release(device_id: u64) -> i64 {
-    give_back("device_release", device_id)
+    let r = give_back("device_release", device_id);
+    stop_bus_master();
+    r
 }
 
 pub fn mk_dma_unmap(grant: u64) -> i64 {

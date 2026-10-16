@@ -8,11 +8,14 @@ for BAR0 and a part modelled from the datasheet answers from it. Calls into
 
 ## What it proves
 
-65 `#[test]` functions: the drawn station address, the descriptor rings, the
+84 `#[test]` functions: the drawn station address, the descriptor rings, the
 chip identified from its TxConfig XID against Linux `rtl_chip_infos`, the
 8168 and 8125 register maps, the reset and the per-version stop on the clock,
 RxConfig, TxConfig and the start per family, the 8168g and 8125 init and start
-against modelled ERI and MAC OCP, link speed decode with 2500, and the PCI ids.
+against modelled ERI and MAC OCP, link speed decode with 2500, the PCI ids,
+the setup sequence's claim-time Command word, Bus Master on only after the
+reset and off before the device goes back, the transmit watchdog and the
+station address it keeps, and the IPC handlers through the server loop.
 See `docs/hardware/rtl8169.md`. The property this crate is
 for is the station address: the driver draws one with `CryptoRandom` and never
 falls back to the factory address in the part, checked with the entropy source
@@ -20,8 +23,9 @@ switched off.
 
 ## What it does not prove
 
-The broker, DMA mapping and server halves talk to the kernel and stay out. A
-real card's behaviour needs a boot.
+The broker, DMA mapping and IPC calls land in the shim, which answers as the
+kernel would; the kernel's side of them is not proven here. A real card's
+behaviour needs a boot.
 
 ## Run
 
