@@ -41,3 +41,13 @@ pub(crate) const fn bar_slots(header: u8) -> u8 {
 pub(crate) const fn upper_half_fits(index: u8, slots: u8) -> bool {
     (index as u16) + 1 < slots as u16
 }
+
+/// An I/O BAR's size from what it read back once all ones were written: its
+/// lowest address bit kept, within the 16 bits ports have here (L68). A
+/// decoder may hardwire bits 31:16 to zero, and sizing over 32 bits made such
+/// a BAR (an SMBus or IDE controller's) 0xFFFF_00xx ports, never granted. None
+/// is 0.
+pub(crate) const fn io_size(probed: u32) -> u32 {
+    let bits = probed & 0xFFFC;
+    bits & bits.wrapping_neg()
+}
