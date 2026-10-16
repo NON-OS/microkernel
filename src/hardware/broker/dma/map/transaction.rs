@@ -60,6 +60,12 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         return fail("dma32", DmaMapError::Above4G);
     }
 
-    let grant_id = record::record(pid, &req, claim_epoch, &placed, device_addr, confined);
+    // Entered only while the claim holds (K10); a release since validate
+    // finds nothing to revoke, so the map comes out here.
+    let Some(grant_id) = record::record(pid, &req, claim_epoch, &placed, device_addr, confined)
+    else {
+        placed.undo_mapped(pid, device_addr, confined);
+        return fail("record", DmaMapError::StaleEpoch);
+    };
     Ok(DmaMapResult { user_va, device_addr, length: req.length, grant_id })
 }

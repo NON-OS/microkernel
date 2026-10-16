@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Issue a PIO grant against a device's PIO BAR. Mirrors
-//! `mmio::map_for_caller`: resolve claim, resolve device, validate
-//! BAR is PIO and fits in 16-bit port space, allocate grant id,
-//! record the grant. Reads and writes off the new id go through
-//! `access`; the kernel is the only side that ever executes the
-//! `in`/`out` instructions.
+//! Issue a PIO grant against a device's PIO BAR, as mmio::map_for_caller
+//! does: the claim, the device, a PIO BAR inside the 16-bit port space, then
+//! the record, while the claim still holds (K10). Access goes through
+//! `access`; only the kernel executes `in` and `out`.
 
 use super::grant::{self, PioGrant};
 use super::types::{PioError, PioGrantRequest, PioGrantResult};
@@ -62,13 +60,15 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
     })?;
 
     let grant_id = grant::allocate_id();
-    grant::insert(PioGrant {
+    let record = PioGrant {
         grant_id,
         pid,
         device_id: req.device_id,
         claim_epoch: claim.epoch,
         port_base,
         port_count,
-    });
+    };
+    claim::record_while_held(pid, req.device_id, claim.epoch, || grant::insert(record))
+        .ok_or(PioError::StaleEpoch)?;
     Ok(PioGrantResult { port_base, port_count, grant_id })
 }
