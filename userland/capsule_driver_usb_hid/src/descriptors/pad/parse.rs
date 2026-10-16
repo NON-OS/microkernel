@@ -25,7 +25,7 @@ use alloc::vec::Vec;
 use super::input::{input, Globals};
 use super::items::items;
 use super::layout::{PadLayout, GAME_PAD, JOYSTICK, PAGE_DESKTOP};
-use super::usages::{usage, Usages};
+use super::usages::{usage, Usages, USAGES};
 
 /// Push nests no deeper than this; a descriptor that does is no gamepad.
 const STACK: usize = 8;
@@ -40,12 +40,16 @@ pub fn pad_layout(report: &[u8]) -> Option<PadLayout> {
             0x14 => g.min = it.signed(),
             0x24 => g.max = it.signed(),
             0x74 => g.size = it.value,
-            0x84 => (g.id, layout.ids) = (it.value as u8, true),
+            // Report ID 0 is reserved and one is a byte (HID 1.11 6.2.2.7,
+            // as recalled, unverified): another names no report.
+            0x84 if (1..=255).contains(&it.value) => (g.id, layout.ids) = (it.value as u8, true),
+            0x84 => return None,
             0x94 => g.count = it.value,
             0xA4 if stack.len() < STACK => stack.push(g),
             0xA4 => return None,
             0xB4 => g = stack.pop()?,
-            0x08 => u.list.push(usage(&it, g.page)),
+            0x08 if u.list.len() < USAGES => u.list.push(usage(&it, g.page)),
+            0x08 => return None,
             0x18 => u.min = Some(usage(&it, g.page)),
             0x28 => u.max = Some(usage(&it, g.page)),
             0xA0 => {
