@@ -19,7 +19,7 @@
 //! against it and no sibling thread releases it: only the call that made it
 //! settles it, admitted or taken back.
 
-use super::state::CLAIMS;
+use super::state::claims;
 use super::types::Stage;
 
 fn is(pid: u32, device_id: u64, epoch: u64) -> impl Fn(&super::Claim) -> bool {
@@ -30,7 +30,7 @@ fn is(pid: u32, device_id: u64, epoch: u64) -> impl Fn(&super::Claim) -> bool {
 /// framebuffer's hold moves under the table's lock, so a release always lands
 /// after it. False when its holder exited meanwhile, the claim orphaned.
 pub(super) fn admit(pid: u32, device_id: u64, epoch: u64) -> bool {
-    let mut claims = CLAIMS.lock();
+    let mut claims = claims();
     let found = claims.iter_mut().find(|c| is(pid, device_id, epoch)(c));
     let Some(claim) = found.filter(|c| c.stage == Stage::Making) else {
         return false;
@@ -45,15 +45,15 @@ pub(super) fn admit(pid: u32, device_id: u64, epoch: u64) -> bool {
 /// capsule's domain even when an exit orphaned the entry, since the attach
 /// may have come after that exit's own detach.
 pub(super) fn withdraw(pid: u32, device_id: u64, epoch: u64) {
-    let mut claims = CLAIMS.lock();
-    let at = claims.iter().position(is(pid, device_id, epoch));
-    if let Some(at) = at {
+    // Stopped while the entry still names the device, which only this call
+    // removes: once it goes, another claim may hold it (L75).
+    if claims().iter().any(is(pid, device_id, epoch)) {
+        super::quiesce::stop_bus_master_quietly(device_id);
+    }
+    let mut claims = claims();
+    if let Some(at) = claims.iter().position(is(pid, device_id, epoch)) {
         claims.remove(at);
     }
     drop(claims);
-    // Only while it was ours: once the entry is gone another claim may hold it.
-    if at.is_some() {
-        super::quiesce::stop_bus_master_quietly(device_id);
-    }
     crate::hardware::broker::confine::detach(pid, device_id);
 }

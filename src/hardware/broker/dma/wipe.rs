@@ -36,7 +36,11 @@ use super::scrub::scrub;
 /// held by a stopped CPU.
 pub fn wipe_live_grants() -> Option<usize> {
     let (mut wiped, start) = (0usize, crate::time::now_ns());
-    let again = || crate::hardware::broker::brief::within_a_millisecond(start);
+    // A holder may be in a shootdown round waiting on this CPU (L75).
+    let again = || {
+        crate::smp::serve_shootdowns();
+        crate::hardware::broker::brief::within_a_millisecond(start)
+    };
     let seen = try_each(
         |g| {
             scrub(g.physical_start, g.length);

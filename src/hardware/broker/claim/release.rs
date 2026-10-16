@@ -14,56 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
+//! A release's last steps (L66, L75). A claim being released stays in the
+//! table, so no newer claim of the device can be made, until every release of
+//! it and every path still inside it is done; the last of them removes it.
 
-use super::state::CLAIMS;
+use super::stage_rule::gone;
+use super::state::claims;
 use super::types::{ClaimError, Stage};
 
-// Release the claim `pid` retired at `epoch` (L66), and that one only: a
-// sibling's release racing this one may have taken it, and the device been
-// claimed again since, a newer claim this release never drained (L69).
+type Key = (u32, u64, u64);
+
+fn named(key: Key) -> impl Fn(&super::Claim) -> bool {
+    move |c| {
+        (c.pid, c.device_id, c.epoch) == key && matches!(c.stage, Stage::Leaving | Stage::Exiting)
+    }
+}
+
+/// One release of the claim at `key` done: true when it was the last, and
+/// the entry has gone. None when no claim being released is at `key`.
+pub(super) fn settle(key: Key) -> Option<bool> {
+    let mut claims = claims();
+    let at = claims.iter().position(named(key))?;
+    let c = &mut claims[at];
+    c.leavers = c.leavers.saturating_sub(1);
+    let last = gone(c.stage, c.leavers, c.inflight);
+    if last {
+        claims.remove(at);
+    }
+    Some(last)
+}
+
+/// Release the claim `pid` retired at `epoch`, and that one only (L69). Its
+/// device stops while the entry, which this release keeps, still names it,
+/// so a newer claim's device is never the one stopped (L75).
 pub fn release(pid: u32, device_id: u64, epoch: u64) -> Result<u64, ClaimError> {
-    let mut claims = CLAIMS.lock();
-    let ours = |c: &super::Claim| (c.pid, c.device_id, c.epoch) == (pid, device_id, epoch);
-    let at = claims.iter().position(|c| ours(c) && c.stage == Stage::Leaving);
-    claims.remove(at.ok_or(ClaimError::NotClaimed)?);
-    drop(claims);
+    let key = (pid, device_id, epoch);
+    if !claims().iter().any(named(key)) {
+        return Err(ClaimError::NotClaimed);
+    }
     super::quiesce::stop_bus_master(device_id);
-    crate::hardware::broker::confine::detach(pid, device_id);
-    crate::hardware::broker::bootfb::released(device_id);
+    if settle(key) == Some(true) {
+        crate::hardware::broker::confine::detach(pid, device_id);
+        crate::hardware::broker::bootfb::released(device_id);
+    }
     Ok(epoch)
 }
 
-/// Stop a device the caller holds from mastering the bus, before its grants
-/// are torn down. False, and nothing written, when `pid` does not hold it at
-/// `epoch`: a newer claim's device is not this release's to stop (L71).
+/// Stop a device a release holds from mastering the bus, before its grants
+/// are torn down. The entry stays while this release is under way (L75), so
+/// the device stopped is this claim's; false, and nothing written, when no
+/// claim being released is at `epoch`.
 pub fn quiesce_held(pid: u32, device_id: u64, epoch: u64) -> bool {
-    let key = (pid, device_id, epoch);
-    let held = CLAIMS.lock().iter().any(|c| (c.pid, c.device_id, c.epoch) == key);
+    let held = claims().iter().any(named((pid, device_id, epoch)));
     if held {
         super::quiesce::stop_bus_master_quietly(device_id);
     }
     held
-}
-
-// Release every claim held by `pid`. Called from the kernel's
-// `MkExit` path so a dying capsule cannot leak grants. Returns the
-// number of claims revoked.
-pub fn release_all_for_pid(pid: u32) -> usize {
-    let mut claims = CLAIMS.lock();
-    let held: alloc::vec::Vec<u64> =
-        claims.iter().filter(|c| c.pid == pid).map(|c| c.device_id).collect();
-    // A claim its call is still making is orphaned, not removed: the device
-    // stays out of other claims until that call takes it back (L66).
-    for c in claims.iter_mut().filter(|c| c.pid == pid && c.stage == Stage::Making) {
-        c.stage = Stage::Orphaned;
-    }
-    claims.retain(|c| c.pid != pid || c.stage == Stage::Orphaned);
-    drop(claims);
-    for device_id in &held {
-        super::quiesce::stop_bus_master(*device_id);
-        crate::hardware::broker::bootfb::released(*device_id);
-    }
-    crate::hardware::broker::confine::detach_all(pid);
-    held.len()
 }
