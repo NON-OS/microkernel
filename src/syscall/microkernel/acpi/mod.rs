@@ -66,7 +66,7 @@ pub use platform::sys_acpi_platform_device;
 pub use port::sys_acpi_port;
 pub use power::sys_acpi_power;
 pub use depart::sys_pci_depart;
-pub use probe::sys_pci_probe_function;
+pub use probe::{sys_acpi_restore_function, sys_pci_probe_function};
 pub use region::sys_acpi_region;
 pub use reserved::sys_acpi_reserved;
 pub use sleep::sys_acpi_sleep;
