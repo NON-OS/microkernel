@@ -19,36 +19,36 @@
 //! driver it says so and is unverified, and where it is this engine's own
 //! choice it says why.
 
-/// HCE written 0 must read 0: 1 ms observed in Linux ufshcd.c, unverified;
+/// HCE written 0 must read 0: 1 ms as observed, unverified;
 /// ten allowed here.
 pub const HCE_OFF_MS: u64 = 10;
 /// HCE written 1 must read 1 again once the host has initialised. This
 /// engine's own bound: generous, as nothing else can run meanwhile.
 pub const HCE_ON_MS: u64 = 100;
-/// HCE may read 1, 0, 1 while the host initialises (observed in Linux
-/// ufshcd.c, unverified), so its first read waits this long.
+/// HCE may read 1, 0, 1 while the host initialises (as observed,
+/// unverified), so its first read waits this long.
 pub const HCE_FIRST_READ_MS: u64 = 1;
-/// UCRDY, and each UIC command's completion: 500 ms observed in Linux
-/// ufshcd.c, unverified.
+/// UCRDY, and each UIC command's completion: 500 ms as observed,
+/// unverified.
 pub const UIC_MS: u64 = 500;
-/// Link startups after the first, each after a host reset: 3 observed in
-/// Linux ufshcd.c, unverified.
+/// Link startups after the first, each after a host reset: 3 as observed,
+/// unverified.
 pub const LINK_RETRIES: usize = 3;
-/// One NOP OUT: 50 ms, and up to five sent; observed in Linux ufshcd.c,
+/// One NOP OUT: 50 ms, and up to five sent; as observed,
 /// unverified.
 pub const NOP_MS: u64 = 50;
 pub const NOP_TRIES: usize = 5;
-/// One query: 1500 ms, up to three sent; observed in Linux, unverified.
+/// One query: 1500 ms, up to three sent; as observed, unverified.
 pub const QUERY_MS: u64 = 1500;
 pub const QUERY_TRIES: usize = 3;
-/// fDeviceInit must clear within this: 1500 ms observed in Linux,
+/// fDeviceInit must clear within this: 1500 ms as observed,
 /// unverified. It is read a millisecond apart.
 pub const DEVICE_INIT_MS: u64 = 1500;
 pub const DEVICE_INIT_POLL_MS: u64 = 1;
 /// A slot cleared through UTRLCLR must leave the doorbell within this: one
-/// second observed in Linux ufshcd.c, unverified.
+/// second as observed, unverified.
 pub const CLEAR_MS: u64 = 1000;
-/// A SCSI command: 30 s observed in Linux sd.c, unverified.
+/// A SCSI command: 30 s as observed, unverified.
 pub const SCSI_MS: u64 = 30_000;
 /// A logical unit coming ready after reset: TEST UNIT READY retried while
 /// it reports NOT READY or UNIT ATTENTION, this long. This engine's own.
