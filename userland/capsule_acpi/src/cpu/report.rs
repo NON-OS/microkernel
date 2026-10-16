@@ -20,6 +20,7 @@
 
 use super::lpi_say::lpi;
 use super::say::{cpc, cstates, pstates};
+use super::say_t::tstates;
 use super::say_ids::uids;
 use super::state::Cpus;
 use crate::sys::log::Line;
@@ -46,5 +47,5 @@ pub fn line(ids: &[u64], t: &CpuTables) {
     let l = pstates(l, t).str(b"; ");
     let l = cstates(l, t).str(b"; ");
     let l = cpc(l, t).str(b"; ");
-    lpi(l, t).end();
+    tstates(lpi(l, t), t).end();
 }

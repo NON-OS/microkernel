@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A Notify on a processor (ACPI 6.5, 5.6.6): 0x80, _PPC changed; 0x81,
-//! its idle states (_CST or _LPI) changed; 0x83 and 0x85, CPPC's
+//! its idle states (_CST or _LPI) changed; 0x82, _TPC changed (recalled,
+//! unverified); 0x83 and 0x85, CPPC's
 //! guaranteed or highest level changed. On a processor container, 0x81
 //! says the container's _LPI changed, which every processor under it
 //! carries. Each reads the processors' tables again and, when they moved,
@@ -34,6 +35,7 @@ use nonos_aml::namespace::Id;
 
 const PPC_CHANGED: u8 = 0x80;
 const IDLE_CHANGED: u8 = 0x81;
+const TPC_CHANGED: u8 = 0x82;
 const GUARANTEED_CHANGED: u8 = 0x83;
 const HIGHEST_CHANGED: u8 = 0x85;
 
@@ -60,7 +62,8 @@ pub fn notified(cpus: &mut Cpus, aml: &mut Aml, host: &mut CapsuleHost, id: Id, 
         }
         return true;
     };
-    if ![PPC_CHANGED, IDLE_CHANGED, GUARANTEED_CHANGED, HIGHEST_CHANGED].contains(&value) {
+    let known = [PPC_CHANGED, IDLE_CHANGED, TPC_CHANGED, GUARANTEED_CHANGED, HIGHEST_CHANGED];
+    if !known.contains(&value) {
         Line::new(b"cpu ").dec(cpus.list[i].uid).str(b" notify ").hex(u64::from(value)).end();
         return true;
     }

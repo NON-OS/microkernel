@@ -23,3 +23,4 @@ mod osc_rig;
 mod osc_tests;
 mod parse_tests;
 mod rig;
+mod throttle_tests;

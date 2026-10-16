@@ -23,6 +23,8 @@ use super::cpc::{parse_cpc, Cpc};
 use super::cst::{parse_cst, CState};
 use super::pct::{parse_pct, Pct};
 use super::pss::{parse_pss, PState};
+use super::tsd::{parse_tsd, Domain};
+use super::tss::{parse_tss, TState};
 use crate::load::Aml;
 use crate::namespace::{Id, Seg};
 use crate::object::Object;
@@ -39,6 +41,10 @@ pub struct CpuTables {
     pub cpc: Option<Cpc>,
     /// _LPI, the processor's own level first; empty when it has none.
     pub lpi: Vec<LpiLevel>,
+    pub tstates: Vec<TState>,
+    pub ptc: Option<Pct>,
+    pub tpc: Option<u64>,
+    pub tsd: Option<Domain>,
 }
 
 fn get(aml: &mut Aml, eval: &mut Eval<'_>, cpu: Id, seg: Seg) -> Option<Object> {
@@ -58,5 +64,9 @@ pub fn cpu_tables(aml: &mut Aml, eval: &mut Eval<'_>, cpu: Id) -> CpuTables {
         cstates: get(aml, eval, cpu, *b"_CST").map(|o| parse_cst(&o)).unwrap_or_default(),
         cpc: get(aml, eval, cpu, *b"_CPC").as_ref().and_then(parse_cpc),
         lpi: idle_levels(aml, eval, cpu),
+        tstates: get(aml, eval, cpu, *b"_TSS").map(|o| parse_tss(&o)).unwrap_or_default(),
+        ptc: get(aml, eval, cpu, *b"_PTC").as_ref().and_then(parse_pct),
+        tpc: get(aml, eval, cpu, *b"_TPC").as_ref().and_then(integer),
+        tsd: get(aml, eval, cpu, *b"_TSD").as_ref().and_then(parse_tsd),
     }
 }

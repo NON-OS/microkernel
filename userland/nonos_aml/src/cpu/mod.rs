@@ -32,6 +32,8 @@ mod pct;
 mod pss;
 mod register;
 mod tables;
+mod tsd;
+mod tss;
 
 pub use cpc::{parse_cpc, Cpc, CpcField};
 pub use cpc_index::*;
@@ -48,3 +50,5 @@ pub use register::{
     register, register_in, Register, FIXED_HARDWARE, PCC, SYSTEM_IO, SYSTEM_MEMORY,
 };
 pub use tables::{cpu_tables, ppc, CpuTables};
+pub use tsd::{parse_tsd, Domain};
+pub use tss::{parse_tss, TState, MAX_TSTATES};
