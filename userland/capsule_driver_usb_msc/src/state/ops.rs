@@ -35,7 +35,7 @@ impl State {
         self.ignore_residue = false;
     }
 
-    fn next_tag(&mut self) -> u32 {
+    pub(super) fn next_tag(&mut self) -> u32 {
         let tag = self.next_tag;
         self.next_tag = self.next_tag.wrapping_add(1).max(1);
         self.last_tag = tag;

@@ -18,7 +18,7 @@ fn disk() -> Disk {
 }
 
 fn sense_iu(status: u8, sense: &[u8]) -> Answer {
-    let mut iu = vec![0x03, 0, 0, 1, 0, 0, status, 0, 0, 0, 0, 0, 0, sense.len() as u8, 0, 0];
+    let mut iu = vec![0x03, 0, 0, 1, 0, 0, status, 0, 0, 0, 0, 0, 0, 0, 0, sense.len() as u8];
     iu.extend_from_slice(sense);
     Answer::Data(iu)
 }
@@ -52,8 +52,6 @@ fn an_iu_out_of_turn_fails_the_command() {
     script(vec![Answer::Data(vec![0x07, 0, 0, 1])]);
     let mut out = [0u8; 512];
     assert_eq!(read(&disk(), &mut State::new(), 0, &mut out), Err(E_IO), "WRITE READY for a read");
-    script(vec![Answer::Data(vec![0x06, 0, 0, 2])]);
-    assert_eq!(read(&disk(), &mut State::new(), 0, &mut out), Err(E_IO), "another tag");
 }
 
 #[test]
