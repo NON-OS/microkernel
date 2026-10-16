@@ -18,7 +18,9 @@ use core::ptr;
 
 use super::super::state::TableRegistry;
 use crate::arch::x86_64::acpi::data::PcieSegment;
-use crate::arch::x86_64::acpi::tables::{Mcfg, McfgEntry, MAX_TABLE_BYTES, SIG_MCFG};
+use crate::arch::x86_64::acpi::tables::{
+    sdt_entry_count, Mcfg, McfgEntry, MAX_TABLE_BYTES, SIG_MCFG,
+};
 
 pub fn parse_mcfg(registry: &mut TableRegistry) {
     let addr = match registry.tables.get(&SIG_MCFG) {
@@ -32,9 +34,11 @@ pub fn parse_mcfg(registry: &mut TableRegistry) {
 
     unsafe {
         let mcfg = ptr::read_volatile(addr as *const Mcfg);
-        // No more entries than a table within the ceiling holds (L73).
-        let most = MAX_TABLE_BYTES as usize / core::mem::size_of::<McfgEntry>();
-        let entry_count = mcfg.entry_count().min(most);
+        // The length held to the ceiling before the header comes off, as the
+        // root tables are, so no entry is read past it (L73, L76).
+        let length = (mcfg.header.length as u64).min(MAX_TABLE_BYTES) as usize;
+        let (head, each) = (core::mem::size_of::<Mcfg>(), core::mem::size_of::<McfgEntry>());
+        let entry_count = sdt_entry_count(length, head, each);
         let entries_ptr = (addr + mcfg.entries_offset() as u64) as *const McfgEntry;
 
         for i in 0..entry_count {
