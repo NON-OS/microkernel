@@ -14,45 +14,55 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A register access by space: SystemMemory through a mapped window,
-//! SystemIO and PCI_Config through the kernel, EmbeddedControl through the
-//! EC's handshake. Every other space is refused.
+//! A register access by space, by the path `spaces` gives it: SystemMemory
+//! through a mapped window, SystemIO and PCI_Config through the kernel,
+//! EmbeddedControl through the EC's handshake; every other space refused.
+//! Each refusal is counted, and told once (`refuse`).
 
+use super::refuse::refuse;
+use super::spaces::{path, Path};
 use super::state::CapsuleHost;
 use super::{ec, memory_io, pci};
 use nonos_aml::exec::RegionAccess;
 use nonos_aml::region::Space;
 
 pub(super) fn read(h: &mut CapsuleHost, a: &RegionAccess<'_>) -> Option<u64> {
-    let v = match a.space {
-        Space::SYSTEM_MEMORY => h
+    let v = match path(a.space.0).0 {
+        Path::Window => h
             .windows
             .va(a.address, a.width as u64, (a.base, a.len))
             .and_then(|va| memory_io::read(va, a.width)),
-        Space::SYSTEM_IO if h.ports.ensure(a.address, a.width as u64, (a.base, a.len)) => {
-            h.ports.read(a.address, a.width)
-        }
-        Space::PCI_CONFIG => a.pci.and_then(|p| pci::read(p, a.address, a.width)),
-        Space::EMBEDDED_CONTROL => ec::read(h, a.address, a.width),
-        _ => None,
+        Path::Kernel if a.space == Space::SYSTEM_IO => h
+            .ports
+            .ensure(a.address, a.width as u64, (a.base, a.len))
+            .then(|| h.ports.read(a.address, a.width))
+            .flatten(),
+        Path::Kernel => a.pci.and_then(|p| pci::read(p, a.address, a.width)),
+        Path::Ec => ec::read(h, a.address, a.width),
+        Path::Refused => None,
     };
-    h.refused += v.is_none() as u64;
+    if v.is_none() {
+        refuse(h, a.space.0, a.base);
+    }
     v
 }
+
 pub(super) fn write(h: &mut CapsuleHost, a: &RegionAccess<'_>, v: u64) -> bool {
-    let done = match a.space {
-        Space::SYSTEM_MEMORY => h
+    let done = match path(a.space.0).0 {
+        Path::Window => h
             .windows
             .va(a.address, a.width as u64, (a.base, a.len))
             .is_some_and(|va| memory_io::write(va, a.width, v)),
-        Space::SYSTEM_IO => {
+        Path::Kernel if a.space == Space::SYSTEM_IO => {
             h.ports.ensure(a.address, a.width as u64, (a.base, a.len))
                 && h.ports.write(a.address, a.width, v)
         }
-        Space::PCI_CONFIG => a.pci.is_some_and(|p| pci::write(p, a.address, a.width, v)),
-        Space::EMBEDDED_CONTROL => ec::write(h, a.address, a.width, v),
-        _ => false,
+        Path::Kernel => a.pci.is_some_and(|p| pci::write(p, a.address, a.width, v)),
+        Path::Ec => ec::write(h, a.address, a.width, v),
+        Path::Refused => false,
     };
-    h.refused += !done as u64;
+    if !done {
+        refuse(h, a.space.0, a.base);
+    }
     done
 }

@@ -28,6 +28,8 @@ pub enum Hardware {
     /// The PCI Express configuration window (MCFG): a memory region over it
     /// would reach a claimed function's configuration around `pci_config`.
     Ecam,
+    /// A function's MSI-X table or pending bits: written, it aims interrupts.
+    Msix,
 }
 
 /// Legacy devices whose ports the kernel owns.
@@ -47,6 +49,12 @@ pub enum Legacy {
     Rtc,
     /// The first serial port, which carries the kernel's own log.
     Serial,
+    /// System control port A, whose bit 0 resets the processor at once.
+    Reset,
+    /// The VGA CRT index and data pair the kernel's text console drives.
+    Console,
+    /// The debug ports the kernel's log may also go to.
+    Debug,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

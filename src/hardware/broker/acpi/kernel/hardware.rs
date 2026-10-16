@@ -55,5 +55,9 @@ pub(in super::super) fn protected(base: u64, end: u64) -> Option<Hardware> {
         let buses = u64::from(s.end_bus.saturating_sub(s.start_bus)) + 1;
         hit(first, buses * ECAM_BUS)
     });
-    ecam.then_some(Hardware::Ecam)
+    if ecam {
+        return Some(Hardware::Ecam);
+    }
+    let msix = crate::hardware::broker::mmio::msix_exclusion::protected_regions();
+    msix.iter().any(|&(lo, hi)| lo < end && base < hi).then_some(Hardware::Msix)
 }
