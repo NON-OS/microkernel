@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[allow(dead_code)]
 #[path = "../../../../src/process/foreign/frame.rs"]
 mod frame;
-#[allow(dead_code)]
 #[path = "../../../../src/process/foreign/registry.rs"]
 mod registry;
 pub mod seal;
 mod trap_reply;
-#[allow(dead_code)]
 #[path = "../../../../src/process/foreign/trap_table.rs"]
 pub mod trap_table;
+#[cfg(test)]
+mod tests;

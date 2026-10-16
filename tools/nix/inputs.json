@@ -4217,6 +4217,7 @@
    "src/process/foreign/seal/wipe.rs",
    "src/process/foreign/trap_table.rs",
    "src/syscall/microkernel/errnos.rs",
+   "userland/libc/src/foreign_frame.rs",
    "userland/nonos_proof_abi",
    "userland/seal_proofs"
   ],
