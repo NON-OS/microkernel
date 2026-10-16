@@ -21,7 +21,7 @@ use super::*;
 /// KCK and KEK then the longest TK (GCMP-256's).
 pub(in crate::wpa::supplicant) const PTK_MAX: usize = 64;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Supplicant {
     pub(in crate::wpa::supplicant) state: State,
     /// Pairwise master key from passphrase + SSID, or from SAE.

@@ -45,4 +45,5 @@ pub mod sae;
 pub mod scan_list;
 pub mod softmac;
 pub mod station;
+pub mod vault;
 pub mod wpa;

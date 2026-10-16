@@ -19,7 +19,7 @@
 //! keeps its strongest signal. Every other frame is passed over.
 
 use super::look::{Look, HEARD_MAX};
-use super::pick::Heard;
+use super::offer::Heard;
 use crate::dot11::parse::parse_beacon;
 use crate::regdom::Band;
 use crate::softmac::radio::Radio;

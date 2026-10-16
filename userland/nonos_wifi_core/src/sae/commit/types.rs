@@ -35,7 +35,6 @@ use super::*;
 
 /// One side's commit: the secret rand, the scalar and element it sends, and
 /// the PWE they were built from.
-#[derive(Clone, Copy)]
 pub struct Commit {
     pub(super) rand: Scalar,
     pub(super) scalar: Scalar,
@@ -44,7 +43,6 @@ pub struct Commit {
 }
 
 /// The keys a completed exchange yields.
-#[derive(Clone, Copy)]
 pub struct SaeKeys {
     pub kck: [u8; 32],
     pub pmk: [u8; 32],

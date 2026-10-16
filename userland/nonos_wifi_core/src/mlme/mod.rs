@@ -28,6 +28,7 @@ mod auth;
 mod beacon;
 mod cached;
 mod failure;
+mod given;
 mod open_start;
 mod regulatory;
 mod sae_start;

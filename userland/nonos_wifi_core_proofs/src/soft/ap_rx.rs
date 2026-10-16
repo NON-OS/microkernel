@@ -33,6 +33,9 @@ impl SimAp {
             (0, sub @ (0 | 2)) if self.refuse => {
                 vec![mgmt_from(me, sub + 1, sta, &[0x11, 4, 17, 0, 0, 0])]
             }
+            (0, sub @ (0 | 2)) if self.quirks.mute_eapol => {
+                vec![mgmt_from(me, sub + 1, sta, &[0x11, 4, 0, 0, 1, 0xc0])]
+            }
             // An association, or a reassociation answered in kind.
             (0, sub @ (0 | 2)) => vec![
                 mgmt_from(me, sub + 1, sta, &[0x11, 4, 0, 0, 1, 0xc0]),

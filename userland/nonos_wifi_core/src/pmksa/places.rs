@@ -22,12 +22,13 @@ use super::entry::wipe;
 impl PmksaCache {
     pub(super) fn index(&self, bssid: &[u8; 6], ssid: &[u8]) -> Option<usize> {
         self.kept.iter().position(|k| {
-            k.is_some_and(|k| k.sa.bssid == *bssid && k.ssid.get(..k.ssid_len) == Some(ssid))
+            k.as_ref()
+                .is_some_and(|k| k.sa.bssid == *bssid && k.ssid.get(..k.ssid_len) == Some(ssid))
         })
     }
 
     pub(super) fn oldest(&self) -> usize {
-        let age = |i: usize| self.kept[i].map_or(0, |k| k.since_ms);
+        let age = |i: usize| self.kept[i].as_ref().map_or(0, |k| k.since_ms);
         (0..PMKSA_MAX).min_by_key(|&i| age(i)).unwrap_or(0)
     }
 
@@ -39,8 +40,9 @@ impl PmksaCache {
 
     pub(super) fn expire(&mut self, now_ms: u64) {
         for i in 0..PMKSA_MAX {
-            let old =
-                self.kept[i].is_some_and(|k| now_ms.saturating_sub(k.since_ms) >= PMK_LIFETIME_MS);
+            let old = self.kept[i]
+                .as_ref()
+                .is_some_and(|k| now_ms.saturating_sub(k.since_ms) >= PMK_LIFETIME_MS);
             if old {
                 self.remove_at(i);
             }

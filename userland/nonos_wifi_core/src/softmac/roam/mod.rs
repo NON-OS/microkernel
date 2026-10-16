@@ -15,18 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod kit;
+mod kit_join;
 mod listen;
 mod look;
 mod look_step;
 mod null;
+mod offer;
 mod pick;
 mod secret;
+mod secret_use;
 mod signal;
 mod trip;
 
 pub use kit::{Kit, COOLDOWN_MS};
+pub use kit_join::roam_policy;
 pub use look::{Look, Step, AWAY_CHANNELS, HEARD_MAX, HOME_MS};
 pub use null::pm_null;
-pub use pick::{offered, pick, Heard, HYSTERESIS_DB};
-pub use secret::{Secret, SECRET_MAX};
+pub use offer::{group_mgmt_of, offered, Heard};
+pub use pick::{pick, Want, HYSTERESIS_DB};
+pub use secret::Secret;
 pub use signal::{Signal, SAMPLES_MIN, WEAK_DBM};

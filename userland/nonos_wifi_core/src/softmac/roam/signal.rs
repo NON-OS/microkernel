@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How well the session's AP is heard: a running average of its beacons'
-//! signal, an eighth of each new beacon moving it. One weak beacon does not
-//! start a look; a run of them does.
+//! How well the session's AP is heard: a running average of the signal of
+//! its frames that verified under the session's keys, an eighth of each new
+//! one moving it. One weak frame does not start a look; a run of them does.
 
 /// Below this average a look for a better AP of the same network starts.
 pub const WEAK_DBM: i16 = -75;
-/// Beacons heard before the average counts.
+/// Frames heard before the average counts.
 pub const SAMPLES_MIN: u8 = 8;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]

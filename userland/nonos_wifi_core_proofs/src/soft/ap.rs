@@ -15,15 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A WPA2-PSK access point, CCMP-128 or GCMP-256 as its RSNE offers and the
-//! station's message 2 chooses, as the station meets it on the air: it answers
-//! Open System authentication and association, opens the four-way handshake,
-//! checks message 2's MIC (a wrong passphrase gets a deauthentication with
-//! reason 15, the four-way handshake timeout an AP reports for a MIC that
-//! fails), installs the pairwise key on message 4, and from then on reads the
-//! station's protected data.
+//! station's message 2 chooses: it answers Open System authentication and
+//! association, opens the four-way handshake, checks message 2's MIC (a
+//! wrong passphrase gets a deauthentication, reason 15), installs the
+//! pairwise key on message 4, and from then on reads the station's data.
 
 use crate::ap_sim::AA;
 use crate::soft::frames::beacon_from;
+use crate::soft::quirks::Quirks;
 use nonos_wifi_core::rsn::{Cipher, TemporalKey};
 
 pub struct SimAp {
@@ -41,6 +40,10 @@ pub struct SimAp {
     pub got: Vec<Vec<u8>>,
     /// The PTK and the pairwise cipher the station's message 2 named.
     pub(crate) ptk: Option<(Cipher, Vec<u8>)>,
+    /// Once keyed, send protected data with each beacon (`chatter`).
+    pub chatter: bool,
+    pub(crate) pn: u64,
+    pub quirks: Quirks,
 }
 
 impl SimAp {
@@ -58,6 +61,9 @@ impl SimAp {
             tk: None,
             got: Vec::new(),
             ptk: None,
+            chatter: false,
+            pn: 0,
+            quirks: Quirks::default(),
         }
     }
 

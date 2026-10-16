@@ -18,6 +18,8 @@ mod cache;
 mod entry;
 mod forget;
 mod places;
+mod tag;
 
 pub use cache::{PmksaCache, PMKSA_MAX, PMK_LIFETIME_MS};
 pub use entry::Pmksa;
+pub use tag::Tag;

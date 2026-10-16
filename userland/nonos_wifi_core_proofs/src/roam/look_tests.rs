@@ -30,7 +30,7 @@ const HOME: [u8; 6] = [2, 0, 0, 0, 0, 1];
 fn look_with(bench: &mut Bench) -> Look {
     let mut look = Look::new(WORLD, bench.bands(), (Band::Ghz2, 1), bench.mac(), HOME);
     let mut now = 0;
-    while look.step(bench, b"home", now) != Step::Done {
+    while look.step(bench, b"home", now, false) != Step::Done {
         now += 5;
         assert!(now < 100_000, "a look ends");
     }

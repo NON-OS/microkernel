@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A data frame on an associated session, through the station's receive
-//! checks: to the stack, or to the supplicant for a key handshake.
+//! checks: to the stack, or to the supplicant for a key handshake. A frame
+//! from the AP that passed them is what the AP's signal is judged by.
 
 use super::pump::Ended;
 use super::state::{Session, RX_QUEUE};
-use crate::softmac::radio::Radio;
+use crate::softmac::radio::{Radio, RxInfo};
 use crate::softmac::stats::LinkStats;
 use crate::station::Rx;
 
@@ -28,11 +29,17 @@ impl Session {
         &mut self,
         r: &mut R,
         f: &[u8],
-        hw: bool,
+        rx: RxInfo,
         st: &mut LinkStats,
     ) -> Option<Ended> {
-        match self.station.receive(f, hw) {
+        match self.station.receive(f, rx.decrypted) {
             Rx::Ethernet(eth) => {
+                // The AP's signal is judged only from frames that verified
+                // under the session's keys: anyone can send a beacon in the
+                // AP's name, and weak forged ones would force a look.
+                if let (true, Some(k)) = (f[10..16] == self.bssid, self.kit.as_mut()) {
+                    k.signal.heard(rx.rssi_dbm);
+                }
                 if self.queue.len() == RX_QUEUE {
                     self.queue.pop_front();
                     LinkStats::bump(&mut st.rx_err);

@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A PMKSA is offered only where it applies. One for another AP leaves the
-//! join to SAE. A network the policy joins with PSK never sends a PMKID.
-//! And an AP that refuses the association of a cached join fails it with
-//! its status, which the soft-MAC answers by running SAE again.
+//! A PMKSA is offered only where it applies: one for another AP leaves the
+//! join to SAE, a PSK join never sends a PMKID, and an AP refusing a cached
+//! join fails it with its status, which the soft-MAC answers with SAE.
 
 use super::sim::{by_sae, offered};
 use crate::ap_sim::STA_RSNE_PSK;
@@ -69,6 +68,7 @@ fn an_ap_that_forgot_the_pmksa_refuses_and_sae_runs_again() {
         pmksa: None,
         selection: m.selection(),
         accepted: m.accepted(),
+        group_mgmt: None,
     };
     assert!(retry_with_sae(&report(true)));
     assert!(!retry_with_sae(&report(false)), "a full SAE join that failed is not run again here");

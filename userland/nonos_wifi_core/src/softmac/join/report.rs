@@ -20,7 +20,7 @@
 //! deauthentication after the first EAPOL at a handshake frame lost here.
 
 use super::counters::Counters;
-use crate::mlme::{Mlme, MlmeFailure, MlmeState};
+use crate::mlme::MlmeFailure;
 use crate::pmksa::Pmksa;
 use crate::rsn::{Selection, TemporalKey};
 use crate::wpa::akm::Akm;
@@ -54,22 +54,6 @@ pub struct Report {
     pub selection: Option<Selection>,
     /// The AP accepted the (re)association, whatever followed.
     pub accepted: bool,
-}
-
-pub(super) fn state_code(s: MlmeState) -> u8 {
-    match s {
-        MlmeState::Scanning => 0,
-        MlmeState::Authenticating => 1,
-        MlmeState::Associating => 2,
-        MlmeState::FourWay => 3,
-        MlmeState::Connected => 4,
-        MlmeState::Failed => 5,
-    }
-}
-
-pub(super) fn report(m: &Mlme, outcome: Outcome, counters: Counters) -> Report {
-    let state = state_code(m.state());
-    let (failure, akm, used_pmksa, pmksa) = (m.failure(), m.akm(), m.used_pmksa(), m.pmksa());
-    let (selection, accepted) = (m.selection(), m.accepted());
-    Report { outcome, counters, state, failure, akm, used_pmksa, pmksa, selection, accepted }
+    /// The group management cipher suite the AP's beacon named.
+    pub group_mgmt: Option<u32>,
 }

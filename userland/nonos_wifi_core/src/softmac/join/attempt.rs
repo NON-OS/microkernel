@@ -18,24 +18,16 @@
 //! the rule for running it again with WPA2.
 
 use super::drive::drive;
+use super::extra::Extra;
 use super::report::{Outcome, Report};
 use super::request::ConnectRequest;
 use super::run::JoinError;
 use crate::mlme::{Entropy, JoinRequest, Mlme, MlmeFailure, SAE_ENTROPY};
-use crate::pmksa::Pmksa;
 use crate::regdom::Domain;
 use crate::rsn::JoinPolicy;
 use crate::sae::SaeFailure;
 use crate::softmac::radio::{Env, Radio};
 use crate::wpa::akm::Akm;
-
-/// What an attempt starts from beyond the network: a cached PMKSA to offer,
-/// and the AP the station moves from when it is a reassociation.
-#[derive(Clone, Copy, Default)]
-pub struct Extra {
-    pub offer: Option<Pmksa>,
-    pub from: Option<[u8; 6]>,
-}
 
 /// Each attempt's budget: long enough for a slow router's SAE.
 pub const JOIN_BUDGET_MS: u64 = 8_000;
@@ -49,6 +41,7 @@ pub(super) fn attempt<R: Radio, E: Env>(
     beacon: &[u8],
     extra: Extra,
 ) -> Result<Report, JoinError> {
+    // Fresh randomness for every attempt, a roam's included: never reused.
     let mut entropy = Entropy { snonce: [0u8; 32], sae: [0u8; SAE_ENTROPY] };
     if !env.random(&mut entropy.snonce) || !env.random(&mut entropy.sae) {
         return Err(JoinError::NoEntropy);
@@ -62,6 +55,9 @@ pub(super) fn attempt<R: Radio, E: Env>(
     }
     if let Some(from) = extra.from {
         m.reassociate_from(from);
+    }
+    if let Some(kept) = extra.kept {
+        kept.give(&mut m);
     }
     Ok(drive(r, env, m, beacon, JOIN_BUDGET_MS))
 }

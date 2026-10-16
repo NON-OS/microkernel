@@ -20,6 +20,7 @@ mod confirm;
 mod frame;
 mod saestate;
 mod saestation;
+mod wipe;
 use super::commit::{confirm, Commit, SaeKeys};
 use super::frame::{
     commit_body, confirm_body, parse_commit, parse_confirm, parse_token_request, SEQ_COMMIT,

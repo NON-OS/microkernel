@@ -17,8 +17,9 @@
 //! The access point's half of the four-way handshake, keyed for the pairwise
 //! cipher the station's RSNE in message 2 names.
 
-use crate::ap_sim::{gtk_kde, message3, ANONCE, GTK};
+use crate::ap_sim::{gtk_kde, igtk_kde, message3, ANONCE, GTK};
 use crate::cipher_sim::GTK256;
+use crate::pmf_sim::IGTK;
 use crate::soft::ap::SimAp;
 use crate::soft::frames::{eapol_from, mgmt_from};
 use nonos_wifi_core::eapol::mic::compute_mic;
@@ -34,7 +35,7 @@ fn rsne_of(element: &[u8]) -> Option<Rsne> {
 
 impl SimAp {
     pub(crate) fn on_eapol(&mut self, sta: [u8; 6], e: Vec<u8>) -> Vec<Vec<u8>> {
-        let Some(k) = parse(&e) else { return vec![] };
+        let Some(k) = parse(&e).filter(|_| !self.quirks.mute_eapol) else { return vec![] };
         if k.key_info & KEY_INFO_SECURE != 0 {
             self.tk = self.ptk.as_ref().and_then(|(c, p)| TemporalKey::new(*c, &p[32..]));
             return vec![];
@@ -50,8 +51,12 @@ impl SimAp {
         // The group cipher is the AP's own; GCMP-256 takes a 32-octet GTK.
         let group = rsne_of(&self.rsne).and_then(|r| Cipher::from_selector(r.group));
         let gtk: &[u8] = if group == Some(Gcmp256) { &GTK256 } else { &GTK };
-        let mut kd = self.rsne.clone();
+        let mut kd = self.quirks.msg3_rsne.clone().unwrap_or_else(|| self.rsne.clone());
         kd.extend_from_slice(&gtk_kde(1, gtk));
+        // With management frame protection, the integrity group key too.
+        if rsne_of(&self.rsne).is_some_and(|r| r.mfpc()) {
+            kd.extend_from_slice(&igtk_kde(&IGTK));
+        }
         let m3 = message3(Akm::Psk, 2, &ANONCE, &ptk, &kd);
         self.ptk = Some((cipher, ptk));
         vec![eapol_from(self.bssid, sta, &m3)]

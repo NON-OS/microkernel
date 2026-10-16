@@ -18,27 +18,29 @@
 //! PMK lifetime by not a millisecond, and one entry or every entry goes
 //! when the caller says so.
 
-use super::cache_tests::{sa, PASS, SSID};
-use nonos_wifi_core::pmksa::{PmksaCache, PMK_LIFETIME_MS};
+use super::cache_tests::{cache, sa, tag, PASS, SSID, STA};
+use nonos_wifi_core::pmksa::PMK_LIFETIME_MS;
 
 #[test]
 fn an_entry_lives_for_the_pmk_lifetime_and_no_longer() {
-    let mut c = PmksaCache::default();
-    c.keep(SSID, PASS, sa(1), 1_000);
-    assert!(c.find(&sa(1).bssid, SSID, PASS, 1_000 + PMK_LIFETIME_MS - 1).is_some());
-    assert_eq!(c.find(&sa(1).bssid, SSID, PASS, 1_000 + PMK_LIFETIME_MS), None);
+    let mut c = cache();
+    let t = tag(&c, SSID, PASS);
+    c.keep(STA, SSID, &t, sa(1), 1_000);
+    assert!(c.find((sa(1).bssid, STA), SSID, &t, 1_000 + PMK_LIFETIME_MS - 1).is_some());
+    assert_eq!(c.find((sa(1).bssid, STA), SSID, &t, 1_000 + PMK_LIFETIME_MS), None);
     assert!(c.is_empty(), "an outlived entry is removed, not kept unoffered");
 }
 
 #[test]
 fn an_entry_or_everything_is_forgotten_when_told() {
-    let mut c = PmksaCache::default();
-    (1..=3).for_each(|n| c.keep(SSID, PASS, sa(n), 0));
+    let mut c = cache();
+    let t = tag(&c, SSID, PASS);
+    (1..=3).for_each(|n| c.keep(STA, SSID, &t, sa(n), 0));
     c.remove(&sa(2).bssid, SSID);
     assert_eq!(c.len(), 2);
-    assert_eq!(c.find(&sa(2).bssid, SSID, PASS, 1), None);
+    assert_eq!(c.find((sa(2).bssid, STA), SSID, &t, 1), None);
     c.wipe_all();
     assert!(c.is_empty());
-    c.keep(&[b'x'; 33], PASS, sa(4), 0);
+    c.keep(STA, &[b'x'; 33], &t, sa(4), 0);
     assert!(c.is_empty(), "no SSID is longer than 32 octets");
 }

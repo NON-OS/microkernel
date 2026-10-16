@@ -28,7 +28,6 @@ pub struct JoinRequest<'a> {
     pub entropy: Entropy,
 }
 
-#[derive(Clone, Copy)]
 pub struct Mlme {
     pub(in crate::mlme) state: MlmeState,
     pub(in crate::mlme) our_mac: [u8; 6],
@@ -51,6 +50,10 @@ pub struct Mlme {
     pub(in crate::mlme) rates: Option<Rates>,
     pub(in crate::mlme) sae: Option<SaeStation>,
     pub(in crate::mlme) pmk: [u8; 32],
+    /// `pmk` was given, so the passphrase is not needed for PSK.
+    pub(in crate::mlme) pmk_given: bool,
+    /// A password token given for hash-to-element, as x then y.
+    pub(in crate::mlme) pt: Option<[u8; 64]>,
     /// The PMKID naming `pmk`, when SAE or the cache gave one.
     pub(in crate::mlme) pmkid: Option<[u8; 16]>,
     /// A cached PMKSA this join may offer instead of running SAE.

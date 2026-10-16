@@ -29,12 +29,13 @@ pub struct Pmksa {
 }
 
 /// One entry as the cache keeps it.
-#[derive(Clone, Copy)]
 pub(crate) struct Kept {
+    /// The station address it was made from, so a new address joins anew.
+    pub(crate) sta: [u8; 6],
     pub(crate) ssid: [u8; 32],
     pub(crate) ssid_len: usize,
     pub(crate) since_ms: u64,
-    /// HMAC-SHA256 keyed by the SSID over the passphrase.
+    /// The passphrase's `Tag`.
     pub(crate) tag: [u8; 32],
     pub(crate) sa: Pmksa,
 }

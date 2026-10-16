@@ -23,13 +23,14 @@
 
 use super::station::SoftStation;
 use crate::softmac::radio::{Env, Radio};
-use crate::softmac::roam::{pick, Look, Step};
+use crate::softmac::roam::{pick, Look, Step, Want};
 
 impl<R: Radio, E: Env> SoftStation<R, E> {
     /// One step of roaming; true while the station is off its channel.
     pub(super) fn roam_away(&mut self) -> bool {
         let now = self.env.now_ms();
         let (Some(r), Some(s)) = (self.radio.as_mut(), self.session.as_mut()) else { return false };
+        let busy = s.busy();
         let ssid = &s.ssid[..usize::from(s.ssid_len)];
         let Some(kit) = s.kit.as_mut() else { return false };
         let Some(look) = self.look.as_mut() else {
@@ -39,7 +40,9 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
             }
             return false;
         };
-        match look.step(r, ssid, now) {
+        // No trip leaves, the first included, while the link is in an
+        // exchange it must see through on its channel.
+        match look.step(r, ssid, now, busy) {
             Step::Away => return true,
             Step::Home => return false,
             Step::Done => {}
@@ -47,7 +50,9 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         kit.rest(now);
         let current = (s.bssid, kit.signal.avg_dbm());
         let heard = self.look.take().map(|l| l.heard).unwrap_or_default();
-        if let Some(i) = pick(current, ssid, &kit.runs, kit.policy, &heard) {
+        let (runs, group_mgmt, policy) = (&kit.runs, kit.group_mgmt, kit.policy);
+        let want = Want { ssid, runs, group_mgmt, policy, barred: &self.barred };
+        if let Some(i) = pick(current, &want, &heard) {
             self.roam_to(&heard[i]);
         }
         false

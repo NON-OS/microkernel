@@ -33,7 +33,9 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         let served = match self.radio.as_mut() {
             Some(radio) => {
                 let session = self.session.as_mut();
-                netif::serve(req, &mut Port { radio, session, stats: &mut self.stats }, out)
+                let closed = self.look.as_ref().is_some_and(|l| l.away());
+                let stats = &mut self.stats;
+                netif::serve(req, &mut Port { radio, session, stats, closed }, out)
             }
             None => netif::serve(req, &mut DeadPort, out),
         };

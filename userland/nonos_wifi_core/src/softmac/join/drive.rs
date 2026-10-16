@@ -19,7 +19,8 @@
 
 use alloc::vec::Vec;
 
-use super::report::{report, Outcome, Report};
+use super::report::{Outcome, Report};
+use super::report_of::report;
 use super::send::{resend_after, transmit};
 use super::{announce::announce, counters::Counters, feed::feed, finish::finish};
 use crate::mlme::{Mlme, MlmeState};

@@ -21,12 +21,13 @@
 //! driver's to do above its registers.
 
 use crate::pmksa::PmksaCache;
-use crate::regdom::{Domain, WORLD};
+use crate::regdom::Domain;
 use crate::softmac::radio::{Env, Radio};
 use crate::softmac::roam::Look;
 use crate::softmac::scanner::Scanner;
 use crate::softmac::session::Session;
 use crate::softmac::stats::LinkStats;
+use alloc::vec::Vec;
 
 pub struct SoftStation<R: Radio, E: Env> {
     /// `None` when bring-up stopped short of a working radio: the station
@@ -43,33 +44,8 @@ pub struct SoftStation<R: Radio, E: Env> {
     pub(super) pmksa: PmksaCache,
     /// A look for a better AP of the session's network, while one runs.
     pub(super) look: Option<Look>,
-}
-
-impl<R: Radio, E: Env> SoftStation<R, E> {
-    /// `stage` is the driver's bring-up stage byte, 0 for ready.
-    pub fn new(radio: Option<R>, env: E, stage: u8) -> Self {
-        let (scanner, stats) = (Scanner::new(), LinkStats::default());
-        let pmksa = PmksaCache::default();
-        let (session, look) = (None, None);
-        Self { radio, env, stage, domain: WORLD, scanner, session, stats, pmksa, look }
-    }
-
-    /// Run under `domain` instead of the world domain.
-    pub fn set_domain(&mut self, domain: Domain) {
-        self.domain = domain;
-    }
-
-    // A session over, by the AP's word, silence or the person's: forget it,
-    // open the receive filter and let the sweep start again.
-    pub(super) fn end_session(&mut self) {
-        let had = self.session.take().is_some();
-        self.look = None;
-        if let Some(r) = self.radio.as_mut() {
-            if had {
-                r.associated(None);
-            }
-            r.set_bss(None);
-        }
-        self.scanner.resume();
-    }
+    /// APs a roam to failed, never tried again this boot.
+    pub(super) barred: Vec<[u8; 6]>,
+    /// The code of the last roam that failed, 0 after one that succeeded.
+    pub(super) last_roam: i32,
 }

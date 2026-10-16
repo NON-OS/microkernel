@@ -16,7 +16,8 @@
 
 //! Two APs of one network for the roaming proofs: the station joined to
 //! the first, on channel 1, and a second on channel 6, switched on after
-//! the join so the join cannot pick it.
+//! the join so the join cannot pick it. Both send protected data once
+//! keyed, which is what the station judges an AP's signal by.
 
 use crate::soft::ap::SimAp;
 use crate::soft::frames::RSNE_PSK;
@@ -30,9 +31,21 @@ pub const BB: [u8; 6] = [0x02, 0, 0, 0, 0, 0x0b];
 
 /// Joined to AA; BB, as `second` sets it up, heard at `rssi` dBm.
 pub fn two_aps(second: impl FnOnce(&mut SimAp), rssi: [i8; 2]) -> Station {
-    let mut st = rig(SimAp::new(SSID, PASS, 1, &RSNE_PSK));
+    two_aps_with(|_| {}, second, rssi)
+}
+
+/// The same, with AA set up by `first` before the join.
+pub fn two_aps_with(
+    first: impl FnOnce(&mut SimAp),
+    second: impl FnOnce(&mut SimAp),
+    rssi: [i8; 2],
+) -> Station {
+    let mut a = SimAp::new(SSID, PASS, 1, &RSNE_PSK);
+    a.chatter = true;
+    first(&mut a);
+    let mut st = rig(a);
     let mut b = SimAp::new(SSID, PASS, 6, &RSNE_PSK);
-    (b.bssid, b.on) = (BB, false);
+    (b.bssid, b.on, b.chatter) = (BB, false, true);
     second(&mut b);
     let air = st.radio_mut().unwrap();
     air.ap2 = Some(b);

@@ -63,4 +63,9 @@ impl Session {
     pub fn is_up(&self) -> bool {
         self.station.is_associated()
     }
+
+    /// Whether the link is in an exchange no look may leave it in.
+    pub fn busy(&self) -> bool {
+        self.station.busy()
+    }
 }
