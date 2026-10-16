@@ -21,11 +21,10 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use crate::wallet::order::fees::{exact, Fees};
+use crate::wallet::order::fund_ask::fund_ask;
 use crate::wallet::order::intake::Step;
-use crate::wallet::order::read::Named;
 use crate::wallet::shield::{actions, open};
-use crate::wallet::state::shield_ui::{ASSET_NOX, SHIELD_WITHDRAW};
+use crate::wallet::state::shield_ui::SHIELD_WITHDRAW;
 use crate::wallet::state::{State, VIEW_SHIELD};
 
 const OFF_SHIELD: &str = "The Shield is on another network: switch to Sepolia to fund the order.";
@@ -37,19 +36,15 @@ pub fn funding(state: &State) -> bool {
 
 pub fn fund(state: &mut State) -> EventOutcome {
     let Some(p) = state.meter.purchase.as_deref() else { return EventOutcome::Idle };
-    let (Step::Fund(m), Ok(Named::Escrow(b))) = (&p.step, &p.read) else {
-        return EventOutcome::Idle;
-    };
     // Only a price the Shield quoted is funded, at exactly that amount.
-    let (Fees::Quoted(_), deposit) = (&p.fees, m.deposit) else { return EventOutcome::Idle };
-    let amount = exact(b.amount);
+    let Some(ask) = fund_ask(&p.step, &p.read, &p.fees) else { return EventOutcome::Idle };
     if !open::here() {
         state.failure = Some(OFF_SHIELD);
         return EventOutcome::Repaint;
     }
     let ui = &mut state.shield_ui;
-    (ui.screen, ui.asset, ui.size, ui.amount) = (SHIELD_WITHDRAW, ASSET_NOX, None, amount);
-    (ui.payee.to_meter, ui.payee.to_deposit, ui.failure) = (false, Some(deposit), None);
+    (ui.screen, ui.asset, ui.size, ui.amount) = (SHIELD_WITHDRAW, ask.asset, None, ask.amount);
+    (ui.payee.to_meter, ui.payee.to_deposit, ui.failure) = (false, Some(ask.to), None);
     state.view = VIEW_SHIELD;
     state.scroll = 0;
     actions::review_withdraw(state);
