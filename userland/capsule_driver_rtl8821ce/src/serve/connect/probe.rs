@@ -22,14 +22,23 @@
 //! the proofs check the decision and the frame on the host.
 
 use nonos_wifi_core::dot11::mgmt::probe_request;
+use nonos_wifi_core::regdom::{world, Use};
 
 /// The rates a probe request offers: the 802.11b/g set, CCK ones basic.
 pub const PROBE_RATES: [u8; 8] = [0x82, 0x84, 0x8b, 0x96, 0x0c, 0x12, 0x18, 0x24];
 
-/// The probe the hunt sends on its `step`th channel into `out`: its length,
-/// or `None` when the network is not hidden (or `out` cannot hold it).
-pub fn hunt_probe(out: &mut [u8], hidden: bool, our_mac: [u8; 6], ssid: &[u8], step: usize) -> Option<usize> {
-    if !hidden {
+/// The probe the hunt sends on channel `ch`, its `step`th, into `out`: its
+/// length, or `None` when the network is not hidden, the world domain lets
+/// `ch` only listen (12, 13) or not be used at all, or `out` cannot hold it.
+pub fn hunt_probe(
+    out: &mut [u8],
+    hidden: bool,
+    our_mac: [u8; 6],
+    ssid: &[u8],
+    ch: u8,
+    step: usize,
+) -> Option<usize> {
+    if !hidden || world(ch) != Some(Use::Active) {
         return None;
     }
     probe_request(out, our_mac, ssid, &PROBE_RATES, u16::try_from(step).ok()?)
