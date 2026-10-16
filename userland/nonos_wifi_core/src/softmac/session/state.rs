@@ -22,6 +22,7 @@ use alloc::vec::Vec;
 
 use crate::regdom::Band;
 use crate::rsn::TemporalKey;
+use crate::softmac::roam::Kit;
 use crate::station::LinkStation;
 use crate::wpa::supplicant::Supplicant;
 
@@ -44,6 +45,8 @@ pub struct Session {
     pub(super) station: LinkStation,
     pub(super) queue: VecDeque<Vec<u8>>,
     pub(super) heard_ms: u64,
+    /// What the session keeps to roam; `None` keeps it on its AP.
+    pub kit: Option<Kit>,
 }
 
 /// What a session starts from.

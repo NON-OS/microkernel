@@ -42,6 +42,7 @@ mod hex;
 mod mlme;
 mod netif;
 mod pmksa;
+mod roam;
 mod pmf_frames;
 mod pmf_link_tests;
 mod pmf_plain_tests;

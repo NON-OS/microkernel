@@ -22,7 +22,7 @@
 //! forgotten and the attempt runs again with SAE, on fresh randomness.
 //! What a joined SAE attempt holds is kept for the next join.
 
-use super::attempt::attempt;
+use super::attempt::{attempt, Extra};
 use super::report::{Outcome, Report};
 use super::request::ConnectRequest;
 use super::run::JoinError;
@@ -37,7 +37,7 @@ pub fn retry_with_sae(report: &Report) -> bool {
 }
 
 #[allow(clippy::too_many_arguments)]
-pub(super) fn first_attempt<R: Radio, E: Env>(
+pub(crate) fn first_attempt<R: Radio, E: Env>(
     r: &mut R,
     env: &mut E,
     domain: Domain,
@@ -46,18 +46,19 @@ pub(super) fn first_attempt<R: Radio, E: Env>(
     beacon: &[u8],
     bssid: [u8; 6],
     cache: &mut PmksaCache,
+    from: Option<[u8; 6]>,
 ) -> Result<Report, JoinError> {
     let offer = cache.find(&bssid, req.ssid, req.pass, env.now_ms());
-    let report = attempt(r, env, domain, req, policy, beacon, offer)?;
+    let report = attempt(r, env, domain, req, policy, beacon, Extra { offer, from })?;
     if !retry_with_sae(&report) {
         return Ok(report);
     }
     cache.remove(&bssid, req.ssid);
-    attempt(r, env, domain, req, policy, beacon, None)
+    attempt(r, env, domain, req, policy, beacon, Extra { offer: None, from })
 }
 
 /// Keep what a joined SAE attempt holds.
-pub(super) fn keep<E: Env>(cache: &mut PmksaCache, env: &E, req: &ConnectRequest, report: &Report) {
+pub(crate) fn keep<E: Env>(cache: &mut PmksaCache, env: &E, req: &ConnectRequest, report: &Report) {
     if let (Some(p), Outcome::Joined { .. }) = (report.pmksa, &report.outcome) {
         cache.keep(req.ssid, req.pass, p, env.now_ms());
     }

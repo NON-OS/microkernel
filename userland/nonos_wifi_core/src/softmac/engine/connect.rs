@@ -24,6 +24,7 @@ use crate::softmac::control::result::{CODE_NO_ENTROPY, CODE_REFUSED, CODE_TIMED_
 use crate::softmac::control::ConnectResult;
 use crate::softmac::join::{join, parse_connect, JoinError, Outcome};
 use crate::softmac::radio::{Env, Radio};
+use crate::softmac::roam::Kit;
 use crate::softmac::session::{Keys, Session};
 
 impl<R: Radio, E: Env> SoftStation<R, E> {
@@ -59,7 +60,9 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
                 let at = (j.band, if channel != 0 { channel } else { j.channel });
                 let net = (req.ssid, bssid, akm.suite_type());
                 let now = self.env.now_ms();
-                self.session = Some(Session::start(r.mac(), net, at, Keys { tk, supplicant }, now));
+                let mut s = Session::start(r.mac(), net, at, Keys { tk, supplicant }, now);
+                s.kit = Kit::for_join(&req, rep.selection, r.ciphers(), now);
+                self.session = Some(s);
             }
             Outcome::Refused => {
                 (res.code, res.ap_code) = rep.failure.map_or((CODE_REFUSED, 0), failure_code);

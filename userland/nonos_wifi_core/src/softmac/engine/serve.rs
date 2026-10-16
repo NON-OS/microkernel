@@ -52,6 +52,10 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
     pub fn tick(&mut self) {
         let Some(radio) = self.radio.as_mut() else { return };
         radio.service(self.env.now_ms());
+        if self.roam_away() {
+            return;
+        }
+        let Some(radio) = self.radio.as_mut() else { return };
         match self.session.as_mut() {
             Some(s) => {
                 if s.pump(radio, &mut self.env, &mut self.stats).is_some() {
