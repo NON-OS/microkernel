@@ -103,10 +103,15 @@ next look waits 30 s.
   capsule's memory until it stops; the log says which.
 - Turning scanning off takes effect when the look under way ends, at
   most 10 s later.
-- Directed advertising is heard only when the controller takes it as
-  addressed to this device (Vol 4, Part E, 7.8.10, filter policy 0x00).
-  A peer that directs it to an older private address of this host is not
-  heard, and reconnects only once it advertises undirected.
+- Directed advertising to an older private address of this host is heard
+  only from a controller with the Extended Scanner Filter Policies
+  feature (Vol 6, Part B, 4.6, bit 7). Such a controller scans with
+  filter policy 0x02 (Vol 4, Part E, 7.8.10) and reports it as an LE
+  Directed Advertising Report (7.7.65.11). The capsule takes it when the
+  target resolves under this host's IRK and the advertiser is bonded.
+  Any other controller scans with policy 0x00. A peer that directs its
+  advertising to an older address then reconnects only once it
+  advertises undirected.
 
 ## Log
 
@@ -278,7 +283,7 @@ Typing in an application with a Bluetooth keyboard, after pairing once.
 
 ## Release evidence
 
-Build and host-proof evidence only so far (bt_usb_proofs, 91 tests, with
+Build and host-proof evidence only so far (bt_usb_proofs, 99 tests, with
 the HCI, SMP and HOGP proofs underneath). Runtime evidence needs B-43 in
 driver.xhci0, the kernel spawn, and a real controller and keyboard: none
 is on main yet.
@@ -302,6 +307,6 @@ bonds kept past this boot. The pairing dialog is Settings', over NBTC.
 ## Verification
 
 `cd userland/bt_usb_proofs && RUST_TEST_THREADS=1 cargo test --release`
-(91 pass at the time of writing); the capsule's `cargo build --release`
+(99 pass at the time of writing); the capsule's `cargo build --release`
 and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on
 hardware.

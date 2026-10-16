@@ -20,8 +20,10 @@
 //! ACL buffers are read and the event masks set. A controller that needs
 //! vendor setup before it answers these stops at the first that fails.
 
-use super::controller::{bd_addr, buffers, le_buffers, le_supported, version, Controller};
-use super::masks::{EVENT_MASK, LE_EVENT_MASK};
+use super::controller::{bd_addr, buffers, le_buffers, version, Controller};
+use super::features::{le_features, le_supported};
+use super::masks::{EVENT_MASK, EXTENDED_SCANNER_FILTER, LE_DIRECTED_REPORT, LE_EVENT_MASK};
+use super::scan::{ACCEPT_ALL, ACCEPT_UNRESOLVED};
 use super::state::Host;
 use crate::error::HciError;
 use crate::transport::Transport;
@@ -35,6 +37,7 @@ impl<T: Transport> Host<T> {
         }
         let v = version(&self.command(op::READ_LOCAL_VERSION, &[])?)?;
         let addr = bd_addr(&self.command(op::READ_BD_ADDR, &[])?)?;
+        let le_features = le_features(&self.command(op::LE_READ_LOCAL_FEATURES, &[])?)?;
         let le = le_buffers(&self.command(op::LE_READ_BUFFER_SIZE, &[])?)?;
         let (acl_len, acl_total) = match le {
             Some(pair) => pair,
@@ -44,7 +47,12 @@ impl<T: Transport> Host<T> {
             return Err(HciError::NoBuffers);
         }
         self.command(op::SET_EVENT_MASK, &EVENT_MASK.to_le_bytes())?;
-        self.command(op::LE_SET_EVENT_MASK, &LE_EVENT_MASK.to_le_bytes())?;
+        // Directed advertising to a private address of ours the controller
+        // cannot resolve is heard only under the extended policy.
+        let extended = le_features & EXTENDED_SCANNER_FILTER != 0;
+        let le_mask = LE_EVENT_MASK | if extended { LE_DIRECTED_REPORT } else { 0 };
+        self.command(op::LE_SET_EVENT_MASK, &le_mask.to_le_bytes())?;
+        self.scan_filter = if extended { ACCEPT_UNRESOLVED } else { ACCEPT_ALL };
         (self.acl_len, self.acl_total, self.acl_free) = (acl_len, acl_total, acl_total);
         Ok(Controller {
             hci_version: v.0,
@@ -55,6 +63,7 @@ impl<T: Transport> Host<T> {
             addr,
             acl_len,
             acl_total,
+            le_features,
         })
     }
 }

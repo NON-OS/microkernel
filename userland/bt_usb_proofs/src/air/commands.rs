@@ -17,7 +17,7 @@
 //! The controller's side: each command packet answered as its section
 //! says, with bring-up left to the HCI proofs' controller.
 
-use super::events::{advertised, connected};
+use super::events::connected;
 use super::state::{Air, HANDLE, OURS};
 use crate::hci_sim::controller::respond;
 use crate::hci_sim::events::{complete, status};
@@ -39,7 +39,7 @@ impl Air {
             op::LE_SET_SCAN_ENABLE if p.first() == Some(&1) => {
                 let mut heard = vec![complete(1, o, 0, &[])];
                 heard.extend(self.others.iter().cloned());
-                heard.push(advertised(self.seen.from, self.adv_kind, &self.adv));
+                heard.extend(self.peer_heard());
                 heard
             }
             op::LE_CREATE_CONNECTION => {
@@ -48,6 +48,10 @@ impl Air {
                     self.send_to_host(ATT, &pdu);
                 }
                 vec![status(0, 1, o), connected(self.seen.from)]
+            }
+            op::LE_SET_SCAN_PARAMETERS => {
+                self.seen.scan_filters.push(p[6]);
+                respond(&self.cfg, packet)
             }
             op::LE_SET_RANDOM_ADDRESS => {
                 self.seen.random = Some(p.try_into().expect("a random address of six"));
