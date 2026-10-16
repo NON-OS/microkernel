@@ -18,9 +18,8 @@
 //! nothing of the shell's covers them; the chrome is then in the trusted
 //! band, so nothing of any window's does either.
 
-use super::consent::{
-    border, button, fill, line, margin, wrap_at, BORDER, CANCEL_BG, DIM, FG, PANEL,
-};
+use super::dialog_kit::{border, button, fill, margin, BORDER, CANCEL_BG, DIM, FG, PANEL};
+use super::dialog_text::{line, wrap_at};
 use crate::render::layout::Rect;
 use crate::render::ui_font::{line_h, TITLE_PX, UI_PX};
 use crate::server::handlers::attention::{back_rect, hide_rect, panel_rect};
