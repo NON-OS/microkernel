@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The reserved memory regions firmware declared, said once at bring-up. A
-//! region is reachable today only while the devices it names stay in the
-//! identity domain; a capsule that claims one does not map it yet, which is
-//! the next step once the owner settles how unclaimed devices are held.
+//! device that stays in the identity domain reaches its region there; one a
+//! capsule claims has it mapped one to one in the capsule's domain before it
+//! moves (L60). How unclaimed devices are held is the owner's (Decision 4).
 
 use crate::arch::x86_64::acpi::parser::other::{rmrr_dropped, rmrr_regions};
 use crate::sys::serial::Line;

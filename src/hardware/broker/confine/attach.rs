@@ -24,9 +24,7 @@ use crate::memory::iommu::IommuDomain;
 pub(in crate::hardware::broker) struct Refused;
 
 pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refused> {
-    let Some(address) = pci_address(device_id) else {
-        return Ok(());
-    };
+    let Some(address) = pci_address(device_id) else { return Ok(()) };
     /*
      * A device no unit in service covers is not translated, and an IOVA
      * handed to it would be used as a physical address: with only the first
@@ -72,22 +70,5 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
         }
         return Err(Refused);
     }
-    if all[pos].devices.iter().any(|(_, a)| *a == address) {
-        all[pos].devices.push((device_id, address));
-        say(b"confined to its capsule's domain (shared requester id)", pid, address);
-        return Ok(());
-    }
-    // Out of the identity domain first. Between the two writes the device has
-    // no context entry, which denies it: the safe side to be on.
-    let _ = all[pos].domain.detach_device(address);
-    if all[pos].domain.attach_device(address).is_err() {
-        say(b"refused: attach failed", pid, address);
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refused);
-    }
-    all[pos].devices.push((device_id, address));
-    say(b"confined to its capsule's domain", pid, address);
-    Ok(())
+    super::enter::enter(&mut all, pos, pid, device_id, address)
 }

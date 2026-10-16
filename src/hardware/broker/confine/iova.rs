@@ -15,20 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::iova_holes::take_hole;
-use super::iova_space::place;
+use super::reserved_rule::place_clear;
 use super::table::Capsule;
 
 pub(super) use super::iova_space::IOVA_BASE;
 
 /// Take `length` bytes of the capsule's device address space: the first hole
 /// a freed grant left that fits, else fresh space above the bump pointer.
-/// Placement, including the step over the interrupt window, is
-/// `iova_space::place`; holes never touch the window, since no grant does.
+/// Placement steps over the interrupt window and every reserved region
+/// (`reserved_rule::place_clear`); holes touch neither, since no grant does.
 pub(super) fn take(c: &mut Capsule, length: u64) -> Option<u64> {
     if let Some(start) = take_hole(&mut c.holes, length) {
         return Some(start);
     }
-    let (start, end) = place(c.next_iova, length)?;
+    let (start, end) = place_clear(c.next_iova, length, &c.reserved)?;
     c.next_iova = end;
     Some(start)
 }

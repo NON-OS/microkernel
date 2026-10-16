@@ -33,9 +33,12 @@ pub mod dmar_namespace_scope;
 pub mod dmar_namespace_walk;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_rmrr.rs"]
 pub mod dmar_rmrr;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_rmrr_names.rs"]
+pub mod dmar_rmrr_names;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_scope_walk.rs"]
 pub mod dmar_scope_walk;
 mod namespace_tests;
+mod rmrr_names_tests;
 mod rmrr_scope_tests;
 mod rmrr_tests;
 mod source_tests;

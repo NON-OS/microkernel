@@ -1,0 +1,45 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The reserved regions a claimed device keeps doing DMA to (L60), from the
+//! RMRRs DMAR lists, as `[base, end)`.
+
+use crate::arch::x86_64::acpi::parser::other::{rmrr_names, rmrr_regions, Cover};
+
+/// Regions an RMRR names the device in, and whether one might and could not
+/// be resolved; such a region is never mapped, since mapping too little only
+/// denies the device, and mapping too much lets it reach another's.
+pub struct RmrrOf {
+    pub ranges: heapless::Vec<(u64, u64), 16>,
+    pub unresolved: bool,
+}
+
+pub fn rmrr_of(segment: u16, bdf: (u8, u8, u8)) -> RmrrOf {
+    let mut out = RmrrOf { ranges: heapless::Vec::new(), unresolved: false };
+    for r in rmrr_regions().iter() {
+        match rmrr_names(r, segment, bdf, &super::coverage::bridge_buses) {
+            Cover::Yes => {
+                let range = r.limit.checked_add(1).map(|end| (r.base, end));
+                if range.and_then(|range| out.ranges.push(range).ok()).is_none() {
+                    out.unresolved = true;
+                }
+            }
+            Cover::Unknown => out.unresolved = true,
+            Cover::No => {}
+        }
+    }
+    out
+}

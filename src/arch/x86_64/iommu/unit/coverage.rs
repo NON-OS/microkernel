@@ -37,7 +37,7 @@ pub fn unit_covers(bus: u8, device: u8, function: u8) -> bool {
 
 // A type-1 (bridge) function's secondary and subordinate bus numbers, or `None`
 // for anything that is not an answering bridge.
-fn bridge_buses(bus: u8, device: u8, function: u8) -> Option<(u8, u8)> {
+pub(super) fn bridge_buses(bus: u8, device: u8, function: u8) -> Option<(u8, u8)> {
     use crate::drivers::pci::config::access::read8;
     let header = read8(bus, device, function, 0x0E).ok()?;
     if header & 0x7F != 0x01 {
