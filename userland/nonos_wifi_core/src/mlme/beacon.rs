@@ -65,7 +65,7 @@ impl Mlme {
         self.ap_rsnxe = Ie::from_option(rsnxe_elem);
         self.rates = Some(rates);
         if sel.akm == Akm::Sae {
-            return self.start_sae(sel.sae_h2e);
+            return self.start_sae_or_cached(sel.sae_h2e);
         }
         self.start_open()
     }

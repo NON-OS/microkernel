@@ -24,7 +24,7 @@ impl Mlme {
             return self.fail(MlmeFailure::AssocRejected(0));
         };
         let rates = self.rates.unwrap_or_else(|| ap_rates(&[]));
-        let rsne = station_rsne(&sel);
+        let rsne = self.own_rsne(&sel);
         // Each element is built into its own small buffer, then the request.
         let mut ssid_e = [0u8; 34];
         let mut sr_e = [0u8; 10];

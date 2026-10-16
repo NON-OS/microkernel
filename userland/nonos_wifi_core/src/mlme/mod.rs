@@ -26,6 +26,7 @@
 mod assoc;
 mod auth;
 mod beacon;
+mod cached;
 mod failure;
 mod open_start;
 mod regulatory;

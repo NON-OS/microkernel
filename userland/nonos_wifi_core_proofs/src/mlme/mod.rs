@@ -17,10 +17,10 @@
 //! The MLME against a simulated access point: joins, refusals and the
 //! association request.
 
-mod frames;
+pub mod frames;
 mod join_tests;
 mod network_tests;
 mod refusal_tests;
-mod sae;
+pub mod sae;
 mod sae_tests;
-mod sim;
+pub mod sim;

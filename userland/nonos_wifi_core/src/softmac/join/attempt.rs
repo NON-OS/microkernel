@@ -22,6 +22,7 @@ use super::report::{Outcome, Report};
 use super::request::ConnectRequest;
 use super::run::JoinError;
 use crate::mlme::{Entropy, JoinRequest, Mlme, MlmeFailure, SAE_ENTROPY};
+use crate::pmksa::Pmksa;
 use crate::regdom::Domain;
 use crate::rsn::JoinPolicy;
 use crate::sae::SaeFailure;
@@ -38,6 +39,7 @@ pub(super) fn attempt<R: Radio, E: Env>(
     req: &ConnectRequest,
     policy: JoinPolicy,
     beacon: &[u8],
+    offer: Option<Pmksa>,
 ) -> Result<Report, JoinError> {
     let mut entropy = Entropy { snonce: [0u8; 32], sae: [0u8; SAE_ENTROPY] };
     if !env.random(&mut entropy.snonce) || !env.random(&mut entropy.sae) {
@@ -47,6 +49,9 @@ pub(super) fn attempt<R: Radio, E: Env>(
     let mut m =
         Mlme::join(&JoinRequest { our_mac, ssid: req.ssid, passphrase: req.pass, policy, entropy });
     m.set_domain(domain);
+    if let Some(p) = offer {
+        m.offer_pmksa(p);
+    }
     Ok(drive(r, env, m, beacon, JOIN_BUDGET_MS))
 }
 

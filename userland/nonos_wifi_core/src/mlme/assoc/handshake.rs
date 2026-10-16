@@ -26,7 +26,7 @@ impl Mlme {
             self.fail(MlmeFailure::AssocRejected(0));
             return;
         };
-        let own_rsne = station_rsne(&sel);
+        let own_rsne = self.own_rsne(&sel);
         let sup = Supplicant::configure(&Config {
             pmk: self.pmk,
             aa: self.bssid,

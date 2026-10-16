@@ -50,6 +50,9 @@ impl Mlme {
             rates: None,
             sae: None,
             pmk: [0u8; 32],
+            pmkid: None,
+            cached: None,
+            cache_used: false,
             supplicant: None,
             failure: None,
         }

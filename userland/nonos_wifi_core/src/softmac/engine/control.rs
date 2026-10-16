@@ -50,6 +50,8 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
     }
 
     fn disconnect(&mut self, out: &mut [u8]) -> usize {
+        // The person's disconnect forgets every PMKSA, as it should.
+        self.pmksa.wipe_all();
         let (Some(r), Some(s)) = (self.radio.as_mut(), self.session.as_mut()) else {
             return code(if self.radio.is_some() { 0 } else { -1 }, out);
         };

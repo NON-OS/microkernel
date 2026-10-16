@@ -20,6 +20,7 @@
 //! request it receives and calls `tick` between them; nothing else is the
 //! driver's to do above its registers.
 
+use crate::pmksa::PmksaCache;
 use crate::regdom::{Domain, WORLD};
 use crate::softmac::radio::{Env, Radio};
 use crate::softmac::scanner::Scanner;
@@ -37,13 +38,16 @@ pub struct SoftStation<R: Radio, E: Env> {
     pub(super) scanner: Scanner,
     pub(super) session: Option<Session>,
     pub(super) stats: LinkStats,
+    /// PMKSAs SAE joins made, for this boot only.
+    pub(super) pmksa: PmksaCache,
 }
 
 impl<R: Radio, E: Env> SoftStation<R, E> {
     /// `stage` is the driver's bring-up stage byte, 0 for ready.
     pub fn new(radio: Option<R>, env: E, stage: u8) -> Self {
         let (scanner, stats) = (Scanner::new(), LinkStats::default());
-        Self { radio, env, stage, domain: WORLD, scanner, session: None, stats }
+        let pmksa = PmksaCache::default();
+        Self { radio, env, stage, domain: WORLD, scanner, session: None, stats, pmksa }
     }
 
     /// Run under `domain` instead of the world domain.

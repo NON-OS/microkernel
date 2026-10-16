@@ -61,6 +61,7 @@ pub fn sae_join(h2e: bool) -> (Mlme, [u8; 32]) {
     let els = assoc_elements(&req);
     let rsn = els.iter().find(|e| e.0 == 48).unwrap().1.clone();
     assert_eq!(rsn[17], 8, "AKM SAE");
+    assert_eq!(rsn.len(), 20, "no PMKID after a full SAE exchange");
     assert_eq!(rsn[18] & 0x80, 0x80, "MFPC");
     assert_eq!(els.iter().any(|e| e.0 == 244), h2e, "the RSNXE rides with H2E");
     m.on_mgmt(&assoc_resp(0));
