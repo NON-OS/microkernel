@@ -41,8 +41,14 @@ pub(super) fn take(dev: Found) -> HdaResult<(BrokerHandles, u64)> {
 }
 
 /// Reset the controller and the link, and return what the controller is and
-/// the codecs that answered.
-pub(super) fn link_up(dev: Found, epoch: u64, regs: Regs) -> HdaResult<(ControllerInfo, u16)> {
+/// the codecs that answered. `window` is the length the broker mapped, which
+/// an MSI-X table in the BAR can cut short of `dev.bar_size`.
+pub(super) fn link_up(
+    dev: Found,
+    epoch: u64,
+    regs: Regs,
+    window: u64,
+) -> HdaResult<(ControllerInfo, u16)> {
     let id = dev.device_id;
     Line::new("[HDA] controller ")
         .hex(dev.vendor as u32, 4)
@@ -58,8 +64,8 @@ pub(super) fn link_up(dev: Found, epoch: u64, regs: Regs) -> HdaResult<(Controll
     let reset = reset::reset_link(regs);
     pci::clock_gating(id, epoch, quirks, true);
     let codec_mask = reset?;
-    intel::reduce_dma_latency(regs, dev.vendor, dev.device, dev.bar_size);
-    intel::init_link_clock(regs, dev.vendor, dev.device, dev.bar_size);
+    intel::reduce_dma_latency(regs, dev.vendor, dev.device, window);
+    intel::init_link_clock(regs, dev.vendor, dev.device, window);
     let info = ControllerInfo::read(regs);
     if info.vmaj == 0 || info.gcap == 0 {
         return Err(HdaError::UnsupportedController);

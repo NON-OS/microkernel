@@ -135,7 +135,7 @@ controller in turn until one plays:
    the stream (`src/controller/codec/program.rs`).
 7. Point the DMA position buffer at the BDL page on Intel, reset the first
    output stream descriptor with the full handshake and start it on four
-   8 KiB periods (`src/controller/stream_run.rs`).
+   8 KiB periods (`src/controller/stream_run/`, `run`).
 
 The serving loop (`src/server/runner/run.rs`) reads the headphone jack every
 500 ms and switches the speakers with it; while the codec does not answer

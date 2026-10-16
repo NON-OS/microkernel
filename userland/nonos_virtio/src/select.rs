@@ -19,33 +19,13 @@
 //! only the modern transport takes ACCESS_PLATFORM. One presenting each
 //! structure its driver maps (`Need`) is driven modern; else a transitional
 //! function keeps its legacy registers and a modern-only one, having none,
-//! is refused by name. `wants_probe` and `choose` are virtio-blk's older rule.
+//! is refused by name.
 
 use crate::broker::Broker;
 use crate::caps::{parse, ModernCaps};
 use crate::error::VirtioError::{self, NoCommonCfg, NoDeviceCfg, NoIsrCfg, NoNotifyCfg};
 use crate::map::Need;
-use crate::pci::{has_io_bar, is_modern_id, Bars, ConfigSpace};
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Kind {
-    Legacy,
-    Modern,
-}
-
-/// Whether the capabilities are worth reading at all.
-pub fn wants_probe(device: u16, bars: &Bars) -> bool {
-    is_modern_id(device) || !has_io_bar(bars)
-}
-
-/// The transport for a function whose capabilities parsed to `caps`.
-pub fn choose(device: u16, bars: &Bars, caps: &ModernCaps) -> Kind {
-    if wants_probe(device, bars) && caps.common.is_some() {
-        Kind::Modern
-    } else {
-        Kind::Legacy
-    }
-}
+use crate::pci::{is_modern_id, Bars, ConfigSpace};
 
 /// The capabilities to drive the function with; `None` leaves it legacy.
 pub fn modern_caps(

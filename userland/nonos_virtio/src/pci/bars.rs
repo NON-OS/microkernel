@@ -50,18 +50,8 @@ impl BarInfo {
     pub const fn is_mmio(self) -> bool {
         matches!(self.kind, BarKind::Mmio) && self.size != 0
     }
-
-    pub const fn is_io(self) -> bool {
-        matches!(self.kind, BarKind::Io) && self.size != 0
-    }
 }
 
 /// Indexed by BAR number, the way the device record lists them. The upper
 /// half of a 64-bit BAR is listed absent.
 pub type Bars = [BarInfo; 6];
-
-/// A legacy (or transitional) virtio-pci function keeps its registers in an
-/// I/O BAR; a modern-only one has none.
-pub fn has_io_bar(bars: &Bars) -> bool {
-    bars.iter().any(|b| b.is_io())
-}

@@ -43,10 +43,14 @@ impl Refill {
 }
 
 pub(super) fn refill(driver: &Driver, q: &mut PcmQueue, rf: &mut Refill) {
+    // SAFETY: `stream_off` is a stream descriptor from the layout, inside the
+    // window (`crate::regs`), and SD_LPIB a 4-byte aligned register of it.
     let lpib = unsafe { driver.regs.r32(driver.stream_off + SD_LPIB) };
     let buffer = match driver.posbuf_va {
         Some(va) => {
             flush(va, 8);
+            // SAFETY: the stream's 8-byte entry in the BDL page's position
+            // buffer (`position_buffer`), aligned and inside that grant.
             unsafe { core::ptr::read_volatile(va as *const u32) }
         }
         None => 0,
@@ -55,6 +59,8 @@ pub(super) fn refill(driver: &Driver, q: &mut PcmQueue, rf: &mut Refill) {
     let rp = ((pos / PERIOD_BYTES) as usize) % N_PERIODS;
     while rf.wpos != rp {
         let base = driver.sample.user_va + (rf.wpos as u64) * PERIOD_BYTES;
+        // SAFETY: `wpos` < N_PERIODS keeps the period inside the ring's grant,
+        // and this slice is the only reference into it while it lives.
         let slot =
             unsafe { core::slice::from_raw_parts_mut(base as *mut u8, PERIOD_BYTES as usize) };
         let filled = q.pop_into(slot);
