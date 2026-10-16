@@ -22,8 +22,8 @@
 use super::profile::profile;
 use super::rng::Rng;
 use super::sink::Hostile;
-use crate::dp::i2c::read_edid;
 use crate::dp::native::{read, write, RETRIES};
+use crate::tests::dp::edid_read::read_edid;
 
 const GUARD: u8 = 0xEE;
 

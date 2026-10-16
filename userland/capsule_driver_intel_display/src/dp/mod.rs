@@ -22,6 +22,7 @@ pub mod caps;
 pub mod dpcd;
 pub mod i2c;
 pub mod i2c_ddc;
+pub mod i2c_edid;
 pub mod lane;
 pub mod link;
 pub mod link_check;
