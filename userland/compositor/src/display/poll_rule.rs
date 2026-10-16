@@ -19,6 +19,9 @@
 //! its STATE read. A new pid is a restarted driver whose primaries are all
 //! gone; a new serial is a primary the compositor has not attached; LOST
 //! is an output the driver programmed again, whose picture must be redrawn.
+//! A driver whose device left says so first (OUTPUT_NOTICE), and another
+//! driver is driven; one that only vanished is waited for, since a
+//! restarted driver comes back on the same screen.
 
 use nonos_gfx_wire::body::state::LOST;
 use nonos_gfx_wire::State;
@@ -36,11 +39,16 @@ pub enum Step {
     Resurface,
     /// Drive the driver now announced from the start: CAPS, then SURFACE.
     Reprime,
+    /// The driver's device left: drive the best other one announced.
+    Move,
 }
 
 /// `found`: the pid the service is announced under now, None while it is
 /// not. `state`: STATE's answer, read only when the pid is the same.
 pub fn step(link: &WireLink, found: Option<u32>, state: Option<State>) -> Step {
+    if link.leaving {
+        return Step::Move;
+    }
     match found {
         // Gone: FLUSH fails and the damage waits for the driver to return.
         None => return Step::Keep,
