@@ -1,7 +1,6 @@
 # capsule_driver_e1000e
 
 Status: not in the 0.9.2 image. The capsule builds and its host proofs
-pass, but it has no owner certificate and the kernel never spawns it:
 it is not yet wired into the kernel mirror and the stack.
 
 ## Role
@@ -27,11 +26,17 @@ driver.e1000e_0 -- broker MMIO + DMA rings --> 82574 / I217 / I218 / I219
 
 - `MkDeviceList` finds the first Intel Ethernet function whose ID is in
   `src/constants/ids.rs`.
-- `MkDeviceClaim` claims it; `MkPciConfigWrite` turns on Memory Space and
-  Bus Master Enable; `MkPciConfigRead` reads the I219 descriptor ring status
-  word (0xE4) before a reset.
-- `MkMmioMap` maps BAR0; `MkDmaMap` takes the RX ring, RX buffers, TX ring
-  and TX buffers.
+- `MkDeviceClaim` claims it; `MkPciConfigWrite` turns on Memory Space with
+  Bus Master off. Bus Master goes on only with both units stopped and both
+  rings naming the driver's own memory: after the reset, and on an I219 that
+  has run on those rings and asks for a descriptor flush, for that flush,
+  off again before the reset lands. `MkPciConfigRead` reads the I219
+  descriptor ring status word (0xE4) before a reset.
+- `MkMmioMap` maps BAR0, which must reach `BAR0_MIN_BYTES` (0x6000) in the
+  device record and as mapped; `MkDmaMap` takes the RX ring, RX buffers, TX
+  ring and TX buffers.
+- `MkDeviceRelease` gives the device back. It clears Bus Master and reads it
+  back before it frees every grant, so the driver unmaps nothing by hand.
 - `MkIpcRecv` and `MkIpcSend` serve `service:4270:driver.e1000e_0`.
 - `CryptoRandom` draws the station address each boot.
 
@@ -58,22 +63,50 @@ each boot, and bring-up fails closed without entropy. Nothing is stored.
 
 ## Runtime lifecycle
 
-Discover, claim, enable bus mastering, map, take DMA grants, then bring the
+Discover, claim with Bus Master off, map, take DMA grants, then bring the
 part up in Linux's order (quiesce, PCH PHY workarounds, global reset,
-hardware bits, address, link, rings) and serve IPC until the process ends.
+hardware bits, address, link, rings), turn Bus Master on, enable both units
+and serve IPC until the process ends.
+
+An I219 whose status word asks for a descriptor flush at claim holds
+and they may name frames since freed. No datasheet in the tree says that
+rewriting TDBAL/RDBAL drops them, so the driver fails closed: Bus Master
+does not go on for a flush, and the part is reset with Bus Master off. A
+reset that does not complete ends the attempt as `I219 descriptors pending,
+a function reset is needed`, Bus Master never on, and the device goes back.
+wherever the function offers FLR, so the word should read clear by then.
+The flush (Linux e1000_flush_desc_rings) runs only on descriptors the
+driver's own rings gave the part: before a transmit-hang recovery's reset,
+and at teardown.
+
+A transmit watchdog runs on every send: frames in flight with the link up
+and none completed for 5 s is a hung transmitter. The part is quiesced and
+reset with Bus Master off, both rings restart from slot 0, and the part goes
+back on the air under the same station address, Bus Master on again.
+
+Teardown is stop (the I219 ring flush on the driver's own rings, then new
+master requests blocked and waited out, both units stopped, DMA in flight
+ORs Command bits today), reset, then `MkDeviceRelease`, which is the real
+guard: it clears Bus Master with a read-back before freeing every grant. A
+setup that fails on a DMA grant, before any ring was programmed, stops an
+older part the same way without the flush, and stops an I219's units
+without the reset: a reset over descriptors it may still hold is the unit
+hang the flush exists for, and the next attempt resets it with Bus Master
+off as above.
 
 ## Failure model
 
-No device: one line and `EXIT_ABSENT`. A failing step gives back every
-grant, logs `e1000e: <step>`, and the attempt is retried on the shared
-bounded schedule; running out is `EXIT_GAVE_UP`. Link down and RX empty are
-answers, not errors.
+No device: one line and `EXIT_ABSENT`. A failing step gives the device back
+(once DMA grants are taken, stopped first as above), logs `e1000e: <step>`,
+and the attempt is retried on the shared bounded schedule; running out is
+`EXIT_GAVE_UP`. A hung transmitter is logged (`tx hang, reset: done` or the
+step that failed), and a failed reset is tried again a whole watchdog bound
+later. Link down and RX empty are answers, not errors.
 
 ## Current implemented surface
 
 Device table for 64 IDs, polled RX/TX on legacy descriptors with 2048-byte
 buffers, CRC stripped, short frames padded, ULP exit, SMBus to PCIe switch,
-LANPHYPC toggle, I219 ring flush, K1 timing on pch_mtp and later, link
 state lines.
 
 ## Wire format
@@ -103,7 +136,6 @@ line and a `link up` line, and DHCP completing through `net.core`.
 
 ## Release checklist
 
-- Wired into the kernel mirror and the stack, sealed by the owner.
 - QEMU `-device e1000e` frame round trip.
 - One I219 boot photographed with the lines in `docs/hardware/e1000e.md`.
 

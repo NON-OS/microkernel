@@ -16,7 +16,6 @@
 
 //! Finding an I225/I226 in the broker's device list.
 
-mod bar_command;
 mod found;
 mod scan;
 mod support;

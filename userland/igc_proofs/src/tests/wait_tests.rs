@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `until` and `hold`, the clock every wait in the driver runs on. Each
-//! step's refusal is `until` returning false, so these carry the paths a
-//! concurrent model cannot hold a bit for: queue enables that never read
-//! back, and a semaphore another agent never releases.
+//! step's refusal is `until` returning false, so these carry the path a
+//! concurrent model cannot hold a bit for: a semaphore another agent never
+//! releases. Its edges on the clock are in wait_edge_tests.
 
 use std::cell::Cell;
 use std::time::Duration;
@@ -51,16 +51,6 @@ fn a_condition_that_turns_true_late_is_seen() {
     });
     assert!(ok);
     assert_eq!(asked.get(), 5, "no further look once it held");
-}
-
-#[test]
-fn the_last_look_after_the_deadline_still_counts() {
-    let asked = Cell::new(0u32);
-    let ok = until(0, || {
-        asked.set(asked.get() + 1);
-        asked.get() == 2
-    });
-    assert!(ok, "a part that answered during the last sleep is not called silent");
 }
 
 #[test]

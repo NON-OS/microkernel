@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
+use core::sync::atomic::{fence, Ordering};
 
 use crate::constants::queue::TX_DESC_COUNT;
 use crate::constants::regs::{DESC_EOR, DESC_FS, DESC_LS, DESC_OWN};
 use crate::constants::MIN_WIRE_FRAME;
-use crate::queue::desc::{desc, desc_mut, Descriptor};
+use crate::queue::desc::{desc, publish, Descriptor};
 use crate::regmap::ring;
 use crate::setup::Driver;
 
 /// Whether the part still owns the next slot, so a frame has nowhere to go.
 pub fn busy(driver: &Driver) -> bool {
+    // SAFETY: `cur` is held below TX_DESC_COUNT, inside the mapped ring.
     (unsafe { desc(driver.tx.desc_va, driver.tx.cur) }.opts1 & DESC_OWN) != 0
 }
 
@@ -40,12 +41,14 @@ pub fn busy(driver: &Driver) -> bool {
 pub fn send(driver: &mut Driver, frame: &[u8]) {
     let idx = driver.tx.cur;
     let wire = frame.len().max(MIN_WIRE_FRAME);
+    // SAFETY: slot `idx` of the buffer grant is BUFFER_SIZE bytes; the
+    // handler held the frame to MAX_ETHERNET_FRAME, and `wire` to at most
+    // that or MIN_WIRE_FRAME, both shorter.
     unsafe {
         let dst = driver.tx.buffer_va(idx) as *mut u8;
         core::ptr::copy_nonoverlapping(frame.as_ptr(), dst, frame.len());
         core::ptr::write_bytes(dst.add(frame.len()), 0, wire - frame.len());
     }
-    compiler_fence(Ordering::Release);
     let eor = if idx == TX_DESC_COUNT - 1 { DESC_EOR } else { 0 };
     let addr = driver.tx.buffer_da(idx);
     let d = Descriptor {
@@ -55,10 +58,11 @@ pub fn send(driver: &mut Driver, frame: &[u8]) {
         addr_hi: (addr >> 32) as u32,
     };
     // SAFETY: `idx` is below TX_DESC_COUNT in the mapped ring, and the slot
-    // is the driver's: the caller saw OWN clear on it through `busy`.
-    unsafe {
-        desc_mut(driver.tx.desc_va, idx, d);
-    }
+    // is the driver's: the caller saw OWN clear on it through `busy`. The
+    // release fence in `publish` puts the frame bytes before OWN.
+    unsafe { publish(driver.tx.desc_va, idx, d) };
+    // OWN before the doorbell that sends the part to read it.
+    fence(Ordering::Release);
     ring(&driver.regs, driver.chip.ver);
     driver.tx.cur = (idx + 1) % TX_DESC_COUNT;
 }

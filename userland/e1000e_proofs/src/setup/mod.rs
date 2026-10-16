@@ -14,10 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The driver's live state, without the broker sequence that builds it. The
-//! tests build one over host memory and a modelled window instead.
+//! The driver's live state, the BAR map, the PCI Command word, and the
+//! release, without the broker sequence that builds the state. The tests
+//! build one over host memory and a modelled window instead.
 
 #[path = "../../../capsule_driver_e1000e/src/setup/driver.rs"]
 mod driver;
+#[path = "../../../capsule_driver_e1000e/src/setup/mmio.rs"]
+pub mod mmio;
+#[path = "../../../capsule_driver_e1000e/src/setup/pci.rs"]
+mod pci;
+#[path = "../../../capsule_driver_e1000e/src/setup/rollback.rs"]
+pub mod rollback;
 
 pub use driver::Driver;
+pub use pci::command;

@@ -14,21 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The PCI command decode bits the record's BARs already rely on, as
-//! rtl8169 discover/bar_command.rs works them out. The command write after
-//! the claim keeps them, so turning on bus mastering never turns off a
-//! decode another BAR of the function needs.
+//! A hung transmitter put right without giving anything back: the part
+//! stopped and reset, both rings started over from slot 0, and the part put
+//! on the air again under the station address it already has. Bus Master
+//! stays on: every frame the part can reach is still this driver's.
 
-use nonos_libc::{DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
+use crate::setup::Driver;
 
-pub fn command_bits(r: &DeviceRecord) -> u16 {
-    let mut bits = 0u16;
-    for i in 0..core::cmp::min(r.bar_count as usize, r.bars.len()) {
-        if r.bars[i].kind == BAR_KIND_PIO {
-            bits |= 1;
-        } else if r.bars[i].kind == BAR_KIND_MMIO {
-            bits |= 2;
-        }
-    }
-    bits
+use super::{reset, start};
+
+pub fn recover(driver: &mut Driver) -> Result<(), &'static str> {
+    reset::part(&driver.regs, driver.chip.ver)?;
+    driver.rx.cur = 0;
+    driver.tx.cur = 0;
+    start::run(driver)
 }
