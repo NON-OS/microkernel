@@ -38,7 +38,9 @@ pub fn parse_park(body: &[u8]) -> Option<Parked> {
     let mps0 = u16::from_le_bytes([m0, m1]);
     let shaped = slot != 0 && parent != 0 && slot != parent && (1..=15).contains(&parent_port);
     let tt_ok = (ts == 0) == (tp == 0) && ts != slot;
-    let ok = shaped && (1..=5).contains(&speed) && route_ok(route) && tt_ok && mps0 != 0;
+    // Endpoint 0 sizes any device can have (USB 2.0 and 3.2 9.6.1).
+    let mps0_ok = matches!(mps0, 8 | 16 | 32 | 64 | 512);
+    let ok = shaped && (1..=5).contains(&speed) && route_ok(route) && tt_ok && mps0_ok;
     let (tt, connected, changed, claimant) = ((ts, tp), true, true, None);
     let p =
         Parked { slot, parent, parent_port, speed, route, tt, mps0, connected, changed, claimant };

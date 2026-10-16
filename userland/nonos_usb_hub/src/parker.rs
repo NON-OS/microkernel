@@ -17,6 +17,7 @@
 //! brought up for the walk, and any other device is parked with the host
 //! for the class drivers to claim (nonos_usb_virt). Nothing is bound here.
 
+use crate::ep0_size::ep0_size;
 use alloc::vec::Vec;
 
 use crate::attach::attach;
@@ -57,7 +58,8 @@ impl<H: Host> Classes<H> for Parker {
         }
         let mut dev = [0u8; 8];
         let Some(8) = get(h, slot, 1, &mut dev) else { return false };
-        h.park(slot, &place, dev[7].max(8) as u16).is_ok()
+        let Some(mps0) = ep0_size(place.speed, dev[7]) else { return false };
+        h.park(slot, &place, mps0).is_ok()
     }
 
     /// The host holds the parked child; giving back its slot tells it.

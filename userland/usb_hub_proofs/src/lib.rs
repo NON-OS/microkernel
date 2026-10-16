@@ -17,6 +17,8 @@
 //! library itself (a path dependency, so the code is the drivers' own).
 
 #[cfg(test)]
+mod enum_hostile_tests;
+#[cfg(test)]
 mod fake;
 #[cfg(test)]
 mod hub_descriptor_tests;
