@@ -32,6 +32,9 @@ const LE_ACL: usize = 27;
 
 impl Air {
     pub(super) fn take_from_host(&mut self, packet: &[u8]) {
+        if self.took_acl() {
+            return;
+        }
         let (head, data) = parse_acl(packet).expect("a malformed ACL packet");
         assert_eq!(head.handle, HANDLE, "data on a link that does not exist");
         assert!(data.len() <= LE_ACL, "an ACL packet longer than the LE buffer");

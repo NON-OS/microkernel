@@ -32,7 +32,7 @@ const ENDED_BY_US: u8 = 0x16;
 
 impl Air {
     pub(super) fn command(&mut self, packet: &[u8]) {
-        self.commands.push(packet.to_vec());
+        self.took(packet);
         let (opcode, p) = parse_command(packet).expect("a malformed command");
         let o = opcode.0;
         let events = match opcode {

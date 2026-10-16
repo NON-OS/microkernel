@@ -18,6 +18,7 @@
 //! link it forgets without Disconnection Complete (as one that reset itself
 //! would), ACL buffers it never counts back, and commands it never answers.
 
+use super::restart::Restart;
 use super::state::{Air, HANDLE};
 use crate::hci_sim::events::complete;
 use nonos_bt_hci::host::READ_RSSI;
@@ -27,6 +28,15 @@ pub struct Lies {
     pub forgot: bool,
     pub withhold: bool,
     pub mute: bool,
+    /// The restart to come, at the host's packet with this count.
+    pub restart: Option<(u64, Restart)>,
+    pub steps: u64,
+    /// Whether the link is encrypted now, and whether it ever was.
+    pub sealed: (bool, bool),
+    /// Host ACL that reached the link after its encryption was lost, and
+    /// the interrupt transfers left until the host reads that it was.
+    pub clear: u32,
+    pub unsealing: Option<usize>,
 }
 
 /// Unknown Connection Identifier (Vol 1, Part F, 2).

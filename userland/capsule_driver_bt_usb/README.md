@@ -258,7 +258,13 @@ A controller that lies is bounded too:
 - **It floods events.** One is taken a turn, beside the peer's data, and
   every timer still runs.
 
-However a link ends, every key and button still down goes up.
+- **It says the link is no longer encrypted** (Encryption Change off or
+  failed, or a failed key refresh). The link ends, and nothing more is
+  sent on it, not even what was already waiting.
+
+However a link ends, every key and button still down goes up. A
+controller given back is first told to Reset, so it keeps no link, key
+or scan of this capsule's.
 
 ## Current implemented surface
 

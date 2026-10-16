@@ -31,7 +31,7 @@ impl LinkStation {
     /// number, and for software protection the packet number. Returns `None` if the station is not
     /// associated or the ethernet frame is malformed.
     pub fn tx_frame(&mut self, eth: &[u8]) -> Option<Vec<u8>> {
-        if !self.associated {
+        if !self.associated || self.held() {
             return None;
         }
         let seq = self.seq;

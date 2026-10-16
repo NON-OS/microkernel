@@ -32,6 +32,7 @@ impl LinkStation {
         self.pn = 0;
         self.seq = 0;
         self.associated = true;
+        self.chip_keyed = false;
         self.replay = Replay::new();
         self.group_keys = [const { None }; 4];
         self.supplicant = None;

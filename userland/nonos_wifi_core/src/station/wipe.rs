@@ -41,6 +41,18 @@ impl LinkStation {
     }
 }
 
+impl LinkStation {
+    /// Whether any key of the link is still held here: pairwise, group,
+    /// integrity group, beacon integrity, or the supplicant that has them.
+    pub fn holds_keys(&self) -> bool {
+        !matches!(self.ccmp, Ccmp::Hardware)
+            || self.group_keys.iter().any(Option::is_some)
+            || self.pmf.igtk.is_some()
+            || self.pmf.bigtk.is_some()
+            || self.supplicant.is_some()
+    }
+}
+
 impl Drop for LinkStation {
     fn drop(&mut self) {
         self.wipe_keys();
