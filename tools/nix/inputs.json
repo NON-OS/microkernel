@@ -716,6 +716,7 @@
    "userland/capsule_about/src/about/data/doc_parse/parse.rs",
    "userland/capsule_about/src/about/data/doc_parse/types.rs",
    "userland/capsule_about/src/about/data/proofs/census.rs",
+   "userland/capsule_about/src/about/data/proofs/firmware.rs",
    "userland/capsule_about/src/about/data/proofs/session.rs",
    "userland/capsule_about/src/about/data/proofs/words.rs",
    "userland/libc/src/attest_policy.rs",
@@ -749,7 +750,8 @@
    "src/capabilities/types/guard.rs",
    "src/capabilities/types/table.rs",
    "src/security/attest_registry/format.rs",
-   "userland/attest_receipt"
+   "userland/attest_receipt",
+   "userland/capsule_about/src/about/data/proofs/firmware.rs"
   ],
   "md": [],
   "signed": []

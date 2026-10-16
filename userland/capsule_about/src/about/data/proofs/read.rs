@@ -30,6 +30,7 @@ use nonos_route_proof::{
 };
 
 use super::census::{census, Admitted, Census, Proc, CAP_NETWORK};
+use super::firmware::is_firmware;
 use super::session::{Boot, Mark};
 use crate::about::data::verify::{each, name_of, recorded, Verdict};
 
@@ -101,7 +102,7 @@ pub fn read() -> Snapshot {
             let admitted: Vec<Admitted> = reg.iter().map(|e| e.0).collect();
             let holders = reg
                 .iter()
-                .filter(|(a, _)| a.caps & CAP_NETWORK != 0)
+                .filter(|(a, _)| a.caps & CAP_NETWORK != 0 && !is_firmware(a.pid))
                 .map(|(a, m)| holder(a, m, &rows))
                 .collect();
             (Some(census(&procs, &admitted)), holders)

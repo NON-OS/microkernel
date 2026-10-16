@@ -26,6 +26,8 @@
 //! supervises it, which is itself admitted; a capability-free process can
 //! reach nothing, so it is counted as sandboxed, not as unproven.
 
+use super::firmware::is_firmware;
+
 /// The registry's authority byte for a capsule that ran on a publisher's
 /// signature with no proof behind it.
 pub const AUTHORITY_PUBLISHER: u8 = 255;
@@ -89,7 +91,8 @@ pub fn census(procs: &[Proc<'_>], admitted: &[Admitted]) -> Census {
             continue;
         }
         c.running += 1;
-        if let Some(a) = admitted.iter().find(|a| a.pid == p.pid) {
+        // The firmware entry shares pid 0 with no program; it admits nothing.
+        if let Some(a) = admitted.iter().find(|a| a.pid == p.pid && !is_firmware(a.pid)) {
             c.admitted += 1;
             match a.authority {
                 0 => c.vendor += 1,
