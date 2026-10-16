@@ -3425,7 +3425,7 @@
    "userland/capsule_driver_iwlwifi/src/pci_match.rs",
    "userland/capsule_driver_iwlwifi/src/protocol",
    "userland/capsule_driver_iwlwifi/src/regs.rs",
-   "userland/capsule_driver_iwlwifi/src/server/control.rs",
+   "userland/capsule_driver_iwlwifi/src/server/control",
    "userland/capsule_driver_iwlwifi/src/server/join_wire",
    "userland/capsule_driver_iwlwifi/src/server/radio/restarts.rs",
    "userland/capsule_driver_iwlwifi/src/setup/claim.rs",
