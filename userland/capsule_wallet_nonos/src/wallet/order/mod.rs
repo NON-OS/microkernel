@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod buy;
+pub mod buy_gate;
 mod confirm;
 pub mod consent;
 pub mod deliver;
@@ -35,17 +36,22 @@ pub mod escrowing;
 pub mod fees;
 mod fees_kind;
 pub mod fresh;
+mod fresh_reply;
+pub mod fund_ask;
 pub mod gas_paid;
 pub mod held;
 pub mod intake;
 mod market;
+mod open_gate;
 pub mod opened;
 pub mod opening;
 mod order_of;
 mod pending;
+mod pending_step;
 pub mod purchase;
 pub mod read;
 mod reading;
+mod reading_step;
 pub mod refund;
 mod refund_call;
 mod refund_said;

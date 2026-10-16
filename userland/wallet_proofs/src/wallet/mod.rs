@@ -4,6 +4,10 @@
 
 #[path = "../../../capsule_wallet_nonos/src/wallet/chain.rs"]
 pub mod chain;
+/* The capsule's event::hex_digit, which a fresh address is read with. */
+pub mod event {
+    pub use crate::hex_digit;
+}
 #[cfg(test)]
 pub mod meter;
 pub mod net;
@@ -21,5 +25,6 @@ pub mod rpc;
 pub mod send;
 #[cfg(test)]
 pub mod settle;
+pub mod state;
 pub mod swap;
 pub mod vault;

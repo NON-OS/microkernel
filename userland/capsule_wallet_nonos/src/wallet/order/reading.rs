@@ -18,29 +18,14 @@
  * A named purchase's terms read from market.index one call a tick (B8,
  * v1.4.36): GET_COMMERCE, the release's escrow fields, then INSTALL_READY
  * on the names' chain, so the window never waits on more than one reply.
+ * Which call comes next, and what its answer makes, is reading_step.rs.
  */
 
-use alloc::boxed::Box;
-
-use nonos_market_proto::{pair_body, parse_commerce, parse_readiness, parse_release_escrow};
-use nonos_market_proto::{ready_body, Commerce, ReleaseEscrow};
-use nonos_market_proto::{OP_GET_COMMERCE, OP_GET_RELEASE, OP_INSTALL_READY};
 use nonos_payment_proto::Names;
 
-use super::market::{ask, TOO_LONG, UNREAD};
-use super::read::{read_named, Named};
-
-/// Where the reading stands: the next call to make, with what came back.
-pub enum Reading {
-    Commerce,
-    Release(Box<Commerce>),
-    Ready(Box<Commerce>, Box<ReleaseEscrow>),
-}
-
-pub enum Read {
-    More(Reading),
-    Done(Result<Named, &'static str>),
-}
+use super::market::ask;
+use super::reading_step::{answered, call};
+pub use super::reading_step::{Read, Reading};
 
 pub fn advance(names: &Names, at: Reading) -> Read {
     match one(names, at) {
@@ -50,22 +35,6 @@ pub fn advance(names: &Names, at: Reading) -> Read {
 }
 
 fn one(names: &Names, at: Reading) -> Result<Read, &'static str> {
-    let (l, r) = (&names.listing[..], &names.release[..]);
-    Ok(match at {
-        Reading::Commerce => {
-            let c = parse_commerce(&ask(OP_GET_COMMERCE, &pair_body(l, r).ok_or(TOO_LONG)?)?)
-                .ok_or(UNREAD)?;
-            Read::More(Reading::Release(Box::new(c)))
-        }
-        Reading::Release(c) => {
-            let body = ask(OP_GET_RELEASE, &pair_body(l, r).ok_or(TOO_LONG)?)?;
-            let e = parse_release_escrow(&body).ok_or(UNREAD)?;
-            Read::More(Reading::Ready(c, Box::new(e)))
-        }
-        Reading::Ready(c, e) => {
-            let body = ask(OP_INSTALL_READY, &ready_body(l, r, names.chain_id).ok_or(TOO_LONG)?)?;
-            let ready = parse_readiness(&body).ok_or(UNREAD)?;
-            Read::Done(read_named(names.chain_id, &c, &e, &ready))
-        }
-    })
+    let (op, body) = call(names, &at)?;
+    answered(names.chain_id, at, &ask(op, &body)?)
 }

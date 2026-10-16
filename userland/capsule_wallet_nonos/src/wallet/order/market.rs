@@ -25,12 +25,11 @@ use alloc::vec::Vec;
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_time_millis};
 use nonos_market_proto::{reply_body, request, SERVICE};
 
+use super::reading_step::{TOO_LONG, UNREAD};
+
 const TIMEOUT_MS: u64 = 2_000;
 const REPLY_MAX: usize = 16 << 10;
 const SILENT: &str = "The market did not answer, so nothing can be shown to confirm.";
-pub(super) const TOO_LONG: &str = "That request is too long to send.";
-pub(super) const UNREAD: &str =
-    "The market's answer could not be read, so nothing can be confirmed.";
 
 pub(super) fn ask(op: u16, body: &[u8]) -> Result<Vec<u8>, &'static str> {
     let (mut port, mut pid) = (0u32, 0u32);

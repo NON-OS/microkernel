@@ -27,7 +27,7 @@ use nonos_payment_proto::{EBUSY, EGAS, ENOPERSIST, OP_OPEN};
 
 use super::fresh::fresh_address;
 use super::intake::Step;
-use super::read::Named;
+use super::open_gate::{open_start, openable};
 use crate::wallet::meter::call::start;
 use crate::wallet::state::State;
 
@@ -43,16 +43,13 @@ pub(super) fn refused(status: i32) -> &'static str {
 /// Open channel: the form as typed, a fresh reclaim address, OPEN START.
 pub fn open(state: &mut State) -> Option<&'static str> {
     let p = state.meter.purchase.as_deref_mut()?;
-    let (Step::Consent, Ok(Named::Voucher(v))) = (&p.step, &p.read) else { return None };
-    if !p.held.offers_form() {
-        return None;
-    }
+    let v = openable(&p.step, &p.read, &p.held)?;
     let (amount, expiry, cap) = match p.form.read(nonos_tls::rtc_now()) {
         Ok(read) => read,
         Err(why) => return Some(why),
     };
     p.form.cap_wei = cap;
-    let s = match fresh_address().and_then(|to| v.open(amount, expiry, to, nonos_tls::rtc_now())) {
+    let s = match open_start(v, fresh_address(), amount, expiry, nonos_tls::rtc_now) {
         Ok(s) => s,
         Err(why) => return Some(why),
     };

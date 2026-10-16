@@ -16,13 +16,12 @@
 
 //! A purchase the store named, as the wallet holds it, and where it stands.
 
-use alloc::boxed::Box;
-
-use nonos_payment_proto::{Names, OpenConfirm, OpenStart, OrderMade, OrderNew};
+use nonos_payment_proto::Names;
 
 use super::deliver::Delivery;
 use super::fees::Fees;
 use super::held::Held;
+pub use super::pending_step::Step;
 use super::read::Named;
 use super::reading::Reading;
 use super::voucher_form::VoucherForm;
@@ -45,19 +44,4 @@ pub struct Pending {
     pub refund_to: [u8; 20],
     /// A dispute or refund under way from refundTo (v1.4.51 to v1.4.53).
     pub escrow: Option<super::escrowing::Escrowing>,
-}
-
-pub enum Step {
-    Consent,
-    Offering(u32),
-    Ordering(u32, Box<OrderNew>),
-    /// The order is made: its deposit address waits for the NOX.
-    Fund(Box<OrderMade>),
-    /// A voucher channel: OPEN START's job, then CONFIRM until it is mined.
-    Opening(u32, Box<OpenStart>),
-    Confirming(Box<OpenConfirm>, u64),
-    Opened([u8; 32]),
-    /// The person chose the channel the listing already had.
-    Kept([u8; 32]),
-    Failed(&'static str),
 }

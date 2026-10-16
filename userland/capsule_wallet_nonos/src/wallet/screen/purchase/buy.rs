@@ -21,22 +21,16 @@ use nonos_app_skeleton::EventOutcome;
 use nonos_payment_proto::{EINVAL, OP_ORDER_OFFER};
 
 use crate::wallet::meter::call::start;
-use crate::wallet::order::fees::Fees;
+use crate::wallet::order::buy_gate::buyable;
 use crate::wallet::order::fresh::fresh_address;
 use crate::wallet::order::intake::Step;
-use crate::wallet::order::read::Named;
 use crate::wallet::order::said::{failed, Stage};
 use crate::wallet::state::State;
 
 /// The person confirmed: draw the refund address and start the offer.
 pub fn confirm(state: &mut State) -> EventOutcome {
     let Some(p) = state.meter.purchase.as_mut() else { return EventOutcome::Idle };
-    let (Step::Consent, Ok(Named::Escrow(buy))) = (&p.step, &p.read) else {
-        return EventOutcome::Idle;
-    };
-    if !matches!(p.fees, Fees::Quoted(_)) {
-        return EventOutcome::Idle;
-    }
+    let Some(buy) = buyable(&p.step, &p.read, &p.fees) else { return EventOutcome::Idle };
     p.step = match fresh_address() {
         Err(why) => Step::Failed(why),
         Ok(to) => {

@@ -23,9 +23,8 @@
 
 use shield_wire::{field, OP_QUOTE};
 
+use super::buy_gate::to_quote;
 pub use super::fees_kind::{exact, Fees};
-use super::intake::Step;
-use super::read::Named;
 use crate::wallet::shield::{actions::coin, job, open};
 use crate::wallet::state::shield_ui::ASSET_NOX;
 use crate::wallet::state::State;
@@ -35,13 +34,10 @@ const NO_QUOTE: &str = "The shield service gave no quote for this price.";
 /// Ask the quote for an escrow price at consent; whether anything changed.
 pub fn ask(state: &mut State) -> bool {
     let Some(p) = state.meter.purchase.as_deref() else { return false };
-    let (Step::Consent, Ok(Named::Escrow(b)), Fees::Unasked) = (&p.step, &p.read, &p.fees) else {
-        return false;
-    };
+    let Some(amount) = to_quote(&p.step, &p.read, &p.fees) else { return false };
     if open::here() && state.shield_ui.waiting.is_some() {
         return false;
     }
-    let amount = exact(b.amount);
     let fees = match job::start(state, OP_QUOTE, &[coin(ASSET_NOX), &amount, "1"]) {
         true => Fees::Asking,
         false => Fees::Refused(state.shield_ui.failure.take().unwrap_or_else(|| NO_QUOTE.into())),
