@@ -46,7 +46,10 @@ fn running_another_tier_than_the_one_chosen_is_said() {
     let (tier, source) = resolve(b"", None, Room::Memory);
     assert_eq!((tier, source), ("qwen3-0.6b", Source::Stick));
     let line = said(tier, source).unwrap();
-    assert!(line.contains("no tier chosen") && line.contains("running the default, qwen3-0.6b"), "{line}");
+    assert!(
+        line.contains("no tier chosen") && line.contains("running the default, qwen3-0.6b"),
+        "{line}"
+    );
     assert_eq!(said("qwen3-4b", Source::Chosen), None);
 }
 

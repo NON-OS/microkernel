@@ -59,7 +59,7 @@ let
   #   lintNone  never linted before the flake, and not clean
   lintLib = [
     "attest_doc_proofs" "capsule_browser_proofs" "crypto_proofs" "fs_proofs" "http_proofs"
-    "nym_reply_proofs" "route_proof_proofs" "terminal_line_proofs"
+    "nym_reply_proofs" "route_proof_proofs"
   ];
   lintNone = [ "boot_slots_proofs" "editor_proofs" "input_proofs" ];
   clippy =
