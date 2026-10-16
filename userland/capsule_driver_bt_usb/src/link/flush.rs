@@ -25,8 +25,14 @@ impl Session {
     pub(super) fn flush<T: Transport>(&mut self, host: &mut Host<T>) -> Result<(), HciError> {
         while let Some(frame) = self.outbox.front() {
             match host.send_pdu(self.handle, frame) {
-                Ok(()) => drop(self.outbox.pop_front()),
-                Err(HciError::NoCredit) => break,
+                Ok(()) => {
+                    self.outbox.pop_front();
+                    self.stuck_since = None;
+                }
+                Err(HciError::NoCredit) => {
+                    self.short = true;
+                    break;
+                }
                 Err(e) => return Err(e),
             }
         }

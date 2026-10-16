@@ -17,6 +17,7 @@
 mod acl;
 mod again;
 pub mod aimed;
+mod alive;
 mod answered;
 mod att;
 mod begin;
@@ -38,6 +39,7 @@ mod private;
 mod serve;
 pub mod session;
 mod smp;
+mod stray;
 mod timers;
 pub mod us;
 mod user;

@@ -19,6 +19,12 @@
 #![cfg(test)]
 extern crate alloc;
 
+mod air;
+mod env;
+mod env_desk;
+mod env_link;
+mod fixture;
+mod fixture_link;
 #[allow(unused)]
 #[path = "../../nonos_bt_hci_proofs/src/sim/mod.rs"]
 mod hci_sim;
@@ -33,19 +39,12 @@ mod modifier;
 #[path = "../../capsule_driver_bt_usb/src/nbtc/mod.rs"]
 mod nbtc;
 mod ring;
+mod ring_sim;
+mod ring_sim_ops;
 #[allow(unused)]
 #[path = "../../nonos_bt_smp_proofs/src/sim/mod.rs"]
 mod smp_sim;
 mod usb;
-
-mod air;
-mod env;
-mod env_desk;
-mod env_link;
-mod fixture;
-mod fixture_link;
-mod ring_sim;
-mod ring_sim_ops;
 
 mod battery_link_tests;
 mod bond_keep_tests;
@@ -57,6 +56,7 @@ mod find_tests;
 mod hold_tests;
 mod interleave_sim;
 mod interleave_tests;
+mod liar;
 mod link_tests;
 mod modifier_tests;
 mod mouse_tests;

@@ -18,7 +18,9 @@
 //! and one ACL packet if the controller has them and sends what waits, so
 //! no turn blocks; an idle turn pauses the transport about a millisecond.
 //! The loop ends when the link does: the peer leaves, a timer runs out,
-//! or this host gives up. A failing USB transfer ends it with that error.
+//! or this host gives up. A failing USB transfer, or a controller that
+//! lost its state, ends it with that error. However it ends, every key and
+//! button still down goes up.
 
 use super::end::End;
 use super::env::Env;
@@ -30,18 +32,28 @@ pub fn serve<T: Transport, E: Env>(
     s: &mut Session,
     env: &mut E,
 ) -> Result<End, HciError> {
+    let end = turns(host, s, env);
+    s.release(env);
+    end
+}
+
+fn turns<T: Transport, E: Env>(
+    host: &mut Host<T>,
+    s: &mut Session,
+    env: &mut E,
+) -> Result<End, HciError> {
     loop {
         if let Some(end) = s.end {
-            s.release(env);
             return Ok(end);
         }
         let now = env.now_ms();
         env.tick(now);
         s.timers(host, now, env)?;
+        s.alive(host, now)?;
         s.flush(host)?;
         let event = host.next_event()?;
         if let Some(e) = &event {
-            s.on_event(e)?;
+            s.on_event(host, e)?;
         }
         let acl = host.transport().poll_acl()?;
         if let Some(a) = &acl {
