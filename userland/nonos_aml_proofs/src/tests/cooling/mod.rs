@@ -19,6 +19,7 @@ mod fan_tests;
 mod passive_tests;
 mod pool_rig;
 mod pool_tests;
+mod trip_rule_tests;
 mod verdict_tests;
 mod zone_rig;
 mod zone_tests;
