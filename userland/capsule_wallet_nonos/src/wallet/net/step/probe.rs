@@ -19,10 +19,9 @@
 //! `Exchange` that asks for the chain id once the handshake finished. It
 //! opens nothing else: every probe is traffic an observer can see.
 
-use nonos_route_link::Route;
-
 use super::super::private_route::refused;
 use super::super::status::NetStatus;
+use super::super::WalletRoute;
 use super::exchange::Exchange;
 
 #[path = "probe_end.rs"]
@@ -32,7 +31,7 @@ mod probe_report;
 
 pub struct Probe {
     step: u8,
-    route: Route,
+    route: WalletRoute,
     exchange: Option<Exchange>,
 }
 
@@ -40,7 +39,7 @@ impl Probe {
     /// One step; the finished diagnostic once there is one.
     pub fn step(&mut self) -> Option<NetStatus> {
         match self.step {
-            0 => self.route = Route::for_wallet(),
+            0 => self.route = WalletRoute::for_wallet(),
             1 => {
                 if let Some(why) = refused(self.route) {
                     return Some(self.status(None, Some(why)));

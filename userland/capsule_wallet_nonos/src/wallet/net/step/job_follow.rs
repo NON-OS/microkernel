@@ -19,7 +19,7 @@
 
 use alloc::vec::Vec;
 
-use nonos_route_link::Route;
+use crate::wallet::net::WalletRoute;
 
 use super::exchange::Exchange;
 use super::job::{Followed, Job};
@@ -45,7 +45,7 @@ impl Job {
         let refs: Vec<&[u8]> = parts.iter().map(Vec::as_slice).collect();
         let body = crate::wallet::rpc::request_batch(&refs);
         let chain = crate::wallet::chain::current().id;
-        let exchange = Exchange::begin(Route::for_wallet(), body);
+        let exchange = Exchange::begin(WalletRoute::for_wallet(), body);
         Job::Follow { exchange, hashes, address: *address, chain }
     }
 }

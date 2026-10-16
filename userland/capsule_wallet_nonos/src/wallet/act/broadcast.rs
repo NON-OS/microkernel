@@ -21,7 +21,7 @@
 //! and its receipt followed (`send::outcome`). The receipt is read by the
 //! refresh, which this asks for at once.
 
-use nonos_route_link::Route;
+use crate::wallet::net::WalletRoute;
 
 use super::Action;
 use crate::wallet::net::step::Exchange;
@@ -51,7 +51,7 @@ pub fn broadcast(state: &mut State, purpose: Purpose) -> bool {
     }
     let body = crate::wallet::rpc::request_broadcast(&state.tx.raw, 5);
     super::action::claim_network(state);
-    let exchange = Exchange::begin(Route::for_wallet(), body);
+    let exchange = Exchange::begin(WalletRoute::for_wallet(), body);
     let chain = crate::wallet::chain::current().id;
     state.action = Some(Action::Broadcast {
         purpose,
