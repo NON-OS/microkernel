@@ -25,7 +25,7 @@ pub(super) fn word(bytes: &[u8], at: usize) -> u16 {
     u16::from_le_bytes([bytes[at], bytes[at + 1]])
 }
 
-pub(super) fn size(bytes: &[u8], at: usize) -> Option<usize> {
+fn size(bytes: &[u8], at: usize) -> Option<usize> {
     match bytes[at] {
         0x00..=0x3F => Some(4),
         0x40..=0x7F => Some(8),
@@ -36,12 +36,14 @@ pub(super) fn size(bytes: &[u8], at: usize) -> Option<usize> {
 }
 
 /// Append the spans `bytes` describes to `out[n..]`, returning the new count.
+/// The length of the entry at `at`, when it is whole inside `bytes`.
+pub(super) fn size_at(bytes: &[u8], at: usize) -> Option<usize> {
+    (at + 4 <= bytes.len()).then(|| size(bytes, at)).flatten().filter(|len| at + len <= bytes.len())
+}
+
 pub(super) fn entries(bytes: &[u8], out: &mut [Span], mut n: usize) -> usize {
     let (mut at, mut start) = (0, None);
-    while at + 4 <= bytes.len() {
-        let Some(len) = size(bytes, at).filter(|len| at + len <= bytes.len()) else {
-            break;
-        };
+    while let Some(len) = size_at(bytes, at) {
         let alias = if len >= 8 { word(bytes, at + 5) } else { 0 };
         for span in
             spans_of(bytes[at], word(bytes, at + 1), alias, &mut start).into_iter().flatten()
