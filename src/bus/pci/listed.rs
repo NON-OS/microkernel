@@ -14,11 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{DEVICE_COUNT, MAX_DEVICES};
-use core::sync::atomic::Ordering;
+//! How far the PCI table is whole (L68). It is filled in ascending bus order
+//! and stops at its cap, so every function on a bus below the first one left
+//! out is listed. A bridge sits on a bus below its secondary bus, so for any
+//! bus up to that one, every bridge that could hold it is listed.
 
-/// Whether the table may hold every function enumerated. A full one may have
-/// dropped some, so nothing can be read from what it leaves out (L65).
-pub fn listed_whole() -> bool {
-    DEVICE_COUNT.load(Ordering::SeqCst) < MAX_DEVICES as u32
+use core::sync::atomic::{AtomicU16, Ordering};
+
+/// The bus of the first function left out, past every bus when none was.
+static FIRST_LEFT_OUT: AtomicU16 = AtomicU16::new(u16::MAX);
+
+pub(super) fn left_out_on(bus: u8) {
+    FIRST_LEFT_OUT.fetch_min(bus as u16, Ordering::SeqCst);
+}
+
+/// Whether every bridge that could hold `bus` is in the table.
+pub fn listed_through(bus: u8) -> bool {
+    bus as u16 <= FIRST_LEFT_OUT.load(Ordering::SeqCst)
 }

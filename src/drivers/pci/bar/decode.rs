@@ -56,8 +56,7 @@ pub fn decode_bar(bus: u8, device: u8, function: u8, index: u8) -> Result<PciBar
 
     if (original & BAR_TYPE_MASK) == BAR_TYPE_IO {
         let port = (original & BAR_IO_ADDR_MASK) as u16;
-        let size_bits = size_mask & BAR_IO_ADDR_MASK;
-        let size = (!size_bits).wrapping_add(1);
+        let size = super::slots::io_size(size_mask);
 
         // Ports are 16 bits wide here: an address above them is never kept
         // cut short, where a BAR restore would write it back (L65).
@@ -144,8 +143,7 @@ pub fn decode_bar_unchecked(bus: u8, device: u8, function: u8, index: u8) -> Pci
 
     if (original & BAR_TYPE_MASK) == BAR_TYPE_IO {
         let port = (original & BAR_IO_ADDR_MASK) as u16;
-        let size_bits = size_mask & BAR_IO_ADDR_MASK;
-        let size = (!size_bits).wrapping_add(1);
+        let size = super::slots::io_size(size_mask);
 
         // As above: never a port cut short to 16 bits (L65).
         if size == 0 || port == 0 || original >> 16 != 0 {
