@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who may set brightness (the the maintainers' ruling, as F does per op): power and
-//! desktop_shell; and who may read a monitor's controls: those and
-//! Settings. Each is looked up by name on every request, so a restarted one
-//! is known by its new pid and a stale pid keeps no right.
+//! Who may set brightness and a monitor's controls, and read them: the
+//! compositor alone. The kernel lets no other process reach a display
+//! driver (its held table), so a right named for anyone else could never be
+//! used; the compositor takes these requests from the desktop shell alone
+//! and relays them. Looked up by name on every request, so a restarted
+//! compositor is known by its new pid and a stale pid keeps no right.
 
 use nonos_libc::mk_service_lookup;
 
 /// The registry names allowed to set brightness.
-const SETTERS: [&str; 2] = ["power", "desktop_shell"];
+const SETTERS: [&str; 1] = ["compositor"];
 
 /// And those allowed to read a monitor's own controls (VCP).
-const READERS: [&str; 3] = ["power", "desktop_shell", "app.settings"];
+const READERS: [&str; 1] = ["compositor"];
 
 pub fn may_set(sender: u32) -> bool {
     named(sender, &SETTERS)

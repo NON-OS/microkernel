@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A control read or written on one output's bus: allowlisted and paced
-//! before a byte goes out, the reply checked before one is believed, a
-//! write held to the maximum the monitor gave.
+//! A control read on one output's bus: allowlisted, named by the display's
+//! capabilities and paced before a byte goes out, the reply checked before
+//! one is believed (writes in transact_write.rs).
 
 use super::bus::DdcBus;
 use super::error::DdcError;
-use super::frame::{get_request, set_request};
+use super::frame::get_request;
 use super::pace::{Pacer, REPLY_US};
 use super::reply::{parse, Reading, REPLY_LEN};
-use super::vcp::{may_read, may_set, BRIGHTNESS, CONTRAST};
+use super::vcp::may_read;
 use super::wait::{wait, wait_turn};
 use crate::engine::access::Clock;
 
@@ -33,7 +33,7 @@ pub fn read(
     p: &mut Pacer,
     code: u8,
 ) -> Result<Reading, DdcError> {
-    may_read(code)?;
+    may_read(code, p.caps.caps()?)?;
     let now = c.now_us().ok_or(DdcError::NoClock)?;
     if let Some(r) = p.kept(code, now) {
         return r;
@@ -53,23 +53,4 @@ fn exchange(b: &mut dyn DdcBus, c: &dyn Clock, code: u8) -> Result<Reading, DdcE
     let mut r = [0u8; REPLY_LEN];
     b.receive(&mut r)?;
     parse(code, &r)
-}
-
-pub fn write(
-    b: &mut dyn DdcBus,
-    c: &dyn Clock,
-    p: &mut Pacer,
-    code: u8,
-    value: u16,
-) -> Result<(), DdcError> {
-    may_read(code)?;
-    let max = match code {
-        BRIGHTNESS | CONTRAST => read(b, c, p, code)?.max,
-        _ => 0,
-    };
-    may_set(code, value, max)?;
-    let at = wait_turn(c, p)?;
-    p.keep(code, None, at);
-    p.sent(at);
-    b.send(&set_request(code, value)).map_err(|_| DdcError::Absent)
 }

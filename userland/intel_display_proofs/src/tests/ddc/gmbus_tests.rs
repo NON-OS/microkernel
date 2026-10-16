@@ -18,10 +18,11 @@
 //! and a set arrive byte for byte at 0x37 and at nothing else, the pins are
 //! let go after each; the wrong pins, DDI A and a spoiled reply give nothing.
 
+use super::caps_rig::known;
 use crate::ddc::error::DdcError;
-use crate::ddc::pace::Pacer;
 use crate::ddc::reply::Reading;
-use crate::ddc::transact::{read, write};
+use crate::ddc::transact::read;
+use crate::ddc::transact_write::write;
 use crate::engine::gmbus_regs::{CYCLE_STOP, GMBUS0, GMBUS1, SW_CLR_INT, SW_RDY};
 use crate::engine::gmbus_xfer::ddc::GmbusDdc;
 use crate::model::mccs::Mccs;
@@ -35,12 +36,12 @@ fn monitor_on(pin: u32) -> Gen9 {
 
 fn ask(m: &mut Gen9, ddi: u32, code: u8) -> Result<Reading, DdcError> {
     let t = Ticks::new();
-    read(&mut GmbusDdc { mmio: m, clock: &t, ddi }, &t, &mut Pacer::new(), code)
+    read(&mut GmbusDdc { mmio: m, clock: &t, ddi }, &t, &mut known(), code)
 }
 
 #[test]
 fn a_read_and_a_set_reach_the_monitor_at_0x37_alone() {
-    let (mut m, t, mut p) = (monitor_on(5), Ticks::new(), Pacer::new());
+    let (mut m, t, mut p) = (monitor_on(5), Ticks::new(), known());
     let mut bus = GmbusDdc { mmio: &mut m, clock: &t, ddi: 1 };
     assert_eq!(read(&mut bus, &t, &mut p, 0x10), Ok(Reading { present: 70, max: 100 }));
     assert_eq!(write(&mut bus, &t, &mut p, 0x10, 40), Ok(()));

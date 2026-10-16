@@ -18,19 +18,20 @@
 //! alone and not from the driver's code: it checks each message the host
 //! writes (source 0x51, length byte, checksum over the display's 0x6E),
 //! answers a Get VCP with the control's maximum and value or "unsupported",
-//! and takes a Set VCP. A test can spoil one reply byte.
+//! takes a Set VCP and gives its capabilities (`mccs_caps.rs`); a test can spoil a reply byte.
 
 #[derive(Default, Clone)]
 pub struct Mccs {
-    /// Code, value now, most it takes.
-    pub controls: Vec<(u8, u16, u16)>,
+    pub controls: Vec<(u8, u16, u16)>, // code, value now, most it takes
     /// Every message written, as it arrived.
     pub got: Vec<Vec<u8>>,
-    /// What the next read gives, from its start.
+    /// What the next read gives, and how far into it.
     pub reply: Vec<u8>,
     pub at: usize,
     /// One reply byte replaced: its index and value.
     pub spoil: Option<(usize, u8)>,
+    /// The capabilities string, when not the one its controls make.
+    pub caps: Option<Vec<u8>>,
 }
 
 impl Mccs {
@@ -51,6 +52,7 @@ impl Mccs {
         }
         match (msg[2], msg.len()) {
             (0x01, 5) => self.reply = super::mccs_reply::get_reply(&self.controls, msg[3]),
+            (0xF3, 6) => self.reply = super::mccs_caps::caps_reply(self, msg[3], msg[4]),
             (0x03, 7) => {
                 let v = u16::from_be_bytes([msg[4], msg[5]]);
                 if let Some(c) = self.controls.iter_mut().find(|c| c.0 == msg[3]) {
