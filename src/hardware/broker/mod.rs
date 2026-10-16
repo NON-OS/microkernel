@@ -49,48 +49,6 @@ mod power;
 mod table;
 mod windows;
 
-#[cfg(target_arch = "x86_64")]
-pub use acpi_gpio::register_acpi_gpio;
-#[cfg(target_arch = "x86_64")]
-pub use acpi_i2c::register_acpi_i2c;
-// pub use census::render_and_hold as device_census; // bring-up diagnostic, silenced
-pub use claim::{
-    claim as claim_device, lookup as claim_lookup, quiesce_all as quiesce_all_devices,
-    quiesce_held as quiesce_held_device,
-    release as release_device, release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
-};
-pub use class::{classify_pci, Class};
-pub use device::{Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
-pub use dma::{
-    map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
-    release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant,
-    wipe_live_grants as dma_wipe_live_grants, DmaError,
-    DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult,
-};
-pub use grant::{GrantError, MmioGrant};
-pub use irq::{
-    ack_grant as irq_ack_grant, bind as irq_bind, poll as irq_poll,
-    release_all_for_pid as irq_release_all_for_pid, release_for_device as irq_release_for_device,
-    unmap_grant as irq_unmap_grant, wait_arm as irq_wait_arm, wait_disarm as irq_wait_disarm,
-    IrqBindError, IrqBindRequest, IrqBindResult, IrqError, IrqPollResult,
-};
-pub use mmio::{
-    map_for_caller, release_all_for_pid, release_for_device, unmap_grant, MmioMapError,
-    MmioMapRequest, MmioMapResult,
-};
-pub use pci::{
-    read as pci_config_read, write as pci_config_write, PciReadError, PciReadRequest,
-    PciWriteError, PciWriteRequest,
-};
-#[cfg(target_arch = "x86_64")]
-pub use pio::{
-    grant_for_caller as pio_grant_for_caller, read as pio_read,
-    release_all_for_pid as pio_release_all_for_pid, release_for_device as pio_release_for_device,
-    release_grant as pio_release_grant, write as pio_write, PioError, PioGrantRequest,
-    PioGrantResult, PioWidth,
-};
-#[cfg(not(target_arch = "x86_64"))]
-pub use pio_absent::{pio_release_all_for_pid, pio_release_for_device};
-pub use platform::register_legacy as register_legacy_platform_devices;
-pub use table::{contains, init_from_pci, list, list_by_class};
-pub use windows::touches_device_window;
+mod api;
+
+pub use api::*;
