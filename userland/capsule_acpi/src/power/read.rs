@@ -41,6 +41,7 @@ pub fn find(devices: &[DeviceInfo]) -> Power {
         present: false,
         info: None,
         status: None,
+        told: 0,
     });
     let adapters = devices.iter().filter(|d| is(d, &ac)).map(|d| (d.id, None));
     Power { batteries: batteries.collect(), adapters: adapters.collect(), ..Power::default() }
@@ -60,6 +61,7 @@ pub fn read_info(b: &mut Battery, aml: &mut Aml, host: &mut CapsuleHost) {
 pub fn read_status(b: &mut Battery, aml: &mut Aml, host: &mut CapsuleHost) {
     if b.present {
         b.status = call(aml, host, b.id, *b"_BST").and_then(|v| parse_bst(&v));
+        super::bst_told::tell(b);
     }
 }
 
