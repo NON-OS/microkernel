@@ -18,6 +18,7 @@ pub mod brightness;
 pub mod damage_commit;
 pub mod display_info;
 pub mod health;
+pub mod input_sources;
 pub mod lid;
 pub mod scene_remove_band;
 pub mod scene_submit;

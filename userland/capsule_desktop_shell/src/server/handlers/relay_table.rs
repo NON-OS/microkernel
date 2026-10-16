@@ -19,18 +19,20 @@
 //! a status alone). Pure, so the proofs hold the table.
 
 use crate::protocol::{
-    OP_ACCESSIBILITY, OP_ACCESSIBILITY_GET, OP_DISPLAY_ARRANGEMENT, OP_DISPLAY_LAYOUT,
-    OP_DISPLAY_SCALE,
+    OP_ACCESSIBILITY, OP_ACCESSIBILITY_GET, OP_DISPLAY_ARRANGEMENT, OP_DISPLAY_BRIGHTNESS,
+    OP_DISPLAY_LAYOUT, OP_DISPLAY_SCALE,
 };
 
-/// NCMP's ACCESSIBILITY, ACCESSIBILITY_GET, OUTPUT_LAYOUT, OUTPUT_SCALE and
-/// OUTPUT_ARRANGEMENT.
-pub const RELAY: [(u16, u16, usize); 5] = [
+/// NCMP's ACCESSIBILITY, ACCESSIBILITY_GET, OUTPUT_LAYOUT, OUTPUT_SCALE,
+/// OUTPUT_ARRANGEMENT and BRIGHTNESS_GET, which only reads: Settings shows
+/// each panel's level and never sets one.
+pub const RELAY: [(u16, u16, usize); 6] = [
     (OP_ACCESSIBILITY, 0x000F, 0),
     (OP_ACCESSIBILITY_GET, 0x0010, 16),
     (OP_DISPLAY_LAYOUT, 0x000B, 0),
     (OP_DISPLAY_SCALE, 0x000D, 0),
     (OP_DISPLAY_ARRANGEMENT, 0x0011, 32),
+    (OP_DISPLAY_BRIGHTNESS, 0x0016, 28),
 ];
 
 /// The compositor op and answer length for shell op `op`, if Settings may
