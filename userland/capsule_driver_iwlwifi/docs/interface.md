@@ -8,11 +8,11 @@ The Wi-Fi control family (`nonos_wifi_client`, tag `0x57494649`):
 
 | Operation | Input | Output |
 |---|---|---|
-| status (4) | none | stage byte, then step, detail, CSR_HW_REV, CSR_HW_RF_ID, sweeps, stalls, frames, beacons |
+| status (4) | none | stage byte, then step, detail, two zero words, sweeps, stalls, frames, beacons |
 | scan (3) | none, radio up | sweeps, frames, beacons, then the network list |
 | connect (1) | `[ssid_len][ssid][pass_len][pass][flags]` | status code, sent, received, data, EAPOL, probe, deauthentications, to us, state, AKM, AP status (`server/join_wire.rs`) |
 | disconnect (2) | none | 0 |
-| link (5) | none | `[associated][bssid 6][ssid_len][ssid][akm]` |
+| link (5) | none | `[associated][6 zero bytes][ssid_len][ssid][akm]` |
 | connect, disconnect, link when the radio cannot join | any | -38 |
 | scan with the radio down, any other op | any | -38 |
 

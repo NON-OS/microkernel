@@ -1,6 +1,6 @@
 ## Reading the status reply
 
-The status reply carries the stage byte the panel shows, then the step bring-up stopped at, a detail word, CSR_HW_REV, CSR_HW_RF_ID and the scan counters (`userland/capsule_driver_iwlwifi/src/server/runner.rs:103-114`, `view`). Steps and details are set by `Failure` (`userland/capsule_driver_iwlwifi/src/firmware/gen3/outcome.rs:120-158`, `detail`).
+The status reply carries the stage byte the panel shows, then the step bring-up stopped at, a detail word, two words left zero (they once carried CSR_HW_REV and CSR_HW_RF_ID, which identify the card) and the scan counters (`userland/capsule_driver_iwlwifi/src/server/control/answer.rs`, `answer`). Steps and details are set by `Failure` (`userland/capsule_driver_iwlwifi/src/firmware/gen3/outcome/detail.rs`, `detail`).
 
 | Step | Meaning | Stage | Detail |
 |---|---|---|---|

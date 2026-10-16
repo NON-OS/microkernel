@@ -48,12 +48,15 @@ the same way, by listening, so a network that hides its name is not joined
 and no saved network's name leaves the machine before its own access point
 is heard. The MAC and link contexts the firmware needs carry the station
 address drawn for this boot (a locally administered unicast address from
-kernel randomness; the card's factory address is never read); every frame a
-join sends is from it. Only when no randomness was given do they carry the
+kernel randomness; the card's factory address is never read). Before each
+join they are added again under the network's own address, from the boot's
+address key, and every frame the join sends is from it
+(`gen3::join::address`). Only when no randomness was given do they carry the
 fixed 02:00:00:00:00:01, and then nothing is ever transmitted. Before the
 port opens only authentication, association and EAPOL in the clear leave
 (`join_tests`). The passphrase is held only while a join runs; the request
-buffer that carried it is zeroed after the reply.
+buffer that carried it is zeroed after the reply. A receive buffer is
+cleared before it is posted again, and a transmit buffer before each frame.
 The scan list lives in memory only, is aged (a network unheard for three sweeps
 is dropped) and is capped at sixteen networks. The capsule stores no SSIDs,
 passphrases, scan history, peer MAC history, DHCP leases, or IP state.

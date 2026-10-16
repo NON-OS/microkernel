@@ -4,7 +4,7 @@ What only a boot on real silicon can confirm. The host proofs cover the
 parsers, the sequence against a model, and the bounded waits; these do not.
 The `[iwlwifi]` lines below print only on a kernel that grants this capsule
 `Debug`; without it, read the same facts from the status reply (stage, step,
-detail, CSR_HW_REV, CSR_HW_RF_ID, counters) and the Settings Wi-Fi panel.
+detail, counters) and the Settings Wi-Fi panel.
 
 - Absence and retry: on a machine without the device, no claim and exit
   `EXIT_ABSENT` (2), which the kernel names as `[EXIT] <service> status 2: no
@@ -15,9 +15,9 @@ detail, CSR_HW_REV, CSR_HW_RF_ID, counters) and the Settings Wi-Fi panel.
 - Setup on an SO laptop: the MAC clock comes ready in setup's legacy APM poll
   (it runs before the gen3 path takes the NIC; if it times out there, setup
   gives up and the gen3 path never runs).
-- Identity: `[iwlwifi] pci 0x000051f0 hw_rev 0x00000370 rf_id 0x0010d000` (or
-  your platform's values; MAC type 0x37 or 0x43, RF type 0x10D, 0x10C or
-  0x10A), then `[iwlwifi] firmware iwlwifi-so-a0-gf-a0-86.ucode` (or hr-b0-84).
+- Identity: `[iwlwifi] pci 0x000051f0` (or your platform's id; the card's
+  revision and RF id are no longer printed), then
+  `[iwlwifi] firmware iwlwifi-so-a0-gf-a0-86.ucode` (or hr-b0-84).
 - DMA: about ten grants in the broker log, none refused (else
   `[iwlwifi] no DMA region of N bytes` and stage NoDma).
 - ALIVE: `[iwlwifi] firmware alive: status 0x0000cafe umac M.N sku 0x...`.

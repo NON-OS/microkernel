@@ -21,8 +21,12 @@ The capsule stores no SSIDs, passphrases, scan history, peer MAC history, DHCP
 leases, or IP state. Runtime state is limited to grant ids, PCI identity, the
 station MAC drawn at random each boot (`src/station.rs`, locally administered
 and unicast; with no randomness the radio stays down rather than fall back to
-the efuse address), radio/link state, DMA ring metadata, the current channel,
-and the session keys the supplicant installs for the active link.
+the efuse address), the boot's address key from which each network gets its
+own address (`src/link/address.rs`), radio/link state, DMA ring metadata, the
+current channel, and the session keys the supplicant installs for the active
+link. A receive slot is cleared before the card gets it back, and a transmit
+slot holds nothing of an earlier frame (`src/rx/poll/info.rs`,
+`src/tx/xmit.rs`).
 
 Scanning is passive: the background sweep and the pre-join hunt listen for
 beacons. The only frame sent before a join is a probe request for a network
