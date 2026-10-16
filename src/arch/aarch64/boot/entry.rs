@@ -57,19 +57,9 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
         crate::arch::aarch64::security::pac::install_kernel_key!(key);
     }
 
-    // The console, the MMU and caches, the vectors, the GIC and the timer.
+    // The console, the vectors, the MMU and caches; then the move to TTBR1
+    // and, from wherever the kernel then runs, the GIC, timer and the rest.
     super::init(&info);
-
-    #[cfg(feature = "nonos-trap-proof-kernel-abort")]
-    super::trap_proof::kernel_data_abort();
-
-    if let Outcome::Parsed = outcome {
-        serial::println(b"[NONOS] aarch64 boot init done");
-    } else {
-        // The defaults describe QEMU virt. Say so: on any other board they are
-        // wrong, and a silent boot into the wrong MMIO is worse than a loud one.
-        serial::println(b"[NONOS] no usable device tree, assuming QEMU virt");
-    }
-
-    super::core_entry::enter(&info)
+    super::finish::set_parsed(matches!(outcome, Outcome::Parsed));
+    super::high::move_high(&info)
 }

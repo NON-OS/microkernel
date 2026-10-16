@@ -18,6 +18,8 @@ mod acpi;
 mod core_entry;
 pub mod dtb_adapter;
 pub mod entry;
+mod finish;
+mod high;
 pub mod info;
 mod init;
 mod memory;

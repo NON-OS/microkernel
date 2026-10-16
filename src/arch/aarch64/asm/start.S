@@ -277,6 +277,7 @@ _aarch64_secondary_start:
     ldp     x2, x3, [x1]
     ldp     x4, x5, [x1, #16]
     ldr     x6, [x1, #32]
+    ldr     x7, [x1, #40]               /* the kernel's distance above its load */
     msr     mair_el1, x2
     msr     tcr_el1, x3
     msr     ttbr0_el1, x4
@@ -292,15 +293,24 @@ _aarch64_secondary_start:
     isb
 
     /* Vectors and FP/SIMD before any Rust runs, as on the boot CPU.
-     * x0 still carries the context id, so x1 does the work. */
+     * x0 still carries the context id, so x1 does the work. Both the
+     * vectors and the Rust entry are taken where the kernel runs: at its
+     * high alias once it has moved there (boot/high.rs), x7 above here.
+     * The stack in x0 is already that address. BR through x16 is the
+     * register form `bti c` admits. */
     mov     x1, #(3 << 20)
     msr     cpacr_el1, x1
     adrp    x1, __aarch64_vectors_el1
     add     x1, x1, :lo12:__aarch64_vectors_el1
+    add     x1, x1, x7
     msr     vbar_el1, x1
     isb
 
-    bl      aarch64_ap_entry
+    mov     x29, xzr
+    adrp    x16, aarch64_ap_entry
+    add     x16, x16, :lo12:aarch64_ap_entry
+    add     x16, x16, x7
+    br      x16
 
 .L_ap_hang:
     wfi
