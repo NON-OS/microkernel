@@ -17,6 +17,7 @@
 pub mod cpus;
 pub mod framebuffer;
 pub mod gic;
+pub mod idle;
 pub mod isa;
 pub mod mailbox;
 pub mod memory;
