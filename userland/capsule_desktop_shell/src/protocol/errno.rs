@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub const E_PERM: i32 = -1;
 pub const E_NOENT: i32 = -2;
 pub const E_NOMEM: i32 = -12;
 pub const E_BUSY: i32 = -16;
