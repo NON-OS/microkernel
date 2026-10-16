@@ -20,19 +20,19 @@ use crate::term::util::copy_into;
 /// this, because a zero would claim a measurement NONOS never took.
 pub const DASH: &str = "—";
 
-pub fn one<'a, T: Copy>(buf: &'a mut [u8], m: Metric<T>, f: fn(&mut [u8], T) -> usize) -> &'a str {
+pub fn one<T: Copy>(buf: &mut [u8], m: Metric<T>, f: fn(&mut [u8], T) -> usize) -> &str {
     let n = write(buf, m, f);
     core::str::from_utf8(&buf[..n]).unwrap_or(DASH)
 }
 
 /// Two figures of the same kind side by side, as the memory and rate rows want
 /// them: either half is independently a dash.
-pub fn pair<'a, T: Copy>(
-    buf: &'a mut [u8],
+pub fn pair<T: Copy>(
+    buf: &mut [u8],
     a: Metric<T>,
     b: Metric<T>,
     f: fn(&mut [u8], T) -> usize,
-) -> &'a str {
+) -> &str {
     let mut n = write(buf, a, f);
     n += copy_into(&mut buf[n..], b" / ");
     n += write(&mut buf[n..], b, f);

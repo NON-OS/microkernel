@@ -33,6 +33,10 @@
 
 use alloc::vec::Vec;
 
+#[path = "follow_pace.rs"]
+mod follow_pace;
+#[path = "follow_step.rs"]
+mod follow_step;
 /// The most a load is followed: the budget the blocking call had.
 pub const DEADLINE_MS: i64 = 30_000;
 /// The first probe, then twice the gap each time up to the cap. Every probe
@@ -66,59 +70,4 @@ pub struct Follow {
     probe_gap_ms: i64,
     next_look_ms: i64,
     served: bool,
-}
-
-impl Follow {
-    pub fn new(before: Vec<u32>, now_ms: i64) -> Self {
-        Follow {
-            before,
-            started_ms: now_ms,
-            next_probe_ms: now_ms.saturating_add(FIRST_PROBE_MS),
-            probe_gap_ms: FIRST_PROBE_MS,
-            next_look_ms: now_ms,
-            served: false,
-        }
-    }
-
-    /// Whether this tick should read the process table at all.
-    pub fn due(&mut self, now_ms: i64) -> bool {
-        if now_ms < self.next_look_ms {
-            return false;
-        }
-        self.next_look_ms = now_ms.saturating_add(LOOK_GAP_MS);
-        true
-    }
-
-    /// The next step, given the new child if one has appeared.
-    pub fn step(&self, now_ms: i64, found: Option<u32>) -> Step {
-        if let Some(pid) = found {
-            return Step::Loaded(pid);
-        }
-        if self.served {
-            return Step::Failed;
-        }
-        if self.elapsed_ms(now_ms) >= DEADLINE_MS {
-            return Step::TimedOut;
-        }
-        if now_ms >= self.next_probe_ms {
-            return Step::Probe;
-        }
-        Step::Wait
-    }
-
-    /// What a probe found. Answered, the load is over and the next step
-    /// settles it; unanswered, the next probe waits twice as long.
-    pub fn probed(&mut self, now_ms: i64, answered: bool) {
-        if answered {
-            self.served = true;
-            return;
-        }
-        self.probe_gap_ms = self.probe_gap_ms.saturating_mul(2).min(PROBE_GAP_MAX_MS);
-        self.next_probe_ms = now_ms.saturating_add(self.probe_gap_ms);
-    }
-
-    /// How long the load has run, which bounds the age of a child it made.
-    pub fn elapsed_ms(&self, now_ms: i64) -> i64 {
-        now_ms.saturating_sub(self.started_ms)
-    }
 }
