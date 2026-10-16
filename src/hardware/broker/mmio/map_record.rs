@@ -24,7 +24,7 @@ use crate::hardware::broker::claim::record_while_held;
 use crate::hardware::broker::grant::{self, MmioGrant};
 use crate::memory::addr::VirtAddr;
 
-/// The grant's id, or StaleEpoch with the pages unmapped again.
+/// The grant's id, or the refusal with the pages unmapped and their VA back.
 pub(super) fn record(
     pid: u32,
     req: &MmioMapRequest,
@@ -47,9 +47,11 @@ pub(super) fn record(
             flags: req.flags,
         })
     });
-    if entered.is_none() {
+    if entered != Some(true) {
         let _ = crate::memory::paging::unmap_user_mmio(user_va, w.page_bytes as usize);
-        return Err(MmioMapError::StaleEpoch);
+        grant::release_user_va(pid, user_va.as_u64(), w.page_bytes);
+        // No claim, or the holder's quota spent, as a spent window answers.
+        return Err(entered.map_or(MmioMapError::StaleEpoch, |_| MmioMapError::NoVaSpace));
     }
     Ok(grant_id)
 }

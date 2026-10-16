@@ -22,4 +22,4 @@ mod va;
 pub(super) use drain::{drain_for_device, drain_for_pid, remove};
 pub(super) use table::{allocate_id, insert};
 pub use types::{GrantError, MmioGrant};
-pub(super) use va::{reserve_user_va, USER_MMIO_BASE, USER_MMIO_END};
+pub(super) use va::{release_user_va, reserve_user_va, USER_MMIO_BASE, USER_MMIO_END};
