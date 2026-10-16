@@ -22,7 +22,7 @@
 
 use alloc::vec::Vec;
 
-use nonos_tls::{client_flight, AppReader};
+use nonos_tls::{client_flight, AppReader, Refusal};
 
 use super::types::{After, Exchange, Phase, Tls};
 
@@ -34,6 +34,15 @@ const FAILED: &str = "tls handshake failed";
 const REFUSED: &str = "the server ended the handshake with an alert";
 const RETRY: &str = "the server asked for a key exchange this client does not offer";
 const UNVERIFIED: &str = "the certificate did not verify for this host";
+
+/// What a refusal of the server's flight says to a person.
+fn refused(r: Refusal) -> &'static str {
+    match r {
+        Refusal::Alert(_) => REFUSED,
+        Refusal::Unverified => UNVERIFIED,
+        Refusal::Incomplete | Refusal::Seal => FAILED,
+    }
+}
 
 impl Exchange {
     pub(super) fn hello(&mut self) -> Result<Option<Vec<u8>>, &'static str> {
