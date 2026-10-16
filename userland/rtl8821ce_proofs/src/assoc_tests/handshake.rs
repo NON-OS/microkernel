@@ -3,7 +3,7 @@
 //! Only the access point's own EAPOL to this station drives the handshake.
 
 use super::beacons::{AP, OUR};
-use crate::assoc::eapol_from_bss;
+use crate::assoc::eapol::eapol_from_bss;
 
 #[test]
 fn only_the_access_points_own_eapol_to_this_station_drives_the_handshake() {
