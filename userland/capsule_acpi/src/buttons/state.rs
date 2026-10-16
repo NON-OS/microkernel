@@ -25,4 +25,6 @@ pub struct Buttons {
     /// What the kernel was last told: open when any lid is.
     pub lid_open: Option<bool>,
     pub presses: crate::power::off::Presses,
+    /// When _LID is next read without a Notify.
+    pub next_lid_ms: u64,
 }

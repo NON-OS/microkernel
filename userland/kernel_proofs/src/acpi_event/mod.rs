@@ -32,4 +32,6 @@ pub mod platform_event;
 pub mod thermal_watch;
 
 #[cfg(test)]
+mod lid_tests;
+#[cfg(test)]
 mod tests;
