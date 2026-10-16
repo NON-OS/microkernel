@@ -37,10 +37,15 @@ pub const IN_DATA: u8 = 0x01;
 pub const IN_RESET: u8 = 0x03;
 pub const IN_DEVICE_DESCRIPTOR: u8 = 0x07;
 pub const IN_REPORT_DESCRIPTOR: u8 = 0x08;
+/// The device's answers to a get-feature and a set-feature request.
+pub const IN_GET_FEATURE: u8 = 0x05;
+pub const IN_SET_FEATURE: u8 = 0x09;
 
 /// Output report types: what the host asks.
 pub const OUT_DEVICE_DESCRIPTOR: u8 = 0x01;
 pub const OUT_REPORT_DESCRIPTOR: u8 = 0x02;
+pub const OUT_SET_FEATURE: u8 = 0x03;
+pub const OUT_GET_FEATURE: u8 = 0x04;
 
 /// The device descriptor's length, little-endian words throughout.
 pub const DEVICE_DESCRIPTOR_LEN: usize = 24;

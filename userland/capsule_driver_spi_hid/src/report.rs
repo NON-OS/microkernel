@@ -20,10 +20,14 @@
 
 use alloc::vec::Vec;
 
+use nonos_libc::mk_idle_ms;
 use nonos_spi_hid::{body, header, read_frame, write_frame, Params, FRAME_HEAD, HEADER_LEN};
 
 use crate::link::Link;
 use crate::spi::transfer;
+
+const ANSWER_READS: u32 = 50;
+const ANSWER_MS: u64 = 10;
 
 pub struct Report {
     pub kind: u8,
@@ -47,9 +51,25 @@ pub fn read(l: &Link) -> Option<Report> {
     Some(Report { kind: b.kind, id: b.id, content: b.content.to_vec() })
 }
 
-/// A request of `kind`, carrying nothing, written to the device.
-pub fn ask(l: &Link, kind: u8) -> bool {
+/// A request of `kind` for report `id` with `content`, written.
+pub fn ask(l: &Link, kind: u8, id: u8, content: &[u8]) -> bool {
     let c = &l.choice;
-    let Some(frame) = write_frame(&c.params, kind, 0, &[]) else { return false };
+    let Some(frame) = write_frame(&c.params, kind, id, content) else { return false };
     transfer(l.port, c.mode, c.hz, &frame).is_ok()
+}
+
+/// Reports read until one of `kind` comes; any other met meanwhile (a reset
+/// announced, stale input) is let go. A device that never answers is given
+/// up on after half a second.
+pub fn await_kind(l: &Link, kind: u8) -> Option<Report> {
+    for _ in 0..ANSWER_READS {
+        match read(l) {
+            Some(r) if r.kind == kind => return Some(r),
+            Some(_) => {}
+            None => {
+                let _ = mk_idle_ms(ANSWER_MS);
+            }
+        }
+    }
+    None
 }

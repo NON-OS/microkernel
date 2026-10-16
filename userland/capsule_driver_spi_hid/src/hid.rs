@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Shared with HID over I2C, which names a field type this driver does not.
-#[allow(unused_imports)]
 #[path = "../../capsule_driver_i2c_hid/src/hid/report_desc/mod.rs"]
 mod report_desc;
 
 pub use report_desc::{
     decode_mouse, decode_touch, parse as parse_report_descriptor,
-    parse_mouse as parse_mouse_layout, MouseLayout, TouchLayout, TouchSample,
+    parse_mouse as parse_mouse_layout, Field, MouseLayout, TouchLayout, TouchSample,
 };
 pub use report_desc::{primary, Multitouch, ScreenEvent, Surface};
