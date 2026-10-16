@@ -20,47 +20,13 @@
 //! package_url); deeper parsing belongs in the installer capsule
 //! that will consume the package.
 
+mod request;
+
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::super::capability::gate_call;
-use super::super::error::MarketError;
-use super::super::protocol::{encode_request, OP_GET_RELEASE};
-use super::seq::next_request_id;
-use super::status_map::lift;
-use super::transport::round_trip;
-
-pub struct ReleaseSummary {
-    pub release_id: String,
-    pub manifest_hash: [u8; 32],
-    pub package_hash: [u8; 32],
-    pub package_url: String,
-    pub raw: Vec<u8>,
-}
-
-pub fn get_release(listing_id: &str, release_id: &str) -> Result<ReleaseSummary, MarketError> {
-    gate_call()?;
-    queued_get_release(listing_id, release_id)
-}
-
-/// Without the caller gate, for init's install drain: the request it serves
-/// passed `can_app_install` in the syscall that queued it, and init is not
-/// the caller the gate is about.
-pub(crate) fn queued_get_release(listing_id: &str, release_id: &str) -> Result<ReleaseSummary, MarketError> {
-    let mut body: Vec<u8> = Vec::with_capacity(8 + listing_id.len() + release_id.len());
-    body.extend_from_slice(&(listing_id.len() as u32).to_le_bytes());
-    body.extend_from_slice(listing_id.as_bytes());
-    body.extend_from_slice(&(release_id.len() as u32).to_le_bytes());
-    body.extend_from_slice(release_id.as_bytes());
-
-    let request_id = next_request_id();
-    let frame = encode_request(OP_GET_RELEASE, 0, request_id, &body);
-    let resp = round_trip(request_id, frame)?;
-    if resp.status != 0 {
-        return Err(lift(resp.status));
-    }
-    parse(resp.body).ok_or(MarketError::ProtocolMismatch)
-}
+pub(crate) use request::queued_get_release;
+pub use request::{get_release, ReleaseSummary};
 
 fn parse(buf: Vec<u8>) -> Option<ReleaseSummary> {
     let mut cur = buf.as_slice();
