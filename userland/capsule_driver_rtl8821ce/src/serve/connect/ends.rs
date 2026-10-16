@@ -40,7 +40,11 @@ pub(super) fn counts(report: &assoc::Report) -> ConnectResult {
 }
 
 /// The code for a join that did not end associated, with the AP's own.
-pub(super) fn missed(outcome: Outcome, failure: Option<MlmeFailure>, r: &mut ConnectResult) -> i32 {
+pub(super) fn missed(
+    outcome: &Outcome,
+    failure: Option<MlmeFailure>,
+    r: &mut ConnectResult,
+) -> i32 {
     match outcome {
         Outcome::Refused => {
             status::debug(b"[rtl8821ce] connect: refused\n");

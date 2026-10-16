@@ -41,9 +41,14 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         }
     }
 
-    /// A group key the AP delivered since the last call, for the CAM.
-    pub fn take_group_key(&mut self) -> Option<(u8, [u8; 16])> {
-        self.new_group_key.take()
+    /// A group key the AP delivered, held until the CAM has it.
+    pub fn group_key(&self) -> Option<(u8, &[u8; 16])> {
+        self.new_group_key.as_ref().map(|(id, key)| (*id, &key.0))
+    }
+
+    /// The CAM has the group key: wiped where it lies.
+    pub fn clear_group_key(&mut self) {
+        self.new_group_key = None;
     }
 
     /// The reason code of a deauthentication the link took since the last call.

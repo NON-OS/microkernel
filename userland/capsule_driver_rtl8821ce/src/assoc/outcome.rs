@@ -4,24 +4,23 @@
 
 use alloc::boxed::Box;
 
+use nonos_wifi_core::key::HeldKey;
 use nonos_wifi_core::mlme::{Mlme, MlmeState};
 use nonos_wifi_core::wpa::akm::Akm;
 use nonos_wifi_core::wpa::supplicant::Supplicant;
 
-/// How a join attempt ended. The supplicant is boxed so the bare endings stay
-/// small.
+/// How a join attempt ended (the supplicant boxed, so the endings stay small).
 pub enum Outcome {
-    /// Associated: the pairwise and group keys and the AP to install them for,
-    /// the AKM that ran, and the supplicant the data path keeps answering the
-    /// AP's group key handshakes with.
+    /// Associated: the keys and the AP to install them for, the AKM that ran,
+    /// and the supplicant that keeps answering the AP's group key handshakes.
     Joined {
         bssid: [u8; 6],
         channel: u8,
-        ptk: [u8; 16],
-        gtk: [u8; 16],
+        ptk: HeldKey,
+        gtk: HeldKey,
         gtk_id: u8,
         akm: Akm,
-        supplicant: Box<Supplicant>,
+        supplicant: Option<Box<Supplicant>>,
     },
     /// The association was refused or the handshake broke; the report's
     /// `failure` says where.
@@ -55,20 +54,22 @@ pub(super) fn finish(mlme: &Mlme) -> Outcome {
     else {
         return Outcome::Refused;
     };
-    let mut ptk = [0u8; 16];
-    let mut group = [0u8; 16];
     if tk.len() < 16 || gtk.len() < 16 {
         return Outcome::Refused;
     }
-    ptk.copy_from_slice(&tk[..16]);
-    group.copy_from_slice(&gtk[..16]);
-    Outcome::Joined {
+    // The keys are copied once, into holders that wipe them where they lie.
+    let mut o = Outcome::Joined {
         bssid: mlme.bssid(),
         channel: mlme.channel(),
-        ptk,
-        gtk: group,
+        ptk: HeldKey([0; 16]),
+        gtk: HeldKey([0; 16]),
         gtk_id,
         akm,
-        supplicant: Box::new(supplicant),
+        supplicant: Some(Box::new(supplicant)),
+    };
+    if let Outcome::Joined { ptk, gtk: group, .. } = &mut o {
+        ptk.0.copy_from_slice(&tk[..16]);
+        group.0.copy_from_slice(&gtk[..16]);
     }
+    o
 }
