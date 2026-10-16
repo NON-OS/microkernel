@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::wifi::{NetStatus, ScanNetwork, ScanStats, WifiInterface};
+use crate::wifi::{ScanNetwork, WifiInterface};
 
 use super::audio_output::AudioOutput;
 use super::cache::FieldValue;
@@ -23,8 +23,11 @@ use super::machine_key::MachineKey;
 use crate::settings::section::{Section, SECTION_COUNT};
 
 use super::state::{State, WifiConnect, WifiScan, FIELD_SLOTS, WIFI_MAX, WIFI_NET_MAX};
+use super::search::Search;
 use super::status::Status;
+use super::wifi_diag::WifiDiag;
 use super::wifi_extra::WifiExtra;
+use super::wifi_pass::WifiPass;
 
 pub fn new() -> State {
     State {
@@ -33,10 +36,7 @@ pub fn new() -> State {
         section: Section::General,
         cursor: [0; SECTION_COUNT],
         scroll_px: [0; SECTION_COUNT],
-        search: EditBuffer::empty(),
-        search_focused: false,
-        search_cursor: 0,
-        search_scroll: 0,
+        search: Search::new(),
         values: [FieldValue::Unknown; FIELD_SLOTS],
         editing: false,
         edit: EditBuffer::empty(),
@@ -47,15 +47,9 @@ pub fn new() -> State {
         wifi_networks: [ScanNetwork::default(); WIFI_NET_MAX],
         wifi_network_count: 0,
         wifi_scan: WifiScan::Idle,
-        wifi_stage: None,
-        wifi_stats: ScanStats::default(),
-        wifi_pass_active: false,
-        wifi_pass_shown: false,
-        wifi_pass: EditBuffer::empty(),
+        wifi_diag: WifiDiag::new(),
+        wifi_pass: WifiPass::new(),
         wifi_connect: WifiConnect::Idle,
-        wifi_datapath: None,
-        wifi_net: NetStatus::NoService,
-        wifi_net_polled_ms: None,
         wifi: WifiExtra::new(),
         machine_key: MachineKey::Unasked,
         audio_output: AudioOutput::Unasked,

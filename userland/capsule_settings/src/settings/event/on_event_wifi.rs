@@ -28,7 +28,7 @@ use super::wifi_key::{wifi_key, WifiKey};
 use super::wifi_radio_key::toggle_radio;
 
 pub(super) fn on_event_wifi(state: &mut State, code: u32) -> EventOutcome {
-    if state.wifi_pass_active {
+    if state.wifi_pass.active {
         return on_passphrase_key(state, code);
     }
     let Some(key) = wifi_key(code) else { return EventOutcome::Idle };
