@@ -21,10 +21,8 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::clients::vfs::read_file;
 use nonos_libc::CapsuleLoadRequest;
 
-// A capsule ELF can be several MB. The artifacts are read here, one file at a
-// time, so a multi-MB ELF never has to cross the IPC boundary in a single
-// message: the caller sends only the name, and the verified blobs are read
-// straight from the store.
+// A capsule ELF can be several MB, so the caller sends only the name and the
+// blobs are read here from the store, one file at a time, never over IPC.
 const MAX_ARTIFACT: u32 = 16 * 1024 * 1024;
 
 pub(super) struct Artifacts {
@@ -67,9 +65,11 @@ impl Artifacts {
 }
 
 fn read_artifact(pid: u32, name: &[u8], ext: &[u8]) -> Result<Vec<u8>, &'static str> {
-    let mut path = Vec::with_capacity(10 + name.len() + ext.len());
-    path.extend_from_slice(b"/capsules/");
-    path.extend_from_slice(name);
-    path.extend_from_slice(ext);
-    read_file(pid, &path, MAX_ARTIFACT)
+    let path = [b"/capsules/".as_slice(), name, ext].concat();
+    // One byte past the cap, so a longer file is refused here, never cut.
+    let blob = read_file(pid, &path, MAX_ARTIFACT + 1)?;
+    if blob.len() > MAX_ARTIFACT as usize {
+        return Err("artifact larger than MAX_ARTIFACT");
+    }
+    Ok(blob)
 }

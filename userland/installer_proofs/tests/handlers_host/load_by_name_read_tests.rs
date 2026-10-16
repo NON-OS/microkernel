@@ -16,6 +16,7 @@
 
 //! load_by_name's reads of the four artifacts, and the cap they are read under.
 
+use crate::alloc_watch::held_after;
 use crate::fixtures::{path, put_artifacts, EXTS, MAX_ARTIFACT, NAME};
 use crate::frame::{by_name, by_name_payload, einval, frame, reply};
 use crate::process::INSTALLER_PID;
@@ -28,10 +29,11 @@ fn load(sender: u32) -> Vec<u8> {
 }
 
 #[test]
-fn the_four_artifacts_are_read_as_the_installer_under_max_artifact() {
+fn the_four_artifacts_are_read_as_the_installer_one_byte_past_max_artifact() {
     put_artifacts(NAME, None);
     load(77);
-    let want: Vec<_> = EXTS.iter().map(|e| (INSTALLER_PID, path(NAME, e), MAX_ARTIFACT)).collect();
+    let cap = MAX_ARTIFACT + 1;
+    let want: Vec<_> = EXTS.iter().map(|e| (INSTALLER_PID, path(NAME, e), cap)).collect();
     assert_eq!(vfs::reads(), want);
 }
 
@@ -50,7 +52,7 @@ fn elf_of(n: usize) -> u32 {
     vfs::put(&path(NAME, EXTS[0]), vec![0xE1; n]);
     assert_eq!(load(77), reply(0, &3u32.to_le_bytes()));
     let loads = syscall::take();
-    assert_eq!(loads[0].blobs[0], vec![0xE1; (n).min(MAX_ARTIFACT as usize)]);
+    assert_eq!(loads[0].blobs[0], vec![0xE1; n]);
     loads[0].req.elf_len
 }
 
@@ -59,10 +61,15 @@ fn an_artifact_of_max_artifact_bytes_is_taken_whole() {
     assert_eq!(elf_of(MAX_ARTIFACT as usize), MAX_ARTIFACT);
 }
 
-// Not refused: read_file stops at max_bytes and returns what it holds, so a
-// longer artifact reaches the load cut to MAX_ARTIFACT (the kernel's trust
-// chain then sees a truncated ELF).
+// read_file stops at the max it is given, so the installer asks for one byte
+// more than it takes: a longer artifact is refused here, and never reaches the
+// load cut to MAX_ARTIFACT.
 #[test]
-fn an_artifact_past_max_artifact_is_cut_to_max_artifact_not_refused() {
-    assert_eq!(elf_of(MAX_ARTIFACT as usize + 1), MAX_ARTIFACT);
+fn an_artifact_past_max_artifact_is_refused_and_dropped_before_the_reply() {
+    put_artifacts(NAME, None);
+    vfs::put(&path(NAME, EXTS[0]), vec![0xE1; MAX_ARTIFACT as usize + 1]);
+    let (answer, held) = held_after(|| load(77));
+    assert_eq!(answer, einval());
+    assert!(syscall::take().is_empty(), "an oversize artifact reached the load syscall");
+    assert!(held < 1 << 20, "{held} bytes still held after the reply");
 }

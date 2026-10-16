@@ -30,9 +30,9 @@ fn elf_len_read(n: usize) -> Option<u32> {
 }
 
 #[test]
-fn read_takes_max_artifact_bytes_and_cuts_one_more_to_max() {
+fn read_takes_max_artifact_bytes_and_refuses_one_more() {
     assert_eq!(elf_len_read(MAX_ARTIFACT as usize), Some(MAX_ARTIFACT));
-    assert_eq!(elf_len_read(MAX_ARTIFACT as usize + 1), Some(MAX_ARTIFACT));
+    assert_eq!(elf_len_read(MAX_ARTIFACT as usize + 1), None);
 }
 
 #[test]
