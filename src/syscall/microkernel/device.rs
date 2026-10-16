@@ -82,13 +82,11 @@ pub fn sys_device_claim(device_id: u64) -> i64 {
     }
 }
 
-// Releases the claim on `device_id` held by the calling pid. Bus
-// mastering stops first, so nothing the device still has in flight can
-// land in a DMA frame once it is freed below; then the outstanding MMIO,
-// IRQ, DMA and PIO grants are torn down (the caller's CR3 is active here
-// so the unmap and TLB shootdown are in-context), and the claim goes
-// last. The exit path performs the same cleanup for every claim a dying
-// capsule was holding, and drops its claims before its DMA grants.
+// Releases the claim on `device_id` held by the calling pid, with every
+// grant made against it (`give_back`, L66). The caller's CR3 is active here,
+// so the unmaps and TLB shootdowns are in-context. The exit path performs
+// the same cleanup for every claim a dying capsule was holding, and drops
+// its claims before its DMA grants.
 pub fn sys_device_release(device_id: u64) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
@@ -96,12 +94,7 @@ pub fn sys_device_release(device_id: u64) -> i64 {
     };
     let pid = crate::hardware::broker::holder_of(pid);
     trace_release(b"enter", pid);
-    let _ = broker::quiesce_held_device(pid, device_id);
-    let _ = broker::release_for_device(pid, device_id);
-    let _ = broker::irq_release_for_device(pid, device_id);
-    let _ = broker::dma_release_for_device(pid, device_id);
-    let _ = broker::pio_release_for_device(pid, device_id);
-    match broker::release_device(pid, device_id) {
+    match broker::give_back(pid, device_id) {
         Ok(_epoch) => {
             trace_release(b"ok", pid);
             0

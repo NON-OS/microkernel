@@ -14,12 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::ops::Deref;
+
+use super::stage_rule::grantable;
 use super::state::CLAIMS;
 use super::types::Claim;
 
-/// The device's claim once it is made. One still being made reads as none,
-/// so nothing is mapped, bound or written for a claim the broker may yet
-/// refuse (L65).
-pub fn lookup(device_id: u64) -> Option<Claim> {
-    CLAIMS.lock().iter().find(|c| c.device_id == device_id && c.ready).copied()
+/// A ready claim, held by one grant path for as long as this lives. A
+/// release waits for every one to go before it drains, so a grant whose
+/// check passed is recorded before the drain looks for it (L66).
+pub(crate) struct InUse(Claim);
+
+impl Deref for InUse {
+    type Target = Claim;
+    fn deref(&self) -> &Claim {
+        &self.0
+    }
+}
+
+impl Drop for InUse {
+    fn drop(&mut self) {
+        let key = (self.0.pid, self.0.device_id, self.0.epoch);
+        let mut claims = CLAIMS.lock();
+        if let Some(c) = claims.iter_mut().find(|c| (c.pid, c.device_id, c.epoch) == key) {
+            c.inflight = c.inflight.saturating_sub(1);
+        }
+    }
+}
+
+/// The device's claim once it is made and until its release begins. One
+/// still being made, or being released, reads as none, so nothing is mapped,
+/// bound or written for it (L65, L66).
+pub(crate) fn lookup(device_id: u64) -> Option<InUse> {
+    let mut claims = CLAIMS.lock();
+    let c = claims.iter_mut().find(|c| c.device_id == device_id && grantable(c.stage))?;
+    c.inflight = c.inflight.checked_add(1)?;
+    Some(InUse(*c))
 }

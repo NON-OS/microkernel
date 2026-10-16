@@ -23,7 +23,7 @@ use super::raw::{in16, in32, in8};
 use super::resolve::resolve;
 
 pub fn read(pid: u32, grant_id: u64, port_offset: u16, width: PioWidth) -> Result<u32, PioError> {
-    let g = resolve(pid, grant_id, port_offset, width)?;
+    let (g, _held) = resolve(pid, grant_id, port_offset, width)?;
     let port = g.port_base + port_offset;
     let value = unsafe {
         match width {
