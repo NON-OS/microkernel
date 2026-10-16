@@ -31,7 +31,7 @@ use crate::settings::section::Section;
 fn appearance_stops_on_every_wallpaper_in_order() {
     let n = WALLPAPER_LABELS.len();
     let s = Section::Appearance;
-    assert_eq!(field_count(s), 2 + n + 1 + 3);
+    assert_eq!(field_count(s), 2 + n + 1 + 4);
     assert!(slot_at(s, 0) == Some(Slot::Field(Field::Wallpaper)));
     assert!(slot_at(s, 1) == Some(Slot::Field(Field::WallpapersKept)));
     for i in 0..n {
@@ -39,10 +39,11 @@ fn appearance_stops_on_every_wallpaper_in_order() {
         assert!(field_at(s, 2 + i).is_none(), "a wallpaper row names no field");
     }
     assert!(slot_at(s, 2 + n) == Some(Slot::Field(Field::MouseSensitivity)));
-    for (i, k) in [Knob::Arrange, Knob::Screen, Knob::Scale].into_iter().enumerate() {
+    let displays = [Knob::Arrange, Knob::Screen, Knob::Scale, Knob::Brightness];
+    for (i, k) in displays.into_iter().enumerate() {
         assert!(slot_at(s, 3 + n + i) == Some(Slot::Access(k)), "display row {i}");
     }
-    assert!(slot_at(s, 6 + n).is_none());
+    assert!(slot_at(s, 7 + n).is_none());
 }
 
 #[test]

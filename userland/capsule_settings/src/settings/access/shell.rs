@@ -31,6 +31,7 @@ pub const OP_ACCESSIBILITY_GET: u16 = 0x000A;
 pub const OP_DISPLAY_LAYOUT: u16 = 0x000B;
 pub const OP_DISPLAY_SCALE: u16 = 0x000C;
 pub const OP_DISPLAY_ARRANGEMENT: u16 = 0x000D;
+pub const OP_DISPLAY_BRIGHTNESS: u16 = 0x000E;
 /// The longest answer: the arrangement's eight u32s.
 const ANSWER_MAX: usize = 32;
 const TIMEOUT_MS: u64 = 1000;

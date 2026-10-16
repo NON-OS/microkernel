@@ -35,8 +35,13 @@ pub const APPEARANCE: &[Block] = &[
     },
     Block {
         title: "Displays",
-        note: Some("Extended waits for a second display; each display has its own scale."),
+        note: Some("Extended waits for a second display; each display has its own scale. Brightness follows the brightness keys."),
         pill: Pill::None,
-        rows: &[Row::Access(Knob::Arrange), Row::Access(Knob::Screen), Row::Access(Knob::Scale)],
+        rows: &[
+            Row::Access(Knob::Arrange),
+            Row::Access(Knob::Screen),
+            Row::Access(Knob::Scale),
+            Row::Access(Knob::Brightness),
+        ],
     },
 ];

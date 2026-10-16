@@ -41,6 +41,8 @@ pub struct ScreenPage {
     pub output: u32,
     /// Whether `shown` came from the compositor.
     pub read: bool,
+    /// Each display's brightness now in percent (`levels.rs`), read only.
+    pub levels: [Option<u8>; 4],
 }
 
 fn step_in(v: u32, n: u32, delta: i32) -> u32 {

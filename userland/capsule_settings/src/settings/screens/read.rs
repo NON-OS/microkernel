@@ -17,10 +17,11 @@
 //! The displays read from the compositor, through the shell: on entering
 //! Appearance, and after each change, so the rows say what the screens do.
 
-use crate::settings::access::shell::{call, OP_DISPLAY_ARRANGEMENT};
+use crate::settings::access::shell::{call, OP_DISPLAY_ARRANGEMENT, OP_DISPLAY_BRIGHTNESS};
 use crate::settings::state::status::StatusKind;
 use crate::settings::state::State;
 
+use super::levels::{levels, ANSWER_LEN};
 use super::wire::shown;
 
 /// The displays as the compositor lays them out now; the chosen display
@@ -30,11 +31,21 @@ pub fn read(state: &mut State) {
     match call(OP_DISPLAY_ARRANGEMENT, &[], &mut out).ok().and_then(|()| shown(&out)) {
         Some(s) => {
             let output = state.screens.output.min(s.outputs - 1);
-            state.screens = super::ScreenPage { shown: s, output, read: true };
+            let levels = brightness();
+            state.screens = super::ScreenPage { shown: s, output, read: true, levels };
         }
         None => {
             state.screens.read = false;
             state.status.set(StatusKind::Error, b"the displays could not be read");
         }
+    }
+}
+
+/// Each display's brightness now, through the shell; none when not answered.
+fn brightness() -> [Option<u8>; 4] {
+    let mut answer = [0u8; ANSWER_LEN];
+    match call(OP_DISPLAY_BRIGHTNESS, &[], &mut answer) {
+        Ok(()) => levels(&answer),
+        Err(_) => [None; 4],
     }
 }
