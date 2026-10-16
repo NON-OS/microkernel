@@ -23,6 +23,7 @@ use crate::fixture::{air, keyboard, link, with, HID_ADV};
 use crate::hogp_sim::keyboard_mouse;
 use crate::link::{hang_up, End};
 use crate::smp_sim::Peer;
+use nonos_bt_hci::HciError;
 use nonos_bt_smp::method::IoCap;
 use nonos_bt_wire::hci::opcode as op;
 
@@ -61,10 +62,11 @@ fn a_silent_peripheral_runs_out_the_att_timer() {
     assert!(env.now >= 30_000, "gave up early, at {} ms", env.now);
 }
 
+/// The controller must be brought up again (Vol 4, Part E, 7.7.16): the
+/// link and the controller's run end together.
 #[test]
-fn a_hardware_error_ends_the_link() {
+fn a_hardware_error_ends_the_link_and_the_controller_run() {
     let (mut host, ours, mut env) = keyboard();
     air(&mut host).script.push_back(Act::Event(vec![0x10, 1, 0x00]));
-    let (end, _) = link(&mut host, &ours, &mut env).unwrap();
-    assert_eq!(end, End::GaveUp("controller hardware error"));
+    assert_eq!(link(&mut host, &ours, &mut env).err(), Some(HciError::Reset));
 }

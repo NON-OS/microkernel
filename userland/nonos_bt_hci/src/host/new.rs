@@ -17,6 +17,7 @@
 //! A host on a transport, before bring-up.
 
 use alloc::collections::VecDeque;
+use alloc::vec::Vec;
 
 use super::state::{Host, POLL_BUDGET};
 use crate::transport::Transport;
@@ -31,7 +32,7 @@ impl<T: Transport> Host<T> {
         let (queue, dropped, credits) = (VecDeque::new(), 0, 1);
         let (acl_len, acl_total, acl_free) = (0, 0, 0);
         let (own, scan_filter) = (AddrType::Public, super::scan::ACCEPT_ALL);
-        let data_length = None;
+        let (data_length, held, resetting) = (None, Vec::new(), false);
         Self {
             t,
             credits,
@@ -44,6 +45,8 @@ impl<T: Transport> Host<T> {
             own,
             scan_filter,
             data_length,
+            held,
+            resetting,
         }
     }
 }

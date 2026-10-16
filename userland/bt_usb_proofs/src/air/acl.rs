@@ -37,6 +37,7 @@ impl Air {
         assert!(data.len() <= LE_ACL, "an ACL packet longer than the LE buffer");
         let done = completed(HANDLE, 1);
         match self.lazy_credits {
+            _ if self.lies.withhold => {}
             true => self.held.push(done),
             false => self.event(&done),
         }
