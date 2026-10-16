@@ -10,7 +10,7 @@ its polled bulk IN. It has no owner certificate yet, so no image carries it.
 
 `capsule_driver_rndis` is the USB RNDIS (Microsoft Remote NDIS) class
 capsule. It finds one RNDIS function on driver.xhci0's ports, binds it as
-Linux `rndis_host` does, and serves Ethernet frames to net.core over NNET,
+Remote NDIS 1.0 describes, and serves Ethernet frames to net.core over NNET,
 the protocol every NONOS network driver speaks.
 
 ```text
@@ -38,14 +38,15 @@ capsule holds only the RNDIS binding, control channel and framing
    SET_INTERFACE unless the pipes sit on a nonzero alternate setting.
 3. INITIALIZE (RNDIS 1.0, host MaxTransferSize 4096), then the completion's
    status, medium (802.3) and MaxTransferSize (a full frame must fit).
-4. QUERY OID_802_3_PERMANENT_ADDRESS: six bytes, a unicast address, or the
-   bind fails.
+4. QUERY OID_802_3_PERMANENT_ADDRESS: six bytes placed after the
+   completion's 24-byte header, a unicast address, or the bind fails.
 5. SET OID_GEN_CURRENT_PACKET_FILTER: directed, broadcast, all multicast.
 
 Each command is SEND_ENCAPSULATED_COMMAND, then GET_ENCAPSULATED_RESPONSE
-polled every 10 ms for up to a second, matching the type and RequestID and
-passing over INDICATE_STATUS messages. A failure after INITIALIZE sends
-HALT.
+polled every 10 ms for up to a second, matching the type and RequestID
+against only the bytes the device sent. INDICATE_STATUS messages are not
+the answer; a media state among them is kept, and the link starts from the
+last one. A failure after INITIALIZE sends HALT.
 
 ## Framing
 
@@ -55,14 +56,16 @@ bulk IN of 4096 bytes may hold several messages; each is checked against
 the transfer and its frame against the message, and the frames go up one
 per receive. A malformed message is dropped.
 
-The link reads up once bound, and from then on follows what the device
+The link reads up once bound unless the device indicated a disconnect
+while the bind waited, and from then on follows what the device
 sends unasked. Its control interface's interrupt IN endpoint is configured
 (Bus::configure_interrupt) and looked at once every 64 receives. When it
 says a response waits, one GET_ENCAPSULATED_RESPONSE is read:
 INDICATE_STATUS with MEDIA_CONNECT or MEDIA_DISCONNECT sets the link, and a
 KEEPALIVE is answered with KEEPALIVE_CMPLT under its RequestID (Remote
 NDIS 1.0, as recalled, unverified). Each message's length is checked
-against what came. A device without the endpoint reads up while bound.
+against what came and against its own header (20 bytes for
+INDICATE_STATUS, 12 for KEEPALIVE). A device without the endpoint reads up while bound.
 
 Only the OIDs a station needs are asked: OID_802_3_PERMANENT_ADDRESS
 (QUERY) and OID_GEN_CURRENT_PACKET_FILTER (SET).
@@ -141,7 +144,7 @@ pipe is reset on the controller and its halt cleared on the device.
 
 ## Current implemented surface
 
-RNDIS binding as the Linux driver binds it (README sections above, and
+RNDIS binding as Remote NDIS 1.0 describes it (README sections above, and
 docs/hardware/), and the framing: one PACKET_MSG per frame out; every PACKET_MSG of a transfer in, checked against the transfer and handed up one per request.
 
 ## Wire format
@@ -195,6 +198,6 @@ ActiveSync devices, wireless RNDIS (rndis_wlan), keepalives sent by the host, de
 
 ## Verification
 
-`cd userland/rndis_proofs && cargo test` (22 pass at the time of
+`cd userland/rndis_proofs && cargo test` (29 pass at the time of
 writing); the capsule's `cargo build --release` and `cargo clippy` for
 x86_64-nonos-user. Not verified under QEMU or on hardware.
