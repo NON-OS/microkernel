@@ -93,8 +93,9 @@ logs `controller not usable: ACL endpoints refused`.
 
 A link that ends from the peer's side goes straight back to step 1. One
 this host gave up on (pairing declined, encryption refused, a 30 s
-pairing or ATT timer, a hardware error) is ended with Disconnect, and the
-next look waits 30 s.
+pairing or ATT timer, a PDU that found no ACL buffer for 32 s, the
+controller giving the link's handle to another) is ended with Disconnect,
+and the next look waits 30 s.
 
 ## Not yet
 
@@ -236,10 +237,30 @@ looked at again; a port that fails three binds is left until it reconnects.
 
 Every wait is bounded: a command by the HCI poll budget, a scan by 10 s,
 pairing and ATT by their 30 s timers. Data from the peer that does not
-parse costs that PDU only. A refused pairing, a refused key, a silent
-peripheral or a hardware error ends the link with Disconnect and a 30 s
-pause. A failed USB transfer gives the controller back. A failed random
-draw stops the capsule rather than pair with guessable keys.
+parse costs that PDU only. A refused pairing, a refused key or a silent
+peripheral ends the link with Disconnect and a 30 s pause. A failed USB
+transfer gives the controller back. A failed random draw stops the
+capsule rather than pair with guessable keys.
+
+A controller that lies is bounded too:
+- **It resets itself.** A Hardware Error, or a Reset it completes
+  unasked, ends the link and gives the controller back, to be bound and
+  brought up again: `controller given back: controller reset itself`. A
+  reset without a word leaves the link quiet. After 10 s with nothing
+  from the peer, the controller is asked with Read RSSI whether it still
+  has the link, and one that does not has reset.
+- **It stops answering.** The next command waits the poll budget, then
+  the controller is given back. That includes the check of a quiet link
+  and the LE Connection Update a peripheral asked for.
+- **It keeps ACL buffers.** A PDU that finds no buffer for 32 s, the
+  greatest supervision timeout, ends the link. The buffers the link held
+  are free again once it is down.
+- **It gives an open link's handle to another link.** This link ends.
+  A link this host never asked for is ended with Disconnect.
+- **It floods events.** One is taken a turn, beside the peer's data, and
+  every timer still runs.
+
+However a link ends, every key and button still down goes up.
 
 ## Current implemented surface
 
