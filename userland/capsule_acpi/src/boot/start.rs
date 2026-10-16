@@ -29,7 +29,7 @@ pub fn boot() -> Option<Acpi> {
     let ec = crate::ec::find(&mut aml, &mut host);
     host.ec = ec.as_ref().map(|e| (e.ports, e.glk));
     say_ec(ec.as_ref());
-    bringup::bring_up(&mut aml, &mut host);
+    let grants = bringup::bring_up(&mut aml, &mut host);
     let (devices, routes) = report::read(&mut aml, &mut host);
     crate::sleep::read_s5(&mut aml, &mut host);
     let (events, sci) = sci::start(&t.fadt, &mut aml, &mut host, ec.as_ref().and_then(|e| e.gpe));
@@ -70,6 +70,6 @@ pub fn boot() -> Option<Acpi> {
         scis: 0,
         gpe_runs: 0,
     };
-    super::late::late(&mut acpi);
+    super::late::late(&mut acpi, &grants);
     Some(acpi)
 }

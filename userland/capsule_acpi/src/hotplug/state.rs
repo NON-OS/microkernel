@@ -18,6 +18,7 @@
 //! device stood for while it was there (a device that has left cannot be
 //! asked), the buses each bridge led to, and ejects still waiting.
 
+pub use super::stage::{Pending, Stage};
 use alloc::vec::Vec;
 use nonos_aml::namespace::Id;
 
@@ -29,20 +30,6 @@ pub struct Bridge {
     pub subordinate: u8,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Stage {
-    /// A function below is still held; asked again on the tick.
-    Held,
-    /// `_EJ0` ran; waiting for `_STA` to say the device is gone.
-    Verify { until_ms: u64 },
-}
-
-pub struct Pending {
-    pub id: Id,
-    pub stage: Stage,
-    pub next_ms: u64,
-}
-
 #[derive(Default)]
 pub struct Hotplug {
     pub known: Vec<(Id, Vec<Bdf>)>,
@@ -50,6 +37,8 @@ pub struct Hotplug {
     pub pending: Vec<Pending>,
     /// Docks `_DCK(1)` has docked.
     pub docked: Vec<Id>,
+    /// The ports native hot plug drives, when its switch is on.
+    pub native: crate::hotplug::native::Native,
 }
 
 impl Hotplug {
