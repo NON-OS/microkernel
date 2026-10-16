@@ -32,7 +32,7 @@ use super::table_check::{declared_length, verify, TableError, FACS_HEADER, HEADE
 /// Where the `instance`th table with `sig` is. The DSDT and FACS are named
 /// by the FADT (ACPI 6.5, 5.2.9), SSDTs share one signature so each has an
 /// index, and every other table is one per signature.
-fn locate(sig: [u8; 4], instance: u32) -> Option<u64> {
+pub(super) fn locate(sig: [u8; 4], instance: u32) -> Option<u64> {
     let tables = TABLES.read();
     let reg = tables.as_ref()?;
     let one = |a: u64| (instance == 0 && a != 0).then_some(a);
