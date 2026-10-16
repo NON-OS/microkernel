@@ -122,6 +122,8 @@ mod router_hover_tests;
 #[cfg(test)]
 mod router_key_tests;
 #[cfg(test)]
+mod router_lid_key_tests;
+#[cfg(test)]
 mod router_pad_hold_tests;
 #[cfg(test)]
 mod router_pad_tests;
