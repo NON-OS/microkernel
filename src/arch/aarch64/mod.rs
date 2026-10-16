@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// A number becomes a pointer only in `mmu::pointer`, which says what each
+// kind of address means; anywhere else it is refused at compile time, and
+// the few allowed exceptions are counted (nonos-ci/run-static-checks.sh).
+#![deny(fuzzy_provenance_casts)]
+
 pub mod abi;
 pub mod asm;
 pub mod boot;

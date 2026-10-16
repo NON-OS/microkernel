@@ -52,9 +52,13 @@ pub(crate) unsafe fn rebase(
     }
     for r in relas {
         let at_place = at.load_base.wrapping_add(r.offset.wrapping_sub(at.link_base));
+        // The image's own address, as it runs, not a physical one: counted
+        // by run-static-checks.sh.
+        #[cfg_attr(target_os = "none", allow(fuzzy_provenance_casts))]
+        let word = at_place as *mut u64;
         // SAFETY: `place` and the check above put these 8 bytes inside the
         // image's writable part, aligned; the caller keeps them unread.
-        unsafe { core::ptr::write_volatile(at_place as *mut u64, r.addend.wrapping_add(bias)) };
+        unsafe { core::ptr::write_volatile(word, r.addend.wrapping_add(bias)) };
     }
     Ok(relas.len())
 }
