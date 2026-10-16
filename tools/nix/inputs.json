@@ -892,6 +892,7 @@
    "src/hardware/broker/acpi/slot_rule.rs",
    "src/hardware/broker/acpi/slot_wire.rs",
    "userland/capsule_acpi/src/aei/rate.rs",
+   "userland/capsule_acpi/src/backlight/engine_rule.rs",
    "userland/capsule_acpi/src/boot/pass.rs",
    "userland/capsule_acpi/src/cpu/caps.rs",
    "userland/capsule_acpi/src/cpu/caps_kernel.rs",

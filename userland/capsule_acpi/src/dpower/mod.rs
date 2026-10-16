@@ -32,7 +32,7 @@ pub mod wake_sweep;
 mod wire;
 
 pub use hidden::reveal_hidden;
-pub use ready::bridge_bus;
+pub use ready::{bridge_bus, pci_function};
 pub use settle::{tick, Hidden};
 pub use target::target;
 pub use wake::Wakes;
