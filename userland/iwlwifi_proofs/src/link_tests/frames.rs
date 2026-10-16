@@ -2,10 +2,6 @@
 
 //! The addresses and the Ethernet frame both directions carry.
 
-use crate::gen3::extract_mpdu;
-use crate::gen3::tx_cmd;
-use crate::station::{Ccmp, LinkStation};
-
 pub(super) const OUR: [u8; 6] = [0x02, 0x00, 0x00, 0x00, 0x00, 0x02];
 pub(super) const BSSID: [u8; 6] = [0x02, 0x00, 0x00, 0x00, 0x00, 0x01];
 pub(super) const RATE_N_FLAGS: u32 = 0x0000_0003;
