@@ -36,3 +36,5 @@ pub const OP_OUTPUT_SCALE: u16 = 0x000D;
 pub const OP_NIGHT_LIGHT: u16 = 0x000E;
 /// The shell's accessibility settings for one output.
 pub const OP_ACCESSIBILITY: u16 = 0x000F;
+/// One output's accessibility settings as they are now.
+pub const OP_ACCESSIBILITY_GET: u16 = 0x0010;
