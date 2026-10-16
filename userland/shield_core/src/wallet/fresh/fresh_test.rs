@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::arithmetic_side_effects)]
-
 //! SIGN_FROM_FRESH's refusals, each by name, and a signature that recovers
 //! to the fresh address (v1.4.51).
 

@@ -1,5 +1,4 @@
 // A test runs hostile input through each parser; any panic fails it.
-#![allow(clippy::indexing_slicing, clippy::arithmetic_side_effects)]
 
 //! What an RPC host, a policy read or a fee read can send: no parser may panic or loop.
 
