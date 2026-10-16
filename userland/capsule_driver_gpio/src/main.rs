@@ -31,6 +31,7 @@ mod bank;
 mod ctl;
 mod deliver;
 mod discover;
+mod gone;
 mod irq;
 mod irq_wait;
 mod mmio;
