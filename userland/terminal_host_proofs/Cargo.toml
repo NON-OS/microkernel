@@ -1,0 +1,26 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the terminal capsule's pure parts: the window and rail layout,
+# the rail's metrics and formatters, the palette, the prefs record, the theme
+# profiles, input syntax, history search, the `ls`, `neofetch` and `nox pull`
+# helpers, the shared flag parser and the context line. Each test target mounts
+# the real capsule sources by `#[path]`, so what passes is what ships.
+[package]
+name = "terminal_host_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The policy wire the context line's lookup is written against, so a drift in
+# the ABI fails here instead of passing against a mirror.
+nonos_policy_proto = { path = "../policy_proto" }
+# The shared codecs a pull decodes and authenticates with, as the capsule links
+# them: whole crates, so their exports are reached the way the capsule does.
+nonos_base64 = { path = "../base64" }
+nonos_inflate = { path = "../inflate" }
