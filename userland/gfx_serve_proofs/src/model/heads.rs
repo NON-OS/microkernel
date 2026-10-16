@@ -17,7 +17,7 @@
 //! A display with several heads, as Intel's pipes are: each output has
 //! its own mode and its own scanout memory, set and flushed alone. A head
 //! can be marked lost, as an underrun or a dropped link leaves it, and
-//! reports so on its next STATE.
+//! reports so on its next STATE; or dark, as a pulled monitor leaves it.
 
 use nonos_gfx_wire::body::caps::{MODE_RANGE, MODE_SET};
 use nonos_gfx_wire::Caps;
@@ -27,6 +27,8 @@ pub struct Head {
     pub size: (u32, u32),
     pub fb: Vec<u32>,
     pub lost: bool,
+    /// Its monitor pulled: neither scanning out nor lost.
+    pub dark: bool,
     /// Mode sets this head has had, re-programs after a loss included.
     pub sets: u32,
 }
