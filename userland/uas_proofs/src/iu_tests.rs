@@ -27,7 +27,7 @@ fn a_task_iu_names_the_task_it_manages() {
 fn status_ius_are_read_and_others_are_not() {
     assert_eq!(status_iu(&[0x06, 0, 0, 7]), Some(StatusIu::ReadReady { tag: 7 }));
     assert_eq!(status_iu(&[0x07, 0, 1, 0]), Some(StatusIu::WriteReady { tag: 256 }));
-    let mut sense = vec![0x03, 0, 0, 7, 0, 0, 0x02, 0, 0, 0, 0, 0, 0, 3, 0, 0];
+    let mut sense = vec![0x03, 0, 0, 7, 0, 0, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 3];
     sense.extend([0x70, 0, 0x05]);
     let want = StatusIu::Sense { tag: 7, status: 2, sense: &[0x70, 0, 0x05] };
     assert_eq!(status_iu(&sense), Some(want));

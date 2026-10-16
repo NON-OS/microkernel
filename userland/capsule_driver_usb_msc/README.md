@@ -112,7 +112,9 @@ USB mass-storage transport before issuing more commands.
 - USB Attached SCSI at high speed (nonos_uas): a device with a UAS
   alternate (protocol 62h) on a high-speed port is bound by it, command and
   status pipes on the host's first bulk pair, data pipes on its second
-  (OP_CONFIGURE_BULK2, 0x23). One command in flight under tag 1; READ READY
+  (OP_CONFIGURE_BULK2, 0x23). One command in flight, tags 1 and 2 by turns (an IU
+  for the other tag, or after the command ended, is let go and counted,
+  eight at most); READ READY
   or WRITE READY before the data, a Sense IU at the end, and a CHECK
   CONDITION's sense kept for the REQUEST SENSE that follows. At SuperSpeed
   it moves on streams (OP_CONFIGURE_STREAMS, 0x24): three on the status and

@@ -32,6 +32,8 @@ mod span_tests;
 #[cfg(test)]
 mod transport_tests;
 #[cfg(test)]
+mod uas_tag_tests;
+#[cfg(test)]
 mod uas_tests;
 
 #[cfg(kani)]

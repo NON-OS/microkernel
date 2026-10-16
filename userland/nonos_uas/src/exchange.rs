@@ -14,27 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! One command's exchange, step by step. The Command IU sent, a USB 2
+//! One command's exchange, step by step. The Command IU sent, a USB 2
 //! device says READ READY or WRITE READY on the status pipe before the
 //! data moves; at SuperSpeed the data moves on the command's stream at
-//! once. Either way a Sense IU with its tag ends it, and a Response IU, or
-//! any IU not for it, fails it.
+//! once. Either way a Sense IU with its tag ends it and a Response IU with
+//! its tag fails it (heed.rs); an IU for another tag, or one after the
+//! command ended, is let go and counted.
 
-use crate::command::{DataDir, ScsiCommand};
-use crate::status::StatusIu;
+use crate::command::DataDir;
 use crate::step::Step;
 
-const OUT_OF_TURN: u8 = 0x02;
-
 pub struct Exchange {
-    tag: u16,
-    dir: DataDir,
-    streams: bool,
-    moved: bool,
+    pub(crate) tag: u16,
+    pub(crate) dir: DataDir,
+    pub(crate) streams: bool,
+    pub(crate) moved: bool,
+    pub(crate) ended: bool,
+    pub(crate) dropped: u8,
 }
 
 impl Exchange {
     pub fn new(tag: u16, dir: DataDir, streams: bool) -> Exchange {
-        Exchange { tag, dir, streams, moved: false }
+        Exchange { tag, dir, streams, moved: false, ended: false, dropped: 0 }
     }
 
     /// The step after the Command IU went out.
@@ -52,18 +53,8 @@ impl Exchange {
         Step::Status
     }
 
-    /// The step after `iu` came on the status pipe.
-    pub fn status(&mut self, iu: StatusIu, cmd: &mut dyn ScsiCommand) -> Step {
-        let ready = |want: DataDir| !self.streams && !self.moved && self.dir == want;
-        match iu {
-            StatusIu::ReadReady { tag } if tag == self.tag && ready(DataDir::In) => Step::DataIn,
-            StatusIu::WriteReady { tag } if tag == self.tag && ready(DataDir::Out) => Step::DataOut,
-            StatusIu::Sense { tag, status, sense } if tag == self.tag => {
-                cmd.finished(status, sense);
-                Step::Done
-            }
-            StatusIu::Response { tag, code } if tag == self.tag => Step::Failed(code),
-            _ => Step::Failed(OUT_OF_TURN),
-        }
+    /// The IUs let go: for no command in flight, or after this one ended.
+    pub fn dropped(&self) -> u8 {
+        self.dropped
     }
 }

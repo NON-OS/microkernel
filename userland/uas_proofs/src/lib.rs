@@ -6,6 +6,8 @@
 pub mod disks;
 
 #[cfg(test)]
+mod dropped_tests;
+#[cfg(test)]
 mod exchange_tests;
 #[cfg(test)]
 mod iu_tests;

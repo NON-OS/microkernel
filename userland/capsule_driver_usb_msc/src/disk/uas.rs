@@ -16,9 +16,9 @@
 //! One UAS command: the Command IU out on the command pipe,
 //! then the status pipe read for what comes next (READ READY or WRITE
 //! READY before the data moves on the data pipes, a Sense IU at the end),
-//! nonos_uas's Exchange keeping the order. One command is in flight, so
-//! one tag serves. A CHECK CONDITION's sense comes with it and is kept for
-//! the REQUEST SENSE the driver asks next.
+//! nonos_uas's Exchange keeping the order. One command is in flight, its
+//! tag not the last one's (State::uas_tag). A CHECK CONDITION's sense
+//! comes with it and is kept for the REQUEST SENSE the driver asks next.
 
 use nonos_uas::{command_iu, status_iu, Exchange, Step, COMMAND_IU_LEN};
 
@@ -29,7 +29,6 @@ use crate::protocol::{E_INVAL, E_IO};
 use crate::state::State;
 use crate::xhci::{bulk_in_on, bulk_out_on};
 
-const TAG: u16 = 1;
 /// A Sense IU's 16 bytes and its sense, in one high-speed packet.
 const STATUS_MAX: usize = 512;
 
@@ -45,12 +44,13 @@ pub fn command(
     }
     let dir = dir_of(&data);
     let mut cmd = Cmd { cdb, dir, len: len as u32, ended: None };
-    let iu = command_iu(TAG, disk.lun, &cmd).ok_or(E_INVAL)?;
+    let tag = state.uas_tag();
+    let iu = command_iu(tag, disk.lun, &cmd).ok_or(E_INVAL)?;
     if bulk_out_on(disk.xhci, disk.slot, 0, &iu) != Ok(COMMAND_IU_LEN) {
         return Err(E_IO);
     }
-    let (mut x, mut moved, mut buf) = (Exchange::new(TAG, dir, disk.streams), 0, [0u8; STATUS_MAX]);
-    let status_lane = lane(disk, 0, TAG);
+    let (mut x, mut moved, mut buf) = (Exchange::new(tag, dir, disk.streams), 0, [0u8; STATUS_MAX]);
+    let status_lane = lane(disk, 0, tag);
     let mut step = x.sent();
     loop {
         step = match step {
@@ -60,7 +60,7 @@ pub fn command(
                 x.status(iu, &mut cmd)
             }
             Step::DataIn | Step::DataOut => {
-                moved = move_data(disk, &mut data, TAG)?;
+                moved = move_data(disk, &mut data, tag)?;
                 x.moved()
             }
             Step::Done => break,
