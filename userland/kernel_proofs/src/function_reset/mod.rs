@@ -14,14 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[path = "../../../../src/hardware/broker/claim/leaving.rs"]
+pub mod leaving;
 #[path = "../../../../src/hardware/broker/claim/reset_rule.rs"]
 pub mod reset_rule;
 #[path = "../../../../src/hardware/broker/claim/reset_run.rs"]
 pub mod reset_run;
 #[path = "../../../../src/hardware/broker/claim/reset_wait.rs"]
 pub mod reset_wait;
+#[path = "../../../../src/hardware/broker/claim/retire.rs"]
+pub mod retire;
+#[path = "../../../../src/hardware/broker/claim/types.rs"]
+pub mod types;
 #[cfg(test)]
 mod fake;
+#[cfg(test)]
+mod retire_fake;
+#[cfg(test)]
+mod retire_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
