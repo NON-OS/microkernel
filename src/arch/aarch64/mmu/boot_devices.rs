@@ -17,15 +17,13 @@
 use super::super::boot::info::BootInfo;
 use super::geometry::{BLOCK_2M, ENTRIES, GIB};
 use super::l2_pool::l2_under;
-use super::{state, PageAttributes};
+use super::{kernel_va, state, PageAttributes};
 
-/// Map what the kernel reaches before any driver exists: the console and the
-/// interrupt controller. The redistributors are a separate window, often
-/// megabytes away, and without them no core's timer tick ever arrives.
+/// What the kernel reaches before any driver exists: the console and the
+/// interrupt controller, whose redistributors carry every core's tick.
 pub(super) unsafe fn map_devices(boot_info: &BootInfo) {
     let attrs = PageAttributes::device();
-    // Zero is "absent", the GICv2 redistributor or the GICv3 CPU interface:
-    // mapped anyway, it turns RAM at 0, the Pi 4's first 4 MiB, into Device.
+    // Zero is "absent"; mapped anyway it turns the Pi 4's RAM at 0 Device.
     map_device_range(boot_info.uart.base, 1, &attrs);
     map_device_range(boot_info.gic_dist_base, 1, &attrs);
     map_device_range(boot_info.gic_cpu_base, 1, &attrs);
@@ -37,8 +35,7 @@ pub(super) unsafe fn map_devices(boot_info: &BootInfo) {
     if let Some((msi, _)) = boot_info.msi {
         map_device_range(msi.base, msi.size, &attrs);
     }
-    // The bridge's I/O window and BAR memory. Config space is the MMIO
-    // mapper's, once the unified address space is up.
+    // The bridge's I/O window and BAR memory; config space is the mapper's.
     map_device_range(boot_info.pci_io_cpu_base, boot_info.pci_io_size, &attrs);
     map_device_range(boot_info.pci_mmio_base, boot_info.pci_mmio_size, &attrs);
     map_device_range(boot_info.rtc_base, BLOCK_2M, &attrs);
@@ -56,16 +53,23 @@ unsafe fn map_device_range(base: u64, size: u64, attrs: &PageAttributes) {
     }
 }
 
-/// Identity map the 2MB block holding one MMIO window, in the level 2 table of
-/// its gigabyte, which RAM there shares. Past 512 GiB, or with no table left,
-/// it stays unmapped and the first access faults, by name.
+/// Map the 2MB block holding one MMIO window one to one and at its high
+/// alias, each in the level 2 table of its gigabyte, which RAM there shares.
+/// Past 512 GiB, or with no table left, it stays unmapped and the first
+/// access faults, by name; without the high alias the kernel does not move.
 unsafe fn map_device_block(addr: u64, attrs: &PageAttributes) {
     let l1_idx = (addr / GIB) as usize;
+    let l2_idx = ((addr / BLOCK_2M) % ENTRIES as u64) as usize;
+    let block = addr & !(BLOCK_2M - 1);
     if l1_idx >= ENTRIES {
+        kernel_va::high_short();
         return;
     }
-    let Some(l2) = l2_under(state::l1(), l1_idx) else {
-        return;
-    };
-    l2.set_block(((addr / BLOCK_2M) % ENTRIES as u64) as usize, addr & !(BLOCK_2M - 1), attrs);
+    if let Some(l2) = l2_under(state::l1(), l1_idx) {
+        l2.set_block(l2_idx, block, attrs);
+    }
+    match l2_under(state::l1_high(), l1_idx) {
+        Some(l2) => l2.set_block(l2_idx, block, attrs),
+        None => kernel_va::high_short(),
+    }
 }

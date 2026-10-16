@@ -9,6 +9,7 @@ use super::PageAttributes;
 use super::{direct_map, geometry, map, state, tables_build, unmap};
 use crate::arch::aarch64::boot::info::BootInfo;
 
+pub use super::alias::{high_mapped, is_text, text_pages};
 pub use super::image_bounds::{IMAGE, TEXT};
 pub use super::text_guard::GUARDED;
 pub const KERNEL_SPACE_START: u64 = geometry::KERNEL_SPACE_START;

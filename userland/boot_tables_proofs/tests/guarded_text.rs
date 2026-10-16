@@ -4,7 +4,7 @@
 //! ARM, DDI 0487, FEAT_BTI, the GP bit of a stage 1 descriptor).
 
 use boot_tables_proofs::leaves::{leaves, GP, PXN};
-use boot_tables_proofs::probe::{self, GUARDED, TEXT};
+use boot_tables_proofs::probe::{self, GUARDED};
 use boot_tables_proofs::{BootInfo, MemoryRegion, MemoryType, Window};
 use core::sync::atomic::Ordering;
 
@@ -24,10 +24,10 @@ fn only_text_is_guarded_and_all_of_it_is() {
     });
     let mut guarded = 0;
     for leaf in leaves() {
-        let in_text = (TEXT.0..TEXT.1).contains(&leaf.va);
+        let in_text = probe::is_text(leaf.va);
         assert_eq!(leaf.descriptor & GP != 0, in_text, "{:#x}", leaf.va);
         assert_eq!(leaf.descriptor & PXN == 0, in_text, "{:#x}", leaf.va);
         guarded += usize::from(in_text);
     }
-    assert_eq!(guarded as u64, (TEXT.1 - TEXT.0) / 4096);
+    assert_eq!(guarded as u64, probe::text_pages());
 }

@@ -25,4 +25,6 @@ fn the_direct_map_ends_where_the_pool_does() {
     assert_eq!(probe::walk(KERNEL_SPACE_START + 9 * GIB - 1).unwrap().level, 2);
     assert!(probe::walk(KERNEL_SPACE_START + 9 * GIB).is_none());
     assert!(probe::walk(0x0900_0000).is_none());
+    // A device left without its alias keeps the kernel where it was loaded.
+    assert!(!probe::high_mapped());
 }

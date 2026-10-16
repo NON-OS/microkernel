@@ -6,7 +6,7 @@
 //! execute-never controls).
 
 use boot_tables_proofs::leaves::{leaves, AP_EL0, AP_READ_ONLY, GP, PXN, UXN};
-use boot_tables_proofs::probe::{self, TEXT};
+use boot_tables_proofs::probe;
 use boot_tables_proofs::{BootInfo, MemoryRegion, MemoryType, Window};
 
 fn ram(base: u64, size: u64) -> MemoryRegion {
@@ -24,7 +24,7 @@ fn check(info: &BootInfo) {
         // Unguarded: the stand-in reports no BTI unless a test says otherwise.
         assert_eq!(d & GP, 0, "{va:#x} guarded");
         if d & PXN == 0 {
-            assert!((TEXT.0..TEXT.1).contains(&va), "{va:#x} executable at EL1 outside text");
+            assert!(probe::is_text(va), "{va:#x} executable at EL1 outside text");
             assert_eq!(leaf.level, 3, "{va:#x}: text is mapped in pages");
             assert_ne!(d & AP_READ_ONLY, 0, "{va:#x} writable and executable");
             text += 1;
@@ -37,7 +37,7 @@ fn check(info: &BootInfo) {
     }
     // Not vacuous: both halves were walked and every text page found.
     assert!(low > 0 && high > 0, "low {low}, high {high}");
-    assert_eq!(text, (TEXT.1 - TEXT.0) / 4096);
+    assert_eq!(text, probe::text_pages());
 }
 
 #[test]
