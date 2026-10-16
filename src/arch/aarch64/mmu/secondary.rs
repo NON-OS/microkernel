@@ -30,10 +30,11 @@ use core::sync::atomic::{AtomicU64, Ordering};
 /// SCTLR_EL1 M, C and I: translation, data and instruction caching.
 const SCTLR_MMU_ON: u64 = 1 << 0 | 1 << 2 | 1 << 12;
 
-/// MAIR_EL1, TCR_EL1, TTBR0_EL1, TTBR1_EL1 and the SCTLR_EL1 bits to set, in
-/// the order `_aarch64_secondary_start` loads them.
+/// MAIR_EL1, TCR_EL1, TTBR0_EL1, TTBR1_EL1, the SCTLR_EL1 bits to set, and
+/// how far above its load address the kernel runs (zero one to one), in the
+/// order `_aarch64_secondary_start` loads them.
 #[no_mangle]
-static AARCH64_MMU_CONTEXT: [AtomicU64; 5] = [const { AtomicU64::new(0) }; 5];
+static AARCH64_MMU_CONTEXT: [AtomicU64; 6] = [const { AtomicU64::new(0) }; 6];
 
 /// Record the boot CPU's translation registers for the secondaries, and write
 /// the record to the point of coherency. Call before any CPU_ON.
@@ -53,7 +54,9 @@ pub fn publish_for_secondaries() {
             options(nomem, nostack, preserves_flags),
         );
     }
-    for (slot, value) in AARCH64_MMU_CONTEXT.iter().zip([mair, tcr, ttbr0, ttbr1, SCTLR_MMU_ON]) {
+    let high = if super::runs_high() { super::KERNEL_SPACE_START } else { 0 };
+    let context = [mair, tcr, ttbr0, ttbr1, SCTLR_MMU_ON, high];
+    for (slot, value) in AARCH64_MMU_CONTEXT.iter().zip(context) {
         slot.store(value, Ordering::Release);
     }
     let at = AARCH64_MMU_CONTEXT.as_ptr() as u64;

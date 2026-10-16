@@ -44,6 +44,7 @@ pub use boot_map::init_mmu;
 pub use direct_map::direct_map_end;
 pub use geometry::KERNEL_SPACE_START;
 pub use granule::{Granule, GRANULE_16K, GRANULE_4K, GRANULE_64K};
+pub(in crate::arch::aarch64) use kernel_va::{devices_high, high_mapped};
 pub use kernel_va::{image_pa, io, runs_high};
 pub use map::map_page;
 pub use secondary::publish_for_secondaries;

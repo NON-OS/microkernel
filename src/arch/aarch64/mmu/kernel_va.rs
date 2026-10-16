@@ -50,6 +50,12 @@ pub fn io(pa: u64) -> u64 {
     pa.wrapping_add(IO_OFFSET.load(Ordering::Acquire))
 }
 
+/// The kernel runs high from here on: each CPU's later register accesses go
+/// to the high alias, which the boot tables already map.
+pub(in crate::arch::aarch64) fn devices_high() {
+    IO_OFFSET.store(KERNEL_SPACE_START, Ordering::Release);
+}
+
 /// Whether the kernel has moved to the high half.
 pub fn runs_high() -> bool {
     IO_OFFSET.load(Ordering::Acquire) != 0
