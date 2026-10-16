@@ -18,7 +18,7 @@ use super::super::flags::DMA_MAP_DMA32;
 use super::super::types::{DmaMapError, DmaMapRequest, DmaMapResult};
 use super::fail::fail;
 use super::placed::Placed;
-use super::{alloc, bus_window, install, record, validate};
+use super::{alloc, bus_window, install, record, uncached, validate};
 
 // `MkDmaMap`: validate -> alloc+zero frames -> install user pages ->
 // record. Each step is a single responsibility in its own file; this
@@ -34,7 +34,8 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         Err(e) => return fail("window", e),
     };
 
-    let phys_start = match alloc::alloc_and_zero(pages, req.length, alloc_flags) {
+    let uncached = uncached::needs_uncached_frames(req.device_id, req.flags);
+    let phys_start = match alloc::alloc_and_zero(pages, req.length, alloc_flags, uncached) {
         Ok(start) => start,
         Err(e) => return fail("alloc", e),
     };

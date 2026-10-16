@@ -20,7 +20,9 @@ mod fail;
 mod install;
 mod placed;
 mod record;
+mod take;
 mod transaction;
+mod uncached;
 mod validate;
 mod zero;
 
