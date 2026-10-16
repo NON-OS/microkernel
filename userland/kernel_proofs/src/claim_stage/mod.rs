@@ -22,6 +22,9 @@
 
 #![allow(dead_code)]
 
+mod exit_steps;
+mod exit_world;
+mod model_exit_tests;
 mod model_reclaim_tests;
 mod model_tests;
 mod reclaim_world;
