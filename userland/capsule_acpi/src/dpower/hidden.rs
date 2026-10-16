@@ -19,6 +19,7 @@
 //! _PS0 or _PR0 to turn them on, and an _ADR that names a function reading
 //! all ones. Each gets its D0 and one kernel probe; nothing else is woken.
 
+use super::ready::{bridge_bus, wait_ready, Bdf};
 use crate::boot::{evaluator, path, Acpi};
 use crate::sys::acpi_pci::pci_read;
 use crate::sys::clock::now_ms;
@@ -27,19 +28,11 @@ use crate::sys::pci_probe::probe_function;
 use alloc::vec::Vec;
 use nonos_aml::device_power::{power_managed, reveal, Revealed};
 use nonos_aml::namespace::Id;
-use nonos_aml::platform::{device_pci_path, function_of, ENABLED, PRESENT, SECONDARY_BUS};
+use nonos_aml::pci_dsm::Wake;
+use nonos_aml::platform::{device_pci_path, function_of, ENABLED, PRESENT};
 
 /// How long drivers have to claim what was revealed before it goes back.
 const SETTLE_MS: u64 = 60_000;
-
-pub type Bdf = (u16, u8, u8, u8);
-
-/// Only a real PCI-to-PCI bridge (header type 1) gives a secondary bus; a
-/// USB controller's ports carry _ADRs too, and are not functions.
-pub fn bridge_bus(f: Bdf) -> Option<u8> {
-    let header = pci_read(f, 0x0E, 1).ok()? & 0x7F;
-    (header == 1).then(|| pci_read(f, SECONDARY_BUS, 1).ok().map(|v| v as u8)).flatten()
-}
 
 fn missing(acpi: &mut Acpi, dev: Id) -> Option<Bdf> {
     let path = device_pci_path(&mut acpi.aml, &mut evaluator(&mut acpi.host), dev)?;
@@ -54,8 +47,12 @@ pub fn reveal_hidden(acpi: &mut Acpi) {
     let devs: Vec<Id> = devs.into_iter().filter(|d| power_managed(&acpi.aml, *d)).collect();
     for dev in devs {
         let Some(f) = missing(acpi, dev) else { continue };
-        let Acpi { aml, host, dpower, cooling, .. } = acpi;
-        let mut probe = || f.0 == 0 && probe_function(f.1, f.2, f.3).is_ok();
+        let Acpi { aml, host, dpower, cooling, pci_firmware, .. } = acpi;
+        // Up from D3cold it has been through a reset: let it recover first.
+        let mut probe = || {
+            let _ = wait_ready(pci_firmware, f, Wake::FromD3Cold);
+            f.0 == 0 && probe_function(f.1, f.2, f.3).is_ok()
+        };
         let r = reveal(dpower, &mut cooling.pool, aml, &mut evaluator(host), dev, &mut probe);
         let l = Line::new(b"hidden ").str(path(aml, dev).as_bytes());
         match r {

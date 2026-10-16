@@ -20,11 +20,13 @@
 mod find;
 mod hidden;
 mod moves;
+mod ready;
 mod settle;
 mod target;
 mod wire;
 
-pub use hidden::{bridge_bus, reveal_hidden};
+pub use hidden::reveal_hidden;
+pub use ready::bridge_bus;
 pub use settle::{tick, Hidden};
 pub use target::target;
 pub use wire::device_power;

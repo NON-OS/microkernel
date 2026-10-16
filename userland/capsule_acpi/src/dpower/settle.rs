@@ -18,7 +18,7 @@
 //! every revealed function no driver has claimed goes back to D3cold and
 //! gives its power resources back.
 
-use super::hidden::Bdf;
+use super::ready::Bdf;
 use crate::boot::{evaluator, path, Acpi};
 use crate::sys::acpi_holds::claimed_by_anyone;
 use crate::sys::clock::now_ms;

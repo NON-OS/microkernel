@@ -275,7 +275,11 @@ other op: no one.
   back; a fault undoes the move. D1 and D2 need _PSx or _PRx; a device in
   a low-power state goes back to D0 first. The fans and the devices
   share one power-resource count. A driver sets D0 after its claim, which
-  powers up a device firmware left off. Layout in `src/dpower/wire.rs`.
+  powers up a device firmware left off. A PCI function moved to D0 from
+  D3hot or D3cold is answered only once it may be touched: 10 ms from
+  D3hot, 100 ms from D3cold (a reset), or less when its host bridge's
+  function 9 says so; never more (`src/dpower/ready.rs`). Layout in
+  `src/dpower/wire.rs`.
   At boot, a device the tables describe under a PCI root (present and
   enabled by _STA, with _PS0 or _PR0, its _ADR reached only through real
   PCI-to-PCI bridges) whose function reads all ones gets its D0 and one
@@ -337,7 +341,8 @@ other op: no one.
   boot-configuration rule (function 5) and device readiness durations
   (function 9), and its own firmware label (function 7). Only those three
   documented functions are evaluated, and only when function 0 offers
-  them; no other is ever run. Read once at start, one `[ACPI] pci host`
+  them; no other is ever run. Function 9 also shortens DEVICE_POWER's
+  wait and boot's probe of a function _PS0 woke. Read once at start, one `[ACPI] pci host`
   and one `[ACPI] pci label` line each. The UUID, revisions (3, then 2),
   function numbers and shapes are recalled, unverified. Layout in
   `src/pci_firmware/wire.rs`.
