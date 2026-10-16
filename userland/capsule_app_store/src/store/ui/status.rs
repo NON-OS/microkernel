@@ -21,8 +21,8 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::store::progress::Progress;
 use crate::store::state::State;
-use crate::store::tier_fit::hidden_line;
 use crate::store::theme::{ACCENT, MUTED, RULE, STATUS_BG};
+use crate::store::tier_fit::hidden_line;
 
 use super::metrics::{SMALL_PX, STATUS_H, STATUS_PAD_X};
 use super::text;
