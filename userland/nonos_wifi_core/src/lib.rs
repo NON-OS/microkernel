@@ -36,6 +36,7 @@ pub mod key;
 pub mod link_history;
 pub mod mlme;
 pub mod netif;
+pub mod regdom;
 pub mod rsn;
 pub mod sae;
 pub mod scan_list;
