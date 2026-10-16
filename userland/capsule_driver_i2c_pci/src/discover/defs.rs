@@ -20,8 +20,6 @@ pub(super) const PCI_SUBCLASS_OTHER: u8 = 0x80;
 pub(super) const ACPI_LPSS_FAMILY: &str = "acpi-lpss";
 pub(super) const UNKNOWN_LPSS_FAMILY: &str = "Intel LPSS (unlisted id)";
 pub(super) const CLASS_I2C_HID: u32 = 0x0041;
-/// The broker's class for an ACPI GPIO community record.
-pub const CLASS_GPIO_CTRL: u32 = 0x0080;
 
 /// Upper bound on host controllers probed in one bring-up. Gemini Lake exposes
 /// eight LPSS I2C functions; other platforms fewer.

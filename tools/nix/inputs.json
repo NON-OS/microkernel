@@ -1546,8 +1546,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_i2c_pci",
-   "userland/libc",
-   "userland/nonos_pinctrl"
+   "userland/libc"
   ],
   "md": [],
   "signed": []
@@ -3765,14 +3764,14 @@
    ".cargo",
    "userland/capsule_driver_i2c_pci/src/constants",
    "userland/capsule_driver_i2c_pci/src/driver.rs",
+   "userland/capsule_driver_i2c_pci/src/gpio0/wire.rs",
    "userland/capsule_driver_i2c_pci/src/init",
    "userland/capsule_driver_i2c_pci/src/protocol",
    "userland/capsule_driver_i2c_pci/src/regs.rs",
    "userland/capsule_driver_i2c_pci/src/transaction",
    "userland/i2c_pci_proofs",
    "userland/i2c_proofs_libc_shim",
-   "userland/nonos_devmodel",
-   "userland/nonos_pinctrl"
+   "userland/nonos_devmodel"
   ],
   "md": [],
   "signed": []

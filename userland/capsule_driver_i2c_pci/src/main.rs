@@ -8,6 +8,7 @@ use nonos_libc::{heap_init, mk_exit};
 mod constants;
 mod discover;
 mod driver;
+mod gpio0;
 mod init;
 mod protocol;
 mod regs;

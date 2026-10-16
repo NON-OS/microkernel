@@ -20,7 +20,7 @@ use super::say::{say_bound, say_unreached};
 use crate::constants::{controller_index, HID_INFO_TEN_BIT};
 use crate::discover::{find_touchpad_addrs, AcpiTouchpad, Found, MAX_CONTROLLERS, MAX_TARGETS};
 use crate::driver::Driver;
-use crate::setup::gpio::doorbell;
+use crate::setup::doorbell;
 use crate::transaction::{probe_hid, Presence};
 
 /// Addresses HID-over-I2C touchpads ship at, probed only when the firmware
@@ -112,7 +112,7 @@ fn bind(mut driver: Driver, tg: &AcpiTouchpad, reg: u16, by_probe: bool) -> Driv
     driver.bound_by_probe = by_probe;
     driver.bound_addr = tg.addr;
     driver.bound_desc_reg = reg;
-    driver.doorbell = doorbell(driver.pci_device, tg);
+    driver.doorbell = doorbell(driver.device_id, tg);
     say_bound(&driver, Some(tg));
     driver
 }

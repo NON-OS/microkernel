@@ -13,29 +13,25 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The touchpad's interrupt line named for driver.gpio0: this driver's
+//! device key, and the line's GPIO controller `_UID` and pin from the
+//! firmware's GpioInt. The key is the broker device id of the controller
+//! this driver claimed, with bit 63 set (the the ruling): a capsule is
+//! never shown a PCI function's bus, device and function, so the PCI form
+//! of the key is not one it can build, and the device id names the claim
+//! gpio0's holder check tests (F 62).
 
-use nonos_libc::mk_device_release;
-
-use super::community::{claim, map};
-use crate::constants::{
-    bxt_pad_offset, is_bxt_family, GPIO_PADBAR, GPIO_RXSTATE, HID_INFO_ACTIVE_HIGH, HID_INFO_GPIO,
-};
+use crate::constants::HID_INFO_GPIO;
 use crate::discover::AcpiTouchpad;
 use crate::driver::Doorbell;
 
-/// Map the touchpad's GPIO community and locate its pad, when the platform
-/// is one whose layout is known. None means the HID driver polls.
-pub(super) fn doorbell(pci_device: u16, tp: &AcpiTouchpad) -> Option<Doorbell> {
-    if tp.info & HID_INFO_GPIO == 0 || !is_bxt_family(pci_device) {
+/// A key naming a broker device id rather than a PCI function.
+pub const KEY_DEVICE_ID: u64 = 1 << 63;
+
+pub fn doorbell(device_id: u64, tp: &AcpiTouchpad) -> Option<Doorbell> {
+    if tp.info & HID_INFO_GPIO == 0 || device_id & KEY_DEVICE_ID != 0 {
         return None;
     }
     let uid = u16::from(tp.gpio_community.checked_sub(1)?);
-    let (rec, epoch) = claim(uid)?;
-    let (regs, size) = map(&rec, epoch, 0)?;
-    let Some(cfg_offset) = bxt_pad_offset(regs.read32(GPIO_PADBAR), tp.gpio_pin, size) else {
-        let _ = mk_device_release(rec.device_id);
-        return None;
-    };
-    let active_high = tp.info & HID_INFO_ACTIVE_HIGH != 0;
-    Some(Doorbell { regs, cfg_offset, level_bit: GPIO_RXSTATE, active_high })
+    Some(Doorbell { key: KEY_DEVICE_ID | device_id, uid, pin: tp.gpio_pin })
 }

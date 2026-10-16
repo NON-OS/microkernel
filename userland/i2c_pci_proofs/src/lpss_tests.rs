@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rest of the LPSS wrapper bring-up Linux intel_lpss_init_dev does, the
-//! component checks i2c-designware makes before trusting a core, and the
-//! tables that tell an I2C function from its UART and SPI neighbours.
+//! The rest of the LPSS wrapper bring-up, the component checks made before
+//! a core is trusted, and the tables that tell an I2C function from its
+//! UART and SPI neighbours.
 
 use crate::constants::{
-    bxt_pad_offset, controller_index, device_info, is_bxt_family, IC_COMP_TYPE, IC_COMP_VERSION,
-    IC_CON, IC_CON_SPEED_FAST, IC_CON_SPEED_STD, IC_SDA_HOLD, LPSS_PRIV_CAPS, LPSS_PRIV_REMAP_HI,
-    LPSS_PRIV_REMAP_LO, LPSS_PRIV_RESETS,
+    controller_index, device_info, IC_COMP_TYPE, IC_COMP_VERSION, IC_CON, IC_CON_SPEED_FAST,
+    IC_CON_SPEED_STD, IC_SDA_HOLD, LPSS_PRIV_CAPS, LPSS_PRIV_REMAP_HI, LPSS_PRIV_REMAP_LO,
+    LPSS_PRIV_RESETS,
 };
 use crate::init::{bring_up, BusSetup};
 use crate::model::{live, refusal, CLOCK_HZ, PHYS_BASE, SETUP};
@@ -87,22 +87,22 @@ fn a_core_older_than_1_11a_has_no_sda_hold_register_and_it_is_left_alone() {
 }
 
 #[test]
-fn only_i2c_functions_are_in_the_table_with_their_linux_clocks() {
+fn only_i2c_functions_are_in_the_table_with_their_clocks() {
     // Gemini Lake, the HP 15s-fq0xxx's SoC: I2C0..I2C7 at 133 MHz.
     for id in (0x31ACu16..=0x31BA).step_by(2) {
         assert_eq!(device_info(id).map(|i| i.1), Some(CLOCK_HZ), "{id:#06x}");
-        assert!(is_bxt_family(id));
     }
     // UART and SPI functions of the same LPSS blocks (Gemini Lake, Apollo
     // Lake, Sunrise Point-LP, Tiger Lake-LP) must never be taken for I2C.
-    for id in [0x31BC, 0x31C2, 0x5ABC, 0x5AC2, 0x5AC4, 0x5AC6, 0x5AEE, 0x9D27, 0x9D29, 0xA0A8, 0xA0DA] {
+    for id in
+        [0x31BC, 0x31C2, 0x5ABC, 0x5AC2, 0x5AC4, 0x5AC6, 0x5AEE, 0x9D27, 0x9D29, 0xA0A8, 0xA0DA]
+    {
         assert!(device_info(id).is_none(), "{id:#06x} is not an I2C function");
     }
     assert_eq!(device_info(0x5AAC).map(|i| i.1), Some(133_000_000));
     assert_eq!(device_info(0x9D60).map(|i| i.1), Some(120_000_000));
     assert_eq!(device_info(0x9DE8).map(|i| i.1), Some(216_000_000));
     assert_eq!(device_info(0x02E9).map(|i| i.1), Some(216_000_000));
-    assert!(!is_bxt_family(0x9D60) && !is_bxt_family(0xA0E8));
 }
 
 #[test]
@@ -116,13 +116,4 @@ fn firmware_i2c_names_map_to_pci_functions_on_every_listed_platform() {
     assert_eq!(controller_index(0xA0D9), Some(7));
     assert_eq!(controller_index(0x51C5), Some(4));
     assert_eq!(controller_index(0x7E7B), Some(3));
-}
-
-#[test]
-fn a_gemini_lake_pad_lies_inside_its_community_window() {
-    // PADBAR 0x500, pad 18: 0x500 + 18 * 8.
-    assert_eq!(bxt_pad_offset(0x500, 18, 0x4000), Some(0x590));
-    assert_eq!(bxt_pad_offset(0x500, 2000, 0x4000), None, "pad past the window");
-    assert_eq!(bxt_pad_offset(0, 18, 0x4000), None, "dead PADBAR");
-    assert_eq!(bxt_pad_offset(u32::MAX, 18, 0x4000), None, "undecoded window");
 }
