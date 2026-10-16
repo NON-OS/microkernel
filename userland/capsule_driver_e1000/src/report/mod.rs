@@ -17,12 +17,15 @@
 //! The console lines that let a photo of `log` show where the card got to:
 //! one when bring-up finishes, with CTRL and STATUS as the part left them,
 //! and one each time the link changes, with the speed and duplex the PHY
-//! negotiated. Autonegotiation takes seconds, so the link is reported as the
-//! network stack polls it rather than at bring-up.
+//! negotiated, and one when a hung transmitter is reset. Autonegotiation
+//! takes seconds, so the link is reported as the network stack polls it
+//! rather than at bring-up.
 
 mod line;
 mod link;
+mod tx_hang;
 mod up;
 
 pub use link::link;
+pub use tx_hang::tx_hang;
 pub use up::up;

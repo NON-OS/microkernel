@@ -14,16 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap, mk_pio_release};
+//! `Driver` is the live state the server loop holds: the claim, the port
+//! grant, the receive buffer and transmit slots over the two DMA grants, and
+//! the transmit watchdog. `release` gives the device back, and the broker
+//! frees every grant tied to it.
+
+use nonos_libc::Deadline;
 
 use crate::constants::MAC_LEN;
 use crate::pio::Pio;
 
 pub struct Driver {
     pub device_id: u64,
-    pub pio_grant: u64,
-    pub rx_grant: u64,
-    pub tx_grant: u64,
+    pub claim_epoch: u64,
     pub rx_user_va: u64,
     pub rx_device_addr: u64,
     pub tx_user_va: u64,
@@ -35,13 +38,15 @@ pub struct Driver {
     pub tx_dirty: usize,
     pub pio: Pio,
     pub mac: [u8; MAC_LEN],
+    /// Falls due once frames have sat in flight with the link up and no
+    /// completion for TX_HANG_MS; renewed on every sign of life.
+    pub tx_watch: Deadline,
 }
 
 impl Driver {
+    /// Stop and reset the part, turn Bus Master off, then give the device
+    /// back, which frees every grant (see `rollback`).
     pub fn release(&self) {
-        let _ = mk_dma_unmap(self.tx_grant);
-        let _ = mk_dma_unmap(self.rx_grant);
-        let _ = mk_pio_release(self.pio_grant);
-        let _ = mk_device_release(self.device_id);
+        super::rollback::release(self.device_id, self.claim_epoch, &self.pio);
     }
 }

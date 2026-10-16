@@ -18,10 +18,15 @@ mod finish;
 mod hold;
 mod link_up;
 mod mac_filter;
+mod recover;
 mod reset;
+mod reset_part;
 mod run;
 mod rx_setup;
+mod start;
 mod station_address;
 mod tx_setup;
 
 pub use finish::finish;
+pub use recover::recover;
+pub use reset_part::run as reset_part;

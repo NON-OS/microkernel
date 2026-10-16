@@ -35,3 +35,7 @@ pub const TX_CMD_EOP: u8 = 1 << 0;
 pub const TX_CMD_IFCS: u8 = 1 << 1;
 pub const TX_CMD_RS: u8 = 1 << 3;
 pub const TX_STATUS_DD: u8 = 1 << 0;
+
+/// A frame in flight this long with the link up and no completion is a hung
+/// transmitter: Linux e1000's watchdog_timeo, 5 seconds.
+pub const TX_HANG_MS: u64 = 5000;

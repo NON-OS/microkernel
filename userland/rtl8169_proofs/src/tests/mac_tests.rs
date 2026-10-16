@@ -20,16 +20,18 @@
 use nonos_libc::entropy;
 use nonos_mac::is_local_unicast;
 
-use super::model::{idr, window, FACTORY};
+use super::memory::Memory;
+use super::model::{idr, live, resetting_part, window, FACTORY};
 use crate::constants::regs::REG_CFG9346;
-use crate::init::mac_program;
+use crate::init::{mac_draw, mac_program};
 use crate::regs::Regs;
 
 #[test]
 fn the_programmed_address_is_drawn_locally_administered_and_not_the_factory_one() {
     let _turn = entropy(true);
     let bar = window();
-    let mac = mac_program(&Regs::new(bar.base())).expect("an address is programmed");
+    let mac = mac_draw().expect("an address is drawn");
+    mac_program(&Regs::new(bar.base()), &mac).expect("an address is programmed");
     assert_ne!(mac, FACTORY);
     assert!(is_local_unicast(&mac), "locally administered, unicast");
     assert_eq!(idr(&bar), mac, "the IDR bytes hold the drawn address");
@@ -40,8 +42,10 @@ fn the_programmed_address_is_drawn_locally_administered_and_not_the_factory_one(
 fn without_entropy_nothing_is_programmed_and_the_factory_address_is_not_used() {
     let _turn = entropy(false);
     let bar = window();
-    let result = mac_program(&Regs::new(bar.base()));
-    assert!(result.is_err(), "no entropy is a refusal, not a fallback");
+    let _part = live(&bar, resetting_part);
+    assert!(mac_draw().is_err(), "no entropy is a refusal, not a fallback");
+    let err = crate::init::finish(Memory::new().driver(&bar)).err();
+    assert_eq!(err, Some("rtl8169 no entropy for station address"), "the bring-up stops");
     assert_eq!(idr(&bar), FACTORY, "the IDR bytes were not touched");
     assert_eq!(bar.wrote8(REG_CFG9346), 0x00, "the lock was never opened");
 }
