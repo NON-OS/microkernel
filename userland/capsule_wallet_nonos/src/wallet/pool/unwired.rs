@@ -13,34 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+// No pool is connected yet. Every call answers None, so the swap screen shows
+// that it has no price rather than a figure it cannot stand behind.
 
-// Outcome of every not-yet-wired backend call. The UI renders each variant
-// honestly; a stub returns NotWired, a live provider returns Pending then Ready.
-#[derive(Clone)]
-pub enum Seam<T> {
-    NotWired,
-    Pending,
-    Ready(T),
-    Failed(&'static str),
-}
+use crate::wallet::swap::{Reserves, Token};
 
-impl<T> Seam<T> {
-    pub fn is_ready(&self) -> bool {
-        matches!(self, Seam::Ready(_))
+use super::quote_provider::QuoteProvider;
+
+pub struct Unwired;
+
+impl QuoteProvider for Unwired {
+    fn reserves(&self, _pay: Token, _receive: Token) -> Option<Reserves> {
+        None
     }
-    pub fn as_ready(&self) -> Option<&T> {
-        match self {
-            Seam::Ready(v) => Some(v),
-            _ => None,
-        }
+    fn gas(&self, _pay: Token, _receive: Token) -> Option<u64> {
+        None
     }
-}
-
-// Association-set membership verdict for a shielded note.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Inclusion {
-    Pending,
-    Included,
-    Excluded,
-    NotWired,
 }
