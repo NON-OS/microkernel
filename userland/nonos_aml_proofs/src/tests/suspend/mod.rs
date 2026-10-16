@@ -22,3 +22,4 @@ mod order;
 mod rig;
 mod s3_refusal_tests;
 mod s3_tests;
+mod s0_seen_tests;
