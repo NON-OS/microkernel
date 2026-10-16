@@ -19,3 +19,5 @@
  */
 
 pub mod block_device;
+#[cfg(test)]
+pub mod broker;
