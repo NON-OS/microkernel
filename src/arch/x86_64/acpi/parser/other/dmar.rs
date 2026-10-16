@@ -22,45 +22,41 @@ use super::dmar_namespace_store::{record_andd, ANDD_TYPE};
 use super::dmar_rmrr::RMRR_TYPE;
 use super::dmar_rmrr_store::{record_rmrr, rmrr_cut_short};
 use super::dmar_units::record_drhd;
-use crate::arch::x86_64::acpi::tables::{Dmar, Drhd, SdtHeader, SIG_DMAR};
+use super::dmar_walk::walk_structures;
+use crate::arch::x86_64::acpi::tables::{Drhd, SdtHeader, SIG_DMAR};
 
 const DRHD_TYPE: u16 = 0;
 
 pub fn parse_dmar(registry: &mut TableRegistry) {
     let Some(&addr) = registry.tables.get(&SIG_DMAR) else { return };
-    let addr = match super::super::phys::directmap(addr) {
-        Some(v) => v,
-        None => return,
-    };
-
-    let mut found_drhd = false;
-
-    unsafe {
+    let Some(addr) = super::super::phys::directmap(addr) else { return };
+    // SAFETY: eK@nonos.systems - the registry holds tables firmware published
+    // and the directmap covers them; the header is read before the length it
+    // names is trusted, and the checksum refuses one past MAX_TABLE_BYTES.
+    let table = unsafe {
         let header = ptr::read_volatile(addr as *const SdtHeader);
         if !header.validate_checksum(addr as *const u8) {
             return;
         }
-
-        let mut cursor = addr + mem::size_of::<Dmar>() as u64;
-        let end = addr + header.length as u64;
-
-        while cursor + 4 <= end {
-            let kind = ptr::read_volatile(cursor as *const u16);
-            let length = ptr::read_volatile((cursor + 2) as *const u16);
-            if length < 4 || cursor + length as u64 > end {
-                rmrr_cut_short();
-                break;
-            }
-            let bytes = core::slice::from_raw_parts(cursor as *const u8, length as usize);
-            if kind == DRHD_TYPE && length as usize >= mem::size_of::<Drhd>() {
-                let drhd = ptr::read_volatile(cursor as *const Drhd);
-                found_drhd |= record_drhd(drhd, bytes);
-            } else if kind == RMRR_TYPE {
-                record_rmrr(bytes);
-            } else if kind == ANDD_TYPE {
-                record_andd(bytes);
-            }
-            cursor += length as u64;
+        core::slice::from_raw_parts(addr as *const u8, header.length as usize)
+    };
+    let mut found_drhd = false;
+    let walked = walk_structures(table, |kind, bytes| match kind {
+        DRHD_TYPE if bytes.len() >= mem::size_of::<Drhd>() => {
+            // SAFETY: eK@nonos.systems - `bytes` holds a whole Drhd, packed.
+            let drhd = unsafe { ptr::read_unaligned(bytes.as_ptr() as *const Drhd) };
+            found_drhd |= record_drhd(drhd, bytes);
+        }
+        RMRR_TYPE => record_rmrr(bytes),
+        ANDD_TYPE => record_andd(bytes),
+        _ => {}
+    });
+    // A cut after the RMRRs hid none of them; before, any could be missing (L67).
+    if walked.cut_short {
+        let rmrrs = if walked.past_rmrr { "kept" } else { "withheld" };
+        crate::log::info!("[VT-D] DMAR cut short at a bad structure; RMRR mappings {}", rmrrs);
+        if !walked.past_rmrr {
+            rmrr_cut_short();
         }
     }
 
