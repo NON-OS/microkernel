@@ -42,6 +42,8 @@ pub fn read<H: Hw>(hw: &H, c: &Ctx, lun: u8) -> Result<(u64, u32), UfsError> {
         }
     };
     match len {
+        // A unit whose bytes overflow is no disk: its last LBA was a lie.
+        512 | 4096 if blocks.checked_mul(len as u64).is_none() => Err(UfsError::Capacity(blocks)),
         512 | 4096 => Ok((blocks, len)),
         _ => Err(UfsError::BlockSize(len)),
     }
