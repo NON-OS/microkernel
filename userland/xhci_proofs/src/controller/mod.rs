@@ -1,18 +1,4 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
 //! The shipping controller files that touch only registers and DMA memory.
 //! `park` and the waits are public for the paths siblings and tests use;
@@ -69,6 +55,8 @@ mod wait_cnr_clear;
 pub mod wait_command_completion;
 #[path = "../../../capsule_driver_xhci/src/controller/wait_hc_running.rs"]
 mod wait_hc_running;
+#[path = "../../../capsule_driver_xhci/src/controller/transfer_events.rs"]
+pub mod transfer_events;
 #[path = "../../../capsule_driver_xhci/src/controller/wait_transfer_completion.rs"]
 pub mod wait_transfer_completion;
 
