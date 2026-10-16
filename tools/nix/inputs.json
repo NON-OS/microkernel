@@ -515,7 +515,8 @@
    "userland/nonos_ed25519",
    "userland/nonos_equix",
    "userland/nonos_hash",
-   "userland/shield_core/src/net/pools.rs"
+   "userland/shield_core/src/net/pools.rs",
+   "userland/shield_core/src/net/pools_retired.rs"
   ],
   "md": [],
   "signed": []
