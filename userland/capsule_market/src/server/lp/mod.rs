@@ -13,13 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Length-prefixed fields, read and written in one place: a u32 LE length,
+//! then the bytes. A length the request does not hold, or one too long to
+//! state, is refused.
 
-extern crate alloc;
+mod pair;
+mod take;
+mod write;
 
-use alloc::vec::Vec;
-
-pub(super) fn write_lp_string(out: &mut Vec<u8>, s: &str) {
-    let bytes = s.as_bytes();
-    out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
-    out.extend_from_slice(bytes);
-}
+pub(crate) use pair::parse_pair;
+pub(crate) use take::{read_lp_str, take_lp};
+pub(crate) use write::{write_count, write_lp};

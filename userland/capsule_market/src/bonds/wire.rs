@@ -41,7 +41,7 @@ pub(super) fn settle() -> Option<(u32, u32)> {
 
 impl Bonds {
     pub fn wait_ms(&self) -> u64 {
-        TICK_MS * self.cache.waiting() as u64
+        TICK_MS.saturating_mul(u64::from(self.cache.waiting()))
     }
 
     /// Start the queue's next refresh, if none runs (plan/28, v1.4.23).
