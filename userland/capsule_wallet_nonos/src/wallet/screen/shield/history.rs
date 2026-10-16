@@ -61,5 +61,5 @@ pub fn history(state: &State, fb: &mut PaintBuffer) {
     }
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    super::edges::put(state, &l);
+    super::edges::put(&l);
 }

@@ -135,13 +135,15 @@ mod address_text_tests;
 #[cfg(test)]
 mod amount_tests;
 #[cfg(test)]
+mod amount_edit_tests;
+#[cfg(test)]
+mod amount_limits_tests;
+#[cfg(test)]
 mod order_tests;
 #[cfg(test)]
 mod fees_tests;
 #[cfg(test)]
 mod fetch_tests;
-#[cfg(test)]
-mod format_typed_tests;
 #[cfg(test)]
 mod keep_tests;
 #[cfg(test)]
@@ -156,8 +158,6 @@ mod mul_div_tests;
 mod network_tests;
 #[cfg(test)]
 mod replace_tests;
-#[cfg(test)]
-mod scale_tests;
 #[cfg(test)]
 mod sent_tests;
 #[cfg(test)]

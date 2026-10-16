@@ -14,17 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Pinned NOX mainnet deployment (chain 1). Matches @nonos/nox-staking-sdk
-// MAINNET_DEPLOYMENT and the verified Etherscan sources.
-pub const NOX_TOKEN: [u8; 20] = [
-    0x0a, 0x26, 0xc8, 0x0b, 0xe4, 0xe0, 0x60, 0xe6, 0x88, 0xd7, 0xc2, 0x3a, 0xdd, 0xb9, 0x2c, 0xbb,
-    0x5d, 0x2c, 0x9e, 0xca,
-];
-pub const STAKING_PROXY: [u8; 20] = [
-    0xa9, 0x4d, 0x60, 0x09, 0x79, 0x0b, 0xa1, 0x35, 0x97, 0xa1, 0xe1, 0xb7, 0xcf, 0x4e, 0x15, 0x31,
-    0xea, 0x51, 0x36, 0x13,
-];
-
 // Function selectors (first 4 bytes of keccak256 of the signature). Read paths
 // only; the SDK's live/selectors.js is the source of record.
 pub const SEL_BALANCE_OF: [u8; 4] = [0x70, 0xa0, 0x82, 0x31]; // balanceOf(address)
