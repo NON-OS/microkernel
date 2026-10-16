@@ -30,4 +30,4 @@ mod state;
 
 pub use act::Act;
 pub use events::advertised;
-pub use state::{Air, OURS, PEER};
+pub use state::{Air, HANDLE, OURS, PEER};
