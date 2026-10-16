@@ -19,15 +19,29 @@
 //! request (the pid must then be that driver's), so no pid value means
 //! anything by itself.
 
-use crate::hardware::broker::acpi::claim_holder::Asker;
+use crate::hardware::broker::acpi::claim_holder::{tgid, Asker};
+use crate::hardware::broker::acpi::first_pass_rule::admits;
+use crate::process::current_pid;
+use crate::services::registry::lookup_service;
+
+#[path = "owner_gate.rs"]
+pub(super) mod owner_gate;
 
 const LOOK: u64 = 0;
 const HOLDER: u64 = 1;
 
+/// A question about whether another process holds a device is the acpi
+/// owner's alone: anyone else could map who holds what (F-95).
 pub(super) fn asker(mode: u64, pid: u64) -> Option<Asker> {
     match (mode, u32::try_from(pid).ok()?) {
         (LOOK, 0) => Some(Asker::Anyone),
-        (HOLDER, pid) if pid != 0 => Some(Asker::Holder(pid)),
+        (HOLDER, pid) if pid != 0 && caller_is_owner() => Some(Asker::Holder(pid)),
         _ => None,
     }
+}
+
+/// The caller runs in the acpi owner's thread group.
+pub(super) fn caller_is_owner() -> bool {
+    let owner = lookup_service("acpi").map(|e| e.pid);
+    current_pid().is_some_and(|caller| admits(owner, caller, tgid))
 }
