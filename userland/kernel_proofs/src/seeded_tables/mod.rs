@@ -28,11 +28,17 @@ mod mcfg_decode;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/hpet_decode.rs"]
 mod hpet_decode;
 #[path = "../../../../src/arch/x86_64/acpi/hw/gas.rs"]
-#[allow(dead_code)] // the FADT's registers; their reads and writes are not proved here
-mod gas;
+#[allow(dead_code)] // the FADT's registers, written only by `leave_events` here
+pub(crate) mod gas;
 #[path = "../../../../src/arch/x86_64/acpi/hw/fadt_decode.rs"]
 #[allow(dead_code)]
-mod fadt_decode;
+pub(crate) mod fadt_decode;
+// F-107's exit writes, beside the two files they build on (`acpi_leave`).
+#[path = "../../../../src/arch/x86_64/acpi/hw/leave_events.rs"]
+pub(crate) mod leave_events;
+#[path = "../../../../src/arch/x86_64/acpi/hw/sleep.rs"]
+#[allow(dead_code)]
+pub(crate) mod sleep;
 
 mod gen;
 mod hmat_gen;

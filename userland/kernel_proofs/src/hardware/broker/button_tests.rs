@@ -18,7 +18,7 @@
 //! ACPI capsule that took it is the live one; a capsule that died, or a
 //! restarted one that has not taken it again, gives it back to the poll.
 
-use super::acpi::button_owner::{rule, stands_down, take};
+use super::acpi::button_owner::{press_rule, rule, stands_down, take, Press};
 
 #[test]
 fn the_poll_stands_down_only_for_the_live_taker() {
@@ -34,4 +34,12 @@ fn the_poll_stands_down_only_for_the_live_taker() {
     assert!(!stands_down(9), "restarted, not yet taken again");
     take(9);
     assert!(stands_down(9));
+}
+
+/// F-107: before any capsule served the button a press is the desktop's
+/// Power key; after, the power-off it would have run.
+#[test]
+fn a_press_before_any_capsule_is_the_desktops() {
+    assert_eq!(press_rule(false), Press::Desktop);
+    assert_eq!(press_rule(true), Press::PowerOff);
 }
