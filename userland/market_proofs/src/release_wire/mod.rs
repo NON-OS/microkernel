@@ -20,6 +20,5 @@
 #[path = "../../../capsule_market/src/server/handlers/get_release/encode_release.rs"]
 mod encode_release;
 
-pub fn encode(rel: &nonos_marketplace_abi::CapsuleRelease) -> alloc::vec::Vec<u8> {
-    encode_release::encode_release(rel).expect("a test release fits the wire")
-}
+mod write;
+pub use write::encode;
