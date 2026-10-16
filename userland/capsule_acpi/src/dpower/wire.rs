@@ -20,17 +20,20 @@
 //! MkAcpiDeviceName for its holder alone), so a driver powers its own
 //! device and no other. Drivers name it by device id.
 //!
-//! Request: verb u8 (0 get, 1 set), state u8 (0 D0, 1 D1, 2 D2, 3 D3hot,
-//! 4 D3cold; set only), device id u64. Reply: the state after, u8 (0xFF
-//! when unknown), whether the device has power control at all, u8, then
-//! its path's length u8 and bytes. ENOENT for a device the kernel names
-//! neither way or that the tables do not describe; EPERM for a set from
-//! anyone but the holder; EINVAL for a state the device lacks or a move
-//! between two low-power states; EIO when the AML failed, the device left
-//! where it was.
+//! Request: verb u8 (0 get, 1 set, 2 wake on, 3 wake off), state u8 (0
+//! D0 to 4 D3cold: for set, the state; for wake on, the deepest the
+//! driver will put it in), device id u64. Reply: the state after, u8
+//! (0xFF when unknown), whether it has power control, u8, its path's
+//! length u8 and bytes, then whether wake is armed, u8, and the wakes
+//! counted since, u32. ENOENT for a device the kernel names neither way,
+//! that the tables do not describe, or that has no wake event; EPERM for
+//! any verb but get from anyone but the holder; EINVAL for a state the
+//! device lacks, a move between two low-power states, or a wake target
+//! deeper than _S0W; EIO when the AML failed, the device left as it was.
 
 use super::moves::{current, move_to};
 use super::target::target;
+use super::wake::{code, wake};
 use crate::boot::{path, Acpi};
 use crate::server::protocol::EINVAL;
 use crate::sys::function_of::Asker;
@@ -39,21 +42,24 @@ use nonos_aml::device_power::{power_managed, DState};
 
 const GET: u8 = 0;
 const SET: u8 = 1;
+const WAKE_ON: u8 = 2;
+const WAKE_OFF: u8 = 3;
 const UNKNOWN: u8 = 0xFF;
 
 pub fn device_power(acpi: &mut Acpi, req: &[u8], sender: u32) -> (i32, Vec<u8>) {
     let Some(r) = req.get(1..11) else { return (EINVAL, Vec::new()) };
     let (verb, state) = (r[0], DState::from_wire(r[1]));
-    let mut id = [0u8; 8];
-    id.copy_from_slice(&r[2..10]);
-    let asker = if verb == SET { Asker::Holder(sender) } else { Asker::Capsule };
-    let dev = match target(acpi, asker, u64::from_le_bytes(id)) {
+    let id = u64::from_le_bytes(r[2..10].try_into().unwrap_or([0; 8]));
+    let asker = if verb == GET { Asker::Capsule } else { Asker::Holder(sender) };
+    let dev = match target(acpi, asker, id) {
         Ok(d) => d,
         Err(e) => return (e, Vec::new()),
     };
     let code = match (verb, state) {
         (GET, _) => 0,
         (SET, Some(to)) => move_to(acpi, dev, to, sender),
+        (WAKE_ON, Some(to)) => code(wake(acpi, dev, Some(to), (sender, id))),
+        (WAKE_OFF, _) => code(wake(acpi, dev, None, (sender, id))),
         _ => EINVAL,
     };
     let now = current(acpi, dev).map_or(UNKNOWN, |s| s as u8);
@@ -62,5 +68,8 @@ pub fn device_power(acpi: &mut Acpi, req: &[u8], sender: u32) -> (i32, Vec<u8>) 
     let p = &p.as_bytes()[..p.len().min(200)];
     v.push(p.len() as u8);
     v.extend_from_slice(p);
+    let wakes = acpi.hidden.wake.rw.wakes(dev);
+    v.push(u8::from(wakes.is_some()));
+    v.extend_from_slice(&wakes.unwrap_or(0).to_le_bytes());
     (code, v)
 }

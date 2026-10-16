@@ -19,3 +19,7 @@ mod pci_tests;
 mod refusal_tests;
 mod reveal_tests;
 mod rig;
+mod wake_event_tests;
+mod wake_more_tests;
+mod wake_rig;
+mod wake_tests;
