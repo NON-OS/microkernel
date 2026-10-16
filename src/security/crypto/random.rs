@@ -20,9 +20,15 @@ pub use super::random_fill::{
     fill_bytes, fill_random, fill_random_bytes, secure_random_u32, secure_random_u8,
     try_fill_random,
 };
-pub use super::random_pool::{add_entropy, add_entropy_count, get_entropy_count, init};
 
-use super::random_pool::consume_entropy;
+/// Report at boot whether a hardware source answers. No pool is kept: every
+/// draw goes to the source, so there is nothing else to set up.
+pub fn init() -> Result<(), &'static str> {
+    if try_secure_random_u64().is_err() {
+        crate::log_warn!("security: no hardware RNG answers; its fills will fail");
+    }
+    Ok(())
+}
 
 pub fn secure_random_u64() -> u64 {
     // Retry the hardware source on each iteration. The previous code sampled
@@ -33,7 +39,6 @@ pub fn secure_random_u64() -> u64 {
     // a value would hand out a predictable key/nonce/canary.
     loop {
         if let Ok(v) = try_secure_random_u64() {
-            consume_entropy(64);
             return v;
         }
         core::hint::spin_loop();
