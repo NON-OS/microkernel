@@ -1,25 +1,11 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+
 //! WiFi adapter discovery proofs: recognition is by PCI class, not brand, so a
-//! wired NIC is excluded and an unknown wireless card is still listed. The
-//! friendly names for the parts we target (Realtek RTL8821CE, Intel AX200/AX210
-//! including the Alder Lake CNVi 0x51f0) are pinned.
+//! wired NIC is excluded and an unknown wireless card is still listed.
 
-use crate::adapter_name::adapter_label;
-use crate::driver_ids::has_driver;
+use super::interface_rig::*;
 use crate::interface::WifiInterface;
-use crate::wifi_class::{
-    discover, is_wifi, DeviceView, BUS_KIND_PCI, PCI_CLASS_NETWORK, PCI_SUBCLASS_WIRELESS,
-};
-
-fn wifi(vendor: u16, device: u16) -> DeviceView {
-    DeviceView {
-        bus_kind: BUS_KIND_PCI,
-        pci_class: PCI_CLASS_NETWORK,
-        pci_subclass: PCI_SUBCLASS_WIRELESS,
-        vendor,
-        device,
-    }
-}
+use crate::wifi_class::{discover, is_wifi, DeviceView, BUS_KIND_PCI, PCI_CLASS_NETWORK};
 
 // WifiInterface is all-zero-valid (a byte array plus integer fields), so test
 // buffers are sized with core::mem::zeroed and then filled by discover.
@@ -74,77 +60,4 @@ fn discover_lists_only_the_wifi_devices_and_names_them() {
     assert_eq!(out[0].name(), b"Intel Wi-Fi 6E AX210");
     assert_eq!(out[1].name(), b"Realtek RTL8821CE");
     assert_eq!(out[2].name(), b"Wi-Fi adapter", "unknown card still lists");
-}
-
-#[test]
-fn discover_never_overruns_the_output_buffer() {
-    let devices = [wifi(0x10EC, 0xC821), wifi(0x8086, 0x51F0), wifi(0x1234, 0x5678)];
-    let mut out: [WifiInterface; 2] = unsafe { core::mem::zeroed() };
-    let n = discover(&devices, &mut out);
-    assert_eq!(n, 2, "fills to capacity and drops the rest");
-    assert_eq!(out[0].name(), b"Realtek RTL8821CE");
-    assert_eq!(out[1].name(), b"Intel Wi-Fi 6E AX210");
-}
-
-#[test]
-fn known_parts_get_specific_names() {
-    assert_eq!(adapter_label(0x10EC, 0xC821), "Realtek RTL8821CE");
-    assert_eq!(adapter_label(0x8086, 0x51F0), "Intel Wi-Fi 6E AX210");
-    assert_eq!(adapter_label(0x8086, 0x2723), "Intel Wi-Fi 6 AX200");
-    assert_eq!(adapter_label(0x8086, 0x1234), "Intel Wi-Fi");
-    assert_eq!(adapter_label(0x10EC, 0x9999), "Realtek Wi-Fi");
-    assert_eq!(adapter_label(0x1111, 0x2222), "Wi-Fi adapter");
-}
-
-/* Settings says a chip with no NONOS driver plainly instead of waiting on a
-driver that will never answer: the inventory spawns iwlwifi for Intel wireless
-and the RTL8821CE driver for 10ec:c821, and nothing else. */
-#[test]
-fn only_the_chips_a_driver_is_spawned_for_have_one() {
-    assert!(has_driver(0x10EC, 0xC821));
-    for intel in [0x095A, 0x24FD, 0x2526, 0x9DF0, 0x2723, 0x06F0, 0x2725, 0x51F0, 0x7AF0, 0x7F70] {
-        assert!(has_driver(0x8086, intel), "{intel:#x}");
-    }
-    // The 3165 and Tiger Lake's AX201 are found by the driver (b614f22a).
-    for intel in [0xA0F0, 0x3165, 0x3166] {
-        assert!(has_driver(0x8086, intel), "{intel:#x}");
-    }
-    // Intel ids the iwlwifi driver leaves at once on: no adapter's. The chip
-    // has no driver; it is not one that failed.
-    for intel in [0x24F7, 0x24F8, 0x24F9, 0x24FA, 0x24FC] {
-        assert!(!has_driver(0x8086, intel), "{intel:#x}");
-    }
-    // MediaTek MT7921/MT7922, Broadcom, Qualcomm ath10k/ath11k, RTL8822CE/BE.
-    for (v, d) in [
-        (0x14C3, 0x7961),
-        (0x14C3, 0x0616),
-        (0x14E4, 0x43A0),
-        (0x168C, 0x003E),
-        (0x17CB, 0x1103),
-        (0x10EC, 0xC822),
-        (0x10EC, 0xB822),
-    ] {
-        assert!(!has_driver(v, d), "{v:#x}:{d:#x}");
-    }
-}
-
-#[test]
-fn a_discovered_adapter_keeps_its_ids() {
-    let devices = [wifi(0x14C3, 0x0616)];
-    let mut out: [WifiInterface; 1] = unsafe { core::mem::zeroed() };
-    assert_eq!(discover(&devices, &mut out), 1);
-    assert_eq!(out[0].ids(), (0x14C3, 0x0616));
-}
-
-/* The panel's Intel rule is the iwlwifi driver's own id table, every id: a
-chip the driver takes has a driver, one it leaves at once on does not. */
-#[test]
-fn the_intel_rule_is_the_drivers_own_id_table() {
-    for id in 0..=u16::MAX {
-        assert_eq!(
-            has_driver(0x8086, id),
-            crate::iwlwifi_family::family_for_device(id).is_some(),
-            "8086:{id:04x}"
-        );
-    }
 }

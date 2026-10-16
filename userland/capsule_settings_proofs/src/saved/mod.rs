@@ -13,4 +13,6 @@ mod file;
 mod list;
 #[path = "../../../nonos_wifi_client/src/saved/list_codec.rs"]
 mod list_codec;
+mod saved_rig;
+mod seal_tests;
 mod tests;
