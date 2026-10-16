@@ -23,7 +23,7 @@ use super::pte::{
 in bits 11:9, IR bit 61, IW bit 62, domain id in the second quadword). */
 #[test]
 fn device_table_entries_match_linux() {
-    assert_eq!(blocked(), [0x3, 0, 0, 0]);
+    assert_eq!(blocked(), [0x3, 0, 0x1, 0], "V, TV; IV with IntCtl abort");
     assert!(!allows_write(blocked()));
     let t = translated(0x1234_5000, 4, 7);
     assert_eq!(t[0], 0x6000_0000_1234_5803);
