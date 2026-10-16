@@ -56,6 +56,7 @@ mod hkdf_label_shape;
 mod inner_plain;
 mod inner_plain_edges;
 mod key_share_offer;
+#[cfg(feature = "live-relays")]
 mod live_relay;
 mod p256_share;
 mod reply_deadline;

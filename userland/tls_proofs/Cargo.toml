@@ -28,5 +28,12 @@ p256 = { version = "0.13", default-features = false, features = ["arithmetic", "
 [dev-dependencies]
 p256 = { version = "0.13", default-features = false, features = ["arithmetic", "ecdsa"] }
 
+# Runs that leave the host, on demand only, never part of the proof run.
+[features]
+# Dials live Anyone relays over the internet (tests/live_relay.rs).
+live-relays = []
+# Rewrites fixtures/openssl_tls12_alert.tls from a local openssl s_server.
+record-fixtures = []
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
