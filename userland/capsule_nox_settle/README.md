@@ -46,9 +46,15 @@ chain, the wallet's own list; a failure moves to the next, and a host swapped
 in must first answer eth_chainId with the chain's id. CHANNEL_STATE reads
 `settled` from a second host as well and answers EIO when the two disagree.
 A release is fetched over https with the host's chain checked, at most 1 MiB,
-and a redirect is refused, never followed. settle reads no logs yet; when it
-does, a contract whose deploy_block is 0 (unknown) is refused rather than
-read from genesis (v1.4.9).
+and a redirect is refused, never followed.
+
+Limits on log reads (plan/26): by address and topic0 only, from each
+chain's scanned-to mark (kept in memory, so the first read after a start
+is from deploy_block) to a head two hosts confirm. A deploy_block of 0 is
+refused, never read from genesis; a range past 20 years of the chain's
+blocks is EPROTO. Past MAX_KEYS or MAX_ROWS a chain's cache goes full: each
+miss then reads that chain's whole history again, and settle logs one line,
+once per chain, naming the chain and the cache and no ids.
 
 Stated: settle's reads share net.anon's circuits, so an RPC operator can link
 what one device reads. No unlinkability at the RPC is claimed (plan/26).
