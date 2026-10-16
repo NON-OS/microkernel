@@ -93,7 +93,7 @@ pub fn init() {
 /// One look at the button, from the boot CPU's paced tick.
 pub fn poll(ticks: u64) {
     let sts_a = STS_A.load(Ordering::Acquire);
-    if sts_a == 0 {
+    if sts_a == 0 || capsule_serves() {
         return;
     }
     let sts_b = STS_B.load(Ordering::Relaxed);
@@ -118,6 +118,17 @@ pub fn poll(ticks: u64) {
     if PENDING.load(Ordering::Acquire) && deliver() {
         PENDING.store(false, Ordering::Release);
     }
+}
+
+/// The ACPI capsule's SCI reads the button while that capsule lives, and
+/// runs the wiped power-off on a press; both reading would lose presses.
+fn capsule_serves() -> bool {
+    #[cfg(feature = "nonos-capsule-acpi")]
+    let alive = crate::userspace::capsule_acpi::shared_state().pid();
+    // Without the capsule in the image nothing can take the button.
+    #[cfg(not(feature = "nonos-capsule-acpi"))]
+    let alive = 0;
+    crate::hardware::broker::acpi::button_owner::stands_down(alive)
 }
 
 fn accept(now_ms: u64) -> bool {

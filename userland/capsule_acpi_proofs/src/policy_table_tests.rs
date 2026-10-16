@@ -34,6 +34,7 @@ fn the_table_the_lead_set() {
     assert_eq!(names(8), [shell], "SMBIOS");
     assert_eq!(names(18), [shell], "TPM_PPI");
     assert_eq!(names(22), [shell], "PCI_FIRMWARE");
+    assert_eq!(names(25), [shell], "POWER_OFF: the shell alone (F-88)");
     let serial = [&b"driver.i2c_pci0"[..], b"driver.i2c_hid0", b"driver.gpio0", b"driver.spi_hid0"];
     assert_eq!(names(9), serial, "SERIAL");
     assert_eq!(allowed(10), Allowed::AnyAdmitted, "DEVICE_POWER: the kernel's holder test");
@@ -42,7 +43,7 @@ fn the_table_the_lead_set() {
     assert_eq!(allowed(12), Allowed::AnyAdmitted, "PROPERTIES: the kernel's holder test");
     assert_eq!(allowed(13), Allowed::AnyAdmitted, "GPIO_EVENT: the kernel's holder test");
     assert_eq!(allowed(16), Allowed::AnyAdmitted, "QUIRKS: the kernel's holder test");
-    for op in [0, 1, 2, 23, 255] {
+    for op in [0, 1, 2, 23, 24, 26, 255] {
         assert_eq!(allowed(op), Allowed::Nobody, "op {op}");
     }
 }

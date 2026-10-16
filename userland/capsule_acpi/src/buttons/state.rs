@@ -24,4 +24,5 @@ pub struct Buttons {
     pub lids: Vec<Id>,
     /// What the kernel was last told: open when any lid is.
     pub lid_open: Option<bool>,
+    pub presses: crate::power::off::Presses,
 }
