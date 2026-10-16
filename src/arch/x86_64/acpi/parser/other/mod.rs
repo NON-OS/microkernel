@@ -28,6 +28,7 @@ pub mod dmar_scope;
 pub mod dmar_scope_walk;
 mod dmar_source_store;
 mod dmar_units;
+pub mod dmar_walk;
 mod hpet;
 pub mod ivhd_alias;
 mod ivhd_alias_store;
