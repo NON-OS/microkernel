@@ -4,6 +4,7 @@ mod errno;
 mod header;
 mod limits;
 mod ops;
+mod wipe;
 
 pub use decode::{parse, refused};
 pub use encode::response;
@@ -14,3 +15,4 @@ pub use ops::{
     OP_ACPI_HID, OP_CONTROLLER_INFO, OP_GPIO_DOORBELL, OP_HEALTHCHECK, OP_PROBE,
     OP_REGISTER_SNAPSHOT, OP_TIMING_INFO, OP_TRANSFER,
 };
+pub use wipe::wipe;

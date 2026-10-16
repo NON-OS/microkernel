@@ -21,7 +21,10 @@
 //! interrupt pacing without routing the interrupt: the HID driver reads the
 //! input register only while the line is asserted. Read-only; nothing to
 //! clear. `present` is zero when the platform layout is not mapped
-//! (setup/gpio), and the HID driver then polls.
+//! (setup/gpio), and the HID driver then polls. It is zero too once the
+//! bound pad is out of reach: the line is the bound declaration's, and when
+//! the client has found another pad (transaction/types/narrow.rs) it belongs
+//! to a pad the client does not read, so it must never gate those reads.
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
@@ -35,7 +38,8 @@ use crate::server::respond;
 static RANG: AtomicBool = AtomicBool::new(false);
 
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, out: &mut [u8]) {
-    let (present, fired) = match &driver.doorbell {
+    let ours = driver.reach.get().allows(driver.bound_addr);
+    let (present, fired) = match driver.doorbell.as_ref().filter(|_| ours) {
         Some(db) => (1u32, u32::from(db.asserted(db.regs.read32(db.cfg_offset)))),
         None => (0u32, 0u32),
     };

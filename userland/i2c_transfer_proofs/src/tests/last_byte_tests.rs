@@ -20,9 +20,9 @@
 
 use nonos_i2cmodel::{BusEvent, Config};
 
-use super::fixture::{bench, core, PAD};
+use super::fixture::{bench, core, transfer, PAD};
 use super::read_tests::HID_DESC_REG;
-use crate::transaction::{transfer, TransferRequest, FLAG_RESTART_ON_READ};
+use crate::transaction::{TransferRequest, FLAG_RESTART_ON_READ};
 
 #[test]
 fn the_last_byte_read_is_the_one_the_controller_nacks() {
