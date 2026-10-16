@@ -16,30 +16,10 @@
 
 //! Walking the server's handshake messages through to Finished.
 
-use alloc::vec::Vec;
-
-use super::scan_messages::{certificate, certificate_request, certificate_verify, finished};
+use super::scan_messages::{certificate, certificate_verify, finished};
 use super::scan_messages::{CERTIFICATE, CERTIFICATE_REQUEST, CERTIFICATE_VERIFY, FINISHED};
-use super::transcript::Transcript;
-
-pub struct ScanState<'a> {
-    pub secret: &'a [u8; 32],
-    pub transcript: &'a mut Transcript,
-    pub host: &'a [u8],
-    pub now: u64,
-    pub cert11: &'a mut Vec<u8>,
-    pub validated: &'a mut bool,
-    /// Whether the certificate has to chain to a trusted root for this host.
-    ///
-    /// True for every ordinary connection. False only where the caller
-    /// authenticates the peer itself, which it must then actually do: the
-    /// session is otherwise bound to nothing but whoever answered.
-    pub require_chain: bool,
-    /// The certificate_request_context of a CertificateRequest, when the
-    /// server sent one. The client must then answer with a Certificate of its
-    /// own, empty here, before its Finished (RFC 8446 section 4.4.2).
-    pub request_context: &'a mut Option<Vec<u8>>,
-}
+use super::scan_request::certificate_request;
+use super::scan_state::ScanState;
 
 pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
     let mut pos = 0usize;
