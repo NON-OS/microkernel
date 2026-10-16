@@ -20,11 +20,13 @@ use super::pmf_state::PmfState;
 use super::replay::Replay;
 use super::{Ccmp, LinkStation};
 use crate::dot11::header::MacAddr;
+use crate::wpa::supplicant::State;
 
 impl LinkStation {
     /// Record association to `bssid` with the given CCMP mode, resetting the
     /// sequence and packet-number counters for the new session.
     pub fn associate(&mut self, bssid: MacAddr, ccmp: Ccmp) {
+        self.wipe_keys();
         self.bssid = bssid;
         self.ccmp = ccmp;
         self.pn = 0;
@@ -40,8 +42,7 @@ impl LinkStation {
     /// again, and forgets the keys and the supplicant.
     pub fn deassociate(&mut self) {
         self.associated = false;
-        self.group_keys = [None; 4];
-        self.supplicant = None;
+        self.wipe_keys();
         self.pmf = PmfState::OFF;
     }
 
@@ -53,6 +54,14 @@ impl LinkStation {
     /// Whether the station is associated and carrying data.
     pub fn is_associated(&self) -> bool {
         self.associated
+    }
+
+    /// An exchange the link must see through on its channel: an SA Query
+    /// awaiting the AP's answer, or a pairwise rekey between message 1 and
+    /// the new keys going in.
+    pub fn busy(&self) -> bool {
+        let rekeying = self.supplicant.as_ref().is_some_and(|s| s.state() == State::PtkDerived);
+        self.pmf.query.is_some() || rekeying
     }
 
     /// The station MAC address.
