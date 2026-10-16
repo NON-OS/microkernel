@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! MODE_SET on a taken-over output: the new surfaces mapped and filled
-//! from the new primary before anything goes dark, then the output lit on
-//! them. A failure puts the old mode back on the untouched old surfaces.
-//! A pulled output is refused until its monitor is back (EAGAIN); one
-//! lit, or back on the old mode after a failure, is In.
+//! MODE_SET on a taken-over output: the new surfaces mapped and filled from
+//! the new primary before anything goes dark, then the output lit on them; a
+//! failure puts the old mode back on the untouched old surfaces. A pulled
+//! output is refused (EAGAIN); one lit, or back on its old mode, is In.
 
 use nonos_gfx_serve::Shadow;
 use nonos_gfx_wire::errno::{EAGAIN, EINVAL, ENOMEM, ENOSYS, ENXIO};
@@ -36,6 +35,7 @@ use crate::engine::cdclk;
 
 impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
     pub fn change_mode(&mut self, o: u16, w: u32, h: u32, shadow: &Shadow) -> Result<(), Errno> {
+        let held = self.held_beside(o);
         let Intel { m, clock, heads, .. } = self;
         let hd = heads.get_mut(o as usize).and_then(|h| h.as_mut()).ok_or(ENXIO)?;
         let ms = hd.modeset.ok_or(ENOSYS)?;
@@ -56,7 +56,7 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
         hd.frames.fence();
         hd.generation = hd.generation.wrapping_add(1);
         let (was, old_bases) = ((hd.scan.width, hd.scan.height), hd.bases);
-        match light(m, clock, &mut hd.scan, (&ms, &new), (w, h), bases) {
+        match light(m, clock, &mut hd.scan, (&ms, &new), (w, h), bases, held) {
             Ok(()) => {
                 hd.frames.settle(true);
                 hd.bases = bases;
@@ -65,7 +65,7 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
             }
             Err(e) => {
                 hd.frames.settle(false);
-                if light(m, clock, &mut hd.scan, (&ms, &ms.now), was, old_bases).is_ok() {
+                if light(m, clock, &mut hd.scan, (&ms, &ms.now), was, old_bases, held).is_ok() {
                     hd.plug = Plug::In;
                 }
                 Err(errno(e))

@@ -17,6 +17,7 @@
 //! What the capsule says and does on the display wire.
 
 mod cursor_wire_tests;
+mod held_tests;
 mod share_rig;
 mod wire_flush_tests;
 mod wire_modeset_back_tests;

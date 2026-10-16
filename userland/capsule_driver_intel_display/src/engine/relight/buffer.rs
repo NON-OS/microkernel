@@ -16,9 +16,11 @@
 
 //! A lit pipe's share of the display buffer and its plane's watermarks,
 //! for a new line after a mode set. Alone on the engine the pipe gets the
-//! whole buffer (`ddb::allocate`). Beside another lit pipe it keeps the
-//! runs it has: those cannot overlap the other's, and moving the other
-//! would mean rewriting its watermarks to latch at its own blank. The
+//! whole buffer (`ddb::allocate`). Beside another lit pipe, or another
+//! output held dark (`held`: its monitor pulled, its runs kept for its
+//! return), it keeps the runs it has: those cannot overlap the other's,
+//! and moving the other would mean rewriting its watermarks to latch at
+//! its own blank. The
 //! levels follow the new width, line total and clock (`wm::levels`) from
 //! the latencies pcode reported, and latch with the plane's next surface.
 
@@ -37,9 +39,11 @@ pub fn buffer(
     width: u32,
     timing: &Detailed,
     latency_us: &[u32; 8],
+    held: bool,
 ) -> Result<(), Error> {
     let others = Pipe::ALL[..3].iter().filter(|&&q| q != p);
-    let alone = others.into_iter().all(|&q| m.read(plane_ctl(q, 1)) & ENABLE == 0);
+    let lit = others.into_iter().any(|&q| m.read(plane_ctl(q, 1)) & ENABLE != 0);
+    let alone = !lit && !held;
     let runs = if alone {
         let mut lit = [false; 3];
         lit[p.index() as usize] = true;

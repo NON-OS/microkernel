@@ -58,6 +58,11 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
         self.heads.iter().take_while(|h| h.is_some()).count()
     }
 
+    /// Whether another output is held beside `output`, lit or pulled.
+    pub fn held_beside(&self, output: u16) -> bool {
+        self.heads.iter().enumerate().any(|(i, h)| i != output as usize && h.is_some())
+    }
+
     pub fn head(&self, output: u16) -> Result<&Head<F>, Errno> {
         self.heads.get(output as usize).and_then(|h| h.as_ref()).ok_or(ENXIO)
     }

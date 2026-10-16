@@ -16,7 +16,7 @@
 
 //! One lighting of a taken-over output at a timing on the surfaces at
 //! `bases`: the port relit, the plane's buffer and watermarks for the new
-//! line, then the plane rebased onto the surfaces inside the output's GGTT
+//! line (`held`: another output is held beside it, lit or pulled), then the plane rebased onto the surfaces inside the output's GGTT
 //! window, live before it returns.
 
 use nonos_gfx_wire::errno::{EINVAL, ENOMEM, ETIMEDOUT};
@@ -37,9 +37,10 @@ pub fn light(
     (ms, timing): (&Modeset, &Detailed),
     size: (u32, u32),
     bases: [u64; 2],
+    held: bool,
 ) -> Result<(), Error> {
     relight(m, clock, &ms.lit, timing, ms.tmds_khz)?;
-    buffer(m, ms.lit.p, size.0, timing, &ms.latency_us)?;
+    buffer(m, ms.lit.p, size.0, timing, &ms.latency_us, held)?;
     let until = Until::new(clock, FLIP_US);
     scan.rebase(m, size, ms.window, bases, &until)
 }
