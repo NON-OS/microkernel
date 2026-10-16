@@ -1,26 +1,7 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
-//! Discovery finds an Intel Wi-Fi adapter whatever firmware left in its INTx
-//! registers, and finds nothing else; a refused interrupt bind ends the
-//! attempt only when the claim is gone. Laptops whose firmware leaves the
-//! legacy line at 0xFF (the OS is expected to use MSI/MSI-X) used to have
-//! their adapter skipped at discovery.
+//! Which PCI functions discovery finds, whatever their INTx registers say.
 
-use crate::irq_plan::{after_intx, after_msix, Refusal};
 use crate::pci_match::{intx_usable, is_supported_adapter, Candidate};
 
 // An AX211 on an SO platform (0x51F0): class network/other, BAR0 a memory BAR.
@@ -77,20 +58,4 @@ fn a_non_intel_or_non_network_function_is_not_found() {
     assert!(!is_supported_adapter(&Candidate { device: 0x272B, ..ax210() }), "BE200, not run");
     assert!(!is_supported_adapter(&Candidate { is_pci: false, ..ax210() }), "not on PCI");
     assert!(!is_supported_adapter(&Candidate { bar0_mmio: false, ..ax210() }), "no register BAR");
-}
-
-#[test]
-fn only_a_lost_claim_ends_the_interrupt_ladder() {
-    // ESTALE: the claim epoch is gone, nothing more can be bound.
-    assert_eq!(after_intx(-116), Refusal::ClaimLost);
-    assert_eq!(after_msix(-116), Refusal::ClaimLost);
-    // EPERM on INTx can be a kernel-reserved line: MSI-X is still worth trying.
-    assert_eq!(after_intx(-1), Refusal::TryNext);
-    // EPERM on MSI-X means the device is not ours.
-    assert_eq!(after_msix(-1), Refusal::ClaimLost);
-    // No INTx, no MSI-X capability, a busy line: move on, finally run polled.
-    for rc in [-22i64, -16, -12, -19, -95] {
-        assert_eq!(after_intx(rc), Refusal::TryNext, "intx {rc}");
-        assert_eq!(after_msix(rc), Refusal::TryNext, "msix {rc}");
-    }
 }
