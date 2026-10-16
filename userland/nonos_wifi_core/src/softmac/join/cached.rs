@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The first attempt of a join, on a cached PMKSA when one is held for
-//! this AP, network and passphrase (IEEE Std 802.11-2020, 12.6.10.3). An
-//! AP that no longer holds the PMKSA refuses the association. So does one
-//! that never caches, or that refuses Open System authentication for SAE.
-//! For any of those, or any other ending short of joined, the entry is
-//! forgotten and the attempt runs again with SAE, on fresh randomness.
-//! What a joined SAE attempt holds is kept for the next join.
+//! The first attempt of a join, on a cached PMKSA when one is held for this
+//! AP, network, station address and passphrase (IEEE Std 802.11-2020,
+//! 12.6.10.3). An AP that forgot the PMKSA, never caches, or refuses Open
+//! System authentication for SAE refuses it; then, or on any other ending
+//! short of joined, the entry is forgotten and SAE runs again on fresh
+//! randomness. What a joined SAE attempt holds is kept for the next join.
 
-use super::attempt::{attempt, Extra};
+use super::attempt::attempt;
+use super::extra::Extra;
+use super::joining::Joining;
 use super::report::{Outcome, Report};
 use super::request::ConnectRequest;
 use super::run::JoinError;
-use crate::pmksa::PmksaCache;
+use crate::pmksa::{PmksaCache, Tag};
 use crate::regdom::Domain;
 use crate::rsn::JoinPolicy;
 use crate::softmac::radio::{Env, Radio};
@@ -46,20 +47,29 @@ pub(crate) fn first_attempt<R: Radio, E: Env>(
     beacon: &[u8],
     bssid: [u8; 6],
     cache: &mut PmksaCache,
-    from: Option<[u8; 6]>,
+    j: &Joining,
 ) -> Result<Report, JoinError> {
-    let offer = cache.find(&bssid, req.ssid, req.pass, env.now_ms());
-    let report = attempt(r, env, domain, req, policy, beacon, Extra { offer, from })?;
+    let (now, sta) = (env.now_ms(), r.mac());
+    let offer = j.tag.and_then(|t| cache.find((bssid, sta), req.ssid, t, now));
+    let (from, kept) = (j.from, j.kept);
+    let report = attempt(r, env, domain, req, policy, beacon, Extra { offer, from, kept })?;
     if !retry_with_sae(&report) {
         return Ok(report);
     }
     cache.remove(&bssid, req.ssid);
-    attempt(r, env, domain, req, policy, beacon, Extra { offer: None, from })
+    attempt(r, env, domain, req, policy, beacon, Extra { offer: None, from, kept })
 }
 
 /// Keep what a joined SAE attempt holds.
-pub(crate) fn keep<E: Env>(cache: &mut PmksaCache, env: &E, req: &ConnectRequest, report: &Report) {
-    if let (Some(p), Outcome::Joined { .. }) = (report.pmksa, &report.outcome) {
-        cache.keep(req.ssid, req.pass, p, env.now_ms());
+pub(crate) fn keep<E: Env>(
+    c: &mut PmksaCache,
+    env: &E,
+    sta: [u8; 6],
+    req: &ConnectRequest,
+    t: Option<&Tag>,
+    report: &Report,
+) {
+    if let (Some(p), Outcome::Joined { .. }, Some(t)) = (report.pmksa, &report.outcome, t) {
+        c.keep(sta, req.ssid, t, p, env.now_ms());
     }
 }

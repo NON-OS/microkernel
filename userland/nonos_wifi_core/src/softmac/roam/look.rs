@@ -23,7 +23,7 @@
 
 use alloc::vec::Vec;
 
-use super::pick::Heard;
+use super::offer::Heard;
 use crate::regdom::{Band, Domain, ScanPlan};
 
 pub const AWAY_CHANNELS: usize = 2;

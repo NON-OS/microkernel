@@ -19,7 +19,6 @@
 
 use super::*;
 
-#[derive(Clone, Copy)]
 pub struct SaeStation {
     pub(super) state: SaeState,
     pub(super) h2e: bool,
@@ -44,12 +43,13 @@ impl SaeStation {
         mask: &[u8; LEN],
     ) -> Option<Self> {
         let commit = Commit::new(pwe, rand, mask)?;
+        let (own_scalar, own_element) = (commit.scalar(), commit.element()?);
         Some(SaeStation {
             state: SaeState::Committed,
             h2e,
             commit,
-            own_scalar: commit.scalar(),
-            own_element: commit.element()?,
+            own_scalar,
+            own_element,
             token: [0u8; TOKEN_MAX],
             token_len: 0,
             keys: SaeKeys { kck: [0u8; 32], pmk: [0u8; 32], pmkid: [0u8; 16] },

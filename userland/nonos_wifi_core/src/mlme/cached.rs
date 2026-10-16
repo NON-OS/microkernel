@@ -17,8 +17,8 @@
 //! Joining on a cached PMKSA (IEEE Std 802.11-2020, 12.6.10.3). When the
 //! network's AKM is SAE and a PMKSA for this very AP was offered, the join
 //! skips SAE: Open System authentication, then an Association Request whose
-//! RSNE lists the PMKID, then the four-way handshake under the cached PMK.
-//! An AP that has forgotten the PMKSA refuses; the caller then runs SAE.
+//! RSNE lists the PMKID, then the four-way handshake under the cached PMK;
+//! an AP that has forgotten it refuses, and the caller runs SAE.
 
 use alloc::vec::Vec;
 
@@ -53,9 +53,9 @@ impl Mlme {
             return self.start_sae(h2e);
         };
         (self.pmk, self.pmkid, self.cache_used) = (p.pmk, Some(p.pmkid), true);
-        let seq = self.next_seq();
+        self.forget_secret();
         let mut out = [0u8; 64];
-        match auth_open(&mut out, self.our_mac, self.bssid, seq) {
+        match auth_open(&mut out, self.our_mac, self.bssid, self.next_seq()) {
             Some(n) => {
                 self.state = MlmeState::Authenticating;
                 MlmeOutput::send(out[..n].to_vec())

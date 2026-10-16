@@ -18,10 +18,15 @@
 //! PMKSA, an SAE PMKSA it holds outlives the session, and the person's
 //! disconnect wipes every one, joined or not.
 
+use crate::soft::air::STA;
 use crate::soft::join::joined;
 use crate::soft::wire::{code, control};
-use nonos_wifi_core::pmksa::Pmksa;
+use nonos_wifi_core::pmksa::{Pmksa, Tag};
 use nonos_wifi_core::softmac::engine::OP_DISCONNECT;
+
+fn tag(st: &mut crate::soft::rig::Station, ssid: &[u8]) -> Tag {
+    st.pmksa().tag(ssid, b"pass").expect("the station drew a tag key")
+}
 
 const HELD: Pmksa = Pmksa { bssid: [2, 0, 0, 0, 0, 7], pmk: [7; 32], pmkid: [8; 16] };
 
@@ -34,11 +39,12 @@ fn a_psk_join_keeps_no_pmksa() {
 #[test]
 fn the_persons_disconnect_wipes_every_pmksa() {
     let mut st = joined();
-    st.pmksa().keep(b"home", b"pass", HELD, 0);
-    st.pmksa().keep(b"work", b"pass", Pmksa { bssid: [2, 0, 0, 0, 0, 9], ..HELD }, 0);
+    let (home, work) = (tag(&mut st, b"home"), tag(&mut st, b"work"));
+    st.pmksa().keep(STA, b"home", &home, HELD, 0);
+    st.pmksa().keep(STA, b"work", &work, Pmksa { bssid: [2, 0, 0, 0, 0, 9], ..HELD }, 0);
     assert_eq!(code(&control(&mut st, OP_DISCONNECT, &[])), 0);
     assert!(st.pmksa().is_empty(), "joined");
-    st.pmksa().keep(b"home", b"pass", HELD, 0);
+    st.pmksa().keep(STA, b"home", &home, HELD, 0);
     assert_eq!(code(&control(&mut st, OP_DISCONNECT, &[])), 0);
     assert!(st.pmksa().is_empty(), "and with no session to leave");
 }

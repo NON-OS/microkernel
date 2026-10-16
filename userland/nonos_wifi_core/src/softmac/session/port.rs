@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The session as net_core sees it: an Ethernet interface. Frames go out
-//! through the station's framing and CCMP onto the radio; frames the pump
+//! through the station's framing and CCMP onto the radio, except while the
+//! station is away on a look, when they are dropped; frames the pump
 //! queued come back in order.
 
 use super::state::Session;
@@ -27,6 +28,8 @@ pub struct Port<'a, R: Radio> {
     pub radio: &'a mut R,
     pub session: Option<&'a mut Session>,
     pub stats: &'a mut LinkStats,
+    /// The station is off the session's channel: nothing goes out.
+    pub closed: bool,
 }
 
 impl<R: Radio> LinkPort for Port<'_, R> {
@@ -47,7 +50,7 @@ impl<R: Radio> LinkPort for Port<'_, R> {
     }
 
     fn send_tx(&mut self, frame: &[u8]) -> bool {
-        let sent = match self.session.as_mut() {
+        let sent = match self.session.as_mut().filter(|_| !self.closed) {
             Some(s) => s.station.tx_frame(frame).is_some_and(|mpdu| self.radio.send(&mpdu)),
             None => false,
         };
