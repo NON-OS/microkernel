@@ -5,11 +5,11 @@ Part of [Syscalls](syscalls.md).
 ## Graphics and input structures
 
 `MSRG` reads a `SurfaceDescriptor` from the caller, and `MSAT` writes one back
-(`src/syscall/dispatch/router/surface_handlers.rs:87-95`,
-`src/syscall/dispatch/router/surface_handlers.rs:155-166`). `do_register`
+(`src/syscall/dispatch/router/surface_handlers/register.rs:35-38`,
+`src/syscall/dispatch/router/surface_handlers/share.rs:47-53`). `do_register`
 refuses a `byte_len` of 0 or over `MAX_SURFACE_BYTES`, 64 MiB, and a `base_va`
 that is not page aligned
-(`src/syscall/dispatch/router/surface_handlers.rs:101-104`). `MIEP` reads one
+(`src/syscall/dispatch/router/surface_handlers/frames.rs:34-37`). `MIEP` reads one
 `InputEvent` (`src/syscall/dispatch/router/input_ops/do_post.rs:23-27`). Both
 layouts match `abi/wire.toml`.
 
