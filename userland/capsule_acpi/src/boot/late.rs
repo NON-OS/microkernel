@@ -22,10 +22,12 @@
 use super::state::Acpi;
 
 pub fn late(acpi: &mut Acpi) {
+    super::say::say_cooling(&acpi.cooling);
     crate::reserved::publish(acpi);
     crate::numa::publish(acpi);
     crate::dpower::reveal_hidden(acpi);
     crate::hotplug::learn(acpi);
+    crate::pci_firmware::find(acpi);
     let Acpi { devices, aml, host, .. } = acpi;
     crate::platform::publish(devices, aml, host);
     crate::ports::publish(acpi);
