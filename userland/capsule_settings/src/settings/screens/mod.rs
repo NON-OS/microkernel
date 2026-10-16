@@ -16,9 +16,12 @@
 
 //! The displays on Appearance: mirrored or extended, and each display's
 //! scale, as the compositor holds them. Settings is their only client,
-//! through the shell, which alone may hand them to the compositor.
+//! through the shell, which alone may hand them to the compositor; a change
+//! taken is kept in the policy store, which the shell puts back at start.
 
 pub mod arrange;
+pub mod keep;
+mod keep_call;
 pub mod page;
 pub mod read;
 pub mod text;

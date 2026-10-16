@@ -19,5 +19,15 @@
 /// The compositor's answer, which Settings reads.
 #[path = "../../../../compositor/src/display/arrange_wire.rs"]
 mod arrange_wire;
+/// The shell's side of keeping them: what it replays, and when.
+#[path = "."]
+mod shell_keep {
+    #[path = "../../../../capsule_desktop_shell/src/state/display_keep.rs"]
+    pub mod display_keep;
+    #[path = "../../../../capsule_desktop_shell/src/state/display_told.rs"]
+    pub mod display_told;
+}
+mod keep_tests;
+mod replay_tests;
 mod step_tests;
 mod wire_tests;
