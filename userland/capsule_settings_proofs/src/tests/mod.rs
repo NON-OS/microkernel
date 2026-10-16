@@ -18,10 +18,20 @@
 //! the crate root.
 
 mod access_page_tests;
+mod connect_request_tests;
+mod handoff_race_tests;
+mod handoff_rig;
 mod handoff_tests;
+mod hydrate_report_tests;
+mod hydrate_rig;
 mod hydrate_tests;
+mod interface_driver_tests;
+mod interface_names_tests;
+mod interface_rig;
 mod interface_tests;
 mod net_poll_tests;
+mod paste_field_tests;
+mod paste_rig;
 mod paste_tests;
 mod pending_tests;
 mod qwen_tier_tests;
@@ -30,7 +40,11 @@ mod section_tests;
 mod security_tests;
 mod slot_tests;
 mod sound_note_tests;
+mod text_format_tests;
+mod text_rig;
 mod text_tests;
 mod wifi_cursor_tests;
 mod wifi_key_tests;
+mod wire_rig;
+mod wire_ssid_tests;
 mod wire_tests;
