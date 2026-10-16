@@ -19,6 +19,7 @@ mod forbidden_image;
 mod forbidden_iommu;
 mod forbidden_ranges;
 mod map;
+mod map_record;
 mod map_resolve;
 mod map_shared;
 pub mod msix_exclusion;

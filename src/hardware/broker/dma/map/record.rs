@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Entering a finished map in the grant table.
+//! Entering a finished map in the grant table, only while its claim holds
+//! (K10): None when the claim is gone, and the caller undoes the map.
 
 use super::super::records;
 use super::super::types::{DmaGrant, DmaMapRequest};
 use super::placed::Placed;
+use crate::hardware::broker::claim::record_while_held;
 
 pub(super) fn record(
     pid: u32,
@@ -27,9 +29,9 @@ pub(super) fn record(
     placed: &Placed,
     device_addr: u64,
     confined: bool,
-) -> u64 {
+) -> Option<u64> {
     let grant_id = records::allocate_id();
-    records::insert(DmaGrant {
+    let grant = DmaGrant {
         grant_id,
         pid,
         device_id: req.device_id,
@@ -40,7 +42,8 @@ pub(super) fn record(
         flags: req.flags,
         device_addr,
         confined,
-    });
+    };
+    record_while_held(pid, req.device_id, claim_epoch, || records::insert(grant))?;
 
     /*
      * A grant no remapping unit confines hands the device the host-physical
@@ -49,5 +52,5 @@ pub(super) fn record(
     if !confined {
         crate::memory::iommu::note_unconfined(1);
     }
-    grant_id
+    Some(grant_id)
 }
