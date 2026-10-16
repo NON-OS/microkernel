@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! REMOTE_NDIS_QUERY_MSG and the information buffer of its completion
-//! (Remote NDIS 1.0, 2.2.4 and 2.2.5), as Linux rndis_query builds and
-//! bounds them.
+//! (Remote NDIS 1.0, 2.2.4 and 2.2.5), built and bounded here.
 
 use alloc::vec;
 use alloc::vec::Vec;
@@ -25,9 +24,11 @@ use super::message::{le32, put32, MSG_QUERY};
 
 /// The bytes of a QUERY with no information buffer, before its payload.
 const QUERY_LEN: usize = 28;
+/// A QUERY_CMPLT's fields before its information buffer.
+const CMPLT_HDR: usize = 24;
 /// Zero bytes sent after the query for the station address: ActiveSync
-/// devices want a buffer as large as their answer (Linux rndis_query,
-/// which sends 48 for OID_802_3_PERMANENT_ADDRESS).
+/// devices want a buffer as large as their answer (observed, unverified;
+/// 48 bytes covers the address).
 pub const ADDRESS_PAYLOAD: usize = 48;
 
 /// A QUERY for `oid` with `payload` zero bytes after it. The offset is
@@ -42,15 +43,19 @@ pub fn query_msg(oid: u32, payload: usize) -> Vec<u8> {
 }
 
 /// The information buffer of a QUERY_CMPLT of `r.len()` bytes (its
-/// MessageLength), or `None` when its length or offset reach past it.
+/// MessageLength), or `None` when its length or offset reach past it or a
+/// buffer starts inside the completion's own 24-byte header.
 pub fn info(r: &[u8]) -> Option<&[u8]> {
     let len = le32(r, 16)? as usize;
     let start = (le32(r, 20)? as usize).checked_add(8)?;
+    if len != 0 && start < CMPLT_HDR {
+        return None;
+    }
     r.get(start..start.checked_add(len)?)
 }
 
-/// The permanent station address: exactly six bytes, as Linux asks, and
-/// one the stack can send from.
+/// The permanent station address: exactly six bytes, an 802.3 address,
+/// and one the stack can send from.
 pub fn station(r: &[u8]) -> Option<[u8; 6]> {
     let b = info(r).filter(|b| b.len() == 6)?;
     let mac = [b[0], b[1], b[2], b[3], b[4], b[5]];

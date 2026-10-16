@@ -27,4 +27,6 @@ mod link_tests;
 #[cfg(test)]
 mod qemu;
 #[cfg(test)]
+mod reply_audit_tests;
+#[cfg(test)]
 mod transfer_tests;
