@@ -15,7 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod args;
+mod baked_apps;
+mod baked_names;
 mod endpoint;
+mod name_rule;
+mod names;
 mod spawn;
 mod trust;
 
