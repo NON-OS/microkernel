@@ -21,7 +21,7 @@ use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::parser::Fdt;
 
 use super::controllers::controllers;
-use super::node::DwI2c;
+use super::node::{DwI2c, IrqCtrl};
 use super::phandle::provider;
 
 /// Nesting followed; a controller deeper than this is not found.
@@ -29,15 +29,18 @@ pub const MAX_DEPTH: usize = 16;
 
 /// Fills `out` and returns how many controllers the tree has, which may be
 /// more than `out` holds. An interrupt is kept only when its parent names
-/// a width of one to three cells and the node gave that many.
+/// a width of one to three cells and the node gave that many; the parent's
+/// kind is noted either way.
 pub fn find(fdt: &Fdt, out: &mut [DwI2c]) -> Result<usize, FdtError> {
     let found = controllers(fdt, out)?;
     for c in out.iter_mut().take(found) {
         let given = u32::from(c.irq_cells);
-        let width = match c.irq_parent {
-            Some(h) => provider(fdt, h)?.and_then(|p| p.interrupt_cells),
+        let parent = match c.irq_parent {
+            Some(h) => provider(fdt, h)?,
             None => None,
         };
+        c.irq_ctrl = parent.map_or(IrqCtrl::Unknown, |p| p.ctrl);
+        let width = parent.and_then(|p| p.interrupt_cells);
         let n = width.filter(|n| (1..=given).contains(n)).unwrap_or(0) as usize;
         c.irq_cells = n as u8;
         c.irq[n..].fill(0);

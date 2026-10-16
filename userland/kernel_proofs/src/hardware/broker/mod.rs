@@ -5,6 +5,4 @@
 #[path = "../../../../../src/hardware/broker/class.rs"]
 mod class;
 mod device;
-#[path = "../../../../../src/hardware/broker/fdt_i2c/record.rs"]
-mod fdt_i2c_record;
-mod fdt_i2c_tests;
+mod fdt_i2c;

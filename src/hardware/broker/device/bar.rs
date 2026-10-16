@@ -31,9 +31,11 @@ pub enum BarKind {
 pub struct Bar {
     pub base: u64,
     pub size: u64,
-    /// Bus-specific auxiliary value. For an ACPI LPSS I2C controller it carries
-    /// the DesignWare source clock in Hz; zero for every other bar. Placed here
-    /// so its four-byte alignment keeps the record at 24 bytes.
+    /// Bus-specific auxiliary value: an I2C controller's input clock in Hz
+    /// (ACPI and device-tree records), an ACPI I2C-HID device's connection
+    /// speed, and a device-tree controller's bus rate in its window-less
+    /// second bar; zero otherwise. Placed here so its four-byte alignment
+    /// keeps the record at 24 bytes.
     pub aux: u32,
     pub kind: u8,
     pub flags: u8,

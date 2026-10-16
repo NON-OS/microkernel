@@ -20,6 +20,7 @@ mod find;
 mod level;
 mod props;
 mod node;
+mod seen;
 
 pub use find::{find, MAX_DEPTH};
-pub use node::DwI2c;
+pub use node::{DwI2c, IrqCtrl};

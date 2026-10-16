@@ -17,6 +17,17 @@
 //! A DesignWare I2C controller as the device tree describes it, ready to
 //! become a device-tree bus record.
 
+/// What the interrupt parent is, by its compatible: an Arm GIC, a RISC-V
+/// PLIC, another controller, or not known (no parent, or not found).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum IrqCtrl {
+    #[default]
+    Unknown,
+    Gic,
+    Plic,
+    Other,
+}
+
 /// One `snps,designware-i2c` node whose status is okay and whose registers
 /// sit at a CPU address.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -28,8 +39,10 @@ pub struct DwI2c {
     /// cells when the interrupt parent or its cell count is unknown.
     pub irq: [u32; 3],
     pub irq_cells: u8,
-    /// The interrupt controller's phandle, the node's own or inherited.
+    /// The interrupt controller's phandle, the node's own or inherited,
+    /// and what that controller is.
     pub irq_parent: Option<u32>,
+    pub irq_ctrl: IrqCtrl,
     /// `clock-frequency`: the SCL rate asked of the bus, not the input.
     pub bus_hz: Option<u32>,
     /// The first `clocks` phandle, and that clock's rate when it is a

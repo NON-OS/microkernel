@@ -54,6 +54,7 @@ pub(super) fn controller(l: &Level) -> Option<DwI2c> {
         irq: l.irq.0,
         irq_cells: l.irq.1,
         irq_parent: l.irq_parent_in_force(),
+        irq_ctrl: Default::default(),
         bus_hz: l.bus_hz,
         clock: l.clock,
         input_hz: None,
