@@ -19,6 +19,7 @@
 use nonos_app_skeleton::clients::vfs::read_file;
 use nonos_libc::{mk_debug, mk_getpid};
 
+use crate::baseline::BASELINE;
 use crate::ingest::{load_verified, IngestError};
 use crate::store::Store;
 use crate::verify::Verifier;
@@ -29,11 +30,6 @@ const PATH: &[u8] = b"/nonos/marketplace/index.bin";
 /// A catalogue of every listing a machine could offer is still small next to
 /// one package.
 const MAX: u32 = 8 << 20;
-
-/// The catalogue this image shipped with, written by tools/nonos-market-index.
-/// Empty when the build had no operator seed, which reads as "no baseline"
-/// rather than as a failure.
-static BASELINE: &[u8] = include_bytes!("../../../target/market/index.bin");
 
 pub fn load<V: Verifier>(store: &mut Store, verifier: &V) {
     match BASELINE.is_empty() {
