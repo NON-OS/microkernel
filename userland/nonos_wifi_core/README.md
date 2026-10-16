@@ -62,3 +62,25 @@ their drivers.
 
 See [drivers](../../docs/handbook/drivers.md) and
 [the network stack](../../docs/handbook/network/stack.md).
+
+## Keys and the chip
+
+A soft-MAC chip is given no key: `Radio` has no way to take one, and the
+station seals every data frame itself. A restarted chip therefore cannot
+send a link's data in the clear.
+
+A driver that keys a `LinkStation` with `Ccmp::Hardware` hands the chip
+plaintext for it to encrypt. The station refuses every such frame until
+the driver says, with `chip_keys(true)`, that the chip holds the keys. It
+refuses them again from `chip_keys(false)` until they are back:
+- a firmware restart;
+- a key install that failed or was never answered;
+- a key cache cleared.
+
+Only the EAPOL a handshake sends before any key is in place goes in the
+clear.
+
+Every orderly end wipes the station's keys: the pairwise key, the group
+keys, the IGTK, the BIGTK, and the supplicant that holds them.
+`holds_keys` says whether any remain. A PMKSA comes only of a handshake
+that finished.

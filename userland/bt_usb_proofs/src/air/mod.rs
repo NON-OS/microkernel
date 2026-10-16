@@ -26,10 +26,12 @@ mod lies;
 mod link;
 mod new;
 mod pipes;
+mod restart;
 mod seen;
 mod state;
 
 pub use act::Act;
 pub use events::advertised;
 pub use lies::Lies;
+pub use restart::Restart;
 pub use state::{Air, HANDLE, OURS, PEER};

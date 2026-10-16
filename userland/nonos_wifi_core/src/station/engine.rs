@@ -45,6 +45,8 @@ pub struct LinkStation {
     /// The join's supplicant, answering the AP's later key handshakes.
     pub(super) supplicant: Option<Supplicant>,
     pub(super) pmf: PmfState,
+    /// Under `Ccmp::Hardware`, whether the driver says the chip holds the keys.
+    pub(super) chip_keyed: bool,
 }
 
 impl LinkStation {
@@ -61,6 +63,7 @@ impl LinkStation {
             group_keys: [const { None }; 4],
             supplicant: None,
             pmf: PmfState::OFF,
+            chip_keyed: false,
         }
     }
 }

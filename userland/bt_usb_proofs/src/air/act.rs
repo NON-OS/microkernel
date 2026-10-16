@@ -29,6 +29,8 @@ pub enum Act {
     Events(Vec<Vec<u8>>),
     /// ACL packets exactly as given, on any handle.
     Acl(Vec<Vec<u8>>),
+    /// An event and a signaling frame from the peer, taken in one turn.
+    Together(Vec<u8>, Vec<u8>),
     /// The controller starts lying from here on.
     Lie(fn(&mut super::Lies)),
 }

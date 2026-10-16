@@ -17,6 +17,7 @@
 mod cache_life_tests;
 pub mod cache_tests;
 pub mod fixture;
+mod half_tests;
 mod join_tests;
 mod refuse_tests;
 pub mod sim;

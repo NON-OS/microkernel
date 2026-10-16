@@ -21,5 +21,5 @@
 mod handshake;
 mod key_tests;
 mod link_tests;
-mod sim;
+pub mod sim;
 mod station_tests;
