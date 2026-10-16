@@ -26,3 +26,13 @@
 pub(crate) const fn dma_snoops_caches() -> bool {
     cfg!(target_arch = "x86_64")
 }
+
+/// Whether a PCI function's DMA snoops: always on x86_64, as above; on
+/// aarch64 as the tree's host bridge says; on riscv64 as before, until its
+/// host bridge is read the same way.
+pub(crate) fn pci_dma_coherent() -> bool {
+    #[cfg(target_arch = "aarch64")]
+    return crate::arch::aarch64::dma::coherent::pci();
+    #[cfg(not(target_arch = "aarch64"))]
+    return true;
+}
