@@ -14,7 +14,8 @@ fn bytes(seed: u64, len: usize) -> Vec<u8> {
             x ^= x << 13;
             x ^= x >> 7;
             x ^= x << 17;
-            x as u8
+            let [low, ..] = x.to_le_bytes();
+            low
         })
         .collect()
 }

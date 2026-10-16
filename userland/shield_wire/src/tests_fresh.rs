@@ -26,14 +26,14 @@ fn a_fresh_sign_request_reads_back_through_the_frame() {
     let r = decode_request(&bytes).unwrap();
     let back: Vec<&str> = r.body.split('\n').collect();
     assert_eq!((r.op, FreshAsk::parse(&back)), (17, Some(a)));
-    assert_eq!(FreshAsk::parse(&back[..8]), None, "a field short");
+    assert_eq!(FreshAsk::parse(back.get(..8).unwrap()), None, "a field short");
     let mut bad = back.clone();
-    bad[8] = "0xa38";
+    *bad.get_mut(8).unwrap() = "0xa38";
     assert_eq!(FreshAsk::parse(&bad), None, "odd hex");
-    bad[8] = "a3814a14";
+    *bad.get_mut(8).unwrap() = "a3814a14";
     assert_eq!(FreshAsk::parse(&bad), None, "no 0x");
     bad = back.clone();
-    bad[0] = "0x1234";
+    *bad.get_mut(0).unwrap() = "0x1234";
     assert_eq!(FreshAsk::parse(&bad), None, "not 20 bytes");
 }
 

@@ -19,8 +19,8 @@
 #[path = "../host/mod.rs"]
 mod host;
 
-mod fixture;
 mod deliver_flow;
+mod fixture;
 mod flow;
 mod kept;
 mod plan;
