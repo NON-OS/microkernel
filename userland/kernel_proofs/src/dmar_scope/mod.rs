@@ -39,6 +39,7 @@ pub mod dmar_rmrr_names;
 pub mod dmar_scope_walk;
 mod namespace_tests;
 mod rmrr_names_tests;
+mod rmrr_own_tests;
 mod rmrr_scope_tests;
 mod rmrr_tests;
 mod source_tests;

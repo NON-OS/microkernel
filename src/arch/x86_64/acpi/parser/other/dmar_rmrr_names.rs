@@ -40,7 +40,18 @@ where
 /// Whether `r` names one endpoint alone (L63). A region several devices
 /// share, or a bridge's whole subtree, is theirs together: mapped for one
 /// claimant, it lets that device rewrite what a sibling, unclaimed and still
-/// in the identity domain, is driven by.
+/// in the identity domain, is driven by. A device off PCI counts as one more.
 pub fn rmrr_sole(r: &Rmrr) -> bool {
-    r.count == 1 && !r.truncated && r.scopes[0].kind == SCOPE_ENDPOINT
+    r.count == 1 && !r.truncated && !r.foreign && r.scopes[0].kind == SCOPE_ENDPOINT
+}
+
+/// Whether `r`'s memory is the device's alone (L65): every RMRR it overlaps,
+/// itself included, names that one endpoint and no other device. Firmware
+/// may list one region twice, once per device that uses it.
+pub fn rmrr_own<F>(all: &[Rmrr], r: &Rmrr, segment: u16, bdf: (u8, u8, u8), bb: &F) -> bool
+where
+    F: Fn(u8, u8, u8) -> Option<(u8, u8)>,
+{
+    let meets = |o: &&Rmrr| o.segment == r.segment && o.base <= r.limit && r.base <= o.limit;
+    all.iter().filter(meets).all(|o| rmrr_sole(o) && rmrr_names(o, segment, bdf, bb) == Cover::Yes)
 }

@@ -29,7 +29,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
             return Err(ClaimError::AlreadyClaimed);
         }
         let epoch = next_epoch();
-        claims.push(Claim { pid, device_id, epoch });
+        claims.push(Claim { pid, device_id, epoch, ready: false });
         epoch
     };
     // The kernel reads a virtio-rng for boot entropy until its capsule
@@ -43,7 +43,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     if hold::untranslated(device_id) {
         crate::log::info!("[BROKER] pid={} VMMDev: untranslated, its grants unconfined", pid);
     } else if crate::hardware::broker::confine::attach(pid, device_id).is_err() {
-        CLAIMS.lock().retain(|c| !(c.pid == pid && c.device_id == device_id));
+        super::pending::withdraw(pid, device_id, epoch);
         return Err(ClaimError::Unconfined);
     }
     // Bring the device to power state D0 before its driver maps MMIO. Done
@@ -52,7 +52,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     // Its BARs read back against enumeration's, and put back where the move
     // to D0 lost them; one that will not stick refuses the claim (L62).
     if !super::restore::restore(device_id) {
-        let _ = super::release::release(pid, device_id);
+        super::pending::withdraw(pid, device_id, epoch);
         return Err(ClaimError::Refused);
     }
     // Before the driver can turn bus mastering on, so no request it ever
@@ -63,6 +63,11 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     if !hold::untranslated(device_id) {
         super::master_off::bus_master_off(device_id);
     }
-    crate::hardware::broker::bootfb::claimed(device_id);
+    // Only now is anything granted against it, so a refusal above leaves no
+    // map, binding or DMA behind for the next claimant's device (L65).
+    if !super::pending::admit(pid, device_id, epoch) {
+        super::pending::withdraw(pid, device_id, epoch);
+        return Err(ClaimError::NotClaimed);
+    }
     Ok(epoch)
 }

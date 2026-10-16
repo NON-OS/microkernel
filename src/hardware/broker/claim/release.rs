@@ -27,6 +27,10 @@ pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     if claims[idx].pid != pid {
         return Err(ClaimError::NotHolder);
     }
+    // A claim still being made is the claiming call's to settle (L65).
+    if !claims[idx].ready {
+        return Err(ClaimError::NotClaimed);
+    }
     let epoch = claims[idx].epoch;
     claims.remove(idx);
     drop(claims);

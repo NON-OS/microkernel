@@ -22,6 +22,7 @@ mod hold_rule;
 mod lookup;
 mod master_off;
 mod no_snoop;
+mod pending;
 mod quiesce;
 mod quiesce_all;
 mod release;

@@ -17,6 +17,9 @@
 use super::state::CLAIMS;
 use super::types::Claim;
 
+/// The device's claim once it is made. One still being made reads as none,
+/// so nothing is mapped, bound or written for a claim the broker may yet
+/// refuse (L65).
 pub fn lookup(device_id: u64) -> Option<Claim> {
-    CLAIMS.lock().iter().find(|c| c.device_id == device_id).copied()
+    CLAIMS.lock().iter().find(|c| c.device_id == device_id && c.ready).copied()
 }
