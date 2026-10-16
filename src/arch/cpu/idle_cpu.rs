@@ -21,6 +21,9 @@ use core::arch::asm;
 // disabled), spin with interrupts enabled instead so the scheduler tick
 // keeps arriving. The spin still lets any pending interrupt fire (sti) and
 // `pause` keeps it cheap; the next scheduler pass re-checks the runqueue.
+/// Wait for an interrupt. Returns with interrupts CLOSED on x86_64, whatever
+/// they were going in. aarch64 and riscv64 return them open: a caller shared
+/// between arches must set the state it needs itself, not assume either.
 #[cfg(target_arch = "x86_64")]
 #[inline(always)]
 pub fn idle_cpu() {
@@ -45,8 +48,9 @@ pub fn idle_cpu() {
     }
 }
 
-// idle_cpu: the same wait as `arch::idle`, which wants IRQs masked going in,
-// then left open, as this has always returned on aarch64.
+/// The wait `arch::idle` makes, masked going in. Returns with IRQs OPEN on
+/// aarch64, whatever they were going in; x86_64 returns them closed. A caller
+/// shared between arches must set the state it needs itself, not assume either.
 #[cfg(target_arch = "aarch64")]
 #[inline(always)]
 pub fn idle_cpu() {
@@ -59,6 +63,9 @@ pub fn idle_cpu() {
     }
 }
 
+/// Wait for an interrupt. Returns with interrupts OPEN on riscv64 (SIE set),
+/// as on aarch64; x86_64 returns them closed. A caller shared between arches
+/// must set the state it needs itself, not assume either.
 #[cfg(target_arch = "riscv64")]
 #[inline(always)]
 pub fn idle_cpu() {
