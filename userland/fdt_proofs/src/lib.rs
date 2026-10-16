@@ -16,6 +16,8 @@ mod fixtures;
 #[cfg(test)]
 mod framebuffer_tree;
 #[cfg(test)]
+mod idle_tree;
+#[cfg(test)]
 mod msi_tree;
 #[cfg(test)]
 mod uart_tree;
@@ -32,6 +34,10 @@ mod framebuffer_refusal_tests;
 mod framebuffer_tests;
 #[cfg(test)]
 mod header_tests;
+#[cfg(test)]
+mod idle_hostile_tests;
+#[cfg(test)]
+mod idle_tests;
 #[cfg(test)]
 mod intx_hostile_tests;
 #[cfg(test)]
