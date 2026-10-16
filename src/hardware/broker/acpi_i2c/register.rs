@@ -34,9 +34,10 @@ use super::report::report;
 /// A machine whose firmware declares no such device registers nothing and
 /// says nothing.
 pub fn register_acpi_i2c() {
-    for ctl in enumerate_i2c_controllers() {
-        register_platform_device(device_record(&ctl));
-    }
+    let registered: Vec<(u64, u64)> = enumerate_i2c_controllers()
+        .iter()
+        .map(|ctl| (ctl.mmio_base, register_platform_device(device_record(ctl))))
+        .collect();
     let gpio = enumerate_gpio_controllers();
     let hosts = enumerate_platform_i2c_hosts();
     let mut devices: Vec<_> = enumerate_i2c_hid_devices()
@@ -46,6 +47,6 @@ pub fn register_acpi_i2c() {
     devices.sort_by_key(|d| d.device_type != I2cHidDeviceType::Touchpad);
     for dev in &devices {
         report(dev, &hosts);
-        register_platform_device(hid_record(dev, &gpio, &hosts));
+        register_platform_device(hid_record(dev, &gpio, &hosts, &registered));
     }
 }

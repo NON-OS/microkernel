@@ -25,7 +25,7 @@ Each entry is a `DeviceRecord` of 176 bytes: the device id, the bus kind, the PC
 
 The ids are in `ids` (`src/hardware/broker/class.rs:21-44`) and the PCI mapping in `classify_pci` (`src/hardware/broker/class.rs:57-84`). The PS/2 records come from `register_legacy`, which adds them on every machine and leaves the driver to find out whether an i8042 answers (`src/hardware/broker/platform.rs:31-40`).
 
-`MkDeviceList(class, buf, count)` needs `DeviceEnum`. With a count of 0 `sys_device_list` returns how many devices of that class exist; otherwise it copies up to `count` records (`src/syscall/microkernel/device.rs:40-65`).
+`MkDeviceList(class, buf, count)` needs `DeviceEnum`. With a count of 0 `sys_device_list` returns how many devices of that class exist; otherwise it copies up to `count` records (`src/syscall/microkernel/device_list.rs`). A window's base is a physical address, so a record the caller does not hold reads zero in the `base` of every bar that is not kind None; size, kind, aux and flags stay (`table/list.rs` `list_shown`, rule in `broker/shown.rs`). A kind-None bar carries a name, never an address: a GPIO controller's `_HID` bytes, or an I2C-HID record's host controller as its device_id (u64::MAX when unresolved, `acpi_i2c/host_id.rs`). Tested in kernel_proofs::device_shown.
 
 ## Claims
 

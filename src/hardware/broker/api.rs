@@ -58,5 +58,5 @@ pub use super::pio::{
 #[cfg(not(target_arch = "x86_64"))]
 pub use super::pio_absent::{pio_release_all_for_pid, pio_release_for_device};
 pub use super::platform::register_legacy as register_legacy_platform_devices;
-pub use super::table::{contains, init_from_pci, list, list_by_class};
+pub use super::table::{contains, init_from_pci, list, list_by_class, list_shown};
 pub use super::windows::touches_device_window;
