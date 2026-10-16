@@ -42,7 +42,7 @@ pub fn set(ctx: &mut Context, sender: u32, req: &Request, body: &[u8], tx: &mut 
         return;
     }
     let rid = ctx.issue_request_id();
-    let rc = call_boot(ctx.compositor_port, NCMP_ACCESSIBILITY, rid, body).unwrap_or(E_IO);
+    let rc = call_boot(ctx.ports.compositor_port, NCMP_ACCESSIBILITY, rid, body).unwrap_or(E_IO);
     let _ = respond::status(sender, req, rc, tx);
 }
 
@@ -53,7 +53,8 @@ pub fn get(ctx: &mut Context, sender: u32, req: &Request, body: &[u8], tx: &mut 
     }
     let rid = ctx.issue_request_id();
     let mut out = [0u8; 16];
-    match call_payload_boot(ctx.compositor_port, NCMP_ACCESSIBILITY_GET, rid, body, &mut out) {
+    match call_payload_boot(ctx.ports.compositor_port, NCMP_ACCESSIBILITY_GET, rid, body, &mut out)
+    {
         Ok(0) => {
             let _ = respond::payload(sender, req, &out, tx);
         }

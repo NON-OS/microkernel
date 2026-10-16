@@ -45,7 +45,7 @@ pub fn sync(ctx: &mut Context) {
             let r = bottom_dock_rect(ctx.width, ctx.height);
             let rid = ctx.issue_request_id();
             let opened = wm_client::window_open(
-                ctx.wm_port,
+                ctx.ports.wm_port,
                 rid,
                 TASKBAR_WINDOW_ID,
                 WINDOW_KIND_POPUP,
@@ -62,7 +62,7 @@ pub fn sync(ctx: &mut Context) {
             let rid = ctx.issue_request_id();
             // Refused is gone already (the window manager holds no such
             // window); only a call that got no answer is tried again.
-            match wm_client::window_close(ctx.wm_port, rid, TASKBAR_WINDOW_ID) {
+            match wm_client::window_close(ctx.ports.wm_port, rid, TASKBAR_WINDOW_ID) {
                 Ok(()) | Err("wm rejected window_close") => ctx.taskbar.window_open = false,
                 Err(_) => {}
             }

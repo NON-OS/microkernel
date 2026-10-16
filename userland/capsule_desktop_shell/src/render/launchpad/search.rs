@@ -30,7 +30,11 @@ pub(crate) fn hit(ctx: &Context, px: u32, py: u32) -> bool {
 
 pub(super) fn paint(ctx: &Context) {
     let (x, y, w, h) = rect(ctx);
-    let border = if ctx.launchpad_query.is_empty() { palette::LINE_SOFT } else { palette::ACCENT };
+    let border = if ctx.launchpad_ui.launchpad_query.is_empty() {
+        palette::LINE_SOFT
+    } else {
+        palette::ACCENT
+    };
     panel(ctx, Rect { x, y, width: w, height: h }, palette::R_DOCK, palette::TILE_FILL, border);
 
     let pad = px(14);
@@ -38,11 +42,11 @@ pub(super) fn paint(ctx: &Context) {
     let avail = w.saturating_sub(2 * pad);
     let top_y = top_y_centered(y, h, UI_PX);
 
-    if ctx.launchpad_query.is_empty() {
+    if ctx.launchpad_ui.launchpad_query.is_empty() {
         let s = truncate_to_width(PLACEHOLDER, UI_PX, avail);
         text_aa(ctx, text_x, top_y, s, palette::TEXT_DIM, UI_PX);
     } else {
-        let s = truncate_to_width(&ctx.launchpad_query, UI_PX, avail);
+        let s = truncate_to_width(&ctx.launchpad_ui.launchpad_query, UI_PX, avail);
         text_aa(ctx, text_x, top_y, s, palette::TEXT, UI_PX);
         let caret_x = text_x + measure_aa(s, UI_PX) + px(2);
         text_aa(ctx, caret_x, top_y, "_", palette::ACCENT, UI_PX);
