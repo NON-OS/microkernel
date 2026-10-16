@@ -21,7 +21,7 @@ When no Wi-Fi driver answers at all, the panel names the chip by its PCI ids and
 
 ## Saved networks
 
-- The list holds at most 4 networks, each passphrase at most 64 bytes (`userland/nonos_wifi_client/src/saved/list.rs:19-21`, `SLOTS`, `PASS_MAX`). Saving a fifth drops the oldest (`userland/nonos_wifi_client/src/saved/list.rs:76-87`, `put_with`).
+- The list holds at most 4 networks, each passphrase at most 64 bytes (`userland/nonos_wifi_client/src/saved/list.rs:19-21`, `SLOTS`, `PASS_MAX`). Saving a fifth drops the oldest network not pinned to WPA3, or the oldest of all when all four are pinned, keeps nothing of it, and returns its name for the panel to show on screen only (`userland/nonos_wifi_client/src/saved/list_put.rs`, `put_dropping`).
 - It is one file, `/nonos/wifi/saved`, sealed with ChaCha20-Poly1305 (`userland/nonos_wifi_client/src/saved/file.rs:6-21`, `PATH`).
 - The key is the TPM's [machine key](../../../overview/glossary.md#machine-key) for the label `wifi/saved-networks`, asked for with `machine_key` and wiped after each use (`userland/nonos_wifi_client/src/saved/key.rs:18-29`, `with_key`).
 - With no TPM, or after the boot state changed (a firmware, Secure Boot, loader or kernel change), the list cannot be opened (`userland/nonos_wifi_client/src/saved/key.rs:22-26`, `NoTpm`, `BootChanged`).
