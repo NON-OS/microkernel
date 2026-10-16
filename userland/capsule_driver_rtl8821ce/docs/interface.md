@@ -10,7 +10,7 @@ Wi-Fi control family (`nonos_wifi_client`, tag `0x57494649`):
 | scan (3) | none | passes, raw frames, beacons, then the network list (signal, WPA2/WPA3 flags, SSID) |
 | connect (1) | SSID, passphrase, optional flags octet (WPA3-only, hidden) | status code, handshake counters, state, AKM, AP status or reason code |
 | disconnect (2) | none | teardown result |
-| link (5) | none | associated, BSSID, SSID, AKM |
+| link (5) | none | associated, six zero bytes (no BSSID), SSID, AKM |
 
 Unknown operations reply with an error status word, and a frame neither family
 takes is answered rather than left without a reply. Every length in a connect
