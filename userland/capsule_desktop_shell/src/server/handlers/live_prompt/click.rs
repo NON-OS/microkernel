@@ -15,7 +15,7 @@ use crate::state::Context;
 const INSTALLER: &[u8] = b"app.install";
 
 pub fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
-    if !ctx.live_prompt.showing() {
+    if !ctx.pending.live_prompt.showing() {
         return false;
     }
     let choice =
@@ -27,7 +27,7 @@ pub fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
 /// Install NONOS opens the installer; Not now, Esc or a press outside the
 /// panel puts the offer away for this session.
 pub fn answer(ctx: &mut Context, choice: Choice) {
-    ctx.live_prompt = LivePrompt::Done;
+    ctx.pending.live_prompt = LivePrompt::Done;
     ctx.dialog_focus.reset();
     if choice == Choice::Act {
         crate::apps_off::open(ctx, INSTALLER);

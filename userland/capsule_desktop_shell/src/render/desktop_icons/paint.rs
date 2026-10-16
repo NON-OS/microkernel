@@ -56,7 +56,7 @@ pub fn paint_desktop_icons(ctx: &Context) {
     for (i, item) in ctx.desktop_items.iter().enumerate() {
         let (cx, cy, cw, _) = cell_rect(ctx, i);
         let label_y = cy + icon() + px(GLYPH_GAP_LOGICAL);
-        let renaming = ctx.rename == Some(i);
+        let renaming = ctx.desk_ui.rename == Some(i);
         if !renaming {
             scrim(ctx, item, cx, cy, cw, label_y);
         }
@@ -74,10 +74,10 @@ pub fn paint_desktop_icons(ctx: &Context) {
 /// The icon being dragged, under the cursor. It is drawn with the chrome, so
 /// it stays in sight over any window it is dragged across.
 pub fn paint_drag_ghost(ctx: &Context) {
-    if ctx.drag_moved {
-        if let Some(item) = ctx.drag_from.and_then(|i| ctx.desktop_items.get(i)) {
-            let gx = ctx.drag_x.saturating_sub(icon() / 2);
-            let gy = ctx.drag_y.saturating_sub(icon() / 2);
+    if ctx.desk_ui.drag_moved {
+        if let Some(item) = ctx.desk_ui.drag_from.and_then(|i| ctx.desktop_items.get(i)) {
+            let gx = ctx.desk_ui.drag_x.saturating_sub(icon() / 2);
+            let gy = ctx.desk_ui.drag_y.saturating_sub(icon() / 2);
             draw_fs_icon(ctx, gx, gy, icon(), item.is_dir);
         }
     }
@@ -147,7 +147,7 @@ fn items_label(n: u32, buf: &mut [u8; META_CAP]) -> &str {
 // The inline rename field: the edit buffer with a caret, on a lit pill.
 fn paint_rename(ctx: &Context, cx: u32, cw: u32, label_y: u32) {
     let room = cw.saturating_sub(pill_pad() * 2 + caret_w());
-    let shown = tail_to_width(&ctx.rename_buf, room);
+    let shown = tail_to_width(&ctx.desk_ui.rename_buf, room);
     let text_w = measure_aa(shown, LABEL_PX);
     let pill_x = cx + cw.saturating_sub(text_w + pill_pad() * 2 + caret_w()) / 2;
     pill(ctx, pill_x, label_y, text_w + caret_w(), EDIT_BG);

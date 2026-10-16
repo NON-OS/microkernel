@@ -29,14 +29,14 @@ static GAP: Backoff = Backoff::new(250, 8000);
 
 /// From the runner: find the wallpaper and send the scaling, until done.
 pub fn retry(ctx: &mut Context) {
-    if ctx.wallpaper_policy_sent || !GAP.due() {
+    if ctx.links.wallpaper_policy_sent || !GAP.due() {
         return;
     }
-    if ctx.wallpaper_port == 0 {
-        ctx.wallpaper_port = crate::setup::try_wallpaper();
+    if ctx.ports.wallpaper_port == 0 {
+        ctx.ports.wallpaper_port = crate::setup::try_wallpaper();
     }
-    ctx.wallpaper_policy_sent = send(ctx.wallpaper_port);
-    if !ctx.wallpaper_policy_sent {
+    ctx.links.wallpaper_policy_sent = send(ctx.ports.wallpaper_port);
+    if !ctx.links.wallpaper_policy_sent {
         GAP.missed();
     }
 }

@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A key while a dialog or a menu is up belongs to it, in the order a press
-//! is offered to them (server/input.rs): the dialog drawn on top answers
+//! is offered to them (`server/input/`): the dialog drawn on top answers
 //! first. Tab moves between a dialog's buttons, Enter presses the one with
 //! the ring, Esc leaves things as they are; Esc closes an open menu.
 
+use super::menu_key::menu_key;
 use crate::server::repaint::repaint;
-use crate::state::dialog_keys::{Choice, KEY_ESC};
+use crate::state::dialog_keys::Choice;
 use crate::state::Context;
 
 #[derive(Clone, Copy)]
@@ -36,13 +37,13 @@ enum Dialog {
 pub fn key(ctx: &mut Context, code: u32) -> bool {
     let which = if ctx.trusted.attention.prompt() {
         Dialog::Attention
-    } else if ctx.live_prompt.showing() {
+    } else if ctx.pending.live_prompt.showing() {
         Dialog::Live
-    } else if ctx.pending_delete.showing() {
+    } else if ctx.pending.pending_delete.showing() {
         Dialog::Delete
-    } else if ctx.pending_consent.is_some() {
+    } else if ctx.pending.pending_consent.is_some() {
         Dialog::Consent
-    } else if ctx.pending_pkg_install.is_some() {
+    } else if ctx.pending.pending_pkg_install.is_some() {
         Dialog::Package
     } else {
         return menu_key(ctx, code);
@@ -62,23 +63,4 @@ fn answer(ctx: &mut Context, which: Dialog, choice: Choice) {
         Dialog::Consent => super::consent::answer(ctx, choice),
         Dialog::Package => super::pkg_consent::answer(ctx, choice),
     }
-}
-
-/// Esc closes the menu bar's drop-down or the desktop's right-click menu.
-/// Any other key is swallowed while one is open: the menu holds the keys,
-/// and a letter typed into it must not reach the window under it.
-fn menu_key(ctx: &mut Context, code: u32) -> bool {
-    let open = ctx.menubar.open.is_some() || ctx.desktop_menu.is_some();
-    if !open {
-        return false;
-    }
-    if code == KEY_ESC {
-        ctx.menubar.open = None;
-        ctx.menubar.hover = None;
-        ctx.desktop_menu = None;
-        ctx.menu_hover = None;
-        ctx.menu_target = None;
-        repaint(ctx);
-    }
-    true
 }

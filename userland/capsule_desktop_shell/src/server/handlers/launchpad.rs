@@ -19,21 +19,21 @@ use crate::state::{Context, LAUNCHER_APPS, TOOL_APPS};
 /// KEY_DOWN kind bit, grabbed for the overlay's lifetime so keys typed into the
 /// search field reach the shell rather than whatever window sits behind it.
 pub fn open(ctx: &mut Context) {
-    ctx.launchpad = true;
-    ctx.launchpad_query.clear();
-    ctx.launchpad_page = 0;
-    ctx.launchpad_wheel.reset();
+    ctx.launchpad_ui.launchpad = true;
+    ctx.launchpad_ui.launchpad_query.clear();
+    ctx.launchpad_ui.launchpad_page = 0;
+    ctx.launchpad_ui.launchpad_wheel.reset();
     rebuild(ctx);
     crate::server::grabs::sync(ctx);
     repaint(ctx);
 }
 
 pub fn close(ctx: &mut Context) {
-    ctx.launchpad = false;
+    ctx.launchpad_ui.launchpad = false;
     crate::server::grabs::sync(ctx);
-    ctx.launchpad_query.clear();
-    ctx.launchpad_page = 0;
-    ctx.launchpad_wheel.reset();
+    ctx.launchpad_ui.launchpad_query.clear();
+    ctx.launchpad_ui.launchpad_page = 0;
+    ctx.launchpad_ui.launchpad_wheel.reset();
     repaint(ctx);
 }
 
@@ -41,16 +41,17 @@ pub fn close(ctx: &mut Context) {
 /// Its pointer grab brings every wheel event here, wherever the pointer is.
 pub fn wheel(ctx: &mut Context, delta_y: i32) {
     let pages = launchpad_pages(ctx);
-    let page = ctx.launchpad_wheel.turn(ctx.launchpad_page, pages, delta_y);
-    if page != ctx.launchpad_page {
-        ctx.launchpad_page = page;
+    let page =
+        ctx.launchpad_ui.launchpad_wheel.turn(ctx.launchpad_ui.launchpad_page, pages, delta_y);
+    if page != ctx.launchpad_ui.launchpad_page {
+        ctx.launchpad_ui.launchpad_page = page;
         repaint(ctx);
     }
 }
 
 pub fn click(ctx: &mut Context, px: u32, py: u32) {
     if let Some(page) = dots_hit(ctx, px, py) {
-        ctx.launchpad_page = page;
+        ctx.launchpad_ui.launchpad_page = page;
         repaint(ctx);
         return;
     }
@@ -95,8 +96,8 @@ fn launch(ctx: &mut Context, t: Target) {
             }
         }
         Target::Installed(i) => {
-            if let Some(name) = ctx.installed_apps.get(i).cloned() {
-                ctx.pending_consent = Some(name);
+            if let Some(name) = ctx.store_apps.installed_apps.get(i).cloned() {
+                ctx.pending.pending_consent = Some(name);
             }
         }
         Target::Package(i) => super::pkg_install::begin(ctx, i),

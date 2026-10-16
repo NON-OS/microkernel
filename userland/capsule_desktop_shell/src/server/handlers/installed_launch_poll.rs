@@ -30,7 +30,7 @@ use crate::state::{Context, NotifyLevel, Uptime};
 
 pub(crate) fn poll(ctx: &mut Context) {
     let now = crate::server::dock_clock::now();
-    let Some(launch) = ctx.launch.as_mut() else {
+    let Some(launch) = ctx.store_apps.launch.as_mut() else {
         return;
     };
     if !launch.due(now) {
@@ -44,13 +44,13 @@ pub(crate) fn poll(ctx: &mut Context) {
     match step {
         Step::Wait | Step::Probe => {}
         Step::Started(pid) => {
-            if let Some(launch) = ctx.launch.take() {
-                ctx.installed_pids.insert(launch.name, pid);
+            if let Some(launch) = ctx.store_apps.launch.take() {
+                ctx.store_apps.installed_pids.insert(launch.name, pid);
             }
             boot(pid);
         }
         Step::Failed => {
-            if let Some(launch) = ctx.launch.take() {
+            if let Some(launch) = ctx.store_apps.launch.take() {
                 toast(ctx, &said(b"", &launch.name, b" did not start"), NotifyLevel::Error);
                 let line = Line::new(b"LAUNCH").text(&launch.name).text(b" did not start: ");
                 let _ =

@@ -26,17 +26,17 @@ pub(super) fn refresh_clock(ctx: &mut Context) {
     let policy_ok = read_policy(ctx);
     crate::sound::service(policy_ok);
     let net_now = net::online();
-    if net_now && !ctx.net_was_online && notify_gate::shows(NotifyLevel::Info) {
+    if net_now && !ctx.readings.net_was_online && notify_gate::shows(NotifyLevel::Info) {
         ctx.toasts.push(b"network connected", NotifyLevel::Info, crate::server::toast_clock::now());
     }
-    ctx.net_was_online = net_now;
+    ctx.readings.net_was_online = net_now;
     // paint_chrome redraws the whole overlay backing, but only the top bar's
     // pixels actually change each second. Damage just that strip: a full-screen
     // damage every tick would make the compositor recomposite every layer,
     // including any open app window, which is what made the desktop hitch.
     paint_chrome(ctx);
     let rid = ctx.issue_request_id();
-    let _ = push_damage_commit(ctx.compositor_port, rid, 0, 0, ctx.width, menubar_height());
+    let _ = push_damage_commit(ctx.ports.compositor_port, rid, 0, 0, ctx.width, menubar_height());
 }
 
 /*
@@ -48,23 +48,23 @@ pub(super) fn refresh_clock(ctx: &mut Context) {
  */
 fn read_policy(ctx: &mut Context) -> bool {
     let now = mk_uptime_ms().max(0) as u64;
-    if !ctx.policy_gap.due(now) {
+    if !ctx.readings.policy_gap.due(now) {
         return false;
     }
-    match policy::clock_24h(&mut ctx.policy_port) {
+    match policy::clock_24h(&mut ctx.ports.policy_port) {
         policy::Read::Absent => false,
         policy::Read::Silent => {
-            ctx.policy_gap.missed(now);
+            ctx.readings.policy_gap.missed(now);
             false
         }
         policy::Read::Answered(v) => {
-            ctx.policy_gap.answered();
+            ctx.readings.policy_gap.answered();
             if let Some(v) = v {
-                ctx.clock_24h = v;
+                ctx.readings.clock_24h = v;
             }
-            notify_gate::follow(ctx.policy_port);
-            if let Some(v) = policy::timezone(ctx.policy_port) {
-                ctx.tz_hours = v;
+            notify_gate::follow(ctx.ports.policy_port);
+            if let Some(v) = policy::timezone(ctx.ports.policy_port) {
+                ctx.readings.tz_hours = v;
             }
             true
         }

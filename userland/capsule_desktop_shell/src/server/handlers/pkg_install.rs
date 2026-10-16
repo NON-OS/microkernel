@@ -16,12 +16,12 @@ use crate::state::toast::TOAST_TEXT_MAX;
 use crate::state::{Context, NotifyLevel, PkgInstallPrompt};
 
 pub fn begin(ctx: &mut Context, index: usize) {
-    let Some(name) = ctx.pkg_files.get(index) else { return };
+    let Some(name) = ctx.store_apps.pkg_files.get(index) else { return };
     let mut path = Vec::with_capacity(b"/pkgs/".len() + name.len());
     path.extend_from_slice(b"/pkgs/");
     path.extend_from_slice(name.as_bytes());
     match crate::installer_client::pkg_query(&path) {
-        Ok(summary) => ctx.pending_pkg_install = Some(PkgInstallPrompt { path, summary }),
+        Ok(summary) => ctx.pending.pending_pkg_install = Some(PkgInstallPrompt { path, summary }),
         Err(code) => report_rejected(ctx, code),
     }
 }

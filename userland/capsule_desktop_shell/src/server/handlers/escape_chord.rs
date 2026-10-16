@@ -45,12 +45,12 @@ pub fn bring_process_manager(ctx: &mut Context) {
 /// cover what a chord brings up, and they draw in the chrome band, over every
 /// window.
 pub fn clear_chrome(ctx: &mut Context) {
-    if ctx.launchpad {
+    if ctx.launchpad_ui.launchpad {
         super::launchpad::close(ctx);
     }
-    ctx.desktop_menu = None;
-    ctx.menu_hover = None;
-    ctx.menu_target = None;
+    ctx.desk_ui.desktop_menu = None;
+    ctx.desk_ui.menu_hover = None;
+    ctx.desk_ui.menu_target = None;
     ctx.menubar.open = None;
     ctx.menubar.hover = None;
     repaint(ctx);

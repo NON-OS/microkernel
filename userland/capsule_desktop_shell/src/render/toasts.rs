@@ -105,25 +105,25 @@ pub fn toast_rect(display_width: u32, display_height: u32) -> Rect {
 /// next clock tick. The panel is part of the chrome's frame now
 /// (`paint_in_chrome`), drawn over everything else in it.
 pub fn sync_toast_layer(ctx: &mut Context) {
-    ctx.toasts_synced = ctx.toasts.generation();
+    ctx.toast_view.toasts_synced = ctx.toasts.generation();
     let live = !ctx.toasts.is_empty();
-    if !live && !ctx.toast_layer_live {
+    if !live && !ctx.toast_view.toast_layer_live {
         return;
     }
-    if ctx.toasts_drawn != ctx.toasts.generation() {
+    if ctx.toast_view.toasts_drawn != ctx.toasts.generation() {
         super::paint_chrome(ctx);
     }
     let r = toast_rect(ctx.width, ctx.height);
-    ctx.toast_layer_live = live;
+    ctx.toast_view.toast_layer_live = live;
     let panel = live.then(|| panel_rect(ctx, r));
     claim_presses(ctx, panel);
     let rid = ctx.issue_request_id();
-    let _ = push_damage_commit(ctx.compositor_port, rid, r.x, r.y, r.width, r.height);
+    let _ = push_damage_commit(ctx.ports.compositor_port, rid, r.x, r.y, r.width, r.height);
 }
 
 /// The toasts, last in the chrome's frame so they sit over everything in it.
 pub fn paint_in_chrome(ctx: &mut Context) {
-    ctx.toasts_drawn = ctx.toasts.generation();
+    ctx.toast_view.toasts_drawn = ctx.toasts.generation();
     if !ctx.toasts.is_empty() {
         paint_toasts(ctx, toast_rect(ctx.width, ctx.height));
     }
@@ -162,16 +162,16 @@ pub fn toast_hit(ctx: &Context, x: u32, y: u32) -> bool {
 /// change of its rect, since its width follows the widest toast.
 fn claim_presses(ctx: &mut Context, panel: Option<Rect>) {
     let want = panel.map(|p| (p.x, p.y, p.width, p.height));
-    if want == ctx.toast_window {
+    if want == ctx.toast_view.toast_window {
         return;
     }
-    ctx.toast_window = want;
+    ctx.toast_view.toast_window = want;
     let rid = ctx.issue_request_id();
-    let _ = wm_client::window_close(ctx.wm_port, rid, TOAST_WINDOW_ID);
+    let _ = wm_client::window_close(ctx.ports.wm_port, rid, TOAST_WINDOW_ID);
     if let Some(p) = panel {
         let rid = ctx.issue_request_id();
         let _ = wm_client::window_open(
-            ctx.wm_port,
+            ctx.ports.wm_port,
             rid,
             TOAST_WINDOW_ID,
             WINDOW_KIND_POPUP,

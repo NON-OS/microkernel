@@ -38,24 +38,24 @@ use crate::state::launch::Launch;
 use crate::state::{Context, NotifyLevel};
 
 pub fn launch(ctx: &mut Context, name: &[u8]) {
-    if let Some(pid) = ctx.installed_pids.get(name).copied() {
+    if let Some(pid) = ctx.store_apps.installed_pids.get(name).copied() {
         if focus(pid) {
             return;
         }
-        ctx.installed_pids.remove(name);
+        ctx.store_apps.installed_pids.remove(name);
     }
     if let Some(pid) = already_running(name) {
-        ctx.installed_pids.insert(name.to_vec(), pid);
+        ctx.store_apps.installed_pids.insert(name.to_vec(), pid);
         if focus(pid) {
             return;
         }
-        ctx.installed_pids.remove(name);
+        ctx.store_apps.installed_pids.remove(name);
     }
     /*
      * One load at a time: the installer serves them in turn anyway, and each
      * one followed holds places in its reply queue (`state/launch.rs`).
      */
-    if let Some(pending) = ctx.launch.as_ref() {
+    if let Some(pending) = ctx.store_apps.launch.as_ref() {
         let text = if pending.name == name {
             said(b"Starting ", name, b"...")
         } else {
@@ -67,13 +67,14 @@ pub fn launch(ctx: &mut Context, name: &[u8]) {
     let before = children();
     match issue_load(name) {
         Issued::Loaded(pid) => {
-            ctx.installed_pids.insert(name.to_vec(), pid);
+            ctx.store_apps.installed_pids.insert(name.to_vec(), pid);
             boot(pid);
         }
         Issued::Refused(ERR_EXIST) => focus_running(ctx, name),
         Issued::Refused(status) => report_failure(ctx, name, status),
         Issued::InFlight => {
-            ctx.launch = Some(Launch::new(name, before, crate::server::dock_clock::now()));
+            ctx.store_apps.launch =
+                Some(Launch::new(name, before, crate::server::dock_clock::now()));
             toast(ctx, &said(b"Starting ", name, b"..."), NotifyLevel::Info);
         }
     }
@@ -91,11 +92,11 @@ const ERR_EXIST: i32 = -17;
 /// window is already gone, stay silent rather than cry a false failure.
 fn focus_running(ctx: &mut Context, name: &[u8]) {
     if let Some(pid) = already_running(name) {
-        ctx.installed_pids.insert(name.to_vec(), pid);
+        ctx.store_apps.installed_pids.insert(name.to_vec(), pid);
         if focus(pid) {
             return;
         }
-        ctx.installed_pids.remove(name);
+        ctx.store_apps.installed_pids.remove(name);
     }
 }
 

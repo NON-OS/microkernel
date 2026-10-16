@@ -24,6 +24,6 @@ pub fn subscribe_input(ctx: &mut Context, input_router_port: u32) {
     )
     .is_ok()
     {
-        ctx.input_ready = true;
+        ctx.links.input_ready = true;
     }
 }

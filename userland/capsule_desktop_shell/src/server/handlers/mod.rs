@@ -31,6 +31,7 @@ pub mod launcher_request;
 pub mod launchpad;
 pub mod launchpad_key;
 pub mod live_prompt;
+mod menu_key;
 pub mod menubar_action;
 pub mod menubar_click;
 pub mod notify;

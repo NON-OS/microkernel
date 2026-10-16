@@ -20,30 +20,12 @@ use crate::state::Context;
 
 mod clear_overlay;
 mod constants;
+mod frame;
 
-pub fn paint_chrome(ctx: &mut Context) {
-    let frame_start = crate::frametime::begin();
-    let row_words = (ctx.stride / 4) as usize;
-    let words = row_words * ctx.height as usize;
-    let (desk, chrome) = (ctx.desk_va, ctx.chrome_va);
-    // Every painter draws on `backing_va`; it points at the off-screen frame
-    // for each pass, and at the chrome again after them.
-    let mut back = core::mem::take(&mut ctx.back);
-    super::whole_frame::draw_whole(&mut back, desk, words, row_words, |va| {
-        ctx.backing_va = va;
-        paint_desk(ctx);
-    });
-    super::whole_frame::draw_whole(&mut back, chrome, words, row_words, |va| {
-        ctx.backing_va = va;
-        paint_over_windows(ctx);
-    });
-    ctx.back = back;
-    ctx.backing_va = chrome;
-    crate::frametime::end(frame_start);
-}
+pub use frame::paint_chrome;
 
 /// The chrome band: everything the shell draws over the windows.
-fn paint_over_windows(ctx: &mut Context) {
+pub(super) fn paint_over_windows(ctx: &mut Context) {
     clear_overlay::clear_overlay(ctx);
     super::topbar::paint(ctx);
     // A dragged icon rides under the cursor, over every window, until it is
@@ -60,7 +42,7 @@ fn paint_over_windows(ctx: &mut Context) {
         paint_bottom_taskbar(ctx);
     }
     // The Launchpad, when open, covers the whole desktop and its dock.
-    if ctx.launchpad {
+    if ctx.launchpad_ui.launchpad {
         super::launchpad::paint_launchpad(ctx);
     }
     // The right-click menu floats above everything else, dock included.
@@ -74,10 +56,4 @@ fn paint_over_windows(ctx: &mut Context) {
     super::toasts::paint_in_chrome(ctx);
     // Last of all: the system's prompt and the hidden screen cover everything above.
     super::attention::paint(ctx);
-}
-
-/// The desktop's icons go on the desk surface, under every window.
-fn paint_desk(ctx: &mut Context) {
-    clear_overlay::clear_overlay(ctx);
-    super::desktop_icons::paint_desktop_icons(ctx);
 }
