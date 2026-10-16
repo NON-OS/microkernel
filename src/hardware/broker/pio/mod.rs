@@ -16,11 +16,12 @@
 
 mod access;
 mod grant;
-pub(crate) mod window;
 mod map;
 mod release;
 mod types;
+pub(crate) mod window;
 
+pub(crate) use access::quiesce_ports;
 pub use access::{grant_for_caller, read, write};
 pub use release::{release_all_for_pid, release_for_device, release_grant};
 pub use types::{PioError, PioGrantRequest, PioGrantResult, PioWidth};
