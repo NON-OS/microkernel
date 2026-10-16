@@ -27,6 +27,8 @@ impl Mux {
         let at = RESP_HDR_LEN + STATUS_LEN;
         if status(tx, len) == Some(0) && len > at {
             self.share.holders.set(tx[at], sender());
+            // A new device on the slot is judged afresh before it is bound.
+            self.share.auth.forget(tx[at]);
         }
         send(tx.as_ptr(), len);
     }

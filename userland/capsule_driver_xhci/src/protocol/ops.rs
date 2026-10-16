@@ -53,3 +53,10 @@ pub const OP_CONFIGURE_HUB: u16 = 0x0021;
 pub const OP_CONFIGURE_ISOCH: u16 = 0x0018;
 pub const OP_ISOCH_OUT: u16 = 0x0019;
 pub const OP_ISOCH_IN: u16 = 0x001A;
+/// The authorization gate's ops (slots/authorize.rs), the kernel's alone:
+/// the devices held for the owner's answer, `count, (slot, ticket_le32)*`;
+/// the answer, `slot, allow, ticket_le32`; and the policy, `0 allow, 1 ask,
+/// 2 deny`.
+pub const OP_USB_HELD: u16 = 0x0028;
+pub const OP_USB_AUTHORIZE: u16 = 0x0029;
+pub const OP_USB_POLICY: u16 = 0x002A;

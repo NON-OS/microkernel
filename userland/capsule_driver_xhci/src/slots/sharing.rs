@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A shared device's interfaces and the pipes each driver configured.
 
+use super::authorize::Authority;
 use super::claims::Claims;
 use super::holders::Holders;
 use super::owners::Owners;
@@ -24,4 +25,6 @@ pub struct Sharing {
     pub claims: Claims,
     pub owners: Owners,
     pub holders: Holders,
+    /// Which devices may be bound (authorize.rs).
+    pub auth: Authority,
 }

@@ -2,6 +2,8 @@
 //! Devices shared between class drivers: the claim table and the policing
 //! of a shared slot's pipes.
 
+mod authorize_tests;
+mod bind_wiring_tests;
 mod claims_tests;
 mod joined_tests;
 mod park_tests;
