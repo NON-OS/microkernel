@@ -3043,6 +3043,43 @@
   "md": [],
   "signed": []
  },
+ "userland/epd1_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/asm/enter_user.S",
+   "src/arch/aarch64/asm/epd1.h",
+   "src/arch/aarch64/asm/epd1_trampoline.S",
+   "src/arch/aarch64/asm/resume_user.S",
+   "src/arch/aarch64/asm/vectors.S",
+   "src/arch/aarch64/mmu/attributes",
+   "src/arch/aarch64/mmu/trampoline/geometry.rs",
+   "src/arch/aarch64/mmu/trampoline/leaves.rs",
+   "src/arch/aarch64/security/epd1/step.rs",
+   "src/arch/aarch64/security/spectre/answer.rs",
+   "src/arch/aarch64/security/spectre/branch.rs",
+   "src/arch/aarch64/security/spectre/cores.rs",
+   "src/arch/aarch64/security/spectre/decide.rs",
+   "src/arch/aarch64/security/spectre/history.rs",
+   "src/arch/aarch64/security/spectre/ids.rs",
+   "src/arch/aarch64/security/spectre/plan.rs",
+   "src/memory/layout/constants/canonical.rs",
+   "src/memory/layout/constants/firmware.rs",
+   "src/memory/layout/constants/fixmap.rs",
+   "src/memory/layout/constants/kpti.rs",
+   "src/memory/layout/constants/limits.rs",
+   "src/memory/layout/constants/mmio.rs",
+   "src/memory/layout/constants/page.rs",
+   "src/memory/layout/constants/percpu.rs",
+   "src/memory/layout/constants/permissions.rs",
+   "src/memory/layout/constants/pt_index.rs",
+   "src/memory/layout/constants/regions.rs",
+   "src/memory/layout/constants/sections.rs",
+   "userland/epd1_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/equix_proofs": {
   "exclude": [],
   "include": [
