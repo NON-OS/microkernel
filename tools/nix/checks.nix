@@ -15,19 +15,13 @@ let
   kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" "nonos-iommu-amdvi" "nonos-iommu-intremap" ];
   hasLock = d: builtins.pathExists (src.root + "/${d}/Cargo.lock");
 
-  # Every *_proofs crate, the host crates CI tests beside them, and the
-  # bootloader's proofs.
+  # Every *_proofs crate, and every crate whose manifest asks for the lane
+  # ([package.metadata.nonos] test-lane = true), each mapped to its test-args.
+  # scripts/check_test_lanes.py writes test-lanes.json from the manifests.
+  lanes = lib.importJSON ./test-lanes.json;
   proofDirs =
     map (d: "userland/${d}") (builtins.filter (d: lib.hasSuffix "_proofs" d && hasLock "userland/${d}") userlandDirs)
-    ++ [
-      "nonos-bootloader/boot_proofs"
-      "userland/nonos_secp256k1"
-      "userland/nonos_ed25519"
-      "userland/nonos_i2cmodel"
-      "userland/attest_receipt"
-      "nonos-attest-path"
-      "nonos-sign"
-    ];
+    ++ builtins.attrNames lanes;
 
   # The live TPM suites run against a software TPM; a skipped live test fails
   # the check rather than passing quietly.
@@ -71,11 +65,8 @@ let
     else if builtins.elem name lintLib then "cargo clippy --frozen --release -- -D warnings"
     else "cargo clippy --frozen --release --all-targets -- -D warnings";
 
-  # nonos-sign's `artifacts` test reads the capsule ELFs and the trust set a
-  # seal wrote together, so it belongs to the seal, whose verify phase checks
-  # the same signatures against the same ELFs; here it would read a tree with
-  # no ELFs in it.
-  testArgs = dir: lib.optionalString (dir == "nonos-sign") "--lib --bins --test host_trust --test release";
+  # What a marked crate's manifest adds to cargo test, as nonos-sign's does.
+  testArgs = dir: lanes.${dir} or "";
 
   proof =
     dir:
@@ -226,6 +217,7 @@ let
       "scripts/check_unreachable.py --self-test" "scripts/check_unreachable.py"
       "scripts/check_driver_proofs.py"
       "scripts/check_dark_features.py --self-test" "scripts/check_dark_features.py"
+      "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
