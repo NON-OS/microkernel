@@ -9,7 +9,7 @@ request header decode (`protocol/`) through `#[path]`, unchanged, and links
 
 ## What the tests check
 
-13 `#[test]` functions in four modules:
+The library's tests, in four modules:
 
 - `readiness_tests.rs`: a `linux.` distribution package is ready without
   shipping a proof, but only on a machine that hosts one; naming the hosted
@@ -23,6 +23,12 @@ request header decode (`protocol/`) through `#[path]`, unchanged, and links
 - `request_tests.rs`: arbitrary request headers and bodies from a fixed-seed
   generator either decode or are refused.
 
+The `boot_index_host` target mounts capsule_market's `boot_index.rs` with an
+empty baseline and stand-ins at its IPC edges: a catalogue of exactly the 8 MiB
+cap is read whole and handed to ingest; one byte more is refused with its own
+line and never taken; ingest's refusal reasons are each said, and a stale
+serial installs nothing.
+
 ## Running
 
 ```sh
@@ -35,5 +41,5 @@ checks on and clippy over all targets.
 
 ## Not covered
 
-Signature verification, `load_verified`, the boot index read and the reply
-encoders are not mounted here.
+Signature verification, `load_verified` (stood in by `boot_index_host`) and
+the reply encoders are not mounted here.

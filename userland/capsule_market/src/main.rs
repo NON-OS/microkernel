@@ -26,6 +26,7 @@
 
 extern crate alloc;
 
+mod baseline;
 mod bonds;
 mod boot_index;
 mod bootstrap_trust;
