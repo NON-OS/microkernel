@@ -45,7 +45,15 @@ pub fn status_endpoint(raw: &[u8]) -> Option<StatusEndpoint> {
         match d[1] {
             DT_INTERFACE => in_hub = len >= 9 && d[5] == CLASS_HUB,
             DT_ENDPOINT if in_hub && len >= 7 && d[2] & 0x80 != 0 && d[3] & 0x3 == INTERRUPT => {
-                let max_packet = u16::from_le_bytes([d[4], d[5]]) & 0x07ff;
+                let raw = u16::from_le_bytes([d[4], d[5]]);
+                let max_packet = raw & 0x07ff;
+                // USB 2.0 9.6.6 (as recalled, unverified): bits 15:11 are
+                // not a hub's to set, a size of 0 or past 1024 is none, and
+                // an interval of 0 is no polling rate. Such a hub has no
+                // status endpoint the host is asked to poll.
+                if raw >> 11 != 0 || !(1..=1024).contains(&max_packet) || d[6] == 0 {
+                    return None;
+                }
                 return Some(StatusEndpoint { address: d[2], max_packet, interval: d[6] });
             }
             _ => {}
