@@ -16,7 +16,7 @@
 
 //! When the shell's chrome belongs in the compositor's trusted band, and how
 //! it moves there and back. A permission prompt, the system's own prompt and
-//! the lock screen are drawn on the chrome; while one is up the chrome is
+//! the hidden screen are drawn on the chrome; while one is up the chrome is
 //! placed in the band, where no window can cover it, no screenshot holds it,
 //! and the router gives the shell every key and click.
 
@@ -27,7 +27,7 @@ use super::attention::Attention;
 pub const TRUSTED_Z: u32 = 0x4000_0000;
 pub const CHROME_Z: u32 = 3_000_000;
 
-/// Whether the chrome should be in the trusted band: a prompt or the lock
+/// Whether the chrome should be in the trusted band: a prompt or the hidden screen
 /// is up. Menus and the Launchpad are the shell's but ask nothing.
 pub fn in_band(prompt: bool, attention: Attention) -> bool {
     prompt || attention != Attention::None
