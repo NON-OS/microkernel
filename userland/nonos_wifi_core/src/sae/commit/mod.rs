@@ -34,6 +34,9 @@
 mod confirm;
 mod make;
 mod types;
+mod wipe;
+#[cfg(test)]
+mod wipe_tests;
 
 pub use confirm::confirm;
 pub use types::{Commit, SaeKeys};

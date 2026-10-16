@@ -35,7 +35,7 @@ use super::Stage;
 
 /// The reply's length in `tx`.
 pub(super) fn answer(
-    req: &[u8],
+    req: &mut [u8],
     sender: u32,
     radio: &mut Radio,
     session: &mut Option<Session>,

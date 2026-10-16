@@ -9,6 +9,7 @@
 //! A join op the radio runs: connect, disconnect, or the link's state.
 
 use crate::driver::Driver;
+use nonos_wifi_core::wipe::wipe;
 
 use super::control::{OP_CONNECT, OP_DISCONNECT};
 use super::join_wire::{encode_code, encode_connect, encode_link_with};
@@ -27,7 +28,7 @@ pub(super) fn join(
     match op {
         OP_CONNECT => {
             let r = radio.connect(driver, &req[10..]);
-            req.fill(0);
+            wipe(req);
             radio.note_join(r.code);
             encode_connect(reply, &r)
         }
