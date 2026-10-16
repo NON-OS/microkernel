@@ -45,8 +45,6 @@ pub mod bti_pad;
 pub mod bus;
 pub mod capabilities;
 #[cfg(test)]
-pub mod claim_restore;
-#[cfg(test)]
 pub mod clock_scale;
 #[cfg(test)]
 pub mod confine_posture;
