@@ -54,6 +54,8 @@ pub struct Host {
     pub(super) pending: Option<u8>,
     pub(super) sent_ms: u64,
     pub(super) requests: u32,
+    /// The bearer's ATT_MTU, once the exchange settles it.
+    pub(super) mtu: u16,
 }
 
 impl Host {

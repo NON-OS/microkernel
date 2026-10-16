@@ -49,9 +49,11 @@ fn indications_are_confirmed_and_reports_before_ready_ignored() {
 
 #[test]
 fn responses_that_answer_nothing_end_discovery() {
+    // Each after the MTU exchange, while a Find By Type Value is out.
     let fail = |pdu: &[u8]| {
         let (mut host, _) = Host::start(0);
-        host.on_pdu(pdu, 1).outcome
+        host.on_pdu(&[0x03, 23, 0], 1);
+        host.on_pdu(pdu, 2).outcome
     };
     let protocol = Some(Outcome::Failed(HogpError::Protocol));
     // A Write Response while a Find By Type Value is outstanding.
