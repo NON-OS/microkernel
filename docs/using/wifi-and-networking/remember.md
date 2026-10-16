@@ -7,7 +7,7 @@ Turn on `Remember networks I join` with `R`. A network you then join is saved, w
 - It is saved only with a TPM. The list is sealed with ChaCha20-Poly1305 under a [machine key](../../overview/glossary.md#machine-key) the TPM derives for the label `wifi/saved-networks`. That key is bound to PCRs 0, 4, 7 and 9, so after a firmware or kernel change the saved list no longer opens and you join again by hand.
 - The sealed record is the file `/nonos/wifi/saved` in the NONOS store.
 
-At boot, `net.core` scans and joins the first saved network in range. Each saved network is tried at most once per boot, so a wrong passphrase is not sent to the access point again and again. After eight scans with none in range it stops and logs `no saved Wi-Fi network in range; join one from Settings`.
+At boot, `net.core` scans and joins the first saved network in range. A network whose join fails is tried again in later rounds, at most eight, each after a longer wait (from 4 seconds up to a minute), so someone sending forged refusals costs time, not the network; a wrong passphrase is sent at most that many times per boot. After eight scans with none in range it stops and logs `no saved Wi-Fi network in range; join one from Settings`.
 
 ## What the status shows
 

@@ -61,7 +61,7 @@ fn a_join_run_on_then_a_transient_code_retries_within_the_bounds() {
     assert_eq!(passes, REJOIN_ATTEMPTS, "each transient code used one attempt");
     assert!(m.done() && m.due(i64::MAX) == Due::Nothing);
     // A join run on that came back joined, or refused, ends the rejoin at once.
-    for (code, joined) in [(0, true), (-6, false), (-11, false)] {
+    for (code, joined) in [(0, true), (-9, false), (-11, false)] {
         let mut m = lost_at(0);
         let (_, t) = unheard(&mut m, 0, 1);
         let t = (t..).find(|&t| m.due(t) == Due::Attempt).unwrap();

@@ -18,7 +18,8 @@
 
 use super::state::bit;
 use super::{
-    Machine, Phase, Step, EMPTY_PASSES_MAX, JOIN_WATCH_MS, NOT_YET_MS, RESCAN_MS, WATCH_EVERY_MS,
+    Machine, Phase, Step, EMPTY_PASSES_MAX, JOIN_WATCH_MS, NOT_YET_MS, REJOIN_ATTEMPTS,
+    REJOIN_FIRST_MS, REJOIN_MAX_MS, RESCAN_MS, WATCH_EVERY_MS,
 };
 
 impl Machine {
@@ -29,11 +30,24 @@ impl Machine {
         let wait = match step {
             Step::NotYet => NOT_YET_MS,
             Step::Answered { joined: true, .. } => return self.joined(),
-            Step::Done => {
+            // Every saved network was tried this round: one that failed for
+            // a reason anyone on the air could cause is tried again, after
+            // twice the wait of the round before, for a bounded number.
+            Step::Done if self.tried & !self.refused == 0 || self.rounds >= REJOIN_ATTEMPTS => {
                 self.phase = Phase::Done;
                 return;
             }
-            Step::Answered { index, joined: false } | Step::Refused(index) => {
+            Step::Done => {
+                self.rounds += 1;
+                self.tried = self.refused;
+                REJOIN_FIRST_MS.saturating_mul(1 << self.rounds.min(15)).min(REJOIN_MAX_MS)
+            }
+            Step::Refused(index) => {
+                self.tried |= bit(index);
+                self.refused |= bit(index);
+                NOT_YET_MS
+            }
+            Step::Answered { index, joined: false } => {
                 self.tried |= bit(index);
                 NOT_YET_MS
             }

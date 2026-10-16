@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! What a join's result code comes to. The codes are the drivers'
-//! (`nonos_wifi_client::join_text`): 0 joined; -6 to -11 the passphrase or
-//! the network's security (a handshake that did not finish, which is also
-//! how a wrong WPA2 passphrase looks; WPA3 offered no longer; a security this
-//! station does not run; a passphrase of the wrong length; WPA3 refusing the
-//! password; a message 3 that did not match the beacon), which the same join
-//! would meet again; -13 a rejoin the driver refused because the person left
-//! the link; anything else may pass (not heard, refused association, keys not
-//! installed, no randomness, no answer).
+//! (`nonos_wifi_client::join_text`): 0 joined. Only what no one on the air
+//! can forge ends the trying: -9 a passphrase of the wrong length (checked
+//! here), -11 a message 3, authenticated by its MIC, that did not match the
+//! beacon, and -13 the person leaving the link. A handshake that did not
+//! finish (-6) looks the same as a forged deauthentication, and WPA3 offered
+//! no longer (-7), a security not run here (-8) and WPA3 refusing the
+//! password (-10) rest on beacons or frames anyone can send, so those, like
+//! everything else, are tried again later.
 
 use super::Step;
 
 /// The same join would be turned down again, or must not be tried again.
 pub fn refused(code: i32) -> bool {
-    matches!(code, -11..=-6 | -13)
+    matches!(code, -9 | -11 | -13)
 }
 
 /// The step a join of saved network `index` that came back with `code` is.
