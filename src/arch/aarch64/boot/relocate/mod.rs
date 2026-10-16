@@ -32,4 +32,6 @@
 
 mod apply;
 mod entry;
+mod rebase;
+mod rebase_entry;
 mod rela;
