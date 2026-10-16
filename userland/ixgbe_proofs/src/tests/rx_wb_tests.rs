@@ -16,7 +16,7 @@
 
 //! The receive write-back verdict on fixed vectors: DD and EOP with no frame
 //! error and a length in 1..=1514 is a frame; anything else written back is
-//! dropped; no DD is not yet the driver's.
+//! dropped, and without EOP is a piece; no DD is not yet the driver's.
 
 use crate::facts::rx::{RXDEXT_ERR_FRAME_ERR_MASK, RXD_STAT_DD, RXD_STAT_EOP};
 use crate::queue::rx_wb::{parse, Rx};
@@ -41,7 +41,8 @@ fn parse_vectors() {
     for bit in [30, 31] {
         assert_eq!(parse(whole | 1 << bit, 60), Rx::Frame(60), "TCPE/IPE {bit}: handed up");
     }
-    assert_eq!(parse(RXD_STAT_DD, 60), Rx::Drop);
+    assert_eq!(parse(RXD_STAT_DD, 60), Rx::Piece);
+    assert_eq!(parse(RXD_STAT_DD | 1 << 24, 60), Rx::Piece, "a piece first");
     assert_eq!(parse(RXD_STAT_EOP, 60), Rx::NotDone);
     assert_eq!(parse(0, 60), Rx::NotDone);
 }
