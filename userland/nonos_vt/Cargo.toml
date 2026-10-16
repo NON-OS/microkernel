@@ -6,6 +6,9 @@ authors = ["NONOS Contributors"]
 license = "AGPL-3.0"
 description = "Terminal emulation for NONOS: an xterm-compatible screen, parser and input encoder"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 name = "nonos_vt"
 path = "src/lib.rs"

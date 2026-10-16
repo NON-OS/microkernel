@@ -5,6 +5,9 @@ edition = "2021"
 description = "TCP connect-scan reconnaissance engine for the NONOS recon tool, no_std"
 license = "AGPL-3.0"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 crate-type = ["rlib"]
 
