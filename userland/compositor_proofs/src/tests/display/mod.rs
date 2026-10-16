@@ -18,6 +18,7 @@
 
 mod arrange_tests;
 mod backoff_tests;
+mod brightness_get_tests;
 mod brightness_output_tests;
 mod brightness_tests;
 mod cursor_plane_tests;
@@ -26,6 +27,8 @@ mod first_frame_tests;
 mod floor_tests;
 mod head_tests;
 mod hint_tests;
+mod input_list_lie_tests;
+mod input_list_tests;
 mod layout_tests;
 mod lid_paint;
 mod lid_rig;

@@ -19,7 +19,7 @@
 mod blit;
 mod colour;
 mod display;
-mod requests;
+pub(crate) mod requests;
 mod scene;
 mod trusted;
 mod wire;
