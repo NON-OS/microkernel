@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The driver sources the proofs run, each included by path.
 
-#[path = "../../capsule_driver_rtl8821ce/src/assoc.rs"]
+#[path = "../../capsule_driver_rtl8821ce/src/assoc/mod.rs"]
 pub mod assoc;
 #[path = "../../capsule_driver_rtl8821ce/src/coex/mod.rs"]
 pub mod coex;

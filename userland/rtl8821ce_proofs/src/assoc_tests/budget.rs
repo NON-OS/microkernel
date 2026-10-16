@@ -6,7 +6,8 @@ use nonos_wifi_core::rsn::JoinPolicy;
 
 use super::beacons::beacon_for;
 use super::radio::{clock, join_request, RecordingRadio};
-use crate::assoc::{run_join, Outcome, RETX_AFTER_MS};
+use crate::assoc::resend::RETX_AFTER_MS;
+use crate::assoc::{run_join, Outcome};
 
 // The join gives up when its budget of milliseconds has passed, not after a
 // count of passes: with a second between passes a 10 s budget ends after ten.

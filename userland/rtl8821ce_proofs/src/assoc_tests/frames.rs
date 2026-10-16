@@ -5,7 +5,8 @@
 use nonos_wifi_core::dot11::data::{build_data, parse_data};
 
 use super::beacons::{AP, OUR};
-use crate::assoc::{classify, wrap_eapol, RxKind};
+use crate::assoc::classify::{classify, RxKind};
+use crate::assoc::eapol::wrap_eapol;
 
 #[test]
 fn a_management_frame_is_classified_as_management() {
