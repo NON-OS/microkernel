@@ -18,6 +18,6 @@
 
 mod parse_boundary_tests;
 mod parse_check;
-mod parse_frames;
+pub(super) mod parse_frames;
 mod parse_tests;
 mod privacy_tests;
