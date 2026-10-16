@@ -17,6 +17,7 @@
 //! The claim-time side of `hold_rule`: who the caller is, and what the record
 //! names.
 
+use super::hold_platform::hold_for_platform;
 use super::hold_rule::{hold_for, hold_for_firmware, untranslated as untranslated_ids, Hold};
 use super::types::ClaimError;
 use crate::hardware::broker::{table, BusKind, DeviceRecord};
@@ -54,7 +55,7 @@ fn rule_for(device_id: u64) -> Option<Hold> {
     match rec.bus_kind {
         k if k == BusKind::Pci as u8 => Some(hold_for(rec.vendor, rec.device)),
         k if k == BusKind::Firmware as u8 => Some(hold_for_firmware(rec.device)),
-        _ => None,
+        k => hold_for_platform(k, rec.class, rec.pci_class, rec.vendor, rec.device),
     }
 }
 
