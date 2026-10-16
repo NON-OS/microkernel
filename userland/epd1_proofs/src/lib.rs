@@ -10,6 +10,8 @@ pub mod spectre;
 pub mod step;
 
 #[cfg(test)]
+mod asm;
+#[cfg(test)]
 mod asm_tests;
 #[cfg(test)]
 mod classify_tests;
@@ -18,6 +20,8 @@ mod footprint_tests;
 #[cfg(test)]
 mod layout_tests;
 #[cfg(test)]
+mod order_tests;
+#[cfg(test)]
 mod orders;
 #[cfg(test)]
 mod regions;
@@ -25,5 +29,7 @@ mod regions;
 mod source;
 #[cfg(test)]
 mod step_tests;
+#[cfg(test)]
+mod vector_tests;
 #[cfg(test)]
 mod walk;

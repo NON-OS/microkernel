@@ -1,35 +1,29 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The order the trampoline's assembly keeps, read from the sources: EPD1
-//! cleared before the first load on every entry from EL0 and set before the
-//! TLB is emptied on the way out, every slot landing where the kernel's own
-//! table sends it, and every return to EL0 taking the test.
+//! The trampoline's own order, read from its source: EPD1 cleared before
+//! any load on every entry from EL0, set before the TLB is emptied on the
+//! way out, and the page one page alone.
 
-use crate::source::{block, define, ENTER_USER, RESUME_USER, TRAMPOLINE, VECTORS};
-
-/// The instruction or directive on each line, comments and blanks gone.
-fn code<'a>(lines: impl IntoIterator<Item = &'a str>) -> Vec<String> {
-    let strip = |l: &str| l.split("/*").next().unwrap_or("").trim().to_string();
-    let skip = |l: &&str| l.trim_start().starts_with('*') || l.trim_start().starts_with("/*");
-    lines.into_iter().filter(|l| !skip(l)).map(strip).filter(|l| !l.is_empty()).collect()
-}
-
-fn mem(op: &str) -> bool {
-    ["ldr", "str", "ldp", "stp"].iter().any(|m| op.split_whitespace().next() == Some(m))
-}
+use crate::asm::{code, macro_body, mem};
+use crate::source::{define, TRAMPOLINE};
 
 #[test]
-fn entries_from_el0_clear_epd1_before_the_first_load() {
+fn entries_from_el0_clear_epd1_before_any_load() {
     let slots: Vec<(u32, u32)> = code(TRAMPOLINE.lines())
         .iter()
         .filter_map(|l| l.strip_prefix("TRAMP_ENTRY "))
         .map(|a| a.split_once(", ").map(|(n, f)| (n.parse().unwrap(), f.parse().unwrap())).unwrap())
         .collect();
     assert_eq!(slots, (0..16).map(|n| (n, u32::from(n >= 8))).collect::<Vec<_>>());
-    let body = code(block(TRAMPOLINE, ".macro TRAMP_ENTRY slot, from_el0"));
+    let body = macro_body(TRAMPOLINE, "TRAMP_ENTRY");
     let at = |want: &str| body.iter().position(|l| l.starts_with(want)).expect(want);
-    let first_load = body.iter().position(|l| mem(l)).expect("the targets' load");
-    assert!(at("bic") < at("msr     tcr_el1") && at("msr     tcr_el1") < at("isb"));
-    assert!(at("isb") < at(".endif") && at(".endif") < first_load);
+    let from_el0 = &body[at(".if")..at(".else")];
+    let order =
+        ["mrs     x30, tcr_el1", "bic", "msr     tcr_el1", "isb", "mov", "b       from_el0"];
+    let mut seen = from_el0.iter().skip(1);
+    for want in order {
+        assert!(seen.any(|l| l.starts_with(want)), "{want} out of order in the EL0 slots");
+    }
+    assert!(from_el0.iter().all(|l| !mem(l)), "an EL0 slot loads before the routine");
 }
 
 #[test]
@@ -44,29 +38,4 @@ fn the_exit_sets_epd1_then_empties_the_tlb_and_loads_nothing() {
     let eret = exit.iter().position(|l| l == "eret").expect("eret");
     assert!(exit[..eret].iter().all(|l| !mem(l)));
     assert_eq!(all.iter().filter(|l| *l == ".balign 0x1000").count(), 2, "one page, alone");
-}
-
-#[test]
-fn every_slot_lands_where_the_kernels_table_sends_it() {
-    let lines = code(block(VECTORS, "__aarch64_vectors_el1:"));
-    let table: Vec<&str> = lines.iter().filter_map(|l| l.strip_prefix("b   ")).collect();
-    let lines = code(block(VECTORS, "__aarch64_tramp_targets:"));
-    let targets: Vec<&str> = lines.iter().filter_map(|l| l.strip_prefix("TRAMP_TARGET ")).collect();
-    assert_eq!(table.len(), 16);
-    assert_eq!(table, targets);
-}
-
-#[test]
-fn every_return_to_el0_takes_the_test() {
-    for (name, text) in [("enter_user", ENTER_USER), ("resume_user", RESUME_USER)] {
-        let all = code(text.lines());
-        assert!(all.contains(&"#include \"epd1.h\"".to_string()), "{name}");
-        assert_eq!(all.iter().filter(|l| *l == "EXIT_TO_EL0").count(), 1, "{name}");
-        assert!(!all.iter().any(|l| l == "eret"), "{name} returns past the test");
-    }
-    for kind in ["sync", "irq", "fiq", "serror"] {
-        let body = code(block(VECTORS, &format!("__aarch64_{kind}_lower:")));
-        assert_eq!(body.iter().filter(|l| *l == "EXIT_TO_EL0").count(), 1, "{kind}");
-        assert!(!body.iter().any(|l| l == "eret"), "{kind} returns past the test");
-    }
 }
