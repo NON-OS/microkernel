@@ -786,8 +786,13 @@ dependencies = [
  "hmac",
  "p256",
  "sha2",
+ "tls_proofs_route_shim",
  "tls_proofs_shim",
 ]
+
+[[package]]
+name = "tls_proofs_route_shim"
+version = "0.1.0"
 
 [[package]]
 name = "tls_proofs_shim"
