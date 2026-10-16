@@ -158,6 +158,7 @@ syscalls.numbers MPCR 1380143181
 syscalls.numbers MPCW 1464029261
 syscalls.numbers MPGT 1413959757
 syscalls.numbers MPIN 1313427533
+syscalls.numbers MPJB 1112166477
 syscalls.numbers MPMP 1347244109
 syscalls.numbers MPPT 1414549581
 syscalls.numbers MPRD 1146245197
@@ -168,6 +169,8 @@ syscalls.numbers MPUN 1314213965
 syscalls.numbers MPVW 1465274445
 syscalls.numbers MPWR 1381453901
 syscalls.numbers MSAT 1413567309
+syscalls.numbers MSLR 1380733773
+syscalls.numbers MSNT 1414419277
 syscalls.numbers MSOW 1464816461
 syscalls.numbers MSPI 1230000973
 syscalls.numbers MSPR 1380995917
