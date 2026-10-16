@@ -39,18 +39,6 @@ pub fn grouped(value: &str) -> Zeroizing<String> {
     out
 }
 
-/// A hash cut to its ends, as in 0x6def9b\u{2026}f3a4, so a forged prefix must
-/// also match the suffix.
-pub fn hash(value: &str) -> String {
-    let n = value.chars().count();
-    if !value.starts_with("0x") || n <= 12 {
-        return String::from(value);
-    }
-    let head: String = value.chars().take(8).collect();
-    let tail: String = value.chars().skip(n - 4).collect();
-    alloc::format!("{head}{MARK}{tail}")
-}
-
 pub fn shortened(value: &str) -> String {
     let n = value.chars().count();
     if n <= ENDS * 2 + 1 {

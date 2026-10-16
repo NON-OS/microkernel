@@ -16,31 +16,23 @@
 
 //! Live NOX token and staking reads against the pinned mainnet deployment.
 
-mod amount_str;
 mod apr_bps;
 mod calldata_addr;
 pub mod constants;
 mod format_apr;
 mod format_nox;
-mod live_amount;
 mod nox_text;
 mod q32_to_u128;
 mod stakeable;
 mod staking;
 mod status;
 
-pub use amount_str::amount_str;
 pub use apr_bps::apr_bps;
 pub use calldata_addr::calldata_addr;
 pub use format_apr::format_apr;
 pub use format_nox::format_nox;
-pub use live_amount::live_amount;
 pub use nox_text::nox_text;
 pub use q32_to_u128::q32_to_u128;
-pub use stakeable::{held_wei, NOX_DECIMALS, WEI_PER_NOX};
-pub use staking::{
-    lock_days, nft_boost_bps, LOCK_TERMS, MAX_POSITIONS, NFT_BOOSTS, SEL_BOOST_MULTIPLIER,
-    SEL_GET_POSITION, SEL_GET_STAKE_INFO, SEL_GET_USER_POSITIONS, SEL_TOKEN_OF_OWNER_BY_INDEX,
-    SEL_USER_POSITION_SUMMARY, SEL_ZERO_STATE_PASS, SEL_ZSP_BINDING, SEL_ZSP_VALIDLY_BOUND,
-};
+pub use stakeable::{held_wei, NOX_DECIMALS};
+pub use staking::{lock_days, LOCK_TERMS, SEL_GET_STAKE_INFO};
 pub use status::NoxStatus;

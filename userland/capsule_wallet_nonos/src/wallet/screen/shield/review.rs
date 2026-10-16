@@ -65,6 +65,6 @@ pub fn review(state: &State, fb: &mut PaintBuffer) {
     y += at.h;
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    super::edges::put(state, &l);
+    super::edges::put(&l);
     super::edges::footer(&l, &[ready, true]);
 }

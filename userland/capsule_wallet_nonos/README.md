@@ -54,19 +54,18 @@ and what 0.9.2 does flow by flow is in
   `src/wallet/screen/shield`. On mainnet the screens say the pool is not
   deployed there and offer Sepolia.
 - **Network route.** Every request opens a `Link` on
-  `nonos_route_link::Route::chosen`: under Direct, `net.dns` and a socket
-  through `net.sockets`; under Nym or Anyone, `net.socks5` or `net.anon` with
-  the host name unresolved. A chosen network that is not running refuses with
-  its reason, and nothing falls back. The TLS 1.3 client pins the Google Trust
+  `nonos_route_link::Route::for_wallet`, over Nym (`net.socks5`) or Anyone
+  (`net.anon`) with the host name unresolved, never Direct: a Direct choice
+  goes over Nym, else Anyone. When neither is up the wallet says it is waiting
+  for Nym or Anyone, and opens no socket of its own. The TLS 1.3 client pins the Google Trust
   Services R4 root and matches the host through `nonos_tls::cert_names_host`.
 
 ## Pool seam
 
-Swap quotes, association sets, simulation and NOX revenue sit behind traits
-in `src/wallet/pool/`, and `active.rs` returns `Stub` for each, which answers
-`NotWired`. Swap is therefore hidden from the home screen in 0.9.2
-(`SWAP_OFFERED` in `src/wallet/screen/home_actions.rs`); it returns once a
-pool is wired there.
+Swap quotes come through one trait, `QuoteProvider` in `src/wallet/pool/`,
+and `active.rs` returns `Unwired`, which answers None. Swap is therefore
+hidden from the home screen in 0.9.2 (`SWAP_OFFERED` in
+`src/wallet/screen/home_actions.rs`); it returns once a pool is wired there.
 
 ## Privacy and persistence
 

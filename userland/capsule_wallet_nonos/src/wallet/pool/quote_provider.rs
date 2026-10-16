@@ -16,8 +16,6 @@
 
 use crate::wallet::swap::{Reserves, Token};
 
-use super::seam::Seam;
-
 /// Where a swap quote's figures come from.
 ///
 /// Only the reading is behind the seam. The arithmetic that turns reserves
@@ -26,13 +24,13 @@ use super::seam::Seam;
 /// cannot quietly change what the screen computes.
 ///
 /// A live implementation reads the pair's reserves and fee from the deployed
-/// pool. Until one is wired this returns `NotWired` and the swap screen says
+/// pool. Until one is wired this returns None and the swap screen says
 /// so rather than showing a figure it cannot stand behind.
 pub trait QuoteProvider {
     /// The pool's holdings of `pay` and `receive`, oriented to the trade,
     /// with the fee it charges on the input.
-    fn reserves(&self, pay: Token, receive: Token) -> Seam<Reserves>;
+    fn reserves(&self, pay: Token, receive: Token) -> Option<Reserves>;
 
     /// Gas the router is expected to want for this trade.
-    fn gas(&self, pay: Token, receive: Token) -> Seam<u64>;
+    fn gas(&self, pay: Token, receive: Token) -> Option<u64>;
 }

@@ -330,9 +330,6 @@ userland/wallet_proofs/src/wallet/num/amount/mod.rs:7
 userland/wallet_proofs/src/wallet/num/mod.rs:10
 userland/wallet_proofs/src/wallet/num/mod.rs:13
 userland/wallet_proofs/src/wallet/num/mod.rs:7
-userland/wallet_proofs/src/wallet/paint/mod.rs:10
-userland/wallet_proofs/src/wallet/paint/mod.rs:4
-userland/wallet_proofs/src/wallet/paint/mod.rs:7
 userland/wallet_proofs/src/wallet/swap/mod.rs:5
 userland/wm_proofs/src/window.rs:28
 userland/wm_proofs/src/window_share_tests.rs:37

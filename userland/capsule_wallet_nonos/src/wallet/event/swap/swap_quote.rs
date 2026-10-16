@@ -33,10 +33,10 @@ pub fn refresh(state: &mut State) {
     let source = quote_source();
     let pay = *token(state.swap.from);
     let receive = *token(state.swap.to);
-    let Some(reserves) = source.reserves(pay, receive).as_ready().copied() else {
+    let Some(reserves) = source.reserves(pay, receive) else {
         return;
     };
-    let Some(gas) = source.gas(pay, receive).as_ready().copied() else {
+    let Some(gas) = source.gas(pay, receive) else {
         return;
     };
     if let Some(read) = quote(state.swap.amount_in, &reserves, gas) {

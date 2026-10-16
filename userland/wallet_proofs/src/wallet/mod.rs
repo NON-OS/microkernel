@@ -16,7 +16,6 @@ pub mod nox {
     pub use crate::nox::staking::SEL_GET_STAKE_INFO;
 }
 pub mod num;
-pub mod paint;
 #[path = "../../../capsule_wallet_nonos/src/wallet/rpc/mod.rs"]
 pub mod rpc;
 pub mod send;

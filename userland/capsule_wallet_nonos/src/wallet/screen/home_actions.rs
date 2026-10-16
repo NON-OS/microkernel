@@ -33,7 +33,7 @@ const ACTIONS: [(&str, Symbol, Press); 4] = [
 ];
 
 /* Swap is not offered in this build: no liquidity pool is wired to quote
- * or sign against (`pool::active` answers NotWired), so its screen could
+ * or sign against (`pool::active` answers None), so its screen could
  * only say so. It returns once a pool is. */
 const SWAP_OFFERED: bool = false;
 
