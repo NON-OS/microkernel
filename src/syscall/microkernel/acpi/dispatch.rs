@@ -23,7 +23,7 @@ use super::{
     sys_acpi_pci, sys_acpi_platform_device, sys_acpi_port, sys_acpi_power, sys_acpi_proximity,
     sys_acpi_region, sys_acpi_reserved, sys_acpi_sleep, sys_acpi_table, sys_acpi_usb_ports,
     sys_boot_logo, sys_device_node, sys_numa_distance, sys_numa_hmat, sys_numa_node_of,
-    sys_pci_probe_function, sys_smbios_table, sys_usb_port_facts,
+    sys_pci_depart, sys_pci_probe_function, sys_smbios_table, sys_usb_port_facts,
 };
 use crate::syscall::microkernel::numbers::{
     SYS_ACPI_CPU, SYS_ACPI_DEVICE_NAME, SYS_ACPI_EVENT, SYS_ACPI_EXTERNAL_PORT,
@@ -31,7 +31,7 @@ use crate::syscall::microkernel::numbers::{
     SYS_ACPI_PCI, SYS_ACPI_PLATFORM_DEVICE, SYS_ACPI_PORT, SYS_ACPI_POWER, SYS_ACPI_PROXIMITY,
     SYS_ACPI_REGION, SYS_ACPI_RESERVED, SYS_ACPI_SLEEP, SYS_ACPI_TABLE, SYS_ACPI_USB_PORTS,
     SYS_BOOT_LOGO, SYS_DEVICE_NODE, SYS_NUMA_DISTANCE, SYS_NUMA_HMAT, SYS_NUMA_NODE_OF,
-    SYS_PCI_PROBE_FUNCTION, SYS_SMBIOS_TABLE, SYS_USB_PORT_FACTS,
+    SYS_PCI_DEPART, SYS_PCI_PROBE_FUNCTION, SYS_SMBIOS_TABLE, SYS_USB_PORT_FACTS,
 };
 
 pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
@@ -47,6 +47,7 @@ pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
         SYS_ACPI_CPU => sys_acpi_cpu(a0, a1),
         SYS_ACPI_HOLDS => sys_acpi_holds(a0, a1, a2, a3),
         SYS_PCI_PROBE_FUNCTION => sys_pci_probe_function(a0, a1),
+        SYS_PCI_DEPART => sys_pci_depart(a0, a1, a2),
         SYS_ACPI_FUNCTION_OF => sys_acpi_function_of(a0, a1, a2),
         SYS_ACPI_HW_ERROR => sys_acpi_hw_error(a0),
         SYS_ACPI_PLATFORM_DEVICE => sys_acpi_platform_device(a0, a1),

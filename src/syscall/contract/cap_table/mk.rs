@@ -155,6 +155,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAcpiCpu
         | SyscallNumber::MkAcpiHolds
         | SyscallNumber::MkPciProbeFunction
+        | SyscallNumber::MkPciDepart
         | SyscallNumber::MkAcpiFunctionOf
         | SyscallNumber::MkAcpiHwError
         | SyscallNumber::MkAcpiPlatformDevice
