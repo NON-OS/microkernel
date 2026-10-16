@@ -42,13 +42,13 @@ mod region;
 mod region_io;
 mod span;
 mod start;
-mod stop;
+pub(crate) mod stop;
 mod transfer;
 mod verdict;
 
 pub use flush::flush;
 pub use init::init_port;
 pub use link::may_be_disk;
-pub use park::park;
+pub use park::{park, retire};
 pub use port::Port;
 pub use transfer::transfer;
