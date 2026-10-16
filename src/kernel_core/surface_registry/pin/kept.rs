@@ -41,6 +41,11 @@ pub(super) fn keep(tables: u64, frames: Vec<PhysAddr>) {
 }
 
 /// The frames the teardown of `tables` leaves alone, handed over once.
+/// Whether the tables `tables` are still to be freed, mapping what they keep.
+pub(super) fn pending(tables: u64) -> bool {
+    tables != 0 && KEPT.lock().contains_key(&tables)
+}
+
 pub fn take_kept(tables: u64) -> Vec<PhysAddr> {
     KEPT.lock().remove(&tables).unwrap_or_default()
 }

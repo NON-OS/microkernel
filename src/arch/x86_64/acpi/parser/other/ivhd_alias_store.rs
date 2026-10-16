@@ -33,7 +33,7 @@ pub(super) fn record_aliases(table: &[u8]) {
     LOST.store(lost, Ordering::Release);
 }
 
-/// Whether requester id `id` may reach the IOMMU under another id.
+/// Whether requester id `id` may share its entry with another id.
 pub fn amd_iommu_aliased(id: u16) -> bool {
     LOST.load(Ordering::Acquire) || aliased(&ALIASES.lock(), id)
 }

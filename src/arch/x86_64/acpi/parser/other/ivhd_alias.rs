@@ -16,10 +16,10 @@
 
 //! Which requester ids reach an AMD IOMMU under another id (48882, 5.2.2.2:
 //! ALIAS SELECT 42h, or ALIAS START 43h to the next END 04h). Their
-//! interrupts arrive on the alias's entry, so a table on their own would
-//! never see them (L47). Pure, over the table's bytes.
+//! interrupts arrive on the alias's entry, among the alias's own vectors,
+//! so one table would serve two devices (L47, L49). Pure, over the bytes.
 
-use super::ivhd_entry::{size, word};
+use super::ivhd_entry::{size_at, word};
 use super::ivhd_scope::{block_at, FIRST_BLOCK};
 
 pub const MAX_ALIASES: usize = 32;
@@ -54,6 +54,8 @@ pub fn aliases(table: &[u8], out: &mut [Alias]) -> (usize, bool) {
                 _ => None,
             };
             match found.filter(|a| a.first <= a.last) {
+                // Firmware repeats a unit's entries in its 10h and 11h/40h blocks.
+                Some(a) if out[..n].contains(&a) => {}
                 Some(a) if n < out.len() => (out[n], n) = (a, n + 1),
                 Some(_) => lost = true,
                 None => {}
@@ -65,11 +67,8 @@ pub fn aliases(table: &[u8], out: &mut [Alias]) -> (usize, bool) {
     (n, lost)
 }
 
-fn size_at(bytes: &[u8], at: usize) -> Option<usize> {
-    (at + 4 <= bytes.len()).then(|| size(bytes, at)).flatten().filter(|len| at + len <= bytes.len())
-}
-
-/// Whether `id`'s requests arrive under another id.
+/// Whether `id` sends under another id, or another id sends under `id`.
 pub fn aliased(list: &[Alias], id: u16) -> bool {
-    list.iter().any(|a| a.first <= id && id <= a.last && a.alias != id)
+    let alone = Alias { first: id, last: id, alias: id };
+    list.iter().any(|a| ((a.first <= id && id <= a.last) || a.alias == id) && *a != alone)
 }

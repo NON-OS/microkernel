@@ -66,8 +66,8 @@ impl Held {
     pub fn settle(self) {
         for w in self.windows {
             if let Some((owner, handle)) = w.orphan {
-                let (frames, free) = (w.frames, w.unmapped);
-                ORPHANS.lock().push(Orphan { owner, handle, frames, free, grant: None });
+                let (frames, free, tables) = (w.frames, w.unmapped, 0);
+                ORPHANS.lock().push(Orphan { owner, handle, frames, free, grant: None, tables });
             }
         }
         reclaim();

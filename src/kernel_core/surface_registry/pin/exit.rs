@@ -51,7 +51,7 @@ pub fn keep_at_exit(group: u32, tables: u64) {
         }
         kept.extend_from_slice(&frames);
         let free = if grant.is_some() { Vec::new() } else { frames.clone() }; // the broker's
-        ORPHANS.lock().push(Orphan { owner: group, handle, frames, free, grant });
+        ORPHANS.lock().push(Orphan { owner: group, handle, frames, free, grant, tables });
     }
     for (handle, _) in records_of(group) {
         match frames_of(handle) {

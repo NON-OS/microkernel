@@ -23,6 +23,7 @@ use crate::smp::lock_responsive;
 use super::super::attach_map::snapshot::has_foreign_holder;
 use super::super::types::SurfaceHandle;
 use super::gate::GATE;
+use super::kept::pending;
 
 pub(super) struct Orphan {
     pub owner: u32,
@@ -33,6 +34,8 @@ pub(super) struct Orphan {
     pub free: Vec<PhysAddr>,
     /* The DMA run the frames belong to, freed through the broker (L35). */
     pub grant: Option<(u64, u64)>,
+    /* The exited group's tables, which map the frames until they are freed. */
+    pub tables: u64,
 }
 
 /*
@@ -49,7 +52,8 @@ pub fn reclaim() {
         let mut list = ORPHANS.lock();
         let mut i = 0;
         while i < list.len() {
-            if has_foreign_holder(list[i].handle, list[i].owner) {
+            // A sibling still on the dying tables can write the frames (L49).
+            if has_foreign_holder(list[i].handle, list[i].owner) || pending(list[i].tables) {
                 i += 1;
             } else {
                 done.push(list.swap_remove(i));

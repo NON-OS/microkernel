@@ -24,6 +24,7 @@ use core::sync::atomic::Ordering;
 
 use crate::hardware::broker::holder_of;
 use crate::memory::paging::manager::api::lookup_asid_for_tables;
+use crate::process::address_space::lifecycle::holder::released;
 use crate::process::core::PROCESS_TABLE;
 
 /// The tables `group` runs on: the caller's when it is of the group, else
@@ -34,7 +35,8 @@ pub(crate) fn tables_of(group: u32) -> Option<u64> {
     mine.and_then(cr3).filter(|&t| t != 0).or_else(|| {
         let all = PROCESS_TABLE.get_all_processes();
         all.iter()
-            .filter(|p| holder_of(p.pid) == group)
+            // A released thread's `cr3` may name tables already freed (L49).
+            .filter(|p| holder_of(p.pid) == group && !released(p))
             .map(|p| p.cr3.load(Ordering::Acquire))
             .find(|&t| t != 0)
     })

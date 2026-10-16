@@ -16,11 +16,12 @@
 
 //! Giving a receiver its own view of a surface's frames.
 
+use crate::kernel_core::surface_registry::attach_map::lookup;
+use crate::kernel_core::surface_registry::release_surface;
 use crate::kernel_core::surface_registry::table::SLOTS;
 use crate::kernel_core::surface_registry::types::{
     decode_handle, RegistryError, SurfaceDescriptor, SurfaceHandle,
 };
-use crate::process::current_process;
 
 pub(super) fn attach_frames(
     receiver_pid: u32,
@@ -44,28 +45,11 @@ pub(super) fn attach_frames(
         slot.refcount = slot.refcount.checked_add(1).ok_or(RegistryError::InvalidArg)?;
         slot.frames.clone()
     };
-    let mapped = map_view(receiver_pid, handle, &frames, out_desc);
-    if mapped.is_err() {
-        super::give_back::give_back(idx, epoch);
+    let mapped = super::map_frames::map_view(receiver_pid, handle, &frames, out_desc);
+    // A view left mapped is recorded as an attach and keeps its reference.
+    // At none left, the slot goes as `release_surface` frees it (L49).
+    if mapped.is_err() && lookup(receiver_pid, handle).is_none() {
+        let _ = release_surface(handle);
     }
     mapped
-}
-
-fn map_view(
-    receiver_pid: u32,
-    handle: SurfaceHandle,
-    frames: &[crate::memory::addr::PhysAddr],
-    out_desc: &mut SurfaceDescriptor,
-) -> Result<u64, RegistryError> {
-    let mut desc = super::descriptor::descriptor(handle)?;
-    let asid = super::super::space::space_of(receiver_pid).ok_or(RegistryError::MapFailed)?;
-    let proc = current_process().ok_or(RegistryError::NoProc)?;
-    let base = proc
-        .reserve_vma(frames.len().saturating_mul(4096), asid)
-        .map_err(|_| RegistryError::MapFailed)?;
-    super::map_frames::map_frames(asid, base, frames)?;
-    desc.base_va = base.as_u64();
-    *out_desc = desc;
-    super::super::attach_map::record(receiver_pid, handle, base.as_u64(), out_desc.byte_len);
-    Ok(base.as_u64())
 }

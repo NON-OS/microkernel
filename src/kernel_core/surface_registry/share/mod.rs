@@ -18,7 +18,6 @@ mod attach_frames;
 mod attach_surface;
 mod descriptor;
 mod existing;
-mod give_back;
 mod map_frames;
 mod owned;
 mod permit;

@@ -42,7 +42,7 @@ pub fn route_msi(
         return Err(AmdViError::NotEnforcing);
     }
     let id = device_id(bus, device, function);
-    // Its interrupts arrive on the alias's entry, which has no table (L47).
+    // Its interrupts would share a table with another id's (L47, L49).
     if amd_iommu_aliased(id) {
         return Err(AmdViError::Aliased);
     }
