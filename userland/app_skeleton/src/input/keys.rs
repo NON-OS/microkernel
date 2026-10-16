@@ -46,3 +46,7 @@ pub const KEY_POWER: u32 = 0x1304;
  * key for each way it moved, and its first reading at start. */
 pub const KEY_LID_CLOSED: u32 = 0x1305;
 pub const KEY_LID_OPENED: u32 = 0x1306;
+/* The panel's brightness keys, posted by the kernel on the lid's path from
+ * the firmware's brightness notifications. */
+pub const KEY_BRIGHTNESS_UP: u32 = 0x1307;
+pub const KEY_BRIGHTNESS_DOWN: u32 = 0x1308;
