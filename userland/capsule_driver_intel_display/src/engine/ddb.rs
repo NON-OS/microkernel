@@ -46,6 +46,12 @@ impl Run {
         }
         ((self.end - 1) << 16) | self.start
     }
+
+    /// The run a PLANE_BUF_CFG or CUR_BUF_CFG value names.
+    pub fn of(cfg: u32) -> Run {
+        let (start, end) = (cfg & 0x3FF, ((cfg >> 16) & 0x3FF) + 1);
+        Run { start, end: if cfg == 0 { start } else { end.max(start) } }
+    }
 }
 
 /// The (plane, cursor) runs of each pipe in `lit`, pipe A first; a dark
