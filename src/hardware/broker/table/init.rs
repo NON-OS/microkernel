@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::drivers::pci::types::PciDevice;
+use crate::drivers::pci::types::{HeaderType, PciDevice};
 use crate::hardware::broker::DeviceRecord;
 
 use super::pci_record::record_from_pci;
@@ -36,6 +36,7 @@ pub fn init_from_pci(devices: &[PciDevice]) {
             bars: dev.bars,
             msi: dev.msi,
             msix: dev.msix,
+            standard: matches!(dev.header_type, HeaderType::Standard),
         });
     }
     *TABLE.write() = records;

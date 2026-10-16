@@ -20,11 +20,23 @@ use super::super::config::{read32_unchecked, write32_unchecked};
 use super::super::constants::*;
 use super::super::error::{PciError, Result};
 use super::super::types::PciBar;
+use super::slots::{bar_slots, upper_half_fits};
 use super::validation::{validate_io_port, validate_mmio_address};
+
+// The BAR registers this function's header has (L58).
+fn header_slots(bus: u8, device: u8, function: u8) -> u8 {
+    let at = (CFG_HEADER_TYPE & !3) as u8;
+    let dword = read32_unchecked(bus, device, function, at);
+    bar_slots((dword >> ((CFG_HEADER_TYPE & 3) * 8)) as u8)
+}
 
 pub fn decode_bar(bus: u8, device: u8, function: u8, index: u8) -> Result<PciBar> {
     if index > 5 {
         return Err(PciError::InvalidBarIndex(index));
+    }
+    let slots = header_slots(bus, device, function);
+    if index >= slots {
+        return Ok(PciBar::NotPresent);
     }
 
     let offset = (CFG_BAR0 + (index as u16 * 4)) as u8;
@@ -73,7 +85,7 @@ pub fn decode_bar(bus: u8, device: u8, function: u8, index: u8) -> Result<PciBar
                 Ok(PciBar::Memory32 { address: PhysAddr::new(address), size, prefetchable })
             }
             2 => {
-                if index >= 5 {
+                if !upper_half_fits(index, slots) {
                     return Err(PciError::InvalidBarIndex(index));
                 }
 
@@ -108,7 +120,8 @@ pub fn decode_bar(bus: u8, device: u8, function: u8, index: u8) -> Result<PciBar
 }
 
 pub fn decode_bar_unchecked(bus: u8, device: u8, function: u8, index: u8) -> PciBar {
-    if index > 5 {
+    let slots = header_slots(bus, device, function);
+    if index >= slots {
         return PciBar::NotPresent;
     }
 
@@ -154,7 +167,7 @@ pub fn decode_bar_unchecked(bus: u8, device: u8, function: u8, index: u8) -> Pci
                 PciBar::Memory32 { address: PhysAddr::new(address), size, prefetchable }
             }
             2 => {
-                if index >= 5 {
+                if !upper_half_fits(index, slots) {
                     return PciBar::NotPresent;
                 }
 

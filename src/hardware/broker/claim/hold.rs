@@ -21,7 +21,19 @@ use super::hold_rule::{hold_for, hold_for_firmware, untranslated as untranslated
 use super::types::ClaimError;
 use crate::hardware::broker::{table, BusKind, DeviceRecord};
 
+/*
+ * A bridge is never claimed (L58). Claim and release both clear its Bus
+ * Master Enable, which on a bridge gates every request from below it, MSI
+ * writes included, so either would stop each device behind the port, every
+ * one another capsule's; and the registers after its BARs are its bus numbers
+ * and windows. Refused to every claimant until a port claim that never writes
+ * its Command, power or window registers exists.
+ */
 pub(super) fn admits(pid: u32, device_id: u64) -> Result<(), ClaimError> {
+    let pci = crate::hardware::broker::pci_index::lookup(device_id);
+    if pci.is_some_and(|h| !h.standard) {
+        return Err(ClaimError::Refused);
+    }
     let Some(hold) = rule_for(device_id) else {
         return Ok(());
     };
