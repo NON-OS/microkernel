@@ -18,6 +18,9 @@
 //! group key.
 
 mod ccmp_tests;
+mod chip_gcmp_tests;
+mod chip_hwrx_tests;
+mod chip_tests;
 mod deliver_tests;
 mod drop_tests;
 mod frame;
