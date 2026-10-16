@@ -3439,6 +3439,7 @@
    "userland/capsule_driver_iwlwifi/src/hcmd/send.rs",
    "userland/capsule_driver_iwlwifi/src/hcmd/tfd.rs",
    "userland/capsule_driver_iwlwifi/src/init.rs",
+   "userland/capsule_driver_iwlwifi/src/mmio.rs",
    "userland/capsule_driver_iwlwifi/src/pci_match.rs",
    "userland/capsule_driver_iwlwifi/src/protocol",
    "userland/capsule_driver_iwlwifi/src/regs.rs",

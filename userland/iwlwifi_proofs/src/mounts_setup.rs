@@ -16,6 +16,8 @@ pub mod grants;
 pub mod init;
 #[path = "../../capsule_driver_iwlwifi/src/firmware/load.rs"]
 pub mod load;
+#[path = "../../capsule_driver_iwlwifi/src/mmio.rs"]
+pub mod mmio;
 #[path = "../../capsule_driver_iwlwifi/src/regs.rs"]
 pub mod regs;
 #[path = "../../capsule_driver_iwlwifi/src/firmware/tlv.rs"]
