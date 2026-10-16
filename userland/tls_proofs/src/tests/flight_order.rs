@@ -21,50 +21,13 @@
 //! the key that signed the handshake. A second Certificate message after the
 //! signature would hand it a different one.
 
-use alloc::vec::Vec;
-
-use super::cert_message_vectors::message;
-use super::rfc8448_flight::{keyed, messages, sealed};
+use super::rfc8448_flight::messages;
 use crate::example_leaf::EXAMPLE_LEAF;
-use crate::fixtures::rfc8448::{SERVER_HELLO_RECORD, SERVER_MESSAGES};
-use crate::handshake_state::Progress;
+use crate::fixtures::rfc8448::SERVER_MESSAGES;
+use build::{certificate_message, flight_of, verdict};
 
-const HANDSHAKE: u8 = 22;
-
-/// A Certificate handshake message carrying `der` alone.
-fn certificate_message(der: &[u8]) -> Vec<u8> {
-    let body = message(&[der]);
-    let mut out = vec![11, (body.len() >> 16) as u8, (body.len() >> 8) as u8, body.len() as u8];
-    out.extend_from_slice(&body);
-    out
-}
-
-/*
- * The server's flight with `parts` in place of the trace's messages, closed by
- * a Finished the server computes over exactly those parts: the attacker is the
- * server here, holds the handshake secret, and can always do that.
- */
-fn flight_of(parts: &[&[u8]]) -> Vec<u8> {
-    let state = keyed(SERVER_HELLO_RECORD);
-    let mut transcript = state.transcript.clone();
-    for part in parts {
-        transcript.push(part);
-    }
-    let mac = crate::finished_value::finished_value(&state.keys.server_secret, &transcript.digest())
-        .expect("finished");
-    let mut finished = vec![20, 0, 0, 32];
-    finished.extend_from_slice(&mac);
-    let mut all: Vec<&[u8]> = parts.to_vec();
-    all.push(&finished);
-    let joined = all.concat();
-    sealed(&[&joined], HANDSHAKE)
-}
-
-fn verdict(flight: &[u8]) -> Option<Vec<u8>> {
-    let mut state = keyed(flight);
-    assert_eq!(state.advance(flight), Progress::Complete(flight.len()));
-    state.verify(b"", 0, false).map(|done| done.certificates)
-}
+#[path = "flight_order_build.rs"]
+mod build;
 
 #[test]
 fn the_trace_rebuilt_this_way_still_verifies() {
