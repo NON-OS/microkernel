@@ -30,6 +30,7 @@ pub(super) fn refresh_clock(ctx: &mut Context) {
         ctx.toasts.push(b"network connected", NotifyLevel::Info, crate::server::toast_clock::now());
     }
     ctx.readings.net_was_online = net_now;
+    crate::server::handlers::lid::tell(ctx);
     // paint_chrome redraws the whole overlay backing, but only the top bar's
     // pixels actually change each second. Damage just that strip: a full-screen
     // damage every tick would make the compositor recomposite every layer,
