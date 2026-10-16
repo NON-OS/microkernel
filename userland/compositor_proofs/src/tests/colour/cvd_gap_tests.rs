@@ -21,7 +21,7 @@
 use crate::display::access_rule::{FILTER_DEUTAN, FILTER_PROTAN};
 use crate::display::cvd_filter::{simulate, Cvd};
 use crate::display::cvd_rule::apply as mix;
-use crate::look_tests::{looked, rgb};
+use crate::tests::colour::look_tests::{looked, rgb};
 
 #[test]
 fn red_and_green_move_apart_for_the_viewer() {
