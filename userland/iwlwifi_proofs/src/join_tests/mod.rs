@@ -10,6 +10,7 @@
 //! port opens; and leaving, the access point's deauthentication and a group
 //! rekey each do what they must.
 
+mod address;
 mod data;
 mod drive;
 mod gate;
