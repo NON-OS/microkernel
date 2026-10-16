@@ -1,5 +1,4 @@
 // A test runs hostile input through each parser; any panic fails it.
-#![allow(clippy::indexing_slicing, clippy::arithmetic_side_effects)]
 
 //! A batch reply from an RPC host, read by every accessor: no panic and no loop.
 

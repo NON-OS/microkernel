@@ -1,8 +1,5 @@
 //! An address limb one past its width is refused, never written as a false word.
 
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::indexing_slicing, clippy::arithmetic_side_effects)]
-
 use super::super::{pool_words, MASK48};
 use super::WITHDRAW_A;
 use crate::error::ProveError;
