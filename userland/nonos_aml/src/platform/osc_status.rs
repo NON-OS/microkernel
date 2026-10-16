@@ -17,6 +17,7 @@
 //! The status word _OSC passes both ways (ACPI 6.5, 6.2.11, table 6.21).
 
 use crate::exec::Fault;
+use alloc::vec::Vec;
 
 /// Set in the first call: asking what would be granted, changing nothing.
 pub const QUERY: u32 = 1 << 0;
@@ -47,4 +48,14 @@ pub fn check(status: u32) -> Result<(), OscError> {
         return Err(OscError::Failure);
     }
     Ok(())
+}
+
+/// Firmware's answer cut to what was sent: the status word as it came, and
+/// each capability word no wider than the one asked. A bit granted that
+/// was not asked for is not taken, so NONOS never holds a control, or
+/// claims a capability, it did not ask for; words past those sent are
+/// dropped.
+pub fn kept(sent: &[u32], got: &[u32]) -> Vec<u32> {
+    let cap = |(i, (s, g)): (usize, (&u32, &u32))| if i == 0 { *g } else { s & g };
+    sent.iter().zip(got).enumerate().map(cap).collect()
 }

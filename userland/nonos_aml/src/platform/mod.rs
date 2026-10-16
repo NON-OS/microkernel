@@ -59,7 +59,7 @@ pub use irq_entries::{interrupt_entries, Interrupt};
 pub use osc::{negotiate, PCI_HOST_UUID, PLATFORM_UUID};
 pub use osc_commit::commit_only;
 pub use osc_claim::offer_then_claim;
-pub use osc_status::{OscError, MASKED, QUERY};
+pub use osc_status::{kept as osc_kept, OscError, MASKED, QUERY};
 pub use pci_path::{function_of, SECONDARY_BUS};
 pub use pic::{set_pic, PIC_8259, PIC_APIC};
 pub use prt::{entry as prt_entry, routes, Route, Source as PrtSource};
