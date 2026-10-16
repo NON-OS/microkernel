@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The system's prompt and the lock screen, drawn last in the chrome so
+//! The system's prompt and the hidden screen, drawn last in the chrome so
 //! nothing of the shell's covers them; the chrome is then in the trusted
 //! band, so nothing of any window's does either.
 
@@ -23,17 +23,17 @@ use super::consent::{
 };
 use crate::render::layout::Rect;
 use crate::render::ui_font::{line_h, TITLE_PX, UI_PX};
-use crate::server::handlers::attention::{back_rect, lock_rect, panel_rect};
+use crate::server::handlers::attention::{back_rect, hide_rect, panel_rect};
 use crate::state::dialog_keys::Choice;
 use crate::state::Context;
 
-const LOCK_BG: u32 = 0xFF1E_4A7A;
+const HIDE_BG: u32 = 0xFF1E_4A7A;
 const CURTAIN: u32 = 0xFF07_0B10;
 const NOTE: &str = "Only the system shows this: no window can draw over it or answer it.";
 
 pub fn paint(ctx: &Context) {
-    if ctx.trusted.attention.locked() {
-        return paint_lock(ctx);
+    if ctx.trusted.attention.hidden() {
+        return paint_hidden(ctx);
     }
     if !ctx.trusted.attention.prompt() {
         return;
@@ -45,7 +45,7 @@ pub fn paint(ctx: &Context) {
     let mut y = p.y + margin();
     line(ctx, x, y, "Secure attention", FG, TITLE_PX, max_w);
     y += line_h(TITLE_PX) + line_h(UI_PX) / 3;
-    let buttons = lock_rect(ctx.width, ctx.height);
+    let buttons = hide_rect(ctx.width, ctx.height);
     let mut rest = NOTE;
     while !rest.is_empty() && y + line_h(UI_PX) <= buttons.y {
         let end = wrap_at(rest, UI_PX, max_w);
@@ -54,15 +54,15 @@ pub fn paint(ctx: &Context) {
         y += line_h(UI_PX);
     }
     let act = ctx.dialog_focus.focused() == Choice::Act;
-    button(ctx, buttons, LOCK_BG, "Lock screen", act);
+    button(ctx, buttons, HIDE_BG, "Hide screen", act);
     button(ctx, back_rect(ctx.width, ctx.height), CANCEL_BG, "Back", !act);
 }
 
 /// The whole screen covered, and the one way back said plainly.
-fn paint_lock(ctx: &Context) {
+fn paint_hidden(ctx: &Context) {
     fill(ctx, Rect { x: 0, y: 0, width: ctx.width, height: ctx.height }, CURTAIN);
     let (w, mid) = (ctx.width.saturating_sub(margin() * 2), ctx.height / 2);
-    line(ctx, margin(), mid.saturating_sub(line_h(TITLE_PX)), "Locked", FG, TITLE_PX, w);
-    let note = "Press Ctrl+Alt+Delete to unlock.";
+    line(ctx, margin(), mid.saturating_sub(line_h(TITLE_PX)), "Screen hidden", FG, TITLE_PX, w);
+    let note = "Press Ctrl+Alt+Delete to show it.";
     line(ctx, margin(), mid + line_h(UI_PX) / 2, note, DIM, UI_PX, w);
 }

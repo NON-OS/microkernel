@@ -23,3 +23,5 @@ pub mod state;
 mod attention_tests;
 #[cfg(test)]
 mod band_tests;
+#[cfg(test)]
+mod router_tests;
