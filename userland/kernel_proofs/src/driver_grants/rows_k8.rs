@@ -55,3 +55,14 @@ fn a_driver_cannot_drain_keys_nor_the_router_post_them() {
     assert!(is_allowed(&router, SyscallNumber::MkInputEventDrain));
     assert!(!is_allowed(&router, SyscallNumber::MkInputEventPost), "the router never posts");
 }
+
+/// D2: ps2_input posts each key itself, under its spawn grant
+/// (src/hardware/ps2_kbd_capsule/spawn.rs), and still drains nothing.
+#[test]
+fn ps2_input_posts_under_its_own_grant() {
+    use Capability::*;
+    let ps2 = token(alloc::vec![IPC, Memory, Driver, DeviceEnum, Pio, Irq, InputSource]);
+    assert!(is_allowed(&ps2, SyscallNumber::MkInputEventPost));
+    assert!(!is_allowed(&ps2, SyscallNumber::MkInputEventDrain));
+    assert!(!is_allowed(&ps2, SyscallNumber::MkInputEventWait));
+}
