@@ -22,6 +22,7 @@ use nonos_libc::mk_ipc_recv_from;
 
 use super::dispatch::dispatch;
 use super::poll_irq::poll_irq;
+use super::take::take;
 use crate::protocol::{
     decode_request, E_ACCES, E_INVAL, HDR_LEN, MAX_RW_PAYLOAD_BYTES, RESP_HDR_LEN, RW_HEADER_LEN,
     SERVICE_NAME, STATUS_LEN,
@@ -40,7 +41,9 @@ pub fn run(driver: &mut Driver) -> ! {
     loop {
         poll_irq(driver, &mut last_irq_seq);
         let mut sender_pid = 0u32;
-        let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx_len, 0, &mut sender_pid);
+        let n = take(driver.io.as_mut(), |timeout| {
+            mk_ipc_recv_from(0, rx.as_mut_ptr(), rx_len, timeout, &mut sender_pid)
+        });
         if !nonos_libc::recv_ready(n) {
             continue;
         }
@@ -55,6 +58,6 @@ pub fn run(driver: &mut Driver) -> ! {
             error::reply_with_status(&mut tx, &req, E_ACCES);
             continue;
         }
-        dispatch(driver, &req, &rx[HDR_LEN..n as usize], &mut tx);
+        dispatch(driver, &req, sender_pid, &rx[HDR_LEN..n as usize], &mut tx);
     }
 }

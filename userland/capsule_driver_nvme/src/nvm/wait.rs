@@ -14,24 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::read_volatile;
-
-use super::constants::{COMPLETION_TIMEOUT_MS, CQ_BYTES, IO_ENTRIES, IO_QID};
+use super::answer_by::wait_budget;
+use super::park::{parked, Park};
 use super::queue::IoQueue;
-use crate::admin::{wait_noting_foreign, Completion};
-use crate::clock;
+use super::ring_wait::ring_wait;
+use super::settle_rule::settled;
+use crate::clock::{self, Budget};
 use crate::error::{NvmeError, NvmeResult};
 use crate::regs::Regs;
 
-// The cursor keeps the head below IO_ENTRIES, so every slot the wait reads
-// lies inside the completion queue's DMA region.
-const _: () = assert!(IO_ENTRIES as u64 * core::mem::size_of::<Completion>() as u64 <= CQ_BYTES);
-
 impl IoQueue {
-    /// Wait for `cid`. Should its wait run out, the command is remembered as
-    /// still the controller's.
+    /// Wait for `cid` as long as the request in progress allows (answer_by);
+    /// should that run out, the command is still the controller's.
     pub(super) fn wait(&mut self, regs: Regs, cid: u16) -> NvmeResult<()> {
-        let done = self.wait_for(regs, cid);
+        let (ring, doorbell, budget) = (self.cq.user_va(), self.cq_db, wait_budget(self.answer_by));
+        let done =
+            ring_wait(&mut self.cursor, ring, doorbell, regs, cid, parked(budget, &mut self.park));
         if matches!(done, Err(NvmeError::ControllerTimeout)) {
             self.out = Some(cid);
         }
@@ -43,38 +41,35 @@ impl IoQueue {
      * or another command goes in: a write still in flight could otherwise
      * take the next write's bytes to its own sectors, and a read still in
      * flight could land in the buffer under the next read's answer. Refused,
-     * buffer untouched, while it stays out.
+     * buffer untouched, while it stays out (settle_rule).
      */
     pub fn settle(&mut self, regs: Regs) -> NvmeResult<()> {
-        let Some(cid) = self.out else { return Ok(()) };
-        self.wait_for(regs, cid)?;
-        self.out = None;
-        Ok(())
+        let answer_by = self.answer_by;
+        self.settle_by(regs, move || wait_budget(answer_by))
     }
 
-    fn wait_for(&mut self, regs: Regs, cid: u16) -> NvmeResult<()> {
-        // A clock that cannot be read spends the budget at once: the command
-        // is then given up on like any that timed out, and stays out until
-        // its completion is seen.
-        let budget = clock::budget(COMPLETION_TIMEOUT_MS);
-        let ring = self.cq.user_va();
-        let doorbell = self.cq_db;
-        let out = &mut self.out;
-        wait_noting_foreign(
-            &mut self.cursor,
-            IO_QID,
-            cid,
-            |head| {
-                let slot = ring + (head as u64) * (core::mem::size_of::<Completion>() as u64);
-                unsafe { read_volatile(slot as *const Completion) }
-            },
-            |head| unsafe { regs.w32(doorbell, head as u32) },
-            || budget.spent(clock::uptime_ms()),
-            |seen| {
-                if *out == Some(seen) {
-                    *out = None;
-                }
-            },
-        )
+    /// `settle`, waiting at most `ms`: recovery gives the command a short
+    /// grace after an Abort, or one look at the ring (0), before a reset.
+    pub(crate) fn settle_within(&mut self, regs: Regs, ms: u64) -> NvmeResult<()> {
+        self.settle_by(regs, move || clock::budget(ms))
+    }
+
+    /// Settle on a budget the clock is read for only once something is out.
+    fn settle_by<B: FnOnce() -> Budget>(&mut self, regs: Regs, budget: B) -> NvmeResult<()> {
+        let (ring, doorbell) = (self.cq.user_va(), self.cq_db);
+        let (cursor, park) = (&mut self.cursor, &mut self.park);
+        settled(&mut self.out, |cid| {
+            ring_wait(cursor, ring, doorbell, regs, cid, parked(budget(), park))
+        })
+    }
+
+    /// The command given up on that the controller may still be moving.
+    pub(crate) fn stuck(&self) -> Option<u16> {
+        self.out
+    }
+
+    /// Park the queue's waits on MSI-X grant `grant` (0: none bound).
+    pub fn park_on(&mut self, grant: u64) {
+        self.park = Park::on(grant);
     }
 }

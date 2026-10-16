@@ -14,54 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The I/O queue knows a command it gave up on is finished only when the wait
-// for a later command consumes its completion. The wait names each one it
-// consumes for another command, and still finishes its own.
+// A completion that arrives after its own wait timed out is consumed by the
+// wait for a later command, which still finishes its own: left at the head
+// it would fail every later command on the queue.
 
-use crate::admin::{wait_noting_foreign, CqCursor};
+use crate::admin::{wait_for_completion, CqCursor};
 use crate::completion_tests::{entry, ok_status, RINGS};
 
 #[test]
-fn a_late_completion_is_named_and_the_wait_finishes_its_own() {
+fn a_late_completion_is_consumed_and_the_wait_finishes_its_own() {
     for entries in RINGS.into_iter().filter(|&e| e >= 2) {
         let mut ring = vec![entry(0, 0, 0, ok_status(false)); entries as usize];
         ring[0] = entry(6, 1, 0, ok_status(true));
         ring[1] = entry(7, 1, 0, ok_status(true));
         let mut cursor = CqCursor::new(entries);
-        let mut seen = Vec::new();
-        let done = wait_noting_foreign(
+        let mut heads = Vec::new();
+        let done = wait_for_completion(
             &mut cursor,
             1,
             7,
             |head| ring[head as usize],
-            |_| {},
+            |head| heads.push(head),
             || false,
-            |cid| seen.push(cid),
         );
         assert!(done.is_ok(), "ring of {entries}: the wait finishes its own command");
-        assert_eq!(seen, [6], "ring of {entries}: the late completion is named once");
+        assert_eq!(heads, [1, 2 % entries], "ring of {entries}: both consumed, in order");
     }
 }
 
 #[test]
-fn a_wait_that_runs_out_names_what_it_consumed() {
+fn a_wait_that_runs_out_has_consumed_what_it_saw() {
     let mut ring = [entry(0, 0, 0, ok_status(false)); 8];
     ring[0] = entry(6, 1, 0, ok_status(true));
     let mut cursor = CqCursor::new(8);
-    let mut seen = Vec::new();
-    let mut checks = 0u32;
-    let done = wait_noting_foreign(
+    let (mut heads, mut checks) = (Vec::new(), 0u32);
+    let done = wait_for_completion(
         &mut cursor,
         1,
         7,
         |head| ring[head as usize],
-        |_| {},
+        |head| heads.push(head),
         || {
             checks += 1;
             checks > 2
         },
-        |cid| seen.push(cid),
     );
     assert!(done.is_err(), "nothing completed command 7");
-    assert_eq!(seen, [6]);
+    assert_eq!((heads, cursor.head), (vec![1], 1));
 }
