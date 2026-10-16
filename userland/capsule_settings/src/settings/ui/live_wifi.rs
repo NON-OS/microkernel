@@ -36,7 +36,8 @@ pub fn link(b: &mut ValBuf, state: &State) -> Tone {
     // which part of the load stopped. The line holds 72 bytes: the longest
     // step text is 41, so the adapter name gives way to it.
     if state.wifi_diag.stage == Some(DriverStage::FirmwareFailed) {
-        let why = state.wifi_diag.datapath.and_then(|dp| Some((firmware_step_text(dp.fw_step)?, dp)));
+        let why =
+            state.wifi_diag.datapath.and_then(|dp| Some((firmware_step_text(dp.fw_step)?, dp)));
         if let Some((why, dp)) = why {
             b.push_str("Firmware stopped: ");
             b.push_str(why);

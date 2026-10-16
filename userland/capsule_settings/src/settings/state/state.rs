@@ -25,8 +25,8 @@ use super::search::Search;
 use super::status::Status;
 use super::wifi_diag::WifiDiag;
 use super::wifi_extra::WifiExtra;
-use super::wifi_pass::WifiPass;
 pub use super::wifi_kinds::{WifiConnect, WifiScan};
+use super::wifi_pass::WifiPass;
 
 pub use super::limits::{FIELD_SLOTS, WIFI_MAX, WIFI_NET_MAX};
 
