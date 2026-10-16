@@ -16,8 +16,9 @@ fn sae_is_chosen_whenever_offered() {
     let only = parse_rsne(&body(4, &[4], &[8], 0x00C0)).unwrap();
     let s = select(&only, false, JoinPolicy::ANY).unwrap();
     assert_eq!((s.akm, s.pmf, s.sae_h2e), (Akm::Sae, Pmf::Required, false));
-    // A caller without SAE's randomness falls back to PSK on a mixed network.
-    assert_eq!(select(&mixed, true, JoinPolicy::PSK_ONLY).unwrap().akm, Akm::Psk);
+    // A policy that allows only PSK takes it on a mixed network.
+    let psk = JoinPolicy { allow_psk: true, allow_sae: false };
+    assert_eq!(select(&mixed, true, psk).unwrap().akm, Akm::Psk);
 }
 
 #[test]
