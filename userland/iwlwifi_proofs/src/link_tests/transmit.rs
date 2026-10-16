@@ -2,10 +2,9 @@
 
 //! An Ethernet frame becomes a plaintext MPDU in a gen3 command.
 
-use crate::gen3::extract_mpdu;
+use super::frames::{ethernet, BSSID, FC_PROTECTED, OUR, RATE_N_FLAGS};
 use crate::gen3::tx_cmd;
-use crate::station::{Ccmp, LinkStation};
-use super::frames::{BSSID, FC_PROTECTED, OUR, RATE_N_FLAGS, ethernet};
+use nonos_wifi_core::station::{Ccmp, LinkStation};
 
 #[test]
 fn transmit_frames_a_plaintext_mpdu_into_a_gen3_command() {
