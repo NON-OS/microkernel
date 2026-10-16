@@ -16,12 +16,14 @@
 
 //! One taken-over output (a lit pipe): its scanout flipping between two
 //! surfaces, their memory, what its monitor's EDID said, what a mode set
-//! on it needs, the surfaces' IOVAs, and what STATE said of it last.
+//! on it needs, the surfaces' IOVAs, what STATE said of it last, and
+//! whether its monitor is there.
 
 use nonos_gfx_serve::Panel;
 
 use super::frames::Frames;
 use super::modeset::Modeset;
+use super::plug::Plug;
 use crate::engine::scanout::Scanout;
 use crate::engine::takeover::Output;
 
@@ -44,4 +46,5 @@ pub struct Head<F: Frames> {
     pub window: (u32, u32),
     /// The cursor image's graphics address once a shape was given.
     pub cursor: Option<u32>,
+    pub plug: Plug,
 }

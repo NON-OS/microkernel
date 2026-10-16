@@ -18,7 +18,8 @@
 //! server, the reply sent to the pid the kernel says sent it. A frame too
 //! short for the wire's header is F 12's brightness bytes, or a monitor
 //! control beside them (at most eight; the wire's every request is at
-//! least twenty), answered natively.
+//! least twenty), answered natively. The receive waits at most a hot-plug
+//! poll's interval, so the lines are read with no frame coming in.
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
@@ -27,17 +28,20 @@ use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, recv_ready};
 
 use crate::setup::Engine;
 use crate::turn::{turn, Turn};
-use nonos_intel_display::display::{brightness_answer, Rights, BRIGHTNESS_REPLY, OP_VCP};
+use nonos_intel_display::display::{brightness_answer, Rights, BRIGHTNESS_REPLY, OP_VCP, POLL_US};
 
 const SERVICE_INBOX: u64 = 0;
+/// One hot-plug poll's interval, so no poll is late by more than one.
+const WAIT_MS: u64 = POLL_US / 1000;
 
 pub fn run(server: &mut Server<Engine, Pool>, device_id: u64) -> ! {
     // Requests are at most 256 bytes; replies the header, status and 252,
     // or a brightness reply of at most 512.
     let (mut rx, mut tx) = ([0u8; 256], [0u8; BRIGHTNESS_REPLY]);
     loop {
+        server.display.tick();
         let mut sender = 0u32;
-        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), 0, &mut sender);
+        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), WAIT_MS, &mut sender);
         if !recv_ready(n) {
             continue;
         }

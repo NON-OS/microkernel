@@ -22,11 +22,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use super::scanout_tests::{setup, TOTAL};
-use crate::display::{Head, Intel};
+use crate::display::{Head, Intel, Modeset, Plug};
 use crate::engine::gen::GEN9;
 use crate::engine::pipe::Pipe;
 use crate::engine::scanout::Scanout;
-use crate::engine::takeover::read_output;
+use crate::engine::takeover::{read_output, Output};
 use crate::model::{Gen9, ModelFrames, Polls, Shared, Ticks};
 use nonos_gfx_serve::Panel;
 use nonos_gfx_wire::body::state::SCANNING_OUT;
@@ -42,12 +42,22 @@ pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
     let len = scan.pages as usize * 4096;
     let (iova, next) = ([a[0], b[0]], Some(0x4000_0000));
     let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, next };
-    let (panel, modeset, bases, generation, flags) =
-        (Panel::default(), None, iova, 1, SCANNING_OUT);
-    let (window, cursor) = ((0, TOTAL), None);
-    let head = Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor };
-    let heads = [Some(head), None, None, None];
+    let heads =
+        [Some(taken(out, scan, frames, (Panel::default(), None), (0, TOTAL))), None, None, None];
     (Intel::new(shared, Ticks::new(), &GEN9, heads), model)
+}
+
+/// A head as the capsule's takeover leaves one: on its first surface,
+/// scanning out, its monitor attached, no cursor yet.
+pub fn taken(
+    out: Output,
+    scan: Scanout,
+    frames: ModelFrames,
+    (panel, modeset): (Panel, Option<Modeset>),
+    window: (u32, u32),
+) -> Head<ModelFrames> {
+    let (bases, generation, flags, cursor, plug) = (frames.iova, 1, SCANNING_OUT, None, Plug::In);
+    Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor, plug }
 }
 
 /// A shadow of the output's size, every pixel `px`.

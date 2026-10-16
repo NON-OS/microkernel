@@ -23,8 +23,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use super::dp_board::dp_board;
-use super::wire_rig::Rig;
-use crate::display::{Head, Intel, Modeset, Monitor};
+use super::wire_rig::{taken, Rig};
+use crate::display::{Intel, Modeset, Monitor};
 use crate::engine::gen::GEN9;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::scanout::Scanout;
@@ -32,7 +32,6 @@ use crate::engine::takeover::read_output;
 use crate::model::firmware::Axis;
 use crate::model::sink::Sink;
 use crate::model::{Gen9, ModelFrames, Polls, Shared, Ticks};
-use nonos_gfx_wire::body::state::SCANNING_OUT;
 
 pub type Model = Rc<RefCell<Gen9>>;
 
@@ -49,9 +48,7 @@ pub fn dp_rig(timing: (Axis, Axis), edid: Vec<u8>, total: u32) -> (Rig, Model, S
     let (iova, len) = ([a[0], b[0]], pages as usize * 4096);
     let next = Some(0x4000_0000);
     let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, next };
-    let (panel, bases, flags, generation) = (monitor.panel(), iova, SCANNING_OUT, 1);
-    let (window, cursor) = ((0, total), None);
-    let head = Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor };
+    let head = taken(out, scan, frames, (monitor.panel(), modeset), (0, total));
     let heads = [Some(head), None, None, None];
     let d = Intel::new(shared, clock, &GEN9, heads);
     (d, model, s)
