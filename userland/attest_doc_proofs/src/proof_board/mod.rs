@@ -16,7 +16,7 @@
 
 //! About's proof board logic, included by path from the capsule.
 
-#[path = "../../../capsule_about/src/about/data/proofs/census.rs"]
+#[path = "../../../capsule_about/src/about/data/proofs/census/mod.rs"]
 pub mod census;
 #[path = "../../../capsule_about/src/about/data/proofs/firmware.rs"]
 pub mod firmware;

@@ -715,7 +715,7 @@
    "userland/capsule_about/src/about/data/doc_parse/layout.rs",
    "userland/capsule_about/src/about/data/doc_parse/parse.rs",
    "userland/capsule_about/src/about/data/doc_parse/types.rs",
-   "userland/capsule_about/src/about/data/proofs/census.rs",
+   "userland/capsule_about/src/about/data/proofs/census",
    "userland/capsule_about/src/about/data/proofs/firmware.rs",
    "userland/capsule_about/src/about/data/proofs/session.rs",
    "userland/capsule_about/src/about/data/proofs/words.rs",
