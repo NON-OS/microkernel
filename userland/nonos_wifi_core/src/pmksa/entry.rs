@@ -20,12 +20,32 @@
 //! authentication, then a (Re)Association Request whose RSNE carries the
 //! PMKID, and the four-way handshake under the cached PMK.
 
-/// The PMK and the PMKID SAE gave for one AP.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+use crate::vault::{assert_not_copy, wipe};
+
+/// The PMK and the PMKID SAE gave for one AP. Never Copy, Clone or Debug:
+/// each value is wiped when dropped, and a second one is made only on
+/// purpose (`again`), so no copy of the PMK is left behind unwiped.
+#[derive(PartialEq, Eq)]
 pub struct Pmksa {
     pub bssid: [u8; 6],
     pub pmk: [u8; 32],
     pub pmkid: [u8; 16],
+}
+
+assert_not_copy!(Pmksa);
+
+impl Pmksa {
+    /// A second owned value, for a holder that keeps its own and wipes it.
+    pub(crate) fn again(&self) -> Self {
+        Self { bssid: self.bssid, pmk: self.pmk, pmkid: self.pmkid }
+    }
+}
+
+impl Drop for Pmksa {
+    fn drop(&mut self) {
+        wipe(&mut self.pmk);
+        wipe(&mut self.pmkid);
+    }
 }
 
 /// One entry as the cache keeps it.
@@ -40,12 +60,8 @@ pub(crate) struct Kept {
     pub(crate) sa: Pmksa,
 }
 
-/// Overwrite an entry's keys and tag with volatile writes, so the compiler
-/// cannot drop the stores.
-pub(crate) fn wipe(p: &mut Pmksa, tag: &mut [u8; 32]) {
-    for b in p.pmk.iter_mut().chain(p.pmkid.iter_mut()).chain(tag.iter_mut()) {
-        // SAFETY: `b` is a valid, aligned, exclusive reference into `p`.
-        unsafe { core::ptr::write_volatile(b, 0) };
+impl Drop for Kept {
+    fn drop(&mut self) {
+        wipe(&mut self.tag);
     }
-    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
 }

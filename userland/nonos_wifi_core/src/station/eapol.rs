@@ -42,15 +42,16 @@ impl LinkStation {
         self.pmf.take_igtk(sup);
         let fresh = out.new_group_key.then(|| TemporalKey::new(sup.group_cipher(), sup.gtk()));
         let (id, rsc) = (sup.gtk_id(), sup.gtk_rsc());
-        if let Some(key) = fresh.flatten() {
-            self.set_group_key(id, key, rsc);
-        }
+        let fresh = fresh.flatten();
         // Only a CCMP-128 key goes to the chip's key cache; a GCMP-256 one
         // stays with the station, which decrypts group frames under it.
-        let group_key = match fresh.flatten() {
-            Some(TemporalKey::Ccmp128(k)) => Some((id, k)),
+        let group_key = match &fresh {
+            Some(TemporalKey::Ccmp128(k)) => Some((id, *k)),
             _ => None,
         };
+        if let Some(key) = fresh {
+            self.set_group_key(id, key, rsc);
+        }
         let frame = out.reply.and_then(|r| self.eapol_frame(&r, protected));
         Rx::Handshake { frame, group_key }
     }

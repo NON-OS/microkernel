@@ -17,7 +17,6 @@
 //! Finding, ageing and clearing places in the cache.
 
 use super::cache::{PmksaCache, PMKSA_MAX, PMK_LIFETIME_MS};
-use super::entry::wipe;
 
 impl PmksaCache {
     pub(super) fn index(&self, bssid: &[u8; 6], ssid: &[u8]) -> Option<usize> {
@@ -33,9 +32,8 @@ impl PmksaCache {
     }
 
     pub(super) fn remove_at(&mut self, i: usize) {
-        if let Some(mut k) = self.kept[i].take() {
-            wipe(&mut k.sa, &mut k.tag);
-        }
+        // The entry's Drop wipes its tag, and its PMKSA's wipes the keys.
+        self.kept[i] = None;
     }
 
     pub(super) fn expire(&mut self, now_ms: u64) {

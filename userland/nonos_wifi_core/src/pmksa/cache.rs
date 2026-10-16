@@ -51,7 +51,7 @@ impl PmksaCache {
         let (bssid, sta) = at;
         self.expire(now);
         let k = self.kept[self.index(&bssid, ssid)?].as_ref()?;
-        (k.sta == sta && tag.same(&k.tag)).then_some(k.sa)
+        (k.sta == sta && tag.same(&k.tag)).then(|| k.sa.again())
     }
 
     /// Keep `sa` for network `ssid`, in place of any entry for the same AP,

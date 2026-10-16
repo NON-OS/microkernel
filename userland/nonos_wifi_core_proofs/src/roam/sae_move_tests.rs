@@ -29,7 +29,7 @@ fn a_wpa3_move_reassociates_on_the_new_aps_cached_pmksa() {
     let (first, _) = by_sae();
     let p = first.pmksa().unwrap();
     let mut m = join(JoinPolicy::ANY);
-    m.offer_pmksa(p);
+    m.offer_pmksa(crate::pmksa::fixture::twin(&p));
     m.reassociate_from(OTHER);
     let auth = m.on_mgmt(&beacon(AP, &[&AP_RSNE_MIXED])).tx.unwrap();
     assert_eq!(auth[24..26], [0, 0], "Open System: SAE is skipped");

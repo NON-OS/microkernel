@@ -19,6 +19,7 @@
 //! PMKID in the association request's RSNE and again in message 2, and the
 //! four-way handshake under the cached PMK.
 
+use super::fixture::twin;
 use super::sim::{accepted, by_sae, four_way, offered};
 use crate::mlme::sim::AP;
 use nonos_wifi_core::dot11::header::MAC_HEADER_LEN;
@@ -36,7 +37,7 @@ fn a_connected_sae_join_holds_its_pmksa() {
 fn a_join_offered_the_pmksa_skips_sae_and_names_the_pmkid() {
     let (first, _) = by_sae();
     let p = first.pmksa().unwrap();
-    let (mut m, auth, rsne) = offered(p);
+    let (mut m, auth, rsne) = offered(twin(&p));
     let body = &auth[MAC_HEADER_LEN..];
     assert_eq!(body[..6], [0, 0, 1, 0, 0, 0], "Open System, transaction 1, status 0");
     assert_eq!(rsne.len(), 38, "the 20-octet body, a PMKID count and one PMKID");
@@ -44,7 +45,7 @@ fn a_join_offered_the_pmksa_skips_sae_and_names_the_pmkid() {
     assert_eq!(rsne[20..22], [1, 0], "PMKID count 1");
     assert_eq!(rsne[22..], p.pmkid);
     accepted(&mut m);
-    assert_eq!(m.pmksa(), None, "nothing to cache before the link is up");
+    assert!(m.pmksa().is_none(), "nothing to cache before the link is up");
     let m2 = four_way(&mut m, &p.pmk);
     let element = [&[48u8, 38][..], &rsne].concat();
     assert!(
@@ -52,5 +53,5 @@ fn a_join_offered_the_pmksa_skips_sae_and_names_the_pmkid() {
         "message 2 repeats the request's RSNE"
     );
     assert!(m.used_pmksa());
-    assert_eq!(m.pmksa(), Some(p), "the same PMKSA, kept for the next join");
+    assert!(m.pmksa() == Some(p), "the same PMKSA, kept for the next join");
 }

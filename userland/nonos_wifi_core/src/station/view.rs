@@ -33,7 +33,7 @@ impl LinkStation {
         self.seq = 0;
         self.associated = true;
         self.replay = Replay::new();
-        self.group_keys = [None; 4];
+        self.group_keys = [const { None }; 4];
         self.supplicant = None;
         self.pmf = PmfState::OFF;
     }
