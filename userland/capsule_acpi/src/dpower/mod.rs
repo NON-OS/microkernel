@@ -22,6 +22,7 @@ mod hidden;
 mod keep;
 mod moves;
 mod ready;
+mod reply;
 mod settle;
 mod target;
 mod wake;
