@@ -36,6 +36,7 @@ impl Host {
         let input = match self.sources.iter().find(|s| s.value == handle).map(|s| s.kind) {
             Some(Kind::Keyboard) => self.keyboard.report(value),
             Some(Kind::Mouse) => self.mouse.report(value),
+            Some(Kind::Report) => self.report_in(handle, value),
             None => Vec::new(),
         };
         let mut step = Step::input(input);
@@ -55,6 +56,9 @@ impl Host {
     pub(super) fn release_all(&mut self) -> Vec<Input> {
         let mut out = self.keyboard.release_all();
         out.extend(self.mouse.release_all());
+        for r in &mut self.inputs {
+            out.extend(r.held.release_all());
+        }
         out
     }
 }

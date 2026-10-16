@@ -37,15 +37,18 @@ pub const PROTOCOL_MODE: u16 = 0x2a4e;
 pub const BOOT_KEYBOARD_INPUT: u16 = 0x2a22;
 pub const BOOT_MOUSE_INPUT: u16 = 0x2a33;
 pub const BOOT_KEYBOARD_OUTPUT: u16 = 0x2a32;
+pub const REPORT_MAP: u16 = 0x2a4b;
+pub const REPORT: u16 = 0x2a4d;
+/// Report Reference: a Report's ID and type (HIDS 1.0, 3.6.2.1).
+pub const REPORT_REFERENCE: u16 = 0x2908;
 
 /// The Battery Service and its Battery Level (BAS 1.0, 3.1).
 pub const BATTERY_SERVICE: u16 = 0x180f;
 pub const BATTERY_LEVEL: u16 = 0x2a19;
 
-/// Protocol Mode's value for boot protocol (HIDS 1.0, Protocol Mode
-/// characteristic): 0 is boot,
-/// 1 is report.
+/// Protocol Mode's values (HIDS 1.0, Protocol Mode characteristic).
 pub const BOOT_PROTOCOL: u8 = 0;
+pub const REPORT_PROTOCOL: u8 = 1;
 
 /// CCCD value bits: notifications, indications.
 pub const NOTIFY_ON: u16 = 0x0001;

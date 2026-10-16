@@ -38,7 +38,8 @@ impl Peripheral {
         let refuse = refuse.or(read.map(|r| r.1));
         let result = match (refuse, op) {
             (Some(code), _) => Err((0, code)),
-            (_, READ_REQ) => self.read(u16_at(0)),
+            (_, READ_REQ) => self.read(u16_at(0), None),
+            (_, READ_BLOB_REQ) => self.read(u16_at(0), Some(u16_at(2))),
             (_, WRITE_REQ) => {
                 self.writes.push((u16_at(0), p[2..].to_vec(), false));
                 Ok(vec![WRITE_RSP])
