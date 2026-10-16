@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the capsule installer's two load handlers: the load_store
+# payload's head and the offsets it gives, the load request built over the
+# payload, the four store artifacts a load by name reads (and the size cap it
+# reads them under), and the attribution of a spawned capsule to the sender.
+# The test target mounts the real handler sources by `#[path]`, with host
+# stand-ins only for the syscall, the installer's own pid and the vfs read.
+[package]
+name = "installer_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"

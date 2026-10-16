@@ -33,7 +33,9 @@ pub(super) struct Layout {
 
 impl Layout {
     /// None when the head is short, an offset overflows, or the payload is
-    /// not exactly the head plus the five blobs it names.
+    /// not exactly the head plus the five blobs it names. On a 64-bit usize the
+    /// chain cannot overflow, as five u32 lengths plus HEAD_LEN sum far below
+    /// usize::MAX, so oversized lengths are refused by the total check instead.
     pub(super) fn parse(p: &[u8]) -> Option<Self> {
         if p.len() < HEAD_LEN {
             return None;
