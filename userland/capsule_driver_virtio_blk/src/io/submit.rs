@@ -13,14 +13,23 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::error::BlkError;
+
+//! One request, from post to status.
+
+use super::error::{ended, BlkError};
 use super::read_seq::read_seq;
 use super::rearm::rearm;
-use super::wait_used::wait_used;
-use crate::constants::{VIRTIO_BLK_S_IOERR, VIRTIO_BLK_S_OK, VIRTIO_BLK_S_UNSUPP};
+use super::slice::slice;
+use super::wait::wait;
+use crate::clock;
 use crate::queue::{Direction, Queue};
 use crate::transport::Transport;
 
+/// Post the request, tell the device, wait for its answer by the clock,
+/// and read its status. A request still the device's when the wait ends
+/// (it timed out, or the wait itself failed) stalls the queue: nothing is
+/// posted over it, and the server resets the device before the next
+/// request, which so never waits it out (plan/50 C1).
 pub fn submit(
     transport: Transport,
     queue: &mut Queue,
@@ -29,36 +38,36 @@ pub fn submit(
     lba: u64,
     nsectors: u32,
 ) -> Result<(), BlkError> {
-    // The slot is free only once every request posted before has its answer.
-    super::settle::settle(transport, queue, irq_grant)?;
-    queue.post_request(dir, lba, nsectors);
     /*
-     * The sequence is read before the device is told, not after: a device
-     * that completes at once raises its interrupt between the two, and a
-     * snapshot taken after it waits for a second one that never comes, the
-     * whole slice long. Every request paid 100 ms that way.
+     * The sequence is read, and the line lowered and unmasked (see
+     * `rearm`), before the device is told. A device that completes at once
+     * raises its interrupt between a snapshot taken after the notify and
+     * the wait, which then waits for a second one that never comes; and
+     * an unmask after it leaves a shared line masked with the completion
+     * still to come. An interrupt the unmask lets through ends the first
+     * sleep, and the loop rearms.
      */
-    let seq = read_seq(irq_grant)?;
-    /*
-     * Then the line is lowered and unmasked, still before the device is
-     * told, or its completion raises no interrupt to wait for (see `rearm`).
-     * The snapshot must come first. The line can be shared (on QEMU's q35
-     * the display controller sits on it with its status never read), so the
-     * unmask can fire at once and the kernel masks the line again. Counted after
-     * the snapshot, that interrupt ends the first wait below and the loop
-     * unmasks again; counted inside it, as it was when the unmask came
-     * first, it left the line masked with the completion still to come, and
-     * on several CPUs about every other request slept out its whole slice.
-     */
+    let mut seq = read_seq(irq_grant)?;
     rearm(transport, irq_grant)?;
+    queue.post(dir, lba, nsectors)?;
     transport.notify(0);
-    wait_used(transport, queue, irq_grant, seq)?;
-    let status = queue.status_byte();
-    rearm(transport, irq_grant)?;
-    match status {
-        VIRTIO_BLK_S_OK => Ok(()),
-        VIRTIO_BLK_S_IOERR => Err(BlkError::Io),
-        VIRTIO_BLK_S_UNSUPP => Err(BlkError::Unsupported),
-        _ => Err(BlkError::Io),
+    let budget = clock::budget(dir.budget_ms());
+    let answered = wait(
+        || queue.completion(),
+        |ms| slice(transport, irq_grant, &mut seq, ms),
+        || budget.left(clock::uptime_ms()),
+    );
+    if let Err(fault) = answered {
+        if queue.outstanding() {
+            queue.stall(fault);
+        }
+        return Err(fault.into());
     }
+    let status = queue.status();
+    rearm(transport, irq_grant)?;
+    let end = ended(status);
+    if end.is_ok() {
+        queue.note_served();
+    }
+    end
 }

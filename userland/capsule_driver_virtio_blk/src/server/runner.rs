@@ -13,16 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use crate::protocol::{
-    decode_request, E_ACCES, E_INVAL, HDR_LEN, MAX_RW_PAYLOAD_BYTES, OP_CAPACITY, OP_FLUSH, OP_HEALTHCHECK,
-    OP_READ_BLOCKS, OP_WRITE_BLOCKS, RESP_HDR_LEN, RW_HEADER_LEN, STATUS_LEN,
+    decode_request, E_ACCES, E_INVAL, HDR_LEN, MAX_RW_PAYLOAD_BYTES, RESP_HDR_LEN, RW_HEADER_LEN,
+    STATUS_LEN,
 };
 use crate::server::acl;
+use crate::server::dispatch::dispatch;
 use crate::server::error::{reply_decode_failed, reply_with_status};
-use crate::server::handlers;
+use crate::server::settle::settle;
+use crate::server::streak::Streak;
 use crate::setup::Driver;
 use alloc::vec;
 use nonos_libc::{mk_getpid, mk_ipc_recv_from, mk_yield};
+
 pub fn run(driver: &mut Driver) -> ! {
     let rx_len = HDR_LEN + RW_HEADER_LEN + MAX_RW_PAYLOAD_BYTES as usize;
     let tx_len = RESP_HDR_LEN + STATUS_LEN + MAX_RW_PAYLOAD_BYTES as usize;
@@ -34,6 +38,7 @@ pub fn run(driver: &mut Driver) -> ! {
     // one stray reply becomes a self-sustaining flood that buries every real
     // request. Drop anything we sent to ourselves before it can start the loop.
     let self_pid = mk_getpid();
+    let mut streak = Streak::default();
     loop {
         let mut sender_pid: u32 = 0;
         let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx_len, 0, &mut sender_pid);
@@ -45,27 +50,19 @@ pub fn run(driver: &mut Driver) -> ! {
             continue;
         }
         let len = n as usize;
-        let req = match decode_request(&rx[..len]) {
-            Some(r) => r,
-            None => {
-                reply_decode_failed(&mut tx, E_INVAL);
-                continue;
-            }
+        let Some(req) = decode_request(&rx[..len]) else {
+            reply_decode_failed(&mut tx, E_INVAL);
+            continue;
         };
         if !acl::permits(req.op, sender_pid) {
             let _ = reply_with_status(&mut tx, &req, E_ACCES);
             continue;
         }
-        let body = &rx[HDR_LEN..len];
-        match req.op {
-            OP_HEALTHCHECK => handlers::health::handle(&req, &mut tx),
-            OP_CAPACITY => handlers::capacity::handle(driver, &req, &mut tx),
-            OP_READ_BLOCKS => handlers::read::handle(driver, &req, body, &mut tx),
-            OP_WRITE_BLOCKS => handlers::write::handle(driver, &req, body, &mut tx),
-            OP_FLUSH => handlers::flush::handle(driver, &req, &mut tx),
-            _ => {
-                let _ = reply_with_status(&mut tx, &req, E_INVAL);
-            }
-        }
+        dispatch(driver, &req, &rx[HDR_LEN..len], &mut tx);
+        // A request the device still holds (it timed out, or the device
+        // answered out of turn) is ended by a reset now, after its caller
+        // has its answer, so the next request finds a fresh device; or,
+        // after too many resets in a row, the driver ends (`streak`).
+        settle(driver, &mut streak);
     }
 }

@@ -19,14 +19,9 @@
 mod call;
 mod decode;
 mod encode;
+mod header;
 
 pub use call::call;
 pub use decode::decode_reply;
 pub use encode::{encode_request, rw_header};
-
-pub const VERSION: u16 = 1;
-pub const HDR_LEN: usize = 20;
-pub const STATUS_LEN: usize = 4;
-/// The unit callers address a disk in. The per-request ceiling and the
-/// disk's own block size are the device's, in `device/span.rs`.
-pub const SECTOR_SIZE: usize = 512;
+pub use header::{HDR_LEN, SECTOR_SIZE, STATUS_LEN, VERSION};

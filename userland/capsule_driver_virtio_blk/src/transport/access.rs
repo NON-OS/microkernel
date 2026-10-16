@@ -14,14 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::{fence, Ordering};
+
+use nonos_virtio::common::DEVICE_STATUS;
+
 use super::types::Transport;
-use crate::constants::{LEG_ISR, LEG_QUEUE_NOTIFY};
+use crate::constants::{LEG_ISR, LEG_QUEUE_NOTIFY, LEG_STATUS, STATUS_NEEDS_RESET};
 
 impl Transport {
-    /// Tell the device queue `queue` has a request.
+    /// Tell the device queue `queue` has a request. The available index
+    /// was published after a release fence (`queue::post`); this one keeps
+    /// the doorbell after the index, so a device on a weakly ordered
+    /// machine never finds the bell rung over a ring it cannot see yet.
     pub fn notify(self, queue: u16) {
+        fence(Ordering::SeqCst);
         match self {
-            Self::Legacy(regs) => unsafe { regs.w16(LEG_QUEUE_NOTIFY, queue) },
+            Self::Legacy(regs) => regs.w16(LEG_QUEUE_NOTIFY, queue),
             Self::Modern(m) => m.notify.w16(m.doorbell, queue),
         }
     }
@@ -30,8 +38,18 @@ impl Transport {
     /// line (see `io::rearm`). With MSI-X the value is unused.
     pub fn isr(self) -> u8 {
         match self {
-            Self::Legacy(regs) => unsafe { regs.r8(LEG_ISR) },
+            Self::Legacy(regs) => regs.r8(LEG_ISR),
             Self::Modern(m) => m.isr.r8(0),
         }
+    }
+
+    /// Whether the device has said it needs a reset (DEVICE_NEEDS_RESET),
+    /// which names the state a reset ends.
+    pub fn needs_reset(self) -> bool {
+        let status = match self {
+            Self::Legacy(regs) => regs.r8(LEG_STATUS),
+            Self::Modern(m) => m.common.r8(DEVICE_STATUS),
+        };
+        status & STATUS_NEEDS_RESET != 0
     }
 }
