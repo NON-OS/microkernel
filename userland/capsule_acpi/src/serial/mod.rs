@@ -20,7 +20,7 @@
 
 pub mod bus_key;
 mod find;
-mod known;
+pub mod known;
 mod say;
 mod state;
 mod wire;

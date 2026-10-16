@@ -19,6 +19,7 @@
 //! again, so a device firmware kept is probed back in.
 
 use super::cover::covered;
+use super::eject::Refused;
 use super::look::look;
 use super::state::{Pending, Stage};
 use crate::boot::{evaluator, path, Acpi};
@@ -32,6 +33,19 @@ pub const VERIFY_MS: u64 = 5_000;
 
 pub fn line(acpi: &Acpi, id: Id) -> Line {
     Line::new(b"hotplug ").str(path(&acpi.aml, id).as_bytes())
+}
+
+/// Said once when an eject first has to wait for a holder.
+pub fn say_wait(acpi: &Acpi, id: Id, r: Refused) {
+    let l = line(acpi, id).str(b": eject waits, held: ");
+    match r {
+        Refused::Held(f) => {
+            let l = l.dec(u64::from(f.1)).str(b":").dec(u64::from(f.2));
+            l.str(b".").dec(u64::from(f.3)).end();
+        }
+        Refused::HeldRecord(r) => l.str(b"platform record ").hex(r).end(),
+        _ => l.end(),
+    }
 }
 
 pub fn verify(acpi: &mut Acpi, id: Id, until_ms: u64, now: u64) {

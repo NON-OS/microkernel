@@ -20,7 +20,7 @@
 
 use super::eject::{try_eject, Refused};
 use super::state::{Pending, Stage};
-use super::verify::{line, verify};
+use super::verify::{line, say_wait, verify};
 use crate::boot::Acpi;
 use crate::sys::clock::now_ms;
 use alloc::vec::Vec;
@@ -34,10 +34,9 @@ fn attempt(acpi: &mut Acpi, id: Id, first: bool) {
     let now = now_ms();
     let (stage, next_ms) = match try_eject(acpi, id) {
         Ok(()) => (Stage::Verify { until_ms: now + VERIFY_MS }, now + VERIFY_STEP_MS),
-        Err(Refused::Held(f)) => {
+        Err(r @ (Refused::Held(_) | Refused::HeldRecord(_))) => {
             if first {
-                let l = line(acpi, id).str(b": eject waits, held: ").dec(u64::from(f.1));
-                l.str(b":").dec(u64::from(f.2)).str(b".").dec(u64::from(f.3)).end();
+                say_wait(acpi, id, r);
             }
             (Stage::Held, now + RETRY_MS)
         }

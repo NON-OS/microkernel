@@ -165,13 +165,16 @@ that answers goes to the kernel for one probe (`MkPciProbeFunction`); one
 that is gone has every function it stood for, and everything behind a
 bridge among them, taken out with `MkPciDepart` mode 0, and the kernel
 revokes the holder's interrupt routes, DMA grants and domain, port and
-MMIO grants and claim before it answers. A dock found present is docked
+MMIO grants and claim before it answers. A listed platform controller
+(no function, a `_HID` record) found gone leaves the same way by its
+record id (modes 2 and 3); one found there with no record is published. A dock found present is docked
 with `_DCK(1)` first. An eject request (Notify 3) waits while any
 function it takes with it (the device, all below it, and for a dock all
 that names it in `_EJD`) is held, retrying every 2 s; then each function
 leaves the table with mode 1 (refused while held), a dock is undocked
 with `_DCK(0)`, and `_EJ0(1)` runs. If `_STA` still says present 5 s
-later, the device is looked at again and probed back. One `hotplug` line
+later, the device is looked at again and probed back; platform records
+an eject took out are published again when firmware refuses it. One `hotplug` line
 per arrival, departure, dock, undock, wait and eject. The Notify values
 and the `_EJ0` and `_DCK` arguments are recalled, unverified.
 

@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device that is gone: every function it stood for, and every function
-//! on the buses behind any bridge among them, taken out of the kernel's
-//! table. The kernel revokes what each one's holder was given before it
+//! A device that is gone: every function it stood for, every function on
+//! the buses behind any bridge among them, and its platform record if it
+//! has one, taken out of the kernel's table. The kernel revokes what each one's holder was given before it
 //! answers (`MkPciDepart`, mode `Gone`).
 
+use super::records::depart_gone;
 use super::state::{Bdf, Hotplug};
 use crate::boot::{path, Acpi};
 use crate::sys::log::Line;
@@ -38,7 +39,7 @@ pub fn depart_all(hp: &Hotplug, bdfs: &[Bdf]) -> usize {
 
 pub fn leave(acpi: &mut Acpi, id: Id) {
     let bdfs = acpi.hotplug.functions(id).to_vec();
-    let n = depart_all(&acpi.hotplug, &bdfs);
+    let n = depart_all(&acpi.hotplug, &bdfs) + usize::from(depart_gone(acpi, id));
     acpi.hotplug.forget(id);
     if n != 0 {
         Line::new(b"hotplug ")
