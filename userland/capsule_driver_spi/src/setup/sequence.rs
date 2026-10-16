@@ -30,11 +30,15 @@ pub struct Host {
     pub _claim: Claim,
     pub regs: Mmio,
     pub device: u16,
+    /// The claim's device id with bit 63 set: the key the firmware's record
+    /// and driver.gpio0 name this host by.
+    pub key: u64,
 }
 
 /// Tries over which a candidate another driver holds is looked at again:
 /// i2c_pci0 claims an unlisted LPSS function a moment to read its type.
 const TRIES: u32 = 3;
+const KEY_DEVICE_ID: u64 = 1 << 63;
 const RETRY_MS: u64 = 1_000;
 
 pub fn run(found: &Vec<Found>) -> Result<Host, &'static str> {
@@ -66,5 +70,6 @@ fn up(f: &Found) -> Result<Host, &'static str> {
     let regs = Mmio::new(out.user_va, out.length);
     prove(&regs)?;
     ready(&regs)?;
-    Ok(Host { _claim: claim, regs, device: f.device })
+    let key = KEY_DEVICE_ID | f.device_id;
+    Ok(Host { _claim: claim, regs, device: f.device, key })
 }
