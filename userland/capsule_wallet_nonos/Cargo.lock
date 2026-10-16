@@ -272,6 +272,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_equix"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_eth_rpc"
 version = "0.1.0"
 
@@ -295,6 +299,16 @@ name = "nonos_marketplace_abi"
 version = "0.3.0"
 dependencies = [
  "nonos_nox_config",
+]
+
+[[package]]
+name = "nonos_nox_chunks"
+version = "0.1.0"
+dependencies = [
+ "nonos_equix",
+ "nonos_marketplace_abi",
+ "nonos_nox_config",
+ "nonos_seal",
 ]
 
 [[package]]
@@ -386,6 +400,7 @@ dependencies = [
  "nonos_hd",
  "nonos_market_proto",
  "nonos_marketplace_abi",
+ "nonos_nox_chunks",
  "nonos_nox_config",
  "nonos_payment_proto",
  "nonos_policy_client",

@@ -24,12 +24,14 @@
 use nonos_libc::mk_time_millis;
 use nonos_payment_proto::OP_ORDER_NEW;
 
+use super::deposit_check::pinned;
 use super::intake::Step;
 use super::purchase::{after_offer, after_order, After};
 use super::read::Named;
 use super::said::{failed, Stage};
 use crate::wallet::meter::call::start;
 use crate::wallet::meter::order_calls::order_job;
+use crate::wallet::publish::Kec;
 use crate::wallet::state::State;
 
 /// Whether a running step moved on.
@@ -41,7 +43,10 @@ pub fn poll(state: &mut State) -> bool {
             let now = mk_time_millis().max(0) as u64 / 1000;
             after_offer(buy, order_job(*id).as_deref().map_err(|e| *e), p.refund_to, now)
         }
-        Step::Ordering(id, sent) => after_order(sent, order_job(*id).as_deref().map_err(|e| *e)),
+        Step::Ordering(id, sent) => {
+            let r = order_job(*id);
+            after_order(&Kec, sent, pinned(sent.chain_id), r.as_deref().map_err(|e| *e))
+        }
         _ => return false,
     };
     p.step = match next {

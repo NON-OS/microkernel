@@ -19,8 +19,9 @@
 
 use nonos_payment_proto::{EAGAIN, EBUSY, EINVAL, ENOENT, ETIME};
 
-use super::fixture::{buy, made, offer, NOW, REFUND_TO};
-use crate::order::purchase::{after_offer, after_order, After};
+use super::deposit_fixture::{made_at, ordered, salted};
+use super::fixture::{buy, offer, NOW, REFUND_TO};
+use crate::order::purchase::{after_offer, After};
 
 #[test]
 fn an_offer_goes_on_to_its_order_and_a_running_job_is_waited_on() {
@@ -37,23 +38,23 @@ fn an_offer_goes_on_to_its_order_and_a_running_job_is_waited_on() {
 #[test]
 fn an_order_is_funded_only_on_the_terms_confirmed() {
     let n = buy().order_new(&offer(), REFUND_TO, NOW);
-    let m = made(&n);
-    assert_eq!(after_order(&n, Ok(&m.encode())), After::Fund(Box::new(m)));
-    assert_eq!(after_order(&n, Err(EAGAIN)), After::Wait);
+    let m = made_at(&n);
+    assert_eq!(ordered(&n, Ok(&m.encode())), After::Fund(Box::new(m)));
+    assert_eq!(ordered(&n, Err(EAGAIN)), After::Wait);
     for w in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] {
         let mut bad = m;
         bad.terms[w][31] ^= 1;
-        let said = after_order(&n, Ok(&bad.encode()));
+        let said = ordered(&n, Ok(&bad.encode()));
         assert!(matches!(said, After::Failed(s) if s.contains("do not fund")), "word {w}");
     }
-    let mut other = m;
-    (other.terms[12][0], other.terms[13][0]) = (1, 1);
+    let other = salted(&n, 1);
+    assert_ne!((other.terms[12], other.terms[13]), (m.terms[12], m.terms[13]));
     let theirs = After::Fund(Box::new(other));
-    assert_eq!(after_order(&n, Ok(&other.encode())), theirs, "refundCommit and salt: the meter's");
+    assert_eq!(ordered(&n, Ok(&other.encode())), theirs, "refundCommit and salt: the meter's");
     let mut far = n;
     far.chain_id = 1;
-    assert!(matches!(after_order(&far, Ok(&m.encode())), After::Failed(_)), "no NOX on chain 1");
-    assert!(matches!(after_order(&n, Ok(&m.encode()[1..])), After::Failed(_)));
+    assert!(matches!(ordered(&far, Ok(&m.encode())), After::Failed(_)), "no NOX on chain 1");
+    assert!(matches!(ordered(&n, Ok(&m.encode()[1..])), After::Failed(_)));
 }
 
 #[test]
@@ -65,10 +66,10 @@ fn each_refusal_is_said_for_its_stage() {
         _ => panic!("not a refusal"),
     };
     let offer_time = said(after_offer(&b, Err(ETIME), REFUND_TO, NOW));
-    let order_time = said(after_order(&n, Err(ETIME)));
+    let order_time = said(ordered(&n, Err(ETIME)));
     assert_ne!(offer_time, order_time, "ETIME means another thing at each stage");
     assert!(order_time.contains("deadline"));
-    assert!(said(after_order(&n, Err(ENOENT))).contains("offer"));
-    assert!(said(after_order(&n, Err(EBUSY))).contains("paused"));
+    assert!(said(ordered(&n, Err(ENOENT))).contains("offer"));
+    assert!(said(ordered(&n, Err(EBUSY))).contains("paused"));
     assert!(said(after_offer(&b, Err(EINVAL), REFUND_TO, NOW)).contains("too large"));
 }
