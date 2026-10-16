@@ -50,3 +50,6 @@ pub mod input_source;
 /// A capsule over the image ceiling is refused at spawn.
 #[path = "image_ceiling/mod.rs"]
 pub mod image_ceiling;
+/// A claimed function is reset at claim and at release.
+#[path = "function_reset/mod.rs"]
+pub mod function_reset;
