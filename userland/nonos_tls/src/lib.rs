@@ -54,6 +54,7 @@ pub use cert_is_ca::cert_is_ca;
 /// read after the refusal and decides nothing.
 pub use cert_problem::CertProblem;
 pub use client_flight::client_flight;
+pub use crypto_port::CRYPTO_WAIT_MS;
 pub use handshake_alert::handshake_alert;
 pub use handshake_fault::handshake_fault;
 pub use handshake_state::{Answer, HandshakeState, Progress, Refusal, Start};

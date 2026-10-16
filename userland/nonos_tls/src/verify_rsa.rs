@@ -45,7 +45,15 @@ pub fn verify_rsa(scheme: u8, hashid: u8, spki: &[u8], sig: &[u8], digest: &[u8]
     tx[12..16].copy_from_slice(&7u32.to_le_bytes());
     tx[16..20].copy_from_slice(&(body.len() as u32).to_le_bytes());
     tx[20..].copy_from_slice(&body);
-    let rc = nonos_libc::mk_ipc_call(port as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len());
+    let wait = super::crypto_port::CRYPTO_WAIT_MS;
+    let rc = nonos_libc::mk_ipc_call_timeout(
+        port as u64,
+        tx.as_ptr(),
+        tx.len(),
+        rx.as_mut_ptr(),
+        rx.len(),
+        wait,
+    );
     rc >= 24
         && u32::from_le_bytes([rx[0], rx[1], rx[2], rx[3]]) == MAGIC
         && u16::from_le_bytes([rx[6], rx[7]]) == OP_RSA_VERIFY
