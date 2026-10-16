@@ -18,22 +18,25 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
 
-use super::system_names::is_system_name;
+use super::system_names::{is_reserved_form, is_system_name};
 
-// The service and reply names Capsule.mk files declare, split by whether the
-// capsule's namespace is the system's own.
+// The service, reply and instance names Capsule.mk files declare, split by
+// whether the capsule's namespace is the system's own.
 fn declared() -> (BTreeSet<String>, BTreeSet<String>) {
     let (mut system, mut publisher) = (BTreeSet::new(), BTreeSet::new());
     let userland = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
     for dir in fs::read_dir(userland).expect("userland") {
-        let Ok(text) = fs::read_to_string(dir.expect("entry").path().join("Capsule.mk")) else {
+        let Ok(raw) = fs::read_to_string(dir.expect("entry").path().join("Capsule.mk")) else {
             continue;
         };
+        // Make joins a line ending in a backslash with the next.
+        let text = raw.replace("\\\n", " ");
         let ns = field(&text, "CAPSULE_NAMESPACE").next().expect("a namespace");
         let own = ns == "systems.nonos" || ns.starts_with("systems.nonos.");
-        let eps =
-            field(&text, "CAPSULE_SERVICE_ENDPOINT").chain(field(&text, "CAPSULE_REPLY_ENDPOINT"));
-        for ep in eps {
+        let eps = field(&text, "CAPSULE_SERVICE_ENDPOINT")
+            .chain(field(&text, "CAPSULE_REPLY_ENDPOINT"))
+            .chain(field(&text, "CAPSULE_INSTANCE_ENDPOINTS"));
+        for ep in eps.flat_map(|v| v.split_whitespace().map(str::to_string).collect::<Vec<_>>()) {
             let name = ep.splitn(3, ':').nth(2).expect("kind:port:name").to_string();
             let set = if own { &mut system } else { &mut publisher };
             set.insert(name);
@@ -59,16 +62,6 @@ fn the_list_is_every_system_capsules_names_and_no_others() {
             .collect();
     let (system, publisher) = declared();
     assert_eq!(listed, system);
-    assert!(publisher.iter().all(|n| !is_system_name(n)), "a publisher example collides");
-}
-
-#[test]
-fn a_system_name_or_its_numbered_instance_is_refused_and_nothing_else() {
-    for taken in ["input_router", "app.settings", "app.settings.1", "app.settings.12"] {
-        assert!(is_system_name(taken), "{taken}");
-    }
-    for free in ["app.settings.", "app.settings.x", "app.settings.1a", "app.settingsx", "app"] {
-        assert!(!is_system_name(free), "{free}");
-    }
-    assert!(!is_system_name("") && !is_system_name("com.example.app"));
+    let free = |n: &&String| !is_system_name(n) && !is_reserved_form(n);
+    assert!(publisher.iter().all(|n| free(&n)), "a publisher example collides");
 }

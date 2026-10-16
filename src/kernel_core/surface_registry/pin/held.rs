@@ -24,17 +24,19 @@ use super::foreign_windows::foreign_windows;
 use super::gate::GATE;
 use super::kept::kept_of;
 use super::orphan_settle::settle;
-use super::orphans::reclaim;
+use super::own_orphans::OwnOrphans;
 use super::window::Window;
 
 /*
  * The surface frames an munmap of `pid` must not free: those it attached from
  * another owner, its own another process still has attached, and those its
- * exit left to `reclaim`, which a thread still in munmap freed again (L50).
+ * exit left to `reclaim`, which a thread still in munmap freed again (L50),
+ * and its own a sibling thread orphaned a moment before (L57).
  */
 pub struct Held {
     windows: Vec<Window>,
     kept: Vec<PhysAddr>,
+    own: OwnOrphans,
 }
 
 impl Held {
@@ -45,7 +47,7 @@ impl Held {
         claim_owned(pid, addr, end, &mut windows);
         foreign_windows(pid, addr, end, &mut windows);
         let kept = super::super::space::tables_of(pid).map(kept_of).unwrap_or_default();
-        Self { windows, kept }
+        Self { windows, kept, own: OwnOrphans::collect(pid) }
     }
 
     /* True when the frame `pa` just unmapped at `va` must stay allocated. */
@@ -60,13 +62,12 @@ impl Held {
                 return true;
             }
         }
-        self.kept.binary_search_by_key(&pa.as_u64(), |f| f.as_u64()).is_ok()
+        self.own.holds(pa) || self.kept.binary_search_by_key(&pa.as_u64(), |f| f.as_u64()).is_ok()
     }
 
     /* Frames the owner really unmapped go to the registry, freed once no
      * other process maps them; one whose PTE stayed is kept for good. */
     pub fn settle(self) {
-        settle(self.windows);
-        reclaim();
+        settle(self.windows, self.own);
     }
 }
