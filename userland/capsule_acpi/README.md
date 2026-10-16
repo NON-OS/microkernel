@@ -15,6 +15,7 @@ devices up, reports what firmware describes, and serves the SCI.
                    OperationRegion     SystemIO windows
    MkAcpiPort   -- in / out       -->  SystemIO fields, PM1 and GPE registers
    MkAcpiPci    -- config access  -->  PCI_Config fields
+   MkAcpiSlot   -- four registers -->  native hot-plug slots
    MkAcpiPower, MkAcpiEvent  <---      batteries, buttons, lid, thermal
    MkAcpiSleep               <---      \_S5 (start, and PREPARE_SLEEP)
    MkAcpiCpu                 <---      _PSS _PCT _PPC _CST _CPC _LPI, per processor
@@ -194,9 +195,17 @@ Native PCI Express hot plug (`src/hotplug/native/`) sits behind one
 switch, `boot::osc_host::NATIVE_HOT_PLUG_ON`, which is off: the host
 bridges' _OSC then claims nothing and firmware keeps hot plug. Turned
 on, _OSC asks for native hot plug and the capability structure, and
-each root or downstream port with a hot-plug slot below a bridge that
-granted it is polled every 50 ms. Its change bits are cleared, and no
-hot-plug interrupt is enabled. A card is there when presence says so
+each port the kernel answers to `MkAcpiSlot` is polled every 50 ms. The
+kernel chooses them from its own enumeration: root or downstream ports
+with Slot Implemented and a hot-plug capable slot, below a bridge whose
+_OSC granted native hot plug. It finds their PCI Express capability
+itself, and the capsule reads only Slot Capabilities, Slot Control, Slot
+Status and Link Status. Writes go only to the indicators and power
+controller in Slot Control, and to Slot Status's change bits; a value
+with any other bit is refused. The kernel also names a port's secondary
+bus and the functions its table holds below it, so the capsule never
+reads a bridge's bus numbers or capability list. Its change bits are
+cleared, and no hot-plug interrupt is enabled. A card is there when presence says so
 and, where the port reports it, its link is up.
 - It is probed (MkPciProbeFunction) once up for 100 ms.
 - Its functions depart (MkPciDepart, gone) once it has been away for
@@ -226,7 +235,10 @@ Every register it touches comes through the kernel's ACPI grant rule
 (`src/hardware/broker/acpi/rule/`): SystemMemory only over firmware's own
 memory or unclaimed device space, never the allocator's RAM or the
 interrupt, timer and IOMMU hardware; SystemIO outside the legacy devices the
-kernel runs; PCI_Config writes never to another capsule's function. Each
+kernel runs; PCI_Config writes never to another capsule's function, never
+to a bridge's bus numbers, windows or secondary status (0x18 to 0x2F), and
+never changing a bridge's bus mastering. Such a refusal is logged once per
+function and offset. Each
 grant is one `[ACPI] region` line on serial and a count on the
 `[ACPI] posture` line. It claims one device, the SCI record, and no PCI
 function, and does no DMA. It adds functions to the device table and

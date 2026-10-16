@@ -21,6 +21,7 @@
 
 pub mod battery_watch;
 pub mod boot_logo;
+mod bridge_log;
 pub mod claim_holder;
 pub mod cpu_layout;
 pub mod cpu_record;
@@ -81,6 +82,11 @@ pub mod rule;
 mod sci;
 pub mod sleep_adopt;
 pub mod sleep_request;
+pub mod slot_access;
+pub mod slot_below;
+mod slot_ports;
+pub mod slot_rule;
+pub mod slot_wire;
 pub mod smbios;
 pub mod smbios_entry;
 mod table_allow;

@@ -15,10 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! PCI_Config regions: the kernel's own configuration path, reads of any
-//! function, writes only to one no other capsule claimed.
+//! function, writes only to one no other capsule claimed and never to a
+//! bridge's routing or bus mastering (rule::bridge_write).
 
 use super::error::RegionError;
-use super::pci_admit::admit;
+use super::bridge_log::refused;
+use super::pci_admit::{admit, packed};
+use super::rule::bridge_write;
 
 pub fn pci_read(pid: u32, bdf: (u16, u8, u8, u8), at: u16, width: u8) -> Result<u32, RegionError> {
     let cfg = admit(pid, bdf, at, width, false)?;
@@ -38,6 +41,12 @@ pub fn pci_write(
     value: u32,
 ) -> Result<(), RegionError> {
     let cfg = admit(pid, bdf, at, width, true)?;
+    let header = cfg.read8(0x0E).map_err(|_| RegionError::Platform)?;
+    let command = cfg.read16(0x04).map_err(|_| RegionError::Platform)?;
+    if let Err(r) = bridge_write(header, at, width, value, command) {
+        refused(packed(bdf), at, width, value);
+        return Err(RegionError::Refused(r));
+    }
     match width {
         1 => cfg.write8(at, value as u8),
         2 => cfg.write16(at, value as u16),
