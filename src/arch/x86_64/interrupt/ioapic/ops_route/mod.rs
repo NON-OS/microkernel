@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod alloc_route;
+#[cfg(feature = "nonos-iommu-amdvi")]
+mod program_amd;
 mod compat;
 mod free_vector;
 mod line_mode;
