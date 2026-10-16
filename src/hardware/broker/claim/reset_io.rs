@@ -69,6 +69,6 @@ impl ResetIo for Function {
         crate::time::timestamp_millis()
     }
     fn pause_ms(&mut self, ms: u64) {
-        super::reset_restore::pause_ms(ms);
+        super::reset_restore::pause_ms(ms, self.sleeper);
     }
 }
