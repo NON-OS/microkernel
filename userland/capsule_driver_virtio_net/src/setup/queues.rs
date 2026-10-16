@@ -25,9 +25,13 @@ use crate::regs::Regs;
 /// Clear both rings, point the device at them, and build the queues over
 /// them; `program_queues` refuses any ring size the grants cannot hold, and
 /// resets the device when it does.
-pub fn build(regs: Regs, dma: &DmaSet) -> Result<(RxQueue, TxQueue), &'static str> {
+pub fn build(
+    regs: Regs,
+    dma: &DmaSet,
+    master: impl FnOnce() -> Result<(), &'static str>,
+) -> Result<(RxQueue, TxQueue), &'static str> {
     dma.clear_rings();
     let (rx_ring, tx_ring) = (dma.rx_ring.device_addr, dma.tx_ring.device_addr);
-    let (rx_count, tx_count) = program_queues(regs, rx_ring, tx_ring)?;
+    let (rx_count, tx_count) = program_queues(regs, rx_ring, tx_ring, master)?;
     Ok(dma.queues(rx_count, tx_count, VIRTIO_NET_HDR_LEN))
 }

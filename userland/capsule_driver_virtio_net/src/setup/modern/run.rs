@@ -17,7 +17,7 @@
 //! The modern sequence: memory decode, the register window, reset (waited
 //! for by the clock), ACKNOWLEDGE, DRIVER, features (VERSION_1 and
 //! ACCESS_PLATFORM besides STATUS, never the device's MAC), FEATURES_OK, a
-//! drawn station address, the DMA grants, Bus Master, both queues,
+//! drawn station address, the DMA grants, both queues, Bus Master,
 //! DRIVER_OK. A step that fails returns its error and `sequence::run`
 //! releases the claim, which takes every grant with it.
 
@@ -50,9 +50,9 @@ pub fn run(dev: Found, claim_epoch: u64, caps: &ModernCaps) -> Result<Driver, &'
     let mac = station::draw()?;
     stage("[net-setup] dma");
     let dma = dma_set::map_all(dev.device_id, claim_epoch)?;
-    pci::command(dev.device_id, claim_epoch, pci::MASTER)?;
     stage("[net-setup] queues");
-    let mut q = queues::build(&common, window.notify_area(), &dma)?;
+    let master = || pci::command(dev.device_id, claim_epoch, pci::MASTER);
+    let mut q = queues::build(&common, window.notify_area(), &dma, master)?;
     q.rx.prime();
     driver_ok(&common);
     let notify = window.notify.region;

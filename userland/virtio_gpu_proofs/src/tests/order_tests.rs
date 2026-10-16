@@ -22,6 +22,7 @@ use super::recover_order_tests::sources;
 const SEQUENCE: &str = include_str!("../../../capsule_driver_virtio_gpu/src/setup/sequence.rs");
 const TRANSPORT: &str = include_str!("../../../capsule_driver_virtio_gpu/src/setup/transport.rs");
 const PCI: &str = include_str!("../../../capsule_driver_virtio_gpu/src/setup/pci.rs");
+const RESTART: &str = include_str!("../../../capsule_driver_virtio_gpu/src/init/restart.rs");
 
 fn at(text: &str, needle: &str) -> usize {
     text.find(needle).unwrap_or_else(|| panic!("`{needle}` not found"))
@@ -40,12 +41,23 @@ fn a_failed_bring_up_resets_the_device_and_never_unmaps_dma_itself() {
 }
 
 // A device left live by a previous instance holds its ring addresses until
-// it is reset; it may not master the bus before that, nor see a ring.
+// it is reset; it may not master the bus before that, nor before its queue
+// is on this driver's grant, nor be told DRIVER_OK before it may
+// (`master_tests` runs the transport against such a device).
 #[test]
 fn a_device_is_reset_before_it_may_master_the_bus() {
     let decode = PCI.lines().find(|l| l.contains("const DECODE:")).expect("DECODE");
     assert!(!decode.contains("BUS_MASTER"), "decoding sets Bus Master");
     assert!(at(SEQUENCE, "pci::DECODE") < at(SEQUENCE, "mmio::map("));
     assert!(at(TRANSPORT, "negotiate(&common)") < at(TRANSPORT, "pci::MASTER"));
-    assert!(at(TRANSPORT, "pci::MASTER") < at(TRANSPORT, "program(&common"));
+    assert!(at(TRANSPORT, "program(&common") < at(TRANSPORT, "pci::MASTER"));
+    assert!(at(TRANSPORT, "pci::MASTER") < at(TRANSPORT, "driver_ok(&common)"));
+}
+
+// A restart after a stall sets DRIVER_OK only once nothing is left to
+// refuse the queue: the layout used to be checked after it.
+#[test]
+fn a_restart_sets_driver_ok_after_every_refusal() {
+    assert!(at(RESTART, "program(&common") < at(RESTART, "QueueLayout::new("));
+    assert!(at(RESTART, "QueueLayout::new(") < at(RESTART, "driver_ok(&common)"));
 }

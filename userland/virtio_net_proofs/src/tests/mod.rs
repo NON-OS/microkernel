@@ -25,12 +25,18 @@ mod mem;
 mod space;
 mod stall_model;
 
+mod banked;
+mod bus_master;
 mod choose_tests;
 mod features_tests;
 mod grant_tests;
 mod legacy_queue_tests;
 mod legacy_refused_tests;
+mod legacy_reset_tests;
 mod limits_tests;
+mod master_legacy_tests;
+mod master_modern_refused_tests;
+mod master_modern_tests;
 mod modern_queue_tests;
 mod modern_refused_tests;
 mod order_tests;
