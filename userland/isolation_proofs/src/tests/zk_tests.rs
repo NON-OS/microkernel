@@ -20,7 +20,9 @@
 
 use std::collections::HashSet;
 
-use isolation_stark::{prove, shape, EXTRA_BLOWUP_BITS as EXTRA, GRIND_BITS, QUERIES};
+use isolation_stark::{
+    prove, shape, QUERIES, STATEMENT_BLOWUP_BITS as EXTRA, STATEMENT_GRIND_BITS,
+};
 use nonos_stark::air::StarkProofExtRounds;
 use nonos_stark::field::Fp;
 use stark_proofs::proof_wire::{deserialize_rounds_shared, ParamSet};
@@ -30,7 +32,7 @@ use super::fixture::{proven, witness};
 
 fn rounds(proof: &[u8]) -> StarkProofExtRounds {
     let (st, _) = proven();
-    let params = ParamSet::of(&shape(st).unwrap(), QUERIES, GRIND_BITS, EXTRA);
+    let params = ParamSet::of(&shape(st).unwrap(), QUERIES, STATEMENT_GRIND_BITS, EXTRA);
     deserialize_rounds_shared(proof, &params).expect("a format 7 proof").0
 }
 

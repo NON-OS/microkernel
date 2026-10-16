@@ -27,18 +27,25 @@ use stark_proofs::proof_wire::{deserialize_rounds_shared, ParamSet};
 
 use super::error::Error;
 use crate::circuit::shape;
-use crate::params::{EXTRA_BLOWUP_BITS as EXTRA, GRIND_BITS, QUERIES};
+use crate::params::{QUERIES, STATEMENT_BLOWUP_BITS as EXTRA, STATEMENT_GRIND_BITS};
 use crate::statement::Statement;
 
 pub fn verify(st: &Statement, bytes: &[u8]) -> Result<(), Error> {
     let words: Vec<Fp> = st.words().iter().map(|&v| Fp::from_u64(v)).collect();
     let air = shape(st).ok_or(Error::Shape)?;
-    let params = ParamSet::of(&air, QUERIES, GRIND_BITS, EXTRA);
+    let params = ParamSet::of(&air, QUERIES, STATEMENT_GRIND_BITS, EXTRA);
     let (skeleton, streams) = deserialize_rounds_shared(bytes, &params)
         .ok_or_else(|| Error::NotVerified("not a format 7 proof of this circuit".to_string()))?;
     let root = periodic_root(&air, EXTRA);
     stark_verify_ext_rounds_shared_why(
-        air, &skeleton, &streams, QUERIES, GRIND_BITS, EXTRA, &root, &words,
+        air,
+        &skeleton,
+        &streams,
+        QUERIES,
+        STATEMENT_GRIND_BITS,
+        EXTRA,
+        &root,
+        &words,
     )
     .map_err(|why| Error::NotVerified(why.to_string()))
 }
