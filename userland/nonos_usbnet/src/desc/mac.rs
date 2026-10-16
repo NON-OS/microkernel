@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A MAC address from a string descriptor: twelve hexadecimal digits in
-//! UTF-16LE, as CDC 1.2 section 5.2.3.16 (iMACAddress) gives it and Linux
-//! usbnet_get_ethernet_addr reads it.
+//! UTF-16LE, as CDC 1.2 section 5.2.3.16 (iMACAddress) gives it, as
+//! recalled, unverified.
 
 use super::kinds::STRING;
 
