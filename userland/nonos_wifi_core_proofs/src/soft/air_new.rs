@@ -42,5 +42,6 @@ pub fn air(ap: SimAp) -> SimAir {
         beacon_at2: 0,
         rssi: [-50, -50],
         addr: (crate::soft::air::STA, false),
+        chat_to: None,
     }
 }
