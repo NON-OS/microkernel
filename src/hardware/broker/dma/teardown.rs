@@ -33,11 +33,11 @@ pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool) {
 /// invalidation waited on. False when the domain will not give it up: the
 /// frames are then leaked, never reused.
 pub(super) fn withdraw(g: &DmaGrant, unmap_pages: bool) -> bool {
-    // From the tables the holder runs in, from any context: a holder
-    // whose tables outlive it, a thread's or ones handed to an heir, must
-    // not keep a page onto frames freed below.
-    let unmapped = super::super::holder_space::unmap_from_holder(g.pid, g.user_va, g.length);
-    if !unmapped && unmap_pages {
+    // From the holder's tables, from any context: tables that outlive
+    // it, a thread's or an heir's, keep no page onto the frames freed below.
+    if super::super::holder_space::unmap_from_holder(g.pid, g.user_va, g.length) {
+        super::va::release(g.pid, g.user_va, g.length);
+    } else if unmap_pages {
         let _ = crate::memory::paging::unmap_user_dma(VirtAddr::new(g.user_va), g.length as usize);
     }
     if !super::super::confine::unmap(g.pid, g.device_addr, g.length, g.confined) {
