@@ -59,3 +59,10 @@ pub mod ipc_wipe;
 /// The entropy capsule's bytes, health-tested and mixed.
 #[path = "entropy_health/mod.rs"]
 pub mod entropy_health;
+/// A wall-clock correction's bounds, with the file's own tests (I2).
+#[path = "../../../src/syscall/microkernel/time/offset.rs"]
+pub mod time_offset;
+/// scrub.S assembled into the host, with its own test (I2).
+#[cfg(target_arch = "x86_64")]
+#[path = "../../../src/security/hardening/memory_sanitization/scrub_asm.rs"]
+mod scrub_asm;

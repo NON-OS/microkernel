@@ -21,7 +21,7 @@ const CLOCK_FLOOR_MS: u64 = 1_735_689_600_000;
 const CLOCK_CEIL_MS: u64 = 4_102_444_800_000;
 
 pub fn clamp_ok(correct_ms: u64) -> bool {
-    correct_ms >= CLOCK_FLOOR_MS && correct_ms <= CLOCK_CEIL_MS
+    (CLOCK_FLOOR_MS..=CLOCK_CEIL_MS).contains(&correct_ms)
 }
 
 pub fn compute_offset_ms(correct_ms: u64, base_ms: u64) -> i64 {
