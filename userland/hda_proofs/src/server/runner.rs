@@ -36,6 +36,7 @@ mod jack_lost_tests;
 mod jack_poll_tests;
 mod pcm_tests;
 mod poll_irq_tests;
+mod queue_tests;
 mod refill_count_tests;
 mod refill_tests;
 mod serve_tests;
