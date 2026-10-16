@@ -20,7 +20,7 @@ use super::defs::{CLASS_I2C_HID, MAX_DEVICES};
 
 /// The touchpad entry a kernel I2C-HID record describes. The record layout
 /// is set by src/hardware/broker/acpi_i2c/hid_record.rs.
-pub fn touchpad_of(r: &DeviceRecord) -> Option<AcpiTouchpad> {
+fn touchpad_of(r: &DeviceRecord) -> Option<AcpiTouchpad> {
     if r.bus_kind != BUS_KIND_ACPI || r.class != CLASS_I2C_HID {
         return None;
     }
