@@ -21,9 +21,9 @@ use crate::settings::schema::access_knob::Knob;
 use crate::settings::screens::arrange::{step, ScreenPage, Shown, SCALES};
 use crate::settings::screens::text::value;
 
-fn two() -> ScreenPage {
+pub(super) fn two() -> ScreenPage {
     let shown = Shown { outputs: 2, scale_q: 6, ..Shown::default() };
-    ScreenPage { shown, output: 0, read: true }
+    ScreenPage { shown, output: 0, read: true, levels: [None; 4] }
 }
 
 #[test]

@@ -17,6 +17,7 @@
 //! What each of the displays' rows says, as a person reads it.
 
 use super::arrange::ScreenPage;
+use super::percent::percent_of;
 use crate::settings::schema::access_knob::Knob;
 
 const DISPLAYS: [&str; 4] = ["Display 1", "Display 2", "Display 3", "Display 4"];
@@ -59,6 +60,10 @@ pub fn value(page: &ScreenPage, knob: Knob) -> &'static str {
             0 if page.output == 0 => automatic(s.scale_q),
             0 => "Automatic",
             q => percent(q),
+        },
+        Knob::Brightness => match page.levels.get(page.output as usize).copied().flatten() {
+            Some(l) => percent_of(l),
+            None => "not offered",
         },
         _ => "",
     }
