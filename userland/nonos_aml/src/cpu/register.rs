@@ -46,12 +46,12 @@ impl Register {
     }
 }
 
-/// The descriptor at the start of a template; None for anything else or a
-/// descriptor shorter than its fields.
+/// The descriptor at the start of a template; None for anything else, or
+/// one shorter than its fields, or claiming more than its buffer holds.
 pub fn register_in(t: &[u8]) -> Option<Register> {
     let (&tag, l) = (t.first()?, t.get(1..3)?);
     let len = u16::from_le_bytes([l[0], l[1]]) as usize;
-    let b = t.get(3..3 + BODY)?;
+    let b = t.get(3..3 + len)?;
     if tag != GENERIC_REGISTER || len < BODY {
         return None;
     }
