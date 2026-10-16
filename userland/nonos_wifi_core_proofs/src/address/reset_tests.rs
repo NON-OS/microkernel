@@ -24,7 +24,8 @@ use crate::soft::ap::SimAp;
 use crate::soft::frames::RSNE_PSK;
 use crate::soft::join::{sta_of, PASS, SSID};
 use crate::soft::rig::rig;
-use crate::soft::wire::{code, connect};
+use crate::soft::wire::{code, connect, netif};
+use nonos_wifi_core::netif::wire::OP_MAC_ADDRESS;
 use nonos_wifi_core::softmac::control::result::CODE_NO_ADDRESS;
 
 #[test]
@@ -48,7 +49,18 @@ fn a_move_is_not_made_from_a_radio_that_lost_the_networks_address() {
     let mut st = two_aps(|_| {}, [-85, -50]);
     let air = st.radio_mut().unwrap();
     (air.chat_to, air.addr.0) = (Some(air.addr.0), STA);
+    let joined = air.sent.len();
     assert!(run_until(&mut st, |s| s.session().is_none()), "the session ends");
     assert!(sent(&st, 0x20).is_empty(), "no reassociation");
-    assert!(sent(&st, 0xb0).len() == 1, "and no authentication past the join's");
+    let since = &st.radio().unwrap().sent[joined..];
+    assert!(!since.is_empty() && since.iter().all(|f| f[10..16] != STA), "none from its own");
+}
+
+#[test]
+fn net_core_is_told_the_sessions_address_whatever_the_chip_holds() {
+    let mut st = rig(SimAp::new(SSID, PASS, 6, &RSNE_PSK));
+    assert_eq!(code(&connect(&mut st, SSID, PASS, 0)), 0);
+    let net = sta_of(&st);
+    st.radio_mut().unwrap().addr.0 = STA;
+    assert_eq!(netif(&mut st, OP_MAC_ADDRESS, &[]), (0, net.to_vec()));
 }
