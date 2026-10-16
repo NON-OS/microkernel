@@ -29,6 +29,8 @@ pub mod driver_end;
 /// The driver-grant surface (A10): each call's cap, hold and grant.
 pub mod driver_grants;
 pub mod device_windows;
+#[cfg(test)]
+pub mod device_shown;
 pub mod fs;
 pub mod hardware;
 pub mod fb_frame;

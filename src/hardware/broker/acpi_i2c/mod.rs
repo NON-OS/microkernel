@@ -17,6 +17,7 @@
 mod clock;
 mod hid_info;
 mod hid_record;
+mod host_id;
 mod record;
 mod register;
 mod report;
