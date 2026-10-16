@@ -18,13 +18,20 @@
 //! the register window, the PHY behind MDIC, and the rings in host memory
 //! the rest are run against.
 
+mod clock_edge;
+mod held_look;
 mod memory;
 mod model;
+mod order;
 mod phy_model;
+mod probe;
+mod serve;
 
 mod bring_up_tests;
+mod bus_master_tests;
 mod control_tests;
 mod decode_fuzz;
+mod discover_tests;
 mod finish_tests;
 mod id_tests;
 mod link_tests;
@@ -33,16 +40,29 @@ mod mdic_live_tests;
 mod mdic_word_tests;
 mod pci_command_tests;
 mod power_up_tests;
+mod predecessor_tests;
+mod queue_enable_tests;
 mod reset_order_tests;
+mod reset_queue_tests;
+mod reset_sticky_tests;
 mod reset_tests;
+mod reset_wait_tests;
+mod runner_tests;
 mod rx_fuzz;
+mod rx_handler_tests;
 mod rx_queue_tests;
 mod rx_wb_tests;
 mod semaphore_tests;
 mod swfw_tests;
 mod timeout_text_tests;
 mod tx_encode_tests;
+mod tx_handler_tests;
+mod tx_hang_fail_tests;
+mod tx_hang_mac_tests;
+mod tx_hang_tests;
+mod tx_link_tests;
 mod tx_queue_tests;
 mod tx_ring_tests;
 mod tx_wrap_tests;
+mod wait_edge_tests;
 mod wait_tests;

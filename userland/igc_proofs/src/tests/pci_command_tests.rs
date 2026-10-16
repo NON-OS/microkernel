@@ -14,31 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The PCI Command value written after the claim: Memory Space and Bus
-//! Master on, and every bit the record already needed kept.
+//! The PCI Command value: Memory Space always, Bus Master only when asked,
+//! and nothing outside the broker's allowlist, so it is never refused and,
+//! once the broker stores it as written, "off" turns Bus Master off.
 
 use crate::setup::pci_command::command_value;
 
-const IO: u16 = 1 << 0;
 const MEMORY: u16 = 1 << 1;
 const BUS_MASTER: u16 = 1 << 2;
+const WRITABLE: u16 = MEMORY | BUS_MASTER | (1 << 10);
 
 #[test]
-fn memory_space_and_bus_master_are_always_set() {
-    assert_eq!(command_value(0), MEMORY | BUS_MASTER);
-    assert_eq!(command_value(MEMORY), MEMORY | BUS_MASTER);
+fn memory_space_always_and_bus_master_only_when_asked() {
+    assert_eq!(command_value(true), MEMORY | BUS_MASTER);
+    assert_eq!(command_value(false), MEMORY);
 }
 
 #[test]
-fn an_io_decode_the_record_needs_is_kept() {
-    assert_eq!(command_value(IO | MEMORY), IO | MEMORY | BUS_MASTER);
-}
-
-#[test]
-fn no_bit_the_record_held_is_ever_cleared() {
-    for bits in 0..=u16::MAX {
-        let v = command_value(bits);
-        assert_eq!(v & bits, bits);
-        assert_eq!(v & !bits & !(MEMORY | BUS_MASTER), 0, "nothing else is added");
+fn every_firmware_state_takes_the_value_and_keeps_its_other_bits() {
+    for current in 0..=u16::MAX {
+        for on in [false, true] {
+            let v = command_value(on);
+            assert_eq!(v & !WRITABLE, 0, "only allowlisted bits are written");
+            // Today's broker ORs the value in; the fixed one stores it.
+            assert_eq!((current | v) & !WRITABLE, current & !WRITABLE);
+            let stored = (current & !WRITABLE) | v;
+            assert_eq!(stored & BUS_MASTER != 0, on);
+        }
     }
 }

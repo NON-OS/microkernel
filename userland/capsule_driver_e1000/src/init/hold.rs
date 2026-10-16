@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A busy wait on the uptime clock, for the reset's fixed settle times.
+//! Busy waits on the uptime clock: the reset's fixed settle times, and its
+//! wait for the part to answer.
 
 use nonos_libc::Deadline;
 
@@ -25,4 +26,19 @@ pub fn hold_ms(ms: u64) {
     while !until.expired() {
         core::hint::spin_loop();
     }
+}
+
+/// True once `done` holds, false only after at least `ms` milliseconds (one
+/// more is added, as in `hold_ms`). `done` is asked once more after the
+/// deadline, so a part that answered while this thread was preempted is not
+/// reported as silent.
+pub fn until(ms: u64, mut done: impl FnMut() -> bool) -> bool {
+    let deadline = Deadline::after_ms(ms + 1);
+    while !done() {
+        if deadline.expired() {
+            return done();
+        }
+        core::hint::spin_loop();
+    }
+    true
 }

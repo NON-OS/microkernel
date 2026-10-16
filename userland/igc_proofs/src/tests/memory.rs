@@ -18,8 +18,10 @@
 //! sequence would leave it before bring-up.
 
 use nonos_devmodel::FakeBar;
+use nonos_libc::Deadline;
 
 use crate::constants::queue::{RX_DESC_COUNT, TX_DESC_COUNT};
+use crate::constants::timeouts::TX_HANG_MS;
 use crate::constants::MAC_LEN;
 use crate::queue::layout::{RxDesc, TxDesc};
 use crate::queue::{RxRing, TxRing};
@@ -57,12 +59,8 @@ impl Memory {
     pub fn driver(&mut self, bar: &FakeBar) -> Driver {
         Driver {
             device_id: 9,
+            claim_epoch: 1,
             pci_device: PCI_DEVICE,
-            mmio_grant: 20,
-            rx_ring_grant: 21,
-            rx_buffer_grant: 22,
-            tx_ring_grant: 23,
-            tx_buffer_grant: 24,
             rx_ring_device_addr: RX_RING_PHYS,
             tx_ring_device_addr: TX_RING_PHYS,
             regs: Regs::new(bar.base()),
@@ -70,6 +68,7 @@ impl Memory {
             rx: self.rx_ring(),
             tx: self.tx_ring(),
             link: None,
+            tx_watch: Deadline::after_ms(TX_HANG_MS),
         }
     }
 }

@@ -18,14 +18,13 @@
 //! buffer of 2 KiB, every descriptor in read format, and slots handed to the
 //! part only once the enable reads back.
 //!
-//! Not proven here: a queue whose enable never reads back. The model shares
-//! memory with the driver, so the driver's own write reads back before any
-//! concurrent model can undo it; that refusal rests on `until`, whose
-//! timeout is proven in wait_tests.
+//! An enable that never reads back, or reads back late, is in
+//! queue_enable_tests, where the part acts on the driver's looks at the
+//! clock, between its write and its first read.
 
 use crate::constants::queue::{RX_BUFFER_LEN, RX_DESC_COUNT};
 use crate::constants::regs::*;
-use crate::init::rx_queue::program;
+use crate::init::rx_queue::{enable, program};
 use crate::queue::layout::RxDesc;
 
 use super::memory::{Memory, RX_BUF_PHYS};
@@ -39,7 +38,9 @@ fn queue_zero_is_programmed_for_one_advanced_buffer_then_filled() {
     let mut mem = Memory::new();
     mem.rx[5] = RxDesc { buffer_addr: 0, staterr: 3, length: 9, vlan: 9 };
     bar.present32(REG_SRRCTL, 0x8000_0000 | 0x0E00_3F7F);
-    assert_eq!(program(&regs(&bar), &mem.rx_ring(), RING), Ok(()));
+    program(&regs(&bar), &mem.rx_ring(), RING);
+    assert_eq!(bar.wrote32(0xC028), 0, "the queue stays off until Bus Master is on");
+    assert_eq!(enable(&regs(&bar)), Ok(()));
     assert_eq!(bar.wrote32(0xC000), 0x0000_8000, "RDBAL");
     assert_eq!(bar.wrote32(0xC004), 0x0000_0002, "RDBAH");
     assert_eq!(bar.wrote32(0xC008), 512, "RDLEN");

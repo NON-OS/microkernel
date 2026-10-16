@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! e1000_flush_desc_rings before the reset on pch_spt and later: done only
-//! when config word 0xE4 asks and a ring is programmed, the transmit flush
-//! through this driver's own ring, the receive flush only if still asked.
+//! e1000_flush_desc_rings before the reset on pch_spt and later, on a part
+//! that has run on this driver's rings: done only when config word 0xE4
+//! asks and a ring is programmed, the transmit flush through this driver's
+//! own ring, the receive flush only if still asked and on its own ring too,
+//! whatever the ring registers name when it begins.
 
 use nonos_libc::{config_reads, set_ring_status};
 
@@ -27,17 +29,20 @@ use crate::constants::regs_pch::REG_FEXTNVM11;
 use crate::constants::rxtx::{RCTL_EN, RXDCTL_THRESH_UNIT_DESC, TCTL_EN};
 use crate::constants::Family;
 use crate::init::flush_rings;
-use crate::model::memory::{Memory, TX_RING_PHYS};
+use crate::model::memory::{Memory, RX_RING_PHYS, TX_RING_PHYS};
 use crate::model::window::pch;
 
+use super::helpers::started;
+
 #[test]
-fn a_ring_firmware_left_pending_is_flushed_through_the_drivers_own_ring() {
+fn a_ring_left_pending_on_a_started_part_is_flushed_through_the_drivers_own_ring() {
     let bar = pch();
     bar.present32(REG_TDLEN, 4096);
     bar.present32(REG_RCTL, RCTL_EN);
+    bar.present32(REG_RDBAL, 0x7FF0_0000);
     set_ring_status(0x100);
     let mut mem = Memory::new();
-    flush_rings::run(&mem.driver(&bar, Family::PchCnp, 0x15BB));
+    assert!(!flush_rings::run(&started(mem.driver(&bar, Family::PchCnp, 0x15BB))));
     assert_ne!(bar.wrote32(REG_FEXTNVM11) & FEXTNVM11_DISABLE_MULR_FIX, 0);
     assert_eq!((bar.wrote32(REG_TDBAL), bar.wrote32(REG_TDLEN)), (TX_RING_PHYS as u32, 512));
     assert_eq!((bar.wrote32(REG_TDH), bar.wrote32(REG_TDT)), (0, 1));
@@ -48,6 +53,8 @@ fn a_ring_firmware_left_pending_is_flushed_through_the_drivers_own_ring() {
     assert_eq!(bar.wrote32(REG_RXDCTL) & 0x3FFF, 0x11F);
     assert_ne!(bar.wrote32(REG_RXDCTL) & RXDCTL_THRESH_UNIT_DESC, 0);
     assert_eq!(bar.wrote32(REG_RCTL) & RCTL_EN, 0, "the receiver is left off");
+    let ring = (bar.wrote32(REG_RDBAL), bar.wrote32(REG_RDT));
+    assert_eq!(ring, (RX_RING_PHYS as u32, 31), "it ran on this driver's own primed ring");
     assert_eq!(config_reads(), [(0xE4, 2), (0xE4, 2)]);
 }
 
@@ -58,7 +65,7 @@ fn nothing_is_flushed_unless_the_part_asks_and_a_ring_exists() {
         bar.present32(REG_TDLEN, tdlen);
         set_ring_status(status);
         let mut mem = Memory::new();
-        flush_rings::run(&mem.driver(&bar, Family::PchMtp, 0x550A));
+        flush_rings::run(&started(mem.driver(&bar, Family::PchMtp, 0x550A)));
         assert_eq!(bar.wrote32(REG_TDT), 0);
         assert_eq!(mem.tx[0].length, 0);
     }

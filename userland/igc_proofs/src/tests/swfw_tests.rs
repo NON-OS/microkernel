@@ -16,7 +16,9 @@
 
 //! igc_acquire_swfw_sync_i225 / igc_release_swfw_sync_i225 for the PHY bit:
 //! taken and given back under the semaphore, and refused by name when the
-//! firmware keeps the PHY past the clock bound.
+//! firmware keeps the PHY past the clock bound, the whole bound even when
+//! the wait begins late in a millisecond and is looked at as its bound's
+//! millisecond begins (held_look).
 
 use std::time::Duration;
 
@@ -25,6 +27,7 @@ use crate::constants::regs::{REG_SWSM, REG_SW_FW_SYNC};
 use crate::constants::timeouts::SWFW_SYNC_MS;
 use crate::init::phy::swfw::{acquire, release, PHY_HELD};
 
+use super::held_look::never_gives_up_at_the_bound;
 use super::model::{regs, timed, window};
 
 const EEPROM_SW: u32 = 0x1;
@@ -45,9 +48,11 @@ fn the_phy_bit_is_taken_then_released_leaving_other_owners_alone() {
 fn firmware_holding_the_phy_is_waited_out_then_refused_by_name() {
     let bar = window();
     bar.present32(REG_SW_FW_SYNC, SWFW_PHY0_FW);
-    let (r, took) = timed(|| acquire(&regs(&bar)));
-    assert_eq!(r, Err(PHY_HELD));
-    assert!(took >= Duration::from_millis(SWFW_SYNC_MS), "gave up after {took:?}");
+    never_gives_up_at_the_bound(SWFW_SYNC_MS, || {
+        let (r, took) = timed(|| acquire(&regs(&bar)));
+        assert_eq!(r, Err(PHY_HELD));
+        assert!(took >= Duration::from_millis(SWFW_SYNC_MS), "gave up after {took:?}");
+    });
     assert_eq!(bar.wrote32(REG_SW_FW_SYNC), SWFW_PHY0_FW, "firmware's bit untouched");
     assert_eq!(bar.wrote32(REG_SWSM) & (SWSM_SMBI | SWSM_SWESMBI), 0);
 }

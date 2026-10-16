@@ -19,8 +19,16 @@ The capsule reaches the NIC through broker authority only:
 
 - `MkDeviceList` locates the RTL8139 PCI function.
 - `MkDeviceClaim` owns the NIC claim.
+- `MkPciConfigWrite` writes Bus Master off at the claim and on only after the
+  reset, once the receive buffer and transmit slots name the driver's own
+  memory. I/O decode is the kernel boot pass's to turn on; the broker does
+  not let a driver write it.
 - `MkPioGrant`, `MkPioRead`, and `MkPioWrite` access the port BAR.
-- `MkDmaMap` and `MkDmaUnmap` allocate packet buffers.
+- `MkDmaMap` allocates the receive buffer and transmit slots with
+  `MK_DMA_MAP_DMA32`, and each grant is held to end below 4 GiB: RBSTART and
+  TSAD are 32 bits wide.
+- `MkDeviceRelease` gives the device back. It clears Bus Master and reads it
+  back before it frees every grant, so the driver unmaps nothing by hand.
 - `MkIpcRecv` and `MkIpcSend` serve `driver.rtl8139_0` on
   `service:4212:driver.rtl8139_0`.
 - `CryptoRandom` draws the station address each boot (`src/init/mac.rs`).
@@ -60,10 +68,19 @@ and are revoked on exit.
 
 ## Runtime lifecycle
 
-The capsule claims the NIC, turns on bus mastering, takes the PIO grant,
-allocates packet buffers, initializes device registers, draws a station
-address, and serves raw-frame IPC. It polls and binds no interrupt. Teardown
-releases DMA, PIO, and claim grants.
+The capsule claims the NIC with Bus Master off, takes the PIO grant,
+allocates packet buffers, resets the part, draws a station address, names
+the receive buffer and transmit slots, turns Bus Master on, enables both
+engines, and serves raw-frame IPC. It polls and binds no interrupt.
+
+A transmit watchdog runs on every send: frames in flight with the link up
+and none finished for 6 s is a hung transmitter, and the part is reset and
+started over under the same station address, Bus Master staying on.
+
+Teardown is stop, reset, Bus Master off (effective once the kernel's K6
+lands; the broker ORs Command bits today), then `MkDeviceRelease`, which is
+the real guard: it clears Bus Master with a read-back before freeing every
+grant.
 
 ## Failure model
 
@@ -73,8 +90,10 @@ setup or programming gives back every grant, and the attempt is repeated on
 the shared bounded schedule (`nonos_libc::bring_up`: seven tries, sleeping
 between them); running out exits `EXIT_GAVE_UP` (6).
 
-Setup failure rolls back previous grants. TX/RX errors are reported as NIC
-faults. Empty RX is non-fatal. Port access remains broker-mediated for every
+A failure once the DMA grants are taken gives the device back as teardown
+does. A hung transmitter is logged (`tx hang, reset: done` or the step that
+failed), and a failed reset is tried again a whole watchdog bound later.
+TX/RX errors are reported as NIC faults. Empty RX is non-fatal. Port access remains broker-mediated for every
 hardware read/write.
 
 ## Current implemented surface

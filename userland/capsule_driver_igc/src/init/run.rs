@@ -15,29 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The bring-up, in Linux's order (igc_reset, igc_power_up_link,
-//! igc_configure): reset, receive filters under the drawn address, PHY
-//! power, link, MAC enables, transmit ring, receive ring.
+//! igc_configure): reset with Bus Master off, the station address drawn,
+//! then `start`.
 
 use crate::setup::Driver;
 
-use super::{control, link, mac_filter, phy, reset, rx_queue, station_address, tx_queue};
+use super::{reset, start, station_address};
 
 pub fn bring_up(driver: &mut Driver) -> Result<(), &'static str> {
-    let regs = driver.regs;
-    reset::run(&regs)?;
+    reset::run(&driver.regs)?;
     /*
      * Drawn, not read out of the NVM. The factory address identifies this
      * card to every network it ever joins, which outlives a system that keeps
      * nothing on disk. It is drawn before either enable bit is written, so a
      * card with no address never receives or sends.
      */
-    let mac = station_address::draw()?;
-    driver.mac = mac;
-    mac_filter::program(&regs, &mac);
-    phy::power_up::run(&regs)?;
-    link::run(&regs);
-    control::enable(&regs);
-    tx_queue::program(&regs, &driver.tx, driver.tx_ring_device_addr)?;
-    rx_queue::program(&regs, &driver.rx, driver.rx_ring_device_addr)?;
-    Ok(())
+    driver.mac = station_address::draw()?;
+    start::run(driver)
 }

@@ -19,11 +19,12 @@
 //! only read or written under the SWSM semaphore, and the semaphore is
 //! dropped between tries so firmware can finish with the PHY.
 
-use nonos_libc::{mk_idle_ms, Deadline};
+use nonos_libc::mk_idle_ms;
 
 use crate::constants::phy::{SWFW_PHY0_FW, SWFW_PHY0_SW};
 use crate::constants::regs::REG_SW_FW_SYNC;
 use crate::constants::timeouts::{SWFW_RETRY_MS, SWFW_SYNC_MS};
+use crate::init::wait::at_least;
 use crate::regs::Regs;
 
 use super::semaphore;
@@ -36,7 +37,7 @@ pub const PHY_HELD: &str = "phy semaphore not granted (SW_FW_SYNC PHY bit held)"
  */
 
 pub fn acquire(regs: &Regs) -> Result<(), &'static str> {
-    let deadline = Deadline::after_ms(SWFW_SYNC_MS);
+    let deadline = at_least(SWFW_SYNC_MS);
     loop {
         semaphore::get(regs)?;
         let sync = unsafe { regs.r32(REG_SW_FW_SYNC) };
