@@ -45,7 +45,12 @@ pub(super) fn take(log: &SerialLog, dev: &Found) -> EmmcResult<(MmioWindow, Clai
     let epoch = epoch as u64;
     let mut claim = Claim { device_id: dev.device_id, mmio_grant: None };
     let cmd = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_INTX_DISABLE;
-    let r = mk_pci_config_write(dev.device_id, epoch, MK_PCI_CFG_COMMAND, cmd);
+    // An ACPI host has no command register: its decoding is the firmware's.
+    let r = if dev.acpi {
+        0
+    } else {
+        mk_pci_config_write(dev.device_id, epoch, MK_PCI_CFG_COMMAND, cmd)
+    };
     if r < 0 {
         log.line(
             Line::new().s(b"PCI command write refused (").dec(r.unsigned_abs()).s(b")").as_bytes(),
