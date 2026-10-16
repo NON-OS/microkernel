@@ -20,10 +20,10 @@ use nonos_gfx_serve::Server;
 use crate::display::Bga;
 use crate::handles::BrokerHandles;
 
-/// A driver that came up: its broker handles, never read but held so their
-/// drop releases the claim and both grants only when the driver ends, and
-/// the wire server over the adapter.
+/// A driver that came up: its broker handles, read only for the adapter's
+/// id (a DGON names it) and held so their drop releases the claim and both
+/// grants only when the driver ends; and the wire server over the adapter.
 pub struct Driver {
-    pub _handles: BrokerHandles,
+    pub handles: BrokerHandles,
     pub server: Server<Bga, Pool>,
 }
