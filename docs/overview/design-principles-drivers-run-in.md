@@ -17,10 +17,9 @@ to it, and a claim the unit in service cannot confine is refused (`attach` in
 process, and the process teardown releases its claims and grants on the way out
 (`release_all_for_pid` in `src/process/exit/teardown.rs:47-51`).
 
-Of device code, the kernel keeps PCI enumeration and a virtio-rng entropy probe
-for its own boot (`init_pci` and `init_virtio_rng` in
-`src/drivers/mod.rs:17-35`), plus the interrupt controllers, the timers and the
-TPM.
+Of device code, the kernel keeps PCI enumeration for its own boot (`init_pci`
+in `src/drivers/mod.rs:17-32`), plus the interrupt controllers, the timers and
+the TPM. It drives no RNG device.
 
 The limits: every device a capsule claims shares its one domain, so each can
 reach the buffers granted for the others (`map` in
