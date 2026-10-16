@@ -47,7 +47,7 @@ pub fn release_all_for_pid(pid: u32) -> usize {
     for device_id in &held {
         super::quiesce::stop_bus_master(*device_id);
         // Before dma_release_all_for_pid frees its frames (K10a).
-        super::reset::at_release(*device_id);
+        super::reset::at_release(*device_id, None);
     }
     crate::hardware::broker::confine::detach_all(pid);
     held.len()
