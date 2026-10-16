@@ -15,18 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a bind settles on: the address and descriptor register OP_ACPI_HID
-//! answers with, and the addresses a client may reach (reach.rs in
+//! names first, and the addresses a client may reach (reach.rs in
 //! transaction/types says why that set is kept small). A device that
 //! returned its HID descriptor to setup's probe is alone in reach. A bind
 //! made before any did (multi-SKU firmware declares every pad a chassis may
 //! carry, and the fitted one may still be asleep) keeps in reach each pad
 //! declared on this controller or on none, and the one device the sweep
-//! found for a declaration with no address (sweep.rs); the first time a
-//! client reads a valid HID descriptor from one of them through
+//! found for a declaration with no address (sweep.rs), and OP_ACPI_HID
+//! names each of them in turn (named.rs in transaction/types); the first
+//! time a client reads a valid HID descriptor from one of them through
 //! OP_TRANSFER, at its declared register, the reach narrows to that address
-//! for the rest of the session (narrow.rs in transaction/types). An address
-//! declared twice carries the bound declaration's register, the one
-//! OP_ACPI_HID answers.
+//! for the rest of the session (narrow.rs there). An address declared twice
+//! carries the bound declaration's register, the one OP_ACPI_HID names.
 
 use core::iter::once;
 

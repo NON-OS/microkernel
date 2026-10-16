@@ -21,9 +21,9 @@ use nonos_i2cmodel::regs::LPSS_PRIV_RESETS;
 use nonos_i2cmodel::{descriptor, Config};
 use nonos_libc::{mk_uptime_ms, take_debug};
 
-use super::fixture::{bench, core};
+use super::fixture::{bench, core, transfer};
 use super::pace_tests::{read, DESC};
-use crate::transaction::{transfer, BusState, TransferRequest};
+use crate::transaction::{BusState, TransferRequest};
 
 #[test]
 fn a_controller_that_wedged_is_reset_and_the_next_transfer_goes_through() {

@@ -18,8 +18,8 @@
 
 use nonos_i2cmodel::{BusEvent, Command, Config, Dir};
 
-use super::fixture::{bench, core, PAD};
-use crate::transaction::{transfer, TransferRequest};
+use super::fixture::{bench, core, transfer, PAD};
+use crate::transaction::TransferRequest;
 
 /// SET_POWER ON to the command register, as the HID driver sends it.
 const SET_POWER_ON: [u8; 4] = [0x05, 0x00, 0x00, 0x08];
