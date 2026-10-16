@@ -1,5 +1,4 @@
 //! The policy's paused() reply is an ABI bool read strictly: a garbled word is not "not paused".
-#![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
 use nox_shield_core::net::policy_paused::bool_word;
 

@@ -1,5 +1,4 @@
 // A test runs hostile input through each parser; any panic fails it.
-#![allow(clippy::indexing_slicing, clippy::arithmetic_side_effects)]
 
 //! What a lander's onion service can answer: no reading of it may panic or loop.
 

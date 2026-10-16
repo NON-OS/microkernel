@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::panic, clippy::indexing_slicing)]
-
 use super::{fit, Recheck};
 use crate::evm::tx::Eip1559;
 

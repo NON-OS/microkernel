@@ -1,5 +1,4 @@
 //! AmountPolicy.rules(): four words read strictly, and the pool's _standard mirrored for the tests.
-#![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
 use nox_shield_core::net::policy_rules::{decode_rule, Rule, MAX_EXP};
 

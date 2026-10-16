@@ -1,6 +1,5 @@
 //! Every revert the production pool and its AmountPolicy raise has its own sentence, each selector
 //! derived here from its declaration in L1-Shield; FeeExceedsCap, which nothing raises, has none.
-#![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
 use nox_shield_core::net::pool_errors::explain;
 use sha3::{Digest, Keccak256};
