@@ -17,7 +17,8 @@
 //! Suspend, the firmware's half: S3 (ACPI 6.5, 7.4 and 16.1) with its wake
 //! devices, and suspend-to-idle through the Low Power S0 Idle device's
 //! _DSM. Pure: the PM1, FACS and GPE writes go through `SleepHardware`,
-//! and nothing here is reached until the capsule's switch is on.
+//! and nothing here is reached until the capsule's switch is on, except
+//! `s0_seen`, which only reads.
 
 mod hardware;
 mod idle;
@@ -25,6 +26,7 @@ mod lps0;
 mod outcome;
 mod prw;
 mod resume;
+mod s0_seen;
 mod s3;
 mod unwake;
 mod vendor;
@@ -37,6 +39,7 @@ pub use idle::{
 pub use lps0::{find_lps0, Lps0};
 pub use outcome::{Outcome, SuspendError};
 pub use prw::{read_prw, Prw};
+pub use s0_seen::{fadt_s0_idle, has_s3, lps0_seen, offered, Lps0Seen, LOW_POWER_S0_IDLE};
 pub use s3::{suspend_s3, S3};
-pub use vendor::{Vendor, INTEL_UUID, MICROSOFT_UUID};
+pub use vendor::{uuids, Uuids, Vendor, AMD_UUID, INTEL_UUID, MICROSOFT_UUID};
 pub use wake::{Armed, Skip};
