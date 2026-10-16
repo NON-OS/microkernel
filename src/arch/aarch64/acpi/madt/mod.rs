@@ -22,4 +22,4 @@ mod walk;
 
 pub use gicc::Gicc;
 pub use parts::{Gicd, Gicr, Its};
-pub use walk::{madt_gic, Gic};
+pub use walk::{madt_gic, Gic, MAX_STRUCTURES};
