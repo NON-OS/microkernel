@@ -29,6 +29,8 @@ mod command_tests;
 #[cfg(test)]
 mod cursor_tests;
 #[cfg(test)]
+mod data_length_tests;
+#[cfg(test)]
 mod directed_tests;
 #[cfg(test)]
 mod event_tests;

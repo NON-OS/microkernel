@@ -25,8 +25,7 @@ use nonos_bt_wire::hci::event_code::{LE_CONNECTION_COMPLETE, LE_META};
 use nonos_bt_wire::hci::le_meta::{split, LeConnectionComplete};
 use nonos_bt_wire::hci::opcode as op;
 
-/// The status a cancel gets when no connection attempt is pending
-/// (Vol 4, Part E, 7.8.13; Vol 1, Part F, 2).
+/// The status a cancel gets with no attempt pending (7.8.13; Vol 1, Part F).
 const COMMAND_DISALLOWED: u8 = 0x0c;
 
 impl<T: Transport> Host<T> {
@@ -40,7 +39,7 @@ impl<T: Transport> Host<T> {
         self.command_pending(create, &create_connection_params_as(c, self.own)?)?;
         if let Some(done) = self.wait_for(connection_complete)? {
             return match done.status {
-                0 => Ok(done),
+                0 => self.opened(done),
                 s => Err(HciError::Status(create, s)),
             };
         }
@@ -51,9 +50,16 @@ impl<T: Transport> Host<T> {
             Err(e) => return Err(e),
         }
         match self.wait_for(connection_complete)? {
-            Some(done) if done.status == 0 => Ok(done),
+            Some(done) if done.status == 0 => self.opened(done),
             _ => Err(HciError::Timeout(create)),
         }
+    }
+}
+
+impl<T: Transport> Host<T> {
+    fn opened(&mut self, done: LeConnectionComplete) -> Result<LeConnectionComplete, HciError> {
+        self.ask_data_length(done.handle)?;
+        Ok(done)
     }
 }
 
