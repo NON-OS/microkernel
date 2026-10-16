@@ -16,6 +16,7 @@ const CMD_CLO: u32 = 1 << 3;
 
 impl Hba {
     pub(super) fn write_cmd(&mut self, v: u32) {
+        self.before_cmd(v);
         let was = self.reg.cmd;
         if v & CMD_CLO != 0 {
             // With CAP.SCLO, the HBA's copy of BSY and DRQ only.

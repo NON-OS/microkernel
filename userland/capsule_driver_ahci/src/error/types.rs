@@ -50,6 +50,11 @@ pub enum AhciError {
     /// the HBA may still own its command list and buffer: nothing more is
     /// built or issued on it.
     Wedged,
+    /// A port's PxCMD still shows ST, CR, FRE or FR, or PxCI or PxSACT a
+    /// slot, after the HBA reset and a stop of its own: it may fetch or post
+    /// at frames a dead driver gave it, so the controller is left alone and
+    /// never given Bus Master.
+    EnginesRunning,
 }
 
 pub type AhciResult<T> = Result<T, AhciError>;

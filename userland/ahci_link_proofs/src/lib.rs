@@ -1,7 +1,8 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Host proofs for the AHCI driver: its pure decisions, and its command path
-//! run against a model HBA port and drive. The tree mirrors the driver's, so
-//! the included files' `crate::` and `super::` paths resolve unchanged.
+//! Host proofs for the AHCI driver: its decisions, and its open, command and
+//! hand-back paths on a model HBA. The tree mirrors the driver's paths.
+
+extern crate alloc;
 
 pub mod choose;
 /// The driver's clock, on the host's.
@@ -28,16 +29,15 @@ pub mod protocol;
 /// The MMIO accessor: host memory, or the model port a test plugs in.
 #[cfg(test)]
 mod regs;
-// Its `parse` is visible only to its parent, here the crate root, so it is
-// built where the tests that call it are.
+// Its `parse` is visible to its parent only: built at the root, by its tests.
 #[cfg(test)]
 #[path = "../../capsule_driver_ahci/src/server/handlers/rw_parse.rs"]
 mod rw_parse;
-
-/// The kernel's Intel VMD list, which the driver's rule must agree with.
+/// The driver's open path and what it takes, over the stand-in nonos_libc.
 #[cfg(test)]
-#[path = "../../../src/hardware/inventory/vmd.rs"]
-mod kernel_vmd;
+mod setup;
+#[cfg(test)]
+use setup::{handles, log};
 
 #[cfg(test)]
 mod bring_up_tests;

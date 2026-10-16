@@ -5,3 +5,6 @@ pub mod candidate;
 pub mod layout;
 #[path = "../../../capsule_driver_ahci/src/choose/pick.rs"]
 pub mod pick;
+
+pub use candidate::Candidate;
+pub use pick::choose;

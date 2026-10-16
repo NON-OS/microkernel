@@ -23,7 +23,7 @@ use crate::regs::Regs;
 /// Stop the command list engine and FIS receive. `Err` when CR or FR did not
 /// clear in time: the HBA may then still DMA into the port's command list
 /// or FIS region, and the caller must not give that memory back.
-pub(super) fn stop(regs: Regs, base: u32) -> AhciResult<()> {
+pub(crate) fn stop(regs: Regs, base: u32) -> AhciResult<()> {
     stop_engine(regs, base)?;
     // SAFETY: the port's register block lies inside the mapped ABAR.
     unsafe {

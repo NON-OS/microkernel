@@ -13,27 +13,29 @@ use super::script::Step;
 use crate::constants::ata::{DATA_BUF_BYTES, STRUCT_REGION_BYTES};
 use crate::constants::timing::COMMAND_MS;
 use crate::engine::port::Port;
+use crate::engine::region::DmaRegion;
 use crate::identity::Names;
 use crate::regs::Regs;
 
 pub struct Rig {
     pub port: Port,
     pub hba: Rc<RefCell<Hba>>,
-    /// Command list, command table, FIS area, data buffer, and a register
-    /// file nothing reaches while the model is plugged in.
-    pub(super) mem: [Block; 5],
+    /// A register file nothing reaches while the model is plugged in.
+    regs: Block,
 }
 
 impl Rig {
     /// A port on an HBA with or without CAP.SCLO, whose drive runs `script`.
+    /// Its regions are broker grants, which the model reaches by their bus
+    /// addresses (`iommu`).
     pub fn new(script: Vec<Step>, sclo: bool) -> Self {
+        let region = |len| DmaRegion::map(1, 3, len, 0).expect("a DMA grant");
         let s = STRUCT_REGION_BYTES;
-        let mem = [s, s, s, DATA_BUF_BYTES, s].map(Block::new);
         let port = Port {
-            clb: mem[0].region(),
-            ctba: mem[1].region(),
-            _fb: mem[2].region(),
-            data: mem[3].region(),
+            clb: region(s),
+            ctba: region(s),
+            _fb: region(s),
+            data: region(DATA_BUF_BYTES),
             base: 0,
             capacity_sectors: CAPACITY,
             names: Names::empty(),
@@ -42,14 +44,14 @@ impl Rig {
             command_ms: COMMAND_MS,
             reset_window: None,
         };
-        let hba = Rc::new(RefCell::new(Hba::new(mem[0].addr(), script)));
+        let hba = Rc::new(RefCell::new(Hba::new(port.clb.device_addr(), script)));
         hba.borrow_mut().quirks.sclo = sclo;
         plug(hba.clone());
-        Self { port, hba, mem }
+        Self { port, hba, regs: Block::new(s) }
     }
 
     pub fn regs(&self) -> Regs {
-        Regs::new(self.mem[4].addr())
+        Regs::new(self.regs.addr())
     }
 
     pub fn hba(&self) -> RefMut<'_, Hba> {

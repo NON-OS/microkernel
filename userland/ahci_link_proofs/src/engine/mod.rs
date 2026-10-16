@@ -1,9 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The driver's engine: the command wait's verdicts, the spans and PRD
-//! counts a command may carry, and the command path itself, issue to
-//! recovery, which the tests run against a model port and drive.
+//! The driver's engine, bring-up to hand-back, run against a model port and drive.
 
-mod bare_port;
 #[path = "../../../capsule_driver_ahci/src/engine/build.rs"]
 mod build;
 #[path = "../../../capsule_driver_ahci/src/engine/cause.rs"]
@@ -27,13 +24,19 @@ pub(crate) mod flush;
 mod holdup;
 #[path = "../../../capsule_driver_ahci/src/engine/identify.rs"]
 pub(crate) mod identify;
+#[path = "../../../capsule_driver_ahci/src/engine/init.rs"]
+pub(crate) mod init;
 #[path = "../../../capsule_driver_ahci/src/engine/issue.rs"]
 mod issue;
 #[path = "../../../capsule_driver_ahci/src/engine/kick.rs"]
 mod kick;
 pub mod link;
+#[path = "../../../capsule_driver_ahci/src/engine/park.rs"]
+pub(crate) mod park;
 #[path = "../../../capsule_driver_ahci/src/engine/port.rs"]
 pub(crate) mod port;
+#[path = "../../../capsule_driver_ahci/src/engine/port_map.rs"]
+mod port_map;
 #[path = "../../../capsule_driver_ahci/src/engine/prd_count.rs"]
 pub mod prd_count;
 #[path = "../../../capsule_driver_ahci/src/engine/prdt.rs"]
@@ -42,6 +45,9 @@ pub(crate) mod prdt;
 mod prdt_write;
 #[path = "../../../capsule_driver_ahci/src/engine/prepare.rs"]
 mod prepare;
+#[path = "../../../capsule_driver_ahci/src/engine/program.rs"]
+mod program;
+mod program_tests;
 #[path = "../../../capsule_driver_ahci/src/engine/ready.rs"]
 pub mod ready;
 #[path = "../../../capsule_driver_ahci/src/engine/recover.rs"]
@@ -49,6 +55,7 @@ pub(crate) mod recover;
 mod recover_cause_tests;
 mod recover_stuck_tests;
 mod recover_tests;
+#[path = "../../../capsule_driver_ahci/src/engine/region.rs"]
 pub(crate) mod region;
 #[path = "../../../capsule_driver_ahci/src/engine/region_io.rs"]
 mod region_io;
@@ -57,11 +64,12 @@ pub mod span;
 #[path = "../../../capsule_driver_ahci/src/engine/start.rs"]
 mod start;
 #[path = "../../../capsule_driver_ahci/src/engine/stop.rs"]
-mod stop;
+pub(crate) mod stop;
 mod stop_tests;
 #[path = "../../../capsule_driver_ahci/src/engine/transfer.rs"]
 pub(crate) mod transfer;
 #[path = "../../../capsule_driver_ahci/src/engine/verdict.rs"]
 pub mod verdict;
 
+pub(crate) use park::{park, retire};
 pub(crate) use port::Port;

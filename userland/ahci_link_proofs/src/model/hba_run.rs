@@ -15,6 +15,15 @@ impl Hba {
         self.reg.cmd & (CMD_ST | CMD_CR) == CMD_ST | CMD_CR
     }
 
+    pub(super) fn issue(&mut self, v: u32) {
+        self.count.issued += 1;
+        if !self.running() {
+            self.count.issued_stopped += 1;
+        }
+        self.reg.ci |= v;
+        self.at.ci = Some(crate::clock::now());
+    }
+
     pub(super) fn advance(&mut self) {
         let now = crate::clock::now();
         if let Some(t) = self.quirks.busy_until.take() {
@@ -55,6 +64,6 @@ impl Hba {
             return;
         }
         self.at.taken = Some(now);
-        self.drive.take(fetch::command(self.clb), now);
+        self.drive.take(fetch::command(self.clb, self.wide), now);
     }
 }

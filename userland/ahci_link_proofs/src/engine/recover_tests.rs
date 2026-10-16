@@ -19,10 +19,10 @@
 //! end at once and only the bits the driver writes are left to read. The
 //! recovery by cause, on a model port, is in `recover_cause_tests`.
 
-use super::bare_port::bare_port;
 use super::cause::Cause;
 use super::recover::recover;
 use crate::constants::regs::{CMD_FRE, CMD_ST, PORT_CMD, PORT_IS, PORT_SERR};
+use crate::model::bare_port;
 use crate::regs::Regs;
 
 pub(super) const PORT_WORDS: usize = 0x80 / 4;
