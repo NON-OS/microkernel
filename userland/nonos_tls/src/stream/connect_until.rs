@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `connect` for a caller that already holds its own end, such as one op's
-//! whole budget: the handshake stops at that end or at HANDSHAKE_MS from
-//! its first byte, whichever comes first.
+//! whole budget: the handshake stops at that end or at HANDSHAKE_MS past
+//! the Io's patience from its first byte, whichever comes first.
 
 use crate::session::{Io, SessionError};
 
