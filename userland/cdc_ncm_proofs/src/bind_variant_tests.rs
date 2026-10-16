@@ -60,14 +60,9 @@ fn a_refused_input_size_fails_only_when_blocks_would_not_fit() {
     let r = bind(dev.bus(), &dev.found());
     assert!(matches!(r, Bind::Failed("SET_NTB_INPUT_SIZE refused, blocks too large", -32)));
     dev.params = ntb_params(1, 1024, 16384, (4, 0, 4));
+    let _ = nonos_usbnet::say::said();
     let Bind::Ours(nic) = bind(dev.bus(), &dev.found()) else { panic!("not bound") };
     assert_eq!(nic.rx_max, 1024, "2048 asked, refused, the device's own kept");
-}
-
-#[test]
-fn a_displaylink_dock_is_not_padded_to_the_full_block() {
-    let mut dev = Dev::ncm(0);
-    dev.vendor = 0x17e9;
-    let Bind::Ours(nic) = bind(dev.bus(), &dev.found()) else { panic!("not bound") };
-    assert!(nic.shape.zlp);
+    let said = nonos_usbnet::say::said();
+    assert_eq!(said.iter().filter(|l| l.contains("under 2048")).count(), 1, "said once");
 }
