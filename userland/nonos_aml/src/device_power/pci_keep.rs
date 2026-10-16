@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which moves a PCI function's configuration does not survive, so that
-//! DEVICE_POWER refuses them until the kernel can put it back (PCI Power
+//! DEVICE_POWER refuses those the kernel cannot put back (PCI Power
 //! Management, as recalled, unverified): D3cold, whose power goes, and
 //! D3hot unless the function's power management status says No_Soft_Reset
 //! (bit 3), without which leaving D3hot resets it. A function with no
@@ -37,4 +37,11 @@ pub fn loses_config(from: DState, to: DState, pmcsr: Option<u16>) -> bool {
         DState::D3Hot => pmcsr.is_none_or(|p| p & NO_SOFT_RESET == 0),
         _ => false,
     }
+}
+
+/// The same for a claimed function, whose configuration the broker puts
+/// back once it is in D0 again (L62): only D3cold still loses it, since
+/// that takes the link and what the bridge above holds for it too.
+pub fn loses_config_claimed(from: DState, to: DState) -> bool {
+    from != to && to == DState::D3Cold
 }
