@@ -59,9 +59,9 @@ impl TouchWalk {
         } else if tag == 0xB {
             for f in 0..count {
                 let usage = usage_for(&self.usages.list, self.usages.n, f as usize);
-                let field =
-                    Field { bit_offset: self.feature_bit_offset, bit_size: size, logical_max: max };
-                feature(layout, page, usage, rid, field);
+                if let Some(field) = Field::bounded(self.feature_bit_offset, size, max) {
+                    feature(layout, page, usage, rid, field);
+                }
                 self.feature_bit_offset = self.feature_bit_offset.saturating_add(size);
             }
         }
