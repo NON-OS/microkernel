@@ -62,6 +62,6 @@ fn is_rndis_control(i: &Interface) -> bool {
 /// none (as recalled, unverified). Only that class is checked: the
 /// wireless class codes do not define the field this way.
 fn acm_capable(raw: &[u8], c: &Interface) -> bool {
-    let acm = find_functional(raw, c.number, ACM_FUNCTIONAL).filter(|d| d.len() >= 4);
+    let acm = find_functional(raw, c.number, ACM_FUNCTIONAL, 4);
     c.class == CLASS_COMM && acm.is_some_and(|d| d[3] != 0)
 }
