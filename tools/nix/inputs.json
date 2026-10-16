@@ -3060,6 +3060,7 @@
    "src/arch/aarch64/security/spectre/branch.rs",
    "src/arch/aarch64/security/spectre/cores.rs",
    "src/arch/aarch64/security/spectre/decide.rs",
+   "src/arch/aarch64/security/spectre/entry.rs",
    "src/arch/aarch64/security/spectre/history.rs",
    "src/arch/aarch64/security/spectre/ids.rs",
    "src/arch/aarch64/security/spectre/plan.rs",

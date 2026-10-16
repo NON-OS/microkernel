@@ -7,6 +7,8 @@ pub const TRAMPOLINE: &str = include_str!("../../../src/arch/aarch64/asm/epd1_tr
 pub const VECTORS: &str = include_str!("../../../src/arch/aarch64/asm/vectors.S");
 pub const ENTER_USER: &str = include_str!("../../../src/arch/aarch64/asm/enter_user.S");
 pub const RESUME_USER: &str = include_str!("../../../src/arch/aarch64/asm/resume_user.S");
+pub const SPECTRE_ENTRY: &str = include_str!("../../../src/arch/aarch64/security/spectre/entry.rs");
+pub const SPECTRE_WORK: &str = include_str!("../../../src/arch/aarch64/asm/spectre_work.h");
 
 /// Every file of the kernel's layout constants.
 pub const LAYOUT: [&str; 12] = [
