@@ -35,14 +35,14 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         Err(e) => return fail("alloc", e),
     };
 
-    let user_va = match install::install(pages, req.length, phys_start, req.flags) {
+    let user_va = match install::install(pid, pages, req.length, phys_start, req.flags) {
         Ok(va) => va,
         Err(e) => {
             alloc::free(phys_start, pages);
             return fail("install", e);
         }
     };
-    let placed = Placed { phys_start, pages, length: req.length, user_va };
+    let placed = Placed { pid, phys_start, pages, length: req.length, user_va };
 
     let (device_addr, confined) =
         match crate::hardware::broker::confine::map(pid, req.device_id, phys_start, req.length) {
@@ -60,12 +60,14 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         return fail("dma32", DmaMapError::Above4G);
     }
 
-    // Entered only while the claim holds (K10); a release since validate
-    // finds nothing to revoke, so the map comes out here.
-    let Some(grant_id) = record::record(pid, &req, claim_epoch, &placed, device_addr, confined)
-    else {
-        placed.undo_mapped(pid, device_addr, confined);
-        return fail("record", DmaMapError::StaleEpoch);
+    // Entered only while the claim holds and within the quota (K10); a
+    // release since validate finds nothing to revoke, so the map comes out.
+    let grant_id = match record::record(pid, &req, claim_epoch, &placed, device_addr, confined) {
+        Ok(id) => id,
+        Err(e) => {
+            placed.undo_mapped(pid, device_addr, confined);
+            return fail("record", e);
+        }
     };
     Ok(DmaMapResult { user_va, device_addr, length: req.length, grant_id })
 }

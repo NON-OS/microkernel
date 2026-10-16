@@ -46,8 +46,11 @@ pub mod pio;
 #[cfg(not(target_arch = "x86_64"))]
 mod pio_absent;
 mod platform;
+mod quota;
 mod power;
 mod table;
+mod va_space;
+mod va_window;
 mod windows;
 
 mod api;
