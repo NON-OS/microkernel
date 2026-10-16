@@ -16,7 +16,7 @@
 
 //! What the shell last read of the system: whether the network was up, the
 //! clock's format and zone, when the policy store may next be asked, and
-//! what the compositor was told of the displays it keeps.
+//! what the compositor was told of the displays it keeps and of the lid.
 
 pub struct Readings {
     /// Whether the DHCP client held an address at the last tick: the menu
@@ -30,6 +30,8 @@ pub struct Readings {
     pub policy_gap: crate::state::quiet_gap::QuietGap,
     /// What the compositor was told of the displays the store keeps.
     pub displays: crate::state::display_told::Replay,
+    /// What the lid asks of the screen, and which compositor has it.
+    pub lid: crate::state::lid::LidTold,
 }
 
 impl Readings {
@@ -40,6 +42,7 @@ impl Readings {
             tz_hours: 0,
             policy_gap: crate::state::quiet_gap::QuietGap::new(),
             displays: crate::state::display_told::Replay::default(),
+            lid: crate::state::lid::LidTold::default(),
         }
     }
 }
