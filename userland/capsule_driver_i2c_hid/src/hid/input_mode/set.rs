@@ -17,7 +17,8 @@
 //! SET_REPORT: command register, type/id + opcode, then the data register
 //! and the length-prefixed report.
 
-use super::command::{Command, REPORT_MAX};
+use super::command::Command;
+use super::port::REPORT_MAX;
 use crate::i2c_client::write_read;
 
 const OPCODE_SET_REPORT: u8 = 0x03;

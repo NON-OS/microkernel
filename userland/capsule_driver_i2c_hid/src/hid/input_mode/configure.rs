@@ -18,7 +18,8 @@
 //! configured once.
 
 use super::one_report::configure_one_report;
-use crate::hid::report_desc::TouchLayout;
+use super::port::FeaturePort;
+use crate::hid::TouchLayout;
 
 /// The Precision Touchpad collection. Modern PTP-only pads implement the
 /// mouse collection for compliance only, and it never generates reports;
@@ -32,7 +33,7 @@ const SWITCH_ON: u32 = 1;
 /// Drive input mode to touchpad and both reporting switches on, touching only
 /// feature reports that need a change. Returns true when the configuration
 /// is known good (already correct, or corrected).
-pub fn configure_reporting(port: u32, addr: u8, desc: &[u8; 30], layout: &TouchLayout) -> bool {
+pub fn configure_reporting(port: &impl FeaturePort, layout: &TouchLayout) -> bool {
     let targets = [
         (layout.input_mode, layout.input_mode_report_id, INPUT_MODE_TOUCHPAD),
         (layout.surface_switch, layout.surface_switch_report_id, SWITCH_ON),
@@ -49,7 +50,7 @@ pub fn configure_reporting(port: u32, addr: u8, desc: &[u8; 30], layout: &TouchL
         }
         done_ids[done] = id;
         done += 1;
-        all_ok &= configure_one_report(port, addr, desc, id, &targets);
+        all_ok &= configure_one_report(port, id, &targets);
     }
     all_ok
 }

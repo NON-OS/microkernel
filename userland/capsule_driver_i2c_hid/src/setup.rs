@@ -52,12 +52,12 @@ pub fn reprobe(state: &mut State) {
         // sees no writes, while one left muted or mode-switched by a
         // previous session gets repaired. Read pacing comes from the GPIO
         // doorbell. Best-effort: pads without the features are unaffected.
-        let _ = crate::hid::configure_reporting(
-            state.i2c_port,
-            state.addr,
-            &state.descriptor,
-            &state.touch_layout,
-        );
+        let features = crate::hid::I2cFeatures {
+            port: state.i2c_port,
+            addr: state.addr,
+            desc: &state.descriptor,
+        };
+        let _ = crate::hid::configure_reporting(&features, &state.touch_layout);
         dump_layout(state);
     } else if state.probes == UNANSWERED_PROBES {
         say_once(state, "driver.i2c_hid: no HID-over-I2C touchpad answers on the I2C bus; if this machine has one, it is on a controller or address NONOS cannot reach\n");

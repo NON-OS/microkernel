@@ -18,9 +18,6 @@
 //! descriptor's command and data registers. SET_REPORT reuses it with the
 //! opcode swapped.
 
-/// The longest feature report handled, report id byte included.
-pub(super) const REPORT_MAX: usize = 62;
-
 const OPCODE_GET_REPORT: u8 = 0x02;
 const REPORT_TYPE_FEATURE: u8 = 3;
 

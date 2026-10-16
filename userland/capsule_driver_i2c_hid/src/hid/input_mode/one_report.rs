@@ -17,25 +17,20 @@
 //! One feature report: read, changed where a target field is wrong, and
 //! written back only when a bit changed.
 
-use super::command::{command, REPORT_MAX};
 use super::fallback::from_descriptor;
-use super::get::get;
-use super::set::set;
+use super::port::{FeaturePort, REPORT_MAX};
 use super::set_bits::set_bits;
-use crate::hid::report_desc::Field;
+use crate::hid::Field;
 
 // Read-modify-write one feature report: apply every target field that lives
 // in it, write back only when a bit actually changed.
 pub(super) fn configure_one_report(
-    port: u32,
-    addr: u8,
-    desc: &[u8; 30],
+    port: &impl FeaturePort,
     id: u8,
     targets: &[(Field, u8, u32); 3],
 ) -> bool {
-    let Some(cmd) = command(desc, id) else { return false };
     let mut report = [0u8; REPORT_MAX];
-    let mut report_len = get(port, addr, &cmd, id, &mut report);
+    let mut report_len = port.get(id, &mut report);
     let mut changed = false;
     if report_len < 2 {
         let Some(len) = from_descriptor(id, targets, &mut report) else { return false };
@@ -51,5 +46,5 @@ pub(super) fn configure_one_report(
     if !changed {
         return true;
     }
-    set(port, addr, &cmd, &report[..report_len])
+    port.set(&report[..report_len])
 }
