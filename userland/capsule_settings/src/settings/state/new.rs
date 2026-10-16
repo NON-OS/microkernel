@@ -22,8 +22,8 @@ use super::edit_buffer::EditBuffer;
 use super::machine_key::MachineKey;
 use crate::settings::section::{Section, SECTION_COUNT};
 
-use super::state::{State, WifiConnect, WifiScan, FIELD_SLOTS, WIFI_MAX, WIFI_NET_MAX};
 use super::search::Search;
+use super::state::{State, WifiConnect, WifiScan, FIELD_SLOTS, WIFI_MAX, WIFI_NET_MAX};
 use super::status::Status;
 use super::wifi_diag::WifiDiag;
 use super::wifi_extra::WifiExtra;
