@@ -17,7 +17,7 @@
 //! The machine, and what it says is due.
 
 use super::seen::Rejoin;
-use super::{Due, Phase, NOT_YET_MS};
+use super::Phase;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Machine {
@@ -40,24 +40,6 @@ impl Machine {
 
     pub fn done(&self) -> bool {
         self.phase == Phase::Done
-    }
-
-    pub fn due(&self, now_ms: i64) -> Due {
-        if now_ms < self.next_ms {
-            return Due::Nothing;
-        }
-        match self.phase {
-            Phase::Waiting => Due::Attempt,
-            Phase::Joining { .. } => Due::Watch,
-            Phase::Done => Due::Nothing,
-        }
-    }
-
-    /// A link is already bound: leave it alone and look again later.
-    pub fn bound(&mut self, now_ms: i64) {
-        if self.phase == Phase::Waiting {
-            self.next_ms = now_ms + NOT_YET_MS;
-        }
     }
 }
 
