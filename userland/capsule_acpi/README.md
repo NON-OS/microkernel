@@ -168,15 +168,22 @@ revokes the holder's interrupt routes, DMA grants and domain, port and
 MMIO grants and claim before it answers. A listed platform controller
 (no function, a `_HID` record) found gone leaves the same way by its
 record id (modes 2 and 3); one found there with no record is published. A dock found present is docked
-with `_DCK(1)` first. An eject request (Notify 3) waits while any
+with `_DCK(1)` first, then locked in with `_LCK(1)` when it has one; a
+device that brings new functions is locked in the same way. An eject
+request (Notify 3) is taken for a device with `_EJ0`, or with an `_RMV`
+that answers 1, and waits while any
 function it takes with it (the device, all below it, and for a dock all
 that names it in `_EJD`) is held, retrying every 2 s; then each function
-leaves the table with mode 1 (refused while held), a dock is undocked
-with `_DCK(0)`, and `_EJ0(1)` runs. If `_STA` still says present 5 s
-later, the device is looked at again and probed back; platform records
+leaves the table with mode 1 (refused while held), the device is
+unlocked with `_LCK(0)`, a dock is undocked with `_DCK(0)`, and
+`_EJ0(1)` runs. A step that fails after the unlock locks it again. A
+removable device with no `_EJ0` is said free to take out, and has 60 s
+before it is looked at again. If `_STA` still says present 5 s after
+`_EJ0`, the device is looked at again and probed back; platform records
 an eject took out are published again when firmware refuses it. One `hotplug` line
 per arrival, departure, dock, undock, wait and eject. The Notify values
-and the `_EJ0` and `_DCK` arguments are recalled, unverified.
+and the `_EJ0`, `_DCK`, `_LCK` and `_RMV` values are recalled,
+unverified.
 
 ## Microkernel contract
 

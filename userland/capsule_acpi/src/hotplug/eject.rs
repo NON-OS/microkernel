@@ -19,14 +19,16 @@
 //! device and all below it, and for a dock all that names it in `_EJD`.
 //! Each function and platform record leaves the kernel's table first
 //! (`MkPciDepart` in eject mode, refused while one is held), so nothing can
-//! be claimed between the check and `_EJ0`; a dock is undocked with
-//! `_DCK(0)` first. If any step fails, what was taken out is put back.
+//! be claimed between the check and `_EJ0`; the device is unlocked
+//! (`_LCK(0)`) and a dock undocked (`_DCK(0)`) first (`release.rs`). If
+//! any step fails, what was taken out is put back.
 
 use super::cover::covered;
+use super::release::let_go;
 use super::state::Bdf;
 use super::take_out::{put_back_all, take_out};
-use crate::boot::{evaluator, Acpi};
-use nonos_aml::hotplug::{dock, eject, is_dock};
+use crate::boot::Acpi;
+use nonos_aml::hotplug::{Released, Stopped};
 use nonos_aml::namespace::Id;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -34,24 +36,16 @@ pub enum Refused {
     Held(Bdf),
     /// A platform record's holder, by the record's device id.
     HeldRecord(u64),
-    Undock,
-    Eject,
+    /// Firmware's side stopped: `_LCK(0)`, `_DCK(0)` or `_EJ0` failed, or
+    /// the device is neither ejectable nor removable.
+    Firmware(Stopped),
 }
 
-pub fn try_eject(acpi: &mut Acpi, id: Id) -> Result<(), Refused> {
+pub fn try_eject(acpi: &mut Acpi, id: Id) -> Result<Released, Refused> {
     let ids = covered(acpi, id);
     let t = take_out(acpi, &ids)?;
-    let undock = match is_dock(&acpi.aml, id) {
-        true => Some(dock(&mut acpi.aml, &mut evaluator(&mut acpi.host), id, false)),
-        false => None,
-    };
-    if matches!(undock, Some(Some(Err(_) | Ok(false)))) {
+    let_go(acpi, id).map_err(|why| {
         put_back_all(acpi, &t);
-        return Err(Refused::Undock);
-    }
-    let r = eject(&mut acpi.aml, &mut evaluator(&mut acpi.host), id);
-    r.map_err(|_| {
-        put_back_all(acpi, &t);
-        Refused::Eject
+        Refused::Firmware(why)
     })
 }

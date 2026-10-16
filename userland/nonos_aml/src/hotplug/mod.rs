@@ -16,15 +16,22 @@
 
 //! Hot-plug and docking, the AML half (ACPI 6.5, 5.6.6 and 6.3): which
 //! Notify values ask for a check, which devices a check covers, and the
-//! methods that eject and dock. What a device's leaving costs its driver
-//! is the kernel's to enforce; this only reads and runs firmware's side.
+//! methods that eject, lock and dock. What a device's leaving costs its
+//! driver is the kernel's to enforce; this only reads and runs firmware's
+//! side.
 
 mod check;
 mod dock;
 mod eject;
+mod lock;
+mod outcome;
+mod sequence;
 mod targets;
 
 pub use check::{check, Check};
 pub use dock::{dependents, dock, is_dock};
 pub use eject::{eject, ejectable, EjectError};
+pub use lock::{lock, lockable, removable};
+pub use outcome::{Has, Released, Stopped};
+pub use sequence::{release, Steps};
 pub use targets::{present, targets};

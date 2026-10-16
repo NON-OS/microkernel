@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Docking and a dock found gone. `_DCK(1)` docks; only a dock it reports
-//! docked has what is below it looked at. A dock that is gone without an
-//! eject took everything that names it in `_EJD` with it.
+//! Docking and a dock found gone. `_DCK(1)` docks, then `_LCK(1)` locks
+//! it in; only a dock it reports docked has what is below it looked at.
+//! A dock that is gone without an eject took everything that names it in
+//! `_EJD` with it.
 
 use super::leave::leave;
 use crate::boot::{evaluator, path, Acpi};
@@ -35,6 +36,7 @@ pub fn docked(acpi: &mut Acpi, id: Id) -> bool {
     if ok {
         acpi.hotplug.docked.push(id);
         l.str(b": docked").end();
+        super::release::lock_in(acpi, id);
     } else {
         l.str(b": _DCK(1) did not dock").end();
     }
