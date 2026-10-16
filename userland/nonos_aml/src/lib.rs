@@ -50,6 +50,7 @@ pub mod namespace;
 pub mod object;
 pub mod op;
 pub mod parse;
+pub mod pci_dsm;
 pub mod platform;
 pub mod platform_device;
 pub mod ports;

@@ -45,6 +45,7 @@ pub const OP_TPM_PPI: u8 = 18;
 pub const OP_POWER_METER: u8 = 19;
 pub const OP_SET_POWER_CAP: u8 = 20;
 pub const OP_HOLDER: u8 = 21;
+pub const OP_PCI_FIRMWARE: u8 = 22;
 pub const EPERM: i32 = -1;
 pub const ENOENT: i32 = -2;
 pub const EIO: i32 = -5;

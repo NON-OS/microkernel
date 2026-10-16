@@ -16,7 +16,7 @@
 
 //! The capsule's start: tables, namespace, devices, events.
 
-use super::say::{say_cooling, say_ec};
+use super::say::say_ec;
 use super::state::Acpi;
 use super::{bringup, load, report, sci, tables};
 use crate::host::CapsuleHost;
@@ -38,7 +38,6 @@ pub fn boot() -> Option<Acpi> {
     let mut buttons = crate::buttons::find(&devices);
     crate::buttons::read_lid(&mut buttons, &mut aml, &mut host);
     let cooling = crate::cooling::find(&mut aml, &mut host);
-    say_cooling(&cooling);
     let backlight = crate::backlight::find(&mut aml, &mut host);
     let cpus = crate::cpu::find(&mut aml, &mut host);
     let hotkeys = crate::hotkeys::find(&devices, &mut aml, &mut host);
@@ -57,6 +56,7 @@ pub fn boot() -> Option<Acpi> {
         dpower: Default::default(),
         hidden: Default::default(),
         hotplug: Default::default(),
+        pci_firmware: Default::default(),
         backlight,
         hotkeys,
         serial,

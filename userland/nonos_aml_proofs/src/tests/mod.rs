@@ -42,6 +42,7 @@ mod lock_tests;
 mod logic_tests;
 mod model;
 mod mutation_tests;
+mod pci_dsm;
 mod name_tests;
 mod opcode_tests;
 mod osi_ladder_tests;

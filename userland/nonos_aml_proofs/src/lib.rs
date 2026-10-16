@@ -51,6 +51,8 @@ pub mod object;
 pub mod op;
 #[path = "../../nonos_aml/src/parse/mod.rs"]
 pub mod parse;
+#[path = "../../nonos_aml/src/pci_dsm/mod.rs"]
+pub mod pci_dsm;
 #[path = "../../nonos_aml/src/platform/mod.rs"]
 pub mod platform;
 #[path = "../../nonos_aml/src/platform_device/mod.rs"]
