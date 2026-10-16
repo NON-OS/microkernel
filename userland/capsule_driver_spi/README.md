@@ -29,14 +29,22 @@ reply's payload starts with a 4-byte status. TRANSFER and CLOSE are the
 holder's alone (-1 otherwise).
 
 - `HEALTHCHECK` (1): 0.
-- `OPEN` (2): `device u16, 0, 0, input_clock u32`. -16 while a live client
-  holds it.
+- `OPEN` (2): `device u16, 0, 0, input_clock u32, key u64`, the key being
+  the claimed function's broker device id with bit 63 set: the key the
+  firmware's serial-bus record and driver.gpio0 name this host by. -16
+  while a live client holds it.
 - `CLOSE` (3): 0.
 - `TRANSFER` (4): `mode u8, 0, 0, 0, hz u32`, then 1 to 4000 bytes out:
   as many bytes in. Mode 0 to 3 (bit 1 CPOL, bit 0 CPHA). The bit clock is
   the fastest not above `hz`; a `hz` slower than the divider reaches is
   refused (-22), never run faster. -110 when the core stops answering,
   -5 on an overrun or a chip select that would not move.
+- `DOORBELL` (5): `uid u16, pin u16`, the holder's device's GpioInt line:
+  `present u32, rang u32`. driver.gpio0 reports a line only to the
+  claimant of its bus controller, so this driver drains gpio0's EVENTS
+  (op 1) under its own key for the holder (the gpio0 client is
+  driver.i2c_pci0's, mounted). `present` is 0 while gpio0 is absent or
+  refuses; the holder then reads on its timer.
 
 ## Wire format
 
