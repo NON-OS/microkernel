@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod assemble;
+mod assembled;
 mod frame;
 mod heard;
 mod init;
 mod job;
 mod job_end;
 mod key;
+mod opening;
 mod talk;
 
 pub use frame::{CMD_CANCEL, CMD_CBOR, PACKET};

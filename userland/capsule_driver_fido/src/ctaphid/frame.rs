@@ -24,7 +24,8 @@ use alloc::vec::Vec;
 pub const PACKET: usize = 64;
 const INIT_DATA: usize = PACKET - 7;
 const CONT_DATA: usize = PACKET - 5;
-/// The longest message the framing carries: 57 + 128 * 59 bytes.
+/// The longest message the framing carries: 57 + 128 * 59 = 7609 bytes,
+/// as recalled, unverified.
 pub const MESSAGE_MAX: usize = INIT_DATA + 128 * CONT_DATA;
 
 pub type Cid = [u8; 4];

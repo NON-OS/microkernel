@@ -3,6 +3,9 @@
 Status: wired, not yet signed, and held to no one. The kernel mirror
 (`src/hardware/fido_capsule`) embeds and spawns it under
 `nonos-capsule-driver-fido` wherever the inventory sees a USB host, after
+the hub walker. It has no owner certificate yet, so no image carries it
+until the owner signs it. Its endpoint is held `KERNEL_ONLY`: it finds a
+key and says so, and serves nobody until the owner names who may ask a
 key to sign (Decision 9).
 
 ## Role
@@ -62,7 +65,11 @@ answers -19 while there is no key, and every op but HEALTHCHECK and OPEN
 
 As above; every field little-endian. To the key, CTAPHID (as recalled,
 unverified): 64-byte reports, INIT 86h, CBOR 90h, CANCEL 91h, KEEPALIVE
-BBh, ERROR BFh. To the host, the host wire (`NXHC`): CONTROL_TRANSFER,
+BBh, ERROR BFh. INIT is taken only with our nonce and a channel neither 0
+nor broadcast; a message is at most 7609 bytes, its continuations 0 to 127
+in order, another channel's reports never spliced in, and one opened
+again before it ended is broken. KEEPALIVE is taken only with one byte,
+status 1 or 2; ERROR only with one byte, its code passed up. To the host, the host wire (`NXHC`): CONTROL_TRANSFER,
 ALLOC_TRANSFER_RING (0x09), INTERRUPT_IN (0x0E), INTERRUPT_OUT (0x25),
 CLAIM_INTERFACE (0x26) and SLOT_OF_PORT (0x27).
 
@@ -73,6 +80,7 @@ CLAIM_INTERFACE (0x26) and SLOT_OF_PORT (0x27).
 Irq, Dma, Pio or Crypto: it reaches the key only through a host, and its
 INIT nonce only has to tell its own answer apart. Its endpoint is held to
 no one: a key signs for whoever reaches it once touched, so who may ask is
+the owner's to decide.
 
 ## Current implemented surface
 
@@ -121,6 +129,7 @@ A key that leaves its port is given back and its holder let go.
 
 ## Release target
 
+USB FIDO2 keys for one client the owner names: a browser's WebAuthn, or
 an SSH agent with `sk-` keys.
 
 ## Release evidence
@@ -135,6 +144,7 @@ quiet and abandoned requests). The application reader is covered in
 ## Release checklist
 
 - Decision 9: who may hold driver.fido0.
+- Signed by the owner and added to an image's features.
 - A boot with a key; QEMU's `u2f-passthru`/`u2f-emulated` (as recalled,
   unverified) speak CTAP1 only, so they are no test of this.
 
