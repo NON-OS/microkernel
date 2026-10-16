@@ -23,6 +23,7 @@ mod data_frames;
 pub mod env;
 pub mod frames;
 pub mod join;
+pub mod protect;
 pub mod quirks;
 pub mod rig;
 pub mod wire;

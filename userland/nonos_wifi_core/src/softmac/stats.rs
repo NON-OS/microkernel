@@ -30,6 +30,8 @@ pub struct LinkStats {
     /// Frames the station's checks refused.
     pub rx_refused: u32,
     pub rekeys: u32,
+    /// The session AP's beacons that failed beacon protection's checks.
+    pub beacons_refused: u32,
 }
 
 impl LinkStats {

@@ -26,6 +26,8 @@ use crate::softmac::stats::LinkStats;
 
 /// Frames taken per pump, so a busy channel never starves the serve loop.
 const PER_PUMP: usize = 32;
+/// The first frame control octet of a Beacon.
+const SUBTYPE_BEACON_FC: u8 = 0x80;
 
 /// Why a session ended on its own.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -51,10 +53,15 @@ impl Session {
             if f.len() < 24 {
                 continue;
             }
-            if f[10..16] == self.bssid {
+            // A beacon's checks decide whether it shows the AP is there.
+            if f[10..16] == self.bssid && f[0] != SUBTYPE_BEACON_FC {
                 self.heard_ms = env.now_ms();
             }
             let ended = match fc_type(u16::from_le_bytes([f[0], f[1]])) {
+                TYPE_MGMT if f[0] == SUBTYPE_BEACON_FC => {
+                    self.on_beacon(f, rx, env, st);
+                    None
+                }
                 TYPE_DATA => self.on_data(r, f, rx, st),
                 TYPE_MGMT => self.on_mgmt(r, env, f, rx.decrypted),
                 _ => None,

@@ -16,7 +16,7 @@
 
 //! The answers that need no air time. Status: the bring-up stage, then the
 //! data-path counters, the chip's diagnostic words, the refusals and rekeys,
-//! and the code of the last roam that failed.
+//! the code of the last roam that failed, and the beacons refused.
 //! Link: `[associated u8][bssid 6][ssid_len u8][ssid][akm u8]`, the AKM
 //! telling the client to remember a WPA3 network as WPA3. Scan: the
 //! scanner's three counters, then the networks it has heard.
@@ -30,8 +30,9 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         let diag = self.radio.as_ref().map_or([0; 5], Radio::diag);
         out[0] = self.stage;
         let words = [s.tx_ok, s.tx_drop, s.rx_ring, s.rx_eth, s.netif_reqs, s.rx_err];
-        // Then the last failed roam's code, 0 after a roam that succeeded.
-        let tail = [s.rx_refused, s.rekeys, self.last_roam as u32];
+        // Then the last failed roam's code, 0 after a roam that succeeded,
+        // and the beacons beacon protection refused.
+        let tail = [s.rx_refused, s.rekeys, self.last_roam as u32, s.beacons_refused];
         for (i, w) in words.iter().chain(diag.iter()).chain(tail.iter()).enumerate() {
             out[1 + 4 * i..5 + 4 * i].copy_from_slice(&w.to_le_bytes());
         }
