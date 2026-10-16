@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::drain::drain_for_pid;
-use super::records::{allocate_id, insert, try_each};
+use super::records::{allocate_id, insert_if, try_each};
 use super::types::DmaGrant;
 
 fn grant(pid: u32, phys: u64) -> DmaGrant {
@@ -39,7 +39,7 @@ fn grant(pid: u32, phys: u64) -> DmaGrant {
 fn the_wipe_walk_sees_every_live_grant_and_never_waits_on_a_held_table() {
     let pid = 0xD3A1;
     for i in 0..5u64 {
-        insert(grant(pid, 0x10_0000 + i * 4096));
+        assert!(insert_if(grant(pid, 0x10_0000 + i * 4096), |_| true));
     }
     let mut seen = std::vec::Vec::new();
     assert!(try_each(|g| {

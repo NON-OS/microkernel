@@ -50,7 +50,7 @@ pub(super) fn bind_msi(
         }
     };
     let grant_id = records::allocate_id();
-    records::insert(IrqGrant {
+    super::enter::enter(&[IrqGrant {
         grant_id,
         pid,
         device_id: req.device_id,
@@ -61,7 +61,7 @@ pub(super) fn bind_msi(
         kind: IrqGrantKind::Msi,
         device_vector: 0,
         irte,
-    });
+    }])?;
     slots::activate(slot, grant_id, NO_LINE);
     crate::log::info!("[IRQ] {} msi vector {:#x}", handle.address, vector);
     Ok(IrqBindResult { grant_id, vector, grants: 1 })
