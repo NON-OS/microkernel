@@ -87,6 +87,8 @@
 9:
 .endm
 
+#include "epd1.h"
+
 /* The IA key across the EL0 boundary (security::pac): EL0's is kept in the
  * frame and the kernel's put in, and EL0's put back before the eret. Only
  * where TPIDR_EL1 names a key slot, which is only where pointer
@@ -198,6 +200,37 @@ __aarch64_vectors_el1:
 
 .size __aarch64_vectors_el1, . - __aarch64_vectors_el1
 
+/* Where the EPD1 trampoline's slots land, in the same order as the table
+ * above: x30 back from TPIDRRO_EL0, which is cleared, then the same entry
+ * the table's slot takes. Reached by BR from the trampoline, hence `bti j`. */
+.macro TRAMP_TARGET handler
+    .balign 0x80
+    hint    #36                         /* BTI j */
+    mrs     x30, tpidrro_el0
+    msr     tpidrro_el0, xzr
+    b       \handler
+.endm
+
+.balign 0x800
+.globl __aarch64_tramp_targets
+__aarch64_tramp_targets:
+    TRAMP_TARGET __aarch64_invalid_sp0_sync
+    TRAMP_TARGET __aarch64_invalid_sp0_irq
+    TRAMP_TARGET __aarch64_invalid_sp0_fiq
+    TRAMP_TARGET __aarch64_invalid_sp0_serror
+    TRAMP_TARGET __aarch64_sync_current
+    TRAMP_TARGET __aarch64_irq_current
+    TRAMP_TARGET __aarch64_fiq_current
+    TRAMP_TARGET __aarch64_serror_current
+    TRAMP_TARGET __aarch64_sync_lower
+    TRAMP_TARGET __aarch64_irq_lower
+    TRAMP_TARGET __aarch64_fiq_lower
+    TRAMP_TARGET __aarch64_serror_lower
+    TRAMP_TARGET __aarch64_invalid_aarch32_sync
+    TRAMP_TARGET __aarch64_invalid_aarch32_irq
+    TRAMP_TARGET __aarch64_invalid_aarch32_fiq
+    TRAMP_TARGET __aarch64_invalid_aarch32_serror
+
 /* Entry stubs. Each saves the frame, calls the Rust handler with x0 =
  * frame pointer, then restores and erets. A handler that diverges
  * (halt) never reaches the eret path. */
@@ -253,7 +286,7 @@ __aarch64_sync_lower:
     RESTORE_SYSREGS_USER
     PAC_TO_EL0
     RESTORE_GPRS
-    eret
+    EXIT_TO_EL0
 
 .balign 16
 __aarch64_irq_lower:
@@ -266,7 +299,7 @@ __aarch64_irq_lower:
     RESTORE_SYSREGS_USER
     PAC_TO_EL0
     RESTORE_GPRS
-    eret
+    EXIT_TO_EL0
 
 .balign 16
 __aarch64_fiq_lower:
@@ -279,7 +312,7 @@ __aarch64_fiq_lower:
     RESTORE_SYSREGS_USER
     PAC_TO_EL0
     RESTORE_GPRS
-    eret
+    EXIT_TO_EL0
 
 .balign 16
 __aarch64_serror_lower:
@@ -292,7 +325,7 @@ __aarch64_serror_lower:
     RESTORE_SYSREGS_USER
     PAC_TO_EL0
     RESTORE_GPRS
-    eret
+    EXIT_TO_EL0
 
 /* The two groups the kernel never uses. Each slot gets its own entry so
  * the handler knows which kind of exception it was: ESR_EL1 and FAR_EL1
