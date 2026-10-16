@@ -36,7 +36,7 @@ pub fn owed(
     all: &[VoucherRecord],
 ) -> Result<Vec<VoucherRecord>, i32> {
     let data = |v, id: &[u8; 32]| view(v).and_then(|x| view_calldata(x, &[*id])).ok_or(EINVAL);
-    let mut calls = Vec::with_capacity(3 * all.len());
+    let mut calls = Vec::with_capacity(all.len().saturating_mul(3));
     for r in all {
         for v in [10, 11, 13] {
             calls.push((*settlement, data(v, &r.channel_id)?));
@@ -48,9 +48,10 @@ pub fn owed(
     let words = eth_calls(&mut s.rpc, chain_id, &calls)?;
     let mut out = Vec::new();
     for (r, w) in all.iter().zip(words.chunks_exact(3)) {
-        let deposited = word_u128(&w[0]).ok_or(EPROTO)?;
-        let settled = word_u128(&w[1]).ok_or(EPROTO)?;
-        let closed = word_bool(&w[2]).ok_or(EPROTO)?;
+        let [deposited, settled, closed] = w else { return Err(EPROTO) };
+        let deposited = word_u128(deposited).ok_or(EPROTO)?;
+        let settled = word_u128(settled).ok_or(EPROTO)?;
+        let closed = word_bool(closed).ok_or(EPROTO)?;
         if deposited > 0 && !closed && r.cumulative > settled && out.len() < SETTLED_MAX {
             out.push(*r);
         }

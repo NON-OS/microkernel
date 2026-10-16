@@ -37,7 +37,7 @@ pub fn listing(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
         return Err(ENOENT);
     }
     let head = parse_u64(&s.rpc.call(chain, &request_block_number(1))?).ok_or(EPROTO)?;
-    let cursor = s.cursors.get(chain);
+    let cursor = s.cursors.get(chain).ok_or(ENOENT)?;
     if !cursor.full {
         let from = cursor.scanned.saturating_add(1).max(first);
         let more = scan(&mut s.rpc, chain, &registry, (from, head), None)?;
