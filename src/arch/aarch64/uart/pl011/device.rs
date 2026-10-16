@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::arch::aarch64::mmu::io;
 use core::ptr::{read_volatile, write_volatile};
 
 pub(crate) struct Pl011 {
@@ -28,11 +29,11 @@ impl Pl011 {
     pub(super) fn read_reg(&self, offset: u64) -> u32 {
         // SAFETY: `base` is the console window the boot path mapped as device
         // memory, and every offset used here lies inside the PL011's 4 KiB.
-        unsafe { read_volatile((self.base + offset) as *const u32) }
+        unsafe { read_volatile((io(self.base) + offset) as *const u32) }
     }
 
     pub(super) fn write_reg(&self, offset: u64, value: u32) {
         // SAFETY: as for `read_reg`.
-        unsafe { write_volatile((self.base + offset) as *mut u32, value) }
+        unsafe { write_volatile((io(self.base) + offset) as *mut u32, value) }
     }
 }

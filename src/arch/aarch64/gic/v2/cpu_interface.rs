@@ -16,6 +16,7 @@
 
 //! The GICv2 CPU interface: memory mapped, banked per CPU at one address.
 
+use crate::arch::aarch64::mmu::io;
 use core::ptr::{read_volatile, write_volatile};
 
 const GICC_CTLR: u64 = 0x00;
@@ -47,7 +48,7 @@ impl CpuInterface {
     pub(super) fn acknowledge(&self) -> u32 {
         // SAFETY: the base came from the device tree or the board default and
         // was mapped as device memory at boot; IAR is a 32-bit register.
-        unsafe { read_volatile((self.base + GICC_IAR) as *const u32) }
+        unsafe { read_volatile((io(self.base) + GICC_IAR) as *const u32) }
     }
 
     pub(super) fn end(&self, raw: u32) {
@@ -57,6 +58,6 @@ impl CpuInterface {
     fn write(&self, offset: u64, value: u32) {
         // SAFETY: as in `acknowledge`; every offset here is a 32-bit register
         // inside the CPU interface's first page.
-        unsafe { write_volatile((self.base + offset) as *mut u32, value) }
+        unsafe { write_volatile((io(self.base) + offset) as *mut u32, value) }
     }
 }

@@ -18,6 +18,7 @@ use core::ptr::read_volatile;
 
 use super::super::intid::is_spi;
 use super::state::{V2m, USED_WORDS, V2M};
+use crate::arch::aarch64::mmu::io;
 
 const MSI_TYPER: u64 = 0x008;
 const MSI_SETSPI_NS: u64 = 0x040;
@@ -31,7 +32,7 @@ pub fn bring_up(base: u64, first: u32, count: u32) -> Result<u64, &'static str> 
     } else {
         // SAFETY: the frame the tree described, mapped as device memory at
         // boot beside the distributor.
-        let typer = unsafe { read_volatile((base + MSI_TYPER) as *const u32) };
+        let typer = unsafe { read_volatile((io(base) + MSI_TYPER) as *const u32) };
         ((typer >> 16) & 0x3ff, typer & 0x3ff)
     };
     let last = first.checked_add(count.saturating_sub(1));
