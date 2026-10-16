@@ -12,4 +12,4 @@ mod grants_tests;
 #[cfg(test)]
 mod regs_tests;
 #[cfg(test)]
-mod request_refusal_tests;
+mod request_inbox_tests;

@@ -18,7 +18,7 @@
 
 use nonos_wifi_core::scan_list::{ScanResults, MAX_RESULTS};
 
-/// The control family tag, distinct from this driver's own protocol tag.
+/// The control family tag.
 pub(super) const WIFI_MAGIC: u32 = 0x5749_4649;
 pub(super) const WIFI_HDR: usize = 10;
 /// net_core's link protocol tag (`netif::wire::MAGIC_NNET`).

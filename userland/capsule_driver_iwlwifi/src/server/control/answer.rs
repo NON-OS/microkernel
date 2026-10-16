@@ -25,7 +25,7 @@ fn put32(out: &mut [u8], at: usize, v: u32) {
 }
 
 /// Answer a control request into `out` (at least `REPLY_MAX` bytes). `None`
-/// when `req` is not one, so it goes on to this driver's own protocol.
+/// when `req` is not one.
 pub fn answer(req: &[u8], view: &View<'_>, out: &mut [u8]) -> Option<usize> {
     if req.len() < WIFI_HDR || out.len() < REPLY_MAX {
         return None;
