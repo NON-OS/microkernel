@@ -14,50 +14,50 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! CMD2 reads the CID, CMD3 asks the card its address, CMD9 reads the
-//! CSD, CMD7 selects the card.
+//! CMD2 reads the CID, CMD3 asks the card its address, CMD9 reads the CSD
+//! (csd.rs), CMD7 selects the card. Each answer must come from the state
+//! the sequence put the card in.
 
 use super::super::super::env::{Clock, Log, Mmio};
 use super::super::super::error::{EmmcError, EmmcResult};
-use super::super::super::mmc::cmds::{rca_arg, ALL_SEND_CID, SELECT_CARD, SEND_CSD};
-use super::super::super::mmc::init::step::{r1_ok, step};
-use super::super::super::mmc::r1::CARD_IS_LOCKED;
-use super::super::super::mmc::regs::{bits, r2};
+use super::super::super::mmc::cmds::{rca_arg, ALL_SEND_CID, SELECT_CARD};
+use super::super::super::mmc::init::step::{r1_in, step};
+use super::super::super::mmc::r1::{state, CARD_IS_LOCKED, STATE_IDENT, STATE_STBY};
+use super::super::super::mmc::regs::r2;
 use super::super::super::mmc::Cid;
 use super::super::super::sdhci::{Cmd, Host, Resp};
 use super::super::super::text::Line;
 use super::super::cmds::SEND_RELATIVE_ADDR;
-use super::super::regs::{sd_cid, sd_sectors};
+use super::super::regs::sd_cid;
+use super::csd::read_csd;
 
-/// R6 bits 15:13: COM_CRC_ERROR, ILLEGAL_COMMAND and ERROR (4.9.5, as recalled, unverified).
+/// R6 bits 15:13: COM_CRC_ERROR, ILLEGAL_COMMAND and ERROR; 12:0 are the
+/// status's own (4.9.5, as recalled, unverified).
 const R6_ERRORS: u32 = 0xe000;
 
-/// The card's CID, the address it published and its size in sectors. A
-/// password locked card fails here.
+/// The card's CID, the address it published and its size in sectors, for
+/// a card addressed in sectors or not. A password locked card fails here.
 pub(super) fn identify<M: Mmio, C: Clock, L: Log>(
     h: &mut Host<M, C, L>,
+    sector_mode: bool,
 ) -> EmmcResult<(Cid, u16, u64)> {
     let cid = sd_cid(r2(step(h, &Cmd::new(ALL_SEND_CID, 0, Resp::R2), b"CMD2 ALL_SEND_CID")?));
     // R6 has R1's format on the bus.
     let r = step(h, &Cmd::new(SEND_RELATIVE_ADDR, 0, Resp::R1), b"CMD3 SEND_RELATIVE_ADDR")?;
-    if r[0] & R6_ERRORS != 0 {
-        h.say(Line::new().s(b"CMD3 status error ").hex(r[0] as u64));
+    let rca = (r[0] >> 16) as u16;
+    // Address 0 selects no card (CMD7 with it deselects all): a card that
+    // publishes it cannot be selected.
+    if r[0] & R6_ERRORS != 0 || state(r[0]) != STATE_IDENT || rca == 0 {
+        h.say(Line::new().s(b"CMD3 answered ").hex(r[0] as u64));
         return Err(EmmcError::Status { cmd: SEND_RELATIVE_ADDR, status: r[0] });
     }
-    let rca = (r[0] >> 16) as u16;
-    let csd = r2(step(h, &Cmd::new(SEND_CSD, rca_arg(rca), Resp::R2), b"CMD9 SEND_CSD")?);
-    let Some(sectors) = sd_sectors(csd) else {
-        h.say(
-            Line::new().s(b"SD csd structure ").dec(bits(csd, 127, 126) as u64).s(b" not served"),
-        );
-        return Err(EmmcError::NoCapacity);
-    };
+    let sectors = read_csd(h, rca, sector_mode)?;
     let r = step(h, &Cmd::new(SELECT_CARD, rca_arg(rca), Resp::R1), b"CMD7 SELECT_CARD")?;
     if r[0] & CARD_IS_LOCKED != 0 {
         h.say(Line::new().s(b"card is password locked"));
         return Err(EmmcError::Locked);
     }
-    r1_ok(h, SELECT_CARD, r[0])?;
+    r1_in(h, SELECT_CARD, r[0], STATE_STBY)?;
     h.say(
         Line::new()
             .s(b"SD card ")
