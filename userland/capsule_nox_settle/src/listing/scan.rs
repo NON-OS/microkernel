@@ -49,7 +49,7 @@ pub(crate) fn scan(
 ) -> Result<Found, i32> {
     let mut out = Found::default();
     let keep = |listing: &[u8; 32]| only.is_none_or(|o| o == listing);
-    for (a, b) in log_pages(from, to)? {
+    for (a, b) in log_pages(chain_id, from, to)? {
         for topic in [PUBLISHED_TOPIC, WITHDRAWN_TOPIC] {
             let resp = rpc.call(chain_id, &request_logs(registry, &topic, a, b, 1))?;
             for l in parse_logs(&resp).ok_or(EPROTO)?.iter().filter(|l| l.address == *registry) {
