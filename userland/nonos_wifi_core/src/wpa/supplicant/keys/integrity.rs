@@ -25,7 +25,8 @@ pub(super) fn integrity(
     ids: core::ops::RangeInclusive<u16>,
 ) -> Option<Option<Integrity>> {
     let Some(i) = k else { return Some(None) };
-    if i.key.len() != IGTK_LEN || !ids.contains(&i.key_id) {
+    // An all-zero key is no key: one is never installed (`group_keys`).
+    if i.key.len() != IGTK_LEN || !ids.contains(&i.key_id) || i.key.iter().all(|&b| b == 0) {
         return None;
     }
     let mut key = [0u8; IGTK_LEN];

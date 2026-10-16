@@ -36,9 +36,14 @@ impl LinkStation {
     }
 
     /// Take a group key for software decryption, with its Key RSC as the
-    /// replay floor.
+    /// replay floor. The key its slot already holds keeps its counter: an AP
+    /// that hands back a key it rotated away from, or a handshake replayed,
+    /// never resets a key in use to an older floor.
     pub fn set_group_key(&mut self, key_id: u8, key: TemporalKey, rsc: u64) {
         if let Some(slot) = self.group_keys.get_mut(key_id as usize) {
+            if slot.as_ref() == Some(&key) {
+                return;
+            }
             *slot = Some(key);
             self.replay.set_group(key_id, rsc);
         }

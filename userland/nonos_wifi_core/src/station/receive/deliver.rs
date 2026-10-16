@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A checked frame goes on: EAPOL to the supplicant, the rest to the stack.
+//! A checked frame goes on: EAPOL to the supplicant and never to the stack,
+//! the rest to the stack.
 
 use super::*;
 
@@ -25,6 +26,11 @@ impl LinkStation {
             return Rx::Dropped(RxDrop::NotLlc);
         }
         if body[6..8] == ETHERTYPE_EAPOL {
+            // The handshakes are between the AP and this station alone; one
+            // sent to a group address is no handshake of this link's.
+            if c.da[0] & 0x01 != 0 {
+                return Rx::Dropped(RxDrop::NotForUs);
+            }
             return self.on_eapol(&body[8..], c.protected);
         }
         let mut eth = Vec::with_capacity(14 + body.len() - 8);
