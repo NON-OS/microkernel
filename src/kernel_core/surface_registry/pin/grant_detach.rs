@@ -53,7 +53,7 @@ pub(super) fn detach(run: (u64, u64)) {
         drop(slots);
         if attached {
             let (free, grant) = (Vec::new(), Some(run));
-            ORPHANS.lock().push(Orphan { owner, handle, frames, free, grant });
+            ORPHANS.lock().push(Orphan { owner, handle, frames, free, grant, tables: 0 });
         } else {
             release_unmapped(owner, handle);
         }
