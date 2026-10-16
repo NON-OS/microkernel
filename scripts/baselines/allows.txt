@@ -299,8 +299,6 @@ userland/theme_proofs/src/lib.rs:36
 userland/theme_proofs/src/lib.rs:41
 userland/usb_proofs/src/descriptors/mod.rs:27
 userland/usb_proofs/src/lib.rs:23
-userland/virtio_blk_proofs/src/regs/mod.rs:5
-userland/virtio_blk_proofs/src/regs/state/mod.rs:7
 userland/virtio_gpu_proofs/src/tests/config_tests.rs:48
 userland/virtio_transport_proofs/src/tests/space.rs:82
 userland/virtio_transport_proofs/src/tests/space.rs:125

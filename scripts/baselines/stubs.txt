@@ -113,13 +113,7 @@ userland/capsule_driver_rtl8169/src/chip/error.rs:43
 userland/capsule_driver_rtl8169/src/chip/say.rs:48
 userland/capsule_driver_rtl8169/src/chip/say.rs:52
 userland/capsule_driver_rtl8821ce/src/serve/radio.rs:140
-userland/capsule_driver_virtio_blk/src/init.rs:54
-userland/capsule_driver_virtio_blk/src/io/error.rs:19
-userland/capsule_driver_virtio_blk/src/io/submit.rs:61
-userland/capsule_driver_virtio_blk/src/server/handlers/flush.rs:26
-userland/capsule_driver_virtio_blk/src/server/handlers/read/handle.rs:42
-userland/capsule_driver_virtio_blk/src/server/handlers/write/handle.rs:50
-userland/capsule_driver_virtio_blk/src/setup/registers.rs:58
+userland/capsule_driver_virtio_blk/src/setup/registers.rs:32
 userland/capsule_driver_virtio_net/src/setup/registers/map.rs:30
 userland/capsule_driver_virtio_rng/src/setup/registers/grant.rs:29
 userland/capsule_driver_xhci/src/error/reason.rs:28
