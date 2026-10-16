@@ -24,6 +24,7 @@ mod mode;
 mod pci;
 mod primary_surface;
 mod probe_3d;
+mod probes;
 mod scanouts;
 mod sequence;
 mod transport;

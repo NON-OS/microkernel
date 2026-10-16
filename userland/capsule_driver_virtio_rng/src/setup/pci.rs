@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The PCI command a bring-up asks for: decoding, with the legacy interrupt
-//! pin off, first; bus mastering only once the device has been reset. A
-//! device left live by a previous instance still holds its ring addresses,
-//! in frames since freed, until it is reset, so it may not reach memory
-//! before that.
+//! pin off, first; bus mastering only once the device has been reset and
+//! given this driver's ring. A device left live by a previous instance
+//! still holds its ring addresses, in frames since freed, until then (a
+//! reset need not clear them), so it may not reach memory before that.
 //!
 //! The driver never waits on an interrupt; `fill` polls the used ring. It
 //! used to bind the INTx line anyway, ack it after every request and never
@@ -37,7 +37,7 @@ use nonos_libc::{
 
 /// Memory decode, and the legacy pin off: the driver binds no interrupt.
 pub const DECODE: u16 = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_INTX_DISABLE;
-/// What a device that has been reset may also do.
+/// What a device reset and on this driver's ring may also do.
 pub const MASTER: u16 = DECODE | MK_PCI_CMD_BUS_MASTER;
 
 pub fn command(device_id: u64, claim_epoch: u64, bits: u16) -> Result<(), &'static str> {

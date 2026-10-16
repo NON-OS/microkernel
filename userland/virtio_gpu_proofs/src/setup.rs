@@ -14,19 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The primary surface's record, geometry, table entry and the commands
-//! that show it, and the mode a scanout is taken at, as they ship. The rest
-//! of setup calls the broker.
+//! The transport (the queue's grant and the PCI command from the shim), the
+//! primary surface's record, geometry, table entry and the commands that
+//! show it, the mode a scanout is taken at, and the best-effort probes (EDID
+//! and the 3D path), as they ship. The rest of setup calls the broker.
 
+#[path = "../../capsule_driver_virtio_gpu/src/setup/dma.rs"]
+mod dma;
+#[path = "../../capsule_driver_virtio_gpu/src/setup/edid.rs"]
+mod edid;
 #[path = "../../capsule_driver_virtio_gpu/src/setup/primary_surface/geometry.rs"]
 pub mod geometry;
 #[path = "../../capsule_driver_virtio_gpu/src/setup/mode.rs"]
 pub mod mode;
+#[path = "../../capsule_driver_virtio_gpu/src/setup/pci.rs"]
+pub mod pci;
 #[path = "../../capsule_driver_virtio_gpu/src/setup/primary_surface/prime.rs"]
 pub mod prime;
+#[path = "../../capsule_driver_virtio_gpu/src/setup/probe_3d/mod.rs"]
+mod probe_3d;
+#[path = "../../capsule_driver_virtio_gpu/src/setup/probes.rs"]
+pub mod probes;
 #[path = "../../capsule_driver_virtio_gpu/src/setup/primary_surface/resource.rs"]
 pub mod resource;
 #[path = "../../capsule_driver_virtio_gpu/src/setup/primary_surface/state.rs"]
 mod state;
+#[path = "../../capsule_driver_virtio_gpu/src/setup/transport.rs"]
+pub mod transport;
 
 pub use state::Primary;

@@ -23,28 +23,48 @@ use nonos_devmodel::{run, FakeBar};
 use nonos_virtio::common::{DEVICE_STATUS, STATUS_DRIVER_OK};
 
 use super::{serve, Answer, Part};
+use crate::parts;
 
 pub fn answering(region: &Arc<FakeBar>, answer: Answer) -> Part {
     let seen = Arc::new(Mutex::new(Vec::new()));
-    let served = Arc::new(AtomicU16::new(0));
-    let log = Arc::clone(&seen);
-    let live = run(region, move |bar| serve::step(bar, &served, &log, answer));
+    let served = AtomicU16::new(0);
+    let (log, link) = (Arc::clone(&seen), parts::attach());
+    let live = run(region, move |bar| {
+        let _answering = link.step();
+        let done = served.load(Ordering::Acquire);
+        if serve::step(bar, serve::indices(bar), done, &log, answer, 0) {
+            served.store(done.wrapping_add(1), Ordering::Release);
+        }
+        link.turned();
+    });
     Part::new(seen, live)
 }
 
 /// A part that also reads the device status in `window`, as a device does:
-/// it serves only once DRIVER_OK is set, and a reset (DRIVER_OK clear)
-/// starts its count over, so it follows the driver through a recovery.
-pub fn answering_after_reset(region: &Arc<FakeBar>, window: &Arc<FakeBar>, answer: Answer) -> Part {
+/// it serves only while DRIVER_OK is set, read after the ring so that the
+/// two are of one queue, and both under its step lock (`parts`), so a reset
+/// cannot land midway through an answer. It notes the status each command
+/// was taken under.
+/// What it has served is the used index it wrote, which a restart wipes with
+/// the rest of the ring, so it follows the driver through every recovery
+/// without having to catch the reset. On each queue it answers the first
+/// `limit` commands and leaves the rest unanswered.
+pub fn answering_after_reset(
+    region: &Arc<FakeBar>,
+    window: &Arc<FakeBar>,
+    answer: Answer,
+    limit: u16,
+) -> Part {
     let seen = Arc::new(Mutex::new(Vec::new()));
-    let served = Arc::new(AtomicU16::new(0));
-    let (log, window) = (Arc::clone(&seen), Arc::clone(window));
+    let (log, window, link) = (Arc::clone(&seen), Arc::clone(window), parts::attach());
     let live = run(region, move |bar| {
-        if window.wrote8(DEVICE_STATUS) & STATUS_DRIVER_OK == 0 {
-            served.store(0, Ordering::Release);
-        } else {
-            serve::step(bar, &served, &log, answer);
+        let _answering = link.step();
+        let at = serve::indices(bar);
+        let status = window.wrote8(DEVICE_STATUS);
+        if status & STATUS_DRIVER_OK != 0 && at.1 < limit {
+            serve::step(bar, at, at.1, &log, answer, status);
         }
+        link.turned();
     });
     Part::new(seen, live)
 }

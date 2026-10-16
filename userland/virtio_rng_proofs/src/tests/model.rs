@@ -21,7 +21,7 @@ use nonos_devmodel::FakeBar;
 use nonos_virtio::Mmio;
 
 use crate::constants::LEG_QUEUE_NUM;
-use crate::init::{driver_ok, negotiate, program};
+use crate::init::{negotiate, start};
 use crate::regs::Regs;
 
 const WINDOW: usize = 256;
@@ -45,11 +45,9 @@ pub fn regs(bar: &FakeBar) -> Regs {
     Regs::mmio(view(bar))
 }
 
-/// The legacy handshake as `setup::legacy` runs it, without the grants and
-/// bus mastering between its steps.
+/// The legacy handshake as `setup::legacy` runs it, without the grants
+/// between its steps or a broker to turn bus mastering on.
 pub fn handshake(regs: Regs, queue_phys: u64) -> Result<u16, &'static str> {
     negotiate(regs)?;
-    let size = program(regs, queue_phys)?;
-    driver_ok(regs);
-    Ok(size)
+    start(regs, queue_phys, || Ok(()))
 }

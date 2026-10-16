@@ -18,6 +18,7 @@
 //! memory, and a device that answers late or out of turn; and the orders
 //! in its source that only a boot runs.
 
+mod bus_master;
 mod drive;
 mod model;
 mod ring;
@@ -25,6 +26,9 @@ mod ring;
 mod fill_tests;
 mod hostile_tests;
 mod late_tests;
+mod legacy_reset_tests;
+mod master_legacy_tests;
+mod master_modern_tests;
 mod order_tests;
 mod queue_tests;
 mod reset_tests;

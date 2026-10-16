@@ -14,9 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The transport: reset and features, the control queue's DMA, bus
-//! mastering, the control queue and DRIVER_OK.
+//! The transport: reset and features, the control queue's DMA and the
+//! queue programmed, then bus mastering and DRIVER_OK. A device a dead
+//! predecessor left live holds rings in frames since freed and runs them
+//! once it may reach memory, so Bus Master goes on only after the reset was
+//! read back and the queue moved to this grant, and never for a device
+//! refused at any step before it. It used to go on before the queue's own
+//! refusals.
 
+use nonos_virtio::common::driver_ok;
 use nonos_virtio::{VirtioError, Window};
 
 use super::dma::{self, QueueGrant};
@@ -38,10 +44,11 @@ pub fn start(device_id: u64, claim_epoch: u64, window: &Window) -> Result<Ready,
     let common = window.common.region;
     let features = negotiate(&common)?;
     let queue = dma::map_queue(device_id, claim_epoch)?;
-    pci::command(device_id, claim_epoch, pci::MASTER)?;
     let started = program(&common, window.notify_area(), queue.device_addr)?;
+    let layout = QueueLayout::new(started.queue_size, queue.view, queue.device_addr)?;
+    pci::command(device_id, claim_epoch, pci::MASTER)?;
+    driver_ok(&common);
     let notify = window.notify.region;
     let regs = Regs { common, notify, doorbell: started.doorbell, device };
-    let layout = QueueLayout::new(started.queue_size, queue.view, queue.device_addr)?;
     Ok(Ready { control_queue: ControlQueue::new(layout, regs), features, queue })
 }

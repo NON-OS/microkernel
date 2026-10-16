@@ -16,7 +16,7 @@
 
 //! The legacy bring-up, for a transitional function with its legacy register
 //! window: registers, the interrupt pin off, reset and features, a drawn
-//! station address, the DMA grants, Bus Master, both queues, DRIVER_OK. A
+//! station address, the DMA grants, both queues, Bus Master, DRIVER_OK. A
 //! step that fails returns its error and `sequence::run` releases the claim.
 
 use super::driver::Driver;
@@ -39,9 +39,9 @@ pub fn run(dev: Found, claim_epoch: u64) -> Result<Driver, &'static str> {
     let mac = station::draw()?;
     stage("[net-setup] dma");
     let dma = dma_set::map_all(dev.device_id, claim_epoch)?;
-    pci::command(dev.device_id, claim_epoch, pci::MASTER)?;
     stage("[net-setup] queues");
-    let (mut rx, tx) = queues::build(regs, &dma)?;
+    let master = || pci::command(dev.device_id, claim_epoch, pci::MASTER);
+    let (mut rx, tx) = queues::build(regs, &dma, master)?;
     rx.prime();
     driver_ok(regs);
     let transport = Transport::Legacy(regs);

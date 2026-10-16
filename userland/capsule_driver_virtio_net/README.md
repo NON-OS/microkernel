@@ -71,8 +71,8 @@ its station address.
 ## Runtime lifecycle
 
 The capsule claims the virtio NIC, maps its registers, turns INTx off, resets
-the device, negotiates, draws a station address, maps the RX/TX virtqueues,
-turns Bus Master on only after the reset, enables the queues, and serves
+the device (status 0, read back by the clock, on either transport), negotiates, draws a station address, maps the RX/TX virtqueues,
+enables the queues, only then turns Bus Master on, and serves
 raw-frame IPC. Transmit never waits: a frame is queued and answered, and
 buffers come back, wiped, at the next send or receive poll. Teardown resets the device, then releases
 the claim; the broker clears Bus Master before it frees any grant, and the

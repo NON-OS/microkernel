@@ -18,7 +18,7 @@
 //! count of spins or yields, which runs at the processor's and the
 //! scheduler's pace).
 
-use nonos_libc::{mk_yield, Deadline};
+use nonos_libc::{mk_uptime_ms, mk_yield, Deadline};
 
 /// A wait's give-up test: false, after giving the processor up once, until
 /// `ms` have passed since it was made. A control command is answered in
@@ -32,4 +32,10 @@ pub fn expired_after(ms: u64) -> impl FnMut() -> bool {
         let _ = mk_yield();
         false
     }
+}
+
+/// Milliseconds since boot, by the same clock: how long a recovered device
+/// has served (`server::recover::policy`).
+pub fn now_ms() -> u64 {
+    u64::try_from(mk_uptime_ms()).unwrap_or(0)
 }

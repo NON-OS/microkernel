@@ -19,12 +19,17 @@ use crate::constants::{
     STATUS_DRIVER, STATUS_FAILED, STATUS_FEATURES_OK,
 };
 use crate::regs::Regs;
+use crate::transport::Transport;
 
 /// Reset the device and take the features this driver handles. The reset
-/// comes first, so a device left live by a previous instance drops its old
-/// rings before anything else is written.
+/// comes first and is read back by the clock, so a device left live by a
+/// previous instance has dropped its old rings before anything else is
+/// written, and before `setup::legacy` lets it master the bus. It used to
+/// write zero and go straight on.
 pub fn negotiate(regs: Regs) -> Result<u32, &'static str> {
-    regs.w8(LEG_STATUS, 0);
+    if !Transport::Legacy(regs).reset() {
+        return Err("virtio-net: device did not reset");
+    }
     regs.w8(LEG_STATUS, STATUS_ACKNOWLEDGE);
     regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER);
     let host = regs.r32(LEG_HOST_FEATURES);

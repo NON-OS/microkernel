@@ -95,13 +95,17 @@ memory decode on with its legacy interrupt line off, maps the common, notify
 and device structures through the shared transport (`userland/nonos_virtio`),
 resets it (status 0, read back by the clock), negotiates features (VERSION_1,
 VIRGL and EDID when offered, and ACCESS_PLATFORM whenever offered), allocates
-queue DMA, turns bus mastering on, programs control queue 0 and sets
-DRIVER_OK. It then reads the scanouts, asks for EDID when offered (logged
+queue DMA, programs control queue 0, and only then turns bus mastering on and
+sets DRIVER_OK: a device left live by a dead predecessor may reach memory only
+once it reads back reset and its queue is on this grant, and a device refused
+at any step never may. It then reads the scanouts, asks for EDID when offered (logged
 only), runs a best-effort virgl render probe that only logs whether 3D works,
 and creates the primary scanout: a DMA grant attached to a 2D resource, set on
 scanout 0, then registered with `mk_surface_register` and shared with
-`mk_surface_share` (`src/setup/primary_surface/create.rs`). It then serves
-IPC. Whether the claim is confined to an IOMMU domain is the kernel's to
+`mk_surface_share` (`src/setup/primary_surface/create.rs`). A probe command
+that stalls resets the device; the queue is restarted on the same grant and
+the primary scanout still goes up, without virgl (`src/setup/probes.rs`). It
+then serves IPC. Whether the claim is confined to an IOMMU domain is the kernel's to
 enforce at claim time; the capsule does not guess.
 
 ## Failure model
@@ -125,13 +129,15 @@ answers out of turn, ends in a device reset: its chain named the staging page
 the next command would reuse. By then the compositor draws into the primary
 surface's frames, so the server never gives the device back or exits (the
 kernel would free the frames under it, and nothing restarts a driver). It
-recovers in place (`src/server/recover.rs`): the queue restarted on the same
+recovers in place (`src/server/recover/`): the queue restarted on the same
 grant, the primary resource made again under the same id on the same frames
 and set on scanout 0, at most three tries, each logged
 (`driver.virtio_gpu0: control queue stalled; device reset, recovering (try 1
-of 3)`). If none works it stays up and `Down`: the device left reset, the
-claim and every grant kept, device ops answering `E_DEVICE`, and
-`OP_HEALTHCHECK` naming the state. Only a failed service registration, before
+of 3)`). The reset takes the render context, so `OP_QUERY_CAPS` stops offering
+3D. If no try works, or the device stalls again after three recoveries in a
+row without serving 30 s after any of them, it stays up and `Down`: the
+device left reset, the claim and every grant kept, device ops answering
+`E_DEVICE`, and `OP_HEALTHCHECK` naming the state. Only a failed service registration, before
 anyone holds the surface, resets the device and gives it back before exit 1.
 
 ## Current implemented surface
@@ -217,9 +223,12 @@ Proved on the host, without a device: the capability parse and the steps of
 the shared transport (`userland/virtio_transport_proofs`), and the handshake,
 the features taken, the control queue (a timed-out command reset, never run
 with the next command's bytes) and its wire formats, the device configuration
-offsets, the doorbell bound, the scanout mode, the server's answers, the
+offsets, the doorbell bound, Bus Master only after the reset and the queue
+and never on a refusal, the scanout mode, the server's answers, the
 recovery from a stall on the same surface or to `Down` with nothing released,
-and the reset-before-release orders (`userland/virtio_gpu_proofs`). Only a boot shows
+the recoveries in a row bounded, a probe stall at bring-up still ending in the
+2D surface, and the reset-before-release orders
+(`userland/virtio_gpu_proofs`). Only a boot shows
 the rest. Under QEMU q35, confirm both ways:
 
 - Without an IOMMU (the default `virtio-vga`, which QEMU builds modern-only,
@@ -240,4 +249,5 @@ the rest. Under QEMU q35, confirm both ways:
 - A device that stalls once the desktop is up: a `recovering (try 1 of 3)`
   line, then `recovered in place, same surface`, and the desktop presents
   again; one that never answers again: three tries, then `down`, the last
-  frame stays, the capsule does not exit and the VT-d log shows no fault.
+  frame stays, the capsule does not exit and the VT-d log shows no fault. One
+  that stalls again within 30 s of each recovery: `down` after the third.

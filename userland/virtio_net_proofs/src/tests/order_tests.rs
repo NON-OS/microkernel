@@ -22,6 +22,9 @@ const MODERN: &str = include_str!("../../../capsule_driver_virtio_net/src/setup/
 const LEGACY: &str = include_str!("../../../capsule_driver_virtio_net/src/setup/legacy.rs");
 const PCI: &str = include_str!("../../../capsule_driver_virtio_net/src/setup/pci.rs");
 const DRIVER: &str = include_str!("../../../capsule_driver_virtio_net/src/setup/driver.rs");
+const QUEUES: &str = include_str!("../../../capsule_driver_virtio_net/src/init/program_queues.rs");
+const PROGRAM: &str =
+    include_str!("../../../capsule_driver_virtio_net/src/setup/modern/program.rs");
 
 fn at(text: &str, needle: &str) -> usize {
     text.find(needle).unwrap_or_else(|| panic!("`{needle}` not found"))
@@ -32,18 +35,23 @@ fn line<'a>(src: &'a str, name: &str) -> &'a str {
     src.lines().find(|l| l.contains(&format!("const {name}:"))).expect(name)
 }
 
-// A device left live by a previous instance still holds its ring addresses
-// until it is reset; it may not master the bus before that.
+// A device a previous instance left live holds its rings until it is reset
+// and given these. Bring-up hands Bus Master to the queue step, which sets
+// it after every refusal (`master_legacy_tests`, `master_modern_tests`).
 #[test]
-fn a_device_is_reset_before_it_may_master_the_bus() {
+fn a_device_is_reset_and_on_this_drivers_rings_before_it_may_master_the_bus() {
     assert!(!line(PCI, "DECODE").contains("BUS_MASTER"), "decoding sets Bus Master");
     assert!(line(PCI, "MASTER").contains("BUS_MASTER"));
     assert!(at(MODERN, "pci::DECODE") < at(MODERN, "start_until(&common"));
-    assert!(at(MODERN, "start_until(&common") < at(MODERN, "pci::MASTER"), "modern: Bus Master");
-    assert!(at(LEGACY, "negotiate(regs)") < at(LEGACY, "pci::MASTER"), "legacy: Bus Master");
-    for src in [MODERN, LEGACY] {
-        assert!(!src[..at(src, "pci::MASTER")].contains("queues::build"), "rings before BME");
+    let master = "let master = || pci::command(dev.device_id, claim_epoch, pci::MASTER);";
+    for (src, reset) in [(MODERN, "start_until(&common"), (LEGACY, "negotiate(regs)")] {
+        assert_eq!(src.matches("pci::MASTER").count(), 1, "Bus Master outside the queue step");
+        assert!(at(src, reset) < at(src, master), "Bus Master before the reset");
+        assert!(!src.contains("master()"), "Bus Master before the queues");
+        assert!(at(src, "&dma, master)?") < at(src, "driver_ok("), "DRIVER_OK before Bus Master");
     }
+    assert!(at(QUEUES, "program_queue(regs, Q_TX") < at(QUEUES, "master()?"), "rings after BME");
+    assert!(at(PROGRAM, "both(common, notify, rx_ring, tx_ring)") < at(PROGRAM, "master()"));
 }
 
 // Teardown stops the queues, then hands the device back: the broker clears

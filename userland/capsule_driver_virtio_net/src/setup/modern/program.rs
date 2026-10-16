@@ -14,27 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Programming both modern virtqueues, receive first, all or nothing.
+//! Programming both modern virtqueues, receive first, then bus mastering,
+//! all or nothing.
 
-use nonos_virtio::common::{reset_until, setup_queue, NotifyArea, QueueReady};
-use nonos_virtio::{Mmio, VirtioError};
+use nonos_virtio::common::{reset_until, setup_queue, CommonCfg, NotifyArea, QueueReady};
+use nonos_virtio::VirtioError;
 
 use super::spec::spec;
 use crate::clock::expired_after;
 use crate::constants::{Q_RX, Q_TX, RESET_MS};
 
 /// Program and enable the receive and transmit queues over the ring
-/// regions at device addresses `rx_ring` and `tx_ring`. When either is
-/// refused the receive queue may already be enabled, in a grant the failed
-/// attempt releases next: the device is reset first, so it has let go of
-/// every ring before the grants go.
+/// regions at device addresses `rx_ring` and `tx_ring`, then turn bus
+/// mastering on (`master`): a device left live by a dead predecessor holds
+/// that one's rings until it is given these, so it may reach memory only
+/// after both and after every refusal; Bus Master used to go on first.
+/// When a step fails the receive queue may already be enabled, in a grant
+/// the failed attempt releases next: the device is reset first, so it has
+/// let go of every ring before the grants go. `common` is the
+/// device's window, or on the host a model of one with a register file per
+/// queue, which shows what each queue held when Bus Master went on.
 pub fn program(
-    common: &Mmio,
+    common: &impl CommonCfg,
     notify: NotifyArea,
-    rx_ring: u64,
-    tx_ring: u64,
+    (rx_ring, tx_ring): (u64, u64),
+    master: impl FnOnce() -> Result<(), &'static str>,
 ) -> Result<[QueueReady; 2], &'static str> {
-    let both = both(common, notify, rx_ring, tx_ring);
+    let both = both(common, notify, rx_ring, tx_ring).and_then(|q| master().map(|()| q));
     if both.is_err() {
         let _ = reset_until(common, expired_after(RESET_MS));
     }
@@ -42,7 +48,7 @@ pub fn program(
 }
 
 fn both(
-    common: &Mmio,
+    common: &impl CommonCfg,
     notify: NotifyArea,
     rx_ring: u64,
     tx_ring: u64,

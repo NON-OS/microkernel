@@ -44,6 +44,11 @@ pub struct Driver {
     pub health: Health,
     /// Stalls recovered in place (`server::recover`).
     pub recoveries: u32,
+    /// Recoveries in a row (`server::recover::policy`), and the queue's count
+    /// of commands published and the clock when the last one ended.
+    pub in_a_row: u32,
+    pub recovered_at: u16,
+    pub recovered_ms: u64,
 }
 impl Driver {
     pub fn config(&self) -> (u32, u32, u32) {

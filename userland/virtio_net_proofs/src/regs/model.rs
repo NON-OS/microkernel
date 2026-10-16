@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The legacy register file a test sets up: the QueueNumMax it chooses,
-//! what the device was told, its status and link word, the doorbells rung.
-//! One per test thread.
+//! what the device was told, its status and link word, the doorbells rung,
+//! the features offered, and every status access in order. One per test
+//! thread.
 
 use std::cell::RefCell;
 
@@ -30,6 +31,15 @@ pub struct Model {
     pub reset_lag: u32,
     pub link: u16,
     pub rung: Vec<u16>,
+    pub host: u32,
+    pub log: Vec<Status>,
+}
+
+/// One access to the status register, and the value it carried.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Status {
+    Read(u8),
+    Write(u8),
 }
 
 thread_local!(static MODEL: RefCell<Model> = RefCell::new(Model::default()));

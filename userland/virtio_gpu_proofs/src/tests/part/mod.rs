@@ -23,6 +23,7 @@
 
 pub mod answers;
 mod bodies;
+mod chain;
 pub mod ring;
 mod serve;
 

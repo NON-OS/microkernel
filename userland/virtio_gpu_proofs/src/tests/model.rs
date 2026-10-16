@@ -69,5 +69,6 @@ pub fn bring_up(bar: &FakeBar, notify_len: usize) -> Result<(u64, u16, usize), &
     let features = negotiate(&common)?;
     let area = NotifyArea { multiplier: NOTIFY_MULT, len: notify_len };
     let started = program(&common, area, REGION_PHYS)?;
+    cfg::driver_ok(&common);
     Ok((features, started.queue_size, started.doorbell))
 }
