@@ -31,10 +31,10 @@ mod size;
 #[path = "../../capsule_model_fetch/src/path.rs"]
 mod path;
 /* Where a running download stands, as the fetcher answers it. */
-#[path = "../../capsule_model_fetch/src/status_wire.rs"]
-mod status_wire;
 #[path = "../../capsule_model_fetch/src/status_read.rs"]
 mod status_read;
+#[path = "../../capsule_model_fetch/src/status_wire.rs"]
+mod status_wire;
 
 /* The route type `path` reads, as every capsule decides it. */
 mod net {
@@ -43,8 +43,9 @@ mod net {
 
 use nonos_app_skeleton::run;
 
-/// # Safety The loader calls this once, on a fresh stack, as the process entry
-/// point.
+/// # Safety
+///
+/// The loader calls this once, on a fresh stack, as the process entry point.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     run(store::Store::new)
