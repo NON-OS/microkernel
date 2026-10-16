@@ -56,8 +56,9 @@ impl Host {
             send.append(&mut self.leds());
         }
         let has = |k| self.sources.iter().any(|s| s.kind == k);
-        let keyboard = has(Kind::Keyboard) || has(Kind::Report);
-        let outcome = Outcome::Ready { keyboard, mouse: has(Kind::Mouse) };
+        let keyboard = has(Kind::Keyboard) || self.inputs.iter().any(|r| r.keys);
+        let mouse = has(Kind::Mouse) || self.inputs.iter().any(|r| r.points);
+        let outcome = Outcome::Ready { keyboard, mouse };
         // The battery's first request goes behind the reports' set-up.
         send.append(&mut self.find_banks(1, now_ms).send);
         Step { send, outcome: Some(outcome), ..Step::default() }

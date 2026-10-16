@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An input report in report mode: the keys its layout says are held,
-//! against those it last said. A report the layout cannot read changes
-//! nothing, as a phantom boot report does not.
+//! against those it last said, then its pointer's motion, wheel and
+//! buttons. A report the layout cannot read changes nothing, as a phantom
+//! boot report does not.
 
 use super::state::Host;
 use crate::report::{map, Input};
@@ -25,7 +26,14 @@ use alloc::vec::Vec;
 impl Host {
     pub(super) fn report_in(&mut self, handle: u16, value: &[u8]) -> Vec<Input> {
         let Some(r) = self.inputs.iter_mut().find(|r| r.value == handle) else { return Vec::new() };
-        let held = self.layouts.get(r.layout).and_then(|l| map::held(l, r.id, value));
-        held.map_or_else(Vec::new, |keys| r.held.to(keys))
+        let Some(layout) = self.layouts.get(r.layout) else { return Vec::new() };
+        let mut out = Vec::new();
+        if let Some(keys) = map::held(layout, r.id, value).filter(|_| r.keys) {
+            out = r.held.to(keys);
+        }
+        if let Some(p) = map::pointer(layout, r.id, value).filter(|_| r.points) {
+            out.extend(r.mouse.moved(p.buttons, p.dx, p.dy, p.wheel));
+        }
+        out
     }
 }
