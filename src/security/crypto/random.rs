@@ -16,28 +16,13 @@
 
 extern crate alloc;
 
-use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
-use spin::Mutex;
+pub use super::random_fill::{
+    fill_bytes, fill_random, fill_random_bytes, secure_random_u32, secure_random_u8,
+    try_fill_random,
+};
+pub use super::random_pool::{add_entropy, add_entropy_count, get_entropy_count, init};
 
-static ENTROPY_POOL: Mutex<[u8; 512]> = Mutex::new([0u8; 512]);
-static ENTROPY_BITS: AtomicU32 = AtomicU32::new(0);
-static POOL_INDEX: AtomicU32 = AtomicU32::new(0);
-static INITIALIZED: AtomicBool = AtomicBool::new(false);
-
-pub fn init() -> Result<(), &'static str> {
-    if INITIALIZED.swap(true, Ordering::SeqCst) {
-        return Ok(());
-    }
-    let mut pool = ENTROPY_POOL.lock();
-    for chunk in pool.chunks_mut(8) {
-        if let Ok(v) = try_secure_random_u64() {
-            let bytes = v.to_le_bytes();
-            chunk.copy_from_slice(&bytes[..chunk.len().min(8)]);
-        }
-    }
-    ENTROPY_BITS.store(256, Ordering::SeqCst);
-    Ok(())
-}
+use super::random_pool::consume_entropy;
 
 pub fn secure_random_u64() -> u64 {
     // Retry the hardware source on each iteration. The previous code sampled
@@ -76,75 +61,4 @@ fn try_virtio_rng() -> Result<u64, ()> {
         }
     }
     Err(())
-}
-
-pub fn fill_random(buf: &mut [u8]) {
-    let mut off = 0;
-    while off < buf.len() {
-        let v = secure_random_u64();
-        let chunk = v.to_le_bytes();
-        let remain = buf.len() - off;
-        let take = core::cmp::min(remain, chunk.len());
-        buf[off..off + take].copy_from_slice(&chunk[..take]);
-        off += take;
-    }
-}
-
-pub fn try_fill_random(buf: &mut [u8]) -> Result<(), &'static str> {
-    let mut off = 0;
-    while off < buf.len() {
-        let v = try_secure_random_u64()?;
-        consume_entropy(64);
-        let chunk = v.to_le_bytes();
-        let take = core::cmp::min(buf.len() - off, chunk.len());
-        buf[off..off + take].copy_from_slice(&chunk[..take]);
-        off += take;
-    }
-    Ok(())
-}
-
-pub fn secure_random_u32() -> u32 {
-    secure_random_u64() as u32
-}
-
-pub fn secure_random_u8() -> u8 {
-    secure_random_u64() as u8
-}
-
-pub fn fill_bytes(buf: &mut [u8]) {
-    fill_random(buf)
-}
-
-pub fn fill_random_bytes(buf: &mut [u8]) {
-    fill_random(buf)
-}
-
-pub fn add_entropy(data: &[u8]) {
-    if data.is_empty() {
-        return;
-    }
-    let mut pool = ENTROPY_POOL.lock();
-    let mut idx = POOL_INDEX.load(Ordering::Relaxed) as usize;
-    for &byte in data {
-        pool[idx % 512] ^= byte;
-        idx = idx.wrapping_add(1);
-    }
-    POOL_INDEX.store((idx % 512) as u32, Ordering::Relaxed);
-    let estimated_bits = (data.len() * 2).min(256) as u32;
-    let current = ENTROPY_BITS.load(Ordering::Relaxed);
-    ENTROPY_BITS.store((current + estimated_bits).min(4096), Ordering::Relaxed);
-}
-
-pub fn get_entropy_count() -> u32 {
-    ENTROPY_BITS.load(Ordering::Relaxed)
-}
-
-pub fn add_entropy_count(bits: u32) {
-    let current = ENTROPY_BITS.load(Ordering::Relaxed);
-    ENTROPY_BITS.store((current + bits).min(4096), Ordering::Relaxed);
-}
-
-fn consume_entropy(bits: u32) {
-    let current = ENTROPY_BITS.load(Ordering::Relaxed);
-    ENTROPY_BITS.store(current.saturating_sub(bits), Ordering::Relaxed);
 }
