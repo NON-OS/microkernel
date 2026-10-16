@@ -17,6 +17,7 @@
 mod backoff;
 pub mod desktop;
 mod dispatch;
+mod display_replay;
 pub mod dock_clock;
 mod dock_sync;
 pub mod grabs;
@@ -36,11 +37,11 @@ pub mod respond;
 mod retry_input_subscription;
 mod retry_wm_subscription;
 pub mod runner;
-pub mod wallpaper_policy;
 mod store_changed;
 mod store_health;
 pub mod toast_clock;
 mod trusted_band;
+pub mod wallpaper_policy;
 mod wm_notify;
 mod wm_notify_toast;
 

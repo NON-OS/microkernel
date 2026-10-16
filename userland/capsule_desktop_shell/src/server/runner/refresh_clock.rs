@@ -66,6 +66,7 @@ fn read_policy(ctx: &mut Context) -> bool {
             if let Some(v) = policy::timezone(ctx.ports.policy_port) {
                 ctx.readings.tz_hours = v;
             }
+            crate::server::display_replay::replay(ctx);
             true
         }
     }

@@ -21,6 +21,8 @@ pub mod context;
 pub mod ctx;
 pub mod delete_prompt;
 pub mod dialog_keys;
+pub mod display_keep;
+pub mod display_told;
 pub mod grab_rule;
 pub mod indicators;
 pub mod input_source_rule;
