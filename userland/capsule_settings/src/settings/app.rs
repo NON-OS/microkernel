@@ -23,8 +23,8 @@ use super::ipc::{hydrate, lookup_policy_port};
 use super::manifest::manifest;
 use super::paint::paint;
 use super::section::Section;
-use super::state::wifi_enter::refresh_wifi_status;
-use super::state::wifi_step::step_wifi;
+use super::state::wifi::status::refresh_wifi_status;
+use super::state::wifi::step::step_wifi;
 use super::state::{state_new, State};
 use super::ui::search_field;
 

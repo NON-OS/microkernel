@@ -14,33 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_wifi_client::{find, keeps_state};
+//! The panel's view of the driver and the link, refreshed without touching
+//! the radio: which driver runs, its stage and link, whether this boot keeps
+//! state, the data path's counts and net_core's lease.
 
+use super::super::state::State;
+use crate::wifi::{driver_datapath, net_poll_due, net_status};
 use nonos_libc::mk_uptime_ms;
-
-use crate::wifi::{driver_datapath, net_poll_due, net_status, scan_adapters};
-
-use super::state::State;
-use super::wifi_saved::refresh_saved;
-
-/// Re-enumerate the wireless adapters into the WiFi panel state.
-pub fn refresh_wifi(state: &mut State) {
-    state.wifi_adapter_count = scan_adapters(&mut state.wifi_adapters);
-}
-
-/// Switch to the Wi-Fi tab and enumerate adapters. Does not scan here: a scan is a
-/// blocking request to the driver, and running it on tab entry would freeze the
-/// whole app if the driver were slow to answer. The user starts a scan with Enter,
-/// which keeps the app responsive while navigating. Leaves editing behind, like
-/// selecting any other section.
-pub fn enter_wifi(state: &mut State) {
-    state.editing = false;
-    refresh_wifi(state);
-    refresh_wifi_status(state);
-    refresh_saved(state);
-    let rows = state.wifi_network_count + state.wifi.saved_count;
-    state.wifi_cursor = super::wifi_cursor::kept_in(state.wifi_cursor, rows);
-}
+use nonos_wifi_client::{find, keeps_state};
 
 /// Refresh which driver runs, its bring-up stage and link, whether this boot
 /// keeps state, the data-path frame counts and net_core's lease without

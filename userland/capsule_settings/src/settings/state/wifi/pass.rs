@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The passphrase editor for a secured network: open or not, shown as typed
-//! or as stars, and what is typed.
+//! or as stars, and what is typed; and closing it, which wipes the text.
 
-use super::edit_buffer::EditBuffer;
+use super::super::edit_buffer::EditBuffer;
+use super::super::state::State;
+use nonos_wifi_client::wipe;
 
 pub struct WifiPass {
     /// Whether the passphrase editor is open for the selected secured network.
@@ -32,4 +34,12 @@ impl WifiPass {
     pub fn new() -> Self {
         WifiPass { active: false, shown: false, text: EditBuffer::empty() }
     }
+}
+
+/// Close the passphrase editor and wipe what was typed.
+pub fn clear_passphrase(state: &mut State) {
+    wipe(&mut state.wifi_pass.text.bytes);
+    state.wifi_pass.text.len = 0;
+    state.wifi_pass.active = false;
+    state.wifi_pass.shown = false;
 }

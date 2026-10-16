@@ -8,7 +8,8 @@
 
 use nonos_app_skeleton::{EventOutcome, KEY_ENTER, KEY_ESC, KEY_TAB};
 
-use crate::settings::state::wifi_join::{clear_passphrase, connect_selected};
+use crate::settings::state::wifi::join::connect_selected;
+use crate::settings::state::wifi::pass::clear_passphrase;
 use crate::settings::state::State;
 
 use super::on_event_wifi::repaint_after;

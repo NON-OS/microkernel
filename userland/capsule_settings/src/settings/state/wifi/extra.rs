@@ -10,7 +10,7 @@
 
 use nonos_wifi_client::{Driver, Link, SavedError, ScanNetwork, SLOTS};
 
-use super::wifi_pending::Pending;
+use super::pending::Pending;
 
 pub struct WifiExtra {
     /// The Wi-Fi driver service registered, if any.
@@ -28,7 +28,7 @@ pub struct WifiExtra {
     pub saved_err: Option<SavedError>,
     /// What the last remember or forget did, for the panel to say.
     pub notice: Option<&'static str>,
-    /// A scan or join asked for and not yet run (`wifi_pending.rs`).
+    /// A scan or join asked for and not yet run (`state/wifi/pending.rs`).
     pub pending: Pending,
     /// The network a pending join is for; its passphrase waits in the
     /// panel's passphrase buffer until the join runs, then is wiped.

@@ -25,9 +25,9 @@ use crate::settings::section::{Section, SECTION_COUNT};
 use super::search::Search;
 use super::state::{State, WifiConnect, WifiScan, FIELD_SLOTS, WIFI_MAX, WIFI_NET_MAX};
 use super::status::Status;
-use super::wifi_diag::WifiDiag;
-use super::wifi_extra::WifiExtra;
-use super::wifi_pass::WifiPass;
+use super::wifi::diag::WifiDiag;
+use super::wifi::extra::WifiExtra;
+use super::wifi::pass::WifiPass;
 
 pub fn new() -> State {
     State {

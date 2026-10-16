@@ -16,10 +16,11 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use crate::settings::state::refresh_wifi::run_wifi_scan;
-use crate::settings::state::wifi_join::{connect_selected, leave};
-use crate::settings::state::wifi_remember::toggle_remember;
-use crate::settings::state::wifi_saved::forget_selected;
+use crate::settings::state::wifi::join::connect_selected;
+use crate::settings::state::wifi::radio::leave;
+use crate::settings::state::wifi::remember::toggle_remember;
+use crate::settings::state::wifi::saved::forget_selected;
+use crate::settings::state::wifi::scan::run_wifi_scan;
 use crate::settings::state::State;
 
 use super::next_section::{next_section, prev_section};

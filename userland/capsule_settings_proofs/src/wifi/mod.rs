@@ -17,5 +17,5 @@ pub mod panel;
 #[path = "../../../nonos_wifi_client/src/wire.rs"]
 pub mod wire;
 // A scan or join asked for and run from the panel's ticks.
-#[path = "../../../capsule_settings/src/settings/state/wifi_pending.rs"]
+#[path = "../../../capsule_settings/src/settings/state/wifi/pending.rs"]
 pub mod pending;

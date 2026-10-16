@@ -23,10 +23,10 @@ use super::edit_buffer::EditBuffer;
 use super::machine_key::MachineKey;
 use super::search::Search;
 use super::status::Status;
-use super::wifi_diag::WifiDiag;
-use super::wifi_extra::WifiExtra;
-pub use super::wifi_kinds::{WifiConnect, WifiScan};
-use super::wifi_pass::WifiPass;
+use super::wifi::diag::WifiDiag;
+use super::wifi::extra::WifiExtra;
+pub use super::wifi::kinds::{WifiConnect, WifiScan};
+use super::wifi::pass::WifiPass;
 
 pub use super::limits::{FIELD_SLOTS, WIFI_MAX, WIFI_NET_MAX};
 

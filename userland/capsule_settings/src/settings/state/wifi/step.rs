@@ -14,16 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The tick's half of a Wi-Fi scan or join (`wifi_pending.rs`).
+//! The tick's half of a Wi-Fi scan or join (`state/wifi/pending.rs`).
 
 use nonos_libc::{mk_time_millis, Look};
 
-use super::refresh_wifi::scan_now;
-use super::state::State;
-use super::wifi_answer::apply;
-use super::wifi_join::{clear_passphrase, join_now};
-use super::wifi_pending::{Next, Pending, Work};
-use super::wifi_worker::poll;
+use super::super::state::State;
+use super::apply::apply;
+use super::join::join_now;
+use super::pass::clear_passphrase;
+use super::pending::{Next, Pending, Work};
+use super::scan_now::scan_now;
+use super::worker::poll;
 
 /// Advance a pending scan or join by one tick: show it, hand it to the
 /// worker, or, once it is out, look for the answer. True when the panel
