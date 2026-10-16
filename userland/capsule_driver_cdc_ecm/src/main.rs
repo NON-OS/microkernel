@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod ecm;
+mod xhci_claim;
 
 use nonos_libc::{heap_init, mk_exit};
 use nonos_usbnet::xhci::XhciBus;

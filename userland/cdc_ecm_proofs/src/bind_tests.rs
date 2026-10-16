@@ -1,5 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Binding QEMU's usb-net in its ECM configuration, in Linux's order.
+//! Binding QEMU's usb-net in its ECM configuration: pipes, configuration,
+//! data alternate, address, filter.
 
 use nonos_usbnet::found::fetch;
 use nonos_usbnet::mock::Call;
