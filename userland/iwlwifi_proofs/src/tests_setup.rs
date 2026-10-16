@@ -6,13 +6,9 @@ mod bus_master_tests;
 #[cfg(test)]
 mod discover_tests;
 #[cfg(test)]
-mod dot11_tests;
-#[cfg(test)]
 mod generation_tests;
 #[cfg(test)]
 mod grants_tests;
-#[cfg(test)]
-mod harden_tests;
 #[cfg(test)]
 mod regs_tests;
 #[cfg(test)]

@@ -10,7 +10,5 @@ pub const OP_HEALTHCHECK: u16 = 0x0001;
 pub const OP_DEVICE_INFO: u16 = 0x0002;
 pub const OP_RF_STATE: u16 = 0x0004;
 pub const OP_DMA_STATE: u16 = 0x0005;
-pub const OP_MGMT_BUILD: u16 = 0x0009;
-pub const OP_BEACON_PARSE: u16 = 0x000A;
 // 0x000D to 0x0018 were the old join helpers, which took and returned key
 // material (a PTK, a TK, a GTK, a PMK); they are gone and never reused.

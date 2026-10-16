@@ -16,8 +16,7 @@
 
 use crate::driver::Driver;
 use crate::protocol::{
-    E_BAD_OP, E_INVAL, OP_BEACON_PARSE, OP_DEVICE_INFO, OP_DMA_STATE, OP_HEALTHCHECK,
-    OP_MGMT_BUILD, OP_RF_STATE,
+    E_BAD_OP, E_INVAL, OP_DEVICE_INFO, OP_DMA_STATE, OP_HEALTHCHECK, OP_RF_STATE,
 };
 use crate::server::{handlers, respond};
 
@@ -33,8 +32,6 @@ pub(super) fn dispatch(
         OP_DEVICE_INFO if body.is_empty() => handlers::device::handle(driver, sender_pid, &req, tx),
         OP_RF_STATE if body.is_empty() => handlers::rf::handle(driver, sender_pid, &req, tx),
         OP_DMA_STATE if body.is_empty() => handlers::dma::handle(driver, sender_pid, &req, tx),
-        OP_MGMT_BUILD => handlers::mgmt::handle(sender_pid, &req, body, tx),
-        OP_BEACON_PARSE => handlers::beacon::handle(sender_pid, &req, body, tx),
         _ if body.is_empty() => {
             let _ = respond::send(sender_pid, &req, E_BAD_OP, &[], tx);
         }

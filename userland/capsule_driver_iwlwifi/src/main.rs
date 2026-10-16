@@ -21,10 +21,6 @@ extern crate alloc;
 
 mod constants;
 mod discover;
-// The 802.11 frame layer: the management frames the scan, auth and association
-// steps are built from. Reached through the OP_MGMT_BUILD / OP_BEACON_PARSE
-// server operations.
-mod dot11;
 mod driver;
 mod firmware;
 mod init;
