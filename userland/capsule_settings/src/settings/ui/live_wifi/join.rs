@@ -7,6 +7,7 @@ use nonos_wifi_client::join_text;
 use super::super::valbuf::ValBuf;
 use crate::settings::schema::rows::Tone;
 use crate::settings::state::wifi_pending::Work;
+use crate::settings::state::wifi_worker::REMEMBERED;
 use crate::settings::state::{State, WifiConnect};
 
 const PASS_STARS: usize = 32;
@@ -41,7 +42,16 @@ pub fn join(b: &mut ValBuf, state: &State) -> Tone {
         None => {}
     }
     if let Some(notice) = state.wifi.notice {
-        b.push_str(notice);
+        // Only the remember that dropped a network names it; 19 + 32 + 13
+        // bytes fit the row whole.
+        match state.wifi.dropped.as_ref().filter(|_| notice == REMEMBERED) {
+            Some(gone) => {
+                b.push_str("Remembered; forgot ");
+                b.push_bytes(gone.ssid());
+                b.push_str(" to make room");
+            }
+            None => b.push_str(notice),
+        }
         return Tone::Idle;
     }
     match state.wifi_connect {
