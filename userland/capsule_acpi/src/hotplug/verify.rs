@@ -30,6 +30,8 @@ use nonos_aml::namespace::Id;
 pub const VERIFY_STEP_MS: u64 = 200;
 /// How long firmware has to make `_STA` say absent after `_EJ0`.
 pub const VERIFY_MS: u64 = 5_000;
+/// How long a user has to take out a removable device once it is let go.
+pub const TAKE_OUT_MS: u64 = 60_000;
 
 pub fn line(acpi: &Acpi, id: Id) -> Line {
     Line::new(b"hotplug ").str(path(&acpi.aml, id).as_bytes())
