@@ -19,9 +19,9 @@
 //!
 //! Every descriptor is a transfer descriptor (Act = 10b, Valid). The last
 //! one carries End. No Nop descriptor is ever written, so a host that
-//! mishandles End in a Nop descriptor (Intel eMMC hosts, observed in Linux
-//! sdhci-pci-core.c, unverified) never meets one, and every host gets the
-//! plain form.
+//! mishandles End in a Nop descriptor (Intel eMMC hosts, as observed,
+//! unverified against Intel's documents) never meets one, and every host
+//! gets the plain form.
 
 mod build;
 mod error;
