@@ -8,7 +8,7 @@ use nonos_wifi_core::sae::SaeFailure;
 use nonos_wifi_core::wpa::supplicant::Failure;
 
 use super::codes::{
-    CODE_BAD_PASSPHRASE, CODE_DOWNGRADE, CODE_IE_MISMATCH, CODE_NO_ENTROPY, CODE_REFUSED,
+    CODE_BAD_PASSPHRASE, CODE_DOWNGRADE, CODE_IE_MISMATCH, CODE_REFUSED, CODE_SAE_START,
     CODE_TIMED_OUT, CODE_UNSUPPORTED, CODE_WRONG_PASSWORD,
 };
 
@@ -21,7 +21,7 @@ pub fn failure_code(f: MlmeFailure) -> (i32, u16) {
         | MlmeFailure::MalformedRsne
         | MlmeFailure::NeedsHt => (CODE_UNSUPPORTED, 0),
         MlmeFailure::BadPassphrase => (CODE_BAD_PASSPHRASE, 0),
-        MlmeFailure::NoEntropy => (CODE_NO_ENTROPY, 0),
+        MlmeFailure::SaeStart => (CODE_SAE_START, 0),
         MlmeFailure::Sae(SaeFailure::BadConfirm) => (CODE_WRONG_PASSWORD, 0),
         MlmeFailure::Sae(SaeFailure::Rejected(status)) => (CODE_REFUSED, status),
         MlmeFailure::Sae(_) => (CODE_REFUSED, 0),

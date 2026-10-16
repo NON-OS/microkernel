@@ -26,8 +26,11 @@ impl Mlme {
         let Some(pwe) = pwe else {
             return self.fail(MlmeFailure::BadPassphrase);
         };
-        // rand and mask straight from the entropy; in the (2^-32) case that
-        // either is not a usable scalar, draw replacements from it by HMAC.
+        // rand and mask straight from the entropy. Either is unusable when it
+        // is at or above the P-256 order (about 2^-32 each), so a try fails
+        // about once in 2^31; each retry derives new values by HMAC-SHA256 of
+        // the 64 bytes under its own label and number, never the same bytes
+        // again, so all four fail about once in 2^124.
         let mut sae = None;
         for attempt in 0u8..4 {
             let (rand, mask) = if attempt == 0 {
@@ -48,7 +51,7 @@ impl Mlme {
             }
         }
         let Some(sae) = sae else {
-            return self.fail(MlmeFailure::NoEntropy);
+            return self.fail(MlmeFailure::SaeStart);
         };
         let (seq, status, body) = sae.commit_frame();
         self.sae = Some(sae);
