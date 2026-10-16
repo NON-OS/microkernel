@@ -13,12 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The device table against the igb table as observed in Linux igb_main.c
-//! (unverified), entry for entry, by the part names given there.
+//! The device table against the ids and part names as observed
+//! (unverified), entry for entry.
 
 use crate::facts::ids::{IGB_PARTS, INTEL_VENDOR_ID};
 
-/// The table as observed in Linux igb_main.c, in its order (unverified).
+/// The table as observed, in its order (unverified).
 const IGB_PCI_TBL: [(u16, &str); 35] = [
     (0x1F40, "I354_BACKPLANE_1GBPS"),
     (0x1F41, "I354_SGMII"),

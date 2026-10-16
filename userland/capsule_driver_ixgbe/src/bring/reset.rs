@@ -17,7 +17,7 @@
 //! The reset: AUTOC read so the Mode stage can put the 82599's link mode
 //! back, the part quieted (quiet.rs), then CTRL.RST twice, each seen to
 //! clear and given time to settle. The second reset is there for error
-//! states one does not clear (as observed in Linux ixgbe, unverified). Then
+//! states one does not clear (as observed, unverified). Then
 //! the EEPROM read is waited for, not fatally, and every cause masked again.
 
 use super::quiet::{self, mask_all};
