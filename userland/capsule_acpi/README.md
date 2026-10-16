@@ -56,8 +56,17 @@ while the report is under three minutes old.
 
 Power buttons (PNP0C0C), sleep buttons (PNP0C0E) and lids (PNP0C0D) that
 report through AML are served on their Notify. A sleep button press is
-logged, as NONOS has no sleep state yet. A lid's _LID is read at start and on
-0x80, and the kernel is told when it changes; closing it does nothing more.
+logged, as NONOS has no sleep state yet.
+
+A lid's _LID is read at start, on 0x80, and again every 2 s, so a Notify
+firmware never sends is caught within that. Any lid open reads as open.
+- On a change the kernel posts the shell one key, KEY_LID_CLOSED (0x1305)
+  or KEY_LID_OPENED (0x1306), through the input path the Power key takes,
+  for the shell's lock.
+- The kernel records the change only once the shell's input has taken
+  it. If not, it answers EAGAIN and the next reading tells it again. The
+  first reading is told too, so the shell learns the lid it starts with.
+- Nothing acts on the lid itself: whether a close powers off is the
 
 A power-button press runs the wiped power-off: one `power off with the
 wipe` line, then AdminShutdown, which wipes on the way down, with no
