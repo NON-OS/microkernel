@@ -199,8 +199,6 @@ userland/tcp_proofs/src/lib.rs:35
 userland/tcp_proofs/src/lib.rs:38
 userland/tcp_proofs/src/lib.rs:45
 userland/tcp_proofs/src/tests/half_open.rs:78
-userland/terminal_line_proofs/src/lib.rs:35
-userland/terminal_line_proofs/src/lib.rs:64
 userland/theme_proofs/src/lib.rs:36
 userland/theme_proofs/src/lib.rs:41
 userland/usb_proofs/src/descriptors/mod.rs:9

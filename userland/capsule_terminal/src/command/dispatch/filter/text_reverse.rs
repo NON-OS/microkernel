@@ -20,13 +20,13 @@ use alloc::vec::Vec;
 
 /// Reverse the order of the lines. The counterpart to `tail` when what is
 /// wanted is the whole thing, newest first.
-pub fn tac(mut input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+pub(in super::super) fn tac(mut input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     input.reverse();
     input
 }
 
 /// Reverse the bytes within each line, leaving the order of lines alone.
-pub fn rev(input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+pub(in super::super) fn rev(input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     input
         .into_iter()
         .map(|mut line| {
