@@ -20,16 +20,23 @@ use nonos_vt::width::width;
 use super::metrics::Metrics;
 use crate::term::theme::types::Theme;
 
+/// Where the cursor block sits on the input line: the cells the prompt took,
+/// the cursor's cell past them, and the character it covers, if any.
+pub struct Caret {
+    pub prompt_cells: usize,
+    pub cursor_cell: usize,
+    pub under: Option<char>,
+}
+
 pub fn draw_cursor(
     fb: &mut PaintBuffer,
     ox: u32,
-    prompt_cells: usize,
-    cursor_cell: usize,
+    c: &Caret,
     baseline_y: u32,
-    under: Option<char>,
     m: Metrics,
     t: &Theme,
 ) {
+    let Caret { prompt_cells, cursor_cell, under } = *c;
     let (adv, px) = (m.adv, m.px);
     let x = ox + (prompt_cells as u32 + cursor_cell as u32) * adv;
     // A wide character under the cursor gets a block as wide as it is.

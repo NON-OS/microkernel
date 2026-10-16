@@ -16,7 +16,12 @@
 
 use alloc::vec::Vec;
 
-use super::target::{default_dest, parse_target, Target};
+use super::target::Target;
+
+#[path = "args_parse.rs"]
+mod args_parse;
+
+pub use args_parse::parse;
 
 pub struct PullArgs {
     pub target: Target,
@@ -26,52 +31,4 @@ pub struct PullArgs {
     pub auth: Option<Vec<u8>>,
     pub headers: Vec<Vec<u8>>,
     pub verify: bool,
-}
-
-pub fn parse(argv: &[&[u8]]) -> Result<PullArgs, &'static str> {
-    let mut no_clobber = false;
-    let mut skip_unchanged = false;
-    let mut auth = None;
-    let mut headers = Vec::new();
-    let mut verify = false;
-    let mut rest = argv;
-    while let Some((&first, tail)) = rest.split_first() {
-        match first {
-            b"-n" => {
-                no_clobber = true;
-                rest = tail;
-            }
-            b"-u" => {
-                skip_unchanged = true;
-                rest = tail;
-            }
-            b"-a" => {
-                let (&v, t) = tail.split_first().ok_or("-a needs user:pass")?;
-                auth = Some(v.to_vec());
-                rest = t;
-            }
-            b"-H" => {
-                let (&v, t) = tail.split_first().ok_or("-H needs 'Key: Value'")?;
-                if v.iter().any(|&b| b == b'\r' || b == b'\n') {
-                    return Err("-H value must not contain CR or LF");
-                }
-                headers.push(v.to_vec());
-                rest = t;
-            }
-            b"--verify" => {
-                verify = true;
-                rest = tail;
-            }
-            _ => break,
-        }
-    }
-    if rest.is_empty() || rest.len() > 2 {
-        return Err("usage: nox pull [-n] [-u] [-a user:pass] [-H 'K: V'] [--verify] <host[:port]>/<path> [dest]");
-    }
-    let target = parse_target(rest[0])?;
-    let dest = match rest.get(1) {
-        Some(d) => d.to_vec(),
-        None => default_dest(&target),
-    };
-    Ok(PullArgs { target, dest, no_clobber, skip_unchanged, auth, headers, verify })
 }
