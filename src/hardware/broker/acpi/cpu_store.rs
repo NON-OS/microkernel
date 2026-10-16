@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every processor's tables as the ACPI capsule last handed them over, for
-//! the kernel's frequency and idle control (track A's) to read. Nothing
-//! here acts on them: a P-state or an idle state is entered only by code
-//! that owns the processor.
+//! Every processor's tables as the ACPI capsule last handed them over, and
+//! its thermal limit, for the kernel's frequency and idle control (track
+//! A's) to read. Nothing here acts on them: only code that owns the
+//! processor enters a P-state or an idle state.
+
+#[path = "thermal_limit.rs"]
+pub mod thermal_limit;
 
 use super::cpu_record::CpuTables;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
-/// More processors than any machine NONOS boots on has; one past it is
-/// refused, not grown into.
+/// More processors than any machine NONOS boots on; one past it is refused.
 pub const MAX_CPUS: usize = 1024;
 
 static CPUS: Mutex<Vec<CpuTables>> = Mutex::new(Vec::new());
@@ -67,8 +69,7 @@ pub fn uids() -> Vec<u64> {
     CPUS.lock().iter().map(|c| c.uid).collect()
 }
 
-/// Bumped on every change, so a reader can tell that _PPC moved without
-/// comparing the tables themselves.
+/// Bumped on every change, so a reader sees _PPC or a limit move cheaply.
 pub fn generation() -> u64 {
     GENERATION.load(Ordering::Acquire)
 }

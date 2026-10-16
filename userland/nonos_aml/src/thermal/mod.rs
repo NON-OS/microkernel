@@ -17,11 +17,16 @@
 //! Thermal zones (ACPI 6.5, chapter 11): their temperature, their trip
 //! points, and what a reading calls for.
 
+mod passive;
+mod passive_rule;
 mod temp;
 mod trips;
 mod verdict;
 mod zones;
 
+pub use passive::{
+    constants, passive_constants, passive_devices, step, Constants, FULL, MAX_TC, MAX_TSP,
+};
 pub use temp::{milli_celsius, tenths_kelvin, COLDEST, HOTTEST};
 pub use trips::{active_seg, temperature, trips, Trips, MAX_ACTIVE};
 pub use verdict::{judge, Verdict, HYSTERESIS_MC};
