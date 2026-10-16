@@ -32,11 +32,15 @@ pub mod listing;
 pub mod wire;
 
 #[cfg(test)]
+mod bound_tests;
+#[cfg(test)]
 mod camera_tests;
 #[cfg(test)]
 mod frame_tests;
 #[cfg(test)]
 mod gate_tests;
+#[cfg(test)]
+mod hostile_tests;
 #[cfg(test)]
 mod indicator_tests;
 #[cfg(test)]

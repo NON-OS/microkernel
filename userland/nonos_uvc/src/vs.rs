@@ -20,6 +20,12 @@ use alloc::vec::Vec;
 
 use crate::desc::{Format, FormatKind, FrameSize};
 
+/// Whether `d` is an uncompressed or MJPEG format descriptor at all, read
+/// or refused.
+pub(crate) fn is_format(d: &[u8]) -> bool {
+    matches!(d.get(2), Some(0x04 | 0x06))
+}
+
 /// A format descriptor's body (`d`, from its bLength), or None.
 pub(crate) fn format(d: &[u8]) -> Option<Format> {
     let kind = match (d.get(2)?, d.len()) {
@@ -30,7 +36,8 @@ pub(crate) fn format(d: &[u8]) -> Option<Format> {
         (0x06, 11..) => FormatKind::Mjpeg,
         _ => return None,
     };
-    Some(Format { index: d[3], kind, frames: Vec::new() })
+    // Indices count from 1; 0 names nothing a probe could ask for.
+    (d[3] != 0).then(|| Format { index: d[3], kind, frames: Vec::new() })
 }
 
 /// A frame descriptor's body, uncompressed or MJPEG alike in the fields
@@ -42,7 +49,7 @@ pub(crate) fn frame(d: &[u8]) -> Option<FrameSize> {
     let u16_at = |i: usize| u16::from_le_bytes([d[i], d[i + 1]]);
     let u32_at = |i: usize| u32::from_le_bytes([d[i], d[i + 1], d[i + 2], d[i + 3]]);
     let (width, height) = (u16_at(5), u16_at(7));
-    if width == 0 || height == 0 {
+    if width == 0 || height == 0 || d[3] == 0 {
         return None;
     }
     Some(FrameSize { index: d[3], width, height, max_bytes: u32_at(17), interval: u32_at(21) })

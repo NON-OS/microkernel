@@ -33,6 +33,16 @@ pub enum FormatKind {
     Mjpeg,
 }
 
+impl FormatKind {
+    /// The frame descriptor subtype that belongs to this format.
+    pub(crate) fn frame_subtype(&self) -> u8 {
+        match self {
+            FormatKind::Uncompressed { .. } => 0x05,
+            FormatKind::Mjpeg => 0x07,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FrameSize {
     pub index: u8,
