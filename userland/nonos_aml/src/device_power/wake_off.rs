@@ -16,12 +16,12 @@
 
 //! Disarming a device's runtime wake, newest first: the wake event off
 //! when it was its last user, firmware told with `_DSW` or `_PSW`, the
-//! power resources given back to the pool. And each Notify(device, 2)
-//! counted while it is armed.
+//! power resources given back to the pool; for a device that has left,
+//! the same without `_DSW`. And each Notify(device, 2) counted.
 
 use super::pool::PowerPool;
 use super::wake_method::wake_enable;
-use super::wake_types::{GpeSwitch, RuntimeWake};
+use super::wake_types::{Arm, GpeSwitch, RuntimeWake};
 use crate::load::Aml;
 use crate::namespace::Id;
 use crate::platform::Eval;
@@ -34,14 +34,31 @@ impl RuntimeWake {
         gpes: &mut dyn GpeSwitch,
         dev: Id,
     ) -> bool {
-        let Some(i) = self.armed.iter().position(|a| a.dev == dev) else { return false };
-        let a = self.armed.remove(i);
-        if !self.armed.iter().any(|o| o.gpe == a.gpe) {
-            let _ = gpes.switch(a.gpe, false);
-        }
+        let Some(a) = self.take(gpes, dev) else { return false };
         let _ = wake_enable(aml, eval, dev, false, a.target);
         let _ = pool.release(aml, eval, &a.resources);
         true
+    }
+
+    /// The device has left: its event off with its last user and its
+    /// resources given back, but nothing run on the device, which is gone.
+    pub fn forget(
+        &mut self,
+        (pool, aml, eval): (&mut PowerPool, &mut Aml, &mut Eval<'_>),
+        gpes: &mut dyn GpeSwitch,
+        dev: Id,
+    ) -> bool {
+        let Some(a) = self.take(gpes, dev) else { return false };
+        let _ = pool.release(aml, eval, &a.resources);
+        true
+    }
+
+    fn take(&mut self, gpes: &mut dyn GpeSwitch, dev: Id) -> Option<Arm> {
+        let a = self.armed.remove(self.armed.iter().position(|a| a.dev == dev)?);
+        if !self.armed.iter().any(|o| o.gpe == a.gpe) {
+            let _ = gpes.switch(a.gpe, false);
+        }
+        Some(a)
     }
 
     /// A Notify(device, 2): counted when the device is armed.

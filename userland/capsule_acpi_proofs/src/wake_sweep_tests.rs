@@ -36,7 +36,7 @@ fn each_way_a_claim_ends_disarms_exactly_its_devices() {
     assert_eq!(swept(&released, &owners), [3], "released");
     let mut exited = k.clone();
     exited.exit(100);
-    assert_eq!(swept(&exited, &owners), [1, 2], "exited: both of its devices");
+    assert_eq!(swept(&exited, &owners), [2, 1], "exited: both, newest first");
     let mut departed = k.clone();
     departed.depart(13);
     assert_eq!(swept(&departed, &owners), [4], "departed");

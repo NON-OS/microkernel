@@ -40,10 +40,11 @@ pub fn records(acpi: &Acpi, ids: &[Id]) -> Vec<(Id, u64)> {
     ids.iter().filter_map(|i| Some((*i, record_of(acpi, &table, *i)?))).collect()
 }
 
-/// A device found gone: its record, if it has one, leaves the table.
-pub fn depart_gone(acpi: &Acpi, id: Id) -> bool {
-    let Some(r) = record_of(acpi, &known(), id) else { return false };
-    depart_record(r, Why::Gone).is_ok()
+/// A device found gone: its record, if it has one, leaves the table; the
+/// record's device id when it did.
+pub fn depart_gone(acpi: &Acpi, id: Id) -> Option<u64> {
+    let r = record_of(acpi, &known(), id)?;
+    depart_record(r, Why::Gone).ok()
 }
 
 /// A device found there with no record yet: published, if it is a listed

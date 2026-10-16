@@ -19,7 +19,14 @@ mod pci_tests;
 mod refusal_tests;
 mod reveal_tests;
 mod rig;
+mod wake_depart_tests;
 mod wake_event_tests;
+mod wake_gone_tests;
 mod wake_more_tests;
 mod wake_rig;
 mod wake_tests;
+// The capsule's own sweep, by path, proven against the real disarm;
+// its read check is the capsule's proofs'.
+#[allow(dead_code)]
+#[path = "../../../../capsule_acpi/src/dpower/wake_sweep.rs"]
+mod wake_sweep;

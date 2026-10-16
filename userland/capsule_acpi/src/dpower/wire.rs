@@ -31,7 +31,7 @@
 
 use super::moves::{current, move_to};
 use super::target::target;
-use super::wake::{code, wake};
+use super::{wake::wake, wake_check::code};
 use super::wake_sweep::owns;
 use crate::boot::{path, Acpi};
 use crate::server::protocol::EINVAL;

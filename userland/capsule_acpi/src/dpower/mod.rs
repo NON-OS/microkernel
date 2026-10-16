@@ -33,5 +33,5 @@ pub use ready::bridge_bus;
 pub use settle::{tick, Hidden};
 pub use target::target;
 pub use wake::Wakes;
-pub use wake_check::{tick as wake_tick, woken};
+pub use wake_check::{departed, tick as wake_tick, woken};
 pub use wire::device_power;

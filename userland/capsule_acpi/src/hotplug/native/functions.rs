@@ -64,6 +64,7 @@ pub fn eject(f: Bdf) -> Result<usize, ()> {
     Ok(taken.len())
 }
 
-pub fn gone(f: Bdf) -> usize {
-    below(f).filter(|g| depart(g.1, g.2, g.3, Why::Gone).is_ok()).count()
+/// The device ids that left.
+pub fn gone(f: Bdf) -> Vec<u64> {
+    below(f).filter_map(|g| depart(g.1, g.2, g.3, Why::Gone).ok()).collect()
 }

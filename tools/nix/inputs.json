@@ -3829,6 +3829,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_acpi/src/dpower/wake_sweep.rs",
    "userland/nonos_aml/src/aei",
    "userland/nonos_aml/src/apei",
    "userland/nonos_aml/src/arena",

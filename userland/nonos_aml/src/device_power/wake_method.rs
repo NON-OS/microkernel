@@ -45,7 +45,13 @@ pub fn s0w(aml: &mut Aml, eval: &mut Eval<'_>, dev: Id) -> Option<DState> {
 
 /// `_DSW(on, 0, d)` with both D3s as 3, else `_PSW(on)`; Ok when the
 /// device has neither, since then firmware needs telling nothing.
-pub fn wake_enable(aml: &mut Aml, eval: &mut Eval<'_>, dev: Id, on: bool, d: DState) -> Result<(), Fault> {
+pub fn wake_enable(
+    aml: &mut Aml,
+    eval: &mut Eval<'_>,
+    dev: Id,
+    on: bool,
+    d: DState,
+) -> Result<(), Fault> {
     let d = u64::from((d as u8).min(3)) * u64::from(on);
     let dsw = vec![Object::Integer(u64::from(on)), Object::Integer(0), Object::Integer(d)];
     let r = child(aml, eval, dev, *b"_DSW", dsw)
