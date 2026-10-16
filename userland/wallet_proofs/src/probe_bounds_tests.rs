@@ -13,52 +13,61 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Every wait a refresh makes has a bound, read here from the constant the
+//! code waits on, so a change there is checked here. A refresh is stepped a
+//! tick at a time on the window's own thread (net/step/mod.rs):
+//! - each step asks the route link once, for at most SLICE_MS;
+//! - the stream opens within the route link's OPEN_MS;
+//! - the handshake is cut HANDSHAKE_MS after the hello (handshake_end.rs);
+//! - a proxy that leaves the request's frames unanswered is silent after
+//!   SEND_WAIT_MS times ASKS (the route link's slice.rs);
+//! - the answer's first piece waits the route's patience, each later piece
+//!   the routed quiet, the whole answer the routed total (read_tls_flight.rs).
+//!
+//! A keyring call waits KEYRING_TIMEOUT_MS. The handshake's certificate check
+//! asks net.crypto through nonos_tls with no bound yet; it joins here once it
+//! has one.
 
-//! Every wait a refresh can make on the UI thread has a finite bound, so a
-//! dead peer costs seconds, never a hang. These mirror the wallet's timeouts
-//! and are checked when this crate compiles: a bound that breaks the rule
-//! fails the build, not only a test.
+use super::handshake_end::HANDSHAKE_MS;
+use super::read_tls_flight::{routed, ANSWER_MAX, FLIGHT_MAX};
+use super::step::slice::SLICE_MS;
+use crate::keyring_wait::KEYRING_TIMEOUT_MS;
+use crate::pick::Route;
+use crate::route_bounds::{ASKS, OPEN_MS, SEND_WAIT_MS};
 
-// net/*.rs mk_ipc_call_timeout bounds, in milliseconds. Generous enough that a
-// live but contended DNS/sockets capsule on one core is never mistaken for a
-// dead one (a too-tight bound marked the whole route blocked and stopped every
-// fetch), still finite so a genuinely dead peer fails instead of hanging.
-const T_DNS: u64 = 2800;
-const T_OPEN: u64 = 1500;
-const T_CONNECT: u64 = 4000;
-const T_SEND: u64 = 1800;
-const T_RECV: u64 = 80;
+const ROUTES: [Route; 2] = [Route::Nym(1), Route::Anon(1)];
 
-// Non-socket IPC bounds: the TLS handshake's crypto-capsule calls
-// (tls13/crypto_status.rs, tls13/hash_sha384.rs), the keyring call
-// (ipc/call.rs). The Send
-// freeze reproduced through these, not the sockets: any blocking IPC on the
-// UI thread must be bounded, whoever the peer is.
-const T_CRYPTO: u64 = 3000;
-const T_KEYRING: u64 = 4000;
+// A step holds the window for one slice at most, so input stays live.
+const _: () = assert!(SLICE_MS > 0 && SLICE_MS <= 100, "a step leaves the window responsive");
 
-/// Worst-case wall time of one fetch if every op times out (a blackholed peer):
-/// DNS, open, connect, send, read, send, read. Finite by construction.
-fn worst_case_fetch_ms() -> u64 {
-    T_DNS + T_OPEN + T_CONNECT + T_SEND + T_RECV + T_SEND + T_RECV
+// A wedged keyring returns control within seconds, and the bound leaves room
+// for its slowest op: PBKDF2 with 2048 rounds plus BIP32 derivation.
+const _: () = assert!(KEYRING_TIMEOUT_MS >= 2000 && KEYRING_TIMEOUT_MS <= 5000, "keyring");
+
+// An answer, a batch of receipts with their logs, may run past a flight.
+const _: () = assert!(FLIGHT_MAX <= ANSWER_MAX);
+
+/// The longest a refresh takes on a host that stops answering at the worst
+/// moment of each stage; None if the stages do not sum.
+fn worst_case_ms(route: Route) -> Option<u64> {
+    let silent = SEND_WAIT_MS.checked_mul(u64::try_from(ASKS).ok()?)?;
+    let answer = routed(route.patience_ms()).total_ms;
+    OPEN_MS.unsigned_abs().checked_add(HANDSHAKE_MS)?.checked_add(silent)?.checked_add(answer)
 }
 
 #[test]
-fn worst_case_is_bounded_and_recv_is_snappy() {
-    // A fully blackholed peer costs a finite ceiling, never an infinite hang.
-    // The bound is generous so contention is not mistaken for death, but this
-    // worst case is only reached when every op times out; a healthy fetch is a
-    // fraction of it, and it runs only once per refresh interval when idle.
-    let wc = worst_case_fetch_ms();
-    assert!(wc > 0 && wc < 15_000, "a dead peer costs a finite {wc} ms, never an infinite hang");
-    const _: () = assert!(T_RECV <= 100, "the polled recv stays responsive");
+fn a_refresh_on_a_dead_host_ends() {
+    for route in ROUTES {
+        assert!(worst_case_ms(route).is_some_and(|ms| ms > 0), "{} is bounded", route.label());
+    }
 }
 
-// The invariant behind the Send-path freeze fix: no IPC from the UI thread may
-// wait forever. Each bound is finite and small enough that even a fully wedged
-// peer returns control within seconds.
-const _: () = assert!(T_CRYPTO > 0 && T_CRYPTO <= 5000, "crypto capsule (TLS handshake)");
-const _: () = assert!(T_KEYRING > 0 && T_KEYRING <= 5000, "keyring");
-// The keyring bound covers its slowest real op: PBKDF2 with 2048 rounds plus
-// BIP32 derivation during HD generate/recover.
-const _: () = assert!(T_KEYRING >= 2000, "keyring bound must leave room for PBKDF2-2048");
+#[test]
+fn the_answer_outlasts_the_wait_for_its_first_piece() {
+    // A reader that waits the route's whole patience for the first piece
+    // still has time left to read the rest.
+    for route in ROUTES {
+        let b = routed(route.patience_ms());
+        assert!(b.first_ms < b.total_ms && b.quiet_ms < b.total_ms, "{}", route.label());
+    }
+}
