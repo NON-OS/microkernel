@@ -2891,6 +2891,21 @@
   "md": [],
   "signed": []
  },
+ "userland/dma_coherence_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/dma/carve.rs",
+   "src/arch/aarch64/mmu/uncached_block.rs",
+   "src/arch/cache_span.rs",
+   "src/hardware/broker/dma/map/alloc.rs",
+   "src/hardware/broker/dma/map/uncached.rs",
+   "userland/dma_coherence_proofs",
+   "userland/libc/src/broker/dma_lines.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/dns_proofs": {
   "exclude": [],
   "include": [
@@ -3051,6 +3066,7 @@
    "src/arch/aarch64/asm/epd1.h",
    "src/arch/aarch64/asm/epd1_trampoline.S",
    "src/arch/aarch64/asm/resume_user.S",
+   "src/arch/aarch64/asm/spectre_work.h",
    "src/arch/aarch64/asm/vectors.S",
    "src/arch/aarch64/mmu/attributes",
    "src/arch/aarch64/mmu/trampoline/geometry.rs",
