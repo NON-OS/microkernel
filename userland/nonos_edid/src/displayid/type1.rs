@@ -32,8 +32,7 @@ pub(crate) fn each(s: Section<'_>, f: &mut dyn FnMut(Timing)) {
         return;
     }
     for b in s.blocks().filter(|b| b.tag == TAG_TYPE1) {
-        for (mut t, preferred) in b.body.chunks_exact(20).filter_map(decode) {
-            t.pixel_khz = t.pixel_khz.saturating_mul(10);
+        for (t, preferred) in b.body.chunks_exact(20).filter_map(|r| decode(r, 10)) {
             let mut t = Timing::detailed(t, Source::DisplayId);
             t.preferred = preferred;
             f(t);

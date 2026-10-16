@@ -28,14 +28,16 @@ use crate::timing::Timing;
 pub const TAG_TYPE7: u8 = 0x22;
 
 /// One descriptor as a detailed timing and its preferred bit.
-pub fn decode(d: &[u8]) -> Option<(Detailed, bool)> {
+/// One 20 byte record, its clock counted in `unit_khz` steps (type VII
+/// counts single kHz, type I tens). None when it is no sound timing.
+pub fn decode(d: &[u8], unit_khz: u32) -> Option<(Detailed, bool)> {
     let d = d.get(..20)?;
     let w = |i: usize| u16::from_le_bytes([d[i], d[i + 1]]) as u32;
     let clock = (d[0] as u32 | (d[1] as u32) << 8 | (d[2] as u32) << 16) + 1;
     // Byte 3: bit 7 preferred, bit 4 interlaced, the rest stereo and
     // aspect ratio, which do not change the timing.
     let t = Detailed {
-        pixel_khz: clock,
+        pixel_khz: clock.saturating_mul(unit_khz),
         h_active: w(4) + 1,
         h_blank: w(6) + 1,
         h_front: (w(8) & 0x7FFF) + 1,
@@ -50,7 +52,7 @@ pub fn decode(d: &[u8]) -> Option<(Detailed, bool)> {
         width_mm: 0,
         height_mm: 0,
     };
-    Some((t, d[3] & 0x80 != 0))
+    t.sound().then_some((t, d[3] & 0x80 != 0))
 }
 
 /// Every type VII timing in a DisplayID 2.x section.
@@ -60,7 +62,7 @@ pub(crate) fn each(s: Section<'_>, f: &mut dyn FnMut(Timing)) {
     }
     for b in s.blocks().filter(|b| b.tag == TAG_TYPE7) {
         let size = 20 + ((b.revision >> 4) & 7) as usize;
-        for (t, preferred) in b.body.chunks_exact(size).filter_map(decode) {
+        for (t, preferred) in b.body.chunks_exact(size).filter_map(|r| decode(r, 1)) {
             let mut t = Timing::detailed(t, Source::DisplayId);
             t.preferred = preferred;
             f(t);
