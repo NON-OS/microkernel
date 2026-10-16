@@ -34,15 +34,17 @@ const CLASS_DISPLAY: u8 = 0x03;
 /// Devices already said to offer no reset, so each is said once.
 static UNRESET: Mutex<alloc::vec::Vec<u64>> = Mutex::new(alloc::vec::Vec::new());
 
-pub(super) fn at_claim(device_id: u64) {
-    run(device_id, b" not reset at claim: no FLR");
+/// At claim, from the claimant's own MkDeviceClaim, whose waits may sleep.
+pub(super) fn at_claim(device_id: u64, pid: u32) {
+    run(device_id, Some(pid), b" not reset at claim: no FLR");
 }
 
-pub(super) fn at_release(device_id: u64) {
-    run(device_id, b" not reset at release: no FLR");
+/// At release; `sleeper` names a caller in its own MkDeviceRelease.
+pub(super) fn at_release(device_id: u64, sleeper: Option<u32>) {
+    run(device_id, sleeper, b" not reset at release: no FLR");
 }
 
-fn run(device_id: u64, unoffered: &[u8]) {
+fn run(device_id: u64, sleeper: Option<u32>, unoffered: &[u8]) {
     let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) else {
         return;
     };
@@ -50,7 +52,7 @@ fn run(device_id: u64, unoffered: &[u8]) {
     if matches!(cfg.class_code(), Ok(CLASS_DISPLAY)) {
         return;
     }
-    let said: &[u8] = match reset(&mut Function::new(cfg)) {
+    let said: &[u8] = match reset(&mut Function::new(cfg, sleeper)) {
         Reset::Done { pending_left: false } => return,
         Reset::Done { pending_left: true } => b" reset, transactions still pending after 700 ms",
         Reset::NotReady => b" reset, then silent for 1000 ms: header not restored",
