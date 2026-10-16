@@ -14,22 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What NONOS tells each processor's _OSC it implements: one row per
-//! kernel capability, and only for code the kernel has. The bits are the
-//! processor vendor's (Intel's processor vendor-specific ACPI interface),
-//! not ACPI's. The kernel has no P-state, C-state or CPPC control yet, so
-//! the table is empty and the word is 0; firmware still hears that an
-//! operating system that knows processor _OSC is present. The unit that
-//! lands that control adds its row here, citing the vendor's document.
+//! What NONOS tells each processor's _OSC it implements: every capability
+//! bit tied to the kernel feature that honours it, and a bit is asked only
+//! while that feature is in the kernel. The bits are the processor
+//! vendor's (Intel's processor vendor-specific ACPI interface; recalled,
+//! unverified), not ACPI's. The kernel enters no _CST or _LPI state, sets
+//! no P-state and throttles nothing, so every feature is false and the
+//! word is 0: firmware hears only that an operating system that knows
+//! processor _OSC is present. A feature turns true only in the unit that
+//! lands A's code for it, never here. Pure: `capsule_acpi_proofs` mounts it.
 
-pub struct Capability {
-    /// The kernel code that makes the claim true.
-    pub what: &'static str,
+pub use super::caps_kernel::{Kernel, KERNEL};
+
+pub struct Row {
     pub bit: u32,
+    pub what: &'static str,
+    pub honoured: fn(&Kernel) -> bool,
 }
 
-pub const DECLARED: &[Capability] = &[];
+pub const ROWS: [Row; 9] = [
+    Row { bit: 0, what: "P-states by MSR", honoured: |k| k.pstates },
+    Row { bit: 1, what: "C1 I/O then halt", honoured: |k| k.cstates_io },
+    Row { bit: 2, what: "T-states by MSR", honoured: |k| k.tstates },
+    Row { bit: 3, what: "C-states per processor", honoured: |k| k.coordination && k.cstates_io },
+    Row { bit: 4, what: "P/T-states per processor", honoured: |k| k.coordination && k.pstates },
+    Row { bit: 5, what: "C1 native", honoured: |k| k.cstates_native },
+    Row { bit: 8, what: "C2/C3 native", honoured: |k| k.cstates_native },
+    Row { bit: 9, what: "_CSD coordination", honoured: |k| k.coordination && k.cstates_native },
+    Row { bit: 12, what: "CPPC", honoured: |k| k.cppc },
+];
+
+/// The word for a kernel with `k`'s features: each row's bit only when
+/// its feature is there.
+pub fn word_for(k: &Kernel) -> u32 {
+    ROWS.iter().filter(|r| (r.honoured)(k)).fold(0, |w, r| w | 1 << r.bit)
+}
 
 pub fn word() -> u32 {
-    DECLARED.iter().fold(0, |w, c| w | 1 << c.bit)
+    word_for(&KERNEL)
 }

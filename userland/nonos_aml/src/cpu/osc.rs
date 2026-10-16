@@ -21,7 +21,7 @@
 
 use crate::load::Aml;
 use crate::namespace::Id;
-use crate::platform::{negotiate, Eval, OscError};
+use crate::platform::{commit_only, Eval, OscError};
 
 /// 4077A616-290C-47BE-9EBD-D87058713953, Intel's processor _OSC UUID, in
 /// ToUUID's byte order.
@@ -38,7 +38,8 @@ pub enum ProcessorOsc {
     Refused(OscError),
 }
 
-/// Query, then commit, `capabilities` (revision 1, one capability word).
+/// Commit `capabilities` (revision 1, one capability word) with no query
+/// first: NONOS asks only what it honours, so there is nothing to probe.
 pub fn processor_osc(
     aml: &mut Aml,
     eval: &mut Eval<'_>,
@@ -46,7 +47,7 @@ pub fn processor_osc(
     capabilities: u32,
 ) -> ProcessorOsc {
     let Some(osc) = aml.ns.child(cpu, *b"_OSC") else { return ProcessorOsc::Absent };
-    match negotiate(aml, eval, osc, (&PROCESSOR_UUID, 1), &[0, capabilities]) {
+    match commit_only(aml, eval, osc, (&PROCESSOR_UUID, 1), &[0, capabilities]) {
         Ok(w) => ProcessorOsc::Granted(w[1]),
         Err(e) => ProcessorOsc::Refused(e),
     }

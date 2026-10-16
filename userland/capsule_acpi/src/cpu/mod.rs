@@ -19,6 +19,7 @@
 //! is the kernel's to decide.
 
 mod caps;
+mod caps_kernel;
 mod find;
 mod lpi_record;
 mod lpi_say;
