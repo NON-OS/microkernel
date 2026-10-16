@@ -20,7 +20,7 @@ use super::barrier::speculative_barrier;
 use super::decide::decide;
 use super::entry::publish;
 use super::entry_word::word;
-use super::plan::{Plan, Ssbd};
+use super::plan::{Meltdown, Plan, Ssbd};
 use super::read::{firmware, ids};
 use super::{report, ssbs};
 use crate::arch::aarch64::psci::{conduit, PsciMethod};
@@ -47,6 +47,9 @@ pub fn init_spectre_mitigations() {
         _ => {}
     }
     publish(word(&plan, via == Some(PsciMethod::Hvc)));
+    if plan.meltdown == Meltdown::Exposed {
+        crate::arch::aarch64::security::epd1::exposed_here();
+    }
     // The boot CPU runs this alone, before any other is started, so it
     // finds no plan, fills it, and always reports.
     let boot = BOOT_PLAN.get().copied();
@@ -55,4 +58,9 @@ pub fn init_spectre_mitigations() {
         report::line(&plan, version(), ids.part());
     }
     speculative_barrier();
+}
+
+/// Whether the boot CPU's plan left the kernel exposed to Meltdown.
+pub(crate) fn boot_exposed() -> bool {
+    BOOT_PLAN.get().is_some_and(|plan| plan.meltdown == Meltdown::Exposed)
 }

@@ -32,3 +32,17 @@ pub fn retire_root(root_pa: u64) {
 /// is TTBR0's alone: entries copied into its top half would map user-range
 /// addresses onto kernel memory, for nothing the kernel reaches through.
 pub const USER_ROOT_HOLDS_KERNEL: bool = !cfg!(target_arch = "aarch64");
+
+/// Put into a fresh, zeroed user root what every root carries besides its
+/// own mappings: on aarch64, the EPD1 trampoline's slot, where a CPU leaves
+/// for EL0 through it (security::epd1). It maps two EL1-only pages and the
+/// slot lies above every user address, so teardown never reaches it.
+#[inline]
+pub fn seed_user_root(root: &mut [u64; 512]) {
+    #[cfg(target_arch = "aarch64")]
+    if let Some((slot, word)) = crate::arch::aarch64::security::epd1::user_root_word() {
+        root[slot] = word;
+    }
+    #[cfg(not(target_arch = "aarch64"))]
+    let _ = root;
+}
