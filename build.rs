@@ -113,6 +113,11 @@ fn compile_arch_asm() {
     for f in &files {
         println!("cargo:rerun-if-changed={}", f.display());
     }
+    // The headers the sources include: a change to one changes them.
+    let headers = dir.join("*.h").to_string_lossy().to_string();
+    for h in glob::glob(&headers).expect("glob arch asm headers").filter_map(Result::ok) {
+        println!("cargo:rerun-if-changed={}", h.display());
+    }
 
     let mut build = cc::Build::new();
     build
