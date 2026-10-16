@@ -19,4 +19,6 @@
 //! off the canvas the compositor hands out (half the panel from 2560 by 1440).
 
 mod canvas;
+mod chrome_sizes;
+mod latch;
 mod sizes;
