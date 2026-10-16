@@ -41,6 +41,10 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     let Some(kind) = read_u16(buf, 8) else {
         return true;
     };
+    // Ctrl+Alt+Delete and the lock come before anything else the shell does.
+    if let Some(done) = super::handlers::attention::filter(ctx, kind, buf) {
+        return done;
+    }
     // A key press while an inline rename is active edits the name; keys carry no
     // pointer position, so this is handled before the x/y checks below.
     if kind == INPUT_KIND_KEY_DOWN {
