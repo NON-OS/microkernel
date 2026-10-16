@@ -16,6 +16,10 @@
 
 //! The embedded controller: its handshake, where it is found, its GPE.
 
+mod flood_tests;
+mod gpe_storm_rig;
+mod gpe_storm_tests;
+mod lying_tests;
 mod gpe_tests;
 mod protocol_tests;
 mod table_tests;

@@ -28,13 +28,15 @@ impl EventIo for EcModel {
             0x66 => {
                 let ibf = self.stuck || self.busy > 0;
                 self.busy = self.busy.saturating_sub(1);
-                let evt = if self.events.is_empty() { 0 } else { SCI_EVT };
+                let evt = if self.events.is_empty() && !self.tricks.endless { 0 } else { SCI_EVT };
+                let held = self.tricks.obf_stuck || !self.tricks.stale.is_empty();
                 Some(
                     evt | if ibf { IBF } else { 0 }
-                        | if self.out.is_some() && !ibf { OBF } else { 0 },
+                        | if (held || self.out.is_some()) && !ibf { OBF } else { 0 },
                 )
             }
-            0x62 => self.out.take().map(u16::from),
+            0x62 if self.tricks.obf_stuck => Some(0xFF),
+            0x62 => self.tricks.stale.pop_front().or_else(|| self.out.take()).map(u16::from),
             _ => None,
         }
     }
@@ -49,5 +51,9 @@ impl EventIo for EcModel {
 
     fn sleep(&mut self, ms: u64) {
         self.slept_ms += ms;
+    }
+
+    fn now_ms(&mut self) -> u64 {
+        self.tricks.now
     }
 }
