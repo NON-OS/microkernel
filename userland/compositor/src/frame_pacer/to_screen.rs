@@ -30,19 +30,23 @@ pub fn to_screen(ctx: &mut Context, rect: Rect) -> Option<Rect> {
         Some(p) => (super::extend::view(ctx, p.slices[0]), local(rect, p.slices[0])?),
         None => (canvas(ctx), rect),
     };
-    if let Some(l) = ctx.looks.lens[0] {
-        return crate::sw_blitter::magnify(view, ctx.screen, rect, l);
-    }
     let shrunk = view.width > ctx.screen.width || view.height > ctx.screen.height;
-    match ctx.scale_q {
+    let shown = match (ctx.looks.lens[0], ctx.scale_q) {
+        (Some(l), _) => crate::sw_blitter::magnify(view, ctx.screen, rect, l),
         _ if shrunk => crate::sw_blitter::downscale(view, ctx.screen, rect),
-        4 if ctx.plan.is_none() => Some(rect),
-        q => crate::sw_blitter::scaled(view, ctx.screen, rect, q),
+        // The canvas is the screen: composed in place.
+        (_, 4) if view.base_va == ctx.screen.base_va => Some(rect),
+        (_, q) => crate::sw_blitter::scaled(view, ctx.screen, rect, q),
+    };
+    let own = ctx.looks.looks[0].as_deref().filter(|_| ctx.plan.is_none() && ctx.own_colours());
+    if let (Some(s), Some(l)) = (shown, own) {
+        super::own_look::lay(ctx.screen, s, (view.width, view.height), l);
     }
+    shown
 }
 
 /// The canvas clients draw on, as the blitter reads it.
-fn canvas(ctx: &Context) -> crate::sw_blitter::Surface {
+pub fn canvas(ctx: &Context) -> crate::sw_blitter::Surface {
     crate::sw_blitter::Surface {
         base_va: ctx.backing_va,
         stride: ctx.stride,

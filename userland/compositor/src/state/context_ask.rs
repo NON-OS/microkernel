@@ -33,4 +33,11 @@ impl Context {
         let lens = self.looks.access[0].magnified();
         self.wire.is_some_and(|w| w.cursor_offset != 0) && self.plan.is_none() && !lens
     }
+
+    /// Mirrors show their own colours over a true-colour canvas.
+    pub fn own_colours(&self) -> bool {
+        let extended = self.want_extend || self.plan.is_some();
+        let heads = self.heads.len();
+        crate::display::mirror_rule::own_colours(extended, &self.looks.access, heads)
+    }
 }

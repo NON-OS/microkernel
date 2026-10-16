@@ -52,6 +52,8 @@ pub mod link;
 pub mod m3;
 #[path = "../../../compositor/src/display/magnifier_rule.rs"]
 pub mod magnifier_rule;
+#[path = "../../../compositor/src/display/mirror_rule.rs"]
+pub mod mirror_rule;
 #[path = "../../../compositor/src/display/night_rule.rs"]
 pub mod night_rule;
 #[path = "../../../compositor/src/display/notice_rule.rs"]

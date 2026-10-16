@@ -31,9 +31,11 @@ pub fn poll_heads(ctx: &mut Context, port: u32) -> Option<&'static str> {
     if outputs != link.outputs || ctx.heads.len() < heads_wanted(outputs) {
         let plugged = outputs != link.outputs;
         link.outputs = outputs;
+        let had = ctx.own_colours();
         release_heads(&mut ctx.heads);
         ctx.heads = prime_heads(port, outputs);
-        if ctx.want_extend {
+        // Mirrors in their own colours need a canvas of their own, or not.
+        if ctx.want_extend || had != ctx.own_colours() {
             super::layout::relayout(ctx);
         }
         ctx.damage.mark_full(ctx.width, ctx.height);

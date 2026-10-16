@@ -20,7 +20,9 @@ use crate::settings::schema::rows::{Block, Pill, Row};
 pub const ACCESSIBILITY: &[Block] = &[
     Block {
         title: "Display",
-        note: Some("Each display keeps its own settings; a mirrored one shows the first's."),
+        note: Some(
+            "Each display keeps its own; a mirrored one its own colours, the first's magnifier.",
+        ),
         pill: Pill::None,
         rows: &[Row::Access(Knob::Output)],
     },

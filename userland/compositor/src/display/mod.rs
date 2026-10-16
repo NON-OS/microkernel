@@ -35,6 +35,7 @@ pub mod layout_rule;
 pub mod link;
 pub mod m3;
 pub mod magnifier_rule;
+pub mod mirror_rule;
 pub mod night_rule;
 pub mod notice_rule;
 pub mod ops;
