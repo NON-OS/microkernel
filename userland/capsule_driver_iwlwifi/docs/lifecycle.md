@@ -2,8 +2,7 @@
 
 Startup (`setup`) discovers a supported Intel Wi-Fi PCI function, claims it,
 maps BAR0, binds INTx if the line is routed, else one MSI-X vector, else runs
-polled, maps the 64-page staging grant, requests MAC access and waits for the
-clock, and reads the hardware revision.
+polled, requests MAC access and waits for the clock.
 
 Then, before the first request, the gen3 radio comes up once
 (`server/radio`): check the register window, take the NIC (prepare, software
