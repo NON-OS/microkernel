@@ -18,7 +18,7 @@ Each boot draws a locally administered address from kernel randomness; the card'
 - An unanswered frame is resent every 300 ms, at most 6 times in a row, and the whole exchange gets 7.5 s (`userland/capsule_driver_iwlwifi/src/firmware/gen3/join/exchange/limits.rs:11-18`, `RETX_MS`, `IDLE_TRIES`, `EXCHANGE_MS`).
 - Management and EAPOL frames go at the lowest basic rate and data at the highest basic rate; no rate scaling runs (`userland/capsule_driver_iwlwifi/src/firmware/gen3/station/rates.rs:28-32`, `IWL_TX_FLAGS_CMD_RATE`).
 
-A join returns the RTL8821CE's status codes, plus -3 and -4 when the pairwise or group key does not go into the card (`userland/capsule_driver_iwlwifi/src/server/join_wire.rs:54-75`, `CODE_GROUP_KEY`); the panel texts are on the [Wi-Fi overview](../README.md#what-a-join-answers). A deauthentication or disassociation from the access point ends the link (`userland/capsule_driver_iwlwifi/src/firmware/gen3/join/link.rs:34-44`, `parse_leave`). Read from the code, nothing watches for lost beacons, so a link whose access point goes silent stays up until a disconnect.
+A join returns the RTL8821CE's status codes, plus -3 and -4 when the pairwise or group key does not go into the card (`userland/capsule_driver_iwlwifi/src/server/join_wire.rs:54-75`, `CODE_GROUP_KEY`); the panel texts are on the [Wi-Fi overview](../overview/security.md#what-a-join-answers). A deauthentication or disassociation from the access point ends the link (`userland/capsule_driver_iwlwifi/src/firmware/gen3/join/link.rs:34-44`, `parse_leave`). Read from the code, nothing watches for lost beacons, so a link whose access point goes silent stays up until a disconnect.
 
 ## Authority
 
