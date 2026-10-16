@@ -25,6 +25,7 @@ pub const REQUEST_NOT_SUPPORTED: u8 = 0x06;
 pub const INVALID_OFFSET: u8 = 0x07;
 pub const INSUFFICIENT_AUTHORIZATION: u8 = 0x08;
 pub const ATTRIBUTE_NOT_FOUND: u8 = 0x0a;
+pub const ATTRIBUTE_NOT_LONG: u8 = 0x0b;
 pub const INSUFFICIENT_KEY_SIZE: u8 = 0x0c;
 pub const INVALID_ATTRIBUTE_VALUE_LENGTH: u8 = 0x0d;
 pub const UNLIKELY_ERROR: u8 = 0x0e;

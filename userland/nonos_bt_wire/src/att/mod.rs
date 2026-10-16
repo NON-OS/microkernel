@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod blob;
 pub mod error;
 pub mod opcode;
 pub mod request;
 pub mod response;
 pub mod uuid;
 
+pub use blob::read_blob;
 pub use request::*;
 pub use response::{ErrorRsp, HandleValue};
 pub use uuid::{uuid16, BASE_UUID};

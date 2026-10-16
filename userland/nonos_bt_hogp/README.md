@@ -4,16 +4,23 @@ HID over GATT for an LE-only host (Decision 21). It follows HOGP 1.0 and
 HIDS 1.0, over the ATT protocol and GATT of the Bluetooth Core
 Specification 5.4 (Vol 3, Parts F and G).
 
-The host is a **Boot Host**:
-- It puts each HID service in Boot Protocol Mode.
+The host starts as a **Boot Host** and upgrades keyboards to report mode
+where it can:
 - It reads the boot keyboard and boot mouse input reports, whose layout
   the USB HID specification fixes (HID 1.11, Appendix B).
-- It parses no report map, so a peripheral cannot steer it with a crafted
-  one.
+- A keyboard service with a Report Map is taken to Report Protocol Mode
+  when its map parses within fixed bounds and lays out a report of
+  Keyboard page keys. That brings the keys a boot report cannot carry:
+  more than six at once, and Mute, Volume Up and Volume Down.
+- Every other service stays in Boot Protocol Mode, and so does a keyboard
+  whose map is malformed, too long, unreadable or of no use. Boot mode
+  needs no map, so a crafted map can at worst cost a peripheral its
+  volume keys.
 
 | Module | What it holds |
 |---|---|
 | `host` | `Host`, the GATT client as a state machine. It is fed the peripheral's ATT PDUs and the time. Each call returns the PDUs to send on CID 0x0004, the input events, and how discovery ended. |
+| `report::map` | The Report Map parser (HID 1.11, 6.2.2) into a `Layout`, the decoding of an input report into the keys held, and the LED output report. |
 | `report` | `Keyboard` and `Mouse` turn boot reports into `Input` events: key and button down and up, and relative motion. `Locks` keeps the Num, Caps and Scroll Lock state. Keys are HID Keyboard page usages, so a capsule maps them with the same keymap as the USB keyboard driver. |
 | `server` | The host's own attribute database, and the answer to each request the peripheral sends (Vol 3, Part F, 3.4). |
 | `uuids` | The UUIDs and characteristic properties it looks for and serves. |
@@ -24,12 +31,54 @@ Discovery and configuration run in this order:
 3. Keep the boot keyboard input (0x2A22) and boot mouse input (0x2A33)
    reports that can notify, Protocol Mode (0x2A4E), and the boot keyboard
    output reports (0x2A32) that take Write Without Response.
-4. Find each report's CCCD with Find Information, within its own
+   For report mode it also keeps the Report Map (0x2A4B) and up to 16
+   Reports (0x2A4D).
+4. Look at report mode for each service worth it (below).
+5. Find each boot report's CCCD with Find Information, within its own
    characteristic.
-5. Write 0 (boot) to every Protocol Mode with a Write Command.
-6. Write 0x0001 to each CCCD with a Write Request, one at a time.
+6. Write each Protocol Mode with a Write Command: 1 (report) for an
+   upgraded service, 0 (boot) for the rest.
+7. Write 0x0001 to each CCCD with a Write Request, one at a time.
 
 After that, notifications on the report handles become events.
+
+## Report mode
+
+A service is worth upgrading only if it has a Protocol Mode, a readable
+Report Map, a boot keyboard input report, a Report that can notify, and
+no boot mouse. Protocol Mode is one per service, and report mode would
+silence a boot mouse whose reports this host does not decode from a map.
+
+For such a service the host:
+1. Reads the Report Map with a Read, then Read Blobs from the length so
+   far, while each answer fills the 22 octets a response holds. An empty
+   answer, Attribute Not Long or Invalid Offset ends the map. A map past
+   512 octets, the most HIDS 1.0 allows, is not read further.
+2. Finds each Report's Report Reference (0x2908) and CCCD with Find
+   Information, within its own characteristic, and reads the Reference:
+   one octet of Report ID, one of type.
+3. Parses the map. The parser holds every count to a fixed bound: 512
+   octets of map, 8 open collections, 4 pushes, 16 usage runs per item,
+   64 fields, 16 reports, 512 bits per report, 32 bits per element. It
+   refuses long items, reserved items, unpaired collections, pushes and
+   usage ranges, Report ID 0, and numbered and unnumbered reports mixed.
+4. Upgrades the service if some input Report that notifies and has a CCCD
+   holds Keyboard page keys by the map. Those input Reports, and any that
+   hold Consumer keys, replace the boot keyboard report. The output
+   Reports whose fields carry LED usages replace the boot output report.
+
+An input report then becomes the keys it holds: modifier and key bits,
+key arrays counted from their Logical Minimum, and Mute, Volume Increment
+and Volume Decrement as the Keyboard page's Mute, Volume Up and Volume
+Down. A report shorter than its layout, a report with ErrorRollOver,
+POSTFail or ErrorUndefined, or one holding more than 32 keys changes
+nothing, as a phantom boot report does not.
+
+Anything the peripheral gets wrong while report mode is looked at leaves
+the service in boot mode, not failed: a refused read, a descriptor out of
+place, a Reference of the wrong length, a map that does not parse. Two
+things still end discovery as anywhere: a response to no request, and a
+security error, which asks for pairing.
 
 ## Battery
 
@@ -63,7 +112,8 @@ ends HID too.
 The host owns the lock state, as with a USB keyboard. A Caps Lock, Num
 Lock or Scroll Lock key going down toggles its lock. The new octet (HID
 1.11, B.1) then goes to every boot keyboard output report in a Write
-Command, so the LEDs never wait on a response. `set_locks` takes the
+Command, so the LEDs never wait on a response. In report mode the LEDs
+go in the output report the map lays out, each LED usage on its own bit. `set_locks` takes the
 state from the session instead, for a lock changed on another keyboard.
 A lock already on when discovery ends is written then.
 
@@ -90,7 +140,8 @@ database that GAP and GATT ask of every LE device:
 
 Every attribute can be read and none written. The server answers
 Exchange MTU (with 23), Find Information, Find By Type Value, Read By
-Type, Read By Group Type and Read. A Write Request gets Write Not
+Type, Read By Group Type and Read. The ATT_MTU therefore stays 23, which
+is what the map read counts on. A Write Request gets Write Not
 Permitted. Any other request gets Request Not Supported. Every response
 fits the default ATT_MTU of 23. Commands are ignored. Indications are
 confirmed.

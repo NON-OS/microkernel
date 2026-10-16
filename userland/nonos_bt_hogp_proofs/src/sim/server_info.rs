@@ -44,11 +44,18 @@ impl Peripheral {
 }
 
 impl Peripheral {
-    /// Read (Vol 3, Part F, 3.4.4.3): the whole value, which every value
-    /// here fits in one response.
-    pub(super) fn read(&self, handle: u16) -> Result<Vec<u8>, (u16, u8)> {
+    /// Read (Vol 3, Part F, 3.4.4.3): as much of the value as fits. Read
+    /// Blob (3.4.4.5): as much as fits from an offset, past the end being
+    /// Invalid Offset, and at the end `blob_end` if set.
+    pub(super) fn read(&self, handle: u16, offset: Option<u16>) -> Result<Vec<u8>, (u16, u8)> {
         let a = self.db.attrs.iter().find(|a| a.handle == handle);
         let a = a.ok_or((handle, INVALID_HANDLE))?;
-        Ok([&[READ_RSP][..], &a.value].concat())
+        let (op, at) = offset.map_or((READ_RSP, 0), |o| (READ_BLOB_RSP, usize::from(o)));
+        let end = self.blob_end.filter(|_| offset.is_some() && at == a.value.len());
+        if let Some(code) = end {
+            return Err((handle, code));
+        }
+        let rest = a.value.get(at..).ok_or((handle, INVALID_OFFSET))?;
+        Ok([&[op][..], &rest[..rest.len().min(MTU - 1)]].concat())
     }
 }

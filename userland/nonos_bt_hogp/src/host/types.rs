@@ -41,6 +41,8 @@ pub struct Decl {
 pub enum Kind {
     Keyboard,
     Mouse,
+    /// A keyboard's input report in report mode, laid out by its map.
+    Report,
 }
 
 /// A boot input report: its value handle, the last handle of its
@@ -60,4 +62,12 @@ pub struct Source {
 pub struct Battery {
     pub instance: u8,
     pub percent: u8,
+}
+
+/// Where the LEDs go: a boot output report, or an output report with its
+/// layout and Report ID.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) struct Output {
+    pub handle: u16,
+    pub report: Option<(usize, u8)>,
 }

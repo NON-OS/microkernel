@@ -32,6 +32,21 @@ pub enum Phase {
         source: usize,
         next: u16,
     },
+    /// Reading one service's Report Map (Vol 3, Part G, 4.8.1 and 4.8.3).
+    Map {
+        service: usize,
+    },
+    /// Finding one Report's descriptors.
+    Refs {
+        service: usize,
+        report: usize,
+        next: u16,
+    },
+    /// Reading one Report's Report Reference.
+    Ref {
+        service: usize,
+        report: usize,
+    },
     /// Turning on one source's notifications (Vol 3, Part G, 4.12.3).
     Enable {
         source: usize,

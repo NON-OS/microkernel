@@ -19,8 +19,10 @@
 //! at a time, as a client must (Vol 3, Part F, 3.3.2).
 
 use super::charge::{Cell, Charge};
+use super::hid::{Hid, ReportIn};
 use super::phase::Phase;
-use super::types::{Decl, Source};
+use super::types::{Decl, Output, Source};
+use crate::report::map::Layout;
 use crate::report::{Keyboard, Locks, Mouse};
 use alloc::vec::Vec;
 
@@ -31,10 +33,16 @@ pub struct Host {
     /// The current service's declarations, while they are being read.
     pub(super) decls: Vec<Decl>,
     pub(super) sources: Vec<Source>,
-    /// Protocol Mode value handles, to put in boot mode.
-    pub(super) modes: Vec<u16>,
-    /// Boot keyboard output report value handles, for the lock LEDs.
-    pub(super) outputs: Vec<u16>,
+    /// Protocol Mode value handles, and the mode each is put in.
+    pub(super) modes: Vec<(u16, u8)>,
+    /// Where the lock LEDs are written.
+    pub(super) outputs: Vec<Output>,
+    /// What each HID service offers for report mode, by service.
+    pub(super) hids: Vec<Hid>,
+    /// The Report Map being read, then each upgraded service's layout.
+    pub(super) map: Vec<u8>,
+    pub(super) layouts: Vec<Layout>,
+    pub(super) inputs: Vec<ReportIn>,
     pub(super) locks: Locks,
     pub(super) keyboard: Keyboard,
     pub(super) mouse: Mouse,

@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Configuration: every Protocol Mode is set to boot with a Write Without
+//! Configuration: every Protocol Mode is set, to report mode where the
+//! service was upgraded and boot mode elsewhere, with a Write Without
 //! Response, as HIDS 1.0 asks of that characteristic, and each report's
 //! notifications are turned on by writing its CCCD (Vol 3, Part G,
 //! 4.12.3), one Write Request at a time.
@@ -23,14 +24,14 @@ use super::phase::Phase;
 use super::state::Host;
 use super::step::{Outcome, Step};
 use super::types::Kind;
-use crate::uuids::{BOOT_PROTOCOL, NOTIFY_ON};
+use crate::uuids::NOTIFY_ON;
 use alloc::vec::Vec;
 use nonos_bt_wire::att;
 
 impl Host {
     pub(super) fn enable(&mut self, source: usize, now_ms: u64) -> Step {
         // The mode writes go once, ahead of the first CCCD write.
-        let modes = || self.modes.iter().map(|&h| att::write(h, &[BOOT_PROTOCOL], true)).collect();
+        let modes = || self.modes.iter().map(|&(h, m)| att::write(h, &[m], true)).collect();
         let mut send: Vec<Vec<u8>> = if source == 0 { modes() } else { Vec::new() };
         let Some(cccd) = self.sources.get(source).and_then(|s| s.cccd) else {
             return self.ready(send, now_ms);
@@ -55,7 +56,8 @@ impl Host {
             send.append(&mut self.leds());
         }
         let has = |k| self.sources.iter().any(|s| s.kind == k);
-        let outcome = Outcome::Ready { keyboard: has(Kind::Keyboard), mouse: has(Kind::Mouse) };
+        let keyboard = has(Kind::Keyboard) || has(Kind::Report);
+        let outcome = Outcome::Ready { keyboard, mouse: has(Kind::Mouse) };
         // The battery's first request goes behind the reports' set-up.
         send.append(&mut self.find_banks(1, now_ms).send);
         Step { send, outcome: Some(outcome), ..Step::default() }
