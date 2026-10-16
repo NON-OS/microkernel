@@ -10,7 +10,6 @@ mod accounts;
 mod chain;
 mod deposit;
 mod export;
-mod fee;
 mod find;
 mod find_steps;
 mod follow;
