@@ -19,6 +19,14 @@
 //! enumeration found, never one it found unassigned; decoding is off while
 //! they are written and back on after, Bus Master left to the claim.
 
+/// After a claimed function's move back to D0 through DEVICE_POWER, which the
+/// ACPI owner makes for its holder (L64). False when it is not claimed, or a
+/// value would not stick: the holder is then told its device is lost.
+pub(crate) fn restore_claimed(device_id: u64) -> bool {
+    let claimed = super::state::CLAIMS.lock().iter().any(|c| c.device_id == device_id);
+    claimed && restore(device_id)
+}
+
 use super::restore_rule::{holds, put, wants, Kind, Want};
 use crate::drivers::pci::constants::{CMD_IO_SPACE, CMD_MEMORY_SPACE};
 use crate::drivers::pci::types::PciBar;
