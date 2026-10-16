@@ -19,6 +19,8 @@
 
 #[path = "../../nonos_tls/src/cert_verify_msg/mod.rs"]
 pub mod cert_verify_msg;
+#[path = "../../nonos_tls/src/chain_anchor.rs"]
+pub mod chain_anchor;
 #[path = "../../nonos_tls/src/chain_walk.rs"]
 pub mod chain_walk;
 #[path = "../../nonos_tls/src/crypto_port.rs"]
