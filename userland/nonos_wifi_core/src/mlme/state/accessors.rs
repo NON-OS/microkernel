@@ -34,6 +34,12 @@ impl Mlme {
         self.supplicant.filter(|_| self.state == MlmeState::Connected)
     }
 
+    /// The AP accepted the (re)association: the handshake began, whatever
+    /// became of it.
+    pub fn accepted(&self) -> bool {
+        self.supplicant.is_some()
+    }
+
     /// The pairwise temporal key, valid once Connected.
     pub fn tk(&self) -> Option<&[u8]> {
         self.supplicant.as_ref().filter(|_| self.state == MlmeState::Connected).map(|s| s.tk())

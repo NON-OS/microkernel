@@ -67,6 +67,8 @@ fn an_ap_that_forgot_the_pmksa_refuses_and_sae_runs_again() {
         akm: m.akm(),
         used_pmksa,
         pmksa: None,
+        selection: m.selection(),
+        accepted: m.accepted(),
     };
     assert!(retry_with_sae(&report(true)));
     assert!(!retry_with_sae(&report(false)), "a full SAE join that failed is not run again here");
