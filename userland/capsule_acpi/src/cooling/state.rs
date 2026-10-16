@@ -50,6 +50,8 @@ pub struct Zone {
     /// _CRT reached on two readings a second apart.
     pub critical: bool,
     pub passive: Option<Passive>,
+    /// The trip faults already said (`trip_faults`).
+    pub told: u8,
 }
 
 #[derive(Default)]

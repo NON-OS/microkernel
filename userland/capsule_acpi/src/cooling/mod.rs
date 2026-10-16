@@ -26,6 +26,7 @@ mod report;
 mod run_fan;
 mod state;
 mod tick;
+mod trip_faults;
 
 pub use find::find;
 pub use state::Cooling;

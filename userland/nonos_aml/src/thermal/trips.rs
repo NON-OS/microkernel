@@ -19,6 +19,7 @@
 //! processors slow; and _AC0 to _AC9, where fans start, _AC0 the hottest.
 
 use super::temp::milli_celsius;
+use super::trip_rule::sane;
 use crate::load::Aml;
 use crate::namespace::{Id, Seg};
 use crate::platform::{integer, Eval};
@@ -36,6 +37,8 @@ pub struct Trips {
     pub active: Vec<i32>,
     /// _TZP, in tenths of a second; 0 means the zone notifies instead.
     pub polling: Option<u64>,
+    /// `trip_rule`'s fault bits: how the trips were misordered.
+    pub faults: u8,
 }
 
 pub(super) fn value(aml: &mut Aml, eval: &mut Eval<'_>, tz: Id, seg: Seg) -> Option<u64> {
@@ -59,13 +62,11 @@ pub fn trips(aml: &mut Aml, eval: &mut Eval<'_>, tz: Id) -> Trips {
             _ => break,
         }
     }
-    Trips {
-        critical: temp(aml, eval, tz, *b"_CRT"),
-        hot: temp(aml, eval, tz, *b"_HOT"),
-        passive: temp(aml, eval, tz, *b"_PSV"),
-        active,
-        polling: value(aml, eval, tz, *b"_TZP"),
-    }
+    let critical = temp(aml, eval, tz, *b"_CRT");
+    let passive = temp(aml, eval, tz, *b"_PSV");
+    let (hot, faults) = sane(critical, temp(aml, eval, tz, *b"_HOT"), passive);
+    let polling = value(aml, eval, tz, *b"_TZP");
+    Trips { critical, hot, passive, active, polling, faults }
 }
 
 /// _TMP, the zone's temperature now, in m°C.
