@@ -48,11 +48,11 @@ schedules processes on all of them. Drivers are written for device classes and
 chips, and the [support matrix](../hardware/MATRIX.md) lists each class and chip
 with its PCI or USB id.
 
-On Intel VT-d machines the [IOMMU](glossary-hardware-broker.md#iommu) confines device DMA: each
-PCI device a driver claims reaches only the buffers granted to that driver.
-AMD-Vi is not driven and interrupt remapping is off in this release, so on an
-AMD machine device DMA is unrestricted, and the boot log says so. See
-[IOMMU](../kernel/iommu.md).
+On Intel VT-d and AMD-Vi machines the [IOMMU](glossary-hardware-broker.md#iommu) confines
+device DMA and remaps device interrupts: each PCI device a driver claims reaches
+only the buffers granted to that driver, and interrupts only through entries the
+kernel wrote for it. A machine with neither claims no PCI device, and the boot
+log says so. See [IOMMU](../kernel/iommu.md).
 
 RTL8821CE (PCI `10ec:c821`) for scan, join, DHCP, DNS and browser traffic; the
 local Qwen model offline; the Linux programs sh, python3, sqlite3 and john; the

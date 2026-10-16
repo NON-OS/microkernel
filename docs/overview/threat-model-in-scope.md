@@ -30,16 +30,16 @@ Part of [Threat model](threat-model.md).
   with Secure Boot on is not tested in this release.
 - Physical access to a running machine, including bus, JTAG and cold-boot
   attacks.
-- DMA from a device no VT-d unit in service covers: on a machine with AMD-Vi,
-  which no build profile drives, with no remapping unit, or behind a unit that
-  did not come up. The device is unconfined, and the serial log says so for each
-  claim.
-- DMA from a device found at boot that no driver has claimed, which stays in the
-  [identity domain](glossary-hardware-broker.md#identity-domain) and reaches all the memory the
-  kernel manages, and from a device with no PCI requester id, which gets no
-  domain (`pci_address` in `src/hardware/broker/confine/table.rs:35-43`).
-- Interrupts a device raises by writing MSI messages. Interrupt remapping is off
-  in every build profile (`nonos-iommu-intremap` in `Cargo.toml:879-884`).
+- DMA and interrupts from a device on a kernel built with the development
+  opt-ins `nonos-dev-unconfined-dma` or `nonos-dev-unremapped-interrupts`:
+  without them a claim no unit in service can confine and remap is refused, and
+  a release build refuses both.
+- DMA from a device firmware reserved memory for (an RMRR or IVMD range), into
+  that range while no driver has claimed it, and from a device with no PCI
+  requester id, which gets no domain (`pci_address` in
+  `src/hardware/broker/confine/table.rs`).
+- Interrupts a device behind a PCIe-to-PCI bridge raises under the bridge's
+  requester id, which are refused rather than remapped.
 - What sites learn from what the person sends them, everything under Direct, and
   each model download the person takes direct. Each of these shows this
   machine's address to the far end. A Linux package from a mirror on the local

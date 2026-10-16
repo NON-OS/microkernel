@@ -5,7 +5,7 @@ Part of [Design principles](design-principles.md).
 ## Least privilege by capability word
 
 Every process holds a [capability word](glossary-boot-root-record.md#capability-word), a mask
-over the 36 capability bits the kernel defines (`capability_table` in
+over the 37 capability bits the kernel defines (`capability_table` in
 `src/capabilities/types/defs.rs:21-83`). A [capsule](glossary-boot-root-record.md#capsule)'s word
 comes from its signed [manifest](glossary-linux-personality.md#manifest): its required bits, plus
 those of its optional bits the spawning code allows (`install_caps` in
