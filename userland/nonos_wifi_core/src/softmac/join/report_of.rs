@@ -35,6 +35,7 @@ pub(super) fn report(m: &Mlme, outcome: Outcome, counters: Counters) -> Report {
     let state = state_code(m.state());
     let (failure, akm, used_pmksa, pmksa) = (m.failure(), m.akm(), m.used_pmksa(), m.pmksa());
     let (selection, accepted, group_mgmt) = (m.selection(), m.accepted(), m.ap_group_mgmt());
+    let transition_disable = m.transition_disable();
     Report {
         outcome,
         counters,
@@ -46,5 +47,6 @@ pub(super) fn report(m: &Mlme, outcome: Outcome, counters: Counters) -> Report {
         selection,
         accepted,
         group_mgmt,
+        transition_disable,
     }
 }

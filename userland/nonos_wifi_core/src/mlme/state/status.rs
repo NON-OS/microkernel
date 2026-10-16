@@ -28,6 +28,11 @@ impl Mlme {
         self.failure
     }
 
+    /// Message 3's Transition Disable bits, once the handshake took them.
+    pub fn transition_disable(&self) -> Option<u8> {
+        self.supplicant.as_ref().and_then(Supplicant::transition_disable)
+    }
+
     /// The security chosen from the beacon, once a BSS was selected.
     pub fn selection(&self) -> Option<Selection> {
         self.selection

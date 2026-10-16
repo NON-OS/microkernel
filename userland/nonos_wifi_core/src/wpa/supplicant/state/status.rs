@@ -52,6 +52,7 @@ impl Supplicant {
             igtk_set: false,
             eapol_version: EAPOL_VERSION_DEFAULT,
             failure: None,
+            transition_disable: None,
         }
     }
 
