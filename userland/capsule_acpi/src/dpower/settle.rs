@@ -32,6 +32,8 @@ pub struct Hidden {
     pub answered: Vec<(Id, Bdf)>,
     pub settle_at: u64,
     pub settled: bool,
+    /// Devices their drivers armed to wake while the system runs.
+    pub wake: super::Wakes,
 }
 
 pub fn tick(acpi: &mut Acpi) {
