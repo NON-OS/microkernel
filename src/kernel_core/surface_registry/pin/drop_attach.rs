@@ -17,21 +17,29 @@
 use crate::kernel_core::surface_registry::attach_map;
 use crate::kernel_core::surface_registry::release_surface;
 use crate::kernel_core::surface_registry::types::{RegistryError, SurfaceHandle};
+use crate::smp::lock_responsive;
 
+use super::gate::GATE;
 use super::orphans::reclaim;
 use super::unmap_receiver::unmap_receiver;
 
 /*
  * `pid` drops its attach of `handle`: its view of the frames, then its
  * attach record, then its reference. Orphaned frames no other process maps
- * any more are freed afterwards.
+ * any more are freed afterwards. One drop at a time finds the record, takes
+ * its view down and forgets that record, so a second release racing this one
+ * never forgets the record of a view an attach mapped in between (L57).
  */
 pub fn drop_attach(pid: u32, handle: SurfaceHandle) -> Result<u32, RegistryError> {
-    if !unmap_receiver(pid, handle) {
-        return Err(RegistryError::MapFailed);
-    }
-    if !attach_map::forget(pid, handle) {
-        return Err(RegistryError::NotFound);
+    {
+        let _gate = lock_responsive(&GATE);
+        let (base, _) = attach_map::lookup(pid, handle).ok_or(RegistryError::NotFound)?;
+        if !unmap_receiver(pid, handle, base) {
+            return Err(RegistryError::MapFailed);
+        }
+        if !attach_map::forget_at(pid, handle, base) {
+            return Err(RegistryError::NotFound);
+        }
     }
     /*
      * A surface whose owner has exited has no slot left; its frames are an
