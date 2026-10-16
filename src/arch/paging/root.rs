@@ -72,13 +72,3 @@ pub fn write_root(root_pa: u64, asid: u16) {
         let _ = (root_pa, asid);
     }
 }
-
-/// `root_pa` is being freed and no CPU has it loaded: whatever the TLB holds
-/// under its tag goes before the tag can name another root.
-#[inline]
-pub fn retire_root(root_pa: u64) {
-    #[cfg(target_arch = "aarch64")]
-    crate::arch::aarch64::mmu::asid::retire_root(root_pa & 0x0000_FFFF_FFFF_F000);
-    #[cfg(not(target_arch = "aarch64"))]
-    let _ = root_pa;
-}
