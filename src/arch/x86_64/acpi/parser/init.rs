@@ -40,7 +40,7 @@ pub fn init() -> AcpiResult<()> {
 
     // ACPI 2.0+ firmware must be read through the XSDT (64-bit pointers,
     // tables above 4 GiB). The RSDT is the fallback only when there is no
-    // XSDT or it cannot be read, as in ACPICA's acpi_tb_parse_root_table.
+    // XSDT or it cannot be read (ACPI 6.5, 5.2.5.3; recalled, unverified).
     let mut root = Err(AcpiError::NoRootTable);
     if rsdp.has_xsdt() {
         root = parse_xsdt(&mut registry, rsdp.xsdt_address);
