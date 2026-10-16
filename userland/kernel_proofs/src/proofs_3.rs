@@ -38,8 +38,6 @@ pub mod pci_command;
 #[path = "virtio_confine/mod.rs"]
 pub mod virtio_confine;
 /// The in-kernel virtio-rng's gate: never available while it cannot deliver.
-#[path = "virtio_rng_gate/mod.rs"]
-pub mod virtio_rng_gate;
 #[path = "vga_attr/mod.rs"]
 pub mod vga_attr;
 #[path = "vmd_domain/mod.rs"]

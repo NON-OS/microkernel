@@ -44,9 +44,6 @@ pub(super) fn secure_random64() -> Option<u64> {
     if let Some(val) = try_cpu_entropy64() {
         return Some(val);
     }
-    if let Some(val) = try_virtio_rng64() {
-        return Some(val);
-    }
     None
 }
 
@@ -59,10 +56,4 @@ fn try_cpu_random64() -> Option<u64> {
 
 fn try_cpu_entropy64() -> Option<u64> {
     crate::arch::cpu_random::entropy_u64()
-}
-
-fn try_virtio_rng64() -> Option<u64> {
-    let mut buf = [0u8; 8];
-    crate::drivers::virtio_rng::fill_random(&mut buf).ok()?;
-    Some(u64::from_le_bytes(buf))
 }
