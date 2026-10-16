@@ -16,7 +16,10 @@
 //! The clock a USB Audio 2.0 stream runs on: its terminal's bCSourceID in
 //! the AudioControl interface, a Clock Source, or a Clock Selector whose
 //! first input is one (2.0 4.7.2.1 to 4.7.2.5, as recalled, unverified).
-//! A clock multiplier, or a selector before anything else, is not followed.
+//! A clock multiplier, or a selector before anything else, is not followed,
+//! so no chain of clocks can loop. Entity ids are the function's own names
+//! for them, distinct and never 0 (4.7.2, as recalled, unverified): a
+//! device that reuses one leaves no telling which entity a stream meant.
 
 use super::entities::{entities, Entity};
 
@@ -33,6 +36,9 @@ pub struct Clock {
 /// The clock `terminal` runs on, in the 2.0 function of `config`.
 pub fn clock(config: &[u8], terminal: u8) -> Option<Clock> {
     let (interface, seen) = entities(config);
+    if !ids_distinct(&seen) {
+        return None;
+    }
     let source = |want: u8| {
         seen.iter().find_map(|e| match *e {
             Entity::Source { id, programmable } if id == want => Some((id, programmable)),
@@ -51,4 +57,11 @@ pub fn clock(config: &[u8], terminal: u8) -> Option<Clock> {
         })?,
     };
     Some(Clock { interface, id, programmable, selector })
+}
+
+fn ids_distinct(seen: &[Entity]) -> bool {
+    let id = |e: &Entity| match *e {
+        Entity::Terminal { id, .. } | Entity::Source { id, .. } | Entity::Selector { id, .. } => id,
+    };
+    seen.iter().enumerate().all(|(i, e)| id(e) != 0 && seen[..i].iter().all(|f| id(f) != id(e)))
 }

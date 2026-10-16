@@ -25,6 +25,8 @@ pub mod uac2;
 #[cfg(test)]
 mod answer_tests;
 #[cfg(test)]
+mod audit_tests;
+#[cfg(test)]
 mod ask;
 #[cfg(test)]
 mod hostile_tests;

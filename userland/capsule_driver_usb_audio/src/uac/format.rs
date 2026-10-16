@@ -52,6 +52,13 @@ pub fn general(version: u8, d: &[u8]) -> (bool, Option<u8>) {
 pub fn format_i(version: u8, ft: &[u8]) -> Option<Option<u8>> {
     match version {
         1 if ft.len() >= 8 && ft[3] == FORMAT_TYPE_I && ft[5] == 2 && ft[6] == 16 => {
+            // bSamFreqType rates of three bytes, or a range of two for 0
+            // (1.0 Format 2.2.5, as recalled, unverified), all within
+            // bLength: a count the descriptor does not hold is a lie.
+            let rates = if ft[7] == 0 { 2 } else { ft[7] as usize };
+            if ft.len() < 8 + 3 * rates {
+                return None;
+            }
             let rated = match ft[7] {
                 0 => matches!(
                     (rate_at(ft, 8), rate_at(ft, 11)),
