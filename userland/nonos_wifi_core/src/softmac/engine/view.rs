@@ -17,6 +17,7 @@
 //! What a driver may read off its station.
 
 use super::station::SoftStation;
+use crate::pmksa::PmksaCache;
 use crate::softmac::radio::{Env, Radio};
 use crate::softmac::scanner::Scanner;
 use crate::softmac::session::Session;
@@ -41,5 +42,11 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
 
     pub fn scanner(&self) -> &Scanner {
         &self.scanner
+    }
+
+    /// The PMKSAs held, so a driver can forget them on its own news too
+    /// (its device gone, say), as the person's disconnect does.
+    pub fn pmksa(&mut self) -> &mut PmksaCache {
+        &mut self.pmksa
     }
 }

@@ -51,24 +51,12 @@ pub struct Mlme {
     pub(in crate::mlme) rates: Option<Rates>,
     pub(in crate::mlme) sae: Option<SaeStation>,
     pub(in crate::mlme) pmk: [u8; 32],
+    /// The PMKID naming `pmk`, when SAE or the cache gave one.
+    pub(in crate::mlme) pmkid: Option<[u8; 16]>,
+    /// A cached PMKSA this join may offer instead of running SAE.
+    pub(in crate::mlme) cached: Option<Pmksa>,
+    /// This join is running on `cached`.
+    pub(in crate::mlme) cache_used: bool,
     pub(in crate::mlme) supplicant: Option<Supplicant>,
     pub(in crate::mlme) failure: Option<MlmeFailure>,
-}
-
-impl Mlme {
-    /// Begin a WPA2-PSK association to `ssid` with `passphrase`. `snonce` must
-    /// be a fresh random nonce for the eventual handshake; it is passed in so
-    /// the state machine stays pure and host-testable. Without SAE randomness
-    /// this joins WPA2 only; use [`Mlme::join`] for WPA3.
-    pub fn new(our_mac: [u8; 6], ssid: &[u8], passphrase: &[u8], snonce: [u8; 32]) -> Self {
-        let mut m = Self::join(&JoinRequest {
-            our_mac,
-            ssid,
-            passphrase,
-            policy: JoinPolicy::PSK_ONLY,
-            entropy: Entropy { snonce, sae: [0u8; SAE_ENTROPY] },
-        });
-        m.sae_entropy = None;
-        m
-    }
 }
