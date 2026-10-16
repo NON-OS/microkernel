@@ -16,6 +16,7 @@
 use super::control_request::ControlRequest;
 use super::direction::direction;
 use crate::controller::ring_doorbell::ring_doorbell;
+use crate::controller::transfer_events::received;
 use crate::controller::wait_transfer_completion::wait_transfer_completion;
 use crate::error::XhciResult;
 use crate::rings::event::{EventRing, IssuedTransfer};
@@ -27,6 +28,7 @@ use crate::trb::builders::status_stage::status_stage_out;
 use crate::trb::builders::status_stage_in::status_stage_in;
 const DCI_EP0_BIDIR: u8 = 1;
 
+/// The bytes the data stage moved: for IN, what the device sent.
 pub fn issue_control_transfer(
     doorbell_base: u64,
     intr_base: u64,
@@ -34,7 +36,7 @@ pub fn issue_control_transfer(
     ep0: &mut TransferRing,
     slot_id: u8,
     req: ControlRequest,
-) -> XhciResult<()> {
+) -> XhciResult<u16> {
     let dir = direction(req.bm_request_type, req.data_len);
     let cycle = ep0.cycle() != 0;
     let setup_phys = ep0.enqueue(setup_stage(
@@ -59,5 +61,6 @@ pub fn issue_control_transfer(
     let status_phys = ep0.enqueue(status)?;
     ring_doorbell(doorbell_base, slot_id, DCI_EP0_BIDIR);
     let issued = IssuedTransfer { phys: status_phys, slot: slot_id, dci: DCI_EP0_BIDIR };
-    wait_transfer_completion(intr_base, issued, &[setup_phys, data_phys], evt_ring)
+    let residual = wait_transfer_completion(intr_base, issued, &[setup_phys, data_phys], evt_ring)?;
+    Ok(received(req.data_len, residual))
 }
