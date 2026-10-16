@@ -53,7 +53,7 @@ pub mod aarch64;
 #[cfg(target_arch = "riscv64")]
 pub mod riscv64;
 pub use abi::ArchOps;
-pub(crate) use acpi_capsule::{acpi_capsule_exit, acpi_gap_press};
+pub(crate) use acpi_capsule::{acpi_capsule_exit, acpi_from_init};
 pub(crate) use active_page_table_root::active_page_table_root;
 #[cfg(target_arch = "x86_64")]
 pub use cpu::init_cpu_features;
