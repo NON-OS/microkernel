@@ -16,7 +16,7 @@
 
 /// The pid, port and endpoint call sites, with the casts each may keep.
 pub(super) fn id_sites() -> Vec<(&'static str, &'static str, Vec<&'static str>)> {
-    vec![
+    let mut sites = vec![
         (
             "dispatch/capability.rs",
             include_str!("../../../../src/syscall/microkernel/dispatch/capability.rs"),
@@ -51,21 +51,7 @@ pub(super) fn id_sites() -> Vec<(&'static str, &'static str, Vec<&'static str>)>
                 "crate::process::exit::teardown(target, 128 + sig as i32, true);",
             ],
         ),
-        ("ipc/send.rs", include_str!("../../../../src/syscall/microkernel/ipc/send.rs"), vec![]),
-        (
-            "ipc/send_caps.rs",
-            include_str!("../../../../src/syscall/microkernel/ipc/send_caps.rs"),
-            vec![],
-        ),
-        (
-            "ipc/inbox_name.rs",
-            include_str!("../../../../src/syscall/microkernel/ipc/inbox_name.rs"),
-            vec![],
-        ),
-        (
-            "ipc/call/sys_ipc_call.rs",
-            include_str!("../../../../src/syscall/microkernel/ipc/call/sys_ipc_call.rs"),
-            vec![],
-        ),
-    ]
+    ];
+    sites.extend(super::ipc_sites::ipc_sites());
+    sites
 }
