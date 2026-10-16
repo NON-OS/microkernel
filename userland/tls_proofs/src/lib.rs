@@ -31,6 +31,7 @@ extern crate alloc;
 include!("modules_cert.rs");
 include!("modules_handshake.rs");
 include!("modules_record.rs");
+include!("modules_verify.rs");
 
 /*
  * The names nonos_tls exports at its root, exported here the same way, so a
