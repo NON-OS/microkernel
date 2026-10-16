@@ -323,8 +323,9 @@ other op: no one.
   firmware gave no method. Nothing is armed by default. Each
   Notify(device, 2) is counted, and only the holder that armed it is
   told the count, after the path in its replies. A device whose claim
-  ends (released, its holder exited, or it departed) has its wake
-  disarmed within 2 s.
+  is released, or whose holder exits, has its wake disarmed within 2 s,
+  newest armed first; one that departs has it dropped at once, with no
+  method run on the device that left.
   At boot, a device the tables describe under a PCI root (present and
   enabled by _STA, with _PS0 or _PR0, its _ADR reached only through real
   PCI-to-PCI bridges) whose function reads all ones gets its D0 and one
