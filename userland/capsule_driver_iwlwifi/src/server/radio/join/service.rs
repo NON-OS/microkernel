@@ -21,8 +21,6 @@ use super::say_link::{say_link, say_loss};
 use crate::firmware::gen3::join::fw::Fw;
 use crate::firmware::gen3::join::link::Port;
 use crate::firmware::gen3::join::run::forget;
-use crate::firmware::gen3::outcome::Failure;
-use crate::firmware::gen3::start::stop_device;
 
 impl Radio {
     /// Service the open port between requests.
@@ -39,13 +37,7 @@ impl Radio {
             }
         }
         if fw.dev.error_cause() {
-            let m = fw.dev.m;
-            stop_device(m, &mut Uptime);
-            self.master_off();
-            Line::new().text(b"radio down: ").text(Failure::Lost.text().as_bytes()).send();
-            self.join.joined = None;
-            self.join.history.lost();
-            self.state = State::Down(Failure::Lost);
+            self.firmware_failed(now_ms());
             return;
         }
         if j.link.left.is_some() || j.link.silent {
