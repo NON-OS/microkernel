@@ -32,7 +32,7 @@ fn events_decode_and_stray_bits_are_refused() {
     assert_eq!(decode(LID, 2), None);
     assert_eq!(decode(THERMAL, CRITICAL | HOT | 3732), Some(Event::Thermal(CRITICAL | HOT | 3732)));
     assert_eq!(decode(THERMAL, 1 << 19), None);
-    assert_eq!(decode(9, 0), None);
+    assert_eq!(decode(10, 0), None);
     assert_eq!(decode(BATTERY_LOW, 0), Some(Event::BatteryLow));
     assert_eq!(decode(BATTERY_CRITICAL, 1), Some(Event::BatteryCritical(true)));
     assert_eq!(decode(BATTERY_CRITICAL, 2), None);

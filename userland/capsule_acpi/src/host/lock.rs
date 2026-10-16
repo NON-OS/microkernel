@@ -18,10 +18,14 @@
 //! capsule share it in memory, so it is compare-and-swapped where it lies,
 //! through a mapping of the FACS, never in the kernel's copy.
 
+use super::state::CapsuleHost;
+use crate::sys::acpi_event::lock_told;
 use core::sync::atomic::{AtomicU32, Ordering};
 
 /// The Global Lock's offset in the FACS (table 5.14).
 const LOCK_OFFSET: u64 = 16;
+/// The word's owned bit.
+const OWNED: u32 = 2;
 
 /// `va` is the FACS's address in this capsule. Returns the word found,
 /// which equals `old` when `new` was stored.
@@ -33,4 +37,25 @@ pub fn swap(va: u64, old: u32, new: u32) -> u32 {
     match word.compare_exchange(old, new, Ordering::SeqCst, Ordering::SeqCst) {
         Ok(found) | Err(found) => found,
     }
+}
+
+/// The interpreter's swap, noting when the capsule takes the lock (Owned
+/// set) and gives it (Owned cleared); marking Pending changes neither.
+/// The kernel hears of a take after the swap and of a release before it,
+/// so an exit between the two leaves the lock held, and the kernel never
+/// releases a lock firmware holds (F-107).
+pub(super) fn word(h: &mut CapsuleHost, old: u32, new: u32) -> Option<u32> {
+    let va = h.facs?;
+    let (had, has) = (old & OWNED != 0, new & OWNED != 0);
+    if had && !has {
+        lock_told(false);
+    }
+    let found = swap(va, old, new);
+    if found == old && had != has {
+        h.lock_held = has;
+        if has {
+            lock_told(true);
+        }
+    }
+    Some(found)
 }

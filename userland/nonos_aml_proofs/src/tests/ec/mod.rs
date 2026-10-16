@@ -22,4 +22,5 @@ mod gpe_storm_tests;
 mod lying_tests;
 mod gpe_tests;
 mod protocol_tests;
+mod restart_tests;
 mod table_tests;

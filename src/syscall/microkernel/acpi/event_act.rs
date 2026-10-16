@@ -19,15 +19,10 @@
 //! shutdown path.
 
 use crate::arch::power::PowerOff;
-use crate::hardware::broker::acpi::button_owner::take;
-use crate::hardware::broker::acpi::claim_holder::tgid;
 use crate::hardware::broker::acpi::critical_watch::Action;
-use crate::hardware::broker::acpi::first_pass_rule::admits;
 use crate::hardware::broker::acpi::power_key::press;
-use crate::process::current_pid;
 use crate::security::zerostate::terminate;
-use crate::services::registry::lookup_service;
-use crate::syscall::microkernel::errnos::{ERRNO_AGAIN, ERRNO_PERM};
+use crate::syscall::microkernel::errnos::ERRNO_AGAIN;
 
 pub(super) fn say(line: &[u8]) {
     crate::sys::serial::println(line);
@@ -55,17 +50,4 @@ pub(super) fn act(action: Action, what: &[u8]) -> i64 {
             terminate(PowerOff::Shutdown)
         }
     }
-}
-
-/// The acpi owner's SCI serves the fixed power button now; the kernel's
-/// poll stands down while that capsule lives (broker::acpi::button_owner).
-pub(super) fn taken() -> i64 {
-    let owner = lookup_service("acpi").map(|e| e.pid);
-    let Some(caller) = current_pid() else { return ERRNO_PERM };
-    if !admits(owner, caller, tgid) {
-        return ERRNO_PERM;
-    }
-    take(owner.unwrap_or(0));
-    say(b"[ACPI] power button: served by the ACPI capsule; the kernel's poll stands down");
-    0
 }

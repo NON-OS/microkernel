@@ -17,7 +17,7 @@
 //! The interpreter's host in the capsule; how each space is reached is `spaces`.
 
 use super::state::CapsuleHost;
-use super::{lock_hold, region, say, tables};
+use super::{lock, region, say, tables};
 use crate::events_io::PortIo;
 use crate::sys::clock::{now_ms, sleep_ms, stall_us};
 use alloc::vec::Vec;
@@ -67,7 +67,7 @@ impl Host for CapsuleHost {
         tables::admit(bytes)
     }
     fn lock_word(&mut self, old: u32, new: u32) -> Option<u32> {
-        lock_hold::word(self, old, new)
+        lock::word(self, old, new)
     }
     fn lock_released(&mut self) {
         let _ = self.pm1_cnt.map(|cnt| cnt.release_lock(&mut PortIo));

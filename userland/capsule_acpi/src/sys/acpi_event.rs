@@ -31,6 +31,7 @@ pub const BATTERY_LOW: u64 = 5;
 pub const BATTERY_CRITICAL: u64 = 6;
 pub const BUTTON_TAKEN: u64 = 7;
 pub const BRIGHTNESS: u64 = 8;
+pub const GLOBAL_LOCK: u64 = 9;
 
 pub const TENTHS_K_MASK: u64 = 0xFFFF;
 pub const PASSIVE: u64 = 1 << 16;
@@ -42,4 +43,16 @@ pub const AGAIN: Errno = -11;
 
 pub fn acpi_event(kind: u64, value: u64) -> Result<(), Errno> {
     ok(mk_syscall_raw(EVENT, [kind, value, 0, 0, 0, 0])).map(|_| ())
+}
+
+/// BUTTON_TAKEN: true when a capsule served the button before this one,
+/// which is then a restart.
+pub fn button_taken() -> Result<bool, Errno> {
+    ok(mk_syscall_raw(EVENT, [BUTTON_TAKEN, 0, 0, 0, 0, 0])).map(|v| v == 1)
+}
+
+/// The Global Lock held, or about to be given back. A refusal costs only
+/// the release on this capsule's exit, so it is not reported.
+pub fn lock_told(held: bool) {
+    let _ = acpi_event(GLOBAL_LOCK, u64::from(held));
 }

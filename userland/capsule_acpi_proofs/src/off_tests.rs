@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The wiped power-off's press rule (F-88): a press runs it only past the
-//! boot guard and outside the debounce, and a status bit stuck on from
-//! boot never runs it.
+//! boot guard and outside the debounce; a status bit stuck on never does.
 
 use crate::off_rule::*;
 
 #[path = "off_levels_tests.rs"]
 mod levels;
+#[path = "off_restart_tests.rs"]
+mod restart;
 #[path = "../../capsule_acpi/src/power/off/wire.rs"]
 mod off_wire;
 #[path = "off_wire_tests.rs"]

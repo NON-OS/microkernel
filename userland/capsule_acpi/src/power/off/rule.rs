@@ -45,6 +45,16 @@ pub fn press(last: Option<u64>, pass: Option<u64>, now: u64) -> Press {
     }
 }
 
+/// A restarted capsule has no boot guard (F-107): the kernel served the
+/// button while it was away, so a press it finds is a press, not a status
+/// bit stuck from before boot. The bounce still holds.
+pub fn on_restart(verdict: Press, restarted: bool) -> Press {
+    match verdict {
+        Press::BootGuard if restarted => Press::PowerOff,
+        v => v,
+    }
+}
+
 /// Critical while discharging: _BST's critical bit, or the remaining
 /// capacity at or under _BIX's low level (ACPI 6.5, 10.2.2, recalled).
 pub fn battery_critical(

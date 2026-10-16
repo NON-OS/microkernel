@@ -19,14 +19,16 @@
  * ACPI capsule mounts too, and the device-table record built from it;
  * the USB port facts a host's record carries beside it; the domain a
  * memory range or a PCI bus lies in; what each root bridge's _OSC gave up;
- * MkAcpiSlot's wire and masks; who reads the fixed power button; the
- * processors' thermal limits.
+ * MkAcpiSlot's wire and masks; who reads the fixed power button, and what
+ * the ACPI capsule's exit takes back; the processors' thermal limits.
  */
 
 #[path = "../../../../../../src/hardware/broker/acpi/button_owner.rs"]
 pub mod button_owner;
 #[path = "../../../../../../src/hardware/broker/acpi/dgon_wire.rs"]
 pub mod dgon_wire;
+#[path = "../../../../../../src/hardware/broker/acpi/leave_rule.rs"]
+pub mod leave_rule;
 #[path = "../../../../../../src/hardware/broker/acpi/loaded_rule.rs"]
 pub mod loaded_rule;
 #[path = "../../../../../../src/hardware/broker/acpi/numa_node.rs"]
