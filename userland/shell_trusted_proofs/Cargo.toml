@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the desktop shell's half of the trusted path:
+# the secure attention chord's states, when the chrome belongs in the
+# compositor's trusted band and how it moves there, and whose input is
+# believed. The shell's own files, included via #[path].
+[package]
+name = "shell_trusted_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

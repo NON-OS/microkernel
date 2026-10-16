@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod apps;
+pub mod attention;
 pub mod chrome;
 pub mod context;
 pub mod delete_prompt;
 pub mod dialog_keys;
 pub mod grab_rule;
 pub mod indicators;
+pub mod input_source_rule;
 pub mod instance;
 pub mod launch;
 pub mod launchpad_wheel;
@@ -40,6 +42,8 @@ pub mod toast;
 pub mod toasts;
 pub mod tool_apps;
 pub mod tray;
+pub mod trusted;
+pub mod trusted_rule;
 pub mod volume;
 pub mod wm_notice;
 

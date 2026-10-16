@@ -83,6 +83,7 @@ pub fn build_context(
         pending_pkg_install: None,
         live_prompt: crate::state::live_prompt::LivePrompt::new(),
         pending_delete: crate::state::delete_prompt::DeletePrompt::new(),
+        trusted: crate::state::trusted::Trusted::default(),
         dialog_focus: crate::state::dialog_keys::DialogFocus::new(),
     }
 }
