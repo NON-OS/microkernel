@@ -22,8 +22,10 @@
 
 use nonos_app_skeleton::log_line::{say as log, Line};
 
-use super::installed_launch::{already_running, boot, said, toast};
 use super::launch_children::new_child;
+use super::launch_find::already_running;
+use super::launch_say::{said, toast};
+use super::launch_wake::boot;
 use crate::installer_client::probe;
 use crate::state::launch::{Launch, Step};
 use crate::state::{Context, NotifyLevel, Uptime};

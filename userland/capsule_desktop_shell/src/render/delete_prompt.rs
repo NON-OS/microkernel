@@ -7,9 +7,8 @@
 
 use alloc::format;
 
-use super::consent::{
-    border, button, fill, line, margin, wrap_at, BORDER, CANCEL_BG, DIM, FG, PANEL,
-};
+use super::dialog_kit::{border, button, fill, margin, BORDER, CANCEL_BG, DIM, FG, PANEL};
+use super::dialog_text::{line, wrap_at};
 use crate::render::ui_font::{line_h, TITLE_PX, UI_PX};
 use crate::server::handlers::delete_prompt::{cancel_rect, delete_rect, panel_rect};
 use crate::state::dialog_keys::Choice;
