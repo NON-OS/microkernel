@@ -16,10 +16,12 @@
 //! A shared device's interfaces and the pipes each driver configured.
 
 use super::claims::Claims;
+use super::holders::Holders;
 use super::owners::Owners;
 
 #[derive(Default)]
 pub struct Sharing {
     pub claims: Claims,
     pub owners: Owners,
+    pub holders: Holders,
 }

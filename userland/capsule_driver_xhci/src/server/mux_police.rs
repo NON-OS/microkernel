@@ -14,22 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A request on a slot weighed before it reaches the controller: on a
-//! shared device only a claimant is served, and on a pipe only the one
-//! that configured it (slots/owners.rs). Every other device is served as
-//! before.
+//! device nobody claimed only the driver that enabled its slot is served,
+//! on a shared one only a claimant, and on a pipe only the one that
+//! configured it (slots/gate.rs).
+
+use nonos_libc::mk_pid_alive;
 
 use super::mux::Mux;
 use crate::protocol::Request;
 use crate::server::error::reply_with_status;
-use crate::slots::{use_of, Asker};
+use crate::slots::gate;
 
 impl Mux {
     /// True when the request was refused here.
     pub(super) fn police(&mut self, req: &Request, body: &[u8], pid: u32, tx: &mut [u8]) -> bool {
-        let Some((slot, u)) = use_of(req.op, body) else { return false };
-        let c = &self.share.claims;
-        let who = Asker { pid, shared: c.any(slot), holds: c.holds(slot, pid) };
-        match self.share.owners.admit(slot, u, who) {
+        match gate(&mut self.share, req.op, body, pid, |p| mk_pid_alive(p)) {
             Ok(()) => false,
             Err(e) => {
                 reply_with_status(tx, req, e);

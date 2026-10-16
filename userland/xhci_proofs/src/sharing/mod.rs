@@ -3,6 +3,9 @@
 //! of a shared slot's pipes.
 
 mod claims_tests;
+mod joined_tests;
 mod police_more_tests;
 mod police_tests;
 mod restart_tests;
+mod unclaimed_tests;
+mod wiring_tests;

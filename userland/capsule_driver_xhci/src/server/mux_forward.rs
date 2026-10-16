@@ -21,13 +21,16 @@
 use alloc::vec::Vec;
 
 use super::mux::{Mux, VSlot};
-use crate::protocol::{Request, E_INVAL, RESP_HDR_LEN, STATUS_LEN};
+use crate::protocol::{Request, E_INVAL, OP_ENABLE_SLOT, RESP_HDR_LEN, STATUS_LEN};
 use crate::server::dispatch::dispatch;
 use crate::server::error::reply_with_status;
 
 impl Mux {
     /// A request, a claimant's slot standing for the parked one it claimed.
     pub fn dispatch(&mut self, req: &Request, body: &[u8], tx: &mut [u8]) {
+        if req.op == OP_ENABLE_SLOT {
+            return self.enable_held(req, body, tx);
+        }
         if self.claim_ops(req, body, tx) || self.virtual_ops(req, body, tx) {
             return;
         }

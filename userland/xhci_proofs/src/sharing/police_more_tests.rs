@@ -18,14 +18,16 @@ fn an_isochronous_pipe_is_its_configurers_by_direction() {
 fn a_disabled_slot_forgets_its_pipes() {
     let mut s = composite_key();
     s.owners.forget(4);
+    s.holders.forget(4);
     s.claims.release(4, HID, |_| true);
     s.claims.release(4, FIDO, |_| true);
+    s.holders.set(4, STRANGER);
     assert_eq!(ask(&mut s, STRANGER, OP_INTERRUPT_IN, &[4, 3, 8, 0]), Ok(()), "a new device");
 }
 
 #[test]
 fn every_slot_op_names_its_pipe_and_others_none() {
-    use crate::slots::use_of as u;
+    use crate::slots::uses::use_of as u;
     assert_eq!(u(OP_BULK_OUT, &[4, 0x21]), u(OP_BULK_IN, &[4, 1]), "a stream is its pair's");
     assert_ne!(u(OP_BULK_IN, &[4, 0]), u(OP_BULK_IN, &[4, 1]));
     assert_eq!(u(OP_RESET_BULK, &[4, 0b10]), u(OP_BULK_IN, &[4, 1]));
