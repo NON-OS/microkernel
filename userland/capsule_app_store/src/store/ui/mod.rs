@@ -16,14 +16,14 @@
 
 //! The painter.
 
-pub mod chrome;
 mod card;
+pub mod chrome;
 mod counter;
 mod detail;
 mod frame;
 mod gates;
-mod headline;
 pub mod geometry;
+mod headline;
 mod hex;
 pub mod metrics;
 mod rows;

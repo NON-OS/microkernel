@@ -17,10 +17,13 @@
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
 
 use super::event::on_event;
-use super::fill_step::{Step, STEP_MS};
+use super::fill_step::STEP_MS;
 use super::manifest::manifest;
 use super::state::State;
 use super::ui::frame;
+
+#[path = "app_tick.rs"]
+mod app_tick;
 
 pub struct Store {
     state: State,
@@ -48,20 +51,7 @@ impl App for Store {
     /// makes after the first frame is up: the window never waits on the
     /// market to appear.
     fn on_tick(&mut self) -> bool {
-        /* A store opened before the market registered asks again, a tick
-         * at a time, rather than holding "not running yet" until r. */
-        if !self.state.loaded || self.state.market_not_up() {
-            self.state.refresh();
-            return true;
-        }
-        let moved = self.state.any_pending() && self.state.poll_pending();
-        let fetched = self.state.poll_fetch() | self.state.watch_order();
-        if moved {
-            // "install requested" is stale once the system has said more.
-            self.state.asked = None;
-        }
-        let filled = self.state.fill() == Step::Shown;
-        moved || fetched || filled
+        app_tick::tick(&mut self.state)
     }
     fn tick_interval_ms(&self) -> i64 {
         match !self.state.loaded || self.state.filling() {
