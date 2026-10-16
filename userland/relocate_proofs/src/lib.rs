@@ -5,6 +5,7 @@
 #[path = "../../../src/arch/aarch64/boot/relocate"]
 mod relocate {
     pub(crate) mod apply;
+    pub(crate) mod rebase;
     pub(crate) mod rela;
 }
 
@@ -16,3 +17,5 @@ mod hostile_tests;
 mod image_tests;
 #[cfg(test)]
 mod loaded;
+#[cfg(test)]
+mod rebase_tests;

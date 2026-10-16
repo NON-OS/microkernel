@@ -43,7 +43,7 @@ pub(crate) unsafe fn apply(relas: &[Rela], at: Placement) -> Result<usize, Refus
 }
 
 /// Checks one entry: RELATIVE, eight aligned bytes inside the image.
-fn place(r: &Rela, at: Placement) -> Result<(), Refused> {
+pub(super) fn place(r: &Rela, at: Placement) -> Result<(), Refused> {
     if r.info & 0xffff_ffff != R_AARCH64_RELATIVE {
         return Err(Refused::NotRelative);
     }
