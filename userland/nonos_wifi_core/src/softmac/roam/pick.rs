@@ -16,59 +16,40 @@
 
 //! Which AP heard in a look the station moves to. Only one of the same
 //! ESS counts (IEEE Std 802.11-2020, 11.3.5.4 reassociation is within an
-//! ESS): the same SSID, and an RSNE from which the person's policy selects
-//! exactly what the session runs, the same AKM, pairwise and group ciphers
-//! and management frame protection. A move to a network that would choose
-//! otherwise is a different join, not a roam. And it must be heard at
-//! least `HYSTERESIS_DB` stronger than the current AP, so two APs heard
-//! about the same do not take the station back and forth.
+//! ESS): the same SSID, an RSNE from which the session's own policy
+//! selects exactly the `Selection` it runs (AKM, pairwise and group
+//! ciphers, management frame protection, and SAE's hash-to-element), and
+//! the same group management cipher. A move to a network that would choose
+//! otherwise is a different join, not a roam. A candidate a roam already
+//! failed to is barred for the boot. And it must be heard at least
+//! `HYSTERESIS_DB` stronger than the current AP, so two APs heard about
+//! the same do not take the station back and forth.
 
-use alloc::vec::Vec;
-
-use crate::dot11::ies::{ap_rates, beacon_tags, find_element, EID_RSN, EID_RSNX};
+use super::offer::{group_mgmt_of, offered, Heard};
 use crate::dot11::parse::parse_beacon;
-use crate::regdom::Band;
-use crate::rsn::rsnxe::advertises_h2e;
-use crate::rsn::{parse_rsne, select, JoinPolicy, Selection};
+use crate::rsn::{JoinPolicy, Selection};
 
 pub const HYSTERESIS_DB: i16 = 8;
 
-/// One AP of the network heard in a look.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Heard {
-    pub bssid: [u8; 6],
-    pub band: Band,
-    pub channel: u8,
-    pub rssi_dbm: i8,
-    pub beacon: Vec<u8>,
-}
-
-/// What `policy` would select from the security `beacon` offers.
-pub fn offered(beacon: &[u8], policy: JoinPolicy) -> Option<Selection> {
-    let tags = beacon_tags(beacon)?;
-    let rsne = parse_rsne(&find_element(tags, EID_RSN)?[2..])?;
-    let rates = ap_rates(tags);
-    let h2e =
-        find_element(tags, EID_RSNX).is_some_and(|e| advertises_h2e(&e[2..])) || rates.requires_h2e;
-    select(&rsne, h2e, policy).ok()
+/// What a candidate must match: the session's network and security, and
+/// the APs already barred.
+pub struct Want<'a> {
+    pub ssid: &'a [u8],
+    pub runs: &'a Selection,
+    pub group_mgmt: Option<u32>,
+    pub policy: JoinPolicy,
+    pub barred: &'a [[u8; 6]],
 }
 
 /// The index of the AP to move to, if any: the strongest that qualifies.
-pub fn pick(
-    current: ([u8; 6], i16),
-    ssid: &[u8],
-    runs: &Selection,
-    policy: JoinPolicy,
-    heard: &[Heard],
-) -> Option<usize> {
-    let same = |s: Selection| {
-        (s.akm, s.pairwise, s.group, s.pmf) == (runs.akm, runs.pairwise, runs.group, runs.pmf)
-    };
+pub fn pick(current: ([u8; 6], i16), w: &Want, heard: &[Heard]) -> Option<usize> {
     let qualifies = |h: &Heard| {
         h.bssid != current.0
+            && !w.barred.contains(&h.bssid)
             && i16::from(h.rssi_dbm) >= current.1.saturating_add(HYSTERESIS_DB)
-            && parse_beacon(&h.beacon).is_some_and(|b| b.ssid == ssid && b.bssid == h.bssid)
-            && offered(&h.beacon, policy).is_some_and(same)
+            && parse_beacon(&h.beacon).is_some_and(|b| b.ssid == w.ssid && b.bssid == h.bssid)
+            && offered(&h.beacon, w.policy).as_ref() == Some(w.runs)
+            && group_mgmt_of(&h.beacon) == w.group_mgmt
     };
     (0..heard.len()).filter(|&i| qualifies(&heard[i])).max_by_key(|&i| heard[i].rssi_dbm)
 }

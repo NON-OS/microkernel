@@ -16,15 +16,17 @@
 
 //! The station's PMKSA cache. It is held in memory for this boot only and
 //! never written anywhere, as Bluetooth bonds are, and holds at most
-//! `PMKSA_MAX` entries, each for one AP of one network and the passphrase
-//! it was made with: a changed or wrong passphrase runs SAE again, and
-//! fails there, rather than joining on the old PMK. An entry older than
-//! the PMK lifetime is not offered. Every entry removed, replaced or
-//! outlived is wiped, and so is the whole cache when the person
-//! disconnects or the cache is dropped.
+//! `PMKSA_MAX` entries, each for one AP of one network, made from one
+//! station address with one passphrase: a changed or wrong passphrase runs
+//! SAE again, and fails there, rather than joining on the old PMK. The
+//! passphrase is named by its `Tag`; a cache with no tag key keeps
+//! nothing. An entry older than the PMK lifetime is not offered. Every
+//! entry removed, replaced or outlived is wiped, and so is the whole cache
+//! when the person disconnects or the cache is dropped.
 
 use super::entry::{Kept, Pmksa};
-use crate::wpa::sha256::hmac_sha256;
+use super::tag::Tag;
+use crate::vault::Vault;
 
 pub const PMKSA_MAX: usize = 4;
 /// dot11RSNAConfigPMKLifetime's default, 43200 s (802.11-2020, Annex C).
@@ -33,34 +35,38 @@ pub const PMK_LIFETIME_MS: u64 = 43_200_000;
 #[derive(Default)]
 pub struct PmksaCache {
     pub(super) kept: [Option<Kept>; PMKSA_MAX],
+    pub(super) key: Option<Vault<32>>,
 }
 
 impl PmksaCache {
-    /// The live entry for `bssid` in network `ssid` under passphrase `pass`.
+    /// The live entry for `bssid` in network `ssid`, made from station
+    /// `sta` under the passphrase `tag` names.
     pub fn find(
         &mut self,
-        bssid: &[u8; 6],
+        at: ([u8; 6], [u8; 6]),
         ssid: &[u8],
-        pass: &[u8],
-        now_ms: u64,
+        tag: &Tag,
+        now: u64,
     ) -> Option<Pmksa> {
-        self.expire(now_ms);
-        let k = self.kept[self.index(bssid, ssid)?]?;
-        (k.tag == hmac_sha256(ssid, pass)).then_some(k.sa)
+        let (bssid, sta) = at;
+        self.expire(now);
+        let k = self.kept[self.index(&bssid, ssid)?].as_ref()?;
+        (k.sta == sta && tag.same(&k.tag)).then_some(k.sa)
     }
 
     /// Keep `sa` for network `ssid`, in place of any entry for the same AP,
     /// else in a free place, else in place of the oldest.
-    pub fn keep(&mut self, ssid: &[u8], pass: &[u8], sa: Pmksa, now_ms: u64) {
-        if ssid.len() > 32 {
+    pub fn keep(&mut self, sta: [u8; 6], ssid: &[u8], tag: &Tag, sa: Pmksa, now_ms: u64) {
+        if ssid.len() > 32 || self.key.is_none() {
             return;
         }
         let slot =
             self.index(&sa.bssid, ssid).or_else(|| self.kept.iter().position(Option::is_none));
         let slot = slot.unwrap_or_else(|| self.oldest());
         self.remove_at(slot);
-        let tag = hmac_sha256(ssid, pass);
-        let mut k = Kept { ssid: [0; 32], ssid_len: ssid.len(), since_ms: now_ms, tag, sa };
+        let mut t = [0u8; 32];
+        t.copy_from_slice(tag.0.get());
+        let mut k = Kept { sta, ssid: [0; 32], ssid_len: ssid.len(), since_ms: now_ms, tag: t, sa };
         k.ssid[..ssid.len()].copy_from_slice(ssid);
         self.kept[slot] = Some(k);
     }

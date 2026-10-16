@@ -16,7 +16,7 @@
 
 mod air_tests;
 pub mod beacons;
-mod bench;
+pub mod bench;
 mod kit_tests;
 mod look_tests;
 mod pick_tests;
@@ -24,4 +24,4 @@ mod reassoc_tests;
 mod refuse_tests;
 mod sae_move_tests;
 mod signal_tests;
-mod two_aps;
+pub mod two_aps;

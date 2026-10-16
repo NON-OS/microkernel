@@ -55,13 +55,14 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
             akm: rep.akm.map_or(0, |a| a.suite_type()),
             ap_code: 0,
         };
+        let (now, joined) = (self.env.now_ms(), matches!(rep.outcome, Outcome::Joined { .. }));
+        let kit = joined.then(|| Kit::for_join(&req, &rep, &self.pmksa, r.ciphers(), now));
         match rep.outcome {
             Outcome::Joined { bssid, channel, tk, akm, supplicant } => {
                 let at = (j.band, if channel != 0 { channel } else { j.channel });
                 let net = (req.ssid, bssid, akm.suite_type());
-                let now = self.env.now_ms();
                 let mut s = Session::start(r.mac(), net, at, Keys { tk, supplicant }, now);
-                s.kit = Kit::for_join(&req, rep.selection, r.ciphers(), now);
+                s.kit = kit.flatten();
                 self.session = Some(s);
             }
             Outcome::Refused => {
